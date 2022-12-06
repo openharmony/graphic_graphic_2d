@@ -21,7 +21,6 @@
 #include <string>
 
 #include "animation/rs_animation.h"
-#include "animation/rs_animation_manager_map.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animator_map.h"
 #include "command/rs_node_command.h"
@@ -32,7 +31,6 @@
 #include "platform/common/rs_log.h"
 #include "render/rs_path.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "animation/rs_ui_animation_manager.h"
 #include "modifier/rs_property_modifier.h"
 
 namespace OHOS {
@@ -902,13 +900,6 @@ void RSNode::UpdateModifierMotionPathOption()
     }
 }
 
-void RSNode::UpdateExtendedModifier(const std::weak_ptr<RSModifier>& modifier)
-{
-    if (auto sharedModifier = modifier.lock()) {
-        sharedModifier->UpdateToRender();
-    }
-}
-
 std::string RSNode::DumpNode(int depth) const
 {
     std::stringstream ss;
@@ -937,6 +928,26 @@ std::vector<PropertyId> RSNode::GetModifierIds() const
         ids.push_back(id);
     }
     return ids;
+}
+
+void RSNode::MarkAllExtendModifierDirty()
+{
+    if (extendModifierisDirty_) {
+        return;
+    }
+
+    extendModifierisDirty_ = true;
+    for (auto& [id, modifier] : modifiers_) {
+        if (modifier->GetModifierType() < RSModifierType::CUSTOM) {
+            continue;
+        }
+        modifier->SetDirty(true);
+    }
+}
+
+void RSNode::ResetExtendModifierDirty()
+{
+    extendModifierisDirty_ = false;
 }
 } // namespace Rosen
 } // namespace OHOS

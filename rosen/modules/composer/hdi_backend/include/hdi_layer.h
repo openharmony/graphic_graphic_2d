@@ -19,12 +19,9 @@
 #include <array>
 #include <stdint.h>
 #include <surface.h>
-#include <surface_buffer.h>
-
-#include "surface_type.h"
-#include "display_type.h"
 #include "hdi_device.h"
 #include "hdi_layer_info.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -44,7 +41,7 @@ public:
     bool Init(const LayerInfoPtr &layerInfo);
     void MergeWithFramebufferFence(const sptr<SyncFence> &fbAcquireFence);
     void MergeWithLayerFence(const sptr<SyncFence> &layerReleaseFence);
-    void UpdateCompositionType(CompositionType type);
+    void UpdateCompositionType(GraphicCompositionType type);
 
     const LayerInfoPtr& GetLayerInfo();
     void SetLayerStatus(bool inUsing);
@@ -78,7 +75,7 @@ private:
     sptr<LayerBufferInfo> prevSbuffer_ = nullptr;
     LayerInfoPtr layerInfo_ = nullptr;
     LayerInfoPtr prevLayerInfo_ = nullptr;
-    PresentTimestampType supportedPresentTimestamptype_ = PresentTimestampType::HARDWARE_DISPLAY_PTS_UNSUPPORTED;
+    GraphicPresentTimestampType supportedPresentTimestamptype_ = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
     HdiDevice *device_ = nullptr;
     bool doLayerInfoCompare_ = false;
 
@@ -103,7 +100,7 @@ private:
     int32_t SetLayerTunnelHandle();
     int32_t SetLayerPresentTimestamp();
     int32_t InitDevice();
-    bool IsSameRect(const IRect& rect1, const IRect& rect2);
+    bool IsSameRect(const GraphicIRect& rect1, const GraphicIRect& rect2);
     bool IsSameLayerMetaData();
     bool IsSameLayerMetaDataSet();
     inline void CheckRet(int32_t ret, const char* func);

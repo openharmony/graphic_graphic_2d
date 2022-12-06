@@ -86,6 +86,8 @@ protected:
     virtual void OnCallFinishCallback() {}
     virtual void SetPropertyOnAllAnimationFinish() {}
 
+    void StartCustomAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
+
 private:
     static AnimationId GenerateId();
     const AnimationId id_;
@@ -102,7 +104,6 @@ private:
     friend class RSAnimationGroup;
     friend class RSNode;
     friend class RSImplicitAnimator;
-    friend class RSUIAnimationManager;
 };
 } // namespace Rosen
 } // namespace OHOS

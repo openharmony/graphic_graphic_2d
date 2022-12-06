@@ -51,11 +51,11 @@ HWTEST_F(OH_Drawing_TextShadowTest, OH_Drawing_TextShadowTest002, TestSize.Level
     OHOS::Rosen::Drawing::Point offset;
     TextShadow textShadow(Rosen::Drawing::Color::COLOR_BLACK, offset, 0.0);
     EXPECT_EQ(textShadow.hasShadow(), false);
-    textShadow.offset_.SetX(1.0f);
+    textShadow.blurRadius_ = 1.0f;
     EXPECT_EQ(textShadow.hasShadow(), true);
     textShadow.offset_.SetY(1.0f);
     EXPECT_EQ(textShadow.hasShadow(), true);
-    textShadow.blurRadius_ = 1.0f;
+    textShadow.offset_.SetX(1.0f);
     EXPECT_EQ(textShadow.hasShadow(), true);
 }
 
@@ -73,5 +73,17 @@ HWTEST_F(OH_Drawing_TextStyleTest, OH_Drawing_TextStyleTest001, TestSize.Level1)
     TextStyle textStyle;
     TextStyle textStyle2;
     EXPECT_EQ(textStyle.equals(textStyle2), true);
+}
+
+/*
+ * @tc.name: OH_Drawing_TextStyleTest002
+ * @tc.desc: test for TextStyle font features
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TextStyleTest, OH_Drawing_TextStyleTest002, TestSize.Level1)
+{
+    TextStyle textStyle;
+    std::string features = textStyle.fontFeatures_.GetFeatureSettings();
+    EXPECT_EQ(features.empty(), true);
 }
 }

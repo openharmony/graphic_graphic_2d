@@ -132,7 +132,7 @@ namespace OHOS {
         bufferqueue->SetProducerCacheCleanFlagLocked(flag);
         bufferqueue->Dump(result);
         bufferqueue->SetStatus(status);
-        ExtDataHandle *handle = AllocExtDataHandle(reserveInts);
+        OHExtDataHandle *handle = AllocExtDataHandle(reserveInts);
         sptr<SurfaceTunnelHandle> tunnelHandle = new SurfaceTunnelHandle();
         tunnelHandle->SetHandle(handle);
         bufferqueue->SetTunnelHandle(tunnelHandle);

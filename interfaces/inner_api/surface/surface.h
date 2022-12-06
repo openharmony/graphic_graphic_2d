@@ -100,7 +100,7 @@ public:
     virtual GSError GetMetaData(uint32_t sequence, std::vector<GraphicHDRMetaData> &metaData) const = 0;
     virtual GSError GetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey &key,
                                    std::vector<uint8_t> &metaData) const = 0;
-    virtual GSError SetTunnelHandle(const ExtDataHandle *handle) = 0;
+    virtual GSError SetTunnelHandle(const OHExtDataHandle *handle) = 0;
     virtual sptr<SurfaceTunnelHandle> GetTunnelHandle() const = 0;
     virtual GSError SetPresentTimestamp(uint32_t sequence, const GraphicPresentTimestamp &timestamp) = 0;
     virtual GSError GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type,

@@ -18,11 +18,10 @@
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 
-#include "animation/rs_animation_manager_map.h"
-#include "animation/rs_ui_animation_manager.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
 #include "modifier/rs_modifier_manager.h"
+#include "modifier/rs_modifier_manager_map.h"
 #include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
@@ -196,11 +195,13 @@ void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
 bool RSUIDirector::RunningCustomAnimation(uint64_t timeStamp)
 {
     bool hasRunningAnimation = false;
-    auto animationManager = RSAnimationManagerMap::Instance()->GetAnimationManager(gettid());
-    if (animationManager != nullptr) {
-        hasRunningAnimation = animationManager->Animate(timeStamp);
-        animationManager->Draw();
+    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    if (modifierManager == nullptr) {
+        return hasRunningAnimation;
     }
+
+    hasRunningAnimation = modifierManager->Animate(timeStamp);
+    modifierManager->Draw();
     return hasRunningAnimation;
 }
 

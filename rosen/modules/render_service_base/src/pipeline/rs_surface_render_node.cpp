@@ -306,12 +306,12 @@ void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
     }
 }
 
-BlendType RSSurfaceRenderNode::GetBlendType()
+GraphicBlendType RSSurfaceRenderNode::GetBlendType()
 {
     return blendType_;
 }
 
-void RSSurfaceRenderNode::SetBlendType(BlendType blendType)
+void RSSurfaceRenderNode::SetBlendType(GraphicBlendType blendType)
 {
     blendType_ = blendType;
 }

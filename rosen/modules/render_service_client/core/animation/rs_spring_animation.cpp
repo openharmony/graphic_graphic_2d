@@ -101,7 +101,7 @@ void RSSpringAnimation::StartRenderAnimation(const std::shared_ptr<RSRenderSprin
 
 void RSSpringAnimation::StartUIAnimation(const std::shared_ptr<RSRenderSpringAnimation>& animation)
 {
-    StartCustomPropertyAnimation(animation);
+    StartCustomAnimation(animation);
 }
 } // namespace Rosen
 } // namespace OHOS

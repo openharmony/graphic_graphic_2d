@@ -121,8 +121,8 @@ void DrawingSample::InitLayers(uint32_t screenId)
 
     std::unique_ptr<LayerContext>& drawLayer = drawLayersMap_[screenId];
     // launcher
-    drawLayer = std::make_unique<LayerContext>(IRect { 0, 0, displayWidth, displayHeight },
-        IRect { 0, 0, displayWidth, displayHeight }, 0, LayerType::LAYER_LAUNCHER);
+    drawLayer = std::make_unique<LayerContext>(GraphicIRect { 0, 0, displayWidth, displayHeight },
+        GraphicIRect { 0, 0, displayWidth, displayHeight }, 0, LayerType::LAYER_LAUNCHER);
 }
 
 void DrawingSample::Sync(int64_t, void* data)
@@ -160,7 +160,7 @@ void DrawingSample::Draw()
                 outputs.emplace_back(curOutput_);
                 curOutput_->SetLayerInfo(layerVec);
 
-                IRect damageRect;
+                GraphicIRect damageRect;
                 damageRect.x = 0;
                 damageRect.y = 0;
                 damageRect.w = static_cast<int32_t>(displayWidthsMap_[screenId]);
@@ -199,16 +199,16 @@ uint32_t DrawingSample::CreatePhysicalScreen()
                 break;
             }
         }
-        screen->SetScreenPowerStatus(DispPowerStatus::POWER_STATUS_ON);
+        screen->SetScreenPowerStatus(GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON);
         screen->SetScreenMode(currentModeIndex_);
         LOGI("SetScreenMode: currentModeIndex(%{public}d)", currentModeIndex_);
 
-        DispPowerStatus powerState;
+        GraphicDispPowerStatus powerState;
         screen->GetScreenPowerStatus(powerState);
         LOGI("get poweState:%{public}d", powerState);
     }
 
-    DisplayCapability info;
+    GraphicDisplayCapability info;
     screen->GetScreenCapability(info);
     LOGI("ScreenCapability: name(%{public}s), type(%{public}d), phyWidth(%{public}d), "
          "phyHeight(%{public}d)",

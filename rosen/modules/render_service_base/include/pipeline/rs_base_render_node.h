@@ -58,9 +58,9 @@ public:
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
 
     // return if any animation is running
-    virtual bool Animate(int64_t timestamp)
+    virtual std::pair<bool, bool> Animate(int64_t timestamp)
     {
-        return false;
+        return { false, false };
     }
 
     WeakPtr GetParent() const;

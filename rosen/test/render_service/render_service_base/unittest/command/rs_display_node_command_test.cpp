@@ -81,8 +81,21 @@ HWTEST_F(RSDisplayNodeCommandTest, TestRSDisplayNodeCommand003, TestSize.Level1)
 HWTEST_F(RSDisplayNodeCommandTest, TestRSDisplayNodeCommand004, TestSize.Level1)
 {
     RSContext context;
-    NodeId id = static_cast<NodeId>(-1);
-    RSDisplayNodeConfig config;
+    NodeId id = static_cast<NodeId>(1);
+    RSDisplayNodeConfig config { 0, true, 0 };
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
+}
+
+/**
+ * @tc.name: Create001
+ * @tc.desc: test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, Create001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RSDisplayNodeConfig config { 0, true, 0 };
+    DisplayNodeCommandHelper::Create(context, id, config);
 }
 } // namespace OHOS::Rosen

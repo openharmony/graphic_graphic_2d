@@ -65,9 +65,9 @@ void RSRenderNode::FallbackAnimationsToRoot()
     }
 }
 
-bool RSRenderNode::Animate(int64_t timestamp)
+std::pair<bool, bool> RSRenderNode::Animate(int64_t timestamp)
 {
-    return animationManager_.Animate(timestamp);
+    return animationManager_.Animate(timestamp, IsOnTheTree());
 }
 
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty)

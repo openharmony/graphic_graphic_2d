@@ -13,26 +13,26 @@
  * limitations under the License.
  */
 
-#include "animation/rs_animation_manager_map.h"
+#include "modifier/rs_modifier_manager_map.h"
 
-#include "animation/rs_ui_animation_manager.h"
+#include "modifier/rs_modifier_manager.h"
 
 namespace OHOS {
 namespace Rosen {
-std::shared_ptr<RSAnimationManagerMap> RSAnimationManagerMap::instance_ =
-    std::shared_ptr<RSAnimationManagerMap>(new RSAnimationManagerMap());
+std::shared_ptr<RSModifierManagerMap> RSModifierManagerMap::instance_ =
+    std::shared_ptr<RSModifierManagerMap>(new RSModifierManagerMap());
 
-std::shared_ptr<RSAnimationManagerMap>& RSAnimationManagerMap::Instance()
+std::shared_ptr<RSModifierManagerMap>& RSModifierManagerMap::Instance()
 {
     return instance_;
 }
 
-const std::shared_ptr<RSUIAnimationManager>& RSAnimationManagerMap::GetAnimationManager(const int32_t id)
+const std::shared_ptr<RSModifierManager>& RSModifierManagerMap::GetModifierManager(const int32_t id)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     auto& manager = managerMap_[id];
     if (manager == nullptr) {
-        manager = std::make_shared<RSUIAnimationManager>();
+        manager = std::make_shared<RSModifierManager>();
     }
     return manager;
 }

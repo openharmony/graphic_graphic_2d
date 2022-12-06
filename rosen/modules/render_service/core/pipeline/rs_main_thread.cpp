@@ -810,21 +810,24 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_LOGD("RSMainThread::Animate start, processing %d animating nodes", context_->animatingNodeList_.size());
 
     bool curWinAnim = false;
+    bool needRequestNextVsync = false;
     // iterate and animate all animating nodes, remove if animation finished
-    std::__libcpp_erase_if_container(context_->animatingNodeList_, [timestamp, &curWinAnim](const auto& iter) -> bool {
+    std::__libcpp_erase_if_container(context_->animatingNodeList_,
+        [timestamp, &curWinAnim, &needRequestNextVsync](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
             RS_LOGD("RSMainThread::Animate removing expired animating node");
             return true;
         }
-        bool animationFinished = !node->Animate(timestamp);
-        if (animationFinished) {
+        auto result = node->Animate(timestamp);
+        if (!result.first) {
             RS_LOGD("RSMainThread::Animate removing finished animating node %" PRIu64, node->GetId());
         }
+        needRequestNextVsync = needRequestNextVsync || result.second;
         if (node->template IsInstanceOf<RSSurfaceRenderNode>()) {
             curWinAnim = true;
         }
-        return animationFinished;
+        return !result.first;
     });
 
     if (!doWindowAnimate_ && curWinAnim && RSInnovation::UpdateQosVsyncEnabled()) {
@@ -833,8 +836,10 @@ void RSMainThread::Animate(uint64_t timestamp)
     doWindowAnimate_ = curWinAnim;
     RS_LOGD("RSMainThread::Animate end, %d animating nodes remains, has window animation: %d",
         context_->animatingNodeList_.size(), curWinAnim);
-
-    RequestNextVSync();
+    
+    if (needRequestNextVsync) {
+        RequestNextVSync();
+    }
     PerfAfterAnim();
 }
 

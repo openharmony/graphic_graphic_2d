@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <securec.h>
+
 #include "gtest/gtest.h"
 #include "include/render/rs_mask.h"
 
@@ -234,5 +236,38 @@ HWTEST_F(RSMaskTest, LifeCycle009, TestSize.Level1)
     SkPaint paint2;
     mask->SetMaskPaint(paint2);
     ASSERT_TRUE(mask->GetMaskPaint() == paint2);
+}
+
+/**
+ * @tc.name: MarshlingandUnMarshling001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaskTest, MarshlingandUnMarshling001, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. create RSMask by Gradient
+     */
+    SkPaint paint;
+    std::shared_ptr<RSMask> mask = RSMask::CreateGradientMask(paint);
+    ASSERT_TRUE(mask != nullptr);
+    Parcel parcel;
+    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
+    auto bufferSize = parcel.GetMaxCapacity();
+    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
+    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
+    bool ret = false;
+    parcel.SkipBytes(bufferSize);
+    while (!ret) {
+        size_t position = parcel.GetWritePosition();
+        ret = mask->Marshalling(parcel) & (RSMask::Unmarshalling(parcel) != nullptr);
+        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
+        if (!ret) {
+            parcel.RewindWrite(position);
+            parcel.RewindRead(bufferSize);
+        }
+    }
+    free(buffer);
+    ASSERT_TRUE(ret);
 }
 } // namespace OHOS::Rosen

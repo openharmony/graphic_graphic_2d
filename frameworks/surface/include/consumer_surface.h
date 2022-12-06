@@ -97,7 +97,7 @@ public:
     GSError GetMetaData(uint32_t sequence, std::vector<GraphicHDRMetaData> &metaData) const override;
     GSError GetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey &key,
                            std::vector<uint8_t> &metaData) const override;
-    GSError SetTunnelHandle(const ExtDataHandle *handle) override;
+    GSError SetTunnelHandle(const OHExtDataHandle *handle) override;
     sptr<SurfaceTunnelHandle> GetTunnelHandle() const override;
     GSError SetPresentTimestamp(uint32_t sequence, const GraphicPresentTimestamp &timestamp) override;
     GSError GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type, int64_t &time) const override;

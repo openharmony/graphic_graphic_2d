@@ -37,8 +37,8 @@ void HdiOutputSysTest::SetUpTestCase()
     std::vector<LayerInfoPtr> layerInfos;
     int32_t width = 50;
     int32_t height = 50;
-    IRect srcRect = {0, 0, width, height};
-    IRect dstRect = {0, 0, width, height};
+    GraphicIRect srcRect = {0, 0, width, height};
+    GraphicIRect dstRect = {0, 0, width, height};
     uint32_t zOrder = 0;
     std::shared_ptr<HdiLayerContext> hdiLayerTemp = std::make_unique<HdiLayerContext>(dstRect, srcRect, zOrder);
     hdiLayerTemp->DrawBufferColor();
@@ -68,7 +68,7 @@ HWTEST_F(HdiOutputSysTest, TestHdiOutput001, Function | MediumTest| Level3)
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->GetScreenId(), 0u);
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->Init(), ROSEN_ERROR_OK);
     uint32_t num = 1;
-    IRect iRect = {
+    GraphicIRect iRect = {
         .x = 0,
         .y = 0,
         .w = 800,
@@ -80,7 +80,7 @@ HWTEST_F(HdiOutputSysTest, TestHdiOutput001, Function | MediumTest| Level3)
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->GetOutputDamage().w, iRect.w);
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->GetOutputDamage().h, iRect.h);
 
-    IRect iRect1 = {
+    GraphicIRect iRect1 = {
         .x = 0,
         .y = 0,
         .w = 800,
@@ -89,7 +89,7 @@ HWTEST_F(HdiOutputSysTest, TestHdiOutput001, Function | MediumTest| Level3)
     HdiOutputSysTest::hdiOutput_->SetOutputDamage(num, iRect1);
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->GetOutputDamageNum(), 1u);
 
-    IRect iRect2 = {
+    GraphicIRect iRect2 = {
         .x = 0,
         .y = 0,
         .w = 800,

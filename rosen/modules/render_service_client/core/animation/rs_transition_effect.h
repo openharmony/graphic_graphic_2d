@@ -22,12 +22,12 @@
 #include "common/rs_macros.h"
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
-#include "modifier/rs_property.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSRenderTransitionEffect;
 class RSTransitionModifier;
+class RSPropertyBase;
 
 class RSCustomTransitionEffect final {
 public:

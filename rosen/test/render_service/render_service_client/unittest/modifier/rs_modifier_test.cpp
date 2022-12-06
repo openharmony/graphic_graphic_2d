@@ -18,6 +18,7 @@
 #include "core/transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_director.h"
+#include "modifier/rs_modifier_manager.h"
 #include "modifier/rs_property.h"
 #include "modifier/rs_property_modifier.h"
 

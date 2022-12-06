@@ -18,7 +18,6 @@
 #include <securec.h>
 
 #include "hdi_screen.h"
-#include "display_type.h"
 using namespace OHOS::Rosen;
 
 namespace OHOS {
@@ -69,7 +68,7 @@ namespace OHOS {
         uint32_t screenId = GetData<uint32_t>();
         uint32_t propId = GetData<uint32_t>();
         uint64_t value = GetData<uint64_t>();
-        InterfaceType type = GetData<InterfaceType>();
+        GraphicInterfaceType type = GetData<GraphicInterfaceType>();
         uint32_t phyWidth = GetData<uint32_t>();
         uint32_t phyHeight = GetData<uint32_t>();
         uint32_t supportLayers = GetData<uint32_t>();
@@ -77,15 +76,15 @@ namespace OHOS {
         bool supportWriteBack = GetData<bool>();
         uint32_t propertyCount = GetData<uint32_t>();
         uint32_t formatCount = GetData<uint32_t>();
-        HDRFormat formats = GetData<HDRFormat>();
+        GraphicHDRFormat formats = GetData<GraphicHDRFormat>();
         float maxLum = GetData<float>();
         float maxAverageLum = GetData<float>();
         float minLum = GetData<float>();
 
         // test
         std::unique_ptr<HdiScreen> hdiScreen = HdiScreen::CreateHdiScreen(screenId);
-        PropertyObject props = {"propName", propId, value};
-        DisplayCapability dcap = {
+        GraphicPropertyObject props = {"propName", propId, value};
+        GraphicDisplayCapability dcap = {
             .name = "dispName",
             .type = type,
             .phyWidth = phyWidth,
@@ -98,7 +97,7 @@ namespace OHOS {
         };
         hdiScreen->GetScreenCapability(dcap);
 
-        HDRCapability info = {
+        GraphicHDRCapability info = {
             .formatCount = formatCount,
             .formats = &formats,
             .maxLum = maxLum,
@@ -122,11 +121,11 @@ namespace OHOS {
         // get data
         uint32_t screenId = GetData<uint32_t>();
         uint32_t modeId = GetData<uint32_t>();
-        DispPowerStatus status = GetData<DispPowerStatus>();
+        GraphicDispPowerStatus status = GetData<GraphicDispPowerStatus>();
         uint32_t level = GetData<uint32_t>();
         bool enabled = GetData<bool>();
-        ColorGamut gamut = GetData<ColorGamut>();
-        GamutMap gamutMap = GetData<GamutMap>();
+        GraphicColorGamut gamut = GetData<GraphicColorGamut>();
+        GraphicGamutMap gamutMap = GetData<GraphicGamutMap>();
         float matrix = GetData<float>();
         uint32_t sequence = GetData<uint32_t>();
         uint64_t ns = GetData<uint64_t>();
@@ -149,8 +148,8 @@ namespace OHOS {
         hdiScreen->SetScreenColorTransform(&matrix);
         hdiScreen->OnVsync(sequence, ns, dt);
 
-        DisplayModeInfo mode = {width, height, freshRate, id};
-        std::vector<DisplayModeInfo> modes = {mode};
+        GraphicDisplayModeInfo mode = {width, height, freshRate, id};
+        std::vector<GraphicDisplayModeInfo> modes = {mode};
         hdiScreen->GetScreenSupportedModes(modes);
         hdiScreen->GetScreenMode(modeId);
         hdiScreen->GetScreenPowerStatus(status);

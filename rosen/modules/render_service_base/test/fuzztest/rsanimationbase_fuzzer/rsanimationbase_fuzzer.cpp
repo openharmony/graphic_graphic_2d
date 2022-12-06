@@ -112,7 +112,7 @@ namespace OHOS {
         animationManager->RemoveAnimation(keyId);
         animationManager->GetAnimation(id);
         animationManager->FilterAnimationByPid(pid);
-        animationManager->Animate(time);
+        animationManager->Animate(time, false);
         animationManager->RegisterSpringAnimation(propertyId, animId);
         animationManager->UnregisterSpringAnimation(propertyId, animId);
         animationManager->QuerySpringAnimation(propertyId);

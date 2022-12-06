@@ -15,9 +15,15 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <include/core/SkData.h>
+#include <include/core/SkDrawable.h>
+#include <include/core/SkMatrix.h>
 #include <include/core/SkPath.h>
+#include <include/core/SkPicture.h>
 #include <include/core/SkRRect.h>
+#include <include/core/SkRect.h>
 #include <include/core/SkRegion.h>
+#include <include/core/SkTextBlob.h>
 #include <src/core/SkDrawShadowInfo.h>
 #include <test_header.h>
 
@@ -189,6 +195,7 @@ HWTEST_F(RSListenedCanvasTest, onDrawRRect001, TestSize.Level1)
     SkRRect skRRect;
     RSListenedCanvas listenedCanvas(&skCanvas);
     auto listener = std::make_shared<MockRSCanvasListener>(skCanvas);
+    listenedCanvas.onDrawRRect(skRRect, skPaint);
     listenedCanvas.SetListener(listener);
     listenedCanvas.onDrawRRect(skRRect, skPaint);
 }
@@ -207,6 +214,7 @@ HWTEST_F(RSListenedCanvasTest, onDrawDRRect001, TestSize.Level1)
     SkRRect inner;
     RSListenedCanvas listenedCanvas(&skCanvas);
     auto listener = std::make_shared<MockRSCanvasListener>(skCanvas);
+    listenedCanvas.onDrawDRRect(outer, inner, skPaint);
     listenedCanvas.SetListener(listener);
     listenedCanvas.onDrawDRRect(outer, inner, skPaint);
 }
@@ -224,6 +232,7 @@ HWTEST_F(RSListenedCanvasTest, onDrawOval001, TestSize.Level1)
     SkRect rect;
     RSListenedCanvas listenedCanvas(&skCanvas);
     auto listener = std::make_shared<MockRSCanvasListener>(skCanvas);
+    listenedCanvas.onDrawOval(rect, skPaint);
     listenedCanvas.SetListener(listener);
     listenedCanvas.onDrawOval(rect, skPaint);
 }
@@ -244,6 +253,7 @@ HWTEST_F(RSListenedCanvasTest, onDrawArc001, TestSize.Level1)
     bool useCenter = false;
     RSListenedCanvas listenedCanvas(&skCanvas);
     auto listener = std::make_shared<MockRSCanvasListener>(skCanvas);
+    listenedCanvas.onDrawArc(rect, startAngle, sweepAngle, useCenter, skPaint);
     listenedCanvas.SetListener(listener);
     listenedCanvas.onDrawArc(rect, startAngle, sweepAngle, useCenter, skPaint);
 }
@@ -261,6 +271,7 @@ HWTEST_F(RSListenedCanvasTest, onDrawPath001, TestSize.Level1)
     SkPath path;
     RSListenedCanvas listenedCanvas(&skCanvas);
     auto listener = std::make_shared<MockRSCanvasListener>(skCanvas);
+    listenedCanvas.onDrawPath(path, paint);
     listenedCanvas.SetListener(listener);
     listenedCanvas.onDrawPath(path, paint);
 }
@@ -278,6 +289,7 @@ HWTEST_F(RSListenedCanvasTest, onDrawRegion001, TestSize.Level1)
     SkRegion region;
     RSListenedCanvas listenedCanvas(&skCanvas);
     auto listener = std::make_shared<MockRSCanvasListener>(skCanvas);
+    listenedCanvas.onDrawRegion(region, paint);
     listenedCanvas.SetListener(listener);
     listenedCanvas.onDrawRegion(region, paint);
 }
@@ -298,6 +310,7 @@ HWTEST_F(RSListenedCanvasTest, onDrawPoints001, TestSize.Level1)
     SkPoint point = SkPoint::Make(x, y);
     SkPoint pts[] = { point };
     RSListenedCanvas listenedCanvas(&skCanvas);
+    listenedCanvas.onDrawPoints(SkCanvas::PointMode::kLines_PointMode, count, pts, paint);
     auto listener = std::make_shared<MockRSCanvasListener>(skCanvas);
     listenedCanvas.SetListener(listener);
     listenedCanvas.onDrawPoints(SkCanvas::PointMode::kLines_PointMode, count, pts, paint);
@@ -315,9 +328,88 @@ HWTEST_F(RSListenedCanvasTest, onDrawShadowRec001, TestSize.Level1)
     SkPath path;
     SkDrawShadowRec rect;
     RSListenedCanvas listenedCanvas(&skCanvas);
+    listenedCanvas.onDrawShadowRec(path, rect);
     auto listener = std::make_shared<MockRSCanvasListener>(skCanvas);
     listenedCanvas.SetListener(listener);
     listenedCanvas.onDrawShadowRec(path, rect);
 }
+
+/**
+ * @tc.name: onDrawTextBlob001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSListenedCanvasTest, onDrawTextBlob001, TestSize.Level1)
+{
+    string out = "Hello";
+    sk_sp<SkTextBlob> SkTextBlob = SkTextBlob::MakeFromString(out.c_str(), SkFont(nullptr, 24.0f, 1.0f, 0.0f));
+    SkPaint paint;
+    MockSkCanvas skCanvas;
+    RSListenedCanvas listenedCanvas(&skCanvas);
+    listenedCanvas.onDrawTextBlob(SkTextBlob.get(), 1.f, 1.f, paint);
+    auto listener = std::make_shared<MockRSCanvasListener>(skCanvas);
+    listenedCanvas.SetListener(listener);
+    listenedCanvas.onDrawTextBlob(SkTextBlob.get(), 1.f, 1.f, paint);
+}
+
+/**
+ * @tc.name: onDrawAnnotation001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSListenedCanvasTest, onDrawAnnotation001, TestSize.Level1)
+{
+    MockSkCanvas skCanvas;
+    RSListenedCanvas listenedCanvas(&skCanvas);
+    SkRect rect = SkRect::MakeWH(1.f, 2.f);
+    const char key[] = { '1', '2' };
+    sk_sp<SkData> value = SkData::MakeEmpty();
+    listenedCanvas.onDrawAnnotation(rect, key, value.get());
+    auto listener = std::make_shared<MockRSCanvasListener>(skCanvas);
+    listenedCanvas.SetListener(listener);
+    listenedCanvas.onDrawAnnotation(rect, key, value.get());
+}
+
+/**
+ * @tc.name: onDrawDrawable001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSListenedCanvasTest, onDrawDrawable001, TestSize.Level1)
+{
+    MockSkCanvas skCanvas;
+    RSListenedCanvas listenedCanvas(&skCanvas);
+    char data[] = { '0', '0' };
+    sk_sp<SkDrawable> drawable = SkDrawable::Deserialize(data, sizeof(data));
+    SkMatrix matrix = SkMatrix::I();
+    listenedCanvas.onDrawDrawable(drawable.get(), &matrix);
+    auto listener = std::make_shared<MockRSCanvasListener>(skCanvas);
+    listenedCanvas.SetListener(listener);
+    listenedCanvas.onDrawDrawable(drawable.get(), &matrix);
+}
+
+/**
+ * @tc.name: onDrawPicture001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSListenedCanvasTest, onDrawPicture001, TestSize.Level1)
+{
+    MockSkCanvas skCanvas;
+    RSListenedCanvas listenedCanvas(&skCanvas);
+    SkRect rect = SkRect::MakeXYWH(1.f, 1.f, 2.f, 3.f);
+    sk_sp<SkPicture> skpicture = SkPicture::MakePlaceholder(rect);
+    SkMatrix matrix = SkMatrix::I();
+    SkPaint paint;
+    listenedCanvas.onDrawPicture(skpicture.get(), &matrix, &paint);
+    auto listener = std::make_shared<MockRSCanvasListener>(skCanvas);
+    listenedCanvas.SetListener(listener);
+    listenedCanvas.onDrawPicture(skpicture.get(), &matrix, &paint);
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -24,9 +24,11 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "rs_base_render_node_test.cpp",
     "rs_canvas_render_node_test.cpp",
     "rs_dirty_region_manager_test.cpp",
+    "rs_draw_cmd_list_test.cpp",
     "rs_frame_report_test.cpp",
     "rs_occlusion_config_test.cpp",
     "rs_paint_filter_canvas_test.cpp",
+    "rs_proxy_render_node_test.cpp",
     "rs_recording_canvas_test.cpp",
     "rs_render_node_test.cpp",
     "rs_surface_render_node_test.cpp",
@@ -40,12 +42,15 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
     "//foundation/graphic/graphic_2d/rosen/include",
     "//foundation/graphic/graphic_2d/rosen/test/include",
   ]
 
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_src",
     "//third_party/flutter/build/skia:ace_skia_ohos",
     "//third_party/googletest:gtest_main",
   ]

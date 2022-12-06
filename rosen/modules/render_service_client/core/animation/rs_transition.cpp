@@ -17,6 +17,7 @@
 
 #include "animation/rs_render_transition.h"
 #include "command/rs_animation_command.h"
+#include "modifier/rs_property.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
 
@@ -51,10 +52,6 @@ void RSTransition::OnUpdateStagingValue(bool isFirstStart)
 
 void RSTransition::StartCustomTransition()
 {
-    auto target = GetTarget().lock();
-    if (target == nullptr) {
-        return;
-    }
     std::vector<std::shared_ptr<RSRenderTransitionEffect>> transitionEffects;
     auto& customEffects = isTransitionIn_ ? effect_->customTransitionInEffects_ : effect_->customTransitionOutEffects_;
     for (auto& customEffect : customEffects) {
@@ -65,22 +62,7 @@ void RSTransition::StartCustomTransition()
     auto interpolator = timingCurve_.GetInterpolator(GetDuration());
     transition->SetInterpolator(interpolator);
     UpdateParamToRenderAnimation(transition);
-
-    auto uiAnimationManager = RSAnimationManagerMap::Instance()->GetAnimationManager(gettid());
-    if (uiAnimationManager == nullptr) {
-        ROSEN_LOGE("Failed to start custom transition, UI animation manager is null!");
-        return;
-    }
-    transition->SetFinishCallback([weakTransition = weak_from_this()]() {
-        auto transition = std::static_pointer_cast<RSTransition>(weakTransition.lock());
-        if (transition == nullptr) {
-            ROSEN_LOGE("Failed to call finish callback, UI transition is null!");
-            return;
-        }
-        transition->CallFinishCallback();
-    });
-    transition->Start();
-    uiAnimationManager->AddAnimation(transition);
+    StartCustomAnimation(transition);
 }
 
 void RSTransition::StartRenderTransition()

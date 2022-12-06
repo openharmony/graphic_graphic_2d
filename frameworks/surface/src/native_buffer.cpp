@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "native_buffer.h"
+#include "native_buffer_inner.h"
 
 #include <cinttypes>
 #include "surface_type.h"
@@ -29,6 +29,11 @@ static OH_NativeBuffer* OH_NativeBufferFromSurfaceBuffer(SurfaceBuffer* buffer)
 }
 
 static SurfaceBuffer* OH_NativeBufferToSurfaceBuffer(OH_NativeBuffer *buffer)
+{
+    return SurfaceBuffer::NativeBufferToSurfaceBuffer(buffer);
+}
+
+static const SurfaceBuffer* OH_NativeBufferToSurfaceBuffer(const OH_NativeBuffer *buffer)
 {
     return SurfaceBuffer::NativeBufferToSurfaceBuffer(buffer);
 }
@@ -131,4 +136,37 @@ uint32_t OH_NativeBuffer_GetSeqNum(OH_NativeBuffer *buffer)
     }
     const SurfaceBuffer* sbuffer = OH_NativeBufferToSurfaceBuffer(buffer);
     return sbuffer->GetSeqNum();
+}
+
+const BufferHandle* OH_NativeBuffer_GetBufferHandle(const OH_NativeBuffer *buffer)
+{
+    if (buffer == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return nullptr; 
+    }
+    const SurfaceBuffer* sbuffer = OH_NativeBufferToSurfaceBuffer(buffer);
+    return sbuffer->GetBufferHandle();
+}
+
+void OH_NativeBuffer_GetNativeBufferConfig(const OH_NativeBuffer *buffer, OH_NativeBuffer_Config* config)
+{
+    if (buffer == nullptr || config == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return;
+    }
+    const SurfaceBuffer* sbuffer = OH_NativeBufferToSurfaceBuffer(buffer);
+    config->width = sbuffer->GetWidth();
+    config->height = sbuffer->GetHeight();
+    config->format = sbuffer->GetFormat();
+    config->usage = sbuffer->GetUsage();
+}
+
+OH_NativeBuffer* OH_NativeBufferFromNativeWindowBuffer(OHNativeWindowBuffer* nativeWindowBuffer)
+{
+    if (nativeWindowBuffer == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return nullptr;
+    }
+    OH_NativeBuffer* buffer = OH_NativeBufferFromSurfaceBuffer(nativeWindowBuffer->sfbuffer);
+    return buffer;
 }

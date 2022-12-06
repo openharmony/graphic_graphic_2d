@@ -247,7 +247,7 @@ SurfaceError RenderContextSample::ProduceDrawingBuffer(uint32_t width, uint32_t 
 bool RenderContextSample::DrawBackgroundLayer(std::shared_ptr<HdiLayerInfo> &layer)
 {
     int32_t zorder = 0;
-    IRect dstRect;
+    GraphicIRect dstRect;
 
     dstRect.x = 0;  // Absolute coordinates, with offset
     dstRect.y = 0;
@@ -263,7 +263,7 @@ bool RenderContextSample::DrawBackgroundLayer(std::shared_ptr<HdiLayerInfo> &lay
 bool RenderContextSample::DrawDrawingLayer(std::shared_ptr<HdiLayerInfo> &layer)
 {
     int32_t zorder = 1;
-    IRect dstRect;
+    GraphicIRect dstRect;
 
     dstRect.x = 0;  // Absolute coordinates, with offset
     dstRect.y = 0;
@@ -300,7 +300,7 @@ void RenderContextSample::Draw()
 
         output_->SetLayerInfo(layers);
 
-        IRect damageRect;
+        GraphicIRect damageRect;
         damageRect.x = 0;
         damageRect.y = 0;
         damageRect.w = display_w;
@@ -320,7 +320,7 @@ void RenderContextSample::Draw()
 }
 
 bool RenderContextSample::FillDrawingLayer(std::shared_ptr<HdiLayerInfo> &showLayer, uint32_t index,
-    uint32_t zorder, IRect &dstRect)
+    uint32_t zorder, GraphicIRect &dstRect)
 {
     if (ProduceDrawingBuffer(drawingWidth, drawingHeight) != SURFACE_ERROR_OK) {
         std::cout << "FillDrawingLayer produce cBuffer failed" << std::endl;
@@ -338,13 +338,13 @@ bool RenderContextSample::FillDrawingLayer(std::shared_ptr<HdiLayerInfo> &showLa
         return false;
     }
 
-    IRect srcRect;
+    GraphicIRect srcRect;
     srcRect.x = 0;
     srcRect.y = 0;
     srcRect.w = drawingWidth;
     srcRect.h = drawingHeight;
 
-    LayerAlpha alpha = { .enPixelAlpha = true };
+    GraphicLayerAlpha alpha = { .enPixelAlpha = true };
 
     showLayer->SetSurface(drawingCSurface);
     showLayer->SetBuffer(cbuffer, acquireSyncFence);
@@ -365,7 +365,8 @@ bool RenderContextSample::FillDrawingLayer(std::shared_ptr<HdiLayerInfo> &showLa
     return true;
 }
 
-bool RenderContextSample::FillBackGroundLayer(std::shared_ptr<HdiLayerInfo> &showLayer, uint32_t zorder, IRect &dstRect)
+bool RenderContextSample::FillBackGroundLayer(std::shared_ptr<HdiLayerInfo> &showLayer,
+                                              uint32_t zorder, GraphicIRect &dstRect)
 {
     if (ProduceBackGroundBuffer(dstRect.w, dstRect.h) != SURFACE_ERROR_OK) {
         std::cout << "Produce background cBuffer failed" << std::endl;
@@ -383,23 +384,23 @@ bool RenderContextSample::FillBackGroundLayer(std::shared_ptr<HdiLayerInfo> &sho
         return false;
     }
 
-    IRect srcRect;
+    GraphicIRect srcRect;
     srcRect.x = 0;
     srcRect.y = 0;
     srcRect.w = dstRect.w;
     srcRect.h = dstRect.h;
 
-    LayerAlpha alpha = { .enPixelAlpha = true };
+    GraphicLayerAlpha alpha = { .enPixelAlpha = true };
 
     showLayer->SetSurface(backGroundCSurface);
     showLayer->SetBuffer(cbuffer, acquireSyncFence);
     showLayer->SetZorder(zorder);
     showLayer->SetAlpha(alpha);
-    showLayer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
+    showLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     showLayer->SetVisibleRegion(1, srcRect);
     showLayer->SetDirtyRegion(srcRect);
     showLayer->SetLayerSize(dstRect);
-    showLayer->SetBlendType(BlendType::BLEND_SRC);
+    showLayer->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRC);
     showLayer->SetCropRect(srcRect);
     showLayer->SetPreMulti(false);
 
@@ -426,15 +427,15 @@ void RenderContextSample::CreatePhysicalScreen()
                 this->display_h = displayModeInfos_[i].height;
             }
         }
-        screen_->SetScreenPowerStatus(DispPowerStatus::POWER_STATUS_ON);
+        screen_->SetScreenPowerStatus(GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON);
         screen_->SetScreenMode(currentModeIndex_);
 
-        DispPowerStatus powerState;
-        screen_->SetScreenPowerStatus(DispPowerStatus::POWER_STATUS_ON);
+        GraphicDispPowerStatus powerState;
+        screen_->SetScreenPowerStatus(GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON);
         screen_->GetScreenPowerStatus(powerState);
     }
 
-    DisplayCapability info;
+    GraphicDisplayCapability info;
     screen_->GetScreenCapability(info);
 
     ready_ = true;

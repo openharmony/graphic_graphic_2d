@@ -29,14 +29,14 @@ public:
     static void TearDownTestCase();
 
     static inline std::unique_ptr<HdiScreen> hdiScreen_;
-    static inline MockSys::HdiDevice* mockDevice_;
+    static inline MockSys::HdiDeviceMock* mockDevice_;
 };
 
 void HdiScreenSysTest::SetUpTestCase()
 {
     uint32_t screenId = 0;
     hdiScreen_ = HdiScreen::CreateHdiScreen(screenId);
-    mockDevice_ = MockSys::HdiDevice::GetInstance();
+    mockDevice_ = MockSys::HdiDeviceMock::GetInstance();
 
     EXPECT_CALL(*mockDevice_, GetScreenCapability(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, GetScreenSupportedModes(_, _)).WillRepeatedly(testing::Return(0));
@@ -64,9 +64,9 @@ HWTEST_F(HdiScreenSysTest, TestHdiScreen001, Function | MediumTest| Level3)
 {
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->Init(), true);
 
-    DisplayCapability displayCapability = {
+    GraphicDisplayCapability displayCapability = {
         .name = "test",
-        .type = InterfaceType::DISP_INTF_BT1120,
+        .type = GraphicInterfaceType::GRAPHIC_DISP_INTF_BT1120,
         .phyWidth = 800,
         .phyHeight = 600,
         .supportLayers = 1,
@@ -77,20 +77,20 @@ HWTEST_F(HdiScreenSysTest, TestHdiScreen001, Function | MediumTest| Level3)
     };
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->GetScreenCapability(displayCapability), 0);
 
-    DisplayModeInfo displayModeInfo = {
+    GraphicDisplayModeInfo displayModeInfo = {
         .width = 800,
         .height = 600,
         .freshRate = 60,
         .id = 0,
     };
-    std::vector<DisplayModeInfo> modeInfo = { displayModeInfo };
+    std::vector<GraphicDisplayModeInfo> modeInfo = { displayModeInfo };
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->GetScreenSupportedModes(modeInfo), 0);
 
     uint32_t modeId = 0;
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->SetScreenMode(modeId), 0);
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->GetScreenMode(modeId), 0);
 
-    DispPowerStatus dispPowerStatus = DispPowerStatus::POWER_STATUS_ON;
+    GraphicDispPowerStatus dispPowerStatus = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->SetScreenPowerStatus(dispPowerStatus), 0);
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->GetScreenPowerStatus(dispPowerStatus), 0);
 

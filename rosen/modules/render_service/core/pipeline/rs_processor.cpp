@@ -20,6 +20,11 @@
 #include "rs_base_render_util.h"
 #include "rs_main_thread.h"
 #include "socperf_client.h"
+#if FRAME_AWARE_TRACE
+#include "frame_trace.h"
+
+using namespace FRAME_TRACE;
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -33,7 +38,41 @@ constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
 constexpr int64_t PERF_TIME_OUT = 950;
 constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
 constexpr uint32_t PERF_LAYER_START_NUM = 7;
+#if FRAME_AWARE_TRACE
+constexpr uint32_t FRAME_TRACE_LAYER_NUM = 11;
+constexpr int32_t FRAME_TRACE_PERF_REQUESTED_CODE = 10024;
+#endif
 }
+
+#if FRAME_AWARE_TRACE
+bool RSProcessor::FrameAwareTraceBoost(size_t layerNum)
+{
+    if (layerNum != FRAME_TRACE_LAYER_NUM) {
+        if (FrameAwareTraceIsOpen()) {
+            FrameAwareTraceClose();
+            OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(FRAME_TRACE_PERF_REQUESTED_CODE, false, "");
+            RS_LOGI("RsDebug RSProcessor::Perf: FrameTrace 0");
+        }
+        return false;
+    }
+
+    static std::chrono::steady_clock::time_point lastRequestPerfTime = std::chrono::steady_clock::now();
+    auto currentTime = std::chrono::steady_clock::now();
+    bool isTimeOut = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastRequestPerfTime).
+        count() > PERF_TIME_OUT;
+    bool isOpen = FrameAwareTraceIsOpen();
+    if (isTimeOut || !isOpen) {
+        if (!isOpen) {
+            FrameAwareTraceOpen();
+        }
+        OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(FRAME_TRACE_PERF_REQUESTED_CODE, true, "");
+        RS_LOGI("RsDebug RSProcessor::Perf: FrameTrace 1");
+        lastRequestPerfTime = currentTime;
+    }
+    return true;
+}
+#endif
+
 void RSProcessor::RequestPerf(uint32_t layerLevel, bool onOffTag)
 {
     switch (layerLevel) {
@@ -125,6 +164,11 @@ void RSProcessor::CalculateMirrorAdaptiveCoefficient(float curWidth, float curHe
 
 void RSProcessor::MultiLayersPerf(size_t layerNum)
 {
+#if FRAME_AWARE_TRACE
+    if (FrameAwareTraceBoost(layerNum)) {
+        return;
+    }
+#endif
     static uint32_t lastLayerLevel = 0;
     static std::chrono::steady_clock::time_point lastRequestPerfTime = std::chrono::steady_clock::now();
     auto curLayerLevel = layerNum / PERF_LEVEL_INTERVAL;

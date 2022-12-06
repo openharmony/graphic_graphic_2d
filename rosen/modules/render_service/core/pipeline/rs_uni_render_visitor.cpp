@@ -381,7 +381,9 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 
     // [planning] Remove this after skia is upgraded, the clipRegion is supported
     if (node.GetRenderProperties().NeedFilter()) {
-        needFilter_ = true;
+        if (!(curSurfaceNode_ && curSurfaceNode_->IsAppFreeze())) {
+            needFilter_ = true;
+        }
         filterRects_[curSurfaceNode_->GetId()].push_back(node.GetOldDirtyInSurface());
     }
     curAlpha_ = alpha;
@@ -665,7 +667,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     // We should release DisplayNode's surface buffer after PostProcess(),
     // since the buffer's releaseFence was set in PostProcess().
     auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
-    (void)RSBaseRenderUtil::ReleaseBuffer(surfaceHandler);
+    (void)RSUniRenderUtil::ReleaseBuffer(surfaceHandler);
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
 }
 
@@ -941,8 +943,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 
     if (node.IsAppWindow()) {
-        auto visibleDirtyRegions = node.GetVisibleDirtyRegion().GetRegionRects();
-        for (auto rect : visibleDirtyRegions) {
+        auto visibleRegions = node.GetVisibleRegion().GetRegionRects();
+        for (auto rect : visibleRegions) {
             canvas_->GetVisibleRects().emplace_back(
                 SkRect::MakeLTRB(rect.left_, rect.top_, rect.right_, rect.bottom_));
         }

@@ -15,9 +15,13 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <include/core/SkDrawable.h>
+#include <include/core/SkMatrix.h>
 #include <include/core/SkPath.h>
+#include <include/core/SkPicture.h>
 #include <include/core/SkRRect.h>
 #include <include/core/SkRegion.h>
+#include <include/core/SkTextBlob.h>
 #include <test_header.h>
 
 #include "overdraw/rs_cpu_overdraw_canvas_listener.h"
@@ -146,6 +150,46 @@ HWTEST_F(RSCPUOverdrawCanvasListenerTest, onDrawTextBlob001, TestSize.Level1)
     SkPaint paint;
     RSCPUOverdrawCanvasListener listener(canvas);
     listener.onDrawTextBlob(nullptr, x, y, paint);
+    string out = "Hello";
+    sk_sp<SkTextBlob> SkTextBlob = SkTextBlob::MakeFromString(out.c_str(), SkFont(nullptr, 24.0f, 1.0f, 0.0f));
+    listener.onDrawTextBlob(SkTextBlob.get(), x, y, paint);
+}
+
+/**
+ * @tc.name: onDrawDrawable001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCPUOverdrawCanvasListenerTest, onDrawDrawable001, TestSize.Level1)
+{
+    MockSkCanvas canvas;
+    RSCPUOverdrawCanvasListener listener(canvas);
+    SkMatrix matrix = SkMatrix::I();
+    listener.onDrawDrawable(nullptr, &matrix);
+    const char data[] = { '0', '0' };
+    sk_sp<SkDrawable> inSkDrawable = SkDrawable::Deserialize(data, sizeof(data));
+    listener.onDrawDrawable(inSkDrawable.get(), nullptr);
+    listener.onDrawDrawable(inSkDrawable.get(), &matrix);
+}
+
+/**
+ * @tc.name: onDrawPicture001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCPUOverdrawCanvasListenerTest, onDrawPicture001, TestSize.Level1)
+{
+    MockSkCanvas canvas;
+    RSCPUOverdrawCanvasListener listener(canvas);
+    SkMatrix matrix = SkMatrix::I();
+    SkPaint paint;
+    listener.onDrawPicture(nullptr, &matrix, &paint);
+    SkRect rect = SkRect::MakeXYWH(1.f, 1.f, 2.f, 3.f);
+    sk_sp<SkPicture> skpicture = SkPicture::MakePlaceholder(rect);
+    listener.onDrawPicture(skpicture.get(), nullptr, nullptr);
+    listener.onDrawPicture(skpicture.get(), &matrix, &paint);
 }
 
 /**

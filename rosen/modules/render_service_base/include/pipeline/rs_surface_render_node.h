@@ -282,8 +282,8 @@ public:
 
     void UpdateSurfaceDefaultSize(float width, float height);
 
-    BlendType GetBlendType();
-    void SetBlendType(BlendType blendType);
+    GraphicBlendType GetBlendType();
+    void SetBlendType(GraphicBlendType blendType);
 
     // Only SurfaceNode in RS calls "RegisterBufferAvailableListener"
     // to save callback method sent by RT or UI which depends on the value of "isFromRenderThread".
@@ -523,11 +523,11 @@ public:
 
     bool IsStartAnimationFinished() const;
     void SetStartAnimationFinished();
-
-    void SetCachedResource(SurfaceNodeResource resourceTuple)
+    void SetCachedResource(SurfaceNodeResource resource)
     {
+        SetDirty();
         std::lock_guard<std::mutex> lock(cachedResourceMutex_);
-        cachedResource_ = resourceTuple;
+        cachedResource_ = resource;
     }
 
     SurfaceNodeResource GetCachedResource() const
@@ -568,7 +568,7 @@ private:
 
     std::string name_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
-    BlendType blendType_ = BlendType::BLEND_SRCOVER;
+    GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
     bool isNotifyRTBufferAvailablePre_ = false;
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
     std::atomic<bool> isNotifyUIBufferAvailable_ = false;

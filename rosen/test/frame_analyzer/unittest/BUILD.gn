@@ -16,7 +16,10 @@ import("//build/test.gni")
 ohos_unittest("frame_analyzer_test") {
   module_out_path = "graphic_standard/rosen/modules/frame_analyzer"
 
-  sources = [ "frame_collector_test.cpp" ]
+  sources = [
+    "frame_collector_test.cpp",
+    "frame_painter_test.cpp",
+  ]
 
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/frame_analyzer:libframe_analyzer",

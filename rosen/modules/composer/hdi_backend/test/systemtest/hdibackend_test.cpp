@@ -28,7 +28,7 @@ public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     static inline HdiBackend* hdiBackend_ = nullptr;
-    static inline MockSys::HdiDevice* mockDevice_ = nullptr;
+    static inline MockSys::HdiDeviceMock* mockDevice_ = nullptr;
     static inline std::shared_ptr<HdiOutput> output_ = nullptr;
     static inline std::shared_ptr<MockSys::HdiLayerContext> hdiLayerTemp_ = nullptr;
 };
@@ -41,8 +41,8 @@ void HdiBackendSysTest::SetUpTestCase()
     std::vector<LayerInfoPtr> layerInfos;
     int32_t width = 50;
     int32_t height = 50;
-    IRect srcRect = {0, 0, width, height};
-    IRect dstRect = {0, 0, width, height};
+    GraphicIRect srcRect = {0, 0, width, height};
+    GraphicIRect dstRect = {0, 0, width, height};
     uint32_t zOrder = 0;
     
     hdiLayerTemp_ = std::make_unique<MockSys::HdiLayerContext>(dstRect, srcRect, zOrder);
@@ -60,7 +60,7 @@ void HdiBackendSysTest::SetUpTestCase()
     // mockDevice_ is nullptr
     hdiBackend_->SetHdiBackendDevice(mockDevice_);
     // init mockDevice_
-    mockDevice_ = MockSys::HdiDevice::GetInstance();
+    mockDevice_ = MockSys::HdiDeviceMock::GetInstance();
     hdiBackend_->SetHdiBackendDevice(mockDevice_);
     // the device_ in hdiBackend_ is not nullptr alredy
     hdiBackend_->SetHdiBackendDevice(mockDevice_);
@@ -93,7 +93,7 @@ HWTEST_F(HdiBackendSysTest, RegScreenHotplug001, Function | MediumTest| Level3)
     for (auto iter = layersMap.begin(); iter != layersMap.end(); iter++) {
         uint32_t layerId = iter->first;
         layersId.emplace_back(layerId);
-        types.emplace_back(CompositionType::COMPOSITION_CLIENT);
+        types.emplace_back(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     }
     EXPECT_CALL(*mockDevice_, GetScreenCompChange(_, layersId, types)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, Commit(_, _)).WillRepeatedly(testing::Return(0));

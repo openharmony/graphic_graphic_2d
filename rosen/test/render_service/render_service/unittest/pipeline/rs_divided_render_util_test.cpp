@@ -148,8 +148,8 @@ HWTEST_F(RSDividedRenderUtilTest, IsNeedClient07, Function | SmallTest | Level2)
 HWTEST_F(RSDividedRenderUtilTest, IsNeedClient08, Function | SmallTest | Level2)
 {
     ComposeInfo info;
-    info.srcRect = IRect {0, 0, 100, 100};
-    info.dstRect = IRect {0, 0, 200, 200};
+    info.srcRect = GraphicIRect {0, 0, 100, 100};
+    info.dstRect = GraphicIRect {0, 0, 200, 200};
     node_->GetMutableRenderProperties().SetBackgroundColor(RgbPalette::White());
     node_->GetMutableRenderProperties().SetFrameGravity(Gravity::TOP_LEFT);
     bool needClient = RSDividedRenderUtil::IsNeedClient(*node_, info);

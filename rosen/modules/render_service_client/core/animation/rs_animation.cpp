@@ -19,6 +19,8 @@
 #include "animation/rs_animation_common.h"
 #include "animation/rs_render_animation.h"
 #include "command/rs_animation_command.h"
+#include "modifier/rs_modifier_manager.h"
+#include "modifier/rs_modifier_manager_map.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
@@ -367,6 +369,26 @@ void RSAnimation::UpdateParamToRenderAnimation(const std::shared_ptr<RSRenderAni
     animation->SetSpeed(GetSpeed());
     animation->SetDirection(GetDirection());
     animation->SetFillMode(GetFillMode());
+}
+
+void RSAnimation::StartCustomAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
+{
+    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    if (modifierManager == nullptr) {
+        ROSEN_LOGE("Failed to start custom animation, modifier manager is null  animationId: %llu!", GetId());
+        return;
+    }
+
+    auto finishCallback = [weak = weak_from_this()]() {
+        auto animation = weak.lock();
+        if (animation == nullptr) {
+            return;
+        }
+        animation->CallFinishCallback();
+    };
+    animation->SetFinishCallback(finishCallback);
+    animation->Start();
+    modifierManager->AddAnimation(animation);
 }
 } // namespace Rosen
 } // namespace OHOS

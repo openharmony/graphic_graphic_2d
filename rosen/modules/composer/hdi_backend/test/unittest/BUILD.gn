@@ -20,7 +20,6 @@ group("unittest") {
 
   deps = [
     ":hdibackend_unit_test",
-    ":hdidevice_unit_test",
     ":hdiframebuffersurface_unit_test",
     ":hdilayer_unit_test",
     ":hdilayerinfo_unit_test",

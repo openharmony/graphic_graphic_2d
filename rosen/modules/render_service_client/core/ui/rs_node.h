@@ -206,7 +206,8 @@ private:
     const std::shared_ptr<RSModifier> GetModifier(const PropertyId& propertyId);
     virtual void OnBoundsSizeChanged() const {};
     void UpdateModifierMotionPathOption();
-    void UpdateExtendedModifier(const std::weak_ptr<RSModifier>& modifier);
+    void MarkAllExtendModifierDirty();
+    void ResetExtendModifierDirty();
 
     // Planning: refactor RSUIAnimationManager and remove this method
     void ClearAllModifiers();
@@ -221,6 +222,7 @@ private:
     pid_t implicitAnimatorTid_ = 0;
     std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
+    bool extendModifierisDirty_ { false };
 
     RSModifierExtractor stagingPropertiesExtractor_;
 
@@ -229,6 +231,7 @@ private:
     friend class RSKeyframeAnimation;
     friend class RSPropertyAnimation;
     friend class RSSpringAnimation;
+    friend class RSPropertyBase;
     template<typename T>
     friend class RSProperty;
     template<typename T>
@@ -239,6 +242,7 @@ private:
     friend class RSUIDirector;
     friend class RSImplicitAnimator;
     friend class RSModifierExtractor;
+    friend class RSModifier;
 };
 } // namespace Rosen
 } // namespace OHOS

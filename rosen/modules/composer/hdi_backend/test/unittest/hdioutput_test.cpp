@@ -137,7 +137,7 @@ HWTEST_F(HdiOutputTest, ReleaseFramebuffer002, Function | MediumTest| Level1)
 HWTEST_F(HdiOutputTest, GetOutputDamage001, Function | MediumTest| Level3)
 {
     uint32_t num = 1;
-    IRect iRect = {
+    GraphicIRect iRect = {
         .x = 0,
         .y = 0,
         .w = 800,
@@ -162,7 +162,7 @@ HWTEST_F(HdiOutputTest, GetOutputDamage001, Function | MediumTest| Level3)
 HWTEST_F(HdiOutputTest, GetOutputDamageNum001, Function | MediumTest| Level3)
 {
     uint32_t num = 1;
-    IRect iRect = {
+    GraphicIRect iRect = {
         .x = 0,
         .y = 0,
         .w = 800,
