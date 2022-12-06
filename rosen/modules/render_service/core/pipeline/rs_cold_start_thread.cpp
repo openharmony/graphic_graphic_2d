@@ -78,11 +78,11 @@ void RSColdStartThread::Stop()
     if (handler_ != nullptr) {
         handler_->PostSyncTask([this]() {
             RS_TRACE_NAME_FMT("RSColdStartThread abandonContext"); // abandonContext here to avoid crash
-            RS_LOGD("RSColdStartThread abandonContext");
+            RS_LOGD("RSColdStartThread releaseResourcesAndAbandonContext");
             for (auto& resource : resourceVector_) {
                 auto grContext = resource.grContext;
                 if (grContext != nullptr) {
-                    grContext->abandonContext();
+                    grContext->releaseResourcesAndAbandonContext();
                 }
             }
             resourceVector_.clear();
