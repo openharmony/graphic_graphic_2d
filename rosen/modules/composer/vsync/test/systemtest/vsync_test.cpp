@@ -47,16 +47,18 @@ class VSyncTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
+    void SetUp();
+    void TearDown();
     pid_t ChildProcessMain();
     static void ThreadMain();
 
-    static inline sptr<VSyncController> appController = nullptr;
-    static inline sptr<VSyncController> rsController = nullptr;
-    static inline sptr<VSyncDistributor> appDistributor = nullptr;
-    static inline sptr<VSyncDistributor> rsDistributor = nullptr;
-    static inline sptr<VSyncGenerator> vsyncGenerator = nullptr;
+    sptr<VSyncController> appController = nullptr;
+    sptr<VSyncController> rsController = nullptr;
+    sptr<VSyncDistributor> appDistributor = nullptr;
+    sptr<VSyncDistributor> rsDistributor = nullptr;
+    sptr<VSyncGenerator> vsyncGenerator = nullptr;
     static inline sptr<VSyncSampler> vsyncSampler = nullptr;
-    static inline std::thread samplerThread;
+    std::thread samplerThread;
 
     static inline int32_t pipeFd[2] = {};
     static inline int32_t ipcSystemAbilityID = 34156;
@@ -64,8 +66,17 @@ public:
 
 void VSyncTest::SetUpTestCase()
 {
-    vsyncGenerator = CreateVSyncGenerator();
     vsyncSampler = CreateVSyncSampler();
+}
+
+void VSyncTest::TearDownTestCase()
+{
+    vsyncSampler = nullptr;
+}
+
+void VSyncTest::SetUp()
+{
+    vsyncGenerator = CreateVSyncGenerator();
     appController = new VSyncController(vsyncGenerator, 0);
     rsController = new VSyncController(vsyncGenerator, 0);
 
@@ -75,12 +86,11 @@ void VSyncTest::SetUpTestCase()
     samplerThread = std::thread(std::bind(&VSyncTest::ThreadMain));
 }
 
-void VSyncTest::TearDownTestCase()
+void VSyncTest::TearDown()
 {
     vsyncGenerator = nullptr;
-    vsyncSampler = nullptr;
-    appDistributor = nullptr;
-    rsDistributor = nullptr;
+    appController = nullptr;
+    rsController = nullptr;
     appDistributor = nullptr;
     rsDistributor = nullptr;
 
