@@ -19,7 +19,6 @@ group("unittest") {
     "effect:unittest",
     "image:unittest",
     "ndk:unittest",
-    "skia_adapter:unittest",
     "utils:unittest",
   ]
 }
