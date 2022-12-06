@@ -22,6 +22,7 @@ group("unittest") {
 
   deps = [
     ":RSBaseRenderUtilTest",
+    ":RSColdStartThreadTest",
     ":RSComposerAdapterTest",
     ":RSDividedRenderUtilTest",
     ":RSDropFrameProcessorTest",
@@ -177,6 +178,15 @@ ohos_unittest("RSQosThreadTest") {
 ohos_unittest("RSMainThreadTest") {
   module_out_path = module_output_path
   sources = [ "rs_main_thread_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSColdStartThreadTest
+ohos_unittest("RSColdStartThreadTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_cold_start_thread_test.cpp" ]
   deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines
