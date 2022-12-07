@@ -15,6 +15,7 @@
 
 #include "native_window.h"
 
+#include <cstdint>
 #include <map>
 #include <cinttypes>
 #include "buffer_log.h"
@@ -90,9 +91,10 @@ int32_t NativeWindowRequestBuffer(OHNativeWindow *window,
     }
     OHOS::sptr<OHOS::SurfaceBuffer> sfbuffer;
     OHOS::sptr<OHOS::SyncFence> releaseFence = OHOS::SyncFence::INVALID_FENCE;
-    if (window->surface->RequestBuffer(sfbuffer, releaseFence, window->config) != OHOS::GSError::GSERROR_OK ||
-        sfbuffer == nullptr) {
-        BLOGE("API failed, please check RequestBuffer function ret");
+    int32_t ret = window->surface->RequestBuffer(sfbuffer, releaseFence, window->config);
+    if (ret != OHOS::GSError::GSERROR_OK || sfbuffer == nullptr) {
+        BLOGE("API failed, please check RequestBuffer function ret:%{public}d, Queue Id:%{public}" PRIu64,
+                ret, window->surface->GetUniqueId());
         return OHOS::GSERROR_NO_BUFFER;
     }
     OHNativeWindowBuffer *nwBuffer = new OHNativeWindowBuffer();
