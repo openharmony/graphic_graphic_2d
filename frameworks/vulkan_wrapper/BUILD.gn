@@ -64,6 +64,7 @@ ohos_shared_library("vulkan") {
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
+  license_file = "//third_party/vulkan-headers/LICENSE.txt"
 }
 
 ## Build libvulkan.so }}}
