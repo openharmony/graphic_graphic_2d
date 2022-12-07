@@ -44,7 +44,7 @@ void RSColdStartThreadTest::TearDown() {}
 HWTEST_F(RSColdStartThreadTest, CreateAndDestroy001, TestSize.Level1)
 {
     NodeId id = 1;
-    std::shared_ptr<RSSurfaceRenderNode> sp(new RSSurfaceRenderNode(id));
+    auto sp = std::make_shared<RSSurfaceRenderNode>(id);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(sp);
     RSColdStartThread thread { surfaceRenderNode, id };
     thread.PostTask([] {});
@@ -63,9 +63,9 @@ HWTEST_F(RSColdStartThreadTest, CreateAndDestroy002, TestSize.Level1)
     NodeId id = 2;
     int w = 1;
     int h = 1;
-    std::shared_ptr<RSSurfaceRenderNode> sp(new RSSurfaceRenderNode(id));
+    auto sp = std::make_shared<RSSurfaceRenderNode>(id);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(sp);
-    std::shared_ptr<DrawCmdList> drawCmdList(new DrawCmdList(w, h));
+    auto drawCmdList = std::make_shared<DrawCmdList>(w, h);
     RSColdStartThread thread { surfaceRenderNode, id };
     thread.PostPlayBackTask(drawCmdList, drawCmdList->GetWidth(), drawCmdList->GetHeight());
     thread.Stop();
@@ -83,7 +83,7 @@ HWTEST_F(RSColdStartThreadTest, CreateAndDestroy003, TestSize.Level1)
     NodeId id = 3;
     int w = 1;
     int h = 1;
-    std::shared_ptr<RSSurfaceRenderNode> sp(new RSSurfaceRenderNode(id));
+    auto sp = std::make_shared<RSSurfaceRenderNode>(id);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(sp);
     RSColdStartThread thread { surfaceRenderNode, id };
     thread.PostPlayBackTask(nullptr, w, h);
@@ -102,8 +102,8 @@ HWTEST_F(RSColdStartThreadTest, RSColdStartManager001, TestSize.Level1)
     NodeId id = 4;
     int w = 2;
     int h = 2;
-    std::shared_ptr<RSSurfaceRenderNode> sp(new RSSurfaceRenderNode(id));
-    std::shared_ptr<DrawCmdList> drawCmdList(new DrawCmdList(w, h));
+    auto sp = std::make_shared<RSSurfaceRenderNode>(id);
+    auto drawCmdList = std::make_shared<DrawCmdList>(w, h);
     RSColdStartManager::Instance().StartColdStartThreadIfNeed(sp);
     RSColdStartManager::Instance().PostPlayBackTask(
         sp->GetId(), drawCmdList, drawCmdList->GetWidth(), drawCmdList->GetHeight());
@@ -133,7 +133,7 @@ HWTEST_F(RSColdStartThreadTest, RSColdStartManager002, TestSize.Level1)
 HWTEST_F(RSColdStartThreadTest, RSColdStartManager003, TestSize.Level1)
 {
     NodeId id = 5;
-    std::shared_ptr<RSSurfaceRenderNode> sp(new RSSurfaceRenderNode(id));
+    auto sp = std::make_shared<RSSurfaceRenderNode>(id);
     RSColdStartManager::Instance().StartColdStartThreadIfNeed(sp);
     RSColdStartManager::Instance().StartColdStartThreadIfNeed(sp);
 }
@@ -150,7 +150,7 @@ HWTEST_F(RSColdStartThreadTest, RSColdStartManager004, TestSize.Level1)
     NodeId id = 6;
     int width = 1;
     int height = 1;
-    std::shared_ptr<RSSurfaceRenderNode> sp(new RSSurfaceRenderNode(id));
+    auto sp = std::make_shared<RSSurfaceRenderNode>(id);
     RSColdStartManager::Instance().PostPlayBackTask(sp->GetId(), nullptr, width, height);
     RSColdStartManager::Instance().StopColdStartThread(sp->GetId());
 }
