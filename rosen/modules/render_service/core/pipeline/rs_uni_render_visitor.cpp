@@ -267,6 +267,10 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         }
         isCustomizedDirtyRect = true;
     }
+    // [planning] Remove this after skia is upgraded, the clipRegion is supported
+    if (node.GetRenderProperties().NeedFilter() && !node.IsAppFreeze()) {
+        needFilter_ = true;
+    }
     dirtyFlag_ = dirtyFlag_ || node.GetDstRectChanged();
     parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
     node.ResetSurfaceOpaqueRegion(RectI(0, 0, screenInfo_.width, screenInfo_.height), geoPtr->GetAbsRect(),
