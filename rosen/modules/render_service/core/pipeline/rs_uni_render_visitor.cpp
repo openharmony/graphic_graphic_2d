@@ -635,7 +635,15 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             // enable cache if screen rotation is not times of 90 degree
             canvas_->SetCacheEnabled(geoPtr->IsNeedClientCompose());
         }
-        ProcessBaseRenderNode(node);
+        if (canvas_->isCacheEnabled()) {
+            // we are doing rotation animation, try offscreen render if capable
+            PrepareOffscreenRender(node);
+            ProcessBaseRenderNode(node);
+            FinishOffscreenRender();
+        } else {
+            // render directly
+            ProcessBaseRenderNode(node);
+        }
         canvas_->restoreToCount(saveCount);
 
         if (saveLayerCnt > 0) {
@@ -1148,6 +1156,55 @@ void RSUniRenderVisitor::RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& nod
     ProcessBaseRenderNode(node);
     swap(canvas_, recordingCanvas);
     RSColdStartManager::Instance().PostPlayBackTask(node.GetId(), canvas.GetDrawCmdList(), width, height);
+}
+
+void RSUniRenderVisitor::PrepareOffscreenRender(RSRenderNode& node)
+{
+    // cleanup
+    canvasBackup_ = nullptr;
+    offscreenSurface_ = nullptr;
+    // check offscreen size and hardware renderer
+    int32_t offscreenWidth = node.GetRenderProperties().GetFrameWidth();
+    int32_t offscreenHeight = node.GetRenderProperties().GetFrameHeight();
+    if (offscreenWidth <= 0 || offscreenHeight <= 0) {
+        RS_LOGD("RSUniRenderVisitor::PrepareOffscreenRender, offscreenWidth or offscreenHeight is invalid");
+        return;
+    }
+    if (canvas_->GetSurface() == nullptr) {
+        canvas_->clipRect(SkRect::MakeWH(offscreenWidth, offscreenHeight));
+        RS_LOGD("RSUniRenderVisitor::PrepareOffscreenRender, current surface is nullptr (software renderer?)");
+        return;
+    }
+    // create offscreen surface and canvas
+    auto offscreenInfo = SkImageInfo::Make(offscreenWidth, offscreenHeight, kRGBA_8888_SkColorType, kPremul_SkAlphaType,
+        canvas_->GetSurface()->imageInfo().refColorSpace());
+    offscreenSurface_ = canvas_->GetSurface()->makeSurface(offscreenInfo);
+    if (offscreenSurface_ == nullptr) {
+        RS_LOGD("RSUniRenderVisitor::PrepareOffscreenRender, offscreenSurface is nullptr");
+        canvas_->clipRect(SkRect::MakeWH(offscreenWidth, offscreenHeight));
+        return;
+    }
+    auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface_.get());
+    // backup current canvas and replace with offscreen canvas
+    canvasBackup_ = std::move(canvas_);
+    canvas_ = std::move(offscreenCanvas);
+}
+
+void RSUniRenderVisitor::FinishOffscreenRender()
+{
+    if (canvasBackup_ == nullptr) {
+        RS_LOGD("RSUniRenderVisitor::FinishOffscreenRender, canvasBackup_ is nullptr");
+        return;
+    }
+    // flush offscreen canvas, maybe unnecessary
+    canvas_->flush();
+    // draw offscreen surface to current canvas
+    SkPaint paint;
+    paint.setAntiAlias(true);
+    canvasBackup_->drawImage(offscreenSurface_->makeImageSnapshot(), 0, 0, &paint);
+    // restore current canvas and cleanup
+    offscreenSurface_ = nullptr;
+    canvas_ = std::move(canvasBackup_);
 }
 } // namespace Rosen
 } // namespace OHOS
