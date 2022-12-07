@@ -116,6 +116,18 @@ void RSBaseRenderNode::SetIsOnTheTree(bool flag)
         }
         child->SetIsOnTheTree(flag);
     }
+
+    if (flag) {
+        return;
+    }
+
+    for (auto& childPtr : disappearingChildren_) {
+        auto child = childPtr.first;
+        if (child == nullptr) {
+            continue;
+        }
+        child->SetIsOnTheTree(flag);
+    }
 }
 
 void RSBaseRenderNode::UpdateChildrenRect(const RectI& subRect)
