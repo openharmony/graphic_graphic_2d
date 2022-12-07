@@ -282,25 +282,16 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     }
 
     auto clipBounds = SkRect::Make(canvas.getDeviceClipBounds());
-    auto visibleDirtyRects = canvas.GetVisibleRects();
-    for (auto rect : visibleDirtyRects) {
-        if (rect.intersect(clipBounds)) {
-            canvas.save();
-            canvas.resetMatrix();
-            canvas.drawImageRect(imageSnapshot.get(), rect, rect, &paint);
-            filter->PostProcess(canvas);
-            canvas.restore();
-        }
-    }
-
-// This is for separate render or unite render when PartialRenderType is DISABLED.
-    if (visibleDirtyRects.empty()) {
-        canvas.save();
-        canvas.resetMatrix();
+    canvas.save();
+    canvas.resetMatrix();
+    auto visibleRect = canvas.GetVisibleRect();
+    if (visibleRect.intersect(clipBounds)) {
+        canvas.drawImageRect(imageSnapshot.get(), visibleRect, visibleRect, &paint);
+    } else {
         canvas.drawImageRect(imageSnapshot.get(), clipBounds, clipBounds, &paint);
-        filter->PostProcess(canvas);
-        canvas.restore();
     }
+    filter->PostProcess(canvas);
+    canvas.restore();
 }
 
 void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas)

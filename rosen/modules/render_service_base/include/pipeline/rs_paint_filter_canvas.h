@@ -65,9 +65,14 @@ public:
         return isCacheEnabled_;
     }
 
-    std::vector<SkRect>& GetVisibleRects()
+    void SetVisibleRect(SkRect visibleRect)
     {
-        return visibleRects_;
+        visibleRect_ = visibleRect;
+    }
+
+    SkRect GetVisibleRect() const
+    {
+        return visibleRect_;
     }
 
 protected:
@@ -79,7 +84,7 @@ private:
     std::stack<float> alphaStack_;
     std::atomic_bool isHighContrastEnabled_ { false };
     bool isCacheEnabled_ { false };
-    std::vector<SkRect> visibleRects_;
+    SkRect visibleRect_ = SkRect::MakeEmpty();
 };
 
 } // namespace Rosen
