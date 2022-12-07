@@ -46,7 +46,7 @@ protected:
 
     void MultiLayersPerf(size_t layerNum);
     void RequestPerf(uint32_t layerLevel, bool onOffTag);
-#if FRAME_AWARE_TRACE
+#ifdef FRAME_AWARE_TRACE
     bool FrameAwareTraceBoost(size_t layerNum);
 #endif
 
