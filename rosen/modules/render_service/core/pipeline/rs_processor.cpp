@@ -20,7 +20,7 @@
 #include "rs_base_render_util.h"
 #include "rs_main_thread.h"
 #include "socperf_client.h"
-#if FRAME_AWARE_TRACE
+#ifdef FRAME_AWARE_TRACE
 #include "frame_trace.h"
 
 using namespace FRAME_TRACE;
@@ -38,13 +38,13 @@ constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
 constexpr int64_t PERF_TIME_OUT = 950;
 constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
 constexpr uint32_t PERF_LAYER_START_NUM = 7;
-#if FRAME_AWARE_TRACE
+#ifdef FRAME_AWARE_TRACE
 constexpr uint32_t FRAME_TRACE_LAYER_NUM = 11;
 constexpr int32_t FRAME_TRACE_PERF_REQUESTED_CODE = 10024;
 #endif
 }
 
-#if FRAME_AWARE_TRACE
+#ifdef FRAME_AWARE_TRACE
 bool RSProcessor::FrameAwareTraceBoost(size_t layerNum)
 {
     if (layerNum != FRAME_TRACE_LAYER_NUM) {
@@ -164,7 +164,7 @@ void RSProcessor::CalculateMirrorAdaptiveCoefficient(float curWidth, float curHe
 
 void RSProcessor::MultiLayersPerf(size_t layerNum)
 {
-#if FRAME_AWARE_TRACE
+#ifdef FRAME_AWARE_TRACE
     if (FrameAwareTraceBoost(layerNum)) {
         return;
     }
