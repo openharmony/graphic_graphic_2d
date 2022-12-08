@@ -845,8 +845,7 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
         return false;
     }
     if (size > MAX_DATA_SIZE) {
-        ROSEN_LOGE("RSMarshallingHelper::WriteToParcel data exceed MAX_DATA_SIZE");
-        return false;
+        ROSEN_LOGD("RSMarshallingHelper::WriteToParcel data exceed MAX_DATA_SIZE, size:%zu", size);
     }
 
     if (!parcel.WriteUint32(size)) {
