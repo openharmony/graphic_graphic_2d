@@ -20,6 +20,7 @@ group("unittest") {
     "image:unittest",
     "ndk:unittest",
     "render_context:unittest",
+    "skia_adapter:unittest",
     "utils:unittest",
   ]
 }

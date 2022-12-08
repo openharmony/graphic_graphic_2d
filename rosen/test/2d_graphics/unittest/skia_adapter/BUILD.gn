@@ -23,6 +23,7 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
     "skia_canvas_test.cpp",
     "skia_image_test.cpp",
     "skia_matrix_test.cpp",
+    "skia_paint_test.cpp",
     "skia_path_effect_test.cpp",
     "skia_shader_effect_test.cpp",
   ]
@@ -32,15 +33,16 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
     "//commonlibrary/c_utils/base/include",
-    "//third_party/skia",
+    "//third_party/flutter/skia",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/drawing",
-    "//third_party/skia/include/",
+    "//third_party/flutter/skia/include/",
   ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
 
   part_name = "graphic_standard"
