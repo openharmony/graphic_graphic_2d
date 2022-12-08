@@ -36,7 +36,10 @@ VSyncConnection::VSyncConnection(const sptr<VSyncDistributor>& distributor, std:
     : rate_(-1), info_(name), distributor_(distributor)
 {
     socketPair_ = new LocalSocketPair();
-    socketPair_->CreateChannel(SOCKET_CHANNEL_SIZE, SOCKET_CHANNEL_SIZE);
+    int32_t err = socketPair_->CreateChannel(SOCKET_CHANNEL_SIZE, SOCKET_CHANNEL_SIZE);
+    if (err != 0) {
+        ScopedBytrace func("Create socket channel failed, errno = " + std::to_string(errno));
+    }
 }
 
 VSyncConnection::~VSyncConnection()
@@ -64,9 +67,13 @@ VsyncError VSyncConnection::GetReceiveFd(int32_t &fd)
 
 int32_t VSyncConnection::PostEvent(int64_t now)
 {
+    ScopedBytrace func("SendVsyncTo conn: " + info_.name_ + ", now:" + std::to_string(now));
     int32_t ret = socketPair_->SendData(&now, sizeof(int64_t));
     if (ret > -1) {
+        ScopedBytrace successful("successful");
         info_.postVSyncCount_++;
+    } else {
+        ScopedBytrace failed("failed");
     }
     return ret;
 }
@@ -115,6 +122,7 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
     if (it != connections_.end()) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
+    ScopedBytrace func("Add VSyncConnection: " + connection->info_.name_);
     connections_.push_back(connection);
     return VSYNC_ERROR_OK;
 }
@@ -129,6 +137,7 @@ VsyncError VSyncDistributor::RemoveConnection(const sptr<VSyncConnection>& conne
     if (it == connections_.end()) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
+    ScopedBytrace func("Remove VSyncConnection: " + connection->info_.name_);
     connections_.erase(it);
     return VSYNC_ERROR_OK;
 }

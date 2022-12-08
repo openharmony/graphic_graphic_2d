@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <cerrno>
+#include <scoped_bytrace.h>
 
 namespace OHOS {
 using namespace OHOS::HiviewDFX;
@@ -54,8 +55,20 @@ int32_t LocalSocketPair::CreateChannel(size_t sendSize, size_t receiveSize)
 
     int32_t socketPair[SOCKET_PAIR_SIZE] = { 0 };
     if (socketpair(AF_UNIX, SOCK_SEQPACKET, 0, socketPair) != 0) {
+        ScopedBytrace func("Create socketpair failed, errno = " + std::to_string(errno));
         HiLog::Error(LABEL, "%{public}s create socketpair failed", __func__);
         return -1;
+    }
+    if (socketPair[0] == 0 || socketPair[1] == 0) {
+        int32_t unusedFds[SOCKET_PAIR_SIZE] = {socketPair[0], socketPair[1]};
+        int32_t err = socketpair(AF_UNIX, SOCK_SEQPACKET, 0, socketPair);
+        CloseFd(unusedFds[0]);
+        CloseFd(unusedFds[1]);
+        if (err != 0) {
+            ScopedBytrace func2("Create socketpair failed for the second time, errno = " + std::to_string(errno));
+            HiLog::Error(LABEL, "%{public}s create socketpair failed", __func__);
+            return -1;
+        }
     }
 
     // set socket attr
@@ -95,7 +108,10 @@ int32_t LocalSocketPair::SendData(const void *vaddr, size_t size)
         length = send(sendFd_, vaddr, size, MSG_DONTWAIT | MSG_NOSIGNAL);
     } while (errno == EINTR);
     if (length < 0) {
-        HiLog::Debug(LABEL, "%{public}s send fail : %{public}d, length = %{public}d", __func__, errno, (int32_t)length);
+        ScopedBytrace func("SocketPair SendData failed, errno = " + std::to_string(errno) +
+                            ", sendFd_ = " + std::to_string(sendFd_) + ", receiveFd_ = " + std::to_string(receiveFd_) +
+                            ", length = " + std::to_string(length));
+        HiLog::Debug(LABEL, "%{public}s send failed:%{public}d, length = %{public}d", __func__, errno, (int32_t)length);
         if (errno == EAGAIN) {
             return ERRNO_EAGAIN;
         } else {
@@ -116,6 +132,9 @@ int32_t LocalSocketPair::ReceiveData(void *vaddr, size_t size)
         length = recv(receiveFd_, vaddr, size, MSG_DONTWAIT);
     } while (errno == EINTR);
     if (length < 0) {
+        ScopedBytrace func("SocketPair ReceiveData failed errno = " + std::to_string(errno) +
+                            ", sendFd_ = " + std::to_string(sendFd_) + ", receiveFd_ = " + std::to_string(receiveFd_) +
+                            ", length = " + std::to_string(length));
         return -1;
     }
     return length;
