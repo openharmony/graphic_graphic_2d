@@ -464,6 +464,9 @@ ScreenId RSScreenManager::CreateVirtualScreen(
 
 int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
+    if (screens_.find(id) == screens_.end()) {
+        return SCREEN_NOT_FOUND;
+    }
     uint64_t surfaceId = surface->GetUniqueId();
     for (auto &[screenId, screen] : screens_) {
         if (!screen->IsVirtual() || screenId == id) {
