@@ -956,7 +956,7 @@ GSError BufferQueue::SetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey key
                                     const std::vector<uint8_t> &metaData)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
-    if (key < GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X |
+    if (key < GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X ||
         key > GraphicHDRMetadataKey::GRAPHIC_MATAKEY_HDR_VIVID) {
         BLOGN_INVALID("key [%{public}d, %{public}d), now is %{public}d",
                       GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X,

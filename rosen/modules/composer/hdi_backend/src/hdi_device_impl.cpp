@@ -14,6 +14,7 @@
  */
 
 #include "hdi_device_impl.h"
+#include <cstddef>
 #include <cstdlib>
 #include <mutex>
 #include <scoped_bytrace.h>
@@ -342,8 +343,9 @@ int32_t HdiDeviceImpl::GetHDRCapabilityInfos(uint32_t screenId, GraphicHDRCapabi
         return ret;
     }
     uint32_t formatCount = hdiInfo.formatCount;
-    info.formats = (GraphicHDRFormat*)std::malloc(formatCount * sizeof(GRAPHIC_NOT_SUPPORT_HDR));
-    if (memset_s(info.formats, sizeof(info.formats), 0, sizeof(info.formats))) {
+    size_t formatsSize = formatCount * sizeof(GRAPHIC_NOT_SUPPORT_HDR);
+    info.formats = (GraphicHDRFormat*)std::malloc(formatsSize);
+    if (memset_s(info.formats, formatsSize, 0, formatsSize)) {
         HLOGD("memset_s failed when get HDRCapability format infos.");
     }
     for (uint32_t i = 0; i < formatCount; i++) {
