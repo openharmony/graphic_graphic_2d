@@ -87,6 +87,12 @@ private:
         std::shared_ptr<RSCanvasListener>& overdrawListener);
 
     void RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& node, float width, float height);
+    
+    // offscreen render related
+    void PrepareOffscreenRender(RSRenderNode& node);
+    void FinishOffscreenRender();
+    sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
+    std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen render
 
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
