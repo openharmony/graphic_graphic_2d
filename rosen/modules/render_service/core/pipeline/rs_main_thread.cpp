@@ -593,8 +593,82 @@ void RSMainThread::Render()
     PerfForBlurIfNeeded();
 }
 
+bool RSMainThread::CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface)
+{
+    bool needProcess = false;
+    if (curSurface->IsFocusedWindow(focusAppPid_)) {
+        needProcess = true;
+        if (!curSurface->HasContainerWindow() && !curSurface->IsTransparent()) {
+            occlusionSurfaces.insert(curSurface->GetDstRect());
+        }
+    } else {
+        size_t beforeSize = occlusionSurfaces.size();
+        occlusionSurfaces.insert(curSurface->GetDstRect());
+        bool insertSuccess = occlusionSurfaces.size() > beforeSize ? true : false;
+        if (insertSuccess) {
+            needProcess = true;
+            if (curSurface->IsTransparent()) {
+                auto iter = std::find_if(occlusionSurfaces.begin(), occlusionSurfaces.end(),
+                    [&curSurface](RectI r) -> bool {return r == curSurface->GetDstRect();});
+                if (iter != occlusionSurfaces.end()) {
+                    occlusionSurfaces.erase(iter);
+                }
+            }
+        }
+    }
+    return needProcess;
+}
+
+void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces)
+{
+    Occlusion::Region accumulatedRegion;
+    VisibleData curVisVec;
+    OcclusionRectISet occlusionSurfaces;
+    std::map<uint32_t, bool> pidVisMap;
+    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
+        auto curSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (curSurface == nullptr || curSurface->GetDstRect().IsEmpty()) {
+            continue;
+        }
+        Occlusion::Rect occlusionRect {curSurface->GetDstRect()};
+        curSurface->setQosCal(qosPidCal_);
+        if (CheckSurfaceNeedProcess(occlusionSurfaces, curSurface)) {
+            Occlusion::Region curRegion { occlusionRect };
+            Occlusion::Region subResult = curRegion.Sub(accumulatedRegion);
+            curSurface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap);
+            // when surface is in starting window stage, do not occlude other window surfaces
+            // fix grey block when directly open app (i.e. setting) from notification center
+            auto parentPtr = curSurface->GetParent().lock();
+            if (parentPtr != nullptr && parentPtr->IsInstanceOf<RSSurfaceRenderNode>()) {
+                auto surfaceParentPtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parentPtr);
+                if (surfaceParentPtr->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE &&
+                    !curSurface->IsNotifyUIBufferAvailable()) {
+                    continue;
+                }
+            }
+            if (IfUseUniVisitor()) {
+                accumulatedRegion.OrSelf(curSurface->GetOpaqueRegion());
+            } else {
+                bool diff = (curSurface->GetDstRect().width_ > curSurface->GetBuffer()->GetWidth() ||
+                            curSurface->GetDstRect().height_ > curSurface->GetBuffer()->GetHeight()) &&
+                            curSurface->GetRenderProperties().GetFrameGravity() != Gravity::RESIZE &&
+                            curSurface->GetRenderProperties().GetAlpha() != opacity_;
+                if (!curSurface->IsTransparent() && !diff) {
+                    accumulatedRegion.OrSelf(curRegion);
+                }
+            }
+        } else {
+            curSurface->SetVisibleRegionRecursive({}, curVisVec, pidVisMap);
+        }
+    }
+    // Callback to WMS and QOS
+    CallbackToWMS(curVisVec);
+    CallbackToQOS(pidVisMap);
+}
+
 void RSMainThread::CalcOcclusion()
 {
+    RS_TRACE_NAME("RSMainThread::CalcOcclusion");
     if (doWindowAnimate_ && !useUniVisitor_) {
         return;
     }
@@ -604,7 +678,6 @@ void RSMainThread::CalcOcclusion()
         return;
     }
     RSInnovation::UpdateOcclusionCullingSoEnabled();
-
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     if (node->GetSortedChildren().size() == 1) {
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
@@ -615,11 +688,12 @@ void RSMainThread::CalcOcclusion()
     } else {
         node->CollectSurface(node, curAllSurfaces, IfUseUniVisitor());
     }
-
-    // 1. Judge whether it is dirty
+    // Judge whether it is dirty
     // Surface cnt changed or surface DstRectChanged or surface ZorderChanged
-    bool winDirty = (lastSurfaceCnt_ != curAllSurfaces.size() || isDirty_);
+    bool winDirty = (lastSurfaceCnt_ != curAllSurfaces.size() || isDirty_ ||
+        lastFocusAppPid_ != focusAppPid_);
     lastSurfaceCnt_ = curAllSurfaces.size();
+    lastFocusAppPid_ = focusAppPid_;
     if (!winDirty) {
         for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
             auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
@@ -638,65 +712,7 @@ void RSMainThread::CalcOcclusion()
     if (!winDirty) {
         return;
     }
-
-    RS_TRACE_NAME("RSMainThread::CalcOcclusion");
-    // 2. Calc occlusion
-    Occlusion::Region curRegion;
-    VisibleData curVisVec;
-    std::map<uint32_t, bool> pidVisMap;
-    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
-        auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surface == nullptr || surface->GetDstRect().IsEmpty()) {
-            continue;
-        }
-        Occlusion::Rect rect;
-        if (!surface->GetOldDirtyInSurface().IsEmpty() && IfUseUniVisitor()) {
-            rect = Occlusion::Rect{surface->GetOldDirtyInSurface()};
-        } else {
-            rect = Occlusion::Rect{surface->GetDstRect()};
-        }
-        Occlusion::Region curSurface { rect };
-        // Current surface subtract current region, if result region is empty that means it's covered
-        Occlusion::Region subResult = curSurface.Sub(curRegion);
-        // Set result to SurfaceRenderNode and its children
-        surface->setQosCal(qosPidCal_);
-        surface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap);
-
-        // when surface is in starting window stage, do not occlude other window surfaces
-        // fix grey block when directly open app (i.e. setting) from notification center
-        auto parentPtr = surface->GetParent().lock();
-        if (parentPtr != nullptr && parentPtr->IsInstanceOf<RSSurfaceRenderNode>()) {
-            auto surfaceParentPtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parentPtr);
-            if (surfaceParentPtr->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE &&
-                !surface->IsNotifyUIBufferAvailable()) {
-                continue;
-            }
-        }
-
-        // Current region need to merge current surface for next calculation(ignore alpha surface)
-        if (IfUseUniVisitor()) {
-            curRegion.OrSelf(surface->GetOpaqueRegion());
-            if (RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
-                curRegion.OrSelf(curSurface);
-            }
-        } else {
-            const uint8_t opacity = 255;
-            bool diff = (surface->GetDstRect().width_ > surface->GetBuffer()->GetWidth() ||
-                        surface->GetDstRect().height_ > surface->GetBuffer()->GetHeight()) &&
-                        surface->GetRenderProperties().GetFrameGravity() != Gravity::RESIZE &&
-                        surface->GetRenderProperties().GetAlpha() != opacity;
-            if ((!surface->IsTransparent() && !diff) ||
-                RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
-                curRegion.OrSelf(curSurface);
-            }
-        }
-    }
-
-    // 3. Callback to WMS
-    CallbackToWMS(curVisVec);
-
-    // 4. Callback to QOS
-    CallbackToQOS(pidVisMap);
+    CalcOcclusionImplementation(curAllSurfaces);
 }
 
 bool RSMainThread::CheckQosVisChanged(std::map<uint32_t, bool>& pidVisMap)
@@ -806,8 +822,6 @@ void RSMainThread::Animate(uint64_t timestamp)
         doWindowAnimate_ = false;
         return;
     }
-
-    RS_LOGD("RSMainThread::Animate start, processing %d animating nodes", context_->animatingNodeList_.size());
 
     bool curWinAnim = false;
     bool needRequestNextVsync = false;

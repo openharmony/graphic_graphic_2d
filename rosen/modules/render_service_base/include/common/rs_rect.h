@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_COMMON_RS_RECT_H
 #define RENDER_SERVICE_CLIENT_CORE_COMMON_RS_RECT_H
 #include <cmath>
+#include <unordered_set>
 
 #include "common/rs_common_def.h"
 #include "common/rs_vector2.h"
@@ -172,6 +173,27 @@ public:
 
 typedef RectT<int> RectI;
 typedef RectT<float> RectF;
+
+/*
+    RectIComparator: Used for comparing rects
+    RectI_Hash_Func: provide hash value for rect comparing
+*/
+struct RectIComparator {
+    bool operator()(const RectI& r1, const RectI& r2) const
+    {
+        return r2.IsInsideOf(r1);
+    }
+};
+
+struct RectI_Hash_Func {
+    size_t operator()(const RectI& _r) const {
+        // this is set for all rects can be compared
+        int hash_value = 0;
+        return std::hash<int>()(hash_value);
+    }
+};
+
+typedef std::unordered_set<RectI, RectI_Hash_Func, RectIComparator> OcclusionRectISet;
 
 template<typename T>
 class RRectT {
