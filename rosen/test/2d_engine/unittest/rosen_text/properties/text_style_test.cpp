@@ -37,12 +37,12 @@ HWTEST_F(OH_Drawing_TextShadowTest, OH_Drawing_TextShadowTest001, TestSize.Level
     TextShadow textShadow(Rosen::Drawing::Color::COLOR_BLACK, offset, 0.0);
     TextShadow textShadow2(Rosen::Drawing::Color::COLOR_BLACK, offset, 0.0);
     EXPECT_EQ(textShadow == textShadow2, true);
-    textShadow2.color_ = Rosen::Drawing::Color::COLOR_RED;
+    textShadow2.blurRadius_ = 1.0;
     EXPECT_EQ(textShadow == textShadow2, false);
     EXPECT_EQ(textShadow != textShadow2, true);
     textShadow2.offset_.SetX(3.0f);
     EXPECT_EQ(textShadow == textShadow2, false);
-    textShadow2.blurRadius_ = 1.0;
+    textShadow2.color_ = Rosen::Drawing::Color::COLOR_RED;
     EXPECT_EQ(textShadow == textShadow2, false);
 }
 
