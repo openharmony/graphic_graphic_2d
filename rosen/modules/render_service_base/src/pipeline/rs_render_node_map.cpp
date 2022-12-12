@@ -68,10 +68,13 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         return static_cast<pid_t>(pair.first >> 32) == pid;
     });
 
-    auto fallbackNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(renderNodeMap_.at(0));
-    if (fallbackNode) {
-        // remove all fallback animations belong to given pid
-        fallbackNode->GetAnimationManager().FilterAnimationByPid(pid);
+    auto it = renderNodeMap_.find(0);
+    if (it != renderNodeMap_.end()) {
+        auto fallbackNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(it->second);
+        if (fallbackNode) {
+            // remove all fallback animations belong to given pid
+            fallbackNode->GetAnimationManager().FilterAnimationByPid(pid);
+        }
     }
 }
 
