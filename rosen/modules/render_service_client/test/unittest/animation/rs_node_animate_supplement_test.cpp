@@ -61,7 +61,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest001, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    auto node = std::make_shared<RSNodeMock>(false, 0);
+    auto node = std::make_shared<RSNodeMock>(false);
     EXPECT_TRUE(node != nullptr);
 
     RSAnimationTimingProtocol protocol;
@@ -82,7 +82,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest002, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    auto node = std::make_shared<RSNodeMock>(false, 0);
+    auto node = std::make_shared<RSNodeMock>(false);
     EXPECT_TRUE(node != nullptr);
     RSAnimationTimingProtocol protocol;
     RSAnimationTimingCurve curve;
