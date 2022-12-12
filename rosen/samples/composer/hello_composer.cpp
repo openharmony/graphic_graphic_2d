@@ -239,7 +239,6 @@ void HelloComposer::SetRunArgs(const std::unique_ptr<LayerContext> &drawLayer) c
 void HelloComposer::Draw()
 {
     for (auto iter = drawLayersMap_.begin(); iter != drawLayersMap_.end(); ++iter) {
-        std::vector<std::shared_ptr<HdiOutput>> outputs;
         uint32_t screenId = iter->first;
         std::vector<std::unique_ptr<LayerContext>> &drawLayers = drawLayersMap_[screenId];
         std::vector<LayerInfoPtr> layerVec;
@@ -254,7 +253,6 @@ void HelloComposer::Draw()
         }
 
         curOutput_ = outputMap_[screenId];
-        outputs.emplace_back(curOutput_);
         curOutput_->SetLayerInfo(layerVec);
 
         GraphicIRect damageRect;
@@ -270,7 +268,7 @@ void HelloComposer::Draw()
             LOGI("Dump layer result after ReleaseBuffer : %{public}s", result.c_str());
         }
 
-        backend_->Repaint(outputs);
+        backend_->Repaint(curOutput_);
         auto layersReleaseFence = backend_->GetLayersReleaseFence(curOutput_);
         for (auto& layerContext : drawLayers) {
             auto preBuffer = layerContext->GetPreBuffer();

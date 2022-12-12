@@ -92,7 +92,6 @@ public:
 private:
     uint32_t currentModeIndex_ = 0;
     std::vector<GraphicDisplayModeInfo> displayModeInfos_;
-    std::vector<std::shared_ptr<HdiOutput>> outputs_;
     std::vector<uint32_t> baseWidthVec_;
     std::vector<uint32_t> baseHeightVec_;
     std::unique_ptr<HdiScreen> screen = nullptr;
@@ -304,7 +303,7 @@ void HelloDrawing::Draw()
         damageRect.h = display_h;
         output->SetOutputDamage(1, damageRect);
 
-        backend->Repaint(outputs_);
+        backend->Repaint(output);
         for (uint32_t i = 0; i < BASE_LAYER_NUM; i++) {
             int32_t releaseFence = -1;
             sptr<SyncFence> tempFence = new SyncFence(releaseFence);
@@ -466,7 +465,6 @@ void HelloDrawing::CreatePyhsicalScreen()
     screen = HdiScreen::CreateHdiScreen(output->GetScreenId());
     screen->Init();
     screen->GetScreenSupportedModes(displayModeInfos_);
-    outputs_.push_back(output);
     size_t supportModeNum = displayModeInfos_.size();
     if (supportModeNum > 0) {
         screen->GetScreenMode(currentModeIndex_);

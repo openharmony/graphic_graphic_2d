@@ -307,7 +307,7 @@ void RenderContextSample::Draw()
         damageRect.h = display_h;
         output_->SetOutputDamage(1, damageRect);
         
-        backend_->Repaint(outputs_);
+        backend_->Repaint(output_);
         for (auto layerI : layers) {
             int32_t releaseFence = -1;
             sptr<SyncFence> tempFence = new SyncFence(releaseFence);
@@ -416,7 +416,6 @@ void RenderContextSample::CreatePhysicalScreen()
     screen_ = HdiScreen::CreateHdiScreen(output_->GetScreenId());
     screen_->Init();
     screen_->GetScreenSupportedModes(displayModeInfos_);
-    outputs_.push_back(output_);
     size_t supportModeNum = displayModeInfos_.size();
     if (supportModeNum > 0) {
         screen_->GetScreenMode(currentModeIndex_);

@@ -54,12 +54,12 @@ RosenError HdiBackend::RegPrepareComplete(OnPrepareCompleteFunc func, void* data
     return ROSEN_ERROR_OK;
 }
 
-int32_t HdiBackend::PreProcessLayersComp(const OutputPtr &output,
-                                         const std::unordered_map<uint32_t, LayerPtr> &layersMap, bool &needFlush)
+int32_t HdiBackend::PreProcessLayersComp(const OutputPtr &output, bool &needFlush)
 {
-    if (device_ == nullptr) {
-        HLOGE("device has not been initialized");
-        return GRAPHIC_DISPLAY_FAILURE;
+    const std::unordered_map<uint32_t, LayerPtr> &layersMap = output->GetLayers();
+    if (layersMap.empty()) {
+        HLOGI("layer map is empty, drop this frame");
+        return GRAPHIC_DISPLAY_PARAM_ERR;
     }
 
     uint32_t layersNum = layersMap.size();
@@ -101,7 +101,60 @@ int32_t HdiBackend::PreProcessLayersComp(const OutputPtr &output,
     return UpdateLayerCompType(screenId, layersMap);
 }
 
-void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
+void HdiBackend::PrepareCompleteIfNeed(const OutputPtr &output, bool needFlush, sptr<SurfaceBuffer> &buffer)
+{
+    std::vector<LayerPtr> compClientLayers;
+    std::vector<LayerInfoPtr> newLayerInfos;
+    const std::unordered_map<uint32_t, LayerPtr> &layersMap = output->GetLayers();
+    for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
+        const LayerPtr &layer = iter->second;
+        newLayerInfos.emplace_back(layer->GetLayerInfo());
+        if (layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT) {
+            compClientLayers.emplace_back(layer);
+        }
+    }
+
+    if (compClientLayers.size() > 0) {
+        needFlush = true;
+        HLOGD("Need flush framebuffer, client composition layer num is %{public}zu", compClientLayers.size());
+    }
+
+    OnPrepareComplete(needFlush, output, newLayerInfos);
+    if (needFlush) {
+        int32_t ret = FlushScreen(output, compClientLayers, buffer);
+        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+            HLOGE("Flush Screen failed, ret is %{public}d", ret);
+            // return
+        }
+    }
+}
+
+void HdiBackend::UpdateInfosAfterCommit(const OutputPtr &output, sptr<SyncFence> fbFence)
+{
+    output->UpdatePrevLayerInfo();
+    int64_t timestamp = lastPresentFence_->SyncFileReadTimestamp();
+    bool startSample = false;
+    if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
+        startSample = sampler_->AddPresentFenceTime(timestamp);
+        output->RecordCompositionTime(timestamp);
+        const std::unordered_map<uint32_t, LayerPtr> &layersMap = output->GetLayers();
+        for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
+            const LayerPtr &layer = iter->second;
+            layer->RecordPresentTime(timestamp);
+        }
+    }
+
+    bool alreadyStartSample = sampler_->GetHardwareVSyncStatus();
+    if (startSample && !alreadyStartSample) {
+        HLOGD("Enable Screen Vsync");
+        uint32_t screenId = output->GetScreenId();
+        device_->SetScreenVsyncEnabled(screenId, true);
+        sampler_->BeginSample();
+    }
+    lastPresentFence_ = fbFence;
+}
+
+void HdiBackend::Repaint(const OutputPtr &output)
 {
     ScopedBytrace bytrace(__func__);
     HLOGD("%{public}s: start", __func__);
@@ -115,77 +168,29 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
         sampler_ = CreateVSyncSampler();
     }
 
-    int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
-    for (auto &output : outputs) {
-        if (output == nullptr) {
-            continue;
-        }
-        const std::unordered_map<uint32_t, LayerPtr> &layersMap = output->GetLayers();
-        if (layersMap.empty()) {
-            HLOGI("layer map is empty, drop this frame");
-            continue;
-        }
-        bool needFlush = false;
-        ret = PreProcessLayersComp(output, layersMap, needFlush);
-        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-            HLOGE("Pre process layers composition failed, ret = %{public}d.", ret);
-            return;
-        }
-
-        uint32_t screenId = output->GetScreenId();
-        std::vector<LayerPtr> compClientLayers;
-        std::vector<LayerInfoPtr> newLayerInfos;
-        for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
-            const LayerPtr &layer = iter->second;
-            newLayerInfos.emplace_back(layer->GetLayerInfo());
-            if (layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT) {
-                compClientLayers.emplace_back(layer);
-            }
-        }
-
-        if (compClientLayers.size() > 0) {
-            needFlush = true;
-            HLOGD("Need flush framebuffer, client composition layer num is %{public}zu", compClientLayers.size());
-        }
-
-        OnPrepareComplete(needFlush, output, newLayerInfos);
-        sptr<SurfaceBuffer> frameBuffer = nullptr;
-        if (needFlush) {
-            if (FlushScreen(output, compClientLayers, frameBuffer) != GRAPHIC_DISPLAY_SUCCESS) {
-                // return
-            }
-        }
-
-        sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
-        ret = device_->Commit(screenId, fbFence);
-        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-            HLOGE("commit failed, ret is %{public}d", ret);
-            // return
-        }
-
-        output->UpdatePrevLayerInfo();
-        int64_t timestamp = lastPresentFence_->SyncFileReadTimestamp();
-        bool startSample = false;
-        if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
-            startSample = sampler_->AddPresentFenceTime(timestamp);
-            output->RecordCompositionTime(timestamp);
-            for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
-                const LayerPtr &layer = iter->second;
-                layer->RecordPresentTime(timestamp);
-            }
-        }
-
-        bool alreadyStartSample = sampler_->GetHardwareVSyncStatus();
-        if (startSample && !alreadyStartSample) {
-            HLOGD("Enable Screen Vsync");
-            device_->SetScreenVsyncEnabled(screenId, true);
-            sampler_->BeginSample();
-        }
-
-        ReleaseFramebuffer(output, fbFence, frameBuffer);
-        lastPresentFence_ = fbFence;
-        HLOGD("%{public}s: end", __func__);
+    if (output == nullptr) {
+        HLOGE("output is nullptr.");
+        return;
     }
+
+    bool needFlush = false;
+    int32_t ret = PreProcessLayersComp(output, needFlush);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("Pre process layers composition failed, ret = %{public}d.", ret);
+        return;
+    }
+    sptr<SurfaceBuffer> frameBuffer = nullptr;
+    PrepareCompleteIfNeed(output, needFlush, frameBuffer);
+    sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
+    uint32_t screenId = output->GetScreenId();
+    ret = device_->Commit(screenId, fbFence);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("commit failed, ret is %{public}d", ret);
+        // return
+    }
+    UpdateInfosAfterCommit(output, fbFence);
+    ReleaseFramebuffer(output, fbFence, frameBuffer);
+    HLOGD("%{public}s: end", __func__);
 }
 
 int32_t HdiBackend::UpdateLayerCompType(uint32_t screenId, const std::unordered_map<uint32_t, LayerPtr> &layersMap)
@@ -213,7 +218,7 @@ int32_t HdiBackend::UpdateLayerCompType(uint32_t screenId, const std::unordered_
     return ret;
 }
 
-void HdiBackend::OnPrepareComplete(bool needFlush, OutputPtr &output, std::vector<LayerInfoPtr> &newLayerInfos)
+void HdiBackend::OnPrepareComplete(bool needFlush, const OutputPtr &output, std::vector<LayerInfoPtr> &newLayerInfos)
 {
     if (needFlush) {
         ReorderLayerInfo(newLayerInfos);

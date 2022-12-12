@@ -90,8 +90,7 @@ void RSComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& layers)
 
     // do composition.
     output_->SetLayerInfo(layers);
-    std::vector<std::shared_ptr<HdiOutput>> outputs {output_};
-    hdiBackend_->Repaint(outputs);
+    hdiBackend_->Repaint(output_);
 
     // get present timestamp from and set present timestamp to surface
     for (const auto& layer : layers) {
