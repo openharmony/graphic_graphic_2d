@@ -362,6 +362,11 @@ void RSSurfaceNode::SetContainerWindow(bool hasContainerWindow, float density)
     }
 }
 
+void RSSurfaceNode::SetWindowId(uint32_t windowId)
+{
+    windowId_ = windowId;
+}
+
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode)
     : RSNode(isRenderServiceNode), name_(config.SurfaceNodeName)
 {}
