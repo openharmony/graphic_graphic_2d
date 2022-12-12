@@ -165,6 +165,14 @@ void RSRenderEngine::DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRende
     const float adaptiveDstWidth = params.dstRect.width() * mirrorAdaptiveCoefficient;
     const float adaptiveDstHeight = params.dstRect.height() * mirrorAdaptiveCoefficient;
     params.dstRect.setWH(adaptiveDstWidth, adaptiveDstHeight);
+    const float translateX = params.matrix.getTranslateX() * mirrorAdaptiveCoefficient;
+    const float translateY = params.matrix.getTranslateY() * mirrorAdaptiveCoefficient;
+    params.matrix.setTranslateX(translateX);
+    params.matrix.setTranslateY(translateY);
+    const auto& clipRect = params.clipRect;
+    params.clipRect = SkRect::MakeXYWH(
+        clipRect.left() * mirrorAdaptiveCoefficient, clipRect.top() * mirrorAdaptiveCoefficient,
+        clipRect.width() * mirrorAdaptiveCoefficient, clipRect.height() * mirrorAdaptiveCoefficient);
 
     DrawSurfaceNodeWithParams(canvas, node, params, nullptr, nullptr);
 }
