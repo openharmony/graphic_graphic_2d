@@ -19,6 +19,7 @@
 
 #include "platform/common/rs_log.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
+#include "pipeline/rs_uni_render_util.h"
 #include "rs_trace.h"
 #include "string_utils.h"
 
@@ -33,17 +34,13 @@ bool RSUniRenderMirrorProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX
     renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
 
     auto screenManager = CreateOrGetScreenManager();
-    producerSurface = screenManager->GetProducerSurface(node.GetScreenId());
-    if (producerSurface == nullptr) {
+    producerSurface_ = screenManager->GetProducerSurface(node.GetScreenId());
+    if (producerSurface_ == nullptr) {
         RS_LOGE("RSUniRenderMirrorProcessor::Init for Screen(id %" PRIu64 "): ProducerSurface is null!",
             node.GetScreenId());
         return false;
     }
-
-    // this is a work-around for the lack of color gamut conversion and yuv support in GPU.
-    // currently we must forceCPU to do the composition for virtual screen.
-    bool forceCPU = true;
-    renderFrame_ = renderEngine_->RequestFrame(producerSurface, renderFrameConfig_, forceCPU);
+    renderFrame_ = renderEngine_->RequestFrame(producerSurface_, renderFrameConfig_, forceCPU_, false);
     if (renderFrame_ == nullptr) {
         return false;
     }
@@ -58,11 +55,11 @@ bool RSUniRenderMirrorProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX
 
 void RSUniRenderMirrorProcessor::PostProcess()
 {
-    if (producerSurface == nullptr) {
+    if (producerSurface_ == nullptr) {
         RS_LOGE("RSUniRenderMirrorProcessor::PostProcess surface is null!");
         return;
     }
-    auto surfaceId = producerSurface->GetUniqueId();
+    auto surfaceId = producerSurface_->GetUniqueId();
     renderEngine_->SetUiTimeStamp(renderFrame_, surfaceId);
     if (renderFrame_ == nullptr) {
         RS_LOGE("RSUniRenderMirrorProcessor::PostProcess renderFrame_ is null.");
@@ -80,11 +77,12 @@ void RSUniRenderMirrorProcessor::ProcessSurface(RSSurfaceRenderNode& node)
 void RSUniRenderMirrorProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
 {
     RS_TRACE_NAME("RSUniRenderMirrorProcessor::ProcessDisplaySurface");
-    if (canvas_ == nullptr) {
-        RS_LOGE("RSVirtualScreenProcessor::ProcessDisplaySurface: Canvas is null!");
+    if (canvas_ == nullptr || node.GetBuffer() == nullptr) {
+        RS_LOGE("RSUniRenderMirrorProcessor::ProcessDisplaySurface: Canvas or buffer is null!");
         return;
     }
-    canvas_->drawImage(node.Snapshot(), 0, 0);
+    auto params = RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU_);
+    renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
 }
 } // namespace Rosen
 } // namespace OHOS
