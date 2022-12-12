@@ -42,7 +42,8 @@ RSSurfaceOhosGl::~RSSurfaceOhosGl()
     mEglSurface = EGL_NO_SURFACE;
 }
 
-std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int32_t height, uint64_t uiTimestamp)
+std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int32_t height,
+    uint64_t uiTimestamp, bool useAFBC)
 {
     RenderContext* context = GetRenderContext();
     if (context == nullptr) {
@@ -66,7 +67,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
 #ifdef RS_ENABLE_AFBC
     int32_t format = 0;
     NativeWindowHandleOpt(mWindow, GET_FORMAT, &format);
-    if (format == PIXEL_FMT_RGBA_8888) {
+    if (format == PIXEL_FMT_RGBA_8888 && useAFBC) {
         bufferUsage_ =
             (BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA);
     }
@@ -91,7 +92,11 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
 
 void RSSurfaceOhosGl::SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
-    NativeWindowHandleOpt(mWindow, SET_UI_TIMESTAMP, uiTimestamp);
+    struct timespec curTime = {0, 0};
+    clock_gettime(CLOCK_MONOTONIC, &curTime);
+    // 1000000000 is used for transfer second to nsec
+    uint64_t duration = static_cast<uint64_t>(curTime.tv_sec) * 1000000000 + static_cast<uint64_t>(curTime.tv_nsec);
+    NativeWindowHandleOpt(mWindow, SET_UI_TIMESTAMP, duration);
 }
 
 bool RSSurfaceOhosGl::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)

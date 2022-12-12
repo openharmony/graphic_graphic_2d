@@ -114,15 +114,18 @@ public:
     // There would only one user(thread) to renderFrame(request frame) at one time.
     // for framebuffer surface
     static std::unique_ptr<RSRenderFrame> RequestFrame(const sptr<Surface>& rsSurface,
-        const BufferRequestConfig& config, bool forceCPU = false);
+        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true);
     // There would only one user(thread) to renderFrame(request frame) at one time.
     static std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
-        const BufferRequestConfig& config, bool forceCPU = false);
+        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true);
 
     static void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame, const uint64_t surfaceId);
 
     virtual void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
         BufferDrawParam& params, PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr) = 0;
+
+    static void DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSDisplayRenderNode& node,
+        BufferDrawParam& params);
 
     virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU = false,
         float mirrorAdaptiveCoefficient = 1.0f) = 0;
