@@ -669,9 +669,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RS_TRACE_BEGIN("RSUniRender:WaitUtilUniRenderFinished");
         RSMainThread::Instance()->WaitUtilUniRenderFinished();
         RS_TRACE_END();
-        if (mirroredDisplays_.size() > 0) {
-            node.MakeSnapshot(canvas_->GetSurface());
-        }
         processor_->ProcessDisplaySurface(node);
     }
     processor_->PostProcess();

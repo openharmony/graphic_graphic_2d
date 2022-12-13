@@ -35,9 +35,10 @@ public:
         return std::move(canvas_);
     }
 private:
-    sptr<Surface> producerSurface;
+    sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
+    bool forceCPU_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

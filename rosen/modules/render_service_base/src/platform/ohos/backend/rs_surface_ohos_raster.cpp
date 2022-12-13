@@ -31,7 +31,8 @@ void RSSurfaceOhosRaster::SetSurfaceBufferUsage(uint64_t usage)
     bufferUsage_ = usage;
 }
 
-std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width, int32_t height, uint64_t uiTimestamp)
+std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width, int32_t height,
+    uint64_t uiTimestamp, bool useAFBC)
 {
     if (producer_ == nullptr) {
         ROSEN_LOGE("RSSurfaceOhosRaster::RequestFrame, producer is nullptr");

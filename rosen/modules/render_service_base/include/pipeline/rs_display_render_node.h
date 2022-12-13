@@ -121,16 +121,6 @@ public:
         return surfaceCreated_;
     }
 
-    sk_sp<SkImage> Snapshot()
-    {
-        return snapshot_;
-    }
-
-    void MakeSnapshot(SkSurface* surface)
-    {
-        snapshot_ = surface->makeImageSnapshot();
-    }
-
     ScreenRotation GetRotation() const;
 
     std::shared_ptr<RSDirtyRegionManager> GetDirtyManager()
@@ -187,7 +177,6 @@ private:
     bool isSecurityDisplay_ = false;
     WeakPtr mirrorSource_;
     float lastRotation_ = 0.f;
-    sk_sp<SkImage> snapshot_;
 
     std::shared_ptr<RSSurface> surface_;
     bool surfaceCreated_ { false };
