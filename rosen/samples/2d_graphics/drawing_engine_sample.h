@@ -47,7 +47,6 @@ private:
     int32_t drawingWidth = 0;
     int32_t drawingHeight = 0;
     std::vector<GraphicDisplayModeInfo> displayModeInfos_;
-    std::vector<std::shared_ptr<HdiOutput>> outputs_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler;
     sptr<Surface> drawingCSurface;
     sptr<Surface> drawingPSurface;

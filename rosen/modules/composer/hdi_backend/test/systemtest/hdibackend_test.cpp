@@ -85,7 +85,6 @@ namespace {
 */
 HWTEST_F(HdiBackendSysTest, RegScreenHotplug001, Function | MediumTest| Level3)
 {
-    std::vector<std::shared_ptr<HdiOutput>> outputs {HdiBackendSysTest::output_};
     EXPECT_CALL(*mockDevice_, PrepareScreenLayers(_, _)).WillRepeatedly(testing::Return(0));
     std::vector<uint32_t> layersId;
     std::vector<int32_t> types;
@@ -98,8 +97,8 @@ HWTEST_F(HdiBackendSysTest, RegScreenHotplug001, Function | MediumTest| Level3)
     EXPECT_CALL(*mockDevice_, GetScreenCompChange(_, layersId, types)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, Commit(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenVsyncEnabled(_, _)).WillRepeatedly(testing::Return(0));
-    HdiBackendSysTest::hdiBackend_->Repaint(outputs);
-    ASSERT_EQ(HdiBackendSysTest::hdiBackend_->RegScreenHotplug(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
+    hdiBackend_->Repaint(output_);
+    ASSERT_EQ(hdiBackend_->RegScreenHotplug(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
 }
 
 /*
@@ -113,7 +112,7 @@ HWTEST_F(HdiBackendSysTest, RegScreenHotplug001, Function | MediumTest| Level3)
 HWTEST_F(HdiBackendSysTest, RegScreenHotplug002, Function | MediumTest| Level3)
 {
     auto func = [](OutputPtr &, bool, void*) -> void {};
-    ASSERT_EQ(HdiBackendSysTest::hdiBackend_->RegScreenHotplug(func, nullptr), ROSEN_ERROR_OK);
+    ASSERT_EQ(hdiBackend_->RegScreenHotplug(func, nullptr), ROSEN_ERROR_OK);
 }
 
 /*
@@ -126,7 +125,7 @@ HWTEST_F(HdiBackendSysTest, RegScreenHotplug002, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiBackendSysTest, RegPrepareComplete001, Function | MediumTest| Level3)
 {
-    ASSERT_EQ(HdiBackendSysTest::hdiBackend_->RegPrepareComplete(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(hdiBackend_->RegPrepareComplete(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
 }
 
 /*
@@ -140,7 +139,7 @@ HWTEST_F(HdiBackendSysTest, RegPrepareComplete001, Function | MediumTest| Level3
 HWTEST_F(HdiBackendSysTest, RegPrepareComplete002, Function | MediumTest| Level3)
 {
     auto func = [](sptr<Surface> &, const struct PrepareCompleteParam &, void*) -> void {};
-    RosenError ret = HdiBackendSysTest::hdiBackend_->RegPrepareComplete(func, nullptr);
+    RosenError ret = hdiBackend_->RegPrepareComplete(func, nullptr);
     ASSERT_EQ(ret, ROSEN_ERROR_OK);
 }
 

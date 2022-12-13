@@ -46,7 +46,6 @@ private:
     uint32_t drawingWidth = 0;
     uint32_t drawingHeight = 0;
     std::vector<GraphicDisplayModeInfo> displayModeInfos_;
-    std::vector<std::shared_ptr<HdiOutput>> outputs_;
 
     sptr<Surface> backGroundCSurface;
     sptr<Surface> backGroundPSurface;

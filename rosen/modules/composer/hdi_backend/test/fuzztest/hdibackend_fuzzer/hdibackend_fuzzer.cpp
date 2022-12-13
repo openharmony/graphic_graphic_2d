@@ -80,7 +80,6 @@ namespace OHOS {
         void* data2 = static_cast<void*>(GetStringFromData(STR_LEN).data());
 
         // test
-        std::vector<OutputPtr> outputs;
         OutputPtr outputptr = HdiOutput::CreateHdiOutput(screenId);
         outputptr->Init();
         std::vector<LayerInfoPtr> layerInfos;
@@ -89,17 +88,14 @@ namespace OHOS {
         layerInfoptr->SetSurface(cSurface);
         layerInfos.push_back(layerInfoptr);
         outputptr->SetLayerInfo(layerInfos);
-        outputs.push_back(outputptr);
 
         HdiBackend* hdiBackend_ = HdiBackend::GetInstance();
         auto onScreenHotplugFunc = [](OutputPtr &, bool, void*) -> void {};
         auto onPrepareCompleteFunc = [](sptr<Surface> &, const struct PrepareCompleteParam &, void*) -> void {};
         hdiBackend_->RegScreenHotplug(onScreenHotplugFunc, data1);
         hdiBackend_->RegPrepareComplete(onPrepareCompleteFunc, data2);
-        hdiBackend_->Repaint(outputs);
-        for (auto output : outputs) {
-            hdiBackend_->GetLayersReleaseFence(output);
-        }
+        hdiBackend_->Repaint(outputptr);
+        hdiBackend_->GetLayersReleaseFence(outputptr);
 
         return true;
     }

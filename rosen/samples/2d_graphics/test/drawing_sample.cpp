@@ -144,7 +144,6 @@ void DrawingSample::Sync(int64_t, void* data)
 void DrawingSample::Draw()
 {
     for (auto iter = drawLayersMap_.begin(); iter != drawLayersMap_.end(); ++iter) {
-        std::vector<std::shared_ptr<HdiOutput>> outputs;
         uint32_t screenId = iter->first;
         std::unique_ptr<LayerContext>& drawLayer = drawLayersMap_[screenId];
 
@@ -157,7 +156,6 @@ void DrawingSample::Draw()
                 std::vector<LayerInfoPtr> layerVec;
                 layerVec.emplace_back(drawLayer->GetHdiLayer());
                 curOutput_ = outputMap_[screenId];
-                outputs.emplace_back(curOutput_);
                 curOutput_->SetLayerInfo(layerVec);
 
                 GraphicIRect damageRect;
@@ -166,7 +164,7 @@ void DrawingSample::Draw()
                 damageRect.w = static_cast<int32_t>(displayWidthsMap_[screenId]);
                 damageRect.h = static_cast<int32_t>(displayHeightsMap_[screenId]);
                 curOutput_->SetOutputDamage(1, damageRect);
-                backend_->Repaint(outputs);
+                backend_->Repaint(curOutput_);
                 sleep(2); // wait 2s
                 auto preBuffer = drawLayer->GetPreBuffer();
                 int32_t releaseFence = -1;
