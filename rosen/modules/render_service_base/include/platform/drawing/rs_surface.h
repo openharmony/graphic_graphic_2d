@@ -34,7 +34,8 @@ public:
 
     virtual void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp = 0) = 0;
 
-    virtual std::unique_ptr<RSSurfaceFrame> RequestFrame(int32_t width, int32_t height, uint64_t uiTimestamp = 0) = 0;
+    virtual std::unique_ptr<RSSurfaceFrame> RequestFrame(
+        int32_t width, int32_t height, uint64_t uiTimestamp = 0, bool useAFBC = true) = 0;
 
     virtual bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp = 0) = 0;
 

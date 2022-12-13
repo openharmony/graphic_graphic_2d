@@ -51,10 +51,8 @@ bool RSVirtualScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, 
         return false;
     }
 
-    // this is a work-around for the lack of color gamut conversion and yuv support in GPU.
-    // currently we must forceCPU to do the composition for virtual screen.
     bool forceCPU = false;
-    renderFrame_ = renderEngine_->RequestFrame(producerSurface_, renderFrameConfig_, forceCPU);
+    renderFrame_ = renderEngine_->RequestFrame(producerSurface_, renderFrameConfig_, forceCPU, false);
     if (renderFrame_ == nullptr) {
         RS_LOGE("RSVirtualScreenProcessor::Init: renderFrame_ is null!");
         return false;

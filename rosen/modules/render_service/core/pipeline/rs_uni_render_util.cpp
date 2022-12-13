@@ -119,6 +119,24 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     return params;
 }
 
+BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU)
+{
+    BufferDrawParam params;
+#ifdef RS_ENABLE_EGLIMAGE
+    params.useCPU = forceCPU;
+#else // RS_ENABLE_EGLIMAGE
+    params.useCPU = true;
+#endif // RS_ENABLE_EGLIMAGE
+    params.isPosInfoSet = false;
+    params.paint.setAntiAlias(true);
+    params.paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
+
+    const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
+    params.buffer = buffer;
+    params.acquireFence = node.GetAcquireFence();
+    return params;
+}
+
 void RSUniRenderUtil::DrawCachedSurface(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas,
     sk_sp<SkSurface> surface)
 {
