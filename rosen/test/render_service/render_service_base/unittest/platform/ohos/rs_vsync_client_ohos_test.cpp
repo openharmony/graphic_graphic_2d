@@ -30,17 +30,19 @@ public:
     void SetUp() override;
     void TearDown() override;
 
-    static inline std::unique_ptr<RSVsyncClient> vsyncClient = nullptr;
+    std::unique_ptr<RSVsyncClient> vsyncClient = nullptr;
     static inline RSVsyncClient::VsyncCallback cb = nullptr;
 };
 
 void RSVsyncClientTest::SetUpTestCase()
 {
-    vsyncClient = RSVsyncClient::Create();
     cb = [](int64_t timestamp) {};
 }
 void RSVsyncClientTest::TearDownTestCase() {}
-void RSVsyncClientTest::SetUp() {}
+void RSVsyncClientTest::SetUp()
+{
+    vsyncClient = RSVsyncClient::Create();
+}
 void RSVsyncClientTest::TearDown() {}
 
 /**
@@ -64,6 +66,7 @@ HWTEST_F(RSVsyncClientTest, SetVsyncCallback_Test, TestSize.Level1)
 HWTEST_F(RSVsyncClientTest, RequestNextVsync_Test, TestSize.Level1)
 {
     ASSERT_NE(vsyncClient, nullptr);
+    vsyncClient->SetVsyncCallback(cb);
     vsyncClient->RequestNextVsync();
 }
 } // namespace Rosen
