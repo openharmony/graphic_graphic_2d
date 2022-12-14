@@ -140,11 +140,10 @@ bool RSUniRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
         return false;
     }
 
-    static bool firstEntry = true;
-    static std::function<void()> firstBufferRelease = nullptr;
-
     auto& preBuffer = surfaceHandler.GetPreBuffer();
     if (preBuffer.buffer != nullptr) {
+        static bool firstEntry = true;
+        static std::function<void()> firstBufferRelease = nullptr;
         if (firstEntry) {
             // In order to avoid waiting for buffers' fence, we delay the first ReleaseBuffer to alloc 3 buffers.
             // [planning] delete this function after Repaint parallelization.
