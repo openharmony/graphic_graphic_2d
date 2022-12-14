@@ -27,6 +27,8 @@ class RSPaintFilterCanvas;
 class RSPropertiesPainter {
 public:
     static void Clip(SkCanvas& canvas, RectF rect);
+    static void SetBgAntiAlias(bool forceBgAntiAlias);
+    static bool GetBgAntiAlias();
     static void DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void DrawBorder(const RSProperties& properties, SkCanvas& canvas);
     static void DrawFrame(const RSProperties& properties, RSPaintFilterCanvas& canvas, DrawCmdListPtr& drawCmdList);

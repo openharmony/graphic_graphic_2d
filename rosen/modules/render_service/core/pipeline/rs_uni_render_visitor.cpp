@@ -611,7 +611,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
         if (isOpDropped_) {
             if (region.isEmpty()) {
-                // [planning] Remove this after frame buffer can release
+                // [planning] Remove this after frame buffer can cancel
                 canvas_->clipRect(SkRect::MakeEmpty());
             } else if (region.isRect()) {
                 canvas_->clipRegion(region);
@@ -624,11 +624,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                     saveLayerCnt = canvas_->saveLayer(SkRect::MakeWH(screenInfo_.width, screenInfo_.height), nullptr);
                 }
             }
-            canvas_->clear(SK_ColorTRANSPARENT);
         }
 #endif
         int saveCount = canvas_->save();
         canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
+        RSPropertiesPainter::SetBgAntiAlias(true);
         auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
         if (geoPtr != nullptr) {
             canvas_->concat(geoPtr->GetMatrix());
@@ -977,6 +977,11 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 
     auto savedState = canvas_->SaveCanvasAndAlpha();
+    auto bgAntiAliasState = RSPropertiesPainter::GetBgAntiAlias();
+    if (doAnimate_ && (!ROSEN_EQ(geoPtr->GetScaleX(), 1.f) || !ROSEN_EQ(geoPtr->GetScaleY(), 1.f))) {
+        // disable background antialias when surfacenode has scale animation
+        RSPropertiesPainter::SetBgAntiAlias(false);
+    }
 
     canvas_->MultiplyAlpha(property.GetAlpha());
     canvas_->MultiplyAlpha(node.GetContextAlpha());
@@ -1081,6 +1086,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
     }
 
+    RSPropertiesPainter::SetBgAntiAlias(bgAntiAliasState);
     canvas_->RestoreCanvasAndAlpha(savedState);
     if (node.IsAppWindow()) {
         canvas_->SetVisibleRect(SkRect::MakeLTRB(0, 0, 0, 0));
