@@ -44,6 +44,8 @@ ohos_shared_library("socketpair") {
   public_configs = [ ":socketpair_public_config" ]
   all_dependent_configs = [ ":socketpair_all_dependent_config" ]
 
+  deps = [ "//foundation/graphic/graphic_2d/utils:scoped_bytrace" ]
+
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//commonlibrary/c_utils/base:utils",
