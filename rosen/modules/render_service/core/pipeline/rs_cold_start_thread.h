@@ -62,8 +62,8 @@ private:
 #ifdef RS_ENABLE_GL
     std::shared_ptr<RSSharedContext> context_ = nullptr;
 #endif
-    std::queue<SurfaceNodeResource> availableResourceQueue_;
-    std::vector<SurfaceNodeResource> resourceVector_;
+    sk_sp<GrContext> grContext_;
+    sk_sp<SkSurface> skSurface_;
     std::mutex mutex_;
     std::condition_variable cv_;
 };

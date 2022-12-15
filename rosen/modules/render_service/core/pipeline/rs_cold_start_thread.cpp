@@ -34,6 +34,7 @@
 namespace OHOS {
 namespace Rosen {
 static const std::string THREAD_NAME = "ColdStartThread";
+static const std::string PLAYBACK_TASK_NAME = "PlaybackTask";
 
 static void SystemCallSetThreadName(const std::string& name)
 {
@@ -79,15 +80,10 @@ void RSColdStartThread::Stop()
         handler_->PostSyncTask([this]() {
             RS_TRACE_NAME_FMT("RSColdStartThread abandonContext"); // abandonContext here to avoid crash
             RS_LOGD("RSColdStartThread releaseResourcesAndAbandonContext");
-            for (auto& resource : resourceVector_) {
-                auto grContext = resource.grContext;
-                if (grContext != nullptr) {
-                    grContext->releaseResourcesAndAbandonContext();
-                }
+            if (grContext_ != nullptr) {
+                grContext_->releaseResourcesAndAbandonContext();
             }
-            resourceVector_.clear();
-            std::queue<SurfaceNodeResource> emptyQueue;
-            availableResourceQueue_.swap(emptyQueue);
+            skSurface_ = nullptr;
 #ifdef RS_ENABLE_GL
             context_ = nullptr;
 #endif
@@ -163,55 +159,50 @@ void RSColdStartThread::PostPlayBackTask(std::shared_ptr<DrawCmdList> drawCmdLis
             RS_LOGE("RSColdStartThread::PostPlayBackTask surfaceNode is nullptr");
             return;
         }
-        SurfaceNodeResource resource;
-        if (availableResourceQueue_.empty()) {
-            sk_sp<SkSurface> surface;
-            sk_sp<GrContext> grContext;
 #ifdef RS_ENABLE_GL
-            SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
-            grContext = context_->MakeGrContext();
-            surface = SkSurface::MakeRenderTarget(grContext.get(), SkBudgeted::kYes, info);
+        if (grContext_ == nullptr) {
+            grContext_ = context_->MakeGrContext();
+        }
+        SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
+        skSurface_ = SkSurface::MakeRenderTarget(grContext_.get(), SkBudgeted::kYes, info);
 #else
-            surface = SkSurface::MakeRasterN32Premul(width, height);
+        skSurface_ = SkSurface::MakeRasterN32Premul(width, height);
 #endif
-            if (surface == nullptr || surface->getCanvas() == nullptr) {
-                RS_LOGE("RSColdStartThread::PostPlayBackTask make SkSurface failed");
-                return;
-            }
-            resource = { grContext, surface };
-            resourceVector_.emplace_back(resource);
-        } else {
-            resource = availableResourceQueue_.front();
-            availableResourceQueue_.pop();
+        if (skSurface_ == nullptr || skSurface_->getCanvas() == nullptr) {
+            RS_LOGE("RSColdStartThread::PostPlayBackTask make SkSurface failed");
+            return;
         }
 
         RS_LOGD("RSColdStartThread::PostPlayBackTask drawCmdList Playback");
         RS_TRACE_NAME_FMT("RSColdStartThread Playback");
-        auto canvas = resource.skSurface->getCanvas();
+        auto canvas = skSurface_->getCanvas();
         canvas->clear(SK_ColorTRANSPARENT);
         drawCmdList->Playback(*canvas);
-        if (node->GetCachedResource().skSurface == nullptr) {
+
+        RS_TRACE_BEGIN("flush");
+        skSurface_->flush();
+#ifdef RS_ENABLE_GL
+        glFinish();
+#endif
+        sk_sp<SkImage> image = skSurface_->makeImageSnapshot();
+        RS_TRACE_END();
+
+        if (node->GetCachedImage() == nullptr) {
             node->NotifyUIBufferAvailable();
         }
-        RSMainThread::Instance()->PostTask([this, resource = resource]() {
+        RSMainThread::Instance()->PostTask([this, image]() {
             auto node = surfaceNode_.lock();
             if (!node) {
                 RS_LOGE("RSColdStartThread PostSyncTask surfaceNode is nullptr");
                 return;
             }
-            RS_LOGD("RSMainThread SetCachedResource");
-            auto cachedResource = node->GetCachedResource();
-            node->SetCachedResource(resource);
+            RS_LOGD("RSMainThread SetCachedImage");
+            node->SetCachedImage(image);
             RSMainThread::Instance()->RequestNextVSync();
-            if (cachedResource.skSurface != nullptr) {
-                PostTask([this, cachedResource]() {
-                    RS_LOGD("RSColdStartThread push cachedResource to queue");
-                    availableResourceQueue_.push(cachedResource);
-                });
-            }
         });
     };
-    handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    handler_->RemoveTask(PLAYBACK_TASK_NAME);
+    handler_->PostTask(task, PLAYBACK_TASK_NAME, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
 RSColdStartManager& RSColdStartManager::Instance()

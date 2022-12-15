@@ -42,6 +42,7 @@ public:
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU);
     static void DrawCachedSurface(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, sk_sp<SkSurface> surface);
+    static void DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, sk_sp<SkImage> image);
 
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 };
