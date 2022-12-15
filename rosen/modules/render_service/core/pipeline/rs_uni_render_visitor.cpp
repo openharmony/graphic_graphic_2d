@@ -383,11 +383,15 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     // attention: accumulate direct parent's childrenRect
     node.UpdateParentChildrenRect(node.GetParent().lock());
 
-    // [planning] Remove this after skia is upgraded, the clipRegion is supported
     if (node.GetRenderProperties().NeedFilter() && curSurfaceNode_) {
         if (!curSurfaceNode_->IsAppFreeze()) {
+            // [planning] Remove this after skia is upgraded, the clipRegion is supported
             needFilter_ = true;
         }
+        // filterRects_ is used in RSUniRenderVisitor::CalcDirtyRegionForFilterNode
+        // When oldDirtyRect of node with filter has intersect with any surfaceNode or displayNode dirtyRegion,
+        // the whole oldDirtyRect should be render in this vsync.
+        // Partical rendering of node with filter would cause display problem.
         filterRects_[curSurfaceNode_->GetId()].push_back(node.GetOldDirtyInSurface());
     }
     curAlpha_ = alpha;
@@ -987,6 +991,17 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     canvas_->MultiplyAlpha(node.GetContextAlpha());
 
     bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
+    // [planning] surfaceNode use frame instead
+    // This is for SELF_DRAWING_NODE like RosenRenderTexture
+    // BoundsRect of RosenRenderTexture is the size of video, not the size of the component.
+    // The size of RosenRenderTexture is the paintRect (always be set to FrameRect) which is not passed to RenderNode
+    // because RSSurfaceRenderNode is designed only affected by BoundsRect.
+    // When RosenRenderTexture has child node, child node is layouted
+    // according to paintRect of RosenRenderTexture, not the BoundsRect.
+    // So when draw SELF_DRAWING_NODE, we should save canvas
+    // to avoid child node being layout according to the BoundsRect of RosenRenderTexture.
+    // Temporarily, we use parent of SELF_DRAWING_NODE which has the same paintRect with its child instead.
+    // to draw child node of SELF_DRAWING_NODE
     if (isSelfDrawingSurface) {
         canvas_->save();
     }
@@ -997,10 +1012,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
 
-    if (isSelfDrawingSurface) {
-        canvas_->save();
-    }
-
+    // Fix bug that when AppWindow has shadow set by config.xml cannot be displayed for LEASH_WINDOW_NODE has clipped canvas.
     if (node.GetSurfaceNodeType() != RSSurfaceNodeType::LEASH_WINDOW_NODE) {
         if (!property.GetCornerRadius().IsZero()) {
             canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
@@ -1016,10 +1028,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         auto skRectPtr = std::make_unique<SkRect>();
         skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
         RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
-    }
-
-    if (isSelfDrawingSurface) {
-        canvas_->restore();
     }
 
     node.SetTotalMatrix(canvas_->getTotalMatrix());
