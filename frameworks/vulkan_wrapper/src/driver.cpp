@@ -190,6 +190,7 @@ VkResult CreateDevice(VkPhysicalDevice physicalDevice,
             deviceExtensions.push_back(ext_names[i]);
         }
         deviceExtensions.push_back(VK_OHOS_NATIVE_BUFFER_EXTENSION_NAME);
+        deviceExtensions.push_back(VK_OPENHARMONY_EXTERNAL_MEMORY_OHOS_NATIVE_BUFFER_EXTENSION_NAME);
         VkDeviceCreateInfo createInfo(*pCreateInfo);
 
         createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());

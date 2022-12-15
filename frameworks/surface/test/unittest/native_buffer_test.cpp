@@ -14,7 +14,9 @@
  */
 #include <gtest/gtest.h>
 #include <iservice_registry.h>
-#include <native_buffer.h>
+#include "native_buffer.h"
+#include "native_buffer_inner.h"
+#include "native_window.h"
 #include "surface_type.h"
 #include "graphic_common_c.h"
 
@@ -22,6 +24,13 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+class BufferConsumerListener : public IBufferConsumerListener {
+public:
+    void OnBufferAvailable() override
+    {
+    }
+};
+
 class NativeBufferTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -202,7 +211,7 @@ HWTEST_F(NativeBufferTest, OHNativeBufferUnreference002, Function | MediumTest |
 * CaseDescription: 1. call OH_NativeBuffer_GetSeqNum
 *                  2. call OH_NativeBuffer_Unreference
 *                  3. OH_NativeBuffer_Alloc again
-*                  2. check OH_NativeBuffer_GetSeqNum = oldSeq + 1
+*                  4. check OH_NativeBuffer_GetSeqNum = oldSeq + 1
 */
 HWTEST_F(NativeBufferTest, OHNativeBufferGetSeqNum003, Function | MediumTest | Level2)
 {
@@ -211,6 +220,38 @@ HWTEST_F(NativeBufferTest, OHNativeBufferGetSeqNum003, Function | MediumTest | L
     ASSERT_EQ(ret, GSERROR_OK);
     buffer = OH_NativeBuffer_Alloc(&config);
     ASSERT_EQ(oldSeq + 1, OH_NativeBuffer_GetSeqNum(buffer));
+}
+
+/*
+* Function: OH_NativeBuffer_GetBufferHandle
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeBuffer_GetBufferHandle
+*                  2. check result
+*/
+HWTEST_F(NativeBufferTest, OHNativeBufferGetBufferHandle001, Function | MediumTest | Level2)
+{
+    const BufferHandle* handle = OH_NativeBuffer_GetBufferHandle(buffer);
+    ASSERT_NE(handle, nullptr);
+}
+
+/*
+* Function: OH_NativeBuffer_GetNativeBufferConfig
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeBuffer_GetNativeBufferConfig
+*                  2. check result
+*/
+HWTEST_F(NativeBufferTest, OHNativeBufferGetNativeBufferConfig001, Function | MediumTest | Level2)
+{
+    OH_NativeBuffer_Config testConfig = {};
+    OH_NativeBuffer_GetNativeBufferConfig(buffer, &testConfig);
+    ASSERT_EQ(testConfig.width, config.width);
+    ASSERT_EQ(testConfig.height, config.height);
+    ASSERT_EQ(testConfig.format, config.format);
+    ASSERT_EQ(testConfig.usage, config.usage);
 }
 
 /*
@@ -273,5 +314,60 @@ HWTEST_F(NativeBufferTest, OHNativeBufferUnmap002, Function | MediumTest | Level
     ASSERT_EQ(ret, GSERROR_OK);
     ret = OH_NativeBuffer_Unreference(buffer);
     ASSERT_EQ(ret, GSERROR_OK);
+}
+
+/*
+* Function: OH_NativeBufferFromNativeWindowBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeBufferFromNativeWindowBuffer by abnormal input
+*                  2. check ret
+*/
+HWTEST_F(NativeBufferTest, NativeBufferFromNativeWindowBuffer001, Function | MediumTest | Level2)
+{
+    OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nullptr);
+    ASSERT_EQ(nativeBuffer, nullptr);
+}
+
+/*
+* Function: OH_NativeBufferFromNativeWindowBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeBufferFromNativeWindowBuffer
+*                  2. check ret
+*/
+HWTEST_F(NativeBufferTest, NativeBufferFromNativeWindowBuffer002, Function | MediumTest | Level2)
+{
+    sptr<OHOS::Surface> cSurface = Surface::CreateSurfaceAsConsumer();
+    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<OHOS::IBufferProducer> producer = cSurface->GetProducer();
+    sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+    int32_t fence;
+    sptr<OHOS::SurfaceBuffer> sBuffer = nullptr;
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,  // small
+        .height = 0x100, // small
+        .strideAlignment = 0x8,
+        .format = PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    pSurface->RequestBuffer(sBuffer, fence, requestConfig);
+    NativeWindow* nativeWindow = OH_NativeWindow_CreateNativeWindow(&pSurface);
+    ASSERT_NE(nativeWindow, nullptr);
+    NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
+    ASSERT_NE(nativeWindowBuffer, nullptr);
+    OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer);
+    ASSERT_NE(nativeBuffer, nullptr);
+
+    sBuffer = nullptr;
+    cSurface = nullptr;
+    producer = nullptr;
+    pSurface = nullptr;
+    nativeWindow = nullptr;
+    nativeWindowBuffer = nullptr;
 }
 }
