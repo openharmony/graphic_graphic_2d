@@ -71,6 +71,8 @@ public:
     GSError SetTunnelHandle(const ExtDataHandle *handle) override;
     GSError GetPresentTimestamp(uint32_t sequence, PresentTimestampType type, int64_t &time) override;
 
+    sptr<NativeSurface> GetNativeSurface() override;
+
 private:
     static inline BrokerDelegator<BufferClientProducer> delegator_;
     std::string name_ = "not init";

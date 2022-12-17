@@ -22,6 +22,7 @@
 #include "iremote_broker.h"
 
 #include "buffer_extra_data.h"
+#include "native_surface.h"
 #include "surface_buffer.h"
 #include "surface_type.h"
 
@@ -75,6 +76,8 @@ public:
                                    const std::vector<uint8_t> &metaData) = 0;
     virtual GSError SetTunnelHandle(const ExtDataHandle *handle) = 0;
     virtual GSError GetPresentTimestamp(uint32_t sequence, PresentTimestampType type, int64_t &time) = 0;
+
+    virtual sptr<NativeSurface> GetNativeSurface() = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducer");
 

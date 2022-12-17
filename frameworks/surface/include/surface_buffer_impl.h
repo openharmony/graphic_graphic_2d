@@ -24,6 +24,8 @@
 #include "egl_data.h"
 #include "stdint.h"
 
+struct BufferWrapper {};
+
 namespace OHOS {
 class SurfaceBufferImpl : public SurfaceBuffer {
 public:
@@ -83,6 +85,9 @@ public:
                                      int32_t format, uint64_t usage);
 
     uint64_t BufferUsageToGrallocUsage(uint64_t bufferUsage);
+
+    BufferWrapper GetBufferWrapper() override;
+    void SetBufferWrapper(BufferWrapper wrapper) override;
 
 private:
     void FreeBufferHandleLocked();

@@ -81,6 +81,8 @@ public:
     bool GetStatus() const;
     void SetStatus(bool status);
 
+    sptr<NativeSurface> GetNativeSurface() override;
+
 private:
     GSError CheckConnectLocked();
     GSError SetTunnelHandle(const sptr<SurfaceTunnelHandle> &handle);
