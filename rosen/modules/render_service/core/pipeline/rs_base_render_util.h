@@ -40,7 +40,6 @@ struct BufferDrawParam {
     SkMatrix matrix; // for moving canvas to layer(surface)'s leftTop point.
     SkRect srcRect; // surface's bufferSize
     SkRect dstRect; // surface's boundsSize
-    bool isPosInfoSet = true; // set false when displaynode is being painted
 
     Vector4f cornerRadius;
     RRect clipRRect;

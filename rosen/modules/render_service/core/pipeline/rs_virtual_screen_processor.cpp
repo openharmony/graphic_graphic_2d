@@ -41,6 +41,10 @@ bool RSVirtualScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, 
         return false;
     }
 
+    if (mirroredId != INVALID_SCREEN_ID) {
+        SetMirrorScreenSwap(node);
+    }
+
     renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
 
     auto screenManager = CreateOrGetScreenManager();
