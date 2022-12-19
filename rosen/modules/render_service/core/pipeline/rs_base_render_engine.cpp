@@ -272,11 +272,7 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
         RS_LOGE("RSDividedRenderUtil::DrawBuffer: create bitmap failed.");
         return;
     }
-    if (!params.isPosInfoSet) {
-        canvas.drawBitmap(bitmap, 0, 0, &(params.paint)); // when displaynode is being painted
-    } else {
-        canvas.drawBitmapRect(bitmap, params.srcRect, params.dstRect, &(params.paint));
-    }
+    canvas.drawBitmapRect(bitmap, params.srcRect, params.dstRect, &(params.paint));
 }
 
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
@@ -287,12 +283,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         RS_LOGE("RSDividedRenderUtil::DrawImage: image is nullptr!");
         return;
     }
-    if (!params.isPosInfoSet) {
-        canvas.drawImage(image, 0, 0, &(params.paint)); // when displaynode is being painted
-    } else {
-        canvas.drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
-    }
-    
+    canvas.drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
 }
 
 void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<Surface>& consumer)
