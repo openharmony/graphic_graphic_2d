@@ -202,6 +202,9 @@ bool RSUIDirector::RunningCustomAnimation(uint64_t timeStamp)
 
     hasRunningAnimation = modifierManager->Animate(timeStamp);
     modifierManager->Draw();
+
+    // post animation finish callback(s) to task queue
+    RSUIDirector::RecvMessages(true);
     return hasRunningAnimation;
 }
 

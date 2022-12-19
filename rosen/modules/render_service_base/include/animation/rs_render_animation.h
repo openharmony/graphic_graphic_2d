@@ -141,11 +141,6 @@ public:
 
     void SetStartTime(int64_t);
 
-    void SetFinishCallback(const std::function<void()>& finishCallback)
-    {
-        finishCallback_ = finishCallback;
-    }
-
 protected:
     explicit RSRenderAnimation(AnimationId id);
     RSRenderAnimation() = default;
@@ -169,7 +164,6 @@ protected:
     void FinishOnCurrentPosition();
 
     RSAnimationFraction animationFraction_;
-    std::function<void()> finishCallback_;
 
 private:
     void ProcessFillModeOnStart(float startFraction);

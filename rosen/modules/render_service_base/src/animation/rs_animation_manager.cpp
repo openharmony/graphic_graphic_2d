@@ -59,7 +59,7 @@ void RSAnimationManager::FilterAnimationByPid(pid_t pid)
     ROSEN_LOGI("RSAnimationManager::FilterAnimationByPid removing all animations belong to pid %d", pid);
     // remove all animations belong to given pid (by matching higher 32 bits of animation id)
     std::__libcpp_erase_if_container(animations_, [pid, this](const auto& pair) -> bool {
-        if (static_cast<pid_t>(pair.first >> 32) != pid) {
+        if (ExtractPid(pair.first) != pid) {
             return false;
         }
         pair.second->Finish();
@@ -113,13 +113,6 @@ void RSAnimationManager::OnAnimationRemove(const std::shared_ptr<RSRenderAnimati
 void RSAnimationManager::OnAnimationAdd(const std::shared_ptr<RSRenderAnimation>& animation)
 {
     animationNum_[animation->GetPropertyId()]++;
-}
-
-namespace {
-    inline constexpr uint32_t ExtractPid(AnimationId animId)
-    {
-        return animId >> 32;
-    }
 }
 
 void RSAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation)

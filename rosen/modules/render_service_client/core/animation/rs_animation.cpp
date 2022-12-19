@@ -379,14 +379,6 @@ void RSAnimation::StartCustomAnimation(const std::shared_ptr<RSRenderAnimation>&
         return;
     }
 
-    auto finishCallback = [weak = weak_from_this()]() {
-        auto animation = weak.lock();
-        if (animation == nullptr) {
-            return;
-        }
-        animation->CallFinishCallback();
-    };
-    animation->SetFinishCallback(finishCallback);
     animation->Start();
     modifierManager->AddAnimation(animation);
 }

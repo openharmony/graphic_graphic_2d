@@ -52,7 +52,7 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
     ROSEN_LOGI("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %d", pid);
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
     std::__libcpp_erase_if_container(renderNodeMap_, [pid](const auto& pair) -> bool {
-        if (static_cast<pid_t>(pair.first >> 32) != pid) {
+        if (ExtractPid(pair.first) != pid) {
             return false;
         }
         if (auto renderNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(pair.second)) {
@@ -65,7 +65,7 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
     });
 
     std::__libcpp_erase_if_container(surfaceNodeMap_, [pid](const auto& pair) -> bool {
-        return static_cast<pid_t>(pair.first >> 32) == pid;
+        return ExtractPid(pair.first) == pid;
     });
 
     auto it = renderNodeMap_.find(0);

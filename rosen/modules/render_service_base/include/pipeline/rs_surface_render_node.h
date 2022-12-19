@@ -442,7 +442,7 @@ public:
 
     bool IsFocusedWindow(pid_t focusedWindowPid)
     {
-        return static_cast<pid_t>(GetNodeId() >> 32) == focusedWindowPid; // higher 32 bits of nodeid is pid
+        return ExtractPid(GetNodeId()) == focusedWindowPid;
     }
 
     Occlusion::Region ResetOpaqueRegion(const RectI& absRect,

@@ -266,9 +266,6 @@ bool RSRenderAnimation::Animate(int64_t time)
     OnAnimate(fraction);
     if (isFinished) {
         ProcessFillModeOnFinish(fraction);
-        if (finishCallback_) {
-            finishCallback_();
-        }
         ROSEN_LOGD("RSRenderAnimation::Animate, isFinished is true");
         return true;
     }

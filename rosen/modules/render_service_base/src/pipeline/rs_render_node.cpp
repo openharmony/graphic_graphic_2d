@@ -332,12 +332,12 @@ void RSRenderNode::FilterModifiersByPid(pid_t pid)
 {
     // remove all modifiers added by given pid (by matching higher 32 bits of node id)
     std::__libcpp_erase_if_container(
-        modifiers_, [pid](const auto& it) -> bool { return static_cast<pid_t>(it.first >> 32) == pid; });
+        modifiers_, [pid](const auto& pair) -> bool { return ExtractPid(pair.first) == pid; });
 
     // remove all modifiers added by given pid (by matching higher 32 bits of node id)
     for (auto& [type, modifiers] : drawCmdModifiers_) {
         modifiers.remove_if(
-            [pid](const auto& it) -> bool { return static_cast<pid_t>(it->GetPropertyId() >> 32) == pid; });
+            [pid](const auto& it) -> bool { return ExtractPid(it->GetPropertyId()) == pid; });
     }
 }
 

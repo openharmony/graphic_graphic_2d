@@ -443,7 +443,7 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
 
     // collect visible changed pid
     if (qosPidCal_ && GetType() == RSRenderNodeType::SURFACE_NODE) {
-        uint32_t tmpPid = (GetId() >> 32) & 0xFFFFFFFF;
+        uint32_t tmpPid = ExtractPid(GetId());
         if (pidVisMap.find(tmpPid) != pidVisMap.end()) {
             pidVisMap[tmpPid] |= vis;
         } else {
