@@ -48,6 +48,11 @@ public:
     {
         RSNode::OnRemoveChildren();
     };
+
+    std::vector<PropertyId> GetModifierIds()
+    {
+        return RSNode::GetModifierIds();
+    };
 };
 
 /**
@@ -395,5 +400,220 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest013, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest013 end";
 }
 
+/**
+ * @tc.name: RSNodeAnimateSupplementTest014
+ * @tc.desc: Verify the setcallback of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest014, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest014 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    NodeId id = 0;
+    auto node = std::make_shared<RSNodeMock>(true, id);
+    EXPECT_TRUE(node != nullptr);
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(100);
+    RSNode::OpenImplicitAnimation(protocol, RSAnimationTimingCurve::LINEAR);
+    RSNode::CloseImplicitAnimation();
+    PropertyCallback callback1;
+    std::weak_ptr<RSNode> weak = node;
+    callback1 = [weak]() {
+        auto node2 = weak.lock();
+        if (node2 == nullptr) {
+            return;
+        }
+        node2->SetAlpha(0.2f);
+    };
+    RSNode::AddKeyFrame(0.1f, RSAnimationTimingCurve::LINEAR, callback1);
+    RSNode::AddKeyFrame(0.2f, callback1);
+    PropertyCallback callback2;
+    RSNode::Animate(protocol, RSAnimationTimingCurve::LINEAR, callback2);
+    callback1 = [weak]() {
+        auto node2 = weak.lock();
+        if (node2 == nullptr) {
+            return;
+        }
+        node2->SetAlpha(0.3f);
+    };
+    RSNode::Animate(protocol, RSAnimationTimingCurve::LINEAR, callback2);
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest014 end";
+}
+
+/**
+ * @tc.name: RSNodeAnimateSupplementTest015
+ * @tc.desc: Verify the setcallback of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest015, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest015 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    NodeId id = 0;
+    auto node = std::make_shared<RSNodeMock>(true, id);
+    EXPECT_TRUE(node != nullptr);
+    std::shared_ptr<RSCurveAnimation> curveAnimation;
+    node->AddAnimation(curveAnimation);
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endProperty = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    curveAnimation = std::make_shared<RSCurveAnimation>(property, endProperty);
+    curveAnimation->SetDuration(0);
+    node->AddAnimation(curveAnimation);
+    node->AddAnimation(curveAnimation);
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest015 end";
+}
+
+/**
+ * @tc.name: RSNodeAnimateSupplementTest016
+ * @tc.desc: Verify the setcallback of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest016, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest016 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    NodeId id = 0;
+    auto node = std::make_shared<RSNodeMock>(true, id);
+    EXPECT_TRUE(node != nullptr);
+    std::shared_ptr<RSCurveAnimation> curveAnimation;
+    node->RemoveAllAnimations();
+    node->RemoveAnimation(curveAnimation);
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endProperty = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    curveAnimation = std::make_shared<RSCurveAnimation>(property, endProperty);
+    node->RemoveAnimation(curveAnimation);
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest016 end";
+}
+
+/**
+ * @tc.name: RSNodeAnimateSupplementTest017
+ * @tc.desc: Verify the setcallback of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest017, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest017 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    NodeId id = 0;
+    auto node = std::make_shared<RSNodeMock>(true, id);
+    EXPECT_TRUE(node != nullptr);
+    std::shared_ptr<RSMotionPathOption> option = std::make_shared<RSMotionPathOption>("abc");
+    node->SetMotionPathOption(option);
+    node->SetBounds(1.f, 2.f, 3.f, 4.f);
+    node->SetMotionPathOption(option);
+    Vector4f data(2.f, 3.f, 4.f, 5.f);
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(data);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    node->AddModifier(modifier);
+    node->SetMotionPathOption(option);
+    node->SetAlphaOffscreen(true);
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest017 end";
+}
+
+/**
+ * @tc.name: RSNodeAnimateSupplementTest018
+ * @tc.desc: Verify the setcallback of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest018, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest018 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    NodeId id = 0;
+    auto node = std::make_shared<RSNodeMock>(true, id);
+    EXPECT_TRUE(node != nullptr);
+    Vector4f data(2.f, 3.f, 4.f, 5.f);
+    auto property1 = std::make_shared<RSAnimatableProperty<Vector4f>>(data);
+    auto modifier1 = std::make_shared<RSBoundsModifier>(property1);
+    node->AddModifier(modifier1);
+    auto modifier2 = std::make_shared<RSFrameModifier>(property1);
+    node->AddModifier(modifier2);
+    node->SetBoundsWidth(10.f);
+    node->SetBoundsHeight(20.f);
+    node->SetFramePositionX(5.f);
+    node->SetFramePositionY(6.f);
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest018 end";
+}
+
+/**
+ * @tc.name: RSNodeAnimateSupplementTest019
+ * @tc.desc: Verify the setcallback of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest019, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest019 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    NodeId id = 0;
+    auto node = std::make_shared<RSNodeMock>(true, id);
+    EXPECT_TRUE(node != nullptr);
+    std::shared_ptr<RSMask> mask = std::make_shared<RSMask>();
+    node->SetMask(mask);
+    std::shared_ptr<const RSTransitionEffect> effect = RSTransitionEffect::OPACITY;
+    node->SetTransitionEffect(effect);
+    node->SetVisible(true);
+    node->OnRemoveChildren();
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest019 end";
+}
+
+/**
+ * @tc.name: RSNodeAnimateSupplementTest020
+ * @tc.desc: Verify the setcallback of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest020, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest020 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    NodeId id = 0;
+    auto node = std::make_shared<RSNodeMock>(true, id);
+    EXPECT_TRUE(node != nullptr);
+    std::shared_ptr<RSMotionPathOption> option = std::make_shared<RSMotionPathOption>("abc");
+    node->SetMotionPathOption(option);
+    Vector4f data(2.f, 3.f, 4.f, 5.f);
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(data);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    node->AddModifier(modifier);
+    node->RemoveModifier(modifier);
+    node->RemoveModifier(modifier);
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest020 end";
+}
+
+/**
+ * @tc.name: RSNodeAnimateSupplementTest021
+ * @tc.desc: Verify the setcallback of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest021, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest021 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    NodeId id = 0;
+    auto node = std::make_shared<RSNodeMock>(true, id);
+    EXPECT_TRUE(node != nullptr);
+    auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    auto modifier = std::make_shared<RSAlphaModifier>(property);
+    node->AddModifier(modifier);
+    auto ids = node->GetModifierIds();
+    EXPECT_TRUE(!ids.empty());
+    node->DumpNode(10);
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest021 end";
+}
 } // namespace Rosen
 } // namespace OHOS
