@@ -62,6 +62,22 @@ int32_t HdiLayer::InitDevice()
     return DISPLAY_SUCCESS;
 }
 
+int32_t HdiLayer::SetHdiDeviceMock(Base::HdiDevice* hdiDeviceMock)
+{
+    if (hdiDeviceMock == nullptr) {
+        HLOGE("Input HdiDevice is nullptr");
+        return DISPLAY_NULL_PTR;
+    }
+
+    if (device_ != nullptr) {
+        HLOGD("device_ has been initialized");
+        return DISPLAY_SUCCESS;
+    }
+
+    device_ = hdiDeviceMock;
+    return DISPLAY_SUCCESS;
+}
+
 int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
 {
     LayerInfo hdiLayerInfo = {
@@ -76,7 +92,7 @@ int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
         return DISPLAY_NULL_PTR;
     }
 
-    uint32_t layerId = 0;
+    uint32_t layerId = INT_MAX;
     int32_t ret = device_->CreateLayer(screenId_, hdiLayerInfo, layerId);
     if (ret != DISPLAY_SUCCESS) {
         HLOGE("Create hwc layer failed, ret is %{public}d", ret);

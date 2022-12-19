@@ -59,7 +59,10 @@ ohos_unittest("hdiframebuffersurface_unit_test") {
 ohos_unittest("hdilayer_unit_test") {
   module_out_path = module_out_path
 
-  sources = [ "hdilayer_test.cpp" ]
+  sources = [
+    "hdilayer_test.cpp",
+    "mock_hdi_device.cpp",
+  ]
 
   deps = [ ":hdibackend_test_common" ]
 

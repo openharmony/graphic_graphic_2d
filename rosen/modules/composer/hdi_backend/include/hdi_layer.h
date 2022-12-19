@@ -57,6 +57,9 @@ public:
 
     sptr<SyncFence> GetReleaseFence() const;
     void SavePrevLayerInfo();
+
+    /* only used for mock tests */
+    int32_t SetHdiDeviceMock(Base::HdiDevice* hdiDeviceMock);
 private:
     // layer buffer & fence
     class LayerBufferInfo : public RefBase {
@@ -79,7 +82,7 @@ private:
     LayerInfoPtr layerInfo_ = nullptr;
     LayerInfoPtr prevLayerInfo_ = nullptr;
     PresentTimestampType supportedPresentTimestamptype_ = PresentTimestampType::HARDWARE_DISPLAY_PTS_UNSUPPORTED;
-    HdiDevice *device_ = nullptr;
+    Base::HdiDevice *device_ = nullptr;
     bool doLayerInfoCompare_ = false;
 
     int32_t CreateLayer(const LayerInfoPtr &layerInfo);
