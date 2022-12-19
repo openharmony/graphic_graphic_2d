@@ -41,6 +41,11 @@ ohos_shared_library("libnative_image") {
       "src/native_image.cpp",
       "src/surface_image.cpp",
     ]
+
+    if (defined(graphic_2d_ext_configs.vendor_root)) {
+      sources += graphic_2d_ext_configs.libnative_image_ext_sources
+      sources -= graphic_2d_ext_configs.libnative_image_ext_sources_del
+    }
   }
 
   configs = [ ":native_image_config" ]

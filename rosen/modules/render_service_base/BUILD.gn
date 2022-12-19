@@ -197,4 +197,9 @@ ohos_shared_library("librender_service_base") {
   if (rosen_is_win) {
     defines += [ "_USE_MATH_DEFINES" ]
   }
+
+  if (defined(graphic_2d_ext_configs.vendor_root)) {
+    sources -= graphic_2d_ext_configs.librender_service_base_ext_sources_del
+    sources += graphic_2d_ext_configs.librender_service_base_ext_sources
+  }
 }
