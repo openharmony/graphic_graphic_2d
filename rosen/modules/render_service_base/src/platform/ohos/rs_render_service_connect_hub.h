@@ -38,7 +38,7 @@ public:
 private:
     static RSRenderServiceConnectHub* GetInstance();
     static void Init();
-    static void Destory();
+    static void Destroy();
 
     RSRenderServiceConnectHub();
     ~RSRenderServiceConnectHub() noexcept;
