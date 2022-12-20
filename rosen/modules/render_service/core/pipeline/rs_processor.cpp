@@ -60,10 +60,9 @@ bool RSProcessor::FrameAwareTraceBoost(size_t layerNum)
     auto currentTime = std::chrono::steady_clock::now();
     bool isTimeOut = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastRequestPerfTime).
         count() > PERF_TIME_OUT;
-    bool isOpen = FrameAwareTraceIsOpen();
-    if (isTimeOut || !isOpen) {
-        if (!isOpen) {
-            FrameAwareTraceOpen();
+    if (isTimeOut || !FrameAwareTraceIsOpen()) {
+        if (!FrameAwareTraceOpen()) {
+            return false;
         }
         OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(FRAME_TRACE_PERF_REQUESTED_CODE, true, "");
         RS_LOGI("RsDebug RSProcessor::Perf: FrameTrace 1");
