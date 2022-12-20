@@ -151,6 +151,19 @@ void RSUniRenderUtil::DrawCachedSurface(RSSurfaceRenderNode& node, RSPaintFilter
     canvas.restore();
 }
 
+void RSUniRenderUtil::DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, sk_sp<SkImage> image)
+{
+    if (image == nullptr) {
+        return;
+    }
+    canvas.save();
+    canvas.scale(node.GetRenderProperties().GetBoundsWidth() / image->width(),
+        node.GetRenderProperties().GetBoundsHeight() / image->height());
+    SkPaint paint;
+    canvas.drawImage(image.get(), 0.0, 0.0, &paint);
+    canvas.restore();
+}
+
 bool RSUniRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
 {
     auto& consumer = surfaceHandler.GetConsumer();

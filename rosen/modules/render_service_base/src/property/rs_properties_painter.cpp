@@ -275,6 +275,8 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         ROSEN_LOGD("RSPropertiesPainter::DrawFilter skSurface null");
         SkCanvas::SaveLayerRec slr(nullptr, &paint, SkCanvas::kInitWithPrevious_SaveLayerFlag);
         canvas.saveLayer(slr);
+        filter->PostProcess(canvas);
+        canvas.restore();
         return;
     }
     // canvas draw by snapshot instead of SaveLayer, since the blur layer moves while using savelayer

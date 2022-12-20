@@ -1038,7 +1038,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.IsAppWindow() &&
         (!needColdStartThread_ || !RSColdStartManager::Instance().IsColdStartThreadRunning(node.GetId()))) {
         if (RSColdStartManager::Instance().IsColdStartThreadRunning(node.GetId())) {
-            node.ClearCachedResource();
+            node.ClearCachedImage();
             RSColdStartManager::Instance().StopColdStartThread(node.GetId());
         }
         if (needCheckFirstFrame_ && IsFirstFrameReadyToDraw(node)) {
@@ -1066,8 +1066,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             }
         }
     } else if (node.IsAppWindow()) { // use skSurface drawn by cold start thread
-        needDrawStartingWindow_ = false;
-        RSUniRenderUtil::DrawCachedSurface(node, *canvas_, node.GetCachedResource().skSurface);
+        if (node.GetCachedImage() != nullptr) {
+            needDrawStartingWindow_ = false;
+            RSUniRenderUtil::DrawCachedImage(node, *canvas_, node.GetCachedImage());
+        }
         RecordAppWindowNodeAndPostTask(node, property.GetBoundsWidth(), property.GetBoundsHeight());
     } else {
         ProcessBaseRenderNode(node);

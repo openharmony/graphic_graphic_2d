@@ -40,10 +40,6 @@ namespace OHOS {
 namespace Rosen {
 class RSCommand;
 class RSDirtyRegionManager;
-struct SurfaceNodeResource {
-    sk_sp<GrContext> grContext;
-    sk_sp<SkSurface> skSurface;
-};
 class RSSurfaceRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceRenderNode>;
@@ -523,24 +519,23 @@ public:
 
     bool IsStartAnimationFinished() const;
     void SetStartAnimationFinished();
-    void SetCachedResource(SurfaceNodeResource resource)
+    void SetCachedImage(sk_sp<SkImage> image)
     {
         SetDirty();
-        std::lock_guard<std::mutex> lock(cachedResourceMutex_);
-        cachedResource_ = resource;
+        std::lock_guard<std::mutex> lock(cachedImageMutex_);
+        cachedImage_ = image;
     }
 
-    SurfaceNodeResource GetCachedResource() const
+    sk_sp<SkImage> GetCachedImage() const
     {
-        std::lock_guard<std::mutex> lock(cachedResourceMutex_);
-        return cachedResource_;
+        std::lock_guard<std::mutex> lock(cachedImageMutex_);
+        return cachedImage_;
     }
 
-    void ClearCachedResource()
+    void ClearCachedImage()
     {
-        std::lock_guard<std::mutex> lock(cachedResourceMutex_);
-        cachedResource_.grContext = nullptr;
-        cachedResource_.skSurface = nullptr;
+        std::lock_guard<std::mutex> lock(cachedImageMutex_);
+        cachedImage_ = nullptr;
     }
 
 private:
@@ -614,8 +609,8 @@ private:
     int containerOutRadius_ = 16 * 2;        // The density default value is 2
     int containerInnerRadius_ = 14 * 2;      // The density default value is 2
     bool startAnimationFinished_ = false;
-    mutable std::mutex cachedResourceMutex_;
-    SurfaceNodeResource cachedResource_;
+    mutable std::mutex cachedImageMutex_;
+    sk_sp<SkImage> cachedImage_;
 };
 } // namespace Rosen
 } // namespace OHOS
