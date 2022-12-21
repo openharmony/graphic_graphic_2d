@@ -88,7 +88,7 @@ namespace OHOS {
         RSAnimationFraction::GetAnimationScale();
         RSAnimationFraction::SetAnimationScale(animationScale);
         auto animationFraction = std::make_shared<RSAnimationFraction>();
-        animationFraction->GetAnimationFraction(time, isInStartDelay, isFinished);
+        std::tie(fraction, isInStartDelay, isFinished) = animationFraction->GetAnimationFraction(time);
         animationFraction->UpdateRemainTimeFraction(fraction, remainTime);
         animationFraction->GetStartFraction();
         animationFraction->GetEndFraction();

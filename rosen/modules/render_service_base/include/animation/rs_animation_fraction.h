@@ -36,7 +36,8 @@ public:
     static void SetAnimationScale(float animationScale);
     static void OnAnimationScaleChangedCallback(const char *key, const char *value, void *context);
 
-    float GetAnimationFraction(int64_t time, bool& isInStartDelay, bool& isFinished);
+    // return <fraction, isInStartDelay, isFinished> as tuple
+    std::tuple<float, bool, bool> GetAnimationFraction(int64_t time);
     void UpdateRemainTimeFraction(float fraction, int remainTime = 0);
     float GetStartFraction() const;
     float GetEndFraction() const;
@@ -50,13 +51,13 @@ private:
     void UpdateReverseState(bool finish);
 
     static float animationScale_;
-    static bool isInited_;
+    static bool isInitialized_;
     static std::mutex mutex_;
 
     ForwardDirection direction_ { ForwardDirection::NORMAL };
     int64_t playTime_ { 0 };
-    float curTimeFraction_ { 0.0f };
-    int curRepeatCount_ { 0 };
+    float currentTimeFraction_ { 0.0f };
+    int currentRepeatCount_ { 0 };
     int64_t runningTime_ { 0 };
     bool currentIsReverseCycle_ { false };
     int64_t lastFrameTime_ { -1 };
