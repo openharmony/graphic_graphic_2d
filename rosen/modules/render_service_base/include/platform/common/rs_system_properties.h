@@ -60,6 +60,12 @@ enum class ContainerWindowConfigType {
     ENABLED_UNFOCUSED_WINDOW_LEVEL_2 = 2,
 };
 
+enum class ParallelRenderingType {
+    AUTO = 0,
+    DISABLE = 1,
+    ENABLE = 2
+};
+
 class RSSystemProperties final {
 public:
     ~RSSystemProperties() = default;
@@ -85,6 +91,8 @@ public:
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
+    static ParallelRenderingType GetPrepareParallelRenderingEnabled();
+    static ParallelRenderingType GetParallelRenderingEnabled();
 
 private:
     RSSystemProperties() = default;

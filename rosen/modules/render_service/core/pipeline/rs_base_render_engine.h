@@ -158,8 +158,8 @@ protected:
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
 
 private:
-    static sk_sp<SkImage> CreateEglImageFromBuffer(const sptr<SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence);
+    static sk_sp<SkImage> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
+        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence);
 
     static inline std::atomic_bool isHighContrastEnabled_ = false;
 

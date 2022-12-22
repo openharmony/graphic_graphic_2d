@@ -458,5 +458,135 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
         }
     }
 }
+
+bool RSSurfaceRenderNode::SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const
+{
+    if (!isDirtyRegionAlignedEnable_) {
+        return false;
+    }
+    if (!extraDirtyRegionAfterAlignmentIsEmpty_) {
+        return extraDirtyRegionAfterAlignment_.IsIntersectWith(r);
+    }
+    return false;
+}
+
+bool RSSurfaceRenderNode::SubNodeIntersectWithDirty(const RectI& r) const
+{
+    Occlusion::Rect nodeRect { r.left_, r.top_, r.GetRight(), r.GetBottom() };
+    // if current node rect r is in global dirtyregion, it CANNOT be skipped
+    if (!globalDirtyRegionIsEmpty_) {
+        auto globalRect = globalDirtyRegion_.IsIntersectWith(nodeRect);
+        if (globalRect) {
+            return true;
+        }
+    }
+    // if current node is in visible dirtyRegion, it CANNOT be skipped
+    bool localIntersect = visibleDirtyRegion_.IsIntersectWith(nodeRect);
+    if (localIntersect) {
+        return true;
+    }
+    // if current node is transparent
+    if (IsTransparent() || IsCurrentNodeInTransparentRegion(nodeRect)) {
+        return dirtyRegionBelowCurrentLayer_.IsIntersectWith(nodeRect);
+    }
+    return false;
+}
+
+bool RSSurfaceRenderNode::SubNodeNeedDraw(const RectI &r, PartialRenderType opDropType) const
+{
+    if (dirtyManager_ == nullptr) {
+        return true;
+    }
+    if (r.IsEmpty()) {
+        return true;
+    }
+    switch (opDropType) {
+        case PartialRenderType::SET_DAMAGE_AND_DROP_OP:
+            return SubNodeIntersectWithDirty(r);
+        case PartialRenderType::SET_DAMAGE_AND_DROP_OP_OCCLUSION:
+            return SubNodeVisible(r);
+        case PartialRenderType::SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY:
+            // intersect with self visible dirty or other surfaces' extra dirty region after alignment
+            return SubNodeVisible(r) && (SubNodeIntersectWithDirty(r) ||
+                SubNodeIntersectWithExtraDirtyRegion(r));
+        case PartialRenderType::DISABLED:
+        case PartialRenderType::SET_DAMAGE:
+        default:
+            return true;
+    }
+    return true;
+}
+
+Occlusion::Region RSSurfaceRenderNode::ResetOpaqueRegion(const RectI& absRect,
+    const ContainerWindowConfigType containerWindowConfigType, const bool isFocusWindow)
+{
+    if (containerWindowConfigType == ContainerWindowConfigType::DISABLED) {
+        Occlusion::Rect opaqueRect{absRect};
+        Occlusion::Region opaqueRegion = Occlusion::Region{opaqueRect};
+        return opaqueRegion;
+    }
+    if (isFocusWindow) {
+        Occlusion::Rect opaqueRect{ absRect.left_ + containerContentPadding_ + containerBorderWidth_,
+            absRect.top_ + containerTitleHeight_ + containerInnerRadius_ + containerBorderWidth_,
+            absRect.GetRight() - containerContentPadding_ - containerBorderWidth_,
+            absRect.GetBottom() - containerContentPadding_ - containerBorderWidth_};
+        Occlusion::Region opaqueRegion{opaqueRect};
+        return opaqueRegion;
+    } else {
+        if (containerWindowConfigType == ContainerWindowConfigType::ENABLED_LEVEL_0) {
+            Occlusion::Rect opaqueRect{ absRect.left_ + containerContentPadding_ + containerBorderWidth_,
+                absRect.top_ + containerTitleHeight_ + containerBorderWidth_,
+                absRect.GetRight() - containerContentPadding_ - containerBorderWidth_,
+                absRect.GetBottom() - containerContentPadding_ - containerBorderWidth_};
+            Occlusion::Region opaqueRegion{opaqueRect};
+            return opaqueRegion;
+        } else if (containerWindowConfigType == ContainerWindowConfigType::ENABLED_UNFOCUSED_WINDOW_LEVEL_1) {
+            Occlusion::Rect opaqueRect{ absRect.left_,
+                absRect.top_ + containerOutRadius_,
+                absRect.GetRight(),
+                absRect.GetBottom() - containerOutRadius_};
+            Occlusion::Region opaqueRegion{opaqueRect};
+            return opaqueRegion;
+        } else {
+            Occlusion::Rect opaqueRect1{ absRect.left_ + containerOutRadius_,
+                absRect.top_,
+                absRect.GetRight() - containerOutRadius_,
+                absRect.GetBottom()};
+            Occlusion::Rect opaqueRect2{ absRect.left_,
+                absRect.top_ + containerOutRadius_,
+                absRect.GetRight(),
+                absRect.GetBottom() - containerOutRadius_};
+            Occlusion::Region r1{opaqueRect1};
+            Occlusion::Region r2{opaqueRect2};
+            Occlusion::Region opaqueRegion = r1.Or(r2);
+            return opaqueRegion;
+        }
+    }
+}
+
+void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect,
+    ContainerWindowConfigType containerWindowConfigType, bool isFocusWindow)
+{
+    Occlusion::Rect absRectR {absRect};
+    Occlusion::Region oldOpaqueRegion { opaqueRegion_ };
+    if (IsTransparent()) {
+        opaqueRegion_ = Occlusion::Region();
+        transparentRegion_ = Occlusion::Region{absRectR};
+    } else {
+        if (IsAppWindow() && HasContainerWindow()) {
+            opaqueRegion_ = ResetOpaqueRegion(absRect, containerWindowConfigType, isFocusWindow);
+        } else {
+            opaqueRegion_ = Occlusion::Region{absRectR};
+        }
+        transparentRegion_ = Occlusion::Region{absRectR};
+        transparentRegion_.SubSelf(opaqueRegion_);
+    }
+    Occlusion::Rect screen{screeninfo};
+    Occlusion::Region screenRegion{screen};
+    transparentRegion_.AndSelf(screenRegion);
+    opaqueRegion_.AndSelf(screenRegion);
+    opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();
+}
+
 } // namespace Rosen
 } // namespace OHOS

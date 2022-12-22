@@ -15,6 +15,8 @@
 #ifndef RENDER_SERVICE_CORE_PIPELINE_RS_UNI_RENDER_VISITOR_H
 #define RENDER_SERVICE_CORE_PIPELINE_RS_UNI_RENDER_VISITOR_H
 
+#include <memory>
+#include <mutex>
 #include <set>
 #include <parameters.h>
 
@@ -33,6 +35,8 @@ class RSPaintFilterCanvas;
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
     RSUniRenderVisitor();
+    RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas);
+    explicit RSUniRenderVisitor(const RSUniRenderVisitor& visitor);
     ~RSUniRenderVisitor() override;
 
     void PrepareBaseRenderNode(RSBaseRenderNode& node) override;
@@ -63,6 +67,12 @@ public:
     {
         currentFocusedPid_ = pid;
     }
+
+    bool GetAnimateState() const
+    {
+        return doAnimate_;
+    }
+    void CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisitor> visitor);
 private:
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
         const SkPaint::Style fillType, float alpha);
@@ -79,18 +89,20 @@ private:
     void CalcDirtyRegionForFilterNode(std::shared_ptr<RSDisplayRenderNode>& node) const;
     // set global dirty region to each surface node
     void SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node);
+    void SetSurfaceGlobalAlignedDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node,
+        const Occlusion::Region alignedDirtyRegion);
 
     void InitCacheSurface(RSSurfaceRenderNode& node, int width, int height);
     void SetPaintOutOfParentFlag(RSBaseRenderNode& node);
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void AddOverDrawListener(std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSCanvasListener>& overdrawListener);
-
     void RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& node, float width, float height);
-    
     // offscreen render related
     void PrepareOffscreenRender(RSRenderNode& node);
     void FinishOffscreenRender();
+    void ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRenderNode& node);
+    bool AdaptiveSubRenderThreadMode(uint32_t renderNodeNum);
     sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen render
 
@@ -136,6 +148,10 @@ private:
     bool needColdStartThread_ = false; // flag used for cold start app window
     bool needDrawStartingWindow_ = true; // flag used for avoiding drawing both app and starting window
     bool needCheckFirstFrame_ = false; // flag used for avoiding notifying first frame repeatedly
+
+    bool isDirtyRegionAlignedEnable_ = false;
+    bool isParallel_ = false;
+    std::shared_ptr<std::mutex> surfaceNodePrepareMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

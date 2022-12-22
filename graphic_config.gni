@@ -20,6 +20,7 @@ declare_args() {
   graphic_standard_feature_wuji_enable = false
   graphic_standard_feature_enable_afbc = false
   graphic_standard_feature_freemem_enable = false
+  graphic_standard_feature_parallel_render_enable = true
 }
 
 if (graphic_standard_feature_ace_enable_gpu) {
@@ -64,6 +65,10 @@ if (graphic_standard_feature_enable_afbc) {
   gpu_defines += [ "RS_ENABLE_AFBC" ]
 }
 
+if (graphic_standard_feature_parallel_render_enable) {
+  rs_enable_parallel_render = true
+  gpu_defines += [ "RS_ENABLE_PARALLEL_RENDER" ]
+}
 graphic_2d_ext_configs = {
 }
 check_graphic_ext_file_script = "//build/ohos/file_exists.py"

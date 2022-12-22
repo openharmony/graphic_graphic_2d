@@ -201,6 +201,30 @@ void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context) const
     }
 }
 
+void RenderContext::ShareMakeCurrent(EGLContext shareContext)
+{
+    eglMakeCurrent(eglDisplay_, eglSurface_, eglSurface_, shareContext);
+}
+
+void RenderContext::ShareMakeCurrentNoSurface(EGLContext shareContext)
+{
+    eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, shareContext);
+}
+
+void RenderContext::MakeSelfCurrent()
+{
+    eglMakeCurrent(eglDisplay_, eglSurface_, eglSurface_, eglContext_);
+}
+
+EGLContext RenderContext::CreateShareContext()
+{
+    std::unique_lock<std::mutex> lock(shareContextMutex_);
+    static const EGLint context_attribs[] = {EGL_CONTEXT_CLIENT_VERSION, EGL_CONTEXT_CLIENT_VERSION_NUM, EGL_NONE};
+    auto eglShareContext = eglCreateContext(eglDisplay_, config_, eglContext_, context_attribs);
+    lock.unlock();
+    return eglShareContext;
+}
+
 void RenderContext::SwapBuffers(EGLSurface surface) const
 {
     RS_TRACE_FUNC();

@@ -84,7 +84,7 @@ bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
     return forceCPU;
 }
 
-sk_sp<SkImage> RSBaseRenderEngine::CreateEglImageFromBuffer(
+sk_sp<SkImage> RSBaseRenderEngine::CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
     const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence)
 {
 #ifdef RS_ENABLE_EGLIMAGE
@@ -92,7 +92,7 @@ sk_sp<SkImage> RSBaseRenderEngine::CreateEglImageFromBuffer(
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer invalid param!");
         return nullptr;
     }
-    if (renderContext_->GetGrContext() == nullptr) {
+    if (canvas.getGrContext() == nullptr) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
         return nullptr;
     }
@@ -106,7 +106,7 @@ sk_sp<SkImage> RSBaseRenderEngine::CreateEglImageFromBuffer(
     GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8 };
     GrBackendTexture backendTexture(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(),
         GrMipMapped::kNo, grExternalTextureInfo);
-    return SkImage::MakeFromTexture(renderContext_->GetGrContext(), backendTexture,
+    return SkImage::MakeFromTexture(canvas.getGrContext(), backendTexture,
         kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
 #else
     return nullptr;
@@ -282,7 +282,7 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
     RS_TRACE_NAME("RSBaseRenderEngine::DrawImage(GPU)");
-    auto image = CreateEglImageFromBuffer(params.buffer, params.acquireFence);
+    auto image = CreateEglImageFromBuffer(canvas, params.buffer, params.acquireFence);
     if (image == nullptr) {
         RS_LOGE("RSDividedRenderUtil::DrawImage: image is nullptr!");
         return;

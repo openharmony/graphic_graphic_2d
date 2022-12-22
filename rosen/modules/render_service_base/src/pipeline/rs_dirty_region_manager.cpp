@@ -105,8 +105,16 @@ bool RSDirtyRegionManager::IsDirty() const
     return (dirtyRegion_.width_ > 0) && (dirtyRegion_.height_ > 0);
 }
 
-void RSDirtyRegionManager::UpdateDirty()
+void RSDirtyRegionManager::UpdateDirty(bool enableAligned)
 {
+    if (enableAligned) {
+        UpdateDirtyByAligned();
+    }
+    // if last frame doesn't align and current frame need align, we should align history ditry regions.
+    if (!isDirtyRegionAlignedEnable_ && enableAligned) {
+        AlignHistory();
+    }
+    isDirtyRegionAlignedEnable_ = enableAligned;
     PushHistory(dirtyRegion_);
     dirtyRegion_ = MergeHistory(bufferAge_, dirtyRegion_);
 }
@@ -234,5 +242,13 @@ RectI RSDirtyRegionManager::GetHistory(unsigned int i) const
     }
     return dirtyHistory_[i];
 }
+
+void RSDirtyRegionManager::AlignHistory()
+{
+    for (uint8_t i = 0; i < dirtyHistory_.size(); i++) {
+        dirtyHistory_[i] = GetPixelAlignedRect(dirtyHistory_[i]);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -17,6 +17,7 @@
 
 #include <ibuffer_consumer_listener.h>
 #include <memory>
+#include <mutex>
 #include <surface.h>
 
 #include "sync_fence.h"
@@ -127,11 +128,16 @@ public:
     {
         return dirtyManager_;
     }
-    void UpdateDisplayDirtyManager(int32_t bufferage);
+    void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
     void ClearCurrentSurfacePos();
     void UpdateSurfaceNodePos(NodeId id, RectI rect)
     {
+#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
+        std::unique_lock<std::mutex> lock(mtx_);
         currentFrameSurfacePos_[id] = rect;
+#else
+        currentFrameSurfacePos_[id] = rect;
+#endif
     }
 
     RectI GetLastFrameSurfacePos(NodeId id)
@@ -188,6 +194,7 @@ private:
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
+    std::mutex mtx_;
 };
 } // namespace Rosen
 } // namespace OHOS
