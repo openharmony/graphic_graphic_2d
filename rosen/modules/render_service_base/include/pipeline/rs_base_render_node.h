@@ -56,6 +56,7 @@ public:
                                 bool isUniRender);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
+    virtual bool IsDirty() const;
 
     // return if any animation is running
     virtual std::pair<bool, bool> Animate(int64_t timestamp)
@@ -185,7 +186,6 @@ protected:
         CLEAN = 0,
         DIRTY,
     };
-    virtual bool IsDirty() const;
     void SetClean();
     void SetDirty();
 

@@ -142,6 +142,7 @@ void RSMainThread::Init()
         QuickStartFrameTrace(RS_INTERVAL_NAME);
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
+        activeProcessPids_.clear();
         ConsumeAndUpdateAllNodes();
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
@@ -336,6 +337,7 @@ void RSMainThread::ProcessCommandForUniRender()
             if (rsTransaction) {
                 context_->transactionTimestamp_ = rsTransaction->GetTimestamp();
                 rsTransaction->Process(*context_);
+                activeProcessPids_.emplace(rsTransactionElem.first);
             }
         }
     }
@@ -406,6 +408,10 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         surfaceHandler.ResetCurrentFrameBufferConsumed();
         if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler)) {
             this->bufferTimestamps_[surfaceNode->GetId()] = static_cast<uint64_t>(surfaceNode->GetTimestamp());
+        }
+        if (surfaceHandler.IsCurrentFrameBufferConsumed()) {
+            // collect surface view's pid to prevent wrong skip
+            activeProcessPids_.emplace(ExtractPid(surfaceNode->GetId()));
         }
 
         // still have buffer(s) to consume.
@@ -827,12 +833,13 @@ void RSMainThread::Animate(uint64_t timestamp)
     bool needRequestNextVsync = false;
     // iterate and animate all animating nodes, remove if animation finished
     std::__libcpp_erase_if_container(context_->animatingNodeList_,
-        [timestamp, &curWinAnim, &needRequestNextVsync](const auto& iter) -> bool {
+        [this, timestamp, &curWinAnim, &needRequestNextVsync](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
             RS_LOGD("RSMainThread::Animate removing expired animating node");
             return true;
         }
+        activeProcessPids_.emplace(ExtractPid(node->GetId()));
         auto result = node->Animate(timestamp);
         if (!result.first) {
             RS_LOGD("RSMainThread::Animate removing finished animating node %" PRIu64, node->GetId());
@@ -909,6 +916,8 @@ void RSMainThread::ClassifyRSTransactionData(std::unique_ptr<RSTransactionData>&
     auto timestamp = transactionData->GetTimestamp();
     RS_LOGD("RSMainThread::RecvRSTransactionData timestamp = %" PRIu64, timestamp);
     for (auto& [nodeId, followType, command] : transactionData->GetPayload()) {
+        // in case dynamic switch
+        activeProcessPids_.emplace(transactionData->GetSendingPid());
         if (nodeId == 0 || followType == FollowType::NONE) {
             pendingEffectiveCommands_[timestamp].emplace_back(std::move(command));
             continue;

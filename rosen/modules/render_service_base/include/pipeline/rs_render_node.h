@@ -41,6 +41,7 @@ public:
     }
 
     ~RSRenderNode() override;
+    bool IsDirty() const override;
 
     std::pair<bool, bool> Animate(int64_t timestamp) override;
     bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty);
@@ -108,7 +109,6 @@ public:
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty);
-    bool IsDirty() const override;
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier> modifier);
     std::pair<int, int> renderNodeSaveCount_ = { 0, 0 };
     std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> drawCmdModifiers_;
