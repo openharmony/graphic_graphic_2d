@@ -37,6 +37,10 @@ bool RSPhysicalScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX,
         return false;
     }
 
+    if (mirroredId != INVALID_SCREEN_ID) {
+        SetMirrorScreenSwap(node);
+    }
+
     return composerAdapter_->Init(screenInfo_, offsetX, offsetY, mirrorAdaptiveCoefficient_,
         [this](const auto& surface, const auto& layers) { Redraw(surface, layers); });
 }

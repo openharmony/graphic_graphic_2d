@@ -43,6 +43,7 @@ protected:
     void CalculateMirrorAdaptiveCoefficient(float curWidth, float curHeight,
         float mirroredWidth, float mirroredHeight);
     void CalculateScreenTransformMatrix(const RSDisplayRenderNode& node);
+    void SetMirrorScreenSwap(const RSDisplayRenderNode& node);
 
     void MultiLayersPerf(size_t layerNum);
     void RequestPerf(uint32_t layerLevel, bool onOffTag);

@@ -126,20 +126,24 @@ bool RSProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offse
             static_cast<float>(screenInfo_.width), static_cast<float>(screenInfo_.height),
             static_cast<float>(mirroredScreenInfo.width), static_cast<float>(mirroredScreenInfo.height)
         );
-        auto mirroredNode = node.GetMirrorSource().lock();
-        if (mirroredNode == nullptr) {
-            RS_LOGE("RSProcessor::Init: Get mirroredNode failed");
-            return false;
-        }
-        if (mirroredNode->GetRotation() == ScreenRotation::ROTATION_90 ||
-            mirroredNode->GetRotation() == ScreenRotation::ROTATION_270) {
-            std::swap(screenInfo_.width, screenInfo_.height);
-        }
     }
 
     // set default render frame config
     renderFrameConfig_ = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_);
     return true;
+}
+
+void RSProcessor::SetMirrorScreenSwap(const RSDisplayRenderNode& node)
+{
+    auto mirroredNode = node.GetMirrorSource().lock();
+    if (mirroredNode == nullptr) {
+        RS_LOGE("RSProcessor::Init: Get mirroredNode failed");
+    }
+    if (mirroredNode->GetRotation() == ScreenRotation::ROTATION_90 ||
+        mirroredNode->GetRotation() == ScreenRotation::ROTATION_270) {
+        std::swap(screenInfo_.width, screenInfo_.height);
+        std::swap(renderFrameConfig_.width, renderFrameConfig_.height);
+    }
 }
 
 void RSProcessor::CalculateScreenTransformMatrix(const RSDisplayRenderNode& node)
