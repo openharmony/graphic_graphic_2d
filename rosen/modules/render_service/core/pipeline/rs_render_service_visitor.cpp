@@ -68,8 +68,8 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     }
     offsetX_ = node.GetDisplayOffsetX();
     offsetY_ = node.GetDisplayOffsetY();
-    ScreenInfo currScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
-    ScreenState state = currScreenInfo.state;
+    ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+    ScreenState state = curScreenInfo.state;
     switch (state) {
         case ScreenState::PRODUCER_SURFACE_ENABLE:
             node.SetCompositeType(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
@@ -89,8 +89,8 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     int32_t logicalScreenHeight = static_cast<int32_t>(node.GetRenderProperties().GetFrameHeight());
 
     if (logicalScreenWidth <= 0 || logicalScreenHeight <= 0) {
-        logicalScreenWidth = static_cast<int32_t>(currScreenInfo.width);
-        logicalScreenHeight = static_cast<int32_t>(currScreenInfo.height);
+        logicalScreenWidth = static_cast<int32_t>(curScreenInfo.width);
+        logicalScreenHeight = static_cast<int32_t>(curScreenInfo.height);
 
         if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
             std::swap(logicalScreenWidth, logicalScreenHeight);
@@ -136,10 +136,10 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RS_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode ScreenManager is nullptr");
         return;
     }
-    ScreenInfo currScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+    ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
     RS_TRACE_NAME("ProcessDisplayRenderNode[" + std::to_string(node.GetScreenId()) + "]");
     // skip frame according to skipFrameInterval value of SetScreenSkipFrameInterval interface
-    if (node.SkipFrame(currScreenInfo.skipFrameInterval)) {
+    if (node.SkipFrame(curScreenInfo.skipFrameInterval)) {
         return;
     }
     processor_ = RSProcessorFactory::CreateProcessor(node.GetCompositeType());

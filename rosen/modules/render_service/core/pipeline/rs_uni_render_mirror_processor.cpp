@@ -48,7 +48,6 @@ bool RSUniRenderMirrorProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX
     if (canvas_ == nullptr) {
         return false;
     }
-    canvas_->concat(screenTransformMatrix_);
 
     return true;
 }

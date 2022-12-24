@@ -127,13 +127,14 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode
 #else // RS_ENABLE_EGLIMAGE
     params.useCPU = true;
 #endif // RS_ENABLE_EGLIMAGE
-    params.isPosInfoSet = false;
     params.paint.setAntiAlias(true);
     params.paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
 
     const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
     params.buffer = buffer;
     params.acquireFence = node.GetAcquireFence();
+    params.srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    params.dstRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     return params;
 }
 
