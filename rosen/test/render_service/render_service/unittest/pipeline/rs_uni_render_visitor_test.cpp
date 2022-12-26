@@ -119,6 +119,87 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1)
     rsUniRenderVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 
+/*
+ * @tc.name: CheckQuickSkipPrepareParamSetAndGetValid001
+ * @tc.desc: Check if param set and get apis are valid.
+ * @tc.type: FUNC
+ * @tc.require: I67FKA
+*/
+HWTEST_F(RSUniRenderVisitorTest, CheckQuickSkipPrepareParamSetAndGetValid001, TestSize.Level1)
+{
+    int defaultParam = (int)RSSystemProperties::GetQuickSkipPrepareEnabled();
+    (void)system::SetParameter("rosen.quickskipprepare.enabled", "0");
+    int param = (int)RSSystemProperties::GetQuickSkipPrepareEnabled();
+    ASSERT_EQ(param, 0);
+    (void)system::SetParameter("rosen.quickskipprepare.enabled", "1");
+    param = (int)RSSystemProperties::GetQuickSkipPrepareEnabled();
+    ASSERT_EQ(param, 1);
+
+    NodeId testId = 10;
+    pid_t pid = ExtractPid(testId);
+    ASSERT_EQ(pid, 0);
+    const int paddingDigit = 32;
+    NodeId testPid = testId << paddingDigit;
+    pid = ExtractPid(testPid);
+    ASSERT_EQ(pid, testId);
+    (void)system::SetParameter("rosen.quickskipprepare.enabled", std::to_string(defaultParam));
+}
+
+/*
+ * @tc.name: CheckSurfaceRenderNodeNotStatic001
+ * @tc.desc: Generate not static surface render node(self drawing, leash window) and execute preparation step.
+ *           Get trace and check corresponding node's preparation exists and no 'Skip' info.
+ * @tc.type: FUNC
+ * @tc.require: I67FKA
+*/
+HWTEST_F(RSUniRenderVisitorTest, CheckSurfaceRenderNodeNotStatic001, TestSize.Level1)
+{
+    int defaultParam = (int)RSSystemProperties::GetQuickSkipPrepareEnabled();
+    (void)system::SetParameter("rosen.quickskipprepare.enabled", "1");
+
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 10;
+    auto selfDrawSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    selfDrawSurfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    config.id = 11;
+    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    leashWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    
+    RSDisplayNodeConfig displayConfig;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(12, displayConfig, rsContext->weak_from_this());
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsDisplayRenderNode->AddChild(selfDrawSurfaceRenderNode, -1);
+    rsDisplayRenderNode->AddChild(leashWindowNode, -1);
+    rsUniRenderVisitor->PrepareDisplayRenderNode(*rsDisplayRenderNode);
+    (void)system::SetParameter("rosen.quickskipprepare.enabled", std::to_string(defaultParam));
+}
+
+/*
+ * @tc.name: CheckSurfaceRenderNodeStatic001
+ * @tc.desc: Generate static surface render node(default) and execute preparation step.
+ *           Get trace and check corresponding node's preparation and 'Skip' info exist.
+ * @tc.type: FUNC
+ * @tc.require: I67FKA
+*/
+HWTEST_F(RSUniRenderVisitorTest, CheckSurfaceRenderNodeStatic001, TestSize.Level1)
+{
+    int defaultParam = (int)RSSystemProperties::GetQuickSkipPrepareEnabled();
+    (void)system::SetParameter("rosen.quickskipprepare.enabled", "1");
+
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 10;
+    auto defaultSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    
+    RSDisplayNodeConfig displayConfig;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsDisplayRenderNode->AddChild(defaultSurfaceRenderNode, -1);
+    rsUniRenderVisitor->PrepareDisplayRenderNode(*rsDisplayRenderNode);
+    (void)system::SetParameter("rosen.quickskipprepare.enabled", std::to_string(defaultParam));
+}
+
 HWTEST_F(RSUniRenderVisitorTest, ProcessRootRenderNode001, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
