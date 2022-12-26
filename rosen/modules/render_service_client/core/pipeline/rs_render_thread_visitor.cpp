@@ -110,6 +110,31 @@ void RSRenderThreadVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     }
 }
 
+void RSRenderThreadVisitor::ResetAndPrepareChildrenNode(RSRenderNode& node,
+    std::shared_ptr<RSBaseRenderNode> nodeParent)
+{
+    // merge last childRect as dirty if any child has been removed
+    if (node.HasRemovedChild()) {
+        curDirtyManager_->MergeDirtyRect(node.GetChildrenRect());
+        node.ResetHasRemovedChild();
+    }
+    // reset childRect before prepare children
+    node.ResetChildrenRect();
+    // [planning] replace outOfParentRect with childrenRect
+    node.ClearPaintOutOfParentRect();
+    node.UpdateChildrenOutOfRectFlag(false);
+    PrepareBaseRenderNode(node);
+    // accumulate direct parent's childrenRect
+    node.UpdateParentChildrenRect(nodeParent);
+#ifdef RS_ENABLE_EGLQUERYSURFACE
+    std::shared_ptr<RSRenderNode> rsParent = nullptr;
+    if (nodeParent != nullptr) {
+        rsParent = nodeParent->ReinterpretCastTo<RSRenderNode>();
+    }
+    node.SetPaintOutOfParentFlag(rsParent);
+#endif
+}
+
 void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
     node.ApplyModifiers();
@@ -126,14 +151,7 @@ void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
     if (node.IsDirtyRegionUpdated() && curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
         curDirtyManager_->UpdateDirtyCanvasNodes(node.GetId(), node.GetOldDirty());
     }
-    node.ClearPaintOutOfParentRect();
-    node.UpdateChildrenOutOfRectFlag(false);
-    PrepareBaseRenderNode(node);
-#ifdef RS_ENABLE_EGLQUERYSURFACE
-    if (isOpDropped_) {
-        node.SetPaintOutOfParentFlag(rsParent);
-    }
-#endif
+    ResetAndPrepareChildrenNode(node, nodeParent);
     dirtyFlag_ = dirtyFlag;
 }
 
@@ -156,14 +174,7 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.IsDirtyRegionUpdated() && curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
         curDirtyManager_->UpdateDirtySurfaceNodes(node.GetId(), node.GetOldDirty());
     }
-    node.ClearPaintOutOfParentRect();
-    node.UpdateChildrenOutOfRectFlag(false);
-    PrepareBaseRenderNode(node);
-#ifdef RS_ENABLE_EGLQUERYSURFACE
-    if (isOpDropped_) {
-        node.SetPaintOutOfParentFlag(rsParent);
-    }
-#endif
+    ResetAndPrepareChildrenNode(node, nodeParent);
     dirtyFlag_ = dirtyFlag;
 }
 
