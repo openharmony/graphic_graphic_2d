@@ -569,16 +569,19 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
 {
     Occlusion::Rect absRectR {absRect};
     Occlusion::Region oldOpaqueRegion { opaqueRegion_ };
+
+    // The transparent region of surfaceNode should include shadow area
+    Occlusion::Rect dirtyRect {GetOldDirty()};
+    transparentRegion_ = Occlusion::Region{dirtyRect};
+
     if (IsTransparent()) {
         opaqueRegion_ = Occlusion::Region();
-        transparentRegion_ = Occlusion::Region{absRectR};
     } else {
         if (IsAppWindow() && HasContainerWindow()) {
             opaqueRegion_ = ResetOpaqueRegion(absRect, containerWindowConfigType, isFocusWindow);
         } else {
             opaqueRegion_ = Occlusion::Region{absRectR};
         }
-        transparentRegion_ = Occlusion::Region{absRectR};
         transparentRegion_.SubSelf(opaqueRegion_);
     }
     Occlusion::Rect screen{screeninfo};
