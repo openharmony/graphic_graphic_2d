@@ -19,7 +19,9 @@
 #include "platform/common/rs_log.h"
 #include "rs_base_render_util.h"
 #include "rs_main_thread.h"
+#ifdef SOC_PERF_ENABLE
 #include "socperf_client.h"
+#endif
 #ifdef FRAME_AWARE_TRACE
 #include "frame_trace.h"
 
@@ -42,6 +44,14 @@ constexpr uint32_t PERF_LAYER_START_NUM = 7;
 constexpr uint32_t FRAME_TRACE_LAYER_NUM = 11;
 constexpr int32_t FRAME_TRACE_PERF_REQUESTED_CODE = 10024;
 #endif
+
+void PerfRequest(int32_t perfRequestCode, bool onOffTag)
+{
+#ifdef SOC_PERF_ENABLE
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(perfRequestCode, onOffTag, "");
+    RS_LOGD("RSProcessor::soc perf info [%d %d]", perfRequestCode, onOffTag);
+#endif
+}
 }
 
 #ifdef FRAME_AWARE_TRACE
@@ -50,7 +60,7 @@ bool RSProcessor::FrameAwareTraceBoost(size_t layerNum)
     if (layerNum != FRAME_TRACE_LAYER_NUM) {
         if (FrameAwareTraceIsOpen()) {
             FrameAwareTraceClose();
-            OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(FRAME_TRACE_PERF_REQUESTED_CODE, false, "");
+            PerfRequest(FRAME_TRACE_PERF_REQUESTED_CODE, false);
             RS_LOGI("RsDebug RSProcessor::Perf: FrameTrace 0");
         }
         return false;
@@ -64,7 +74,7 @@ bool RSProcessor::FrameAwareTraceBoost(size_t layerNum)
         if (!FrameAwareTraceOpen()) {
             return false;
         }
-        OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(FRAME_TRACE_PERF_REQUESTED_CODE, true, "");
+        PerfRequest(FRAME_TRACE_PERF_REQUESTED_CODE, true);
         RS_LOGI("RsDebug RSProcessor::Perf: FrameTrace 1");
         lastRequestPerfTime = currentTime;
     }
@@ -81,17 +91,17 @@ void RSProcessor::RequestPerf(uint32_t layerLevel, bool onOffTag)
             break;
         }
         case PERF_LEVEL_1: {
-            OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(PERF_LEVEL_1_REQUESTED_CODE, onOffTag, "");
+            PerfRequest(PERF_LEVEL_1_REQUESTED_CODE, onOffTag);
             RS_LOGI("RsDebug RSProcessor::Perf: level1 %d", onOffTag);
             break;
         }
         case PERF_LEVEL_2: {
-            OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(PERF_LEVEL_2_REQUESTED_CODE, onOffTag, "");
+            PerfRequest(PERF_LEVEL_2_REQUESTED_CODE, onOffTag);
             RS_LOGI("RsDebug RSProcessor::Perf: level2 %d", onOffTag);
             break;
         }
         default: {
-            OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(PERF_LEVEL_3_REQUESTED_CODE, onOffTag, "");
+            PerfRequest(PERF_LEVEL_3_REQUESTED_CODE, onOffTag);
             RS_LOGI("RsDebug RSProcessor::Perf: level3 %d", onOffTag);
             break;
         }
