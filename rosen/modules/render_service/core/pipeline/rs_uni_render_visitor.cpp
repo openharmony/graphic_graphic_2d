@@ -235,6 +235,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         return;
     }
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
+    prepareClipRect_.SetAll(0, 0, screenInfo_.width, screenInfo_.height);
     screenManager->GetScreenSupportedColorGamuts(node.GetScreenId(), colorGamutmodes_);
     for (auto& child : node.GetSortedChildren()) {
         auto surfaceNodePtr = child->ReinterpretCastTo<RSSurfaceRenderNode>();
@@ -334,6 +335,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
     bool isCustomizedDirtyRect = false;
+    RectI prepareClipRect = prepareClipRect_;
 
     // update geoptr with ContextMatrix
     auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
@@ -350,9 +352,10 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         curSurfaceDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
         if (auto parentNode = node.GetParent().lock()) {
             auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
-            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, &(rsParent->GetRenderProperties()), dirtyFlag_);
+            dirtyFlag_ = node.Update(
+                *curSurfaceDirtyManager_, &(rsParent->GetRenderProperties()), dirtyFlag_, prepareClipRect_);
         } else {
-            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_);
+            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_, prepareClipRect_);
         }
         geoPtr->ConcatMatrix(node.GetContextMatrix());
         node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(0, 0, screenInfo_.width, screenInfo_.height)));
@@ -373,7 +376,8 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         if (node.GetBuffer() != nullptr) {
             auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
             if (surfaceHandler.IsCurrentFrameBufferConsumed()) {
-                curSurfaceDirtyManager_->MergeDirtyRect(node.GetDstRect());
+                RectI dirtyRect = node.GetDstRect().IntersectRect(prepareClipRect_);
+                curSurfaceDirtyManager_->MergeDirtyRect(dirtyRect);
             }
         }
         isCustomizedDirtyRect = true;
@@ -389,7 +393,8 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     // merge last childRect as dirty if any child has been removed
     if (node.HasRemovedChild()) {
-        curSurfaceDirtyManager_->MergeDirtyRect(node.GetChildrenRect());
+        RectI dirtyRect = prepareClipRect_.IntersectRect(node.GetChildrenRect());
+        curSurfaceDirtyManager_->MergeDirtyRect(dirtyRect);
         node.ResetHasRemovedChild();
     }
     // reset childRect before prepare children
@@ -412,6 +417,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
     curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
+    prepareClipRect_ = prepareClipRect;
     if (node.GetDirtyManager() && node.GetDirtyManager()->IsDirty()) {
         dirtySurfaceNodeMap_.emplace(node.GetId(), node.ReinterpretCastTo<RSSurfaceRenderNode>());
     }
@@ -445,6 +451,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     bool dirtyFlag = dirtyFlag_;
     float alpha = curAlpha_;
     auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
+    RectI prepareClipRect = prepareClipRect_;
 
     auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(node.GetParent().lock());
     const auto& property = node.GetRenderProperties();
@@ -452,7 +459,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
 
     dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
-        dirtyFlag_);
+        dirtyFlag_, prepareClipRect_);
     curAlpha_ *= property.GetAlpha();
     if (rsParent == curSurfaceNode_) {
         const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
@@ -474,12 +481,15 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
     curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
+    prepareClipRect_ = prepareClipRect;
 }
 
 void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 {
     node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
+    RectI prepareClipRect = prepareClipRect_;
+
     auto nodeParent = node.GetParent().lock();
     while (nodeParent && nodeParent->ReinterpretCastTo<RSSurfaceRenderNode>() &&
         nodeParent->ReinterpretCastTo<RSSurfaceRenderNode>()->GetSurfaceNodeType() ==
@@ -490,13 +500,30 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     if (nodeParent != nullptr) {
         rsParent = nodeParent->ReinterpretCastTo<RSRenderNode>();
     }
+
     dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
-        dirtyFlag_);
+        dirtyFlag_, prepareClipRect_);
+
+    const auto& property = node.GetRenderProperties();
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+    // Dirty Region use abstract coordinate, property of node use relative coordinate
+    // BoundsRect(if exists) is mapped to absRect_ of RSObjAbsGeometry.
+    if (property.GetClipToBounds()) {
+        prepareClipRect_ = prepareClipRect_.IntersectRect(geoPtr->GetAbsRect());
+    }
+    // FrameRect(if exists) is mapped to rect using abstract coordinate explicitly by calling MapAbsRect.
+    if (property.GetClipToFrame()) {
+        RectF frameRect{property.GetFrameOffsetX(), property.GetFrameOffsetY(),
+            property.GetFrameWidth(), property.GetFrameHeight()};
+        prepareClipRect_ = prepareClipRect_.IntersectRect(geoPtr->MapAbsRect(frameRect));
+    }
+
     float alpha = curAlpha_;
-    curAlpha_ *= node.GetRenderProperties().GetAlpha();
+    curAlpha_ *= property.GetAlpha();
     // merge last childRect as dirty if any child has been removed
     if (node.HasRemovedChild()) {
-        curSurfaceDirtyManager_->MergeDirtyRect(node.GetChildrenRect());
+        RectI dirtyRect = prepareClipRect_.IntersectRect(node.GetChildrenRect());
+        curSurfaceDirtyManager_->MergeDirtyRect(dirtyRect);
         node.ResetHasRemovedChild();
     }
     // reset childRect before prepare children
@@ -504,7 +531,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     PrepareBaseRenderNode(node);
     // attention: accumulate direct parent's childrenRect
     node.UpdateParentChildrenRect(node.GetParent().lock());
-    if (node.GetRenderProperties().NeedFilter() && curSurfaceNode_) {
+    if (property.NeedFilter() && curSurfaceNode_) {
         if (!curSurfaceNode_->IsAppFreeze()) {
             // [planning] Remove this after skia is upgraded, the clipRegion is supported
             needFilter_ = true;
@@ -517,6 +544,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     }
     curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
+    prepareClipRect_ = prepareClipRect;
 }
 
 

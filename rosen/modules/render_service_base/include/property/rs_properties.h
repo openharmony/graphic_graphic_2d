@@ -203,14 +203,14 @@ private:
     void ResetDirty();
     bool IsDirty() const;
 
+    bool NeedClip() const;
+
     RectF GetBoundsRect() const;
     RectF GetFrameRect() const;
     RectF GetBgImageRect() const;
     RRect GetRRect() const;
     RRect GetInnerRRect() const;
     RectI GetDirtyRect() const;
-
-    bool NeedClip() const;
 
     bool visible_ = true;
     bool clipToBounds_ = false;

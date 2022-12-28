@@ -161,6 +161,8 @@ private:
     bool isDirtyRegionAlignedEnable_ = false;
     bool isParallel_ = false;
     std::shared_ptr<std::mutex> surfaceNodePrepareMutex_;
+
+    RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -44,6 +44,9 @@ public:
     bool IsDirty() const override;
 
     std::pair<bool, bool> Animate(int64_t timestamp) override;
+    // clipRect only used in UniRener to intersect with dirtyRegion calculated in Prepare
+    bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty, RectI clipRect);
+    // used in separate render
     bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty);
 
     RSProperties& GetMutableRenderProperties();
@@ -108,7 +111,6 @@ public:
 
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
-    void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty);
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier> modifier);
     std::pair<int, int> renderNodeSaveCount_ = { 0, 0 };
     std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> drawCmdModifiers_;
@@ -120,6 +122,14 @@ private:
     void FallbackAnimationsToRoot();
     void UpdateOverlayBounds();
     void FilterModifiersByPid(pid_t pid);
+
+    // clipRect only used in UniRener to intersect with dirtyRegion calculated in Prepare
+    // UniRender: needClip = true and clipRect is meaningful
+    // Separate Render: needClip = false and clipRect is meaningless
+    bool Update(
+        RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty, bool needClip, RectI clipRect);
+    void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, bool needClip, RectI clipRect);
+
     bool isDirtyRegionUpdated_ = false;
     bool isLastVisible_ = false;
     bool fallbackAnimationOnDestroy_ = true;
