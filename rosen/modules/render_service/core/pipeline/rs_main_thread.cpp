@@ -40,13 +40,17 @@
 #include "property/rs_property_trace.h"
 #include "property/rs_properties_painter.h"
 #include "screen_manager/rs_screen_manager.h"
-#include "socperf_client.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "accessibility_config.h"
 #include "rs_qos_thread.h"
 #include "xcollie/watchdog.h"
 
 #include "frame_trace.h"
+
+#ifdef SOC_PERF_ENABLE
+#include "socperf_client.h"
+#endif
+
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
 
@@ -79,6 +83,14 @@ void InsertToEnd(std::vector<std::unique_ptr<RSTransactionData>>& source,
 {
     target.insert(target.end(), std::make_move_iterator(source.begin()), std::make_move_iterator(source.end()));
     source.clear();
+}
+
+void PerfRequest(int32_t perfRequestCode, bool onOffTag)
+{
+#ifdef SOC_PERF_ENABLE
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(perfRequestCode, onOffTag, "");
+    RS_LOGD("RSMainThread::soc perf info [%d %d]", perfRequestCode, onOffTag);
+#endif
 }
 }
 
@@ -1183,11 +1195,11 @@ void RSMainThread::PerfAfterAnim()
     }
     if (!context_->animatingNodeList_.empty() && timestamp_ - prePerfTimestamp_ > PERF_PERIOD) {
         RS_LOGD("RSMainThread:: soc perf to render_service_animation");
-        OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(PERF_ANIMATION_REQUESTED_CODE, "");
+        PerfRequest(PERF_ANIMATION_REQUESTED_CODE, true);
         prePerfTimestamp_ = timestamp_;
     } else if (context_->animatingNodeList_.empty()) {
         RS_LOGD("RSMainThread:: soc perf off render_service_animation");
-        OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(PERF_ANIMATION_REQUESTED_CODE, false, "");
+        PerfRequest(PERF_ANIMATION_REQUESTED_CODE, false);
         prePerfTimestamp_ = 0;
     }
 }
@@ -1217,7 +1229,7 @@ void RSMainThread::PerfForBlurIfNeeded()
     // clamp blurCnt to 0~3.
     blurCnt = std::clamp<int>(blurCnt, 0, 3);
     if (blurCnt != preBlurCnt && preBlurCnt != 0) {
-        OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(BLUR_CNT_TO_BLUR_CODE.at(preBlurCnt), false, "");
+        PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(preBlurCnt), false);
         preBlurCnt = 0;
     }
     if (blurCnt == 0) {
@@ -1225,7 +1237,7 @@ void RSMainThread::PerfForBlurIfNeeded()
     }
     static uint64_t prePerfTimestamp = 0;
     if (timestamp_ - prePerfTimestamp > PERF_PERIOD_BLUR || blurCnt != preBlurCnt) {
-        OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(blurCnt), "");
+        PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(blurCnt), true);
         prePerfTimestamp = timestamp_;
         preBlurCnt = blurCnt;
     }
