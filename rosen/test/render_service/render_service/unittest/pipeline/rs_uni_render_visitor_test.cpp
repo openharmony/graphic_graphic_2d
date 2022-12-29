@@ -160,9 +160,11 @@ HWTEST_F(RSUniRenderVisitorTest, CheckSurfaceRenderNodeNotStatic001, TestSize.Le
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config;
     config.id = 10;
+    config.name = "selfDrawTestNode";
     auto selfDrawSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
     selfDrawSurfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
     config.id = 11;
+    config.name = "leashWindowTestNode";
     auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
     leashWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     
@@ -171,13 +173,17 @@ HWTEST_F(RSUniRenderVisitorTest, CheckSurfaceRenderNodeNotStatic001, TestSize.Le
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     rsDisplayRenderNode->AddChild(selfDrawSurfaceRenderNode, -1);
     rsDisplayRenderNode->AddChild(leashWindowNode, -1);
+    // execute add child
+    rsUniRenderVisitor->PrepareDisplayRenderNode(*rsDisplayRenderNode);
+    rsUniRenderVisitor->ProcessDisplayRenderNode(*rsDisplayRenderNode);
+    // test if skip testNode
     rsUniRenderVisitor->PrepareDisplayRenderNode(*rsDisplayRenderNode);
     (void)system::SetParameter("rosen.quickskipprepare.enabled", std::to_string(defaultParam));
 }
 
 /*
  * @tc.name: CheckSurfaceRenderNodeStatic001
- * @tc.desc: Generate static surface render node(default) and execute preparation step.
+ * @tc.desc: Generate static surface render node(app window node) and execute preparation step.
  *           Get trace and check corresponding node's preparation and 'Skip' info exist.
  * @tc.type: FUNC
  * @tc.require: I67FKA
@@ -190,12 +196,18 @@ HWTEST_F(RSUniRenderVisitorTest, CheckSurfaceRenderNodeStatic001, TestSize.Level
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config;
     config.id = 10;
+    config.name = "appWindowTestNode";
     auto defaultSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    defaultSurfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     
     RSDisplayNodeConfig displayConfig;
     auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     rsDisplayRenderNode->AddChild(defaultSurfaceRenderNode, -1);
+    // execute add child
+    rsUniRenderVisitor->PrepareDisplayRenderNode(*rsDisplayRenderNode);
+    rsUniRenderVisitor->ProcessDisplayRenderNode(*rsDisplayRenderNode);
+    // test if skip testNode
     rsUniRenderVisitor->PrepareDisplayRenderNode(*rsDisplayRenderNode);
     (void)system::SetParameter("rosen.quickskipprepare.enabled", std::to_string(defaultParam));
 }
