@@ -23,6 +23,7 @@ ohos_unittest("RSAnimationTest") {
   sources = [
     "rs_animation_base_test.cpp",
     "rs_animation_group_test.cpp",
+    "rs_animation_supplement_test.cpp",
     "rs_animation_test.cpp",
     "rs_animation_timing_curve_test.cpp",
     "rs_curve_animation_test.cpp",
@@ -42,6 +43,9 @@ ohos_unittest("RSAnimationTest") {
     "//foundation/window/window_manager/wm:libwm",
     "//third_party/googletest:gtest_main",
   ]
+
+  public_deps =
+      [ "$rosen_root/modules/render_service_client:render_service_client_src" ]
 
   external_deps = [ "eventhandler:libeventhandler" ]
 
