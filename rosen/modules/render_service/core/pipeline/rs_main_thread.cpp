@@ -648,7 +648,13 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
         if (curSurface == nullptr || curSurface->GetDstRect().IsEmpty()) {
             continue;
         }
-        Occlusion::Rect occlusionRect {curSurface->GetDstRect()};
+        Occlusion::Rect occlusionRect;
+        if (IfUseUniVisitor()) {
+            // In UniReder, CalcOcclusion should consider the shadow area of window
+            occlusionRect = Occlusion::Rect {curSurface->GetOldDirtyInSurface()};
+        } else {
+            occlusionRect = Occlusion::Rect {curSurface->GetDstRect()};
+        }
         curSurface->setQosCal(qosPidCal_);
         if (CheckSurfaceNeedProcess(occlusionSurfaces, curSurface)) {
             Occlusion::Region curRegion { occlusionRect };
