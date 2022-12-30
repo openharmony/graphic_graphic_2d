@@ -252,8 +252,13 @@ bool RSImage::Marshalling(Parcel& parcel) const
     int imageRepeat = static_cast<int>(imageRepeat_);
 
     std::lock_guard<std::mutex> lock(mutex_);
+    auto image = image_;
+    if (image && image->isTextureBacked()) {
+        image = nullptr;
+        ROSEN_LOGE("RSImage::Marshalling skip texture image");
+    }
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
-                   RSMarshallingHelper::Marshalling(parcel, image_) &&
+                   RSMarshallingHelper::Marshalling(parcel, image) &&
                    RSMarshallingHelper::Marshalling(parcel, compressData_) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_)) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.height_)) &&
