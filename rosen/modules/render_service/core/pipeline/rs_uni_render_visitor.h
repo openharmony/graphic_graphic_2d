@@ -163,6 +163,11 @@ private:
     std::shared_ptr<std::mutex> surfaceNodePrepareMutex_;
 
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
+    
+    // count prepared and processed canvasnode numbers per app
+    // unirender visitor resets every frame, no overflow risk here
+    unsigned int preparedCanvasNodeInCurrentSurface_ = 0;
+    unsigned int processedCanvasNodeInCurrentSurface_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -425,6 +425,10 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.GetDirtyManager() && node.GetDirtyManager()->IsDirty()) {
         dirtySurfaceNodeMap_.emplace(node.GetId(), node.ReinterpretCastTo<RSSurfaceRenderNode>());
     }
+    if (node.IsAppWindow()) {
+        RS_TRACE_NAME("PreparedNodes: " + std::to_string(preparedCanvasNodeInCurrentSurface_));
+        preparedCanvasNodeInCurrentSurface_ = 0;
+    }
 }
 
 void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
@@ -490,6 +494,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 
 void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 {
+    preparedCanvasNodeInCurrentSurface_++;
     node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
     RectI prepareClipRect = prepareClipRect_;
@@ -1339,6 +1344,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     canvas_->RestoreCanvasAndAlpha(savedState);
     if (node.IsAppWindow()) {
         canvas_->SetVisibleRect(SkRect::MakeLTRB(0, 0, 0, 0));
+
+        // count processed canvasnodes number
+        RS_TRACE_NAME("ProcessedNodes: " + std::to_string(processedCanvasNodeInCurrentSurface_));
+        processedCanvasNodeInCurrentSurface_ = 0; // reset
     }
 }
 
@@ -1377,6 +1386,7 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 
 void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 {
+    processedCanvasNodeInCurrentSurface_++;
     if (!node.ShouldPaint()) {
         RS_LOGD("RSUniRenderVisitor::ProcessCanvasRenderNode, no need process");
         return;
