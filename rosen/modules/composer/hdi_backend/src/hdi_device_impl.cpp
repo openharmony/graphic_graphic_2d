@@ -233,6 +233,9 @@ int32_t HdiDeviceImpl::SetScreenClientBuffer(uint32_t screenId, const BufferHand
 
 int32_t HdiDeviceImpl::SetScreenClientDamage(uint32_t screenId, uint32_t num, GraphicIRect &damageRect)
 {
+    if (num != 1) {
+        return GRAPHIC_DISPLAY_NOT_SUPPORT;
+    }
     CHECK_FUNC(deviceFuncs_, deviceFuncs_->SetDisplayClientDamage);
     IRect hdiDamageRect = {
         .x = damageRect.x,
@@ -433,6 +436,9 @@ int32_t HdiDeviceImpl::SetTransformMode(uint32_t screenId, uint32_t layerId, Gra
 int32_t HdiDeviceImpl::SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId,
                                              uint32_t num, GraphicIRect &visible)
 {
+    if (num != 1) {
+        return GRAPHIC_DISPLAY_NOT_SUPPORT;
+    }
     CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerVisibleRegion);
     IRect hdiVisibleRect = {
         .x = visible.x,

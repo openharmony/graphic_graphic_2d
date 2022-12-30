@@ -81,7 +81,7 @@ private:
     int32_t SetScreenClientInfo(const FrameBufferEntry &fbEntry, const OutputPtr &output);
     int32_t UpdateLayerCompType(uint32_t screenId, const std::unordered_map<uint32_t, LayerPtr> &layersMap);
     int32_t PreProcessLayersComp(const OutputPtr &output, bool &needFlush);
-    void PrepareCompleteIfNeed(const OutputPtr &output, bool needFlush, sptr<SurfaceBuffer> &buffer);
+    int32_t PrepareCompleteIfNeed(const OutputPtr &output, bool needFlush, sptr<SurfaceBuffer> &buffer);
     void UpdateInfosAfterCommit(const OutputPtr &output, sptr<SyncFence> fbFence);
     
 

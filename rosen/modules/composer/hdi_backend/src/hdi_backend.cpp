@@ -77,7 +77,6 @@ int32_t HdiBackend::PreProcessLayersComp(const OutputPtr &output, bool &needFlus
     for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
         const LayerPtr &layer = iter->second;
         if (doClientCompositionDirectly) {
-            HLOGD("Direct client composition is enabled.");
             layer->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
             continue;
         }
@@ -95,13 +94,14 @@ int32_t HdiBackend::PreProcessLayersComp(const OutputPtr &output, bool &needFlus
 
     if (doClientCompositionDirectly) {
         ScopedBytrace doClientCompositionDirectlyTag("DoClientCompositionDirectly");
+        HLOGD("Direct client composition is enabled.");
         return GRAPHIC_DISPLAY_SUCCESS;
     }
 
     return UpdateLayerCompType(screenId, layersMap);
 }
 
-void HdiBackend::PrepareCompleteIfNeed(const OutputPtr &output, bool needFlush, sptr<SurfaceBuffer> &buffer)
+int32_t HdiBackend::PrepareCompleteIfNeed(const OutputPtr &output, bool needFlush, sptr<SurfaceBuffer> &buffer)
 {
     std::vector<LayerPtr> compClientLayers;
     std::vector<LayerInfoPtr> newLayerInfos;
@@ -120,13 +120,7 @@ void HdiBackend::PrepareCompleteIfNeed(const OutputPtr &output, bool needFlush, 
     }
 
     OnPrepareComplete(needFlush, output, newLayerInfos);
-    if (needFlush) {
-        int32_t ret = FlushScreen(output, compClientLayers, buffer);
-        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-            HLOGE("Flush Screen failed, ret is %{public}d", ret);
-            // return
-        }
-    }
+    return FlushScreen(output, compClientLayers, buffer);
 }
 
 void HdiBackend::UpdateInfosAfterCommit(const OutputPtr &output, sptr<SyncFence> fbFence)
@@ -176,11 +170,13 @@ void HdiBackend::Repaint(const OutputPtr &output)
     bool needFlush = false;
     int32_t ret = PreProcessLayersComp(output, needFlush);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        HLOGE("Pre process layers composition failed, ret = %{public}d.", ret);
         return;
     }
     sptr<SurfaceBuffer> frameBuffer = nullptr;
-    PrepareCompleteIfNeed(output, needFlush, frameBuffer);
+    ret = PrepareCompleteIfNeed(output, needFlush, frameBuffer);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        return;
+    }
     sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
     uint32_t screenId = output->GetScreenId();
     ret = device_->Commit(screenId, fbFence);
@@ -293,8 +289,8 @@ int32_t HdiBackend::SetScreenClientInfo(const FrameBufferEntry &fbEntry, const O
     ret = device_->SetScreenClientDamage(output->GetScreenId(), output->GetOutputDamageNum(),
                                          output->GetOutputDamage());
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        // SetScreenClientDamage is not supported in hdi, HLOGD here and no returen ret.
         HLOGD("SetScreenClientDamage failed, ret is %{public}d", ret);
-        return ret;
     }
 
     return GRAPHIC_DISPLAY_SUCCESS;
