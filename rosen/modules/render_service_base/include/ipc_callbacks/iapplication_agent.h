@@ -33,13 +33,9 @@ public:
 
     enum {
         COMMIT_TRANSACTION,
-        NOTIFY_RENDER_MODE_CHANGED,
-        NOTIFY_CLEAR_BUFFER_CACHE,
     };
 
     virtual void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) = 0;
-    virtual void OnRenderModeChanged(bool renderThreadNeedRender) = 0;
-    virtual void NotifyClearBufferCache() = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

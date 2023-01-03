@@ -144,13 +144,11 @@ void RSSurfaceNode::ClearChildren()
 
 FollowType RSSurfaceNode::GetFollowType() const
 {
-    if (!IsUniRenderEnabled() && !isRenderServiceNode_) {
+    if (IsRenderServiceNode()) {
+        return FollowType::NONE;
+    } else {
         return FollowType::FOLLOW_TO_PARENT;
     }
-    if (IsUniRenderEnabled() && !isRenderServiceNode_ && !RSSystemProperties::IsUniRenderMode()) {
-        return FollowType::FOLLOW_TO_PARENT;
-    }
-    return FollowType::NONE;
 }
 
 void RSSurfaceNode::OnBoundsSizeChanged() const

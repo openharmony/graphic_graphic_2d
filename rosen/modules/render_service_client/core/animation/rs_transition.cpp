@@ -92,12 +92,6 @@ void RSTransition::StartRenderTransition()
                 std::make_unique<RSAnimationCreateTransition>(target->GetId(), transition);
             transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
         }
-        if (target->NeedSendExtraCommand()) {
-            std::unique_ptr<RSCommand> extraCommand =
-                std::make_unique<RSAnimationCreateTransition>(target->GetId(), transition);
-            transactionProxy->AddCommand(extraCommand, !target->IsRenderServiceNode(), target->GetFollowType(),
-                target->GetId());
-        }
     }
 }
 } // namespace Rosen

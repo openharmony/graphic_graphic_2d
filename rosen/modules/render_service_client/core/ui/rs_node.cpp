@@ -839,11 +839,6 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier>& modifier)
                 std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
             transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
         }
-        if (NeedSendExtraCommand()) {
-            std::unique_ptr<RSCommand> extraCommand =
-                std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
-            transactionProxy->AddCommand(extraCommand, !IsRenderServiceNode(), GetFollowType(), GetId());
-        }
     }
 }
 
@@ -867,11 +862,6 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifier>& modifier)
             std::unique_ptr<RSCommand> cmdForRemote =
                 std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
             transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
-        }
-        if (NeedSendExtraCommand()) {
-            std::unique_ptr<RSCommand> extraCommand =
-                std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
-            transactionProxy->AddCommand(extraCommand, !IsRenderServiceNode(), GetFollowType(), GetId());
         }
     }
 }

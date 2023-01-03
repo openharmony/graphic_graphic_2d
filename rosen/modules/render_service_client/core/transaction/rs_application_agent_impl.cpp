@@ -15,7 +15,6 @@
 
 #include "rs_application_agent_impl.h"
 
-#include "pipeline/rs_render_thread.h"
 #ifdef ROSEN_OHOS
 #include "platform/ohos/rs_render_service_connect_hub.h"
 #endif
@@ -55,19 +54,6 @@ void RSApplicationAgentImpl::OnTransaction(std::shared_ptr<RSTransactionData> tr
 {
     RS_TRACE_NAME("RSApplicationAgentImpl::OnTransaction");
     RSUIDirector::RecvMessages(transactionData);
-}
-
-void RSApplicationAgentImpl::OnRenderModeChanged(bool renderThreadNeedRender)
-{
-    RS_TRACE_NAME_FMT("RSApplicationAgentImpl::OnRenderModeChanged isUni:%d", !renderThreadNeedRender);
-    RSSystemProperties::SetRenderMode(!renderThreadNeedRender);
-    RSRenderThread::Instance().UpdateRenderMode(renderThreadNeedRender);
-}
-
-void RSApplicationAgentImpl::NotifyClearBufferCache()
-{
-    RS_TRACE_NAME_FMT("RSApplicationAgentImpl::NotifyClearBufferCache");
-    RSRenderThread::Instance().NotifyClearBufferCache();
 }
 #endif
 }

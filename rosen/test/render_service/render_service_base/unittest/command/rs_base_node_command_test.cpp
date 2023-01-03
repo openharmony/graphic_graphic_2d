@@ -124,16 +124,4 @@ HWTEST_F(RSBaseNodeCommandText, TextRSBaseNodeCommand007, TestSize.Level1)
     NodeId nodeId = static_cast<NodeId>(-1);
     BaseNodeCommandHelper::ClearChildren(context, nodeId);
 }
-
-/**
- * @tc.name: TextRSBaseNodeCommand008
- * @tc.desc: ClearSurfaceNodeChildren test.
- * @tc.type: FUNC
- */
-HWTEST_F(RSBaseNodeCommandText, TextRSBaseNodeCommand008, TestSize.Level1)
-{
-    RSContext context;
-    NodeId nodeId = static_cast<NodeId>(-1);
-    BaseNodeCommandHelper::ClearSurfaceNodeChildren(context, nodeId);
-}
 } // namespace OHOS::Rosen

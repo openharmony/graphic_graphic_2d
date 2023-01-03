@@ -93,12 +93,6 @@ protected:
                     node->GetId(), drawCmdList, property_->id_, false);
                 transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
             }
-            if (node->NeedSendExtraCommand()) {
-                std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSUpdatePropertyDrawCmdList>(
-                    node->GetId(), drawCmdList, property_->id_, false);
-                transactionProxy->AddCommand(extraCommand, !node->IsRenderServiceNode(), node->GetFollowType(),
-                    node->GetId());
-            }
         }
     }
 };

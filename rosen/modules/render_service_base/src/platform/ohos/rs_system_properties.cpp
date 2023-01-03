@@ -51,7 +51,6 @@ bool RSSystemProperties::GetUniRenderEnabled()
 
     isUniRenderEnabled_ = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())
         ->GetUniRenderEnabled();
-    isUniRenderMode_ = isUniRenderEnabled_;
     inited = true;
     ROSEN_LOGI("RSSystemProperties::GetUniRenderEnabled:%d", isUniRenderEnabled_);
     return isUniRenderEnabled_;
@@ -61,16 +60,6 @@ bool RSSystemProperties::GetRenderNodeTraceEnabled()
 {
     static bool isNeedTrace = system::GetParameter("persist.rosen.rendernodetrace.enabled", "0") != "0";
     return isNeedTrace;
-}
-
-bool RSSystemProperties::IsUniRenderMode()
-{
-    return isUniRenderMode_;
-}
-
-void RSSystemProperties::SetRenderMode(bool isUni)
-{
-    isUniRenderMode_ = isUni;
 }
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()

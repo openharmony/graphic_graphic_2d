@@ -164,12 +164,6 @@ void RSAnimation::OnPause()
                 std::make_unique<RSAnimationPause>(target->GetId(), id_);
             transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
         }
-        if (target->NeedSendExtraCommand()) {
-            std::unique_ptr<RSCommand> extraCommand =
-                std::make_unique<RSAnimationPause>(target->GetId(), id_);
-            transactionProxy->AddCommand(extraCommand, !target->IsRenderServiceNode(), target->GetFollowType(),
-                target->GetId());
-        }
     }
 }
 
@@ -206,12 +200,6 @@ void RSAnimation::OnResume()
             std::unique_ptr<RSCommand> commandForRemote =
                 std::make_unique<RSAnimationResume>(target->GetId(), id_);
             transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
-        }
-        if (target->NeedSendExtraCommand()) {
-            std::unique_ptr<RSCommand> extraCommand =
-                std::make_unique<RSAnimationResume>(target->GetId(), id_);
-            transactionProxy->AddCommand(extraCommand, !target->IsRenderServiceNode(), target->GetFollowType(),
-                target->GetId());
         }
     }
 }
@@ -250,12 +238,6 @@ void RSAnimation::OnFinish()
                 std::make_unique<RSAnimationFinish>(target->GetId(), id_);
             transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
         }
-        if (target->NeedSendExtraCommand()) {
-            std::unique_ptr<RSCommand> extraCommand =
-                std::make_unique<RSAnimationFinish>(target->GetId(), id_);
-            transactionProxy->AddCommand(extraCommand, !target->IsRenderServiceNode(), target->GetFollowType(),
-                target->GetId());
-        }
     }
 }
 
@@ -293,12 +275,6 @@ void RSAnimation::OnReverse()
             std::unique_ptr<RSCommand> commandForRemote =
                 std::make_unique<RSAnimationReverse>(target->GetId(), id_, isReversed_);
             transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
-        }
-        if (target->NeedSendExtraCommand()) {
-            std::unique_ptr<RSCommand> extraCommand =
-                std::make_unique<RSAnimationReverse>(target->GetId(), id_, isReversed_);
-            transactionProxy->AddCommand(extraCommand, !target->IsRenderServiceNode(), target->GetFollowType(),
-                target->GetId());
         }
     }
 }
@@ -340,12 +316,6 @@ void RSAnimation::OnSetFraction(float fraction)
             std::unique_ptr<RSCommand> commandForRemote =
                 std::make_unique<RSAnimationSetFraction>(target->GetId(), id_, fraction);
             transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
-        }
-        if (target->NeedSendExtraCommand()) {
-            std::unique_ptr<RSCommand> extraCommand =
-                std::make_unique<RSAnimationSetFraction>(target->GetId(), id_, fraction);
-            transactionProxy->AddCommand(extraCommand, !target->IsRenderServiceNode(), target->GetFollowType(),
-                target->GetId());
         }
     }
 }

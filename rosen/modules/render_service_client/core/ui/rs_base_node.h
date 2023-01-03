@@ -107,7 +107,6 @@ protected:
 
     bool IsUniRenderEnabled() const;
     bool IsRenderServiceNode() const;
-    bool NeedSendExtraCommand() const;
 
 private:
     static NodeId GenerateId();

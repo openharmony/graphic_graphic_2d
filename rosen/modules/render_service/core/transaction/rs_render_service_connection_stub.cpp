@@ -122,7 +122,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION failed");
                 return ERR_INVALID_DATA;
             }
-            if (RSMainThread::Instance()->QueryIfUseUniVisitor()) {
+            if (RSUniRenderJudgement::IsUniRender()) {
                 // post Unmarshalling task to RSUnmarshalThread
                 RSUnmarshalThread::Instance().RecvParcel(parsedParcel);
             } else {
@@ -156,10 +156,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case GET_UNI_RENDER_ENABLED: {
             reply.WriteBool(GetUniRenderEnabled());
-            break;
-        }
-        case QUERY_RT_NEED_RENDER: {
-            reply.WriteBool(QueryIfRTNeedRender());
             break;
         }
         case CREATE_NODE: {

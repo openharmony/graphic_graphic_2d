@@ -35,10 +35,6 @@ std::shared_ptr<RSNode> RSRootNode::Create(bool isRenderServiceNode)
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(node->GetId());
     transactionProxy->AddCommand(command, node->IsRenderServiceNode());
-    if (node->NeedSendExtraCommand()) {
-        std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSRootNodeCreate>(node->GetId());
-        transactionProxy->AddCommand(extraCommand, !node->IsRenderServiceNode());
-    }
     return node;
 }
 
@@ -50,14 +46,14 @@ void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
     if (transactionProxy == nullptr) {
         return;
     }
-    std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeAttachRSSurfaceNode>(GetId(),
-        surfaceNode->GetId());
-    transactionProxy->AddCommand(command, false);
-
-    if (IsUniRenderEnabled()) {
-        std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSRootNodeAttachToUniSurfaceNode>(GetId(),
+    if (!IsUniRenderEnabled()) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeAttachRSSurfaceNode>(GetId(),
             surfaceNode->GetId());
-        transactionProxy->AddCommand(extraCommand, true);
+        transactionProxy->AddCommand(command, false);
+    } else {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeAttachToUniSurfaceNode>(GetId(),
+            surfaceNode->GetId());
+        transactionProxy->AddCommand(command, true);
     }
 }
 
@@ -69,10 +65,6 @@ void RSRootNode::SetEnableRender(bool flag) const
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeSetEnableRender>(GetId(), flag);
     transactionProxy->AddCommand(command, IsRenderServiceNode());
-    if (NeedSendExtraCommand()) {
-        std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSRootNodeSetEnableRender>(GetId(), flag);
-        transactionProxy->AddCommand(extraCommand, !IsRenderServiceNode());
-    }
     transactionProxy->FlushImplicitTransaction();
 }
 

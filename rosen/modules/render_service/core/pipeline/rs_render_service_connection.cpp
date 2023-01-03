@@ -188,23 +188,16 @@ int32_t RSRenderServiceConnection::SetRenderModeChangeCallback(sptr<RSIRenderMod
         RS_LOGD("RSRenderServiceConnection::SetRenderModeChangeCallback: callback is nullptr");
         return INVALID_ARGUMENTS;
     }
-    mainThread_->SetRenderModeChangeCallback(callback);
     return SUCCESS;
 }
 
 void RSRenderServiceConnection::UpdateRenderMode(bool isUniRender)
 {
-    mainThread_->NotifyRenderModeChanged(isUniRender);
 }
 
 bool RSRenderServiceConnection::GetUniRenderEnabled()
 {
     return RSUniRenderJudgement::IsUniRender();
-}
-
-bool RSRenderServiceConnection::QueryIfRTNeedRender()
-{
-    return !mainThread_->QueryIfUseUniVisitor();
 }
 
 bool RSRenderServiceConnection::CreateNode(const RSSurfaceRenderNodeConfig& config)

@@ -83,12 +83,6 @@ void RSKeyframeAnimation::StartRenderAnimation(const std::shared_ptr<RSRenderKey
                 std::make_unique<RSAnimationCreateKeyframe>(target->GetId(), animation);
             transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
         }
-        if (target->NeedSendExtraCommand()) {
-            std::unique_ptr<RSCommand> extraCommand =
-                std::make_unique<RSAnimationCreateKeyframe>(target->GetId(), animation);
-            transactionProxy->AddCommand(extraCommand, !target->IsRenderServiceNode(), target->GetFollowType(),
-                target->GetId());
-        }
     }
 }
 

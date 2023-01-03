@@ -148,12 +148,6 @@ bool operator!=(const std::shared_ptr<const RSPropertyBase>& a, const std::share
                     std::make_unique<Command>(node->GetId(), value, id_, isDelta);                                    \
                 transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());           \
             }                                                                                                         \
-            if (node->NeedSendExtraCommand()) {                                                                       \
-                std::unique_ptr<RSCommand> extraCommand =                                                             \
-                    std::make_unique<Command>(node->GetId(), value, id_, isDelta);                                    \
-                transactionProxy->AddCommand(extraCommand, !node->IsRenderServiceNode(),                              \
-                    node->GetFollowType(), node->GetId());                                                            \
-            }                                                                                                         \
             if (forceUpdate) {                                                                                        \
                 transactionProxy->Commit();                                                                           \
             }                                                                                                         \
