@@ -142,7 +142,7 @@ const BufferHandle* OH_NativeBuffer_GetBufferHandle(const OH_NativeBuffer *buffe
 {
     if (buffer == nullptr) {
         BLOGE("parameter error, please check input parameter");
-        return nullptr; 
+        return nullptr;
     }
     const SurfaceBuffer* sbuffer = OH_NativeBufferToSurfaceBuffer(buffer);
     return sbuffer->GetBufferHandle();
