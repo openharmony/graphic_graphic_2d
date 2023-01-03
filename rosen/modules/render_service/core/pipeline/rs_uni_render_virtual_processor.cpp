@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "rs_uni_render_mirror_processor.h"
+#include "rs_uni_render_virtual_processor.h"
 
 #include <ctime>
 
@@ -25,10 +25,17 @@
 
 namespace OHOS {
 namespace Rosen {
-bool RSUniRenderMirrorProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
+bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
 {
     if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId)) {
         return false;
+    }
+
+    // Do expand screen if the mirror id is invalid.
+    if (mirroredId == INVALID_SCREEN_ID) {
+        isExpand_ = true;
+    } else {
+        isExpand_ = false;
     }
 
     renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
@@ -36,7 +43,7 @@ bool RSUniRenderMirrorProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX
     auto screenManager = CreateOrGetScreenManager();
     producerSurface_ = screenManager->GetProducerSurface(node.GetScreenId());
     if (producerSurface_ == nullptr) {
-        RS_LOGE("RSUniRenderMirrorProcessor::Init for Screen(id %" PRIu64 "): ProducerSurface is null!",
+        RS_LOGE("RSUniRenderVirtualProcessor::Init for Screen(id %" PRIu64 "): ProducerSurface is null!",
             node.GetScreenId());
         return false;
     }
@@ -52,36 +59,38 @@ bool RSUniRenderMirrorProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX
     return true;
 }
 
-void RSUniRenderMirrorProcessor::PostProcess()
+void RSUniRenderVirtualProcessor::PostProcess()
 {
     if (producerSurface_ == nullptr) {
-        RS_LOGE("RSUniRenderMirrorProcessor::PostProcess surface is null!");
+        RS_LOGE("RSUniRenderVirtualProcessor::PostProcess surface is null!");
         return;
     }
     auto surfaceId = producerSurface_->GetUniqueId();
     renderEngine_->SetUiTimeStamp(renderFrame_, surfaceId);
     if (renderFrame_ == nullptr) {
-        RS_LOGE("RSUniRenderMirrorProcessor::PostProcess renderFrame_ is null.");
+        RS_LOGE("RSUniRenderVirtualProcessor::PostProcess renderFrame_ is null.");
         return;
     }
     RSProcessor::RequestPerf(3, true); // set perf level 3 in mirrorScreen state
     renderFrame_->Flush();
 }
 
-void RSUniRenderMirrorProcessor::ProcessSurface(RSSurfaceRenderNode& node)
+void RSUniRenderVirtualProcessor::ProcessSurface(RSSurfaceRenderNode& node)
 {
-    RS_LOGI("RSUniRenderMirrorProcessor::ProcessSurface() is not supported.");
+    RS_LOGI("RSUniRenderVirtualProcessor::ProcessSurface() is not supported.");
 }
 
-void RSUniRenderMirrorProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
+void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
 {
-    RS_TRACE_NAME("RSUniRenderMirrorProcessor::ProcessDisplaySurface");
-    if (canvas_ == nullptr || node.GetBuffer() == nullptr) {
-        RS_LOGE("RSUniRenderMirrorProcessor::ProcessDisplaySurface: Canvas or buffer is null!");
-        return;
+    if (!isExpand_) {
+        RS_TRACE_NAME("RSUniRenderVirtualProcessor::ProcessDisplaySurface");
+        if (canvas_ == nullptr || node.GetBuffer() == nullptr) {
+            RS_LOGE("RSUniRenderVirtualProcessor::ProcessDisplaySurface: Canvas or buffer is null!");
+            return;
+        }
+        auto params = RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU_);
+        renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
     }
-    auto params = RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU_);
-    renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
 }
 } // namespace Rosen
 } // namespace OHOS

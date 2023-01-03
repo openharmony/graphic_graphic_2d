@@ -35,6 +35,7 @@ public:
     enum CompositeType {
         UNI_RENDER_COMPOSITE = 0,
         UNI_RENDER_MIRROR_COMPOSITE,
+        UNI_RENDER_EXPAND_COMPOSITE,
         HARDWARE_COMPOSITE,
         SOFTWARE_COMPOSITE
     };

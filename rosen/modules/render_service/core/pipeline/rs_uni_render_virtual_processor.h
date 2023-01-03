@@ -20,10 +20,10 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSUniRenderMirrorProcessor : public RSProcessor {
+class RSUniRenderVirtualProcessor : public RSProcessor {
 public:
-    RSUniRenderMirrorProcessor() = default;
-    ~RSUniRenderMirrorProcessor() noexcept override = default;
+    RSUniRenderVirtualProcessor() = default;
+    ~RSUniRenderVirtualProcessor() noexcept override = default;
 
     bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
@@ -39,6 +39,7 @@ private:
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     bool forceCPU_ = false;
+    bool isExpand_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

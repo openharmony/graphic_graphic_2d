@@ -17,7 +17,7 @@
 
 #include "rs_physical_screen_processor.h"
 #include "rs_uni_render_processor.h"
-#include "rs_uni_render_mirror_processor.h"
+#include "rs_uni_render_virtual_processor.h"
 #include "rs_virtual_screen_processor.h"
 
 namespace OHOS {
@@ -33,7 +33,8 @@ std::shared_ptr<RSProcessor> RSProcessorFactory::CreateProcessor(RSDisplayRender
         case RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE:
             return std::make_shared<RSUniRenderProcessor>();
         case RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE:
-            return std::make_shared<RSUniRenderMirrorProcessor>();
+        case RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE:
+            return std::make_shared<RSUniRenderVirtualProcessor>();
         default:
             return nullptr;
     }

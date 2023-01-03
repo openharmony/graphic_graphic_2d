@@ -34,7 +34,7 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_listener.h"
-#include "pipeline/rs_uni_render_mirror_processor.h"
+#include "pipeline/rs_uni_render_virtual_processor.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -670,9 +670,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     }
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
     isSecurityDisplay_ = node.GetSecurityDisplay();
+    auto mirrorNode = node.GetMirrorSource().lock();
     switch (screenInfo_.state) {
         case ScreenState::PRODUCER_SURFACE_ENABLE:
-            node.SetCompositeType(RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
+            node.SetCompositeType(mirrorNode ?
+                RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE :
+                RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
             break;
         case ScreenState::HDI_OUTPUT_ENABLE:
             node.SetCompositeType(node.IsForceSoftComposite() ?
@@ -690,7 +693,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: RSProcessor is null!");
         return;
     }
-    auto mirrorNode = node.GetMirrorSource().lock();
     if (!processor_->Init(node, node.GetDisplayOffsetX(), node.GetDisplayOffsetY(),
         mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID)) {
         RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: processor init failed!");
@@ -711,7 +713,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     }
 
     if (mirrorNode) {
-        auto processor = std::static_pointer_cast<RSUniRenderMirrorProcessor>(processor_);
+        auto processor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor_);
         if (displayHasSecSurface_[mirrorNode->GetScreenId()] && mirrorNode->GetSecurityDisplay() != isSecurityDisplay_
             && processor) {
             canvas_ = processor->GetCanvas();
@@ -719,6 +721,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         } else {
             processor_->ProcessDisplaySurface(*mirrorNode);
         }
+    } else if (node.GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
+        ProcessBaseRenderNode(node);
     } else {
 #ifdef RS_ENABLE_EGLQUERYSURFACE
         if (isPartialRenderEnabled_) {
