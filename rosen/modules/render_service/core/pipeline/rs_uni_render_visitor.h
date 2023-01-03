@@ -104,6 +104,9 @@ private:
      * If so, reset status flag and stop traversal
      */
     bool CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& node);
+    // [planning] Remove this after skia is upgraded, the clipRegion is supported
+    // recursively check if there is any node's child(including node itself) needs filter
+    bool CheckIfRenderNodeNeedFilter(RSBaseRenderNode& node);
 
     void RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& node, float width, float height);
     // offscreen render related

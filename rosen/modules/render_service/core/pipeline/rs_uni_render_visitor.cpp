@@ -295,6 +295,26 @@ void RSUniRenderVisitor::ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRend
 #endif
 }
 
+bool RSUniRenderVisitor::CheckIfRenderNodeNeedFilter(RSBaseRenderNode& node)
+{
+    if (!curSurfaceNode_) {
+        return false;
+    }
+    if (node.ReinterpretCastTo<RSRenderNode>()->GetRenderProperties().NeedFilter() &&
+        !curSurfaceNode_->IsAppFreeze()) {
+        return true;
+    }
+    for (auto& child : node.GetSortedChildren()) {
+        if (child && CheckIfRenderNodeNeedFilter(*child)) {
+            if (auto canvasNode = child->ReinterpretCastTo<RSCanvasRenderNode>()) {
+                filterRects_[curSurfaceNode_->GetId()].push_back(canvasNode->GetOldDirtyInSurface());
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
 bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& node)
 {
     // dirtyFlag_ includes leashwindow dirty
@@ -317,6 +337,11 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
     }
     // static surface keeps same position
     curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), curDisplayNode_->GetLastFrameSurfacePos(node.GetId()));
+    // [planning] Remove this after skia is upgraded, the clipRegion is supported
+    if (node.IsAppWindow()) {
+        curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+    }
+    needFilter_ = needFilter_ || CheckIfRenderNodeNeedFilter(node);
     return true;
 }
 
