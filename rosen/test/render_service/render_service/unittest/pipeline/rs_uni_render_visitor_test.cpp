@@ -278,4 +278,105 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareCavasRenderNode002, TestSize.Level1)
     node->Process(rsUniRenderVisitor);
 }
 
+/*
+ * @tc.name: CalcDirtyDisplayRegion
+ * @tc.desc: Set surface to transparent, add a canvas node to create a transparent dirty region
+ * @tc.type: FUNC
+ * @tc.require: I68IPR
+*/
+HWTEST_F(RSUniRenderVisitorTest, CalcDirtyDisplayRegion, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    RSDisplayNodeConfig displayConfig;
+    config.id = 10;
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(1, rsContext->weak_from_this());
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+
+    Occlusion::Rect rect{0, 80, 2560, 1600};
+    Occlusion::Region region{rect};
+    VisibleData vData;
+    std::map<uint32_t, bool> pidVisMap;
+
+    auto partialRenderType = RSSystemProperties::GetUniPartialRenderEnabled();
+    auto isPartialRenderEnabled = (partialRenderType != PartialRenderType::DISABLED);
+    ASSERT_EQ(isPartialRenderEnabled, true);
+
+    // set surface to transparent, add a canvas node to create a transparent dirty region
+    rsSurfaceRenderNode->SetAbilityBGAlpha(0);
+    rsSurfaceRenderNode->SetSrcRect(RectI(0, 80, 2560, 1600));
+    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, -1);
+    rsSurfaceRenderNode->AddChild(rsCanvasRenderNode, -1);
+
+    rsUniRenderVisitor->PrepareDisplayRenderNode(*rsDisplayRenderNode);
+    rsSurfaceRenderNode->SetVisibleRegionRecursive(region, vData, pidVisMap);
+    rsUniRenderVisitor->ProcessDisplayRenderNode(*rsDisplayRenderNode);
+}
+
+/*
+ * @tc.name: CalcDirtyRegionForFilterNode
+ * @tc.desc: Create a filter effect to test filter node
+ * @tc.type: FUNC
+ * @tc.require: I68IPR
+*/
+HWTEST_F(RSUniRenderVisitorTest, CalcDirtyRegionForFilterNode, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    RSDisplayNodeConfig displayConfig;
+    config.id = 10;
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(1, rsContext->weak_from_this());
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+
+    rsSurfaceRenderNode->SetAbilityBGAlpha(0);
+    rsSurfaceRenderNode->SetSrcRect(RectI(0, 80, 2560, 1600));
+    // create a filter effect
+    float blurRadiusX = 30.0f;
+    float blurRadiusY = 30.0f;
+    auto filter = RSFilter::CreateBlurFilter(blurRadiusX, blurRadiusY);
+    rsCanvasRenderNode->GetMutableRenderProperties().SetFilter(filter);
+    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, -1);
+    rsSurfaceRenderNode->AddChild(rsCanvasRenderNode, -1);
+    rsUniRenderVisitor->PrepareDisplayRenderNode(*rsDisplayRenderNode);
+    rsUniRenderVisitor->ProcessDisplayRenderNode(*rsDisplayRenderNode);
+}
+
+/*
+ * @tc.name: SetSurfafaceGlobalDirtyRegion
+ * @tc.desc: Add two surfacenode child to test global dirty region
+ * @tc.type: FUNC
+ * @tc.require: I68IPR
+*/
+HWTEST_F(RSUniRenderVisitorTest, SetSurfafaceGlobalDirtyRegion, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 10;
+    auto rsSurfaceRenderNode1 = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    Occlusion::Rect rect{0, 80, 2560, 1600};
+    Occlusion::Region region{rect};
+    VisibleData vData;
+    std::map<uint32_t, bool> pidVisMap;
+    rsSurfaceRenderNode1->SetVisibleRegionRecursive(region, vData, pidVisMap);
+
+    config.id = 11;
+    auto rsSurfaceRenderNode2 = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    Occlusion::Rect rect2{100, 100, 500, 1500};
+    Occlusion::Region region2{rect2};
+    rsSurfaceRenderNode2->SetVisibleRegionRecursive(region2, vData, pidVisMap);
+
+    RSDisplayNodeConfig displayConfig;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(9, displayConfig, rsContext->weak_from_this());
+    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode1, -1);
+    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode2, -1);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->PrepareDisplayRenderNode(*rsDisplayRenderNode);
+    rsUniRenderVisitor->ProcessDisplayRenderNode(*rsDisplayRenderNode);
+}
+
 } // OHOS::Rosen

@@ -89,5 +89,78 @@ HWTEST_F(RSSurfaceRenderNodeTest, ClearChildrenCache001, TestSize.Level1)
     surfaceRenderNode.ResetParent();
 }
 
+/**
+ * @tc.name: SetVisibleDirtyRegion
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: I68IPR
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetVisibleDirtyRegion, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    Occlusion::Rect rect {0, 0, 200, 200};
+    Occlusion::Region region {rect};
+    surfaceRenderNode.SetVisibleDirtyRegion(region);
+    auto vdRegion = surfaceRenderNode.GetVisibleDirtyRegion();
+}
+
+/**
+ * @tc.name: SetAlignedVisibleDirtyRegion
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: I68IPR
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetAlignedVisibleDirtyRegion, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    Occlusion::Rect rect {0, 0, 256, 256};
+    Occlusion::Region region {rect};
+    surfaceRenderNode.SetAlignedVisibleDirtyRegion(region);
+    auto vdRegion = surfaceRenderNode.GetAlignedVisibleDirtyRegion();
+}
+
+/**
+ * @tc.name: SetDirtyRegionBelowCurrentLayer
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: I68IPR
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetDirtyRegionBelowCurrentLayer, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    Occlusion::Rect rect {0, 0, 256, 256};
+    Occlusion::Region region {rect};
+    surfaceRenderNode.SetDirtyRegionBelowCurrentLayer(region);
+    auto vdRegion = surfaceRenderNode.GetDirtyRegionBelowCurrentLayer();
+}
+
+/**
+ * @tc.name: SetGlobalDirtyRegion
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: I68IPR
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetGlobalDirtyRegion, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    RectI rect {0, 0, 256, 256};
+    surfaceRenderNode.SetGlobalDirtyRegion(rect);
+}
+
+/**
+ * @tc.name: ResetSurfaceOpaqueRegion
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: I68IPR
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    RectI screenRect {0, 0, 2560, 1600};
+    RectI absRect {0, 100, 400, 500};
+    ContainerWindowConfigType containerWindowConfigType {ContainerWindowConfigType::ENABLED_UNFOCUSED_WINDOW_LEVEL_2};
+    surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, containerWindowConfigType, false);
+    surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, containerWindowConfigType, true);
+}
 } // namespace Rosen
 } // namespace OHOS
