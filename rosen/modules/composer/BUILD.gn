@@ -56,9 +56,6 @@ ohos_shared_library("libcomposer") {
 
   defines = []
   defines += gpu_defines
-  if (use_musl) {
-    defines += [ "COMPOSER_DISABLE_PREPARE_LAYERINFOS" ]
-  }
 
   public_configs = [
     ":composer_public_config",
