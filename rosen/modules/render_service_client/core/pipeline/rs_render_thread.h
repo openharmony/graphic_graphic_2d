@@ -81,9 +81,6 @@ public:
     {
         return isHighContrastEnabled_;
     }
-    void UpdateRenderMode(bool needRender);
-    void NotifyClearBufferCache();
-
     void SetCacheDir(const std::string& filePath)
     {
         cacheDir_ = filePath;
@@ -116,12 +113,8 @@ private:
     void Render();
     void SendCommands();
 
-    void UpdateSurfaceNodeParentInRS();
-    void ClearBufferCache();
-    void MarkNeedUpdateSurfaceNode();
     std::atomic_bool running_ = false;
     std::atomic_bool hasSkipVsync_ = false;
-    bool needRender_ = true;
     std::atomic_int activeWindowCnt_ = 0;
     std::unique_ptr<std::thread> thread_ = nullptr;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;

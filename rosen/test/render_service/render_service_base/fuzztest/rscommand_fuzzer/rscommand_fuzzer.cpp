@@ -65,7 +65,6 @@ bool RSSurfaceNodeCommandFuzzTest(const uint8_t* data, size_t size)
 
     // get data
     uint64_t id = GetData<uint64_t>();
-    uint64_t parentId = GetData<uint64_t>();
     float contextAlpha = GetData<float>();
     bool isSecurityLayer = GetData<bool>();
     ColorGamut colorSpace = GetData<ColorGamut>();
@@ -91,8 +90,6 @@ bool RSSurfaceNodeCommandFuzzTest(const uint8_t* data, size_t size)
     Vector4f bounds = {GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>()};
     SurfaceNodeCommandHelper::SetContextBounds(context, static_cast<NodeId>(id), bounds);
     SurfaceNodeCommandHelper::SetAbilityBGAlpha(context, static_cast<NodeId>(id), alpha);
-    SurfaceNodeCommandHelper::UpdateParentWithoutTransition(context, static_cast<NodeId>(id),
-                                                            static_cast<NodeId>(parentId));
     SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable(context, static_cast<NodeId>(id), available);
     SurfaceNodeCommandHelper::SetAppFreeze(context, static_cast<NodeId>(id), isAppFreeze);
     SurfaceNodeCommandHelper::SetSurfaceNodeType(context, static_cast<NodeId>(id), type);
@@ -131,7 +128,6 @@ bool RSBaseNodeCommandFuzzTest(const uint8_t* data, size_t size)
                                                   static_cast<NodeId>(newParentId));
     BaseNodeCommandHelper::RemoveFromTree(context, static_cast<NodeId>(nodeId));
     BaseNodeCommandHelper::ClearChildren(context, static_cast<NodeId>(nodeId));
-    BaseNodeCommandHelper::ClearSurfaceNodeChildren(context, static_cast<NodeId>(nodeId));
 
     return true;
 }

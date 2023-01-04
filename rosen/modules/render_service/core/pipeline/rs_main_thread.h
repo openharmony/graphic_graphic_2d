@@ -90,7 +90,7 @@ public:
 
     const std::shared_ptr<RSBaseRenderEngine>& GetRenderEngine() const
     {
-        return IfUseUniVisitor() ? uniRenderEngine_ : renderEngine_;
+        return isUniRender_ ? uniRenderEngine_ : renderEngine_;
     }
 
     RSContext& GetContext()
@@ -117,8 +117,6 @@ public:
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
-    void NotifyRenderModeChanged(bool useUniVisitor);
-    bool QueryIfUseUniVisitor() const;
 
     void RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback);
     void UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback);
@@ -126,8 +124,6 @@ public:
 
     void WaitUtilUniRenderFinished();
     void NotifyUniRenderFinish();
-    void SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback);
-    bool IfUseUniVisitor() const;
 
     void ClearTransactionDataPidInfo(pid_t remotePid);
     void AddTransactionDataPidInfo(pid_t remotePid);
@@ -177,12 +173,6 @@ private:
     void WaitUntilUnmarshallingTaskFinished();
     void MergeToEffectiveTransactionDataMap(TransactionDataMap& cachedTransactionDataMap);
 
-    void CheckBufferAvailableIfNeed();
-    void CheckUpdateSurfaceNodeIfNeed();
-
-    void CheckDelayedSwitchTask();
-    void UpdateRenderMode(bool useUniVisitor);
-
     void CheckColdStartMap();
     void ClearDisplayBuffer();
     void PerfAfterAnim();
@@ -198,7 +188,6 @@ private:
     std::unordered_map<NodeId, std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>> cachedCommands_;
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> effectiveCommands_;
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
-    std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> followVisitorCommands_;
     // Collect pids of surfaceview's update(ConsumeAndUpdateAllNodes), effective commands(processCommand) and Animate
     std::unordered_set<pid_t> activeProcessPids_;
 
@@ -216,13 +205,7 @@ private:
     std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
     std::vector<sptr<RSIOcclusionChangeCallback>> occlusionListeners_;
 
-    bool waitingBufferAvailable_ = false; // uni->non-uni mode, wait for RT buffer, only used in main thread
-    bool waitingUpdateSurfaceNode_ = false; // non-uni->uni mode, wait for update surfaceView, only used in main thread
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
-    sptr<RSIRenderModeChangeCallback> renderModeChangeCallback_;
-    std::atomic_bool useUniVisitor_ = isUniRender_;
-    std::atomic_bool delayedTargetUniVisitor_ = isUniRender_;
-    std::atomic_bool switchDelayed_ = false;
     RSTaskMessage::RSTask unmarshalBarrierTask_;
     std::condition_variable unmarshalTaskCond_;
     std::mutex unmarshalMutex_;

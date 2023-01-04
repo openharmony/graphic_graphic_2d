@@ -82,8 +82,6 @@ public:
     static bool GetDirectClientCompEnableStatus();
     static bool GetHighContrastStatus();
     static uint32_t GetCorrectionMode();
-    static bool IsUniRenderMode();
-    static void SetRenderMode(bool isUni);
     static DumpSurfaceType GetDumpSurfaceType();
     static uint64_t GetDumpSurfaceId();
     static bool GetTargetDirtyRegionDfxEnabled(std::vector<std::string>& dfxTargetSurfaceNames_);
@@ -99,7 +97,6 @@ private:
     RSSystemProperties() = default;
 
     static inline bool isUniRenderEnabled_ = false;
-    static inline std::atomic_bool isUniRenderMode_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
 };
 

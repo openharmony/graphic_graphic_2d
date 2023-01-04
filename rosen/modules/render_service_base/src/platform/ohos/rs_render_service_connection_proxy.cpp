@@ -40,7 +40,7 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CommitTransaction transactionData nullptr!");
         return;
     }
-    bool isUniMode = RSSystemProperties::IsUniRenderMode();
+    bool isUniMode = RSSystemProperties::GetUniRenderEnabled();
     transactionData->SetUniRender(isUniMode);
     transactionData->SetSendingPid(pid_);
 
@@ -182,19 +182,6 @@ bool RSRenderServiceConnectionProxy::GetUniRenderEnabled()
     int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_UNI_RENDER_ENABLED, data, reply, option);
     if (err != NO_ERROR) {
         return false;
-    }
-    return reply.ReadBool();
-}
-
-bool RSRenderServiceConnectionProxy::QueryIfRTNeedRender()
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::QUERY_RT_NEED_RENDER, data, reply, option);
-    if (err != NO_ERROR) {
-        return true;
     }
     return reply.ReadBool();
 }

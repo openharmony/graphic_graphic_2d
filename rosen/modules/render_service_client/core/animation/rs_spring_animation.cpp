@@ -92,11 +92,6 @@ void RSSpringAnimation::StartRenderAnimation(const std::shared_ptr<RSRenderSprin
             std::make_unique<RSAnimationCreateSpring>(target->GetId(), animation);
         transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
     }
-    if (target->NeedSendExtraCommand()) {
-        std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSAnimationCreateSpring>(target->GetId(), animation);
-        transactionProxy->AddCommand(
-            extraCommand, !target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
-    }
 }
 
 void RSSpringAnimation::StartUIAnimation(const std::shared_ptr<RSRenderSpringAnimation>& animation)

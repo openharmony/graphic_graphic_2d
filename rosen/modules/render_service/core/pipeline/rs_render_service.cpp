@@ -52,8 +52,7 @@ bool RSRenderService::Init()
     // The offset needs to be set
     int64_t offset = 0;
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL ||
-        renderType == UniRenderEnabledType::UNI_RENDER_DYNAMIC_SWITCH) {
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         offset = UNI_RENDER_VSYNC_OFFSET;
     }
     rsVSyncController_ = new VSyncController(generator, offset);

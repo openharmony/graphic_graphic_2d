@@ -29,9 +29,6 @@ public:
     virtual ~RSApplicationAgentProxy() noexcept = default;
 
     void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override;
-    void OnRenderModeChanged(bool renderThreadNeedRender) override;
-    void NotifyClearBufferCache() override;
-
 private:
     static inline BrokerDelegator<RSApplicationAgentProxy> delegator_;
 };

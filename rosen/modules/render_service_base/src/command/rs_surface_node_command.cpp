@@ -100,17 +100,6 @@ void SurfaceNodeCommandHelper::SetAbilityBGAlpha(RSContext& context, NodeId id, 
     }
 }
 
-void SurfaceNodeCommandHelper::UpdateParentWithoutTransition(RSContext& context, NodeId nodeId, NodeId parentId)
-{
-    auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode(nodeId);
-    auto parent = nodeMap.GetRenderNode(parentId);
-    if (node && parent) {
-        node->RemoveFromTree(true);
-        parent->AddChild(node);
-    }
-}
-
 void SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable(RSContext& context, NodeId id, bool available)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {

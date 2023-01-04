@@ -188,33 +188,19 @@ HWTEST_F(RSMainThreadTest, WaitUtilUniRenderFinished, TestSize.Level1)
 
 /**
  * @tc.name: ProcessCommandForDividedRender001
- * @tc.desc: Test RSMainThreadTest.ProcessCommandForDividedRender, waitingBufferAvailable_ is false
+ * @tc.desc: Test RSMainThreadTest.ProcessCommandForDividedRender
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    mainThread->waitingBufferAvailable_ = false;
-    mainThread->ProcessCommandForDividedRender();
-}
-
-/**
- * @tc.name: ProcessCommandForDividedRender002
- * @tc.desc: Test RSMainThreadTest.ProcessCommandForDividedRender, followVisitorCommands_ is not empty
- * @tc.type: FUNC
- * @tc.require: issueI60QXK
- */
-HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    mainThread->followVisitorCommands_[0].emplace_back(nullptr);
     mainThread->ProcessCommandForDividedRender();
 }
 
 /**
  * @tc.name: CalcOcclusion
- * @tc.desc: Test RSMainThreadTest.CalcOcclusion, doWindowAnimate_ is false, useUniVisitor_ is true
+ * @tc.desc: Test RSMainThreadTest.CalcOcclusion, doWindowAnimate_ is false, isUniRender_ is true
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
@@ -222,7 +208,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusion, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     mainThread->doWindowAnimate_ = false;
-    mainThread->useUniVisitor_ = true;
+    mainThread->isUniRender_ = true;
     mainThread->CalcOcclusion();
 }
 
@@ -299,100 +285,8 @@ HWTEST_F(RSMainThreadTest, Animate002, TestSize.Level1)
 }
 
 /**
- * @tc.name: CheckDelayedSwitchTask001
- * @tc.desc: Test RSMainThreadTest.CheckDelayedSwitchTask
- * @tc.type: FUNC
- * @tc.require: issueI60QXK
- */
-HWTEST_F(RSMainThreadTest, CheckDelayedSwitchTask001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    mainThread->switchDelayed_ = true;
-    mainThread->doWindowAnimate_ = false;
-    mainThread->useUniVisitor_ = true;
-    mainThread->delayedTargetUniVisitor_ = false;
-    mainThread->waitingBufferAvailable_ = false;
-    mainThread->waitingUpdateSurfaceNode_ = false;
-    mainThread->CheckDelayedSwitchTask();
-}
-
-/**
- * @tc.name: CheckDelayedSwitchTask002
- * @tc.desc: Test RSMainThreadTest.CheckDelayedSwitchTask
- * @tc.type: FUNC
- * @tc.require: issueI60QXK
- */
-HWTEST_F(RSMainThreadTest, CheckDelayedSwitchTask002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    mainThread->switchDelayed_ = false;
-    mainThread->doWindowAnimate_ = true;
-    mainThread->useUniVisitor_ = true;
-    mainThread->delayedTargetUniVisitor_ = true;
-    mainThread->waitingBufferAvailable_ = true;
-    mainThread->waitingUpdateSurfaceNode_ = true;
-    mainThread->CheckDelayedSwitchTask();
-}
-
-/**
- * @tc.name: UpdateRenderMode001
- * @tc.desc: Test RSMainThreadTest.UpdateRenderMode, waitingBufferAvailable_, waitingUpdateSurfaceNode_ is true
- * @tc.type: FUNC
- * @tc.require: issueI60QXK
- */
-HWTEST_F(RSMainThreadTest, UpdateRenderMode001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    mainThread->waitingBufferAvailable_ = true;
-    mainThread->waitingUpdateSurfaceNode_ = true;
-    mainThread->UpdateRenderMode(false);
-}
-
-/**
- * @tc.name: UpdateRenderMode002
- * @tc.desc: Test RSMainThreadTest.UpdateRenderMode, waitingBufferAvailable_ is true,
- * waitingUpdateSurfaceNode_ is false
- * @tc.type: FUNC
- * @tc.require: issueI60QXK
- */
-HWTEST_F(RSMainThreadTest, UpdateRenderMode002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    mainThread->waitingBufferAvailable_ = true;
-    mainThread->waitingUpdateSurfaceNode_ = false;
-    mainThread->UpdateRenderMode(false);
-}
-
-/**
- * @tc.name: NotifyRenderModeChanged001
- * @tc.desc: Test RSMainThreadTest.NotifyRenderModeChanged
- * @tc.type: FUNC
- * @tc.require: issueI60QXK
- */
-HWTEST_F(RSMainThreadTest, NotifyRenderModeChanged001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    mainThread->useUniVisitor_ = true;
-    mainThread->NotifyRenderModeChanged(true);
-}
-
-/**
- * @tc.name: NotifyRenderModeChanged002
- * @tc.desc: Test RSMainThreadTest.NotifyRenderModeChanged
- * @tc.type: FUNC
- * @tc.require: issueI60QXK
- */
-HWTEST_F(RSMainThreadTest, NotifyRenderModeChanged002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    mainThread->useUniVisitor_ = true;
-    mainThread->doWindowAnimate_ = false;
-    mainThread->NotifyRenderModeChanged(false);
-}
-
-/**
  * @tc.name: UnRegisterOcclusionChangeCallback
- * @tc.desc: Test RSMainThreadTest.Animate, waitingBufferAvailable_, waitingUpdateSurfaceNode_ is true
+ * @tc.desc: Test RSMainThreadTest.Animate
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */

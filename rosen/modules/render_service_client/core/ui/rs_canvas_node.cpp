@@ -41,10 +41,6 @@ RSCanvasNode::SharedPtr RSCanvasNode::Create(bool isRenderServiceNode)
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(node->GetId());
     transactionProxy->AddCommand(command, node->IsRenderServiceNode());
-    if (node->NeedSendExtraCommand()) {
-        std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSCanvasNodeCreate>(node->GetId());
-        transactionProxy->AddCommand(extraCommand, !node->IsRenderServiceNode());
-    }
     return node;
 }
 
@@ -67,10 +63,6 @@ SkCanvas* RSCanvasNode::BeginRecording(int width, int height)
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeClearRecording>(GetId());
     transactionProxy->AddCommand(command, IsRenderServiceNode());
-    if (NeedSendExtraCommand()) {
-        std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSCanvasNodeClearRecording>(GetId());
-        transactionProxy->AddCommand(extraCommand, !IsRenderServiceNode());
-    }
     return recordingCanvas_;
 }
 
@@ -98,11 +90,6 @@ void RSCanvasNode::FinishRecording()
         std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording,
             drawContentLast_ ? RSModifierType::FOREGROUND_STYLE : RSModifierType::CONTENT_STYLE);
     transactionProxy->AddCommand(command, IsRenderServiceNode());
-    if (NeedSendExtraCommand()) {
-        std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording,
-            drawContentLast_ ? RSModifierType::FOREGROUND_STYLE : RSModifierType::CONTENT_STYLE);
-        transactionProxy->AddCommand(extraCommand, !IsRenderServiceNode());
-    }
 #endif
 }
 
@@ -119,11 +106,6 @@ void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording, type);
     transactionProxy->AddCommand(command, IsRenderServiceNode());
-    if (NeedSendExtraCommand()) {
-        std::unique_ptr<RSCommand> extraCommand =
-            std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording, type);
-        transactionProxy->AddCommand(extraCommand, !IsRenderServiceNode());
-    }
 }
 
 float RSCanvasNode::GetPaintWidth() const

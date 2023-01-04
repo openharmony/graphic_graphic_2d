@@ -46,8 +46,7 @@ HWTEST_F(RSUniRenderJudgementTest, TestUniRenderJudgement001, TestSize.Level1)
 {
     UniRenderEnabledType uniType = RSUniRenderJudgement::GetUniRenderEnabledType();
     ASSERT_TRUE(uniType == UniRenderEnabledType::UNI_RENDER_DISABLED ||
-        uniType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL ||
-        uniType == UniRenderEnabledType::UNI_RENDER_DYNAMIC_SWITCH);
+        uniType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
 }
 
 

@@ -49,44 +49,6 @@ void RSApplicationAgentProxy::OnTransaction(std::shared_ptr<RSTransactionData> t
         // [PLANNING]: Error log
     }
 }
-
-void RSApplicationAgentProxy::OnRenderModeChanged(bool renderThreadNeedRender)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    if (!data.WriteInterfaceToken(IApplicationAgent::GetDescriptor())) {
-        return;
-    }
-
-    if (!data.WriteBool(renderThreadNeedRender)) {
-        return;
-    }
-
-    option.SetFlags(MessageOption::TF_ASYNC);
-    int32_t err = Remote()->SendRequest(IApplicationAgent::NOTIFY_RENDER_MODE_CHANGED, data, reply, option);
-    if (err != NO_ERROR) {
-        // [PLANNING]: Error log, unexpected error code 32 is returned when the interface is called correctly
-    }
-}
-
-void RSApplicationAgentProxy::NotifyClearBufferCache()
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    if (!data.WriteInterfaceToken(IApplicationAgent::GetDescriptor())) {
-        return;
-    }
-
-    option.SetFlags(MessageOption::TF_ASYNC);
-    int32_t err = Remote()->SendRequest(IApplicationAgent::NOTIFY_CLEAR_BUFFER_CACHE, data, reply, option);
-    if (err != NO_ERROR) {
-        // [PLANNING]: Error log, unexpected error code 32 is returned when the interface is called correctly
-    }
-}
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_OHOS

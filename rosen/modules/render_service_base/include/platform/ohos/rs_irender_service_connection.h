@@ -52,7 +52,6 @@ public:
         SET_RENDER_MODE_CHANGE_CALLBACK,
         UPDATE_RENDER_MODE,
         GET_UNI_RENDER_ENABLED,
-        QUERY_RT_NEED_RENDER,
         CREATE_NODE,
         CREATE_NODE_AND_SURFACE,
         SET_FOCUS_APP_INFO,
@@ -98,7 +97,6 @@ public:
     virtual int32_t SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback) = 0;
     virtual void UpdateRenderMode(bool isUniRender) = 0;
     virtual bool GetUniRenderEnabled() = 0;
-    virtual bool QueryIfRTNeedRender() = 0;
     virtual bool CreateNode(const RSSurfaceRenderNodeConfig& config) = 0;
     virtual sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) = 0;
 

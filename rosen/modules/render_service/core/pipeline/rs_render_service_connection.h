@@ -57,7 +57,6 @@ private:
     int32_t SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback) override;
     void UpdateRenderMode(bool isUniRender) override;
     bool GetUniRenderEnabled() override;
-    bool QueryIfRTNeedRender() override;
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config) override;
     sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) override;

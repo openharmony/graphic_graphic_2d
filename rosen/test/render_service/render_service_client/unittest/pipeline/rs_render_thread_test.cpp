@@ -83,48 +83,6 @@ HWTEST_F(RSRenderThreadTest, RecvTransactionData001, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateRenderMode001
- * @tc.desc: test results of UpdateRenderMode
- * @tc.type:FUNC
- * @tc.require: issueI5HRIF
- */
-HWTEST_F(RSRenderThreadTest, UpdateRenderMode001, TestSize.Level1)
-{
-    /**
-     * @tc.steps: step1. PrepareBaseRenderNode
-     */
-    RSRenderThread::Instance().UpdateRenderMode(true);
-}
-
-/**
- * @tc.name: UpdateRenderMode002
- * @tc.desc: test results of UpdateRenderMode
- * @tc.type:FUNC
- * @tc.require: issueI5HRIF
- */
-HWTEST_F(RSRenderThreadTest, UpdateRenderMode002, TestSize.Level1)
-{
-    /**
-     * @tc.steps: step1. PrepareBaseRenderNode
-     */
-    RSRenderThread::Instance().UpdateRenderMode(false);
-}
-
-/**
- * @tc.name: NotifyClearBufferCache001
- * @tc.desc: test results of NotifyClearBufferCache
- * @tc.type:FUNC
- * @tc.require: issueI5HRIF
- */
-HWTEST_F(RSRenderThreadTest, NotifyClearBufferCache001, TestSize.Level1)
-{
-    /**
-     * @tc.steps: step1. PrepareBaseRenderNode
-     */
-    RSRenderThread::Instance().NotifyClearBufferCache();
-}
-
-/**
  * @tc.name: PostPreTask001
  * @tc.desc: test results of PostPreTask
  * @tc.type:FUNC

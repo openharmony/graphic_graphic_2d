@@ -187,25 +187,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand010, TestSize.Level1)
 }
 
 /**
- * @tc.name: TestRSSurfaceNodeCommand011
- * @tc.desc: UpdateParentWithoutTransition test.
- * @tc.type: FUNC
- */
-HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand011, TestSize.Level1)
-{
-    RSContext context;
-    NodeId id = static_cast<NodeId>(-1);
-    NodeId parentId = static_cast<NodeId>(-2);
-    SurfaceNodeCommandHelper::UpdateParentWithoutTransition(context, id, parentId);
-    NodeId id2 = 10;
-    auto context2 = std::make_shared<RSContext>();
-    SurfaceNodeCommandHelper::Create(*context2, id2);
-    NodeId parentId2 = 11;
-    SurfaceNodeCommandHelper::Create(*context2, parentId2);
-    SurfaceNodeCommandHelper::UpdateParentWithoutTransition(*context2, id2, parentId2);
-}
-
-/**
  * @tc.name: TestRSSurfaceNodeCommand012
  * @tc.desc: SetIsNotifyUIBufferAvailable test.
  * @tc.type: FUNC

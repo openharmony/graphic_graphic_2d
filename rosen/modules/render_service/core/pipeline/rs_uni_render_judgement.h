@@ -24,7 +24,6 @@ class RSBaseRenderNode;
 enum class UniRenderEnabledType {
     UNI_RENDER_DISABLED = 0,
     UNI_RENDER_ENABLED_FOR_ALL,
-    UNI_RENDER_DYNAMIC_SWITCH,
 };
 // Judge the unified rendering strategy of RenderService.
 class RSUniRenderJudgement final {
@@ -43,7 +42,7 @@ private:
 
     static void InitUniRenderWithConfigFile();
 #ifdef RS_ENABLE_UNI_RENDER
-    static inline UniRenderEnabledType uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DYNAMIC_SWITCH;
+    static inline UniRenderEnabledType uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
 #else
     static inline UniRenderEnabledType uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
 #endif
