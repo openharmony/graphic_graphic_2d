@@ -30,7 +30,7 @@ ohos_static_library("buffer_handle") {
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
   ]
 
   public_deps = [ "//commonlibrary/c_utils/base:utils" ]

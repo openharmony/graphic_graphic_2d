@@ -96,7 +96,7 @@ ohos_shared_library("surface") {
   external_deps = [
     "hitrace_native:hitrace_meter",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
   ]
 
   symlink_target_name = [ "libnative_window.so" ]
