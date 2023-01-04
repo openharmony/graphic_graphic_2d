@@ -179,7 +179,7 @@ ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
 {
     return static_cast<ParallelRenderingType>(
-        std::atoi((system::GetParameter("rosen.parallelrender.enabled", "2")).c_str()));
+        std::atoi((system::GetParameter("rosen.parallelrender.enabled", "0")).c_str()));
 }
 
 } // namespace Rosen

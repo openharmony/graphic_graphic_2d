@@ -1503,7 +1503,8 @@ void RSUniRenderVisitor::FinishOffscreenRender()
 bool RSUniRenderVisitor::AdaptiveSubRenderThreadMode(uint32_t renderNodeNum)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-    bool isParallel = renderNodeNum >= PARALLEL_RENDER_MINIMUN_RENDER_NODE_NUMBER;
+    bool isParallel = (renderNodeNum >= PARALLEL_RENDER_MINIMUN_RENDER_NODE_NUMBER) &&
+        (RSSystemProperties::GetParallelRenderingEnabled() != ParallelRenderingType::DISABLE);
     if (!isParallel) {
         return isParallel;
     }
