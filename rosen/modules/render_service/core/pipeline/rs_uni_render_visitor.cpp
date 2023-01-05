@@ -386,8 +386,8 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     node.UpdateParentChildrenRect(node.GetParent().lock());
 
     // [planning] Remove this after skia is upgraded, the clipRegion is supported
-    if (node.GetRenderProperties().NeedFilter()) {
-        if (!(curSurfaceNode_ && curSurfaceNode_->IsAppFreeze())) {
+    if (node.GetRenderProperties().NeedFilter() && curSurfaceNode_) {
+        if (!curSurfaceNode_->IsAppFreeze()) {
             needFilter_ = true;
         }
         filterRects_[curSurfaceNode_->GetId()].push_back(node.GetOldDirtyInSurface());
@@ -1138,7 +1138,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
 #ifdef RS_ENABLE_EGLQUERYSURFACE
-    if (isOpDropped_ &&
+    if (isOpDropped_ && curSurfaceNode_ &&
         !curSurfaceNode_->SubNodeNeedDraw(node.GetOldDirtyInSurface(), partialRenderType_) &&
         !node.HasChildrenOutOfRect()) {
         return;
