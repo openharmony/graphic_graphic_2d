@@ -382,9 +382,9 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         if (auto parentNode = node.GetParent().lock()) {
             auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
             dirtyFlag_ = node.Update(
-                *curSurfaceDirtyManager_, &(rsParent->GetRenderProperties()), dirtyFlag_, prepareClipRect_);
+                *curSurfaceDirtyManager_, &(rsParent->GetRenderProperties()), dirtyFlag_);
         } else {
-            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_, prepareClipRect_);
+            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_);
         }
         geoPtr->ConcatMatrix(node.GetContextMatrix());
         node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(0, 0, screenInfo_.width, screenInfo_.height)));
@@ -405,6 +405,8 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         if (node.GetBuffer() != nullptr) {
             auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
             if (surfaceHandler.IsCurrentFrameBufferConsumed()) {
+                // SurfaceNode here should be considered as CanvasNode because they all represent component.
+                // The calculation of dirtyRect here should use prepareClipRect_ as CanvasNode does.
                 RectI dirtyRect = node.GetDstRect().IntersectRect(prepareClipRect_);
                 curSurfaceDirtyManager_->MergeDirtyRect(dirtyRect);
             }
@@ -492,7 +494,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
 
     dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
-        dirtyFlag_, prepareClipRect_);
+        dirtyFlag_);
     curAlpha_ *= property.GetAlpha();
     if (rsParent == curSurfaceNode_) {
         const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
@@ -1335,12 +1337,21 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             InitCacheSurface(node, property.GetBoundsWidth(), property.GetBoundsHeight());
             if (node.GetCacheSurface()) {
                 auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
+                // When drawing CacheSurface, all child node should be drawn.
+                // So set isOpDropped_ = false here.
+                bool isOpDropped = isOpDropped_;
+                isOpDropped_ = false;
 
                 swap(cacheCanvas, canvas_);
                 ProcessBaseRenderNode(node);
                 swap(cacheCanvas, canvas_);
 
+                isOpDropped_ = isOpDropped;
+
                 RSUniRenderUtil::DrawCachedSurface(node, *canvas_, node.GetCacheSurface());
+                // execute: set rosen.dumpsurfacetype.enabled 2 && setenforce 0
+                // Png file could be found in /data
+                RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(node);
             } else {
                 RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode %s Create CacheSurface failed",
                     node.GetName().c_str());

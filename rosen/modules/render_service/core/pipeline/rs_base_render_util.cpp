@@ -1139,11 +1139,7 @@ bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& no
         return false;
     }
     sptr<SurfaceBuffer> buffer = node.GetBuffer();
-    if (buffer == nullptr) {
-        return false;
-    }
-    BufferHandle *bufferHandle =  buffer->GetBufferHandle();
-    if (bufferHandle == nullptr) {
+    if (!buffer && !node.GetCacheSurface()) {
         return false;
     }
 
@@ -1155,13 +1151,31 @@ bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& no
         node.GetName() + "_"  +
         std::to_string(node.GetId()) + "_" +
         std::to_string(nowVal) + ".png";
-
     WriteToPngParam param;
-    param.width = static_cast<uint32_t>(bufferHandle->width);
-    param.height = static_cast<uint32_t>(bufferHandle->height);
-    param.data = static_cast<uint8_t *>(buffer->GetVirAddr());
-    param.stride = static_cast<uint32_t>(bufferHandle->stride);
-    param.bitDepth = Detail::BITMAP_DEPTH;
+    if (buffer) {
+        BufferHandle *bufferHandle =  buffer->GetBufferHandle();
+        if (bufferHandle == nullptr) {
+            return false;
+        }
+        param.width = static_cast<uint32_t>(bufferHandle->width);
+        param.height = static_cast<uint32_t>(bufferHandle->height);
+        param.data = static_cast<uint8_t *>(buffer->GetVirAddr());
+        param.stride = static_cast<uint32_t>(bufferHandle->stride);
+        param.bitDepth = Detail::BITMAP_DEPTH;
+    } else {
+        sk_sp<SkSurface> surface = node.GetCacheSurface();
+        SkImageInfo info = SkImageInfo::Make(surface->width(), surface->height(),
+            kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+        SkBitmap bitmap;
+        bitmap.setInfo(info);
+        bitmap.allocPixels();
+        surface->readPixels(bitmap, 0, 0);
+        param.width = static_cast<uint32_t>(surface->width());
+        param.height = static_cast<uint32_t>(surface->height());
+        param.data = static_cast<uint8_t *>(bitmap.getPixels());
+        param.stride = static_cast<uint32_t>(bitmap.rowBytes());
+        param.bitDepth = Detail::BITMAP_DEPTH;
+    }
 
     return WriteToPng(filename, param);
 }
