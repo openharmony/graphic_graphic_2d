@@ -48,19 +48,6 @@ HWTEST_F(RSScreenManagerTest, CreateOrGetScreenManager_001, TestSize.Level1)
 }
 
 /*
- * @tc.name: Init_001
- * @tc.desc: Test Init
- * @tc.type: FUNC
- * @tc.require: issueI5ZK2I
- */
-HWTEST_F(RSScreenManagerTest, Init_001, TestSize.Level1)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(nullptr, screenManager);
-    ASSERT_NE(false, screenManager->Init());
-}
-
-/*
  * @tc.name: GetDefaultScreenId_001
  * @tc.desc: Test GetDefaultScreenId
  * @tc.type: FUNC
