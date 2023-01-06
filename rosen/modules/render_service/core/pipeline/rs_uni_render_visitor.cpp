@@ -374,45 +374,45 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     curAlpha_ *= (property.GetAlpha() * node.GetContextAlpha());
     node.SetGlobalAlpha(curAlpha_);
 
-    // prepare the surfaceRenderNode whose child is rootRenderNode 
-    if (node.IsAppWindow() || node.GetSurfaceNodeType() == RSSurfaceNodeType::STARTING_WINDOW_NODE) {
+    // if currentsurfacenode is a main window type, reset the curSurfaceDirtyManager
+    // reset leash window's dirtyManager pointer to avoid curSurfaceDirtyManager mis-pointing
+    if (node.IsMainWindowType() || node.GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
         curSurfaceDirtyManager_ = node.GetDirtyManager();
         curSurfaceDirtyManager_->Clear();
         curSurfaceDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
-        if (auto parentNode = node.GetParent().lock()) {
-            auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
-            dirtyFlag_ = node.Update(
-                *curSurfaceDirtyManager_, &(rsParent->GetRenderProperties()), dirtyFlag_);
-        } else {
-            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_);
-        }
-        geoPtr->ConcatMatrix(node.GetContextMatrix());
-        node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(0, 0, screenInfo_.width, screenInfo_.height)));
-        curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirtyInSurface());
+    }
+
+    // Update node properties, including position (dstrect), OldDirty()
+    if (auto parentNode = node.GetParent().lock()) {
+        auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
+        dirtyFlag_ = node.Update(
+            *curSurfaceDirtyManager_, &(rsParent->GetRenderProperties()), dirtyFlag_, prepareClipRect_);
+    } else {
+        dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_, prepareClipRect_);
+    }
+    geoPtr->ConcatMatrix(node.GetContextMatrix());
+    node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(0, 0, screenInfo_.width, screenInfo_.height)));
+
+    if (node.IsMainWindowType()) {
+        // record node position for display render node dirtyManager
+        curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetDstRect());
+
         if (node.IsAppWindow()) {
             curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
             boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
             frameGravity_ = property.GetFrameGravity();
         }
-    } else {
-        RSUniRenderUtil::UpdateRenderNodeDstRect(node, node.GetContextMatrix());
-        node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(0, 0, screenInfo_.width, screenInfo_.height)));
-        if (node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE) {
-            curSurfaceDirtyManager_ = node.GetDirtyManager();
-            curSurfaceDirtyManager_->Clear();
-            curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetDstRect());
-        }
-        if (node.GetBuffer() != nullptr) {
-            auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
-            if (surfaceHandler.IsCurrentFrameBufferConsumed()) {
-                // SurfaceNode here should be considered as CanvasNode because they all represent component.
-                // The calculation of dirtyRect here should use prepareClipRect_ as CanvasNode does.
-                RectI dirtyRect = node.GetDstRect().IntersectRect(prepareClipRect_);
-                curSurfaceDirtyManager_->MergeDirtyRect(dirtyRect);
-            }
-        }
-        isCustomizedDirtyRect = true;
     }
+
+    // if surfacenode is selfdrawing node, when currentframe buffer consumed [frame refreshed], merge into dirtyRegion
+    if (node.IsSelfDrawingNodeType()) {
+        auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
+        if (surfaceHandler.IsCurrentFrameBufferConsumed()) {
+            RectI dirtyRect = node.GetDstRect().IntersectRect(prepareClipRect_);
+            curSurfaceDirtyManager_->MergeDirtyRect(dirtyRect);
+        }
+    }
+
     // [planning] Remove this after skia is upgraded, the clipRegion is supported
     if (node.GetRenderProperties().NeedFilter() && !node.IsAppFreeze()) {
         needFilter_ = true;
@@ -646,14 +646,17 @@ void RSUniRenderVisitor::DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects)
 
 void RSUniRenderVisitor::DrawAllSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node, const Occlusion::Region& region)
 {
-    RectI dirtySurfaceRect = node.GetDirtyManager()->GetDirtyRegion();
     std::vector<Occlusion::Rect> visibleDirtyRects = region.GetRegionRects();
     std::vector<RectI> rects;
-    rects.emplace_back(dirtySurfaceRect);
     for (auto rect : visibleDirtyRects) {
         rects.emplace_back(RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_));
     }
     DrawDirtyRegionForDFX(rects);
+
+    // draw display dirtyregion with red color
+    RectI dirtySurfaceRect = node.GetDirtyManager()->GetDirtyRegion();
+    const float fillAlpha = 0.2;
+    DrawDirtyRectForDFX(dirtySurfaceRect, SK_ColorRED, SkPaint::kStroke_Style, fillAlpha);
 }
 
 void RSUniRenderVisitor::DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node)
@@ -1027,10 +1030,14 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
             surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() };
         Occlusion::Region surfaceDirtyRegion { tmpRect };
         Occlusion::Region transparentDirtyRegion = transparentRegion.And(surfaceDirtyRegion);
-        std::vector<Occlusion::Rect> rects = transparentDirtyRegion.GetRegionRects();
-        for (const auto& rect : rects) {
-            displayDirtyManager->MergeDirtyRect(RectI
-                { rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
+        if (!transparentDirtyRegion.IsEmpty()) {
+            RS_LOGD("CalcDirtyDisplayRegion merge TransparentDirtyRegion %s region %s",
+                surfaceNode->GetName().c_str(), transparentDirtyRegion.GetRegionInfo().c_str());
+            std::vector<Occlusion::Rect> rects = transparentDirtyRegion.GetRegionRects();
+            for (const auto& rect : rects) {
+                displayDirtyManager->MergeDirtyRect(RectI
+                    { rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
+            }
         }
     }
     std::vector<RectI> surfaceChangedRects = node->GetSurfaceChangedRects();

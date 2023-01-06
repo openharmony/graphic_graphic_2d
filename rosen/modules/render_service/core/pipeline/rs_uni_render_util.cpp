@@ -22,36 +22,6 @@
 
 namespace OHOS {
 namespace Rosen {
-void RSUniRenderUtil::UpdateRenderNodeDstRect(RSRenderNode& node, const SkMatrix& matrix)
-{
-    // [planning] use RSRenderNode::Update instead
-    auto parentNode = node.GetParent().lock();
-    if (!parentNode) {
-        RS_LOGE("RSUniRenderUtil::UpdateDstRect: fail to get parent dstRect.");
-        return;
-    }
-    auto rsParent = parentNode->ReinterpretCastTo<RSRenderNode>();
-    auto parentProp = rsParent ? &(rsParent->GetRenderProperties()) : nullptr;
-    auto& property = node.GetMutableRenderProperties();
-    auto surfaceNode = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-    auto isSelfDrawingNode = surfaceNode &&
-        (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE ||
-        surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
-    Vector2f offset(0.f, 0.f);
-    if (isSelfDrawingNode) {
-        offset = { parentProp->GetFrameOffsetX(), parentProp->GetFrameOffsetY() };
-    }
-    property.UpdateGeometry(parentProp, true, offset);
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
-    if (geoPtr && node.IsInstanceOf<RSSurfaceRenderNode>()) {
-        if (!isSelfDrawingNode) {
-            geoPtr->ConcatMatrix(matrix);
-        }
-        RS_LOGD("RSUniRenderUtil::UpdateDstRect: nodeName: %s, dstRect[%s].",
-            surfaceNode->GetName().c_str(), surfaceNode->GetDstRect().ToString().c_str());
-    }
-}
-
 void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge,
     bool useAlignedDirtyRegion)
 {
@@ -67,10 +37,6 @@ void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& no
         }
         surfaceDirtyManager->IntersectDirtyRect(surfaceNode->GetOldDirtyInSurface());
         surfaceDirtyManager->UpdateDirty(useAlignedDirtyRegion);
-        if (surfaceNode->GetDstRect().IsInsideOf(surfaceDirtyManager->GetDirtyRegion())
-            && surfaceNode->HasContainerWindow()) {
-            node->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetDstRect());
-        }
     }
     // update display dirtymanager
     node->UpdateDisplayDirtyManager(bufferAge, useAlignedDirtyRegion);

@@ -33,20 +33,6 @@ void RSUniRenderUtilTest::SetUp() {}
 void RSUniRenderUtilTest::TearDown() {}
 
 /*
- * @tc.name: UpdateRenderNodeDstRect
- * @tc.desc: default value
- * @tc.type: FUNC
- * @tc.require:
-*/
-HWTEST_F(RSUniRenderUtilTest, UpdateRenderNodeDstRect, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    auto node = std::make_shared<RSRenderNode>(id);
-    SkMatrix matrix;
-    RSUniRenderUtil::UpdateRenderNodeDstRect(*node, matrix);
-}
-
-/*
  * @tc.name: MergeDirtyHistory
  * @tc.desc: default value
  * @tc.type: FUNC
