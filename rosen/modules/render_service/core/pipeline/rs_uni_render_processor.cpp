@@ -51,20 +51,31 @@ void RSUniRenderProcessor::PostProcess()
 
 void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
-    (void)(node);
     // planning: RSUniRenderProcessor will support ProcessSurface when HWC composition is ready.
+    if (!node.IsNotifyRTBufferAvailable()) {
+        // Only ipc for one time.
+        RS_LOGD("RsDebug RSUniRenderProcessor::ProcessSurface id = %" PRIu64 " Notify RT buffer available",
+            node.GetId());
+        node.NotifyRTBufferAvailable();
+    }
+
+    auto layer = uniComposerAdapter_->CreateLayer(node);
+    if (layer == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::ProcessSurface: failed to createLayer for node(id: %" PRIu64 ")", node.GetId());
+        return;
+    }
+    layers_.emplace_back(layer);
+    layerNum++;
 }
 
 void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
 {
     auto layer = uniComposerAdapter_->CreateLayer(node);
-
     if (layer == nullptr) {
         RS_LOGE("RSUniRenderProcessor::ProcessDisplaySurface: failed to createLayer for node(id: %" PRIu64 ")",
             node.GetId());
         return;
     }
-
     layers_.emplace_back(layer);
     layerNum += node.GetCurAllSurfaces().size();
 }

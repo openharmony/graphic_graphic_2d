@@ -17,6 +17,7 @@
 
 #include <sys/time.h>
 #include <unordered_set>
+#include <parameters.h>
 
 #include "common/rs_matrix3.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -26,6 +27,7 @@
 #include "png.h"
 #include "rs_trace.h"
 #include "transaction/rs_transaction_data.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -777,6 +779,60 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
     return true;
 }
 } // namespace Detail
+
+bool RSBaseRenderUtil::enableClient = false;
+
+void RSBaseRenderUtil::SetNeedClient(bool flag)
+{
+    enableClient = flag;
+}
+
+bool RSBaseRenderUtil::IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info)
+{
+    if (IsForceClient()) {
+        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient: client composition is force enabled.");
+        return true;
+    }
+
+    if (enableClient) {
+        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client");
+        return true;
+    }
+
+    const auto& property = node.GetRenderProperties();
+    auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
+    // If node's gravity is not RESIZE and backgroundColor is not transparent,
+    // we check the src and dst size to decide whether to use client composition or not.
+    if (property.GetFrameGravity() != Gravity::RESIZE && SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT &&
+        (info.srcRect.w != info.dstRect.w || info.srcRect.h != info.dstRect.h)) {
+        return true;
+    }
+
+    if (property.GetBackgroundFilter() || property.GetFilter()) {
+        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need filter");
+        return true;
+    }
+    
+    if (!property.GetCornerRadius().IsZero()) {
+        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need round corner");
+        return true;
+    }
+    if (property.IsShadowValid()) {
+        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need shadow");
+        return true;
+    }
+    if (property.GetRotation() != 0 || property.GetRotationX() != 0 || property.GetRotationY() != 0 ||
+        property.GetQuaternion() != Quaternion()) {
+        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need rotation");
+        return true;
+    }
+    return false;
+}
+
+bool RSBaseRenderUtil::IsForceClient()
+{
+    return (std::atoi((system::GetParameter("rosen.client_composition.enabled", "0")).c_str()) != 0);
+}
 
 BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(
     const ScreenInfo& screenInfo, bool isPhysical)

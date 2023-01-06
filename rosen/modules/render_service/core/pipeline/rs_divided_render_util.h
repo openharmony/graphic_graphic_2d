@@ -17,15 +17,11 @@
 #define RENDER_SERVICE_CORE_PIPELINE_RS_RENDER_SERVICE_UTIL_H
 
 #include "rs_base_render_util.h"
-#include "rs_composer_adapter.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSDividedRenderUtil {
 public:
-    static void InitEnableClient();
-    static bool IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info);
-    static void SetNeedClient(bool flag);
     static BufferDrawParam CreateBufferDrawParam(
         const RSSurfaceRenderNode& node,
         bool inLocalCoordinate = false,
@@ -33,15 +29,12 @@ public:
         bool forceCPU = false,
         bool setColorFilter = true);
 private:
-    static bool IsForceClient();
     static void CalculateSurfaceNodeClipRects(
         const RSSurfaceRenderNode& node,
         const RectF& absBounds,
         const RectF& localBounds,
         bool inLocalCoordinate,
         BufferDrawParam& params);
-
-    static bool enableClient;
 };
 } // Rosen
 } // OHOS

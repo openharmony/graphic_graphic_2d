@@ -37,9 +37,12 @@ public:
     bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient);
 
     LayerInfoPtr CreateLayer(RSDisplayRenderNode& node);
+    LayerInfoPtr CreateLayer(RSSurfaceRenderNode& node);
     void CommitLayers(const std::vector<LayerInfoPtr>& layers);
 
 private:
+    bool IsOutOfScreenRegion(const ComposeInfo& info) const;
+    ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node) const;
     ComposeInfo BuildComposeInfo(RSDisplayRenderNode& node) const;
     void SetComposeInfoToLayer(
         const LayerInfoPtr& layer,
@@ -47,6 +50,16 @@ private:
         const sptr<Surface>& surface,
         RSBaseRenderNode* node) const;
     void LayerRotate(const LayerInfoPtr& layer, RSBaseRenderNode& node) const;
+    void DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const;
+    LayerInfoPtr CreateBufferLayer(RSSurfaceRenderNode& node) const;
+
+    void LayerCrop(const LayerInfoPtr& layer) const;
+    static void LayerScaleDown(const LayerInfoPtr& layer);
+    static void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface);
+
+    static void GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node);
+    bool GetComposerInfoNeedClient(const ComposeInfo &info, RSSurfaceRenderNode& node) const;
+    bool CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node) const;
 
     std::shared_ptr<HdiOutput> output_;
     ScreenInfo screenInfo_;

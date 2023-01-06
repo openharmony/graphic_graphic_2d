@@ -440,6 +440,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
 
 void RSMainThread::ReleaseAllNodesBuffer()
 {
+    // planning: HWC composition should notice that some surfaceNodes buffer releasing 
+    // executes in rs_hardware_thread. 
     RS_TRACE_NAME("RSMainThread::ReleaseAllNodesBuffer");
     const auto& nodeMap = GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes([](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
