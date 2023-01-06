@@ -111,72 +111,9 @@ RSUniRenderVisitor::~RSUniRenderVisitor() {}
 
 void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 {
-    node.ClearPaintOutOfParentRect();
-    node.UpdateChildrenOutOfRectFlag(false);
     node.ResetSortedChildren();
     for (auto& child : node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
-    }
-#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-    switch (node.GetType()) {
-        case RSRenderNodeType::CANVAS_NODE:
-            SetPaintOutOfParentFlag(node);
-            break;
-        case RSRenderNodeType::SURFACE_NODE:
-            if (isParallel_) {
-                std::unique_lock<std::mutex> lock(*surfaceNodePrepareMutex_);
-                SetPaintOutOfParentFlag(node);
-            } else {
-                SetPaintOutOfParentFlag(node);
-            }
-            break;
-        default:
-            break;
-    }
-#else
-    SetPaintOutOfParentFlag(node);
-#endif
-}
-
-void RSUniRenderVisitor::SetPaintOutOfParentFlag(RSBaseRenderNode& node)
-{
-    if (!isPartialRenderEnabled_) {
-        return;
-    }
-    if (node.GetType() != RSRenderNodeType::CANVAS_NODE && node.GetType() != RSRenderNodeType::SURFACE_NODE) {
-        RS_LOGD("Other types do not need to processed %d", node.GetType());
-        return;
-    }
-    auto nodeParent = node.GetParent().lock();
-    std::shared_ptr<RSRenderNode> rsParent = nullptr;
-    if (nodeParent == nullptr) {
-        return;
-    }
-    rsParent = nodeParent->ReinterpretCastTo<RSRenderNode>();
-    auto& property = node.shared_from_this()->ReinterpretCastTo<RSRenderNode>()->GetMutableRenderProperties();
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
-    RectI rect;
-    if (geoPtr != nullptr) {
-        rect = geoPtr->GetAbsRect();
-        rect = rect.JoinRect(node.ReinterpretCastTo<RSRenderNode>()->GetOldDirty());
-    }
-    RectI parentRect;
-    auto& parentProperty = rsParent->GetMutableRenderProperties();
-    auto parentGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(parentProperty.GetBoundsGeometry());
-    if (parentGeoPtr != nullptr) {
-        parentRect = parentGeoPtr->GetAbsRect();
-        parentRect = parentRect.JoinRect(rsParent->GetOldDirty());
-    }
-    if (node.HasChildrenOutOfRect()) {
-        if (!node.GetPaintOutOfParentRect().IsInsideOf(parentRect) || parentRect.IsEmpty()) {
-            nodeParent->UpdateChildrenOutOfRectFlag(true);
-            nodeParent->UpdatePaintOutOfParentRect(node.GetPaintOutOfParentRect());
-        }
-    } else {
-        if (!rect.IsInsideOf(parentRect) || parentRect.IsEmpty()) {
-            nodeParent->UpdateChildrenOutOfRectFlag(true);
-            nodeParent->UpdatePaintOutOfParentRect(rect);
-        }
     }
 }
 
@@ -337,7 +274,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.CleanDstRectChanged();
     node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
-    bool isCustomizedDirtyRect = false;
     RectI prepareClipRect = prepareClipRect_;
     bool isQuickSkipPreparationEnabled = isQuickSkipPreparationEnabled_;
 
@@ -404,19 +340,19 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     // reset childRect before prepare children
     node.ResetChildrenRect();
+    node.UpdateChildrenOutOfRectFlag(false);
     PrepareBaseRenderNode(node);
-    // [planning] apply dirty rect instead of customized rect
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
     auto parentNode = node.GetParent().lock();
     auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
     if (rsParent == curDisplayNode_) {
         std::unique_lock<std::mutex> lock(*surfaceNodePrepareMutex_);
-        node.UpdateParentChildrenRect(parentNode, isCustomizedDirtyRect, node.GetDstRect());
+        node.UpdateParentChildrenRect(parentNode);
     } else {
-        node.UpdateParentChildrenRect(parentNode, isCustomizedDirtyRect, node.GetDstRect());
+        node.UpdateParentChildrenRect(parentNode);
     }
 #else
-    node.UpdateParentChildrenRect(node.GetParent().lock(), isCustomizedDirtyRect, node.GetDstRect());
+    node.UpdateParentChildrenRect(node.GetParent().lock());
 #endif
     // restore flags
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
@@ -486,7 +422,17 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     if (geoPtr != nullptr) {
         parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
     }
+    // merge last childRect as dirty if any child has been removed
+    if (node.HasRemovedChild()) {
+        RectI dirtyRect = prepareClipRect_.IntersectRect(node.GetChildrenRect());
+        curSurfaceDirtyManager_->MergeDirtyRect(dirtyRect);
+        node.ResetHasRemovedChild();
+    }
+    // reset childRect before prepare children
+    node.ResetChildrenRect();
+    node.UpdateChildrenOutOfRectFlag(false);
     PrepareBaseRenderNode(node);
+    node.UpdateParentChildrenRect(node.GetParent().lock());
 
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
     curAlpha_ = alpha;
@@ -539,6 +485,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     }
     // reset childRect before prepare children
     node.ResetChildrenRect();
+    node.UpdateChildrenOutOfRectFlag(false);
     PrepareBaseRenderNode(node);
     // attention: accumulate direct parent's childrenRect
     node.UpdateParentChildrenRect(node.GetParent().lock());

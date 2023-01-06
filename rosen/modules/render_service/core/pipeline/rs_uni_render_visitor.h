@@ -93,7 +93,6 @@ private:
         const Occlusion::Region alignedDirtyRegion);
 
     void InitCacheSurface(RSSurfaceRenderNode& node, int width, int height);
-    void SetPaintOutOfParentFlag(RSBaseRenderNode& node);
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void AddOverDrawListener(std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSCanvasListener>& overdrawListener);

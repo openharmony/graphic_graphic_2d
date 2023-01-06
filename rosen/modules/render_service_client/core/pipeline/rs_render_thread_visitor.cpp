@@ -120,19 +120,10 @@ void RSRenderThreadVisitor::ResetAndPrepareChildrenNode(RSRenderNode& node,
     }
     // reset childRect before prepare children
     node.ResetChildrenRect();
-    // [planning] replace outOfParentRect with childrenRect
-    node.ClearPaintOutOfParentRect();
     node.UpdateChildrenOutOfRectFlag(false);
     PrepareBaseRenderNode(node);
     // accumulate direct parent's childrenRect
     node.UpdateParentChildrenRect(nodeParent);
-#ifdef RS_ENABLE_EGLQUERYSURFACE
-    std::shared_ptr<RSRenderNode> rsParent = nullptr;
-    if (nodeParent != nullptr) {
-        rsParent = nodeParent->ReinterpretCastTo<RSRenderNode>();
-    }
-    node.SetPaintOutOfParentFlag(rsParent);
-#endif
 }
 
 void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)

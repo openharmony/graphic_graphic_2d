@@ -141,25 +141,6 @@ public:
         hasChildrenOutOfRect_ = flag;
     }
 
-    void ClearPaintOutOfParentRect()
-    {
-        paintOutOfParentRect_.Clear();
-    }
-
-    const RectI& GetPaintOutOfParentRect() const
-    {
-        return paintOutOfParentRect_;
-    }
-
-    void UpdatePaintOutOfParentRect(const RectI& r)
-    {
-        if (paintOutOfParentRect_.IsEmpty()) {
-            paintOutOfParentRect_ = r;
-        } else {
-            paintOutOfParentRect_ = paintOutOfParentRect_.JoinRect(r);
-        }
-    }
-
     inline void ResetHasRemovedChild()
     {
         hasRemovedChild_ = false;
@@ -204,9 +185,6 @@ private:
     WeakPtr parent_;
     void SetParent(WeakPtr parent);
     bool isOnTheTree_ = false;
-    // accumulate all children's region rect for dirty merging when any child has been removed
-    bool hasRemovedChild_ = false;
-    RectI childrenRect_;
 
     std::list<WeakPtr> children_;
     std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
@@ -218,8 +196,10 @@ private:
     NodeDirty dirtyStatus_ = NodeDirty::DIRTY;
     friend class RSRenderPropertyBase;
     std::atomic<bool> isTunnelHandleChange_ = false;
+    // accumulate all children's region rect for dirty merging when any child has been removed
+    bool hasRemovedChild_ = false;
     bool hasChildrenOutOfRect_ = false;
-    RectI paintOutOfParentRect_;
+    RectI childrenRect_;
 };
 } // namespace Rosen
 } // namespace OHOS

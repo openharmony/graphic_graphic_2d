@@ -124,7 +124,6 @@ bool RSBaseRenderNodeFuzzTest(const uint8_t* data, size_t size)
     node->HasDisappearingTransition(recursive);
     node->SetTunnelHandleChange(change);
     node->UpdateChildrenOutOfRectFlag(flag);
-    node->UpdatePaintOutOfParentRect(r);
 
     delete node;
 

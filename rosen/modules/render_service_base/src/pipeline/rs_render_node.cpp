@@ -171,33 +171,17 @@ void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEn
     }
 }
 
-void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSBaseRenderNode> parentNode,
-    const bool isCustomized, const RectI subRect) const
+void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSBaseRenderNode> parentNode) const
 {
-    if (parentNode) {
-        RectI accumulatedRect = GetChildrenRect();
-        accumulatedRect = accumulatedRect.JoinRect((isCustomized ? subRect : renderProperties_.GetDirtyRect()));
-        parentNode->UpdateChildrenRect(accumulatedRect);
-    }
-}
-
-void RSRenderNode::SetPaintOutOfParentFlag(std::shared_ptr<RSRenderNode> rsParent)
-{
-    if (rsParent == nullptr) {
-        return;
-    }
-    auto dirtyRect = renderProperties_.GetDirtyRect();
-    auto parentRect = rsParent->GetRenderProperties().GetDirtyRect();
-    if (HasChildrenOutOfRect()) {
-        if (!GetPaintOutOfParentRect().IsInsideOf(parentRect) || parentRect.IsEmpty()) {
-            rsParent->UpdateChildrenOutOfRectFlag(true);
-            rsParent->UpdatePaintOutOfParentRect(GetPaintOutOfParentRect());
-        }
-    } else {
-        // update parent status and paintOutOfParentRect_ recursively from bottom children
-        if (!dirtyRect.IsInsideOf(parentRect) || parentRect.IsEmpty()) {
-            rsParent->UpdateChildrenOutOfRectFlag(true);
-            rsParent->UpdatePaintOutOfParentRect(dirtyRect);
+    auto renderParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
+    if (renderParent) {
+        // [planning] could set each child's outofparent rect and flag
+        // accumulate current node's all children region(including itself)
+        RectI accumulatedRect = GetChildrenRect().JoinRect(renderProperties_.GetDirtyRect());
+        renderParent->UpdateChildrenRect(accumulatedRect);
+        // check each child is inside of parent
+        if (!accumulatedRect.IsInsideOf(renderParent->GetRenderProperties().GetDirtyRect())) {
+            renderParent->UpdateChildrenOutOfRectFlag(true);
         }
     }
 }

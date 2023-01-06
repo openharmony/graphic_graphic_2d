@@ -103,12 +103,7 @@ public:
     }
 
     // update parent's children rect including childRect and itself
-    // if not customized, it merge's node's dirtyRect
-    void UpdateParentChildrenRect(std::shared_ptr<RSBaseRenderNode> parentNode,
-        const bool isCustomized = false, const RectI subRect = RectI()) const;
-
-    // update node's out parent status
-    void SetPaintOutOfParentFlag(std::shared_ptr<RSRenderNode> rsParent);
+    void UpdateParentChildrenRect(std::shared_ptr<RSBaseRenderNode> parentNode) const;
 
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
