@@ -27,6 +27,7 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_composer_adapter.h"
 #include "pixel_map.h"
 #include "sync_fence.h"
 
@@ -79,6 +80,8 @@ enum class ColorFilterMode {
 
 class RSBaseRenderUtil {
 public:
+    static bool IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info);
+    static void SetNeedClient(bool flag);
     static bool IsBufferValid(const sptr<SurfaceBuffer>& buffer);
     static BufferRequestConfig GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isPhysical = true);
 
@@ -117,7 +120,9 @@ private:
                                           const std::vector<GraphicHDRMetaData>& metaDatas = {});
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap);
     static bool WriteToPng(const std::string &filename, const WriteToPngParam &param);
-private:
+    static bool IsForceClient();
+
+    static bool enableClient;
 };
 } // namespace Rosen
 } // namespace OHOS

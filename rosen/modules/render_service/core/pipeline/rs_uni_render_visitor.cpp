@@ -910,10 +910,13 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     }
     processor_->PostProcess();
 
-    // We should release DisplayNode's surface buffer after PostProcess(),
-    // since the buffer's releaseFence was set in PostProcess().
-    auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
-    (void)RSUniRenderUtil::ReleaseBuffer(surfaceHandler);
+    // this is a workaround for uni dynamic_switch mode, displayNode buffer releasing
+    // works in rs_hardware_thread when rs render type is UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
+        (void)RSUniRenderUtil::ReleaseBuffer(surfaceHandler);
+    }
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
 }
 

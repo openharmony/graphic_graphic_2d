@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 RSUniRenderProcessor::RSUniRenderProcessor()
-    : composerAdapter_(std::make_unique<RSComposerAdapter>())
+    : uniComposerAdapter_(std::make_unique<RSUniRenderComposerAdapter>())
 {
 }
 
@@ -36,25 +36,22 @@ bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int3
     if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId)) {
         return false;
     }
-
     // In uni render mode, we can handle screen rotation in the rendering process,
     // so we do not need to handle rotation in composer adapter any more,
     // just pass the buffer to composer straightly.
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
-    return composerAdapter_->Init(screenInfo_, offsetX, offsetY, mirrorAdaptiveCoefficient_,
-        [this](const auto& surface, const auto& layers) {
-        Redraw(surface, layers);
-    });
+    return uniComposerAdapter_->Init(screenInfo_, offsetX, offsetY, mirrorAdaptiveCoefficient_);
 }
 
 void RSUniRenderProcessor::PostProcess()
 {
-    composerAdapter_->CommitLayers(layers_);
+    uniComposerAdapter_->CommitLayers(layers_);
     MultiLayersPerf(layerNum);
 }
 
 void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
+    // planning: RSUniRenderProcessor will support ProcessSurface when HWC composition is ready.
     if (!node.IsNotifyRTBufferAvailable()) {
         // Only ipc for one time.
         RS_LOGD("RsDebug RSUniRenderProcessor::ProcessSurface id = %" PRIu64 " Notify RT buffer available",
@@ -62,52 +59,25 @@ void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         node.NotifyRTBufferAvailable();
     }
 
-    auto layer = composerAdapter_->CreateLayer(node);
+    auto layer = uniComposerAdapter_->CreateLayer(node);
     if (layer == nullptr) {
         RS_LOGE("RSUniRenderProcessor::ProcessSurface: failed to createLayer for node(id: %" PRIu64 ")", node.GetId());
         return;
     }
-
     layers_.emplace_back(layer);
     layerNum++;
 }
 
 void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
 {
-    auto layer = composerAdapter_->CreateLayer(node);
+    auto layer = uniComposerAdapter_->CreateLayer(node);
     if (layer == nullptr) {
         RS_LOGE("RSUniRenderProcessor::ProcessDisplaySurface: failed to createLayer for node(id: %" PRIu64 ")",
             node.GetId());
         return;
     }
-
     layers_.emplace_back(layer);
     layerNum += node.GetCurAllSurfaces().size();
-}
-
-void RSUniRenderProcessor::Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers)
-{
-    if (surface == nullptr) {
-        RS_LOGE("RSUniRenderProcessor::Redraw: surface is null.");
-        return;
-    }
-
-    RS_LOGD("RsDebug RSUniRenderProcessor::Redraw flush frame buffer start");
-    bool forceCPU = RSBaseRenderEngine::NeedForceCPU(layers);
-    auto renderFrame = renderEngine_->RequestFrame(surface, renderFrameConfig_, forceCPU);
-    if (renderFrame == nullptr) {
-        RS_LOGE("RsDebug RSUniRenderProcessor::Redraw：failed to request frame.");
-        return;
-    }
-
-    auto canvas = renderFrame->GetCanvas();
-    if (canvas == nullptr) {
-        RS_LOGE("RsDebug RSUniRenderProcessor::Redraw：canvas is nullptr.");
-        return;
-    }
-    renderEngine_->DrawLayers(*canvas, layers, forceCPU);
-    renderFrame->Flush();
-    RS_LOGD("RsDebug RSUniRenderProcessor::Redraw flush frame buffer end");
 }
 } // namespace Rosen
 } // namespace OHOS

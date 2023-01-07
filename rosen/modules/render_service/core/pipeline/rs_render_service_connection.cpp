@@ -326,23 +326,44 @@ int32_t RSRenderServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChangeC
 
 void RSRenderServiceConnection::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
-    mainThread_->ScheduleTask([=]() {
-        screenManager_->SetScreenActiveMode(id, modeId);
-    }).wait();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask([=]() {
+            screenManager_->SetScreenActiveMode(id, modeId);
+        }).wait();
+    } else {
+        return mainThread_->ScheduleTask([=]() {
+            screenManager_->SetScreenActiveMode(id, modeId);
+        }).wait();
+    }
 }
 
 int32_t RSRenderServiceConnection::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
-    return mainThread_->ScheduleTask([=]() {
-        return screenManager_->SetVirtualScreenResolution(id, width, height);
-    }).get();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask([=]() {
+            return screenManager_->SetVirtualScreenResolution(id, width, height);
+        }).get();
+    } else {
+        return mainThread_->ScheduleTask([=]() {
+            return screenManager_->SetVirtualScreenResolution(id, width, height);
+        }).get();
+    }
 }
 
 void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
-    mainThread_->ScheduleTask([=]() {
-        screenManager_->SetScreenPowerStatus(id, status);
-    }).wait();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        RSHardwareThread::Instance().ScheduleTask([=]() {
+            screenManager_->SetScreenPowerStatus(id, status);
+        }).wait();
+    } else {
+        mainThread_->ScheduleTask([=]() {
+            screenManager_->SetScreenPowerStatus(id, status);
+        }).wait();
+    }
 }
 
 void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
@@ -387,54 +408,104 @@ RSVirtualScreenResolution RSRenderServiceConnection::GetVirtualScreenResolution(
 RSScreenModeInfo RSRenderServiceConnection::GetScreenActiveMode(ScreenId id)
 {
     RSScreenModeInfo screenModeInfo;
-    mainThread_->ScheduleTask([=, &screenModeInfo]() {
-        return screenManager_->GetScreenActiveMode(id, screenModeInfo);
-    }).wait();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        RSHardwareThread::Instance().ScheduleTask([=, &screenModeInfo]() {
+            return screenManager_->GetScreenActiveMode(id, screenModeInfo);
+        }).wait();
+    } else {
+        mainThread_->ScheduleTask([=, &screenModeInfo]() {
+            return screenManager_->GetScreenActiveMode(id, screenModeInfo);
+        }).wait();
+    }
     return screenModeInfo;
 }
 
 std::vector<RSScreenModeInfo> RSRenderServiceConnection::GetScreenSupportedModes(ScreenId id)
 {
-    return mainThread_->ScheduleTask([=]() {
-        return screenManager_->GetScreenSupportedModes(id);
-    }).get();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask([=]() {
+            return screenManager_->GetScreenSupportedModes(id);
+        }).get();
+    } else {
+        return mainThread_->ScheduleTask([=]() {
+            return screenManager_->GetScreenSupportedModes(id);
+        }).get();
+    }
 }
 
 RSScreenCapability RSRenderServiceConnection::GetScreenCapability(ScreenId id)
 {
     RSScreenCapability screenCapability;
-    return mainThread_->ScheduleTask([=]() {
-        return screenManager_->GetScreenCapability(id);
-    }).get();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        RSHardwareThread::Instance().ScheduleTask([=]() {
+            return screenManager_->GetScreenCapability(id);
+        }).get();
+    } else {
+        mainThread_->ScheduleTask([=]() {
+            return screenManager_->GetScreenCapability(id);
+        }).get();
+    }
+    return screenCapability;
 }
 
 ScreenPowerStatus RSRenderServiceConnection::GetScreenPowerStatus(ScreenId id)
 {
-    return mainThread_->ScheduleTask([=]() {
-        return screenManager_->GetScreenPowerStatus(id);
-    }).get();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask([=]() {
+            return screenManager_->GetScreenPowerStatus(id);
+        }).get();
+    } else {
+        return mainThread_->ScheduleTask([=]() {
+            return screenManager_->GetScreenPowerStatus(id);
+        }).get();
+    }
 }
 
 RSScreenData RSRenderServiceConnection::GetScreenData(ScreenId id)
 {
     RSScreenData screenData;
-    return mainThread_->ScheduleTask([=]() {
-        return screenManager_->GetScreenData(id);
-    }).get();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask([=]() {
+            return screenManager_->GetScreenData(id);
+        }).get();
+    } else {
+        return mainThread_->ScheduleTask([=]() {
+            return screenManager_->GetScreenData(id);
+        }).get();
+    }
 }
 
 int32_t RSRenderServiceConnection::GetScreenBacklight(ScreenId id)
 {
-    return mainThread_->ScheduleTask([=]() {
-        return screenManager_->GetScreenBacklight(id);
-    }).get();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask([=]() {
+            return screenManager_->GetScreenBacklight(id);
+        }).get();
+    } else {
+        return mainThread_->ScheduleTask([=]() {
+            return screenManager_->GetScreenBacklight(id);
+        }).get();
+    }
 }
 
 void RSRenderServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
 {
-    mainThread_->ScheduleTask([=]() {
-        screenManager_->SetScreenBacklight(id, level);
-    }).wait();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        RSHardwareThread::Instance().ScheduleTask([=]() {
+            return screenManager_->SetScreenBacklight(id, level);
+        }).wait();
+    } else {
+        mainThread_->ScheduleTask([=]() {
+            screenManager_->SetScreenBacklight(id, level);
+        }).wait();
+    }
 }
 
 void RSRenderServiceConnection::RegisterBufferAvailableListener(
@@ -455,44 +526,86 @@ void RSRenderServiceConnection::RegisterBufferAvailableListener(
 
 int32_t RSRenderServiceConnection::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
 {
-    return mainThread_->ScheduleTask([=, &mode]() {
-        return screenManager_->GetScreenSupportedColorGamuts(id, mode);
-    }).get();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask([=, &mode]() {
+            return screenManager_->GetScreenSupportedColorGamuts(id, mode);
+        }).get();
+    } else {
+        return mainThread_->ScheduleTask([=, &mode]() {
+            return screenManager_->GetScreenSupportedColorGamuts(id, mode);
+        }).get();
+    }
 }
 
 int32_t RSRenderServiceConnection::GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys)
 {
-    return mainThread_->ScheduleTask([=, &keys]() {
-        return screenManager_->GetScreenSupportedMetaDataKeys(id, keys);
-    }).get();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask([=, &keys]() {
+            return screenManager_->GetScreenSupportedMetaDataKeys(id, keys);
+        }).get();
+    } else {
+        return mainThread_->ScheduleTask([=, &keys]() {
+            return screenManager_->GetScreenSupportedMetaDataKeys(id, keys);
+        }).get();
+    }
 }
 
 int32_t RSRenderServiceConnection::GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode)
 {
-    return mainThread_->ScheduleTask([=, &mode]() {
-        return screenManager_->GetScreenColorGamut(id, mode);
-    }).get();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask([=, &mode]() {
+            return screenManager_->GetScreenColorGamut(id, mode);
+        }).get();
+    } else {
+        return mainThread_->ScheduleTask([=, &mode]() {
+            return screenManager_->GetScreenColorGamut(id, mode);
+        }).get();
+    }
 }
 
 int32_t RSRenderServiceConnection::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
 {
-    return mainThread_->ScheduleTask([=]() {
-        return screenManager_->SetScreenColorGamut(id, modeIdx);
-    }).get();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask([=]() {
+            return screenManager_->SetScreenColorGamut(id, modeIdx);
+        }).get();
+    } else {
+        return mainThread_->ScheduleTask([=]() {
+            return screenManager_->SetScreenColorGamut(id, modeIdx);
+        }).get();
+    }
 }
 
 int32_t RSRenderServiceConnection::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
 {
-    return mainThread_->ScheduleTask([=]() {
-        return screenManager_->SetScreenGamutMap(id, mode);
-    }).get();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask([=]() {
+            return screenManager_->SetScreenGamutMap(id, mode);
+        }).get();
+    } else {
+        return mainThread_->ScheduleTask([=]() {
+            return screenManager_->SetScreenGamutMap(id, mode);
+        }).get();
+    }
 }
 
 int32_t RSRenderServiceConnection::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
 {
-    return mainThread_->ScheduleTask([=, &mode]() {
-        return screenManager_->GetScreenGamutMap(id, mode);
-    }).get();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask([=, &mode]() {
+            return screenManager_->GetScreenGamutMap(id, mode);
+        }).get();
+    } else {
+        return mainThread_->ScheduleTask([=, &mode]() {
+            return screenManager_->GetScreenGamutMap(id, mode);
+        }).get();
+    }
 }
 
 int32_t RSRenderServiceConnection::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability)
@@ -509,9 +622,16 @@ int32_t RSRenderServiceConnection::GetScreenType(ScreenId id, RSScreenType& scre
 
 int32_t RSRenderServiceConnection::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
 {
-    return mainThread_->ScheduleTask([=]() {
-        return screenManager_->SetScreenSkipFrameInterval(id, skipFrameInterval);
-    }).get();
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask([=]() {
+            return screenManager_->SetScreenSkipFrameInterval(id, skipFrameInterval);
+        }).get();
+    } else {
+        return mainThread_->ScheduleTask([=]() {
+            return screenManager_->SetScreenSkipFrameInterval(id, skipFrameInterval);
+        }).get();
+    }
 }
 
 int32_t RSRenderServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)

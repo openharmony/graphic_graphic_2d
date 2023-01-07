@@ -17,6 +17,7 @@
 
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_hardware_thread.h"
 #include "platform/common/rs_log.h"
 #include "vsync_sampler.h"
 
@@ -59,7 +60,7 @@ bool RSScreenManager::Init() noexcept
 
     // call ProcessScreenHotPlugEvents() for primary screen immediately in main thread.
     ProcessScreenHotPlugEvents();
-
+    RS_LOGI("RSScreenManager Init succeed");
     return true;
 }
 
@@ -149,20 +150,33 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
 
     auto vsyncSampler = CreateVSyncSampler();
     if (vsyncSampler != nullptr) {
-        vsyncSampler->RegSetScreenVsyncEnabledCallback([this, id](bool enabled) {
-            auto mainThread = RSMainThread::Instance();
-            if (mainThread == nullptr) {
-                RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, get RSMainThread failed", enabled);
-                return;
-            }
-            mainThread->PostTask([this, id, enabled]() {
-                if (screens_[id] == nullptr) {
-                    RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, screen %{public}ld not found", enabled, id);
+        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+        if (renderType != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+            vsyncSampler->RegSetScreenVsyncEnabledCallback([this, id](bool enabled) {
+                auto mainThread = RSMainThread::Instance();
+                if (mainThread == nullptr) {
+                    RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, get RSMainThread failed", enabled);
                     return;
                 }
-                screens_[id]->SetScreenVsyncEnabled(enabled);
+                mainThread->PostTask([this, id, enabled]() {
+                    if (screens_[id] == nullptr) {
+                        RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, screen %{public}ld not found", enabled, id);
+                        return;
+                    }
+                    screens_[id]->SetScreenVsyncEnabled(enabled);
+                });
             });
-        });
+        } else {
+            vsyncSampler->RegSetScreenVsyncEnabledCallback([this, id](bool enabled) {
+                RSHardwareThread::Instance().PostTask([this, id, enabled]() {
+                    if (screens_[id] == nullptr) {
+                        RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, screen %{public}ld not found", enabled, id);
+                        return;
+                    }
+                    screens_[id]->SetScreenVsyncEnabled(enabled);
+                });
+            });
+        }
     } else {
         RS_LOGE("RegSetScreenVsyncEnabledCallback failed, vsyncSampler is null");
     }

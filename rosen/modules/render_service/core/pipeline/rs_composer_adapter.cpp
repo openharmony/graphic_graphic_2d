@@ -261,7 +261,7 @@ void RSComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfac
 
 bool RSComposerAdapter::GetComposerInfoNeedClient(const ComposeInfo &info, RSSurfaceRenderNode& node) const
 {
-    bool needClient = RSDividedRenderUtil::IsNeedClient(node, info);
+    bool needClient = RSBaseRenderUtil::IsNeedClient(node, info);
     if (info.buffer->GetSurfaceBufferColorGamut() != static_cast<GraphicColorGamut>(screenInfo_.colorGamut)) {
         needClient = true;
     }
@@ -549,33 +549,6 @@ static int GetSurfaceNodeRotation(RSBaseRenderNode& node)
     static const std::map<int, int> supportedDegrees = {{90, 270}, {180, 180}, {-90, 90}};
     auto iter = supportedDegrees.find(rAngle);
     return iter != supportedDegrees.end() ? iter->second : 0;
-}
-
-static inline int RotateEnumToInt(ScreenRotation rotation)
-{
-    static const std::map<ScreenRotation, int> screenRotationEnumToIntMap = {
-        {ScreenRotation::ROTATION_0, 0}, {ScreenRotation::ROTATION_90, 90},
-        {ScreenRotation::ROTATION_180, 180}, {ScreenRotation::ROTATION_270, 270}};
-    auto iter = screenRotationEnumToIntMap.find(rotation);
-    return iter != screenRotationEnumToIntMap.end() ? iter->second : 0;
-}
-
-static inline int RotateEnumToInt(GraphicTransformType rotation)
-{
-    static const std::map<GraphicTransformType, int> transformTypeEnumToIntMap = {
-        {GraphicTransformType::GRAPHIC_ROTATE_NONE, 0}, {GraphicTransformType::GRAPHIC_ROTATE_90, 90},
-        {GraphicTransformType::GRAPHIC_ROTATE_180, 180}, {GraphicTransformType::GRAPHIC_ROTATE_270, 270}};
-    auto iter = transformTypeEnumToIntMap.find(rotation);
-    return iter != transformTypeEnumToIntMap.end() ? iter->second : 0;
-}
-
-static inline GraphicTransformType RotateEnumToInt(int angle)
-{
-    static const std::map<int, GraphicTransformType> intToEnumMap = {
-        {0, GraphicTransformType::GRAPHIC_ROTATE_NONE}, {90, GraphicTransformType::GRAPHIC_ROTATE_270},
-        {180, GraphicTransformType::GRAPHIC_ROTATE_180}, {270, GraphicTransformType::GRAPHIC_ROTATE_90}};
-    auto iter = intToEnumMap.find(angle);
-    return iter != intToEnumMap.end() ? iter->second : GraphicTransformType::GRAPHIC_ROTATE_NONE;
 }
 
 static void SetLayerTransform(const LayerInfoPtr& layer, RSBaseRenderNode& node,

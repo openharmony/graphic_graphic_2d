@@ -17,8 +17,8 @@
 #define RS_CORE_PIPELINE_UNI_RENDER_PROCESSOR_H
 
 #include "rs_processor.h"
-
 #include "rs_composer_adapter.h"
+#include "rs_uni_render_composer_adapter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -32,9 +32,7 @@ public:
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
     void PostProcess() override;
 private:
-    void Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers);
-
-    std::unique_ptr<RSComposerAdapter> composerAdapter_;
+    std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<LayerInfoPtr> layers_;
     size_t layerNum = 0;
 };

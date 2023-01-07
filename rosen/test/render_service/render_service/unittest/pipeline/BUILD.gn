@@ -24,7 +24,6 @@ group("unittest") {
     ":RSBaseRenderUtilTest",
     ":RSColdStartThreadTest",
     ":RSComposerAdapterTest",
-    ":RSDividedRenderUtilTest",
     ":RSDropFrameProcessorTest",
     ":RSMainThreadTest",
     ":RSPhysicalScreenProcessorTest",
@@ -131,15 +130,6 @@ ohos_unittest("RSBaseRenderUtilTest") {
 ohos_unittest("RSSurfaceCaptureTaskTest") {
   module_out_path = module_output_path
   sources = [ "rs_surface_capture_task_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  defines = []
-  defines += gpu_defines
-}
-
-## Build RSDividedRenderUtilTest
-ohos_unittest("RSDividedRenderUtilTest") {
-  module_out_path = module_output_path
-  sources = [ "rs_divided_render_util_test.cpp" ]
   deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines
