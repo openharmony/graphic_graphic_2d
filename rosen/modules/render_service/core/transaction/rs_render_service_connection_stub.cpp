@@ -109,6 +109,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 if (parsedParcel == nullptr) {
                     // no need to copy or copy failed, use original parcel
                     // execute Unmarshalling immediately
+                    RSMainThread::Instance()->RequestNextVSync();
                     auto transactionData = RSBaseRenderUtil::ParseTransactionData(data);
                     CommitTransaction(transactionData);
                     break;
