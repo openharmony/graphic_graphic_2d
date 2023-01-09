@@ -591,5 +591,23 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();
 }
 
+// [planning] Remove this after skia is upgraded, the clipRegion is supported
+void RSSurfaceRenderNode::ResetChildrenFilterRects()
+{
+    childrenFilterRects_.clear();
+}
+
+void RSSurfaceRenderNode::UpdateChildrenFilterRects(const RectI& rect)
+{
+    if (!rect.IsEmpty()) {
+        childrenFilterRects_.emplace_back(rect);
+    }
+}
+
+const std::vector<RectI>& RSSurfaceRenderNode::GetChildrenNeedFilterRects() const
+{
+    return childrenFilterRects_;
+}
+
 } // namespace Rosen
 } // namespace OHOS

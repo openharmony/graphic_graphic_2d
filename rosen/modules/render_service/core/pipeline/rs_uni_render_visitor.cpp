@@ -115,7 +115,6 @@ RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor)
     currentFocusedPid_ = visitor.currentFocusedPid_;
     dirtySurfaceNodeMap_ = visitor.dirtySurfaceNodeMap_;
     needFilter_ = visitor.needFilter_;
-    filterRects_ = visitor.filterRects_;
     surfaceNodePrepareMutex_ = visitor.surfaceNodePrepareMutex_;
 }
 
@@ -295,26 +294,6 @@ void RSUniRenderVisitor::ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRend
 #endif
 }
 
-bool RSUniRenderVisitor::CheckIfRenderNodeNeedFilter(RSBaseRenderNode& node)
-{
-    if (!curSurfaceNode_) {
-        return false;
-    }
-    if (node.ReinterpretCastTo<RSRenderNode>()->GetRenderProperties().NeedFilter() &&
-        !curSurfaceNode_->IsAppFreeze()) {
-        return true;
-    }
-    for (auto& child : node.GetSortedChildren()) {
-        if (child && CheckIfRenderNodeNeedFilter(*child)) {
-            if (auto canvasNode = child->ReinterpretCastTo<RSCanvasRenderNode>()) {
-                filterRects_[curSurfaceNode_->GetId()].push_back(canvasNode->GetOldDirtyInSurface());
-            }
-            return true;
-        }
-    }
-    return false;
-}
-
 bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& node)
 {
     // dirtyFlag_ includes leashwindow dirty
@@ -337,11 +316,9 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
     }
     // static surface keeps same position
     curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), curDisplayNode_->GetLastFrameSurfacePos(node.GetId()));
-    // [planning] Remove this after skia is upgraded, the clipRegion is supported
     if (node.IsAppWindow()) {
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
     }
-    needFilter_ = needFilter_ || CheckIfRenderNodeNeedFilter(node);
     return true;
 }
 
@@ -414,9 +391,9 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         isCustomizedDirtyRect = true;
     }
     // [planning] Remove this after skia is upgraded, the clipRegion is supported
-    if (node.GetRenderProperties().NeedFilter() && !node.IsAppFreeze()) {
-        needFilter_ = true;
-    }
+    // reset childrenFilterRects
+    node.ResetChildrenFilterRects();
+
     dirtyFlag_ = dirtyFlag_ || node.GetDstRectChanged();
     parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
     node.ResetSurfaceOpaqueRegion(RectI(0, 0, screenInfo_.width, screenInfo_.height), geoPtr->GetAbsRect(),
@@ -568,15 +545,11 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     // attention: accumulate direct parent's childrenRect
     node.UpdateParentChildrenRect(node.GetParent().lock());
     if (property.NeedFilter() && curSurfaceNode_) {
-        if (!curSurfaceNode_->IsAppFreeze()) {
-            // [planning] Remove this after skia is upgraded, the clipRegion is supported
-            needFilter_ = true;
-        }
         // filterRects_ is used in RSUniRenderVisitor::CalcDirtyRegionForFilterNode
         // When oldDirtyRect of node with filter has intersect with any surfaceNode or displayNode dirtyRegion,
         // the whole oldDirtyRect should be render in this vsync.
         // Partical rendering of node with filter would cause display problem.
-        filterRects_[curSurfaceNode_->GetId()].push_back(node.GetOldDirtyInSurface());
+        curSurfaceNode_->UpdateChildrenFilterRects(node.GetOldDirtyInSurface());
     }
     curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
@@ -596,10 +569,6 @@ void RSUniRenderVisitor::CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisit
 
     for (auto &u : visitor->dirtySurfaceNodeMap_) {
         dirtySurfaceNodeMap_[u.first] = u.second;
-    }
-
-    for (auto &u : visitor->filterRects_) {
-        filterRects_[u.first] = u.second;
     }
 
 #endif
@@ -1042,7 +1011,7 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
     }
 }
 
-void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(std::shared_ptr<RSDisplayRenderNode>& node) const
+void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(std::shared_ptr<RSDisplayRenderNode>& node)
 {
     auto displayDirtyManager = node->GetDirtyManager();
     RectI displayDirtyRect = displayDirtyManager ? displayDirtyManager->GetDirtyRegion() : RectI{0, 0, 0, 0};
@@ -1053,25 +1022,26 @@ void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(std::shared_ptr<RSDisplayR
         }
         auto currentSurfaceDirtyManager = currentSurfaceNode->GetDirtyManager();
         RectI currentSurfaceDirtyRect = currentSurfaceDirtyManager->GetDirtyRegion();
-        NodeId currentSurfaceNodeId = currentSurfaceNode->GetId();
 
         // child node (component) has filter
-        if (filterRects_.find(currentSurfaceNodeId) != filterRects_.end()) {
-            auto rectVec = filterRects_.find(currentSurfaceNodeId)->second;
-            for (auto rectIt = rectVec.begin(); rectIt != rectVec.end(); ++rectIt) {
-                if (!displayDirtyRect.IntersectRect(*rectIt).IsEmpty()) {
+        auto filterRects = currentSurfaceNode->GetChildrenNeedFilterRects();
+        if (currentSurfaceNode->IsAppWindow() && !filterRects.empty()) {
+            needFilter_ = needFilter_ || !currentSurfaceNode->IsAppFreeze();
+            for (auto subRect : filterRects) {
+                if (!displayDirtyRect.IntersectRect(subRect).IsEmpty()) {
                     if (currentSurfaceNode->IsTransparent()) {
-                        displayDirtyManager->MergeDirtyRect(*rectIt);
+                        displayDirtyManager->MergeDirtyRect(subRect);
                     }
-                    currentSurfaceDirtyManager->MergeDirtyRect(*rectIt);
-                } else if (!currentSurfaceDirtyRect.IntersectRect(*rectIt).IsEmpty()) {
-                    currentSurfaceDirtyManager->MergeDirtyRect(*rectIt);
+                    currentSurfaceDirtyManager->MergeDirtyRect(subRect);
+                } else if (!currentSurfaceDirtyRect.IntersectRect(subRect).IsEmpty()) {
+                    currentSurfaceDirtyManager->MergeDirtyRect(subRect);
                 }
             }
         }
 
         // surfaceNode self has filter
         if (currentSurfaceNode->GetRenderProperties().NeedFilter()) {
+            needFilter_ = needFilter_ || !currentSurfaceNode->IsAppFreeze();
             if (!displayDirtyRect.IntersectRect(currentSurfaceNode->GetOldDirtyInSurface()).IsEmpty() ||
                 !currentSurfaceDirtyRect.IntersectRect(currentSurfaceNode->GetOldDirtyInSurface()).IsEmpty()) {
                 currentSurfaceDirtyManager->MergeDirtyRect(currentSurfaceNode->GetOldDirtyInSurface());

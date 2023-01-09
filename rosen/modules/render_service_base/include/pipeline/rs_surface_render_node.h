@@ -420,6 +420,11 @@ public:
         return opaqueRegionChanged_;
     }
 
+    // [planning] Remove this after skia is upgraded, the clipRegion is supported
+    void ResetChildrenFilterRects();
+    void UpdateChildrenFilterRects(const RectI& rect);
+    const std::vector<RectI>& GetChildrenNeedFilterRects() const;
+
     bool IsFocusedWindow(pid_t focusedWindowPid)
     {
         return ExtractPid(GetNodeId()) == focusedWindowPid;
@@ -514,6 +519,8 @@ private:
     // opaque region of the surface
     Occlusion::Region opaqueRegion_;
     bool opaqueRegionChanged_ = false;
+    // [planning] Remove this after skia is upgraded, the clipRegion is supported
+    std::vector<RectI> childrenFilterRects_;
     // transparent region of the surface, floating window's container window is always treated as transparent
     Occlusion::Region transparentRegion_;
     // temporary const value from ACE container_modal_constants.h, will be replaced by uniform interface

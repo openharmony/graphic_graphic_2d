@@ -86,7 +86,7 @@ private:
      * global dirty region will be skipped
      */
     void CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node) const;
-    void CalcDirtyRegionForFilterNode(std::shared_ptr<RSDisplayRenderNode>& node) const;
+    void CalcDirtyRegionForFilterNode(std::shared_ptr<RSDisplayRenderNode>& node);
     // set global dirty region to each surface node
     void SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node);
     void SetSurfaceGlobalAlignedDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node,
@@ -104,9 +104,6 @@ private:
      * If so, reset status flag and stop traversal
      */
     bool CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& node);
-    // [planning] Remove this after skia is upgraded, the clipRegion is supported
-    // recursively check if there is any node's child(including node itself) needs filter
-    bool CheckIfRenderNodeNeedFilter(RSBaseRenderNode& node);
 
     void RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& node, float width, float height);
     // offscreen render related
@@ -151,7 +148,6 @@ private:
     PartialRenderType partialRenderType_;
     bool isDirty_ = false;
     bool needFilter_ = false;
-    std::unordered_map<NodeId, std::vector<RectI>> filterRects_;
     ColorGamut newColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
     std::vector<ScreenColorGamut> colorGamutmodes_;
     ContainerWindowConfigType containerWindowConfig_;
