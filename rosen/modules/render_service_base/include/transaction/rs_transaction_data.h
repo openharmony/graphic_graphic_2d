@@ -37,7 +37,7 @@ public:
     RSTransactionData() = default;
     RSTransactionData(RSTransactionData&& other)
         : payload_(std::move(other.payload_)), timestamp_(std::move(other.timestamp_)),
-          pid_(other.pid_), index_(other.index_)
+          abilityName_(std::move(other.abilityName_)), pid_(other.pid_), index_(other.index_)
     {}
     ~RSTransactionData() noexcept = default;
 
@@ -63,6 +63,11 @@ public:
     uint64_t GetTimestamp() const
     {
         return timestamp_;
+    }
+
+    std::string GetAbilityName() const
+    {
+        return abilityName_;
     }
 
     void SetSendingPid(pid_t pid)
@@ -114,6 +119,7 @@ private:
 #endif
     std::vector<std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>> payload_;
     uint64_t timestamp_ = 0;
+    std::string abilityName_;
     pid_t pid_ = 0;
     uint64_t index_ = 0;
     bool isUniRender_ = false;
