@@ -23,6 +23,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
+#include "include/utils/SkCamera.h"
 #include "platform/common/rs_log.h"
 #include "png.h"
 #include "rs_trace.h"
@@ -1026,7 +1027,8 @@ SkMatrix RSBaseRenderUtil::GetSurfaceTransformMatrix(const RSSurfaceRenderNode& 
         return matrix;
     }
 
-    switch (surface->GetTransform()) {
+    auto transform = GetRotateTransform(surface->GetTransform());
+    switch (transform) {
         case GraphicTransformType::GRAPHIC_ROTATE_90: {
             matrix.preTranslate(0, boundsHeight);
             matrix.preRotate(-90); // rotate 90 degrees anti-clockwise at last.
@@ -1081,8 +1083,9 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(
     // the surface can rotate itself.
     params.matrix.preConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(node, localBounds));
     const sptr<Surface>& surface = node.GetConsumer(); // private func, guarantee surface is not nullptr.
-    if (surface->GetTransform() == GraphicTransformType::GRAPHIC_ROTATE_90 ||
-        surface->GetTransform() == GraphicTransformType::GRAPHIC_ROTATE_270) {
+    auto transform = GetRotateTransform(surface->GetTransform());
+    if (transform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+        transform == GraphicTransformType::GRAPHIC_ROTATE_270) {
         // after rotate, we should swap dstRect and bound's width and height.
         std::swap(localBounds.width_, localBounds.height_);
         params.dstRect = SkRect::MakeWH(localBounds.GetWidth(), localBounds.GetHeight());
@@ -1093,6 +1096,37 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(
     // because we use the gravity matrix above(which will implicitly includes scale effect),
     // we must disable the scale effect that from srcRect to dstRect.
     params.dstRect = params.srcRect;
+}
+
+void RSBaseRenderUtil::FlipMatrix(const RSSurfaceRenderNode& node, BufferDrawParam& params)
+{
+    auto& consumer = node.GetConsumer();
+    if (consumer == nullptr) {
+        RS_LOGW("RSBaseRenderUtil::FlipMatrix consumer is null");
+        return;
+    }
+    const int angle = 180;
+    Sk3DView sk3DView;
+    switch (GetFlipTransform(consumer->GetTransform())) {
+        case GraphicTransformType::GRAPHIC_FLIP_H: {
+            sk3DView.rotateX(angle);
+            break;
+        }
+        case GraphicTransformType::GRAPHIC_FLIP_V: {
+            sk3DView.rotateY(angle);
+            break;
+        }
+        default: {
+            return;
+        }
+    }
+    RS_LOGD("RSBaseRenderUtil::FlipMatrix %d", consumer->GetTransform());
+    SkMatrix flip;
+    sk3DView.getMatrix(&flip);
+    const float half = 0.5f;
+    flip.preTranslate(-half * params.dstRect.width(), -half * params.dstRect.height());
+    flip.postTranslate(half * params.dstRect.width(), half * params.dstRect.height());
+    params.matrix.preConcat(flip);
 }
 
 void RSBaseRenderUtil::SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& params)
@@ -1302,6 +1336,48 @@ bool RSBaseRenderUtil::WriteToPng(const std::string &filename, const WriteToPngP
     png_destroy_write_struct(&pngStruct, &pngInfo);
     int ret = fclose(fp);
     return ret == 0;
+}
+
+GraphicTransformType RSBaseRenderUtil::GetRotateTransform(GraphicTransformType transform)
+{
+    switch (transform)
+    {
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT90:
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT90: {
+            return GraphicTransformType::GRAPHIC_ROTATE_90;
+        }
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT180:
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT180: {
+            return GraphicTransformType::GRAPHIC_ROTATE_180;
+        }
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT270:
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT270: {
+            return GraphicTransformType::GRAPHIC_ROTATE_270;
+        }
+        default: {
+            return transform;
+        }
+    }
+}
+
+GraphicTransformType RSBaseRenderUtil::GetFlipTransform(GraphicTransformType transform)
+{
+     switch (transform)
+    {
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT90:
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT180:
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT270: {
+            return GraphicTransformType::GRAPHIC_FLIP_H;
+        }
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT90:
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT180:
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT270: {
+            return GraphicTransformType::GRAPHIC_FLIP_V;
+        }
+        default: {
+            return transform;
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

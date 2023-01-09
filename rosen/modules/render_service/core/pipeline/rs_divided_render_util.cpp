@@ -76,6 +76,7 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(
     params.srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
 
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(node, localBounds, params);
+    RSBaseRenderUtil::FlipMatrix(node, params);
     return params;
 }
 

@@ -26,7 +26,15 @@ static const std::map<GraphicTransformType, std::string> TransformTypeStrs = {
     {GRAPHIC_ROTATE_90,                      "1 <rotation by 90 degrees>"},
     {GRAPHIC_ROTATE_180,                     "2 <rotation by 180 degrees>"},
     {GRAPHIC_ROTATE_270,                     "3 <rotation by 270 degrees>"},
-    {GRAPHIC_ROTATE_BUTT,                    "4 <uninitialized>"},
+    {GRAPHIC_FLIP_H,                         "4 <flip horizontally>"},
+    {GRAPHIC_FLIP_V,                         "5 <flip vertically>"},
+    {GRAPHIC_FLIP_H_ROT90,                   "6 <flip horizontally and rotate 90 degrees>"},
+    {GRAPHIC_FLIP_V_ROT90,                   "7 <flip vertically and rotate 90 degrees>"},
+    {GRAPHIC_FLIP_H_ROT180,                  "8 <flip horizontally and rotate 180 degrees>"},
+    {GRAPHIC_FLIP_V_ROT180,                  "9 <flip vertically and rotate 180 degrees>"},
+    {GRAPHIC_FLIP_H_ROT270,                  "10 <flip horizontally and rotate 270 degrees>"},
+    {GRAPHIC_FLIP_V_ROT270,                  "11 <flip vertically and rotate 270 degrees>"},
+    {GRAPHIC_ROTATE_BUTT,                    "12 <uninitialized>"},
 };
 
 static const std::map<GraphicCompositionType, std::string> CompositionTypeStrs = {

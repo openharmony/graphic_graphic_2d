@@ -326,7 +326,15 @@ using GraphicTransformType = enum {
     GRAPHIC_ROTATE_90,              /**< Rotation by 90 degrees */
     GRAPHIC_ROTATE_180,             /**< Rotation by 180 degrees */
     GRAPHIC_ROTATE_270,             /**< Rotation by 270 degrees */
-    GRAPHIC_ROTATE_BUTT             /**< Invalid operation */
+    GRAPHIC_FLIP_H,                 /**< Flip horizontally */
+    GRAPHIC_FLIP_V,                 /**< Flip vertically */
+    GRAPHIC_FLIP_H_ROT90,           /**< Flip horizontally and rotate 90 degrees */
+    GRAPHIC_FLIP_V_ROT90,           /**< Flip vertically and rotate 90 degrees */
+    GRAPHIC_FLIP_H_ROT180,          /**< Flip horizontally and rotate 180 degrees */
+    GRAPHIC_FLIP_V_ROT180,          /**< Flip vertically and rotate 180 degrees */
+    GRAPHIC_FLIP_H_ROT270,          /**< Flip horizontally and rotate 270 degrees */
+    GRAPHIC_FLIP_V_ROT270,          /**< Flip vertically and rotate 270 degrees */
+    GRAPHIC_ROTATE_BUTT            /**< Invalid operation */
 };
 
 using BufferRequestConfig = struct BufferRequestConfig {

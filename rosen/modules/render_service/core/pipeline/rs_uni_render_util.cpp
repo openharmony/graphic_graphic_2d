@@ -125,6 +125,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
 
     RectF localBounds = {0.0f, 0.0f, property.GetBoundsWidth(), property.GetBoundsHeight()};
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(node, localBounds, params);
+    RSBaseRenderUtil::FlipMatrix(node, params);
     return params;
 }
 
