@@ -182,6 +182,60 @@ ohos_unittest("RSColdStartThreadTest") {
   defines += gpu_defines
 }
 
+## Build RSParallelPackVisitorTest
+ohos_unittest("RSParallelPackVisitorTest") {
+  module_out_path = module_output_path
+  sources = [ "parallel_render/rs_parallel_pack_visitor_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSParallelRenderExtTest
+ohos_unittest("RSParallelRenderExtTest") {
+  module_out_path = module_output_path
+  sources = [ "parallel_render/rs_parallel_render_ext_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSParallelRenderManagerTest
+ohos_unittest("RSParallelRenderManagerTest") {
+  module_out_path = module_output_path
+  sources = [ "parallel_render/rs_parallel_render_manager_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSParallelSubThreadTest
+ohos_unittest("RSParallelSubThreadTest") {
+  module_out_path = module_output_path
+  sources = [ "parallel_render/rs_parallel_sub_thread_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSParallelTaskManagerTest
+ohos_unittest("RSParallelTaskManagerTest") {
+  module_out_path = module_output_path
+  sources = [ "parallel_render/rs_parallel_task_manager_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSRenderTaskTest
+ohos_unittest("RSRenderTaskTest") {
+  module_out_path = module_output_path
+  sources = [ "parallel_render/rs_render_task_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
 ## Build rs_test_common.a {{{
 config("rs_test_common_public_config") {
   include_dirs = [
