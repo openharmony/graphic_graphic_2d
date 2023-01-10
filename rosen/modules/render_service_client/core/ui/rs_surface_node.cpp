@@ -64,8 +64,8 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     }
 
     node->SetClipToFrame(true);
-    // create node in RT
-    if (!isWindow) {
+    // create node in RT (only when in divided render and isRenderServiceNode_ == false)
+    if (!node->IsRenderServiceNode()) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(node->GetId());
         transactionProxy->AddCommand(command, isWindow);
 
@@ -77,6 +77,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         transactionProxy->AddCommand(command, isWindow);
         node->SetFrameGravity(Gravity::RESIZE);
     }
+
     if (node->GetName().find("battery_panel") != std::string::npos ||
         node->GetName().find("sound_panel") != std::string::npos) {
         node->SetFrameGravity(Gravity::TOP_LEFT);
@@ -100,19 +101,23 @@ void RSSurfaceNode::CreateNodeInRenderThread()
     }
 
     isChildOperationDisallowed_ = true;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(GetId());
-    transactionProxy->AddCommand(command, false);
-
-    command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId());
-    transactionProxy->AddCommand(command, false);
-
-    command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(
-        GetId(), [] { RSRenderThread::Instance().RequestNextVSync(); });
-    transactionProxy->AddCommand(command, false);
-
-    command = std::make_unique<RSSurfaceNodeSetSurfaceNodeType>(GetId(), RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
-    transactionProxy->AddCommand(command, true);
     isRenderServiceNode_ = false;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetSurfaceNodeType>(GetId(), RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
+    transactionProxy->AddCommand(command, true);
+
+    // create node in RT (only when in divided render and isRenderServiceNode_ == false)
+    if (!IsRenderServiceNode()) {
+        command = std::make_unique<RSSurfaceNodeCreate>(GetId());
+        transactionProxy->AddCommand(command, false);
+
+        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId());
+        transactionProxy->AddCommand(command, false);
+
+        command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(
+            GetId(), [] { RSRenderThread::Instance().RequestNextVSync(); });
+        transactionProxy->AddCommand(command, false);
+    }
 }
 
 void RSSurfaceNode::AddChild(std::shared_ptr<RSBaseNode> child, int index)
@@ -319,10 +324,11 @@ sptr<OHOS::Surface> RSSurfaceNode::GetSurface() const
 bool RSSurfaceNode::NeedForcedSendToRemote() const
 {
     if (IsRenderServiceNode()) {
-        // RSRenderSurfaceNode in RS only need send property message to RenderService.
+        // Property message should be sent to RenderService.
         return false;
     } else {
-        // RSRenderSurfaceNode in RT need send property message both to RenderService & RenderThread.
+        // Only when in divided render and isRenderServiceNode_ == false
+        // property message should be sent to RenderService & RenderThread.
         return true;
     }
 }
@@ -376,22 +382,31 @@ RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderSer
 RSSurfaceNode::~RSSurfaceNode()
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (skipDestroyCommandInDestructor_) {
-        // for ability view and remote window, we should destroy the corresponding render node in RenderThread
-        if (transactionProxy != nullptr) {
-            std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeDestroy>(GetId());
-            transactionProxy->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, GetId());
-        }
+    if (transactionProxy == nullptr) {
         return;
     }
+
+    // For abilityComponent and remote window, we should destroy the corresponding render node in RenderThread
+    // The destructor of render node in RenderService should controlled by application
+    // Command sent only in divided render
+    if (skipDestroyCommandInDestructor_ && !IsUniRenderEnabled()) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeDestroy>(GetId());
+        transactionProxy->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, GetId());
+        return;
+    }
+
     auto renderServiceClient =
         std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     if (renderServiceClient != nullptr) {
         renderServiceClient->UnregisterBufferAvailableListener(GetId());
     }
-    if (!IsRenderServiceNode() && transactionProxy != nullptr) {
+
+    // For self-drawing surfaceNode, we should destroy the corresponding render node in RenderService
+    // Command sent only in divided render
+    if (!IsRenderServiceNode()) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeDestroy>(GetId());
         transactionProxy->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, GetId());
+        return;
     }
 }
 
