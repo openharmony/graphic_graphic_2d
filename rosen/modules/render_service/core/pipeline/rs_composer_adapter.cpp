@@ -350,6 +350,9 @@ void RSComposerAdapter::SetComposeInfoToLayer(
         layer->SetTunnelHandle(surface->GetTunnelHandle());
         node ->SetTunnelHandleChange(false);
     }
+    if (surface->GetTunnelHandle() != nullptr) {
+        return;
+    }
     HDRMetaDataType type;
     if (surface->QueryMetaDataType(info.buffer->GetSeqNum(), type) != GSERROR_OK) {
         RS_LOGE("RSComposerAdapter::SetComposeInfoToLayer: QueryMetaDataType failed");

@@ -109,7 +109,9 @@ int32_t HdiBackend::PrepareCompleteIfNeed(const OutputPtr &output, bool needFlus
     for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
         const LayerPtr &layer = iter->second;
         newLayerInfos.emplace_back(layer->GetLayerInfo());
-        if (layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT) {
+        if (layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT ||
+            layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT_CLEAR ||
+            layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_TUNNEL) {
             compClientLayers.emplace_back(layer);
         }
     }
