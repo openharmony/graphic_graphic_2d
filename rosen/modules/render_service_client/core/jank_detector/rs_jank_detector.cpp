@@ -78,19 +78,7 @@ void RSJankDetector::UpdateUiDrawFrameMsg(uint64_t startTimeStamp, uint64_t endT
     uiFrame.startTimeStamp = startTimeStamp;
     uiFrame.endTimeStamp = endTimeStamp;
     uiFrame.abilityName = abilityName;
-    {
-        std::unique_lock<std::mutex> frameLock(frameMutex_);
-        uiDrawFrames_.emplace_back(uiFrame);
-    }
-}
-
-void RSJankDetector::ProcessUiDrawFrameMsg()
-{
-    preUiDrawFrames_.clear();
-    {
-        std::unique_lock<std::mutex> frameLock(frameMutex_);
-        std::swap(preUiDrawFrames_, uiDrawFrames_);
-    }
+    uiDrawFrames_.emplace_back(uiFrame);
 }
 
 void RSJankDetector::CalculateSkippedFrame(uint64_t renderStartTimeStamp, uint64_t renderEndTimeStamp)
@@ -98,24 +86,21 @@ void RSJankDetector::CalculateSkippedFrame(uint64_t renderStartTimeStamp, uint64
     FrameMsg frameMsg;
     uint64_t uiStartTimeStamp = 0;
     uint64_t uiEndTimeStamp = 0;
-    if (!preUiDrawFrames_.empty()) {
-        UiDrawFrameMsg uiDrawFrame = preUiDrawFrames_.front();
-        frameMsg.dropUiFrameNum = preUiDrawFrames_.size() - 1;
+    if (!uiDrawFrames_.empty()) {
+        UiDrawFrameMsg uiDrawFrame = uiDrawFrames_.back();
+        frameMsg.dropUiFrameNum = uiDrawFrames_.size() - 1;
         uiStartTimeStamp = uiDrawFrame.startTimeStamp;
         uiEndTimeStamp = uiDrawFrame.endTimeStamp;
         frameMsg.abilityName = uiDrawFrame.abilityName;
     }
 
-    frameMsg.totalTime = renderEndTimeStamp - uiStartTimeStamp;
     frameMsg.uiDrawTime = uiEndTimeStamp - uiStartTimeStamp;
     frameMsg.renderDrawTime = renderEndTimeStamp - renderStartTimeStamp;
-    // In some animation scenes, only RSRenderthread is working.
-    if (preUiDrawFrames_.empty()) {
-        frameMsg.totalTime = frameMsg.renderDrawTime;
-    }
+    // Currently, we do not consider the time consumption of UI thread
+    frameMsg.totalTime = frameMsg.renderDrawTime;
+    uiDrawFrames_.clear();
 
-    // Currently a frame takes two vsync times
-    int skippedFrame = static_cast<int>(frameMsg.totalTime / (refreshPeriod_ * 2));
+    int skippedFrame = static_cast<int>(frameMsg.totalTime / refreshPeriod_);
     if ((skippedFrame >= JANK_SKIPPED_THRESHOLD) || (frameMsg.dropUiFrameNum >= JANK_SKIPPED_THRESHOLD)) {
         DrawEventReport(frameMsg, "JANK_FRAME_SKIP");
     }

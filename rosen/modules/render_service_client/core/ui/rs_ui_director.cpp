@@ -185,7 +185,7 @@ void RSUIDirector::SetAppFreeze(bool isAppFreeze)
 void RSUIDirector::SetTimeStamp(uint64_t timeStamp, const std::string& abilityName)
 {
     timeStamp_ = timeStamp;
-    RSRenderThread::Instance().UpdateUiDrawFrameMsg(abilityName);
+    abilityName_ = abilityName;
 }
 
 void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
@@ -214,7 +214,7 @@ void RSUIDirector::SendMessages()
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SendCommands");
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->FlushImplicitTransaction(timeStamp_);
+        transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);
     }
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }

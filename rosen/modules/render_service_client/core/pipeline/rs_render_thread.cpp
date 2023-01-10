@@ -94,31 +94,26 @@ RSRenderThread::RSRenderThread()
     mainFunc_ = [&]() {
         uint64_t renderStartTimeStamp;
         if (needRender_) {
-            renderStartTimeStamp = jankDetector_.GetSysTimeNs();
+            renderStartTimeStamp = jankDetector_->GetSysTimeNs();
         }
-
         RS_TRACE_BEGIN("RSRenderThread DrawFrame: " + std::to_string(timestamp_));
         QuickStartFrameTrace(RT_INTERVAL_NAME);
         prevTimestamp_ = timestamp_;
         ProcessCommands();
-        if (needRender_) {
-            jankDetector_.ProcessUiDrawFrameMsg();
-        }
-
         ROSEN_LOGD("RSRenderThread DrawFrame(%" PRIu64 ") in %s", prevTimestamp_, renderContext_ ? "GPU" : "CPU");
         Animate(prevTimestamp_);
         Render();
         SendCommands();
         QuickEndFrameTrace(RT_INTERVAL_NAME);
-        RS_TRACE_END();
-
         if (needRender_) {
-            jankDetector_.CalculateSkippedFrame(renderStartTimeStamp, jankDetector_.GetSysTimeNs());
+            jankDetector_->CalculateSkippedFrame(renderStartTimeStamp, jankDetector_->GetSysTimeNs());
         }
+        RS_TRACE_END();
     };
 
     highContrastObserver_ = std::make_shared<HighContrastObserver>();
     context_ = std::make_shared<RSContext>();
+    jankDetector_ = std::make_shared<RSJankDetector>();
     auto &config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
     config.InitializeContext();
     config.SubscribeConfigObserver(CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT, highContrastObserver_);
@@ -177,10 +172,6 @@ void RSRenderThread::RecvTransactionData(std::unique_ptr<RSTransactionData>& tra
     }
     // [PLANNING]: process in next vsync (temporarily)
     RSRenderThread::Instance().RequestNextVSync();
-    if (activeWindowCnt_.load() > 0) {
-        jankDetector_.UpdateUiDrawFrameMsg(uiStartTimeStamp_, jankDetector_.GetSysTimeNs(), uiDrawAbilityName_);
-    }
-    uiStartTimeStamp_ = 0;
 }
 
 void RSRenderThread::RequestNextVSync()
@@ -291,12 +282,6 @@ void RSRenderThread::UpdateWindowStatus(bool active)
         activeWindowCnt_--;
     }
     ROSEN_LOGD("RSRenderThread UpdateWindowStatus %d, cur activeWindowCnt_ %d", active, activeWindowCnt_.load());
-}
-
-void RSRenderThread::UpdateUiDrawFrameMsg(const std::string& abilityName)
-{
-    uiStartTimeStamp_ = jankDetector_.GetSysTimeNs();
-    uiDrawAbilityName_ = abilityName;
 }
 
 void RSRenderThread::UpdateRenderMode(bool needRender)
@@ -440,12 +425,19 @@ void RSRenderThread::ProcessCommands()
     } else {
         context_->currentTimestamp_ = lastAnimateTimestamp_;
     }
+    uint64_t uiEndTimeStamp = 0;
+    if (needRender_) {
+        uiEndTimeStamp = jankDetector_->GetSysTimeNs();
+    }
     for (auto& cmdData : cmds) {
         std::string str = "ProcessCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(cmdData.get()));
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
         // only set transactionTimestamp_ in UniRender mode
         context_->transactionTimestamp_ = RSSystemProperties::GetUniRenderEnabled() ? cmdData->GetTimestamp() : 0;
         cmdData->Process(*context_);
+        if (needRender_) {
+            jankDetector_->UpdateUiDrawFrameMsg(cmdData->GetTimestamp(), uiEndTimeStamp, cmdData->GetAbilityName());
+        }
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     }
 }

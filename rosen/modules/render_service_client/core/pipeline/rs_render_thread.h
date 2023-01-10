@@ -50,7 +50,6 @@ public:
     void PostTask(RSTaskMessage::RSTask task);
     void PostPreTask();
     void UpdateWindowStatus(bool active);
-    void UpdateUiDrawFrameMsg(const std::string& abilityName);
 
     int32_t GetTid();
 
@@ -146,9 +145,7 @@ private:
     uint64_t commandTimestamp_ = 0;
 
     // for jank frame detector
-    uint64_t uiStartTimeStamp_ = 0;
-    std::string uiDrawAbilityName_;
-    RSJankDetector jankDetector_;
+    std::shared_ptr<RSJankDetector> jankDetector_;
 
     std::shared_ptr<RSContext> context_;
 
