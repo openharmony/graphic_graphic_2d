@@ -258,10 +258,10 @@ bool RSImage::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSImage::Marshalling skip texture image");
     }
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
-                   RSMarshallingHelper::Marshalling(parcel, image) &&
-                   RSMarshallingHelper::Marshalling(parcel, compressData_) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_)) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.height_)) &&
+                   RSMarshallingHelper::Marshalling(parcel, image) &&
+                   RSMarshallingHelper::Marshalling(parcel, compressData_) &&
                    RSMarshallingHelper::Marshalling(parcel, pixelmap_) &&
                    RSMarshallingHelper::Marshalling(parcel, imageFit) &&
                    RSMarshallingHelper::Marshalling(parcel, imageRepeat) &&
@@ -284,7 +284,15 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     if (!RSMarshallingHelper::Unmarshalling(parcel, uniqueId)) {
         return nullptr;
     }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, width)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, height)) {
+        return nullptr;
+    }
     img = RSImageCache::Instance().GetSkiaImageCache(uniqueId);
+    RS_TRACE_NAME_FMT("RSImage::Unmarshalling uniqueId:%lu, size:[%d %d], cached:%d",
+        uniqueId, width, height, img != nullptr);
     if (img != nullptr) {
         // match a cached skimage
         if (!RSMarshallingHelper::SkipSkImage(parcel)) {
@@ -304,12 +312,6 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
         if (!RSMarshallingHelper::UnmarshallingWithCopy(parcel, compressData)) {
             return nullptr;
         }
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, width)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, height)) {
-        return nullptr;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, pixelmap)) {
         return nullptr;
