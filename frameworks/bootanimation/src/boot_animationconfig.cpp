@@ -18,8 +18,8 @@
 
 using namespace OHOS;
 static const std::string BOOT_CUSTOM_PATHSUFFIX = "etc/bootanimation/bootanimation_custom_config.json";
-static const std::string BOOT_PIC_ZIP = "/system/etc/init/bootpic.zip";
-static const std::string BOOT_SOUND_URI = "file://system/etc/init/bootsound.wav";
+static const std::string BOOT_PIC_ZIP = "/system/etc/graphic/bootpic.zip";
+static const std::string BOOT_SOUND_URI = "file://system/etc/graphic/bootsound.wav";
 
 bool BootAnimationConfig::ReadPicZipFile(ImageStructVec& vec, int32_t& freq)
 {
