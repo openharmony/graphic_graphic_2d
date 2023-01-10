@@ -222,7 +222,6 @@ private:
     pid_t implicitAnimatorTid_ = 0;
     std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
-    std::shared_ptr<RSUIAnimationManager> animationManager_;
 
     RSModifierExtractor stagingPropertiesExtractor_;
 
