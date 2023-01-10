@@ -28,8 +28,6 @@ namespace OHOS {
 namespace Rosen {
 class RSUniRenderUtil {
 public:
-    static void UpdateRenderNodeDstRect(RSRenderNode& node, const SkMatrix& matrix);
-
     // merge history dirty region of current display node and its child surfacenode(app windows)
     // for mirror display, call this function twice will introduce additional dirtyhistory in dirtymanager
     static void MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge,

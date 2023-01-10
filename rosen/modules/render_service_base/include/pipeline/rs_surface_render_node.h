@@ -63,6 +63,23 @@ public:
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
     }
 
+    bool IsMainWindowType() const
+    {
+        // a mainWindowType surfacenode will not mounted under another mainWindowType surfacenode
+        // incluing app main window, starting window, and selfdrawing window
+        return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE ||
+            nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE ||
+            nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    }
+
+    bool IsSelfDrawingNodeType() const
+    {
+        // self drawing surfacenode has its own buffer, and rendered in its own progress/thread
+        // such as surfaceview (web/videos) and self draw windows (such as mouse pointer and boot animation)
+        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE ||
+            nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    }
+
     RSSurfaceNodeType GetSurfaceNodeType() const
     {
         return nodeType_;
