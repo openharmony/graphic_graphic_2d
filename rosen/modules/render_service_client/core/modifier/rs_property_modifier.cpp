@@ -20,34 +20,34 @@
 
 namespace OHOS {
 namespace Rosen {
-#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP)                                     \
-    RS##MODIFIER_NAME##Modifier::RS##MODIFIER_NAME##Modifier(const std::shared_ptr<RSPropertyBase>& property)         \
-        : RSModifier(property, RSModifierType::MODIFIER_TYPE)                                                         \
-    {}                                                                                                                \
-    RSModifierType RS##MODIFIER_NAME##Modifier::GetModifierType() const                                               \
-    {                                                                                                                 \
-        return RSModifierType::MODIFIER_TYPE;                                                                         \
-    }                                                                                                                 \
-    std::shared_ptr<RSRenderModifier> RS##MODIFIER_NAME##Modifier::CreateRenderModifier() const                       \
-    {                                                                                                                 \
-        auto renderProperty = GetRenderProperty();                                                                    \
-        auto renderModifier = std::make_shared<RS##MODIFIER_NAME##RenderModifier>(renderProperty);                    \
-        return renderModifier;                                                                                        \
+#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER)                    \
+    RS##MODIFIER_NAME##Modifier::RS##MODIFIER_NAME##Modifier(const std::shared_ptr<RSPropertyBase>& property)       \
+        : RS##MODIFIER_TIER##Modifier(property, RSModifierType::MODIFIER_TYPE)                                      \
+    {}                                                                                                              \
+    RSModifierType RS##MODIFIER_NAME##Modifier::GetModifierType() const                                             \
+    {                                                                                                               \
+        return RSModifierType::MODIFIER_TYPE;                                                                       \
+    }                                                                                                               \
+    std::shared_ptr<RSRenderModifier> RS##MODIFIER_NAME##Modifier::CreateRenderModifier() const                     \
+    {                                                                                                               \
+        auto renderProperty = GetRenderProperty();                                                                  \
+        auto renderModifier = std::make_shared<RS##MODIFIER_NAME##RenderModifier>(renderProperty);                  \
+        return renderModifier;                                                                                      \
     }
 
-#define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE)                                             \
-    RS##MODIFIER_NAME##Modifier::RS##MODIFIER_NAME##Modifier(const std::shared_ptr<RSPropertyBase>& property)         \
-        : RSModifier(property, RSModifierType::MODIFIER_TYPE)                                                         \
-    {}                                                                                                                \
-    RSModifierType RS##MODIFIER_NAME##Modifier::GetModifierType() const                                               \
-    {                                                                                                                 \
-        return RSModifierType::MODIFIER_TYPE;                                                                         \
-    }                                                                                                                 \
-    std::shared_ptr<RSRenderModifier> RS##MODIFIER_NAME##Modifier::CreateRenderModifier() const                       \
-    {                                                                                                                 \
-        auto renderProperty = GetRenderProperty();                                                                    \
-        auto renderModifier = std::make_shared<RS##MODIFIER_NAME##RenderModifier>(renderProperty);                    \
-        return renderModifier;                                                                                        \
+#define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, MODIFIER_TIER)                            \
+    RS##MODIFIER_NAME##Modifier::RS##MODIFIER_NAME##Modifier(const std::shared_ptr<RSPropertyBase>& property)       \
+        : RS##MODIFIER_TIER##Modifier(property, RSModifierType::MODIFIER_TYPE)                                      \
+    {}                                                                                                              \
+    RSModifierType RS##MODIFIER_NAME##Modifier::GetModifierType() const                                             \
+    {                                                                                                               \
+        return RSModifierType::MODIFIER_TYPE;                                                                       \
+    }                                                                                                               \
+    std::shared_ptr<RSRenderModifier> RS##MODIFIER_NAME##Modifier::CreateRenderModifier() const                     \
+    {                                                                                                               \
+        auto renderProperty = GetRenderProperty();                                                                  \
+        auto renderModifier = std::make_shared<RS##MODIFIER_NAME##RenderModifier>(renderProperty);                  \
+        return renderModifier;                                                                                      \
     }
 
 #include "modifier/rs_modifiers_def.in"

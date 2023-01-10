@@ -90,6 +90,60 @@ protected:
     friend class RSPathAnimation;
     friend class RSPropertyBase;
 };
+
+class RS_EXPORT RSGeometryModifier : public RSModifier {
+public:
+    RSGeometryModifier(const std::shared_ptr<RSPropertyBase>& property, const RSModifierType type)
+        : RSModifier(property, type)
+    {}
+
+    virtual ~RSGeometryModifier() = default;
+};
+
+class RS_EXPORT RSBackgroundModifier : public RSModifier {
+public:
+    RSBackgroundModifier(const std::shared_ptr<RSPropertyBase>& property, const RSModifierType type)
+        : RSModifier(property, type)
+    {}
+
+    virtual ~RSBackgroundModifier() = default;
+};
+
+class RS_EXPORT RSContentModifier : public RSModifier {
+public:
+    RSContentModifier(const std::shared_ptr<RSPropertyBase>& property, const RSModifierType type)
+        : RSModifier(property, type)
+    {}
+
+    virtual ~RSContentModifier() = default;
+};
+
+class RS_EXPORT RSForegroundModifier : public RSModifier {
+public:
+    RSForegroundModifier(const std::shared_ptr<RSPropertyBase>& property, const RSModifierType type)
+        : RSModifier(property, type)
+    {}
+
+    virtual ~RSForegroundModifier() = default;
+};
+
+class RS_EXPORT RSOverlayModifier : public RSModifier {
+public:
+    RSOverlayModifier(const std::shared_ptr<RSPropertyBase>& property, const RSModifierType type)
+        : RSModifier(property, type)
+    {}
+
+    virtual ~RSOverlayModifier() = default;
+};
+
+class RS_EXPORT RSAppearanceModifier : public RSModifier {
+public:
+    RSAppearanceModifier(const std::shared_ptr<RSPropertyBase>& property, const RSModifierType type)
+        : RSModifier(property, type)
+    {}
+
+    virtual ~RSAppearanceModifier() = default;
+};
 } // namespace Rosen
 } // namespace OHOS
 

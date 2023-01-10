@@ -33,7 +33,6 @@
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 
-
 namespace OHOS {
 namespace Rosen {
 class RSProperties;
@@ -129,12 +128,66 @@ protected:
     friend class RSRenderPropertyAnimation;
 };
 
+class RSGeometryRenderModifier : public RSAnimatableRenderModifier {
+public:
+    RSGeometryRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSAnimatableRenderModifier(property)
+    {}
+
+    virtual ~RSGeometryRenderModifier() = default;
+};
+
+class RSBackgroundRenderModifier : public RSAnimatableRenderModifier {
+public:
+    RSBackgroundRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSAnimatableRenderModifier(property)
+    {}
+
+    virtual ~RSBackgroundRenderModifier() = default;
+};
+
+class RSContentRenderModifier : public RSAnimatableRenderModifier {
+public:
+    RSContentRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSAnimatableRenderModifier(property)
+    {}
+
+    virtual ~RSContentRenderModifier() = default;
+};
+
+class RSForegroundRenderModifier : public RSAnimatableRenderModifier {
+public:
+    RSForegroundRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSAnimatableRenderModifier(property)
+    {}
+
+    virtual ~RSForegroundRenderModifier() = default;
+};
+
+class RSOverlayRenderModifier : public RSAnimatableRenderModifier {
+public:
+    RSOverlayRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSAnimatableRenderModifier(property)
+    {}
+
+    virtual ~RSOverlayRenderModifier() = default;
+};
+
+class RSAppearanceRenderModifier : public RSAnimatableRenderModifier {
+public:
+    RSAppearanceRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSAnimatableRenderModifier(property)
+    {}
+
+    virtual ~RSAppearanceRenderModifier() = default;
+};
+
 // declare RenderModifiers like RSBoundsRenderModifier
-#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP)                        \
-    class RS##MODIFIER_NAME##RenderModifier : public RSAnimatableRenderModifier {                        \
+#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER)         \
+    class RS##MODIFIER_NAME##RenderModifier : public RS##MODIFIER_TIER##RenderModifier {                 \
     public:                                                                                              \
         RS##MODIFIER_NAME##RenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)         \
-            : RSAnimatableRenderModifier(property)                                                       \
+            : RS##MODIFIER_TIER##RenderModifier(property)                                                \
         {}                                                                                               \
         virtual ~RS##MODIFIER_NAME##RenderModifier() = default;                                          \
         void Apply(RSModifierContext& context) override;                                                 \
@@ -146,8 +199,8 @@ protected:
         }                                                                                                \
     };
 
-#define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE) \
-    DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, Add)
+#define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, MODIFIER_TIER) \
+    DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, Add, MODIFIER_TIER)
 
 #include "modifier/rs_modifiers_def.in"
 
