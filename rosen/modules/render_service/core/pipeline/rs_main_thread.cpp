@@ -832,8 +832,6 @@ void RSMainThread::ClassifyRSTransactionData(std::unique_ptr<RSTransactionData>&
     auto timestamp = transactionData->GetTimestamp();
     RS_LOGD("RSMainThread::RecvRSTransactionData timestamp = %" PRIu64, timestamp);
     for (auto& [nodeId, followType, command] : transactionData->GetPayload()) {
-        // in case dynamic switch
-        activeProcessPids_.emplace(transactionData->GetSendingPid());
         if (nodeId == 0 || followType == FollowType::NONE) {
             pendingEffectiveCommands_[timestamp].emplace_back(std::move(command));
             continue;
