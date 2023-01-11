@@ -806,12 +806,8 @@ void RSNode::SetPaintOrder(bool drawContentLast)
 
 void RSNode::ClearAllModifiers()
 {
-    if (animationManager_ == nullptr) {
-        animationManager_ = RSAnimationManagerMap::Instance()->GetAnimationManager(gettid());
-    }
     for (auto& [id, modifier] : modifiers_) {
         modifier->DetachFromNode();
-        animationManager_->RemoveProperty(id);
     }
 }
 
@@ -854,10 +850,6 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifier>& modifier)
 
     modifiers_.erase(iter);
     modifier->DetachFromNode();
-    if (animationManager_ == nullptr) {
-        animationManager_ = RSAnimationManagerMap::Instance()->GetAnimationManager(gettid());
-    }
-    animationManager_->RemoveProperty(modifier->GetPropertyId());
     std::unique_ptr<RSCommand> command = std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {

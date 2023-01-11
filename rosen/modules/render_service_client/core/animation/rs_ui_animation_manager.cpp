@@ -136,12 +136,27 @@ const std::shared_ptr<RSRenderAnimation> RSUIAnimationManager::GetAnimation(Anim
 
 void RSUIAnimationManager::OnAnimationRemove(const std::shared_ptr<RSRenderAnimation>& animation)
 {
-    animationNum_[animation->GetPropertyId()]--;
+    auto iter = animationNum_.find(animation->GetPropertyId());
+    if (iter == animationNum_.end()) {
+        return;
+    }
+
+    iter->second--;
+    if (iter->second == 0) {
+        RemoveProperty(animation->GetPropertyId());
+        animationNum_.erase(iter);
+    }
 }
 
 void RSUIAnimationManager::OnAnimationAdd(const std::shared_ptr<RSRenderAnimation>& animation)
 {
-    animationNum_[animation->GetPropertyId()]++;
+    auto iter = animationNum_.find(animation->GetPropertyId());
+    if (iter == animationNum_.end()) {
+        animationNum_.emplace(animation->GetPropertyId(), 1);
+        return;
+    }
+
+    iter->second++;
 }
 
 void RSUIAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation)
