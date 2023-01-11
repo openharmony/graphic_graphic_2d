@@ -437,18 +437,16 @@ std::vector<RSScreenModeInfo> RSRenderServiceConnection::GetScreenSupportedModes
 
 RSScreenCapability RSRenderServiceConnection::GetScreenCapability(ScreenId id)
 {
-    RSScreenCapability screenCapability;
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        RSHardwareThread::Instance().ScheduleTask([=]() {
+        return RSHardwareThread::Instance().ScheduleTask([=]() {
             return screenManager_->GetScreenCapability(id);
         }).get();
     } else {
-        mainThread_->ScheduleTask([=]() {
+        return mainThread_->ScheduleTask([=]() {
             return screenManager_->GetScreenCapability(id);
         }).get();
     }
-    return screenCapability;
 }
 
 ScreenPowerStatus RSRenderServiceConnection::GetScreenPowerStatus(ScreenId id)
