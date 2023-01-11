@@ -742,7 +742,7 @@ HWTEST_F(ConsumerSurfaceTest, TunnelHandle002, Function | MediumTest | Level2)
  */
 HWTEST_F(ConsumerSurfaceTest, TunnelHandle003, Function | MediumTest | Level1)
 {
-    OHExtDataHandle *handle = new OHExtDataHandle();
+    OHExtDataHandle *handle = static_cast<OHExtDataHandle *>(malloc(sizeof(OHExtDataHandle) + sizeof(int32_t)));
     handle->fd = -1;
     handle->reserveInts = 1;
     handle->reserve[0] = 0;
