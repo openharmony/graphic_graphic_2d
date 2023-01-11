@@ -42,8 +42,8 @@ bool DriverLoader::Load()
     }
     loader_.supported_ = false;
 
-    if (!LoadLib()) {
-        WLOGE("LoadLib failed");
+    if (!LoadDriver()) {
+        WLOGE("LoadDriver failed");
         return false;
     }
 
@@ -51,12 +51,13 @@ bool DriverLoader::Load()
         = reinterpret_cast<PFN_VulkanInitialize>(dlsym(loader_.handle_, HDI_VULKAN_MODULE_INIT));
     if (VulkanInitializeFunc == nullptr) {
         WLOGE("DriverLoader:: couldn't find symbol(VulkanInitializeFunc) in library : %{public}s.", dlerror());
-        dlclose(loader_.handle_);
+        UnloadDriver();
         return false;
     }
 
     if (VulkanInitializeFunc(&loader_.vulkanFuncs_) != 0) {
         WLOGE("DriverLoader:: Initialize Vulkan Func fail");
+        UnloadDriver();
         return false;
     }
 
@@ -65,7 +66,7 @@ bool DriverLoader::Load()
 
     if (loader_.vulkanUnInitializeFunc_ == nullptr) {
         WLOGE("DriverLoader:: couldn't find symbol(VulkanUnInitialize) in library : %{public}s.", dlerror());
-        dlclose(loader_.handle_);
+        UnloadDriver();
         return false;
     }
     loader_.supported_ = true;
@@ -75,19 +76,21 @@ bool DriverLoader::Load()
 
 bool DriverLoader::Unload()
 {
-    if (!loader_.vulkanUnInitializeFunc_) {
-        WLOGE("DriverLoader::Unload can not find vulkan UnInitialize Func ");
+    if (loader_.vulkanUnInitializeFunc_ == nullptr) {
+        WLOGE("DriverLoader::Unload can not find vulkan UnInitialize Func.");
         return false;
     }
     if (loader_.vulkanUnInitializeFunc_(loader_.vulkanFuncs_) != 0) {
-        WLOGE("DriverLoader::Unload vulkan UnInitialize Func success");
+        WLOGE("DriverLoader::Unload vulkan UnInitialize Func failed.");
         return false;
     }
     loader_.vulkanFuncs_ = nullptr;
-    return UnloadLib();
+    loader_.vulkanUnInitializeFunc_ = nullptr;
+    WLOGD("DriverLoader::Unload vulkan UnInitialize Func successfully.");
+    return UnloadDriver();
 }
 
-bool DriverLoader::LoadLib()
+bool DriverLoader::LoadDriver()
 {
     if (loader_.handle_ != nullptr) {
         WLOGD("handle is not null, no need to dlopen.");
@@ -95,26 +98,31 @@ bool DriverLoader::LoadLib()
     }
     std::string venderPath = std::string(VENDOR_LIB_PATH) + std::string(LIB_NAME);
     std::string systemPath = std::string(SYSTEM_LIB_PATH) + std::string(LIB_NAME);
-    if (!DLOpenFile(venderPath)) {
-        if (!DLOpenFile(systemPath)) {
+    if (!LoadDriverFromFile(venderPath)) {
+        if (!LoadDriverFromFile(systemPath)) {
             return false;
         }
     }
-    WLOGD("DriverLoader::LoadLib successfully.");
+    WLOGD("DriverLoader::LoadDriver successfully.");
     return true;
 }
 
-bool DriverLoader::UnloadLib()
+bool DriverLoader::UnloadDriver()
 {
-    int ret = dlclose(loader_.handle_);
-    if (ret == 0) {
-        loader_.handle_ = nullptr;
+    if (loader_.handle_ == nullptr) {
+        WLOGD("DriverLoader::UnloadDriver handle is null already.");
         return true;
     }
-    return false;
+    if (dlclose(loader_.handle_) != 0) {
+        WLOGE("DriverLoader::UnloadDriver dlclose failed.");
+        return false;
+    }
+    loader_.handle_ = nullptr;
+    WLOGD("DriverLoader::UnloadDriver dlclose success.");
+    return true;
 }
 
-bool DriverLoader::DLOpenFile(std::string path)
+bool DriverLoader::LoadDriverFromFile(std::string path)
 {
     std::string realPath;
     if (!OHOS::PathToRealPath(path, realPath)) {

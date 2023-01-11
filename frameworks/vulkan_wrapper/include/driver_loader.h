@@ -26,9 +26,9 @@ class DriverLoader {
 public:
 static bool Load();
 static bool Unload();
-static bool LoadLib();
-static bool UnloadLib();
-static bool DLOpenFile(std::string path);
+static bool LoadDriver();
+static bool UnloadDriver();
+static bool LoadDriverFromFile(std::string path);
 
 static const DriverLoader& Get()
 {

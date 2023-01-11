@@ -147,15 +147,6 @@ void DestroyInstance(VkInstance instance, const VkAllocationCallbacks* pAllocato
     if (!DriverLoader::Unload()) {
         WLOGE("DriverLoader::Unload() failed");
     }
-
-    pfn_vkGetDeviceProcAddr = nullptr;
-    fpn_vkGetPhysicalDeviceProperties2KHR = nullptr;
-    pfn_vkCreateDevice = nullptr;
-    pfn_vkGetNativeFenceFdOpenHarmony = nullptr;
-    pfn_vkGetPhysicalDeviceProperties = nullptr;
-    pfn_vkGetPhysicalDeviceFeatures = nullptr;
-    pfn_vkGetPhysicalDeviceMemoryProperties = nullptr;
-    pfn_vkGetPhysicalDeviceQueueFamilyProperties = nullptr;
 }
 
 VkResult CreateDevice(VkPhysicalDevice physicalDevice,
