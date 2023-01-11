@@ -21,7 +21,7 @@
 #include <unordered_map>
 
 #include <sync_fence.h>
-
+#include "surface_type.h"
 #include "hdi_log.h"
 #include "display_device.h"
 #include "display_layer.h"
@@ -68,7 +68,7 @@ public:
     /* set & get device layer info begin */
     virtual int32_t SetLayerAlpha(uint32_t screenId, uint32_t layerId, LayerAlpha &alpha) = 0;
     virtual int32_t SetLayerSize(uint32_t screenId, uint32_t layerId, IRect &layerRect) = 0;
-    virtual int32_t SetTransformMode(uint32_t screenId, uint32_t layerId, TransformType type) = 0;
+    virtual int32_t SetTransformMode(uint32_t screenId, uint32_t layerId, GraphicTransformType type) = 0;
     virtual int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId, uint32_t num, IRect &visible) = 0;
     virtual int32_t SetLayerDirtyRegion(uint32_t screenId, uint32_t layerId, IRect &dirty) = 0;
     virtual int32_t SetLayerBuffer(uint32_t screenId, uint32_t layerId, const BufferHandle *handle,
@@ -142,7 +142,7 @@ public:
     /* set & get device layer info begin */
     int32_t SetLayerAlpha(uint32_t screenId, uint32_t layerId, LayerAlpha &alpha) override;
     int32_t SetLayerSize(uint32_t screenId, uint32_t layerId, IRect &layerRect) override;
-    int32_t SetTransformMode(uint32_t screenId, uint32_t layerId, TransformType type) override;
+    int32_t SetTransformMode(uint32_t screenId, uint32_t layerId, GraphicTransformType type) override;
     int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId, uint32_t num, IRect &visible) override;
     int32_t SetLayerDirtyRegion(uint32_t screenId, uint32_t layerId, IRect &dirty) override;
     int32_t SetLayerBuffer(uint32_t screenId, uint32_t layerId, const BufferHandle *handle,

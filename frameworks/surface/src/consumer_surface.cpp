@@ -242,12 +242,12 @@ void ConsumerSurface::Dump(std::string &result) const
     return consumer_->Dump(result);
 }
 
-GSError ConsumerSurface::SetTransform(TransformType transform)
+GSError ConsumerSurface::SetTransform(GraphicTransformType transform)
 {
     return producer_->SetTransform(transform);
 }
 
-TransformType ConsumerSurface::GetTransform() const
+GraphicTransformType ConsumerSurface::GetTransform() const
 {
     return consumer_->GetTransform();
 }

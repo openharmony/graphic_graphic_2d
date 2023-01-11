@@ -85,8 +85,8 @@ public:
     virtual GSError CleanCache() = 0;
     virtual GSError GoBackground() = 0;
 
-    virtual GSError SetTransform(TransformType transform) = 0;
-    virtual TransformType GetTransform() const = 0;
+    virtual GSError SetTransform(GraphicTransformType transform) = 0;
+    virtual GraphicTransformType GetTransform() const = 0;
 
     virtual GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
                                      std::vector<bool> &supporteds) = 0;

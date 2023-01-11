@@ -96,6 +96,22 @@ using SurfaceBufferUsage = enum {
     BUFFER_USAGE_VENDOR_PRI19 = (1ULL << 63),   /**< Reserverd for vendor */
 };
 
+using GraphicTransformType = enum {
+    GRAPHIC_ROTATE_NONE = 0,        /**< No rotation */
+    GRAPHIC_ROTATE_90,              /**< Rotation by 90 degrees */
+    GRAPHIC_ROTATE_180,             /**< Rotation by 180 degrees */
+    GRAPHIC_ROTATE_270,             /**< Rotation by 270 degrees */
+    GRAPHIC_FLIP_H,                 /**< Flip horizontally */
+    GRAPHIC_FLIP_V,                 /**< Flip vertically */
+    GRAPHIC_FLIP_H_ROT90,           /**< Flip horizontally and rotate 90 degrees */
+    GRAPHIC_FLIP_V_ROT90,           /**< Flip vertically and rotate 90 degrees */
+    GRAPHIC_FLIP_H_ROT180,          /**< Flip horizontally and rotate 180 degrees */
+    GRAPHIC_FLIP_V_ROT180,          /**< Flip vertically and rotate 180 degrees */
+    GRAPHIC_FLIP_H_ROT270,          /**< Flip horizontally and rotate 270 degrees */
+    GRAPHIC_FLIP_V_ROT270,          /**< Flip vertically and rotate 270 degrees */
+    GRAPHIC_ROTATE_BUTT             /**< Invalid operation */
+};
+
 using BufferRequestConfig = struct BufferRequestConfig {
     int32_t width;
     int32_t height;
@@ -104,7 +120,7 @@ using BufferRequestConfig = struct BufferRequestConfig {
     uint64_t usage;
     int32_t timeout;
     ColorGamut colorGamut = ColorGamut::COLOR_GAMUT_SRGB;
-    TransformType transform = TransformType::ROTATE_NONE;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     bool operator ==(const struct BufferRequestConfig &config) const
     {
         return width == config.width &&

@@ -356,10 +356,11 @@ int32_t HdiDevice::SetLayerSize(uint32_t screenId, uint32_t layerId, IRect &laye
     return layerFuncs_->SetLayerSize(screenId, layerId, &layerRect);
 }
 
-int32_t HdiDevice::SetTransformMode(uint32_t screenId, uint32_t layerId, TransformType type)
+int32_t HdiDevice::SetTransformMode(uint32_t screenId, uint32_t layerId, GraphicTransformType type)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->SetTransformMode);
-    return layerFuncs_->SetTransformMode(screenId, layerId, type);
+    TransformType hdiType = static_cast<TransformType>(type);
+    return layerFuncs_->SetTransformMode(screenId, layerId, hdiType);
 }
 
 int32_t HdiDevice::SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId,

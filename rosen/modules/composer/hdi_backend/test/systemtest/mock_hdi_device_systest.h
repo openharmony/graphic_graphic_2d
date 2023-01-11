@@ -61,7 +61,7 @@ public:
     /* set & get device layer info begin */
     MOCK_METHOD3(SetLayerAlpha, int32_t(uint32_t, uint32_t, LayerAlpha&));
     MOCK_METHOD3(SetLayerSize, int32_t(uint32_t, uint32_t, IRect&));
-    MOCK_METHOD3(SetTransformMode, int32_t(uint32_t, uint32_t, TransformType));
+    MOCK_METHOD3(SetTransformMode, int32_t(uint32_t, uint32_t, GraphicTransformType));
     MOCK_METHOD4(SetLayerVisibleRegion, int32_t(uint32_t, uint32_t, uint32_t, IRect&));
     MOCK_METHOD3(SetLayerDirtyRegion, int32_t(uint32_t, uint32_t, IRect&));
     MOCK_METHOD4(SetLayerBuffer, int32_t(uint32_t, uint32_t, const BufferHandle*, const sptr<SyncFence>&));

@@ -163,7 +163,7 @@ int32_t HdiLayer::SetLayerSize()
 
 int32_t HdiLayer::SetTransformMode()
 {
-    if (layerInfo_->GetTransformType() == TransformType::ROTATE_BUTT || (doLayerInfoCompare_ &&
+    if (layerInfo_->GetTransformType() == GraphicTransformType::GRAPHIC_ROTATE_BUTT || (doLayerInfoCompare_ &&
         layerInfo_->GetTransformType() == prevLayerInfo_->GetTransformType())) {
         return DISPLAY_SUCCESS;
     }

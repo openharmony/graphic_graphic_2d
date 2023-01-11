@@ -108,8 +108,8 @@ public:
 
     void Dump(std::string &result);
 
-    GSError SetTransform(TransformType transform);
-    TransformType GetTransform() const;
+    GSError SetTransform(GraphicTransformType transform);
+    GraphicTransformType GetTransform() const;
 
     GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
                              std::vector<bool> &supporteds) const;
@@ -154,7 +154,7 @@ private:
     int32_t defaultHeight = 0;
     uint32_t defaultUsage = 0;
     uint32_t queueSize_ = SURFACE_DEFAULT_QUEUE_SIZE;
-    TransformType transform_ = TransformType::ROTATE_NONE;
+    GraphicTransformType transform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     std::string name_;
     std::list<uint32_t> freeList_;
     std::list<uint32_t> dirtyList_;

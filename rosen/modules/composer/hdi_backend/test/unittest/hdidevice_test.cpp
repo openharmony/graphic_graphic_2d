@@ -113,7 +113,7 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), DISPLAY_NULL_PTR);
     IRect layerRect = {0, 0, 0, 0};
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerSize(screenId, layerId, layerRect), DISPLAY_NULL_PTR);
-    TransformType type = ROTATE_NONE;
+    GraphicTransformType type = GRAPHIC_ROTATE_NONE;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetTransformMode(screenId, layerId, type), DISPLAY_NULL_PTR);
     uint32_t num = 1;
     IRect visible = {0, 0, 0, 0};

@@ -314,14 +314,14 @@ uint64_t ProducerSurface::GetUniqueId() const
     return queueId_;
 }
 
-GSError ProducerSurface::SetTransform(TransformType transform)
+GSError ProducerSurface::SetTransform(GraphicTransformType transform)
 {
     return producer_->SetTransform(transform);
 }
 
-TransformType ProducerSurface::GetTransform() const
+GraphicTransformType ProducerSurface::GetTransform() const
 {
-    return TransformType::ROTATE_BUTT;
+    return GraphicTransformType::GRAPHIC_ROTATE_BUTT;
 }
 
 GSError ProducerSurface::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,

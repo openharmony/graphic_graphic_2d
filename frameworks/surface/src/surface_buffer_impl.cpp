@@ -323,13 +323,13 @@ const ColorGamut& SurfaceBufferImpl::GetSurfaceBufferColorGamut() const
     return surfaceBufferColorGamut_;
 }
 
-void SurfaceBufferImpl::SetSurfaceBufferTransform(const TransformType& transform)
+void SurfaceBufferImpl::SetSurfaceBufferTransform(const GraphicTransformType& transform)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     transform_ = transform;
 }
 
-const TransformType& SurfaceBufferImpl::GetSurfaceBufferTransform() const
+const GraphicTransformType& SurfaceBufferImpl::GetSurfaceBufferTransform() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return transform_;

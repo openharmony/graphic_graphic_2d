@@ -26,12 +26,20 @@
 
 namespace OHOS {
 namespace Rosen {
-static const std::map<TransformType, std::string> TransformTypeStrs = {
-    {ROTATE_NONE,                    "0 <no rotation>"},
-    {ROTATE_90,                      "1 <rotation by 90 degrees>"},
-    {ROTATE_180,                     "2 <rotation by 180 degrees>"},
-    {ROTATE_270,                     "3 <rotation by 270 degrees>"},
-    {ROTATE_BUTT,                    "4 <uninitialized>"},
+static const std::map<GraphicTransformType, std::string> TransformTypeStrs = {
+    {GRAPHIC_ROTATE_NONE,               "0 <no rotation>"},
+    {GRAPHIC_ROTATE_90,                 "1 <rotation by 90 degrees>"},
+    {GRAPHIC_ROTATE_180,                "2 <rotation by 180 degrees>"},
+    {GRAPHIC_ROTATE_270,                "3 <rotation by 270 degrees>"},
+    {GRAPHIC_FLIP_H,                    "4 <Flip horizontally>"},
+    {GRAPHIC_FLIP_V,                    "5 <Flip vertically>"},
+    {GRAPHIC_FLIP_H_ROT90,              "6 <Flip horizontally and rotate 90 degrees>"},
+    {GRAPHIC_FLIP_V_ROT90,              "7 <Flip vertically and rotate 90 degrees>"},
+    {GRAPHIC_FLIP_H_ROT180,             "8 <Flip horizontally and rotate 180 degrees>"},
+    {GRAPHIC_FLIP_V_ROT180,             "9 <Flip vertically and rotate 180 degrees>"},
+    {GRAPHIC_FLIP_H_ROT270,             "10 <Flip horizontally and rotate 270 degrees>"},
+    {GRAPHIC_FLIP_V_ROT270,             "11 <Flip vertically and rotate 270 degrees>"},
+    {GRAPHIC_ROTATE_BUTT,               "12 <uninitialized>"},
 };
 
 static const std::map<CompositionType, std::string> CompositionTypeStrs = {
@@ -97,7 +105,7 @@ public:
         layerAlpha_ = alpha;
     }
 
-    void SetTransform(TransformType type)
+    void SetTransform(GraphicTransformType type)
     {
         transformType_ = type;
     }
@@ -216,7 +224,7 @@ public:
         return layerAlpha_;
     }
 
-    TransformType GetTransformType() const
+    GraphicTransformType GetTransformType() const
     {
         return transformType_;
     }
@@ -370,7 +378,7 @@ private:
     IRect dirtyRegion_;
     IRect cropRect_;
     LayerAlpha layerAlpha_;
-    TransformType transformType_ = TransformType::ROTATE_BUTT;
+    GraphicTransformType transformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
     CompositionType compositionType_;
     BlendType blendType_;
     float *colorTransformMatrix_ = nullptr;

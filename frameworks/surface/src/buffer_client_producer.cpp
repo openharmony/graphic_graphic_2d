@@ -291,7 +291,7 @@ GSError BufferClientProducer::GoBackground()
     return GSERROR_OK;
 }
 
-GSError BufferClientProducer::SetTransform(TransformType transform)
+GSError BufferClientProducer::SetTransform(GraphicTransformType transform)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 

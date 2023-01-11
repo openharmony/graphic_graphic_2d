@@ -127,17 +127,17 @@ HWTEST_F(HdiLayerInfoTest, GetAlpha001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiLayerInfoTest, GetTransformType001, Function | MediumTest| Level3)
 {
-    TransformType type = TransformType::ROTATE_90;
+    GraphicTransformType type = GraphicTransformType::GRAPHIC_ROTATE_90;
     HdiLayerInfoTest::hdiLayerInfo_->SetTransform(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTransformType(), TransformType::ROTATE_90);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTransformType(), GraphicTransformType::GRAPHIC_ROTATE_90);
 
-    type = TransformType::ROTATE_180;
+    type = GraphicTransformType::GRAPHIC_ROTATE_180;
     HdiLayerInfoTest::hdiLayerInfo_->SetTransform(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTransformType(), TransformType::ROTATE_180);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTransformType(), GraphicTransformType::GRAPHIC_ROTATE_180);
 
-    type = TransformType::ROTATE_270;
+    type = GraphicTransformType::GRAPHIC_ROTATE_270;
     HdiLayerInfoTest::hdiLayerInfo_->SetTransform(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTransformType(), TransformType::ROTATE_270);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTransformType(), GraphicTransformType::GRAPHIC_ROTATE_270);
 }
 
 /**

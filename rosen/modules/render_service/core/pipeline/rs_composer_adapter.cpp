@@ -522,22 +522,22 @@ static inline int RotateEnumToInt(ScreenRotation rotation)
     return iter != screenRotationEnumToIntMap.end() ? iter->second : 0;
 }
 
-static inline int RotateEnumToInt(TransformType rotation)
+static inline int RotateEnumToInt(GraphicTransformType rotation)
 {
-    static const std::map<TransformType, int> transformTypeEnumToIntMap = {
-        {TransformType::ROTATE_NONE, 0}, {TransformType::ROTATE_90, 90},
-        {TransformType::ROTATE_180, 180}, {TransformType::ROTATE_270, 270}};
+    static const std::map<GraphicTransformType, int> transformTypeEnumToIntMap = {
+        {GraphicTransformType::GRAPHIC_ROTATE_NONE, 0}, {GraphicTransformType::GRAPHIC_ROTATE_90, 90},
+        {GraphicTransformType::GRAPHIC_ROTATE_180, 180}, {GraphicTransformType::GRAPHIC_ROTATE_270, 270}};
     auto iter = transformTypeEnumToIntMap.find(rotation);
     return iter != transformTypeEnumToIntMap.end() ? iter->second : 0;
 }
 
-static inline TransformType RotateEnumToInt(int angle)
+static inline GraphicTransformType RotateEnumToInt(int angle)
 {
-    static const std::map<int, TransformType> intToEnumMap = {
-        {0, TransformType::ROTATE_NONE}, {90, TransformType::ROTATE_270},
-        {180, TransformType::ROTATE_180}, {270, TransformType::ROTATE_90}};
+    static const std::map<int, GraphicTransformType> intToEnumMap = {
+        {0, GraphicTransformType::GRAPHIC_ROTATE_NONE}, {90, GraphicTransformType::GRAPHIC_ROTATE_270},
+        {180, GraphicTransformType::GRAPHIC_ROTATE_180}, {270, GraphicTransformType::GRAPHIC_ROTATE_90}};
     auto iter = intToEnumMap.find(angle);
-    return iter != intToEnumMap.end() ? iter->second : TransformType::ROTATE_NONE;
+    return iter != intToEnumMap.end() ? iter->second : GraphicTransformType::GRAPHIC_ROTATE_NONE;
 }
 
 static void SetLayerTransform(const LayerInfoPtr& layer, RSBaseRenderNode& node,
@@ -548,7 +548,7 @@ static void SetLayerTransform(const LayerInfoPtr& layer, RSBaseRenderNode& node,
     int surfaceNodeRotation = GetSurfaceNodeRotation(node);
     int totalRotation = (RotateEnumToInt(screenRotation) + surfaceNodeRotation +
         RotateEnumToInt(surface->GetTransform())) % 360;
-    TransformType rotateEnum = RotateEnumToInt(totalRotation);
+    GraphicTransformType rotateEnum = RotateEnumToInt(totalRotation);
     layer->SetTransform(rotateEnum);
 }
 

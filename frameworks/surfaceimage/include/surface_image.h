@@ -100,7 +100,7 @@ private:
     int32_t currentSurfaceBufferFence_;
     int64_t currentTimeStamp_;
     Rect currentCrop_ = {};
-    TransformType currentTransformType_ = TransformType::ROTATE_NONE;
+    GraphicTransformType currentTransformType_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     std::array<float, TRANSFORM_MATRIX_ELE_COUNT> currentTransformMatrix_ {};
 };
 

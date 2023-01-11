@@ -376,8 +376,8 @@ HWTEST_F(ProducerSurfaceTest, UniqueId001, Function | MediumTest | Level2)
  */
 HWTEST_F(ProducerSurfaceTest, transform001, Function | MediumTest | Level2)
 {
-    ASSERT_EQ(pSurface->GetTransform(), TransformType::ROTATE_BUTT);
-    GSError ret = pSurface->SetTransform(TransformType::ROTATE_NONE);
+    ASSERT_EQ(pSurface->GetTransform(), GraphicTransformType::GRAPHIC_ROTATE_BUTT);
+    GSError ret = pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -390,7 +390,7 @@ HWTEST_F(ProducerSurfaceTest, transform001, Function | MediumTest | Level2)
  */
 HWTEST_F(ProducerSurfaceTest, transform002, Function | MediumTest | Level1)
 {
-    GSError ret = pSurface->SetTransform(TransformType::ROTATE_90);
+    GSError ret = pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -403,7 +403,7 @@ HWTEST_F(ProducerSurfaceTest, transform002, Function | MediumTest | Level1)
  */
 HWTEST_F(ProducerSurfaceTest, transform003, Function | MediumTest | Level1)
 {
-    GSError ret = pSurface->SetTransform(TransformType::ROTATE_180);
+    GSError ret = pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_180);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -416,7 +416,7 @@ HWTEST_F(ProducerSurfaceTest, transform003, Function | MediumTest | Level1)
  */
 HWTEST_F(ProducerSurfaceTest, transform004, Function | MediumTest | Level1)
 {
-    GSError ret = pSurface->SetTransform(TransformType::ROTATE_270);
+    GSError ret = pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_270);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 

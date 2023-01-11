@@ -150,9 +150,10 @@ GSError BufferQueue::CheckRequestConfig(const BufferRequestConfig &config)
         return GSERROR_INVALID_ARGUMENTS;
     }
 
-    if (config.transform < TransformType::ROTATE_NONE || config.transform >= TransformType::ROTATE_BUTT) {
+    if (config.transform < GraphicTransformType::GRAPHIC_ROTATE_NONE ||
+        config.transform >= GraphicTransformType::GRAPHIC_ROTATE_BUTT) {
         BLOGN_INVALID("config.transform [0, %{public}d), now is %{public}d",
-            TransformType::ROTATE_BUTT, config.transform);
+            GraphicTransformType::GRAPHIC_ROTATE_BUTT, config.transform);
         return GSERROR_INVALID_ARGUMENTS;
     }
     return GSERROR_OK;
@@ -891,13 +892,13 @@ uint64_t BufferQueue::GetUniqueId() const
     return uniqueId_;
 }
 
-GSError BufferQueue::SetTransform(TransformType transform)
+GSError BufferQueue::SetTransform(GraphicTransformType transform)
 {
     transform_ = transform;
     return GSERROR_OK;
 }
 
-TransformType BufferQueue::GetTransform() const
+GraphicTransformType BufferQueue::GetTransform() const
 {
     return transform_;
 }
