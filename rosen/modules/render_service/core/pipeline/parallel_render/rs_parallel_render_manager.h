@@ -82,6 +82,7 @@ public:
         return uniVisitor_;
     }
     ParallelStatus GetParallelRenderingStatus() const;
+    void WorkSerialTask(RSSurfaceRenderNode &node);
 
 private:
     RSParallelRenderManager() = default;

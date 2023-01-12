@@ -122,10 +122,10 @@ void RSParallelRenderManager::CopyVisitorAndPackTask(RSUniRenderVisitor &visitor
 void RSParallelRenderManager::CopyPrepareVisitorAndPackTask(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node)
 {
     packVisitorPrepare_ = std::make_shared<RSParallelPackVisitor>();
+    uniVisitor_ = &visitor;
     displayNode_ = node.shared_from_this();
     prepareTaskManager_.Reset();
     packVisitorPrepare_->PrepareDisplayRenderNode(node);
-    uniVisitor_ = &visitor;
     taskType_ = TaskType::PREPARE_TASK;
 }
 
@@ -313,6 +313,11 @@ void RSParallelRenderManager::CommitSurfaceNum(int surfaceNum)
         auto setCoreLevel = reinterpret_cast<void(*)(int)>(RSParallelRenderExt::setCoreLevelFunc_);
         setCoreLevel(surfaceNum);
     }
+}
+
+void RSParallelRenderManager::WorkSerialTask(RSSurfaceRenderNode &node)
+{
+    uniVisitor_->PrepareSurfaceRenderNode(node);
 }
 
 } // namespace Rosen

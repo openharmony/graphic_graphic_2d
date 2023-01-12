@@ -93,29 +93,18 @@ RSUniRenderVisitor::RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canv
     canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
 }
 
-RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor)
+RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUniRenderVisitor()
 {
     currentVisitDisplay_ = visitor.currentVisitDisplay_;
-    curDisplayDirtyManager_ = visitor.curDisplayDirtyManager_;
     screenInfo_ = visitor.screenInfo_;
-    colorGamutmodes_ = visitor.colorGamutmodes_;
-    newColorSpace_ = visitor.newColorSpace_;
     displayHasSecSurface_ = visitor.displayHasSecSurface_;
-    isOpDropped_ = visitor.isOpDropped_;
-    isPartialRenderEnabled_ = visitor.isPartialRenderEnabled_;
     parentSurfaceNodeMatrix_ = visitor.parentSurfaceNodeMatrix_;
     curAlpha_ = visitor.curAlpha_;
-    curSurfaceDirtyManager_ = visitor.curSurfaceDirtyManager_;
     dirtyFlag_ = visitor.dirtyFlag_;
-    curSurfaceNode_ = visitor.curSurfaceNode_;
-    boundsRect_ = visitor.boundsRect_;
-    frameGravity_ = visitor.frameGravity_;
     curDisplayNode_ = visitor.curDisplayNode_;
-    containerWindowConfig_ = visitor.containerWindowConfig_;
     currentFocusedPid_ = visitor.currentFocusedPid_;
-    dirtySurfaceNodeMap_ = visitor.dirtySurfaceNodeMap_;
-    needFilter_ = visitor.needFilter_;
     surfaceNodePrepareMutex_ = visitor.surfaceNodePrepareMutex_;
+    prepareClipRect_ = visitor.prepareClipRect_;
 }
 
 RSUniRenderVisitor::~RSUniRenderVisitor() {}

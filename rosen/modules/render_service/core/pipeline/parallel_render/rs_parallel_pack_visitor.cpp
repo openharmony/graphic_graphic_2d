@@ -43,12 +43,18 @@ void RSParallelPackVisitor::PrepareBaseRenderNode(RSBaseRenderNode &node)
 
 void RSParallelPackVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode &node)
 {
+    isFirstSurfaceNode_ = true;
     PrepareBaseRenderNode(node);
 }
 
 void RSParallelPackVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode &node)
 {
-    RSParallelRenderManager::Instance()->PackRenderTask(node, TaskType::PREPARE_TASK);
+    if (!isFirstSurfaceNode_) {
+        RSParallelRenderManager::Instance()->PackRenderTask(node, TaskType::PREPARE_TASK);
+    } else {
+        isFirstSurfaceNode_ = false;
+        RSParallelRenderManager::Instance()->WorkSerialTask(node);
+    }
 }
 
 void RSParallelPackVisitor::ProcessBaseRenderNode(RSBaseRenderNode &node)

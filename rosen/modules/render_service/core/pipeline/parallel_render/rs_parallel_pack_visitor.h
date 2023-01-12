@@ -48,6 +48,7 @@ private:
     bool isSecurityDisplay_ = false;
     bool doAnimate_ = false;
     PartialRenderType partialRenderType_;
+    bool isFirstSurfaceNode_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
