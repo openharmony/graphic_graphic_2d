@@ -60,7 +60,6 @@ ohos_shared_library("color_picker") {
 
   cflags_cc = [ "-std=c++17" ]
 
-  relative_install_dir = "module"
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }

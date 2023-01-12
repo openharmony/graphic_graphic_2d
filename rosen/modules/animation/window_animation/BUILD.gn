@@ -38,7 +38,6 @@ ohos_shared_library("window_animation") {
     "ipc:ipc_core",
   ]
 
-  relative_install_dir = "module"
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
