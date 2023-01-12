@@ -187,6 +187,7 @@ ohos_unittest("RSParallelPackVisitorTest") {
   module_out_path = module_output_path
   sources = [ "parallel_render/rs_parallel_pack_visitor_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [ "init:libbegetutil" ]
   defines = []
   defines += gpu_defines
 }
@@ -214,6 +215,7 @@ ohos_unittest("RSParallelSubThreadTest") {
   module_out_path = module_output_path
   sources = [ "parallel_render/rs_parallel_sub_thread_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [ "init:libbegetutil" ]
   defines = []
   defines += gpu_defines
 }
