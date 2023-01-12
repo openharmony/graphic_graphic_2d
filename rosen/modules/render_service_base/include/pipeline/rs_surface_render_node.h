@@ -442,6 +442,11 @@ public:
     void UpdateChildrenFilterRects(const RectI& rect);
     const std::vector<RectI>& GetChildrenNeedFilterRects() const;
 
+    // manage abilities' nodeid info
+    void ResetAbilityNodeIds();
+    void UpdateAbilityNodeIds(NodeId id);
+    const std::vector<NodeId>& GetAbilityNodeIds() const;
+
     bool IsFocusedWindow(pid_t focusedWindowPid)
     {
         return ExtractPid(GetNodeId()) == focusedWindowPid;
@@ -538,6 +543,7 @@ private:
     bool opaqueRegionChanged_ = false;
     // [planning] Remove this after skia is upgraded, the clipRegion is supported
     std::vector<RectI> childrenFilterRects_;
+    std::vector<NodeId> abilityNodeIds_;
     // transparent region of the surface, floating window's container window is always treated as transparent
     Occlusion::Region transparentRegion_;
     // temporary const value from ACE container_modal_constants.h, will be replaced by uniform interface

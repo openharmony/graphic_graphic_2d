@@ -294,6 +294,16 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
     if (RSMainThread::Instance()->CheckNodeHasToBePreparedByPid(node.GetId())) {
         return false;
     }
+    if (node.IsAppWindow()) {
+        curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+        // [Attention] node's ability pid could be different
+        auto abilityNodeIds = node.GetAbilityNodeIds();
+        for (size_t i = 0; i < abilityNodeIds.size(); ++i) {
+            if (RSMainThread::Instance()->CheckNodeHasToBePreparedByPid(abilityNodeIds[i])) {
+                return false;
+            }
+        }
+    }
     RS_TRACE_NAME("Skip static surface nodeid - pid: " +
         std::to_string(node.GetId()) + " - " + std::to_string(ExtractPid(node.GetId())));
     ROSEN_LOGD("Skip static surface nodeid - pid - name: %" PRIu64 " - %d - %s", node.GetId(),
@@ -305,15 +315,13 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
     }
     // static surface keeps same position
     curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), curDisplayNode_->GetLastFrameSurfacePos(node.GetId()));
-    if (node.IsAppWindow()) {
-        curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-    }
     return true;
 }
 
 void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
-    RS_TRACE_NAME("RSUniRender::Prepare:[" + node.GetName() + "]");
+    RS_TRACE_NAME("RSUniRender::Prepare:[" + node.GetName() + "]" + " pid: " +
+        std::to_string(ExtractPid(node.GetId())));
     if (node.GetSecurityLayer()) {
         displayHasSecSurface_[currentVisitDisplay_] = true;
     }
@@ -331,6 +339,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     bool dirtyFlag = dirtyFlag_;
     bool isCustomizedDirtyRect = false;
     RectI prepareClipRect = prepareClipRect_;
+    bool isQuickSkipPreparationEnabled = isQuickSkipPreparationEnabled_;
 
     // update geoptr with ContextMatrix
     auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
@@ -346,6 +355,11 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         curSurfaceDirtyManager_ = node.GetDirtyManager();
         curSurfaceDirtyManager_->Clear();
         curSurfaceDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
+    }
+    // [planning] IsMainWindowType should contain ABILITY_COMPONENT_NODE
+    // this branch should be included in other judgment
+    if (node.GetSurfaceNodeType() == RSSurfaceNodeType::ABILITY_COMPONENT_NODE && curSurfaceNode_) {
+        curSurfaceNode_->UpdateAbilityNodeIds(node.GetId());
     }
 
     // Update node properties, including position (dstrect), OldDirty()
@@ -365,6 +379,9 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
         if (node.IsAppWindow()) {
             curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+            // if update appwindow, its children should not skip
+            isQuickSkipPreparationEnabled_ = false;
+            node.ResetAbilityNodeIds();
             boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
             frameGravity_ = property.GetFrameGravity();
         }
@@ -414,6 +431,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
     curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
+    isQuickSkipPreparationEnabled_ = isQuickSkipPreparationEnabled;
     prepareClipRect_ = prepareClipRect;
     if (node.GetDirtyManager() && node.GetDirtyManager()->IsDirty()) {
         dirtySurfaceNodeMap_.emplace(node.GetId(), node.ReinterpretCastTo<RSSurfaceRenderNode>());

@@ -609,5 +609,20 @@ const std::vector<RectI>& RSSurfaceRenderNode::GetChildrenNeedFilterRects() cons
     return childrenFilterRects_;
 }
 
+// manage abilities' nodeid info
+void RSSurfaceRenderNode::ResetAbilityNodeIds()
+{
+    abilityNodeIds_.clear();
+}
+
+void RSSurfaceRenderNode::UpdateAbilityNodeIds(NodeId id)
+{
+    abilityNodeIds_.emplace_back(id);
+}
+
+const std::vector<NodeId>& RSSurfaceRenderNode::GetAbilityNodeIds() const
+{
+    return abilityNodeIds_;
+}
 } // namespace Rosen
 } // namespace OHOS
