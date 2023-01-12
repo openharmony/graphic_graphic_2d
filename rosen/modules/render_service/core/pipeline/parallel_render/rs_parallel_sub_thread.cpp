@@ -246,7 +246,7 @@ void RSParallelSubThread::Flush()
 bool RSParallelSubThread::WaitReleaseFence()
 {
     if (eglSync_ != EGL_NO_SYNC_KHR) {
-        EGLint ret = eglClientWaitSyncKHR(renderContext_->GetEGLDisplay(), eglSync_, 0, 1000000000);
+        EGLint ret = eglWaitSyncKHR(renderContext_->GetEGLDisplay(), eglSync_, 0);
         if (ret == EGL_FALSE) {
             ROSEN_LOGE("eglClientWaitSyncKHR error 0x%{public}x", eglGetError());
             return false;
