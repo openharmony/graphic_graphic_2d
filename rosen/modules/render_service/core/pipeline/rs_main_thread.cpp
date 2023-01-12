@@ -271,9 +271,9 @@ void RSMainThread::Start()
 void RSMainThread::ProcessCommand()
 {
     // To improve overall responsiveness, we make animations start on LAST frame instead of THIS frame.
-    // If last frame is too far away (earlier than 2 vsync from now), we use currentTimestamp_ - REFRESH_PERIOD as
+    // If last frame is too far away (earlier than 1 vsync from now), we use currentTimestamp_ - REFRESH_PERIOD as
     // 'virtual' last frame timestamp.
-    if (timestamp_ - lastAnimateTimestamp_ > 2 * REFRESH_PERIOD) { // 2: if last frame is earlier than 2 vsync from now
+    if (timestamp_ - lastAnimateTimestamp_ > REFRESH_PERIOD) { // if last frame is earlier than 1 vsync from now
         context_->currentTimestamp_ = timestamp_ - REFRESH_PERIOD;
     } else {
         context_->currentTimestamp_ = lastAnimateTimestamp_;
