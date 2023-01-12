@@ -37,6 +37,8 @@ public:
         NativeEngine& engine, const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
 
     static NativeValue* CreateJsRRect(NativeEngine& engine, const RRect& rrect);
+
+    static bool IsSystemApp();
 };
 } // namespace Rosen
 } // namespace OHOS

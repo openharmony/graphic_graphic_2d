@@ -31,6 +31,7 @@ constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr int32_t ERR_NOT_OK = -1;
 constexpr int32_t ERR_OK = 0;
+constexpr int32_t ERR_NOT_SYSTEM_APP = 222;
 
 NativeValue* RSWindowAnimationManager::Init(NativeEngine* engine, NativeValue* exportObj)
 {
@@ -64,6 +65,12 @@ void RSWindowAnimationManager::Finalizer(NativeEngine* engine, void* data, void*
 NativeValue* RSWindowAnimationManager::SetController(NativeEngine* engine, NativeCallbackInfo* info)
 {
     WALOGD("SetController");
+    if (!RSWindowAnimationUtils::IsSystemApp()) {
+        WALOGE("SetController failed");
+        engine->Throw(CreateJsError(*engine, ERR_NOT_SYSTEM_APP,
+            "WindowAnimationManager setController failed, is not system app"));
+        return nullptr;
+    }
     auto me = CheckParamsAndGetThis<RSWindowAnimationManager>(engine, info);
     return (me != nullptr) ? me->OnSetController(*engine, *info) : nullptr;
 }
@@ -71,6 +78,12 @@ NativeValue* RSWindowAnimationManager::SetController(NativeEngine* engine, Nativ
 NativeValue* RSWindowAnimationManager::MinimizeWindowWithAnimation(NativeEngine* engine, NativeCallbackInfo* info)
 {
     WALOGD("MinimizeWindowWithAnimation");
+    if (!RSWindowAnimationUtils::IsSystemApp()) {
+        WALOGE("MinimizeWindowWithAnimation failed");
+        engine->Throw(CreateJsError(*engine, ERR_NOT_SYSTEM_APP,
+            "WindowAnimationManager minimizeWindowWithAnimation failed, is not system app"));
+        return nullptr;
+    }
     auto me = CheckParamsAndGetThis<RSWindowAnimationManager>(engine, info);
     return (me != nullptr) ? me->OnMinimizeWindowWithAnimation(*engine, *info) : nullptr;
 }
@@ -83,7 +96,6 @@ NativeValue* RSWindowAnimationManager::OnSetController(NativeEngine& engine, Nat
         WALOGE("No enough params!");
         return nullptr;
     }
-
     sptr<RSWindowAnimationController> controller = new RSWindowAnimationController(engine);
     controller->SetJsController(info.argv[0]);
     SingletonContainer::Get<WindowAdapter>().SetWindowAnimationController(controller);

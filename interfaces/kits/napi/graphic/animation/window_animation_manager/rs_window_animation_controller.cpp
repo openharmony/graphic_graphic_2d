@@ -53,7 +53,10 @@ void RSWindowAnimationController::OnStartApp(StartingAppType type,
                 WALOGE("Controller is null!");
                 return;
             }
-
+            if (!RSWindowAnimationUtils::IsSystemApp()) {
+                WALOGE("OnStartApp is not system app, not call js function.");
+                return;
+            }
             controllerSptr->HandleOnStartApp(type, startingWindowTarget, finishedCallback);
         }
     );
@@ -77,7 +80,10 @@ void RSWindowAnimationController::OnAppTransition(const sptr<RSWindowAnimationTa
                 WALOGE("Controller is null!");
                 return;
             }
-
+            if (!RSWindowAnimationUtils::IsSystemApp()) {
+                WALOGE("OnAppTransition is not system app, not call js function.");
+                return;
+            }
             controllerSptr->HandleOnAppTransition(fromWindowTarget, toWindowTarget, finishedCallback);
         }
     );
@@ -124,7 +130,10 @@ void RSWindowAnimationController::OnMinimizeWindow(const sptr<RSWindowAnimationT
                 WALOGE("Controller is null!");
                 return;
             }
-
+            if (!RSWindowAnimationUtils::IsSystemApp()) {
+                WALOGE("OnMinimizeWindow is not system app, not call js function.");
+                return;
+            }
             controllerSptr->HandleOnMinimizeWindow(minimizingWindowTarget, finishedCallback);
         }
     );
@@ -164,7 +173,10 @@ void RSWindowAnimationController::OnCloseWindow(const sptr<RSWindowAnimationTarg
                 WALOGE("Controller is null!");
                 return;
             }
-
+            if (!RSWindowAnimationUtils::IsSystemApp()) {
+                WALOGE("OnCloseWindow is not system app, not call js function.");
+                return;
+            }
             controllerSptr->HandleOnCloseWindow(closingWindowTarget, finishedCallback);
         }
     );
@@ -186,7 +198,10 @@ void RSWindowAnimationController::OnScreenUnlock(const sptr<RSIWindowAnimationFi
                 WALOGE("Controller is null!");
                 return;
             }
-
+            if (!RSWindowAnimationUtils::IsSystemApp()) {
+                WALOGE("OnScreenUnlock is not system app, not call js function.");
+                return;
+            }
             controllerSptr->HandleOnScreenUnlock(finishedCallback);
         }
     );
@@ -210,7 +225,10 @@ void RSWindowAnimationController::OnWindowAnimationTargetsUpdate(
                 WALOGE("Controller is null!");
                 return;
             }
-
+            if (!RSWindowAnimationUtils::IsSystemApp()) {
+                WALOGE("OnWindowAnimationTargetsUpdate is not system app, not call js function.");
+                return;
+            }
             controllerSptr->HandleOnWindowAnimationTargetsUpdate(fullScreenWindowTarget, floatingWindowTargets);
         }
     );

@@ -20,6 +20,8 @@
 #include "rs_window_animation_log.h"
 
 #include "ui/rs_proxy_node.h"
+#include "ipc_skeleton.h"
+#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -144,6 +146,12 @@ NativeValue* RSWindowAnimationUtils::CreateJsRRect(NativeEngine& engine, const R
     object->SetProperty("height", CreateJsValue(engine, rrect.rect_.height_));
     object->SetProperty("radius", CreateJsValue(engine, rrect.radius_[0].x_));
     return objValue;
+}
+
+bool RSWindowAnimationUtils::IsSystemApp()
+{
+    uint64_t tokenId = OHOS::IPCSkeleton::GetCallingFullTokenID();
+    return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId);
 }
 } // namespace Rosen
 } // namespace OHOS
