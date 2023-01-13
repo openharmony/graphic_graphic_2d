@@ -135,6 +135,8 @@ public:
 
     void SetDirtyFlag();
     void ForceRefreshForUni();
+    void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
+    void DumpMem(std::string& result);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;

@@ -14,6 +14,7 @@
 */
 
 #include "memory_handler.h"
+#include "utils/log.h"
 #include <set>
 #include <cmath>
 
@@ -27,6 +28,28 @@ void MemoryHandler::ConfigureContext(GrContextOptions* context, const char* iden
     cache.SetFilePath(cacheFilePath);
     cache.InitShaderCache(identity, size, isUni);
     context->fPersistentCache = &cache;
+}
+
+std::string MemoryHandler::QuerryShader() const
+{
+    auto& cache = ShaderCache::Instance();
+    if (!cache.IfInitialized()) {
+        LOGW("ShaderCache is not intialized.");
+    }
+    size_t shaderRam = cache.QuerryShaderSize();
+    size_t shaderNum = cache.QuerryShaderNum();
+    std::string ramString = "ShaderCache RAM used:" + std::to_string(shaderRam / 1024) + " kB\n";
+    ramString += "ShaderCache num is: " + std::to_string(shaderNum);
+    return ramString;
+}
+
+std::string MemoryHandler::ClearShader() const
+{
+    auto& cache = ShaderCache::Instance();
+    LOGW("All shaders are cleaned");
+    size_t cleanedRam = cache.CleanAllShaders();
+    std::string ramString = "All shaders are cleaned, RAM freed: " + std::to_string(cleanedRam);
+    return ramString;
 }
 }   // namespace Rosen
 }   // namespace OHOS

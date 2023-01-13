@@ -210,7 +210,11 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("EventParamList                 ")
         .append("|dump EventParamList info\n")
         .append("allInfo                        ")
-        .append("|dump all info\n");
+        .append("|dump all info\n")
+        .append("dumpMem                        ")
+        .append("|dump Cache\n")
+        .append("trimMem cpu/gpu/shader         ")
+        .append("|release Cache");
 }
 
 void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets,
@@ -256,6 +260,8 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg7(u"EventParamList");
     std::u16string arg8(u"h");
     std::u16string arg9(u"allInfo");
+    std::u16string arg10(u"trimMem");
+    std::u16string arg11(u"dumpMem");
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
             screenManager_->DisplayDump(dumpString);
@@ -284,6 +290,16 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     if (argSets.count(arg9) ||argSets.count(arg7) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
             DumpRSEvenParam(dumpString);
+        }).wait();
+    }
+    if (argSets.count(arg10)) {
+        mainThread_->ScheduleTask([this, &argSets, &dumpString]() {
+            return mainThread_->TrimMem(argSets, dumpString);
+        }).wait();
+    }
+    if (argSets.count(arg11)) {
+        mainThread_->ScheduleTask([this, &dumpString]() {
+            return mainThread_->DumpMem(dumpString);
         }).wait();
     }
     FPSDUMPProcess(argSets, dumpString, arg3);

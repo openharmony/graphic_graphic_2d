@@ -104,7 +104,17 @@ public:
     {
         isUniRenderMode_ = isUni;
     }
+#ifdef RS_ENABLE_GL
+    std::string GetShaderCacheSize() const
+    {
+        return mHandler_->QuerryShader();
+    }
 
+    std::string CleanAllShaderCache() const
+    {
+        return mHandler_->ClearShader();
+    }
+#endif
     EGLContext CreateShareContext();
 
 private:
