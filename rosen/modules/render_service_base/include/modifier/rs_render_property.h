@@ -18,6 +18,7 @@
 
 #include "animation/rs_value_estimator.h"
 #include "common/rs_common_def.h"
+#include "common/rs_macros.h"
 #include "modifier/rs_animatable_arithmetic.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_base_render_node.h"
@@ -25,7 +26,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderPropertyBase : public std::enable_shared_from_this<RSRenderPropertyBase> {
+class RS_EXPORT RSRenderPropertyBase : public std::enable_shared_from_this<RSRenderPropertyBase> {
 public:
     RSRenderPropertyBase() = default;
     RSRenderPropertyBase(const PropertyId& id) : id_(id) {}
@@ -154,7 +155,7 @@ protected:
 };
 
 template<typename T>
-class RSRenderAnimatableProperty : public RSRenderProperty<T> {
+class RS_EXPORT RSRenderAnimatableProperty : public RSRenderProperty<T> {
 public:
     RSRenderAnimatableProperty() : RSRenderProperty<T>() {}
     RSRenderAnimatableProperty(const T& value) : RSRenderProperty<T>(value, 0) {}
@@ -251,13 +252,13 @@ private:
 };
 
 template<>
-float RSRenderAnimatableProperty<float>::ToFloat() const;
+RS_EXPORT float RSRenderAnimatableProperty<float>::ToFloat() const;
 template<>
-float RSRenderAnimatableProperty<Vector4f>::ToFloat() const;
+RS_EXPORT float RSRenderAnimatableProperty<Vector4f>::ToFloat() const;
 template<>
-float RSRenderAnimatableProperty<Quaternion>::ToFloat() const;
+RS_EXPORT float RSRenderAnimatableProperty<Quaternion>::ToFloat() const;
 template<>
-float RSRenderAnimatableProperty<Vector2f>::ToFloat() const;
+RS_EXPORT float RSRenderAnimatableProperty<Vector2f>::ToFloat() const;
 } // namespace Rosen
 } // namespace OHOS
 

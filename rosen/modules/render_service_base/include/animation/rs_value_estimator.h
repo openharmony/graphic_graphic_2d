@@ -21,6 +21,7 @@
 #include "animation/rs_animation_common.h"
 #include "animation/rs_interpolator.h"
 #include "common/rs_color.h"
+#include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
@@ -33,7 +34,7 @@ class RSRenderPropertyBase;
 template<typename T>
 class RSRenderAnimatableProperty;
 
-class RSValueEstimator {
+class RS_EXPORT RSValueEstimator {
 public:
     template<typename T>
     T Estimate(float fraction, const T& startValue, const T& endValue)
@@ -65,7 +66,7 @@ public:
 };
 
 template<typename T>
-class RSCurveValueEstimator : public RSValueEstimator {
+class RS_EXPORT RSCurveValueEstimator : public RSValueEstimator {
 public:
     RSCurveValueEstimator() = default;
     virtual ~RSCurveValueEstimator() = default;

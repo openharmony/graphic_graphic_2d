@@ -23,6 +23,7 @@
 #include <memory>
 
 #include "animation/rs_animation_common.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -56,7 +57,7 @@ private:
     virtual const std::shared_ptr<RSRenderModifier> CreateModifier() = 0;
 };
 
-class RSTransitionFade : public RSRenderTransitionEffect {
+class RS_EXPORT RSTransitionFade : public RSRenderTransitionEffect {
 public:
     explicit RSTransitionFade(float alpha) : alpha_(alpha) {}
     ~RSTransitionFade() override = default;
@@ -72,7 +73,7 @@ private:
     const std::shared_ptr<RSRenderModifier> CreateModifier() override;
 };
 
-class RSTransitionScale : public RSRenderTransitionEffect {
+class RS_EXPORT RSTransitionScale : public RSRenderTransitionEffect {
 public:
     explicit RSTransitionScale(float scaleX = 0.0f, float scaleY = 0.0f, float scaleZ = 0.0f)
         : scaleX_(scaleX), scaleY_(scaleY), scaleZ_(scaleZ)
@@ -92,7 +93,7 @@ private:
     const std::shared_ptr<RSRenderModifier> CreateModifier() override;
 };
 
-class RSTransitionTranslate : public RSRenderTransitionEffect {
+class RS_EXPORT RSTransitionTranslate : public RSRenderTransitionEffect {
 public:
     explicit RSTransitionTranslate(float translateX, float translateY, float translateZ)
         : translateX_(translateX), translateY_(translateY), translateZ_(translateZ)
@@ -112,7 +113,7 @@ private:
     const std::shared_ptr<RSRenderModifier> CreateModifier() override;
 };
 
-class RSTransitionRotate : public RSRenderTransitionEffect {
+class RS_EXPORT RSTransitionRotate : public RSRenderTransitionEffect {
 public:
     explicit RSTransitionRotate(float dx, float dy, float dz, float radian) : dx_(dx), dy_(dy), dz_(dz), radian_(radian)
     {}

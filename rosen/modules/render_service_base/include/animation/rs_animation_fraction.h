@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_ANIMATION_FRACTION_H
 
 #include "animation/rs_animation_timing_protocol.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -25,7 +26,7 @@ enum class ForwardDirection {
     REVERSE,
 };
 
-class RSAnimationFraction : public RSAnimationTimingProtocol {
+class RS_EXPORT RSAnimationFraction : public RSAnimationTimingProtocol {
 public:
     RSAnimationFraction();
     ~RSAnimationFraction() = default;

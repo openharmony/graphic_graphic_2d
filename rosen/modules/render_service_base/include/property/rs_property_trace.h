@@ -21,13 +21,14 @@
 #include <sys/stat.h>
 
 #include "common/rs_common_def.h"
+#include "common/rs_macros.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "modifier/rs_modifier_type.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSPropertyTrace {
+class RS_EXPORT RSPropertyTrace {
 public:
     static RSPropertyTrace &GetInstance()
     {

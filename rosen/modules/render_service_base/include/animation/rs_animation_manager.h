@@ -21,6 +21,7 @@
 #include <unordered_map>
 
 #include "common/rs_common_def.h"
+#include "common/rs_macros.h"
 #include "modifier/rs_modifier_type.h"
 
 namespace OHOS {
@@ -31,7 +32,7 @@ class RSProperties;
 class RSRenderAnimation;
 class RSRenderNode;
 
-class RSAnimationManager {
+class RS_EXPORT RSAnimationManager {
 public:
     RSAnimationManager() = default;
     ~RSAnimationManager() = default;

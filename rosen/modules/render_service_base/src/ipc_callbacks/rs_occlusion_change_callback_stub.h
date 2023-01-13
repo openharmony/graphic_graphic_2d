@@ -19,10 +19,11 @@
 #include <iremote_stub.h>
 
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSOcclusionChangeCallbackStub : public IRemoteStub<RSIOcclusionChangeCallback> {
+class RS_EXPORT RSOcclusionChangeCallbackStub : public IRemoteStub<RSIOcclusionChangeCallback> {
 public:
     RSOcclusionChangeCallbackStub() = default;
     ~RSOcclusionChangeCallbackStub() = default;

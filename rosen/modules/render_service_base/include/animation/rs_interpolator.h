@@ -21,6 +21,8 @@
 #include <memory>
 #include <vector>
 
+#include "common/rs_macros.h"
+
 #ifdef ROSEN_OHOS
 #include <parcel.h>
 #include <refbase.h>
@@ -76,7 +78,7 @@ public:
     }
 };
 
-class RSCustomInterpolator : public RSInterpolator {
+class RS_EXPORT RSCustomInterpolator : public RSInterpolator {
 public:
     RSCustomInterpolator(const std::function<float(float)>& func, int duration);
     virtual ~RSCustomInterpolator() = default;

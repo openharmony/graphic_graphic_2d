@@ -19,13 +19,14 @@
 #include <unordered_map>
 
 #include "common/rs_common_def.h"
+#include "common/rs_macros.h"
 #include "pipeline/rs_base_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSRenderNode;
 class RSSurfaceRenderNode;
-class RSRenderNodeMap final {
+class RS_EXPORT RSRenderNodeMap final {
 public:
     bool RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr);
     void UnregisterRenderNode(NodeId id);

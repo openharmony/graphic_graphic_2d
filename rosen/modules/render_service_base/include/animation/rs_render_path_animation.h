@@ -18,12 +18,13 @@
 
 #include "animation/rs_interpolator.h"
 #include "animation/rs_render_property_animation.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSPath;
 
-class RSRenderPathAnimation : public RSRenderPropertyAnimation {
+class RS_EXPORT RSRenderPathAnimation : public RSRenderPropertyAnimation {
 static constexpr float UNDEFINED_FLOAT = 0.0f;
 public:
     RSRenderPathAnimation(AnimationId id, const PropertyId& propertyId,

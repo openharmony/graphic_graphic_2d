@@ -20,9 +20,10 @@
 #include <memory>
 
 #include "delegate/rs_delegate.h"
+#include "common/rs_macros.h"
 
 namespace OHOS::Rosen {
-class RSFunctionalDelegate : public RSDelegate {
+class RS_EXPORT RSFunctionalDelegate : public RSDelegate {
 public:
     static std::shared_ptr<RSFunctionalDelegate> Create()
     {

@@ -20,6 +20,7 @@
 
 #include <message_parcel.h>
 #include "common/rs_common_def.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,7 +48,7 @@ private:
     void* data_ = nullptr;
 };
 
-class RSAshmemHelper {
+class RS_EXPORT RSAshmemHelper {
 public:
     static std::shared_ptr<MessageParcel> CreateAshmemParcel(std::shared_ptr<MessageParcel>& dataParcel);
     static std::shared_ptr<MessageParcel> ParseFromAshmemParcel(MessageParcel* ashmemParcel);

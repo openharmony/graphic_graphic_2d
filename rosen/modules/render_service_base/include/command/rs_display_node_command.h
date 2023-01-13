@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_DISPLAY_NODE_COMMAND_H
 
 #include "command/rs_command_templates.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -29,7 +30,7 @@ enum RSDisplayNodeCommandType : uint16_t {
     DISPLAY_NODE_SET_DISPLAY_MODE,
 };
 
-class DisplayNodeCommandHelper {
+class RS_EXPORT DisplayNodeCommandHelper {
 public:
     static void Create(RSContext&, NodeId, const RSDisplayNodeConfig&);
     static void SetScreenId(RSContext&, NodeId, uint64_t);

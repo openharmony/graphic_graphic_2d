@@ -45,3 +45,4 @@ if (rosen_is_win) {
 if (rosen_is_linux) {
   rs_common_define += [ "ROSEN_LINUX" ]
 }
+enable_export_macro = true

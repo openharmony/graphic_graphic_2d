@@ -20,10 +20,11 @@
 #include <iremote_stub.h>
 
 #include "ipc_callbacks/buffer_available_callback.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSBufferAvailableCallbackStub : public IRemoteStub<RSIBufferAvailableCallback> {
+class RS_EXPORT RSBufferAvailableCallbackStub : public IRemoteStub<RSIBufferAvailableCallback> {
 public:
     RSBufferAvailableCallbackStub() = default;
     ~RSBufferAvailableCallbackStub() = default;

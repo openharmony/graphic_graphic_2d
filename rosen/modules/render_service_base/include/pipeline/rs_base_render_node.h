@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "common/rs_common_def.h"
+#include "common/rs_macros.h"
 #include "common/rs_rect.h"
 namespace OHOS {
 namespace Rosen {
@@ -26,7 +27,7 @@ class RSContext;
 class RSNodeVisitor;
 class RSCommand;
 
-class RSBaseRenderNode : public std::enable_shared_from_this<RSBaseRenderNode> {
+class RS_EXPORT RSBaseRenderNode : public std::enable_shared_from_this<RSBaseRenderNode> {
 public:
     using WeakPtr = std::weak_ptr<RSBaseRenderNode>;
     using SharedPtr = std::shared_ptr<RSBaseRenderNode>;

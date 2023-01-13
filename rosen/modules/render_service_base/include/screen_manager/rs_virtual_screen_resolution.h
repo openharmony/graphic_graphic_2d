@@ -19,9 +19,11 @@
 #include <cstdint>
 #include <parcel.h>
 
+#include "common/rs_macros.h"
+
 namespace OHOS {
 namespace Rosen {
-class RSVirtualScreenResolution : public Parcelable {
+class RS_EXPORT RSVirtualScreenResolution : public Parcelable {
 public:
     RSVirtualScreenResolution() = default;
     RSVirtualScreenResolution(uint32_t width, uint32_t height);

@@ -18,6 +18,7 @@
 
 #include "animation/rs_render_property_animation.h"
 #include "animation/rs_spring_model.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -26,7 +27,7 @@ constexpr float SECOND_TO_MILLISECOND = 1e3;
 constexpr float MILLISECOND_TO_SECOND = 1e-3;
 } // namespace
 
-class RSRenderSpringAnimation : public RSRenderPropertyAnimation,
+class RS_EXPORT RSRenderSpringAnimation : public RSRenderPropertyAnimation,
     public RSSpringModel<std::shared_ptr<RSRenderPropertyBase>> {
 public:
     explicit RSRenderSpringAnimation(AnimationId id, const PropertyId& propertyId,

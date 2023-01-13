@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_NODE_COMMAND_H
 
 #include "command/rs_command_templates.h"
+#include "common/rs_macros.h"
 #include "pipeline/rs_render_node.h"
 #include "property/rs_properties.h"
 
@@ -46,7 +47,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_DRAW_CMD_LIST,
 };
 
-class RSNodeCommandHelper {
+class RS_EXPORT RSNodeCommandHelper {
 public:
     static void AddModifier(RSContext& context, NodeId nodeId, const std::shared_ptr<RSRenderModifier>& modifier);
     static void RemoveModifier(RSContext& context, NodeId nodeId, PropertyId propertyId);

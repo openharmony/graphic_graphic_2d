@@ -23,6 +23,7 @@
 #include <surface.h>
 #include "include/gpu/GrContext.h"
 
+#include "common/rs_macros.h"
 #include "common/rs_vector4.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "pipeline/rs_render_node.h"
@@ -40,7 +41,7 @@ namespace OHOS {
 namespace Rosen {
 class RSCommand;
 class RSDirtyRegionManager;
-class RSSurfaceRenderNode : public RSRenderNode, public RSSurfaceHandler {
+class RS_EXPORT RSSurfaceRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceRenderNode>;
     using SharedPtr = std::shared_ptr<RSSurfaceRenderNode>;
