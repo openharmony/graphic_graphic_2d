@@ -21,18 +21,13 @@ RSSkiaFilter::RSSkiaFilter(sk_sp<SkImageFilter> imageFilter) : RSFilter(), image
 
 RSSkiaFilter::~RSSkiaFilter() {}
 
-void RSSkiaFilter::ApplyTo(SkPaint& paint)
-{
-    paint.setImageFilter(imageFilter_);
-}
-
-void RSSkiaFilter::PostProcess(SkCanvas& canvas)
+SkPaint RSSkiaFilter::GetPaint() const
 {
     SkPaint paint;
-    if (IsMaterial()) {
-        paint.setColor(maskColor_);
-        canvas.drawPaint(paint);
-    }
+    paint.setAntiAlias(true);
+    paint.setBlendMode(SkBlendMode::kSrcOver);
+    paint.setImageFilter(imageFilter_);
+    return paint;
 }
 } // namespace Rosen
 } // namespace OHOS

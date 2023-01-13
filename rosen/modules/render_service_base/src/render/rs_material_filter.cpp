@@ -18,89 +18,52 @@
 
 #include "include/effects/SkBlurImageFilter.h"
 
+#include "pipeline/rs_paint_filter_canvas.h"
+#include "property/rs_properties_painter.h"
+
 namespace OHOS {
 namespace Rosen {
-// namesapce
 namespace {
-    constexpr float BLUR_SIGMA_SCALE = 0.57735f;
-
-    // card blur style
-    constexpr int STYLE_CARD_THIN_LIGHT = 1;
-    constexpr int STYLE_CARD_LIGHT = 2;
-    constexpr int STYLE_CARD_THICK_LIGHT = 3;
-    constexpr int STYLE_CARD_THIN_DARK = 4;
-    constexpr int STYLE_CARD_DARK = 5;
-    constexpr int STYLE_CARD_THICK_DARK = 6;
-
-    // background blur style
-    constexpr int STYLE_BACKGROUND_SMALL_LIGHT = 101;
-    constexpr int STYLE_BACKGROUND_MEDIUM_LIGHT = 102;
-    constexpr int STYLE_BACKGROUND_LARGE_LIGHT = 103;
-    constexpr int STYLE_BACKGROUND_XLARGE_LIGHT = 104;
-    constexpr int STYLE_BACKGROUND_SMALL_DARK = 105;
-    constexpr int STYLE_BACKGROUND_MEDIUM_DARK = 106;
-    constexpr int STYLE_BACKGROUND_LARGE_DARK = 107;
-    constexpr int STYLE_BACKGROUND_XLARGE_DARK = 108;
-
+constexpr float BLUR_SIGMA_SCALE = 0.57735f;
+// material blur style params
+struct MaterialParam {
+    float radius;
+    float saturation;
+    SkColor maskColor;
+};
+// style to MaterialParam map
+std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> materialParams_ {
     // card blur params
-    constexpr MaterialParam CARD_THIN_LIGHT = {75.0f, 1.22, 0x6BF0F0F0};
-    constexpr MaterialParam CARD_LIGHT = {50.0f, 1.8, 0x99FAFAFA};
-    constexpr MaterialParam CARD_THICK_LIGHT = {75.0f, 2.4, 0xB8FAFAFA};
-    constexpr MaterialParam CARD_THIN_DARK = {75.0f, 1.35, 0x6B1A1A1A};
-    constexpr MaterialParam CARD_DARK = {50.0f, 2.15, 0xD11F1F1F};
-    constexpr MaterialParam CARD_THICK_DARK = {75.0f, 2.15, 0xD11F1F1F};
-
+    { STYLE_CARD_THIN_LIGHT,         { 75.0f,  1.22, 0x6BF0F0F0 } },
+    { STYLE_CARD_LIGHT,              { 50.0f,  1.8,  0x99FAFAFA } },
+    { STYLE_CARD_THICK_LIGHT,        { 75.0f,  2.4,  0xB8FAFAFA } },
+    { STYLE_CARD_THIN_DARK,          { 75.0f,  1.35, 0x6B1A1A1A } },
+    { STYLE_CARD_DARK,               { 50.0f,  2.15, 0xD11F1F1F } },
+    { STYLE_CARD_THICK_DARK,         { 75.0f,  2.15, 0xD11F1F1F } },
     // background blur params
-    constexpr MaterialParam BACKGROUND_SMALL_LIGHT = {15.0f, 1.2, 0x4C666666};
-    constexpr MaterialParam BACKGROUND_MEDIUM_LIGHT = {55.0f, 1.5, 0x4C262626};
-    constexpr MaterialParam BACKGROUND_LARGE_LIGHT = {75.0f, 1.5, 0x4D262626};
-    constexpr MaterialParam BACKGROUND_XLARGE_LIGHT = {120.0f, 1.3, 0x4C666666};
-    constexpr MaterialParam BACKGROUND_SMALL_DARK = {15.0f, 1.1, 0x800D0D0D};
-    constexpr MaterialParam BACKGROUND_MEDIU_MDARK = {55.0f, 1.15, 0x800D0D0D};
-    constexpr MaterialParam BACKGROUND_LARGE_DARK = {75.0f, 1.5, 0x800D0D0D};
-    constexpr MaterialParam BACKGROUND_XLARGE_DARK = {130.0f, 1.3, 0x800D0D0D};
+    { STYLE_BACKGROUND_SMALL_LIGHT,  { 15.0f,  1.2,  0x4C666666 } },
+    { STYLE_BACKGROUND_MEDIUM_LIGHT, { 55.0f,  1.5,  0x4C262626 } },
+    { STYLE_BACKGROUND_LARGE_LIGHT,  { 75.0f,  1.5,  0x4D262626 } },
+    { STYLE_BACKGROUND_XLARGE_LIGHT, { 120.0f, 1.3,  0x4C666666 } },
+    { STYLE_BACKGROUND_SMALL_DARK,   { 15.0f,  1.1,  0x800D0D0D } },
+    { STYLE_BACKGROUND_MEDIUM_DARK,  { 55.0f,  1.15, 0x800D0D0D } },
+    { STYLE_BACKGROUND_LARGE_DARK,   { 75.0f,  1.5,  0x800D0D0D } },
+    { STYLE_BACKGROUND_XLARGE_DARK,  { 130.0f, 1.3,  0x800D0D0D } },
+};
+} // namespace
 
-    // style2materialparam map
-    std::unordered_map<int, MaterialParam> materialParams_ {
-        {STYLE_CARD_THIN_LIGHT, CARD_THIN_LIGHT},
-        {STYLE_CARD_LIGHT, CARD_LIGHT},
-        {STYLE_CARD_THICK_LIGHT, CARD_THICK_LIGHT},
-        {STYLE_CARD_THIN_DARK, CARD_THIN_DARK},
-        {STYLE_CARD_DARK, CARD_DARK},
-        {STYLE_CARD_THICK_DARK, CARD_THICK_DARK},
-        {STYLE_BACKGROUND_SMALL_LIGHT, BACKGROUND_SMALL_LIGHT},
-        {STYLE_BACKGROUND_MEDIUM_LIGHT, BACKGROUND_MEDIUM_LIGHT},
-        {STYLE_BACKGROUND_LARGE_LIGHT, BACKGROUND_LARGE_LIGHT},
-        {STYLE_BACKGROUND_XLARGE_LIGHT, BACKGROUND_XLARGE_LIGHT},
-        {STYLE_BACKGROUND_SMALL_DARK, BACKGROUND_SMALL_DARK},
-        {STYLE_BACKGROUND_MEDIUM_DARK, BACKGROUND_MEDIU_MDARK},
-        {STYLE_BACKGROUND_LARGE_DARK, BACKGROUND_LARGE_DARK},
-        {STYLE_BACKGROUND_XLARGE_DARK, BACKGROUND_XLARGE_DARK}
-    };
-}
-
-RSMaterialFilter::RSMaterialFilter(int style, float dipScale)
-    : RSSkiaFilter(RSMaterialFilter::CreateMaterialStyle(style, dipScale)), style_(style), dipScale_(dipScale)
+RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode)
+    : RSSkiaFilter(RSMaterialFilter::CreateMaterialStyle(static_cast<MATERIAL_BLUR_STYLE>(style), dipScale)),
+      dipScale_(dipScale), style_(static_cast<MATERIAL_BLUR_STYLE>(style)), colorMode_(mode)
 {
     type_ = FilterType::MATERIAL;
 }
 
-RSMaterialFilter::~RSMaterialFilter() {}
+RSMaterialFilter::~RSMaterialFilter() = default;
 
-int RSMaterialFilter::GetStyle() const
-{
-    return style_;
-}
-
-float RSMaterialFilter::GetDipScale() const
-{
-    return dipScale_;
-}
-
-float RSMaterialFilter::RadiusVp2Sigma(float radiusVp, float dipScale) const
+float RSMaterialFilter::RadiusVp2Sigma(float radiusVp, float dipScale)
 {
     float radiusPx = radiusVp * dipScale;
-
     return radiusPx > 0.0f ? BLUR_SIGMA_SCALE * radiusPx + SK_ScalarHalf : 0.0f;
 }
 
@@ -116,15 +79,30 @@ sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialFilter(float radius, float 
     return SkImageFilters::ColorFilter(satFilter, blurFilter);
 }
 
-sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialStyle(int style, float dipScale)
+sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialStyle(MATERIAL_BLUR_STYLE style, float dipScale)
 {
     if (materialParams_.find(style) != materialParams_.end()) {
         MaterialParam materialParam = materialParams_[style];
-        return RSMaterialFilter::CreateMaterialFilter(
-            RSMaterialFilter::RadiusVp2Sigma(materialParam.radius, dipScale),
+        return RSMaterialFilter::CreateMaterialFilter(RSMaterialFilter::RadiusVp2Sigma(materialParam.radius, dipScale),
             materialParam.saturation, materialParam.maskColor);
     }
+    // ??
     return nullptr;
+}
+
+void RSMaterialFilter::PreProcess(sk_sp<SkImage> imageSnapshot)
+{
+    if (colorMode_ == AVERAGE && imageSnapshot != nullptr) {
+        // update maskColor while persevere alpha
+        maskColor_ = SkColorSetA(RSPropertiesPainter::CalcAverageColor(imageSnapshot), SkColorGetA(maskColor_));
+    }
+}
+
+void RSMaterialFilter::PostProcess(RSPaintFilterCanvas& canvas)
+{
+    SkPaint paint;
+    paint.setColor(maskColor_);
+    canvas.drawPaint(paint);
 }
 
 std::shared_ptr<RSFilter> RSMaterialFilter::Add(const std::shared_ptr<RSFilter>& rhs)
