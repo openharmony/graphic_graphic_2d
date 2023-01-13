@@ -64,7 +64,7 @@ namespace OHOS {
         sptr<SyncFence> fence = new SyncFence(fenceFd);
         LayerAlpha alpha = GetData<LayerAlpha>();
         IRect layerRect = GetData<IRect>();
-        TransformType ttype = GetData<TransformType>();
+        GraphicTransformType ttype = GetData<GraphicTransformType>();
         uint32_t num = GetData<uint32_t>();
         IRect visible = GetData<IRect>();
         IRect dirty = GetData<IRect>();

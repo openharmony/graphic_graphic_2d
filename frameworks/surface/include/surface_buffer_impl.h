@@ -58,9 +58,9 @@ public:
     uint32_t GetSize() const override;
 
     const ColorGamut& GetSurfaceBufferColorGamut() const override;
-    const TransformType& GetSurfaceBufferTransform() const override;
+    const GraphicTransformType& GetSurfaceBufferTransform() const override;
     void SetSurfaceBufferColorGamut(const ColorGamut& colorGamut) override;
-    void SetSurfaceBufferTransform(const TransformType& transform) override;
+    void SetSurfaceBufferTransform(const GraphicTransformType& transform) override;
 
     int32_t GetSurfaceBufferWidth() const override;
     int32_t GetSurfaceBufferHeight() const override;
@@ -97,7 +97,7 @@ private:
     sptr<BufferExtraData> bedata_ = nullptr;
     sptr<EglData> eglData_ = nullptr;
     ColorGamut surfaceBufferColorGamut_ = ColorGamut::COLOR_GAMUT_SRGB;
-    TransformType transform_ = TransformType::ROTATE_NONE;
+    GraphicTransformType transform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     int32_t surfaceBufferWidth_ = 0;
     int32_t surfaceBufferHeight_ = 0;
     mutable std::mutex mutex_;

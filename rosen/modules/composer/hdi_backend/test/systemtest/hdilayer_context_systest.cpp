@@ -111,7 +111,7 @@ GSError HdiLayerContext::FillHdiLayer()
     hdiLayer_->SetVisibleRegion(1, srcRect_);
     hdiLayer_->SetBlendType(BlendType::BLEND_SRCOVER);
     hdiLayer_->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
-    hdiLayer_->SetTransform(TransformType::ROTATE_NONE);
+    hdiLayer_->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     hdiLayer_->SetPreMulti(false);
     return ret;
 }

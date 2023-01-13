@@ -63,7 +63,7 @@ public:
 
     virtual GSError RegisterReleaseListener(OnReleaseFunc func) = 0;
 
-    virtual GSError SetTransform(TransformType transform) = 0;
+    virtual GSError SetTransform(GraphicTransformType transform) = 0;
 
     virtual GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
                                      std::vector<bool> &supporteds) = 0;

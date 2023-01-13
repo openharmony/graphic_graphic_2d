@@ -404,7 +404,7 @@ HWTEST_F(BufferClientProducerRemoteTest, GetDefaultUsage001, Function | MediumTe
 */
 HWTEST_F(BufferClientProducerRemoteTest, SetTransform001, Function | MediumTest | Level2)
 {
-    TransformType transform = TransformType::ROTATE_90;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_90;
     GSError ret = bp->SetTransform(transform);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }

@@ -250,7 +250,7 @@ int32_t BufferQueueProducer::RegisterReleaseListenerRemote(MessageParcel &argume
 
 int32_t BufferQueueProducer::SetTransformRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
-    TransformType transform = static_cast<TransformType>(arguments.ReadUint32());
+    GraphicTransformType transform = static_cast<GraphicTransformType>(arguments.ReadUint32());
     GSError sret = SetTransform(transform);
     reply.WriteInt32(sret);
     return 0;
@@ -485,7 +485,7 @@ GSError BufferQueueProducer::RegisterReleaseListener(OnReleaseFunc func)
     return bufferQueue_->RegisterReleaseListener(func);
 }
 
-GSError BufferQueueProducer::SetTransform(TransformType transform)
+GSError BufferQueueProducer::SetTransform(GraphicTransformType transform)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;

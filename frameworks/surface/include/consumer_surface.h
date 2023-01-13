@@ -84,8 +84,8 @@ public:
     GSError CleanCache() override;
     GSError GoBackground() override;
 
-    GSError SetTransform(TransformType transform) override;
-    TransformType GetTransform() const override;
+    GSError SetTransform(GraphicTransformType transform) override;
+    GraphicTransformType GetTransform() const override;
 
     GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos, std::vector<bool> &supporteds) override;
     GSError Disconnect() override;

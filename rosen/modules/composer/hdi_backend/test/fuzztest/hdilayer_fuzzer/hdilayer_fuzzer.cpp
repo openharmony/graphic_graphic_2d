@@ -67,7 +67,7 @@ namespace OHOS {
         // get data
         int32_t zOrder = GetData<int32_t>();
         LayerAlpha alpha = GetData<LayerAlpha>();
-        TransformType transformType = GetData<TransformType>();
+        GraphicTransformType transformType = GetData<GraphicTransformType>();
         CompositionType compositionType = GetData<CompositionType>();
         uint32_t num = GetData<uint32_t>();
         IRect visibleRegion = GetData<IRect>();

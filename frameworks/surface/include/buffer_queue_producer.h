@@ -65,7 +65,7 @@ public:
 
     GSError RegisterReleaseListener(OnReleaseFunc func) override;
 
-    GSError SetTransform(TransformType transform) override;
+    GSError SetTransform(GraphicTransformType transform) override;
 
     GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos, std::vector<bool> &supporteds) override;
 

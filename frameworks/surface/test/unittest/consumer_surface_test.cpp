@@ -354,7 +354,7 @@ HWTEST_F(ConsumerSurfaceTest, RegisterConsumerListener002, Function | MediumTest
  */
 HWTEST_F(ConsumerSurfaceTest, transform001, Function | MediumTest | Level2)
 {
-    ASSERT_EQ(cs->GetTransform(), TransformType::ROTATE_NONE);
+    ASSERT_EQ(cs->GetTransform(), GraphicTransformType::GRAPHIC_ROTATE_NONE);
 }
 
 /*
@@ -367,10 +367,10 @@ HWTEST_F(ConsumerSurfaceTest, transform001, Function | MediumTest | Level2)
  */
 HWTEST_F(ConsumerSurfaceTest, transform002, Function | MediumTest | Level1)
 {
-    TransformType transform = TransformType::ROTATE_90;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_90;
     GSError ret = ps->SetTransform(transform);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
-    ASSERT_EQ(cs->GetTransform(), TransformType::ROTATE_90);
+    ASSERT_EQ(cs->GetTransform(), GraphicTransformType::GRAPHIC_ROTATE_90);
 }
 
 /*
@@ -383,10 +383,10 @@ HWTEST_F(ConsumerSurfaceTest, transform002, Function | MediumTest | Level1)
  */
 HWTEST_F(ConsumerSurfaceTest, transform003, Function | MediumTest | Level1)
 {
-    TransformType transform = TransformType::ROTATE_180;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_180;
     GSError ret = ps->SetTransform(transform);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
-    ASSERT_EQ(cs->GetTransform(), TransformType::ROTATE_180);
+    ASSERT_EQ(cs->GetTransform(), GraphicTransformType::GRAPHIC_ROTATE_180);
 }
 
 /*
@@ -399,10 +399,10 @@ HWTEST_F(ConsumerSurfaceTest, transform003, Function | MediumTest | Level1)
  */
 HWTEST_F(ConsumerSurfaceTest, transform004, Function | MediumTest | Level1)
 {
-    TransformType transform = TransformType::ROTATE_270;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_270;
     GSError ret = ps->SetTransform(transform);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
-    ASSERT_EQ(cs->GetTransform(), TransformType::ROTATE_270);
+    ASSERT_EQ(cs->GetTransform(), GraphicTransformType::GRAPHIC_ROTATE_270);
 }
 
 /*
@@ -415,10 +415,10 @@ HWTEST_F(ConsumerSurfaceTest, transform004, Function | MediumTest | Level1)
  */
 HWTEST_F(ConsumerSurfaceTest, transform005, Function | MediumTest | Level1)
 {
-    TransformType transform = TransformType::ROTATE_NONE;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     GSError ret = ps->SetTransform(transform);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
-    ASSERT_EQ(cs->GetTransform(), TransformType::ROTATE_NONE);
+    ASSERT_EQ(cs->GetTransform(), GraphicTransformType::GRAPHIC_ROTATE_NONE);
 }
 
 /*

@@ -239,7 +239,7 @@ bool DrawingEngineSample::DrawDrawingLayer(std::shared_ptr<HdiLayerInfo> &layer)
     layer->SetBuffer(cbuffer, acquireSyncFence);
     layer->SetZorder(zorder);
     layer->SetAlpha(alpha);
-    layer->SetTransform(TransformType::ROTATE_NONE);
+    layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     layer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
     layer->SetVisibleRegion(1, srcRect);
     layer->SetDirtyRegion(srcRect);
