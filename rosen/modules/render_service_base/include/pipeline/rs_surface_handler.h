@@ -147,6 +147,7 @@ public:
 
 protected:
     sptr<Surface> consumer_;
+    bool isCurrentFrameBufferConsumed_ = false;
 
 private:
     NodeId id_ = 0;
@@ -154,8 +155,6 @@ private:
     SurfaceBufferEntry preBuffer_;
     float globalZOrder_ = 0.0f;
     std::atomic<int> bufferAvailableCount_ = 0;
-
-    bool isCurrentFrameBufferConsumed_ = false;
 };
 }
 }

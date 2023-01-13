@@ -426,6 +426,15 @@ void RSSurfaceRenderNode::SetStartAnimationFinished()
     startAnimationFinished_ = true;
 }
 
+bool RSSurfaceRenderNode::UpdateDirtyIfFrameBufferConsumed()
+{
+    if (isCurrentFrameBufferConsumed_) {
+        SetDirty();
+        return true;
+    }
+    return false;
+}
+
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
                                                     VisibleData& visibleVec,
                                                     std::map<uint32_t, bool>& pidVisMap)

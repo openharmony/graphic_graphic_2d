@@ -381,15 +381,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         }
     }
 
-    // if surfacenode is selfdrawing node, when currentframe buffer consumed [frame refreshed], merge into dirtyRegion
-    if (node.IsSelfDrawingNodeType()) {
-        auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
-        if (surfaceHandler.IsCurrentFrameBufferConsumed()) {
-            RectI dirtyRect = node.GetDstRect().IntersectRect(prepareClipRect_);
-            curSurfaceDirtyManager_->MergeDirtyRect(dirtyRect);
-        }
-    }
-
     // [planning] Remove this after skia is upgraded, the clipRegion is supported
     // reset childrenFilterRects
     node.ResetChildrenFilterRects();

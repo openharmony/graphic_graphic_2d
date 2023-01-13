@@ -474,6 +474,9 @@ public:
         cachedImage_ = nullptr;
     }
 
+    // if surfacenode's buffer has been comsumed, it should be set dirty
+    bool UpdateDirtyIfFrameBufferConsumed();
+
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
     bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;
