@@ -37,8 +37,8 @@ ohos_unittest("RSRenderAnimationTest") {
   configs = [ ":rs_render_animation_test_config" ]
 
   deps = [
+    "../../../../render_service_base:render_service_base_src",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/window/window_manager/wm:libwm",
     "//third_party/googletest:gtest_main",
   ]

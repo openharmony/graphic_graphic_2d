@@ -170,6 +170,9 @@ ohos_source_set("render_service_base_src") {
     "-fvisibility-inlines-hidden",
   ]
 
+  public_configs = [ ":export_config" ]
+  public_deps = [ "src/platform:platform" ]
+
   if (enable_export_macro) {
     defines += [ "ENABLE_EXPORT_MACRO" ]
   }
@@ -179,13 +182,6 @@ ohos_source_set("render_service_base_src") {
   }
 
   include_dirs = [
-    "include",
-    "//foundation/graphic/graphic_2d/rosen/include",
-    "//drivers/peripheral/display/interfaces/include",
-    "//foundation/multimedia/image_framework/interfaces/innerkits/include",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/composer",
-    "//foundation/graphic/graphic_2d/utils/sandbox",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/utils/log",
     "//third_party/flutter/skia/src",
@@ -193,7 +189,6 @@ ohos_source_set("render_service_base_src") {
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src/platform:platform",
     "//foundation/graphic/graphic_2d/utils:sandbox_utils",
   ]
 
@@ -202,6 +197,7 @@ ohos_source_set("render_service_base_src") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "multimedia_image_framework:image_native",
   ]
 
   if (rosen_is_win) {
@@ -225,7 +221,6 @@ ohos_shared_library("librender_service_base") {
   public_deps = [
     ":render_service_base_src",
     "src/platform:platform",
-    "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
   ]
 
   part_name = "graphic_standard"
