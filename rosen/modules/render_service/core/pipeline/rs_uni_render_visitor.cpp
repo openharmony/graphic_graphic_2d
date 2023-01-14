@@ -1478,6 +1478,7 @@ void RSUniRenderVisitor::FinishOffscreenRender()
         RS_LOGD("RSUniRenderVisitor::FinishOffscreenRender, canvasBackup_ is nullptr");
         return;
     }
+    RS_TRACE_NAME("RSUniRenderVisitor::OffscreenRender finish");
     // flush offscreen canvas, maybe unnecessary
     canvas_->flush();
     // draw offscreen surface to current canvas

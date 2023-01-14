@@ -77,7 +77,13 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
         return;
     }
     layers_.emplace_back(layer);
-    layerNum += node.GetCurAllSurfaces().size();
+    for (auto surface : node.GetCurAllSurfaces()) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);
+        if (!surfaceNode || !surfaceNode->GetOcclusionVisible()) {
+            continue;
+        }
+        layerNum++;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
