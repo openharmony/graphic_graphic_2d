@@ -18,10 +18,11 @@
 
 #include "animation/rs_interpolator.h"
 #include "animation/rs_spring_model.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSSpringInterpolator : public RSSpringModel<float>, public RSInterpolator {
+class RS_EXPORT RSSpringInterpolator : public RSSpringModel<float>, public RSInterpolator {
 public:
     RSSpringInterpolator(float response, float dampingRatio, float initialVelocity);
 

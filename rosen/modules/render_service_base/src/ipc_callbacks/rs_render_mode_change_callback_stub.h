@@ -19,11 +19,12 @@
 #ifdef ROSEN_OHOS
 #include <iremote_stub.h>
 
+#include "common/rs_macros.h"
 #include "ipc_callbacks/rs_irender_mode_change_callback.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderModeChangeCallbackStub : public IRemoteStub<RSIRenderModeChangeCallback> {
+class RS_EXPORT RSRenderModeChangeCallbackStub : public IRemoteStub<RSIRenderModeChangeCallback> {
 public:
     RSRenderModeChangeCallbackStub() = default;
     ~RSRenderModeChangeCallbackStub() = default;

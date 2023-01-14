@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "command/rs_command.h"
+#include "common/rs_macros.h"
 #include "pipeline/rs_context.h"
 
 #ifdef ROSEN_OHOS
@@ -29,7 +30,7 @@
 namespace OHOS {
 namespace Rosen {
 #ifdef ROSEN_OHOS
-class RSTransactionData : public Parcelable {
+class RS_EXPORT RSTransactionData : public Parcelable {
 #else
 class RSTransactionData {
 #endif

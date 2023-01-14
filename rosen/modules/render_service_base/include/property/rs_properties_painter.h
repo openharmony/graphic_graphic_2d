@@ -18,13 +18,14 @@
 
 #include "property/rs_properties.h"
 #include "pipeline/rs_draw_cmd_list.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSSkiaFilter;
 class RSPaintFilterCanvas;
 
-class RSPropertiesPainter {
+class RS_EXPORT RSPropertiesPainter {
 public:
     static void Clip(SkCanvas& canvas, RectF rect);
     static void SetBgAntiAlias(bool forceBgAntiAlias);

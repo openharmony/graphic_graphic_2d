@@ -36,7 +36,7 @@ ohos_unittest("RSRenderServiceBaseModifierTest") {
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "../../../../../modules/render_service_base:render_service_base_src",
     "//third_party/flutter/build/skia:ace_skia_ohos",
     "//third_party/googletest:gtest_main",
   ]

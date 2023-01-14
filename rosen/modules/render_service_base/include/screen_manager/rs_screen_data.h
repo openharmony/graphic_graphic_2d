@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include "common/rs_macros.h"
 #include "screen_manager/rs_screen_capability.h"
 #include "screen_manager/rs_screen_mode_info.h"
 #include "screen_manager/rs_screen_props.h"
@@ -29,7 +30,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSScreenData : public Parcelable {
+class RS_EXPORT RSScreenData : public Parcelable {
 public:
     RSScreenData() = default;
     RSScreenData(RSScreenCapability capability, RSScreenModeInfo activityModeInfo,

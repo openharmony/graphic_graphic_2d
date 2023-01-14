@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H
 
 #include "command/rs_command_templates.h"
+#include "common/rs_macros.h"
 #include "common/rs_vector4.h"
 #include "surface_type.h"
 
@@ -45,7 +46,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_ANIMATION_FINISHED
 };
 
-class SurfaceNodeCommandHelper {
+class RS_EXPORT SurfaceNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId nodeId);
     static void SetContextMatrix(RSContext& context, NodeId nodeId, SkMatrix matrix);

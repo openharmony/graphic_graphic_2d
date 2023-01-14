@@ -16,6 +16,7 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_RS_APPLICATION_AGENT_STUB_H
 #define ROSEN_RENDER_SERVICE_BASE_RS_APPLICATION_AGENT_STUB_H
 
+#include "common/rs_macros.h"
 #ifdef ROSEN_OHOS
 #include <iremote_stub.h>
 
@@ -23,7 +24,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSApplicationAgentStub : public IRemoteStub<IApplicationAgent> {
+class RS_EXPORT RSApplicationAgentStub : public IRemoteStub<IApplicationAgent> {
 public:
     RSApplicationAgentStub() = default;
     ~RSApplicationAgentStub() = default;

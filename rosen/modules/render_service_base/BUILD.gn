@@ -31,13 +31,7 @@ config("export_config") {
   defines = rs_common_define
 }
 
-config("render_service_base_all_deps_config") {
-  include_dirs = [ "include" ]
-}
-
-ohos_shared_library("librender_service_base") {
-  public_configs = [ ":export_config" ]
-  all_dependent_configs = [ ":render_service_base_all_deps_config" ]
+ohos_source_set("render_service_base_src") {
   defines = []
   defines += gpu_defines
 
@@ -162,6 +156,27 @@ ohos_shared_library("librender_service_base") {
     "src/overdraw/rs_overdraw_controller.cpp",
   ]
 
+  cflags = [
+    "-Wall",
+    "-Wno-pointer-arith",
+    "-Wno-non-virtual-dtor",
+    "-Wno-missing-field-initializers",
+    "-Wno-c++11-narrowing",
+    "-fvisibility=hidden",
+  ]
+
+  cflags_cc = [
+    "-std=c++17",
+    "-fvisibility-inlines-hidden",
+  ]
+
+  public_configs = [ ":export_config" ]
+  public_deps = [ "src/platform:platform" ]
+
+  if (enable_export_macro) {
+    defines += [ "ENABLE_EXPORT_MACRO" ]
+  }
+
   if (rs_enable_gpu) {
     sources += [ "src/common/rs_shared_context.cpp" ]
   }
@@ -174,7 +189,6 @@ ohos_shared_library("librender_service_base") {
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src/platform:platform",
     "//foundation/graphic/graphic_2d/utils:sandbox_utils",
   ]
 
@@ -183,15 +197,8 @@ ohos_shared_library("librender_service_base") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "multimedia_image_framework:image_native",
   ]
-
-  public_deps = [
-    "src/platform:platform",
-    "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
-  ]
-
-  part_name = "graphic_standard"
-  subsystem_name = "graphic"
 
   if (rosen_is_win) {
     defines += [ "_USE_MATH_DEFINES" ]
@@ -201,4 +208,21 @@ ohos_shared_library("librender_service_base") {
     sources -= graphic_2d_ext_configs.librender_service_base_ext_sources_del
     sources += graphic_2d_ext_configs.librender_service_base_ext_sources
   }
+}
+
+config("render_service_base_all_deps_config") {
+  include_dirs = [ "include" ]
+}
+
+ohos_shared_library("librender_service_base") {
+  public_configs = [ ":export_config" ]
+  all_dependent_configs = [ ":render_service_base_all_deps_config" ]
+
+  public_deps = [
+    ":render_service_base_src",
+    "src/platform:platform",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
 }

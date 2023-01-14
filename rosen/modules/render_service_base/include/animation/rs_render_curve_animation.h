@@ -18,10 +18,11 @@
 
 #include "animation/rs_interpolator.h"
 #include "animation/rs_render_property_animation.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderCurveAnimation : public RSRenderPropertyAnimation {
+class RS_EXPORT RSRenderCurveAnimation : public RSRenderPropertyAnimation {
 public:
     RSRenderCurveAnimation(AnimationId id, const PropertyId& propertyId,
         const std::shared_ptr<RSRenderPropertyBase>& originValue,

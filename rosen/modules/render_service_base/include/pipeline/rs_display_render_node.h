@@ -22,6 +22,7 @@
 
 #include "sync_fence.h"
 
+#include "common/rs_macros.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include "platform/drawing/rs_surface.h"
@@ -30,7 +31,7 @@
 namespace OHOS {
 namespace Rosen {
 enum class ScreenRotation : uint32_t;
-class RSDisplayRenderNode : public RSRenderNode, public RSSurfaceHandler {
+class RS_EXPORT RSDisplayRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
     enum CompositeType {
         UNI_RENDER_COMPOSITE = 0,

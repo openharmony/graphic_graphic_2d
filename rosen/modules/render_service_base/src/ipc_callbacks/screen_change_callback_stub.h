@@ -20,10 +20,11 @@
 #include <iremote_stub.h>
 
 #include "ipc_callbacks/screen_change_callback.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSScreenChangeCallbackStub : public IRemoteStub<RSIScreenChangeCallback> {
+class RS_EXPORT RSScreenChangeCallbackStub : public IRemoteStub<RSIScreenChangeCallback> {
 public:
     RSScreenChangeCallbackStub() = default;
     ~RSScreenChangeCallbackStub() = default;

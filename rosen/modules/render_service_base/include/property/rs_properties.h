@@ -18,6 +18,7 @@
 
 #include <vector>
 
+#include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
 #include "property/rs_properties_def.h"
@@ -31,7 +32,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSProperties final {
+class RS_EXPORT RSProperties final {
 public:
     RSProperties();
     virtual ~RSProperties();

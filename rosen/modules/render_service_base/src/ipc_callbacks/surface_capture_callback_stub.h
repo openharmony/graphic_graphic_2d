@@ -20,10 +20,11 @@
 #include <iremote_stub.h>
 
 #include "ipc_callbacks/surface_capture_callback.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSSurfaceCaptureCallbackStub : public IRemoteStub<RSISurfaceCaptureCallback> {
+class RS_EXPORT RSSurfaceCaptureCallbackStub : public IRemoteStub<RSISurfaceCaptureCallback> {
 public:
     RSSurfaceCaptureCallbackStub() = default;
     ~RSSurfaceCaptureCallbackStub() = default;

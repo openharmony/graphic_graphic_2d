@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_TRANSACTION_RS_MARSHALLING_HELPER_H
 
 #include <memory>
+#include "common/rs_macros.h"
 #ifdef ROSEN_OHOS
 
 #include <parcel.h>
@@ -62,7 +63,7 @@ class RSRenderProperty;
 template<typename T>
 class RSRenderAnimatableProperty;
 
-class RSMarshallingHelper {
+class RS_EXPORT RSMarshallingHelper {
 public:
     // default marshalling and unmarshalling method for POD types
     // [PLANNING]: implement marshalling & unmarshalling methods for other types (e.g. RSImage, drawCMDList)

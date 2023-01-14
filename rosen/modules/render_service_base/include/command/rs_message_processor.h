@@ -18,11 +18,13 @@
 #include <memory>
 #include <unordered_map>
 
+#include "common/rs_macros.h"
+
 namespace OHOS {
 namespace Rosen {
 class RSCommand;
 class RSTransactionData;
-class RSMessageProcessor final {
+class RS_EXPORT RSMessageProcessor final {
 public:
     static RSMessageProcessor& Instance();
 

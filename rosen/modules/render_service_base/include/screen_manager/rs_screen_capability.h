@@ -22,12 +22,13 @@
 #include <string>
 #include <vector>
 
+#include "common/rs_macros.h"
 #include "screen_manager/rs_screen_props.h"
 #include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSScreenCapability : public Parcelable {
+class RS_EXPORT RSScreenCapability : public Parcelable {
 public:
     RSScreenCapability() = default;
     RSScreenCapability(std::string name, ScreenInterfaceType type, uint32_t phyWidth,

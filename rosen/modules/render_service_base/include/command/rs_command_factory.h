@@ -21,13 +21,14 @@
 #include <unordered_map>
 
 #include "common/rs_common_def.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSCommand;
 using UnmarshallingFunc = RSCommand* (*)(Parcel& parcel);
 
-class RSCommandFactory {
+class RS_EXPORT RSCommandFactory {
 public:
     static RSCommandFactory& Instance();
 

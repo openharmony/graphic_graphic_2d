@@ -15,13 +15,14 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_PROXY_RENDER_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_PROXY_RENDER_NODE_H
 
+#include "common/rs_macros.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSSurfaceRenderNode;
-class RSProxyRenderNode : public RSRenderNode {
+class RS_EXPORT RSProxyRenderNode : public RSRenderNode {
 public:
     using WeakPtr = std::weak_ptr<RSProxyRenderNode>;
     using SharedPtr = std::shared_ptr<RSProxyRenderNode>;

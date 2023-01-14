@@ -19,6 +19,7 @@
 #include <unordered_set>
 
 #include "animation/rs_animation_manager.h"
+#include "common/rs_macros.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
@@ -30,7 +31,7 @@ namespace Rosen {
 class DrawCmdList;
 class RSPaintFilterCanvas;
 
-class RSRenderNode : public RSBaseRenderNode {
+class RS_EXPORT RSRenderNode : public RSBaseRenderNode {
 public:
     using WeakPtr = std::weak_ptr<RSRenderNode>;
     using SharedPtr = std::shared_ptr<RSRenderNode>;

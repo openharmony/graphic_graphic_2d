@@ -20,11 +20,12 @@
 #include <parcel.h>
 #include <vector>
 
+#include "common/rs_macros.h"
 #include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSScreenHDRCapability : public Parcelable {
+class RS_EXPORT RSScreenHDRCapability : public Parcelable {
 public:
     RSScreenHDRCapability() = default;
     RSScreenHDRCapability(float maxLum, float minLum, float maxAverageLum, const std::vector<ScreenHDRFormat>& formats);

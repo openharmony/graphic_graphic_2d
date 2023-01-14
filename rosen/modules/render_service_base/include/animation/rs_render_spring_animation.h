@@ -18,10 +18,11 @@
 
 #include "animation/rs_render_property_animation.h"
 #include "animation/rs_spring_model.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderSpringAnimation : public RSRenderPropertyAnimation,
+class RS_EXPORT RSRenderSpringAnimation : public RSRenderPropertyAnimation,
     public RSSpringModel<std::shared_ptr<RSRenderPropertyBase>> {
 public:
     explicit RSRenderSpringAnimation(AnimationId id, const PropertyId& propertyId,

@@ -18,11 +18,12 @@
 #include <surface.h>
 
 #include "common/rs_common_def.h"
+#include "common/rs_macros.h"
 #include "sync_fence.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSSurfaceHandler {
+class RS_EXPORT RSSurfaceHandler {
 public:
     // indicates which node this handler belongs to.
     explicit RSSurfaceHandler(NodeId id) : id_(id) {}

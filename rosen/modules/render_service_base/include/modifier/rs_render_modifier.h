@@ -20,6 +20,7 @@
 #include "parcel.h"
 
 #include "common/rs_color.h"
+#include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
@@ -59,7 +60,7 @@ public:
     static RSRenderModifier* Unmarshalling(Parcel& parcel);
 };
 
-class RSDrawCmdListRenderModifier : public RSRenderModifier {
+class RS_EXPORT RSDrawCmdListRenderModifier : public RSRenderModifier {
 public:
     RSDrawCmdListRenderModifier(const std::shared_ptr<RSRenderProperty<DrawCmdListPtr>>& property)
         : property_(property ? property : std::make_shared<RSRenderProperty<DrawCmdListPtr>>())
@@ -184,7 +185,7 @@ public:
 
 // declare RenderModifiers like RSBoundsRenderModifier
 #define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER)         \
-    class RS##MODIFIER_NAME##RenderModifier : public RS##MODIFIER_TIER##RenderModifier {                 \
+    class RS_EXPORT RS##MODIFIER_NAME##RenderModifier : public RS##MODIFIER_TIER##RenderModifier {                 \
     public:                                                                                              \
         RS##MODIFIER_NAME##RenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)         \
             : RS##MODIFIER_TIER##RenderModifier(property)                                                \
