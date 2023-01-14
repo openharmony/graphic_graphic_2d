@@ -18,10 +18,11 @@
 
 #include <string>
 #include <vector>
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSOcclusionConfig {
+class RS_EXPORT RSOcclusionConfig {
 public:
     static RSOcclusionConfig& GetInstance();
     bool IsLeashWindow(std::string win);
