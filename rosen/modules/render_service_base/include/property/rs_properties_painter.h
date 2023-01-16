@@ -45,8 +45,6 @@ public:
     static SkRRect RRect2SkRRect(const RRect& rr);
     static SkRect Rect2SkRect(const RectF& r);
     static int GetAndResetBlurCnt();
-
-    static SkColor CalcAverageColor(RSPaintFilterCanvas& canvas, const std::unique_ptr<SkRect>& rect = nullptr);
     static SkColor CalcAverageColor(sk_sp<SkImage> imageSnapshot);
 private:
     inline static int g_blurCnt = 0;

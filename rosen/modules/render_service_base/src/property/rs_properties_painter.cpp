@@ -299,27 +299,6 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     filter->PostProcess(canvas);
 }
 
-SkColor RSPropertiesPainter::CalcAverageColor(RSPaintFilterCanvas& canvas, const std::unique_ptr<SkRect>& rect)
-{
-    SkAutoCanvasRestore acr(&canvas, true);
-    if (rect) {
-        canvas.clipRect(*rect, true);
-    }
-
-    auto skSurface = canvas.GetSurface();
-    if (skSurface == nullptr) {
-        ROSEN_LOGE("RSPropertiesPainter::GetAverageColor skSurface null");
-        return SK_ColorTRANSPARENT;
-    }
-    // make snapshot
-    auto imageSnapshot = skSurface->makeImageSnapshot(canvas.getDeviceClipBounds());
-    if (imageSnapshot == nullptr) {
-        ROSEN_LOGE("RSPropertiesPainter::GetAverageColor imageSnapshot null");
-        return SK_ColorTRANSPARENT;
-    }
-    return CalcAverageColor(imageSnapshot);
-}
-
 SkColor RSPropertiesPainter::CalcAverageColor(sk_sp<SkImage> imageSnapshot)
 {
     // create a 1x1 SkPixmap
