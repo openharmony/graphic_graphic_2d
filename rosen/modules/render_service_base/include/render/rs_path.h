@@ -27,7 +27,7 @@
 class SkPath;
 namespace OHOS {
 namespace Rosen {
-class RSPath {
+class RS_EXPORT RSPath {
 public:
     RSPath();
     virtual ~RSPath();
@@ -56,9 +56,9 @@ private:
 };
 
 template<>
-bool RSPath::GetPosTan(float distance, Vector2f& pos, float& degrees) const;
+RS_EXPORT bool RSPath::GetPosTan(float distance, Vector2f& pos, float& degrees) const;
 template<>
-bool RSPath::GetPosTan(float distance, Vector4f& pos, float& degrees) const;
+RS_EXPORT bool RSPath::GetPosTan(float distance, Vector4f& pos, float& degrees) const;
 } // namespace Rosen
 } // namespace OHOS
 

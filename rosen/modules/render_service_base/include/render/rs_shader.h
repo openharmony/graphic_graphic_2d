@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSShader {
+class RS_EXPORT RSShader {
 public:
     static std::shared_ptr<RSShader> CreateRSShader();
     static std::shared_ptr<RSShader> CreateRSShader(const sk_sp<SkShader>& skShader);

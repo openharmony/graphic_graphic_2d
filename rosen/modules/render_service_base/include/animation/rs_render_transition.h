@@ -19,12 +19,13 @@
 #include "animation/rs_interpolator.h"
 #include "animation/rs_render_animation.h"
 #include "animation/rs_render_transition_effect.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSTransitionEffect;
 
-class RSRenderTransition : public RSRenderAnimation {
+class RS_EXPORT RSRenderTransition : public RSRenderAnimation {
 public:
     RSRenderTransition(AnimationId id, const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn);
     void SetInterpolator(const std::shared_ptr<RSInterpolator>& interpolator)

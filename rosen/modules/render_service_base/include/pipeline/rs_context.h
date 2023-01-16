@@ -16,12 +16,13 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_PIPELINE_RS_CONTEXT_H
 #define ROSEN_RENDER_SERVICE_BASE_PIPELINE_RS_CONTEXT_H
 
+#include "common/rs_macros.h"
 #include "pipeline/rs_render_node_map.h"
 
 namespace OHOS {
 namespace Rosen {
 
-class RSContext : public std::enable_shared_from_this<RSContext> {
+class RS_EXPORT RSContext : public std::enable_shared_from_this<RSContext> {
 public:
     RSContext() = default;
     ~RSContext() = default;

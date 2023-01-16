@@ -68,7 +68,10 @@ ohos_unittest("RSUniRenderJudgementTest") {
 ohos_unittest("RSRenderServiceVisitorTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_service_visitor_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:render_service_base_src",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -131,7 +134,10 @@ ohos_unittest("RSBaseRenderUtilTest") {
 ohos_unittest("RSSurfaceCaptureTaskTest") {
   module_out_path = module_output_path
   sources = [ "rs_surface_capture_task_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:render_service_base_src",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -158,7 +164,10 @@ ohos_unittest("RSUniRenderUtilTest") {
 ohos_unittest("RSUniRenderVisitorTest") {
   module_out_path = module_output_path
   sources = [ "rs_uni_render_visitor_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:render_service_base_src",
+  ]
   external_deps = [ "init:libbegetutil" ]
   defines = []
   defines += gpu_defines

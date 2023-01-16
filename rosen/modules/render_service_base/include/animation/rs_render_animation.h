@@ -22,6 +22,7 @@
 #endif
 #include "animation/rs_animation_common.h"
 #include "animation/rs_animation_fraction.h"
+#include "common/rs_macros.h"
 #include "modifier/rs_render_property.h"
 
 namespace OHOS {
@@ -36,9 +37,9 @@ enum class AnimationState {
 };
 
 #ifdef ROSEN_OHOS
-class RSRenderAnimation : public Parcelable {
+class RS_EXPORT RSRenderAnimation : public Parcelable {
 #else
-class RSRenderAnimation {
+class RS_EXPORT RSRenderAnimation {
 #endif
 public:
     virtual ~RSRenderAnimation() = default;

@@ -21,13 +21,15 @@
 #include <parcel.h>
 #endif
 
+#include "common/rs_macros.h"
+
 namespace OHOS {
 namespace Rosen {
 using VisibleData = std::vector<uint64_t>;
 #ifdef ROSEN_OHOS
-class RSOcclusionData : public Parcelable {
+class RS_EXPORT RSOcclusionData : public Parcelable {
 #else
-class RSOcclusionData {
+class RS_EXPORT RSOcclusionData {
 #endif
 public:
     RSOcclusionData() = default;

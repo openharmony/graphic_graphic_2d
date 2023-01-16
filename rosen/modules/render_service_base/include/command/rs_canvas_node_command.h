@@ -16,6 +16,7 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_CANVAS_NODE_COMMAND_H
 #define ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_CANVAS_NODE_COMMAND_H
 
+#include "common/rs_macros.h"
 #include "modifier/rs_modifier_type.h"
 #include "rs_command_templates.h"
 
@@ -30,7 +31,7 @@ enum RSCanvasNodeCommandType : uint16_t {
 
 class DrawCmdList;
 
-class RSCanvasNodeCommandHelper {
+class RS_EXPORT RSCanvasNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId id);
     static void UpdateRecording(

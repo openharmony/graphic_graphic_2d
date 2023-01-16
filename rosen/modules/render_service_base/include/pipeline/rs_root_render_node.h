@@ -15,13 +15,14 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_ROOT_RENDER_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_ROOT_RENDER_NODE_H
 
+#include "common/rs_macros.h"
 #include "pipeline/rs_canvas_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSSurface;
 class RSDirtyRegionManager;
-class RSRootRenderNode : public RSCanvasRenderNode {
+class RS_EXPORT RSRootRenderNode : public RSCanvasRenderNode {
 public:
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::ROOT_NODE;
     RSRenderNodeType GetType() const override

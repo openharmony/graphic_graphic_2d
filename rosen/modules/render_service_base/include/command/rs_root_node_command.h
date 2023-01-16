@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_ROOT_COMMAND_RS_ROOT_NODE_COMMAND_H
 
 #include "command/rs_command_templates.h"
+#include "common/rs_macros.h"
 #include "platform/drawing/rs_surface.h"
 
 namespace OHOS {
@@ -30,7 +31,7 @@ enum RSRootNodeCommandType : uint16_t {
     UPDATE_SUGGESTED_BUFFER_SIZE,
 };
 
-class RootNodeCommandHelper {
+class RS_EXPORT RootNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId id);
     static void AttachRSSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId);

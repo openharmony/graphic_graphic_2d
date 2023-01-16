@@ -19,9 +19,11 @@
 #include <cstdint>
 #include <parcel.h>
 
+#include "common/rs_macros.h"
+
 namespace OHOS {
 namespace Rosen {
-class RSScreenModeInfo : public Parcelable {
+class RS_EXPORT RSScreenModeInfo : public Parcelable {
 public:
     RSScreenModeInfo() = default;
     RSScreenModeInfo(int32_t width, int32_t height, uint32_t refreshRate, int32_t id);

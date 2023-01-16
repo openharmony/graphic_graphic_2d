@@ -17,6 +17,7 @@
 #define ROSEN_ENGINE_CORE_ANIMATION_RS_STEPS_INTERPOLATOR_H
 
 #include "animation/rs_interpolator.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -25,7 +26,7 @@ enum class StepsCurvePosition {
     END,
 };
 
-class RSStepsInterpolator : public RSInterpolator {
+class RS_EXPORT RSStepsInterpolator : public RSInterpolator {
 public:
     explicit RSStepsInterpolator(int32_t steps, StepsCurvePosition position = StepsCurvePosition::START);
 

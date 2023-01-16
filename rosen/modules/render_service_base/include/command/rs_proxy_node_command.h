@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_PROXY_COMMAND_RS_PROXY_NODE_COMMAND_H
 
 #include "command/rs_command_templates.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -27,7 +28,7 @@ enum RSProxyNodeCommandType : uint16_t {
     REMOVE_MODIFIERS,
 };
 
-class ProxyNodeCommandHelper {
+class RS_EXPORT ProxyNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId id, NodeId target);
     static void ResetContextVariableCache(RSContext& context, NodeId id);

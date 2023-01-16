@@ -18,6 +18,7 @@
 #include <map>
 #include <vector>
 
+#include "common/rs_macros.h"
 #include "common/rs_rect.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -31,7 +32,7 @@ enum DebugRegionType {
     TYPE_MAX
 };
 
-class RSDirtyRegionManager final {
+class RS_EXPORT RSDirtyRegionManager final {
 public:
     static constexpr int32_t ALIGNED_BITS = 32;
     RSDirtyRegionManager();

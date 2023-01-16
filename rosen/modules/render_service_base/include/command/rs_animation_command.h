@@ -23,6 +23,7 @@
 #include "animation/rs_render_spring_animation.h"
 #include "animation/rs_render_transition.h"
 #include "command/rs_command_templates.h"
+#include "common/rs_macros.h"
 #include "pipeline/rs_render_node.h"
 
 namespace OHOS {
@@ -51,7 +52,7 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_FINISH_CALLBACK,
 };
 
-class AnimationCommandHelper {
+class RS_EXPORT AnimationCommandHelper {
 public:
     template<void (RSRenderAnimation::*OP)()>
     static void AnimOp(RSContext& context, NodeId nodeId, AnimationId animId)

@@ -18,13 +18,14 @@
 
 #include "animation/rs_render_animation.h"
 #include "common/rs_common_def.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSRenderPropertyBase;
 class RSAnimationLog;
 
-class RSRenderPropertyAnimation : public RSRenderAnimation {
+class RS_EXPORT RSRenderPropertyAnimation : public RSRenderAnimation {
 public:
     virtual ~RSRenderPropertyAnimation() = default;
 

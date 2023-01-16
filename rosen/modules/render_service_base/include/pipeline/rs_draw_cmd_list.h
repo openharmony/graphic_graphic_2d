@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "common/rs_common_def.h"
+#include "common/rs_macros.h"
 #ifdef ROSEN_OHOS
 #include <parcel.h>
 #endif
@@ -36,9 +37,9 @@ class OpItem;
 class RSPaintFilterCanvas;
 
 #ifdef ROSEN_OHOS
-class DrawCmdList : public Parcelable {
+class RS_EXPORT DrawCmdList : public Parcelable {
 #else
-class DrawCmdList {
+class RS_EXPORT DrawCmdList {
 #endif
 public:
     DrawCmdList(int w, int h);
@@ -75,7 +76,7 @@ private:
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;
 
-class DrawCmdListManager {
+class RS_EXPORT DrawCmdListManager {
 public:
     static DrawCmdListManager& Instance();
 

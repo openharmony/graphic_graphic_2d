@@ -19,6 +19,7 @@
 #include <memory>
 #include <thread>
 
+#include "common/rs_macros.h"
 #include "include/core/SkRefCnt.h"
 #include "include/gpu/GrContext.h"
 
@@ -28,7 +29,7 @@ typedef void* EGLDisplay;
 
 namespace OHOS::Rosen {
 
-class RSSharedContext final : public std::enable_shared_from_this<RSSharedContext> {
+class RS_EXPORT RSSharedContext final : public std::enable_shared_from_this<RSSharedContext> {
 public:
     static std::shared_ptr<RSSharedContext> MakeSharedGLContext(EGLContext context);
 

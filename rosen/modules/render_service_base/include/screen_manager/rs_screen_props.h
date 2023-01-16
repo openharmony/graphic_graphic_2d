@@ -21,11 +21,12 @@
 #include <refbase.h>
 #include <string>
 
+#include "common/rs_macros.h"
 #include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSScreenProps : public Parcelable {
+class RS_EXPORT RSScreenProps : public Parcelable {
 public:
     RSScreenProps() = default;
     RSScreenProps(std::string propName, uint32_t propId, uint64_t value);

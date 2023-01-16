@@ -20,6 +20,7 @@
 #include "include/core/SkMatrix.h"
 #include "include/core/SkPoint.h"
 
+#include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_obj_geometry.h"
 #include "common/rs_rect.h"
@@ -27,7 +28,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSObjAbsGeometry : public RSObjGeometry {
+class RS_EXPORT RSObjAbsGeometry : public RSObjGeometry {
 public:
     RSObjAbsGeometry();
     ~RSObjAbsGeometry() override;

@@ -21,6 +21,7 @@
 #include <string>
 
 #include "rs_rect.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -168,7 +169,7 @@ public:
     void GetSubRange(std::vector<Range>& res, bool isParentNodePos, bool isParentNodeNeg);
 };
 
-class Region {
+class RS_EXPORT Region {
 public:
     enum OP {
         // bit index 0: lhs

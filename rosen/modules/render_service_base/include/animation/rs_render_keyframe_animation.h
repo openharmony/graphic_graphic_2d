@@ -17,12 +17,13 @@
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_KEYFRAME_ANIMATION_H
 
 #include "animation/rs_render_property_animation.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSInterpolator;
 
-class RSRenderKeyframeAnimation : public RSRenderPropertyAnimation {
+class RS_EXPORT RSRenderKeyframeAnimation : public RSRenderPropertyAnimation {
 public:
     RSRenderKeyframeAnimation(AnimationId id, const PropertyId& propertyId,
         const std::shared_ptr<RSRenderPropertyBase>& originValue);
