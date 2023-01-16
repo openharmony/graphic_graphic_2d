@@ -531,13 +531,31 @@ static inline int RotateEnumToInt(GraphicTransformType rotation)
     return iter != transformTypeEnumToIntMap.end() ? iter->second : 0;
 }
 
-static inline GraphicTransformType RotateEnumToInt(int angle)
+static inline GraphicTransformType RotateEnumToInt(int angle,
+    GraphicTransformType flip = GraphicTransformType::GRAPHIC_ROTATE_NONE)
 {
     static const std::map<int, GraphicTransformType> intToEnumMap = {
         {0, GraphicTransformType::GRAPHIC_ROTATE_NONE}, {90, GraphicTransformType::GRAPHIC_ROTATE_270},
         {180, GraphicTransformType::GRAPHIC_ROTATE_180}, {270, GraphicTransformType::GRAPHIC_ROTATE_90}};
-    auto iter = intToEnumMap.find(angle);
-    return iter != intToEnumMap.end() ? iter->second : GraphicTransformType::GRAPHIC_ROTATE_NONE;
+
+    static const std::map<std::pair<int, GraphicTransformType>, GraphicTransformType> pairToEnumMap = {
+        {{0, GraphicTransformType::GRAPHIC_FLIP_H}, GraphicTransformType::GRAPHIC_FLIP_H},
+        {{0, GraphicTransformType::GRAPHIC_FLIP_V}, GraphicTransformType::GRAPHIC_FLIP_V},
+        {{90, GraphicTransformType::GRAPHIC_FLIP_H}, GraphicTransformType::GRAPHIC_FLIP_V_ROT90},
+        {{90, GraphicTransformType::GRAPHIC_FLIP_V}, GraphicTransformType::GRAPHIC_FLIP_H_ROT90},
+        {{180, GraphicTransformType::GRAPHIC_FLIP_H}, GraphicTransformType::GRAPHIC_FLIP_V},
+        {{180, GraphicTransformType::GRAPHIC_FLIP_V}, GraphicTransformType::GRAPHIC_FLIP_H},
+        {{270, GraphicTransformType::GRAPHIC_FLIP_H}, GraphicTransformType::GRAPHIC_FLIP_H_ROT90},
+        {{270, GraphicTransformType::GRAPHIC_FLIP_V}, GraphicTransformType::GRAPHIC_FLIP_V_ROT90},
+    };
+
+    if (flip != GraphicTransformType::GRAPHIC_FLIP_H && flip != GraphicTransformType::GRAPHIC_FLIP_V) {
+        auto iter = intToEnumMap.find(angle);
+        return iter != intToEnumMap.end() ? iter->second : GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    } else {
+        auto iter = pairToEnumMap.find({angle, flip});
+        return iter != pairToEnumMap.end() ? iter->second : GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    }
 }
 
 static void SetLayerTransform(const LayerInfoPtr& layer, RSBaseRenderNode& node,
@@ -547,8 +565,9 @@ static void SetLayerTransform(const LayerInfoPtr& layer, RSBaseRenderNode& node,
     // layerTransform: clockwise
     int surfaceNodeRotation = GetSurfaceNodeRotation(node);
     int totalRotation = (RotateEnumToInt(screenRotation) + surfaceNodeRotation +
-        RotateEnumToInt(surface->GetTransform())) % 360;
-    GraphicTransformType rotateEnum = RotateEnumToInt(totalRotation);
+        RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()))) % 360;
+    GraphicTransformType rotateEnum = RotateEnumToInt(totalRotation,
+        RSBaseRenderUtil::GetFlipTransform(surface->GetTransform()));
     layer->SetTransform(rotateEnum);
 }
 
