@@ -175,7 +175,10 @@ bool RSDisplayRenderNode::IsRotationChanged() const
     if (boundsGeoPtr == nullptr) {
         return false;
     }
-    return !ROSEN_EQ(boundsGeoPtr->GetRotation(), lastRotation_);
+    // boundsGeoPtr->IsNeedClientCompose() return false if rotation degree is times of 90
+    // which means rotation is end.
+    bool isRotationEnd = !boundsGeoPtr->IsNeedClientCompose();
+    return !(ROSEN_EQ(boundsGeoPtr->GetRotation(), lastRotation_) && isRotationEnd);
 }
 
 void RSDisplayRenderNode::UpdateRotation()
