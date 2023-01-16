@@ -15,6 +15,9 @@
 
 #include "common/rs_common_def.h"
 
+#include <mutex>
+#include <vector>
+
 namespace OHOS {
 namespace Rosen {
 namespace {

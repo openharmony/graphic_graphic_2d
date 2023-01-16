@@ -34,9 +34,8 @@ static constexpr int MAX_SPEED = 1000000;
 constexpr const char* ANIMATION_SCALE_NAME = "persist.sys.graphic.animationscale";
 } // namespace
 
-bool RSAnimationFraction::isInited_ = false;
-float RSAnimationFraction::animationScale_ = 1.0f;
-std::mutex RSAnimationFraction::mutex_;
+bool RSAnimationFraction::isInitialized_ = false;
+std::atomic<float> RSAnimationFraction::animationScale_ = 1.0f;
 
 RSAnimationFraction::RSAnimationFraction()
 {
@@ -45,27 +44,26 @@ RSAnimationFraction::RSAnimationFraction()
 
 void RSAnimationFraction::Init()
 {
-    if (!isInited_) {
-        float animationScale = std::atof((system::GetParameter(ANIMATION_SCALE_NAME, "1.0")).c_str());
-        SetAnimationScale(animationScale);
-        WatchParameter(ANIMATION_SCALE_NAME, OnAnimationScaleChangedCallback, nullptr);
-        isInited_ = true;
+    if (isInitialized_) {
+        return;
     }
+    float animationScale = std::atof((system::GetParameter(ANIMATION_SCALE_NAME, "1.0")).c_str());
+    SetAnimationScale(animationScale);
+    WatchParameter(ANIMATION_SCALE_NAME, OnAnimationScaleChangedCallback, nullptr);
+    isInitialized_ = true;
 }
 
 float RSAnimationFraction::GetAnimationScale()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    return animationScale_;
+    return animationScale_.load(std::memory_order_relaxed);
 }
 
 void RSAnimationFraction::SetAnimationScale(float animationScale)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    animationScale_ = animationScale < 0.0 ? 0.0 : animationScale;
+    animationScale_.store(std::max(0.0f, animationScale), std::memory_order_relaxed);
 }
 
-void RSAnimationFraction::OnAnimationScaleChangedCallback(const char *key, const char *value, void *context)
+void RSAnimationFraction::OnAnimationScaleChangedCallback(const char* key, const char* value, void* context)
 {
     if (strcmp(key, ANIMATION_SCALE_NAME) != 0) {
         return;
@@ -89,16 +87,18 @@ int64_t RSAnimationFraction::GetLastFrameTime() const
     return lastFrameTime_;
 }
 
-float RSAnimationFraction::GetAnimationFraction(int64_t time, bool& isInstartDelay, bool& isFinished)
+std::tuple<float, bool, bool> RSAnimationFraction::GetAnimationFraction(int64_t time)
 {
     int64_t durationNs = duration_ * MS_TO_NS;
     int64_t startDelayNs = startDelay_ * MS_TO_NS;
     int64_t deltaTime = time - lastFrameTime_;
     lastFrameTime_ = time;
-    isInstartDelay = false;
+    bool isInStartDelay = false;
+    bool isFinished = true;
+
     if (durationNs <= 0 || (repeatCount_ <= 0 && repeatCount_ != INFINITE)) {
         isFinished = true;
-        return GetEndFraction();
+        return { GetEndFraction(), isInStartDelay, isFinished };
     }
     // 1. Calculates the total running fraction of animation
     float animationScale = GetAnimationScale();
@@ -117,19 +117,19 @@ float RSAnimationFraction::GetAnimationFraction(int64_t time, bool& isInstartDel
     }
     if (runningTime_ < startDelayNs) {
         isFinished = IsFinished();
-        isInstartDelay = isFinished ? false : true;
-        return GetStartFraction();
+        isInStartDelay = isFinished ? false : true;
+        return { GetStartFraction(), isInStartDelay, isFinished };
     }
 
     // 2. Calculate the running time of the current cycle animation.
-    int64_t realPlayTime = runningTime_ - startDelayNs - (curRepeatCount_ * durationNs);
+    int64_t realPlayTime = runningTime_ - startDelayNs - (currentRepeatCount_ * durationNs);
 
     // 3. Update the number of cycles and the corresponding animation fraction.
     if (direction_ == ForwardDirection::NORMAL) {
-        curRepeatCount_ += realPlayTime / durationNs;
+        currentRepeatCount_ += realPlayTime / durationNs;
     } else {
-        while (curRepeatCount_ > 0 && realPlayTime < 0) {
-            curRepeatCount_--;
+        while (currentRepeatCount_ > 0 && realPlayTime < 0) {
+            currentRepeatCount_--;
             realPlayTime += durationNs;
         }
     }
@@ -141,12 +141,12 @@ float RSAnimationFraction::GetAnimationFraction(int64_t time, bool& isInstartDel
 
     // 5. get final animation fraction
     if (isFinished) {
-        return GetEndFraction();
+        return { GetEndFraction(), isInStartDelay, isFinished };
     }
-    curTimeFraction_ = static_cast<float>(playTime_) / durationNs;
-    curTimeFraction_ = currentIsReverseCycle_ ? (1.0f - curTimeFraction_) : curTimeFraction_;
-    curTimeFraction_ = std::min(std::max(curTimeFraction_, 0.0f), 1.0f);
-    return curTimeFraction_;
+    currentTimeFraction_ = static_cast<float>(playTime_) / durationNs;
+    currentTimeFraction_ = currentIsReverseCycle_ ? (1.0f - currentTimeFraction_) : currentTimeFraction_;
+    currentTimeFraction_ = std::clamp(currentTimeFraction_, 0.0f, 1.0f);
+    return { currentTimeFraction_, isInStartDelay, isFinished };
 }
 
 bool RSAnimationFraction::IsFinished() const
@@ -185,14 +185,14 @@ void RSAnimationFraction::UpdateReverseState(bool finish)
             return;
         }
         currentIsReverseCycle_ =
-            finish ? (curRepeatCount_ % REVERSE_COUNT == 0) : (curRepeatCount_ % REVERSE_COUNT == 1);
+            finish ? (currentRepeatCount_ % REVERSE_COUNT == 0) : (currentRepeatCount_ % REVERSE_COUNT == 1);
     } else {
         if (!autoReverse_) {
             currentIsReverseCycle_ = true;
             return;
         }
         currentIsReverseCycle_ =
-            finish ? (curRepeatCount_ % REVERSE_COUNT == 1) : (curRepeatCount_ % REVERSE_COUNT == 0);
+            finish ? (currentRepeatCount_ % REVERSE_COUNT == 1) : (currentRepeatCount_ % REVERSE_COUNT == 0);
     }
 }
 
@@ -201,7 +201,7 @@ void RSAnimationFraction::UpdateRemainTimeFraction(float fraction, int remainTim
     int64_t remainTimeNS = remainTime * MS_TO_NS;
     int64_t durationNs = duration_ * MS_TO_NS;
     int64_t startDelayNs = startDelay_ * MS_TO_NS;
-    float curRemainProgress = currentIsReverseCycle_ ? curTimeFraction_ : (1.0f - curTimeFraction_);
+    float curRemainProgress = currentIsReverseCycle_ ? currentTimeFraction_ : (1.0f - currentTimeFraction_);
     float ratio = 1.0f;
     if (remainTime != 0) {
         ratio = curRemainProgress * durationNs / remainTimeNS;
@@ -210,22 +210,23 @@ void RSAnimationFraction::UpdateRemainTimeFraction(float fraction, int remainTim
     if (runningTime_ > startDelayNs || fabs(fraction) > 1e-6) {
         if (currentIsReverseCycle_) {
             runningTime_ =
-                static_cast<int64_t>(durationNs * (1.0f - fraction)) + startDelayNs + curRepeatCount_ * durationNs;
+                static_cast<int64_t>(durationNs * (1.0f - fraction)) + startDelayNs + currentRepeatCount_ * durationNs;
         } else {
-            runningTime_ = static_cast<int64_t>(durationNs * fraction) + startDelayNs + curRepeatCount_ * durationNs;
+            runningTime_ =
+                static_cast<int64_t>(durationNs * fraction) + startDelayNs + currentRepeatCount_ * durationNs;
         }
     }
 
     speed_ = speed_ * ratio;
-    curTimeFraction_ = fraction;
+    currentTimeFraction_ = fraction;
 }
 
 void RSAnimationFraction::ResetFraction()
 {
     runningTime_ = 0;
     playTime_ = 0;
-    curTimeFraction_ = 0.0f;
-    curRepeatCount_ = 0;
+    currentTimeFraction_ = 0.0f;
+    currentRepeatCount_ = 0;
     currentIsReverseCycle_ = false;
 }
 } // namespace Rosen

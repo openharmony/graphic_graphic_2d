@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_KEYFRAME_ANIMATION_H
 
 #include <memory>
+#include <vector>
 
 #include "animation/rs_animation_common.h"
 #include "animation/rs_animation_timing_curve.h"

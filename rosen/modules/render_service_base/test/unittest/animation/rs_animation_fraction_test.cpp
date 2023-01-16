@@ -63,24 +63,25 @@ HWTEST_F(RSAnimationFractionTest, GetAnimationFraction001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSAnimationFractionTest GetAnimationFraction001 start";
     bool isDelay = false;
     bool isFinished = false;
+    float result = 0.0f;
     RSAnimationFraction fraction;
     fraction.SetDuration(0);
-    auto result = fraction.GetAnimationFraction(0, isDelay, isFinished);
+    std::tie(result, isDelay, isFinished) = fraction.GetAnimationFraction(0);
     EXPECT_EQ(result, 1.0f);
 
     fraction.SetDuration(300);
     fraction.SetRepeatCount(0);
-    result = fraction.GetAnimationFraction(0, isDelay, isFinished);
+    std::tie(result, isDelay, isFinished) = fraction.GetAnimationFraction(0);
     EXPECT_EQ(result, 1.0f);
 
     fraction.SetRepeatCount(1);
     RSAnimationFraction::OnAnimationScaleChangedCallback("persist.sys.graphic.animationscale", "0", nullptr);
-    result = fraction.GetAnimationFraction(100, isDelay, isFinished);
+    std::tie(result, isDelay, isFinished) = fraction.GetAnimationFraction(100);
     EXPECT_TRUE(result != 0.0f);
 
     fraction.SetRepeatCount(1);
     fraction.SetDirectionAfterStart(ForwardDirection::REVERSE);
-    result = fraction.GetAnimationFraction(100, isDelay, isFinished);
+    std::tie(result, isDelay, isFinished) = fraction.GetAnimationFraction(100);
     EXPECT_TRUE(result != 0.0f);
 
     GTEST_LOG_(INFO) << "RSAnimationFractionTest GetAnimationFraction001 end";
@@ -99,30 +100,31 @@ HWTEST_F(RSAnimationFractionTest, GetAnimationFraction002, TestSize.Level1)
     bool isDelay = false;
     bool isFinishedFalse = false;
     bool isFinishedTrue = true;
+    float result = 0.0f;
     fraction.SetDuration(300);
     fraction.SetRepeatCount(1);
-    auto result = fraction.GetAnimationFraction(100, isDelay, isFinishedFalse);
+    std::tie(result, isDelay, isFinishedFalse) = fraction.GetAnimationFraction(100);
     EXPECT_TRUE(result != 0.0f);
-    result = fraction.GetAnimationFraction(100, isDelay, isFinishedTrue);
+    std::tie(result, isDelay, isFinishedTrue) = fraction.GetAnimationFraction(100);
     EXPECT_TRUE(result != 0.0f);
 
     fraction.SetDirection(false);
-    result = fraction.GetAnimationFraction(100, isDelay, isFinishedFalse);
+    std::tie(result, isDelay, isFinishedFalse) = fraction.GetAnimationFraction(100);
     EXPECT_TRUE(result != 0.0f);
-    result = fraction.GetAnimationFraction(100, isDelay, isFinishedTrue);
+    std::tie(result, isDelay, isFinishedTrue) = fraction.GetAnimationFraction(100);
     EXPECT_TRUE(result != 0.0f);
 
     fraction.SetDirectionAfterStart(ForwardDirection::REVERSE);
     fraction.SetDirection(true);
-    result = fraction.GetAnimationFraction(100, isDelay, isFinishedFalse);
+    std::tie(result, isDelay, isFinishedFalse) = fraction.GetAnimationFraction(100);
     EXPECT_TRUE(result != 0.0f);
-    result = fraction.GetAnimationFraction(100, isDelay, isFinishedTrue);
+    std::tie(result, isDelay, isFinishedTrue) = fraction.GetAnimationFraction(100);
     EXPECT_TRUE(result != 0.0f);
 
     fraction.SetDirection(false);
-    result = fraction.GetAnimationFraction(100, isDelay, isFinishedFalse);
+    std::tie(result, isDelay, isFinishedFalse) = fraction.GetAnimationFraction(100);
     EXPECT_TRUE(result != 0.0f);
-    result = fraction.GetAnimationFraction(100, isDelay, isFinishedTrue);
+    std::tie(result, isDelay, isFinishedTrue) = fraction.GetAnimationFraction(100);
     EXPECT_TRUE(result != 0.0f);
 
     GTEST_LOG_(INFO) << "RSAnimationFractionTest GetAnimationFraction002 end";

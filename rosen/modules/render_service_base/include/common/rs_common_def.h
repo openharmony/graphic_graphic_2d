@@ -18,9 +18,8 @@
 #include <cmath>
 #include <limits>
 #include <memory>
-#include <mutex>
+#include <string>
 #include <unordered_map>
-#include <vector>
 
 #include "common/rs_macros.h"
 
@@ -72,11 +71,11 @@ enum class RSRenderNodeType : uint32_t {
 // types for RSSurfaceRenderNode
 enum class RSSurfaceNodeType : uint8_t {
     DEFAULT,
-    APP_WINDOW_NODE,   // surfacenode created as app main window
-    ABILITY_COMPONENT_NODE, // surfacenode created as ability component
-    SELF_DRAWING_NODE, // surfacenode created by arkui component (except ability component)
-    STARTING_WINDOW_NODE, //  starting window, surfacenode created by wms
-    LEASH_WINDOW_NODE, // leashwindow
+    APP_WINDOW_NODE,          // surfacenode created as app main window
+    ABILITY_COMPONENT_NODE,   // surfacenode created as ability component
+    SELF_DRAWING_NODE,        // surfacenode created by arkui component (except ability component)
+    STARTING_WINDOW_NODE,     // starting window, surfacenode created by wms
+    LEASH_WINDOW_NODE,        // leashwindow
     SELF_DRAWING_WINDOW_NODE, // create by wms, such as pointer window and bootanimation
 };
 
@@ -99,27 +98,13 @@ constexpr float PI = std::atanf(1.0) * 4;
 #endif
 
 template<typename T>
-inline bool ROSEN_EQ(const T& x, const T& y)
+inline constexpr bool ROSEN_EQ(const T& x, const T& y)
 {
-    return x == y;
-}
-
-template<>
-inline bool ROSEN_EQ(const float& x, const float& y)
-{
-    return (std::abs((x) - (y)) <= (std::numeric_limits<float>::epsilon()));
-}
-
-template<>
-inline bool ROSEN_EQ(const double& x, const double& y)
-{
-    return (std::abs((x) - (y)) <= (std::numeric_limits<double>::epsilon()));
-}
-
-template<>
-inline bool ROSEN_EQ(const long double& x, const long double& y)
-{
-    return (std::abs((x) - (y)) <= (std::numeric_limits<long double>::epsilon()));
+    if constexpr (std::is_floating_point<T>::value) {
+        return (std::abs((x) - (y)) <= (std::numeric_limits<T>::epsilon()));
+    } else {
+        return x == y;
+    }
 }
 
 template<typename T>

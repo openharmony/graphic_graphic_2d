@@ -17,10 +17,11 @@
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_IMPLICIT_ANIMATOR_H
 
 #include <stack>
+#include <utility>
+#include <vector>
 
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
-
 #include "common/rs_macros.h"
 
 namespace OHOS {
