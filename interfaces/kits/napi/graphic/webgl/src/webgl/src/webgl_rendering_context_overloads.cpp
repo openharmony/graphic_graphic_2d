@@ -22,7 +22,11 @@
 #include "../include/webgl/webgl_shader.h"
 #include "../include/webgl/webgl_texture.h"
 #include "../include/util/log.h"
+#include "../include/util/util.h"
 #include "../include/webgl/webgl_uniform_location.h"
+
+#include<string>
+#include<vector>
 
 #ifdef __cplusplus
 extern "C" {
@@ -357,157 +361,197 @@ napi_value WebGLRenderingContextOverloads::TexImage2D(napi_env env, napi_callbac
     }
 
     bool usagesucc = NVal(env, funcArg[NARG_POS::SIXTH]).TypeIs(napi_number);
+    LOGI("WebGLRenderingContextOverloads::TexImage2D usagesucc: %{public}d", usagesucc);
     if (usagesucc) {
         bool succ = false;
-        LOGI("WebGL texImage2D start");
         int64_t target;
         tie(succ, target) = NVal(env, funcArg[NARG_POS::FIRST]).ToInt64();
         if (!succ) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D parse target failed");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D target = %{public}u", target);
+        LOGI("WebGLRenderingContextOverloads::TexImage2D target = %{public}lld", target);
         int64_t level;
         tie(succ, level) = NVal(env, funcArg[NARG_POS::SECOND]).ToInt64();
         if (!succ) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D parse level failed");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D level = %{public}u", level);
-        int64_t internalformat;
-        tie(succ, internalformat) = NVal(env, funcArg[NARG_POS::THIRD]).ToInt64();
+        LOGI("WebGLRenderingContextOverloads::TexImage2D level = %{public}lld", level);
+        int64_t internalFormat;
+        tie(succ, internalFormat) = NVal(env, funcArg[NARG_POS::THIRD]).ToInt64();
         if (!succ) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D parse internalFormat failed");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D internalformat = %{public}u", internalformat);
-
+        LOGI("WebGLRenderingContextOverloads::TexImage2D internalFormat = %{public}lld", internalFormat);
         int32_t width;
         tie(succ, width) = NVal(env, funcArg[NARG_POS::FOURTH]).ToInt64();
         if (!succ) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D parse width failed");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D width = %{public}u", width);
+        LOGI("WebGLRenderingContextOverloads::texImage2D width = %{public}d", width);
         int64_t height;
         tie(succ, height) = NVal(env, funcArg[NARG_POS::FIFTH]).ToInt64();
         if (!succ) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D parse height failed");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D height = %{public}u", height);
+        LOGI("WebGLRenderingContextOverloads::texImage2D height = %{public}lld", height);
         int64_t border;
         tie(succ, border) = NVal(env, funcArg[NARG_POS::SIXTH]).ToInt64();
         if (!succ) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D parse border failed");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D border = %{public}u", border);
+        LOGI("WebGLRenderingContextOverloads::texImage2D border = %{public}lld", border);
         int32_t format;
-        tie(succ, format) = NVal(env, funcArg[NARG_POS::SEVENTH]).ToInt64();
+        tie(succ, format) = NVal(env, funcArg[NARG_POS::SEVENTH]).ToInt32();
         if (!succ) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D parse format failed");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D format = %{public}u", format);
+        LOGI("WebGLRenderingContextOverloads::texImage2D format = %{public}d", format);
         int64_t type;
         tie(succ, type) = NVal(env, funcArg[NARG_POS::EIGHTH]).ToInt64();
         if (!succ) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D parse type failed");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D type = %{public}u", type);
+        LOGI("WebGLRenderingContextOverloads::texImage2D type = %{public}lld", type);
         if (funcArg[NARG_POS::NINTH] == nullptr) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D last param is null");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D imageSize statrt");
+        LOGI("WebGLRenderingContextOverloads::texImage2D imageSize start");
         size_t imageSize;
         void *pixels = nullptr;
         tie(succ, pixels, imageSize) = NVal(env, funcArg[NARG_POS::NINTH]).ToDataview();
         if (!succ) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D parse pixels failed");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D pixels = %{public}u", pixels);
-        glTexImage2D(static_cast<GLenum>(target), static_cast<GLint>(level), static_cast<GLint>(internalformat),
+        glTexImage2D(static_cast<GLenum>(target), static_cast<GLint>(level), static_cast<GLint>(internalFormat),
             static_cast<GLsizei>(width), static_cast<GLsizei>(height), static_cast<GLint>(border),
             static_cast<GLenum>(format), static_cast<GLenum>(type), static_cast<void*>(pixels));
-        LOGI("WebGL texImage2D end");
+        LOGI("WebGLRenderingContextOverloads::TexImage2D end");
         return nullptr;
     } else {
         bool succ = false;
-        LOGI("WebGL texImage2D start");
         int64_t target;
         tie(succ, target) = NVal(env, funcArg[NARG_POS::FIRST]).ToInt64();
         if (!succ) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D parse target failed");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D target = %{public}u", target);
+        LOGI("WebGLRenderingContextOverloads::texImage2D target = %{public}lld", target);
         int64_t level;
         tie(succ, level) = NVal(env, funcArg[NARG_POS::SECOND]).ToInt64();
         if (!succ) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D parse level failed");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D level = %{public}u", level);
-        int64_t internalformat;
-        tie(succ, internalformat) = NVal(env, funcArg[NARG_POS::THIRD]).ToInt64();
+        LOGI("WebGLRenderingContextOverloads::texImage2D level = %{public}lld", level);
+        int64_t internalFormat;
+        tie(succ, internalFormat) = NVal(env, funcArg[NARG_POS::THIRD]).ToInt64();
         if (!succ) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D parse internalFormat failed");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D internalformat = %{public}u", internalformat);
+        LOGI("WebGLRenderingContextOverloads::texImage2D internalFormat = %{public}lld", internalFormat);
         int32_t format;
-        tie(succ, format) = NVal(env, funcArg[NARG_POS::FOURTH]).ToInt64();
+        tie(succ, format) = NVal(env, funcArg[NARG_POS::FOURTH]).ToInt32();
         if (!succ) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D parse format failed");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D format = %{public}u", format);
+        LOGI("WebGLRenderingContextOverloads::texImage2D format = %{public}d", format);
         int64_t type;
         tie(succ, type) = NVal(env, funcArg[NARG_POS::FIFTH]).ToInt64();
         if (!succ) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D parse type failed");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D type = %{public}u", type);
-        napi_value teximagesource = funcArg[NARG_POS::SIXTH];
-        napi_value resultobject = nullptr;
-        napi_status statusobject = napi_coerce_to_object(env, teximagesource, &resultobject);
-        if (statusobject != napi_ok) {
+        LOGI("WebGLRenderingContextOverloads::texImage2D type = %{public}lld", type);
+        napi_value texImageSource = funcArg[NARG_POS::SIXTH];
+        napi_value resultObject = nullptr;
+        napi_status statusObject = napi_coerce_to_object(env, texImageSource, &resultObject);
+        if (statusObject != napi_ok) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D failed to get imageSource");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D resultobject = %{public}u", resultobject);
-        napi_value resultwidth = nullptr;
-        napi_status widthstatus = napi_get_named_property(env, resultobject, "width", &resultwidth);
-        if (widthstatus != napi_ok) {
+        napi_value resultWidth = nullptr;
+        napi_status widthStatus = napi_get_named_property(env, resultObject, "width", &resultWidth);
+        if (widthStatus != napi_ok) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D failed to parse width");
             return nullptr;
         }
         int64_t width;
-        tie(succ, width) = NVal(env, resultwidth).ToInt64();
+        tie(succ, width) = NVal(env, resultWidth).ToInt64();
         if (!succ) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D failed to get width");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D width = %{public}u", width);
-        napi_value resultheight = nullptr;
-        napi_status heightstatus = napi_get_named_property(env, resultobject, "height", &resultheight);
-        if (heightstatus != napi_ok) {
+        LOGI("WebGLRenderingContextOverloads::texImage2D width = %{public}lld", width);
+        napi_value resultHeight = nullptr;
+        napi_status heightStatus = napi_get_named_property(env, resultObject, "height", &resultHeight);
+        if (heightStatus != napi_ok) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D failed to parse height");
             return nullptr;
         }
         int64_t height;
-        tie(succ, height) = NVal(env, resultheight).ToInt64();
+        tie(succ, height) = NVal(env, resultHeight).ToInt64();
         if (!succ) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D failed to get height");
             return nullptr;
         }
-        LOGI("WebGL WebGLRenderContext::texImage2D height = %{public}u", height);
-        napi_value resultdata = nullptr;
-        napi_status datares = napi_get_named_property(env, resultobject, "data", &resultdata);
-        if (datares != napi_ok) {
+        LOGI("WebGLRenderingContextOverloads::texImage2D height = %{public}lld", height);
+        napi_value resultData = nullptr;
+        napi_status dataRes = napi_get_named_property(env, resultObject, "data", &resultData);
+        if (dataRes != napi_ok) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D failed to get data");
             return nullptr;
         }
-        napi_value resultstr;
-        napi_status rsuStatus = napi_coerce_to_string(env, resultdata, &resultstr);
-        LOGI("WebGL WebGLRenderContext::texImage2D rsuStatus = %{public}u", rsuStatus);
+        napi_value resultStr;
+        napi_status rsuStatus = napi_coerce_to_string(env, resultData, &resultStr);
         if (rsuStatus != napi_ok) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D resultStr is not ok");
             return nullptr;
         }
         unique_ptr<char[]> name;
-        tie(succ, name, ignore) = NVal(env, resultstr).ToUTF8String();
+        tie(succ, name, ignore) = NVal(env, resultStr).ToUTF8String();
         if (!succ) {
+            LOGI("WebGLRenderingContextOverloads::TexImage2D ToUTF8String is not ok");
             return nullptr;
         }
+        std::string imageStr(name.get());
+        std::vector<std::string> imageData;
+        Util::SplitString(imageStr, imageData, ",");
+        if (imageData.size() == 0) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D image data is empty");
+            return nullptr;
+        }
+        LOGI("WebGLRenderingContextOverloads::TexImage2D iamgeData: size: %{public}d", imageData.size());
+        char* buffer = new (std::nothrow) char[imageData.size()];
+        if (buffer == nullptr) {
+            LOGE("WebGLRenderingContextOverloads::TexImage2D image create buffer failed");
+            return nullptr;
+        }
+        // parse with RGBA
+        for (size_t i = 0; i < imageData.size(); i+=4) {
+            buffer[i] =  Util::StringToInt(imageData[i]);
+            buffer[i + 1] =  Util::StringToInt(imageData[i + 1]);
+            buffer[i + 2] =  Util::StringToInt(imageData[i + 2]);
+            buffer[i + 3] =  Util::StringToInt(imageData[i + 3]);
+        }
         int64_t border = 0;
-        glTexImage2D(static_cast<GLenum>(target), static_cast<GLint>(level), static_cast<GLint>(internalformat),
+        glTexImage2D(static_cast<GLenum>(target), static_cast<GLint>(level), static_cast<GLint>(internalFormat),
             static_cast<GLsizei>(width), static_cast<GLsizei>(height), static_cast<GLint>(border),
-            static_cast<GLenum>(format), static_cast<GLenum>(type), static_cast<void*>(name.get()));
-        LOGI("WebGL texImage2D end");
+            static_cast<GLenum>(format), static_cast<GLenum>(type), static_cast<void*>(buffer));
+        delete[] buffer;
+        buffer = nullptr;
+        LOGI("WebGLRenderingContextOverloads::texImage2D end");
     }
     return nullptr;
 }
