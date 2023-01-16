@@ -61,7 +61,7 @@ void RSParallelRenderManager::StartSubRenderThread(uint32_t threadNum, RenderCon
 {
     if (GetParallelRenderingStatus() == ParallelStatus::OFF) {
         expectedSubThreadNum_ = threadNum;
-        flipCoin_ = std::vector<uint8_t>(expectedSubThreadNum_, false);
+        flipCoin_ = std::vector<uint8_t>(expectedSubThreadNum_, 0);
         firstFlush_ = true;
         renderContext_ = context;
         for (uint32_t i = 0; i < threadNum; ++i) {
@@ -78,7 +78,7 @@ void RSParallelRenderManager::EndSubRenderThread()
 {
     if (GetParallelRenderingStatus() == ParallelStatus::ON) {
         for (uint32_t i = 0; i < expectedSubThreadNum_; ++i) {
-            flipCoin_[i] = true;
+            flipCoin_[i] = 1;
         }
         readySubThreadNum_ = expectedSubThreadNum_ = 0;
         cvParallelRender_.notify_all();
@@ -163,7 +163,7 @@ void RSParallelRenderManager::LoadBalanceAndNotify(TaskType type)
             break;
     }
     for (uint32_t i = 0; i < expectedSubThreadNum_; ++i) {
-        flipCoin_[i] = true;
+        flipCoin_[i] = 1;
     }
     cvParallelRender_.notify_all();
 }
@@ -191,7 +191,11 @@ void RSParallelRenderManager::DrawImageMergeFunc(std::shared_ptr<SkCanvas> canva
                 RS_LOGE("Texture %d is nullptr", i);
                 continue;
             }
-            canvas->drawImage(texture, 0, 0);
+            if (canvas) {
+                canvas->drawImage(texture, 0, 0);
+            } else {
+                RS_LOGE("canvas of main thread is nullptr!");
+            }
         }
     }
 }
@@ -202,7 +206,12 @@ void RSParallelRenderManager::FlushOneBufferFunc()
     for (unsigned int i = 0; i < threadList_.size(); ++i) {
         renderContext_->ShareMakeCurrent(threadList_[i]->GetSharedContext());
         RS_TRACE_BEGIN("Start Flush");
-        threadList_[i]->GetSkSurface()->flush();
+        auto skSurface = threadList_[i]->GetSkSurface();
+        if (skSurface) {
+            skSurface->flush();
+        } else {
+            RS_LOGE("skSurface is nullptr, thread index:%d", i);
+        }
         RS_TRACE_END();
         renderContext_->ShareMakeCurrent(EGL_NO_CONTEXT);
     }
@@ -253,6 +262,9 @@ void RSParallelRenderManager::SubMainThreadNotify(int threadIndex)
     std::unique_lock<std::mutex> lock(cvParallelRenderMutex_);
     bool isNotify = true;
     for (unsigned int i = 0; i < expectedSubThreadNum_; ++i) {
+        if (flipCoin_[i] != 0) {
+            return;
+        }
         isNotify &= !flipCoin_[i];
     }
     if (isNotify) {

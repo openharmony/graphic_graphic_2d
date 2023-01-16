@@ -14,7 +14,6 @@
  */
 
 #include "rs_parallel_task_manager.h"
-#include <cstdint>
 #include <memory>
 #include "rs_parallel_render_manager.h"
 #include "rs_parallel_render_ext.h"
