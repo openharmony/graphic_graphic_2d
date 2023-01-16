@@ -18,6 +18,7 @@
 
 #include <vector>
 #include <string>
+#include <cstdlib>
 #include "log.h"
 #include "object_manager.h"
 #include "../../../common/napi/n_exporter.h"
@@ -40,6 +41,18 @@ public:
     static std::string GetContextAttr(const std::string& str, const std::string& key, int keyLength, int value);
 
     static void SetContextAttr(std::vector<std::string>& vec, WebGLContextAttributes *webGlContextAttributes);
+
+    static inline int32_t StringToInt(const std::string& value)
+    {
+        errno = 0;
+        char* pEnd = nullptr;
+        int64_t result = std::strtol(value.c_str(), &pEnd, 10);
+        if (pEnd == value.c_str() || (result < INT_MIN || result > INT_MAX) || errno == ERANGE) {
+            return 0;
+        } else {
+            return result;
+        }
+    }
 };
 } // namespace Rosen
 } // namespace OHOS
