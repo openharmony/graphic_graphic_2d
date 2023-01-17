@@ -33,30 +33,10 @@ PFN_vkGetPhysicalDeviceProperties pfn_vkGetPhysicalDeviceProperties = nullptr;
 PFN_vkGetPhysicalDeviceFeatures pfn_vkGetPhysicalDeviceFeatures = nullptr;
 PFN_vkGetPhysicalDeviceMemoryProperties pfn_vkGetPhysicalDeviceMemoryProperties = nullptr;
 PFN_vkGetPhysicalDeviceQueueFamilyProperties pfn_vkGetPhysicalDeviceQueueFamilyProperties = nullptr;
- 
-bool EnsureInitialized()
-{
-    WLOGD("EnsureInitialized is comming");
-    static bool initialized = false;
-    static std::mutex initLock;
-
-    std::lock_guard<std::mutex> lock(initLock);
-
-    if (initialized) {
-        WLOGD("DriverLoader Initialized is ready");
-        return true;
-    }
-
-    if (DriverLoader::Load()) {
-        WLOGD("DriverLoader::Load is ready");
-        initialized = true;
-    }
-    return initialized;
-}
 
 bool IsSupportedVulkan()
 {
-    EnsureInitialized();
+    DriverLoader::Load();
     return DriverLoader::IsSupportedVulkan();
 }
 
@@ -64,8 +44,11 @@ VkResult CreateInstance(const VkInstanceCreateInfo* pCreateInfo,
                         const VkAllocationCallbacks* pAllocator,
                         VkInstance* pInstance)
 {
-    if (!EnsureInitialized()) {
+    if (!DriverLoader::Load()) {
         return VK_ERROR_INITIALIZATION_FAILED;
+    }
+    if (pAllocator == nullptr) {
+        pAllocator = &GetDefaultAllocator();
     }
     VkResult result = VK_SUCCESS;
 
@@ -95,7 +78,7 @@ VkResult CreateInstance(const VkInstanceCreateInfo* pCreateInfo,
 VkResult EnumerateInstanceExtensionProperties(const char* pLayerName,
     uint32_t* pPropertyCount, VkExtensionProperties* pProperties)
 {
-    if (!EnsureInitialized()) {
+    if (!DriverLoader::Load()) {
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
@@ -109,7 +92,7 @@ VkResult EnumerateInstanceExtensionProperties(const char* pLayerName,
 
 PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* pName)
 {
-    if (!EnsureInitialized()) {
+    if (!DriverLoader::Load()) {
         return nullptr;
     }
 
@@ -164,15 +147,6 @@ void DestroyInstance(VkInstance instance, const VkAllocationCallbacks* pAllocato
     if (!DriverLoader::Unload()) {
         WLOGE("DriverLoader::Unload() failed");
     }
-
-    pfn_vkGetDeviceProcAddr = nullptr;
-    fpn_vkGetPhysicalDeviceProperties2KHR = nullptr;
-    pfn_vkCreateDevice = nullptr;
-    pfn_vkGetNativeFenceFdOpenHarmony = nullptr;
-    pfn_vkGetPhysicalDeviceProperties = nullptr;
-    pfn_vkGetPhysicalDeviceFeatures = nullptr;
-    pfn_vkGetPhysicalDeviceMemoryProperties = nullptr;
-    pfn_vkGetPhysicalDeviceQueueFamilyProperties = nullptr;
 }
 
 VkResult CreateDevice(VkPhysicalDevice physicalDevice,

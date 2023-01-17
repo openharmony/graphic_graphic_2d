@@ -20,6 +20,7 @@
 
 namespace vulkan {
 namespace driver {
+const VkAllocationCallbacks& GetDefaultAllocator();
 VKAPI_ATTR VkResult CreateOHOSSurfaceOpenHarmony(VkInstance instance,
     const VkOHOSSurfaceCreateInfoOpenHarmony* pCreateInfo,
     const VkAllocationCallbacks* allocator, VkSurfaceKHR* surface);
