@@ -15,6 +15,8 @@
 #ifndef LIBVULKAN_DRIVER_LOADER_H
 #define LIBVULKAN_DRIVER_LOADER_H
 
+#include <string>
+
 #include "hardware/hdi_vulkan.h"
 namespace vulkan {
 namespace driver {
@@ -24,6 +26,9 @@ class DriverLoader {
 public:
 static bool Load();
 static bool Unload();
+static bool LoadDriver();
+static bool UnloadDriver();
+static bool LoadDriverFromFile(std::string path);
 
 static const DriverLoader& Get()
 {
