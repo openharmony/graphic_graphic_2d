@@ -90,12 +90,12 @@ SurfaceError LayerContext::DrawBufferColor()
         .width = src_.w,
         .height = src_.h,
         .strideAlignment = 0x8,
-        .format = PIXEL_FMT_RGBA_8888,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = pSurface_->GetDefaultUsage(),
     };
 
     if (layerType_ >= LayerType::LAYER_EXTRA && testYUV_) {
-        config.format = PIXEL_FMT_YCBCR_420_SP;
+        config.format = GRAPHIC_PIXEL_FMT_YCBCR_420_SP;
     }
 
     SurfaceError ret = pSurface_->RequestBuffer(buffer, releaseFence, config);
@@ -145,7 +145,7 @@ SurfaceError LayerContext::FillHDILayer()
         return ret;
     }
 
-    LayerAlpha alpha = { .enPixelAlpha = true };
+    GraphicLayerAlpha alpha = { .enPixelAlpha = true };
 
     hdiLayer_->SetSurface(cSurface_);
     hdiLayer_->SetBuffer(buffer, acquireSyncFence);
@@ -160,7 +160,7 @@ SurfaceError LayerContext::FillHDILayer()
     hdiLayer_->SetVisibleRegion(1, src_);
     hdiLayer_->SetDirtyRegion(src_);
     hdiLayer_->SetLayerSize(dst_);
-    hdiLayer_->SetBlendType(BlendType::BLEND_SRCOVER);
+    hdiLayer_->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
     hdiLayer_->SetCropRect(src_);
     hdiLayer_->SetPreMulti(false);
 
@@ -197,9 +197,9 @@ void LayerContext::SetLayerTransformType()
 void LayerContext::SetLayerCompositionType()
 {
     if (layerType_ >= LayerType::LAYER_EXTRA && testClient_) {
-        hdiLayer_->SetCompositionType(CompositionType::COMPOSITION_CLIENT);
+        hdiLayer_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     } else {
-        hdiLayer_->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
+        hdiLayer_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     }
 }
 

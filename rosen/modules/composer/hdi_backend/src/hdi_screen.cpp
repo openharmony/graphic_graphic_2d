@@ -181,7 +181,7 @@ int32_t HdiScreen::SetScreenVsyncEnabled(bool enabled) const
     return device_->SetScreenVsyncEnabled(screenId_, enabled);
 }
 
-int32_t HdiScreen::GetScreenSupportedColorGamuts(std::vector<ColorGamut> &gamuts) const
+int32_t HdiScreen::GetScreenSupportedColorGamuts(std::vector<GraphicColorGamut> &gamuts) const
 {
     if (device_ == nullptr) {
         return DISPLAY_NULL_PTR;
@@ -190,7 +190,7 @@ int32_t HdiScreen::GetScreenSupportedColorGamuts(std::vector<ColorGamut> &gamuts
     return device_->GetScreenSupportedColorGamuts(screenId_, gamuts);
 }
 
-int32_t HdiScreen::SetScreenColorGamut(ColorGamut gamut) const
+int32_t HdiScreen::SetScreenColorGamut(GraphicColorGamut gamut) const
 {
     if (device_ == nullptr) {
         return DISPLAY_NULL_PTR;
@@ -199,7 +199,7 @@ int32_t HdiScreen::SetScreenColorGamut(ColorGamut gamut) const
     return device_->SetScreenColorGamut(screenId_, gamut);
 }
 
-int32_t HdiScreen::GetScreenColorGamut(ColorGamut &gamut) const
+int32_t HdiScreen::GetScreenColorGamut(GraphicColorGamut &gamut) const
 {
     if (device_ == nullptr) {
         return DISPLAY_NULL_PTR;
@@ -244,7 +244,7 @@ int32_t HdiScreen::GetHDRCapabilityInfos(HDRCapability &info) const
     return device_->GetHDRCapabilityInfos(screenId_, info);
 }
 
-int32_t HdiScreen::GetSupportedMetaDataKey(std::vector<HDRMetadataKey> &keys) const
+int32_t HdiScreen::GetSupportedMetaDataKey(std::vector<GraphicHDRMetadataKey> &keys) const
 {
     if (device_ == nullptr) {
         return DISPLAY_NULL_PTR;

@@ -50,9 +50,9 @@ void HdiScreenTest::CheckNullFunc()
     ASSERT_EQ(hdiScreen_->SetScreenBacklight(level), DISPLAY_NULL_PTR);
     bool enabled = false;
     ASSERT_EQ(hdiScreen_->SetScreenVsyncEnabled(enabled), DISPLAY_NULL_PTR);
-    std::vector<ColorGamut> gamuts;
+    std::vector<GraphicColorGamut> gamuts;
     ASSERT_EQ(hdiScreen_->GetScreenSupportedColorGamuts(gamuts), DISPLAY_NULL_PTR);
-    ColorGamut gamut = COLOR_GAMUT_INVALID;
+    GraphicColorGamut gamut = GRAPHIC_COLOR_GAMUT_INVALID;
     ASSERT_EQ(hdiScreen_->SetScreenColorGamut(gamut), DISPLAY_NULL_PTR);
     ASSERT_EQ(hdiScreen_->GetScreenColorGamut(gamut), DISPLAY_NULL_PTR);
     GamutMap gamutMap = GAMUT_MAP_CONSTANT;
@@ -62,7 +62,7 @@ void HdiScreenTest::CheckNullFunc()
     ASSERT_EQ(hdiScreen_->SetScreenColorTransform(matrix), DISPLAY_NULL_PTR);
     HDRCapability infos;
     ASSERT_EQ(hdiScreen_->GetHDRCapabilityInfos(infos), DISPLAY_NULL_PTR);
-    std::vector<HDRMetadataKey> keys;
+    std::vector<GraphicHDRMetadataKey> keys;
     ASSERT_EQ(hdiScreen_->GetSupportedMetaDataKey(keys), DISPLAY_NULL_PTR);
 }
 
@@ -282,8 +282,8 @@ HWTEST_F(HdiScreenTest, SetScreenColorTransform001, Function | MediumTest| Level
  */
 HWTEST_F(HdiScreenTest, GetScreenSupportedColorGamuts001, Function | MediumTest | Level2)
 {
-    ColorGamut colorGamut = ColorGamut::COLOR_GAMUT_DCI_P3;
-    std::vector<ColorGamut> gamuts = { colorGamut };
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3;
+    std::vector<GraphicColorGamut> gamuts = { colorGamut };
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenSupportedColorGamuts(gamuts), 0);
 }
 
@@ -297,7 +297,7 @@ HWTEST_F(HdiScreenTest, GetScreenSupportedColorGamuts001, Function | MediumTest 
  */
 HWTEST_F(HdiScreenTest, SetScreenColorGamut001, Function | MediumTest | Level2)
 {
-    ColorGamut colorGamut = ColorGamut::COLOR_GAMUT_DCI_P3;
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3;
     ASSERT_EQ(HdiScreenTest::hdiScreen_->SetScreenColorGamut(colorGamut), 0);
 }
 
@@ -311,7 +311,7 @@ HWTEST_F(HdiScreenTest, SetScreenColorGamut001, Function | MediumTest | Level2)
  */
 HWTEST_F(HdiScreenTest, GetScreenColorGamut001, Function | MediumTest | Level2)
 {
-    ColorGamut colorGamut = ColorGamut::COLOR_GAMUT_DCI_P3;
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3;
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenColorGamut(colorGamut), 0);
 }
 
@@ -373,8 +373,8 @@ HWTEST_F(HdiScreenTest, GetHDRCapabilityInfos001, Function | MediumTest | Level2
  */
 HWTEST_F(HdiScreenTest, GetSupportedMetaDataKey001, Function | MediumTest | Level2)
 {
-    HDRMetadataKey key = HDRMetadataKey::MATAKEY_RED_PRIMARY_X;
-    std::vector<HDRMetadataKey> keys = { key };
+    GraphicHDRMetadataKey key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X;
+    std::vector<GraphicHDRMetadataKey> keys = { key };
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetSupportedMetaDataKey(keys), 0);
 }
 } // namespace

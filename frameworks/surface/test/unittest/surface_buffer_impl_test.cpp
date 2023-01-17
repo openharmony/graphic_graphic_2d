@@ -31,10 +31,10 @@ public:
         .width = 0x100,
         .height = 0x100,
         .strideAlignment = 0x8,
-        .format = PIXEL_FMT_RGBA_8888,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
-        .colorGamut = ColorGamut::COLOR_GAMUT_DCI_P3,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
     };
     static inline sptr<SurfaceBuffer> buffer = nullptr;
     static inline int32_t val32 = 0;
@@ -105,9 +105,9 @@ HWTEST_F(SurfaceBufferImplTest, State002, Function | MediumTest | Level2)
     ASSERT_NE(buffer->GetBufferHandle(), nullptr);
     ASSERT_NE(buffer->GetVirAddr(), nullptr);
     ASSERT_NE(buffer->GetSize(), 0u);
-    ASSERT_EQ(buffer->GetFormat(), PIXEL_FMT_RGBA_8888);
+    ASSERT_EQ(buffer->GetFormat(), GRAPHIC_PIXEL_FMT_RGBA_8888);
     ASSERT_EQ(buffer->GetUsage(), BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
-    ASSERT_EQ(buffer->GetSurfaceBufferColorGamut(), ColorGamut::COLOR_GAMUT_DCI_P3);
+    ASSERT_EQ(buffer->GetSurfaceBufferColorGamut(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3);
 
     ret = BufferManager::GetInstance()->Free(buffer);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);

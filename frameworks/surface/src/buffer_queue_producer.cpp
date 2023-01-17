@@ -259,7 +259,7 @@ int32_t BufferQueueProducer::SetTransformRemote(MessageParcel &arguments, Messag
 int32_t BufferQueueProducer::IsSupportedAllocRemote(MessageParcel &arguments, MessageParcel &reply,
                                                     MessageOption &option)
 {
-    std::vector<VerifyAllocInfo> infos;
+    std::vector<BufferVerifyAllocInfo> infos;
     ReadVerifyAllocInfo(arguments, infos);
 
     std::vector<bool> supporteds;
@@ -291,7 +291,7 @@ int32_t BufferQueueProducer::SetScalingModeRemote(MessageParcel &arguments, Mess
 int32_t BufferQueueProducer::SetMetaDataRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     uint32_t sequence = arguments.ReadUint32();
-    std::vector<HDRMetaData> metaData;
+    std::vector<GraphicHDRMetaData> metaData;
     ReadHDRMetaData(arguments, metaData);
     GSError sret = SetMetaData(sequence, metaData);
     reply.WriteInt32(sret);
@@ -301,7 +301,7 @@ int32_t BufferQueueProducer::SetMetaDataRemote(MessageParcel &arguments, Message
 int32_t BufferQueueProducer::SetMetaDataSetRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     uint32_t sequence = arguments.ReadUint32();
-    HDRMetadataKey key = static_cast<HDRMetadataKey>(arguments.ReadUint32());
+    GraphicHDRMetadataKey key = static_cast<GraphicHDRMetadataKey>(arguments.ReadUint32());
     std::vector<uint8_t> metaData;
     ReadHDRMetaDataSet(arguments, metaData);
     GSError sret = SetMetaDataSet(sequence, key, metaData);
@@ -326,7 +326,7 @@ int32_t BufferQueueProducer::GetPresentTimestampRemote(MessageParcel &arguments,
                                                        MessageOption &option)
 {
     uint32_t sequence = arguments.ReadUint32();
-    PresentTimestampType type = static_cast<PresentTimestampType>(arguments.ReadUint32());
+    GraphicPresentTimestampType type = static_cast<GraphicPresentTimestampType>(arguments.ReadUint32());
     int64_t time = 0;
     GSError sret = GetPresentTimestamp(sequence, type, time);
     reply.WriteInt32(sret);
@@ -493,7 +493,7 @@ GSError BufferQueueProducer::SetTransform(GraphicTransformType transform)
     return bufferQueue_->SetTransform(transform);
 }
 
-GSError BufferQueueProducer::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+GSError BufferQueueProducer::IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,
                                               std::vector<bool> &supporteds)
 {
     if (bufferQueue_ == nullptr) {
@@ -537,7 +537,7 @@ GSError BufferQueueProducer::SetScalingMode(uint32_t sequence, ScalingMode scali
     return bufferQueue_->SetScalingMode(sequence, scalingMode);
 }
 
-GSError BufferQueueProducer::SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData)
+GSError BufferQueueProducer::SetMetaData(uint32_t sequence, const std::vector<GraphicHDRMetaData> &metaData)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
@@ -546,7 +546,7 @@ GSError BufferQueueProducer::SetMetaData(uint32_t sequence, const std::vector<HD
     return bufferQueue_->SetMetaData(sequence, metaData);
 }
 
-GSError BufferQueueProducer::SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
+GSError BufferQueueProducer::SetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey key,
                                             const std::vector<uint8_t> &metaData)
 {
     if (bufferQueue_ == nullptr) {
@@ -564,7 +564,7 @@ GSError BufferQueueProducer::SetTunnelHandle(const sptr<SurfaceTunnelHandle> &ha
     return bufferQueue_->SetTunnelHandle(handle);
 }
 
-GSError BufferQueueProducer::SetTunnelHandle(const ExtDataHandle *handle)
+GSError BufferQueueProducer::SetTunnelHandle(const GraphicExtDataHandle *handle)
 {
     sptr<SurfaceTunnelHandle> tunnelHandle = new SurfaceTunnelHandle();
     if (tunnelHandle->SetHandle(handle) != GSERROR_OK) {
@@ -573,7 +573,7 @@ GSError BufferQueueProducer::SetTunnelHandle(const ExtDataHandle *handle)
     return bufferQueue_->SetTunnelHandle(tunnelHandle);
 }
 
-GSError BufferQueueProducer::GetPresentTimestamp(uint32_t sequence, PresentTimestampType type, int64_t &time)
+GSError BufferQueueProducer::GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type, int64_t &time)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;

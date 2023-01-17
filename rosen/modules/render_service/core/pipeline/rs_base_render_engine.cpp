@@ -73,8 +73,8 @@ bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
         }
 #endif
 
-        ColorGamut srcGamut = static_cast<ColorGamut>(buffer->GetSurfaceBufferColorGamut());
-        ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_SRGB;
+        GraphicColorGamut srcGamut = static_cast<GraphicColorGamut>(buffer->GetSurfaceBufferColorGamut());
+        GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
         if (srcGamut != dstGamut) {
             forceCPU = true;
             break;

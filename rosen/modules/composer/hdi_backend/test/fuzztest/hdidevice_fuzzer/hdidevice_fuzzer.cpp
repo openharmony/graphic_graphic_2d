@@ -53,7 +53,7 @@ namespace OHOS {
     void HdiDeviceFuzzTest2()
     {
         // get data
-        ColorGamut gamut = GetData<ColorGamut>();
+        GraphicColorGamut gamut = GetData<GraphicColorGamut>();
         uint32_t screenId = GetData<uint32_t>();
         uint32_t layerId = GetData<uint32_t>();
         int32_t fenceFd = GetData<int32_t>() % 32768; // maximum fd of linux is 32768
@@ -62,23 +62,23 @@ namespace OHOS {
             fenceFd = DEFAULT_FENCE;
         }
         sptr<SyncFence> fence = new SyncFence(fenceFd);
-        LayerAlpha alpha = GetData<LayerAlpha>();
+        GraphicLayerAlpha alpha = GetData<GraphicLayerAlpha>();
         IRect layerRect = GetData<IRect>();
         GraphicTransformType ttype = GetData<GraphicTransformType>();
         uint32_t num = GetData<uint32_t>();
         IRect visible = GetData<IRect>();
         IRect dirty = GetData<IRect>();
-        CompositionType ctype = GetData<CompositionType>();
-        BlendType btype = GetData<BlendType>();
+        GraphicCompositionType ctype = GetData<GraphicCompositionType>();
+        GraphicBlendType btype = GetData<GraphicBlendType>();
         IRect crop = GetData<IRect>();
         uint32_t zorder = GetData<uint32_t>();
         bool isPreMulti = GetData<bool>();
         float matrix = GetData<float>();
-        ColorDataSpace colorSpace = GetData<ColorDataSpace>();
-        HDRMetaData metaData = GetData<HDRMetaData>();
-        HDRMetadataKey key = GetData<HDRMetadataKey>();
+        GraphicColorDataSpace colorSpace = GetData<GraphicColorDataSpace>();
+        GraphicHDRMetaData metaData = GetData<GraphicHDRMetaData>();
+        GraphicHDRMetadataKey key = GetData<GraphicHDRMetadataKey>();
         uint8_t metaData2 = GetData<uint8_t>();
-        PresentTimestamp timestamp = GetData<PresentTimestamp>();
+        GraphicPresentTimestamp timestamp = GetData<GraphicPresentTimestamp>();
 
         // test
         Base::HdiDevice *device = HdiDevice::GetInstance();
@@ -97,7 +97,7 @@ namespace OHOS {
         device->SetLayerColorTransform(screenId, layerId, &matrix);
         device->SetLayerColorDataSpace(screenId, layerId, colorSpace);
         device->GetLayerColorDataSpace(screenId, layerId, colorSpace);
-        std::vector<HDRMetaData> metaDatas = {metaData};
+        std::vector<GraphicHDRMetaData> metaDatas = {metaData};
         device->SetLayerMetaData(screenId, layerId, metaDatas);
         std::vector<uint8_t> metaDatas2 = {metaData2};
         device->SetLayerMetaDataSet(screenId, layerId, key, metaDatas2);
@@ -146,7 +146,7 @@ namespace OHOS {
         std::vector<uint32_t> layers;
         std::vector<sptr<SyncFence>> fences;
         device->GetScreenReleaseFence(screenId, layers, fences);
-        std::vector<ColorGamut> gamuts;
+        std::vector<GraphicColorGamut> gamuts;
         device->GetScreenSupportedColorGamuts(screenId, gamuts);
         device->SetScreenGamutMap(screenId, gamutMap);
         HDRCapability info = {
@@ -157,7 +157,7 @@ namespace OHOS {
             .minLum = minLum,
         };
         device->GetHDRCapabilityInfos(screenId, info);
-        std::vector<HDRMetadataKey> keys;
+        std::vector<GraphicHDRMetadataKey> keys;
         device->GetSupportedMetaDataKey(screenId, keys);
         device->Commit(screenId, fence);
 

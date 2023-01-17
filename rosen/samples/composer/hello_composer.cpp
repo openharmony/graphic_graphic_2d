@@ -448,7 +448,7 @@ void HelloComposer::DoPrepareCompleted(sptr<Surface> surface, const struct Prepa
         .width = displayWidth,  // need display width
         .height = displayHeight, // need display height
         .strideAlignment = 0x8,
-        .format = PIXEL_FMT_BGRA_8888,
+        .format = GRAPHIC_PIXEL_FMT_BGRA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
     };
@@ -468,7 +468,7 @@ void HelloComposer::DoPrepareCompleted(sptr<Surface> surface, const struct Prepa
     bool hasClient = false;
     const std::vector<LayerInfoPtr> &layers = param.layers;
     for (const LayerInfoPtr &layer : layers) {
-        if (layer->GetCompositionType() == CompositionType::COMPOSITION_CLIENT) {
+        if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT) {
             hasClient = true;
             clientCount++;
         }

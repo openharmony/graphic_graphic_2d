@@ -307,7 +307,7 @@ GSError BufferClientProducer::SetTransform(GraphicTransformType transform)
     return GSERROR_OK;
 }
 
-GSError BufferClientProducer::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+GSError BufferClientProducer::IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,
                                                std::vector<bool> &supporteds)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
@@ -357,7 +357,7 @@ GSError BufferClientProducer::SetScalingMode(uint32_t sequence, ScalingMode scal
     return GSERROR_OK;
 }
 
-GSError BufferClientProducer::SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData)
+GSError BufferClientProducer::SetMetaData(uint32_t sequence, const std::vector<GraphicHDRMetaData> &metaData)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
     arguments.WriteUint32(sequence);
@@ -372,7 +372,7 @@ GSError BufferClientProducer::SetMetaData(uint32_t sequence, const std::vector<H
     return GSERROR_OK;
 }
 
-GSError BufferClientProducer::SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
+GSError BufferClientProducer::SetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey key,
                                              const std::vector<uint8_t> &metaData)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
@@ -389,7 +389,7 @@ GSError BufferClientProducer::SetMetaDataSet(uint32_t sequence, HDRMetadataKey k
     return GSERROR_OK;
 }
 
-GSError BufferClientProducer::SetTunnelHandle(const ExtDataHandle *handle)
+GSError BufferClientProducer::SetTunnelHandle(const GraphicExtDataHandle *handle)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
     if (handle == nullptr) {
@@ -407,7 +407,7 @@ GSError BufferClientProducer::SetTunnelHandle(const ExtDataHandle *handle)
     return GSERROR_OK;
 }
 
-GSError BufferClientProducer::GetPresentTimestamp(uint32_t sequence, PresentTimestampType type, int64_t &time)
+GSError BufferClientProducer::GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type, int64_t &time)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
     arguments.WriteUint32(sequence);

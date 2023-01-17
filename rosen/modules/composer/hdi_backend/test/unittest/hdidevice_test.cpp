@@ -81,9 +81,9 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     std::vector<uint32_t> layers;
     std::vector<sptr<SyncFence>> fences;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetScreenReleaseFence(screenId, layers, fences), DISPLAY_NULL_PTR);
-    std::vector<ColorGamut> gamuts;
+    std::vector<GraphicColorGamut> gamuts;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetScreenSupportedColorGamuts(screenId, gamuts), DISPLAY_NULL_PTR);
-    ColorGamut gamut = COLOR_GAMUT_INVALID;
+    GraphicColorGamut gamut = GRAPHIC_COLOR_GAMUT_INVALID;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetScreenColorGamut(screenId, gamut), DISPLAY_NULL_PTR);
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetScreenColorGamut(screenId, gamut), DISPLAY_NULL_PTR);
     GamutMap gamutMap = GAMUT_MAP_CONSTANT;
@@ -93,7 +93,7 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetScreenColorTransform(screenId, matrix), DISPLAY_NULL_PTR);
     HDRCapability info;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetHDRCapabilityInfos(screenId, info), DISPLAY_NULL_PTR);
-    std::vector<HDRMetadataKey> keys;
+    std::vector<GraphicHDRMetadataKey> keys;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedMetaDataKey(screenId, keys), DISPLAY_NULL_PTR);
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->Commit(screenId, fence), DISPLAY_NULL_PTR);
 }
@@ -109,7 +109,7 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
 HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
 {
     uint32_t screenId = 0, layerId = 0;
-    LayerAlpha alpha;
+    GraphicLayerAlpha alpha;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), DISPLAY_NULL_PTR);
     IRect layerRect = {0, 0, 0, 0};
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerSize(screenId, layerId, layerRect), DISPLAY_NULL_PTR);
@@ -123,9 +123,9 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
     BufferHandle *handle = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, handle, acquireFence), DISPLAY_NULL_PTR);
-    CompositionType cmpType = COMPOSITION_CLIENT;
+    GraphicCompositionType cmpType = GRAPHIC_COMPOSITION_CLIENT;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCompositionType(screenId, layerId, cmpType), DISPLAY_NULL_PTR);
-    BlendType blendType = BLEND_NONE;
+    GraphicBlendType blendType = GRAPHIC_BLEND_NONE;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBlendType(screenId, layerId, blendType), DISPLAY_NULL_PTR);
     IRect crop = {0, 0, 0, 0};
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCrop(screenId, layerId, crop), DISPLAY_NULL_PTR);
@@ -135,22 +135,22 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerPreMulti(screenId, layerId, isPreMulti), DISPLAY_NULL_PTR);
     float *matrix;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorTransform(screenId, layerId, matrix), DISPLAY_NULL_PTR);
-    ColorDataSpace colorSpace = COLOR_DATA_SPACE_UNKNOWN;
+    GraphicColorDataSpace colorSpace = GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorDataSpace(screenId, layerId, colorSpace), DISPLAY_NULL_PTR);
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetLayerColorDataSpace(screenId, layerId, colorSpace), DISPLAY_NULL_PTR);
-    std::vector<HDRMetaData> metaData;
+    std::vector<GraphicHDRMetaData> metaData;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaData(screenId, layerId, metaData), DISPLAY_NULL_PTR);
-    HDRMetadataKey key = MATAKEY_RED_PRIMARY_X;
+    GraphicHDRMetadataKey key = GRAPHIC_MATAKEY_RED_PRIMARY_X;
     std::vector<uint8_t> metaDatas;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas), DISPLAY_NULL_PTR);
-    ExtDataHandle *extDataHandle = nullptr;
+    GraphicExtDataHandle *extDataHandle = nullptr;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerTunnelHandle(screenId, layerId, extDataHandle), DISPLAY_NULL_PTR);
-    PresentTimestampType presentTimesType = HARDWARE_DISPLAY_PTS_UNSUPPORTED;
+    GraphicPresentTimestampType presentTimesType = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
               DISPLAY_NULL_PTR);
-    PresentTimestamp timestamp;
+    GraphicPresentTimestamp timestamp;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetPresentTimestamp(screenId, layerId, timestamp), DISPLAY_NULL_PTR);
-    LayerInfo layerInfo;
+    GraphicLayerInfo layerInfo;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->CreateLayer(screenId, layerInfo, layerId), DISPLAY_NULL_PTR);
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->CloseLayer(screenId, layerId), DISPLAY_NULL_PTR);
 }

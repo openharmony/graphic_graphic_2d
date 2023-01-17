@@ -92,20 +92,20 @@ public:
     GSError SetTransform(GraphicTransformType transform) override;
     GraphicTransformType GetTransform() const override;
 
-    GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos, std::vector<bool> &supporteds) override;
+    GSError IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos, std::vector<bool> &supporteds) override;
     GSError Disconnect() override;
     GSError SetScalingMode(uint32_t sequence, ScalingMode scalingMode) override;
     GSError GetScalingMode(uint32_t sequence, ScalingMode &scalingMode) override;
-    GSError SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData) override;
-    GSError SetMetaDataSet(uint32_t sequence, HDRMetadataKey key, const std::vector<uint8_t> &metaData) override;
+    GSError SetMetaData(uint32_t sequence, const std::vector<GraphicHDRMetaData> &metaData) override;
+    GSError SetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey key, const std::vector<uint8_t> &metaData) override;
     GSError QueryMetaDataType(uint32_t sequence, HDRMetaDataType &type) const override;
-    GSError GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const override;
-    GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
+    GSError GetMetaData(uint32_t sequence, std::vector<GraphicHDRMetaData> &metaData) const override;
+    GSError GetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey &key,
                            std::vector<uint8_t> &metaData) const override;
-    GSError SetTunnelHandle(const ExtDataHandle *handle) override;
+    GSError SetTunnelHandle(const GraphicExtDataHandle *handle) override;
     sptr<SurfaceTunnelHandle> GetTunnelHandle() const override;
-    GSError SetPresentTimestamp(uint32_t sequence, const PresentTimestamp &timestamp) override;
-    GSError GetPresentTimestamp(uint32_t sequence, PresentTimestampType type, int64_t &time) const override;
+    GSError SetPresentTimestamp(uint32_t sequence, const GraphicPresentTimestamp &timestamp) override;
+    GSError GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type, int64_t &time) const override;
 
     int32_t GetDefaultFormat() override;
     GSError SetDefaultFormat(int32_t format) override;

@@ -224,7 +224,7 @@ void RSComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfac
 bool RSComposerAdapter::GetComposerInfoNeedClient(const ComposeInfo &info, RSSurfaceRenderNode& node) const
 {
     bool needClient = RSDividedRenderUtil::IsNeedClient(node, info);
-    if (info.buffer->GetSurfaceBufferColorGamut() != static_cast<ColorGamut>(screenInfo_.colorGamut)) {
+    if (info.buffer->GetSurfaceBufferColorGamut() != static_cast<GraphicColorGamut>(screenInfo_.colorGamut)) {
         needClient = true;
     }
     return needClient;
@@ -281,7 +281,7 @@ ComposeInfo RSComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& node) const
     info.alpha.enGlobalAlpha = false;
     info.buffer = buffer;
     info.fence = node.GetAcquireFence();
-    info.blendType = BLEND_NONE;
+    info.blendType = GRAPHIC_BLEND_NONE;
     info.needClient = false;
     return info;
 }
@@ -302,7 +302,7 @@ void RSComposerAdapter::SetComposeInfoToLayer(
     layer->SetLayerSize(info.dstRect);
     layer->SetLayerAdditionalInfo(node);
     layer->SetCompositionType(info.needClient ?
-        CompositionType::COMPOSITION_CLIENT : CompositionType::COMPOSITION_DEVICE);
+        GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT : GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     layer->SetVisibleRegion(1, info.visibleRect);
     layer->SetDirtyRegion(info.srcRect);
     layer->SetBlendType(info.blendType);
@@ -319,7 +319,7 @@ void RSComposerAdapter::SetComposeInfoToLayer(
     }
     switch (type) {
         case HDRMetaDataType::HDR_META_DATA: {
-            std::vector<HDRMetaData> metaData;
+            std::vector<GraphicHDRMetaData> metaData;
             if (surface->GetMetaData(info.buffer->GetSeqNum(), metaData) != GSERROR_OK) {
                 RS_LOGE("RSComposerAdapter::SetComposeInfoToLayer: GetMetaData failed");
                 return;
@@ -328,13 +328,13 @@ void RSComposerAdapter::SetComposeInfoToLayer(
             break;
         }
         case HDRMetaDataType::HDR_META_DATA_SET: {
-            HDRMetadataKey key;
+            GraphicHDRMetadataKey key;
             std::vector<uint8_t> metaData;
             if (surface->GetMetaDataSet(info.buffer->GetSeqNum(), key, metaData) != GSERROR_OK) {
                 RS_LOGE("RSComposerAdapter::SetComposeInfoToLayer: GetMetaDataSet failed");
                 return;
             }
-            HDRMetaDataSet metaDataSet;
+            GraphicHDRMetaDataSet metaDataSet;
             metaDataSet.key = key;
             metaDataSet.metaData = metaData;
             layer->SetMetaDataSet(metaDataSet);

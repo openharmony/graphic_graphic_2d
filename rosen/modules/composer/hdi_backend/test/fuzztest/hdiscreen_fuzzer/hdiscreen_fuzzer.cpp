@@ -125,7 +125,7 @@ namespace OHOS {
         DispPowerStatus status = GetData<DispPowerStatus>();
         uint32_t level = GetData<uint32_t>();
         bool enabled = GetData<bool>();
-        ColorGamut gamut = GetData<ColorGamut>();
+        GraphicColorGamut gamut = GetData<GraphicColorGamut>();
         GamutMap gamutMap = GetData<GamutMap>();
         float matrix = GetData<float>();
         uint32_t sequence = GetData<uint32_t>();

@@ -311,13 +311,13 @@ BufferHandle *SurfaceBufferImpl::GetBufferHandle() const
     return handle_;
 }
 
-void SurfaceBufferImpl::SetSurfaceBufferColorGamut(const ColorGamut& colorGamut)
+void SurfaceBufferImpl::SetSurfaceBufferColorGamut(const GraphicColorGamut& colorGamut)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     surfaceBufferColorGamut_ = colorGamut;
 }
 
-const ColorGamut& SurfaceBufferImpl::GetSurfaceBufferColorGamut() const
+const GraphicColorGamut& SurfaceBufferImpl::GetSurfaceBufferColorGamut() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return surfaceBufferColorGamut_;
@@ -538,8 +538,8 @@ GSError SurfaceBufferImpl::CheckBufferConfig(int32_t width, int32_t height,
         return GSERROR_INVALID_ARGUMENTS;
     }
 
-    if (format < 0 || format > PIXEL_FMT_BUTT) {
-        BLOGE("format [0, %{public}d], now is %{public}d", PIXEL_FMT_BUTT, format);
+    if (format < 0 || format > GRAPHIC_PIXEL_FMT_BUTT) {
+        BLOGE("format [0, %{public}d], now is %{public}d", GRAPHIC_PIXEL_FMT_BUTT, format);
         return GSERROR_INVALID_ARGUMENTS;
     }
 

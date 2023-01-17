@@ -49,10 +49,10 @@ public:
     GraphicTransformType GetTransform() const;
     GSError GetScalingMode(uint32_t sequence, ScalingMode &scalingMode) const;
     GSError QueryMetaDataType(uint32_t sequence, HDRMetaDataType &type) const;
-    GSError GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const;
-    GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key, std::vector<uint8_t> &metaData) const;
+    GSError GetMetaData(uint32_t sequence, std::vector<GraphicHDRMetaData> &metaData) const;
+    GSError GetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey &key, std::vector<uint8_t> &metaData) const;
     sptr<SurfaceTunnelHandle> GetTunnelHandle() const;
-    GSError SetPresentTimestamp(uint32_t sequence, const PresentTimestamp &timestamp);
+    GSError SetPresentTimestamp(uint32_t sequence, const GraphicPresentTimestamp &timestamp);
 
     bool GetStatus() const;
     void SetStatus(bool status);

@@ -93,7 +93,7 @@ HWTEST_F(HdiBackendSysTest, RegScreenHotplug001, Function | MediumTest| Level3)
     for (auto iter = layersMap.begin(); iter != layersMap.end(); iter++) {
         uint32_t layerId = iter->first;
         layersId.emplace_back(layerId);
-        types.emplace_back(CompositionType::COMPOSITION_CLIENT);
+        types.emplace_back(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     }
     EXPECT_CALL(*mockDevice_, GetScreenCompChange(_, layersId, types)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, Commit(_, _)).WillRepeatedly(testing::Return(0));
