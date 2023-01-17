@@ -60,6 +60,7 @@ enum class ImageFit {
     FIT_HEIGHT,
     NONE,
     SCALE_DOWN,
+    TOP_LEFT,
 };
 
 class RS_EXPORT RSImage {
