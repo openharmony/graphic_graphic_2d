@@ -12,3 +12,4 @@
 # limitations under the License.
 
 persist.sys.graphic.animationscale = accessibility:accessibility:0777
+debug.graphic. = accessibility:accessibility:0777
