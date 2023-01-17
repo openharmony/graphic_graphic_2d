@@ -1340,8 +1340,7 @@ bool RSBaseRenderUtil::WriteToPng(const std::string &filename, const WriteToPngP
 
 GraphicTransformType RSBaseRenderUtil::GetRotateTransform(GraphicTransformType transform)
 {
-    switch (transform)
-    {
+    switch (transform) {
         case GraphicTransformType::GRAPHIC_FLIP_H_ROT90:
         case GraphicTransformType::GRAPHIC_FLIP_V_ROT90: {
             return GraphicTransformType::GRAPHIC_ROTATE_90;
@@ -1362,8 +1361,7 @@ GraphicTransformType RSBaseRenderUtil::GetRotateTransform(GraphicTransformType t
 
 GraphicTransformType RSBaseRenderUtil::GetFlipTransform(GraphicTransformType transform)
 {
-     switch (transform)
-    {
+    switch (transform) {
         case GraphicTransformType::GRAPHIC_FLIP_H_ROT90:
         case GraphicTransformType::GRAPHIC_FLIP_H_ROT180:
         case GraphicTransformType::GRAPHIC_FLIP_H_ROT270: {
