@@ -96,9 +96,6 @@ void RSParallelSubThread::WaitTaskSync()
 void RSParallelSubThread::InitSubThread()
 {
     pthread_setname_np(pthread_self(), "SubMainThread");
-    // Thread prority number interval: [-20, 20); Lower number refers to a higher thread priority,
-    // set -8 as experience reference.
-    setpriority(PRIO_PROCESS, 0, -8);
     struct sched_param param = {0};
     // sched_priority interval: [1, 99]; higher number refers to a higher thread priority,
     // set 2 as experience reference.
