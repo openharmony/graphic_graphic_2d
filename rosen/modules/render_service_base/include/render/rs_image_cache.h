@@ -24,6 +24,10 @@
 #include "memory/MemoryTrack.h"
 
 namespace OHOS {
+namespace Media {
+class PixelMap;
+}
+
 namespace Rosen {
 class RSB_EXPORT RSImageCache {
 public:
@@ -32,6 +36,10 @@ public:
     void CacheSkiaImage(uint64_t uniqueId, sk_sp<SkImage> img);
     sk_sp<SkImage> GetSkiaImageCache(uint64_t uniqueId) const;
     void ReleaseSkiaImageCache(uint64_t uniqueId);
+
+    void CachePixelMap(uint64_t uniqueId, std::shared_ptr<Media::PixelMap> pixelmap);
+    std::shared_ptr<Media::PixelMap> GetPixelMapCache(uint64_t uniqueId) const;
+    void ReleasePixelMapCache(uint64_t uniqueId);
 
     RSImageCache() = default;
     ~RSImageCache() = default;
@@ -43,6 +51,7 @@ private:
     RSImageCache& operator=(const RSImageCache&&) = delete;
     mutable std::mutex mutex_;
     std::unordered_map<uint64_t, sk_sp<SkImage>> skiaImageCache_;
+    std::unordered_map<uint64_t, std::shared_ptr<Media::PixelMap>> pixelmapCache_;
 };
 } // namespace Rosen
 } // namespace OHOS

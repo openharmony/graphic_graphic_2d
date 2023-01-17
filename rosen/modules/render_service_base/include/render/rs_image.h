@@ -88,6 +88,7 @@ private:
     void ApplyCanvasClip(SkCanvas& canvas);
     void DrawImageRepeatRect(const SkPaint& paint, SkCanvas& canvas);
     void UploadGpu(SkCanvas& canvas);
+    void GenUniqueId(uint32_t id);
 
     mutable std::mutex mutex_;
     sk_sp<SkImage> image_;

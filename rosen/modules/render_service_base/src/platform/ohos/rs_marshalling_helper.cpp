@@ -732,10 +732,14 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Medi
     if (!val) {
         return parcel.WriteInt32(-1);
     }
+    auto position = parcel.GetWritePosition();
     if (!(parcel.WriteInt32(1) && val->Marshalling(parcel))) {
         ROSEN_LOGE("failed RSMarshallingHelper::Marshalling Media::PixelMap");
         return false;
     }
+    // correct pixelmap size recorded in Parcel
+    *reinterpret_cast<int32_t*>(parcel.GetData() + position) =
+        static_cast<int32_t>(parcel.GetWritePosition() - position - sizeof(int32_t));
     return true;
 }
 
@@ -758,6 +762,14 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     MemoryInfo info = {val->GetByteCount(), 0, MEMORY_TYPE::MEM_PIXELMAP}; // pid is set to 0 temporarily.
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
     val->SetFreePixelMapProc(CustomFreePixelMap);
+    return true;
+}
+bool RSMarshallingHelper::SkipPixelMap(Parcel& parcel)
+{
+    auto size = parcel.ReadInt32();
+    if (size != -1) {
+        parcel.SkipBytes(size);
+    }
     return true;
 }
 

@@ -14,6 +14,7 @@
  */
 
 #include "render/rs_image_cache.h"
+#include "pixel_map.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -27,7 +28,7 @@ RSImageCache& RSImageCache::Instance()
 
 void RSImageCache::CacheSkiaImage(uint64_t uniqueId, sk_sp<SkImage> img)
 {
-    if (img) {
+    if (img && uniqueId > 0) {
         std::lock_guard<std::mutex> lock(mutex_);
         skiaImageCache_.emplace(uniqueId, img);
     }
@@ -50,6 +51,34 @@ void RSImageCache::ReleaseSkiaImageCache(uint64_t uniqueId)
     auto it = skiaImageCache_.find(uniqueId);
     if (it != skiaImageCache_.end() && (!it->second || it->second->unique())) {
         skiaImageCache_.erase(it);
+    }
+}
+
+void RSImageCache::CachePixelMap(uint64_t uniqueId, std::shared_ptr<Media::PixelMap> pixelmap)
+{
+    if (pixelmap && uniqueId > 0) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        pixelmapCache_.emplace(uniqueId, img);
+    }
+}
+
+std::shared_ptr<Media::PixelMap> RSImageCache::GetPixelMapCache(uint64_t uniqueId) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = pixelmapCache_.find(uniqueId);
+    if (it != pixelmapCache_.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
+void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
+{
+    // release the skimage if nobody else holds it
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = pixelmapCache_.find(uniqueId);
+    if (it != pixelmapCache_.end() && (!it->second || it->second.unique())) {
+        pixelmapCache_.erase(it);
     }
 }
 } // namespace Rosen
