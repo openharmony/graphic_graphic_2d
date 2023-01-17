@@ -71,6 +71,9 @@ void RSImage::ApplyImageFit()
     float dstH = frameH;
     float ratio = srcW / srcH;
     switch (imageFit_) {
+        case ImageFit::TOP_LEFT:
+            dstRect_.SetAll(0.f, 0.f, srcW, srcH);
+            return;
         case ImageFit::FILL:
             break;
         case ImageFit::NONE:
