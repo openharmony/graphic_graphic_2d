@@ -112,7 +112,20 @@ RSUniRenderVisitor::~RSUniRenderVisitor() {}
 void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 {
     node.ResetSortedChildren();
-    for (auto& child : node.GetSortedChildren()) {
+    const auto& children = node.GetSortedChildren();
+
+    // GetSortedChildren() may remove disappearingChildren_ when transition animation end.
+    // So the judgement whether node has removed child should be executed after this.
+    // merge last childRect as dirty if any child has been removed
+    if (curSurfaceDirtyManager_ && node.HasRemovedChild()) {
+        RectI dirtyRect = prepareClipRect_.IntersectRect(node.GetChildrenRect());
+        curSurfaceDirtyManager_->MergeDirtyRect(dirtyRect);
+        node.ResetHasRemovedChild();
+    }
+
+    // reset childRect before prepare children
+    node.ResetChildrenRect();
+    for (auto& child : children) {
         child->Prepare(shared_from_this());
     }
 }
@@ -334,14 +347,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.ResetSurfaceOpaqueRegion(RectI(0, 0, screenInfo_.width, screenInfo_.height), geoPtr->GetAbsRect(),
         containerWindowConfig_, node.IsFocusedWindow(currentFocusedPid_));
 
-    // merge last childRect as dirty if any child has been removed
-    if (node.HasRemovedChild()) {
-        RectI dirtyRect = prepareClipRect_.IntersectRect(node.GetChildrenRect());
-        curSurfaceDirtyManager_->MergeDirtyRect(dirtyRect);
-        node.ResetHasRemovedChild();
-    }
-    // reset childRect before prepare children
-    node.ResetChildrenRect();
     node.UpdateChildrenOutOfRectFlag(false);
     PrepareBaseRenderNode(node);
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
@@ -424,14 +429,6 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     if (geoPtr != nullptr) {
         parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
     }
-    // merge last childRect as dirty if any child has been removed
-    if (node.HasRemovedChild()) {
-        RectI dirtyRect = prepareClipRect_.IntersectRect(node.GetChildrenRect());
-        curSurfaceDirtyManager_->MergeDirtyRect(dirtyRect);
-        node.ResetHasRemovedChild();
-    }
-    // reset childRect before prepare children
-    node.ResetChildrenRect();
     node.UpdateChildrenOutOfRectFlag(false);
     PrepareBaseRenderNode(node);
     node.UpdateParentChildrenRect(node.GetParent().lock());
@@ -479,14 +476,6 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 
     float alpha = curAlpha_;
     curAlpha_ *= property.GetAlpha();
-    // merge last childRect as dirty if any child has been removed
-    if (node.HasRemovedChild()) {
-        RectI dirtyRect = prepareClipRect_.IntersectRect(node.GetChildrenRect());
-        curSurfaceDirtyManager_->MergeDirtyRect(dirtyRect);
-        node.ResetHasRemovedChild();
-    }
-    // reset childRect before prepare children
-    node.ResetChildrenRect();
     node.UpdateChildrenOutOfRectFlag(false);
     PrepareBaseRenderNode(node);
     // attention: accumulate direct parent's childrenRect
