@@ -41,6 +41,27 @@ public:
     sk_sp<SkData> load(const SkData &key) override;
     void store(const SkData &key, const SkData &data) override;
 
+    bool IfInitialized() const
+    {
+        return initialized_;
+    }
+
+    size_t QuerryShaderSize() const
+    {
+        return cacheData_->GetTotalSize();
+    }
+
+    size_t QuerryShaderNum() const
+    {
+        return cacheData_->GetShaderNum();
+    }
+
+    size_t CleanAllShaders() const
+    {
+        cacheData_->Clear();
+        return 0;
+    }
+
 private:
     ShaderCache() = default;
     ShaderCache(const ShaderCache &) = delete;

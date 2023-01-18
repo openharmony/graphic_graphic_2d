@@ -28,6 +28,8 @@ ohos_shared_library("librender_service") {
   defines += gpu_defines
 
   sources = [
+    "core/memory/MemoryManager.cpp",
+    "core/memory/SkiaMemoryTracer.cpp",
     "core/pipeline/rs_base_render_engine.cpp",
     "core/pipeline/rs_base_render_util.cpp",
     "core/pipeline/rs_cold_start_thread.cpp",

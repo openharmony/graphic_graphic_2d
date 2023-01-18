@@ -21,6 +21,7 @@
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_message_processor.h"
 #include "delegate/rs_functional_delegate.h"
+#include "memory/MemoryManager.h"
 #include "overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
@@ -1018,6 +1019,66 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         lastCleanCacheTimestamp_ = timestamp_;
 #endif
     }
+}
+
+void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString)
+{
+#ifdef RS_ENABLE_GL
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        dumpString.append("\n---------------\nNot in UniRender and no resource can be released");
+        return;
+    }
+    std::string type;
+    argSets.erase(u"trimMem");
+    if (!argSets.empty()) {
+        type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+    }
+    auto grContext = renderEngine_->GetRenderContext()->GetGrContext();
+    if (type.empty()) {
+        grContext->flush();
+        SkGraphics::PurgeAllCaches();
+        grContext->freeGpuResources();
+        grContext->purgeUnlockedResources(true);
+        std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+        rendercontext->CleanAllShaderCache();
+        grContext->flush(kSyncCpu_GrFlushFlag, 0, nullptr);
+    } else if (type == "cpu") {
+        grContext->flush();
+        SkGraphics::PurgeAllCaches();
+        grContext->flush(kSyncCpu_GrFlushFlag, 0, nullptr);
+    } else if (type == "gpu") {
+        grContext->flush();
+        grContext->freeGpuResources();
+        grContext->flush(kSyncCpu_GrFlushFlag, 0, nullptr);
+    } else if (type == "uihidden") {
+        grContext->flush();
+        grContext->purgeUnlockedResources(true);
+        grContext->flush(kSyncCpu_GrFlushFlag, 0, nullptr);
+    } else if (type == "shader") {
+        std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+        rendercontext->CleanAllShaderCache();
+    } else {
+        type = "error";
+    }
+    dumpString.append("trimMem: " + type + "\n");
+#else
+    dumpString.append("No GPU in this device");
+#endif
+}
+
+void RSMainThread::DumpMem(std::string& dumpString)
+{
+#ifdef RS_ENABLE_GL
+    DfxString log;
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        log.AppendFormat("\n---------------\nNot in UniRender and no information");
+    } else {
+        MemoryManager::DumpMemoryUsage(log, renderEngine_->GetRenderContext()->GetGrContext());
+    }
+    dumpString.append(log.GetString());
+#else
+    dumpString.append("No GPU in this device");
+#endif
 }
 
 void RSMainThread::AddTransactionDataPidInfo(pid_t remotePid)

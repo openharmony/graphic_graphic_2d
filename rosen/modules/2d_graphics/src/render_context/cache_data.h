@@ -48,6 +48,17 @@ public:
     void Clear()
     {
         shaderPointers_.clear();
+        totalSize_ = 0;
+    }
+
+    size_t GetTotalSize() const
+    {
+        return totalSize_;
+    }
+
+    size_t GetShaderNum() const
+    {
+        return shaderPointers_.size();
     }
 
 private:

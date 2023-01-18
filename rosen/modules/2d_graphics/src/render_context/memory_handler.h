@@ -28,6 +28,8 @@ public:
     static void ConfigureContext(GrContextOptions* context, const char* identity, const size_t size,
         const std::string& cacheFilePath, bool isUni);
     MemoryHandler() = default;
+    std::string QuerryShader() const;
+    std::string ClearShader() const;
 };
 }   // namespace Rosen
 }   // namespace OHOS
