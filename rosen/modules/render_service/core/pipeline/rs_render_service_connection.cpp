@@ -542,5 +542,13 @@ int32_t RSRenderServiceConnection::UnRegisterOcclusionChangeCallback(sptr<RSIOcc
     mainThread_->UnRegisterOcclusionChangeCallback(callback);
     return StatusCode::SUCCESS;
 }
+
+void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
+{
+    auto task = [=]() -> void {
+        mainThread_->SetAppWindowNum(num);
+    };
+    mainThread_->PostTask(task);
+}
 } // namespace Rosen
 } // namespace OHOS
