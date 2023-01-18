@@ -138,6 +138,8 @@ private:
 
     int32_t UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
 
+    void SetAppWindowNum(uint32_t num) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;

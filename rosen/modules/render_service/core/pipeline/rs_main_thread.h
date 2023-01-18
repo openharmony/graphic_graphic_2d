@@ -137,6 +137,7 @@ public:
     void ForceRefreshForUni();
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
     void DumpMem(std::string& result);
+    void SetAppWindowNum(uint32_t num);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -179,6 +180,7 @@ private:
     void ClearDisplayBuffer();
     void PerfAfterAnim();
     void PerfForBlurIfNeeded();
+    void PerfMultiWindow();
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -228,6 +230,7 @@ private:
     const uint8_t opacity_ = 255;
     std::string focusAppBundleName_ = "";
     std::string focusAppAbilityName_ = "";
+    uint32_t appWindowNum_ = 0;
 
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;

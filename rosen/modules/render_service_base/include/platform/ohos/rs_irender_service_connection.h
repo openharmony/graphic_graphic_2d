@@ -88,6 +88,7 @@ public:
         SET_SCREEN_SKIP_FRAME_INTERVAL,
         REGISTER_OCCLUSION_CHANGE_CALLBACK,
         UNREGISTER_OCCLUSION_CHANGE_CALLBACK,
+        SET_APP_WINDOW_NUM,
     };
 
     virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
@@ -175,6 +176,8 @@ public:
     virtual int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) = 0;
 
     virtual int32_t UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) = 0;
+
+    virtual void SetAppWindowNum(uint32_t num) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -139,6 +139,8 @@ public:
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
     int32_t UnRegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
+
+    void SetAppWindowNum(uint32_t num);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
     std::mutex mutex_;

@@ -980,5 +980,22 @@ int32_t RSRenderServiceConnectionProxy::UnRegisterOcclusionChangeCallback(sptr<R
     int32_t result = reply.ReadInt32();
     return result;
 }
+
+void RSRenderServiceConnectionProxy::SetAppWindowNum(uint32_t num)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    data.WriteUint32(num);
+    int32_t err = Remote()->SendRequest(
+        RSIRenderServiceConnection::SET_APP_WINDOW_NUM, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetAppWindowNum: Send Request err.");
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

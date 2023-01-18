@@ -660,6 +660,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteInt32(status);
             break;
         }
+        case SET_APP_WINDOW_NUM: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            uint32_t num = data.ReadUint32();
+            SetAppWindowNum(num);
+        }
         default: {
             ret = ERR_UNKNOWN_TRANSACTION;
             break;

@@ -591,5 +591,13 @@ int32_t RSRenderServiceClient::UnRegisterOcclusionChangeCallback(const Occlusion
     sptr<CustomOcclusionChangeCallback> cb = new CustomOcclusionChangeCallback(callback);
     return renderService->UnRegisterOcclusionChangeCallback(cb);
 }
+
+void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetAppWindowNum(num);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

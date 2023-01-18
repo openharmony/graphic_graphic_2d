@@ -121,6 +121,7 @@ public:
 
     void UpdateRenderMode(bool isUniRender);
 
+    void SetAppWindowNum(uint32_t num);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

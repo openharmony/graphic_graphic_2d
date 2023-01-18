@@ -62,9 +62,13 @@ namespace Rosen {
 namespace {
 constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr int32_t PERF_ANIMATION_REQUESTED_CODE = 10017;
+constexpr int32_t PERF_MULTI_WINDOW_REQUESTED_CODE = 10026;
 constexpr uint64_t PERF_PERIOD = 250000000;
 constexpr uint64_t CLEAN_CACHE_FREQ = 60;
 constexpr uint64_t PERF_PERIOD_BLUR = 80000000;
+constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
+constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
+constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
 const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 1, 10021 },
     { 2, 10022 },
@@ -153,6 +157,7 @@ void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
         RS_LOGD("RsDebug mainLoop start");
+        PerfMultiWindow();
         QuickStartFrameTrace(RS_INTERVAL_NAME);
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
@@ -1154,6 +1159,29 @@ void RSMainThread::PerfForBlurIfNeeded()
         prePerfTimestamp = timestamp_;
         preBlurCnt = blurCnt;
     }
+}
+
+void RSMainThread::PerfMultiWindow()
+{
+    if (!isUniRender_) {
+        return;
+    }
+    static uint64_t lastPerfTimestamp = 0;
+    if (appWindowNum_ >= MULTI_WINDOW_PERF_START_NUM && appWindowNum_ <= MULTI_WINDOW_PERF_END_NUM
+        && timestamp_ - lastPerfTimestamp > PERF_PERIOD_MULTI_WINDOW) {
+        RS_LOGD("RSMainThread::PerfMultiWindow soc perf");
+        PerfRequest(PERF_MULTI_WINDOW_REQUESTED_CODE, true);
+        lastPerfTimestamp = timestamp_;
+    } else if ((appWindowNum_ < MULTI_WINDOW_PERF_START_NUM || appWindowNum_ > MULTI_WINDOW_PERF_END_NUM)
+        && timestamp_ - lastPerfTimestamp < PERF_PERIOD_MULTI_WINDOW ) {
+        RS_LOGD("RSMainThread::PerfMultiWindow soc perf off");
+        PerfRequest(PERF_MULTI_WINDOW_REQUESTED_CODE, false);
+    }
+}
+
+void RSMainThread::SetAppWindowNum(uint32_t num)
+{
+    appWindowNum_ = num;
 }
 } // namespace Rosen
 } // namespace OHOS
