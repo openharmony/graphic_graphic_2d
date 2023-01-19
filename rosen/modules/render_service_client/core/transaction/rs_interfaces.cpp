@@ -214,5 +214,10 @@ void RSInterfaces::UpdateRenderMode(bool isUniRender)
 {
     renderServiceClient_->UpdateRenderMode(isUniRender);
 }
+
+void RSInterfaces::SetAppWindowNum(uint32_t num)
+{
+    renderServiceClient_->SetAppWindowNum(num);
+}
 } // namespace Rosen
 } // namespace OHOS
