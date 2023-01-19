@@ -158,5 +158,10 @@ bool RSSystemProperties::GetDrawTextAsBitmap()
 {
     return isDrawTextAsBitmap_;
 }
+
+bool RSSystemProperties::GetColdStartThreadEnabled()
+{
+    return std::atoi((system::GetParameter("rosen.coldstartthread.enabled", "1")).c_str()) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS
