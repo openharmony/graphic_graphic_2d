@@ -111,6 +111,7 @@ ohos_source_set("rosen_ohos_sources") {
     sources -= [
       "backend/rs_surface_ohos_gl.cpp",
       "rs_render_service_client.cpp",
+      "rs_render_service_connect_hub.cpp",
     ]
 
     include_dirs += graphic_2d_ext_configs.librender_service_base_platform_ohos_ext_include_dirs
