@@ -93,6 +93,8 @@ public:
     static ParallelRenderingType GetPrepareParallelRenderingEnabled();
     static ParallelRenderingType GetParallelRenderingEnabled();
 
+    static bool GetColdStartThreadEnabled();
+
 private:
     RSSystemProperties() = default;
 

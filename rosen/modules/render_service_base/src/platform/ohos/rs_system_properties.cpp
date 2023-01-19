@@ -171,5 +171,9 @@ ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
         std::atoi((system::GetParameter("rosen.parallelrender.enabled", "0")).c_str()));
 }
 
+bool RSSystemProperties::GetColdStartThreadEnabled()
+{
+    return std::atoi((system::GetParameter("rosen.coldstartthread.enabled", "1")).c_str()) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS
