@@ -26,6 +26,7 @@
 #include <vector>
 #include <event_handler.h>
 
+#include "include/core/SkImage.h"
 #include "include/core/SkRefCnt.h"
 #include "include/core/SkSurface.h"
 #ifdef RS_ENABLE_GL
@@ -65,6 +66,8 @@ private:
     sk_sp<GrContext> grContext_;
     sk_sp<SkSurface> skSurface_;
     std::mutex mutex_;
+    std::mutex imageMutex_;
+    std::queue<sk_sp<SkImage>> images_;
     std::condition_variable cv_;
 };
 
