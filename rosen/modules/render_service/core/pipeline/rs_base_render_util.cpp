@@ -788,7 +788,7 @@ void RSBaseRenderUtil::SetNeedClient(bool flag)
     enableClient = flag;
 }
 
-bool RSBaseRenderUtil::IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info)
+bool RSBaseRenderUtil::IsNeedClient(RSRenderNode& node, const ComposeInfo& info)
 {
     if (IsForceClient()) {
         RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient: client composition is force enabled.");

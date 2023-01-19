@@ -176,6 +176,11 @@ public:
         metaDataSet_ = metaDataSet;
     }
 
+    void SetMatrix(GraphicMatrix matrix)
+    {
+        matrix_ = matrix;
+    }
+
     void SetTunnelHandleChange(bool change)
     {
         tunnelHandleChange_ = change;
@@ -269,6 +274,11 @@ public:
         return layerRect_;
     }
 
+    GraphicMatrix GetMatrix() const
+    {
+        return matrix_;
+    }
+
     bool IsPreMulti() const
     {
         return preMulti_;
@@ -322,6 +332,7 @@ public:
         visibleRegion_ = layerInfo->GetVisibleRegion();
         dirtyRegion_ = layerInfo->GetDirtyRegion();
         cropRect_ = layerInfo->GetCropRect();
+        matrix_ = layerInfo->GetMatrix();
         layerAlpha_ = layerInfo->GetAlpha();
         transformType_ = layerInfo->GetTransformType();
         compositionType_ = layerInfo->GetCompositionType();
@@ -383,6 +394,7 @@ private:
     GraphicIRect visibleRegion_;
     GraphicIRect dirtyRegion_;
     GraphicIRect cropRect_;
+    GraphicMatrix matrix_;
     GraphicLayerAlpha layerAlpha_;
     GraphicTransformType transformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
     GraphicCompositionType compositionType_;

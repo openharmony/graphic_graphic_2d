@@ -85,12 +85,12 @@ GSError BufferQueueConsumer::RegisterReleaseListener(OnReleaseFunc func)
     return bufferQueue_->RegisterReleaseListener(func);
 }
 
-GSError BufferQueueConsumer::RegisterDeleteBufferListener(OnDeleteBufferFunc func)
+GSError BufferQueueConsumer::RegisterDeleteBufferListener(OnDeleteBufferFunc func, bool isForUniRedraw)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
-    return bufferQueue_->RegisterDeleteBufferListener(func);
+    return bufferQueue_->RegisterDeleteBufferListener(func, isForUniRedraw);
 }
 
 GSError BufferQueueConsumer::UnregisterConsumerListener()

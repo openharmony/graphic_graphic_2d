@@ -286,24 +286,28 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     canvas.drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
 }
 
-void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<Surface>& consumer)
+void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<Surface>& consumer, bool isForUniRedraw)
 {
 #ifdef RS_ENABLE_EGLIMAGE
-    auto regUnMapEglImageFunc = [](int32_t bufferId) {
-        eglImageManager_->UnMapEglImageFromSurfaceBuffer(bufferId);
+    auto regUnMapEglImageFunc = [this, isForUniRedraw](int32_t bufferId) {
+        if (isForUniRedraw) {
+            eglImageManager_->UnMapEglImageFromSurfaceBufferForUniRedraw(bufferId);
+        } else {
+            eglImageManager_->UnMapEglImageFromSurfaceBuffer(bufferId);
+        }
     };
     if (consumer == nullptr ||
-        (consumer->RegisterDeleteBufferListener(regUnMapEglImageFunc) != GSERROR_OK)) {
+        (consumer->RegisterDeleteBufferListener(regUnMapEglImageFunc, isForUniRedraw) != GSERROR_OK)) {
         RS_LOGE("RSBaseRenderEngine::RegisterDeleteBufferListener: failed to register UnMapEglImage callback.");
     }
 #endif // #ifdef RS_ENABLE_EGLIMAGE
 }
 
-void RSBaseRenderEngine::ShrinkCachesIfNeeded()
+void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 {
 #ifdef RS_ENABLE_EGLIMAGE
     if (eglImageManager_ != nullptr) {
-        eglImageManager_->ShrinkCachesIfNeeded();
+        eglImageManager_->ShrinkCachesIfNeeded(isForUniRedraw);
     }
 #endif // RS_ENABLE_EGLIMAGE
 

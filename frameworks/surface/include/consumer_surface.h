@@ -74,7 +74,7 @@ public:
     GSError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener) override;
     GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener) override;
     GSError RegisterReleaseListener(OnReleaseFunc func) override;
-    GSError RegisterDeleteBufferListener(OnDeleteBufferFunc func) override;
+    GSError RegisterDeleteBufferListener(OnDeleteBufferFunc func, bool isForUniRedraw = false) override;
     GSError UnregisterConsumerListener() override;
 
     uint64_t GetUniqueId() const override;

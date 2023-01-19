@@ -228,6 +228,7 @@ void HdiBackend::OnPrepareComplete(bool needFlush, const OutputPtr &output, std:
     struct PrepareCompleteParam param = {
         .needFlushFramebuffer = needFlush,
         .layers = newLayerInfos,
+        .screenId = output->GetScreenId(),
     };
 
     auto fbSurface = output->GetFrameBufferSurface();

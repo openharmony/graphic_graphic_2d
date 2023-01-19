@@ -200,12 +200,17 @@ void RSMainThread::Init()
     rsVSyncDistributor_->AddConnection(conn);
     receiver_ = std::make_shared<VSyncReceiver>(conn, handler_);
     receiver_->Init();
-    renderEngine_ = std::make_shared<RSRenderEngine>();
-    uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-    RSBaseRenderEngine::Init();
+    if (isUniRender_) {
+        uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+        uniRenderEngine_->Init();
+    } else {
+        renderEngine_ = std::make_shared<RSRenderEngine>();
+        renderEngine_->Init();
+    }
 #ifdef RS_ENABLE_GL
     int cacheLimitsTimes = 2; // double skia Resource Cache Limits
-    auto grContext = RSBaseRenderEngine::GetRenderContext()->GetGrContext();
+    auto grContext = isUniRender_? uniRenderEngine_->GetRenderContext()->GetGrContext() :
+        renderEngine_->GetRenderContext()->GetGrContext();
     int maxResources = 0;
     size_t maxResourcesSize = 0;
     grContext->getResourceCacheLimits(&maxResources, &maxResourcesSize);
@@ -514,6 +519,7 @@ void RSMainThread::Render()
         CalcOcclusion();
         rootNode->Process(uniVisitor);
         isDirty_ = false;
+        uniRenderEngine_->ShrinkCachesIfNeeded();
     } else {
         auto rsVisitor = std::make_shared<RSRenderServiceVisitor>();
         rsVisitor->SetAnimateState(doWindowAnimate_);
@@ -529,9 +535,9 @@ void RSMainThread::Render()
             return;
         }
         rootNode->Process(rsVisitor);
+        renderEngine_->ShrinkCachesIfNeeded();
     }
 
-    renderEngine_->ShrinkCachesIfNeeded();
     PerfForBlurIfNeeded();
 }
 
@@ -1017,7 +1023,7 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
     if ((timestamp_ - lastCleanCacheTimestamp_) / REFRESH_PERIOD > CLEAN_CACHE_FREQ) {
 #ifdef RS_ENABLE_GL
         RS_LOGD("RSMainThread: clear cpu cache");
-        auto grContext = RSBaseRenderEngine::GetRenderContext()->GetGrContext();
+        auto grContext = uniRenderEngine_->GetRenderContext()->GetGrContext();
         grContext->flush();
         SkGraphics::PurgeAllCaches();
         grContext->flush(kSyncCpu_GrFlushFlag, 0, nullptr);

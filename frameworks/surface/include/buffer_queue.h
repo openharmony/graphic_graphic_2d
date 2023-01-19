@@ -91,7 +91,7 @@ public:
     GSError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener);
     GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener);
     GSError RegisterReleaseListener(OnReleaseFunc func);
-    GSError RegisterDeleteBufferListener(OnDeleteBufferFunc func);
+    GSError RegisterDeleteBufferListener(OnDeleteBufferFunc func, bool isForUniRedraw = false);
     GSError UnregisterConsumerListener();
 
     GSError SetDefaultWidthAndHeight(int32_t width, int32_t height);
@@ -168,7 +168,8 @@ private:
     const uint64_t uniqueId_;
     sptr<BufferManager> bufferManager_ = nullptr;
     OnReleaseFunc onBufferRelease = nullptr;
-    OnDeleteBufferFunc onBufferDelete_ = nullptr;
+    OnDeleteBufferFunc onBufferDeleteForRSMainThread_;
+    OnDeleteBufferFunc onBufferDeleteForRSHardwareThread_;
     bool isShared_ = false;
     std::condition_variable waitReqCon_;
     sptr<SurfaceTunnelHandle> tunnelHandle_ = nullptr;

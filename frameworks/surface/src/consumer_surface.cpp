@@ -211,9 +211,9 @@ GSError ConsumerSurface::RegisterReleaseListener(OnReleaseFunc func)
     return consumer_->RegisterReleaseListener(func);
 }
 
-GSError ConsumerSurface::RegisterDeleteBufferListener(OnDeleteBufferFunc func)
+GSError ConsumerSurface::RegisterDeleteBufferListener(OnDeleteBufferFunc func, bool isForUniRedraw)
 {
-    return consumer_->RegisterDeleteBufferListener(func);
+    return consumer_->RegisterDeleteBufferListener(func, isForUniRedraw);
 }
 
 GSError ConsumerSurface::UnregisterConsumerListener()

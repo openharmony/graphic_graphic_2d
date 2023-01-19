@@ -114,6 +114,46 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode
     return params;
 }
 
+BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU,
+    float mirrorAdaptiveCoefficient)
+{
+    BufferDrawParam params;
+#ifdef RS_ENABLE_EGLIMAGE
+    params.useCPU = forceCPU;
+#else // RS_ENABLE_EGLIMAGE
+    params.useCPU = true;
+#endif // RS_ENABLE_EGLIMAGE
+    params.paint.setAntiAlias(true);
+    params.paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
+    params.paint.setAlphaf(layer->GetAlpha().gAlpha);
+    auto dstRect = layer->GetLayerSize();
+    auto srcRect = layer->GetDirtyRegion();
+    params.srcRect = SkRect::MakeXYWH(srcRect.x, srcRect.y, srcRect.w, srcRect.h);
+    params.dstRect = SkRect::MakeXYWH(dstRect.x, dstRect.y, dstRect.w, dstRect.h);
+    auto layerMatrix = layer->GetMatrix();
+    params.matrix = SkMatrix::MakeAll(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX,
+                                      layerMatrix.skewY, layerMatrix.scaleY, layerMatrix.transY,
+                                      layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
+    
+    params.clipRect = params.dstRect;
+
+    const sptr<SurfaceBuffer>& buffer = layer->GetBuffer();
+    params.buffer = buffer;
+    params.acquireFence = layer->GetAcquireFence();
+    const float adaptiveDstWidth = params.dstRect.width() * mirrorAdaptiveCoefficient;
+    const float adaptiveDstHeight = params.dstRect.height() * mirrorAdaptiveCoefficient;
+    params.dstRect.setWH(adaptiveDstWidth, adaptiveDstHeight);
+    const float translateX = params.matrix.getTranslateX() * mirrorAdaptiveCoefficient;
+    const float translateY = params.matrix.getTranslateY() * mirrorAdaptiveCoefficient;
+    params.matrix.setTranslateX(translateX);
+    params.matrix.setTranslateY(translateY);
+    const auto& clipRect = params.clipRect;
+    params.clipRect = SkRect::MakeXYWH(
+        clipRect.left() * mirrorAdaptiveCoefficient, clipRect.top() * mirrorAdaptiveCoefficient,
+        clipRect.width() * mirrorAdaptiveCoefficient, clipRect.height() * mirrorAdaptiveCoefficient);
+    return params;
+}
+
 void RSUniRenderUtil::DrawCachedSurface(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas,
     sk_sp<SkSurface> surface)
 {
@@ -139,47 +179,6 @@ void RSUniRenderUtil::DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCa
     SkPaint paint;
     canvas.drawImage(image.get(), 0.0, 0.0, &paint);
     canvas.restore();
-}
-
-bool RSUniRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
-{
-    auto& consumer = surfaceHandler.GetConsumer();
-    if (consumer == nullptr) {
-        return false;
-    }
-
-    auto& preBuffer = surfaceHandler.GetPreBuffer();
-    if (preBuffer.buffer != nullptr) {
-        static bool firstEntry = true;
-        static std::function<void()> firstBufferRelease = nullptr;
-        if (firstEntry) {
-            // In order to avoid waiting for buffers' fence, we delay the first ReleaseBuffer to alloc 3 buffers.
-            // [planning] delete this function after Repaint parallelization.
-            firstEntry = false;
-            firstBufferRelease = [consumer, buffer = preBuffer.buffer, fence = preBuffer.releaseFence]() mutable {
-                auto ret = consumer->ReleaseBuffer(buffer, fence);
-                if (ret != OHOS::SURFACE_ERROR_OK) {
-                    RS_LOGE("RsDebug firstBufferRelease failed(ret: %d)!", ret);
-                }
-            };
-            preBuffer.Reset();
-            return true;
-        }
-        if (firstBufferRelease) {
-            firstBufferRelease();
-            firstBufferRelease = nullptr;
-        }
-        auto ret = consumer->ReleaseBuffer(preBuffer.buffer, preBuffer.releaseFence);
-        if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGE("RsDebug surfaceHandler(id: %" PRIu64 ") ReleaseBuffer failed(ret: %d)!",
-                surfaceHandler.GetNodeId(), ret);
-            return false;
-        }
-        // reset prevBuffer if we release it successfully,
-        // to avoid releasing the same buffer next frame in some situations.
-        preBuffer.Reset();
-    }
-    return true;
 }
 
 Occlusion::Region RSUniRenderUtil::AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits)

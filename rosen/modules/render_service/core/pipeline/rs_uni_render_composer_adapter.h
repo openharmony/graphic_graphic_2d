@@ -58,7 +58,7 @@ private:
     static void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface);
 
     static void GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node);
-    bool GetComposerInfoNeedClient(const ComposeInfo &info, RSSurfaceRenderNode& node) const;
+    bool GetComposerInfoNeedClient(const ComposeInfo &info, RSRenderNode& node) const;
     bool CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node) const;
 
     std::shared_ptr<HdiOutput> output_;

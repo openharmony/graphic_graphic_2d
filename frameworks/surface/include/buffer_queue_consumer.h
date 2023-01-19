@@ -40,7 +40,7 @@ public:
     GSError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener);
     GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener);
     GSError RegisterReleaseListener(OnReleaseFunc func);
-    GSError RegisterDeleteBufferListener(OnDeleteBufferFunc func);
+    GSError RegisterDeleteBufferListener(OnDeleteBufferFunc func, bool isForUniRedraw = false);
     GSError UnregisterConsumerListener();
 
     GSError SetDefaultWidthAndHeight(int32_t width, int32_t height);

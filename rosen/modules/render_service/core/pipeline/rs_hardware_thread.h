@@ -23,7 +23,8 @@
 #include "rs_main_thread.h"
 
 namespace OHOS::Rosen {
-using FallbackCallback = std::function<void(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers)>;
+using UniFallbackCallback = std::function<void(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers,
+    uint32_t screenId)>;
 using OutputPtr = std::shared_ptr<HdiOutput>;
 using LayerPtr = std::shared_ptr<HdiLayer>;
 class ScheduledTask;
@@ -51,14 +52,15 @@ private:
     RSHardwareThread& operator=(const RSHardwareThread&&);
 
     void OnPrepareComplete(sptr<Surface>& surface, const PrepareCompleteParam& param, void* data);
-    void Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers);
+    void Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers, uint32_t screenId);
     void ReleaseLayers(OutputPtr output, const std::unordered_map<uint32_t, LayerPtr>& layerMap);
     void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface) const;
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     HdiBackend *hdiBackend_ = nullptr;
-    FallbackCallback fallbackCb_;
+    std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
+    UniFallbackCallback fallbackCb_;
     std::mutex mutex_;
 };
 }

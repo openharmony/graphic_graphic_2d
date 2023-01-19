@@ -65,8 +65,11 @@ BufferQueue::~BufferQueue()
 {
     BLOGNI("dtor, Queue id: %{public}" PRIu64, uniqueId_);
     for (auto &[id, _] : bufferQueueCache_) {
-        if (onBufferDelete_ != nullptr) {
-            onBufferDelete_(id);
+        if (onBufferDeleteForRSMainThread_ != nullptr) {
+            onBufferDeleteForRSMainThread_(id);
+        }
+        if (onBufferDeleteForRSHardwareThread_ != nullptr) {
+            onBufferDeleteForRSHardwareThread_(id);
         }
     }
 }
@@ -584,8 +587,11 @@ void BufferQueue::DeleteBufferInCache(uint32_t sequence)
 {
     auto it = bufferQueueCache_.find(sequence);
     if (it != bufferQueueCache_.end()) {
-        if (onBufferDelete_ != nullptr) {
-            onBufferDelete_(sequence);
+        if (onBufferDeleteForRSMainThread_ != nullptr) {
+            onBufferDeleteForRSMainThread_(sequence);
+        }
+        if (onBufferDeleteForRSHardwareThread_ != nullptr) {
+            onBufferDeleteForRSHardwareThread_(sequence);
         }
         bufferQueueCache_.erase(it);
         deletingList_.push_back(sequence);
@@ -707,8 +713,11 @@ GSError BufferQueue::DetachBuffer(sptr<SurfaceBuffer> &buffer)
     } else {
         BLOGN_FAILURE_ID_RET(sequence, GSERROR_NO_ENTRY);
     }
-    if (onBufferDelete_ != nullptr) {
-        onBufferDelete_(sequence);
+    if (onBufferDeleteForRSMainThread_ != nullptr) {
+        onBufferDeleteForRSMainThread_(sequence);
+    }
+    if (onBufferDeleteForRSHardwareThread_ != nullptr) {
+        onBufferDeleteForRSHardwareThread_(sequence);
     }
     bufferQueueCache_.erase(sequence);
     return GSERROR_OK;
@@ -780,13 +789,20 @@ GSError BufferQueue::RegisterReleaseListener(OnReleaseFunc func)
     return GSERROR_OK;
 }
 
-GSError BufferQueue::RegisterDeleteBufferListener(OnDeleteBufferFunc func)
+GSError BufferQueue::RegisterDeleteBufferListener(OnDeleteBufferFunc func, bool isForUniRedraw)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
-    if (onBufferDelete_ != nullptr) {
-        return GSERROR_OK;
+    if (isForUniRedraw) {
+        if (onBufferDeleteForRSHardwareThread_ != nullptr) {
+            return GSERROR_OK;
+        }
+        onBufferDeleteForRSHardwareThread_ = func;
+    } else {
+        if (onBufferDeleteForRSMainThread_ != nullptr) {
+            return GSERROR_OK;
+        }
+        onBufferDeleteForRSMainThread_ = func;
     }
-    onBufferDelete_ = func;
     return GSERROR_OK;
 }
 
@@ -831,8 +847,11 @@ uint32_t BufferQueue::GetDefaultUsage()
 void BufferQueue::ClearLocked()
 {
     for (auto &[id, _] : bufferQueueCache_) {
-        if (onBufferDelete_ != nullptr) {
-            onBufferDelete_(id);
+        if (onBufferDeleteForRSMainThread_ != nullptr) {
+            onBufferDeleteForRSMainThread_(id);
+        }
+        if (onBufferDeleteForRSHardwareThread_ != nullptr) {
+            onBufferDeleteForRSHardwareThread_(id);
         }
     }
     bufferQueueCache_.clear();

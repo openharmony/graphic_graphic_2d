@@ -103,7 +103,7 @@ class RSBaseRenderEngine {
 public:
     RSBaseRenderEngine();
     virtual ~RSBaseRenderEngine() noexcept;
-    static void Init();
+    void Init();
     RSBaseRenderEngine(const RSBaseRenderEngine&) = delete;
     void operator=(const RSBaseRenderEngine&) = delete;
 
@@ -113,24 +113,24 @@ public:
 
     // There would only one user(thread) to renderFrame(request frame) at one time.
     // for framebuffer surface
-    static std::unique_ptr<RSRenderFrame> RequestFrame(const sptr<Surface>& rsSurface,
+    std::unique_ptr<RSRenderFrame> RequestFrame(const sptr<Surface>& rsSurface,
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true);
     // There would only one user(thread) to renderFrame(request frame) at one time.
-    static std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
+    std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true);
 
-    static void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame, const uint64_t surfaceId);
+    void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame, const uint64_t surfaceId);
 
     virtual void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
         BufferDrawParam& params, PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr) = 0;
 
-    static void DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSDisplayRenderNode& node,
+    void DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSDisplayRenderNode& node,
         BufferDrawParam& params);
 
     virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU = false,
         float mirrorAdaptiveCoefficient = 1.0f) = 0;
 
-    static void ShrinkCachesIfNeeded();
+    void ShrinkCachesIfNeeded(bool isForUniRedraw = false);
     static void SetColorFilterMode(ColorFilterMode mode);
     static ColorFilterMode GetColorFilterMode()
     {
@@ -145,36 +145,36 @@ public:
         return isHighContrastEnabled_;
     }
 #ifdef RS_ENABLE_GL
-    static const std::shared_ptr<RenderContext>& GetRenderContext()
+    const std::shared_ptr<RenderContext>& GetRenderContext()
     {
         return renderContext_;
     }
 #endif // RS_ENABLE_GL
 protected:
-    static void RegisterDeleteBufferListener(const sptr<Surface>& consumer);
-    static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
-    static void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
+    void RegisterDeleteBufferListener(const sptr<Surface>& consumer, bool isForUniRedraw = false);
+    void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
+    void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
 
 private:
-    static sk_sp<SkImage> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
+    sk_sp<SkImage> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence);
 
     static inline std::atomic_bool isHighContrastEnabled_ = false;
 
 #ifdef RS_ENABLE_GL
-    static inline std::shared_ptr<RenderContext> renderContext_ = nullptr;
+    std::shared_ptr<RenderContext> renderContext_ = nullptr;
 #endif // RS_ENABLE_GL
 
 #ifdef RS_ENABLE_EGLIMAGE
-    static inline std::shared_ptr<RSEglImageManager> eglImageManager_ = nullptr;
+    std::shared_ptr<RSEglImageManager> eglImageManager_ = nullptr;
 #endif // RS_ENABLE_EGLIMAGE
 
     // RSSurfaces for framebuffer surfaces.
     static constexpr size_t MAX_RS_SURFACE_SIZE = 32; // used for rsSurfaces_.
     using SurfaceId = uint64_t;
-    static inline std::unordered_map<SurfaceId, std::shared_ptr<RSSurfaceOhos>> rsSurfaces_;
+    std::unordered_map<SurfaceId, std::shared_ptr<RSSurfaceOhos>> rsSurfaces_;
 };
 } // namespace Rosen
 } // namespace OHOS

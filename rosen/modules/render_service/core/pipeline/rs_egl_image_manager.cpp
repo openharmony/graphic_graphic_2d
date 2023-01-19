@@ -19,6 +19,7 @@
 #include <platform/common/rs_log.h>
 #include "sync_fence.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_hardware_thread.h"
 
 #ifndef NDEBUG
 #include <cassert>
@@ -271,11 +272,15 @@ GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceB
     }
 }
 
-void RSEglImageManager::ShrinkCachesIfNeeded()
+void RSEglImageManager::ShrinkCachesIfNeeded(bool isForUniRedraw)
 {
     while (cacheQueue_.size() > MAX_CACHE_SIZE) {
         const int32_t id = cacheQueue_.front();
-        UnMapEglImageFromSurfaceBuffer(id);
+        if (isForUniRedraw) {
+            UnMapEglImageFromSurfaceBufferForUniRedraw(id);
+        } else {
+            UnMapEglImageFromSurfaceBuffer(id);
+        }
         cacheQueue_.pop();
     }
 }
@@ -289,6 +294,17 @@ void RSEglImageManager::UnMapEglImageFromSurfaceBuffer(int32_t seqNum)
         }
         (void)imageCacheSeqs_.erase(seqNum);
         RS_LOGD("RSEglImageManager::UnMapEglImageFromSurfaceBuffer");
+    });
+}
+
+void RSEglImageManager::UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNum)
+{
+    RSHardwareThread::Instance().PostTask([this, seqNum]() {
+        if (imageCacheSeqs_.count(seqNum) == 0) {
+            return;
+        }
+        (void)imageCacheSeqs_.erase(seqNum);
+        RS_LOGD("RSEglImageManager::UnMapEglImageFromSurfaceBufferForRedraw");
     });
 }
 } // namespace Rosen

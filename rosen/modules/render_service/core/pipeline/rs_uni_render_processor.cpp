@@ -65,7 +65,6 @@ void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         return;
     }
     layers_.emplace_back(layer);
-    layerNum++;
 }
 
 void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)

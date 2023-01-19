@@ -78,7 +78,7 @@ public:
     virtual GSError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener) = 0;
     virtual GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener) = 0;
     virtual GSError RegisterReleaseListener(OnReleaseFunc func) = 0;
-    virtual GSError RegisterDeleteBufferListener(OnDeleteBufferFunc func) = 0;
+    virtual GSError RegisterDeleteBufferListener(OnDeleteBufferFunc func, bool isForUniRedraw = false) = 0;
     virtual GSError UnregisterConsumerListener() = 0;
 
     // Call carefully. This interface will empty all caches of the current process

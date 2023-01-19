@@ -35,6 +35,7 @@ using OutputPtr = std::shared_ptr<HdiOutput>;
 struct PrepareCompleteParam {
     bool needFlushFramebuffer;
     std::vector<LayerInfoPtr> layers;
+    uint32_t screenId;
 };
 
 using OnScreenHotplugFunc = std::function<void(OutputPtr &output, bool connected, void* data)>;

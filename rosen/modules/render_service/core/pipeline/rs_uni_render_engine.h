@@ -30,7 +30,9 @@ public:
     void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
         PreProcessFunc preProcess, PostProcessFunc postProcess) override;
     void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
-        float mirrorAdaptiveCoefficient) override {}
+        float mirrorAdaptiveCoefficient) override;
+    void DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, const LayerInfoPtr& layer,
+        BufferDrawParam& params);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -17,6 +17,7 @@
 
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_uni_render_engine.h"
 #include "platform/common/rs_log.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "rs_trace.h"
@@ -35,11 +36,8 @@ void RSHardwareThread::Start()
     hdiBackend_ = HdiBackend::GetInstance();
     runner_ = AppExecFwk::EventRunner::Create("RSHardwareThread");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-    fallbackCb_ = std::bind(&RSHardwareThread::Redraw, this,std::placeholders::_1, std::placeholders::_2);
-    auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {
-        OnPrepareComplete(surface, param, data);
-    };
-    hdiBackend_->RegPrepareComplete(onPrepareCompleteFunc, this);
+    fallbackCb_ = std::bind(&RSHardwareThread::Redraw, this,std::placeholders::_1, std::placeholders::_2,
+        std::placeholders::_3);
     if (handler_) {
         ScheduleTask([=]() {
             auto screenManager = CreateOrGetScreenManager();
@@ -48,6 +46,14 @@ void RSHardwareThread::Start()
                 return;
             }
         }).wait();
+    }
+    uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    uniRenderEngine_->Init();
+    auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {
+        OnPrepareComplete(surface, param, data);
+    };
+    if (hdiBackend_ != nullptr) {
+        hdiBackend_->RegPrepareComplete(onPrepareCompleteFunc, this);
     }
 }
 
@@ -83,7 +89,6 @@ void RSHardwareThread::ReleaseBuffer(sptr<SurfaceBuffer> buffer, sptr<SyncFence>
 
 void RSHardwareThread::ReleaseLayers(OutputPtr output, const std::unordered_map<uint32_t, LayerPtr>& layerMap)
 {
-    RS_TRACE_BEGIN("RSHardwareThread::ReleaseLayers");
     // get present timestamp from and set present timestamp to surface
     for (const auto& [id, layer] : layerMap) {
         if (layer == nullptr || layer->GetLayerInfo()->GetSurface() == nullptr) {
@@ -106,7 +111,6 @@ void RSHardwareThread::ReleaseLayers(OutputPtr output, const std::unordered_map<
         auto consumer = layer->GetSurface();
         ReleaseBuffer(preBuffer, fence, consumer);
     }
-    RS_TRACE_END();
 }
 
 void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vector<LayerInfoPtr>& layers)
@@ -121,6 +125,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         hdiBackend_->Repaint(output);
         auto layerMap = output->GetLayers();
         ReleaseLayers(output, layerMap);
+        uniRenderEngine_->ShrinkCachesIfNeeded(true);
     };
     PostTask(task);
 }
@@ -137,15 +142,37 @@ void RSHardwareThread::OnPrepareComplete(sptr<Surface>& surface,
     }
 
     if (fallbackCb_ != nullptr) {
-        fallbackCb_(surface, param.layers);
+        fallbackCb_(surface, param.layers, param.screenId);
     }
 }
 
-void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers)
+void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers, uint32_t screenId)
 {
-    (void)(surface);
-    (void)(layers);
-    // planning: RS RSHardwareThread will support Redraw function when HWC composition is ready.
+    RS_TRACE_NAME("RSHardwareThread::Redraw");
+    if (surface == nullptr) {
+        RS_LOGE("RSHardwareThread::Redraw: surface is null.");
+        return;
+    }
+
+    RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer start");
+    bool forceCPU = RSBaseRenderEngine::NeedForceCPU(layers);
+    auto screenManager = CreateOrGetScreenManager();
+    auto screenInfo = screenManager->QueryScreenInfo(screenId);
+    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true);
+    auto renderFrame = uniRenderEngine_->RequestFrame(surface, renderFrameConfig, forceCPU);
+    if (renderFrame == nullptr) {
+        RS_LOGE("RsDebug RSHardwareThread::Redraw：failed to request frame.");
+        return;
+    }
+
+    auto canvas = renderFrame->GetCanvas();
+    if (canvas == nullptr) {
+        RS_LOGE("RsDebug RSHardwareThread::Redraw：canvas is nullptr.");
+        return;
+    }
+    uniRenderEngine_->DrawLayers(*canvas, layers, forceCPU);
+    renderFrame->Flush();
+    RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");
 }
 
 // private func, guarantee the layer and surface are valid

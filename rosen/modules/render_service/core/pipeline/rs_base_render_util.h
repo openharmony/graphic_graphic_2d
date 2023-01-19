@@ -80,7 +80,7 @@ enum class ColorFilterMode {
 
 class RSBaseRenderUtil {
 public:
-    static bool IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info);
+    static bool IsNeedClient(RSRenderNode& node, const ComposeInfo& info);
     static void SetNeedClient(bool flag);
     static bool IsBufferValid(const sptr<SurfaceBuffer>& buffer);
     static BufferRequestConfig GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isPhysical = true);

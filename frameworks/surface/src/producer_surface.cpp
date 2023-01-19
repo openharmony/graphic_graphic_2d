@@ -276,7 +276,7 @@ GSError ProducerSurface::RegisterReleaseListener(OnReleaseFunc func)
     return producer_->RegisterReleaseListener(func);
 }
 
-GSError ProducerSurface::RegisterDeleteBufferListener(OnDeleteBufferFunc func)
+GSError ProducerSurface::RegisterDeleteBufferListener(OnDeleteBufferFunc func, bool isForUniRedraw)
 {
     return GSERROR_NOT_SUPPORT;
 }
