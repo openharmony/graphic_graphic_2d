@@ -80,6 +80,12 @@ void RSColdStartThread::Stop()
         handler_->PostSyncTask([this]() {
             RS_TRACE_NAME_FMT("RSColdStartThread abandonContext"); // abandonContext here to avoid crash
             RS_LOGD("RSColdStartThread releaseResourcesAndAbandonContext");
+            {
+                std::lock_guard<std::mutex> lock(imageMutex_);
+                while (!images_.empty()) {
+                    images_.pop();
+                }
+            }
             if (grContext_ != nullptr) {
                 grContext_->releaseResourcesAndAbandonContext();
             }
@@ -190,19 +196,29 @@ void RSColdStartThread::PostPlayBackTask(std::shared_ptr<DrawCmdList> drawCmdLis
         if (node->GetCachedImage() == nullptr) {
             node->NotifyUIBufferAvailable();
         }
-        RSMainThread::Instance()->PostTask([this, image]() {
+        {
+            std::lock_guard<std::mutex> lock(imageMutex_);
+            images_.push(image);
+        }
+        RSMainThread::Instance()->PostTask([this]() {
             auto node = surfaceNode_.lock();
             if (!node) {
                 RS_LOGE("RSColdStartThread PostSyncTask surfaceNode is nullptr");
                 return;
             }
-            RS_LOGD("RSMainThread SetCachedImage");
-            node->SetCachedImage(image);
+            {
+                RS_LOGD("RSMainThread SetCachedImage");
+                std::lock_guard<std::mutex> lock(imageMutex_);
+                if (!images_.empty()) {
+                    node->SetCachedImage(images_.back());
+                }
+            }
             RSMainThread::Instance()->RequestNextVSync();
         });
     };
-    handler_->RemoveTask(PLAYBACK_TASK_NAME);
-    handler_->PostTask(task, PLAYBACK_TASK_NAME, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    if (handler_->IsIdle()) {
+        handler_->PostTask(task, PLAYBACK_TASK_NAME, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
 }
 
 RSColdStartManager& RSColdStartManager::Instance()
