@@ -85,6 +85,8 @@ public:
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
 
+    static bool GetColdStartThreadEnabled();
+
 private:
     RSSystemProperties() = default;
 

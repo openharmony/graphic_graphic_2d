@@ -964,7 +964,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     if (node.GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
         needDrawStartingWindow_ = true; // reset to default value
-        needColdStartThread_ = !node.IsStartAnimationFinished() && doAnimate_;
+        needColdStartThread_ = RSSystemProperties::GetColdStartThreadEnabled() &&
+                               !node.IsStartAnimationFinished() && doAnimate_;
         needCheckFirstFrame_ = node.GetChildrenCount() > 1; // childCount > 1 means startingWindow and appWindow
     }
 
