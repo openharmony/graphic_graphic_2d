@@ -29,17 +29,25 @@ extern "C" {
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    const int OPENGL_ES2_VERSION = 2;
+    const int OPENGL_ES3_VERSION = 3;
+}
 using namespace std;
 
 EGLConfig EglManager::GetConfig(int version, EGLDisplay eglDisplay)
 {
+    EGLint renderableType = EGL_OPENGL_ES2_BIT;
+    if (version == OPENGL_ES3_VERSION) {
+        renderableType = EGL_OPENGL_ES3_BIT;
+    }
     int attribList[] = {
-        EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+        EGL_SURFACE_TYPE, EGL_PBUFFER_BIT | EGL_WINDOW_BIT,
+        EGL_RENDERABLE_TYPE, renderableType,
         EGL_RED_SIZE, 8,
         EGL_GREEN_SIZE, 8,
         EGL_BLUE_SIZE, 8,
         EGL_ALPHA_SIZE, 8,
-        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
         EGL_NONE
     };
     EGLConfig configs = NULL;
@@ -103,16 +111,15 @@ void EglManager::Init()
         return;
     }
 
-    LOGI("EglManager Init eglMinVers = %{public}u", eglMinVers);
-    int version = 2;
-    if (eglMinVers >= 4) {
-        version = 3;
-    }
-
+    int version = OPENGL_ES3_VERSION;
     mEGLConfig = EglManager::GetConfig(version, mEGLDisplay);
     if (mEGLConfig == NULL) {
-        LOGE("EglManager Init config ERROR");
-        return;
+        LOGE("EglManager Init config ERROR, try again");
+        version = OPENGL_ES2_VERSION;
+        if (mEGLConfig == NULL) {
+            LOGE("EglManager Init config ERROR again");
+            return;
+        }
     }
 
     if (mEglWindow) {
@@ -146,7 +153,7 @@ void EglManager::Init()
     if (error == EGL_SUCCESS) {
         LOGI("EglManager Init Create mEGLContext ok");
     } else {
-        LOGE("EglManager Init eglCreateContext error %x", error);
+        LOGE("EglManager Init eglCreateContext error %{public}x", error);
     }
     eglMakeCurrent(mEGLDisplay, mCurrentSurface, mCurrentSurface, mEGLContext);
 }
