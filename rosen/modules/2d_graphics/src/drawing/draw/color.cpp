@@ -105,22 +105,22 @@ Color4f Color::GetColor4f()
 
 void Color::SetRedF(scalar r)
 {
-    red_ = static_cast<uint8_t>(r * RGB_MAX);
+    red_ = static_cast<uint8_t>(std::max(0.0f, std::min(r, 1.0f))  * RGB_MAX);
 }
 
 void Color::SetGreenF(scalar g)
 {
-    green_ = static_cast<uint8_t>(g * RGB_MAX);
+    green_ = static_cast<uint8_t>(std::max(0.0f, std::min(g, 1.0f))  * RGB_MAX);
 }
 
 void Color::SetBlueF(scalar b)
 {
-    blue_ = static_cast<uint8_t>(b * RGB_MAX);
+    blue_ = static_cast<uint8_t>(std::max(0.0f, std::min(b, 1.0f))  * RGB_MAX);
 }
 
 void Color::SetAlphaF(scalar a)
 {
-    alpha_ = static_cast<uint8_t>(a * RGB_MAX);
+    alpha_ = static_cast<uint8_t>(std::max(0.0f, std::min(a, 1.0f)) * RGB_MAX);
 }
 
 void Color::SetRgb(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
