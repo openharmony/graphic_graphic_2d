@@ -254,7 +254,7 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
             }
         }
     }
-    RS_TRACE_NAME("Skip static surface nodeid - pid: " +
+    RS_TRACE_NAME("Skip static surface " + node.GetName() + " nodeid - pid: " +
         std::to_string(node.GetId()) + " - " + std::to_string(ExtractPid(node.GetId())));
     ROSEN_LOGD("Skip static surface nodeid - pid - name: %" PRIu64 " - %d - %s", node.GetId(),
         ExtractPid(node.GetId()), node.GetName().c_str());
@@ -371,7 +371,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         dirtySurfaceNodeMap_.emplace(node.GetId(), node.ReinterpretCastTo<RSSurfaceRenderNode>());
     }
     if (node.IsAppWindow()) {
-        RS_TRACE_NAME("PreparedNodes: " + std::to_string(preparedCanvasNodeInCurrentSurface_));
+        RS_TRACE_NAME(node.GetName() + " PreparedNodes: " + std::to_string(preparedCanvasNodeInCurrentSurface_));
         preparedCanvasNodeInCurrentSurface_ = 0;
     }
 }
@@ -1098,7 +1098,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         node.GetChildrenCount(), node.GetName().c_str());
     node.UpdatePositionZ();
     if (isSecurityDisplay_ && node.GetSecurityLayer()) {
-        RS_TRACE_NAME("SecurityLayer Skip");
+        RS_TRACE_NAME(node.GetName() + " SecurityLayer Skip");
         return;
     }
     if (node.GetSurfaceNodeType() == RSSurfaceNodeType::STARTING_WINDOW_NODE && !needDrawStartingWindow_) {
@@ -1111,14 +1111,14 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         return;
     }
     if (!node.GetOcclusionVisible() && !doAnimate_ && RSSystemProperties::GetOcclusionEnabled()) {
-        RS_TRACE_NAME("Occlusion Skip");
+        RS_TRACE_NAME(node.GetName() + " Occlusion Skip");
         return;
     }
 #ifdef RS_ENABLE_EGLQUERYSURFACE
     // skip clean surface node
     if (isOpDropped_ && node.IsAppWindow()) {
         if (!node.SubNodeNeedDraw(node.GetOldDirtyInSurface(), partialRenderType_)) {
-            RS_TRACE_NAME("QuickReject Skip");
+            RS_TRACE_NAME(node.GetName() + " QuickReject Skip");
             RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode skip: %s", node.GetName().c_str());
             return;
         }
@@ -1299,7 +1299,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         canvas_->SetVisibleRect(SkRect::MakeLTRB(0, 0, 0, 0));
 
         // count processed canvasnodes number
-        RS_TRACE_NAME("ProcessedNodes: " + std::to_string(processedCanvasNodeInCurrentSurface_));
+        RS_TRACE_NAME(node.GetName() + " ProcessedNodes: " + std::to_string(processedCanvasNodeInCurrentSurface_));
         processedCanvasNodeInCurrentSurface_ = 0; // reset
     }
 }
