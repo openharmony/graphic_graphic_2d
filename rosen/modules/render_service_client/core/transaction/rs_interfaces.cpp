@@ -88,6 +88,12 @@ bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
     return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY);
 }
 
+bool RSInterfaces::TakeSurfaceCapture(NodeId id,
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
+{
+    return renderServiceClient_->TakeSurfaceCapture(id, callback, scaleX, scaleY);
+}
+
 void RSInterfaces::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     renderServiceClient_->SetScreenActiveMode(id, modeId);
