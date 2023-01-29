@@ -1101,10 +1101,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         RS_TRACE_NAME(node.GetName() + " SecurityLayer Skip");
         return;
     }
-    if (node.GetSurfaceNodeType() == RSSurfaceNodeType::STARTING_WINDOW_NODE && !needDrawStartingWindow_) {
-        RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode skip startingWindow");
-        return;
-    }
     const auto& property = node.GetRenderProperties();
     if (!node.ShouldPaint()) {
         RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 " invisible", node.GetId());
@@ -1151,7 +1147,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
 
     if (node.GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
-        needDrawStartingWindow_ = true; // reset to default value
         needColdStartThread_ = RSSystemProperties::GetColdStartThreadEnabled() &&
                                !node.IsStartAnimationFinished() && doAnimate_;
         needCheckFirstFrame_ = node.GetChildrenCount() > 1; // childCount > 1 means startingWindow and appWindow
@@ -1239,7 +1234,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         }
         if (needCheckFirstFrame_ && IsFirstFrameReadyToDraw(node)) {
             node.NotifyUIBufferAvailable();
-            needDrawStartingWindow_ = false;
         }
         if (!node.IsAppFreeze()) {
             ProcessBaseRenderNode(node);
@@ -1272,7 +1266,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         }
     } else if (node.IsAppWindow()) { // use skSurface drawn by cold start thread
         if (node.GetCachedImage() != nullptr) {
-            needDrawStartingWindow_ = false;
             RSUniRenderUtil::DrawCachedImage(node, *canvas_, node.GetCachedImage());
         }
         RecordAppWindowNodeAndPostTask(node, property.GetBoundsWidth(), property.GetBoundsHeight());
