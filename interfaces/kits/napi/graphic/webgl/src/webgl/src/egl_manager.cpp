@@ -116,6 +116,7 @@ void EglManager::Init()
     if (mEGLConfig == NULL) {
         LOGE("EglManager Init config ERROR, try again");
         version = OPENGL_ES2_VERSION;
+        mEGLConfig = EglManager::GetConfig(version, mEGLDisplay);
         if (mEGLConfig == NULL) {
             LOGE("EglManager Init config ERROR again");
             return;
