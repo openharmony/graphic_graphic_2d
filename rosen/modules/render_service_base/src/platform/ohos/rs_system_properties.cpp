@@ -127,6 +127,11 @@ bool RSSystemProperties::GetTargetDirtyRegionDfxEnabled(std::vector<std::string>
     return true;
 }
 
+bool RSSystemProperties::GetOpaqueRegionDfxEnabled()
+{
+    return std::atoi((system::GetParameter("rosen.uni.opaqueregiondebug", "0")).c_str()) != 0;
+}
+
 uint32_t RSSystemProperties::GetCorrectionMode()
 {
     // If the value of rosen.directClientComposition.enabled is not 0 then enable the direct CLIENT composition.

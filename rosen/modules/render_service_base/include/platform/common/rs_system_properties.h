@@ -85,6 +85,7 @@ public:
     static DumpSurfaceType GetDumpSurfaceType();
     static uint64_t GetDumpSurfaceId();
     static bool GetTargetDirtyRegionDfxEnabled(std::vector<std::string>& dfxTargetSurfaceNames_);
+    static bool GetOpaqueRegionDfxEnabled();
     static bool GetDumpLayersEnabled();
     static bool GetQuickSkipPrepareEnabled();
 

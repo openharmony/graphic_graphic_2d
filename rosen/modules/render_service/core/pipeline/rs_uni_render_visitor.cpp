@@ -77,11 +77,12 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isPartialRenderEnabled_ = (screenNum <= 1) && (partialRenderType_ != PartialRenderType::DISABLED);
     isDirtyRegionDfxEnabled_ = (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::EGL_DAMAGE);
     isTargetDirtyRegionDfxEnabled_ = RSSystemProperties::GetTargetDirtyRegionDfxEnabled(dfxTargetSurfaceNames_);
+    isOpaqueRegionDfxEnabled_ = RSSystemProperties::GetOpaqueRegionDfxEnabled();
     if (isDirtyRegionDfxEnabled_ && isTargetDirtyRegionDfxEnabled_) {
         isDirtyRegionDfxEnabled_ = false;
     }
     isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE)
-        && (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_);
+        && (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_ && !isOpaqueRegionDfxEnabled_);
     // this config may downgrade the calcOcclusion performance when windows number become huge (i.e. > 30), keep it now
     containerWindowConfig_ = RSSystemProperties::GetContainerWindowConfig();
     isQuickSkipPreparationEnabled_ = RSSystemProperties::GetQuickSkipPrepareEnabled();
@@ -512,7 +513,7 @@ void RSUniRenderVisitor::CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisit
 }
 
 void RSUniRenderVisitor::DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
-    const SkPaint::Style fillType, float alpha)
+    const SkPaint::Style fillType, float alpha, int edgeWidth = 6)
 {
     ROSEN_LOGD("DrawDirtyRectForDFX current dirtyRect = [%d, %d, %d, %d]", dirtyRect.left_, dirtyRect.top_,
         dirtyRect.width_, dirtyRect.height_);
@@ -523,8 +524,7 @@ void RSUniRenderVisitor::DrawDirtyRectForDFX(const RectI& dirtyRect, const SkCol
     auto skRect = SkRect::MakeXYWH(dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
     std::string position = std::to_string(dirtyRect.left_) + ',' + std::to_string(dirtyRect.top_) + ',' +
         std::to_string(dirtyRect.width_) + ',' + std::to_string(dirtyRect.height_);
-    const int defaultEdgeWidth = 6;
-    const int defaultTextOffsetX = defaultEdgeWidth;
+    const int defaultTextOffsetX = edgeWidth;
     const int defaultTextOffsetY = 30; // text position has 30 pixelSize under the skRect
     SkPaint rectPaint;
     // font size: 24
@@ -533,7 +533,7 @@ void RSUniRenderVisitor::DrawDirtyRectForDFX(const RectI& dirtyRect, const SkCol
     rectPaint.setAntiAlias(true);
     rectPaint.setAlphaf(alpha);
     rectPaint.setStyle(fillType);
-    rectPaint.setStrokeWidth(defaultEdgeWidth);
+    rectPaint.setStrokeWidth(edgeWidth);
     if (fillType == SkPaint::kFill_Style) {
         rectPaint.setStrokeJoin(SkPaint::kRound_Join);
     }
@@ -565,6 +565,17 @@ void RSUniRenderVisitor::DrawAllSurfaceDirtyRegionForDFX(RSDisplayRenderNode& no
     DrawDirtyRectForDFX(dirtySurfaceRect, SK_ColorRED, SkPaint::kStroke_Style, fillAlpha);
 }
 
+void RSUniRenderVisitor::DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& node)
+{
+    for (auto it = node.GetCurAllSurfaces().begin(); it != node.GetCurAllSurfaces().end(); ++it)
+    {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (surfaceNode->IsMainWindowType()) {
+            DrawSurfaceOpaqueRegionForDFX(*surfaceNode);
+        }
+    }
+}
+
 void RSUniRenderVisitor::DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node)
 {
     for (auto it = node.GetCurAllSurfaces().rbegin(); it != node.GetCurAllSurfaces().rend(); ++it) {
@@ -588,6 +599,14 @@ void RSUniRenderVisitor::DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode&
             }
             DrawDirtyRegionForDFX(rects);
         }
+    }
+}
+
+void RSUniRenderVisitor::DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node)
+{
+    auto opaqueRegionRects = node.GetOpaqueRegion().GetRegionRects();
+    for (const auto &subRect: opaqueRegionRects) {
+        DrawDirtyRectForDFX(subRect.ToRectI(), SK_ColorGREEN, SkPaint::kFill_Style, 0.2f, 0);
     }
 }
 
@@ -738,7 +757,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 }
             }
             // SetDamageRegion and opDrop will be disabled for dirty region DFX visualization
-            if (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_) {
+            if (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_ && !isOpaqueRegionDfxEnabled_) {
                 renderFrame->SetDamageRegion(rects);
             }
         }
@@ -807,6 +826,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
             if (isTargetDirtyRegionDfxEnabled_) {
                 DrawTargetSurfaceDirtyRegionForDFX(node);
+            }
+            if (isOpaqueRegionDfxEnabled_) {
+                DrawAllSurfaceOpaqueRegionForDFX(node);
             }
         }
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");

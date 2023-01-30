@@ -85,6 +85,11 @@ public:
             std::to_string(right_ - left_) + ", " +
             std::to_string(bottom_ - top_) + "]");
     }
+
+    RectI ToRectI() const
+    {
+        return RectI{left_, top_, right_ - left_, bottom_ - top_};
+    }
 };
 
 std::ostream& operator<<(std::ostream& os, const Rect& r);
