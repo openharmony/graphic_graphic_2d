@@ -562,7 +562,6 @@ void RSMainThread::Render()
         RS_LOGE("RSMainThread::Render GetGlobalRootRenderNode fail");
         return;
     }
-    RSPropertiesPainter::ResetBlurCnt();
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
         RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     }
@@ -1195,7 +1194,7 @@ void RSMainThread::ForceRefreshForUni()
 void RSMainThread::PerfForBlurIfNeeded()
 {
     static int preBlurCnt = 0;
-    int blurCnt = RSPropertiesPainter::GetBlurCnt();
+    int blurCnt = RSPropertiesPainter::GetAndResetBlurCnt();
     // clamp blurCnt to 0~3.
     blurCnt = std::clamp<int>(blurCnt, 0, 3);
     if (blurCnt != preBlurCnt && preBlurCnt != 0) {
