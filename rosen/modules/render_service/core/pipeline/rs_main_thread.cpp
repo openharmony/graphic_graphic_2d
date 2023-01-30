@@ -1179,7 +1179,7 @@ void RSMainThread::PerfMultiWindow()
         PerfRequest(PERF_MULTI_WINDOW_REQUESTED_CODE, true);
         lastPerfTimestamp = timestamp_;
     } else if ((appWindowNum_ < MULTI_WINDOW_PERF_START_NUM || appWindowNum_ > MULTI_WINDOW_PERF_END_NUM)
-        && timestamp_ - lastPerfTimestamp < PERF_PERIOD_MULTI_WINDOW ) {
+        && timestamp_ - lastPerfTimestamp < PERF_PERIOD_MULTI_WINDOW) {
         RS_LOGD("RSMainThread::PerfMultiWindow soc perf off");
         PerfRequest(PERF_MULTI_WINDOW_REQUESTED_CODE, false);
     }
