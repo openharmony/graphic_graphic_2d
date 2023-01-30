@@ -22,7 +22,6 @@
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
-#include "platform/common/rs_system_properties.h"
 #include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
@@ -247,45 +246,6 @@ void DrawCmdList::ClearCache()
     }
     opReplacedByCache_.clear();
 #endif
-}
-
-// modify the DrawCmdListManager instance to global to extend life cycle, fix destructor crash
-static DrawCmdListManager gDrawCmdListManagerInstance;
-
-DrawCmdListManager& DrawCmdListManager::Instance()
-{
-    return gDrawCmdListManagerInstance;
-}
-
-void DrawCmdListManager::RegisterDrawCmdList(NodeId id, std::shared_ptr<DrawCmdList> drawCmdList)
-{
-    std::lock_guard<std::mutex> lock(listsMutex_);
-    static bool uniEnabled = RSSystemProperties::GetUniRenderEnabled();
-    if (uniEnabled && drawCmdList) {
-        lists_[id].emplace_back(drawCmdList);
-    }
-}
-
-void DrawCmdListManager::ClearDrawCmdList(NodeId id)
-{
-    std::lock_guard<std::mutex> lock(listsMutex_);
-    auto iterator = lists_.find(id);
-    if (iterator == lists_.end()) {
-        return;
-    }
-    if (forceClear_) {
-        for (auto& weakPtr : iterator->second) {
-            if (auto ptr = weakPtr.lock()) {
-                ptr->ClearOp();
-            }
-        }
-    }
-    lists_.erase(iterator);
-}
-
-void DrawCmdListManager::MarkForceClear(bool flag)
-{
-    forceClear_ = flag;
 }
 } // namespace Rosen
 } // namespace OHOS

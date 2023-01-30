@@ -75,30 +75,6 @@ private:
 };
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;
-
-class RS_EXPORT DrawCmdListManager {
-public:
-    static DrawCmdListManager& Instance();
-
-    void RegisterDrawCmdList(NodeId id, std::shared_ptr<DrawCmdList> drawCmdList);
-    void ClearDrawCmdList(NodeId id);
-
-    void MarkForceClear(bool flag);
-
-    DrawCmdListManager() = default;
-    ~DrawCmdListManager() = default;
-
-private:
-    DrawCmdListManager(const DrawCmdListManager&) = delete;
-    DrawCmdListManager(const DrawCmdListManager&&) = delete;
-    DrawCmdListManager& operator=(const DrawCmdListManager&) = delete;
-    DrawCmdListManager& operator=(const DrawCmdListManager&&) = delete;
-
-    std::atomic_bool forceClear_ = true;
-
-    std::mutex listsMutex_;
-    std::unordered_map<NodeId, std::vector<std::weak_ptr<DrawCmdList>>> lists_;
-};
 } // namespace Rosen
 } // namespace OHOS
 
