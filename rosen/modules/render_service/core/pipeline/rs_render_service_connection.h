@@ -93,6 +93,9 @@ private:
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY) override;
 
+    void TakeSurfaceCaptureForUIWithUni(
+        NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY);
+
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
@@ -174,6 +177,9 @@ private:
 
     mutable std::mutex mutex_;
     bool cleanDone_ = false;
+
+    int offscreenRenderNum_ = 0;
+    std::mutex offscreenRenderMutex_;
 
     // save all virtual screenIds created by this connection.
     std::unordered_set<ScreenId> virtualScreenIds_;

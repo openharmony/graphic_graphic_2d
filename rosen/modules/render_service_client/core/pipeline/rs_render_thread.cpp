@@ -420,6 +420,13 @@ void RSRenderThread::PostTask(RSTaskMessage::RSTask task)
     }
 }
 
+void RSRenderThread::PostSyncTask(RSTaskMessage::RSTask task)
+{
+    if (handler_) {
+        handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
 void RSRenderThread::PostPreTask()
 {
     if (handler_ && preTask_) {

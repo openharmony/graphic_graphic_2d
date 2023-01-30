@@ -71,6 +71,9 @@ ohos_source_set("render_service_base_src") {
     "src/command/rs_root_node_command.cpp",
     "src/command/rs_surface_node_command.cpp",
 
+    #offscreen_render
+    "src/offscreen_render/rs_offscreen_render_thread.cpp",
+
     #common
     "src/common/rs_color.cpp",
     "src/common/rs_common_def.cpp",

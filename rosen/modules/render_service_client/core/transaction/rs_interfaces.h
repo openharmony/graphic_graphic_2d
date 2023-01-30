@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_TRANSACTION_RS_INTERFACES_H
 
 #include <memory>
+#include <mutex>
 
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_display_node.h"
@@ -65,6 +66,9 @@ public:
 
     bool TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.0f, float scaleY = 1.0f);
+
+    bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
+        std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f);
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId);
 
@@ -126,7 +130,12 @@ private:
     RSInterfaces();
     ~RSInterfaces() noexcept;
 
+    bool TakeSurfaceCaptureForUIWithoutUni(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
+        float scaleX, float scaleY);
+
     std::unique_ptr<RSRenderServiceClient> renderServiceClient_;
+    std::mutex offscreenRenderMutex_;
+    int offscreenRenderNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

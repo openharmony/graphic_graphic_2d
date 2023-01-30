@@ -48,6 +48,7 @@ public:
     void RecvTransactionData(std::unique_ptr<RSTransactionData>& transactionData);
     void RequestNextVSync();
     void PostTask(RSTaskMessage::RSTask task);
+    void PostSyncTask(RSTaskMessage::RSTask task);
     void PostPreTask();
     void UpdateWindowStatus(bool active);
 

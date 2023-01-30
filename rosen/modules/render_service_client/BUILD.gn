@@ -73,6 +73,7 @@ ohos_source_set("render_service_client_src") {
     "core/jank_detector/rs_jank_detector.cpp",
 
     #pipeline
+    "core/pipeline/rs_divided_ui_capture.cpp",
     "core/pipeline/rs_node_map.cpp",
     "core/pipeline/rs_render_thread.cpp",
     "core/pipeline/rs_render_thread_visitor.cpp",

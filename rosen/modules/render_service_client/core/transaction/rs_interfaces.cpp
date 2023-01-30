@@ -13,7 +13,15 @@
  * limitations under the License.
  */
 
+#include <functional>
+
 #include "rs_interfaces.h"
+#include "rs_trace.h"
+
+#include "platform/common/rs_system_properties.h"
+#include "pipeline/rs_divided_ui_capture.h"
+#include "offscreen_render/rs_offscreen_render_thread.h"
+#include "ui/rs_proxy_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -93,6 +101,22 @@ void RSInterfaces::SetScreenActiveMode(ScreenId id, uint32_t modeId)
     renderServiceClient_->SetScreenActiveMode(id, modeId);
 }
 
+bool RSInterfaces::TakeSurfaceCaptureForUI(
+    std::shared_ptr<RSNode> node, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
+{
+    if (!((node->GetType() == RSUINodeType::ROOT_NODE) ||
+          (node->GetType() == RSUINodeType::CANVAS_NODE) ||
+          (node->GetType() == RSUINodeType::SURFACE_NODE))) {
+        ROSEN_LOGE("RSInterfaces::TakeSurfaceCaptureForUI unsupported node type return");
+        return false;
+    }
+    if (RSSystemProperties::GetUniRenderEnabled()) {
+        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY);
+    } else {
+        return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
+    }
+}
+
 int32_t RSInterfaces::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     return renderServiceClient_->SetVirtualScreenResolution(id, width, height);
@@ -106,6 +130,35 @@ RSVirtualScreenResolution RSInterfaces::GetVirtualScreenResolution(ScreenId id)
 void RSInterfaces::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     renderServiceClient_->SetScreenPowerStatus(id, status);
+}
+
+bool RSInterfaces::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
+{
+    std::function<void()> offscreenRenderTask = [scaleX, scaleY, callback, id, this]() -> void {
+        ROSEN_LOGD(
+            "RSInterfaces::TakeSurfaceCaptureForUIWithoutUni callback->OnOffscreenRender nodeId:[%" PRIu64 "]", id);
+        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::TakeSurfaceCaptureForUIWithoutUni");
+        std::shared_ptr<RSDividedUICapture> rsDividedUICapture =
+            std::make_shared<RSDividedUICapture>(id, scaleX, scaleY);
+        std::shared_ptr<Media::PixelMap> pixelmap = rsDividedUICapture->TakeLocalCapture();
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        callback->OnSurfaceCapture(pixelmap);
+        std::lock_guard<std::mutex> lock(offscreenRenderMutex_);
+        offscreenRenderNum_--;
+        if (offscreenRenderNum_ == 0) {
+            RSOffscreenRenderThread::Instance().Stop();
+        }
+    };
+    {
+        std::lock_guard<std::mutex> lock(offscreenRenderMutex_);
+        if (offscreenRenderNum_ == 0) {
+            RSOffscreenRenderThread::Instance().Start();
+        }
+        offscreenRenderNum_++;
+    }
+    RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
+    return true;
 }
 
 RSScreenModeInfo RSInterfaces::GetScreenActiveMode(ScreenId id)
