@@ -111,7 +111,7 @@ public:
         const RSSurfaceRenderNode& node, RectF& localBounds, BufferDrawParam& params);
     static void FlipMatrix(const RSSurfaceRenderNode& node, BufferDrawParam& params);
 
-    //GraphicTransformType has two attributes: rotation and flip, it take out one of the attributes separately
+    // GraphicTransformType has two attributes: rotation and flip, it take out one of the attributes separately
     static GraphicTransformType GetRotateTransform(GraphicTransformType transform);
     static GraphicTransformType GetFlipTransform(GraphicTransformType transform);
 private:
