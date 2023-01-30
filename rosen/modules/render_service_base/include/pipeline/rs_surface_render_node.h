@@ -458,14 +458,12 @@ public:
         ContainerWindowConfigType containerWindowConfigType, bool isFocusWindow = true);
     Occlusion::Region ResetOpaqueRegion(const RectI& absRect,
         const ContainerWindowConfigType containerWindowConfigType, const bool isFocusWindow);
-    
-    
+
     void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect,
         const ScreenRotation screenRotation, const bool isFocusWindow);
     Occlusion::Region ResetOpaqueRegion(const RectI& absRect,
         const ScreenRotation screenRotation, const bool isFocusWindow) const;
-    Occlusion::Region SetUnFocusedWindowOpaqueRegion(const RectI& absRect) const;
-    Occlusion::Region SetUnFocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
+    Occlusion::Region SetUnfocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
     Occlusion::Region SetFocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
 
     bool IsStartAnimationFinished() const;

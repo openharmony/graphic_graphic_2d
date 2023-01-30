@@ -567,8 +567,7 @@ void RSUniRenderVisitor::DrawAllSurfaceDirtyRegionForDFX(RSDisplayRenderNode& no
 
 void RSUniRenderVisitor::DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& node)
 {
-    for (auto it = node.GetCurAllSurfaces().begin(); it != node.GetCurAllSurfaces().end(); ++it)
-    {
+    for (auto it = node.GetCurAllSurfaces().begin(); it != node.GetCurAllSurfaces().end(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (surfaceNode->IsMainWindowType()) {
             DrawSurfaceOpaqueRegionForDFX(*surfaceNode);

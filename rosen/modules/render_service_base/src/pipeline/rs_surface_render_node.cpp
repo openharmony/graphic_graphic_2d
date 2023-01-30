@@ -633,32 +633,18 @@ Occlusion::Region RSSurfaceRenderNode::ResetOpaqueRegion(const RectI& absRect,
     if (isFocusWindow) {
         return SetFocusedWindowOpaqueRegion(absRect, screenRotation);
     } else {
-        return SetUnFocusedWindowOpaqueRegion(absRect, screenRotation);
+        return SetUnfocusedWindowOpaqueRegion(absRect, screenRotation);
     }
 }
 
 /*
-    If a surface with containerwindow is not focus window, then its opaque 
+    If a surfacenode with containerwindow is not focus window, then its opaque
 region is absRect minus four roundCorner corresponding small rectangles.
 This corners removed region can be assembled with two crossed rectangles.
+Furthermore, when the surfacenode is not focus window, the inner content roundrect's
+boundingbox rect can be set opaque.
 */
-Occlusion::Region RSSurfaceRenderNode::SetUnFocusedWindowOpaqueRegion(const RectI& absRect) const
-{
-    Occlusion::Rect opaqueRect1{ absRect.left_ + containerOutRadius_,
-        absRect.top_,
-        absRect.GetRight() - containerOutRadius_,
-        absRect.GetBottom()};
-    Occlusion::Rect opaqueRect2{ absRect.left_,
-        absRect.top_ + containerOutRadius_,
-        absRect.GetRight(),
-        absRect.GetBottom() - containerOutRadius_};
-    Occlusion::Region r1{opaqueRect1};
-    Occlusion::Region r2{opaqueRect2};
-    Occlusion::Region opaqueRegion = r1.Or(r2);
-    return opaqueRegion;
-}
-
-Occlusion::Region RSSurfaceRenderNode::SetUnFocusedWindowOpaqueRegion(const RectI& absRect,
+Occlusion::Region RSSurfaceRenderNode::SetUnfocusedWindowOpaqueRegion(const RectI& absRect,
     const ScreenRotation screenRotation) const
 {
     Occlusion::Rect opaqueRect1{ absRect.left_ + containerOutRadius_,
@@ -724,7 +710,7 @@ Occlusion::Region RSSurfaceRenderNode::SetUnFocusedWindowOpaqueRegion(const Rect
 }
 
 /*
-    If a surface with containerwindow is a focused window, then its containerWindow region
+    If a surfacenode with containerwindow is a focused window, then its containerWindow region
 should be set transparent, including: title, content padding area, border, and content corners.
 Note this region is not centrosymmetric, hence it should be differentiated under different
 screen rotation state as top/left/botton/right has changed when screen rotated.
