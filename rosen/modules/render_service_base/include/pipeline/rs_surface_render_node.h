@@ -421,31 +421,6 @@ public:
 
     bool SubNodeNeedDraw(const RectI &r, PartialRenderType opDropType) const;
 
-    void SetCacheSurface(sk_sp<SkSurface> cacheSurface)
-    {
-        cacheSurface_ = std::move(cacheSurface);
-    }
-
-    sk_sp<SkSurface> GetCacheSurface() const
-    {
-        return cacheSurface_;
-    }
-
-    void ClearCacheSurface()
-    {
-        cacheSurface_ = nullptr;
-    }
-
-    void SetAppFreeze(bool isAppFreeze)
-    {
-        isAppFreeze_ = isAppFreeze;
-    }
-
-    bool IsAppFreeze() const
-    {
-        return isAppFreeze_;
-    }
-
     bool GetZorderChanged() const
     {
         return (std::abs(GetRenderProperties().GetPositionZ() - positionZ_) > (std::numeric_limits<float>::epsilon()));
@@ -589,8 +564,6 @@ private:
     Occlusion::Region extraDirtyRegionAfterAlignment_;
     bool extraDirtyRegionAfterAlignmentIsEmpty_ = true;
 
-    std::atomic<bool> isAppFreeze_ = false;
-    sk_sp<SkSurface> cacheSurface_ = nullptr;
     bool globalDirtyRegionIsEmpty_ = false;
     // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
     Occlusion::Region dirtyRegionBelowCurrentLayer_;

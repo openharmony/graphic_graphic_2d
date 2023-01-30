@@ -747,6 +747,11 @@ void RSNode::SetMask(const std::shared_ptr<RSMask>& mask)
     SetProperty<RSMaskModifier, RSProperty<std::shared_ptr<RSMask>>>(RSModifierType::MASK, mask);
 }
 
+void RSNode::SetFreeze(bool isFreeze)
+{
+    ROSEN_LOGE("SetFreeze only support RSSurfaceNode and RSCanvasNode in uniRender");
+}
+
 void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
 {
     // temporary fix for multithread issue in implicit animator

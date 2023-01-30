@@ -22,6 +22,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #endif
 #include "command/rs_canvas_node_command.h"
+#include "command/rs_node_command.h"
 #include "platform/common/rs_log.h"
 #include "common/rs_obj_geometry.h"
 #include "pipeline/rs_draw_cmd_list.h"
@@ -118,6 +119,19 @@ float RSCanvasNode::GetPaintHeight() const
 {
     auto frame = GetStagingProperties().GetFrame();
     return frame.w_ <= 0.f ? GetStagingProperties().GetBounds().w_ : frame.w_;
+}
+
+void RSCanvasNode::SetFreeze(bool isFreeze)
+{
+    if (!IsUniRenderEnabled()) {
+        ROSEN_LOGE("SetFreeze is not supported in separate render");
+        return;
+    }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

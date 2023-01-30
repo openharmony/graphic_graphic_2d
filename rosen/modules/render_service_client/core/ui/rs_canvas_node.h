@@ -44,6 +44,8 @@ public:
     float GetPaintHeight() const;
     void DrawOnNode(RSModifierType type, DrawFunc func) override;
 
+    void SetFreeze(bool isFreeze) override;
+
 protected:
     RSCanvasNode(bool isRenderServiceNode);
     RSCanvasNode(const RSCanvasNode&) = delete;

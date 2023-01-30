@@ -45,6 +45,8 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_VECTOR4_COLOR,
     UPDATE_MODIFIER_VECTOR4F,
     UPDATE_MODIFIER_DRAW_CMD_LIST,
+
+    SET_FREEZE,
 };
 
 class RS_EXPORT RSNodeCommandHelper {
@@ -66,6 +68,8 @@ public:
             modifier->Update(prop, isDelta);
         }
     }
+
+    static void SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze);
 };
 
 ADD_COMMAND(RSAddModifier,
@@ -124,6 +128,9 @@ ADD_COMMAND(RSUpdatePropertyVector4f,
 ADD_COMMAND(RSUpdatePropertyDrawCmdList,
     ARG(RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST, RSNodeCommandHelper::UpdateModifier<DrawCmdListPtr>,
         NodeId, DrawCmdListPtr, PropertyId, bool))
+
+ADD_COMMAND(RSSetFreeze,
+    ARG(RS_NODE, SET_FREEZE, RSNodeCommandHelper::SetFreeze, NodeId, bool))
 
 } // namespace Rosen
 } // namespace OHOS

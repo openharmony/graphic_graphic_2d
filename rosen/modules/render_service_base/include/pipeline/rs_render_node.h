@@ -24,6 +24,8 @@
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "property/rs_properties.h"
+#include "include/core/SkSurface.h"
+#include "include/core/SkRefCnt.h"
 
 class SkCanvas;
 namespace OHOS {
@@ -105,6 +107,31 @@ public:
     // update parent's children rect including childRect and itself
     void UpdateParentChildrenRect(std::shared_ptr<RSBaseRenderNode> parentNode) const;
 
+    void SetFreeze(bool isFreeze)
+    {
+        isFreeze_ = isFreeze;
+    }
+
+    bool IsFreeze() const
+    {
+        return isFreeze_;
+    }
+
+    void SetCacheSurface(sk_sp<SkSurface> cacheSurface)
+    {
+        cacheSurface_ = std::move(cacheSurface);
+    }
+
+    sk_sp<SkSurface> GetCacheSurface() const
+    {
+        return cacheSurface_;
+    }
+
+    void ClearCacheSurface()
+    {
+        cacheSurface_ = nullptr;
+    }
+
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier> modifier);
@@ -138,6 +165,9 @@ private:
     // bounds and frame modifiers must be unique
     std::shared_ptr<RSRenderModifier> boundsModifier_;
     std::shared_ptr<RSRenderModifier> frameModifier_;
+
+    std::atomic<bool> isFreeze_ = false;
+    sk_sp<SkSurface> cacheSurface_ = nullptr;
 
     friend class RSRenderTransition;
     friend class RSRenderNodeMap;

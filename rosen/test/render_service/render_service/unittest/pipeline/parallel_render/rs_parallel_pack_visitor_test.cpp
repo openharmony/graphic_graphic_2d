@@ -61,7 +61,7 @@ HWTEST_F(RSParallelPackVisitorTest, ProcessSurfaceRenderNodeTest, TestSize.Level
     auto rsUniRenderPackVisitor = std::make_shared<RSParallelPackVisitor>(*rsUniRenderVisitor);
 
     rsSurfaceRenderNode->SetSrcRect(RectI(0, 0, 10, 10));
-    rsSurfaceRenderNode->SetAppFreeze(false);
+    rsSurfaceRenderNode->SetFreeze(false);
     rsSurfaceRenderNode->SetSecurityLayer(true);
     rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, -1);
 

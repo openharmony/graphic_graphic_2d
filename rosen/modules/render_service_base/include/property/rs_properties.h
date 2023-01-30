@@ -195,6 +195,7 @@ public:
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, Vector2f& offset);
     void CheckEmptyBounds();
     void ResetBounds();
+    RectF GetBoundsRect() const;
 
     bool IsGeoDirty() const;
 
@@ -206,7 +207,6 @@ private:
 
     bool NeedClip() const;
 
-    RectF GetBoundsRect() const;
     RectF GetFrameRect() const;
     RectF GetBgImageRect() const;
     RRect GetRRect() const;

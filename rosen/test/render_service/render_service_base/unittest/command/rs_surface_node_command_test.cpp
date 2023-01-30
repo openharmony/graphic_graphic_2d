@@ -254,23 +254,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetContextMatrix001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetAppFreeze001
- * @tc.desc: test.
- * @tc.type: FUNC
- */
-HWTEST_F(RSSurfaceNodeCommandTest, SetAppFreeze001, TestSize.Level1)
-{
-    RSContext context;
-    NodeId id = -10;
-    bool isAppFreeze = false;
-    SurfaceNodeCommandHelper::SetAppFreeze(context, id, isAppFreeze);
-    NodeId id2 = 10;
-    auto context2 = std::make_shared<RSContext>();
-    SurfaceNodeCommandHelper::Create(*context2, id2);
-    SurfaceNodeCommandHelper::SetAppFreeze(*context2, id2, isAppFreeze);
-}
-
-/**
  * @tc.name: SetContainerWindow001
  * @tc.desc: test.
  * @tc.type: FUNC

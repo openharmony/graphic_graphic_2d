@@ -83,7 +83,7 @@ public:
     static bool GetHighContrastStatus();
     static uint32_t GetCorrectionMode();
     static DumpSurfaceType GetDumpSurfaceType();
-    static uint64_t GetDumpSurfaceId();
+    static long long int GetDumpSurfaceId();
     static bool GetTargetDirtyRegionDfxEnabled(std::vector<std::string>& dfxTargetSurfaceNames_);
     static bool GetOpaqueRegionDfxEnabled();
     static bool GetDumpLayersEnabled();

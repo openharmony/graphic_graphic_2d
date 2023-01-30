@@ -150,9 +150,9 @@ DumpSurfaceType RSSystemProperties::GetDumpSurfaceType()
         std::atoi((system::GetParameter("rosen.dumpsurfacetype.enabled", "0")).c_str()));
 }
 
-uint64_t RSSystemProperties::GetDumpSurfaceId()
+long long int RSSystemProperties::GetDumpSurfaceId()
 {
-    return std::atoi((system::GetParameter("rosen.dumpsurfaceid", "0")).c_str());
+    return std::atoll((system::GetParameter("rosen.dumpsurfaceid", "0")).c_str());
 }
 
 bool RSSystemProperties::GetDumpLayersEnabled()

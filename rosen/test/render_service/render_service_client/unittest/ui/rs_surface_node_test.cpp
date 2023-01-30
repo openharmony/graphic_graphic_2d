@@ -979,16 +979,16 @@ HWTEST_F(RSSurfaceNodeTest, SetShadowColor003, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetAppFreeze001
+ * @tc.name: SetFreeze001
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require: issueI5J8R1
  */
-HWTEST_F(RSSurfaceNodeTest, SetAppFreeze001, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeTest, SetFreeze001, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    surfaceNode->SetAppFreeze(true);
+    surfaceNode->SetFreeze(true);
 }
 
 /**
@@ -1036,31 +1036,31 @@ HWTEST_F(RSSurfaceNodeTest, ClearChildren001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetAppFreeze Test True
- * @tc.desc: SetAppFreeze Test True
+ * @tc.name: SetFreeze Test True
+ * @tc.desc: SetFreeze Test True
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSSurfaceNodeTest, SetAppFreeze_True, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeTest, SetFreeze_True, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->SetAppFreeze(true);
+    surfaceNode->SetFreeze(true);
 }
 
 /**
- * @tc.name: SetAppFreeze Test False
- * @tc.desc: SetAppFreeze Test False
+ * @tc.name: SetFreeze Test False
+ * @tc.desc: SetFreeze Test False
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSSurfaceNodeTest, SetAppFreeze_False, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeTest, SetFreeze_False, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->SetAppFreeze(false);
+    surfaceNode->SetFreeze(false);
 }
 
 /**

@@ -1224,12 +1224,16 @@ bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& no
     if (type == DumpSurfaceType::DISABLED || type == DumpSurfaceType::PIXELMAP) {
         return false;
     }
-    uint64_t id = RSSystemProperties::GetDumpSurfaceId();
+    uint64_t id = static_cast<uint64_t>(RSSystemProperties::GetDumpSurfaceId());
     if (type == DumpSurfaceType::SINGLESURFACE && !ROSEN_EQ(node.GetId(), id)) {
         return false;
     }
     sptr<SurfaceBuffer> buffer = node.GetBuffer();
-    if (!buffer && !node.GetCacheSurface()) {
+    if (!buffer) {
+        return false;
+    }
+    BufferHandle *bufferHandle =  buffer->GetBufferHandle();
+    if (bufferHandle == nullptr) {
         return false;
     }
 
@@ -1242,30 +1246,50 @@ bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& no
         std::to_string(node.GetId()) + "_" +
         std::to_string(nowVal) + ".png";
     WriteToPngParam param;
-    if (buffer) {
-        BufferHandle *bufferHandle =  buffer->GetBufferHandle();
-        if (bufferHandle == nullptr) {
-            return false;
-        }
-        param.width = static_cast<uint32_t>(bufferHandle->width);
-        param.height = static_cast<uint32_t>(bufferHandle->height);
-        param.data = static_cast<uint8_t *>(buffer->GetVirAddr());
-        param.stride = static_cast<uint32_t>(bufferHandle->stride);
-        param.bitDepth = Detail::BITMAP_DEPTH;
-    } else {
-        sk_sp<SkSurface> surface = node.GetCacheSurface();
-        SkImageInfo info = SkImageInfo::Make(surface->width(), surface->height(),
-            kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-        SkBitmap bitmap;
-        bitmap.setInfo(info);
-        bitmap.allocPixels();
-        surface->readPixels(bitmap, 0, 0);
-        param.width = static_cast<uint32_t>(surface->width());
-        param.height = static_cast<uint32_t>(surface->height());
-        param.data = static_cast<uint8_t *>(bitmap.getPixels());
-        param.stride = static_cast<uint32_t>(bitmap.rowBytes());
-        param.bitDepth = Detail::BITMAP_DEPTH;
+    param.width = static_cast<uint32_t>(bufferHandle->width);
+    param.height = static_cast<uint32_t>(bufferHandle->height);
+    param.data = static_cast<uint8_t *>(buffer->GetVirAddr());
+    param.stride = static_cast<uint32_t>(bufferHandle->stride);
+    param.bitDepth = Detail::BITMAP_DEPTH;
+
+    return WriteToPng(filename, param);
+}
+
+bool RSBaseRenderUtil::WriteFreezeRenderNodeToPng(const RSRenderNode& node)
+{
+    auto type = RSSystemProperties::GetDumpSurfaceType();
+    if (type == DumpSurfaceType::DISABLED || type == DumpSurfaceType::PIXELMAP) {
+        return false;
     }
+    uint64_t id = static_cast<uint64_t>(RSSystemProperties::GetDumpSurfaceId());
+    if (type == DumpSurfaceType::SINGLESURFACE && !ROSEN_EQ(node.GetId(), id)) {
+        return false;
+    }
+    sk_sp<SkSurface> surface = node.GetCacheSurface();
+    if (!surface) {
+        return false;
+    }
+
+    struct timeval now;
+    gettimeofday(&now, nullptr);
+    constexpr int secToUsec = 1000 * 1000;
+    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    std::string filename = "/data/FreezeRenderNode_" +
+        std::to_string(node.GetId()) + "_" +
+        std::to_string(nowVal) + ".png";
+    WriteToPngParam param;
+
+    SkImageInfo info = SkImageInfo::Make(surface->width(), surface->height(),
+        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    SkBitmap bitmap;
+    bitmap.setInfo(info);
+    bitmap.allocPixels();
+    surface->readPixels(bitmap, 0, 0);
+    param.width = static_cast<uint32_t>(surface->width());
+    param.height = static_cast<uint32_t>(surface->height());
+    param.data = static_cast<uint8_t *>(bitmap.getPixels());
+    param.stride = static_cast<uint32_t>(bitmap.rowBytes());
+    param.bitDepth = Detail::BITMAP_DEPTH;
 
     return WriteToPng(filename, param);
 }

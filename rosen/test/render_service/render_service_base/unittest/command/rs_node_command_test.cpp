@@ -58,4 +58,16 @@ HWTEST_F(RSNodeCommandTest, TestRSBaseNodeCommand002, TestSize.Level1)
     std::shared_ptr<RSRenderModifier> modifier = nullptr;
     RSNodeCommandHelper::AddModifier(context, nodeId, modifier);
 }
+
+/**
+ * @tc.name: TestRSBaseNodeCommand003
+ * @tc.desc: SetFreeze test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, TestRSBaseNodeCommand003, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(-1);
+    RSNodeCommandHelper::SetFreeze(context, nodeId, true);
+}
 } // namespace OHOS::Rosen

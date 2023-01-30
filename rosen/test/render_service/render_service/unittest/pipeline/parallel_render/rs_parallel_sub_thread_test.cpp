@@ -66,7 +66,7 @@ HWTEST_F(RSParallelSubThreadTest, StartSubThreadDrawImageTest, TestSize.Level1)
         config.id = i;
         auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
         rsSurfaceRenderNode->SetSrcRect(RectI(0, 0, 10, 10));
-        rsSurfaceRenderNode->SetAppFreeze(false);
+        rsSurfaceRenderNode->SetFreeze(false);
         rsSurfaceRenderNode->SetSecurityLayer(true);
         rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, -1);
     }
