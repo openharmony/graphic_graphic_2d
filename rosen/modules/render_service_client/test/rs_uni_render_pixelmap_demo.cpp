@@ -23,6 +23,7 @@
 #include "include/core/SkCanvas.h"
 #include "include/core/SkImageInfo.h"
 #include "pixel_map.h"
+#include "pixel_map_rosen_utils.h"
 #include "wm/window.h"
 
 #include "pipeline/rs_recording_canvas.h"
@@ -160,6 +161,21 @@ int main()
     canvasNode->SetBgImage(rosenImage);
 
     rsUiDirector->SendMessages();
+    sleep(2);
+
+    cout << "rs pixelmap demo stage 4: repeated drawing" << endl;
+    auto skimg = Media::PixelMapRosenUtils::ExtractSkImage(pixelmap);
+    if (!skimg) {
+        return -1;
+    }
+    for (int i = 0; i < 120; i++) {
+        auto cvs = static_cast<RSRecordingCanvas*>(canvasNode->BeginRecording(600, 1200));
+        cvs->translate(i * 10, i * 10);
+        cvs->DrawImageWithParm(skimg, nullptr, rsImageInfo, paint);
+        canvasNode->FinishRecording();
+        rsUiDirector->SendMessages();
+        usleep(150000);
+    }
     sleep(200);
 
     cout << "rs pixelmap demo end!" << endl;
