@@ -14,6 +14,7 @@
  */
 
 #include "draw/color.h"
+#include <algorithm>
 
 namespace OHOS {
 namespace Rosen {
@@ -105,22 +106,22 @@ Color4f Color::GetColor4f()
 
 void Color::SetRedF(scalar r)
 {
-    red_ = static_cast<uint8_t>(r * RGB_MAX);
+    red_ = static_cast<uint8_t>(std::clamp(r, 0.0f, 1.0f) * RGB_MAX);
 }
 
 void Color::SetGreenF(scalar g)
 {
-    green_ = static_cast<uint8_t>(g * RGB_MAX);
+    green_ = static_cast<uint8_t>(std::clamp(g, 0.0f, 1.0f) * RGB_MAX);
 }
 
 void Color::SetBlueF(scalar b)
 {
-    blue_ = static_cast<uint8_t>(b * RGB_MAX);
+    blue_ = static_cast<uint8_t>(std::clamp(b, 0.0f, 1.0f) * RGB_MAX);
 }
 
 void Color::SetAlphaF(scalar a)
 {
-    alpha_ = static_cast<uint8_t>(a * RGB_MAX);
+    alpha_ = static_cast<uint8_t>(std::clamp(a, 0.0f, 1.0f) * RGB_MAX);
 }
 
 void Color::SetRgb(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
@@ -133,10 +134,10 @@ void Color::SetRgb(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
 
 void Color::SetRgbF(scalar r, scalar g, scalar b, scalar a)
 {
-    alpha_ = static_cast<uint32_t>(round(a * RGB_MAX));
-    red_ = static_cast<uint32_t>(round(r * RGB_MAX));
-    green_ = static_cast<uint32_t>(round(g * RGB_MAX));
-    blue_ = static_cast<uint32_t>(round(b * RGB_MAX));
+    alpha_ = static_cast<uint32_t>(round(std::clamp(a, 0.0f, 1.0f) * RGB_MAX));
+    red_ = static_cast<uint32_t>(round(std::clamp(r, 0.0f, 1.0f) * RGB_MAX));
+    green_ = static_cast<uint32_t>(round(std::clamp(g, 0.0f, 1.0f) * RGB_MAX));
+    blue_ = static_cast<uint32_t>(round(std::clamp(b, 0.0f, 1.0f) * RGB_MAX));
 }
 
 void Color::SetColorQuad(uint32_t c)
