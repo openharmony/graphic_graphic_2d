@@ -45,7 +45,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t USE_CACHE_SURFACE_NUM = 5;
+constexpr uint32_t USE_CACHE_SURFACE_NUM = 7;
 
 bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 {
