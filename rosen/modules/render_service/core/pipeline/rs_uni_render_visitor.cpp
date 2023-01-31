@@ -321,8 +321,12 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     geoPtr->ConcatMatrix(node.GetContextMatrix());
     // if expand screen, start from screen width
-    node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(geoPtr->GetAbsRect().left_ >= screenInfo_.width ?
-        screenInfo_.width : 0, 0, screenInfo_.width, screenInfo_.height)));
+    node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(curDisplayNode_->GetDisplayOffsetX(),
+        curDisplayNode_->GetDisplayOffsetY(), screenInfo_.width, screenInfo_.height)));
+
+    node.SetDstRect(RectI(node.GetDstRect().left_ - curDisplayNode_->GetDisplayOffsetX(),
+        node.GetDstRect().top_ - curDisplayNode_->GetDisplayOffsetY(),
+        node.GetDstRect().GetWidth(), node.GetDstRect().GetHeight()));
 
     if (node.IsMainWindowType()) {
         // record node position for display render node dirtyManager
