@@ -82,4 +82,4 @@ HWTEST_F(RSBaseRenderEngineTest, TestRSBaseRenderEngine002, TestSize.Level1)
     renderEngine_->SetColorFilterMode(static_cast<ColorFilterMode>(-1));
     renderEngine_->SetColorFilterMode(ColorFilterMode::INVERT_COLOR_DISABLE_MODE);
 }
-}// namespace OHOS::Rosen
+} // namespace OHOS::Rosen
