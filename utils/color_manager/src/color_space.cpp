@@ -238,12 +238,20 @@ static bool IsFinite(float x)
 // inverse src Matrix to dst Matrix
 Matrix3x3 Invert(const Matrix3x3& src)
 {
-    double a00 = src[0][0], a01 = src[1][0], a02 = src[2][0],
-        a10 = src[0][1], a11 = src[1][1], a12 = src[2][1],
-        a20 = src[0][2], a21 = src[1][2], a22 = src[2][2];
+    double a00 = src[0][0];
+    double a01 = src[1][0];
+    double a02 = src[2][0];
+    double a10 = src[0][1];
+    double a11 = src[1][1];
+    double a12 = src[2][1];
+    double a20 = src[0][2];
+    double a21 = src[1][2];
+    double a22 = src[2][2];
 
-    double b0 = a00 * a11 - a01 * a10, b1 = a00 * a12 - a02 * a10, b2 = a01 * a12 - a02 * a11,
-        b3 = a20, b4 = a21, b5 = a22;
+    double b0 = a00 * a11 - a01 * a10;
+    double b1 = a00 * a12 - a02 * a10;
+    double b2 = a01 * a12 - a02 * a11;
+    double b3 = a20, b4 = a21, b5 = a22;
 
     double determinant = b0 * b5 - b1 * b4 + b2 * b3;
 
