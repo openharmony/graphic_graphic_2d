@@ -243,7 +243,7 @@ private:
     bool doDirectComposition_ = true;
     bool isHardwareEnabledBufferUpdated_ = false;
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
-    bool isHardwareForcedDisabled_ = false;
+    bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

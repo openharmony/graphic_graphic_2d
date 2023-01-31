@@ -416,7 +416,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (surfaceNode == nullptr) {
             return;
         }
-        if (surfaceNode->IsAppWindow()) {
+        if (surfaceNode->IsAppWindow() && surfaceNode->IsOnTheTree()) {
             const auto& property = surfaceNode->GetRenderProperties();
             if (property.GetBackgroundFilter() || property.GetFilter() || property.IsShadowValid()) {
                 isHardwareForcedDisabled_ = true;
@@ -429,7 +429,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             if (surfaceNode->UpdateDirtyIfFrameBufferConsumed()) {
                 // collect surface view's pid to prevent wrong skip
                 activeProcessPids_.emplace(ExtractPid(surfaceNode->GetId()));
-                if (!surfaceNode->IsHardwareEnabled() ||
+                if (!surfaceNode->IsHardwareEnabledType() ||
                     surfaceNode->GetSrcRect().IsEmpty() || surfaceNode->GetDstRect().IsEmpty()) {
                     doDirectComposition_ = false;
                 } else {
@@ -442,7 +442,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (surfaceHandler.GetAvailableBufferCount() > 0) {
             needRequestNextVsync = true;
         }
-        if (surfaceNode->IsHardwareEnabled() && surfaceNode->GetBuffer() != nullptr && surfaceNode->IsOnTheTree()) {
+        if (surfaceNode->IsHardwareEnabledType() && surfaceNode->GetBuffer() != nullptr && surfaceNode->IsOnTheTree()) {
             hardwareEnabledNodes_.emplace_back(surfaceNode);
         }
     });
@@ -461,7 +461,7 @@ void RSMainThread::ReleaseAllNodesBuffer()
             return;
         }
         // surfaceNode's buffer will be released in hardware thread if last frame enables hardware composer
-        if (surfaceNode->IsHardwareEnabled()) {
+        if (surfaceNode->IsHardwareEnabledType()) {
             surfaceNode->ResetCurrentFrameHardwareEnabledState();
             if (!surfaceNode->IsReleaseBufferInMainThread()) {
                 return;
@@ -542,6 +542,7 @@ void RSMainThread::Render()
             // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
             // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
             uniVisitor->MarkHardwareForcedDisabled();
+            doDirectComposition_ = false;
         }
         bool needTraverseNodeTree = true;
         if (doDirectComposition_ && !isDirty_) {

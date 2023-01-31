@@ -292,15 +292,17 @@ void RSUniRenderVisitor::ClearTransparentBeforeSaveLayer()
     }
 }
 
-void RSUniRenderVisitor::SetSubHardwareEnableNodeOccluded(RSSurfaceRenderNode& parentNode)
+void RSUniRenderVisitor::MarkSubHardwareEnableNodeState(RSSurfaceRenderNode& parentNode)
 {
+    if (!IsHardwareComposerEnabled()) {
+        return;
+    }
     if (!parentNode.IsMainWindowType() &&
         parentNode.GetSurfaceNodeType() != RSSurfaceNodeType::ABILITY_COMPONENT_NODE) {
-        if (parentNode.IsHardwareEnabled()) {
-            parentNode.SetHardwareOccludedState(true);
-            globalZOrder_++;
+        if (parentNode.IsHardwareEnabledType()) {
+            parentNode.SetHardwareForcedDisabledState(true);
         }
-        RS_LOGD("RSUniRenderVisitor::SetSubHardwareEnableNodeOccluded skip name:%s", parentNode.GetName().c_str());
+        RS_LOGD("RSUniRenderVisitor::MarkSubHardwareEnableNodeState skip name:%s", parentNode.GetName().c_str());
         return;
     }
     pid_t pid = ExtractPid(parentNode.GetId());
@@ -315,8 +317,7 @@ void RSUniRenderVisitor::SetSubHardwareEnableNodeOccluded(RSSurfaceRenderNode& p
         pid_t childPid = ExtractPid(childNode->GetId());
         if (pid == childPid || std::find(abilityComponentPids.begin(), abilityComponentPids.end(), childPid) !=
             abilityComponentPids.end()) {
-            childNode->SetHardwareOccludedState(true);
-            globalZOrder_++;
+            childNode->SetHardwareForcedDisabledState(true);
         }
     }
 }
@@ -380,7 +381,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetDstRect(RectI(node.GetDstRect().left_ - curDisplayNode_->GetDisplayOffsetX(),
         node.GetDstRect().top_ - curDisplayNode_->GetDisplayOffsetY(),
         node.GetDstRect().GetWidth(), node.GetDstRect().GetHeight()));
-    if (node.IsHardwareEnabled()) {
+    if (node.IsHardwareEnabledType()) {
         node.SetDstRect(node.GetDstRect().IntersectRect(prepareClipRect_));
     }
 
@@ -877,13 +878,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RS_TRACE_BEGIN("RSUniRender:WaitUtilUniRenderFinished");
         RSMainThread::Instance()->WaitUtilUniRenderFinished();
         RS_TRACE_END();
-        node.SetGlobalZOrder(displayNodeZOrder_);
+        node.SetGlobalZOrder(static_cast<float>(hardwareEnabledNodes_.size()));
         processor_->ProcessDisplaySurface(node);
         if (IsHardwareComposerEnabled()) {
             // create layer for hardwareEnabledNodes_
             for (auto& node : hardwareEnabledNodes_) {
-                if (!node->GetHardwareOccluded() && !node->IsAppFreeze()) {
-                    RS_TRACE_NAME_FMT("CreateLayer:%s", node->GetName().c_str());
+                if (!node->GetHardwareForcedDisabledState()) {
                     RS_LOGD("createLayer: %" PRIu64 "", node->GetId());
                     processor_->ProcessSurface((*node));
                 }
@@ -1178,12 +1178,12 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     const auto& property = node.GetRenderProperties();
     if (!node.ShouldPaint()) {
-        SetSubHardwareEnableNodeOccluded(node);
+        MarkSubHardwareEnableNodeState(node);
         RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 " invisible", node.GetId());
         return;
     }
     if (!node.GetOcclusionVisible() && !doAnimate_ && RSSystemProperties::GetOcclusionEnabled()) {
-        SetSubHardwareEnableNodeOccluded(node);
+        MarkSubHardwareEnableNodeState(node);
         RS_TRACE_NAME(node.GetName() + " Occlusion Skip");
         return;
     }
@@ -1293,13 +1293,11 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetTotalMatrix(canvas_->getTotalMatrix());
 
     if (node.GetBuffer() != nullptr) {
-        if (node.IsHardwareEnabled()) {
-            node.SetHardwareOccludedState(false);
-            node.SetAppFreeze(isAppFreeze_);
+        if (node.IsHardwareEnabledType()) {
+            node.SetHardwareForcedDisabledState(isAppFreeze_);
         }
-        bool needDrawSurfaceNode = true;
         // if this window is in appFreeze state, disable hardware composer for its child surfaceView
-        if (IsHardwareComposerEnabled() && !isAppFreeze_ && node.IsHardwareEnabled() &&
+        if (IsHardwareComposerEnabled() && !isAppFreeze_ && node.IsHardwareEnabledType() &&
             node.GetDstRect().GetWidth() > 1 && node.GetDstRect().GetHeight() > 1) { // avoid fallback by composer
             canvas_->clear(SK_ColorTRANSPARENT);
             node.SetGlobalAlpha(canvas_->GetAlpha());
@@ -1310,9 +1308,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode src:%s, dst:%s name:%s id:%" PRIu64 "",
                 node.GetSrcRect().ToString().c_str(), node.GetDstRect().ToString().c_str(),
                 node.GetName().c_str(), node.GetId());
-            needDrawSurfaceNode = false;
-        }
-        if (!node.IsHardwareEnabled() || needDrawSurfaceNode) {
+        } else {
+            if (node.IsHardwareEnabledType()) {
+                node.SetHardwareForcedDisabledState(true);
+            }
             node.SetGlobalAlpha(1.0f);
             auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
             renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
@@ -1545,61 +1544,55 @@ bool RSUniRenderVisitor::AdaptiveSubRenderThreadMode(uint32_t renderNodeNum)
 
 void RSUniRenderVisitor::SetHardwareEnabledNodes(std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes)
 {
-    displayNodeZOrder_ = static_cast<float>(hardwareEnabledNodes.size());
     for (auto& weakNode : hardwareEnabledNodes) {
         auto node = weakNode.lock();
         if (node) {
             hardwareEnabledNodes_.emplace_back(node);
-            displayNodeZOrder_ = std::max(displayNodeZOrder_, node->GetGlobalZOrder() + 1);
         }
     }
 }
 
 bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
-    if (rootNode == nullptr || rootNode->GetChildrenCount() > 1) {
-        RS_LOGE("RSUniRenderVisitor::DoDirectComposition rootNode not match");
+    if (!IsHardwareComposerEnabled()) {
+        RS_LOGD("RSUniRenderVisitor::DoDirectComposition HardwareComposer disabled");
         return false;
     }
     RS_TRACE_NAME("DoDirectComposition");
-    for (auto& child : rootNode->GetSortedChildren()) {
-        if (child == nullptr || !child->IsInstanceOf<RSDisplayRenderNode>()) {
-            RS_LOGE("RSUniRenderVisitor::DoDirectComposition child type not match");
-            return false;
-        }
-        auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
-        if (!displayNode ||
-            displayNode->GetCompositeType() != RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE) {
-            RS_LOGE("RSUniRenderVisitor::DoDirectComposition displayNode state error");
-            return false;
-        }
-        sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-        screenInfo_ = screenManager->QueryScreenInfo(displayNode->GetScreenId());
-        if (screenInfo_.state != ScreenState::HDI_OUTPUT_ENABLE) {
-            RS_LOGE("RSUniRenderVisitor::DoDirectComposition: ScreenState error!");
-            return false;
-        }
-        processor_ = RSProcessorFactory::CreateProcessor(displayNode->GetCompositeType());
-        if (processor_ == nullptr) {
-            RS_LOGE("RSUniRenderVisitor::DoDirectComposition: RSProcessor is null!");
-            return false;
-        }
-        if (!processor_->Init(*displayNode, displayNode->GetDisplayOffsetX(), displayNode->GetDisplayOffsetY(),
-            INVALID_SCREEN_ID)) {
-            RS_LOGE("RSUniRenderVisitor::DoDirectComposition: processor init failed!");
-            return false;
-        }
-        processor_->ProcessDisplaySurface(*displayNode);
-
-        if (IsHardwareComposerEnabled()) {
-            for (auto &node: hardwareEnabledNodes_) {
-                if (!node->GetHardwareOccluded() && !node->IsAppFreeze()) {
-                    processor_->ProcessSurface(*node);
-                }
-            }
-        }
-        processor_->PostProcess();
+    auto child = rootNode->GetSortedChildren().front();
+    if (child == nullptr || !child->IsInstanceOf<RSDisplayRenderNode>()) {
+        RS_LOGE("RSUniRenderVisitor::DoDirectComposition child type not match");
+        return false;
     }
+    auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
+    if (!displayNode ||
+        displayNode->GetCompositeType() != RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE) {
+        RS_LOGE("RSUniRenderVisitor::DoDirectComposition displayNode state error");
+        return false;
+    }
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    screenInfo_ = screenManager->QueryScreenInfo(displayNode->GetScreenId());
+    if (screenInfo_.state != ScreenState::HDI_OUTPUT_ENABLE) {
+        RS_LOGE("RSUniRenderVisitor::DoDirectComposition: ScreenState error!");
+        return false;
+    }
+    processor_ = RSProcessorFactory::CreateProcessor(displayNode->GetCompositeType());
+    if (processor_ == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::DoDirectComposition: RSProcessor is null!");
+        return false;
+    }
+    if (!processor_->Init(*displayNode, displayNode->GetDisplayOffsetX(), displayNode->GetDisplayOffsetY(),
+        INVALID_SCREEN_ID)) {
+        RS_LOGE("RSUniRenderVisitor::DoDirectComposition: processor init failed!");
+        return false;
+    }
+    processor_->ProcessDisplaySurface(*displayNode);
+    for (auto& node: hardwareEnabledNodes_) {
+        if (!node->GetHardwareForcedDisabledState()) {
+            processor_->ProcessSurface(*node);
+        }
+    }
+    processor_->PostProcess();
     RS_LOGD("RSUniRenderVisitor::DoDirectComposition end");
     return true;
 }

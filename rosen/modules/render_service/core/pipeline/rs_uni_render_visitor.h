@@ -116,7 +116,8 @@ private:
     bool IsHardwareComposerEnabled();
 
     void ClearTransparentBeforeSaveLayer();
-    void SetSubHardwareEnableNodeOccluded(RSSurfaceRenderNode& parentNode);
+    // mark parentNode's child surfaceView nodes hardware forced disabled
+    void MarkSubHardwareEnableNodeState(RSSurfaceRenderNode& parentNode);
 
     void RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& node, float width, float height);
     // offscreen render related
@@ -182,9 +183,8 @@ private:
     unsigned int processedCanvasNodeInCurrentSurface_ = 0;
 
     float globalZOrder_ = 0.0f;
-    float displayNodeZOrder_ = 0.0f;
     bool isAppFreeze_ = false;
-    bool isHardwareForcedDisabled_ = false;
+    bool isHardwareForcedDisabled_ = false; // indicates if hardware composer is totally disabled
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
 };
 } // namespace Rosen

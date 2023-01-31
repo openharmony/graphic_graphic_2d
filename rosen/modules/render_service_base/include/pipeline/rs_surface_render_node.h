@@ -64,7 +64,8 @@ public:
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
     }
 
-    bool IsHardwareEnabled() const
+    // indicate if this node type can enable hardware composer
+    bool IsHardwareEnabledType() const
     {
         // [PLANNING] enable hardware composer for all self-drawing node
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && name_ != "RosenWeb" && name_ != "RosenRenderWeb";
@@ -86,14 +87,14 @@ public:
         isCurrentFrameHardwareEnabled_ = false;
     }
 
-    void SetHardwareOccludedState(bool occluded)
+    void SetHardwareForcedDisabledState(bool forcesDisabled)
     {
-        isHardwareOccluded_ = occluded;
+        isHardwareForcedDisabled_ = forcesDisabled;
     }
 
-    bool GetHardwareOccluded() const
+    bool GetHardwareForcedDisabledState() const
     {
-        return isHardwareOccluded_;
+        return isHardwareForcedDisabled_;
     }
 
     bool IsMainWindowType() const
@@ -602,7 +603,9 @@ private:
     // used for hardware enabled nodes
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
-    bool isHardwareOccluded_ = false; // mark if this node is skipped because of occlusion
+    // mark if this self-drawing node is forced not to use hardware composer
+    // in case where this node's parent window node is occluded or is appFreeze, this variable will be marked true
+    bool isHardwareForcedDisabled_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
