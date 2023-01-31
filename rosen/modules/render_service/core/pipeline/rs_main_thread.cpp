@@ -1224,7 +1224,7 @@ void RSMainThread::PerfMultiWindow()
         OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(PERF_MULTI_WINDOW_REQUESTED_CODE, "");
         lastPerfTimestamp = timestamp_;
     } else if ((appWindowNum_ < MULTI_WINDOW_PERF_START_NUM || appWindowNum_ > MULTI_WINDOW_PERF_END_NUM)
-        && timestamp_ - lastPerfTimestamp < PERF_PERIOD_MULTI_WINDOW ) {
+        && timestamp_ - lastPerfTimestamp < PERF_PERIOD_MULTI_WINDOW) {
         RS_LOGD("RSMainThread::PerfMultiWindow soc perf off");
         OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(PERF_MULTI_WINDOW_REQUESTED_CODE, false, "");
     }

@@ -545,7 +545,7 @@ int32_t RSRenderServiceConnection::UnRegisterOcclusionChangeCallback(sptr<RSIOcc
 
 void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
 {
-    auto task = [=]() -> void {
+    auto task = [this, num]() -> void {
         mainThread_->SetAppWindowNum(num);
     };
     mainThread_->PostTask(task);
