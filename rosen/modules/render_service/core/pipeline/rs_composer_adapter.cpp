@@ -247,11 +247,11 @@ void RSComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfac
     const auto& property = node.GetRenderProperties();
     const auto bufferWidth = info.buffer->GetSurfaceBufferWidth();
     const auto bufferHeight = info.buffer->GetSurfaceBufferHeight();
-    const auto boundsWidth = property.GetBoundsWidth();
-    const auto boundsHeight = property.GetBoundsHeight();
+    const int boundsWidth = static_cast<int>(property.GetBoundsWidth());
+    const int boundsHeight = static_cast<int>(property.GetBoundsHeight());
     if (bufferWidth != boundsWidth || bufferHeight != boundsHeight) {
-        float xScale = (ROSEN_EQ(boundsWidth, 0.0f) ? 1.0f : bufferWidth / boundsWidth);
-        float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight / boundsHeight);
+        float xScale = (ROSEN_EQ(boundsWidth, 0) ? 1.0f : 1.0f * bufferWidth / boundsWidth);
+        float yScale = (ROSEN_EQ(boundsHeight, 0) ? 1.0f : 1.0f * bufferHeight / boundsHeight);
         info.srcRect.x = info.srcRect.x * xScale;
         info.srcRect.y = info.srcRect.y * yScale;
         info.srcRect.w = info.srcRect.w * xScale;
