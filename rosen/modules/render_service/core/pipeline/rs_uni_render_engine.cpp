@@ -45,7 +45,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         }
         auto saveCount = canvas.getSaveCount();
         // prepare BufferDrawParam
-        auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU, mirrorAdaptiveCoefficient);
+        auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
         DrawHdiLayerWithParams(canvas, layer, params);
         canvas.restoreToCount(saveCount);
     }
@@ -55,7 +55,6 @@ void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, cons
     BufferDrawParam& params)
 {
     canvas.save();
-    canvas.concat(params.matrix);
     if (!params.useCPU) {
         RegisterDeleteBufferListener(layer->GetSurface(), true);
         DrawImage(canvas, params);

@@ -114,8 +114,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode
     return params;
 }
 
-BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU,
-    float mirrorAdaptiveCoefficient)
+BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU)
 {
     BufferDrawParam params;
 #ifdef RS_ENABLE_EGLIMAGE
@@ -126,31 +125,14 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     params.paint.setAntiAlias(true);
     params.paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
     params.paint.setAlphaf(layer->GetAlpha().gAlpha);
+
     auto dstRect = layer->GetLayerSize();
     auto srcRect = layer->GetDirtyRegion();
     params.srcRect = SkRect::MakeXYWH(srcRect.x, srcRect.y, srcRect.w, srcRect.h);
     params.dstRect = SkRect::MakeXYWH(dstRect.x, dstRect.y, dstRect.w, dstRect.h);
-    auto layerMatrix = layer->GetMatrix();
-    params.matrix = SkMatrix::MakeAll(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX,
-                                      layerMatrix.skewY, layerMatrix.scaleY, layerMatrix.transY,
-                                      layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
-    
-    params.clipRect = params.dstRect;
 
-    const sptr<SurfaceBuffer>& buffer = layer->GetBuffer();
-    params.buffer = buffer;
+    params.buffer = layer->GetBuffer();
     params.acquireFence = layer->GetAcquireFence();
-    const float adaptiveDstWidth = params.dstRect.width() * mirrorAdaptiveCoefficient;
-    const float adaptiveDstHeight = params.dstRect.height() * mirrorAdaptiveCoefficient;
-    params.dstRect.setWH(adaptiveDstWidth, adaptiveDstHeight);
-    const float translateX = params.matrix.getTranslateX() * mirrorAdaptiveCoefficient;
-    const float translateY = params.matrix.getTranslateY() * mirrorAdaptiveCoefficient;
-    params.matrix.setTranslateX(translateX);
-    params.matrix.setTranslateY(translateY);
-    const auto& clipRect = params.clipRect;
-    params.clipRect = SkRect::MakeXYWH(
-        clipRect.left() * mirrorAdaptiveCoefficient, clipRect.top() * mirrorAdaptiveCoefficient,
-        clipRect.width() * mirrorAdaptiveCoefficient, clipRect.height() * mirrorAdaptiveCoefficient);
     return params;
 }
 

@@ -98,7 +98,6 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.fence = node.GetAcquireFence();
     info.blendType = GRAPHIC_BLEND_SRCOVER;
     info.needClient = GetComposerInfoNeedClient(info, node);
-    info.matrix = GraphicMatrix {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
     return info;
 }
 
@@ -123,7 +122,6 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     layer->SetDirtyRegion(info.srcRect);
     layer->SetBlendType(info.blendType);
     layer->SetCropRect(info.srcRect);
-    layer->SetMatrix(info.matrix);
     HDRMetaDataType type;
     if (surface->QueryMetaDataType(info.buffer->GetSeqNum(), type) != GSERROR_OK) {
         RS_LOGE("RSUniRenderComposerAdapter::SetComposeInfoToLayer: QueryMetaDataType failed");
@@ -275,10 +273,6 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& no
     info.dstRect.x -= static_cast<int32_t>(static_cast<float>(offsetX_) * mirrorAdaptiveCoefficient_);
     info.dstRect.y -= static_cast<int32_t>(static_cast<float>(offsetY_) * mirrorAdaptiveCoefficient_);
     info.visibleRect = info.dstRect;
-    auto totalMatrix = node.GetTotalMatrix();
-    info.matrix = GraphicMatrix {totalMatrix[0], totalMatrix[1], totalMatrix[2],
-                                 totalMatrix[3], totalMatrix[4], totalMatrix[5],
-                                 totalMatrix[6], totalMatrix[7], totalMatrix[8]};
     return info;
 }
 
