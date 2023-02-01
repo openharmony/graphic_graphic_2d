@@ -148,18 +148,6 @@ typedef struct {
     int32_t h;      /**< Height of the rectangle */
 } GraphicIRect;
 
-typedef struct {
-    float scaleX;   /* horizontal scale factor */
-    float skewX;    /* horizontal skew factor */
-    float transX;   /* horizontal translation */
-    float skewY;    /* vertical scale factor */
-    float scaleY;   /* vertical skew factor */
-    float transY;   /* vertical translation */
-    float pers0;    /* input x-axis perspective factor */
-    float pers1;    /* input y-axis perspective factor */
-    float pers2;    /* perspective scale factor */
-} GraphicMatrix;
-
 using BufferAllocInfo = struct {
     uint32_t width;                 /**< Width of the requested memory */
     uint32_t height;                /**< Height of the requested memory */
@@ -167,7 +155,6 @@ using BufferAllocInfo = struct {
     GraphicPixelFormat format;      /**< Format of the requested memory */
     uint32_t expectedSize;          /**< Size assigned by memory requester */
 };
-
 
 using BufferVerifyAllocInfo = struct {
     uint32_t width;               /**< Width of the memory to allocate */
