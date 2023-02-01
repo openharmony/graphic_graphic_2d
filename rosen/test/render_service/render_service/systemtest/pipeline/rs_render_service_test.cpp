@@ -151,4 +151,4 @@ HWTEST_F(RSRenderServiceTest, TestRenderService009, TestSize.Level1)
     const std::string rsCmd = defaultCmd_ + " -a 'composer fps'";
     (void)system(rsCmd.c_str());
 }
-}// namespace OHOS::Rosen
+} // namespace OHOS::Rosen

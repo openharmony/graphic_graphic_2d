@@ -96,6 +96,11 @@ bool RSSystemProperties::GetQuickSkipPrepareEnabled()
     return system::GetParameter("rosen.quickskipprepare.enabled", "1") != "0";
 }
 
+bool RSSystemProperties::GetHardwareComposerEnabled()
+{
+    return system::GetParameter("rosen.hardwarecomposer.enabled", "1") != "0";
+}
+
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
 {
     return system::GetParameter(paraName, "0");
@@ -125,6 +130,11 @@ bool RSSystemProperties::GetTargetDirtyRegionDfxEnabled(std::vector<std::string>
     dfxTargetSurfaceNames_.clear();
     ParseDfxSurfaceNamesString(targetSurfacesStr, dfxTargetSurfaceNames_, ",");
     return true;
+}
+
+bool RSSystemProperties::GetOpaqueRegionDfxEnabled()
+{
+    return std::atoi((system::GetParameter("rosen.uni.opaqueregiondebug", "0")).c_str()) != 0;
 }
 
 uint32_t RSSystemProperties::GetCorrectionMode()

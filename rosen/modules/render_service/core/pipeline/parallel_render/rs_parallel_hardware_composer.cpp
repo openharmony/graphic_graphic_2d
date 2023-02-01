@@ -15,27 +15,29 @@
 
 #include "rs_parallel_hardware_composer.h"
  
- namespace OHOS {
- namespace Rosen {
- RSParallelSelfDrawingSurfaceShape::RSParallelSelfDrawingSurfaceShape(bool isRRect, RectF rect, Vector4f cornerRadius)
+namespace OHOS {
+namespace Rosen {
+
+RSParallelSelfDrawingSurfaceShape::RSParallelSelfDrawingSurfaceShape(bool isRRect, RectF rect, Vector4f cornerRadius)
     : isRRect_(isRRect), rect_(rect), cornerRadius_(cornerRadius) {};
 
- void RSParallelHardwareComposer::Init(uint32_t threadNum)
- {
+void RSParallelHardwareComposer::Init(uint32_t threadNum)
+{
     std::map<unsigned int, Holes>().swap(surfaceAndHolesMap_);
     // to avoid crash caused by multi-thread, init surfaceAndHolesMap_ firstly.
     for (unsigned int i = 0; i < threadNum; i++) {
         surfaceAndHolesMap_[i] = Holes();
     }
- }
+}
 
-void RSParallelHardwareComposer::ClearTransparentColor(std::shared_ptr<RSPaintFilterCanvas> canvas, unsigned int surfaceIndex)
+void RSParallelHardwareComposer::ClearTransparentColor(std::shared_ptr<RSPaintFilterCanvas> canvas,
+    unsigned int surfaceIndex)
 {
     const auto &holes = surfaceAndHolesMap_[surfaceIndex];
     if (holes.size() == 0) {
         return;
     }
-    for (const auto & hole : holes) {
+    for (const auto& hole : holes) {
         canvas->save();
         if (hole->IsRRect()) {
             canvas->clipRRect(hole->GetRRect(), true);

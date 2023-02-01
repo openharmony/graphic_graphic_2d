@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CORE_PIPELINE_RS_UNI_RENDER_VISITOR_H
 #define RENDER_SERVICE_CORE_PIPELINE_RS_UNI_RENDER_VISITOR_H
 
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -35,7 +36,7 @@ class RSPaintFilterCanvas;
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
     RSUniRenderVisitor();
-    RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas);
+    RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas, uint32_t surfaceIndex);
     explicit RSUniRenderVisitor(const RSUniRenderVisitor& visitor);
     ~RSUniRenderVisitor() override;
 
@@ -52,6 +53,8 @@ public:
     void ProcessProxyRenderNode(RSProxyRenderNode& node) override;
     void ProcessRootRenderNode(RSRootRenderNode& node) override;
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+
+    bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
 
     void SetAnimateState(bool doAnimate)
     {
@@ -72,13 +75,28 @@ public:
     {
         return doAnimate_;
     }
+
+    void MarkHardwareForcedDisabled()
+    {
+        isHardwareForcedDisabled_ = true;
+    }
+
+    void SetHardwareEnabledNodes(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
+    void AdjustZOrderAndCreateLayer();
+
     void CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisitor> visitor);
+    // Some properties defiend before ProcessSurfaceRenderNode() may be used in
+    // ProcessSurfaceRenderNode() method. We should copy these properties in parallel render.
+    void CopyPropertyForParallelVisitor(RSUniRenderVisitor *mainVisitor);
+
 private:
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
-        const SkPaint::Style fillType, float alpha);
+        const SkPaint::Style fillType, float alpha, int edgeWidth);
     void DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects);
     void DrawAllSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node, const Occlusion::Region& region);
     void DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node);
+    void DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& node);
+    void DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node);
     std::vector<RectI> GetDirtyRects(const Occlusion::Region &region);
     /* calculate display/global (between windows) level dirty region, current include:
      * 1. window move/add/remove 2. transparent dirty region
@@ -103,6 +121,11 @@ private:
      * If so, reset status flag and stop traversal
      */
     bool CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& node);
+    bool IsHardwareComposerEnabled();
+
+    void ClearTransparentBeforeSaveLayer();
+    // mark parentNode's child surfaceView nodes hardware forced disabled
+    void MarkSubHardwareEnableNodeState(RSSurfaceRenderNode& parentNode);
 
     void RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& node, float width, float height);
     // offscreen render related
@@ -110,6 +133,7 @@ private:
     void FinishOffscreenRender();
     void ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRenderNode& node);
     bool AdaptiveSubRenderThreadMode(uint32_t renderNodeNum);
+    void ParallelRenderEnableHardwareComposer(RSSurfaceRenderNode& node);
     sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen render
 
@@ -142,7 +166,9 @@ private:
     bool isOpDropped_ = false;
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization
     bool isTargetDirtyRegionDfxEnabled_ = false;
+    bool isOpaqueRegionDfxEnabled_ = false;
     bool isQuickSkipPreparationEnabled_ = false;
+    bool isHardwareComposerEnabled_ = false;
     std::vector<std::string> dfxTargetSurfaceNames_;
     PartialRenderType partialRenderType_;
     bool isDirty_ = false;
@@ -158,13 +184,20 @@ private:
     bool isDirtyRegionAlignedEnable_ = false;
     bool isParallel_ = false;
     std::shared_ptr<std::mutex> surfaceNodePrepareMutex_;
+    uint32_t parallelRenderVisitorIndex_ = 0;
+    ParallelRenderingType parallelRenderType_;
 
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
-    
+
     // count prepared and processed canvasnode numbers per app
     // unirender visitor resets every frame, no overflow risk here
     unsigned int preparedCanvasNodeInCurrentSurface_ = 0;
     unsigned int processedCanvasNodeInCurrentSurface_ = 0;
+
+    float globalZOrder_ = 0.0f;
+    bool isAppFreeze_ = false;
+    bool isHardwareForcedDisabled_ = false; // indicates if hardware composer is totally disabled
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
 };
 } // namespace Rosen
 } // namespace OHOS

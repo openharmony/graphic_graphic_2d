@@ -33,6 +33,7 @@
 #include "include/core/SkRefCnt.h"
 #include "pipeline/rs_surface_handler.h"
 #include "refbase.h"
+#include "screen_manager/screen_types.h"
 #include "sync_fence.h"
 #include "common/rs_occlusion_region.h"
 #include "transaction/rs_occlusion_data.h"
@@ -62,6 +63,39 @@ public:
     bool IsAppWindow() const
     {
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
+    }
+
+    // indicate if this node type can enable hardware composer
+    bool IsHardwareEnabledType() const
+    {
+        // [PLANNING] enable hardware composer for all self-drawing node
+        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && name_ != "RosenWeb" && name_ != "RosenRenderWeb";
+    }
+
+    bool IsReleaseBufferInMainThread() const
+    {
+        return !isLastFrameHardwareEnabled_;
+    }
+
+    void MarkCurrentFrameHardwareEnabled()
+    {
+        isCurrentFrameHardwareEnabled_ = true;
+    }
+
+    void ResetCurrentFrameHardwareEnabledState()
+    {
+        isLastFrameHardwareEnabled_ = isCurrentFrameHardwareEnabled_;
+        isCurrentFrameHardwareEnabled_ = false;
+    }
+
+    void SetHardwareForcedDisabledState(bool forcesDisabled)
+    {
+        isHardwareForcedDisabled_ = forcesDisabled;
+    }
+
+    bool GetHardwareForcedDisabledState() const
+    {
+        return isHardwareForcedDisabled_;
     }
 
     bool IsMainWindowType() const
@@ -453,11 +487,17 @@ public:
         return ExtractPid(GetNodeId()) == focusedWindowPid;
     }
 
+    void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect,
+        ContainerWindowConfigType containerWindowConfigType, bool isFocusWindow = true);
     Occlusion::Region ResetOpaqueRegion(const RectI& absRect,
         const ContainerWindowConfigType containerWindowConfigType, const bool isFocusWindow);
 
     void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect,
-        ContainerWindowConfigType containerWindowConfigType, bool isFocusWindow = true);
+        const ScreenRotation screenRotation, const bool isFocusWindow);
+    Occlusion::Region ResetOpaqueRegion(const RectI& absRect,
+        const ScreenRotation screenRotation, const bool isFocusWindow) const;
+    Occlusion::Region SetUnfocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
+    Occlusion::Region SetFocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
 
     bool IsStartAnimationFinished() const;
     void SetStartAnimationFinished();
@@ -483,6 +523,7 @@ public:
     // if surfacenode's buffer has been comsumed, it should be set dirty
     bool UpdateDirtyIfFrameBufferConsumed();
 
+    void UpdateSrcRect(const RSPaintFilterCanvas& canvas, SkIRect dstRect);
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
     bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;
@@ -565,6 +606,13 @@ private:
     bool startAnimationFinished_ = false;
     mutable std::mutex cachedImageMutex_;
     sk_sp<SkImage> cachedImage_;
+
+    // used for hardware enabled nodes
+    bool isCurrentFrameHardwareEnabled_ = false;
+    bool isLastFrameHardwareEnabled_ = false;
+    // mark if this self-drawing node is forced not to use hardware composer
+    // in case where this node's parent window node is occluded or is appFreeze, this variable will be marked true
+    bool isHardwareForcedDisabled_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

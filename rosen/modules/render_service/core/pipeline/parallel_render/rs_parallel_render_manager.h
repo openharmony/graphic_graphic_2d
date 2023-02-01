@@ -95,10 +95,10 @@ public:
     {
         flushMutex_.unlock();
     }
-    uint32_t GetParallelThreadNum();
-    void AddSelfDrawingSurface(unsigned int subThreadIndex, bool isRRect, RectF rect
+    uint32_t GetParallelThreadNumber() const;
+    void AddSelfDrawingSurface(unsigned int subThreadIndex, bool isRRect, RectF rect,
         Vector4f cornerRadius = {0.f, 0.f, 0.f, 0.f});
-    void ClearSelfDrawingSurface(std::shared_ptr<RSPaintFilterCanvas> canvas, unsigned int subThreadIndex)
+    void ClearSelfDrawingSurface(std::shared_ptr<RSPaintFilterCanvas> canvas, unsigned int subThreadIndex);
 
 private:
     RSParallelRenderManager();

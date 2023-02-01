@@ -67,4 +67,4 @@ HWTEST_F(RSUniRenderJudgementTest, TestUniRenderJudgement002, TestSize.Level1)
         ASSERT_EQ(true, isUni);
     }
 }
-}// namespace OHOS::Rosen
+} // namespace OHOS::Rosen

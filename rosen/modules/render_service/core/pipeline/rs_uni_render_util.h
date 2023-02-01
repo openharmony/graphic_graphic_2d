@@ -41,8 +41,7 @@ public:
         bool useAlignedDirtyRegion = false);
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU);
-    static BufferDrawParam CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU,
-        float mirrorAdaptiveCoefficient);
+    static BufferDrawParam CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU);
     static void DrawCachedSurface(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, sk_sp<SkSurface> surface);
     static void DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, sk_sp<SkImage> image);
     static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);

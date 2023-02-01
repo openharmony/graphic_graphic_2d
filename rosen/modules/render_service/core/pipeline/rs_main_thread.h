@@ -153,6 +153,7 @@ private:
     void ProcessCommand();
     void Animate(uint64_t timestamp);
     void ConsumeAndUpdateAllNodes();
+    void CollectInfoForHardwareComposer();
     void ReleaseAllNodesBuffer();
     void Render();
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
@@ -181,6 +182,7 @@ private:
     void PerfAfterAnim();
     void PerfForBlurIfNeeded();
     void PerfMultiWindow();
+    void ResetHardwareEnabledState();
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -237,6 +239,12 @@ private:
     std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
     RSEventManager rsEventManager_;
     std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
+
+    // used for hardware enabled case
+    bool doDirectComposition_ = true;
+    bool isHardwareEnabledBufferUpdated_ = false;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
+    bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_PARALLEL_SUB_THREAD_H
 
 #include <condition_variable>
+#include <cstdint>
 #include <memory>
 #include <thread>
 #include "EGL/egl.h"
@@ -74,7 +75,7 @@ private:
     sk_sp<GrContext> CreateShareGrContext();
     void AcquireSubSkSurface(int width, int height);
 
-    int threadIndex_;
+    uint32_t threadIndex_;
     int surfaceWidth_ = 0;
     int surfaceHeight_ = 0;
     sk_sp<GrContext> grContext_ = nullptr;

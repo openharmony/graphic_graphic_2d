@@ -47,7 +47,7 @@ public:
         }
         Vector4f radius = {0.f, 0.f, 0.f, 0.f};
         RRect absClipRect = RRect(rect_, radius);
-        return RSPropertiesPainter::RRect2SkRRect(absClipRect);;
+        return RSPropertiesPainter::RRect2SkRRect(absClipRect);
     }
 private:
     bool isRRect_;
@@ -61,7 +61,8 @@ public:
     ~RSParallelHardwareComposer() = default;
     void Init(uint32_t threadNum);
     void ClearTransparentColor(std::shared_ptr<RSPaintFilterCanvas> canvas, unsigned int surfaceIndex);
-    void AddTransparentColorArea(unsigned int surfaceIndex, std::unique_ptr<RSParallelSelfDrawingSurfaceShape> && shape);
+    void AddTransparentColorArea(unsigned int surfaceIndex,
+        std::unique_ptr<RSParallelSelfDrawingSurfaceShape> && shape);
 private:
     using Holes = std::vector<std::unique_ptr<RSParallelSelfDrawingSurfaceShape>>;
     std::map<unsigned int, Holes> surfaceAndHolesMap_;

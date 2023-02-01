@@ -274,7 +274,9 @@ void RSParallelSubThread::CreateResource()
         skCanvas_ = skSurface_->getCanvas();
         canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_);
     }
-    visitor_ = std::make_shared<RSUniRenderVisitor>(canvas_);
+    visitor_ = std::make_shared<RSUniRenderVisitor>(canvas_, threadIndex_);
+    visitor_->CopyPropertyForParallelVisitor(
+        RSParallelRenderManager::Instance()->GetUniVisitor());
 }
 
 sk_sp<GrContext> RSParallelSubThread::CreateShareGrContext()
