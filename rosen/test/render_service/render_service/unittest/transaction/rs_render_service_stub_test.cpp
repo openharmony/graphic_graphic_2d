@@ -99,4 +99,4 @@ HWTEST_F(RSRenderServiceStubTest, TestRSRenderServiceStub003, TestSize.Level1)
     int res = stub_->OnRemoteRequest(-1, data, reply, option);
     ASSERT_EQ(res, ERR_UNKNOWN_TRANSACTION);
 }
-}// namespace OHOS::Rosen
+} // namespace OHOS::Rosen
