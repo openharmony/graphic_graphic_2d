@@ -130,6 +130,8 @@ public:
     virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU = false,
         float mirrorAdaptiveCoefficient = 1.0f) = 0;
 
+    void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
+
     void ShrinkCachesIfNeeded(bool isForUniRedraw = false);
     static void SetColorFilterMode(ColorFilterMode mode);
     static ColorFilterMode GetColorFilterMode()
@@ -150,9 +152,15 @@ public:
         return renderContext_;
     }
 #endif // RS_ENABLE_GL
+
+#ifdef RS_ENABLE_EGLIMAGE
+    const std::shared_ptr<RSEglImageManager>& GetEglImageManager()
+    {
+        return eglImageManager_;
+    }
+#endif // RS_ENABLE_EGLIMAGE
 protected:
     void RegisterDeleteBufferListener(const sptr<Surface>& consumer, bool isForUniRedraw = false);
-    void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;

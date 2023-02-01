@@ -248,7 +248,7 @@ GLuint RSEglImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuf
     auto bufferId = buffer->GetSeqNum();
     auto imageCache = ImageCacheSeq::Create(eglDisplay_, EGL_NO_CONTEXT, buffer);
     if (imageCache == nullptr) {
-        RS_LOGE("RSEglImageManager::MapEglImageFromSurfaceBuffer: failed to create ImageCache for buffer id %d.",
+        RS_LOGE("RSEglImageManager::CreateImageCacheFromBuffer: failed to create ImageCache for buffer id %d.",
             bufferId);
         return 0; // return texture id 0.
     }
@@ -256,6 +256,20 @@ GLuint RSEglImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuf
     imageCacheSeqs_[bufferId] = std::move(imageCache);
     cacheQueue_.push(bufferId);
     return textureId;
+}
+
+std::unique_ptr<ImageCacheSeq> RSEglImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
+    const sptr<SyncFence>& acquireFence)
+{
+    WaitAcquireFence(acquireFence);
+    auto bufferId = buffer->GetSeqNum();
+    auto imageCache = ImageCacheSeq::Create(eglDisplay_, EGL_NO_CONTEXT, buffer);
+    if (imageCache == nullptr) {
+        RS_LOGE("RSEglImageManager::CreateImageCacheFromBuffer: failed to create ImageCache for buffer id %d.",
+            bufferId);
+        return nullptr;
+    }
+    return imageCache;
 }
 
 GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,

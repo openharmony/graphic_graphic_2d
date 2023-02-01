@@ -16,12 +16,17 @@
 #include "pipeline/rs_hardware_thread.h"
 
 #include "pipeline/rs_base_render_util.h"
+#include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "platform/common/rs_log.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "rs_trace.h"
 #include "hdi_backend.h"
+
+#ifdef RS_ENABLE_EGLIMAGE
+#include "rs_egl_image_manager.h"
+#endif // RS_ENABLE_EGLIMAGE
 
 namespace OHOS::Rosen {
 RSHardwareThread& RSHardwareThread::Instance()
@@ -125,7 +130,6 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         hdiBackend_->Repaint(output);
         auto layerMap = output->GetLayers();
         ReleaseLayers(output, layerMap);
-        uniRenderEngine_->ShrinkCachesIfNeeded(true);
     };
     PostTask(task);
 }
@@ -164,14 +168,72 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         RS_LOGE("RsDebug RSHardwareThread::Redraw：failed to request frame.");
         return;
     }
-
     auto canvas = renderFrame->GetCanvas();
     if (canvas == nullptr) {
         RS_LOGE("RsDebug RSHardwareThread::Redraw：canvas is nullptr.");
         return;
     }
-    uniRenderEngine_->DrawLayers(*canvas, layers, forceCPU);
+#ifdef RS_ENABLE_EGLIMAGE
+    std::unordered_map<int32_t, std::unique_ptr<ImageCacheSeq>> imageCacheSeqs;
+#endif
+    for (const auto& layer : layers) {
+        if (layer == nullptr) {
+            continue;
+        }
+        if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR) {
+            continue;
+        }
+        auto saveCount = canvas->getSaveCount();
+        // prepare BufferDrawParam
+        auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
+#ifndef RS_ENABLE_EGLIMAGE
+        uniRenderEngine_->DrawBuffer(*canvas, params);
+#else
+        if (!params.useCPU) {
+            RS_TRACE_NAME("RSHardwareThread::Redraw DrawImage(GPU)");
+            if (!RSBaseRenderUtil::IsBufferValid(params.buffer)) {
+                RS_LOGE("RSHardwareThread::Redraw CreateEglImageFromBuffer invalid param!");
+                continue;
+            }
+            if (canvas->getGrContext() == nullptr) {
+                RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
+                continue;
+            }
+            auto eglImageCache = uniRenderEngine_->GetEglImageManager()->CreateImageCacheFromBuffer(params.buffer,
+                params.acquireFence);
+            if (eglImageCache == nullptr) {
+                continue;
+            }
+            auto eglTextureId = eglImageCache->TextureId();
+            if (eglTextureId == 0) {
+                RS_LOGE("RSHardwareThread::Redraw CreateImageCacheFromBuffer return invalid texture ID");
+                continue;
+            }
+            auto bufferId = params.buffer->GetSeqNum();
+            imageCacheSeqs[bufferId] = std::move(eglImageCache);
+            SkColorType colorType = (params.buffer->GetFormat() == PIXEL_FMT_BGRA_8888) ?
+                kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
+            GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8 };
+            GrBackendTexture backendTexture(params.buffer->GetSurfaceBufferWidth(),
+                params.buffer->GetSurfaceBufferHeight(), GrMipMapped::kNo, grExternalTextureInfo);
+            auto image = SkImage::MakeFromTexture(canvas->getGrContext(), backendTexture,
+                kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+            if (image == nullptr) {
+                RS_LOGE("RSDividedRenderUtil::DrawImage: image is nullptr!");
+                return;
+            }
+            canvas->drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
+        } else {
+            uniRenderEngine_->DrawBuffer(*canvas, params);
+        }
+#endif
+        canvas->restoreToCount(saveCount);
+    }
     renderFrame->Flush();
+#ifdef RS_ENABLE_EGLIMAGE
+    imageCacheSeqs.clear();
+#endif
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");
 }
 

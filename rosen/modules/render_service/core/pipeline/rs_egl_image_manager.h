@@ -70,6 +70,8 @@ public:
     void UnMapEglImageFromSurfaceBuffer(int32_t seqNum);
     void UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNum);
     void ShrinkCachesIfNeeded(bool isForUniRedraw = false);
+    std::unique_ptr<ImageCacheSeq> CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
+        const sptr<SyncFence>& acquireFence);
 private:
     void WaitAcquireFence(const sptr<SyncFence>& acquireFence);
     GLuint CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer);
