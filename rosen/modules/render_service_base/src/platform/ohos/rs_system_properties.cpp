@@ -98,7 +98,7 @@ bool RSSystemProperties::GetQuickSkipPrepareEnabled()
 
 bool RSSystemProperties::GetHardwareComposerEnabled()
 {
-    return system::GetParameter("rosen.hardwarecomposer.enabled", "0") != "0";
+    return system::GetParameter("rosen.hardwarecomposer.enabled", "1") != "0";
 }
 
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)

@@ -17,15 +17,19 @@
 #define RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_PARALLEL_RENDER_MANAGER_H
 
 #include <condition_variable>
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include "EGL/egl.h"
+#include "rs_parallel_hardware_composer.h"
 #include "rs_parallel_sub_thread.h"
 #include "rs_parallel_pack_visitor.h"
 #include "rs_parallel_task_manager.h"
 #include "pipeline/parallel_render/rs_render_task.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_base_render_node.h"
+#include "common/rs_rect.h"
+#include "common/rs_vector4.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -62,7 +66,7 @@ public:
     void CopyPrepareVisitorAndPackTask(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node);
     void PackRenderTask(RSSurfaceRenderNode &node, TaskType type = TaskType::PROCESS_TASK);
     void LoadBalanceAndNotify(TaskType type = TaskType::PROCESS_TASK);
-    void MergeRenderResult(std::shared_ptr<SkCanvas> canvas);
+    void MergeRenderResult(std::shared_ptr<RSPaintFilterCanvas> canvas);
     void SetFrameSize(int height, int width);
     void GetFrameSize(int &height, int &width);
     void SubmitSuperTask(uint32_t taskIndex, std::unique_ptr<RSSuperRenderTask> superRenderTask);
@@ -91,15 +95,19 @@ public:
     {
         flushMutex_.unlock();
     }
+    uint32_t GetParallelThreadNumber() const;
+    void AddSelfDrawingSurface(unsigned int subThreadIndex, bool isRRect, RectF rect,
+        Vector4f cornerRadius = {0.f, 0.f, 0.f, 0.f});
+    void ClearSelfDrawingSurface(std::shared_ptr<RSPaintFilterCanvas> canvas, unsigned int subThreadIndex);
 
 private:
-    RSParallelRenderManager() = default;
+    RSParallelRenderManager();
     ~RSParallelRenderManager() = default;
     RSParallelRenderManager(const RSParallelRenderManager &) = delete;
     RSParallelRenderManager(const RSParallelRenderManager &&) = delete;
     RSParallelRenderManager &operator = (const RSParallelRenderManager &) = delete;
     RSParallelRenderManager &operator = (const RSParallelRenderManager &&) = delete;
-    void DrawImageMergeFunc(std::shared_ptr<SkCanvas> canvas);
+    void DrawImageMergeFunc(std::shared_ptr<RSPaintFilterCanvas> canvas);
     void FlushOneBufferFunc();
 
     std::shared_ptr<RSParallelPackVisitor> packVisitor_;
@@ -124,6 +132,7 @@ private:
     bool parallelMode_ = false;
     RSUniRenderVisitor *uniVisitor_ = nullptr;
     TaskType taskType_;
+    std::unique_ptr<RSParallelHardwareComposer> parallelHardwareComposer_;
 };
 } // namespace Rosen
 } // namespace OHOS

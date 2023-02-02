@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CORE_PIPELINE_RS_UNI_RENDER_VISITOR_H
 #define RENDER_SERVICE_CORE_PIPELINE_RS_UNI_RENDER_VISITOR_H
 
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -35,7 +36,7 @@ class RSPaintFilterCanvas;
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
     RSUniRenderVisitor();
-    RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas);
+    RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas, uint32_t surfaceIndex);
     explicit RSUniRenderVisitor(const RSUniRenderVisitor& visitor);
     ~RSUniRenderVisitor() override;
 
@@ -84,6 +85,10 @@ public:
     void AdjustZOrderAndCreateLayer();
 
     void CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisitor> visitor);
+    // Some properties defiend before ProcessSurfaceRenderNode() may be used in
+    // ProcessSurfaceRenderNode() method. We should copy these properties in parallel render.
+    void CopyPropertyForParallelVisitor(RSUniRenderVisitor *mainVisitor);
+
 private:
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
         const SkPaint::Style fillType, float alpha, int edgeWidth);
@@ -128,6 +133,7 @@ private:
     void FinishOffscreenRender();
     void ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRenderNode& node);
     bool AdaptiveSubRenderThreadMode(uint32_t renderNodeNum);
+    void ParallelRenderEnableHardwareComposer(RSSurfaceRenderNode& node);
     sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen render
 
@@ -178,6 +184,8 @@ private:
     bool isDirtyRegionAlignedEnable_ = false;
     bool isParallel_ = false;
     std::shared_ptr<std::mutex> surfaceNodePrepareMutex_;
+    uint32_t parallelRenderVisitorIndex_ = 0;
+    ParallelRenderingType parallelRenderType_;
 
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
 

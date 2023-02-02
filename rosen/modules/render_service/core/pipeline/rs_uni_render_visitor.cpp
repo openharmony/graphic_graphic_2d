@@ -14,7 +14,6 @@
  */
 
 #include "pipeline/rs_uni_render_visitor.h"
-#include <mutex>
 
 #include "include/core/SkRegion.h"
 #include "include/core/SkTextBlob.h"
@@ -64,6 +63,7 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined (RS_ENABLE_GL)
 constexpr uint32_t PARALLEL_RENDER_MINIMUN_RENDER_NODE_NUMBER = 50;
+constexpr float PARALLEL_RENDER_LAYER_Z_ORDER_FACTOR = 100.0f;
 #endif
 
 RSUniRenderVisitor::RSUniRenderVisitor()
@@ -88,11 +88,17 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isQuickSkipPreparationEnabled_ = RSSystemProperties::GetQuickSkipPrepareEnabled();
     isHardwareComposerEnabled_ = RSSystemProperties::GetHardwareComposerEnabled();
     surfaceNodePrepareMutex_ = std::make_shared<std::mutex>();
+    parallelRenderType_ = RSSystemProperties::GetParallelRenderingEnabled();
 }
 
-RSUniRenderVisitor::RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas) : RSUniRenderVisitor()
+RSUniRenderVisitor::RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas, uint32_t surfaceIndex)
+    : RSUniRenderVisitor()
 {
+#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
     canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    parallelRenderVisitorIndex_ = surfaceIndex;
+    globalZOrder_ = parallelRenderVisitorIndex_ * PARALLEL_RENDER_LAYER_Z_ORDER_FACTOR;
+#endif
 }
 
 RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUniRenderVisitor()
@@ -110,6 +116,18 @@ RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUn
 }
 
 RSUniRenderVisitor::~RSUniRenderVisitor() {}
+
+void RSUniRenderVisitor::CopyPropertyForParallelVisitor(RSUniRenderVisitor *mainVisitor)
+{
+    if (!mainVisitor) {
+        RS_LOGE("main thread visitor is nullptr");
+        return;
+    }
+    doAnimate_ = mainVisitor->doAnimate_;
+    isParallel_ = mainVisitor->isParallel_;
+    isAppFreeze_ = mainVisitor->isAppFreeze_;
+    isHardwareForcedDisabled_ = mainVisitor->isHardwareForcedDisabled_;
+}
 
 void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 {
@@ -570,7 +588,6 @@ void RSUniRenderVisitor::CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisit
     for (auto &u : visitor->dirtySurfaceNodeMap_) {
         dirtySurfaceNodeMap_[u.first] = u.second;
     }
-
 #endif
 }
 
@@ -867,6 +884,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
         if (isParallel_ && ((rects.size() > 0) || !isPartialRenderEnabled_)) {
+            ClearTransparentBeforeSaveLayer();
             auto parallelRenderManager = RSParallelRenderManager::Instance();
             parallelRenderManager->SetFrameSize(screenInfo_.width, screenInfo_.height);
             parallelRenderManager->CopyVisitorAndPackTask(*this, node);
@@ -1344,6 +1362,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             canvas_->clear(SK_ColorTRANSPARENT);
             node.SetGlobalAlpha(canvas_->GetAlpha());
             node.SetGlobalZOrder(globalZOrder_++);
+            ParallelRenderEnableHardwareComposer(node);
             auto dstRect = node.GetDstRect();
             SkIRect dst = { dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(), dstRect.GetBottom()};
             node.UpdateSrcRect(*canvas_, dst);
@@ -1562,12 +1581,12 @@ bool RSUniRenderVisitor::AdaptiveSubRenderThreadMode(uint32_t renderNodeNum)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
     bool isParallel = (renderNodeNum >= PARALLEL_RENDER_MINIMUN_RENDER_NODE_NUMBER) &&
-        (RSSystemProperties::GetParallelRenderingEnabled() != ParallelRenderingType::DISABLE);
+        (parallelRenderType_ != ParallelRenderingType::DISABLE);
     if (!isParallel) {
         return isParallel;
     }
     auto parallelRenderManager = RSParallelRenderManager::Instance();
-    switch (RSSystemProperties::GetParallelRenderingEnabled()) {
+    switch (parallelRenderType_) {
         case ParallelRenderingType::AUTO:
             parallelRenderManager->SetParallelMode(isParallel);
             break;
@@ -1581,6 +1600,18 @@ bool RSUniRenderVisitor::AdaptiveSubRenderThreadMode(uint32_t renderNodeNum)
     return isParallel;
 #else
     return false;
+#endif
+}
+void RSUniRenderVisitor::ParallelRenderEnableHardwareComposer(RSSurfaceRenderNode& node)
+{
+#if defined(RS_ENABLE_PARALLEL_RENDER) && defined (RS_ENABLE_GL)
+    if (isParallel_) {
+        const auto& property = node.GetRenderProperties();
+        auto dstRect = node.GetDstRect();
+        RectF clipRect = {dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetWidth(), dstRect.GetHeight()};
+        RSParallelRenderManager::Instance()->AddSelfDrawingSurface(parallelRenderVisitorIndex_,
+            property.GetCornerRadius().IsZero(), clipRect, property.GetCornerRadius());
+    }
 #endif
 }
 

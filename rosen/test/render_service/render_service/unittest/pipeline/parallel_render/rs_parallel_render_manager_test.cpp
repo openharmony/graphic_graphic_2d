@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cstdint>
 #include <memory>
 #include "gtest/gtest.h"
 #include "limit_number.h"
@@ -48,11 +49,29 @@ void RSParallelRenderManagerTest::TearDown() {}
  */
 HWTEST_F(RSParallelRenderManagerTest, SetParallelModeTest, TestSize.Level1)
 {
-    RSParallelRenderManager::Instance()->SetParallelMode(true);
-    RSParallelRenderManager::Instance()->GetParallelMode();
-    RSParallelRenderManager::Instance()->GetParallelModeSafe();
-    bool mode = RSParallelRenderManager::Instance()->GetParallelMode();
-    ASSERT_EQ(false, mode);
+    auto instance = RSParallelRenderManager::Instance();
+    ParallelStatus status = instance->GetParallelRenderingStatus();
+    ASSERT_EQ(ParallelStatus::OFF, status);
+
+    instance->SetParallelMode(false);
+    status = instance->GetParallelRenderingStatus();
+    ASSERT_EQ(ParallelStatus::OFF, status);
+    
+    uint32_t threadNum = 3;
+    instance->StartSubRenderThread(threadNum, nullptr);
+    status = instance->GetParallelRenderingStatus();
+    ASSERT_EQ(ParallelStatus::FIRSTFLUSH, status);
+
+    for (uint32_t i = 0; i < threadNum; i++) {
+        instance->ReadySubThreadNumIncrement();
+    }
+    status = instance->GetParallelRenderingStatus();
+    ASSERT_EQ(ParallelStatus::ON, status);
+
+    instance->GetParallelMode();
+    instance->GetParallelModeSafe();
+    bool mode = instance->GetParallelMode();
+    ASSERT_EQ(true, mode);
 }
 
 /**
@@ -63,7 +82,6 @@ HWTEST_F(RSParallelRenderManagerTest, SetParallelModeTest, TestSize.Level1)
  */
 HWTEST_F(RSParallelRenderManagerTest, PackPrepareRenderTaskTest, TestSize.Level1)
 {
-    RSParallelRenderManager::Instance()->SetParallelMode(true);
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config1;
     config1.id = 10;
@@ -94,7 +112,6 @@ HWTEST_F(RSParallelRenderManagerTest, PackPrepareRenderTaskTest, TestSize.Level1
  */
 HWTEST_F(RSParallelRenderManagerTest, PackProcessRenderTaskTest, TestSize.Level1)
 {
-    RSParallelRenderManager::Instance()->SetParallelMode(true);
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config1;
     config1.id = 10;
@@ -124,30 +141,6 @@ HWTEST_F(RSParallelRenderManagerTest, PackProcessRenderTaskTest, TestSize.Level1
     RSParallelRenderManager::Instance()->SetRenderTaskCost(0, 10, 2.1, TaskType::PROCESS_TASK);
     RSParallelRenderManager::Instance()->SetRenderTaskCost(1, 20, 3.2, TaskType::PROCESS_TASK);
     RSParallelRenderManager::Instance()->SetRenderTaskCost(2, 30, 10.1, TaskType::PROCESS_TASK);
-}
-
-/**
- * @tc.name: CopyVisitorAndPackTastTest
- * @tc.desc: Test RSParallelRenderManagerTest.CopyVisitorAndPackTastTest
- * @tc.type: FUNC
- * @tc.require: issueI69JAV
- */
-HWTEST_F(RSParallelRenderManagerTest, CopyVisitorAndPackTastTest, TestSize.Level1)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    RSSurfaceRenderNodeConfig config;
-    RSDisplayNodeConfig displayConfig;
-    config.id = 10;
-    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-
-    rsSurfaceRenderNode->SetSrcRect(RectI(0, 0, 10, 10));
-    rsSurfaceRenderNode->SetAppFreeze(false);
-    rsSurfaceRenderNode->SetSecurityLayer(true);
-    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, -1);
-    RSParallelRenderManager::Instance()->CopyPrepareVisitorAndPackTask(*rsUniRenderVisitor, *rsDisplayRenderNode);
-    RSParallelRenderManager::Instance()->CopyVisitorAndPackTask(*rsUniRenderVisitor, *rsDisplayRenderNode);
 }
 
 /**

@@ -30,12 +30,20 @@
 namespace OHOS {
 namespace Rosen {
 
-static constexpr int PARALLEL_THREAD_NUM = 3;
+static constexpr uint32_t PARALLEL_THREAD_NUM = 3;
 
 RSParallelRenderManager* RSParallelRenderManager::Instance()
 {
     static RSParallelRenderManager instance;
     return &instance;
+}
+
+RSParallelRenderManager::RSParallelRenderManager()
+    : parallelHardwareComposer_(std::make_unique<RSParallelHardwareComposer>())
+{
+    if (parallelHardwareComposer_) {
+        parallelHardwareComposer_->Init(PARALLEL_THREAD_NUM);
+    }
 }
 
 void RSParallelRenderManager::SetParallelMode(bool parallelMode)
@@ -64,10 +72,12 @@ void RSParallelRenderManager::StartSubRenderThread(uint32_t threadNum, RenderCon
         flipCoin_ = std::vector<uint8_t>(expectedSubThreadNum_, 0);
         firstFlush_ = true;
         renderContext_ = context;
-        for (uint32_t i = 0; i < threadNum; ++i) {
-            auto curThread = std::make_unique<RSParallelSubThread>(context, renderType_, i);
-            curThread->StartSubThread();
-            threadList_.push_back(std::move(curThread));
+        if (context) {
+            for (uint32_t i = 0; i < threadNum; ++i) {
+                auto curThread = std::make_unique<RSParallelSubThread>(context, renderType_, i);
+                curThread->StartSubThread();
+                threadList_.push_back(std::move(curThread));
+            }
         }
         processTaskManager_.Initialize(threadNum);
         prepareTaskManager_.Initialize(threadNum);
@@ -116,6 +126,7 @@ void RSParallelRenderManager::CopyVisitorAndPackTask(RSUniRenderVisitor &visitor
     displayNode_ = node.shared_from_this();
     processTaskManager_.Reset();
     packVisitor_->ProcessDisplayRenderNode(node);
+    uniVisitor_ = &visitor;
     taskType_ = TaskType::PROCESS_TASK;
 }
 
@@ -176,7 +187,7 @@ void RSParallelRenderManager::WaitPrepareEnd(RSUniRenderVisitor &visitor)
     }
 }
 
-void RSParallelRenderManager::DrawImageMergeFunc(std::shared_ptr<SkCanvas> canvas)
+void RSParallelRenderManager::DrawImageMergeFunc(std::shared_ptr<RSPaintFilterCanvas> canvas)
 {
     for (unsigned int i = 0; i < expectedSubThreadNum_; ++i) {
         RS_TRACE_BEGIN("Wait Render finish");
@@ -193,6 +204,11 @@ void RSParallelRenderManager::DrawImageMergeFunc(std::shared_ptr<SkCanvas> canva
             }
             if (canvas) {
                 canvas->drawImage(texture, 0, 0);
+                // For any one subMainThread' sksurface, we just clear transparent color of self drawing
+                // surface drawed in larger skSurface, such as skSurface 0 should clear self drawing surface
+                // areas drawed in skSurface 1.
+                auto clearTransparentColorSurfaceIndex = i + 1;
+                ClearSelfDrawingSurface(canvas, clearTransparentColorSurfaceIndex);
             } else {
                 RS_LOGE("canvas of main thread is nullptr!");
             }
@@ -218,7 +234,7 @@ void RSParallelRenderManager::FlushOneBufferFunc()
     renderContext_->MakeSelfCurrent();
 }
 
-void RSParallelRenderManager::MergeRenderResult(std::shared_ptr<SkCanvas> canvas)
+void RSParallelRenderManager::MergeRenderResult(std::shared_ptr<RSPaintFilterCanvas> canvas)
 {
     if (GetParallelRenderingStatus() == ParallelStatus::FIRSTFLUSH) {
         firstFlush_ = false;
@@ -231,6 +247,9 @@ void RSParallelRenderManager::MergeRenderResult(std::shared_ptr<SkCanvas> canvas
         DrawImageMergeFunc(canvas);
     } else {
         FlushOneBufferFunc();
+    }
+    if (parallelHardwareComposer_) {
+        parallelHardwareComposer_->Init(PARALLEL_THREAD_NUM);
     }
 }
 
@@ -330,6 +349,28 @@ void RSParallelRenderManager::CommitSurfaceNum(int surfaceNum)
 void RSParallelRenderManager::WorkSerialTask(RSSurfaceRenderNode &node)
 {
     uniVisitor_->PrepareSurfaceRenderNode(node);
+}
+
+uint32_t RSParallelRenderManager::GetParallelThreadNumber() const
+{
+    return PARALLEL_THREAD_NUM;
+}
+
+void RSParallelRenderManager::AddSelfDrawingSurface(unsigned int subThreadIndex, bool isRRect, RectF rect,
+    Vector4f cornerRadius)
+{
+    if (parallelHardwareComposer_) {
+        auto shape = std::make_unique<RSParallelSelfDrawingSurfaceShape>(isRRect, rect, cornerRadius);
+        parallelHardwareComposer_->AddTransparentColorArea(subThreadIndex, std::move(shape));
+    }
+}
+
+void RSParallelRenderManager::ClearSelfDrawingSurface(std::shared_ptr<RSPaintFilterCanvas> canvas,
+    unsigned int subThreadIndex)
+{
+    if (parallelHardwareComposer_) {
+        parallelHardwareComposer_->ClearTransparentColor(canvas, subThreadIndex);
+    }
 }
 
 } // namespace Rosen
