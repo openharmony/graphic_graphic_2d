@@ -176,6 +176,7 @@ foreach(item, ace_platforms) {
 if (!is_cross_platform_build) {
   ## Build 2d_graphics.so
   ohos_shared_library("2d_graphics") {
+    version_script = "2d_graphics.versionscript"
     symlink_target_name = [ "libnative_drawing.so" ]
     deps = [ ":2d_graphics_source_ohos" ]
     part_name = "graphic_standard"
