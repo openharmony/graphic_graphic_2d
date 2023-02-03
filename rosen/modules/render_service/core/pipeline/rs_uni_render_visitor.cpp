@@ -132,6 +132,11 @@ void RSUniRenderVisitor::CopyPropertyForParallelVisitor(RSUniRenderVisitor *main
 void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 {
     node.ResetSortedChildren();
+    for (auto& child : node.GetChildren()) {
+        if (auto renderChild = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(child.lock())) {
+            renderChild->ApplyModifiers();
+        }
+    }
     const auto& children = node.GetSortedChildren();
 
     // GetSortedChildren() may remove disappearingChildren_ when transition animation end.
