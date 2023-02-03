@@ -85,6 +85,11 @@ public:
         sortedChildren_.clear();
     }
 
+    const std::list<WeakPtr>& GetChildren()
+    {
+        return children_;
+    }
+    
     uint32_t GetChildrenCount() const
     {
         return children_.size();

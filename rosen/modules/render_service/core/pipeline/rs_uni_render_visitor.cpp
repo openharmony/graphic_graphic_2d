@@ -85,6 +85,11 @@ void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
     node.ClearPaintOutOfParentRect();
     node.UpdateChildrenOutOfRectFlag(false);
     node.ResetSortedChildren();
+    for (auto& child : node.GetChildren()) {
+        if (auto renderChild = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(child.lock())) {
+            renderChild->ApplyModifiers();
+        }
+    }
     for (auto& child : node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
     }
