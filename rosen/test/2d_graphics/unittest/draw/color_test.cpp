@@ -364,7 +364,8 @@ HWTEST_F(ColorTest, GetterAndSetterOfRedF001, TestSize.Level1)
     auto color = std::make_unique<Color>();
     ASSERT_TRUE(color != nullptr);
     color->SetRedF(10.0f);
-    ASSERT_EQ(10.0f, color->GetRedF());
+    Color4f expectColor4f = {1.0f, 0.0f, 0.0f, 0.0f};
+    ASSERT_EQ(expectColor4f.redF_, color->GetRedF());
 }
 
 /*
@@ -378,8 +379,25 @@ HWTEST_F(ColorTest, GetterAndSetterOfRedF002, TestSize.Level1)
 {
     auto color = std::make_unique<Color>();
     ASSERT_TRUE(color != nullptr);
-    color->SetRedF(21.0f);
-    ASSERT_EQ(21.0f, color->GetRedF());
+    color->SetRedF(-21.0f);
+    Color4f expectColor4f = {0.0f, 0.0f, 0.0f, 0.0f};
+    ASSERT_EQ(expectColor4f.redF_, color->GetRedF());
+}
+
+/*
+ * @tc.name: GetterAndSetterOfRedF003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ColorTest, GetterAndSetterOfRedF003, TestSize.Level1)
+{
+    auto color = std::make_unique<Color>();
+    ASSERT_TRUE(color != nullptr);
+    color->SetRedF(0.5f);
+    Color4f expectColor4f = {0.5f, 0.0f, 0.0f, 0.0f};
+    ASSERT_TRUE(std::abs(expectColor4f.redF_ - color->GetRedF()) < 0.01);
 }
 
 /*
@@ -394,7 +412,8 @@ HWTEST_F(ColorTest, GetterAndSetterOfGreenF001, TestSize.Level1)
     auto color = std::make_unique<Color>();
     ASSERT_TRUE(color != nullptr);
     color->SetGreenF(10.0f);
-    ASSERT_EQ(10.0f, color->GetGreenF());
+    Color4f expectColor4f = {0.0f, 1.0f, 0.0f, 0.0f};
+    ASSERT_EQ(expectColor4f.greenF_, color->GetGreenF());
 }
 
 /*
@@ -408,8 +427,25 @@ HWTEST_F(ColorTest, GetterAndSetterOfGreenF002, TestSize.Level1)
 {
     auto color = std::make_unique<Color>();
     ASSERT_TRUE(color != nullptr);
-    color->SetGreenF(102.0f);
-    ASSERT_EQ(102.0f, color->GetGreenF());
+    color->SetGreenF(-102.0f);
+    Color4f expectColor4f = {0.0f, 0.0f, 0.0f, 0.0f};
+    ASSERT_EQ(expectColor4f.greenF_, color->GetGreenF());
+}
+
+/*
+ * @tc.name: GetterAndSetterOfGreenF003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ColorTest, GetterAndSetterOfGreenF003, TestSize.Level1)
+{
+    auto color = std::make_unique<Color>();
+    ASSERT_TRUE(color != nullptr);
+    color->SetGreenF(0.3f);
+    Color4f expectColor4f = {0.0f, 0.3f, 0.0f, 0.0f};
+    ASSERT_TRUE(std::abs(expectColor4f.greenF_ - color->GetGreenF()) < 0.01);
 }
 
 /*
@@ -424,7 +460,8 @@ HWTEST_F(ColorTest, GetterAndSetterOfBlueF001, TestSize.Level1)
     auto color = std::make_unique<Color>();
     ASSERT_TRUE(color != nullptr);
     color->SetBlueF(11.5f);
-    ASSERT_TRUE((color->GetBlueF() - 11.5f) > -0.01 && (color->GetBlueF() - 11.5f) < 0.01);
+    Color4f expectColor4f = {0.0f, 0.0f, 1.0f, 0.0f};
+    ASSERT_EQ(expectColor4f.blueF_, color->GetBlueF());
 }
 
 /*
@@ -438,8 +475,25 @@ HWTEST_F(ColorTest, GetterAndSetterOfBlueF002, TestSize.Level1)
 {
     auto color = std::make_unique<Color>();
     ASSERT_TRUE(color != nullptr);
-    color->SetBlueF(10.0f);
-    ASSERT_EQ(10.0f, color->GetBlueF());
+    color->SetBlueF(-10.0f);
+    Color4f expectColor4f = {0.0f, 0.0f, 0.0f, 0.0f};
+    ASSERT_EQ(expectColor4f.blueF_, color->GetBlueF());
+}
+
+/*
+ * @tc.name: GetterAndSetterOfBlueF003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ColorTest, GetterAndSetterOfBlueF003, TestSize.Level1)
+{
+    auto color = std::make_unique<Color>();
+    ASSERT_TRUE(color != nullptr);
+    color->SetBlueF(0.5f);
+    Color4f expectColor4f = {0.0f, 0.0f, 0.5f, 0.0f};
+    ASSERT_TRUE(std::abs(expectColor4f.blueF_ - color->GetBlueF()) < 0.01);
 }
 
 /*
@@ -454,7 +508,8 @@ HWTEST_F(ColorTest, GetterAndSetterOfAlphaF001, TestSize.Level1)
     auto color = std::make_unique<Color>();
     ASSERT_TRUE(color != nullptr);
     color->SetAlphaF(55.0f);
-    ASSERT_EQ(55.0f, color->GetAlphaF());
+    Color4f expectColor4f = {0.0f, 0.0f, 0.0f, 1.0f};
+    ASSERT_EQ(expectColor4f.alphaF_, color->GetAlphaF());
 }
 
 /*
@@ -468,8 +523,25 @@ HWTEST_F(ColorTest, GetterAndSetterOfAlphaF002, TestSize.Level1)
 {
     auto color = std::make_unique<Color>();
     ASSERT_TRUE(color != nullptr);
-    color->SetAlphaF(1.0f);
-    ASSERT_EQ(1.0f, color->GetAlphaF());
+    color->SetAlphaF(-1.0f);
+    Color4f expectColor4f = {0.0f, 0.0f, 0.0f, 0.0f};
+    ASSERT_EQ(expectColor4f.alphaF_, color->GetAlphaF());
+}
+
+/*
+ * @tc.name: GetterAndSetterOfAlphaF003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ColorTest, GetterAndSetterOfAlphaF003, TestSize.Level1)
+{
+    auto color = std::make_unique<Color>();
+    ASSERT_TRUE(color != nullptr);
+    color->SetAlphaF(0.6f);
+    Color4f expectColor4f = {0.0f, 0.0f, 0.0f, 0.6f};
+    ASSERT_TRUE(std::abs(expectColor4f.alphaF_ - color->GetAlphaF()) < 0.01);
 }
 
 /*
