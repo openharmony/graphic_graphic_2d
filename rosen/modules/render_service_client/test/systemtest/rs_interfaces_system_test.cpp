@@ -94,7 +94,7 @@ HWTEST_F(RSInterfacesSystemTest, ScreenManager01, Function | MediumTest | Level2
     uint32_t resolutionFirstHeight = 1080;
     uint32_t resolutionLastWidth = 720;
     uint32_t resolutionLastHeight = 1280;
-    
+
     RSInterfacesTestUtils utils;
     ASSERT_TRUE(utils.CreateSurface());
     defaultOption_.surface_ = utils.pSurface_;
@@ -102,9 +102,10 @@ HWTEST_F(RSInterfacesSystemTest, ScreenManager01, Function | MediumTest | Level2
 
     ScreenId virtualScreenId = ScreenManager::GetInstance().CreateVirtualScreen(defaultOption_);
     sleep(TEST_SLEEP_S);
-      
+
     std::vector<ExpandOption> options = {{defaultScreenId_, 0, 0}, {virtualScreenId, defaultWidth_, 0}};
-    ScreenId expansionId = ScreenManager::GetInstance().MakeExpand(options);
+    ScreenId expansionId;
+    ScreenManager::GetInstance().MakeExpand(options, expansionId);
 
     sleep(TEST_SLEEP_S);
     ASSERT_NE(SCREEN_ID_INVALID, expansionId);
@@ -138,7 +139,7 @@ HWTEST_F(RSInterfacesSystemTest, ScreenManager02, Function | MediumTest | Level2
 {
     uint32_t resolutionFirstWidth = 2000;
     uint32_t resolutionFirstHeight = 1500;
-    
+
     RSInterfacesTestUtils utils;
     ASSERT_TRUE(utils.CreateSurface());
     defaultOption_.surface_ = utils.pSurface_;
@@ -146,10 +147,11 @@ HWTEST_F(RSInterfacesSystemTest, ScreenManager02, Function | MediumTest | Level2
 
     ScreenId virtualScreenId = ScreenManager::GetInstance().CreateVirtualScreen(defaultOption_);
     sleep(TEST_SLEEP_S);
-      
+
     std::vector<ScreenId> mirrorIds;
     mirrorIds.push_back(virtualScreenId);
-    ScreenManager::GetInstance().MakeMirror(defaultScreenId_, mirrorIds);
+    ScreenId screenGroupId;
+    ScreenManager::GetInstance().MakeMirror(defaultScreenId_, mirrorIds, screenGroupId);
     sleep(TEST_SLEEP_S);
     ASSERT_NE(SCREEN_ID_INVALID, virtualScreenId);
 
@@ -158,7 +160,7 @@ HWTEST_F(RSInterfacesSystemTest, ScreenManager02, Function | MediumTest | Level2
     auto resolution = RSInterfaces::GetInstance().GetVirtualScreenResolution(rsId);
     ASSERT_EQ(resolution.GetVirtualScreenWidth(), defaultWidth_);
     ASSERT_EQ(resolution.GetVirtualScreenHeight(), defaultHeight_);
-    
+
     RSInterfaces::GetInstance().SetVirtualScreenResolution(rsId, resolutionFirstWidth, resolutionFirstHeight);
     resolution = RSInterfaces::GetInstance().GetVirtualScreenResolution(rsId);
     ScreenId mainId = RSInterfaces::GetInstance().GetDefaultScreenId();
@@ -167,7 +169,7 @@ HWTEST_F(RSInterfacesSystemTest, ScreenManager02, Function | MediumTest | Level2
     ASSERT_EQ(resolution.GetVirtualScreenHeight(), resolutionFirstHeight);
     ASSERT_NE(static_cast<uint32_t>(screenModeInfo.GetScreenWidth()), resolutionFirstWidth);
     ASSERT_NE(static_cast<uint32_t>(screenModeInfo.GetScreenHeight()), resolutionFirstHeight);
-    
+
     auto res = ScreenManager::GetInstance().DestroyVirtualScreen(virtualScreenId);
     ASSERT_EQ(DMError::DM_OK, res);
 }
@@ -189,7 +191,8 @@ HWTEST_F(RSInterfacesSystemTest, ScreenManager03, Function | MediumTest | Level2
 
     std::vector<ScreenId> mirrorIds;
     mirrorIds.push_back(virtualScreenId);
-    ScreenManager::GetInstance().MakeMirror(defaultScreenId_, mirrorIds);
+    ScreenId screenGroupId;
+    ScreenManager::GetInstance().MakeMirror(defaultScreenId_, mirrorIds, screenGroupId);
 
     uint32_t virtualScreenSkipFrameInterval = 2;
     auto ids = RSInterfaces::GetInstance().GetAllScreenIds();
