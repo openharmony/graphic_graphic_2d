@@ -91,6 +91,9 @@ public:
     virtual void SetFramePositionX(float positionX);
     virtual void SetFramePositionY(float positionY);
 
+    // The property is valid only for CanvasNode and SurfaceNode in uniRender.
+    virtual void SetFreeze(bool isFreeze);
+
     void SetPositionZ(float positionZ);
 
     void SetPivot(const Vector2f& pivot);

@@ -20,6 +20,7 @@
 #include <string>
 
 #include "command/rs_base_node_command.h"
+#include "command/rs_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
@@ -346,16 +347,6 @@ void RSSurfaceNode::ResetContextAlpha() const
     transactionProxy->AddCommand(commandRS, true);
 }
 
-void RSSurfaceNode::SetAppFreeze(bool isAppFreeze)
-{
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetAppFreeze>(GetId(), isAppFreeze);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
-}
-
 void RSSurfaceNode::SetContainerWindow(bool hasContainerWindow, float density)
 {
     std::unique_ptr<RSCommand> command =
@@ -369,6 +360,19 @@ void RSSurfaceNode::SetContainerWindow(bool hasContainerWindow, float density)
 void RSSurfaceNode::SetWindowId(uint32_t windowId)
 {
     windowId_ = windowId;
+}
+
+void RSSurfaceNode::SetFreeze(bool isFreeze)
+{
+    if (!IsUniRenderEnabled()) {
+        ROSEN_LOGE("SetFreeze is not supported in separate render");
+        return;
+    }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
 }
 
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode)

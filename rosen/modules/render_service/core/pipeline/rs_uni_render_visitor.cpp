@@ -125,7 +125,7 @@ void RSUniRenderVisitor::CopyPropertyForParallelVisitor(RSUniRenderVisitor *main
     }
     doAnimate_ = mainVisitor->doAnimate_;
     isParallel_ = mainVisitor->isParallel_;
-    isAppFreeze_ = mainVisitor->isAppFreeze_;
+    isFreeze_ = mainVisitor->isFreeze_;
     isHardwareForcedDisabled_ = mainVisitor->isHardwareForcedDisabled_;
 }
 
@@ -1091,7 +1091,7 @@ void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(std::shared_ptr<RSDisplayR
         // child node (component) has filter
         auto filterRects = currentSurfaceNode->GetChildrenNeedFilterRects();
         if (currentSurfaceNode->IsAppWindow() && !filterRects.empty()) {
-            needFilter_ = needFilter_ || !currentSurfaceNode->IsAppFreeze();
+            needFilter_ = needFilter_ || !currentSurfaceNode->IsFreeze();
             for (auto subRect : filterRects) {
                 if (!displayDirtyRect.IntersectRect(subRect).IsEmpty()) {
                     if (currentSurfaceNode->IsTransparent()) {
@@ -1106,7 +1106,7 @@ void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(std::shared_ptr<RSDisplayR
 
         // surfaceNode self has filter
         if (currentSurfaceNode->GetRenderProperties().NeedFilter()) {
-            needFilter_ = needFilter_ || !currentSurfaceNode->IsAppFreeze();
+            needFilter_ = needFilter_ || !currentSurfaceNode->IsFreeze();
             if (!displayDirtyRect.IntersectRect(currentSurfaceNode->GetOldDirtyInSurface()).IsEmpty() ||
                 !currentSurfaceDirtyRect.IntersectRect(currentSurfaceNode->GetOldDirtyInSurface()).IsEmpty()) {
                 currentSurfaceDirtyManager->MergeDirtyRect(currentSurfaceNode->GetOldDirtyInSurface());
@@ -1211,7 +1211,7 @@ std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &re
 }
 #endif
 
-void RSUniRenderVisitor::InitCacheSurface(RSSurfaceRenderNode& node, int width, int height)
+void RSUniRenderVisitor::InitCacheSurface(RSRenderNode& node, int width, int height)
 {
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
@@ -1219,6 +1219,48 @@ void RSUniRenderVisitor::InitCacheSurface(RSSurfaceRenderNode& node, int width, 
 #else
     node.SetCacheSurface(SkSurface::MakeRasterN32Premul(width, height));
 #endif
+}
+
+void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
+{
+    if (!node.IsFreeze()) {
+        ProcessBaseRenderNode(node);
+        node.ClearCacheSurface();
+    } else if (node.GetCacheSurface()) {
+        RSUniRenderUtil::DrawCachedSurface(node, *canvas_, node.GetCacheSurface());
+    } else {
+        isFreeze_ = true;
+        int width = std::ceil(node.GetRenderProperties().GetBoundsRect().GetWidth());
+        int height = std::ceil(node.GetRenderProperties().GetBoundsRect().GetHeight());
+        InitCacheSurface(node, width, height);
+
+        if (node.GetCacheSurface()) {
+            auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
+            // When drawing CacheSurface, all child node should be drawn.
+            // So set isOpDropped_ = false here.
+            bool isOpDropped = isOpDropped_;
+            isOpDropped_ = false;
+
+            swap(cacheCanvas, canvas_);
+            ProcessBaseRenderNode(node);
+            swap(cacheCanvas, canvas_);
+
+            isOpDropped_ = isOpDropped;
+
+            RSUniRenderUtil::DrawCachedSurface(node, *canvas_, node.GetCacheSurface());
+            // To get all FreezeNode
+            // execute: "set param rosen.dumpsurfacetype.enabled 2 && setenforce 0"
+            // To get specific FreezeNode
+            // execute: "set param rosen.dumpsurfacetype.enabled 1 && setenforce 0 && "
+            // "set param rosen.dumpsurfaceid "NodeId" "
+            // Png file could be found in /data
+            RSBaseRenderUtil::WriteFreezeRenderNodeToPng(node);
+        } else {
+            RS_LOGE("RSUniRenderVisitor::DrawChildRenderNode %" PRIu64 " Create CacheSurface failed",
+                node.GetId());
+        }
+        isFreeze_ = false;
+    }
 }
 
 void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
@@ -1354,10 +1396,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     if (node.GetBuffer() != nullptr) {
         if (node.IsHardwareEnabledType()) {
-            node.SetHardwareForcedDisabledState(isAppFreeze_);
+            node.SetHardwareForcedDisabledState(isFreeze_);
         }
-        // if this window is in appFreeze state, disable hardware composer for its child surfaceView
-        if (IsHardwareComposerEnabled() && !isAppFreeze_ && node.IsHardwareEnabledType() &&
+        // if this window is in freeze state, disable hardware composer for its child surfaceView
+        if (IsHardwareComposerEnabled() && !isFreeze_ && node.IsHardwareEnabledType() &&
             node.GetDstRect().GetWidth() > 1 && node.GetDstRect().GetHeight() > 1) { // avoid fallback by composer
             canvas_->clear(SK_ColorTRANSPARENT);
             node.SetGlobalAlpha(canvas_->GetAlpha());
@@ -1392,37 +1434,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         if (needCheckFirstFrame_ && IsFirstFrameReadyToDraw(node)) {
             node.NotifyUIBufferAvailable();
         }
-        if (!node.IsAppFreeze()) {
-            ProcessBaseRenderNode(node);
-            node.ClearCacheSurface();
-        } else if (node.GetCacheSurface()) {
-            RSUniRenderUtil::DrawCachedSurface(node, *canvas_, node.GetCacheSurface());
-        } else {
-            isAppFreeze_ = true;
-            InitCacheSurface(node, property.GetBoundsWidth(), property.GetBoundsHeight());
-            if (node.GetCacheSurface()) {
-                auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
-                // When drawing CacheSurface, all child node should be drawn.
-                // So set isOpDropped_ = false here.
-                bool isOpDropped = isOpDropped_;
-                isOpDropped_ = false;
-
-                swap(cacheCanvas, canvas_);
-                ProcessBaseRenderNode(node);
-                swap(cacheCanvas, canvas_);
-
-                isOpDropped_ = isOpDropped;
-
-                RSUniRenderUtil::DrawCachedSurface(node, *canvas_, node.GetCacheSurface());
-                // execute: set rosen.dumpsurfacetype.enabled 2 && setenforce 0
-                // Png file could be found in /data
-                RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(node);
-            } else {
-                RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode %s Create CacheSurface failed",
-                    node.GetName().c_str());
-            }
-            isAppFreeze_ = false;
-        }
+        DrawChildRenderNode(node);
     } else if (node.IsAppWindow()) { // use skSurface drawn by cold start thread
         if (node.GetCachedImage() != nullptr) {
             RSUniRenderUtil::DrawCachedImage(node, *canvas_, node.GetCachedImage());
@@ -1510,7 +1522,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     // in case preparation'update is skipped
     node.GetMutableRenderProperties().CheckEmptyBounds();
     node.ProcessRenderBeforeChildren(*canvas_);
-    ProcessBaseRenderNode(node);
+    DrawChildRenderNode(node);
     node.ProcessRenderAfterChildren(*canvas_);
 }
 

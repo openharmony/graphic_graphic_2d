@@ -107,13 +107,6 @@ void SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable(RSContext& context, 
     }
 }
 
-void SurfaceNodeCommandHelper::SetAppFreeze(RSContext& context, NodeId nodeId, bool isAppFreeze)
-{
-    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetAppFreeze(isAppFreeze);
-    }
-}
-
 void SurfaceNodeCommandHelper::SetSurfaceNodeType(RSContext& context, NodeId nodeId, RSSurfaceNodeType type)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {

@@ -91,9 +91,10 @@ public:
 
     void ResetContextAlpha() const;
 
-    void SetAppFreeze(bool isAppFreeze);
     void SetContainerWindow(bool hasContainerWindow, float density);
     void SetWindowId(uint32_t windowId);
+
+    void SetFreeze(bool isFreeze) override;
 
 protected:
     bool NeedForcedSendToRemote() const override;

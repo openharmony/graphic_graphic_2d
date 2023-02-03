@@ -2953,6 +2953,17 @@ HWTEST_F(RSNodeTest, SetShadowPath001, TestSize.Level1)
     rsNode->SetShadowPath(shadowpath);
 }
 
+/**
+ * @tc.name: SetFreeze001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetFreeze001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetFreeze(true);
+}
+
 template<typename ModifierName, typename PropertyName, typename T>
 void SetPropertyTest(RSModifierType modifierType, T value1, T value2)
 {

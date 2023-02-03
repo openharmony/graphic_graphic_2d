@@ -85,7 +85,7 @@ bool RSSurfaceNodeFuzzTest(const uint8_t* data, size_t size)
     surfaceNode->Marshalling(parcel);
     RSSurfaceNode::Unmarshalling(parcel);
     RSSurfaceNode::UnmarshallingAsProxyNode(parcel);
-    surfaceNode->SetAppFreeze(isAppFreeze);
+    surfaceNode->SetFreeze(isAppFreeze);
     surfaceNode->SetContainerWindow(hasContainerWindow, density);
 
     return true;

@@ -184,7 +184,7 @@ void RSUIDirector::SetAppFreeze(bool isAppFreeze)
 {
     auto surfaceNode = surfaceNode_.lock();
     if (surfaceNode != nullptr) {
-        surfaceNode->SetAppFreeze(isAppFreeze);
+        surfaceNode->SetFreeze(isAppFreeze);
     }
 }
 
