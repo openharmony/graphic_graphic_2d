@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,7 +51,7 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
 {
     ROSEN_LOGI("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %d", pid);
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
-    std::__libcpp_erase_if_container(renderNodeMap_, [pid](const auto& pair) -> bool {
+    EraseIf(renderNodeMap_, [pid](const auto& pair) -> bool {
         if (ExtractPid(pair.first) != pid) {
             return false;
         }
@@ -64,7 +64,7 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         return true;
     });
 
-    std::__libcpp_erase_if_container(surfaceNodeMap_, [pid](const auto& pair) -> bool {
+    EraseIf(surfaceNodeMap_, [pid](const auto& pair) -> bool {
         return ExtractPid(pair.first) == pid;
     });
 

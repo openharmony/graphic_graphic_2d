@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -332,8 +332,7 @@ std::shared_ptr<RSRenderModifier> RSRenderNode::GetModifier(const PropertyId& id
 void RSRenderNode::FilterModifiersByPid(pid_t pid)
 {
     // remove all modifiers added by given pid (by matching higher 32 bits of node id)
-    std::__libcpp_erase_if_container(
-        modifiers_, [pid](const auto& pair) -> bool { return ExtractPid(pair.first) == pid; });
+    EraseIf(modifiers_, [pid](const auto& pair) -> bool { return ExtractPid(pair.first) == pid; });
 
     // remove all modifiers added by given pid (by matching higher 32 bits of node id)
     for (auto& [type, modifiers] : drawCmdModifiers_) {
