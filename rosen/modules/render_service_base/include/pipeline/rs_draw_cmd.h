@@ -517,6 +517,8 @@ private:
     std::shared_ptr<Media::PixelMap> pixelmap_;
     float left_;
     float top_;
+
+    mutable sk_sp<SkImage> renderImage_;
 };
 
 class PixelMapRectOpItem : public OpItemWithPaint {
@@ -540,6 +542,8 @@ private:
     std::shared_ptr<Media::PixelMap> pixelmap_;
     SkRect src_;
     SkRect dst_;
+
+    mutable sk_sp<SkImage> renderImage_;
 };
 
 class BitmapNineOpItem : public OpItemWithPaint {

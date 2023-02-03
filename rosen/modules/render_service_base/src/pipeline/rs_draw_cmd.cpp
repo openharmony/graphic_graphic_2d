@@ -15,7 +15,6 @@
 
 #include "pipeline/rs_draw_cmd.h"
 
-#include "pixel_map_rosen_utils.h"
 #include "rs_trace.h"
 #include "securec.h"
 
@@ -23,6 +22,7 @@
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "render/rs_pixel_map_util.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -291,8 +291,10 @@ PixelMapOpItem::PixelMapOpItem(
 
 void PixelMapOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
-    sk_sp<SkImage> skImage = Media::PixelMapRosenUtils::ExtractSkImage(pixelmap_);
-    canvas.drawImage(skImage, left_, top_, &paint_);
+    if (!renderImage_) {
+        renderImage_ = RSPixelMapUtil::ExtractSkImage(pixelmap_);
+    }
+    canvas.drawImage(renderImage_, left_, top_, &paint_);
 }
 
 PixelMapRectOpItem::PixelMapRectOpItem(
@@ -306,8 +308,10 @@ PixelMapRectOpItem::PixelMapRectOpItem(
 
 void PixelMapRectOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
-    sk_sp<SkImage> skImage = Media::PixelMapRosenUtils::ExtractSkImage(pixelmap_);
-    canvas.drawImageRect(skImage, src_, dst_, &paint_);
+    if (!renderImage_) {
+        renderImage_ = RSPixelMapUtil::ExtractSkImage(pixelmap_);
+    }
+    canvas.drawImageRect(renderImage_, src_, dst_, &paint_);
 }
 
 BitmapNineOpItem::BitmapNineOpItem(

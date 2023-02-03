@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,26 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_PIXEL_MAP_UTIL_H
-#define RENDER_SERVICE_CLIENT_CORE_UI_RS_PIXEL_MAP_UTIL_H
+#ifndef RENDER_SERVICE_BASE_RENDER_RS_PIXEL_MAP_UTIL_H
+#define RENDER_SERVICE_BASE_RENDER_RS_PIXEL_MAP_UTIL_H
 
 #include <memory>
 
 #include "common/rs_common_def.h"
+#include "pixel_map.h"
 
-class GrContext;
+template <typename T>
+class sk_sp;
+class SkImage;
 
 namespace OHOS {
-namespace Media {
-class PixelMap;
-}
 namespace Rosen {
 class RS_EXPORT RSPixelMapUtil {
 public:
-    static bool UploadToGpuIfNeeded(std::shared_ptr<Media::PixelMap> pixelmap, GrContext* context, bool buildMips,
-        bool limitToMaxTextureSize = false);
+    // The generated SkImage already holds the shared_ptr of the source PixelMap,
+    // and the PixelMap should not hold SkImage to avoid circular references.
+    static sk_sp<SkImage> ExtractSkImage(std::shared_ptr<Media::PixelMap> pixelMap);
 };
 } // namespace Rosen
 } // namespace OHOS
-
-#endif // RENDER_SERVICE_CLIENT_CORE_UI_RS_PIXEL_MAP_UTIL_H
+#endif // RENDER_SERVICE_BASE_RENDER_RS_PIXEL_MAP_UTIL_H

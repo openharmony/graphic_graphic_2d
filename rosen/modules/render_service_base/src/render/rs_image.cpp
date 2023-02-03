@@ -17,10 +17,10 @@
 
 #include "include/core/SkPaint.h"
 #include "include/core/SkRRect.h"
-#include "pixel_map_rosen_utils.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_image_cache.h"
+#include "render/rs_pixel_map_util.h"
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 
@@ -174,7 +174,7 @@ void RSImage::DrawImageRepeatRect(const SkPaint& paint, SkCanvas& canvas)
     }
     // draw repeat rect
     if (!image_ && pixelmap_) {
-        image_ = Media::PixelMapRosenUtils::ExtractSkImage(pixelmap_);
+        image_ = RSPixelMapUtil::ExtractSkImage(pixelmap_);
     }
     UploadGpu(canvas);
     auto src = RSPropertiesPainter::Rect2SkRect(srcRect_);

@@ -23,11 +23,11 @@
 #include "include/core/SkCanvas.h"
 #include "include/core/SkImageInfo.h"
 #include "pixel_map.h"
-#include "pixel_map_rosen_utils.h"
 #include "wm/window.h"
 
 #include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_system_properties.h"
+#include "render/rs_pixel_map_util.h"
 #include "transaction/rs_marshalling_helper.h"
 #include "transaction/rs_transaction.h"
 #include "ui/rs_display_node.h"
@@ -164,7 +164,7 @@ int main()
     sleep(2);
 
     cout << "rs pixelmap demo stage 4: repeated drawing" << endl;
-    auto skimg = Media::PixelMapRosenUtils::ExtractSkImage(pixelmap);
+    auto skimg = RSPixelMapUtil::ExtractSkImage(pixelmap);
     if (!skimg) {
         return -1;
     }

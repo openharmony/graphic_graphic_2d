@@ -18,7 +18,6 @@
 #include <mutex>
 
 #include "include/core/SkMatrix.h"
-#include "pixel_map_rosen_utils.h"
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -26,6 +25,7 @@
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_thread.h"
 #include "pipeline/rs_root_render_node.h"
+#include "render/rs_pixel_map_util.h"
 #include "transaction/rs_render_service_client.h"
 
 namespace OHOS {
@@ -229,7 +229,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
         return;
     }
     // draw pixelmap in canvas
-    auto image = Media::PixelMapRosenUtils::ExtractSkImage(pixelMap);
+    auto image = RSPixelMapUtil::ExtractSkImage(pixelMap);
     canvas_->drawImage(
         image, node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY());
     ProcessBaseRenderNode(node);
