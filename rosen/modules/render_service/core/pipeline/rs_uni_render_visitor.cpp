@@ -43,7 +43,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t USE_CACHE_SURFACE_NUM = 5;
+constexpr uint32_t USE_CACHE_SURFACE_NUM = 7;
 
 bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 {
@@ -954,13 +954,17 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         return;
     }
 
-    if (node.IsAppWindow()) {
+#ifdef RS_ENABLE_EGLQUERYSURFACE
+    // when display is in rotation state, occlusion relationship will be ruined,
+    // hence visibleRegions cannot be used.
+    if (isOpDropped_ && node.IsAppWindow()) {
         auto visibleRegions = node.GetVisibleRegion().GetRegionRects();
         if (visibleRegions.size() == 1) {
             canvas_->SetVisibleRect(SkRect::MakeLTRB(
                 visibleRegions[0].left_, visibleRegions[0].top_, visibleRegions[0].right_, visibleRegions[0].bottom_));
         }
     }
+#endif
 
     if (node.GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
         needDrawStartingWindow_ = true; // reset to default value

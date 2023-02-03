@@ -51,7 +51,6 @@ constexpr float MAX_TRANS_RATIO = 0.95f;
 constexpr float MIN_SPOT_RATIO = 1.0f;
 constexpr float MAX_SPOT_RATIO = 1.95f;
 constexpr float MAX_AMBIENT_RADIUS = 150.0f;
-int g_blurCnt = 0;
 } // namespace
 
 SkRect RSPropertiesPainter::Rect2SkRect(const RectF& r)
@@ -260,6 +259,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     std::shared_ptr<RSSkiaFilter>& filter, const std::unique_ptr<SkRect>& rect, SkSurface* skSurface)
 {
     g_blurCnt++;
+    SkAutoCanvasRestore acr(&canvas, true);
     if (rect != nullptr) {
         canvas.clipRect((*rect), true);
     } else if (properties.GetClipBounds() != nullptr) {
@@ -267,46 +267,58 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     } else {
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
     }
-    SkPaint paint;
-    paint.setAntiAlias(true);
-    paint.setBlendMode(SkBlendMode::kSrcOver);
-    filter->ApplyTo(paint);
+    auto paint = filter->GetPaint();
     if (skSurface == nullptr) {
         ROSEN_LOGD("RSPropertiesPainter::DrawFilter skSurface null");
         SkCanvas::SaveLayerRec slr(nullptr, &paint, SkCanvas::kInitWithPrevious_SaveLayerFlag);
         canvas.saveLayer(slr);
         filter->PostProcess(canvas);
-        canvas.restore();
         return;
     }
-    // canvas draw by snapshot instead of SaveLayer, since the blur layer moves while using savelayer
-    auto imageSnapshot = skSurface->makeImageSnapshot();
+
+    // canvas draw by snapshot instead of SaveLayer, since the blur layer moves while using saveLayer
+    auto imageSnapshot = skSurface->makeImageSnapshot(canvas.getDeviceClipBounds());
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");
         return;
     }
 
+    filter->PreProcess(imageSnapshot);
     auto clipBounds = SkRect::Make(canvas.getDeviceClipBounds());
-    canvas.save();
     canvas.resetMatrix();
     auto visibleRect = canvas.GetVisibleRect();
     if (visibleRect.intersect(clipBounds)) {
-        canvas.drawImageRect(imageSnapshot.get(), visibleRect, visibleRect, &paint);
+        // the snapshot only contains the clip region, so we need to offset the src rect
+        canvas.drawImageRect(
+            imageSnapshot.get(), visibleRect.makeOffset(-clipBounds.left(), -clipBounds.top()), visibleRect, &paint);
     } else {
-        canvas.drawImageRect(imageSnapshot.get(), clipBounds, clipBounds, &paint);
+        // the snapshot only contains the clip region, so we need to offset the src rect
+        canvas.drawImageRect(
+            imageSnapshot.get(), clipBounds.makeOffset(-clipBounds.left(), -clipBounds.top()), clipBounds, &paint);
     }
     filter->PostProcess(canvas);
-    canvas.restore();
 }
 
-int RSPropertiesPainter::GetBlurCnt()
+SkColor RSPropertiesPainter::CalcAverageColor(sk_sp<SkImage> imageSnapshot)
 {
-    return g_blurCnt;
+    // create a 1x1 SkPixmap
+    uint32_t pixel[1] = { 0 };
+    auto single_pixel_info = SkImageInfo::MakeN32Premul(1, 1);
+    SkPixmap single_pixel(single_pixel_info, pixel, single_pixel_info.bytesPerPixel());
+
+    // resize snapshot to 1x1 to calculate average color
+    // kMedium_SkFilterQuality will do bilerp + mipmaps for down-scaling, we can easily get average color
+    imageSnapshot->scalePixels(single_pixel, SkFilterQuality::kMedium_SkFilterQuality);
+
+    // convert color format and return average color
+    return SkColor4f::FromBytes_RGBA(pixel[0]).toSkColor();
 }
 
-void RSPropertiesPainter::ResetBlurCnt()
+int RSPropertiesPainter::GetAndResetBlurCnt()
 {
+    auto blurCnt = g_blurCnt;
     g_blurCnt = 0;
+    return blurCnt;
 }
 
 void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas)

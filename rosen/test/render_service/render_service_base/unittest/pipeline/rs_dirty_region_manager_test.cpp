@@ -92,4 +92,4 @@ HWTEST_F(RSDirtyRegionManagerTest, SetSurfaceSize001, TestSize.Level1)
     height = 1;
     ASSERT_TRUE(manager->SetSurfaceSize(width, height));
 }
-}// namespace OHOS::Rosen
+} // namespace OHOS::Rosen

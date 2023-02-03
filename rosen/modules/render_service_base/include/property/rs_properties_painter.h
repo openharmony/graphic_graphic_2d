@@ -44,8 +44,10 @@ public:
     static bool GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, SkMatrix& mat);
     static SkRRect RRect2SkRRect(const RRect& rr);
     static SkRect Rect2SkRect(const RectF& r);
-    static int GetBlurCnt();
-    static void ResetBlurCnt();
+    static int GetAndResetBlurCnt();
+    static SkColor CalcAverageColor(sk_sp<SkImage> imageSnapshot);
+private:
+    inline static int g_blurCnt = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

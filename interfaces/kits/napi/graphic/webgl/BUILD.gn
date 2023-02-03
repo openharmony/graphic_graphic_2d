@@ -26,7 +26,6 @@ ohos_source_set("webgl_src") {
     "src",
     "//third_party/node/src",
     "//commonlibrary/c_utils/base/include",
-    "//third_party/bounds_checking_function/include",
   ]
 
   sources = [
@@ -38,8 +37,6 @@ ohos_source_set("webgl_src") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/arkui/napi:ace_napi",
-    "//third_party/bounds_checking_function:libsec_static",
-    "//third_party/libuv:uv",
   ]
 
   if (ace_enable_gpu) {

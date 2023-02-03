@@ -562,7 +562,6 @@ void RSMainThread::Render()
         RS_LOGE("RSMainThread::Render GetGlobalRootRenderNode fail");
         return;
     }
-    RSPropertiesPainter::ResetBlurCnt();
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
         RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     }
@@ -1195,7 +1194,7 @@ void RSMainThread::ForceRefreshForUni()
 void RSMainThread::PerfForBlurIfNeeded()
 {
     static int preBlurCnt = 0;
-    int blurCnt = RSPropertiesPainter::GetBlurCnt();
+    int blurCnt = RSPropertiesPainter::GetAndResetBlurCnt();
     // clamp blurCnt to 0~3.
     blurCnt = std::clamp<int>(blurCnt, 0, 3);
     if (blurCnt != preBlurCnt && preBlurCnt != 0) {
@@ -1225,7 +1224,7 @@ void RSMainThread::PerfMultiWindow()
         OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(PERF_MULTI_WINDOW_REQUESTED_CODE, "");
         lastPerfTimestamp = timestamp_;
     } else if ((appWindowNum_ < MULTI_WINDOW_PERF_START_NUM || appWindowNum_ > MULTI_WINDOW_PERF_END_NUM)
-        && timestamp_ - lastPerfTimestamp < PERF_PERIOD_MULTI_WINDOW ) {
+        && timestamp_ - lastPerfTimestamp < PERF_PERIOD_MULTI_WINDOW) {
         RS_LOGD("RSMainThread::PerfMultiWindow soc perf off");
         OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(PERF_MULTI_WINDOW_REQUESTED_CODE, false, "");
     }
