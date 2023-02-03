@@ -43,13 +43,13 @@ void RSParallelPackVisitorTest::SetUp() {}
 void RSParallelPackVisitorTest::TearDown() {}
 
 /**
- * @tc.name: ProcessSurfaceRenderNodeTest
- * @tc.desc: Test RSParallelPackVisitorTest.Start
+ * @tc.name: ProcessPackVisitorTest
+ * @tc.desc: Test RSParallelPackVisitorTest.ProcessPackVisitorTest
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
 
-HWTEST_F(RSParallelPackVisitorTest, ProcessSurfaceRenderNodeTest, TestSize.Level1)
+HWTEST_F(RSParallelPackVisitorTest, ProcessPackVisitorTest, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config;

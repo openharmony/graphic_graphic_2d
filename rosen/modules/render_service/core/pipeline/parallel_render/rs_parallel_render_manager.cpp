@@ -348,7 +348,9 @@ void RSParallelRenderManager::CommitSurfaceNum(int surfaceNum)
 
 void RSParallelRenderManager::WorkSerialTask(RSSurfaceRenderNode &node)
 {
-    uniVisitor_->PrepareSurfaceRenderNode(node);
+    if (uniVisitor_) {
+        uniVisitor_->PrepareSurfaceRenderNode(node);
+    }
 }
 
 uint32_t RSParallelRenderManager::GetParallelThreadNumber() const

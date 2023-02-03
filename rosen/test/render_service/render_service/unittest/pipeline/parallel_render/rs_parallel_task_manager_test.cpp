@@ -32,12 +32,31 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    std::unique_ptr<RSParallelTaskManager> parallelTaskManager_;
 };
 
 void RSParallelTaskManagerTest::SetUpTestCase() {}
 void RSParallelTaskManagerTest::TearDownTestCase() {}
-void RSParallelTaskManagerTest::SetUp() {}
-void RSParallelTaskManagerTest::TearDown() {}
+void RSParallelTaskManagerTest::SetUp()
+{
+    parallelTaskManager_ = std::make_unique<RSParallelTaskManager>();
+}
+void RSParallelTaskManagerTest::TearDown()
+{
+    parallelTaskManager_ = nullptr;
+}
+
+/**
+ * @tc.name: InitizlizeTest
+ * @tc.desc: Test RSParallelTaskManagerTest.InitizlizeTest
+ * @tc.type: FUNC
+ * @tc.require: issueI69JAV
+ */
+HWTEST_F(RSParallelTaskManagerTest, InitizlizeTest, TestSize.Level1)
+{
+    parallelTaskManager_->Initialize(3);
+    parallelTaskManager_->GetParallelRenderExtEnable();
+}
 
 /**
  * @tc.name: PushRenderTaskTest
@@ -47,9 +66,6 @@ void RSParallelTaskManagerTest::TearDown() {}
  */
 HWTEST_F(RSParallelTaskManagerTest, PushRenderTaskTest, TestSize.Level1)
 {
-    auto parallelTaskManager = std::make_unique<RSParallelTaskManager>();
-    parallelTaskManager->Initialize(3);
-
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config1;
     config1.id = 10;
@@ -77,14 +93,40 @@ HWTEST_F(RSParallelTaskManagerTest, PushRenderTaskTest, TestSize.Level1)
     auto renderTask2 = std::make_unique<RSRenderTask>(*rsSurfaceRenderNode2, RSRenderTask::RenderNodeStage::PREPARE);
     auto renderTask3 = std::make_unique<RSRenderTask>(*rsSurfaceRenderNode3, RSRenderTask::RenderNodeStage::PREPARE);
 
-    parallelTaskManager->GetTaskNum();
+    parallelTaskManager_->Reset();
+    parallelTaskManager_->LBCalcAndSubmitSuperTask(rsDisplayRenderNode);
 
-    parallelTaskManager->SetSubThreadRenderTaskLoad(0, 10, 1.0f);
-    parallelTaskManager->SetSubThreadRenderTaskLoad(1, 20, 2.0f);
-    parallelTaskManager->SetSubThreadRenderTaskLoad(2, 30, 3.0f);
+    parallelTaskManager_->PushRenderTask(std::move(renderTask1));
+    parallelTaskManager_->PushRenderTask(std::move(renderTask2));
+    parallelTaskManager_->PushRenderTask(std::move(renderTask3));
 
-    parallelTaskManager->LBCalcAndSubmitSuperTask((*rsDisplayRenderNode).shared_from_this());
-    parallelTaskManager->Reset();
+    parallelTaskManager_->LBCalcAndSubmitSuperTask((*rsDisplayRenderNode).shared_from_this());
+}
+
+/**
+ * @tc.name: ResetTest
+ * @tc.desc: Test RSParallelTaskManagerTest.ResetTest
+ * @tc.type: FUNC
+ * @tc.require: issueI69JAV
+ */
+HWTEST_F(RSParallelTaskManagerTest, ResetTest, TestSize.Level1)
+{
+    parallelTaskManager_->Reset();
+    auto num = parallelTaskManager_->GetTaskNum();
+    ASSERT_EQ(num, 0);
+}
+
+/**
+ * @tc.name: SetSubThreadRenderTaskLoadTest
+ * @tc.desc: Test RSParallelTaskManagerTest.SetSubThreadRenderTaskLoadTest
+ * @tc.type: FUNC
+ * @tc.require: issueI69JAV
+ */
+HWTEST_F(RSParallelTaskManagerTest, SetSubThreadRenderTaskLoadTest, TestSize.Level1)
+{
+    parallelTaskManager_->SetSubThreadRenderTaskLoad(0, 1000, 1.0f);
+    parallelTaskManager_->SetSubThreadRenderTaskLoad(1, 2000, 2.0f);
+    parallelTaskManager_->SetSubThreadRenderTaskLoad(2, 3000, 3.0f);
 }
 
 } // namespace OHOS::Rosen

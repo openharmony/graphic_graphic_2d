@@ -34,12 +34,19 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    uint32_t threadNum_;
 };
 
 void RSParallelRenderManagerTest::SetUpTestCase() {}
 void RSParallelRenderManagerTest::TearDownTestCase() {}
-void RSParallelRenderManagerTest::SetUp() {}
-void RSParallelRenderManagerTest::TearDown() {}
+void RSParallelRenderManagerTest::SetUp()
+{
+    threadNum_ = RSParallelRenderManager::Instance()->GetParallelThreadNumber();
+}
+void RSParallelRenderManagerTest::TearDown()
+{
+    threadNum_ = 0;
+}
 
 /**
  * @tc.name: SetParallelModeTest
@@ -57,12 +64,11 @@ HWTEST_F(RSParallelRenderManagerTest, SetParallelModeTest, TestSize.Level1)
     status = instance->GetParallelRenderingStatus();
     ASSERT_EQ(ParallelStatus::OFF, status);
     
-    uint32_t threadNum = 3;
-    instance->StartSubRenderThread(threadNum, nullptr);
+    instance->StartSubRenderThread(threadNum_, nullptr);
     status = instance->GetParallelRenderingStatus();
     ASSERT_EQ(ParallelStatus::FIRSTFLUSH, status);
 
-    for (uint32_t i = 0; i < threadNum; i++) {
+    for (uint32_t i = 0; i < threadNum_; i++) {
         instance->ReadySubThreadNumIncrement();
     }
     status = instance->GetParallelRenderingStatus();
@@ -72,6 +78,23 @@ HWTEST_F(RSParallelRenderManagerTest, SetParallelModeTest, TestSize.Level1)
     instance->GetParallelModeSafe();
     bool mode = instance->GetParallelMode();
     ASSERT_EQ(true, mode);
+}
+
+/**
+ * @tc.name: CopyPrepareVisitorAndPackTaskTest
+ * @tc.desc: Test RSParallelRenderManagerTest.CopyPrepareVisitorAndPackTaskTest
+ * @tc.type: FUNC
+ * @tc.require: issueI69JAV
+ */
+HWTEST_F(RSParallelRenderManagerTest, CopyPrepareVisitorAndPackTaskTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    RSDisplayNodeConfig displayConfig;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
+    RSParallelRenderManager::Instance()->CopyPrepareVisitorAndPackTask(*rsUniRenderVisitor, *rsDisplayRenderNode);
+    auto taskType = RSParallelRenderManager::Instance()->GetTaskType();
+    ASSERT_EQ(taskType, TaskType::PREPARE_TASK);
 }
 
 /**
@@ -100,8 +123,46 @@ HWTEST_F(RSParallelRenderManagerTest, PackPrepareRenderTaskTest, TestSize.Level1
     auto rsSurfaceRenderNode3 = std::make_shared<RSSurfaceRenderNode>(config3, rsContext->weak_from_this());
     rsSurfaceRenderNode3->SetSrcRect(RectI(40, 40, 10, 10));
     RSParallelRenderManager::Instance()->PackRenderTask(*rsSurfaceRenderNode3, TaskType::PREPARE_TASK);
-
     RSParallelRenderManager::Instance()->CommitSurfaceNum(10);
+}
+
+/**
+ * @tc.name: CopyVisitorAndPackTaskTest
+ * @tc.desc: Test RSParallelRenderManagerTest.CopyVisitorAndPackTaskTest
+ * @tc.type: FUNC
+ * @tc.require: issueI69JAV
+ */
+HWTEST_F(RSParallelRenderManagerTest, CopyVisitorAndPackTaskTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    RSDisplayNodeConfig displayConfig;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
+
+    RSSurfaceRenderNodeConfig config1;
+    config1.id = 10;
+    auto rsSurfaceRenderNode1 = std::make_shared<RSSurfaceRenderNode>(config1, rsContext->weak_from_this());
+    rsSurfaceRenderNode1->SetSrcRect(RectI(0, 0, 10, 10));
+    RSParallelRenderManager::Instance()->PackRenderTask(*rsSurfaceRenderNode1, TaskType::PREPARE_TASK);
+
+    RSSurfaceRenderNodeConfig config2;
+    config2.id = 20;
+    auto rsSurfaceRenderNode2 = std::make_shared<RSSurfaceRenderNode>(config2, rsContext->weak_from_this());
+    rsSurfaceRenderNode2->SetSrcRect(RectI(20, 20, 10, 10));
+    RSParallelRenderManager::Instance()->PackRenderTask(*rsSurfaceRenderNode2, TaskType::PREPARE_TASK);
+
+    RSSurfaceRenderNodeConfig config3;
+    config3.id = 30;
+    auto rsSurfaceRenderNode3 = std::make_shared<RSSurfaceRenderNode>(config3, rsContext->weak_from_this());
+    rsSurfaceRenderNode3->SetSrcRect(RectI(40, 40, 10, 10));
+
+    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode1);
+    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode2);
+    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode3);
+
+    RSParallelRenderManager::Instance()->CopyVisitorAndPackTask(*rsUniRenderVisitor, *rsDisplayRenderNode);
+    auto taskType = RSParallelRenderManager::Instance()->GetTaskType();
+    ASSERT_EQ(taskType, TaskType::PROCESS_TASK);
 }
 
 /**
@@ -138,9 +199,37 @@ HWTEST_F(RSParallelRenderManagerTest, PackProcessRenderTaskTest, TestSize.Level1
     auto canvas = std::make_shared<RSPaintFilterCanvas>(&skCanvas);
     RSParallelRenderManager::Instance()->MergeRenderResult(canvas);
 
-    RSParallelRenderManager::Instance()->SetRenderTaskCost(0, 10, 2.1, TaskType::PROCESS_TASK);
-    RSParallelRenderManager::Instance()->SetRenderTaskCost(1, 20, 3.2, TaskType::PROCESS_TASK);
-    RSParallelRenderManager::Instance()->SetRenderTaskCost(2, 30, 10.1, TaskType::PROCESS_TASK);
+    RSParallelRenderManager::Instance()->SetRenderTaskCost(0, 100, 2.1, TaskType::PROCESS_TASK);
+    RSParallelRenderManager::Instance()->SetRenderTaskCost(1, 200, 3.2, TaskType::PROCESS_TASK);
+    RSParallelRenderManager::Instance()->SetRenderTaskCost(2, 300, 10.1, TaskType::PROCESS_TASK);
+}
+
+/**
+ * @tc.name: SubmitSuperTaskTest
+ * @tc.desc: Test RSParallelRenderManagerTest.SubmitSuperTaskTest
+ * @tc.type: FUNC
+ * @tc.require: issueI69JAV
+ */
+HWTEST_F(RSParallelRenderManagerTest, SubmitSuperTaskTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    RSDisplayNodeConfig displayConfig;
+    config.id = 10;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+
+    rsSurfaceRenderNode->SetSrcRect(RectI(0, 0, 10, 10));
+    rsSurfaceRenderNode->SetFreeze(false);
+    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, -1);
+    auto instance = RSParallelRenderManager::Instance();
+    auto superTask = std::make_unique<RSSuperRenderTask>(*rsDisplayRenderNode);
+    for (uint32_t i = 0; i < threadNum_; i++) {
+        instance->SubmitSuperTask(i, std::move(superTask));
+        instance->SubMainThreadNotify(i);
+        instance->WaitSubMainThread(i);
+    }
 }
 
 /**
@@ -162,6 +251,21 @@ HWTEST_F(RSParallelRenderManagerTest, SetFrameSizeTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddSelfDrawingSurfaceTest
+ * @tc.desc: Test RSParallelRenderManagerTest.AddSelfDrawingSurfaceTest
+ * @tc.type: FUNC
+ * @tc.require: issueI69JAV
+ */
+HWTEST_F(RSParallelRenderManagerTest, AddSelfDrawingSurfaceTest, TestSize.Level1)
+{
+    SkCanvas skCanvas;
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(&skCanvas);
+    auto instance = RSParallelRenderManager::Instance();
+    instance->AddSelfDrawingSurface(0, false, {0.f, 0.f, 100.f, 100.f});
+    instance->ClearSelfDrawingSurface(canvas, 0);
+}
+
+/**
  * @tc.name: SetParallelModeTest2
  * @tc.desc: Test RSParallelRenderManagerTest.SetParallelModeTest2
  * @tc.type: FUNC
@@ -169,8 +273,12 @@ HWTEST_F(RSParallelRenderManagerTest, SetFrameSizeTest, TestSize.Level1)
  */
 HWTEST_F(RSParallelRenderManagerTest, SetParallelModeTest2, TestSize.Level1)
 {
-    RSParallelRenderManager::Instance()->SetParallelMode(false);
-    bool mode = RSParallelRenderManager::Instance()->GetParallelMode();
+    auto instance = RSParallelRenderManager::Instance();
+    instance->SetParallelMode(false);
+    for (uint32_t i = 0; i < threadNum_; i++) {
+        instance->SubMainThreadWait(i);
+    }
+    bool mode = instance->GetParallelMode();
     ASSERT_EQ(false, mode);
 }
 

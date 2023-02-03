@@ -39,6 +39,7 @@ group("unittest") {
   ]
   if (rs_enable_parallel_render && rs_enable_gpu) {
     deps += [
+      ":RSParallelHardwareComposerTest",
       ":RSParallelPackVisitorTest",
       ":RSParallelRenderExtTest",
       ":RSParallelRenderManagerTest",
@@ -197,6 +198,16 @@ ohos_unittest("RSColdStartThreadTest") {
   module_out_path = module_output_path
   sources = [ "rs_cold_start_thread_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSParallelHardwareComposerTest
+ohos_unittest("RSParallelHardwareComposerTest") {
+  module_out_path = module_output_path
+  sources = [ "parallel_render/rs_parallel_hardware_composer_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [ "init:libbegetutil" ]
   defines = []
   defines += gpu_defines
 }
