@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <memory>
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "pipeline/parallel_render/rs_parallel_sub_thread.h"
@@ -43,15 +44,13 @@ void RSParallelSubThreadTest::SetUp() {}
 void RSParallelSubThreadTest::TearDown() {}
 
 /**
- * @tc.name: StartSubThreadTest
- * @tc.desc: Test RSParallelSubThreadTest.StartSubThreadDrawImageTest
+ * @tc.name: StartSubThreadPrepareTest
+ * @tc.desc: Test RSParallelSubThreadTest.StartSubThreadPrepareTest
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
-HWTEST_F(RSParallelSubThreadTest, StartSubThreadDrawImageTest, TestSize.Level1)
+HWTEST_F(RSParallelSubThreadTest, StartSubThreadPrepareTest, TestSize.Level1)
 {
-    int defaultParam = (int)RSSystemProperties::GetPrepareParallelRenderingEnabled();
-    ASSERT_EQ(defaultParam, 1);
     (void)system::SetParameter("rosen.prepareparallelrender.enabled", "0");
     int param = (int)RSSystemProperties::GetPrepareParallelRenderingEnabled();
     ASSERT_EQ(param, 0);
@@ -61,17 +60,78 @@ HWTEST_F(RSParallelSubThreadTest, StartSubThreadDrawImageTest, TestSize.Level1)
     auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(100, displayConfig, rsContext->weak_from_this());
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
 
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> rsSurfaceRenderNodeList;
+
     for (int i = 1; i <= 50; i++) {
         RSSurfaceRenderNodeConfig config;
         config.id = i;
         auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-        rsSurfaceRenderNode->SetSrcRect(RectI(0, 0, 10, 10));
+        rsSurfaceRenderNodeList.push_back(rsSurfaceRenderNode);
+        rsSurfaceRenderNode->SetSrcRect(RectI((i - 1) * 10, (i - 1) * 10, i * 10, i * 10));
         rsSurfaceRenderNode->SetFreeze(false);
         rsSurfaceRenderNode->SetSecurityLayer(true);
-        rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, -1);
+        rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, i);
     }
+    auto parallelRenderManager = RSParallelRenderManager::Instance();
+    parallelRenderManager->SetParallelMode(true);
     rsUniRenderVisitor->PrepareDisplayRenderNode(*rsDisplayRenderNode);
+    parallelRenderManager->CopyPrepareVisitorAndPackTask(*rsUniRenderVisitor, *rsDisplayRenderNode);
+    parallelRenderManager->LoadBalanceAndNotify(TaskType::PREPARE_TASK);
+    parallelRenderManager->WaitPrepareEnd(*rsUniRenderVisitor);
+    parallelRenderManager->EndSubRenderThread();
+}
+
+/**
+ * @tc.name: StartSubThreadProcessTest
+ * @tc.desc: Test RSParallelSubThreadTest.StartSubThreadProcessTest
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSParallelSubThreadTest, StartSubThreadProcessTest, TestSize.Level1)
+{
+    (void)system::SetParameter("rosen.prepareparallelrender.enabled", "0");
+    int param = (int)RSSystemProperties::GetPrepareParallelRenderingEnabled();
+    ASSERT_EQ(param, 0);
+
+    auto rsContext = std::make_shared<RSContext>();
+    RSDisplayNodeConfig displayConfig;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(100, displayConfig, rsContext->weak_from_this());
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> rsSurfaceRenderNodeList;
+
+    for (int i = 1; i <= 50; i++) {
+        RSSurfaceRenderNodeConfig config;
+        config.id = i;
+        auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+        rsSurfaceRenderNodeList.push_back(rsSurfaceRenderNode);
+        rsSurfaceRenderNode->SetSrcRect(RectI((i - 1) * 10, (i - 1) * 10, i * 10, i * 10));
+        rsSurfaceRenderNode->SetFreeze(false);
+        rsSurfaceRenderNode->SetSecurityLayer(true);
+        rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, i);
+    }
+    auto parallelRenderManager = RSParallelRenderManager::Instance();
+    parallelRenderManager->SetParallelMode(true);
     rsUniRenderVisitor->ProcessDisplayRenderNode(*rsDisplayRenderNode);
+    parallelRenderManager->SetFrameSize(2560, 1600);
+    parallelRenderManager->CopyVisitorAndPackTask(*rsUniRenderVisitor, *rsDisplayRenderNode);
+    parallelRenderManager->LoadBalanceAndNotify(TaskType::PROCESS_TASK);
+    parallelRenderManager->EndSubRenderThread();
+}
+
+/**
+ * @tc.name: StartSubThreadOtherTest
+ * @tc.desc: Test RSParallelSubThreadTest.StartSubThreadOtherTest
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSParallelSubThreadTest, StartSubThreadOtherTest, TestSize.Level1)
+{
+    auto curThread = std::make_unique<RSParallelSubThread>(0);
+    curThread->WaitReleaseFence();
+    curThread->GetSharedContext();
+    curThread->GetSkSurface();
+    curThread->GetTexture();
 }
 
 } // namespace OHOS::Rosen
