@@ -37,6 +37,9 @@ extern "C" {
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    const int UNIFORM_NAMES_MAX_LENGTH = 1000;
+}
 using namespace std;
 
 napi_value WebGL2RenderingContextBase::DrawBuffers(napi_env env, napi_callback_info info)
@@ -4314,8 +4317,7 @@ napi_value WebGL2RenderingContextBase::GetUniformIndices(napi_env env, napi_call
     LOGI("WebGL2 WebGL2RenderingContextBase::getUniformIndices programId = %{public}u", programId);
     napi_value transformFeedbackarray = funcArg[NARG_POS::SECOND];
     uint32_t uniformCount;
-    string* uniformNames;
-    string* transformFeedback = nullptr;
+    char** uniformNames = NULL;
     bool istransformFeedbackArray = false;
     tie(succ, istransformFeedbackArray) = NVal(env, transformFeedbackarray).IsArray();
     if (istransformFeedbackArray) {
@@ -4325,59 +4327,62 @@ napi_value WebGL2RenderingContextBase::GetUniformIndices(napi_env env, napi_call
             return nullptr;
         }
         LOGI("WebGL2 WebGLRenderingContextOverloads::getUniformIndices count = %{public}u", uniformCount);
-        transformFeedback = new string[uniformCount];
+        if (uniformCount <= 0 || uniformCount > UNIFORM_NAMES_MAX_LENGTH) {
+            LOGE("WebGL2 WebGLRenderingContextOverloads::getUniformIndicesuniformCount is invalid");
+            return nullptr;
+        }
+        uniformNames = (char**)malloc(uniformCount * sizeof(char*));
+        if (uniformNames == NULL) {
+            LOGE("WebGL2 WebGLRenderingContextOverloads::getUniformIndices malloc failed");
+            return nullptr;
+        }
         uint32_t i;
         for (i = 0; i < uniformCount; i++) {
             napi_value element;
             napi_status eleStatus = napi_get_element(env, transformFeedbackarray, i, &element);
             if (eleStatus != napi_ok) {
-                delete []transformFeedback;
+                free(uniformNames);
                 return nullptr;
             }
             napi_value result;
             napi_status rsuStatus = napi_coerce_to_string(env, element, &result);
             if (rsuStatus != napi_ok) {
-                delete []transformFeedback;
+                free(uniformNames);
                 return nullptr;
             }
             unique_ptr<char[]> name;
             tie(succ, name, ignore) = NVal(env, result).ToUTF8String();
             if (!succ) {
-                delete []transformFeedback;
+                free(uniformNames);
                 return nullptr;
             }
-            string str(name.get());
             LOGI("WebGL2 WebGLRenderingContextOverloads::getUniformIndices str = %{public}s", name.get());
-            transformFeedback[i] = str;
+            uniformNames[i] = name.get();
         }
-        uniformNames = transformFeedback;
     } else {
         return nullptr;
     }
-    const char** uniformNames1 = reinterpret_cast<const char**>(uniformNames);
-    LOGI("WebGL2 WebGL2RenderingContextBase::getUniformIndices uniformNames = %{public}u", uniformNames);
     LOGI("WebGL2 WebGL2RenderingContextBase::getUniformIndices uniformCount = %{public}u", uniformCount);
     GLuint* uniformIndices = new GLuint[uniformCount];
     glGetUniformIndices(static_cast<GLuint>(programId), static_cast<GLsizei>(uniformCount),
-        static_cast<const GLchar **>(uniformNames1), static_cast<GLuint *>(uniformIndices));
-    LOGI("WebGL2 WebGL2RenderingContextBase::getUniformIndices uniformIndices = %{public}d", uniformIndices);
+        const_cast<const GLchar **>(uniformNames), static_cast<GLuint *>(uniformIndices));
     napi_value ret;
     napi_create_array(env, &ret);
     for (uint32_t i = 0; i < uniformCount; i++) {
         uint32_t a = static_cast<GLuint>(uniformIndices[i]);
-        LOGI("WebGL2 WebGL2RenderingContextBase::getUniformIndices a = %{public}d", a);
+        LOGI("WebGL2 WebGL2RenderingContextBase::getUniformIndices a = %{public}u", a);
         napi_value result;
         napi_status status = napi_create_uint32(env, a, &result);
         if (status != napi_ok) {
-            delete []transformFeedback;
             delete []uniformIndices;
+            free(uniformNames);
             return nullptr;
         }
         napi_set_element(env, ret, i, result);
     }
     LOGI("WebGL2 getUniformIndices end");
-    delete []transformFeedback;
     delete []uniformIndices;
+    free(uniformNames);
     return ret;
 }
 
