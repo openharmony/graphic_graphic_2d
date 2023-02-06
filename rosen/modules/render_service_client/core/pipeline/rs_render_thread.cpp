@@ -93,14 +93,18 @@ RSRenderThread::RSRenderThread()
     mainFunc_ = [&]() {
         uint64_t renderStartTimeStamp = jankDetector_->GetSysTimeNs();
         RS_TRACE_BEGIN("RSRenderThread DrawFrame: " + std::to_string(timestamp_));
-        QuickStartFrameTrace(RT_INTERVAL_NAME);
+        if (RSSystemProperties::FrameTraceEnabled()) {
+            QuickStartFrameTrace(RT_INTERVAL_NAME);
+        }
         prevTimestamp_ = timestamp_;
         ProcessCommands();
         ROSEN_LOGD("RSRenderThread DrawFrame(%" PRIu64 ") in %s", prevTimestamp_, renderContext_ ? "GPU" : "CPU");
         Animate(prevTimestamp_);
         Render();
         SendCommands();
-        QuickEndFrameTrace(RT_INTERVAL_NAME);
+        if (RSSystemProperties::FrameTraceEnabled()) {
+            QuickEndFrameTrace(RT_INTERVAL_NAME);
+        }
         jankDetector_->CalculateSkippedFrame(renderStartTimeStamp, jankDetector_->GetSysTimeNs());
         RS_TRACE_END();
     };

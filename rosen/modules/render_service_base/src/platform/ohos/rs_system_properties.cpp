@@ -22,6 +22,12 @@
 
 namespace OHOS {
 namespace Rosen {
+
+#ifdef __aarch64__
+#define FRAME_TRACE_SO_PATH "/system/lib64/libframe_trace_intf.z.so"
+#else
+#define FRAME_TRACE_SO_PATH "/system/lib/libframe_trace_intf.z.so"
+#endif
 static void ParseDfxSurfaceNamesString(const std::string& paramsStr,
     std::vector<std::string>& splitStrs, const std::string& seperator)
 {
@@ -184,6 +190,17 @@ ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
 bool RSSystemProperties::GetColdStartThreadEnabled()
 {
     return std::atoi((system::GetParameter("rosen.coldstartthread.enabled", "1")).c_str()) != 0;
+}
+
+bool RSSystemProperties::FrameTraceEnabled()
+{
+    if (!judgeFrameTrace_) {
+        judgeFrameTrace_ = true;
+        if (access(FRAME_TRACE_SO_PATH, 0) == 0) {
+            isFrameTraceEnabled_ = true;
+        }
+    }
+    return isFrameTraceEnabled_;
 }
 } // namespace Rosen
 } // namespace OHOS
