@@ -54,6 +54,7 @@ public:
     uint32_t GetLayerId() const;
     void RecordPresentTime(int64_t timestamp);
     void Dump(std::string &result);
+    void ClearDump();
 
     sptr<SyncFence> GetReleaseFence() const;
     void SavePrevLayerInfo();
