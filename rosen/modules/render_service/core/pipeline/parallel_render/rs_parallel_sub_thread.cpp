@@ -44,9 +44,11 @@ RSParallelSubThread::RSParallelSubThread(RenderContext *context, ParallelRenderT
 
 RSParallelSubThread::~RSParallelSubThread()
 {
-    eglDestroyContext(renderContext_->GetEGLDisplay(), eglShareContext_);
-    eglShareContext_ = EGL_NO_CONTEXT;
-    eglMakeCurrent(renderContext_->GetEGLDisplay(), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    if (renderContext_ != nullptr) {
+        eglDestroyContext(renderContext_->GetEGLDisplay(), eglShareContext_);
+        eglShareContext_ = EGL_NO_CONTEXT;
+        eglMakeCurrent(renderContext_->GetEGLDisplay(), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    }
     texture_ = nullptr;
     canvas_ = nullptr;
     skSurface_ = nullptr;
@@ -88,9 +90,6 @@ void RSParallelSubThread::StartSubThread()
 void RSParallelSubThread::WaitTaskSync()
 {
     RSParallelRenderManager::Instance()->SubMainThreadWait(threadIndex_);
-    if (renderType_ == ParallelRenderType::FLUSH_ONE_BUFFER) {
-        eglMakeCurrent(renderContext_->GetEGLDisplay(), EGL_NO_SURFACE, EGL_NO_SURFACE, eglShareContext_);
-    }
 }
 
 void RSParallelSubThread::InitSubThread()
@@ -179,7 +178,9 @@ void RSParallelSubThread::Render()
         return;
     }
     int saveCount = canvas_->save();
-    canvas_->SetHighContrast(RSMainThread::Instance()->GetRenderEngine()->IsHighContrastEnabled());
+    if (RSMainThread::Instance()->GetRenderEngine()) {
+        canvas_->SetHighContrast(RSMainThread::Instance()->GetRenderEngine()->IsHighContrastEnabled());
+    }
     if (renderType_ == ParallelRenderType::DRAW_IMAGE) {
         canvas_->clear(SK_ColorTRANSPARENT);
     }
@@ -218,6 +219,10 @@ void RSParallelSubThread::Render()
 
 void RSParallelSubThread::Flush()
 {
+    if (skCanvas_ == nullptr) {
+        RS_LOGE("in Flush(), skCanvas is nullptr");
+        return;
+    }
     threadTask_ = nullptr;
     if (renderType_ == ParallelRenderType::DRAW_IMAGE) {
         RS_TRACE_BEGIN("Flush");
@@ -232,8 +237,6 @@ void RSParallelSubThread::Flush()
         RS_TRACE_END();
         texture_ = skSurface_->makeImageSnapshot();
         skCanvas_->discard();
-    } else {
-        eglMakeCurrent(renderContext_->GetEGLDisplay(), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     }
     // FIRSTFLUSH or WAITFIRSTFLUSH
     ParallelStatus parallelStatus = RSParallelRenderManager::Instance()->GetParallelRenderingStatus();
@@ -271,6 +274,10 @@ void RSParallelSubThread::CreateResource()
         surfaceWidth_ = width;
         surfaceHeight_ = height;
         AcquireSubSkSurface(surfaceWidth_, surfaceHeight_);
+        if (skSurface_ == nullptr) {
+            RS_LOGE("in CreateResource, skSurface is nullptr");
+            return;
+        }
         skCanvas_ = skSurface_->getCanvas();
         canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_);
     }
@@ -312,40 +319,8 @@ void RSParallelSubThread::AcquireSubSkSurface(int width, int height)
         return;
     }
 
-    if (renderType_ == ParallelRenderType::FLUSH_ONE_BUFFER) {
-        GrGLFramebufferInfo framebufferInfo;
-        framebufferInfo.fFBOID = 0;
-        framebufferInfo.fFormat = GL_RGBA8;
-
-        SkColorType colorType = kRGBA_8888_SkColorType;
-        constexpr uint8_t bitsPerColor = 8;
-        GrBackendRenderTarget backendRenderTarget(width, height, 0, bitsPerColor, framebufferInfo);
-        SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
-
-        sk_sp<SkColorSpace> skColorSpace = nullptr;
-
-        auto colorSpace = renderContext_->GetColorSpace();
-        skcms_TransferFunction function = SkNamedTransferFn::kSRGB;
-        switch (colorSpace) {
-            case COLOR_GAMUT_DISPLAY_P3:
-                skColorSpace = SkColorSpace::MakeRGB(function, SkNamedGamut::kDCIP3);
-                break;
-            case COLOR_GAMUT_ADOBE_RGB:
-                skColorSpace = SkColorSpace::MakeRGB(function, SkNamedGamut::kAdobeRGB);
-                break;
-            case COLOR_GAMUT_BT2020:
-                skColorSpace = SkColorSpace::MakeRGB(function, SkNamedGamut::kRec2020);
-                break;
-            default:
-                break;
-        }
-
-        skSurface_ = SkSurface::MakeFromBackendRenderTarget(
-            grContext_.get(), backendRenderTarget, kBottomLeft_GrSurfaceOrigin, colorType, skColorSpace, &surfaceProps);
-    } else {
-        auto surfaceInfo = SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-        skSurface_ = SkSurface::MakeRenderTarget(grContext_.get(), SkBudgeted::kYes, surfaceInfo);
-    }
+    auto surfaceInfo = SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    skSurface_ = SkSurface::MakeRenderTarget(grContext_.get(), SkBudgeted::kYes, surfaceInfo);
     if (skSurface_ == nullptr) {
         RS_LOGE("skSurface is not ready!!!");
         return;

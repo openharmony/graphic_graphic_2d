@@ -26,6 +26,7 @@
 #include "pipeline/rs_main_thread.h"
 #include "rs_parallel_render_ext.h"
 #include "pipeline/rs_uni_render_visitor.h"
+#include "pipeline/rs_uni_render_engine.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -330,9 +331,14 @@ bool RSParallelRenderManager::ParallelRenderExtEnabled()
 
 void RSParallelRenderManager::TryEnableParallelRendering()
 {
+    auto renderEngine = RSMainThread::Instance()->GetRenderEngine();
+    if (!renderEngine) {
+        renderEngine = std::make_shared<RSUniRenderEngine>();
+        renderEngine->Init();
+    }
     if (parallelMode_) {
         StartSubRenderThread(PARALLEL_THREAD_NUM,
-            RSMainThread::Instance()->GetRenderEngine()->GetRenderContext().get());
+            renderEngine->GetRenderContext().get());
     } else {
         EndSubRenderThread();
     }
