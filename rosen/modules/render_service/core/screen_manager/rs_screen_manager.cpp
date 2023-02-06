@@ -794,6 +794,16 @@ void RSScreenManager::FpsDump(std::string& dumpString, std::string& arg)
     }
 }
 
+void RSScreenManager::ClearFpsDump(std::string& dumpString, std::string& arg)
+{
+    int32_t index = 0;
+    dumpString += "\n-- Clear fps records info of screens:\n";
+    for (const auto &[id, screen] : screens_) {
+        screen->ClearFpsDump(index, dumpString, arg);
+        index++;
+    }
+}
+
 int32_t RSScreenManager::GetScreenSupportedColorGamutsLocked(ScreenId id, std::vector<ScreenColorGamut>& mode) const
 {
     if (screens_.count(id) == 0) {

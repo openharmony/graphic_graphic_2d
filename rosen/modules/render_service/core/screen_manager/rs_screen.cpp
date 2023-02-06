@@ -445,6 +445,15 @@ void RSScreen::FpsDump(int32_t screenIndex, std::string& dumpString, std::string
     hdiOutput_->DumpFps(dumpString, arg);
 }
 
+void RSScreen::ClearFpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg)
+{
+    if (hdiOutput_ == nullptr) {
+        RS_LOGW("RSScreen %s: hdiOutput_ is nullptr.", __func__);
+        return;
+    }
+    hdiOutput_->ClearFpsDump(dumpString, arg);
+}
+
 void RSScreen::SetScreenBacklight(uint32_t level)
 {
     if (IsVirtual()) {

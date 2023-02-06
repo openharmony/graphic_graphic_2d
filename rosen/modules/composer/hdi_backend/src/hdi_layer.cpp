@@ -543,5 +543,9 @@ void HdiLayer::Dump(std::string &result)
     }
 }
 
+void HdiLayer::ClearDump()
+{
+    presentTimeRecords.fill(0);
+}
 } // namespace Rosen
 } // namespace OHOS
