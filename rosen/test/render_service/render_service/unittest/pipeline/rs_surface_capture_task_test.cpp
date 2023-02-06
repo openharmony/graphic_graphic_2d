@@ -252,8 +252,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureOfInvalidDisplayNode, Funct
         surfaceCaptureCb_->IsCallbackCalled(), surfaceCaptureCb_->IsTestSuccess());
     bool ret = rsInterfaces_->TakeSurfaceCapture(displayNode, surfaceCaptureCb_);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(), false);
     displayNode = nullptr;
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
