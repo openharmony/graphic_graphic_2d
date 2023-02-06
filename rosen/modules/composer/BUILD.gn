@@ -48,6 +48,7 @@ ohos_shared_library("libcomposer") {
   ]
 
   include_dirs = [
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/utils/log",
     "//foundation/resourceschedule/frame_aware_sched/interfaces/innerkits/frameintf",
   ]
@@ -66,6 +67,7 @@ ohos_shared_library("libcomposer") {
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/resourceschedule/frame_aware_sched/interfaces/innerkits/frameintf:frame_trace_intf",
   ]
 

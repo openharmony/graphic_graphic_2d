@@ -47,6 +47,7 @@
 #include "xcollie/watchdog.h"
 
 #include "frame_trace.h"
+
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
 
@@ -144,7 +145,9 @@ void RSMainThread::Init()
     mainLoop_ = [&]() {
         RS_LOGD("RsDebug mainLoop start");
         PerfMultiWindow();
-        QuickStartFrameTrace(RS_INTERVAL_NAME);
+        if (RSSystemProperties::FrameTraceEnabled()) {
+            QuickStartFrameTrace(RS_INTERVAL_NAME);
+        }
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
         ConsumeAndUpdateAllNodes();

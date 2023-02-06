@@ -15,6 +15,7 @@
 
 #include "frame_trace.h"
 #include "hdi_device.h"
+#include "platform/common/rs_system_properties.h"
 
 #include <mutex>
 
@@ -326,7 +327,9 @@ int32_t HdiDevice::GetSupportedMetaDataKey(uint32_t screenId, std::vector<HDRMet
 
 int32_t HdiDevice::Commit(uint32_t screenId, sptr<SyncFence> &fence)
 {
-    QuickEndFrameTrace(RS_INTERVAL_NAME);
+    if (RSSystemProperties::FrameTraceEnabled()) {
+        QuickEndFrameTrace(RS_INTERVAL_NAME);
+    }
     ScopedBytrace bytrace(__func__);
     CHECK_FUNC(deviceFuncs_, deviceFuncs_->Commit);
 
