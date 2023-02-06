@@ -48,7 +48,7 @@ constexpr int32_t FRAME_TRACE_PERF_REQUESTED_CODE = 10024;
 #ifdef FRAME_AWARE_TRACE
 bool RSProcessor::FrameAwareTraceBoost(size_t layerNum)
 {
-    if (layerNum != FRAME_TRACE_LAYER_NUM_! && layerNum != FRAME_TRACE_LAYER_NUM_2) {
+    if (layerNum != FRAME_TRACE_LAYER_NUM_1 && layerNum != FRAME_TRACE_LAYER_NUM_2) {
         if (FrameAwareTraceIsOpen()) {
             FrameAwareTraceClose();
             OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(FRAME_TRACE_PERF_REQUESTED_CODE, false, "");
