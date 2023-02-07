@@ -22,8 +22,7 @@
 #include <include/core/SkImage.h>
 #include <include/codec/SkCodec.h>
 
-#include <display_type.h>
-#include <display_manager.h>
+#include <display.h>
 #include <foundation/windowmanager/interfaces/innerkits/wm/window_manager.h>
 #include <ipc_skeleton.h>
 #include <iremote_broker.h>
@@ -37,16 +36,18 @@
 #include <window.h>
 #include <window_option.h>
 #include <window_scene.h>
+#include "event_handler.h"
 #include "player.h"
 #include "vsync_receiver.h"
 
 namespace OHOS {
 class BootAnimation {
 public:
-    void Init(int32_t width, int32_t height, const std::shared_ptr<AppExecFwk::EventHandler>& handler);
+    void Init(int32_t width, int32_t height);
     void Draw();
     void CheckExitAnimation();
     void PlaySound();
+    void Run(std::vector<sptr<OHOS::Rosen::Display>>& displays);
 private:
     void OnDraw(SkCanvas* canvas);
     void InitBootWindow();
@@ -70,6 +71,8 @@ private:
     bool needCheckExit = false;
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver_ = nullptr;
     std::shared_ptr<Media::Player> soundPlayer_ = nullptr;
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainHandler_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
 };
 } // namespace OHOS
 
