@@ -57,6 +57,8 @@ public:
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
     GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
 
+    bool QueryIfBufferAvailable() override;
+
     uint32_t GetQueueSize() override;
     GSError SetQueueSize(uint32_t queueSize) override;
 

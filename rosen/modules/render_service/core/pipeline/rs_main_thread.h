@@ -125,6 +125,9 @@ public:
     void WaitUtilUniRenderFinished();
     void NotifyUniRenderFinish();
 
+    void WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node);
+    void NotifyDisplayNodeBufferReleased();
+
     void ClearTransactionDataPidInfo(pid_t remotePid);
     void AddTransactionDataPidInfo(pid_t remotePid);
 
@@ -220,6 +223,11 @@ private:
     mutable std::mutex uniRenderMutex_;
     bool uniRenderFinished_ = false;
     std::condition_variable uniRenderCond_;
+    // used for blocking mainThread before displayNode has no freed buffer to request
+    mutable std::mutex displayNodeBufferReleasedMutex_;
+    bool displayNodeBufferReleased_ = false;
+    // used for stalling mainThread before displayNode has no freed buffer to request
+    std::condition_variable displayNodeBufferReleasedCond_;
     std::map<uint32_t, bool> lastPidVisMap_;
     VisibleData lastVisVec_;
     bool qosPidCal_ = false;

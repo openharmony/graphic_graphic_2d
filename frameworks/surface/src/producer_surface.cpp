@@ -195,6 +195,11 @@ GSError ProducerSurface::DetachBuffer(sptr<SurfaceBuffer>& buffer)
     return producer_->DetachBuffer(buffer);
 }
 
+bool ProducerSurface::QueryIfBufferAvailable()
+{
+    return false;
+}
+
 uint32_t ProducerSurface::GetQueueSize()
 {
     return producer_->GetQueueSize();

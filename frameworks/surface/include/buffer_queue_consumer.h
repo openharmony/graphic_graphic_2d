@@ -37,6 +37,8 @@ public:
 
     GSError DetachBuffer(sptr<SurfaceBuffer>& buffer);
 
+    bool QueryIfBufferAvailable();
+
     GSError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener);
     GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener);
     GSError RegisterReleaseListener(OnReleaseFunc func);

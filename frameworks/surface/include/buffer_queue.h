@@ -83,6 +83,8 @@ public:
 
     GSError DetachBuffer(sptr<SurfaceBuffer>& buffer);
 
+    bool QueryIfBufferAvailable();
+
     uint32_t GetQueueSize();
     GSError SetQueueSize(uint32_t queueSize);
 

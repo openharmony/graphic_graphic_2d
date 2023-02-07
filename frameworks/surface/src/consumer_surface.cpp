@@ -138,6 +138,11 @@ GSError ConsumerSurface::DetachBuffer(sptr<SurfaceBuffer>& buffer)
     return consumer_->DetachBuffer(buffer);
 }
 
+bool ConsumerSurface::QueryIfBufferAvailable()
+{
+    return consumer_->QueryIfBufferAvailable();
+}
+
 uint32_t ConsumerSurface::GetQueueSize()
 {
     return producer_->GetQueueSize();

@@ -116,6 +116,7 @@ void RSHardwareThread::ReleaseLayers(OutputPtr output, const std::unordered_map<
         auto consumer = layer->GetSurface();
         ReleaseBuffer(preBuffer, fence, consumer);
     }
+    RSMainThread::Instance()->NotifyDisplayNodeBufferReleased();
 }
 
 void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vector<LayerInfoPtr>& layers)
@@ -126,10 +127,12 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     }
     RSTaskMessage::RSTask task = [this, output = output, layers = layers]() {
         RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers");
+        RS_LOGI("RSHardwareThread::CommitAndReleaseLayers start");
         output->SetLayerInfo(layers);
         hdiBackend_->Repaint(output);
         auto layerMap = output->GetLayers();
         ReleaseLayers(output, layerMap);
+        RS_LOGI("RSHardwareThread::CommitAndReleaseLayers end");
     };
     PostTask(task);
 }

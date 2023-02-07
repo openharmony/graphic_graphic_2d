@@ -175,6 +175,13 @@ GSError BufferQueue::CheckFlushConfig(const BufferFlushConfig &config)
     return GSERROR_OK;
 }
 
+bool BufferQueue::QueryIfBufferAvailable()
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    bool ret = !freeList_.empty() || (GetUsedSize() < GetQueueSize());
+    return ret;
+}
+
 GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
     struct IBufferProducer::RequestBufferReturnValue &retval)
 {

@@ -61,6 +61,14 @@ GSError BufferQueueConsumer::DetachBuffer(sptr<SurfaceBuffer>& buffer)
     return bufferQueue_->DetachBuffer(buffer);
 }
 
+bool BufferQueueConsumer::QueryIfBufferAvailable()
+{
+    if (bufferQueue_ == nullptr) {
+        return false;
+    }
+    return bufferQueue_->QueryIfBufferAvailable();
+}
+
 GSError BufferQueueConsumer::RegisterConsumerListener(sptr<IBufferConsumerListener>& listener)
 {
     if (bufferQueue_ == nullptr) {

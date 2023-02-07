@@ -792,6 +792,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RS_TRACE_BEGIN("RSUniRender:RequestFrame");
         auto renderFrame = renderEngine_->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
             RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, true));
+        RS_TRACE_BEGIN("RSUniRender::wait for bufferRequest cond");
+        RSMainThread::Instance()->WaitUntilDisplayNodeBufferReleased(node);
+        RS_TRACE_END();
         RS_TRACE_END();
         if (renderFrame == nullptr) {
             RS_LOGE("RSUniRenderVisitor Request Frame Failed");
