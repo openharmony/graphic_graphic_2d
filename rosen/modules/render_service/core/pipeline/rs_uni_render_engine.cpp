@@ -44,9 +44,15 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             continue;
         }
         auto saveCount = canvas.getSaveCount();
+        canvas.save();
+        auto dstRect = layer->GetLayerSize();
+        SkRect clipRect = SkRect::MakeXYWH(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
+            static_cast<float>(dstRect.w), static_cast<float>(dstRect.h));
+        canvas.clipRect(clipRect);
         // prepare BufferDrawParam
         auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
         DrawHdiLayerWithParams(canvas, layer, params);
+        canvas.restore();
         canvas.restoreToCount(saveCount);
     }
 }

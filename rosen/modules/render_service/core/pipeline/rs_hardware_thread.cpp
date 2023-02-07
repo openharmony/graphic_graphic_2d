@@ -188,8 +188,16 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             continue;
         }
         auto saveCount = canvas->getSaveCount();
+
+        canvas->save();
+        auto dstRect = layer->GetLayerSize();
+        SkRect clipRect = SkRect::MakeXYWH(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
+            static_cast<float>(dstRect.w), static_cast<float>(dstRect.h));
+        canvas->clipRect(clipRect);
+
         // prepare BufferDrawParam
         auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
+        canvas->concat(params.matrix);
 #ifndef RS_ENABLE_EGLIMAGE
         uniRenderEngine_->DrawBuffer(*canvas, params);
 #else
@@ -231,6 +239,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             uniRenderEngine_->DrawBuffer(*canvas, params);
         }
 #endif
+        canvas->restore();
         canvas->restoreToCount(saveCount);
     }
     renderFrame->Flush();
