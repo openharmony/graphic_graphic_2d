@@ -291,6 +291,9 @@ void RSBaseRenderNode::DumpTree(int32_t depth, std::string& out) const
     if (GetType() == RSRenderNodeType::ROOT_NODE) {
         auto rootNode = static_cast<const RSRootRenderNode*>(this);
         out += ", Visible: " + std::to_string(rootNode->GetRenderProperties().GetVisible());
+        out += ", Size: [" + std::to_string(rootNode->GetRenderProperties().GetFrameWidth()) + ", " +
+            std::to_string(rootNode->GetRenderProperties().GetFrameHeight()) + "]";
+        out += ", EnableRender: " + std::to_string(rootNode->GetEnableRender());
     }
     out += "\n";
 

@@ -181,7 +181,7 @@ void RSColdStartThread::PostPlayBackTask(std::shared_ptr<DrawCmdList> drawCmdLis
         }
 
         RS_LOGD("RSColdStartThread::PostPlayBackTask drawCmdList Playback");
-        RS_TRACE_NAME_FMT("RSColdStartThread Playback");
+        RS_TRACE_NAME_FMT("RSColdStartThread Playback:%s", node->GetName().c_str());
         auto canvas = skSurface_->getCanvas();
         canvas->clear(SK_ColorTRANSPARENT);
         drawCmdList->Playback(*canvas);
@@ -218,6 +218,8 @@ void RSColdStartThread::PostPlayBackTask(std::shared_ptr<DrawCmdList> drawCmdLis
         });
     };
     if (handler_->IsIdle()) {
+        auto node = surfaceNode_.lock();
+        RS_TRACE_NAME_FMT("PostPlayBackTask:%s", node ? node->GetName().c_str() : "nullptr");
         handler_->PostTask(task, PLAYBACK_TASK_NAME, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
