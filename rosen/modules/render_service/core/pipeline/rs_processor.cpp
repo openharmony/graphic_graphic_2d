@@ -39,7 +39,8 @@ constexpr int64_t PERF_TIME_OUT = 950;
 constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
 constexpr uint32_t PERF_LAYER_START_NUM = 7;
 #ifdef FRAME_AWARE_TRACE
-constexpr uint32_t FRAME_TRACE_LAYER_NUM = 11;
+constexpr uint32_t FRAME_TRACE_LAYER_NUM_1 = 11;
+constexpr uint32_t FRAME_TRACE_LAYER_NUM_2 = 13;
 constexpr int32_t FRAME_TRACE_PERF_REQUESTED_CODE = 10024;
 #endif
 }
@@ -47,7 +48,7 @@ constexpr int32_t FRAME_TRACE_PERF_REQUESTED_CODE = 10024;
 #ifdef FRAME_AWARE_TRACE
 bool RSProcessor::FrameAwareTraceBoost(size_t layerNum)
 {
-    if (layerNum != FRAME_TRACE_LAYER_NUM) {
+    if (layerNum != FRAME_TRACE_LAYER_NUM_1 && layerNum != FRAME_TRACE_LAYER_NUM_2) {
         if (FrameAwareTraceIsOpen()) {
             FrameAwareTraceClose();
             OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(FRAME_TRACE_PERF_REQUESTED_CODE, false, "");
