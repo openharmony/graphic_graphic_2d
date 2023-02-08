@@ -102,29 +102,6 @@ int main()
     rsUiDirector->SendMessages();
     sleep(1);
 
-    // std::cout << "rs app demo stage 4 " << std::endl;
-    // resizeH = 112;
-    // window->Resize(2560, resizeH);
-    // rootNode->SetBounds(0, 0, 2560, resizeH);
-    // rootNode->SetBackgroundColor(SK_ColorYELLOW);
-    // rsUiDirector->SendMessages();
-    // sleep(4);
-
-    // std::cout << "rs app demo stage 5 " << std::endl;
-    // rootNode->SetBackgroundColor(SK_ColorBLUE);
-    // rsUiDirector->SendMessages();
-    // sleep(1);
-
-    // std::cout << "rs app demo stage 5 " << std::endl;
-    // rootNode->SetBackgroundColor(SK_ColorYELLOW);
-    // rsUiDirector->SendMessages();
-    // sleep(1);
-    
-    // std::cout << "rs app demo stage 5 " << std::endl;
-    // rootNode->SetBackgroundColor(SK_ColorBLUE);
-    // rsUiDirector->SendMessages();
-    // sleep(1);
-
     std::cout << "rs app demo start dump test --> " << std::endl;
     rootNode->SetRotation(20.f);
     rootNode->SetAlpha(0.5f);
