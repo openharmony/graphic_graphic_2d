@@ -95,11 +95,6 @@ int main()
 {
     std::cout << "rs app demo start!" << std::endl;
 
-    // rc_ = RenderContextFactory::GetInstance().CreateEngine();
-    // if (rc_) {
-    //     rc_->InitializeEglContext();
-    // }
-
     sptr<WindowOption> option = new WindowOption();
     option->SetWindowType(WindowType::WINDOW_TYPE_APP_MAIN_WINDOW);
     option->SetWindowRect({0, 0, 2560, 112});
