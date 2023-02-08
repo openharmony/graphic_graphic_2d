@@ -70,32 +70,37 @@ RSColdStartThread::~RSColdStartThread()
 
 void RSColdStartThread::Stop()
 {
-    if (!isRunning_.load()) {
+    if (!isRunning_.load() || handler_ == nullptr) {
         return;
     }
+    if (!handler_->IsIdle()) {
+        RS_LOGD("RSColdStartThread::Stop handler not idle, delay stop");
+        RSMainThread::Instance()->RequestNextVSync();
+        return;
+    }
+
     RS_LOGD("RSColdStartThread::Stop");
     RS_TRACE_NAME_FMT("RSColdStartThread::Stop");
     isRunning_.store(false);
-    if (handler_ != nullptr) {
-        handler_->PostSyncTask([this]() {
-            RS_TRACE_NAME_FMT("RSColdStartThread abandonContext"); // abandonContext here to avoid crash
-            RS_LOGD("RSColdStartThread releaseResourcesAndAbandonContext");
-            {
-                std::lock_guard<std::mutex> lock(imageMutex_);
-                while (!images_.empty()) {
-                    images_.pop();
-                }
+    handler_->PostSyncTask([this]() {
+        RS_TRACE_NAME_FMT("RSColdStartThread abandonContext"); // abandonContext here to avoid crash
+        RS_LOGD("RSColdStartThread releaseResourcesAndAbandonContext");
+        {
+            std::lock_guard<std::mutex> lock(imageMutex_);
+            while (!images_.empty()) {
+                images_.pop();
             }
-            if (grContext_ != nullptr) {
-                grContext_->releaseResourcesAndAbandonContext();
-                grContext_ = nullptr;
-            }
-            skSurface_ = nullptr;
+        }
+        if (grContext_ != nullptr) {
+            grContext_->releaseResourcesAndAbandonContext();
+            grContext_ = nullptr;
+        }
+        skSurface_ = nullptr;
 #ifdef RS_ENABLE_GL
-            context_ = nullptr;
+        context_ = nullptr;
 #endif
-        }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-    }
+    }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+
     RS_TRACE_NAME_FMT("RSColdStartThread runner stop");
     RS_LOGD("RSColdStartThread runner stop");
     if (runner_ != nullptr) {
