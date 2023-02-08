@@ -57,13 +57,8 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
         auto iter = surfaceIdMap_.find(surfaceId);
         if (iter != surfaceIdMap_.end()) {
             const LayerPtr &layer = iter->second;
-            const LayerInfoPtr &info = layer->GetLayerInfo();
-            if (info->GetLayerSize().w == layerInfo->GetLayerSize().w &&
-                info->GetLayerSize().h == layerInfo->GetLayerSize().h)
-            {
-                layer->UpdateLayerInfo(layerInfo);
-                continue;
-            }
+            layer->UpdateLayerInfo(layerInfo);
+            continue;
         }
 
         int32_t ret = CreateLayer(surfaceId, layerInfo);
