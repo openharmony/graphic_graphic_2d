@@ -193,7 +193,7 @@ void HelloDrawing::DoDrawData(void *image, uint32_t width, uint32_t height)
     Canvas canvas;
     canvas.Bind(bitmap);
     canvas.Clear(Color::COLOR_WHITE);
-    
+
     TestDrawImage(canvas, width, height);
     constexpr uint32_t stride = 4;
     int32_t addrSize = width * height * stride;
