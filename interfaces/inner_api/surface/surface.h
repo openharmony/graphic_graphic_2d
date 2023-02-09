@@ -59,8 +59,6 @@ public:
 
     virtual GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
 
-    virtual bool QueryIfBufferAvailable() = 0;
-
     virtual uint32_t GetQueueSize() = 0;
     virtual GSError SetQueueSize(uint32_t queueSize) = 0;
 
@@ -116,6 +114,8 @@ public:
     virtual GSError SetDefaultColorGamut(int32_t colorGamut) = 0;
 
     virtual sptr<NativeSurface> GetNativeSurface() = 0;
+
+    virtual bool QueryIfBufferAvailable() = 0;
 
 protected:
     Surface() = default;
