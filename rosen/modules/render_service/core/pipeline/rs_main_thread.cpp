@@ -66,6 +66,7 @@ constexpr int32_t PERF_ANIMATION_REQUESTED_CODE = 10017;
 constexpr int32_t PERF_MULTI_WINDOW_REQUESTED_CODE = 10026;
 constexpr uint64_t PERF_PERIOD = 250000000;
 constexpr uint64_t CLEAN_CACHE_FREQ = 60;
+constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint64_t PERF_PERIOD_BLUR = 80000000;
 constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
@@ -342,6 +343,16 @@ void RSMainThread::ProcessCommandForUniRender()
                 } else {
                     RS_LOGE("RSMainThread::ProcessCommandForUniRender wait curIndex:%llu, lastIndex:%llu, pid:%d",
                         curIndex, lastIndex, pid);
+                    if (transactionDataLastWaitTime_[pid] == 0) {
+                        transactionDataLastWaitTime_[pid] = timestamp_;
+                    }
+                    if ((timestamp_ - transactionDataLastWaitTime_[pid]) / REFRESH_PERIOD > SKIP_COMMAND_FREQ_LIMIT) {
+                        transactionDataLastWaitTime_[pid] = 0;
+                        lastIndex = curIndex;
+                        transactionFlags += ", skip to[" + std::to_string(pid) + ", " + std::to_string(curIndex) + "]";
+                        RS_LOGE("RSMainThread::ProcessCommandForUniRender skip to index:%llu, pid:%d", curIndex, pid);
+                        continue;
+                    }
                     break;
                 }
             }
@@ -1107,6 +1118,7 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         RS_LOGD("RSMainThread::ClearTransactionDataPidInfo process:%d destroyed, skip commands", remotePid);
     }
     effectiveTransactionDataIndexMap_.erase(remotePid);
+    transactionDataLastWaitTime_.erase(remotePid);
 
     // clear cpu cache when process exit
     // CLEAN_CACHE_FREQ to prevent multiple cleanups in a short period of time
