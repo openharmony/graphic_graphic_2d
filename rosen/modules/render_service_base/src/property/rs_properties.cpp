@@ -958,7 +958,11 @@ RectI RSProperties::GetDirtyRect() const
     if (overlayRect_ == nullptr || overlayRect_->IsEmpty()) {
         return dirtyRect;
     } else {
-        return dirtyRect.JoinRect(boundsGeometry->MapAbsRect(overlayRect_->ConvertTo<float>()));
+        auto overlayRect = boundsGeometry->MapAbsRect(overlayRect_->ConvertTo<float>());
+        // this is used to fix the scene with overlayRect problem, which is need to be optimized
+        overlayRect.SetAll(overlayRect.left_ - 1, overlayRect.top_ - 1,
+            overlayRect.width_ + 1, overlayRect.height_ + 1);
+        return dirtyRect.JoinRect(overlayRect);
     }
 #else
     return RectI();
