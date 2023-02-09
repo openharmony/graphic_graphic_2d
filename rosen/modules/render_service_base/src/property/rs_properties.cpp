@@ -960,6 +960,8 @@ RectI RSProperties::GetDirtyRect() const
     } else {
         auto overlayRect = boundsGeometry->MapAbsRect(overlayRect_->ConvertTo<float>());
         // this is used to fix the scene with overlayRect problem, which is need to be optimized
+        overlayRect.SetRight(overlayRect.GetRight() + 1);
+        overlayRect.SetBottom(overlayRect.GetBottom() + 1);
         overlayRect.SetAll(overlayRect.left_ - 1, overlayRect.top_ - 1,
             overlayRect.width_ + 1, overlayRect.height_ + 1);
         return dirtyRect.JoinRect(overlayRect);
