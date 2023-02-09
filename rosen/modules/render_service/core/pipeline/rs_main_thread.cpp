@@ -60,6 +60,7 @@ using namespace OHOS::AccessibilityConfig;
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr uint32_t RUQUEST_VSYNC_NUMBER_LIMIT = 10;
 constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr int32_t PERF_ANIMATION_REQUESTED_CODE = 10017;
 constexpr int32_t PERF_MULTI_WINDOW_REQUESTED_CODE = 10026;
@@ -824,6 +825,10 @@ void RSMainThread::RequestNextVSync()
         .callback_ = [this](uint64_t timestamp, void* data) { OnVsync(timestamp, data); },
     };
     if (receiver_ != nullptr) {
+        requestNextVsyncNum_++;
+        if (requestNextVsyncNum_ > RUQUEST_VSYNC_NUMBER_LIMIT) {
+            RS_LOGW("RSMainThread::RequestNextVSync too many times:%d", requestNextVsyncNum_);
+        }
         receiver_->RequestNextVSync(fcb);
     }
 }
@@ -832,6 +837,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::OnVsync");
     timestamp_ = timestamp;
+    requestNextVsyncNum_ = 0;
     if (isUniRender_) {
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
         RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
