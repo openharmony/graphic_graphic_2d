@@ -169,8 +169,10 @@ void RSProcessor::CalculateMirrorAdaptiveCoefficient(float curWidth, float curHe
 void RSProcessor::MultiLayersPerf(size_t layerNum)
 {
 #ifdef FRAME_AWARE_TRACE
-    if (FrameAwareTraceBoost(layerNum)) {
-        return;
+    if (RSSystemProperties::FrameTraceEnabled()) {
+        if (FrameAwareTraceBoost(layerNum)) {
+            return;
+        }
     }
 #endif
     static uint32_t lastLayerLevel = 0;

@@ -86,6 +86,7 @@ public:
     static bool GetDrawTextAsBitmap();
 
     static bool GetColdStartThreadEnabled();
+    static bool FrameTraceEnabled();
 
 private:
     RSSystemProperties() = default;
@@ -93,6 +94,8 @@ private:
     static inline bool isUniRenderEnabled_ = false;
     static inline std::atomic_bool isUniRenderMode_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
+    static inline bool judgeFrameTrace_ = false;
+    static inline bool isFrameTraceEnabled_ = false;
 };
 
 } // namespace Rosen
