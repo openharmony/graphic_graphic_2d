@@ -31,7 +31,7 @@ typedef VkFlags VkSwapchainImageUsageFlagsOpenHarmony;
 typedef enum VkSwapchainImageUsageFlagBitsOpenHarmony {
     VK_SWAPCHAIN_IMAGE_USAGE_SHARED_BIT_OPENHARMONY = 0x00000001,
     VK_SWAPCHAIN_IMAGE_USAGE_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF
-} VkSwapchainImageUsageFlagBitsOHOS;
+} VkSwapchainImageUsageFlagBitsOpenHarmony;
 
 typedef struct {
     VkStructureType                   sType;

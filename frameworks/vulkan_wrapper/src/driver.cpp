@@ -96,6 +96,14 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* pName)
         return nullptr;
     }
 
+    if (std::strcmp(pName, "vkEnumerateInstanceExtensionProperties") == 0) {
+        return reinterpret_cast<PFN_vkVoidFunction>(vulkan::driver::EnumerateInstanceExtensionProperties);
+    }
+
+    if (std::strcmp(pName, "vkCreateInstance") == 0) {
+        return reinterpret_cast<PFN_vkVoidFunction>(vulkan::driver::CreateInstance);
+    }
+
     if (std::strcmp(pName, "vkCreateOHOSSurfaceOpenHarmony") == 0) {
         return reinterpret_cast<PFN_vkVoidFunction>(vulkan::driver::CreateOHOSSurfaceOpenHarmony);
     }

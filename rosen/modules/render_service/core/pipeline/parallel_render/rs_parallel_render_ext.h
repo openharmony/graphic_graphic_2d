@@ -28,6 +28,9 @@ public:
 
     static bool OpenParallelRenderExt()
     {
+        if (parallelRenderExtHandle_) {
+            return true;
+        }
         parallelRenderExtHandle_ = dlopen("libparallel_render.z.so", RTLD_NOW);
         if (parallelRenderExtHandle_ == nullptr) {
             return false;

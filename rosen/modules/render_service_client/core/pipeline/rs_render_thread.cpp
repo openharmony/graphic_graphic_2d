@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -93,14 +93,18 @@ RSRenderThread::RSRenderThread()
     mainFunc_ = [&]() {
         uint64_t renderStartTimeStamp = jankDetector_->GetSysTimeNs();
         RS_TRACE_BEGIN("RSRenderThread DrawFrame: " + std::to_string(timestamp_));
-        QuickStartFrameTrace(RT_INTERVAL_NAME);
+        if (RSSystemProperties::FrameTraceEnabled()) {
+            QuickStartFrameTrace(RT_INTERVAL_NAME);
+        }
         prevTimestamp_ = timestamp_;
         ProcessCommands();
         ROSEN_LOGD("RSRenderThread DrawFrame(%" PRIu64 ") in %s", prevTimestamp_, renderContext_ ? "GPU" : "CPU");
         Animate(prevTimestamp_);
         Render();
         SendCommands();
-        QuickEndFrameTrace(RT_INTERVAL_NAME);
+        if (RSSystemProperties::FrameTraceEnabled()) {
+            QuickEndFrameTrace(RT_INTERVAL_NAME);
+        }
         jankDetector_->CalculateSkippedFrame(renderStartTimeStamp, jankDetector_->GetSysTimeNs());
         RS_TRACE_END();
     };
@@ -348,7 +352,7 @@ void RSRenderThread::Animate(uint64_t timestamp)
 
     bool needRequestNextVsync = false;
     // iterate and animate all animating nodes, remove if animation finished
-    std::__libcpp_erase_if_container(context_->animatingNodeList_,
+    EraseIf(context_->animatingNodeList_,
         [timestamp, &needRequestNextVsync](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {

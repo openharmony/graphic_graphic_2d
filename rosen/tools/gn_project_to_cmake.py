@@ -115,7 +115,6 @@ class CMakeCreator(object):
     def project_cpp_srcs(self):
         ret = set()
         for x in self.project_json.targets:
-            #print(x.cpp_src_files)
             for f in x.cpp_src_files:
                 f = os.path.join(self.project_root_dir, f)
                 if os.path.isfile(f):

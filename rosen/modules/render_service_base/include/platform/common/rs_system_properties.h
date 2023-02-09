@@ -96,12 +96,14 @@ public:
     static ParallelRenderingType GetParallelRenderingEnabled();
 
     static bool GetColdStartThreadEnabled();
-
+    static bool FrameTraceEnabled();
 private:
     RSSystemProperties() = default;
 
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
+    static inline bool judgeFrameTrace_ = false;
+    static inline bool isFrameTraceEnabled_ = false;
 };
 
 } // namespace Rosen

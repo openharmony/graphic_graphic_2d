@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <sys/resource.h>
 #include <sys/ioctl.h>
 #include "GLES3/gl3.h"
@@ -67,16 +68,20 @@ void RSParallelSubThread::MainLoop()
         // parallel rendering will be enable when the windows number is greater than 50
         RSParallelRenderManager::Instance()->CommitSurfaceNum(50);
         if (RSParallelRenderManager::Instance()->GetTaskType() == TaskType::PREPARE_TASK) {
+            RS_TRACE_BEGIN("SubThreadCostPrepare[" + std::to_string(threadIndex_) + "]");
             StartPrepare();
             Prepare();
             RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
+            RS_TRACE_END();
         } else {
+            RS_TRACE_BEGIN("SubThreadCostProcess[" + std::to_string(threadIndex_) + "]");
             StartRender();
             Render();
             ParallelStatus status = RSParallelRenderManager::Instance()->GetParallelRenderingStatus();
             if (status == ParallelStatus::FIRSTFLUSH || status == ParallelStatus::WAITFIRSTFLUSH) {
                 RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
             }
+            RS_TRACE_END();
             Flush();
         }
     }
