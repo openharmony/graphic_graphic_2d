@@ -35,11 +35,6 @@ int main(int argc, const char *argv[])
     }
 
     BootAnimation bootAnimation;
-    auto runner = AppExecFwk::EventRunner::Create(false);
-    auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
-    handler->PostTask(std::bind(&BootAnimation::Init, &bootAnimation,
-                                displays[0]->GetWidth(), displays[0]->GetHeight(), handler));
-    handler->PostTask(std::bind(&BootAnimation::PlaySound, &bootAnimation));
-    runner->Run();
+    bootAnimation.Run(displays);
     return 0;
 }
