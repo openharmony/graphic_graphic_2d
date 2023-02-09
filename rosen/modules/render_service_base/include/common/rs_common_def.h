@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -139,6 +139,23 @@ inline constexpr pid_t ExtractPid(uint64_t id)
     // extract high 32 bits of nodeid/animationId/propertyId as pid
     return static_cast<pid_t>(id >> 32);
 }
+
+template<class Container, class Predicate>
+inline typename Container::size_type EraseIf(Container& container, Predicate pred)
+{
+    // erase from container if pred returns true, backport of c++20 std::remove_if
+    typename Container::size_type oldSize = container.size();
+    const typename Container::iterator end = container.end();
+    for (typename Container::iterator iter = container.begin(); iter != end;) {
+        if (pred(*iter)) {
+            iter = container.erase(iter);
+        } else {
+            ++iter;
+        }
+    }
+    return oldSize - container.size();
+}
+
 } // namespace Rosen
 } // namespace OHOS
 #endif // RENDER_SERVICE_CLIENT_CORE_COMMON_RS_COMMON_DEF_H
