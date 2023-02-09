@@ -170,6 +170,7 @@ private:
     bool isOpaqueRegionDfxEnabled_ = false;
     bool isQuickSkipPreparationEnabled_ = false;
     bool isHardwareComposerEnabled_ = false;
+    bool isOcclusionEnabled_ = false;
     std::vector<std::string> dfxTargetSurfaceNames_;
     PartialRenderType partialRenderType_;
     bool isDirty_ = false;

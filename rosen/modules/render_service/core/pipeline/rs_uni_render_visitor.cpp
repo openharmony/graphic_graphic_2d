@@ -81,6 +81,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     if (isDirtyRegionDfxEnabled_ && isTargetDirtyRegionDfxEnabled_) {
         isDirtyRegionDfxEnabled_ = false;
     }
+    isOcclusionEnabled_ = RSSystemProperties::GetOcclusionEnabled();
     isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE)
         && (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_ && !isOpaqueRegionDfxEnabled_);
     // this config may downgrade the calcOcclusion performance when windows number become huge (i.e. > 30), keep it now
@@ -1288,7 +1289,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 " invisible", node.GetId());
         return;
     }
-    if (!node.GetOcclusionVisible() && !doAnimate_ && RSSystemProperties::GetOcclusionEnabled()) {
+    if (!node.GetOcclusionVisible() && !doAnimate_ && isOcclusionEnabled_ && !isSecurityDisplay_) {
         MarkSubHardwareEnableNodeState(node);
         RS_TRACE_NAME(node.GetName() + " Occlusion Skip");
         return;
