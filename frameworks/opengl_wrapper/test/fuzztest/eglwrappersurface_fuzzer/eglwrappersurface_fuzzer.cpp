@@ -69,6 +69,7 @@ namespace OHOS {
         // test
         EglWrapperSurface* wrapperSurface = new EglWrapperSurface(disp, surf1);
         wrapperSurface->GetWrapperSurface(surf2);
+        wrapperSurface->Release();
         return true;
     }
 }
