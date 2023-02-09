@@ -194,7 +194,6 @@ void HelloDrawing::DoDrawData(void *image, uint32_t width, uint32_t height)
     canvas.Bind(bitmap);
     canvas.Clear(Color::COLOR_WHITE);
 
-    // TestDrawPathPro(canvas, width, height);
     TestDrawImage(canvas, width, height);
     constexpr uint32_t stride = 4;
     int32_t addrSize = width * height * stride;
@@ -215,7 +214,6 @@ void HelloDrawing::DoDrawBaseData(void *image, uint32_t width, uint32_t height, 
     canvas.Clear(Color::COLOR_RED);
     if (index == 1) {
         canvas.Clear(Color::COLOR_WHITE);
-        // TestDrawPathPro(canvas, width, height);
         TestDrawImage(canvas, width, height);
     }
     constexpr uint32_t stride = 4;
