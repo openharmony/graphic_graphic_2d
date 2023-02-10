@@ -150,10 +150,6 @@ void RSTransactionProxy::Commit(uint64_t timestamp)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
     if (!implicitCommonTransactionDataStack_.empty()) {
-        if (renderThreadClient_ != nullptr && !implicitCommonTransactionDataStack_.top()->IsEmpty()) {
-            implicitCommonTransactionDataStack_.top()->timestamp_ = timestamp;
-            renderThreadClient_->CommitTransaction(implicitCommonTransactionDataStack_.top());
-        }
         implicitCommonTransactionDataStack_.pop();
     }
 
