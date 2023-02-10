@@ -202,6 +202,10 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("|dump the fps info of composer\n")
         .append("[surface name] fps             ")
         .append("|dump the fps info of surface\n")
+        .append("composer fpsClear                   ")
+        .append("|clear the fps info of composer\n")
+        .append("[surface name] fpsClear             ")
+        .append("|clear the fps info of surface\n")
         .append("nodeNotOnTree                  ")
         .append("|dump nodeNotOnTree info\n")
         .append("allSurfacesMem                 ")
@@ -226,6 +230,23 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
         }
         mainThread_->ScheduleTask([this, &dumpString, &layerArg]() {
             return screenManager_->FpsDump(dumpString, layerArg);
+        }).wait();
+    }
+}
+
+void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& argSets,
+    std::string& dumpString, const std::u16string& arg) const
+{
+    auto iter = argSets.find(arg);
+    if (iter != argSets.end()) {
+        std::string layerArg;
+        argSets.erase(iter);
+        if (!argSets.empty()) {
+            layerArg = std::wstring_convert<
+            std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+        }
+        mainThread_->ScheduleTask([this, &dumpString, &layerArg]() {
+            return screenManager_->ClearFpsDump(dumpString, layerArg);
         }).wait();
     }
 }
@@ -257,6 +278,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg7(u"EventParamList");
     std::u16string arg8(u"h");
     std::u16string arg9(u"allInfo");
+    std::u16string arg13(u"fpsClear");
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
             screenManager_->DisplayDump(dumpString);
@@ -288,6 +310,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
         }).wait();
     }
     FPSDUMPProcess(argSets, dumpString, arg3);
+    FPSDUMPClearProcess(argSets, dumpString, arg13);
     if (argSets.size() == 0 || argSets.count(arg8) != 0 || dumpString.empty()) {
         mainThread_->ScheduleTask([this, &dumpString]() {
             DumpHelpInfo(dumpString);

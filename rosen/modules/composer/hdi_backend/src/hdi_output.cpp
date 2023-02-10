@@ -256,7 +256,7 @@ void HdiOutput::DumpFps(std::string &result, const std::string &arg) const
 
     result.append("\n");
     if (arg == "composer") {
-        result += "The fps of scrren [Id:" + std::to_string(screenId_) + "] is:\n";
+        result += "The fps of screen [Id:" + std::to_string(screenId_) + "] is:\n";
         const int32_t offset = compTimeRcdIndex_;
         for (uint32_t i = 0; i < COMPOSITION_RECORDS_NUM; i++) {
             uint32_t order = (offset + i) % COMPOSITION_RECORDS_NUM;
@@ -274,6 +274,30 @@ void HdiOutput::DumpFps(std::string &result, const std::string &arg) const
         }
     }
 }
+
+void HdiOutput::ClearFpsDump(std::string &result, const std::string &arg)
+{
+    std::vector<LayerDumpInfo> dumpLayerInfos;
+    ReorderLayerInfo(dumpLayerInfos);
+
+    result.append("\n");
+    if (arg == "composer") {
+        result += "The fps info of screen [Id:" + std::to_string(screenId_) + "] is cleared.\n";
+        compositionTimeRecords_.fill(0);
+        return;
+    }
+
+    for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
+        const LayerPtr &layer = layerInfo.layer;
+        const std::string& name = layer->GetLayerInfo()->GetSurface()->GetName();
+        if (name == arg) {
+            result += "\n The fps info of surface [" + name + "] Id["
+                + std::to_string(layerInfo.surfaceId) + "] is cleared.\n";
+            layer->ClearDump();
+        }
+    }
+}
+
 
 static inline bool Cmp(const LayerDumpInfo &layer1, const LayerDumpInfo &layer2)
 {
