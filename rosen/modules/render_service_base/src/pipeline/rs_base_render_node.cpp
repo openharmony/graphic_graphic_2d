@@ -452,5 +452,14 @@ void RSBaseRenderNode::SendCommandFromRT(std::unique_ptr<RSCommand>& command, No
         transactionProxy->AddCommandFromRT(command, nodeId);
     }
 }
+
+void RSBaseRenderNode::InternalRemoveSelfFromDisappearingChildren()
+{
+    // internal use only, force remove self from parent's disappearingChildren_
+    if (auto parent = parent_.lock()) {
+        parent->disappearingChildren_.remove_if(
+            [childPtr = shared_from_this()](const auto& pair) -> bool { return pair.first == childPtr; });
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
