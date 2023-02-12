@@ -122,6 +122,9 @@ void RSRenderTransition::OnDetach()
         target->disappearingTransitionCount_--;
         ROSEN_LOGD("RSRenderTransition::OnDetach, target have %u disappearing Transitions",
             target->disappearingTransitionCount_);
+        if (target->disappearingTransitionCount_ == 0) {
+            target->InternalRemoveSelfFromDisappearingChildren();
+        }
     }
 }
 } // namespace Rosen

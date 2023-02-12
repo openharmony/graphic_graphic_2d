@@ -90,7 +90,7 @@ public:
     {
         return children_;
     }
-    
+
     uint32_t GetChildrenCount() const
     {
         return children_.size();
@@ -200,11 +200,14 @@ private:
     const std::weak_ptr<RSContext> context_;
     NodeDirty dirtyStatus_ = NodeDirty::DIRTY;
     friend class RSRenderPropertyBase;
+    friend class RSRenderTransition;
     std::atomic<bool> isTunnelHandleChange_ = false;
     // accumulate all children's region rect for dirty merging when any child has been removed
     bool hasRemovedChild_ = false;
     bool hasChildrenOutOfRect_ = false;
     RectI childrenRect_;
+
+    void InternalRemoveSelfFromDisappearingChildren();
 };
 } // namespace Rosen
 } // namespace OHOS
