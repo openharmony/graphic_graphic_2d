@@ -227,6 +227,7 @@ private:
     std::string focusAppBundleName_ = "";
     std::string focusAppAbilityName_ = "";
     uint32_t appWindowNum_ = 0;
+    uint32_t requestNextVsyncNum_ = 0;
 
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
