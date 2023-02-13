@@ -1422,7 +1422,13 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 node.GetName().c_str(), node.GetId());
         } else {
             if (node.IsHardwareEnabledType()) {
-                node.SetHardwareForcedDisabledState(true);
+                auto iter = std::find_if(hardwareEnabledNodes_.begin(), hardwareEnabledNodes_.end(),
+                    [id = node.GetId()](std::shared_ptr<RSSurfaceRenderNode> surfaceNode) -> bool {
+                    return id == surfaceNode->GetId();
+                });
+                if (iter != hardwareEnabledNodes_.end()) {
+                    hardwareEnabledNodes_.erase(iter);
+                }
             }
             node.SetGlobalAlpha(1.0f);
             auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);

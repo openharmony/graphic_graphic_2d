@@ -77,9 +77,9 @@ public:
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && name_ != "RosenWeb" && name_ != "RosenRenderWeb";
     }
 
-    bool IsReleaseBufferInMainThread() const
+    bool IsLastFrameHardwareEnabled() const
     {
-        return !isLastFrameHardwareEnabled_;
+        return isLastFrameHardwareEnabled_;
     }
 
     void MarkCurrentFrameHardwareEnabled()
@@ -90,6 +90,12 @@ public:
     void ResetCurrentFrameHardwareEnabledState()
     {
         isLastFrameHardwareEnabled_ = isCurrentFrameHardwareEnabled_;
+        isCurrentFrameHardwareEnabled_ = false;
+    }
+
+    void ResetHardwareEnabledStates()
+    {
+        isLastFrameHardwareEnabled_ = false;
         isCurrentFrameHardwareEnabled_ = false;
     }
 
