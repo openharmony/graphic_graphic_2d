@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,12 +15,112 @@
 
 #include "platform/common/rs_system_properties.h"
 
+#include "transaction/rs_render_service_client.h"
+
 namespace OHOS {
 namespace Rosen {
-
 bool RSSystemProperties::GetUniRenderEnabled()
 {
     return isUniRenderEnabled_;
+}
+
+bool RSSystemProperties::GetRenderNodeTraceEnabled()
+{
+    return {};
+}
+
+DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
+{
+    return {};
+}
+
+PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
+{
+    return {};
+}
+
+PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetOcclusionEnabled()
+{
+    return {};
+}
+
+std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
+{
+    return {};
+}
+
+bool RSSystemProperties::GetDirectClientCompEnableStatus()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetHighContrastStatus()
+{
+    return {};
+}
+
+uint32_t RSSystemProperties::GetCorrectionMode()
+{
+    return {};
+}
+
+DumpSurfaceType RSSystemProperties::GetDumpSurfaceType()
+{
+    return {};
+}
+
+long long int RSSystemProperties::GetDumpSurfaceId()
+{
+    return {};
+}
+
+void RSSystemProperties::SetDrawTextAsBitmap(bool flag)
+{
+}
+
+bool RSSystemProperties::GetDrawTextAsBitmap()
+{
+    return {};
+}
+
+ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
+{
+    return {};
+}
+
+ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetColdStartThreadEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::FrameTraceEnabled()
+{
+    return {};
+}
+
+float RSSystemProperties::GetAnimationScale()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
+{
+    return {};
+}
+
+int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
+{
+    return {};
 }
 } // namespace Rosen
 } // namespace OHOS
