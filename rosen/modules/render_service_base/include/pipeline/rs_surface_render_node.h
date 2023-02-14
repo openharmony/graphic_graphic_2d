@@ -65,6 +65,11 @@ public:
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
     }
 
+    bool IsStartingWindow() const
+    {
+        return nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE;
+    }
+
     bool IsAbilityComponent() const
     {
         return nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
