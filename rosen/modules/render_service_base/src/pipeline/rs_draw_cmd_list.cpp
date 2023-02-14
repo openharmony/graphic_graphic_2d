@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,6 @@
 
 namespace OHOS {
 namespace Rosen {
-#ifdef ROSEN_OHOS
 using OpUnmarshallingFunc = OpItem* (*)(Parcel& parcel);
 
 static std::unordered_map<RSOpType, OpUnmarshallingFunc> opUnmarshallingFuncLUT = {
@@ -78,7 +77,6 @@ static OpUnmarshallingFunc GetOpUnmarshallingFunc(RSOpType type)
     }
     return it->second;
 }
-#endif
 
 DrawCmdList::DrawCmdList(int w, int h) : width_(w), height_(h) {}
 
@@ -114,7 +112,6 @@ void DrawCmdList::Playback(SkCanvas& canvas, const SkRect* rect) const
 
 void DrawCmdList::Playback(RSPaintFilterCanvas& canvas, const SkRect* rect) const
 {
-#ifdef ROSEN_OHOS
     if (width_ <= 0 || height_ <= 0) {
         return;
     }
@@ -125,7 +122,6 @@ void DrawCmdList::Playback(RSPaintFilterCanvas& canvas, const SkRect* rect) cons
         }
         it->Draw(canvas, rect);
     }
-#endif
 }
 
 int DrawCmdList::GetSize() const
@@ -143,7 +139,6 @@ int DrawCmdList::GetHeight() const
     return height_;
 }
 
-#ifdef ROSEN_OHOS
 bool DrawCmdList::Marshalling(Parcel& parcel) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -206,7 +201,6 @@ DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
     }
     return drawCmdList.release();
 }
-#endif
 
 void DrawCmdList::GenerateCache(SkSurface* surface)
 {

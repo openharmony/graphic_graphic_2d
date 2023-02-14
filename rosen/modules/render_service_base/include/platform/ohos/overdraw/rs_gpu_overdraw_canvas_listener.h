@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,25 +13,29 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_OVERDRAW_RS_LISTENED_CANVAS_H
-#define RENDER_SERVICE_CLIENT_CORE_PIPELINE_OVERDRAW_RS_LISTENED_CANVAS_H
+#ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_OVERDRAW_RS_GPU_OVERDRAW_CANVAS_LISTENER_H
+#define RENDER_SERVICE_CLIENT_CORE_PIPELINE_OVERDRAW_RS_GPU_OVERDRAW_CANVAS_LISTENER_H
 
-#include "pipeline/rs_paint_filter_canvas.h"
+#include "rs_canvas_listener.h"
 
+#include <include/core/SkSurface.h>
+
+#include "common/rs_macros.h"
+
+class SkCanvas;
 namespace OHOS {
 namespace Rosen {
-class RSCanvasListener;
-
-class RS_EXPORT RSListenedCanvas : public RSPaintFilterCanvas {
+class RSB_EXPORT RSGPUOverdrawCanvasListener : public RSCanvasListener {
 public:
-    RSListenedCanvas(SkCanvas* canvas, float alpha = 1.0f);
-    RSListenedCanvas(SkSurface* skSurface, float alpha = 1.0f);
+    explicit RSGPUOverdrawCanvasListener(SkCanvas &canvas);
+    ~RSGPUOverdrawCanvasListener() override;
 
-    void SetListener(const std::shared_ptr<RSCanvasListener> &listener);
+    void Draw() override;
+    bool IsValid() const override;
+    const char *Name() const override { return "RSGPUOverdrawCanvasListener"; }
 
-    void onDrawPaint(const SkPaint& paint) override;
     void onDrawRect(const SkRect& rect, const SkPaint& paint) override;
-    void onDrawRRect(const SkRRect& rrect, const SkPaint& paint) override;
+    void onDrawRRect(const SkRRect& rect, const SkPaint& paint) override;
     void onDrawDRRect(const SkRRect& outer, const SkRRect& inner,
                       const SkPaint& paint) override;
     void onDrawOval(const SkRect& rect, const SkPaint& paint) override;
@@ -46,18 +50,19 @@ public:
                      const SkPaint& paint) override;
     void onDrawPoints(SkCanvas::PointMode mode, size_t count, const SkPoint pts[],
                       const SkPaint& paint) override;
+    void onDrawEdgeAAQuad(const SkRect& rect, const SkPoint clip[4],
+            SkCanvas::QuadAAFlags aaFlags, const SkColor4f& color, SkBlendMode mode) override;
     void onDrawAnnotation(const SkRect& rect, const char key[], SkData* value) override;
     void onDrawShadowRec(const SkPath& path, const SkDrawShadowRec& rect) override;
     void onDrawDrawable(SkDrawable* drawable, const SkMatrix* matrix) override;
     void onDrawPicture(const SkPicture* picture, const SkMatrix* matrix,
                        const SkPaint* paint) override;
-    void onDrawImageRect(const SkImage* image, const SkRect* src, const SkRect& dst,
-            const SkPaint* paint, SrcRectConstraint constraint) override;
 
 private:
-    std::shared_ptr<RSCanvasListener> listener_ = nullptr;
+    sk_sp<SkSurface> listenedSurface_ = nullptr;
+    SkCanvas *overdrawCanvas_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_PIPELINE_OVERDRAW_RS_LISTENED_CANVAS_H
+#endif // RENDER_SERVICE_CLIENT_CORE_PIPELINE_OVERDRAW_RS_GPU_OVERDRAW_CANVAS_LISTENER_H

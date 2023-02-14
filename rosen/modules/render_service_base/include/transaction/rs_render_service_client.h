@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,7 +21,9 @@
 #include <memory>
 #include <mutex>
 #include <refbase.h>
+#ifndef ROSEN_CROSS_PLATFORM
 #include <surface.h>
+#endif
 
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
@@ -54,7 +56,7 @@ public:
     virtual void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) = 0;
 };
 
-class RSRenderServiceClient : public RSIRenderClient {
+class RSB_EXPORT RSRenderServiceClient : public RSIRenderClient {
 public:
     RSRenderServiceClient() = default;
     virtual ~RSRenderServiceClient() = default;
@@ -83,10 +85,14 @@ public:
 
     std::vector<ScreenId> GetAllScreenIds();
 
+#ifndef ROSEN_CROSS_PLATFORM
+    std::shared_ptr<RSSurface> CreateRSSurface(const sptr<Surface> &surface);
+
     ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
         ScreenId mirrorId, int32_t flags);
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
+#endif
 
     void RemoveVirtualScreen(ScreenId id);
 

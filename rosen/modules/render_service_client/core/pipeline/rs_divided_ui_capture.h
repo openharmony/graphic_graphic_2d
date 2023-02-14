@@ -30,7 +30,7 @@
 namespace OHOS {
 namespace Rosen {
 
-class RS_EXPORT RSDividedUICapture {
+class RSC_EXPORT RSDividedUICapture {
 public:
     RSDividedUICapture(NodeId nodeId, float scaleX, float scaleY)
         : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY) {}

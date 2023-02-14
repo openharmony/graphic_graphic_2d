@@ -27,7 +27,7 @@ class SkImage;
 
 namespace OHOS {
 namespace Rosen {
-class RS_EXPORT RSPixelMapUtil {
+class RSB_EXPORT RSPixelMapUtil {
 public:
     // The generated SkImage already holds the shared_ptr of the source PixelMap,
     // and the PixelMap should not hold SkImage to avoid circular references.

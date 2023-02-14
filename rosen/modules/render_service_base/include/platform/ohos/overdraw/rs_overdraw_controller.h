@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <array>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <vector>
 
 #include "common/rs_macros.h"
@@ -30,9 +31,9 @@ namespace OHOS {
 namespace Rosen {
 constexpr auto OverdrawColorArrayLength = 6;
 using OverdrawColorArray = std::array<SkColor, OverdrawColorArrayLength>;
-class RS_EXPORT RSOverdrawController {
+class RSB_EXPORT RSOverdrawController {
 public:
-    static RS_EXPORT RSOverdrawController &GetInstance();
+    static RSB_EXPORT RSOverdrawController &GetInstance();
 
     ~RSOverdrawController() = default;
 

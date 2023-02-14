@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,23 +15,23 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DISPLAY_RENDER_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DISPLAY_RENDER_NODE_H
 
-#include <ibuffer_consumer_listener.h>
 #include <memory>
 #include <mutex>
+#ifndef ROSEN_CROSS_PLATFORM
+#include <ibuffer_consumer_listener.h>
 #include <surface.h>
-
 #include "sync_fence.h"
+#endif
 
 #include "common/rs_macros.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include "platform/drawing/rs_surface.h"
-#include "render_context/render_context.h"
 
 namespace OHOS {
 namespace Rosen {
 enum class ScreenRotation : uint32_t;
-class RS_EXPORT RSDisplayRenderNode : public RSRenderNode, public RSSurfaceHandler {
+class RSB_EXPORT RSDisplayRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
     enum CompositeType {
         UNI_RENDER_COMPOSITE = 0,
@@ -107,17 +107,18 @@ public:
         return false;
     }
 
-    bool CreateSurface(sptr<IBufferConsumerListener> listener);
-
     std::shared_ptr<RSSurface> GetRSSurface() const
     {
         return surface_;
     }
 
+#ifndef ROSEN_CROSS_PLATFORM
+    bool CreateSurface(sptr<IBufferConsumerListener> listener);
     sptr<IBufferConsumerListener> GetConsumerListener() const
     {
         return consumerListener_;
     }
+#endif
 
     bool IsSurfaceCreated() const
     {
@@ -188,7 +189,9 @@ private:
 
     std::shared_ptr<RSSurface> surface_;
     bool surfaceCreated_ { false };
+#ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_;
+#endif
     uint64_t frameCount_ = 0;
 
     std::map<NodeId, RectI> lastFrameSurfacePos_;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,7 +54,6 @@ void RSRenderKeyframeAnimation::AddKeyframes(const std::vector<std::tuple<float,
     keyframes_ = keyframes;
 }
 
-#ifdef ROSEN_OHOS
 bool RSRenderKeyframeAnimation::Marshalling(Parcel& parcel) const
 {
     if (!RSRenderPropertyAnimation::Marshalling(parcel)) {
@@ -101,7 +100,7 @@ bool RSRenderKeyframeAnimation::ParseParam(Parcel& parcel)
     }
     float tupValue0 = 0;
     keyframes_.clear();
-    for (u_int32_t i = 0; i < size; i++) {
+    for (uint32_t i = 0; i < size; i++) {
         if (!(parcel.ReadFloat(tupValue0))) {
             ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Unmarshalling value failed");
             return false;
@@ -115,7 +114,6 @@ bool RSRenderKeyframeAnimation::ParseParam(Parcel& parcel)
     }
     return true;
 }
-#endif
 
 void RSRenderKeyframeAnimation::OnAnimate(float fraction)
 {

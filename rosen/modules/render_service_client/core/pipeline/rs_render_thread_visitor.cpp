@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,8 +16,6 @@
 #include "pipeline/rs_render_thread_visitor.h"
 
 #include <cmath>
-#include <frame_collector.h>
-#include <frame_painter.h>
 #include <include/core/SkColor.h>
 #include <include/core/SkFont.h>
 #include <include/core/SkMatrix.h>
@@ -28,9 +26,6 @@
 
 #include "command/rs_base_node_command.h"
 #include "common/rs_vector4.h"
-#include "overdraw/rs_cpu_overdraw_canvas_listener.h"
-#include "overdraw/rs_gpu_overdraw_canvas_listener.h"
-#include "overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_node_map.h"
@@ -43,6 +38,14 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
+
+#ifdef ROSEN_OHOS
+#include <frame_collector.h>
+#include <frame_painter.h>
+#include "platform/ohos/overdraw/rs_cpu_overdraw_canvas_listener.h"
+#include "platform/ohos/overdraw/rs_gpu_overdraw_canvas_listener.h"
+#include "platform/ohos/overdraw/rs_overdraw_controller.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -313,7 +316,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 
     curDirtyManager_ = node.GetDirtyManager();
 
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
     auto surfaceNodeColorSpace = ptr->GetColorSpace();
+#endif
     std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(ptr);
     if (rsSurface == nullptr) {
         ROSEN_LOGE("ProcessRoot %s: No RSSurface found", ptr->GetName().c_str());
@@ -322,11 +327,13 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     // Update queue size for each process loop in case it dynamically changes
     queueSize_ = rsSurface->GetQueueSize();
 
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
     auto rsSurfaceColorSpace = rsSurface->GetColorSpace();
     if (surfaceNodeColorSpace != rsSurfaceColorSpace) {
         ROSEN_LOGD("Set new colorspace %d to rsSurface", surfaceNodeColorSpace);
         rsSurface->SetColorSpace(surfaceNodeColorSpace);
     }
+#endif
 
 #ifdef ACE_ENABLE_GL
     RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
@@ -334,7 +341,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #endif
     uiTimestamp_ = RSRenderThread::Instance().GetUITimestamp();
     RS_TRACE_BEGIN(ptr->GetName() + " rsSurface->RequestFrame");
+#ifdef ROSEN_OHOS
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::ReleaseStart);
+#endif
 
     const auto& property = node.GetRenderProperties();
     const float bufferWidth = node.GetSuggestedBufferWidth() * property.GetScaleX();
@@ -343,7 +352,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     RS_TRACE_END();
     if (surfaceFrame == nullptr) {
         ROSEN_LOGI("ProcessRoot %s: Request Frame Failed", ptr->GetName().c_str());
+#ifdef ROSEN_OHOS
         FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::ReleaseEnd);
+#endif
         return;
     }
 
@@ -357,6 +368,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         return;
     }
 
+#ifdef ROSEN_OHOS
     // if listenedCanvas is nullptr, that means disabled or listen failed
     std::shared_ptr<RSListenedCanvas> listenedCanvas = nullptr;
     std::shared_ptr<RSCanvasListener> overdrawListener = nullptr;
@@ -382,6 +394,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     } else {
         canvas_ = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
     }
+#else
+    canvas_ = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
+#endif
 
     canvas_->SetHighContrast(RSRenderThread::Instance().isHighContrastEnabled());
 
@@ -441,6 +456,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         DrawDirtyRegion();
     }
 
+#ifdef ROSEN_OHOS
     if (overdrawListener != nullptr) {
         overdrawListener->Draw();
     }
@@ -449,12 +465,15 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     fpainter.Draw(*canvas_);
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::ReleaseEnd);
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::FlushStart);
+#endif
 
     RS_TRACE_BEGIN(ptr->GetName() + " rsSurface->FlushFrame");
     ROSEN_LOGD("RSRenderThreadVisitor FlushFrame surfaceNodeId = %" PRIu64 ", uiTimestamp = %" PRIu64,
         node.GetRSSurfaceNodeId(), uiTimestamp_);
     rsSurface->FlushFrame(surfaceFrame, uiTimestamp_);
+#ifdef ROSEN_OHOS
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::FlushEnd);
+#endif
     RS_TRACE_END();
 
     canvas_ = nullptr;
@@ -512,7 +531,6 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     // RSSurfaceRenderNode in RSRenderThreadVisitor do not have information of property.
     // We only get parent's matrix and send it to RenderService
-#ifdef ROSEN_OHOS
     SkMatrix invertMatrix;
     SkMatrix contextMatrix = canvas_->getTotalMatrix();
 
@@ -538,7 +556,7 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     // clip hole
     ClipHoleForSurfaceNode(node);
-#endif
+
     // 1. add this node to parent's children list
     childSurfaceNodeIds_.emplace_back(node.GetId());
 
@@ -597,7 +615,6 @@ void RSRenderThreadVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)
 
 void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
 {
-#ifdef ROSEN_OHOS
     // Calculation position in RenderService may appear floating point number, and it will be removed.
     // It caused missed line problem on surfaceview hap, so we subtract one pixel when cliphole to avoid this problem
     static int pixel = 1;
@@ -621,7 +638,6 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
         }
     }
     canvas_->restore();
-#endif
 }
 
 void RSRenderThreadVisitor::SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)

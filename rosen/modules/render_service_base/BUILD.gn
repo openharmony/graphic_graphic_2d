@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -18,15 +18,7 @@ import(
 
 config("export_config") {
   cflags_cc = [ "-std=c++17" ]
-  include_dirs = [
-    "include",
-    "//foundation/graphic/graphic_2d/rosen/include",
-    "//drivers/peripheral/display/interfaces/include",
-    "//foundation/multimedia/image_framework/interfaces/innerkits/include",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/composer",
-    "//foundation/graphic/graphic_2d/utils/sandbox",
-  ]
+  include_dirs = [ "include" ]
 
   defines = rs_common_define
 }
@@ -34,6 +26,7 @@ config("export_config") {
 ohos_source_set("render_service_base_src") {
   defines = []
   defines += gpu_defines
+  defines += [ "MODULE_RSB" ]
 
   sources = [
     #animation
@@ -108,7 +101,6 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_display_render_node.cpp",
     "src/pipeline/rs_draw_cmd.cpp",
     "src/pipeline/rs_draw_cmd_list.cpp",
-    "src/pipeline/rs_frame_report.cpp",
     "src/pipeline/rs_occlusion_config.cpp",
     "src/pipeline/rs_paint_filter_canvas.cpp",
     "src/pipeline/rs_proxy_render_node.cpp",
@@ -139,8 +131,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_skia_filter.cpp",
 
     #transaction
-    "src/transaction/rs_ashmem_helper.cpp",
-    "src/transaction/rs_marshalling_helper.cpp",
     "src/transaction/rs_occlusion_data.cpp",
     "src/transaction/rs_transaction_data.cpp",
     "src/transaction/rs_transaction_proxy.cpp",
@@ -152,12 +142,6 @@ ohos_source_set("render_service_base_src") {
     "src/screen_manager/rs_screen_mode_info.cpp",
     "src/screen_manager/rs_screen_props.cpp",
     "src/screen_manager/rs_virtual_screen_resolution.cpp",
-
-    #overdraw
-    "src/overdraw/rs_cpu_overdraw_canvas_listener.cpp",
-    "src/overdraw/rs_gpu_overdraw_canvas_listener.cpp",
-    "src/overdraw/rs_listened_canvas.cpp",
-    "src/overdraw/rs_overdraw_controller.cpp",
   ]
 
   cflags = [
@@ -174,7 +158,11 @@ ohos_source_set("render_service_base_src") {
     "-fvisibility-inlines-hidden",
   ]
 
-  public_configs = [ ":export_config" ]
+  public_configs = [
+    ":export_config",
+    "$rosen_root/modules/platform:eventhandler_config",
+    "$rosen_root/modules/platform:image_native_config",
+  ]
   public_deps = [ "src/platform:platform" ]
 
   if (enable_export_macro) {
@@ -185,6 +173,10 @@ ohos_source_set("render_service_base_src") {
     sources += [ "src/common/rs_shared_context.cpp" ]
   }
 
+  if (current_os == "mingw" || current_os == "mac" || current_os == "linux") {
+    sources -= [ "src/common/rs_shared_context.cpp" ]
+  }
+
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/utils/log",
@@ -192,17 +184,15 @@ ohos_source_set("render_service_base_src") {
   ]
 
   deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "$rosen_root/modules/platform:eventhandler",
+    "$rosen_root/modules/platform:hilog",
+    "$rosen_root/modules/platform:ipc_core",
     "//foundation/graphic/graphic_2d/utils:sandbox_utils",
   ]
 
-  external_deps = [
-    "hitrace_native:hitrace_meter",
-    "init:libbeget_proxy",
-    "init:libbegetutil",
-    "ipc:ipc_core",
-    "multimedia_image_framework:image_native",
-  ]
+  if (!rosen_cross_platform) {
+    external_deps = [ "hitrace_native:hitrace_meter" ]
+  }
 
   if (rosen_is_win) {
     defines += [ "_USE_MATH_DEFINES" ]
@@ -219,7 +209,6 @@ config("render_service_base_all_deps_config") {
 }
 
 ohos_shared_library("librender_service_base") {
-  public_configs = [ ":export_config" ]
   all_dependent_configs = [ ":render_service_base_all_deps_config" ]
 
   public_deps = [
