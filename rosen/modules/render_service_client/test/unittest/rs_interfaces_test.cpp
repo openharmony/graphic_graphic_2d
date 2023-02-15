@@ -42,6 +42,142 @@ public:
 };
 
 /*
+* Function: GetScreenHDRCapability
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenHDRCapability
+*                  2. check ret
+* @tc.require: IssueI5KGK4
+*/
+HWTEST_F(RSInterfacesTest, GetScreenHDRCapability001, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    RSScreenHDRCapability hdrCapability;
+    int ret = rsInterfaces->GetScreenHDRCapability(screenId, hdrCapability);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+    EXPECT_EQ(hdrCapability.GetMaxLum(), 1000); // maxLum now is mock data
+}
+
+/*
+* Function: GetScreenHDRCapability
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenHDRCapability with INVALID_SCREEN_ID
+*                  2. check ret
+* @tc.require: IssueI5KGK4
+*/
+HWTEST_F(RSInterfacesTest, GetScreenHDRCapability002, Function | SmallTest | Level2)
+{
+    RSScreenHDRCapability hdrCapability;
+    int ret = rsInterfaces->GetScreenHDRCapability(INVALID_SCREEN_ID, hdrCapability);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+* Function: GetScreenType
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenType
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, GetScreenType001, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    RSScreenType type;
+    int ret = rsInterfaces->GetScreenType(screenId, type);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
+* Function: GetScreenType
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenType with INVALID_SCREEN_ID
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, GetScreenType002, Function | SmallTest | Level2)
+{
+    RSScreenType type;
+    int ret = rsInterfaces->GetScreenType(INVALID_SCREEN_ID, type);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+* Function: SetVirtualScreenResolution/GetVirtualScreenResolution
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Call CreateVirtualScreen, use normal parameters.
+*                  2. Use SetVirtualScreenResolution to change the width and height of virtualScreen
+*                  3. Use GetVirtualScreenResolution to get current width and height of virtualScreen
+*                  4. Check current width and height of virtualScreen
+*/
+HWTEST_F(RSInterfacesTest, SetVirtualScreenResolution001, Function | SmallTest | Level2)
+{
+    auto csurface = Surface::CreateSurfaceAsConsumer();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+    uint32_t newWidth = 1920;
+    uint32_t newHeight = 1080;
+    EXPECT_NE(psurface, nullptr);
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtual5", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    auto curVirtualScreenResolution = rsInterfaces->GetVirtualScreenResolution(virtualScreenId);
+    EXPECT_EQ(curVirtualScreenResolution.GetVirtualScreenWidth(), defaultWidth);
+    EXPECT_EQ(curVirtualScreenResolution.GetVirtualScreenHeight(), defaultHeight);
+
+    rsInterfaces->SetVirtualScreenResolution(virtualScreenId, newWidth, newHeight);
+
+    curVirtualScreenResolution = rsInterfaces->GetVirtualScreenResolution(virtualScreenId);
+    EXPECT_EQ(curVirtualScreenResolution.GetVirtualScreenWidth(), newWidth);
+    EXPECT_EQ(curVirtualScreenResolution.GetVirtualScreenHeight(), newHeight);
+
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
+}
+
+/*
+* Function: GetAllScreenIds
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetAllScreenIds
+*                  2. check vector size
+*/
+HWTEST_F(RSInterfacesTest, GetAllScreenIds, Function | SmallTest | Level2)
+{
+    std::vector<ScreenId> ids = rsInterfaces->GetAllScreenIds();
+    int32_t size = ids.size();
+    EXPECT_GT(ids.size(), 0);
+    auto csurface = Surface::CreateSurfaceAsConsumer();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+    EXPECT_NE(psurface, nullptr);
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtual6", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    ids = rsInterfaces->GetAllScreenIds();
+    EXPECT_EQ(size + 1, ids.size());
+}
+
+/*
 * Function: GetDefaultScreenId
 * Type: Function
 * Rank: Important(2)

@@ -63,6 +63,7 @@ NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationTarget(NativeEngine&
     object->SetProperty("abilityName", CreateJsValue(engine, target->abilityName_));
     object->SetProperty("windowBounds", CreateJsRRect(engine, target->windowBounds_));
     object->SetProperty("missionId", CreateJsValue(engine, target->missionId_));
+    object->SetProperty("windowId", CreateJsValue(engine, target->windowId_));
 
     return objValue;
 }

@@ -89,6 +89,7 @@ void RSRenderServiceListener::OnGoBackground()
         RS_LOGD("RsDebug RSRenderServiceListener::OnGoBackground node id:%" PRIu64, node->GetId());
         node->ResetBufferAvailableCount();
         node->CleanCache();
+        node->ResetHardwareEnabledStates();
     });
 }
 } // namespace Rosen

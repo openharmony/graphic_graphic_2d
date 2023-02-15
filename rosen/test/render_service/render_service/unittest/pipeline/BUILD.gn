@@ -34,6 +34,7 @@ group("unittest") {
     ":RSSurfaceCaptureTaskTest",
     ":RSUniRenderJudgementTest",
     ":RSUniRenderUtilTest",
+    ":RSUniRenderVirtualProcessorTest",
     ":RSUniRenderVisitorTest",
     ":RSVirtualScreenProcessorTest",
   ]
@@ -254,6 +255,15 @@ ohos_unittest("RSParallelTaskManagerTest") {
 ohos_unittest("RSRenderTaskTest") {
   module_out_path = module_output_path
   sources = [ "parallel_render/rs_render_task_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSUniRenderVirtualProcessorTest
+ohos_unittest("RSUniRenderVirtualProcessorTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_uni_render_virtual_processor_test.cpp" ]
   deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines

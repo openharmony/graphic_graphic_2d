@@ -65,6 +65,11 @@ public:
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
     }
 
+    bool IsStartingWindow() const
+    {
+        return nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE;
+    }
+
     bool IsAbilityComponent() const
     {
         return nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
@@ -77,9 +82,9 @@ public:
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && name_ != "RosenWeb" && name_ != "RosenRenderWeb";
     }
 
-    bool IsReleaseBufferInMainThread() const
+    bool IsLastFrameHardwareEnabled() const
     {
-        return !isLastFrameHardwareEnabled_;
+        return isLastFrameHardwareEnabled_;
     }
 
     void MarkCurrentFrameHardwareEnabled()
@@ -90,6 +95,12 @@ public:
     void ResetCurrentFrameHardwareEnabledState()
     {
         isLastFrameHardwareEnabled_ = isCurrentFrameHardwareEnabled_;
+        isCurrentFrameHardwareEnabled_ = false;
+    }
+
+    void ResetHardwareEnabledStates()
+    {
+        isLastFrameHardwareEnabled_ = false;
         isCurrentFrameHardwareEnabled_ = false;
     }
 
