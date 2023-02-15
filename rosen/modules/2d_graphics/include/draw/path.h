@@ -50,6 +50,8 @@ enum class PathOp {
 class Path {
 public:
     Path() noexcept;
+    Path(const Path& p) noexcept;
+    Path &operator=(const Path &) noexcept; 
     virtual ~Path();
 
     void MoveTo(scalar x, scalar y);
