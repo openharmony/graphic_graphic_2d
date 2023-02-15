@@ -208,10 +208,92 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessBaseRenderNode(RSBase
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node)
 {
-    RS_LOGD("RsDebug RSSurfaceCaptureVisitor::ProcessDisplayRenderNode child size:[%d] total size:[%d]",
+    RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode child size:[%d] total size:[%d]",
         node.GetChildrenCount(), node.GetSortedChildren().size());
 
-    ProcessBaseRenderNode(node);
+    // Mirror Display is unable to snapshot.
+    if (node.IsMirrorDisplay()) {
+        RS_LOGW("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: \
+            Mirror Display(id:[%" PRIu64 "])", node.GetId());
+        return;
+    }
+
+    if (canvas_ == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: Canvas is null!");
+        return;
+    }
+
+    if (IsUniRender()) {
+        FindSecurityLayerAndHardwareEnabledNodes();
+        if (hasSecurityLayer_) {
+            RS_TRACE_NAME("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode:" +
+                std::to_string(node.GetId()));
+            RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: \
+                process RSDisplayRenderNode(id:[%" PRIu64 "]) Not using UniRender buffer.", node.GetId());
+            ProcessBaseRenderNode(node);
+        } else {
+            if (node.GetBuffer() == nullptr) {
+                RS_LOGE("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: buffer is null!");
+                return;
+            }
+
+            RS_TRACE_NAME("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode:" +
+                std::to_string(node.GetId()));
+            RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: \
+                process RSDisplayRenderNode(id:[%" PRIu64 "]) using UniRender buffer.", node.GetId());
+
+            if (hardwareEnabledNodes_.size() != 0) {
+                AdjustZOrderAndDrawSurfaceNode();
+            }
+
+            auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
+            renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
+        }
+    } else {
+        ProcessBaseRenderNode(node);
+    }
+}
+
+void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::FindSecurityLayerAndHardwareEnabledNodes()
+{
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraverseSurfaceNodes([this](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+        if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree()) {
+            RS_LOGW("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::FindSecurityLayerAndHardwareEnabledNodes: \
+                process RSSurfaceRenderNode(id:[%" PRIu64 "]) paused since it is null or not on the tree.",
+                surfaceNode->GetId());
+            return;
+        }
+        if (surfaceNode->GetSecurityLayer()) {
+            hasSecurityLayer_ = true;
+            return;
+        }
+        if (surfaceNode->IsLastFrameHardwareEnabled() && surfaceNode->GetBuffer() != nullptr) {
+            hardwareEnabledNodes_.emplace_back(surfaceNode);
+        }
+    });
+}
+
+void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::AdjustZOrderAndDrawSurfaceNode()
+{
+    if (!RSSystemProperties::GetHardwareComposerEnabled()) {
+        RS_LOGW("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::AdjustZOrderAndDrawSurfaceNode: \
+            HardwareComposer is not enabled.");
+        return;
+    }
+
+    // sort the surfaceNodes by ZOrder
+    std::stable_sort(
+        hardwareEnabledNodes_.begin(), hardwareEnabledNodes_.end(), [](const auto& first, const auto& second) -> bool {
+            return first->GetGlobalZOrder() < second->GetGlobalZOrder();
+        });
+
+    // draw hardwareEnabledNodes
+    for (auto& surfaceNode : hardwareEnabledNodes_) {
+        if (surfaceNode->IsLastFrameHardwareEnabled() && surfaceNode->GetBuffer() != nullptr) {
+            CaptureSingleSurfaceNodeWithUni(*surfaceNode);
+        }
+    }
 }
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNode& node)

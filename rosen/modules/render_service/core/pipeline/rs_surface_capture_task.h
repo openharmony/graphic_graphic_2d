@@ -73,15 +73,20 @@ private:
         void ProcessSurfaceRenderNodeWithoutUni(RSSurfaceRenderNode& node);
         void CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRenderNode& node);
         void CaptureSurfaceInDisplayWithoutUni(RSSurfaceRenderNode& node);
+        void FindSecurityLayerAndHardwareEnabledNodes();
+        void AdjustZOrderAndDrawSurfaceNode();
         std::unique_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
         bool isDisplayNode_ = false;
         float scaleX_ = 1.0f;
         float scaleY_ = 1.0f;
         bool isUniRender_ = false;
+        bool hasSecurityLayer_ = false;
 
         SkMatrix captureMatrix_ = SkMatrix::I();
 
         std::shared_ptr<RSBaseRenderEngine> renderEngine_;
+
+        std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     };
 
     sk_sp<SkSurface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
