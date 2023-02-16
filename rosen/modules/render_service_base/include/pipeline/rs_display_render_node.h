@@ -15,12 +15,11 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DISPLAY_RENDER_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DISPLAY_RENDER_NODE_H
 
-#include <iconsumer_surface.h>
-#include <ibuffer_consumer_listener.h>
 #include <memory>
 #include <mutex>
 #ifndef ROSEN_CROSS_PLATFORM
 #include <ibuffer_consumer_listener.h>
+#include <iconsumer_surface.h>
 #include <surface.h>
 #include "sync_fence.h"
 #endif
