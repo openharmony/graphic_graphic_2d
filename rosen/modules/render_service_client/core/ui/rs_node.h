@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,7 +43,7 @@ class RSImplicitAnimParam;
 class RSImplicitAnimator;
 class RSModifier;
 
-class RS_EXPORT RSNode : public RSBaseNode {
+class RSC_EXPORT RSNode : public RSBaseNode {
 public:
     using WeakPtr = std::weak_ptr<RSNode>;
     using SharedPtr = std::shared_ptr<RSNode>;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 
 #include <mutex>
 #include <unordered_map>
+#include <memory>
 
 #include "common/rs_macros.h"
 
@@ -24,7 +25,7 @@ namespace OHOS {
 namespace Rosen {
 class RSModifierManager;
 
-class RS_EXPORT RSModifierManagerMap final {
+class RSC_EXPORT RSModifierManagerMap final {
 public:
     ~RSModifierManagerMap() = default;
     static std::shared_ptr<RSModifierManagerMap>& Instance();

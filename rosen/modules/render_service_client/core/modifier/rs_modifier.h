@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RS_EXPORT RSModifier : public std::enable_shared_from_this<RSModifier> {
+class RSC_EXPORT RSModifier : public std::enable_shared_from_this<RSModifier> {
 public:
     explicit RSModifier(const std::shared_ptr<RSPropertyBase>& property)
         : property_(property ? property : std::make_shared<RSPropertyBase>())
@@ -91,7 +91,7 @@ protected:
     friend class RSPropertyBase;
 };
 
-class RS_EXPORT RSGeometryModifier : public RSModifier {
+class RSC_EXPORT RSGeometryModifier : public RSModifier {
 public:
     RSGeometryModifier(const std::shared_ptr<RSPropertyBase>& property, const RSModifierType type)
         : RSModifier(property, type)
@@ -100,7 +100,7 @@ public:
     virtual ~RSGeometryModifier() = default;
 };
 
-class RS_EXPORT RSBackgroundModifier : public RSModifier {
+class RSC_EXPORT RSBackgroundModifier : public RSModifier {
 public:
     RSBackgroundModifier(const std::shared_ptr<RSPropertyBase>& property, const RSModifierType type)
         : RSModifier(property, type)
@@ -109,7 +109,7 @@ public:
     virtual ~RSBackgroundModifier() = default;
 };
 
-class RS_EXPORT RSContentModifier : public RSModifier {
+class RSC_EXPORT RSContentModifier : public RSModifier {
 public:
     RSContentModifier(const std::shared_ptr<RSPropertyBase>& property, const RSModifierType type)
         : RSModifier(property, type)
@@ -118,7 +118,7 @@ public:
     virtual ~RSContentModifier() = default;
 };
 
-class RS_EXPORT RSForegroundModifier : public RSModifier {
+class RSC_EXPORT RSForegroundModifier : public RSModifier {
 public:
     RSForegroundModifier(const std::shared_ptr<RSPropertyBase>& property, const RSModifierType type)
         : RSModifier(property, type)
@@ -127,7 +127,7 @@ public:
     virtual ~RSForegroundModifier() = default;
 };
 
-class RS_EXPORT RSOverlayModifier : public RSModifier {
+class RSC_EXPORT RSOverlayModifier : public RSModifier {
 public:
     RSOverlayModifier(const std::shared_ptr<RSPropertyBase>& property, const RSModifierType type)
         : RSModifier(property, type)
@@ -136,7 +136,7 @@ public:
     virtual ~RSOverlayModifier() = default;
 };
 
-class RS_EXPORT RSAppearanceModifier : public RSModifier {
+class RSC_EXPORT RSAppearanceModifier : public RSModifier {
 public:
     RSAppearanceModifier(const std::shared_ptr<RSPropertyBase>& property, const RSModifierType type)
         : RSModifier(property, type)

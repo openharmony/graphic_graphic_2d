@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -591,8 +591,6 @@ void RestoreAlphaOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
     canvas.RestoreAlpha();
 }
-
-#ifdef ROSEN_OHOS
 
 // RectOpItem
 bool RectOpItem::Marshalling(Parcel& parcel) const
@@ -1531,7 +1529,5 @@ OpItem* RestoreAlphaOpItem::Unmarshalling(Parcel& parcel)
 {
     return new RestoreAlphaOpItem();
 }
-
-#endif
 } // namespace Rosen
 } // namespace OHOS

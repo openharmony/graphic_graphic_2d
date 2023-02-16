@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,9 +19,11 @@
 #include <refbase.h>
 #include <string>
 
+#ifdef ROSEN_OHOS
 #include "surface.h"
 #include "surface_delegate.h"
 #include "surface_type.h"
+#endif
 
 #include "platform/drawing/rs_surface.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -35,9 +37,10 @@ namespace Rosen {
 using BufferAvailableCallback = std::function<void()>;
 struct RSSurfaceNodeConfig {
     std::string SurfaceNodeName = "SurfaceNode";
+    UseSurfaceToRenderFunc onRender = nullptr;
 };
 
-class RS_EXPORT RSSurfaceNode : public RSNode {
+class RSC_EXPORT RSSurfaceNode : public RSNode {
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceNode>;
     using SharedPtr = std::shared_ptr<RSSurfaceNode>;
@@ -63,7 +66,6 @@ public:
     void RemoveChild(std::shared_ptr<RSBaseNode> child) override;
     void ClearChildren() override;
 
-    void SetColorSpace(ColorGamut colorSpace);
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
     void SetAbilityBGAlpha(uint8_t alpha);
@@ -77,13 +79,17 @@ public:
     // Create RSProxyNode by unmarshalling RSSurfaceNode, return existing node if it exists in RSNodeMap.
     static RSNode::SharedPtr UnmarshallingAsProxyNode(Parcel& parcel);
 
-    sptr<OHOS::Surface> GetSurface() const;
     FollowType GetFollowType() const override;
 
+#ifndef ROSEN_CROSS_PLATFORM
+    sptr<OHOS::Surface> GetSurface() const;
+
+    void SetColorSpace(ColorGamut colorSpace);
     ColorGamut GetColorSpace()
     {
         return colorSpace_;
     }
+#endif
     std::string GetName() const
     {
         return name_;
@@ -113,13 +119,17 @@ private:
     std::string name_;
     std::mutex mutex_;
     BufferAvailableCallback callback_;
+#ifndef ROSEN_CROSS_PLATFORM
     ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
+#endif
     bool isSecurityLayer_ = false;
     bool isChildOperationDisallowed_ { false };
 
     uint32_t windowId_;
+#ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceDelegate> surfaceDelegate_;
     sptr<SurfaceDelegate::ISurfaceCallback> surfaceCallback_;
+#endif
 
     friend class RSUIDirector;
     friend class RSAnimation;

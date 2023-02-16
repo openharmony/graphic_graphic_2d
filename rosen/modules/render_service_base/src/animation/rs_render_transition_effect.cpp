@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,8 @@
 
 #include "animation/rs_render_transition_effect.h"
 
+#include <climits>
+
 #include "animation/rs_animation_common.h"
 #include "animation/rs_value_estimator.h"
 #include "modifier/rs_render_modifier.h"
@@ -23,7 +25,6 @@
 
 namespace OHOS {
 namespace Rosen {
-#ifdef ROSEN_OHOS
 namespace {
 enum RSTransitionEffectType : uint16_t {
     FADE = 1,
@@ -149,7 +150,6 @@ RSRenderTransitionEffect* RSTransitionRotate::Unmarshalling(Parcel& parcel)
     }
     return new RSTransitionRotate(dx, dy, dz, radian);
 }
-#endif
 
 const std::shared_ptr<RSRenderModifier> RSTransitionFade::CreateModifier()
 {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "platform/common/rs_system_properties.h"
 
 #include <cstdlib>
+#include <parameter.h>
 #include <parameters.h>
 #include "platform/common/rs_log.h"
 #include "transaction/rs_render_service_client.h"
@@ -201,6 +202,21 @@ bool RSSystemProperties::FrameTraceEnabled()
         }
     }
     return isFrameTraceEnabled_;
+}
+
+float RSSystemProperties::GetAnimationScale()
+{
+    return std::atof((system::GetParameter("persist.sys.graphic.animationscale", "1.0")).c_str());
+}
+
+bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
+{
+    return std::atoi((system::GetParameter(name, defaultValue ? "1" : "0")).c_str()) != 0;
+}
+
+int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
+{
+    return WatchParameter(name, func, context);
 }
 } // namespace Rosen
 } // namespace OHOS

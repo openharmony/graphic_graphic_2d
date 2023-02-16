@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,15 +15,18 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_SURFACE_HANDLER_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_SURFACE_HANDLER_H
 
-#include <surface.h>
+#include <atomic>
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#ifndef ROSEN_CROSS_PLATFORM
+#include <surface.h>
 #include "sync_fence.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
-class RS_EXPORT RSSurfaceHandler {
+class RSB_EXPORT RSSurfaceHandler {
 public:
     // indicates which node this handler belongs to.
     explicit RSSurfaceHandler(NodeId id) : id_(id) {}
@@ -32,20 +35,23 @@ public:
     struct SurfaceBufferEntry {
         void Reset()
         {
+#ifndef ROSEN_CROSS_PLATFORM
             buffer = nullptr;
             acquireFence = SyncFence::INVALID_FENCE;
             releaseFence = SyncFence::INVALID_FENCE;
             damageRect = Rect {0, 0, 0, 0};
+#endif
             timestamp = 0;
         }
+#ifndef ROSEN_CROSS_PLATFORM
         sptr<SurfaceBuffer> buffer;
         sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
         sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
         Rect damageRect = {0, 0, 0, 0};
+#endif
         int64_t timestamp = 0;
     };
 
-    void SetConsumer(const sptr<Surface>& consumer);
     void IncreaseAvailableBuffer();
     int32_t ReduceAvailableBuffer();
 
@@ -56,9 +62,19 @@ public:
 
     void SetDefaultWidthAndHeight(int32_t width, int32_t height)
     {
+#ifndef ROSEN_CROSS_PLATFORM
         if (consumer_ != nullptr) {
             consumer_->SetDefaultWidthAndHeight(width, height);
         }
+#endif
+    }
+
+#ifndef ROSEN_CROSS_PLATFORM
+    void SetConsumer(const sptr<Surface>& consumer);
+
+    const sptr<Surface>& GetConsumer() const
+    {
+        return consumer_;
     }
 
     void SetBuffer(
@@ -94,15 +110,11 @@ public:
         // The fence which get from hdi is preBuffer's releaseFence now.
         preBuffer_.releaseFence = std::move(fence);
     }
+#endif
 
     SurfaceBufferEntry& GetPreBuffer()
     {
         return preBuffer_;
-    }
-
-    const sptr<Surface>& GetConsumer() const
-    {
-        return consumer_;
     }
 
     int32_t GetAvailableBufferCount() const
@@ -131,7 +143,11 @@ public:
 
     bool HasConsumer() const
     {
+#ifndef ROSEN_CROSS_PLATFORM
         return consumer_ != nullptr;
+#else
+        return false;
+#endif
     }
     inline bool IsCurrentFrameBufferConsumed()
     {
@@ -147,7 +163,9 @@ public:
     }
 
 protected:
+#ifndef ROSEN_CROSS_PLATFORM
     sptr<Surface> consumer_;
+#endif
     bool isCurrentFrameBufferConsumed_ = false;
 
 private:

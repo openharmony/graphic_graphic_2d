@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -111,7 +111,11 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSS
         return nullptr;
     }
     sptr<Surface> surface = renderService->CreateNodeAndSurface(config);
+    return CreateRSSurface(surface);
+}
 
+std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Surface> &surface)
+{
 #ifdef ACE_ENABLE_GL
     // GPU render
     std::shared_ptr<RSSurface> producer = std::make_shared<RSSurfaceOhosGl>(surface);

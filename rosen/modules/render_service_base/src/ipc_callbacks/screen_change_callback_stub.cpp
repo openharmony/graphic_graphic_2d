@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#ifdef ROSEN_OHOS
 #include "screen_change_callback_stub.h"
 
 namespace OHOS {
@@ -44,4 +43,3 @@ int RSScreenChangeCallbackStub::OnRemoteRequest(
 }
 } // namespace Rosen
 } // namespace OHOS
-#endif // ROSEN_OHOS

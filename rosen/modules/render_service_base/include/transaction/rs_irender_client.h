@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,7 @@ namespace OHOS {
 namespace Rosen {
 class RSSyncTask;
 
-class RSIRenderClient {
+class RSB_EXPORT RSIRenderClient {
 public:
     RSIRenderClient() = default;
     virtual ~RSIRenderClient() = default;
@@ -34,8 +34,8 @@ public:
     virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
     virtual void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
 
-    static std::shared_ptr<RSIRenderClient> CreateRenderServiceClient();
-    static std::unique_ptr<RSIRenderClient> CreateRenderThreadClient();
+    static RSB_EXPORT std::shared_ptr<RSIRenderClient> CreateRenderServiceClient();
+    static RSB_EXPORT std::unique_ptr<RSIRenderClient> CreateRenderThreadClient();
 };
 
 } // namespace Rosen

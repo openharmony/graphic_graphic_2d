@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,7 +33,7 @@ struct RSDrawingContext {
     float height;
 };
 
-class RS_EXPORT RSExtendedModifierHelper {
+class RSC_EXPORT RSExtendedModifierHelper {
 public:
     static RSDrawingContext CreateDrawingContext(NodeId nodeId);
     static std::shared_ptr<RSRenderModifier> CreateRenderModifier(
@@ -41,7 +41,7 @@ public:
     static std::shared_ptr<DrawCmdList> FinishDrawing(RSDrawingContext& ctx);
 };
 
-class RS_EXPORT RSExtendedModifier : public RSModifier {
+class RSC_EXPORT RSExtendedModifier : public RSModifier {
 public:
     RSExtendedModifier(const std::shared_ptr<RSPropertyBase>& property = {})
         : RSModifier(property, RSModifierType::EXTENDED)
@@ -97,7 +97,7 @@ protected:
     }
 };
 
-class RS_EXPORT RSTransitionModifier : public RSExtendedModifier {
+class RSC_EXPORT RSTransitionModifier : public RSExtendedModifier {
 public:
     RSTransitionModifier() : RSExtendedModifier(RSModifierType::TRANSITION)
     {}
@@ -112,7 +112,7 @@ public:
     virtual void Identity() = 0;
 };
 
-class RS_EXPORT RSBackgroundStyleModifier : public RSExtendedModifier {
+class RSC_EXPORT RSBackgroundStyleModifier : public RSExtendedModifier {
 public:
     RSBackgroundStyleModifier() : RSExtendedModifier(RSModifierType::BACKGROUND_STYLE)
     {}
@@ -123,7 +123,7 @@ public:
     }
 };
 
-class RS_EXPORT RSContentStyleModifier : public RSExtendedModifier {
+class RSC_EXPORT RSContentStyleModifier : public RSExtendedModifier {
 public:
     RSContentStyleModifier() : RSExtendedModifier(RSModifierType::CONTENT_STYLE)
     {}
@@ -134,7 +134,7 @@ public:
     }
 };
 
-class RS_EXPORT RSForegroundStyleModifier : public RSExtendedModifier {
+class RSC_EXPORT RSForegroundStyleModifier : public RSExtendedModifier {
 public:
     RSForegroundStyleModifier() : RSExtendedModifier(RSModifierType::FOREGROUND_STYLE)
     {}
@@ -145,7 +145,7 @@ public:
     }
 };
 
-class RS_EXPORT RSOverlayStyleModifier : public RSExtendedModifier {
+class RSC_EXPORT RSOverlayStyleModifier : public RSExtendedModifier {
 public:
     RSOverlayStyleModifier() : RSExtendedModifier(RSModifierType::OVERLAY_STYLE)
     {}

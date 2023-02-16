@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,7 @@
 
 #include <string>
 
-#define EXPORT __attribute__((visibility("default")))
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -28,9 +28,9 @@ using AnimateStartFunc = void(*)();
 using RenderStartFunc = void(*)();
 using SendCommandsStartFunc = void(*)();
 
-class EXPORT RsFrameReport final {
+class RSB_EXPORT RsFrameReport final {
 public:
-    static RsFrameReport& GetInstance();
+    static RSB_EXPORT RsFrameReport& GetInstance();
     void Init();
     int GetEnable();
 
@@ -48,11 +48,11 @@ private:
     void *frameSchedHandle_ = nullptr;
     bool frameSchedSoLoaded_ = false;
 
-    EXPORT FrameGetEnableFunc frameGetEnableFunc_ = nullptr;
-    EXPORT ProcessCommandsStartFunc processCommandsStartFun_ = nullptr;
-    EXPORT AnimateStartFunc animateStartFunc_ = nullptr;
-    EXPORT RenderStartFunc renderStartFunc_ = nullptr;
-    EXPORT SendCommandsStartFunc sendCommandsStartFunc_ = nullptr;
+    FrameGetEnableFunc frameGetEnableFunc_ = nullptr;
+    ProcessCommandsStartFunc processCommandsStartFun_ = nullptr;
+    AnimateStartFunc animateStartFunc_ = nullptr;
+    RenderStartFunc renderStartFunc_ = nullptr;
+    SendCommandsStartFunc sendCommandsStartFunc_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS
