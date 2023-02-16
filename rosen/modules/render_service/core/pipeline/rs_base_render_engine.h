@@ -160,7 +160,7 @@ public:
     }
 #endif // RS_ENABLE_EGLIMAGE
 protected:
-    void RegisterDeleteBufferListener(const sptr<Surface>& consumer, bool isForUniRedraw = false);
+    void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;

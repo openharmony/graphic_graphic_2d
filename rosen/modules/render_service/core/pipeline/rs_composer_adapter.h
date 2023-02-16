@@ -110,7 +110,7 @@ private:
     static void SetComposeInfoToLayer(
         const LayerInfoPtr& layer,
         const ComposeInfo& info,
-        const sptr<Surface>& surface,
+        const sptr<IConsumerSurface>& surface,
         RSBaseRenderNode* node);
     void DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const;
     void DumpLayersToFile(const std::vector<LayerInfoPtr>& layers);
@@ -118,7 +118,7 @@ private:
     void LayerRotate(const LayerInfoPtr& layer, RSBaseRenderNode& node) const;
     void LayerCrop(const LayerInfoPtr& layer) const;
     static void LayerScaleDown(const LayerInfoPtr& layer);
-    static void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface);
+    static void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<IConsumerSurface>& surface);
 
     void OnPrepareComplete(sptr<Surface>& surface, const PrepareCompleteParam& param, void* data);
     static void GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node);

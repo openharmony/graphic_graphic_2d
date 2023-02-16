@@ -446,7 +446,7 @@ void HelloDrawing::Init(uint32_t width, uint32_t height, HdiBackend* backend)
 
 void HelloDrawing::CreateBaseSurface(uint32_t index)
 {
-    sptr<Surface> cSurface = Surface::CreateSurfaceAsConsumer();
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create();
     cSurface->SetDefaultWidthAndHeight(baseWidthVec_[index], baseHeightVec_[index]);
     cSurface->SetDefaultUsage(BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
 

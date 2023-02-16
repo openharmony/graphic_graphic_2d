@@ -328,7 +328,7 @@ ComposeInfo RSComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& node) const
 void RSComposerAdapter::SetComposeInfoToLayer(
     const LayerInfoPtr& layer,
     const ComposeInfo& info,
-    const sptr<Surface>& surface,
+    const sptr<IConsumerSurface>& surface,
     RSBaseRenderNode* node)
 {
     if (layer == nullptr) {
@@ -556,7 +556,7 @@ static int GetSurfaceNodeRotation(RSBaseRenderNode& node)
 }
 
 static void SetLayerTransform(const LayerInfoPtr& layer, RSBaseRenderNode& node,
-    const sptr<Surface>& surface, ScreenRotation screenRotation)
+    const sptr<IConsumerSurface>& surface, ScreenRotation screenRotation)
 {
     // screenRotation: anti-clockwise, surfaceNodeRotation: anti-clockwise, surfaceTransform: anti-clockwise
     // layerTransform: clockwise
@@ -699,7 +699,7 @@ void RSComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer)
 }
 
 // private func, guarantee the layer and surface are valid
-void RSComposerAdapter::LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface)
+void RSComposerAdapter::LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<IConsumerSurface>& surface)
 {
     if (!layer->IsSupportedPresentTimestamp()) {
         return;

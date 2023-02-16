@@ -75,7 +75,7 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_001, TestSize.Level1)
     uint32_t width = 480;
     uint32_t height = 320;
 
-    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
@@ -101,7 +101,7 @@ HWTEST_F(RSScreenManagerTest, GetAllScreenIds_001, TestSize.Level1)
     uint32_t width = 480;
     uint32_t height = 320;
 
-    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
@@ -131,7 +131,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenSurface_001, TestSize.Level1)
     auto id = screenManager->CreateVirtualScreen(name, width, height, nullptr);
     ASSERT_NE(INVALID_SCREEN_ID, id);
 
-    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
@@ -156,7 +156,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenResolution_001, TestSize.Level1)
     uint32_t width = 480;
     uint32_t height = 320;
 
-    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
@@ -187,7 +187,7 @@ HWTEST_F(RSScreenManagerTest, QueryScreenInfo_001, TestSize.Level1)
     uint32_t width = 480;
     uint32_t height = 320;
 
-    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
@@ -217,7 +217,7 @@ HWTEST_F(RSScreenManagerTest, GetProducerSurface_001, TestSize.Level1)
     uint32_t width = 480;
     uint32_t height = 320;
 
-    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
@@ -259,7 +259,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenBacklight_001, TestSize.Level1)
     uint32_t width = 480;
     uint32_t height = 320;
 
-    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
@@ -301,7 +301,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenSupportedColorGamuts_001, TestSize.Level1
     uint32_t width = 480;
     uint32_t height = 320;
 
-    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
@@ -332,7 +332,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenColorGamut_001, TestSize.Level1)
     uint32_t width = 480;
     uint32_t height = 320;
 
-    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
@@ -366,7 +366,7 @@ HWTEST_F(RSScreenManagerTest, SetScreenMirror_001, testing::ext::TestSize.Level2
     uint32_t width = 480;
     uint32_t height = 320;
 
-    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
@@ -474,7 +474,7 @@ HWTEST_F(RSScreenManagerTest, RSDump_001, testing::ext::TestSize.Level2)
     std::string dumpString = "";
     std::string arg = "";
     std::string empty = "";
-    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);

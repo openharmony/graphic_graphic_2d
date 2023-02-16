@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "iconsumer_surface.h"
 #include "platform/ohos/rs_surface_ohos.h"
 #include "platform/drawing/rs_surface_converter.h"
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
@@ -33,7 +34,7 @@ public:
     void SetUp() override;
     void TearDown() override;
 
-    static inline sptr<Surface> csurf = nullptr;
+    static inline sptr<IConsumerSurface> csurf = nullptr;
     static inline sptr<IBufferProducer> producer = nullptr;
     static inline sptr<Surface> pSurface = nullptr;
 };
@@ -65,7 +66,7 @@ HWTEST_F(RSSurfaceOhosTest, ClearAllBuffer_Nullptr, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceOhosTest, ClearAllBuffer_Test, TestSize.Level1)
 {
-    csurf = Surface::CreateSurfaceAsConsumer();
+    csurf = IConsumerSurface::Create();
     producer = csurf->GetProducer();
     pSurface = Surface::CreateSurfaceAsProducer(producer);
     RSSurfaceOhos* rsSurface = new RSSurfaceOhosRaster(pSurface);

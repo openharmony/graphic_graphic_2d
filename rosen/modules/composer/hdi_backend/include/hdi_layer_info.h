@@ -17,6 +17,7 @@
 #define HDI_BACKEND_HDI_LAYER_INFO_H
 
 #include <string>
+#include "iconsumer_surface.h"
 #include <surface.h>
 #include <sync_fence.h>
 namespace OHOS {
@@ -79,7 +80,7 @@ public:
         return std::make_shared<HdiLayerInfo>();
     }
 
-    void SetSurface(const sptr<Surface> &surface)
+    void SetSurface(const sptr<IConsumerSurface> &surface)
     {
         cSurface_ = surface;
     }
@@ -209,7 +210,7 @@ public:
     /* rs create and set/get layer info end */
 
     /* hdiLayer get layer info begin */
-    sptr<Surface> GetSurface() const
+    sptr<IConsumerSurface> GetSurface() const
     {
         return cSurface_;
     }
@@ -421,7 +422,7 @@ private:
     GraphicPresentTimestamp presentTimestamp_ = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
 
     void *additionalInfo_ = nullptr;
-    sptr<Surface> cSurface_ = nullptr;
+    sptr<IConsumerSurface> cSurface_ = nullptr;
     sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
     sptr<SurfaceBuffer> sbuffer_ = nullptr;
     sptr<SurfaceBuffer> pbuffer_ = nullptr;

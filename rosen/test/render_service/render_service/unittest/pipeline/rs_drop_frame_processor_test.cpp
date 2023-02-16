@@ -41,7 +41,7 @@ public:
     static inline BufferFlushConfig flushConfig = {
         .damage = { .w = 0x100, .h = 0x100, },
     };
-    static inline sptr<Surface> csurf = nullptr;
+    static inline sptr<IConsumerSurface> csurf = nullptr;
     static inline sptr<IBufferProducer> producer = nullptr;
     static inline sptr<Surface> psurf = nullptr;
     static inline std::shared_ptr<RSSurfaceRenderNode> rsNode = nullptr;
@@ -94,7 +94,7 @@ HWTEST_F(RSDropFrameProcessorTest, DropFrameProcessorTest002, TestSize.Level1)
     rsParentNode->AddChild(rsNode);
     rsNode->SetIsOnTheTree(true);
 
-    csurf = Surface::CreateSurfaceAsConsumer(config.name);
+    csurf = IConsumerSurface::Create(config.name);
     rsNode->SetConsumer(csurf);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsNode);
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode);
@@ -143,7 +143,7 @@ HWTEST_F(RSDropFrameProcessorTest, DropFrameProcessorTest003, TestSize.Level1)
     rsParentNode->AddChild(rsNode);
     rsNode->SetIsOnTheTree(true);
 
-    csurf = Surface::CreateSurfaceAsConsumer(config.name);
+    csurf = IConsumerSurface::Create(config.name);
     rsNode->SetConsumer(csurf);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsNode);
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode);

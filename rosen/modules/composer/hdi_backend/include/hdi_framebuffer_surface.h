@@ -20,6 +20,7 @@
 #include <queue>
 #include <refbase.h>
 #include <surface.h>
+#include <iconsumer_surface.h>
 #include <sync_fence.h>
 #include "surface_buffer.h"
 
@@ -51,7 +52,7 @@ public:
 private:
     mutable std::mutex mutex_;
     std::condition_variable bufferCond_;
-    sptr<OHOS::Surface> consumerSurface_ = nullptr;
+    sptr<OHOS::IConsumerSurface> consumerSurface_ = nullptr;
     sptr<OHOS::Surface> producerSurface_ = nullptr;
     std::queue<std::unique_ptr<FrameBufferEntry>> availableBuffers_;
 

@@ -366,7 +366,7 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
     void SetColorSpace(ColorGamut colorSpace);
     ColorGamut GetColorSpace() const;
-    void SetConsumer(const sptr<Surface>& consumer);
+    void SetConsumer(const sptr<IConsumerSurface>& consumer);
     void SetBlendType(GraphicBlendType blendType);
     GraphicBlendType GetBlendType();
 #endif

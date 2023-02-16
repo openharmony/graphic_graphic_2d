@@ -20,6 +20,7 @@
 #include <string>
 
 #ifdef ROSEN_OHOS
+#include "iconsumer_surface.h"
 #include "surface.h"
 #include "surface_delegate.h"
 #include "surface_type.h"

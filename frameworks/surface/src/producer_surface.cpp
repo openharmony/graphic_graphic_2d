@@ -27,6 +27,22 @@ namespace {
 constexpr int32_t PRODUCER_REF_COUNT_IN_PRODUCER_SURFACE = 1;
 }
 
+sptr<Surface> Surface::CreateSurfaceAsProducer(sptr<IBufferProducer>& producer)
+{
+    if (producer == nullptr) {
+        BLOGE("Failure, Reason: producer is nullptr");
+        return nullptr;
+    }
+
+    sptr<ProducerSurface> surf = new ProducerSurface(producer);
+    GSError ret = surf->Init();
+    if (ret != GSERROR_OK) {
+        BLOGE("Failure, Reason: producer surf init failed");
+        return nullptr;
+    }
+    return surf;
+}
+
 ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
 {
     producer_ = producer;
@@ -125,15 +141,6 @@ GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
     const sptr<BufferExtraData>& bedata = buffer->GetExtraData();
     return producer_->FlushBuffer(buffer->GetSeqNum(), bedata, fence, config);
 }
-GSError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
-                                       int64_t &timestamp, Rect &damage)
-{
-    return GSERROR_NOT_SUPPORT;
-}
-GSError ProducerSurface::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence)
-{
-    return GSERROR_NOT_SUPPORT;
-}
 
 GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     int32_t &fence, BufferRequestConfig &config)
@@ -164,17 +171,6 @@ GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
     // fence need close?
     sptr<SyncFence> syncFence = new SyncFence(fence);
     return FlushBuffer(buffer, syncFence, config);
-}
-
-GSError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
-    int64_t &timestamp, Rect &damage)
-{
-    return GSERROR_NOT_SUPPORT;
-}
-
-GSError ProducerSurface::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence)
-{
-    return GSERROR_NOT_SUPPORT;
 }
 
 GSError ProducerSurface::AttachBuffer(sptr<SurfaceBuffer>& buffer)
@@ -218,11 +214,6 @@ const std::string& ProducerSurface::GetName()
     return name_;
 }
 
-GSError ProducerSurface::SetDefaultWidthAndHeight(int32_t width, int32_t height)
-{
-    return GSERROR_NOT_SUPPORT;
-}
-
 int32_t ProducerSurface::GetDefaultWidth()
 {
     return producer_->GetDefaultWidth();
@@ -231,11 +222,6 @@ int32_t ProducerSurface::GetDefaultWidth()
 int32_t ProducerSurface::GetDefaultHeight()
 {
     return producer_->GetDefaultHeight();
-}
-
-GSError ProducerSurface::SetDefaultUsage(uint32_t usage)
-{
-    return GSERROR_NOT_SUPPORT;
 }
 
 uint32_t ProducerSurface::GetDefaultUsage()
@@ -261,29 +247,9 @@ std::string ProducerSurface::GetUserData(const std::string &key)
     return "";
 }
 
-GSError ProducerSurface::RegisterConsumerListener(sptr<IBufferConsumerListener>& listener)
-{
-    return GSERROR_NOT_SUPPORT;
-}
-
-GSError ProducerSurface::RegisterConsumerListener(IBufferConsumerListenerClazz *listener)
-{
-    return GSERROR_NOT_SUPPORT;
-}
-
-GSError ProducerSurface::UnregisterConsumerListener()
-{
-    return GSERROR_NOT_SUPPORT;
-}
-
 GSError ProducerSurface::RegisterReleaseListener(OnReleaseFunc func)
 {
     return producer_->RegisterReleaseListener(func);
-}
-
-GSError ProducerSurface::RegisterDeleteBufferListener(OnDeleteBufferFunc func, bool isForUniRedraw)
-{
-    return GSERROR_NOT_SUPPORT;
 }
 
 bool ProducerSurface::IsRemote()
@@ -322,11 +288,6 @@ uint64_t ProducerSurface::GetUniqueId() const
 GSError ProducerSurface::SetTransform(GraphicTransformType transform)
 {
     return producer_->SetTransform(transform);
-}
-
-GraphicTransformType ProducerSurface::GetTransform() const
-{
-    return GraphicTransformType::GRAPHIC_ROTATE_BUTT;
 }
 
 GSError ProducerSurface::IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,
@@ -370,11 +331,6 @@ GSError ProducerSurface::SetScalingMode(uint32_t sequence, ScalingMode scalingMo
     return producer_->SetScalingMode(sequence, scalingMode);
 }
 
-GSError ProducerSurface::GetScalingMode(uint32_t sequence, ScalingMode &scalingMode)
-{
-    return GSERROR_NOT_SUPPORT;
-}
-
 GSError ProducerSurface::SetMetaData(uint32_t sequence, const std::vector<GraphicHDRMetaData> &metaData)
 {
     if (metaData.size() == 0) {
@@ -393,36 +349,9 @@ GSError ProducerSurface::SetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey
     return producer_->SetMetaDataSet(sequence, key, metaData);
 }
 
-GSError ProducerSurface::QueryMetaDataType(uint32_t sequence, HDRMetaDataType &type) const
-{
-    return GSERROR_NOT_SUPPORT;
-}
-
-GSError ProducerSurface::GetMetaData(uint32_t sequence, std::vector<GraphicHDRMetaData> &metaData) const
-{
-    return GSERROR_NOT_SUPPORT;
-}
-
-GSError ProducerSurface::GetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey &key,
-                                        std::vector<uint8_t> &metaData) const
-{
-    return GSERROR_NOT_SUPPORT;
-}
-
 GSError ProducerSurface::SetTunnelHandle(const OHExtDataHandle *handle)
 {
     return producer_->SetTunnelHandle(handle);
-}
-
-sptr<SurfaceTunnelHandle> ProducerSurface::GetTunnelHandle() const
-{
-    // not support
-    return nullptr;
-}
-
-GSError ProducerSurface::SetPresentTimestamp(uint32_t sequence, const GraphicPresentTimestamp &timestamp)
-{
-    return GSERROR_NOT_SUPPORT;
 }
 
 GSError ProducerSurface::GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type,
@@ -433,35 +362,5 @@ GSError ProducerSurface::GetPresentTimestamp(uint32_t sequence, GraphicPresentTi
         return GSERROR_INVALID_ARGUMENTS;
     }
     return producer_->GetPresentTimestamp(sequence, type, time);
-}
-
-int32_t ProducerSurface::GetDefaultFormat()
-{
-    BLOGND("ProducerSurface::GetDefaultFormat not support.");
-    return 0;
-}
-
-GSError ProducerSurface::SetDefaultFormat(int32_t format)
-{
-    BLOGND("ProducerSurface::SetDefaultFormat not support.");
-    return GSERROR_NOT_SUPPORT;
-}
-
-int32_t ProducerSurface::GetDefaultColorGamut()
-{
-    BLOGND("ProducerSurface::GetDefaultColorGamut not support.");
-    return 0;
-}
-
-GSError ProducerSurface::SetDefaultColorGamut(int32_t colorGamut)
-{
-    BLOGND("ProducerSurface::SetDefaultColorGamut not support.");
-    return GSERROR_NOT_SUPPORT;
-}
-
-sptr<NativeSurface> ProducerSurface::GetNativeSurface()
-{
-    BLOGND("ProducerSurface::GetNativeSurface not support.");
-    return nullptr;
 }
 } // namespace OHOS

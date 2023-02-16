@@ -119,7 +119,7 @@ bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
         RS_LOGI("RSDisplayRenderNode::CreateSurface already created, return");
         return true;
     }
-    consumer_ = Surface::CreateSurfaceAsConsumer("DisplayNode");
+    consumer_ = IConsumerSurface::Create("DisplayNode");
     if (consumer_ == nullptr) {
         RS_LOGE("RSDisplayRenderNode::CreateSurface get consumer surface fail");
         return false;

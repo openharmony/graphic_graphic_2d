@@ -17,6 +17,7 @@
 
 #include <securec.h>
 
+#include "iconsumer_surface.h"
 #include "surface.h"
 #include "surface_buffer.h"
 #include "surface_buffer_impl.h"
@@ -95,23 +96,16 @@ namespace OHOS {
         std::vector<uint8_t> metaDatas2 = {metaData2};
 
         // test
-        sptr<OHOS::Surface> cSurface = OHOS::Surface::CreateSurfaceAsConsumer(name, isShared);
+        sptr<OHOS::IConsumerSurface> cSurface = OHOS::IConsumerSurface::Create(name, isShared);
         auto producer = cSurface->GetProducer();
         sptr<OHOS::Surface> pSurface = OHOS::Surface::CreateSurfaceAsProducer(producer);
 
         pSurface->SetUserData(key, val);
         pSurface->IsSupportedAlloc(infos, supporteds);
         pSurface->SetScalingMode(sequence, scalingMode);
-        pSurface->GetScalingMode(sequence, scalingMode);
-        pSurface->SetMetaData(sequence, metaDatas);
-        pSurface->SetMetaDataSet(sequence, metakey, metaDatas2);
-        pSurface->QueryMetaDataType(sequence, metaType);
-        pSurface->GetMetaData(sequence, metaDatas);
-        pSurface->GetMetaDataSet(sequence, metakey, metaDatas2);
-        pSurface->SetPresentTimestamp(sequence, ptimestamp);
         pSurface->GetPresentTimestamp(sequence, type, time);
         cSurface->SetUserData(key, val);
-        cSurface->IsSupportedAlloc(infos, supporteds);
+        
         cSurface->SetScalingMode(sequence, scalingMode);
         cSurface->GetScalingMode(sequence, scalingMode);
         cSurface->SetMetaData(sequence, metaDatas);
@@ -120,7 +114,6 @@ namespace OHOS {
         cSurface->GetMetaData(sequence, metaDatas);
         cSurface->GetMetaDataSet(sequence, metakey, metaDatas2);
         cSurface->SetPresentTimestamp(sequence, ptimestamp);
-        cSurface->GetPresentTimestamp(sequence, type, time);
         cSurface->Dump(result);
     }
 
@@ -150,7 +143,7 @@ namespace OHOS {
         GraphicTransformType transform = GetData<GraphicTransformType>();
 
         // test
-        sptr<OHOS::Surface> cSurface = OHOS::Surface::CreateSurfaceAsConsumer(name, isShared);
+        sptr<OHOS::IConsumerSurface> cSurface = OHOS::IConsumerSurface::Create(name, isShared);
         auto producer = cSurface->GetProducer();
         sptr<OHOS::Surface> pSurface = OHOS::Surface::CreateSurfaceAsProducer(producer);
         sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(seqNum);
@@ -160,18 +153,11 @@ namespace OHOS {
         pSurface->RequestBuffer(buffer, fenceFd, requestConfig);
         pSurface->CancelBuffer(buffer);
         pSurface->FlushBuffer(buffer, fenceFd, flushConfig);
-        pSurface->AcquireBuffer(buffer, fenceFd, timestamp, damage);
-        pSurface->ReleaseBuffer(buffer, fenceFd);
         pSurface->AttachBuffer(buffer);
         pSurface->DetachBuffer(buffer);
         pSurface->SetQueueSize(queueSize);
-        pSurface->SetDefaultWidthAndHeight(width, height);
-        pSurface->SetDefaultUsage(usage);
         pSurface->SetTransform(transform);
 
-        cSurface->RequestBuffer(buffer, fenceFd, requestConfig);
-        cSurface->CancelBuffer(buffer);
-        cSurface->FlushBuffer(buffer, fenceFd, flushConfig);
         cSurface->AcquireBuffer(buffer, fenceFd, timestamp, damage);
         cSurface->ReleaseBuffer(buffer, fenceFd);
         cSurface->AttachBuffer(buffer);

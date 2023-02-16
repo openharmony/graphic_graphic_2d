@@ -32,7 +32,7 @@ int32_t main(int32_t argc, const char *argv[])
 {
     std::cout << "sample start" << std::endl;
 
-    sptr<OHOS::Surface> cSurface = Surface::CreateSurfaceAsConsumer();
+    sptr<OHOS::IConsumerSurface> cSurface = IConsumerSurface::Create();
     sptr<IBufferConsumerListener> listener = new BufferConsumerListenerTest();
     cSurface->RegisterConsumerListener(listener);
     sptr<OHOS::IBufferProducer> producer = cSurface->GetProducer();

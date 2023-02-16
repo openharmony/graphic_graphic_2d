@@ -84,7 +84,7 @@ namespace OHOS {
         outputptr->Init();
         std::vector<LayerInfoPtr> layerInfos;
         LayerInfoPtr layerInfoptr = HdiLayerInfo::CreateHdiLayerInfo();
-        sptr<Surface> cSurface = Surface::CreateSurfaceAsConsumer();
+        sptr<IConsumerSurface> cSurface = IConsumerSurface::Create();
         layerInfoptr->SetSurface(cSurface);
         layerInfos.push_back(layerInfoptr);
         outputptr->SetLayerInfo(layerInfos);

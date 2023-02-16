@@ -66,7 +66,7 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(
     // (the canvas was moved to the node's left-top point correctly).
     params.dstRect = SkRect::MakeWH(localBounds.GetWidth(), localBounds.GetHeight());
 
-    const sptr<Surface>& surface = node.GetConsumer();
+    const sptr<IConsumerSurface>& surface = node.GetConsumer();
     const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
     if (isClipHole || surface == nullptr || buffer == nullptr) {
         return params;

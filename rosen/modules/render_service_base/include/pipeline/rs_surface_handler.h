@@ -20,6 +20,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #ifndef ROSEN_CROSS_PLATFORM
+#include <iconsumer_surface.h>
 #include <surface.h>
 #include "sync_fence.h"
 #endif
@@ -70,9 +71,9 @@ public:
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
-    void SetConsumer(const sptr<Surface>& consumer);
+    void SetConsumer(const sptr<IConsumerSurface>& consumer);
 
-    const sptr<Surface>& GetConsumer() const
+    const sptr<IConsumerSurface>& GetConsumer() const
     {
         return consumer_;
     }
@@ -164,7 +165,7 @@ public:
 
 protected:
 #ifndef ROSEN_CROSS_PLATFORM
-    sptr<Surface> consumer_;
+    sptr<IConsumerSurface> consumer_;
 #endif
     bool isCurrentFrameBufferConsumed_ = false;
 

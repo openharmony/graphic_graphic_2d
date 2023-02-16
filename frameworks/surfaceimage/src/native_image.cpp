@@ -14,6 +14,7 @@
  */
 
 #include "native_image.h"
+#include "surface.h"
 #include "surface_image.h"
 #include "window.h"
 

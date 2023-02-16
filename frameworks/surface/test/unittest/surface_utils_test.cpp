@@ -28,11 +28,11 @@ public:
     static void SetUpTestCase();
     static void TearDownTestCase();
 
-    static inline sptr<Surface> csurface1 = nullptr;
+    static inline sptr<IConsumerSurface> csurface1 = nullptr;
     static inline sptr<IBufferProducer> producer1 = nullptr;
     static inline sptr<Surface> psurface1 = nullptr;
 
-    static inline sptr<Surface> csurface2 = nullptr;
+    static inline sptr<IConsumerSurface> csurface2 = nullptr;
     static inline sptr<IBufferProducer> producer2 = nullptr;
     static inline sptr<Surface> psurface2 = nullptr;
 
@@ -41,13 +41,13 @@ public:
 
 void SurfaceUtilsTest::SetUpTestCase()
 {
-    csurface1 = Surface::CreateSurfaceAsConsumer();
+    csurface1 = IConsumerSurface::Create();
     sptr<IBufferConsumerListener> listener1 = new BufferConsumerListener();
     csurface1->RegisterConsumerListener(listener1);
     producer1 = csurface1->GetProducer();
     psurface1 = Surface::CreateSurfaceAsProducer(producer1);
 
-    csurface2 = Surface::CreateSurfaceAsConsumer();
+    csurface2 = IConsumerSurface::Create();
     sptr<IBufferConsumerListener> listener2 = new BufferConsumerListener();
     csurface2->RegisterConsumerListener(listener2);
     producer2 = csurface2->GetProducer();

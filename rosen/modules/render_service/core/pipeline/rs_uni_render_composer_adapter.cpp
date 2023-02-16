@@ -106,7 +106,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
 void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     const LayerInfoPtr& layer,
     const ComposeInfo& info,
-    const sptr<Surface>& surface,
+    const sptr<IConsumerSurface>& surface,
     RSBaseRenderNode* node) const
 {
     if (layer == nullptr) {
@@ -512,7 +512,7 @@ static int GetSurfaceNodeRotation(RSBaseRenderNode& node)
 }
 
 static void SetLayerTransform(const LayerInfoPtr& layer, RSBaseRenderNode& node,
-    const sptr<Surface>& surface, ScreenRotation screenRotation)
+    const sptr<IConsumerSurface>& surface, ScreenRotation screenRotation)
 {
     // screenRotation: anti-clockwise, surfaceNodeRotation: anti-clockwise, surfaceTransform: anti-clockwise
     // layerTransform: clockwise

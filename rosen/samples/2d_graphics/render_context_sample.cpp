@@ -130,7 +130,7 @@ void RenderContextSample::Sync(int64_t, void *data)
 
 void RenderContextSample::CreateBackGroundSurface()
 {
-    backGroundCSurface = Surface::CreateSurfaceAsConsumer();
+    backGroundCSurface = IConsumerSurface::Create();
     backGroundCSurface->SetDefaultWidthAndHeight(backGroundWidth, backGroundHeight);
     backGroundCSurface->SetDefaultUsage(BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
 
@@ -144,7 +144,7 @@ void RenderContextSample::CreateBackGroundSurface()
 
 void RenderContextSample::CreateDrawingSurface()
 {
-    drawingCSurface = Surface::CreateSurfaceAsConsumer();
+    drawingCSurface = IConsumerSurface::Create();
     drawingCSurface->SetDefaultWidthAndHeight(backGroundWidth, backGroundHeight);
     drawingCSurface->SetDefaultUsage(BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
 

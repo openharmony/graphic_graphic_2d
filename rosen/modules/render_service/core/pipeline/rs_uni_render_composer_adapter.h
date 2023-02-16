@@ -47,7 +47,7 @@ private:
     void SetComposeInfoToLayer(
         const LayerInfoPtr& layer,
         const ComposeInfo& info,
-        const sptr<Surface>& surface,
+        const sptr<IConsumerSurface>& surface,
         RSBaseRenderNode* node) const;
     void LayerRotate(const LayerInfoPtr& layer, RSBaseRenderNode& node) const;
     void DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const;

@@ -47,9 +47,9 @@ private:
     uint32_t drawingHeight = 0;
     std::vector<GraphicDisplayModeInfo> displayModeInfos_;
 
-    sptr<Surface> backGroundCSurface;
+    sptr<IConsumerSurface> backGroundCSurface;
     sptr<Surface> backGroundPSurface;
-    sptr<Surface> drawingCSurface;
+    sptr<IConsumerSurface> drawingCSurface;
     sptr<Surface> drawingPSurface;
 
     bool ready_ = false;

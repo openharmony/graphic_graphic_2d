@@ -53,7 +53,7 @@ private:
     uint32_t zorder_ = 0;
     sptr<SyncFence> prevFence_;
     OHOS::sptr<Surface> pSurface_;
-    OHOS::sptr<Surface> cSurface_;
+    OHOS::sptr<IConsumerSurface> cSurface_;
     OHOS::sptr<SurfaceBuffer> prevBuffer_;
     std::shared_ptr<HdiLayerInfo> hdiLayer_;
     LayerType layerType_ = LayerType::LAYER_STATUS;

@@ -286,7 +286,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     canvas.drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
 }
 
-void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<Surface>& consumer, bool isForUniRedraw)
+void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw)
 {
 #ifdef RS_ENABLE_EGLIMAGE
     auto regUnMapEglImageFunc = [this, isForUniRedraw](int32_t bufferId) {

@@ -225,7 +225,7 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
         RS_LOGE("RSRenderService::CreateNodeAndSurface CreateNode fail");
         return nullptr;
     }
-    sptr<Surface> surface = Surface::CreateSurfaceAsConsumer(config.name);
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name);
     if (surface == nullptr) {
         RS_LOGE("RSRenderService::CreateNodeAndSurface get consumer surface fail");
         return nullptr;
@@ -245,7 +245,9 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
         RS_LOGE("RSRenderService::CreateNodeAndSurface Register Consumer Listener fail");
         return nullptr;
     }
-    return surface;
+    sptr<IBufferProducer> producer = surface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+    return pSurface;
 }
 
 

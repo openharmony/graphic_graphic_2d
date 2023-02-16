@@ -34,7 +34,7 @@ public:
     void Start();
     void PostTask(const std::function<void()>& task);
     void CommitAndReleaseLayers(OutputPtr output, const std::vector<LayerInfoPtr>& layers);
-    void ReleaseBuffer(sptr<SurfaceBuffer> buffer, sptr<SyncFence> releaseFence, sptr<Surface> cSurface);
+    void ReleaseBuffer(sptr<SurfaceBuffer> buffer, sptr<SyncFence> releaseFence, sptr<IConsumerSurface> cSurface);
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
     {
@@ -54,7 +54,7 @@ private:
     void OnPrepareComplete(sptr<Surface>& surface, const PrepareCompleteParam& param, void* data);
     void Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers, uint32_t screenId);
     void ReleaseLayers(OutputPtr output, const std::unordered_map<uint32_t, LayerPtr>& layerMap);
-    void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface) const;
+    void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<IConsumerSurface>& surface) const;
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

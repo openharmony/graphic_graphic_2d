@@ -27,6 +27,17 @@ constexpr int32_t CONSUMER_REF_COUNT_IN_CONSUMER_SURFACE = 1;
 constexpr int32_t PRODUCER_REF_COUNT_IN_CONSUMER_SURFACE = 2;
 }
 
+sptr<IConsumerSurface> IConsumerSurface::Create(std::string name, bool isShared)
+{
+    sptr<ConsumerSurface> surf = new ConsumerSurface(name, isShared);
+    GSError ret = surf->Init();
+    if (ret != GSERROR_OK) {
+        BLOGE("Failure, Reason: consumer surf init failed");
+        return nullptr;
+    }
+    return surf;
+}
+
 ConsumerSurface::ConsumerSurface(const std::string &name, bool isShared)
     : name_(name), isShared_(isShared)
 {
@@ -73,16 +84,6 @@ sptr<IBufferProducer> ConsumerSurface::GetProducer() const
     return producer_;
 }
 
-GSError ConsumerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
-                                       sptr<SyncFence>& fence, BufferRequestConfig &config)
-{
-    return GSERROR_NOT_SUPPORT;
-}
-GSError ConsumerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
-                                     const sptr<SyncFence>& fence, BufferFlushConfig &config)
-{
-    return GSERROR_NOT_SUPPORT;
-}
 GSError ConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
                                        int64_t &timestamp, Rect &damage)
 {
@@ -91,22 +92,6 @@ GSError ConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFen
 GSError ConsumerSurface::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence)
 {
     return consumer_->ReleaseBuffer(buffer, fence);
-}
-GSError ConsumerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
-                                       int32_t &fence, BufferRequestConfig &config)
-{
-    return GSERROR_NOT_SUPPORT;
-}
-
-GSError ConsumerSurface::CancelBuffer(sptr<SurfaceBuffer>& buffer)
-{
-    return GSERROR_NOT_SUPPORT;
-}
-
-GSError ConsumerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
-                                     int32_t fence, BufferFlushConfig &config)
-{
-    return GSERROR_NOT_SUPPORT;
 }
 
 GSError ConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
@@ -226,11 +211,6 @@ GSError ConsumerSurface::UnregisterConsumerListener()
     return consumer_->UnregisterConsumerListener();
 }
 
-GSError ConsumerSurface::CleanCache()
-{
-    return GSERROR_NOT_SUPPORT;
-}
-
 GSError ConsumerSurface::GoBackground()
 {
     BLOGND("Queue Id:%{public}" PRIu64 "", producer_->GetUniqueId());
@@ -255,17 +235,6 @@ GSError ConsumerSurface::SetTransform(GraphicTransformType transform)
 GraphicTransformType ConsumerSurface::GetTransform() const
 {
     return consumer_->GetTransform();
-}
-
-GSError ConsumerSurface::IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,
-                                          std::vector<bool> &supporteds)
-{
-    return GSERROR_NOT_SUPPORT;
-}
-
-GSError ConsumerSurface::Disconnect()
-{
-    return GSERROR_NOT_SUPPORT;
 }
 
 GSError ConsumerSurface::SetScalingMode(uint32_t sequence, ScalingMode scalingMode)
@@ -335,41 +304,5 @@ GSError ConsumerSurface::SetPresentTimestamp(uint32_t sequence, const GraphicPre
         return GSERROR_INVALID_ARGUMENTS;
     }
     return consumer_->SetPresentTimestamp(sequence, timestamp);
-}
-
-GSError ConsumerSurface::GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type,
-                                             int64_t &time) const
-{
-    return GSERROR_NOT_SUPPORT;
-}
-
-int32_t ConsumerSurface::GetDefaultFormat()
-{
-    BLOGND("ConsumerSurface::GetDefaultFormat not support.");
-    return 0;
-}
-
-GSError ConsumerSurface::SetDefaultFormat(int32_t format)
-{
-    BLOGND("ConsumerSurface::SetDefaultFormat not support.");
-    return GSERROR_NOT_SUPPORT;
-}
-
-int32_t ConsumerSurface::GetDefaultColorGamut()
-{
-    BLOGND("ConsumerSurface::GetDefaultColorGamut not support.");
-    return 0;
-}
-
-GSError ConsumerSurface::SetDefaultColorGamut(int32_t colorGamut)
-{
-    BLOGND("ConsumerSurface::SetDefaultColorGamut not support.");
-    return GSERROR_NOT_SUPPORT;
-}
-
-sptr<NativeSurface> ConsumerSurface::GetNativeSurface()
-{
-    BLOGND("ConsumerSurface::GetNativeSurface not support.");
-    return nullptr;
 }
 } // namespace OHOS

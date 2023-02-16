@@ -48,7 +48,7 @@ private:
     int32_t drawingHeight = 0;
     std::vector<GraphicDisplayModeInfo> displayModeInfos_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler;
-    sptr<Surface> drawingCSurface;
+    sptr<IConsumerSurface> drawingCSurface;
     sptr<Surface> drawingPSurface;
 
     bool ready_ = false;

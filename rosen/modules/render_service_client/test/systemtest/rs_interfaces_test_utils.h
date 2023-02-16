@@ -66,7 +66,7 @@ public:
     uint32_t defaultWidth_ = 0;
     uint32_t defaultHeight_ = 0;
     sptr<IBufferConsumerListener> listener_ = nullptr;
-    sptr<Surface> cSurface_ = nullptr; // consumer surface
+    sptr<IConsumerSurface> cSurface_ = nullptr; // consumer surface
     sptr<Surface> pSurface_ = nullptr; // producer surface
     sptr<SurfaceBuffer> prevBuffer_ = nullptr;
     BufferHandle *bufferHandle_ = nullptr;

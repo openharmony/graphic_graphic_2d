@@ -153,7 +153,7 @@ void DrawingEngineSample::Sync(int64_t, void *data)
 
 void DrawingEngineSample::CreateDrawingSurface()
 {
-    drawingCSurface = Surface::CreateSurfaceAsConsumer();
+    drawingCSurface = IConsumerSurface::Create();
     drawingCSurface->SetDefaultWidthAndHeight(drawingWidth, drawingHeight);
     drawingCSurface->SetDefaultUsage(BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
 

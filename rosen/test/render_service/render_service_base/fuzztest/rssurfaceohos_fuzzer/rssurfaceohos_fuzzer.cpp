@@ -17,6 +17,7 @@
 #include <securec.h>
 #include <memory>
 #include <vector>
+#include "iconsumer_surface.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #if ACE_ENABLE_GL
@@ -78,7 +79,7 @@ bool RSSurfaceOhosFuzzTest(const uint8_t* data, size_t size)
     rects.emplace_back(r4);
     rsSurfaceFrameOhosRaster.SetDamageRegion(rects);
 
-    auto consumer_ = Surface::CreateSurfaceAsConsumer("DisplayNode");
+    auto consumer_ = IConsumerSurface::Create("DisplayNode");
     auto producer = consumer_->GetProducer();
     sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
     auto surface_ = std::make_shared<RSSurfaceOhosRaster>(surface);

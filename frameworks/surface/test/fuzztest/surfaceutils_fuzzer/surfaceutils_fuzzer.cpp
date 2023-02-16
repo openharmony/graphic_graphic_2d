@@ -17,6 +17,7 @@
 
 #include <securec.h>
 
+#include "iconsumer_surface.h"
 #include "surface.h"
 #include "surface_utils.h"
 
@@ -64,7 +65,7 @@ namespace OHOS {
         uint64_t uniqueId3 = GetData<uint64_t>();
 
         // test
-        sptr<OHOS::Surface> cSurface = OHOS::Surface::CreateSurfaceAsConsumer();
+        sptr<OHOS::IConsumerSurface> cSurface = OHOS::IConsumerSurface::Create();
         sptr<OHOS::IBufferProducer> producer = cSurface->GetProducer();
         sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
         SurfaceUtils* utils = SurfaceUtils::GetInstance();

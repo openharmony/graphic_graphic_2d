@@ -52,7 +52,7 @@ sptr<HdiFramebufferSurface> HdiFramebufferSurface::CreateFramebufferSurface()
 
 SurfaceError HdiFramebufferSurface::CreateSurface(sptr<HdiFramebufferSurface> &fbSurface)
 {
-    consumerSurface_ = Surface::CreateSurfaceAsConsumer("FrameBuffer");
+    consumerSurface_ = IConsumerSurface::Create("FrameBuffer");
 
     sptr<IBufferProducer> producer = consumerSurface_->GetProducer();
     producerSurface_ = Surface::CreateSurfaceAsProducer(producer);

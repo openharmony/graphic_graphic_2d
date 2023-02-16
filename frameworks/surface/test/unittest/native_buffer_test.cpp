@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#include "iconsumer_surface.h"
 #include <iservice_registry.h>
 #include "native_buffer.h"
 #include "native_buffer_inner.h"
@@ -340,7 +341,7 @@ HWTEST_F(NativeBufferTest, NativeBufferFromNativeWindowBuffer001, Function | Med
 */
 HWTEST_F(NativeBufferTest, NativeBufferFromNativeWindowBuffer002, Function | MediumTest | Level2)
 {
-    sptr<OHOS::Surface> cSurface = Surface::CreateSurfaceAsConsumer();
+    sptr<OHOS::IConsumerSurface> cSurface = IConsumerSurface::Create();
     sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
     cSurface->RegisterConsumerListener(listener);
     sptr<OHOS::IBufferProducer> producer = cSurface->GetProducer();

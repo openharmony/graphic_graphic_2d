@@ -39,7 +39,7 @@ void HdiLayerTest::SetUpTestCase()
 {
     hdiLayer_ = HdiLayer::CreateHdiLayer(0);
     layerInfo_ = HdiLayerInfo::CreateHdiLayerInfo();
-    sptr<Surface> cSurface = Surface::CreateSurfaceAsConsumer();
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create();
     layerInfo_->SetSurface(cSurface);
     GraphicIRect srcRect = {0, 0, WIDTH_VAL, HEIGHT_VAL};
     GraphicIRect dstRect = {0, 0, WIDTH_VAL, HEIGHT_VAL};

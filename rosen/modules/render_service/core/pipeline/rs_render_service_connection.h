@@ -61,7 +61,6 @@ private:
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config) override;
     sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) override;
-
     sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name) override;
 
     int32_t SetFocusAppInfo(

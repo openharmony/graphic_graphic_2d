@@ -43,14 +43,14 @@ public:
     };
     static inline int64_t timestamp = 0;
     static inline Rect damage = {};
-    static inline sptr<Surface> csurf = nullptr;
+    static inline sptr<IConsumerSurface> csurf = nullptr;
     static inline sptr<IBufferProducer> producer = nullptr;
     static inline sptr<Surface> pSurface = nullptr;
 };
 
 void ProducerSurfaceTest::SetUpTestCase()
 {
-    csurf = Surface::CreateSurfaceAsConsumer();
+    csurf = IConsumerSurface::Create();
     sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
     csurf->RegisterConsumerListener(listener);
     producer = csurf->GetProducer();
@@ -159,13 +159,7 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel003, Function | MediumTest | Level2
     sptr<SurfaceBuffer> buffer;
     int32_t flushFence;
 
-    GSError ret = pSurface->AcquireBuffer(buffer, flushFence, timestamp, damage);
-    ASSERT_NE(ret, OHOS::GSERROR_OK);
-
-    ret = pSurface->ReleaseBuffer(buffer, -1);
-    ASSERT_NE(ret, OHOS::GSERROR_OK);
-
-    ret = csurf->AcquireBuffer(buffer, flushFence, timestamp, damage);
+    GSError ret = csurf->AcquireBuffer(buffer, flushFence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = csurf->ReleaseBuffer(buffer, -1);
@@ -297,9 +291,6 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel007, Function | MediumTest | Level2
     GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = pSurface->ReleaseBuffer(buffer, -1);
-    ASSERT_NE(ret, OHOS::GSERROR_OK);
-
     ret = pSurface->CancelBuffer(buffer);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
@@ -339,21 +330,6 @@ HWTEST_F(ProducerSurfaceTest, UserData001, Function | MediumTest | Level2)
 }
 
 /*
-* Function: RegisterConsumerListener
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call RegisterConsumerListener
-*                  2. check ret
- */
-HWTEST_F(ProducerSurfaceTest, RegisterConsumerListener001, Function | MediumTest | Level2)
-{
-    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
-    GSError ret = pSurface->RegisterConsumerListener(listener);
-    ASSERT_NE(ret, OHOS::GSERROR_OK);
-}
-
-/*
 * Function: GetUniqueId
 * Type: Function
 * Rank: Important(2)
@@ -376,7 +352,6 @@ HWTEST_F(ProducerSurfaceTest, UniqueId001, Function | MediumTest | Level2)
  */
 HWTEST_F(ProducerSurfaceTest, transform001, Function | MediumTest | Level2)
 {
-    ASSERT_EQ(pSurface->GetTransform(), GraphicTransformType::GRAPHIC_ROTATE_BUTT);
     GSError ret = pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
@@ -534,9 +509,6 @@ HWTEST_F(ProducerSurfaceTest, scalingMode002, Function | MediumTest | Level1)
     ret = pSurface->SetScalingMode(sequence, scalingMode);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = pSurface->GetScalingMode(sequence, scalingMode);
-    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
-
     ret = pSurface->CancelBuffer(buffer);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
@@ -601,9 +573,6 @@ HWTEST_F(ProducerSurfaceTest, metaData003, Function | MediumTest | Level1)
     sequence = buffer->GetSeqNum();
     ret = pSurface->SetMetaData(sequence, metaData);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
-
-    ret = pSurface->GetMetaData(sequence, metaData);
-    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
 
     ret = pSurface->CancelBuffer(buffer);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
@@ -670,39 +639,8 @@ HWTEST_F(ProducerSurfaceTest, metaDataSet003, Function | MediumTest | Level1)
     ret = pSurface->SetMetaDataSet(sequence, key, metaData);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = pSurface->GetMetaDataSet(sequence, key, metaData);
-    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
-
     ret = pSurface->CancelBuffer(buffer);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
-}
-
-/*
-* Function: QueryMetaDataType
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call QueryMetaDataType and check ret
- */
-HWTEST_F(ProducerSurfaceTest, QueryMetaDataType001, Function | MediumTest | Level1)
-{
-    uint32_t sequence = 0;
-    HDRMetaDataType type = HDRMetaDataType::HDR_NOT_USED;
-    GSError ret = pSurface->QueryMetaDataType(sequence, type);
-    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
-}
-
-/*
-* Function: SetTunnelHandle and GetTunnelHandle
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call GetTunnelhandle and check ret
-* @tc.require: issueI5GMZN issueI5IWHW
- */
-HWTEST_F(ProducerSurfaceTest, tunnelHandle001, Function | MediumTest | Level2)
-{
-    ASSERT_EQ(pSurface->GetTunnelHandle(), nullptr);
 }
 
 /*
@@ -738,23 +676,6 @@ HWTEST_F(ProducerSurfaceTest, disconnect001, Function | MediumTest | Level1)
 {
     GSError ret = pSurface->Disconnect();
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
-}
-
-/*
-* Function: SetPresentTimestamp and GetPresentTimestamp
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetPresentTimestamp and check ret
-* @tc.require: issueI5I57K
- */
-HWTEST_F(ProducerSurfaceTest, presentTimestamp001, Function | MediumTest | Level2)
-{
-    uint32_t sequence = 0;
-    GraphicPresentTimestamp timestamp = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
-
-    GSError ret = pSurface->SetPresentTimestamp(sequence, timestamp);
-    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
 }
 
 /*

@@ -70,7 +70,7 @@ void RSHardwareThread::PostTask(const std::function<void()>& task)
 }
 
 void RSHardwareThread::ReleaseBuffer(sptr<SurfaceBuffer> buffer, sptr<SyncFence> releaseFence,
-    sptr<Surface> cSurface)
+    sptr<IConsumerSurface> cSurface)
 {
     if (cSurface == nullptr) {
         RS_LOGE("RsDebug RSHardwareThread:: ReleaseBuffer failed, no consumer!");
@@ -250,7 +250,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 }
 
 // private func, guarantee the layer and surface are valid
-void RSHardwareThread::LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface) const
+void RSHardwareThread::LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<IConsumerSurface>& surface) const
 {
     if (!layer->IsSupportedPresentTimestamp()) {
         return;

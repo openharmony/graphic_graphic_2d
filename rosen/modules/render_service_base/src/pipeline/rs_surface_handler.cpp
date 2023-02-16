@@ -18,7 +18,7 @@
 namespace OHOS {
 namespace Rosen {
 #if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
-void RSSurfaceHandler::SetConsumer(const sptr<Surface>& consumer)
+void RSSurfaceHandler::SetConsumer(const sptr<IConsumerSurface>& consumer)
 {
     consumer_ = consumer;
 }

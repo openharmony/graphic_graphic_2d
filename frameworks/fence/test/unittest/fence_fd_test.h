@@ -22,6 +22,7 @@
 
 #include <surface.h>
 #include "fence.h"
+#include "iconsumer_surface.h"
 
 namespace OHOS {
 class FenceFdTest : public testing::Test, public IBufferConsumerListenerClazz {
@@ -44,7 +45,7 @@ public:
     };
     static inline int64_t timestamp = 0;
     static inline Rect damage = {};
-    static inline sptr<Surface> csurf = nullptr;
+    static inline sptr<IConsumerSurface> csurf = nullptr;
     static inline sptr<IBufferProducer> producer = nullptr;
     static inline sptr<Surface> psurf = nullptr;
 };

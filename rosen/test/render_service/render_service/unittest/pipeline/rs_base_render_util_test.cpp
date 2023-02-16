@@ -283,7 +283,7 @@ HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_001, TestSize.L
     rsParentNode->AddChild(rsNode);
     rsNode->SetIsOnTheTree(true);
 
-    sptr<Surface> csurf = Surface::CreateSurfaceAsConsumer(config.name);
+    sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
     rsNode->SetConsumer(csurf);
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(csurf->GetTransform(),
         rsNode->GetRenderProperties().GetFrameGravity(),localBounds, params);
@@ -477,7 +477,7 @@ HWTEST_F(RSBaseRenderUtilTest, FlipMatrix_001, Function | SmallTest | Level2)
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
 
-    sptr<Surface> surface = Surface::CreateSurfaceAsConsumer(config.name);
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name);
     surface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H);
     rsNode->SetConsumer(surface);
     RSBaseRenderUtil::FlipMatrix(surface->GetTransform(), params);
@@ -501,7 +501,7 @@ HWTEST_F(RSBaseRenderUtilTest, FlipMatrix_002, Function | SmallTest | Level2)
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
 
-    sptr<Surface> surface = Surface::CreateSurfaceAsConsumer(config.name);
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name);
     surface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_V);
     rsNode->SetConsumer(surface);
     RSBaseRenderUtil::FlipMatrix(surface->GetTransform(), params);
@@ -521,7 +521,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetRotateTransform_001, Function | SmallTest | Le
 {
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
-    sptr<Surface> surface = Surface::CreateSurfaceAsConsumer(config.name);
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name);
     auto transform = RSBaseRenderUtil::GetRotateTransform(surface->GetTransform());
     ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_ROTATE_NONE);
 }
@@ -536,7 +536,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetRotateTransform_002, Function | SmallTest | Le
 {
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
-    sptr<Surface> surface = Surface::CreateSurfaceAsConsumer(config.name);
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name);
     surface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
     auto transform = RSBaseRenderUtil::GetRotateTransform(surface->GetTransform());
     ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_ROTATE_90);
@@ -552,7 +552,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetFlipTransform_001, Function | SmallTest | Leve
 {
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
-    sptr<Surface> surface = Surface::CreateSurfaceAsConsumer(config.name);
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name);
     auto transform = RSBaseRenderUtil::GetFlipTransform(surface->GetTransform());
     ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_ROTATE_NONE);
 }
@@ -567,7 +567,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetFlipTransform_002, Function | SmallTest | Leve
 {
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
-    sptr<Surface> surface = Surface::CreateSurfaceAsConsumer(config.name);
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name);
     surface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
     auto transform = RSBaseRenderUtil::GetFlipTransform(surface->GetTransform());
     ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_FLIP_H);

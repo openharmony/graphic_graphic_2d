@@ -44,13 +44,13 @@ public:
     };
     static inline int64_t timestamp = 0;
     static inline Rect damage = {};
-    static inline sptr<Surface> cs = nullptr;
+    static inline sptr<IConsumerSurface> cs = nullptr;
     static inline sptr<Surface> ps = nullptr;
 };
 
 void ConsumerSurfaceTest::SetUpTestCase()
 {
-    cs = Surface::CreateSurfaceAsConsumer();
+    cs = IConsumerSurface::Create();
     sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
     cs->RegisterConsumerListener(listener);
     auto p = cs->GetProducer();
@@ -137,15 +137,10 @@ HWTEST_F(ConsumerSurfaceTest, ReqCanFluAcqRel001, Function | MediumTest | Level2
 {
     sptr<SurfaceBuffer> buffer;
     int releaseFence = -1;
-    GSError ret = cs->RequestBuffer(buffer, releaseFence, requestConfig);
-    ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    ret = ps->RequestBuffer(buffer, releaseFence, requestConfig);
+    GSError ret = ps->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
-
-    ret = cs->FlushBuffer(buffer, -1, flushConfig);
-    ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     ret = ps->FlushBuffer(buffer, -1, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
@@ -216,14 +211,9 @@ HWTEST_F(ConsumerSurfaceTest, ReqCanFluAcqRel004, Function | MediumTest | Level2
 {
     sptr<SurfaceBuffer> buffer;
     int releaseFence = -1;
-    GSError ret = cs->RequestBuffer(buffer, releaseFence, requestConfig);
-    ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    ret = ps->RequestBuffer(buffer, releaseFence, requestConfig);
+    GSError ret = ps->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
-
-    ret = cs->CancelBuffer(buffer);
-    ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     ret = ps->CancelBuffer(buffer);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
@@ -419,22 +409,6 @@ HWTEST_F(ConsumerSurfaceTest, transform005, Function | MediumTest | Level1)
     GSError ret = ps->SetTransform(transform);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_EQ(cs->GetTransform(), GraphicTransformType::GRAPHIC_ROTATE_NONE);
-}
-
-/*
-* Function: IsSupportedAlloc
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call IsSupportedAlloc
-*                  2. check ret
- */
-HWTEST_F(ConsumerSurfaceTest, isSupportedAlloc001, Function | MediumTest | Level2)
-{
-    std::vector<BufferVerifyAllocInfo> infos;
-    std::vector<bool> supporteds;
-    GSError ret = cs->IsSupportedAlloc(infos, supporteds);
-    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
 }
 
 /*
@@ -759,36 +733,6 @@ HWTEST_F(ConsumerSurfaceTest, TunnelHandle003, Function | MediumTest | Level1)
     ASSERT_EQ(handle->reserveInts, handleGet->GetHandle()->reserveInts);
     ASSERT_EQ(handle->reserve[0], handleGet->GetHandle()->reserve[0]);
     free(handle);
-}
-
-/*
-* Function: disconnect
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call Disconnect and check ret
- */
-HWTEST_F(ConsumerSurfaceTest, disconnect001, Function | MediumTest | Level1)
-{
-    GSError ret = cs->Disconnect();
-    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
-}
-
-/*
-* Function: SetPresentTimestamp and GetPresentTimestamp
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call GetPresentTimestamp and check ret
-* @tc.require: issueI5I57K
- */
-HWTEST_F(ConsumerSurfaceTest, presentTimestamp001, Function | MediumTest | Level2)
-{
-    uint32_t sequence = 0;
-    GraphicPresentTimestampType type = GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
-    int64_t time = 0;
-    GSError ret = cs->GetPresentTimestamp(sequence, type, time);
-    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
 }
 
 /*

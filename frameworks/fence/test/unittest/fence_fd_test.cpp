@@ -43,7 +43,7 @@ namespace {
 HWTEST_F(FenceFdTest, BufferQueueFenceItem, testing::ext::TestSize.Level0) {
     PART("EnvConditions") {
         STEP("surf create success.") {
-            csurf = Surface::CreateSurfaceAsConsumer();
+            csurf = IConsumerSurface::Create();
             STEP_ASSERT_NE(csurf, nullptr);
             csurf->RegisterConsumerListener(this);
             producer = csurf->GetProducer();
