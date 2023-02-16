@@ -463,12 +463,6 @@ VKAPI_ATTR VkResult SetWindowInfo(const VkSwapchainCreateInfoKHR* createInfo, in
         *numImages = 1;
     }
 
-    uint64_t native_usage = OHOS::BUFFER_USAGE_CPU_READ | OHOS::BUFFER_USAGE_CPU_WRITE | OHOS::BUFFER_USAGE_MEM_DMA;
-    err = NativeWindowHandleOpt(window, SET_USAGE, native_usage);
-    if (err != OHOS::GSERROR_OK) {
-        WLOGE("native_window_set_buffer_count(%{public}d) failed: (%{public}d)", *numImages, err);
-        return VK_ERROR_SURFACE_LOST_KHR;
-    }
     return VK_SUCCESS;
 }
 
@@ -756,6 +750,9 @@ VkResult FlushBuffer(const VkPresentRegionKHR* region, struct Region::Rect* rect
         localRegion.rectNumber = rectangleCount;
     }
     NativeWindow* window = swapchain.surface.window;
+    if (img.buffer != nullptr && window != nullptr) {
+        img.buffer->uiTimestamp = window->uiTimestamp;
+    }
     // the acquire fence will be close by BufferQueue module
     int err = NativeWindowFlushBuffer(window, img.buffer, fence, localRegion);
     VkResult scResult = VK_SUCCESS;

@@ -23,6 +23,9 @@
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
+#endif
 #include "render/rs_skia_filter.h"
 
 namespace OHOS {
@@ -37,7 +40,7 @@ RSBaseRenderEngine::~RSBaseRenderEngine() noexcept
 
 void RSBaseRenderEngine::Init()
 {
-#ifdef RS_ENABLE_GL
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     renderContext_ = std::make_shared<RenderContext>();
     renderContext_->InitializeEglContext();
     if (RSUniRenderJudgement::IsUniRender()) {
@@ -45,7 +48,7 @@ void RSBaseRenderEngine::Init()
         renderContext_->SetUniRenderMode(true);
     }
     renderContext_->SetUpGrContext();
-#endif // RS_ENABLE_GL
+#endif // RS_ENABLE_GL || RS_ENABLE_VK
 
 #ifdef RS_ENABLE_EGLIMAGE
     eglImageManager_ = std::make_shared<RSEglImageManager>(renderContext_->GetEGLDisplay());
@@ -165,6 +168,8 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
         } else {
             rsSurfaces_[surfaceId] = std::make_shared<RSSurfaceOhosGl>(targetSurface);
         }
+#elif RS_ENABLE_VK
+        rsSurfaces_[surfaceId] = std::make_shared<RSSurfaceOhosVulkan>(targetSurface);
 #else
         rsSurfaces_[surfaceId] = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
 #endif // (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
