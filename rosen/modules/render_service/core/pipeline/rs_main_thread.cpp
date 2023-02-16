@@ -527,12 +527,11 @@ void RSMainThread::WaitUtilUniRenderFinished()
 void RSMainThread::WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node)
 {
     std::unique_lock<std::mutex> lock(displayNodeBufferReleasedMutex_);
+    displayNodeBufferReleased_ = false; // prevent spurious wakeup of condition variable
     if (node.GetConsumer()->QueryIfBufferAvailable()) {
-        displayNodeBufferReleased_ = false;
         return;
     }
     displayNodeBufferReleasedCond_.wait(lock, [this]() { return displayNodeBufferReleased_; });
-    displayNodeBufferReleased_ = false;
 }
 
 void RSMainThread::WaitUntilUnmarshallingTaskFinished()
