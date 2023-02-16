@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,10 +17,9 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "platform/common/rs_log.h"
-#include "platform/ohos/backend/rs_surface_ohos_gl.h"
-#include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "screen_manager/screen_types.h"
 #include "visitor/rs_node_visitor.h"
+#include "transaction/rs_render_service_client.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -113,6 +112,7 @@ void RSDisplayRenderNode::SetIsMirrorDisplay(bool isMirror)
         IsMirrorDisplay() ? "true" : "false");
 }
 
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
 bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
 {
     if (consumer_ != nullptr && surface_ != nullptr) {
@@ -132,19 +132,13 @@ bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
     consumerListener_ = listener;
     auto producer = consumer_->GetProducer();
     sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
-
-#ifdef ACE_ENABLE_GL
-    // GPU render
-    surface_ = std::make_shared<RSSurfaceOhosGl>(surface);
-#else
-    // CPU render
-    surface_ = std::make_shared<RSSurfaceOhosRaster>(surface);
-#endif
-
+    auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+    surface_ = client->CreateRSSurface(surface);
     RS_LOGI("RSDisplayRenderNode::CreateSurface end");
     surfaceCreated_ = true;
     return true;
 }
+#endif
 
 bool RSDisplayRenderNode::SkipFrame(uint32_t skipFrameInterval)
 {

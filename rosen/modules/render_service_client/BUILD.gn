@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -17,29 +17,27 @@ import("render_service_client.gni")
 
 config("render_service_client_config") {
   include_dirs = [
-    "$rosen_root/modules",
-    "$rosen_root/modules/render_service_client/core",
-    "$rosen_root/modules/render_service_base/include",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/composer",
+    "$graphic_2d_root/rosen/modules",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/interfaces/inner_api/common",
+    "$graphic_2d_root/interfaces/inner_api/surface",
+    "$graphic_2d_root/interfaces/inner_api/composer",
     "//drivers/peripheral/display/interfaces/include",
     "//drivers/peripheral/base",
   ]
+  defines = rs_common_define
 }
 
 ohos_source_set("render_service_client_src") {
   defines = []
   defines += gpu_defines
+  defines += [ "MODULE_RSC" ]
   include_dirs = [
-    "core",
-    "$rosen_root/modules/render_service_base/src",
-    "$rosen_root/modules/2d_graphics/src",
-    "//foundation/graphic/utils/log",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/utils/log",
     "//foundation/graphic/graphic_2d/utils/sandbox",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
-    "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
     "//foundation/resourceschedule/frame_aware_sched/interfaces/innerkits/frameintf",
   ]
 
@@ -119,9 +117,8 @@ ohos_source_set("render_service_client_src") {
   deps = []
 
   deps += [
-    "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk:accessibilityconfig",
-    "//foundation/graphic/graphic_2d/rosen/modules/frame_analyzer:libframe_analyzer",
-    "//foundation/resourceschedule/frame_aware_sched/interfaces/innerkits/frameintf:frame_trace_intf",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/rosen/modules/platform:ipc_core",
   ]
 
   if (rss_enabled) {
@@ -136,23 +133,36 @@ ohos_source_set("render_service_client_src") {
     defines += [ "OHOS_RSS_CLIENT" ]
   }
 
-  external_deps = [
-    "eventhandler:libeventhandler",
-    "hisysevent_native:libhisysevent",
-    "hitrace_native:hitrace_meter",
-    "ipc:ipc_core",
+  if (rosen_cross_platform) {
+    deps += [
+      "$graphic_2d_root:libgl",
+      "$graphic_2d_root/rosen/modules/glfw_render_context:libglfw_render_context",
+    ]
+  } else {
+    deps += [
+      "$accessibility_root/interfaces/innerkits/acfwk:accessibilityconfig",
+      "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",
+      "$resourceschedule_root/interfaces/innerkits/frameintf:frame_trace_intf",
+    ]
+    external_deps = [
+      "c_utils:utils",
+      "hisysevent_native:libhisysevent",
+      "hitrace_native:hitrace_meter",
+    ]
+  }
+
+  public_deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
-  public_deps =
-      [ "$rosen_root/modules/render_service_base:librender_service_base" ]
+
+  public_configs = [ ":render_service_client_config" ]
 }
 
 ohos_shared_library("librender_service_client") {
   public_deps = [
     ":render_service_client_src",
-    "//third_party/flutter/build/skia:ace_skia_ohos",
+    "$graphic_2d_root/rosen/modules/platform:ace_skia",
   ]
-
-  public_configs = [ ":render_service_client_config" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

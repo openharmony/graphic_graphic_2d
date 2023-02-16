@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -58,6 +58,7 @@ std::vector<ScreenId> RSInterfaces::GetAllScreenIds()
     return renderServiceClient_->GetAllScreenIds();
 }
 
+#if !defined(__gnu_linux__) && !defined(_WIN32) && !defined(__APPLE__)
 ScreenId RSInterfaces::CreateVirtualScreen(
     const std::string &name,
     uint32_t width,
@@ -73,6 +74,7 @@ int32_t RSInterfaces::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface
 {
     return renderServiceClient_->SetVirtualScreenSurface(id, surface);
 }
+#endif
 
 void RSInterfaces::RemoveVirtualScreen(ScreenId id)
 {

@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -30,44 +30,53 @@ config("egl_public_config") {
   include_dirs = [ "include" ]
 }
 
-ohos_shared_library("EGL") {
-  sources = [
-    "src/EGL/egl.cpp",
-    "src/EGL/egl_core.cpp",
-    "src/EGL/egl_wrapper_context.cpp",
-    "src/EGL/egl_wrapper_display.cpp",
-    "src/EGL/egl_wrapper_entry.cpp",
-    "src/EGL/egl_wrapper_layer.cpp",
-    "src/EGL/egl_wrapper_loader.cpp",
-    "src/EGL/egl_wrapper_object.cpp",
-    "src/EGL/egl_wrapper_surface.cpp",
-    "src/thread_private_data_ctl.cpp",
-  ]
-  configs = [ ":egl_config" ]
-
-  public_configs = [ ":egl_public_config" ]
-
-  public_deps = [
-    "//third_party/EGL:libEGL",
-    "//third_party/openGLES:libGLES",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog_native:libhilog",
-    "init:libbeget_proxy",
-    "init:libbegetutil",
-  ]
-
-  if (defined(graphic_2d_ext_configs.vendor_root)) {
-    install_enable = false
+if (current_os != "ohos") {
+  group("EGL") {
+    public_deps = [
+      "//third_party/EGL:libEGL",
+      "//third_party/openGLES:libGLES",
+    ]
   }
+} else {
+  ohos_shared_library("EGL") {
+    sources = [
+      "src/EGL/egl.cpp",
+      "src/EGL/egl_core.cpp",
+      "src/EGL/egl_wrapper_context.cpp",
+      "src/EGL/egl_wrapper_display.cpp",
+      "src/EGL/egl_wrapper_entry.cpp",
+      "src/EGL/egl_wrapper_layer.cpp",
+      "src/EGL/egl_wrapper_loader.cpp",
+      "src/EGL/egl_wrapper_object.cpp",
+      "src/EGL/egl_wrapper_surface.cpp",
+      "src/thread_private_data_ctl.cpp",
+    ]
+    configs = [ ":egl_config" ]
 
-  output_name = "EGL"
-  output_extension = "so"
+    public_configs = [ ":egl_public_config" ]
 
-  part_name = "graphic_standard"
-  subsystem_name = "graphic"
+    public_deps = [
+      "//third_party/EGL:libEGL",
+      "//third_party/openGLES:libGLES",
+    ]
+
+    external_deps = [
+      "c_utils:utils",
+      "hilog_native:libhilog",
+      "init:libbeget_proxy",
+      "init:libbegetutil",
+    ]
+
+    if (defined(graphic_2d_ext_configs.vendor_root)) {
+      install_enable = false
+    }
+
+    output_name = "EGL"
+    output_extension = "so"
+
+    part_name = "graphic_standard"
+    subsystem_name = "graphic"
+  }
 }
 
 ## Build libEGL.so }}}
@@ -167,31 +176,40 @@ config("glesv3_public_config") {
   include_dirs = [ "include" ]
 }
 
-ohos_shared_library("GLESv3") {
-  sources = [
-    "src/GLES3/gles3.cpp",
-    "src/thread_private_data_ctl.cpp",
-  ]
-  configs = [ ":glesv3_config" ]
-
-  public_configs = [ ":glesv3_public_config" ]
-
-  public_deps = [
-    "//third_party/EGL:libEGL",
-    "//third_party/openGLES:libGLES",
-  ]
-
-  external_deps = [ "hilog_native:libhilog" ]
-
-  if (defined(graphic_2d_ext_configs.vendor_root)) {
-    install_enable = false
+if (current_os != "ohos") {
+  group("GLESv3") {
+    public_deps = [
+      "//third_party/EGL:libEGL",
+      "//third_party/openGLES:libGLES",
+    ]
   }
+} else {
+  ohos_shared_library("GLESv3") {
+    sources = [
+      "src/GLES3/gles3.cpp",
+      "src/thread_private_data_ctl.cpp",
+    ]
+    configs = [ ":glesv3_config" ]
 
-  output_name = "GLESv3"
-  output_extension = "so"
+    public_configs = [ ":glesv3_public_config" ]
 
-  part_name = "graphic_standard"
-  subsystem_name = "graphic"
+    public_deps = [
+      "//third_party/EGL:libEGL",
+      "//third_party/openGLES:libGLES",
+    ]
+
+    external_deps = [ "hilog_native:libhilog" ]
+
+    if (defined(graphic_2d_ext_configs.vendor_root)) {
+      install_enable = false
+    }
+
+    output_name = "GLESv3"
+    output_extension = "so"
+
+    part_name = "graphic_standard"
+    subsystem_name = "graphic"
+  }
 }
 
 ## Build libGLESv3.so }}}

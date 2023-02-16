@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,20 +17,58 @@
 
 #include "platform/drawing/rs_vsync_client.h"
 
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <queue>
+#include <thread>
+
 namespace OHOS {
 namespace Rosen {
+template<class T>
+class SemQueue {
+public:
+    void PopFront(T &t)
+    {
+        std::unique_lock lock(mutex_);
+        if (queue_.empty()) {
+            const auto &func = [this]() {
+                return !queue_.empty();
+            };
+            cv_.wait(lock, func);
+        }
+        t = queue_.front();
+        queue_.pop();
+    }
+
+    void Push(const T &t)
+    {
+        std::unique_lock lock(mutex_);
+        queue_.push(std::move(t));
+        cv_.notify_all();
+    }
+
+private:
+    std::queue<T> queue_;
+    std::mutex mutex_;
+    std::condition_variable cv_;
+};
+
 class RSVsyncClientDarwin : public RSVsyncClient {
 public:
     RSVsyncClientDarwin() = default;
-    ~RSVsyncClientDarwin() override = default;
+    ~RSVsyncClientDarwin() override;
 
-    void RequestNextVsync() override {}
-    void SetVsyncCallback(VsyncCallback callback) override {}
+    void RequestNextVsync() override;
+    void SetVsyncCallback(VsyncCallback callback) override;
 
 private:
-    static void OnVsync(int64_t nanoTimestamp, void* client) {}
+    void VsyncThreadMain();
 
-    void VsyncCallback(int64_t nanoTimestamp) {}
+    VsyncCallback vsyncCallback_ = nullptr;
+    std::unique_ptr<std::thread> vsyncThread_ = nullptr;
+    std::atomic<bool> running_ {false};
+    std::atomic<bool> having_ {false};
 };
 } // namespace Rosen
 } // namespace OHOS

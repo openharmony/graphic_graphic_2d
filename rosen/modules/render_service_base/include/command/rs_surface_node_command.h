@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,9 @@
 #include "command/rs_command_templates.h"
 #include "common/rs_macros.h"
 #include "common/rs_vector4.h"
+#ifndef ROSEN_CROSS_PLATFORM
 #include "surface_type.h"
+#endif
 
 class SkMatrix;
 struct SkRect;
@@ -45,14 +47,16 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_ANIMATION_FINISHED
 };
 
-class RS_EXPORT SurfaceNodeCommandHelper {
+class RSB_EXPORT SurfaceNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId nodeId);
     static void SetContextMatrix(RSContext& context, NodeId nodeId, SkMatrix matrix);
     static void SetContextAlpha(RSContext& context, NodeId nodeId, float alpha);
     static void SetContextClipRegion(RSContext& context, NodeId nodeId, SkRect clipRect);
     static void SetSecurityLayer(RSContext& context, NodeId nodeId, bool isSecurityLayer);
+#ifndef ROSEN_CROSS_PLATFORM
     static void SetColorSpace(RSContext& context, NodeId nodeId, ColorGamut colorSpace);
+#endif
     static void UpdateSurfaceDefaultSize(RSContext& context, NodeId nodeId, float width, float height);
     static void ConnectToNodeInRenderService(RSContext& context, NodeId id);
     static void SetCallbackForRenderThreadRefresh(RSContext& context, NodeId id, std::function<void(void)> callback);
@@ -73,8 +77,6 @@ ADD_COMMAND(RSSurfaceNodeSetContextClipRegion, ARG(SURFACE_NODE, SURFACE_NODE_SE
     SurfaceNodeCommandHelper::SetContextClipRegion, NodeId, SkRect))
 ADD_COMMAND(RSSurfaceNodeSetSecurityLayer,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SECURITY_LAYER, SurfaceNodeCommandHelper::SetSecurityLayer, NodeId, bool))
-ADD_COMMAND(RSSurfaceNodeSetColorSpace,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_COLOR_SPACE, SurfaceNodeCommandHelper::SetColorSpace, NodeId, ColorGamut))
 ADD_COMMAND(RSSurfaceNodeUpdateSurfaceDefaultSize, ARG(SURFACE_NODE, SURFACE_NODE_UPDATE_SURFACE_SIZE,
     SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize, NodeId, float, float))
 ADD_COMMAND(RSSurfaceNodeConnectToNodeInRenderService,
@@ -98,6 +100,11 @@ ADD_COMMAND(RSSurfaceNodeSetContainerWindow,
     NodeId, bool, float))
 ADD_COMMAND(RSSurfaceNodeSetAnimationFinished,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_ANIMATION_FINISHED, SurfaceNodeCommandHelper::SetAnimationFinished, NodeId))
+
+#ifndef ROSEN_CROSS_PLATFORM
+ADD_COMMAND(RSSurfaceNodeSetColorSpace,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_COLOR_SPACE, SurfaceNodeCommandHelper::SetColorSpace, NodeId, ColorGamut))
+#endif
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

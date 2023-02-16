@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,20 +17,14 @@
 #define ROSEN_RENDER_SERVICE_BASE_RS_OCCLUSION_DATA_H
 
 #include <vector>
-#ifdef ROSEN_OHOS
 #include <parcel.h>
-#endif
 
 #include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 using VisibleData = std::vector<uint64_t>;
-#ifdef ROSEN_OHOS
-class RS_EXPORT RSOcclusionData : public Parcelable {
-#else
-class RS_EXPORT RSOcclusionData {
-#endif
+class RSB_EXPORT RSOcclusionData : public Parcelable {
 public:
     RSOcclusionData() = default;
     RSOcclusionData(VisibleData& vec)
@@ -44,10 +38,8 @@ public:
     {
         return visibleData_;
     }
-#ifdef ROSEN_OHOS
     static RSOcclusionData* Unmarshalling(Parcel& parcel);
     bool Marshalling(Parcel& parcel) const override;
-#endif
 
 private:
     VisibleData visibleData_;

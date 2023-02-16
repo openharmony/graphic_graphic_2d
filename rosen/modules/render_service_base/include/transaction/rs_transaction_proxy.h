@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 #include <stack>
 
 #include "command/rs_command.h"
+#include "common/rs_macros.h"
 #include "common/rs_singleton.h"
 #include "common/rs_macros.h"
 #include "transaction/rs_irender_client.h"
@@ -29,9 +30,9 @@
 namespace OHOS {
 namespace Rosen {
 class RSSyncTask;
-class RS_EXPORT RSTransactionProxy final {
+class RSB_EXPORT RSTransactionProxy final {
 public:
-    static RSTransactionProxy* GetInstance();
+    static RSB_EXPORT RSTransactionProxy* GetInstance();
     void SetRenderThreadClient(std::unique_ptr<RSIRenderClient>& renderThreadClient);
     void SetRenderServiceClient(const std::shared_ptr<RSIRenderClient>& renderServiceClient);
 

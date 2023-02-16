@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,9 +18,7 @@
 #include <algorithm>
 #include <string>
 
-#ifdef ROSEN_OHOS
 #include "common/rs_obj_abs_geometry.h"
-#endif
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_node_command.h"
 #include "platform/common/rs_log.h"
@@ -51,9 +49,7 @@ RSCanvasNode::~RSCanvasNode() {}
 
 SkCanvas* RSCanvasNode::BeginRecording(int width, int height)
 {
-#ifdef ROSEN_OHOS
     recordingCanvas_ = new RSRecordingCanvas(width, height);
-#endif
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return recordingCanvas_;
@@ -70,7 +66,6 @@ bool RSCanvasNode::IsRecording() const
 
 void RSCanvasNode::FinishRecording()
 {
-#ifdef ROSEN_OHOS
     if (!IsRecording()) {
         ROSEN_LOGW("RSCanvasNode::FinishRecording, IsRecording = false");
         return;
@@ -89,7 +84,6 @@ void RSCanvasNode::FinishRecording()
         std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording,
             drawContentLast_ ? RSModifierType::FOREGROUND_STYLE : RSModifierType::CONTENT_STYLE);
     transactionProxy->AddCommand(command, IsRenderServiceNode());
-#endif
 }
 
 void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)

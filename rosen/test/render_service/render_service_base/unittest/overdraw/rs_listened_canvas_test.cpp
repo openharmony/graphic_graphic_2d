@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,8 +27,8 @@
 #include <src/core/SkDrawShadowInfo.h>
 #include <test_header.h>
 
-#include "overdraw/rs_canvas_listener.h"
-#include "overdraw/rs_listened_canvas.h"
+#include "platform/ohos/overdraw/rs_canvas_listener.h"
+#include "platform/ohos/overdraw/rs_listened_canvas.h"
 
 using namespace testing;
 using namespace testing::ext;

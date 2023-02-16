@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,13 @@
 
 #include "property/rs_property_trace.h"
 
+#include <climits>
 #include <cstdarg>
 #include <fstream>
 #include <regex>
 #include <securec.h>
 #include <sys/time.h>
+#include "directory_ex.h"
 
 #include "rs_trace.h"
 
@@ -73,8 +75,8 @@ std::vector<std::string> SplitStringBySeparator(const std::string& str,
 void RSPropertyTrace::InitNodeAndPropertyInfo()
 {
     std::string configFilePath = ANIMATION_LOG_PATH + CONFIG_FILE_NAME;
-    char newpath[PATH_MAX + 1] = { 0x00 };
-    if (strlen(configFilePath.c_str()) > PATH_MAX || realpath(configFilePath.c_str(), newpath) == nullptr) {
+    std::string newpath;
+    if (!PathToRealPath(configFilePath, newpath)) {
         ROSEN_LOGE("Render node trace config file is nullptr!");
         return;
     }

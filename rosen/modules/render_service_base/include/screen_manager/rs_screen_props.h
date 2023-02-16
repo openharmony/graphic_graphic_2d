@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RS_EXPORT RSScreenProps : public Parcelable {
+class RSB_EXPORT RSScreenProps : public Parcelable {
 public:
     RSScreenProps() = default;
     RSScreenProps(std::string propName, uint32_t propId, uint64_t value);
