@@ -121,7 +121,7 @@ public:
 
     // type-safe reinterpret_cast
     template<typename T>
-    bool IsInstanceOf()
+    bool IsInstanceOf() const
     {
         constexpr uint32_t targetType = static_cast<uint32_t>(T::Type);
         return (static_cast<uint32_t>(GetType()) & targetType) == targetType;

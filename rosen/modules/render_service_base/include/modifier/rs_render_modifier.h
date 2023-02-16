@@ -38,6 +38,7 @@ namespace OHOS {
 namespace Rosen {
 class RSProperties;
 class RSPaintFilterCanvas;
+class RSRenderNode;
 
 struct RSModifierContext {
     RSProperties& property_;
@@ -49,7 +50,7 @@ public:
     RSRenderModifier() = default;
     virtual ~RSRenderModifier() = default;
 
-    virtual void Apply(RSModifierContext& context) = 0;
+    virtual void Apply(RSModifierContext& context) const = 0;
 
     virtual PropertyId GetPropertyId() = 0;
     virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() = 0;
@@ -66,7 +67,7 @@ public:
         : property_(property ? property : std::make_shared<RSRenderProperty<DrawCmdListPtr>>())
     {}
     virtual ~RSDrawCmdListRenderModifier() = default;
-    void Apply(RSModifierContext& context) override;
+    void Apply(RSModifierContext& context) const override;
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
 
@@ -184,20 +185,20 @@ public:
 };
 
 // declare RenderModifiers like RSBoundsRenderModifier
-#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER)         \
-    class RSB_EXPORT RS##MODIFIER_NAME##RenderModifier : public RS##MODIFIER_TIER##RenderModifier {                 \
-    public:                                                                                              \
-        RS##MODIFIER_NAME##RenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)         \
-            : RS##MODIFIER_TIER##RenderModifier(property)                                                \
-        {}                                                                                               \
-        virtual ~RS##MODIFIER_NAME##RenderModifier() = default;                                          \
-        void Apply(RSModifierContext& context) override;                                                 \
-        void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;           \
-        bool Marshalling(Parcel& parcel) override;                                                       \
-        RSModifierType GetType() override                                                                \
-        {                                                                                                \
-            return RSModifierType::MODIFIER_TYPE;                                                        \
-        }                                                                                                \
+#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER)    \
+    class RSB_EXPORT RS##MODIFIER_NAME##RenderModifier : public RS##MODIFIER_TIER##RenderModifier { \
+    public:                                                                                         \
+        RS##MODIFIER_NAME##RenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)    \
+            : RS##MODIFIER_TIER##RenderModifier(property)                                           \
+        {}                                                                                          \
+        virtual ~RS##MODIFIER_NAME##RenderModifier() = default;                                     \
+        void Apply(RSModifierContext& context) const override;                                      \
+        void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;      \
+        bool Marshalling(Parcel& parcel) override;                                                  \
+        RSModifierType GetType() override                                                           \
+        {                                                                                           \
+            return RSModifierType::MODIFIER_TYPE;                                                   \
+        }                                                                                           \
     };
 
 #define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, MODIFIER_TIER) \

@@ -39,9 +39,11 @@ public:
 
     int SaveAlpha();
     void RestoreAlpha();
+    int GetAlphaSaveCount() const;
     void RestoreAlphaToCount(int count);
 
     std::pair<int, int> SaveCanvasAndAlpha();
+    std::pair<int, int> GetSaveCount() const;
     void RestoreCanvasAndAlpha(std::pair<int, int>& count);
 
     SkSurface* GetSurface() const;
@@ -84,6 +86,63 @@ private:
     std::atomic_bool isHighContrastEnabled_ { false };
     bool isCacheEnabled_ { false };
     SkRect visibleRect_ = SkRect::MakeEmpty();
+};
+
+// Helper class similar to SkAutoCanvasRestore, but also restores alpha
+class RSAutoCanvasRestore {
+public:
+    /** Preserves SkCanvas::save() and RSPaintFilterCanvas::SaveAlpha() count. Optionally saves SkCanvas clip /
+       SkCanvas matrix and RSPaintFilterCanvas alpha.
+
+        @param canvas  RSPaintFilterCanvas to guard
+        @param doSave  call RSPaintFilterCanvas::SaveCanvasAndAlpha()
+        @return        utility to restore RSPaintFilterCanvas state on destructor
+    */
+    RSAutoCanvasRestore(RSPaintFilterCanvas* canvas, bool doSave) : canvas_(canvas), saveCount_({ 0, 0 })
+    {
+        if (canvas_) {
+            saveCount_= canvas->GetSaveCount();
+            if (doSave) {
+                canvas->SaveCanvasAndAlpha();
+            }
+        }
+    }
+
+    RSAutoCanvasRestore(const std::unique_ptr<RSPaintFilterCanvas>& canvas, bool doSave)
+        : RSAutoCanvasRestore(canvas.get(), doSave)
+    {}
+
+    RSAutoCanvasRestore(const std::shared_ptr<RSPaintFilterCanvas>& canvas, bool doSave)
+        : RSAutoCanvasRestore(canvas.get(), doSave)
+    {}
+
+    /** Restores RSPaintFilterCanvas to saved state. Destructor is called when container goes out of
+        scope.
+    */
+    ~RSAutoCanvasRestore() {
+        if (canvas_) {
+            canvas_->RestoreCanvasAndAlpha(saveCount_);
+        }
+    }
+
+    /** Restores RSPaintFilterCanvas to saved state immediately. Subsequent calls and
+        ~RSAutoCanvasRestore() have no effect.
+    */
+    void restore() {
+        if (canvas_) {
+            canvas_->RestoreCanvasAndAlpha(saveCount_);
+            canvas_ = nullptr;
+        }
+    }
+
+private:
+    RSPaintFilterCanvas* canvas_;
+    std::pair<int, int> saveCount_;
+
+    RSAutoCanvasRestore(RSAutoCanvasRestore&&) = delete;
+    RSAutoCanvasRestore(const RSAutoCanvasRestore&) = delete;
+    RSAutoCanvasRestore& operator=(RSAutoCanvasRestore&&) = delete;
+    RSAutoCanvasRestore& operator=(const RSAutoCanvasRestore&) = delete;
 };
 
 } // namespace Rosen
