@@ -297,7 +297,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
     curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
-    if (node.GetDirtyManager() && node.GetDirtyManager()->IsDirty()) {
+    if (node.GetDstRectChanged() || (node.GetDirtyManager() && node.GetDirtyManager()->IsDirty())) {
         dirtySurfaceNodeMap_.emplace(node.GetId(), node.ReinterpretCastTo<RSSurfaceRenderNode>());
     }
 }
