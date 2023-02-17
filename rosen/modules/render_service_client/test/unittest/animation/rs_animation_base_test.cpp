@@ -40,7 +40,6 @@ void RSAnimationBaseTest::SetUpTestCase()
 void RSAnimationBaseTest::TearDownTestCase()
 {
     DestoryAnimationWindow();
-    system("setenforce 1");
 }
 
 void RSAnimationBaseTest::SetUp()

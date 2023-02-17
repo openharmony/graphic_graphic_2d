@@ -411,8 +411,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest014, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    NodeId id = 0;
-    auto node = std::make_shared<RSNodeMock>(true, id);
+    auto node = std::make_shared<RSNodeMock>(true);
     EXPECT_TRUE(node != nullptr);
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
@@ -453,8 +452,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest015, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    NodeId id = 0;
-    auto node = std::make_shared<RSNodeMock>(true, id);
+    auto node = std::make_shared<RSNodeMock>(true);
     EXPECT_TRUE(node != nullptr);
     std::shared_ptr<RSCurveAnimation> curveAnimation;
     node->AddAnimation(curveAnimation);
@@ -478,8 +476,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest016, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    NodeId id = 0;
-    auto node = std::make_shared<RSNodeMock>(true, id);
+    auto node = std::make_shared<RSNodeMock>(true);
     EXPECT_TRUE(node != nullptr);
     std::shared_ptr<RSCurveAnimation> curveAnimation;
     node->RemoveAllAnimations();
@@ -502,8 +499,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest017, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    NodeId id = 0;
-    auto node = std::make_shared<RSNodeMock>(true, id);
+    auto node = std::make_shared<RSNodeMock>(true);
     EXPECT_TRUE(node != nullptr);
     std::shared_ptr<RSMotionPathOption> option = std::make_shared<RSMotionPathOption>("abc");
     node->SetMotionPathOption(option);
@@ -529,8 +525,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest018, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    NodeId id = 0;
-    auto node = std::make_shared<RSNodeMock>(true, id);
+    auto node = std::make_shared<RSNodeMock>(true);
     EXPECT_TRUE(node != nullptr);
     Vector4f data(2.f, 3.f, 4.f, 5.f);
     auto property1 = std::make_shared<RSAnimatableProperty<Vector4f>>(data);
@@ -556,8 +551,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest019, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    NodeId id = 0;
-    auto node = std::make_shared<RSNodeMock>(true, id);
+    auto node = std::make_shared<RSNodeMock>(true);
     EXPECT_TRUE(node != nullptr);
     std::shared_ptr<RSMask> mask = std::make_shared<RSMask>();
     node->SetMask(mask);
@@ -579,8 +573,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest020, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    NodeId id = 0;
-    auto node = std::make_shared<RSNodeMock>(true, id);
+    auto node = std::make_shared<RSNodeMock>(true);
     EXPECT_TRUE(node != nullptr);
     std::shared_ptr<RSMotionPathOption> option = std::make_shared<RSMotionPathOption>("abc");
     node->SetMotionPathOption(option);
@@ -604,8 +597,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest021, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    NodeId id = 0;
-    auto node = std::make_shared<RSNodeMock>(true, id);
+    auto node = std::make_shared<RSNodeMock>(true);
     EXPECT_TRUE(node != nullptr);
     auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto modifier = std::make_shared<RSAlphaModifier>(property);
