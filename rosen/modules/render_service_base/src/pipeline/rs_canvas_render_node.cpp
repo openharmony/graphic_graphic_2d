@@ -152,13 +152,32 @@ void RSCanvasRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
     ProcessTransitionAfterChildren(canvas);
 }
 
-void RSCanvasRenderNode::ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type)
+void RSCanvasRenderNode::ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type) const
 {
-    if (drawCmdModifiers_.count(type)) {
-        for (auto& modifier : drawCmdModifiers_[type]) {
-            modifier->Apply(context);
-        }
+    auto itr = drawCmdModifiers_.find(type);
+    if (itr == drawCmdModifiers_.end() || itr->second.empty()) {
+        return;
     }
+    for (const auto& modifier : itr->second) {
+        modifier->Apply(context);
+    }
+}
+
+void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas)
+{
+    RSModifierContext context = { GetMutableRenderProperties(), &canvas };
+    canvas.translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
+
+    if (GetRenderProperties().GetClipToFrame()) {
+        RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect());
+    }
+    ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
+}
+
+void RSCanvasRenderNode::ApplyModifiers()
+{
+    RSRenderNode::ApplyModifiers();
+    GetMutableRenderProperties().backref_ = ReinterpretCastTo<RSRenderNode>();
 }
 
 } // namespace Rosen

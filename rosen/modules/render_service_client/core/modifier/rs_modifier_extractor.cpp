@@ -221,6 +221,11 @@ std::shared_ptr<RSPath> RSModifierExtractor::GetShadowPath() const
     GET_PROPERTY_FROM_MODIFIERS(std::shared_ptr<RSPath>, SHADOW_PATH, nullptr, =);
 }
 
+bool RSModifierExtractor::GetShadowMask() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(bool, SHADOW_MASK, false, =);
+}
+
 Gravity RSModifierExtractor::GetFrameGravity() const
 {
     GET_PROPERTY_FROM_MODIFIERS(Gravity, FRAME_GRAVITY, Gravity::DEFAULT, =);

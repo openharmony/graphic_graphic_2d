@@ -23,6 +23,7 @@
 #include "include/core/SkRRect.h"
 #include "include/core/SkSurface.h"
 #include "include/effects/Sk1DPathEffect.h"
+#include "include/effects/SkBlurImageFilter.h"
 #include "include/effects/SkDashPathEffect.h"
 #include "include/effects/SkLumaColorFilter.h"
 #include "include/utils/SkShadowUtils.h"
@@ -214,7 +215,7 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilt
     if (properties.IsSpherizeValid() || !properties.IsShadowValid() || canvas.isCacheEnabled()) {
         return;
     }
-    SkAutoCanvasRestore acr(&canvas, true);
+    RSAutoCanvasRestore acr(&canvas, true);
     SkPath skPath;
     if (properties.GetShadowPath() && !properties.GetShadowPath()->GetSkiaPath().isEmpty()) {
         skPath = properties.GetShadowPath()->GetSkiaPath();
@@ -231,26 +232,48 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilt
             canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), SkClipOp::kDifference, true);
         }
     }
-    skPath.offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
-    Color spotColor = properties.GetShadowColor();
-    if (properties.shadow_->GetHardwareAcceleration()) {
-        if (properties.GetShadowElevation() <= 0.f) {
-            return;
+    if (properties.GetShadowMask()) {
+        // blurRadius calculation is based on the formula in SkShadowUtils::DrawShadow, 0.25f and 128.0f are constants
+        const SkScalar blurRadius =
+            properties.shadow_->GetHardwareAcceleration()
+                ? 0.25f * properties.GetShadowElevation() * (1 + properties.GetShadowElevation() / 128.0f)
+                : properties.GetShadowRadius();
+
+        // save layer, draw image with clipPath, blur and draw back
+        SkPaint blurPaint;
+        blurPaint.setImageFilter(SkBlurImageFilter::Make(blurRadius, blurRadius, SkTileMode::kDecal, nullptr));
+        canvas.saveLayer(nullptr, &blurPaint);
+
+        canvas.translate(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
+
+        canvas.clipPath(skPath);
+        // draw node content as shadow
+        // [PLANNING]: maybe we should also draw background color / image here, and we should cache the shadow image
+        if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(properties.backref_.lock())) {
+            node->InternalDrawContent(canvas);
         }
-        SkPoint3 planeParams = { 0.0f, 0.0f, properties.GetShadowElevation() };
-        SkPoint3 lightPos = { canvas.getTotalMatrix().getTranslateX() + skPath.getBounds().centerX(),
-            canvas.getTotalMatrix().getTranslateY() + skPath.getBounds().centerY(), DEFAULT_LIGHT_HEIGHT };
-        Color ambientColor = Color::FromArgbInt(DEFAULT_AMBIENT_COLOR);
-        ambientColor.MultiplyAlpha(canvas.GetAlpha());
-        spotColor.MultiplyAlpha(canvas.GetAlpha());
-        SkShadowUtils::DrawShadow(&canvas, skPath, planeParams, lightPos, DEFAULT_LIGHT_RADIUS,
-            ambientColor.AsArgbInt(), spotColor.AsArgbInt(), SkShadowFlags::kTransparentOccluder_ShadowFlag);
     } else {
-        SkPaint paint;
-        paint.setColor(spotColor.AsArgbInt());
-        paint.setAntiAlias(true);
-        paint.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, properties.GetShadowRadius()));
-        canvas.drawPath(skPath, paint);
+        skPath.offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
+        Color spotColor = properties.GetShadowColor();
+        if (properties.shadow_->GetHardwareAcceleration()) {
+            if (properties.GetShadowElevation() <= 0.f) {
+                return;
+            }
+            SkPoint3 planeParams = { 0.0f, 0.0f, properties.GetShadowElevation() };
+            SkPoint3 lightPos = { canvas.getTotalMatrix().getTranslateX() + skPath.getBounds().centerX(),
+                canvas.getTotalMatrix().getTranslateY() + skPath.getBounds().centerY(), DEFAULT_LIGHT_HEIGHT };
+            Color ambientColor = Color::FromArgbInt(DEFAULT_AMBIENT_COLOR);
+            ambientColor.MultiplyAlpha(canvas.GetAlpha());
+            spotColor.MultiplyAlpha(canvas.GetAlpha());
+            SkShadowUtils::DrawShadow(&canvas, skPath, planeParams, lightPos, DEFAULT_LIGHT_RADIUS,
+                ambientColor.AsArgbInt(), spotColor.AsArgbInt(), SkShadowFlags::kTransparentOccluder_ShadowFlag);
+        } else {
+            SkPaint paint;
+            paint.setColor(spotColor.AsArgbInt());
+            paint.setAntiAlias(true);
+            paint.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, properties.GetShadowRadius()));
+            canvas.drawPath(skPath, paint);
+        }
     }
 }
 
