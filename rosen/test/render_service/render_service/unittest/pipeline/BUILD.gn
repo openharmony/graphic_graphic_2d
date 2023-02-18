@@ -27,6 +27,7 @@ group("unittest") {
     ":RSComposerAdapterTest",
     ":RSDropFrameProcessorTest",
     ":RSMainThreadTest",
+    ":RSNodeCostManagerTest",
     ":RSPhysicalScreenProcessorTest",
     ":RSProcessorFactoryTest",
     ":RSQosThreadTest",
@@ -275,6 +276,19 @@ ohos_unittest("RSBaseRenderEngineUnitTest") {
   module_out_path = module_output_path
   sources = [ "rs_base_render_engine_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSNodeCostManagerTest
+ohos_unittest("RSNodeCostManagerTest") {
+  module_out_path = module_output_path
+  sources = [ "parallel_render/rs_node_cost_manager_test.cpp" ]
+  deps = [
+    ":rs_test_common",
+    "../../../../../modules/render_service_base:render_service_base_src",
+  ]
+  external_deps = [ "init:libbegetutil" ]
   defines = []
   defines += gpu_defines
 }
