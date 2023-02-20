@@ -20,12 +20,13 @@
 
 #include "ibuffer_consumer_listener.h"
 #include "ibuffer_producer.h"
+#include "surface.h"
 #include "surface_buffer.h"
 #include "surface_type.h"
 #include "surface_tunnel_handle.h"
 
 namespace OHOS {
-class IConsumerSurface : public RefBase {
+class IConsumerSurface : public Surface {
 public:
     static sptr<IConsumerSurface> Create(std::string name = "noname", bool isShared = false);
 
@@ -34,10 +35,22 @@ public:
     virtual bool IsConsumer() const = 0;
     virtual sptr<IBufferProducer> GetProducer() const = 0;
 
+    virtual GSError RequestBuffer(sptr<SurfaceBuffer>& buffer,
+                                  int32_t &fence, BufferRequestConfig &config) = 0;
+
+    virtual GSError CancelBuffer(sptr<SurfaceBuffer>& buffer) = 0;
+
+    virtual GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
+                                int32_t fence, BufferFlushConfig &config) = 0;
+
     virtual GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
                                   int64_t &timestamp, Rect &damage) = 0;
     virtual GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) = 0;
 
+    virtual GSError RequestBuffer(sptr<SurfaceBuffer>& buffer,
+                                  sptr<SyncFence>& fence, BufferRequestConfig &config) = 0;
+    virtual GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
+                                const sptr<SyncFence>& fence, BufferFlushConfig &config) = 0;
     virtual GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
                                   int64_t &timestamp, Rect &damage) = 0;
     virtual GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence) = 0;
@@ -45,8 +58,6 @@ public:
     virtual GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
 
     virtual GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
-
-    virtual bool QueryIfBufferAvailable() = 0;
 
     virtual uint32_t GetQueueSize() = 0;
     virtual GSError SetQueueSize(uint32_t queueSize) = 0;
@@ -71,11 +82,15 @@ public:
     virtual GSError UnregisterConsumerListener() = 0;
 
     // Call carefully. This interface will empty all caches of the current process
+    virtual GSError CleanCache() = 0;
     virtual GSError GoBackground() = 0;
 
     virtual GSError SetTransform(GraphicTransformType transform) = 0;
     virtual GraphicTransformType GetTransform() const = 0;
 
+    virtual GSError IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,
+                                     std::vector<bool> &supporteds) = 0;
+    virtual GSError Disconnect() = 0;
     virtual GSError SetScalingMode(uint32_t sequence, ScalingMode scalingMode) = 0;
     virtual GSError GetScalingMode(uint32_t sequence, ScalingMode &scalingMode) = 0;
     virtual GSError SetMetaData(uint32_t sequence, const std::vector<GraphicHDRMetaData> &metaData) = 0;
@@ -88,8 +103,19 @@ public:
     virtual GSError SetTunnelHandle(const OHExtDataHandle *handle) = 0;
     virtual sptr<SurfaceTunnelHandle> GetTunnelHandle() const = 0;
     virtual GSError SetPresentTimestamp(uint32_t sequence, const GraphicPresentTimestamp &timestamp) = 0;
+    virtual GSError GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type,
+                                        int64_t &time) const = 0;
 
     virtual void Dump(std::string &result) const = 0;
+
+    virtual int32_t GetDefaultFormat() = 0;
+    virtual GSError SetDefaultFormat(int32_t format) = 0;
+    virtual int32_t GetDefaultColorGamut() = 0;
+    virtual GSError SetDefaultColorGamut(int32_t colorGamut) = 0;
+
+    virtual sptr<NativeSurface> GetNativeSurface() = 0;
+
+    virtual bool QueryIfBufferAvailable() = 0;
 
 protected:
     IConsumerSurface() = default;

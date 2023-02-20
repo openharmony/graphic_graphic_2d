@@ -34,11 +34,22 @@ public:
 
     bool IsConsumer() const override;
     sptr<IBufferProducer> GetProducer() const override;
+    GSError RequestBuffer(sptr<SurfaceBuffer>& buffer,
+                          int32_t &fence, BufferRequestConfig &config) override;
+
+    GSError CancelBuffer(sptr<SurfaceBuffer>& buffer) override;
+
+    GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
+                        int32_t fence, BufferFlushConfig &config) override;
 
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
                           int64_t &timestamp, Rect &damage) override;
     GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) override;
 
+    GSError RequestBuffer(sptr<SurfaceBuffer>& buffer,
+                          sptr<SyncFence>& fence, BufferRequestConfig &config) override;
+    GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
+                        const sptr<SyncFence>& fence, BufferFlushConfig &config) override;
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
                           int64_t &timestamp, Rect &damage) override;
     GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence) override;
@@ -72,11 +83,14 @@ public:
 
     void Dump(std::string &result) const override;
 
+    GSError CleanCache() override;
     GSError GoBackground() override;
 
     GSError SetTransform(GraphicTransformType transform) override;
     GraphicTransformType GetTransform() const override;
 
+    GSError IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos, std::vector<bool> &supporteds) override;
+    GSError Disconnect() override;
     GSError SetScalingMode(uint32_t sequence, ScalingMode scalingMode) override;
     GSError GetScalingMode(uint32_t sequence, ScalingMode &scalingMode) override;
     GSError SetMetaData(uint32_t sequence, const std::vector<GraphicHDRMetaData> &metaData) override;
@@ -88,6 +102,14 @@ public:
     GSError SetTunnelHandle(const OHExtDataHandle *handle) override;
     sptr<SurfaceTunnelHandle> GetTunnelHandle() const override;
     GSError SetPresentTimestamp(uint32_t sequence, const GraphicPresentTimestamp &timestamp) override;
+    GSError GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type, int64_t &time) const override;
+
+    int32_t GetDefaultFormat() override;
+    GSError SetDefaultFormat(int32_t format) override;
+    int32_t GetDefaultColorGamut() override;
+    GSError SetDefaultColorGamut(int32_t colorGamut) override;
+
+    sptr<NativeSurface> GetNativeSurface() override;
 
 private:
     std::map<std::string, std::string> userData_;
