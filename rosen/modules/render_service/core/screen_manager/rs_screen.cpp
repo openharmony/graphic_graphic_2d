@@ -35,6 +35,7 @@ RSScreen::RSScreen(ScreenId id,
       producerSurface_(std::move(surface))
 {
     if (!IsVirtual()) {
+        hdrCapability_.formatCount = 0;
         name_ = "Screen_" + std::to_string(id_);
         PhysicalScreenInit();
     }
@@ -50,6 +51,7 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
       producerSurface_(configs.surface),
       screenType_(RSScreenType::VIRTUAL_TYPE_SCREEN)
 {
+    hdrCapability_.formatCount = 0;
 }
 
 RSScreen::~RSScreen() noexcept
@@ -590,7 +592,7 @@ int32_t RSScreen::GetScreenGamutMap(ScreenGamutMap &mode) const
 
 const GraphicHDRCapability& RSScreen::GetHDRCapability()
 {
-    hdrCapability_.maxLum = 1000; // maxLum now is mock data
+    hdrCapability_.maxLum = 1000; // mock data
     return hdrCapability_;
 }
 
