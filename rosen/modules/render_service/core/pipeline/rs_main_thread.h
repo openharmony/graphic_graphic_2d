@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -177,6 +177,8 @@ private:
     void ClassifyRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid);
     void ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid);
+    void ProcessAllSyncTransactionDatas();
+    void ProcessTimeoutSyncTransactionDatas();
     void ProcessCommandForDividedRender();
     void ProcessCommandForUniRender();
     void WaitUntilUnmarshallingTaskFinished();

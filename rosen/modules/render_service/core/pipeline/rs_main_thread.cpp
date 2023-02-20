@@ -367,6 +367,7 @@ void RSMainThread::ProcessCommandForUniRender()
         doDirectComposition_ = false;
     }
     RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
+    ProcessTimeoutSyncTransactionDatas();
     for (auto& rsTransactionElem: transactionDataEffective) {
         for (auto& rsTransaction: rsTransactionElem.second) {
             if (rsTransaction) {
@@ -445,21 +446,11 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
     }
     if (!syncTransactionDatas_.empty() && syncTransactionDatas_.front() &&
         (syncTransactionDatas_.front()->GetSyncId() != rsTransactionData->GetSyncId())) {
-        for (auto& transaction : syncTransactionDatas_) {
-            ROSEN_LOGD("RSMainThread ProcessSyncRSTransactionData while another syncId GetCommandCount: %lu pid: %llu",
-                transaction->GetCommandCount(), transaction->GetSendingPid());
-            ProcessRSTransactionData(transaction, transaction->GetSendingPid());
-        }
-        syncTransactionDatas_.clear();
+        ProcessAllSyncTransactionDatas();
     }
     if (!syncTransactionDatas_.empty() && syncTransactionDatas_.front() &&
         syncTransactionDatas_.front()->IsNeedCloseSync() && isNeedCloseSync) {
-        for (auto& transaction : syncTransactionDatas_) {
-            ROSEN_LOGD("RSMainThread ProcessSyncRSTransactionData while next needClose GetCommandCount: %lu pid: %llu",
-                transaction->GetCommandCount(), transaction->GetSendingPid());
-            ProcessRSTransactionData(transaction, transaction->GetSendingPid());
-        }
-        syncTransactionDatas_.clear();
+        ProcessAllSyncTransactionDatas();
     }
     if (!syncTransactionDatas_.empty() && syncTransactionDatas_.back() != nullptr) {
         rsTransactionData->SetTimestamp(syncTransactionDatas_.back()->GetTimestamp());
@@ -476,21 +467,28 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
         }
     }
     if (isNeedCloseSync && syncTransactionDatas_.front()->GetSyncTransactionNum() == 0) {
-        for (auto& transaction : syncTransactionDatas_) {
-            ROSEN_LOGD("RSMainThread ProcessSyncRSTransactionData while needClose GetCommandCount: %lu pid: %llu",
-                transaction->GetCommandCount(), transaction->GetSendingPid());
-            ProcessRSTransactionData(transaction, transaction->GetSendingPid());
-        }
-        syncTransactionDatas_.clear();
+        ProcessAllSyncTransactionDatas();
     }
     if (syncTransactionDatas_.front() && syncTransactionDatas_.front()->IsNeedCloseSync() &&
         syncTransactionDatas_.front()->GetSyncTransactionNum() == 0) {
-        for (auto& transaction : syncTransactionDatas_) {
-            ROSEN_LOGD("RSMainThread ProcessSyncRSTransactionData while all close GetCommandCount: %lu pid: %llu",
-                transaction->GetCommandCount(), transaction->GetSendingPid());
-            ProcessRSTransactionData(transaction, transaction->GetSendingPid());
-        }
-        syncTransactionDatas_.clear();
+        ProcessAllSyncTransactionDatas();
+    }
+}
+
+void RSMainThread::ProcessAllSyncTransactionDatas()
+{
+    for (auto& transaction : syncTransactionDatas_) {
+        ROSEN_LOGD("RSMainThread ProcessAllSyncTransactionDatas GetCommandCount: %lu pid: %llu",
+            transaction->GetCommandCount(), transaction->GetSendingPid());
+        ProcessRSTransactionData(transaction, transaction->GetSendingPid());
+    }
+    syncTransactionDatas_.clear();
+}
+
+void RSMainThread::ProcessTimeoutSyncTransactionDatas()
+{
+    if (timestamp_ - lastSyncTimeStamp_ > 10 * REFRESH_PERIOD) {
+        ProcessAllSyncTransactionDatas();
     }
 }
 
