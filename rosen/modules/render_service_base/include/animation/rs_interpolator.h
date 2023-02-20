@@ -46,7 +46,7 @@ public:
     virtual ~RSInterpolator() = default;
 
     virtual bool Marshalling(Parcel& parcel) const override = 0;
-    [[nodiscard]] static RSInterpolator* Unmarshalling(Parcel& parcel);
+    [[nodiscard]] static RSB_EXPORT RSInterpolator* Unmarshalling(Parcel& parcel);
 
     virtual float Interpolate(float input) const = 0;
 };
