@@ -107,9 +107,10 @@ public:
         isHardwareForcedDisabled_ = forcesDisabled;
     }
 
-    bool GetHardwareForcedDisabledState() const
+    bool IsHardwareForcedDisabled() const
     {
-        return isHardwareForcedDisabled_;
+        return isHardwareForcedDisabled_ ||
+            GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
 
     bool IsMainWindowType() const
