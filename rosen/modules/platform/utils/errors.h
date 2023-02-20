@@ -141,9 +141,6 @@ enum {
     ERR_TIMED_OUT         = BASE_ERR_OFFSET + ETIMEDOUT
 };
 
-#define SUCCEEDED(errCode) ((errCode) == ERR_OK)
-#define FAILED(errCode) ((errCode) != ERR_OK)
-
 }
 
 #endif
