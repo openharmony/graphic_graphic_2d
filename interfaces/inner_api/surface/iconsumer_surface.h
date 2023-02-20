@@ -105,7 +105,6 @@ public:
     virtual GSError SetPresentTimestamp(uint32_t sequence, const GraphicPresentTimestamp &timestamp) = 0;
     virtual GSError GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type,
                                         int64_t &time) const = 0;
-
     virtual void Dump(std::string &result) const = 0;
 
     virtual int32_t GetDefaultFormat() = 0;
@@ -116,6 +115,11 @@ public:
     virtual sptr<NativeSurface> GetNativeSurface() = 0;
 
     virtual bool QueryIfBufferAvailable() = 0;
+    virtual GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
+                                  int64_t &timestamp, std::vector<Rect> &damages) = 0;
+
+    virtual GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
+                                  int64_t &timestamp, std::vector<Rect> &damages) = 0;
 
 protected:
     IConsumerSurface() = default;

@@ -44,6 +44,7 @@ public:
     };
     static inline int64_t timestamp = 0;
     static inline Rect damage = {};
+    static inline std::vector<Rect> damages = {};
     static inline sptr<IConsumerSurface> cs = nullptr;
     static inline sptr<Surface> ps = nullptr;
 };
@@ -796,4 +797,35 @@ HWTEST_F(ConsumerSurfaceTest, presentTimestamp005, Function | MediumTest | Level
     GSError ret = cs->SetPresentTimestamp(sequence, timestamp);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
+
+/*
+* Function: AcquireBuffer and ReleaseBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBuffer and FlushBuffer
+*                  2. call AcquireBuffer and ReleaseBuffer
+*                  3. check ret
+ */
+HWTEST_F(ConsumerSurfaceTest, ReqCanFluAcqRel005, Function | MediumTest | Level2)
+{
+    sptr<SurfaceBuffer> buffer;
+    int releaseFence = -1;
+
+    GSError ret = ps->RequestBuffer(buffer, releaseFence, requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
+
+    ret = ps->FlushBuffer(buffer, -1, flushConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    int32_t flushFence;
+    ret = cs->AcquireBuffer(buffer, flushFence, timestamp, damages);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
+
+    ret = cs->ReleaseBuffer(buffer, -1);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
+
 }

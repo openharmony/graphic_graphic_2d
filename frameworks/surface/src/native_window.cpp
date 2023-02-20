@@ -115,19 +115,33 @@ int32_t NativeWindowFlushBuffer(OHNativeWindow *window, OHNativeWindowBuffer *bu
 
     OHOS::BufferFlushConfig config;
     if ((region.rectNumber != 0) && (region.rects != nullptr)) {
-        config.damage.x = region.rects->x;
-        config.damage.y = region.rects->y;
-        config.damage.w = static_cast<int32_t>(region.rects->w);
-        config.damage.h = static_cast<int32_t>(region.rects->h);
+        if (region.rectNumber == 1) {
+            config.damage.x = region.rects[0].x;
+            config.damage.y = region.rects[0].y;
+            config.damage.w = region.rects[0].w;
+            config.damage.h = region.rects[0].h;
+            config.damages.clear();
+        } else {
+            config.damages.reserve(region.rectNumber);
+            for (int32_t i = 0; i < region.rectNumber; i++) {
+                OHOS::Rect rect = {
+                    .x = region.rects[i].x,
+                    .y = region.rects[i].y,
+                    .w = region.rects[i].w,
+                    .h = region.rects[i].h,
+                };
+                config.damages.push_back(rect);
+            }
+        }
         config.timestamp = buffer->uiTimestamp;
     } else {
         config.damage.x = 0;
         config.damage.y = 0;
         config.damage.w = window->config.width;
         config.damage.h = window->config.height;
+        config.damages.clear();
         config.timestamp = buffer->uiTimestamp;
     }
-
     OHOS::sptr<OHOS::SyncFence> acquireFence = new OHOS::SyncFence(fenceFd);
     window->surface->FlushBuffer(buffer->sfbuffer, acquireFence, config);
 
