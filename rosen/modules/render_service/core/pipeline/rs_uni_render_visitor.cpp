@@ -1383,13 +1383,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
 
-    // Fix bug that when AppWindow has shadow set by config.xml cannot be displayed for LEASH_WINDOW_NODE has clipped canvas.
-    if (node.GetSurfaceNodeType() != RSSurfaceNodeType::LEASH_WINDOW_NODE) {
-        if (!property.GetCornerRadius().IsZero()) {
-            canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
-        } else {
-            canvas_->clipRect(SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight()));
-        }
+    if (!property.GetCornerRadius().IsZero()) {
+        canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
+    } else {
+        canvas_->clipRect(SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight()));
     }
 
     RSPropertiesPainter::DrawBackground(property, *canvas_);
