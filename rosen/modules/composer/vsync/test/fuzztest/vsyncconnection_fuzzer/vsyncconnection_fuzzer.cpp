@@ -70,7 +70,8 @@ namespace OHOS {
         sptr<Rosen::VSyncDistributor> vsyncDistributor = new Rosen::VSyncDistributor(vsyncController, "Fuzz");
         sptr<Rosen::VSyncConnection> vsyncConnection = new Rosen::VSyncConnection(vsyncDistributor, "Fuzz");
         vsyncConnection->SetVSyncRate(rate);
-        vsyncConnection->PostEvent(now);
+        // 16666667 is Vsync period.
+        vsyncConnection->PostEvent(now, 16666667, 0);
 
         return true;
     }

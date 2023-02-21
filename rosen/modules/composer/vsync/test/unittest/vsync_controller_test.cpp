@@ -29,7 +29,7 @@ public:
 
 class VSyncControllerCallback : public VSyncController::Callback {
 public:
-    void OnVSyncEvent(int64_t now) override;
+    void OnVSyncEvent(int64_t now, int64_t period) override;
 };
 
 void VSyncControllerTest::SetUpTestCase()
@@ -45,7 +45,7 @@ void VSyncControllerTest::TearDownTestCase()
     DestroyVSyncGenerator();
 }
 
-void VSyncControllerCallback::OnVSyncEvent(int64_t now) {}
+void VSyncControllerCallback::OnVSyncEvent(int64_t now, int64_t period) {}
 
 /*
 * Function: SetEnable
