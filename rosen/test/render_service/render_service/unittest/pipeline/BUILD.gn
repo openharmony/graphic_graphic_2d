@@ -21,6 +21,7 @@ group("unittest") {
   testonly = true
 
   deps = [
+    ":RSBaseRenderEngineUnitTest",
     ":RSBaseRenderUtilTest",
     ":RSColdStartThreadTest",
     ":RSComposerAdapterTest",
@@ -264,6 +265,15 @@ ohos_unittest("RSRenderTaskTest") {
 ohos_unittest("RSUniRenderVirtualProcessorTest") {
   module_out_path = module_output_path
   sources = [ "rs_uni_render_virtual_processor_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSBaseRenderEngineUnitTest
+ohos_unittest("RSBaseRenderEngineUnitTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_base_render_engine_test.cpp" ]
   deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines
