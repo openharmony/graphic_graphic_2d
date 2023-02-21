@@ -499,6 +499,7 @@ public:
         const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow) const;
     Occlusion::Region SetUnfocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
     Occlusion::Region SetFocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
+    Occlusion::Region SetCornerRadiusOpaqueRegion(const RectI& absRect, float radius) const;
 
     bool IsStartAnimationFinished() const;
     void SetStartAnimationFinished();

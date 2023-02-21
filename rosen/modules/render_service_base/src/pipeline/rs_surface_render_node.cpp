@@ -642,6 +642,8 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     } else {
         if (IsAppWindow() && HasContainerWindow()) {
             opaqueRegion_ = ResetOpaqueRegion(absRect, screenRotation, isFocusWindow);
+        } else if (!GetRenderProperties().GetCornerRadius().IsZero()) {
+            opaqueRegion_ = SetCornerRadiusOpaqueRegion(absRect, std::ceil(GetRenderProperties().GetCornerRadius().x_));
         } else {
             opaqueRegion_ = Occlusion::Region{absRectR};
         }
@@ -831,6 +833,21 @@ Occlusion::Region RSSurfaceRenderNode::SetFocusedWindowOpaqueRegion(const RectI&
     return opaqueRegion;
 }
 
+Occlusion::Region RSSurfaceRenderNode::SetCornerRadiusOpaqueRegion(const RectI& absRect, float radius) const
+{
+    Occlusion::Rect opaqueRect1{ absRect.left_ + radius,
+        absRect.top_,
+        absRect.GetRight() - radius,
+        absRect.GetBottom()};
+    Occlusion::Rect opaqueRect2{ absRect.left_,
+        absRect.top_ + radius,
+        absRect.GetRight(),
+        absRect.GetBottom() - radius};
+    Occlusion::Region r1{opaqueRect1};
+    Occlusion::Region r2{opaqueRect2};
+    Occlusion::Region opaqueRegion = r1.Or(r2);
+    return opaqueRegion;
+}
 
 // [planning] Remove this after skia is upgraded, the clipRegion is supported
 void RSSurfaceRenderNode::ResetChildrenFilterRects()
