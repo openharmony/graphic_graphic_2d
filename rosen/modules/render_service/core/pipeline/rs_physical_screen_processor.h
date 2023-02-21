@@ -29,6 +29,7 @@ public:
     bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
+    void ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node) override;
     void PostProcess() override;
 private:
     void Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers);

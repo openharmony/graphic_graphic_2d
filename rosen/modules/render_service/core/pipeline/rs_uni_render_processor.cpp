@@ -20,6 +20,10 @@
 
 #include "platform/common/rs_log.h"
 
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#include "pipeline/driven_render/rs_driven_surface_render_node.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 RSUniRenderProcessor::RSUniRenderProcessor()
@@ -77,6 +81,19 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
         }
         layerNum++;
     }
+}
+
+void RSUniRenderProcessor::ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node)
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    auto layer = uniComposerAdapter_->CreateLayer(node);
+    if (layer == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::ProcessDrivenSurface: failed to createLayer for node(id: %" PRIu64 ")",
+            node.GetId());
+        return;
+    }
+    layers_.emplace_back(layer);
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

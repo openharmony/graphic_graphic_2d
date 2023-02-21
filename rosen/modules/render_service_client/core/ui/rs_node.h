@@ -176,6 +176,12 @@ public:
         transitionEffect_ = effect;
     }
 
+    // driven render
+    void MarkDrivenRender(bool flag);
+    void MarkDrivenRenderItemIndex(int index);
+    void MarkDrivenRenderFramePaintState(bool flag);
+    void MarkContentChanged(bool isChanged);
+
     void AddModifier(const std::shared_ptr<RSModifier>& modifier);
     void RemoveModifier(const std::shared_ptr<RSModifier>& modifier);
 

@@ -47,6 +47,10 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_DRAW_CMD_LIST,
 
     SET_FREEZE,
+    MARK_DRIVEN_RENDER,
+    MARK_DRIVEN_RENDER_ITEM_INDEX,
+    MARK_DRIVEN_RENDER_FRAME_PAINT_STATE,
+    MARK_CONTENT_CHANGED,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -70,6 +74,10 @@ public:
     }
 
     static void SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze);
+    static void MarkDrivenRender(RSContext& context, NodeId nodeId, bool flag);
+    static void MarkDrivenRenderItemIndex(RSContext& context, NodeId nodeId, int32_t index);
+    static void MarkDrivenRenderFramePaintState(RSContext& context, NodeId nodeId, bool flag);
+    static void MarkContentChanged(RSContext& context, NodeId nodeId, bool isChanged);
 };
 
 ADD_COMMAND(RSAddModifier,
@@ -132,6 +140,15 @@ ADD_COMMAND(RSUpdatePropertyDrawCmdList,
 ADD_COMMAND(RSSetFreeze,
     ARG(RS_NODE, SET_FREEZE, RSNodeCommandHelper::SetFreeze, NodeId, bool))
 
+ADD_COMMAND(RSMarkDrivenRender,
+    ARG(BASE_NODE, MARK_DRIVEN_RENDER, RSNodeCommandHelper::MarkDrivenRender, NodeId, bool))
+ADD_COMMAND(RSMarkDrivenRenderItemIndex, ARG(BASE_NODE, MARK_DRIVEN_RENDER_ITEM_INDEX,
+                                             RSNodeCommandHelper::MarkDrivenRenderItemIndex, NodeId, int32_t))
+ADD_COMMAND(RSMarkDrivenRenderFramePaintState,
+    ARG(BASE_NODE, MARK_DRIVEN_RENDER_FRAME_PAINT_STATE,
+        RSNodeCommandHelper::MarkDrivenRenderFramePaintState, NodeId, bool))
+ADD_COMMAND(RSMarkContentChanged,
+    ARG(BASE_NODE, MARK_CONTENT_CHANGED, RSNodeCommandHelper::MarkContentChanged, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 

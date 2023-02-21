@@ -24,6 +24,7 @@
 #include "platform/ohos/overdraw/rs_cpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_gpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
+#include "pipeline/driven_render/rs_driven_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -205,6 +206,18 @@ private:
     // vector of all app window nodes with surfaceView, sorted by zOrder
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> appWindowNodesInZOrder_;
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
+
+    // driven render
+    bool isDrivenRenderEnabled_ = false;
+    std::vector<DrivenCandidateTuple> backgroundCandidates_;
+    std::vector<DrivenCandidatePair> contentCandidates_;
+    bool hasInvalidDrivenRenderScene_ = false;
+    bool findContentNodeIsOnSubTree_ = false;
+    bool isPrepareContentNodeSubTree_ = false;
+    bool isPrepareLeashWinSubTree_ = false;
+    NodeId currLeashWinNodeId_ = 0;
+    DrivenUniRenderMode currDrivenRenderMode_ = DrivenUniRenderMode::RENDER_WITH_NORMAL;
+    DrivenDirtyInfo drivenDirtyInfo_;
 };
 } // namespace Rosen
 } // namespace OHOS

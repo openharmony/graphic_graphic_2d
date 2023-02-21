@@ -22,6 +22,10 @@
 #include "rs_trace.h"
 #include "string_utils.h"
 
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#include "pipeline/driven_render/rs_driven_surface_render_node.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 using namespace std;
@@ -101,6 +105,32 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.needClient = GetComposerInfoNeedClient(info, node);
     info.matrix = GraphicMatrix {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
     return info;
+}
+
+ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDrivenSurfaceRenderNode& node) const
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.
+    const RectI dstRect = node.GetDstRect();
+    const auto& srcRect = node.GetSrcRect();
+    ComposeInfo info {};
+    info.srcRect = GraphicIRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};
+    info.dstRect = GraphicIRect {dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_};
+    info.boundRect = info.dstRect;
+    info.visibleRect = info.dstRect;
+    info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
+    info.alpha.enGlobalAlpha = true;
+    info.alpha.gAlpha = 255;
+    info.preBuffer = node.GetPreBuffer().buffer;
+    info.buffer = buffer;
+    info.fence = node.GetAcquireFence();
+    info.blendType = GRAPHIC_BLEND_SRCOVER;
+    info.needClient = false;
+    info.matrix = GraphicMatrix {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
+    return info;
+#else
+    return {};
+#endif
 }
 
 void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
@@ -487,6 +517,44 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
     LayerRotate(layer, node);
     // do not crop or scale down for displayNode's layer.
     return layer;
+}
+
+LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDrivenSurfaceRenderNode& node)
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    if (output_ == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer: output is nullptr");
+        return nullptr;
+    }
+
+    RS_LOGD("RSUniRenderComposerAdapter::CreateLayer RSDrivenSurfaceRenderNode id:%" PRIu64 " available buffer:%d",
+        node.GetId(), node.GetAvailableBufferCount());
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(node)) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer consume buffer failed.");
+        return nullptr;
+    }
+
+    if (node.GetBuffer() == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer buffer is nullptr!");
+        return nullptr;
+    }
+
+    ComposeInfo info = BuildComposeInfo(node);
+    RS_LOGD("RSUniRenderComposerAdapter::ProcessDrivenSurface drivenSurfaceNode id:%" PRIu64 " DstRect [%d %d %d %d]"
+            "SrcRect [%d %d %d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, z-Order:%d, blendType = %d",
+        node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
+        info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h,
+        info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
+        info.buffer->GetSurfaceBufferHeight(), info.buffer.GetRefPtr(), info.zOrder, info.blendType);
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
+    LayerRotate(layer, node);
+    LayerCrop(layer);
+    LayerScaleDown(layer);
+    return layer;
+#else
+    return nullptr;
+#endif
 }
 
 static int GetSurfaceNodeRotation(RSBaseRenderNode& node)

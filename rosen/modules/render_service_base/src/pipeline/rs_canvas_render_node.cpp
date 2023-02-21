@@ -76,7 +76,12 @@ void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
     ApplyDrawCmdModifier(context, RSModifierType::TRANSITION);
 
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    bool isDrivenVisitMode = IsMarkDriven() && IsDrivenVisitMode();
+    RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas, isDrivenVisitMode);
+#else
     RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas);
+#endif
     auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetBackgroundFilter());
     if (filter != nullptr) {
         RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
@@ -86,9 +91,17 @@ void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
     canvasNodeSaveCount_ = canvas.SaveCanvasAndAlpha();
     canvas.translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
 
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    if (!isDrivenVisitMode) { // skip clip in driven render mode
+        if (GetRenderProperties().GetClipToFrame()) {
+            RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect());
+        }
+    }
+#else
     if (GetRenderProperties().GetClipToFrame()) {
         RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect());
     }
+#endif
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
 }
 
@@ -104,7 +117,13 @@ void RSCanvasRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
     }
     RSPropertiesPainter::DrawBorder(GetRenderProperties(), canvas);
     ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);
+
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    bool isDrivenVisitMode = IsMarkDriven() && IsDrivenVisitMode();
+    RSPropertiesPainter::DrawForegroundColor(GetRenderProperties(), canvas, isDrivenVisitMode);
+#else
     RSPropertiesPainter::DrawForegroundColor(GetRenderProperties(), canvas);
+#endif
     RSRenderNode::ProcessRenderAfterChildren(canvas);
 }
 

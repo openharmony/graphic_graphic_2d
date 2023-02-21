@@ -320,16 +320,19 @@ int RSPropertiesPainter::GetAndResetBlurCnt()
     return blurCnt;
 }
 
-void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas, bool skipClip)
 {
     DrawShadow(properties, canvas);
     // only disable antialias when background is rect and g_forceBgAntiAlias is true
     bool antiAlias = g_forceBgAntiAlias || !properties.GetCornerRadius().IsZero();
-    // clip
-    if (properties.GetClipBounds() != nullptr) {
-        canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), antiAlias);
-    } else if (properties.GetClipToBounds()) {
-        canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), antiAlias);
+
+    if (!skipClip) { // skip clip in driven render mode
+        // clip
+        if (properties.GetClipBounds() != nullptr) {
+            canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), antiAlias);
+        } else if (properties.GetClipToBounds()) {
+            canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), antiAlias);
+        }
     }
     // paint backgroundColor
     SkPaint paint;
@@ -416,17 +419,20 @@ void RSPropertiesPainter::DrawBorder(const RSProperties& properties, SkCanvas& c
     }
 }
 
-void RSPropertiesPainter::DrawForegroundColor(const RSProperties& properties, SkCanvas& canvas)
+void RSPropertiesPainter::DrawForegroundColor(const RSProperties& properties, SkCanvas& canvas, bool skipClip)
 {
     auto bgColor = properties.GetForegroundColor();
     if (bgColor == RgbPalette::Transparent()) {
         return;
     }
-    // clip
-    if (properties.GetClipBounds() != nullptr) {
-        canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
-    } else if (properties.GetClipToBounds()) {
-        canvas.clipRect(Rect2SkRect(properties.GetBoundsRect()), true);
+
+    if (!skipClip) { // skip clip in driven render mode
+        // clip
+        if (properties.GetClipBounds() != nullptr) {
+            canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
+        } else if (properties.GetClipToBounds()) {
+            canvas.clipRect(Rect2SkRect(properties.GetBoundsRect()), true);
+        }
     }
 
     SkPaint paint;

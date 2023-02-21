@@ -132,6 +132,58 @@ public:
         cacheSurface_ = nullptr;
     }
 
+    // driven render ///////////////////////////////////
+    void SetIsMarkDriven(bool isMarkDriven)
+    {
+        isMarkDriven_ = isMarkDriven;
+    }
+
+    bool IsMarkDriven() const
+    {
+        return isMarkDriven_;
+    }
+
+    void SetItemIndex(int index)
+    {
+        itemIndex_ = index;
+    }
+
+    int GetItemIndex() const
+    {
+        return itemIndex_;
+    }
+
+    void SetPaintState(bool paintState)
+    {
+        paintState_ = paintState;
+    }
+
+    bool GetPaintState() const
+    {
+        return paintState_;
+    }
+
+    void SetIsContentChanged(bool isChanged)
+    {
+        isContentChanged_ = isChanged;
+    }
+
+    bool IsContentChanged() const
+    {
+        return isContentChanged_;
+    }
+
+    void MarkDrivenVisitMode(bool flag)
+    {
+        isDrivenVisitMode_ = flag;
+    }
+
+    bool IsDrivenVisitMode() const
+    {
+        return isDrivenVisitMode_;
+    }
+    /////////////////////////////////////////////
+
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier> modifier);
@@ -168,6 +220,13 @@ private:
 
     std::atomic<bool> isFreeze_ = false;
     sk_sp<SkSurface> cacheSurface_ = nullptr;
+
+    // driven render
+    int itemIndex_ = -1;
+    bool isMarkDriven_ = false;
+    bool paintState_ = false;
+    bool isContentChanged_ = false;
+    bool isDrivenVisitMode_ = false;
 
     friend class RSRenderTransition;
     friend class RSRenderNodeMap;

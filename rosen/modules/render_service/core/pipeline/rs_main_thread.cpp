@@ -53,6 +53,10 @@
 #include "socperf_client.h"
 #endif
 
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#include "pipeline/driven_render/rs_driven_render_manager.h"
+#endif
+
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
 
@@ -223,6 +227,9 @@ void RSMainThread::Init()
 #endif
     RSInnovation::OpenInnovationSo();
     Occlusion::Region::InitDynamicLibraryFunction();
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    RSDrivenRenderManager::InitInstance();
+#endif
 
     accessibilityObserver_ = std::make_shared<AccessibilityObserver>();
     auto &config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
@@ -544,6 +551,18 @@ void RSMainThread::WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node)
     displayNodeBufferReleasedCond_.wait(lock, [this]() { return displayNodeBufferReleased_; });
 }
 
+void RSMainThread::WaitUtilDrivenRenderFinished()
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    std::unique_lock<std::mutex> lock(drivenRenderMutex_);
+    if (drivenRenderFinished_) {
+        return;
+    }
+    drivenRenderCond_.wait(lock, [this]() { return drivenRenderFinished_; });
+    drivenRenderFinished_ = false;
+#endif
+}
+
 void RSMainThread::WaitUntilUnmarshallingTaskFinished()
 {
     if (!isUniRender_) {
@@ -586,6 +605,19 @@ void RSMainThread::NotifyDisplayNodeBufferReleased()
     std::lock_guard<std::mutex> lock(displayNodeBufferReleasedMutex_);
     displayNodeBufferReleased_ = true;
     displayNodeBufferReleasedCond_.notify_one();
+}
+
+void RSMainThread::NotifyDrivenRenderFinish()
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    if (std::this_thread::get_id() != Id()) {
+        std::lock_guard<std::mutex> lock(drivenRenderMutex_);
+        drivenRenderFinished_ = true;
+        drivenRenderCond_.notify_one();
+    } else {
+        drivenRenderFinished_ = true;
+    }
+#endif
 }
 
 void RSMainThread::Render()

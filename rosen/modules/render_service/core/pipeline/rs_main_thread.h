@@ -128,6 +128,10 @@ public:
     void WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node);
     void NotifyDisplayNodeBufferReleased();
 
+    // driven render
+    void NotifyDrivenRenderFinish();
+    void WaitUtilDrivenRenderFinished();
+
     void ClearTransactionDataPidInfo(pid_t remotePid);
     void AddTransactionDataPidInfo(pid_t remotePid);
 
@@ -229,6 +233,12 @@ private:
     bool displayNodeBufferReleased_ = false;
     // used for stalling mainThread before displayNode has no freed buffer to request
     std::condition_variable displayNodeBufferReleasedCond_;
+
+    // driven render
+    mutable std::mutex drivenRenderMutex_;
+    bool drivenRenderFinished_ = false;
+    std::condition_variable drivenRenderCond_;
+
     std::map<uint32_t, bool> lastPidVisMap_;
     VisibleData lastVisVec_;
     bool qosPidCal_ = false;

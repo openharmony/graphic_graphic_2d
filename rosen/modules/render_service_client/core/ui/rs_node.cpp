@@ -836,6 +836,43 @@ void RSNode::SetPaintOrder(bool drawContentLast)
     drawContentLast_ = drawContentLast;
 }
 
+void RSNode::MarkDrivenRender(bool flag)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkDrivenRender>(GetId(), flag);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
+void RSNode::MarkDrivenRenderItemIndex(int index)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkDrivenRenderItemIndex>(GetId(), index);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
+void RSNode::MarkDrivenRenderFramePaintState(bool flag)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSMarkDrivenRenderFramePaintState>(GetId(), flag);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
+void RSNode::MarkContentChanged(bool isChanged)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkContentChanged>(GetId(), isChanged);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
 void RSNode::ClearAllModifiers()
 {
     for (auto& [id, modifier] : modifiers_) {
