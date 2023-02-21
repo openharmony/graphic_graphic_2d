@@ -38,6 +38,8 @@ struct Surface {
     int32_t consumerUsage;
 };
 
+using namespace OHOS;
+
 struct Swapchain {
     Swapchain(Surface& surface, uint32_t numImages, VkPresentModeKHR presentMode, int preTransform)
         : surface(surface), numImages(numImages), mailboxMode(presentMode == VK_PRESENT_MODE_MAILBOX_KHR),
@@ -292,16 +294,16 @@ VkResult GetSwapchainImagesKHR(VkDevice, VkSwapchainKHR swapchainHandle, uint32_
     return result;
 }
 
-PixelFormat GetPixelFormat(VkFormat format)
+GraphicPixelFormat GetPixelFormat(VkFormat format)
 {
-    PixelFormat nativeFormat = PIXEL_FMT_RGBA_8888;
+    GraphicPixelFormat nativeFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
     switch (format) {
         case VK_FORMAT_R8G8B8A8_UNORM:
         case VK_FORMAT_R8G8B8A8_SRGB:
-            nativeFormat = PIXEL_FMT_RGBA_8888;
+            nativeFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
             break;
         case VK_FORMAT_R5G6B5_UNORM_PACK16:
-            nativeFormat = PIXEL_FMT_RGB_565;
+            nativeFormat = GRAPHIC_PIXEL_FMT_RGB_565;
             break;
         default:
             WLOGE("unsupported swapchain format %{public}d", format);
@@ -310,40 +312,40 @@ PixelFormat GetPixelFormat(VkFormat format)
     return nativeFormat;
 }
 
-ColorDataSpace GetColorDataspace(VkColorSpaceKHR colorspace)
+GraphicColorDataSpace GetColorDataspace(VkColorSpaceKHR colorspace)
 {
     switch (colorspace) {
         case VK_COLOR_SPACE_SRGB_NONLINEAR_KHR:
-            return BT709_SRGB_FULL;
+            return GRAPHIC_BT709_SRGB_FULL;
         case VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT:
-            return DCI_P3_GAMMA26_FULL;
+            return GRAPHIC_DCI_P3_GAMMA26_FULL;
         case VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT:
-            return BT709_LINEAR_EXTENDED;
+            return GRAPHIC_BT709_LINEAR_EXTENDED;
         case VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT:
-            return BT709_SRGB_EXTENDED;
+            return GRAPHIC_BT709_SRGB_EXTENDED;
         case VK_COLOR_SPACE_DCI_P3_LINEAR_EXT:
-            return DCI_P3_LINEAR_FULL;
+            return GRAPHIC_DCI_P3_LINEAR_FULL;
         case VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT:
-            return DCI_P3_GAMMA26_FULL;
+            return GRAPHIC_DCI_P3_GAMMA26_FULL;
         case VK_COLOR_SPACE_BT709_LINEAR_EXT:
-            return BT709_LINEAR_FULL;
+            return GRAPHIC_BT709_LINEAR_FULL;
         case VK_COLOR_SPACE_BT709_NONLINEAR_EXT:
-            return BT709_SRGB_FULL;
+            return GRAPHIC_BT709_SRGB_FULL;
         case VK_COLOR_SPACE_BT2020_LINEAR_EXT:
-            return BT2020_LINEAR_FULL;
+            return GRAPHIC_BT2020_LINEAR_FULL;
         case VK_COLOR_SPACE_HDR10_ST2084_EXT:
-            return BT2020_ST2084_FULL;
+            return GRAPHIC_BT2020_ST2084_FULL;
         case VK_COLOR_SPACE_DOLBYVISION_EXT:
-            return BT2020_ST2084_FULL;
+            return GRAPHIC_BT2020_ST2084_FULL;
         case VK_COLOR_SPACE_HDR10_HLG_EXT:
-            return BT2020_HLG_FULL;
+            return GRAPHIC_BT2020_HLG_FULL;
         case VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT:
-            return static_cast<ColorDataSpace>(
-                GAMUT_ADOBE_RGB | TRANSFORM_FUNC_LINEAR | PRECISION_FULL);
+            return static_cast<GraphicColorDataSpace>(
+                GRAPHIC_GAMUT_ADOBE_RGB | GRAPHIC_TRANSFORM_FUNC_LINEAR | GRAPHIC_PRECISION_FULL);
         case VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT:
-            return ADOBE_RGB_GAMMA22_FULL;
+            return GRAPHIC_ADOBE_RGB_GAMMA22_FULL;
         default:
-            return COLOR_DATA_SPACE_UNKNOWN;
+            return GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
     }
 }
 
@@ -438,7 +440,7 @@ static void DestroySwapchainInternal(VkDevice device, VkSwapchainKHR swapchainHa
 
 VKAPI_ATTR VkResult SetWindowInfo(const VkSwapchainCreateInfoKHR* createInfo, int32_t* numImages)
 {
-    PixelFormat pixelFormat = GetPixelFormat(createInfo->imageFormat);
+    GraphicPixelFormat pixelFormat = GetPixelFormat(createInfo->imageFormat);
     Surface& surface = *SurfaceFromHandle(createInfo->surface);
 
     NativeWindow* window = surface.window;
@@ -474,8 +476,8 @@ VKAPI_ATTR VkResult SetWindowInfo(const VkSwapchainCreateInfoKHR* createInfo, in
 VKAPI_ATTR VkResult SetSwapchainCreateInfo(VkDevice device, const VkSwapchainCreateInfoKHR* createInfo,
     int32_t* numImages)
 {
-    ColorDataSpace color_data_space = GetColorDataspace(createInfo->imageColorSpace);
-    if (color_data_space == COLOR_DATA_SPACE_UNKNOWN) {
+    GraphicColorDataSpace color_data_space = GetColorDataspace(createInfo->imageColorSpace);
+    if (color_data_space == GRAPHIC_COLOR_DATA_SPACE_UNKNOWN) {
         return VK_ERROR_INITIALIZATION_FAILED;
     }
     if (createInfo->oldSwapchain != VK_NULL_HANDLE) {

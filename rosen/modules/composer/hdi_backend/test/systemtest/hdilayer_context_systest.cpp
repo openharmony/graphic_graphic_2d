@@ -49,7 +49,7 @@ GSError HdiLayerContext::DrawBufferColor()
         .width = srcRect_.w,
         .height = srcRect_.h,
         .strideAlignment = 0x8,
-        .format = PIXEL_FMT_RGBA_8888,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = pSurface_->GetDefaultUsage(),
     };
 
@@ -100,7 +100,7 @@ GSError HdiLayerContext::FillHdiLayer()
     if (ret != SURFACE_ERROR_OK) {
         return ret;
     }
-    LayerAlpha alpha = { .enPixelAlpha = true };
+    GraphicLayerAlpha alpha = { .enPixelAlpha = true };
     hdiLayer_->SetSurface(cSurface_);
     hdiLayer_->SetBuffer(buffer, acquireSyncFence);
     hdiLayer_->SetZorder(static_cast<int32_t>(zOrder_));
@@ -109,8 +109,8 @@ GSError HdiLayerContext::FillHdiLayer()
     hdiLayer_->SetCropRect(srcRect_);
     hdiLayer_->SetDirtyRegion(srcRect_);
     hdiLayer_->SetVisibleRegion(1, srcRect_);
-    hdiLayer_->SetBlendType(BlendType::BLEND_SRCOVER);
-    hdiLayer_->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
+    hdiLayer_->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
+    hdiLayer_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     hdiLayer_->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     hdiLayer_->SetPreMulti(false);
     return ret;

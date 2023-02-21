@@ -205,7 +205,7 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
 
     if (powerStatus == DispPowerStatus::POWER_STATUS_ON) {
         RS_LOGD("RSScreen %s Enable hardware vsync", __func__);
-        if (hdiScreen_->SetScreenVsyncEnabled(true) != DISPLAY_SUCCESS) {
+        if (hdiScreen_->SetScreenVsyncEnabled(true) != GRAPHIC_DISPLAY_SUCCESS) {
             RS_LOGE("RSScreen %s SetScreenVsyncEnabled failed", __func__);
         }
     }
@@ -485,12 +485,12 @@ int32_t RSScreen::GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &m
         mode = supportedVirtualColorGamuts_;
         return StatusCode::SUCCESS;
     }
-    std::vector<ColorGamut> hdiMode;
+    std::vector<GraphicColorGamut> hdiMode;
     int32_t result = hdiScreen_->GetScreenSupportedColorGamuts(hdiMode);
-    if (result == DispErrCode::DISPLAY_SUCCESS) {
+    if (result == GraphicDispErrCode::GRAPHIC_DISPLAY_SUCCESS) {
         mode.clear();
         std::transform(hdiMode.begin(), hdiMode.end(), std::back_inserter(mode),
-            [](ColorGamut m) { return static_cast<ScreenColorGamut>(m); });
+            [](GraphicColorGamut m) { return static_cast<ScreenColorGamut>(m); });
         return StatusCode::SUCCESS;
     }
     return StatusCode::HDI_ERROR;
@@ -527,9 +527,9 @@ int32_t RSScreen::GetScreenColorGamut(ScreenColorGamut &mode) const
         mode = supportedVirtualColorGamuts_[currentVirtualColorGamutIdx_];
         return StatusCode::SUCCESS;
     }
-    ColorGamut hdiMode;
+    GraphicColorGamut hdiMode;
     int32_t result = hdiScreen_->GetScreenColorGamut(hdiMode);
-    if (result == DispErrCode::DISPLAY_SUCCESS) {
+    if (result == GraphicDispErrCode::GRAPHIC_DISPLAY_SUCCESS) {
         mode = static_cast<ScreenColorGamut>(hdiMode);
         return StatusCode::SUCCESS;
     }
@@ -545,15 +545,15 @@ int32_t RSScreen::SetScreenColorGamut(int32_t modeIdx)
         currentVirtualColorGamutIdx_ = modeIdx;
         return StatusCode::SUCCESS;
     }
-    std::vector<ColorGamut> hdiMode;
-    if (hdiScreen_->GetScreenSupportedColorGamuts(hdiMode) != DispErrCode::DISPLAY_SUCCESS) {
+    std::vector<GraphicColorGamut> hdiMode;
+    if (hdiScreen_->GetScreenSupportedColorGamuts(hdiMode) != GraphicDispErrCode::GRAPHIC_DISPLAY_SUCCESS) {
         return StatusCode::HDI_ERROR;
     }
     if (modeIdx >= static_cast<int32_t>(hdiMode.size())) {
         return StatusCode::INVALID_ARGUMENTS;
     }
     int32_t result = hdiScreen_->SetScreenColorGamut(hdiMode[modeIdx]);
-    if (result == DispErrCode::DISPLAY_SUCCESS) {
+    if (result == GraphicDispErrCode::GRAPHIC_DISPLAY_SUCCESS) {
         return StatusCode::SUCCESS;
     }
     return StatusCode::HDI_ERROR;
@@ -566,7 +566,7 @@ int32_t RSScreen::SetScreenGamutMap(ScreenGamutMap mode)
         return StatusCode::SUCCESS;
     }
     int32_t result = hdiScreen_->SetScreenGamutMap(static_cast<GamutMap>(mode));
-    if (result == DispErrCode::DISPLAY_SUCCESS) {
+    if (result == GraphicDispErrCode::GRAPHIC_DISPLAY_SUCCESS) {
         return StatusCode::SUCCESS;
     }
     return StatusCode::HDI_ERROR;
@@ -580,7 +580,7 @@ int32_t RSScreen::GetScreenGamutMap(ScreenGamutMap &mode) const
     }
     GamutMap hdiMode;
     int32_t result = hdiScreen_->GetScreenGamutMap(hdiMode);
-    if (result == DispErrCode::DISPLAY_SUCCESS) {
+    if (result == GraphicDispErrCode::GRAPHIC_DISPLAY_SUCCESS) {
         mode = static_cast<ScreenGamutMap>(hdiMode);
         return StatusCode::SUCCESS;
     }

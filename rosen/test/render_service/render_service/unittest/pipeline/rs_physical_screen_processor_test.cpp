@@ -102,7 +102,7 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface001, TestSize.Level1)
     rsSurfaceRenderNode.SetConsumer(surface);
     rsHardwareProcessor->ProcessSurface(rsSurfaceRenderNode);
     auto& consumer = rsSurfaceRenderNode.GetConsumer();
-    ExtDataHandle handle;
+    GraphicExtDataHandle handle;
     handle.fd = -1;
     handle.reserveInts = 1;
     consumer->SetTunnelHandle(&handle);

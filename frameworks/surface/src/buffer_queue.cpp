@@ -142,10 +142,10 @@ GSError BufferQueue::CheckRequestConfig(const BufferRequestConfig &config)
         return GSERROR_INVALID_ARGUMENTS;
     }
 
-    if (config.colorGamut <= ColorGamut::COLOR_GAMUT_INVALID ||
-        config.colorGamut > ColorGamut::COLOR_GAMUT_DISPLAY_BT2020 + 1) {
+    if (config.colorGamut <= GraphicColorGamut::GRAPHIC_COLOR_GAMUT_INVALID ||
+        config.colorGamut > GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020 + 1) {
         BLOGN_INVALID("config.colorGamut [0, %{public}d], now is %{public}d",
-            static_cast<uint32_t>(ColorGamut::COLOR_GAMUT_DISPLAY_BT2020),
+            static_cast<uint32_t>(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020),
             static_cast<uint32_t>(config.colorGamut));
         return GSERROR_INVALID_ARGUMENTS;
     }
@@ -903,7 +903,7 @@ GraphicTransformType BufferQueue::GetTransform() const
     return transform_;
 }
 
-GSError BufferQueue::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+GSError BufferQueue::IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,
                                       std::vector<bool> &supporteds) const
 {
     GSError ret = bufferManager_->IsSupportedAlloc(infos, supporteds);
@@ -935,7 +935,7 @@ GSError BufferQueue::GetScalingMode(uint32_t sequence, ScalingMode &scalingMode)
     return GSERROR_OK;
 }
 
-GSError BufferQueue::SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData)
+GSError BufferQueue::SetMetaData(uint32_t sequence, const std::vector<GraphicHDRMetaData> &metaData)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (metaData.size() == 0) {
@@ -952,13 +952,14 @@ GSError BufferQueue::SetMetaData(uint32_t sequence, const std::vector<HDRMetaDat
     return GSERROR_OK;
 }
 
-GSError BufferQueue::SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
+GSError BufferQueue::SetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey key,
                                     const std::vector<uint8_t> &metaData)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
-    if (key < HDRMetadataKey::MATAKEY_RED_PRIMARY_X || key > HDRMetadataKey::MATAKEY_HDR_VIVID) {
+    if (key < GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X ||
+        key > GraphicHDRMetadataKey::GRAPHIC_MATAKEY_HDR_VIVID) {
         BLOGN_INVALID("key [%{public}d, %{public}d), now is %{public}d",
-            HDRMetadataKey::MATAKEY_RED_PRIMARY_X, HDRMetadataKey::MATAKEY_HDR_VIVID, key);
+            GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X, GraphicHDRMetadataKey::GRAPHIC_MATAKEY_HDR_VIVID, key);
         return GSERROR_INVALID_ARGUMENTS;
     }
     if (metaData.size() == 0) {
@@ -987,7 +988,7 @@ GSError BufferQueue::QueryMetaDataType(uint32_t sequence, HDRMetaDataType &type)
     return GSERROR_OK;
 }
 
-GSError BufferQueue::GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData)
+GSError BufferQueue::GetMetaData(uint32_t sequence, std::vector<GraphicHDRMetaData> &metaData)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
@@ -999,7 +1000,7 @@ GSError BufferQueue::GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &me
     return GSERROR_OK;
 }
 
-GSError BufferQueue::GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
+GSError BufferQueue::GetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey &key,
                                     std::vector<uint8_t> &metaData)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
@@ -1052,7 +1053,7 @@ sptr<SurfaceTunnelHandle> BufferQueue::GetTunnelHandle()
     return tunnelHandle_;
 }
 
-GSError BufferQueue::SetPresentTimestamp(uint32_t sequence, const PresentTimestamp &timestamp)
+GSError BufferQueue::SetPresentTimestamp(uint32_t sequence, const GraphicPresentTimestamp &timestamp)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
@@ -1063,7 +1064,7 @@ GSError BufferQueue::SetPresentTimestamp(uint32_t sequence, const PresentTimesta
     return GSERROR_OK;
 }
 
-GSError BufferQueue::GetPresentTimestamp(uint32_t sequence, PresentTimestampType type, int64_t &time)
+GSError BufferQueue::GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type, int64_t &time)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
@@ -1076,11 +1077,11 @@ GSError BufferQueue::GetPresentTimestamp(uint32_t sequence, PresentTimestampType
         return GSERROR_NO_ENTRY;
     }
     switch (type) {
-        case PresentTimestampType::HARDWARE_DISPLAY_PTS_DELAY: {
+        case GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_DELAY: {
             time = bufferQueueCache_.at(sequence).presentTimestamp.time;
             return GSERROR_OK;
         }
-        case PresentTimestampType::HARDWARE_DISPLAY_PTS_TIMESTAMP: {
+        case GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_TIMESTAMP: {
             time = bufferQueueCache_.at(sequence).presentTimestamp.time - bufferQueueCache_.at(sequence).timestamp;
             return GSERROR_OK;
         }

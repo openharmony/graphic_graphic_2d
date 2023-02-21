@@ -86,7 +86,7 @@ void NativeWindowTest::SetUpTestCase()
         .width = 0x100,  // small
         .height = 0x100, // small
         .strideAlignment = 0x8,
-        .format = PIXEL_FMT_RGBA_8888,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
     };
@@ -211,11 +211,11 @@ HWTEST_F(NativeWindowTest, HandleOpt003, Function | MediumTest | Level2)
 HWTEST_F(NativeWindowTest, HandleOpt004, Function | MediumTest | Level2)
 {
     int code = SET_FORMAT;
-    int32_t formatSet = PIXEL_FMT_RGBA_8888;
+    int32_t formatSet = GRAPHIC_PIXEL_FMT_RGBA_8888;
     ASSERT_EQ(OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, formatSet), OHOS::GSERROR_OK);
 
     code = GET_FORMAT;
-    int32_t formatGet = PIXEL_FMT_CLUT8;
+    int32_t formatGet = GRAPHIC_PIXEL_FMT_CLUT8;
     ASSERT_EQ(OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, &formatGet), OHOS::GSERROR_OK);
     ASSERT_EQ(formatSet, formatGet);
 }
@@ -251,7 +251,7 @@ HWTEST_F(NativeWindowTest, HandleOpt005, Function | MediumTest | Level2)
 HWTEST_F(NativeWindowTest, HandleOpt006, Function | MediumTest | Level2)
 {
     int code = SET_COLOR_GAMUT;
-    int32_t colorGamutSet = static_cast<int32_t>(ColorGamut::COLOR_GAMUT_DCI_P3);
+    int32_t colorGamutSet = static_cast<int32_t>(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3);
     ASSERT_EQ(OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, colorGamutSet), OHOS::GSERROR_OK);
 
     code = GET_COLOR_GAMUT;

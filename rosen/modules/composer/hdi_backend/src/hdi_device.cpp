@@ -17,9 +17,12 @@
 #include "hdi_device.h"
 #include "platform/common/rs_system_properties.h"
 
+#include <cstddef>
+#include <cstdint>
 #include <mutex>
 
 #include <scoped_bytrace.h>
+#include <vector>
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
 
@@ -259,7 +262,7 @@ int32_t HdiDevice::GetScreenReleaseFence(uint32_t screenId, std::vector<uint32_t
     return ret;
 }
 
-int32_t HdiDevice::GetScreenSupportedColorGamuts(uint32_t screenId, std::vector<ColorGamut> &gamuts)
+int32_t HdiDevice::GetScreenSupportedColorGamuts(uint32_t screenId, std::vector<GraphicColorGamut> &gamuts)
 {
     CHECK_FUNC(deviceFuncs_, deviceFuncs_->GetDisplaySupportedColorGamuts);
     uint32_t num = 0;
@@ -268,22 +271,33 @@ int32_t HdiDevice::GetScreenSupportedColorGamuts(uint32_t screenId, std::vector<
         return ret;
     }
     if (num > 0) {
+        std::vector<ColorGamut> hdiGamuts;
+        hdiGamuts.resize(num);
+        ret = deviceFuncs_->GetDisplaySupportedColorGamuts(screenId, &num, hdiGamuts.data());
         gamuts.resize(num);
-        return deviceFuncs_->GetDisplaySupportedColorGamuts(screenId, &num, gamuts.data());
+        for (uint32_t i = 0; i < num; i++) {
+            gamuts[i] = static_cast<GraphicColorGamut>(hdiGamuts[i]);
+        }
+        return ret;
     }
     return ret;
 }
 
-int32_t HdiDevice::SetScreenColorGamut(uint32_t screenId, ColorGamut gamut)
+int32_t HdiDevice::SetScreenColorGamut(uint32_t screenId, GraphicColorGamut gamut)
 {
     CHECK_FUNC(deviceFuncs_, deviceFuncs_->SetDisplayColorGamut);
-    return deviceFuncs_->SetDisplayColorGamut(screenId, gamut);
+    return deviceFuncs_->SetDisplayColorGamut(screenId, static_cast<ColorGamut>(gamut));
 }
 
-int32_t HdiDevice::GetScreenColorGamut(uint32_t screenId, ColorGamut &gamut)
+int32_t HdiDevice::GetScreenColorGamut(uint32_t screenId, GraphicColorGamut &gamut)
 {
     CHECK_FUNC(deviceFuncs_, deviceFuncs_->GetDisplayColorGamut);
-    return deviceFuncs_->GetDisplayColorGamut(screenId, &gamut);
+    ColorGamut hdiGamut;
+    int32_t ret = deviceFuncs_->GetDisplayColorGamut(screenId, &hdiGamut);
+    if (ret == DISPLAY_SUCCESS) {
+        gamut = static_cast<GraphicColorGamut>(hdiGamut);
+    }
+    return ret;
 }
 
 int32_t HdiDevice::SetScreenGamutMap(uint32_t screenId, GamutMap gamutMap)
@@ -310,7 +324,7 @@ int32_t HdiDevice::GetHDRCapabilityInfos(uint32_t screenId, HDRCapability &info)
     return deviceFuncs_->GetHDRCapabilityInfos(screenId, &info);
 }
 
-int32_t HdiDevice::GetSupportedMetaDataKey(uint32_t screenId, std::vector<HDRMetadataKey> &keys)
+int32_t HdiDevice::GetSupportedMetaDataKey(uint32_t screenId, std::vector<GraphicHDRMetadataKey> &keys)
 {
     CHECK_FUNC(deviceFuncs_, deviceFuncs_->GetSupportedMetadataKey);
     uint32_t num = 0;
@@ -319,8 +333,14 @@ int32_t HdiDevice::GetSupportedMetaDataKey(uint32_t screenId, std::vector<HDRMet
         return ret;
     }
     if (num > 0) {
+        std::vector<HDRMetadataKey> hdiKeys;
+        hdiKeys.resize(num);
+        ret = deviceFuncs_->GetSupportedMetadataKey(screenId, &num, hdiKeys.data());
         keys.resize(num);
-        return deviceFuncs_->GetSupportedMetadataKey(screenId, &num, keys.data());
+        for (uint32_t i = 0; i < num; i++) {
+            keys[i] = static_cast<GraphicHDRMetadataKey>(hdiKeys[i]);
+        }
+        return ret;
     }
     return ret;
 }
@@ -347,10 +367,17 @@ int32_t HdiDevice::Commit(uint32_t screenId, sptr<SyncFence> &fence)
 /* set & get device screen info end */
 
 /* set & get device layer info begin */
-int32_t HdiDevice::SetLayerAlpha(uint32_t screenId, uint32_t layerId, LayerAlpha &alpha)
+int32_t HdiDevice::SetLayerAlpha(uint32_t screenId, uint32_t layerId, GraphicLayerAlpha &alpha)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerAlpha);
-    return layerFuncs_->SetLayerAlpha(screenId, layerId, &alpha);
+    LayerAlpha hdiAlpha = {
+        .enGlobalAlpha = alpha.enGlobalAlpha,
+        .enPixelAlpha = alpha.enPixelAlpha,
+        .alpha0 = alpha.alpha0,
+        .alpha1 = alpha.alpha1,
+        .gAlpha = alpha.gAlpha,
+    };
+    return layerFuncs_->SetLayerAlpha(screenId, layerId, &hdiAlpha);
 }
 
 int32_t HdiDevice::SetLayerSize(uint32_t screenId, uint32_t layerId, IRect &layerRect)
@@ -395,16 +422,16 @@ int32_t HdiDevice::SetLayerBuffer(uint32_t screenId, uint32_t layerId, const Buf
     return layerFuncs_->SetLayerBuffer(screenId, layerId, handle, fenceFd);
 }
 
-int32_t HdiDevice::SetLayerCompositionType(uint32_t screenId, uint32_t layerId, CompositionType type)
+int32_t HdiDevice::SetLayerCompositionType(uint32_t screenId, uint32_t layerId, GraphicCompositionType type)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerCompositionType);
-    return layerFuncs_->SetLayerCompositionType(screenId, layerId, type);
+    return layerFuncs_->SetLayerCompositionType(screenId, layerId, static_cast<CompositionType>(type));
 }
 
-int32_t HdiDevice::SetLayerBlendType(uint32_t screenId, uint32_t layerId, BlendType type)
+int32_t HdiDevice::SetLayerBlendType(uint32_t screenId, uint32_t layerId, GraphicBlendType type)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerBlendType);
-    return layerFuncs_->SetLayerBlendType(screenId, layerId, type);
+    return layerFuncs_->SetLayerBlendType(screenId, layerId, static_cast<BlendType>(type));
 }
 
 int32_t HdiDevice::SetLayerCrop(uint32_t screenId, uint32_t layerId, IRect &crop)
@@ -431,55 +458,80 @@ int32_t HdiDevice::SetLayerColorTransform(uint32_t screenId, uint32_t layerId, c
     return layerFuncs_->SetLayerColorTransform(screenId, layerId, matrix);
 }
 
-int32_t HdiDevice::SetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, ColorDataSpace colorSpace)
+int32_t HdiDevice::SetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, GraphicColorDataSpace colorSpace)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerColorDataSpace);
-    return layerFuncs_->SetLayerColorDataSpace(screenId, layerId, colorSpace);
+    ColorDataSpace hdiColorSpace = static_cast<ColorDataSpace>(colorSpace);
+    return layerFuncs_->SetLayerColorDataSpace(screenId, layerId, hdiColorSpace);
 }
 
-int32_t HdiDevice::GetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, ColorDataSpace &colorSpace)
+int32_t HdiDevice::GetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, GraphicColorDataSpace &colorSpace)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->GetLayerColorDataSpace);
-    return layerFuncs_->GetLayerColorDataSpace(screenId, layerId, &colorSpace);
+    ColorDataSpace hdiColorSpace;
+    uint32_t ret = layerFuncs_->GetLayerColorDataSpace(screenId, layerId, &hdiColorSpace);
+    colorSpace = static_cast<GraphicColorDataSpace>(hdiColorSpace);
+    return ret;
 }
 
-int32_t HdiDevice::SetLayerMetaData(uint32_t screenId, uint32_t layerId, const std::vector<HDRMetaData> &metaData)
+int32_t HdiDevice::SetLayerMetaData(uint32_t screenId, uint32_t layerId, const std::vector<GraphicHDRMetaData> &metaData)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerMetaData);
-    return layerFuncs_->SetLayerMetaData(screenId, layerId, metaData.size(), metaData.data());
+    size_t num = metaData.size();
+    std::vector<HDRMetaData> hdiMetaData;
+    hdiMetaData.resize(num);
+    for (size_t i = 0; i < num; i++) {
+        hdiMetaData[i].key = static_cast<HDRMetadataKey>(metaData[i].key);
+        hdiMetaData[i].value = metaData[i].value;
+    }
+    return layerFuncs_->SetLayerMetaData(screenId, layerId, hdiMetaData.size(), hdiMetaData.data());
 }
 
-int32_t HdiDevice::SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, HDRMetadataKey key,
+int32_t HdiDevice::SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, GraphicHDRMetadataKey key,
                                        const std::vector<uint8_t> &metaData)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerMetaDataSet);
-    return layerFuncs_->SetLayerMetaDataSet(screenId, layerId, key, metaData.size(), metaData.data());
+    return layerFuncs_->SetLayerMetaDataSet(screenId, layerId, static_cast<HDRMetadataKey>(key), metaData.size(), metaData.data());
 }
 
-int32_t HdiDevice::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, const ExtDataHandle *handle)
+int32_t HdiDevice::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerTunnelHandle);
-    return layerFuncs_->SetLayerTunnelHandle(screenId, layerId, const_cast<ExtDataHandle *>(handle));
+    return layerFuncs_->SetLayerTunnelHandle(screenId, layerId, reinterpret_cast<ExtDataHandle *>(handle));
 }
 
-int32_t HdiDevice::GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId, PresentTimestampType &type)
+int32_t HdiDevice::GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId, GraphicPresentTimestampType &type)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->GetSupportedPresentTimestamp);
-    return layerFuncs_->GetSupportedPresentTimestamp(screenId, layerId, &type);
+    PresentTimestampType hdiType;
+    uint32_t ret = layerFuncs_->GetSupportedPresentTimestamp(screenId, layerId, &hdiType);
+    type = static_cast<GraphicPresentTimestampType>(hdiType);
+    return ret;
 }
 
-int32_t HdiDevice::GetPresentTimestamp(uint32_t screenId, uint32_t layerId, PresentTimestamp &timestamp)
+int32_t HdiDevice::GetPresentTimestamp(uint32_t screenId, uint32_t layerId, GraphicPresentTimestamp &timestamp)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->GetHwPresentTimestamp);
-    return layerFuncs_->GetHwPresentTimestamp(screenId, layerId, &timestamp);
+    PresentTimestamp hdiTimestamp;
+    uint32_t ret = layerFuncs_->GetHwPresentTimestamp(screenId, layerId, &hdiTimestamp);
+    timestamp.type = static_cast<GraphicPresentTimestampType>(hdiTimestamp.type);
+    timestamp.time = hdiTimestamp.time;
+    return ret;
 }
 
 /* set & get device layer info end */
 
-int32_t HdiDevice::CreateLayer(uint32_t screenId, const LayerInfo &layerInfo, uint32_t &layerId)
+int32_t HdiDevice::CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t &layerId)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->CreateLayer);
-    return layerFuncs_->CreateLayer(screenId, &layerInfo, &layerId);
+    LayerInfo hdiLayerInfo = {
+        .width = layerInfo.width,
+        .height = layerInfo.height,
+        .type = static_cast<LayerType>(layerInfo.type),
+        .bpp = layerInfo.bpp,
+        .pixFormat = static_cast<PixelFormat>(layerInfo.pixFormat),
+    };
+    return layerFuncs_->CreateLayer(screenId, &hdiLayerInfo, &layerId);
 }
 
 int32_t HdiDevice::CloseLayer(uint32_t screenId, uint32_t layerId)

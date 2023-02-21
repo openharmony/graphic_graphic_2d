@@ -380,18 +380,18 @@ bool HelloDrawing::FillBaseLayer(std::shared_ptr<HdiLayerInfo> &showLayer, uint3
     srcRect.w = dstRect.w;
     srcRect.h = dstRect.h;
 
-    LayerAlpha alpha = { .enPixelAlpha = true };
+    GraphicLayerAlpha alpha = { .enPixelAlpha = true };
 
     showLayer->SetSurface(cSurface);
     showLayer->SetBuffer(cbuffer, fence);
     showLayer->SetZorder(zorder);
     showLayer->SetAlpha(alpha);
     // if rotate is not null, SetTransform
-    showLayer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
+    showLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     showLayer->SetVisibleRegion(1, srcRect);
     showLayer->SetDirtyRegion(srcRect);
     showLayer->SetLayerSize(dstRect);
-    showLayer->SetBlendType(BlendType::BLEND_SRC);
+    showLayer->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRC);
     showLayer->SetCropRect(srcRect);
     showLayer->SetPreMulti(false);
 
@@ -556,7 +556,7 @@ void HelloDrawing::DoPrepareCompleted(sptr<Surface>& surface, const struct Prepa
     bool hasClient = false;
     const std::vector<LayerInfoPtr> &layers = param.layers;
     for (const LayerInfoPtr &layer : layers) {
-        if (layer->GetCompositionType() == CompositionType::COMPOSITION_CLIENT) {
+        if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT) {
             hasClient = true;
             clientCount++;
         }

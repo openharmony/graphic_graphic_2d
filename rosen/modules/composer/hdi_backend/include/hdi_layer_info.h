@@ -42,35 +42,35 @@ static const std::map<GraphicTransformType, std::string> TransformTypeStrs = {
     {GRAPHIC_ROTATE_BUTT,               "12 <uninitialized>"},
 };
 
-static const std::map<CompositionType, std::string> CompositionTypeStrs = {
-    {COMPOSITION_CLIENT,             "0 <client composistion>"},
-    {COMPOSITION_DEVICE,             "1 <device composistion>"},
-    {COMPOSITION_CURSOR,             "2 <cursor composistion>"},
-    {COMPOSITION_VIDEO,              "3 <video composistion>"},
-    {COMPOSITION_DEVICE_CLEAR,       "4 <device clear composistion>"},
-    {COMPOSITION_CLIENT_CLEAR,       "5 <client clear composistion>"},
-    {COMPOSITION_TUNNEL,             "6 <tunnel composistion>"},
-    {COMPOSITION_BUTT,               "7 <uninitialized>"},
+static const std::map<GraphicCompositionType, std::string> CompositionTypeStrs = {
+    {GRAPHIC_COMPOSITION_CLIENT,             "0 <client composistion>"},
+    {GRAPHIC_COMPOSITION_DEVICE,             "1 <device composistion>"},
+    {GRAPHIC_COMPOSITION_CURSOR,             "2 <cursor composistion>"},
+    {GRAPHIC_COMPOSITION_VIDEO,              "3 <video composistion>"},
+    {GRAPHIC_COMPOSITION_DEVICE_CLEAR,       "4 <device clear composistion>"},
+    {GRAPHIC_COMPOSITION_CLIENT_CLEAR,       "5 <client clear composistion>"},
+    {GRAPHIC_COMPOSITION_TUNNEL,             "6 <tunnel composistion>"},
+    {GRAPHIC_COMPOSITION_BUTT,               "7 <uninitialized>"},
 };
 
-static const std::map<BlendType, std::string> BlendTypeStrs = {
-    {BLEND_NONE,                     "0 <No blending>"},
-    {BLEND_CLEAR,                    "1 <CLEAR blending>"},
-    {BLEND_SRC,                      "2 <SRC blending>"},
-    {BLEND_SRCOVER,                  "3 <SRC_OVER blending>"},
-    {BLEND_DSTOVER,                  "4 <DST_OVER blending>"},
-    {BLEND_SRCIN,                    "5 <SRC_IN blending>"},
-    {BLEND_DSTIN,                    "6 <DST_IN blending>"},
-    {BLEND_SRCOUT,                   "7 <SRC_OUT blending>"},
-    {BLEND_DSTOUT,                   "8 <DST_OUT blending>"},
-    {BLEND_SRCATOP,                  "9 <SRC_ATOP blending>"},
-    {BLEND_DSTATOP,                  "10 <DST_ATOP blending>"},
-    {BLEND_ADD,                      "11 <ADD blending>"},
-    {BLEND_XOR,                      "12 <XOR blending>"},
-    {BLEND_DST,                      "13 <DST blending>"},
-    {BLEND_AKS,                      "14 <AKS blending>"},
-    {BLEND_AKD,                      "15 <AKD blending>"},
-    {BLEND_BUTT,                     "16 <Uninitialized>"},
+static const std::map<GraphicBlendType, std::string> BlendTypeStrs = {
+    {GRAPHIC_BLEND_NONE,                     "0 <No blending>"},
+    {GRAPHIC_BLEND_CLEAR,                    "1 <CLEAR blending>"},
+    {GRAPHIC_BLEND_SRC,                      "2 <SRC blending>"},
+    {GRAPHIC_BLEND_SRCOVER,                  "3 <SRC_OVER blending>"},
+    {GRAPHIC_BLEND_DSTOVER,                  "4 <DST_OVER blending>"},
+    {GRAPHIC_BLEND_SRCIN,                    "5 <SRC_IN blending>"},
+    {GRAPHIC_BLEND_DSTIN,                    "6 <DST_IN blending>"},
+    {GRAPHIC_BLEND_SRCOUT,                   "7 <SRC_OUT blending>"},
+    {GRAPHIC_BLEND_DSTOUT,                   "8 <DST_OUT blending>"},
+    {GRAPHIC_BLEND_SRCATOP,                  "9 <SRC_ATOP blending>"},
+    {GRAPHIC_BLEND_DSTATOP,                  "10 <DST_ATOP blending>"},
+    {GRAPHIC_BLEND_ADD,                      "11 <ADD blending>"},
+    {GRAPHIC_BLEND_XOR,                      "12 <XOR blending>"},
+    {GRAPHIC_BLEND_DST,                      "13 <DST blending>"},
+    {GRAPHIC_BLEND_AKS,                      "14 <AKS blending>"},
+    {GRAPHIC_BLEND_AKD,                      "15 <AKD blending>"},
+    {GRAPHIC_BLEND_BUTT,                     "16 <Uninitialized>"},
 };
 
 class HdiLayerInfo {
@@ -100,7 +100,7 @@ public:
         zOrder_ = static_cast<uint32_t>(zOrder);
     }
 
-    void SetAlpha(const LayerAlpha &alpha)
+    void SetAlpha(const GraphicLayerAlpha &alpha)
     {
         layerAlpha_ = alpha;
     }
@@ -110,7 +110,7 @@ public:
         transformType_ = type;
     }
 
-    void SetCompositionType(CompositionType type)
+    void SetCompositionType(GraphicCompositionType type)
     {
         compositionType_ = type;
     }
@@ -126,7 +126,7 @@ public:
         dirtyRegion_ = dirtyRegion;
     }
 
-    void SetBlendType(BlendType type)
+    void SetBlendType(GraphicBlendType type)
     {
         blendType_ = type;
     }
@@ -161,17 +161,17 @@ public:
         colorTransformMatrix_ = const_cast<float *>(matrix);
     }
 
-    void SetColorDataSpace(ColorDataSpace colorSpace)
+    void SetColorDataSpace(GraphicColorDataSpace colorSpace)
     {
         colorSpace_ = colorSpace;
     }
 
-    void SetMetaData(const std::vector<HDRMetaData> &metaData)
+    void SetMetaData(const std::vector<GraphicHDRMetaData> &metaData)
     {
         metaData_ = metaData;
     }
 
-    void SetMetaDataSet(const HDRMetaDataSet &metaDataSet)
+    void SetMetaDataSet(const GraphicHDRMetaDataSet &metaDataSet)
     {
         metaDataSet_ = metaDataSet;
     }
@@ -191,7 +191,7 @@ public:
         return IsSupportedPresentTimestamp_;
     }
 
-    const PresentTimestamp& GetPresentTimestamp()
+    const GraphicPresentTimestamp& GetPresentTimestamp()
     {
         return presentTimestamp_;
     }
@@ -219,7 +219,7 @@ public:
         return acquireFence_;
     }
     
-    /* const */ LayerAlpha& GetAlpha()
+    /* const */ GraphicLayerAlpha& GetAlpha()
     {
         return layerAlpha_;
     }
@@ -229,7 +229,7 @@ public:
         return transformType_;
     }
 
-    CompositionType GetCompositionType() const
+    GraphicCompositionType GetCompositionType() const
     {
         return compositionType_;
     }
@@ -249,7 +249,7 @@ public:
         return dirtyRegion_;
     }
 
-    BlendType GetBlendType() const
+    GraphicBlendType GetBlendType() const
     {
         return blendType_;
     }
@@ -274,17 +274,17 @@ public:
         return colorTransformMatrix_;
     }
 
-    ColorDataSpace GetColorDataSpace() const
+    GraphicColorDataSpace GetColorDataSpace() const
     {
         return colorSpace_;
     }
 
-    std::vector<HDRMetaData>& GetMetaData()
+    std::vector<GraphicHDRMetaData>& GetMetaData()
     {
         return metaData_;
     }
 
-    HDRMetaDataSet &GetMetaDataSet()
+    GraphicHDRMetaDataSet &GetMetaDataSet()
     {
         return metaDataSet_;
     }
@@ -304,7 +304,7 @@ public:
         IsSupportedPresentTimestamp_ = isSupported;
     }
 
-    void SetPresentTimestamp(const PresentTimestamp &timestamp)
+    void SetPresentTimestamp(const GraphicPresentTimestamp &timestamp)
     {
         presentTimestamp_ = timestamp;
     }
@@ -377,18 +377,18 @@ private:
     IRect visibleRegion_;
     IRect dirtyRegion_;
     IRect cropRect_;
-    LayerAlpha layerAlpha_;
+    GraphicLayerAlpha layerAlpha_;
     GraphicTransformType transformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
-    CompositionType compositionType_;
-    BlendType blendType_;
+    GraphicCompositionType compositionType_;
+    GraphicBlendType blendType_;
     float *colorTransformMatrix_ = nullptr;
-    ColorDataSpace colorSpace_ = ColorDataSpace::COLOR_DATA_SPACE_UNKNOWN;
-    std::vector<HDRMetaData> metaData_;
-    HDRMetaDataSet metaDataSet_;
+    GraphicColorDataSpace colorSpace_ = GraphicColorDataSpace::GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
+    std::vector<GraphicHDRMetaData> metaData_;
+    GraphicHDRMetaDataSet metaDataSet_;
     sptr<SurfaceTunnelHandle> tunnelHandle_ = nullptr;
     bool tunnelHandleChange_ = false;
     bool IsSupportedPresentTimestamp_ = false;
-    PresentTimestamp presentTimestamp_ = {HARDWARE_DISPLAY_PTS_UNSUPPORTED, 0};
+    GraphicPresentTimestamp presentTimestamp_ = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
 
     void *additionalInfo_ = nullptr;
     sptr<Surface> cSurface_ = nullptr;

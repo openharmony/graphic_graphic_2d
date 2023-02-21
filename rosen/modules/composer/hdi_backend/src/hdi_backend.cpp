@@ -78,7 +78,7 @@ int32_t HdiBackend::PreProcessLayersComp(const OutputPtr &output,
         const LayerPtr &layer = iter->second;
         if (doClientCompositionDirectly) {
             HLOGD("Direct client composition is enabled.");
-            layer->UpdateCompositionType(CompositionType::COMPOSITION_CLIENT);
+            layer->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
             continue;
         }
         ret = layer->SetHdiLayerInfo();
@@ -138,7 +138,7 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
         for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
             const LayerPtr &layer = iter->second;
             newLayerInfos.emplace_back(layer->GetLayerInfo());
-            if (layer->GetLayerInfo()->GetCompositionType() == CompositionType::COMPOSITION_CLIENT) {
+            if (layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT) {
                 compClientLayers.emplace_back(layer);
             }
         }
@@ -205,7 +205,7 @@ int32_t HdiBackend::UpdateLayerCompType(uint32_t screenId, const std::unordered_
         }
 
         const LayerPtr &layer = iter->second;
-        layer->UpdateCompositionType(static_cast<CompositionType>(types[i]));
+        layer->UpdateCompositionType(static_cast<GraphicCompositionType>(types[i]));
     }
 
     return ret;

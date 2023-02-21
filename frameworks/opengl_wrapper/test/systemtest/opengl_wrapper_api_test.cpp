@@ -231,7 +231,7 @@ HWTEST_F(OpenglWrapperApiTest, eglCreateWindowSurface, TestSize.Level0)
 
     NativeWindowHandleOpt(gWindow_, SET_USAGE, BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
     NativeWindowHandleOpt(gWindow_, SET_BUFFER_GEOMETRY, height, width);
-    NativeWindowHandleOpt(gWindow_, SET_COLOR_GAMUT, ColorGamut::COLOR_GAMUT_SRGB);
+    NativeWindowHandleOpt(gWindow_, SET_COLOR_GAMUT, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
     EGLint winAttribs[] = { EGL_GL_COLORSPACE_KHR, EGL_GL_COLORSPACE_SRGB_KHR, EGL_NONE };
     eglSurface_ = eglCreateWindowSurface(nullptr, eglConfig_, gWindow_, winAttribs);

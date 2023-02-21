@@ -44,7 +44,7 @@ public:
     bool Init(const LayerInfoPtr &layerInfo);
     void MergeWithFramebufferFence(const sptr<SyncFence> &fbAcquireFence);
     void MergeWithLayerFence(const sptr<SyncFence> &layerReleaseFence);
-    void UpdateCompositionType(CompositionType type);
+    void UpdateCompositionType(GraphicCompositionType type);
 
     const LayerInfoPtr& GetLayerInfo();
     void SetLayerStatus(bool inUsing);
@@ -82,7 +82,7 @@ private:
     sptr<LayerBufferInfo> prevSbuffer_ = nullptr;
     LayerInfoPtr layerInfo_ = nullptr;
     LayerInfoPtr prevLayerInfo_ = nullptr;
-    PresentTimestampType supportedPresentTimestamptype_ = PresentTimestampType::HARDWARE_DISPLAY_PTS_UNSUPPORTED;
+    GraphicPresentTimestampType supportedPresentTimestamptype_ = GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
     Base::HdiDevice *device_ = nullptr;
     bool doLayerInfoCompare_ = false;
 

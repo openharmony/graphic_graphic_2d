@@ -47,10 +47,10 @@ void HdiLayerTest::SetUpTestCase()
     layerInfo_->SetDirtyRegion(srcRect);
     layerInfo_->SetCropRect(srcRect);
     layerInfo_->SetVisibleRegion(1, srcRect);
-    LayerAlpha layerAlpha = {false, false, 0, 0, 0};
+    GraphicLayerAlpha layerAlpha = {false, false, 0, 0, 0};
     layerInfo_->SetAlpha(layerAlpha);
-    layerInfo_->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
-    layerInfo_->SetBlendType(BlendType::BLEND_NONE);
+    layerInfo_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    layerInfo_->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_NONE);
 
     hdiDeviceMock_ = Mock::HdiDevice::GetInstance();
     EXPECT_CALL(*hdiDeviceMock_, SetLayerAlpha(_, _, _)).WillRepeatedly(testing::Return(0));
@@ -149,7 +149,7 @@ HWTEST_F(HdiLayerTest, GetLayerStatus001, Function | MediumTest| Level3)
 
     sptr<SyncFence> fbAcquireFence = new SyncFence(-1);
     hdiLayer_->MergeWithFramebufferFence(fbAcquireFence);
-    hdiLayer_->UpdateCompositionType(CompositionType::COMPOSITION_CLIENT);
+    hdiLayer_->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     std::string dumpStr = "";
     hdiLayer_->Dump(dumpStr);
 }

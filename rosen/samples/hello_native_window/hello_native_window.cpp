@@ -60,7 +60,7 @@ int32_t main(int32_t argc, const char *argv[])
         std::cout << "OH_NativeWindow_NativeWindowHandleOpt SET_STRIDE failed" << std::endl;
     }
     code = SET_FORMAT;
-    int32_t format = PIXEL_FMT_RGBA_8888;
+    int32_t format = GRAPHIC_PIXEL_FMT_RGBA_8888;
     ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, format);
     if (ret != OHOS::GSERROR_OK) {
         std::cout << "OH_NativeWindow_NativeWindowHandleOpt SET_FORMAT failed" << std::endl;
