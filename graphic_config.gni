@@ -78,3 +78,5 @@ if (exec_script(check_graphic_ext_file_script,
     import("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni")
   }
 }
+
+graphic_2d_root = "//foundation/graphic/graphic_2d"

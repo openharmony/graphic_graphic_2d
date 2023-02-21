@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,11 @@
 #include <unistd.h>
 
 namespace OHOS {
-pid_t GetRealPid(void);
+#ifdef _WIN32
+__attribute__((dllexport)) pid_t GetRealPid(void);
+#else
+__attribute__((visibility("default"))) pid_t GetRealPid(void);
+#endif
 } // namespace OHOS
 
 #endif // SANDBOX_UTILS_H
