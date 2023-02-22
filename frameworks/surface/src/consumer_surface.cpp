@@ -30,8 +30,7 @@ constexpr int32_t PRODUCER_REF_COUNT_IN_CONSUMER_SURFACE = 2;
 sptr<Surface> Surface::CreateSurfaceAsConsumer(std::string name, bool isShared)
 {
     sptr<ConsumerSurface> surf = new ConsumerSurface(name, isShared);
-    GSError ret = surf->Init();
-    if (ret != GSERROR_OK) {
+    if (!surf || surf->Init() != GSERROR_OK) {
         BLOGE("Failure, Reason: consumer surf init failed");
         return nullptr;
     }
@@ -41,8 +40,7 @@ sptr<Surface> Surface::CreateSurfaceAsConsumer(std::string name, bool isShared)
 sptr<IConsumerSurface> IConsumerSurface::Create(std::string name, bool isShared)
 {
     sptr<ConsumerSurface> surf = new ConsumerSurface(name, isShared);
-    GSError ret = surf->Init();
-    if (ret != GSERROR_OK) {
+    if (!surf || surf->Init() != GSERROR_OK) {
         BLOGE("Failure, Reason: consumer surf init failed");
         return nullptr;
     }
