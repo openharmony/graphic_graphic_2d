@@ -19,12 +19,10 @@
 #include <stdint.h>
 #include <buffer_handle.h>
 #include "native_buffer.h"
-#include "native_window.h"
+#include "window.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef struct NativeWindowBuffer OHNativeWindowBuffer;
 
 const BufferHandle* OH_NativeBuffer_GetBufferHandle(const OH_NativeBuffer *buffer);
 
