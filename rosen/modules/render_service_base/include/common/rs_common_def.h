@@ -16,15 +16,19 @@
 #define RENDER_SERVICE_CLIENT_CORE_COMMON_RS_COMMON_DEF_H
 
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
+#include <unistd.h>
 
 #include "common/rs_macros.h"
 
 namespace OHOS {
+class Surface;
+
 namespace Rosen {
 using AnimationId = uint64_t;
 using NodeId = uint64_t;
@@ -81,10 +85,12 @@ enum class RSSurfaceNodeType : uint8_t {
     SELF_DRAWING_WINDOW_NODE, // create by wms
 };
 
+using UseSurfaceToRenderFunc = bool (*)(const void*, const size_t, const int32_t, const int32_t);
 struct RSSurfaceRenderNodeConfig {
     NodeId id = 0;
     std::string name = "SurfaceNode";
     RSSurfaceNodeType nodeType = RSSurfaceNodeType::DEFAULT;
+    UseSurfaceToRenderFunc onRender = nullptr;
 };
 
 struct RSDisplayNodeConfig {
@@ -96,7 +102,7 @@ struct RSDisplayNodeConfig {
 #if defined(M_PI)
 constexpr float PI = M_PI;
 #else
-constexpr float PI = std::atanf(1.0) * 4;
+static const float PI = std::atanf(1.0) * 4;
 #endif
 
 template<typename T>

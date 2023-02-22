@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,9 @@
 #include "include/gpu/GrContext.h"
 #include "include/gpu/gl/GrGLInterface.h"
 #include "memory_handler.h"
+#ifndef ROSEN_CROSS_PLATFORM
 #include "surface_type.h"
+#endif
 
 #define GLES_VERSION 2
 namespace OHOS {
@@ -41,7 +43,9 @@ public:
     void CreateCanvas(int width, int height);
     sk_sp<SkSurface> AcquireSurface(int width, int height);
 
+#ifndef ROSEN_CROSS_PLATFORM
     void SetColorSpace(ColorGamut colorSpace);
+#endif
     void InitializeEglContext();
 
     GrContext* GetGrContext() const
@@ -108,7 +112,9 @@ private:
     EGLSurface eglSurface_ = EGL_NO_SURFACE;
     EGLSurface pbufferSurface_= EGL_NO_SURFACE;
     EGLConfig config_;
+#ifndef ROSEN_CROSS_PLATFORM
     ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
+#endif
 
     bool isUniRenderMode_ = false;
     const std::string UNIRENDER_CACHE_DIR = "/data/service/el0/render_service";

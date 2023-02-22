@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,9 @@
 
 #include <atomic>
 #include <string>
+#include <vector>
+
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -60,7 +63,9 @@ enum class ContainerWindowConfigType {
     ENABLED_UNFOCUSED_WINDOW_LEVEL_2 = 2,
 };
 
-class RSSystemProperties final {
+using OnSystemPropertyChanged = void(*)(const char*, const char*, void*);
+
+class RSB_EXPORT RSSystemProperties final {
 public:
     ~RSSystemProperties() = default;
 
@@ -87,7 +92,10 @@ public:
 
     static bool GetColdStartThreadEnabled();
     static bool FrameTraceEnabled();
+    static float GetAnimationScale();
 
+    static bool GetBoolSystemProperty(const char* name, bool defaultValue);
+    static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
 private:
     RSSystemProperties() = default;
 

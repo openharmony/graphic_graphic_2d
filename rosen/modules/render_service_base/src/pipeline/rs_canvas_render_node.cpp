@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,13 +18,11 @@
 #include <algorithm>
 #include "modifier/rs_modifier_type.h"
 
-#ifdef ROSEN_OHOS
 #include "common/rs_obj_abs_geometry.h"
 #include "include/core/SkCanvas.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
-#endif
 #include "platform/common/rs_log.h"
 #include "visitor/rs_node_visitor.h"
 
@@ -73,7 +71,6 @@ void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 
 void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
-#ifdef ROSEN_OHOS
     RSRenderNode::ProcessRenderBeforeChildren(canvas);
     RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas);
     auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetBackgroundFilter());
@@ -90,12 +87,10 @@ void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
         RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect());
     }
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
-#endif
 }
 
 void RSCanvasRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
-#ifdef ROSEN_OHOS
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
     ApplyDrawCmdModifier(context, RSModifierType::FOREGROUND_STYLE);
 
@@ -108,7 +103,6 @@ void RSCanvasRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
     ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);
     RSPropertiesPainter::DrawForegroundColor(GetRenderProperties(), canvas);
     RSRenderNode::ProcessRenderAfterChildren(canvas);
-#endif
 }
 
 void RSCanvasRenderNode::ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type)

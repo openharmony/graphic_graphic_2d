@@ -21,7 +21,8 @@
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_message_processor.h"
 #include "delegate/rs_functional_delegate.h"
-#include "overdraw/rs_overdraw_controller.h"
+
+#include "platform/ohos/overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_cold_start_thread.h"

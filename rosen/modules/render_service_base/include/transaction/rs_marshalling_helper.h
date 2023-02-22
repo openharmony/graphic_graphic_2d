@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,6 @@
 
 #include <memory>
 #include "common/rs_macros.h"
-#ifdef ROSEN_OHOS
 
 #include <parcel.h>
 
@@ -63,7 +62,7 @@ class RSRenderProperty;
 template<typename T>
 class RSRenderAnimatableProperty;
 
-class RS_EXPORT RSMarshallingHelper {
+class RSB_EXPORT RSMarshallingHelper {
 public:
     // default marshalling and unmarshalling method for POD types
     // [PLANNING]: implement marshalling & unmarshalling methods for other types (e.g. RSImage, drawCMDList)
@@ -105,8 +104,8 @@ public:
 
     // reloaded marshalling & unmarshalling function for types
 #define DECLARE_FUNCTION_OVERLOAD(TYPE)                       \
-    static bool Marshalling(Parcel& parcel, const TYPE& val); \
-    static bool Unmarshalling(Parcel& parcel, TYPE& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const TYPE& val); \
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, TYPE& val);
 
     // basic types
     DECLARE_FUNCTION_OVERLOAD(bool)
@@ -162,9 +161,9 @@ public:
 
 #define DECLARE_TEMPLATE_OVERLOAD(TEMPLATE)                                           \
     template<typename T>                                                              \
-    static bool Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<T>>& val); \
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<T>>& val); \
     template<typename T>                                                              \
-    static bool Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<T>>& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<T>>& val);
 
     DECLARE_TEMPLATE_OVERLOAD(RSRenderProperty)
     DECLARE_TEMPLATE_OVERLOAD(RSRenderAnimatableProperty)
@@ -226,5 +225,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_OHOS
 #endif // RENDER_SERVICE_BASE_TRANSACTION_RS_MARSHALLING_HELPER_H

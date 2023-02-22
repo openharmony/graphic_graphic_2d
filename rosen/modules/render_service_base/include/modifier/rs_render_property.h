@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RS_EXPORT RSRenderPropertyBase : public std::enable_shared_from_this<RSRenderPropertyBase> {
+class RSB_EXPORT RSRenderPropertyBase : public std::enable_shared_from_this<RSRenderPropertyBase> {
 public:
     RSRenderPropertyBase() = default;
     RSRenderPropertyBase(const PropertyId& id) : id_(id) {}
@@ -42,10 +42,8 @@ public:
         node_ = node;
     }
 
-#ifdef ROSEN_OHOS
     static bool Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val);
     static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
-#endif
 
 protected:
     void OnChange() const
@@ -155,7 +153,7 @@ protected:
 };
 
 template<typename T>
-class RS_EXPORT RSRenderAnimatableProperty : public RSRenderProperty<T> {
+class RSB_EXPORT_TMP RSRenderAnimatableProperty : public RSRenderProperty<T> {
 public:
     RSRenderAnimatableProperty() : RSRenderProperty<T>() {}
     RSRenderAnimatableProperty(const T& value) : RSRenderProperty<T>(value, 0) {}
@@ -252,13 +250,20 @@ private:
 };
 
 template<>
-RS_EXPORT float RSRenderAnimatableProperty<float>::ToFloat() const;
+RSB_EXPORT float RSRenderAnimatableProperty<float>::ToFloat() const;
 template<>
-RS_EXPORT float RSRenderAnimatableProperty<Vector4f>::ToFloat() const;
+RSB_EXPORT float RSRenderAnimatableProperty<Vector4f>::ToFloat() const;
 template<>
-RS_EXPORT float RSRenderAnimatableProperty<Quaternion>::ToFloat() const;
+RSB_EXPORT float RSRenderAnimatableProperty<Quaternion>::ToFloat() const;
 template<>
-RS_EXPORT float RSRenderAnimatableProperty<Vector2f>::ToFloat() const;
+RSB_EXPORT float RSRenderAnimatableProperty<Vector2f>::ToFloat() const;
+
+#if defined(_WIN32)
+extern template class RSRenderAnimatableProperty<float>;
+extern template class RSRenderAnimatableProperty<Vector4f>;
+extern template class RSRenderAnimatableProperty<Quaternion>;
+extern template class RSRenderAnimatableProperty<Vector2f>;
+#endif
 } // namespace Rosen
 } // namespace OHOS
 

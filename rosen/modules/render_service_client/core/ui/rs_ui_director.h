@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_UI_DIRECTOR_H
 
 #include <atomic>
+#include <functional>
 #include <mutex>
 
 #include "common/rs_common_def.h"
@@ -27,7 +28,7 @@ class RSSurfaceNode;
 class RSTransactionData;
 using TaskRunner = std::function<void(const std::function<void()>&)>;
 
-class RS_EXPORT RSUIDirector final {
+class RSC_EXPORT RSUIDirector final {
 public:
     static std::shared_ptr<RSUIDirector> Create();
 

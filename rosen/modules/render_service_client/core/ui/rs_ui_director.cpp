@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,6 +33,21 @@
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#define gettid GetCurrentThreadId
+#endif
+
+#ifdef __APPLE__
+#define gettid getpid
+#endif
+
+#ifdef __gnu_linux__
+#include <sys/types.h>
+#include <sys/syscall.h>
+#define gettid []() -> int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -103,7 +118,9 @@ void RSUIDirector::GoBackground()
         RSRenderThread::Instance().PostTask([this]() {
             auto renderContext = RSRenderThread::Instance().GetRenderContext();
             if (renderContext != nullptr) {
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
                 renderContext->ClearRedundantResources();
+#endif
             }
         });
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,13 +16,12 @@
 #include "animation/rs_animation_fraction.h"
 
 #include <cstdlib>
-#include <parameters.h>
+#include <cstring>
 #include <string>
-
-#include "parameter.h"
 
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -46,9 +45,8 @@ RSAnimationFraction::RSAnimationFraction()
 void RSAnimationFraction::Init()
 {
     if (!isInited_) {
-        float animationScale = std::atof((system::GetParameter(ANIMATION_SCALE_NAME, "1.0")).c_str());
-        SetAnimationScale(animationScale);
-        WatchParameter(ANIMATION_SCALE_NAME, OnAnimationScaleChangedCallback, nullptr);
+        SetAnimationScale(RSSystemProperties::GetAnimationScale());
+        RSSystemProperties::WatchSystemProperty(ANIMATION_SCALE_NAME, OnAnimationScaleChangedCallback, nullptr);
         isInited_ = true;
     }
 }

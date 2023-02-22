@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "overdraw/rs_cpu_overdraw_canvas_listener.h"
+#include "platform/ohos/overdraw/rs_cpu_overdraw_canvas_listener.h"
 
 #include <include/core/SkDrawable.h>
 #include <include/core/SkPath.h>
@@ -21,7 +21,7 @@
 #include <include/core/SkRegion.h>
 #include <include/core/SkTextBlob.h>
 
-#include "overdraw/rs_overdraw_controller.h"
+#include "platform/ohos/overdraw/rs_overdraw_controller.h"
 
 namespace OHOS {
 namespace Rosen {

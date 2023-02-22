@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +16,6 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_PAINT_FILTER_CANVAS_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_PAINT_FILTER_CANVAS_H
 
-#ifdef ROSEN_OHOS
 #include <include/utils/SkPaintFilterCanvas.h>
 #include <stack>
 #include <vector>
@@ -29,7 +28,7 @@ class SkDrawable;
 namespace OHOS {
 namespace Rosen {
 
-class RS_EXPORT RSPaintFilterCanvas : public SkPaintFilterCanvas {
+class RSB_EXPORT RSPaintFilterCanvas : public SkPaintFilterCanvas {
 public:
     RSPaintFilterCanvas(SkCanvas* canvas, float alpha = 1.0f);
     RSPaintFilterCanvas(SkSurface* skSurface, float alpha = 1.0f);
@@ -89,5 +88,4 @@ private:
 
 } // namespace Rosen
 } // namespace OHOS
-#endif // ROSEN_OHOS
 #endif // RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_PAINT_FILTER_CANVAS_H

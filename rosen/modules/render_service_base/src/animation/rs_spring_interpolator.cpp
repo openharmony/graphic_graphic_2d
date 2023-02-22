@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,7 +30,6 @@ RSSpringInterpolator::RSSpringInterpolator(float response, float dampingRatio, f
     EstimateDuration();
 }
 
-#ifdef ROSEN_OHOS
 bool RSSpringInterpolator::Marshalling(Parcel& parcel) const
 {
     if (!parcel.WriteUint16(InterpolatorType::SPRING)) {
@@ -54,7 +53,6 @@ RSSpringInterpolator* RSSpringInterpolator::Unmarshalling(Parcel& parcel)
     auto ret = new RSSpringInterpolator(response, dampingRatio, initialVelocity);
     return ret;
 }
-#endif
 
 float RSSpringInterpolator::Interpolate(float fraction) const
 {

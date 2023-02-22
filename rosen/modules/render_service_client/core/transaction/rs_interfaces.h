@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,7 +33,7 @@ struct FocusAppInfo {
     std::string abilityName;
 };
 
-class RS_EXPORT RSInterfaces {
+class RSC_EXPORT RSInterfaces {
 public:
     static RSInterfaces &GetInstance();
     RSInterfaces(const RSInterfaces &) = delete;
@@ -46,6 +46,7 @@ public:
     std::vector<ScreenId> GetAllScreenIds();
 
     // mirrorId: decide which screen id to mirror, INVALID_SCREEN_ID means do not mirror any screen.
+#ifndef ROSEN_CROSS_PLATFORM
     ScreenId CreateVirtualScreen(
         const std::string &name,
         uint32_t width,
@@ -55,6 +56,7 @@ public:
         int flags = 0);
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
+#endif
 
     void RemoveVirtualScreen(ScreenId id);
 

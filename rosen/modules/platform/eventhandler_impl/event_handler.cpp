@@ -32,6 +32,12 @@
 #define gettid getpid
 #endif
 
+#ifdef __gnu_linux__
+#include <sys/types.h>
+#include <sys/syscall.h>
+#define gettid []() -> int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
+#endif
+
 DEFINE_HILOG_LABEL("EventHandler");
 
 using namespace OHOS::HiviewDFX;

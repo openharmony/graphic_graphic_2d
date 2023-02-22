@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RS_EXPORT RSRenderCurveAnimation : public RSRenderPropertyAnimation {
+class RSB_EXPORT RSRenderCurveAnimation : public RSRenderPropertyAnimation {
 public:
     RSRenderCurveAnimation(AnimationId id, const PropertyId& propertyId,
         const std::shared_ptr<RSRenderPropertyBase>& originValue,
@@ -35,11 +35,9 @@ public:
 
     const std::shared_ptr<RSInterpolator>& GetInterpolator() const;
 
-#ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
 
     static RSRenderCurveAnimation* Unmarshalling(Parcel& parcel);
-#endif
 protected:
     void OnSetFraction(float fraction) override;
 
@@ -48,9 +46,7 @@ protected:
     void InitValueEstimator() override;
 
 private:
-#ifdef ROSEN_OHOS
     bool ParseParam(Parcel& parcel) override;
-#endif
     RSRenderCurveAnimation() = default;
     void OnAnimateInner(float fraction, const std::shared_ptr<RSInterpolator>& interpolator);
 

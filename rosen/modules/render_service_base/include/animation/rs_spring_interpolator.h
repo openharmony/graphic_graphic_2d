@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,17 +22,15 @@
 
 namespace OHOS {
 namespace Rosen {
-class RS_EXPORT RSSpringInterpolator : public RSSpringModel<float>, public RSInterpolator {
+class RSB_EXPORT RSSpringInterpolator : public RSSpringModel<float>, public RSInterpolator {
 public:
     RSSpringInterpolator(float response, float dampingRatio, float initialVelocity);
 
     ~RSSpringInterpolator() override {};
 
     float Interpolate(float fraction) const override;
-#ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
     static RSSpringInterpolator* Unmarshalling(Parcel& parcel);
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

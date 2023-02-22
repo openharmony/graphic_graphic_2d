@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,10 +16,11 @@
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_BLUR_FILTER_H
 
 #include "render/rs_skia_filter.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSBlurFilter : public RSSkiaFilter {
+class RSB_EXPORT RSBlurFilter : public RSSkiaFilter {
 public:
     RSBlurFilter(float blurRadiusX, float blurRadiusY);
     ~RSBlurFilter() override;

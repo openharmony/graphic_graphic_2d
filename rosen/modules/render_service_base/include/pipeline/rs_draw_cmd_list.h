@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,9 +24,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
-#ifdef ROSEN_OHOS
 #include <parcel.h>
-#endif
 
 class SkCanvas;
 class SkSurface;
@@ -36,11 +34,7 @@ namespace Rosen {
 class OpItem;
 class RSPaintFilterCanvas;
 
-#ifdef ROSEN_OHOS
-class RS_EXPORT DrawCmdList : public Parcelable {
-#else
-class RS_EXPORT DrawCmdList {
-#endif
+class RSB_EXPORT DrawCmdList : public Parcelable {
 public:
     DrawCmdList(int w, int h);
     DrawCmdList& operator=(DrawCmdList&& that);
@@ -59,10 +53,8 @@ public:
     void GenerateCache(SkSurface* surface);
     void ClearCache();
 
-#ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
-    static DrawCmdList* Unmarshalling(Parcel& parcel);
-#endif
+    static RSB_EXPORT DrawCmdList* Unmarshalling(Parcel& parcel);
 
 private:
     std::vector<std::unique_ptr<OpItem>> ops_;
@@ -71,7 +63,9 @@ private:
     int height_;
 
     std::unordered_map<int, std::unique_ptr<OpItem>> opReplacedByCache_;
+#ifdef ROSEN_OHOS
     bool isCached_ = false;
+#endif
 };
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;
