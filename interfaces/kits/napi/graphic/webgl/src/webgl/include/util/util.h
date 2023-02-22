@@ -18,6 +18,7 @@
 
 #include <vector>
 #include <string>
+#include <cerrno>
 #include <cstdlib>
 #include "log.h"
 #include "object_manager.h"
