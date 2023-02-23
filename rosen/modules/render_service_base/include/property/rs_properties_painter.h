@@ -46,6 +46,8 @@ public:
     static SkRect Rect2SkRect(const RectF& r);
     static int GetAndResetBlurCnt();
     static SkColor CalcAverageColor(sk_sp<SkImage> imageSnapshot);
+
+    static void DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 private:
     inline static int g_blurCnt = 0;
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);

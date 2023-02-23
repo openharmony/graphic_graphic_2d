@@ -925,6 +925,7 @@ void RSProperties::Reset()
     shadow_ = nullptr;
     sublayerTransform_ = nullptr;
     lightUpEffectDegree_ = 1.0f;
+    pixelStretch = nullptr;
 }
 
 void RSProperties::SetDirty()
@@ -1055,6 +1056,22 @@ bool RSProperties::IsLightUpEffectValid() const
 {
     constexpr float epsilon = 0.001f;
     return 1.0 - GetLightUpEffect() > epsilon;
+}
+
+void RSProperties::SetPixelStretch(Vector4f stretchSize)
+{
+    if (!pixelStretch) {
+        pixelStretch = std::make_unique<Vector4f>();
+    }
+
+    pixelStretch->SetValues(stretchSize.x_, stretchSize.y_, stretchSize.z_, stretchSize.w_);
+
+    SetDirty();
+}
+
+Vector4f RSProperties::GetPixelStretch() const
+{
+    return pixelStretch ? *pixelStretch : Vector4f();
 }
 
 std::string RSProperties::Dump() const

@@ -159,6 +159,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
 void RSCanvasRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)
 {
     RSRenderNode::ProcessRenderAfterChildren(canvas);
+    RSPropertiesPainter::DrawPixelStretch(GetRenderProperties(), canvas);
 }
 
 void RSCanvasRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)

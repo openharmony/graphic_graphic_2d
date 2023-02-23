@@ -333,6 +333,53 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     filter->PostProcess(canvas);
 }
 
+void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+    auto stretchSize = properties.GetPixelStretch();
+    if (stretchSize.IsZero()) {
+        return;
+    }
+    bool isExpend = true;
+    if (stretchSize.x_ <= 0.f && stretchSize.y_ <= 0.f && stretchSize.z_ <= 0.f && stretchSize.x_ <= 0.f) {
+        isExpend = false;
+    }
+    else if (stretchSize.x_ >= 0.f && stretchSize.y_ >= 0.f && stretchSize.z_ >= 0.f && stretchSize.x_ >= 0.f) {
+        isExpend = true;
+    } else {
+        return;
+    }
+
+    std::cout << "stretech Size: ( " << stretchSize.x_ << ", " << stretchSize.y_ << ", " << stretchSize.z_ << ", " << stretchSize.w_ << ")" << std::endl; 
+    auto skSurface = canvas.GetSurface();
+    if (skSurface == nullptr) {
+        ROSEN_LOGD("RSPropertiesPainter::DrawPixelStretch skSurface null");
+        return;
+    }
+    auto imageSnapshot = skSurface->makeImageSnapshot(canvas.getDeviceClipBounds());
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch image null");
+        return;
+    }
+
+    // calculate rect size
+    auto clipBounds = SkRect::Make(canvas.getDeviceClipBounds());
+    auto scaledBounds = SkRect::MakeLTRB(clipBounds.left() - stretchSize.x_, clipBounds.top() - stretchSize.y_,
+        clipBounds.right() + stretchSize.z_, clipBounds.bottom() + stretchSize.w_);
+
+    SkPaint paint;
+    if (isExpend) {
+        paint.setShader(imageSnapshot->makeShader(SkTileMode::kClamp, SkTileMode::kClamp));
+        canvas.drawRect(scaledBounds, paint);
+    } else {
+        SkBitmap bitmap;
+        bitmap.allocN32Pixels(scaledBounds.width(), scaledBounds.height());
+        auto tempCanvas = std::make_unique<SkCanvas>(bitmap);
+        tempCanvas->drawImage(imageSnapshot.get(), 0, 0);
+        paint.setShader(bitmap.makeShader(SkTileMode::kClamp, SkTileMode::kClamp));
+        canvas.drawRect(clipBounds, paint);
+    }
+}
+
 SkColor RSPropertiesPainter::CalcAverageColor(sk_sp<SkImage> imageSnapshot)
 {
     // create a 1x1 SkPixmap
