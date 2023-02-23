@@ -24,7 +24,7 @@ group("ace_skia") {
 # eventhandler {{{
 group("eventhandler") {
   if (platform == "ohos") {
-    public_deps = [ "eventhandler:libeventhandler" ]
+    public_deps = eventhandler_deps
   } else {
     public_deps = [ ":impl_eventhandler" ]
   }
@@ -69,7 +69,7 @@ group("hilog") {
 # image_native {{{
 group("image_native") {
   if (platform == "ohos") {
-    public_deps = [ "multimedia_image_framework:image_native" ]
+    public_deps = image_deps
   } else {
     public_deps = [ ":mock_image_native" ]
   }
@@ -81,8 +81,14 @@ config("image_native_config") {
 
 ohos_source_set("mock_image_native") {
   public_configs = [ ":image_native_config" ]
-  sources = [ "image_native/pixel_map.cpp" ]
-  deps = [ ":utils" ]
+  sources = [
+    "image_native/pixel_map.cpp",
+    "image_native/pixel_map_rosen_utils.cpp",
+  ]
+  deps = [
+    ":ace_skia",
+    ":utils",
+ ]
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
@@ -92,7 +98,7 @@ ohos_source_set("mock_image_native") {
 # ipc_core {{{
 group("ipc_core") {
   if (platform == "ohos") {
-    public_deps = [ "ipc:ipc_core" ]
+    public_deps = ipc_deps
   } else {
     public_deps = [ ":mock_ipc_core" ]
   }
@@ -122,7 +128,7 @@ ohos_source_set("mock_ipc_core") {
 # utils {{{
 group("utils") {
   if (platform == "ohos") {
-    public_deps = [ "c_utils:utils" ]
+    public_deps = utils_deps
   } else {
     public_deps = [ ":mock_utils" ]
   }

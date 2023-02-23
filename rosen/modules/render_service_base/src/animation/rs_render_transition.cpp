@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,7 +33,6 @@ RSRenderTransition::RSRenderTransition(
     }
 }
 
-#ifdef ROSEN_OHOS
 bool RSRenderTransition::Marshalling(Parcel& parcel) const
 {
     if (!RSRenderAnimation::Marshalling(parcel)) {
@@ -82,7 +81,6 @@ bool RSRenderTransition::ParseParam(Parcel& parcel)
     SetInterpolator(interpolator);
     return true;
 }
-#endif
 void RSRenderTransition::OnAnimate(float fraction)
 {
     float valueFraction = interpolator_->Interpolate(fraction);

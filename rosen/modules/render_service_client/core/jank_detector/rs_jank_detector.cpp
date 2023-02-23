@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,8 +16,14 @@
 #include "jank_detector/rs_jank_detector.h"
 
 #include <unistd.h>
+#ifdef ROSEN_OHOS
 #include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
 #include "sandbox_utils.h"
+#endif
+
+#ifdef _WIN32
+#define getuid() 0
+#endif
 
 namespace {
 struct FrameMsg {
@@ -30,6 +36,7 @@ struct FrameMsg {
 
 void DrawEventReport(FrameMsg& frameMsg, std::string stringId)
 {
+#ifdef ROSEN_OHOS
     int32_t pid = OHOS::GetRealPid();
     uint32_t uid = getuid();
     std::string domain = "GRAPHIC";
@@ -44,6 +51,7 @@ void DrawEventReport(FrameMsg& frameMsg, std::string stringId)
         "UID", uid,
         "ABILITY_NAME", frameMsg.abilityName,
         "MSG", msg);
+#endif
 }
 }
 

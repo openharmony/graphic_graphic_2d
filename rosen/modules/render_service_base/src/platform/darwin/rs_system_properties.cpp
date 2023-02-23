@@ -24,6 +24,15 @@ bool RSSystemProperties::GetUniRenderEnabled()
     return isUniRenderEnabled_;
 }
 
+bool RSSystemProperties::IsUniRenderMode()
+{
+    return isUniRenderMode_;
+}
+
+void RSSystemProperties::SetRenderMode(bool isUni)
+{
+}
+
 bool RSSystemProperties::GetRenderNodeTraceEnabled()
 {
     return {};
@@ -74,7 +83,7 @@ DumpSurfaceType RSSystemProperties::GetDumpSurfaceType()
     return {};
 }
 
-long long int RSSystemProperties::GetDumpSurfaceId()
+uint64_t RSSystemProperties::GetDumpSurfaceId()
 {
     return {};
 }
@@ -84,16 +93,6 @@ void RSSystemProperties::SetDrawTextAsBitmap(bool flag)
 }
 
 bool RSSystemProperties::GetDrawTextAsBitmap()
-{
-    return {};
-}
-
-ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
-{
-    return {};
-}
-
-ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
 {
     return {};
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,10 +19,10 @@
 #include <surface.h>
 
 #include "platform/drawing/rs_surface.h"
-#include "render_context/render_context.h"
 
 namespace OHOS {
 namespace Rosen {
+class RenderContext;
 class RSSurfaceOhos : public RSSurface {
 public:
     RSSurfaceOhos(const sptr<Surface>& producer) : producer_(producer)

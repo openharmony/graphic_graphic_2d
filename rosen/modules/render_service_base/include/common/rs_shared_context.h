@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,7 @@ typedef void* EGLDisplay;
 
 namespace OHOS::Rosen {
 
-class RS_EXPORT RSSharedContext final : public std::enable_shared_from_this<RSSharedContext> {
+class RSB_EXPORT RSSharedContext final : public std::enable_shared_from_this<RSSharedContext> {
 public:
     static std::shared_ptr<RSSharedContext> MakeSharedGLContext(EGLContext context);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,22 +25,18 @@ namespace OHOS {
 namespace Rosen {
 class RSTransitionEffect;
 
-class RS_EXPORT RSRenderTransition : public RSRenderAnimation {
+class RSB_EXPORT RSRenderTransition : public RSRenderAnimation {
 public:
     RSRenderTransition(AnimationId id, const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn);
     void SetInterpolator(const std::shared_ptr<RSInterpolator>& interpolator)
     {
         interpolator_ = interpolator;
     }
-#ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
     static RSRenderTransition* Unmarshalling(Parcel& parcel);
-#endif
 
 protected:
-#ifdef ROSEN_OHOS
     bool ParseParam(Parcel& parcel) override;
-#endif
     void OnAnimate(float fraction) override;
     void OnAttach() override;
     void OnDetach() override;

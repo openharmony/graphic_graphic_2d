@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,6 +13,7 @@
 
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("../../../config.gni")
 
 group("ohos") {
   public_deps = [ ":rosen_ohos_sources" ]
@@ -38,11 +39,23 @@ ohos_source_set("rosen_ohos_sources") {
   defines += gpu_defines
 
   sources = [
+    #backend
     "backend/rs_surface_frame_ohos_raster.cpp",
     "backend/rs_surface_ohos_raster.cpp",
+    "rs_accessibility.cpp",
+    "rs_ashmem_helper.cpp",
+
+    #overdraw
+    "overdraw/rs_cpu_overdraw_canvas_listener.cpp",
+    "overdraw/rs_gpu_overdraw_canvas_listener.cpp",
+    "overdraw/rs_listened_canvas.cpp",
+    "overdraw/rs_overdraw_controller.cpp",
     "rs_event_detector.cpp",
     "rs_event_manager.cpp",
+    "rs_frame_report.cpp",
+    "rs_innovation.cpp",
     "rs_log.cpp",
+    "rs_marshalling_helper.cpp",
     "rs_render_service_client.cpp",
     "rs_render_service_connect_hub.cpp",
     "rs_render_service_connection_proxy.cpp",
@@ -79,6 +92,9 @@ ohos_source_set("rosen_ohos_sources") {
     "//foundation/graphic/graphic_2d/utils/log",
   ]
 
+  deps =
+      [ "$accessibility_root/interfaces/innerkits/acfwk:accessibilityconfig" ]
+
   public_deps = [
     "//commonlibrary/c_utils/base:utils",
     "//foundation/graphic/graphic_2d:libsurface",
@@ -88,7 +104,7 @@ ohos_source_set("rosen_ohos_sources") {
     "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     include_dirs += [ "//third_party/openssl/include" ]
 
     public_deps += [
@@ -102,6 +118,7 @@ ohos_source_set("rosen_ohos_sources") {
     "hisysevent_native:libhisysevent",
     "hitrace_native:hitrace_meter",
     "hiviewdfx_hilog_native:libhilog",
+    "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
     "samgr:samgr_proxy",

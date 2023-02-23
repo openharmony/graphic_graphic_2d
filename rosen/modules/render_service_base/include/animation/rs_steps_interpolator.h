@@ -26,17 +26,15 @@ enum class StepsCurvePosition {
     END,
 };
 
-class RS_EXPORT RSStepsInterpolator : public RSInterpolator {
+class RSB_EXPORT RSStepsInterpolator : public RSInterpolator {
 public:
     explicit RSStepsInterpolator(int32_t steps, StepsCurvePosition position = StepsCurvePosition::START);
 
     ~RSStepsInterpolator() override {};
 
     float Interpolate(float fraction) const override;
-#ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
     static RSStepsInterpolator* Unmarshalling(Parcel& parcel);
-#endif
 private:
     int32_t steps_;
     const StepsCurvePosition position_;

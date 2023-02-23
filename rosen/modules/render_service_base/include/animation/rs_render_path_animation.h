@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,7 @@ namespace OHOS {
 namespace Rosen {
 class RSPath;
 
-class RS_EXPORT RSRenderPathAnimation : public RSRenderPropertyAnimation {
+class RSB_EXPORT RSRenderPathAnimation : public RSRenderPropertyAnimation {
 static constexpr float UNDEFINED_FLOAT = 0.0f;
 public:
     RSRenderPathAnimation(AnimationId id, const PropertyId& propertyId,
@@ -57,11 +57,9 @@ public:
 
     void SetRotationId(const PropertyId id);
 
-#ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
 
     static RSRenderPathAnimation* Unmarshalling(Parcel& parcel);
-#endif
 
 protected:
     RSRenderPathAnimation() = default;
@@ -73,9 +71,7 @@ protected:
     void InitValueEstimator() override;
 
 private:
-#ifdef ROSEN_OHOS
     bool ParseParam(Parcel& parcel) override;
-#endif
     void SetPathValue(const Vector2f& value, float tangent);
     void SetPathValue(const Vector4f& value, float tangent);
 

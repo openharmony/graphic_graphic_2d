@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,7 +45,7 @@ struct RSModifierContext {
     RSPaintFilterCanvas* canvas_ = nullptr;
 };
 
-class RSRenderModifier {
+class RSB_EXPORT RSRenderModifier {
 public:
     RSRenderModifier() = default;
     virtual ~RSRenderModifier() = default;
@@ -61,7 +61,7 @@ public:
     static RSRenderModifier* Unmarshalling(Parcel& parcel);
 };
 
-class RS_EXPORT RSDrawCmdListRenderModifier : public RSRenderModifier {
+class RSB_EXPORT RSDrawCmdListRenderModifier : public RSRenderModifier {
 public:
     RSDrawCmdListRenderModifier(const std::shared_ptr<RSRenderProperty<DrawCmdListPtr>>& property)
         : property_(property ? property : std::make_shared<RSRenderProperty<DrawCmdListPtr>>())
@@ -132,7 +132,7 @@ protected:
 
 // declare RenderModifiers like RSBoundsRenderModifier
 #define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP)                        \
-    class RS_EXPORT RS##MODIFIER_NAME##RenderModifier : public RSAnimatableRenderModifier {              \
+    class RSB_EXPORT RS##MODIFIER_NAME##RenderModifier : public RSAnimatableRenderModifier {             \
     public:                                                                                              \
         RS##MODIFIER_NAME##RenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)         \
             : RSAnimatableRenderModifier(property)                                                       \

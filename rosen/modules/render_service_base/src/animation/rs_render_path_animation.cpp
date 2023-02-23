@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -116,7 +116,6 @@ void RSRenderPathAnimation::SetRotationId(const PropertyId id)
     rotationId_ = id;
 }
 
-#ifdef ROSEN_OHOS
 bool RSRenderPathAnimation::Marshalling(Parcel& parcel) const
 {
     if (!RSRenderPropertyAnimation::Marshalling(parcel)) {
@@ -179,7 +178,6 @@ bool RSRenderPathAnimation::ParseParam(Parcel& parcel)
     SetIsNeedPath(isNeedPath);
     return true;
 }
-#endif
 
 void RSRenderPathAnimation::OnAnimate(float fraction)
 {
@@ -188,7 +186,6 @@ void RSRenderPathAnimation::OnAnimate(float fraction)
         return;
     }
 
-#ifdef ROSEN_OHOS
     Vector2f position;
     float tangent = 0;
     GetPosTanValue(fraction, position, tangent);
@@ -214,7 +211,6 @@ void RSRenderPathAnimation::OnAnimate(float fraction)
         UpdateVector4fPathValue(animationValue, position);
         SetPathValue(animationValue, tangent);
     }
-#endif
 }
 
 void RSRenderPathAnimation::OnRemoveOnCompletion()

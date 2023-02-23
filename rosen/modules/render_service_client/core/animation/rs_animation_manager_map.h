@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_ANIMATION_MANAGER_MAP_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_ANIMATION_MANAGER_MAP_H
 
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 

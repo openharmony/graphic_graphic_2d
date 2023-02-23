@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,6 @@
 
 #include "platform/common/rs_log.h"
 
-#ifdef ROSEN_OHOS
 // manually instantiate all RScommands (this is when the registry happens)
 #define ROSEN_INSTANTIATE_COMMAND_TEMPLATE
 // node
@@ -67,7 +66,5 @@ UnmarshallingFunc RSCommandFactory::GetUnmarshallingFunc(uint16_t type, uint16_t
     }
     return it->second;
 }
-#endif // ROSEN_OHOS
-
 } // namespace Rosen
 } // namespace OHOS

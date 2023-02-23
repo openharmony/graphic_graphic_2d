@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -58,7 +58,6 @@
 #include "render/rs_shader.h"
 #include "transaction/rs_ashmem_helper.h"
 
-#ifdef ROSEN_OHOS
 namespace OHOS {
 namespace Rosen {
 
@@ -915,4 +914,3 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
 }
 } // namespace Rosen
 } // namespace OHOS
-#endif // ROSEN_OHOS

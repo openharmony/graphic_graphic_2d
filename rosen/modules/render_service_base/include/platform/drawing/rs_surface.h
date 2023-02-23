@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,9 @@
 #include <memory>
 
 #include "rs_surface_frame.h"
+#ifndef ROSEN_CROSS_PLATFORM
 #include "surface_type.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -41,8 +43,10 @@ public:
 
     virtual RenderContext* GetRenderContext() = 0;
     virtual void SetRenderContext(RenderContext* context) = 0;
+#ifndef ROSEN_CROSS_PLATFORM
     virtual ColorGamut GetColorSpace() const = 0;
     virtual void SetColorSpace(ColorGamut colorSpace) = 0;
+#endif
     virtual uint32_t GetQueueSize() const = 0;
     virtual void ClearBuffer() = 0; // clear cache only for producer
 

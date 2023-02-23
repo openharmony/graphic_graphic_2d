@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,6 @@
 namespace OHOS {
 namespace Rosen {
 
-#ifdef ROSEN_OHOS
 bool RSRenderPropertyBase::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val)
 {
     RSRenderPropertyType type = val->GetPropertyType();
@@ -171,7 +170,6 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
     }
     return val != nullptr;
 }
-#endif
 
 template<>
 float RSRenderAnimatableProperty<float>::ToFloat() const
@@ -275,6 +273,11 @@ bool operator!=(
 
     return !a->IsEqual(b);
 }
+
+template class RSRenderAnimatableProperty<float>;
+template class RSRenderAnimatableProperty<Vector4f>;
+template class RSRenderAnimatableProperty<Quaternion>;
+template class RSRenderAnimatableProperty<Vector2f>;
 
 } // namespace Rosen
 } // namespace OHOS

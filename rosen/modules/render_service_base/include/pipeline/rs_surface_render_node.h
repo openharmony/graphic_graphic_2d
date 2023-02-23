@@ -20,28 +20,27 @@
 #include <memory>
 #include <tuple>
 
-#include <surface.h>
-#include "include/gpu/GrContext.h"
-
-#include "common/rs_macros.h"
-#include "common/rs_vector4.h"
-#include "ipc_callbacks/buffer_available_callback.h"
-#include "pipeline/rs_render_node.h"
-#include "pipeline/rs_paint_filter_canvas.h"
-#include "property/rs_properties_painter.h"
 #include "include/core/SkRect.h"
 #include "include/core/SkRefCnt.h"
-#include "pipeline/rs_surface_handler.h"
+#include "include/gpu/GrContext.h"
 #include "refbase.h"
-#include "sync_fence.h"
+
+#include "common/rs_macros.h"
 #include "common/rs_occlusion_region.h"
+#include "common/rs_vector4.h"
+#include "ipc_callbacks/buffer_available_callback.h"
+#include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_handler.h"
+#include "property/rs_properties_painter.h"
+#include "screen_manager/screen_types.h"
 #include "transaction/rs_occlusion_data.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSCommand;
 class RSDirtyRegionManager;
-class RS_EXPORT RSSurfaceRenderNode : public RSRenderNode, public RSSurfaceHandler {
+class RSB_EXPORT RSSurfaceRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceRenderNode>;
     using SharedPtr = std::shared_ptr<RSSurfaceRenderNode>;
@@ -137,9 +136,6 @@ public:
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
 
-    void SetColorSpace(ColorGamut colorSpace);
-    ColorGamut GetColorSpace() const;
-
     std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
 
     void SetSrcRect(const RectI& rect)
@@ -155,7 +151,7 @@ public:
     void SetDstRect(const RectI& dstRect)
     {
         if (dstRect_ != dstRect) {
-            dstRectChanged_= true;
+            dstRectChanged_ = true;
         }
         dstRect_ = dstRect;
     }
@@ -241,10 +237,12 @@ public:
 
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region)
     {
+#ifndef ROSEN_CROSS_PLATFORM
         Occlusion::Rect dirtyRect{GetOldDirtyInSurface()};
         Occlusion::Region dirtyRegion {dirtyRect};
         dirtyRegionBelowCurrentLayer_ = dirtyRegion.And(region);
         dirtyRegionBelowCurrentLayerIsEmpty_ = dirtyRegionBelowCurrentLayer_.IsEmpty();
+#endif
     }
 
     bool GetDstRectChanged() const
@@ -275,12 +273,15 @@ public:
         globalDirtyRegionIsEmpty_ = globalDirtyRegion_.IsEmpty();
     }
 
+#ifndef ROSEN_CROSS_PLATFORM
+    void SetColorSpace(ColorGamut colorSpace);
+    ColorGamut GetColorSpace() const;
     void SetConsumer(const sptr<Surface>& consumer);
-
-    void UpdateSurfaceDefaultSize(float width, float height);
-
     GraphicBlendType GetBlendType();
     void SetBlendType(GraphicBlendType blendType);
+#endif
+
+    void UpdateSurfaceDefaultSize(float width, float height);
 
     // Only SurfaceNode in RS calls "RegisterBufferAvailableListener"
     // to save callback method sent by RT or UI which depends on the value of "isFromRenderThread".
@@ -553,7 +554,6 @@ private:
     SkRect contextClipRect_ = SkRect::MakeEmpty();
 
     bool isSecurityLayer_ = false;
-    ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
     RectI srcRect_;
     SkMatrix totalMatrix_;
     int32_t offsetX_ = 0;
@@ -564,7 +564,10 @@ private:
 
     std::string name_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
+#ifndef ROSEN_CROSS_PLATFORM
+    ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
+#endif
     bool isNotifyRTBufferAvailablePre_ = false;
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
     std::atomic<bool> isNotifyUIBufferAvailable_ = false;

@@ -25,7 +25,6 @@ namespace Rosen {
 RSStepsInterpolator::RSStepsInterpolator(int32_t steps, StepsCurvePosition position)
     :steps_(steps <= 0 ? 1 : steps), position_(position) {}
 
-#ifdef ROSEN_OHOS
 bool RSStepsInterpolator::Marshalling(Parcel& parcel) const
 {
     if (!parcel.WriteUint16(InterpolatorType::STEPS)) {
@@ -48,7 +47,6 @@ RSStepsInterpolator* RSStepsInterpolator::Unmarshalling(Parcel& parcel)
     }
     return new RSStepsInterpolator(steps, static_cast<StepsCurvePosition>(position));
 }
-#endif
 
 float RSStepsInterpolator::Interpolate(float fraction) const
 {

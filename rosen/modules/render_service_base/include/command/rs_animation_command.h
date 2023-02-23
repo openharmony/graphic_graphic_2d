@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,7 +52,7 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_FINISH_CALLBACK,
 };
 
-class RS_EXPORT AnimationCommandHelper {
+class RSB_EXPORT AnimationCommandHelper {
 public:
     template<void (RSRenderAnimation::*OP)()>
     static void AnimOp(RSContext& context, NodeId nodeId, AnimationId animId)
@@ -100,7 +100,7 @@ public:
 
     using FinishCallbackProcessor = void (*)(NodeId, AnimationId);
     static void AnimationFinishCallback(RSContext& context, NodeId targetId, AnimationId animId);
-    static void SetFinishCallbackProcessor(FinishCallbackProcessor processor);
+    static RSB_EXPORT void SetFinishCallbackProcessor(FinishCallbackProcessor processor);
 };
 
 // animation operation

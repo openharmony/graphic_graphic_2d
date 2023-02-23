@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,10 +47,12 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, std::weak_ptr<RSContext> con
 
 RSSurfaceRenderNode::~RSSurfaceRenderNode() {}
 
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
 void RSSurfaceRenderNode::SetConsumer(const sptr<Surface>& consumer)
 {
     consumer_ = consumer;
 }
+#endif
 
 static SkRect getLocalClipBounds(const RSPaintFilterCanvas& canvas)
 {
@@ -138,10 +140,12 @@ void RSSurfaceRenderNode::CollectSurface(
         return;
     }
 
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
     auto& consumer = GetConsumer();
     if (consumer != nullptr && consumer->GetTunnelHandle() != nullptr) {
         return;
     }
+#endif
     auto num = find(vec.begin(), vec.end(), shared_from_this());
     if (num != vec.end()) {
         return;
@@ -149,9 +153,11 @@ void RSSurfaceRenderNode::CollectSurface(
     if (isUniRender && ShouldPaint()) {
         vec.emplace_back(shared_from_this());
     } else {
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
         if (GetBuffer() != nullptr && ShouldPaint()) {
             vec.emplace_back(shared_from_this());
         }
+#endif
     }
 }
 
@@ -162,10 +168,12 @@ void RSSurfaceRenderNode::ClearChildrenCache(const std::shared_ptr<RSBaseRenderN
         if (surfaceNode == nullptr) {
             continue;
         }
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
         auto& consumer = surfaceNode->GetConsumer();
         if (consumer != nullptr) {
             consumer->GoBackground();
         }
+#endif
     }
 }
 
@@ -176,6 +184,7 @@ void RSSurfaceRenderNode::ResetParent()
     if (nodeType_ == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
         ClearChildrenCache(shared_from_this());
     } else {
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
         auto& consumer = GetConsumer();
         if (consumer != nullptr &&
             (GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE &&
@@ -183,6 +192,7 @@ void RSSurfaceRenderNode::ResetParent()
             GetSurfaceNodeType() != RSSurfaceNodeType::ABILITY_COMPONENT_NODE)) {
             consumer->GoBackground();
         }
+#endif
     }
 }
 
@@ -289,6 +299,7 @@ bool RSSurfaceRenderNode::GetSecurityLayer() const
     return isSecurityLayer_;
 }
 
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
 void RSSurfaceRenderNode::SetColorSpace(ColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
@@ -298,14 +309,18 @@ ColorGamut RSSurfaceRenderNode::GetColorSpace() const
 {
     return colorSpace_;
 }
+#endif
 
 void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
 {
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
     if (consumer_ != nullptr) {
         consumer_->SetDefaultWidthAndHeight(width, height);
     }
+#endif
 }
 
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
 GraphicBlendType RSSurfaceRenderNode::GetBlendType()
 {
     return blendType_;
@@ -315,6 +330,7 @@ void RSSurfaceRenderNode::SetBlendType(GraphicBlendType blendType)
 {
     blendType_ = blendType;
 }
+#endif
 
 void RSSurfaceRenderNode::RegisterBufferAvailableListener(
     sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread)

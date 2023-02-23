@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,7 +27,7 @@ namespace Media {
 class PixelMap;
 }
 namespace Rosen {
-class RS_EXPORT RSPixelMapUtil {
+class RSB_EXPORT RSPixelMapUtil {
 public:
     static bool UploadToGpuIfNeeded(std::shared_ptr<Media::PixelMap> pixelmap, GrContext* context, bool buildMips,
         bool limitToMaxTextureSize = false);

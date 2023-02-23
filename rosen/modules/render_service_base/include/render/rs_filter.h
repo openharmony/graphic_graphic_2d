@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,7 +28,7 @@ enum BLUR_COLOR_MODE : int {
     DEFAULT     = PRE_DEFINED
 };
 
-class RS_EXPORT RSFilter : public std::enable_shared_from_this<RSFilter> {
+class RSB_EXPORT RSFilter : public std::enable_shared_from_this<RSFilter> {
 public:
     virtual ~RSFilter();
     static std::shared_ptr<RSFilter> CreateBlurFilter(float blurRadiusX, float blurRadiusY);
@@ -55,11 +55,11 @@ protected:
     virtual std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) { return nullptr; }
     virtual std::shared_ptr<RSFilter> Multiply(float rhs) { return nullptr; }
     virtual std::shared_ptr<RSFilter> Negate() { return nullptr; }
-    friend RS_EXPORT std::shared_ptr<RSFilter> operator+(const std::shared_ptr<RSFilter>& lhs,
+    friend RSB_EXPORT std::shared_ptr<RSFilter> operator+(const std::shared_ptr<RSFilter>& lhs,
                                                          const std::shared_ptr<RSFilter>& rhs);
-    friend RS_EXPORT std::shared_ptr<RSFilter> operator-(const std::shared_ptr<RSFilter>& lhs,
+    friend RSB_EXPORT std::shared_ptr<RSFilter> operator-(const std::shared_ptr<RSFilter>& lhs,
                                                          const std::shared_ptr<RSFilter>& rhs);
-    friend RS_EXPORT std::shared_ptr<RSFilter> operator*(const std::shared_ptr<RSFilter>& lhs, float rhs);
+    friend RSB_EXPORT std::shared_ptr<RSFilter> operator*(const std::shared_ptr<RSFilter>& lhs, float rhs);
 };
 } // namespace Rosen
 } // namespace OHOS
