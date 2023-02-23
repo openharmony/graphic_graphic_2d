@@ -198,15 +198,11 @@ bool RSProxyNodeCommandFuzzTest(const uint8_t* data, size_t size)
     // get data
     uint64_t id = GetData<uint64_t>();
     uint64_t target = GetData<uint64_t>();
-    uint64_t nodeId = GetData<uint64_t>();
-    uint64_t propertyId = GetData<uint64_t>();
-    std::vector<PropertyId> propertyIds = {static_cast<PropertyId>(propertyId)};
 
     // test
     RSContext context;
     ProxyNodeCommandHelper::Create(context, static_cast<NodeId>(id), static_cast<NodeId>(target));
     ProxyNodeCommandHelper::ResetContextVariableCache(context, static_cast<NodeId>(id));
-    ProxyNodeCommandHelper::RemoveModifiers(context, static_cast<NodeId>(nodeId), propertyIds);
     
     return true;
 }
