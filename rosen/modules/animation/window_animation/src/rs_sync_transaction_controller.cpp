@@ -17,7 +17,6 @@
 
 #include "rs_process_transaction_controller.h"
 #include "rs_window_animation_log.h"
-#include "sandbox_utils.h"
 #include "transaction/rs_transaction.h"
 
 namespace OHOS {
@@ -26,25 +25,35 @@ namespace {
     const std::string CLOSE_SYNC_TRANSACTION_TIMEOUT_TASK = "RSCloseSyncTransactionTimeoutTask";
     constexpr int64_t CLOSE_SYNC_TRANSACTION_TIMEOUT_MILLISECONDS = 100;
 }
+
+std::once_flag RSSyncTransactionController::flag_;
+RSSyncTransactionController* RSSyncTransactionController::instance_ = nullptr;
+
+RSSyncTransactionController* RSSyncTransactionController::GetInstance()
+{
+    std::call_once(flag_, &RSSyncTransactionController::Init);
+    return instance_;
+}
+
+RSSyncTransactionController::~RSSyncTransactionController()
+{}
+
+void RSSyncTransactionController::Init()
+{
+    instance_ = new RSSyncTransactionController();
+    ::atexit(&RSSyncTransactionController::Destroy);
+}
+
+void RSSyncTransactionController::Destroy()
+{
+    instance_ = nullptr;
+}
+
 RSSyncTransactionController::RSSyncTransactionController()
 {
     runner_ = AppExecFwk::EventRunner::Create("RSSyncTransactionController");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-}
-
-uint64_t RSSyncTransactionController::GenerateSyncId()
-{
-    static pid_t pid_ = GetRealPid();
-    static std::atomic<uint32_t> currentId_ = 0;
-
-    auto currentId = currentId_.fetch_add(1, std::memory_order_relaxed);
-    if (currentId == UINT32_MAX) {
-        // [PLANNING]:process the overflow situations
-        WALOGE("Transaction sync Id overflow");
-    }
-
-    // concat two 32-bit numbers to one 64-bit number
-    return ((uint64_t)pid_ << 32) | currentId;
+    rsTransaction_ = std::make_shared<RSTransaction>();
 }
 
 void RSSyncTransactionController::CreateTransactionFinished()
@@ -55,12 +64,11 @@ void RSSyncTransactionController::CreateTransactionFinished()
             return;
         }
         processCount_--;
-        syncTransactionCount_++;
+        transactionCount_++;
     }
     if (processCount_ == 0) {
         WALOGD("RS sync transaction controller CreateTransactionFinished, processCount: %{public}d", processCount_);
         CloseSyncTransaction();
-        CallReleaseCallbacks();
         controllers_.clear();
     }
 }
@@ -79,11 +87,12 @@ void RSSyncTransactionController::OpenSyncTransaction()
 {
     {
         std::unique_lock<std::mutex> lock(mutex_);
-        syncId_ = GenerateSyncId();
         needCloseSync_ = true;
     }
     WALOGD("RS sync transaction controller OpenSyncTransaction");
-    RSTransaction::OpenSyncTransaction();
+    if (rsTransaction_) {
+        rsTransaction_->OpenSyncTransaction();
+    }
     if (handler_) {
         auto task = [this]() {
             WALOGD("RS sync transaction controller close timeout task run");
@@ -100,12 +109,13 @@ void RSSyncTransactionController::CloseSyncTransaction()
     }
 
     WALOGD("RS sync transaction controller CloseSyncTransaction");
-    RSTransaction::CloseSyncTransaction(syncId_, syncTransactionCount_);
+    if (rsTransaction_) {
+        rsTransaction_->CloseSyncTransaction(transactionCount_);
+    }
     {
         std::unique_lock<std::mutex> lock(mutex_);
         processCount_ = 0;
-        syncTransactionCount_ = 0;
-        syncId_ = 0;
+        transactionCount_ = 0;
         needCloseSync_ = false;
     }
 }
@@ -119,16 +129,6 @@ void RSSyncTransactionController::AddProcessTransactionController(
         CreateTransactionFinished();
     };
     controller->SetTransactionFinishedCallback(callback);
-}
-
-void RSSyncTransactionController::CallReleaseCallbacks()
-{
-    for (auto& callback : releaseCallbacks_) {
-        if (callback) {
-            callback();
-        }
-    }
-    releaseCallbacks_.clear();
 }
 } // namespace Rosen
 } // namespace OHOS

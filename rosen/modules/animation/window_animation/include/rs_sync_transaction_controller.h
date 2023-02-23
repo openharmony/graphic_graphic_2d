@@ -25,11 +25,13 @@
 namespace OHOS {
 namespace Rosen {
 class RSProcessTransactionController;
+class RSTransaction;
 
 class RSSyncTransactionController : public RefBase {
 public:
-    explicit RSSyncTransactionController();
-    virtual ~RSSyncTransactionController() = default;
+    // RSSyncTransactionController();
+    // virtual ~RSSyncTransactionController() = default;
+    static RSSyncTransactionController* GetInstance();
 
     void CreateTransactionFinished();
 
@@ -39,32 +41,36 @@ public:
 
     void AddProcessTransactionController(const sptr<RSProcessTransactionController>& controller);
 
-    uint64_t GetSyncId() const
+    std::shared_ptr<RSTransaction> GetRSTransaction()
     {
-        return syncId_;
-    }
-
-    void AddReleaseCallback(const std::function<void()>& callback)
-    {
-        releaseCallbacks_.emplace_back(callback);
+        return rsTransaction_;
     }
 
 protected:
     void CloseSyncTransaction();
 
 private:
-    uint64_t GenerateSyncId();
-    void CallReleaseCallbacks();
+    RSSyncTransactionController();
+    virtual ~RSSyncTransactionController();
+
+    static void Init();
+    static void Destroy();
+
+    RSSyncTransactionController(const RSSyncTransactionController&) = delete;
+    RSSyncTransactionController(const RSSyncTransactionController&&) = delete;
+    RSSyncTransactionController& operator=(const RSSyncTransactionController&) = delete;
+    RSSyncTransactionController& operator=(const RSSyncTransactionController&&) = delete;
 
     int32_t processCount_ { 0 };
-    int32_t syncTransactionCount_ { 0 };
-    uint64_t syncId_ { 0 };
-    std::vector<std::function<void()>> releaseCallbacks_;
+    int32_t transactionCount_ { 0 };
     std::vector<sptr<RSProcessTransactionController>> controllers_;
     std::mutex mutex_;
     bool needCloseSync_ { false };
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+    std::shared_ptr<RSTransaction> rsTransaction_;
+    static std::once_flag flag_;
+    static RSSyncTransactionController* instance_;
 };
 } // namespace Rosen
 } // namespace OHOS

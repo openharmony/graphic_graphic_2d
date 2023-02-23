@@ -16,25 +16,35 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_TRANSACTION_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_TRANSACTION_H
 
+#include <parcel.h>
+
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 
-class RSC_EXPORT RSTransaction {
+class RSC_EXPORT RSTransaction : public Parcelable {
 public:
+    RSTransaction() = default;
     ~RSTransaction() = default;
 
-    static void FlushImplicitTransaction();
-    static void OpenSyncTransaction();
-    static void CloseSyncTransaction(const uint64_t syncId, const int32_t transactionCount);
+    static RSTransaction* Unmarshalling(Parcel& parcel);
+    bool Marshalling(Parcel& parcel) const override;
 
-    static void StartSyncTransactionForProcess();
-    static void CloseSyncTransactionForProcess(const uint64_t syncId);
+    static void FlushImplicitTransaction();
+    void OpenSyncTransaction();
+    void CloseSyncTransaction(const uint64_t transactionCount);
+
+    void Begin();
+    void Commit();
 
 private:
-    RSTransaction() = default;
+    uint64_t GenerateSyncId();
+    void ResetSyncTransactionInfo();
+    bool UnmarshallingParam(Parcel& parcel);
+
+    uint64_t syncId_ { 0 };
 };
 
 } // namespace Rosen
