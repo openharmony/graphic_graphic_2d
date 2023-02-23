@@ -261,8 +261,8 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_003, TestSize.Level2)
  */
 HWTEST_F(RSBaseRenderUtilTest, WritePixelMapToPng_001, TestSize.Level2)
 {
-    Media::PixelMap pixelMap;
-    bool result = RSBaseRenderUtil::WritePixelMapToPng(pixelMap);
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    bool result = RSBaseRenderUtil::WritePixelMapToPng(*pixelMap);
     ASSERT_EQ(false, result);
 }
 
@@ -571,5 +571,125 @@ HWTEST_F(RSBaseRenderUtilTest, GetFlipTransform_002, Function | SmallTest | Leve
     surface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
     auto transform = RSBaseRenderUtil::GetFlipTransform(surface->GetTransform());
     ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_FLIP_H);
+}
+
+/*
+ * @tc.name: GetFlipTransform_003
+ * @tc.desc: Test GetFlipTransform GRAPHIC_FLIP_H_ROT180
+ * @tc.type: FUNC
+ * @tc.require: I6HE0M
+*/
+HWTEST_F(RSBaseRenderUtilTest, GetFlipTransform_003, Function | SmallTest | Level2)
+{
+    auto transform = RSBaseRenderUtil::GetFlipTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
+    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_FLIP_H);
+}
+
+/*
+ * @tc.name: GetFlipTransform_004
+ * @tc.desc: Test GetFlipTransform GRAPHIC_FLIP_H_ROT270
+ * @tc.type: FUNC
+ * @tc.require: I6HE0M
+*/
+HWTEST_F(RSBaseRenderUtilTest, GetFlipTransform_004, Function | SmallTest | Level2)
+{
+    auto transform = RSBaseRenderUtil::GetFlipTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT270);
+    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_FLIP_H);
+}
+
+/*
+ * @tc.name: GetFlipTransform_005
+ * @tc.desc: Test GetFlipTransform GRAPHIC_FLIP_V_ROT180
+ * @tc.type: FUNC
+ * @tc.require: I6HE0M
+*/
+HWTEST_F(RSBaseRenderUtilTest, GetFlipTransform_005, Function | SmallTest | Level2)
+{
+    auto transform = RSBaseRenderUtil::GetFlipTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT180);
+    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_FLIP_V);
+}
+
+/*
+ * @tc.name: GetFlipTransform_006
+ * @tc.desc: Test GetFlipTransform GRAPHIC_FLIP_V_ROT270
+ * @tc.type: FUNC
+ * @tc.require: I6HE0M
+*/
+HWTEST_F(RSBaseRenderUtilTest, GetFlipTransform_006, Function | SmallTest | Level2)
+{
+    auto transform = RSBaseRenderUtil::GetFlipTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT270);
+    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_FLIP_V);
+}
+
+/*
+ * @tc.name: ClockwiseToAntiClockwiseTransform
+ * @tc.desc: Test ClockwiseToAntiClockwiseTransform GRAPHIC_ROTATE_90
+ * @tc.type: FUNC
+ * @tc.require: I6HE0M
+*/
+HWTEST_F(RSBaseRenderUtilTest, ClockwiseToAntiClockwiseTransform_001, Function | SmallTest | Level2)
+{
+    auto transform = RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
+    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_ROTATE_270);
+}
+
+/*
+ * @tc.name: ClockwiseToAntiClockwiseTransform
+ * @tc.desc: Test ClockwiseToAntiClockwiseTransform GRAPHIC_ROTATE_270
+ * @tc.type: FUNC
+ * @tc.require: I6HE0M
+*/
+HWTEST_F(RSBaseRenderUtilTest, ClockwiseToAntiClockwiseTransform_002, Function | SmallTest | Level2)
+{
+    auto transform = RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType::GRAPHIC_ROTATE_270);
+    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_ROTATE_90);
+}
+
+/*
+ * @tc.name: ClockwiseToAntiClockwiseTransform
+ * @tc.desc: Test ClockwiseToAntiClockwiseTransform GRAPHIC_FLIP_H_ROT90
+ * @tc.type: FUNC
+ * @tc.require: I6HE0M
+*/
+HWTEST_F(RSBaseRenderUtilTest, ClockwiseToAntiClockwiseTransform_003, Function | SmallTest | Level2)
+{
+    auto transform = RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
+    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_FLIP_V_ROT90);
+}
+
+/*
+ * @tc.name: ClockwiseToAntiClockwiseTransform
+ * @tc.desc: Test ClockwiseToAntiClockwiseTransform GRAPHIC_FLIP_H_ROT270
+ * @tc.type: FUNC
+ * @tc.require: I6HE0M
+*/
+HWTEST_F(RSBaseRenderUtilTest, ClockwiseToAntiClockwiseTransform_004, Function | SmallTest | Level2)
+{
+    auto transform = RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT270);
+    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_FLIP_V_ROT270);
+}
+
+/*
+ * @tc.name: ClockwiseToAntiClockwiseTransform
+ * @tc.desc: Test ClockwiseToAntiClockwiseTransform GRAPHIC_FLIP_V_ROT90
+ * @tc.type: FUNC
+ * @tc.require: I6HE0M
+*/
+HWTEST_F(RSBaseRenderUtilTest, ClockwiseToAntiClockwiseTransform_005, Function | SmallTest | Level2)
+{
+    auto transform = RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT90);
+    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
+}
+
+/*
+ * @tc.name: ClockwiseToAntiClockwiseTransform
+ * @tc.desc: Test ClockwiseToAntiClockwiseTransform GRAPHIC_FLIP_V_ROT270
+ * @tc.type: FUNC
+ * @tc.require: I6HE0M
+*/
+HWTEST_F(RSBaseRenderUtilTest, ClockwiseToAntiClockwiseTransform_006, Function | SmallTest | Level2)
+{
+    auto transform = RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT270);
+    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_FLIP_H_ROT270);
 }
 } // namespace OHOS::Rosen
