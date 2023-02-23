@@ -67,6 +67,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     auto screenNum = screenManager->GetAllScreenIds().size();
+    isOcclusionEnabled_ = RSSystemProperties::GetOcclusionEnabled();
     isPartialRenderEnabled_ = (screenNum <= 1) && (partialRenderType_ != PartialRenderType::DISABLED);
     isDirtyRegionDfxEnabled_ = (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::EGL_DAMAGE);
     isTargetDirtyRegionDfxEnabled_ = RSSystemProperties::GetTargetDirtyRegionDfxEnabled(dfxTargetSurfaceNames_);
@@ -931,7 +932,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 " invisible", node.GetId());
         return;
     }
-    if (!node.GetOcclusionVisible() && !doAnimate_ && RSSystemProperties::GetOcclusionEnabled()) {
+    if (!node.GetOcclusionVisible() && !doAnimate_ && isOcclusionEnabled_ && !isSecurityDisplay_) {
         RS_TRACE_NAME("Occlusion Skip");
         return;
     }
