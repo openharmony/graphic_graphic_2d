@@ -24,12 +24,22 @@
 
 namespace OHOS {
 namespace Rosen {
+// classify dfx debug options
 enum DebugRegionType {
-    CURRENT_SUB,
+    CURRENT_SUB = 0,
     CURRENT_WHOLE,
     MULTI_HISTORY,
     EGL_DAMAGE,
     TYPE_MAX
+};
+
+// classify types that cause region dirty
+enum DirtyRegionType {
+    UPDATE_DIRTY_REGION = 0,
+    OVERLAY_RECT,
+    FILTER_RECT,
+    REMOVE_CHILD,
+    TYPE_AMOUNT
 };
 
 class RSB_EXPORT RSDirtyRegionManager final {
@@ -55,10 +65,6 @@ public:
     bool IsDirty() const;
     void UpdateDirty(bool enableAligned = false);
     void UpdateDirtyByAligned(int32_t alignedBits = ALIGNED_BITS);
-    void UpdateDirtyCanvasNodes(NodeId id, const RectI& rect);
-    void UpdateDirtySurfaceNodes(NodeId id, const RectI& rect);
-    void GetDirtyCanvasNodes(std::map<NodeId, RectI>& target) const;
-    void GetDirtySurfaceNodes(std::map<NodeId, RectI>& target) const;
     bool SetBufferAge(const int age);
     bool SetSurfaceSize(const int32_t width, const int32_t height);
     RectI GetSurfaceRect() const
@@ -67,7 +73,7 @@ public:
     }
     void ResetDirtyAsSurfaceSize();
 
-    void UpdateDebugRegionTypeEnable();
+    void UpdateDebugRegionTypeEnable(DirtyRegionDebugType dirtyDebugType);
     
     inline bool IsDebugRegionTypeEnable(DebugRegionType var) const
     {
@@ -76,11 +82,13 @@ public:
         }
         return false;
     }
-    
-    inline bool IsDebugEnabled() const
-    {
-        return RSSystemProperties::GetDirtyRegionDebugType() != DirtyRegionDebugType::DISABLED;
-    }
+
+    // added for dirty region dfx
+    void UpdateDirtyRegionInfoForDfx(NodeId id, RSRenderNodeType nodeType = RSRenderNodeType::CANVAS_NODE,
+        DirtyRegionType dirtyType = DirtyRegionType::UPDATE_DIRTY_REGION, const RectI& rect = RectI());
+    void GetDirtyRegionInfo(std::map<NodeId, RectI>& target,
+        RSRenderNodeType nodeType = RSRenderNodeType::CANVAS_NODE,
+        DirtyRegionType dirtyType = DirtyRegionType::UPDATE_DIRTY_REGION) const;
 
 private:
     RectI MergeHistory(unsigned int age, RectI rect) const;
@@ -91,8 +99,9 @@ private:
 
     RectI surfaceRect_;
     RectI dirtyRegion_;
-    std::map<NodeId, RectI> dirtyCanvasNodes_;
-    std::map<NodeId, RectI> dirtySurfaceNodes_;
+    // added for dfx
+    std::vector<std::map<NodeId, RectI>> dirtyCanvasNodeInfo_;
+    std::vector<std::map<NodeId, RectI>> dirtySurfaceNodeInfo_;
     std::vector<bool> debugRegionEnabled_;
     std::vector<RectI> dirtyHistory_;
     int historyHead_ = -1;

@@ -95,9 +95,10 @@ RectI RSDirtyRegionManager::GetPixelAlignedRect(const RectI& rect, int32_t align
 void RSDirtyRegionManager::Clear()
 {
     dirtyRegion_.Clear();
-    dirtyCanvasNodes_.clear();
-    dirtySurfaceNodes_.clear();
-    UpdateDebugRegionTypeEnable();
+    dirtyCanvasNodeInfo_.clear();
+    dirtyCanvasNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
+    dirtySurfaceNodeInfo_.clear();
+    dirtySurfaceNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
 }
 
 bool RSDirtyRegionManager::IsDirty() const
@@ -124,24 +125,31 @@ void RSDirtyRegionManager::UpdateDirtyByAligned(int32_t alignedBits)
     dirtyRegion_ = GetPixelAlignedRect(dirtyRegion_, alignedBits);
 }
 
-void RSDirtyRegionManager::UpdateDirtyCanvasNodes(NodeId id, const RectI& rect)
+void RSDirtyRegionManager::UpdateDirtyRegionInfoForDfx(NodeId id, RSRenderNodeType nodeType,
+    DirtyRegionType dirtyType, const RectI& rect)
 {
-    dirtyCanvasNodes_[id] = rect;
+    if (dirtyType >= DirtyRegionType::TYPE_AMOUNT || dirtyType < 0 || rect.IsEmpty()) {
+        return;
+    }
+    if (nodeType == RSRenderNodeType::CANVAS_NODE) {
+        dirtyCanvasNodeInfo_[dirtyType].emplace(std::make_pair(id, rect));
+    } else if (nodeType == RSRenderNodeType::SURFACE_NODE) {
+        dirtySurfaceNodeInfo_[dirtyType].emplace(std::make_pair(id, rect));
+    }
 }
 
-void RSDirtyRegionManager::UpdateDirtySurfaceNodes(NodeId id, const RectI& rect)
+void RSDirtyRegionManager::GetDirtyRegionInfo(std::map<NodeId, RectI>& target,
+    RSRenderNodeType nodeType, DirtyRegionType dirtyType) const
 {
-    dirtySurfaceNodes_[id] = rect;
-}
-
-void RSDirtyRegionManager::GetDirtyCanvasNodes(std::map<NodeId, RectI>& target) const
-{
-    target = dirtyCanvasNodes_;
-}
-
-void RSDirtyRegionManager::GetDirtySurfaceNodes(std::map<NodeId, RectI>& target) const
-{
-    target = dirtySurfaceNodes_;
+    target.clear();
+    if (dirtyType >= DirtyRegionType::TYPE_AMOUNT || dirtyType < 0) {
+        return;
+    }
+    if (nodeType == RSRenderNodeType::CANVAS_NODE) {
+        target = dirtyCanvasNodeInfo_[dirtyType];
+    } else if (nodeType == RSRenderNodeType::SURFACE_NODE) {
+        target = dirtySurfaceNodeInfo_[dirtyType];
+    }
 }
 
 bool RSDirtyRegionManager::SetBufferAge(const int age)
@@ -168,9 +176,8 @@ void RSDirtyRegionManager::ResetDirtyAsSurfaceSize()
     dirtyRegion_ = surfaceRect_;
 }
 
-void RSDirtyRegionManager::UpdateDebugRegionTypeEnable()
+void RSDirtyRegionManager::UpdateDebugRegionTypeEnable(DirtyRegionDebugType dirtyDebugType)
 {
-    DirtyRegionDebugType dirtyDebugType = RSSystemProperties::GetDirtyRegionDebugType();
     debugRegionEnabled_.assign(DebugRegionType::TYPE_MAX, false);
     switch (dirtyDebugType) {
         case DirtyRegionDebugType::CURRENT_SUB:

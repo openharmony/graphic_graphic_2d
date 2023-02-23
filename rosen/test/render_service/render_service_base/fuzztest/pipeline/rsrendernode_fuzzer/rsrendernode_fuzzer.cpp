@@ -199,6 +199,8 @@ bool RSDirtyRegionManagerFuzzTest(const uint8_t* data, size_t size)
     RectI rect(left, top, width, height);
     uint64_t u_id = GetData<uint64_t>();
     NodeId id = static_cast<NodeId>(u_id);
+    RSRenderNodeType nodeType = GetData<RSRenderNodeType>();
+    DirtyRegionType dirtyType = GetData<DirtyRegionType>();
     std::map<NodeId, RectI> target;
     target.insert(std::pair<NodeId, RectI>(id, rect));
 
@@ -207,10 +209,8 @@ bool RSDirtyRegionManagerFuzzTest(const uint8_t* data, size_t size)
     manager.GetRectFlipWithinSurface(rect);
     RSDirtyRegionManager::GetPixelAlignedRect(rect, GetData<int32_t>());
     manager.UpdateDirtyByAligned(GetData<int32_t>());
-    manager.UpdateDirtyCanvasNodes(id, rect);
-    manager.UpdateDirtySurfaceNodes(id, rect);
-    manager.GetDirtyCanvasNodes(target);
-    manager.GetDirtySurfaceNodes(target);
+    manager.UpdateDirtyRegionInfoForDfx(id, nodeType, dirtyType, rect);
+    manager.GetDirtyRegionInfo(target, nodeType, dirtyType);
     manager.SetBufferAge(GetData<int>());
     manager.SetSurfaceSize(GetData<int32_t>(), GetData<int32_t>());
     manager.IsDebugRegionTypeEnable(GetData<DebugRegionType>());
