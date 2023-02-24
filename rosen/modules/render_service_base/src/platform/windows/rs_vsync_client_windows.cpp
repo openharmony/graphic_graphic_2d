@@ -47,6 +47,7 @@ void RSVsyncClientWindows::RequestNextVsync()
 
 void RSVsyncClientWindows::SetVsyncCallback(VsyncCallback callback)
 {
+    std::unique_lock lock(mutex_);
     vsyncCallback_ = callback;
 }
 
@@ -56,10 +57,15 @@ void RSVsyncClientWindows::VsyncThreadMain()
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
-        if (having_) {
+        if (having_.load()) {
             having_ = false;
-            if (vsyncCallback_) {
-                vsyncCallback_(now);
+            VsyncCallback vsyncCallbackTmp = nullptr;
+            {
+                std::unique_lock lock(mutex_);
+                vsyncCallbackTmp = vsyncCallback_;
+            }
+            if (vsyncCallbackTmp) {
+                vsyncCallbackTmp(now);
             }
         }
     }

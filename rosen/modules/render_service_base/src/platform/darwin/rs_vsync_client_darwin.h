@@ -69,6 +69,7 @@ private:
     std::unique_ptr<std::thread> vsyncThread_ = nullptr;
     std::atomic<bool> running_ {false};
     std::atomic<bool> having_ {false};
+    std::mutex mutex_;
 };
 } // namespace Rosen
 } // namespace OHOS
