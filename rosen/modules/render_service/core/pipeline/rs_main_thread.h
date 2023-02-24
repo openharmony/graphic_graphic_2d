@@ -145,6 +145,7 @@ public:
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
     void DumpMem(std::string& result);
     void SetAppWindowNum(uint32_t num);
+    void AddActivePid(pid_t pid);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;

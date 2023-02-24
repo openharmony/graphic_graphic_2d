@@ -1094,9 +1094,9 @@ void RSUniRenderVisitor::AssignGlobalZOrderAndCreateLayer()
         return;
     }
 
-    float zOrder = 0.0f;
+    globalZOrder_ = 0.0f;
     for (auto& appWindowNode : appWindowNodesInZOrder_) {
-        // sort by local zOrder
+        // first, sort app window node's child surfaceView by local zOrder
         auto childHardwareEnabledNodes = appWindowNode->GetChildHardwareEnabledNodes();
         std::stable_sort(childHardwareEnabledNodes.begin(), childHardwareEnabledNodes.end(),
             [](const auto& first, const auto& second) {
@@ -1107,28 +1107,15 @@ void RSUniRenderVisitor::AssignGlobalZOrderAndCreateLayer()
         for (auto& child : childHardwareEnabledNodes) {
             localZOrder_ = 0.0f;
             auto childNode = child.lock();
-            if (childNode) {
+            if (childNode && childNode->GetBuffer() != nullptr && !childNode->IsHardwareForcedDisabled()) {
+                // assign local zOrder here to ensure it range from 0 to childHardwareEnabledNodes.size()
+                // for each app window node
                 childNode->SetLocalZOrder(localZOrder_++);
-                childNode->SetGlobalZOrder(zOrder++);
+                // SetGlobalZOrder here to ensure zOrder committed to composer is continuous
+                childNode->SetGlobalZOrder(globalZOrder_++);
+                RS_LOGD("createLayer: %" PRIu64 "", childNode->GetId());
+                processor_->ProcessSurface(*childNode);
             }
-        }
-    }
-
-    // [PLANNING] remove redundant sort here
-    // create layer for hardwareEnabledNodes_
-    globalZOrder_ = 0.0f;
-    // sort the surfaceNodes by ZOrder
-    std::stable_sort(hardwareEnabledNodes_.begin(), hardwareEnabledNodes_.end(),
-        [](const auto& first, const auto& second) -> bool {
-        return first->GetGlobalZOrder() < second->GetGlobalZOrder();
-    });
-
-    for (auto& surfaceNode : hardwareEnabledNodes_) {
-        if (!surfaceNode->GetHardwareForcedDisabledState()) {
-            RS_LOGD("createLayer: %" PRIu64 "", surfaceNode->GetId());
-            // SetGlobalZOrder again to ensure ZOrder committed to composer is continuous
-            surfaceNode->SetGlobalZOrder(globalZOrder_++);
-            processor_->ProcessSurface(*surfaceNode);
         }
     }
 }
@@ -1581,8 +1568,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             node.SetHardwareForcedDisabledState(isFreeze_);
         }
         // if this window is in freeze state, disable hardware composer for its child surfaceView
-        if (IsHardwareComposerEnabled() && !isFreeze_ && node.IsHardwareEnabledType() &&
-            node.GetDstRect().GetWidth() > 1 && node.GetDstRect().GetHeight() > 1) { // avoid fallback by composer
+        if (IsHardwareComposerEnabled() && !node.IsHardwareForcedDisabled() && node.IsHardwareEnabledType()) {
             canvas_->clear(SK_ColorTRANSPARENT);
             node.SetGlobalAlpha(canvas_->GetAlpha());
             node.SetLocalZOrder(localZOrder_++);
@@ -1594,15 +1580,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 node.GetSrcRect().ToString().c_str(), node.GetDstRect().ToString().c_str(),
                 node.GetName().c_str(), node.GetId());
         } else {
-            if (node.IsHardwareEnabledType()) {
-                auto iter = std::find_if(hardwareEnabledNodes_.begin(), hardwareEnabledNodes_.end(),
-                    [id = node.GetId()](std::shared_ptr<RSSurfaceRenderNode> surfaceNode) -> bool {
-                    return id == surfaceNode->GetId();
-                });
-                if (iter != hardwareEnabledNodes_.end()) {
-                    hardwareEnabledNodes_.erase(iter);
-                }
-            }
             node.SetGlobalAlpha(1.0f);
             auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
             renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
@@ -1865,7 +1842,7 @@ bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> r
     }
     processor_->ProcessDisplaySurface(*displayNode);
     for (auto& node: hardwareEnabledNodes_) {
-        if (!node->GetHardwareForcedDisabledState()) {
+        if (!node->IsHardwareForcedDisabled()) {
             processor_->ProcessSurface(*node);
         }
     }

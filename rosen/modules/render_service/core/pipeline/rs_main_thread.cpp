@@ -169,7 +169,6 @@ void RSMainThread::Init()
         }
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
-        activeProcessPids_.clear();
         ConsumeAndUpdateAllNodes();
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
@@ -179,6 +178,7 @@ void RSMainThread::Init()
         Render();
         ReleaseAllNodesBuffer();
         SendCommands();
+        activeProcessPids_.clear();
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         SetRSEventDetectorLoopFinishTag();
         rsEventManager_.UpdateParam();
@@ -1335,6 +1335,11 @@ void RSMainThread::PerfMultiWindow()
 void RSMainThread::SetAppWindowNum(uint32_t num)
 {
     appWindowNum_ = num;
+}
+
+void RSMainThread::AddActivePid(pid_t pid)
+{
+    activeProcessPids_.emplace(pid);
 }
 
 void RSMainThread::ResetHardwareEnabledState()
