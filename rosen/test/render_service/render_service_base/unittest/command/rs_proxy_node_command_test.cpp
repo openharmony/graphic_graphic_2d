@@ -44,23 +44,4 @@ HWTEST_F(RSProxyNodeCommandTest, TestRSProxyNodeCommand001, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     ProxyNodeCommandHelper::ResetContextVariableCache(context, id);
 }
-
-/**
- * @tc.name: TestRSProxyNodeCommand002
- * @tc.desc: RemoveModifiers test.
- * @tc.type: FUNC
- */
-HWTEST_F(RSProxyNodeCommandTest, TestRSProxyNodeCommand002, TestSize.Level1)
-{
-    RSContext context;
-    NodeId nodeId = static_cast<NodeId>(-1);
-    std::vector<PropertyId> propertyIds;
-    ProxyNodeCommandHelper::RemoveModifiers(context, nodeId, propertyIds);
-    NodeId id2 = 11;
-    auto context2 = std::make_shared<RSContext>();
-    ProxyNodeCommandHelper::Create(*context2, id2, 10);
-    propertyIds.push_back(10);
-    propertyIds.push_back(11);
-    ProxyNodeCommandHelper::RemoveModifiers(*context2, id2, propertyIds);
-}
 } // namespace OHOS::Rosen
