@@ -19,10 +19,6 @@ config("window_animation_config") {
 
 ohos_shared_library("window_animation") {
   sources = [
-    "src/rs_process_transaction_controller.cpp",
-    "src/rs_sync_transaction_controller.cpp",
-    "src/rs_sync_transaction_controller_proxy.cpp",
-    "src/rs_sync_transaction_controller_stub.cpp",
     "src/rs_window_animation_finish_callback_stub.cpp",
     "src/rs_window_animation_finished_callback.cpp",
     "src/rs_window_animation_finished_callback_proxy.cpp",

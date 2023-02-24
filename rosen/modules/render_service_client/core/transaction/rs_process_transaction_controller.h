@@ -13,26 +13,29 @@
  * limitations under the License.
  */
 
-#ifndef WINDOW_ANIMATION_RS_PROCESS_TRANSACTION_CONTROLLER_H
-#define WINDOW_ANIMATION_RS_PROCESS_TRANSACTION_CONTROLLER_H
+#ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_PROCESS_TRANSACTION_CONTROLLER_H
+#define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_PROCESS_TRANSACTION_CONTROLLER_H
 
-#include "rs_sync_transaction_controller_stub.h"
+#include "common/rs_macros.h"
+#include "ipc_callbacks/rs_sync_transaction_controller_stub.h"
 
 namespace OHOS {
 namespace Rosen {
 using TransactionFinishedCallback = std::function<void()>;
 
-class RSProcessTransactionController : public RSSyncTransactionControllerStub {
+class RSC_EXPORT RSProcessTransactionController : public RSSyncTransactionControllerStub {
 public:
-    explicit RSProcessTransactionController();
+    RSProcessTransactionController() = default;
     virtual ~RSProcessTransactionController() = default;
 
     void CreateTransactionFinished() override;
 
+private:
     void SetTransactionFinishedCallback(TransactionFinishedCallback& callback);
 
-private:
     TransactionFinishedCallback callback_;
+
+    friend class RSTransaction;
 };
 } // namespace Rosen
 } // namespace OHOS

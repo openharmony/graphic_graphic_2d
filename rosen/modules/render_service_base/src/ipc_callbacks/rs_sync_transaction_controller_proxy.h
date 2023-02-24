@@ -13,17 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef WINDOW_ANIMATION_RS_SYNC_TRANSACTION_CONTROLLER_PROXY_H
-#define WINDOW_ANIMATION_RS_SYNC_TRANSACTION_CONTROLLER_PROXY_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_RS_SYNC_TRANSACTION_CONTROLLER_PROXY_H
+#define ROSEN_RENDER_SERVICE_BASE_RS_SYNC_TRANSACTION_CONTROLLER_PROXY_H
 
-#include <string>
 #include <iremote_proxy.h>
+#include <string>
 
-#include "rs_isync_transaction_controller.h"
+#include "common/rs_macros.h"
+#include "ipc_callbacks/rs_isync_transaction_controller.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSSyncTransactionControllerProxy : public IRemoteProxy<RSISyncTransactionController> {
+class RSB_EXPORT RSSyncTransactionControllerProxy : public IRemoteProxy<RSISyncTransactionController> {
 public:
     explicit RSSyncTransactionControllerProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSSyncTransactionControllerProxy() =default;
@@ -37,4 +38,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // WINDOW_ANIMATION_RS_SYNC_TRANSACTION_CONTROLLER_PROXY_H
+#endif // ROSEN_RENDER_SERVICE_BASE_RS_SYNC_TRANSACTION_CONTROLLER_PROXY_H

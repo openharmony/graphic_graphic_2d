@@ -13,33 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef WINDOW_ANIMATION_RS_SYNC_TRANSACTION_CONTROLLER_H
-#define WINDOW_ANIMATION_RS_SYNC_TRANSACTION_CONTROLLER_H
+#ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_SYNC_TRANSACTION_CONTROLLER_H
+#define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_SYNC_TRANSACTION_CONTROLLER_H
 
-#include <vector>
-#include <refbase.h>
 #include <mutex>
+#include <vector>
 
+#include "common/rs_macros.h"
 #include "event_handler.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSProcessTransactionController;
 class RSTransaction;
 
-class RSSyncTransactionController : public RefBase {
+class RSC_EXPORT RSSyncTransactionController {
 public:
-    // RSSyncTransactionController();
-    // virtual ~RSSyncTransactionController() = default;
     static RSSyncTransactionController* GetInstance();
 
-    void CreateTransactionFinished();
-
-    void StartTransactionSyncForProcess();
-
     void OpenSyncTransaction();
-
-    void AddProcessTransactionController(const sptr<RSProcessTransactionController>& controller);
 
     std::shared_ptr<RSTransaction> GetRSTransaction()
     {
@@ -47,7 +38,6 @@ public:
     }
 
 protected:
-    void CloseSyncTransaction();
 
 private:
     RSSyncTransactionController();
@@ -61,9 +51,12 @@ private:
     RSSyncTransactionController& operator=(const RSSyncTransactionController&) = delete;
     RSSyncTransactionController& operator=(const RSSyncTransactionController&&) = delete;
 
+    void CloseSyncTransaction();
+    void CreateTransactionFinished();
+    void StartCreateTransaction();
+
     int32_t processCount_ { 0 };
     int32_t transactionCount_ { 0 };
-    std::vector<sptr<RSProcessTransactionController>> controllers_;
     std::mutex mutex_;
     bool needCloseSync_ { false };
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
@@ -75,4 +68,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // WINDOW_ANIMATION_RS_SYNC_TRANSACTION_CONTROLLER_H
+#endif // RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_SYNC_TRANSACTION_CONTROLLER_H

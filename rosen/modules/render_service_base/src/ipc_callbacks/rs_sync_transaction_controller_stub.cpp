@@ -15,17 +15,17 @@
 
 #include "rs_sync_transaction_controller_stub.h"
 
-#include "rs_window_animation_log.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 int RSSyncTransactionControllerStub::OnRemoteRequest(uint32_t code,MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
-    WALOGD("RS transaction controller on remote request!");
+    ROSEN_LOGD("RS transaction controller on remote request!");
     int ret = ERR_NONE;
     if (data.ReadInterfaceToken() != GetDescriptor()) {
-        WALOGE("Failed to check interface token!");
+        ROSEN_LOGE("Failed to check interface token!");
         return ERR_INVALID_STATE;
     }
 
@@ -35,7 +35,7 @@ int RSSyncTransactionControllerStub::OnRemoteRequest(uint32_t code,MessageParcel
             break;
         }
         default: {
-            WALOGE("Unknown transaction!");
+            ROSEN_LOGE("Unknown transaction!");
             ret = ERR_UNKNOWN_TRANSACTION;
             break;
         }

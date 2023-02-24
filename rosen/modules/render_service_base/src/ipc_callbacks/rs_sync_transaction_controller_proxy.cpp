@@ -15,7 +15,7 @@
 
 #include "rs_sync_transaction_controller_proxy.h"
 
-#include "rs_window_animation_log.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -27,7 +27,7 @@ RSSyncTransactionControllerProxy::RSSyncTransactionControllerProxy(const sptr<IR
 bool RSSyncTransactionControllerProxy::WriteInterfaceToken(MessageParcel& data)
 {
     if (!data.WriteInterfaceToken(RSSyncTransactionControllerProxy::GetDescriptor())) {
-        WALOGE("RSSyncTransactionControllerProxy Failed to write interface token!");
+        ROSEN_LOGE("RSSyncTransactionControllerProxy Failed to write interface token!");
         return false;
     }
 
@@ -46,13 +46,13 @@ void RSSyncTransactionControllerProxy::CreateTransactionFinished()
 
     auto remote = Remote();
     if (remote == nullptr) {
-        WALOGE("remote is null!");
+        ROSEN_LOGE("remote is null!");
         return;
     }
 
     auto ret = remote->SendRequest(RSSyncTransactionControllerProxy::CREATE_TRANSACTION_FINISHED, data, reply, option);
     if (ret != NO_ERROR) {
-        WALOGE("Failed to send sync transaction controller request, error code:%d", ret);
+        ROSEN_LOGE("Failed to send sync transaction controller request, error code:%d", ret);
     }
 }
 } // namespace Rosen

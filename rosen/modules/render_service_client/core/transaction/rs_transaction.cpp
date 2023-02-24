@@ -12,12 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "rs_transaction.h"
 
+#include "ipc_callbacks/rs_sync_transaction_controller_proxy.h"
+#include "platform/common/rs_log.h"
+#include "rs_process_transaction_controller.h"
 #include "sandbox_utils.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -63,6 +64,7 @@ void RSTransaction::Begin()
 
 void RSTransaction::Commit()
 {
+    CreateTransactionFinish();
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->SetSyncId(syncId_);
@@ -89,6 +91,7 @@ uint64_t RSTransaction::GenerateSyncId()
 void RSTransaction::ResetSyncTransactionInfo()
 {
     syncId_ = 0;
+    controllers_.clear();
 }
 
 RSTransaction* RSTransaction::Unmarshalling(Parcel& parcel)
@@ -118,6 +121,66 @@ bool RSTransaction::UnmarshallingParam(Parcel& parcel)
         return false;
     }
     return true;
+}
+
+void RSTransaction::MarshallTransactionSyncController(MessageParcel& parcel)
+{
+    sptr<RSProcessTransactionController> controller = new RSProcessTransactionController();
+    if (!parcel.WriteRemoteObject(controller->AsObject())) {
+        ROSEN_LOGE("RSTransaction Marshall transactionSyncController failed");
+        return;
+    }
+
+    TransactionFinishedCallback callback = [this]() {
+        CallCreateFinishCallback();
+    };
+    controller->SetTransactionFinishedCallback(callback);
+    CallCreateStartCallback();
+    controllers_.emplace_back(controller);
+}
+
+void RSTransaction::UnmarshallTransactionSyncController(MessageParcel& parcel)
+{
+    sptr<IRemoteObject> controllerObject = parcel.ReadRemoteObject();
+    if (controllerObject == nullptr) {
+        ROSEN_LOGE("RSTransaction unmarshalling transactionSyncController failed");
+        return;
+    }
+
+    sptr<RSISyncTransactionController> controller = iface_cast<RSISyncTransactionController>(controllerObject);
+    controllers_.emplace_back(controller);
+}
+
+void RSTransaction::SetCreateStartCallback(const std::function<void()>& callback)
+{
+    createStartCallback_ = callback;
+}
+
+void RSTransaction::SetCreateFinishCallback(const std::function<void()>& callback)
+{
+    createFinishCallback_ = callback;
+}
+
+void RSTransaction::CallCreateStartCallback()
+{
+    if (createStartCallback_) {
+        createStartCallback_();
+    }
+}
+
+void RSTransaction::CallCreateFinishCallback()
+{
+    if (createFinishCallback_) {
+        createFinishCallback_();
+    }
+}
+
+void RSTransaction::CreateTransactionFinish()
+{
+    if (!controllers_.empty() && controllers_.back()) {
+        controllers_.back()->CreateTransactionFinished();
+    }
+    controllers_.clear();
 }
 } // namespace Rosen
 } // namespace OHOS

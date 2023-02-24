@@ -13,17 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef WINDOW_ANIMATION_RS_SYNC_TRANSACTION_CONTROLLER_STUB_H
-#define WINDOW_ANIMATION_RS_SYNC_TRANSACTION_CONTROLLER_STUB_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_RS_SYNC_TRANSACTION_CONTROLLER_STUB_H
+#define ROSEN_RENDER_SERVICE_BASE_RS_SYNC_TRANSACTION_CONTROLLER_STUB_H
 
 #include <iremote_stub.h>
 #include <nocopyable.h>
 
-#include "rs_isync_transaction_controller.h"
+#include "common/rs_macros.h"
+#include "ipc_callbacks/rs_isync_transaction_controller.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSSyncTransactionControllerStub : public IRemoteStub<RSISyncTransactionController> {
+class RSB_EXPORT RSSyncTransactionControllerStub : public IRemoteStub<RSISyncTransactionController> {
 public:
     RSSyncTransactionControllerStub() = default;
     virtual ~RSSyncTransactionControllerStub() = default;
@@ -36,4 +37,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // WINDOW_ANIMATION_RS_SYNC_TRANSACTION_CONTROLLER_STUB_H
+#endif // ROSEN_RENDER_SERVICE_BASE_RS_SYNC_TRANSACTION_CONTROLLER_STUB_H

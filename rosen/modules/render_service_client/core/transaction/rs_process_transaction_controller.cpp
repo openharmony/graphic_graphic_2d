@@ -15,17 +15,13 @@
 
 #include "rs_process_transaction_controller.h"
 
-#include "rs_window_animation_log.h"
-#include "transaction/rs_transaction.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-RSProcessTransactionController::RSProcessTransactionController()
-{}
-
 void RSProcessTransactionController::CreateTransactionFinished()
 {
-    WALOGD("RS sync transaction controller CreateTransactionFinished!");
+    ROSEN_LOGD("RS sync transaction controller CreateTransactionFinished!");
     if (callback_) {
         callback_();
     }
