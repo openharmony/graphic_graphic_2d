@@ -44,7 +44,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t USE_CACHE_SURFACE_NUM = 7;
 
 bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 {
@@ -1012,8 +1011,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 // enable cache if screen rotation is not times of 90 degree
                 canvas_->SetCacheEnabled(geoPtr->IsNeedClientCompose());
             }
-            canvas_->SetCacheEnabled(canvas_->isCacheEnabled() ||
-                node.GetCurAllSurfaces().size() > USE_CACHE_SURFACE_NUM);
+
             if (canvas_->isCacheEnabled()) {
                 // we are doing rotation animation, try offscreen render if capable
                 ClearTransparentBeforeSaveLayer();

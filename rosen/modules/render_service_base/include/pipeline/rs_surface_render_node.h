@@ -73,6 +73,11 @@ public:
         return nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
     }
 
+    bool IsLeashWindow() const
+    {
+        return nodeType_ == RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    }
+
     // indicate if this node type can enable hardware composer
     bool IsHardwareEnabledType() const
     {

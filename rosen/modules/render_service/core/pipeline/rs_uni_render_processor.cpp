@@ -76,7 +76,7 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
     layers_.emplace_back(layer);
     for (auto surface : node.GetCurAllSurfaces()) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);
-        if (!surfaceNode || !surfaceNode->GetOcclusionVisible()) {
+        if (!surfaceNode || !surfaceNode->GetOcclusionVisible() || surfaceNode->IsLeashWindow()) {
             continue;
         }
         layerNum++;
