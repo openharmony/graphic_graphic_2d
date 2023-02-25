@@ -123,6 +123,7 @@ private:
     bool isOpDropped_ = false;
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization
     bool isTargetDirtyRegionDfxEnabled_ = false;
+    bool isOcclusionEnabled_ = false;
     std::vector<std::string> dfxTargetSurfaceNames_;
     PartialRenderType partialRenderType_;
     bool isDirty_ = false;
