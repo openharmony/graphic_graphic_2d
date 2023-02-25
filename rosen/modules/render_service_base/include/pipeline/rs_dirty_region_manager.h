@@ -38,8 +38,19 @@ enum DirtyRegionType {
     UPDATE_DIRTY_REGION = 0,
     OVERLAY_RECT,
     FILTER_RECT,
-    REMOVE_CHILD,
+    SHADOW_RECT,
+    PREPARE_CLIP_RECT,
+    REMOVE_CHILD_RECT,
     TYPE_AMOUNT
+};
+
+const std::map<DirtyRegionType, std::string> DIRTY_REGION_TYPE_MAP {
+    { DirtyRegionType::UPDATE_DIRTY_REGION, "UPDATE_DIRTY_REGION" },
+    { DirtyRegionType::OVERLAY_RECT, "OVERLAY_RECT" },
+    { DirtyRegionType::FILTER_RECT, "FILTER_RECT" },
+    { DirtyRegionType::SHADOW_RECT, "SHADOW_RECT" },
+    { DirtyRegionType::PREPARE_CLIP_RECT, "PREPARE_CLIP_RECT" },
+    { DirtyRegionType::REMOVE_CHILD_RECT, "REMOVE_CHILD_RECT" },
 };
 
 class RSB_EXPORT RSDirtyRegionManager final {
@@ -90,6 +101,15 @@ public:
         RSRenderNodeType nodeType = RSRenderNodeType::CANVAS_NODE,
         DirtyRegionType dirtyType = DirtyRegionType::UPDATE_DIRTY_REGION) const;
 
+    void MarkAsTargetForDfx()
+    {
+        isDfxTarget_ = true;
+    }
+
+    bool IsTargetForDfx() {
+        return isDfxTarget_;
+    }
+
 private:
     RectI MergeHistory(unsigned int age, RectI rect) const;
     void PushHistory(RectI rect);
@@ -103,6 +123,7 @@ private:
     std::vector<std::map<NodeId, RectI>> dirtyCanvasNodeInfo_;
     std::vector<std::map<NodeId, RectI>> dirtySurfaceNodeInfo_;
     std::vector<bool> debugRegionEnabled_;
+    bool isDfxTarget_ = false;
     std::vector<RectI> dirtyHistory_;
     int historyHead_ = -1;
     unsigned int historySize_ = 0;

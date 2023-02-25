@@ -99,6 +99,7 @@ void RSDirtyRegionManager::Clear()
     dirtyCanvasNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
     dirtySurfaceNodeInfo_.clear();
     dirtySurfaceNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
+    isDfxTarget_ = false;
 }
 
 bool RSDirtyRegionManager::IsDirty() const
