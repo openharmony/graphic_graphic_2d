@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace Rosen {
-enum class ImplicitAnimationParamType { NONE, CURVE, KEYFRAME, PATH, SPRING, TRANSITION };
+enum class ImplicitAnimationParamType { NONE, CURVE, KEYFRAME, PATH, SPRING, INTERPOLATING_SPRING, TRANSITION };
 
 class RSAnimation;
 class RSPropertyBase;
@@ -105,6 +105,19 @@ public:
     RSImplicitSpringAnimationParam(
         const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve);
     virtual ~RSImplicitSpringAnimationParam() = default;
+
+    std::shared_ptr<RSAnimation> CreateAnimation(std::shared_ptr<RSPropertyBase> property,
+        const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const;
+
+private:
+    RSAnimationTimingCurve timingCurve_;
+};
+
+class RSImplicitInterpolatingSpringAnimationParam : public RSImplicitAnimationParam {
+public:
+    RSImplicitInterpolatingSpringAnimationParam(
+        const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve);
+    virtual ~RSImplicitInterpolatingSpringAnimationParam() = default;
 
     std::shared_ptr<RSAnimation> CreateAnimation(std::shared_ptr<RSPropertyBase> property,
         const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const;

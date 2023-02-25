@@ -53,16 +53,19 @@ public:
     RSAnimationTimingCurve& operator=(const RSAnimationTimingCurve& timingCurve) = default;
     virtual ~RSAnimationTimingCurve() = default;
 
-    enum class CurveType { INTERPOLATING, SPRING };
+    enum class CurveType { INTERPOLATING, SPRING, INTERPOLATING_SPRING };
     CurveType type_ { CurveType::INTERPOLATING };
+
 private:
     RSAnimationTimingCurve(const std::shared_ptr<RSInterpolator>& interpolator);
     RSAnimationTimingCurve(const std::function<float(float)>& customCurveFunc);
     RSAnimationTimingCurve(float response, float dampingRatio, float blendDuration);
+    RSAnimationTimingCurve(float response, float dampingRatio, float initialVelocity, CurveType curveType);
 
     float response_ { 0.0f };
     float dampingRatio_ { 0.0f };
     float blendDuration_ { 0.0f };
+    float initialVelocity_ { 0.0f };
 
     std::shared_ptr<RSInterpolator> GetInterpolator(int duration) const;
 
@@ -70,6 +73,7 @@ private:
     std::function<float(float)> customCurveFunc_;
 
     friend class RSCurveAnimation;
+    friend class RSInterpolatingSpringAnimation;
     friend class RSKeyframeAnimation;
     friend class RSSpringAnimation;
     friend class RSPathAnimation;

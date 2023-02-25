@@ -122,6 +122,7 @@ private:
     friend class RSValueEstimator;
     friend class RSRenderPathAnimation;
     friend class RSRenderSpringAnimation;
+    friend class RSRenderInterpolatingSpringAnimation;
     friend class RSRenderCurveAnimation;
     friend class RSRenderKeyframeAnimation;
     template<typename T>

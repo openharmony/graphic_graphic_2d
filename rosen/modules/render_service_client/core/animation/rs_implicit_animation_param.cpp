@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "animation/rs_implicit_animation_param.h"
 
 #include "animation/rs_curve_animation.h"
+#include "animation/rs_interpolating_spring_animation.h"
 #include "animation/rs_keyframe_animation.h"
 #include "animation/rs_motion_path_option.h"
 #include "animation/rs_path_animation.h"
@@ -136,6 +137,25 @@ std::shared_ptr<RSAnimation> RSImplicitSpringAnimationParam::CreateAnimation(std
     springAnimation->SetIsCustom(property->GetIsCustom());
     ApplyTimingProtocol(springAnimation);
     return springAnimation;
+}
+
+RSImplicitInterpolatingSpringAnimationParam::RSImplicitInterpolatingSpringAnimationParam(
+    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve)
+    : RSImplicitAnimationParam(timingProtocol), timingCurve_(timingCurve)
+{
+    animationType_ = ImplicitAnimationParamType::INTERPOLATING_SPRING;
+}
+
+std::shared_ptr<RSAnimation> RSImplicitInterpolatingSpringAnimationParam::CreateAnimation(
+    std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
+    const std::shared_ptr<RSPropertyBase>& endValue) const
+{
+    auto interpolatingSpringAnimation =
+        std::make_shared<RSInterpolatingSpringAnimation>(property, startValue, endValue);
+    interpolatingSpringAnimation->SetTimingCurve(timingCurve_);
+    interpolatingSpringAnimation->SetIsCustom(property->GetIsCustom());
+    ApplyTimingProtocol(interpolatingSpringAnimation);
+    return interpolatingSpringAnimation;
 }
 
 RSImplicitTransitionParam::RSImplicitTransitionParam(const RSAnimationTimingProtocol& timingProtocol,

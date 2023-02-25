@@ -18,6 +18,7 @@
 
 #include "animation/rs_render_animation.h"
 #include "animation/rs_render_curve_animation.h"
+#include "animation/rs_render_interpolating_spring_animation.h"
 #include "animation/rs_render_keyframe_animation.h"
 #include "animation/rs_render_path_animation.h"
 #include "animation/rs_render_spring_animation.h"
@@ -39,6 +40,8 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_CREATE_TRANSITION,
     // spring animation
     ANIMATION_CREATE_SPRING,
+    // interpolating spring animation
+    ANIMATION_CREATE_INTERPOLATING_SPRING,
 
     // operations
     ANIMATION_START,
@@ -139,8 +142,13 @@ ADD_COMMAND(RSAnimationCreateTransition, ARG(ANIMATION, ANIMATION_CREATE_TRANSIT
     AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderTransition>))
 
 // create spring animation
-ADD_COMMAND(RSAnimationCreateSpring,ARG(ANIMATION, ANIMATION_CREATE_SPRING,
+ADD_COMMAND(RSAnimationCreateSpring, ARG(ANIMATION, ANIMATION_CREATE_SPRING,
     AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderSpringAnimation>))
+
+// create interpolating spring animation
+ADD_COMMAND(RSAnimationCreateInterpolatingSpring,
+    ARG(ANIMATION, ANIMATION_CREATE_INTERPOLATING_SPRING, AnimationCommandHelper::CreateAnimation, NodeId,
+        std::shared_ptr<RSRenderInterpolatingSpringAnimation>))
 } // namespace Rosen
 } // namespace OHOS
 

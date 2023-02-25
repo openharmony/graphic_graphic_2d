@@ -180,6 +180,7 @@ private:
     friend class RSExtendedModifier;
     friend class RSImplicitAnimator;
     friend class RSImplicitCurveAnimationParam;
+    friend class RSImplicitInterpolatingSpringAnimationParam;
     friend class RSImplicitKeyframeAnimationParam;
     friend class RSImplicitSpringAnimationParam;
     friend class RSImplicitTransitionParam;
@@ -188,6 +189,7 @@ private:
     friend class RSPathAnimation;
     friend class RSKeyframeAnimation;
     friend class RSSpringAnimation;
+    friend class RSInterpolatingSpringAnimation;
     friend class RSTransition;
     template<typename T1>
     friend class RSAnimatableProperty;
