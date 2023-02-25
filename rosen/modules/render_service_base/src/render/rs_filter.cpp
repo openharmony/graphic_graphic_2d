@@ -18,6 +18,7 @@
 #include "platform/common/rs_log.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_material_filter.h"
+#include "render/rs_light_up_effect_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,6 +37,15 @@ std::shared_ptr<RSFilter> RSFilter::CreateMaterialFilter(int style, float dipSca
 {
 #ifdef ROSEN_OHOS
     return std::make_shared<RSMaterialFilter>(style, dipScale, mode);
+#else
+    return nullptr;
+#endif
+}
+
+std::shared_ptr<RSFilter> RSFilter::CreateLightUpEffectFilter(float lightUpDegree)
+{
+#ifdef ROSEN_OHOS
+    return std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
 #else
     return nullptr;
 #endif

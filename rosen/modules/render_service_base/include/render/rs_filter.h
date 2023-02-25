@@ -33,11 +33,13 @@ public:
     virtual ~RSFilter();
     static std::shared_ptr<RSFilter> CreateBlurFilter(float blurRadiusX, float blurRadiusY);
     static std::shared_ptr<RSFilter> CreateMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode = DEFAULT);
+    static std::shared_ptr<RSFilter> CreateLightUpEffectFilter(float lightUpDegree);
 
     enum FilterType {
         NONE = 0,
         BLUR,
         MATERIAL,
+        LIGHTUPEFFECT,
     };
     FilterType GetFilterType() const
     {

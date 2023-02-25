@@ -122,6 +122,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_filter.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_image_cache.cpp",
+    "src/render/rs_light_up_effect_filter.cpp",
     "src/render/rs_mask.cpp",
     "src/render/rs_material_filter.cpp",
     "src/render/rs_path.cpp",

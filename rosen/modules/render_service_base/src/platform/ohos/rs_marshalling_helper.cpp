@@ -53,6 +53,7 @@
 #include "render/rs_blur_filter.h"
 #include "render/rs_filter.h"
 #include "render/rs_image.h"
+#include "render/rs_light_up_effect_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
@@ -642,6 +643,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSFi
                       parcel.WriteInt32(material->colorMode_);
             break;
         }
+        case RSFilter::LIGHTUPEFFECT: {
+            auto lightUp = std::static_pointer_cast<RSLightUpEffectFilter>(val);
+            success = success && parcel.WriteFloat(lightUp->lightUpDegree_);
+            break;
+        }
         default:
             break;
     }
@@ -668,6 +674,14 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter
             success = success && parcel.ReadInt32(style) && parcel.ReadFloat(dipScale) && parcel.ReadInt32(colorMode);
             if (success) {
                 val = RSFilter::CreateMaterialFilter(style, dipScale, static_cast<BLUR_COLOR_MODE>(colorMode));
+            }
+            break;
+        }
+        case RSFilter::LIGHTUPEFFECT: {
+            float lightUpDegree;
+            success = success && parcel.ReadFloat(lightUpDegree);
+            if (success) {
+                val = RSFilter::CreateLightUpEffectFilter(lightUpDegree);
             }
             break;
         }
