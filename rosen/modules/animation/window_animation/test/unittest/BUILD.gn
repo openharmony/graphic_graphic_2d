@@ -18,6 +18,8 @@ ohos_unittest("RSWindowAnimationTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_window_animation_finished_callback_proxy_test.cpp",
+    "rs_window_animation_finished_callback_stub_test.cpp",
     "rs_window_animation_proxy_test.cpp",
     "rs_window_animation_stub_test.cpp",
   ]
