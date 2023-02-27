@@ -107,6 +107,10 @@ void RSBaseNode::AddChild(SharedPtr child, int index)
         ROSEN_LOGI("RSBaseNode::AddChild, child already exist");
         return;
     }
+    if (child->GetType() == RSUINodeType::DISPLAY_NODE) {
+        // Disallow to add display node as child.
+        return;
+    }
     NodeId childId = child->GetId();
     if (child->parent_ != 0) {
         child->RemoveFromTree();
