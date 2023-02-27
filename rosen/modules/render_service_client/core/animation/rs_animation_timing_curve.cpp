@@ -81,7 +81,7 @@ RSAnimationTimingCurve RSAnimationTimingCurve::CreateCubicCurve(float ctrlX1, fl
 RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpringCurve(
     float velocity, float mass, float stiffness, float damping)
 {
-    float response = 2 * M_PI * sqrt(mass / stiffness);
+    float response = 2 * PI * sqrt(mass / stiffness);
     float dampingRatio = (damping / (2 * sqrt(mass * stiffness)));
     return RSAnimationTimingCurve(std::make_shared<RSSpringInterpolator>(response, dampingRatio, velocity));
 }
