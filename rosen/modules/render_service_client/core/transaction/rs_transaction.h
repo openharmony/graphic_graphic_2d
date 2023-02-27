@@ -16,19 +16,51 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_TRANSACTION_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_TRANSACTION_H
 
+#include <message_parcel.h>
+#include <parcel.h>
+#include <refbase.h>
+
+#include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "ipc_callbacks/rs_isync_transaction_controller.h"
 
 namespace OHOS {
 namespace Rosen {
 
-class RSC_EXPORT RSTransaction {
+class RSC_EXPORT RSTransaction : public Parcelable {
 public:
+    RSTransaction() = default;
     ~RSTransaction() = default;
 
+    static RSTransaction* Unmarshalling(Parcel& parcel);
+    bool Marshalling(Parcel& parcel) const override;
+
+    void MarshallTransactionSyncController(MessageParcel& parcel);
+    void UnmarshallTransactionSyncController(MessageParcel& parcel);
+
     static void FlushImplicitTransaction();
+    void OpenSyncTransaction();
+    void CloseSyncTransaction(const uint64_t transactionCount);
+
+    void Begin();
+    void Commit();
 
 private:
-    RSTransaction() = default;
+    uint64_t GenerateSyncId();
+    void ResetSyncTransactionInfo();
+    bool UnmarshallingParam(Parcel& parcel);
+    void CallCreateStartCallback();
+    void CallCreateFinishCallback();
+    void CreateTransactionFinish();
+    void SetCreateStartCallback(const std::function<void()>& callback);
+    void SetCreateFinishCallback(const std::function<void()>& callback);
+
+    uint64_t syncId_ { 0 };
+    std::vector<sptr<RSISyncTransactionController>> controllers_;
+    std::function<void()> createStartCallback_;
+    std::function<void()> createFinishCallback_;
+
+    friend class RSSyncTransactionController;
 };
 
 } // namespace Rosen

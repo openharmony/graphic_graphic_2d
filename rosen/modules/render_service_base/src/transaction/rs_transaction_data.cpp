@@ -68,10 +68,14 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
                    ", parcel size:%zu, threshold:%zu",
             marshaledSize, marshallingIndex_, payload_.size(), parcel.GetDataSize(), PARCEL_SPLIT_THRESHOLD);
     }
+    success = success && parcel.WriteBool(needSync_);
+    success = success && parcel.WriteBool(needCloseSync_);
+    success = success && parcel.WriteInt32(syncTransactionCount_);
     success = success && parcel.WriteUint64(timestamp_);
     success = success && parcel.WriteInt32(pid_);
     success = success && parcel.WriteUint64(index_);
     success = success && parcel.WriteBool(isUniRender_);
+    success = success && parcel.WriteUint64(syncId_);
     return success;
 }
 
@@ -140,8 +144,9 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
     }
     int32_t pid;
-    return parcel.ReadUint64(timestamp_) && parcel.ReadInt32(pid) && ({pid_ = pid; true;}) &&
-        parcel.ReadUint64(index_) && parcel.ReadBool(isUniRender_);
+    return parcel.ReadBool(needSync_) && parcel.ReadBool(needCloseSync_) && parcel.ReadInt32(syncTransactionCount_) &&
+        parcel.ReadUint64(timestamp_) && parcel.ReadInt32(pid) && ({pid_ = pid; true;}) &&
+        parcel.ReadUint64(index_) && parcel.ReadBool(isUniRender_) && parcel.ReadUint64(syncId_);
 }
 
 
