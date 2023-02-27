@@ -15,20 +15,54 @@
 
 #include "MemoryManager.h"
 
+#include <malloc.h>
 #include <SkGraphics.h>
 
 #include "SkiaMemoryTracer.h"
 #include "include/gpu/GrContext.h"
+#include "src/gpu/GrContextPriv.h"
 
 #include "pipeline/rs_main_thread.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
+namespace {
 constexpr uint32_t MEMUNIT_RATE = 1024;
+constexpr const char* MEM_RS_TYPE = "renderservice";
+constexpr const char* MEM_CPU_TYPE = "cpu";
+constexpr const char* MEM_GPU_TYPE = "gpu";
+constexpr const char* MEM_JEMALLOC_TYPE = "jemalloc";
+}
 
-void MemoryManager::DumpMemoryUsage(DfxString& log, const GrContext* grContext)
+
+void MemoryManager::DumpMemoryUsage(DfxString& log, const GrContext* grContext, std::string& type)
 {
-    //////////////////////////////CPU/////////////////////////
-    log.AppendFormat("\n---------------\nSkia CPU Caches:\n");
+    if (type.empty() || type == MEM_RS_TYPE) {
+        DumpRenderServiceMemory(log);
+    }
+    if (type.empty() || type == MEM_CPU_TYPE) {
+        DumpDrawingCpuMemory(log);
+    }
+    if (type.empty() || type == MEM_GPU_TYPE) {
+        DumpDrawingGpuMemory(log, grContext);
+    }
+    if (type.empty() || type == MEM_JEMALLOC_TYPE) {
+        std::string out;
+        DumpMallocStat(out);
+        log.AppendFormat("%s\n... detail dump at hilog\n", out.c_str());
+    }
+}
+
+void MemoryManager::DumpRenderServiceMemory(DfxString& log)
+{
+    log.AppendFormat("\n----------\nRenderService caches:\n");
+    MemoryTrack::Instance().DumpMemoryStatistics(log);
+}
+
+void MemoryManager::DumpDrawingCpuMemory(DfxString& log)
+{
+    // CPU
+    log.AppendFormat("\n----------\nSkia CPU caches:\n");
     log.AppendFormat("Font Cache (CPU):\n");
     log.AppendFormat("  Size: %.2f kB \n", SkGraphics::GetFontCacheUsed() / MEMUNIT_RATE);
     log.AppendFormat("  Glyph Count: %d \n", SkGraphics::GetFontCacheCountUsed());
@@ -48,6 +82,18 @@ void MemoryManager::DumpMemoryUsage(DfxString& log, const GrContext* grContext)
     log.AppendFormat("Total CPU memory usage:\n");
     cpuTracer.LogTotals(log);
 
+    // cache limit
+    size_t cacheLimit = SkGraphics::GetResourceCacheTotalByteLimit();
+    size_t fontCacheLimit = SkGraphics::GetFontCacheLimit();
+    log.AppendFormat("\ncpu cache limit = %zu ( fontcache = %zu ):\n", cacheLimit, fontCacheLimit);
+}
+
+void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const GrContext* grContext)
+{
+    if (!grContext) {
+        log.AppendFormat("No valid cache instance.\n");
+        return;
+    }
     /////////////////////////////GPU/////////////////////////
 #ifdef RS_ENABLE_GL
     log.AppendFormat("\n---------------\nSkia GPU Caches:\n");
@@ -57,10 +103,43 @@ void MemoryManager::DumpMemoryUsage(DfxString& log, const GrContext* grContext)
     log.AppendFormat("Total GPU memory usage:\n");
     gpuTracer.LogTotals(log);
 
+    // cache limit
+    size_t cacheLimit = 0;
+    size_t cacheUsed = 0;
+    grContext->getResourceCacheLimits(nullptr, &cacheLimit);
+    grContext->getResourceCacheUsage(nullptr, &cacheUsed);
+    log.AppendFormat("\ngpu limit = %zu ( used = %zu ):\n", cacheLimit, cacheUsed);
+
     //////////////////////////ShaderCache///////////////////
     log.AppendFormat("\n---------------\nShader Caches:\n");
     std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
     log.AppendFormat(rendercontext->GetShaderCacheSize().c_str());
 #endif
+
+    // gpu stat
+    log.AppendFormat("\n---------------\ndumpGpuStats:\n");
+    SkString stat;
+    grContext->priv().dumpGpuStats(&stat);
+    log.AppendFormat("%s\n", stat.c_str());
+}
+
+void MemoryManager::DumpMallocStat(std::string& log)
+{
+    malloc_stats_print([](void *fp, const char* str) {
+        if (!fp) {
+            RS_LOGE("DumpMallocStat fp is nullptr");
+            return;
+        }
+        std::string* sp = static_cast<std::string*>(fp);
+        if (str) {
+            // cause log only support 2096 len. we need to only output critical log
+            // and only put total log in RSLOG
+            // get allocated string
+            if (strncmp(str, "Allocated", strlen("Allocated")) == 0) {
+                sp->append(str);
+            }
+            RS_LOGW("[mallocstat]:%s", str);
+        }
+    }, &log, nullptr);
 }
 } // namespace OHOS::Rosen

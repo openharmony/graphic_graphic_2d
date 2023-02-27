@@ -40,13 +40,19 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config
       name_(config.name),
       nodeType_(config.nodeType),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>())
-{}
+{
+    MemoryInfo info = {sizeof(*this), ExtractPid(config.id), MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(config.id, info);
+}
 
 RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, std::weak_ptr<RSContext> context)
     : RSSurfaceRenderNode(RSSurfaceRenderNodeConfig{id, "SurfaceNode"}, context)
 {}
 
-RSSurfaceRenderNode::~RSSurfaceRenderNode() {}
+RSSurfaceRenderNode::~RSSurfaceRenderNode()
+{
+    MemoryTrack::Instance().RemoveNodeRecord(GetId());
+}
 
 #if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
 void RSSurfaceRenderNode::SetConsumer(const sptr<IConsumerSurface>& consumer)

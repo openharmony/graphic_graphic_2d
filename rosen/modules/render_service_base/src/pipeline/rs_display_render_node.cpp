@@ -27,9 +27,15 @@ RSDisplayRenderNode::RSDisplayRenderNode(NodeId id, const RSDisplayNodeConfig& c
     : RSRenderNode(id, context), RSSurfaceHandler(id), screenId_(config.screenId), offsetX_(0), offsetY_(0),
       isMirroredDisplay_(config.isMirrored),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>())
-{}
+{
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+}
 
-RSDisplayRenderNode::~RSDisplayRenderNode() = default;
+RSDisplayRenderNode::~RSDisplayRenderNode()
+{
+    MemoryTrack::Instance().RemoveNodeRecord(GetId());
+}
 
 void RSDisplayRenderNode::CollectSurface(
     const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec, bool isUniRender)

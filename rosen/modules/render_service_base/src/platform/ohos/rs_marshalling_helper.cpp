@@ -47,6 +47,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
+#include "memory/MemoryTrack.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "platform/common/rs_log.h"
@@ -290,6 +291,12 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkImage>& val)
     }
 }
 
+static void sk_free_releaseproc(const void* ptr, void*)
+{
+    MemoryTrack::Instance().RemovePictureRecord(ptr);
+    free((void*)ptr);
+}
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
 {
     int32_t type = parcel.ReadInt32();
@@ -338,10 +345,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
             }
         }
 
+        // if pixelmapSize >= MIN_DATA_SIZE(copyFromAshMem). record this memory size
+        // use this proc to follow release step
         SkImageInfo imageInfo = SkImageInfo::Make(width, height, colorType, alphaType, colorSpace);
         auto skData = pixmapSize < MIN_DATA_SIZE ? SkData::MakeWithCopy(addr, pixmapSize)
-                                                 : SkData::MakeFromMalloc(addr, pixmapSize);
+                                                 : SkData::MakeWithProc(addr, pixmapSize, sk_free_releaseproc, nullptr);
         val = SkImage::MakeRasterData(imageInfo, skData, rb);
+        // add to MemoryTrack for memoryManager
+        if (pixmapSize >= MIN_DATA_SIZE) {
+            MemoryInfo info = { pixmapSize, 0, MEMORY_TYPE::MEM_SKIMAGE }; // pid is set to 0 temporarily.
+            MemoryTrack::Instance().AddPictureRecord(addr, info);
+        }
         return val != nullptr;
     }
 }
@@ -724,6 +738,12 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Medi
     }
     return true;
 }
+
+static void CustomFreePixelMap(void* addr, void* context, uint32_t size)
+{
+    MemoryTrack::Instance().RemovePictureRecord(addr);
+}
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::PixelMap>& val)
 {
     if (parcel.ReadInt32() == -1) {
@@ -735,6 +755,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Media::PixelMap");
         return false;
     }
+    MemoryInfo info = {val->GetByteCount(), 0, MEMORY_TYPE::MEM_PIXELMAP}; // pid is set to 0 temporarily.
+    MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
+    val->SetFreePixelMapProc(CustomFreePixelMap);
     return true;
 }
 

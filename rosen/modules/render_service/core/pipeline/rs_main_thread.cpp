@@ -1289,14 +1289,22 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
 #endif
 }
 
-void RSMainThread::DumpMem(std::string& dumpString)
+void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString)
 {
 #ifdef RS_ENABLE_GL
     DfxString log;
     if (!RSUniRenderJudgement::IsUniRender()) {
         log.AppendFormat("\n---------------\nNot in UniRender and no information");
     } else {
-        MemoryManager::DumpMemoryUsage(log, GetRenderEngine()->GetRenderContext()->GetGrContext());
+        std::string type;
+        if (argSets.size() > 1) {
+            argSets.erase(u"dumpMem");
+            if (!argSets.empty()) {
+                type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+            }
+        }
+        MemoryManager::DumpMemoryUsage(log, GetRenderEngine()->GetRenderContext()->GetGrContext(), type);
+        dumpString.append("dumpMem: " + type + "\n");
     }
     dumpString.append(log.GetString());
 #else

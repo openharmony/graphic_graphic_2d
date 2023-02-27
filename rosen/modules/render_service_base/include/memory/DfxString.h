@@ -19,7 +19,7 @@
 #include "securec.h"
 
 namespace OHOS::Rosen {
-constexpr int STRING_BUFFER_SIZE = 4096;
+constexpr int STRING_BUF_SIZE = 4096;
 class DfxString {
 public:
     DfxString() : str_() {}
@@ -48,7 +48,7 @@ private:
         int n;
         std::string result;
         va_list tmp_args;
-        char buf[STRING_BUFFER_SIZE] = {0};
+        char buf[STRING_BUF_SIZE] = {0};
         va_copy(tmp_args, args);
         n = vsnprintf_s(buf, sizeof(buf), sizeof(buf) - 1, fmt, tmp_args);
         va_end(tmp_args);

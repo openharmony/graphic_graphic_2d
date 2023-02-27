@@ -25,6 +25,7 @@
 #endif
 
 #include "common/rs_macros.h"
+#include "memory/MemoryTrack.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include "platform/drawing/rs_surface.h"

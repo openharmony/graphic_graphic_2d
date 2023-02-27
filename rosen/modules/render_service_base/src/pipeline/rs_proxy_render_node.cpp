@@ -25,12 +25,15 @@ namespace Rosen {
 RSProxyRenderNode::RSProxyRenderNode(
     NodeId id, std::weak_ptr<RSSurfaceRenderNode> target, NodeId targetId, std::weak_ptr<RSContext> context)
     : RSRenderNode(id, context), target_(target), targetId_(targetId)
-{}
+{
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+}
 
 RSProxyRenderNode::~RSProxyRenderNode()
 {
     ROSEN_LOGD("RSProxyRenderNode::~RSProxyRenderNode, proxy id:%" PRIu64 " target:%" PRIu64, GetId(), targetId_);
-
+    MemoryTrack::Instance().RemoveNodeRecord(GetId());
     // if target do not exist (in RT) or already destroyed (in RS), skip reset
     auto target = target_.lock();
     if (target == nullptr) {

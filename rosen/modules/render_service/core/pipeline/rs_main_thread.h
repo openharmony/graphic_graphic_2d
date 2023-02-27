@@ -143,7 +143,7 @@ public:
     void SetDirtyFlag();
     void ForceRefreshForUni();
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
-    void DumpMem(std::string& result);
+    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result);
     void SetAppWindowNum(uint32_t num);
     void AddActivePid(pid_t pid);
 private:

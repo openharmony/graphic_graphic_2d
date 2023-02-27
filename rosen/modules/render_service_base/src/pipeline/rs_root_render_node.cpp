@@ -25,9 +25,16 @@
 namespace OHOS {
 namespace Rosen {
 RSRootRenderNode::RSRootRenderNode(NodeId id, std::weak_ptr<RSContext> context)
-    : RSCanvasRenderNode(id, context), dirtyManager_(std::make_shared<RSDirtyRegionManager>()) {}
+    : RSCanvasRenderNode(id, context), dirtyManager_(std::make_shared<RSDirtyRegionManager>())
+{
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+}
 
-RSRootRenderNode::~RSRootRenderNode() {}
+RSRootRenderNode::~RSRootRenderNode()
+{
+    MemoryTrack::Instance().RemoveNodeRecord(GetId());
+}
 
 void RSRootRenderNode::AttachRSSurfaceNode(NodeId surfaceNodeId)
 {

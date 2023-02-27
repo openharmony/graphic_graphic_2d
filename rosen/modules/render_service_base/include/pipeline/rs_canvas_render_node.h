@@ -18,6 +18,7 @@
 #include <memory>
 #include <unordered_set>
 
+#include "memory/MemoryTrack.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_node.h"
 

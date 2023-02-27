@@ -19,7 +19,9 @@
 #include "modifier/rs_modifier_type.h"
 
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_common_def.h"
 #include "include/core/SkCanvas.h"
+#include "memory/MemoryTrack.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
@@ -32,9 +34,16 @@ namespace {
 constexpr PropertyId ANONYMOUS_MODIFIER_ID = 0;
 }
 
-RSCanvasRenderNode::RSCanvasRenderNode(NodeId id, std::weak_ptr<RSContext> context) : RSRenderNode(id, context) {}
+RSCanvasRenderNode::RSCanvasRenderNode(NodeId id, std::weak_ptr<RSContext> context) : RSRenderNode(id, context)
+{
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+}
 
-RSCanvasRenderNode::~RSCanvasRenderNode() {}
+RSCanvasRenderNode::~RSCanvasRenderNode()
+{
+    MemoryTrack::Instance().RemoveNodeRecord(GetId());
+}
 
 void RSCanvasRenderNode::UpdateRecording(std::shared_ptr<DrawCmdList> drawCmds, RSModifierType type)
 {

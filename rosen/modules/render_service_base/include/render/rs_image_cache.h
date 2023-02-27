@@ -16,13 +16,16 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_CACHE_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_CACHE_H
 
-#include <mutex>
 #include <unordered_map>
 #include "include/core/SkImage.h"
 
+//#include "common/rs_macros.h"
+#include "memory/DfxString.h"
+#include "memory/MemoryTrack.h"
+
 namespace OHOS {
 namespace Rosen {
-class RSImageCache {
+class RSB_EXPORT RSImageCache {
 public:
     static RSImageCache& Instance();
 
@@ -38,7 +41,6 @@ private:
     RSImageCache(const RSImageCache&&) = delete;
     RSImageCache& operator=(const RSImageCache&) = delete;
     RSImageCache& operator=(const RSImageCache&&) = delete;
-
     mutable std::mutex mutex_;
     std::unordered_map<uint64_t, sk_sp<SkImage>> skiaImageCache_;
 };

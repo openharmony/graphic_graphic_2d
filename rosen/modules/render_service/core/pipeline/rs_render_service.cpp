@@ -377,8 +377,8 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
         }).wait();
     }
     if (argSets.count(arg11)) {
-        mainThread_->ScheduleTask([this, &dumpString]() {
-            return mainThread_->DumpMem(dumpString);
+        mainThread_->ScheduleTask([this, &argSets, &dumpString]() {
+            return mainThread_->DumpMem(argSets, dumpString);
         }).wait();
     }
     if (auto iter = argSets.find(arg12) != argSets.end()) {
