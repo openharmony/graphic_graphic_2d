@@ -384,16 +384,13 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
         return;
     }
 
-    canvas_->save();
-    canvas_->SaveAlpha();
+    RSAutoCanvasRestore acr(canvas_);
     canvas_->MultiplyAlpha(node.GetRenderProperties().GetAlpha() * node.GetContextAlpha());
     if (isDisplayNode_) {
         CaptureSurfaceInDisplayWithUni(node);
     } else {
         CaptureSingleSurfaceNodeWithUni(node);
     }
-    canvas_->RestoreAlpha();
-    canvas_->restore();
 }
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
@@ -411,9 +408,8 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessRootRenderNode(RSRoot
         return;
     }
 
-    canvas_->save();
+    SkAutoCanvasRestore acr(canvas_.get(), true);
     ProcessCanvasRenderNode(node);
-    canvas_->restore();
 }
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
@@ -453,10 +449,9 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
         RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni: \
             process RSSurfaceRenderNode(id:[%" PRIu64 "]) clear white since it is security layer.",
             node.GetId());
-        canvas_->save();
+        SkAutoCanvasRestore acr(canvas_.get(), true);
         canvas_->concat(translateMatrix);
         canvas_->clear(SK_ColorWHITE);
-        canvas_->restore();
         return;
     }
 
@@ -471,14 +466,13 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
             renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
         }
     } else {
-        canvas_->save();
+        SkAutoCanvasRestore acr(canvas_.get(), true);
         canvas_->concat(translateMatrix);
         if (node.GetBuffer() != nullptr) {
             // in node's local coordinate.
             auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
             renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
         }
-        canvas_->restore();
     }
 }
 

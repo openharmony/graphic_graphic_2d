@@ -159,6 +159,7 @@ public:
     void SetShadowElevation(float elevation);
     void SetShadowRadius(float radius);
     void SetShadowPath(const std::shared_ptr<RSPath>& shadowPath);
+    void SetShadowMask(bool shadowMask);
 
     void SetFrameGravity(Gravity gravity);
 

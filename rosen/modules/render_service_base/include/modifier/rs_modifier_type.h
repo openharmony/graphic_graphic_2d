@@ -73,6 +73,8 @@ enum class RSModifierType : int16_t {
     SHADOW_ELEVATION,
     SHADOW_RADIUS,
     SHADOW_PATH,
+    SHADOW_MASK,
+
     MASK,
     SPHERIZE,
 

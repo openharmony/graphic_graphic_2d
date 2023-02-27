@@ -727,6 +727,11 @@ void RSNode::SetShadowPath(const std::shared_ptr<RSPath>& shadowPath)
     SetProperty<RSShadowPathModifier, RSProperty<std::shared_ptr<RSPath>>>(RSModifierType::SHADOW_PATH, shadowPath);
 }
 
+void RSNode::SetShadowMask(bool shadowMask)
+{
+    SetProperty<RSShadowMaskModifier, RSProperty<bool>>(RSModifierType::SHADOW_MASK, shadowMask);
+}
+
 void RSNode::SetFrameGravity(Gravity gravity)
 {
     SetProperty<RSFrameGravityModifier, RSProperty<Gravity>>(RSModifierType::FRAME_GRAVITY, gravity);

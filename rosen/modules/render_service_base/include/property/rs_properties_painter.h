@@ -48,6 +48,8 @@ public:
     static SkColor CalcAverageColor(sk_sp<SkImage> imageSnapshot);
 private:
     inline static int g_blurCnt = 0;
+    static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
+    static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
 };
 } // namespace Rosen
 } // namespace OHOS

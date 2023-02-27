@@ -723,6 +723,15 @@ void RSProperties::SetShadowPath(std::shared_ptr<RSPath> shadowPath)
     SetDirty();
 }
 
+void RSProperties::SetShadowMask(bool shadowMask)
+{
+    if (shadow_ == nullptr) {
+        shadow_ = std::make_unique<RSShadow>();
+    }
+    shadow_->SetMask(shadowMask);
+    SetDirty();
+}
+
 Color RSProperties::GetShadowColor() const
 {
     return shadow_ ? shadow_->GetColor() : Color::FromArgbInt(DEFAULT_SPOT_COLOR);
@@ -756,6 +765,11 @@ float RSProperties::GetShadowRadius() const
 std::shared_ptr<RSPath> RSProperties::GetShadowPath() const
 {
     return shadow_ ? shadow_->GetPath() : nullptr;
+}
+
+bool RSProperties::GetShadowMask() const
+{
+    return shadow_ ? shadow_->GetMask() : false;
 }
 
 bool RSProperties::IsShadowValid() const

@@ -55,9 +55,14 @@ void RSShadow::SetRadius(float radius)
     radius_ = radius;
 }
 
-void RSShadow::SetPath(std::shared_ptr<RSPath> path)
+void RSShadow::SetPath(const std::shared_ptr<RSPath>& path)
 {
     path_ = path;
+}
+
+void RSShadow::SetMask(bool mask)
+{
+    imageMask_ = mask;
 }
 
 Color RSShadow::GetColor() const
@@ -90,9 +95,14 @@ float RSShadow::GetRadius() const
     return radius_;
 }
 
-std::shared_ptr<RSPath> RSShadow::GetPath() const
+const std::shared_ptr<RSPath>& RSShadow::GetPath() const
 {
     return path_;
+}
+
+bool RSShadow::GetMask() const
+{
+    return imageMask_;
 }
 
 bool RSShadow::IsValid() const
