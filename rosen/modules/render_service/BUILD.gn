@@ -121,6 +121,7 @@ ohos_shared_library("librender_service") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hicollie_native:libhicollie",
+    "hisysevent_native:libhisysevent",
     "hitrace_native:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
