@@ -104,7 +104,7 @@ bool RSSystemProperties::GetColdStartThreadEnabled()
 
 float RSSystemProperties::GetAnimationScale()
 {
-    return {};
+    return 1.f;
 }
 
 bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
