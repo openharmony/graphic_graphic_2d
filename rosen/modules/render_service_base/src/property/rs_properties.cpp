@@ -26,11 +26,7 @@ namespace OHOS {
 namespace Rosen {
 RSProperties::RSProperties()
 {
-#ifdef ROSEN_OHOS
     boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
-#else
-    boundsGeo_ = std::make_shared<RSObjGeometry>();
-#endif
     frameGeo_ = std::make_shared<RSObjGeometry>();
 }
 
