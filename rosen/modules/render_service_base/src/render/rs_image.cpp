@@ -272,68 +272,106 @@ bool RSImage::Marshalling(Parcel& parcel) const
                    RSMarshallingHelper::Marshalling(parcel, scale_);
     return success;
 }
-RSImage* RSImage::Unmarshalling(Parcel& parcel)
+
+static bool UnmarshallingIdAndSize(Parcel& parcel, uint64_t& uniqueId, int& width, int& height)
 {
-    sk_sp<SkImage> img;
-    sk_sp<SkData> compressData;
-    int width = 0;
-    int height = 0;
-    std::shared_ptr<Media::PixelMap> pixelmap;
-    int fitNum;
-    int repeatNum;
-    SkVector radius[CORNER_SIZE];
-    double scale;
-    uint64_t uniqueId;
     if (!RSMarshallingHelper::Unmarshalling(parcel, uniqueId)) {
-        return nullptr;
+        ROSEN_LOGE("RSImage::Unmarshalling uniqueId fail");
+        return false;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, width)) {
-        return nullptr;
+        ROSEN_LOGE("RSImage::Unmarshalling width fail");
+        return false;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, height)) {
-        return nullptr;
+        ROSEN_LOGE("RSImage::Unmarshalling height fail");
+        return false;
     }
-    img = RSImageCache::Instance().GetSkiaImageCache(uniqueId);
-    RS_TRACE_NAME_FMT("RSImage::Unmarshalling uniqueId:%lu, size:[%d %d], cached:%d",
-        uniqueId, width, height, img != nullptr);
+    return true;
+}
+
+static bool UnmarshallingData(Parcel& parcel, sk_sp<SkData>& compressData, sk_sp<SkImage>& img, const uint64_t uniqueId)
+{
     if (img != nullptr) {
         // match a cached skimage
         if (!RSMarshallingHelper::SkipSkImage(parcel)) {
-            return nullptr;
+            ROSEN_LOGE("RSImage::Unmarshalling SkipSkImage fail");
+            return false;
         }
     } else if (RSMarshallingHelper::Unmarshalling(parcel, img)) {
         // unmarshalling the skimage and cache it
         RSImageCache::Instance().CacheSkiaImage(uniqueId, img);
     } else {
-        return nullptr;
+        ROSEN_LOGE("RSImage::Unmarshalling SkImage fail");
+        return false;
     }
     if (img != nullptr) {
         if (!RSMarshallingHelper::SkipSkData(parcel)) {
-            return nullptr;
+            ROSEN_LOGE("RSImage::Unmarshalling SkipSkData fail");
+            return false;
         }
     } else {
         if (!RSMarshallingHelper::UnmarshallingWithCopy(parcel, compressData)) {
-            return nullptr;
+            ROSEN_LOGE("RSImage::Unmarshalling UnmarshallingWithCopy SkData fail");
+            return false;
         }
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, pixelmap)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, fitNum)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, repeatNum)) {
-        return nullptr;
-    }
-    for (auto i = 0; i < CORNER_SIZE; i++) {
-        if (!RSMarshallingHelper::Unmarshalling(parcel, radius[i])) {
-            return nullptr;
-        }
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, scale)) {
+    return true;
+}
+
+RSImage* RSImage::Unmarshalling(Parcel& parcel)
+{
+    sk_sp<SkImage> img;
+    uint64_t uniqueId;
+    int width;
+    int height;
+    bool unmarshIdAndSize = UnmarshallingIdAndSize(parcel, uniqueId, width, height);
+    if (!unmarshIdAndSize) {
+        ROSEN_LOGE("RSImage::Unmarshalling UnmarshallingIdAndSize fail");
         return nullptr;
     }
 
+    img = RSImageCache::Instance().GetSkiaImageCache(uniqueId);
+    RS_TRACE_NAME_FMT("RSImage::Unmarshalling uniqueId:%lu, size:[%d %d], cached:%d",
+        uniqueId, width, height, img != nullptr);
+    sk_sp<SkData> compressData;
+    bool unmarshData = UnmarshallingData(parcel, compressData, img, uniqueId);
+    if (!unmarshData) {
+        ROSEN_LOGE("RSImage::Unmarshalling UnmarshallingData fail");
+        return nullptr;
+    }
+
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, pixelmap)) {
+        ROSEN_LOGE("RSImage::Unmarshalling pixelmap fail");
+        return nullptr;
+    }
+
+    int fitNum;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, fitNum)) {
+        ROSEN_LOGE("RSImage::Unmarshalling fitNum fail");
+        return nullptr;
+    }
+
+    int repeatNum;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, repeatNum)) {
+        ROSEN_LOGE("RSImage::Unmarshalling repeatNum fail");
+        return nullptr;
+    }
+
+    SkVector radius[CORNER_SIZE];
+    for (auto i = 0; i < CORNER_SIZE; i++) {
+        if (!RSMarshallingHelper::Unmarshalling(parcel, radius[i])) {
+            ROSEN_LOGE("RSImage::Unmarshalling radius fail");
+            return nullptr;
+        }
+    }
+
+    double scale;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, scale)) {
+        ROSEN_LOGE("RSImage::Unmarshalling scale fail");
+        return nullptr;
+    }
     RSImage* rsImage = new RSImage();
     rsImage->SetImage(img);
     rsImage->SetCompressData(compressData, uniqueId, width, height);
@@ -343,7 +381,6 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     rsImage->SetRadius(radius);
     rsImage->SetScale(scale);
     rsImage->uniqueId_ = uniqueId;
-
     return rsImage;
 }
 #endif
