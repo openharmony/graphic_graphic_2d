@@ -337,46 +337,70 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
 {
     auto stretchSize = properties.GetPixelStretch();
     if (stretchSize.IsZero()) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch invalid stretch parameter, zero.");
         return;
     }
-    bool isExpend = true;
-    if (stretchSize.x_ <= 0.f && stretchSize.y_ <= 0.f && stretchSize.z_ <= 0.f && stretchSize.x_ <= 0.f) {
+    bool isExpend = false;
+    if (stretchSize.x_ <= 0.f && stretchSize.y_ <= 0.f && stretchSize.z_ <= 0.f && stretchSize.w_ <= 0.f) {
         isExpend = false;
     }
-    else if (stretchSize.x_ >= 0.f && stretchSize.y_ >= 0.f && stretchSize.z_ >= 0.f && stretchSize.x_ >= 0.f) {
+    else if (stretchSize.x_ >= 0.f && stretchSize.y_ >= 0.f && stretchSize.z_ >= 0.f && stretchSize.w_ >= 0.f) {
         isExpend = true;
     } else {
+        ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch invalid stretch parameter.");
         return;
     }
 
-    std::cout << "stretech Size: ( " << stretchSize.x_ << ", " << stretchSize.y_ << ", " << stretchSize.z_ << ", " << stretchSize.w_ << ")" << std::endl; 
+    ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch stretch parameter(%f, %f, %f, %f).", stretchSize.x_, stretchSize.y_, stretchSize.z_, stretchSize.w_);
     auto skSurface = canvas.GetSurface();
     if (skSurface == nullptr) {
         ROSEN_LOGD("RSPropertiesPainter::DrawPixelStretch skSurface null");
         return;
     }
-    auto imageSnapshot = skSurface->makeImageSnapshot(canvas.getDeviceClipBounds());
+
+    
+    ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch set clipBounds(%f, %f, %f, %f).", properties.GetBoundsRect().data_[0], properties.GetBoundsRect().data_[1], properties.GetBoundsRect().data_[2], properties.GetBoundsRect().data_[3]);
+    
+   canvas.save();
+   auto bounds = RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect());
+    ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch bounds parameter(%f, %f, %f, %f).", bounds.left(), bounds.top(), bounds.right(), bounds.bottom());
+
+   canvas.clipRect(bounds);
+   auto clipIBounds = canvas.getDeviceClipBounds();
+   auto clipBounds = SkRect::Make(clipIBounds); 
+   canvas.restore();
+
+   ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch device clipBounds(%f, %f, %f, %f).", clipBounds.left(), clipBounds.top(), clipBounds.right(), clipBounds.bottom());
+    auto imageSnapshot = skSurface->makeImageSnapshot(clipIBounds);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch image null");
         return;
     }
 
     // calculate rect size
-    auto clipBounds = SkRect::Make(canvas.getDeviceClipBounds());
+
+    auto scaledBounds = SkRect::MakeLTRB(bounds.left() - stretchSize.x_, bounds.top() - stretchSize.y_,
+        bounds.right() + stretchSize.z_, bounds.bottom() + stretchSize.w_);
+
+    ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch scaledBounds parameter(%f, %f, %f, %f).", scaledBounds.left(), scaledBounds.top(), scaledBounds.right(), scaledBounds.bottom());
+/*
     auto scaledBounds = SkRect::MakeLTRB(clipBounds.left() - stretchSize.x_, clipBounds.top() - stretchSize.y_,
         clipBounds.right() + stretchSize.z_, clipBounds.bottom() + stretchSize.w_);
-
+*/
     SkPaint paint;
     if (isExpend) {
         paint.setShader(imageSnapshot->makeShader(SkTileMode::kClamp, SkTileMode::kClamp));
-        canvas.drawRect(scaledBounds, paint);
+        canvas.drawRect(SkRect::MakeXYWH(-stretchSize.x_, -stretchSize.y_, scaledBounds.width(), scaledBounds.height()), paint);
     } else {
         SkBitmap bitmap;
         bitmap.allocN32Pixels(scaledBounds.width(), scaledBounds.height());
         auto tempCanvas = std::make_unique<SkCanvas>(bitmap);
         tempCanvas->drawImage(imageSnapshot.get(), 0, 0);
         paint.setShader(bitmap.makeShader(SkTileMode::kClamp, SkTileMode::kClamp));
-        canvas.drawRect(clipBounds, paint);
+        canvas.save();
+        canvas.translate(-stretchSize.x_, -stretchSize.y_);
+        canvas.drawRect(SkRect::MakeXYWH(stretchSize.x_, stretchSize.y_, bounds.width(), bounds.height()), paint);
+        canvas.restore();
     }
 }
 
