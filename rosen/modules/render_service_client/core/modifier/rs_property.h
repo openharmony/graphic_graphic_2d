@@ -347,6 +347,10 @@ public:
         return RSProperty<T>::stagingValue_;
     }
 
+    void SetUpdateCallback(const std::function<void(T)>& updateCallback) {
+        updateUIAnimationValue_ = updateCallback;
+    }
+
 protected:
     void UpdateOnAllAnimationFinish() override
     {
@@ -383,6 +387,9 @@ protected:
         auto renderProperty = std::static_pointer_cast<const RSRenderProperty<T>>(property);
         if (renderProperty != nullptr) {
             showingValue_ = renderProperty->Get();
+            if (updateUIAnimationValue_) {
+                updateUIAnimationValue_(showingValue_);
+            }
             RSProperty<T>::MarkModifierDirty();
         }
     }
@@ -432,6 +439,7 @@ protected:
     std::shared_ptr<RSRenderAnimatableProperty<T>> renderProperty_;
     int runningPathNum_ { 0 };
     std::shared_ptr<RSMotionPathOption> motionPathOption_ {};
+    std::function<void(T)> updateUIAnimationValue_;
 
 private:
     RSRenderPropertyType GetPropertyType() const override
