@@ -75,12 +75,11 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     auto screenNum = screenManager->GetAllScreenIds().size();
     isPartialRenderEnabled_ = (screenNum <= 1) && (partialRenderType_ != PartialRenderType::DISABLED);
-    isDirtyRegionDfxEnabled_ = (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::EGL_DAMAGE);
     isTargetDirtyRegionDfxEnabled_ = RSSystemProperties::GetTargetDirtyRegionDfxEnabled(dfxTargetSurfaceNames_);
+    dirtyRegionDebugType_ = RSSystemProperties::GetDirtyRegionDebugType();
+    isDirtyRegionDfxEnabled_ = !isTargetDirtyRegionDfxEnabled_ &&
+        (dirtyRegionDebugType_ == DirtyRegionDebugType::EGL_DAMAGE);
     isOpaqueRegionDfxEnabled_ = RSSystemProperties::GetOpaqueRegionDfxEnabled();
-    if (isDirtyRegionDfxEnabled_ && isTargetDirtyRegionDfxEnabled_) {
-        isDirtyRegionDfxEnabled_ = false;
-    }
     isOcclusionEnabled_ = RSSystemProperties::GetOcclusionEnabled();
     isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE)
         && (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_ && !isOpaqueRegionDfxEnabled_);
@@ -152,6 +151,11 @@ void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
     if (curSurfaceDirtyManager_ && node.HasRemovedChild()) {
         RectI dirtyRect = prepareClipRect_.IntersectRect(node.GetChildrenRect());
         curSurfaceDirtyManager_->MergeDirtyRect(dirtyRect);
+        if (curSurfaceDirtyManager_->IsTargetForDfx()) {
+            // since childRect includes multiple rects, defaultly marked as canvas_node
+            curSurfaceDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::CANVAS_NODE,
+                DirtyRegionType::REMOVE_CHILD_RECT, dirtyRect);
+        }
         node.ResetHasRemovedChild();
     }
 
@@ -440,6 +444,9 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         curSurfaceDirtyManager_ = node.GetDirtyManager();
         curSurfaceDirtyManager_->Clear();
         curSurfaceDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
+        if (isTargetDirtyRegionDfxEnabled_ && CheckIfSurfaceTargetedForDFX(node.GetName())) {
+            curSurfaceDirtyManager_->MarkAsTargetForDfx();
+        }
     }
     // [planning] IsMainWindowType should contain ABILITY_COMPONENT_NODE
     // this branch should be included in other judgment
@@ -690,6 +697,10 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         // the whole oldDirtyRect should be render in this vsync.
         // Partical rendering of node with filter would cause display problem.
         curSurfaceNode_->UpdateChildrenFilterRects(node.GetOldDirtyInSurface());
+        if (curSurfaceDirtyManager_ && curSurfaceDirtyManager_->IsTargetForDfx()) {
+            curSurfaceDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::CANVAS_NODE,
+                DirtyRegionType::FILTER_RECT, node.GetOldDirtyInSurface());
+        }
     }
     curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
@@ -723,12 +734,11 @@ void RSUniRenderVisitor::CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisit
 void RSUniRenderVisitor::DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
     const SkPaint::Style fillType, float alpha, int edgeWidth = 6)
 {
-    ROSEN_LOGD("DrawDirtyRectForDFX current dirtyRect = [%d, %d, %d, %d]", dirtyRect.left_, dirtyRect.top_,
-        dirtyRect.width_, dirtyRect.height_);
     if (dirtyRect.width_ <= 0 || dirtyRect.height_ <= 0) {
         ROSEN_LOGD("DrawDirtyRectForDFX dirty rect is invalid.");
         return;
     }
+    ROSEN_LOGD("DrawDirtyRectForDFX current dirtyRect = %s", dirtyRect.ToString().c_str());
     auto skRect = SkRect::MakeXYWH(dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
     std::string position = std::to_string(dirtyRect.left_) + ',' + std::to_string(dirtyRect.top_) + ',' +
         std::to_string(dirtyRect.width_) + ',' + std::to_string(dirtyRect.height_);
@@ -790,8 +800,10 @@ void RSUniRenderVisitor::DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode&
         if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
             continue;
         }
-        if (std::find(dfxTargetSurfaceNames_.begin(), dfxTargetSurfaceNames_.end(),
-            surfaceNode->GetName()) != dfxTargetSurfaceNames_.end()) {
+        if (CheckIfSurfaceTargetedForDFX(surfaceNode->GetName())) {
+            if (DrawDetailedTypesOfDirtyRegionForDFX(*surfaceNode)) {
+                continue;
+            }
             auto visibleDirtyRegions = surfaceNode->GetVisibleDirtyRegion().GetRegionRects();
             std::vector<RectI> rects;
             for (auto rect : visibleDirtyRegions) {
@@ -807,6 +819,64 @@ void RSUniRenderVisitor::DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode&
             DrawDirtyRegionForDFX(rects);
         }
     }
+}
+
+void RSUniRenderVisitor::DrawAndTraceSingleDirtyRegionTypeForDFX(RSSurfaceRenderNode& node,
+    DirtyRegionType dirtyType, bool isDrawn)
+{
+    auto dirtyManager = node.GetDirtyManager();
+    auto matchType = DIRTY_REGION_TYPE_MAP.find(dirtyType);
+    if (dirtyManager == nullptr ||  matchType == DIRTY_REGION_TYPE_MAP.end()) {
+        return;
+    }
+    std::map<NodeId, RectI> dirtyInfo;
+    float fillAlpha = 0.2;
+    std::map<RSRenderNodeType, std::pair<std::string, SkColor>> nodeConfig = {
+        {RSRenderNodeType::CANVAS_NODE, std::make_pair("canvas", SK_ColorRED)},
+        {RSRenderNodeType::SURFACE_NODE, std::make_pair("surface", SK_ColorGREEN)},
+    };
+
+    std::string subInfo;
+    for (const auto& [nodeType, info] : nodeConfig) {
+        dirtyManager->GetDirtyRegionInfo(dirtyInfo, nodeType, dirtyType);
+        subInfo += (" " + info.first + "node amount: " + std::to_string(dirtyInfo.size()));
+        for (const auto& [nid, rect] : dirtyInfo) {
+            if (isDrawn) {
+                DrawDirtyRectForDFX(rect, info.second, SkPaint::kStroke_Style, fillAlpha);
+            }
+        }
+    }
+    RS_TRACE_NAME("DrawAndTraceSingleDirtyRegionTypeForDFX target surface node " + node.GetName() + " - id[" +
+        std::to_string(node.GetId()) + "] has dirtytype " + matchType->second + subInfo);
+    ROSEN_LOGD("DrawAndTraceSingleDirtyRegionTypeForDFX target surface node %s, id[%" PRIu64 "] has dirtytype %s%s",
+        node.GetName().c_str(), node.GetId(), matchType->second.c_str(), subInfo.c_str());
+}
+
+bool RSUniRenderVisitor::DrawDetailedTypesOfDirtyRegionForDFX(RSSurfaceRenderNode& node)
+{
+    if (dirtyRegionDebugType_ < DirtyRegionDebugType::CUR_DIRTY_DETAIL_ONLY_TRACE) {
+        return false;
+    }
+    if (dirtyRegionDebugType_ == DirtyRegionDebugType::CUR_DIRTY_DETAIL_ONLY_TRACE) {
+        auto i = DirtyRegionType::UPDATE_DIRTY_REGION;
+        for (; i < DirtyRegionType::TYPE_AMOUNT; i = (DirtyRegionType)(i + 1)) {
+            DrawAndTraceSingleDirtyRegionTypeForDFX(node, i, false);
+        }
+        return true;
+    }
+    const std::map<DirtyRegionDebugType, DirtyRegionType> DIRTY_REGION_DEBUG_TYPE_MAP {
+        { DirtyRegionDebugType::UPDATE_DIRTY_REGION, DirtyRegionType::UPDATE_DIRTY_REGION },
+        { DirtyRegionDebugType::OVERLAY_RECT, DirtyRegionType::OVERLAY_RECT },
+        { DirtyRegionDebugType::FILTER_RECT, DirtyRegionType::FILTER_RECT },
+        { DirtyRegionDebugType::SHADOW_RECT, DirtyRegionType::SHADOW_RECT },
+        { DirtyRegionDebugType::PREPARE_CLIP_RECT, DirtyRegionType::PREPARE_CLIP_RECT },
+        { DirtyRegionDebugType::REMOVE_CHILD_RECT, DirtyRegionType::REMOVE_CHILD_RECT },
+    };
+    auto matchType = DIRTY_REGION_DEBUG_TYPE_MAP.find(dirtyRegionDebugType_);
+    if (matchType != DIRTY_REGION_DEBUG_TYPE_MAP.end()) {
+        DrawAndTraceSingleDirtyRegionTypeForDFX(node, matchType->second);
+    }
+    return true;
 }
 
 void RSUniRenderVisitor::DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node)

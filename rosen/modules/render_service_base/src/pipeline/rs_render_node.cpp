@@ -121,10 +121,11 @@ void RSRenderNode::UpdateDirtyRegion(
     if (!ShouldPaint() && isLastVisible_) {
         ROSEN_LOGD("RSRenderNode:: id %" PRIu64 " UpdateDirtyRegion visible->invisible", GetId());
     } else {
-        auto dirtyRect = renderProperties_.GetDirtyRect();
+        RectI overlayRect;
+        RectI shadowDirty;
+        auto dirtyRect = renderProperties_.GetDirtyRect(overlayRect);
         if (renderProperties_.IsShadowValid()) {
             SetShadowValidLastFrame(true);
-            RectI shadowDirty;
             if (IsInstanceOf<RSSurfaceRenderNode>()) {
                 const RectF absBounds = {0, 0, renderProperties_.GetBoundsWidth(), renderProperties_.GetBoundsHeight()};
                 RRect absClipRRect = RRect(absBounds, renderProperties_.GetCornerRadius());
@@ -145,6 +146,18 @@ void RSRenderNode::UpdateDirtyRegion(
             isDirtyRegionUpdated_ = true;
             oldDirty_ = dirtyRect;
             oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
+            // save types of dirty region of target dirty manager for dfx
+            if (dirtyManager.IsTargetForDfx() &&
+                (GetType() == RSRenderNodeType::CANVAS_NODE || GetType() == RSRenderNodeType::SURFACE_NODE)) {
+                dirtyManager.UpdateDirtyRegionInfoForDfx(
+                    GetId(), GetType(), DirtyRegionType::UPDATE_DIRTY_REGION, oldDirtyInSurface_);
+                dirtyManager.UpdateDirtyRegionInfoForDfx(
+                    GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, overlayRect);
+                dirtyManager.UpdateDirtyRegionInfoForDfx(
+                    GetId(), GetType(), DirtyRegionType::SHADOW_RECT, shadowDirty);
+                dirtyManager.UpdateDirtyRegionInfoForDfx(
+                    GetId(), GetType(), DirtyRegionType::PREPARE_CLIP_RECT, clipRect);
+            }
         }
     }
     SetClean();

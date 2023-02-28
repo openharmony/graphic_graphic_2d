@@ -97,6 +97,17 @@ private:
     void DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node);
     void DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& node);
     void DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node);
+    // check if surface name is in dfx target list
+    inline bool CheckIfSurfaceTargetedForDFX(std::string nodeName)
+    {
+        return (std::find(dfxTargetSurfaceNames_.begin(), dfxTargetSurfaceNames_.end(),
+            nodeName) != dfxTargetSurfaceNames_.end());
+    }
+
+    bool DrawDetailedTypesOfDirtyRegionForDFX(RSSurfaceRenderNode& node);
+    void DrawAndTraceSingleDirtyRegionTypeForDFX(RSSurfaceRenderNode& node,
+        DirtyRegionType dirtyType, bool isDrawn = true);
+
     std::vector<RectI> GetDirtyRects(const Occlusion::Region &region);
     /* calculate display/global (between windows) level dirty region, current include:
      * 1. window move/add/remove 2. transparent dirty region
@@ -175,6 +186,7 @@ private:
     bool isOcclusionEnabled_ = false;
     std::vector<std::string> dfxTargetSurfaceNames_;
     PartialRenderType partialRenderType_;
+    DirtyRegionDebugType dirtyRegionDebugType_;
     bool isDirty_ = false;
     bool needFilter_ = false;
     ColorGamut newColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;

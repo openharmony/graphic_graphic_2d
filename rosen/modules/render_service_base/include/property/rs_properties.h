@@ -219,6 +219,8 @@ private:
     RRect GetRRect() const;
     RRect GetInnerRRect() const;
     RectI GetDirtyRect() const;
+    // added for update dirty region dfx
+    RectI GetDirtyRect(RectI& overlayRect) const;
 
     bool visible_ = true;
     bool clipToBounds_ = false;

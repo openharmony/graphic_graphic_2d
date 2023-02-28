@@ -971,6 +971,31 @@ RectI RSProperties::GetDirtyRect() const
     }
 }
 
+RectI RSProperties::GetDirtyRect(RectI& overlayRect) const
+{
+    RectI dirtyRect;
+    auto boundsGeometry = std::static_pointer_cast<RSObjAbsGeometry>(boundsGeo_);
+    if (clipToBounds_ || std::isinf(GetFrameWidth()) || std::isinf(GetFrameHeight())) {
+        dirtyRect = boundsGeometry->GetAbsRect();
+    } else {
+        auto frameRect =
+            boundsGeometry->MapAbsRect(RectF(GetFrameOffsetX(), GetFrameOffsetY(), GetFrameWidth(), GetFrameHeight()));
+        dirtyRect = boundsGeometry->GetAbsRect().JoinRect(frameRect);
+    }
+    if (overlayRect_ == nullptr || overlayRect_->IsEmpty()) {
+        overlayRect = RectI();
+        return dirtyRect;
+    } else {
+        overlayRect = boundsGeometry->MapAbsRect(overlayRect_->ConvertTo<float>());
+        // this is used to fix the scene with overlayRect problem, which is need to be optimized
+        overlayRect.SetRight(overlayRect.GetRight() + 1);
+        overlayRect.SetBottom(overlayRect.GetBottom() + 1);
+        overlayRect.SetAll(overlayRect.left_ - 1, overlayRect.top_ - 1,
+            overlayRect.width_ + 1, overlayRect.height_ + 1);
+        return dirtyRect.JoinRect(overlayRect);
+    }
+}
+
 void RSProperties::CheckEmptyBounds()
 {
     // [planning] remove this func and fallback to framerect after surfacenode using frame
