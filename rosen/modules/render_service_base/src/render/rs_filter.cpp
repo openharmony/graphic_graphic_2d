@@ -35,20 +35,12 @@ std::shared_ptr<RSFilter> RSFilter::CreateBlurFilter(float blurRadiusX, float bl
 
 std::shared_ptr<RSFilter> RSFilter::CreateMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode)
 {
-#ifdef ROSEN_OHOS
     return std::make_shared<RSMaterialFilter>(style, dipScale, mode);
-#else
-    return nullptr;
-#endif
 }
 
 std::shared_ptr<RSFilter> RSFilter::CreateLightUpEffectFilter(float lightUpDegree)
 {
-#ifdef ROSEN_OHOS
     return std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
-#else
-    return nullptr;
-#endif
 }
 
 std::shared_ptr<RSFilter> operator+(const std::shared_ptr<RSFilter>& lhs, const std::shared_ptr<RSFilter>& rhs)
