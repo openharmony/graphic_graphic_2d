@@ -156,11 +156,10 @@ namespace OHOS {
         bool isShared = GetData<bool>();
         uint32_t seqNum = GetData<uint32_t>();
         BufferRequestConfig requestConfig = GetData<BufferRequestConfig>();
-        OHOS::Rect rect = GetData<OHOS::Rect>();
-        int64_t timestamp = GetData<int64_t>();
-        BufferFlushConfig flushConfig = { .damage = rect, .timestamp = timestamp, };
+        BufferFlushConfig flushConfig = GetData<BufferFlushConfig>();
         uint32_t sequence = GetData<uint32_t>();
-        std::vector<Rect> damages;
+        int64_t timestamp = GetData<int64_t>();
+        Rect damage = GetData<Rect>();
 
         // test
         sptr<BufferQueue> bufferqueue = new BufferQueue(name, isShared);
@@ -174,7 +173,7 @@ namespace OHOS {
         sptr<SyncFence> syncFence = SyncFence::INVALID_FENCE;
         bufferqueue->FlushBuffer(sequence, bedata, syncFence, flushConfig);
         bufferqueue->DoFlushBuffer(sequence, bedata, syncFence, flushConfig);
-        bufferqueue->AcquireBuffer(buffer, syncFence, timestamp, damages);
+        bufferqueue->AcquireBuffer(buffer, syncFence, timestamp, damage);
         bufferqueue->ReleaseBuffer(buffer, syncFence);
         bufferqueue->AttachBuffer(buffer);
         bufferqueue->DetachBuffer(buffer);

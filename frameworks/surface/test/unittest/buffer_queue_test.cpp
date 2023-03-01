@@ -45,7 +45,7 @@ public:
         },
     };
     static inline int64_t timestamp = 0;
-    static inline std::vector<Rect> damages = {};
+    static inline Rect damage = {};
     static inline sptr<BufferQueue> bq = nullptr;
     static inline std::map<int32_t, sptr<SurfaceBuffer>> cache;
     static inline sptr<BufferExtraData> bedata = nullptr;
@@ -151,7 +151,7 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel001, Function | MediumTest | Level2)
     ret = bq->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damages);
+    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(retval.buffer, nullptr);
 
@@ -256,7 +256,7 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel005, Function | MediumTest | Level2)
     sptr<SurfaceBuffer> buffer;
 
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
-    GSError ret = bq->AcquireBuffer(buffer, acquireFence, timestamp, damages);
+    GSError ret = bq->AcquireBuffer(buffer, acquireFence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     sptr<SyncFence> ReleaseFence = SyncFence::INVALID_FENCE;
@@ -358,7 +358,7 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel008, Function | MediumTest | Level2)
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
 
     // acq from last test
-    GSError ret = bq->AcquireBuffer(buffer, acquireFence, timestamp, damages);
+    GSError ret = bq->AcquireBuffer(buffer, acquireFence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     uint32_t sequence;

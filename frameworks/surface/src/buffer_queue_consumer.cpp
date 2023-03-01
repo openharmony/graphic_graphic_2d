@@ -29,12 +29,12 @@ BufferQueueConsumer::~BufferQueueConsumer()
 }
 
 GSError BufferQueueConsumer::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
-    int64_t &timestamp, std::vector<Rect> &damages)
+    int64_t &timestamp, Rect &damage)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
-    return bufferQueue_->AcquireBuffer(buffer, fence, timestamp, damages);
+    return bufferQueue_->AcquireBuffer(buffer, fence, timestamp, damage);
 }
 
 GSError BufferQueueConsumer::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence)
