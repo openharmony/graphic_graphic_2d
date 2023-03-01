@@ -55,7 +55,7 @@ void RSVsyncClientWindows::VsyncThreadMain()
 {
     while (running_) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        int64_t now = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
         if (having_.load()) {
             having_ = false;
