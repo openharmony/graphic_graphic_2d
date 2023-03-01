@@ -123,6 +123,11 @@ void GlfwRenderContext::WaitForEvents()
     glfwWaitEvents();
 }
 
+void GlfwRenderContext::PollEvents()
+{
+    glfwPollEvents();
+}
+
 void GlfwRenderContext::GetWindowSize(int32_t &width, int32_t &height)
 {
     glfwGetWindowSize(window_, &width, &height);

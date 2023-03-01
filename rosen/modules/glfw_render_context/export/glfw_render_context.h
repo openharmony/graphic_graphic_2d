@@ -44,6 +44,7 @@ public:
     /* window operation */
     int WindowShouldClose();
     void WaitForEvents();
+    void PollEvents();
     void GetWindowSize(int32_t &width, int32_t &height);
     void SetWindowSize(int32_t width, int32_t height);
     void SetWindowTitle(const std::string &title);
