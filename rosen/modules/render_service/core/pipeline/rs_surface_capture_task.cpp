@@ -306,7 +306,10 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
         return;
     }
 
-    canvas_->save();
+    bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
+    if (isSelfDrawingSurface) {
+        canvas_->save();
+    }
 
     if (node.IsAppWindow()) {
         // When CaptureSingleSurfaceNodeWithUni, we should consider scale factor of canvas_ and
@@ -325,7 +328,6 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
         canvas_->concat(geoPtr->GetAbsMatrix());
     }
 
-    bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
     const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     if (isSelfDrawingSurface) {
@@ -374,7 +376,10 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
             RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
         }
     }
-    canvas_->restore();
+
+    if (isSelfDrawingSurface) {
+        canvas_->restore();
+    }
     if (node.IsAppWindow() && RSColdStartManager::Instance().IsColdStartThreadRunning(node.GetId()) &&
         node.GetCachedImage() != nullptr) {
         RS_LOGD("RSSurfaceCaptureVisitor DrawCachedImage");
@@ -392,8 +397,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
             node.GetId());
         return;
     }
-    bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE ||
-        node.IsAbilityComponent();
+    bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (!isSelfDrawingSurface) {
         canvas_->concat(node.GetContextMatrix());
         auto contextClipRect = node.GetContextClipRegion();
