@@ -47,7 +47,7 @@
 #include <unistd.h>
 #include "accessibility_config.h"
 #include "frame_collector.h"
-#include "frame_trace.h"
+#include "render_frame_trace.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
 
 static const std::string RT_INTERVAL_NAME = "renderthread";
@@ -91,22 +91,18 @@ RSRenderThread::RSRenderThread()
             renderStartTimeStamp = jankDetector_->GetSysTimeNs();
         }
         RS_TRACE_BEGIN("RSRenderThread DrawFrame: " + std::to_string(timestamp_));
-        if (RSSystemProperties::FrameTraceEnabled()) {
 #ifdef ROSEN_OHOS
-            FRAME_TRACE::QuickStartFrameTrace(RT_INTERVAL_NAME);
+        FRAME_TRACE::RenderFrameTrace::GetInstance().RenderStartFrameTrace(RT_INTERVAL_NAME);
 #endif
-        }
         prevTimestamp_ = timestamp_;
         ProcessCommands();
         ROSEN_LOGD("RSRenderThread DrawFrame(%" PRIu64 ") in %s", prevTimestamp_, renderContext_ ? "GPU" : "CPU");
         Animate(prevTimestamp_);
         Render();
         SendCommands();
-        if (RSSystemProperties::FrameTraceEnabled()) {
 #ifdef ROSEN_OHOS
-            FRAME_TRACE::QuickEndFrameTrace(RT_INTERVAL_NAME);
+        FRAME_TRACE::RenderFrameTrace::GetInstance().RenderEndFrameTrace(RT_INTERVAL_NAME);
 #endif
-        }
         if (needRender_) {
             jankDetector_->CalculateSkippedFrame(renderStartTimeStamp, jankDetector_->GetSysTimeNs());
         }

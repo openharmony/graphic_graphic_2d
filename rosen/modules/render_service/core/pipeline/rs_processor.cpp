@@ -21,7 +21,7 @@
 #include "rs_main_thread.h"
 #include "socperf_client.h"
 #ifdef FRAME_AWARE_TRACE
-#include "frame_trace.h"
+#include "render_frame_trace.h"
 
 using namespace FRAME_TRACE;
 #endif
@@ -48,9 +48,10 @@ constexpr int32_t FRAME_TRACE_PERF_REQUESTED_CODE = 10024;
 #ifdef FRAME_AWARE_TRACE
 bool RSProcessor::FrameAwareTraceBoost(size_t layerNum)
 {
+    RenderFrameTrace& ft = RenderFrameTrace::GetInstance();
     if (layerNum != FRAME_TRACE_LAYER_NUM_1 && layerNum != FRAME_TRACE_LAYER_NUM_2) {
-        if (FrameAwareTraceIsOpen()) {
-            FrameAwareTraceClose();
+        if (ft.RenderFrameTraceIsOpen()) {
+            ft.RenderFrameTraceClose();
             OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(FRAME_TRACE_PERF_REQUESTED_CODE, false, "");
             RS_LOGI("RsDebug RSProcessor::Perf: FrameTrace 0");
         }
@@ -61,8 +62,8 @@ bool RSProcessor::FrameAwareTraceBoost(size_t layerNum)
     auto currentTime = std::chrono::steady_clock::now();
     bool isTimeOut = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastRequestPerfTime).
         count() > PERF_TIME_OUT;
-    if (isTimeOut || !FrameAwareTraceIsOpen()) {
-        if (!FrameAwareTraceOpen()) {
+    if (isTimeOut || !ft.RenderFrameTraceIsOpen()) {
+        if (!ft.RenderFrameTraceOpen()) {
             return false;
         }
         OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(FRAME_TRACE_PERF_REQUESTED_CODE, true, "");
@@ -169,10 +170,8 @@ void RSProcessor::CalculateMirrorAdaptiveCoefficient(float curWidth, float curHe
 void RSProcessor::MultiLayersPerf(size_t layerNum)
 {
 #ifdef FRAME_AWARE_TRACE
-    if (RSSystemProperties::FrameTraceEnabled()) {
-        if (FrameAwareTraceBoost(layerNum)) {
-            return;
-        }
+    if (FrameAwareTraceBoost(layerNum)) {
+        return;
     }
 #endif
     static uint32_t lastLayerLevel = 0;
