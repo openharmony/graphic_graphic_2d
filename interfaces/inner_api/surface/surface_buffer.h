@@ -45,9 +45,9 @@ public:
     virtual int32_t GetFileDescriptor() const = 0;
     virtual uint32_t GetSize() const = 0;
 
-    virtual const ColorGamut& GetSurfaceBufferColorGamut() const = 0;
+    virtual const GraphicColorGamut& GetSurfaceBufferColorGamut() const = 0;
     virtual const GraphicTransformType& GetSurfaceBufferTransform() const = 0;
-    virtual void SetSurfaceBufferColorGamut(const ColorGamut& colorGamut) = 0;
+    virtual void SetSurfaceBufferColorGamut(const GraphicColorGamut& colorGamut) = 0;
     virtual void SetSurfaceBufferTransform(const GraphicTransformType& transform) = 0;
 
     virtual int32_t GetSurfaceBufferWidth() const = 0;

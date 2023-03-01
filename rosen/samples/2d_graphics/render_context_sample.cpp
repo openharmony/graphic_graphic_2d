@@ -344,18 +344,18 @@ bool RenderContextSample::FillDrawingLayer(std::shared_ptr<HdiLayerInfo> &showLa
     srcRect.w = drawingWidth;
     srcRect.h = drawingHeight;
 
-    LayerAlpha alpha = { .enPixelAlpha = true };
+    GraphicLayerAlpha alpha = { .enPixelAlpha = true };
 
     showLayer->SetSurface(drawingCSurface);
     showLayer->SetBuffer(cbuffer, acquireSyncFence);
     showLayer->SetZorder(zorder);
     showLayer->SetAlpha(alpha);
     showLayer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
-    showLayer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
+    showLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     showLayer->SetVisibleRegion(1, srcRect);
     showLayer->SetDirtyRegion(srcRect);
     showLayer->SetLayerSize(dstRect);
-    showLayer->SetBlendType(BlendType::BLEND_SRC);
+    showLayer->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRC);
     showLayer->SetCropRect(srcRect);
     showLayer->SetPreMulti(false);
 
@@ -389,17 +389,17 @@ bool RenderContextSample::FillBackGroundLayer(std::shared_ptr<HdiLayerInfo> &sho
     srcRect.w = dstRect.w;
     srcRect.h = dstRect.h;
 
-    LayerAlpha alpha = { .enPixelAlpha = true };
+    GraphicLayerAlpha alpha = { .enPixelAlpha = true };
 
     showLayer->SetSurface(backGroundCSurface);
     showLayer->SetBuffer(cbuffer, acquireSyncFence);
     showLayer->SetZorder(zorder);
     showLayer->SetAlpha(alpha);
-    showLayer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
+    showLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     showLayer->SetVisibleRegion(1, srcRect);
     showLayer->SetDirtyRegion(srcRect);
     showLayer->SetLayerSize(dstRect);
-    showLayer->SetBlendType(BlendType::BLEND_SRC);
+    showLayer->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRC);
     showLayer->SetCropRect(srcRect);
     showLayer->SetPreMulti(false);
 

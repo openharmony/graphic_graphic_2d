@@ -61,7 +61,7 @@ SurfaceError LayerContext::DrawBuffer(TestFunc testFunc)
         .width = src_.w,
         .height = src_.h,
         .strideAlignment = 0x8,
-        .format = PIXEL_FMT_RGBA_8888,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = pSurface_->GetDefaultUsage(),
     };
 
@@ -112,18 +112,18 @@ SurfaceError LayerContext::FillHDILayer()
         return ret;
     }
 
-    LayerAlpha alpha = { .enPixelAlpha = true };
+    GraphicLayerAlpha alpha = { .enPixelAlpha = true };
 
     hdiLayer_->SetSurface(cSurface_);
     auto acquireSyncFence = new SyncFence(acquireFenceFd.Release());
     hdiLayer_->SetBuffer(buffer, acquireSyncFence);
     hdiLayer_->SetZorder(static_cast<int32_t>(zorder_));
     hdiLayer_->SetAlpha(alpha);
-    hdiLayer_->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
+    hdiLayer_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     hdiLayer_->SetVisibleRegion(1, src_);
     hdiLayer_->SetDirtyRegion(src_);
     hdiLayer_->SetLayerSize(dst_);
-    hdiLayer_->SetBlendType(BlendType::BLEND_SRCOVER);
+    hdiLayer_->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
     hdiLayer_->SetCropRect(src_);
     hdiLayer_->SetPreMulti(false);
 

@@ -49,10 +49,10 @@ using BufferElement = struct BufferElement {
     Rect damage;
     ScalingMode scalingMode;
     HDRMetaDataType hdrMetaDataType = HDRMetaDataType::HDR_NOT_USED;
-    std::vector<HDRMetaData> metaData;
-    HDRMetadataKey key;
+    std::vector<GraphicHDRMetaData> metaData;
+    GraphicHDRMetadataKey key;
     std::vector<uint8_t> metaDataSet;
-    PresentTimestamp presentTimestamp = {HARDWARE_DISPLAY_PTS_UNSUPPORTED, 0};
+    GraphicPresentTimestamp presentTimestamp = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
 };
 
 class BufferQueue : public RefBase {
@@ -111,22 +111,22 @@ public:
     GSError SetTransform(GraphicTransformType transform);
     GraphicTransformType GetTransform() const;
 
-    GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+    GSError IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,
                              std::vector<bool> &supporteds) const;
 
     GSError SetScalingMode(uint32_t sequence, ScalingMode scalingMode);
     GSError GetScalingMode(uint32_t sequence, ScalingMode &scalingMode);
-    GSError SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData);
-    GSError SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
+    GSError SetMetaData(uint32_t sequence, const std::vector<GraphicHDRMetaData> &metaData);
+    GSError SetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey key,
                            const std::vector<uint8_t> &metaData);
     GSError QueryMetaDataType(uint32_t sequence, HDRMetaDataType &type);
-    GSError GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData);
-    GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
+    GSError GetMetaData(uint32_t sequence, std::vector<GraphicHDRMetaData> &metaData);
+    GSError GetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey &key,
                            std::vector<uint8_t> &metaData);
     GSError SetTunnelHandle(const sptr<SurfaceTunnelHandle> &handle);
     sptr<SurfaceTunnelHandle> GetTunnelHandle();
-    GSError SetPresentTimestamp(uint32_t sequence, const PresentTimestamp &timestamp);
-    GSError GetPresentTimestamp(uint32_t sequence, PresentTimestampType type, int64_t &time);
+    GSError SetPresentTimestamp(uint32_t sequence, const GraphicPresentTimestamp &timestamp);
+    GSError GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type, int64_t &time);
 
     bool GetStatus() const;
     void SetStatus(bool status);

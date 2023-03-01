@@ -103,7 +103,7 @@ HWTEST_F(HdiLayerInfoTest, GetAcquireFence001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiLayerInfoTest, GetAlpha001, Function | MediumTest| Level3)
 {
-    LayerAlpha layerAlpha = {
+    GraphicLayerAlpha layerAlpha = {
         .enGlobalAlpha = true,
         .enPixelAlpha = true,
         .alpha0 = 0,
@@ -149,17 +149,17 @@ HWTEST_F(HdiLayerInfoTest, GetTransformType001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiLayerInfoTest, GetCompositionType001, Function | MediumTest| Level3)
 {
-    CompositionType type = CompositionType::COMPOSITION_CLIENT;
+    GraphicCompositionType type = GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT;
     HdiLayerInfoTest::hdiLayerInfo_->SetCompositionType(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), CompositionType::COMPOSITION_CLIENT);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
 
-    type = CompositionType::COMPOSITION_DEVICE;
+    type = GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE;
     HdiLayerInfoTest::hdiLayerInfo_->SetCompositionType(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), CompositionType::COMPOSITION_DEVICE);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
 
-    type = CompositionType::COMPOSITION_CURSOR;
+    type = GraphicCompositionType::GRAPHIC_COMPOSITION_CURSOR;
     HdiLayerInfoTest::hdiLayerInfo_->SetCompositionType(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), CompositionType::COMPOSITION_CURSOR);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), GraphicCompositionType::GRAPHIC_COMPOSITION_CURSOR);
 }
 
 /**
@@ -234,17 +234,17 @@ HWTEST_F(HdiLayerInfoTest, GetDirtyRegion001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiLayerInfoTest, GetBlendType001, Function | MediumTest| Level3)
 {
-    BlendType type = BlendType::BLEND_CLEAR;
+    GraphicBlendType type = GraphicBlendType::GRAPHIC_BLEND_CLEAR;
     HdiLayerInfoTest::hdiLayerInfo_->SetBlendType(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetBlendType(), BlendType::BLEND_CLEAR);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetBlendType(), GraphicBlendType::GRAPHIC_BLEND_CLEAR);
 
-    type = BlendType::BLEND_SRC;
+    type = GraphicBlendType::GRAPHIC_BLEND_SRC;
     HdiLayerInfoTest::hdiLayerInfo_->SetBlendType(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetBlendType(), BlendType::BLEND_SRC);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetBlendType(), GraphicBlendType::GRAPHIC_BLEND_SRC);
 
-    type = BlendType::BLEND_SRCOVER;
+    type = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
     HdiLayerInfoTest::hdiLayerInfo_->SetBlendType(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetBlendType(), BlendType::BLEND_SRCOVER);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetBlendType(), GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
 }
 
 /**
@@ -355,7 +355,7 @@ HWTEST_F(HdiLayerInfoTest, TunnelHandle002, Function | MediumTest | Level1)
 
     sptr<SurfaceTunnelHandle> tunnelHandle = new SurfaceTunnelHandle;
 
-    ExtDataHandle *handleSet = static_cast<ExtDataHandle *>(malloc(sizeof(ExtDataHandle) + sizeof(int32_t) * 1));
+    GraphicExtDataHandle *handleSet = static_cast<GraphicExtDataHandle *>(malloc(sizeof(GraphicExtDataHandle) + sizeof(int32_t) * 1));
     handleSet->fd = -1;
     handleSet->reserveInts = 1;
     handleSet->reserve[0] = 0;
@@ -412,8 +412,8 @@ HWTEST_F(HdiLayerInfoTest, ColorTransform002, Function | MediumTest | Level1)
  */
 HWTEST_F(HdiLayerInfoTest, ColorDataSpace001, Function | MediumTest | Level1)
 {
-    ColorDataSpace colorSpace = HdiLayerInfoTest::hdiLayerInfo_->GetColorDataSpace();
-    ASSERT_EQ(colorSpace, ColorDataSpace::COLOR_DATA_SPACE_UNKNOWN);
+    GraphicColorDataSpace colorSpace = HdiLayerInfoTest::hdiLayerInfo_->GetColorDataSpace();
+    ASSERT_EQ(colorSpace, GraphicColorDataSpace::GRAPHIC_COLOR_DATA_SPACE_UNKNOWN);
 }
 
 /*
@@ -427,9 +427,9 @@ HWTEST_F(HdiLayerInfoTest, ColorDataSpace001, Function | MediumTest | Level1)
  */
 HWTEST_F(HdiLayerInfoTest, ColorDataSpace002, Function | MediumTest | Level1)
 {
-    ColorDataSpace colorSpaceSet = ColorDataSpace::GAMUT_DISPLAY_P3;
+    GraphicColorDataSpace colorSpaceSet = GraphicColorDataSpace::GRAPHIC_GAMUT_DISPLAY_P3;
     HdiLayerInfoTest::hdiLayerInfo_->SetColorDataSpace(colorSpaceSet);
-    ColorDataSpace colorSpaceGet = HdiLayerInfoTest::hdiLayerInfo_->GetColorDataSpace();
+    GraphicColorDataSpace colorSpaceGet = HdiLayerInfoTest::hdiLayerInfo_->GetColorDataSpace();
     ASSERT_EQ(colorSpaceSet, colorSpaceGet);
 }
 
@@ -444,9 +444,9 @@ HWTEST_F(HdiLayerInfoTest, ColorDataSpace002, Function | MediumTest | Level1)
  */
 HWTEST_F(HdiLayerInfoTest, MetaData001, Function | MediumTest | Level1)
 {
-    std::vector<HDRMetaData> metaData = {{MATAKEY_RED_PRIMARY_X, 1}};
+    std::vector<GraphicHDRMetaData> metaData = {{GRAPHIC_MATAKEY_RED_PRIMARY_X, 1}};
     HdiLayerInfoTest::hdiLayerInfo_->SetMetaData(metaData);
-    std::vector<HDRMetaData> metaDataGet = HdiLayerInfoTest::hdiLayerInfo_->GetMetaData();
+    std::vector<GraphicHDRMetaData> metaDataGet = HdiLayerInfoTest::hdiLayerInfo_->GetMetaData();
     ASSERT_EQ(metaData[0].key, metaDataGet[0].key);
     ASSERT_EQ(metaData[0].value, metaDataGet[0].value);
 }
@@ -462,9 +462,9 @@ HWTEST_F(HdiLayerInfoTest, MetaData001, Function | MediumTest | Level1)
  */
 HWTEST_F(HdiLayerInfoTest, MetaDataSet001, Function | MediumTest | Level1)
 {
-    HDRMetaDataSet metaDataSet = {HDRMetadataKey::MATAKEY_RED_PRIMARY_X, {1, 2, 3}};
+    GraphicHDRMetaDataSet metaDataSet = {GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X, {1, 2, 3}};
     HdiLayerInfoTest::hdiLayerInfo_->SetMetaDataSet(metaDataSet);
-    HDRMetaDataSet metaDataSetGet = HdiLayerInfoTest::hdiLayerInfo_->GetMetaDataSet();
+    GraphicHDRMetaDataSet metaDataSetGet = HdiLayerInfoTest::hdiLayerInfo_->GetMetaDataSet();
     ASSERT_EQ(metaDataSet.key, metaDataSetGet.key);
     ASSERT_EQ(metaDataSet.metaData[0], metaDataSetGet.metaData[0]);
     ASSERT_EQ(metaDataSet.metaData[1], metaDataSetGet.metaData[1]);
@@ -514,8 +514,8 @@ HWTEST_F(HdiLayerInfoTest, IsSupportedPresentTimestamp002, Function | MediumTest
  */
 HWTEST_F(HdiLayerInfoTest, PresentTimestamp001, Function | MediumTest | Level1)
 {
-    PresentTimestamp timestamp = HdiLayerInfoTest::hdiLayerInfo_->GetPresentTimestamp();
-    ASSERT_EQ(timestamp.type, HARDWARE_DISPLAY_PTS_UNSUPPORTED);
+    GraphicPresentTimestamp timestamp = HdiLayerInfoTest::hdiLayerInfo_->GetPresentTimestamp();
+    ASSERT_EQ(timestamp.type, GRAPHIC_DISPLAY_PTS_UNSUPPORTED);
     ASSERT_EQ(timestamp.time, 0);
 }
 
@@ -530,9 +530,9 @@ HWTEST_F(HdiLayerInfoTest, PresentTimestamp001, Function | MediumTest | Level1)
  */
 HWTEST_F(HdiLayerInfoTest, PresentTimestamp002, Function | MediumTest | Level1)
 {
-    PresentTimestamp timestampSet = {HARDWARE_DISPLAY_PTS_DELAY, 1};  // mock data for test
+    GraphicPresentTimestamp timestampSet = {GRAPHIC_DISPLAY_PTS_DELAY, 1};  // mock data for test
     HdiLayerInfoTest::hdiLayerInfo_->SetPresentTimestamp(timestampSet);
-    PresentTimestamp timestampGet = HdiLayerInfoTest::hdiLayerInfo_->GetPresentTimestamp();
+    GraphicPresentTimestamp timestampGet = HdiLayerInfoTest::hdiLayerInfo_->GetPresentTimestamp();
     ASSERT_EQ(timestampSet.type, timestampGet.type);
     ASSERT_EQ(timestampSet.time, timestampGet.time);
 }
@@ -548,9 +548,9 @@ HWTEST_F(HdiLayerInfoTest, PresentTimestamp002, Function | MediumTest | Level1)
  */
 HWTEST_F(HdiLayerInfoTest, PresentTimestamp003, Function | MediumTest | Level1)
 {
-    PresentTimestamp timestampSet = {HARDWARE_DISPLAY_PTS_TIMESTAMP, 10};  // mock data for test
+    GraphicPresentTimestamp timestampSet = {GRAPHIC_DISPLAY_PTS_TIMESTAMP, 10};  // mock data for test
     HdiLayerInfoTest::hdiLayerInfo_->SetPresentTimestamp(timestampSet);
-    PresentTimestamp timestampGet = HdiLayerInfoTest::hdiLayerInfo_->GetPresentTimestamp();
+    GraphicPresentTimestamp timestampGet = HdiLayerInfoTest::hdiLayerInfo_->GetPresentTimestamp();
     ASSERT_EQ(timestampSet.type, timestampGet.type);
     ASSERT_EQ(timestampSet.time, timestampGet.time);
 }

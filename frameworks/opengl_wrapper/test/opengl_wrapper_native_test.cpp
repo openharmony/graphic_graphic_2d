@@ -301,7 +301,7 @@ static std::shared_ptr<RSSurfaceNode> CreateSurface()
 
     NativeWindowHandleOpt(gWindow, SET_USAGE, BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
     NativeWindowHandleOpt(gWindow, SET_BUFFER_GEOMETRY, WIDTH, HEIGHT);
-    NativeWindowHandleOpt(gWindow, SET_COLOR_GAMUT, ColorGamut::COLOR_GAMUT_SRGB);
+    NativeWindowHandleOpt(gWindow, SET_COLOR_GAMUT, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
     return surfaceNode;
 }

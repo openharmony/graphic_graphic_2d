@@ -15,6 +15,10 @@
 
 #include "common/rs_color.h"
 
+#include <algorithm>
+
+#include "common/rs_common_def.h"
+
 namespace OHOS {
 namespace Rosen {
 RSColor::RSColor(uint32_t rgba) noexcept
@@ -42,33 +46,33 @@ bool RSColor::operator==(const RSColor& rhs) const
 
 RSColor RSColor::operator+(const RSColor& rhs) const
 {
-    return RSColor(static_cast<int>(red_) + rhs.red_, static_cast<int>(green_) + rhs.green_,
-        static_cast<int>(blue_) + rhs.blue_, static_cast<int>(alpha_) + rhs.alpha_);
+    return RSColor(red_ + rhs.red_, green_ + rhs.green_, blue_ + rhs.blue_, alpha_ + rhs.alpha_);
 }
 
 RSColor RSColor::operator-(const RSColor& rhs) const
 {
-    return RSColor(static_cast<int>(red_) - rhs.red_, static_cast<int>(green_) - rhs.green_,
-        static_cast<int>(blue_) - rhs.blue_, static_cast<int>(alpha_) - rhs.alpha_);
+    return RSColor(red_ - rhs.red_, green_ - rhs.green_, blue_ - rhs.blue_, alpha_ - rhs.alpha_);
 }
 
 RSColor RSColor::operator*(float scale) const
 {
-    return RSColor(static_cast<int>(red_) * scale, static_cast<int>(green_) * scale, static_cast<int>(blue_) * scale,
-        static_cast<int>(alpha_) * scale);
+    return RSColor(round(red_ * scale), round(green_ * scale), round(blue_ * scale), round(alpha_ * scale));
 }
 
 RSColor& RSColor::operator*=(float scale)
 {
-    red_ = static_cast<int>(red_) * scale;
-    green_ = static_cast<int>(green_) * scale;
-    blue_ = static_cast<int>(blue_) * scale;
-    alpha_ = static_cast<int>(alpha_) * scale;
+    red_ = round(red_ * scale);
+    green_ = round(green_ * scale);
+    blue_ = round(blue_ * scale);
+    alpha_ = round(alpha_ * scale);
     return *this;
 }
 
 RSColor RSColor::operator/(float scale) const
 {
+    if (ROSEN_EQ<float>(scale, 0)) {
+        return *this;
+    }
     return operator*(1 / scale);
 }
 

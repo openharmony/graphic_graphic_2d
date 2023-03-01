@@ -21,7 +21,8 @@
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_message_processor.h"
 #include "delegate/rs_functional_delegate.h"
-#include "overdraw/rs_overdraw_controller.h"
+
+#include "platform/ohos/overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_cold_start_thread.h"
@@ -46,7 +47,8 @@
 #include "rs_qos_thread.h"
 #include "xcollie/watchdog.h"
 
-#include "frame_trace.h"
+#include "render_frame_trace.h"
+
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
 
@@ -54,11 +56,13 @@ using namespace OHOS::AccessibilityConfig;
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr uint32_t RUQUEST_VSYNC_NUMBER_LIMIT = 10;
 constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr int32_t PERF_ANIMATION_REQUESTED_CODE = 10017;
 constexpr int32_t PERF_MULTI_WINDOW_REQUESTED_CODE = 10026;
 constexpr uint64_t PERF_PERIOD = 250000000;
 constexpr uint64_t CLEAN_CACHE_FREQ = 60;
+constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint64_t PERF_PERIOD_BLUR = 80000000;
 constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
@@ -144,7 +148,7 @@ void RSMainThread::Init()
     mainLoop_ = [&]() {
         RS_LOGD("RsDebug mainLoop start");
         PerfMultiWindow();
-        QuickStartFrameTrace(RS_INTERVAL_NAME);
+        RenderFrameTrace::GetInstance().RenderStartFrameTrace(RS_INTERVAL_NAME);
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
         ConsumeAndUpdateAllNodes();
@@ -327,6 +331,16 @@ void RSMainThread::ProcessCommandForUniRender()
                 } else {
                     RS_LOGE("RSMainThread::ProcessCommandForUniRender wait curIndex:%llu, lastIndex:%llu, pid:%d",
                         curIndex, lastIndex, pid);
+                    if (transactionDataLastWaitTime_[pid] == 0) {
+                        transactionDataLastWaitTime_[pid] = timestamp_;
+                    }
+                    if ((timestamp_ - transactionDataLastWaitTime_[pid]) / REFRESH_PERIOD > SKIP_COMMAND_FREQ_LIMIT) {
+                        transactionDataLastWaitTime_[pid] = 0;
+                        lastIndex = curIndex;
+                        transactionFlags += ", skip to[" + std::to_string(pid) + ", " + std::to_string(curIndex) + "]";
+                        RS_LOGE("RSMainThread::ProcessCommandForUniRender skip to index:%llu, pid:%d", curIndex, pid);
+                        continue;
+                    }
                     break;
                 }
             }
@@ -774,6 +788,10 @@ void RSMainThread::RequestNextVSync()
         .callback_ = [this](uint64_t timestamp, void* data) { OnVsync(timestamp, data); },
     };
     if (receiver_ != nullptr) {
+        requestNextVsyncNum_++;
+        if (requestNextVsyncNum_ > RUQUEST_VSYNC_NUMBER_LIMIT) {
+            RS_LOGW("RSMainThread::RequestNextVSync too many times:%d", requestNextVsyncNum_);
+        }
         receiver_->RequestNextVSync(fcb);
     }
 }
@@ -782,6 +800,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::OnVsync");
     timestamp_ = timestamp;
+    requestNextVsyncNum_ = 0;
     if (isUniRender_) {
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
         RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
@@ -1107,6 +1126,7 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         RS_LOGD("RSMainThread::ClearTransactionDataPidInfo process:%d destroyed, skip commands", remotePid);
     }
     effectiveTransactionDataIndexMap_.erase(remotePid);
+    transactionDataLastWaitTime_.erase(remotePid);
 
     // clear cpu cache when process exit
     // CLEAN_CACHE_FREQ to prevent multiple cleanups in a short period of time

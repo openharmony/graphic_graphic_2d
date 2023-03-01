@@ -1,0 +1,152 @@
+# Copyright (C) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/rosen/modules/platform/config.gni")
+
+# ace_skia {{{
+group("ace_skia") {
+  public_deps = [ "//third_party/flutter/build/skia:ace_skia_$platform" ]
+}
+
+# ace_skia }}}
+
+# eventhandler {{{
+group("eventhandler") {
+  if (platform == "ohos") {
+    public_deps = eventhandler_deps
+  } else {
+    public_deps = [ ":impl_eventhandler" ]
+  }
+}
+
+config("eventhandler_config") {
+  include_dirs = [ "eventhandler" ]
+}
+
+ohos_source_set("impl_eventhandler") {
+  public_configs = [ ":eventhandler_config" ]
+  sources = [
+    "eventhandler_impl/epoll_io_waiter_mingw.cpp",
+    "eventhandler_impl/event_handler.cpp",
+    "eventhandler_impl/event_queue.cpp",
+    "eventhandler_impl/event_runner.cpp",
+    "eventhandler_impl/file_descriptor_listener.cpp",
+    "eventhandler_impl/inner_event.cpp",
+    "eventhandler_impl/native_implement_eventhandler.cpp",
+    "eventhandler_impl/none_io_waiter.cpp",
+  ]
+  defines = [ "LOG_DOMAIN=0xD001200" ]
+  cflags = [ "-std=c++17" ]
+  deps = [
+    ":hilog",
+    ":utils",
+    "//third_party/libuv:uv",
+  ]
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+# eventhandler }}}
+
+# hilog {{{
+group("hilog") {
+  public_deps = hilog_deps
+}
+
+# hilog }}}
+
+# image_native {{{
+group("image_native") {
+  if (platform == "ohos") {
+    public_deps = image_deps
+  } else {
+    public_deps = [ ":mock_image_native" ]
+  }
+}
+
+config("image_native_config") {
+  include_dirs = [ "image_native" ]
+}
+
+ohos_source_set("mock_image_native") {
+  public_configs = [ ":image_native_config" ]
+  sources = [
+    "image_native/pixel_map.cpp",
+    "image_native/pixel_map_rosen_utils.cpp",
+  ]
+  deps = [
+    ":ace_skia",
+    ":utils",
+ ]
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+# image_native }}}
+
+# ipc_core {{{
+group("ipc_core") {
+  if (platform == "ohos") {
+    public_deps = ipc_deps
+  } else {
+    public_deps = [ ":mock_ipc_core" ]
+  }
+}
+
+config("ipc_core_config") {
+  include_dirs = [ "ipc_core" ]
+}
+
+ohos_source_set("mock_ipc_core") {
+  public_configs = [ ":ipc_core_config" ]
+  sources = [
+    "ipc_core/ipc_object_stub.cpp",
+    "ipc_core/iremote_broker.cpp",
+    "ipc_core/iremote_object.cpp",
+    "ipc_core/message_option.cpp",
+    "ipc_core/message_parcel.cpp",
+    "ipc_core/peer_holder.cpp",
+  ]
+  deps = [ ":utils" ]
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+# ipc_core }}}
+
+# utils {{{
+group("utils") {
+  if (platform == "ohos") {
+    public_deps = utils_deps
+  } else {
+    public_deps = [ ":mock_utils" ]
+  }
+}
+
+config("utils_config") {
+  include_dirs = [ "utils" ]
+}
+
+ohos_source_set("mock_utils") {
+  public_configs = [ ":utils_config" ]
+  sources = [
+    "utils/directory_ex.cpp",
+    "utils/parcel.cpp",
+    "utils/refbase.cpp",
+  ]
+  public_deps = [ "//third_party/bounds_checking_function:libsec_shared" ]
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+# utils }}}

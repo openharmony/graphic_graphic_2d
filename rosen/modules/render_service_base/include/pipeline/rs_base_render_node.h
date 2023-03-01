@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_BASE_RENDER_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_BASE_RENDER_NODE_H
 
+#include <atomic>
 #include <list>
 #include <memory>
 
@@ -27,7 +28,7 @@ class RSContext;
 class RSNodeVisitor;
 class RSCommand;
 
-class RS_EXPORT RSBaseRenderNode : public std::enable_shared_from_this<RSBaseRenderNode> {
+class RSB_EXPORT RSBaseRenderNode : public std::enable_shared_from_this<RSBaseRenderNode> {
 public:
     using WeakPtr = std::weak_ptr<RSBaseRenderNode>;
     using SharedPtr = std::shared_ptr<RSBaseRenderNode>;
@@ -83,6 +84,11 @@ public:
     void ResetSortedChildren()
     {
         sortedChildren_.clear();
+    }
+
+    const std::list<WeakPtr>& GetChildren()
+    {
+        return children_;
     }
 
     uint32_t GetChildrenCount() const
@@ -217,9 +223,12 @@ private:
     const std::weak_ptr<RSContext> context_;
     NodeDirty dirtyStatus_ = NodeDirty::DIRTY;
     friend class RSRenderPropertyBase;
+    friend class RSRenderTransition;
     std::atomic<bool> isTunnelHandleChange_ = false;
     bool hasChildrenOutOfRect_ = false;
     RectI paintOutOfParentRect_;
+
+    void InternalRemoveSelfFromDisappearingChildren();
 };
 } // namespace Rosen
 } // namespace OHOS

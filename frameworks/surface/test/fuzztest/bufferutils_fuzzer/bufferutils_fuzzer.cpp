@@ -67,8 +67,8 @@ namespace OHOS {
         BufferFlushConfig flConfig = GetData<BufferFlushConfig>();
         uint32_t seqNum = GetData<uint32_t>();
         uint32_t sequence = GetData<uint32_t>();
-        VerifyAllocInfo vaInfo = GetData<VerifyAllocInfo>();
-        HDRMetaData metaData = GetData<HDRMetaData>();
+        BufferVerifyAllocInfo vaInfo = GetData<BufferVerifyAllocInfo>();
+        GraphicHDRMetaData metaData = GetData<GraphicHDRMetaData>();
         uint8_t metaData2 = GetData<uint8_t>();
         uint32_t reserveInts = GetData<uint32_t>() % 0x100000; // no more than 0x100000
 
@@ -83,17 +83,17 @@ namespace OHOS {
         ReadFlushConfig(parcel, flConfig);
         WriteSurfaceBufferImpl(parcel, sequence, buffer);
         ReadSurfaceBufferImpl(parcel, sequence, buffer);
-        std::vector<VerifyAllocInfo> infos = {vaInfo};
+        std::vector<BufferVerifyAllocInfo> infos = {vaInfo};
         WriteVerifyAllocInfo(parcel, infos);
         ReadVerifyAllocInfo(parcel, infos);
-        std::vector<HDRMetaData> metaDatas = {metaData};
+        std::vector<GraphicHDRMetaData> metaDatas = {metaData};
         WriteHDRMetaData(parcel, metaDatas);
         ReadHDRMetaData(parcel, metaDatas);
         std::vector<uint8_t> metaDatas2 = {metaData2};
         WriteHDRMetaDataSet(parcel, metaDatas2);
         ReadHDRMetaDataSet(parcel, metaDatas2);
 
-        ExtDataHandle *handle = AllocExtDataHandle(reserveInts);
+        GraphicExtDataHandle *handle = AllocExtDataHandle(reserveInts);
         WriteExtDataHandle(parcel, handle);
         sptr<SurfaceTunnelHandle> tunnelHandle = nullptr;
         ReadExtDataHandle(parcel, tunnelHandle);

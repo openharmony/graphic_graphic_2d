@@ -17,21 +17,19 @@
 
 #include <cstdint>
 
-#include "accessibility_config.h"
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_surface_node_command.h"
-#include "frame_collector.h"
 #include "delegate/rs_functional_delegate.h"
-#include "overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "platform/common/rs_accessibility.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_property_trace.h"
@@ -40,18 +38,20 @@
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
 
-#ifdef ROSEN_OHOS
-#include <sys/prctl.h>
-#include <unistd.h>
-#endif
 #ifdef OHOS_RSS_CLIENT
 #include "res_sched_client.h"
 #include "res_type.h"
 #endif
+#ifdef ROSEN_OHOS
+#include <sys/prctl.h>
+#include <unistd.h>
+#include "accessibility_config.h"
+#include "frame_collector.h"
+#include "render_frame_trace.h"
+#include "platform/ohos/overdraw/rs_overdraw_controller.h"
 
-#include "frame_trace.h"
-using namespace FRAME_TRACE;
 static const std::string RT_INTERVAL_NAME = "renderthread";
+#endif
 
 static void SystemCallSetThreadName(const std::string& name)
 {
@@ -62,25 +62,19 @@ static void SystemCallSetThreadName(const std::string& name)
 #endif
 }
 
-using namespace OHOS::AccessibilityConfig;
 namespace OHOS {
 namespace Rosen {
 namespace {
     static constexpr uint64_t REFRESH_PERIOD = 16666667;
     static constexpr uint64_t REFRESH_FREQ_IN_UNI_RENDER = 1200;
 }
-class HighContrastObserver : public AccessibilityConfigObserver {
-public:
-    HighContrastObserver() = default;
-    void OnConfigChanged(const CONFIG_ID id, const ConfigValue &value) override
-    {
-        ROSEN_LOGD("HighContrastObserver OnConfigChanged");
-        auto& renderThread = RSRenderThread::Instance();
-        if (id == CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT) {
-            renderThread.SetHighContrast(value.highContrastText);
-        }
-    }
-};
+
+void SendFrameEvent(bool start)
+{
+#ifdef ROSEN_OHOS
+    FrameCollector::GetInstance().MarkFrameEvent(start ? FrameEventType::WaitVsyncStart : FrameEventType::WaitVsyncEnd);
+#endif
+}
 
 RSRenderThread& RSRenderThread::Instance()
 {
@@ -97,26 +91,30 @@ RSRenderThread::RSRenderThread()
             renderStartTimeStamp = jankDetector_->GetSysTimeNs();
         }
         RS_TRACE_BEGIN("RSRenderThread DrawFrame: " + std::to_string(timestamp_));
-        QuickStartFrameTrace(RT_INTERVAL_NAME);
+#ifdef ROSEN_OHOS
+        FRAME_TRACE::RenderFrameTrace::GetInstance().RenderStartFrameTrace(RT_INTERVAL_NAME);
+#endif
         prevTimestamp_ = timestamp_;
         ProcessCommands();
         ROSEN_LOGD("RSRenderThread DrawFrame(%" PRIu64 ") in %s", prevTimestamp_, renderContext_ ? "GPU" : "CPU");
         Animate(prevTimestamp_);
         Render();
         SendCommands();
-        QuickEndFrameTrace(RT_INTERVAL_NAME);
+#ifdef ROSEN_OHOS
+        FRAME_TRACE::RenderFrameTrace::GetInstance().RenderEndFrameTrace(RT_INTERVAL_NAME);
+#endif
         if (needRender_) {
             jankDetector_->CalculateSkippedFrame(renderStartTimeStamp, jankDetector_->GetSysTimeNs());
         }
         RS_TRACE_END();
     };
 
-    highContrastObserver_ = std::make_shared<HighContrastObserver>();
     context_ = std::make_shared<RSContext>();
     jankDetector_ = std::make_shared<RSJankDetector>();
-    auto &config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
-    config.InitializeContext();
-    config.SubscribeConfigObserver(CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT, highContrastObserver_);
+    RSAccessibility::GetInstance().ListenHighContrastChange([](bool newHighContrast) {
+        auto& renderThread = RSRenderThread::Instance();
+        renderThread.SetHighContrast(newHighContrast);
+    });
 }
 
 RSRenderThread::~RSRenderThread()
@@ -125,8 +123,10 @@ RSRenderThread::~RSRenderThread()
 
     if (renderContext_ != nullptr) {
         ROSEN_LOGD("Destroy renderContext!!");
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
         delete renderContext_;
         renderContext_ = nullptr;
+#endif
     }
 }
 
@@ -178,7 +178,7 @@ void RSRenderThread::RequestNextVSync()
 {
     if (handler_) {
         RS_TRACE_FUNC();
-        FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::WaitVsyncStart);
+        SendFrameEvent(true);
         VSyncReceiver::FrameCallback fcb = {
             .userData_ = this,
             .callback_ = std::bind(&RSRenderThread::OnVsync, this, std::placeholders::_1),
@@ -202,13 +202,17 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
 {
 #ifdef ACE_ENABLE_GL
     if (needRender_ && renderContext_ == nullptr) {
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
         renderContext_ = new RenderContext();
+#endif
         ROSEN_LOGD("Create RenderContext, its pointer is %p", renderContext_);
         RS_TRACE_NAME("InitializeEglContext");
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
         renderContext_->InitializeEglContext(); // init egl context on RT
         if (!cacheDir_.empty()) {
             renderContext_->SetCacheDir(cacheDir_);
         }
+#endif
     }
 #endif
 }
@@ -249,11 +253,13 @@ void RSRenderThread::RenderLoop()
         RSRenderThread::Instance().RequestNextVSync();
     }
 
+#ifdef ROSEN_OHOS
     FrameCollector::GetInstance().SetRepaintCallback([this]() { this->RequestNextVSync(); });
 
     auto delegate = RSFunctionalDelegate::Create();
     delegate->SetRepaintCallback([this]() { this->RequestNextVSync(); });
     RSOverdrawController::GetInstance().SetDelegate(delegate);
+#endif
 
     if (runner_) {
         runner_->Run();
@@ -263,7 +269,7 @@ void RSRenderThread::RenderLoop()
 void RSRenderThread::OnVsync(uint64_t timestamp)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::OnVsync");
-    FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::WaitVsyncEnd);
+    SendFrameEvent(false);
     mValue = (mValue + 1) % 2; // 1 and 2 is Calculated parameters
     RS_TRACE_INT("Vsync-client", mValue);
     timestamp_ = timestamp;

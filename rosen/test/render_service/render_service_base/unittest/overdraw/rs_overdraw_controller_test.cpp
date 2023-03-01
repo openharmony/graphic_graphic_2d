@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,8 +17,8 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
-#include "overdraw/rs_canvas_listener.h"
-#include "overdraw/rs_overdraw_controller.h"
+#include "platform/ohos/overdraw/rs_canvas_listener.h"
+#include "platform/ohos/overdraw/rs_overdraw_controller.h"
 
 using namespace testing;
 using namespace testing::ext;

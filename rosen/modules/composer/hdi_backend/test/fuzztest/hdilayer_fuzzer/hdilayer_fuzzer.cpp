@@ -66,13 +66,13 @@ namespace OHOS {
     {
         // get data
         int32_t zOrder = GetData<int32_t>();
-        LayerAlpha alpha = GetData<LayerAlpha>();
+        GraphicLayerAlpha alpha = GetData<GraphicLayerAlpha>();
         GraphicTransformType transformType = GetData<GraphicTransformType>();
-        CompositionType compositionType = GetData<CompositionType>();
+        GraphicCompositionType compositionType = GetData<GraphicCompositionType>();
         uint32_t num = GetData<uint32_t>();
         IRect visibleRegion = GetData<IRect>();
         IRect dirtyRegion = GetData<IRect>();
-        BlendType blendType = GetData<BlendType>();
+        GraphicBlendType blendType = GetData<GraphicBlendType>();
         IRect crop = GetData<IRect>();
         bool preMulti = GetData<bool>();
         IRect layerRect = GetData<IRect>();
@@ -111,7 +111,7 @@ namespace OHOS {
         uint32_t screenId = GetData<uint32_t>();
         bool inUsing = GetData<bool>();
         int64_t timestamp = GetData<int64_t>();
-        CompositionType type = GetData<CompositionType>();
+        GraphicCompositionType type = GetData<GraphicCompositionType>();
         std::string result = GetStringFromData(STR_LEN);
 
         // test

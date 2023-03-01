@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,10 +16,8 @@
 #include "render/rs_filter.h"
 
 #include "platform/common/rs_log.h"
-#ifdef ROSEN_OHOS
 #include "render/rs_blur_filter.h"
 #include "render/rs_material_filter.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -31,11 +29,7 @@ RSFilter::~RSFilter() {}
 
 std::shared_ptr<RSFilter> RSFilter::CreateBlurFilter(float blurRadiusX, float blurRadiusY)
 {
-#ifdef ROSEN_OHOS
     return std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
-#else
-    return nullptr;
-#endif
 }
 
 std::shared_ptr<RSFilter> RSFilter::CreateMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode)

@@ -23,10 +23,8 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_property_trace.h"
-#ifdef ROSEN_OHOS
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -174,7 +172,6 @@ void RSRenderNode::RenderTraceDebug() const
 
 void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
-#ifdef ROSEN_OHOS
     renderNodeSaveCount_ = canvas.SaveCanvasAndAlpha();
     auto boundsGeo = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
     if (boundsGeo && !boundsGeo->IsEmpty()) {
@@ -190,15 +187,12 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
         }
     }
     RSPropertiesPainter::DrawMask(GetRenderProperties(), canvas);
-#endif
 }
 
 void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
-#ifdef ROSEN_OHOS
     GetMutableRenderProperties().ResetBounds();
     canvas.RestoreCanvasAndAlpha(renderNodeSaveCount_);
-#endif
 }
 
 void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier> modifier)
@@ -271,18 +265,25 @@ void RSRenderNode::ApplyModifiers()
 void RSRenderNode::UpdateOverlayBounds()
 {
     RSModifierContext context = { GetMutableRenderProperties() };
-    auto iterator = drawCmdModifiers_.find(RSModifierType::OVERLAY_STYLE);
-    if (iterator != drawCmdModifiers_.end()) {
-        RectI joinRect = RectI();
-        for (auto& overlayModifier : iterator->second) {
+    RectI joinRect = RectI();
+    for (auto& iterator : drawCmdModifiers_) {
+        for (auto& overlayModifier : iterator.second) {
             auto drawCmdModifier = std::static_pointer_cast<RSDrawCmdListRenderModifier>(overlayModifier);
-            if (drawCmdModifier != nullptr && drawCmdModifier->GetOverlayBounds() != nullptr &&
+            if (!drawCmdModifier) {
+                continue;
+            }
+            if (drawCmdModifier->GetOverlayBounds() != nullptr &&
                 !drawCmdModifier->GetOverlayBounds()->IsEmpty()) {
-                joinRect = joinRect.JoinRect(*drawCmdModifier->GetOverlayBounds());
+                joinRect = joinRect.JoinRect(*(drawCmdModifier->GetOverlayBounds()));
+            } else if (drawCmdModifier->GetOverlayBounds() == nullptr) {
+                auto recording = std::static_pointer_cast<RSRenderProperty<DrawCmdListPtr>>(
+                    drawCmdModifier->GetProperty())->Get();
+                auto recordingRect = RectI(0, 0, recording->GetWidth(), recording->GetHeight());
+                joinRect = recordingRect.IsEmpty() ? joinRect : joinRect.JoinRect(recordingRect);
             }
         }
-        context.property_.SetOverlayBounds(std::make_shared<RectI>(joinRect));
     }
+    context.property_.SetOverlayBounds(std::make_shared<RectI>(joinRect));
 }
 
 std::shared_ptr<RSRenderModifier> RSRenderNode::GetModifier(const PropertyId& id)

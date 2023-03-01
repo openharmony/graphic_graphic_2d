@@ -19,14 +19,8 @@
             OHOS::Rosen::Drawing::Impl*;
             OHOS::Rosen::Drawing::SkiaBitmap*;
             OHOS::Rosen::Drawing::SkiaCamera*;
-            OHOS::Rosen::Drawing::SkiaMatrix*;
             OHOS::Rosen::Drawing::SkiaPicture*;
             OHOS::Rosen::Drawing::SkiaMask*;
-            OHOS::Rosen::Drawing::SkiaPath*;
-            OHOS::Rosen::Drawing::SkiaColor*;
-            OHOS::Rosen::Drawing::SkiaImage*;
             OHOS::Rosen::Drawing::SkiaImpl*;
-            OHOS::Rosen::Drawing::SkiaShader*;
-            OHOS::Rosen::Drawing::SkiaPaint*;
         };
 };

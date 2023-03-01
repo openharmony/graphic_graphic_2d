@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,7 +47,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_DRAW_CMD_LIST,
 };
 
-class RS_EXPORT RSNodeCommandHelper {
+class RSB_EXPORT RSNodeCommandHelper {
 public:
     static void AddModifier(RSContext& context, NodeId nodeId, const std::shared_ptr<RSRenderModifier>& modifier);
     static void RemoveModifier(RSContext& context, NodeId nodeId, PropertyId propertyId);

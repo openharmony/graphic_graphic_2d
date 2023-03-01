@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,7 +25,7 @@ namespace Rosen {
 class RSRenderPropertyBase;
 class RSAnimationLog;
 
-class RS_EXPORT RSRenderPropertyAnimation : public RSRenderAnimation {
+class RSB_EXPORT RSRenderPropertyAnimation : public RSRenderAnimation {
 public:
     virtual ~RSRenderPropertyAnimation() = default;
 
@@ -36,16 +36,12 @@ public:
     bool GetAdditive();
 
     void AttachRenderProperty(const std::shared_ptr<RSRenderPropertyBase>& property) override;
-#ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
-#endif
 protected:
     RSRenderPropertyAnimation(AnimationId id, const PropertyId& propertyId,
         const std::shared_ptr<RSRenderPropertyBase>& originValue);
     RSRenderPropertyAnimation() =default;
-#ifdef ROSEN_OHOS
     bool ParseParam(Parcel& parcel) override;
-#endif
     void SetPropertyValue(const std::shared_ptr<RSRenderPropertyBase>& value);
 
     const std::shared_ptr<RSRenderPropertyBase> GetPropertyValue() const;

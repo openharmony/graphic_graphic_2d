@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,7 +27,7 @@ constexpr float SECOND_TO_MILLISECOND = 1e3;
 constexpr float MILLISECOND_TO_SECOND = 1e-3;
 } // namespace
 
-class RS_EXPORT RSRenderSpringAnimation : public RSRenderPropertyAnimation,
+class RSB_EXPORT RSRenderSpringAnimation : public RSRenderPropertyAnimation,
     public RSSpringModel<std::shared_ptr<RSRenderPropertyBase>> {
 public:
     explicit RSRenderSpringAnimation(AnimationId id, const PropertyId& propertyId,

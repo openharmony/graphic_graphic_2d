@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +16,6 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_ISCREEN_CHANGE_CALLBACK_H
 #define ROSEN_RENDER_SERVICE_BASE_ISCREEN_CHANGE_CALLBACK_H
 
-#ifdef ROSEN_OHOS
 #include <iremote_broker.h>
 #include <screen_manager/screen_types.h>
 
@@ -37,6 +36,5 @@ public:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // ROSEN_OHOS
 
 #endif // ROSEN_RENDER_SERVICE_BASE_ISCREEN_CHANGE_CALLBACK_H

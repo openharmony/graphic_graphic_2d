@@ -62,8 +62,8 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
         if (layer == nullptr) {
             continue;
         }
-        if (layer->GetCompositionType() == CompositionType::COMPOSITION_DEVICE ||
-            layer->GetCompositionType() == CompositionType::COMPOSITION_DEVICE_CLEAR) {
+        if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR) {
             continue;
         }
         auto nodePtr = static_cast<RSBaseRenderNode*>(layer->GetLayerAdditionalInfo());
@@ -75,8 +75,8 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
         auto saveCount = canvas.getSaveCount();
         if (nodePtr->IsInstanceOf<RSSurfaceRenderNode>()) {
             RSSurfaceRenderNode& node = *(static_cast<RSSurfaceRenderNode*>(nodePtr));
-            if (layer->GetCompositionType() == CompositionType::COMPOSITION_CLIENT_CLEAR ||
-                layer->GetCompositionType() == CompositionType::COMPOSITION_TUNNEL) {
+            if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT_CLEAR ||
+                layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_TUNNEL) {
                 ClipHoleForLayer(canvas, node);
                 canvas.restoreToCount(saveCount);
                 continue;

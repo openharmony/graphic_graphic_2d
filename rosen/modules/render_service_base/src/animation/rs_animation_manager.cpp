@@ -115,13 +115,6 @@ void RSAnimationManager::OnAnimationAdd(const std::shared_ptr<RSRenderAnimation>
     animationNum_[animation->GetPropertyId()]++;
 }
 
-namespace {
-    inline constexpr uint32_t ExtractPid(AnimationId animId)
-    {
-        return animId >> 32;
-    }
-}
-
 void RSAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation)
 {
     NodeId targetId = animation->GetTargetId();

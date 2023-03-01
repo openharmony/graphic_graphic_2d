@@ -103,7 +103,7 @@ HWTEST_F(RSComposerAdapterTest, CommitLayersTest002, Function | SmallTest | Leve
     std::vector<std::shared_ptr<HdiLayerInfo>> layers;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
     auto& consumer = surfaceNode1->GetConsumer();
-    ExtDataHandle handle;
+    GraphicExtDataHandle handle;
     handle.fd = -1;
     handle.reserveInts = 1;
     consumer->SetTunnelHandle(&handle);
@@ -267,8 +267,8 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest007, Function | SmallTest | Leve
     RectI dstRect{0, 0, 400, 600};
     surfaceNode1->SetSrcRect(dstRect);
     surfaceNode1->SetDstRect(dstRect);
-    HDRMetaData metaData;
-    metaData.key = HDRMetadataKey::MATAKEY_GREEN_PRIMARY_X;
+    GraphicHDRMetaData metaData;
+    metaData.key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_GREEN_PRIMARY_X;
     metaData.value = 1.0f;
     std::vector<uint8_t> metaDataVec(2, 128); // mock virtual metaData;
     surfaceNode1->GetConsumer()->SetMetaData(surfaceNode1->GetBuffer()->GetSeqNum(), {{metaData}});
@@ -292,8 +292,8 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest008, Function | SmallTest | Leve
     RectI dstRect{0, 0, 400, 600};
     surfaceNode1->SetSrcRect(dstRect);
     surfaceNode1->SetDstRect(dstRect);
-    HDRMetaData metaData;
-    metaData.key = HDRMetadataKey::MATAKEY_GREEN_PRIMARY_X;
+    GraphicHDRMetaData metaData;
+    metaData.key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_GREEN_PRIMARY_X;
     metaData.value = 1.0f;
     std::vector<uint8_t> metaDataVec(2, 128); // mock virtual metaData;
     surfaceNode1->GetConsumer()->SetMetaData(surfaceNode1->GetBuffer()->GetSeqNum(), {{metaData}});

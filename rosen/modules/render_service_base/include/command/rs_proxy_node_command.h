@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,18 +28,15 @@ enum RSProxyNodeCommandType : uint16_t {
     REMOVE_MODIFIERS,
 };
 
-class RS_EXPORT ProxyNodeCommandHelper {
+class RSB_EXPORT ProxyNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId id, NodeId target);
     static void ResetContextVariableCache(RSContext& context, NodeId id);
-    static void RemoveModifiers(RSContext& context, NodeId nodeId, std::vector<PropertyId> propertyId);
 };
 
 ADD_COMMAND(RSProxyNodeCreate, ARG(PROXY_NODE, PROXY_NODE_CREATE, ProxyNodeCommandHelper::Create, NodeId, NodeId))
 ADD_COMMAND(RSProxyNodeResetContextVariableCache,
     ARG(PROXY_NODE, PROXY_NODE_RESET_CONTEXT_VARIABLE_CACHE, ProxyNodeCommandHelper::ResetContextVariableCache, NodeId))
-ADD_COMMAND(RSProxyNodeRemoveModifiers,
-    ARG(PROXY_NODE, REMOVE_MODIFIERS, ProxyNodeCommandHelper::RemoveModifiers, NodeId, std::vector<PropertyId>))
 
 } // namespace Rosen
 } // namespace OHOS
