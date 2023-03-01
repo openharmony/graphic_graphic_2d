@@ -39,6 +39,7 @@ public:
 protected:
     void OnSetFraction(float fraction) override;
     void OnAnimate(float fraction) override;
+    void InitValueEstimator() override;
     void OnInitialize(int64_t time) override;
 
 private:

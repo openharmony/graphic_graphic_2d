@@ -15,6 +15,7 @@
 
 #include "animation/rs_render_interpolating_spring_animation.h"
 
+#include "animation/rs_value_estimator.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -108,26 +109,35 @@ void RSRenderInterpolatingSpringAnimation::OnAnimate(float fraction)
     if (GetPropertyId() == 0) {
         return;
     } else if (ROSEN_EQ(fraction, 1.0f)) {
-        SetAnimationValue(endValue_);
+        valueEstimator_->UpdateAnimationValue(1.0f, GetAdditive());
         return;
     }
     auto mappedTime = fraction * GetDuration() * MILLISECOND_TO_SECOND;
-    // the displacement is normalized to [0, 1]
-    auto displacement = CalculateDisplacement(mappedTime);
-    auto animationValue = endValue_ + (startValue_ - endValue_) * displacement;
-    SetAnimationValue(animationValue);
+    float displacement = 1.0f + CalculateDisplacement(mappedTime);
+    if (valueEstimator_ == nullptr) {
+        return;
+    }
+    valueEstimator_->UpdateAnimationValue(displacement, GetAdditive());
 }
 
 void RSRenderInterpolatingSpringAnimation::OnInitialize(int64_t time)
 {
     // set the initial status of spring model
-    initialOffset_ = 1.0f;
+    initialOffset_ = -1.0f;
     initialVelocity_ = initialOffset_ * (-normalizedInitialVelocity_);
     CalculateSpringParameters();
     // use duration calculated by spring model as animation duration
     SetDuration(std::lroundf(EstimateDuration() * SECOND_TO_MILLISECOND));
     // this will set needInitialize_ to false
     RSRenderPropertyAnimation::OnInitialize(time);
+}
+
+void RSRenderInterpolatingSpringAnimation::InitValueEstimator()
+{
+    if (valueEstimator_ == nullptr) {
+        valueEstimator_ = property_->CreateRSValueEstimator(RSValueEstimatorType::CURVE_VALUE_ESTIMATOR);
+    }
+    valueEstimator_->InitCurveAnimationValue(property_, startValue_, endValue_, lastValue_);
 }
 } // namespace Rosen
 } // namespace OHOS
