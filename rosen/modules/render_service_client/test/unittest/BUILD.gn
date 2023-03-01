@@ -19,7 +19,6 @@ group("unittest") {
   testonly = true
 
   deps = [
-    ":RSDirtyManagerTest",
     ":RSDisplayModeTest",
     ":RSDropframeTest",
     ":RSEventTest",
@@ -53,13 +52,6 @@ ohos_unittest("RSInterfacesTest") {
 ohos_unittest("RSDropframeTest") {
   module_out_path = module_out_path
   sources = [ "rs_dropframe_test.cpp" ]
-  deps = [ ":rs_client_test_common" ]
-}
-
-## Build RSDirtyManagerTest
-ohos_unittest("RSDirtyManagerTest") {
-  module_out_path = module_out_path
-  sources = [ "rs_dirty_manager_test.cpp" ]
   deps = [ ":rs_client_test_common" ]
 }
 
