@@ -76,11 +76,14 @@ bool RSRenderThreadVisitor::IsValidRootRenderNode(RSRootRenderNode& node)
 void RSRenderThreadVisitor::SetPartialRenderStatus(PartialRenderType status, bool isRenderForced)
 {
     isRenderForced_ = isRenderForced;
+    dfxDirtyType_ = RSSystemProperties::GetDirtyRegionDebugType();
     isEglSetDamageRegion_ = !isRenderForced_ && (status != PartialRenderType::DISABLED);
-    isOpDropped_ = !isRenderForced_ && (status == PartialRenderType::SET_DAMAGE_AND_DROP_OP);
-    if (partialRenderStatus_ == status) {
-        ROSEN_LOGD("SetPartialRenderStatus: %d->%d, isRenderForced_=%d, isEglSetDamageRegion_=%d, isOpDropped_=%d",
-            partialRenderStatus_, status, isRenderForced_, isEglSetDamageRegion_, isOpDropped_);
+    isOpDropped_ = (dfxDirtyType_ == DirtyRegionDebugType::DISABLED) && !isRenderForced_ &&
+        (status == PartialRenderType::SET_DAMAGE_AND_DROP_OP);
+    if (partialRenderStatus_ != status) {
+        ROSEN_LOGD("PartialRenderStatus: %d->%d, isRenderForced_=%d, dfxDirtyType_=%d,\
+            isEglSetDamageRegion_=%d, isOpDropped_=%d", partialRenderStatus_, status,
+            isRenderForced_, dfxDirtyType_, isEglSetDamageRegion_, isOpDropped_);
     }
     partialRenderStatus_ = status;
 }
@@ -103,6 +106,7 @@ void RSRenderThreadVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     if (isIdle_) {
         curDirtyManager_ = node.GetDirtyManager();
         curDirtyManager_->Clear();
+        curDirtyManager_->UpdateDebugRegionTypeEnable(dfxDirtyType_);
         // After the node calls ApplyModifiers, the modifiers assign the renderProperties to the node
         // Otherwise node.GetSuggestedBufferHeight always less than 0, causing black screen
         node.ApplyModifiers();
@@ -147,8 +151,10 @@ void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
         rsParent = nodeParent->ReinterpretCastTo<RSRenderNode>();
     }
     dirtyFlag_ = node.Update(*curDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr, dirtyFlag_);
-    if (node.IsDirtyRegionUpdated() && curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
-        curDirtyManager_->UpdateDirtyCanvasNodes(node.GetId(), node.GetOldDirty());
+    if (node.IsDirtyRegionUpdated() && curDirtyManager_ != nullptr &&
+        curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
+        curDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::CANVAS_NODE,
+            DirtyRegionType::UPDATE_DIRTY_REGION, node.GetOldDirty());
     }
     ResetAndPrepareChildrenNode(node, nodeParent);
     dirtyFlag_ = dirtyFlag;
@@ -170,28 +176,29 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         node.SetDirty();
     }
     dirtyFlag_ = node.Update(*curDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr, dirtyFlag_);
-    if (node.IsDirtyRegionUpdated() && curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
-        curDirtyManager_->UpdateDirtySurfaceNodes(node.GetId(), node.GetOldDirty());
+    if (node.IsDirtyRegionUpdated() && curDirtyManager_ != nullptr &&
+        curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
+        curDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::SURFACE_NODE,
+            DirtyRegionType::UPDATE_DIRTY_REGION, node.GetOldDirty());
     }
     ResetAndPrepareChildrenNode(node, nodeParent);
     dirtyFlag_ = dirtyFlag;
 }
 
 void RSRenderThreadVisitor::DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color,
-    const SkPaint::Style fillType, float alpha)
+    const SkPaint::Style fillType, float alpha, int strokeWidth)
 {
-    if (dirtyRect.width_ <= 0 || dirtyRect.height_ <= 0) {
+    if (dirtyRect.IsEmpty()) {
         ROSEN_LOGD("DrawRectOnCanvas dirty rect is invalid.");
         return;
     }
     auto skRect = SkRect::MakeXYWH(dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
-    const int defaultEdgeWidth = 6;
     SkPaint rectPaint;
     rectPaint.setColor(color);
     rectPaint.setAntiAlias(true);
     rectPaint.setAlphaf(alpha);
     rectPaint.setStyle(fillType);
-    rectPaint.setStrokeWidth(defaultEdgeWidth);
+    rectPaint.setStrokeWidth(strokeWidth);
     if (fillType == SkPaint::kFill_Style) {
         rectPaint.setStrokeJoin(SkPaint::kRound_Join);
     }
@@ -203,52 +210,53 @@ void RSRenderThreadVisitor::DrawDirtyRegion()
     auto dirtyRect = RectI();
     const float fillAlpha = 0.2;
     const float edgeAlpha = 0.4;
-    const float subFactor = 2.0;
 
     if (curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::MULTI_HISTORY)) {
         dirtyRect = curDirtyManager_->GetDirtyRegion();
         if (dirtyRect.IsEmpty()) {
-            ROSEN_LOGD("DrawDirtyRegion his dirty rect is invalid. dirtyRect = [%d, %d, %d, %d]",
-                dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+            ROSEN_LOGD("DrawDirtyRegion his dirty rect is invalid. dirtyRect = %s", dirtyRect.ToString().c_str());
         } else {
-            ROSEN_LOGD("DrawDirtyRegion his dirty rect. dirtyRect = [%d, %d, %d, %d]",
-                dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+            ROSEN_LOGD("DrawDirtyRegion his dirty rect. dirtyRect = %s", dirtyRect.ToString().c_str());
             // green
-            DrawRectOnCanvas(dirtyRect, 0xFF0AFF0A, SkPaint::kFill_Style, fillAlpha / subFactor);
-            DrawRectOnCanvas(dirtyRect, 0xFF0AFF0A, SkPaint::kStroke_Style, edgeAlpha);
+            DrawRectOnCanvas(dirtyRect, 0x442FDD2F, SkPaint::kFill_Style, fillAlpha);
+            DrawRectOnCanvas(dirtyRect, 0xFF2FDD2F, SkPaint::kStroke_Style, edgeAlpha);
         }
     }
 
     if (curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_WHOLE)) {
         dirtyRect = curDirtyManager_->GetLatestDirtyRegion();
         if (dirtyRect.IsEmpty()) {
-            ROSEN_LOGD("DrawDirtyRegion current frame's dirty rect is invalid. dirtyRect = [%d, %d, %d, %d]",
-                dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+            ROSEN_LOGD("DrawDirtyRegion current frame's dirty rect is invalid. dirtyRect = %s",
+                dirtyRect.ToString().c_str());
         } else {
-            ROSEN_LOGD("DrawDirtyRegion cur dirty rect. dirtyRect = [%d, %d, %d, %d]",
-                dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+            ROSEN_LOGD("DrawDirtyRegion cur dirty rect. dirtyRect = %s", dirtyRect.ToString().c_str());
             // yellow
-            DrawRectOnCanvas(dirtyRect, 0xFFFFFF00, SkPaint::kFill_Style, fillAlpha);
+            DrawRectOnCanvas(dirtyRect, 0x88FFFF00, SkPaint::kFill_Style, fillAlpha);
             DrawRectOnCanvas(dirtyRect, 0xFFFFFF00, SkPaint::kStroke_Style, edgeAlpha);
         }
     }
 
     if (curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
-        std::map<NodeId, RectI> dirtySubRects_;
-        curDirtyManager_->GetDirtyCanvasNodes(dirtySubRects_);
-        for (const auto& [nid, subRect] : dirtySubRects_) {
-            ROSEN_LOGD("DrawDirtyRegion canvasNode id %" PRIu64 " is dirty. dirtyRect = [%d, %d, %d, %d]", nid,
-                subRect.left_, subRect.top_, subRect.width_, subRect.height_);
-            // red
-            DrawRectOnCanvas(subRect, 0xFFFF0000, SkPaint::kStroke_Style, edgeAlpha / subFactor);
+        const int strokeWidth = 4;
+        std::map<NodeId, RectI> dirtyRegionRects_;
+        curDirtyManager_->GetDirtyRegionInfo(dirtyRegionRects_, RSRenderNodeType::CANVAS_NODE,
+            DirtyRegionType::UPDATE_DIRTY_REGION);
+        ROSEN_LOGD("DrawDirtyRegion canvas dirtyRegionRects_ size %zu", dirtyRegionRects_.size());
+        // Draw Canvas Node
+        for (const auto& [nid, subRect] : dirtyRegionRects_) {
+            ROSEN_LOGD("DrawDirtyRegion canvas node id %" PRIu64 " is dirty. dirtyRect = %s",
+                nid, subRect.ToString().c_str());
+            DrawRectOnCanvas(subRect, 0x88FF0000, SkPaint::kStroke_Style, edgeAlpha, strokeWidth);
         }
-
-        curDirtyManager_->GetDirtySurfaceNodes(dirtySubRects_);
-        for (const auto& [nid, subRect] : dirtySubRects_) {
-            ROSEN_LOGD("DrawDirtyRegion surfaceNode id %" PRIu64 " is dirty. dirtyRect = [%d, %d, %d, %d]", nid,
-                subRect.left_, subRect.top_, subRect.width_, subRect.height_);
-            // light purple
-            DrawRectOnCanvas(subRect, 0xFFD899D8, SkPaint::kStroke_Style, edgeAlpha);
+        
+        curDirtyManager_->GetDirtyRegionInfo(dirtyRegionRects_, RSRenderNodeType::SURFACE_NODE,
+            DirtyRegionType::UPDATE_DIRTY_REGION);
+        ROSEN_LOGD("DrawDirtyRegion surface dirtyRegionRects_ size %zu", dirtyRegionRects_.size());
+        // Draw Surface Node
+        for (const auto& [nid, subRect] : dirtyRegionRects_) {
+            ROSEN_LOGD("DrawDirtyRegion surface node id %" PRIu64 " is dirty. dirtyRect = %s",
+                nid, subRect.ToString().c_str());
+            DrawRectOnCanvas(subRect, 0xFFD864D8, SkPaint::kStroke_Style, edgeAlpha, strokeWidth);
         }
     }
 }
@@ -451,7 +459,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         transactionProxy->FlushImplicitTransactionFromRT(uiTimestamp_);
     }
 
-    if (curDirtyManager_->IsDirty() && curDirtyManager_->IsDebugEnabled()) {
+    if ((dfxDirtyType_ != DirtyRegionDebugType::DISABLED) && curDirtyManager_->IsDirty()) {
         ROSEN_LOGD("ProcessRootRenderNode %s [%" PRIu64 "] draw dirtyRect", ptr->GetName().c_str(), node.GetId());
         DrawDirtyRegion();
     }

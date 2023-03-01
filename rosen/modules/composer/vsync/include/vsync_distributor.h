@@ -50,7 +50,7 @@ public:
     virtual VsyncError GetReceiveFd(int32_t &fd) override;
     virtual VsyncError SetVSyncRate(int32_t rate) override;
 
-    int32_t PostEvent(int64_t now);
+    int32_t PostEvent(int64_t now, int64_t period, int64_t vsyncCount);
 
     int32_t rate_;
     int32_t highPriorityRate_ = -1;
@@ -86,11 +86,12 @@ private:
     struct VSyncEvent {
         int64_t timestamp;
         int64_t vsyncCount;
+        int64_t period;
     };
     void ThreadMain();
     void EnableVSync();
     void DisableVSync();
-    void OnVSyncEvent(int64_t now);
+    void OnVSyncEvent(int64_t now, int64_t period);
     void CollectConnections(bool &waitForVSync, int64_t timestamp,
                             std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount);
     VsyncError QosGetPidByName(const std::string& name, uint32_t& pid);

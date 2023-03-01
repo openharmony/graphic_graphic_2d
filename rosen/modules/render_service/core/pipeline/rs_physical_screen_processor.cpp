@@ -68,6 +68,11 @@ void RSPhysicalScreenProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
     RS_LOGI("RSPhysicalScreenProcessor::ProcessDisplaySurface() is not supported.");
 }
 
+void RSPhysicalScreenProcessor::ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node)
+{
+    RS_LOGI("RSPhysicalScreenProcessor::ProcessDrivenSurface() is not supported.");
+}
+
 void RSPhysicalScreenProcessor::Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers)
 {
     RS_TRACE_NAME("Redraw");
@@ -80,13 +85,13 @@ void RSPhysicalScreenProcessor::Redraw(const sptr<Surface>& surface, const std::
     bool forceCPU = RSBaseRenderEngine::NeedForceCPU(layers);
     auto renderFrame = renderEngine_->RequestFrame(surface, renderFrameConfig_, forceCPU);
     if (renderFrame == nullptr) {
-        RS_LOGE("RsDebug RSPhysicalScreenProcessor::Redraw：failed to request frame.");
+        RS_LOGE("RsDebug RSPhysicalScreenProcessor::Redraw: failed to request frame.");
         return;
     }
 
     auto canvas = renderFrame->GetCanvas();
     if (canvas == nullptr) {
-        RS_LOGE("RsDebug RSPhysicalScreenProcessor::Redraw：canvas is nullptr.");
+        RS_LOGE("RsDebug RSPhysicalScreenProcessor::Redraw: canvas is nullptr.");
         return;
     }
     canvas->concat(screenTransformMatrix_);

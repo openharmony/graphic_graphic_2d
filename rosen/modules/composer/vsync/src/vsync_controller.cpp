@@ -71,7 +71,7 @@ VsyncError VSyncController::SetPhaseOffset(int64_t offset)
     return generator->ChangePhaseOffset(this, phaseOffset_);
 }
 
-void VSyncController::OnVSyncEvent(int64_t now)
+void VSyncController::OnVSyncEvent(int64_t now, int64_t period)
 {
     Callback *cb = nullptr;
     {
@@ -79,7 +79,7 @@ void VSyncController::OnVSyncEvent(int64_t now)
         cb = callback_;
     }
     if (cb != nullptr) {
-        cb->OnVSyncEvent(now);
+        cb->OnVSyncEvent(now, period);
     }
 }
 }

@@ -65,10 +65,17 @@ VsyncError VSyncConnection::GetReceiveFd(int32_t &fd)
     return VSYNC_ERROR_OK;
 }
 
-int32_t VSyncConnection::PostEvent(int64_t now)
+int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCount)
 {
-    ScopedBytrace func("SendVsyncTo conn: " + info_.name_ + ", now:" + std::to_string(now));
-    int32_t ret = socketPair_->SendData(&now, sizeof(int64_t));
+    ScopedBytrace func("SendVsyncTo conn: " + info_.name_ + ", now:" + std::to_string(now)
+        + ", postVSyncCount_:" + std::to_string(vsyncCount));
+    // 3 is array size.
+    int64_t data[3];
+    data[0] = now;
+    // 1, 2: index of array data.
+    data[1] = now + period;
+    data[2] = vsyncCount;
+    int32_t ret = socketPair_->SendData(data, sizeof(data));
     if (ret > -1) {
         ScopedBytrace successful("successful");
         info_.postVSyncCount_++;
@@ -98,6 +105,8 @@ VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string
     event_.vsyncCount = 0;
     vsyncThreadRunning_ = true;
     threadLoop_ = std::thread(std::bind(&VSyncDistributor::ThreadMain, this));
+    std::string threadName = "VSync-" + name;
+    pthread_setname_np(threadLoop_.native_handle(), threadName.c_str());
 }
 
 VSyncDistributor::~VSyncDistributor()
@@ -189,7 +198,7 @@ void VSyncDistributor::ThreadMain()
         }
         ScopedBytrace func(name_ + "_SendVsync");
         for (uint32_t i = 0; i < conns.size(); i++) {
-            int32_t ret = conns[i]->PostEvent(timestamp);
+            int32_t ret = conns[i]->PostEvent(timestamp, event_.period, event_.vsyncCount);
             VLOGD("Distributor name:%{public}s, connection name:%{public}s, ret:%{public}d",
                 name_.c_str(), conns[i]->info_.name_.c_str(), ret);
             if (ret == 0 || ret == ERRNO_OTHER) {
@@ -222,11 +231,12 @@ void VSyncDistributor::DisableVSync()
     }
 }
 
-void VSyncDistributor::OnVSyncEvent(int64_t now)
+void VSyncDistributor::OnVSyncEvent(int64_t now, int64_t period)
 {
     std::lock_guard<std::mutex> locker(mutex_);
     event_.timestamp = now;
     event_.vsyncCount++;
+    event_.period = period;
     con_.notify_all();
 }
 

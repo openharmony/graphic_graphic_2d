@@ -132,8 +132,9 @@ namespace OHOS {
         std::string name = GetStringFromData(STR_LEN);
         bool isShared = GetData<bool>();
         BufferRequestConfig requestConfig = GetData<BufferRequestConfig>();
-        BufferFlushConfig flushConfig = GetData<BufferFlushConfig>();
+        OHOS::Rect rect = GetData<OHOS::Rect>();
         int64_t timestamp = GetData<int64_t>();
+        BufferFlushConfig flushConfig = { .damage = rect, .timestamp = timestamp, };
         Rect damage = GetData<Rect>();
         uint32_t seqNum = GetData<uint32_t>();
         uint32_t queueSize = GetData<uint32_t>();

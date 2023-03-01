@@ -107,7 +107,7 @@ public:
     static bool IsColorFilterModeValid(ColorFilterMode mode);
 
     static bool WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& node);
-    static bool WriteFreezeRenderNodeToPng(const RSRenderNode& node);
+    static bool WriteCacheRenderNodeToPng(const RSRenderNode& node);
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
     static void DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,

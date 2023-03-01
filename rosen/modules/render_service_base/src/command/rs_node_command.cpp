@@ -44,5 +44,37 @@ void RSNodeCommandHelper::SetFreeze(RSContext& context, NodeId nodeId, bool isFr
         node->SetFreeze(isFreeze);
     }
 }
+
+void RSNodeCommandHelper::MarkDrivenRender(RSContext& context, NodeId nodeId, bool flag)
+{
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->SetIsMarkDriven(flag);
+    }
+}
+
+void RSNodeCommandHelper::MarkDrivenRenderItemIndex(RSContext& context, NodeId nodeId, int32_t index)
+{
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->SetItemIndex(index);
+    }
+}
+
+void RSNodeCommandHelper::MarkDrivenRenderFramePaintState(RSContext& context, NodeId nodeId, bool flag)
+{
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->SetPaintState(flag);
+    }
+}
+
+void RSNodeCommandHelper::MarkContentChanged(RSContext& context, NodeId nodeId, bool isChanged)
+{
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->SetIsContentChanged(isChanged);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

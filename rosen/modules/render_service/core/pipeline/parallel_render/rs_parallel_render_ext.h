@@ -55,6 +55,8 @@ public:
     static inline void* clearRenderLoadFunc_ = nullptr;
     static inline void* freeParallelRenderLBFunc_ = nullptr;
     static inline void* setCoreLevelFunc_ = nullptr;
+    static inline void* updateNodeCostFunc_ = nullptr;
+    static inline void* getCostFactorFunc_ = nullptr;
 
 private:
     RSParallelRenderExt() = default;
@@ -68,7 +70,9 @@ private:
             GetLoadBalancingFunc() &&
             GetClearRenderLoadFunc() &&
             GetFreeParallelRenderLoadBalancing() &&
-            GetSetCoreLevelFunc();
+            GetSetCoreLevelFunc() &&
+            GetUpdateNodeCostFunc() &&
+            GetGetCostFactorFunc();
     }
 
     static bool GetInitParallelRenderLoadBalancingFunc()
@@ -119,6 +123,18 @@ private:
         return setCoreLevelFunc_ != nullptr;
     }
 
+    static bool GetUpdateNodeCostFunc()
+    {
+        updateNodeCostFunc_ = dlsym(parallelRenderExtHandle_, "UpdateNodeCost");
+        return updateNodeCostFunc_ != nullptr;
+    }
+
+    static bool GetGetCostFactorFunc()
+    {
+        getCostFactorFunc_ = dlsym(parallelRenderExtHandle_, "GetCostFactor");
+        return getCostFactorFunc_ != nullptr;
+    }
+
     static void FreeFuncHandle()
     {
         parallelRenderExtHandle_ = nullptr;
@@ -130,6 +146,8 @@ private:
         clearRenderLoadFunc_ = nullptr;
         freeParallelRenderLBFunc_ = nullptr;
         setCoreLevelFunc_ = nullptr;
+        updateNodeCostFunc_ = nullptr;
+        getCostFactorFunc_ = nullptr;
     }
 };
 

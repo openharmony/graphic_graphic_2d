@@ -47,6 +47,17 @@ public:
 
     void Begin();
     void Commit(uint64_t timestamp = 0);
+    void CommitSyncTransaction(uint64_t timestamp = 0, const std::string& abilityName = "");
+    void MarkTransactionNeedSync();
+    void MarkTransactionNeedCloseSync(const int32_t transactionCount);
+
+    void StartSyncTransaction();
+    void CloseSyncTransaction();
+
+    void SetSyncId(const uint64_t syncId)
+    {
+        syncId_ = syncId;
+    }
 
 private:
     RSTransactionProxy();
@@ -79,6 +90,8 @@ private:
     uint64_t timestamp_ = 0;
     static std::once_flag flag_;
     static RSTransactionProxy* instance_;
+    bool needSync_ { false };
+    uint64_t syncId_ { 0 };
 };
 } // namespace Rosen
 } // namespace OHOS

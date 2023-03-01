@@ -377,6 +377,7 @@ using BufferRequestConfig = struct BufferRequestConfig {
 
 using BufferFlushConfig = struct {
     Rect damage;
+    std::vector<Rect> damages;
     int64_t timestamp;
 };
 

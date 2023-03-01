@@ -89,6 +89,7 @@ public:
         buffer_.acquireFence = acquireFence;
         buffer_.damageRect = damage;
         buffer_.timestamp = timestamp;
+        isPreBufferReleased_ = false;
     }
 
     const sptr<SurfaceBuffer>& GetBuffer() const
@@ -126,6 +127,16 @@ public:
     int64_t GetTimestamp() const
     {
         return buffer_.timestamp;
+    }
+
+    bool IsPreBufferReleased() const
+    {
+        return isPreBufferReleased_;
+    }
+
+    void SetPreBufferReleased(bool isPreBufferReleased)
+    {
+        isPreBufferReleased_ = isPreBufferReleased;
     }
 
     void CleanCache()
@@ -175,6 +186,7 @@ private:
     SurfaceBufferEntry preBuffer_;
     float globalZOrder_ = 0.0f;
     std::atomic<int> bufferAvailableCount_ = 0;
+    bool isPreBufferReleased_ = false;
 };
 }
 }

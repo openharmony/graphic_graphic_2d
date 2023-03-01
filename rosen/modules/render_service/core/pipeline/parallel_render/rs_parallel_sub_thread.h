@@ -72,6 +72,7 @@ private:
     void CreateShareEglContext();
     void StartPrepare();
     void Prepare();
+    void CalcCost();
     sk_sp<GrContext> CreateShareGrContext();
     void AcquireSubSkSurface(int width, int height);
 

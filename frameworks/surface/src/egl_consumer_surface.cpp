@@ -64,4 +64,29 @@ GSError EglConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &
     EglManager::GetInstance()->EglMakeCurrent();
     return GSERROR_OK;
 }
+
+GSError EglConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
+    int64_t &timestamp, std::vector<Rect> &damages)
+{
+    auto ret = ConsumerSurface::AcquireBuffer(buffer, fence, timestamp, damages);
+    if (ret) {
+        return ret;
+    }
+
+    auto eglData = buffer->GetEglData();
+    if (eglData == nullptr) {
+        auto eglDataImpl = new EglDataImpl();
+        auto res = eglDataImpl->CreateEglData(buffer);
+        if (res) {
+            BLOGE("EglDataImpl::CreateEglData failed with %{public}d", res);
+            return GSERROR_INTERNAL;
+        } else {
+            eglData = eglDataImpl;
+            buffer->SetEglData(eglData);
+        }
+    }
+    EglManager::GetInstance()->EglMakeCurrent();
+    return GSERROR_OK;
+}
+
 } // namespace OHOS

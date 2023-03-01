@@ -58,6 +58,11 @@ public:
         return timestamp_;
     }
 
+    void SetTimestamp(const uint64_t timestamp)
+    {
+        timestamp_ = timestamp;
+    }
+
     std::string GetAbilityName() const
     {
         return abilityName_;
@@ -103,6 +108,46 @@ public:
         return payload_;
     }
 
+    bool IsNeedSync() const
+    {
+        return needSync_;
+    }
+
+    bool IsNeedCloseSync() const
+    {
+        return needCloseSync_;
+    }
+
+    void MarkNeedSync()
+    {
+        needSync_ = true;
+    }
+
+    void MarkNeedCloseSync()
+    {
+        needCloseSync_ = true;
+    }
+
+    void SetSyncTransactionNum(const int32_t syncTransactionCount)
+    {
+        syncTransactionCount_ = syncTransactionCount;
+    }
+
+    int32_t GetSyncTransactionNum() const
+    {
+        return syncTransactionCount_;
+    }
+
+    void SetSyncId(const uint64_t syncId)
+    {
+        syncId_ = syncId;
+    }
+
+    uint64_t GetSyncId() const
+    {
+        return syncId_;
+    }
+
 private:
     void AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     void AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType);
@@ -115,6 +160,10 @@ private:
     uint64_t index_ = 0;
     bool isUniRender_ = false;
     mutable size_t marshallingIndex_ = 0;
+    bool needSync_ { false };
+    bool needCloseSync_ { false };
+    int32_t syncTransactionCount_ { 0 };
+    uint64_t syncId_ { 0 };
 
     friend class RSTransactionProxy;
     friend class RSMessageProcessor;

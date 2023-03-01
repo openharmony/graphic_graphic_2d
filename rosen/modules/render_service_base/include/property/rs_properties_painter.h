@@ -30,7 +30,7 @@ public:
     static void Clip(SkCanvas& canvas, RectF rect);
     static void SetBgAntiAlias(bool forceBgAntiAlias);
     static bool GetBgAntiAlias();
-    static void DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+    static void DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas, bool skipClip = false);
     static void DrawBorder(const RSProperties& properties, SkCanvas& canvas);
     static void DrawFrame(const RSProperties& properties, RSPaintFilterCanvas& canvas, DrawCmdListPtr& drawCmdList);
     static void GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties, const RRect* rrect = nullptr);
@@ -38,7 +38,7 @@ public:
     static void DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         std::shared_ptr<RSSkiaFilter>& filter, const std::unique_ptr<SkRect>& rect = nullptr,
         SkSurface* sKSurface = nullptr);
-    static void DrawForegroundColor(const RSProperties& properties, SkCanvas& canvas);
+    static void DrawForegroundColor(const RSProperties& properties, SkCanvas& canvas, bool skipClip = false);
     static void DrawMask(const RSProperties& properties, SkCanvas& canvas);
     static void DrawMask(const RSProperties& properties, SkCanvas& canvas, SkRect maskBounds);
     static bool GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, SkMatrix& mat);
@@ -48,6 +48,8 @@ public:
     static SkColor CalcAverageColor(sk_sp<SkImage> imageSnapshot);
 private:
     inline static int g_blurCnt = 0;
+    static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
+    static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
 };
 } // namespace Rosen
 } // namespace OHOS

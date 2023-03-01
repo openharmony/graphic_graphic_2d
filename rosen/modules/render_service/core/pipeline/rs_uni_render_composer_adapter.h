@@ -29,6 +29,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSComposerAdapter;
+class RSDrivenSurfaceRenderNode;
 class RSUniRenderComposerAdapter {
 public:
     RSUniRenderComposerAdapter() = default;
@@ -38,12 +39,14 @@ public:
 
     LayerInfoPtr CreateLayer(RSDisplayRenderNode& node);
     LayerInfoPtr CreateLayer(RSSurfaceRenderNode& node);
+    LayerInfoPtr CreateLayer(RSDrivenSurfaceRenderNode& node);
     void CommitLayers(const std::vector<LayerInfoPtr>& layers);
 
 private:
     bool IsOutOfScreenRegion(const ComposeInfo& info) const;
     ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node) const;
     ComposeInfo BuildComposeInfo(RSDisplayRenderNode& node) const;
+    ComposeInfo BuildComposeInfo(RSDrivenSurfaceRenderNode& node) const;
     void SetComposeInfoToLayer(
         const LayerInfoPtr& layer,
         const ComposeInfo& info,
@@ -60,6 +63,7 @@ private:
     static void GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node);
     bool GetComposerInfoNeedClient(const ComposeInfo &info, RSRenderNode& node) const;
     bool CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node) const;
+    void SetPreBufferInfo(RSSurfaceHandler& surfaceHandler, ComposeInfo& info) const;
 
     std::shared_ptr<HdiOutput> output_;
     ScreenInfo screenInfo_;

@@ -33,13 +33,14 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     if (fileDescriptor < 0) {
         return;
     }
-
+    // 3 is array size.
+    int64_t data[3];
     int64_t now = 0;
     ssize_t ret = 0;
     ssize_t dataCount = 0;
     do {
         // only take the latest timestamp
-        ret = read(fileDescriptor, &now, sizeof(int64_t));
+        ret = read(fileDescriptor, data, sizeof(data));
         if (ret == 0) {
             return;
         }
@@ -58,8 +59,11 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
         std::lock_guard<std::mutex> locker(mtx_);
         cb = vsyncCallbacks_;
     }
+    now = data[0];
     VLOGD("dataCount:%{public}d, cb == nullptr:%{public}d", dataCount, (cb == nullptr));
-    ScopedBytrace func("ReceiveVsync, dataCount:" + std::to_string(dataCount) + "bytes, now:" + std::to_string(now));
+    // 1, 2: index of array data.
+    ScopedBytrace func("ReceiveVsync, dataCount:" + std::to_string(dataCount) + "bytes, now:" + std::to_string(now) +
+        ", expected end:" + std::to_string(data[1]) + ", Vsync Id:" + std::to_string(data[2]));
     if (dataCount > 0 && cb != nullptr) {
         cb(now, userData_);
     }

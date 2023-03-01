@@ -81,8 +81,6 @@ void RSHardwareThread::ReleaseBuffer(sptr<SurfaceBuffer> buffer, sptr<SyncFence>
         RS_TRACE_NAME("RSHardwareThread::ReleaseBuffer");
         auto ret = cSurface->ReleaseBuffer(buffer, releaseFence);
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGE("RsDebug RSHardwareThread::ReleaseBuffer failed(ret: %d)!",
-                buffer->GetSeqNum(), ret);
             return;
         }
         // reset prevBuffer if we release it successfully,

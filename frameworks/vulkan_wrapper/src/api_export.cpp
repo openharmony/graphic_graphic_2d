@@ -23,8 +23,16 @@ VKAPI_ATTR VkResult vkCreateInstance(const VkInstanceCreateInfo* pCreateInfo,
 }
 
 __attribute__((visibility("default")))
+VKAPI_ATTR VkResult vkCreateOHOSSurfaceOpenHarmony(VkInstance instance,
+    const VkOHOSSurfaceCreateInfoOpenHarmony* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface)
+{
+    return vulkan::driver::CreateOHOSSurfaceOpenHarmony(instance, pCreateInfo, pAllocator, pSurface);
+}
+
+__attribute__((visibility("default")))
 VKAPI_ATTR VkResult vkEnumerateInstanceExtensionProperties(const char* pLayerName,
-uint32_t* pPropertyCount, VkExtensionProperties* pProperties)
+    uint32_t* pPropertyCount, VkExtensionProperties* pProperties)
 {
     return vulkan::driver::EnumerateInstanceExtensionProperties(pLayerName, pPropertyCount, pProperties);
 }

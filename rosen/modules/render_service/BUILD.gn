@@ -60,9 +60,18 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_virtual_screen_processor.cpp",
     "core/screen_manager/rs_screen.cpp",
     "core/screen_manager/rs_screen_manager.cpp",
+    "core/system/rs_system_parameters.cpp",
     "core/transaction/rs_render_service_connection_stub.cpp",
     "core/transaction/rs_render_service_stub.cpp",
   ]
+
+  if (rs_enable_driven_render && rs_enable_gpu) {
+    sources += [
+      "core/pipeline/driven_render/rs_driven_render_ext.cpp",
+      "core/pipeline/driven_render/rs_driven_render_manager.cpp",
+      "core/pipeline/driven_render/rs_driven_surface_render_node.cpp",
+    ]
+  }
 
   if (rs_enable_eglimage) {
     sources += [ "core/pipeline/rs_egl_image_manager.cpp" ]
@@ -70,6 +79,7 @@ ohos_shared_library("librender_service") {
 
   if (rs_enable_parallel_render && rs_enable_gpu) {
     sources += [
+      "core/pipeline/parallel_render/rs_node_cost_manager.cpp",
       "core/pipeline/parallel_render/rs_parallel_hardware_composer.cpp",
       "core/pipeline/parallel_render/rs_parallel_pack_visitor.cpp",
       "core/pipeline/parallel_render/rs_parallel_render_manager.cpp",
@@ -84,21 +94,21 @@ ohos_shared_library("librender_service") {
     "//foundation/graphic/graphic_2d/frameworks/surface/include",
     "//foundation/graphic/graphic_2d/rosen/include",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
+    "$graphic_2d_root/rosen/modules/render_frame_trace/include",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/rosen/modules/utils",
     "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
     "//foundation/graphic/graphic_2d/utils/log",
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
-    "//foundation/resourceschedule/frame_aware_sched/interfaces/innerkits/frameintf",
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk:accessibilityconfig",
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/resourceschedule/frame_aware_sched/interfaces/innerkits/frameintf:frame_trace_intf",
     "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk:system_ability_fwk",
   ]
 

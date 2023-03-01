@@ -172,6 +172,16 @@ GSError BufferQueue::CheckFlushConfig(const BufferFlushConfig &config)
         BLOGN_INVALID("config.damage.h >= 0, now is %{public}d", config.damage.h);
         return GSERROR_INVALID_ARGUMENTS;
     }
+    for (decltype(config.damages.size()) i = 0; i < config.damages.size(); i++) {
+        if (config.damages[i].w < 0) {
+            BLOGN_INVALID("config.damages[%{public}zu].w >= 0, now is %{public}d", i, config.damages[i].w);
+            return GSERROR_INVALID_ARGUMENTS;
+        }
+        if (config.damages[i].h < 0) {
+            BLOGN_INVALID("config.damages[%{public}zu].h >= 0, now is %{public}d", i, config.damages[i].h);
+            return GSERROR_INVALID_ARGUMENTS;
+        }
+    }
     return GSERROR_OK;
 }
 
@@ -450,7 +460,16 @@ GSError BufferQueue::DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData
     dirtyList_.push_back(sequence);
     bufferQueueCache_[sequence].buffer->SetExtraData(bedata);
     bufferQueueCache_[sequence].fence = fence;
-    bufferQueueCache_[sequence].damage = config.damage;
+    bufferQueueCache_[sequence].damages.clear();
+    if (config.damages.size() == 0) {
+        bufferQueueCache_[sequence].damages.reserve(1);
+        bufferQueueCache_[sequence].damages.push_back(config.damage);
+    } else {
+        bufferQueueCache_[sequence].damages.reserve(config.damages.size());
+        for (const auto& rect : config.damages) {
+            bufferQueueCache_[sequence].damages.push_back(rect);
+        }
+    }
 
     uint64_t usage = static_cast<uint32_t>(bufferQueueCache_[sequence].config.usage);
     if (usage & BUFFER_USAGE_CPU_WRITE) {
@@ -476,7 +495,7 @@ GSError BufferQueue::DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData
 }
 
 GSError BufferQueue::AcquireBuffer(sptr<SurfaceBuffer> &buffer,
-    sptr<SyncFence> &fence, int64_t &timestamp, Rect &damage)
+    sptr<SyncFence> &fence, int64_t &timestamp, std::vector<Rect> &damages)
 {
     ScopedBytrace func(__func__);
     // dequeue from dirty list
@@ -491,7 +510,10 @@ GSError BufferQueue::AcquireBuffer(sptr<SurfaceBuffer> &buffer,
 
         fence = bufferQueueCache_[sequence].fence;
         timestamp = bufferQueueCache_[sequence].timestamp;
-        damage = bufferQueueCache_[sequence].damage;
+        damages.reserve(bufferQueueCache_[sequence].damages.size());
+        for (const auto& rect : bufferQueueCache_[sequence].damages) {
+            damages.push_back(rect);
+        }
 
         ScopedBytrace bufferName(name_ + ":" + std::to_string(sequence));
         BLOGND("Success Buffer seq id: %{public}d Queue id: %{public}" PRIu64 " AcquireFence:%{public}d",
@@ -527,6 +549,19 @@ GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBuffer> &buffer, const sptr<SyncF
                 return GSERROR_NO_ENTRY;
             }
         }
+
+        bufferQueueCache_[sequence].state = BUFFER_STATE_RELEASED;
+        bufferQueueCache_[sequence].fence = fence;
+
+        if (bufferQueueCache_[sequence].isDeleting) {
+            DeleteBufferInCache(sequence);
+            BLOGND("Succ delete Buffer seq id: %{public}d Queue id: %{public}" PRIu64 " in cache", sequence, uniqueId_);
+        } else {
+            freeList_.push_back(sequence);
+            BLOGND("Succ push Buffer seq id: %{public}d Qid: %{public}" PRIu64 " to free list, releaseFence: %{public}d",
+                sequence, uniqueId_, fence->Get());
+        }
+        waitReqCon_.notify_all();
     }
 
     if (onBufferRelease != nullptr) {
@@ -538,23 +573,6 @@ GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBuffer> &buffer, const sptr<SyncF
         }
     }
 
-    std::lock_guard<std::mutex> lockGuard(mutex_);
-    if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-        BLOGN_FAILURE_ID(sequence, "not find in cache, Queue id: %{public}" PRIu64 "", uniqueId_);
-        return GSERROR_NO_ENTRY;
-    }
-    bufferQueueCache_[sequence].state = BUFFER_STATE_RELEASED;
-    bufferQueueCache_[sequence].fence = fence;
-
-    if (bufferQueueCache_[sequence].isDeleting) {
-        DeleteBufferInCache(sequence);
-        BLOGND("Succ delete Buffer seq id: %{public}d Queue id: %{public}" PRIu64 " in cache", sequence, uniqueId_);
-    } else {
-        freeList_.push_back(sequence);
-        BLOGND("Succ push Buffer seq id: %{public}d Qid: %{public}" PRIu64 " to free list, releaseFence: %{public}d",
-            sequence, uniqueId_, fence->Get());
-    }
-    waitReqCon_.notify_all();
     return GSERROR_OK;
 }
 
@@ -669,10 +687,7 @@ GSError BufferQueue::AttachBuffer(sptr<SurfaceBuffer> &buffer)
             .usage = buffer->GetUsage(),
             .timeout = 0,
         },
-        .damage = {
-            .w = ele.config.width,
-            .h = ele.config.height,
-        }
+        .damages = { { .w = ele.config.width, .h = ele.config.height, } },
     };
 
     uint32_t sequence = buffer->GetSeqNum();
@@ -1128,10 +1143,13 @@ void BufferQueue::DumpCache(std::string &result)
                 ", state = " + BufferStateStrs.at(element.state) +
                 ", timestamp = " + std::to_string(element.timestamp);
         }
-        result += ", damageRect = [" + std::to_string(element.damage.x) + ", " +
-            std::to_string(element.damage.y) + ", " +
-            std::to_string(element.damage.w) + ", " +
-            std::to_string(element.damage.h) + "],";
+        for (decltype(element.damages.size()) i = 0; i < element.damages.size(); i++) {
+            result += ", damagesRect = [" + std::to_string(i) + "] = [" +
+            std::to_string(element.damages[i].x) + ", " +
+            std::to_string(element.damages[i].y) + ", " +
+            std::to_string(element.damages[i].w) + ", " +
+            std::to_string(element.damages[i].h) + "],";
+        }
         result += " config = [" + std::to_string(element.config.width) + "x" +
             std::to_string(element.config.height) + ", " +
             std::to_string(element.config.strideAlignment) + ", " +

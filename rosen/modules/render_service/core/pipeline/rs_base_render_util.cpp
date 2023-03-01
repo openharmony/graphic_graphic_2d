@@ -1240,7 +1240,7 @@ bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& no
     return WriteToPng(filename, param);
 }
 
-bool RSBaseRenderUtil::WriteFreezeRenderNodeToPng(const RSRenderNode& node)
+bool RSBaseRenderUtil::WriteCacheRenderNodeToPng(const RSRenderNode& node)
 {
     auto type = RSSystemProperties::GetDumpSurfaceType();
     if (type == DumpSurfaceType::DISABLED || type == DumpSurfaceType::PIXELMAP) {
@@ -1259,7 +1259,7 @@ bool RSBaseRenderUtil::WriteFreezeRenderNodeToPng(const RSRenderNode& node)
     gettimeofday(&now, nullptr);
     constexpr int secToUsec = 1000 * 1000;
     int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
-    std::string filename = "/data/FreezeRenderNode_" +
+    std::string filename = "/data/CacheRenderNode_" +
         std::to_string(node.GetId()) + "_" +
         std::to_string(nowVal) + ".png";
     WriteToPngParam param;

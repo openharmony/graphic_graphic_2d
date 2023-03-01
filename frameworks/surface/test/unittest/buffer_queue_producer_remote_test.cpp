@@ -48,7 +48,7 @@ public:
     };
     static inline std::vector<int32_t> deletingBuffers;
     static inline int64_t timestamp = 0;
-    static inline Rect damage = {};
+    static inline std::vector<Rect> damages = {};
     static inline sptr<IRemoteObject> robj = nullptr;
     static inline sptr<IBufferProducer> bp = nullptr;
     static inline sptr<BufferQueue> bq = nullptr;
@@ -155,7 +155,7 @@ HWTEST_F(BufferQueueProducerRemoteTest, ReqCan001, Function | MediumTest | Level
     ret = bp->CancelBuffer(retval.sequence, bedata);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damages);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
@@ -181,7 +181,7 @@ HWTEST_F(BufferQueueProducerRemoteTest, ReqCan002, Function | MediumTest | Level
     ret = bp->CancelBuffer(retval.sequence, bedata);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damages);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
@@ -221,7 +221,7 @@ HWTEST_F(BufferQueueProducerRemoteTest, ReqCan003, Function | MediumTest | Level
     ret = bp->CancelBuffer(retval3.sequence, bedata);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    ret = bq->AcquireBuffer(retval1.buffer, retval1.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval1.buffer, retval1.fence, timestamp, damages);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
@@ -245,14 +245,14 @@ HWTEST_F(BufferQueueProducerRemoteTest, ReqFlu001, Function | MediumTest | Level
     ret = bp->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damages);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
     ret = bq->ReleaseBuffer(retval.buffer, releaseFence);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damages);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
@@ -280,14 +280,14 @@ HWTEST_F(BufferQueueProducerRemoteTest, ReqFlu002, Function | MediumTest | Level
     ret = bp->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damages);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
     ret = bq->ReleaseBuffer(retval.buffer, releaseFence);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damages);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 }

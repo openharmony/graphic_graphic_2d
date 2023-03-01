@@ -24,6 +24,7 @@
 #include "platform/ohos/overdraw/rs_cpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_gpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
+#include "pipeline/driven_render/rs_driven_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -88,7 +89,14 @@ public:
     // Some properties defiend before ProcessSurfaceRenderNode() may be used in
     // ProcessSurfaceRenderNode() method. We should copy these properties in parallel render.
     void CopyPropertyForParallelVisitor(RSUniRenderVisitor *mainVisitor);
-
+    bool GetIsPartialRenderEnabled() const
+    {
+        return isPartialRenderEnabled_;
+    }
+    bool GetIsOpDropped() const
+    {
+        return isOpDropped_;
+    }
 private:
     void DrawWatermarkIfNeed();
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
@@ -98,6 +106,17 @@ private:
     void DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node);
     void DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& node);
     void DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node);
+    // check if surface name is in dfx target list
+    inline bool CheckIfSurfaceTargetedForDFX(std::string nodeName)
+    {
+        return (std::find(dfxTargetSurfaceNames_.begin(), dfxTargetSurfaceNames_.end(),
+            nodeName) != dfxTargetSurfaceNames_.end());
+    }
+
+    bool DrawDetailedTypesOfDirtyRegionForDFX(RSSurfaceRenderNode& node);
+    void DrawAndTraceSingleDirtyRegionTypeForDFX(RSSurfaceRenderNode& node,
+        DirtyRegionType dirtyType, bool isDrawn = true);
+
     std::vector<RectI> GetDirtyRects(const Occlusion::Region &region);
     /* calculate display/global (between windows) level dirty region, current include:
      * 1. window move/add/remove 2. transparent dirty region
@@ -176,6 +195,7 @@ private:
     bool isOcclusionEnabled_ = false;
     std::vector<std::string> dfxTargetSurfaceNames_;
     PartialRenderType partialRenderType_;
+    DirtyRegionDebugType dirtyRegionDebugType_;
     bool isDirty_ = false;
     bool needFilter_ = false;
     ColorGamut newColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
@@ -206,6 +226,20 @@ private:
     // vector of all app window nodes with surfaceView, sorted by zOrder
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> appWindowNodesInZOrder_;
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
+
+    // driven render
+    bool isDrivenRenderEnabled_ = false;
+    std::vector<DrivenCandidateTuple> backgroundCandidates_;
+    std::vector<DrivenCandidatePair> contentCandidates_;
+    bool hasInvalidDrivenRenderScene_ = false;
+    bool findContentNodeIsOnSubTree_ = false;
+    bool isPrepareContentNodeSubTree_ = false;
+    bool isPrepareLeashWinSubTree_ = false;
+    NodeId currLeashWinNodeId_ = 0;
+    DrivenUniRenderMode currDrivenRenderMode_ = DrivenUniRenderMode::RENDER_WITH_NORMAL;
+    DrivenDirtyInfo drivenDirtyInfo_;
+
+    bool isCalcCostEnable_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

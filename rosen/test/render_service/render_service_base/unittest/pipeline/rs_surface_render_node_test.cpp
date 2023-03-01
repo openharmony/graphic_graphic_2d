@@ -148,12 +148,12 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetGlobalDirtyRegion, TestSize.Level1)
 }
 
 /**
- * @tc.name: ResetSurfaceOpaqueRegion
+ * @tc.name: ResetSurfaceOpaqueRegion01
  * @tc.desc: function test
  * @tc.type:FUNC
  * @tc.require: I68IPR
  */
-HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion01, TestSize.Level1)
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
     RectI screenRect {0, 0, 2560, 1600};
@@ -161,6 +161,116 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion, TestSize.Level1)
     ContainerWindowConfigType containerWindowConfigType {ContainerWindowConfigType::ENABLED_UNFOCUSED_WINDOW_LEVEL_2};
     surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, containerWindowConfigType, false);
     surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, containerWindowConfigType, true);
+}
+
+/**
+ * @tc.name: ResetSurfaceOpaqueRegion02
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: I6HF6Y
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion02, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    RectI screenRect {0, 0, 2560, 1600};
+    RectI absRect {0, 100, 400, 500};
+    surfaceRenderNode.SetAbilityBGAlpha(0);
+    surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_0, false);
+    surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_0, true);
+}
+
+/**
+ * @tc.name: ResetSurfaceOpaqueRegion03
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: I6HF6Y
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion03, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    RectI screenRect {0, 0, 2560, 1600};
+    RectI absRect {0, 100, 400, 500};
+    surfaceRenderNode.SetAbilityBGAlpha(255);
+    surfaceRenderNode.SetGlobalAlpha(1.0f);
+    surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_0, false);
+    surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_0, true);
+}
+
+/**
+ * @tc.name: ResetSurfaceOpaqueRegion04
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: I6HF6Y
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion04, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    RectI screenRect {0, 0, 2560, 1600};
+    RectI absRect {0, 100, 400, 500};
+    surfaceRenderNode.SetAbilityBGAlpha(255);
+    surfaceRenderNode.SetGlobalAlpha(1.0f);
+    surfaceRenderNode.GetMutableRenderProperties().SetCornerRadius(Vector4f(15.0f));
+    surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_0, false);
+    surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_0, true);
+}
+
+/**
+ * @tc.name: ResetSurfaceOpaqueRegion05
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: I6HF6Y
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion05, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    RectI screenRect {0, 0, 2560, 1600};
+    RectI absRect {0, 100, 400, 500};
+    surfaceRenderNode.SetAbilityBGAlpha(255);
+    surfaceRenderNode.SetGlobalAlpha(1.0f);
+    surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_90, false);
+    surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_90, true);
+}
+
+/**
+ * @tc.name: ResetSurfaceOpaqueRegion06
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: I6HF6Y
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion06, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    RectI screenRect {0, 0, 2560, 1600};
+    RectI absRect {0, 100, 400, 500};
+    surfaceRenderNode.SetAbilityBGAlpha(255);
+    surfaceRenderNode.SetGlobalAlpha(1.0f);
+    surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_180, false);
+    surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_180, true);
+}
+
+/**
+ * @tc.name: ResetSurfaceOpaqueRegion07
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: I6HF6Y
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion07, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    RectI screenRect {0, 0, 2560, 1600};
+    RectI absRect {0, 100, 400, 500};
+    surfaceRenderNode.SetAbilityBGAlpha(255);
+    surfaceRenderNode.SetGlobalAlpha(1.0f);
+    surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_270, false);
+    surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_270, true);
 }
 } // namespace Rosen
 } // namespace OHOS

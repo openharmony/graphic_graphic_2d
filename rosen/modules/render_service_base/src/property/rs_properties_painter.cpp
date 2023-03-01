@@ -23,6 +23,7 @@
 #include "include/core/SkRRect.h"
 #include "include/core/SkSurface.h"
 #include "include/effects/Sk1DPathEffect.h"
+#include "include/effects/SkBlurImageFilter.h"
 #include "include/effects/SkDashPathEffect.h"
 #include "include/effects/SkLumaColorFilter.h"
 #include "include/utils/SkShadowUtils.h"
@@ -170,12 +171,13 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
         }
         float elevation = properties.GetShadowElevation() + DEFAULT_TRANSLATION_Z;
 
-        float userTransRatio = (elevation != DEFAULT_LIGHT_HEIGHT) ?
-            elevation / (DEFAULT_LIGHT_HEIGHT - elevation) : MAX_TRANS_RATIO;
+        float userTransRatio =
+            (elevation != DEFAULT_LIGHT_HEIGHT) ? elevation / (DEFAULT_LIGHT_HEIGHT - elevation) : MAX_TRANS_RATIO;
         float transRatio = std::max(MIN_TRANS_RATIO, std::min(userTransRatio, MAX_TRANS_RATIO));
 
-        float userSpotRatio = (elevation != DEFAULT_LIGHT_HEIGHT) ?
-            DEFAULT_LIGHT_HEIGHT / (DEFAULT_LIGHT_HEIGHT - elevation) : MAX_SPOT_RATIO;
+        float userSpotRatio = (elevation != DEFAULT_LIGHT_HEIGHT)
+                                  ? DEFAULT_LIGHT_HEIGHT / (DEFAULT_LIGHT_HEIGHT - elevation)
+                                  : MAX_SPOT_RATIO;
         float spotRatio = std::max(MIN_SPOT_RATIO, std::min(userSpotRatio, MAX_SPOT_RATIO));
 
         SkRect ambientRect = skPath.getBounds();
@@ -211,10 +213,10 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
 void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect)
 {
     // skip shadow if not valid or cache is enabled
-    if (!properties.IsShadowValid() || canvas.isCacheEnabled()) {
+    if (properties.IsSpherizeValid() || !properties.IsShadowValid() || canvas.isCacheEnabled()) {
         return;
     }
-    SkAutoCanvasRestore acr(&canvas, true);
+    RSAutoCanvasRestore acr(&canvas);
     SkPath skPath;
     if (properties.GetShadowPath() && !properties.GetShadowPath()->GetSkiaPath().isEmpty()) {
         skPath = properties.GetShadowPath()->GetSkiaPath();
@@ -231,6 +233,39 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilt
             canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), SkClipOp::kDifference, true);
         }
     }
+    if (properties.GetShadowMask()) {
+        DrawColorfulShadowInner(properties, canvas, skPath);
+    } else {
+        DrawShadowInner(properties, canvas, skPath);
+    }
+}
+
+void RSPropertiesPainter::DrawColorfulShadowInner(
+    const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath)
+{
+    // blurRadius calculation is based on the formula in SkShadowUtils::DrawShadow, 0.25f and 128.0f are constants
+    const SkScalar blurRadius =
+        properties.shadow_->GetHardwareAcceleration()
+            ? 0.25f * properties.GetShadowElevation() * (1 + properties.GetShadowElevation() / 128.0f)
+            : properties.GetShadowRadius();
+
+    // save layer, draw image with clipPath, blur and draw back
+    SkPaint blurPaint;
+    blurPaint.setImageFilter(SkBlurImageFilter::Make(blurRadius, blurRadius, SkTileMode::kDecal, nullptr));
+    canvas.saveLayer(nullptr, &blurPaint);
+
+    canvas.translate(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
+
+    canvas.clipPath(skPath);
+    // draw node content as shadow
+    // [PLANNING]: maybe we should also draw background color / image here, and we should cache the shadow image
+    if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(properties.backref_.lock())) {
+        node->InternalDrawContent(canvas);
+    }
+}
+
+void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath)
+{
     skPath.offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
     Color spotColor = properties.GetShadowColor();
     if (properties.shadow_->GetHardwareAcceleration()) {
@@ -320,16 +355,19 @@ int RSPropertiesPainter::GetAndResetBlurCnt()
     return blurCnt;
 }
 
-void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas, bool skipClip)
 {
     DrawShadow(properties, canvas);
     // only disable antialias when background is rect and g_forceBgAntiAlias is true
     bool antiAlias = g_forceBgAntiAlias || !properties.GetCornerRadius().IsZero();
-    // clip
-    if (properties.GetClipBounds() != nullptr) {
-        canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), antiAlias);
-    } else if (properties.GetClipToBounds()) {
-        canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), antiAlias);
+
+    if (!skipClip) { // skip clip in driven render mode
+        // clip
+        if (properties.GetClipBounds() != nullptr) {
+            canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), antiAlias);
+        } else if (properties.GetClipToBounds()) {
+            canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), antiAlias);
+        }
     }
     // paint backgroundColor
     SkPaint paint;
@@ -416,17 +454,20 @@ void RSPropertiesPainter::DrawBorder(const RSProperties& properties, SkCanvas& c
     }
 }
 
-void RSPropertiesPainter::DrawForegroundColor(const RSProperties& properties, SkCanvas& canvas)
+void RSPropertiesPainter::DrawForegroundColor(const RSProperties& properties, SkCanvas& canvas, bool skipClip)
 {
     auto bgColor = properties.GetForegroundColor();
     if (bgColor == RgbPalette::Transparent()) {
         return;
     }
-    // clip
-    if (properties.GetClipBounds() != nullptr) {
-        canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
-    } else if (properties.GetClipToBounds()) {
-        canvas.clipRect(Rect2SkRect(properties.GetBoundsRect()), true);
+
+    if (!skipClip) { // skip clip in driven render mode
+        // clip
+        if (properties.GetClipBounds() != nullptr) {
+            canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
+        } else if (properties.GetClipToBounds()) {
+            canvas.clipRect(Rect2SkRect(properties.GetBoundsRect()), true);
+        }
     }
 
     SkPaint paint;

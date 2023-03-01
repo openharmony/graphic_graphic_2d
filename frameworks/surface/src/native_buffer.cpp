@@ -18,7 +18,7 @@
 #include <cinttypes>
 #include "surface_type.h"
 #include "buffer_log.h"
-#include "external_window.h"
+#include "native_window.h"
 #include "surface_buffer_impl.h"
 
 using namespace OHOS;

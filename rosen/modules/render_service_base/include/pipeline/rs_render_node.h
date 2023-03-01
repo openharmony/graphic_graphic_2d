@@ -43,6 +43,11 @@ public:
         return Type;
     }
 
+    enum CacheType {
+        NONE = 0,
+        FREEZE,
+        SPHERIZE,
+    };
     ~RSRenderNode() override;
     bool IsDirty() const override;
 
@@ -69,6 +74,11 @@ public:
     virtual void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas);
     virtual void ProcessRenderContents(RSPaintFilterCanvas& canvas) {}
     virtual void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas);
+    virtual void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas) {}
+    virtual void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas) {}
+    virtual void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) {}
+    virtual void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) {}
+    void CheckCacheType();
     void RenderTraceDebug() const;
     bool HasDisappearingTransition(bool recursive) const override
     {
@@ -92,7 +102,7 @@ public:
     void AddModifier(const std::shared_ptr<RSRenderModifier> modifier);
     void RemoveModifier(const PropertyId& id);
 
-    void ApplyModifiers();
+    virtual void ApplyModifiers();
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
 
     bool IsShadowValidLastFrame() const
@@ -132,6 +142,78 @@ public:
         cacheSurface_ = nullptr;
     }
 
+    void SetCacheType(CacheType cacheType)
+    {
+        cacheType_ = cacheType;
+    }
+
+    CacheType GetCacheType() const
+    {
+        return cacheType_;
+    }
+
+    void SetCacheTypeChanged(bool cacheTypeChanged)
+    {
+        cacheTypeChanged_ = cacheTypeChanged;
+    }
+
+    bool GetCacheTypeChanged() const
+    {
+        return cacheTypeChanged_;
+    }
+
+    // driven render ///////////////////////////////////
+    void SetIsMarkDriven(bool isMarkDriven)
+    {
+        isMarkDriven_ = isMarkDriven;
+    }
+
+    bool IsMarkDriven() const
+    {
+        return isMarkDriven_;
+    }
+
+    void SetItemIndex(int index)
+    {
+        itemIndex_ = index;
+    }
+
+    int GetItemIndex() const
+    {
+        return itemIndex_;
+    }
+
+    void SetPaintState(bool paintState)
+    {
+        paintState_ = paintState;
+    }
+
+    bool GetPaintState() const
+    {
+        return paintState_;
+    }
+
+    void SetIsContentChanged(bool isChanged)
+    {
+        isContentChanged_ = isChanged;
+    }
+
+    bool IsContentChanged() const
+    {
+        return isContentChanged_;
+    }
+
+    void MarkDrivenVisitMode(bool flag)
+    {
+        isDrivenVisitMode_ = flag;
+    }
+
+    bool IsDrivenVisitMode() const
+    {
+        return isDrivenVisitMode_;
+    }
+    /////////////////////////////////////////////
+
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier> modifier);
@@ -168,6 +250,15 @@ private:
 
     std::atomic<bool> isFreeze_ = false;
     sk_sp<SkSurface> cacheSurface_ = nullptr;
+    CacheType cacheType_ = CacheType::NONE;
+    bool cacheTypeChanged_ = false;
+
+    // driven render
+    int itemIndex_ = -1;
+    bool isMarkDriven_ = false;
+    bool paintState_ = false;
+    bool isContentChanged_ = false;
+    bool isDrivenVisitMode_ = false;
 
     friend class RSRenderTransition;
     friend class RSRenderNodeMap;

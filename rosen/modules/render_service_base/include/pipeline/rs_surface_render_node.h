@@ -73,6 +73,11 @@ public:
         return nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
     }
 
+    bool IsLeashWindow() const
+    {
+        return nodeType_ == RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    }
+
     // indicate if this node type can enable hardware composer
     bool IsHardwareEnabledType() const
     {
@@ -107,9 +112,10 @@ public:
         isHardwareForcedDisabled_ = forcesDisabled;
     }
 
-    bool GetHardwareForcedDisabledState() const
+    bool IsHardwareForcedDisabled() const
     {
-        return isHardwareForcedDisabled_;
+        return isHardwareForcedDisabled_ ||
+            GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
 
     bool IsMainWindowType() const
@@ -176,6 +182,8 @@ public:
         bool isUniRender) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
+    void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas) override;
+    void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
 
     void SetContextBounds(const Vector4f bounds);
 
@@ -530,6 +538,15 @@ public:
     // if a surfacenode's dstrect is empty, its subnodes' prepare stage can be skipped
     bool ShouldPrepareSubnodes();
 
+    void SetNodeCost(int32_t cost)
+    {
+        nodeCost_ = cost;
+    }
+
+    int32_t GetNodeCost() const
+    {
+        return nodeCost_;
+    }
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
     bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;
@@ -621,6 +638,7 @@ private:
     bool isHardwareForcedDisabled_ = false;
     float localZOrder_ = 0.0f;
     std::vector<WeakPtr> childHardwareEnabledNodes_;
+    int32_t nodeCost_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

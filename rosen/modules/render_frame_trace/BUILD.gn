@@ -1,0 +1,35 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+ohos_source_set("render_frame_trace") {
+  include_dirs = [ "include" ]
+  sources = [ "src/render_frame_trace.cpp" ]
+  cflags = [ "-fstack-protector-all" ]
+  if (defined(global_parts_info)) {
+    if (defined(
+        global_parts_info.hmosresourceschedule_resourceschedule_frame_aware_sched_override)) {
+      sources += [ "src/render_frame_trace_impl.cpp" ]
+      external_deps =
+          [ "resourceschedule_frame_aware_sched_override:frame_trace_intf" ]
+    } else if (defined(global_parts_info.resourceschedule_frame_aware_sched)) {
+      sources += [ "src/render_frame_trace_impl.cpp" ]
+      external_deps = [ "frame_aware_sched:frame_trace_intf" ]
+    }
+  }
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}

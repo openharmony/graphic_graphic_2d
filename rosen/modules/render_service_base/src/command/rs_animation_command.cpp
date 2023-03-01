@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,19 +46,9 @@ void AnimationCommandHelper::CreateAnimation(
     if (modifier != nullptr) {
         animation->AttachRenderProperty(modifier->GetProperty());
     }
-    auto beginTime = context.GetTransactionTimestamp();
     auto currentTime = context.GetCurrentTimestamp();
-    if (beginTime != 0 && (currentTime - beginTime) > static_cast<unsigned long>(animation->GetDuration() * MS_TO_NS)) {
-        // If the animation is already finished before the transaction is executed, we should directly start then finish
-        // it.
-        animation->SetStartTime(beginTime);
-        animation->Attach(node.get());
-        animation->Animate(currentTime);
-    } else {
-        // else, we should set the start time to the current time.
-        animation->SetStartTime(currentTime);
-        animation->Attach(node.get());
-    }
+    animation->SetStartTime(currentTime);
+    animation->Attach(node.get());
     // register node as animating node
     context.RegisterAnimatingRenderNode(node);
 }

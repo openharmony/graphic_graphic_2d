@@ -17,6 +17,9 @@
 #include "rs_surface_ohos.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -26,7 +29,9 @@ sptr<Surface> RSSurfaceConverter::ConvertToOhosSurface(std::shared_ptr<RSSurface
         ROSEN_LOGE("nullptr input");
         return nullptr;
     }
-#ifdef ACE_ENABLE_GL
+#if defined(ACE_ENABLE_VK)
+    auto derivedPtr = std::static_pointer_cast<RSSurfaceOhosVulkan>(surface); // gpu render
+#elif defined(ACE_ENABLE_GL)
     auto derivedPtr = std::static_pointer_cast<RSSurfaceOhosGl>(surface); // gpu render
 #else
     auto derivedPtr = std::static_pointer_cast<RSSurfaceOhosRaster>(surface); // cpu render

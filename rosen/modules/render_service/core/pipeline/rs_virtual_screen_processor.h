@@ -28,6 +28,7 @@ public:
 
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
+    void ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node) override;
     void PostProcess() override;
 
 private:

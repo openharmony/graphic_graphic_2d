@@ -32,7 +32,14 @@ enum class DirtyRegionDebugType {
     MULTI_HISTORY,
     CURRENT_SUB_AND_WHOLE,
     CURRENT_WHOLE_AND_MULTI_HISTORY,
-    EGL_DAMAGE
+    EGL_DAMAGE,
+    CUR_DIRTY_DETAIL_ONLY_TRACE = 10,
+    UPDATE_DIRTY_REGION,
+    OVERLAY_RECT,
+    FILTER_RECT,
+    SHADOW_RECT,
+    PREPARE_CLIP_RECT,
+    REMOVE_CHILD_RECT,
 };
 
 enum class PartialRenderType {
@@ -101,7 +108,6 @@ public:
     static ParallelRenderingType GetParallelRenderingEnabled();
 
     static bool GetColdStartThreadEnabled();
-    static bool FrameTraceEnabled();
     static float GetAnimationScale();
 
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
@@ -111,8 +117,6 @@ private:
 
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
-    static inline bool judgeFrameTrace_ = false;
-    static inline bool isFrameTraceEnabled_ = false;
 };
 
 } // namespace Rosen

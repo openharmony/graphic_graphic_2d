@@ -27,7 +27,10 @@
 #include "SkRect.h"
 #include "EGL/egl.h"
 #include "rs_trace.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "rs_node_cost_manager.h"
 #include "rs_parallel_render_manager.h"
 #include "include/gpu/GrContext.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -71,6 +74,11 @@ void RSParallelSubThread::MainLoop()
             RS_TRACE_BEGIN("SubThreadCostPrepare[" + std::to_string(threadIndex_) + "]");
             StartPrepare();
             Prepare();
+            RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
+            RS_TRACE_END();
+        } else if (RSParallelRenderManager::Instance()->GetTaskType() == TaskType::CALC_COST_TASK) {
+            RS_TRACE_BEGIN("SubThreadCalcCost[" + std::to_string(threadIndex_) + "]");
+            CalcCost();
             RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
             RS_TRACE_END();
         } else {
@@ -163,6 +171,53 @@ void RSParallelSubThread::Prepare()
                 (startTime_.tv_sec * 1000.0f + startTime_.tv_nsec * 1e-6);
             RSParallelRenderManager::Instance()->SetRenderTaskCost(threadIndex_, task->GetIdx(), cost,
                 TaskType::PREPARE_TASK);
+        }
+    }
+}
+
+void RSParallelSubThread::CalcCost()
+{
+    if (threadTask_ == nullptr) {
+        RS_LOGE("CalcCost thread task is null");
+        return;
+    }
+    RSUniRenderVisitor *uniVisitor = RSParallelRenderManager::Instance()->GetUniVisitor();
+    if (uniVisitor == nullptr) {
+        RS_LOGE("CalcCost visitor is null");
+        return;
+    }
+    std::shared_ptr<RSNodeCostManager> manager = std::make_shared<RSNodeCostManager>(
+        RSParallelRenderManager::Instance()->IsDoAnimate(),
+        RSParallelRenderManager::Instance()->IsOpDropped(),
+        RSParallelRenderManager::Instance()->IsSecurityDisplay());
+
+    while (threadTask_->GetTaskSize() > 0) {
+        if (RSParallelRenderManager::Instance()->ParallelRenderExtEnabled()) {
+            clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime_);
+        }
+        auto task = threadTask_->GetNextRenderTask();
+        if (task == nullptr || task->GetIdx() == 0) {
+            RS_LOGI("CalcCost task is invalid");
+            continue;
+        }
+        auto node = task->GetNode();
+        if (node == nullptr) {
+            RS_LOGI("CalcCost node is null");
+            continue;
+        }
+        auto surfaceNodePtr = node->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (surfaceNodePtr == nullptr) {
+            RS_LOGI("CalcCost surface node is null");
+            continue;
+        }
+        manager->CalcNodeCost(*surfaceNodePtr);
+        surfaceNodePtr->SetNodeCost(manager->GetDirtyNodeCost());
+        if (RSParallelRenderManager::Instance()->ParallelRenderExtEnabled()) {
+            clock_gettime(CLOCK_THREAD_CPUTIME_ID, &stopTime_);
+            float cost = (stopTime_.tv_sec * 1000.0f + stopTime_.tv_nsec * 1e-6) -
+                (startTime_.tv_sec * 1000.0f + startTime_.tv_nsec * 1e-6);
+            RSParallelRenderManager::Instance()->SetRenderTaskCost(threadIndex_, task->GetIdx(), cost,
+                TaskType::CALC_COST_TASK);
         }
     }
 }

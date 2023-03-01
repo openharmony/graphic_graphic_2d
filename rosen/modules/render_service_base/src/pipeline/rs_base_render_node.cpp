@@ -403,7 +403,7 @@ void RSBaseRenderNode::GenerateSortedChildren()
     children_.remove_if([this](const auto& child) -> bool {
         auto existingChild = child.lock();
         if (existingChild == nullptr) {
-            ROSEN_LOGI("RSBaseRenderNode::GenerateSortedChildren removing expired child");
+            ROSEN_LOGI("RSBaseRenderNode::GenerateSortedChildren removing expired child, this is rare but possible.");
             return true;
         }
         sortedChildren_.emplace_back(std::move(existingChild));
@@ -439,6 +439,8 @@ void RSBaseRenderNode::GenerateSortedChildren()
         auto node1 = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(first);
         auto node2 = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(second);
         if (node1 == nullptr || node2 == nullptr) {
+            ROSEN_LOGE(
+                "RSBaseRenderNode::GenerateSortedChildren nullptr found in sortedChildren_, this should not happen");
             return false;
         }
         return node1->GetRenderProperties().GetPositionZ() < node2->GetRenderProperties().GetPositionZ();
@@ -458,7 +460,15 @@ void RSBaseRenderNode::InternalRemoveSelfFromDisappearingChildren()
     // internal use only, force remove self from parent's disappearingChildren_
     if (auto parent = parent_.lock()) {
         parent->disappearingChildren_.remove_if(
-            [childPtr = shared_from_this()](const auto& pair) -> bool { return pair.first == childPtr; });
+            [childPtr = shared_from_this()](const auto& pair) -> bool {
+                if (pair.first == childPtr) {
+                    childPtr ->ResetParent(); // when child been removed, notify dirty by ResetParent()
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        );
     }
 }
 } // namespace Rosen

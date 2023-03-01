@@ -46,7 +46,7 @@ using BufferElement = struct BufferElement {
     BufferRequestConfig config;
     sptr<SyncFence> fence;
     int64_t timestamp;
-    Rect damage;
+    std::vector<Rect> damages;
     ScalingMode scalingMode;
     HDRMetaDataType hdrMetaDataType = HDRMetaDataType::HDR_NOT_USED;
     std::vector<GraphicHDRMetaData> metaData;
@@ -76,7 +76,7 @@ public:
                           const sptr<SyncFence>& fence, const BufferFlushConfig &config);
 
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
-                          int64_t &timestamp, Rect &damage);
+                          int64_t &timestamp, std::vector<Rect> &damages);
     GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence);
 
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer);

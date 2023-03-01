@@ -27,9 +27,8 @@ RSParallelPackVisitor::RSParallelPackVisitor(RSUniRenderVisitor &visitor)
 {
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    auto screenNum = screenManager->GetAllScreenIds().size();
-    isPartialRenderEnabled_ = (screenNum <= 1) && (partialRenderType_ != PartialRenderType::DISABLED);
-    isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE);
+    isPartialRenderEnabled_ = visitor.GetIsPartialRenderEnabled();
+    isOpDropped_ = visitor.GetIsOpDropped();
     doAnimate_ = visitor.GetAnimateState();
 }
 
@@ -75,21 +74,30 @@ void RSParallelPackVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node)
 void RSParallelPackVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode &node)
 {
     RS_TRACE_NAME("RSUniRender::Process:[" + node.GetName() + "]" + node.GetDstRect().ToString());
-    RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 ", child size:%u %s", node.GetId(),
+    RS_LOGD("RSParallelPackVisitor::ProcessSurfaceRenderNode node: %" PRIu64 ", child size:%u %s", node.GetId(),
         node.GetChildrenCount(), node.GetName().c_str());
     node.UpdatePositionZ();
+    if (IsSkipProcessing(node)) {
+        return;
+    }
+    RSParallelRenderManager::Instance()->PackRenderTask(node, TaskType::PROCESS_TASK);
+}
+
+bool RSParallelPackVisitor::IsSkipProcessing(RSSurfaceRenderNode& node) const
+{
     if (isSecurityDisplay_ && node.GetSecurityLayer()) {
         RS_TRACE_NAME("SecurityLayer Skip");
-        return;
+        return true;
     }
 
     if (!node.ShouldPaint()) {
         RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 " invisible", node.GetId());
-        return;
+        return true;
     }
-    if (!node.GetOcclusionVisible() && !doAnimate_ && RSSystemProperties::GetOcclusionEnabled()) {
+    if (!node.GetOcclusionVisible() && !doAnimate_
+        && RSSystemProperties::GetOcclusionEnabled() && !isSecurityDisplay_) {
         RS_TRACE_NAME("Occlusion Skip");
-        return;
+        return true;
     }
 #ifdef RS_ENABLE_EGLQUERYSURFACE
     // skip clean surface node
@@ -97,11 +105,29 @@ void RSParallelPackVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode &node)
         if (!node.SubNodeNeedDraw(node.GetOldDirtyInSurface(), partialRenderType_)) {
             RS_TRACE_NAME("QuickReject Skip");
             RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode skip: %s", node.GetName().c_str());
-            return;
+            return true;
         }
     }
 #endif
-    RSParallelRenderManager::Instance()->PackRenderTask(node, TaskType::PROCESS_TASK);
+    return false;
+}
+
+void RSParallelPackVisitor::CalcSurfaceRenderNodeCost(RSSurfaceRenderNode& node) const
+{
+    if (IsSkipProcessing(node)) {
+        return;
+    }
+    RSParallelRenderManager::Instance()->PackRenderTask(node, TaskType::CALC_COST_TASK);
+}
+
+void RSParallelPackVisitor::CalcDisplayRenderNodeCost(RSDisplayRenderNode& node) const
+{
+    for (auto& child : node.GetSortedChildren()) {
+        auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+        if (surface != nullptr) {
+            CalcSurfaceRenderNodeCost(*surface);
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

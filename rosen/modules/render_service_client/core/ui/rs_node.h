@@ -159,6 +159,7 @@ public:
     void SetShadowElevation(float elevation);
     void SetShadowRadius(float radius);
     void SetShadowPath(const std::shared_ptr<RSPath>& shadowPath);
+    void SetShadowMask(bool shadowMask);
 
     void SetFrameGravity(Gravity gravity);
 
@@ -168,6 +169,7 @@ public:
 
     void SetVisible(bool visible);
     void SetMask(const std::shared_ptr<RSMask>& mask);
+    void SetSpherizeDegree(float spherizeDegree);
 
     void SetPaintOrder(bool drawContentLast);
 
@@ -175,6 +177,12 @@ public:
     {
         transitionEffect_ = effect;
     }
+
+    // driven render
+    void MarkDrivenRender(bool flag);
+    void MarkDrivenRenderItemIndex(int index);
+    void MarkDrivenRenderFramePaintState(bool flag);
+    void MarkContentChanged(bool isChanged);
 
     void AddModifier(const std::shared_ptr<RSModifier>& modifier);
     void RemoveModifier(const std::shared_ptr<RSModifier>& modifier);
