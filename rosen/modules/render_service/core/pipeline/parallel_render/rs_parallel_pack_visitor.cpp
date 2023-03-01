@@ -27,9 +27,8 @@ RSParallelPackVisitor::RSParallelPackVisitor(RSUniRenderVisitor &visitor)
 {
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    auto screenNum = screenManager->GetAllScreenIds().size();
-    isPartialRenderEnabled_ = (screenNum <= 1) && (partialRenderType_ != PartialRenderType::DISABLED);
-    isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE);
+    isPartialRenderEnabled_ = visitor.GetIsPartialRenderEnabled();
+    isOpDropped_ = visitor.GetIsOpDropped();
     doAnimate_ = visitor.GetAnimateState();
 }
 

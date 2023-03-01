@@ -44,7 +44,16 @@ RSParallelRenderManager::RSParallelRenderManager()
     : parallelHardwareComposer_(std::make_unique<RSParallelHardwareComposer>())
 {
     if (parallelHardwareComposer_) {
+        InitAppWindowNodeMap();
         parallelHardwareComposer_->Init(PARALLEL_THREAD_NUM);
+    }
+}
+
+void RSParallelRenderManager::InitAppWindowNodeMap()
+{
+    auto appWindowNode = std::vector<std::shared_ptr<RSSurfaceRenderNode>>();
+    for (uint32_t i = 0; i < PARALLEL_THREAD_NUM; i++) {
+        appWindowNodesMap_[i] = appWindowNode;
     }
 }
 
@@ -200,6 +209,7 @@ void RSParallelRenderManager::PackRenderTask(RSSurfaceRenderNode &node, TaskType
 
 void RSParallelRenderManager::LoadBalanceAndNotify(TaskType type)
 {
+    InitAppWindowNodeMap();
     switch (type) {
         case TaskType::PREPARE_TASK:
             prepareTaskManager_.LBCalcAndSubmitSuperTask(displayNode_);
@@ -470,5 +480,13 @@ void RSParallelRenderManager::UpdateNodeCost(RSDisplayRenderNode &node)
     parallelPolicy_.clear();
     calcCostTaskManager_.UpdateNodeCost(node, parallelPolicy_);
 }
+
+void RSParallelRenderManager::AddAppWindowNode(uint32_t surfaceIndex, std::shared_ptr<RSSurfaceRenderNode> appNode)
+{
+    if (surfaceIndex < PARALLEL_THREAD_NUM) {
+        appWindowNodesMap_[surfaceIndex].emplace_back(appNode);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

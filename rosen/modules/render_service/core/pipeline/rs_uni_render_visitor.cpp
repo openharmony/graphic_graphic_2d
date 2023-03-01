@@ -63,7 +63,6 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined (RS_ENABLE_GL)
 constexpr uint32_t PARALLEL_RENDER_MINIMUN_RENDER_NODE_NUMBER = 50;
-constexpr float PARALLEL_RENDER_LAYER_Z_ORDER_FACTOR = 100.0f;
 #endif
 
 RSUniRenderVisitor::RSUniRenderVisitor()
@@ -103,7 +102,6 @@ RSUniRenderVisitor::RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canv
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
     canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     parallelRenderVisitorIndex_ = surfaceIndex;
-    globalZOrder_ = parallelRenderVisitorIndex_ * PARALLEL_RENDER_LAYER_Z_ORDER_FACTOR;
 #endif
 }
 
@@ -119,6 +117,8 @@ RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUn
     currentFocusedPid_ = visitor.currentFocusedPid_;
     surfaceNodePrepareMutex_ = visitor.surfaceNodePrepareMutex_;
     prepareClipRect_ = visitor.prepareClipRect_;
+    isOpDropped_ = visitor.isOpDropped_;
+    isPartialRenderEnabled_ = visitor.isPartialRenderEnabled_;
 }
 
 RSUniRenderVisitor::~RSUniRenderVisitor() {}
@@ -133,6 +133,8 @@ void RSUniRenderVisitor::CopyPropertyForParallelVisitor(RSUniRenderVisitor *main
     isParallel_ = mainVisitor->isParallel_;
     isFreeze_ = mainVisitor->isFreeze_;
     isHardwareForcedDisabled_ = mainVisitor->isHardwareForcedDisabled_;
+    isOpDropped_ = mainVisitor->isOpDropped_;
+    isPartialRenderEnabled_ = mainVisitor->isPartialRenderEnabled_;
 }
 
 void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
@@ -343,8 +345,11 @@ void RSUniRenderVisitor::ClearTransparentBeforeSaveLayer()
         if (!node->ShouldPaint()) {
             continue;
         }
-        canvas_->save();
         auto dstRect = node->GetDstRect();
+        if (dstRect.IsEmpty()) {
+            continue;
+        }
+        canvas_->save();
         canvas_->clipRect({ static_cast<float>(dstRect.GetLeft()), static_cast<float>(dstRect.GetTop()),
                             static_cast<float>(dstRect.GetRight()), static_cast<float>(dstRect.GetBottom()) });
         canvas_->clear(SK_ColorTRANSPARENT);
@@ -400,7 +405,13 @@ void RSUniRenderVisitor::AdjustLocalZOrder(std::shared_ptr<RSSurfaceRenderNode> 
         return;
     }
     localZOrder_ = static_cast<float>(hardwareEnabledNodes.size());
-    appWindowNodesInZOrder_.emplace_back(surfaceNode);
+    if (isParallel_) {
+#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
+        RSParallelRenderManager::Instance()->AddAppWindowNode(parallelRenderVisitorIndex_, surfaceNode);
+#endif
+    } else {
+        appWindowNodesInZOrder_.emplace_back(surfaceNode);
+    }
 }
 
 void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
@@ -1186,7 +1197,18 @@ void RSUniRenderVisitor::AssignGlobalZOrderAndCreateLayer()
     if (hardwareEnabledNodes_.empty()) {
         return;
     }
-
+    if (isParallel_) {
+#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
+        std::vector<std::shared_ptr<RSSurfaceRenderNode>>().swap(appWindowNodesInZOrder_);
+        auto subThreadNum = RSParallelRenderManager::Instance()->GetParallelThreadNumber();
+        auto appWindowNodesMap = RSParallelRenderManager::Instance()->GetAppWindowNodes();
+        std::vector<std::shared_ptr<RSSurfaceRenderNode>> appWindowNodes;
+        for (uint32_t i = 0; i < subThreadNum; i++) {
+            appWindowNodes = appWindowNodesMap[i];
+            appWindowNodesInZOrder_.insert(appWindowNodesInZOrder_.end(), appWindowNodes.begin(), appWindowNodes.end());
+        }
+#endif
+    }
     globalZOrder_ = 0.0f;
     for (auto& appWindowNode : appWindowNodesInZOrder_) {
         // first, sort app window node's child surfaceView by local zOrder

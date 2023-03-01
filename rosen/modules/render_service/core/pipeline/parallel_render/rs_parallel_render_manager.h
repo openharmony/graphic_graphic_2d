@@ -18,6 +18,7 @@
 
 #include <condition_variable>
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <mutex>
 #include "EGL/egl.h"
@@ -123,7 +124,11 @@ public:
     void AddSelfDrawingSurface(unsigned int subThreadIndex, bool isRRect, RectF rect,
         Vector4f cornerRadius = {0.f, 0.f, 0.f, 0.f});
     void ClearSelfDrawingSurface(std::shared_ptr<RSPaintFilterCanvas> canvas, unsigned int subThreadIndex);
-
+    void AddAppWindowNode(uint32_t surfaceIndex, std::shared_ptr<RSSurfaceRenderNode> appNode);
+    const std::map<uint32_t, std::vector<std::shared_ptr<RSSurfaceRenderNode>>>& GetAppWindowNodes() const
+    {
+        return appWindowNodesMap_;
+    }
 private:
     RSParallelRenderManager();
     ~RSParallelRenderManager() = default;
@@ -134,6 +139,7 @@ private:
     void DrawImageMergeFunc(std::shared_ptr<RSPaintFilterCanvas> canvas);
     void FlushOneBufferFunc();
     void GetCostFactor();
+    void InitAppWindowNodeMap();
 
     std::shared_ptr<RSParallelPackVisitor> packVisitor_;
     std::shared_ptr<RSParallelPackVisitor> packVisitorPrepare_;
@@ -160,6 +166,7 @@ private:
     RSUniRenderVisitor *uniVisitor_ = nullptr;
     TaskType taskType_;
     std::unique_ptr<RSParallelHardwareComposer> parallelHardwareComposer_;
+    std::map<uint32_t, std::vector<std::shared_ptr<RSSurfaceRenderNode>>> appWindowNodesMap_;
 
     std::vector<uint32_t> parallelPolicy_;
     int32_t calcCostCount_ = 0;

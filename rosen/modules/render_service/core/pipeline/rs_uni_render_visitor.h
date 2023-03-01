@@ -89,6 +89,14 @@ public:
     // Some properties defiend before ProcessSurfaceRenderNode() may be used in
     // ProcessSurfaceRenderNode() method. We should copy these properties in parallel render.
     void CopyPropertyForParallelVisitor(RSUniRenderVisitor *mainVisitor);
+    bool GetIsPartialRenderEnabled() const
+    {
+        return isPartialRenderEnabled_;
+    }
+    bool GetIsOpDropped() const
+    {
+        return isOpDropped_;
+    }
 private:
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
         const SkPaint::Style fillType, float alpha, int edgeWidth);

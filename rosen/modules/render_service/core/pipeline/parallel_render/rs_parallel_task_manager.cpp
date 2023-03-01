@@ -124,6 +124,7 @@ uint32_t RSParallelTaskManager::GetTaskNum()
 
 void RSParallelTaskManager::Reset()
 {
+    taskNum_ = 0;
     renderTaskList_.clear();
     superRenderTaskList_.clear();
     parallelPolicy_.clear();
