@@ -15,21 +15,21 @@ import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_source_set("render_frame_trace") {
-  include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_frame_trace/include"
-  ]
-  sources = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_frame_trace/src/render_frame_trace.cpp"
-  ]
+  include_dirs = [ "include" ]
+  sources = [ "src/render_frame_trace.cpp" ]
   cflags = [ "-fstack-protector-all" ]
   if (defined(global_parts_info)) {
-    if (defined(global_parts_info.hmosresourceschedule_resourceschedule_frame_aware_sched_override) ||
-        defined(global_parts_info.resourceschedule_frame_aware_sched_override)) {
-      sources += [ "//foundation/graphic/graphic_2d/rosen/modules/render_frame_trace/src/render_frame_trace_impl.cpp" ]
-      deps = [ "//foundation/resourceschedule/frame_aware_sched/interfaces/innerkits/frameinf:frame_trace_intf" ]
-      include_dirs += [ "//foundation/resourceschedule/frame_aware_sched/interfaces/innerkits/frameintf" ]
+    if (defined(
+        global_parts_info.hmosresourceschedule_resourceschedule_frame_aware_sched_override)) {
+      sources += [ "src/render_frame_trace_impl.cpp" ]
+      external_deps =
+          [ "resourceschedule_frame_aware_sched_override:frame_trace_intf" ]
+    } else if (defined(global_parts_info.resourceschedule_frame_aware_sched)) {
+      sources += [ "src/render_frame_trace_impl.cpp" ]
+      external_deps = [ "frame_aware_sched:frame_trace_intf" ]
     }
   }
+
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
