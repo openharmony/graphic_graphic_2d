@@ -62,8 +62,8 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     now = data[0];
     VLOGD("dataCount:%{public}d, cb == nullptr:%{public}d", dataCount, (cb == nullptr));
     // 1, 2: index of array data.
-    ScopedBytrace func("ReceiveVsync, dataCount:" + std::to_string(dataCount) + "bytes, now:" + std::to_string(now) +
-        ", expected end:" + std::to_string(data[1]) + ", Vsync Id:" + std::to_string(data[2]));
+    ScopedBytrace func("ReceiveVsync dataCount:" + std::to_string(dataCount) + "bytes now:" + std::to_string(now) +
+        " expectedEnd:" + std::to_string(data[1]) + " vsyncId:" + std::to_string(data[2]));
     if (dataCount > 0 && cb != nullptr) {
         cb(now, userData_);
     }

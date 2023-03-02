@@ -345,7 +345,7 @@ void RSMainThread::ProcessCommandForUniRender()
                 auto curIndex = (*iter)->GetIndex();
                 if (curIndex == lastIndex + 1) {
                     ++lastIndex;
-                    transactionFlags += ", [" + std::to_string(pid) + ", " + std::to_string(curIndex) + "]";
+                    transactionFlags += " [" + std::to_string(pid) + "," + std::to_string(curIndex) + "]";
                 } else {
                     RS_LOGE("RSMainThread::ProcessCommandForUniRender wait curIndex:%llu, lastIndex:%llu, pid:%d",
                         curIndex, lastIndex, pid);
@@ -355,7 +355,7 @@ void RSMainThread::ProcessCommandForUniRender()
                     if ((timestamp_ - transactionDataLastWaitTime_[pid]) / REFRESH_PERIOD > SKIP_COMMAND_FREQ_LIMIT) {
                         transactionDataLastWaitTime_[pid] = 0;
                         lastIndex = curIndex;
-                        transactionFlags += ", skip to[" + std::to_string(pid) + ", " + std::to_string(curIndex) + "]";
+                        transactionFlags += " skip to[" + std::to_string(pid) + "," + std::to_string(curIndex) + "]";
                         RS_LOGE("RSMainThread::ProcessCommandForUniRender skip to index:%llu, pid:%d", curIndex, pid);
                         continue;
                     }

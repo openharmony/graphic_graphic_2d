@@ -81,8 +81,8 @@ bool RSRenderServiceConnectionProxy::FillParcelWithTransactionData(
     data->WriteInt32(0);
 
     // 1. marshalling RSTransactionData
-    RS_TRACE_BEGIN("Marsh RSTransactionData: cmd count:" + std::to_string(transactionData->GetCommandCount()) +
-        " transactionFlag:[" + std::to_string(pid_) + ", " + std::to_string(transactionData->GetIndex()) + "],isUni:" +
+    RS_TRACE_BEGIN("MarshRSTransactionData cmdCount:" + std::to_string(transactionData->GetCommandCount()) +
+        " transactionFlag:[" + std::to_string(pid_) + "," + std::to_string(transactionData->GetIndex()) + "] isUni:" +
         std::to_string(transactionData->GetUniRender()));
     bool success = data->WriteParcelable(transactionData.get());
     RS_TRACE_END();
