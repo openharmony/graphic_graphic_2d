@@ -114,13 +114,13 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const GrContext* grCont
     log.AppendFormat("\n---------------\nShader Caches:\n");
     std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
     log.AppendFormat(rendercontext->GetShaderCacheSize().c_str());
-#endif
 
     // gpu stat
     log.AppendFormat("\n---------------\ndumpGpuStats:\n");
     SkString stat;
     grContext->priv().dumpGpuStats(&stat);
     log.AppendFormat("%s\n", stat.c_str());
+#endif
 }
 
 void MemoryManager::DumpMallocStat(std::string& log)
