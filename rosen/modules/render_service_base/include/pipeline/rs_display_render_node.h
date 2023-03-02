@@ -147,11 +147,17 @@ public:
 
     RectI GetLastFrameSurfacePos(NodeId id)
     {
+        if (lastFrameSurfacePos_.count(id) == 0) {
+            return RectI();
+        }
         return lastFrameSurfacePos_[id];
     }
 
     RectI GetCurrentFrameSurfacePos(NodeId id)
     {
+        if (currentFrameSurfacePos_.count(id) == 0) {
+            return RectI();
+        }
         return currentFrameSurfacePos_[id];
     }
 
