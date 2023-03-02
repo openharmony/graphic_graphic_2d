@@ -261,6 +261,11 @@ float RSModifierExtractor::GetSpherizeDegree() const
     GET_PROPERTY_FROM_MODIFIERS(float, SPHERIZE, 0.f, =);
 }
 
+float RSModifierExtractor::GetLightUpEffectDegree() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, LIGHT_UP_EFFECT, 0.f, =);
+}
+
 std::string RSModifierExtractor::Dump() const
 {
     std::string dumpInfo;

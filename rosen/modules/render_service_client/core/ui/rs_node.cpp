@@ -777,6 +777,12 @@ void RSNode::SetSpherizeDegree(float spherizeDegree)
     SetProperty<RSSpherizeModifier, RSAnimatableProperty<float>>(RSModifierType::SPHERIZE, spherizeDegree);
 }
 
+void RSNode::SetLightUpEffectDegree(float LightUpEffectDegree)
+{
+    SetProperty<RSLightUpEffectModifier, RSAnimatableProperty<float>>(
+        RSModifierType::LIGHT_UP_EFFECT, LightUpEffectDegree);
+}
+
 void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
 {
     // temporary fix for multithread issue in implicit animator

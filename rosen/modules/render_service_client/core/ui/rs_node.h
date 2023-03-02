@@ -170,6 +170,7 @@ public:
     void SetVisible(bool visible);
     void SetMask(const std::shared_ptr<RSMask>& mask);
     void SetSpherizeDegree(float spherizeDegree);
+    void SetLightUpEffectDegree(float LightUpEffectDegree);
 
     void SetPaintOrder(bool drawContentLast);
 

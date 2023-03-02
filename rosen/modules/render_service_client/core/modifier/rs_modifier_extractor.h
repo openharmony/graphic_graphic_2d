@@ -81,6 +81,7 @@ public:
 
     std::shared_ptr<RSMask> GetMask() const;
     float GetSpherizeDegree() const;
+    float GetLightUpEffectDegree() const;
 
     std::string Dump() const;
 private:

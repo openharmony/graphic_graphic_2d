@@ -1508,8 +1508,6 @@ void RSUniRenderVisitor::InitCacheSurface(RSRenderNode& node, int width, int hei
 
 void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
 {
-    RS_LOGI("RSUniRenderVisitor::DrawChildRenderNode, cacheType: {%d}, cacheChanged: {%d}",
-        node.GetCacheType(), node.GetCacheTypeChanged());
     if (node.GetCacheTypeChanged()) {
         node.ClearCacheSurface();
         node.SetCacheTypeChanged(false);

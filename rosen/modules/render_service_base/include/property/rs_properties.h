@@ -206,6 +206,9 @@ public:
     float GetSpherize() const;
     bool IsSpherizeValid() const;
 
+    void SetLightUpEffect(float lightUpEffectDegree);
+    float GetLightUpEffect() const;
+    bool IsLightUpEffectValid() const;
 private:
     void Reset();
     void SetDirty();
@@ -250,6 +253,7 @@ private:
     std::unique_ptr<RSShadow> shadow_ = nullptr;
     std::unique_ptr<Matrix3f> sublayerTransform_ = nullptr;
     float spherizeDegree_ = 0.f;
+    float lightUpEffectDegree_ = 1.0f;
 
     std::weak_ptr<RSRenderNode> backref_;
 

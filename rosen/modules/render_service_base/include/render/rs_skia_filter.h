@@ -18,6 +18,7 @@
 #include "include/core/SkCanvas.h"
 #include "include/core/SkImageFilter.h"
 #include "include/core/SkPaint.h"
+#include "include/effects/SkImageFilters.h"
 
 #include "render/rs_filter.h"
 
@@ -26,16 +27,17 @@ namespace Rosen {
 class RSPaintFilterCanvas;
 class RSSkiaFilter : public RSFilter {
 public:
+    RSSkiaFilter(sk_sp<SkImageFilter> imagefilter);
     ~RSSkiaFilter() override;
     SkPaint GetPaint() const;
+    sk_sp<SkImageFilter> GetImageFilter() const;
+    static std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& outer,
+        const std::shared_ptr<RSSkiaFilter>& inner);
     virtual void PreProcess(sk_sp<SkImage> image) {};
     virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
 
-protected:
-    RSSkiaFilter(sk_sp<SkImageFilter> imagefilter);
-
 private:
-    sk_sp<SkImageFilter> imageFilter_;
+    sk_sp<SkImageFilter> imageFilter_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

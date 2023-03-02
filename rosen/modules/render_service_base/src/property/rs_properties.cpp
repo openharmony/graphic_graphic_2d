@@ -891,7 +891,7 @@ RRect RSProperties::GetInnerRRect() const
 
 bool RSProperties::NeedFilter() const
 {
-    return (backgroundFilter_ != nullptr) || (filter_ != nullptr);
+    return (backgroundFilter_ != nullptr) || (filter_ != nullptr) || IsLightUpEffectValid();
 }
 
 bool RSProperties::NeedClip() const
@@ -924,6 +924,7 @@ void RSProperties::Reset()
     mask_ = nullptr;
     shadow_ = nullptr;
     sublayerTransform_ = nullptr;
+    lightUpEffectDegree_ = 1.0f;
 }
 
 void RSProperties::SetDirty()
@@ -1037,6 +1038,23 @@ bool RSProperties::IsSpherizeValid() const
 {
     constexpr float epsilon = 0.001f;
     return GetSpherize() - 0.0 > epsilon;
+}
+
+void RSProperties::SetLightUpEffect(float lightUpEffectDegree)
+{
+    lightUpEffectDegree_ = lightUpEffectDegree;
+    SetDirty();
+}
+
+float RSProperties::GetLightUpEffect() const
+{
+    return lightUpEffectDegree_;
+}
+
+bool RSProperties::IsLightUpEffectValid() const
+{
+    constexpr float epsilon = 0.001f;
+    return 1.0 - GetLightUpEffect() > epsilon;
 }
 
 std::string RSProperties::Dump() const

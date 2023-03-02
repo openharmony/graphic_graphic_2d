@@ -103,3 +103,5 @@ DECLARE_NOANIMATABLE_MODIFIER(ShadowMask, bool, SHADOW_MASK, Background)
 DECLARE_NOANIMATABLE_MODIFIER(Mask, std::shared_ptr<RSMask>, MASK, Foreground)
 
 DECLARE_ANIMATABLE_MODIFIER(Spherize, float, SPHERIZE, Replace, Appearance)
+
+DECLARE_ANIMATABLE_MODIFIER(LightUpEffect, float, LIGHT_UP_EFFECT, Replace, Foreground)
