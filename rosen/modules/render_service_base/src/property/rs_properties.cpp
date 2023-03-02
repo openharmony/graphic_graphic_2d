@@ -1060,7 +1060,6 @@ bool RSProperties::IsLightUpEffectValid() const
 
 void RSProperties::SetPixelStretch(Vector4f stretchSize)
 {
-    ROSEN_LOGE("RSProperties::SetPixelStretch stretch parameter(%f, %f, %f, %f).", stretchSize.x_, stretchSize.y_, stretchSize.z_, stretchSize.w_);
     if (!pixelStretch) {
         pixelStretch = std::make_unique<Vector4f>();
     }

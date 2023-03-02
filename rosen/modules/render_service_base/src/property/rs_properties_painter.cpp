@@ -341,10 +341,10 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
         return;
     }
     bool isExpend = false;
-    if (stretchSize.x_ <= 0.f && stretchSize.y_ <= 0.f && stretchSize.z_ <= 0.f && stretchSize.w_ <= 0.f) {
+    constexpr static float EPS = 1e-5f;
+    if (stretchSize.x_ <= EPS && stretchSize.y_ <= EPS && stretchSize.z_ <= EPS && stretchSize.w_ <= EPS) {
         isExpend = false;
-    }
-    else if (stretchSize.x_ >= 0.f && stretchSize.y_ >= 0.f && stretchSize.z_ >= 0.f && stretchSize.w_ >= 0.f) {
+    } else if (stretchSize.x_ >= -EPS && stretchSize.y_ >= -EPS && stretchSize.z_ >= -EPS && stretchSize.w_ >= -EPS) {
         isExpend = true;
     } else {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch invalid stretch parameter.");
