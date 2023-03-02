@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "include/core/SkCanvas.h"
+#include "rs_base_render_engine.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_processor.h"
 #include "visitor/rs_node_visitor.h"
@@ -65,6 +66,7 @@ private:
     bool mParallelEnable = false;
     bool mForceSerial = false;
     std::shared_ptr<RSProcessor> processor_ = nullptr;
+    std::shared_ptr<RSBaseRenderEngine> processorRenderEngine_ = nullptr;
     bool doAnimate_ = false;
 };
 } // namespace Rosen

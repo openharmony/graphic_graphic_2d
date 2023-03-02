@@ -53,7 +53,8 @@ enum class ParallelStatus {
 enum class TaskType {
     PREPARE_TASK = 0,
     PROCESS_TASK,
-    CALC_COST_TASK
+    CALC_COST_TASK,
+    COMPOSITION_TASK
 };
 
 class RSParallelRenderManager {
@@ -69,15 +70,19 @@ public:
     void CopyCalcCostVisitorAndPackTask(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node, bool isNeedCalc,
         bool doAnimate, bool isOpDropped);
     void PackRenderTask(RSSurfaceRenderNode &node, TaskType type = TaskType::PROCESS_TASK);
+    void PackParallelCompositionTask(std::shared_ptr<RSNodeVisitor> visitor,
+                                     const std::shared_ptr<RSBaseRenderNode> node);
     void LoadBalanceAndNotify(TaskType type = TaskType::PROCESS_TASK);
     void MergeRenderResult(RSPaintFilterCanvas& canvas);
     void SetFrameSize(int height, int width);
     void GetFrameSize(int &height, int &width);
     void SubmitSuperTask(uint32_t taskIndex, std::unique_ptr<RSSuperRenderTask> superRenderTask);
+    void SubmitCompositionTask(uint32_t taskIndex, std::unique_ptr<RSCompositionTask> compositionTask);
     void SubMainThreadNotify(int threadIndex);
     void WaitSubMainThread(uint32_t threadIndex);
     void SubMainThreadWait(uint32_t threadIndex);
     void WaitCalcCostEnd();
+    void WaitCompositionEnd();
     void UpdateNodeCost(RSDisplayRenderNode& node);
     bool IsNeedCalcCost() const;
     int32_t GetCost(RSRenderNode &node) const;
@@ -94,6 +99,11 @@ public:
     RSUniRenderVisitor* GetUniVisitor() const
     {
         return uniVisitor_;
+    }
+
+    std::shared_ptr<RSUniRenderVisitor> GetUniParallelCompositionVisitor() const
+    {
+        return uniParallelCompositionVisitor_;
     }
 
     bool IsDoAnimate() const
@@ -160,6 +170,7 @@ private:
     RSParallelTaskManager processTaskManager_;
     RSParallelTaskManager prepareTaskManager_;
     RSParallelTaskManager calcCostTaskManager_;
+    RSParallelTaskManager compositionTaskManager_;
     int height_;
     int width_;
     std::vector<uint8_t> flipCoin_;
@@ -170,12 +181,15 @@ private:
     RenderContext *renderContext_;
     ParallelRenderType renderType_ = ParallelRenderType::DRAW_IMAGE;
     std::shared_ptr<RSBaseRenderNode> displayNode_ = nullptr;
+    std::shared_ptr<RSDisplayRenderNode> mainDisplayNode_ = nullptr;
+    std::shared_ptr<RSBaseRenderNode> baseNode_ = nullptr;
 
     uint32_t expectedSubThreadNum_ = 0;
     std::atomic<uint32_t> readySubThreadNum_ = 0;
     bool firstFlush_ = false;
     bool parallelMode_ = false;
     RSUniRenderVisitor *uniVisitor_ = nullptr;
+    std::shared_ptr<RSUniRenderVisitor> uniParallelCompositionVisitor_ = nullptr;
     TaskType taskType_;
     std::unique_ptr<RSParallelHardwareComposer> parallelHardwareComposer_;
     std::map<uint32_t, std::vector<std::shared_ptr<RSSurfaceRenderNode>>> appWindowNodesMap_;

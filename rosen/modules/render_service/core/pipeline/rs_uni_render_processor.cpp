@@ -35,9 +35,10 @@ RSUniRenderProcessor::~RSUniRenderProcessor() noexcept
 {
 }
 
-bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
+bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
+                                std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
-    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId)) {
+    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine)) {
         return false;
     }
     // In uni render mode, we can handle screen rotation in the rendering process,

@@ -85,6 +85,13 @@ public:
 private:
     std::queue<std::unique_ptr<RSRenderTask>> tasks_;
 };
+
+class RSCompositionTask : public RSRenderTaskBase {
+public:
+    explicit RSCompositionTask(std::shared_ptr<RSDisplayRenderNode> node) : RSRenderTaskBase(node) {}
+    ~RSCompositionTask() override {};
+};
+
 } // namespace Rosen
 } // namespace OHOS
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_RENDER_TASK_H

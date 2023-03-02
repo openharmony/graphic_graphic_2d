@@ -77,8 +77,6 @@ constexpr uint32_t PARALLEL_RENDER_MINIMUN_RENDER_NODE_NUMBER = 50;
 RSUniRenderVisitor::RSUniRenderVisitor()
     : curSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
-    auto mainThread = RSMainThread::Instance();
-    renderEngine_ = mainThread->GetRenderEngine();
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     auto screenNum = screenManager->GetAllScreenIds().size();
@@ -132,9 +130,32 @@ RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUn
     prepareClipRect_ = visitor.prepareClipRect_;
     isOpDropped_ = visitor.isOpDropped_;
     isPartialRenderEnabled_ = visitor.isPartialRenderEnabled_;
+    isHardwareForcedDisabled_ = visitor.isHardwareForcedDisabled_;
+    doAnimate_ = visitor.doAnimate_;
+    isDirty_ = visitor.isDirty_;
 }
 
 RSUniRenderVisitor::~RSUniRenderVisitor() {}
+
+void RSUniRenderVisitor::CopyVisitorInfos(std::shared_ptr<RSUniRenderVisitor> visitor)
+{
+    std::unique_lock<std::mutex> lock(copyVisitorInfosMutex_);
+    currentVisitDisplay_ = visitor->currentVisitDisplay_;
+    screenInfo_ = visitor->screenInfo_;
+    displayHasSecSurface_ = visitor->displayHasSecSurface_;
+    parentSurfaceNodeMatrix_ = visitor->parentSurfaceNodeMatrix_;
+    curAlpha_ = visitor->curAlpha_;
+    dirtyFlag_ = visitor->dirtyFlag_;
+    curDisplayNode_ = visitor->curDisplayNode_;
+    currentFocusedPid_ = visitor->currentFocusedPid_;
+    surfaceNodePrepareMutex_ = visitor->surfaceNodePrepareMutex_;
+    prepareClipRect_ = visitor->prepareClipRect_;
+    isOpDropped_ = visitor->isOpDropped_;
+    isPartialRenderEnabled_ = visitor->isPartialRenderEnabled_;
+    isHardwareForcedDisabled_ = visitor->isHardwareForcedDisabled_;
+    doAnimate_ = visitor->doAnimate_;
+    isDirty_ = visitor->isDirty_;
+}
 
 void RSUniRenderVisitor::CopyPropertyForParallelVisitor(RSUniRenderVisitor *mainVisitor)
 {
@@ -287,8 +308,9 @@ void RSUniRenderVisitor::ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRend
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
     auto parallelRenderManager = RSParallelRenderManager::Instance();
-    isParallel_ = AdaptiveSubRenderThreadMode(node.GetChildrenCount()) &&
-        parallelRenderManager->GetParallelMode();
+    doParallelRender_ = (node.GetChildrenCount() >= PARALLEL_RENDER_MINIMUN_RENDER_NODE_NUMBER) &&
+                        (!doParallelComposition_);
+    isParallel_ = AdaptiveSubRenderThreadMode(doParallelRender_) && parallelRenderManager->GetParallelMode();
     isDirtyRegionAlignedEnable_ = isParallel_;
     // we will open prepare parallel after check all properties.
     if (isParallel_ &&
@@ -959,8 +981,6 @@ void RSUniRenderVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
     for (auto& child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
     }
-    // clear SortedChildren, it will be generated again in next frame
-    node.ResetSortedChildren();
 }
 
 void RSUniRenderVisitor::ProcessParallelDisplayRenderNode(RSDisplayRenderNode& node)
@@ -1097,8 +1117,13 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: RSProcessor is null!");
         return;
     }
+
+    if (renderEngine_ == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: renderEngine is null!");
+        return;
+    }
     if (!processor_->Init(node, node.GetDisplayOffsetX(), node.GetDisplayOffsetY(),
-        mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID)) {
+        mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID, renderEngine_)) {
         RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: processor init failed!");
         return;
     }
@@ -1129,8 +1154,14 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (displayHasSecSurface_[mirrorNode->GetScreenId()] && mirrorNode->GetSecurityDisplay() != isSecurityDisplay_
             && processor) {
             canvas_ = processor->GetCanvas();
+            if (canvas_ == nullptr) {
+                RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode failed to get canvas.");
+                return;
+            }
+            int saveCount = canvas_->save();
             ProcessBaseRenderNode(*mirrorNode);
             DrawWatermarkIfNeed();
+            canvas_->restoreToCount(saveCount);
         } else {
             processor_->ProcessDisplaySurface(*mirrorNode);
         }
@@ -1834,8 +1865,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
 
     if (node.GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+        sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+        auto screenNum = screenManager->GetAllScreenIds().size();
         needColdStartThread_ = RSSystemProperties::GetColdStartThreadEnabled() &&
-                               !node.IsStartAnimationFinished() && doAnimate_;
+                               !node.IsStartAnimationFinished() && doAnimate_ && screenNum <= 1;
         needCheckFirstFrame_ = node.GetChildrenCount() > 1; // childCount > 1 means startingWindow and appWindow
     }
 
@@ -2108,18 +2141,17 @@ void RSUniRenderVisitor::FinishOffscreenRender()
     canvas_ = std::move(canvasBackup_);
 }
 
-bool RSUniRenderVisitor::AdaptiveSubRenderThreadMode(uint32_t renderNodeNum)
+bool RSUniRenderVisitor::AdaptiveSubRenderThreadMode(bool doParallel)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
-    bool isParallel = (renderNodeNum >= PARALLEL_RENDER_MINIMUN_RENDER_NODE_NUMBER) &&
-        (parallelRenderType_ != ParallelRenderingType::DISABLE);
-    if (!isParallel) {
-        return isParallel;
+    doParallel = doParallel && (parallelRenderType_ != ParallelRenderingType::DISABLE);
+    if (!doParallel) {
+        return doParallel;
     }
     auto parallelRenderManager = RSParallelRenderManager::Instance();
     switch (parallelRenderType_) {
         case ParallelRenderingType::AUTO:
-            parallelRenderManager->SetParallelMode(isParallel);
+            parallelRenderManager->SetParallelMode(doParallel);
             break;
         case ParallelRenderingType::DISABLE:
             parallelRenderManager->SetParallelMode(false);
@@ -2128,7 +2160,7 @@ bool RSUniRenderVisitor::AdaptiveSubRenderThreadMode(uint32_t renderNodeNum)
             parallelRenderManager->SetParallelMode(true);
             break;
     }
-    return isParallel;
+    return doParallel;
 #else
     return false;
 #endif
@@ -2196,8 +2228,13 @@ bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> r
         RS_LOGE("RSUniRenderVisitor::DoDirectComposition: RSProcessor is null!");
         return false;
     }
+
+    if (renderEngine_ == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::DoDirectComposition: renderEngine is null!");
+        return false;
+    }
     if (!processor_->Init(*displayNode, displayNode->GetDisplayOffsetX(), displayNode->GetDisplayOffsetY(),
-        INVALID_SCREEN_ID)) {
+        INVALID_SCREEN_ID, renderEngine_)) {
         RS_LOGE("RSUniRenderVisitor::DoDirectComposition: processor init failed!");
         return false;
     }
@@ -2223,9 +2260,31 @@ void RSUniRenderVisitor::DrawWatermarkIfNeed()
     }
 }
 
+
 void RSUniRenderVisitor::SetAppWindowNum(uint32_t num)
 {
     appWindowNum_ = num;
 }
+
+bool RSUniRenderVisitor::ParallelComposition(const std::shared_ptr<RSBaseRenderNode> rootNode)
+{
+#if defined(RS_ENABLE_PARALLEL_RENDER) && defined (RS_ENABLE_GL)
+    auto parallelRenderManager = RSParallelRenderManager::Instance();
+    doParallelComposition_ = true;
+    doParallelComposition_ = AdaptiveSubRenderThreadMode(doParallelComposition_) &&
+                             parallelRenderManager->GetParallelMode();
+    if (doParallelComposition_) {
+        parallelRenderManager->PackParallelCompositionTask(shared_from_this(), rootNode);
+        parallelRenderManager->LoadBalanceAndNotify(TaskType::COMPOSITION_TASK);
+        parallelRenderManager->WaitCompositionEnd();
+    } else {
+        return false;
+    }
+    return true;
+#else
+    return false;
+#endif
+}
+
 } // namespace Rosen
 } // namespace OHOS

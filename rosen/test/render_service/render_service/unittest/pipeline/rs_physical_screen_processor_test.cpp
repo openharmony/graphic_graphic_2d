@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
+#include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_physical_screen_processor.h"
 #include "pipeline/rs_processor_factory.h"
 
@@ -79,8 +80,10 @@ HWTEST_F(RSPhysicalScreenProcessorTest, Init, TestSize.Level1)
     RSDisplayRenderNode rsDisplayRenderNode(id, config);
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         HARDWARE_COMPOSITE);
+    auto mainThread = RSMainThread::Instance();
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = mainThread->GetRenderEngine();
     ASSERT_NE(nullptr, rsHardwareProcessor);
-    ASSERT_EQ(false, rsHardwareProcessor->Init(rsDisplayRenderNode, offsetX, offsetY, INVALID_SCREEN_ID));
+    ASSERT_EQ(false, rsHardwareProcessor->Init(rsDisplayRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
 }
 
 /*
