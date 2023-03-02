@@ -779,7 +779,8 @@ void RSNode::SetSpherizeDegree(float spherizeDegree)
 
 void RSNode::SetLightUpEffectDegree(float LightUpEffectDegree)
 {
-    SetProperty<RSLightUpEffectModifier, RSAnimatableProperty<float>>(RSModifierType::LIGHT_UP_EFFECT, LightUpEffectDegree);
+    SetProperty<RSLightUpEffectModifier, RSAnimatableProperty<float>>(
+        RSModifierType::LIGHT_UP_EFFECT, LightUpEffectDegree);
 }
 
 void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)

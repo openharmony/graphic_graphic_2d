@@ -35,7 +35,8 @@ sk_sp<SkImageFilter> RSSkiaFilter::GetImageFilter() const
     return imageFilter_;
 }
 
-std::shared_ptr<RSSkiaFilter> RSSkiaFilter::Compose(const std::shared_ptr<RSSkiaFilter>& outer, const std::shared_ptr<RSSkiaFilter>& inner)
+std::shared_ptr<RSSkiaFilter> RSSkiaFilter::Compose(const std::shared_ptr<RSSkiaFilter>& outer,
+    const std::shared_ptr<RSSkiaFilter>& inner)
 {
     if (outer == nullptr && inner == nullptr) {
         return nullptr;
