@@ -112,7 +112,7 @@ NativeValue* RSWindowAnimationManager::OnMinimizeWindowWithAnimation(NativeEngin
 
     auto targetObj = ConvertNativeValueTo<NativeObject>(info.argv[0]);
     RSWindowAnimationTarget* target = nullptr;
-    
+
     if (targetObj == nullptr) {
         WALOGE("Window animation target object is null!");
         errCode = ERR_NOT_OK;
@@ -123,15 +123,18 @@ NativeValue* RSWindowAnimationManager::OnMinimizeWindowWithAnimation(NativeEngin
         WALOGE("Window animation target is null!");
         errCode = ERR_NOT_OK;
     }
-
+    uint32_t windowId = 0;
+    if (errCode == ERR_OK && !ConvertFromJsValue(engine, targetObj->GetProperty("windowId"), windowId)) {
+        errCode = ERR_NOT_OK;
+    }
+    WALOGD("Window animation target windowId is:%{public}u!", windowId);
     AsyncTask::CompleteCallback complete =
-        [target, errCode](NativeEngine& engine, AsyncTask& task, int32_t status) {
+        [windowId, errCode](NativeEngine& engine, AsyncTask& task, int32_t status) {
             if (errCode != ERR_OK) {
                 task.Reject(engine, CreateJsError(engine, errCode, "Invalid params."));
                 return;
             }
-
-            std::vector<uint32_t> windowIds = {target->windowId_};
+            std::vector<uint32_t> windowIds = {windowId};
             sptr<RSIWindowAnimationFinishedCallback> finishedCallback;
             SingletonContainer::Get<WindowAdapter>().MinimizeWindowsByLauncher(windowIds, true, finishedCallback);
             if (finishedCallback == nullptr) {
