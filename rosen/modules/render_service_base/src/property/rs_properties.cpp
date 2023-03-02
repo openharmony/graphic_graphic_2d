@@ -924,6 +924,7 @@ void RSProperties::Reset()
     mask_ = nullptr;
     shadow_ = nullptr;
     sublayerTransform_ = nullptr;
+    float lightUpEffectDegree_ = 1.0f;
 }
 
 void RSProperties::SetDirty()
