@@ -58,6 +58,14 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     nodes[0]->SetBackgroundColor(SK_ColorBLUE);
 
     rootNode->AddChild(nodes[0], -1);
+
+    nodes.emplace_back(RSCanvasNode::Create());
+    nodes[1]->SetBounds(0, 200, 200, 200);
+    nodes[1]->SetFrame(0, 200, 200, 200);
+    nodes[1]->SetBackgroundColor(SK_ColorBLUE);
+
+    rootNode->AddChild(nodes[0], -1);
+    rootNode->AddChild(nodes[1], -1);
     rsUiDirector->SetRoot(rootNode->GetId());
 }
 
@@ -182,6 +190,54 @@ private:
     std::shared_ptr<RSAnimatableProperty<Color>> backgroundColor_;
 };
 
+class NodeModifier : public RSNodeModifier {
+public:
+    NodeModifier() = default;
+    virtual ~NodeModifier() = default;
+
+    void Modifier(RSNode& target) const override
+    {
+        target.SetAlpha(alpha_->Get());
+        target.SetScale(scale_->Get());
+        target.SetBackgroundColor(color_->Get().AsArgbInt());
+    }
+
+    void SetAlpha(float alpha)
+    {
+        if (alpha_ == nullptr) {
+            alpha_ = std::make_shared<RSAnimatableProperty<float>>(alpha);
+            AttachProperty(alpha_);
+        } else {
+            alpha_->Set(alpha);
+        }
+    }
+
+    void SetScale(Vector2f scale)
+    {
+        if (scale_ == nullptr) {
+            scale_ = std::make_shared<RSAnimatableProperty<Vector2f>>(scale);
+            AttachProperty(scale_);
+        } else {
+            scale_->Set(scale);
+        }
+    }
+
+    void SetColor(Color color)
+    {
+        if (color_ == nullptr) {
+            color_ = std::make_shared<RSAnimatableProperty<Color>>(color);
+            AttachProperty(color_);
+        } else {
+            color_->Set(color);
+        }
+    }
+
+private:
+    std::shared_ptr<RSAnimatableProperty<float>> alpha_;
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> scale_;
+    std::shared_ptr<RSAnimatableProperty<Color>> color_;
+};
+
 int main()
 {
     int cnt = 0;
@@ -249,6 +305,31 @@ int main()
 
     int64_t startNum = 80825861106;
     bool hasRunningAnimation = true;
+    while (hasRunningAnimation) {
+        hasRunningAnimation = rsUiDirector->RunningCustomAnimation(startNum);
+        rsUiDirector->SendMessages();
+        startNum += 100000000;
+        usleep(100000);
+    }
+    sleep(2);
+
+    auto nodeModifier = std::make_shared<NodeModifier>();
+    nodes[1]->AddModifier(nodeModifier);
+    nodeModifier->SetAlpha(1);
+    nodeModifier->SetScale(Vector2f(1.f, 1.f));
+    nodeModifier->SetColor(Color(0, 255, 0));
+    rsUiDirector->RunningCustomAnimation(0);
+    rsUiDirector->SendMessages();
+    sleep(3);
+
+    // create property animation
+    RSNode::Animate(protocol, RSAnimationTimingCurve::EASE_IN_OUT, [&]() {
+        nodeModifier->SetAlpha(0.2);
+        nodeModifier->SetScale(Vector2f(3.f, 3.f));
+        nodeModifier->SetColor(Color(255, 0, 255));
+    });
+
+    hasRunningAnimation = true;
     while (hasRunningAnimation) {
         hasRunningAnimation = rsUiDirector->RunningCustomAnimation(startNum);
         rsUiDirector->SendMessages();

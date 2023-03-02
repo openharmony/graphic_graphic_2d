@@ -80,7 +80,6 @@ protected:
         if (node == nullptr) {
             return;
         }
-
         RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(node->GetId());
         Draw(ctx);
         auto drawCmdList = RSExtendedModifierHelper::FinishDrawing(ctx);
@@ -190,7 +189,7 @@ public:
         return RSModifierType::NODE_MODIFIER;
     }
 
-    virtual void Modifier(const std::shared_ptr<RSNode>& target) const = 0;
+    virtual void Modifier(RSNode& target) const = 0;
 
 private:
     void OnAttachToNode(const std::weak_ptr<RSNode>& target) override
@@ -204,7 +203,7 @@ private:
         if (node == nullptr) {
             return;
         }
-        Modifier(node);
+        Modifier(*node);
     }
 
     void Draw(RSDrawingContext& context) const override final {}
