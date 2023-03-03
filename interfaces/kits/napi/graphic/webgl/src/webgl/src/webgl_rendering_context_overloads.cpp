@@ -539,11 +539,8 @@ napi_value WebGLRenderingContextOverloads::TexImage2D(napi_env env, napi_callbac
             return nullptr;
         }
         // parse with RGBA
-        for (size_t i = 0; i < imageData.size(); i+=4) {
+        for (size_t i = 0; i < imageData.size(); i++) {
             buffer[i] =  Util::StringToInt(imageData[i]);
-            buffer[i + 1] =  Util::StringToInt(imageData[i + 1]);
-            buffer[i + 2] =  Util::StringToInt(imageData[i + 2]);
-            buffer[i + 3] =  Util::StringToInt(imageData[i + 3]);
         }
         int64_t border = 0;
         glTexImage2D(static_cast<GLenum>(target), static_cast<GLint>(level), static_cast<GLint>(internalFormat),
