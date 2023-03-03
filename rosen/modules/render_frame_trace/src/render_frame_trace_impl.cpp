@@ -58,7 +58,7 @@ void RenderFrameTraceImpl::RenderEndFrameTrace(const std::string& traceTag)
 bool RenderFrameTraceImpl::RenderFrameTraceOpen()
 {
     if (AccessFrameTrace()) {
-        return FrameAwareTraceIsOpen();
+        return FrameAwareTraceOpen();
     }
     return false;
 }
@@ -66,7 +66,7 @@ bool RenderFrameTraceImpl::RenderFrameTraceOpen()
 bool RenderFrameTraceImpl::RenderFrameTraceIsOpen()
 {
     if (AccessFrameTrace()) {
-        return FrameAwareTraceOpen();
+        return FrameAwareTraceIsOpen();
     }
     return false;
 }
