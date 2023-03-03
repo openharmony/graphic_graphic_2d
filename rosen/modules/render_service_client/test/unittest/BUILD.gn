@@ -25,6 +25,7 @@ group("unittest") {
     ":RSInterfacesTest",
     ":RSJankDetectorTest",
     ":RSRegionTest",
+    ":RSTransactionsTest",
     ":RSTunnelHandleTest",
     "animation:RSAnimationTest",
   ]
@@ -46,6 +47,16 @@ ohos_unittest("RSInterfacesTest") {
   module_out_path = module_out_path
   sources = [ "rs_interfaces_test.cpp" ]
   deps = [ ":rs_client_test_common" ]
+}
+
+## Build RSTransactionsTest
+ohos_unittest("RSTransactionsTest") {
+  module_out_path = module_out_path
+  sources = [ "rs_transaction_controller_test.cpp" ]
+  deps = [
+    ":rs_client_test_common",
+    "../../../render_service_base:render_service_base_src",
+  ]
 }
 
 ## Build RSDropframeTest

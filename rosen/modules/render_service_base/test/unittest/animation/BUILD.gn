@@ -31,6 +31,8 @@ ohos_unittest("RSRenderAnimationTest") {
     "rs_render_spring_animation_test.cpp",
     "rs_render_transition_effect_test.cpp",
     "rs_spring_model_test.cpp",
+    "rs_sync_transaction_controller_proxy_test.cpp",
+    "rs_sync_transaction_controller_stub_test.cpp",
     "rs_value_estimator_test.cpp",
   ]
 

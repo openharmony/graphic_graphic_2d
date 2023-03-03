@@ -37,8 +37,6 @@ public:
         return rsTransaction_;
     }
 
-protected:
-
 private:
     RSSyncTransactionController();
     virtual ~RSSyncTransactionController();
