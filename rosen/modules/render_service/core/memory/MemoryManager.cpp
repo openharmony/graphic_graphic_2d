@@ -28,7 +28,7 @@
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t MEMUNIT_RATE = 1024;
-constexpr const char* MEM_RS_TYPE = "renderservice";
+constexpr const char* MEM_RS_TYPE = "rs";
 constexpr const char* MEM_CPU_TYPE = "cpu";
 constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr const char* MEM_JEMALLOC_TYPE = "jemalloc";
@@ -51,6 +51,12 @@ void MemoryManager::DumpMemoryUsage(DfxString& log, const GrContext* grContext, 
         DumpMallocStat(out);
         log.AppendFormat("%s\n... detail dump at hilog\n", out.c_str());
     }
+}
+
+void MemoryManager::DumpPidMemory(DfxString& log, int pid)
+{
+    MemoryTrack::Instance().DumpMemoryStatistics(log, pid);
+
 }
 
 void MemoryManager::DumpRenderServiceMemory(DfxString& log)

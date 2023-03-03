@@ -16,6 +16,7 @@
 #define MEMORY_TRACK
 
 #include <mutex>
+#include <vector>
 
 #include "common/rs_common_def.h"
 #include "memory/DfxString.h"
@@ -34,12 +35,25 @@ struct MemoryInfo {
     MEMORY_TYPE type;
 };
 
+class MemoryNodeOfPid {
+public:
+    MemoryNodeOfPid() = default;
+    ~MemoryNodeOfPid() = default;
+    MemoryNodeOfPid(size_t size, NodeId id);
+    size_t GetMemSize() { return nodeSize_; };
+    bool operator==(const MemoryNodeOfPid& other);
+private:
+    size_t nodeSize_;
+    NodeId nodeId_;
+};
+
 class RSB_EXPORT MemoryTrack {
 public:
     static MemoryTrack& Instance();
     void AddNodeRecord(const NodeId id, const MemoryInfo& info);
     void RemoveNodeRecord(const NodeId id);
     void DumpMemoryStatistics(DfxString& log);
+    void DumpMemoryStatistics(DfxString& log, const pid_t pid);
 
     void AddPictureRecord(const void* addr, MemoryInfo info);
     void RemovePictureRecord(const void* addr);
@@ -56,6 +70,9 @@ private:
     std::mutex mutex_;
     std::unordered_map<NodeId, MemoryInfo> memNodeMap_;
     std::unordered_map<const void*, MemoryInfo> memPicRecord_;
+
+    // Data to statistic information of Pid
+    std::unordered_map<pid_t, std::vector<MemoryNodeOfPid>> memNodeOfPidMap_;
 };
 } // namespace OHOS  
 } // namespace Rosen

@@ -142,7 +142,7 @@ public:
     void SetDirtyFlag();
     void ForceRefreshForUni();
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
-    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result);
+    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, int pid = 0);
     void SetAppWindowNum(uint32_t num);
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
     sk_sp<SkImage> GetWatermarkImg();

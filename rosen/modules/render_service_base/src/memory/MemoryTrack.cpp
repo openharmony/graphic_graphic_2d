@@ -19,6 +19,14 @@ namespace Rosen {
 namespace {
 constexpr uint32_t MEM_MAX_SIZE = 2;    
 }
+
+MemoryNodeOfPid::MemoryNodeOfPid(size_t size, NodeId id) : nodeSize_(size), nodeId_(id) {}
+
+bool MemoryNodeOfPid::operator==(const MemoryNodeOfPid& other)
+{
+    return nodeId_ == other.nodeId_;
+}
+
 MemoryTrack& MemoryTrack::Instance()
 {
     static MemoryTrack instance;
@@ -28,11 +36,40 @@ MemoryTrack& MemoryTrack::Instance()
 void MemoryTrack::AddNodeRecord(const NodeId id, const MemoryInfo& info)
 {
     memNodeMap_.emplace(id, info);
+    MemoryNodeOfPid nodeInfoOfPid(info.size, id);
+    memNodeOfPidMap_[info.pid].push_back(nodeInfoOfPid);
 }
 
 void MemoryTrack::RemoveNodeRecord(const NodeId id)
 {
+    pid_t pid = memNodeMap_[id].pid;
+    size_t size = memNodeMap_[id].size;
     memNodeMap_.erase(id);
+    MemoryNodeOfPid nodeInfoOfPid = {size, id};
+    auto itr = std::find(memNodeOfPidMap_[pid].begin(), memNodeOfPidMap_[pid].end(), nodeInfoOfPid);
+    if (itr != memNodeOfPidMap_[pid].end()) {
+        memNodeOfPidMap_[pid].erase(itr);
+    }
+}
+
+void MemoryTrack::DumpMemoryStatistics(DfxString& log, const pid_t pid)
+{
+    auto itr = memNodeOfPidMap_.find(pid);
+    if (itr == memNodeOfPidMap_.end()) {
+        return;
+    }
+    auto nodeInfoOfPid = memNodeOfPidMap_[pid];
+    if (nodeInfoOfPid.empty()) {
+        memNodeOfPidMap_.erase(pid);
+    } else {
+        size_t totalCount = 0;
+        int totalMemSize = 0;
+        std::for_each(nodeInfoOfPid.begin(), nodeInfoOfPid.end(), [&totalCount, &totalMemSize](MemoryNodeOfPid& info) {
+            totalCount++;
+            totalMemSize += info.GetMemSize();
+        });
+        log.AppendFormat("Total Node Memory = %d KB (%d entries)\n", totalMemSize / BYTE_CONVERT, totalCount);
+    }
 }
 
 void MemoryTrack::DumpMemoryStatistics(DfxString& log)
