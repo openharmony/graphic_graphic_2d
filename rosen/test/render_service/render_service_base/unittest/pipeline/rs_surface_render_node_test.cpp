@@ -272,5 +272,38 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion07, TestSize.Level1)
     surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_270, false);
     surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_270, true);
 }
+
+/**
+ * @tc.name: SetNodeCostTest
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetNodeCostTest, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    auto result = surfaceRenderNode.nodeCost_;
+    ASSERT_EQ(0, result);
+    surfaceRenderNode.SetNodeCost(6);
+    result = surfaceRenderNode.nodeCost_;
+    ASSERT_EQ(6, result);
+}
+
+/**
+ * @tc.name: GetNodeCostTest
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetNodeCostTest, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    auto result = surfaceRenderNode.nodeCost_;
+    ASSERT_EQ(0, result);
+    surfaceRenderNode.SetNodeCost(6);
+    result = surfaceRenderNode.GetNodeCost();
+    ASSERT_EQ(6, result);
+}
+
 } // namespace Rosen
 } // namespace OHOS

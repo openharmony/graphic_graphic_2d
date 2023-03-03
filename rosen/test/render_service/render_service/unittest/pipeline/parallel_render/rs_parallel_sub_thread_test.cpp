@@ -133,5 +133,15 @@ HWTEST_F(RSParallelSubThreadTest, StartSubThreadOtherTest, TestSize.Level1)
     curThread->GetSkSurface();
     curThread->GetTexture();
 }
-
+/**
+ * @tc.name: CalcCostTest
+ * @tc.desc: Test RSParallelSubThreadTest.CalcCostTest
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSParallelSubThreadTest, CalcCostTest, TestSize.Level1)
+{
+    auto curThread = std::make_unique<RSParallelSubThread>(0);
+    curThread->CalcCost();
+}
 } // namespace OHOS::Rosen

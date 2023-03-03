@@ -14,13 +14,15 @@
  */
 
 #include <memory>
+
 #include "gtest/gtest.h"
 #include "limit_number.h"
+
 #include "pipeline/parallel_render/rs_parallel_task_manager.h"
-#include "pipeline/rs_render_node.h"
-#include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -88,7 +90,6 @@ HWTEST_F(RSParallelTaskManagerTest, PushRenderTaskTest, TestSize.Level1)
     rsDisplayRenderNode->AddChild(rsSurfaceRenderNode2, -1);
     rsDisplayRenderNode->AddChild(rsSurfaceRenderNode3, -1);
 
-
     auto renderTask1 = std::make_unique<RSRenderTask>(*rsSurfaceRenderNode1, RSRenderTask::RenderNodeStage::PREPARE);
     auto renderTask2 = std::make_unique<RSRenderTask>(*rsSurfaceRenderNode2, RSRenderTask::RenderNodeStage::PREPARE);
     auto renderTask3 = std::make_unique<RSRenderTask>(*rsSurfaceRenderNode3, RSRenderTask::RenderNodeStage::PREPARE);
@@ -129,4 +130,74 @@ HWTEST_F(RSParallelTaskManagerTest, SetSubThreadRenderTaskLoadTest, TestSize.Lev
     parallelTaskManager_->SetSubThreadRenderTaskLoad(2, 3000, 3.0f);
 }
 
+/**
+ * @tc.name: UpdateNodeCostTest
+ * @tc.desc: Test RSParallelTaskManagerTest.UpdateNodeCostTest
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(RSParallelTaskManagerTest, UpdateNodeCostTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config1;
+    config1.id = 10;
+    auto rsSurfaceRenderNode1 = std::make_shared<RSSurfaceRenderNode>(config1, rsContext->weak_from_this());
+    rsSurfaceRenderNode1->SetSrcRect(RectI(0, 0, 10, 10));
+
+    RSSurfaceRenderNodeConfig config2;
+    config2.id = 20;
+    auto rsSurfaceRenderNode2 = std::make_shared<RSSurfaceRenderNode>(config2, rsContext->weak_from_this());
+    rsSurfaceRenderNode2->SetSrcRect(RectI(20, 20, 10, 10));
+
+    RSSurfaceRenderNodeConfig config3;
+    config3.id = 30;
+    auto rsSurfaceRenderNode3 = std::make_shared<RSSurfaceRenderNode>(config3, rsContext->weak_from_this());
+    rsSurfaceRenderNode3->SetSrcRect(RectI(40, 40, 10, 10));
+
+    RSDisplayNodeConfig config;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(0, config, rsContext->weak_from_this());
+    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode1, -1);
+    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode2, -1);
+    rsDisplayRenderNode->AddChild(rsSurfaceRenderNode3, -1);
+    std::vector<uint32_t> vec { 1, 2, 3, 4, 5 };
+    parallelTaskManager_->UpdateNodeCost(*rsDisplayRenderNode, vec);
+    auto result = vec.size();
+    ASSERT_EQ(result, 5);
+}
+
+/**
+ * @tc.name: LoadParallelPolicyTest
+ * @tc.desc: Test RSParallelTaskManagerTest.LoadParallelPolicyTest
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(RSParallelTaskManagerTest, LoadParallelPolicyTest, TestSize.Level1)
+{
+    std::vector<uint32_t> vec { 0, 1, 2, 3, 4, 5 };
+    parallelTaskManager_->LoadParallelPolicy(vec);
+    auto result = vec.capacity();
+    ASSERT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: GetCostFactorTest
+ * @tc.desc: Test RSParallelTaskManagerTest.GetCostFactorTest
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(RSParallelTaskManagerTest, GetCostFactorTest, TestSize.Level1)
+{
+    std::vector<uint32_t> vec { 0, 1, 2, 3, 4, 5 };
+    std::map<std::string, int32_t> costFactor;
+    std::map<int64_t, int32_t> imageFactor;
+    costFactor["string1"] = 1;
+    costFactor["string2"] = 2;
+    costFactor["string3"] = 3;
+    imageFactor[1] = 1;
+    imageFactor[2] = 2;
+    imageFactor[3] = 3;
+    parallelTaskManager_->GetCostFactor(costFactor, imageFactor);
+    auto result = costFactor.size()>0;
+    ASSERT_TRUE(result);
+}
 } // namespace OHOS::Rosen
