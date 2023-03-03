@@ -176,7 +176,7 @@ HWTEST_F(RSParallelTaskManagerTest, LoadParallelPolicyTest, TestSize.Level1)
     std::vector<uint32_t> vec { 0, 1, 2, 3, 4, 5 };
     parallelTaskManager_->LoadParallelPolicy(vec);
     auto result = vec.capacity();
-    ASSERT_EQ(result,0);
+    ASSERT_EQ(result, 0);
 }
 
 /**
