@@ -38,14 +38,11 @@ RSProxyNode::SharedPtr RSProxyNode::Create(NodeId targetNodeId, std::string name
         return node;
     }
     NodeId proxyNodeId = node->GetHierarchyCommandNodeId();
+    // create proxy node in RS and RT.
     std::unique_ptr<RSCommand> command = std::make_unique<RSProxyNodeCreate>(proxyNodeId, targetNodeId);
-    transactionProxy->AddCommand(command, node->IsUniRenderEnabled());
-
-    // create proxy node in RS even if uni render not enabled.
-    if (!node->IsUniRenderEnabled()) {
-        std::unique_ptr<RSCommand> command = std::make_unique<RSProxyNodeCreate>(proxyNodeId, targetNodeId);
-        transactionProxy->AddCommand(command, true);
-    }
+    transactionProxy->AddCommand(command, true);
+    std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSProxyNodeCreate>(proxyNodeId, targetNodeId);
+    transactionProxy->AddCommand(extraCommand, false);
 
     ROSEN_LOGD("RSProxyNode::Create, target node id:%" PRIu64 ", name %s proxy node id %" PRIu64, node->GetId(),
         node->GetName().c_str(), proxyNodeId);
@@ -62,19 +59,11 @@ RSProxyNode::~RSProxyNode()
         return;
     }
 
-    // destroy remote RSProxyRenderNode, NOT the target node.
+    // destroy remote RSProxyRenderNode in RS and RT, NOT the target node.
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeDestroy>(proxyNodeId_);
-    transactionProxy->AddCommand(command, IsUniRenderEnabled());
-    if (isRenderServiceNode_) {
-        std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSBaseNodeDestroy>(proxyNodeId_);
-        transactionProxy->AddCommand(extraCommand, false);
-    }
-
-    // destroy corresponding RSProxyRenderNode in RS even if uni render not enabled.
-    if (!IsUniRenderEnabled()) {
-        command = std::make_unique<RSBaseNodeDestroy>(proxyNodeId_);
-        transactionProxy->AddCommand(command, true);
-    }
+    transactionProxy->AddCommand(command, true);
+    std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSBaseNodeDestroy>(proxyNodeId_);
+    transactionProxy->AddCommand(extraCommand, false);
 
     ROSEN_LOGD("RSProxyNode::~RSProxyNode, id:%" PRIu64, GetId());
 }
