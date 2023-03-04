@@ -333,6 +333,77 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     filter->PostProcess(canvas);
 }
 
+void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+    if (!properties.IsPixelStretchValid()) {
+        return;
+    }
+    auto stretchSize = properties.GetPixelStretch();
+    bool isExpend = false;
+    constexpr static float EPS = 1e-5f;
+    if (stretchSize.x_ <= EPS && stretchSize.y_ <= EPS && stretchSize.z_ <= EPS && stretchSize.w_ <= EPS) {
+        isExpend = false;
+    } else {
+        isExpend = true;
+    }
+
+    auto skSurface = canvas.GetSurface();
+    if (skSurface == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch skSurface null");
+        return;
+    }
+    
+    canvas.save();
+    auto bounds = RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect());
+    canvas.clipRect(bounds);
+    auto clipBounds = canvas.getDeviceClipBounds();
+    canvas.restore();
+
+    // calculate scaled rect size
+    auto scaledBounds = SkRect::MakeLTRB(bounds.left() - stretchSize.x_, bounds.top() - stretchSize.y_,
+        bounds.right() + stretchSize.z_, bounds.bottom() + stretchSize.w_);
+
+    if (scaledBounds.isEmpty()) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch invalid scaled bounds");
+        return;
+    }
+
+    auto imageSnapshot = skSurface->makeImageSnapshot(clipBounds);
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch image null");
+        return;
+    }
+
+    SkPaint paint;
+    SkMatrix inverseMat;
+    SkMatrix scaleMat;
+    auto boundsGeo = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
+    if (boundsGeo && !boundsGeo->IsEmpty()) {
+        bool ret = canvas.getTotalMatrix().invert(&inverseMat);
+        if (!ret) {
+            ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch get inverse matrix failed.");
+        }
+        scaleMat.setScale(inverseMat.getScaleX(), inverseMat.getScaleY());
+    }
+
+    if (isExpend) {
+        paint.setShader(imageSnapshot->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, &scaleMat));
+        canvas.drawRect(SkRect::MakeXYWH(-stretchSize.x_, -stretchSize.y_, scaledBounds.width(), scaledBounds.height()),
+            paint);
+    } else {
+        SkBitmap bitmap;
+        bitmap.allocN32Pixels(scaledBounds.width(), scaledBounds.height());
+        auto tempCanvas = std::make_unique<SkCanvas>(bitmap);
+        tempCanvas->drawImageRect(imageSnapshot.get(), SkRect::MakeWH(scaledBounds.width(), scaledBounds.height()),
+            nullptr);
+        paint.setShader(bitmap.makeShader(SkTileMode::kClamp, SkTileMode::kClamp));
+        canvas.save();
+        canvas.translate(-stretchSize.x_, -stretchSize.y_);
+        canvas.drawRect(SkRect::MakeXYWH(stretchSize.x_, stretchSize.y_, bounds.width(), bounds.height()), paint);
+        canvas.restore();
+    }
+}
+
 SkColor RSPropertiesPainter::CalcAverageColor(sk_sp<SkImage> imageSnapshot)
 {
     // create a 1x1 SkPixmap

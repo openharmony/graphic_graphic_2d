@@ -172,6 +172,8 @@ public:
     void SetSpherizeDegree(float spherizeDegree);
     void SetLightUpEffectDegree(float LightUpEffectDegree);
 
+    void SetPixelStretch(const Vector4f& stretchSize);
+
     void SetPaintOrder(bool drawContentLast);
 
     void SetTransitionEffect(const std::shared_ptr<const RSTransitionEffect>& effect)

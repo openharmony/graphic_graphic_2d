@@ -925,6 +925,7 @@ void RSProperties::Reset()
     shadow_ = nullptr;
     sublayerTransform_ = nullptr;
     lightUpEffectDegree_ = 1.0f;
+    pixelStretch_ = nullptr;
 }
 
 void RSProperties::SetDirty()
@@ -1055,6 +1056,54 @@ bool RSProperties::IsLightUpEffectValid() const
 {
     constexpr float epsilon = 0.001f;
     return 1.0 - GetLightUpEffect() > epsilon;
+}
+
+void RSProperties::SetPixelStretch(Vector4f stretchSize)
+{
+    if (!pixelStretch_) {
+        pixelStretch_ = std::make_unique<Vector4f>();
+    }
+
+    pixelStretch_->SetValues(stretchSize.x_, stretchSize.y_, stretchSize.z_, stretchSize.w_);
+
+    SetDirty();
+}
+
+Vector4f RSProperties::GetPixelStretch() const
+{
+    return pixelStretch_ ? *pixelStretch_ : Vector4f();
+}
+
+bool RSProperties::IsPixelStretchValid() const
+{
+    if (!pixelStretch_ || pixelStretch_->IsZero()) {
+        return false;
+    }
+
+    constexpr static float EPS = 1e-5f;
+    if (pixelStretch_->x_ <= EPS && pixelStretch_->y_ <= EPS && pixelStretch_->z_ <= EPS && pixelStretch_->w_ <= EPS) {
+        return  true;
+    }
+
+    if (pixelStretch_->x_ >= -EPS && pixelStretch_->y_ >= -EPS && pixelStretch_->z_ >= -EPS
+        && pixelStretch_->w_ >= -EPS) {
+        return  true;
+    }
+
+    return false;
+}
+
+RectI RSProperties::GetPixelStretchDirtyRect() const
+{
+    auto dirtyRect = GetDirtyRect();
+    auto stretchSize = GetPixelStretch();
+
+    auto scaledBounds = RectF(dirtyRect.left_ - stretchSize.x_, dirtyRect.top_ - stretchSize.y_,
+         dirtyRect.width_ + stretchSize.x_ + stretchSize.z_,  dirtyRect.height_ + stretchSize.y_ + stretchSize.w_);
+
+    auto scaledIBounds = RectI(std::floor(scaledBounds.left_), std::floor(scaledBounds.top_),
+        std::ceil(scaledBounds.width_) + 1, std::ceil(scaledBounds.height_) + 1);
+    return dirtyRect.JoinRect(scaledIBounds);
 }
 
 std::string RSProperties::Dump() const

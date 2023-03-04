@@ -193,6 +193,13 @@ public:
     void SetMask(std::shared_ptr<RSMask> mask);
     std::shared_ptr<RSMask> GetMask() const;
 
+    void SetPixelStretch(Vector4f stretchSize);
+    Vector4f GetPixelStretch() const;
+
+    bool IsPixelStretchValid() const;
+
+    RectI GetPixelStretchDirtyRect() const;
+
     const std::shared_ptr<RSObjGeometry>& GetBoundsGeometry() const;
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, Vector2f& offset);
@@ -256,6 +263,8 @@ private:
     float lightUpEffectDegree_ = 1.0f;
 
     std::weak_ptr<RSRenderNode> backref_;
+
+    std::unique_ptr<Vector4f> pixelStretch_ = nullptr;
 
     friend class RSCanvasRenderNode;
     friend class RSPropertiesPainter;

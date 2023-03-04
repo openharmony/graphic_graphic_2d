@@ -78,6 +78,7 @@ enum class RSModifierType : int16_t {
     MASK,
     SPHERIZE,
     LIGHT_UP_EFFECT,
+    PIXEL_STRETCH,
 
     CUSTOM,
     EXTENDED,
