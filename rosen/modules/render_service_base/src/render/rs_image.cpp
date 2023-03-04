@@ -31,20 +31,7 @@ constexpr int32_t CORNER_SIZE = 4;
 }
 
 RSImage::~RSImage()
-{
-    if (image_) {
-        image_ = nullptr;
-        if (uniqueId_ > 0) {
-            RSImageCache::Instance().ReleaseSkiaImageCache(uniqueId_);
-        }
-    }
-    if (pixelmap_) {
-        pixelmap_ = nullptr;
-        if (uniqueId_ > 0) {
-            RSImageCache::Instance().ReleasePixelMapCache(uniqueId_);
-        }
-    }
-}
+{}
 
 bool RSImage::IsEqual(const RSImage& other) const
 {
@@ -52,7 +39,7 @@ bool RSImage::IsEqual(const RSImage& other) const
     for (auto i = 0; i < CORNER_SIZE; i++) {
         radiusEq &= (radius_[i] == other.radius_[i]);
     }
-    return (image_ == other.image_) && (pixelmap_ == other.pixelmap_) &&
+    return (image_ == other.image_) && (pixelMap_ == other.pixelMap_) &&
            (imageFit_ == other.imageFit_) && (imageRepeat_ == other.imageRepeat_) &&
            (scale_ == other.scale_) && radiusEq && (compressData_ == other.compressData_);
 }
@@ -181,17 +168,7 @@ void RSImage::DrawImageRepeatRect(const SkPaint& paint, SkCanvas& canvas)
         }
     }
     // draw repeat rect
-    if (!image_ && pixelmap_) {
-        if (!pixelmap_->IsEditable()) {
-            image_ = RSImageCache::Instance().GetSkiaImageCacheByPixelMapId(uniqueId_);
-        }
-        if (!image_) {
-            image_ = RSPixelMapUtil::ExtractSkImage(pixelmap_);
-            if (!pixelmap_->IsEditable()) {
-                RSImageCache::Instance().CacheSkiaImageByPixelMapId(uniqueId_, image_);
-            }
-        }
-    }
+    ConvertPixelMapToSkImage();
     UploadGpu(canvas);
     auto src = RSPropertiesPainter::Rect2SkRect(srcRect_);
     for (int i = minX; i <= maxX; ++i) {
@@ -200,21 +177,6 @@ void RSImage::DrawImageRepeatRect(const SkPaint& paint, SkCanvas& canvas)
                 dstRect_.width_, dstRect_.height_);
             canvas.drawImageRect(image_, src, dst, &paint, SkCanvas::kFast_SrcRectConstraint);
         }
-    }
-}
-
-void RSImage::GenUniqueId(uint32_t id)
-{
-    static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
-    uniqueId_ = shiftedPid | id;
-}
-
-void RSImage::SetImage(const sk_sp<SkImage> image)
-{
-    image_ = image;
-    if (image_) {
-        srcRect_.SetAll(0.0, 0.0, image_->width(), image_->height());
-        GenUniqueId(image_->uniqueID());
     }
 }
 
@@ -228,21 +190,6 @@ void RSImage::SetCompressData(const sk_sp<SkData> data, const uint32_t id, const
         image_ = nullptr;
     }
 #endif
-}
-
-void RSImage::SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap)
-{
-    pixelmap_ = pixelmap;
-    if (pixelmap_) {
-        srcRect_.SetAll(0.0, 0.0, pixelmap_->GetWidth(), pixelmap_->GetHeight());
-        image_ = nullptr;
-        GenUniqueId(pixelmap_->GetUniqueId());
-    }
-}
-
-void RSImage::SetDstRect(const RectF& dstRect)
-{
-    dstRect_ = dstRect;
 }
 
 void RSImage::SetImageFit(int fitNum)
@@ -284,10 +231,10 @@ bool RSImage::Marshalling(Parcel& parcel) const
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_)) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.height_)) &&
-                   parcel.WriteBool(pixelmap_ == nullptr) &&
+                   parcel.WriteBool(pixelMap_ == nullptr) &&
                    RSMarshallingHelper::Marshalling(parcel, image) &&
                    RSMarshallingHelper::Marshalling(parcel, compressData_) &&
-                   RSMarshallingHelper::Marshalling(parcel, pixelmap_) &&
+                   RSMarshallingHelper::Marshalling(parcel, pixelMap_) &&
                    RSMarshallingHelper::Marshalling(parcel, imageFit) &&
                    RSMarshallingHelper::Marshalling(parcel, imageRepeat) &&
                    RSMarshallingHelper::Marshalling(parcel, radius_) &&
