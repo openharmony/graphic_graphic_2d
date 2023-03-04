@@ -50,7 +50,11 @@ void RSRenderServiceVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 void RSRenderServiceVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 {
     for (auto& child : node.GetSortedChildren()) {
+        // push
+        canvas_->SaveEnv();
         child->Process(shared_from_this());
+        // pop
+        canvas_->RestoreEnv();
     }
     if (!mParallelEnable) {
         // clear SortedChildren, it will be generated again in next frame

@@ -125,6 +125,9 @@ public:
     void SetAlpha(float alpha);
     void SetAlphaOffscreen(bool alphaOffscreen);
 
+
+    void SetEnvForegroundColor(uint32_t colorValue);
+    void SetEnvForegroundColorStrategy(ForegroundColorStrategyType colorType);
     void SetForegroundColor(uint32_t colorValue);
     void SetBackgroundColor(uint32_t colorValue);
     void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);

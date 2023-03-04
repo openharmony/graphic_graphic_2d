@@ -20,6 +20,36 @@
 
 namespace OHOS {
 namespace Rosen {
+
+RSEnvForegroundColorModifier::RSEnvForegroundColorModifier(const std::shared_ptr<RSPropertyBase>& property)       
+    : RSForegroundModifier(property, RSModifierType::ENV_FOREGROUND_COLOR)                                      
+{}                                                                                                              
+RSModifierType RSEnvForegroundColorModifier::GetModifierType() const                                             
+{                                                                                                               
+    return RSModifierType::ENV_FOREGROUND_COLOR;                                                                       
+}                                                                                                               
+std::shared_ptr<RSRenderModifier> RSEnvForegroundColorModifier::CreateRenderModifier() const                     
+{                                                                                                               
+    auto renderProperty = GetRenderProperty();                                                                  
+    auto renderModifier = std::make_shared<RSEnvForegroundColorRenderModifier>(renderProperty);                  
+    return renderModifier;                                                                                      
+}
+
+RSEnvForegroundColorStrategyModifier::RSEnvForegroundColorStrategyModifier(const std::shared_ptr<RSPropertyBase>& property)       
+    : RSForegroundModifier(property, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY)                                      
+{}                                                                                                              
+RSModifierType RSEnvForegroundColorStrategyModifier::GetModifierType() const                                             
+{                                                                                                               
+    return RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY;                                                                       
+}                                                                                                               
+std::shared_ptr<RSRenderModifier> RSEnvForegroundColorStrategyModifier::CreateRenderModifier() const                     
+{                                                                                                               
+    auto renderProperty = GetRenderProperty();                                                                  
+    auto renderModifier = std::make_shared<RSEnvForegroundColorStrategyRenderModifier>(renderProperty);                  
+    return renderModifier;                                                                                      
+}
+
+
 #define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER)                    \
     RS##MODIFIER_NAME##Modifier::RS##MODIFIER_NAME##Modifier(const std::shared_ptr<RSPropertyBase>& property)       \
         : RS##MODIFIER_TIER##Modifier(property, RSModifierType::MODIFIER_TYPE)                                      \

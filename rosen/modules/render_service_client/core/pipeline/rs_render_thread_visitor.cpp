@@ -305,7 +305,9 @@ void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSS
 void RSRenderThreadVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 {
     for (auto& child : node.GetSortedChildren()) {
+        //canvas_->SaveEnv();
         child->Process(shared_from_this());
+        //canvas_->RestoreEnv();
     }
     // clear SortedChildren, it will be generated again in next frame
     node.ResetSortedChildren();

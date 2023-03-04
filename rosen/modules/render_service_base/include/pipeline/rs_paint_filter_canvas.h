@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "include/core/SkSurface.h"
-
+#include "common/rs_color.h"
 #include "common/rs_macros.h"
 
 class SkDrawable;
@@ -45,6 +45,10 @@ public:
     std::pair<int, int> SaveCanvasAndAlpha();
     std::pair<int, int> GetSaveCount() const;
     void RestoreCanvasAndAlpha(std::pair<int, int>& count);
+
+    int SaveEnv();
+    void RestoreEnv();
+    void SetEnvForegroundColor(Color color);
 
     SkSurface* GetSurface() const;
 
@@ -83,6 +87,13 @@ protected:
 private:
     SkSurface* skSurface_ = nullptr;
     std::stack<float> alphaStack_;
+    typedef struct {
+        Color envForegroundColor;
+    } Env;
+
+    Env envDefault = { Color(0) };
+    std::stack<Env> envStack_ = std::stack<Env>({envDefault});
+
     std::atomic_bool isHighContrastEnabled_ { false };
     bool isCacheEnabled_ { false };
     SkRect visibleRect_ = SkRect::MakeEmpty();

@@ -88,6 +88,8 @@ enum class RSModifierType : int16_t {
     FOREGROUND_STYLE,
     OVERLAY_STYLE,
     NODE_MODIFIER,
+    ENV_FOREGROUND_COLOR,
+    ENV_FOREGROUND_COLOR_STRATEGY,
 };
 
 enum class RSRenderPropertyType : int16_t {
@@ -101,6 +103,8 @@ enum class RSRenderPropertyType : int16_t {
     PROPERTY_VECTOR4F,
     PROPERTY_VECTOR4_COLOR,
 };
+
+
 } // namespace Rosen
 } // namespace OHOS
 
