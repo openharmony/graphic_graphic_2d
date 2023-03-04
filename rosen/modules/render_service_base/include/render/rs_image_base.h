@@ -42,14 +42,14 @@ public:
     virtual bool Marshalling(Parcel& parcel) const;
     [[nodiscard]] static RSImageBase* Unmarshalling(Parcel& parcel);
 #endif
-    static bool UnmarshallingIdAndRect(Parcel& parcel, uint64_t& uniqueId, RectF& srcRect, RectF& dstRect);
-    static bool UnmarshallingSkImageAndPixelMap(Parcel& parcel, uint64_t uniqueId, bool& useSkImage, sk_sp<SkImage>& img,
-        std::shared_ptr<Media::PixelMap>& pixelMap);
-    static void IncreaseCacheRefCount(uint64_t uniqueId,
-        bool useSkImage = true, std::shared_ptr<Media::PixelMap> pixelMap = nullptr);
+
 protected:
     void ConvertPixelMapToSkImage();
     void GenUniqueId(uint32_t id);
+    static bool UnmarshallingSkImageAndPixelMap(Parcel& parcel, uint64_t uniqueId, bool& useSkImage,
+        sk_sp<SkImage>& img, std::shared_ptr<Media::PixelMap>& pixelMap);
+    static void IncreaseCacheRefCount(uint64_t uniqueId,
+            bool useSkImage = true, std::shared_ptr<Media::PixelMap> pixelMap = nullptr);
 
     mutable std::mutex mutex_;
     sk_sp<SkImage> image_;
@@ -57,22 +57,7 @@ protected:
 
     RectF srcRect_;
     RectF dstRect_;
-    uint64_t uniqueId_;
-};
-
-class RSImageNine : public RSImageBase {
-public:
-    RSImageNine() = default;
-    ~RSImageNine() = default;
-
-    void DrawImage(SkCanvas& canvas, const SkPaint& paint) override;
-    void SetCenter(SkIRect center);
-#ifdef ROSEN_OHOS
-    bool Marshalling(Parcel& parcel) const override;
-    [[nodiscard]] static RSImageNine* Unmarshalling(Parcel& parcel);
-#endif
-private:
-    SkIRect center_;
+    uint64_t uniqueId_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

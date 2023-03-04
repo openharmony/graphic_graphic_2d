@@ -113,6 +113,21 @@ protected:
     SkPaint paint_;
 };
 
+class OpItemWithRSImage : public OpItemWithPaint {
+public:
+    OpItemWithRSImage(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint, size_t size)
+        : OpItemWithPaint(size), rsImage_(rsImage)
+    {
+        paint_ = paint;
+    }
+    explicit OpItemWithRSImage(size_t size) : OpItemWithPaint(size) {}
+    ~OpItemWithRSImage() override {}
+    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+protected:
+    std::shared_ptr<RSImageBase> rsImage_;
+};
+
 class RectOpItem : public OpItemWithPaint {
 public:
     RectOpItem(SkRect rect, const SkPaint& paint);
@@ -414,11 +429,11 @@ private:
     float y_;
 };
 
-class BitmapOpItem : public OpItemWithPaint {
+class BitmapOpItem : public OpItemWithRSImage {
 public:
     BitmapOpItem(const sk_sp<SkImage> bitmapInfo, float left, float top, const SkPaint* paint);
+    BitmapOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
     ~BitmapOpItem() override {}
-    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     RSOpType GetType() const override
     {
@@ -427,19 +442,14 @@ public:
 
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
-
-private:
-    float left_;
-    float top_;
-    sk_sp<SkImage> bitmapInfo_;
 };
 
-class BitmapRectOpItem : public OpItemWithPaint {
+class BitmapRectOpItem : public OpItemWithRSImage {
 public:
     BitmapRectOpItem(
         const sk_sp<SkImage> bitmapInfo, const SkRect* rectSrc, const SkRect& rectDst, const SkPaint* paint);
+    BitmapRectOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
     ~BitmapRectOpItem() override {}
-    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     RSOpType GetType() const override
     {
@@ -448,18 +458,13 @@ public:
 
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
-
-private:
-    SkRect rectSrc_;
-    SkRect rectDst_;
-    sk_sp<SkImage> bitmapInfo_;
 };
 
-class PixelMapOpItem : public OpItemWithPaint {
+class PixelMapOpItem : public OpItemWithRSImage {
 public:
     PixelMapOpItem(const std::shared_ptr<Media::PixelMap>& pixelmap, float left, float top, const SkPaint* paint);
+    PixelMapOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
     ~PixelMapOpItem() override {}
-    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     RSOpType GetType() const override
     {
@@ -468,21 +473,14 @@ public:
 
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
-
-private:
-    std::shared_ptr<Media::PixelMap> pixelmap_;
-    float left_;
-    float top_;
-
-    mutable sk_sp<SkImage> renderImage_;
 };
 
-class PixelMapRectOpItem : public OpItemWithPaint {
+class PixelMapRectOpItem : public OpItemWithRSImage {
 public:
     PixelMapRectOpItem(
         const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& src, const SkRect& dst, const SkPaint* paint);
+    PixelMapRectOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
     ~PixelMapRectOpItem() override {}
-    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     RSOpType GetType() const override
     {
@@ -491,13 +489,6 @@ public:
 
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
-
-private:
-    std::shared_ptr<Media::PixelMap> pixelmap_;
-    SkRect src_;
-    SkRect dst_;
-
-    mutable sk_sp<SkImage> renderImage_;
 };
 
 class BitmapNineOpItem : public OpItemWithPaint {

@@ -43,8 +43,8 @@ public:
     void IncreasePixelMapCacheRefCount(uint64_t uniqueId);
     void ReleasePixelMapCache(uint64_t uniqueId);
 
-    void CacheSkiaImageByPixelMapId(uint64_t uniqueId, sk_sp<SkImage> img);
-    sk_sp<SkImage> GetSkiaImageCacheByPixelMapId(uint64_t uniqueId) const;
+    void CacheRenderSkiaImageByPixelMapId(uint64_t uniqueId, sk_sp<SkImage> img);
+    sk_sp<SkImage> GetRenderSkiaImageCacheByPixelMapId(uint64_t uniqueId) const;
 
     RSImageCache() = default;
     ~RSImageCache() = default;

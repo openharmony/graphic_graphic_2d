@@ -234,9 +234,9 @@ static bool UnmarshallingIdAndSize(Parcel& parcel, uint64_t& uniqueId, int& widt
     return true;
 }
 
-static bool UnmarshallingCompressData(Parcel& parcel, sk_sp<SkImage> img, sk_sp<SkData>& compressData)
+static bool UnmarshallingCompressData(Parcel& parcel, bool skipData, sk_sp<SkData>& compressData)
 {
-    if (img != nullptr) {
+    if (skipData) {
         if (!RSMarshallingHelper::SkipSkData(parcel)) {
             RS_LOGE("RSImage::Unmarshalling SkipSkData fail");
             return false;
@@ -292,7 +292,8 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
         return nullptr;
     }
     sk_sp<SkData> compressData;
-    if (!UnmarshallingCompressData(parcel, img, compressData)) {
+    bool skipData = img != nullptr || !useSkImage;
+    if (!UnmarshallingCompressData(parcel, skipData, compressData)) {
         return nullptr;
     }
 

@@ -107,7 +107,7 @@ void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
     }
 }
 
-void RSImageCache::CacheSkiaImageByPixelMapId(uint64_t uniqueId, sk_sp<SkImage> img)
+void RSImageCache::CacheRenderSkiaImageByPixelMapId(uint64_t uniqueId, sk_sp<SkImage> img)
 {
     if (uniqueId > 0 && img) {
         std::lock_guard<std::mutex> lock(mapMutex_);
@@ -115,7 +115,7 @@ void RSImageCache::CacheSkiaImageByPixelMapId(uint64_t uniqueId, sk_sp<SkImage> 
     }
 }
 
-sk_sp<SkImage> RSImageCache::GetSkiaImageCacheByPixelMapId(uint64_t uniqueId) const
+sk_sp<SkImage> RSImageCache::GetRenderSkiaImageCacheByPixelMapId(uint64_t uniqueId) const
 {
     std::lock_guard<std::mutex> lock(mapMutex_);
     auto it = pixelMapIdRelatedSkiaImageCache_.find(uniqueId);
