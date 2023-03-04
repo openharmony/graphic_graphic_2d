@@ -335,19 +335,16 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 
 void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
-    auto stretchSize = properties.GetPixelStretch();
-    if (stretchSize.IsZero()) {
+    if (!properties.IsPixelStretchValid()) {
         return;
     }
+    auto stretchSize = properties.GetPixelStretch();
     bool isExpend = false;
     constexpr static float EPS = 1e-5f;
     if (stretchSize.x_ <= EPS && stretchSize.y_ <= EPS && stretchSize.z_ <= EPS && stretchSize.w_ <= EPS) {
         isExpend = false;
-    } else if (stretchSize.x_ >= -EPS && stretchSize.y_ >= -EPS && stretchSize.z_ >= -EPS && stretchSize.w_ >= -EPS) {
-        isExpend = true;
     } else {
-        ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch invalid stretch parameter.");
-        return;
+        isExpend = true;
     }
 
     auto skSurface = canvas.GetSurface();

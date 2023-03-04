@@ -137,6 +137,12 @@ void RSRenderNode::UpdateDirtyRegion(
                 dirtyRect = dirtyRect.JoinRect(shadowDirty);
             }
         }
+
+        if (renderProperties_.IsPixelStretchValid()) {
+            auto stretchDirtyRect = renderProperties_.GetPixelStretchDirtyRect();
+            dirtyRect = dirtyRect.JoinRect(stretchDirtyRect);
+        }
+
         if (needClip) {
             dirtyRect = dirtyRect.IntersectRect(clipRect);
         }

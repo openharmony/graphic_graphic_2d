@@ -196,6 +196,10 @@ public:
     void SetPixelStretch(Vector4f stretchSize);
     Vector4f GetPixelStretch() const;
 
+    bool IsPixelStretchValid() const;
+
+    RectI GetPixelStretchDirtyRect() const;
+
     const std::shared_ptr<RSObjGeometry>& GetBoundsGeometry() const;
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, Vector2f& offset);
@@ -260,7 +264,7 @@ private:
 
     std::weak_ptr<RSRenderNode> backref_;
 
-    std::unique_ptr<Vector4f> pixelStretch = nullptr;
+    std::unique_ptr<Vector4f> pixelStretch_ = nullptr;
 
     friend class RSCanvasRenderNode;
     friend class RSPropertiesPainter;
