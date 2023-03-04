@@ -212,7 +212,8 @@ public:
     RSModifierType GetType() override                                                                
     {                                                                                                
         return RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY;                                                    
-    }                                                                                                
+    }          
+    void RSEnvForegroundColorStrategyRenderModifier ::Apply(RSModifierContext& context) const;                                                                                      
 };
 
 // declare RenderModifiers like RSBoundsRenderModifier

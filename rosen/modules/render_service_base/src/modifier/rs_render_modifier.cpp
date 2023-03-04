@@ -17,6 +17,7 @@
 #include "modifier/rs_modifier_type.h"
 #include <memory>
 #include <unordered_map>
+#include "pixel_map.h"
 
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_draw_cmd_list.h"
@@ -185,7 +186,7 @@ void RSEnvForegroundColorStrategyRenderModifier ::Apply(RSModifierContext& conte
     switch (renderProperty->Get()) {
         case ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR: {
             // 截图调用取色接口算颜色
-            Color color(0);
+            Color color = GetInvertBackgroundColor(context);
             context.canvas_->SetEnvForegroundColor(color);   
             break;
         }
@@ -194,6 +195,54 @@ void RSEnvForegroundColorStrategyRenderModifier ::Apply(RSModifierContext& conte
         }
     }
 } 
+
+Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSModifierContext& context) const
+{
+    auto imageSnapshot = context.canvas_->GetSurface()->makeImageSnapshot(context.canvas_->getDeviceClipBounds());
+    if (imageSnapshot == nullptr) {
+        RS_LOGI("RSRenderModifier::GetInvertBackgroundColor imageSnapshot null");
+        return Color(0);
+    }
+    int pixmapWidth = context.property_.GetBoundsWidth();
+    int pixmapHeight = context.property_.GetBoundsHeight();
+    Media::InitializationOptions opts;
+    opts.size.width = pixmapWidth;
+    opts.size.height = pixmapHeight;
+    std::unique_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    auto data = (uint8_t *)malloc(pixelmap->GetRowBytes() * pixelmap->GetHeight());
+    if (data == nullptr) {
+        RS_LOGE("RSRenderModifier::GetInvertBackgroundColor: data is nullptr");
+        return Color(0);
+    }
+    SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
+        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    if (!imageSnapshot->readPixels(info, data, pixelmap->GetRowBytes(), 0, 0)) {
+        RS_LOGE("RSRenderModifier::Run: readPixels failed");
+        free(data);
+        data = nullptr;
+        return Color(0);
+    }
+    pixelmap->SetPixelsAddr(data, nullptr, pixelmap->GetRowBytes() * pixelmap->GetHeight(),
+        Media::AllocatorType::HEAP_ALLOC, nullptr);  
+    OHOS::Media::InitializationOptions options;
+    options.alphaType = pixelmap->GetAlphaType();
+    options.pixelFormat = pixelmap->GetPixelFormat();
+    options.scaleMode = OHOS::Media::ScaleMode::FIT_TARGET_SIZE;
+    options.size.width = 1;
+    options.size.height = 1;
+    options.editable = true;
+    std::unique_ptr<Media::PixelMap> newPixelMap = Media::PixelMap::Create(*pixelmap.get(), options);
+    uint32_t colorVal = 0;
+    int x = 0;
+    int y = 0;
+    newPixelMap->GetARGB32Color(x, y, colorVal);
+    uint32_t a = (colorVal >> 24) & 0xff;
+    uint32_t r = 255 - (colorVal >> 16) & 0xff;
+    uint32_t g = 255 - (colorVal >> 8) & 0xff;
+    uint32_t b = 255 - (colorVal >> 0) & 0xff;
+    Color averageColor(r, g, b, a);
+    return averageColor;
+}
 
 void RSEnvForegroundColorStrategyRenderModifier ::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)   
 {                                                                                                                 
