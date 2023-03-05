@@ -199,15 +199,15 @@ HSV ColorPicker::RGB2HSV(uint32_t rgb) const
         if (IsEquals(r, maxComponent) && g >= b) {
             h = 60 * (g - b) / delta + 0; // 60 is used to calculate color's hue, whitch range between 0 and 360.
         } else if (IsEquals(r, maxComponent) && g < b) {
-            h = 60 * (g - b) / delta + 360; // 60 is used to calculate color's hue, whitch range between 0 and 360.
+            h = 60 * (g - b) / delta + 360; // 60 and 360 is used to calculate color's hue, whitch range between 0 and 360.
         } else if (IsEquals(g, maxComponent)) {
-            h = 60 * (b - r) / delta + 120; // 60 is used to calculate color's hue, whitch range between 0 and 360.
+            h = 60 * (b - r) / delta + 120; // 60 and 120 is used to calculate color's hue, whitch range between 0 and 360.
         } else {
-            h = 60 * (r - g) / delta + 240; // 60 is used to calculate color's hue, whitch range between 0 and 360.
+            h = 60 * (r - g) / delta + 240; // 60 and 240 is used to calculate color's hue, whitch range between 0 and 360.
         }
     }
     hsv.h = (int)(h + 0.5); // Hue add 0.5 to round up.
-    hsv.h = (hsv.h > 359) ? (hsv.h - 360) : hsv.h; // Adjust hue to range [0, 360].
+    hsv.h = (hsv.h > 359) ? (hsv.h - 360) : hsv.h; // 359 is used to adjust hue to range [0, 360].
     hsv.h = (hsv.h < 0) ? (hsv.h + 360) : hsv.h; // Adjust hue to range [0, 360].
     hsv.s = s * 100; // Adjust saturation to range [0, 100].
     hsv.v = v * 100; // Adjust value to range [0, 100].
@@ -265,27 +265,27 @@ uint32_t ColorPicker::HSVtoRGB(HSV hsv) const
      * by RGB.
      */
     switch (i) {
-        case 0: // when hue's range is [0, 60).
+        case 0: // 0: when hue's range is [0, 60).
             r = rgb_max;
             g = rgb_min + rgb_Adj;
             b = rgb_min;
             break;
-        case 1: // when hue's range is [60, 120).
+        case 1: // 1: when hue's range is [60, 120).
             r = rgb_max - rgb_Adj;
             g = rgb_max;
             b = rgb_min;
             break;
-        case 2: // when hue's range is [120, 180).
+        case 2: // 2: when hue's range is [120, 180).
             r = rgb_min;
             g = rgb_max;
             b = rgb_min + rgb_Adj;
             break;
-        case 3: // when hue's range is [180, 240).
+        case 3: // 3: when hue's range is [180, 240).
             r = rgb_min;
             g = rgb_max - rgb_Adj;
             b = rgb_max;
             break;
-        case 4: // when hue's range is [240, 300).
+        case 4: // 4: when hue's range is [240, 300).
             r = rgb_min + rgb_Adj;
             g = rgb_min;
             b = rgb_max;
