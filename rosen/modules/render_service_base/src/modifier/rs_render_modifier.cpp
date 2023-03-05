@@ -106,7 +106,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             auto modifier = new RSEnvForegroundColorStrategyRenderModifier(prop);
             if (!modifier) {
                 return nullptr;
-            }                                                                                           
+            }
             return modifier;
         },
     },
@@ -172,8 +172,7 @@ void RSEnvForegroundColorRenderModifier::Update(const std::shared_ptr<RSRenderPr
 // RSEnvForegroundColorStrategyRenderModifier--NOANIMATABLE_MODIFIER
 bool RSEnvForegroundColorStrategyRenderModifier::Marshalling(Parcel& parcel)
 {
-    auto renderProperty = 
-        std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType>>(property_);
+    auto renderProperty = std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType>>(property_);
     return parcel.WriteInt16(static_cast<short>(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY)) &&
             RSMarshallingHelper::Marshalling(parcel, renderProperty);
 }
