@@ -569,7 +569,8 @@ void RSNode::SetEnvForegroundColor(uint32_t colorValue)
 // Set the foreground color strategy of the control
 void RSNode::SetEnvForegroundColorStrategy(ForegroundColorStrategyType strategyType)
 {
-    SetProperty<RSEnvForegroundColorStrategyModifier, RSProperty<ForegroundColorStrategyType>>(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, strategyType);
+    SetProperty<RSEnvForegroundColorStrategyModifier,
+        RSProperty<ForegroundColorStrategyType>>(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, strategyType);
 }
 
 // foreground

@@ -35,7 +35,8 @@ std::shared_ptr<RSRenderModifier> RSEnvForegroundColorModifier::CreateRenderModi
     return renderModifier;
 }
 
-RSEnvForegroundColorStrategyModifier::RSEnvForegroundColorStrategyModifier(const std::shared_ptr<RSPropertyBase>& property)
+RSEnvForegroundColorStrategyModifier::RSEnvForegroundColorStrategyModifier(
+    const std::shared_ptr<RSPropertyBase>& property)
     : RSForegroundModifier(property, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY)
 {}
 RSModifierType RSEnvForegroundColorStrategyModifier::GetModifierType() const

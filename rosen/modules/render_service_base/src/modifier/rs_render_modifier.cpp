@@ -242,7 +242,7 @@ Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSMod
     return averageColor;
 }
 
-void RSEnvForegroundColorStrategyRenderModifier ::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
+void RSEnvForegroundColorStrategyRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
 {
     if (auto property = std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType >>(prop)) {
         auto renderProperty = std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType >>(property_);
