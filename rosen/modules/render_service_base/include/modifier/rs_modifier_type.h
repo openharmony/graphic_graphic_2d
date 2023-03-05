@@ -103,8 +103,6 @@ enum class RSRenderPropertyType : int16_t {
     PROPERTY_VECTOR4F,
     PROPERTY_VECTOR4_COLOR,
 };
-
-
 } // namespace Rosen
 } // namespace OHOS
 
