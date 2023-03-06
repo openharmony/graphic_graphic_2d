@@ -285,13 +285,10 @@ private:
     std::vector<std::pair<uint32_t, uint32_t>> GenerateAverageColors(std::priority_queue<VBox, \
                                                         std::vector<VBox>, std::less<VBox> > &queue);
 }; // ColorExtract
-
 } // namespace Rosen
 } // namespace OHOS
 
 #ifdef __cplusplus
 }
 #endif
-
-
 #endif // COLOREXTRACT_H
