@@ -95,7 +95,6 @@ uint32_t ColorPicker::GetMainColor(ColorManager::Color &color)
 
 ColorPicker::ColorPicker(std::shared_ptr<Media::PixelMap> pixmap):ColorExtract(pixmap) {}
 
-// 选取数量占比最多的颜色
 uint32_t ColorPicker::GetLargestProportionColor(ColorManager::Color &color) const
 {
     if (featureColors.empty()) {
@@ -105,7 +104,6 @@ uint32_t ColorPicker::GetLargestProportionColor(ColorManager::Color &color) cons
     return SUCCESS;
 }
 
-// 选取饱和度最高的颜色
 uint32_t ColorPicker::GetHighestSaturationColor(ColorManager::Color &color) const
 {
     if (featureColors.empty()) {
@@ -125,7 +123,6 @@ uint32_t ColorPicker::GetHighestSaturationColor(ColorManager::Color &color) cons
     return SUCCESS;
 }
 
-// 计算图片的平均颜色
 uint32_t ColorPicker::GetAverageColor(ColorManager::Color &color) const
 {
     uint32_t colorPicked = 0;
@@ -150,7 +147,6 @@ uint32_t ColorPicker::GetAverageColor(ColorManager::Color &color) const
     return SUCCESS;
 }
 
-// 判别黑白灰颜色
 bool ColorPicker::IsBlackOrWhiteOrGrayColor(uint32_t color) const
 {
     HSV hsv = RGB2HSV(color);
