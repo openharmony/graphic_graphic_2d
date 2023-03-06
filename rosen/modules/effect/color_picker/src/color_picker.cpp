@@ -190,7 +190,6 @@ HSV ColorPicker::RGB2HSV(uint32_t rgb) const
         s = delta / maxComponent;
     }
 
-
     if (maxComponent == minComponent) {
         h = 0.0;
     } else {
