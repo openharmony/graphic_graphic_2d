@@ -47,6 +47,17 @@ void RSImplicitAnimator::OpenImplicitAnimation(const RSAnimationTimingProtocol& 
             return;
     }
 }
+void RSImplicitAnimator::OpenImplicitAnimation(const std::function<void()>& finishCallback)
+{
+    if (globalImplicitParams_.empty()) {
+        ROSEN_LOGE("Failed to open implicit animation, need to set implicit animation params firstly!");
+        OpenImplicitAnimation({}, {}, finishCallback);
+        return;
+    }
+    // copy current implicit animation params and replace finish callback
+    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    OpenImplicitAnimation(protocol, curve, finishCallback);
+}
 
 std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnimation()
 {
@@ -148,7 +159,7 @@ void RSImplicitAnimator::EndImplicitKeyFrameAnimation()
 
 bool RSImplicitAnimator::NeedImplicitAnimation()
 {
-    return !implicitAnimationParams_.empty() && !isImplicitAnimationShielded_;
+    return !implicitAnimationParams_.empty() && !implicitAnimationDisabled_;
 }
 
 void RSImplicitAnimator::BeginImplicitCurveAnimation()

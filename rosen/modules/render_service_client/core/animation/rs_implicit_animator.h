@@ -40,6 +40,7 @@ public:
 
     void OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const std::function<void()>& finishCallback);
+    void OpenImplicitAnimation(const std::function<void()>& finishCallback);
     std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation();
 
     void BeginImplicitKeyFrameAnimation(float fraction, const RSAnimationTimingCurve& timingCurve);
@@ -72,14 +73,14 @@ private:
 
     void SetPropertyValue(std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& value);
 
-    void BeginShieldImplicitAnimation()
+    void ExecuteWithoutAnimation(const std::function<void()>& callback)
     {
-        isImplicitAnimationShielded_ = true;
-    }
-
-    void EndShieldImplicitAnimation()
-    {
-        isImplicitAnimationShielded_ = false;
+        if (callback == nullptr) {
+            return;
+        }
+        implicitAnimationDisabled_ = true;
+        callback();
+        implicitAnimationDisabled_ = false;
     }
 
     std::stack<std::tuple<RSAnimationTimingProtocol, RSAnimationTimingCurve, std::function<void()>>>
@@ -88,7 +89,7 @@ private:
     std::stack<std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>>> implicitAnimations_;
     std::stack<std::map<std::pair<NodeId, PropertyId>, std::shared_ptr<RSAnimation>>> keyframeAnimations_;
 
-    bool isImplicitAnimationShielded_ { false };
+    bool implicitAnimationDisabled_ { false };
     friend class RSNode;
 };
 } // namespace Rosen

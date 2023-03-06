@@ -128,6 +128,28 @@ void RSNode::AddKeyFrame(float fraction, const PropertyCallback& propertyCallbac
     implicitAnimator->EndImplicitKeyFrameAnimation();
 }
 
+std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(
+    const PropertyCallback& propertyCallback, const std::function<void()>& finishCallback)
+{
+    if (propertyCallback == nullptr) {
+        ROSEN_LOGE("Failed to add curve animation, property callback is null!");
+        return {};
+    }
+    if (finishCallback == nullptr) {
+        ROSEN_LOGE("Failed to add curve animation, finish callback is null!");
+        return {};
+    }
+
+    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    if (implicitAnimator == nullptr) {
+        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
+        return {};
+    }
+    implicitAnimator->OpenImplicitAnimation(finishCallback);
+    propertyCallback();
+    return implicitAnimator->CloseImplicitAnimation();
+}
+
 std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback,
     const std::function<void()>& finishCallback)
@@ -137,14 +159,31 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimin
         return {};
     }
 
-    if (RSImplicitAnimatorMap::Instance().GetAnimator(gettid()) == nullptr) {
-        ROSEN_LOGE("Failed to add curve animation, implicit animator is null!");
+    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    if (implicitAnimator == nullptr) {
+        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
         return {};
     }
-
-    OpenImplicitAnimation(timingProtocol, timingCurve, finishCallback);
+    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, finishCallback);
     propertyCallback();
-    return CloseImplicitAnimation();
+    return implicitAnimator->CloseImplicitAnimation();
+}
+
+void RSNode::ExecuteWithoutAnimation(
+    const PropertyCallback& callback, std::shared_ptr<RSImplicitAnimator> implicitAnimator)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("Failed to execute without animation, property callback is null!");
+        return;
+    }
+    if (implicitAnimator == nullptr) {
+        implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    }
+    if (implicitAnimator == nullptr) {
+        callback();
+    } else {
+        implicitAnimator->ExecuteWithoutAnimation(callback);
+    }
 }
 
 void RSNode::FallbackAnimationsToRoot()
@@ -821,11 +860,13 @@ void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& e
 
     auto& customEffects = isTransitionIn ? effect->customTransitionInEffects_ : effect->customTransitionOutEffects_;
     // temporary close the implicit animation
-    implicitAnimator_->BeginShieldImplicitAnimation();
-    for (auto& customEffect : customEffects) {
-        customEffect->Active();
-    }
-    implicitAnimator_->EndShieldImplicitAnimation();
+    ExecuteWithoutAnimation(
+        [&customEffects] {
+            for (auto& customEffect : customEffects) {
+                customEffect->Active();
+            }
+        },
+        implicitAnimator_);
 
     implicitAnimator_->BeginImplicitTransition(effect, isTransitionIn);
     for (auto& customEffect : customEffects) {

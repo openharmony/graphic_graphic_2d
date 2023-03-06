@@ -59,9 +59,17 @@ public:
     static std::vector<std::shared_ptr<RSAnimation>> Animate(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback,
         const std::function<void()>& finishCallback = nullptr);
+
+    static std::vector<std::shared_ptr<RSAnimation>> Animate(
+        const PropertyCallback& callback, const std::function<void()>& finishCallback);
+
     static void OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const std::function<void()>& finishCallback = nullptr);
     static std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation();
+
+    static void ExecuteWithoutAnimation(
+        const PropertyCallback& callback, std::shared_ptr<RSImplicitAnimator> implicitAnimator = nullptr);
+
     static void AddKeyFrame(
         float fraction, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
     static void AddKeyFrame(float fraction, const PropertyCallback& callback);
