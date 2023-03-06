@@ -167,7 +167,7 @@ private:
     bool dirtyFlag_ { false };
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
-    SkRect boundsRect_;
+    SkRect boundsRect_ {};
     Gravity frameGravity_ = Gravity::DEFAULT;
 
     int32_t offsetX_ { 0 };

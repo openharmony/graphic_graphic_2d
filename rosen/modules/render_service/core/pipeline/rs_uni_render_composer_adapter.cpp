@@ -406,13 +406,15 @@ void RSUniRenderComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer)
 
         uint32_t newWidth = static_cast<uint32_t>(srcRect.w);
         uint32_t newHeight = static_cast<uint32_t>(srcRect.h);
+        uint32_t dstWidth = static_cast<uint32_t>(dstRect.w);
+        uint32_t dstHeight = static_cast<uint32_t>(dstRect.h);
 
-        if (newWidth * dstRect.h > newHeight * dstRect.w) {
+        if (newWidth * dstHeight > newHeight * dstWidth) {
             // too wide
-            newWidth = dstRect.w * newHeight / dstRect.h;
-        } else if (newWidth * dstRect.h < newHeight * dstRect.w) {
+            newWidth = dstWidth * newHeight / dstHeight;
+        } else if (newWidth * dstHeight < newHeight * dstWidth) {
             // too tall
-            newHeight = dstRect.h * newWidth / dstRect.w;
+            newHeight = dstHeight * newWidth / dstWidth;
         } else {
             return;
         }
@@ -424,14 +426,14 @@ void RSUniRenderComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer)
             // the crop is too wide
             uint32_t dw = currentWidth - newWidth;
             auto halfdw = dw / 2;
-            srcRect.x += halfdw;
-            srcRect.w = newWidth;
+            srcRect.x += static_cast<int32_t>(halfdw);
+            srcRect.w = static_cast<int32_t>(newWidth);
         } else {
             // thr crop is too tall
             uint32_t dh = currentHeight - newHeight;
             auto halfdh = dh / 2;
-            srcRect.y += halfdh;
-            srcRect.h = newHeight;
+            srcRect.y += static_cast<int32_t>(halfdh);
+            srcRect.h = static_cast<int32_t>(newHeight);
         }
         layer->SetDirtyRegion(srcRect);
         layer->SetCropRect(srcRect);
@@ -480,10 +482,10 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
     RS_TRACE_NAME(traceInfo.c_str());
     RS_LOGD(
         "RsDebug RSUniRenderComposerAdapter::CreateBufferLayer surfaceNode id:%" PRIu64 " name:[%s] dst [%d %d %d %d]"
-        "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, z:%f, globalZOrder:%d, blendType = %d",
+        "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d], z:%f, globalZOrder:%d, blendType = %d",
         node.GetId(), node.GetName().c_str(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
         info.srcRect.w, info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(),
-        info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(), info.buffer.GetRefPtr(),
+        info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(),
         node.GetGlobalZOrder(), info.zOrder, info.blendType);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     // planning surfaceNode prebuffer is set to hdilayerInfo, enable release prebuffer when HWC composition is ready
@@ -554,11 +556,11 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDrivenSurfaceRenderNode& 
 
     ComposeInfo info = BuildComposeInfo(node);
     RS_LOGD("RSUniRenderComposerAdapter::ProcessDrivenSurface drivenSurfaceNode id:%" PRIu64 " DstRect [%d %d %d %d]"
-            "SrcRect [%d %d %d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, z-Order:%d, blendType = %d",
+            "SrcRect [%d %d %d %d] rawbuffer [%d %d] surfaceBuffer [%d %d], z-Order:%d, blendType = %d",
         node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
         info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h,
         info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
-        info.buffer->GetSurfaceBufferHeight(), info.buffer.GetRefPtr(), info.zOrder, info.blendType);
+        info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
     LayerRotate(layer, node);
