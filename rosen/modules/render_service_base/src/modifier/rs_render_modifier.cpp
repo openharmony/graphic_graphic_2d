@@ -196,6 +196,7 @@ void RSEnvForegroundColorStrategyRenderModifier ::Apply(RSModifierContext& conte
 
 Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSModifierContext& context) const
 {
+#ifdef ROSEN_OHOS
     auto imageSnapshot = context.canvas_->GetSurface()->makeImageSnapshot(context.canvas_->getDeviceClipBounds());
     if (imageSnapshot == nullptr) {
         RS_LOGI("RSRenderModifier::GetInvertBackgroundColor imageSnapshot null");
@@ -240,6 +241,9 @@ Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSMod
     uint32_t b = 255 - ((colorVal >> 0) & 0xff);
     Color averageColor(r, g, b, a);
     return averageColor;
+#else
+    return Color(0);
+#endif
 }
 
 void RSEnvForegroundColorStrategyRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
