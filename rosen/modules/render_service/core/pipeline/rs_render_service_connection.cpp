@@ -375,6 +375,8 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
 {
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
     if (node == nullptr) {
+        RS_LOGW("RSRenderServiceConnection::TakeSurfaceCapture cannot find nodeId: [%" PRIu64 "]", id);
+        callback->OnSurfaceCapture(id, nullptr);
         return;
     }
     if ((node->GetType() == RSRenderNodeType::DISPLAY_NODE) ||
