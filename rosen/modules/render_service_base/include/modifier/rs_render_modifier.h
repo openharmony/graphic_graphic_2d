@@ -90,18 +90,18 @@ public:
         drawStyle_ = type;
     }
 
-    void SetOverlayBounds(std::shared_ptr<RectI> rect)
+    void SetOverlayBounds(std::shared_ptr<RectF> rect)
     {
         overlayRect_ = rect;
     }
 
-    std::shared_ptr<RectI> GetOverlayBounds() const
+    std::shared_ptr<RectF> GetOverlayBounds() const
     {
         return overlayRect_;
     }
 
 protected:
-    std::shared_ptr<RectI> overlayRect_ = nullptr;
+    std::shared_ptr<RectF> overlayRect_ = nullptr;
     RSModifierType drawStyle_ = RSModifierType::EXTENDED;
     std::shared_ptr<RSRenderProperty<DrawCmdListPtr>> property_;
 };

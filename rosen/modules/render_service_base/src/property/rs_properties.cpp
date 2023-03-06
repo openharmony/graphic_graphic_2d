@@ -798,12 +798,12 @@ Gravity RSProperties::GetFrameGravity() const
     return frameGravity_;
 }
 
-void RSProperties::SetOverlayBounds(std::shared_ptr<RectI> rect)
+void RSProperties::SetOverlayBounds(std::shared_ptr<RectF> rect)
 {
     overlayRect_ = rect;
 }
 
-std::shared_ptr<RectI> RSProperties::GetOverlayBounds() const
+std::shared_ptr<RectF> RSProperties::GetOverlayBounds() const
 {
     return overlayRect_;
 }
@@ -975,7 +975,7 @@ RectI RSProperties::GetDirtyRect() const
     if (overlayRect_ == nullptr || overlayRect_->IsEmpty()) {
         return dirtyRect;
     } else {
-        auto overlayRect = boundsGeometry->MapAbsRect(overlayRect_->ConvertTo<float>());
+        auto overlayRect = boundsGeometry->MapAbsRect(*overlayRect_);
         // this is used to fix the scene with overlayRect problem, which is need to be optimized
         overlayRect.SetRight(overlayRect.GetRight() + 1);
         overlayRect.SetBottom(overlayRect.GetBottom() + 1);
@@ -1000,7 +1000,7 @@ RectI RSProperties::GetDirtyRect(RectI& overlayRect) const
         overlayRect = RectI();
         return dirtyRect;
     } else {
-        overlayRect = boundsGeometry->MapAbsRect(overlayRect_->ConvertTo<float>());
+        overlayRect = boundsGeometry->MapAbsRect(*overlayRect_);
         // this is used to fix the scene with overlayRect problem, which is need to be optimized
         overlayRect.SetRight(overlayRect.GetRight() + 1);
         overlayRect.SetBottom(overlayRect.GetBottom() + 1);

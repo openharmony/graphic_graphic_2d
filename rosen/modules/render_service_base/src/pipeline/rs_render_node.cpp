@@ -333,7 +333,7 @@ void RSRenderNode::ApplyModifiers()
 void RSRenderNode::UpdateOverlayBounds()
 {
     RSModifierContext context = { GetMutableRenderProperties() };
-    RectI joinRect = RectI();
+    RectF joinRect = RectF();
     for (auto& iterator : drawCmdModifiers_) {
         for (auto& overlayModifier : iterator.second) {
             auto drawCmdModifier = std::static_pointer_cast<RSDrawCmdListRenderModifier>(overlayModifier);
@@ -346,12 +346,12 @@ void RSRenderNode::UpdateOverlayBounds()
             } else if (drawCmdModifier->GetOverlayBounds() == nullptr) {
                 auto recording = std::static_pointer_cast<RSRenderProperty<DrawCmdListPtr>>(
                     drawCmdModifier->GetProperty())->Get();
-                auto recordingRect = RectI(0, 0, recording->GetWidth(), recording->GetHeight());
+                auto recordingRect = RectF(0, 0, recording->GetWidth(), recording->GetHeight());
                 joinRect = recordingRect.IsEmpty() ? joinRect : joinRect.JoinRect(recordingRect);
             }
         }
     }
-    context.property_.SetOverlayBounds(std::make_shared<RectI>(joinRect));
+    context.property_.SetOverlayBounds(std::make_shared<RectF>(joinRect));
 }
 
 std::shared_ptr<RSRenderModifier> RSRenderNode::GetModifier(const PropertyId& id)

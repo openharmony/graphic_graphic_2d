@@ -71,15 +71,15 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             modifier->SetType(static_cast<RSModifierType>(type));
             if (hasOverlayBounds) {
                 // OVERLAY_STYLE
-                int32_t left;
-                int32_t top;
-                int32_t width;
-                int32_t height;
-                if (!(parcel.ReadInt32(left) && parcel.ReadInt32(top) &&
-                    parcel.ReadInt32(width) && parcel.ReadInt32(height))) {
+                float left;
+                float top;
+                float width;
+                float height;
+                if (!(parcel.ReadFloat(left) && parcel.ReadFloat(top) &&
+                    parcel.ReadFloat(width) && parcel.ReadFloat(height))) {
                     return nullptr;
                 }
-                modifier->SetOverlayBounds(std::make_shared<RectI>(left, top, width, height));
+                modifier->SetOverlayBounds(std::make_shared<RectF>(left, top, width, height));
             }
             return modifier;
         },
