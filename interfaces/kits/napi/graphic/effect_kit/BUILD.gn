@@ -26,6 +26,7 @@ config("graphic_napi_effect_kit_config") {
     "-Wno-non-virtual-dtor",
     "-Wno-missing-field-initializers",
     "-Wno-c++11-narrowing",
+    "-Wno-unused-but-set-variable",
   ]
 
   defines = [ "EGL_EGLEXT_PROTOTYPES" ]
