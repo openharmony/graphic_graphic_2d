@@ -243,6 +243,7 @@ private:
 
     friend class RSAnimation;
     friend class RSCurveAnimation;
+    friend class RSInterpolatingSpringAnimation;
     friend class RSKeyframeAnimation;
     friend class RSPropertyAnimation;
     friend class RSSpringAnimation;

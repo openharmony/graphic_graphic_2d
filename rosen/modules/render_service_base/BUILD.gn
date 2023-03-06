@@ -35,6 +35,7 @@ ohos_source_set("render_service_base_src") {
     "src/animation/rs_interpolator.cpp",
     "src/animation/rs_render_animation.cpp",
     "src/animation/rs_render_curve_animation.cpp",
+    "src/animation/rs_render_interpolating_spring_animation.cpp",
     "src/animation/rs_render_keyframe_animation.cpp",
     "src/animation/rs_render_path_animation.cpp",
     "src/animation/rs_render_property_animation.cpp",

@@ -64,7 +64,8 @@ private:
     void EndImplicitAnimation();
     void BeginImplicitCurveAnimation();
     void BeginImplicitSpringAnimation();
-
+    void BeginImplicitInterpolatingSpringAnimation();
+    
     void PushImplicitParam(const std::shared_ptr<RSImplicitAnimationParam>& implicitParam);
     void PopImplicitParam();
     void CreateEmptyAnimation();

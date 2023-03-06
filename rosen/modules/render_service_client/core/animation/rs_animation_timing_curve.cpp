@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include "animation/rs_interpolator.h"
 #include "animation/rs_spring_interpolator.h"
 #include "animation/rs_steps_interpolator.h"
+#include "common/rs_common_def.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -61,6 +62,12 @@ RSAnimationTimingCurve::RSAnimationTimingCurve(float response, float dampingRati
       interpolator_(nullptr), customCurveFunc_(nullptr)
 {}
 
+RSAnimationTimingCurve::RSAnimationTimingCurve(
+    float response, float dampingRatio, float initialVelocity, CurveType curveType)
+    : type_(curveType), response_(response), dampingRatio_(dampingRatio), initialVelocity_(initialVelocity),
+      interpolator_(nullptr), customCurveFunc_(nullptr)
+{}
+
 RSAnimationTimingCurve RSAnimationTimingCurve::CreateCustomCurve(const std::function<float(float)>& customCurveFunc)
 {
     return RSAnimationTimingCurve(customCurveFunc);
@@ -74,9 +81,17 @@ RSAnimationTimingCurve RSAnimationTimingCurve::CreateCubicCurve(float ctrlX1, fl
 RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpringCurve(
     float velocity, float mass, float stiffness, float damping)
 {
-    float response = 1.0;
+    float response = 2 * PI * sqrt(mass / stiffness);
     float dampingRatio = (damping / (2 * sqrt(mass * stiffness)));
     return RSAnimationTimingCurve(std::make_shared<RSSpringInterpolator>(response, dampingRatio, velocity));
+}
+
+RSAnimationTimingCurve RSAnimationTimingCurve::CreateInterpolatingSpring(
+    float mass, float stiffness, float damping, float velocity)
+{
+    float response = 2 * PI * sqrt(mass / stiffness);
+    float dampingRatio = (damping / (2 * sqrt(mass * stiffness)));
+    return RSAnimationTimingCurve(response, dampingRatio, velocity, CurveType::INTERPOLATING_SPRING);
 }
 
 RSAnimationTimingCurve RSAnimationTimingCurve::CreateStepsCurve(int32_t steps, StepsCurvePosition position)
