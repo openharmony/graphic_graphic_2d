@@ -294,16 +294,18 @@ HWTEST_F(RSParallelRenderManagerTest, CopyCalcCostVisitorAndPackTaskTest, TestSi
 {
     auto rsContext = std::make_shared<RSContext>();
     RSDisplayNodeConfig displayConfig;
-    auto instance = RSParallelRenderManager::Instance();
+    auto instance = std::make_shared<RSParallelRenderManager>();
     auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    instance->CopyCalcCostVisitorAndPackTask(*rsUniRenderVisitor, *rsDisplayRenderNode, true, true, true);
     auto result = instance->calcCostCount_;
     ASSERT_EQ(result, 0);
+    instance->CopyCalcCostVisitorAndPackTask(*rsUniRenderVisitor, *rsDisplayRenderNode, true, true, true);
+    result = instance->calcCostCount_;
+    ASSERT_EQ(result, 19);
     auto result3 = instance->IsOpDropped();
     ASSERT_TRUE(result3);
     auto result4 = instance->IsSecurityDisplay();
-    ASSERT_TRUE(result4);
+    ASSERT_FALSE(result4);
 }
 
 /**
@@ -333,7 +335,7 @@ HWTEST_F(RSParallelRenderManagerTest, UpdateNodeCostTest, TestSize.Level1)
     instance->parallelPolicy_ = { 1, 2, 3 };
     instance->UpdateNodeCost(*rsDisplayRenderNode);
     auto result = instance->parallelPolicy_.size();
-    ASSERT_EQ(result, 3);
+    ASSERT_EQ(result, 0);
 }
 
 /**
@@ -346,7 +348,7 @@ HWTEST_F(RSParallelRenderManagerTest, IsNeedCalcCostTest, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     RSDisplayNodeConfig displayConfig;
-    auto instance = RSParallelRenderManager::Instance();
+    auto instance = std::make_shared<RSParallelRenderManager>();
     auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     instance->CopyCalcCostVisitorAndPackTask(*rsUniRenderVisitor, *rsDisplayRenderNode, true, true, true);
@@ -363,7 +365,7 @@ HWTEST_F(RSParallelRenderManagerTest, IsNeedCalcCostTest, TestSize.Level1)
 HWTEST_F(RSParallelRenderManagerTest, GetCostTest, TestSize.Level1)
 {
     RSRenderNode rsRenderNode(1);
-    auto instance = RSParallelRenderManager::Instance();
+    auto instance = std::make_shared<RSParallelRenderManager>();
     auto cost = instance->GetCost(rsRenderNode);
     ASSERT_EQ(cost, 2);
 }
@@ -376,7 +378,7 @@ HWTEST_F(RSParallelRenderManagerTest, GetCostTest, TestSize.Level1)
  */
 HWTEST_F(RSParallelRenderManagerTest, GetSelfDrawNodeCostTest, TestSize.Level1)
 {
-    auto instance = RSParallelRenderManager::Instance();
+    auto instance = std::make_shared<RSParallelRenderManager>();
     auto result = instance->GetSelfDrawNodeCost();
     ASSERT_EQ(result, 1);
 }
@@ -389,7 +391,7 @@ HWTEST_F(RSParallelRenderManagerTest, GetSelfDrawNodeCostTest, TestSize.Level1)
  */
 HWTEST_F(RSParallelRenderManagerTest, GetCostFactorTest, TestSize.Level1)
 {
-    auto instance = RSParallelRenderManager::Instance();
+    auto instance = std::make_shared<RSParallelRenderManager>();
     instance->GetCostFactor();
     ASSERT_FALSE(instance->costFactor_.size() > 0);
     ASSERT_FALSE(instance->imageFactor_.size() > 0);
@@ -403,9 +405,9 @@ HWTEST_F(RSParallelRenderManagerTest, GetCostFactorTest, TestSize.Level1)
  */
 HWTEST_F(RSParallelRenderManagerTest, IsSecurityDisplayTest, TestSize.Level1)
 {
-    auto instance = RSParallelRenderManager::Instance();
+    auto instance = std::make_shared<RSParallelRenderManager>();
     auto result = instance->IsSecurityDisplay();
-    ASSERT_TRUE(result);
+    ASSERT_FALSE(result);
 }
 
 } // namespace OHOS::Rosen
