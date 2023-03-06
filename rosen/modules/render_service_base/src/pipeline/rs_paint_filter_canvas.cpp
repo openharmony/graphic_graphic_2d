@@ -34,6 +34,10 @@ SkSurface* RSPaintFilterCanvas::GetSurface() const
 
 bool RSPaintFilterCanvas::onFilter(SkPaint& paint) const
 {
+    if (paint.getColor() == 0x00000001) { // foreground color and foreground color strategy identification
+        paint.setColor(envStack_.top().envForegroundColor.AsArgbInt());
+    }
+
     if (alphaStack_.top() >= 1.f) {
         return true;
     } else if (alphaStack_.top() <= 0.f) {
@@ -57,6 +61,7 @@ void RSPaintFilterCanvas::MultiplyAlpha(float alpha)
     // multiply alpha to top of stack
     alphaStack_.top() *= std::clamp(alpha, 0.f, 1.f);
 }
+
 
 int RSPaintFilterCanvas::SaveAlpha()
 {
@@ -116,5 +121,35 @@ void RSPaintFilterCanvas::RestoreCanvasAndAlpha(std::pair<int, int>& count)
     restoreToCount(count.first);
     RestoreAlphaToCount(count.second);
 }
+
+
+
+int RSPaintFilterCanvas::SaveEnv()
+{
+    // make a copy of top of stack
+    envStack_.push(envStack_.top());
+    // return prev stack height
+    return envStack_.size() - 1;
+}
+
+
+void RSPaintFilterCanvas::RestoreEnv()
+{
+    // sanity check, stack should not be empty
+    if (envStack_.size() <= 1) {
+        return;
+    }
+    envStack_.pop();
+}
+
+void RSPaintFilterCanvas::SetEnvForegroundColor(Color color)
+{
+    // sanity check, stack should not be empty
+    if (envStack_.empty()) {
+        return;
+    }
+    envStack_.top().envForegroundColor  = color;
+}
+
 } // namespace Rosen
 } // namespace OHOS
