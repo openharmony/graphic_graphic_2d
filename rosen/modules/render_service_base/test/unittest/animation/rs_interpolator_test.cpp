@@ -46,18 +46,18 @@ HWTEST_F(RSInterpolatorTest, RSStepInterpolatorTest001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSInterpolatorTest RSStepInterpolatorTest001 start";
 
     Parcel parcel1;
-    std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel1));
+    std::shared_ptr<RSInterpolator> interpolator(RSStepsInterpolator::Unmarshalling(parcel1));
     EXPECT_EQ(interpolator, nullptr);
 
     Parcel parcel2;
     parcel2.WriteInt32(1);
-    interpolator.reset(RSInterpolator::Unmarshalling(parcel2));
+    interpolator.reset(RSStepsInterpolator::Unmarshalling(parcel2));
     EXPECT_EQ(interpolator, nullptr);
 
     Parcel parcel3;
     parcel3.WriteInt32(1);
     parcel3.WriteInt32(0);
-    interpolator.reset(RSInterpolator::Unmarshalling(parcel3));
+    interpolator.reset(RSStepsInterpolator::Unmarshalling(parcel3));
     EXPECT_TRUE(interpolator != nullptr);
 
     GTEST_LOG_(INFO) << "RSInterpolatorTest RSStepInterpolatorTest001 end";
