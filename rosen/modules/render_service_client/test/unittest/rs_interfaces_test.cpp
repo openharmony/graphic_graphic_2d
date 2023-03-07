@@ -877,44 +877,6 @@ HWTEST_F(RSInterfacesTest, UnRegisterOcclusionChangeCallback_Test, Function | Sm
 }
 
 /*
- * @tc.name: SetRenderModeChangeCallback Test
- * @tc.desc: SetRenderModeChangeCallback Test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSInterfacesTest, SetRenderModeChangeCallback_Test, Function | SmallTest | Level2)
-{
-    ASSERT_NE(rsInterfaces, nullptr);
-    RenderModeChangeCallback cb = [](bool flag){};
-    int32_t ret = rsInterfaces->SetRenderModeChangeCallback(cb);
-    ASSERT_EQ(ret, 0);
-}
-
-/*
- * @tc.name: UpdateRenderMode True Test
- * @tc.desc: UpdateRenderMode True Test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSInterfacesTest, UpdateRenderMode_True, Function | SmallTest | Level2)
-{
-    ASSERT_NE(rsInterfaces, nullptr);
-    rsInterfaces->UpdateRenderMode(true);
-}
-
-/*
- * @tc.name: UpdateRenderMode False Test
- * @tc.desc: UpdateRenderMode False Test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSInterfacesTest, UpdateRenderMode_False, Function | SmallTest | Level2)
-{
-    ASSERT_NE(rsInterfaces, nullptr);
-    rsInterfaces->UpdateRenderMode(false);
-}
-
-/*
  * @tc.name: SetVirtualScreenSurface Test a notfound id
  * @tc.desc: SetVirtualScreenSurface Test a notfound id
  * @tc.type: FUNC

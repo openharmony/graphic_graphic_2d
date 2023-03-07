@@ -53,14 +53,12 @@ private:
 
     // IPC RSIRenderServiceConnection Interfaces
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
-    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
-    int32_t SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback) override;
-    void UpdateRenderMode(bool isUniRender) override;
     bool GetUniRenderEnabled() override;
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config) override;
     sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) override;
+
     sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name) override;
 
     int32_t SetFocusAppInfo(

@@ -132,28 +132,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case SET_RENDER_MODE_CHANGE_CALLBACK: {
-            auto token = data.ReadInterfaceToken();
-            if (token != RSIRenderServiceConnection::GetDescriptor()) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
-
-            auto remoteObject = data.ReadRemoteObject();
-            if (remoteObject == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                break;
-            }
-            sptr<RSIRenderModeChangeCallback> cb = iface_cast<RSIRenderModeChangeCallback>(remoteObject);
-            int32_t status = SetRenderModeChangeCallback(cb);
-            reply.WriteInt32(status);
-            break;
-        }
-        case UPDATE_RENDER_MODE: {
-            bool isUniRender = data.ReadBool();
-            UpdateRenderMode(isUniRender);
-            break;
-        }
         case GET_UNI_RENDER_ENABLED: {
             reply.WriteBool(GetUniRenderEnabled());
             break;
@@ -412,35 +390,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             ScreenId id = data.ReadUint64();
             RSScreenData screenData = GetScreenData(id);
             reply.WriteParcelable(&screenData);
-            break;
-        }
-        case EXECUTE_SYNCHRONOUS_TASK: {
-            auto token = data.ReadInterfaceToken();
-            if (token != RSIRenderServiceConnection::GetDescriptor()) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
-            auto type = data.ReadUint16();
-            auto subType = data.ReadUint16();
-            if (type != RS_NODE_SYNCHRONOUS_READ_PROPERTY) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
-            auto func = RSCommandFactory::Instance().GetUnmarshallingFunc(type, subType);
-            if (func == nullptr) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
-            auto command = static_cast<RSSyncTask*>((*func)(data));
-            if (command == nullptr) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
-            std::shared_ptr<RSSyncTask> task(command);
-            ExecuteSynchronousTask(task);
-            if (!task->Marshalling(reply)) {
-                ret = ERR_INVALID_STATE;
-            }
             break;
         }
         case GET_SCREEN_BACK_LIGHT: {

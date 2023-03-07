@@ -96,21 +96,12 @@ void RSTransactionProxy::AddCommandFromRT(std::unique_ptr<RSCommand>& command, N
     }
 }
 
-void RSTransactionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask)
+void RSTransactionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
-    if ((renderServiceClient_ == nullptr && renderThreadClient_ == nullptr) || task == nullptr) {
+    if (renderThreadClient_ == nullptr || task == nullptr) {
         return;
     }
-
-    if (renderThreadClient_ != nullptr && !isRenderServiceTask) {
-        renderThreadClient_->ExecuteSynchronousTask(task);
-        return;
-    }
-
-    if (renderServiceClient_ != nullptr && isRenderServiceTask) {
-        renderServiceClient_->ExecuteSynchronousTask(task);
-        return;
-    }
+    renderThreadClient_->ExecuteSynchronousTask(task);
 }
 
 void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std::string& abilityName)

@@ -65,7 +65,6 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     uint32_t level = GetData<uint32_t>();
     int32_t modeIdx = GetData<uint32_t>();
     uint32_t skipFrameInterval = GetData<uint32_t>();
-    bool isUniRender = GetData<bool>();
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
@@ -94,7 +93,6 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.GetScreenHDRCapability(static_cast<ScreenId>(id), screenHdrCapability);
     RSScreenType screenType = RSScreenType::BUILT_IN_TYPE_SCREEN;
     rsInterfaces.GetScreenType(static_cast<ScreenId>(id), screenType);
-    rsInterfaces.UpdateRenderMode(isUniRender);
 
     sleep(1);
 

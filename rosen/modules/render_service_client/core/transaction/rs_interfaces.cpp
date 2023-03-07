@@ -266,16 +266,6 @@ int32_t RSInterfaces::UnRegisterOcclusionChangeCallback(const OcclusionChangeCal
     return renderServiceClient_->UnRegisterOcclusionChangeCallback(callback);
 }
 
-int32_t RSInterfaces::SetRenderModeChangeCallback(const RenderModeChangeCallback& callback)
-{
-    return renderServiceClient_->SetRenderModeChangeCallback(callback);
-}
-
-void RSInterfaces::UpdateRenderMode(bool isUniRender)
-{
-    renderServiceClient_->UpdateRenderMode(isUniRender);
-}
-
 void RSInterfaces::SetAppWindowNum(uint32_t num)
 {
     renderServiceClient_->SetAppWindowNum(num);

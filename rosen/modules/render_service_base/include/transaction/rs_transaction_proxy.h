@@ -43,7 +43,7 @@ public:
     void FlushImplicitTransaction(uint64_t timestamp = 0, const std::string& abilityName = "");
     void FlushImplicitTransactionFromRT(uint64_t timestamp);
 
-    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask = false);
+    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task);
 
     void Begin();
     void Commit(uint64_t timestamp = 0);

@@ -28,14 +28,9 @@ public:
     virtual ~RSRenderServiceConnectionProxy() noexcept = default;
 
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
-    bool FillParcelWithTransactionData(
-        std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
 
-    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
-
-    int32_t SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback) override;
-    void UpdateRenderMode(bool isUniRender) override;
     bool GetUniRenderEnabled() override;
+
     bool CreateNode(const RSSurfaceRenderNodeConfig& config) override;
     sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) override;
 
@@ -117,7 +112,11 @@ public:
     void SetAppWindowNum(uint32_t num) override;
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
+
 private:
+    bool FillParcelWithTransactionData(
+        std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
+
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 
     pid_t pid_ = GetRealPid();

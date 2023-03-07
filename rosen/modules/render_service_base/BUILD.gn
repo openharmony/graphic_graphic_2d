@@ -87,8 +87,6 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/rs_application_agent_stub.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
-    "src/ipc_callbacks/rs_render_mode_change_callback_proxy.cpp",
-    "src/ipc_callbacks/rs_render_mode_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_sync_transaction_controller_proxy.cpp",
     "src/ipc_callbacks/rs_sync_transaction_controller_stub.cpp",
     "src/ipc_callbacks/screen_change_callback_proxy.cpp",

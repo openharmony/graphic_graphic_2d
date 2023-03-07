@@ -172,31 +172,6 @@ void RSRenderServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionD
     mainThread_->RecvRSTransactionData(transactionData);
 }
 
-void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
-{
-    if (task == nullptr) {
-        return;
-    }
-
-    auto& context = mainThread_->GetContext();
-    mainThread_->ScheduleTask([task, &context]() {
-        task->Process(context);
-    }).wait_for(std::chrono::nanoseconds(task->GetTimeout()));
-}
-
-int32_t RSRenderServiceConnection::SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback)
-{
-    if (!callback) {
-        RS_LOGD("RSRenderServiceConnection::SetRenderModeChangeCallback: callback is nullptr");
-        return INVALID_ARGUMENTS;
-    }
-    return SUCCESS;
-}
-
-void RSRenderServiceConnection::UpdateRenderMode(bool isUniRender)
-{
-}
-
 bool RSRenderServiceConnection::GetUniRenderEnabled()
 {
     return RSUniRenderJudgement::IsUniRender();

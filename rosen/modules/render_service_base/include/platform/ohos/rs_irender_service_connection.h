@@ -34,11 +34,9 @@
 #include "transaction/rs_transaction_data.h"
 #include "ivsync_connection.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
-#include "ipc_callbacks/rs_irender_mode_change_callback.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSSyncTask;
 
 class RSIRenderServiceConnection : public IRemoteBroker {
 public:
@@ -49,8 +47,6 @@ public:
 
     enum {
         COMMIT_TRANSACTION,
-        SET_RENDER_MODE_CHANGE_CALLBACK,
-        UPDATE_RENDER_MODE,
         GET_UNI_RENDER_ENABLED,
         CREATE_NODE,
         CREATE_NODE_AND_SURFACE,
@@ -73,7 +69,6 @@ public:
         GET_SCREEN_BACK_LIGHT,
         GET_SCREEN_DATA,
         GET_VIRTUAL_SCREEN_RESOLUTION,
-        EXECUTE_SYNCHRONOUS_TASK,
         REGISTER_APPLICATION_AGENT,
         SET_BUFFER_AVAILABLE_LISTENER,
         GET_SCREEN_SUPPORTED_GAMUTS,
@@ -94,11 +89,8 @@ public:
 
     virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
 
-    virtual void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
-
-    virtual int32_t SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback) = 0;
-    virtual void UpdateRenderMode(bool isUniRender) = 0;
     virtual bool GetUniRenderEnabled() = 0;
+
     virtual bool CreateNode(const RSSurfaceRenderNodeConfig& config) = 0;
     virtual sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) = 0;
 
