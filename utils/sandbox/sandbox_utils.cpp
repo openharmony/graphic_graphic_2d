@@ -22,7 +22,7 @@
 #endif
 
 namespace OHOS {
-#if !defined(OHOS_LITE) && !defined(_WIN32)
+#if !defined(OHOS_LITE) && !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
 const int PID_STR_SIZE = 4;
 const int STATUS_LINE_SIZE = 1024;
 
@@ -52,7 +52,7 @@ pid_t GetRealPid(void)
 {
 #ifdef _WIN32
     return GetCurrentProcessId();
-#elif OHOS_LITE
+#elif defined(OHOS_LITE) || defined(__APPLE__) || defined(__gnu_linux__)
     return getpid();
 #else
     const char *path = "/proc/self/status";
