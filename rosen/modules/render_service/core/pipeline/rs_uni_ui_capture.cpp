@@ -137,9 +137,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::SetCanvas(std::shared_ptr<RSRecordin
 void RSUniUICapture::RSUniUICaptureVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 {
     for (auto& child : node.GetSortedChildren()) {
-        canvas_->SaveEnv();
         child->Process(shared_from_this());
-        canvas_->RestoreEnv();
     }
     // clear SortedChildren, it will be generated again in next frame
     node.ResetSortedChildren();

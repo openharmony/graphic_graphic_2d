@@ -127,6 +127,7 @@ void RSCanvasRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 
 void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
+    canvas.SaveEnv();
     ProcessTransitionBeforeChildren(canvas);
     ProcessAnimatePropertyBeforeChildren(canvas);
     ProcessRenderContents(canvas);
@@ -156,6 +157,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
 #else
     RSPropertiesPainter::DrawForegroundColor(GetRenderProperties(), canvas);
 #endif
+    canvas.RestoreEnv();
 }
 
 void RSCanvasRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)
