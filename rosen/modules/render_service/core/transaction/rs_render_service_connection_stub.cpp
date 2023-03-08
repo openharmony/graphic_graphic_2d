@@ -31,6 +31,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr size_t MAX_DATA_SIZE_FOR_UNMARSHALLING_IN_PLACE = 1024 * 30; // 30kB
+constexpr size_t FILE_DESCRIPTOR_LIMIT = 15;
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
 {
@@ -59,7 +60,7 @@ void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
 std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old)
 {
     auto dataSize = old.GetDataSize();
-    if (dataSize <= MAX_DATA_SIZE_FOR_UNMARSHALLING_IN_PLACE) {
+    if (dataSize <= MAX_DATA_SIZE_FOR_UNMARSHALLING_IN_PLACE && old.GetOffsetsSize() < FILE_DESCRIPTOR_LIMIT) {
         return nullptr;
     }
     RS_TRACE_NAME("CopyParcelForUnmarsh: size:" + std::to_string(dataSize));
@@ -96,7 +97,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
     int ret = ERR_NONE;
     switch (code) {
         case COMMIT_TRANSACTION: {
-            RS_ASYNC_TRACE_END("RSProxySendRequest", data.GetDataSize());
+            RS_TRACE_NAME_FMT("Recv Parcel Size:%zu, fdCnt:%zu", data.GetDataSize(), data.GetOffsetsSize());
             static bool isUniRender = RSUniRenderJudgement::IsUniRender();
             std::shared_ptr<MessageParcel> parsedParcel;
             if (data.ReadInt32() == 0) { // indicate normal parcel

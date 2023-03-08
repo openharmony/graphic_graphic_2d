@@ -63,7 +63,6 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
     option.SetFlags(MessageOption::TF_ASYNC);
     for (auto& parcel : parcelVector) {
         MessageParcel reply;
-        RS_ASYNC_TRACE_BEGIN("RSProxySendRequest", parcel->GetDataSize());
         int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::COMMIT_TRANSACTION, *parcel, reply, option);
         if (err != NO_ERROR) {
             ROSEN_LOGE("RSRenderServiceConnectionProxy::CommitTransaction SendRequest failed, err = %d", err);
