@@ -64,7 +64,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
     { RSModifierType::EXTENDED, [](Parcel& parcel) -> RSRenderModifier* {
             std::shared_ptr<RSRenderProperty<std::shared_ptr<DrawCmdList>>> prop;
             int16_t type;
-            bool hasOverlayBounds = false;
+            bool hasOverlayBounds;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop) || !parcel.ReadInt16(type) ||
                 !parcel.ReadBool(hasOverlayBounds)) {
                 return nullptr;
@@ -72,16 +72,12 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             RSDrawCmdListRenderModifier* modifier = new RSDrawCmdListRenderModifier(prop);
             modifier->SetType(static_cast<RSModifierType>(type));
             if (hasOverlayBounds) {
-                // OVERLAY_STYLE
-                float left;
-                float top;
-                float width;
-                float height;
-                if (!(parcel.ReadFloat(left) && parcel.ReadFloat(top) &&
-                    parcel.ReadFloat(width) && parcel.ReadFloat(height))) {
+                RectF overlayBounds;
+                if (!RSMarshallingHelper::Unmarshalling(parcel, overlayBounds)) {
+                    delete modifier;
                     return nullptr;
                 }
-                modifier->SetOverlayBounds(std::make_shared<RectF>(left, top, width, height));
+                modifier->SetOverlayBounds(std::make_shared<RectF>(overlayBounds));
             }
             return modifier;
         },
@@ -138,8 +134,7 @@ bool RSDrawCmdListRenderModifier::Marshalling(Parcel& parcel)
         RSMarshallingHelper::Marshalling(parcel, property_) && parcel.WriteInt16(static_cast<int16_t>(GetType())) &&
         parcel.WriteBool(overlayRect_ != nullptr)) {
         if (overlayRect_ != nullptr) {
-            return parcel.WriteInt32(overlayRect_->GetLeft()) && parcel.WriteInt32(overlayRect_->GetTop()) &&
-                parcel.WriteInt32(overlayRect_->GetWidth()) && parcel.WriteInt32(overlayRect_->GetHeight());
+            return RSMarshallingHelper::Marshalling(parcel, *overlayRect_);
         }
         return true;
     }
