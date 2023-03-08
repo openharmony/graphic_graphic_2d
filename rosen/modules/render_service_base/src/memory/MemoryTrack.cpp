@@ -72,6 +72,27 @@ void MemoryTrack::DumpMemoryStatistics(DfxString& log, const pid_t pid)
     }
 }
 
+MemoryGraphic MemoryTrack::DumpMemoryStatistics(const pid_t pid)
+{
+    MemoryGraphic memoryGraphic;
+    auto itr = memNodeOfPidMap_.find(pid);
+    if (itr == memNodeOfPidMap_.end()) {
+        return memoryGraphic;
+    }
+    auto nodeInfoOfPid = memNodeOfPidMap_[pid];
+    if (nodeInfoOfPid.empty()) {
+        memNodeOfPidMap_.erase(pid);
+    } else {
+        int totalMemSize = 0;
+        std::for_each(nodeInfoOfPid.begin(), nodeInfoOfPid.end(), [&totalMemSize](MemoryNodeOfPid& info) {
+            totalMemSize += info.GetMemSize();
+        });
+        memoryGraphic.SetPid(pid);
+        memoryGraphic.SetGraphicMemorySize(totalMemSize);
+    }
+    return memoryGraphic;
+}
+
 void MemoryTrack::DumpMemoryStatistics(DfxString& log)
 {
     std::lock_guard<std::mutex> lock(mutex_);

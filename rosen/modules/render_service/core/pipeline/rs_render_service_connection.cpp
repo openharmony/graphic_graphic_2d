@@ -439,6 +439,15 @@ RSScreenModeInfo RSRenderServiceConnection::GetScreenActiveMode(ScreenId id)
     return screenModeInfo;
 }
 
+MemoryGraphic RSRenderServiceConnection::GetMemoryGraphic(int pid)
+{
+    MemoryGraphic memoryGraphic;
+    mainThread_->ScheduleTask([this, &pid, &memoryGraphic]() {
+            return mainThread_->DumpMem(pid, memoryGraphic);
+        }).wait();
+    return memoryGraphic;
+}
+
 std::vector<RSScreenModeInfo> RSRenderServiceConnection::GetScreenSupportedModes(ScreenId id)
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();

@@ -95,6 +95,7 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/surface_capture_callback_stub.cpp",
 
     #memory
+    "src/memory/MemoryGraphic.cpp",
     "src/memory/MemoryTrack.cpp",
 
     #pipeline

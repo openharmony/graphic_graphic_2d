@@ -1307,6 +1307,11 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
 #endif
 }
 
+void RSMainThread::DumpMem(int pid, MemoryGraphic& mem)
+{
+    mem = MemoryManager::DumpPidMemory(pid);
+}
+
 void RSMainThread::AddTransactionDataPidInfo(pid_t remotePid)
 {
     if (!isUniRender_) {

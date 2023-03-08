@@ -546,6 +546,30 @@ std::vector<RSScreenModeInfo> RSRenderServiceConnectionProxy::GetScreenSupported
     return screenSupportedModes;
 }
 
+MemoryGraphic RSRenderServiceConnectionProxy::GetMemoryGraphic(int pid)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    MemoryGraphic memoryGraphic;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return memoryGraphic;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteInt32(pid);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_MEMORY_GRAPHIC, data, reply, option);
+    if (err != NO_ERROR) {
+        return memoryGraphic;
+    }
+    sptr<MemoryGraphic> pMemoryGraphic(reply.ReadParcelable<MemoryGraphic>());
+    if (pMemoryGraphic == nullptr) {
+        return memoryGraphic;
+    }
+    memoryGraphic = *pMemoryGraphic;
+    return memoryGraphic;
+}
+
 RSScreenCapability RSRenderServiceConnectionProxy::GetScreenCapability(ScreenId id)
 {
     MessageParcel data;

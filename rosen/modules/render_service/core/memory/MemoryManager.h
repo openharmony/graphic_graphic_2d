@@ -15,6 +15,7 @@
 
 #include "include/gpu/GrContext.h"
 #include "memory/DfxString.h"
+#include "memory/MemoryGraphic.h"
 #include "memory/MemoryTrack.h"
 
 namespace OHOS::Rosen {
@@ -23,6 +24,7 @@ class MemoryManager {
 public:
     static void DumpMemoryUsage(DfxString& log, const GrContext* grContext, std::string& type);
     static void DumpPidMemory(DfxString& log, int pid);
+    static MemoryGraphic DumpPidMemory(int pid);
 private:
     // rs memory = rs + skia cpu + skia gpu
     static void DumpRenderServiceMemory(DfxString& log);

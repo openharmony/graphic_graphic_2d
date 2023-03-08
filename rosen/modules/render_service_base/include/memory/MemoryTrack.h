@@ -20,6 +20,8 @@
 
 #include "common/rs_common_def.h"
 #include "memory/DfxString.h"
+#include "memory/MemoryGraphic.h"
+
 namespace OHOS {
 namespace Rosen {
 constexpr int BYTE_CONVERT = 1024;
@@ -54,7 +56,7 @@ public:
     void RemoveNodeRecord(const NodeId id);
     void DumpMemoryStatistics(DfxString& log);
     void DumpMemoryStatistics(DfxString& log, const pid_t pid);
-
+    MemoryGraphic DumpMemoryStatistics(const pid_t pid);
     void AddPictureRecord(const void* addr, MemoryInfo info);
     void RemovePictureRecord(const void* addr);
 private:

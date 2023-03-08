@@ -56,7 +56,11 @@ void MemoryManager::DumpMemoryUsage(DfxString& log, const GrContext* grContext, 
 void MemoryManager::DumpPidMemory(DfxString& log, int pid)
 {
     MemoryTrack::Instance().DumpMemoryStatistics(log, pid);
+}
 
+MemoryGraphic MemoryManager::DumpPidMemory(int pid)
+{
+    return MemoryTrack::Instance().DumpMemoryStatistics(pid);
 }
 
 void MemoryManager::DumpRenderServiceMemory(DfxString& log)
