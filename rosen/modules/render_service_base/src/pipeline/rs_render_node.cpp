@@ -300,8 +300,8 @@ void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier> m
 void RSRenderNode::RemoveModifier(const PropertyId& id)
 {
     bool success = modifiers_.erase(id);
+    SetDirty();
     if (success) {
-        SetDirty();
         return;
     }
     for (auto& [type, modifiers] : drawCmdModifiers_) {
