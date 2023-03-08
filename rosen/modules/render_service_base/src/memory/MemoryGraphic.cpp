@@ -16,7 +16,7 @@
 
 namespace OHOS {
 namespace Rosen {
-MemoryGraphic::MemoryGraphic(int32_t pid, uint64_t glSize, uint64_t graphicSize) : pid_(pid),
+MemoryGraphic::MemoryGraphic(int32_t pid, float glSize, float graphicSize) : pid_(pid),
     glSize_(glSize), graphicSize_(graphicSize)
 {
 
@@ -27,12 +27,12 @@ int32_t MemoryGraphic::GetPid() const
     return pid_;
 }
 
-uint64_t MemoryGraphic::GetGLMemorySize() const
+float MemoryGraphic::GetGLMemorySize() const
 {
     return glSize_;
 }
 
-uint64_t MemoryGraphic::GetGraphicMemorySize() const
+float MemoryGraphic::GetGraphicMemorySize() const
 {
     return graphicSize_;
 }
@@ -42,33 +42,50 @@ void MemoryGraphic::SetPid(int32_t pid)
     pid_ = pid;
 }
 
-void MemoryGraphic::SetGLMemorySize(uint64_t glSize)
+void MemoryGraphic::SetGLMemorySize(float glSize)
 {
     glSize_ = glSize;
 }
 
-void MemoryGraphic::SetGraphicMemorySize(uint64_t graphicSize)
+void MemoryGraphic::SetGraphicMemorySize(float graphicSize)
 {
     graphicSize_ = graphicSize;
 }
 
 bool MemoryGraphic::Marshalling(Parcel& parcel) const
 {
-    return parcel.WriteInt32(pid_) && parcel.WriteUint64(glSize_) &&
-        parcel.WriteUint64(graphicSize_);
+    return parcel.WriteInt32(pid_) && parcel.WriteFloat(glSize_) &&
+        parcel.WriteFloat(graphicSize_);
 }
 
 MemoryGraphic* MemoryGraphic::Unmarshalling(Parcel& parcel)
 {
     int32_t pid;
-    uint64_t glSize;
-    uint64_t graphicSize;
-    if (!(parcel.ReadInt32(pid) && parcel.ReadUint64(glSize) && parcel.ReadUint64(graphicSize))) {
+    float glSize;
+    float graphicSize;
+    if (!(parcel.ReadInt32(pid) && parcel.ReadFloat(glSize) && parcel.ReadFloat(graphicSize))) {
         return nullptr;
     }
 
     MemoryGraphic* mem = new MemoryGraphic(pid, glSize, graphicSize);
     return mem;
+}
+
+MemoryGraphic& MemoryGraphic::operator+=(const MemoryGraphic& other)
+{
+    glSize_ += other.GetGLMemorySize();
+    graphicSize_ += other.GetGraphicMemorySize();
+    return *this;
+}
+
+void MemoryGraphic::IncreaseGLMemory(float glSize)
+{
+    glSize_ += glSize;
+}
+
+void MemoryGraphic::IncreaseGraphicMemory(float graphicSize)
+{
+    graphicSize_ += graphicSize;
 }
 
 }

@@ -58,9 +58,21 @@ void MemoryManager::DumpPidMemory(DfxString& log, int pid)
     MemoryTrack::Instance().DumpMemoryStatistics(log, pid);
 }
 
-MemoryGraphic MemoryManager::DumpPidMemory(int pid)
+MemoryGraphic MemoryManager::DumpPidMemory(int pid, const GrContext* grContext)
 {
-    return MemoryTrack::Instance().DumpMemoryStatistics(pid);
+    MemoryGraphic totalMemGraphic;
+
+    // Count mem of RS
+    MemoryGraphic rsMemGraphic = MemoryTrack::Instance().DumpMemoryStatistics(pid);
+    totalMemGraphic += rsMemGraphic;
+
+    // Count mem of Skia GPU
+    SkiaMemoryTracer gpuTracer("category", true);
+    grContext->dumpMemoryStatistics(&gpuTracer);
+    float gpuMem = gpuTracer.GetGLMemorySize();
+    totalMemGraphic.IncreaseGLMemory(gpuMem);
+
+    return totalMemGraphic;
 }
 
 void MemoryManager::DumpRenderServiceMemory(DfxString& log)

@@ -39,6 +39,8 @@ public:
         dumpNumericValue(dumpName, valueName, value, 0);
     }
 
+    float GetGLMemorySize();
+
     void setMemoryBacking(const char*, const char*, const char*) override {}
     void setDiscardableMemoryBacking(const char*, const SkDiscardableMemory&) override {}
     

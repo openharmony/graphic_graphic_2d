@@ -26,24 +26,28 @@ namespace Rosen {
 class RSB_EXPORT MemoryGraphic : public Parcelable {
 public:
     MemoryGraphic() = default;
-    MemoryGraphic(int32_t pid, uint64_t glSize, uint64_t graphicSize);
+    MemoryGraphic(int32_t pid, float glSize, float graphicSize);
     ~MemoryGraphic() noexcept = default;
+    MemoryGraphic& operator+=(const MemoryGraphic& other);
+    void IncreaseGLMemory(float glSize);
+    void IncreaseGraphicMemory(float graphicSize);
+
 
     bool Marshalling(Parcel &parcel) const override;
     static MemoryGraphic *Unmarshalling(Parcel &parcel);
 
     int32_t GetPid() const;
-    uint64_t GetGLMemorySize() const;
-    uint64_t GetGraphicMemorySize() const;
+    float GetGLMemorySize() const;
+    float GetGraphicMemorySize() const;
 
     void SetPid(int32_t pid);
-    void SetGLMemorySize(uint64_t glSize);
-    void SetGraphicMemorySize(uint64_t graphicSize);
+    void SetGLMemorySize(float glSize);
+    void SetGraphicMemorySize(float graphicSize);
 
 private:
     int32_t pid_;
-    uint64_t glSize_;
-    uint64_t graphicSize_;
+    float glSize_;
+    float graphicSize_;
 };
 } // namespace Rosen
 } // namespace OHOS

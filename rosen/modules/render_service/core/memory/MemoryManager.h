@@ -24,7 +24,7 @@ class MemoryManager {
 public:
     static void DumpMemoryUsage(DfxString& log, const GrContext* grContext, std::string& type);
     static void DumpPidMemory(DfxString& log, int pid);
-    static MemoryGraphic DumpPidMemory(int pid);
+    static MemoryGraphic DumpPidMemory(int pid, const GrContext* grContext);
 private:
     // rs memory = rs + skia cpu + skia gpu
     static void DumpRenderServiceMemory(DfxString& log);

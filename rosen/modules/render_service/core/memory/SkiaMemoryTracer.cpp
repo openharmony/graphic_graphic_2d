@@ -142,6 +142,11 @@ void SkiaMemoryTracer::LogOutput(DfxString& log)
     }
 }
 
+float SkiaMemoryTracer::GetGLMemorySize()
+{
+    return totalSize_.value;
+}
+
 void SkiaMemoryTracer::LogTotals(DfxString& log)
 {
     TraceValue total = ConvertUnits(totalSize_);
