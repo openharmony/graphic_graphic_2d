@@ -1719,19 +1719,33 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
         if (node.IsAppWindow() &&
             (!needColdStartThread_ || !RSColdStartManager::Instance().IsColdStartThreadRunning(node.GetId()))) {
+            bool needDrawCachedImage = false;
             if (RSColdStartManager::Instance().IsColdStartThreadRunning(node.GetId())) {
-                node.ClearCachedImage();
-                RSColdStartManager::Instance().StopColdStartThread(node.GetId());
+                if (RSColdStartManager::Instance().IsColdStartThreadIdle(node.GetId())) {
+                    node.ClearCachedImage();
+                    RSColdStartManager::Instance().StopColdStartThread(node.GetId());
+                } else {
+                    needDrawCachedImage = true;
+                }
             }
             if (needCheckFirstFrame_ && IsFirstFrameReadyToDraw(node)) {
                 node.NotifyUIBufferAvailable();
             }
-            DrawChildRenderNode(node);
+            if (!needDrawCachedImage || node.GetCachedImage() == nullptr) {
+                DrawChildRenderNode(node);
+            } else {
+                RS_LOGD("RSUniRenderVisitor cold start thread not idle, don't stop it, still use cached image");
+                RSUniRenderUtil::DrawCachedImage(node, *canvas_, node.GetCachedImage());
+            }
         } else if (node.IsAppWindow()) { // use skSurface drawn by cold start thread
             if (node.GetCachedImage() != nullptr) {
                 RSUniRenderUtil::DrawCachedImage(node, *canvas_, node.GetCachedImage());
             }
-            RecordAppWindowNodeAndPostTask(node, property.GetBoundsWidth(), property.GetBoundsHeight());
+            if (RSColdStartManager::Instance().IsColdStartThreadIdle(node.GetId())) {
+                RecordAppWindowNodeAndPostTask(node, property.GetBoundsWidth(), property.GetBoundsHeight());
+            } else {
+                RS_LOGD("RSUniRenderVisitor cold start thread not idle, don't record this frame");
+            }
         } else {
             ProcessBaseRenderNode(node);
         }

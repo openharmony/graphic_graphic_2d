@@ -589,8 +589,10 @@ void RSMainThread::ReleaseAllNodesBuffer()
         // To avoid traverse surfaceNodeMap again, destroy cold start thread here
         if ((!surfaceNode->IsOnTheTree() || !surfaceNode->ShouldPaint()) &&
             RSColdStartManager::Instance().IsColdStartThreadRunning(surfaceNode->GetId())) {
-            surfaceNode->ClearCachedImage();
-            RSColdStartManager::Instance().StopColdStartThread(surfaceNode->GetId());
+            if (RSColdStartManager::Instance().IsColdStartThreadIdle(surfaceNode->GetId())) {
+                surfaceNode->ClearCachedImage();
+                RSColdStartManager::Instance().StopColdStartThread(surfaceNode->GetId());
+            }
         }
         RSBaseRenderUtil::ReleaseBuffer(static_cast<RSSurfaceHandler&>(*surfaceNode));
     });
