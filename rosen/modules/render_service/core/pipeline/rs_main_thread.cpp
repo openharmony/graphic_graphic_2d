@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -835,7 +835,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     bool curWinAnim = false;
     bool needRequestNextVsync = false;
     // iterate and animate all animating nodes, remove if animation finished
-    std::__libcpp_erase_if_container(context_->animatingNodeList_,
+    EraseIf(context_->animatingNodeList_,
         [timestamp, &curWinAnim, &needRequestNextVsync](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
@@ -961,7 +961,7 @@ void RSMainThread::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent
 
 void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
-    std::__libcpp_erase_if_container(applicationAgentMap_, [&app](const auto& iter) { return iter.second == app; });
+    EraseIf(applicationAgentMap_, [&app](const auto& iter) { return iter.second == app; });
 }
 
 void RSMainThread::NotifyRenderModeChanged(bool useUniVisitor)
