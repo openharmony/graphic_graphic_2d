@@ -103,16 +103,14 @@ int32_t LocalSocketPair::SendData(const void *vaddr, size_t size)
         HiLog::Error(LABEL, "%{public}s failed, param is invalid", __func__);
         return -1;
     }
-    ssize_t length;
-    do {
-        length = send(sendFd_, vaddr, size, MSG_DONTWAIT | MSG_NOSIGNAL);
-    } while (errno == EINTR);
+    ssize_t length = TEMP_FAILURE_RETRY(send(sendFd_, vaddr, size, MSG_DONTWAIT | MSG_NOSIGNAL));
     if (length < 0) {
-        ScopedBytrace func("SocketPair SendData failed, errno = " + std::to_string(errno) +
+        int errnoRecord = errno;
+        ScopedBytrace func("SocketPair SendData failed, errno = " + std::to_string(errnoRecord) +
                             ", sendFd_ = " + std::to_string(sendFd_) + ", receiveFd_ = " + std::to_string(receiveFd_) +
                             ", length = " + std::to_string(length));
-        HiLog::Debug(LABEL, "%{public}s send failed:%{public}d, length = %{public}d", __func__, errno, (int32_t)length);
-        if (errno == EAGAIN) {
+        HiLog::Debug(LABEL, "%{public}s send failed:%{public}d, length = %{public}d", __func__, errnoRecord, (int32_t)length);
+        if (errnoRecord == EAGAIN) {
             return ERRNO_EAGAIN;
         } else {
             return ERRNO_OTHER;
