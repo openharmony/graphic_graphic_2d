@@ -198,7 +198,7 @@ HWTEST_F(RSParallelRenderManagerTest, PackProcessRenderTaskTest, TestSize.Level1
     RSParallelRenderManager::Instance()->PackRenderTask(*rsSurfaceRenderNode3, TaskType::PROCESS_TASK);
 
     SkCanvas skCanvas;
-    auto canvas = std::make_shared<RSPaintFilterCanvas>(&skCanvas);
+    auto canvas = RSPaintFilterCanvas(&skCanvas);
     RSParallelRenderManager::Instance()->MergeRenderResult(canvas);
 
     RSParallelRenderManager::Instance()->SetRenderTaskCost(0, 100, 2.1, TaskType::PROCESS_TASK);
@@ -261,7 +261,7 @@ HWTEST_F(RSParallelRenderManagerTest, SetFrameSizeTest, TestSize.Level1)
 HWTEST_F(RSParallelRenderManagerTest, AddSelfDrawingSurfaceTest, TestSize.Level1)
 {
     SkCanvas skCanvas;
-    auto canvas = std::make_shared<RSPaintFilterCanvas>(&skCanvas);
+    auto canvas = RSPaintFilterCanvas(&skCanvas);
     auto instance = RSParallelRenderManager::Instance();
     instance->AddSelfDrawingSurface(0, false, { 0.f, 0.f, 100.f, 100.f });
     instance->ClearSelfDrawingSurface(canvas, 0);

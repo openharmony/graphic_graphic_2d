@@ -25,7 +25,8 @@ namespace OHOS {
 namespace Rosen {
 
 RSParallelTaskManager::RSParallelTaskManager()
-    : isParallelRenderExtEnabled_(RSParallelRenderExt::OpenParallelRenderExt())
+    : threadNum_(0),
+      isParallelRenderExtEnabled_(RSParallelRenderExt::OpenParallelRenderExt())
 {
     if (isParallelRenderExtEnabled_) {
         auto initParallelRenderExt = reinterpret_cast<int*(*)()>(RSParallelRenderExt::initParallelRenderLBFunc_);

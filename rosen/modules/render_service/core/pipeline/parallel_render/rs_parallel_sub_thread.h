@@ -45,14 +45,13 @@ public:
     void StartSubThread();
     void WaitTaskSync();
     void SetMainVisitor(RSUniRenderVisitor *mainVisitor);
-    void SetDisplayRenderNode(RSDisplayRenderNode *displayNode);
     bool GetRenderFinish();
     void SetSuperTask(std::unique_ptr<RSSuperRenderTask> superRenderTask);
     EGLContext GetSharedContext();
     sk_sp<SkSurface> GetSkSurface();
     sk_sp<SkImage> GetTexture();
     bool WaitReleaseFence();
-    std::shared_ptr<RSUniRenderVisitor> GetUniVisitor()
+    std::shared_ptr<RSUniRenderVisitor> GetUniVisitor() const
     {
         return visitor_;
     }

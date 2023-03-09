@@ -70,7 +70,7 @@ public:
         bool doAnimate, bool isOpDropped);
     void PackRenderTask(RSSurfaceRenderNode &node, TaskType type = TaskType::PROCESS_TASK);
     void LoadBalanceAndNotify(TaskType type = TaskType::PROCESS_TASK);
-    void MergeRenderResult(std::shared_ptr<RSPaintFilterCanvas> canvas);
+    void MergeRenderResult(RSPaintFilterCanvas& canvas);
     void SetFrameSize(int height, int width);
     void GetFrameSize(int &height, int &width);
     void SubmitSuperTask(uint32_t taskIndex, std::unique_ptr<RSSuperRenderTask> superRenderTask);
@@ -90,7 +90,7 @@ public:
     void CommitSurfaceNum(int surfaceNum);
     void WaitPrepareEnd(RSUniRenderVisitor &visitor);
     TaskType GetTaskType();
-    RSUniRenderVisitor* GetUniVisitor()
+    RSUniRenderVisitor* GetUniVisitor() const
     {
         return uniVisitor_;
     }
@@ -123,12 +123,13 @@ public:
     uint32_t GetParallelThreadNumber() const;
     void AddSelfDrawingSurface(unsigned int subThreadIndex, bool isRRect, RectF rect,
         Vector4f cornerRadius = {0.f, 0.f, 0.f, 0.f});
-    void ClearSelfDrawingSurface(std::shared_ptr<RSPaintFilterCanvas> canvas, unsigned int subThreadIndex);
+    void ClearSelfDrawingSurface(RSPaintFilterCanvas& canvas, unsigned int subThreadIndex);
     void AddAppWindowNode(uint32_t surfaceIndex, std::shared_ptr<RSSurfaceRenderNode> appNode);
     const std::map<uint32_t, std::vector<std::shared_ptr<RSSurfaceRenderNode>>>& GetAppWindowNodes() const
     {
         return appWindowNodesMap_;
     }
+
 private:
     RSParallelRenderManager();
     ~RSParallelRenderManager() = default;
@@ -136,7 +137,7 @@ private:
     RSParallelRenderManager(const RSParallelRenderManager &&) = delete;
     RSParallelRenderManager &operator = (const RSParallelRenderManager &) = delete;
     RSParallelRenderManager &operator = (const RSParallelRenderManager &&) = delete;
-    void DrawImageMergeFunc(std::shared_ptr<RSPaintFilterCanvas> canvas);
+    void DrawImageMergeFunc(RSPaintFilterCanvas& canvas);
     void FlushOneBufferFunc();
     void GetCostFactor();
     void InitAppWindowNodeMap();

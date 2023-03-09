@@ -47,7 +47,7 @@ HWTEST_F(RSParallelHardwareComposerTest, HardwareComposerEnabledTest, TestSize.L
     auto hardwareComposer = std::make_unique<RSParallelHardwareComposer>();
     hardwareComposer->Init(3);
     SkCanvas skCanvas;
-    auto canvas = std::make_shared<RSPaintFilterCanvas>(&skCanvas);
+    auto canvas = RSPaintFilterCanvas(&skCanvas);
     hardwareComposer->ClearTransparentColor(canvas, 1);
     RectF rect = {0.f, 0.f, 8.f, 8.f};
     Vector4f radius = {0.f, 0.f, 0.f, 0.f};
