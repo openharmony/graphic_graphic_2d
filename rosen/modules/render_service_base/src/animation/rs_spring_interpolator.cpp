@@ -24,8 +24,8 @@ namespace OHOS {
 namespace Rosen {
 
 RSSpringInterpolator::RSSpringInterpolator(float response, float dampingRatio, float initialVelocity)
-    // initialOffset: 1, minimumAmplitude: 0.001
-    : RSSpringModel<float>(response, dampingRatio, -1, initialVelocity, 0.001)
+    // initialOffset: 1, minimumAmplitude: 0.0001
+    : RSSpringModel<float>(response, dampingRatio, -1, initialVelocity, 0.0001)
 {
     estimatedDuration_ = EstimateDuration();
 }
