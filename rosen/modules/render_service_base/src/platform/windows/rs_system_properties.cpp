@@ -102,11 +102,6 @@ bool RSSystemProperties::GetColdStartThreadEnabled()
     return {};
 }
 
-bool RSSystemProperties::FrameTraceEnabled()
-{
-    return {};
-}
-
 float RSSystemProperties::GetAnimationScale()
 {
     return {};
