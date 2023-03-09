@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <vector>
+
 #include "include/gpu/GrContext.h"
 #include "memory/DfxString.h"
 #include "memory/MemoryGraphic.h"
@@ -24,7 +26,10 @@ class MemoryManager {
 public:
     static void DumpMemoryUsage(DfxString& log, const GrContext* grContext, std::string& type);
     static void DumpPidMemory(DfxString& log, int pid);
-    static MemoryGraphic DumpPidMemory(int pid, const GrContext* grContext);
+
+    // Count memory for hidumper
+    static MemoryGraphic CountPidMemory(int pid, const GrContext* grContext);
+    static void CountMemory(std::vector<pid_t> pids, const GrContext* grContext , std::vector<MemoryGraphic>& mems);
 private:
     // rs memory = rs + skia cpu + skia gpu
     static void DumpRenderServiceMemory(DfxString& log);

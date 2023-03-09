@@ -36,7 +36,12 @@ bool RSRenderServiceClient::GetUniRenderEnabled()
     return {};
 }
 
-MemoryGraphic RSRenderServiceClient::GetMemoryGraphic()
+MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
+{
+    return {};
+}
+
+std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
 {
     return {};
 }

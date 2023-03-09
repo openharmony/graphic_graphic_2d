@@ -64,6 +64,15 @@ MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
     return renderService->GetMemoryGraphic(pid);
 }
 
+std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return {};
+    }
+    return renderService->GetMemoryGraphics();
+}
+
 bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

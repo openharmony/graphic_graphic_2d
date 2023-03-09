@@ -22,6 +22,11 @@ constexpr uint32_t MEM_MAX_SIZE = 2;
 
 MemoryNodeOfPid::MemoryNodeOfPid(size_t size, NodeId id) : nodeSize_(size), nodeId_(id) {}
 
+size_t MemoryNodeOfPid::GetMemSize()
+{
+    return nodeSize_;
+}
+
 bool MemoryNodeOfPid::operator==(const MemoryNodeOfPid& other)
 {
     return nodeId_ == other.nodeId_;
@@ -72,7 +77,7 @@ void MemoryTrack::DumpMemoryStatistics(DfxString& log, const pid_t pid)
     }
 }
 
-MemoryGraphic MemoryTrack::DumpMemoryStatistics(const pid_t pid)
+MemoryGraphic MemoryTrack::CountRSMemory(const pid_t pid)
 {
     MemoryGraphic memoryGraphic;
     auto itr = memNodeOfPidMap_.find(pid);
@@ -88,7 +93,7 @@ MemoryGraphic MemoryTrack::DumpMemoryStatistics(const pid_t pid)
             totalMemSize += info.GetMemSize();
         });
         memoryGraphic.SetPid(pid);
-        memoryGraphic.SetGraphicMemorySize(totalMemSize);
+        memoryGraphic.SetCpuMemorySize(totalMemSize);
     }
     return memoryGraphic;
 }

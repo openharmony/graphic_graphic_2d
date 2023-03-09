@@ -281,5 +281,10 @@ MemoryGraphic RSInterfaces::GetMemoryGraphic(int pid)
     return renderServiceClient_->GetMemoryGraphic(pid);
 }
 
+std::vector<MemoryGraphic> RSInterfaces::GetMemoryGraphics()
+{
+    return renderServiceClient_->GetMemoryGraphics();
+}
+
 } // namespace Rosen
 } // namespace OHOS

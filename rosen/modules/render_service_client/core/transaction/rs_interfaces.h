@@ -80,6 +80,8 @@ public:
 
     MemoryGraphic GetMemoryGraphic(int pid);
 
+    std::vector<MemoryGraphic> GetMemoryGraphics();
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);

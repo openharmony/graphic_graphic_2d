@@ -58,21 +58,33 @@ void MemoryManager::DumpPidMemory(DfxString& log, int pid)
     MemoryTrack::Instance().DumpMemoryStatistics(log, pid);
 }
 
-MemoryGraphic MemoryManager::DumpPidMemory(int pid, const GrContext* grContext)
+MemoryGraphic MemoryManager::CountPidMemory(int pid, const GrContext* grContext)
 {
     MemoryGraphic totalMemGraphic;
 
     // Count mem of RS
-    MemoryGraphic rsMemGraphic = MemoryTrack::Instance().DumpMemoryStatistics(pid);
+    MemoryGraphic rsMemGraphic = MemoryTrack::Instance().CountRSMemory(pid);
     totalMemGraphic += rsMemGraphic;
 
     // Count mem of Skia GPU
-    SkiaMemoryTracer gpuTracer("category", true);
-    grContext->dumpMemoryStatistics(&gpuTracer);
-    float gpuMem = gpuTracer.GetGLMemorySize();
-    totalMemGraphic.IncreaseGLMemory(gpuMem);
+    if (grContext) {
+        SkiaMemoryTracer gpuTracer("category", true);
+        GrGpuResourceTag tag(pid, 0, 0, 0);
+        grContext->dumpMemoryStatisticsByTag(&gpuTracer, tag);
+        float gpuMem = gpuTracer.GetGLMemorySize();
+        totalMemGraphic.IncreaseGpuMemory(gpuMem);
+    }
 
     return totalMemGraphic;
+}
+
+void MemoryManager::CountMemory(std::vector<pid_t> pids, const GrContext* grContext, std::vector<MemoryGraphic>& mems)
+{
+    auto countMem = [&grContext, &mems] (pid_t pid) {
+       mems.emplace_back(CountPidMemory(pid, grContext));
+    };
+    // Count mem of Skia GPU
+    std::for_each(pids.begin(), pids.end(), countMem);
 }
 
 void MemoryManager::DumpRenderServiceMemory(DfxString& log)

@@ -16,8 +16,8 @@
 
 namespace OHOS {
 namespace Rosen {
-MemoryGraphic::MemoryGraphic(int32_t pid, float glSize, float graphicSize) : pid_(pid),
-    glSize_(glSize), graphicSize_(graphicSize)
+MemoryGraphic::MemoryGraphic(int32_t pid, float cpuMemSize, float gpuMemSize) : pid_(pid),
+    cpuMemSize_(cpuMemSize), gpuMemSize_(gpuMemSize)
 {
 
 }
@@ -27,14 +27,14 @@ int32_t MemoryGraphic::GetPid() const
     return pid_;
 }
 
-float MemoryGraphic::GetGLMemorySize() const
+float MemoryGraphic::GetGpuMemorySize() const
 {
-    return glSize_;
+    return cpuMemSize_;
 }
 
-float MemoryGraphic::GetGraphicMemorySize() const
+float MemoryGraphic::GetCpuMemorySize() const
 {
-    return graphicSize_;
+    return gpuMemSize_;
 }
 
 void MemoryGraphic::SetPid(int32_t pid)
@@ -42,50 +42,50 @@ void MemoryGraphic::SetPid(int32_t pid)
     pid_ = pid;
 }
 
-void MemoryGraphic::SetGLMemorySize(float glSize)
+void MemoryGraphic::SetGpuMemorySize(float cpuMemSize)
 {
-    glSize_ = glSize;
+    cpuMemSize_ = cpuMemSize;
 }
 
-void MemoryGraphic::SetGraphicMemorySize(float graphicSize)
+void MemoryGraphic::SetCpuMemorySize(float gpuMemSize)
 {
-    graphicSize_ = graphicSize;
+    gpuMemSize_ = gpuMemSize;
 }
 
 bool MemoryGraphic::Marshalling(Parcel& parcel) const
 {
-    return parcel.WriteInt32(pid_) && parcel.WriteFloat(glSize_) &&
-        parcel.WriteFloat(graphicSize_);
+    return parcel.WriteInt32(pid_) && parcel.WriteFloat(cpuMemSize_) &&
+        parcel.WriteFloat(gpuMemSize_);
 }
 
 MemoryGraphic* MemoryGraphic::Unmarshalling(Parcel& parcel)
 {
     int32_t pid;
-    float glSize;
-    float graphicSize;
-    if (!(parcel.ReadInt32(pid) && parcel.ReadFloat(glSize) && parcel.ReadFloat(graphicSize))) {
+    float cpuMemSize;
+    float gpuMemSize;
+    if (!(parcel.ReadInt32(pid) && parcel.ReadFloat(cpuMemSize) && parcel.ReadFloat(gpuMemSize))) {
         return nullptr;
     }
 
-    MemoryGraphic* mem = new MemoryGraphic(pid, glSize, graphicSize);
+    MemoryGraphic* mem = new MemoryGraphic(pid, cpuMemSize, gpuMemSize);
     return mem;
 }
 
 MemoryGraphic& MemoryGraphic::operator+=(const MemoryGraphic& other)
 {
-    glSize_ += other.GetGLMemorySize();
-    graphicSize_ += other.GetGraphicMemorySize();
+    cpuMemSize_ += other.GetCpuMemorySize();
+    gpuMemSize_ += other.GetGpuMemorySize();
     return *this;
 }
 
-void MemoryGraphic::IncreaseGLMemory(float glSize)
+void MemoryGraphic::IncreaseCpuMemory(float cpuMemSize)
 {
-    glSize_ += glSize;
+    cpuMemSize_ += cpuMemSize;
 }
 
-void MemoryGraphic::IncreaseGraphicMemory(float graphicSize)
+void MemoryGraphic::IncreaseGpuMemory(float gpuMemSize)
 {
-    graphicSize_ += graphicSize;
+    gpuMemSize_ += gpuMemSize;
 }
 
 }

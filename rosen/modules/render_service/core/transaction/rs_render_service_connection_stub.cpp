@@ -371,6 +371,19 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteParcelable(&memoryGraphic);
             break;
         }
+        case GET_MEMORY_GRAPHICS: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            std::vector<MemoryGraphic> memoryGraphics = GetMemoryGraphics();
+            reply.WriteUint64(static_cast<uint64_t>(memoryGraphics.size()));
+            for (uint32_t index = 0; index < memoryGraphics.size(); index++) {
+                reply.WriteParcelable(&memoryGraphics[index]);
+            }
+            break;
+        }
         case GET_SCREEN_CAPABILITY: {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {

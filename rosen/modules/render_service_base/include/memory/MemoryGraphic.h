@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,28 +26,28 @@ namespace Rosen {
 class RSB_EXPORT MemoryGraphic : public Parcelable {
 public:
     MemoryGraphic() = default;
-    MemoryGraphic(int32_t pid, float glSize, float graphicSize);
-    ~MemoryGraphic() noexcept = default;
+    MemoryGraphic(int32_t pid, float cpuMemSize, float gpuMemSize);
+    ~MemoryGraphic() noexcept override = default;
     MemoryGraphic& operator+=(const MemoryGraphic& other);
-    void IncreaseGLMemory(float glSize);
-    void IncreaseGraphicMemory(float graphicSize);
+    void IncreaseCpuMemory(float glSize);
+    void IncreaseGpuMemory(float graphicSize);
 
 
     bool Marshalling(Parcel &parcel) const override;
     static MemoryGraphic *Unmarshalling(Parcel &parcel);
 
     int32_t GetPid() const;
-    float GetGLMemorySize() const;
-    float GetGraphicMemorySize() const;
+    float GetGpuMemorySize() const; // Memory of gpu = SkiaGpu
+    float GetCpuMemorySize() const; // Memory of cpu = RSCpu + SkiaCpu
 
     void SetPid(int32_t pid);
-    void SetGLMemorySize(float glSize);
-    void SetGraphicMemorySize(float graphicSize);
+    void SetGpuMemorySize(float glSize);
+    void SetCpuMemorySize(float graphicSize);
 
 private:
-    int32_t pid_;
-    float glSize_;
-    float graphicSize_;
+    int32_t pid_ = 0;
+    float cpuMemSize_ = 0.0f;
+    float gpuMemSize_ = 0.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

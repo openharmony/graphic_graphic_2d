@@ -87,6 +87,7 @@ public:
         SET_APP_WINDOW_NUM,
         SHOW_WATERMARK,
         GET_MEMORY_GRAPHIC,
+        GET_MEMORY_GRAPHICS,
     };
 
     virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
@@ -144,6 +145,8 @@ public:
     virtual RSScreenData GetScreenData(ScreenId id) = 0;
 
     virtual MemoryGraphic GetMemoryGraphic(int pid) = 0;
+
+    virtual std::vector<MemoryGraphic> GetMemoryGraphics() = 0;
 
     virtual int32_t GetScreenBacklight(ScreenId id) = 0;
 

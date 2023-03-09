@@ -32,8 +32,8 @@ enum MEMORY_TYPE {
 };
 
 struct MemoryInfo {
-    size_t size;
-    int pid;
+    size_t size = 0;
+    int pid = 0;
     MEMORY_TYPE type;
 };
 
@@ -42,11 +42,11 @@ public:
     MemoryNodeOfPid() = default;
     ~MemoryNodeOfPid() = default;
     MemoryNodeOfPid(size_t size, NodeId id);
-    size_t GetMemSize() { return nodeSize_; };
+    size_t GetMemSize();
     bool operator==(const MemoryNodeOfPid& other);
 private:
-    size_t nodeSize_;
-    NodeId nodeId_;
+    size_t nodeSize_ = 0;
+    NodeId nodeId_ = 0;
 };
 
 class RSB_EXPORT MemoryTrack {
@@ -56,9 +56,11 @@ public:
     void RemoveNodeRecord(const NodeId id);
     void DumpMemoryStatistics(DfxString& log);
     void DumpMemoryStatistics(DfxString& log, const pid_t pid);
-    MemoryGraphic DumpMemoryStatistics(const pid_t pid);
     void AddPictureRecord(const void* addr, MemoryInfo info);
     void RemovePictureRecord(const void* addr);
+
+    // count memory for hidumper
+    MemoryGraphic CountRSMemory(const pid_t pid);
 private:
     MemoryTrack() = default;
     ~MemoryTrack() = default;

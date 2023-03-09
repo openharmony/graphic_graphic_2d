@@ -114,6 +114,7 @@ public:
     RSScreenData GetScreenData(ScreenId id);
 
     MemoryGraphic GetMemoryGraphic(int pid);
+    std::vector<MemoryGraphic> GetMemoryGraphics();
 
     int32_t GetScreenBacklight(ScreenId id);
 

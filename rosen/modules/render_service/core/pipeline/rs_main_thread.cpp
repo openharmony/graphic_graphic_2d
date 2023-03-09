@@ -1307,9 +1307,26 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
 #endif
 }
 
-void RSMainThread::DumpMem(int pid, MemoryGraphic& mem)
+void RSMainThread::CountMem(int pid, MemoryGraphic& mem)
 {
-    mem = MemoryManager::DumpPidMemory(pid, GetRenderEngine()->GetRenderContext()->GetGrContext());
+    mem = MemoryManager::CountPidMemory(pid, GetRenderEngine()->GetRenderContext()->GetGrContext());
+}
+
+void RSMainThread::CountMem(std::vector<MemoryGraphic>& mems)
+{
+    if (!context_) {
+        RS_LOGE("RSMainThread::CountMem Context is nullptr");
+        return;
+    }
+    const auto& nodeMap = context_->GetNodeMap();
+    std::vector<pid_t> pids;
+    nodeMap.TraverseSurfaceNodes([&pids] (const std::shared_ptr<RSSurfaceRenderNode>& node) {
+        auto pid = ExtractPid(node->GetId());
+        if (std::find(pids.begin(), pids.end(), pid) == pids.end()) {
+            pids.emplace_back();
+        }
+    });
+    MemoryManager::CountMemory(pids, GetRenderEngine()->GetRenderContext()->GetGrContext(), mems);
 }
 
 void RSMainThread::AddTransactionDataPidInfo(pid_t remotePid)

@@ -546,6 +546,36 @@ std::vector<RSScreenModeInfo> RSRenderServiceConnectionProxy::GetScreenSupported
     return screenSupportedModes;
 }
 
+std::vector<MemoryGraphic> RSRenderServiceConnectionProxy::GetMemoryGraphics()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::vector<MemoryGraphic> memoryGraphics;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return memoryGraphics;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_MEMORY_GRAPHICS, data, reply, option);
+    if (err != NO_ERROR) {
+        return memoryGraphics;
+    }
+
+    uint64_t count = reply.ReadUint64();
+    memoryGraphics.resize(count);
+    for (uint64_t index = 0; index < count; index++) {
+        sptr<MemoryGraphic> item = reply.ReadParcelable<MemoryGraphic>();
+        if (item == nullptr) {
+            continue;
+        } else {
+            memoryGraphics[index] = *item;
+        }
+    }
+    return memoryGraphics;
+}
+
 MemoryGraphic RSRenderServiceConnectionProxy::GetMemoryGraphic(int pid)
 {
     MessageParcel data;
