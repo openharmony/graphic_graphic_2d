@@ -1087,6 +1087,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             } else if (region.isRect()) {
                 canvas_->clipRegion(region);
             } else {
+                RS_TRACE_NAME("RSUniRenderVisitor: clipPath");
                 SkPath dirtyPath;
                 region.getBoundaryPath(&dirtyPath);
                 canvas_->clipPath(dirtyPath, true);
