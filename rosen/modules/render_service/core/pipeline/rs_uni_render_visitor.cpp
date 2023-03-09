@@ -729,11 +729,11 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 void RSUniRenderVisitor::CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisitor> visitor)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-    isPartialRenderEnabled_ &= visitor->isPartialRenderEnabled_;
-    isOpDropped_ &= visitor->isOpDropped_;
-    needFilter_ |= visitor->needFilter_;
+    isPartialRenderEnabled_ = isPartialRenderEnabled_ && visitor->isPartialRenderEnabled_;
+    isOpDropped_ = isOpDropped_ && visitor->isOpDropped_;
+    needFilter_ = needFilter_ || visitor->needFilter_;
     for (auto &u : visitor->displayHasSecSurface_) {
-        displayHasSecSurface_[u.first] |= u.second;
+        displayHasSecSurface_[u.first] = displayHasSecSurface_[u.first] || u.second;
     }
 
     for (auto &u : visitor->dirtySurfaceNodeMap_) {
@@ -1139,7 +1139,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             parallelRenderManager->SetFrameSize(screenInfo_.width, screenInfo_.height);
             parallelRenderManager->CopyVisitorAndPackTask(*this, node);
             parallelRenderManager->LoadBalanceAndNotify(TaskType::PROCESS_TASK);
-            parallelRenderManager->MergeRenderResult(canvas_);
+            parallelRenderManager->MergeRenderResult(*canvas_);
             parallelRenderManager->CommitSurfaceNum(node.GetChildrenCount());
         }
 #endif

@@ -41,10 +41,10 @@
 namespace OHOS {
 namespace Rosen {
 RSParallelSubThread::RSParallelSubThread(int threadIndex)
-    : threadIndex_(threadIndex), renderType_(ParallelRenderType::DRAW_IMAGE) {}
+    : threadIndex_(threadIndex), subThread_(nullptr), renderType_(ParallelRenderType::DRAW_IMAGE) {}
 
 RSParallelSubThread::RSParallelSubThread(RenderContext *context, ParallelRenderType renderType, int threadIndex)
-    : threadIndex_(threadIndex), renderContext_(context), renderType_(renderType) {}
+    : threadIndex_(threadIndex), subThread_(nullptr), renderContext_(context), renderType_(renderType) {}
 
 RSParallelSubThread::~RSParallelSubThread()
 {

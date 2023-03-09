@@ -60,7 +60,7 @@ public:
     RSParallelHardwareComposer() = default;
     ~RSParallelHardwareComposer() = default;
     void Init(uint32_t threadNum);
-    void ClearTransparentColor(std::shared_ptr<RSPaintFilterCanvas> canvas, unsigned int surfaceIndex);
+    void ClearTransparentColor(RSPaintFilterCanvas& canvas, unsigned int surfaceIndex);
     void AddTransparentColorArea(unsigned int surfaceIndex,
         std::unique_ptr<RSParallelSelfDrawingSurfaceShape> && shape);
 private:

@@ -51,7 +51,7 @@ private:
     bool isPartialRenderEnabled_ = false;
     bool isSecurityDisplay_ = false;
     bool doAnimate_ = false;
-    PartialRenderType partialRenderType_;
+    PartialRenderType partialRenderType_ = PartialRenderType::DISABLED;
     bool isFirstSurfaceNode_ = false;
 };
 } // namespace Rosen
