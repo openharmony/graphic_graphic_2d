@@ -101,6 +101,21 @@ bool RSSurfaceRenderNode::ShouldPrepareSubnodes()
     return true;
 }
 
+std::string RSSurfaceRenderNode::DirtyRegionDump() const
+{
+    std::string dump = GetName() +
+        " SurfaceNodeType [" + std::to_string(static_cast<unsigned int>(GetSurfaceNodeType())) + "]" +
+        " Transparent [" + std::to_string(IsTransparent()) +"]" +
+        " DstRect: " + GetDstRect().ToString() +
+        " VisibleRegion: " + GetVisibleRegion().GetRegionInfo() +
+        " VisibleDirtyRegion: " + GetVisibleDirtyRegion().GetRegionInfo() +
+        " GlobalDirtyRegion: " + GetGlobalDirtyRegion().GetRegionInfo();
+    if (GetDirtyManager()) {
+        dump += " DirtyRegion: " + GetDirtyManager()->GetDirtyRegion().ToString();
+    }
+    return dump;
+}
+
 void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     renderNodeSaveCount_ = canvas.SaveCanvasAndAlpha();
@@ -596,80 +611,6 @@ bool RSSurfaceRenderNode::SubNodeNeedDraw(const RectI &r, PartialRenderType opDr
             return true;
     }
     return true;
-}
-
-void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect,
-    ContainerWindowConfigType containerWindowConfigType, bool isFocusWindow)
-{
-    Occlusion::Rect absRectR {absRect};
-    Occlusion::Region oldOpaqueRegion { opaqueRegion_ };
-
-    // The transparent region of surfaceNode should include shadow area
-    Occlusion::Rect dirtyRect {GetOldDirty()};
-    transparentRegion_ = Occlusion::Region{dirtyRect};
-
-    if (IsTransparent()) {
-        opaqueRegion_ = Occlusion::Region();
-    } else {
-        if (IsAppWindow() && HasContainerWindow()) {
-            opaqueRegion_ = ResetOpaqueRegion(absRect, containerWindowConfigType, isFocusWindow);
-        } else {
-            opaqueRegion_ = Occlusion::Region{absRectR};
-        }
-        transparentRegion_.SubSelf(opaqueRegion_);
-    }
-    Occlusion::Rect screen{screeninfo};
-    Occlusion::Region screenRegion{screen};
-    transparentRegion_.AndSelf(screenRegion);
-    opaqueRegion_.AndSelf(screenRegion);
-    opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();
-}
-
-Occlusion::Region RSSurfaceRenderNode::ResetOpaqueRegion(const RectI& absRect,
-    const ContainerWindowConfigType containerWindowConfigType, const bool isFocusWindow)
-{
-    if (containerWindowConfigType == ContainerWindowConfigType::DISABLED) {
-        Occlusion::Rect opaqueRect{absRect};
-        Occlusion::Region opaqueRegion = Occlusion::Region{opaqueRect};
-        return opaqueRegion;
-    }
-    if (isFocusWindow) {
-        Occlusion::Rect opaqueRect{ absRect.left_ + containerContentPadding_ + containerBorderWidth_,
-            absRect.top_ + containerTitleHeight_ + containerInnerRadius_ + containerBorderWidth_,
-            absRect.GetRight() - containerContentPadding_ - containerBorderWidth_,
-            absRect.GetBottom() - containerContentPadding_ - containerBorderWidth_};
-        Occlusion::Region opaqueRegion{opaqueRect};
-        return opaqueRegion;
-    } else {
-        if (containerWindowConfigType == ContainerWindowConfigType::ENABLED_LEVEL_0) {
-            Occlusion::Rect opaqueRect{ absRect.left_ + containerContentPadding_ + containerBorderWidth_,
-                absRect.top_ + containerTitleHeight_ + containerBorderWidth_,
-                absRect.GetRight() - containerContentPadding_ - containerBorderWidth_,
-                absRect.GetBottom() - containerContentPadding_ - containerBorderWidth_};
-            Occlusion::Region opaqueRegion{opaqueRect};
-            return opaqueRegion;
-        } else if (containerWindowConfigType == ContainerWindowConfigType::ENABLED_UNFOCUSED_WINDOW_LEVEL_1) {
-            Occlusion::Rect opaqueRect{ absRect.left_,
-                absRect.top_ + containerOutRadius_,
-                absRect.GetRight(),
-                absRect.GetBottom() - containerOutRadius_};
-            Occlusion::Region opaqueRegion{opaqueRect};
-            return opaqueRegion;
-        } else {
-            Occlusion::Rect opaqueRect1{ absRect.left_ + containerOutRadius_,
-                absRect.top_,
-                absRect.GetRight() - containerOutRadius_,
-                absRect.GetBottom()};
-            Occlusion::Rect opaqueRect2{ absRect.left_,
-                absRect.top_ + containerOutRadius_,
-                absRect.GetRight(),
-                absRect.GetBottom() - containerOutRadius_};
-            Occlusion::Region r1{opaqueRect1};
-            Occlusion::Region r2{opaqueRect2};
-            Occlusion::Region opaqueRegion = r1.Or(r2);
-            return opaqueRegion;
-        }
-    }
 }
 
 void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect,

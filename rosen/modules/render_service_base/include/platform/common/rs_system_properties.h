@@ -57,19 +57,6 @@ enum class DumpSurfaceType {
     PIXELMAP,
 };
 
-/* ContainerWindowConfigType
-// -1, disable round corner's transparent region
-// 0, roundcorner surfacenode has a strip size transparent region
-// 1, on the base of ENABLED_LEVEL_0, unfocused surface's side boundary is opaque
-// 2, on the base of ENABLED_LEVEL_0, unfocused surface only has 4 little squares as transparent region
-*/
-enum class ContainerWindowConfigType {
-    DISABLED = -1,
-    ENABLED_LEVEL_0 = 0,
-    ENABLED_UNFOCUSED_WINDOW_LEVEL_1 = 1,
-    ENABLED_UNFOCUSED_WINDOW_LEVEL_2 = 2,
-};
-
 enum class ParallelRenderingType {
     AUTO = 0,
     DISABLE = 1,
@@ -88,7 +75,6 @@ public:
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
-    static ContainerWindowConfigType GetContainerWindowConfig();
     static bool GetOcclusionEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
     static bool GetDirectClientCompEnableStatus();
