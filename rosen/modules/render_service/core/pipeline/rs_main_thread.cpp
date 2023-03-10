@@ -44,11 +44,15 @@
 #include "render/rs_pixel_map_util.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "accessibility_config.h"
+
 #include "rs_qos_thread.h"
 #include "xcollie/watchdog.h"
 
 #include "render_frame_trace.h"
+
+#if defined(ACCESSIBILITY_ENABLE)
+#include "accessibility_config.h"
+#endif
 
 #ifdef SOC_PERF_ENABLE
 #include "socperf_client.h"
@@ -61,7 +65,10 @@
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
 
+#if defined(ACCESSIBILITY_ENABLE)
 using namespace OHOS::AccessibilityConfig;
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -108,6 +115,7 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 }
 }
 
+#if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver : public AccessibilityConfigObserver {
 public:
     AccessibilityObserver() = default;
@@ -142,7 +150,7 @@ public:
         }
     }
 };
-
+#endif
 RSMainThread* RSMainThread::Instance()
 {
     static RSMainThread instance;
@@ -231,6 +239,7 @@ void RSMainThread::Init()
     RSDrivenRenderManager::InitInstance();
 #endif
 
+#if defined(ACCESSIBILITY_ENABLE)
     accessibilityObserver_ = std::make_shared<AccessibilityObserver>();
     auto &config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
     config.InitializeContext();
@@ -239,6 +248,7 @@ void RSMainThread::Init()
     if (isUniRender_) {
         config.SubscribeConfigObserver(CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT, accessibilityObserver_);
     }
+#endif
 
     auto delegate = RSFunctionalDelegate::Create();
     delegate->SetRepaintCallback([]() { RSMainThread::Instance()->RequestNextVSync(); });

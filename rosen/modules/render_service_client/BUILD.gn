@@ -125,16 +125,13 @@ ohos_source_set("render_service_client_src") {
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
   ]
 
-  if (rss_enabled) {
-    deps += [ "//foundation/resourceschedule/resource_schedule_service/ressched/interfaces/innerkits/ressched_client:ressched_client" ]
-  }
-
   if (enable_export_macro) {
     defines += [ "ENABLE_EXPORT_MACRO" ]
   }
 
   if (rss_enabled) {
     defines += [ "OHOS_RSS_CLIENT" ]
+    external_deps = [ "resource_schedule_service:ressched_client" ]
   }
 
   if (rosen_cross_platform) {
@@ -143,15 +140,18 @@ ohos_source_set("render_service_client_src") {
       "$graphic_2d_root/rosen/modules/glfw_render_context:libglfw_render_context",
     ]
   } else {
-    deps += [
-      "$accessibility_root/interfaces/innerkits/acfwk:accessibilityconfig",
-      "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",
-    ]
-    external_deps = [
+    deps +=
+        [ "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer" ]
+    external_deps += [
       "c_utils:utils",
       "hisysevent_native:libhisysevent",
       "hitrace_native:hitrace_meter",
     ]
+
+    if (accessibility_enable) {
+      external_deps += [ "accessibility:accessibilityconfig" ]
+      defines += accessibility_defines
+    }
   }
 
   public_deps = [
