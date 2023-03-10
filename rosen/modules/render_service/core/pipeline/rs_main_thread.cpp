@@ -1085,7 +1085,9 @@ void RSMainThread::Animate(uint64_t timestamp)
     if (!doWindowAnimate_ && curWinAnim && RSInnovation::UpdateQosVsyncEnabled()) {
         RSQosThread::ResetQosPid();
     }
-    doWindowAnimate_ = curWinAnim;
+    doWindowAnimate_ = std::any_of(context_->animatingNodeList_.begin(), context_->animatingNodeList_.end(), [](const auto& iter) {
+        return RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(iter.second.lock()) != nullptr;
+    });
     RS_LOGD("RSMainThread::Animate end, %d animating nodes remains, has window animation: %d",
         context_->animatingNodeList_.size(), curWinAnim);
 
