@@ -15,6 +15,10 @@
 
 #include "pipeline/rs_uni_render_visitor.h"
 
+#ifdef RS_ENABLE_VK
+#include <vulkan_window.h>
+#endif
+
 #include "include/core/SkRegion.h"
 #include "include/core/SkTextBlob.h"
 #include "rs_trace.h"
@@ -61,7 +65,7 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 }
 }
 
-#if defined(RS_ENABLE_PARALLEL_RENDER) && defined (RS_ENABLE_GL)
+#if defined(RS_ENABLE_PARALLEL_RENDER)
 constexpr uint32_t PARALLEL_RENDER_MINIMUN_RENDER_NODE_NUMBER = 50;
 #endif
 
@@ -99,9 +103,11 @@ RSUniRenderVisitor::RSUniRenderVisitor()
 RSUniRenderVisitor::RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas, uint32_t surfaceIndex)
     : RSUniRenderVisitor()
 {
-#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-    canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+#if defined(RS_ENABLE_PARALLEL_RENDER)
     parallelRenderVisitorIndex_ = surfaceIndex;
+#if defined(RS_ENABLE_GL)
+    canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+#endif
 #endif
 }
 
@@ -130,7 +136,12 @@ void RSUniRenderVisitor::CopyPropertyForParallelVisitor(RSUniRenderVisitor *main
         return;
     }
     doAnimate_ = mainVisitor->doAnimate_;
+#ifdef RS_ENABLE_GL
     isParallel_ = mainVisitor->isParallel_;
+#elif RS_ENABLE_VK
+    isParallel_ = false;
+    isVkSub_ = true;
+#endif
     isFreeze_ = mainVisitor->isFreeze_;
     isHardwareForcedDisabled_ = mainVisitor->isHardwareForcedDisabled_;
     isOpDropped_ = mainVisitor->isOpDropped_;
@@ -248,7 +259,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     node.UpdateRotation();
     curAlpha_ = node.GetRenderProperties().GetAlpha();
     isParallel_ = false;
-#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_PARALLEL_RENDER)
     ParallelPrepareDisplayRenderNodeChildrens(node);
 #else
     PrepareBaseRenderNode(node);
@@ -279,7 +290,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
 
 void RSUniRenderVisitor::ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRenderNode& node)
 {
-#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_PARALLEL_RENDER)
     auto parallelRenderManager = RSParallelRenderManager::Instance();
     isParallel_ = AdaptiveSubRenderThreadMode(node.GetChildrenCount()) &&
         parallelRenderManager->GetParallelMode();
@@ -535,7 +546,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.ShouldPrepareSubnodes()) {
         PrepareBaseRenderNode(node);
     }
-#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_PARALLEL_RENDER)
     auto parentNode = node.GetParent().lock();
     auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
     if (rsParent == curDisplayNode_) {
@@ -728,7 +739,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 
 void RSUniRenderVisitor::CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisitor> visitor)
 {
-#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_PARALLEL_RENDER)
     isPartialRenderEnabled_ = isPartialRenderEnabled_ && visitor->isPartialRenderEnabled_;
     isOpDropped_ = isOpDropped_ && visitor->isOpDropped_;
     needFilter_ = needFilter_ || visitor->needFilter_;
@@ -1014,26 +1025,61 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             return;
         }
 #endif
-        auto rsSurface = node.GetRSSurface();
-        if (rsSurface == nullptr) {
-            RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode No RSSurface found");
+
+#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_VK)
+        if (isParallel_ &&!isPartialRenderEnabled_) {
+            auto parallelRenderManager = RSParallelRenderManager::Instance();
+            vulkan::VulkanWindow::InitializeVulkan(
+                parallelRenderManager->GetParallelThreadNumber());
+            RS_TRACE_BEGIN("RSUniRender::VK::WaitFence");
+            vulkan::VulkanWindow::WaitForSharedFence();
+            vulkan::VulkanWindow::ResetSharedFence();
+            RS_TRACE_END();
+            parallelRenderManager->CopyVisitorAndPackTask(*this, node);
+            parallelRenderManager->InitDisplayNodeAndRequestFrame(renderEngine_, screenInfo_);
+            parallelRenderManager->LoadBalanceAndNotify(TaskType::PROCESS_TASK);
+            parallelRenderManager->WaitProcessEnd(*this);
+            parallelRenderManager->CommitSurfaceNum(node.GetChildrenCount());
+            vulkan::VulkanWindow::PresentAll();
+
+            RS_TRACE_BEGIN("RSUniRender:WaitUtilUniRenderFinished");
+            RSMainThread::Instance()->WaitUtilUniRenderFinished();
+            RS_TRACE_END();
+
+            parallelRenderManager->ProcessParallelDisplaySurface(*this);
+            processor_->PostProcess();
+
+            parallelRenderManager->ReleaseBuffer();
+
+            isParallel_ = false;
             return;
         }
-        rsSurface->SetColorSpace(newColorSpace_);
-        // we should request a framebuffer whose size is equals to the physical screen size.
-        RS_TRACE_BEGIN("RSUniRender:RequestFrame");
-        auto renderFrame = renderEngine_->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
-            RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, true));
-        RS_TRACE_BEGIN("RSUniRender::wait for bufferRequest cond");
-        RSMainThread::Instance()->WaitUntilDisplayNodeBufferReleased(node);
-        RS_TRACE_END();
-        RS_TRACE_END();
-        if (renderFrame == nullptr) {
+#endif
+
+        if (!isVkSub_) {
+            auto rsSurface = node.GetRSSurface();
+            if (rsSurface == nullptr) {
+                RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode No RSSurface found");
+                return;
+            }
+            rsSurface->SetColorSpace(newColorSpace_);
+            // we should request a framebuffer whose size is equals to the physical screen size.
+            RS_TRACE_BEGIN("RSUniRender:RequestFrame");
+            renderFrame_ = renderEngine_->RequestFrame(
+                std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
+                RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, true));
+            RS_TRACE_BEGIN("RSUniRender::wait for bufferRequest cond");
+            RSMainThread::Instance()->WaitUntilDisplayNodeBufferReleased(node);
+            RS_TRACE_END();
+            RS_TRACE_END();
+        }
+
+        if (renderFrame_ == nullptr) {
             RS_LOGE("RSUniRenderVisitor Request Frame Failed");
             return;
         }
         std::shared_ptr<RSCanvasListener> overdrawListener = nullptr;
-        AddOverDrawListener(renderFrame, overdrawListener);
+        AddOverDrawListener(renderFrame_, overdrawListener);
 
         if (canvas_ == nullptr) {
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: failed to create canvas");
@@ -1052,7 +1098,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             if (RSOverdrawController::GetInstance().IsEnabled()) {
                 node.GetDirtyManager()->ResetDirtyAsSurfaceSize();
             }
-            int bufferAge = renderFrame->GetBufferAge();
+            int bufferAge = renderFrame_->GetBufferAge();
             RSUniRenderUtil::MergeDirtyHistory(displayNodePtr, bufferAge, isDirtyRegionAlignedEnable_);
             Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(
                 displayNodePtr, isDirtyRegionAlignedEnable_);
@@ -1077,7 +1123,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
             // SetDamageRegion and opDrop will be disabled for dirty region DFX visualization
             if (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_ && !isOpaqueRegionDfxEnabled_) {
-                renderFrame->SetDamageRegion(rects);
+                renderFrame_->SetDamageRegion(rects);
             }
         }
         if (isOpDropped_ && !isDirtyRegionAlignedEnable_) {
@@ -1101,6 +1147,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
         RSPropertiesPainter::SetBgAntiAlias(true);
         if (!isParallel_) {
+            if (isVkSub_) {
+                canvas_->save();
+                canvas_->clipRect(SkRect::MakeWH(screenInfo_.width, screenInfo_.height));
+                canvas_->clear(SK_ColorTRANSPARENT);
+                canvas_->restore();
+            }
             int saveCount = canvas_->save();
             canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
             auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
@@ -1165,14 +1217,16 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
         }
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
-        renderFrame->Flush();
+        renderFrame_->Flush();
         RS_TRACE_END();
-        RS_TRACE_BEGIN("RSUniRender:WaitUtilUniRenderFinished");
-        RSMainThread::Instance()->WaitUtilUniRenderFinished();
-        RS_TRACE_END();
-        AssignGlobalZOrderAndCreateLayer();
-        node.SetGlobalZOrder(globalZOrder_);
-        processor_->ProcessDisplaySurface(node);
+        if (!isVkSub_) {
+            RS_TRACE_BEGIN("RSUniRender:WaitUtilUniRenderFinished");
+            RSMainThread::Instance()->WaitUtilUniRenderFinished();
+            RS_TRACE_END();
+            AssignGlobalZOrderAndCreateLayer();
+            node.SetGlobalZOrder(globalZOrder_);
+            processor_->ProcessDisplaySurface(node);
+        }
     }
 
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
@@ -1187,8 +1241,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RSDrivenRenderManager::GetInstance().DoProcessRenderTask(info);
     }
 #endif
-
-    processor_->PostProcess();
+    if (!isVkSub_) {
+        processor_->PostProcess();
+    }
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
 }
 
@@ -1915,7 +1970,7 @@ void RSUniRenderVisitor::FinishOffscreenRender()
 
 bool RSUniRenderVisitor::AdaptiveSubRenderThreadMode(uint32_t renderNodeNum)
 {
-#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_PARALLEL_RENDER)
     bool isParallel = (renderNodeNum >= PARALLEL_RENDER_MINIMUN_RENDER_NODE_NUMBER) &&
         (parallelRenderType_ != ParallelRenderingType::DISABLE);
     if (!isParallel) {

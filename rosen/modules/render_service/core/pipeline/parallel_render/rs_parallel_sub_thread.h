@@ -26,6 +26,7 @@
 #include "include/core/SkSurface.h"
 #include "include/gpu/GrContext.h"
 #include "pipeline/parallel_render/rs_render_task.h"
+#include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "render_context/render_context.h"
@@ -94,12 +95,16 @@ private:
     std::unique_ptr<RSSuperRenderTask> threadTask_;
 
     RSUniRenderVisitor *mainVisitor_;
-    RSDisplayRenderNode *displayNode_;
     ParallelRenderType renderType_;
     sk_sp<SkImage> texture_;
     EGLSyncKHR eglSync_ = EGL_NO_SYNC_KHR;
     timespec startTime_;
     timespec stopTime_;
+
+#ifdef RS_ENABLE_VK
+    std::shared_ptr<RSDisplayRenderNode> displayNode_;
+    std::unique_ptr<RSRenderFrame> renderFrame_;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

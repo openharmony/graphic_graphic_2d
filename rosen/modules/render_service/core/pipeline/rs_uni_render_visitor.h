@@ -97,6 +97,21 @@ public:
     {
         return isOpDropped_;
     }
+
+    ColorGamut GetColorGamut() const
+    {
+        return newColorSpace_;
+    }
+
+    std::shared_ptr<RSProcessor> GetProcessor() const
+    {
+        return processor_;
+    }
+
+    void SetRenderFrame(std::unique_ptr<RSRenderFrame>& renderFrame)
+    {
+        renderFrame_ = std::move(renderFrame);
+    }
 private:
     void DrawWatermarkIfNeed();
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
@@ -240,6 +255,9 @@ private:
     DrivenDirtyInfo drivenDirtyInfo_;
 
     bool isCalcCostEnable_ = false;
+
+    bool isVkSub_ = false;
+    std::unique_ptr<RSRenderFrame> renderFrame_;
 };
 } // namespace Rosen
 } // namespace OHOS

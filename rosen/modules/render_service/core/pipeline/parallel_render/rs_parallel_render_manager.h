@@ -89,6 +89,7 @@ public:
     void ReadySubThreadNumIncrement();
     void CommitSurfaceNum(int surfaceNum);
     void WaitPrepareEnd(RSUniRenderVisitor &visitor);
+    void WaitProcessEnd(RSUniRenderVisitor &visitor);
     TaskType GetTaskType();
     RSUniRenderVisitor* GetUniVisitor() const
     {
@@ -129,7 +130,15 @@ public:
     {
         return appWindowNodesMap_;
     }
-
+#ifdef RS_ENABLE_VK
+    void InitDisplayNodeAndRequestFrame(
+        const std::shared_ptr<RSBaseRenderEngine> renderEngine, const ScreenInfo screenInfo);
+    void ProcessParallelDisplaySurface(RSUniRenderVisitor &visitor);
+    void ReleaseBuffer();
+    void NotifyUniRenderFinish();
+    std::shared_ptr<RSDisplayRenderNode> GetParallelDisplayNode(uint32_t subMainThreadIdx);
+    std::unique_ptr<RSRenderFrame>& GetParallelFrame(uint32_t subMainThreadIdx);
+#endif
 private:
     RSParallelRenderManager();
     ~RSParallelRenderManager() = default;
@@ -177,6 +186,12 @@ private:
     bool doAnimate_ = false;
     bool isOpDropped_ = false;
     bool isSecurityDisplay_ = false;
+
+#ifdef RS_ENABLE_VK
+    std::vector<std::shared_ptr<RSDisplayRenderNode>> parallelDisplayNodes_;
+    std::vector<std::unique_ptr<RSRenderFrame>> parallelFrames_;
+    int readyBufferNum_ = 0;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS
