@@ -198,12 +198,12 @@ void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSBaseRenderNode> pa
 {
     auto renderParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
     if (renderParent) {
-        // [planning] could set each child's outofparent rect and flag
         // accumulate current node's all children region(including itself)
-        RectI accumulatedRect = GetChildrenRect().JoinRect(renderProperties_.GetDirtyRect());
+        // apply oldDirty_ as node's real region(including overlay and shadow)
+        RectI accumulatedRect = GetChildrenRect().JoinRect(oldDirty_);
         renderParent->UpdateChildrenRect(accumulatedRect);
         // check each child is inside of parent
-        if (!accumulatedRect.IsInsideOf(renderParent->GetRenderProperties().GetDirtyRect())) {
+        if (!accumulatedRect.IsInsideOf(renderParent->GetOldDirty())) {
             renderParent->UpdateChildrenOutOfRectFlag(true);
         }
     }
