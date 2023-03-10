@@ -44,16 +44,16 @@ void RSHardwareThread::Start()
     fallbackCb_ = std::bind(&RSHardwareThread::Redraw, this,std::placeholders::_1, std::placeholders::_2,
         std::placeholders::_3);
     if (handler_) {
-        ScheduleTask([=]() {
+        ScheduleTask([this]() {
             auto screenManager = CreateOrGetScreenManager();
             if (screenManager == nullptr || !screenManager->Init()) {
                 RS_LOGE("RSHardwareThread CreateOrGetScreenManager or init fail.");
                 return;
             }
+            uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+            uniRenderEngine_->Init();
         }).wait();
     }
-    uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-    uniRenderEngine_->Init();
     auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {
         OnPrepareComplete(surface, param, data);
     };
