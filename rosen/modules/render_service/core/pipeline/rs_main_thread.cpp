@@ -182,6 +182,9 @@ void RSMainThread::Init()
         ProcessCommand();
         Animate(timestamp_);
         CollectInfoForHardwareComposer();
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+        CollectInfoForDrivenRender();
+#endif
         CheckColdStartMap();
         Render();
         ReleaseAllNodesBuffer();
@@ -581,6 +584,58 @@ void RSMainThread::CollectInfoForHardwareComposer()
     }
 }
 
+void RSMainThread::CollectInfoForDrivenRender()
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    hasDrivenNodeOnUniTree_ = false;
+    hasDrivenNodeMarkRender_ = false;
+    if (!isUniRender_ || !RSSystemProperties::GetHardwareComposerEnabled() ||
+        !RSDrivenRenderManager::GetInstance().GetDrivenRenderEnabled()) {
+        return;
+    }
+
+    std::vector<std::shared_ptr<RSRenderNode>> drivenNodes;
+    std::vector<std::shared_ptr<RSRenderNode>> markRenderDrivenNodes;
+    std::vector<std::shared_ptr<RSRenderNode>> invalidDrivenNodes;
+
+    const auto& nodeMap = GetContext().GetNodeMap();
+    nodeMap.TraverseDrivenRenderNodes(
+        [&](const std::shared_ptr<RSRenderNode>& node) mutable {
+            if (node == nullptr) {
+                return;
+            }
+            if (!node->IsOnTheTree()) {
+                invalidDrivenNodes.emplace_back(node);
+                return;
+            }
+            drivenNodes.emplace_back(node);
+            if (node->GetPaintState()) {
+                markRenderDrivenNodes.emplace_back(node);
+            }
+        });
+
+    for (auto& node : invalidDrivenNodes) {
+        GetContext().GetMutableNodeMap().RemoveDrivenRenderNode(node->GetId());
+    }
+    for (auto& node : drivenNodes) {
+        node->SetPaintState(false);
+        node->SetIsMarkDrivenRender(false);
+    }
+    if (!drivenNodes.empty()) {
+        hasDrivenNodeOnUniTree_ = true;
+    } else {
+        hasDrivenNodeOnUniTree_ = false;
+    }
+    if (markRenderDrivenNodes.size() == 1) { // only support 1 driven node
+        auto node = markRenderDrivenNodes.front();
+        node->SetIsMarkDrivenRender(true);
+        hasDrivenNodeMarkRender_ = true;
+    } else {
+        hasDrivenNodeMarkRender_ = false;
+    }
+#endif
+}
+
 void RSMainThread::ReleaseAllNodesBuffer()
 {
     RS_TRACE_NAME("RSMainThread::ReleaseAllNodesBuffer");
@@ -711,6 +766,9 @@ void RSMainThread::Render()
 
     if (isUniRender_) {
         auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+        uniVisitor->SetDrivenRenderFlag(hasDrivenNodeOnUniTree_, hasDrivenNodeMarkRender_);
+#endif
         uniVisitor->SetHardwareEnabledNodes(hardwareEnabledNodes_);
         if (isHardwareForcedDisabled_ || rootNode->GetChildrenCount() > 1) {
             // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here

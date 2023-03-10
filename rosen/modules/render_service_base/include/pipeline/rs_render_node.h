@@ -173,6 +173,16 @@ public:
         return isMarkDriven_;
     }
 
+    void SetIsMarkDrivenRender(bool isMarkDrivenRender)
+    {
+        isMarkDrivenRender_ = isMarkDrivenRender;
+    }
+
+    bool IsMarkDrivenRender() const
+    {
+        return isMarkDrivenRender_;
+    }
+
     void SetItemIndex(int index)
     {
         itemIndex_ = index;
@@ -201,16 +211,6 @@ public:
     bool IsContentChanged() const
     {
         return isContentChanged_;
-    }
-
-    void MarkDrivenVisitMode(bool flag)
-    {
-        isDrivenVisitMode_ = flag;
-    }
-
-    bool IsDrivenVisitMode() const
-    {
-        return isDrivenVisitMode_;
     }
     /////////////////////////////////////////////
 
@@ -256,9 +256,9 @@ private:
     // driven render
     int itemIndex_ = -1;
     bool isMarkDriven_ = false;
+    bool isMarkDrivenRender_ = false;
     bool paintState_ = false;
     bool isContentChanged_ = false;
-    bool isDrivenVisitMode_ = false;
 
     friend class RSRenderTransition;
     friend class RSRenderNodeMap;

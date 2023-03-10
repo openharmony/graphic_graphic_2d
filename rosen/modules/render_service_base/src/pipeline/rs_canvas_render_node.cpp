@@ -89,13 +89,8 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
     ApplyDrawCmdModifier(context, RSModifierType::TRANSITION);
     ApplyDrawCmdModifier(context, RSModifierType::ENV_FOREGROUND_COLOR);
-    
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
-    bool isDrivenVisitMode = IsMarkDriven() && IsDrivenVisitMode();
-    RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas, isDrivenVisitMode);
-#else
+
     RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas);
-#endif
     auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetBackgroundFilter());
     if (filter != nullptr) {
         RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
@@ -105,17 +100,9 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
     canvasNodeSaveCount_ = canvas.SaveCanvasAndAlpha();
     canvas.translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
 
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
-    if (!isDrivenVisitMode) { // skip clip in driven render mode
-        if (GetRenderProperties().GetClipToFrame()) {
-            RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect());
-        }
-    }
-#else
     if (GetRenderProperties().GetClipToFrame()) {
         RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect());
     }
-#endif
     ApplyDrawCmdModifier(context, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
 }
 
@@ -150,13 +137,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
     }
     RSPropertiesPainter::DrawBorder(GetRenderProperties(), canvas);
     ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);
-
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
-    bool isDrivenVisitMode = IsMarkDriven() && IsDrivenVisitMode();
-    RSPropertiesPainter::DrawForegroundColor(GetRenderProperties(), canvas, isDrivenVisitMode);
-#else
     RSPropertiesPainter::DrawForegroundColor(GetRenderProperties(), canvas);
-#endif
 }
 
 void RSCanvasRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)
@@ -200,5 +181,44 @@ void RSCanvasRenderNode::ApplyModifiers()
     GetMutableRenderProperties().backref_ = ReinterpretCastTo<RSRenderNode>();
 }
 
+void RSCanvasRenderNode::ProcessDrivenBackgroundRender(RSPaintFilterCanvas& canvas)
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    RSRenderNode::ProcessRenderBeforeChildren(canvas);
+    RSModifierContext context = { GetMutableRenderProperties(), &canvas };
+    ApplyDrawCmdModifier(context, RSModifierType::TRANSITION);
+    ApplyDrawCmdModifier(context, RSModifierType::ENV_FOREGROUND_COLOR);
+
+    RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas);
+    auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetBackgroundFilter());
+    if (filter != nullptr) {
+        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
+    }
+    ApplyDrawCmdModifier(context, RSModifierType::BACKGROUND_STYLE);
+    RSRenderNode::ProcessRenderAfterChildren(canvas);
+#endif
+}
+
+void RSCanvasRenderNode::ProcessDrivenContentRender(RSPaintFilterCanvas& canvas)
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    canvasNodeSaveCount_ = canvas.SaveCanvasAndAlpha();
+    canvas.translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
+    RSModifierContext context = { GetMutableRenderProperties(), &canvas };
+    ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
+#endif
+}
+
+void RSCanvasRenderNode::ProcessDrivenContentRenderAfterChildren(RSPaintFilterCanvas& canvas)
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    // Unresolvable bug: Driven render do not support DrawFilter/DrawBorder/FOREGROUND_STYLE/OVERLAY_STYLE
+    RSModifierContext context = { GetMutableRenderProperties(), &canvas };
+    ApplyDrawCmdModifier(context, RSModifierType::FOREGROUND_STYLE);
+
+    GetMutableRenderProperties().ResetBounds();
+    canvas.RestoreCanvasAndAlpha(canvasNodeSaveCount_);
+#endif
+}
 } // namespace Rosen
 } // namespace OHOS

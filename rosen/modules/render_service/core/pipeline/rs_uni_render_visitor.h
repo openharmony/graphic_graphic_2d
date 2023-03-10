@@ -82,6 +82,15 @@ public:
         isHardwareForcedDisabled_ = true;
     }
 
+    void SetDrivenRenderFlag(bool hasDrivenNodeOnUniTree, bool hasDrivenNodeMarkRender)
+    {
+        if (!drivenInfo_) {
+            return;
+        }
+        drivenInfo_->hasDrivenNodeOnUniTree = hasDrivenNodeOnUniTree;
+        drivenInfo_->hasDrivenNodeMarkRender = hasDrivenNodeMarkRender;
+    }
+
     void SetHardwareEnabledNodes(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
     void AssignGlobalZOrderAndCreateLayer();
 
@@ -227,16 +236,7 @@ private:
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
 
     // driven render
-    bool isDrivenRenderEnabled_ = false;
-    std::vector<DrivenCandidateTuple> backgroundCandidates_;
-    std::vector<DrivenCandidatePair> contentCandidates_;
-    bool hasInvalidDrivenRenderScene_ = false;
-    bool findContentNodeIsOnSubTree_ = false;
-    bool isPrepareContentNodeSubTree_ = false;
-    bool isPrepareLeashWinSubTree_ = false;
-    NodeId currLeashWinNodeId_ = 0;
-    DrivenUniRenderMode currDrivenRenderMode_ = DrivenUniRenderMode::RENDER_WITH_NORMAL;
-    DrivenDirtyInfo drivenDirtyInfo_;
+    std::unique_ptr<DrivenPrepareInfo> drivenInfo_ = nullptr;
 
     bool isCalcCostEnable_ = false;
 };

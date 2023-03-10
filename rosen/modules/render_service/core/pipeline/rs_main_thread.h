@@ -166,6 +166,7 @@ private:
     void Animate(uint64_t timestamp);
     void ConsumeAndUpdateAllNodes();
     void CollectInfoForHardwareComposer();
+    void CollectInfoForDrivenRender();
     void ReleaseAllNodesBuffer();
     void Render();
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
@@ -282,6 +283,10 @@ private:
     std::mutex watermarkMutex_;
     sk_sp<SkImage> watermarkImg_ = nullptr;
     bool isShow_ = false;
+
+    // driven render
+    bool hasDrivenNodeOnUniTree_ = false;
+    bool hasDrivenNodeMarkRender_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

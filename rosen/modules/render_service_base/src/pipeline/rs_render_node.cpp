@@ -221,20 +221,9 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     renderNodeSaveCount_ = canvas.SaveCanvasAndAlpha();
     auto boundsGeo = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
-
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
-    bool isDrivenVisitMode = IsMarkDriven() && IsDrivenVisitMode();
-    if (!isDrivenVisitMode) {
-        if (boundsGeo && !boundsGeo->IsEmpty()) {
-            canvas.concat(boundsGeo->GetMatrix());
-        }
-    }
-#else
     if (boundsGeo && !boundsGeo->IsEmpty()) {
         canvas.concat(boundsGeo->GetMatrix());
     }
-#endif
-
     auto alpha = renderProperties_.GetAlpha();
     if (alpha < 1.f) {
         if ((GetChildrenCount() == 0) || !GetRenderProperties().GetAlphaOffscreen()) {

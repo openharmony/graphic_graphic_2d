@@ -564,8 +564,6 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDrivenSurfaceRenderNode& 
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
     LayerRotate(layer, node);
-    LayerCrop(layer);
-    LayerScaleDown(layer);
     return layer;
 #else
     return nullptr;
