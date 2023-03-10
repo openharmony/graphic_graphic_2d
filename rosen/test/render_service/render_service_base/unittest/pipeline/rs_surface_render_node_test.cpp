@@ -148,22 +148,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetGlobalDirtyRegion, TestSize.Level1)
 }
 
 /**
- * @tc.name: ResetSurfaceOpaqueRegion01
- * @tc.desc: function test
- * @tc.type:FUNC
- * @tc.require: I68IPR
- */
-HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion01, TestSize.Level1)
-{
-    RSSurfaceRenderNode surfaceRenderNode(id, context);
-    RectI screenRect {0, 0, 2560, 1600};
-    RectI absRect {0, 100, 400, 500};
-    ContainerWindowConfigType containerWindowConfigType {ContainerWindowConfigType::ENABLED_UNFOCUSED_WINDOW_LEVEL_2};
-    surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, containerWindowConfigType, false);
-    surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, containerWindowConfigType, true);
-}
-
-/**
  * @tc.name: ResetSurfaceOpaqueRegion02
  * @tc.desc: function test
  * @tc.type:FUNC

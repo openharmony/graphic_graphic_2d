@@ -82,8 +82,6 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isOcclusionEnabled_ = RSSystemProperties::GetOcclusionEnabled();
     isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE)
         && (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_ && !isOpaqueRegionDfxEnabled_);
-    // this config may downgrade the calcOcclusion performance when windows number become huge (i.e. > 30), keep it now
-    containerWindowConfig_ = RSSystemProperties::GetContainerWindowConfig();
     isQuickSkipPreparationEnabled_ = RSSystemProperties::GetQuickSkipPrepareEnabled();
     isHardwareComposerEnabled_ = RSSystemProperties::GetHardwareComposerEnabled();
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
@@ -490,7 +488,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         node.SetDstRect(node.GetDstRect().IntersectRect(prepareClipRect_));
     }
 
-    if (node.IsMainWindowType()) {
+    if (node.IsMainWindowType() || node.IsLeashWindow()) {
         // record node position for display render node dirtyManager
         curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetDstRect());
 
@@ -1325,8 +1323,6 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
         bool isShadowDisappear = !surfaceNode->GetRenderProperties().IsShadowValid() && surfaceNode->IsShadowValidLastFrame();
         if (surfaceNode->GetRenderProperties().IsShadowValid() || isShadowDisappear) {
             RectI shadowDirtyRect = surfaceNode->GetOldDirtyInSurface().IntersectRect(surfaceDirtyRect);
-            RS_LOGD("CalcDirtyDisplayRegion merge ShadowValid %s rect %s",
-                surfaceNode->GetName().c_str(), surfaceNode->GetOldDirtyInSurface().ToString().c_str());
             // There are two situation here:
             // 1. SurfaceNode first has shadow or shadow radius is larger than the last frame,
             // surfaceDirtyRect == surfaceNode->GetOldDirtyInSurface()
@@ -1335,6 +1331,8 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
             // So we should always merge surfaceDirtyRect here.
             if (!shadowDirtyRect.IsEmpty()) {
                 displayDirtyManager->MergeDirtyRect(surfaceDirtyRect);
+                RS_LOGD("CalcDirtyDisplayRegion merge ShadowValid %s rect %s",
+                    surfaceNode->GetName().c_str(), surfaceDirtyRect.ToString().c_str());
             }
             if (isShadowDisappear) {
                 surfaceNode->SetShadowValidLastFrame(false);
