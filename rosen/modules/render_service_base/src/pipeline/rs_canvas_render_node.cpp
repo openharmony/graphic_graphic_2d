@@ -175,9 +175,8 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas)
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
 }
 
-void RSCanvasRenderNode::ApplyModifiers()
+void RSCanvasRenderNode::OnApplyModifiers()
 {
-    RSRenderNode::ApplyModifiers();
     GetMutableRenderProperties().backref_ = ReinterpretCastTo<RSRenderNode>();
 }
 

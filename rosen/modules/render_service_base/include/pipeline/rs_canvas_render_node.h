@@ -55,7 +55,7 @@ public:
     RSB_EXPORT void ProcessDrivenContentRender(RSPaintFilterCanvas& canvas);
     RSB_EXPORT void ProcessDrivenContentRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
-    void ApplyModifiers() override;
+    void OnApplyModifiers() override;
 
     RSRenderNodeType GetType() const override
     {

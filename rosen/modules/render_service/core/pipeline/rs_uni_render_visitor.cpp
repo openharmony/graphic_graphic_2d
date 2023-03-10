@@ -469,17 +469,25 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     } else {
         dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_, prepareClipRect_);
     }
-    geoPtr->ConcatMatrix(node.GetContextMatrix());
+    auto dstRect = geoPtr->GetAbsRect();
     // if expand screen, start from screen width
-    node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(curDisplayNode_->GetDisplayOffsetX(),
-        curDisplayNode_->GetDisplayOffsetY(), screenInfo_.width, screenInfo_.height)));
-
-    node.SetDstRect(RectI(node.GetDstRect().left_ - curDisplayNode_->GetDisplayOffsetX(),
-        node.GetDstRect().top_ - curDisplayNode_->GetDisplayOffsetY(),
-        node.GetDstRect().GetWidth(), node.GetDstRect().GetHeight()));
-    if (node.IsHardwareEnabledType()) {
-        node.SetDstRect(node.GetDstRect().IntersectRect(prepareClipRect_));
+    dstRect = dstRect.IntersectRect(RectI(curDisplayNode_->GetDisplayOffsetX(), curDisplayNode_->GetDisplayOffsetY(),
+        screenInfo_.width, screenInfo_.height));
+    // apply context clip rect
+    const auto& clipRect = node.GetContextClipRegion();
+    if (clipRect.width() >= 1 && clipRect.height() >= 1) {
+        // map local rect to global rect
+        auto globalClipRect = geoPtr->GetAbsMatrix().mapRect(clipRect);
+        dstRect = dstRect.IntersectRect(
+            RectI(globalClipRect.left(), globalClipRect.top(), globalClipRect.width(), globalClipRect.height()));
     }
+    dstRect = RectI(dstRect.left_ - curDisplayNode_->GetDisplayOffsetX(),
+        dstRect.top_ - curDisplayNode_->GetDisplayOffsetY(), dstRect.GetWidth(), dstRect.GetHeight());
+
+    if (node.IsHardwareEnabledType()) {
+        dstRect = dstRect.IntersectRect(prepareClipRect_);
+    }
+    node.SetDstRect(dstRect);
 
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         // record node position for display render node dirtyManager
@@ -581,6 +589,9 @@ void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
     }
     node.SetContextMatrix(contextMatrix);
     node.SetContextAlpha(curAlpha_);
+    // context clipRect should be local rect
+    auto clipRect = property.GetBoundsRect();
+    node.SetContextClipRegion(SkRect::MakeXYWH(clipRect.left_, clipRect.top_, clipRect.width_, clipRect.height_));
 
     PrepareBaseRenderNode(node);
 }
