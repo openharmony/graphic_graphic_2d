@@ -84,10 +84,6 @@ std::unique_ptr<OpItem> OpItem::GenerateCachedOpItem(SkSurface* surface) const
 
 void OpItemWithRSImage::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const
 {
-    if (!rect) {
-        RS_LOGE("OpItemWithRSImage::Draw no rect!");
-        return;
-    }
     if (rsImage_) {
         rsImage_->DrawImage(canvas, paint_);
     }
