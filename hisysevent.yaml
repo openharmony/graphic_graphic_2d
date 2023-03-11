@@ -60,3 +60,10 @@ RS_COMPOSITION_TIMEOUT:
   BUNDLE_NAME: {type: STRING, desc: RS_COMPOSITION_TIMEOUT bundle name}
   ABILITY_NAME: {type: STRING, desc: RS_COMPOSITION_TIMEOUT ability name}
   MSG: {type: STRING, desc: RS_COMPOSITION_TIMEOUT message}
+
+EPS_LCD_FREQ:
+  __BASE: {type: STATISTIC, level: MINOR, tag: PowerStats, desc: rs screen refresh rate change}
+  SOURCERATE: {type: INT32, desc: source refresh rate}
+  TARGETRATE: {type: INT32, desc: target refresh rate}
+  WIDTH: {type: INT32, desc: screen resolution width}
+  HEIGHT: {type: INT32, desc: screen resolution height}

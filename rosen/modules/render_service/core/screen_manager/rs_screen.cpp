@@ -19,6 +19,7 @@
 
 #include "platform/common/rs_log.h"
 #include "string_utils.h"
+#include "hisysevent.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,6 +36,7 @@ RSScreen::RSScreen(ScreenId id,
       producerSurface_(std::move(surface))
 {
     if (!IsVirtual()) {
+        hdrCapability_.formatCount = 0;
         name_ = "Screen_" + std::to_string(id_);
         PhysicalScreenInit();
     }
@@ -50,6 +52,7 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
       producerSurface_(configs.surface),
       screenType_(RSScreenType::VIRTUAL_TYPE_SCREEN)
 {
+    hdrCapability_.formatCount = 0;
 }
 
 RSScreen::~RSScreen() noexcept
@@ -167,6 +170,14 @@ void RSScreen::SetActiveMode(uint32_t modeId)
     if (activeMode) {
         width_ = activeMode->width;
         height_ = activeMode->height;
+        static GraphicDisplayModeInfo modeInfo;
+        if ((modeInfo.freshRate != activeMode->freshRate)
+            || modeInfo.width != activeMode->width || modeInfo.height != activeMode->height) {
+            HiSysEventWrite(HiSysEvent::Domain::GRAPHIC, "EPS_LCD_FREQ",
+                HiSysEvent::EventType::STATISTIC, "SOURCERATE", modeInfo.freshRate,
+                "TARGETRATE", activeMode->freshRate, "WIDTH", width_, "HEIGHT", height_);
+            modeInfo = activeMode.value();
+        }
     }
 }
 
@@ -590,7 +601,7 @@ int32_t RSScreen::GetScreenGamutMap(ScreenGamutMap &mode) const
 
 const GraphicHDRCapability& RSScreen::GetHDRCapability()
 {
-    hdrCapability_.maxLum = 1000; // maxLum now is mock data
+    hdrCapability_.maxLum = 1000; // mock data
     return hdrCapability_;
 }
 

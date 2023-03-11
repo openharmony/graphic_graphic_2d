@@ -402,7 +402,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreateSurface002, Function | SmallTest | Leve
     float scaleX = 0.f;
     float scaleY = 0.f;
     RSSurfaceCaptureTask task(id, scaleX, scaleY);
-    std::unique_ptr<Media::PixelMap> pixelmap = std::make_unique<Media::PixelMap>();
+    std::unique_ptr<Media::PixelMap> pixelmap = nullptr;
     ASSERT_EQ(nullptr, task.CreateSurface(pixelmap));
 }
 

@@ -34,6 +34,9 @@ public:
     uint32_t GetTaskNum();
     void Reset();
     void SetSubThreadRenderTaskLoad(uint32_t threadIdx, uint64_t loadId, float cost);
+    void UpdateNodeCost(RSDisplayRenderNode& node, std::vector<uint32_t>& parallelPolicy) const;
+    void LoadParallelPolicy(std::vector<uint32_t>& parallelPolicy);
+    void GetCostFactor(std::map<std::string, int32_t>& costFactor, std::map<int64_t, int32_t>& imageFactor) const;
     bool GetParallelRenderExtEnable()
     {
         return isParallelRenderExtEnabled_;
@@ -50,6 +53,7 @@ private:
     uint32_t taskNum_;
     bool isParallelRenderExtEnabled_;
     int* loadBalance_;
+    std::vector<uint32_t> parallelPolicy_;
 };
 } // namespace Rosen
 } // namespace OHOS

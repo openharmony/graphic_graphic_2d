@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "iconsumer_surface.h"
 #include "hdi_layer_info.h"
 #include "surface_tunnel_handle.h"
 #include "sync_fence.h"
@@ -62,7 +63,7 @@ HWTEST_F(HdiLayerInfoTest, GetZorder001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiLayerInfoTest, GetSurface001, Function | MediumTest| Level3)
 {
-    sptr<Surface> surface = nullptr;
+    sptr<IConsumerSurface> surface = nullptr;
     HdiLayerInfoTest::hdiLayerInfo_->SetSurface(surface);
     ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetSurface(), nullptr);
 }

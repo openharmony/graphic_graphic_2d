@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -80,7 +80,8 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
         AddCommonCommand(command);
         return;
     }
-    ROSEN_LOGE("RSTransactionProxy::AddCommand failed, command type and client type not match !");
+    ROSEN_LOGE("RSTransactionProxy::AddCommand failed, isRenderServiceCommand:%d %s", isRenderServiceCommand,
+        command->PrintType().c_str());
 }
 
 void RSTransactionProxy::AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
@@ -95,26 +96,21 @@ void RSTransactionProxy::AddCommandFromRT(std::unique_ptr<RSCommand>& command, N
     }
 }
 
-void RSTransactionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask)
+void RSTransactionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
-    if ((renderServiceClient_ == nullptr && renderThreadClient_ == nullptr) || task == nullptr) {
+    if (renderThreadClient_ == nullptr || task == nullptr) {
         return;
     }
-
-    if (renderThreadClient_ != nullptr && !isRenderServiceTask) {
-        renderThreadClient_->ExecuteSynchronousTask(task);
-        return;
-    }
-
-    if (renderServiceClient_ != nullptr && isRenderServiceTask) {
-        renderServiceClient_->ExecuteSynchronousTask(task);
-        return;
-    }
+    renderThreadClient_->ExecuteSynchronousTask(task);
 }
 
 void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std::string& abilityName)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
+    if (!implicitRemoteTransactionDataStack_.empty() && needSync_) {
+        return;
+    }
+
     timestamp_ = std::max(timestamp, timestamp_);
     if (renderThreadClient_ != nullptr && !implicitCommonTransactionData_->IsEmpty()) {
         implicitCommonTransactionData_->timestamp_ = timestamp_;
@@ -139,11 +135,25 @@ void RSTransactionProxy::FlushImplicitTransactionFromRT(uint64_t timestamp)
     }
 }
 
+void RSTransactionProxy::StartSyncTransaction()
+{
+    needSync_ = true;
+}
+
+void RSTransactionProxy::CloseSyncTransaction()
+{
+    needSync_ = false;
+}
+
 void RSTransactionProxy::Begin()
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
     implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
     implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    if (needSync_) {
+        implicitCommonTransactionDataStack_.top()->MarkNeedSync();
+        implicitRemoteTransactionDataStack_.top()->MarkNeedSync();
+    }
 }
 
 void RSTransactionProxy::Commit(uint64_t timestamp)
@@ -159,6 +169,58 @@ void RSTransactionProxy::Commit(uint64_t timestamp)
             renderServiceClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
         }
         implicitRemoteTransactionDataStack_.pop();
+    }
+}
+
+void RSTransactionProxy::CommitSyncTransaction(uint64_t timestamp, const std::string& abilityName)
+{
+    std::unique_lock<std::mutex> cmdLock(mutex_);
+    timestamp_ = std::max(timestamp, timestamp_);
+    if (!implicitCommonTransactionDataStack_.empty()) {
+        if (renderThreadClient_ != nullptr && !implicitCommonTransactionDataStack_.top()->IsEmpty()) {
+            implicitCommonTransactionDataStack_.top()->timestamp_ = timestamp;
+            implicitCommonTransactionDataStack_.top()->abilityName_ = abilityName;
+            implicitCommonTransactionDataStack_.top()->SetSyncId(syncId_);
+            renderThreadClient_->CommitTransaction(implicitCommonTransactionDataStack_.top());
+        }
+        implicitCommonTransactionDataStack_.pop();
+    }
+
+    if (!implicitRemoteTransactionDataStack_.empty()) {
+        if (renderServiceClient_ != nullptr && !implicitRemoteTransactionDataStack_.top()->IsEmpty()) {
+            implicitRemoteTransactionDataStack_.top()->timestamp_ = timestamp;
+            implicitRemoteTransactionDataStack_.top()->SetSyncId(syncId_);
+            renderServiceClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
+        }
+        implicitRemoteTransactionDataStack_.pop();
+    }
+}
+
+void RSTransactionProxy::MarkTransactionNeedSync()
+{
+    std::unique_lock<std::mutex> cmdLock(mutex_);
+    if (!implicitCommonTransactionDataStack_.empty()) {
+        implicitCommonTransactionDataStack_.top()->MarkNeedSync();
+    }
+
+    if (!implicitRemoteTransactionDataStack_.empty()) {
+        implicitRemoteTransactionDataStack_.top()->MarkNeedSync();
+    }
+}
+
+void RSTransactionProxy::MarkTransactionNeedCloseSync(const int32_t transactionCount)
+{
+    std::unique_lock<std::mutex> cmdLock(mutex_);
+    if (!implicitCommonTransactionDataStack_.empty()) {
+        implicitCommonTransactionDataStack_.top()->MarkNeedSync();
+        implicitCommonTransactionDataStack_.top()->MarkNeedCloseSync();
+        implicitCommonTransactionDataStack_.top()->SetSyncTransactionNum(transactionCount);
+    }
+
+    if (!implicitRemoteTransactionDataStack_.empty()) {
+        implicitRemoteTransactionDataStack_.top()->MarkNeedSync();
+        implicitRemoteTransactionDataStack_.top()->MarkNeedCloseSync();
+        implicitRemoteTransactionDataStack_.top()->SetSyncTransactionNum(transactionCount);
     }
 }
 

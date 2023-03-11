@@ -15,16 +15,16 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
+
 #include "pipeline/parallel_render/rs_parallel_pack_visitor.h"
-#include "pipeline/rs_uni_render_visitor.h"
+#include "pipeline/rs_base_render_node.h"
+#include "pipeline/rs_context.h"
+#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_root_render_node.h"
-#include "pipeline/rs_base_render_node.h"
-#include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_display_render_node.h"
-#include "pipeline/rs_context.h"
-
+#include "pipeline/rs_uni_render_visitor.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -88,6 +88,54 @@ HWTEST_F(RSParallelPackVisitorTest, ProcessPackVisitorTest, TestSize.Level1)
     rsUniRenderPackVisitor->PrepareDisplayRenderNode(*rsDisplayRenderNode);
     rsUniRenderPackVisitor->ProcessDisplayRenderNode(*rsDisplayRenderNode);
     rsUniRenderPackVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
+}
+
+/**
+ * @tc.name: CalcSurfaceRenderNodeCostTest
+ * @tc.desc: Test RSParallelPackVisitorTest.CalcSurfaceRenderNodeCostTest
+ * @tc.type: FUNC
+ * @tc.require:issueI6FZHQ
+ */
+HWTEST_F(RSParallelPackVisitorTest, CalcSurfaceRenderNodeCostTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 10;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    auto rsParallelPackVisitor = std::make_shared<RSParallelPackVisitor>();
+    rsParallelPackVisitor->CalcSurfaceRenderNodeCost(*rsSurfaceRenderNode);
+}
+
+/**
+ * @tc.name: CalcBaseRenderNodeCostTest
+ * @tc.desc: Test RSParallelPackVisitorTest.CalcDisplayRenderNodeCost
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(RSParallelPackVisitorTest, CalcDisplayRenderNodeCost, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSDisplayNodeConfig displayConfig;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
+    auto rsParallelPackVisitor = std::make_shared<RSParallelPackVisitor>();
+    rsParallelPackVisitor->CalcDisplayRenderNodeCost(*rsDisplayRenderNode);
+}
+
+/**
+ * @tc.name: IsSkipProcessingTest
+ * @tc.desc: Test RSParallelPackVisitorTest.IsSkipProcessingTest
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(RSParallelPackVisitorTest, IsSkipProcessingTest, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig config;
+    RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    auto rsParallelPackVisitor = std::make_shared<RSParallelPackVisitor>();
+    rsParallelPackVisitor->isSecurityDisplay_ = true;
+    rsSurfaceRenderNode.SetSecurityLayer(1);
+    auto result = rsParallelPackVisitor->IsSkipProcessing(rsSurfaceRenderNode);
+    ASSERT_TRUE(result);
 }
 
 } // namespace OHOS::Rosen

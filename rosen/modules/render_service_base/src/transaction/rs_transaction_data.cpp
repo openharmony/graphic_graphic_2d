@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,7 +21,6 @@
 
 namespace OHOS {
 namespace Rosen {
-#ifdef ROSEN_OHOS
 namespace {
 static constexpr size_t PARCEL_MAX_CPACITY = 2000 * 1024; // upper bound of parcel capacity
 static constexpr size_t PARCEL_SPLIT_THRESHOLD = 1800 * 1024; // should be < PARCEL_MAX_CPACITY
@@ -69,13 +68,16 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
                    ", parcel size:%zu, threshold:%zu",
             marshaledSize, marshallingIndex_, payload_.size(), parcel.GetDataSize(), PARCEL_SPLIT_THRESHOLD);
     }
+    success = success && parcel.WriteBool(needSync_);
+    success = success && parcel.WriteBool(needCloseSync_);
+    success = success && parcel.WriteInt32(syncTransactionCount_);
     success = success && parcel.WriteUint64(timestamp_);
     success = success && parcel.WriteInt32(pid_);
     success = success && parcel.WriteUint64(index_);
     success = success && parcel.WriteBool(isUniRender_);
+    success = success && parcel.WriteUint64(syncId_);
     return success;
 }
-#endif // ROSEN_OHOS
 
 void RSTransactionData::Process(RSContext& context)
 {
@@ -102,7 +104,6 @@ void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>&& command, NodeId 
     payload_.emplace_back(nodeId, followType, std::move(command));
 }
 
-#ifdef ROSEN_OHOS
 bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
 {
     Clear();
@@ -142,11 +143,12 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         }
         payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
     }
-    return parcel.ReadUint64(timestamp_) && parcel.ReadInt32(pid_) && parcel.ReadUint64(index_) &&
-        parcel.ReadBool(isUniRender_);
+    int32_t pid;
+    return parcel.ReadBool(needSync_) && parcel.ReadBool(needCloseSync_) && parcel.ReadInt32(syncTransactionCount_) &&
+        parcel.ReadUint64(timestamp_) && parcel.ReadInt32(pid) && ({pid_ = pid; true;}) &&
+        parcel.ReadUint64(index_) && parcel.ReadBool(isUniRender_) && parcel.ReadUint64(syncId_);
 }
 
-#endif // ROSEN_OHOS
 
 } // namespace Rosen
 } // namespace OHOS

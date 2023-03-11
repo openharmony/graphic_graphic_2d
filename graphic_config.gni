@@ -21,13 +21,23 @@ declare_args() {
   graphic_standard_feature_enable_afbc = false
   graphic_standard_feature_freemem_enable = false
   graphic_standard_feature_parallel_render_enable = true
+  graphic_standard_feature_enable_vulkan = false
 }
 
+gpu_defines = []
+accessibility_defines = []
 if (graphic_standard_feature_ace_enable_gpu) {
-  gpu_defines = [
-    "ACE_ENABLE_GL",
-    "RS_ENABLE_GL",
-  ]
+  if (graphic_standard_feature_enable_vulkan) {
+    gpu_defines += [
+      "ACE_ENABLE_VK",
+      "RS_ENABLE_VK",
+    ]
+  } else {
+    gpu_defines += [
+      "ACE_ENABLE_GL",
+      "RS_ENABLE_GL",
+    ]
+  }
   ace_enable_gpu = true
   rs_enable_gpu = true
   surface_enable_gpu = true
@@ -38,15 +48,25 @@ if (graphic_standard_feature_ace_enable_gpu) {
     "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
     "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
   ]
+
+  libvulkan = []
+  if (graphic_standard_feature_enable_vulkan) {
+    libvulkan += [
+      "//third_party/flutter/engine/flutter/vulkan:vulkan_flutter",
+      "//foundation/graphic/graphic_2d/frameworks/vulkan_wrapper:vulkan",
+    ]
+  }
 } else {
   gpu_defines = [ "ACE_DISABLE_GL" ]
   ace_enable_gpu = false
   rs_enable_gpu = false
   surface_enable_gpu = false
   libgl = []
+  libvulkan = []
 }
 
-if (graphic_standard_feature_rs_enable_eglimage) {
+if (graphic_standard_feature_rs_enable_eglimage &&
+    !graphic_standard_feature_enable_vulkan) {
   gpu_defines += [
     "RS_ENABLE_EGLIMAGE",
     "RS_ENABLE_EGLQUERYSURFACE",
@@ -58,10 +78,17 @@ if (graphic_standard_feature_rs_enable_eglimage) {
 }
 
 if (graphic_standard_feature_rs_enable_uni_render) {
-  gpu_defines += [ "RS_ENABLE_UNI_RENDER" ]
+  rs_enable_driven_render = true
+  gpu_defines += [
+    "RS_ENABLE_DRIVEN_RENDER",
+    "RS_ENABLE_UNI_RENDER",
+  ]
+} else {
+  rs_enable_driven_render = false
 }
 
-if (graphic_standard_feature_enable_afbc) {
+if (graphic_standard_feature_enable_afbc &&
+    !graphic_standard_feature_enable_vulkan) {
   gpu_defines += [ "RS_ENABLE_AFBC" ]
 }
 
@@ -82,4 +109,13 @@ if (exec_script(check_graphic_ext_file_script,
   graphic_2d_ext_configs = {
     import("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni")
   }
+}
+
+graphic_2d_root = "//foundation/graphic/graphic_2d"
+
+accessibility_enable = false
+if (defined(global_parts_info) &&
+    defined(global_parts_info.barrierfree_accessibility)) {
+  accessibility_enable = true
+  accessibility_defines = [ "ACCESSIBILITY_ENABLE" ]
 }

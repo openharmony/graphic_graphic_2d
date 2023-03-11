@@ -23,7 +23,7 @@
 template<typename ...Args>
 void PrintLogE(const std::string &func, const std::string &format, Args... args)
 {
-    std::string prefix = "[%s]";
+    std::string prefix = "[%{public}s]";
     std::string formatFull = prefix + format;
     OHOS::HiviewDFX::HiLogLabel label {LOG_CORE, 0xD001400, "WebGL"};
     OHOS::HiviewDFX::HiLog::Error(label, formatFull.c_str(), func.c_str(), args...);
@@ -32,7 +32,7 @@ void PrintLogE(const std::string &func, const std::string &format, Args... args)
 template<typename ...Args>
 void PrintLogI(const std::string &func, const std::string &format, Args... args)
 {
-    std::string prefix = "[%s]";
+    std::string prefix = "[%{public}s]";
     std::string formatFull = prefix + format;
     OHOS::HiviewDFX::HiLogLabel label {LOG_CORE, 0xD001400, "WebGL"};
     OHOS::HiviewDFX::HiLog::Info(label, formatFull.c_str(), func.c_str(), args...);

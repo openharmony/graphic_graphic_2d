@@ -48,41 +48,6 @@ static inline int RotateEnumToInt(ScreenRotation rotation)
     return iter != screenRotationEnumToIntMap.end() ? iter->second : 0;
 }
 
-static inline int RotateEnumToInt(GraphicTransformType rotation)
-{
-    static const std::map<GraphicTransformType, int> transformTypeEnumToIntMap = {
-        {GraphicTransformType::GRAPHIC_ROTATE_NONE, 0}, {GraphicTransformType::GRAPHIC_ROTATE_90, 90},
-        {GraphicTransformType::GRAPHIC_ROTATE_180, 180}, {GraphicTransformType::GRAPHIC_ROTATE_270, 270}};
-    auto iter = transformTypeEnumToIntMap.find(rotation);
-    return iter != transformTypeEnumToIntMap.end() ? iter->second : 0;
-}
-
-static inline GraphicTransformType RotateEnumToInt(int angle,
-    GraphicTransformType flip = GraphicTransformType::GRAPHIC_ROTATE_NONE)
-{
-    static const std::map<int, GraphicTransformType> intToEnumMap = {
-        {0, GraphicTransformType::GRAPHIC_ROTATE_NONE}, {90, GraphicTransformType::GRAPHIC_ROTATE_270},
-        {180, GraphicTransformType::GRAPHIC_ROTATE_180}, {270, GraphicTransformType::GRAPHIC_ROTATE_90}};
-     static const std::map<std::pair<int, GraphicTransformType>, GraphicTransformType> pairToEnumMap = {
-        {{0, GraphicTransformType::GRAPHIC_FLIP_H}, GraphicTransformType::GRAPHIC_FLIP_H},
-        {{0, GraphicTransformType::GRAPHIC_FLIP_V}, GraphicTransformType::GRAPHIC_FLIP_V},
-        {{90, GraphicTransformType::GRAPHIC_FLIP_H}, GraphicTransformType::GRAPHIC_FLIP_V_ROT90},
-        {{90, GraphicTransformType::GRAPHIC_FLIP_V}, GraphicTransformType::GRAPHIC_FLIP_H_ROT90},
-        {{180, GraphicTransformType::GRAPHIC_FLIP_H}, GraphicTransformType::GRAPHIC_FLIP_V},
-        {{180, GraphicTransformType::GRAPHIC_FLIP_V}, GraphicTransformType::GRAPHIC_FLIP_H},
-        {{270, GraphicTransformType::GRAPHIC_FLIP_H}, GraphicTransformType::GRAPHIC_FLIP_H_ROT90},
-        {{270, GraphicTransformType::GRAPHIC_FLIP_V}, GraphicTransformType::GRAPHIC_FLIP_V_ROT90},
-    };
-
-    if (flip != GraphicTransformType::GRAPHIC_FLIP_H && flip != GraphicTransformType::GRAPHIC_FLIP_V) {
-        auto iter = intToEnumMap.find(angle);
-        return iter != intToEnumMap.end() ? iter->second : GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    } else {
-        auto iter = pairToEnumMap.find({angle, flip});
-        return iter != pairToEnumMap.end() ? iter->second : GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    }
-}
-
 using FallbackCallback = std::function<void(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers)>;
 class RSComposerAdapter {
 public:
@@ -110,7 +75,7 @@ private:
     static void SetComposeInfoToLayer(
         const LayerInfoPtr& layer,
         const ComposeInfo& info,
-        const sptr<Surface>& surface,
+        const sptr<IConsumerSurface>& surface,
         RSBaseRenderNode* node);
     void DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const;
     void DumpLayersToFile(const std::vector<LayerInfoPtr>& layers);
@@ -118,7 +83,7 @@ private:
     void LayerRotate(const LayerInfoPtr& layer, RSBaseRenderNode& node) const;
     void LayerCrop(const LayerInfoPtr& layer) const;
     static void LayerScaleDown(const LayerInfoPtr& layer);
-    static void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface);
+    static void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<IConsumerSurface>& surface);
 
     void OnPrepareComplete(sptr<Surface>& surface, const PrepareCompleteParam& param, void* data);
     static void GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node);

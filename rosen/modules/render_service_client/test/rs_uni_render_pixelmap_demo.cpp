@@ -163,7 +163,7 @@ int main()
     rsUiDirector->SendMessages();
     sleep(2);
 
-    cout << "rs pixelmap demo stage 4: repeated drawing" << endl;
+    cout << "rs pixelmap demo stage 4: repeated drawing skImage" << endl;
     auto skimg = RSPixelMapUtil::ExtractSkImage(pixelmap);
     if (!skimg) {
         return -1;
@@ -172,6 +172,16 @@ int main()
         auto cvs = static_cast<RSRecordingCanvas*>(canvasNode->BeginRecording(600, 1200));
         cvs->translate(i * 10, i * 10);
         cvs->DrawImageWithParm(skimg, nullptr, rsImageInfo, paint);
+        canvasNode->FinishRecording();
+        rsUiDirector->SendMessages();
+        usleep(150000);
+    }
+
+    cout << "rs pixelmap demo stage 5: repeated drawing pixelMap" << endl;
+    for (int i = 0; i < 120; i++) {
+        auto cvs = static_cast<RSRecordingCanvas*>(canvasNode->BeginRecording(600, 1200));
+        cvs->translate(i * 10, i * 10);
+        cvs->DrawPixelMapWithParm(pixelmap, rsImageInfo, paint);
         canvasNode->FinishRecording();
         rsUiDirector->SendMessages();
         usleep(150000);

@@ -527,6 +527,19 @@ GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBuffer> &buffer, const sptr<SyncF
                 return GSERROR_NO_ENTRY;
             }
         }
+
+        bufferQueueCache_[sequence].state = BUFFER_STATE_RELEASED;
+        bufferQueueCache_[sequence].fence = fence;
+
+        if (bufferQueueCache_[sequence].isDeleting) {
+            DeleteBufferInCache(sequence);
+            BLOGND("Succ delete Buffer seq id: %{public}d Queue id: %{public}" PRIu64 " in cache", sequence, uniqueId_);
+        } else {
+            freeList_.push_back(sequence);
+            BLOGND("Succ push Buffer seq id: %{public}d Qid: %{public}" PRIu64 " to free list, releaseFence: %{public}d",
+                sequence, uniqueId_, fence->Get());
+        }
+        waitReqCon_.notify_all();
     }
 
     if (onBufferRelease != nullptr) {
@@ -538,23 +551,6 @@ GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBuffer> &buffer, const sptr<SyncF
         }
     }
 
-    std::lock_guard<std::mutex> lockGuard(mutex_);
-    if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-        BLOGN_FAILURE_ID(sequence, "not find in cache, Queue id: %{public}" PRIu64 "", uniqueId_);
-        return GSERROR_NO_ENTRY;
-    }
-    bufferQueueCache_[sequence].state = BUFFER_STATE_RELEASED;
-    bufferQueueCache_[sequence].fence = fence;
-
-    if (bufferQueueCache_[sequence].isDeleting) {
-        DeleteBufferInCache(sequence);
-        BLOGND("Succ delete Buffer seq id: %{public}d Queue id: %{public}" PRIu64 " in cache", sequence, uniqueId_);
-    } else {
-        freeList_.push_back(sequence);
-        BLOGND("Succ push Buffer seq id: %{public}d Qid: %{public}" PRIu64 " to free list, releaseFence: %{public}d",
-            sequence, uniqueId_, fence->Get());
-    }
-    waitReqCon_.notify_all();
     return GSERROR_OK;
 }
 

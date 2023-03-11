@@ -18,6 +18,7 @@
 #include <memory>
 #include <unordered_set>
 
+#include "memory/MemoryTrack.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_node.h"
 
@@ -41,20 +42,33 @@ public:
 
     void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
+    void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas) override;
+    void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas) override;
+    void ProcessRenderContents(RSPaintFilterCanvas& canvas) override;
+    void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
+    void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override;
 
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
+
+    RSB_EXPORT void ProcessDrivenBackgroundRender(RSPaintFilterCanvas& canvas);
+    RSB_EXPORT void ProcessDrivenContentRender(RSPaintFilterCanvas& canvas);
+    RSB_EXPORT void ProcessDrivenContentRenderAfterChildren(RSPaintFilterCanvas& canvas);
+
+    void OnApplyModifiers() override;
 
     RSRenderNodeType GetType() const override
     {
         return RSRenderNodeType::CANVAS_NODE;
     }
 private:
-    void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
+    void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type) const;
+    void InternalDrawContent(RSPaintFilterCanvas& canvas);
 
     std::pair<int, int> canvasNodeSaveCount_ = { 0, 0 };
 
     friend class RSRenderTransition;
+    friend class RSPropertiesPainter;
 };
 } // namespace Rosen
 } // namespace OHOS

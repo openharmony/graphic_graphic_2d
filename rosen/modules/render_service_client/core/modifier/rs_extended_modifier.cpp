@@ -21,7 +21,6 @@
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_recording_canvas.h"
-#include "ui/rs_canvas_node.h"
 
 namespace OHOS {
 namespace Rosen {

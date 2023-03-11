@@ -44,32 +44,6 @@ void RSClientTest::SetUp() {}
 void RSClientTest::TearDown() {}
 
 /**
- * @tc.name: SetRenderModeChangeCallback Test
- * @tc.desc: SetRenderModeChangeCallback Test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientTest, SetRenderModeChangeCallback_Test, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    RenderModeChangeCallback cb = [](bool flag) {};
-    int32_t ret = rsClient->SetRenderModeChangeCallback(cb);
-    ASSERT_EQ(ret, 0);
-}
-
-/**
- * @tc.name: UpdateRenderMode Test
- * @tc.desc: UpdateRenderMode Test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientTest, UpdateRenderMode_Test, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    rsClient->UpdateRenderMode(true);
-}
-
-/**
  * @tc.name: CreateNode Test
  * @tc.desc: CreateNode Test
  * @tc.type:FUNC

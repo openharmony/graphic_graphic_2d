@@ -64,7 +64,6 @@ ohos_shared_library("surface") {
     "src/native_buffer.cpp",
     "src/native_window.cpp",
     "src/producer_surface.cpp",
-    "src/surface.cpp",
     "src/surface_buffer_impl.cpp",
     "src/surface_delegate.cpp",
     "src/surface_tunnel_handle.cpp",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,7 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 
-#include "overdraw/rs_overdraw_controller.h"
+#include "platform/ohos/overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
@@ -79,9 +79,9 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareBaseRenderNode001, TestSize.Level1)
 HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode001, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
-    RSCanvasRenderNode node(nodeId);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.PrepareCanvasRenderNode(node);
+    auto node = std::make_shared<RSCanvasRenderNode>(nodeId);
+    std::shared_ptr<RSRenderThreadVisitor> rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->PrepareCanvasRenderNode(*node);
 }
 
 /**
@@ -93,11 +93,11 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode001, TestSize.Level1)
 HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode002, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
-    RSCanvasRenderNode node(nodeId);
-    node.GetMutableRenderProperties().SetAlpha(0);
-    node.GetMutableRenderProperties().SetVisible(false);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.PrepareCanvasRenderNode(node);
+    auto node = std::make_shared<RSCanvasRenderNode>(nodeId);
+    node->GetMutableRenderProperties().SetAlpha(0);
+    node->GetMutableRenderProperties().SetVisible(false);
+    std::shared_ptr<RSRenderThreadVisitor> rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->PrepareCanvasRenderNode(*node);
 }
 
 /**
@@ -113,7 +113,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode003, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     node->AddChild(surfaceRenderNode, -1);
-    std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    std::shared_ptr<RSRenderThreadVisitor> rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->PrepareCanvasRenderNode(*node);
 }
 
@@ -126,10 +126,10 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode003, TestSize.Level1)
 HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode004, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
-    RSCanvasRenderNode node(nodeId);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.SetPartialRenderStatus(PartialRenderType::SET_DAMAGE_AND_DROP_OP, false);
-    rsRenderThreadVisitor.PrepareCanvasRenderNode(node);
+    auto node = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->SetPartialRenderStatus(PartialRenderType::SET_DAMAGE_AND_DROP_OP, false);
+    rsRenderThreadVisitor->PrepareCanvasRenderNode(*node);
 }
 
 /**
@@ -141,9 +141,9 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode004, TestSize.Level1)
 HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode005, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    RSCanvasRenderNode node(nodeId);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.PrepareCanvasRenderNode(node);
+    auto node = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->PrepareCanvasRenderNode(*node);
 }
 
 /**
@@ -159,8 +159,8 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode006, TestSize.Level1)
     constexpr NodeId nodeId2 = TestSrc::limitNumber::Uint64[2];
     std::shared_ptr<RSRootRenderNode> rootnode = std::make_shared<RSRootRenderNode>(nodeId2);
     rootnode->AddChild(node);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.PrepareCanvasRenderNode(*node);
+    auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->PrepareCanvasRenderNode(*node);
 }
 
 /**
@@ -172,9 +172,9 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode006, TestSize.Level1)
 HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode001, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
-    RSRootRenderNode node(nodeId);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.PrepareRootRenderNode(node);
+    auto node = std::make_shared<RSRootRenderNode>(nodeId);
+    auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->PrepareRootRenderNode(*node);
 }
 
 /**
@@ -186,24 +186,24 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode001, TestSize.Level1)
 HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode002, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
-    RSRootRenderNode node(nodeId);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.PrepareRootRenderNode(node);
+    auto node = std::make_shared<RSRootRenderNode>(nodeId);
+    auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->PrepareRootRenderNode(*node);
 
     RSSurfaceNodeConfig config;
     auto surfaceNode = RSSurfaceNode::Create(config);
-    node.AttachRSSurfaceNode(surfaceNode->GetId());
-    node.SetEnableRender(false);
-    rsRenderThreadVisitor.PrepareRootRenderNode(node);
-    node.SetEnableRender(true);
-    node.UpdateSuggestedBufferSize(0, 0);
-    rsRenderThreadVisitor.PrepareRootRenderNode(node);
-    node.UpdateSuggestedBufferSize(0, 1);
-    rsRenderThreadVisitor.PrepareRootRenderNode(node);
-    node.UpdateSuggestedBufferSize(1, 0);
-    rsRenderThreadVisitor.PrepareRootRenderNode(node);
-    node.UpdateSuggestedBufferSize(1, 1);
-    rsRenderThreadVisitor.PrepareRootRenderNode(node);
+    node->AttachRSSurfaceNode(surfaceNode->GetId());
+    node->SetEnableRender(false);
+    rsRenderThreadVisitor->PrepareRootRenderNode(*node);
+    node->SetEnableRender(true);
+    node->UpdateSuggestedBufferSize(0, 0);
+    rsRenderThreadVisitor->PrepareRootRenderNode(*node);
+    node->UpdateSuggestedBufferSize(0, 1);
+    rsRenderThreadVisitor->PrepareRootRenderNode(*node);
+    node->UpdateSuggestedBufferSize(1, 0);
+    rsRenderThreadVisitor->PrepareRootRenderNode(*node);
+    node->UpdateSuggestedBufferSize(1, 1);
+    rsRenderThreadVisitor->PrepareRootRenderNode(*node);
 }
 
 /**
@@ -215,9 +215,9 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode002, TestSize.Level1)
 HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode003, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
-    RSRootRenderNode node(nodeId);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.PrepareRootRenderNode(node);
+    auto node = std::make_shared<RSRootRenderNode>(nodeId);
+    auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->PrepareRootRenderNode(*node);
 }
 
 /**
@@ -229,9 +229,9 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode003, TestSize.Level1)
 HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode004, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
-    RSRootRenderNode node(nodeId);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.PrepareRootRenderNode(node);
+    auto node = std::make_shared<RSRootRenderNode>(nodeId);
+    auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->PrepareRootRenderNode(*node);
 }
 
 /**
@@ -507,7 +507,6 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode007, TestSize.Level1)
     rootnode->Process(rsRenderThreadVisitor);
     rsRenderThreadVisitor->SetPartialRenderStatus(PartialRenderType::SET_DAMAGE, true);
     rootnode->UpdateSuggestedBufferSize(10, 10);
-    rootnode->GetDirtyManager()->UpdateDirtyCanvasNodes(nodeId, rootnode->GetOldDirty());
     constexpr NodeId nodeId2 = TestSrc::limitNumber::Uint64[1];
     auto canvasnode = std::make_shared<RSCanvasRenderNode>(nodeId2);
     canvasnode->GetMutableRenderProperties().SetAlpha(1.f);

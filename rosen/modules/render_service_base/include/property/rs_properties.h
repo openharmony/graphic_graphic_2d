@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,7 +32,8 @@
 
 namespace OHOS {
 namespace Rosen {
-class RS_EXPORT RSProperties final {
+class RSRenderNode;
+class RSB_EXPORT RSProperties final {
 public:
     RSProperties();
     virtual ~RSProperties();
@@ -87,10 +88,12 @@ public:
     void SetRotation(float degree);
     void SetRotationX(float degree);
     void SetRotationY(float degree);
+    void SetCameraDistance(float cameraDistance);
     Quaternion GetQuaternion() const;
     float GetRotation() const;
     float GetRotationX() const;
     float GetRotationY() const;
+    float GetCameraDistance() const;
 
     void SetTranslate(Vector2f translate);
     void SetTranslateX(float translate);
@@ -159,7 +162,8 @@ public:
     void SetShadowAlpha(float alpha);
     void SetShadowElevation(float radius);
     void SetShadowRadius(float radius);
-    void SetShadowPath(std::shared_ptr<RSPath> shadowpath);
+    void SetShadowPath(std::shared_ptr<RSPath> shadowPath);
+    void SetShadowMask(bool shadowMask);
     Color GetShadowColor() const;
     float GetShadowOffsetX() const;
     float GetShadowOffsetY() const;
@@ -167,13 +171,14 @@ public:
     float GetShadowElevation() const;
     float GetShadowRadius() const;
     std::shared_ptr<RSPath> GetShadowPath() const;
+    bool GetShadowMask() const;
     bool IsShadowValid() const;
 
     void SetFrameGravity(Gravity gravity);
     Gravity GetFrameGravity() const;
 
-    void SetOverlayBounds(std::shared_ptr<RectI> rect);
-    std::shared_ptr<RectI> GetOverlayBounds() const;
+    void SetOverlayBounds(std::shared_ptr<RectF> rect);
+    std::shared_ptr<RectF> GetOverlayBounds() const;
 
     void SetClipBounds(std::shared_ptr<RSPath> path);
     std::shared_ptr<RSPath> GetClipBounds() const;
@@ -190,6 +195,15 @@ public:
     void SetMask(std::shared_ptr<RSMask> mask);
     std::shared_ptr<RSMask> GetMask() const;
 
+    void SetPixelStretch(Vector4f stretchSize);
+    Vector4f GetPixelStretch() const;
+
+    bool IsPixelStretchValid() const;
+
+    bool IsPixelStretchExpanded() const;
+
+    RectI GetPixelStretchDirtyRect() const;
+
     const std::shared_ptr<RSObjGeometry>& GetBoundsGeometry() const;
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, Vector2f& offset);
@@ -199,6 +213,13 @@ public:
 
     bool IsGeoDirty() const;
 
+    void SetSpherize(float spherizeDegree);
+    float GetSpherize() const;
+    bool IsSpherizeValid() const;
+
+    void SetLightUpEffect(float lightUpEffectDegree);
+    float GetLightUpEffect() const;
+    bool IsLightUpEffectValid() const;
 private:
     void Reset();
     void SetDirty();
@@ -212,6 +233,8 @@ private:
     RRect GetRRect() const;
     RRect GetInnerRRect() const;
     RectI GetDirtyRect() const;
+    // added for update dirty region dfx
+    RectI GetDirtyRect(RectI& overlayRect) const;
 
     bool visible_ = true;
     bool clipToBounds_ = false;
@@ -223,7 +246,7 @@ private:
 
     Gravity frameGravity_ = Gravity::DEFAULT;
 
-    std::shared_ptr<RectI> overlayRect_ = nullptr;
+    std::shared_ptr<RectF> overlayRect_ = nullptr;
 
     float alpha_ = 1.f;
     bool alphaOffscreen_ = true;
@@ -240,6 +263,12 @@ private:
     std::shared_ptr<RSMask> mask_ = nullptr;
     std::unique_ptr<RSShadow> shadow_ = nullptr;
     std::unique_ptr<Matrix3f> sublayerTransform_ = nullptr;
+    float spherizeDegree_ = 0.f;
+    float lightUpEffectDegree_ = 1.0f;
+
+    std::weak_ptr<RSRenderNode> backref_;
+
+    std::unique_ptr<Vector4f> pixelStretch_ = nullptr;
 
     friend class RSCanvasRenderNode;
     friend class RSPropertiesPainter;

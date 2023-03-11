@@ -85,6 +85,11 @@ float RSModifierExtractor::GetRotationY() const
     GET_PROPERTY_FROM_MODIFIERS(float, ROTATION_Y, 0.f, +=);
 }
 
+float RSModifierExtractor::GetCameraDistance() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, CAMERA_DISTANCE, -8.f, =);
+}
+
 Vector2f RSModifierExtractor::GetTranslate() const
 {
     GET_PROPERTY_FROM_MODIFIERS(Vector2f, TRANSLATE, Vector2f(0.f, 0.f), +=);
@@ -221,6 +226,11 @@ std::shared_ptr<RSPath> RSModifierExtractor::GetShadowPath() const
     GET_PROPERTY_FROM_MODIFIERS(std::shared_ptr<RSPath>, SHADOW_PATH, nullptr, =);
 }
 
+bool RSModifierExtractor::GetShadowMask() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(bool, SHADOW_MASK, false, =);
+}
+
 Gravity RSModifierExtractor::GetFrameGravity() const
 {
     GET_PROPERTY_FROM_MODIFIERS(Gravity, FRAME_GRAVITY, Gravity::DEFAULT, =);
@@ -249,6 +259,16 @@ bool RSModifierExtractor::GetVisible() const
 std::shared_ptr<RSMask> RSModifierExtractor::GetMask() const
 {
     GET_PROPERTY_FROM_MODIFIERS(std::shared_ptr<RSMask>, MASK, nullptr, =);
+}
+
+float RSModifierExtractor::GetSpherizeDegree() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, SPHERIZE, 0.f, =);
+}
+
+float RSModifierExtractor::GetLightUpEffectDegree() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, LIGHT_UP_EFFECT, 0.f, =);
 }
 
 std::string RSModifierExtractor::Dump() const

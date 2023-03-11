@@ -23,6 +23,7 @@
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
 #include "external_window.h"
+#include "iconsumer_surface.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -36,7 +37,7 @@ public:
     bool GetData(sptr<SurfaceBuffer> &buffer);
     pid_t ChildProcessMain();
 
-    static inline sptr<OHOS::Surface> cSurface = nullptr;
+    static inline sptr<OHOS::IConsumerSurface> cSurface = nullptr;
     static inline int32_t pipeFd[2] = {};
     static inline int32_t ipcSystemAbilityID = 34156;
 };
@@ -215,7 +216,7 @@ HWTEST_F(NativeWindowBufferTest, Surface001, Function | MediumTest | Level2)
     int32_t rett = Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
     ASSERT_EQ(rett, Security::AccessToken::RET_SUCCESS);
 
-    cSurface = Surface::CreateSurfaceAsConsumer("test");
+    cSurface = IConsumerSurface::Create("test");
     cSurface->RegisterConsumerListener(this);
     auto producer = cSurface->GetProducer();
     auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();

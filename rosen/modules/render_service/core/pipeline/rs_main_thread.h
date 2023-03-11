@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,7 +33,6 @@
 #include "common/rs_thread_looper.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
-#include "ipc_callbacks/rs_irender_mode_change_callback.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/drawing/rs_vsync_client.h"
@@ -41,7 +40,9 @@
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS::Rosen {
+#if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
+#endif
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -128,6 +129,10 @@ public:
     void WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node);
     void NotifyDisplayNodeBufferReleased();
 
+    // driven render
+    void NotifyDrivenRenderFinish();
+    void WaitUtilDrivenRenderFinished();
+
     void ClearTransactionDataPidInfo(pid_t remotePid);
     void AddTransactionDataPidInfo(pid_t remotePid);
 
@@ -139,8 +144,12 @@ public:
     void SetDirtyFlag();
     void ForceRefreshForUni();
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
-    void DumpMem(std::string& result);
+    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result);
     void SetAppWindowNum(uint32_t num);
+    void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
+    sk_sp<SkImage> GetWatermarkImg();
+    bool GetWatermarkFlag();
+    void AddActivePid(pid_t pid);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -157,6 +166,7 @@ private:
     void Animate(uint64_t timestamp);
     void ConsumeAndUpdateAllNodes();
     void CollectInfoForHardwareComposer();
+    void CollectInfoForDrivenRender();
     void ReleaseAllNodesBuffer();
     void Render();
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
@@ -175,6 +185,9 @@ private:
     void ResetSortedChildren(std::shared_ptr<RSBaseRenderNode> node);
 
     void ClassifyRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
+    void ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid);
+    void ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid);
+    void ProcessAllSyncTransactionDatas();
     void ProcessCommandForDividedRender();
     void ProcessCommandForUniRender();
     void WaitUntilUnmarshallingTaskFinished();
@@ -199,6 +212,8 @@ private:
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
     // Collect pids of surfaceview's update(ConsumeAndUpdateAllNodes), effective commands(processCommand) and Animate
     std::unordered_set<pid_t> activeProcessPids_;
+    std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> syncTransactionDatas_;
+    int32_t syncTransactionCount_ { 0 };
 
     TransactionDataMap cachedTransactionDataMap_;
     TransactionDataIndexMap effectiveTransactionDataIndexMap_;
@@ -229,6 +244,12 @@ private:
     bool displayNodeBufferReleased_ = false;
     // used for stalling mainThread before displayNode has no freed buffer to request
     std::condition_variable displayNodeBufferReleasedCond_;
+
+    // driven render
+    mutable std::mutex drivenRenderMutex_;
+    bool drivenRenderFinished_ = false;
+    std::condition_variable drivenRenderCond_;
+
     std::map<uint32_t, bool> lastPidVisMap_;
     VisibleData lastVisVec_;
     bool qosPidCal_ = false;
@@ -248,13 +269,24 @@ private:
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
     std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
     RSEventManager rsEventManager_;
+#if defined(ACCESSIBILITY_ENABLE)
     std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
+#endif
 
     // used for hardware enabled case
     bool doDirectComposition_ = true;
     bool isHardwareEnabledBufferUpdated_ = false;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
+
+    // used for watermark
+    std::mutex watermarkMutex_;
+    sk_sp<SkImage> watermarkImg_ = nullptr;
+    bool isShow_ = false;
+
+    // driven render
+    bool hasDrivenNodeOnUniTree_ = false;
+    bool hasDrivenNodeMarkRender_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

@@ -45,6 +45,24 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 {
     renderNodeMap_.erase(id);
     surfaceNodeMap_.erase(id);
+    drivenRenderNodeMap_.erase(id);
+}
+
+void RSRenderNodeMap::AddDrivenRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr)
+{
+    NodeId id = nodePtr->GetId();
+    if (renderNodeMap_.find(id) == renderNodeMap_.end()) {
+        return;
+    }
+    if (drivenRenderNodeMap_.find(id) != drivenRenderNodeMap_.end()) {
+        return;
+    }
+    drivenRenderNodeMap_.emplace(id, nodePtr->ReinterpretCastTo<RSRenderNode>());
+}
+
+void RSRenderNodeMap::RemoveDrivenRenderNode(NodeId id)
+{
+    drivenRenderNodeMap_.erase(id);
 }
 
 void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
@@ -68,6 +86,10 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         return ExtractPid(pair.first) == pid;
     });
 
+    EraseIf(drivenRenderNodeMap_, [pid](const auto& pair) -> bool {
+        return ExtractPid(pair.first) == pid;
+    });
+
     auto it = renderNodeMap_.find(0);
     if (it != renderNodeMap_.end()) {
         auto fallbackNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(it->second);
@@ -88,6 +110,13 @@ void RSRenderNodeMap::TraversalNodes(std::function<void (const std::shared_ptr<R
 void RSRenderNodeMap::TraverseSurfaceNodes(std::function<void (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const
 {
     for (const auto& [_, node] : surfaceNodeMap_) {
+        func(node);
+    }
+}
+
+void RSRenderNodeMap::TraverseDrivenRenderNodes(std::function<void (const std::shared_ptr<RSRenderNode>&)> func) const
+{
+    for (const auto& [_, node] : drivenRenderNodeMap_) {
         func(node);
     }
 }

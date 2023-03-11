@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_BASE_RENDER_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_BASE_RENDER_NODE_H
 
+#include <atomic>
 #include <list>
 #include <memory>
 
@@ -27,7 +28,7 @@ class RSContext;
 class RSNodeVisitor;
 class RSCommand;
 
-class RS_EXPORT RSBaseRenderNode : public std::enable_shared_from_this<RSBaseRenderNode> {
+class RSB_EXPORT RSBaseRenderNode : public std::enable_shared_from_this<RSBaseRenderNode> {
 public:
     using WeakPtr = std::weak_ptr<RSBaseRenderNode>;
     using SharedPtr = std::shared_ptr<RSBaseRenderNode>;
@@ -120,7 +121,7 @@ public:
 
     // type-safe reinterpret_cast
     template<typename T>
-    bool IsInstanceOf()
+    bool IsInstanceOf() const
     {
         constexpr uint32_t targetType = static_cast<uint32_t>(T::Type);
         return (static_cast<uint32_t>(GetType()) & targetType) == targetType;
@@ -168,13 +169,13 @@ public:
 
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
+    void SetDirty();
 protected:
     enum class NodeDirty {
         CLEAN = 0,
         DIRTY,
     };
     void SetClean();
-    void SetDirty();
 
     void DumpNodeType(std::string& out) const;
 

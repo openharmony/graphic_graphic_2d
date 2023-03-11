@@ -117,7 +117,7 @@ void RSBorder::SetStyleFour(Vector4<uint32_t> style)
 Vector4<Color> RSBorder::GetColorFour() const
 {
     if (colors_.size() == 4) {
-        return  Vector4<Color>(colors_[0], colors_[1], colors_[2], colors_[3]);
+        return Vector4<Color>(colors_[0], colors_[1], colors_[2], colors_[3]);
     } else {
         return Vector4<Color>(GetColor());
     }

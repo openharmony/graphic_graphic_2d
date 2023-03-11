@@ -19,6 +19,7 @@
 #include <iservice_registry.h>
 #include <surface.h>
 #include "accesstoken_kit.h"
+#include "iconsumer_surface.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
 
@@ -34,7 +35,7 @@ public:
     bool GetData(sptr<SurfaceBuffer> &buffer);
     pid_t ChildProcessMain();
 
-    static inline sptr<Surface> cSurface = nullptr;
+    static inline sptr<IConsumerSurface> cSurface = nullptr;
     static inline int32_t pipeFd[2] = {};
     static inline int32_t ipcSystemAbilityID = 34156;
     static inline BufferRequestConfig requestConfig = {};
@@ -192,7 +193,7 @@ HWTEST_F(SurfaceIPCTest, BufferIPC001, Function | MediumTest | Level2)
     SetSelfTokenID(tokenId);
     int32_t rett = Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
     ASSERT_EQ(rett, Security::AccessToken::RET_SUCCESS);
-    cSurface = Surface::CreateSurfaceAsConsumer("test");
+    cSurface = IConsumerSurface::Create("test");
     cSurface->RegisterConsumerListener(this);
     auto producer = cSurface->GetProducer();
     auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();

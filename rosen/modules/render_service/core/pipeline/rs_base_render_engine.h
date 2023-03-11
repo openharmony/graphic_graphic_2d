@@ -26,9 +26,9 @@
 #include "platform/ohos/rs_surface_ohos.h"
 #include "rs_base_render_util.h"
 
-#ifdef RS_ENABLE_GL
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
 #include "render_context/render_context.h"
-#endif // RS_ENABLE_GL
+#endif // RS_ENABLE_GL || RS_ENABLE_VK
 
 #ifdef RS_ENABLE_EGLIMAGE
 #include "rs_egl_image_manager.h"
@@ -146,12 +146,12 @@ public:
     {
         return isHighContrastEnabled_;
     }
-#ifdef RS_ENABLE_GL
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     const std::shared_ptr<RenderContext>& GetRenderContext()
     {
         return renderContext_;
     }
-#endif // RS_ENABLE_GL
+#endif // RS_ENABLE_GL || RS_ENABLE_VK
 
 #ifdef RS_ENABLE_EGLIMAGE
     const std::shared_ptr<RSEglImageManager>& GetEglImageManager()
@@ -160,7 +160,7 @@ public:
     }
 #endif // RS_ENABLE_EGLIMAGE
 protected:
-    void RegisterDeleteBufferListener(const sptr<Surface>& consumer, bool isForUniRedraw = false);
+    void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
@@ -171,9 +171,9 @@ private:
 
     static inline std::atomic_bool isHighContrastEnabled_ = false;
 
-#ifdef RS_ENABLE_GL
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
-#endif // RS_ENABLE_GL
+#endif // RS_ENABLE_GL || RS_ENABLE_VK
 
 #ifdef RS_ENABLE_EGLIMAGE
     std::shared_ptr<RSEglImageManager> eglImageManager_ = nullptr;

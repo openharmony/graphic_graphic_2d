@@ -59,7 +59,7 @@ HWTEST_F(RSScreenCapabilityTest, Unmarshalling001, TestSize.Level1)
 {
     RSScreenCapability capability;
     Parcel parcel;
-    capability.Unmarshalling(parcel);
+    std::shared_ptr<RSScreenCapability>(capability.Unmarshalling(parcel));
 }
 
 /**
@@ -83,7 +83,8 @@ HWTEST_F(RSScreenCapabilityTest, marshallingAndUnmarshallling001, TestSize.Level
     parcel.SkipBytes(bufferSize);
     while (!ret) {
         size_t position = parcel.GetWritePosition();
-        ret = capability.Marshalling(parcel) & (RSScreenCapability::Unmarshalling(parcel) != nullptr);
+        ret = capability.Marshalling(parcel) &
+              (std::shared_ptr<RSScreenCapability>(RSScreenCapability::Unmarshalling(parcel)) != nullptr);
         parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
         if (!ret) {
             parcel.RewindWrite(position);

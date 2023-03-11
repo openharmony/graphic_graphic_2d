@@ -33,7 +33,13 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "rs_render_node_test.cpp",
     "rs_surface_render_node_test.cpp",
   ]
-
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
   configs = [
     ":render_test",
     "$ace_root:ace_test_config",

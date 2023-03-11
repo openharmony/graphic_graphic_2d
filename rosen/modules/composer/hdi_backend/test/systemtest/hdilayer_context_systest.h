@@ -31,7 +31,7 @@ public:
 private:
     std::shared_ptr<HdiLayerInfo> hdiLayer_;
     sptr<Surface> pSurface_;
-    sptr<Surface> cSurface_;
+    sptr<IConsumerSurface> cSurface_;
     GraphicIRect srcRect_;
     GraphicIRect dstRect_;
     uint32_t zOrder_ = 0;

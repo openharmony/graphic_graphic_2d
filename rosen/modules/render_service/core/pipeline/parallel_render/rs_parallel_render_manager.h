@@ -18,6 +18,7 @@
 
 #include <condition_variable>
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <mutex>
 #include "EGL/egl.h"
@@ -51,7 +52,8 @@ enum class ParallelStatus {
 
 enum class TaskType {
     PREPARE_TASK = 0,
-    PROCESS_TASK
+    PROCESS_TASK,
+    CALC_COST_TASK
 };
 
 class RSParallelRenderManager {
@@ -64,15 +66,22 @@ public:
     void EndSubRenderThread();
     void CopyVisitorAndPackTask(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node);
     void CopyPrepareVisitorAndPackTask(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node);
+    void CopyCalcCostVisitorAndPackTask(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node, bool isNeedCalc,
+        bool doAnimate, bool isOpDropped);
     void PackRenderTask(RSSurfaceRenderNode &node, TaskType type = TaskType::PROCESS_TASK);
     void LoadBalanceAndNotify(TaskType type = TaskType::PROCESS_TASK);
-    void MergeRenderResult(std::shared_ptr<RSPaintFilterCanvas> canvas);
+    void MergeRenderResult(RSPaintFilterCanvas& canvas);
     void SetFrameSize(int height, int width);
     void GetFrameSize(int &height, int &width);
     void SubmitSuperTask(uint32_t taskIndex, std::unique_ptr<RSSuperRenderTask> superRenderTask);
     void SubMainThreadNotify(int threadIndex);
     void WaitSubMainThread(uint32_t threadIndex);
     void SubMainThreadWait(uint32_t threadIndex);
+    void WaitCalcCostEnd();
+    void UpdateNodeCost(RSDisplayRenderNode& node);
+    bool IsNeedCalcCost() const;
+    int32_t GetCost(RSRenderNode &node) const;
+    int32_t GetSelfDrawNodeCost() const;
     void SetRenderTaskCost(uint32_t subMainThreadIdx, uint64_t loadId, float cost,
         TaskType type = TaskType::PROCESS_TASK);
     bool ParallelRenderExtEnabled();
@@ -81,10 +90,26 @@ public:
     void CommitSurfaceNum(int surfaceNum);
     void WaitPrepareEnd(RSUniRenderVisitor &visitor);
     TaskType GetTaskType();
-    RSUniRenderVisitor* GetUniVisitor()
+    RSUniRenderVisitor* GetUniVisitor() const
     {
         return uniVisitor_;
     }
+
+    bool IsDoAnimate() const
+    {
+        return doAnimate_;
+    }
+
+    bool IsOpDropped() const
+    {
+        return isOpDropped_;
+    }
+
+    bool IsSecurityDisplay() const
+    {
+        return isSecurityDisplay_;
+    }
+
     ParallelStatus GetParallelRenderingStatus() const;
     void WorkSerialTask(RSSurfaceRenderNode &node);
     void LockFlushMutex()
@@ -98,7 +123,12 @@ public:
     uint32_t GetParallelThreadNumber() const;
     void AddSelfDrawingSurface(unsigned int subThreadIndex, bool isRRect, RectF rect,
         Vector4f cornerRadius = {0.f, 0.f, 0.f, 0.f});
-    void ClearSelfDrawingSurface(std::shared_ptr<RSPaintFilterCanvas> canvas, unsigned int subThreadIndex);
+    void ClearSelfDrawingSurface(RSPaintFilterCanvas& canvas, unsigned int subThreadIndex);
+    void AddAppWindowNode(uint32_t surfaceIndex, std::shared_ptr<RSSurfaceRenderNode> appNode);
+    const std::map<uint32_t, std::vector<std::shared_ptr<RSSurfaceRenderNode>>>& GetAppWindowNodes() const
+    {
+        return appWindowNodesMap_;
+    }
 
 private:
     RSParallelRenderManager();
@@ -107,14 +137,18 @@ private:
     RSParallelRenderManager(const RSParallelRenderManager &&) = delete;
     RSParallelRenderManager &operator = (const RSParallelRenderManager &) = delete;
     RSParallelRenderManager &operator = (const RSParallelRenderManager &&) = delete;
-    void DrawImageMergeFunc(std::shared_ptr<RSPaintFilterCanvas> canvas);
+    void DrawImageMergeFunc(RSPaintFilterCanvas& canvas);
     void FlushOneBufferFunc();
+    void GetCostFactor();
+    void InitAppWindowNodeMap();
 
     std::shared_ptr<RSParallelPackVisitor> packVisitor_;
     std::shared_ptr<RSParallelPackVisitor> packVisitorPrepare_;
+    std::shared_ptr<RSParallelPackVisitor> calcCostVisitor_;
     std::vector<std::unique_ptr<RSParallelSubThread>> threadList_;
     RSParallelTaskManager processTaskManager_;
     RSParallelTaskManager prepareTaskManager_;
+    RSParallelTaskManager calcCostTaskManager_;
     int height_;
     int width_;
     std::vector<uint8_t> flipCoin_;
@@ -133,6 +167,16 @@ private:
     RSUniRenderVisitor *uniVisitor_ = nullptr;
     TaskType taskType_;
     std::unique_ptr<RSParallelHardwareComposer> parallelHardwareComposer_;
+    std::map<uint32_t, std::vector<std::shared_ptr<RSSurfaceRenderNode>>> appWindowNodesMap_;
+
+    std::vector<uint32_t> parallelPolicy_;
+    int32_t calcCostCount_ = 0;
+    std::map<std::string, int32_t> costFactor_;
+    std::map<int64_t, int32_t> imageFactor_;
+
+    bool doAnimate_ = false;
+    bool isOpDropped_ = false;
+    bool isSecurityDisplay_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

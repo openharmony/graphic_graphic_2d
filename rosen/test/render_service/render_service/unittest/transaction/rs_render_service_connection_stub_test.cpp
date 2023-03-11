@@ -64,10 +64,8 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub002
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    
-    int res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::SET_RENDER_MODE_CHANGE_CALLBACK, data, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_STATE);
+
+    int res;
     res = connectionStub_->OnRemoteRequest(
         RSRenderServiceConnectionStub::GET_DEFAULT_SCREEN_ID, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
@@ -131,9 +129,6 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub003
     ASSERT_EQ(res, ERR_INVALID_STATE);
     res = connectionStub_->OnRemoteRequest(
         RSRenderServiceConnectionStub::GET_SCREEN_DATA, data, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::EXECUTE_SYNCHRONOUS_TASK, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
     res = connectionStub_->OnRemoteRequest(
         RSRenderServiceConnectionStub::GET_SCREEN_BACK_LIGHT, data, reply, option);
@@ -209,19 +204,6 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub005
     int res = connectionStub_->OnRemoteRequest(
         RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_SURFACE, data, reply, option);
     ASSERT_EQ(res, ERR_NULL_OBJECT);
-
-    MessageParcel data2;
-    data2.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::EXECUTE_SYNCHRONOUS_TASK, data2, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_STATE);
-    
-    MessageParcel data3;
-    data3.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    data3.WriteUint16(RS_NODE_SYNCHRONOUS_READ_PROPERTY);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::EXECUTE_SYNCHRONOUS_TASK, data3, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_STATE);
 
     MessageParcel data4;
     data4.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());

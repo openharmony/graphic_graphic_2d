@@ -22,6 +22,7 @@
 #include "buffer_consumer_listener.h"
 #include "buffer_manager.h"
 #include "buffer_log.h"
+#include "iconsumer_surface.h"
 #include "test_header.h"
 
 using namespace testing;
@@ -34,7 +35,7 @@ public:
     void OnBufferAvailable() override;
     static void TearDownTestCase();
 
-    static inline sptr<Surface> surf = nullptr;
+    static inline sptr<IConsumerSurface> surf = nullptr;
     static inline sptr<Surface> producerSurface1 = nullptr;
     static inline sptr<Surface> producerSurface2 = nullptr;
     static inline sptr<SurfaceBuffer> buffer1 = nullptr;
@@ -46,7 +47,7 @@ public:
 void BufferSharedTest::SetUpTestCase()
 {
     GTEST_LOG_(INFO) << getpid() << std::endl;
-    surf = Surface::CreateSurfaceAsConsumer("shared", true);
+    surf = IConsumerSurface::Create("shared", true);
     sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
     surf->RegisterConsumerListener(listener);
     auto producer1 = surf->GetProducer();

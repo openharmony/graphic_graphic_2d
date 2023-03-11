@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,14 +28,14 @@
 
 namespace OHOS {
 namespace Rosen {
-class RS_EXPORT RSScreenCapability : public Parcelable {
+class RSB_EXPORT RSScreenCapability : public Parcelable {
 public:
     RSScreenCapability() = default;
     RSScreenCapability(std::string name, ScreenInterfaceType type, uint32_t phyWidth,
         uint32_t phyHeight, uint32_t supportLayers, uint32_t virtualDispCount,
         bool supportWriteBack, const std::vector<RSScreenProps>& props);
     ~RSScreenCapability() = default;
-    static RSScreenCapability* Unmarshalling(Parcel &parcel);
+    [[nodiscard]] static RSScreenCapability* Unmarshalling(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
 
     void SetName(const std::string& name);

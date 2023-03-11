@@ -122,6 +122,11 @@ void RSColdStartThread::PostTask(std::function<void()> task)
     }
 }
 
+bool RSColdStartThread::IsIdle()
+{
+    return handler_ && handler_->IsIdle();
+}
+
 #ifdef RS_ENABLE_GL
 void RSColdStartThread::Run(EGLContext context)
 #else
@@ -246,6 +251,14 @@ void RSColdStartManager::PostPlayBackTask(NodeId id, std::shared_ptr<DrawCmdList
 bool RSColdStartManager::IsColdStartThreadRunning(NodeId id)
 {
     return coldStartThreadMap_.count(id) != 0 && coldStartThreadMap_[id] != nullptr;
+}
+
+bool RSColdStartManager::IsColdStartThreadIdle(NodeId id)
+{
+    if (coldStartThreadMap_.count(id) != 0 && coldStartThreadMap_[id] != nullptr) {
+        return coldStartThreadMap_[id]->IsIdle();
+    }
+    return false;
 }
 
 void RSColdStartManager::StartColdStartThreadIfNeed(std::shared_ptr<RSSurfaceRenderNode> surfaceNode)

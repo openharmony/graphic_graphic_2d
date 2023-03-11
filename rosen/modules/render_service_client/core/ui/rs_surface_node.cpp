@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,7 +25,9 @@
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
+#if !defined(__gnu_linux__) && !defined(_WIN32) && !defined(__APPLE__)
 #include "platform/drawing/rs_surface_converter.h"
+#endif
 #include "render_context/render_context.h"
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -50,7 +52,11 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     RSNodeMap::MutableInstance().RegisterNode(node);
 
     // create node in RS
-    RSSurfaceRenderNodeConfig config = { .id = node->GetId(), .name = node->name_ };
+    RSSurfaceRenderNodeConfig config = {
+        .id = node->GetId(),
+        .name = node->name_,
+        .onRender = surfaceNodeConfig.onRender,
+    };
     if (!isWindow) {
         config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
     } else {
@@ -80,7 +86,8 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     }
 
     if (node->GetName().find("battery_panel") != std::string::npos ||
-        node->GetName().find("sound_panel") != std::string::npos) {
+        node->GetName().find("sound_panel") != std::string::npos ||
+        node->GetName().find("RosenWeb") != std::string::npos) {
         node->SetFrameGravity(Gravity::TOP_LEFT);
     } else {
         node->SetFrameGravity(Gravity::RESIZE);
@@ -186,6 +193,7 @@ bool RSSurfaceNode::GetSecurityLayer() const
     return isSecurityLayer_;
 }
 
+#if !defined(__gnu_linux__) && !defined(_WIN32) && !defined(__APPLE__)
 void RSSurfaceNode::SetColorSpace(ColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
@@ -196,6 +204,7 @@ void RSSurfaceNode::SetColorSpace(ColorGamut colorSpace)
         transactionProxy->AddCommand(command, true);
     }
 }
+#endif
 
 void RSSurfaceNode::SetAbilityBGAlpha(uint8_t alpha)
 {
@@ -310,7 +319,7 @@ bool RSSurfaceNode::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config
     return (surface_ != nullptr);
 }
 
-#ifdef ROSEN_OHOS
+#if !defined(__gnu_linux__) && !defined(_WIN32) && !defined(__APPLE__)
 sptr<OHOS::Surface> RSSurfaceNode::GetSurface() const
 {
     if (surface_ == nullptr) {

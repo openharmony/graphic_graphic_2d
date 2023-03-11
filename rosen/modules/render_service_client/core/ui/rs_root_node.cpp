@@ -70,6 +70,9 @@ void RSRootNode::SetEnableRender(bool flag) const
 
 void RSRootNode::OnBoundsSizeChanged() const
 {
+    if (IsUniRenderEnabled()) {
+        return;
+    }
     // Planning: we should use frame size instead of bounds size to calculate the surface size.
     auto bounds = GetStagingProperties().GetBounds();
     // Set RootNode Surface Size with animation final value. NOTE: this logic is only used in RenderThreadVisitor

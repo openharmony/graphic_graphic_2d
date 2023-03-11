@@ -16,6 +16,7 @@
 #ifndef RS_TEST_UTIL_H
 #define RS_TEST_UTIL_H
 
+#include "iconsumer_surface.h"
 #include "surface.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_render_service_listener.h"
@@ -39,7 +40,7 @@ private:
     static inline BufferFlushConfig flushConfig = {
         .damage = { .w = 0x100, .h = 0x100, },
     };
-    static inline sptr<Surface> csurf = nullptr;
+    static inline sptr<IConsumerSurface> csurf = nullptr;
     static inline sptr<IBufferProducer> producer = nullptr;
     static inline sptr<Surface> psurf = nullptr;
     static NodeId id;

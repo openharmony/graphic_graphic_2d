@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,7 +34,7 @@ enum class MaskType {
     PATH,
 };
 
-class RS_EXPORT RSMask : public std::enable_shared_from_this<RSMask> {
+class RSB_EXPORT RSMask : public std::enable_shared_from_this<RSMask> {
 public:
     RSMask();
     virtual ~RSMask();
@@ -65,7 +65,7 @@ public:
 
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const;
-    static RSMask* Unmarshalling(Parcel& parcel);
+    [[nodiscard]] static RSMask* Unmarshalling(Parcel& parcel);
 #endif
 
 protected:

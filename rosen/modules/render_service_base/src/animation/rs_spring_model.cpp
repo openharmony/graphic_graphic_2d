@@ -31,7 +31,8 @@ constexpr float SPRING_MAX_DAMPING_RATIO = 1e4f;
 constexpr float SPRING_MIN_DURATION = 0.001f;
 constexpr float SPRING_MAX_DURATION = 300.0f;
 constexpr float SPRING_MIN_RESPONSE = 1e-8;
-constexpr float SPRING_MIN_AMPLITUDE_RATIO = 0.001f;
+constexpr float SPRING_MIN_AMPLITUDE_RATIO = 1e-3f;
+constexpr float SPRING_MIN_AMPLITUDE = 1e-5f;
 // helper function to simplify estimation of spring duration
 template<typename RSAnimatableType>
 float toFloat(RSAnimatableType value)
@@ -114,7 +115,7 @@ float RSSpringModel<RSAnimatableType>::EstimateDuration() const
     float coeffScale = toFloat(coeffScale_);
     float initialOffset = toFloat(initialOffset_);
     float estimatedDuration = 0.0f;
-    float minimumAmplitude = std::max(initialOffset * minimumAmplitudeRatio_, 0.001f);
+    float minimumAmplitude = std::max(initialOffset * minimumAmplitudeRatio_, SPRING_MIN_AMPLITUDE);
 
     if (dampingRatio_ < 1) { // Under-damped
         estimatedDuration = log(fmax(coeffScale, initialOffset) / minimumAmplitude) / -coeffDecay_;
@@ -203,7 +204,7 @@ float RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>::EstimateDuration() c
     float coeffScale = coeffScale_->ToFloat();
     float initialOffset = initialOffset_->ToFloat();
     float estimatedDuration = 0.0f;
-    float minimumAmplitude = std::max(initialOffset * minimumAmplitudeRatio_, 0.001f);
+    float minimumAmplitude = std::max(initialOffset * minimumAmplitudeRatio_, SPRING_MIN_AMPLITUDE);
 
     if (dampingRatio_ < 1) { // Under-damped
         estimatedDuration = log(fmax(coeffScale, initialOffset) / minimumAmplitude) / -coeffDecay_;

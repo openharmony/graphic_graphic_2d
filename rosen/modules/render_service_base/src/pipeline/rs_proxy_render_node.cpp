@@ -25,11 +25,30 @@ namespace Rosen {
 RSProxyRenderNode::RSProxyRenderNode(
     NodeId id, std::weak_ptr<RSSurfaceRenderNode> target, NodeId targetId, std::weak_ptr<RSContext> context)
     : RSRenderNode(id, context), target_(target), targetId_(targetId)
-{}
+{
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+}
 
 RSProxyRenderNode::~RSProxyRenderNode()
 {
-    // clear target node context properties
+    ROSEN_LOGD("RSProxyRenderNode::~RSProxyRenderNode, proxy id:%" PRIu64 " target:%" PRIu64, GetId(), targetId_);
+    MemoryTrack::Instance().RemoveNodeRecord(GetId());
+    // if target do not exist (in RT) or already destroyed (in RS), skip reset
+    auto target = target_.lock();
+    if (target == nullptr) {
+        return;
+    }
+
+    // reset target node context properties
+    target->SetContextAlpha(1, false);
+    target->SetContextMatrix(SkMatrix::I(), false);
+    target->SetContextClipRegion(SkRect::MakeEmpty(), false);
+
+    // remove all modifiers and animations added via proxy node
+    const auto pid_of_this_node = ExtractPid(GetId());
+    target->FilterModifiersByPid(pid_of_this_node);
+    target->GetAnimationManager().FilterAnimationByPid(pid_of_this_node);
 }
 
 void RSProxyRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)

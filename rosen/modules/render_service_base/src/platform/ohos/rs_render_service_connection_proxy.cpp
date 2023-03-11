@@ -63,7 +63,6 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
     option.SetFlags(MessageOption::TF_ASYNC);
     for (auto& parcel : parcelVector) {
         MessageParcel reply;
-        RS_ASYNC_TRACE_BEGIN("RSProxySendRequest", parcel->GetDataSize());
         int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::COMMIT_TRANSACTION, *parcel, reply, option);
         if (err != NO_ERROR) {
             ROSEN_LOGE("RSRenderServiceConnectionProxy::CommitTransaction SendRequest failed, err = %d", err);
@@ -81,8 +80,8 @@ bool RSRenderServiceConnectionProxy::FillParcelWithTransactionData(
     data->WriteInt32(0);
 
     // 1. marshalling RSTransactionData
-    RS_TRACE_BEGIN("Marsh RSTransactionData: cmd count:" + std::to_string(transactionData->GetCommandCount()) +
-        " transactionFlag:[" + std::to_string(pid_) + ", " + std::to_string(transactionData->GetIndex()) + "],isUni:" +
+    RS_TRACE_BEGIN("MarshRSTransactionData cmdCount:" + std::to_string(transactionData->GetCommandCount()) +
+        " transactionFlag:[" + std::to_string(pid_) + "," + std::to_string(transactionData->GetIndex()) + "] isUni:" +
         std::to_string(transactionData->GetUniRender()));
     bool success = data->WriteParcelable(transactionData.get());
     RS_TRACE_END();
@@ -100,76 +99,6 @@ bool RSRenderServiceConnectionProxy::FillParcelWithTransactionData(
         data = ashmemParcel;
     }
     return true;
-}
-
-void RSRenderServiceConnectionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return;
-    }
-
-    if (!task->Marshalling(data)) {
-        return;
-    }
-
-    option.SetFlags(MessageOption::TF_SYNC);
-    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::EXECUTE_SYNCHRONOUS_TASK, data, reply, option);
-    if (err != NO_ERROR) {
-        return;
-    }
-
-    if (task->CheckHeader(reply)) {
-        task->ReadFromParcel(reply);
-    }
-}
-
-int32_t RSRenderServiceConnectionProxy::SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback)
-{
-    if (callback == nullptr) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetRenderModeChangeCallback: callback is nullptr.");
-        return INVALID_ARGUMENTS;
-    }
-
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return WRITE_PARCEL_ERR;
-    }
-
-    option.SetFlags(MessageOption::TF_ASYNC);
-    data.WriteRemoteObject(callback->AsObject());
-    int32_t err =
-        Remote()->SendRequest(RSIRenderServiceConnection::SET_RENDER_MODE_CHANGE_CALLBACK, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetRenderModeChangeCallback: Send Request err.");
-        return RS_CONNECTION_ERROR;
-    }
-    int32_t result = reply.ReadInt32();
-    return result;
-}
-
-void RSRenderServiceConnectionProxy::UpdateRenderMode(bool isUniRender)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    if (!data.WriteBool(isUniRender)) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::UpdateRenderMode WriteBool failed!");
-        return;
-    }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::UPDATE_RENDER_MODE, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::UpdateRenderMode SendRequest failed, err = %d", err);
-        return;
-    }
 }
 
 bool RSRenderServiceConnectionProxy::GetUniRenderEnabled()
@@ -995,6 +924,24 @@ void RSRenderServiceConnectionProxy::SetAppWindowNum(uint32_t num)
         RSIRenderServiceConnection::SET_APP_WINDOW_NUM, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetAppWindowNum: Send Request err.");
+    }
+}
+
+void RSRenderServiceConnectionProxy::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    data.WriteParcelable(watermarkImg.get());
+    data.WriteBool(isShow);
+    int32_t err = Remote()->SendRequest(
+        RSIRenderServiceConnection::SHOW_WATERMARK, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ShowWatermark: Send Request err.");
     }
 }
 } // namespace Rosen

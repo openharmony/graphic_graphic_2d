@@ -172,31 +172,6 @@ void RSRenderServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionD
     mainThread_->RecvRSTransactionData(transactionData);
 }
 
-void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
-{
-    if (task == nullptr) {
-        return;
-    }
-
-    auto& context = mainThread_->GetContext();
-    mainThread_->ScheduleTask([task, &context]() {
-        task->Process(context);
-    }).wait_for(std::chrono::nanoseconds(task->GetTimeout()));
-}
-
-int32_t RSRenderServiceConnection::SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback)
-{
-    if (!callback) {
-        RS_LOGD("RSRenderServiceConnection::SetRenderModeChangeCallback: callback is nullptr");
-        return INVALID_ARGUMENTS;
-    }
-    return SUCCESS;
-}
-
-void RSRenderServiceConnection::UpdateRenderMode(bool isUniRender)
-{
-}
-
 bool RSRenderServiceConnection::GetUniRenderEnabled()
 {
     return RSUniRenderJudgement::IsUniRender();
@@ -225,7 +200,7 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
         RS_LOGE("RSRenderService::CreateNodeAndSurface CreateNode fail");
         return nullptr;
     }
-    sptr<Surface> surface = Surface::CreateSurfaceAsConsumer(config.name);
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name);
     if (surface == nullptr) {
         RS_LOGE("RSRenderService::CreateNodeAndSurface get consumer surface fail");
         return nullptr;
@@ -245,7 +220,9 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
         RS_LOGE("RSRenderService::CreateNodeAndSurface Register Consumer Listener fail");
         return nullptr;
     }
-    return surface;
+    sptr<IBufferProducer> producer = surface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+    return pSurface;
 }
 
 
@@ -373,6 +350,8 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
 {
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
     if (node == nullptr) {
+        RS_LOGW("RSRenderServiceConnection::TakeSurfaceCapture cannot find nodeId: [%" PRIu64 "]", id);
+        callback->OnSurfaceCapture(id, nullptr);
         return;
     }
     if ((node->GetType() == RSRenderNodeType::DISPLAY_NODE) ||
@@ -697,6 +676,14 @@ void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
 {
     auto task = [this, num]() -> void {
         mainThread_->SetAppWindowNum(num);
+    };
+    mainThread_->PostTask(task);
+}
+
+void RSRenderServiceConnection::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
+{
+    auto task = [this, watermarkImg, isShow]() -> void {
+        mainThread_->ShowWatermark(watermarkImg, isShow);
     };
     mainThread_->PostTask(task);
 }

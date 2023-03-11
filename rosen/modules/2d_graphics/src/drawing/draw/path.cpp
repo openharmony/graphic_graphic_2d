@@ -22,6 +22,18 @@ namespace Rosen {
 namespace Drawing {
 Path::Path() noexcept : impl_(ImplFactory::CreatePathImpl()) {}
 
+Path::Path(const Path& other) noexcept
+{
+    impl_ = ImplFactory::CreatePathImpl();
+    *impl_ = *other.impl_;
+}
+
+Path& Path::operator=(const Path &other) noexcept
+{
+    *impl_ = *other.impl_;
+    return *this;
+}
+
 Path::~Path() {}
 
 void Path::MoveTo(scalar x, scalar y)

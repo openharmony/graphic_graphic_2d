@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#include "iconsumer_surface.h"
 #include <iservice_registry.h>
 #include <native_window.h>
 #include <securec.h>
@@ -72,7 +73,7 @@ public:
 
     static inline BufferRequestConfig requestConfig = {};
     static inline BufferFlushConfig flushConfig = {};
-    static inline sptr<OHOS::Surface> cSurface = nullptr;
+    static inline sptr<OHOS::IConsumerSurface> cSurface = nullptr;
     static inline sptr<OHOS::IBufferProducer> producer = nullptr;
     static inline sptr<OHOS::Surface> pSurface = nullptr;
     static inline sptr<OHOS::SurfaceBuffer> sBuffer = nullptr;
@@ -91,7 +92,7 @@ void NativeWindowTest::SetUpTestCase()
         .timeout = 0,
     };
 
-    cSurface = Surface::CreateSurfaceAsConsumer();
+    cSurface = IConsumerSurface::Create();
     sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
     cSurface->RegisterConsumerListener(listener);
     producer = cSurface->GetProducer();

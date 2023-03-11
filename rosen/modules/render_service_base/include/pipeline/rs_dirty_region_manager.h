@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,15 +24,36 @@
 
 namespace OHOS {
 namespace Rosen {
+// classify dfx debug options
 enum DebugRegionType {
-    CURRENT_SUB,
+    CURRENT_SUB = 0,
     CURRENT_WHOLE,
     MULTI_HISTORY,
     EGL_DAMAGE,
     TYPE_MAX
 };
 
-class RS_EXPORT RSDirtyRegionManager final {
+// classify types that cause region dirty
+enum DirtyRegionType {
+    UPDATE_DIRTY_REGION = 0,
+    OVERLAY_RECT,
+    FILTER_RECT,
+    SHADOW_RECT,
+    PREPARE_CLIP_RECT,
+    REMOVE_CHILD_RECT,
+    TYPE_AMOUNT
+};
+
+const std::map<DirtyRegionType, std::string> DIRTY_REGION_TYPE_MAP {
+    { DirtyRegionType::UPDATE_DIRTY_REGION, "UPDATE_DIRTY_REGION" },
+    { DirtyRegionType::OVERLAY_RECT, "OVERLAY_RECT" },
+    { DirtyRegionType::FILTER_RECT, "FILTER_RECT" },
+    { DirtyRegionType::SHADOW_RECT, "SHADOW_RECT" },
+    { DirtyRegionType::PREPARE_CLIP_RECT, "PREPARE_CLIP_RECT" },
+    { DirtyRegionType::REMOVE_CHILD_RECT, "REMOVE_CHILD_RECT" },
+};
+
+class RSB_EXPORT RSDirtyRegionManager final {
 public:
     static constexpr int32_t ALIGNED_BITS = 32;
     RSDirtyRegionManager();
@@ -55,10 +76,6 @@ public:
     bool IsDirty() const;
     void UpdateDirty(bool enableAligned = false);
     void UpdateDirtyByAligned(int32_t alignedBits = ALIGNED_BITS);
-    void UpdateDirtyCanvasNodes(NodeId id, const RectI& rect);
-    void UpdateDirtySurfaceNodes(NodeId id, const RectI& rect);
-    void GetDirtyCanvasNodes(std::map<NodeId, RectI>& target) const;
-    void GetDirtySurfaceNodes(std::map<NodeId, RectI>& target) const;
     bool SetBufferAge(const int age);
     bool SetSurfaceSize(const int32_t width, const int32_t height);
     RectI GetSurfaceRect() const
@@ -67,7 +84,7 @@ public:
     }
     void ResetDirtyAsSurfaceSize();
 
-    void UpdateDebugRegionTypeEnable();
+    void UpdateDebugRegionTypeEnable(DirtyRegionDebugType dirtyDebugType);
     
     inline bool IsDebugRegionTypeEnable(DebugRegionType var) const
     {
@@ -76,10 +93,21 @@ public:
         }
         return false;
     }
-    
-    inline bool IsDebugEnabled() const
+
+    // added for dirty region dfx
+    void UpdateDirtyRegionInfoForDfx(NodeId id, RSRenderNodeType nodeType = RSRenderNodeType::CANVAS_NODE,
+        DirtyRegionType dirtyType = DirtyRegionType::UPDATE_DIRTY_REGION, const RectI& rect = RectI());
+    void GetDirtyRegionInfo(std::map<NodeId, RectI>& target,
+        RSRenderNodeType nodeType = RSRenderNodeType::CANVAS_NODE,
+        DirtyRegionType dirtyType = DirtyRegionType::UPDATE_DIRTY_REGION) const;
+
+    void MarkAsTargetForDfx()
     {
-        return RSSystemProperties::GetDirtyRegionDebugType() != DirtyRegionDebugType::DISABLED;
+        isDfxTarget_ = true;
+    }
+
+    bool IsTargetForDfx() {
+        return isDfxTarget_;
     }
 
 private:
@@ -91,9 +119,11 @@ private:
 
     RectI surfaceRect_;
     RectI dirtyRegion_;
-    std::map<NodeId, RectI> dirtyCanvasNodes_;
-    std::map<NodeId, RectI> dirtySurfaceNodes_;
+    // added for dfx
+    std::vector<std::map<NodeId, RectI>> dirtyCanvasNodeInfo_;
+    std::vector<std::map<NodeId, RectI>> dirtySurfaceNodeInfo_;
     std::vector<bool> debugRegionEnabled_;
+    bool isDfxTarget_ = false;
     std::vector<RectI> dirtyHistory_;
     int historyHead_ = -1;
     unsigned int historySize_ = 0;

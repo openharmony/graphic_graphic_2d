@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "iconsumer_surface.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 
 using namespace testing;
@@ -43,7 +44,10 @@ void RSSurfaceOhosRasterTest::TearDown() {}
  */
 HWTEST_F(RSSurfaceOhosRasterTest, RequestFrame001, TestSize.Level1)
 {
-    RSSurfaceOhosRaster raster(Surface::CreateSurfaceAsConsumer());
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create();
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosRaster raster(pSurface);
     int32_t width = 1;
     int32_t height = 1;
     uint64_t uiTimestamp = 1;
@@ -58,7 +62,10 @@ HWTEST_F(RSSurfaceOhosRasterTest, RequestFrame001, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceOhosRasterTest, ClearBuffer001, TestSize.Level1)
 {
-    RSSurfaceOhosRaster raster(Surface::CreateSurfaceAsConsumer());
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create();
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosRaster raster(pSurface);
     raster.ClearBuffer();
 }
 } // namespace Rosen

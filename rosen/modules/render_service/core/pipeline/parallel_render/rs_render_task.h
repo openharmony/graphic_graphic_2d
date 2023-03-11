@@ -52,7 +52,8 @@ class RSRenderTask : public RSRenderTaskBase {
 public:
     enum class RenderNodeStage {
         PREPARE = 0,
-        PROCESS
+        PROCESS,
+        CALC_COST
     };
     explicit RSRenderTask(RSSurfaceRenderNode &node, RenderNodeStage stage)
         : RSRenderTaskBase(node.shared_from_this()), stage_(stage) {}

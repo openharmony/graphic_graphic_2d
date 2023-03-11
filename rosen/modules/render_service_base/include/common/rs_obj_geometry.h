@@ -25,7 +25,7 @@ class Transform {
 public:
     Transform()
         : pivotX_(0.5f), pivotY_(0.5f), scaleX_(1.f), scaleY_(1.f), rotation_(0.f), rotationX_(0.f), rotationY_(0.f),
-          translateX_(0), translateY_(0), translateZ_(0)
+          translateX_(0), translateY_(0), translateZ_(0), cameraDistance_(-8.f)
     {}
     ~Transform() {}
     float pivotX_;
@@ -38,6 +38,7 @@ public:
     float translateX_;
     float translateY_;
     float translateZ_;
+    float cameraDistance_;
     Quaternion quaternion_;
 };
 
@@ -194,6 +195,15 @@ public:
             trans_->translateZ_ = translateZ;
         }
     }
+    void SetCameraDistance(float cameraDistance)
+    {
+        if (trans_ == nullptr) {
+            trans_ = std::make_unique<Transform>();
+        }
+        if (!ROSEN_EQ(trans_->cameraDistance_, cameraDistance)) {
+            trans_->cameraDistance_ = cameraDistance;
+        }
+    }
     void SetQuaternion(const Quaternion& quaternion)
     {
         if (trans_ == nullptr) {
@@ -264,6 +274,10 @@ public:
     {
         return trans_ ? trans_->translateZ_ : 0.f;
     }
+    float GetCameraDistance() const
+    {
+        return trans_ ? trans_->cameraDistance_ : -8.f;
+    }
     Quaternion GetQuaternion() const
     {
         return trans_ ? trans_->quaternion_ : Quaternion();
@@ -286,6 +300,7 @@ public:
                 SetTranslateX(geo.trans_->translateX_);
                 SetTranslateY(geo.trans_->translateY_);
                 SetTranslateZ(geo.trans_->translateZ_);
+                SetCameraDistance(geo.trans_->cameraDistance_);
                 SetQuaternion(geo.trans_->quaternion_);
             } else if (trans_) {
                 trans_ = nullptr;

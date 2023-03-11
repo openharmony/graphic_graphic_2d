@@ -219,6 +219,34 @@ HWTEST_F(RSInterfacesSystemTest, SetFocusAppInfo, Function | MediumTest | Level2
     int32_t ret = RSInterfaces::GetInstance().SetFocusAppInfo(info);
     ASSERT_EQ(ret, StatusCode::SUCCESS);
 }
+
+/**
+ * @tc.name: ShowWatermark
+ * @tc.desc: Test ShowWatermark interface.
+ * @tc.type: FUNC
+ * @tc.require: issueI6HP8P
+ */
+HWTEST_F(RSInterfacesSystemTest, ShowWatermark, Function | MediumTest | Level2)
+{
+    const uint32_t color[8] = { 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80 };
+    uint32_t colorLength = sizeof(color) / sizeof(color[0]);
+    const int32_t offset = 0;
+    Media::InitializationOptions opts;
+    opts.size.width = 3;
+    opts.size.height = 2;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    int32_t stride = opts.size.width;
+    std::unique_ptr<Media::PixelMap> pixelMap1 = Media::PixelMap::Create(color, colorLength, offset, stride, opts);
+    RSInterfaces::GetInstance().ShowWatermark(std::move(pixelMap1), true);
+    sleep(TEST_SLEEP_S);
+    (void)system("snapshot_display -i 0");
+    sleep(3 * TEST_SLEEP_S);
+    RSInterfaces::GetInstance().ShowWatermark(nullptr, false);
+    sleep(TEST_SLEEP_S);
+    (void)system("snapshot_display -i 0");
+    sleep(3 * TEST_SLEEP_S);
+}
 }
 } // namespace Rosen
 } // namespace OHOS

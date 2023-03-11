@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 #include <stack>
 
 #include "command/rs_command.h"
+#include "common/rs_macros.h"
 #include "common/rs_singleton.h"
 #include "common/rs_macros.h"
 #include "transaction/rs_irender_client.h"
@@ -29,9 +30,9 @@
 namespace OHOS {
 namespace Rosen {
 class RSSyncTask;
-class RS_EXPORT RSTransactionProxy final {
+class RSB_EXPORT RSTransactionProxy final {
 public:
-    static RSTransactionProxy* GetInstance();
+    static RSB_EXPORT RSTransactionProxy* GetInstance();
     void SetRenderThreadClient(std::unique_ptr<RSIRenderClient>& renderThreadClient);
     void SetRenderServiceClient(const std::shared_ptr<RSIRenderClient>& renderServiceClient);
 
@@ -42,10 +43,21 @@ public:
     void FlushImplicitTransaction(uint64_t timestamp = 0, const std::string& abilityName = "");
     void FlushImplicitTransactionFromRT(uint64_t timestamp);
 
-    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask = false);
+    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task);
 
     void Begin();
     void Commit(uint64_t timestamp = 0);
+    void CommitSyncTransaction(uint64_t timestamp = 0, const std::string& abilityName = "");
+    void MarkTransactionNeedSync();
+    void MarkTransactionNeedCloseSync(const int32_t transactionCount);
+
+    void StartSyncTransaction();
+    void CloseSyncTransaction();
+
+    void SetSyncId(const uint64_t syncId)
+    {
+        syncId_ = syncId;
+    }
 
 private:
     RSTransactionProxy();
@@ -78,6 +90,8 @@ private:
     uint64_t timestamp_ = 0;
     static std::once_flag flag_;
     static RSTransactionProxy* instance_;
+    bool needSync_ { false };
+    uint64_t syncId_ { 0 };
 };
 } // namespace Rosen
 } // namespace OHOS

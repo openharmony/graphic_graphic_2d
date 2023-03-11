@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -67,6 +67,10 @@ static inline std::string LowErrorStrSpecial(GSError err)
     return "";
 }
 
+#ifdef _WIN32
+#define strerror_r(err, buf, len) strerror_s((buf), (len), (err))
+#endif
+
 static inline std::string LowErrorStr(GSError lowerr)
 {
     std::string lowError = LowErrorStrSpecial(lowerr);
@@ -88,17 +92,7 @@ static inline std::string GSErrorStr(GSError err)
     return it->second + LowErrorStr(diff);
 }
 
-static inline std::string WMErrorStr(GSError err)
-{
-    return GSErrorStr(err);
-}
-
 static inline std::string SurfaceErrorStr(GSError err)
-{
-    return GSErrorStr(err);
-}
-
-static inline std::string VsyncErrorStr(GSError err)
 {
     return GSErrorStr(err);
 }

@@ -18,20 +18,23 @@
 #include <cstdint>
 #include <memory>
 #include <mutex>
-#include "rs_trace.h"
+
 #include "EGL/egl.h"
 #include "rs_render_task.h"
 #include "pipeline/rs_base_render_engine.h"
-#include "render_context/render_context.h"
 #include "pipeline/rs_main_thread.h"
-#include "rs_parallel_render_ext.h"
-#include "pipeline/rs_uni_render_visitor.h"
 #include "pipeline/rs_uni_render_engine.h"
+#include "pipeline/rs_uni_render_visitor.h"
+#include "render_context/render_context.h"
+#include "rs_parallel_render_ext.h"
+#include "rs_trace.h"
+
 
 namespace OHOS {
 namespace Rosen {
 
 static constexpr uint32_t PARALLEL_THREAD_NUM = 3;
+static constexpr int32_t MAX_CALC_COST_COUNT = 20;
 
 RSParallelRenderManager* RSParallelRenderManager::Instance()
 {
@@ -40,10 +43,20 @@ RSParallelRenderManager* RSParallelRenderManager::Instance()
 }
 
 RSParallelRenderManager::RSParallelRenderManager()
-    : parallelHardwareComposer_(std::make_unique<RSParallelHardwareComposer>())
+    : taskType_(TaskType::PROCESS_TASK),
+      parallelHardwareComposer_(std::make_unique<RSParallelHardwareComposer>())
 {
     if (parallelHardwareComposer_) {
+        InitAppWindowNodeMap();
         parallelHardwareComposer_->Init(PARALLEL_THREAD_NUM);
+    }
+}
+
+void RSParallelRenderManager::InitAppWindowNodeMap()
+{
+    auto appWindowNode = std::vector<std::shared_ptr<RSSurfaceRenderNode>>();
+    for (uint32_t i = 0; i < PARALLEL_THREAD_NUM; i++) {
+        appWindowNodesMap_[i] = appWindowNode;
     }
 }
 
@@ -82,6 +95,7 @@ void RSParallelRenderManager::StartSubRenderThread(uint32_t threadNum, RenderCon
         }
         processTaskManager_.Initialize(threadNum);
         prepareTaskManager_.Initialize(threadNum);
+        calcCostTaskManager_.Initialize(threadNum);
     }
 }
 
@@ -95,6 +109,7 @@ void RSParallelRenderManager::EndSubRenderThread()
         cvParallelRender_.notify_all();
         packVisitor_ = nullptr;
         packVisitorPrepare_ = nullptr;
+        calcCostVisitor_ = nullptr;
         for (auto &thread : threadList_) {
             thread->WaitSubMainThreadEnd();
         }
@@ -126,6 +141,7 @@ void RSParallelRenderManager::CopyVisitorAndPackTask(RSUniRenderVisitor &visitor
     packVisitor_ = std::make_shared<RSParallelPackVisitor>(visitor);
     displayNode_ = node.shared_from_this();
     processTaskManager_.Reset();
+    processTaskManager_.LoadParallelPolicy(parallelPolicy_);
     packVisitor_->ProcessDisplayRenderNode(node);
     uniVisitor_ = &visitor;
     taskType_ = TaskType::PROCESS_TASK;
@@ -139,6 +155,34 @@ void RSParallelRenderManager::CopyPrepareVisitorAndPackTask(RSUniRenderVisitor &
     prepareTaskManager_.Reset();
     packVisitorPrepare_->PrepareDisplayRenderNode(node);
     taskType_ = TaskType::PREPARE_TASK;
+}
+
+void RSParallelRenderManager::CopyCalcCostVisitorAndPackTask(RSUniRenderVisitor &visitor,
+    RSDisplayRenderNode &node, bool isNeedCalc, bool doAnimate, bool isOpDropped)
+{
+    calcCostTaskManager_.Reset();
+    if (isNeedCalc) {
+        calcCostCount_ = MAX_CALC_COST_COUNT;
+    }
+    if (calcCostCount_ > 0) {
+        calcCostCount_--;
+    }
+    if (IsNeedCalcCost()) {
+        calcCostVisitor_ =  std::make_shared<RSParallelPackVisitor>(visitor);
+        uniVisitor_ = &visitor;
+        displayNode_ = node.shared_from_this();
+        calcCostVisitor_->CalcDisplayRenderNodeCost(node);
+        taskType_ = TaskType::CALC_COST_TASK;
+        GetCostFactor();
+        doAnimate_ = doAnimate;
+        isOpDropped_ = isOpDropped;
+        isSecurityDisplay_ = node.GetSecurityDisplay();
+    }
+}
+
+bool RSParallelRenderManager::IsNeedCalcCost() const
+{
+    return calcCostCount_ > 0;
 }
 
 TaskType RSParallelRenderManager::GetTaskType()
@@ -157,6 +201,10 @@ void RSParallelRenderManager::PackRenderTask(RSSurfaceRenderNode &node, TaskType
             processTaskManager_.PushRenderTask(
                 std::make_unique<RSRenderTask>(node, RSRenderTask::RenderNodeStage::PROCESS));
             break;
+        case TaskType::CALC_COST_TASK:
+            calcCostTaskManager_.PushRenderTask(
+                std::make_unique<RSRenderTask>(node, RSRenderTask::RenderNodeStage::CALC_COST));
+            break;
         default:
             break;
     }
@@ -164,12 +212,16 @@ void RSParallelRenderManager::PackRenderTask(RSSurfaceRenderNode &node, TaskType
 
 void RSParallelRenderManager::LoadBalanceAndNotify(TaskType type)
 {
+    InitAppWindowNodeMap();
     switch (type) {
         case TaskType::PREPARE_TASK:
             prepareTaskManager_.LBCalcAndSubmitSuperTask(displayNode_);
             break;
         case TaskType::PROCESS_TASK:
             processTaskManager_.LBCalcAndSubmitSuperTask(displayNode_);
+            break;
+        case TaskType::CALC_COST_TASK:
+            calcCostTaskManager_.LBCalcAndSubmitSuperTask(displayNode_);
             break;
         default:
             break;
@@ -188,7 +240,7 @@ void RSParallelRenderManager::WaitPrepareEnd(RSUniRenderVisitor &visitor)
     }
 }
 
-void RSParallelRenderManager::DrawImageMergeFunc(std::shared_ptr<RSPaintFilterCanvas> canvas)
+void RSParallelRenderManager::DrawImageMergeFunc(RSPaintFilterCanvas& canvas)
 {
     for (unsigned int i = 0; i < expectedSubThreadNum_; ++i) {
         RS_TRACE_BEGIN("Wait Render finish");
@@ -203,16 +255,12 @@ void RSParallelRenderManager::DrawImageMergeFunc(std::shared_ptr<RSPaintFilterCa
                 RS_LOGE("Texture %d is nullptr", i);
                 continue;
             }
-            if (canvas) {
-                canvas->drawImage(texture, 0, 0);
-                // For any one subMainThread' sksurface, we just clear transparent color of self drawing
-                // surface drawed in larger skSurface, such as skSurface 0 should clear self drawing surface
-                // areas drawed in skSurface 1.
-                auto clearTransparentColorSurfaceIndex = i + 1;
-                ClearSelfDrawingSurface(canvas, clearTransparentColorSurfaceIndex);
-            } else {
-                RS_LOGE("canvas of main thread is nullptr!");
-            }
+            canvas.drawImage(texture, 0, 0);
+            // For any one subMainThread' sksurface, we just clear transparent color of self drawing
+            // surface drawed in larger skSurface, such as skSurface 0 should clear self drawing surface
+            // areas drawed in skSurface 1.
+            auto clearTransparentColorSurfaceIndex = i + 1;
+            ClearSelfDrawingSurface(canvas, clearTransparentColorSurfaceIndex);
         }
     }
 }
@@ -221,6 +269,9 @@ void RSParallelRenderManager::FlushOneBufferFunc()
 {
     renderContext_->ShareMakeCurrent(EGL_NO_CONTEXT);
     for (unsigned int i = 0; i < threadList_.size(); ++i) {
+        if (threadList_[i] == nullptr) {
+            return;
+        }
         renderContext_->ShareMakeCurrent(threadList_[i]->GetSharedContext());
         RS_TRACE_BEGIN("Start Flush");
         auto skSurface = threadList_[i]->GetSkSurface();
@@ -235,7 +286,7 @@ void RSParallelRenderManager::FlushOneBufferFunc()
     renderContext_->MakeSelfCurrent();
 }
 
-void RSParallelRenderManager::MergeRenderResult(std::shared_ptr<RSPaintFilterCanvas> canvas)
+void RSParallelRenderManager::MergeRenderResult(RSPaintFilterCanvas& canvas)
 {
     if (GetParallelRenderingStatus() == ParallelStatus::FIRSTFLUSH) {
         firstFlush_ = false;
@@ -280,16 +331,12 @@ void RSParallelRenderManager::SubMainThreadNotify(int threadIndex)
 {
     flipCoin_[threadIndex] = 0;
     std::unique_lock<std::mutex> lock(cvParallelRenderMutex_);
-    bool isNotify = true;
     for (unsigned int i = 0; i < expectedSubThreadNum_; ++i) {
         if (flipCoin_[i] != 0) {
             return;
         }
-        isNotify &= !flipCoin_[i];
     }
-    if (isNotify) {
-        cvParallelRender_.notify_all();
-    }
+    cvParallelRender_.notify_all();
 }
 
 // called by main thread
@@ -318,6 +365,9 @@ void RSParallelRenderManager::SetRenderTaskCost(uint32_t subMainThreadIdx, uint6
             break;
         case TaskType::PROCESS_TASK:
             processTaskManager_.SetSubThreadRenderTaskLoad(subMainThreadIdx, loadId, cost);
+            break;
+        case TaskType::CALC_COST_TASK:
+            calcCostTaskManager_.SetSubThreadRenderTaskLoad(subMainThreadIdx, loadId, cost);
             break;
         default:
             break;
@@ -373,11 +423,65 @@ void RSParallelRenderManager::AddSelfDrawingSurface(unsigned int subThreadIndex,
     }
 }
 
-void RSParallelRenderManager::ClearSelfDrawingSurface(std::shared_ptr<RSPaintFilterCanvas> canvas,
-    unsigned int subThreadIndex)
+void RSParallelRenderManager::ClearSelfDrawingSurface(RSPaintFilterCanvas& canvas, unsigned int subThreadIndex)
 {
     if (parallelHardwareComposer_) {
         parallelHardwareComposer_->ClearTransparentColor(canvas, subThreadIndex);
+    }
+}
+
+void RSParallelRenderManager::WaitCalcCostEnd()
+{
+    for (uint32_t i = 0; i < expectedSubThreadNum_; ++i) {
+        WaitSubMainThread(i);
+    }
+}
+
+void RSParallelRenderManager::GetCostFactor()
+{
+    if (costFactor_.size() > 0 && imageFactor_.size() > 0) {
+        return;
+    }
+    calcCostTaskManager_.GetCostFactor(costFactor_, imageFactor_);
+}
+
+int32_t RSParallelRenderManager::GetCost(RSRenderNode &node) const
+{
+    int32_t cost = 1;
+    const auto& property = node.GetRenderProperties();
+    if (ROSEN_EQ(property.GetAlpha(), 1.0f)) {
+        cost += costFactor_.count("alpha") > 0 ? costFactor_.find("alpha")->second : 1;
+    }
+    if (property.NeedFilter()) {
+        cost += costFactor_.count("filter") > 0 ? costFactor_.find("filter")->second : 1;
+    }
+    if (property.GetBgImage() != nullptr) {
+        int64_t size = floor(property.GetBgImageHeight() * property.GetBgImageWidth());
+        for (const auto &[imageSize, imageCost] : imageFactor_) {
+            if (size <= imageSize) {
+                cost += imageCost;
+                break;
+            }
+        }
+    }
+    return cost;
+}
+
+int32_t RSParallelRenderManager::GetSelfDrawNodeCost() const
+{
+    return costFactor_.count("selfDraw") > 0 ? costFactor_.find("selfDraw")->second : 1;
+}
+
+void RSParallelRenderManager::UpdateNodeCost(RSDisplayRenderNode &node)
+{
+    parallelPolicy_.clear();
+    calcCostTaskManager_.UpdateNodeCost(node, parallelPolicy_);
+}
+
+void RSParallelRenderManager::AddAppWindowNode(uint32_t surfaceIndex, std::shared_ptr<RSSurfaceRenderNode> appNode)
+{
+    if (surfaceIndex < PARALLEL_THREAD_NUM) {
+        appWindowNodesMap_[surfaceIndex].emplace_back(appNode);
     }
 }
 

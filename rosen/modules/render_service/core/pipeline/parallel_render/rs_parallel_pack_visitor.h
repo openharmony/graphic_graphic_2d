@@ -42,12 +42,16 @@ public:
     void ProcessProxyRenderNode(RSProxyRenderNode& node) override {}
     void ProcessRootRenderNode(RSRootRenderNode& node) override {}
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+
+    void CalcDisplayRenderNodeCost(RSDisplayRenderNode& node) const;
 private:
+    void CalcSurfaceRenderNodeCost(RSSurfaceRenderNode& node) const;
+    bool IsSkipProcessing(RSSurfaceRenderNode& node) const;
     bool isOpDropped_ = false;
     bool isPartialRenderEnabled_ = false;
     bool isSecurityDisplay_ = false;
     bool doAnimate_ = false;
-    PartialRenderType partialRenderType_;
+    PartialRenderType partialRenderType_ = PartialRenderType::DISABLED;
     bool isFirstSurfaceNode_ = false;
 };
 } // namespace Rosen

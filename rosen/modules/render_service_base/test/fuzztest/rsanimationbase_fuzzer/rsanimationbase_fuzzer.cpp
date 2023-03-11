@@ -161,7 +161,8 @@ namespace OHOS {
         auto interpolator = std::make_shared<RSCubicBezierInterpolator>(x1, y1, x2, y2);
         interpolator->Interpolate(input);
         interpolator->Marshalling(parcel);
-        interpolator->Unmarshalling(parcel);
+        auto copyInterpolator =
+            std::shared_ptr<RSCubicBezierInterpolator>(RSCubicBezierInterpolator::Unmarshalling(parcel));
     }
 
     void RSSpringInterpolatorFuzzerTest()
@@ -176,7 +177,7 @@ namespace OHOS {
         auto animation = std::make_shared<RSSpringInterpolator>(response, dampingRatio, initialVelocity);
         Parcel parcel;
         animation->Marshalling(parcel);
-        animation->Unmarshalling(parcel);
+        auto copyInterpolator = std::shared_ptr<RSSpringInterpolator>(RSSpringInterpolator::Unmarshalling(parcel));
         animation->Interpolate(fraction);
     }
 
@@ -191,7 +192,7 @@ namespace OHOS {
         auto animation = std::make_shared<RSStepsInterpolator>(steps, position);
         Parcel parcel;
         animation->Marshalling(parcel);
-        animation->Unmarshalling(parcel);
+        auto copyInterpolator = std::shared_ptr<RSStepsInterpolator>(RSStepsInterpolator::Unmarshalling(parcel));
         animation->Interpolate(fraction);
     }
 

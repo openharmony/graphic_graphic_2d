@@ -19,13 +19,13 @@ group("unittest") {
   testonly = true
 
   deps = [
-    ":RSDirtyManagerTest",
     ":RSDisplayModeTest",
     ":RSDropframeTest",
     ":RSEventTest",
     ":RSInterfacesTest",
     ":RSJankDetectorTest",
     ":RSRegionTest",
+    ":RSTransactionsTest",
     ":RSTunnelHandleTest",
     "animation:RSAnimationTest",
   ]
@@ -49,17 +49,20 @@ ohos_unittest("RSInterfacesTest") {
   deps = [ ":rs_client_test_common" ]
 }
 
+## Build RSTransactionsTest
+ohos_unittest("RSTransactionsTest") {
+  module_out_path = module_out_path
+  sources = [ "rs_transaction_controller_test.cpp" ]
+  deps = [
+    ":rs_client_test_common",
+    "../../../render_service_base:render_service_base_src",
+  ]
+}
+
 ## Build RSDropframeTest
 ohos_unittest("RSDropframeTest") {
   module_out_path = module_out_path
   sources = [ "rs_dropframe_test.cpp" ]
-  deps = [ ":rs_client_test_common" ]
-}
-
-## Build RSDirtyManagerTest
-ohos_unittest("RSDirtyManagerTest") {
-  module_out_path = module_out_path
-  sources = [ "rs_dirty_manager_test.cpp" ]
   deps = [ ":rs_client_test_common" ]
 }
 

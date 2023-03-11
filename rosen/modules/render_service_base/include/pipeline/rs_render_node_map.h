@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,10 +26,13 @@ namespace OHOS {
 namespace Rosen {
 class RSRenderNode;
 class RSSurfaceRenderNode;
-class RS_EXPORT RSRenderNodeMap final {
+class RSB_EXPORT RSRenderNodeMap final {
 public:
     bool RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr);
     void UnregisterRenderNode(NodeId id);
+
+    void AddDrivenRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr);
+    void RemoveDrivenRenderNode(NodeId id);
 
     // Get RenderNode with type T, return nullptr if not found or type mismatch
     template<typename T = RSBaseRenderNode>
@@ -46,6 +49,7 @@ public:
     void FilterNodeByPid(pid_t pid);
     void TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const;
     void TraverseSurfaceNodes(std::function<void (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const;
+    void TraverseDrivenRenderNodes(std::function<void (const std::shared_ptr<RSRenderNode>&)> func) const;
 private:
     explicit RSRenderNodeMap();
     ~RSRenderNodeMap() = default;
@@ -57,6 +61,7 @@ private:
 private:
     std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>> renderNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> surfaceNodeMap_;
+    std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>> drivenRenderNodeMap_;
 
     friend class RSContext;
     friend class RSMainThread;

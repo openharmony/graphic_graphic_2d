@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "platform/common/rs_system_properties.h"
 
 #include <cstdlib>
+#include <parameter.h>
 #include <parameters.h>
 #include "platform/common/rs_log.h"
 #include "transaction/rs_render_service_client.h"
@@ -23,11 +24,6 @@
 namespace OHOS {
 namespace Rosen {
 
-#ifdef __aarch64__
-#define FRAME_TRACE_SO_PATH "/system/lib64/libframe_trace_intf.z.so"
-#else
-#define FRAME_TRACE_SO_PATH "/system/lib/libframe_trace_intf.z.so"
-#endif
 static void ParseDfxSurfaceNamesString(const std::string& paramsStr,
     std::vector<std::string>& splitStrs, const std::string& seperator)
 {
@@ -84,12 +80,6 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 {
     return static_cast<PartialRenderType>(
         std::atoi((system::GetParameter("rosen.uni.partialrender.enabled", "4")).c_str()));
-}
-
-ContainerWindowConfigType RSSystemProperties::GetContainerWindowConfig()
-{
-    return static_cast<ContainerWindowConfigType>(
-        std::atoi((system::GetParameter("rosen.uni.containerwindowconfig", "2")).c_str()));
 }
 
 bool RSSystemProperties::GetOcclusionEnabled()
@@ -192,15 +182,19 @@ bool RSSystemProperties::GetColdStartThreadEnabled()
     return std::atoi((system::GetParameter("rosen.coldstartthread.enabled", "1")).c_str()) != 0;
 }
 
-bool RSSystemProperties::FrameTraceEnabled()
+float RSSystemProperties::GetAnimationScale()
 {
-    if (!judgeFrameTrace_) {
-        judgeFrameTrace_ = true;
-        if (access(FRAME_TRACE_SO_PATH, 0) == 0) {
-            isFrameTraceEnabled_ = true;
-        }
-    }
-    return isFrameTraceEnabled_;
+    return std::atof((system::GetParameter("persist.sys.graphic.animationscale", "1.0")).c_str());
+}
+
+bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
+{
+    return std::atoi((system::GetParameter(name, defaultValue ? "1" : "0")).c_str()) != 0;
+}
+
+int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
+{
+    return WatchParameter(name, func, context);
 }
 } // namespace Rosen
 } // namespace OHOS

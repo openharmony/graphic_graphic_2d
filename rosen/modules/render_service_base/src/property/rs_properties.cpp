@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,21 +20,13 @@
 
 #include "platform/common/rs_log.h"
 #include "render/rs_filter.h"
-#ifdef ROSEN_OHOS
 #include "common/rs_obj_abs_geometry.h"
-#else
-#include "common/rs_obj_geometry.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
 RSProperties::RSProperties()
 {
-#ifdef ROSEN_OHOS
     boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
-#else
-    boundsGeo_ = std::make_shared<RSObjGeometry>();
-#endif
     frameGeo_ = std::make_shared<RSObjGeometry>();
 }
 
@@ -238,14 +230,12 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag, Ve
         return false;
     }
     CheckEmptyBounds();
-#ifdef ROSEN_OHOS
     auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(boundsGeo_);
 
     if (dirtyFlag || geoDirty_) {
         auto parentGeo = parent == nullptr ? nullptr : std::static_pointer_cast<RSObjAbsGeometry>(parent->boundsGeo_);
         boundsGeoPtr->UpdateMatrix(parentGeo, offset.x_, offset.y_);
     }
-#endif
     return dirtyFlag || geoDirty_;
 }
 
@@ -340,6 +330,13 @@ void RSProperties::SetRotationY(float degree)
     SetDirty();
 }
 
+void RSProperties::SetCameraDistance(float cameraDistance)
+{
+    boundsGeo_->SetCameraDistance(cameraDistance);
+    geoDirty_ = true;
+    SetDirty();
+}
+
 void RSProperties::SetScale(Vector2f scale)
 {
     boundsGeo_->SetScale(scale.x_, scale.y_);
@@ -408,6 +405,11 @@ float RSProperties::GetRotationX() const
 float RSProperties::GetRotationY() const
 {
     return boundsGeo_->GetRotationY();
+}
+
+float RSProperties::GetCameraDistance() const
+{
+    return boundsGeo_->GetCameraDistance();
 }
 
 float RSProperties::GetScaleX() const
@@ -729,6 +731,15 @@ void RSProperties::SetShadowPath(std::shared_ptr<RSPath> shadowPath)
     SetDirty();
 }
 
+void RSProperties::SetShadowMask(bool shadowMask)
+{
+    if (shadow_ == nullptr) {
+        shadow_ = std::make_unique<RSShadow>();
+    }
+    shadow_->SetMask(shadowMask);
+    SetDirty();
+}
+
 Color RSProperties::GetShadowColor() const
 {
     return shadow_ ? shadow_->GetColor() : Color::FromArgbInt(DEFAULT_SPOT_COLOR);
@@ -764,6 +775,11 @@ std::shared_ptr<RSPath> RSProperties::GetShadowPath() const
     return shadow_ ? shadow_->GetPath() : nullptr;
 }
 
+bool RSProperties::GetShadowMask() const
+{
+    return shadow_ ? shadow_->GetMask() : false;
+}
+
 bool RSProperties::IsShadowValid() const
 {
     return shadow_ && shadow_->IsValid();
@@ -782,12 +798,12 @@ Gravity RSProperties::GetFrameGravity() const
     return frameGravity_;
 }
 
-void RSProperties::SetOverlayBounds(std::shared_ptr<RectI> rect)
+void RSProperties::SetOverlayBounds(std::shared_ptr<RectF> rect)
 {
     overlayRect_ = rect;
 }
 
-std::shared_ptr<RectI> RSProperties::GetOverlayBounds() const
+std::shared_ptr<RectF> RSProperties::GetOverlayBounds() const
 {
     return overlayRect_;
 }
@@ -887,7 +903,7 @@ RRect RSProperties::GetInnerRRect() const
 
 bool RSProperties::NeedFilter() const
 {
-    return (backgroundFilter_ != nullptr) || (filter_ != nullptr);
+    return (backgroundFilter_ != nullptr) || (filter_ != nullptr) || IsLightUpEffectValid();
 }
 
 bool RSProperties::NeedClip() const
@@ -920,6 +936,8 @@ void RSProperties::Reset()
     mask_ = nullptr;
     shadow_ = nullptr;
     sublayerTransform_ = nullptr;
+    lightUpEffectDegree_ = 1.0f;
+    pixelStretch_ = nullptr;
 }
 
 void RSProperties::SetDirty()
@@ -945,7 +963,6 @@ bool RSProperties::IsGeoDirty() const
 
 RectI RSProperties::GetDirtyRect() const
 {
-#ifdef ROSEN_OHOS
     RectI dirtyRect;
     auto boundsGeometry = std::static_pointer_cast<RSObjAbsGeometry>(boundsGeo_);
     if (clipToBounds_ || std::isinf(GetFrameWidth()) || std::isinf(GetFrameHeight())) {
@@ -958,7 +975,7 @@ RectI RSProperties::GetDirtyRect() const
     if (overlayRect_ == nullptr || overlayRect_->IsEmpty()) {
         return dirtyRect;
     } else {
-        auto overlayRect = boundsGeometry->MapAbsRect(overlayRect_->ConvertTo<float>());
+        auto overlayRect = boundsGeometry->MapAbsRect(*overlayRect_);
         // this is used to fix the scene with overlayRect problem, which is need to be optimized
         overlayRect.SetRight(overlayRect.GetRight() + 1);
         overlayRect.SetBottom(overlayRect.GetBottom() + 1);
@@ -966,9 +983,31 @@ RectI RSProperties::GetDirtyRect() const
             overlayRect.width_ + 1, overlayRect.height_ + 1);
         return dirtyRect.JoinRect(overlayRect);
     }
-#else
-    return RectI();
-#endif
+}
+
+RectI RSProperties::GetDirtyRect(RectI& overlayRect) const
+{
+    RectI dirtyRect;
+    auto boundsGeometry = std::static_pointer_cast<RSObjAbsGeometry>(boundsGeo_);
+    if (clipToBounds_ || std::isinf(GetFrameWidth()) || std::isinf(GetFrameHeight())) {
+        dirtyRect = boundsGeometry->GetAbsRect();
+    } else {
+        auto frameRect =
+            boundsGeometry->MapAbsRect(RectF(GetFrameOffsetX(), GetFrameOffsetY(), GetFrameWidth(), GetFrameHeight()));
+        dirtyRect = boundsGeometry->GetAbsRect().JoinRect(frameRect);
+    }
+    if (overlayRect_ == nullptr || overlayRect_->IsEmpty()) {
+        overlayRect = RectI();
+        return dirtyRect;
+    } else {
+        overlayRect = boundsGeometry->MapAbsRect(*overlayRect_);
+        // this is used to fix the scene with overlayRect problem, which is need to be optimized
+        overlayRect.SetRight(overlayRect.GetRight() + 1);
+        overlayRect.SetBottom(overlayRect.GetBottom() + 1);
+        overlayRect.SetAll(overlayRect.left_ - 1, overlayRect.top_ - 1,
+            overlayRect.width_ + 1, overlayRect.height_ + 1);
+        return dirtyRect.JoinRect(overlayRect);
+    }
 }
 
 void RSProperties::CheckEmptyBounds()
@@ -996,6 +1035,99 @@ void RSProperties::SetMask(std::shared_ptr<RSMask> mask)
 std::shared_ptr<RSMask> RSProperties::GetMask() const
 {
     return mask_;
+}
+
+void RSProperties::SetSpherize(float spherizeDegree)
+{
+    spherizeDegree_ = spherizeDegree;
+}
+
+float RSProperties::GetSpherize() const
+{
+    return spherizeDegree_;
+}
+
+bool RSProperties::IsSpherizeValid() const
+{
+    constexpr float epsilon = 0.001f;
+    return GetSpherize() - 0.0 > epsilon;
+}
+
+void RSProperties::SetLightUpEffect(float lightUpEffectDegree)
+{
+    lightUpEffectDegree_ = lightUpEffectDegree;
+    SetDirty();
+}
+
+float RSProperties::GetLightUpEffect() const
+{
+    return lightUpEffectDegree_;
+}
+
+bool RSProperties::IsLightUpEffectValid() const
+{
+    constexpr float epsilon = 0.001f;
+    return 1.0 - GetLightUpEffect() > epsilon;
+}
+
+void RSProperties::SetPixelStretch(Vector4f stretchSize)
+{
+    if (!pixelStretch_) {
+        pixelStretch_ = std::make_unique<Vector4f>();
+    }
+
+    pixelStretch_->SetValues(stretchSize.x_, stretchSize.y_, stretchSize.z_, stretchSize.w_);
+
+    SetDirty();
+}
+
+Vector4f RSProperties::GetPixelStretch() const
+{
+    return pixelStretch_ ? *pixelStretch_ : Vector4f();
+}
+
+bool RSProperties::IsPixelStretchValid() const
+{
+    if (!pixelStretch_ || pixelStretch_->IsZero()) {
+        return false;
+    }
+
+    constexpr static float EPS = 1e-5f;
+    if (pixelStretch_->x_ <= EPS && pixelStretch_->y_ <= EPS && pixelStretch_->z_ <= EPS && pixelStretch_->w_ <= EPS) {
+        return  true;
+    }
+
+    if (pixelStretch_->x_ >= -EPS && pixelStretch_->y_ >= -EPS && pixelStretch_->z_ >= -EPS
+        && pixelStretch_->w_ >= -EPS) {
+        return  true;
+    }
+
+    return false;
+}
+
+bool RSProperties::IsPixelStretchExpanded() const
+{
+    if (IsPixelStretchValid()) {
+        constexpr static float EPS = 1e-5f;
+        if (pixelStretch_->x_ >= -EPS && pixelStretch_->y_ >= -EPS && pixelStretch_->z_ >= -EPS
+            && pixelStretch_->w_ >= -EPS) {
+            return true;
+        }
+    }
+    return false;
+}
+
+RectI RSProperties::GetPixelStretchDirtyRect() const
+{
+    auto dirtyRect = GetDirtyRect();
+    auto stretchSize = GetPixelStretch();
+
+    auto scaledBounds = RectF(dirtyRect.left_ - stretchSize.x_, dirtyRect.top_ - stretchSize.y_,
+        dirtyRect.width_ + stretchSize.x_ + stretchSize.z_,  dirtyRect.height_ + stretchSize.y_ + stretchSize.w_);
+
+    auto scaledIBounds = RectI(std::floor(scaledBounds.left_), std::floor(scaledBounds.top_),
+        std::ceil(scaledBounds.width_) + 1, std::ceil(scaledBounds.height_) + 1);
+    return dirtyRect.JoinRect(scaledIBounds);
 }
 
 std::string RSProperties::Dump() const

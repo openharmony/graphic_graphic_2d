@@ -58,6 +58,7 @@ VSyncGenerator::VSyncGenerator()
 {
     vsyncThreadRunning_ = true;
     thread_ = std::thread(std::bind(&VSyncGenerator::ThreadLoop, this));
+    pthread_setname_np(thread_.native_handle(), "VSyncGenerator");
 }
 
 VSyncGenerator::~VSyncGenerator()
@@ -125,7 +126,7 @@ void VSyncGenerator::ThreadLoop()
         }
         ScopedBytrace func("GenerateVsyncCount:" + std::to_string(listeners.size()));
         for (uint32_t i = 0; i < listeners.size(); i++) {
-            listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_);
+            listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, period_);
         }
     }
 }

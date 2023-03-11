@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,9 +21,10 @@
 #include <set>
 #include <parameters.h>
 
-#include "overdraw/rs_cpu_overdraw_canvas_listener.h"
-#include "overdraw/rs_gpu_overdraw_canvas_listener.h"
-#include "overdraw/rs_overdraw_controller.h"
+#include "platform/ohos/overdraw/rs_cpu_overdraw_canvas_listener.h"
+#include "platform/ohos/overdraw/rs_gpu_overdraw_canvas_listener.h"
+#include "platform/ohos/overdraw/rs_overdraw_controller.h"
+#include "pipeline/driven_render/rs_driven_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -81,15 +82,32 @@ public:
         isHardwareForcedDisabled_ = true;
     }
 
+    void SetDrivenRenderFlag(bool hasDrivenNodeOnUniTree, bool hasDrivenNodeMarkRender)
+    {
+        if (!drivenInfo_) {
+            return;
+        }
+        drivenInfo_->hasDrivenNodeOnUniTree = hasDrivenNodeOnUniTree;
+        drivenInfo_->hasDrivenNodeMarkRender = hasDrivenNodeMarkRender;
+    }
+
     void SetHardwareEnabledNodes(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
-    void AdjustZOrderAndCreateLayer();
+    void AssignGlobalZOrderAndCreateLayer();
 
     void CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisitor> visitor);
     // Some properties defiend before ProcessSurfaceRenderNode() may be used in
     // ProcessSurfaceRenderNode() method. We should copy these properties in parallel render.
     void CopyPropertyForParallelVisitor(RSUniRenderVisitor *mainVisitor);
-
+    bool GetIsPartialRenderEnabled() const
+    {
+        return isPartialRenderEnabled_;
+    }
+    bool GetIsOpDropped() const
+    {
+        return isOpDropped_;
+    }
 private:
+    void DrawWatermarkIfNeed();
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
         const SkPaint::Style fillType, float alpha, int edgeWidth);
     void DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects);
@@ -97,6 +115,17 @@ private:
     void DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node);
     void DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& node);
     void DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node);
+    // check if surface name is in dfx target list
+    inline bool CheckIfSurfaceTargetedForDFX(std::string nodeName)
+    {
+        return (std::find(dfxTargetSurfaceNames_.begin(), dfxTargetSurfaceNames_.end(),
+            nodeName) != dfxTargetSurfaceNames_.end());
+    }
+
+    bool DrawDetailedTypesOfDirtyRegionForDFX(RSSurfaceRenderNode& node);
+    void DrawAndTraceSingleDirtyRegionTypeForDFX(RSSurfaceRenderNode& node,
+        DirtyRegionType dirtyType, bool isDrawn = true);
+
     std::vector<RectI> GetDirtyRects(const Occlusion::Region &region);
     /* calculate display/global (between windows) level dirty region, current include:
      * 1. window move/add/remove 2. transparent dirty region
@@ -125,8 +154,10 @@ private:
     bool IsHardwareComposerEnabled();
 
     void ClearTransparentBeforeSaveLayer();
-    // mark parentNode's child surfaceView nodes hardware forced disabled
-    void MarkSubHardwareEnableNodeState(RSSurfaceRenderNode& parentNode);
+    // mark surfaceNode's child surfaceView nodes hardware forced disabled
+    void MarkSubHardwareEnableNodeState(RSSurfaceRenderNode& surfaceNode);
+    // adjust local zOrder if surfaceNode's child surfaceView nodes skipped by dirty region
+    void AdjustLocalZOrder(std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
 
     void RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& node, float width, float height);
     // offscreen render related
@@ -145,7 +176,7 @@ private:
     bool dirtyFlag_ { false };
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
-    SkRect boundsRect_;
+    SkRect boundsRect_ {};
     Gravity frameGravity_ = Gravity::DEFAULT;
 
     int32_t offsetX_ { 0 };
@@ -173,11 +204,11 @@ private:
     bool isOcclusionEnabled_ = false;
     std::vector<std::string> dfxTargetSurfaceNames_;
     PartialRenderType partialRenderType_;
+    DirtyRegionDebugType dirtyRegionDebugType_;
     bool isDirty_ = false;
     bool needFilter_ = false;
     ColorGamut newColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
     std::vector<ScreenColorGamut> colorGamutmodes_;
-    ContainerWindowConfigType containerWindowConfig_;
     pid_t currentFocusedPid_ = -1;
 
     bool needColdStartThread_ = false; // flag used for cold start app window
@@ -200,6 +231,14 @@ private:
     bool isFreeze_ = false;
     bool isHardwareForcedDisabled_ = false; // indicates if hardware composer is totally disabled
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
+    // vector of all app window nodes with surfaceView, sorted by zOrder
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> appWindowNodesInZOrder_;
+    float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
+
+    // driven render
+    std::unique_ptr<DrivenPrepareInfo> drivenInfo_ = nullptr;
+
+    bool isCalcCostEnable_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

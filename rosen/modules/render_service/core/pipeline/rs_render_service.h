@@ -26,7 +26,6 @@
 namespace OHOS {
 namespace Rosen {
 class RSMainThread;
-class RSSyncTask;
 class RSRenderServiceConnection;
 
 class RSRenderService : public RSRenderServiceStub {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,10 +39,24 @@ void RSImplicitAnimator::OpenImplicitAnimation(const RSAnimationTimingProtocol& 
         case RSAnimationTimingCurve::CurveType::SPRING:
             BeginImplicitSpringAnimation();
             break;
+        case RSAnimationTimingCurve::CurveType::INTERPOLATING_SPRING:
+            BeginImplicitInterpolatingSpringAnimation();
+            break;
         default:
             ROSEN_LOGE("Wrong type of timing curve!");
             return;
     }
+}
+void RSImplicitAnimator::OpenImplicitAnimation(const std::function<void()>& finishCallback)
+{
+    if (globalImplicitParams_.empty()) {
+        ROSEN_LOGE("Failed to open implicit animation, need to set implicit animation params firstly!");
+        OpenImplicitAnimation({}, {}, finishCallback);
+        return;
+    }
+    // copy current implicit animation params and replace finish callback
+    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    OpenImplicitAnimation(protocol, curve, finishCallback);
 }
 
 std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnimation()
@@ -145,7 +159,7 @@ void RSImplicitAnimator::EndImplicitKeyFrameAnimation()
 
 bool RSImplicitAnimator::NeedImplicitAnimation()
 {
-    return !implicitAnimationParams_.empty() && !isImplicitAnimationShielded_;
+    return !implicitAnimationParams_.empty() && !implicitAnimationDisabled_;
 }
 
 void RSImplicitAnimator::BeginImplicitCurveAnimation()
@@ -168,7 +182,8 @@ void RSImplicitAnimator::EndImplicitAnimation()
 {
     if (implicitAnimationParams_.empty() ||
         (implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::CURVE &&
-            implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::SPRING)) {
+            implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::SPRING &&
+            implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::INTERPOLATING_SPRING)) {
         ROSEN_LOGE("Failed to end implicit animation, need to begin implicit animation firstly!");
         return;
     }
@@ -217,6 +232,22 @@ void RSImplicitAnimator::BeginImplicitSpringAnimation()
     }
     auto springParam = std::make_shared<RSImplicitSpringAnimationParam>(protocol, curve);
     PushImplicitParam(springParam);
+}
+
+void RSImplicitAnimator::BeginImplicitInterpolatingSpringAnimation()
+{
+    if (globalImplicitParams_.empty()) {
+        ROSEN_LOGE("Failed to begin implicit transition, need to open implicit transition firstly!");
+        return;
+    }
+
+    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    if (curve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING_SPRING) {
+        ROSEN_LOGE("Wrong type of timing curve!");
+        return;
+    }
+    auto interpolatingSpringParam = std::make_shared<RSImplicitInterpolatingSpringAnimationParam>(protocol, curve);
+    PushImplicitParam(interpolatingSpringParam);
 }
 
 void RSImplicitAnimator::BeginImplicitTransition(const std::shared_ptr<const RSTransitionEffect>& effect,
@@ -343,6 +374,12 @@ std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(const s
         case ImplicitAnimationParamType::SPRING: {
             auto springImplicitParam = static_cast<RSImplicitSpringAnimationParam*>(params.get());
             animation = springImplicitParam->CreateAnimation(property, startValue, endValue);
+            break;
+        }
+        case ImplicitAnimationParamType::INTERPOLATING_SPRING: {
+            auto interpolatingSpringImplicitParam =
+                static_cast<RSImplicitInterpolatingSpringAnimationParam*>(params.get());
+            animation = interpolatingSpringImplicitParam->CreateAnimation(property, startValue, endValue);
             break;
         }
         case ImplicitAnimationParamType::PATH: {

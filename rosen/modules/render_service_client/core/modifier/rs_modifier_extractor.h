@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,7 @@ namespace OHOS {
 namespace Rosen {
 class RSNode;
 
-class RS_EXPORT RSModifierExtractor {
+class RSC_EXPORT RSModifierExtractor {
 public:
     RSModifierExtractor(NodeId id);
     virtual ~RSModifierExtractor() = default;
@@ -37,6 +37,7 @@ public:
     float GetRotation() const;
     float GetRotationX() const;
     float GetRotationY() const;
+    float GetCameraDistance() const;
     Vector2f GetTranslate() const;
     float GetTranslateZ() const;
     Vector2f GetScale() const;
@@ -70,6 +71,7 @@ public:
     float GetShadowElevation() const;
     float GetShadowRadius() const;
     std::shared_ptr<RSPath> GetShadowPath() const;
+    bool GetShadowMask() const;
 
     Gravity GetFrameGravity() const;
 
@@ -79,6 +81,8 @@ public:
     bool GetVisible() const;
 
     std::shared_ptr<RSMask> GetMask() const;
+    float GetSpherizeDegree() const;
+    float GetLightUpEffectDegree() const;
 
     std::string Dump() const;
 private:

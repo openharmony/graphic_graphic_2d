@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,16 +18,23 @@
 #include "platform/drawing/rs_surface.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
-#ifdef ROSEN_OHOS
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
 #include <surface.h>
 #endif
 
 namespace OHOS {
 namespace Rosen {
 RSRootRenderNode::RSRootRenderNode(NodeId id, std::weak_ptr<RSContext> context)
-    : RSCanvasRenderNode(id, context), dirtyManager_(std::make_shared<RSDirtyRegionManager>()) {}
+    : RSCanvasRenderNode(id, context), dirtyManager_(std::make_shared<RSDirtyRegionManager>())
+{
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+}
 
-RSRootRenderNode::~RSRootRenderNode() {}
+RSRootRenderNode::~RSRootRenderNode()
+{
+    MemoryTrack::Instance().RemoveNodeRecord(GetId());
+}
 
 void RSRootRenderNode::AttachRSSurfaceNode(NodeId surfaceNodeId)
 {

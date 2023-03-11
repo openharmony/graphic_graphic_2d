@@ -27,7 +27,7 @@
 namespace OHOS {
 namespace Rosen {
 struct RSWindowAnimationTarget : Parcelable {
-    static RSWindowAnimationTarget* Unmarshalling(Parcel& parcel);
+    [[nodiscard]] static RSWindowAnimationTarget* Unmarshalling(Parcel& parcel);
 
     bool Marshalling(Parcel& parcel) const override;
 

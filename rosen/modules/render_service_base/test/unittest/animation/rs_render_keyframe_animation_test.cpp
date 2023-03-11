@@ -166,7 +166,7 @@ HWTEST_F(RSRenderKeyframeAnimationTest, Unmarshalling001, TestSize.Level1)
 
     Parcel parcel;
     renderKeyframeAnimation->Marshalling(parcel);
-    RSRenderKeyframeAnimation::Unmarshalling(parcel);
+    std::shared_ptr<RSRenderAnimation>(RSRenderKeyframeAnimation::Unmarshalling(parcel));
     EXPECT_TRUE(renderKeyframeAnimation != nullptr);
     renderKeyframeAnimation->Attach(renderNode.get());
     renderKeyframeAnimation->Start();

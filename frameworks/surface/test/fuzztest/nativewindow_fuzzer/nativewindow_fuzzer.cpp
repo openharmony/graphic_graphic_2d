@@ -23,6 +23,7 @@
 #include "surface_buffer.h"
 #include "surface_buffer_impl.h"
 #include "ibuffer_producer.h"
+#include "iconsumer_surface.h"
 #include "native_window.h"
 
 namespace OHOS {
@@ -111,7 +112,7 @@ namespace OHOS {
         uint32_t reserveInts = GetData<uint32_t>() % 0x100000; // no more than 0x100000
 
         // test
-        sptr<OHOS::Surface> cSurface = Surface::CreateSurfaceAsConsumer();
+        sptr<OHOS::IConsumerSurface> cSurface = IConsumerSurface::Create();
         sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
         cSurface->RegisterConsumerListener(listener);
         sptr<OHOS::IBufferProducer> producer = cSurface->GetProducer();

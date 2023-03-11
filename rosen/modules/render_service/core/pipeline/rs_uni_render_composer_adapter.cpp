@@ -17,10 +17,15 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #include "rs_divided_render_util.h"
 #include "rs_trace.h"
 #include "string_utils.h"
+
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#include "pipeline/driven_render/rs_driven_surface_render_node.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -77,6 +82,18 @@ void RSUniRenderComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& l
     RSHardwareThread::Instance().CommitAndReleaseLayers(output_, layers);
 }
 
+void RSUniRenderComposerAdapter::SetPreBufferInfo(RSSurfaceHandler& surfaceHandler, ComposeInfo& info) const
+{
+    if (surfaceHandler.IsPreBufferReleased()) {
+        // reset prevBuffer if same layer has been committed successfully,
+        // to avoid releasing the same buffer next frame in some situations.
+        info.preBuffer = nullptr;
+    } else {
+        info.preBuffer = surfaceHandler.GetPreBuffer().buffer;
+        surfaceHandler.SetPreBufferReleased(true);
+    }
+}
+
 // private func, for RSDisplayRenderNode
 ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& node) const
 {
@@ -94,7 +111,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
     info.alpha.enGlobalAlpha = true;
     info.alpha.gAlpha = 255;
-    info.preBuffer = node.GetPreBuffer().buffer;
+    SetPreBufferInfo(node, info);
     info.buffer = buffer;
     info.fence = node.GetAcquireFence();
     info.blendType = GRAPHIC_BLEND_SRCOVER;
@@ -103,10 +120,36 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     return info;
 }
 
+ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDrivenSurfaceRenderNode& node) const
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.
+    const RectI dstRect = node.GetDstRect();
+    const auto& srcRect = node.GetSrcRect();
+    ComposeInfo info {};
+    info.srcRect = GraphicIRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};
+    info.dstRect = GraphicIRect {dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_};
+    info.boundRect = info.dstRect;
+    info.visibleRect = info.dstRect;
+    info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
+    info.alpha.enGlobalAlpha = true;
+    info.alpha.gAlpha = 255;
+    SetPreBufferInfo(node, info);
+    info.buffer = buffer;
+    info.fence = node.GetAcquireFence();
+    info.blendType = GRAPHIC_BLEND_SRCOVER;
+    info.needClient = false;
+    info.matrix = GraphicMatrix {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
+    return info;
+#else
+    return {};
+#endif
+}
+
 void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     const LayerInfoPtr& layer,
     const ComposeInfo& info,
-    const sptr<Surface>& surface,
+    const sptr<IConsumerSurface>& surface,
     RSBaseRenderNode* node) const
 {
     if (layer == nullptr) {
@@ -269,7 +312,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& no
     info.blendType = node.GetBlendType();
     const auto& buffer = node.GetBuffer();
     info.buffer = buffer;
-    info.preBuffer = node.GetPreBuffer().buffer;
+    SetPreBufferInfo(node, info);
     GetComposerInfoSrcRect(info, node);
     info.needClient = GetComposerInfoNeedClient(info, node);
     DealWithNodeGravity(node, info);
@@ -363,13 +406,15 @@ void RSUniRenderComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer)
 
         uint32_t newWidth = static_cast<uint32_t>(srcRect.w);
         uint32_t newHeight = static_cast<uint32_t>(srcRect.h);
+        uint32_t dstWidth = static_cast<uint32_t>(dstRect.w);
+        uint32_t dstHeight = static_cast<uint32_t>(dstRect.h);
 
-        if (newWidth * dstRect.h > newHeight * dstRect.w) {
+        if (newWidth * dstHeight > newHeight * dstWidth) {
             // too wide
-            newWidth = dstRect.w * newHeight / dstRect.h;
-        } else if (newWidth * dstRect.h < newHeight * dstRect.w) {
+            newWidth = dstWidth * newHeight / dstHeight;
+        } else if (newWidth * dstHeight < newHeight * dstWidth) {
             // too tall
-            newHeight = dstRect.h * newWidth / dstRect.w;
+            newHeight = dstHeight * newWidth / dstWidth;
         } else {
             return;
         }
@@ -381,14 +426,14 @@ void RSUniRenderComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer)
             // the crop is too wide
             uint32_t dw = currentWidth - newWidth;
             auto halfdw = dw / 2;
-            srcRect.x += halfdw;
-            srcRect.w = newWidth;
+            srcRect.x += static_cast<int32_t>(halfdw);
+            srcRect.w = static_cast<int32_t>(newWidth);
         } else {
             // thr crop is too tall
             uint32_t dh = currentHeight - newHeight;
             auto halfdh = dh / 2;
-            srcRect.y += halfdh;
-            srcRect.h = newHeight;
+            srcRect.y += static_cast<int32_t>(halfdh);
+            srcRect.h = static_cast<int32_t>(newHeight);
         }
         layer->SetDirtyRegion(srcRect);
         layer->SetCropRect(srcRect);
@@ -437,10 +482,10 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
     RS_TRACE_NAME(traceInfo.c_str());
     RS_LOGD(
         "RsDebug RSUniRenderComposerAdapter::CreateBufferLayer surfaceNode id:%" PRIu64 " name:[%s] dst [%d %d %d %d]"
-        "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, z:%f, globalZOrder:%d, blendType = %d",
+        "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d], z:%f, globalZOrder:%d, blendType = %d",
         node.GetId(), node.GetName().c_str(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
         info.srcRect.w, info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(),
-        info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(), info.buffer.GetRefPtr(),
+        info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(),
         node.GetGlobalZOrder(), info.zOrder, info.blendType);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     // planning surfaceNode prebuffer is set to hdilayerInfo, enable release prebuffer when HWC composition is ready
@@ -489,6 +534,42 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
     return layer;
 }
 
+LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDrivenSurfaceRenderNode& node)
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    if (output_ == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer: output is nullptr");
+        return nullptr;
+    }
+
+    RS_LOGD("RSUniRenderComposerAdapter::CreateLayer RSDrivenSurfaceRenderNode id:%" PRIu64 " available buffer:%d",
+        node.GetId(), node.GetAvailableBufferCount());
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(node)) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer consume buffer failed.");
+        return nullptr;
+    }
+
+    if (node.GetBuffer() == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer buffer is nullptr!");
+        return nullptr;
+    }
+
+    ComposeInfo info = BuildComposeInfo(node);
+    RS_LOGD("RSUniRenderComposerAdapter::ProcessDrivenSurface drivenSurfaceNode id:%" PRIu64 " DstRect [%d %d %d %d]"
+            "SrcRect [%d %d %d %d] rawbuffer [%d %d] surfaceBuffer [%d %d], z-Order:%d, blendType = %d",
+        node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
+        info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h,
+        info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
+        info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
+    LayerRotate(layer, node);
+    return layer;
+#else
+    return nullptr;
+#endif
+}
+
 static int GetSurfaceNodeRotation(RSBaseRenderNode& node)
 {
     // only surface render node has the ability to rotate
@@ -498,28 +579,19 @@ static int GetSurfaceNodeRotation(RSBaseRenderNode& node)
     }
 
     auto& surfaceNode = static_cast<RSSurfaceRenderNode&>(node);
-    auto matrix = surfaceNode.GetTotalMatrix();
-    float value[9];
-    matrix.get9(value);
-
-    int rAngle = static_cast<int>(-round(atan2(value[SkMatrix::kMSkewX], value[SkMatrix::kMScaleX]) * (180 / PI)));
-    // transfer the result to anti-clockwise degrees
-    // only rotation with 90°, 180°, 270° are composed through hardware,
-    // in which situation the transformation of the layer needs to be set.
-    static const std::map<int, int> supportedDegrees = {{90, 270}, {180, 180}, {-90, 90}};
-    auto iter = supportedDegrees.find(rAngle);
-    return iter != supportedDegrees.end() ? iter->second : 0;
+    return RSUniRenderUtil::GetRotationFromMatrix(surfaceNode.GetTotalMatrix());
 }
 
 static void SetLayerTransform(const LayerInfoPtr& layer, RSBaseRenderNode& node,
-    const sptr<Surface>& surface, ScreenRotation screenRotation)
+    const sptr<IConsumerSurface>& surface, ScreenRotation screenRotation)
 {
     // screenRotation: anti-clockwise, surfaceNodeRotation: anti-clockwise, surfaceTransform: anti-clockwise
     // layerTransform: clockwise
     int surfaceNodeRotation = GetSurfaceNodeRotation(node);
     int totalRotation = (RotateEnumToInt(screenRotation) + surfaceNodeRotation +
-        RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()))) % 360;
-    GraphicTransformType rotateEnum = RotateEnumToInt(totalRotation, RSBaseRenderUtil::GetFlipTransform(surface->GetTransform()));
+        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()))) % 360;
+    GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation,
+        RSBaseRenderUtil::GetFlipTransform(surface->GetTransform()));
     layer->SetTransform(rotateEnum);
 }
 

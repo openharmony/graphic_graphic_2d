@@ -30,22 +30,21 @@ void RSParallelHardwareComposer::Init(uint32_t threadNum)
     }
 }
 
-void RSParallelHardwareComposer::ClearTransparentColor(std::shared_ptr<RSPaintFilterCanvas> canvas,
-    unsigned int surfaceIndex)
+void RSParallelHardwareComposer::ClearTransparentColor(RSPaintFilterCanvas& canvas, unsigned int surfaceIndex)
 {
     const auto &holes = surfaceAndHolesMap_[surfaceIndex];
     if (holes.size() == 0) {
         return;
     }
     for (const auto& hole : holes) {
-        canvas->save();
+        canvas.save();
         if (hole->IsRRect()) {
-            canvas->clipRRect(hole->GetRRect(), true);
+            canvas.clipRRect(hole->GetRRect(), true);
         } else {
-            canvas->clipRect(hole->GetRect());
+            canvas.clipRect(hole->GetRect());
         }
-        canvas->clear(SK_ColorTRANSPARENT);
-        canvas->restore();
+        canvas.clear(SK_ColorTRANSPARENT);
+        canvas.restore();
     }
 }
 

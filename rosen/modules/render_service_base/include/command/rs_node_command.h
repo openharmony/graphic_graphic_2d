@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,11 +45,16 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_VECTOR4_COLOR,
     UPDATE_MODIFIER_VECTOR4F,
     UPDATE_MODIFIER_DRAW_CMD_LIST,
+    UPDATE_MODIFIER_SKMATRIX,
 
     SET_FREEZE,
+    MARK_DRIVEN_RENDER,
+    MARK_DRIVEN_RENDER_ITEM_INDEX,
+    MARK_DRIVEN_RENDER_FRAME_PAINT_STATE,
+    MARK_CONTENT_CHANGED,
 };
 
-class RS_EXPORT RSNodeCommandHelper {
+class RSB_EXPORT RSNodeCommandHelper {
 public:
     static void AddModifier(RSContext& context, NodeId nodeId, const std::shared_ptr<RSRenderModifier>& modifier);
     static void RemoveModifier(RSContext& context, NodeId nodeId, PropertyId propertyId);
@@ -70,6 +75,10 @@ public:
     }
 
     static void SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze);
+    static void MarkDrivenRender(RSContext& context, NodeId nodeId, bool flag);
+    static void MarkDrivenRenderItemIndex(RSContext& context, NodeId nodeId, int32_t index);
+    static void MarkDrivenRenderFramePaintState(RSContext& context, NodeId nodeId, bool flag);
+    static void MarkContentChanged(RSContext& context, NodeId nodeId, bool isChanged);
 };
 
 ADD_COMMAND(RSAddModifier,
@@ -128,10 +137,22 @@ ADD_COMMAND(RSUpdatePropertyVector4f,
 ADD_COMMAND(RSUpdatePropertyDrawCmdList,
     ARG(RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST, RSNodeCommandHelper::UpdateModifier<DrawCmdListPtr>,
         NodeId, DrawCmdListPtr, PropertyId, bool))
+ADD_COMMAND(RSUpdatePropertySkMatrix,
+    ARG(RS_NODE, UPDATE_MODIFIER_SKMATRIX, RSNodeCommandHelper::UpdateModifier<SkMatrix>,
+        NodeId, SkMatrix, PropertyId, bool))
 
 ADD_COMMAND(RSSetFreeze,
     ARG(RS_NODE, SET_FREEZE, RSNodeCommandHelper::SetFreeze, NodeId, bool))
 
+ADD_COMMAND(RSMarkDrivenRender,
+    ARG(RS_NODE, MARK_DRIVEN_RENDER, RSNodeCommandHelper::MarkDrivenRender, NodeId, bool))
+ADD_COMMAND(RSMarkDrivenRenderItemIndex,
+    ARG(RS_NODE, MARK_DRIVEN_RENDER_ITEM_INDEX, RSNodeCommandHelper::MarkDrivenRenderItemIndex, NodeId, int32_t))
+ADD_COMMAND(RSMarkDrivenRenderFramePaintState,
+    ARG(RS_NODE, MARK_DRIVEN_RENDER_FRAME_PAINT_STATE,
+        RSNodeCommandHelper::MarkDrivenRenderFramePaintState, NodeId, bool))
+ADD_COMMAND(RSMarkContentChanged,
+    ARG(RS_NODE, MARK_CONTENT_CHANGED, RSNodeCommandHelper::MarkContentChanged, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 

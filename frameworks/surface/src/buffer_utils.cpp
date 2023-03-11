@@ -78,7 +78,6 @@ void ReadFlushConfig(MessageParcel &parcel, BufferFlushConfig &config)
     config.damage.y = parcel.ReadInt32();
     config.damage.w = parcel.ReadInt32();
     config.damage.h = parcel.ReadInt32();
-    config.timestamp = parcel.ReadInt64();
 }
 
 void WriteFlushConfig(MessageParcel &parcel, BufferFlushConfig const & config)
@@ -87,7 +86,6 @@ void WriteFlushConfig(MessageParcel &parcel, BufferFlushConfig const & config)
     parcel.WriteInt32(config.damage.y);
     parcel.WriteInt32(config.damage.w);
     parcel.WriteInt32(config.damage.h);
-    parcel.WriteInt64(config.timestamp);
 }
 
 void ReadSurfaceBufferImpl(MessageParcel &parcel,

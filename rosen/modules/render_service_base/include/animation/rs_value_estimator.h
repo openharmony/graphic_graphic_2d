@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,7 +34,7 @@ class RSRenderPropertyBase;
 template<typename T>
 class RSRenderAnimatableProperty;
 
-class RS_EXPORT RSValueEstimator {
+class RSB_EXPORT RSValueEstimator {
 public:
     template<typename T>
     T Estimate(float fraction, const T& startValue, const T& endValue)
@@ -66,7 +66,7 @@ public:
 };
 
 template<typename T>
-class RS_EXPORT RSCurveValueEstimator : public RSValueEstimator {
+class RSB_EXPORT_TMP RSCurveValueEstimator : public RSValueEstimator {
 public:
     RSCurveValueEstimator() = default;
     virtual ~RSCurveValueEstimator() = default;
@@ -121,6 +121,8 @@ private:
 
 template<>
 float RSCurveValueEstimator<float>::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator);
+
+extern template class RSCurveValueEstimator<float>;
 
 template<typename T>
 class RSKeyframeValueEstimator : public RSValueEstimator {

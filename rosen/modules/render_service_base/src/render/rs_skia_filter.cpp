@@ -29,5 +29,28 @@ SkPaint RSSkiaFilter::GetPaint() const
     paint.setImageFilter(imageFilter_);
     return paint;
 }
+
+sk_sp<SkImageFilter> RSSkiaFilter::GetImageFilter() const
+{
+    return imageFilter_;
+}
+
+std::shared_ptr<RSSkiaFilter> RSSkiaFilter::Compose(const std::shared_ptr<RSSkiaFilter>& outer,
+    const std::shared_ptr<RSSkiaFilter>& inner)
+{
+    if (outer == nullptr && inner == nullptr) {
+        return nullptr;
+    }
+    sk_sp<SkImageFilter> outerFilter = nullptr;
+    sk_sp<SkImageFilter> innerFilter = nullptr;
+    if (outer != nullptr) {
+        outerFilter = outer->GetImageFilter();
+    }
+    if (inner != nullptr) {
+        innerFilter = inner->GetImageFilter();
+    }
+    sk_sp<SkImageFilter> composedFilter = SkImageFilters::Compose(outerFilter, innerFilter);
+    return std::make_shared<RSSkiaFilter>(composedFilter);
+}
 } // namespace Rosen
 } // namespace OHOS

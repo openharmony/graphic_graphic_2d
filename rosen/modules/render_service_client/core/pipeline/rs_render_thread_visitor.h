@@ -52,7 +52,8 @@ public:
     // Partial render status and renderForce flag should be updated by rt thread
     void SetPartialRenderStatus(PartialRenderType status, bool isRenderForced);
 private:
-    void DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color, const SkPaint::Style fillType, float alpha);
+    void DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color, const SkPaint::Style fillType, float alpha,
+        int strokeWidth = 6);
     void DrawDirtyRegion();
     // Update damageRegion based on buffer age, and then set it through egl api
     void UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSSurfaceFrame>& surfaceFrame);
@@ -63,6 +64,7 @@ private:
     bool isRenderForced_ = false;
     bool isEglSetDamageRegion_ = false;
     bool isOpDropped_ = false;
+    DirtyRegionDebugType dfxDirtyType_ = DirtyRegionDebugType::DISABLED;
     PartialRenderType partialRenderStatus_ = PartialRenderType::DISABLED;
     RectI curDirtyRegion_ = RectI();
     bool dirtyFlag_ = false;

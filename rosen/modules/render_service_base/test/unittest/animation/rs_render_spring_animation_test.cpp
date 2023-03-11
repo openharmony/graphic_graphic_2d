@@ -84,7 +84,7 @@ HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling001, TestSize.Level1)
 
     Parcel parcel;
     renderSpringAnimation->Marshalling(parcel);
-    RSRenderSpringAnimation::Unmarshalling(parcel);
+    std::shared_ptr<RSRenderAnimation>(RSRenderSpringAnimation::Unmarshalling(parcel));
     EXPECT_TRUE(renderSpringAnimation != nullptr);
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest Unmarshalling001 end";
 }

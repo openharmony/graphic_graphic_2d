@@ -84,7 +84,7 @@ HWTEST_F(RSRenderCurveAnimationTest, Unmarshalling001, TestSize.Level1)
 
     Parcel parcel;
     renderCurveAnimation->Marshalling(parcel);
-    RSRenderCurveAnimation::Unmarshalling(parcel);
+    std::shared_ptr<RSRenderAnimation>(RSRenderCurveAnimation::Unmarshalling(parcel));
     EXPECT_TRUE(renderCurveAnimation != nullptr);
     GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest Unmarshalling001 end";
 }

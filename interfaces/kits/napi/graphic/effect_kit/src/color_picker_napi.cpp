@@ -116,6 +116,10 @@ napi_value ColorPickerNapi::Init(napi_env env, napi_value exports)
     napi_property_descriptor props[] = {
         DECLARE_NAPI_FUNCTION("getMainColor", GetMainColor),
         DECLARE_NAPI_FUNCTION("getMainColorSync", GetMainColorSync),
+        DECLARE_NAPI_FUNCTION("getLargestProportionColor", GetLargestProportionColor),
+        DECLARE_NAPI_FUNCTION("getHighestSaturationColor", GetHighestSaturationColor),
+        DECLARE_NAPI_FUNCTION("getAverageColor", GetAverageColor),
+        DECLARE_NAPI_FUNCTION("isBlackOrWhiteOrGrayColor", IsBlackOrWhiteOrGrayColor),
     };
 
     napi_property_descriptor static_prop[] = {
@@ -468,6 +472,155 @@ napi_value ColorPickerNapi::GetMainColorSync(napi_env env, napi_callback_info in
     } else {
         napi_get_undefined(env, &result);
     }
+    return result;
+}
+
+// 11 new color picker interface
+napi_value ColorPickerNapi::GetLargestProportionColor(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_1] = {0};
+    size_t argCount = 1;
+    EFFECT_LOG_I("Get Largest Proportion Color");
+    IMG_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status),
+                         nullptr,
+                         EFFECT_LOG_E("fail to napi_get_cb_info"));
+
+    ColorPickerNapi *thisColorPicker = nullptr;
+
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&thisColorPicker));
+    IMG_NAPI_CHECK_RET_D(IMG_IS_READY(status, thisColorPicker),
+                         nullptr,
+                         EFFECT_LOG_E("fail to unwrap context"));
+    
+    IMG_NAPI_CHECK_RET_D(IMG_IS_READY(status, thisColorPicker->nativeColorPicker_),
+                         nullptr,
+                         EFFECT_LOG_E("empty native ColorPicker"));
+
+    uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
+
+    napi_value result = nullptr;
+    ColorManager::Color color;
+    errorCode = thisColorPicker->nativeColorPicker_->GetLargestProportionColor(color);
+    if (errorCode == SUCCESS) {
+        result = BuildJsColor(env, color);
+    } else {
+        napi_get_undefined(env, &result);
+    }
+    return result;
+}
+
+napi_value ColorPickerNapi::GetHighestSaturationColor(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_1] = {0};
+    size_t argCount = 1;
+    EFFECT_LOG_I("Get Highest Saturation Color");
+    IMG_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status),
+                         nullptr,
+                         EFFECT_LOG_E("fail to napi_get_cb_info"));
+
+    ColorPickerNapi *thisColorPicker = nullptr;
+
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&thisColorPicker));
+    IMG_NAPI_CHECK_RET_D(IMG_IS_READY(status, thisColorPicker),
+                         nullptr,
+                         EFFECT_LOG_E("fail to unwrap context"));
+    
+    IMG_NAPI_CHECK_RET_D(IMG_IS_READY(status, thisColorPicker->nativeColorPicker_),
+                         nullptr,
+                         EFFECT_LOG_E("empty native ColorPicker"));
+
+    uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
+
+    napi_value result = nullptr;
+    ColorManager::Color color;
+    errorCode = thisColorPicker->nativeColorPicker_->GetHighestSaturationColor(color);
+    if (errorCode == SUCCESS) {
+        result = BuildJsColor(env, color);
+    } else {
+        napi_get_undefined(env, &result);
+    }
+    return result;
+}
+
+napi_value ColorPickerNapi::GetAverageColor(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_1] = {0};
+    size_t argCount = 1;
+    EFFECT_LOG_I("Get Average Color");
+    IMG_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status),
+                         nullptr,
+                         EFFECT_LOG_E("fail to napi_get_cb_info"));
+
+    ColorPickerNapi *thisColorPicker = nullptr;
+
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&thisColorPicker));
+    IMG_NAPI_CHECK_RET_D(IMG_IS_READY(status, thisColorPicker),
+                         nullptr,
+                         EFFECT_LOG_E("fail to unwrap context"));
+    
+    IMG_NAPI_CHECK_RET_D(IMG_IS_READY(status, thisColorPicker->nativeColorPicker_),
+                         nullptr,
+                         EFFECT_LOG_E("empty native ColorPicker"));
+
+    uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
+
+    napi_value result = nullptr;
+    ColorManager::Color color;
+    errorCode = thisColorPicker->nativeColorPicker_->GetAverageColor(color);
+    if (errorCode == SUCCESS) {
+        result = BuildJsColor(env, color);
+    } else {
+        napi_get_undefined(env, &result);
+    }
+    return result;
+}
+
+napi_value ColorPickerNapi::IsBlackOrWhiteOrGrayColor(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_1] = {0};
+    size_t argCount = 1;
+    EFFECT_LOG_I("Is Black Or White Or Gray Color");
+    IMG_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status),
+                         nullptr,
+                         EFFECT_LOG_E("fail to napi_get_cb_info"));
+
+    ColorPickerNapi *thisColorPicker = nullptr;
+
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&thisColorPicker));
+    IMG_NAPI_CHECK_RET_D(IMG_IS_READY(status, thisColorPicker),
+                         nullptr,
+                         EFFECT_LOG_E("fail to unwrap context"));
+    
+    IMG_NAPI_CHECK_RET_D(IMG_IS_READY(status, thisColorPicker->nativeColorPicker_),
+                         nullptr,
+                         EFFECT_LOG_E("empty native ColorPicker"));
+
+    unsigned int color = 0;
+    if (argCount != 1) {
+        return nullptr;
+    }
+    if (Media::ImageNapiUtils::getType(env, argValue[0]) == napi_number) {
+        unsigned int scale = 0;
+        if (IMG_IS_OK(napi_get_value_uint32(env, argValue[0], &scale))) {
+            color = scale;
+        }
+    }
+
+    bool rst = thisColorPicker->nativeColorPicker_->IsBlackOrWhiteOrGrayColor(color);
+    napi_value result = nullptr;
+    napi_get_boolean(env, rst, &result);
     return result;
 }
 

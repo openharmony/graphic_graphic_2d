@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include "effect_type.h"
+#include "color_extract.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,7 +32,14 @@ namespace ColorManager {
 class Color;
 }
 namespace Rosen {
-class ColorPicker {
+
+struct HSV {
+    int h;  // 色度取值(0-360)
+    double s;  // 饱和度取值 (0-100)
+    double v;  // 亮度取值 (0-100)
+};
+
+class ColorPicker : public ColorExtract {
 public:
     ~ColorPicker() {}
     NATIVEEXPORT static std::shared_ptr<ColorPicker> CreateColorPicker(const std::shared_ptr<Media::PixelMap>& pixmap,
@@ -39,11 +47,17 @@ public:
     NATIVEEXPORT std::shared_ptr<Media::PixelMap> GetScaledPixelMap();
     NATIVEEXPORT uint32_t GetMainColor(ColorManager::Color &color);
 
+    NATIVEEXPORT uint32_t GetLargestProportionColor(ColorManager::Color &color) const;
+    NATIVEEXPORT uint32_t GetHighestSaturationColor(ColorManager::Color &color) const;
+    NATIVEEXPORT uint32_t GetAverageColor(ColorManager::Color &color) const;
+    NATIVEEXPORT bool IsBlackOrWhiteOrGrayColor(uint32_t color) const;
+
 private:
     ColorPicker(std::shared_ptr<Media::PixelMap> pixmap);
-
-    // variables
-    std::shared_ptr<Media::PixelMap> pixelmap_;
+    bool IsEquals(double val1, double val2) const;
+    HSV RGB2HSV(uint32_t rgb) const;
+    void AdjustHSVToDefinedIterval(HSV& hsv) const;
+    uint32_t HSVtoRGB(HSV hsv) const;
 };
 } // namespace Rosen
 } // namespace OHOS

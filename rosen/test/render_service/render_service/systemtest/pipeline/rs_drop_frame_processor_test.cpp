@@ -41,7 +41,7 @@ public:
     static inline BufferFlushConfig flushConfig = {
         .damage = { .w = 0x100, .h = 0x100, },
     };
-    static inline sptr<Surface> csurf = nullptr;
+    static inline sptr<IConsumerSurface> csurf = nullptr;
     static inline sptr<IBufferProducer> producer = nullptr;
     static inline sptr<Surface> psurf = nullptr;
     static inline std::shared_ptr<RSSurfaceRenderNode> rsNode = nullptr;
@@ -82,7 +82,7 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     rsNode->SetIsOnTheTree(true);
     ASSERT_TRUE(rsNode->IsOnTheTree());
 
-    csurf = Surface::CreateSurfaceAsConsumer(config.name);
+    csurf = IConsumerSurface::Create(config.name);
     ASSERT_NE(csurf, nullptr);
     rsNode->SetConsumer(csurf);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsNode);

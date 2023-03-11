@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,12 +17,15 @@
 
 #include "backend/rs_surface_ohos_gl.h"
 #include "backend/rs_surface_ohos_raster.h"
+#ifdef RS_ENABLE_VK
+#include "backend/rs_surface_ohos_vulkan.h"
+#endif
+
 #include "command/rs_command.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
-#include "ipc_callbacks/rs_render_mode_change_callback_stub.h"
 #include "platform/common/rs_log.h"
 #include "rs_render_service_connect_hub.h"
 #include "rs_surface_ohos.h"
@@ -40,49 +43,6 @@ void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->CommitTransaction(transactionData);
-    }
-}
-
-void RSRenderServiceClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        renderService->ExecuteSynchronousTask(task);
-    }
-}
-
-class CustomRenderModeChangeCallback : public RSRenderModeChangeCallbackStub {
-public:
-    explicit CustomRenderModeChangeCallback(const RenderModeChangeCallback& callback) : cb_(callback) {}
-    ~CustomRenderModeChangeCallback() override {};
-
-    void OnRenderModeChanged(bool isUniRender) override
-    {
-        if (cb_ != nullptr) {
-            cb_(isUniRender);
-        }
-    }
-
-private:
-    RenderModeChangeCallback cb_;
-};
-
-int32_t RSRenderServiceClient::SetRenderModeChangeCallback(const RenderModeChangeCallback& callback)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService == nullptr) {
-        return RENDER_SERVICE_NULL;
-    }
-
-    renderModeChangeCb_ = new CustomRenderModeChangeCallback(callback);
-    return renderService->SetRenderModeChangeCallback(renderModeChangeCb_);
-}
-
-void RSRenderServiceClient::UpdateRenderMode(bool isUniRender)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        renderService->UpdateRenderMode(isUniRender);
     }
 }
 
@@ -111,8 +71,15 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSS
         return nullptr;
     }
     sptr<Surface> surface = renderService->CreateNodeAndSurface(config);
+    return CreateRSSurface(surface);
+}
 
-#ifdef ACE_ENABLE_GL
+std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Surface> &surface)
+{
+#if defined(ACE_ENABLE_VK)
+    // GPU render
+    std::shared_ptr<RSSurface> producer = std::make_shared<RSSurfaceOhosVulkan>(surface);
+#elif defined(ACE_ENABLE_GL)
     // GPU render
     std::shared_ptr<RSSurface> producer = std::make_shared<RSSurfaceOhosGl>(surface);
 #else
@@ -597,6 +564,14 @@ void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetAppWindowNum(num);
+    }
+}
+
+void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->ShowWatermark(watermarkImg, isShow);
     }
 }
 } // namespace Rosen

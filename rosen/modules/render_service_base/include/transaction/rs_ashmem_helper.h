@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,6 @@
 
 #ifndef RENDER_SERVICE_BASE_TRANSACTION_RS_ASHMEM_HELPER_H
 #define RENDER_SERVICE_BASE_TRANSACTION_RS_ASHMEM_HELPER_H
-
-#ifdef ROSEN_OHOS
 
 #include <message_parcel.h>
 #include "common/rs_common_def.h"
@@ -48,7 +46,7 @@ private:
     void* data_ = nullptr;
 };
 
-class RS_EXPORT RSAshmemHelper {
+class RSB_EXPORT RSAshmemHelper {
 public:
     static std::shared_ptr<MessageParcel> CreateAshmemParcel(std::shared_ptr<MessageParcel>& dataParcel);
     static std::shared_ptr<MessageParcel> ParseFromAshmemParcel(MessageParcel* ashmemParcel);
@@ -61,5 +59,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_OHOS
 #endif // RENDER_SERVICE_BASE_TRANSACTION_RS_ASHMEM_HELPER_H

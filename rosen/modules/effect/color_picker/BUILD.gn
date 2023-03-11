@@ -48,7 +48,10 @@ ohos_shared_library("color_picker") {
     "//commonlibrary/c_utils/base:utils_config",
   ]
 
-  sources = [ "./src/color_picker.cpp" ]
+  sources = [
+    "src/color_extract.cpp",
+    "src/color_picker.cpp",
+  ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",

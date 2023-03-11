@@ -350,6 +350,9 @@ void RSAnimation::StartCustomAnimation(const std::shared_ptr<RSRenderAnimation>&
     }
 
     uiAnimation_ = animation;
+    if (auto target = target_.lock()) {
+        animation->targetId_ = target->GetId();
+    }
     animation->Start();
     modifierManager->AddAnimation(animation);
 }

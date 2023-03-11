@@ -31,7 +31,7 @@ class VSyncGenerator : public RefBase {
 public:
     class Callback : public RefBase {
     public:
-        virtual void OnVSyncEvent(int64_t) = 0;
+        virtual void OnVSyncEvent(int64_t now, int64_t period) = 0;
     };
     VSyncGenerator() = default;
     virtual ~VSyncGenerator() noexcept = default;

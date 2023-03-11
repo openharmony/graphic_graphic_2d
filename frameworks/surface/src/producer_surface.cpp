@@ -27,6 +27,22 @@ namespace {
 constexpr int32_t PRODUCER_REF_COUNT_IN_PRODUCER_SURFACE = 1;
 }
 
+sptr<Surface> Surface::CreateSurfaceAsProducer(sptr<IBufferProducer>& producer)
+{
+    if (producer == nullptr) {
+        BLOGE("Failure, Reason: producer is nullptr");
+        return nullptr;
+    }
+
+    sptr<ProducerSurface> surf = new ProducerSurface(producer);
+    GSError ret = surf->Init();
+    if (ret != GSERROR_OK) {
+        BLOGE("Failure, Reason: producer surf init failed");
+        return nullptr;
+    }
+    return surf;
+}
+
 ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
 {
     producer_ = producer;

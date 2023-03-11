@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,13 +33,14 @@ class RSTransitionEffect;
 class RSMotionPathOption;
 class RSNode;
 
-class RS_EXPORT RSImplicitAnimator {
+class RSC_EXPORT RSImplicitAnimator {
 public:
     RSImplicitAnimator() = default;
     virtual ~RSImplicitAnimator() = default;
 
     void OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const std::function<void()>& finishCallback);
+    void OpenImplicitAnimation(const std::function<void()>& finishCallback);
     std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation();
 
     void BeginImplicitKeyFrameAnimation(float fraction, const RSAnimationTimingCurve& timingCurve);
@@ -64,21 +65,22 @@ private:
     void EndImplicitAnimation();
     void BeginImplicitCurveAnimation();
     void BeginImplicitSpringAnimation();
-
+    void BeginImplicitInterpolatingSpringAnimation();
+    
     void PushImplicitParam(const std::shared_ptr<RSImplicitAnimationParam>& implicitParam);
     void PopImplicitParam();
     void CreateEmptyAnimation();
 
     void SetPropertyValue(std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& value);
 
-    void BeginShieldImplicitAnimation()
+    void ExecuteWithoutAnimation(const std::function<void()>& callback)
     {
-        isImplicitAnimationShielded_ = true;
-    }
-
-    void EndShieldImplicitAnimation()
-    {
-        isImplicitAnimationShielded_ = false;
+        if (callback == nullptr) {
+            return;
+        }
+        implicitAnimationDisabled_ = true;
+        callback();
+        implicitAnimationDisabled_ = false;
     }
 
     std::stack<std::tuple<RSAnimationTimingProtocol, RSAnimationTimingCurve, std::function<void()>>>
@@ -87,7 +89,7 @@ private:
     std::stack<std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>>> implicitAnimations_;
     std::stack<std::map<std::pair<NodeId, PropertyId>, std::shared_ptr<RSAnimation>>> keyframeAnimations_;
 
-    bool isImplicitAnimationShielded_ { false };
+    bool implicitAnimationDisabled_ { false };
     friend class RSNode;
 };
 } // namespace Rosen

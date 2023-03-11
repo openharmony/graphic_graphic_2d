@@ -1240,7 +1240,7 @@ bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& no
     return WriteToPng(filename, param);
 }
 
-bool RSBaseRenderUtil::WriteFreezeRenderNodeToPng(const RSRenderNode& node)
+bool RSBaseRenderUtil::WriteCacheRenderNodeToPng(const RSRenderNode& node)
 {
     auto type = RSSystemProperties::GetDumpSurfaceType();
     if (type == DumpSurfaceType::DISABLED || type == DumpSurfaceType::PIXELMAP) {
@@ -1259,7 +1259,7 @@ bool RSBaseRenderUtil::WriteFreezeRenderNodeToPng(const RSRenderNode& node)
     gettimeofday(&now, nullptr);
     constexpr int secToUsec = 1000 * 1000;
     int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
-    std::string filename = "/data/FreezeRenderNode_" +
+    std::string filename = "/data/CacheRenderNode_" +
         std::to_string(node.GetId()) + "_" +
         std::to_string(nowVal) + ".png";
     WriteToPngParam param;
@@ -1411,6 +1411,40 @@ GraphicTransformType RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(Graphic
         default: {
             return transform;
         }
+    }
+}
+
+int RSBaseRenderUtil::RotateEnumToInt(GraphicTransformType rotation)
+{
+    static const std::map<GraphicTransformType, int> transformTypeEnumToIntMap = {
+        {GraphicTransformType::GRAPHIC_ROTATE_NONE, 0}, {GraphicTransformType::GRAPHIC_ROTATE_90, 90},
+        {GraphicTransformType::GRAPHIC_ROTATE_180, 180}, {GraphicTransformType::GRAPHIC_ROTATE_270, 270}};
+    auto iter = transformTypeEnumToIntMap.find(rotation);
+    return iter != transformTypeEnumToIntMap.end() ? iter->second : 0;
+}
+
+GraphicTransformType RSBaseRenderUtil::RotateEnumToInt(int angle, GraphicTransformType flip)
+{
+    static const std::map<int, GraphicTransformType> intToEnumMap = {
+        {0, GraphicTransformType::GRAPHIC_ROTATE_NONE}, {90, GraphicTransformType::GRAPHIC_ROTATE_270},
+        {180, GraphicTransformType::GRAPHIC_ROTATE_180}, {270, GraphicTransformType::GRAPHIC_ROTATE_90}};
+     static const std::map<std::pair<int, GraphicTransformType>, GraphicTransformType> pairToEnumMap = {
+        {{0, GraphicTransformType::GRAPHIC_FLIP_H}, GraphicTransformType::GRAPHIC_FLIP_H},
+        {{0, GraphicTransformType::GRAPHIC_FLIP_V}, GraphicTransformType::GRAPHIC_FLIP_V},
+        {{90, GraphicTransformType::GRAPHIC_FLIP_H}, GraphicTransformType::GRAPHIC_FLIP_V_ROT90},
+        {{90, GraphicTransformType::GRAPHIC_FLIP_V}, GraphicTransformType::GRAPHIC_FLIP_H_ROT90},
+        {{180, GraphicTransformType::GRAPHIC_FLIP_H}, GraphicTransformType::GRAPHIC_FLIP_V},
+        {{180, GraphicTransformType::GRAPHIC_FLIP_V}, GraphicTransformType::GRAPHIC_FLIP_H},
+        {{270, GraphicTransformType::GRAPHIC_FLIP_H}, GraphicTransformType::GRAPHIC_FLIP_H_ROT90},
+        {{270, GraphicTransformType::GRAPHIC_FLIP_V}, GraphicTransformType::GRAPHIC_FLIP_V_ROT90},
+    };
+
+    if (flip != GraphicTransformType::GRAPHIC_FLIP_H && flip != GraphicTransformType::GRAPHIC_FLIP_V) {
+        auto iter = intToEnumMap.find(angle);
+        return iter != intToEnumMap.end() ? iter->second : GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    } else {
+        auto iter = pairToEnumMap.find({angle, flip});
+        return iter != pairToEnumMap.end() ? iter->second : GraphicTransformType::GRAPHIC_ROTATE_NONE;
     }
 }
 } // namespace Rosen

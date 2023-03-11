@@ -26,6 +26,8 @@
 #include <surface.h>
 #include <window.h>
 
+#include "iconsumer_surface.h"
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -49,7 +51,7 @@ public:
     static inline EGLConfig eglConfig_ = EGL_NO_CONFIG_KHR;
     static inline EGLContext eglContext_ = EGL_NO_CONTEXT;
     static inline EGLSurface eglSurface_ = EGL_NO_SURFACE;
-    static inline sptr<OHOS::Surface> cSurface_ = nullptr;
+    static inline sptr<OHOS::IConsumerSurface> cSurface_ = nullptr;
     static inline sptr<OHOS::Surface> pSurface_ = nullptr;
     static inline struct NativeWindow *gWindow_ = nullptr;
 };
@@ -211,7 +213,7 @@ HWTEST_F(OpenglWrapperApiTest, eglCreateContext, TestSize.Level0)
 HWTEST_F(OpenglWrapperApiTest, eglCreateWindowSurface, TestSize.Level0)
 {
     static BufferProcTest test;
-    cSurface_ = Surface::CreateSurfaceAsConsumer("test");
+    cSurface_ = IConsumerSurface::Create("test");
     EXPECT_NE(cSurface_, nullptr);
     cSurface_->RegisterConsumerListener(&test);
 

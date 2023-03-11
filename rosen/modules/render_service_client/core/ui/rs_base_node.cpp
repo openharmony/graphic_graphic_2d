@@ -103,6 +103,10 @@ void RSBaseNode::AddChild(SharedPtr child, int index)
         ROSEN_LOGE("RSBaseNode::AddChild, child is nullptr");
         return;
     }
+    if (child->parent_ == id_) {
+        ROSEN_LOGI("RSBaseNode::AddChild, child already exist");
+        return;
+    }
     NodeId childId = child->GetId();
     if (child->parent_ != 0) {
         child->RemoveFromTree();

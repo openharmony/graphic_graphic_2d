@@ -15,10 +15,20 @@
 
 #include "include/gpu/GrContext.h"
 #include "memory/DfxString.h"
+#include "memory/MemoryTrack.h"
 
 namespace OHOS::Rosen {
+
 class MemoryManager {
 public:
-    static void DumpMemoryUsage(DfxString& log, const GrContext* grContext);
+    static void DumpMemoryUsage(DfxString& log, const GrContext* grContext, std::string& type);
+private:
+    // rs memory = rs + skia cpu + skia gpu
+    static void DumpRenderServiceMemory(DfxString& log);
+    static void DumpDrawingCpuMemory(DfxString& log);
+    static void DumpDrawingGpuMemory(DfxString& log, const GrContext* grContext);
+
+    //jemalloc info
+    static void DumpMallocStat(std::string& log);
 };
 } // namespace OHOS::Rosen

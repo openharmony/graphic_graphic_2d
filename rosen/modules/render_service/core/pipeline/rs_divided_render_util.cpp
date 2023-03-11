@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 #include <parameters.h>
 
 #include "common/rs_obj_abs_geometry.h"
+#include "parameters.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_skia_filter.h"
@@ -65,7 +66,7 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(
     // (the canvas was moved to the node's left-top point correctly).
     params.dstRect = SkRect::MakeWH(localBounds.GetWidth(), localBounds.GetHeight());
 
-    const sptr<Surface>& surface = node.GetConsumer();
+    const sptr<IConsumerSurface>& surface = node.GetConsumer();
     const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
     if (isClipHole || surface == nullptr || buffer == nullptr) {
         return params;

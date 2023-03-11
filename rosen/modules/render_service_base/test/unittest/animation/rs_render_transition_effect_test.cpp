@@ -45,12 +45,12 @@ HWTEST_F(RSRenderTransitionEffectTest, RenderTransitionUnmarshallingTest001, Tes
     GTEST_LOG_(INFO) << "RSRenderTransitionEffectTest RenderTransitionUnmarshallingTest001 start";
 
     Parcel parcel1;
-    auto effect = RSRenderTransitionEffect::Unmarshalling(parcel1);
+    std::shared_ptr<RSRenderTransitionEffect> effect(RSRenderTransitionEffect::Unmarshalling(parcel1));
     EXPECT_EQ(effect, nullptr);
 
     Parcel parcel2;
     parcel2.WriteUint16(10);
-    effect = RSRenderTransitionEffect::Unmarshalling(parcel2);
+    effect.reset(RSRenderTransitionEffect::Unmarshalling(parcel2));
     EXPECT_EQ(effect, nullptr);
 
     GTEST_LOG_(INFO) << "RSRenderTransitionEffectTest RenderTransitionUnmarshallingTest001 end";
@@ -66,18 +66,18 @@ HWTEST_F(RSRenderTransitionEffectTest, TransitionScaleUnmarshallingTest001, Test
     GTEST_LOG_(INFO) << "RSRenderTransitionEffectTest TransitionScaleUnmarshallingTest001 start";
 
     Parcel parcel1;
-    auto effect = RSTransitionScale::Unmarshalling(parcel1);
+    std::shared_ptr<RSRenderTransitionEffect> effect(RSTransitionScale::Unmarshalling(parcel1));
     EXPECT_EQ(effect, nullptr);
 
     Parcel parcel2;
     parcel2.WriteFloat(1.0f);
-    effect = RSTransitionScale::Unmarshalling(parcel2);
+    effect.reset(RSTransitionScale::Unmarshalling(parcel2));
     EXPECT_EQ(effect, nullptr);
 
     Parcel parcel3;
     parcel3.WriteFloat(1.0f);
     parcel3.WriteFloat(1.0f);
-    effect = RSTransitionScale::Unmarshalling(parcel3);
+    effect.reset(RSTransitionScale::Unmarshalling(parcel3));
     EXPECT_EQ(effect, nullptr);
 
     GTEST_LOG_(INFO) << "RSRenderTransitionEffectTest TransitionScaleUnmarshallingTest001 end";
@@ -93,18 +93,18 @@ HWTEST_F(RSRenderTransitionEffectTest, TransitionTranslateUnmarshallingTest001, 
     GTEST_LOG_(INFO) << "RSRenderTransitionEffectTest TransitionTranslateUnmarshallingTest001 start";
 
     Parcel parcel1;
-    auto effect = RSTransitionTranslate::Unmarshalling(parcel1);
+    std::shared_ptr<RSRenderTransitionEffect> effect(RSTransitionTranslate::Unmarshalling(parcel1));
     EXPECT_EQ(effect, nullptr);
 
     Parcel parcel2;
     parcel2.WriteFloat(1.0f);
-    effect = RSTransitionTranslate::Unmarshalling(parcel2);
+    effect.reset(RSTransitionTranslate::Unmarshalling(parcel2));
     EXPECT_EQ(effect, nullptr);
 
     Parcel parcel3;
     parcel3.WriteFloat(1.0f);
     parcel3.WriteFloat(1.0f);
-    effect = RSTransitionTranslate::Unmarshalling(parcel3);
+    effect.reset(RSTransitionTranslate::Unmarshalling(parcel3));
     EXPECT_EQ(effect, nullptr);
 
     GTEST_LOG_(INFO) << "RSRenderTransitionEffectTest TransitionTranslateUnmarshallingTest001 end";
@@ -120,25 +120,25 @@ HWTEST_F(RSRenderTransitionEffectTest, TRSTransitionRotateUnmarshallingTest001, 
     GTEST_LOG_(INFO) << "RSRenderTransitionEffectTest TRSTransitionRotateUnmarshallingTest001 start";
 
     Parcel parcel1;
-    auto effect = RSTransitionRotate::Unmarshalling(parcel1);
+    std::shared_ptr<RSRenderTransitionEffect> effect(RSTransitionRotate::Unmarshalling(parcel1));
     EXPECT_EQ(effect, nullptr);
 
     Parcel parcel2;
     parcel2.WriteFloat(1.0f);
-    effect = RSTransitionRotate::Unmarshalling(parcel2);
+    effect.reset(RSTransitionRotate::Unmarshalling(parcel2));
     EXPECT_EQ(effect, nullptr);
 
     Parcel parcel3;
     parcel3.WriteFloat(1.0f);
     parcel3.WriteFloat(1.0f);
-    effect = RSTransitionRotate::Unmarshalling(parcel3);
+    effect.reset(RSTransitionRotate::Unmarshalling(parcel3));
     EXPECT_EQ(effect, nullptr);
 
     Parcel parcel4;
     parcel4.WriteFloat(1.0f);
     parcel4.WriteFloat(1.0f);
     parcel4.WriteFloat(1.0f);
-    effect = RSTransitionRotate::Unmarshalling(parcel4);
+    effect.reset(RSTransitionRotate::Unmarshalling(parcel4));
     EXPECT_EQ(effect, nullptr);
     GTEST_LOG_(INFO) << "RSRenderTransitionEffectTest TRSTransitionRotateUnmarshallingTest001 end";
 }

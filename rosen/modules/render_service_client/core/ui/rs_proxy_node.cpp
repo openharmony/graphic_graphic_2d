@@ -41,9 +41,10 @@ RSProxyNode::SharedPtr RSProxyNode::Create(NodeId targetNodeId, std::string name
     std::unique_ptr<RSCommand> command = std::make_unique<RSProxyNodeCreate>(proxyNodeId, targetNodeId);
     transactionProxy->AddCommand(command, node->IsUniRenderEnabled());
 
-    if (node->IsUniRenderEnabled()) {
-        std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSProxyNodeCreate>(proxyNodeId, targetNodeId);
-        transactionProxy->AddCommand(extraCommand, false);
+    // create proxy node in RS even if uni render not enabled.
+    if (!node->IsUniRenderEnabled()) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSProxyNodeCreate>(proxyNodeId, targetNodeId);
+        transactionProxy->AddCommand(command, true);
     }
 
     ROSEN_LOGD("RSProxyNode::Create, target node id:%" PRIu64 ", name %s proxy node id %" PRIu64, node->GetId(),
@@ -54,6 +55,8 @@ RSProxyNode::SharedPtr RSProxyNode::Create(NodeId targetNodeId, std::string name
 
 RSProxyNode::~RSProxyNode()
 {
+    ROSEN_LOGD("RSProxyNode::~RSProxyNode, proxy id:%" PRIu64 " target:%" PRIu64, proxyNodeId_, GetId());
+
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return;
@@ -62,14 +65,12 @@ RSProxyNode::~RSProxyNode()
     // destroy remote RSProxyRenderNode, NOT the target node.
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeDestroy>(proxyNodeId_);
     transactionProxy->AddCommand(command, IsUniRenderEnabled());
-    if (isRenderServiceNode_) {
-        std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSBaseNodeDestroy>(proxyNodeId_);
-        transactionProxy->AddCommand(extraCommand, false);
-    }
 
-    auto ids = GetModifierIds();
-    command = std::make_unique<RSProxyNodeRemoveModifiers>(GetId(), ids);
-    transactionProxy->AddCommand(command, true, GetFollowType(), GetId());
+    // destroy corresponding RSProxyRenderNode in RS even if uni render not enabled.
+    if (!IsUniRenderEnabled()) {
+        command = std::make_unique<RSBaseNodeDestroy>(proxyNodeId_);
+        transactionProxy->AddCommand(command, true);
+    }
 
     ROSEN_LOGD("RSProxyNode::~RSProxyNode, id:%" PRIu64, GetId());
 }
@@ -91,12 +92,8 @@ void RSProxyNode::ResetContextVariableCache() const
         return;
     }
     // send command to proxy node, not the target node
-    std::unique_ptr<RSCommand> commandRT = std::make_unique<RSProxyNodeResetContextVariableCache>(proxyNodeId_);
-    transactionProxy->AddCommand(commandRT, IsUniRenderEnabled());
-    if (isRenderServiceNode_) {
-        std::unique_ptr<RSCommand> commandRS = std::make_unique<RSProxyNodeResetContextVariableCache>(proxyNodeId_);
-        transactionProxy->AddCommand(commandRS, false);
-    }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSProxyNodeResetContextVariableCache>(proxyNodeId_);
+    transactionProxy->AddCommand(command, IsUniRenderEnabled());
 }
 void RSProxyNode::AddChild(std::shared_ptr<RSBaseNode> child, int index)
 {

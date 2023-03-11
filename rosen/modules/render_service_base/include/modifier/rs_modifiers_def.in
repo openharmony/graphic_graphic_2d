@@ -36,6 +36,8 @@ DECLARE_ANIMATABLE_MODIFIER(RotationX, float, ROTATION_X, Add, Geometry)
 
 DECLARE_ANIMATABLE_MODIFIER(RotationY, float, ROTATION_Y, Add, Geometry)
 
+DECLARE_ANIMATABLE_MODIFIER(CameraDistance, float, CAMERA_DISTANCE, Replace, Geometry)
+
 DECLARE_ANIMATABLE_MODIFIER(Scale, Vector2f, SCALE, Multiply, Geometry)
 
 DECLARE_ANIMATABLE_MODIFIER(Translate, Vector2f, TRANSLATE, Add, Geometry)
@@ -98,4 +100,12 @@ DECLARE_ANIMATABLE_MODIFIER(ShadowRadius, float, SHADOW_RADIUS, Replace, Backgro
 
 DECLARE_NOANIMATABLE_MODIFIER(ShadowPath, std::shared_ptr<RSPath>, SHADOW_PATH, Background)
 
+DECLARE_NOANIMATABLE_MODIFIER(ShadowMask, bool, SHADOW_MASK, Background)
+
 DECLARE_NOANIMATABLE_MODIFIER(Mask, std::shared_ptr<RSMask>, MASK, Foreground)
+
+DECLARE_ANIMATABLE_MODIFIER(Spherize, float, SPHERIZE, Replace, Appearance)
+
+DECLARE_ANIMATABLE_MODIFIER(LightUpEffect, float, LIGHT_UP_EFFECT, Replace, Foreground)
+
+DECLARE_ANIMATABLE_MODIFIER(PixelStretch, Vector4f, PIXEL_STRETCH, Replace, Geometry)

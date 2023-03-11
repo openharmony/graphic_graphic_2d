@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,7 +21,9 @@
 #include <memory>
 #include <mutex>
 #include <refbase.h>
+#ifndef ROSEN_CROSS_PLATFORM
 #include <surface.h>
+#endif
 
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
@@ -37,7 +39,6 @@
 #include "screen_manager/rs_virtual_screen_resolution.h"
 #include "vsync_receiver.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
-#include "ipc_callbacks/rs_irender_mode_change_callback.h"
 #include "rs_occlusion_data.h"
 
 namespace OHOS {
@@ -46,7 +47,6 @@ namespace Rosen {
 using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent)>;
 using BufferAvailableCallback = std::function<void()>;
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
-using RenderModeChangeCallback = std::function<void(bool)>;
 class SurfaceCaptureCallback {
 public:
     SurfaceCaptureCallback() {}
@@ -54,7 +54,7 @@ public:
     virtual void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) = 0;
 };
 
-class RSRenderServiceClient : public RSIRenderClient {
+class RSB_EXPORT RSRenderServiceClient : public RSIRenderClient {
 public:
     RSRenderServiceClient() = default;
     virtual ~RSRenderServiceClient() = default;
@@ -63,11 +63,9 @@ public:
     void operator=(const RSRenderServiceClient&) = delete;
 
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
-    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
-    int32_t SetRenderModeChangeCallback(const RenderModeChangeCallback& callback);
-    void UpdateRenderMode(bool isUniRender);
     bool GetUniRenderEnabled();
+
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
     std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
 
@@ -83,10 +81,14 @@ public:
 
     std::vector<ScreenId> GetAllScreenIds();
 
+#ifndef ROSEN_CROSS_PLATFORM
+    std::shared_ptr<RSSurface> CreateRSSurface(const sptr<Surface> &surface);
+
     ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
         ScreenId mirrorId, int32_t flags);
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
+#endif
 
     void RemoveVirtualScreen(ScreenId id);
 
@@ -141,12 +143,13 @@ public:
     int32_t UnRegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
     void SetAppWindowNum(uint32_t num);
+
+    void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
     std::mutex mutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbUIMap_;
-    sptr<RSIRenderModeChangeCallback> renderModeChangeCb_;
     sptr<RSIScreenChangeCallback> screenChangeCb_;
     sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_;
     std::map<NodeId, std::shared_ptr<SurfaceCaptureCallback>> surfaceCaptureCbMap_;

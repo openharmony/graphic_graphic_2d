@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,9 @@
 
 #include <atomic>
 #include <string>
+#include <vector>
+
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -29,7 +32,14 @@ enum class DirtyRegionDebugType {
     MULTI_HISTORY,
     CURRENT_SUB_AND_WHOLE,
     CURRENT_WHOLE_AND_MULTI_HISTORY,
-    EGL_DAMAGE
+    EGL_DAMAGE,
+    CUR_DIRTY_DETAIL_ONLY_TRACE = 10,
+    UPDATE_DIRTY_REGION,
+    OVERLAY_RECT,
+    FILTER_RECT,
+    SHADOW_RECT,
+    PREPARE_CLIP_RECT,
+    REMOVE_CHILD_RECT,
 };
 
 enum class PartialRenderType {
@@ -47,26 +57,15 @@ enum class DumpSurfaceType {
     PIXELMAP,
 };
 
-/* ContainerWindowConfigType
-// -1, disable round corner's transparent region
-// 0, roundcorner surfacenode has a strip size transparent region
-// 1, on the base of ENABLED_LEVEL_0, unfocused surface's side boundary is opaque
-// 2, on the base of ENABLED_LEVEL_0, unfocused surface only has 4 little squares as transparent region
-*/
-enum class ContainerWindowConfigType {
-    DISABLED = -1,
-    ENABLED_LEVEL_0 = 0,
-    ENABLED_UNFOCUSED_WINDOW_LEVEL_1 = 1,
-    ENABLED_UNFOCUSED_WINDOW_LEVEL_2 = 2,
-};
-
 enum class ParallelRenderingType {
     AUTO = 0,
     DISABLE = 1,
     ENABLE = 2
 };
 
-class RSSystemProperties final {
+using OnSystemPropertyChanged = void(*)(const char*, const char*, void*);
+
+class RSB_EXPORT RSSystemProperties final {
 public:
     ~RSSystemProperties() = default;
 
@@ -76,7 +75,6 @@ public:
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
-    static ContainerWindowConfigType GetContainerWindowConfig();
     static bool GetOcclusionEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
     static bool GetDirectClientCompEnableStatus();
@@ -96,14 +94,15 @@ public:
     static ParallelRenderingType GetParallelRenderingEnabled();
 
     static bool GetColdStartThreadEnabled();
-    static bool FrameTraceEnabled();
+    static float GetAnimationScale();
+
+    static bool GetBoolSystemProperty(const char* name, bool defaultValue);
+    static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
 private:
     RSSystemProperties() = default;
 
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
-    static inline bool judgeFrameTrace_ = false;
-    static inline bool isFrameTraceEnabled_ = false;
 };
 
 } // namespace Rosen

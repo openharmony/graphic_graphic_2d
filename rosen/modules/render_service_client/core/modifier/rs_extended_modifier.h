@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 #include "modifier/rs_modifier.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "ui/rs_canvas_node.h"
 
 class SkCanvas;
 
@@ -33,7 +34,7 @@ struct RSDrawingContext {
     float height;
 };
 
-class RS_EXPORT RSExtendedModifierHelper {
+class RSC_EXPORT RSExtendedModifierHelper {
 public:
     static RSDrawingContext CreateDrawingContext(NodeId nodeId);
     static std::shared_ptr<RSRenderModifier> CreateRenderModifier(
@@ -41,7 +42,7 @@ public:
     static std::shared_ptr<DrawCmdList> FinishDrawing(RSDrawingContext& ctx);
 };
 
-class RS_EXPORT RSExtendedModifier : public RSModifier {
+class RSC_EXPORT RSExtendedModifier : public RSModifier {
 public:
     RSExtendedModifier(const std::shared_ptr<RSPropertyBase>& property = {})
         : RSModifier(property, RSModifierType::EXTENDED)
@@ -97,7 +98,64 @@ protected:
     }
 };
 
-class RS_EXPORT RSTransitionModifier : public RSExtendedModifier {
+class RS_EXPORT RSGeometryTransModifier : public RSExtendedModifier {
+public:
+    RSGeometryTransModifier() : RSExtendedModifier(RSModifierType::GEOMETRYTRANS)
+    {}
+    virtual ~RSGeometryTransModifier() = default;
+
+    RSModifierType GetModifierType() const override
+    {
+        return RSModifierType::GEOMETRYTRANS;
+    }
+
+    void Draw(RSDrawingContext& context) const override {};
+
+    virtual SkMatrix GeometryEffect(float width, float height) const = 0;
+
+protected:
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override
+    {
+        auto node = property_->target_.lock();
+        if (node == nullptr) {
+            return nullptr;
+        }
+        auto canvasnode = RSNodeMap::Instance().GetNode<RSCanvasNode>(node->GetId());
+        if (canvasnode == nullptr) {
+            return nullptr;
+        }
+        auto renderProperty = std::make_shared<RSRenderProperty<SkMatrix>>(
+            GeometryEffect(canvasnode->GetPaintWidth(), canvasnode->GetPaintHeight()), property_->GetId());
+        auto renderModifier = std::make_shared<RSGeometryTransRenderModifier>(renderProperty);
+        return renderModifier;
+    }
+
+    void UpdateToRender() override
+    {
+        auto node = property_->target_.lock();
+        if (node == nullptr) {
+            return;
+        }
+        auto canvasnode = RSNodeMap::Instance().GetNode<RSCanvasNode>(node->GetId());
+        if (canvasnode == nullptr) {
+            return;
+        }
+        auto SkMatrix = GeometryEffect(canvasnode->GetPaintWidth(), canvasnode->GetPaintHeight());
+        std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertySkMatrix>(
+            node->GetId(), SkMatrix, property_->id_, false);
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, node->IsRenderServiceNode());
+            if (node->NeedForcedSendToRemote()) {
+                std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertySkMatrix>(
+                    node->GetId(), SkMatrix, property_->id_, false);
+                transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
+            }
+        }
+    }
+};
+
+class RSC_EXPORT RSTransitionModifier : public RSExtendedModifier {
 public:
     RSTransitionModifier() : RSExtendedModifier(RSModifierType::TRANSITION)
     {}
@@ -112,7 +170,7 @@ public:
     virtual void Identity() = 0;
 };
 
-class RS_EXPORT RSBackgroundStyleModifier : public RSExtendedModifier {
+class RSC_EXPORT RSBackgroundStyleModifier : public RSExtendedModifier {
 public:
     RSBackgroundStyleModifier() : RSExtendedModifier(RSModifierType::BACKGROUND_STYLE)
     {}
@@ -123,7 +181,7 @@ public:
     }
 };
 
-class RS_EXPORT RSContentStyleModifier : public RSExtendedModifier {
+class RSC_EXPORT RSContentStyleModifier : public RSExtendedModifier {
 public:
     RSContentStyleModifier() : RSExtendedModifier(RSModifierType::CONTENT_STYLE)
     {}
@@ -134,7 +192,7 @@ public:
     }
 };
 
-class RS_EXPORT RSForegroundStyleModifier : public RSExtendedModifier {
+class RSC_EXPORT RSForegroundStyleModifier : public RSExtendedModifier {
 public:
     RSForegroundStyleModifier() : RSExtendedModifier(RSModifierType::FOREGROUND_STYLE)
     {}
@@ -145,7 +203,7 @@ public:
     }
 };
 
-class RS_EXPORT RSOverlayStyleModifier : public RSExtendedModifier {
+class RSC_EXPORT RSOverlayStyleModifier : public RSExtendedModifier {
 public:
     RSOverlayStyleModifier() : RSExtendedModifier(RSModifierType::OVERLAY_STYLE)
     {}
@@ -155,12 +213,12 @@ public:
         return RSModifierType::OVERLAY_STYLE;
     }
 
-    void SetOverlayBounds(std::shared_ptr<RectI> rect)
+    void SetOverlayBounds(std::shared_ptr<RectF> rect)
     {
         overlayRect_ = rect;
     }
 
-    std::shared_ptr<RectI> GetOverlayBounds() const
+    std::shared_ptr<RectF> GetOverlayBounds() const
     {
         return overlayRect_;
     }
@@ -176,7 +234,39 @@ public:
     }
 
 private:
-    std::shared_ptr<RectI> overlayRect_ = nullptr;
+    std::shared_ptr<RectF> overlayRect_ = nullptr;
+};
+
+class RSC_EXPORT RSNodeModifier : public RSExtendedModifier {
+public:
+    RSNodeModifier() : RSExtendedModifier(RSModifierType::NODE_MODIFIER)
+    {}
+
+    RSModifierType GetModifierType() const override
+    {
+        return RSModifierType::NODE_MODIFIER;
+    }
+
+    virtual void Modifier(RSNode& target) const = 0;
+
+private:
+    void OnAttachToNode(const std::weak_ptr<RSNode>& target) override
+    {
+        target_ = target;
+    }
+
+    void UpdateToRender() override
+    {
+        auto node = target_.lock();
+        if (node == nullptr) {
+            return;
+        }
+        Modifier(*node);
+    }
+
+    void Draw(RSDrawingContext& context) const override final {}
+
+    std::weak_ptr<RSNode> target_;
 };
 } // namespace Rosen
 } // namespace OHOS

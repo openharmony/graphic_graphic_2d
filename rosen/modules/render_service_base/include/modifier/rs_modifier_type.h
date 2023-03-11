@@ -32,6 +32,7 @@ enum class RSModifierType : int16_t {
     ROTATION,
     ROTATION_X,
     ROTATION_Y,
+    CAMERA_DISTANCE,
     SCALE,
     TRANSLATE,
     TRANSLATE_Z,
@@ -73,7 +74,12 @@ enum class RSModifierType : int16_t {
     SHADOW_ELEVATION,
     SHADOW_RADIUS,
     SHADOW_PATH,
+    SHADOW_MASK,
+
     MASK,
+    SPHERIZE,
+    LIGHT_UP_EFFECT,
+    PIXEL_STRETCH,
 
     CUSTOM,
     EXTENDED,
@@ -82,6 +88,10 @@ enum class RSModifierType : int16_t {
     CONTENT_STYLE,
     FOREGROUND_STYLE,
     OVERLAY_STYLE,
+    NODE_MODIFIER,
+    ENV_FOREGROUND_COLOR,
+    ENV_FOREGROUND_COLOR_STRATEGY,
+    GEOMETRYTRANS,
 };
 
 enum class RSRenderPropertyType : int16_t {
@@ -94,6 +104,7 @@ enum class RSRenderPropertyType : int16_t {
     PROPERTY_VECTOR2F,
     PROPERTY_VECTOR4F,
     PROPERTY_VECTOR4_COLOR,
+    PROPERTY_SKMATRIX,
 };
 } // namespace Rosen
 } // namespace OHOS

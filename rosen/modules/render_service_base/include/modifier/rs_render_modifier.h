@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
+#include "include/core/SkMatrix.h"
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_render_property.h"
 #include "pipeline/rs_draw_cmd_list.h"
@@ -38,18 +39,19 @@ namespace OHOS {
 namespace Rosen {
 class RSProperties;
 class RSPaintFilterCanvas;
+class RSRenderNode;
 
 struct RSModifierContext {
     RSProperties& property_;
     RSPaintFilterCanvas* canvas_ = nullptr;
 };
 
-class RSRenderModifier {
+class RSB_EXPORT RSRenderModifier {
 public:
     RSRenderModifier() = default;
     virtual ~RSRenderModifier() = default;
 
-    virtual void Apply(RSModifierContext& context) = 0;
+    virtual void Apply(RSModifierContext& context) const = 0;
 
     virtual PropertyId GetPropertyId() = 0;
     virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() = 0;
@@ -57,16 +59,50 @@ public:
     virtual void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) = 0;
 
     virtual bool Marshalling(Parcel& parcel) = 0;
-    static RSRenderModifier* Unmarshalling(Parcel& parcel);
+    [[nodiscard]] static RSRenderModifier* Unmarshalling(Parcel& parcel);
 };
 
-class RS_EXPORT RSDrawCmdListRenderModifier : public RSRenderModifier {
+class RSB_EXPORT RSGeometryTransRenderModifier : public RSRenderModifier {
+public:
+    RSGeometryTransRenderModifier(const std::shared_ptr<RSRenderProperty<SkMatrix>>& property)
+        : property_(property ? property : std::make_shared<RSRenderProperty<SkMatrix>>())
+    {}
+    virtual ~RSGeometryTransRenderModifier() = default;
+    void Apply(RSModifierContext& context) const override;
+    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
+    bool Marshalling(Parcel& parcel) override;
+    virtual PropertyId GetPropertyId() override
+    {
+        return property_->GetId();
+    }
+
+    std::shared_ptr<RSRenderPropertyBase> GetProperty() override
+    {
+        return property_;
+    }
+
+    void SetType(RSModifierType type)
+    {
+        drawStyle_ = type;
+    }
+
+    RSModifierType GetType() override
+    {
+        return drawStyle_;
+    }
+
+protected:
+    RSModifierType drawStyle_ = RSModifierType::GEOMETRYTRANS;
+    std::shared_ptr<RSRenderProperty<SkMatrix>> property_;
+};
+
+class RSB_EXPORT RSDrawCmdListRenderModifier : public RSRenderModifier {
 public:
     RSDrawCmdListRenderModifier(const std::shared_ptr<RSRenderProperty<DrawCmdListPtr>>& property)
         : property_(property ? property : std::make_shared<RSRenderProperty<DrawCmdListPtr>>())
     {}
     virtual ~RSDrawCmdListRenderModifier() = default;
-    void Apply(RSModifierContext& context) override;
+    void Apply(RSModifierContext& context) const override;
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
 
@@ -89,18 +125,18 @@ public:
         drawStyle_ = type;
     }
 
-    void SetOverlayBounds(std::shared_ptr<RectI> rect)
+    void SetOverlayBounds(std::shared_ptr<RectF> rect)
     {
         overlayRect_ = rect;
     }
 
-    std::shared_ptr<RectI> GetOverlayBounds() const
+    std::shared_ptr<RectF> GetOverlayBounds() const
     {
         return overlayRect_;
     }
 
 protected:
-    std::shared_ptr<RectI> overlayRect_ = nullptr;
+    std::shared_ptr<RectF> overlayRect_ = nullptr;
     RSModifierType drawStyle_ = RSModifierType::EXTENDED;
     std::shared_ptr<RSRenderProperty<DrawCmdListPtr>> property_;
 };
@@ -183,21 +219,53 @@ public:
     virtual ~RSAppearanceRenderModifier() = default;
 };
 
+
+class RSB_EXPORT RSEnvForegroundColorRenderModifier : public RSForegroundRenderModifier {
+public:
+    RSEnvForegroundColorRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSForegroundRenderModifier(property)
+    {}
+    virtual ~RSEnvForegroundColorRenderModifier() = default;
+    void Apply(RSModifierContext& context) const override;
+    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
+    bool Marshalling(Parcel& parcel) override;
+    RSModifierType GetType() override
+    {
+        return RSModifierType::ENV_FOREGROUND_COLOR;
+    }
+};
+
+class RSB_EXPORT RSEnvForegroundColorStrategyRenderModifier : public RSForegroundRenderModifier {
+public:
+    RSEnvForegroundColorStrategyRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSForegroundRenderModifier(property)
+    {}
+    virtual ~RSEnvForegroundColorStrategyRenderModifier() = default;
+    void Apply(RSModifierContext& context) const override;
+    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
+    bool Marshalling(Parcel& parcel) override;
+    RSModifierType GetType() override
+    {
+        return RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY;
+    }
+    Color GetInvertBackgroundColor(RSModifierContext& context) const;
+};
+
 // declare RenderModifiers like RSBoundsRenderModifier
-#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER)         \
-    class RS_EXPORT RS##MODIFIER_NAME##RenderModifier : public RS##MODIFIER_TIER##RenderModifier {                 \
-    public:                                                                                              \
-        RS##MODIFIER_NAME##RenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)         \
-            : RS##MODIFIER_TIER##RenderModifier(property)                                                \
-        {}                                                                                               \
-        virtual ~RS##MODIFIER_NAME##RenderModifier() = default;                                          \
-        void Apply(RSModifierContext& context) override;                                                 \
-        void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;           \
-        bool Marshalling(Parcel& parcel) override;                                                       \
-        RSModifierType GetType() override                                                                \
-        {                                                                                                \
-            return RSModifierType::MODIFIER_TYPE;                                                        \
-        }                                                                                                \
+#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER)    \
+    class RSB_EXPORT RS##MODIFIER_NAME##RenderModifier : public RS##MODIFIER_TIER##RenderModifier { \
+    public:                                                                                         \
+        RS##MODIFIER_NAME##RenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)    \
+            : RS##MODIFIER_TIER##RenderModifier(property)                                           \
+        {}                                                                                          \
+        virtual ~RS##MODIFIER_NAME##RenderModifier() = default;                                     \
+        void Apply(RSModifierContext& context) const override;                                      \
+        void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;      \
+        bool Marshalling(Parcel& parcel) override;                                                  \
+        RSModifierType GetType() override                                                           \
+        {                                                                                           \
+            return RSModifierType::MODIFIER_TYPE;                                                   \
+        }                                                                                           \
     };
 
 #define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, MODIFIER_TIER) \

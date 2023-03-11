@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,6 +32,21 @@
 #include "render/rs_path.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "modifier/rs_property_modifier.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#define gettid GetCurrentThreadId
+#endif
+
+#ifdef __APPLE__
+#define gettid getpid
+#endif
+
+#ifdef __gnu_linux__
+#include <sys/types.h>
+#include <sys/syscall.h>
+#define gettid []() -> int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -113,6 +128,28 @@ void RSNode::AddKeyFrame(float fraction, const PropertyCallback& propertyCallbac
     implicitAnimator->EndImplicitKeyFrameAnimation();
 }
 
+std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(
+    const PropertyCallback& propertyCallback, const std::function<void()>& finishCallback)
+{
+    if (propertyCallback == nullptr) {
+        ROSEN_LOGE("Failed to add curve animation, property callback is null!");
+        return {};
+    }
+    if (finishCallback == nullptr) {
+        ROSEN_LOGE("Failed to add curve animation, finish callback is null!");
+        return {};
+    }
+
+    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    if (implicitAnimator == nullptr) {
+        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
+        return {};
+    }
+    implicitAnimator->OpenImplicitAnimation(finishCallback);
+    propertyCallback();
+    return implicitAnimator->CloseImplicitAnimation();
+}
+
 std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback,
     const std::function<void()>& finishCallback)
@@ -122,14 +159,31 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimin
         return {};
     }
 
-    if (RSImplicitAnimatorMap::Instance().GetAnimator(gettid()) == nullptr) {
-        ROSEN_LOGE("Failed to add curve animation, implicit animator is null!");
+    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    if (implicitAnimator == nullptr) {
+        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
         return {};
     }
-
-    OpenImplicitAnimation(timingProtocol, timingCurve, finishCallback);
+    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, finishCallback);
     propertyCallback();
-    return CloseImplicitAnimation();
+    return implicitAnimator->CloseImplicitAnimation();
+}
+
+void RSNode::ExecuteWithoutAnimation(
+    const PropertyCallback& callback, std::shared_ptr<RSImplicitAnimator> implicitAnimator)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("Failed to execute without animation, property callback is null!");
+        return;
+    }
+    if (implicitAnimator == nullptr) {
+        implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    }
+    if (implicitAnimator == nullptr) {
+        callback();
+    } else {
+        implicitAnimator->ExecuteWithoutAnimation(callback);
+    }
 }
 
 void RSNode::FallbackAnimationsToRoot()
@@ -447,6 +501,11 @@ void RSNode::SetRotationY(float degree)
     SetProperty<RSRotationYModifier, RSAnimatableProperty<float>>(RSModifierType::ROTATION_Y, degree);
 }
 
+void RSNode::SetCameraDistance(float cameraDistance)
+{
+    SetProperty<RSCameraDistanceModifier, RSAnimatableProperty<float>>(RSModifierType::CAMERA_DISTANCE, cameraDistance);
+}
+
 void RSNode::SetTranslate(const Vector2f& translate)
 {
     SetProperty<RSTranslateModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::TRANSLATE, translate);
@@ -543,6 +602,19 @@ void RSNode::SetScaleY(float scaleY)
     auto scale = property->Get();
     scale.y_ = scaleY;
     property->Set(scale);
+}
+// Set the foreground color of the control
+void RSNode::SetEnvForegroundColor(uint32_t colorValue)
+{
+    auto color = Color::FromArgbInt(colorValue);
+    SetProperty<RSEnvForegroundColorModifier, RSAnimatableProperty<Color>>(RSModifierType::ENV_FOREGROUND_COLOR, color);
+}
+
+// Set the foreground color strategy of the control
+void RSNode::SetEnvForegroundColorStrategy(ForegroundColorStrategyType strategyType)
+{
+    SetProperty<RSEnvForegroundColorStrategyModifier,
+        RSProperty<ForegroundColorStrategyType>>(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, strategyType);
 }
 
 // foreground
@@ -712,6 +784,11 @@ void RSNode::SetShadowPath(const std::shared_ptr<RSPath>& shadowPath)
     SetProperty<RSShadowPathModifier, RSProperty<std::shared_ptr<RSPath>>>(RSModifierType::SHADOW_PATH, shadowPath);
 }
 
+void RSNode::SetShadowMask(bool shadowMask)
+{
+    SetProperty<RSShadowMaskModifier, RSProperty<bool>>(RSModifierType::SHADOW_MASK, shadowMask);
+}
+
 void RSNode::SetFrameGravity(Gravity gravity)
 {
     SetProperty<RSFrameGravityModifier, RSProperty<Gravity>>(RSModifierType::FRAME_GRAVITY, gravity);
@@ -747,9 +824,25 @@ void RSNode::SetMask(const std::shared_ptr<RSMask>& mask)
     SetProperty<RSMaskModifier, RSProperty<std::shared_ptr<RSMask>>>(RSModifierType::MASK, mask);
 }
 
+void RSNode::SetPixelStretch(const Vector4f& stretchSize)
+{
+    SetProperty<RSPixelStretchModifier, RSProperty<Vector4f>>(RSModifierType::PIXEL_STRETCH, stretchSize);
+}
+
 void RSNode::SetFreeze(bool isFreeze)
 {
     ROSEN_LOGE("SetFreeze only support RSSurfaceNode and RSCanvasNode in uniRender");
+}
+
+void RSNode::SetSpherizeDegree(float spherizeDegree)
+{
+    SetProperty<RSSpherizeModifier, RSAnimatableProperty<float>>(RSModifierType::SPHERIZE, spherizeDegree);
+}
+
+void RSNode::SetLightUpEffectDegree(float LightUpEffectDegree)
+{
+    SetProperty<RSLightUpEffectModifier, RSAnimatableProperty<float>>(
+        RSModifierType::LIGHT_UP_EFFECT, LightUpEffectDegree);
 }
 
 void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
@@ -767,11 +860,13 @@ void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& e
 
     auto& customEffects = isTransitionIn ? effect->customTransitionInEffects_ : effect->customTransitionOutEffects_;
     // temporary close the implicit animation
-    implicitAnimator_->BeginShieldImplicitAnimation();
-    for (auto& customEffect : customEffects) {
-        customEffect->Active();
-    }
-    implicitAnimator_->EndShieldImplicitAnimation();
+    ExecuteWithoutAnimation(
+        [&customEffects] {
+            for (auto& customEffect : customEffects) {
+                customEffect->Active();
+            }
+        },
+        implicitAnimator_);
 
     implicitAnimator_->BeginImplicitTransition(effect, isTransitionIn);
     for (auto& customEffect : customEffects) {
@@ -821,6 +916,43 @@ void RSNode::SetPaintOrder(bool drawContentLast)
     drawContentLast_ = drawContentLast;
 }
 
+void RSNode::MarkDrivenRender(bool flag)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkDrivenRender>(GetId(), flag);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
+void RSNode::MarkDrivenRenderItemIndex(int index)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkDrivenRenderItemIndex>(GetId(), index);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
+void RSNode::MarkDrivenRenderFramePaintState(bool flag)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSMarkDrivenRenderFramePaintState>(GetId(), flag);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
+void RSNode::MarkContentChanged(bool isChanged)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkContentChanged>(GetId(), isChanged);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
 void RSNode::ClearAllModifiers()
 {
     for (auto& [id, modifier] : modifiers_) {
@@ -838,6 +970,9 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier>& modifier)
     }
     modifier->AttachToNode(std::static_pointer_cast<RSNode>(shared_from_this()));
     modifiers_.emplace(modifier->GetPropertyId(), modifier);
+    if (modifier->GetModifierType() == RSModifierType::NODE_MODIFIER) {
+        return;
+    }
     std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {

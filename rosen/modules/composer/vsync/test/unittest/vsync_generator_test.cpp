@@ -43,10 +43,10 @@ void VSyncGeneratorTest::TearDownTestCase()
 
 class VSyncGeneratorTestCallback : public VSyncGenerator::Callback {
 public:
-    void OnVSyncEvent(int64_t) override;
+    void OnVSyncEvent(int64_t now, int64_t period) override;
 };
 
-void VSyncGeneratorTestCallback::OnVSyncEvent(int64_t time)
+void VSyncGeneratorTestCallback::OnVSyncEvent(int64_t now, int64_t period)
 {
 }
 

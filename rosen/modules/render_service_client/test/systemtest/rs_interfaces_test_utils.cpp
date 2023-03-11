@@ -45,7 +45,7 @@ RSInterfacesTestUtils::~RSInterfacesTestUtils()
 
 bool RSInterfacesTestUtils::CreateSurface()
 {
-    cSurface_ = Surface::CreateSurfaceAsConsumer();
+    cSurface_ = IConsumerSurface::Create();
     if (cSurface_ == nullptr) {
         ROSEN_LOGE("csurface create failed");
         return false;

@@ -43,6 +43,11 @@ enum class Gravity {
     DEFAULT = TOP_LEFT
 };
 
+enum class ForegroundColorStrategyType {
+    INVALID = 0,
+    INVERT_BACKGROUNDCOLOR,
+};
+
 class Decoration final {
 public:
     Decoration() {}

@@ -44,7 +44,8 @@ public:
     void SetAlpha(float alpha);
     void SetElevation(float elevation);
     void SetRadius(float radius);
-    void SetPath(std::shared_ptr<RSPath> path);
+    void SetPath(const std::shared_ptr<RSPath>& path);
+    void SetMask(bool imageMask);
 
     Color GetColor() const;
     float GetOffsetX() const;
@@ -52,7 +53,8 @@ public:
     float GetAlpha() const;
     float GetElevation() const;
     float GetRadius() const;
-    std::shared_ptr<RSPath> GetPath() const;
+    const std::shared_ptr<RSPath>& GetPath() const;
+    bool GetMask() const;
 
     bool GetHardwareAcceleration() const
     {
@@ -69,6 +71,7 @@ private:
     float radius_ = DEFAULT_SHADOW_RADIUS;
     float elevation_ = 0.f;
     std::shared_ptr<RSPath> path_ = nullptr;
+    bool imageMask_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

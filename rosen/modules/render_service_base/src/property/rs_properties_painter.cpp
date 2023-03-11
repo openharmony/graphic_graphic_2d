@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,7 @@
 #include "include/core/SkRRect.h"
 #include "include/core/SkSurface.h"
 #include "include/effects/Sk1DPathEffect.h"
+#include "include/effects/SkBlurImageFilter.h"
 #include "include/effects/SkDashPathEffect.h"
 #include "include/effects/SkLumaColorFilter.h"
 #include "include/utils/SkShadowUtils.h"
@@ -39,7 +40,6 @@
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "render/rs_skia_filter.h"
-#include "render_context/render_context.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -171,12 +171,13 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
         }
         float elevation = properties.GetShadowElevation() + DEFAULT_TRANSLATION_Z;
 
-        float userTransRatio = (elevation != DEFAULT_LIGHT_HEIGHT) ?
-            elevation / (DEFAULT_LIGHT_HEIGHT - elevation) : MAX_TRANS_RATIO;
+        float userTransRatio =
+            (elevation != DEFAULT_LIGHT_HEIGHT) ? elevation / (DEFAULT_LIGHT_HEIGHT - elevation) : MAX_TRANS_RATIO;
         float transRatio = std::max(MIN_TRANS_RATIO, std::min(userTransRatio, MAX_TRANS_RATIO));
 
-        float userSpotRatio = (elevation != DEFAULT_LIGHT_HEIGHT) ?
-            DEFAULT_LIGHT_HEIGHT / (DEFAULT_LIGHT_HEIGHT - elevation) : MAX_SPOT_RATIO;
+        float userSpotRatio = (elevation != DEFAULT_LIGHT_HEIGHT)
+                                  ? DEFAULT_LIGHT_HEIGHT / (DEFAULT_LIGHT_HEIGHT - elevation)
+                                  : MAX_SPOT_RATIO;
         float spotRatio = std::max(MIN_SPOT_RATIO, std::min(userSpotRatio, MAX_SPOT_RATIO));
 
         SkRect ambientRect = skPath.getBounds();
@@ -212,10 +213,10 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
 void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect)
 {
     // skip shadow if not valid or cache is enabled
-    if (!properties.IsShadowValid() || canvas.isCacheEnabled()) {
+    if (properties.IsSpherizeValid() || !properties.IsShadowValid() || canvas.isCacheEnabled()) {
         return;
     }
-    SkAutoCanvasRestore acr(&canvas, true);
+    RSAutoCanvasRestore acr(&canvas);
     SkPath skPath;
     if (properties.GetShadowPath() && !properties.GetShadowPath()->GetSkiaPath().isEmpty()) {
         skPath = properties.GetShadowPath()->GetSkiaPath();
@@ -232,6 +233,39 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilt
             canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), SkClipOp::kDifference, true);
         }
     }
+    if (properties.GetShadowMask()) {
+        DrawColorfulShadowInner(properties, canvas, skPath);
+    } else {
+        DrawShadowInner(properties, canvas, skPath);
+    }
+}
+
+void RSPropertiesPainter::DrawColorfulShadowInner(
+    const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath)
+{
+    // blurRadius calculation is based on the formula in SkShadowUtils::DrawShadow, 0.25f and 128.0f are constants
+    const SkScalar blurRadius =
+        properties.shadow_->GetHardwareAcceleration()
+            ? 0.25f * properties.GetShadowElevation() * (1 + properties.GetShadowElevation() / 128.0f)
+            : properties.GetShadowRadius();
+
+    // save layer, draw image with clipPath, blur and draw back
+    SkPaint blurPaint;
+    blurPaint.setImageFilter(SkBlurImageFilter::Make(blurRadius, blurRadius, SkTileMode::kDecal, nullptr));
+    canvas.saveLayer(nullptr, &blurPaint);
+
+    canvas.translate(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
+
+    canvas.clipPath(skPath);
+    // draw node content as shadow
+    // [PLANNING]: maybe we should also draw background color / image here, and we should cache the shadow image
+    if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(properties.backref_.lock())) {
+        node->InternalDrawContent(canvas);
+    }
+}
+
+void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath)
+{
     skPath.offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
     Color spotColor = properties.GetShadowColor();
     if (properties.shadow_->GetHardwareAcceleration()) {
@@ -297,6 +331,65 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
             imageSnapshot.get(), clipBounds.makeOffset(-clipBounds.left(), -clipBounds.top()), clipBounds, &paint);
     }
     filter->PostProcess(canvas);
+}
+
+void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+    if (!properties.IsPixelStretchValid()) {
+        return;
+    }
+
+    auto skSurface = canvas.GetSurface();
+    if (skSurface == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch skSurface null");
+        return;
+    }
+    
+    canvas.save();
+    auto bounds = RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect());
+    canvas.clipRect(bounds);
+    auto clipBounds = canvas.getDeviceClipBounds();
+    canvas.restore();
+
+    auto stretchSize = properties.GetPixelStretch();
+    auto scaledBounds = SkRect::MakeLTRB(bounds.left() - stretchSize.x_, bounds.top() - stretchSize.y_,
+        bounds.right() + stretchSize.z_, bounds.bottom() + stretchSize.w_);
+    if (scaledBounds.isEmpty()) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch invalid scaled bounds");
+        return;
+    }
+
+    auto image = skSurface->makeImageSnapshot(clipBounds);
+    if (image == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch image null");
+        return;
+    }
+
+    SkPaint paint;
+    SkMatrix inverseMat, scaleMat;
+    auto boundsGeo = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
+    if (boundsGeo && !boundsGeo->IsEmpty()) {
+        if (!canvas.getTotalMatrix().invert(&inverseMat)) {
+            ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch get inverse matrix failed.");
+        }
+        scaleMat.setScale(inverseMat.getScaleX(), inverseMat.getScaleY());
+    }
+
+    if (properties.IsPixelStretchExpanded()) {
+        paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, &scaleMat));
+        canvas.drawRect(SkRect::MakeXYWH(-stretchSize.x_, -stretchSize.y_, scaledBounds.width(), scaledBounds.height()),
+            paint);
+    } else {
+        SkBitmap bitmap;
+        bitmap.allocN32Pixels(scaledBounds.width(), scaledBounds.height());
+        auto tempCanvas = std::make_unique<SkCanvas>(bitmap);
+        tempCanvas->drawImageRect(image.get(), SkRect::MakeWH(scaledBounds.width(), scaledBounds.height()), nullptr);
+        paint.setShader(bitmap.makeShader(SkTileMode::kClamp, SkTileMode::kClamp));
+        canvas.save();
+        canvas.translate(-stretchSize.x_, -stretchSize.y_);
+        canvas.drawRect(SkRect::MakeXYWH(stretchSize.x_, stretchSize.y_, bounds.width(), bounds.height()), paint);
+        canvas.restore();
+    }
 }
 
 SkColor RSPropertiesPainter::CalcAverageColor(sk_sp<SkImage> imageSnapshot)

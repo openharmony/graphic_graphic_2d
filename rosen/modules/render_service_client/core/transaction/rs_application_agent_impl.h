@@ -31,10 +31,10 @@ public:
     static RSApplicationAgentImpl& Instance();
     void RegisterRSApplicationAgent();
 
-private:
     RSApplicationAgentImpl() = default;
     virtual ~RSApplicationAgentImpl() = default;
 
+private:
     RSApplicationAgentImpl(const RSApplicationAgentImpl&) = delete;
     RSApplicationAgentImpl(const RSApplicationAgentImpl&&) = delete;
     RSApplicationAgentImpl& operator=(const RSApplicationAgentImpl&) = delete;

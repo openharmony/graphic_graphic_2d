@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,7 +28,7 @@
 namespace OHOS {
 namespace Rosen {
 template<typename T>
-class RS_EXPORT RSArithmetic {
+class RSB_EXPORT RSArithmetic {
 public:
     RSArithmetic() = default;
     virtual ~RSArithmetic() = default;
@@ -47,7 +47,7 @@ public:
 };
 
 template<typename T>
-class RS_EXPORT RSAnimatableArithmetic : public RSArithmetic<T> {
+class RSB_EXPORT RSAnimatableArithmetic : public RSArithmetic<T> {
 public:
     RSAnimatableArithmetic() = default;
     virtual ~RSAnimatableArithmetic() = default;

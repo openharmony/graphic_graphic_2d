@@ -46,18 +46,18 @@ HWTEST_F(RSInterpolatorTest, RSStepInterpolatorTest001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSInterpolatorTest RSStepInterpolatorTest001 start";
 
     Parcel parcel1;
-    auto interpolator = RSStepsInterpolator::Unmarshalling(parcel1);
+    std::shared_ptr<RSInterpolator> interpolator(RSStepsInterpolator::Unmarshalling(parcel1));
     EXPECT_EQ(interpolator, nullptr);
 
     Parcel parcel2;
     parcel2.WriteInt32(1);
-    interpolator = RSStepsInterpolator::Unmarshalling(parcel2);
+    interpolator.reset(RSStepsInterpolator::Unmarshalling(parcel2));
     EXPECT_EQ(interpolator, nullptr);
 
     Parcel parcel3;
     parcel3.WriteInt32(1);
     parcel3.WriteInt32(0);
-    interpolator = RSStepsInterpolator::Unmarshalling(parcel3);
+    interpolator.reset(RSStepsInterpolator::Unmarshalling(parcel3));
     EXPECT_TRUE(interpolator != nullptr);
 
     GTEST_LOG_(INFO) << "RSInterpolatorTest RSStepInterpolatorTest001 end";
@@ -73,25 +73,25 @@ HWTEST_F(RSInterpolatorTest, RSSpringInterpolatorTest001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSInterpolatorTest RSSpringInterpolatorTest001 start";
 
     Parcel parcel1;
-    auto interpolator = RSSpringInterpolator::Unmarshalling(parcel1);
+    std::shared_ptr<RSInterpolator> interpolator(RSSpringInterpolator::Unmarshalling(parcel1));
     EXPECT_EQ(interpolator, nullptr);
 
     Parcel parcel2;
     parcel2.WriteFloat(1.0f);
-    interpolator = RSSpringInterpolator::Unmarshalling(parcel2);
+    interpolator.reset(RSSpringInterpolator::Unmarshalling(parcel2));
     EXPECT_EQ(interpolator, nullptr);
 
     Parcel parcel3;
     parcel3.WriteFloat(1.0f);
     parcel3.WriteFloat(1.0f);
-    interpolator = RSSpringInterpolator::Unmarshalling(parcel3);
+    interpolator.reset(RSSpringInterpolator::Unmarshalling(parcel3));
     EXPECT_EQ(interpolator, nullptr);
 
     Parcel parcel4;
     parcel4.WriteFloat(1.0f);
     parcel4.WriteFloat(1.0f);
     parcel4.WriteFloat(1.0f);
-    interpolator = RSSpringInterpolator::Unmarshalling(parcel4);
+    interpolator.reset(RSSpringInterpolator::Unmarshalling(parcel4));
     EXPECT_TRUE(interpolator != nullptr);
 
     GTEST_LOG_(INFO) << "RSInterpolatorTest RSSpringInterpolatorTest001 end";

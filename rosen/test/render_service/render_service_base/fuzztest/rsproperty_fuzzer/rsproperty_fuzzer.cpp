@@ -225,7 +225,8 @@ void RSPropertiesFuzzTestInner03(RSProperties& properties)
     properties.SetShadowRadius(radius);
     properties.SetShadowPath(shadowpath);
     properties.SetFrameGravity(gravity);
-    properties.SetOverlayBounds(rect);
+    properties.SetOverlayBounds(
+        std::make_shared<RectF>(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>()));
 }
 
 void RSPropertiesFuzzTestInner04(RSProperties& properties)

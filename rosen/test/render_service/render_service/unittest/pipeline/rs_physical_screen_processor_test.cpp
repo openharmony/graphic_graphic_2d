@@ -98,7 +98,7 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface001, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsHardwareProcessor->ProcessSurface(rsSurfaceRenderNode);
-    sptr<Surface> surface = Surface::CreateSurfaceAsConsumer(config.name);
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode.SetConsumer(surface);
     rsHardwareProcessor->ProcessSurface(rsSurfaceRenderNode);
     auto& consumer = rsSurfaceRenderNode.GetConsumer();

@@ -46,6 +46,7 @@
                 "external_window.h",
                 "ibuffer_consumer_listener.h",
                 "ibuffer_producer.h",
+                "iconsumer_surface.h",
                 "surface.h",
                 "surface_buffer.h",
                 "surface_type.h",

@@ -137,6 +137,7 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         Sk3DView camera;
         // Z Position
         camera.translate(0, 0, z_ + trans_->translateZ_);
+        camera.setCameraLocation(0, 0, trans_->cameraDistance_);
         // Rotate
         camera.rotateX(trans_->rotationX_);
         camera.rotateY(trans_->rotationY_);

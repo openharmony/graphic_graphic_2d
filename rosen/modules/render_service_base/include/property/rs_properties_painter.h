@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,7 +25,7 @@ namespace Rosen {
 class RSSkiaFilter;
 class RSPaintFilterCanvas;
 
-class RS_EXPORT RSPropertiesPainter {
+class RSB_EXPORT RSPropertiesPainter {
 public:
     static void Clip(SkCanvas& canvas, RectF rect);
     static void SetBgAntiAlias(bool forceBgAntiAlias);
@@ -46,8 +46,12 @@ public:
     static SkRect Rect2SkRect(const RectF& r);
     static int GetAndResetBlurCnt();
     static SkColor CalcAverageColor(sk_sp<SkImage> imageSnapshot);
+
+    static void DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 private:
     inline static int g_blurCnt = 0;
+    static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
+    static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
 };
 } // namespace Rosen
 } // namespace OHOS

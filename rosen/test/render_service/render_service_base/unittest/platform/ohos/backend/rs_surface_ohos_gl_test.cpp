@@ -43,7 +43,7 @@ void RSSurfaceOhosGlTest::TearDown() {}
  */
 HWTEST_F(RSSurfaceOhosGlTest, ClearBuffer001, TestSize.Level1)
 {
-    RSSurfaceOhosGl gl(Surface::CreateSurfaceAsConsumer());
+    RSSurfaceOhosGl gl(IConsumerSurface::Create());
     gl.ClearBuffer();
 }
 
@@ -55,7 +55,7 @@ HWTEST_F(RSSurfaceOhosGlTest, ClearBuffer001, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceOhosGlTest, ResetBufferAge001, TestSize.Level1)
 {
-    RSSurfaceOhosGl gl(Surface::CreateSurfaceAsConsumer());
+    RSSurfaceOhosGl gl(IConsumerSurface::Create());
     gl.ResetBufferAge();
 }
 } // namespace Rosen

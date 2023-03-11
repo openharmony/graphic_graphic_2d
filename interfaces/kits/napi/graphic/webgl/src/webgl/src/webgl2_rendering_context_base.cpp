@@ -4327,7 +4327,7 @@ napi_value WebGL2RenderingContextBase::GetUniformIndices(napi_env env, napi_call
             return nullptr;
         }
         LOGI("WebGL2 WebGLRenderingContextOverloads::getUniformIndices count = %{public}u", uniformCount);
-        if (uniformCount <= 0 || uniformCount > UNIFORM_NAMES_MAX_LENGTH) {
+        if (uniformCount > UNIFORM_NAMES_MAX_LENGTH) {
             LOGE("WebGL2 WebGLRenderingContextOverloads::getUniformIndicesuniformCount is invalid");
             return nullptr;
         }

@@ -64,7 +64,7 @@ bool RSComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int3
     bool directClientCompEnableStatus = RSSystemProperties::GetDirectClientCompEnableStatus();
     output_->SetDirectClientCompEnableStatus(directClientCompEnableStatus);
 
-#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
     // enable direct GPU composition.
     output_->SetLayerCompCapacity(LAYER_COMPOSITION_CAPACITY);
 #else // (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
@@ -328,7 +328,7 @@ ComposeInfo RSComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& node) const
 void RSComposerAdapter::SetComposeInfoToLayer(
     const LayerInfoPtr& layer,
     const ComposeInfo& info,
-    const sptr<Surface>& surface,
+    const sptr<IConsumerSurface>& surface,
     RSBaseRenderNode* node)
 {
     if (layer == nullptr) {
@@ -556,14 +556,15 @@ static int GetSurfaceNodeRotation(RSBaseRenderNode& node)
 }
 
 static void SetLayerTransform(const LayerInfoPtr& layer, RSBaseRenderNode& node,
-    const sptr<Surface>& surface, ScreenRotation screenRotation)
+    const sptr<IConsumerSurface>& surface, ScreenRotation screenRotation)
 {
     // screenRotation: anti-clockwise, surfaceNodeRotation: anti-clockwise, surfaceTransform: anti-clockwise
     // layerTransform: clockwise
     int surfaceNodeRotation = GetSurfaceNodeRotation(node);
     int totalRotation = (RotateEnumToInt(screenRotation) + surfaceNodeRotation +
-        RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()))) % 360;
-    GraphicTransformType rotateEnum = RotateEnumToInt(totalRotation, RSBaseRenderUtil::GetFlipTransform(surface->GetTransform()));
+        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()))) % 360;
+    GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation,
+        RSBaseRenderUtil::GetFlipTransform(surface->GetTransform()));
     layer->SetTransform(rotateEnum);
 }
 
@@ -699,7 +700,7 @@ void RSComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer)
 }
 
 // private func, guarantee the layer and surface are valid
-void RSComposerAdapter::LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface)
+void RSComposerAdapter::LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<IConsumerSurface>& surface)
 {
     if (!layer->IsSupportedPresentTimestamp()) {
         return;

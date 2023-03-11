@@ -27,6 +27,26 @@ constexpr int32_t CONSUMER_REF_COUNT_IN_CONSUMER_SURFACE = 1;
 constexpr int32_t PRODUCER_REF_COUNT_IN_CONSUMER_SURFACE = 2;
 }
 
+sptr<Surface> Surface::CreateSurfaceAsConsumer(std::string name, bool isShared)
+{
+    sptr<ConsumerSurface> surf = new ConsumerSurface(name, isShared);
+    if (!surf || surf->Init() != GSERROR_OK) {
+        BLOGE("Failure, Reason: consumer surf init failed");
+        return nullptr;
+    }
+    return surf;
+}
+
+sptr<IConsumerSurface> IConsumerSurface::Create(std::string name, bool isShared)
+{
+    sptr<ConsumerSurface> surf = new ConsumerSurface(name, isShared);
+    if (!surf || surf->Init() != GSERROR_OK) {
+        BLOGE("Failure, Reason: consumer surf init failed");
+        return nullptr;
+    }
+    return surf;
+}
+
 ConsumerSurface::ConsumerSurface(const std::string &name, bool isShared)
     : name_(name), isShared_(isShared)
 {
@@ -88,6 +108,7 @@ GSError ConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFen
 {
     return consumer_->AcquireBuffer(buffer, fence, timestamp, damage);
 }
+
 GSError ConsumerSurface::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence)
 {
     return consumer_->ReleaseBuffer(buffer, fence);

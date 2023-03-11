@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,7 +43,7 @@ class RSImplicitAnimParam;
 class RSImplicitAnimator;
 class RSModifier;
 
-class RS_EXPORT RSNode : public RSBaseNode {
+class RSC_EXPORT RSNode : public RSBaseNode {
 public:
     using WeakPtr = std::weak_ptr<RSNode>;
     using SharedPtr = std::shared_ptr<RSNode>;
@@ -59,9 +59,17 @@ public:
     static std::vector<std::shared_ptr<RSAnimation>> Animate(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback,
         const std::function<void()>& finishCallback = nullptr);
+
+    static std::vector<std::shared_ptr<RSAnimation>> Animate(
+        const PropertyCallback& callback, const std::function<void()>& finishCallback);
+
     static void OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const std::function<void()>& finishCallback = nullptr);
     static std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation();
+
+    static void ExecuteWithoutAnimation(
+        const PropertyCallback& callback, std::shared_ptr<RSImplicitAnimator> implicitAnimator = nullptr);
+
     static void AddKeyFrame(
         float fraction, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
     static void AddKeyFrame(float fraction, const PropertyCallback& callback);
@@ -109,6 +117,7 @@ public:
     void SetRotation(float degree);
     void SetRotationX(float degree);
     void SetRotationY(float degree);
+    void SetCameraDistance(float cameraDistance);
 
     void SetTranslate(const Vector2f& translate);
     void SetTranslate(float translateX, float translateY, float translateZ);
@@ -125,6 +134,9 @@ public:
     void SetAlpha(float alpha);
     void SetAlphaOffscreen(bool alphaOffscreen);
 
+
+    void SetEnvForegroundColor(uint32_t colorValue);
+    void SetEnvForegroundColorStrategy(ForegroundColorStrategyType colorType);
     void SetForegroundColor(uint32_t colorValue);
     void SetBackgroundColor(uint32_t colorValue);
     void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);
@@ -159,6 +171,7 @@ public:
     void SetShadowElevation(float elevation);
     void SetShadowRadius(float radius);
     void SetShadowPath(const std::shared_ptr<RSPath>& shadowPath);
+    void SetShadowMask(bool shadowMask);
 
     void SetFrameGravity(Gravity gravity);
 
@@ -168,6 +181,10 @@ public:
 
     void SetVisible(bool visible);
     void SetMask(const std::shared_ptr<RSMask>& mask);
+    void SetSpherizeDegree(float spherizeDegree);
+    void SetLightUpEffectDegree(float LightUpEffectDegree);
+
+    void SetPixelStretch(const Vector4f& stretchSize);
 
     void SetPaintOrder(bool drawContentLast);
 
@@ -175,6 +192,12 @@ public:
     {
         transitionEffect_ = effect;
     }
+
+    // driven render
+    void MarkDrivenRender(bool flag);
+    void MarkDrivenRenderItemIndex(int index);
+    void MarkDrivenRenderFramePaintState(bool flag);
+    void MarkContentChanged(bool isChanged);
 
     void AddModifier(const std::shared_ptr<RSModifier>& modifier);
     void RemoveModifier(const std::shared_ptr<RSModifier>& modifier);
@@ -231,6 +254,7 @@ private:
 
     friend class RSAnimation;
     friend class RSCurveAnimation;
+    friend class RSInterpolatingSpringAnimation;
     friend class RSKeyframeAnimation;
     friend class RSPropertyAnimation;
     friend class RSSpringAnimation;
@@ -246,6 +270,7 @@ private:
     friend class RSImplicitAnimator;
     friend class RSModifierExtractor;
     friend class RSModifier;
+    friend class RSGeometryTransModifier;
 };
 } // namespace Rosen
 } // namespace OHOS

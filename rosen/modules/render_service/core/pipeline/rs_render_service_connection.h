@@ -53,10 +53,7 @@ private:
 
     // IPC RSIRenderServiceConnection Interfaces
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
-    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
-    int32_t SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback) override;
-    void UpdateRenderMode(bool isUniRender) override;
     bool GetUniRenderEnabled() override;
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config) override;
@@ -142,6 +139,8 @@ private:
     int32_t UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
 
     void SetAppWindowNum(uint32_t num) override;
+
+    void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

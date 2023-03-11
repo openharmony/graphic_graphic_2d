@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -63,7 +63,6 @@ public:
         std::apply([&context](auto&... args) { return (*processFunc)(context, args...); }, params_);
     }
 
-#ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override
     {
         return RSMarshallingHelper::Marshalling(parcel, commandType) &&
@@ -72,7 +71,7 @@ public:
                    params_);
     };
 
-    static RSCommand* Unmarshalling(Parcel& parcel)
+    [[nodiscard]] static RSCommand* Unmarshalling(Parcel& parcel)
     {
         std::tuple<Params...> params;
         if (!std::apply(
@@ -83,7 +82,6 @@ public:
     }
 
     static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
-#endif // ROSEN_OHOS
 
 private:
     std::tuple<Params...> params_;

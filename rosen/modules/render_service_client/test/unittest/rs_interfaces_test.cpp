@@ -122,7 +122,7 @@ HWTEST_F(RSInterfacesTest, GetScreenType002, Function | SmallTest | Level2)
 */
 HWTEST_F(RSInterfacesTest, SetVirtualScreenResolution001, Function | SmallTest | Level2)
 {
-    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto csurface = IConsumerSurface::Create();
     EXPECT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
@@ -162,7 +162,7 @@ HWTEST_F(RSInterfacesTest, GetAllScreenIds, Function | SmallTest | Level2)
     std::vector<ScreenId> ids = rsInterfaces->GetAllScreenIds();
     int32_t size = ids.size();
     EXPECT_GT(ids.size(), 0);
-    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto csurface = IConsumerSurface::Create();
     EXPECT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
@@ -201,7 +201,7 @@ HWTEST_F(RSInterfacesTest, GetDefaultScreenId, Function | SmallTest | Level2)
 */
 HWTEST_F(RSInterfacesTest, CreateVirtualScreen001, Function | SmallTest | Level2)
 {
-    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto csurface = IConsumerSurface::Create();
     EXPECT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
@@ -240,7 +240,7 @@ HWTEST_F(RSInterfacesTest, CreateVirtualScreen002, Function | SmallTest | Level2
 */
 HWTEST_F(RSInterfacesTest, CreateVirtualScreen003, Function | SmallTest | Level2)
 {
-    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto csurface = IConsumerSurface::Create();
     EXPECT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
@@ -877,44 +877,6 @@ HWTEST_F(RSInterfacesTest, UnRegisterOcclusionChangeCallback_Test, Function | Sm
 }
 
 /*
- * @tc.name: SetRenderModeChangeCallback Test
- * @tc.desc: SetRenderModeChangeCallback Test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSInterfacesTest, SetRenderModeChangeCallback_Test, Function | SmallTest | Level2)
-{
-    ASSERT_NE(rsInterfaces, nullptr);
-    RenderModeChangeCallback cb = [](bool flag){};
-    int32_t ret = rsInterfaces->SetRenderModeChangeCallback(cb);
-    ASSERT_EQ(ret, 0);
-}
-
-/*
- * @tc.name: UpdateRenderMode True Test
- * @tc.desc: UpdateRenderMode True Test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSInterfacesTest, UpdateRenderMode_True, Function | SmallTest | Level2)
-{
-    ASSERT_NE(rsInterfaces, nullptr);
-    rsInterfaces->UpdateRenderMode(true);
-}
-
-/*
- * @tc.name: UpdateRenderMode False Test
- * @tc.desc: UpdateRenderMode False Test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSInterfacesTest, UpdateRenderMode_False, Function | SmallTest | Level2)
-{
-    ASSERT_NE(rsInterfaces, nullptr);
-    rsInterfaces->UpdateRenderMode(false);
-}
-
-/*
  * @tc.name: SetVirtualScreenSurface Test a notfound id
  * @tc.desc: SetVirtualScreenSurface Test a notfound id
  * @tc.type: FUNC
@@ -923,7 +885,7 @@ HWTEST_F(RSInterfacesTest, UpdateRenderMode_False, Function | SmallTest | Level2
 HWTEST_F(RSInterfacesTest, SetVirtualScreenSurface_Test, Function | SmallTest | Level2)
 {
     ASSERT_NE(rsInterfaces, nullptr);
-    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);

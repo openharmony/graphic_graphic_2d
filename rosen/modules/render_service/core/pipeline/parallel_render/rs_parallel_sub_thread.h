@@ -45,14 +45,13 @@ public:
     void StartSubThread();
     void WaitTaskSync();
     void SetMainVisitor(RSUniRenderVisitor *mainVisitor);
-    void SetDisplayRenderNode(RSDisplayRenderNode *displayNode);
     bool GetRenderFinish();
     void SetSuperTask(std::unique_ptr<RSSuperRenderTask> superRenderTask);
     EGLContext GetSharedContext();
     sk_sp<SkSurface> GetSkSurface();
     sk_sp<SkImage> GetTexture();
     bool WaitReleaseFence();
-    std::shared_ptr<RSUniRenderVisitor> GetUniVisitor()
+    std::shared_ptr<RSUniRenderVisitor> GetUniVisitor() const
     {
         return visitor_;
     }
@@ -72,6 +71,7 @@ private:
     void CreateShareEglContext();
     void StartPrepare();
     void Prepare();
+    void CalcCost();
     sk_sp<GrContext> CreateShareGrContext();
     void AcquireSubSkSurface(int width, int height);
 

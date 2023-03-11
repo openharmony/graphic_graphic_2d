@@ -19,14 +19,14 @@
 #include <map>
 #include <string>
 
-#include <surface.h>
+#include <iconsumer_surface.h>
 
 #include "buffer_queue.h"
 #include "buffer_queue_producer.h"
 #include "buffer_queue_consumer.h"
 
 namespace OHOS {
-class ConsumerSurface : public Surface {
+class ConsumerSurface : public IConsumerSurface {
 public:
     ConsumerSurface(const std::string &name, bool isShared = false);
     virtual ~ConsumerSurface();
@@ -44,6 +44,7 @@ public:
 
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
                           int64_t &timestamp, Rect &damage) override;
+
     GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) override;
 
     GSError RequestBuffer(sptr<SurfaceBuffer>& buffer,

@@ -107,7 +107,7 @@ public:
     static bool IsColorFilterModeValid(ColorFilterMode mode);
 
     static bool WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& node);
-    static bool WriteFreezeRenderNodeToPng(const RSRenderNode& node);
+    static bool WriteCacheRenderNodeToPng(const RSRenderNode& node);
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
     static void DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
@@ -121,6 +121,10 @@ public:
     // GraphicTransformType from hdi layer info is clockwise, for surface and surface node is anti-clockwise
     // need conversion here
     static GraphicTransformType ClockwiseToAntiClockwiseTransform(GraphicTransformType transform);
+    static int RotateEnumToInt(GraphicTransformType rotation);
+    static GraphicTransformType RotateEnumToInt(int angle,
+        GraphicTransformType flip = GraphicTransformType::GRAPHIC_ROTATE_NONE);
+
 private:
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         SkBitmap& bitmap);

@@ -46,6 +46,7 @@ public:
     void PostPlayBackTask(std::shared_ptr<DrawCmdList> drawCmdList, float width, float height);
     void Stop();
     void PostTask(std::function<void()> task);
+    bool IsIdle();
 
 private:
 #ifdef RS_ENABLE_GL
@@ -76,6 +77,7 @@ public:
     static RSColdStartManager& Instance();
     void PostPlayBackTask(NodeId id, std::shared_ptr<DrawCmdList> drawCmdList, float width, float height);
     bool IsColdStartThreadRunning(NodeId id);
+    bool IsColdStartThreadIdle(NodeId id);
     void StartColdStartThreadIfNeed(std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
     void StopColdStartThread(NodeId id);
     void DestroyColdStartThread(NodeId id);

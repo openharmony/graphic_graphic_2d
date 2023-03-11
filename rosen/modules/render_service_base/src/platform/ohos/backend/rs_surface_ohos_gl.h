@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,7 @@
 
 #include "platform/drawing/rs_surface.h"
 #include "platform/ohos/rs_surface_ohos.h"
-#include "render_context/render_context.h"
+#include "EGL/egl.h"
 #include "rs_surface_frame_ohos_gl.h"
 #include "window.h"
 
