@@ -24,13 +24,12 @@ Path::Path() noexcept : impl_(ImplFactory::CreatePathImpl()) {}
 
 Path::Path(const Path& other) noexcept
 {
-    impl_ = ImplFactory::CreatePathImpl();
-    *impl_ = *other.impl_;
+    impl_.reset(other.impl_->Clone());
 }
 
 Path& Path::operator=(const Path &other) noexcept
 {
-    *impl_ = *other.impl_;
+    impl_.reset(other.impl_->Clone());
     return *this;
 }
 
