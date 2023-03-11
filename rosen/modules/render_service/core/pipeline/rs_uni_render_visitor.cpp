@@ -91,7 +91,19 @@ void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
             renderChild->ApplyModifiers();
         }
     }
-    for (auto& child : node.GetSortedChildren()) {
+    const auto& children = node.GetSortedChildren();
+
+    // GetSortedChildren() may remove disappearingChildren_ when transition animation end.
+    // So the judgement whether node has removed child should be executed after this.
+    // merge last childRect as dirty if any child has been removed
+    if (curSurfaceDirtyManager_ && node.HasRemovedChild()) {
+        curSurfaceDirtyManager_->MergeDirtyRect(node.GetChildrenRect());
+        node.ResetHasRemovedChild();
+    }
+
+    // reset childRect before prepare children
+    node.ResetChildrenRect();
+    for (auto& child : children) {
         child->Prepare(shared_from_this());
     }
     SetPaintOutOfParentFlag(node);
@@ -284,13 +296,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.ResetSurfaceOpaqueRegion(RectI(0, 0, screenInfo_.width, screenInfo_.height), geoPtr->GetAbsRect(),
         containerWindowConfig_, node.IsFocusedWindow(currentFocusedPid_));
 
-    // merge last childRect as dirty if any child has been removed
-    if (node.HasRemovedChild()) {
-        curSurfaceDirtyManager_->MergeDirtyRect(node.GetChildrenRect());
-        node.ResetHasRemovedChild();
-    }
-    // reset childRect before prepare children
-    node.ResetChildrenRect();
     PrepareBaseRenderNode(node);
     // [planning] apply dirty rect instead of customized rect
     node.UpdateParentChildrenRect(node.GetParent().lock(), isCustomizedDirtyRect, node.GetDstRect());
@@ -380,13 +385,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         dirtyFlag_);
     float alpha = curAlpha_;
     curAlpha_ *= node.GetRenderProperties().GetAlpha();
-    // merge last childRect as dirty if any child has been removed
-    if (node.HasRemovedChild()) {
-        curSurfaceDirtyManager_->MergeDirtyRect(node.GetChildrenRect());
-        node.ResetHasRemovedChild();
-    }
-    // reset childRect before prepare children
-    node.ResetChildrenRect();
+
     PrepareBaseRenderNode(node);
     // attention: accumulate direct parent's childrenRect
     node.UpdateParentChildrenRect(node.GetParent().lock());

@@ -462,7 +462,15 @@ void RSBaseRenderNode::InternalRemoveSelfFromDisappearingChildren()
     // internal use only, force remove self from parent's disappearingChildren_
     if (auto parent = parent_.lock()) {
         parent->disappearingChildren_.remove_if(
-            [childPtr = shared_from_this()](const auto& pair) -> bool { return pair.first == childPtr; });
+            [childPtr = shared_from_this()](const auto& pair) -> bool {
+                if (pair.first == childPtr) {
+                    childPtr ->ResetParent(); // when child been removed, notify dirty by ResetParent()
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        );
     }
 }
 } // namespace Rosen
