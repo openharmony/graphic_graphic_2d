@@ -26,6 +26,22 @@ namespace Rosen {
 namespace Drawing {
 SkiaPath::SkiaPath() noexcept : path_() {}
 
+SkiaPath::SkiaPath(const SkiaPath& other) noexcept
+{
+    path_ = other.path_;
+}
+
+SkiaPath& SkiaPath::operator=(const SkiaPath& other) noexcept
+{
+    path_ = other.path_;
+    return *this;
+}
+
+PathImpl* SkiaPath::Clone()
+{
+    return new SkiaPath(*this);
+}
+
 void SkiaPath::MoveTo(scalar x, scalar y)
 {
     path_.moveTo(x, y);
