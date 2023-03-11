@@ -29,7 +29,7 @@ public:
     SkiaPath() noexcept;
     ~SkiaPath() override {};
     SkiaPath(const SkiaPath& p) noexcept;
-    SkiaPath &operator=(const SkiaPath& other) noexcept;
+    SkiaPath &operator=(const SkiaPath& p) noexcept;
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;
