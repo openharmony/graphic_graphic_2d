@@ -39,7 +39,7 @@ public:
     PathImpl() noexcept {}
     ~PathImpl() override {}
     PathImpl(const PathImpl& p) = delete;
-    PathImpl &operator=(const PathImpl &) = delete;
+    PathImpl &operator=(const PathImpl& p) = delete;
     AdapterType GetType() const override
     {
         return AdapterType::BASE_INTERFACE;
