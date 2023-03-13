@@ -219,6 +219,24 @@ void Region::InitDynamicLibraryFunction()
 
 void Region::RegionOp(Region& r1, Region& r2, Region& res, Region::OP op)
 {
+    if (r1.IsEmpty()) {
+        if (op == Region::OP::AND || op == Region::OP::SUB) {
+            res = Region();
+            return;
+        } else {
+            res = r2;
+            return;
+        }
+    }
+    if (r2.IsEmpty()) {
+        if (op == Region::OP::AND) {
+            res = Region();
+            return;
+        } else {
+            res = r1;
+            return;
+        }
+    }
     if (RSInnovation::_s_occlusionCullingFuncLoaded && RSInnovation::_s_occlusionCullingSoEnabled) {
         regionOpFromSO(r1, r2, res, op);
     } else {
