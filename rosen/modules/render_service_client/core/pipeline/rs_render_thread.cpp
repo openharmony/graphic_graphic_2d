@@ -29,6 +29,7 @@
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "platform/common/rs_accessibility.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_property_trace.h"
@@ -44,14 +45,10 @@
 #ifdef ROSEN_OHOS
 #include <sys/prctl.h>
 #include <unistd.h>
+#include "accessibility_config.h"
 #include "frame_collector.h"
 #include "render_frame_trace.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
-
-#ifdef ACCESSIBILITY_ENABLE
-#include "accessibility_config.h"
-#include "platform/common/rs_accessibility.h"
-#endif
 
 static const std::string RT_INTERVAL_NAME = "renderthread";
 #endif
@@ -108,12 +105,10 @@ RSRenderThread::RSRenderThread()
 
     context_ = std::make_shared<RSContext>();
     jankDetector_ = std::make_shared<RSJankDetector>();
-#ifdef ACCESSIBILITY_ENABLE
     RSAccessibility::GetInstance().ListenHighContrastChange([](bool newHighContrast) {
         auto& renderThread = RSRenderThread::Instance();
         renderThread.SetHighContrast(newHighContrast);
     });
-#endif
 }
 
 RSRenderThread::~RSRenderThread()
