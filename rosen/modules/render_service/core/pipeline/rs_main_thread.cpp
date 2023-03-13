@@ -1379,11 +1379,14 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
 
 void RSMainThread::CountMem(int pid, MemoryGraphic& mem)
 {
+#ifdef RS_ENABLE_GL   
     mem = MemoryManager::CountPidMemory(pid, GetRenderEngine()->GetRenderContext()->GetGrContext());
+#endif
 }
 
 void RSMainThread::CountMem(std::vector<MemoryGraphic>& mems)
 {
+#ifdef RS_ENABLE_GL
     if (!context_) {
         RS_LOGE("RSMainThread::CountMem Context is nullptr");
         return;
@@ -1397,6 +1400,7 @@ void RSMainThread::CountMem(std::vector<MemoryGraphic>& mems)
         }
     });
     MemoryManager::CountMemory(pids, GetRenderEngine()->GetRenderContext()->GetGrContext(), mems);
+#endif
 }
 
 void RSMainThread::AddTransactionDataPidInfo(pid_t remotePid)
