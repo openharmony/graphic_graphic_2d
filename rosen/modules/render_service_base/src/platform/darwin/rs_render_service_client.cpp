@@ -31,6 +31,16 @@ void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>
 {
 }
 
+MemoryGraphic RSRenderServiceClient::GetMemoryGraphic()
+{
+    return {};
+}
+
+std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
+{
+    return {};
+}
+
 bool RSRenderServiceClient::GetUniRenderEnabled()
 {
     return {};

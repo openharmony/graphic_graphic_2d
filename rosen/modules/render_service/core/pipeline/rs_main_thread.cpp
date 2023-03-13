@@ -1360,27 +1360,43 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
 #endif
 }
 
-void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString)
+void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
+    std::string& type, int pid)
 {
 #ifdef RS_ENABLE_GL
     DfxString log;
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        log.AppendFormat("\n---------------\nNot in UniRender and no information");
+    if(pid != 0) {
+        MemoryManager::DumpPidMemory(log, pid);
     } else {
-        std::string type;
-        if (argSets.size() > 1) {
-            argSets.erase(u"dumpMem");
-            if (!argSets.empty()) {
-                type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-            }
-        }
         MemoryManager::DumpMemoryUsage(log, GetRenderEngine()->GetRenderContext()->GetGrContext(), type);
-        dumpString.append("dumpMem: " + type + "\n");
     }
+    dumpString.append("dumpMem: " + type + "\n");
     dumpString.append(log.GetString());
 #else
     dumpString.append("No GPU in this device");
 #endif
+}
+
+void RSMainThread::CountMem(int pid, MemoryGraphic& mem)
+{
+    mem = MemoryManager::CountPidMemory(pid, GetRenderEngine()->GetRenderContext()->GetGrContext());
+}
+
+void RSMainThread::CountMem(std::vector<MemoryGraphic>& mems)
+{
+    if (!context_) {
+        RS_LOGE("RSMainThread::CountMem Context is nullptr");
+        return;
+    }
+    const auto& nodeMap = context_->GetNodeMap();
+    std::vector<pid_t> pids;
+    nodeMap.TraverseSurfaceNodes([&pids] (const std::shared_ptr<RSSurfaceRenderNode>& node) {
+        auto pid = ExtractPid(node->GetId());
+        if (std::find(pids.begin(), pids.end(), pid) == pids.end()) {
+            pids.emplace_back();
+        }
+    });
+    MemoryManager::CountMemory(pids, GetRenderEngine()->GetRenderContext()->GetGrContext(), mems);
 }
 
 void RSMainThread::AddTransactionDataPidInfo(pid_t remotePid)

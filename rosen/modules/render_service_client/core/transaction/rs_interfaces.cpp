@@ -275,5 +275,16 @@ void RSInterfaces::ShowWatermark(const std::shared_ptr<Media::PixelMap> &waterma
 {
     renderServiceClient_->ShowWatermark(watermarkImg, isShow);
 }
+
+MemoryGraphic RSInterfaces::GetMemoryGraphic(int pid)
+{
+    return renderServiceClient_->GetMemoryGraphic(pid);
+}
+
+std::vector<MemoryGraphic> RSInterfaces::GetMemoryGraphics()
+{
+    return renderServiceClient_->GetMemoryGraphics();
+}
+
 } // namespace Rosen
 } // namespace OHOS

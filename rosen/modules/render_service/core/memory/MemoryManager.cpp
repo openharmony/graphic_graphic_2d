@@ -28,7 +28,7 @@
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t MEMUNIT_RATE = 1024;
-constexpr const char* MEM_RS_TYPE = "renderservice";
+constexpr const char* MEM_RS_TYPE = "rs";
 constexpr const char* MEM_CPU_TYPE = "cpu";
 constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr const char* MEM_JEMALLOC_TYPE = "jemalloc";
@@ -51,6 +51,40 @@ void MemoryManager::DumpMemoryUsage(DfxString& log, const GrContext* grContext, 
         DumpMallocStat(out);
         log.AppendFormat("%s\n... detail dump at hilog\n", out.c_str());
     }
+}
+
+void MemoryManager::DumpPidMemory(DfxString& log, int pid)
+{
+    MemoryTrack::Instance().DumpMemoryStatistics(log, pid);
+}
+
+MemoryGraphic MemoryManager::CountPidMemory(int pid, const GrContext* grContext)
+{
+    MemoryGraphic totalMemGraphic;
+
+    // Count mem of RS
+    MemoryGraphic rsMemGraphic = MemoryTrack::Instance().CountRSMemory(pid);
+    totalMemGraphic += rsMemGraphic;
+
+    // Count mem of Skia GPU
+    if (grContext) {
+        SkiaMemoryTracer gpuTracer("category", true);
+        GrGpuResourceTag tag(pid, 0, 0, 0);
+        grContext->dumpMemoryStatisticsByTag(&gpuTracer, tag);
+        float gpuMem = gpuTracer.GetGLMemorySize();
+        totalMemGraphic.IncreaseGpuMemory(gpuMem);
+    }
+
+    return totalMemGraphic;
+}
+
+void MemoryManager::CountMemory(std::vector<pid_t> pids, const GrContext* grContext, std::vector<MemoryGraphic>& mems)
+{
+    auto countMem = [&grContext, &mems] (pid_t pid) {
+       mems.emplace_back(CountPidMemory(pid, grContext));
+    };
+    // Count mem of Skia GPU
+    std::for_each(pids.begin(), pids.end(), countMem);
 }
 
 void MemoryManager::DumpRenderServiceMemory(DfxString& log)
