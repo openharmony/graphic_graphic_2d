@@ -28,11 +28,13 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaPath() noexcept;
     ~SkiaPath() override {};
+    SkiaPath(const SkiaPath& p) noexcept;
+    SkiaPath &operator=(const SkiaPath& p) noexcept;
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;
     }
-
+    PathImpl* Clone() override;
     void MoveTo(scalar x, scalar y) override;
     void LineTo(scalar x, scalar y) override;
     void ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar startAngle, scalar sweepAngle) override;
