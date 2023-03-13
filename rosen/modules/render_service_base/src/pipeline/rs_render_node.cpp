@@ -248,12 +248,16 @@ void RSRenderNode::CheckCacheType()
         cacheType_ = CacheType::SPHERIZE;
         cacheTypeChanged_ = true;
     } else if (!GetRenderProperties().IsSpherizeValid()) {
-        if (isFreeze_ && cacheType_ != CacheType::FREEZE) {
-            cacheTypeChanged_ = true;
-            cacheType_ = CacheType::FREEZE;
-        } else if (cacheType_ != CacheType::NONE) {
-            cacheTypeChanged_ = true;
-            cacheType_ = CacheType::NONE;
+        if (isFreeze_) {
+            if (cacheType_ != CacheType::FREEZE) {
+                cacheTypeChanged_ = true;
+                cacheType_ = CacheType::FREEZE;
+            }
+        } else {
+            if (cacheType_ != CacheType::NONE) {
+                cacheTypeChanged_ = true;
+                cacheType_ = CacheType::NONE;
+            }
         }
     }
 }
