@@ -212,8 +212,14 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
     const auto& property = node.GetRenderProperties();
     const auto bufferWidth = info.buffer->GetSurfaceBufferWidth();
     const auto bufferHeight = info.buffer->GetSurfaceBufferHeight();
-    const auto boundsWidth = property.GetBoundsWidth();
-    const auto boundsHeight = property.GetBoundsHeight();
+    auto boundsWidth = property.GetBoundsWidth();
+    auto boundsHeight = property.GetBoundsHeight();
+    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(node.GetConsumer()->GetTransform());
+    if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
+        transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
+        boundsWidth = property.GetBoundsHeight();
+        boundsHeight = property.GetBoundsWidth();
+    }
     if (bufferWidth != boundsWidth || bufferHeight != boundsHeight) {
         float xScale = (ROSEN_EQ(boundsWidth, 0.0f) ? 1.0f : bufferWidth / boundsWidth);
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight / boundsHeight);
@@ -292,11 +298,45 @@ void RSUniRenderComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& 
     info.srcRect = newSrcRect;
 }
 
+RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(RSSurfaceRenderNode& node) const
+{
+    RectI srcRect = node.GetSrcRect();
+    if (node.GetConsumer() == nullptr) {
+        return srcRect;
+    }
+    int left = srcRect.GetLeft();
+    int top = srcRect.GetTop();
+    int width = srcRect.GetWidth();
+    int height = srcRect.GetHeight();
+    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(node.GetConsumer()->GetTransform());
+    if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
+        if (left > 0) {
+            left = 0;
+        } else if (width != static_cast<int>(node.GetRenderProperties().GetBoundsWidth())) {
+            top = static_cast<int>(node.GetRenderProperties().GetBoundsWidth()) - width;
+        }
+        srcRect = RectI {left, top, height, width};
+    } else if (transformType == GraphicTransformType::GRAPHIC_ROTATE_180) {
+        left = left > 0 ? 0 : static_cast<int>(node.GetRenderProperties().GetBoundsWidth()) - width;
+        top = static_cast<int>(node.GetRenderProperties().GetBoundsHeight()) - height;
+        srcRect = RectI {left, top, width, height};
+    } else if (transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
+        if (left > 0) {
+            top = static_cast<int>(node.GetRenderProperties().GetBoundsWidth()) - width;
+        }
+        left = static_cast<int>(node.GetRenderProperties().GetBoundsHeight()) - height;
+        srcRect = RectI {left, top, height, width};
+    }
+    RS_LOGD("BuildComposeInfo: srcRect transformed info NodeId:%" PRIu64 ", XYWH:%u,%u,%u,%u", node.GetId(),
+                srcRect.GetLeft(), srcRect.GetTop(), srcRect.GetWidth(), srcRect.GetHeight());
+    return srcRect;
+}
+
 // private func, for RSSurfaceRenderNode.
 ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& node) const
 {
     const auto& dstRect = node.GetDstRect();
-    const auto& srcRect = node.GetSrcRect();
+    const auto srcRect = SrcRectRotateTransform(node);
     ComposeInfo info {};
     info.srcRect = GraphicIRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};
     info.dstRect = GraphicIRect {
