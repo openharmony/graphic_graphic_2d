@@ -161,6 +161,11 @@ bool RSSystemProperties::GetDumpLayersEnabled()
     return std::atoi((system::GetParameter("rosen.dumplayer.enabled", "0")).c_str()) != 0;
 }
 
+bool RSSystemProperties::GetReleaseGpuResourceEnabled()
+{
+    return std::atoi((system::GetParameter("release.gpuresource.enabled", "0")).c_str()) != 0;
+}
+
 void RSSystemProperties::SetDrawTextAsBitmap(bool flag)
 {
     isDrawTextAsBitmap_ = flag;

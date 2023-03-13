@@ -38,6 +38,7 @@
 #include "pipeline/rs_occlusion_config.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_innovation.h"
+#include "platform/common/rs_system_properties.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "property/rs_property_trace.h"
 #include "property/rs_properties_painter.h"
@@ -1306,10 +1307,15 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
     // CLEAN_CACHE_FREQ to prevent multiple cleanups in a short period of time
     if ((timestamp_ - lastCleanCacheTimestamp_) / REFRESH_PERIOD > CLEAN_CACHE_FREQ) {
 #ifdef RS_ENABLE_GL
-        RS_LOGD("RSMainThread: clear cpu cache");
+        RS_LOGD("RSMainThread: clear cpu cache pid:%d", remotePid);
         auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
         grContext->flush();
-        SkGraphics::PurgeAllCaches();
+        SkGraphics::PurgeAllCaches(); // clear cpu cache
+
+        if (RSSystemProperties::GetReleaseGpuResourceEnabled()) {
+            GrGpuResourceTag tag(remotePid, 0, 0, 0);
+            grContext->releaseByTag(tag); // clear gpu resource by pid
+        }
         grContext->flush(kSyncCpu_GrFlushFlag, 0, nullptr);
         lastCleanCacheTimestamp_ = timestamp_;
 #endif
@@ -1380,7 +1386,7 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
 
 void RSMainThread::CountMem(int pid, MemoryGraphic& mem)
 {
-#ifdef RS_ENABLE_GL   
+#ifdef RS_ENABLE_GL
     mem = MemoryManager::CountPidMemory(pid, GetRenderEngine()->GetRenderContext()->GetGrContext());
 #endif
 }

@@ -50,6 +50,10 @@ void MemoryTrack::RemoveNodeRecord(const NodeId id)
     pid_t pid = memNodeMap_[id].pid;
     size_t size = memNodeMap_[id].size;
     memNodeMap_.erase(id);
+    auto pidItr = memNodeOfPidMap_.find(pid);
+    if (pidItr == memNodeOfPidMap_.end()) {
+        return;
+    }
     MemoryNodeOfPid nodeInfoOfPid = {size, id};
     auto itr = std::find(memNodeOfPidMap_[pid].begin(), memNodeOfPidMap_[pid].end(), nodeInfoOfPid);
     if (itr != memNodeOfPidMap_[pid].end()) {

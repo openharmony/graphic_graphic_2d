@@ -26,6 +26,7 @@
 #include "include/core/SkSurface.h"
 #include "include/core/SkImageInfo.h"
 
+#include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
@@ -180,6 +181,7 @@ void RSColdStartThread::PostPlayBackTask(std::shared_ptr<DrawCmdList> drawCmdLis
         if (grContext_ == nullptr) {
             grContext_ = context_->MakeGrContext();
         }
+        RSTagTracker tagTracker(grContext_.get(), node->GetId(), RSTagTracker::TAGTYPE::TAG_COLD_START);
         SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
         skSurface_ = SkSurface::MakeRenderTarget(grContext_.get(), SkBudgeted::kYes, info);
 #else

@@ -23,6 +23,7 @@
 #include "rs_trace.h"
 
 #include "common/rs_obj_abs_geometry.h"
+#include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_cold_start_thread.h"
 #include "pipeline/rs_display_render_node.h"
@@ -71,6 +72,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
         RS_LOGE("RSSurfaceCaptureTask::Run: pixelmap == nullptr!");
         return nullptr;
     }
+#ifdef RS_ENABLE_GL
+    auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
+    GrContext* grContext = renderContext != nullptr ? renderContext->GetGrContext() : nullptr;
+    RSTagTracker tagTracker(grContext, node->GetId(), RSTagTracker::TAGTYPE::TAG_CAPTURE);
+#endif
     auto skSurface = CreateSurface(pixelmap);
     if (skSurface == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::Run: surface is nullptr!");

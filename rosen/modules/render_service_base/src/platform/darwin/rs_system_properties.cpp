@@ -88,6 +88,11 @@ bool RSSystemProperties::GetDrawTextAsBitmap()
     return {};
 }
 
+bool RSSystemProperties::GetReleaseGpuResourceEnabled()
+{
+    return {};
+}
+
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     return {};

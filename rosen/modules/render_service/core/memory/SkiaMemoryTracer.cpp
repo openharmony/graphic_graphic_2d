@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "SkiaMemoryTracer.h"
+#include "memory/SkiaMemoryTracer.h"
 
 namespace OHOS::Rosen {
 constexpr uint32_t MEMUNIT_RATE = 1024;

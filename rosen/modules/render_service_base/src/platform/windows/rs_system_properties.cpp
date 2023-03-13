@@ -64,6 +64,11 @@ bool RSSystemProperties::GetHighContrastStatus()
     return {};
 }
 
+bool RSSystemProperties::GetReleaseGpuResourceEnabled()
+{
+    return {};
+}
+
 uint32_t RSSystemProperties::GetCorrectionMode()
 {
     return {};

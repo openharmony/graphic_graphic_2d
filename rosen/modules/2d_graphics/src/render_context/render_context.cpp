@@ -22,6 +22,7 @@
 #include "rs_trace.h"
 #include "window.h"
 
+#include "memory/rs_tag_tracker.h"
 #include "utils/log.h"
 
 namespace OHOS {
@@ -336,7 +337,7 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
         default:
             break;
     }
-
+    RSTagTracker tagTracker(GetGrContext(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
     skSurface_ = SkSurface::MakeFromBackendRenderTarget(
         GetGrContext(), backendRenderTarget, kBottomLeft_GrSurfaceOrigin, colorType, skColorSpace, &surfaceProps);
     if (skSurface_ == nullptr) {
