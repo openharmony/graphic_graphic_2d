@@ -368,7 +368,7 @@ bool RSPathAnimation::InitInterpolationVector2f(const std::shared_ptr<RSProperty
         animationPath_->GetPosTan(animationPath_->GetDistance() * endFraction_,
             endVector2f->stagingValue_, endTangent_);
         auto originVector2f = std::static_pointer_cast<RSProperty<Vector2f>>(GetOriginValue());
-        if (originVector2f != nullptr) {
+        if (originVector2f != nullptr && needAddOrigin_) {
             UpdateVector2fValueAddOrigin(startVector2f->stagingValue_, endVector2f->stagingValue_,
                 originVector2f->stagingValue_);
         }
@@ -389,7 +389,7 @@ bool RSPathAnimation::InitInterpolationVector4f(const std::shared_ptr<RSProperty
         animationPath_->GetPosTan(animationPath_->GetDistance() * endFraction_,
             endVector4f->stagingValue_, endTangent_);
         auto originVector4f = std::static_pointer_cast<RSProperty<Vector4f>>(GetOriginValue());
-        if (originVector4f != nullptr) {
+        if (originVector4f != nullptr && needAddOrigin_) {
             UpdateVector4fValueAddOrigin(startVector4f->stagingValue_, endVector4f->stagingValue_,
                 originVector4f->stagingValue_);
         }
