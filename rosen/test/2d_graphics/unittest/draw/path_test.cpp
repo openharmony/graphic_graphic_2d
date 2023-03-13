@@ -757,10 +757,9 @@ HWTEST_F(PathTest, Close001, TestSize.Level1)
 
 /**
  * @tc.name: CopyConstruction001
- * @tc.desc:
+ * @tc.desc: Bounds should be same by using copy construction
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: issuelI6M9U9
  */
 HWTEST_F(PathTest, CopyConstruction001, TestSize.Level1)
 {
@@ -773,10 +772,9 @@ HWTEST_F(PathTest, CopyConstruction001, TestSize.Level1)
 
 /**
  * @tc.name: CopyConstruction002
- * @tc.desc:
+ * @tc.desc: Deep clone by the copy construction should not modify the original object
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: issuelI6M9U9
  */
 HWTEST_F(PathTest, CopyConstruction002, TestSize.Level1)
 {
@@ -790,10 +788,9 @@ HWTEST_F(PathTest, CopyConstruction002, TestSize.Level1)
 
 /**
  * @tc.name: Assignment001
- * @tc.desc:
+ * @tc.desc: Bounds should be same by using assignment method
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: issuelI6M9U9
  */
 HWTEST_F(PathTest, Assignment001, TestSize.Level1)
 {
@@ -807,10 +804,9 @@ HWTEST_F(PathTest, Assignment001, TestSize.Level1)
 
 /**
  * @tc.name: Assignment002
- * @tc.desc:
+ * @tc.desc: Deep clone by the assignment method should not modify the original object
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: issuelI6M9U9
  */
 HWTEST_F(PathTest, Assignment002, TestSize.Level1)
 {
