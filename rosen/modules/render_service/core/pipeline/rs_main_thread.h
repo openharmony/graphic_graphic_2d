@@ -40,9 +40,7 @@
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS::Rosen {
-#if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
-#endif
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -269,9 +267,7 @@ private:
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
     std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
     RSEventManager rsEventManager_;
-#if defined(ACCESSIBILITY_ENABLE)
     std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
-#endif
 
     // used for hardware enabled case
     bool doDirectComposition_ = true;
