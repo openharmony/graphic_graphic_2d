@@ -38,11 +38,13 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     PathImpl() noexcept {}
     ~PathImpl() override {}
+    PathImpl(const PathImpl& p) = delete;
+    PathImpl &operator=(const PathImpl& p) = delete;
     AdapterType GetType() const override
     {
         return AdapterType::BASE_INTERFACE;
     }
-
+    virtual PathImpl* Clone() = 0;
     virtual void MoveTo(scalar x, scalar y) = 0;
     virtual void LineTo(scalar x, scalar y) = 0;
     virtual void ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar startAngle, scalar sweepAngle) = 0;
