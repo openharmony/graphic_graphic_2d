@@ -1125,9 +1125,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 SkPath dirtyPath;
                 region.getBoundaryPath(&dirtyPath);
                 canvas_->clipPath(dirtyPath, true);
-                ClearTransparentBeforeSaveLayer();
                 // [planning] Remove this after skia is upgraded, the clipRegion is supported
                 if (!needFilter_) {
+                    ClearTransparentBeforeSaveLayer();
                     saveLayerCnt = canvas_->saveLayer(SkRect::MakeWH(screenInfo_.width, screenInfo_.height), nullptr);
                 }
             }
