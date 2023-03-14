@@ -66,6 +66,7 @@ MemoryGraphic MemoryManager::CountPidMemory(int pid, const GrContext* grContext)
     MemoryGraphic rsMemGraphic = MemoryTrack::Instance().CountRSMemory(pid);
     totalMemGraphic += rsMemGraphic;
 
+#ifdef RS_ENABLE_GL
     // Count mem of Skia GPU
     if (grContext) {
         SkiaMemoryTracer gpuTracer("category", true);
@@ -74,6 +75,7 @@ MemoryGraphic MemoryManager::CountPidMemory(int pid, const GrContext* grContext)
         float gpuMem = gpuTracer.GetGLMemorySize();
         totalMemGraphic.IncreaseGpuMemory(gpuMem);
     }
+#endif
 
     return totalMemGraphic;
 }
