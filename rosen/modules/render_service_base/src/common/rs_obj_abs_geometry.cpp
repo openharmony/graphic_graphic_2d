@@ -138,9 +138,9 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         // Z Position
         camera.translate(0, 0, z_ + trans_->translateZ_);
         // Rotate
-        camera.rotateX(trans_->rotationX_);
-        camera.rotateY(trans_->rotationY_);
-        camera.rotateZ(trans_->rotation_);
+        camera.rotateX(-trans_->rotationX_);
+        camera.rotateY(-trans_->rotationY_);
+        camera.rotateZ(-trans_->rotation_);
         camera.getMatrix(&matrix3D);
         // Scale
         if (!ROSEN_EQ(trans_->scaleX_, 1.f) || !ROSEN_EQ(trans_->scaleY_, 1.f)) {
