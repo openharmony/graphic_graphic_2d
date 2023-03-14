@@ -48,8 +48,8 @@ public:
 
     bool SupportListeningFileDescriptor() const final;
 
-    bool AddFileDescriptor(int32_t fileDescriptor, uint32_t events) final;
-    void RemoveFileDescriptor(int32_t fileDescriptor) final;
+    bool AddFileDescriptor(int32_t fd, uint32_t events) final;
+    void RemoveFileDescriptor(int32_t fd) final;
 
     void SetFileDescriptorEventCallback(const FileDescriptorEventCallback &callback) final;
 

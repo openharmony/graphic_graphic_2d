@@ -192,7 +192,8 @@ void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
 {
 }
 
-bool RSRenderServiceClient::RegisterBufferAvailableListener(NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
+bool RSRenderServiceClient::RegisterBufferAvailableListener(
+    NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
 {
     return {};
 }

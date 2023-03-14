@@ -76,7 +76,7 @@ string ExcludeTrailingPathDelimiter(const std::string& path)
     }
 
     if (!path.empty()) {
-        return path.substr(0, (int)path.size() - 1);
+        return path.substr(0, static_cast<int>(path.size()) - 1);
     }
 
     return path;
