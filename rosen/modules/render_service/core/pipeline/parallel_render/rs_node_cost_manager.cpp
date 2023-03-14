@@ -15,6 +15,7 @@
 
 #include "rs_node_cost_manager.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "platform/common/rs_system_properties.h"
 #include "rs_parallel_render_manager.h"
 #include "rs_trace.h"
 namespace OHOS::Rosen {
@@ -25,6 +26,7 @@ RSNodeCostManager::RSNodeCostManager(bool doAnimate, bool opDropped, bool isSecu
     isOpDropped_ = opDropped;
     isSecurityDisplay_ = isSecurityDisplay;
     isOcclusionEnabled_ = RSSystemProperties::GetOcclusionEnabled();
+    partialRenderType_ = RSSystemProperties::GetPartialRenderEnabled();
 }
 
 void RSNodeCostManager::AddNodeCost(int32_t cost)
