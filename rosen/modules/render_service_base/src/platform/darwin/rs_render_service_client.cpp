@@ -31,7 +31,7 @@ void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>
 {
 }
 
-MemoryGraphic RSRenderServiceClient::GetMemoryGraphic()
+MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
 {
     return {};
 }
