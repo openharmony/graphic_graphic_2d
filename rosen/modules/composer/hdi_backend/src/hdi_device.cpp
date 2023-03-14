@@ -472,7 +472,8 @@ int32_t HdiDevice::GetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, G
     return ret;
 }
 
-int32_t HdiDevice::SetLayerMetaData(uint32_t screenId, uint32_t layerId, const std::vector<GraphicHDRMetaData> &metaData)
+int32_t HdiDevice::SetLayerMetaData(uint32_t screenId, uint32_t layerId,
+                                    const std::vector<GraphicHDRMetaData> &metaData)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerMetaData);
     size_t num = metaData.size();
@@ -489,7 +490,8 @@ int32_t HdiDevice::SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, Grap
                                        const std::vector<uint8_t> &metaData)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerMetaDataSet);
-    return layerFuncs_->SetLayerMetaDataSet(screenId, layerId, static_cast<HDRMetadataKey>(key), metaData.size(), metaData.data());
+    return layerFuncs_->SetLayerMetaDataSet(screenId, layerId, static_cast<HDRMetadataKey>(key), metaData.size(),
+                                            metaData.data());
 }
 
 int32_t HdiDevice::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle)
@@ -498,7 +500,8 @@ int32_t HdiDevice::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, Gra
     return layerFuncs_->SetLayerTunnelHandle(screenId, layerId, reinterpret_cast<ExtDataHandle *>(handle));
 }
 
-int32_t HdiDevice::GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId, GraphicPresentTimestampType &type)
+int32_t HdiDevice::GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
+                                                    GraphicPresentTimestampType &type)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->GetSupportedPresentTimestamp);
     PresentTimestampType hdiType;

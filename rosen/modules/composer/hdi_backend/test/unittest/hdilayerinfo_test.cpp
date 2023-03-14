@@ -149,17 +149,17 @@ HWTEST_F(HdiLayerInfoTest, GetTransformType001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiLayerInfoTest, GetCompositionType001, Function | MediumTest| Level3)
 {
-    GraphicCompositionType type = GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT;
+    GraphicCompositionType type = GRAPHIC_COMPOSITION_CLIENT;
     HdiLayerInfoTest::hdiLayerInfo_->SetCompositionType(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), GRAPHIC_COMPOSITION_CLIENT);
 
-    type = GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE;
+    type = GRAPHIC_COMPOSITION_DEVICE;
     HdiLayerInfoTest::hdiLayerInfo_->SetCompositionType(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), GRAPHIC_COMPOSITION_DEVICE);
 
-    type = GraphicCompositionType::GRAPHIC_COMPOSITION_CURSOR;
+    type = GRAPHIC_COMPOSITION_CURSOR;
     HdiLayerInfoTest::hdiLayerInfo_->SetCompositionType(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), GraphicCompositionType::GRAPHIC_COMPOSITION_CURSOR);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), GRAPHIC_COMPOSITION_CURSOR);
 }
 
 /**
@@ -354,8 +354,8 @@ HWTEST_F(HdiLayerInfoTest, TunnelHandle002, Function | MediumTest | Level1)
     ASSERT_EQ(handle, nullptr);
 
     sptr<SurfaceTunnelHandle> tunnelHandle = new SurfaceTunnelHandle;
-
-    GraphicExtDataHandle *handleSet = static_cast<GraphicExtDataHandle *>(malloc(sizeof(GraphicExtDataHandle) + sizeof(int32_t) * 1));
+    size_t size = sizeof(GraphicExtDataHandle) + sizeof(int32_t) * 1;
+    GraphicExtDataHandle *handleSet = static_cast<GraphicExtDataHandle *>(malloc(size));
     handleSet->fd = -1;
     handleSet->reserveInts = 1;
     handleSet->reserve[0] = 0;

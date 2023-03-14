@@ -219,7 +219,7 @@ public:
         return acquireFence_;
     }
     
-    /* const */ GraphicLayerAlpha& GetAlpha()
+    GraphicLayerAlpha& GetAlpha()
     {
         return layerAlpha_;
     }

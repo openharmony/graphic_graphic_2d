@@ -229,7 +229,8 @@ GSError BufferManager::IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo>
     // mock data
     supporteds.clear();
     for (uint32_t index = 0; index < infos.size(); index++) {
-        if (infos[index].format == GRAPHIC_PIXEL_FMT_RGBA_8888 || infos[index].format == GRAPHIC_PIXEL_FMT_YCRCB_420_SP) {
+        if (infos[index].format == GRAPHIC_PIXEL_FMT_RGBA_8888 ||
+            infos[index].format == GRAPHIC_PIXEL_FMT_YCRCB_420_SP) {
             supporteds.push_back(true);
         } else {
             supporteds.push_back(false);

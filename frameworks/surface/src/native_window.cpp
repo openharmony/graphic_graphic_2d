@@ -320,7 +320,7 @@ int32_t NativeWindowSetMetaData(OHNativeWindow *window, uint32_t sequence, int32
     }
 
     std::vector<GraphicHDRMetaData> data(reinterpret_cast<const GraphicHDRMetaData *>(metaData),
-                                  reinterpret_cast<const GraphicHDRMetaData *>(metaData) + size);
+                                         reinterpret_cast<const GraphicHDRMetaData *>(metaData) + size);
     return window->surface->SetMetaData(sequence, data);
 }
 

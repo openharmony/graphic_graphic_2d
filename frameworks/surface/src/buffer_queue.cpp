@@ -959,7 +959,8 @@ GSError BufferQueue::SetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey key
     if (key < GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X ||
         key > GraphicHDRMetadataKey::GRAPHIC_MATAKEY_HDR_VIVID) {
         BLOGN_INVALID("key [%{public}d, %{public}d), now is %{public}d",
-            GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X, GraphicHDRMetadataKey::GRAPHIC_MATAKEY_HDR_VIVID, key);
+                      GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X,
+                      GraphicHDRMetadataKey::GRAPHIC_MATAKEY_HDR_VIVID, key);
         return GSERROR_INVALID_ARGUMENTS;
     }
     if (metaData.size() == 0) {

@@ -82,7 +82,7 @@ private:
     sptr<LayerBufferInfo> prevSbuffer_ = nullptr;
     LayerInfoPtr layerInfo_ = nullptr;
     LayerInfoPtr prevLayerInfo_ = nullptr;
-    GraphicPresentTimestampType supportedPresentTimestamptype_ = GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
+    GraphicPresentTimestampType supportedPresentTimestamptype_ = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
     Base::HdiDevice *device_ = nullptr;
     bool doLayerInfoCompare_ = false;
 
