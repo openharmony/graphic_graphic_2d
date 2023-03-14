@@ -742,7 +742,8 @@ HWTEST_F(ConsumerSurfaceTest, TunnelHandle002, Function | MediumTest | Level2)
  */
 HWTEST_F(ConsumerSurfaceTest, TunnelHandle003, Function | MediumTest | Level1)
 {
-    GraphicExtDataHandle *handle = static_cast<GraphicExtDataHandle *>(malloc(sizeof(GraphicExtDataHandle) + sizeof(int32_t) * 1));
+    size_t size = sizeof(GraphicExtDataHandle) + sizeof(int32_t) * 1;
+    GraphicExtDataHandle *handle = static_cast<GraphicExtDataHandle *>(malloc(size));
     handle->fd = -1;
     handle->reserveInts = 1;
     handle->reserve[0] = 0;

@@ -81,7 +81,8 @@ public:
     virtual int32_t SetLayerColorTransform(uint32_t screenId, uint32_t layerId, const float *matrix) = 0;
     virtual int32_t SetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, GraphicColorDataSpace colorSpace) = 0;
     virtual int32_t GetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, GraphicColorDataSpace &colorSpace) = 0;
-    virtual int32_t SetLayerMetaData(uint32_t screenId, uint32_t layerId, const std::vector<GraphicHDRMetaData> &metaData) = 0;
+    virtual int32_t SetLayerMetaData(uint32_t screenId, uint32_t layerId,
+                                     const std::vector<GraphicHDRMetaData> &metaData) = 0;
     virtual int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, GraphicHDRMetadataKey key,
                                         const std::vector<uint8_t> &metaData) = 0;
     virtual int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle) = 0;
@@ -155,11 +156,13 @@ public:
     int32_t SetLayerColorTransform(uint32_t screenId, uint32_t layerId, const float *matrix) override;
     int32_t SetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, GraphicColorDataSpace colorSpace) override;
     int32_t GetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, GraphicColorDataSpace &colorSpace) override;
-    int32_t SetLayerMetaData(uint32_t screenId, uint32_t layerId, const std::vector<GraphicHDRMetaData> &metaData) override;
+    int32_t SetLayerMetaData(uint32_t screenId, uint32_t layerId,
+                             const std::vector<GraphicHDRMetaData> &metaData) override;
     int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, GraphicHDRMetadataKey key,
                                 const std::vector<uint8_t> &metaData) override;
     int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle) override;
-    int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId, GraphicPresentTimestampType &type) override;
+    int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
+                                             GraphicPresentTimestampType &type) override;
     int32_t GetPresentTimestamp(uint32_t screenId, uint32_t layerId, GraphicPresentTimestamp &timestamp) override;
     /* set & get device layer info end */
 
