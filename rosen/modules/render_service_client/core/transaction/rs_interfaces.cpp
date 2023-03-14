@@ -112,6 +112,10 @@ void RSInterfaces::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 bool RSInterfaces::TakeSurfaceCaptureForUI(
     std::shared_ptr<RSNode> node, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
 {
+    if (!node) {
+        ROSEN_LOGW("RSInterfaces::TakeSurfaceCaptureForUI rsnode is nullpter return");
+        return false;
+    }
     if (!((node->GetType() == RSUINodeType::ROOT_NODE) ||
           (node->GetType() == RSUINodeType::CANVAS_NODE) ||
           (node->GetType() == RSUINodeType::SURFACE_NODE))) {
