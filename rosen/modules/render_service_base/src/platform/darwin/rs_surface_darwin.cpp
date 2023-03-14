@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace Rosen {
-RSSurfaceDarwin::RSSurfaceDarwin(UseSurfaceToRenderFunc onRender)
+RSSurfaceDarwin::RSSurfaceDarwin(OnRenderFunc onRender)
     : onRender_(onRender)
 {
 }

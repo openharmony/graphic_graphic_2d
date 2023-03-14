@@ -54,7 +54,7 @@ RSSurfaceRenderNode::~RSSurfaceRenderNode()
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
 }
 
-#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
+#ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceRenderNode::SetConsumer(const sptr<IConsumerSurface>& consumer)
 {
     consumer_ = consumer;
@@ -180,7 +180,7 @@ void RSSurfaceRenderNode::CollectSurface(
         return;
     }
 
-#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
+#ifndef ROSEN_CROSS_PLATFORM
     auto& consumer = GetConsumer();
     if (consumer != nullptr && consumer->GetTunnelHandle() != nullptr) {
         return;
@@ -193,7 +193,7 @@ void RSSurfaceRenderNode::CollectSurface(
     if (isUniRender && ShouldPaint()) {
         vec.emplace_back(shared_from_this());
     } else {
-#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
+#ifndef ROSEN_CROSS_PLATFORM
         if (GetBuffer() != nullptr && ShouldPaint()) {
             vec.emplace_back(shared_from_this());
         }
@@ -208,7 +208,7 @@ void RSSurfaceRenderNode::ClearChildrenCache(const std::shared_ptr<RSBaseRenderN
         if (surfaceNode == nullptr) {
             continue;
         }
-#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
+#ifndef ROSEN_CROSS_PLATFORM
         auto& consumer = surfaceNode->GetConsumer();
         if (consumer != nullptr) {
             consumer->GoBackground();
@@ -224,7 +224,7 @@ void RSSurfaceRenderNode::ResetParent()
     if (nodeType_ == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
         ClearChildrenCache(shared_from_this());
     } else {
-#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
+#ifndef ROSEN_CROSS_PLATFORM
         auto& consumer = GetConsumer();
         if (consumer != nullptr && !IsSelfDrawingType() && !IsAbilityComponent()) {
             consumer->GoBackground();
@@ -376,7 +376,7 @@ bool RSSurfaceRenderNode::GetSecurityLayer() const
     return isSecurityLayer_;
 }
 
-#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
+#ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceRenderNode::SetColorSpace(ColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
@@ -390,14 +390,14 @@ ColorGamut RSSurfaceRenderNode::GetColorSpace() const
 
 void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
 {
-#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
+#ifndef ROSEN_CROSS_PLATFORM
     if (consumer_ != nullptr) {
         consumer_->SetDefaultWidthAndHeight(width, height);
     }
 #endif
 }
 
-#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
+#ifndef ROSEN_CROSS_PLATFORM
 GraphicBlendType RSSurfaceRenderNode::GetBlendType()
 {
     return blendType_;

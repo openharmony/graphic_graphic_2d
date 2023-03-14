@@ -42,7 +42,6 @@
 #include "res_type.h"
 #endif
 #ifdef ROSEN_OHOS
-#include <sys/prctl.h>
 #include <unistd.h>
 #include "frame_collector.h"
 #include "render_frame_trace.h"
@@ -55,10 +54,13 @@
 
 static const std::string RT_INTERVAL_NAME = "renderthread";
 #endif
+#ifndef ROSEN_PREVIEW
+#include <sys/prctl.h>
+#endif
 
 static void SystemCallSetThreadName(const std::string& name)
 {
-#ifdef ROSEN_OHOS
+#ifndef ROSEN_PREVIEW
     if (prctl(PR_SET_NAME, name.c_str()) < 0) {
         return;
     }
@@ -122,10 +124,8 @@ RSRenderThread::~RSRenderThread()
 
     if (renderContext_ != nullptr) {
         ROSEN_LOGD("Destroy renderContext!!");
-#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
         delete renderContext_;
         renderContext_ = nullptr;
-#endif
     }
 }
 
@@ -199,14 +199,12 @@ int32_t RSRenderThread::GetTid()
 
 void RSRenderThread::CreateAndInitRenderContextIfNeed()
 {
-#ifdef ACE_ENABLE_GL
+#if defined(RS_ENABLE_GL) && !defined(ROSEN_PREVIEW)
     if (renderContext_ == nullptr) {
-#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
         renderContext_ = new RenderContext();
-#endif
         ROSEN_LOGD("Create RenderContext");
         RS_TRACE_NAME("InitializeEglContext");
-#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
+#ifdef ROSEN_OHOS
         renderContext_->InitializeEglContext(); // init egl context on RT
         if (!cacheDir_.empty()) {
             renderContext_->SetCacheDir(cacheDir_);

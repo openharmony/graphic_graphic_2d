@@ -127,16 +127,7 @@ ohos_source_set("render_service_client_src") {
     defines += [ "ENABLE_EXPORT_MACRO" ]
   }
 
-  if (rosen_cross_platform) {
-    deps += [
-      "$graphic_2d_root:libgl",
-      "$graphic_2d_root/rosen/modules/glfw_render_context:libglfw_render_context",
-    ]
-
-    if (rss_enabled) {
-      external_deps = []
-    }
-  } else {
+  if (rosen_is_ohos) {
     deps +=
         [ "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer" ]
     external_deps = [
@@ -148,6 +139,15 @@ ohos_source_set("render_service_client_src") {
     if (accessibility_enable) {
       external_deps += [ "accessibility:accessibilityconfig" ]
       defines += accessibility_defines
+    }
+  } else if (rosen_preview) {
+    deps += [
+      "$graphic_2d_root:libgl",
+      "$graphic_2d_root/rosen/modules/glfw_render_context:libglfw_render_context",
+    ]
+
+    if (rss_enabled) {
+      external_deps = []
     }
   }
 
@@ -164,17 +164,16 @@ ohos_source_set("render_service_client_src") {
 }
 
 ohos_shared_library("librender_service_client") {
-  public_deps = [
-    ":render_service_client_src",
-    "$graphic_2d_root/rosen/modules/platform:ace_skia",
-  ]
+  public_deps = [ ":render_service_client_src" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 
 group("test") {
-  testonly = true
+  if (rosen_is_ohos) {
+    testonly = true
 
-  deps = [ "test:test" ]
+    deps = [ "test:test" ]
+  }
 }

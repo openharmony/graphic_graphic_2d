@@ -53,7 +53,7 @@ bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
 {
-    return std::make_shared<RSSurfaceWindows>(config.onRender);
+    return std::make_shared<RSSurfaceWindows>(reinterpret_cast<OnRenderFunc>(config.additionalData));
 }
 
 class VSyncReceiverWindows : public VSyncReceiver {

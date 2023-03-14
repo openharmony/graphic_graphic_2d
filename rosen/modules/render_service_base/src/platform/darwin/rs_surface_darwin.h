@@ -27,9 +27,10 @@
 namespace OHOS {
 namespace Rosen {
 class RenderContext;
+using OnRenderFunc = bool (*)(const void*, const size_t, const int32_t, const int32_t);
 class RSSurfaceDarwin : public RSSurface {
 public:
-    RSSurfaceDarwin(UseSurfaceToRenderFunc onRender);
+    RSSurfaceDarwin(OnRenderFunc onRender);
     ~RSSurfaceDarwin() override = default;
 
     bool IsValid() const override;
@@ -54,7 +55,7 @@ private:
     RenderContext* renderContext_ = nullptr;
     sk_sp<GrContext> grContext_ = nullptr;
     sk_sp<SkColorSpace> skColorSpace_ = nullptr;
-    UseSurfaceToRenderFunc onRender_ = nullptr;
+    OnRenderFunc onRender_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

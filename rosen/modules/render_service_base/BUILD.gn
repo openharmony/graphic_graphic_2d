@@ -187,10 +187,10 @@ ohos_source_set("render_service_base_src") {
   ]
 
   deps = [
+    "$graphic_2d_root/utils/sandbox:sandbox_utils",
     "$rosen_root/modules/platform:eventhandler",
     "$rosen_root/modules/platform:hilog",
     "$rosen_root/modules/platform:ipc_core",
-    "//foundation/graphic/graphic_2d/utils:sandbox_utils",
   ]
 
   if (rosen_cross_platform) {

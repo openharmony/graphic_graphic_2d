@@ -58,7 +58,7 @@ std::vector<ScreenId> RSInterfaces::GetAllScreenIds()
     return renderServiceClient_->GetAllScreenIds();
 }
 
-#if !defined(__gnu_linux__) && !defined(_WIN32) && !defined(__APPLE__)
+#ifndef ROSEN_CROSS_PLATFORM
 ScreenId RSInterfaces::CreateVirtualScreen(
     const std::string &name,
     uint32_t width,

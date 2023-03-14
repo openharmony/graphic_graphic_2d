@@ -33,3 +33,5 @@ if (platform == "ohos") {
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_$platform",
   ]
 }
+
+appframework_root = "//foundation/appframework"
