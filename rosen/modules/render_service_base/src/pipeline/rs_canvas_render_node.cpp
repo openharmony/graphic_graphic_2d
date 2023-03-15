@@ -173,6 +173,13 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas)
         RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect());
     }
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
+
+    // temporary solution for drawing children
+    for (auto& child : GetSortedChildren()) {
+        if (auto canvasChild = ReinterpretCast<RSCanvasRenderNode>(child)) {
+            canvasChild->InternalDrawContent(canvas);
+        }
+    }
 }
 
 void RSCanvasRenderNode::OnApplyModifiers()
