@@ -39,7 +39,7 @@ static napi_module g_module = {
     .nm_flags = 0,
     .nm_filename = nullptr,
     .nm_register_func = Export,
-    .nm_modname = "effect_kit",
+    .nm_modname = "effectKit",
     .nm_priv = ((void*)0),
     .reserved = {0}
 };
