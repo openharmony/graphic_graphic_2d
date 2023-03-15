@@ -350,7 +350,8 @@ public:
         return RSProperty<T>::stagingValue_;
     }
 
-    void SetUpdateCallback(const std::function<void(T)>& updateCallback) {
+    void SetUpdateCallback(const std::function<void(T)>& updateCallback)
+    {
         updateUIAnimationValue_ = updateCallback;
     }
 

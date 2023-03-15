@@ -34,6 +34,9 @@ public:
 
     std::shared_ptr<RSTransaction> GetRSTransaction()
     {
+        if (!needCloseSync_) {
+            return nullptr;
+        }
         return rsTransaction_;
     }
 
