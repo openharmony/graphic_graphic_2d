@@ -204,7 +204,7 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
 #if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
         renderContext_ = new RenderContext();
 #endif
-        ROSEN_LOGD("Create RenderContext, its pointer is %p", renderContext_);
+        ROSEN_LOGD("Create RenderContext");
         RS_TRACE_NAME("InitializeEglContext");
 #if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
         renderContext_->InitializeEglContext(); // init egl context on RT
