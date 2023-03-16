@@ -546,6 +546,60 @@ std::vector<RSScreenModeInfo> RSRenderServiceConnectionProxy::GetScreenSupported
     return screenSupportedModes;
 }
 
+std::vector<MemoryGraphic> RSRenderServiceConnectionProxy::GetMemoryGraphics()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::vector<MemoryGraphic> memoryGraphics;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return memoryGraphics;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_MEMORY_GRAPHICS, data, reply, option);
+    if (err != NO_ERROR) {
+        return memoryGraphics;
+    }
+
+    uint64_t count = reply.ReadUint64();
+    memoryGraphics.resize(count);
+    for (uint64_t index = 0; index < count; index++) {
+        sptr<MemoryGraphic> item = reply.ReadParcelable<MemoryGraphic>();
+        if (item == nullptr) {
+            continue;
+        } else {
+            memoryGraphics[index] = *item;
+        }
+    }
+    return memoryGraphics;
+}
+
+MemoryGraphic RSRenderServiceConnectionProxy::GetMemoryGraphic(int pid)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    MemoryGraphic memoryGraphic;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return memoryGraphic;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteInt32(pid);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_MEMORY_GRAPHIC, data, reply, option);
+    if (err != NO_ERROR) {
+        return memoryGraphic;
+    }
+    sptr<MemoryGraphic> pMemoryGraphic(reply.ReadParcelable<MemoryGraphic>());
+    if (pMemoryGraphic == nullptr) {
+        return memoryGraphic;
+    }
+    memoryGraphic = *pMemoryGraphic;
+    return memoryGraphic;
+}
+
 RSScreenCapability RSRenderServiceConnectionProxy::GetScreenCapability(ScreenId id)
 {
     MessageParcel data;

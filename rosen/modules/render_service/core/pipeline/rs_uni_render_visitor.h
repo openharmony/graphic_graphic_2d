@@ -82,6 +82,15 @@ public:
         isHardwareForcedDisabled_ = true;
     }
 
+    void SetDrivenRenderFlag(bool hasDrivenNodeOnUniTree, bool hasDrivenNodeMarkRender)
+    {
+        if (!drivenInfo_) {
+            return;
+        }
+        drivenInfo_->hasDrivenNodeOnUniTree = hasDrivenNodeOnUniTree;
+        drivenInfo_->hasDrivenNodeMarkRender = hasDrivenNodeMarkRender;
+    }
+
     void SetHardwareEnabledNodes(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
     void AssignGlobalZOrderAndCreateLayer();
 
@@ -112,6 +121,7 @@ public:
     {
         renderFrame_ = std::move(renderFrame);
     }
+    void SetAppWindowNum(uint32_t num);
 private:
     void DrawWatermarkIfNeed();
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
@@ -208,6 +218,7 @@ private:
     bool isQuickSkipPreparationEnabled_ = false;
     bool isHardwareComposerEnabled_ = false;
     bool isOcclusionEnabled_ = false;
+    bool isSkipForAlphaZero_ = true;
     std::vector<std::string> dfxTargetSurfaceNames_;
     PartialRenderType partialRenderType_;
     DirtyRegionDebugType dirtyRegionDebugType_;
@@ -215,7 +226,6 @@ private:
     bool needFilter_ = false;
     ColorGamut newColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
     std::vector<ScreenColorGamut> colorGamutmodes_;
-    ContainerWindowConfigType containerWindowConfig_;
     pid_t currentFocusedPid_ = -1;
 
     bool needColdStartThread_ = false; // flag used for cold start app window
@@ -243,21 +253,13 @@ private:
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
 
     // driven render
-    bool isDrivenRenderEnabled_ = false;
-    std::vector<DrivenCandidateTuple> backgroundCandidates_;
-    std::vector<DrivenCandidatePair> contentCandidates_;
-    bool hasInvalidDrivenRenderScene_ = false;
-    bool findContentNodeIsOnSubTree_ = false;
-    bool isPrepareContentNodeSubTree_ = false;
-    bool isPrepareLeashWinSubTree_ = false;
-    NodeId currLeashWinNodeId_ = 0;
-    DrivenUniRenderMode currDrivenRenderMode_ = DrivenUniRenderMode::RENDER_WITH_NORMAL;
-    DrivenDirtyInfo drivenDirtyInfo_;
+    std::unique_ptr<DrivenPrepareInfo> drivenInfo_ = nullptr;
 
     bool isCalcCostEnable_ = false;
 
     bool isVkSub_ = false;
     std::unique_ptr<RSRenderFrame> renderFrame_;
+    uint32_t appWindowNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -73,7 +73,6 @@ HWTEST_F(HdiScreenSysTest, TestHdiScreen001, Function | MediumTest| Level3)
         .virtualDispCount = 1,
         .supportWriteBack = true,
         .propertyCount = 1,
-        .props = nullptr,
     };
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->GetScreenCapability(displayCapability), 0);
 

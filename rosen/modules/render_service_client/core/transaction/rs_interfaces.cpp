@@ -58,7 +58,7 @@ std::vector<ScreenId> RSInterfaces::GetAllScreenIds()
     return renderServiceClient_->GetAllScreenIds();
 }
 
-#if !defined(__gnu_linux__) && !defined(_WIN32) && !defined(__APPLE__)
+#ifndef ROSEN_CROSS_PLATFORM
 ScreenId RSInterfaces::CreateVirtualScreen(
     const std::string &name,
     uint32_t width,
@@ -112,6 +112,10 @@ void RSInterfaces::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 bool RSInterfaces::TakeSurfaceCaptureForUI(
     std::shared_ptr<RSNode> node, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
 {
+    if (!node) {
+        ROSEN_LOGW("RSInterfaces::TakeSurfaceCaptureForUI rsnode is nullpter return");
+        return false;
+    }
     if (!((node->GetType() == RSUINodeType::ROOT_NODE) ||
           (node->GetType() == RSUINodeType::CANVAS_NODE) ||
           (node->GetType() == RSUINodeType::SURFACE_NODE))) {
@@ -275,5 +279,16 @@ void RSInterfaces::ShowWatermark(const std::shared_ptr<Media::PixelMap> &waterma
 {
     renderServiceClient_->ShowWatermark(watermarkImg, isShow);
 }
+
+MemoryGraphic RSInterfaces::GetMemoryGraphic(int pid)
+{
+    return renderServiceClient_->GetMemoryGraphic(pid);
+}
+
+std::vector<MemoryGraphic> RSInterfaces::GetMemoryGraphics()
+{
+    return renderServiceClient_->GetMemoryGraphics();
+}
+
 } // namespace Rosen
 } // namespace OHOS

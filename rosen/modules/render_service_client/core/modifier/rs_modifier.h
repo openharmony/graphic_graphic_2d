@@ -53,9 +53,9 @@ protected:
 
     void AttachProperty(const std::shared_ptr<RSPropertyBase>& property);
 
-    void AttachToNode(const std::weak_ptr<RSNode>& target)
+    void AttachToNode(const std::shared_ptr<RSNode> target)
     {
-        property_->target_ = target;
+        property_->target_ = std::weak_ptr<RSNode>(target);
         OnAttachToNode(target);
     }
 

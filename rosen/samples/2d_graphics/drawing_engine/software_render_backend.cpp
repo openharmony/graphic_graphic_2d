@@ -39,7 +39,7 @@ SkCanvas* SoftwareRenderBackend::AcquireCanvas(std::unique_ptr<SurfaceFrame>& fr
     auto uniqueCanvasPtr = SkCanvas::MakeRasterDirect(info, addr, buffer->GetSize() / buffer->GetHeight());
     skCanvas_ = std::move(uniqueCanvasPtr);
 
-    LOGD("SoftwareRenderBackend::AcquireCanvas canvas is %{public}p", skCanvas_.get());
+    LOGD("SoftwareRenderBackend::AcquireCanvas canvas");
     return skCanvas_.get();
 }
 }

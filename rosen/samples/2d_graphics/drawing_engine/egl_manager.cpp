@@ -166,7 +166,7 @@ EGLSurface EGLManager::CreateSurface(EGLNativeWindowType eglNativeWindow)
         return EGL_NO_SURFACE;
     }
 
-    LOGD("CreateEGLSurface: %{public}p", surface);
+    LOGD("CreateEGLSurface");
 
     eglSurface_ = surface;
     return surface;
@@ -175,27 +175,27 @@ EGLSurface EGLManager::CreateSurface(EGLNativeWindowType eglNativeWindow)
 void EGLManager::DestroySurface()
 {
     if (!eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, eglContext_)) {
-        LOGE("Failed to make current on surface %{public}p, error=%{public}x", EGL_NO_SURFACE, eglGetError());
+        LOGE("Failed to make current on surface, error=%{public}x", eglGetError());
     }
 
     if (!eglDestroySurface(eglDisplay_, eglSurface_)) {
-        LOGE("Failed to destroy surface %{public}p, error=%{public}x", (void*)eglSurface_, eglGetError());
+        LOGE("Failed to destroy surface, error=%{public}x", eglGetError());
     }
 }
 
 void EGLManager::MakeCurrent()
 {
     if (!eglMakeCurrent(eglDisplay_, eglSurface_, eglSurface_, eglContext_)) {
-        LOGE("Failed to make current on surface %{public}p, error=%{public}x", eglSurface_, eglGetError());
+        LOGE("Failed to make current on surface, error=%{public}x", eglGetError());
     }
 }
 
 void EGLManager::SwapBuffers()
 {
     if (!eglSwapBuffers(eglDisplay_, eglSurface_)) {
-        LOGE("Failed to SwapBuffers on surface %{public}p, error=%{public}x", eglSurface_, eglGetError());
+        LOGE("Failed to SwapBuffers on surface, error=%{public}x", eglGetError());
     } else {
-        LOGD("SwapBuffers successfully, surface is %{public}p", eglSurface_);
+        LOGD("SwapBuffers successfully");
     }
 }
 

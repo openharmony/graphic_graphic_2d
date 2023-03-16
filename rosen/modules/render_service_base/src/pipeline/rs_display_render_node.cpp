@@ -118,7 +118,7 @@ void RSDisplayRenderNode::SetIsMirrorDisplay(bool isMirror)
         IsMirrorDisplay() ? "true" : "false");
 }
 
-#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
+#ifndef ROSEN_CROSS_PLATFORM
 bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
 {
     if (consumer_ != nullptr && surface_ != nullptr) {

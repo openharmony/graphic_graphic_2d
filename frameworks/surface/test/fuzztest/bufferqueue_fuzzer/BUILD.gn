@@ -36,6 +36,7 @@ ohos_fuzztest("BufferQueueFuzzTest") {
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
   ]
+  external_deps = [ "ipc:ipc_single" ]
 }
 
 ###############################################################################

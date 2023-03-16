@@ -63,6 +63,11 @@ void SurfaceIPCTest::OnBufferAvailable()
 {
 }
 
+static inline GSError OnBufferRelease(sptr<SurfaceBuffer> &buffer)
+{
+    return GSERROR_OK;
+}
+
 OHOS::GSError SurfaceIPCTest::SetData(sptr<SurfaceBuffer> &buffer, sptr<Surface> &pSurface)
 {
     buffer->GetExtraData()->ExtraSet("123", 0x123);
@@ -125,7 +130,7 @@ pid_t SurfaceIPCTest::ChildProcessMain()
 
     auto producer = iface_cast<IBufferProducer>(robj);
     auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-
+    pSurface->RegisterReleaseListener(OnBufferRelease);
     sptr<SurfaceBuffer> buffer = nullptr;
     int releaseFence = -1;
     auto sRet = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);

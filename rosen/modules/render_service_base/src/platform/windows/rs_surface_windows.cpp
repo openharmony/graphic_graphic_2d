@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace Rosen {
-RSSurfaceWindows::RSSurfaceWindows(UseSurfaceToRenderFunc onRender)
+RSSurfaceWindows::RSSurfaceWindows(OnRenderFunc onRender)
     : onRender_(onRender)
 {
 }

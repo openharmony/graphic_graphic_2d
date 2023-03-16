@@ -115,13 +115,17 @@ int32_t HdiDeviceImpl::GetScreenCapability(uint32_t screenId, GraphicDisplayCapa
         info.virtualDispCount = hdiInfo.virtualDispCount;
         info.supportWriteBack = hdiInfo.supportWriteBack;
         info.propertyCount = hdiInfo.propertyCount;
-        info.props = (GraphicPropertyObject*)malloc(info.propertyCount * sizeof(GraphicPropertyObject));
-        for (uint32_t i = 0; i < info.propertyCount; i++) {
-            if (strcpy_s(info.props[i].name, PROPERTY_NAME_LEN, hdiInfo.props[i].name)) {
+        info.props.clear();
+        info.props.reserve(hdiInfo.propertyCount);
+        for (uint32_t i = 0; i < hdiInfo.propertyCount; i++) {
+            GraphicPropertyObject graphicProperty = {
+                .propId = hdiInfo.props[i].propId,
+                .value = hdiInfo.props[i].value,
+            };
+            if (strcpy_s(graphicProperty.name, PROPERTY_NAME_LEN, hdiInfo.props[i].name)) {
                 HLOGD("strcpy_s display capability props name failed.");
             }
-            info.props[i].propId = hdiInfo.props[i].propId;
-            info.props[i].value = hdiInfo.props[i].value;
+            info.props.push_back(graphicProperty);
         }
     }
     return ret;
@@ -346,13 +350,11 @@ int32_t HdiDeviceImpl::GetHDRCapabilityInfos(uint32_t screenId, GraphicHDRCapabi
         return ret;
     }
     uint32_t formatCount = hdiInfo.formatCount;
-    size_t formatsSize = formatCount * sizeof(GRAPHIC_NOT_SUPPORT_HDR);
-    info.formats = (GraphicHDRFormat*)std::malloc(formatsSize);
-    if (memset_s(info.formats, formatsSize, 0, formatsSize)) {
-        HLOGD("memset_s failed when get HDRCapability format infos.");
-    }
+    info.formats.clear();
+    info.formats.reserve(formatCount);
     for (uint32_t i = 0; i < formatCount; i++) {
-        info.formats[i] = static_cast<GraphicHDRFormat>(hdiInfo.formats[i]);
+        GraphicHDRFormat format = static_cast<GraphicHDRFormat>(hdiInfo.formats[i]);
+        info.formats.push_back(format);
     }
     info.maxLum = hdiInfo.maxLum;
     info.maxAverageLum = hdiInfo.maxAverageLum;

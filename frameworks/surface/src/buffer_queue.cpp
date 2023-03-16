@@ -551,6 +551,19 @@ GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBuffer> &buffer, const sptr<SyncF
         }
     }
 
+    sptr<IProducerListener> listener;
+    {
+        std::lock_guard<std::mutex> lockGuard(producerListenerMutex_);
+        listener = producerListener_;
+    }
+
+    if (listener != nullptr) {
+        ScopedBytrace func("onBufferReleasedForProducer");
+        if (listener->OnBufferReleased() != GSERROR_OK) {
+            BLOGN_FAILURE_ID(sequence, "OnBufferReleased failed, Queue id: %{public}" PRIu64 "", uniqueId_);
+        }
+    }
+
     return GSERROR_OK;
 }
 
@@ -789,6 +802,13 @@ GSError BufferQueue::UnregisterConsumerListener()
 GSError BufferQueue::RegisterReleaseListener(OnReleaseFunc func)
 {
     onBufferRelease = func;
+    return GSERROR_OK;
+}
+
+GSError BufferQueue::RegisterProducerReleaseListener(sptr<IProducerListener> listener)
+{
+    std::lock_guard<std::mutex> lockGuard(producerListenerMutex_);
+    producerListener_ = listener;
     return GSERROR_OK;
 }
 

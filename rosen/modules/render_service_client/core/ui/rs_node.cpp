@@ -968,7 +968,8 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier>& modifier)
     if (motionPathOption_ != nullptr && IsPathAnimatableModifier(modifier->GetModifierType())) {
         modifier->SetMotionPathOption(motionPathOption_);
     }
-    modifier->AttachToNode(std::static_pointer_cast<RSNode>(shared_from_this()));
+    auto rsnode = std::static_pointer_cast<RSNode>(shared_from_this());
+    modifier->AttachToNode(rsnode);
     modifiers_.emplace(modifier->GetPropertyId(), modifier);
     if (modifier->GetModifierType() == RSModifierType::NODE_MODIFIER) {
         return;

@@ -63,7 +63,7 @@ public:
     GSError CleanCache() override;
     GSError GoBackground() override;
 
-    GSError RegisterReleaseListener(OnReleaseFunc func) override;
+    GSError RegisterReleaseListener(sptr<IProducerListener> listener) override;
 
     GSError SetTransform(GraphicTransformType transform) override;
 

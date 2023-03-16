@@ -57,7 +57,7 @@ private:
     std::mutex mtx_;
 };
 
-#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
+#ifdef __OHOS__
 class VSyncReceiver : public RefBase {
 public:
     // check
@@ -88,7 +88,6 @@ private:
 #else
 class VSyncReceiver {
 public:
-    // check
     using FrameCallback = VSyncCallBackListener::FrameCallback;
 
     VSyncReceiver() = default;

@@ -29,6 +29,8 @@ public:
 
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
 
+    MemoryGraphic GetMemoryGraphic(int pid) override;
+    std::vector<MemoryGraphic> GetMemoryGraphics() override;
     bool GetUniRenderEnabled() override;
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config) override;

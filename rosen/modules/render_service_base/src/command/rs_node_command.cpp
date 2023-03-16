@@ -50,6 +50,12 @@ void RSNodeCommandHelper::MarkDrivenRender(RSContext& context, NodeId nodeId, bo
     auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
     if (node) {
         node->SetIsMarkDriven(flag);
+        auto& nodeMap = context.GetMutableNodeMap();
+        if (flag) {
+            nodeMap.AddDrivenRenderNode(node);
+        } else {
+            nodeMap.RemoveDrivenRenderNode(nodeId);
+        }
     }
 }
 

@@ -55,7 +55,7 @@ public:
 
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
     GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
-    GSError RegisterReleaseListener(OnReleaseFunc func) override;
+    GSError RegisterReleaseListener(sptr<IProducerListener> listener) override;
 
     GSError IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos, std::vector<bool> &supporteds) override;
 

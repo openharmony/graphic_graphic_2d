@@ -754,6 +754,70 @@ HWTEST_F(PathTest, Close001, TestSize.Level1)
     ASSERT_TRUE(path != nullptr);
     path->Close();
 }
+
+/**
+ * @tc.name: CopyConstruction001
+ * @tc.desc: Bounds should be same by using copy construction
+ * @tc.type: FUNC
+ * @tc.require: issuelI6M9U9
+ */
+HWTEST_F(PathTest, CopyConstruction001, TestSize.Level1)
+{
+    Path path1;
+    path1.MoveTo(1.0f, 2.0f);
+    path1.LineTo(3.0f, 4.0f);
+    Path path2 = path1;
+    ASSERT_TRUE(path1.GetBounds() == path2.GetBounds());
+}
+
+/**
+ * @tc.name: CopyConstruction002
+ * @tc.desc: Deep clone by the copy construction should not modify the original object
+ * @tc.type: FUNC
+ * @tc.require: issuelI6M9U9
+ */
+HWTEST_F(PathTest, CopyConstruction002, TestSize.Level1)
+{
+    Path path1;
+    path1.MoveTo(1.0f, 2.0f);
+    path1.LineTo(3.0f, 4.0f);
+    Path path2 = path1;
+    path2.LineTo(10.0f, 10.0f);
+    ASSERT_TRUE(path1.GetBounds() != path2.GetBounds());
+}
+
+/**
+ * @tc.name: Assignment001
+ * @tc.desc: Bounds should be same by using assignment method
+ * @tc.type: FUNC
+ * @tc.require: issuelI6M9U9
+ */
+HWTEST_F(PathTest, Assignment001, TestSize.Level1)
+{
+    Path path1;
+    path1.MoveTo(1.0f, 2.0f);
+    path1.LineTo(3.0f, 4.0f);
+    Path path2;
+    path2 = path1;
+    ASSERT_TRUE(path1.GetBounds() == path2.GetBounds());
+}
+
+/**
+ * @tc.name: Assignment002
+ * @tc.desc: Deep clone by the assignment method should not modify the original object
+ * @tc.type: FUNC
+ * @tc.require: issuelI6M9U9
+ */
+HWTEST_F(PathTest, Assignment002, TestSize.Level1)
+{
+    Path path1;
+    path1.MoveTo(1.0f, 2.0f);
+    path1.LineTo(3.0f, 4.0f);
+    Path path2;
+    path2 = path1;
+    path2.LineTo(10.0f, 10.0f);
+    ASSERT_TRUE(path1.GetBounds() != path2.GetBounds());
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

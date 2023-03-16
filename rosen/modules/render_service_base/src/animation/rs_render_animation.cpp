@@ -256,7 +256,7 @@ bool RSRenderAnimation::Animate(int64_t time)
     auto [fraction, isInStartDelay, isFinished] = animationFraction_.GetAnimationFraction(time);
     if (isInStartDelay) {
         ProcessFillModeOnStart(fraction);
-        ROSEN_LOGI("RSRenderAnimation::Animate, isInStartDelay is true");
+        ROSEN_LOGD("RSRenderAnimation::Animate, isInStartDelay is true");
         return false;
     }
 

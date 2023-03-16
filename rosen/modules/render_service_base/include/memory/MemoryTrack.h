@@ -16,9 +16,12 @@
 #define MEMORY_TRACK
 
 #include <mutex>
+#include <vector>
 
 #include "common/rs_common_def.h"
 #include "memory/DfxString.h"
+#include "memory/MemoryGraphic.h"
+
 namespace OHOS {
 namespace Rosen {
 constexpr int BYTE_CONVERT = 1024;
@@ -29,9 +32,21 @@ enum MEMORY_TYPE {
 };
 
 struct MemoryInfo {
-    size_t size;
-    int pid;
+    size_t size = 0;
+    int pid = 0;
     MEMORY_TYPE type;
+};
+
+class MemoryNodeOfPid {
+public:
+    MemoryNodeOfPid() = default;
+    ~MemoryNodeOfPid() = default;
+    MemoryNodeOfPid(size_t size, NodeId id);
+    size_t GetMemSize();
+    bool operator==(const MemoryNodeOfPid& other);
+private:
+    size_t nodeSize_ = 0;
+    NodeId nodeId_ = 0;
 };
 
 class RSB_EXPORT MemoryTrack {
@@ -40,9 +55,12 @@ public:
     void AddNodeRecord(const NodeId id, const MemoryInfo& info);
     void RemoveNodeRecord(const NodeId id);
     void DumpMemoryStatistics(DfxString& log);
-
+    void DumpMemoryStatistics(DfxString& log, const pid_t pid);
     void AddPictureRecord(const void* addr, MemoryInfo info);
     void RemovePictureRecord(const void* addr);
+
+    // count memory for hidumper
+    MemoryGraphic CountRSMemory(const pid_t pid);
 private:
     MemoryTrack() = default;
     ~MemoryTrack() = default;
@@ -56,6 +74,9 @@ private:
     std::mutex mutex_;
     std::unordered_map<NodeId, MemoryInfo> memNodeMap_;
     std::unordered_map<const void*, MemoryInfo> memPicRecord_;
+
+    // Data to statistic information of Pid
+    std::unordered_map<pid_t, std::vector<MemoryNodeOfPid>> memNodeOfPidMap_;
 };
 } // namespace OHOS  
 } // namespace Rosen

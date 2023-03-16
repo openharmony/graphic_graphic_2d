@@ -55,15 +55,15 @@ typedef enum {
  * @brief Defines the capability of the output.
  */
 typedef struct {
-    char name[PROPERTY_NAME_LEN];       /**< Name of the display device */
-    GraphicInterfaceType type;          /**< Interface type of panel */
-    uint32_t phyWidth;                  /**< Physical width */
-    uint32_t phyHeight;                 /**< Physical height */
-    uint32_t supportLayers;             /**< Number of supported layers */
-    uint32_t virtualDispCount;          /**< Count of virtual displays supported */
-    bool supportWriteBack;              /**< Whether writeback is supported */
-    uint32_t propertyCount;             /**< Count of properties */
-    GraphicPropertyObject* props;       /**< Array of property objects */
+    char name[PROPERTY_NAME_LEN];              /**< Name of the display device */
+    GraphicInterfaceType type;                 /**< Interface type of panel */
+    uint32_t phyWidth;                         /**< Physical width */
+    uint32_t phyHeight;                        /**< Physical height */
+    uint32_t supportLayers;                    /**< Number of supported layers */
+    uint32_t virtualDispCount;                 /**< Count of virtual displays supported */
+    bool supportWriteBack;                     /**< Whether writeback is supported */
+    uint32_t propertyCount;                    /**< Count of properties */
+    std::vector<GraphicPropertyObject> props;  /**< Vector of property objects */
 } GraphicDisplayCapability;
 
 /*
@@ -112,7 +112,7 @@ typedef enum {
  */
 typedef struct {
     uint32_t formatCount;
-    GraphicHDRFormat* formats;
+    std::vector<GraphicHDRFormat> formats;
     float maxLum;
     float maxAverageLum;
     float minLum;

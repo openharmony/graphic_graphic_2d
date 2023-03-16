@@ -351,8 +351,9 @@ HWTEST_F(BufferClientProducerRemoteTest, AttachDetach001, Function | MediumTest 
 HWTEST_F(BufferClientProducerRemoteTest, RegisterReleaseListener001, Function | MediumTest | Level2)
 {
     OnReleaseFunc onBufferRelease = nullptr;
-    GSError ret = bp->RegisterReleaseListener(onBufferRelease);
-    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
+    sptr<IProducerListener> listener = new BufferReleaseProducerListener(onBufferRelease);
+    GSError ret = bp->RegisterReleaseListener(listener);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
 /*

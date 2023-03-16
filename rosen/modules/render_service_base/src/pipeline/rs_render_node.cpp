@@ -26,6 +26,8 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
 
+#include "platform/common/rs_system_properties.h"
+
 namespace OHOS {
 namespace Rosen {
 RSRenderNode::RSRenderNode(NodeId id, std::weak_ptr<RSContext> context) : RSBaseRenderNode(id, context) {}
@@ -84,7 +86,7 @@ bool RSRenderNode::Update(
     RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty, bool needClip, RectI clipRect)
 {
     // no need to update invisible nodes
-    if (!ShouldPaint() && !isLastVisible_) {
+    if (!ShouldPaint() && !isLastVisible_ && RSSystemProperties::GetSkipForAlphaZeroEnabled()) {
         return false;
     }
     // [planning] surfaceNode use frame instead
@@ -198,12 +200,12 @@ void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSBaseRenderNode> pa
 {
     auto renderParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
     if (renderParent) {
-        // [planning] could set each child's outofparent rect and flag
         // accumulate current node's all children region(including itself)
-        RectI accumulatedRect = GetChildrenRect().JoinRect(renderProperties_.GetDirtyRect());
+        // apply oldDirty_ as node's real region(including overlay and shadow)
+        RectI accumulatedRect = GetChildrenRect().JoinRect(oldDirty_);
         renderParent->UpdateChildrenRect(accumulatedRect);
         // check each child is inside of parent
-        if (!accumulatedRect.IsInsideOf(renderParent->GetRenderProperties().GetDirtyRect())) {
+        if (!accumulatedRect.IsInsideOf(renderParent->GetOldDirty())) {
             renderParent->UpdateChildrenOutOfRectFlag(true);
         }
     }
@@ -221,20 +223,9 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     renderNodeSaveCount_ = canvas.SaveCanvasAndAlpha();
     auto boundsGeo = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
-
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
-    bool isDrivenVisitMode = IsMarkDriven() && IsDrivenVisitMode();
-    if (!isDrivenVisitMode) {
-        if (boundsGeo && !boundsGeo->IsEmpty()) {
-            canvas.concat(boundsGeo->GetMatrix());
-        }
-    }
-#else
     if (boundsGeo && !boundsGeo->IsEmpty()) {
         canvas.concat(boundsGeo->GetMatrix());
     }
-#endif
-
     auto alpha = renderProperties_.GetAlpha();
     if (alpha < 1.f) {
         if ((GetChildrenCount() == 0) || !GetRenderProperties().GetAlphaOffscreen()) {
@@ -255,17 +246,15 @@ void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 
 void RSRenderNode::CheckCacheType()
 {
-    if (GetRenderProperties().IsSpherizeValid() && cacheType_ != CacheType::SPHERIZE) {
-        cacheType_ = CacheType::SPHERIZE;
+    auto newCacheType = CacheType::NONE;
+    if (GetRenderProperties().IsSpherizeValid()) {
+        newCacheType = CacheType::SPHERIZE;
+    } else if (isFreeze_) {
+        newCacheType = CacheType::FREEZE;
+    }
+    if (cacheType_ != newCacheType) {
+        cacheType_ = newCacheType;
         cacheTypeChanged_ = true;
-    } else if (!GetRenderProperties().IsSpherizeValid()) {
-        if (isFreeze_ && cacheType_ != CacheType::FREEZE) {
-            cacheTypeChanged_ = true;
-            cacheType_ = CacheType::FREEZE;
-        } else if (cacheType_ != CacheType::NONE) {
-            cacheTypeChanged_ = true;
-            cacheType_ = CacheType::NONE;
-        }
     }
 }
 
@@ -332,6 +321,7 @@ void RSRenderNode::ApplyModifiers()
             modifier->Apply(context);
         }
     }
+    OnApplyModifiers();
 
     UpdateOverlayBounds();
 }

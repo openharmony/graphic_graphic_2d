@@ -87,12 +87,6 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 #endif
 }
 
-ContainerWindowConfigType RSSystemProperties::GetContainerWindowConfig()
-{
-    return static_cast<ContainerWindowConfigType>(
-        std::atoi((system::GetParameter("rosen.uni.containerwindowconfig", "2")).c_str()));
-}
-
 bool RSSystemProperties::GetOcclusionEnabled()
 {
     return std::atoi((system::GetParameter("rosen.occlusion.enabled", "1")).c_str()) != 0;
@@ -190,7 +184,12 @@ ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
 
 bool RSSystemProperties::GetColdStartThreadEnabled()
 {
-    return std::atoi((system::GetParameter("rosen.coldstartthread.enabled", "1")).c_str()) != 0;
+    return std::atoi((system::GetParameter("rosen.coldstartthread.enabled", "0")).c_str()) != 0;
+}
+
+bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
+{
+    return std::atoi((system::GetParameter("persist.skipForAlphaZero.enabled", "1")).c_str()) != 0;
 }
 
 float RSSystemProperties::GetAnimationScale()

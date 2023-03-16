@@ -25,6 +25,7 @@
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
+#include "memory/MemoryGraphic.h"
 #include "screen_manager/rs_screen_capability.h"
 #include "screen_manager/rs_screen_data.h"
 #include "screen_manager/rs_screen_hdr_capability.h"
@@ -85,6 +86,8 @@ public:
         UNREGISTER_OCCLUSION_CHANGE_CALLBACK,
         SET_APP_WINDOW_NUM,
         SHOW_WATERMARK,
+        GET_MEMORY_GRAPHIC,
+        GET_MEMORY_GRAPHICS,
     };
 
     virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
@@ -140,6 +143,10 @@ public:
     virtual ScreenPowerStatus GetScreenPowerStatus(ScreenId id) = 0;
 
     virtual RSScreenData GetScreenData(ScreenId id) = 0;
+
+    virtual MemoryGraphic GetMemoryGraphic(int pid) = 0;
+
+    virtual std::vector<MemoryGraphic> GetMemoryGraphics() = 0;
 
     virtual int32_t GetScreenBacklight(ScreenId id) = 0;
 

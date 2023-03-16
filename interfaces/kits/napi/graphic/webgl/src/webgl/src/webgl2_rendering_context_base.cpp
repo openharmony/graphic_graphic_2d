@@ -4128,7 +4128,7 @@ napi_value WebGL2RenderingContextBase::InvalidateSubFramebuffer(napi_env env, na
             return nullptr;
         }
         LOGI("WebGL2 WebGL2RenderingContextBase::invalidateSubFramebuffer numAttachments = %{public}u", numAttachments);
-        uint64_t attachments1[numAttachments];
+        int64_t attachments1[numAttachments];
         uint32_t i;
         for (i = 0; i < numAttachments; i++) {
             napi_value element;

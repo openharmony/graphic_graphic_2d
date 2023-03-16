@@ -143,7 +143,7 @@ private:
 
             for (int i = lowerIndex_; i <= upperIndex_; i++) {
                 uint32_t color = colors[i];
-                count += hist[color];
+                count += static_cast<int>(hist[color]);
 
                 uint32_t r = QuantizedRed(color);
                 uint32_t g = QuantizedGreen(color);
@@ -217,7 +217,7 @@ private:
 
             int midPoint = pixelNums_ / 2;
             for (int i = lowerIndex_, count = 0; i <= upperIndex_; i++) {
-                count += hist[colors[i]];
+                count += static_cast<int>(hist[colors[i]]);
                 if (count >= midPoint) {
                     return std::min(upperIndex_ - 1, i);
                 }
@@ -262,7 +262,7 @@ private:
             uint32_t redSum = 0;
             uint32_t greenSum = 0;
             uint32_t blueSum = 0;
-            int totalPixelNum = 0;
+            uint32_t totalPixelNum = 0;
             for (int i = lowerIndex_; i <=upperIndex_ ; i++) {
                 uint32_t color = colors[i];
                 uint32_t colorPixelNum = hist[color];

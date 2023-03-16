@@ -21,6 +21,7 @@
 #include "buffer_extra_data_impl.h"
 #include "buffer_log.h"
 #include "buffer_manager.h"
+#include "buffer_producer_listener.h"
 #include "buffer_utils.h"
 #include "sync_fence.h"
 
@@ -244,7 +245,10 @@ int32_t BufferQueueProducer::GoBackgroundRemote(MessageParcel &arguments, Messag
 int32_t BufferQueueProducer::RegisterReleaseListenerRemote(MessageParcel &arguments,
     MessageParcel &reply, MessageOption &option)
 {
-    BLOGNE("BufferQueueProducer::RegisterReleaseListenerRemote not support remote");
+    sptr<IRemoteObject> listenerObject = arguments.ReadRemoteObject();
+    sptr<IProducerListener> listener = iface_cast<IProducerListener>(listenerObject);
+    GSError sret = RegisterReleaseListener(listener);
+    reply.WriteInt32(sret);
     return 0;
 }
 
@@ -477,12 +481,12 @@ GSError BufferQueueProducer::GoBackground()
     return bufferQueue_->SetProducerCacheCleanFlagLocked(true);
 }
 
-GSError BufferQueueProducer::RegisterReleaseListener(OnReleaseFunc func)
+GSError BufferQueueProducer::RegisterReleaseListener(sptr<IProducerListener> listener)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
-    return bufferQueue_->RegisterReleaseListener(func);
+    return bufferQueue_->RegisterProducerReleaseListener(listener);
 }
 
 GSError BufferQueueProducer::SetTransform(GraphicTransformType transform)

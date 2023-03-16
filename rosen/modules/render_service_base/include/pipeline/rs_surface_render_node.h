@@ -188,6 +188,8 @@ public:
 
     void SetContextBounds(const Vector4f bounds);
 
+    void OnApplyModifiers() override;
+
     void SetTotalMatrix(const SkMatrix& totalMatrix)
     {
         totalMatrix_ = totalMatrix;
@@ -497,11 +499,6 @@ public:
         return ExtractPid(GetNodeId()) == focusedWindowPid;
     }
 
-    void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect,
-        ContainerWindowConfigType containerWindowConfigType, bool isFocusWindow = true);
-    Occlusion::Region ResetOpaqueRegion(
-        const RectI& absRect, const ContainerWindowConfigType containerWindowConfigType, const bool isFocusWindow);
-
     void ResetSurfaceOpaqueRegion(
         const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow);
     Occlusion::Region ResetOpaqueRegion(
@@ -548,6 +545,9 @@ public:
     {
         return nodeCost_;
     }
+
+    std::string DirtyRegionDump() const;
+
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
     bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;

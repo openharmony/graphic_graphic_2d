@@ -319,6 +319,37 @@ void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
     consumer->Dump(dumpString);
 }
 
+static bool IsNumber(const std::string& type)
+{
+    int number = std::count_if(type.begin(), type.end(), [](unsigned char c) {
+        return std::isdigit(c);
+    });
+    return number == type.length();
+}
+
+void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
+{
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        dumpString.append("\n---------------\nNot in UniRender and no information");
+    } else {
+        std::string type;
+        if (argSets.size() > 1) {
+            argSets.erase(u"dumpMem");
+            if (!argSets.empty()) {
+                type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+            }
+        }
+        int pid = 0;
+        if (!type.empty() && IsNumber(type)) {
+            pid = std::stoi(type);
+        }
+        mainThread_->ScheduleTask([this, &argSets, &dumpString, &type, &pid]() {
+            return mainThread_->DumpMem(argSets, dumpString, type, pid);
+        }).wait();
+        return;
+    }
+}
+
 void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
 {
     std::u16string arg1(u"screen");
@@ -377,9 +408,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
         }).wait();
     }
     if (argSets.count(arg11)) {
-        mainThread_->ScheduleTask([this, &argSets, &dumpString]() {
-            return mainThread_->DumpMem(argSets, dumpString);
-        }).wait();
+        DumpMem(argSets, dumpString);
     }
     if (auto iter = argSets.find(arg12) != argSets.end()) {
         iter = argSets.erase(arg12);

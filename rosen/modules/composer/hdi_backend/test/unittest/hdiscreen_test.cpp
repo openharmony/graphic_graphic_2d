@@ -134,7 +134,6 @@ HWTEST_F(HdiScreenTest, GetScreenCapability001, Function | MediumTest| Level3)
         .virtualDispCount = 1,
         .supportWriteBack = true,
         .propertyCount = 1,
-        .props = nullptr,
     };
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenCapability(displayCapability), 0);
 }
@@ -354,7 +353,6 @@ HWTEST_F(HdiScreenTest, GetHDRCapabilityInfos001, Function | MediumTest | Level2
 {
     GraphicHDRCapability capaility = {
         .formatCount = 0,
-        .formats = nullptr,
         .maxLum = 0,
         .maxAverageLum = 0,
         .minLum = 0,

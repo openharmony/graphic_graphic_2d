@@ -46,6 +46,11 @@ public:
     static inline sptr<IConsumerSurface> csurf = nullptr;
     static inline sptr<IBufferProducer> producer = nullptr;
     static inline sptr<Surface> pSurface = nullptr;
+
+    static inline GSError OnBufferRelease(sptr<SurfaceBuffer> &buffer)
+    {
+        return GSERROR_OK;
+    }
 };
 
 void ProducerSurfaceTest::SetUpTestCase()
@@ -55,6 +60,7 @@ void ProducerSurfaceTest::SetUpTestCase()
     csurf->RegisterConsumerListener(listener);
     producer = csurf->GetProducer();
     pSurface = Surface::CreateSurfaceAsProducer(producer);
+    pSurface->RegisterReleaseListener(OnBufferRelease);
 }
 
 void ProducerSurfaceTest::TearDownTestCase()

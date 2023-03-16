@@ -21,6 +21,7 @@
 #include <vector>
 #include <mutex>
 
+#include <buffer_producer_listener.h>
 #include <ibuffer_consumer_listener.h>
 #include <ibuffer_producer.h>
 #include "surface_type.h"
@@ -93,6 +94,7 @@ public:
     GSError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener);
     GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener);
     GSError RegisterReleaseListener(OnReleaseFunc func);
+    GSError RegisterProducerReleaseListener(sptr<IProducerListener> listener);
     GSError RegisterDeleteBufferListener(OnDeleteBufferFunc func, bool isForUniRedraw = false);
     GSError UnregisterConsumerListener();
 
@@ -167,9 +169,11 @@ private:
     IBufferConsumerListenerClazz *listenerClazz_ = nullptr;
     std::mutex mutex_;
     std::mutex listenerMutex_;
+    std::mutex producerListenerMutex_;
     const uint64_t uniqueId_;
     sptr<BufferManager> bufferManager_ = nullptr;
     OnReleaseFunc onBufferRelease = nullptr;
+    sptr<IProducerListener> producerListener_ = nullptr;
     OnDeleteBufferFunc onBufferDeleteForRSMainThread_;
     OnDeleteBufferFunc onBufferDeleteForRSHardwareThread_;
     bool isShared_ = false;

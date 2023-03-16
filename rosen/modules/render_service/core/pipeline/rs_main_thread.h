@@ -33,6 +33,7 @@
 #include "common/rs_thread_looper.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "memory/MemoryGraphic.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/drawing/rs_vsync_client.h"
@@ -40,7 +41,9 @@
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS::Rosen {
+#if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
+#endif
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -142,7 +145,9 @@ public:
     void SetDirtyFlag();
     void ForceRefreshForUni();
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
-    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result);
+    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, int pid = 0);
+    void CountMem(int pid, MemoryGraphic& mem);
+    void CountMem(std::vector<MemoryGraphic>& mems);
     void SetAppWindowNum(uint32_t num);
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
     sk_sp<SkImage> GetWatermarkImg();
@@ -164,6 +169,7 @@ private:
     void Animate(uint64_t timestamp);
     void ConsumeAndUpdateAllNodes();
     void CollectInfoForHardwareComposer();
+    void CollectInfoForDrivenRender();
     void ReleaseAllNodesBuffer();
     void Render();
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
@@ -266,7 +272,9 @@ private:
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
     std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
     RSEventManager rsEventManager_;
+#if defined(ACCESSIBILITY_ENABLE)
     std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
+#endif
 
     // used for hardware enabled case
     bool doDirectComposition_ = true;
@@ -278,6 +286,10 @@ private:
     std::mutex watermarkMutex_;
     sk_sp<SkImage> watermarkImg_ = nullptr;
     bool isShow_ = false;
+
+    // driven render
+    bool hasDrivenNodeOnUniTree_ = false;
+    bool hasDrivenNodeMarkRender_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

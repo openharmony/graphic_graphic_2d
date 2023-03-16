@@ -93,17 +93,17 @@ namespace OHOS {
             .virtualDispCount = virtualDispCount,
             .supportWriteBack = supportWriteBack,
             .propertyCount = propertyCount,
-            .props = &props,
         };
+        dcap.props.push_back(props);
         hdiScreen->GetScreenCapability(dcap);
 
         GraphicHDRCapability info = {
             .formatCount = formatCount,
-            .formats = &formats,
             .maxLum = maxLum,
             .maxAverageLum = maxAverageLum,
             .minLum = minLum,
         };
+        info.formats.push_back(formats);
         hdiScreen->GetHDRCapabilityInfos(info);
     }
 

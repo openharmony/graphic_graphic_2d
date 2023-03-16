@@ -207,7 +207,7 @@ void RSAnimation::OnResume()
 void RSAnimation::Finish()
 {
     if (state_ != AnimationState::RUNNING && state_ != AnimationState::PAUSED) {
-        ROSEN_LOGE("State error, animation is in [%d] when Finish", state_);
+        ROSEN_LOGI("Animation is in [%d] when Finish", state_);
         return;
     }
 

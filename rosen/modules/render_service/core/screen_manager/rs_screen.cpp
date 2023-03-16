@@ -40,6 +40,7 @@ RSScreen::RSScreen(ScreenId id,
         name_ = "Screen_" + std::to_string(id_);
         PhysicalScreenInit();
     }
+    capability_.props.clear();
 }
 
 RSScreen::RSScreen(const VirtualScreenConfigs &configs)

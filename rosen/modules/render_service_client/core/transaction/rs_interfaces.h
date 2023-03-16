@@ -19,6 +19,7 @@
 #include <memory>
 #include <mutex>
 
+#include "memory/MemoryGraphic.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_surface_node.h"
@@ -76,6 +77,10 @@ public:
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f);
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId);
+
+    MemoryGraphic GetMemoryGraphic(int pid);
+
+    std::vector<MemoryGraphic> GetMemoryGraphics();
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 

@@ -44,11 +44,15 @@
 #include "render/rs_pixel_map_util.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "accessibility_config.h"
+
 #include "rs_qos_thread.h"
 #include "xcollie/watchdog.h"
 
 #include "render_frame_trace.h"
+
+#if defined(ACCESSIBILITY_ENABLE)
+#include "accessibility_config.h"
+#endif
 
 #ifdef SOC_PERF_ENABLE
 #include "socperf_client.h"
@@ -61,7 +65,10 @@
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
 
+#if defined(ACCESSIBILITY_ENABLE)
 using namespace OHOS::AccessibilityConfig;
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -108,6 +115,7 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 }
 }
 
+#if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver : public AccessibilityConfigObserver {
 public:
     AccessibilityObserver() = default;
@@ -142,7 +150,7 @@ public:
         }
     }
 };
-
+#endif
 RSMainThread* RSMainThread::Instance()
 {
     static RSMainThread instance;
@@ -174,6 +182,9 @@ void RSMainThread::Init()
         ProcessCommand();
         Animate(timestamp_);
         CollectInfoForHardwareComposer();
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+        CollectInfoForDrivenRender();
+#endif
         CheckColdStartMap();
         Render();
         ReleaseAllNodesBuffer();
@@ -231,6 +242,7 @@ void RSMainThread::Init()
     RSDrivenRenderManager::InitInstance();
 #endif
 
+#if defined(ACCESSIBILITY_ENABLE)
     accessibilityObserver_ = std::make_shared<AccessibilityObserver>();
     auto &config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
     config.InitializeContext();
@@ -239,6 +251,7 @@ void RSMainThread::Init()
     if (isUniRender_) {
         config.SubscribeConfigObserver(CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT, accessibilityObserver_);
     }
+#endif
 
     auto delegate = RSFunctionalDelegate::Create();
     delegate->SetRepaintCallback([]() { RSMainThread::Instance()->RequestNextVSync(); });
@@ -571,6 +584,58 @@ void RSMainThread::CollectInfoForHardwareComposer()
     }
 }
 
+void RSMainThread::CollectInfoForDrivenRender()
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    hasDrivenNodeOnUniTree_ = false;
+    hasDrivenNodeMarkRender_ = false;
+    if (!isUniRender_ || !RSSystemProperties::GetHardwareComposerEnabled() ||
+        !RSDrivenRenderManager::GetInstance().GetDrivenRenderEnabled()) {
+        return;
+    }
+
+    std::vector<std::shared_ptr<RSRenderNode>> drivenNodes;
+    std::vector<std::shared_ptr<RSRenderNode>> markRenderDrivenNodes;
+    std::vector<std::shared_ptr<RSRenderNode>> invalidDrivenNodes;
+
+    const auto& nodeMap = GetContext().GetNodeMap();
+    nodeMap.TraverseDrivenRenderNodes(
+        [&](const std::shared_ptr<RSRenderNode>& node) mutable {
+            if (node == nullptr) {
+                return;
+            }
+            if (!node->IsOnTheTree()) {
+                invalidDrivenNodes.emplace_back(node);
+                return;
+            }
+            drivenNodes.emplace_back(node);
+            if (node->GetPaintState()) {
+                markRenderDrivenNodes.emplace_back(node);
+            }
+        });
+
+    for (auto& node : invalidDrivenNodes) {
+        GetContext().GetMutableNodeMap().RemoveDrivenRenderNode(node->GetId());
+    }
+    for (auto& node : drivenNodes) {
+        node->SetPaintState(false);
+        node->SetIsMarkDrivenRender(false);
+    }
+    if (!drivenNodes.empty()) {
+        hasDrivenNodeOnUniTree_ = true;
+    } else {
+        hasDrivenNodeOnUniTree_ = false;
+    }
+    if (markRenderDrivenNodes.size() == 1) { // only support 1 driven node
+        auto node = markRenderDrivenNodes.front();
+        node->SetIsMarkDrivenRender(true);
+        hasDrivenNodeMarkRender_ = true;
+    } else {
+        hasDrivenNodeMarkRender_ = false;
+    }
+#endif
+}
+
 void RSMainThread::ReleaseAllNodesBuffer()
 {
     RS_TRACE_NAME("RSMainThread::ReleaseAllNodesBuffer");
@@ -701,7 +766,11 @@ void RSMainThread::Render()
 
     if (isUniRender_) {
         auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+        uniVisitor->SetDrivenRenderFlag(hasDrivenNodeOnUniTree_, hasDrivenNodeMarkRender_);
+#endif
         uniVisitor->SetHardwareEnabledNodes(hardwareEnabledNodes_);
+        uniVisitor->SetAppWindowNum(appWindowNum_);
         if (isHardwareForcedDisabled_ || rootNode->GetChildrenCount() > 1) {
             // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
             // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
@@ -1017,7 +1086,9 @@ void RSMainThread::Animate(uint64_t timestamp)
     if (!doWindowAnimate_ && curWinAnim && RSInnovation::UpdateQosVsyncEnabled()) {
         RSQosThread::ResetQosPid();
     }
-    doWindowAnimate_ = curWinAnim;
+    doWindowAnimate_ = std::any_of(context_->animatingNodeList_.begin(), context_->animatingNodeList_.end(), [](const auto& iter) {
+        return RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(iter.second.lock()) != nullptr;
+    });
     RS_LOGD("RSMainThread::Animate end, %d animating nodes remains, has window animation: %d",
         context_->animatingNodeList_.size(), curWinAnim);
 
@@ -1290,26 +1361,46 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
 #endif
 }
 
-void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString)
+void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
+    std::string& type, int pid)
 {
 #ifdef RS_ENABLE_GL
     DfxString log;
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        log.AppendFormat("\n---------------\nNot in UniRender and no information");
+    if(pid != 0) {
+        MemoryManager::DumpPidMemory(log, pid);
     } else {
-        std::string type;
-        if (argSets.size() > 1) {
-            argSets.erase(u"dumpMem");
-            if (!argSets.empty()) {
-                type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-            }
-        }
         MemoryManager::DumpMemoryUsage(log, GetRenderEngine()->GetRenderContext()->GetGrContext(), type);
-        dumpString.append("dumpMem: " + type + "\n");
     }
+    dumpString.append("dumpMem: " + type + "\n");
     dumpString.append(log.GetString());
 #else
     dumpString.append("No GPU in this device");
+#endif
+}
+
+void RSMainThread::CountMem(int pid, MemoryGraphic& mem)
+{
+#ifdef RS_ENABLE_GL   
+    mem = MemoryManager::CountPidMemory(pid, GetRenderEngine()->GetRenderContext()->GetGrContext());
+#endif
+}
+
+void RSMainThread::CountMem(std::vector<MemoryGraphic>& mems)
+{
+#ifdef RS_ENABLE_GL
+    if (!context_) {
+        RS_LOGE("RSMainThread::CountMem Context is nullptr");
+        return;
+    }
+    const auto& nodeMap = context_->GetNodeMap();
+    std::vector<pid_t> pids;
+    nodeMap.TraverseSurfaceNodes([&pids] (const std::shared_ptr<RSSurfaceRenderNode>& node) {
+        auto pid = ExtractPid(node->GetId());
+        if (std::find(pids.begin(), pids.end(), pid) == pids.end()) {
+            pids.emplace_back();
+        }
+    });
+    MemoryManager::CountMemory(pids, GetRenderEngine()->GetRenderContext()->GetGrContext(), mems);
 #endif
 }
 

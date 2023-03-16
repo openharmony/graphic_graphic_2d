@@ -27,23 +27,39 @@ enum class DrivenUniRenderMode : uint32_t {
     RENDER_WITH_NORMAL,
 };
 
+enum class DrivenUniTreePrepareMode : uint32_t {
+    PREPARE_DRIVEN_NODE_BEFORE,
+    PREPARE_DRIVEN_NODE,
+    PREPARE_DRIVEN_NODE_AFTER,
+};
+
+enum class DrivenDirtyType : uint32_t {
+    INVALID,
+    MARK_DRIVEN_RENDER,
+    MARK_DRIVEN,
+};
+
 struct DrivenDirtyInfo {
     bool backgroundDirty = false;
     bool contentDirty = false;
     bool nonContentDirty = false;
+    DrivenDirtyType type = DrivenDirtyType::INVALID;
 };
-
-// [leashNodeId, surfaceNodeName, nodePtr]
-using DrivenCandidateTuple = std::tuple<NodeId, std::string, RSBaseRenderNode::SharedPtr>;
-// [leashNodeId, nodePtr]
-using DrivenCandidatePair = std::pair<NodeId, RSBaseRenderNode::SharedPtr>;
 
 struct DrivenPrepareInfo {
     DrivenDirtyInfo dirtyInfo;
-    bool hasInvalidScene = false;
-    std::vector<DrivenCandidateTuple> backgroundCandidates;
-    std::vector<DrivenCandidatePair> contentCandidates;
+    RSBaseRenderNode::SharedPtr backgroundNode;
+    RSBaseRenderNode::SharedPtr contentNode;
     RectI screenRect;
+    bool hasInvalidScene = false;
+    bool hasDrivenNodeOnUniTree = false;
+
+    // used in RSUniRenderVisitor
+    bool hasDrivenNodeMarkRender = false;
+    bool isPrepareLeashWinSubTree = false;
+    RSBaseRenderNode::SharedPtr currentRootNode;
+    DrivenUniTreePrepareMode drivenUniTreePrepareMode = DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_BEFORE;
+    DrivenUniRenderMode currDrivenRenderMode = DrivenUniRenderMode::RENDER_WITH_NORMAL;
 };
 
 struct DrivenProcessInfo {
@@ -61,27 +77,41 @@ public:
     const DrivenUniRenderMode& GetUniDrivenRenderMode() const;
     float GetUniRenderGlobalZOrder() const;
 
-    void ClipHoleForDrivenNode(RSPaintFilterCanvas& canvas, const RSCanvasRenderNode& node) const;
+    bool ClipHoleForDrivenNode(RSPaintFilterCanvas& canvas, const RSCanvasRenderNode& node) const;
 
-    virtual RSDrivenSurfaceRenderNode::SharedPtr GetContentSurfaceNode() const
+    RSDrivenSurfaceRenderNode::SharedPtr GetContentSurfaceNode() const
     {
-        return nullptr;
+        return contentSurfaceNode_;
     }
-    virtual RSDrivenSurfaceRenderNode::SharedPtr GetBackgroundSurfaceNode() const
+    RSDrivenSurfaceRenderNode::SharedPtr GetBackgroundSurfaceNode() const
     {
-        return nullptr;
+        return backgroundSurfaceNode_;
     }
-    virtual void DoPrepareRenderTask(const DrivenPrepareInfo& info) {}
-    virtual void DoProcessRenderTask(const DrivenProcessInfo& info) {}
+
+    void DoPrepareRenderTask(const DrivenPrepareInfo& info);
+    void DoProcessRenderTask(const DrivenProcessInfo& info);
 
     RSDrivenRenderManager() = default;
     virtual ~RSDrivenRenderManager() = default;
 
-protected:
+private:
+    void Reset();
+    void UpdateUniDrivenRenderMode(DrivenDirtyType dirtyType);
+
     bool drivenRenderEnabled_ = false;
+
+    std::shared_ptr<RSDrivenSurfaceRenderNode> contentSurfaceNode_ =
+        std::make_shared<RSDrivenSurfaceRenderNode>(0, DrivenSurfaceType::CONTENT);
+    std::shared_ptr<RSDrivenSurfaceRenderNode> backgroundSurfaceNode_ =
+        std::make_shared<RSDrivenSurfaceRenderNode>(0, DrivenSurfaceType::BACKGROUND);
 
     DrivenUniRenderMode uniRenderMode_ = DrivenUniRenderMode::RENDER_WITH_NORMAL;
     float uniRenderGlobalZOrder_ = 0.0;
+
+    NodeId contentCanvasNodeId_ = 0;
+    NodeId backgroundCanvasNodeId_ = 0;
+
+    bool isBufferCacheClear_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

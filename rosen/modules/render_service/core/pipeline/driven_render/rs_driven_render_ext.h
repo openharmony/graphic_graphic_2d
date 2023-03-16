@@ -23,8 +23,15 @@ namespace Rosen {
 class RSDrivenRenderExt {
 public:
     static RSDrivenRenderExt& Instance();
-    void OpenDrivenRenderExt();
-    RSDrivenRenderManager* CreateDrivenRenderManager();
+    bool OpenDrivenRenderExt();
+
+    void DisabledRenderMode(DrivenExtInfo& mutableInfo) const;
+    void SetCurrFrameBounds(
+        DrivenExtInfo& mutableInfo, const RectF& bounds, const RectF& viewPort, const RectI& contentAbsRect) const;
+    void UpdateActivateFrameState(DrivenExtInfo& mutableInfo, const RectI& dstRect, bool backgroundDirty,
+        bool contentDirty, bool nonContentDirty) const;
+
+    bool IsValidSurfaceName(const std::string& surfaceName) const;
 
 private:
     RSDrivenRenderExt() = default;
@@ -34,12 +41,17 @@ private:
     RSDrivenRenderExt& operator=(const RSDrivenRenderExt&) = delete;
     RSDrivenRenderExt& operator=(const RSDrivenRenderExt&&) = delete;
 
+    bool DrivenRenderVersionMatched();
     bool LoadDrivenRenderFunc();
     void CloseDrivenRenderExt();
 
     bool drivenRenderExtLoaded_ = false;
     void* drivenRenderExtHandle_ = nullptr;
-    void* createDrivenRenderManagerFunc_ = nullptr;
+
+    void* disabledRenderModeFunc_ = nullptr;
+    void* setCurrFrameBoundsFunc_ = nullptr;
+    void* updateActivateFrameStateFunc_ = nullptr;
+    void* isValidSurfaceNameFunc_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

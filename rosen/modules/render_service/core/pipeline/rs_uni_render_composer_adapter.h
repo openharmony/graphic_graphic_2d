@@ -44,6 +44,7 @@ public:
 
 private:
     bool IsOutOfScreenRegion(const ComposeInfo& info) const;
+    RectI SrcRectRotateTransform(RSSurfaceRenderNode& node) const;
     ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node) const;
     ComposeInfo BuildComposeInfo(RSDisplayRenderNode& node) const;
     ComposeInfo BuildComposeInfo(RSDrivenSurfaceRenderNode& node) const;

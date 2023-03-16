@@ -20,6 +20,7 @@
 #include "buffer_log.h"
 #include "buffer_manager.h"
 #include "buffer_extra_data_impl.h"
+#include "buffer_producer_listener.h"
 #include "sync_fence.h"
 
 namespace OHOS {
@@ -199,7 +200,6 @@ GSError ProducerSurface::AttachBuffer(sptr<SurfaceBuffer>& buffer)
         return GSERROR_INVALID_ARGUMENTS;
     }
 
-    BLOGND("the addr : %{public}p", buffer.GetRefPtr());
     return producer_->AttachBuffer(buffer);
 }
 
@@ -294,7 +294,12 @@ GSError ProducerSurface::UnregisterConsumerListener()
 
 GSError ProducerSurface::RegisterReleaseListener(OnReleaseFunc func)
 {
-    return producer_->RegisterReleaseListener(func);
+    if (func == nullptr) {
+        BLOGNE("OnReleaseFunc is nullptr, RegisterReleaseListener failed.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    listener_ = new BufferReleaseProducerListener(func);
+    return producer_->RegisterReleaseListener(listener_);
 }
 
 GSError ProducerSurface::RegisterDeleteBufferListener(OnDeleteBufferFunc func, bool isForUniRedraw)

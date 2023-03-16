@@ -36,6 +36,16 @@ bool RSRenderServiceClient::GetUniRenderEnabled()
     return {};
 }
 
+MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
+{
+    return {};
+}
+
+std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
+{
+    return {};
+}
+
 bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 {
     return {};
@@ -43,7 +53,7 @@ bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
 {
-    return std::make_shared<RSSurfaceWindows>(config.onRender);
+    return std::make_shared<RSSurfaceWindows>(reinterpret_cast<OnRenderFunc>(config.additionalData));
 }
 
 class VSyncReceiverWindows : public VSyncReceiver {
@@ -174,7 +184,8 @@ void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
 {
 }
 
-bool RSRenderServiceClient::RegisterBufferAvailableListener(NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
+bool RSRenderServiceClient::RegisterBufferAvailableListener(
+    NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
 {
     return {};
 }

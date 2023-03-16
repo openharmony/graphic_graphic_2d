@@ -145,14 +145,14 @@ ADD_COMMAND(RSSetFreeze,
     ARG(RS_NODE, SET_FREEZE, RSNodeCommandHelper::SetFreeze, NodeId, bool))
 
 ADD_COMMAND(RSMarkDrivenRender,
-    ARG(BASE_NODE, MARK_DRIVEN_RENDER, RSNodeCommandHelper::MarkDrivenRender, NodeId, bool))
-ADD_COMMAND(RSMarkDrivenRenderItemIndex, ARG(BASE_NODE, MARK_DRIVEN_RENDER_ITEM_INDEX,
-                                             RSNodeCommandHelper::MarkDrivenRenderItemIndex, NodeId, int32_t))
+    ARG(RS_NODE, MARK_DRIVEN_RENDER, RSNodeCommandHelper::MarkDrivenRender, NodeId, bool))
+ADD_COMMAND(RSMarkDrivenRenderItemIndex,
+    ARG(RS_NODE, MARK_DRIVEN_RENDER_ITEM_INDEX, RSNodeCommandHelper::MarkDrivenRenderItemIndex, NodeId, int32_t))
 ADD_COMMAND(RSMarkDrivenRenderFramePaintState,
-    ARG(BASE_NODE, MARK_DRIVEN_RENDER_FRAME_PAINT_STATE,
+    ARG(RS_NODE, MARK_DRIVEN_RENDER_FRAME_PAINT_STATE,
         RSNodeCommandHelper::MarkDrivenRenderFramePaintState, NodeId, bool))
 ADD_COMMAND(RSMarkContentChanged,
-    ARG(BASE_NODE, MARK_CONTENT_CHANGED, RSNodeCommandHelper::MarkContentChanged, NodeId, bool))
+    ARG(RS_NODE, MARK_CONTENT_CHANGED, RSNodeCommandHelper::MarkContentChanged, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 

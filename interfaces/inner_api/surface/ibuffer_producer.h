@@ -22,6 +22,7 @@
 #include "iremote_broker.h"
 
 #include "buffer_extra_data.h"
+#include "ibuffer_producer_listener.h"
 #include "native_surface.h"
 #include "surface_buffer.h"
 #include "surface_type.h"
@@ -61,7 +62,7 @@ public:
     virtual GSError CleanCache() = 0;
     virtual GSError GoBackground() = 0;
 
-    virtual GSError RegisterReleaseListener(OnReleaseFunc func) = 0;
+    virtual GSError RegisterReleaseListener(sptr<IProducerListener> listener) = 0;
 
     virtual GSError SetTransform(GraphicTransformType transform) = 0;
 

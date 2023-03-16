@@ -34,7 +34,7 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap)
     }
     pixelmap_ = pixmap;
 
-    colorValLen_ = pixmap->GetWidth() * pixmap->GetHeight();
+    colorValLen_ = static_cast<uint32_t>(pixmap->GetWidth() * pixmap->GetHeight());
     auto colorVal = new uint32_t[colorValLen_]();
     std::shared_ptr<uint32_t> colorShared(colorVal, [](uint32_t *ptr) {
         delete[] ptr;
@@ -52,19 +52,19 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap)
 // Return red component of a quantized color
 uint32_t ColorExtract::QuantizedRed(uint32_t color)
 {
-    return (color >> (QUANTIZE_WORD_WIDTH + QUANTIZE_WORD_WIDTH)) & QUANTIZE_WORD_MASK;
+    return (color >> (QUANTIZE_WORD_WIDTH + QUANTIZE_WORD_WIDTH)) & static_cast<uint32_t>(QUANTIZE_WORD_MASK);
 }
 
 // Return green component of a quantized color
 uint32_t ColorExtract::QuantizedGreen(uint32_t color)
 {
-    return (color >> QUANTIZE_WORD_WIDTH) & QUANTIZE_WORD_MASK;
+    return (color >> QUANTIZE_WORD_WIDTH) & static_cast<uint32_t>(QUANTIZE_WORD_MASK);
 }
 
 // Return blue component of a quantized color
 uint32_t ColorExtract::QuantizedBlue(uint32_t color)
 {
-    return color & QUANTIZE_WORD_MASK;
+    return color & static_cast<uint32_t>(QUANTIZE_WORD_MASK);
 }
 
 uint32_t ColorExtract::ModifyWordWidth(uint8_t color, int inWidth, int outWidth)
@@ -128,7 +128,7 @@ std::vector<std::pair<uint32_t, uint32_t>> ColorExtract::QuantizePixels(int colo
 
 void ColorExtract::SplitBoxes(std::priority_queue<VBox, std::vector<VBox>, std::less<VBox> > &queue, int maxSize)
 {
-    while (queue.size() < maxSize) {
+    while (queue.size() < static_cast<uint32_t>(maxSize)) {
         VBox vBox = queue.top();
         queue.pop();
         if (vBox.CanSplit()) {
@@ -171,12 +171,12 @@ void ColorExtract::GetNFeatureColors(int colorNum)
         delete[] ptr;
     });
     hist_ = move(histShared);
-    for (int i = 0; i < colorValLen_; i++) {
+    for (uint32_t i = 0; i < colorValLen_; i++) {
         uint32_t quantizedColor = QuantizeFromRGB888(colorVal[i]);
         hist[quantizedColor]++;
     }
 
-    for (uint32_t color = 0; color < histLen; color++) {
+    for (int color = 0; color < histLen; color++) {
         if (hist[color] > 0) {
             distinctColorCount_++;
         }

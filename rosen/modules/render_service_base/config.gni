@@ -22,13 +22,19 @@ rosen_is_linux = current_os == "linux"
 
 rs_common_define = []
 
-rosen_cross_platform =
-    current_os == "mac" || current_os == "mingw" || current_os == "linux"
+rosen_cross_platform = current_os == "mac" || current_os == "mingw" ||
+                       current_os == "linux" || current_os == "android"
+rosen_preview = rosen_is_mac || rosen_is_win || rosen_is_linux
+
 if (rosen_cross_platform) {
   rs_common_define += [
     "ROSEN_CROSS_PLATFORM",
     "ROSEN_TRACE_DISABLE",
   ]
+}
+
+if (rosen_preview) {
+  rs_common_define += [ "ROSEN_PREVIEW" ]
 }
 
 if (rosen_is_ohos) {
@@ -60,3 +66,5 @@ rosen_root = "//foundation/graphic/graphic_2d/rosen"
 
 accessibility_root = "//foundation/barrierfree/accessibility"
 resourceschedule_root = "//foundation/resourceschedule/frame_aware_sched"
+
+appframework_root = "//foundation/appframework"

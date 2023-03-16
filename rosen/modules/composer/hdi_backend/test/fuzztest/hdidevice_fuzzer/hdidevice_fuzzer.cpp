@@ -151,11 +151,11 @@ namespace OHOS {
         device->SetScreenGamutMap(screenId, gamutMap);
         GraphicHDRCapability info = {
             .formatCount = formatCount,
-            .formats = &formats,
             .maxLum = maxLum,
             .maxAverageLum = maxAverageLum,
             .minLum = minLum,
         };
+        info.formats.push_back(formats);
         device->GetHDRCapabilityInfos(screenId, info);
         std::vector<GraphicHDRMetadataKey> keys;
         device->GetSupportedMetaDataKey(screenId, keys);

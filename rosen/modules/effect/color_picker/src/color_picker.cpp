@@ -112,7 +112,7 @@ uint32_t ColorPicker::GetHighestSaturationColor(ColorManager::Color &color) cons
     uint32_t colorPicked = 0;
     HSV hsv = {0};
     double maxSaturation = 0.0;
-    for (int i = 0; i < featureColors_.size(); i++) {
+    for (size_t i = 0; i < featureColors_.size(); i++) {
         hsv = RGB2HSV(featureColors_[i].first);
         if (hsv.s >= maxSaturation) {
             maxSaturation = hsv.s;
@@ -133,7 +133,7 @@ uint32_t ColorPicker::GetAverageColor(ColorManager::Color &color) const
     if (featureColors_.empty()) {
         return ERR_EFFECT_INVALID_VALUE;
     }
-    for (int i = 0; i < featureColors_.size(); i++) {
+    for (size_t i = 0; i < featureColors_.size(); i++) {
         totalPixelNum += featureColors_[i].second;
         redSum += featureColors_[i].second * ((featureColors_[i].first >> ARGB_R_SHIFT) & ARGB_MASK);
         greenSum += featureColors_[i].second * ((featureColors_[i].first >> ARGB_G_SHIFT) & ARGB_MASK);

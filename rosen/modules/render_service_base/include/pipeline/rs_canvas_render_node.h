@@ -51,7 +51,11 @@ public:
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
-    void ApplyModifiers() override;
+    RSB_EXPORT void ProcessDrivenBackgroundRender(RSPaintFilterCanvas& canvas);
+    RSB_EXPORT void ProcessDrivenContentRender(RSPaintFilterCanvas& canvas);
+    RSB_EXPORT void ProcessDrivenContentRenderAfterChildren(RSPaintFilterCanvas& canvas);
+
+    void OnApplyModifiers() override;
 
     RSRenderNodeType GetType() const override
     {
