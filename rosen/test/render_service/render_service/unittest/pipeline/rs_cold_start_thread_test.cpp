@@ -108,7 +108,6 @@ HWTEST_F(RSColdStartThreadTest, RSColdStartManager001, TestSize.Level1)
     RSColdStartManager::Instance().PostPlayBackTask(
         sp->GetId(), drawCmdList, drawCmdList->GetWidth(), drawCmdList->GetHeight());
     RSColdStartManager::Instance().StopColdStartThread(sp->GetId());
-    RSColdStartManager::Instance().DestroyColdStartThread(sp->GetId());
 }
 
 /**
