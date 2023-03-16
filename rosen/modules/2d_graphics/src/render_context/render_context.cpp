@@ -181,7 +181,7 @@ void RenderContext::InitializeEglContext()
     }
     CreatePbufferSurface();
     if (!eglMakeCurrent(eglDisplay_, pbufferSurface_, pbufferSurface_, eglContext_)) {
-        LOGE("Failed to make current on surface %{public}p, error is %{public}x", pbufferSurface_, eglGetError());
+        LOGE("Failed to make current on surface, error is %{public}x", eglGetError());
         return;
     }
 
@@ -192,11 +192,11 @@ void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context) const
 {
     if (surface == EGL_NO_SURFACE) {
         if (!eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, context)) {
-            LOGE("Failed to make current on surface %{public}p, error is %{public}x", surface, eglGetError());
+            LOGE("Failed to make current on surface, error is %{public}x", eglGetError());
         }
     } else {
         if (!eglMakeCurrent(eglDisplay_, surface, surface, eglContext_)) {
-            LOGE("Failed to make current on surface %{public}p, error is %{public}x", surface, eglGetError());
+            LOGE("Failed to make current on surface, error is %{public}x", eglGetError());
         }
     }
 }
@@ -228,16 +228,16 @@ void RenderContext::SwapBuffers(EGLSurface surface) const
 {
     RS_TRACE_FUNC();
     if (!eglSwapBuffers(eglDisplay_, surface)) {
-        LOGE("Failed to SwapBuffers on surface %{public}p, error is %{public}x", surface, eglGetError());
+        LOGE("Failed to SwapBuffers on surface, error is %{public}x", eglGetError());
     } else {
-        LOGD("SwapBuffers successfully, surface is %{public}p", surface);
+        LOGD("SwapBuffers successfully");
     }
 }
 
 void RenderContext::DestroyEGLSurface(EGLSurface surface)
 {
     if (!eglDestroySurface(eglDisplay_, surface)) {
-        LOGE("Failed to DestroyEGLSurface surface %{public}p, error is %{public}x", surface, eglGetError());
+        LOGE("Failed to DestroyEGLSurface surface, error is %{public}x", eglGetError());
     }
 }
 
@@ -257,7 +257,7 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
         return EGL_NO_SURFACE;
     }
 
-    LOGD("CreateEGLSurface: %{public}p", surface);
+    LOGD("CreateEGLSurface");
 
     eglSurface_ = surface;
     return surface;
@@ -344,7 +344,7 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
         return nullptr;
     }
 
-    LOGD("CreateCanvas successfully!!! (%{public}p)", skSurface_->getCanvas());
+    LOGD("CreateCanvas successfully!!!");
     return skSurface_;
 }
 
@@ -353,7 +353,7 @@ void RenderContext::RenderFrame()
     RS_TRACE_FUNC();
     // flush commands
     if (skSurface_->getCanvas() != nullptr) {
-        LOGD("RenderFrame: Canvas is %{public}p", skSurface_->getCanvas());
+        LOGD("RenderFrame: Canvas");
         skSurface_->getCanvas()->flush();
     } else {
         LOGW("canvas is nullptr!!!");

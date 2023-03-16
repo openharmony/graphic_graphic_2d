@@ -111,7 +111,7 @@ void GLESRenderBackend::SetDamageRegion(int32_t left, int32_t top, int32_t width
         LOGE("eglManager_ is nullptr, can not SetDamageRegion");
         return;
     }
-    eglManager_->SetDamageRegion(left, top, width, height);  
+    eglManager_->SetDamageRegion(left, top, width, height);
 }
 
 void GLESRenderBackend::Destroy()
@@ -124,7 +124,7 @@ void GLESRenderBackend::RenderFrame()
 {
     // flush commands
     if (skSurface_->getCanvas() != nullptr) {
-        LOGD("RenderFrame: Canvas is %{public}p", skSurface_->getCanvas());
+        LOGD("RenderFrame: Canvas");
         skSurface_->getCanvas()->flush();
     } else {
         LOGW("canvas is nullptr!!!");
@@ -168,7 +168,7 @@ SkCanvas* GLESRenderBackend::AcquireCanvas(std::unique_ptr<SurfaceFrame>& frame)
         return nullptr;
     }
 
-    LOGI("CreateCanvas successfully!!! (%{public}p)", skSurface_->getCanvas());
+    LOGI("CreateCanvas successfully!!!");
 
     return skSurface_->getCanvas();
 }
