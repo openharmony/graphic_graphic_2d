@@ -770,6 +770,7 @@ void RSMainThread::Render()
         uniVisitor->SetDrivenRenderFlag(hasDrivenNodeOnUniTree_, hasDrivenNodeMarkRender_);
 #endif
         uniVisitor->SetHardwareEnabledNodes(hardwareEnabledNodes_);
+        uniVisitor->SetAppWindowNum(appWindowNum_);
         if (isHardwareForcedDisabled_ || rootNode->GetChildrenCount() > 1) {
             // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
             // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
