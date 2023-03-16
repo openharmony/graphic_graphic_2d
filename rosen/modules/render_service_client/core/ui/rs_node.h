@@ -174,7 +174,7 @@ public:
         transitionEffect_ = effect;
     }
 
-    void AddModifier(const std::shared_ptr<RSModifier>& modifier);
+    void AddModifier(const std::shared_ptr<RSModifier> modifier);
     void RemoveModifier(const std::shared_ptr<RSModifier>& modifier);
 
 protected:
