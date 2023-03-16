@@ -153,6 +153,26 @@ bool RSDrawCmdListRenderModifier::Marshalling(Parcel& parcel)
     return false;
 }
 
+RectF RSDrawCmdListRenderModifier::GetCmdsClipRect() const
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    auto cmds = property_->Get();
+    return RSPropertiesPainter::GetCmdsClipRect(cmds);
+#else
+    return RectF { 0.0f, 0.0f, 0.0f, 0.0f };
+#endif
+}
+
+void RSDrawCmdListRenderModifier::ApplyForDrivenContent(RSModifierContext& context) const
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    if (context.canvas_) {
+        auto cmds = property_->Get();
+        RSPropertiesPainter::DrawFrameForDriven(context.property_, *context.canvas_, cmds);
+    }
+#endif
+}
+
 bool RSEnvForegroundColorRenderModifier::Marshalling(Parcel& parcel)
 {
     auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Color>>(property_);

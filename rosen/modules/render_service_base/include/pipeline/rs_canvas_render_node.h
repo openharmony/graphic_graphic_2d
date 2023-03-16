@@ -51,9 +51,12 @@ public:
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
+    // functions that are dedicated to driven render [start]
     RSB_EXPORT void ProcessDrivenBackgroundRender(RSPaintFilterCanvas& canvas);
     RSB_EXPORT void ProcessDrivenContentRender(RSPaintFilterCanvas& canvas);
     RSB_EXPORT void ProcessDrivenContentRenderAfterChildren(RSPaintFilterCanvas& canvas);
+    RSB_EXPORT RectF GetDrivenContentClipFrameRect() const;
+    // functions that are dedicated to driven render [end]
 
     void OnApplyModifiers() override;
 
@@ -64,6 +67,9 @@ public:
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type) const;
     void InternalDrawContent(RSPaintFilterCanvas& canvas);
+    // functions that are dedicated to driven render [start]
+    void DrawDrivenContent(RSPaintFilterCanvas& canvas);
+    // functions that are dedicated to driven render [end]
 
     std::pair<int, int> canvasNodeSaveCount_ = { 0, 0 };
 

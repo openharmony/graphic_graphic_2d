@@ -86,6 +86,12 @@ void RSDrivenRenderVisitor::PrepareDrivenSurfaceRenderNode(RSDrivenSurfaceRender
                 property.GetFrameWidth(), property.GetFrameHeight());
             dstRect = geoPtr->MapAbsRect(viewPort);
         }
+        auto cmdsClipFrameRect = canvasNode->GetDrivenContentClipFrameRect();
+        if (!cmdsClipFrameRect.IsEmpty()) {
+            viewPort = cmdsClipFrameRect;
+            dstRect = geoPtr->MapAbsRect(viewPort);
+            RS_LOGD("RSDrivenRenderVisitor::clip cmds rect = %s", viewPort.ToString().c_str());
+        }
     }
     currDrivenSurfaceNode_->SetCurrFrameBounds(surfaceBounds, viewPort, contentAbsRect);
     currDrivenSurfaceNode_->UpdateActivateFrameState(dstRect, backgroundDirty_, contentDirty_, nonContentDirty_);
