@@ -1019,7 +1019,14 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             processor_->ProcessDisplaySurface(*mirrorNode);
         }
     } else if (node.GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
+        auto processor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor_);
+        canvas_ = processor->GetCanvas();
+        if (canvas_ == nullptr) {
+            RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode failed to get canvas.");
+            return;
+        }
         ProcessBaseRenderNode(node);
+        DrawWatermarkIfNeed();
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     } else if (drivenInfo_ && drivenInfo_->currDrivenRenderMode == DrivenUniRenderMode::REUSE_WITH_CLIP_HOLE) {
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode DrivenUniRenderMode is REUSE_WITH_CLIP_HOLE");
