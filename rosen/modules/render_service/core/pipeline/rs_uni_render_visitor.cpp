@@ -45,6 +45,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr uint32_t USE_CACHE_APP_WINDOW_NUM = 7;
 
 bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 {
@@ -1143,7 +1144,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 // enable cache if screen rotation is not times of 90 degree
                 canvas_->SetCacheEnabled(geoPtr->IsNeedClientCompose());
             }
-
+            canvas_->SetCacheEnabled(canvas_->isCacheEnabled() || appWindowNum_ > USE_CACHE_APP_WINDOW_NUM);
             if (canvas_->isCacheEnabled()) {
                 // we are doing rotation animation, try offscreen render if capable
                 ClearTransparentBeforeSaveLayer();
@@ -2043,6 +2044,11 @@ void RSUniRenderVisitor::DrawWatermarkIfNeed()
         rectPaint.setShader(shader);
         canvas_->drawRect(SkRect::MakeWH(screenInfo_.width, screenInfo_.height), rectPaint);
     }
+}
+
+void RSUniRenderVisitor::SetAppWindowNum(uint32_t num)
+{
+    appWindowNum_ = num;
 }
 } // namespace Rosen
 } // namespace OHOS

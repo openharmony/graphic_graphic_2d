@@ -106,6 +106,8 @@ public:
     {
         return isOpDropped_;
     }
+
+    void SetAppWindowNum(uint32_t num);
 private:
     void DrawWatermarkIfNeed();
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
@@ -240,6 +242,8 @@ private:
     std::unique_ptr<DrivenPrepareInfo> drivenInfo_ = nullptr;
 
     bool isCalcCostEnable_ = false;
+
+    uint32_t appWindowNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
