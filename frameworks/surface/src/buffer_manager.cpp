@@ -104,7 +104,7 @@ GSError BufferManager::Alloc(const BufferRequestConfig &config, sptr<SurfaceBuff
         buffer->SetSurfaceBufferHeight(allocHeight);
         buffer->SetSurfaceBufferColorGamut(static_cast<GraphicColorGamut>(config.colorGamut));
         buffer->SetSurfaceBufferTransform(static_cast<GraphicTransformType>(config.transform));
-        BLOGI("buffer handle %{public}p w: %{public}d h: %{public}d t: %{public}d", handle,
+        BLOGI("buffer handle w: %{public}d h: %{public}d t: %{public}d",
             allocWidth, allocHeight, config.transform);
         return GSERROR_OK;
     }

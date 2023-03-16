@@ -200,7 +200,6 @@ GSError ProducerSurface::AttachBuffer(sptr<SurfaceBuffer>& buffer)
         return GSERROR_INVALID_ARGUMENTS;
     }
 
-    BLOGND("the addr : %{public}p", buffer.GetRefPtr());
     return producer_->AttachBuffer(buffer);
 }
 
