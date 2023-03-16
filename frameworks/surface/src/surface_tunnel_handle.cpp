@@ -65,7 +65,7 @@ SurfaceTunnelHandle::SurfaceTunnelHandle()
 SurfaceTunnelHandle::~SurfaceTunnelHandle()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    BLOGD("dtor tunnelHandle_ %{public}p", tunnelHandle_);
+    BLOGD("dtor tunnelHandle_");
     FreeExtDataHandle(tunnelHandle_);
 }
 

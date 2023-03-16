@@ -140,7 +140,7 @@ SurfaceBufferImpl::SurfaceBufferImpl(uint32_t seqNum)
 
 SurfaceBufferImpl::~SurfaceBufferImpl()
 {
-    BLOGD("dtor ~[%{public}u] handle_ %{public}p", sequenceNumber_, handle_);
+    BLOGD("dtor ~[%{public}u]", sequenceNumber_);
     FreeBufferHandleLocked();
 }
 
@@ -179,7 +179,7 @@ GSError SurfaceBufferImpl::Alloc(const BufferRequestConfig &config)
         surfaceBufferWidth_ = config.width;
         surfaceBufferHeight_ = config.height;
         handle_ = handle;
-        BLOGD("buffer handle %{public}p w: %{public}d h: %{public}d t: %{public}d", handle_,
+        BLOGD("buffer handle w: %{public}d h: %{public}d t: %{public}d",
             handle_->width, handle_->height, config.transform);
         return GSERROR_OK;
     }
