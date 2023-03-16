@@ -4142,7 +4142,7 @@ napi_value WebGL2RenderingContextBase::InvalidateSubFramebuffer(napi_env env, na
                 return nullptr;
             }
             LOGI("WebGL2 WebGL2RenderingContextBase::invalidateSubFramebuffer ele = %{public}u", ele);
-            attachments1[i] = static_cast<uint64_t>(ele);
+            attachments1[i] = ele;
         }
         attachments = attachments1;
     } else {
