@@ -56,7 +56,10 @@ void RootNodeCommandHelper::AttachToUniSurfaceNode(RSContext& context, NodeId id
         return;
     }
     parent->AddChild(node);
-    parent->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    // keep extension ability node's type
+    if (!parent->IsExtensionAbility()) {
+        parent->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    }
 }
 
 void RootNodeCommandHelper::UpdateSuggestedBufferSize(RSContext& context, NodeId id, int32_t width, int32_t height)
