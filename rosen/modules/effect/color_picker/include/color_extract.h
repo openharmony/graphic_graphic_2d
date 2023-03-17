@@ -48,6 +48,8 @@ public:
     // Save the ARGB val of picture.
     std::shared_ptr<uint32_t> colorVal_ = nullptr;
     uint32_t colorValLen_ = 0;
+    uint32_t grayMsd_ = 0;
+    float contrastToWhite_ = 0;
 
     // The first element is color, the second element is pixel num of this color.
     std::vector<std::pair<uint32_t, uint32_t>> featureColors_;
@@ -280,6 +282,17 @@ private:
     }; // VBox
 
 private:
+    static constexpr double RED_GRAY_RATIO = 0.299;
+    static constexpr double GREEN_GRAY_RATIO = 0.587;
+    static constexpr double BLUE_GRAY_RATIO = 0.114;
+    static constexpr double RED_LUMINACE_RATIO = 0.2126;
+    static constexpr double GREEN_LUMINACE_RATIO = 0.7152;
+    static constexpr double BLUE_LUMINACE_RATIO = 0.0722;
+    static uint8_t Rgb2Gray(uint32_t color);
+    uint32_t CalcGrayMsd() const;
+    static float NormalizeRgb(uint32_t val);
+    static float CalcRelativeLum(uint32_t color);
+    float CalcContrastToWhite() const;
     std::vector<std::pair<uint32_t, uint32_t>> QuantizePixels(int colorNum);
     void SplitBoxes(std::priority_queue<VBox, std::vector<VBox>, std::less<VBox> > &queue, int maxSize);
     std::vector<std::pair<uint32_t, uint32_t>> GenerateAverageColors(std::priority_queue<VBox, \

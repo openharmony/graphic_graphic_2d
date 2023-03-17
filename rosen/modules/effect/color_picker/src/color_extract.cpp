@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 #include "color_extract.h"
+#include <cmath>
 #include <iostream>
 #include <vector>
 #include <memory>
 #include "hilog/log.h"
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,6 +45,8 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap)
             pixmap->GetARGB32Color(j, i, colorVal[i * pixmap->GetWidth() + j]);
         }
     }
+    grayMsd_ = CalcGrayMsd();
+    contrastToWhite_ = CalcContrastToWhite();
     GetNFeatureColors(specifiedFeatureColorNum_);
 }
 
@@ -160,6 +162,66 @@ void ColorExtract::SetFeatureColorNum(int N)
     specifiedFeatureColorNum_ = N;
     GetNFeatureColors(N);
     return;
+}
+
+uint8_t ColorExtract::Rgb2Gray(uint32_t color)
+{
+    uint32_t r = GetARGB32ColorR(color);
+    uint32_t g = GetARGB32ColorG(color);
+    uint32_t b = GetARGB32ColorB(color);
+    return static_cast<uint8_t>(r * RED_GRAY_RATIO + g * GREEN_GRAY_RATIO + b * BLUE_GRAY_RATIO);
+}
+
+uint32_t ColorExtract::CalcGrayMsd() const
+{
+    uint32_t *colorVal = colorVal_.get();
+    long long int graySum = 0;
+    long long int grayVar = 0;
+    for (int i = 0; i < colorValLen_; i++) {
+        graySum += Rgb2Gray(colorVal[i]);
+    }
+    uint32_t grayAve = graySum / colorValLen_;
+    for (int i = 0; i < colorValLen_; i++) {
+        grayVar += pow(static_cast<long long int>(Rgb2Gray(colorVal[i])) - grayAve, 2); // 2 is square
+    }
+    grayVar /= colorValLen_;
+    return static_cast<uint32_t>(grayVar);
+}
+
+float ColorExtract::NormalizeRgb(uint32_t val)
+{
+    float res = static_cast<float>(val) / 255;
+    if (res <= 0.03928) { // 0.03928 is used to normalize rgb;
+        res /= 12.92; // 12.92 is used to normalize rgb;
+    } else {
+        res = pow((res + 0.055) / 1.055, 2.4); // 0.055, 1.055, 2.4 is used to normalize rgb;
+    }
+    return res;
+}
+
+float ColorExtract::CalcRelativeLum(uint32_t color)
+{
+    uint32_t r = GetARGB32ColorR(color);
+    uint32_t g = GetARGB32ColorG(color);
+    uint32_t b = GetARGB32ColorB(color);
+    float R = NormalizeRgb(r);
+    float G = NormalizeRgb(g);
+    float B = NormalizeRgb(b);
+    return R * RED_LUMINACE_RATIO + G * GREEN_LUMINACE_RATIO + B * BLUE_LUMINACE_RATIO;
+}
+
+float ColorExtract::CalcContrastToWhite() const
+{
+    uint32_t *colorVal = colorVal_.get();
+    float lightDegree = 0;
+    float luminanceSum = 0;
+    for (int i = 0; i < colorValLen_; i++) {
+        luminanceSum += CalcRelativeLum(colorVal[i]);
+    }
+    float luminanceAve = luminanceSum / colorValLen_;
+     // 0.05 is used to ensure denominator is not 0;
+    lightDegree = (1 + 0.05) / (luminanceAve + 0.05);
+    return lightDegree;
 }
 
 void ColorExtract::GetNFeatureColors(int colorNum)
