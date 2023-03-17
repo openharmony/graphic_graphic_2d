@@ -203,6 +203,11 @@ private:
     void PerfMultiWindow();
     void ResetHardwareEnabledState();
 
+    // Click animation, report the start event to RS
+    void ResSchedDataStartReport(bool needRequestNextVsync);
+    // Click animation, report the complete event to RS
+    void ResSchedDataCompleteReport(bool needRequestNextVsync);
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
@@ -290,6 +295,9 @@ private:
     // driven render
     bool hasDrivenNodeOnUniTree_ = false;
     bool hasDrivenNodeMarkRender_ = false;
+
+    // used for control start and end of the click animation
+    bool requestResschedReport_ = true;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

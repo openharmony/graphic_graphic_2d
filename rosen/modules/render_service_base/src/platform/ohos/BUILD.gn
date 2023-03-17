@@ -165,4 +165,10 @@ ohos_source_set("rosen_ohos_sources") {
           graphic_2d_ext_configs.librender_service_base_2d_graphics_ext_sources
     }
   }
+
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.resourceschedule_soc_perf)) {
+    external_deps += [ "resource_schedule_service:ressched_client" ]
+    defines += [ "RES_SCHED_ENABLE" ]
+  }
 }
