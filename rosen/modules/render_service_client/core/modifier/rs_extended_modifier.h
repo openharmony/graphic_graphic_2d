@@ -247,7 +247,7 @@ public:
         return RSModifierType::NODE_MODIFIER;
     }
 
-    virtual void Modifier(RSNode& target) const = 0;
+    virtual void Modify(RSNode& target) const = 0;
 
 private:
     void OnAttachToNode(const std::weak_ptr<RSNode>& target) override
@@ -261,7 +261,7 @@ private:
         if (node == nullptr) {
             return;
         }
-        Modifier(*node);
+        Modify(*node);
     }
 
     void Draw(RSDrawingContext& context) const override final {}
