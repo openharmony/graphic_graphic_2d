@@ -39,7 +39,7 @@ static bool gIsUniRenderEnabled = false;
 NodeId RSBaseNode::GenerateId()
 {
     static pid_t pid_ = GetRealPid();
-    static std::atomic<uint32_t> currentId_ = 0;
+    static std::atomic<uint32_t> currentId_ = 1; // surfaceNode is seted correctly during boot when currentId is 1
 
     auto currentId = currentId_.fetch_add(1, std::memory_order_relaxed);
     if (currentId == UINT32_MAX) {

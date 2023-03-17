@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "MemoryManager.h"
+#include "memory/MemoryManager.h"
 
 #include <malloc.h>
 #include <SkGraphics.h>

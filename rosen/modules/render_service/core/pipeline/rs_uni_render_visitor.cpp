@@ -25,6 +25,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_cold_start_thread.h"
@@ -90,6 +91,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isQuickSkipPreparationEnabled_ = RSSystemProperties::GetQuickSkipPrepareEnabled();
     isHardwareComposerEnabled_ = RSSystemProperties::GetHardwareComposerEnabled();
     isSkipForAlphaZero_ = RSSystemProperties::GetSkipForAlphaZeroEnabled();
+    RSTagTracker::UpdateReleseGpuReousrceEnable(RSSystemProperties::GetReleaseGpuResourceEnabled());
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     if (RSDrivenRenderManager::GetInstance().GetDrivenRenderEnabled()) {
         drivenInfo_ = std::make_unique<DrivenPrepareInfo>();
@@ -342,6 +344,7 @@ bool RSUniRenderVisitor::IsHardwareComposerEnabled()
 
 void RSUniRenderVisitor::ClearTransparentBeforeSaveLayer()
 {
+    RS_TRACE_NAME("ClearTransparentBeforeSaveLayer");
     if (!IsHardwareComposerEnabled()) {
         return;
     }
@@ -1140,7 +1143,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             if (RSOverdrawController::GetInstance().IsEnabled()) {
                 node.GetDirtyManager()->ResetDirtyAsSurfaceSize();
             }
+            RS_TRACE_BEGIN("RSUniRender::GetBufferAge");
             int bufferAge = renderFrame_->GetBufferAge();
+            RS_TRACE_END();
             RSUniRenderUtil::MergeDirtyHistory(displayNodePtr, bufferAge, isDirtyRegionAlignedEnable_);
             Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(
                 displayNodePtr, isDirtyRegionAlignedEnable_);
@@ -1182,6 +1187,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 // [planning] Remove this after skia is upgraded, the clipRegion is supported
                 if (!needFilter_) {
                     ClearTransparentBeforeSaveLayer();
+                    RSTagTracker tagTracker(canvas_->getGrContext(), RSTagTracker::TAGTYPE::TAG_SAVELAYER_DRAW_NODE);
                     saveLayerCnt = canvas_->saveLayer(SkRect::MakeWH(screenInfo_.width, screenInfo_.height), nullptr);
                 }
             }
@@ -1238,6 +1244,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
 #endif
         if (saveLayerCnt > 0) {
+            RSTagTracker tagTracker(canvas_->getGrContext(), RSTagTracker::TAGTYPE::TAG_RESTORELAYER_DRAW_NODE);
             RS_TRACE_NAME("RSUniRender:RestoreLayer");
             canvas_->restoreToCount(saveLayerCnt);
         }
@@ -1338,7 +1345,9 @@ void RSUniRenderVisitor::AddOverDrawListener(std::unique_ptr<RSRenderFrame>& ren
         RS_LOGE("RSUniRenderVisitor::AddOverDrawListener: RSSurfaceFrame is null");
         return;
     }
+    RS_TRACE_BEGIN("RSUniRender::GetSurface");
     auto skSurface = renderFrame->GetFrame()->GetSurface();
+    RS_TRACE_END();
     if (skSurface == nullptr) {
         RS_LOGE("RSUniRenderVisitor::AddOverDrawListener: skSurface is null");
         return;
@@ -1676,6 +1685,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     + " Alpha: " + std::to_string(node.GetGlobalAlpha()).substr(0, 4));
     RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 ", child size:%u %s", node.GetId(),
         node.GetChildrenCount(), node.GetName().c_str());
+    RSTagTracker tagTracker(canvas_->getGrContext(), node.GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
     node.UpdatePositionZ();
     if (isSecurityDisplay_ && node.GetSecurityLayer()) {
         RS_TRACE_NAME(node.GetName() + " SecurityLayer Skip");
@@ -1889,6 +1899,7 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         RS_LOGD("RsDebug RSBaseRenderEngine::SetColorFilterModeToPaint mode:%d", static_cast<int32_t>(colorFilterMode));
         SkPaint paint;
         RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
+        RSTagTracker tagTracker(canvas_->getGrContext(), RSTagTracker::TAGTYPE::TAG_SAVELAYER_COLOR_FILTER);
         saveCount = canvas_->saveLayer(nullptr, &paint);
     } else {
         saveCount = canvas_->save();
@@ -1960,6 +1971,7 @@ void RSUniRenderVisitor::RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& nod
 
 void RSUniRenderVisitor::PrepareOffscreenRender(RSRenderNode& node)
 {
+    RS_TRACE_NAME("PrepareOffscreenRender");
     // cleanup
     canvasBackup_ = nullptr;
     offscreenSurface_ = nullptr;

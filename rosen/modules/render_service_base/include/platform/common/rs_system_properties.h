@@ -87,6 +87,7 @@ public:
     static bool GetDumpLayersEnabled();
     static bool GetQuickSkipPrepareEnabled();
     static bool GetHardwareComposerEnabled();
+    static bool GetReleaseGpuResourceEnabled();
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();

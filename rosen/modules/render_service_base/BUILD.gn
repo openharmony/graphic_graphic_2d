@@ -97,6 +97,7 @@ ohos_source_set("render_service_base_src") {
     #memory
     "src/memory/MemoryGraphic.cpp",
     "src/memory/MemoryTrack.cpp",
+    "src/memory/rs_tag_tracker.cpp",
 
     #pipeline
     "src/pipeline/rs_base_render_node.cpp",
