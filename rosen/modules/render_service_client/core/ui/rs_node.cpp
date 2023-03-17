@@ -960,7 +960,7 @@ void RSNode::ClearAllModifiers()
     }
 }
 
-void RSNode::AddModifier(const std::shared_ptr<RSModifier>& modifier)
+void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
 {
     if (!modifier || modifiers_.count(modifier->GetPropertyId())) {
         return;
