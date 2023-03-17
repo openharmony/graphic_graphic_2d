@@ -118,6 +118,16 @@ ohos_shared_library("librender_service") {
     "//third_party/libpng:libpng",
   ]
 
+  if (rs_enable_gpu) {
+    include_dirs += [ "$graphic_2d_root/frameworks/vulkan_wrapper/include" ]
+
+    if (graphic_standard_feature_enable_vulkan) {
+      include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]
+    }
+
+    public_deps += [ "$graphic_2d_root:libvulkan" ]
+  }
+
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",

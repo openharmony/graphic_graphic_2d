@@ -78,8 +78,13 @@ PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 
 PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 {
+#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_VK)
+    return static_cast<PartialRenderType>(
+        std::atoi((system::GetParameter("rosen.uni.partialrender.enabled", "0")).c_str()));
+#else
     return static_cast<PartialRenderType>(
         std::atoi((system::GetParameter("rosen.uni.partialrender.enabled", "4")).c_str()));
+#endif
 }
 
 bool RSSystemProperties::GetOcclusionEnabled()

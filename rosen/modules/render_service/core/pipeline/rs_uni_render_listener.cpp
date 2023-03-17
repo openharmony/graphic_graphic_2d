@@ -16,6 +16,7 @@
 #include "pipeline/rs_uni_render_listener.h"
 
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/parallel_render/rs_parallel_render_manager.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -34,7 +35,12 @@ void RSUniRenderListener::OnBufferAvailable()
     }
     RS_LOGD("RSUniRenderListener::OnBufferAvailable node id:%" PRIu64, node->GetId());
     node->IncreaseAvailableBuffer();
-
+#ifdef RS_ENABLE_VK
+    if (node->IsParallelDisplayNode()) {
+        RSParallelRenderManager::Instance()->NotifyUniRenderFinish();
+        return;
+    }
+#endif
     RSMainThread::Instance()->NotifyUniRenderFinish();
 }
 }

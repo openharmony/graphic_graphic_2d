@@ -114,6 +114,15 @@ public:
         return surface_;
     }
 
+    void SetIsParallelDisplayNode(bool isParallelDisplayNode)
+    {
+        isParallelDisplayNode_ = isParallelDisplayNode;
+    }
+
+    bool IsParallelDisplayNode() const
+    {
+        return isParallelDisplayNode_;
+    }
 #ifndef ROSEN_CROSS_PLATFORM
     bool CreateSurface(sptr<IBufferConsumerListener> listener);
     sptr<IBufferConsumerListener> GetConsumerListener() const
@@ -137,7 +146,7 @@ public:
     void ClearCurrentSurfacePos();
     void UpdateSurfaceNodePos(NodeId id, RectI rect)
     {
-#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_PARALLEL_RENDER)
         std::unique_lock<std::mutex> lock(mtx_);
         currentFrameSurfacePos_[id] = rect;
 #else
@@ -208,6 +217,8 @@ private:
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
     std::mutex mtx_;
+
+    bool isParallelDisplayNode_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

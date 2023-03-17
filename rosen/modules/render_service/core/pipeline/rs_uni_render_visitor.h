@@ -107,6 +107,20 @@ public:
         return isOpDropped_;
     }
 
+    ColorGamut GetColorGamut() const
+    {
+        return newColorSpace_;
+    }
+
+    std::shared_ptr<RSProcessor> GetProcessor() const
+    {
+        return processor_;
+    }
+
+    void SetRenderFrame(std::unique_ptr<RSRenderFrame>& renderFrame)
+    {
+        renderFrame_ = std::move(renderFrame);
+    }
     void SetAppWindowNum(uint32_t num);
 private:
     void DrawWatermarkIfNeed();
@@ -243,6 +257,8 @@ private:
 
     bool isCalcCostEnable_ = false;
 
+    bool isVkSub_ = false;
+    std::unique_ptr<RSRenderFrame> renderFrame_;
     uint32_t appWindowNum_ = 0;
 };
 } // namespace Rosen

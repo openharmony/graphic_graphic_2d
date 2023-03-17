@@ -100,19 +100,21 @@ std::vector<uint32_t> RSParallelTaskManager::LoadBalancing()
     }
 
     std::vector<uint32_t> loadNumPerThread;
+#ifndef RS_ENABLE_VK
     if (isParallelRenderExtEnabled_) {
         auto parallelRenderExtLB = reinterpret_cast<void(*)(int*, std::vector<uint32_t> &)>(
             RSParallelRenderExt::loadBalancingFunc_);
         parallelRenderExtLB(loadBalance_, loadNumPerThread);
-    } else {
-        uint32_t avgLoadNum = renderTaskList_.size() / threadNum_;
-        uint32_t loadMod = renderTaskList_.size() % threadNum_;
-        for (uint32_t i = threadNum_; i > 0; i--) {
-            if (i <= loadMod) {
-                loadNumPerThread.push_back(avgLoadNum + 1);
-            } else {
-                loadNumPerThread.push_back(avgLoadNum);
-            }
+        return loadNumPerThread;
+    }
+#endif
+    uint32_t avgLoadNum = renderTaskList_.size() / threadNum_;
+    uint32_t loadMod = renderTaskList_.size() % threadNum_;
+    for (uint32_t i = threadNum_; i > 0; i--) {
+        if (i <= loadMod) {
+            loadNumPerThread.push_back(avgLoadNum + 1);
+        } else {
+            loadNumPerThread.push_back(avgLoadNum);
         }
     }
     return loadNumPerThread;
