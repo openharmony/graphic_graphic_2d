@@ -225,7 +225,7 @@ public:
     NodeModifier() = default;
     virtual ~NodeModifier() = default;
 
-    void Modifier(RSNode& target) const override
+    void Modify(RSNode& target) const override
     {
         target.SetAlpha(alpha_->Get());
         target.SetScale(scale_->Get());
