@@ -447,10 +447,10 @@ LayerInfoPtr RSComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& node) con
     RS_TRACE_NAME(traceInfo.c_str());
     RS_LOGD(
         "RsDebug RSComposerAdapter::CreateBufferLayer surfaceNode id:%" PRIu64 " name:[%s] dst [%d %d %d %d]"
-        "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, z:%f, globalZOrder:%d, blendType = %d",
+        "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d], z:%f, globalZOrder:%d, blendType = %d",
         node.GetId(), node.GetName().c_str(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
         info.srcRect.w, info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(),
-        info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(), info.buffer.GetRefPtr(),
+        info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(),
         node.GetGlobalZOrder(), info.zOrder, info.blendType);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
@@ -522,10 +522,10 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
 
     ComposeInfo info = BuildComposeInfo(node);
     RS_LOGD("RSComposerAdapter::ProcessSurface displayNode id:%" PRIu64 " dst [%d %d %d %d]"
-            "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, globalZOrder:%d, blendType = %d",
+            "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d], globalZOrder:%d, blendType = %d",
         node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,
         info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
-        info.buffer->GetSurfaceBufferHeight(), info.buffer.GetRefPtr(), info.zOrder, info.blendType);
+        info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
     LayerRotate(layer, node);
