@@ -213,11 +213,11 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand013, TestSize.Level1)
     RSContext context;
     NodeId id = -10;
     RSSurfaceNodeType type = RSSurfaceNodeType::DEFAULT;
-    SurfaceNodeCommandHelper::SetSurfaceNodeType(context, id, type);
+    SurfaceNodeCommandHelper::SetSurfaceNodeType(context, id, static_cast<uint8_t>(type));
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
-    SurfaceNodeCommandHelper::SetSurfaceNodeType(*context2, id2, type);
+    SurfaceNodeCommandHelper::SetSurfaceNodeType(*context2, id2, static_cast<uint8_t>(type));
 }
 
 /**

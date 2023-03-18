@@ -90,7 +90,7 @@ bool RSSurfaceNodeCommandFuzzTest(const uint8_t* data, size_t size)
     SurfaceNodeCommandHelper::SetContextBounds(context, static_cast<NodeId>(id), bounds);
     SurfaceNodeCommandHelper::SetAbilityBGAlpha(context, static_cast<NodeId>(id), alpha);
     SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable(context, static_cast<NodeId>(id), available);
-    SurfaceNodeCommandHelper::SetSurfaceNodeType(context, static_cast<NodeId>(id), type);
+    SurfaceNodeCommandHelper::SetSurfaceNodeType(context, static_cast<NodeId>(id), static_cast<uint8_t>(type));
     SurfaceNodeCommandHelper::SetContainerWindow(context, static_cast<NodeId>(id), hasContainerWindow, density);
 
     return true;

@@ -40,6 +40,11 @@ enum RSCommandType : uint16_t {
     RS_NODE_SYNCHRONOUS_READ_PROPERTY,
 };
 
+// [attention]
+// RSCommand object is serializable, when use ADD_COMMAND macro to define a new RSCommand type,
+// use POD types or type with marshalling & unmarshalling func defined in RSMarshallingHelper for construction
+// parameters, otherwise you should define marshalling & unmarshalling func for your param type.
+// Especially, don't use enum class type directly, convert it to int
 class RSCommand : public Parcelable {
 public:
     virtual ~RSCommand() noexcept = default;

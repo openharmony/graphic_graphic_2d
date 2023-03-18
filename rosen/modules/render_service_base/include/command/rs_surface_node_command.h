@@ -63,7 +63,7 @@ public:
     static void SetContextBounds(RSContext& context, NodeId id, Vector4f bounds);
     static void SetAbilityBGAlpha(RSContext& context, NodeId id, uint8_t alpha);
     static void SetIsNotifyUIBufferAvailable(RSContext& context, NodeId nodeId, bool available);
-    static void SetSurfaceNodeType(RSContext& context, NodeId nodeId, RSSurfaceNodeType type);
+    static void SetSurfaceNodeType(RSContext& context, NodeId nodeId, uint8_t surfaceNodeType);
     static void SetContainerWindow(RSContext& context, NodeId nodeId, bool hasContainerWindow, float density);
     static void SetAnimationFinished(RSContext& context, NodeId nodeId);
 };
@@ -94,7 +94,7 @@ ADD_COMMAND(RSSurfaceNodeSetIsNotifyUIBufferAvailable,
     SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSurfaceNodeType,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SURFACE_NODE_TYPE,
-    SurfaceNodeCommandHelper::SetSurfaceNodeType, NodeId, RSSurfaceNodeType))
+    SurfaceNodeCommandHelper::SetSurfaceNodeType, NodeId, uint8_t))
 ADD_COMMAND(RSSurfaceNodeSetContainerWindow,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTAINER_WINDOW, SurfaceNodeCommandHelper::SetContainerWindow,
     NodeId, bool, float))
