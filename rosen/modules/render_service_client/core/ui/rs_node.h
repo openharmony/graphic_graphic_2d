@@ -175,7 +175,7 @@ public:
     }
 
     void AddModifier(const std::shared_ptr<RSModifier> modifier);
-    void RemoveModifier(const std::shared_ptr<RSModifier>& modifier);
+    void RemoveModifier(const std::shared_ptr<RSModifier> modifier);
 
 protected:
     explicit RSNode(bool isRenderServiceNode);
