@@ -53,6 +53,17 @@ struct DrivenPrepareInfo {
     RectI screenRect;
     bool hasInvalidScene = false;
     bool hasDrivenNodeOnUniTree = false;
+};
+
+struct DrivenProcessInfo {
+    std::shared_ptr<RSProcessor> uniProcessor = nullptr;
+    ColorGamut uniColorSpace = ColorGamut::COLOR_GAMUT_SRGB;
+    float uniGlobalZOrder = 0.0f;
+};
+
+struct DrivenInfo {
+    DrivenPrepareInfo prepareInfo;
+    DrivenProcessInfo processInfo;
 
     // used in RSUniRenderVisitor
     bool hasDrivenNodeMarkRender = false;
@@ -60,12 +71,6 @@ struct DrivenPrepareInfo {
     RSBaseRenderNode::SharedPtr currentRootNode;
     DrivenUniTreePrepareMode drivenUniTreePrepareMode = DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_BEFORE;
     DrivenUniRenderMode currDrivenRenderMode = DrivenUniRenderMode::RENDER_WITH_NORMAL;
-};
-
-struct DrivenProcessInfo {
-    std::shared_ptr<RSProcessor> uniProcessor = nullptr;
-    ColorGamut uniColorSpace = ColorGamut::COLOR_GAMUT_SRGB;
-    float uniGlobalZOrder = 0.0f;
 };
 
 class RSDrivenRenderManager {

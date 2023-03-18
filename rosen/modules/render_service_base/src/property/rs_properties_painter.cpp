@@ -584,5 +584,47 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, SkCanvas& can
     SkRect maskBounds = Rect2SkRect(properties.GetBoundsRect());
     DrawMask(properties, canvas, maskBounds);
 }
+
+RectF RSPropertiesPainter::GetCmdsClipRect(DrawCmdListPtr& cmds)
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    RectF clipRect;
+    if (cmds == nullptr) {
+        return clipRect;
+    }
+    SkRect rect;
+    cmds->CheckClipRect(rect);
+    clipRect = { rect.left(), rect.top(), rect.width(), rect.height() };
+    return clipRect;
+#else
+    return RectF { 0.0f, 0.0f, 0.0f, 0.0f };
+#endif
+}
+
+void RSPropertiesPainter::DrawFrameForDriven(const RSProperties& properties, RSPaintFilterCanvas& canvas,
+                                             DrawCmdListPtr& cmds)
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    if (cmds == nullptr) {
+        return;
+    }
+    SkMatrix mat;
+    if (GetGravityMatrix(
+            properties.GetFrameGravity(), properties.GetFrameRect(), cmds->GetWidth(), cmds->GetHeight(), mat)) {
+        canvas.concat(mat);
+    }
+    auto frameRect = Rect2SkRect(properties.GetFrameRect());
+    // Generate or clear cache on demand
+    if (canvas.isCacheEnabled()) {
+        cmds->GenerateCache(canvas.GetSurface());
+    } else {
+        cmds->ClearCache();
+    }
+    // temporary solution for driven content clip
+    cmds->ReplaceDrivenCmds();
+    cmds->Playback(canvas, &frameRect);
+    cmds->RestoreOriginCmdsForDriven();
+#endif
+}
 } // namespace Rosen
 } // namespace OHOS

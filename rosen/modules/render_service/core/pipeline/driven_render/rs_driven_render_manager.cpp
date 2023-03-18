@@ -103,12 +103,18 @@ void RSDrivenRenderManager::DoPrepareRenderTask(const DrivenPrepareInfo& info)
     bool backgroundDirty = info.dirtyInfo.backgroundDirty;
     bool contentDirty = info.dirtyInfo.contentDirty;
     bool nonContentDirty = info.dirtyInfo.nonContentDirty;
+    bool isValidSurface = IsValidSurfaceName(info.backgroundNode);
     RSBaseRenderNode::SharedPtr currBackground = nullptr;
     RSBaseRenderNode::SharedPtr currContent = nullptr;
     DrivenDirtyType dirtyType = info.dirtyInfo.type;
 
-    if (!info.hasInvalidScene && info.hasDrivenNodeOnUniTree && dirtyType != DrivenDirtyType::INVALID &&
-        IsValidSurfaceName(info.backgroundNode)) {
+    RS_LOGD("RSDrivenRenderManager: backgroundDirty = %d, contentDirty = %d, nonContentDirty = %d, dirtyType = %d, "
+        "hasInvalidScene = %d, hasDrivenNodeOnUniTree = %d, isValidSurface = %d",
+        backgroundDirty, contentDirty, nonContentDirty, dirtyType,
+        info.hasInvalidScene, info.hasDrivenNodeOnUniTree, isValidSurface);
+
+    if (!info.hasInvalidScene && info.hasDrivenNodeOnUniTree &&
+        dirtyType != DrivenDirtyType::INVALID && isValidSurface) {
         currBackground = info.backgroundNode;
         currContent = info.contentNode;
     }

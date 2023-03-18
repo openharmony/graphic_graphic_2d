@@ -210,8 +210,7 @@ void RSCanvasRenderNode::ProcessDrivenContentRender(RSPaintFilterCanvas& canvas)
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     canvasNodeSaveCount_ = canvas.SaveCanvasAndAlpha();
     canvas.translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
-    RSModifierContext context = { GetMutableRenderProperties(), &canvas };
-    ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
+    DrawDrivenContent(canvas);
 #endif
 }
 
@@ -224,6 +223,54 @@ void RSCanvasRenderNode::ProcessDrivenContentRenderAfterChildren(RSPaintFilterCa
 
     GetMutableRenderProperties().ResetBounds();
     canvas.RestoreCanvasAndAlpha(canvasNodeSaveCount_);
+#endif
+}
+
+RectF RSCanvasRenderNode::GetDrivenContentClipFrameRect() const
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    // temporary solution for driven content clip
+    RectF rect;
+    auto itr = drawCmdModifiers_.find(RSModifierType::CONTENT_STYLE);
+    if (itr == drawCmdModifiers_.end() || itr->second.empty()) {
+        return rect;
+    }
+    if (!itr->second.empty()) {
+        auto drawCmdModifier = std::static_pointer_cast<RSDrawCmdListRenderModifier>(itr->second.front());
+        if (drawCmdModifier != nullptr) {
+            rect = drawCmdModifier->GetCmdsClipRect();
+        }
+    }
+    return rect;
+#else
+    return RectF { 0.0f, 0.0f, 0.0f, 0.0f };
+#endif
+}
+
+void RSCanvasRenderNode::DrawDrivenContent(RSPaintFilterCanvas& canvas)
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    RSModifierContext context = { GetMutableRenderProperties(), &canvas };
+    auto itr = drawCmdModifiers_.find(RSModifierType::CONTENT_STYLE);
+    if (itr == drawCmdModifiers_.end() || itr->second.empty()) {
+        return;
+    }
+    int32_t index = 0;
+    for (const auto& modifier : itr->second) {
+        if (index == 0) {
+            // temporary solution for driven content clip
+            auto drawCmdModifier = std::static_pointer_cast<RSDrawCmdListRenderModifier>(modifier);
+            if (drawCmdModifier != nullptr) {
+                drawCmdModifier->ApplyForDrivenContent(context);
+                index++;
+                continue;
+            }
+        }
+        if (modifier != nullptr) {
+            modifier->Apply(context);
+        }
+        index++;
+    }
 #endif
 }
 } // namespace Rosen

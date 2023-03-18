@@ -135,6 +135,10 @@ public:
         return overlayRect_;
     }
 
+    // functions that are dedicated to driven render [start]
+    RectF GetCmdsClipRect() const;
+    void ApplyForDrivenContent(RSModifierContext& context) const;
+    // functions that are dedicated to driven render [end]
 protected:
     std::shared_ptr<RectF> overlayRect_ = nullptr;
     RSModifierType drawStyle_ = RSModifierType::EXTENDED;

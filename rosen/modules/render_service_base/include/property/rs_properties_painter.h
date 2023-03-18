@@ -48,6 +48,10 @@ public:
     static SkColor CalcAverageColor(sk_sp<SkImage> imageSnapshot);
 
     static void DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+    // functions that are dedicated to driven render [start]
+    static RectF GetCmdsClipRect(DrawCmdListPtr& cmds);
+    static void DrawFrameForDriven(const RSProperties& properties, RSPaintFilterCanvas& canvas, DrawCmdListPtr& cmds);
+    // functions that are dedicated to driven render [end]
 private:
     inline static int g_blurCnt = 0;
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);

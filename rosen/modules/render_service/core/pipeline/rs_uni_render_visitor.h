@@ -87,7 +87,7 @@ public:
         if (!drivenInfo_) {
             return;
         }
-        drivenInfo_->hasDrivenNodeOnUniTree = hasDrivenNodeOnUniTree;
+        drivenInfo_->prepareInfo.hasDrivenNodeOnUniTree = hasDrivenNodeOnUniTree;
         drivenInfo_->hasDrivenNodeMarkRender = hasDrivenNodeMarkRender;
     }
 
@@ -253,7 +253,7 @@ private:
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
 
     // driven render
-    std::unique_ptr<DrivenPrepareInfo> drivenInfo_ = nullptr;
+    std::unique_ptr<DrivenInfo> drivenInfo_ = nullptr;
 
     bool isCalcCostEnable_ = false;
 

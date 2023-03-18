@@ -94,7 +94,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     RSTagTracker::UpdateReleseGpuReousrceEnable(RSSystemProperties::GetReleaseGpuResourceEnabled());
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     if (RSDrivenRenderManager::GetInstance().GetDrivenRenderEnabled()) {
-        drivenInfo_ = std::make_unique<DrivenPrepareInfo>();
+        drivenInfo_ = std::make_unique<DrivenInfo>();
     }
 #endif
     surfaceNodePrepareMutex_ = std::make_shared<std::mutex>();
@@ -247,7 +247,8 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     dirtyFlag_ = dirtyFlag_ || node.IsRotationChanged();
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     if (drivenInfo_) {
-        drivenInfo_->dirtyInfo.nonContentDirty = drivenInfo_->dirtyInfo.nonContentDirty || dirtyFlag_;
+        drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty =
+            drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty || dirtyFlag_;
     }
 #endif
     // when display is in rotation state, occlusion relationship will be ruined,
@@ -274,11 +275,12 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     if (drivenInfo_) {
         RS_TRACE_NAME("RSUniRender:DrivenRenderPrepare");
-        drivenInfo_->hasInvalidScene = drivenInfo_->hasInvalidScene || isHardwareForcedDisabled_ ||
-            node.GetRotation() != ScreenRotation::ROTATION_0;
-        drivenInfo_->screenRect = RectI(0, 0, screenInfo_.width, screenInfo_.height),
+        drivenInfo_->prepareInfo.hasInvalidScene = drivenInfo_->prepareInfo.hasInvalidScene ||
+            node.GetChildrenCount() >= PARALLEL_RENDER_MINIMUN_RENDER_NODE_NUMBER ||
+            isHardwareForcedDisabled_ || node.GetRotation() != ScreenRotation::ROTATION_0;
+        drivenInfo_->prepareInfo.screenRect = RectI(0, 0, screenInfo_.width, screenInfo_.height),
         // prepare driven render tree
-        RSDrivenRenderManager::GetInstance().DoPrepareRenderTask(*drivenInfo_);
+        RSDrivenRenderManager::GetInstance().DoPrepareRenderTask(drivenInfo_->prepareInfo);
     }
 #endif
 }
@@ -435,7 +437,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     if (drivenInfo_ && (node.GetName() == "imeWindow" || node.GetName() == "RecentView")) {
-        drivenInfo_->hasInvalidScene = true;
+        drivenInfo_->prepareInfo.hasInvalidScene = true;
     }
 #endif
     // stop traversal if node keeps static
@@ -540,12 +542,14 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     bool isLeashWindowNode = false;
     if (drivenInfo_) {
-        drivenInfo_->dirtyInfo.nonContentDirty = drivenInfo_->dirtyInfo.nonContentDirty || dirtyFlag_;
+        drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty =
+            drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty || dirtyFlag_;
         if (drivenInfo_->drivenUniTreePrepareMode == DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_BEFORE) {
-            drivenInfo_->dirtyInfo.backgroundDirty = drivenInfo_->dirtyInfo.backgroundDirty || dirtyFlag_;
+            drivenInfo_->prepareInfo.dirtyInfo.backgroundDirty =
+                drivenInfo_->prepareInfo.dirtyInfo.backgroundDirty || dirtyFlag_;
         } else if (drivenInfo_->drivenUniTreePrepareMode == DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_AFTER) {
-            drivenInfo_->dirtyInfo.nonContentDirty =
-                drivenInfo_->dirtyInfo.nonContentDirty || node.GetRenderProperties().NeedFilter();
+            drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty =
+                drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty || node.GetRenderProperties().NeedFilter();
         }
 
         if (node.GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
@@ -553,7 +557,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             drivenInfo_->isPrepareLeashWinSubTree = true;
         }
         if (node.IsSelfDrawingType()) {
-            drivenInfo_->hasInvalidScene = true;
+            drivenInfo_->prepareInfo.hasInvalidScene = true;
         }
     }
 #endif
@@ -637,12 +641,13 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     if (drivenInfo_) {
         drivenInfo_->currentRootNode = node.shared_from_this();
-        drivenInfo_->dirtyInfo.nonContentDirty = drivenInfo_->dirtyInfo.nonContentDirty || dirtyFlag_;
+        drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty =
+            drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty || dirtyFlag_;
         if (drivenInfo_->drivenUniTreePrepareMode == DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_BEFORE) {
-            drivenInfo_->dirtyInfo.backgroundDirty = dirtyFlag_;
+            drivenInfo_->prepareInfo.dirtyInfo.backgroundDirty = dirtyFlag_;
         } else if (drivenInfo_->drivenUniTreePrepareMode == DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_AFTER) {
-            drivenInfo_->dirtyInfo.nonContentDirty =
-                drivenInfo_->dirtyInfo.nonContentDirty || node.GetRenderProperties().NeedFilter();
+            drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty =
+                drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty || node.GetRenderProperties().NeedFilter();
         }
     }
 #endif
@@ -701,29 +706,32 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         auto drivenCanvasNode = RSDrivenRenderManager::GetInstance().GetContentSurfaceNode()->GetDrivenCanvasNode();
         if (node.IsMarkDrivenRender() ||
             (!drivenInfo_->hasDrivenNodeMarkRender &&
-                drivenCanvasNode != nullptr && node.GetId() == drivenCanvasNode->GetId())) {
-            drivenInfo_->backgroundNode = drivenInfo_->currentRootNode;
-            drivenInfo_->contentNode = node.shared_from_this();
+            drivenCanvasNode != nullptr && node.GetId() == drivenCanvasNode->GetId())) {
+            drivenInfo_->prepareInfo.backgroundNode = drivenInfo_->currentRootNode;
+            drivenInfo_->prepareInfo.contentNode = node.shared_from_this();
             drivenInfo_->drivenUniTreePrepareMode = DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE;
-            drivenInfo_->dirtyInfo.contentDirty = false;
+            drivenInfo_->prepareInfo.dirtyInfo.contentDirty = false;
             isContentCanvasNode = true;
-            isBeforeContentNodeDirty = drivenInfo_->dirtyInfo.nonContentDirty;
+            isBeforeContentNodeDirty = drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty;
             if (node.IsMarkDrivenRender()) {
-                drivenInfo_->dirtyInfo.type = DrivenDirtyType::MARK_DRIVEN_RENDER;
+                drivenInfo_->prepareInfo.dirtyInfo.type = DrivenDirtyType::MARK_DRIVEN_RENDER;
             } else {
-                drivenInfo_->dirtyInfo.type = DrivenDirtyType::MARK_DRIVEN;
+                drivenInfo_->prepareInfo.dirtyInfo.type = DrivenDirtyType::MARK_DRIVEN;
             }
         }
     }
     if (drivenInfo_) {
-        drivenInfo_->dirtyInfo.nonContentDirty = drivenInfo_->dirtyInfo.nonContentDirty || dirtyFlag_;
+        drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty =
+            drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty || dirtyFlag_;
         if (drivenInfo_->drivenUniTreePrepareMode == DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_BEFORE) {
-            drivenInfo_->dirtyInfo.backgroundDirty = drivenInfo_->dirtyInfo.backgroundDirty || dirtyFlag_;
+            drivenInfo_->prepareInfo.dirtyInfo.backgroundDirty =
+                drivenInfo_->prepareInfo.dirtyInfo.backgroundDirty || dirtyFlag_;
         } else if (drivenInfo_->drivenUniTreePrepareMode == DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_AFTER) {
-            drivenInfo_->dirtyInfo.nonContentDirty = drivenInfo_->dirtyInfo.nonContentDirty || node.GetRenderProperties().NeedFilter();
+            drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty =
+                drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty || node.GetRenderProperties().NeedFilter();
         } else {
             if (node.IsContentChanged()) {
-                drivenInfo_->dirtyInfo.contentDirty = true;
+                drivenInfo_->prepareInfo.dirtyInfo.contentDirty = true;
             }
         }
         if (node.IsContentChanged()) {
@@ -769,7 +777,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     // skip content node and its children, calculate dirty contain background and foreground
     if (drivenInfo_ && isContentCanvasNode) {
-        drivenInfo_->dirtyInfo.nonContentDirty = isBeforeContentNodeDirty;
+        drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty = isBeforeContentNodeDirty;
         drivenInfo_->drivenUniTreePrepareMode = DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_AFTER;
     }
 #endif
@@ -1017,7 +1025,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     // [PLANNING]: processing of layers z-order to be implemented
-    if (drivenInfo_ && !drivenInfo_->hasInvalidScene) {
+    if (drivenInfo_ && !drivenInfo_->prepareInfo.hasInvalidScene) {
         drivenInfo_->currDrivenRenderMode = RSDrivenRenderManager::GetInstance().GetUniDrivenRenderMode();
         globalZOrder_ = RSDrivenRenderManager::GetInstance().GetUniRenderGlobalZOrder();
     }
@@ -1279,11 +1287,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     }
 
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
-    if (drivenInfo_ && !drivenInfo_->hasInvalidScene) {
+    if (drivenInfo_ && !drivenInfo_->prepareInfo.hasInvalidScene) {
         RS_TRACE_NAME("RSUniRender:DrivenRenderProcess");
         // process driven render tree
-        DrivenProcessInfo info { processor_, newColorSpace_, node.GetGlobalZOrder() };
-        RSDrivenRenderManager::GetInstance().DoProcessRenderTask(info);
+        drivenInfo_->processInfo = { processor_, newColorSpace_, node.GetGlobalZOrder() };
+        RSDrivenRenderManager::GetInstance().DoProcessRenderTask(drivenInfo_->processInfo);
     }
 #endif
     if (!isVkSub_) {
@@ -1928,7 +1936,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     // clip hole for driven render
-    if (drivenInfo_ && !drivenInfo_->hasInvalidScene &&
+    if (drivenInfo_ && !drivenInfo_->prepareInfo.hasInvalidScene &&
         drivenInfo_->currDrivenRenderMode != DrivenUniRenderMode::RENDER_WITH_NORMAL) {
         // skip render driven node sub tree
         if (RSDrivenRenderManager::GetInstance().ClipHoleForDrivenNode(*canvas_, node)) {

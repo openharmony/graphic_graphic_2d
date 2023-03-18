@@ -56,6 +56,12 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSB_EXPORT DrawCmdList* Unmarshalling(Parcel& parcel);
 
+    // functions that are dedicated to driven render [start]
+    void CheckClipRect(SkRect& rect);
+    void ReplaceDrivenCmds();
+    void RestoreOriginCmdsForDriven();
+    // functions that are dedicated to driven render [end]
+
 private:
     std::vector<std::unique_ptr<OpItem>> ops_;
     mutable std::mutex mutex_;
@@ -66,6 +72,10 @@ private:
 #ifdef ROSEN_OHOS
     bool isCached_ = false;
 #endif
+
+    // variables that are dedicated to driven render [start]
+    std::unordered_map<int, std::unique_ptr<OpItem>> opReplacedByDrivenRender_;
+    // variables that are dedicated to driven render [end]
 };
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;
