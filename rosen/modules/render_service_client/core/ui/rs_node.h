@@ -199,7 +199,7 @@ public:
     void MarkDrivenRenderFramePaintState(bool flag);
     void MarkContentChanged(bool isChanged);
 
-    void AddModifier(const std::shared_ptr<RSModifier>& modifier);
+    void AddModifier(const std::shared_ptr<RSModifier> modifier);
     void RemoveModifier(const std::shared_ptr<RSModifier>& modifier);
 
 protected:
