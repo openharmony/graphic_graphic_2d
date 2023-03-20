@@ -43,8 +43,10 @@ RSParallelTaskManager::RSParallelTaskManager()
 RSParallelTaskManager::~RSParallelTaskManager()
 {
     if (isParallelRenderExtEnabled_) {
-        auto freeParallelRenderExt = reinterpret_cast<void(*)(int*)>(RSParallelRenderExt::freeParallelRenderLBFunc_);
-        freeParallelRenderExt(loadBalance_);
+        auto freeParallelRenderExt = reinterpret_cast<void (*)(int*)>(RSParallelRenderExt::freeParallelRenderLBFunc_);
+        if (freeParallelRenderExt) {
+            freeParallelRenderExt(loadBalance_);
+        }
     }
     RSParallelRenderExt::CloseParallelRenderExt();
 }
