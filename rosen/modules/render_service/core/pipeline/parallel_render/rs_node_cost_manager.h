@@ -39,9 +39,7 @@ private:
     bool isOpDropped_ = false;
     bool isSecurityDisplay_ = false;
     bool doAnimate_ = false;
-#ifndef RS_ENABLE_VK
     PartialRenderType partialRenderType_;
-#endif
     std::shared_ptr<RSSurfaceRenderNode> costSurfaceNode_;
     bool isOcclusionEnabled_ = false;
 };

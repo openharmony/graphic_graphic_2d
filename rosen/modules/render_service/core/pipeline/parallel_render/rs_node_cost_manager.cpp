@@ -26,9 +26,7 @@ RSNodeCostManager::RSNodeCostManager(bool doAnimate, bool opDropped, bool isSecu
     isOpDropped_ = opDropped;
     isSecurityDisplay_ = isSecurityDisplay;
     isOcclusionEnabled_ = RSSystemProperties::GetOcclusionEnabled();
-#ifndef RS_ENABLE_VK
     partialRenderType_ = RSSystemProperties::GetPartialRenderEnabled();
-#endif
 }
 
 void RSNodeCostManager::AddNodeCost(int32_t cost)

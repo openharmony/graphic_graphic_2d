@@ -82,14 +82,14 @@ public:
     bool IsNeedCalcCost() const;
     int32_t GetCost(RSRenderNode &node) const;
     int32_t GetSelfDrawNodeCost() const;
-    void SetRenderTaskCost(uint32_t subMainThreadIdx, uint64_t loadId, float cost,
-        TaskType type = TaskType::PROCESS_TASK);
+    void StartTiming(uint32_t subMainThreadIdx);
+    void StopTimingAndSetRenderTaskCost(
+        uint32_t subMainThreadIdx, uint64_t loadId, TaskType type = TaskType::PROCESS_TASK);
     bool ParallelRenderExtEnabled();
     void TryEnableParallelRendering();
     void ReadySubThreadNumIncrement();
     void CommitSurfaceNum(int surfaceNum);
     void WaitPrepareEnd(RSUniRenderVisitor &visitor);
-    void WaitProcessEnd(RSUniRenderVisitor &visitor);
     TaskType GetTaskType();
     RSUniRenderVisitor* GetUniVisitor() const
     {
@@ -130,15 +130,17 @@ public:
     {
         return appWindowNodesMap_;
     }
-#ifdef RS_ENABLE_VK
+
+    // Use for Vulkan
+    void WaitProcessEnd(RSUniRenderVisitor &visitor);
     void InitDisplayNodeAndRequestFrame(
         const std::shared_ptr<RSBaseRenderEngine> renderEngine, const ScreenInfo screenInfo);
     void ProcessParallelDisplaySurface(RSUniRenderVisitor &visitor);
     void ReleaseBuffer();
     void NotifyUniRenderFinish();
     std::shared_ptr<RSDisplayRenderNode> GetParallelDisplayNode(uint32_t subMainThreadIdx);
-    std::unique_ptr<RSRenderFrame>& GetParallelFrame(uint32_t subMainThreadIdx);
-#endif
+    std::unique_ptr<RSRenderFrame> GetParallelFrame(uint32_t subMainThreadIdx);
+
 private:
     RSParallelRenderManager();
     ~RSParallelRenderManager() = default;
@@ -187,11 +189,13 @@ private:
     bool isOpDropped_ = false;
     bool isSecurityDisplay_ = false;
 
-#ifdef RS_ENABLE_VK
+    std::vector<timespec> startTime_;
+    std::vector<timespec> stopTime_;
+
+    // Use for Vulkan
     std::vector<std::shared_ptr<RSDisplayRenderNode>> parallelDisplayNodes_;
     std::vector<std::unique_ptr<RSRenderFrame>> parallelFrames_;
     int readyBufferNum_ = 0;
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -114,6 +114,7 @@ public:
         return surface_;
     }
 
+    // Use in vulkan parallel rendering
     void SetIsParallelDisplayNode(bool isParallelDisplayNode)
     {
         isParallelDisplayNode_ = isParallelDisplayNode;
@@ -123,6 +124,7 @@ public:
     {
         return isParallelDisplayNode_;
     }
+
 #ifndef ROSEN_CROSS_PLATFORM
     bool CreateSurface(sptr<IBufferConsumerListener> listener);
     sptr<IBufferConsumerListener> GetConsumerListener() const
@@ -146,7 +148,7 @@ public:
     void ClearCurrentSurfacePos();
     void UpdateSurfaceNodePos(NodeId id, RectI rect)
     {
-#if defined(RS_ENABLE_PARALLEL_RENDER)
+#if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
         std::unique_lock<std::mutex> lock(mtx_);
         currentFrameSurfacePos_[id] = rect;
 #else
@@ -218,6 +220,7 @@ private:
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
     std::mutex mtx_;
 
+    // Use in vulkan parallel rendering
     bool isParallelDisplayNode_ = false;
 };
 } // namespace Rosen

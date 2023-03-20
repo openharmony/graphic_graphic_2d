@@ -101,22 +101,24 @@ std::vector<uint32_t> RSParallelTaskManager::LoadBalancing()
         return parallelPolicy_;
     }
 
-    std::vector<uint32_t> loadNumPerThread;
-#ifndef RS_ENABLE_VK
+    std::vector<uint32_t> loadNumPerThread{};
     if (isParallelRenderExtEnabled_) {
         auto parallelRenderExtLB = reinterpret_cast<void(*)(int*, std::vector<uint32_t> &)>(
             RSParallelRenderExt::loadBalancingFunc_);
         parallelRenderExtLB(loadBalance_, loadNumPerThread);
-        return loadNumPerThread;
-    }
-#endif
-    uint32_t avgLoadNum = renderTaskList_.size() / threadNum_;
-    uint32_t loadMod = renderTaskList_.size() % threadNum_;
-    for (uint32_t i = threadNum_; i > 0; i--) {
-        if (i <= loadMod) {
-            loadNumPerThread.push_back(avgLoadNum + 1);
-        } else {
-            loadNumPerThread.push_back(avgLoadNum);
+    } else {
+        if (threadNum_ == 0) {
+            RS_LOGE("RSParallelTaskManager::LoadBalancing threadNum_ == 0");
+            return loadNumPerThread;
+        }
+        uint32_t avgLoadNum = renderTaskList_.size() / threadNum_;
+        uint32_t loadMod = renderTaskList_.size() % threadNum_;
+        for (uint32_t i = threadNum_; i > 0; i--) {
+            if (i <= loadMod) {
+                loadNumPerThread.push_back(avgLoadNum + 1);
+            } else {
+                loadNumPerThread.push_back(avgLoadNum);
+            }
         }
     }
     return loadNumPerThread;

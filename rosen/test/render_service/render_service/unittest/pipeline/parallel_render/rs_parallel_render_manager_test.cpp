@@ -200,10 +200,6 @@ HWTEST_F(RSParallelRenderManagerTest, PackProcessRenderTaskTest, TestSize.Level1
     SkCanvas skCanvas;
     auto canvas = RSPaintFilterCanvas(&skCanvas);
     RSParallelRenderManager::Instance()->MergeRenderResult(canvas);
-
-    RSParallelRenderManager::Instance()->SetRenderTaskCost(0, 100, 2.1, TaskType::PROCESS_TASK);
-    RSParallelRenderManager::Instance()->SetRenderTaskCost(1, 200, 3.2, TaskType::PROCESS_TASK);
-    RSParallelRenderManager::Instance()->SetRenderTaskCost(2, 300, 10.1, TaskType::PROCESS_TASK);
 }
 
 /**

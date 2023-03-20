@@ -98,13 +98,10 @@ private:
     ParallelRenderType renderType_;
     sk_sp<SkImage> texture_;
     EGLSyncKHR eglSync_ = EGL_NO_SYNC_KHR;
-    timespec startTime_;
-    timespec stopTime_;
 
-#ifdef RS_ENABLE_VK
-    std::shared_ptr<RSDisplayRenderNode> displayNode_;
+    // Use for Vulkan
+    std::shared_ptr<RSDisplayRenderNode> displayNode_ = nullptr;
     std::unique_ptr<RSRenderFrame> renderFrame_;
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

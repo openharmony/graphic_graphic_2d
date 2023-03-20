@@ -51,6 +51,11 @@ RSParallelRenderManager::RSParallelRenderManager()
         InitAppWindowNodeMap();
         parallelHardwareComposer_->Init(PARALLEL_THREAD_NUM);
     }
+    if (ParallelRenderExtEnabled()) {
+        startTime_.assign(PARALLEL_THREAD_NUM, {});
+        stopTime_.assign(PARALLEL_THREAD_NUM, {});
+    }
+    readyBufferNum_ = 0;
 #ifdef RS_ENABLE_VK
     parallelDisplayNodes_.assign(PARALLEL_THREAD_NUM, nullptr);
 #endif
@@ -90,11 +95,17 @@ void RSParallelRenderManager::StartSubRenderThread(uint32_t threadNum, RenderCon
         flipCoin_ = std::vector<uint8_t>(expectedSubThreadNum_, 0);
         firstFlush_ = true;
         renderContext_ = context;
-        for (uint32_t i = 0; i < threadNum; ++i) {
-            auto curThread = std::make_unique<RSParallelSubThread>(context, renderType_, i);
-            curThread->StartSubThread();
-            threadList_.push_back(std::move(curThread));
+#ifdef RS_ENABLE_GL
+        if (context) {
+#endif
+            for (uint32_t i = 0; i < threadNum; ++i) {
+                auto curThread = std::make_unique<RSParallelSubThread>(context, renderType_, i);
+                curThread->StartSubThread();
+                threadList_.push_back(std::move(curThread));
+            }
+#ifdef RS_ENABLE_GL
         }
+#endif
         processTaskManager_.Initialize(threadNum);
         prepareTaskManager_.Initialize(threadNum);
         calcCostTaskManager_.Initialize(threadNum);
@@ -366,8 +377,23 @@ void RSParallelRenderManager::SubMainThreadWait(uint32_t threadIndex)
     });
 }
 
-void RSParallelRenderManager::SetRenderTaskCost(uint32_t subMainThreadIdx, uint64_t loadId, float cost, TaskType type)
+void RSParallelRenderManager::StartTiming(uint32_t subMainThreadIdx)
 {
+    if (ParallelRenderExtEnabled()) {
+        clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime_[subMainThreadIdx]);
+    }
+}
+
+void RSParallelRenderManager::StopTimingAndSetRenderTaskCost(
+    uint32_t subMainThreadIdx, uint64_t loadId, TaskType type)
+{
+    if (!ParallelRenderExtEnabled()) {
+        return;
+    }
+    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &stopTime_[subMainThreadIdx]);
+    float cost =
+        (stopTime_[subMainThreadIdx].tv_sec * 1000.0f + stopTime_[subMainThreadIdx].tv_nsec * 1e-6) -
+        (startTime_[subMainThreadIdx].tv_sec * 1000.0f + startTime_[subMainThreadIdx].tv_nsec * 1e-6);
     switch (type) {
         case TaskType::PREPARE_TASK:
             prepareTaskManager_.SetSubThreadRenderTaskLoad(subMainThreadIdx, loadId, cost);
@@ -493,10 +519,11 @@ void RSParallelRenderManager::AddAppWindowNode(uint32_t surfaceIndex, std::share
         appWindowNodesMap_[surfaceIndex].emplace_back(appNode);
     }
 }
-#ifdef RS_ENABLE_VK
+
 void RSParallelRenderManager::InitDisplayNodeAndRequestFrame(
     const std::shared_ptr<RSBaseRenderEngine> renderEngine, const ScreenInfo screenInfo)
 {
+#ifdef RS_ENABLE_VK
     auto& context = RSMainThread::Instance()->GetContext();
     parallelFrames_.clear();
     for (int i = 0; i < PARALLEL_THREAD_NUM; i++) {
@@ -526,45 +553,64 @@ void RSParallelRenderManager::InitDisplayNodeAndRequestFrame(
             RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true));
         parallelFrames_.push_back(std::move(renderFrame));
     }
+#endif
 }
+
 void RSParallelRenderManager::ProcessParallelDisplaySurface(RSUniRenderVisitor &visitor)
 {
+#ifdef RS_ENABLE_VK
     for (int i = 0; i < PARALLEL_THREAD_NUM; i++) {
-        if(!parallelDisplayNodes_[i]) {
+        if (!parallelDisplayNodes_[i]) {
             continue;
         }
         visitor.GetProcessor()->ProcessDisplaySurface(*parallelDisplayNodes_[i]);
     }
+#endif
 }
+
 void RSParallelRenderManager::ReleaseBuffer()
 {
+#ifdef RS_ENABLE_VK
     for (int i = 0; i < PARALLEL_THREAD_NUM; i++) {
-        if(!parallelDisplayNodes_[i]) {
+        if (!parallelDisplayNodes_[i]) {
             continue;
         }
         auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*parallelDisplayNodes_[i]);
         (void)RSBaseRenderUtil::ReleaseBuffer(surfaceHandler);
     }
+#endif
 }
+
 void RSParallelRenderManager::NotifyUniRenderFinish()
 {
+#ifdef RS_ENABLE_VK
     readyBufferNum_++;
     if (readyBufferNum_ == PARALLEL_THREAD_NUM) {
         RS_TRACE_NAME("RSParallelRenderManager::NotifyUniRenderFinish");
         RSMainThread::Instance()->NotifyUniRenderFinish();
         readyBufferNum_ = 0;
     }
+#endif
 }
+
 std::shared_ptr<RSDisplayRenderNode> RSParallelRenderManager::GetParallelDisplayNode(
     uint32_t subMainThreadIdx)
 {
+#ifdef RS_ENABLE_VK
     return parallelDisplayNodes_[subMainThreadIdx];
+#else
+    return nullptr;
+#endif
 }
-std::unique_ptr<RSRenderFrame>& RSParallelRenderManager::GetParallelFrame(
+
+std::unique_ptr<RSRenderFrame> RSParallelRenderManager::GetParallelFrame(
     uint32_t subMainThreadIdx)
 {
-    return parallelFrames_[subMainThreadIdx];
-}
+#ifdef RS_ENABLE_VK
+    return std::move(parallelFrames_[subMainThreadIdx]);
+#else
+    return nullptr;
 #endif
+}
 } // namespace Rosen
 } // namespace OHOS
