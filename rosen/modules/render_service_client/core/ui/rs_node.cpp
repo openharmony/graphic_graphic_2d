@@ -826,7 +826,7 @@ void RSNode::SetMask(const std::shared_ptr<RSMask>& mask)
 
 void RSNode::SetPixelStretch(const Vector4f& stretchSize)
 {
-    SetProperty<RSPixelStretchModifier, RSProperty<Vector4f>>(RSModifierType::PIXEL_STRETCH, stretchSize);
+    SetProperty<RSPixelStretchModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::PIXEL_STRETCH, stretchSize);
 }
 
 void RSNode::SetFreeze(bool isFreeze)
