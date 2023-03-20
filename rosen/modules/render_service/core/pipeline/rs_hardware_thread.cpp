@@ -125,12 +125,12 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     }
     RSTaskMessage::RSTask task = [this, output = output, layers = layers]() {
         RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers");
-        RS_LOGI("RSHardwareThread::CommitAndReleaseLayers start");
+        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers start");
         output->SetLayerInfo(layers);
         hdiBackend_->Repaint(output);
         auto layerMap = output->GetLayers();
         ReleaseLayers(output, layerMap);
-        RS_LOGI("RSHardwareThread::CommitAndReleaseLayers end");
+        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers end");
     };
     PostTask(task);
 }

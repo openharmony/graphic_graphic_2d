@@ -784,6 +784,11 @@ void RSMainThread::Render()
                 needTraverseNodeTree = !uniVisitor->DoDirectComposition(rootNode);
             } else {
                 RS_LOGI("RSMainThread::Render nothing to update");
+                for (auto& node: hardwareEnabledNodes_) {
+                    if (!node->IsHardwareForcedDisabled()) {
+                        node->MarkCurrentFrameHardwareEnabled();
+                    }
+                }
                 return;
             }
         }

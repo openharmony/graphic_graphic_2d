@@ -239,9 +239,16 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
         if (!argSets.empty()) {
             layerArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
         }
-        mainThread_->ScheduleTask([this, &dumpString, &layerArg]() {
-            return screenManager_->FpsDump(dumpString, layerArg);
-        }).wait();
+        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+        if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+            RSHardwareThread::Instance().ScheduleTask([this, &dumpString, &layerArg]() {
+                return screenManager_->FpsDump(dumpString, layerArg);
+            }).wait();
+        } else {
+            mainThread_->ScheduleTask([this, &dumpString, &layerArg]() {
+                return screenManager_->FpsDump(dumpString, layerArg);
+            }).wait();
+        }
     }
 }
 
@@ -256,9 +263,16 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
             layerArg = std::wstring_convert<
             std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
         }
-        mainThread_->ScheduleTask([this, &dumpString, &layerArg]() {
-            return screenManager_->ClearFpsDump(dumpString, layerArg);
-        }).wait();
+        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+        if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+            RSHardwareThread::Instance().ScheduleTask([this, &dumpString, &layerArg]() {
+                return screenManager_->ClearFpsDump(dumpString, layerArg);
+            }).wait();
+        } else {
+            mainThread_->ScheduleTask([this, &dumpString, &layerArg]() {
+                return screenManager_->ClearFpsDump(dumpString, layerArg);
+            }).wait();
+        }
     }
 }
 
