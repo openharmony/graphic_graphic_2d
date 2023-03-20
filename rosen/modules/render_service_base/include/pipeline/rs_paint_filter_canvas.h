@@ -91,7 +91,7 @@ private:
         Color envForegroundColor;
     } Env;
 
-    Env envDefault = { Color(0) };
+    Env envDefault = { Color(0xFF000000) }; // 0xFF000000 is default value -- black
     std::stack<Env> envStack_ = std::stack<Env>({envDefault});
 
     std::atomic_bool isHighContrastEnabled_ { false };
