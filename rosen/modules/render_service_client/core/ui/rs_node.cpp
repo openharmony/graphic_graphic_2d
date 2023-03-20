@@ -955,8 +955,10 @@ void RSNode::MarkContentChanged(bool isChanged)
 
 void RSNode::ClearAllModifiers()
 {
-    for (auto& [id, modifier] : modifiers_) {
-        modifier->DetachFromNode();
+    for (auto [id, modifier] : modifiers_) {
+        if (modifier) {
+            modifier->DetachFromNode();
+        }
     }
 }
 
@@ -986,7 +988,7 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
     }
 }
 
-void RSNode::RemoveModifier(const std::shared_ptr<RSModifier>& modifier)
+void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
 {
     if (!modifier) {
         return;
