@@ -46,7 +46,9 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr uint32_t USE_CACHE_APP_WINDOW_NUM = 7;
+#if defined(RS_ENABLE_PARALLEL_RENDER) && defined (RS_ENABLE_GL)
 constexpr uint32_t PHONE_MAX_APP_WINDOW_NUM = 1;
+#endif
 
 bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 {
