@@ -36,8 +36,7 @@ int RSSyncTransactionControllerStub::OnRemoteRequest(uint32_t code,MessageParcel
         }
         default: {
             ROSEN_LOGE("Unknown transaction!");
-            ret = ERR_UNKNOWN_TRANSACTION;
-            break;
+            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
     }
 

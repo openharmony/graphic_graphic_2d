@@ -34,9 +34,8 @@ int RSBufferAvailableCallbackStub::OnRemoteRequest(
             break;
         }
         default: {
-            ret = ERR_UNKNOWN_TRANSACTION;
             ROSEN_LOGE("RSBufferAvailableCallbackStub::OnRemoteRequest error");
-            break;
+            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
     }
 

@@ -57,8 +57,7 @@ int RSRenderServiceStub::OnRemoteRequest(uint32_t code, MessageParcel& data, Mes
             break;
         }
         default: {
-            ret = ERR_UNKNOWN_TRANSACTION;
-            break;
+            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
     }
 
