@@ -28,7 +28,7 @@ RSParallelTaskManager::RSParallelTaskManager()
     : threadNum_(0),
       isParallelRenderExtEnabled_(RSParallelRenderExt::OpenParallelRenderExt())
 {
-    if (isParallelRenderExtEnabled_) {
+    if (isParallelRenderExtEnabled_ && (RSParallelRenderExt::initParallelRenderLBFunc_ != nullptr)) {
         auto initParallelRenderExt = reinterpret_cast<int*(*)()>(RSParallelRenderExt::initParallelRenderLBFunc_);
         loadBalance_ = initParallelRenderExt();
         if (loadBalance_ == nullptr) {
@@ -42,7 +42,7 @@ RSParallelTaskManager::RSParallelTaskManager()
 
 RSParallelTaskManager::~RSParallelTaskManager()
 {
-    if (isParallelRenderExtEnabled_) {
+    if (isParallelRenderExtEnabled_ && (RSParallelRenderExt::freeParallelRenderLBFunc_ != nullptr)) {
         auto freeParallelRenderExt = reinterpret_cast<void (*)(int*)>(RSParallelRenderExt::freeParallelRenderLBFunc_);
         if (freeParallelRenderExt) {
             freeParallelRenderExt(loadBalance_);
@@ -54,7 +54,7 @@ RSParallelTaskManager::~RSParallelTaskManager()
 void RSParallelTaskManager::Initialize(uint32_t threadNum)
 {
     threadNum_ = threadNum;
-    if (isParallelRenderExtEnabled_) {
+    if (isParallelRenderExtEnabled_ && (RSParallelRenderExt::setSubRenderThreadNumFunc_ != nullptr)) {
         auto parallelRenderExtSetThreadNumCall = reinterpret_cast<void(*)(int*, uint32_t)>(
             RSParallelRenderExt::setSubRenderThreadNumFunc_);
         parallelRenderExtSetThreadNumCall(loadBalance_, threadNum);
@@ -63,7 +63,7 @@ void RSParallelTaskManager::Initialize(uint32_t threadNum)
 
 void RSParallelTaskManager::PushRenderTask(std::unique_ptr<RSRenderTask> renderTask)
 {
-    if (isParallelRenderExtEnabled_) {
+    if (isParallelRenderExtEnabled_ && (RSParallelRenderExt::addRenderLoadFunc_ != nullptr)) {
         auto parallelRenderExtAddRenderLoad = reinterpret_cast<void(*)(int*, uint64_t, float)>(
             RSParallelRenderExt::addRenderLoadFunc_);
         parallelRenderExtAddRenderLoad(loadBalance_, renderTask->GetIdx(), 0.f);
@@ -102,7 +102,7 @@ std::vector<uint32_t> RSParallelTaskManager::LoadBalancing()
     }
 
     std::vector<uint32_t> loadNumPerThread{};
-    if (isParallelRenderExtEnabled_) {
+    if (isParallelRenderExtEnabled_ && (RSParallelRenderExt::loadBalancingFunc_ != nullptr)) {
         auto parallelRenderExtLB = reinterpret_cast<void(*)(int*, std::vector<uint32_t> &)>(
             RSParallelRenderExt::loadBalancingFunc_);
         parallelRenderExtLB(loadBalance_, loadNumPerThread);
@@ -135,7 +135,7 @@ void RSParallelTaskManager::Reset()
     renderTaskList_.clear();
     superRenderTaskList_.clear();
     parallelPolicy_.clear();
-    if (isParallelRenderExtEnabled_) {
+    if (isParallelRenderExtEnabled_ && (RSParallelRenderExt::clearRenderLoadFunc_ != nullptr)) {
         auto parallelRenderExtClearRenderLoad = reinterpret_cast<void(*)(int*)>(
             RSParallelRenderExt::clearRenderLoadFunc_);
         parallelRenderExtClearRenderLoad(loadBalance_);
@@ -144,7 +144,7 @@ void RSParallelTaskManager::Reset()
 
 void RSParallelTaskManager::SetSubThreadRenderTaskLoad(uint32_t threadIdx, uint64_t loadId, float cost)
 {
-    if (isParallelRenderExtEnabled_) {
+    if (isParallelRenderExtEnabled_ && (RSParallelRenderExt::updateLoadCostFunc_ != nullptr)) {
         auto parallelRenderExtUpdateLoadCost = reinterpret_cast<void(*)(int*, uint32_t, uint64_t, float)>(
             RSParallelRenderExt::updateLoadCostFunc_);
         parallelRenderExtUpdateLoadCost(loadBalance_, threadIdx, loadId, cost);
@@ -153,7 +153,7 @@ void RSParallelTaskManager::SetSubThreadRenderTaskLoad(uint32_t threadIdx, uint6
 
 void RSParallelTaskManager::UpdateNodeCost(RSDisplayRenderNode& node, std::vector<uint32_t>& parallelPolicy) const
 {
-    if (!isParallelRenderExtEnabled_) {
+    if (!isParallelRenderExtEnabled_ || (RSParallelRenderExt::updateNodeCostFunc_ == nullptr)) {
         return;
     }
     RS_TRACE_NAME("UpdateNodeCost");
@@ -171,7 +171,7 @@ void RSParallelTaskManager::UpdateNodeCost(RSDisplayRenderNode& node, std::vecto
 void RSParallelTaskManager::GetCostFactor(std::map<std::string, int32_t>& costFactor,
     std::map<int64_t, int32_t>& imageFactor) const
 {
-    if (!isParallelRenderExtEnabled_) {
+    if (!isParallelRenderExtEnabled_ || (RSParallelRenderExt::getCostFactorFunc_ == nullptr)) {
         return;
     }
     auto getCostFactor = reinterpret_cast<void(*)(int*, std::map<std::string, int32_t> &,

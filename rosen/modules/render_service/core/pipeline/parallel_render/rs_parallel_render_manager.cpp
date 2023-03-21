@@ -431,7 +431,7 @@ void RSParallelRenderManager::TryEnableParallelRendering()
 
 void RSParallelRenderManager::CommitSurfaceNum(int surfaceNum)
 {
-    if (ParallelRenderExtEnabled()) {
+    if (ParallelRenderExtEnabled() && (RSParallelRenderExt::setCoreLevelFunc_ != nullptr)) {
         auto setCoreLevel = reinterpret_cast<void(*)(int)>(RSParallelRenderExt::setCoreLevelFunc_);
         setCoreLevel(surfaceNum);
     }
