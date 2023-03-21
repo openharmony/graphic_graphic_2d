@@ -14,7 +14,9 @@
  */
 
 #include "gtest/gtest.h"
+#include "font_collection.h"
 #include "typography.h"
+#include "typography_create.h"
 
 using namespace rosen;
 using namespace testing;
@@ -33,25 +35,27 @@ class OH_Drawing_UI_TypographyTest : public testing::Test {
  */
 HWTEST_F(OH_Drawing_UI_TypographyTest, OH_Drawing_UI_TypographyTest001, TestSize.Level1)
 {
-    rosen::Typography typography;
-    auto result = typography.GetRectsForRange(0, 0, RectHeightStyle::TIGHT, RectWidthStyle::TIGHT);
+    TypographyStyle typoStype;
+    std::unique_ptr<TypographyCreate> builder = TypographyCreate::CreateRosenBuilder(
+        typoStype, FontCollection::GetInstance());
+    std::unique_ptr<rosen::Typography> typography = builder->Build();
+    auto result = typography->GetRectsForRange(0, 0, RectHeightStyle::TIGHT, RectWidthStyle::TIGHT);
     EXPECT_EQ(result.empty(), true);
-    result = typography.GetRectsForRange(0, 0, RectHeightStyle::MAX, RectWidthStyle::MAX);
+    result = typography->GetRectsForRange(0, 0, RectHeightStyle::MAX, RectWidthStyle::MAX);
     EXPECT_EQ(result.empty(), true);
-    result = typography.GetRectsForRange(0, 0, RectHeightStyle::INCLUDELINESPACEMIDDLE,
+    result = typography->GetRectsForRange(0, 0, RectHeightStyle::INCLUDELINESPACEMIDDLE,
         RectWidthStyle::TIGHT);
     EXPECT_EQ(result.empty(), true);
-    result = typography.GetRectsForRange(0, 0, RectHeightStyle::INCLUDELINESPACETOP,
+    result = typography->GetRectsForRange(0, 0, RectHeightStyle::INCLUDELINESPACETOP,
         RectWidthStyle::TIGHT);
     EXPECT_EQ(result.empty(), true);
-    result = typography.GetRectsForRange(0, 0, RectHeightStyle::INCLUDELINESPACEBOTTOM,
+    result = typography->GetRectsForRange(0, 0, RectHeightStyle::INCLUDELINESPACEBOTTOM,
         RectWidthStyle::MAX);
     EXPECT_EQ(result.empty(), true);
-    result = typography.GetRectsForRange(0, 0, RectHeightStyle::STRUCT,
+    result = typography->GetRectsForRange(0, 0, RectHeightStyle::STRUCT,
         RectWidthStyle::MAX);
     EXPECT_EQ(result.empty(), true);
-
-    result = typography.GetRectsForPlaceholders();
+    result = typography->GetRectsForPlaceholders();
     EXPECT_EQ(result.empty(), true);
 }
 }
