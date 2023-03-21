@@ -33,7 +33,7 @@ RSDrivenRenderManager& RSDrivenRenderManager::GetInstance()
 
 void RSDrivenRenderManager::InitInstance()
 {
-    if (!system::GetBoolParameter("persist.rosen.drivenrender.enabled", false)) {
+    if (!system::GetBoolParameter("persist.rosen.drivenrender.enabled", true)) {
         RS_LOGD("RSDrivenRenderManager: driven render not enabled.");
         return;
     }
@@ -141,7 +141,6 @@ void RSDrivenRenderManager::DoPrepareRenderTask(const DrivenPrepareInfo& info)
         visitor->PrepareDrivenSurfaceRenderNode(*backgroundSurfaceNode_);
         visitor->PrepareDrivenSurfaceRenderNode(*contentSurfaceNode_);
     } else {
-        RS_LOGD("RSDrivenRenderManager: should not prepare and reset!");
         Reset();
     }
     UpdateUniDrivenRenderMode(dirtyType);
@@ -218,7 +217,7 @@ void RSDrivenRenderManager::UpdateUniDrivenRenderMode(DrivenDirtyType dirtyType)
 
     auto contentRenderMode = contentSurfaceNode_->GetDrivenSurfaceRenderMode();
     auto backgroundRenderMode = backgroundSurfaceNode_->GetDrivenSurfaceRenderMode();
-    RS_LOGI("RSDrivenRenderManager: contentRenderMode = %d, backgroundRenderMode = %d, uniRenderMode = %d",
+    RS_LOGD("RSDrivenRenderManager: contentRenderMode = %d, backgroundRenderMode = %d, uniRenderMode = %d",
         contentRenderMode, backgroundRenderMode, uniRenderMode_);
 }
 } // namespace Rosen

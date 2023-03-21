@@ -90,7 +90,6 @@ void RSDrivenRenderVisitor::PrepareDrivenSurfaceRenderNode(RSDrivenSurfaceRender
         if (!cmdsClipFrameRect.IsEmpty()) {
             viewPort = cmdsClipFrameRect;
             dstRect = geoPtr->MapAbsRect(viewPort);
-            RS_LOGD("RSDrivenRenderVisitor::clip cmds rect = %s", viewPort.ToString().c_str());
         }
     }
     currDrivenSurfaceNode_->SetCurrFrameBounds(surfaceBounds, viewPort, contentAbsRect);
