@@ -195,6 +195,18 @@ public:
 
     void UpdateRotation();
     bool IsRotationChanged() const;
+    bool IsFirstTimeToProcessor() const {
+        return isFirstTimeToProcessor;
+    }
+
+    void SetInitMatrix(const SkMatrix& skMatrix) {
+        initMatrix_ = skMatrix;
+        isFirstTimeToProcessor = false;
+    }
+
+    const SkMatrix& GetInitMatrix() const {
+        return initMatrix_;
+    }
 private:
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     uint64_t screenId_;
@@ -205,6 +217,8 @@ private:
     bool isSecurityDisplay_ = false;
     WeakPtr mirrorSource_;
     float lastRotation_ = 0.f;
+    SkMatrix initMatrix_;
+    bool isFirstTimeToProcessor = true;
 
     std::shared_ptr<RSSurface> surface_;
     bool surfaceCreated_ { false };

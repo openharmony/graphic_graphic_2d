@@ -122,7 +122,8 @@ bool RSProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offse
     }
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
     screenInfo_.rotation = node.GetRotation();
-    CalculateScreenTransformMatrix(node);
+    auto mirrorNode = node.GetMirrorSource().lock();
+    CalculateScreenTransformMatrix(mirrorNode ? *mirrorNode : node);
 
     auto mainThread = RSMainThread::Instance();
     if (mainThread != nullptr) {

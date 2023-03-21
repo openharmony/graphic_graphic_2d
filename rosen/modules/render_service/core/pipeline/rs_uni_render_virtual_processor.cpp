@@ -55,7 +55,19 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     if (canvas_ == nullptr) {
         return false;
     }
-
+    auto mirrorNode = node.GetMirrorSource().lock();
+    if (mirrorNode && node.IsFirstTimeToProcessor()) {
+        auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(mirrorNode->GetRenderProperties().GetBoundsGeometry());
+        if (boundsGeoPtr != nullptr) {
+            boundsGeoPtr->UpdateByMatrixFromSelf();
+            node.SetInitMatrix(boundsGeoPtr->GetMatrix());
+        }
+    }
+    SkMatrix invertMatrix;
+    if (node.GetInitMatrix().invert(&invertMatrix)) {
+        screenTransformMatrix_.postConcat(invertMatrix);
+    }
+    canvas_->concat(screenTransformMatrix_);
     return true;
 }
 
