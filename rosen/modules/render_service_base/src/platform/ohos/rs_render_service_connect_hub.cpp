@@ -60,6 +60,9 @@ RSRenderServiceConnectHub::RSRenderServiceConnectHub()
 
 RSRenderServiceConnectHub::~RSRenderServiceConnectHub()
 {
+    if (renderService_ && renderService_->AsObject() && deathRecipient_) {
+        renderService_->AsObject()->RemoveDeathRecipient(deathRecipient_);
+    }
     RS_LOGI("~RSRenderServiceConnectHub: dtor");
 }
 

@@ -53,6 +53,9 @@ RSRenderServiceConnection::RSRenderServiceConnection(
 
 RSRenderServiceConnection::~RSRenderServiceConnection() noexcept
 {
+    if (token_ && connDeathRecipient_) {
+        token_->RemoveDeathRecipient(connDeathRecipient_);
+    }
     CleanAll();
 }
 
