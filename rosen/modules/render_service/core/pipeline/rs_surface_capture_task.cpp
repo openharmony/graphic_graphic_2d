@@ -62,7 +62,8 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
         visitor->IsDisplayNode(false);
     } else if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
         RS_LOGD("RSSurfaceCaptureTask::Run: Into DISPLAY_NODE DisplayRenderNodeId:[%" PRIu64 "]", node->GetId());
-        pixelmap = CreatePixelMapByDisplayNode(displayNode);
+        visitor->SetHasingSecurityLayer(FindSecurityLayer());
+        pixelmap = CreatePixelMapByDisplayNode(displayNode, visitor->IsUniRender(), visitor->GetHasingSecurityLayer());
         visitor->IsDisplayNode(true);
     } else {
         RS_LOGE("RSSurfaceCaptureTask::Run: Invalid RSRenderNodeType!");
@@ -107,6 +108,19 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
     pixelmap->SetPixelsAddr(data, nullptr, pixelmap->GetRowBytes() * pixelmap->GetHeight(),
         Media::AllocatorType::HEAP_ALLOC, nullptr);
 #endif
+    if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
+        if (visitor->IsUniRender() && !visitor->GetHasingSecurityLayer()) {
+            auto rotation = displayNode->GetRotation();
+            if (rotation == ScreenRotation::ROTATION_90) {
+                pixelmap->rotate(static_cast<int32_t>(90)); // 90 degrees
+            }
+
+            if (rotation == ScreenRotation::ROTATION_270) {
+                pixelmap->rotate(static_cast<int32_t>(270)); // 270 degrees
+            }
+            RS_LOGD("RSSurfaceCaptureTask::Run: PixelmapRotation: %d", static_cast<int32_t>(rotation));
+        }
+    }
     return pixelmap;
 }
 
@@ -133,7 +147,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapBySurfaceNo
 }
 
 std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNode(
-    std::shared_ptr<RSDisplayRenderNode> node)
+    std::shared_ptr<RSDisplayRenderNode> node, bool isUniRender, bool hasSecurityLayer)
 {
     if (node == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: node is nullptr");
@@ -149,9 +163,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNo
     auto screenInfo = screenManager->QueryScreenInfo(screenId);
     uint32_t pixmapWidth = screenInfo.width;
     uint32_t pixmapHeight = screenInfo.height;
-    auto rotation = node->GetRotation();
-    if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
-        std::swap(pixmapWidth, pixmapHeight);
+    if (!isUniRender || hasSecurityLayer) {
+        auto rotation = node->GetRotation();
+        if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
+            std::swap(pixmapWidth, pixmapHeight);
+        }
     }
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * scaleX_);
@@ -185,6 +201,25 @@ sk_sp<SkSurface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media
     return SkSurface::MakeRenderTarget(renderContext->GetGrContext(), SkBudgeted::kNo, info);
 #endif
     return SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
+}
+
+bool RSSurfaceCaptureTask::FindSecurityLayer()
+{
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    bool hasSecurityLayer = false;
+    nodeMap.TraverseSurfaceNodes([this, &hasSecurityLayer](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+        if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree()) {
+            RS_LOGW("RSSurfaceCaptureTask::FindSecurityLayer: \
+                process RSSurfaceRenderNode(id:[%" PRIu64 "]) paused since it is null or not on the tree.",
+                surfaceNode->GetId());
+            return;
+        }
+        if (surfaceNode->GetSecurityLayer()) {
+            hasSecurityLayer = true;
+            return;
+        }
+    });
+    return hasSecurityLayer;
 }
 
 RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::RSSurfaceCaptureVisitor(float scaleX, float scaleY, bool isUniRender)
@@ -232,7 +267,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSD
     }
 
     if (IsUniRender()) {
-        FindSecurityLayerAndHardwareEnabledNodes();
+        FindHardwareEnabledNodes();
         if (hasSecurityLayer_) {
             RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: \
                 process RSDisplayRenderNode(id:[%" PRIu64 "]) Not using UniRender buffer.", node.GetId());
@@ -268,18 +303,14 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSD
     }
 }
 
-void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::FindSecurityLayerAndHardwareEnabledNodes()
+void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::FindHardwareEnabledNodes()
 {
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes([this](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
         if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree()) {
-            RS_LOGW("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::FindSecurityLayerAndHardwareEnabledNodes: \
+            RS_LOGW("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::FindHardwareEnabledNodes: \
                 process RSSurfaceRenderNode(id:[%" PRIu64 "]) paused since it is null or not on the tree.",
                 surfaceNode->GetId());
-            return;
-        }
-        if (surfaceNode->GetSecurityLayer()) {
-            hasSecurityLayer_ = true;
             return;
         }
         if (surfaceNode->IsLastFrameHardwareEnabled() && surfaceNode->GetBuffer() != nullptr) {
