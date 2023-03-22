@@ -1714,7 +1714,7 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
         RS_TRACE_BEGIN("RSUniRenderVisitor::DrawChildRenderNode Draw nodeId = " +
             std::to_string(node.GetId()));
         if (node.GetCacheType() == RSRenderNode::SPHERIZE) {
-            RSUniRenderUtil::DrawCachedSpherizeSurface(node, *canvas_, node.GetCacheSurface());
+            RSPropertiesPainter::DrawCachedSpherizeSurface(node, *canvas_, node.GetCacheSurface());
         } else {
             RSUniRenderUtil::DrawCachedFreezeSurface(node, *canvas_, node.GetCacheSurface());
         }
@@ -1749,7 +1749,7 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
             isOpDropped_ = isOpDropped;
 
             if (node.GetCacheType() == RSRenderNode::SPHERIZE) {
-                RSUniRenderUtil::DrawCachedSpherizeSurface(node, *canvas_, node.GetCacheSurface());
+                RSPropertiesPainter::DrawCachedSpherizeSurface(node, *canvas_, node.GetCacheSurface());
             } else {
                 RSUniRenderUtil::DrawCachedFreezeSurface(node, *canvas_, node.GetCacheSurface());
             }

@@ -503,9 +503,17 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
 #endif
-    node.ProcessRenderBeforeChildren(*canvas_);
-    ProcessBaseRenderNode(node);
-    node.ProcessRenderAfterChildren(*canvas_);
+    node.CheckCacheType();
+    auto cacheType = node.GetCacheType();
+    if (cacheType == RSRenderNode::SPHERIZE) {
+        node.ProcessTransitionBeforeChildren(*canvas_);
+        DrawChildRenderNode(node);
+        node.ProcessTransitionAfterChildren(*canvas_);
+    } else {
+        node.ProcessRenderBeforeChildren(*canvas_);
+        DrawChildRenderNode(node);
+        node.ProcessRenderAfterChildren(*canvas_);
+    }
 }
 
 static SkRect getLocalClipBounds(RSPaintFilterCanvas* canvas)
@@ -658,6 +666,55 @@ void RSRenderThreadVisitor::SendCommandFromRT(std::unique_ptr<RSCommand>& comman
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommandFromRT(command, nodeId, followType);
     }
+}
+
+void RSRenderThreadVisitor::DrawChildRenderNode(RSRenderNode& node)
+{
+    if (node.GetCacheTypeChanged()) {
+        node.ClearCacheSurface();
+        node.SetCacheTypeChanged(false);
+    }
+    if (node.GetCacheType() != RSRenderNode::SPHERIZE) {
+        ProcessBaseRenderNode(node);
+        return;
+    }
+    if (node.GetCacheSurface()) {
+        RS_TRACE_NAME("RSRenderThreadVisitor::DrawChildRenderNode Draw nodeId = " +
+            std::to_string(node.GetId()));
+        RSPropertiesPainter::DrawCachedSpherizeSurface(node, *canvas_, node.GetCacheSurface());
+        return;
+    }
+    RS_TRACE_NAME("RSRenderThreadVisitor::DrawChildRenderNode Init Draw nodeId = " +
+        std::to_string(node.GetId()));
+    int width = std::ceil(node.GetRenderProperties().GetBoundsRect().GetWidth());
+    int height = std::ceil(node.GetRenderProperties().GetBoundsRect().GetHeight());
+#if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
+    SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
+    node.SetCacheSurface(SkSurface::MakeRenderTarget(canvas_->getGrContext(), SkBudgeted::kYes, info));
+#else
+    node.SetCacheSurface(SkSurface::MakeRasterN32Premul(width, height));
+#endif
+    if (!node.GetCacheSurface()) {
+        RS_LOGE("RSRenderThreadVisitor::DrawChildRenderNode %" PRIu64 " Create CacheSurface failed",
+            node.GetId());
+        return;
+    }
+    auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
+    // When drawing CacheSurface, all child node should be drawn.
+    // So set isOpDropped_ = false here.
+    bool isOpDropped = isOpDropped_;
+    isOpDropped_ = false;
+
+    swap(cacheCanvas, canvas_);
+
+    node.ProcessAnimatePropertyBeforeChildren(*canvas_);
+    node.ProcessRenderContents(*canvas_);
+    ProcessBaseRenderNode(node);
+    node.ProcessAnimatePropertyAfterChildren(*canvas_);
+    swap(cacheCanvas, canvas_);
+
+    isOpDropped_ = isOpDropped;
+    RSPropertiesPainter::DrawCachedSpherizeSurface(node, *canvas_, node.GetCacheSurface());
 }
 } // namespace Rosen
 } // namespace OHOS

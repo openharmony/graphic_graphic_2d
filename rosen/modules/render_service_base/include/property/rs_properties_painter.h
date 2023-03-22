@@ -52,6 +52,8 @@ public:
     static RectF GetCmdsClipRect(DrawCmdListPtr& cmds);
     static void DrawFrameForDriven(const RSProperties& properties, RSPaintFilterCanvas& canvas, DrawCmdListPtr& cmds);
     // functions that are dedicated to driven render [end]
+    static void DrawCachedSpherizeSurface(const RSRenderNode& node, RSPaintFilterCanvas& canvas,
+        const sk_sp<SkSurface>& cacheSurface);
 private:
     inline static int g_blurCnt = 0;
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
