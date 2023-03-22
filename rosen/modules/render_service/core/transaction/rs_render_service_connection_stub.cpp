@@ -65,6 +65,10 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old)
     }
     RS_TRACE_NAME("CopyParcelForUnmarsh: size:" + std::to_string(dataSize));
     void* base = malloc(dataSize);
+    if (base == nullptr) {
+        RS_LOGE("RSRenderServiceConnectionStub::CopyParcelIfNeed malloc failed");
+        return nullptr;
+    }
     if (memcpy_s(base, dataSize, reinterpret_cast<void*>(old.GetData()), dataSize) != 0) {
         RS_LOGE("RSRenderServiceConnectionStub::CopyParcelIfNeed copy parcel data failed");
         free(base);
