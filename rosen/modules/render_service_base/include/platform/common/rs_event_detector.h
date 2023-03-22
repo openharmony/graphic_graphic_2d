@@ -109,6 +109,7 @@ public:
         int32_t focusAppPid, int32_t focusAppUid,
         std::string& focusAppBundleName, std::string& focusAppAbilityName) override;
 private:
+    void ResSchedDataReport(uint64_t costTimeMs);
     void EventReport(uint64_t costTimeMs);
     int timeOutThresholdMs_ = INT_MAX; // default: No Detector
     std::atomic_uint64_t startTimeStampMs_ = 0;

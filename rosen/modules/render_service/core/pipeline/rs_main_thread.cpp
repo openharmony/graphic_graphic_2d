@@ -17,6 +17,7 @@
 #include <SkGraphics.h>
 #include <securec.h>
 #include "rs_trace.h"
+#include "sandbox_utils.h"
 
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_message_processor.h"
@@ -51,6 +52,10 @@
 
 #include "render_frame_trace.h"
 
+#ifdef RES_SCHED_ENABLE
+#include "res_sched_client.h"
+#endif
+
 #if defined(ACCESSIBILITY_ENABLE)
 #include "accessibility_config.h"
 #endif
@@ -75,16 +80,23 @@ namespace Rosen {
 namespace {
 constexpr uint32_t RUQUEST_VSYNC_NUMBER_LIMIT = 10;
 constexpr uint64_t REFRESH_PERIOD = 16666667;
-constexpr int32_t PERF_ANIMATION_REQUESTED_CODE = 10017;
 constexpr int32_t PERF_MULTI_WINDOW_REQUESTED_CODE = 10026;
 constexpr int32_t FLUSH_SYNC_TRANSACTION_TIMEOUT = 100;
-constexpr uint64_t PERF_PERIOD = 250000000;
 constexpr uint64_t CLEAN_CACHE_FREQ = 60;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint64_t PERF_PERIOD_BLUR = 80000000;
 constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
+#ifdef RES_SCHED_ENABLE
+constexpr uint64_t PERF_PERIOD                  = 250000000;
+constexpr uint32_t RES_TYPE_CLICK_ANIMATION     = 35;
+constexpr uint32_t RES_TYPE_CONTINUE_ANIMATION  = 36;
+constexpr int32_t CLICK_ANIMATION_START         = 0;
+constexpr int32_t CLICK_ANIMATION_COMPLETE      = 4;
+constexpr int32_t ANIMATION_START               = 0;
+constexpr int32_t ANIMATION_COMPLETE            = 1;
+#endif
 const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 1, 10021 },
     { 2, 10022 },
@@ -1057,6 +1069,37 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
+void RSMainThread::ResSchedDataStartReport(bool needRequestNextVsync)
+{
+#ifdef RES_SCHED_ENABLE
+    RS_TRACE_FUNC();
+    if (needRequestNextVsync && requestResschedReport_) {
+        std::unordered_map<std::string, std::string> payload;
+        payload["uid"] = std::to_string(getuid());
+        payload["pid"] = std::to_string(GetRealPid());
+        OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(RES_TYPE_CLICK_ANIMATION,
+            CLICK_ANIMATION_START, payload);
+        RS_LOGD("Animate :: animation start event to soc perf.");
+        requestResschedReport_ = false;
+    }
+#endif
+}
+
+void RSMainThread::ResSchedDataCompleteReport(bool needRequestNextVsync)
+{
+#ifdef RES_SCHED_ENABLE
+    RS_TRACE_FUNC();
+    if (!requestResschedReport_ && !needRequestNextVsync) {
+        std::unordered_map<std::string, std::string> payload;
+        payload["uid"] = std::to_string(getuid());
+        payload["pid"] = std::to_string(GetRealPid());
+        OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(RES_TYPE_CLICK_ANIMATION,
+            CLICK_ANIMATION_COMPLETE, payload);
+        requestResschedReport_ = true;
+    }
+#endif
+}
+
 void RSMainThread::Animate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
@@ -1095,7 +1138,7 @@ void RSMainThread::Animate(uint64_t timestamp)
         }
         return !result.first;
     });
-
+    ResSchedDataStartReport(needRequestNextVsync);
     if (!doWindowAnimate_ && curWinAnim && RSInnovation::UpdateQosVsyncEnabled()) {
         RSQosThread::ResetQosPid();
     }
@@ -1106,6 +1149,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     if (needRequestNextVsync) {
         RequestNextVSync();
     }
+    ResSchedDataCompleteReport(needRequestNextVsync);
     PerfAfterAnim();
 }
 
@@ -1442,16 +1486,25 @@ void RSMainThread::PerfAfterAnim()
     if (!isUniRender_) {
         return;
     }
+#ifdef RES_SCHED_ENABLE
+    RS_TRACE_FUNC();
+    std::unordered_map<std::string, std::string> payload;
+    payload["uid"] = std::to_string(getuid());
+    payload["pid"] = std::to_string(GetRealPid());
     if (!context_->animatingNodeList_.empty() && timestamp_ - prePerfTimestamp_ > PERF_PERIOD) {
         RS_LOGD("RSMainThread:: soc perf to render_service_animation");
-        PerfRequest(PERF_ANIMATION_REQUESTED_CODE, true);
+        OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(RES_TYPE_CONTINUE_ANIMATION,
+            ANIMATION_START, payload);
         prePerfTimestamp_ = timestamp_;
     } else if (context_->animatingNodeList_.empty()) {
         RS_LOGD("RSMainThread:: soc perf off render_service_animation");
-        PerfRequest(PERF_ANIMATION_REQUESTED_CODE, false);
+        OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(RES_TYPE_CONTINUE_ANIMATION,
+            ANIMATION_COMPLETE, payload);
         prePerfTimestamp_ = 0;
     }
+#endif
 }
+
 void RSMainThread::ForceRefreshForUni()
 {
     if (isUniRender_) {
