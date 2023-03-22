@@ -352,7 +352,7 @@ namespace OHOS {
         const RSAnimationTimingProtocol timingProtocol = {};
 
         auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
-        implicitAnimator->OpenImplicitAnimation({}, RSAnimationTimingCurve::DEFAULT, []() {});
+        implicitAnimator->OpenImplicitAnimation({}, RSAnimationTimingCurve::DEFAULT, {});
         implicitAnimator->CloseImplicitAnimation();
         implicitAnimator->BeginImplicitKeyFrameAnimation(fraction, RSAnimationTimingCurve::DEFAULT);
         implicitAnimator->BeginImplicitKeyFrameAnimation(fraction);

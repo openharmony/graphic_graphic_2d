@@ -32,6 +32,7 @@ ohos_source_set("render_service_base_src") {
     #animation
     "src/animation/rs_animation_fraction.cpp",
     "src/animation/rs_animation_manager.cpp",
+    "src/animation/rs_animation_timing_protocol.cpp",
     "src/animation/rs_interpolator.cpp",
     "src/animation/rs_render_animation.cpp",
     "src/animation/rs_render_curve_animation.cpp",

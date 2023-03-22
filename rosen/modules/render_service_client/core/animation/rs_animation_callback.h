@@ -31,10 +31,12 @@ protected:
 
 class AnimationFinishCallback : public AnimationCallback {
 public:
-    AnimationFinishCallback(const std::function<void()>& callback);
-    virtual ~AnimationFinishCallback() = default;
+    AnimationFinishCallback(const std::function<void()>& callback, bool isTimingSensitive = true);
+    ~AnimationFinishCallback() override = default;
+    // Execute the callback function immediately.
+    void Execute();
 
-private:
+    const bool isTimingSensitive_;
 };
 } // namespace Rosen
 } // namespace OHOS

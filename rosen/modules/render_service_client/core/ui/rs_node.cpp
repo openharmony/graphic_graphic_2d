@@ -21,17 +21,18 @@
 #include <string>
 
 #include "animation/rs_animation.h"
+#include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animator_map.h"
 #include "command/rs_node_command.h"
 #include "common/rs_color.h"
 #include "common/rs_obj_geometry.h"
 #include "modifier/rs_modifier.h"
+#include "modifier/rs_property_modifier.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_path.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "modifier/rs_property_modifier.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -87,7 +88,11 @@ void RSNode::OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtoc
         return;
     }
 
-    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, finishCallback);
+    std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
+    if (finishCallback != nullptr) {
+        animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback);
+    }
+    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(animationFinishCallback));
 }
 
 std::vector<std::shared_ptr<RSAnimation>> RSNode::CloseImplicitAnimation()
@@ -128,28 +133,6 @@ void RSNode::AddKeyFrame(float fraction, const PropertyCallback& propertyCallbac
     implicitAnimator->EndImplicitKeyFrameAnimation();
 }
 
-std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(
-    const PropertyCallback& propertyCallback, const std::function<void()>& finishCallback)
-{
-    if (propertyCallback == nullptr) {
-        ROSEN_LOGE("Failed to add curve animation, property callback is null!");
-        return {};
-    }
-    if (finishCallback == nullptr) {
-        ROSEN_LOGE("Failed to add curve animation, finish callback is null!");
-        return {};
-    }
-
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
-        return {};
-    }
-    implicitAnimator->OpenImplicitAnimation(finishCallback);
-    propertyCallback();
-    return implicitAnimator->CloseImplicitAnimation();
-}
-
 std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback,
     const std::function<void()>& finishCallback)
@@ -164,7 +147,56 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimin
         ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
         return {};
     }
-    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, finishCallback);
+    std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
+    if (finishCallback != nullptr) {
+        animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback);
+    }
+    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(animationFinishCallback));
+    propertyCallback();
+    return implicitAnimator->CloseImplicitAnimation();
+}
+
+std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentOptions(
+    const PropertyCallback& propertyCallback, const std::function<void()>& finishCallback, bool timingSensitive)
+{
+    if (propertyCallback == nullptr) {
+        ROSEN_LOGE("Failed to add curve animation, property callback is null!");
+        return {};
+    }
+    if (finishCallback == nullptr) {
+        ROSEN_LOGE("Failed to add curve animation, finish callback is null!");
+        propertyCallback();
+        return {};
+    }
+
+    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    if (implicitAnimator == nullptr) {
+        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
+        return {};
+    }
+    // re-use the current options and replace the finish callback
+    auto animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback, timingSensitive);
+    implicitAnimator->OpenImplicitAnimation(std::move(animationFinishCallback));
+    propertyCallback();
+    return implicitAnimator->CloseImplicitAnimation();
+}
+
+std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentCallback(
+    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
+    const PropertyCallback& propertyCallback)
+{
+    if (propertyCallback == nullptr) {
+        ROSEN_LOGE("Failed to add curve animation, property callback is null!");
+        return {};
+    }
+
+    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    if (implicitAnimator == nullptr) {
+        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
+        return {};
+    }
+    // re-use the current finish callback and replace the options
+    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve);
     propertyCallback();
     return implicitAnimator->CloseImplicitAnimation();
 }

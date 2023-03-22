@@ -94,11 +94,6 @@ public:
         return RSAnimation::IsReversed();
     }
 
-    void CallFinishCallback()
-    {
-        RSAnimation::CallFinishCallback();
-    }
-
     void UpdateParamToRenderAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
     {
         RSAnimation::UpdateParamToRenderAnimation(animation);

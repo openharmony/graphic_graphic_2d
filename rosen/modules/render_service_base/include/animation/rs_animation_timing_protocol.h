@@ -103,6 +103,9 @@ public:
         return isForward_;
     }
 
+    static const RSAnimationTimingProtocol DEFAULT;
+    static const RSAnimationTimingProtocol IMMEDIATE;
+
 protected:
     int duration_ { 300 };
     int startDelay_ { 0 };

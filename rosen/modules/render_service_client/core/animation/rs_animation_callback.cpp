@@ -26,9 +26,17 @@ AnimationCallback::~AnimationCallback()
     }
 }
 
-AnimationFinishCallback::AnimationFinishCallback(const std::function<void()>& callback)
-    : AnimationCallback(callback)
+AnimationFinishCallback::AnimationFinishCallback(const std::function<void()>& callback, bool isTimingSensitive)
+    : AnimationCallback(callback), isTimingSensitive_(isTimingSensitive)
 {}
 
+void AnimationFinishCallback::Execute()
+{
+    if (callback_ != nullptr) {
+        callback_();
+        // avoid callback_ being called repeatedly.
+        callback_ = nullptr;
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
