@@ -172,6 +172,7 @@ private:
     void CollectInfoForDrivenRender();
     void ReleaseAllNodesBuffer();
     void Render();
+    void UniRender(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
     void CalcOcclusionImplementation(std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
     void CalcOcclusion();

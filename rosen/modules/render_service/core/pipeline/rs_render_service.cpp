@@ -41,6 +41,7 @@ RSRenderService::~RSRenderService() noexcept {}
 
 bool RSRenderService::Init()
 {
+    RSMainThread::Instance();
     RSUniRenderJudgement::InitUniRenderConfig();
     screenManager_ = CreateOrGetScreenManager();
     if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {

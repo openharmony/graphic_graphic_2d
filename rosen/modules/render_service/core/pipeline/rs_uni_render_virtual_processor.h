@@ -25,7 +25,8 @@ public:
     RSUniRenderVirtualProcessor() = default;
     ~RSUniRenderVirtualProcessor() noexcept override = default;
 
-    bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId) override;
+    bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
+              std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
     void ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node) override;

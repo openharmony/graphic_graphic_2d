@@ -30,7 +30,9 @@ public:
     ~RSParallelTaskManager();
     void Initialize(uint32_t threadNum);
     void PushRenderTask(std::unique_ptr<RSRenderTask> renderTask);
+    void PushCompositionTask(std::unique_ptr<RSCompositionTask> compositionTask);
     void LBCalcAndSubmitSuperTask(std::shared_ptr<RSBaseRenderNode> displayNode);
+    void LBCalcAndSubmitCompositionTask(std::shared_ptr<RSBaseRenderNode> baseNode);
     uint32_t GetTaskNum();
     void Reset();
     void SetSubThreadRenderTaskLoad(uint32_t threadIdx, uint64_t loadId, float cost);
@@ -48,6 +50,7 @@ private:
     std::vector<std::unique_ptr<RSRenderTask>> renderTaskList_;
     std::unique_ptr<RSSuperRenderTask> cachedSuperRenderTask_;
     std::vector<std::unique_ptr<RSSuperRenderTask>> superRenderTaskList_;
+    std::vector<std::unique_ptr<RSCompositionTask>> compositionTaskList_;
     std::map<int, float> evalTaskCost_;
     uint32_t threadNum_;
     uint32_t taskNum_;

@@ -22,6 +22,7 @@
 #include "rs_trace.h"
 
 #include "common/rs_obj_abs_geometry.h"
+#include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_processor.h"
@@ -148,8 +149,13 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         return;
     }
     auto mirrorNode = node.GetMirrorSource().lock();
+
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread != nullptr) {
+        processorRenderEngine_ = mainThread->GetRenderEngine();
+    }
     if (!processor_->Init(node, node.GetDisplayOffsetX(), node.GetDisplayOffsetY(),
-        mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID)) {
+        mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID, processorRenderEngine_)) {
         RS_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode: processor init failed!");
         return;
     }
@@ -170,7 +176,7 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 
 void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
-    if (RSInnovation::GetParallelCompositionEnabled()) {
+    if (RSInnovation::GetParallelCompositionEnabled(false)) {
         typedef bool (*CheckForSerialForcedFunc)(std::string&);
         CheckForSerialForcedFunc CheckForSerialForced =
             reinterpret_cast<CheckForSerialForcedFunc>(RSInnovation::_s_checkForSerialForced);

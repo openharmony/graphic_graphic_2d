@@ -72,6 +72,7 @@ private:
     // functions that are dedicated to driven render [end]
 
     std::pair<int, int> canvasNodeSaveCount_ = { 0, 0 };
+    mutable std::mutex canvasNodeProcessMutex_;
 
     friend class RSRenderTransition;
     friend class RSPropertiesPainter;

@@ -71,6 +71,11 @@ void RSParallelTaskManager::PushRenderTask(std::unique_ptr<RSRenderTask> renderT
     renderTaskList_.push_back(std::move(renderTask));
 }
 
+void RSParallelTaskManager::PushCompositionTask(std::unique_ptr<RSCompositionTask> compositionTask)
+{
+    compositionTaskList_.push_back(std::move(compositionTask));
+}
+
 void RSParallelTaskManager::LBCalcAndSubmitSuperTask(std::shared_ptr<RSBaseRenderNode> displayNode)
 {
     if (renderTaskList_.size() == 0) {
@@ -91,6 +96,14 @@ void RSParallelTaskManager::LBCalcAndSubmitSuperTask(std::shared_ptr<RSBaseRende
         RSParallelRenderManager::Instance()->SubmitSuperTask(taskNum_, std::move(cachedSuperRenderTask_));
         taskNum_++;
         cachedSuperRenderTask_ = std::make_unique<RSSuperRenderTask>(displayNode);
+    }
+}
+
+void RSParallelTaskManager::LBCalcAndSubmitCompositionTask(std::shared_ptr<RSBaseRenderNode> baseNode)
+{
+    taskNum_ = 0;
+    for (decltype(compositionTaskList_.size()) i = 0; i < compositionTaskList_.size(); i++) {
+        RSParallelRenderManager::Instance()->SubmitCompositionTask(taskNum_, std::move(compositionTaskList_[i]));
     }
 }
 
@@ -135,6 +148,7 @@ void RSParallelTaskManager::Reset()
     renderTaskList_.clear();
     superRenderTaskList_.clear();
     parallelPolicy_.clear();
+    compositionTaskList_.clear();
     if (isParallelRenderExtEnabled_ && (RSParallelRenderExt::clearRenderLoadFunc_ != nullptr)) {
         auto parallelRenderExtClearRenderLoad = reinterpret_cast<void(*)(int*)>(
             RSParallelRenderExt::clearRenderLoadFunc_);

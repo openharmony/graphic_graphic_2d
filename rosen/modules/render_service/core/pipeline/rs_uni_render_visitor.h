@@ -29,6 +29,7 @@
 #include "pipeline/rs_processor.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "visitor/rs_node_visitor.h"
+#include "rs_base_render_engine.h"
 
 class SkPicture;
 namespace OHOS {
@@ -56,6 +57,12 @@ public:
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
 
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
+    bool ParallelComposition(const std::shared_ptr<RSBaseRenderNode> rootNode);
+    void CopyVisitorInfos(std::shared_ptr<RSUniRenderVisitor> visitor);
+    void SetProcessorRenderEngine(std::shared_ptr<RSBaseRenderEngine> renderEngine)
+    {
+        renderEngine_ = renderEngine;
+    }
 
     void SetAnimateState(bool doAnimate)
     {
@@ -180,7 +187,7 @@ private:
     void PrepareOffscreenRender(RSRenderNode& node);
     void FinishOffscreenRender();
     void ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRenderNode& node);
-    bool AdaptiveSubRenderThreadMode(uint32_t renderNodeNum);
+    bool AdaptiveSubRenderThreadMode(bool doParallel);
     void ParallelRenderEnableHardwareComposer(RSSurfaceRenderNode& node);
     // close partialrender when perform window animation
     void ClosePartialRenderWhenAnimatingWindows(std::shared_ptr<RSDisplayRenderNode>& node);
@@ -239,7 +246,6 @@ private:
     bool needCheckFirstFrame_ = false; // flag used for avoiding notifying first frame repeatedly
 
     bool isDirtyRegionAlignedEnable_ = false;
-    bool isParallel_ = false;
     std::shared_ptr<std::mutex> surfaceNodePrepareMutex_;
     uint32_t parallelRenderVisitorIndex_ = 0;
     ParallelRenderingType parallelRenderType_;
@@ -265,6 +271,11 @@ private:
     bool isCalcCostEnable_ = false;
 
     uint32_t appWindowNum_ = 0;
+
+    bool isParallel_ = false;
+    bool doParallelComposition_ = false;
+    bool doParallelRender_ = false;
+    mutable std::mutex copyVisitorInfosMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

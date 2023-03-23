@@ -18,7 +18,6 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "platform/common/rs_log.h"
 #include "rs_base_render_util.h"
-#include "rs_main_thread.h"
 #ifdef SOC_PERF_ENABLE
 #include "socperf_client.h"
 #endif
@@ -110,7 +109,8 @@ void RSProcessor::RequestPerf(uint32_t layerLevel, bool onOffTag)
     }
 }
 
-bool RSProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
+bool RSProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
+                       std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
     offsetX_ = offsetX;
     offsetY_ = offsetY;
@@ -125,11 +125,9 @@ bool RSProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offse
     auto mirrorNode = node.GetMirrorSource().lock();
     CalculateScreenTransformMatrix(mirrorNode ? *mirrorNode : node);
 
-    auto mainThread = RSMainThread::Instance();
-    if (mainThread != nullptr) {
-        renderEngine_ = mainThread->GetRenderEngine();
-    }
+    renderEngine_ = renderEngine;
     if (renderEngine_ == nullptr) {
+        RS_LOGE("renderEngine is nullptr");
         return false;
     }
 

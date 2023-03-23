@@ -72,6 +72,7 @@ void RSCanvasRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 
 void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
+    std::unique_lock<std::mutex> lock(canvasNodeProcessMutex_);
     if (!visitor) {
         return;
     }

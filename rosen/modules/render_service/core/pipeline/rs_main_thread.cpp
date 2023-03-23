@@ -209,6 +209,7 @@ void RSMainThread::Init()
         RS_LOGD("RsDebug mainLoop end");
     };
 
+    isUniRender_ = RSUniRenderJudgement::IsUniRender();
     if (isUniRender_) {
         unmarshalBarrierTask_ = [this]() {
             auto cachedTransactionData = RSUnmarshalThread::Instance().GetCachedTransactionData();
@@ -765,6 +766,59 @@ void RSMainThread::NotifyDrivenRenderFinish()
 #endif
 }
 
+void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
+{
+    auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    uniVisitor->SetDrivenRenderFlag(hasDrivenNodeOnUniTree_, hasDrivenNodeMarkRender_);
+#endif
+    uniVisitor->SetHardwareEnabledNodes(hardwareEnabledNodes_);
+    uniVisitor->SetAppWindowNum(appWindowNum_);
+    uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
+    if (isHardwareForcedDisabled_ || rootNode->GetChildrenCount() > 1) {
+        // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
+        // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
+        uniVisitor->MarkHardwareForcedDisabled();
+        doDirectComposition_ = false;
+    }
+    bool needTraverseNodeTree = true;
+    if (doDirectComposition_ && !isDirty_) {
+        if (isHardwareEnabledBufferUpdated_) {
+            needTraverseNodeTree = !uniVisitor->DoDirectComposition(rootNode);
+        } else {
+            RS_LOGI("RSMainThread::Render nothing to update");
+            for (auto& node: hardwareEnabledNodes_) {
+                if (!node->IsHardwareForcedDisabled()) {
+                    node->MarkCurrentFrameHardwareEnabled();
+                }
+            }
+            return;
+        }
+    }
+    if (needTraverseNodeTree) {
+        uniVisitor->SetAnimateState(doWindowAnimate_);
+        uniVisitor->SetDirtyFlag(isDirty_);
+        uniVisitor->SetFocusedWindowPid(focusAppPid_);
+        rootNode->Prepare(uniVisitor);
+        CalcOcclusion();
+        bool doParallelComposition = RSInnovation::GetParallelCompositionEnabled(isUniRender_);
+        if (doParallelComposition && rootNode->GetChildrenCount() > 1) {
+            RS_LOGD("RSMainThread::Render multi-threads parallel composition begin.");
+            doParallelComposition = uniVisitor->ParallelComposition(rootNode);
+            if (doParallelComposition) {
+                RS_LOGD("RSMainThread::Render multi-threads parallel composition end.");
+                isDirty_ = false;
+                uniRenderEngine_->ShrinkCachesIfNeeded();
+                PerfForBlurIfNeeded();
+                return;
+            }
+        }
+        rootNode->Process(uniVisitor);
+    }
+    isDirty_ = false;
+    uniRenderEngine_->ShrinkCachesIfNeeded();
+}
+
 void RSMainThread::Render()
 {
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
@@ -778,42 +832,7 @@ void RSMainThread::Render()
     RS_LOGD("RSMainThread::Render isUni:%d", isUniRender_);
 
     if (isUniRender_) {
-        auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
-        uniVisitor->SetDrivenRenderFlag(hasDrivenNodeOnUniTree_, hasDrivenNodeMarkRender_);
-#endif
-        uniVisitor->SetHardwareEnabledNodes(hardwareEnabledNodes_);
-        uniVisitor->SetAppWindowNum(appWindowNum_);
-        if (isHardwareForcedDisabled_ || rootNode->GetChildrenCount() > 1) {
-            // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
-            // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
-            uniVisitor->MarkHardwareForcedDisabled();
-            doDirectComposition_ = false;
-        }
-        bool needTraverseNodeTree = true;
-        if (doDirectComposition_ && !isDirty_) {
-            if (isHardwareEnabledBufferUpdated_) {
-                needTraverseNodeTree = !uniVisitor->DoDirectComposition(rootNode);
-            } else {
-                RS_LOGI("RSMainThread::Render nothing to update");
-                for (auto& node: hardwareEnabledNodes_) {
-                    if (!node->IsHardwareForcedDisabled()) {
-                        node->MarkCurrentFrameHardwareEnabled();
-                    }
-                }
-                return;
-            }
-        }
-        if (needTraverseNodeTree) {
-            uniVisitor->SetAnimateState(doWindowAnimate_);
-            uniVisitor->SetDirtyFlag(isDirty_);
-            uniVisitor->SetFocusedWindowPid(focusAppPid_);
-            rootNode->Prepare(uniVisitor);
-            CalcOcclusion();
-            rootNode->Process(uniVisitor);
-        }
-        isDirty_ = false;
-        uniRenderEngine_->ShrinkCachesIfNeeded();
+        UniRender(rootNode);
     } else {
         auto rsVisitor = std::make_shared<RSRenderServiceVisitor>();
         rsVisitor->SetAnimateState(doWindowAnimate_);
@@ -821,7 +840,7 @@ void RSMainThread::Render()
         CalcOcclusion();
 
         bool doParallelComposition = false;
-        if (!rsVisitor->ShouldForceSerial() && RSInnovation::GetParallelCompositionEnabled()) {
+        if (!rsVisitor->ShouldForceSerial() && RSInnovation::GetParallelCompositionEnabled(isUniRender_)) {
             doParallelComposition = DoParallelComposition(rootNode);
         }
         if (doParallelComposition) {

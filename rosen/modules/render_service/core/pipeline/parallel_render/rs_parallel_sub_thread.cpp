@@ -37,6 +37,7 @@
 #include "pipeline/rs_uni_render_visitor.h"
 #include "rs_parallel_render_ext.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_uni_render_engine.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -72,27 +73,39 @@ void RSParallelSubThread::MainLoop()
         }
         // parallel rendering will be enable when the windows number is greater than 50
         RSParallelRenderManager::Instance()->CommitSurfaceNum(50);
-        if (RSParallelRenderManager::Instance()->GetTaskType() == TaskType::PREPARE_TASK) {
-            RS_TRACE_BEGIN("SubThreadCostPrepare[" + std::to_string(threadIndex_) + "]");
-            StartPrepare();
-            Prepare();
-            RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
-            RS_TRACE_END();
-        } else if (RSParallelRenderManager::Instance()->GetTaskType() == TaskType::CALC_COST_TASK) {
-            RS_TRACE_BEGIN("SubThreadCalcCost[" + std::to_string(threadIndex_) + "]");
-            CalcCost();
-            RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
-            RS_TRACE_END();
-        } else {
-            RS_TRACE_BEGIN("SubThreadCostProcess[" + std::to_string(threadIndex_) + "]");
-            StartRender();
-            Render();
-            ParallelStatus status = RSParallelRenderManager::Instance()->GetParallelRenderingStatus();
-            if (status == ParallelStatus::FIRSTFLUSH || status == ParallelStatus::WAITFIRSTFLUSH) {
+        switch (RSParallelRenderManager::Instance()->GetTaskType()) {
+            case TaskType::PREPARE_TASK: {
+                RS_TRACE_BEGIN("SubThreadCostPrepare[" + std::to_string(threadIndex_) + "]");
+                StartPrepare();
+                Prepare();
+                RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
+                RS_TRACE_END();
+                break;
+            }
+            case TaskType::CALC_COST_TASK: {
+                RS_TRACE_BEGIN("SubThreadCalcCost[" + std::to_string(threadIndex_) + "]");
+                CalcCost();
+                RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
+                RS_TRACE_END();
+                break;
+            }
+            case TaskType::PROCESS_TASK: {
+                RS_TRACE_BEGIN("SubThreadCostProcess[" + std::to_string(threadIndex_) + "]");
+                StartRender();
+                Render();
+                ParallelStatus status = RSParallelRenderManager::Instance()->GetParallelRenderingStatus();
+                if (status == ParallelStatus::FIRSTFLUSH || status == ParallelStatus::WAITFIRSTFLUSH) {
+                    RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
+                }
+                RS_TRACE_END();
+                Flush();
+                break;
+            }
+            default: {
+                StartComposition();
+                Composition();
                 RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
             }
-            RS_TRACE_END();
-            Flush();
         }
     }
 }
@@ -414,6 +427,39 @@ void RSParallelSubThread::AcquireSubSkSurface(int width, int height)
     }
 }
 
+void RSParallelSubThread::StartComposition()
+{
+    if (processorRenderEngine_ == nullptr) {
+        processorRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+        processorRenderEngine_->Init();
+    }
+    compositionVisitor_ = std::make_shared<RSUniRenderVisitor>();
+    auto parallelRenderManager = RSParallelRenderManager::Instance();
+    if (parallelRenderManager->GetUniParallelCompositionVisitor() != nullptr) {
+        compositionVisitor_->CopyVisitorInfos(parallelRenderManager->GetUniParallelCompositionVisitor());
+    } else {
+        compositionVisitor_ = nullptr;
+    }
+}
+
+void RSParallelSubThread::Composition()
+{
+    if (compositionTask_ == nullptr || compositionTask_->GetIdx() == 0) {
+        RS_LOGE("compositionTask is nullptr or displayNodeId is 0");
+        return;
+    }
+    
+    auto node = compositionTask_->GetNode();
+    if (node == nullptr || compositionVisitor_ == nullptr) {
+        RS_LOGE("displayNode or visitor is nullptr.");
+        return;
+    }
+
+    compositionVisitor_->SetProcessorRenderEngine(processorRenderEngine_);
+    node->Process(compositionVisitor_);
+    compositionVisitor_ = nullptr;
+}
+
 EGLContext RSParallelSubThread::GetSharedContext()
 {
     return eglShareContext_;
@@ -427,6 +473,11 @@ sk_sp<SkSurface> RSParallelSubThread::GetSkSurface()
 void RSParallelSubThread::SetSuperTask(std::unique_ptr<RSSuperRenderTask> superRenderTask)
 {
     threadTask_ = std::move(superRenderTask);
+}
+
+void RSParallelSubThread::SetCompositionTask(std::unique_ptr<RSCompositionTask> compositionTask)
+{
+    compositionTask_ = std::move(compositionTask);
 }
 
 sk_sp<SkImage> RSParallelSubThread::GetTexture()

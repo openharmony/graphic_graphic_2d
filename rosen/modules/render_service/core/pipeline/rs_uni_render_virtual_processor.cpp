@@ -25,9 +25,10 @@
 
 namespace OHOS {
 namespace Rosen {
-bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
+bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
+                                       std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
-    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId)) {
+    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine)) {
         return false;
     }
 
@@ -83,7 +84,6 @@ void RSUniRenderVirtualProcessor::PostProcess()
         RS_LOGE("RSUniRenderVirtualProcessor::PostProcess renderFrame_ is null.");
         return;
     }
-    RSProcessor::RequestPerf(3, true); // set perf level 3 in mirrorScreen state
     renderFrame_->Flush();
 }
 

@@ -35,7 +35,8 @@ public:
     RSProcessor(const RSProcessor&) = delete;
     void operator=(const RSProcessor&) = delete;
 
-    virtual bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId);
+    virtual bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
+                      std::shared_ptr<RSBaseRenderEngine> renderEngine);
     virtual void ProcessSurface(RSSurfaceRenderNode& node) = 0;
     virtual void ProcessDisplaySurface(RSDisplayRenderNode& node) = 0;
     virtual void ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node) = 0;

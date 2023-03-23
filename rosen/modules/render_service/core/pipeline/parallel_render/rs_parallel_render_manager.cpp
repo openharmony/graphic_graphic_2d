@@ -109,6 +109,7 @@ void RSParallelRenderManager::StartSubRenderThread(uint32_t threadNum, RenderCon
         processTaskManager_.Initialize(threadNum);
         prepareTaskManager_.Initialize(threadNum);
         calcCostTaskManager_.Initialize(threadNum);
+        compositionTaskManager_.Initialize(threadNum);
     }
 }
 
@@ -223,6 +224,25 @@ void RSParallelRenderManager::PackRenderTask(RSSurfaceRenderNode &node, TaskType
     }
 }
 
+void RSParallelRenderManager::PackParallelCompositionTask(std::shared_ptr<RSNodeVisitor> visitor,
+                                                          const std::shared_ptr<RSBaseRenderNode> node)
+{
+    uniParallelCompositionVisitor_ = std::static_pointer_cast<RSUniRenderVisitor>(visitor);
+    baseNode_ = node;
+    compositionTaskManager_.Reset();
+    auto children = node->GetSortedChildren();
+    for (auto iter = children.rbegin(); iter != children.rend(); iter++) {
+        std::shared_ptr<RSDisplayRenderNode> displayNode =
+            RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(*iter);
+        if (*iter == *children.begin()) {
+            mainDisplayNode_ = displayNode;
+            break;
+        }
+        compositionTaskManager_.PushCompositionTask(std::make_unique<RSCompositionTask>(displayNode));
+    }
+    taskType_ = TaskType::COMPOSITION_TASK;
+}
+
 void RSParallelRenderManager::LoadBalanceAndNotify(TaskType type)
 {
     InitAppWindowNodeMap();
@@ -236,6 +256,9 @@ void RSParallelRenderManager::LoadBalanceAndNotify(TaskType type)
         case TaskType::CALC_COST_TASK:
             calcCostTaskManager_.LBCalcAndSubmitSuperTask(displayNode_);
             break;
+        case TaskType::COMPOSITION_TASK:
+            compositionTaskManager_.LBCalcAndSubmitCompositionTask(baseNode_);
+            break;
         default:
             break;
     }
@@ -243,6 +266,17 @@ void RSParallelRenderManager::LoadBalanceAndNotify(TaskType type)
         flipCoin_[i] = 1;
     }
     cvParallelRender_.notify_all();
+    if (type == TaskType::COMPOSITION_TASK) {
+        auto mainThread = RSMainThread::Instance();
+        if (mainThread == nullptr) {
+            RS_LOGE("RS main thread is nullptr.");
+            return;
+        }
+        std::shared_ptr<RSBaseRenderEngine> renderEngine = mainThread->GetRenderEngine();
+        uniParallelCompositionVisitor_->SetProcessorRenderEngine(renderEngine);
+        mainDisplayNode_->Process(uniParallelCompositionVisitor_);
+        uniParallelCompositionVisitor_ = nullptr;
+    }
 }
 
 void RSParallelRenderManager::WaitPrepareEnd(RSUniRenderVisitor &visitor)
@@ -254,6 +288,13 @@ void RSParallelRenderManager::WaitPrepareEnd(RSUniRenderVisitor &visitor)
 }
 
 void RSParallelRenderManager::WaitProcessEnd(RSUniRenderVisitor &visitor)
+{
+    for (uint32_t i = 0; i < expectedSubThreadNum_; ++i) {
+        WaitSubMainThread(i);
+    }
+}
+
+void RSParallelRenderManager::WaitCompositionEnd()
 {
     for (uint32_t i = 0; i < expectedSubThreadNum_; ++i) {
         WaitSubMainThread(i);
@@ -344,6 +385,19 @@ void RSParallelRenderManager::SubmitSuperTask(uint32_t taskIndex, std::unique_pt
         return;
     }
     threadList_[taskIndex]->SetSuperTask(std::move(superRenderTask));
+}
+
+void RSParallelRenderManager::SubmitCompositionTask(uint32_t taskIndex,
+                                                    std::unique_ptr<RSCompositionTask> compositionTask)
+{
+    if (taskIndex >= threadList_.size()) {
+        RS_LOGE("taskIndex geq thread num");
+        return;
+    }
+
+    if (threadList_[taskIndex] != nullptr) {
+        threadList_[taskIndex]->SetCompositionTask(std::move(compositionTask));
+    }
 }
 
 // called by submain threads

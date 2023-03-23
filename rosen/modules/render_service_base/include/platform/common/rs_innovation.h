@@ -26,7 +26,7 @@ public:
     static inline void* innovationHandle = nullptr;
 
     // parallel composition
-    static bool GetParallelCompositionEnabled();
+    static bool GetParallelCompositionEnabled(bool isUniRender);
 
     static inline bool _s_parallelCompositionLoaded = false;
     static inline void* _s_createParallelSyncSignal = nullptr;
