@@ -232,7 +232,6 @@ private:
     bool isQuickSkipPreparationEnabled_ = false;
     bool isHardwareComposerEnabled_ = false;
     bool isOcclusionEnabled_ = false;
-    bool isSkipForAlphaZero_ = true;
     std::vector<std::string> dfxTargetSurfaceNames_;
     PartialRenderType partialRenderType_;
     DirtyRegionDebugType dirtyRegionDebugType_;

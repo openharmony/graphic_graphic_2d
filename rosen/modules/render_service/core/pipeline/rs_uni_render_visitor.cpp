@@ -91,7 +91,6 @@ RSUniRenderVisitor::RSUniRenderVisitor()
         && (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_ && !isOpaqueRegionDfxEnabled_);
     isQuickSkipPreparationEnabled_ = RSSystemProperties::GetQuickSkipPrepareEnabled();
     isHardwareComposerEnabled_ = RSSystemProperties::GetHardwareComposerEnabled();
-    isSkipForAlphaZero_ = RSSystemProperties::GetSkipForAlphaZeroEnabled();
     RSTagTracker::UpdateReleseGpuReousrceEnable(RSSystemProperties::GetReleaseGpuResourceEnabled());
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     if (RSDrivenRenderManager::GetInstance().GetDrivenRenderEnabled()) {
@@ -488,13 +487,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     float alpha = curAlpha_;
     curAlpha_ *= (property.GetAlpha() * node.GetContextAlpha());
     node.SetGlobalAlpha(curAlpha_);
-
-    if (isSkipForAlphaZero_) {
-        if (ROSEN_EQ(node.GetGlobalAlpha(), 0.f)) {
-            ROSEN_LOGW("RSUniRenderVisitor::PrepareSurfaceRenderNode skip because node.GlobalAlpha is 0.f");
-            return;
-        }
-    }
 
     // if currentsurfacenode is a main window type, reset the curSurfaceDirtyManager
     // reset leash window's dirtyManager pointer to avoid curSurfaceDirtyManager mis-pointing

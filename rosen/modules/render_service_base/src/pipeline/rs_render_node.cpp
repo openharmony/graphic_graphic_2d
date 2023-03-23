@@ -26,8 +26,6 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
 
-#include "platform/common/rs_system_properties.h"
-
 namespace OHOS {
 namespace Rosen {
 RSRenderNode::RSRenderNode(NodeId id, std::weak_ptr<RSContext> context) : RSBaseRenderNode(id, context) {}
@@ -86,7 +84,7 @@ bool RSRenderNode::Update(
     RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty, bool needClip, RectI clipRect)
 {
     // no need to update invisible nodes
-    if (!ShouldPaint() && !isLastVisible_ && RSSystemProperties::GetSkipForAlphaZeroEnabled()) {
+    if (!ShouldPaint() && !isLastVisible_) {
         return false;
     }
     // [planning] surfaceNode use frame instead
