@@ -389,8 +389,13 @@ HWTEST_F(RSParallelRenderManagerTest, GetCostFactorTest, TestSize.Level1)
 {
     auto instance = std::make_shared<RSParallelRenderManager>();
     instance->GetCostFactor();
-    ASSERT_FALSE(instance->costFactor_.size() > 0);
-    ASSERT_FALSE(instance->imageFactor_.size() > 0);
+    if (instance->calcCostTaskManager_.isParallelRenderExtEnabled_) {
+        ASSERT_TRUE(instance->costFactor_.size() > 0);
+        ASSERT_TRUE(instance->imageFactor_.size() > 0);
+    } else { 
+        ASSERT_FALSE(instance->costFactor_.size() > 0);
+        ASSERT_FALSE(instance->imageFactor_.size() > 0);
+    }
 }
 
 /**
