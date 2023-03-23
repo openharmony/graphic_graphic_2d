@@ -633,10 +633,13 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     } else {
         if (IsAppWindow() && HasContainerWindow()) {
             opaqueRegion_ = ResetOpaqueRegion(absRect, screenRotation, isFocusWindow);
-        } else if (!GetRenderProperties().GetCornerRadius().IsZero()) {
-            opaqueRegion_ = SetCornerRadiusOpaqueRegion(absRect, std::ceil(GetRenderProperties().GetCornerRadius().x_));
         } else {
-            opaqueRegion_ = Occlusion::Region{absRectR};
+            auto corner = GetWindowCornerRadius();
+            if (!corner.IsZero()) {
+                opaqueRegion_ = SetCornerRadiusOpaqueRegion(absRect, std::ceil(corner.x_));
+            } else {
+                opaqueRegion_ = Occlusion::Region{absRectR};
+            }
         }
         transparentRegion_.SubSelf(opaqueRegion_);
     }
@@ -645,6 +648,18 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     transparentRegion_.AndSelf(screenRegion);
     opaqueRegion_.AndSelf(screenRegion);
     opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();
+}
+
+Vector4f RSSurfaceRenderNode::GetWindowCornerRadius()
+{
+    if (!GetRenderProperties().GetCornerRadius().IsZero()) {
+        return GetRenderProperties().GetCornerRadius();
+    }
+    auto parent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetParent().lock());
+    if (parent != nullptr && parent->IsLeashWindow()) {
+        return parent->GetRenderProperties().GetCornerRadius();
+    }
+    return Vector4f();
 }
 
 Occlusion::Region RSSurfaceRenderNode::ResetOpaqueRegion(const RectI& absRect,
