@@ -194,6 +194,17 @@ void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
         }
         node.ResetHasRemovedChild();
     }
+    // collect extensionAbility children nodeIds since they belong to another process, managing different view
+    auto surfaceNode = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+    if (surfaceNode != nullptr && surfaceNode->IsExtensionAbility() && curSurfaceNode_) {
+        std::string childInfo = "ExtensionAbility has " + std::to_string(children.size()) + " children:[";
+        // check child in GetSortedChildren considering disappearingChildren_
+        for (auto& child : children) {
+            curSurfaceNode_->UpdateAbilityNodeIds(child->GetId());
+            childInfo += std::to_string(child->GetId()) + ",";
+        }
+        RS_TRACE_NAME(childInfo + "]");
+    }
 
     // reset childRect before prepare children
     node.ResetChildrenRect();
@@ -445,8 +456,8 @@ void RSUniRenderVisitor::AdjustLocalZOrder(std::shared_ptr<RSSurfaceRenderNode> 
 
 void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
-    RS_TRACE_NAME("RSUniRender::Prepare:[" + node.GetName() + "]" + " pid: " +
-        std::to_string(ExtractPid(node.GetId())));
+    RS_TRACE_NAME("RSUniRender::Prepare:[" + node.GetName() + "] pid: " + std::to_string(ExtractPid(node.GetId())) +
+        ", nodeType " + std::to_string(static_cast<uint>(node.GetSurfaceNodeType())));
     if (node.GetSecurityLayer()) {
         displayHasSecSurface_[currentVisitDisplay_] = true;
     }
@@ -495,8 +506,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             curSurfaceDirtyManager_->MarkAsTargetForDfx();
         }
     }
-    // [planning] IsMainWindowType should contain ABILITY_COMPONENT_NODE
-    // this branch should be included in other judgment
+    // collect ability nodeId info within same app since it belongs to another process
     if (node.IsAbilityComponent() && curSurfaceNode_) {
         curSurfaceNode_->UpdateAbilityNodeIds(node.GetId());
     }

@@ -74,6 +74,11 @@ public:
         return nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
     }
 
+    bool IsExtensionAbility() const
+    {
+        return nodeType_ == RSSurfaceNodeType::EXTENSION_ABILITY_NODE;
+    }
+
     bool IsLeashWindow() const
     {
         return nodeType_ == RSSurfaceNodeType::LEASH_WINDOW_NODE;
