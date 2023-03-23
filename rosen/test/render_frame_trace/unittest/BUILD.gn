@@ -12,19 +12,30 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_unittest("render_frame_trace_test") {
   module_out_path = "graphic_standard/rosen/modules/render_frame_trace"
 
-  include_dirs = [ "//foundation/graphic/graphic_2d/rosen/modules/render_frame_trace/include" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_frame_trace/include" ]
 
   sources = [
-    "render_frame_trace_impl_test.cpp",
     "render_frame_trace_test.cpp",
   ]
+  if (defined(global_parts_info)) {
+    if (defined(
+        global_parts_info.hmosresourceschedule_resourceschedule_frame_aware_sched_override)) {
+      sources += [ "render_frame_trace_impl_test.cpp"]
+      external_deps =
+          [ "resourceschedule_frame_aware_sched_override:frame_trace_intf" ]
+    } else if (defined(global_parts_info.resourceschedule_frame_aware_sched)) {
+      sources += [ "render_frame_trace_impl_test.cpp"]
+      external_deps = [ "frame_aware_sched:frame_trace_intf" ]
+    }
+  }
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_frame_trace:render_frame_trace",
+    "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
   ]
 
   part_name = "graphic_standard"
