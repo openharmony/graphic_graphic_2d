@@ -467,7 +467,7 @@ int32_t HdiDevice::GetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, G
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->GetLayerColorDataSpace);
     ColorDataSpace hdiColorSpace;
-    uint32_t ret = layerFuncs_->GetLayerColorDataSpace(screenId, layerId, &hdiColorSpace);
+    int32_t ret = layerFuncs_->GetLayerColorDataSpace(screenId, layerId, &hdiColorSpace);
     colorSpace = static_cast<GraphicColorDataSpace>(hdiColorSpace);
     return ret;
 }
@@ -505,7 +505,7 @@ int32_t HdiDevice::GetSupportedPresentTimestampType(uint32_t screenId, uint32_t 
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->GetSupportedPresentTimestamp);
     PresentTimestampType hdiType;
-    uint32_t ret = layerFuncs_->GetSupportedPresentTimestamp(screenId, layerId, &hdiType);
+    int32_t ret = layerFuncs_->GetSupportedPresentTimestamp(screenId, layerId, &hdiType);
     type = static_cast<GraphicPresentTimestampType>(hdiType);
     return ret;
 }
@@ -514,7 +514,7 @@ int32_t HdiDevice::GetPresentTimestamp(uint32_t screenId, uint32_t layerId, Grap
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->GetHwPresentTimestamp);
     PresentTimestamp hdiTimestamp;
-    uint32_t ret = layerFuncs_->GetHwPresentTimestamp(screenId, layerId, &hdiTimestamp);
+    int32_t ret = layerFuncs_->GetHwPresentTimestamp(screenId, layerId, &hdiTimestamp);
     timestamp.type = static_cast<GraphicPresentTimestampType>(hdiTimestamp.type);
     timestamp.time = hdiTimestamp.time;
     return ret;
