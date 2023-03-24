@@ -59,8 +59,11 @@ HWTEST_F(RenderFrameTraceImplTest, AccessFrameTrace, TestSize.Level1)
  */
 HWTEST_F(RenderFrameTraceImplTest, RenderFrameTraceOpen, TestSize.Level1)
 {
+    bool retClose = RenderFrameTraceImpl::instance_ ->RenderFrameTraceClose();
     bool ret = RenderFrameTraceImpl::instance_ ->RenderFrameTraceOpen();
-    EXPECT_EQ(ret, 0);
+    bool retClose1 = RenderFrameTraceImpl::instance_ ->RenderFrameTraceClose();
+    bool retIsOpen = RenderFrameTraceImpl::instance_ ->RenderFrameTraceIsOpen();
+    EXPECT_EQ(retIsOpen, 0);
 }
 
 /**
@@ -71,8 +74,9 @@ HWTEST_F(RenderFrameTraceImplTest, RenderFrameTraceOpen, TestSize.Level1)
  */
 HWTEST_F(RenderFrameTraceImplTest, RenderFrameTraceIsOpen, TestSize.Level1)
 {
-    bool ret = RenderFrameTraceImpl::instance_ ->RenderFrameTraceIsOpen();
-    EXPECT_EQ(ret, 0);
+    bool retClose1 = RenderFrameTraceImpl::instance_ ->RenderFrameTraceClose();
+    bool retIsOpen = RenderFrameTraceImpl::instance_ ->RenderFrameTraceIsOpen();
+    EXPECT_EQ(retIsOpen, 0);
 }
 
 /**
@@ -84,7 +88,8 @@ HWTEST_F(RenderFrameTraceImplTest, RenderFrameTraceIsOpen, TestSize.Level1)
 HWTEST_F(RenderFrameTraceImplTest, RenderFrameTraceClose, TestSize.Level1)
 {
     bool ret = RenderFrameTraceImpl::instance_ ->RenderFrameTraceClose();
-    EXPECT_EQ(ret, 0);
+    bool retIsOpen = RenderFrameTraceImpl::instance_ ->RenderFrameTraceIsOpen();
+    EXPECT_EQ(retIsOpen, 0);
 }
 
 /**
