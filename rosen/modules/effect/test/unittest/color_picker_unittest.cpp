@@ -273,5 +273,165 @@ HWTEST_F(ColorPickerUnittest, GetMainColorTest003, TestSize.Level1)
     bool ret = color.ColorEqual(ColorManager::Color(0x00000000U));
     EXPECT_EQ(true, ret);
 }
+
+/**
+ * @tc.name: GetLargestProportionColor
+ * @tc.desc: Ensure the ability of creating effect chain from config file.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, GetLargestProportionColor, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ColorPickerUnittest GetLargestProportionColor start";
+    size_t bufferSize = 0;
+    uint8_t *buffer = GetJpgBuffer(bufferSize);
+    ASSERT_NE(buffer, nullptr);
+
+    uint32_t errorCode = 0;
+    SourceOptions opts;
+    opts.formatHint = "image/jpeg";
+    std::unique_ptr<ImageSource> imageSource =
+        ImageSource::CreateImageSource(buffer, bufferSize, opts, errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(imageSource.get(), nullptr);
+
+    DecodeOptions decodeOpts;
+    std::unique_ptr<PixelMap> pixmap = imageSource->CreatePixelMap(decodeOpts, errorCode);
+    HiLog::Debug(LABEL_TEST, "create pixel map error code=%{public}u.", errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(pixmap.get(), nullptr);
+
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    EXPECT_NE(pColorPicker, nullptr);
+
+    ColorManager::Color color;
+    errorCode = pColorPicker->GetLargestProportionColor(color);
+    HiLog::Info(LABEL_TEST, "get largest proportion color [rgba]=%{public}f,%{public}f,%{public}f,%{public}f",
+                color.r, color.g, color.b, color.a);
+    ASSERT_EQ(errorCode, SUCCESS);
+    bool ret = color.ColorEqual(ColorManager::Color(0.972549f, 0.784314f, 0.0313726f, 1.f));
+    EXPECT_EQ(true, ret);
+}
+
+/**
+ * @tc.name: GetHighestSaturationColor
+ * @tc.desc: Ensure the ability of creating effect chain from config file.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, GetHighestSaturationColor, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ColorPickerUnittest GetHighestSaturationColor start";
+    size_t bufferSize = 0;
+    uint8_t *buffer = GetJpgBuffer(bufferSize);
+    ASSERT_NE(buffer, nullptr);
+
+    uint32_t errorCode = 0;
+    SourceOptions opts;
+    opts.formatHint = "image/jpeg";
+    std::unique_ptr<ImageSource> imageSource =
+        ImageSource::CreateImageSource(buffer, bufferSize, opts, errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(imageSource.get(), nullptr);
+
+    DecodeOptions decodeOpts;
+    std::unique_ptr<PixelMap> pixmap = imageSource->CreatePixelMap(decodeOpts, errorCode);
+    HiLog::Debug(LABEL_TEST, "create pixel map error code=%{public}u.", errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(pixmap.get(), nullptr);
+
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    EXPECT_NE(pColorPicker, nullptr);
+
+    ColorManager::Color color;
+    errorCode = pColorPicker->GetHighestSaturationColor(color);
+    HiLog::Info(LABEL_TEST, "get highest saturation color [rgba]=%{public}f,%{public}f,%{public}f,%{public}f",
+                color.r, color.g, color.b, color.a);
+    ASSERT_EQ(errorCode, SUCCESS);
+    bool ret = color.ColorEqual(ColorManager::Color(0.972549f, 0.784314f, 0.0313726f, 1.f));
+    EXPECT_EQ(true, ret);
+}
+
+/**
+ * @tc.name: GetAverageColor
+ * @tc.desc: Ensure the ability of creating effect chain from config file.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, GetAverageColor, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ColorPickerUnittest GetAverageColor start";
+    size_t bufferSize = 0;
+    uint8_t *buffer = GetJpgBuffer(bufferSize);
+    ASSERT_NE(buffer, nullptr);
+
+    uint32_t errorCode = 0;
+    SourceOptions opts;
+    opts.formatHint = "image/jpeg";
+    std::unique_ptr<ImageSource> imageSource =
+        ImageSource::CreateImageSource(buffer, bufferSize, opts, errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(imageSource.get(), nullptr);
+
+    DecodeOptions decodeOpts;
+    std::unique_ptr<PixelMap> pixmap = imageSource->CreatePixelMap(decodeOpts, errorCode);
+    HiLog::Debug(LABEL_TEST, "create pixel map error code=%{public}u.", errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(pixmap.get(), nullptr);
+
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    EXPECT_NE(pColorPicker, nullptr);
+
+    ColorManager::Color color;
+    errorCode = pColorPicker->GetAverageColor(color);
+    HiLog::Info(LABEL_TEST, "get average color [rgba]=%{public}f,%{public}f,%{public}f,%{public}f",
+                color.r, color.g, color.b, color.a);
+    ASSERT_EQ(errorCode, SUCCESS);
+    bool ret = color.ColorEqual(ColorManager::Color(0.972549f, 0.784314f, 0.0313726f, 1.f));
+    EXPECT_EQ(true, ret);
+}
+
+/**
+ * @tc.name: IsBlackOrWhiteOrGrayColor
+ * @tc.desc: Ensure the ability of creating effect chain from config file.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, IsBlackOrWhiteOrGrayColor, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ColorPickerUnittest IsBlackOrWhiteOrGrayColor start";
+    size_t bufferSize = 0;
+    uint8_t *buffer = GetJpgBuffer(bufferSize);
+    ASSERT_NE(buffer, nullptr);
+
+    uint32_t errorCode = 0;
+    SourceOptions opts;
+    opts.formatHint = "image/jpeg";
+    std::unique_ptr<ImageSource> imageSource =
+        ImageSource::CreateImageSource(buffer, bufferSize, opts, errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(imageSource.get(), nullptr);
+
+    DecodeOptions decodeOpts;
+    std::unique_ptr<PixelMap> pixmap = imageSource->CreatePixelMap(decodeOpts, errorCode);
+    HiLog::Debug(LABEL_TEST, "create pixel map error code=%{public}u.", errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(pixmap.get(), nullptr);
+
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    EXPECT_NE(pColorPicker, nullptr);
+
+    bool judgeRst = pColorPicker->IsBlackOrWhiteOrGrayColor(0xFFFFFFFF);
+    HiLog::Info(LABEL_TEST, "get largest proportion color result=%{public}d", judgeRst);
+    ASSERT_EQ(judgeRst, true);
+}
 } // namespace Rosen
 } // namespace OHOS
