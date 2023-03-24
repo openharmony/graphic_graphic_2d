@@ -127,6 +127,9 @@ public:
     void onDrawEdgeAAImageSet(const ImageSetEntry[], int, const SkPoint[],
                               const SkMatrix[], const SkPaint*, SrcRectConstraint) override {}
 
+    void SetIsCustomTextType(bool isCustomTextType);
+    bool IsCustomTextType() const;
+
 private:
     void DrawImageLatticeAsBitmap(
         const SkImage* image, const SkCanvas::Lattice& lattice, const SkRect& dst, const SkPaint* paint);
@@ -134,6 +137,7 @@ private:
     std::shared_ptr<DrawCmdList> drawCmdList_ { nullptr };
     int saveCount_ = 0;
     GrContext* grContext_ = nullptr;
+    bool isCustomTextType_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

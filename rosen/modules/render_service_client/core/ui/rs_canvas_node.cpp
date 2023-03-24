@@ -50,6 +50,7 @@ RSCanvasNode::~RSCanvasNode() {}
 SkCanvas* RSCanvasNode::BeginRecording(int width, int height)
 {
     recordingCanvas_ = new RSRecordingCanvas(width, height);
+    static_cast<RSRecordingCanvas*>(recordingCanvas_)->SetIsCustomTextType(isCustomTextType_);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return recordingCanvas_;
@@ -89,6 +90,7 @@ void RSCanvasNode::FinishRecording()
 void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
 {
     auto recordingCanvas = std::make_shared<RSRecordingCanvas>(GetPaintWidth(), GetPaintHeight());
+    recordingCanvas->SetIsCustomTextType(isCustomTextType_);
     func(recordingCanvas);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {

@@ -202,6 +202,8 @@ public:
     void AddModifier(const std::shared_ptr<RSModifier> modifier);
     void RemoveModifier(const std::shared_ptr<RSModifier> modifier);
 
+    void SetIsCustomTextType(bool isCustomTextType);
+
 protected:
     explicit RSNode(bool isRenderServiceNode);
     explicit RSNode(bool isRenderServiceNode, NodeId id);
@@ -221,6 +223,7 @@ protected:
     }
 
     std::vector<PropertyId> GetModifierIds() const;
+    bool isCustomTextType_ = false;
 
 private:
     bool AnimationFinish(AnimationId animationId);

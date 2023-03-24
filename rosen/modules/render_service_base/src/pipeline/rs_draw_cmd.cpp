@@ -1070,7 +1070,6 @@ OpItem* PixelMapRectOpItem::Unmarshalling(Parcel& parcel)
 // BitmapNineOpItem
 bool BitmapNineOpItem::Marshalling(Parcel& parcel) const
 {
-
     bool success = RSMarshallingHelper::Marshalling(parcel, bitmapInfo_) &&
                    RSMarshallingHelper::Marshalling(parcel, center_) &&
                    RSMarshallingHelper::Marshalling(parcel, rectDst_) &&

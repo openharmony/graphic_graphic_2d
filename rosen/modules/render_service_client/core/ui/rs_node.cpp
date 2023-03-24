@@ -1085,5 +1085,10 @@ void RSNode::ResetExtendModifierDirty()
 {
     extendModifierisDirty_ = false;
 }
+
+void RSNode::SetIsCustomTextType(bool isCustomTextType)
+{
+    isCustomTextType_ = isCustomTextType;
+}
 } // namespace Rosen
 } // namespace OHOS
