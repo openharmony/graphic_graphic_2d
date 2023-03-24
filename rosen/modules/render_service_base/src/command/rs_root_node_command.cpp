@@ -62,7 +62,7 @@ void RootNodeCommandHelper::AttachToUniSurfaceNode(RSContext& context, NodeId id
     }
 }
 
-void RootNodeCommandHelper::UpdateSuggestedBufferSize(RSContext& context, NodeId id, int32_t width, int32_t height)
+void RootNodeCommandHelper::UpdateSuggestedBufferSize(RSContext& context, NodeId id, float width, float height)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSRootRenderNode>(id)) {
         node->UpdateSuggestedBufferSize(width, height);
