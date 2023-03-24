@@ -24,6 +24,7 @@ constexpr unsigned LEFT_TOP_POINT = 0;
 constexpr unsigned RIGHT_TOP_POINT = 1;
 constexpr unsigned RIGHT_BOTTOM_POINT = 2;
 constexpr unsigned LEFT_BOTTOM_POINT = 3;
+constexpr float INCH_TO_PIXEL = 72;
 RSObjAbsGeometry::RSObjAbsGeometry() : RSObjGeometry()
 {
     vertices_[LEFT_TOP_POINT].set(0, 0);
@@ -137,6 +138,8 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         Sk3DView camera;
         // Z Position
         camera.translate(0, 0, z_ + trans_->translateZ_);
+        float zOffSet = sqrt(width_ * width_ + height_ * height_) / 2;
+        camera.setCameraLocation(0, 0, camera.getCameraLocationZ() - zOffSet / INCH_TO_PIXEL);
         // Rotate
         camera.rotateX(-trans_->rotationX_);
         camera.rotateY(-trans_->rotationY_);
