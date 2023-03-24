@@ -47,9 +47,9 @@ void RenderFrameTraceTest::TearDown() {}
  */
 HWTEST_F(RenderFrameTraceTest, RenderFrameTraceIsOpen, TestSize.Level1)
 {
-    RenderFrameTrace:: implInstance_ = &RenderFrameTrace::GetInstance();
+    RenderFrameTrace::implInstance_ = &RenderFrameTrace::GetInstance();
     bool ret = RenderFrameTrace::implInstance_->RenderFrameTraceIsOpen();
-    EXPECT_EQ(ret, 0);  
+    EXPECT_EQ(ret, 0);
 }
 
 /**
@@ -60,9 +60,9 @@ HWTEST_F(RenderFrameTraceTest, RenderFrameTraceIsOpen, TestSize.Level1)
  */
 HWTEST_F(RenderFrameTraceTest, Open, TestSize.Level1)
 {
-    RenderFrameTrace:: implInstance_ = &RenderFrameTrace::GetInstance();
+    RenderFrameTrace::implInstance_ = &RenderFrameTrace::GetInstance();
     bool ret = RenderFrameTrace::implInstance_->RenderFrameTraceOpen();
-    EXPECT_EQ(ret, 0);  
+    EXPECT_EQ(ret, 0);
 }
 
 /**
@@ -73,9 +73,9 @@ HWTEST_F(RenderFrameTraceTest, Open, TestSize.Level1)
  */
 HWTEST_F(RenderFrameTraceTest, Close, TestSize.Level1)
 {
-    RenderFrameTrace:: implInstance_ = &RenderFrameTrace::GetInstance();
+    RenderFrameTrace::implInstance_ = &RenderFrameTrace::GetInstance();
     bool ret = RenderFrameTrace::implInstance_->RenderFrameTraceClose();
-    EXPECT_EQ(ret, 0);  
+    EXPECT_EQ(ret, 0);
 }
 
 /**
@@ -87,7 +87,7 @@ HWTEST_F(RenderFrameTraceTest, Close, TestSize.Level1)
 HWTEST_F(RenderFrameTraceTest, ui, TestSize.Level1)
 {
     const std::string traceTag="ui";
-    RenderFrameTrace:: implInstance_ = &RenderFrameTrace::GetInstance();
+    RenderFrameTrace::implInstance_ = &RenderFrameTrace::GetInstance();
     RenderFrameTrace::implInstance_->RenderStartFrameTrace(traceTag);
     RenderFrameTrace::implInstance_->RenderEndFrameTrace(traceTag);
 }
@@ -101,7 +101,7 @@ HWTEST_F(RenderFrameTraceTest, ui, TestSize.Level1)
 HWTEST_F(RenderFrameTraceTest, renderthread, TestSize.Level1)
 {
     const std::string traceTag="renderthread";
-    RenderFrameTrace:: implInstance_ = &RenderFrameTrace::GetInstance();
+    RenderFrameTrace::implInstance_ = &RenderFrameTrace::GetInstance();
     RenderFrameTrace::implInstance_->RenderStartFrameTrace(traceTag);
     RenderFrameTrace::implInstance_->RenderEndFrameTrace(traceTag);
 }
@@ -115,7 +115,7 @@ HWTEST_F(RenderFrameTraceTest, renderthread, TestSize.Level1)
 HWTEST_F(RenderFrameTraceTest, renderservice, TestSize.Level1)
 {
     const std::string traceTag="renderservice";
-    RenderFrameTrace:: implInstance_ = &RenderFrameTrace::GetInstance();
+    RenderFrameTrace::implInstance_ = &RenderFrameTrace::GetInstance();
     RenderFrameTrace::implInstance_->RenderStartFrameTrace(traceTag);
     RenderFrameTrace::implInstance_->RenderEndFrameTrace(traceTag);
 }
