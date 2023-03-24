@@ -270,5 +270,49 @@ HWTEST_F(ColorManagerTest, skiaToColorSpace, Function | SmallTest | Level2)
     Color p3Color = Color(0.1238f, 0.19752f, 0.29182f, 0.4, ColorSpaceName::DISPLAY_P3);
     ASSERT_EQ(p3Color.ColorEqual(result), true);
 }
+
+/**
+ * @tc.name: CreateColorSpace001
+ * @tc.desc: Create colorspace with customized parameters
+ * @tc.type: FUNC
+ * @tc.require: issueI6PXHH
+ */
+HWTEST_F(ColorManagerTest, CreateColorSpace001, TestSize.Level1)
+{
+    // customized parameters
+    ColorSpacePrimaries primaries{0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f};
+    TransferFunc transFunc{0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f};
+    Matrix3x3 toXYZ = {{
+        {0.1f, 0.2f, 0.3f},
+        {0.1f, 0.2f, 0.3f},
+        {0.1f, 0.2f, 0.3f}}};
+    std::array<float, DIMES_2> whitePoint{0.1f, 0.2f};
+    float gamma = 0.1;
+    
+    std::shared_ptr<ColorSpace> cs = std::make_shared<ColorSpace>(primaries, transFunc);
+    ASSERT_NE(cs, nullptr);
+    cs = std::make_shared<ColorSpace>(primaries, gamma);
+    ASSERT_NE(cs, nullptr);
+    cs = std::make_shared<ColorSpace>(toXYZ, whitePoint, transFunc);
+    ASSERT_NE(cs, nullptr);
+    cs = std::make_shared<ColorSpace>(toXYZ, whitePoint, gamma);
+    ASSERT_NE(cs, nullptr);
+}
+
+/**
+ * @tc.name: CreateColorSpace002
+ * @tc.desc: Create colorspace with skcms_ICCProfile
+ * @tc.type: FUNC
+ * @tc.require: issueI6PXHH
+ */
+HWTEST_F(ColorManagerTest, CreateColorSpace002, TestSize.Level1)
+{
+    std::shared_ptr<skcms_ICCProfile> profile = std::make_shared<skcms_ICCProfile>();
+    sk_sp<SkColorSpace> skiaSrgb = SkColorSpace::MakeSRGB();
+    skiaSrgb->toProfile(profile.get());
+    
+    std::shared_ptr<ColorSpace> cs = std::make_shared<ColorSpace>(*profile);
+    ASSERT_NE(cs, nullptr);
+}
 }
 }

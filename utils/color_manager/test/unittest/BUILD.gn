@@ -17,11 +17,11 @@ module_out_path = "graphic_standard/utils/color_manager"
 
 group("unittest") {
   testonly = true
-  deps = [ ":color_manager_test" ]
+  deps = [ ":ColorManagerTest" ]
 }
 
 ## Build color_manager_test
-ohos_unittest("color_manager_test") {
+ohos_unittest("ColorManagerTest") {
   module_out_path = module_out_path
   sources = [ "color_manager_test.cpp" ]
   deps = [ ":color_manager_test_common" ]
