@@ -25,7 +25,7 @@ class Transform {
 public:
     Transform()
         : pivotX_(0.5f), pivotY_(0.5f), scaleX_(1.f), scaleY_(1.f), rotation_(0.f), rotationX_(0.f), rotationY_(0.f),
-          translateX_(0), translateY_(0), translateZ_(0), cameraDistance_(-8.f)
+          translateX_(0), translateY_(0), translateZ_(0), cameraDistance_(0.f)
     {}
     ~Transform() {}
     float pivotX_;
@@ -276,7 +276,7 @@ public:
     }
     float GetCameraDistance() const
     {
-        return trans_ ? trans_->cameraDistance_ : -8.f;
+        return trans_ ? trans_->cameraDistance_ : 0.f;
     }
     Quaternion GetQuaternion() const
     {

@@ -87,7 +87,7 @@ float RSModifierExtractor::GetRotationY() const
 
 float RSModifierExtractor::GetCameraDistance() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(float, CAMERA_DISTANCE, -8.f, =);
+    GET_PROPERTY_FROM_MODIFIERS(float, CAMERA_DISTANCE, 0.f, =);
 }
 
 Vector2f RSModifierExtractor::GetTranslate() const
