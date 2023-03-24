@@ -29,6 +29,13 @@ RSDrivenSurfaceRenderNode::RSDrivenSurfaceRenderNode(
     : RSRenderNode(id, context), RSSurfaceHandler(id)
 {
     drivenExtInfo_.surfaceType_ = type;
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+}
+
+RSDrivenSurfaceRenderNode::~RSDrivenSurfaceRenderNode()
+{
+    MemoryTrack::Instance().RemoveNodeRecord(GetId());
 }
 
 void RSDrivenSurfaceRenderNode::SetDrivenCanvasNode(RSBaseRenderNode::SharedPtr node)

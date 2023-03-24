@@ -50,6 +50,13 @@ group("unittest") {
       ":RSRenderTaskTest",
     ]
   }
+  if (rs_enable_driven_render && rs_enable_gpu) {
+    deps += [
+      ":RSDrivenRenderExtTest",
+      ":RSDrivenRenderManagerTest",
+      ":RSDrivenRenderVisitorTest",
+    ]
+  }
 }
 
 ###############################################################################
@@ -289,6 +296,40 @@ ohos_unittest("RSNodeCostManagerTest") {
     "../../../../../modules/render_service_base:render_service_base_src",
   ]
   external_deps = [ "init:libbegetutil" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSDrivenRenderManagerTest
+ohos_unittest("RSDrivenRenderManagerTest") {
+  module_out_path = module_output_path
+  sources = [ "driven_render/rs_driven_render_manager_test.cpp" ]
+  deps = [
+    ":rs_test_common",
+    "../../../../../modules/render_service_base:render_service_base_src",
+  ]
+  external_deps = [ "init:libbegetutil" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSDrivenRenderVisitorTest
+ohos_unittest("RSDrivenRenderVisitorTest") {
+  module_out_path = module_output_path
+  sources = [ "driven_render/rs_driven_render_visitor_test.cpp" ]
+  deps = [
+    ":rs_test_common",
+    "../../../../../modules/render_service_base:render_service_base_src",
+  ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSDrivenRenderExtTest
+ohos_unittest("RSDrivenRenderExtTest") {
+  module_out_path = module_output_path
+  sources = [ "driven_render/rs_driven_render_ext_test.cpp" ]
+  deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines
 }
