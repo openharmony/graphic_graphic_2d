@@ -23,15 +23,11 @@ ohos_unittest("render_frame_trace_test") {
     "render_frame_trace_test.cpp",
   ]
   if (defined(global_parts_info)) {
-    if (defined(
-        global_parts_info.hmosresourceschedule_resourceschedule_frame_aware_sched_override)) {
+    if ((defined(
+        global_parts_info.hmosresourceschedule_resourceschedule_frame_aware_sched_override)) || 
+        defined(global_parts_info.resourceschedule_frame_aware_sched)) {
       sources += [ "render_frame_trace_impl_test.cpp"]
-      external_deps =
-          [ "resourceschedule_frame_aware_sched_override:frame_trace_intf" ]
-    } else if (defined(global_parts_info.resourceschedule_frame_aware_sched)) {
-      sources += [ "render_frame_trace_impl_test.cpp"]
-      external_deps = [ "frame_aware_sched:frame_trace_intf" ]
-    }
+    } 
   }
 
   deps = [
