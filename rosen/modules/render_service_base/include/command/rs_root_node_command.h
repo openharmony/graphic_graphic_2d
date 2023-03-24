@@ -37,7 +37,7 @@ public:
     static void AttachRSSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId);
     static void AttachToUniSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId);
     static void SetEnableRender(RSContext& context, NodeId id, bool flag);
-    static void UpdateSuggestedBufferSize(RSContext& context, NodeId id, int32_t width, int32_t height);
+    static void UpdateSuggestedBufferSize(RSContext& context, NodeId id, float width, float height);
 };
 
 ADD_COMMAND(RSRootNodeCreate, ARG(ROOT_NODE, ROOT_NODE_CREATE, RootNodeCommandHelper::Create, NodeId))
@@ -49,8 +49,8 @@ ADD_COMMAND(RSRootNodeSetEnableRender,
 ADD_COMMAND(RSRootNodeAttachToUniSurfaceNode,
     ARG(ROOT_NODE, ATTACH_TO_UNI_SURFACENODE, RootNodeCommandHelper::AttachToUniSurfaceNode, NodeId, NodeId))
 ADD_COMMAND(RSRootNodeUpdateSuggestedBufferSize,
-    ARG(ROOT_NODE, UPDATE_SUGGESTED_BUFFER_SIZE, RootNodeCommandHelper::UpdateSuggestedBufferSize, NodeId, int32_t,
-        int32_t))
+    ARG(ROOT_NODE, UPDATE_SUGGESTED_BUFFER_SIZE, RootNodeCommandHelper::UpdateSuggestedBufferSize, NodeId, float,
+        float))
 
 } // namespace Rosen
 } // namespace OHOS

@@ -41,9 +41,9 @@ public:
     std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
     std::shared_ptr<RSSurface> GetSurface();
     NodeId GetRSSurfaceNodeId();
-    int32_t GetSuggestedBufferWidth() const;
-    int32_t GetSuggestedBufferHeight() const;
-    void UpdateSuggestedBufferSize(int32_t width, int32_t height);
+    float GetSuggestedBufferWidth() const;
+    float GetSuggestedBufferHeight() const;
+    void UpdateSuggestedBufferSize(float width, float height);
     void SetEnableRender(bool enableRender)
     {
         if (enableRender_ != enableRender) {
@@ -73,8 +73,8 @@ private:
     NodeId surfaceNodeId_ = 0;
     bool enableRender_ = true;
     bool needUpdateSurfaceNode_ = false;
-    int32_t suggestedBufferWidth_ = 0;
-    int32_t suggestedBufferHeight_ = 0;
+    float suggestedBufferWidth_ = 0.f;
+    float suggestedBufferHeight_ = 0.f;
 
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;
