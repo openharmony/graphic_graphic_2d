@@ -66,6 +66,16 @@ private:
             return isUniRender_;
         }
 
+        bool GetHasingSecurityLayer() const
+        {
+            return hasSecurityLayer_;
+        }
+
+        void SetHasingSecurityLayer(const bool &hasSecurityLayer)
+        {
+            hasSecurityLayer_ = hasSecurityLayer;
+        }
+
     private:
         void ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode& node);
         void CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNode& node);
@@ -74,7 +84,7 @@ private:
         void CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRenderNode& node);
         void CaptureSurfaceInDisplayWithoutUni(RSSurfaceRenderNode& node);
         void DrawWatermarkIfNeed(float screenWidth, float screenHeight);
-        void FindSecurityLayerAndHardwareEnabledNodes();
+        void FindHardwareEnabledNodes();
         void AdjustZOrderAndDrawSurfaceNode();
         std::unique_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
         bool isDisplayNode_ = false;
@@ -95,7 +105,10 @@ private:
     std::unique_ptr<Media::PixelMap> CreatePixelMapBySurfaceNode(std::shared_ptr<RSSurfaceRenderNode> node,
         bool isUniRender = false);
 
-    std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSDisplayRenderNode> node);
+    std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSDisplayRenderNode> node,
+        bool isUniRender = false, bool hasSecurityLayer = false);
+
+    bool FindSecurityLayer();
 
     NodeId nodeId_;
 
