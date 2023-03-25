@@ -141,9 +141,8 @@ HWTEST_F(PathTest, ArcTo002, TestSize.Level1)
  */
 HWTEST_F(PathTest, ArcTo003, TestSize.Level2)
 {
-    auto path = std::make_unique<Path>();
-    ASSERT_TRUE(path != nullptr);
-    path->ArcTo(1.0f, 3.0f, 2.5f, PathDirection::CCW_DIRECTION, 1.0f, 3.0f);
+    Path path;
+    path.ArcTo(1.0f, 3.0f, 2.5f, PathDirection::CCW_DIRECTION, 1.0f, 3.0f);
 }
 
 /**
