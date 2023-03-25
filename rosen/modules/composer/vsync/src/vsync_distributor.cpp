@@ -99,10 +99,8 @@ VsyncError VSyncConnection::SetVSyncRate(int32_t rate)
 
 VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string name)
     : controller_(controller), mutex_(), con_(), connections_(),
-    vsyncEnabled_(false), name_(name)
+    event_(), vsyncEnabled_(false), name_(name)
 {
-    event_.timestamp = 0;
-    event_.vsyncCount = 0;
     vsyncThreadRunning_ = true;
     threadLoop_ = std::thread(std::bind(&VSyncDistributor::ThreadMain, this));
     std::string threadName = "VSync-" + name;

@@ -109,7 +109,8 @@ int32_t LocalSocketPair::SendData(const void *vaddr, size_t size)
         ScopedBytrace func("SocketPair SendData failed, errno = " + std::to_string(errnoRecord) +
                             ", sendFd_ = " + std::to_string(sendFd_) + ", receiveFd_ = " + std::to_string(receiveFd_) +
                             ", length = " + std::to_string(length));
-        HiLog::Debug(LABEL, "%{public}s send failed:%{public}d, length = %{public}d", __func__, errnoRecord, (int32_t)length);
+        HiLog::Debug(LABEL, "%{public}s send failed:%{public}d, length = %{public}d",
+                     __func__, errnoRecord, static_cast<int32_t>(length));
         if (errnoRecord == EAGAIN) {
             return ERRNO_EAGAIN;
         } else {
