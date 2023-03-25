@@ -1040,11 +1040,8 @@ void RSUniRenderVisitor::ProcessParallelDisplayRenderNode(RSDisplayRenderNode& n
         RS_LOGE("RSUniRenderVisitor::ProcessParallelDisplayRenderNode: failed to create canvas");
         return;
     }
-    RSPropertiesPainter::SetBgAntiAlias(true);
-    canvas_->save();
-    canvas_->clipRect(SkRect::MakeWH(screenInfo_.width, screenInfo_.height));
     canvas_->clear(SK_ColorTRANSPARENT);
-    canvas_->restore();
+    RSPropertiesPainter::SetBgAntiAlias(true);
     int saveCount = canvas_->save();
     canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
@@ -1263,6 +1260,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: failed to create canvas");
             return;
         }
+
+#ifdef RS_ENABLE_VK
+        canvas_->clear(SK_ColorTRANSPARENT);
+#endif
+
         int saveLayerCnt = 0;
         SkRegion region;
         Occlusion::Region dirtyRegionTest;

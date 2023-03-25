@@ -586,8 +586,6 @@ void RSParallelRenderManager::InitDisplayNodeAndRequestFrame(
             parallelDisplayNodes_[i] =
                 std::make_shared<RSDisplayRenderNode>(i, config, context.weak_from_this());
             parallelDisplayNodes_[i]->SetIsParallelDisplayNode(true);
-            auto& property = parallelDisplayNodes_[i]->GetMutableRenderProperties();
-            property.SetBounds({0, 0, screenInfo.width, screenInfo.height});
         }
         if (!parallelDisplayNodes_[i]->IsSurfaceCreated()) {
             sptr<IBufferConsumerListener> listener = new RSUniRenderListener(parallelDisplayNodes_[i]);
