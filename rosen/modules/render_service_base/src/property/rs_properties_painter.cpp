@@ -346,7 +346,7 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch skSurface null");
         return;
     }
-    
+
     canvas.save();
     auto bounds = RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect());
     canvas.clipRect(bounds);
@@ -382,11 +382,8 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
         canvas.drawRect(SkRect::MakeXYWH(-stretchSize.x_, -stretchSize.y_, scaledBounds.width(), scaledBounds.height()),
             paint);
     } else {
-        SkBitmap bitmap;
-        bitmap.allocN32Pixels(scaledBounds.width(), scaledBounds.height());
-        auto tempCanvas = std::make_unique<SkCanvas>(bitmap);
-        tempCanvas->drawImageRect(image.get(), SkRect::MakeWH(scaledBounds.width(), scaledBounds.height()), nullptr);
-        paint.setShader(bitmap.makeShader(SkTileMode::kClamp, SkTileMode::kClamp));
+        scaleMat.setScale(scaledBounds.width() / bounds.width(), scaledBounds.height() / bounds.height());
+        paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, &scaleMat));
         canvas.save();
         canvas.translate(-stretchSize.x_, -stretchSize.y_);
         canvas.drawRect(SkRect::MakeXYWH(stretchSize.x_, stretchSize.y_, bounds.width(), bounds.height()), paint);
