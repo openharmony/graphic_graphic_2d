@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
+// @ts-ignore
 import window from 'libwindow.z.so'
+// @ts-ignore
 import display from 'libdisplay.z.so'
 
 export default {
