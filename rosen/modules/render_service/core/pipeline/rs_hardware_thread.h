@@ -60,7 +60,7 @@ private:
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     HdiBackend *hdiBackend_ = nullptr;
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
-    UniFallbackCallback fallbackCb_;
+    UniFallbackCallback redrawCb_;
     std::mutex mutex_;
 };
 }
