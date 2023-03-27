@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,7 +49,6 @@ HWTEST_F(RSUniRenderJudgementTest, TestUniRenderJudgement001, TestSize.Level1)
         uniType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
 }
 
-
 /**
  * @tc.name: TestUniRenderJudgement002
  * @tc.desc: IsUniRender test.
@@ -66,5 +65,37 @@ HWTEST_F(RSUniRenderJudgementTest, TestUniRenderJudgement002, TestSize.Level1)
     } else {
         ASSERT_EQ(true, isUni);
     }
+}
+
+/**
+ * @tc.name: TestUniRenderJudgement003
+ * @tc.desc: SafeGetLine test.
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(RSUniRenderJudgementTest, TestUniRenderJudgement003, TestSize.Level1)
+{
+    const std::string configPath = "/data/";
+    const std::string configName = "test.config";
+    std::string configFilePath = configPath + configName;
+    // check empty config
+    std::ifstream configFile = std::ifstream(configFilePath.c_str());
+    std::string line;
+    (void)RSUniRenderJudgement::SafeGetLine(configFile, line);
+    ASSERT_EQ(line, "");
+    // add lines to file
+    std::string rsCmd = "touch " + configFilePath;
+    (void)system(rsCmd.c_str());
+    std::ofstream writeFile = std::ofstream(configFilePath.c_str());
+    std::string newLine = "add test line";
+    writeFile << newLine;
+    writeFile.close();
+    // check test config
+    configFile = std::ifstream(configFilePath.c_str());
+    (void)RSUniRenderJudgement::SafeGetLine(configFile, line);
+    ASSERT_EQ(line, newLine);
+    // safely remove file
+    rsCmd = "rm " + configFilePath;
+    (void)system(rsCmd.c_str());
 }
 } // namespace OHOS::Rosen

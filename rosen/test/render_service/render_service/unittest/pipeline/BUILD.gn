@@ -28,7 +28,6 @@ group("unittest") {
     ":RSDividedRenderUtilTest",
     ":RSDropFrameProcessorTest",
     ":RSMainThreadTest",
-    ":RSNodeCostManagerTest",
     ":RSPhysicalScreenProcessorTest",
     ":RSProcessorFactoryTest",
     ":RSQosThreadTest",
@@ -43,8 +42,12 @@ group("unittest") {
     ":RSUnmarshalThreadTest",
     ":RSVirtualScreenProcessorTest",
   ]
+  if (rs_enable_eglimage) {
+    deps += [ ":RSEglImageManagerTest" ]
+  }
   if (rs_enable_parallel_render && rs_enable_gpu) {
     deps += [
+      ":RSNodeCostManagerTest",
       ":RSParallelHardwareComposerTest",
       ":RSParallelPackVisitorTest",
       ":RSParallelRenderManagerTest",
@@ -209,6 +212,15 @@ ohos_unittest("RSMainThreadTest") {
 ohos_unittest("RSColdStartThreadTest") {
   module_out_path = module_output_path
   sources = [ "rs_cold_start_thread_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSEglImageManagerTest
+ohos_unittest("RSEglImageManagerTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_egl_image_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines
