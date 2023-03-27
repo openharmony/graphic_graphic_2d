@@ -50,7 +50,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t USE_CACHE_APP_WINDOW_NUM = 7;
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined (RS_ENABLE_GL)
 constexpr uint32_t PHONE_MAX_APP_WINDOW_NUM = 1;
 #endif
@@ -1269,6 +1268,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         SkRegion region;
         Occlusion::Region dirtyRegionTest;
         std::vector<RectI> rects;
+        bool clipPath = false;
 #ifdef RS_ENABLE_EGLQUERYSURFACE
         // Get displayNode buffer age in order to merge visible dirty region for displayNode.
         // And then set egl damage region to improve uni_render efficiency.
@@ -1316,6 +1316,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->clipRegion(region);
             } else {
                 RS_TRACE_NAME("RSUniRenderVisitor: clipPath");
+                clipPath = true;
                 SkPath dirtyPath;
                 region.getBoundaryPath(&dirtyPath);
                 canvas_->clipPath(dirtyPath, true);
@@ -1338,7 +1339,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 // enable cache if screen rotation is not times of 90 degree
                 canvas_->SetCacheEnabled(geoPtr->IsNeedClientCompose());
             }
-            canvas_->SetCacheEnabled(canvas_->isCacheEnabled() || appWindowNum_ > USE_CACHE_APP_WINDOW_NUM);
+            canvas_->SetCacheEnabled(canvas_->isCacheEnabled() || clipPath);
             if (canvas_->isCacheEnabled()) {
                 // we are doing rotation animation, try offscreen render if capable
                 ClearTransparentBeforeSaveLayer();
