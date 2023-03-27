@@ -34,6 +34,7 @@ group("unittest") {
     ":RSRenderServiceListenerTest",
     ":RSRenderServiceVisitorTest",
     ":RSSurfaceCaptureTaskTest",
+    ":RSUniRenderEngineTest",
     ":RSUniRenderJudgementTest",
     ":RSUniRenderUtilTest",
     ":RSUniRenderVirtualProcessorTest",
@@ -329,6 +330,15 @@ ohos_unittest("RSDrivenRenderVisitorTest") {
 ohos_unittest("RSDrivenRenderExtTest") {
   module_out_path = module_output_path
   sources = [ "driven_render/rs_driven_render_ext_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSUniRenderEngineTest
+ohos_unittest("RSUniRenderEngineTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_uni_render_engine_test.cpp" ]
   deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines
