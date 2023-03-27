@@ -24,6 +24,7 @@ group("unittest") {
     ":RSBaseRenderEngineUnitTest",
     ":RSBaseRenderUtilTest",
     ":RSColdStartThreadTest",
+    ":RSDividedRenderUtilTest",
     ":RSComposerAdapterTest",
     ":RSDropFrameProcessorTest",
     ":RSMainThreadTest",
@@ -330,6 +331,15 @@ ohos_unittest("RSDrivenRenderVisitorTest") {
 ohos_unittest("RSDrivenRenderExtTest") {
   module_out_path = module_output_path
   sources = [ "driven_render/rs_driven_render_ext_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSDividedRenderUtilTest
+ohos_unittest("RSDividedRenderUtilTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_divided_render_util_test.cpp" ]
   deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines
