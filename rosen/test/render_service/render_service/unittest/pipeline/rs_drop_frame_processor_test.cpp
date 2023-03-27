@@ -107,7 +107,7 @@ HWTEST_F(RSDropFrameProcessorTest, DropFrameProcessorTest002, TestSize.Level1)
     for (int i = 0; i < 3; i ++) {
         sptr<SurfaceBuffer> buffer;
         sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
-        GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+        [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
         sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
         ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
         sleep(4); // every frame wait 4 seconds
@@ -156,7 +156,7 @@ HWTEST_F(RSDropFrameProcessorTest, DropFrameProcessorTest003, TestSize.Level1)
     for (int i = 0; i < 3; i ++) {
         sptr<SurfaceBuffer> buffer;
         sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
-        GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+        [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
         sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
         ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
         sleep(4); // every frame wait 4 seconds
