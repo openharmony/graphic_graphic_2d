@@ -28,8 +28,8 @@ public:
     BufferQueueConsumer(sptr<BufferQueue>& bufferQueue);
     virtual ~BufferQueueConsumer();
 
-    GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
-                               int64_t &timestamp, Rect &damage);
+    GSError AcquireBuffer(sptr<SurfaceBuffer> &buffer, sptr<SyncFence> &fence,
+                               int64_t &timestamp, std::vector<Rect> &damages);
 
     GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence);
 

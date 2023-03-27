@@ -44,7 +44,8 @@ public:
 
     GSError FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
                         const sptr<SyncFence>& fence, BufferFlushConfig &config) override;
-
+    GSError FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
+                        const sptr<SyncFence>& fence, BufferWithDamagesFlushConfig &config) override;
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
 
     GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;

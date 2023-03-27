@@ -135,6 +135,15 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
 GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
                                      const sptr<SyncFence>& fence, BufferFlushConfig &config)
 {
+    BufferWithDamagesFlushConfig configWithDamages;
+    configWithDamages.damages.push_back(config.damage);
+    configWithDamages.timestamp = config.timestamp;
+    return FlushBuffer(buffer->GetSeqNum(), bedata, fence, configWithDamages);
+}
+
+GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence,
+                                     BufferWithDamagesFlushConfig &config)
+{
     if (buffer == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
@@ -142,6 +151,7 @@ GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
     const sptr<BufferExtraData>& bedata = buffer->GetExtraData();
     return producer_->FlushBuffer(buffer->GetSeqNum(), bedata, fence, config);
 }
+
 GSError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
                                        int64_t &timestamp, Rect &damage)
 {

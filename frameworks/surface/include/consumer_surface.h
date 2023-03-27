@@ -44,6 +44,8 @@ public:
 
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
                           int64_t &timestamp, Rect &damage) override;
+    GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
+                          int64_t &timestamp, std::vector<Rect> &damages) override;
 
     GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) override;
 
@@ -51,8 +53,13 @@ public:
                           sptr<SyncFence>& fence, BufferRequestConfig &config) override;
     GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
                         const sptr<SyncFence>& fence, BufferFlushConfig &config) override;
+    GSError FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence,
+                        BufferWithDamagesFlushConfig &config) override;
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
                           int64_t &timestamp, Rect &damage) override;
+    GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
+                          int64_t &timestamp, std::vector<Rect> &damages) override;
+
     GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence) override;
 
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;

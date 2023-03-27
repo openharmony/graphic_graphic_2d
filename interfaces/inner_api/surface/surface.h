@@ -116,7 +116,8 @@ public:
     virtual sptr<NativeSurface> GetNativeSurface() = 0;
 
     virtual bool QueryIfBufferAvailable() = 0;
-
+    virtual GSError FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence,
+                                BufferWithDamagesFlushConfig &config) = 0;
 protected:
     Surface() = default;
 };

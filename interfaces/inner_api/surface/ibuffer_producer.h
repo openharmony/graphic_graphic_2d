@@ -81,6 +81,8 @@ public:
     virtual sptr<NativeSurface> GetNativeSurface() = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducer");
+    virtual GSError FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
+                                const sptr<SyncFence>& fence, BufferWithDamagesFlushConfig &config) = 0;
 
 protected:
     enum {

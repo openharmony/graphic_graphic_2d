@@ -162,15 +162,17 @@ GSError BufferQueue::CheckRequestConfig(const BufferRequestConfig &config)
     return GSERROR_OK;
 }
 
-GSError BufferQueue::CheckFlushConfig(const BufferFlushConfig &config)
+GSError BufferQueue::CheckFlushConfig(const BufferWithDamagesFlushConfig &config)
 {
-    if (config.damage.w < 0) {
-        BLOGN_INVALID("config.damage.w >= 0, now is %{public}d", config.damage.w);
-        return GSERROR_INVALID_ARGUMENTS;
-    }
-    if (config.damage.h < 0) {
-        BLOGN_INVALID("config.damage.h >= 0, now is %{public}d", config.damage.h);
-        return GSERROR_INVALID_ARGUMENTS;
+    for (decltype(config.damages.size()) i = 0; i < config.damages.size(); i++) {
+        if (config.damages[i].w < 0) {
+            BLOGN_INVALID("config.damages[%{public}zu].w >= 0, now is %{public}d", i, config.damages[i].w);
+            return GSERROR_INVALID_ARGUMENTS;
+        }
+        if (config.damages[i].h < 0) {
+            BLOGN_INVALID("config.damages[%{public}zu].h >= 0, now is %{public}d", i, config.damages[i].h);
+            return GSERROR_INVALID_ARGUMENTS;
+        }
     }
     return GSERROR_OK;
 }
@@ -347,7 +349,7 @@ GSError BufferQueue::CancelBuffer(uint32_t sequence, const sptr<BufferExtraData>
 }
 
 GSError BufferQueue::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
-    const sptr<SyncFence>& fence, const BufferFlushConfig &config)
+    const sptr<SyncFence>& fence, const BufferWithDamagesFlushConfig &config)
 {
     ScopedBytrace func(__func__);
     if (!GetStatus()) {
@@ -431,7 +433,7 @@ void BufferQueue::DumpToFile(uint32_t sequence)
 }
 
 GSError BufferQueue::DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
-    const sptr<SyncFence>& fence, const BufferFlushConfig &config)
+    const sptr<SyncFence>& fence, const BufferWithDamagesFlushConfig &config)
 {
     ScopedBytrace func(__func__);
     ScopedBytrace bufferName(name_ + ":" + std::to_string(sequence));
@@ -450,7 +452,7 @@ GSError BufferQueue::DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData
     dirtyList_.push_back(sequence);
     bufferQueueCache_[sequence].buffer->SetExtraData(bedata);
     bufferQueueCache_[sequence].fence = fence;
-    bufferQueueCache_[sequence].damage = config.damage;
+    bufferQueueCache_[sequence].damages = config.damages;
 
     uint64_t usage = static_cast<uint32_t>(bufferQueueCache_[sequence].config.usage);
     if (usage & BUFFER_USAGE_CPU_WRITE) {
@@ -476,7 +478,7 @@ GSError BufferQueue::DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData
 }
 
 GSError BufferQueue::AcquireBuffer(sptr<SurfaceBuffer> &buffer,
-    sptr<SyncFence> &fence, int64_t &timestamp, Rect &damage)
+    sptr<SyncFence> &fence, int64_t &timestamp, std::vector<Rect> &damages)
 {
     ScopedBytrace func(__func__);
     // dequeue from dirty list
@@ -491,7 +493,7 @@ GSError BufferQueue::AcquireBuffer(sptr<SurfaceBuffer> &buffer,
 
         fence = bufferQueueCache_[sequence].fence;
         timestamp = bufferQueueCache_[sequence].timestamp;
-        damage = bufferQueueCache_[sequence].damage;
+        damages = bufferQueueCache_[sequence].damages;
 
         ScopedBytrace bufferName(name_ + ":" + std::to_string(sequence));
         BLOGND("Success Buffer seq id: %{public}d Queue id: %{public}" PRIu64 " AcquireFence:%{public}d",
@@ -678,10 +680,7 @@ GSError BufferQueue::AttachBuffer(sptr<SurfaceBuffer> &buffer)
             .usage = buffer->GetUsage(),
             .timeout = 0,
         },
-        .damage = {
-            .w = ele.config.width,
-            .h = ele.config.height,
-        }
+        .damages = { { .w = ele.config.width, .h = ele.config.height, } },
     };
 
     uint32_t sequence = buffer->GetSeqNum();
@@ -1144,10 +1143,13 @@ void BufferQueue::DumpCache(std::string &result)
                 ", state = " + BufferStateStrs.at(element.state) +
                 ", timestamp = " + std::to_string(element.timestamp);
         }
-        result += ", damageRect = [" + std::to_string(element.damage.x) + ", " +
-            std::to_string(element.damage.y) + ", " +
-            std::to_string(element.damage.w) + ", " +
-            std::to_string(element.damage.h) + "],";
+        for (decltype(element.damages.size()) i = 0; i < element.damages.size(); i++) {
+            result += ", damagesRect = [" + std::to_string(i) + "] = [" +
+            std::to_string(element.damages[i].x) + ", " +
+            std::to_string(element.damages[i].y) + ", " +
+            std::to_string(element.damages[i].w) + ", " +
+            std::to_string(element.damages[i].h) + "],";
+        }
         result += " config = [" + std::to_string(element.config.width) + "x" +
             std::to_string(element.config.height) + ", " +
             std::to_string(element.config.strideAlignment) + ", " +

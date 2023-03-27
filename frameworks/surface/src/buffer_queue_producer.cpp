@@ -370,6 +370,15 @@ GSError BufferQueueProducer::CancelBuffer(uint32_t sequence, const sptr<BufferEx
 GSError BufferQueueProducer::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
                                          const sptr<SyncFence>& fence, BufferFlushConfig &config)
 {
+    BufferWithDamagesFlushConfig configWithDamages;
+    configWithDamages.damages.push_back(config.damage);
+    configWithDamages.timestamp = config.timestamp;
+    return bufferQueue_->FlushBuffer(sequence, bedata, fence, config);
+}
+
+GSError BufferQueueProducer::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
+                                         const sptr<SyncFence>& fence, BufferWithDamagesFlushConfig &config)
+{
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }

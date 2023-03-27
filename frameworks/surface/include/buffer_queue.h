@@ -47,7 +47,7 @@ using BufferElement = struct BufferElement {
     BufferRequestConfig config;
     sptr<SyncFence> fence;
     int64_t timestamp;
-    Rect damage;
+    std::vector<Rect> damages;
     ScalingMode scalingMode;
     HDRMetaDataType hdrMetaDataType = HDRMetaDataType::HDR_NOT_USED;
     std::vector<GraphicHDRMetaData> metaData;
@@ -71,13 +71,13 @@ public:
     GSError CancelBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata);
 
     GSError FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
-                        const sptr<SyncFence>& fence, const BufferFlushConfig &config);
+                        const sptr<SyncFence>& fence, const BufferWithDamagesFlushConfig &config);
 
     GSError DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
-                          const sptr<SyncFence>& fence, const BufferFlushConfig &config);
+                          const sptr<SyncFence>& fence, const BufferWithDamagesFlushConfig &config);
 
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
-                          int64_t &timestamp, Rect &damage);
+                          int64_t &timestamp, std::vector<Rect> &damages);
     GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence);
 
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer);
@@ -149,7 +149,7 @@ private:
     GSError PopFromDirtyList(sptr<SurfaceBuffer>& buffer);
 
     GSError CheckRequestConfig(const BufferRequestConfig &config);
-    GSError CheckFlushConfig(const BufferFlushConfig &config);
+    GSError CheckFlushConfig(const BufferWithDamagesFlushConfig &config);
     void DumpCache(std::string &result);
     void ClearLocked();
     bool CheckProducerCacheList();

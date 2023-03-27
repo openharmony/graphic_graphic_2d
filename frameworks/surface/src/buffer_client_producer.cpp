@@ -120,6 +120,12 @@ GSError BufferClientProducer::FlushBuffer(uint32_t sequence, const sptr<BufferEx
     return GSERROR_OK;
 }
 
+GSError BufferClientProducer::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
+                                          const sptr<SyncFence>& fence, BufferWithDamagesFlushConfig &config)
+{
+    return GSERROR_NOT_SUPPORT;
+}
+
 GSError BufferClientProducer::AttachBuffer(sptr<SurfaceBuffer>& buffer)
 {
     return GSERROR_NOT_SUPPORT;

@@ -380,6 +380,11 @@ using BufferFlushConfig = struct {
     int64_t timestamp;
 };
 
+using BufferWithDamagesFlushConfig = struct BufferWithDamagesFlushConfig {
+    std::vector<Rect> damages = {};
+    int64_t timestamp;
+};
+
 using SceneType = enum {
     SURFACE_SCENE_TYPE_EGL = 0,
     SURFACE_SCENE_TYPE_MEDIA,
