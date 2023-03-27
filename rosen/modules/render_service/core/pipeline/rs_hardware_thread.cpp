@@ -41,7 +41,7 @@ void RSHardwareThread::Start()
     hdiBackend_ = HdiBackend::GetInstance();
     runner_ = AppExecFwk::EventRunner::Create("RSHardwareThread");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-    fallbackCb_ = std::bind(&RSHardwareThread::Redraw, this,std::placeholders::_1, std::placeholders::_2,
+    redrawCb_ = std::bind(&RSHardwareThread::Redraw, this,std::placeholders::_1, std::placeholders::_2,
         std::placeholders::_3);
     if (handler_) {
         ScheduleTask([this]() {
@@ -146,8 +146,8 @@ void RSHardwareThread::OnPrepareComplete(sptr<Surface>& surface,
         return;
     }
 
-    if (fallbackCb_ != nullptr) {
-        fallbackCb_(surface, param.layers, param.screenId);
+    if (redrawCb_ != nullptr) {
+        redrawCb_(surface, param.layers, param.screenId);
     }
 }
 
