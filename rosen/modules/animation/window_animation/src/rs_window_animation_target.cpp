@@ -43,7 +43,10 @@ bool RSWindowAnimationTarget::Marshalling(Parcel& parcel) const
     parcel.WriteFloat(windowBounds_.rect_.height_);
     parcel.WriteFloat(windowBounds_.radius_[0].x_);
     // marshalling as RSSurfaceNode
-    if (auto surfaceNode = surfaceNode_->ReinterpretCastTo<RSSurfaceNode>()) {
+    if (!surfaceNode_) {
+        parcel.WriteBool(false);
+    } else if (auto surfaceNode = surfaceNode_->ReinterpretCastTo<RSSurfaceNode>()) {
+        parcel.WriteBool(true);
         surfaceNode->Marshalling(parcel);
     } else {
         return false;
@@ -64,7 +67,9 @@ bool RSWindowAnimationTarget::ReadFromParcel(Parcel& parcel)
     windowBounds_.rect_.height_ = parcel.ReadFloat();
     windowBounds_.radius_[0].x_ = parcel.ReadFloat();
     // unmarshalling as RSProxyNode
-    surfaceNode_ = RSSurfaceNode::UnmarshallingAsProxyNode(parcel);
+    if (parcel.ReadBool()) {
+        surfaceNode_ = RSSurfaceNode::UnmarshallingAsProxyNode(parcel);
+    }
     windowId_ = parcel.ReadUint32();
     displayId_ = parcel.ReadUint64();
     missionId_ = parcel.ReadInt32();
