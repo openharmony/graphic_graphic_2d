@@ -41,11 +41,12 @@ void RSUniRenderEngineTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST(RSUniRenderEngineTest, DrawSurfaceNodeWithParams001, TestSize.Level2)
+HWTEST(RSUniRenderEngineTest, DrawSurfaceNodeWithParams001, TestSize.Level1)
 {
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
     std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());;
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+    ASSERT_NE(canvas, nullptr);
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
     param.useCPU = false;
@@ -58,11 +59,12 @@ HWTEST(RSUniRenderEngineTest, DrawSurfaceNodeWithParams001, TestSize.Level2)
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST(RSUniRenderEngineTest, DrawSurfaceNodeWithParams002, TestSize.Level2)
+HWTEST(RSUniRenderEngineTest, DrawSurfaceNodeWithParams002, TestSize.Level1)
 {
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
     std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());;
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+    ASSERT_NE(canvas, nullptr);
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
     param.useCPU = true;
@@ -75,11 +77,12 @@ HWTEST(RSUniRenderEngineTest, DrawSurfaceNodeWithParams002, TestSize.Level2)
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST(RSUniRenderEngineTest, DrawLayers001, TestSize.Level2)
+HWTEST(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
 {
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
     std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());;    
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+    ASSERT_NE(canvas, nullptr);
     std::vector<LayerInfoPtr> layers;
     layers.emplace_back(nullptr);
     LayerInfoPtr layer1 = HdiLayerInfo::CreateHdiLayerInfo();
@@ -100,11 +103,12 @@ HWTEST(RSUniRenderEngineTest, DrawLayers001, TestSize.Level2)
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST(RSUniRenderEngineTest, DrawHdiLayerWithParams001, TestSize.Level2)
+HWTEST(RSUniRenderEngineTest, DrawHdiLayerWithParams001, TestSize.Level1)
 {
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
     std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());;
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+    ASSERT_NE(canvas, nullptr);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     BufferDrawParam param;
     param.useCPU = false;

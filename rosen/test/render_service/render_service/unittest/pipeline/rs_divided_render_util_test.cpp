@@ -28,18 +28,10 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-
-private:
 };
 
-void RSDividedRenderUtilTest::SetUpTestCase()
-{
-}
-
-void RSDividedRenderUtilTest::TearDownTestCase()
-{
-}
-
+void RSDividedRenderUtilTest::SetUpTestCase() {}
+void RSDividedRenderUtilTest::TearDownTestCase() {}
 void RSDividedRenderUtilTest::SetUp() {}
 void RSDividedRenderUtilTest::TearDown() {}
 
@@ -49,7 +41,7 @@ void RSDividedRenderUtilTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST_F(RSDividedRenderUtilTest, CreateBufferDrawParam001, TestSize.Level2)
+HWTEST_F(RSDividedRenderUtilTest, CreateBufferDrawParam001, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
@@ -69,7 +61,7 @@ HWTEST_F(RSDividedRenderUtilTest, CreateBufferDrawParam001, TestSize.Level2)
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST_F(RSDividedRenderUtilTest, CreateBufferDrawParam002, TestSize.Level2)
+HWTEST_F(RSDividedRenderUtilTest, CreateBufferDrawParam002, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
