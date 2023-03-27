@@ -18,6 +18,7 @@ group("test") {
     "render_service/systemtest/pipeline:systemtest",
     "render_service/unittest/pipeline:unittest",
     "render_service/unittest/screen_manager:unittest",
+    "render_service/unittest/system:unittest",
     "render_service/unittest/transaction:unittest",
     "render_service_base/fuzztest/pipeline/rspipelinerender_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rsrendernode_fuzzer:fuzztest",

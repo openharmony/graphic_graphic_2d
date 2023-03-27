@@ -358,12 +358,47 @@ HWTEST_F(RSParallelRenderManagerTest, IsNeedCalcCostTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI6FZHQ
  */
+HWTEST_F(RSParallelRenderManagerTest, GetCostTest1, TestSize.Level1)
+{
+    RSRenderNode rsRenderNode(1);
+    auto instance = std::make_shared<RSParallelRenderManager>();
+    rsRenderNode.renderProperties_.SetAlpha(1.0f);
+    auto cost = instance->GetCost(rsRenderNode);
+    ASSERT_EQ(cost, 2);
+}
+
+/**
+ * @tc.name: GetCostTest
+ * @tc.desc: Test RSParallelRenderManagerTest.GetCostTest
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(RSParallelRenderManagerTest, GetCostTest2, TestSize.Level1)
+{
+    RSRenderNode rsRenderNode(1);
+    auto instance = std::make_shared<RSParallelRenderManager>();
+    rsRenderNode.renderProperties_.SetAlpha(1.0f);
+    rsRenderNode.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    auto cost = instance->GetCost(rsRenderNode);
+    ASSERT_EQ(cost, 3);
+}
+
+/**
+ * @tc.name: GetCostTest
+ * @tc.desc: Test RSParallelRenderManagerTest.GetCostTest
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
 HWTEST_F(RSParallelRenderManagerTest, GetCostTest, TestSize.Level1)
 {
     RSRenderNode rsRenderNode(1);
     auto instance = std::make_shared<RSParallelRenderManager>();
+    rsRenderNode.renderProperties_.SetAlpha(1.0f);
+    rsRenderNode.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    rsRenderNode.renderProperties_.decoration_ = std::make_unique<Decoration>();
+    rsRenderNode.renderProperties_.decoration_->bgImage_ = std::make_shared<RSImage>();
     auto cost = instance->GetCost(rsRenderNode);
-    ASSERT_EQ(cost, 2);
+    ASSERT_EQ(cost, 3);
 }
 
 /**
@@ -389,8 +424,13 @@ HWTEST_F(RSParallelRenderManagerTest, GetCostFactorTest, TestSize.Level1)
 {
     auto instance = std::make_shared<RSParallelRenderManager>();
     instance->GetCostFactor();
-    ASSERT_FALSE(instance->costFactor_.size() > 0);
-    ASSERT_FALSE(instance->imageFactor_.size() > 0);
+    if (instance->calcCostTaskManager_.isParallelRenderExtEnabled_) {
+        ASSERT_TRUE(instance->costFactor_.size() > 0);
+        ASSERT_TRUE(instance->imageFactor_.size() > 0);
+    } else {
+        ASSERT_FALSE(instance->costFactor_.size() > 0);
+        ASSERT_FALSE(instance->imageFactor_.size() > 0);
+    }
 }
 
 /**
