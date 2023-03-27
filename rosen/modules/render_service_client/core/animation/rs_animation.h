@@ -107,6 +107,7 @@ private:
 
     void SetFinishCallback(const std::shared_ptr<AnimationFinishCallback>& finishCallback);
     void UpdateStagingValue(bool isFirstStart);
+    void UIAnimationFinish();
 
     bool isReversed_ { false };
     AnimationState state_ { AnimationState::INITIALIZED };

@@ -65,6 +65,14 @@ void RSAnimation::CallFinishCallback()
     OnCallFinishCallback();
 }
 
+void RSAnimation::UIAnimationFinish()
+{
+    auto target = GetTarget().lock();
+    if (target != nullptr) {
+        target->AnimationFinish(GetId());
+    }
+}
+
 AnimationId RSAnimation::GetId() const
 {
     return id_;
