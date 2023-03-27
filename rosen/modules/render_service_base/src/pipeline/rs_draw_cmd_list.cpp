@@ -46,6 +46,7 @@ static std::unordered_map<RSOpType, OpUnmarshallingFunc> opUnmarshallingFuncLUT 
     { TRANSLATE_OPITEM,            TranslateOpItem::Unmarshalling },
     { TEXTBLOB_OPITEM,             TextBlobOpItem::Unmarshalling },
     { BITMAP_OPITEM,               BitmapOpItem::Unmarshalling },
+    { COLOR_FILTER_BITMAP_OPITEM,  ColorFilterBitmapOpItem::Unmarshalling },
     { BITMAP_RECT_OPITEM,          BitmapRectOpItem::Unmarshalling },
     { BITMAP_NINE_OPITEM,          BitmapNineOpItem::Unmarshalling },
     { PIXELMAP_OPITEM,             PixelMapOpItem::Unmarshalling },
@@ -104,18 +105,26 @@ DrawCmdList& DrawCmdList::operator=(DrawCmdList&& that)
     return *this;
 }
 
-void DrawCmdList::Playback(SkCanvas& canvas, const SkRect* rect) const
+void DrawCmdList::Playback(SkCanvas& canvas, const SkRect* rect)
 {
     RSPaintFilterCanvas filterCanvas(&canvas);
     Playback(filterCanvas, rect);
 }
 
-void DrawCmdList::Playback(RSPaintFilterCanvas& canvas, const SkRect* rect) const
+void DrawCmdList::Playback(RSPaintFilterCanvas& canvas, const SkRect* rect)
 {
     if (width_ <= 0 || height_ <= 0) {
         return;
     }
     std::lock_guard<std::mutex> lock(mutex_);
+#ifdef ROSEN_OHOS
+    // Generate or clear cache if cache state changed.
+    if (canvas.isCacheEnabled() && !isCached_) {
+        GenerateCache(canvas, rect);
+    } else if (!canvas.isCacheEnabled() && isCached_) {
+        ClearCache();
+    }
+#endif
     for (auto& it : ops_) {
         if (it == nullptr) {
             continue;
@@ -202,45 +211,36 @@ DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
     return drawCmdList.release();
 }
 
-void DrawCmdList::GenerateCache(SkSurface* surface)
-{
 #ifdef ROSEN_OHOS
-    if (isCached_) {
-        return;
-    }
-    isCached_ = true;
+void DrawCmdList::GenerateCache(const RSPaintFilterCanvas& canvas, const SkRect* rect)
+{
     RS_TRACE_FUNC();
-    std::lock_guard<std::mutex> lock(mutex_);
-
     for (auto index = 0u; index < ops_.size(); index++) {
         auto& op = ops_[index];
-        if (auto cached_op = op->GenerateCachedOpItem(surface)) {
+        if (op == nullptr) {
+            continue;
+        }
+        if (auto cached_op = op->GenerateCachedOpItem(&canvas, rect)) {
             // backup the original op and position
             opReplacedByCache_.emplace(index, op.release());
             // replace the original op with the cached op
             op.reset(cached_op.release());
         }
     }
-#endif
+    isCached_ = true;
 }
 
 void DrawCmdList::ClearCache()
 {
-#ifdef ROSEN_OHOS
-    if (!isCached_) {
-        return;
-    }
-    isCached_ = false;
     RS_TRACE_FUNC();
-    std::lock_guard<std::mutex> lock(mutex_);
-
     // restore the original op
     for (auto& it : opReplacedByCache_) {
         ops_[it.first] = std::move(it.second);
     }
     opReplacedByCache_.clear();
-#endif
+    isCached_ = false;
 }
+#endif
 
 void DrawCmdList::CheckClipRect(SkRect& rect)
 {

@@ -43,15 +43,12 @@ public:
     void AddOp(std::unique_ptr<OpItem>&& op);
     void ClearOp();
 
-    void Playback(SkCanvas& canvas, const SkRect* rect = nullptr) const;
-    void Playback(RSPaintFilterCanvas& canvas, const SkRect* rect = nullptr) const;
+    void Playback(SkCanvas& canvas, const SkRect* rect = nullptr);
+    void Playback(RSPaintFilterCanvas& canvas, const SkRect* rect = nullptr);
 
     int GetSize() const;
     int GetWidth() const;
     int GetHeight() const;
-
-    void GenerateCache(SkSurface* surface);
-    void ClearCache();
 
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSB_EXPORT DrawCmdList* Unmarshalling(Parcel& parcel);
@@ -68,8 +65,11 @@ private:
     int width_;
     int height_;
 
-    std::unordered_map<int, std::unique_ptr<OpItem>> opReplacedByCache_;
 #ifdef ROSEN_OHOS
+    // cache related, only available on OHOS
+    void GenerateCache(const RSPaintFilterCanvas& canvas, const SkRect* rect);
+    void ClearCache();
+    std::unordered_map<int, std::unique_ptr<OpItem>> opReplacedByCache_;
     bool isCached_ = false;
 #endif
 

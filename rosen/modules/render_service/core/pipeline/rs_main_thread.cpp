@@ -78,7 +78,7 @@ using namespace OHOS::AccessibilityConfig;
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t RUQUEST_VSYNC_NUMBER_LIMIT = 10;
+constexpr uint32_t REQUEST_VSYNC_NUMBER_LIMIT = 10;
 constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr int32_t PERF_MULTI_WINDOW_REQUESTED_CODE = 10026;
 constexpr int32_t FLUSH_SYNC_TRANSACTION_TIMEOUT = 100;
@@ -404,7 +404,7 @@ void RSMainThread::ProcessCommandForUniRender()
     for (auto& rsTransactionElem: transactionDataEffective) {
         for (auto& rsTransaction: rsTransactionElem.second) {
             if (rsTransaction) {
-                if (rsTransaction->IsNeedSync() || syncTransactionDatas_.count(rsTransactionElem.first) > 0) {
+                if (rsTransaction->IsNeedSync() || syncTransactionData_.count(rsTransactionElem.first) > 0) {
                     ProcessSyncRSTransactionData(rsTransaction, rsTransactionElem.first);
                     continue;
                 }
@@ -466,12 +466,12 @@ void RSMainThread::ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& 
 void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid)
 {
     if (!rsTransactionData->IsNeedSync()) {
-        syncTransactionDatas_[pid].emplace_back(std::move(rsTransactionData));
+        syncTransactionData_[pid].emplace_back(std::move(rsTransactionData));
         return;
     }
 
-    if (!syncTransactionDatas_.empty() && syncTransactionDatas_.begin()->second.front() &&
-        (syncTransactionDatas_.begin()->second.front()->GetSyncId() > rsTransactionData->GetSyncId())) {
+    if (!syncTransactionData_.empty() && syncTransactionData_.begin()->second.front() &&
+        (syncTransactionData_.begin()->second.front()->GetSyncId() > rsTransactionData->GetSyncId())) {
         ROSEN_LOGD("RSMainThread ProcessSyncRSTransactionData while syncId less GetCommandCount: %lu pid: %llu",
             rsTransactionData->GetCommandCount(), rsTransactionData->GetSendingPid());
         ProcessRSTransactionData(rsTransactionData, pid);
@@ -479,43 +479,43 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
     }
 
     bool isNeedCloseSync = rsTransactionData->IsNeedCloseSync();
-    if (syncTransactionDatas_.empty()) {
+    if (syncTransactionData_.empty()) {
         if (handler_) {
             auto task = [this]() {
-                ROSEN_LOGD("RSMainThread ProcessAllSyncTransactionDatas timeout task");
-                ProcessAllSyncTransactionDatas();
+                ROSEN_LOGD("RSMainThread ProcessAllSyncTransactionData timeout task");
+                ProcessAllSyncTransactionData();
             };
             handler_->PostTask(task, "ProcessAllSyncTransactionsTimeoutTask", FLUSH_SYNC_TRANSACTION_TIMEOUT);
         }
     }
-    if (!syncTransactionDatas_.empty() && syncTransactionDatas_.begin()->second.front() &&
-        (syncTransactionDatas_.begin()->second.front()->GetSyncId() != rsTransactionData->GetSyncId())) {
-        ProcessAllSyncTransactionDatas();
+    if (!syncTransactionData_.empty() && syncTransactionData_.begin()->second.front() &&
+        (syncTransactionData_.begin()->second.front()->GetSyncId() != rsTransactionData->GetSyncId())) {
+        ProcessAllSyncTransactionData();
     }
-    if (syncTransactionDatas_.count(pid) == 0) {
-        syncTransactionDatas_.insert({ pid, std::vector<std::unique_ptr<RSTransactionData>>() });
+    if (syncTransactionData_.count(pid) == 0) {
+        syncTransactionData_.insert({ pid, std::vector<std::unique_ptr<RSTransactionData>>() });
     }
     if (isNeedCloseSync) {
         syncTransactionCount_ += rsTransactionData->GetSyncTransactionNum();
     } else {
         syncTransactionCount_ -= 1;
     }
-    syncTransactionDatas_[pid].emplace_back(std::move(rsTransactionData));
+    syncTransactionData_[pid].emplace_back(std::move(rsTransactionData));
     if (syncTransactionCount_ == 0) {
-        ProcessAllSyncTransactionDatas();
+        ProcessAllSyncTransactionData();
     }
 }
 
-void RSMainThread::ProcessAllSyncTransactionDatas()
+void RSMainThread::ProcessAllSyncTransactionData()
 {
-    for (auto& [pid, transactions] : syncTransactionDatas_) {
+    for (auto& [pid, transactions] : syncTransactionData_) {
         for (auto& transaction: transactions) {
-            ROSEN_LOGD("RSMainThread ProcessAllSyncTransactionDatas GetCommandCount: %lu pid: %llu",
+            ROSEN_LOGD("RSMainThread ProcessAllSyncTransactionData GetCommandCount: %lu pid: %llu",
                 transaction->GetCommandCount(), pid);
             ProcessRSTransactionData(transaction, pid);
         }
     }
-    syncTransactionDatas_.clear();
+    syncTransactionData_.clear();
     syncTransactionCount_ = 0;
 }
 
@@ -899,7 +899,7 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
         }
         Occlusion::Rect occlusionRect;
         if (isUniRender_) {
-            // In UniReder, CalcOcclusion should consider the shadow area of window
+            // In UniRender, CalcOcclusion should consider the shadow area of window
             occlusionRect = Occlusion::Rect {curSurface->GetOldDirtyInSurface()};
         } else {
             occlusionRect = Occlusion::Rect {curSurface->GetDstRect()};
@@ -1064,7 +1064,7 @@ void RSMainThread::RequestNextVSync()
     };
     if (receiver_ != nullptr) {
         requestNextVsyncNum_++;
-        if (requestNextVsyncNum_ > RUQUEST_VSYNC_NUMBER_LIMIT) {
+        if (requestNextVsyncNum_ > REQUEST_VSYNC_NUMBER_LIMIT) {
             RS_LOGW("RSMainThread::RequestNextVSync too many times:%d", requestNextVsyncNum_);
         }
         receiver_->RequestNextVSync(fcb);

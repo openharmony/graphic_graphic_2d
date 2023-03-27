@@ -38,7 +38,8 @@ void SimplifyPaint(uint32_t color, SkPaint* paint)
 }
 } // namespace
 
-std::unique_ptr<OpItem> OpItem::GenerateCachedOpItem(SkSurface* surface) const
+std::unique_ptr<OpItem> OpItemWithPaint::GenerateCachedOpItem(
+    const RSPaintFilterCanvas* canvas, const SkRect* rect) const
 {
     // check if this opItem can be cached
     auto optionalBounds = GetCacheBounds();
@@ -48,38 +49,46 @@ std::unique_ptr<OpItem> OpItem::GenerateCachedOpItem(SkSurface* surface) const
     auto& bounds = optionalBounds.value();
 
     // create surface & canvas to draw onto
-    auto offscreenInfo =
-        SkImageInfo::Make(bounds.width(), bounds.height(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    sk_sp<SkSurface> offscreenSurface;
-    if (surface != nullptr) {
-        // create GPU accelerated surface
-        offscreenSurface = surface->makeSurface(offscreenInfo);
+    sk_sp<SkSurface> offscreenSurface = nullptr;
+    if (auto surface = canvas != nullptr ? canvas->GetSurface() : nullptr) {
+        // create GPU accelerated surface if possible
+        offscreenSurface = surface->makeSurface(bounds.width(), bounds.height());
     } else {
         // create CPU raster surface
+        auto offscreenInfo =
+            SkImageInfo::Make(bounds.width(), bounds.height(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
         offscreenSurface = SkSurface::MakeRaster(offscreenInfo);
     }
+    // check if surface is created successfully
     if (offscreenSurface == nullptr) {
         RS_LOGW("OpItem::GenerateCachedOpItem Failed to create offscreen surface, abort caching");
         return nullptr;
     }
-    auto offscreenCanvas = RSPaintFilterCanvas(offscreenSurface.get());
+    // create offscreen canvas and copy configuration from current canvas
+    auto offscreenCanvas = std::make_unique<RSPaintFilterCanvas>(offscreenSurface.get());
+    if (canvas != nullptr) {
+        offscreenCanvas->CopyConfiguration(*canvas);
+    }
 
     // align draw op to [0, 0]
     if (bounds.left() != 0 || bounds.top() != 0) {
-        SkMatrix matrix;
-        matrix.setTranslate(-bounds.left(), -bounds.top());
-        offscreenCanvas.concat(matrix);
+        offscreenCanvas->translate(-bounds.left(), -bounds.top());
     }
 
-    // draw on the bitmap. NOTE: we cannot cache draw ops depending on rect, because the rect may be changed
-    Draw(offscreenCanvas, nullptr);
+    // draw on the bitmap.
+    Draw(*offscreenCanvas, rect);
     // flush to make sure all drawing commands are executed, maybe unnecessary
-    offscreenCanvas.flush();
+    offscreenCanvas->flush();
 
     // generate BitmapOpItem with correct offset
     SkPaint paint;
     paint.setAntiAlias(true);
-    return std::make_unique<BitmapOpItem>(offscreenSurface->makeImageSnapshot(), bounds.x(), bounds.y(), &paint);
+    if (paint_.getColor() == 0x00000001) {
+        return std::make_unique<BitmapOpItem>(offscreenSurface->makeImageSnapshot(), bounds.x(), bounds.y(), &paint);
+    } else {
+        return std::make_unique<ColorFilterBitmapOpItem>(
+            offscreenSurface->makeImageSnapshot(), bounds.x(), bounds.y(), &paint);
+    }
 }
 
 void OpItemWithRSImage::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const
@@ -266,6 +275,21 @@ BitmapOpItem::BitmapOpItem(const sk_sp<SkImage> bitmapInfo, float left, float to
 BitmapOpItem::BitmapOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint)
     : OpItemWithRSImage(rsImage, paint, sizeof(BitmapOpItem))
 {}
+
+ColorFilterBitmapOpItem::ColorFilterBitmapOpItem(
+    const sk_sp<SkImage> bitmapInfo, float left, float top, const SkPaint* paint)
+    : BitmapOpItem(bitmapInfo, left, top, paint)
+{}
+
+ColorFilterBitmapOpItem::ColorFilterBitmapOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint)
+    : BitmapOpItem(rsImage, paint)
+{}
+
+void ColorFilterBitmapOpItem::Draw(RSPaintFilterCanvas &canvas, const SkRect *) const
+{
+    auto colorFilterCanvas = std::make_shared<RSColorFilterCanvas>(&canvas);
+    BitmapOpItem::Draw(*colorFilterCanvas, nullptr);
+}
 
 BitmapRectOpItem::BitmapRectOpItem(
     const sk_sp<SkImage> bitmapInfo, const SkRect* rectSrc, const SkRect& rectDst, const SkPaint* paint)
@@ -991,6 +1015,18 @@ OpItem* BitmapOpItem::Unmarshalling(Parcel& parcel)
     }
     return new BitmapOpItem(rsImage, paint);
 }
+
+// ColorFilterBitmapOpItem
+bool ColorFilterBitmapOpItem::Marshalling(Parcel& parcel) const
+{
+    return BitmapOpItem::Marshalling(parcel);
+}
+
+OpItem* ColorFilterBitmapOpItem::Unmarshalling(Parcel &parcel)
+{
+    return BitmapOpItem::Unmarshalling(parcel);
+}
+
 
 // BitmapRectOpItem
 bool BitmapRectOpItem::Marshalling(Parcel& parcel) const

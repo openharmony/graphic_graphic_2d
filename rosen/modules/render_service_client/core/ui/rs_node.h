@@ -252,7 +252,7 @@ private:
     pid_t implicitAnimatorTid_ = 0;
     std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
-    bool extendModifierisDirty_ { false };
+    bool extendModifierIsDirty_ { false };
 
     RSModifierExtractor stagingPropertiesExtractor_;
 

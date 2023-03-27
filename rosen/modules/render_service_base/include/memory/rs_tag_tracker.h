@@ -36,7 +36,7 @@ public:
     RSTagTracker(GrContext* grContext, GrGpuResourceTag& tag);
     void SetTagEnd();
     ~RSTagTracker();
-    static void UpdateReleseGpuReousrceEnable(bool releaseResEnable);
+    static void UpdateReleaseGpuResourceEnable(bool releaseResEnable);
 private:
     bool isSetTagEnd_ = false;
     GrContext* grContext_ = nullptr;

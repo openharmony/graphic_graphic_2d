@@ -98,7 +98,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
     }
     ApplyDrawCmdModifier(context, RSModifierType::BACKGROUND_STYLE);
 
-    canvasNodeSaveCount_ = canvas.SaveCanvasAndAlpha();
+    canvasNodeSaveCount_ = canvas.Save();
     ApplyDrawCmdModifier(context, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
     canvas.translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
 
@@ -115,7 +115,6 @@ void RSCanvasRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 
 void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
-    canvas.SaveEnv();
     ProcessTransitionBeforeChildren(canvas);
     ProcessAnimatePropertyBeforeChildren(canvas);
     ProcessRenderContents(canvas);
@@ -126,7 +125,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
     ApplyDrawCmdModifier(context, RSModifierType::FOREGROUND_STYLE);
 
-    canvas.RestoreCanvasAndAlpha(canvasNodeSaveCount_);
+    canvas.RestoreStatus(canvasNodeSaveCount_);
     auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetFilter());
     std::shared_ptr<RSSkiaFilter> lightUpFilter = nullptr;
     if (GetRenderProperties().IsLightUpEffectValid()) {
@@ -210,7 +209,7 @@ void RSCanvasRenderNode::ProcessDrivenBackgroundRender(RSPaintFilterCanvas& canv
 void RSCanvasRenderNode::ProcessDrivenContentRender(RSPaintFilterCanvas& canvas)
 {
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
-    canvasNodeSaveCount_ = canvas.SaveCanvasAndAlpha();
+    canvasNodeSaveCount_ = canvas.Save();
     canvas.translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
     DrawDrivenContent(canvas);
 #endif
@@ -224,7 +223,7 @@ void RSCanvasRenderNode::ProcessDrivenContentRenderAfterChildren(RSPaintFilterCa
     ApplyDrawCmdModifier(context, RSModifierType::FOREGROUND_STYLE);
 
     GetMutableRenderProperties().ResetBounds();
-    canvas.RestoreCanvasAndAlpha(canvasNodeSaveCount_);
+    canvas.RestoreStatus(canvasNodeSaveCount_);
 #endif
 }
 

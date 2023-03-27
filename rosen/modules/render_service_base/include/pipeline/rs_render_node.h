@@ -18,20 +18,21 @@
 #include <memory>
 #include <unordered_set>
 
+#include "include/core/SkRefCnt.h"
+#include "include/core/SkSurface.h"
+
 #include "animation/rs_animation_manager.h"
 #include "common/rs_macros.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties.h"
-#include "include/core/SkSurface.h"
-#include "include/core/SkRefCnt.h"
 
 class SkCanvas;
 namespace OHOS {
 namespace Rosen {
 class DrawCmdList;
-class RSPaintFilterCanvas;
 
 class RSB_EXPORT RSRenderNode : public RSBaseRenderNode {
 public:
@@ -217,7 +218,7 @@ public:
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier> modifier);
-    std::pair<int, int> renderNodeSaveCount_ = { 0, 0 };
+    RSPaintFilterCanvas::SaveStatus renderNodeSaveCount_;
     std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> drawCmdModifiers_;
     // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
     bool isRenderUpdateIgnored_ = false;

@@ -417,7 +417,7 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData002, TestSize.Level1)
     rsTransactionData->SetSyncTransactionNum(1);
     mainThread->syncTransactionCount_ = 0;
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
-    ASSERT_EQ(mainThread->syncTransactionDatas_.empty(), false);
+    ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
 }
 
 /**

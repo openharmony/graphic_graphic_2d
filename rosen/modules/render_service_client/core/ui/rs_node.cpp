@@ -1074,11 +1074,11 @@ std::vector<PropertyId> RSNode::GetModifierIds() const
 
 void RSNode::MarkAllExtendModifierDirty()
 {
-    if (extendModifierisDirty_) {
+    if (extendModifierIsDirty_) {
         return;
     }
 
-    extendModifierisDirty_ = true;
+    extendModifierIsDirty_ = true;
     for (auto& [id, modifier] : modifiers_) {
         if (modifier->GetModifierType() < RSModifierType::CUSTOM) {
             continue;
@@ -1089,7 +1089,7 @@ void RSNode::MarkAllExtendModifierDirty()
 
 void RSNode::ResetExtendModifierDirty()
 {
-    extendModifierisDirty_ = false;
+    extendModifierIsDirty_ = false;
 }
 
 void RSNode::SetIsCustomTextType(bool isCustomTextType)
