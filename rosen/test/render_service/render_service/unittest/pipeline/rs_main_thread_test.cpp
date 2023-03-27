@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_qos_thread.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -309,16 +310,33 @@ HWTEST_F(RSMainThreadTest, CleanOcclusionListener, TestSize.Level1)
 }
 
 /**
- * @tc.name: QosStateDump
- * @tc.desc: Test RSMainThreadTest.QosStateDump, str is an empty string
+ * @tc.name: QosStateDump001
+ * @tc.desc: When qosCal_ is false, QosStateDump's dump string is "QOS is disabled\n"
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
-HWTEST_F(RSMainThreadTest, QosStateDump, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, QosStateDump001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    RSQosThread::GetInstance()->SetQosCal(false);
     std::string str = "";
     mainThread->QosStateDump(str);
+    ASSERT_EQ(str, "QOS is disabled\n");
+}
+
+/**
+ * @tc.name: QosStateDump002
+ * @tc.desc: When qosCal_ is true, QosStateDump's dump string is "QOS is enabled\n"
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, QosStateDump002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    RSQosThread::GetInstance()->SetQosCal(true);
+    std::string str = "";
+    mainThread->QosStateDump(str);
+    ASSERT_EQ(str, "QOS is enabled\n");
 }
 
 /**
@@ -345,5 +363,95 @@ HWTEST_F(RSMainThreadTest, SetFocusAppInfo, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     std::string str = "";
     mainThread->SetFocusAppInfo(-1, -1, str, str);
+}
+
+/**
+ * @tc.name: ProcessSyncRSTransactionData
+ * @tc.desc: Test ProcessSyncRSTransactionData when TransactionData do not need sync
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q9A2
+ */
+HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    pid_t pid = 0;
+    mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
+    ASSERT_EQ(mainThread->syncTransactionDatas_.empty(), false);
+}
+
+/**
+ * @tc.name: GetContext
+ * @tc.desc: Test if context has been initialized
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q9A2
+ */
+HWTEST_F(RSMainThreadTest, GetContext, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto& context = mainThread->GetContext();
+    uint64_t time = 0;
+    ASSERT_EQ(context.GetTransactionTimestamp(), time);
+}
+
+/**
+ * @tc.name: ClassifyRSTransactionData
+ * @tc.desc: Test ClassifyRSTransactionData when nodeId is 0
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q9A2
+ */
+HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    std::unique_ptr<RSCommand> command = nullptr;
+    NodeId nodeId = 0;
+    FollowType followType = FollowType::NONE;
+    rsTransactionData->AddCommand(command, nodeId, followType);
+    ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), true);
+}
+
+/**
+ * @tc.name: ResetSortedChildren
+ * @tc.desc: Test ResetSortedChildren, clear sortedChildren_ when it is not empty
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q9A2
+ */
+HWTEST_F(RSMainThreadTest, ResetSortedChildren, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context = {};
+    auto node = std::make_shared<RSBaseRenderNode>(nodeId, context);
+    auto childNode = std::make_shared<RSBaseRenderNode>(nodeId + 1, context);
+    int index = -1;
+    node->SetIsOnTheTree(true);
+    node->AddChild(node, index);
+    ASSERT_EQ(node->GetChildrenCount(), 0);
+
+    node->AddChild(childNode, index);
+    ASSERT_EQ(node->GetChildrenCount(), 1);
+    ASSERT_TRUE(childNode->IsOnTheTree());
+
+    node->GetSortedChildren();
+    ASSERT_EQ(node->sortedChildren_.size(), 1);
+
+    mainThread->ResetSortedChildren(node);
+    ASSERT_EQ(node->sortedChildren_.size(), 0);
+}
+
+/**
+ * @tc.name: AddActivePid
+ * @tc.desc: Test AddActivePid, add pid, check if success
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q9A2
+ */
+HWTEST_F(RSMainThreadTest, AddActivePid, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    pid_t pid = 1;
+    mainThread->AddActivePid(pid);
+    ASSERT_EQ(mainThread->activeProcessPids_.size(), 1);
+    ASSERT_EQ(*(mainThread->activeProcessPids_.begin()), pid);
 }
 } // namespace OHOS::Rosen

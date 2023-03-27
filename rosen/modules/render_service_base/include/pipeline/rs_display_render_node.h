@@ -196,12 +196,12 @@ public:
     void UpdateRotation();
     bool IsRotationChanged() const;
     bool IsFirstTimeToProcessor() const {
-        return isFirstTimeToProcessor;
+        return isFirstTimeToProcessor_;
     }
 
     void SetInitMatrix(const SkMatrix& skMatrix) {
         initMatrix_ = skMatrix;
-        isFirstTimeToProcessor = false;
+        isFirstTimeToProcessor_ = false;
     }
 
     const SkMatrix& GetInitMatrix() const {
@@ -218,7 +218,7 @@ private:
     WeakPtr mirrorSource_;
     float lastRotation_ = 0.f;
     SkMatrix initMatrix_;
-    bool isFirstTimeToProcessor = true;
+    bool isFirstTimeToProcessor_ = true;
 
     std::shared_ptr<RSSurface> surface_;
     bool surfaceCreated_ { false };
