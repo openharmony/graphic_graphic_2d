@@ -238,6 +238,26 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureOfInvalidSurfaceNode, Funct
 }
 
 /*
+ * @tc.name: TakeSurfaceCaptureByNodeId
+ * @tc.desc: take capture by NodeId
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q844
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureByNodeId, Function | SmallTest | Level2)
+{
+    auto surfaceNode = CreateSurface("SurfaceCaptureTestEmptyNode");
+    ASSERT_NE(surfaceNode, nullptr);
+
+    bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode->GetId(), surfaceCaptureCb_);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
+    surfaceNode = nullptr;
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+}
+
+/*
  * @tc.name: TakeSurfaceCaptureOfInvalidDisplayNode
  * @tc.desc: Generate pure display node and take empty capture
  * @tc.type: FUNC
@@ -268,6 +288,30 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureOfMirrorDisplayNode, Functi
 {
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(mirrorConfig_);
     ASSERT_NE(displayNode, nullptr);
+    displayNode->AddChild(surfaceNode_, -1);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    bool ret = rsInterfaces_->TakeSurfaceCapture(displayNode, surfaceCaptureCb_);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    displayNode = nullptr;
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+}
+
+/*
+ * @tc.name: TakeSurfaceCaptureOfSecurityLayer
+ * @tc.desc: Generate display node and take securitylayer capture
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q844
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureOfSecurityLayer, Function | SmallTest | Level2)
+{
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(defaultConfig_);
+    ASSERT_NE(displayNode, nullptr);
+    surfaceNode_->SetSecurityLayer(true);
     displayNode->AddChild(surfaceNode_, -1);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
