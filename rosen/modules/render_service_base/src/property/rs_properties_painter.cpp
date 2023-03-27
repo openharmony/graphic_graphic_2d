@@ -28,6 +28,7 @@
 #include "include/effects/SkDashPathEffect.h"
 #include "include/effects/SkLumaColorFilter.h"
 #include "include/utils/SkShadowUtils.h"
+#include "rs_trace.h"
 
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector2.h"
@@ -38,6 +39,7 @@
 #include "render/rs_blur_filter.h"
 #include "render/rs_image.h"
 #include "render/rs_mask.h"
+#include "render/rs_material_filter.h"
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "render/rs_skia_filter.h"
@@ -293,7 +295,15 @@ void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPain
 void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
     std::shared_ptr<RSSkiaFilter>& filter, const std::unique_ptr<SkRect>& rect, SkSurface* skSurface)
 {
-    RS_TRACE_NAME("DrawFilter:" + std::to_string(filter->GetFilterType()));
+    std::string traceName = "RSPropertiesPainter::DrawFilter ";
+    if (filter->GetFilterType == RSFiler::BLUR) {
+        traceName += "RSBlurFilter blur radius is " +
+                     std::to_string(std::static_pointer_cast<RSBlurFilter>(filter)->GetBlurRadiusX()) + " sigma";
+    } else if (filter->GetFilterType == RSFiler::MATERIAL) {
+        traceName += "RSMaterialFilter blur radius is " +
+                     std::to_string(std::static_pointer_cast<RSBlurFilter>(filter)->GetBlurRadius() + " vp");
+    }
+    RS_TRACE_NAME(traceName);
     g_blurCnt++;
     SkAutoCanvasRestore acr(&canvas, true);
     if (rect != nullptr) {
