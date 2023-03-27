@@ -938,6 +938,7 @@ void RSProperties::Reset()
     sublayerTransform_ = nullptr;
     lightUpEffectDegree_ = 1.0f;
     pixelStretch_ = nullptr;
+    pixelStretchPercent_ = nullptr;
 }
 
 void RSProperties::SetDirty()
@@ -1120,7 +1121,13 @@ bool RSProperties::IsPixelStretchExpanded() const
 RectI RSProperties::GetPixelStretchDirtyRect() const
 {
     auto dirtyRect = GetDirtyRect();
-    auto stretchSize = GetPixelStretch();
+
+    Vector4f stretchSize;
+    if (!GetPixelStretch().IsZero()) {
+        stretchSize = GetPixelStretch();
+    } else {
+        stretchSize = GetPixelStretchByPercent();
+    }
 
     auto scaledBounds = RectF(dirtyRect.left_ - stretchSize.x_, dirtyRect.top_ - stretchSize.y_,
         dirtyRect.width_ + stretchSize.x_ + stretchSize.z_,  dirtyRect.height_ + stretchSize.y_ + stretchSize.w_);
@@ -1128,6 +1135,53 @@ RectI RSProperties::GetPixelStretchDirtyRect() const
     auto scaledIBounds = RectI(std::floor(scaledBounds.left_), std::floor(scaledBounds.top_),
         std::ceil(scaledBounds.width_) + 1, std::ceil(scaledBounds.height_) + 1);
     return dirtyRect.JoinRect(scaledIBounds);
+}
+
+void RSProperties::SetPixelStretchPercent(Vector4f stretchPercent)
+{
+    if (!pixelStretchPercent_) {
+        pixelStretchPercent_ = std::make_unique<Vector4f>();
+    }
+
+    pixelStretchPercent_->SetValues(stretchPercent.x_, stretchPercent.y_, stretchPercent.z_, stretchPercent.w_);
+
+    SetDirty();
+}
+
+Vector4f RSProperties::GetPixelStretchPercent() const
+{
+    return pixelStretchPercent_ ? *pixelStretchPercent_ : Vector4f();
+}
+
+Vector4f RSProperties::GetPixelStretchByPercent() const
+{
+    auto bounds = GetBoundsRect();
+    float widthLeft = bounds.width_ * GetPixelStretchPercent().x_;
+    float heightUp = bounds.height_ * GetPixelStretchPercent().y_;
+    float widthRight = bounds.width_ * GetPixelStretchPercent().z_;
+    float heightBottom = bounds.height_ * GetPixelStretchPercent().w_;
+
+    return Vector4f(widthLeft, heightUp, widthRight, heightBottom);
+}
+
+bool RSProperties::IsPixelStretchPercentValid() const
+{
+    if (!pixelStretchPercent_ || pixelStretchPercent_->IsZero()) {
+        return false;
+    }
+
+    constexpr static float EPS = 1e-5f;
+    if (pixelStretchPercent_->x_ <= EPS && pixelStretchPercent_->y_ <= EPS && pixelStretchPercent_->z_ <= EPS
+        && pixelStretchPercent_->w_ <= EPS) {
+        return  true;
+    }
+
+    if (pixelStretchPercent_->x_ >= -EPS && pixelStretchPercent_->y_ >= -EPS && pixelStretchPercent_->z_ >= -EPS
+        && pixelStretchPercent_->w_ >= -EPS) {
+        return  true;
+    }
+
+    return false;
 }
 
 std::string RSProperties::Dump() const

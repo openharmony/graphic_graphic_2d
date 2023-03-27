@@ -185,6 +185,7 @@ public:
     void SetLightUpEffectDegree(float LightUpEffectDegree);
 
     void SetPixelStretch(const Vector4f& stretchSize);
+    void SetPixelStretchPercent(const Vector4f& stretchPercent);
 
     void SetPaintOrder(bool drawContentLast);
 

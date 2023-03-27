@@ -109,3 +109,5 @@ DECLARE_ANIMATABLE_MODIFIER(Spherize, float, SPHERIZE, Replace, Appearance)
 DECLARE_ANIMATABLE_MODIFIER(LightUpEffect, float, LIGHT_UP_EFFECT, Replace, Foreground)
 
 DECLARE_ANIMATABLE_MODIFIER(PixelStretch, Vector4f, PIXEL_STRETCH, Replace, Geometry)
+
+DECLARE_ANIMATABLE_MODIFIER(PixelStretchPercent, Vector4f, PIXEL_STRETCH_PERCENT, Replace, Geometry)

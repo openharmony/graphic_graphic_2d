@@ -463,6 +463,15 @@ protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
+
+class RSC_EXPORT RSPixelStretchPercentModifier : public RSGeometryModifier {
+public:
+    explicit RSPixelStretchPercentModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSPixelStretchPercentModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
 } // namespace Rosen
 } // namespace OHOS
 

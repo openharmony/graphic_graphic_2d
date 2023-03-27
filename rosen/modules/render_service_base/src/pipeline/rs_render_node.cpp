@@ -146,7 +146,7 @@ void RSRenderNode::UpdateDirtyRegion(
             }
         }
 
-        if (renderProperties_.IsPixelStretchValid()) {
+        if (renderProperties_.IsPixelStretchValid() || renderProperties_.IsPixelStretchPercentValid()) {
             auto stretchDirtyRect = renderProperties_.GetPixelStretchDirtyRect();
             dirtyRect = dirtyRect.JoinRect(stretchDirtyRect);
         }

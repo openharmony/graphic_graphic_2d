@@ -335,9 +335,23 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     filter->PostProcess(canvas);
 }
 
+static Vector4f GetStretchSize(const RSProperties& properties)
+{
+    Vector4f stretchSize;
+    if (properties.IsPixelStretchValid()) {
+        stretchSize = properties.GetPixelStretch();
+    } else {
+        if (properties.IsPixelStretchPercentValid()) {
+            stretchSize = properties.GetPixelStretchByPercent();
+        }
+    } 
+
+    return stretchSize;
+}
+
 void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
-    if (!properties.IsPixelStretchValid()) {
+    if (!properties.IsPixelStretchValid() && !properties.IsPixelStretchPercentValid()) {
         return;
     }
 
@@ -353,7 +367,8 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     auto clipBounds = canvas.getDeviceClipBounds();
     canvas.restore();
 
-    auto stretchSize = properties.GetPixelStretch();
+    Vector4f stretchSize = GetStretchSize(properties);
+     
     auto scaledBounds = SkRect::MakeLTRB(bounds.left() - stretchSize.x_, bounds.top() - stretchSize.y_,
         bounds.right() + stretchSize.z_, bounds.bottom() + stretchSize.w_);
     if (scaledBounds.isEmpty()) {
