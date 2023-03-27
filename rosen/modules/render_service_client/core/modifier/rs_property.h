@@ -374,6 +374,9 @@ protected:
 
     void UpdateOnAllAnimationFinish() override
     {
+        if (RSProperty<T>::isCustom_) {
+            return;
+        }
         RSProperty<T>::UpdateToRender(RSProperty<T>::stagingValue_, false, true);
     }
 

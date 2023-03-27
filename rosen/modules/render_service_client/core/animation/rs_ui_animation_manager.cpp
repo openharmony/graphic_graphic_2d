@@ -163,7 +163,7 @@ void RSUIAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAni
 {
     auto uiAnimation = uiAnimations_[animation->GetAnimationId()];
     if (uiAnimation != nullptr) {
-        uiAnimation->CallFinishCallback();
+        uiAnimation->UIAnimationFinish();
     }
     OnAnimationRemove(animation);
     animation->Detach();
