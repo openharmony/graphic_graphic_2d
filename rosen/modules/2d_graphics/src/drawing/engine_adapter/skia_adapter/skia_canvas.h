@@ -77,7 +77,7 @@ public:
     // clip
     void ClipRect(const Rect& rect, ClipOp op) override;
     void ClipRoundRect(const RoundRect& roundRect, ClipOp op) override;
-    void ClipPath(const Path& path, ClipOp op) override;
+    void ClipPath(const Path& path, ClipOp op, bool doAntiAlias = false) override;
 
     // transform
     void SetMatrix(const Matrix& matrix) override;
