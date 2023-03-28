@@ -344,7 +344,7 @@ static Vector4f GetStretchSize(const RSProperties& properties)
         if (properties.IsPixelStretchPercentValid()) {
             stretchSize = properties.GetPixelStretchByPercent();
         }
-    } 
+    }
 
     return stretchSize;
 }

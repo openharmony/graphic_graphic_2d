@@ -1115,6 +1115,13 @@ bool RSProperties::IsPixelStretchExpanded() const
             return true;
         }
     }
+    if (IsPixelStretchPercentValid()) {
+        constexpr static float EPS = 1e-5f;
+        if (pixelStretchPercent_->x_ >= -EPS && pixelStretchPercent_->y_ >= -EPS && pixelStretchPercent_->z_ >= -EPS
+            && pixelStretchPercent_->w_ >= -EPS) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -1160,7 +1167,6 @@ Vector4f RSProperties::GetPixelStretchByPercent() const
     float heightUp = bounds.height_ * GetPixelStretchPercent().y_;
     float widthRight = bounds.width_ * GetPixelStretchPercent().z_;
     float heightBottom = bounds.height_ * GetPixelStretchPercent().w_;
-
     return Vector4f(widthLeft, heightUp, widthRight, heightBottom);
 }
 
