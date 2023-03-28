@@ -18,6 +18,8 @@
 
 #include "frame_collector.h"
 #include "frame_painter.h"
+#include "include/core/SkBitmap.h"
+#include "include/core/SkCanvas.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -48,5 +50,106 @@ HWTEST_F(FramePainterTest, Create001, TestSize.Level1)
     FramePainter* painter_ptr = new FramePainter(FrameCollector::GetInstance());
     ASSERT_TRUE(painter_ptr != nullptr);
 }
+
+/**
+ * @tc.name: FramePainterTest
+ * @tc.desc: Test RsNodeCostManagerTest.SwitchFunction2
+ * @tc.type: FUNC
+ * @tc.require: I6R1BQ
+ */
+HWTEST_F(FramePainterTest, DrawTest1, TestSize.Level1)
+{
+    FrameCollector& controller = FrameCollector::GetInstance();
+    controller.SetEnabled(true);
+    auto framePainter = std::make_shared<FramePainter>(controller);
+    SkBitmap bitmap;
+    SkCanvas canvas(bitmap);
+    framePainter->Draw(canvas);
+    ASSERT_TRUE(controller.IsEnabled());
+}
+
+/**
+ * @tc.name: FramePainterTest
+ * @tc.desc: Test RsNodeCostManagerTest.SwitchFunction2
+ * @tc.type: FUNC
+ * @tc.require: I6R1BQ
+ */
+HWTEST_F(FramePainterTest, DrawTest2, TestSize.Level1)
+{
+    FrameCollector& controller = FrameCollector::GetInstance();
+    controller.SetEnabled(false);
+    auto framePainter = std::make_shared<FramePainter>(controller);
+    SkBitmap bitmap;
+    SkCanvas canvas(bitmap);
+    framePainter->Draw(canvas);
+    ASSERT_FALSE(controller.IsEnabled());
+}
+
+/**
+ * @tc.name: FramePainterTest
+ * @tc.desc: Test RsNodeCostManagerTest.DrawFPSLine
+ * @tc.type: FUNC
+ * @tc.require: I6R1BQ
+ */
+HWTEST_F(FramePainterTest, DrawFPSLine1, TestSize.Level1)
+{
+    FrameCollector& controller = FrameCollector::GetInstance();
+    controller.SetEnabled(false);
+    auto framePainter = std::make_shared<FramePainter>(controller);
+    SkBitmap bitmap;
+    SkCanvas canvas(bitmap);
+    framePainter->DrawFPSLine(canvas, 0, 2.0f, 0xbf00ff00);
+    ASSERT_FALSE(controller.IsEnabled());
+}
+
+/**
+ * @tc.name: FramePainterTest
+ * @tc.desc: Test RsNodeCostManagerTest.DrawFPSLine
+ * @tc.type: FUNC
+ * @tc.require: I6R1BQ
+ */
+HWTEST_F(FramePainterTest, DrawFPSLine2, TestSize.Level1)
+{
+    FrameCollector& controller = FrameCollector::GetInstance();
+    controller.SetEnabled(false);
+    auto framePainter = std::make_shared<FramePainter>(controller);
+    SkBitmap bitmap;
+    SkCanvas canvas(bitmap);
+    framePainter->DrawFPSLine(canvas, 1, 2.0f, 0xbf00ff00);
+    ASSERT_FALSE(controller.IsEnabled());
+}
+
+/**
+ * @tc.name: FramePainterTest
+ * @tc.desc: Test RsNodeCostManagerTest.GenerateTimeBars
+ * @tc.type: FUNC
+ * @tc.require: I6R1BQ
+ */
+HWTEST_F(FramePainterTest, GenerateTimeBars, TestSize.Level1)
+{
+    FrameCollector& controller = FrameCollector::GetInstance();
+    controller.SetEnabled(false);
+    auto framePainter = std::make_shared<FramePainter>(controller);
+    framePainter->GenerateTimeBars(1600, 800, 1);
+    ASSERT_FALSE(controller.IsEnabled());
+}
+
+/**
+ * @tc.name: FramePainterTest
+ * @tc.desc: Test RsNodeCostManagerTest.GenerateTimeBars
+ * @tc.type: FUNC
+ * @tc.require: I6R1BQ
+ */
+HWTEST_F(FramePainterTest, SumTimesInMs, TestSize.Level1)
+{
+    FrameCollector& controller = FrameCollector::GetInstance();
+    controller.SetEnabled(false);
+    auto framePainter = std::make_shared<FramePainter>(controller);
+    FrameInfo info;
+    double result = framePainter->SumTimesInMs(info);
+    ASSERT_FALSE(controller.IsEnabled());
+    ASSERT_EQ(result, 0);
+}
+
 } // namespace Rosen
 } // namespace OHOS
