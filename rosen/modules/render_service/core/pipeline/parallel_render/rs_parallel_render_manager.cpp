@@ -58,6 +58,7 @@ RSParallelRenderManager::RSParallelRenderManager()
     readyBufferNum_ = 0;
 #ifdef RS_ENABLE_VK
     parallelDisplayNodes_.assign(PARALLEL_THREAD_NUM, nullptr);
+    backParallelDisplayNodes_.assign(PARALLEL_THREAD_NUM, nullptr);
 #endif
 }
 
@@ -580,6 +581,7 @@ void RSParallelRenderManager::InitDisplayNodeAndRequestFrame(
 #ifdef RS_ENABLE_VK
     auto& context = RSMainThread::Instance()->GetContext();
     parallelFrames_.clear();
+    std::swap(parallelDisplayNodes_, backParallelDisplayNodes_);
     for (int i = 0; i < PARALLEL_THREAD_NUM; i++) {
         if(!parallelDisplayNodes_[i]) {
             RSDisplayNodeConfig config;
