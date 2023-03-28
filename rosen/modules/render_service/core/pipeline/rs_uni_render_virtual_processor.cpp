@@ -102,6 +102,10 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
             RS_LOGE("RSUniRenderVirtualProcessor::ProcessDisplaySurface: Canvas or buffer is null!");
             return;
         }
+        SkMatrix invertMatrix;
+        if (screenTransformMatrix_.invert(&invertMatrix)) {
+            canvas_->concat(invertMatrix);
+        }
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU_);
         renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
     }
