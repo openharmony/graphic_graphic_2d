@@ -70,9 +70,14 @@ public:
     void SetHighContrast(bool enabled);
     bool isHighContrastEnabled() const;
 
+    enum CacheType : uint8_t {
+        UNDEFINED, // do not change current cache status
+        ENABLED,   // explicitly enable cache
+        DISABLED   // explicitly disable cache
+    };
     // cache
-    void SetCacheEnabled(bool enabled);
-    bool isCacheEnabled() const;
+    void SetCacheType(CacheType type);
+    CacheType GetCacheType() const;
 
     // visible rect
     void SetVisibleRect(SkRect visibleRect);
@@ -91,7 +96,7 @@ private:
     std::stack<Env> envStack_;
 
     std::atomic_bool isHighContrastEnabled_ { false };
-    bool isCacheEnabled_ { false };
+    CacheType cacheType_ { UNDEFINED };
     SkRect visibleRect_ = SkRect::MakeEmpty();
 };
 

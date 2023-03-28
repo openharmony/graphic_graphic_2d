@@ -254,7 +254,8 @@ void RSParallelSubThread::Render()
     canvas_->save();
     if (physicalGeoPtr != nullptr) {
         canvas_->concat(physicalGeoPtr->GetMatrix());
-        canvas_->SetCacheEnabled(physicalGeoPtr->IsNeedClientCompose());
+        canvas_->SetCacheType(physicalGeoPtr->IsNeedClientCompose() ? RSPaintFilterCanvas::CacheType::ENABLED
+                                                                    : RSPaintFilterCanvas::CacheType::DISABLED);
     }
     while (threadTask_->GetTaskSize() > 0) {
         RSParallelRenderManager::Instance()->StartTiming(threadIndex_);

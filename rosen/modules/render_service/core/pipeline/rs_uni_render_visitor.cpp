@@ -1327,10 +1327,13 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             if (geoPtr != nullptr) {
                 canvas_->concat(geoPtr->GetMatrix());
                 // enable cache if screen rotation is not times of 90 degree
-                canvas_->SetCacheEnabled(geoPtr->IsNeedClientCompose());
+                canvas_->SetCacheType(geoPtr->IsNeedClientCompose() ? RSPaintFilterCanvas::CacheType::ENABLED
+                                                                    : RSPaintFilterCanvas::CacheType::DISABLED);
             }
-            canvas_->SetCacheEnabled(canvas_->isCacheEnabled() || clipPath);
-            if (canvas_->isCacheEnabled()) {
+            if (clipPath) {
+                canvas_->SetCacheType(RSPaintFilterCanvas::CacheType::ENABLED);
+            }
+            if (canvas_->GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED) {
                 // we are doing rotation animation, try offscreen render if capable
                 ClearTransparentBeforeSaveLayer();
                 PrepareOffscreenRender(node);

@@ -16,7 +16,6 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 
-#include "core/SkDrawShadowInfo.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkDrawable.h"
 #include "include/core/SkImage.h"
@@ -29,6 +28,7 @@
 #include "include/core/SkRegion.h"
 #include "include/core/SkTextBlob.h"
 #include "pixel_map.h"
+#include "src/core/SkDrawShadowInfo.h"
 
 #include "common/rs_common_def.h"
 #include "pipeline/rs_draw_cmd_list.h"

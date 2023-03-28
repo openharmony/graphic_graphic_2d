@@ -31,6 +31,7 @@
 #include "include/core/SkTextBlob.h"
 #include "include/core/SkTypeface.h"
 #include "include/core/SkVertices.h"
+#include "memory/MemoryTrack.h"
 #include "pixel_map.h"
 #include "securec.h"
 #include "src/core/SkAutoMalloc.h"
@@ -49,8 +50,8 @@
 #include "common/rs_common_def.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
-#include "memory/MemoryTrack.h"
 #include "modifier/rs_render_modifier.h"
+#include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_blur_filter.h"
@@ -986,5 +987,34 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
     auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, size, PROT_READ);
     return ashmemAllocator != nullptr;
 }
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::unique_ptr<OpItem>& val)
+{
+    return RSMarshallingHelper::Marshalling(parcel, val->GetType()) && val->Marshalling(parcel);
+}
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::unique_ptr<OpItem>& val)
+{
+    val = nullptr;
+    RSOpType type;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, type)) {
+        ROSEN_LOGE("DrawCmdList::Unmarshalling failed");
+        return false;
+    }
+    auto func = DrawCmdList::GetOpUnmarshallingFunc(type);
+    if (!func) {
+        ROSEN_LOGW("unirender: opItem Unmarshalling func not define, optype = %d", type);
+        return false;
+    }
+
+    OpItem* item = (*func)(parcel);
+    if (!item) {
+        ROSEN_LOGE("unirender: failed opItem Unmarshalling, optype = %d", type);
+        return false;
+    }
+
+    val.reset(item);
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
