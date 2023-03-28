@@ -146,6 +146,7 @@ HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopStartTag001, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopStartTag002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    mainThread->rsCompositionTimeoutDetector_ = nullptr;
     mainThread->SetRSEventDetectorLoopStartTag();
 }
 
@@ -171,6 +172,7 @@ HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopFinishTag001, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopFinishTag002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    mainThread->rsCompositionTimeoutDetector_ = nullptr;
     mainThread->SetRSEventDetectorLoopFinishTag();
 }
 
@@ -185,6 +187,7 @@ HWTEST_F(RSMainThreadTest, WaitUtilUniRenderFinished, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     mainThread->NotifyUniRenderFinish();
     mainThread->WaitUtilUniRenderFinished();
+    ASSERT_EQ(mainThread->uniRenderFinished_, true);
 }
 
 /**
@@ -366,16 +369,52 @@ HWTEST_F(RSMainThreadTest, SetFocusAppInfo, TestSize.Level1)
 }
 
 /**
- * @tc.name: ProcessSyncRSTransactionData
+ * @tc.name: ProcessSyncRSTransactionData001
  * @tc.desc: Test ProcessSyncRSTransactionData when TransactionData do not need sync
  * @tc.type: FUNC
  * @tc.require: issueI6Q9A2
  */
-HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData001, TestSize.Level1)
 {
+    // when IsNeedSync() is false
     auto mainThread = RSMainThread::Instance();
     auto rsTransactionData = std::make_unique<RSTransactionData>();
     pid_t pid = 0;
+    rsTransactionData->SetSyncId(1);
+    mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
+    ASSERT_EQ(mainThread->syncTransactionDatas_.empty(), false);
+
+    // when syncTransactionDatas_ is not empty and SyncId is larger
+    rsTransactionData = std::make_unique<RSTransactionData>();
+    rsTransactionData->MarkNeedSync();
+    rsTransactionData->SetSyncId(0);
+    mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
+    ASSERT_EQ(mainThread->activeProcessPids_.empty(), false);
+
+    // when syncTransactionDatas_ is not empty and SyncId is equal or smaller
+    rsTransactionData->SetSyncTransactionNum(1);
+    rsTransactionData->SetSyncId(1);
+    mainThread->syncTransactionCount_ = 1;
+    mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
+    ASSERT_EQ(mainThread->syncTransactionDatas_.empty(), true);
+}
+
+/**
+ * @tc.name: ProcessSyncRSTransactionData002
+ * @tc.desc: Test ProcessSyncRSTransactionData when TransactionData do not need sync
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q9A2
+ */
+HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData002, TestSize.Level1)
+{
+    // when IsNeedSync() is true & syncTransactionDatas_ is empty & isNeedCloseSync is true
+    auto mainThread = RSMainThread::Instance();
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    pid_t pid = 0;
+    rsTransactionData->MarkNeedSync();
+    rsTransactionData->MarkNeedCloseSync();
+    rsTransactionData->SetSyncTransactionNum(1);
+    mainThread->syncTransactionCount_ = 0;
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
     ASSERT_EQ(mainThread->syncTransactionDatas_.empty(), false);
 }
@@ -395,20 +434,99 @@ HWTEST_F(RSMainThreadTest, GetContext, TestSize.Level1)
 }
 
 /**
- * @tc.name: ClassifyRSTransactionData
+ * @tc.name: ClassifyRSTransactionData001
  * @tc.desc: Test ClassifyRSTransactionData when nodeId is 0
  * @tc.type: FUNC
  * @tc.require: issueI6Q9A2
  */
-HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    mainThread->pendingEffectiveCommands_.clear();
     auto rsTransactionData = std::make_unique<RSTransactionData>();
     std::unique_ptr<RSCommand> command = nullptr;
     NodeId nodeId = 0;
     FollowType followType = FollowType::NONE;
     rsTransactionData->AddCommand(command, nodeId, followType);
-    ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), true);
+    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), false);
+}
+
+/**
+ * @tc.name: ClassifyRSTransactionData002
+ * @tc.desc: Test ClassifyRSTransactionData when nodeId is 1
+ * @tc.type: FUNC
+ * @tc.require: issueI6R34I
+ */
+HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->pendingEffectiveCommands_.clear();
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    std::unique_ptr<RSCommand> command = nullptr;
+    NodeId nodeId = 1;
+    FollowType followType = FollowType::NONE;
+    rsTransactionData->AddCommand(command, nodeId, followType);
+    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), false);
+}
+
+/**
+ * @tc.name: ClassifyRSTransactionData003
+ * @tc.desc: Test ClassifyRSTransactionData when followType is FOLLOW_TO_PARENT
+ * @tc.type: FUNC
+ * @tc.require: issueI6R34I
+ */
+HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->pendingEffectiveCommands_.clear();
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    std::unique_ptr<RSCommand> command = nullptr;
+    NodeId nodeId = 1;
+    FollowType followType = FollowType::FOLLOW_TO_PARENT;
+    rsTransactionData->AddCommand(command, nodeId, followType);
+    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    ASSERT_EQ(mainThread->cachedCommands_[nodeId].empty(), false);
+}
+
+/**
+ * @tc.name: ClassifyRSTransactionData004
+ * @tc.desc: Test ClassifyRSTransactionData when followType is FOLLOW_TO_PARENT
+ * @tc.type: FUNC
+ * @tc.require: issueI6R34I
+ */
+HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    // build the NodeTree
+    NodeId nodeId = 1;
+    std::weak_ptr<RSContext> context = {};
+    auto node = std::make_shared<RSBaseRenderNode>(nodeId, context);
+    auto childNode = std::make_shared<RSBaseRenderNode>(nodeId + 1, context);
+    int index = 0;
+    node->SetIsOnTheTree(true);
+    node->AddChild(node, index);
+    ASSERT_EQ(node->GetChildrenCount(), 0);
+    node->AddChild(childNode, index);
+    ASSERT_EQ(node->GetChildrenCount(), 1);
+    ASSERT_TRUE(childNode->IsOnTheTree());
+
+    mainThread->cachedCommands_.clear();
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    std::unique_ptr<RSCommand> command = nullptr;
+    FollowType followType = FollowType::FOLLOW_TO_SELF;
+    rsTransactionData->AddCommand(command, nodeId, followType);
+    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    ASSERT_EQ(mainThread->cachedCommands_[nodeId].empty(), false);
+
+    mainThread->cachedCommands_.clear();
+    rsTransactionData = std::make_unique<RSTransactionData>();
+    command = nullptr;
+    followType = FollowType::FOLLOW_TO_PARENT;
+    rsTransactionData->AddCommand(command, nodeId + 1, followType);
+    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    ASSERT_EQ(mainThread->cachedCommands_[nodeId + 1].empty(), false);
 }
 
 /**
@@ -449,9 +567,53 @@ HWTEST_F(RSMainThreadTest, ResetSortedChildren, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, AddActivePid, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    mainThread->activeProcessPids_.clear();
     pid_t pid = 1;
     mainThread->AddActivePid(pid);
     ASSERT_EQ(mainThread->activeProcessPids_.size(), 1);
     ASSERT_EQ(*(mainThread->activeProcessPids_.begin()), pid);
+}
+
+/**
+ * @tc.name: WaitUtilDrivenRenderFinished
+ * @tc.desc: Test WaitUtilDrivenRenderFinished, check if drivenRenderFinished_ is valid
+ * @tc.type: FUNC
+ * @tc.require: issueI6R34I
+ */
+HWTEST_F(RSMainThreadTest, WaitUtilDrivenRenderFinished, TestSize.Level1)
+{
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    auto mainThread = RSMainThread::Instance();
+    mainThread->NotifyDrivenRenderFinish();
+    mainThread->WaitUtilDrivenRenderFinished();
+    ASSERT_EQ(mainThread->drivenRenderFinished_, true);
+#endif
+}
+
+/**
+ * @tc.name: RecvRSTransactionData
+ * @tc.desc: Test RecvRSTransactionData, when TransactionData is null
+ * @tc.type: FUNC
+ * @tc.require: issueI6R34I
+ */
+HWTEST_F(RSMainThreadTest, RecvRSTransactionData, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    std::unique_ptr<RSTransactionData> transactionData = nullptr;
+    mainThread->RecvRSTransactionData(transactionData);
+    ASSERT_EQ(transactionData, nullptr);
+}
+
+/**
+ * @tc.name: PostSyncTask
+ * @tc.desc: Test PostSyncTask when handler is null or not
+ * @tc.type: FUNC
+ * @tc.require: issueI6R34I
+ */
+HWTEST_F(RSMainThreadTest, PostSyncTask, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    RSTaskMessage::RSTask task = []() -> void { return; };
+    mainThread->PostSyncTask(task);
 }
 } // namespace OHOS::Rosen
