@@ -212,8 +212,7 @@ void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSBaseRenderNode> pa
 void RSRenderNode::RenderTraceDebug() const
 {
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
-        RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(GetId(),
-            std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry()));
+        RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(GetId(), GetRenderProperties());
     }
 }
 

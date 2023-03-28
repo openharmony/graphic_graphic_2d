@@ -25,6 +25,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "modifier/rs_modifier_type.h"
 #include "platform/common/rs_log.h"
+#include "property/rs_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,8 +35,7 @@ public:
     {
         return instance_;
     };
-
-    void PropertiesDisplayByTrace(const NodeId& id, const std::shared_ptr<RSObjAbsGeometry>& boundsGeometry);
+    void PropertiesDisplayByTrace(const NodeId& id, const RSProperties& properties);
     void RefreshNodeTraceInfo();
 private:
     RSPropertyTrace() = default;
@@ -56,6 +56,7 @@ private:
     bool needWriteAllNode_ {false};
     static RSPropertyTrace instance_;
     std::set<NodeId> nodeIdSet_;
+    std::set<std::string> propertySet_;
     std::string propertyFileLastModifyTime;
 };
 
