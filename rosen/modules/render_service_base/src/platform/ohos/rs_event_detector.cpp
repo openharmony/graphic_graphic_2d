@@ -81,7 +81,8 @@ void RSTimeOutDetector::ResSchedDataReport(uint64_t costTimeMs)
     static int32_t lastStatus = 0;
     uint32_t frameRate = FRAME_RATE_NUM;
     uint32_t refreshTimeMs = ceil((float)(1 * 1000) / (float)frameRate); // 1s->1000Ms
-    uint32_t thresholdSoonValueMs = refreshTimeMs * THRESHOLD_PARA_2 / THRESHOLD_PARA_3; // two-thirds of each refresh time
+    uint32_t thresholdSoonValueMs =
+        refreshTimeMs * THRESHOLD_PARA_2 / THRESHOLD_PARA_3; // two-thirds of each refresh time
     std::unordered_map<std::string, std::string> payload;
     payload["uid"] = std::to_string(getuid());
     payload["pid"] = std::to_string(GetRealPid());
