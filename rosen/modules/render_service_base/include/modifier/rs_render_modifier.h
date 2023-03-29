@@ -253,6 +253,7 @@ public:
         return RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY;
     }
     Color GetInvertBackgroundColor(RSModifierContext& context) const;
+    Color CalculateInvertColor(Color backgroundColor) const;
 };
 
 // declare RenderModifiers like RSBoundsRenderModifier

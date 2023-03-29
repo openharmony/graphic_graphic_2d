@@ -218,6 +218,15 @@ void RSEnvForegroundColorStrategyRenderModifier ::Apply(RSModifierContext& conte
     }
 }
 
+Color RSEnvForegroundColorStrategyRenderModifier::CalculateInvertColor(Color backgroundColor) const
+{
+    uint32_t a = backgroundColor.GetAlpha();
+    uint32_t r = 255 - backgroundColor.GetRed();
+    uint32_t g = 255 - backgroundColor.GetGreen();
+    uint32_t b = 255 - backgroundColor.GetBlue();
+    return Color(r, g, b, a);
+}
+
 Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSModifierContext& context) const
 {
 #ifdef ROSEN_OHOS
@@ -228,20 +237,23 @@ Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSMod
         SkRect rect = SkRect::MakeXYWH(0, 0, clipRegion.z_, clipRegion.w_);
         context.canvas_->clipRect(rect);
     }
+    Color backgroundColor = context.property_.GetBackgroundColor();
+    if (backgroundColor.GetAlpha() == 0xff) {
+        RS_LOGI("RSRenderModifier::GetInvertBackgroundColor not alpha");
+        return CalculateInvertColor(backgroundColor);
+    }
     auto imageSnapshot = context.canvas_->GetSurface()->makeImageSnapshot(context.canvas_->getDeviceClipBounds());
     if (imageSnapshot == nullptr) {
         RS_LOGI("RSRenderModifier::GetInvertBackgroundColor imageSnapshot null");
         return Color(0);
     }
-    int pixmapWidth = context.property_.GetBoundsWidth();
-    int pixmapHeight = context.property_.GetBoundsHeight();
-    if (pixmapWidth == 0 || pixmapHeight == 0) {
-        RS_LOGI("RSRenderModifier::GetInvertBackgroundColor pixmapWidth/Height == 0");
+    Media::InitializationOptions opts;
+    opts.size.width = context.property_.GetBoundsWidth();
+    opts.size.height = context.property_.GetBoundsHeight();
+    if (opts.size.width == 0 || opts.size.height == 0) {
+        RS_LOGI("RSRenderModifier::GetInvertBackgroundColor opts.size.width/height == 0");
         return Color(0);
     }
-    Media::InitializationOptions opts;
-    opts.size.width = pixmapWidth;
-    opts.size.height = pixmapHeight;
     std::unique_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
     auto data = (uint8_t *)malloc(pixelmap->GetRowBytes() * pixelmap->GetHeight());
     if (data == nullptr) {
@@ -267,15 +279,8 @@ Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSMod
     options.editable = true;
     std::unique_ptr<Media::PixelMap> newPixelMap = Media::PixelMap::Create(*pixelmap.get(), options);
     uint32_t colorVal = 0;
-    int x = 0;
-    int y = 0;
-    newPixelMap->GetARGB32Color(x, y, colorVal);
-    uint32_t a = (colorVal >> 24) & 0xff;
-    uint32_t r = 255 - ((colorVal >> 16) & 0xff);
-    uint32_t g = 255 - ((colorVal >> 8) & 0xff);
-    uint32_t b = 255 - ((colorVal >> 0) & 0xff);
-    Color averageColor(r, g, b, a);
-    return averageColor;
+    newPixelMap->GetARGB32Color(0, 0, colorVal);
+    return CalculateInvertColor(Color(colorVal));
 #else
     return Color(0);
 #endif
