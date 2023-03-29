@@ -1806,8 +1806,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     RS_TRACE_NAME("RSUniRender::Process:[" + node.GetName() + "]" + " " + node.GetDstRect().ToString()
                     + " Alpha: " + std::to_string(node.GetGlobalAlpha()).substr(0, 4));
-    RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 ", child size:%u %s", node.GetId(),
-        node.GetChildrenCount(), node.GetName().c_str());
+    RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%" PRIu64 ",child size:%u,name:%s,OcclusionVisible:%d",
+        node.GetId(), node.GetChildrenCount(), node.GetName().c_str(), node.GetOcclusionVisible());
     RSTagTracker tagTracker(canvas_->getGrContext(), node.GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
     node.UpdatePositionZ();
     if (isSecurityDisplay_ && node.GetSecurityLayer()) {
