@@ -380,7 +380,7 @@ using BufferFlushConfig = struct {
     int64_t timestamp;
 };
 
-using BufferWithDamagesFlushConfig = struct BufferWithDamagesFlushConfig {
+using BufferFlushConfigWithDamages = struct BufferFlushConfigWithDamages {
     std::vector<Rect> damages = {};
     int64_t timestamp;
 };

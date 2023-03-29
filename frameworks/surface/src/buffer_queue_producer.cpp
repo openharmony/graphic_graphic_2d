@@ -137,7 +137,7 @@ int32_t BufferQueueProducer::CancelBufferRemote(MessageParcel &arguments, Messag
 int32_t BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     uint32_t sequence;
-    BufferFlushConfig config;
+    BufferFlushConfigWithDamages config;
     sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
 
     sequence = arguments.ReadUint32();
@@ -368,16 +368,7 @@ GSError BufferQueueProducer::CancelBuffer(uint32_t sequence, const sptr<BufferEx
 }
 
 GSError BufferQueueProducer::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
-                                         const sptr<SyncFence>& fence, BufferFlushConfig &config)
-{
-    BufferWithDamagesFlushConfig configWithDamages;
-    configWithDamages.damages.push_back(config.damage);
-    configWithDamages.timestamp = config.timestamp;
-    return bufferQueue_->FlushBuffer(sequence, bedata, fence, config);
-}
-
-GSError BufferQueueProducer::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
-                                         const sptr<SyncFence>& fence, BufferWithDamagesFlushConfig &config)
+                                         const sptr<SyncFence>& fence, BufferFlushConfigWithDamages &config)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;

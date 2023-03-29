@@ -135,14 +135,14 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
 GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
                                      const sptr<SyncFence>& fence, BufferFlushConfig &config)
 {
-    BufferWithDamagesFlushConfig configWithDamages;
+    BufferFlushConfigWithDamages configWithDamages;
     configWithDamages.damages.push_back(config.damage);
     configWithDamages.timestamp = config.timestamp;
-    return FlushBuffer(buffer->GetSeqNum(), bedata, fence, configWithDamages);
+    return FlushBuffer(buffer, fence, configWithDamages);
 }
 
 GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence,
-                                     BufferWithDamagesFlushConfig &config)
+                                     BufferFlushConfigWithDamages &config)
 {
     if (buffer == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;

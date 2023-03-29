@@ -51,8 +51,6 @@ public:
                                   sptr<SyncFence>& fence, BufferRequestConfig &config) = 0;
     virtual GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
                                 const sptr<SyncFence>& fence, BufferFlushConfig &config) = 0;
-    virtual GSError FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence,
-                                BufferWithDamagesFlushConfig &config) = 0;
     virtual GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
                                   int64_t &timestamp, Rect &damage) = 0;
     virtual GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence) = 0;
@@ -117,11 +115,11 @@ public:
     virtual sptr<NativeSurface> GetNativeSurface() = 0;
 
     virtual bool QueryIfBufferAvailable() = 0;
-    virtual GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
-                                  int64_t &timestamp, std::vector<Rect> &damages) = 0;
 
     virtual GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
                                   int64_t &timestamp, std::vector<Rect> &damages) = 0;
+    virtual GSError FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence,
+                                BufferFlushConfigWithDamages &config) = 0;
 protected:
     IConsumerSurface() = default;
 };

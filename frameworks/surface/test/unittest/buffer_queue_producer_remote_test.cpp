@@ -40,10 +40,12 @@ public:
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
     };
-    static inline BufferFlushConfig flushConfig = {
-        .damage = {
-            .w = 0x100,
-            .h = 0x100,
+    static inline BufferFlushConfigWithDamages flushConfig = {
+        .damages = {
+            {
+                .w = 0x100,
+                .h = 0x100,
+            }
         },
     };
     static inline std::vector<int32_t> deletingBuffers;

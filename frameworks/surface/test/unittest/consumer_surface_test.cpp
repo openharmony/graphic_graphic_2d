@@ -18,6 +18,7 @@
 #include <buffer_queue_producer.h>
 #include <consumer_surface.h>
 #include "buffer_consumer_listener.h"
+#include "sync_fence.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -37,7 +38,18 @@ public:
         .timeout = 0,
     };
     static inline BufferFlushConfig flushConfig = {
-        .damages = { { .w = 0x100, .h = 0x100, } },
+        .damage = {
+            .w = 0x100,
+            .h = 0x100,
+        },
+    };
+    static inline BufferFlushConfigWithDamages flushConfigWithDamages = {
+        .damages = {
+            {
+                .w = 0x100,
+                .h = 0x100,
+            }
+        },
     };
     static inline int64_t timestamp = 0;
     static inline Rect damage = {};
@@ -813,10 +825,10 @@ HWTEST_F(ConsumerSurfaceTest, ReqCanFluAcqRel005, Function | MediumTest | Level2
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
-    ret = ps->FlushBuffer(buffer, -1, flushConfig);
+    ret = ps->FlushBuffer(buffer, SyncFence::INVALID_FENCE, flushConfigWithDamages);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    int32_t flushFence;
+    sptr<OHOS::SyncFence> flushFence;
     ret = cs->AcquireBuffer(buffer, flushFence, timestamp, damages);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);

@@ -113,7 +113,7 @@ int32_t NativeWindowFlushBuffer(OHNativeWindow *window, OHNativeWindowBuffer *bu
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
 
-    OHOS::BufferWithDamagesFlushConfig config;
+    OHOS::BufferFlushConfigWithDamages config;
     if ((region.rectNumber != 0) && (region.rects != nullptr)) {
         config.damages.reserve(region.rectNumber);
         for (int32_t i = 0; i < region.rectNumber; i++) {

@@ -66,7 +66,10 @@ namespace OHOS {
         BufferRequestConfig rqConfig = GetData<BufferRequestConfig>();
         OHOS::Rect rect = GetData<OHOS::Rect>();
         int64_t timestamp = GetData<int64_t>();
-        BufferFlushConfig flConfig = { .timestamp = timestamp, .damages = { rect }, };
+        BufferFlushConfigWithDamages flConfig = {
+            .damages =  { rect },
+            .timestamp = timestamp,
+        };
         uint32_t seqNum = GetData<uint32_t>();
         uint32_t sequence = GetData<uint32_t>();
         BufferVerifyAllocInfo vaInfo = GetData<BufferVerifyAllocInfo>();

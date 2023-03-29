@@ -30,8 +30,8 @@ void WriteFileDescriptor(MessageParcel &parcel, int32_t fd);
 void ReadRequestConfig(MessageParcel &parcel, BufferRequestConfig &config);
 void WriteRequestConfig(MessageParcel &parcel, const BufferRequestConfig  &config);
 
-void ReadFlushConfig(MessageParcel &parcel, BufferFlushConfig &config);
-void WriteFlushConfig(MessageParcel &parcel, const BufferFlushConfig &config);
+void ReadFlushConfig(MessageParcel &parcel, BufferFlushConfigWithDamages &config);
+void WriteFlushConfig(MessageParcel &parcel, const BufferFlushConfigWithDamages &config);
 
 void ReadSurfaceBufferImpl(MessageParcel &parcel, uint32_t &sequence, sptr<SurfaceBuffer> &buffer);
 void WriteSurfaceBufferImpl(MessageParcel &parcel, uint32_t sequence, const sptr<SurfaceBuffer> &buffer);

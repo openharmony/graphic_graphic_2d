@@ -71,10 +71,10 @@ public:
     GSError CancelBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata);
 
     GSError FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
-                        const sptr<SyncFence>& fence, const BufferWithDamagesFlushConfig &config);
+                        const sptr<SyncFence>& fence, const BufferFlushConfigWithDamages &config);
 
     GSError DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
-                          const sptr<SyncFence>& fence, const BufferWithDamagesFlushConfig &config);
+                          const sptr<SyncFence>& fence, const BufferFlushConfigWithDamages &config);
 
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
                           int64_t &timestamp, std::vector<Rect> &damages);
@@ -149,7 +149,7 @@ private:
     GSError PopFromDirtyList(sptr<SurfaceBuffer>& buffer);
 
     GSError CheckRequestConfig(const BufferRequestConfig &config);
-    GSError CheckFlushConfig(const BufferWithDamagesFlushConfig &config);
+    GSError CheckFlushConfig(const BufferFlushConfigWithDamages &config);
     void DumpCache(std::string &result);
     void ClearLocked();
     bool CheckProducerCacheList();

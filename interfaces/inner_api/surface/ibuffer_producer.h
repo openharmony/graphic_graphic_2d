@@ -43,7 +43,7 @@ public:
     virtual GSError CancelBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata) = 0;
 
     virtual GSError FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
-                                const sptr<SyncFence>& fence, BufferFlushConfig &config) = 0;
+                                const sptr<SyncFence>& fence, BufferFlushConfigWithDamages &config) = 0;
 
     virtual GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
     virtual GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
@@ -81,8 +81,6 @@ public:
     virtual sptr<NativeSurface> GetNativeSurface() = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducer");
-    virtual GSError FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
-                                const sptr<SyncFence>& fence, BufferWithDamagesFlushConfig &config) = 0;
 
 protected:
     enum {

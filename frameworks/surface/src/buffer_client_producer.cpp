@@ -102,7 +102,7 @@ GSError BufferClientProducer::CancelBuffer(uint32_t sequence, const sptr<BufferE
 }
 
 GSError BufferClientProducer::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
-                                          const sptr<SyncFence>& fence, BufferFlushConfig &config)
+                                          const sptr<SyncFence>& fence, BufferFlushConfigWithDamages &config)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 
@@ -118,12 +118,6 @@ GSError BufferClientProducer::FlushBuffer(uint32_t sequence, const sptr<BufferEx
     acquireFenceThread.TrackFence(fence);
 
     return GSERROR_OK;
-}
-
-GSError BufferClientProducer::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
-                                          const sptr<SyncFence>& fence, BufferWithDamagesFlushConfig &config)
-{
-    return GSERROR_NOT_SUPPORT;
 }
 
 GSError BufferClientProducer::AttachBuffer(sptr<SurfaceBuffer>& buffer)

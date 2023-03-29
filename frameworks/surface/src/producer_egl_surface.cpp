@@ -116,7 +116,11 @@ GSError ProducerEglSurface::FlushBuffer(sptr<SurfaceBuffer> &buffer,
     }
     sptr<SyncFence> syncFence = new SyncFence(fence);
     const sptr<BufferExtraData>& bedataimpl = buffer->GetExtraData();
-    return producer_->FlushBuffer(buffer->GetSeqNum(), bedataimpl, syncFence, config);
+    BufferFlushConfigWithDamages damagesFlushConfig;
+    damagesFlushConfig.damages.push_back(config.damage);
+    damagesFlushConfig.timestamp = config.timestamp;
+
+    return producer_->FlushBuffer(buffer->GetSeqNum(), bedataimpl, syncFence, damagesFlushConfig);
 }
 
 GSError ProducerEglSurface::InitContext(EGLContext context)

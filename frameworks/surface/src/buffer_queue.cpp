@@ -162,15 +162,13 @@ GSError BufferQueue::CheckRequestConfig(const BufferRequestConfig &config)
     return GSERROR_OK;
 }
 
-GSError BufferQueue::CheckFlushConfig(const BufferWithDamagesFlushConfig &config)
+GSError BufferQueue::CheckFlushConfig(const BufferFlushConfigWithDamages &config)
 {
     for (decltype(config.damages.size()) i = 0; i < config.damages.size(); i++) {
-        if (config.damages[i].w < 0) {
-            BLOGN_INVALID("config.damages[%{public}zu].w >= 0, now is %{public}d", i, config.damages[i].w);
-            return GSERROR_INVALID_ARGUMENTS;
-        }
-        if (config.damages[i].h < 0) {
-            BLOGN_INVALID("config.damages[%{public}zu].h >= 0, now is %{public}d", i, config.damages[i].h);
+        if (config.damages[i].w < 0 || config.damages[i].h < 0) {
+            BLOGN_INVALID("config.damages width and height should >= 0, "
+                "now damages[%{public}zu].w is %{public}d, .h is %{public}d, ",
+                i, config.damages[i].w, config.damages[i].h);
             return GSERROR_INVALID_ARGUMENTS;
         }
     }
@@ -349,7 +347,7 @@ GSError BufferQueue::CancelBuffer(uint32_t sequence, const sptr<BufferExtraData>
 }
 
 GSError BufferQueue::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
-    const sptr<SyncFence>& fence, const BufferWithDamagesFlushConfig &config)
+    const sptr<SyncFence>& fence, const BufferFlushConfigWithDamages &config)
 {
     ScopedBytrace func(__func__);
     if (!GetStatus()) {
@@ -433,7 +431,7 @@ void BufferQueue::DumpToFile(uint32_t sequence)
 }
 
 GSError BufferQueue::DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
-    const sptr<SyncFence>& fence, const BufferWithDamagesFlushConfig &config)
+    const sptr<SyncFence>& fence, const BufferFlushConfigWithDamages &config)
 {
     ScopedBytrace func(__func__);
     ScopedBytrace bufferName(name_ + ":" + std::to_string(sequence));

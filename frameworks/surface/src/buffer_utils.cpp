@@ -72,7 +72,7 @@ void WriteRequestConfig(MessageParcel &parcel, BufferRequestConfig const & confi
     parcel.WriteInt32(static_cast<int32_t>(config.transform));
 }
 
-void ReadFlushConfig(MessageParcel &parcel, BufferFlushConfig &config)
+void ReadFlushConfig(MessageParcel &parcel, BufferFlushConfigWithDamages &config)
 {
     uint32_t size = parcel.ReadUint32();
     if (size == 0) {
@@ -93,22 +93,14 @@ void ReadFlushConfig(MessageParcel &parcel, BufferFlushConfig &config)
     config.timestamp = parcel.ReadInt64();
 }
 
-void WriteFlushConfig(MessageParcel &parcel, BufferFlushConfig const & config)
+void WriteFlushConfig(MessageParcel &parcel, BufferFlushConfigWithDamages const & config)
 {
-    if (config.damages.size() == 0) {
-        parcel.WriteUint32(1);
-        parcel.WriteInt32(config.damage.x);
-        parcel.WriteInt32(config.damage.y);
-        parcel.WriteInt32(config.damage.w);
-        parcel.WriteInt32(config.damage.h);
-    } else {
-        parcel.WriteUint32(config.damages.size());
-        for (const auto& rect : config.damages) {
-            parcel.WriteInt32(rect.x);
-            parcel.WriteInt32(rect.y);
-            parcel.WriteInt32(rect.w);
-            parcel.WriteInt32(rect.h);
-        }
+    parcel.WriteUint32(config.damages.size());
+    for (const auto& rect : config.damages) {
+        parcel.WriteInt32(rect.x);
+        parcel.WriteInt32(rect.y);
+        parcel.WriteInt32(rect.w);
+        parcel.WriteInt32(rect.h);
     }
     parcel.WriteInt64(config.timestamp);
 }
