@@ -16,6 +16,8 @@
 #include <gtest/gtest.h>
 
 #include "iconsumer_surface.h"
+
+#include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 
 using namespace testing;
@@ -44,29 +46,59 @@ void RSSurfaceOhosRasterTest::TearDown() {}
  */
 HWTEST_F(RSSurfaceOhosRasterTest, RequestFrame001, TestSize.Level1)
 {
-    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create();
-    sptr<IBufferProducer> bp = cSurface->GetProducer();
-    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    sptr<Surface> pSurface = nullptr;
     RSSurfaceOhosRaster raster(pSurface);
     int32_t width = 1;
     int32_t height = 1;
     uint64_t uiTimestamp = 1;
-    raster.RequestFrame(width, height, uiTimestamp);
+    EXPECT_FALSE(raster.IsValid());
+    EXPECT_EQ(raster.RequestFrame(width, height, uiTimestamp), nullptr);
+    raster.ClearBuffer();
 }
 
 /**
- * @tc.name: ClearBuffer001
+ * @tc.name: RequestFrame002
  * @tc.desc: test
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSSurfaceOhosRasterTest, ClearBuffer001, TestSize.Level1)
+HWTEST_F(RSSurfaceOhosRasterTest, RequestFrame002, TestSize.Level1)
 {
-    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create();
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("DisplayNode");
+    sptr<IBufferProducer> producer = consumer->GetProducer();
+    sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
+    RSSurfaceOhosRaster raster(surface);
+    int32_t width = 1;
+    int32_t height = 1;
+    uint64_t uiTimestamp = 1;
+    EXPECT_TRUE(raster.IsValid());
+    EXPECT_EQ(raster.RequestFrame(width, height, uiTimestamp), nullptr);
+    raster.ClearBuffer();
+}
+
+/**
+ * @tc.name: FlushFrame001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceOhosRasterTest, FlushFrame001, TestSize.Level1)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
     sptr<IBufferProducer> bp = cSurface->GetProducer();
     sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
     RSSurfaceOhosRaster raster(pSurface);
-    raster.ClearBuffer();
+    uint64_t uiTimestamp = 1;
+
+    std::unique_ptr<RSSurfaceFrame> frame = nullptr;
+    raster.SetUiTimeStamp(frame, uiTimestamp);
+    EXPECT_FALSE(raster.FlushFrame(frame, uiTimestamp));
+
+    int32_t width = 10;
+    int32_t height = 10;
+    frame = std::make_unique<RSSurfaceFrameOhosRaster>(width, height);
+    raster.SetUiTimeStamp(frame, uiTimestamp);
+    EXPECT_FALSE(raster.FlushFrame(frame, uiTimestamp));
 }
 } // namespace Rosen
 } // namespace OHOS

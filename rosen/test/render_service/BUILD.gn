@@ -37,6 +37,7 @@ group("test") {
     "render_service_base/unittest/common:unittest",
     "render_service_base/unittest/delegate:unittest",
     "render_service_base/unittest/modifier:unittest",
+    "render_service_base/unittest/offscreen_render:unittest",
     "render_service_base/unittest/overdraw:unittest",
     "render_service_base/unittest/pipeline:unittest",
     "render_service_base/unittest/platform/ohos:unittest",
