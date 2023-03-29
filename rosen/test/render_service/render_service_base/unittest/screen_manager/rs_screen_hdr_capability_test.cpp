@@ -81,7 +81,7 @@ HWTEST_F(RSScreenHDRCapabilityTest, marshallingAndUnmarshallling001, TestSize.Le
     parcel.SkipBytes(bufferSize);
     while (!ret) {
         size_t position = parcel.GetWritePosition();
-        ret = rs.Marshalling(parcel) & (RSScreenHDRCapability::Unmarshalling(parcel) != nullptr);
+        ret = rs.Marshalling(parcel) && (RSScreenHDRCapability::Unmarshalling(parcel) != nullptr);
         parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
         if (!ret) {
             parcel.RewindWrite(position);
