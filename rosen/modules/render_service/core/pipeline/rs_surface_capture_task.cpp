@@ -207,7 +207,8 @@ bool RSSurfaceCaptureTask::FindSecurityLayer()
 {
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     bool hasSecurityLayer = false;
-    nodeMap.TraverseSurfaceNodes([this, &hasSecurityLayer](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+    nodeMap.TraverseSurfaceNodes([this, &hasSecurityLayer](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
+        mutable {
         if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree()) {
             RS_LOGW("RSSurfaceCaptureTask::FindSecurityLayer: \
                 process RSSurfaceRenderNode(id:[%" PRIu64 "]) paused since it is null or not on the tree.",
