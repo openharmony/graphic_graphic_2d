@@ -31,7 +31,7 @@ enum BLUR_COLOR_MODE : int {
 class RSB_EXPORT RSFilter : public std::enable_shared_from_this<RSFilter> {
 public:
     virtual ~RSFilter();
-    virtual std::string GetDescription() {}
+    virtual std::string GetDescription();
     static std::shared_ptr<RSFilter> CreateBlurFilter(float blurRadiusX, float blurRadiusY);
     static std::shared_ptr<RSFilter> CreateMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode = DEFAULT);
     static std::shared_ptr<RSFilter> CreateLightUpEffectFilter(float lightUpDegree);

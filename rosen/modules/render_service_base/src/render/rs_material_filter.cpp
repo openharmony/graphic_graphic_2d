@@ -69,10 +69,6 @@ float RSMaterialFilter::RadiusVp2Sigma(float radiusVp, float dipScale)
 
 std::string RSMaterialFilter::GetDescription()
 {
-    if (materialParams_.find(style_) != materialParams_.end()) {
-        MaterialParam materialParam = materialParams_[style_];
-        return materialParam.radius;
-    }
     return "RSMaterialFilter blur radius is " + std::to_string(GetTraceBlurRadius()) + " vp";
 }
 
