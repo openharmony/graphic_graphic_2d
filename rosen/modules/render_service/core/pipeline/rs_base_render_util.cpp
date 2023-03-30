@@ -822,9 +822,10 @@ bool RSBaseRenderUtil::IsNeedClient(RSRenderNode& node, const ComposeInfo& info)
         RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need shadow");
         return true;
     }
-    if (property.GetRotation() != 0 || property.GetRotationX() != 0 || property.GetRotationY() != 0 ||
-        property.GetQuaternion() != Quaternion()) {
-        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need rotation");
+    if (node.IsInstanceOf<RSSurfaceRenderNode>() &&
+        (property.GetRotation() != 0 || property.GetRotationX() != 0 || property.GetRotationY() != 0 ||
+        property.GetQuaternion() != Quaternion())) {
+        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need RSSurfaceRenderNode rotation");
         return true;
     }
     return false;

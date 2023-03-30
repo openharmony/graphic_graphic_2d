@@ -58,7 +58,7 @@ public:
     RSB_EXPORT RectF GetDrivenContentClipFrameRect() const;
     // functions that are dedicated to driven render [end]
 
-    void OnApplyModifiers() override;
+    void ApplyModifiers() override;
 
     RSRenderNodeType GetType() const override
     {

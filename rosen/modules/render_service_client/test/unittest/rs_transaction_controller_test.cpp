@@ -62,8 +62,6 @@ HWTEST_F(RSTransactionControllerTest, RSTransactionControllerTest001, TestSize.L
     std::shared_ptr<RSTransaction> transaction = std::make_shared<RSTransaction>();
     MessageParcel parcel;
     transaction->MarshallTransactionSyncController(parcel);
-    // processController_->CreateTransactionFinished();
-    // EXPECT_TRUE(processController_ != nullptr);
     EXPECT_TRUE(transaction != nullptr);
     GTEST_LOG_(INFO) << "RSTransactionControllerTest RSTransactionControllerTest001 end";
 }

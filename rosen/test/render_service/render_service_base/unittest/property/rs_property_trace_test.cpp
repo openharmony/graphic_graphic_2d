@@ -43,9 +43,9 @@ void RSPropertyTraceTest::TearDown() {}
  */
 HWTEST_F(RSPropertyTraceTest, PropertiesDisplayByTrace001, TestSize.Level1)
 {
-    auto boundsGeometry = std::make_shared<RSObjAbsGeometry>();
+    RSProperties properties;
     const NodeId id = 1;
-    RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(id, boundsGeometry);
+    RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(id, properties);
 }
 
 /**

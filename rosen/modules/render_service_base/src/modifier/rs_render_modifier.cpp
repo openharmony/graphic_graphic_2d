@@ -221,6 +221,13 @@ void RSEnvForegroundColorStrategyRenderModifier ::Apply(RSModifierContext& conte
 Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSModifierContext& context) const
 {
 #ifdef ROSEN_OHOS
+    SkAutoCanvasRestore acr(context.canvas_, true);
+    if (!context.property_.GetClipToBounds()) {
+        RS_LOGI("RSRenderModifier::GetInvertBackgroundColor not GetClipToBounds");
+        Vector4f clipRegion = context.property_.GetBounds();
+        SkRect rect = SkRect::MakeXYWH(0, 0, clipRegion.z_, clipRegion.w_);
+        context.canvas_->clipRect(rect);
+    }
     auto imageSnapshot = context.canvas_->GetSurface()->makeImageSnapshot(context.canvas_->getDeviceClipBounds());
     if (imageSnapshot == nullptr) {
         RS_LOGI("RSRenderModifier::GetInvertBackgroundColor imageSnapshot null");
@@ -228,6 +235,10 @@ Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSMod
     }
     int pixmapWidth = context.property_.GetBoundsWidth();
     int pixmapHeight = context.property_.GetBoundsHeight();
+    if (pixmapWidth == 0 || pixmapHeight == 0) {
+        RS_LOGI("RSRenderModifier::GetInvertBackgroundColor pixmapWidth/Height == 0");
+        return Color(0);
+    }
     Media::InitializationOptions opts;
     opts.size.width = pixmapWidth;
     opts.size.height = pixmapHeight;

@@ -40,6 +40,7 @@
 #include "src/image/SkImage_Base.h"
 
 #include "animation/rs_render_curve_animation.h"
+#include "animation/rs_render_interpolating_spring_animation.h"
 #include "animation/rs_render_keyframe_animation.h"
 #include "animation/rs_render_path_animation.h"
 #include "animation/rs_render_spring_animation.h"
@@ -821,6 +822,7 @@ MARSHALLING_AND_UNMARSHALLING(DrawCmdList)
     }
 
 MARSHALLING_AND_UNMARSHALLING(RSRenderCurveAnimation)
+MARSHALLING_AND_UNMARSHALLING(RSRenderInterpolatingSpringAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderKeyframeAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderSpringAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderPathAnimation)

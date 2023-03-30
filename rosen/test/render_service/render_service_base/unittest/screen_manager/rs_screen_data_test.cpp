@@ -85,7 +85,7 @@ HWTEST_F(RSScreenDataTest, marshallingAndUnmarshallling001, TestSize.Level1)
     parcel.SkipBytes(bufferSize);
     while (!ret) {
         size_t position = parcel.GetWritePosition();
-        ret = screenData.Marshalling(parcel) &
+        ret = screenData.Marshalling(parcel) &&
               (std::shared_ptr<RSScreenData>(RSScreenData::Unmarshalling(parcel)) != nullptr);
         parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
         if (!ret) {

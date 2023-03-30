@@ -122,7 +122,7 @@ HWTEST_F(RSRenderModifierTest, DrawCmdListModifier001, TestSize.Level1)
     ASSERT_TRUE(parcel1.WriteUnpadBuffer(buffer, parcel1.GetMaxCapacity()));
     bool ret = false;
     while (!ret) {
-        ret = (modifier->Marshalling(parcel) & (RSDrawCmdListRenderModifier::Unmarshalling(parcel) != nullptr));
+        ret = (modifier->Marshalling(parcel) && (RSDrawCmdListRenderModifier::Unmarshalling(parcel) != nullptr));
         parcel1.SetMaxCapacity(parcel1.GetMaxCapacity() + 1);
     }
     free(buffer);

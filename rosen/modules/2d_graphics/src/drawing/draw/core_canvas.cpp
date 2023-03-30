@@ -131,9 +131,9 @@ void CoreCanvas::ClipRoundRect(const RoundRect& roundRect, ClipOp op)
     impl_->ClipRoundRect(roundRect, op);
 }
 
-void CoreCanvas::ClipPath(const Path& path, ClipOp op)
+void CoreCanvas::ClipPath(const Path& path, ClipOp op, bool doAntiAlias)
 {
-    impl_->ClipPath(path, op);
+    impl_->ClipPath(path, op, doAntiAlias);
 }
 
 void CoreCanvas::SetMatrix(const Matrix& matrix)

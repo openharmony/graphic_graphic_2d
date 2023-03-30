@@ -829,6 +829,12 @@ void RSNode::SetPixelStretch(const Vector4f& stretchSize)
     SetProperty<RSPixelStretchModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::PIXEL_STRETCH, stretchSize);
 }
 
+void RSNode::SetPixelStretchPercent(const Vector4f& stretchPercent)
+{
+    SetProperty<RSPixelStretchPercentModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::PIXEL_STRETCH_PERCENT,
+        stretchPercent);
+}
+
 void RSNode::SetFreeze(bool isFreeze)
 {
     ROSEN_LOGE("SetFreeze only support RSSurfaceNode and RSCanvasNode in uniRender");
@@ -1084,6 +1090,11 @@ void RSNode::MarkAllExtendModifierDirty()
 void RSNode::ResetExtendModifierDirty()
 {
     extendModifierisDirty_ = false;
+}
+
+void RSNode::SetIsCustomTextType(bool isCustomTextType)
+{
+    isCustomTextType_ = isCustomTextType;
 }
 } // namespace Rosen
 } // namespace OHOS

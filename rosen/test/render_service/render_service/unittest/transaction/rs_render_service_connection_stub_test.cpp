@@ -225,6 +225,6 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub006
     MessageOption option;
 
     int res = connectionStub_->OnRemoteRequest(-1, data, reply, option);
-    ASSERT_EQ(res, ERR_UNKNOWN_TRANSACTION);
+    ASSERT_EQ(res, IPC_STUB_UNKNOW_TRANS_ERR);
 }
 } // namespace OHOS::Rosen

@@ -40,7 +40,7 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNodeWithBuffer()
     psurf->SetQueueSize(1);
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
-    GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
     sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
     ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
     OHOS::sptr<SurfaceBuffer> cbuffer;

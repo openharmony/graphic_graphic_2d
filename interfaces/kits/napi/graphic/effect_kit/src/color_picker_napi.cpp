@@ -189,9 +189,9 @@ napi_value ColorPickerNapi::Constructor(napi_env env, napi_callback_info info)
 
     status = napi_wrap(env, thisVar,
                        reinterpret_cast<void*>(pColorPickerNapi.get()),
-                       Destructor,
+                       ColorPickerNapi::Destructor,
                        nullptr,
-                       &(pColorPickerNapi->wrapper_));
+                       nullptr);
     IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status),
                          undefineVar,
                          EFFECT_LOG_E("Failure wrapping js to native napi"));

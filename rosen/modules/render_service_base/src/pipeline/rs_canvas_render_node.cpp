@@ -99,12 +99,12 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
     ApplyDrawCmdModifier(context, RSModifierType::BACKGROUND_STYLE);
 
     canvasNodeSaveCount_ = canvas.SaveCanvasAndAlpha();
+    ApplyDrawCmdModifier(context, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
     canvas.translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
 
     if (GetRenderProperties().GetClipToFrame()) {
         RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect());
     }
-    ApplyDrawCmdModifier(context, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
 }
 
 void RSCanvasRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
@@ -183,8 +183,9 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas)
     }
 }
 
-void RSCanvasRenderNode::OnApplyModifiers()
+void RSCanvasRenderNode::ApplyModifiers()
 {
+    RSRenderNode::ApplyModifiers();
     GetMutableRenderProperties().backref_ = ReinterpretCastTo<RSRenderNode>();
 }
 

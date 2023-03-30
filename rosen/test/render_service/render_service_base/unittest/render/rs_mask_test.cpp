@@ -260,7 +260,7 @@ HWTEST_F(RSMaskTest, MarshlingandUnMarshling001, TestSize.Level1)
     parcel.SkipBytes(bufferSize);
     while (!ret) {
         size_t position = parcel.GetWritePosition();
-        ret = mask->Marshalling(parcel) & (RSMask::Unmarshalling(parcel) != nullptr);
+        ret = mask->Marshalling(parcel) && (RSMask::Unmarshalling(parcel) != nullptr);
         parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
         if (!ret) {
             parcel.RewindWrite(position);

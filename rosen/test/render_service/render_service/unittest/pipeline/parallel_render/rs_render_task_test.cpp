@@ -168,4 +168,21 @@ HWTEST_F(RSRenderTaskTest, GetNextRenderTaskEmpty, TestSize.Level1)
     ASSERT_EQ(task, nullptr);
 }
 
+/**
+ * @tc.name: RSCompositionTask
+ * @tc.desc: Test RSSuperRenderTaskTest.RSCompositionTask construct OK
+ * @tc.type: FUNC
+ * @tc.require: AR000HQ6GH
+ */
+HWTEST_F(RSRenderTaskTest, RSCompositionTask, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSDisplayNodeConfig displayConfig;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(10, displayConfig, rsContext->weak_from_this());
+    auto compositionTask = std::make_shared<RSCompositionTask>(rsDisplayRenderNode);
+    ASSERT_EQ(compositionTask->GetIdx(), 10);
+    compositionTask->SetIdx(20);
+    ASSERT_EQ(compositionTask->GetIdx(), 20);
+}
+
 } // namespace OHOS::Rosen

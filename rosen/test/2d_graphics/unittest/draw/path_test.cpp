@@ -134,6 +134,18 @@ HWTEST_F(PathTest, ArcTo002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ArcTo003
+ * @tc.desc: Arc To Direction Test
+ * @tc.type: FUNC
+ * @tc.require: issuel#I6Q4ZH
+ */
+HWTEST_F(PathTest, ArcTo003, TestSize.Level2)
+{
+    Path path;
+    path.ArcTo(1.0f, 3.0f, 2.5f, PathDirection::CCW_DIRECTION, 1.0f, 3.0f);
+}
+
+/**
  * @tc.name: ArcToWith6001
  * @tc.desc:
  * @tc.type: FUNC

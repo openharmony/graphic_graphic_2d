@@ -257,29 +257,24 @@ void RSSurfaceRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 
 void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas)
 {
-    const auto& properties = GetRenderProperties();
-    RectF bounds = {0, 0, properties.GetBoundsWidth(), properties.GetBoundsHeight()};
-    if (contextClipRect_.width() > std::numeric_limits<float>::epsilon() &&
-        contextClipRect_.height() > std::numeric_limits<float>::epsilon()) {
-        bounds = bounds.IntersectRect(
-            { contextClipRect_.left(), contextClipRect_.top(), contextClipRect_.width(), contextClipRect_.height() });
-    }
-    RRect absClipRRect = RRect(bounds, properties.GetCornerRadius());
-    RSPropertiesPainter::DrawShadow(properties, canvas, &absClipRRect);
+    const auto& property = GetRenderProperties();
+    const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
+    RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
+    RSPropertiesPainter::DrawShadow(property, canvas, &absClipRRect);
 
-    if (!properties.GetCornerRadius().IsZero()) {
+    if (!property.GetCornerRadius().IsZero()) {
         canvas.clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
     } else {
-        canvas.clipRect(SkRect::MakeWH(properties.GetBoundsWidth(), properties.GetBoundsHeight()));
+        canvas.clipRect(SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight()));
     }
 
-    RSPropertiesPainter::DrawBackground(properties, canvas);
-    RSPropertiesPainter::DrawMask(properties, canvas);
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(properties.GetBackgroundFilter());
+    RSPropertiesPainter::DrawBackground(property, canvas);
+    RSPropertiesPainter::DrawMask(property, canvas);
+    auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
     if (filter != nullptr) {
         auto skRectPtr = std::make_unique<SkRect>();
-        skRectPtr->setXYWH(0, 0, properties.GetBoundsWidth(), properties.GetBoundsHeight());
-        RSPropertiesPainter::DrawFilter(properties, canvas, filter, skRectPtr, canvas.GetSurface());
+        skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
+        RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr, canvas.GetSurface());
     }
     SetTotalMatrix(canvas.getTotalMatrix());
 }
@@ -912,13 +907,6 @@ void RSSurfaceRenderNode::SetLocalZOrder(float localZOrder)
 float RSSurfaceRenderNode::GetLocalZOrder() const
 {
     return localZOrder_;
-}
-
-void RSSurfaceRenderNode::OnApplyModifiers()
-{
-    // concat context matrix into bounds geometry
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(GetMutableRenderProperties().GetBoundsGeometry());
-    geoPtr->ConcatMatrix(contextMatrix_);
 }
 } // namespace Rosen
 } // namespace OHOS

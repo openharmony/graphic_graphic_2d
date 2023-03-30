@@ -185,6 +185,7 @@ public:
     void SetLightUpEffectDegree(float LightUpEffectDegree);
 
     void SetPixelStretch(const Vector4f& stretchSize);
+    void SetPixelStretchPercent(const Vector4f& stretchPercent);
 
     void SetPaintOrder(bool drawContentLast);
 
@@ -201,6 +202,8 @@ public:
 
     void AddModifier(const std::shared_ptr<RSModifier> modifier);
     void RemoveModifier(const std::shared_ptr<RSModifier> modifier);
+
+    void SetIsCustomTextType(bool isCustomTextType);
 
 protected:
     explicit RSNode(bool isRenderServiceNode);
@@ -221,6 +224,7 @@ protected:
     }
 
     std::vector<PropertyId> GetModifierIds() const;
+    bool isCustomTextType_ = false;
 
 private:
     bool AnimationFinish(AnimationId animationId);

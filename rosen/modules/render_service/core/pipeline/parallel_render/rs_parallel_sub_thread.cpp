@@ -237,6 +237,8 @@ void RSParallelSubThread::Render()
         return;
     }
     auto physicalDisplayNode = std::static_pointer_cast<RSDisplayRenderNode>(threadTask_->GetNode());
+    auto physicalGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(
+        physicalDisplayNode->GetRenderProperties().GetBoundsGeometry());
 #ifdef RS_ENABLE_GL
     if (canvas_ == nullptr) {
         RS_LOGE("Canvas is nullptr");
@@ -250,11 +252,9 @@ void RSParallelSubThread::Render()
         canvas_->clear(SK_ColorTRANSPARENT);
     }
     canvas_->save();
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(
-        physicalDisplayNode->GetRenderProperties().GetBoundsGeometry());
-    if (geoPtr != nullptr) {
-        canvas_->concat(geoPtr->GetMatrix());
-        canvas_->SetCacheEnabled(geoPtr->IsNeedClientCompose());
+    if (physicalGeoPtr != nullptr) {
+        canvas_->concat(physicalGeoPtr->GetMatrix());
+        canvas_->SetCacheEnabled(physicalGeoPtr->IsNeedClientCompose());
     }
     while (threadTask_->GetTaskSize() > 0) {
         RSParallelRenderManager::Instance()->StartTiming(threadIndex_);
@@ -282,6 +282,12 @@ void RSParallelSubThread::Render()
     displayNode_->SetDisplayOffset(
         physicalDisplayNode->GetDisplayOffsetX(), physicalDisplayNode->GetDisplayOffsetY());
     displayNode_->SetForceSoftComposite(physicalDisplayNode->IsForceSoftComposite());
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(
+        displayNode_->GetRenderProperties().GetBoundsGeometry());
+    if (physicalGeoPtr && geoPtr) {
+        *geoPtr = *physicalGeoPtr;
+        geoPtr->UpdateByMatrixFromSelf();
+    }
     while (threadTask_->GetTaskSize() > 0) {
         auto task = threadTask_->GetNextRenderTask();
         if (!task || (task->GetIdx() == 0)) {

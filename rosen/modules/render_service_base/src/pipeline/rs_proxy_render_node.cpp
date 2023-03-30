@@ -43,7 +43,6 @@ RSProxyRenderNode::~RSProxyRenderNode()
     // reset target node context properties
     target->SetContextAlpha(1, false);
     target->SetContextMatrix(SkMatrix::I(), false);
-    target->SetContextClipRegion(SkRect::MakeEmpty(), false);
 
     // remove all modifiers and animations added via proxy node
     const auto pid_of_this_node = ExtractPid(GetId());

@@ -156,5 +156,131 @@ HWTEST_F(FrameCollectorTest, MarkFrameEvent, Function | MediumTest | Level2)
         }
     }
 }
+
+/**
+ * @tc.name: FrameCollectorTest
+ * @tc.desc: Test RsNodeCostManagerTest.SetRepaintCallbackTest
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(FrameCollectorTest, SetRepaintCallbackTest, TestSize.Level1)
+{
+    auto& collector = FrameCollector::GetInstance();
+    std::function<void()> repaint = SetUpTestCase;
+    collector.SetRepaintCallback(repaint);
+    ASSERT_TRUE(collector.repaint_ != nullptr);
+    collector.repaint_ = nullptr;
+}
+
+/**
+ * @tc.name: FrameCollectorTest
+ * @tc.desc: Test RsNodeCostManagerTest.MarkFrameEvent2
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(FrameCollectorTest, MarkFrameEvent2, TestSize.Level1)
+{
+    auto& collector = FrameCollector::GetInstance();
+    collector.MarkFrameEvent(static_cast<FrameEventType>(19));
+    ASSERT_FALSE(collector.usingSaver_);
+}
+
+/**
+ * @tc.name: FrameCollectorTest
+ * @tc.desc: Test RsNodeCostManagerTest.MarkFrameEvent3
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(FrameCollectorTest, MarkFrameEvent3, TestSize.Level1)
+{
+    auto& collector = FrameCollector::GetInstance();
+    collector.usingSaver_ = false;
+    collector.MarkFrameEvent(FrameEventType::UploadStart, 1);
+    collector.MarkFrameEvent(FrameEventType::UploadEnd, 1);
+    collector.ClearEvents();
+    ASSERT_FALSE(collector.usingSaver_);
+}
+
+/**
+ * @tc.name: FrameCollectorTest
+ * @tc.desc: Test RsNodeCostManagerTest.ProcessFrameEvent1
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(FrameCollectorTest, ProcessFrameEvent1, TestSize.Level1)
+{
+    auto& collector = FrameCollector::GetInstance();
+    collector.haveAfterVsync_ = true;
+    collector.ProcessFrameEvent(12, 1);
+    ASSERT_FALSE(collector.usingSaver_);
+    collector.ClearEvents();
+}
+
+/**
+ * @tc.name: FrameCollectorTest
+ * @tc.desc: Test RsNodeCostManagerTest.ProcessFrameEvent2
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(FrameCollectorTest, ProcessFrameEvent2, TestSize.Level1)
+{
+    auto& collector = FrameCollector::GetInstance();
+    collector.haveAfterVsync_ = false;
+    FrameInfo info = FrameInfo();
+    collector.pbefore_ = &info;
+    collector.ProcessFrameEvent(14, 1);
+    collector.pbefore_ = nullptr;
+    ASSERT_FALSE(collector.usingSaver_);
+    collector.ClearEvents();
+}
+
+/**
+ * @tc.name: FrameCollectorTest
+ * @tc.desc: Test RsNodeCostManagerTest.ProcessFrameEvent3
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(FrameCollectorTest, ProcessFrameEvent3, TestSize.Level1)
+{
+    auto& collector = FrameCollector::GetInstance();
+    collector.haveAfterVsync_ = true;
+    collector.ProcessFrameEvent(17, 1);
+    ASSERT_FALSE(collector.usingSaver_);
+    collector.ClearEvents();
+}
+
+/**
+ * @tc.name: FrameCollectorTest
+ * @tc.desc: Test RsNodeCostManagerTest.SwitchFunction1
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(FrameCollectorTest, SwitchFunction1, TestSize.Level1)
+{
+    auto& that = FrameCollector::GetInstance();
+    that.enabled_ = true;
+    std::function<void()> repaint = SetUpTestCase;
+    that.SetRepaintCallback(repaint);
+    FrameCollector::SwitchFunction("debug.graphic.frame", "saver", &that);
+    that.enabled_ = false;
+    that.repaint_ = nullptr;
+    ASSERT_TRUE(that.usingSaver_);
+}
+
+/**
+ * @tc.name: FrameCollectorTest
+ * @tc.desc: Test RsNodeCostManagerTest.SwitchFunction2
+ * @tc.type: FUNC
+ * @tc.require: I6R1BQ
+ */
+HWTEST_F(FrameCollectorTest, SwitchFunction2, TestSize.Level1)
+{
+    auto& that = FrameCollector::GetInstance();
+    that.enabled_ = true;
+    FrameCollector::SwitchFunction("debug.graphic.frame", "paint", &that);
+    that.repaint_ = nullptr;
+    ASSERT_FALSE(that.usingSaver_);
+}
+
 } // namespace Rosen
 } // namespace OHOS

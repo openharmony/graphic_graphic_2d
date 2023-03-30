@@ -144,7 +144,7 @@ void RSRenderNode::UpdateDirtyRegion(
             }
         }
 
-        if (renderProperties_.IsPixelStretchValid()) {
+        if (renderProperties_.IsPixelStretchValid() || renderProperties_.IsPixelStretchPercentValid()) {
             auto stretchDirtyRect = renderProperties_.GetPixelStretchDirtyRect();
             dirtyRect = dirtyRect.JoinRect(stretchDirtyRect);
         }
@@ -212,8 +212,7 @@ void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSBaseRenderNode> pa
 void RSRenderNode::RenderTraceDebug() const
 {
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
-        RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(GetId(),
-            std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry()));
+        RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(GetId(), GetRenderProperties());
     }
 }
 
@@ -319,7 +318,6 @@ void RSRenderNode::ApplyModifiers()
             modifier->Apply(context);
         }
     }
-    OnApplyModifiers();
 
     UpdateOverlayBounds();
 }

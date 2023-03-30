@@ -27,11 +27,12 @@ group("unittest") {
     ":RSComposerAdapterTest",
     ":RSDividedRenderUtilTest",
     ":RSDropFrameProcessorTest",
+    ":RSHardwareThreadTest",
     ":RSMainThreadTest",
-    ":RSNodeCostManagerTest",
     ":RSPhysicalScreenProcessorTest",
     ":RSProcessorFactoryTest",
     ":RSQosThreadTest",
+    ":RSRenderEngineTest",
     ":RSRenderServiceListenerTest",
     ":RSRenderServiceVisitorTest",
     ":RSSurfaceCaptureTaskTest",
@@ -43,8 +44,12 @@ group("unittest") {
     ":RSUnmarshalThreadTest",
     ":RSVirtualScreenProcessorTest",
   ]
+  if (rs_enable_eglimage) {
+    deps += [ ":RSEglImageManagerTest" ]
+  }
   if (rs_enable_parallel_render && rs_enable_gpu) {
     deps += [
+      ":RSNodeCostManagerTest",
       ":RSParallelHardwareComposerTest",
       ":RSParallelPackVisitorTest",
       ":RSParallelRenderManagerTest",
@@ -196,6 +201,15 @@ ohos_unittest("RSQosThreadTest") {
   defines += gpu_defines
 }
 
+## Build RSHardwareThreadTest
+ohos_unittest("RSHardwareThreadTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_hardware_thread_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
 ## Build RSMainThreadTest
 ohos_unittest("RSMainThreadTest") {
   module_out_path = module_output_path
@@ -209,6 +223,15 @@ ohos_unittest("RSMainThreadTest") {
 ohos_unittest("RSColdStartThreadTest") {
   module_out_path = module_output_path
   sources = [ "rs_cold_start_thread_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSEglImageManagerTest
+ohos_unittest("RSEglImageManagerTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_egl_image_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines
@@ -285,6 +308,15 @@ ohos_unittest("RSUniRenderVirtualProcessorTest") {
 ohos_unittest("RSBaseRenderEngineUnitTest") {
   module_out_path = module_output_path
   sources = [ "rs_base_render_engine_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSRenderEngineTest
+ohos_unittest("RSRenderEngineTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_render_engine_test.cpp" ]
   deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines

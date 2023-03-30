@@ -281,7 +281,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_002, TestSize.Level2)
     psurf->SetQueueSize(1);
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
-    GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
     sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
     ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
     OHOS::sptr<SurfaceBuffer> cbuffer;
@@ -312,7 +312,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_003, TestSize.Level2)
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
     requestConfig.format = PIXEL_FMT_RGBA_8888;
-    GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
     sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
     ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
     OHOS::sptr<SurfaceBuffer> cbuffer;

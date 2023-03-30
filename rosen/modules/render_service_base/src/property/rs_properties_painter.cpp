@@ -335,9 +335,23 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     filter->PostProcess(canvas);
 }
 
+static Vector4f GetStretchSize(const RSProperties& properties)
+{
+    Vector4f stretchSize;
+    if (properties.IsPixelStretchValid()) {
+        stretchSize = properties.GetPixelStretch();
+    } else {
+        if (properties.IsPixelStretchPercentValid()) {
+            stretchSize = properties.GetPixelStretchByPercent();
+        }
+    }
+
+    return stretchSize;
+}
+
 void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
-    if (!properties.IsPixelStretchValid()) {
+    if (!properties.IsPixelStretchValid() && !properties.IsPixelStretchPercentValid()) {
         return;
     }
 
@@ -351,12 +365,14 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     auto bounds = RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect());
     canvas.clipRect(bounds);
     auto clipBounds = canvas.getDeviceClipBounds();
+    clipBounds.setXYWH(clipBounds.left(), clipBounds.top(), clipBounds.width() - 1, clipBounds.height() - 1);
     canvas.restore();
 
-    auto stretchSize = properties.GetPixelStretch();
+    Vector4f stretchSize = GetStretchSize(properties);
+     
     auto scaledBounds = SkRect::MakeLTRB(bounds.left() - stretchSize.x_, bounds.top() - stretchSize.y_,
         bounds.right() + stretchSize.z_, bounds.bottom() + stretchSize.w_);
-    if (scaledBounds.isEmpty()) {
+    if (scaledBounds.isEmpty() || clipBounds.isEmpty()) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch invalid scaled bounds");
         return;
     }
@@ -622,6 +638,84 @@ void RSPropertiesPainter::DrawFrameForDriven(const RSProperties& properties, RSP
     cmds->Playback(canvas, &frameRect);
     cmds->RestoreOriginCmdsForDriven();
 #endif
+}
+
+void RSPropertiesPainter::DrawCachedSpherizeSurface(const RSRenderNode& node, RSPaintFilterCanvas& canvas,
+    const sk_sp<SkSurface>& cacheSurface)
+{
+    if (cacheSurface == nullptr) {
+        return;
+    }
+    SkAutoCanvasRestore acr(&canvas, true);
+    const RSProperties& properties = node.GetRenderProperties();
+    float canvasWidth = properties.GetBoundsRect().GetWidth();
+    float canvasHeight = properties.GetBoundsRect().GetHeight();
+    if (cacheSurface->width() == 0 || cacheSurface->height() == 0) {
+        return;
+    }
+    canvas.scale(canvasWidth / cacheSurface->width(), canvasHeight / cacheSurface->height());
+
+    auto imageSnapshot = cacheSurface->makeImageSnapshot();
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawCachedSpherizeSurface image  is null");
+        return;
+    }
+
+    SkPaint paint;
+    paint.setBlendMode(SkBlendMode::kSrcOver);
+    paint.setShader(imageSnapshot->makeShader(SkTileMode::kClamp, SkTileMode::kClamp));
+    float width = imageSnapshot->width();
+    float height = imageSnapshot->height();
+    float degree = properties.GetSpherize();
+    bool isWidthGreater = width > height;
+    ROSEN_LOGI("RSPropertiesPainter::DrawCachedSpherizeSurface spherize degree [%f]", degree);
+
+    const SkPoint texCoords[4] = {
+        {0.0f, 0.0f}, {width, 0.0f}, {width, height}, {0.0f, height}
+    };
+    float offsetSquare = 0.f;
+    if (isWidthGreater) {
+        offsetSquare = (width - height) * degree / 2.0; // half of the change distance
+        width = width - (width - height) * degree;
+    } else {
+        offsetSquare = (height - width) * degree / 2.0; // half of the change distance
+        height = height - (height - width) * degree;
+    }
+
+    float segmentWidthOne = width / 3.0;
+    float segmentWidthTwo = width / 3.0 * 2.0;
+    float segmentHeightOne = height / 3.0;
+    float segmentHeightTwo = height / 3.0 * 2.0;
+    float offsetSphereWidth = width / 6 * degree;
+    float offsetSphereHeight = height / 6  * degree;
+
+    SkPoint ctrlPoints[12] = {
+        // top edge control points
+        {0.0f, 0.0f}, {segmentWidthOne, 0.0f}, {segmentWidthTwo, 0.0f}, {width, 0.0f},
+        // right edge control points
+        {width, segmentHeightOne}, {width, segmentHeightTwo},
+        // bottom edge control points
+        {width, height}, {segmentWidthTwo, height}, {segmentWidthOne, height}, {0.0f, height},
+        // left edge control points
+        {0.0f, segmentHeightTwo}, {0.0f, segmentHeightOne}
+    };
+    ctrlPoints[0].offset(offsetSphereWidth, offsetSphereHeight); // top left control point
+    ctrlPoints[3].offset(-offsetSphereWidth, offsetSphereHeight); // top right control point
+    ctrlPoints[6].offset(-offsetSphereWidth, -offsetSphereHeight); // bottom right control point
+    ctrlPoints[9].offset(offsetSphereWidth, -offsetSphereHeight); // bottom left control point
+    if (isWidthGreater) {
+        SkPoint::Offset(ctrlPoints, SK_ARRAY_COUNT(ctrlPoints), offsetSquare, 0);
+    } else {
+        SkPoint::Offset(ctrlPoints, SK_ARRAY_COUNT(ctrlPoints), 0, offsetSquare);
+    }
+    SkPath path;
+    path.moveTo(ctrlPoints[0]);
+    path.cubicTo(ctrlPoints[1], ctrlPoints[2], ctrlPoints[3]); // upper edge
+    path.cubicTo(ctrlPoints[4], ctrlPoints[5], ctrlPoints[6]); // right edge
+    path.cubicTo(ctrlPoints[7], ctrlPoints[8], ctrlPoints[9]); // bottom edge
+    path.cubicTo(ctrlPoints[10], ctrlPoints[11], ctrlPoints[0]); // left edge
+    canvas.clipPath(path, true);
+    canvas.drawPatch(ctrlPoints, nullptr, texCoords, SkBlendMode::kSrcOver, paint);
 }
 } // namespace Rosen
 } // namespace OHOS

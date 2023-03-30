@@ -42,7 +42,7 @@ namespace Rosen {
     
 class ColorExtract {
 public:
-    ~ColorExtract() {};
+    virtual ~ColorExtract() {};
     std::shared_ptr<Media::PixelMap> pixelmap_;
 
     // Save the ARGB val of picture.

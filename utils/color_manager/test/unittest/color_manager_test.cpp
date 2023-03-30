@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -313,6 +313,45 @@ HWTEST_F(ColorManagerTest, CreateColorSpace002, TestSize.Level1)
     
     std::shared_ptr<ColorSpace> cs = std::make_shared<ColorSpace>(*profile);
     ASSERT_NE(cs, nullptr);
+}
+
+/**
+ * @tc.name: CreateColorSpace003
+ * @tc.desc: Create colorspace with invalid params
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(ColorManagerTest, CreateColorSpace003, TestSize.Level1)
+{
+    // cannot create customized colorspace with name
+    std::shared_ptr<ColorSpace> cs = std::make_shared<ColorSpace>(ColorSpaceName::CUSTOM);
+    ASSERT_EQ(cs->GetColorSpaceName(), ColorSpaceName::NONE);
+
+    cs = std::make_shared<ColorSpace>(nullptr, ColorSpaceName::NONE);
+    ASSERT_EQ(cs->GetColorSpaceName(), ColorSpaceName::NONE);
+
+    std::shared_ptr<skcms_ICCProfile> profile = std::make_shared<skcms_ICCProfile>();
+    profile->has_toXYZD50 = false;
+    cs = std::make_shared<ColorSpace>(*profile, ColorSpaceName::NONE);
+    ASSERT_EQ(cs->GetColorSpaceName(), ColorSpaceName::NONE);
+}
+
+/**
+ * @tc.name: VectorOperator
+ * @tc.desc: Verify vector calculation
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(ColorManagerTest, VectorOperator, TestSize.Level1)
+{
+    const Vector3 v1 = {2.0f, 1.0f, 0.1f};
+    const Matrix3x3 m1 = {{
+        {1.0f, 0.0f, 0.0f},
+        {0.0f, 1.0f, 0.0f},
+        {0.0f, 0.0f, 1.0f}}};
+    
+    const Vector3 v2 = v1 * m1;
+    ASSERT_EQ(v2, v1);
 }
 }
 }

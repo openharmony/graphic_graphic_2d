@@ -33,22 +33,54 @@ const std::string COLON_SEPARATOR = ":";
 const std::string COMMA_SEPARATOR = ",";
 const std::string SEMICOLON_SEPARATOR = ";";
 const std::string NODE_ID_TAG = "ID";
+const std::string PROPERTY_ID_TAG = "PROPERTY";
 const std::string ALL_NEED_TAG = "all";
+const std::string CORNER_PROPERTY_TAG = "corner";
+const std::string ALPHA_PROPERTY_TAG = "alpha";
+const std::string SHADOW_PROPERTY_TAG = "shadow";
 static constexpr int MIN_INFO_SIZE = 2;
 RSPropertyTrace RSPropertyTrace::instance_;
 
-void RSPropertyTrace::PropertiesDisplayByTrace(const NodeId& id,
-    const std::shared_ptr<RSObjAbsGeometry>& boundsGeometry)
+void RSPropertyTrace::PropertiesDisplayByTrace(const NodeId& id, const RSProperties& properties)
 {
     if (IsNeedPropertyTrace(id)) {
-        auto rectI = boundsGeometry->GetAbsRect();
-        AddTraceFlag(std::to_string(id) + " Geometry Rect: " + rectI.ToString());
+        auto rectI = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry())->GetAbsRect();
+        std::string str = std::to_string(id) + " Geometry Rect: " + rectI.ToString();
+        for (auto property : propertySet_) {
+            if (property == CORNER_PROPERTY_TAG) {
+                auto corner = properties.GetCornerRadius();
+                str = str + " Corner:(" + std::to_string(corner.x_) +
+                    "," + std::to_string(corner.y_) +
+                    "," + std::to_string(corner.z_) +
+                    "," + std::to_string(corner.w_) + ")";
+            } else if (property == ALPHA_PROPERTY_TAG) {
+                auto alpha = properties.GetAlpha();
+                str = str + " Alpha:" + std::to_string(alpha);
+            } else if (property == SHADOW_PROPERTY_TAG) {
+                auto shadowColor = properties.GetShadowColor();
+                auto shadowAlpha = properties.GetShadowAlpha();
+                auto shadowOffsetX = properties.GetShadowOffsetX();
+                auto shadowOffsetY = properties.GetShadowOffsetY();
+                auto shadowRadius = properties.GetShadowRadius();
+                auto shadowElevation = properties.GetShadowElevation();
+                str = str + " Shadow:{color:(" + std::to_string(shadowColor.GetRed()) +
+                    "," + std::to_string(shadowColor.GetGreen()) +
+                    "," + std::to_string(shadowColor.GetBlue()) +
+                    "),offset:(" + std::to_string(shadowOffsetX) +
+                    "," + std::to_string(shadowOffsetY) +
+                    "),radius:" + std::to_string(shadowRadius) +
+                    ",elevation:" + std::to_string(shadowElevation) +
+                    ",alpha:" + std::to_string(shadowAlpha) + "}";
+            }
+        }
+        AddTraceFlag(str);
     }
 }
 
 void RSPropertyTrace::RefreshNodeTraceInfo()
 {
     if (IsNeedRefreshConfig()) {
+        ClearNodeAndPropertyInfo();
         InitNodeAndPropertyInfo();
     }
 }
@@ -117,12 +149,19 @@ void RSPropertyTrace::DealConfigInputInfo(const std::string& info)
             auto id = atoll(nodeId.c_str());
             nodeIdSet_.insert(id);
         }
+    } else if (tag == PROPERTY_ID_TAG) {
+        std::vector<std::string> propertys =
+            SplitStringBySeparator(splitResult.back(), COMMA_SEPARATOR);
+        for (std::string property : propertys) {
+            propertySet_.insert(property);
+        }
     }
 }
 
 void RSPropertyTrace::ClearNodeAndPropertyInfo()
 {
     nodeIdSet_.clear();
+    propertySet_.clear();
 }
 
 bool RSPropertyTrace::IsNeedRefreshConfig()

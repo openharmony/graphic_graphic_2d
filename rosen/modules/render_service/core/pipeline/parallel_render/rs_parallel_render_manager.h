@@ -208,6 +208,7 @@ private:
 
     // Use for Vulkan
     std::vector<std::shared_ptr<RSDisplayRenderNode>> parallelDisplayNodes_;
+    std::vector<std::shared_ptr<RSDisplayRenderNode>> backParallelDisplayNodes_;
     std::vector<std::unique_ptr<RSRenderFrame>> parallelFrames_;
     int readyBufferNum_ = 0;
 };

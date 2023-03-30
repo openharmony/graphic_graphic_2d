@@ -58,7 +58,8 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     }
     auto mirrorNode = node.GetMirrorSource().lock();
     if (mirrorNode && node.IsFirstTimeToProcessor()) {
-        auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(mirrorNode->GetRenderProperties().GetBoundsGeometry());
+        auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(
+            mirrorNode->GetRenderProperties().GetBoundsGeometry());
         if (boundsGeoPtr != nullptr) {
             boundsGeoPtr->UpdateByMatrixFromSelf();
             node.SetInitMatrix(boundsGeoPtr->GetMatrix());
@@ -84,6 +85,7 @@ void RSUniRenderVirtualProcessor::PostProcess()
         RS_LOGE("RSUniRenderVirtualProcessor::PostProcess renderFrame_ is null.");
         return;
     }
+    RSProcessor::RequestPerf(3, true); // set perf level 3(top) in mirrorScreen state
     renderFrame_->Flush();
 }
 
@@ -99,6 +101,10 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
         if (canvas_ == nullptr || node.GetBuffer() == nullptr) {
             RS_LOGE("RSUniRenderVirtualProcessor::ProcessDisplaySurface: Canvas or buffer is null!");
             return;
+        }
+        SkMatrix invertMatrix;
+        if (screenTransformMatrix_.invert(&invertMatrix)) {
+            canvas_->concat(invertMatrix);
         }
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU_);
         renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);

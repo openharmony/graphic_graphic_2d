@@ -379,4 +379,34 @@ HWTEST_F(RSUniRenderVisitorTest, SetSurfafaceGlobalDirtyRegion, TestSize.Level1)
     rsUniRenderVisitor->ProcessDisplayRenderNode(*rsDisplayRenderNode);
 }
 
+/**
+ * @tc.name: ParallelCompositionTest
+ * @tc.desc: Test RSUniRenderVisitorTest.ParallelCompositionTest
+ * @tc.type: FUNC
+ * @tc.require: AR000HQ6GH
+ */
+HWTEST_F(RSUniRenderVisitorTest, ParallelCompositionTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsBaseRenderNode = std::make_shared<RSBaseRenderNode>(10, rsContext->weak_from_this());
+    RSDisplayNodeConfig displayConfig1 = {
+        .screenId = 0,
+        .isMirrored = false,
+        .mirrorNodeId = 0,
+    };
+    auto rsDisplayRenderNode1 = std::make_shared<RSDisplayRenderNode>(20, displayConfig1, rsContext->weak_from_this());
+    rsBaseRenderNode->AddChild(rsDisplayRenderNode1);
+    RSDisplayNodeConfig displayConfig2 = {
+        .screenId = 1,
+        .isMirrored = true,
+        .mirrorNodeId = 20,
+    };
+    auto rsDisplayRenderNode2 = std::make_shared<RSDisplayRenderNode>(30, displayConfig2, rsContext->weak_from_this());
+    rsBaseRenderNode->AddChild(rsDisplayRenderNode2);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    bool ret = rsUniRenderVisitor->ParallelComposition(rsBaseRenderNode);
+    ASSERT_EQ(ret, true);
+}
+
 } // OHOS::Rosen

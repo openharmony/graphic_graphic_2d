@@ -133,15 +133,76 @@ HWTEST_F(RSParallelSubThreadTest, StartSubThreadOtherTest, TestSize.Level1)
     curThread->GetSkSurface();
     curThread->GetTexture();
 }
+
 /**
  * @tc.name: CalcCostTest
  * @tc.desc: Test RSParallelSubThreadTest.CalcCostTest
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
-HWTEST_F(RSParallelSubThreadTest, CalcCostTest, TestSize.Level1)
+HWTEST_F(RSParallelSubThreadTest, CalcCostTest1, TestSize.Level1)
 {
     auto curThread = std::make_unique<RSParallelSubThread>(0);
     curThread->CalcCost();
+    ASSERT_TRUE(curThread->threadTask_ == nullptr);
+}
+
+/**
+ * @tc.name: CalcCostTest
+ * @tc.desc: Test RSParallelSubThreadTest.CalcCostTest
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSParallelSubThreadTest, CalcCostTest2, TestSize.Level1)
+{
+    auto curThread = std::make_unique<RSParallelSubThread>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    RSDisplayNodeConfig displayConfig;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(1, displayConfig, rsContext->weak_from_this());
+    curThread->threadTask_ = std::make_unique<RSSuperRenderTask>(rsDisplayRenderNode);
+    curThread->CalcCost();
+    ASSERT_FALSE(curThread->threadTask_ == nullptr);
+}
+
+/**
+ * @tc.name: CalcCostTest
+ * @tc.desc: Test RSParallelSubThreadTest.CalcCostTest
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSParallelSubThreadTest, CalcCostTest3, TestSize.Level1)
+{
+    auto curThread = std::make_unique<RSParallelSubThread>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    RSDisplayNodeConfig displayConfig;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(1, displayConfig, rsContext->weak_from_this());
+    curThread->threadTask_ = std::make_unique<RSSuperRenderTask>(rsDisplayRenderNode);
+    RSParallelRenderManager::Instance()->uniVisitor_ = new RSUniRenderVisitor();
+    curThread->CalcCost();
+    ASSERT_FALSE(curThread->threadTask_ == nullptr);
+}
+/**
+ * @tc.name: CalcCostTest
+ * @tc.desc: Test RSParallelSubThreadTest.CalcCostTest
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSParallelSubThreadTest, CalcCostTest4, TestSize.Level1)
+{
+    auto curThread = std::make_unique<RSParallelSubThread>(0);
+    auto rsContext = std::make_shared<RSContext>();
+    RSDisplayNodeConfig displayConfig;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(1, displayConfig, rsContext->weak_from_this());
+    curThread->threadTask_ = std::make_unique<RSSuperRenderTask>(rsDisplayRenderNode);
+    RSParallelRenderManager::Instance()->uniVisitor_ = new RSUniRenderVisitor();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 10;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    std::unique_ptr<RSRenderTask> task =
+        std::make_unique<RSRenderTask>(*rsSurfaceRenderNode, RSRenderTask::RenderNodeStage::PREPARE);
+    curThread->threadTask_->AddTask(std::move(task));
+    ASSERT_TRUE(curThread->threadTask_->GetTaskSize() > 0);
+    curThread->CalcCost();
+    ASSERT_FALSE(curThread->threadTask_ == nullptr);
 }
 } // namespace OHOS::Rosen

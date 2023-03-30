@@ -54,9 +54,8 @@ HWTEST_F(RSPropertyTraceTest, RSPropertyTraceTest001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSPropertyTraceTest RSPropertyTraceTest001 start";
 
     RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
-    auto rect = std::make_shared<RSObjAbsGeometry>();
-    EXPECT_TRUE(rect != nullptr);
-    RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(1000, rect);
+    RSProperties properties;
+    RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(1000, properties);
     
     GTEST_LOG_(INFO) << "RSPropertyTraceTest RSPropertyTraceTest001 end";
 }
@@ -78,9 +77,8 @@ HWTEST_F(RSPropertyTraceTest, RSPropertyTraceTest002, TestSize.Level1)
     RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
 
-    auto rect = std::make_shared<RSObjAbsGeometry>();
-    EXPECT_TRUE(rect != nullptr);
-    RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(1000, rect);
+    RSProperties properties;
+    RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(1000, properties);
     GTEST_LOG_(INFO) << "RSPropertyTraceTest RSPropertyTraceTest002 end";
 }
 
@@ -100,10 +98,9 @@ HWTEST_F(RSPropertyTraceTest, RSPropertyTraceTest003, TestSize.Level1)
 
     RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
-    auto rect = std::make_shared<RSObjAbsGeometry>();
-    EXPECT_TRUE(rect != nullptr);
-    RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(1000, rect);
-    RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(1001, rect);
+    RSProperties properties;
+    RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(1000, properties);
+    RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(1001, properties);
     GTEST_LOG_(INFO) << "RSPropertyTraceTest RSPropertyTraceTest003 end";
 }
 
@@ -159,6 +156,26 @@ HWTEST_F(RSPropertyTraceTest, RSPropertyTraceTest006, TestSize.Level1)
 
     RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     GTEST_LOG_(INFO) << "RSPropertyTraceTest RSPropertyTraceTest006 end";
+}
+
+/**
+ * @tc.name: RSPropertyTraceTest007
+ * @tc.desc: Verify the trace
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTraceTest, RSPropertyTraceTest007, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSPropertyTraceTest RSPropertyTraceTest007 start";
+    const std::string configStr = "ID:all;\nPROPERTY:alpha,corner,shadow;";
+    std::ofstream outFile;
+    outFile.open("/etc/rosen/property.config");
+    outFile << configStr.c_str() << std::endl;
+    outFile.close();
+    RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
+
+    RSProperties properties;
+    RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(1000, properties);
+    GTEST_LOG_(INFO) << "RSPropertyTraceTest RSPropertyTraceTest007 end";
 }
 
 } // namespace Rosen

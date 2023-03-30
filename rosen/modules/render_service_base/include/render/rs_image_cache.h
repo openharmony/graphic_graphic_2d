@@ -19,7 +19,6 @@
 #include <unordered_map>
 #include "include/core/SkImage.h"
 
-//#include "common/rs_macros.h"
 #include "memory/DfxString.h"
 #include "memory/MemoryTrack.h"
 

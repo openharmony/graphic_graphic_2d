@@ -61,7 +61,7 @@ public:
     // clip
     void ClipRect(const Rect& rect, ClipOp op);
     void ClipRoundRect(const RoundRect& roundRect, ClipOp op);
-    void ClipPath(const Path& path, ClipOp op);
+    void ClipPath(const Path& path, ClipOp op, bool doAntiAlias = false);
 
     // transform
     void SetMatrix(const Matrix& matrix);

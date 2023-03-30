@@ -432,12 +432,12 @@ void SkiaCanvas::ClipRoundRect(const RoundRect& roundRect, ClipOp op)
     skiaCanvas_->clipRRect(rRect, clipOp, true);
 }
 
-void SkiaCanvas::ClipPath(const Path& path, ClipOp op)
+void SkiaCanvas::ClipPath(const Path& path, ClipOp op, bool doAntiAlias)
 {
     auto skPathImpl = path.GetImpl<SkiaPath>();
     if (skPathImpl != nullptr) {
         SkClipOp clipOp = static_cast<SkClipOp>(op);
-        skiaCanvas_->clipPath(skPathImpl->GetPath(), clipOp);
+        skiaCanvas_->clipPath(skPathImpl->GetPath(), clipOp, doAntiAlias);
     }
 }
 

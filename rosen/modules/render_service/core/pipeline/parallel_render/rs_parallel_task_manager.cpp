@@ -104,6 +104,7 @@ void RSParallelTaskManager::LBCalcAndSubmitCompositionTask(std::shared_ptr<RSBas
     taskNum_ = 0;
     for (decltype(compositionTaskList_.size()) i = 0; i < compositionTaskList_.size(); i++) {
         RSParallelRenderManager::Instance()->SubmitCompositionTask(taskNum_, std::move(compositionTaskList_[i]));
+        taskNum_++;
     }
 }
 

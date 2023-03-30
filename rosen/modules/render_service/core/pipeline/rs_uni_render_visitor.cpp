@@ -50,7 +50,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t USE_CACHE_APP_WINDOW_NUM = 7;
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined (RS_ENABLE_GL)
 constexpr uint32_t PHONE_MAX_APP_WINDOW_NUM = 1;
 #endif
@@ -77,6 +76,8 @@ constexpr uint32_t PARALLEL_RENDER_MINIMUN_RENDER_NODE_NUMBER = 50;
 RSUniRenderVisitor::RSUniRenderVisitor()
     : curSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
+    auto mainThread = RSMainThread::Instance();
+    renderEngine_ = mainThread->GetRenderEngine();
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     auto screenNum = screenManager->GetAllScreenIds().size();
@@ -516,25 +517,17 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     } else {
         dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_, prepareClipRect_);
     }
-    auto dstRect = geoPtr->GetAbsRect();
+    geoPtr->ConcatMatrix(node.GetContextMatrix());
     // if expand screen, start from screen width
-    dstRect = dstRect.IntersectRect(RectI(curDisplayNode_->GetDisplayOffsetX(), curDisplayNode_->GetDisplayOffsetY(),
-        screenInfo_.width, screenInfo_.height));
-    // apply context clip rect
-    const auto& clipRect = node.GetContextClipRegion();
-    if (clipRect.width() >= 1 && clipRect.height() >= 1) {
-        // map local rect to global rect
-        auto globalClipRect = geoPtr->GetAbsMatrix().mapRect(clipRect);
-        dstRect = dstRect.IntersectRect(
-            RectI(globalClipRect.left(), globalClipRect.top(), globalClipRect.width(), globalClipRect.height()));
-    }
-    dstRect = RectI(dstRect.left_ - curDisplayNode_->GetDisplayOffsetX(),
-        dstRect.top_ - curDisplayNode_->GetDisplayOffsetY(), dstRect.GetWidth(), dstRect.GetHeight());
+    node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(curDisplayNode_->GetDisplayOffsetX(),
+        curDisplayNode_->GetDisplayOffsetY(), screenInfo_.width, screenInfo_.height)));
 
+    node.SetDstRect(RectI(node.GetDstRect().left_ - curDisplayNode_->GetDisplayOffsetX(),
+        node.GetDstRect().top_ - curDisplayNode_->GetDisplayOffsetY(),
+        node.GetDstRect().GetWidth(), node.GetDstRect().GetHeight()));
     if (node.IsHardwareEnabledType()) {
-        dstRect = dstRect.IntersectRect(prepareClipRect_);
+        node.SetDstRect(node.GetDstRect().IntersectRect(prepareClipRect_));
     }
-    node.SetDstRect(dstRect);
 
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         // record node position for display render node dirtyManager
@@ -638,9 +631,6 @@ void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
     }
     node.SetContextMatrix(contextMatrix);
     node.SetContextAlpha(curAlpha_);
-    // context clipRect should be local rect
-    auto clipRect = property.GetBoundsRect();
-    node.SetContextClipRegion(SkRect::MakeXYWH(clipRect.left_, clipRect.top_, clipRect.width_, clipRect.height_));
 
     PrepareBaseRenderNode(node);
 }
@@ -1040,11 +1030,8 @@ void RSUniRenderVisitor::ProcessParallelDisplayRenderNode(RSDisplayRenderNode& n
         RS_LOGE("RSUniRenderVisitor::ProcessParallelDisplayRenderNode: failed to create canvas");
         return;
     }
-    RSPropertiesPainter::SetBgAntiAlias(true);
-    canvas_->save();
-    canvas_->clipRect(SkRect::MakeWH(screenInfo_.width, screenInfo_.height));
     canvas_->clear(SK_ColorTRANSPARENT);
-    canvas_->restore();
+    RSPropertiesPainter::SetBgAntiAlias(true);
     int saveCount = canvas_->save();
     canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
@@ -1263,10 +1250,16 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: failed to create canvas");
             return;
         }
+
+#ifdef RS_ENABLE_VK
+        canvas_->clear(SK_ColorTRANSPARENT);
+#endif
+
         int saveLayerCnt = 0;
         SkRegion region;
         Occlusion::Region dirtyRegionTest;
         std::vector<RectI> rects;
+        bool clipPath = false;
 #ifdef RS_ENABLE_EGLQUERYSURFACE
         // Get displayNode buffer age in order to merge visible dirty region for displayNode.
         // And then set egl damage region to improve uni_render efficiency.
@@ -1314,6 +1307,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->clipRegion(region);
             } else {
                 RS_TRACE_NAME("RSUniRenderVisitor: clipPath");
+                clipPath = true;
                 SkPath dirtyPath;
                 region.getBoundaryPath(&dirtyPath);
                 canvas_->clipPath(dirtyPath, true);
@@ -1336,7 +1330,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 // enable cache if screen rotation is not times of 90 degree
                 canvas_->SetCacheEnabled(geoPtr->IsNeedClientCompose());
             }
-            canvas_->SetCacheEnabled(canvas_->isCacheEnabled() || appWindowNum_ > USE_CACHE_APP_WINDOW_NUM);
+            canvas_->SetCacheEnabled(canvas_->isCacheEnabled() || clipPath);
             if (canvas_->isCacheEnabled()) {
                 // we are doing rotation animation, try offscreen render if capable
                 ClearTransparentBeforeSaveLayer();
@@ -1747,7 +1741,7 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
         RS_TRACE_BEGIN("RSUniRenderVisitor::DrawChildRenderNode Draw nodeId = " +
             std::to_string(node.GetId()));
         if (node.GetCacheType() == RSRenderNode::SPHERIZE) {
-            RSUniRenderUtil::DrawCachedSpherizeSurface(node, *canvas_, node.GetCacheSurface());
+            RSPropertiesPainter::DrawCachedSpherizeSurface(node, *canvas_, node.GetCacheSurface());
         } else {
             RSUniRenderUtil::DrawCachedFreezeSurface(node, *canvas_, node.GetCacheSurface());
         }
@@ -1782,7 +1776,7 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
             isOpDropped_ = isOpDropped;
 
             if (node.GetCacheType() == RSRenderNode::SPHERIZE) {
-                RSUniRenderUtil::DrawCachedSpherizeSurface(node, *canvas_, node.GetCacheSurface());
+                RSPropertiesPainter::DrawCachedSpherizeSurface(node, *canvas_, node.GetCacheSurface());
             } else {
                 RSUniRenderUtil::DrawCachedFreezeSurface(node, *canvas_, node.GetCacheSurface());
             }
@@ -1808,7 +1802,9 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     + " Alpha: " + std::to_string(node.GetGlobalAlpha()).substr(0, 4));
     RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%" PRIu64 ",child size:%u,name:%s,OcclusionVisible:%d",
         node.GetId(), node.GetChildrenCount(), node.GetName().c_str(), node.GetOcclusionVisible());
-    RSTagTracker tagTracker(canvas_->getGrContext(), node.GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
+    if (canvas_ != nullptr) {
+        RSTagTracker tagTracker(canvas_->getGrContext(), node.GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
+    }
     node.UpdatePositionZ();
     if (isSecurityDisplay_ && node.GetSecurityLayer()) {
         RS_TRACE_NAME(node.GetName() + " SecurityLayer Skip");

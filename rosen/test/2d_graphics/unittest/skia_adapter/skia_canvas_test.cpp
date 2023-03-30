@@ -59,7 +59,9 @@ HWTEST_F(SkiaCanvasTest, Bind001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, DrawPoint001, TestSize.Level1)
 {
     Point point;
+    Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawPoint(point);
 }
 
@@ -73,7 +75,9 @@ HWTEST_F(SkiaCanvasTest, DrawLine001, TestSize.Level1)
 {
     Point startPt;
     Point endPt;
+    Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawLine(startPt, endPt);
 }
 
@@ -86,7 +90,9 @@ HWTEST_F(SkiaCanvasTest, DrawLine001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, DrawRect001, TestSize.Level1)
 {
     Rect rect;
+    Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawRect(rect);
 }
 
@@ -99,7 +105,9 @@ HWTEST_F(SkiaCanvasTest, DrawRect001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, DrawRoundRect001, TestSize.Level1)
 {
     RoundRect roundRect;
+    Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawRoundRect(roundRect);
 }
 
@@ -113,7 +121,9 @@ HWTEST_F(SkiaCanvasTest, DrawNestedRoundRect001, TestSize.Level1)
 {
     RoundRect outer;
     RoundRect inner;
+    Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawNestedRoundRect(outer, inner);
 }
 
@@ -128,7 +138,9 @@ HWTEST_F(SkiaCanvasTest, DrawArc001, TestSize.Level1)
     Rect oval;
     scalar startAngle = 30.0f;
     scalar sweepAngle = 45.0f;
+    Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawArc(oval, startAngle, sweepAngle);
 }
 
@@ -143,7 +155,9 @@ HWTEST_F(SkiaCanvasTest, DrawPie001, TestSize.Level1)
     Rect oval;
     scalar startAngle = 45.0f;
     scalar sweepAngle = 60.0f;
+    Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawPie(oval, startAngle, sweepAngle);
 }
 
@@ -156,7 +170,9 @@ HWTEST_F(SkiaCanvasTest, DrawPie001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, DrawOval001, TestSize.Level1)
 {
     Rect oval;
+    Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawOval(oval);
 }
 
@@ -170,7 +186,9 @@ HWTEST_F(SkiaCanvasTest, DrawCircle001, TestSize.Level1)
 {
     Point centerPt;
     scalar radius = 20.0f;
+    Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawCircle(centerPt, radius);
 }
 
@@ -183,8 +201,40 @@ HWTEST_F(SkiaCanvasTest, DrawCircle001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, DrawPath001, TestSize.Level1)
 {
     Path path;
+    Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawPath(path);
+}
+
+/**
+ * @tc.name: DrawBackground001
+ * @tc.desc: Draw Background Test
+ * @tc.type: FUNC
+ * @tc.require: issuel#I6Q4ZH
+ */
+HWTEST_F(SkiaCanvasTest, DrawBackground001, TestSize.Level2)
+{
+    Brush brush;
+    SkiaCanvas skiaCanvas;
+    skiaCanvas.DrawBackground(brush);
+}
+
+/**
+ * @tc.name: DrawShadow001
+ * @tc.desc: Draw Shadow Test
+ * @tc.type: FUNC
+ * @tc.require: issuel#I6Q4ZH
+ */
+HWTEST_F(SkiaCanvasTest, DrawShadow001, TestSize.Level2)
+{
+    Path path;
+    Point3 planeParams;
+    Point3 devLightPos;
+    Color ambientColor;
+    Color spotColor;
+    SkiaCanvas skiaCanvas;
+    skiaCanvas.DrawShadow(path, planeParams, devLightPos, 1.0f, ambientColor, spotColor, ShadowFlags::NONE);
 }
 
 /**
@@ -198,7 +248,9 @@ HWTEST_F(SkiaCanvasTest, DrawBitmap001, TestSize.Level1)
     Bitmap bitmap;
     scalar px = 60.0f;
     scalar py = 30.0f;
+    Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawBitmap(bitmap, px, py);
 }
 
@@ -214,7 +266,9 @@ HWTEST_F(SkiaCanvasTest, DrawImage001, TestSize.Level1)
     scalar px = 30.0f;
     scalar py = 65.0f;
     SamplingOptions sampling;
+    Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawImage(image, px, py, sampling);
 }
 
@@ -230,7 +284,9 @@ HWTEST_F(SkiaCanvasTest, DrawImageRect001, TestSize.Level1)
     Rect src;
     Rect dst;
     SamplingOptions sampling;
+    Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawImageRect(image, src, dst, sampling, SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
 }
 
@@ -245,7 +301,9 @@ HWTEST_F(SkiaCanvasTest, DrawImageRect002, TestSize.Level1)
     Image image;
     Rect dst;
     SamplingOptions sampling;
+    Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawImageRect(image, dst, sampling);
 }
 
@@ -263,6 +321,19 @@ HWTEST_F(SkiaCanvasTest, DrawPicture001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ClipRoundRect001
+ * @tc.desc: Clip Round Rect Test
+ * @tc.type: FUNC
+ * @tc.require: issuel#I6Q4ZH
+ */
+HWTEST_F(SkiaCanvasTest, ClipRoundRect001, TestSize.Level2)
+{
+    RoundRect roundRect;
+    SkiaCanvas skiaCanvas;
+    skiaCanvas.ClipRoundRect(roundRect, ClipOp::DIFFERENCE);
+}
+
+/**
  * @tc.name: ClipPath001
  * @tc.desc:
  * @tc.type: FUNC
@@ -271,7 +342,9 @@ HWTEST_F(SkiaCanvasTest, DrawPicture001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, ClipPath001, TestSize.Level1)
 {
     Path path;
+    Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
     skiaCanvas.ClipPath(path, ClipOp::DIFFERENCE);
 }
 
@@ -284,8 +357,24 @@ HWTEST_F(SkiaCanvasTest, ClipPath001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, SetMatrix001, TestSize.Level1)
 {
     Matrix matrix;
+    Pen pen;
+    SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
+    skiaCanvas.SetMatrix(matrix);
+}
+
+/**
+ * @tc.name: ResetMatrix001
+ * @tc.desc: Reset Matrix Test
+ * @tc.type: FUNC
+ * @tc.require: issuel#I6Q4ZH
+ */
+HWTEST_F(SkiaCanvasTest, ResetMatrix001, TestSize.Level2)
+{
+    Matrix matrix;
     SkiaCanvas skiaCanvas;
     skiaCanvas.SetMatrix(matrix);
+    skiaCanvas.ResetMatrix();
 }
 
 /**
@@ -297,8 +386,61 @@ HWTEST_F(SkiaCanvasTest, SetMatrix001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, ConcatMatrix001, TestSize.Level1)
 {
     Matrix matrix;
+    Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
     skiaCanvas.ConcatMatrix(matrix);
+}
+
+/**
+ * @tc.name: Rotate001
+ * @tc.desc: Rotate Test
+ * @tc.type: FUNC
+ * @tc.require: issuel#I6Q4ZH
+ */
+HWTEST_F(SkiaCanvasTest, Rotate001, TestSize.Level2)
+{
+    SkiaCanvas skiaCanvas;
+    skiaCanvas.Rotate(0.5f);
+    skiaCanvas.Rotate(0.1f, 0.2f, 0.3f);
+}
+
+/**
+ * @tc.name: Shear001
+ * @tc.desc: Shear Test
+ * @tc.type: FUNC
+ * @tc.require: issuel#I6Q4ZH
+ */
+HWTEST_F(SkiaCanvasTest, Shear001, TestSize.Level2)
+{
+    SkiaCanvas skiaCanvas;
+    skiaCanvas.Shear(0.5f, 0.5f);
+}
+
+/**
+ * @tc.name: Flush001
+ * @tc.desc: Flush Test
+ * @tc.type: FUNC
+ * @tc.require: issuel#I6Q4ZH
+ */
+HWTEST_F(SkiaCanvasTest, Flush001, TestSize.Level2)
+{
+    SkiaCanvas skiaCanvas;
+    skiaCanvas.Flush();
+}
+
+/**
+ * @tc.name: SaveLayer001
+ * @tc.desc: SaveLayer Test
+ * @tc.type: FUNC
+ * @tc.require: issuel#I6Q4ZH
+ */
+HWTEST_F(SkiaCanvasTest, SaveLayer001, TestSize.Level2)
+{
+    Rect rect;
+    Brush brush;
+    SkiaCanvas skiaCanvas;
+    skiaCanvas.SaveLayer(rect, brush);
 }
 
 } // namespace Drawing

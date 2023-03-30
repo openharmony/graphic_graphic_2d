@@ -358,12 +358,47 @@ HWTEST_F(RSParallelRenderManagerTest, IsNeedCalcCostTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI6FZHQ
  */
+HWTEST_F(RSParallelRenderManagerTest, GetCostTest1, TestSize.Level1)
+{
+    RSRenderNode rsRenderNode(1);
+    auto instance = std::make_shared<RSParallelRenderManager>();
+    rsRenderNode.renderProperties_.SetAlpha(1.0f);
+    auto cost = instance->GetCost(rsRenderNode);
+    ASSERT_EQ(cost, 2);
+}
+
+/**
+ * @tc.name: GetCostTest
+ * @tc.desc: Test RSParallelRenderManagerTest.GetCostTest
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(RSParallelRenderManagerTest, GetCostTest2, TestSize.Level1)
+{
+    RSRenderNode rsRenderNode(1);
+    auto instance = std::make_shared<RSParallelRenderManager>();
+    rsRenderNode.renderProperties_.SetAlpha(1.0f);
+    rsRenderNode.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    auto cost = instance->GetCost(rsRenderNode);
+    ASSERT_EQ(cost, 3);
+}
+
+/**
+ * @tc.name: GetCostTest
+ * @tc.desc: Test RSParallelRenderManagerTest.GetCostTest
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
 HWTEST_F(RSParallelRenderManagerTest, GetCostTest, TestSize.Level1)
 {
     RSRenderNode rsRenderNode(1);
     auto instance = std::make_shared<RSParallelRenderManager>();
+    rsRenderNode.renderProperties_.SetAlpha(1.0f);
+    rsRenderNode.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    rsRenderNode.renderProperties_.decoration_ = std::make_unique<Decoration>();
+    rsRenderNode.renderProperties_.decoration_->bgImage_ = std::make_shared<RSImage>();
     auto cost = instance->GetCost(rsRenderNode);
-    ASSERT_EQ(cost, 2);
+    ASSERT_EQ(cost, 3);
 }
 
 /**
@@ -389,8 +424,13 @@ HWTEST_F(RSParallelRenderManagerTest, GetCostFactorTest, TestSize.Level1)
 {
     auto instance = std::make_shared<RSParallelRenderManager>();
     instance->GetCostFactor();
-    ASSERT_FALSE(instance->costFactor_.size() > 0);
-    ASSERT_FALSE(instance->imageFactor_.size() > 0);
+    if (instance->calcCostTaskManager_.isParallelRenderExtEnabled_) {
+        ASSERT_TRUE(instance->costFactor_.size() > 0);
+        ASSERT_TRUE(instance->imageFactor_.size() > 0);
+    } else {
+        ASSERT_FALSE(instance->costFactor_.size() > 0);
+        ASSERT_FALSE(instance->imageFactor_.size() > 0);
+    }
 }
 
 /**
@@ -404,6 +444,51 @@ HWTEST_F(RSParallelRenderManagerTest, IsSecurityDisplayTest, TestSize.Level1)
     auto instance = std::make_shared<RSParallelRenderManager>();
     auto result = instance->IsSecurityDisplay();
     ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: PackParallelCompositionTask
+ * @tc.desc: Test RSParallelRenderManagerTest.PackParallelCompositionTask
+ * @tc.type: FUNC
+ * @tc.require: AR000HQ6GH
+ */
+HWTEST_F(RSParallelRenderManagerTest, PackParallelCompositionTask, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsBaseRenderNode = std::make_shared<RSBaseRenderNode>(11, rsContext->weak_from_this());
+    RSDisplayNodeConfig displayConfig1 = {
+        .screenId = 0,
+        .isMirrored = false,
+        .mirrorNodeId = 0,
+    };
+    auto rsDisplayRenderNode1 = std::make_shared<RSDisplayRenderNode>(21, displayConfig1, rsContext->weak_from_this());
+    rsBaseRenderNode->AddChild(rsDisplayRenderNode1);
+    RSDisplayNodeConfig displayConfig2 = {
+        .screenId = 1,
+        .isMirrored = true,
+        .mirrorNodeId = 21,
+    };
+    auto rsDisplayRenderNode2 = std::make_shared<RSDisplayRenderNode>(31, displayConfig2, rsContext->weak_from_this());
+    rsBaseRenderNode->AddChild(rsDisplayRenderNode2);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    auto parallelRenderManager = RSParallelRenderManager::Instance();
+    ParallelStatus status = parallelRenderManager->GetParallelRenderingStatus();
+    ASSERT_EQ(status, ParallelStatus::OFF);
+    parallelRenderManager->SetParallelMode(true);
+    status = parallelRenderManager->GetParallelRenderingStatus();
+    ASSERT_EQ(status, ParallelStatus::FIRSTFLUSH);
+    auto visitor = parallelRenderManager->GetUniParallelCompositionVisitor();
+    ASSERT_EQ(visitor, nullptr);
+    parallelRenderManager->PackParallelCompositionTask(rsUniRenderVisitor, rsBaseRenderNode);
+    visitor = parallelRenderManager->GetUniParallelCompositionVisitor();
+    ASSERT_NE(visitor, nullptr);
+    auto taskType = parallelRenderManager->GetTaskType();
+    ASSERT_EQ(taskType, TaskType::COMPOSITION_TASK);
+    parallelRenderManager->LoadBalanceAndNotify(TaskType::COMPOSITION_TASK);
+    parallelRenderManager->WaitCompositionEnd();
+    parallelRenderManager->SetParallelMode(false);
+    status = parallelRenderManager->GetParallelRenderingStatus();
+    ASSERT_EQ(status, ParallelStatus::FIRSTFLUSH);
 }
 
 } // namespace OHOS::Rosen
