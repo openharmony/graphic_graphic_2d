@@ -27,8 +27,9 @@ void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id)
 }
 
 void RSCanvasNodeCommandHelper::UpdateRecording(
-    RSContext& context, NodeId id, std::shared_ptr<DrawCmdList> drawCmds, RSModifierType type)
+    RSContext& context, NodeId id, std::shared_ptr<DrawCmdList> drawCmds, uint16_t modifierType)
 {
+    auto type = static_cast<RSModifierType>(modifierType);
     if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id)) {
         node->UpdateRecording(drawCmds, type);
     }

@@ -178,7 +178,7 @@ bool RSCanvasNodeCommandFuzzTest(const uint8_t* data, size_t size)
     RSContext context;
     RSCanvasNodeCommandHelper::Create(context, static_cast<NodeId>(id));
     std::shared_ptr<DrawCmdList> drawCmds;
-    RSCanvasNodeCommandHelper::UpdateRecording(context, static_cast<NodeId>(id), drawCmds, type);
+    RSCanvasNodeCommandHelper::UpdateRecording(context, static_cast<NodeId>(id), drawCmds, static_cast<uint16_t>(type));
     RSCanvasNodeCommandHelper::ClearRecording(context, static_cast<NodeId>(id));
     
     return true;
