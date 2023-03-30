@@ -211,7 +211,7 @@ public:
 
     bool IsContentChanged() const
     {
-        return isContentChanged_;
+        return isContentChanged_ || !animationManager_.animations_.empty();
     }
     /////////////////////////////////////////////
 

@@ -108,10 +108,14 @@ void RSDrivenRenderManager::DoPrepareRenderTask(const DrivenPrepareInfo& info)
     RSBaseRenderNode::SharedPtr currContent = nullptr;
     DrivenDirtyType dirtyType = info.dirtyInfo.type;
 
-    RS_LOGD("RSDrivenRenderManager: backgroundDirty = %d, contentDirty = %d, nonContentDirty = %d, dirtyType = %d, "
-        "hasInvalidScene = %d, hasDrivenNodeOnUniTree = %d, isValidSurface = %d",
-        backgroundDirty, contentDirty, nonContentDirty, dirtyType,
-        info.hasInvalidScene, info.hasDrivenNodeOnUniTree, isValidSurface);
+    RS_TRACE_NAME("RSDrivenRender:DoPrepareRenderTask backgroundDirty: " +
+        std::to_string(static_cast<int>(backgroundDirty)) +
+        ", contentDirty: " + std::to_string(static_cast<int>(contentDirty)) +
+        ", nonContentDirty: " + std::to_string(static_cast<int>(nonContentDirty)) +
+        ", dirtyType: " + std::to_string(static_cast<int>(dirtyType)) +
+        ", hasInvalidScene: " + std::to_string(static_cast<int>(info.hasInvalidScene)) +
+        ", hasDrivenNodeOnUniTree: " + std::to_string(static_cast<int>(info.hasDrivenNodeOnUniTree)) +
+        ", isValidSurface: " + std::to_string(static_cast<int>(isValidSurface)));
 
     if (!info.hasInvalidScene && info.hasDrivenNodeOnUniTree &&
         dirtyType != DrivenDirtyType::INVALID && isValidSurface) {
