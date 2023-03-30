@@ -67,7 +67,16 @@ float RSMaterialFilter::RadiusVp2Sigma(float radiusVp, float dipScale)
     return radiusPx > 0.0f ? BLUR_SIGMA_SCALE * radiusPx + SK_ScalarHalf : 0.0f;
 }
 
-float RSMaterialFilter::GetBlurRadius() const
+std::string RSMaterialFilter::GetDescription()
+{
+    if (materialParams_.find(style_) != materialParams_.end()) {
+        MaterialParam materialParam = materialParams_[style_];
+        return materialParam.radius;
+    }
+    return "RSMaterialFilter blur radius is " + std::to_string(GetTraceBlurRadius()) + " vp";
+}
+
+float RSMaterialFilter::GetTraceBlurRadius() const
 {
     if (materialParams_.find(style_) != materialParams_.end()) {
         MaterialParam materialParam = materialParams_[style_];

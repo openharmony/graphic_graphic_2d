@@ -50,7 +50,8 @@ public:
     ~RSMaterialFilter() override;
     void PreProcess(sk_sp<SkImage> image) override;
     void PostProcess(RSPaintFilterCanvas& canvas) override;
-    float GetBlurRadius() const;
+    float GetTraceBlurRadius() const;
+    std::string GetDescription() override;
 
     std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) override;
     std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) override;

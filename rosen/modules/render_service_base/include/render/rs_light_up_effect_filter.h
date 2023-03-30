@@ -26,6 +26,7 @@ public:
     RSLightUpEffectFilter(float lightUpDegree);
     ~RSLightUpEffectFilter() override;
     float GetLightUpDegree();
+    std::string GetDescription() override;
 
     std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) override;
     std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) override;

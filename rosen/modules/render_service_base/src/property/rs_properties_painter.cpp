@@ -38,7 +38,6 @@
 #include "render/rs_blur_filter.h"
 #include "render/rs_image.h"
 #include "render/rs_mask.h"
-#include "render/rs_material_filter.h"
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "render/rs_skia_filter.h"
@@ -294,15 +293,7 @@ void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPain
 void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
     std::shared_ptr<RSSkiaFilter>& filter, const std::unique_ptr<SkRect>& rect, SkSurface* skSurface)
 {
-    std::string traceName = "DrawFilter:" + std::to_string(filter->GetFilterType());
-    if (filter->GetFilterType() == RSFilter::BLUR) {
-        traceName += " blur radius is " +
-                     std::to_string(std::static_pointer_cast<RSBlurFilter>(filter)->GetBlurRadiusX()) + " sigma";
-    } else if (filter->GetFilterType() == RSFilter::MATERIAL) {
-        traceName += " blur radius is " +
-                     std::to_string(std::static_pointer_cast<RSMaterialFilter>(filter)->GetBlurRadius()) + " vp";
-    }
-    RS_TRACE_NAME(traceName);
+    RS_TRACE_NAME("DrawFilter " + filter->GetDescription());
     g_blurCnt++;
     SkAutoCanvasRestore acr(&canvas, true);
     if (rect != nullptr) {

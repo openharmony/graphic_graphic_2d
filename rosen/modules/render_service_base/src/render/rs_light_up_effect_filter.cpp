@@ -44,6 +44,11 @@ float RSLightUpEffectFilter::GetLightUpDegree()
     return lightUpDegree_;
 }
 
+std::string RSLightUpEffectFilter::GetDescription()
+{
+    return "RSLightUpEffectFilter light up degree is " + std::to_string(lightUpDegree_);
+}
+
 std::shared_ptr<RSFilter> RSLightUpEffectFilter::Add(const std::shared_ptr<RSFilter>& rhs)
 {
     if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::LIGHTUPEFFECT)) {

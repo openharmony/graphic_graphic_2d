@@ -37,6 +37,11 @@ float RSBlurFilter::GetBlurRadiusY()
     return blurRadiusY_;
 }
 
+std::string RSBlurFilter::GetDescription()
+{
+    return "RSBlurFilter blur radius is " + std::to_string(blurRadiusX_) + " sigma";
+}
+
 std::shared_ptr<RSFilter> RSBlurFilter::Add(const std::shared_ptr<RSFilter>& rhs)
 {
     if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::BLUR)) {
