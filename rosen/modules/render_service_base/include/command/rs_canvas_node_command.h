@@ -35,14 +35,14 @@ class RSB_EXPORT RSCanvasNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId id);
     static void UpdateRecording(
-        RSContext& context, NodeId id, std::shared_ptr<DrawCmdList> drawCmds, RSModifierType type);
+        RSContext& context, NodeId id, std::shared_ptr<DrawCmdList> drawCmds, uint16_t modifierType);
     static void ClearRecording(RSContext& context, NodeId id);
 };
 
 ADD_COMMAND(RSCanvasNodeCreate, ARG(CANVAS_NODE, CANVAS_NODE_CREATE, RSCanvasNodeCommandHelper::Create, NodeId))
 ADD_COMMAND(RSCanvasNodeUpdateRecording,
     ARG(CANVAS_NODE, CANVAS_NODE_UPDATE_RECORDING, RSCanvasNodeCommandHelper::UpdateRecording, NodeId,
-        std::shared_ptr<DrawCmdList>, RSModifierType))
+        std::shared_ptr<DrawCmdList>, uint16_t))
 ADD_COMMAND(RSCanvasNodeClearRecording,
     ARG(CANVAS_NODE, CANVAS_NODE_CLEAR_RECORDING, RSCanvasNodeCommandHelper::ClearRecording, NodeId))
 

@@ -81,9 +81,9 @@ void RSCanvasNode::FinishRecording()
     if (transactionProxy == nullptr) {
         return;
     }
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording,
-            drawContentLast_ ? RSModifierType::FOREGROUND_STYLE : RSModifierType::CONTENT_STYLE);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording,
+        drawContentLast_ ? static_cast<uint16_t>(RSModifierType::FOREGROUND_STYLE)
+                         : static_cast<uint16_t>(RSModifierType::CONTENT_STYLE));
     transactionProxy->AddCommand(command, IsRenderServiceNode());
 }
 
@@ -101,7 +101,7 @@ void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
         return;
     }
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording, type);
+        std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording, static_cast<uint16_t>(type));
     transactionProxy->AddCommand(command, IsRenderServiceNode());
 }
 
