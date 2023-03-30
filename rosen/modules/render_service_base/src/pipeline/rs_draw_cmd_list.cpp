@@ -46,6 +46,7 @@ static std::unordered_map<RSOpType, OpUnmarshallingFunc> opUnmarshallingFuncLUT 
     { TRANSLATE_OPITEM,            TranslateOpItem::Unmarshalling },
     { TEXTBLOB_OPITEM,             TextBlobOpItem::Unmarshalling },
     { BITMAP_OPITEM,               BitmapOpItem::Unmarshalling },
+    { COLOR_FILTER_BITMAP_OPITEM,  ColorFilterBitmapOpItem::Unmarshalling },
     { BITMAP_RECT_OPITEM,          BitmapRectOpItem::Unmarshalling },
     { BITMAP_NINE_OPITEM,          BitmapNineOpItem::Unmarshalling },
     { PIXELMAP_OPITEM,             PixelMapOpItem::Unmarshalling },
@@ -69,7 +70,8 @@ static std::unordered_map<RSOpType, OpUnmarshallingFunc> opUnmarshallingFuncLUT 
     { RESTORE_ALPHA_OPITEM,        RestoreAlphaOpItem::Unmarshalling },
 };
 
-static OpUnmarshallingFunc GetOpUnmarshallingFunc(RSOpType type)
+#ifdef ROSEN_OHOS
+OpUnmarshallingFunc DrawCmdList::GetOpUnmarshallingFunc(RSOpType type)
 {
     auto it = opUnmarshallingFuncLUT.find(type);
     if (it == opUnmarshallingFuncLUT.end()) {
@@ -77,6 +79,7 @@ static OpUnmarshallingFunc GetOpUnmarshallingFunc(RSOpType type)
     }
     return it->second;
 }
+#endif
 
 DrawCmdList::DrawCmdList(int w, int h) : width_(w), height_(h) {}
 
@@ -104,18 +107,30 @@ DrawCmdList& DrawCmdList::operator=(DrawCmdList&& that)
     return *this;
 }
 
-void DrawCmdList::Playback(SkCanvas& canvas, const SkRect* rect) const
+void DrawCmdList::Playback(SkCanvas& canvas, const SkRect* rect)
 {
     RSPaintFilterCanvas filterCanvas(&canvas);
     Playback(filterCanvas, rect);
 }
 
-void DrawCmdList::Playback(RSPaintFilterCanvas& canvas, const SkRect* rect) const
+void DrawCmdList::Playback(RSPaintFilterCanvas& canvas, const SkRect* rect)
 {
     if (width_ <= 0 || height_ <= 0) {
         return;
     }
     std::lock_guard<std::mutex> lock(mutex_);
+#ifdef ROSEN_OHOS
+    // invalidate cache if high contrast flag changed
+    if (isCached_ && canvas.isHighContrastEnabled() != cachedHighContrast_) {
+        ClearCache();
+    }
+    // Generate or clear cache if cache state changed.
+    if (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED && !isCached_) {
+        GenerateCache(&canvas, rect);
+    } else if (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::DISABLED && isCached_) {
+        ClearCache();
+    }
+#endif
     for (auto& it : ops_) {
         if (it == nullptr) {
             continue;
@@ -124,7 +139,7 @@ void DrawCmdList::Playback(RSPaintFilterCanvas& canvas, const SkRect* rect) cons
     }
 }
 
-int DrawCmdList::GetSize() const
+size_t DrawCmdList::GetSize() const
 {
     return ops_.size();
 }
@@ -141,110 +156,85 @@ int DrawCmdList::GetHeight() const
 
 bool DrawCmdList::Marshalling(Parcel& parcel) const
 {
+#ifdef ROSEN_OHOS
     std::lock_guard<std::mutex> lock(mutex_);
     bool success = RSMarshallingHelper::Marshalling(parcel, width_) &&
                    RSMarshallingHelper::Marshalling(parcel, height_) &&
-                   RSMarshallingHelper::Marshalling(parcel, GetSize());
+                   RSMarshallingHelper::Marshalling(parcel, ops_) &&
+                   RSMarshallingHelper::Marshalling(parcel, isCached_) &&
+                   RSMarshallingHelper::Marshalling(parcel, cachedHighContrast_) &&
+                   RSMarshallingHelper::Marshalling(parcel, opReplacedByCache_);
     if (!success) {
         ROSEN_LOGE("DrawCmdList::Marshalling failed!");
         return false;
     }
-    for (const auto& item : ops_) {
-        auto type = item->GetType();
-        success = success && RSMarshallingHelper::Marshalling(parcel, type);
-        auto func = GetOpUnmarshallingFunc(type);
-        if (!func) {
-            ROSEN_LOGW("unirender: opItem Unmarshalling func not define, skip Marshalling, optype = %d", type);
-            continue;
-        }
-
-        success = success && item->Marshalling(parcel);
-        if (!success) {
-            ROSEN_LOGE("unirender: failed opItem Marshalling, optype = %d", type);
-            return success;
-        }
-    }
     return success;
+#else
+    return true;
+#endif
 }
 
 DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
 {
+#ifdef ROSEN_OHOS
     int width;
     int height;
-    int size;
     if (!(RSMarshallingHelper::Unmarshalling(parcel, width) &&
-            RSMarshallingHelper::Unmarshalling(parcel, height) &&
-            RSMarshallingHelper::Unmarshalling(parcel, size))) {
-        ROSEN_LOGE("DrawCmdList::Unmarshalling failed!");
+            RSMarshallingHelper::Unmarshalling(parcel, height))) {
+        ROSEN_LOGE("DrawCmdList::Unmarshalling width&height failed!");
         return nullptr;
     }
     std::unique_ptr<DrawCmdList> drawCmdList = std::make_unique<DrawCmdList>(width, height);
-    for (int i = 0; i < size; ++i) {
-        RSOpType type;
-        if (!RSMarshallingHelper::Unmarshalling(parcel, type)) {
-            ROSEN_LOGE("DrawCmdList::Unmarshalling failed, current processing:%d", i);
-            return nullptr;
-        }
-        auto func = GetOpUnmarshallingFunc(type);
-        if (!func) {
-            ROSEN_LOGW("unirender: opItem Unmarshalling func not define, optype = %d", type);
-            continue;
-        }
-
-        OpItem* item = (*func)(parcel);
-        if (!item) {
-            ROSEN_LOGE("unirender: failed opItem Unmarshalling, optype = %d", type);
-            return nullptr;
-        }
-
-        drawCmdList->AddOp(std::unique_ptr<OpItem>(item));
+    if (!(RSMarshallingHelper::Unmarshalling(parcel, drawCmdList->ops_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, drawCmdList->isCached_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, drawCmdList->cachedHighContrast_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, drawCmdList->opReplacedByCache_))) {
+        ROSEN_LOGE("DrawCmdList::Unmarshalling contents failed!");
+        return nullptr;
     }
     return drawCmdList.release();
+#else
+    return nullptr;
+#endif
 }
 
-void DrawCmdList::GenerateCache(SkSurface* surface)
+void DrawCmdList::GenerateCache(const RSPaintFilterCanvas* canvas, const SkRect* rect)
 {
 #ifdef ROSEN_OHOS
-    if (isCached_) {
-        return;
-    }
-    isCached_ = true;
     RS_TRACE_FUNC();
-    std::lock_guard<std::mutex> lock(mutex_);
-
     for (auto index = 0u; index < ops_.size(); index++) {
         auto& op = ops_[index];
-        if (auto cached_op = op->GenerateCachedOpItem(surface)) {
+        if (op == nullptr) {
+            continue;
+        }
+        if (auto cached_op = op->GenerateCachedOpItem(canvas, rect)) {
             // backup the original op and position
-            opReplacedByCache_.emplace(index, op.release());
+            opReplacedByCache_.emplace_back(index, op.release());
             // replace the original op with the cached op
             op.reset(cached_op.release());
         }
     }
+    isCached_ = true;
+    cachedHighContrast_ = canvas && canvas->isHighContrastEnabled();
 #endif
 }
 
 void DrawCmdList::ClearCache()
 {
 #ifdef ROSEN_OHOS
-    if (!isCached_) {
-        return;
-    }
-    isCached_ = false;
     RS_TRACE_FUNC();
-    std::lock_guard<std::mutex> lock(mutex_);
-
     // restore the original op
-    for (auto& it : opReplacedByCache_) {
-        ops_[it.first] = std::move(it.second);
+    for (auto& [index, op] : opReplacedByCache_) {
+        ops_[index].reset(op.release());
     }
     opReplacedByCache_.clear();
+    isCached_ = false;
 #endif
 }
 
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
 void DrawCmdList::CheckClipRect(SkRect& rect)
 {
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     std::lock_guard<std::mutex> lock(mutex_);
     for (const auto& it : ops_) {
         if (it == nullptr) {
@@ -259,12 +249,10 @@ void DrawCmdList::CheckClipRect(SkRect& rect)
             break;
         }
     }
-#endif
 }
 
 void DrawCmdList::ReplaceDrivenCmds()
 {
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     RS_TRACE_FUNC();
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -276,12 +264,10 @@ void DrawCmdList::ReplaceDrivenCmds()
             break;
         }
     }
-#endif
 }
 
 void DrawCmdList::RestoreOriginCmdsForDriven()
 {
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     RS_TRACE_FUNC();
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -290,7 +276,7 @@ void DrawCmdList::RestoreOriginCmdsForDriven()
         ops_[it.first] = std::move(it.second);
     }
     opReplacedByDrivenRender_.clear();
-#endif
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

@@ -118,7 +118,7 @@ std::string RSSurfaceRenderNode::DirtyRegionDump() const
 
 void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
-    renderNodeSaveCount_ = canvas.SaveCanvasAndAlpha();
+    renderNodeSaveCount_ = canvas.Save();
 
     // apply intermediate properties from RT to canvas
     canvas.MultiplyAlpha(GetContextAlpha());
@@ -158,7 +158,7 @@ void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canva
 
 void RSSurfaceRenderNode::PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
-    canvas.RestoreCanvasAndAlpha(renderNodeSaveCount_);
+    canvas.RestoreStatus(renderNodeSaveCount_);
 }
 
 void RSSurfaceRenderNode::CollectSurface(

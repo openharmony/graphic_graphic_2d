@@ -19,13 +19,13 @@
 #include <unordered_set>
 
 #include "memory/MemoryTrack.h"
+
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
 class DrawCmdList;
-class RSPaintFilterCanvas;
 struct RSModifierContext;
 
 class RSCanvasRenderNode : public RSRenderNode {
@@ -71,7 +71,7 @@ private:
     void DrawDrivenContent(RSPaintFilterCanvas& canvas);
     // functions that are dedicated to driven render [end]
 
-    std::pair<int, int> canvasNodeSaveCount_ = { 0, 0 };
+    RSPaintFilterCanvas::SaveStatus canvasNodeSaveCount_;
     mutable std::mutex canvasNodeProcessMutex_;
 
     friend class RSRenderTransition;

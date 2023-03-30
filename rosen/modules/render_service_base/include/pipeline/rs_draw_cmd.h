@@ -16,7 +16,6 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 
-#include "core/SkDrawShadowInfo.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkDrawable.h"
 #include "include/core/SkImage.h"
@@ -29,6 +28,7 @@
 #include "include/core/SkRegion.h"
 #include "include/core/SkTextBlob.h"
 #include "pixel_map.h"
+#include "src/core/SkDrawShadowInfo.h"
 
 #include "common/rs_common_def.h"
 #include "pipeline/rs_draw_cmd_list.h"
@@ -60,6 +60,7 @@ enum RSOpType : uint16_t {
     TRANSLATE_OPITEM,
     TEXTBLOB_OPITEM,
     BITMAP_OPITEM,
+    COLOR_FILTER_BITMAP_OPITEM,
     BITMAP_RECT_OPITEM,
     BITMAP_NINE_OPITEM,
     PIXELMAP_OPITEM,
@@ -91,7 +92,11 @@ public:
     virtual void Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const {};
     virtual RSOpType GetType() const = 0;
 
-    std::unique_ptr<OpItem> GenerateCachedOpItem(SkSurface* surface) const;
+    virtual std::unique_ptr<OpItem> GenerateCachedOpItem(
+        const RSPaintFilterCanvas* canvas = nullptr, const SkRect* rect = nullptr) const
+    {
+        return nullptr;
+    }
     virtual std::optional<SkRect> GetCacheBounds() const
     {
         // not cacheable by default
@@ -108,6 +113,8 @@ class OpItemWithPaint : public OpItem {
 public:
     explicit OpItemWithPaint(size_t size) : OpItem(size) {}
     ~OpItemWithPaint() override {}
+
+    std::unique_ptr<OpItem> GenerateCachedOpItem(const RSPaintFilterCanvas* canvas, const SkRect* rect) const override;
 
 protected:
     SkPaint paint_;
@@ -446,6 +453,23 @@ public:
     {
         return RSOpType::BITMAP_OPITEM;
     }
+
+    bool Marshalling(Parcel& parcel) const override;
+    [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
+};
+
+class ColorFilterBitmapOpItem : public BitmapOpItem {
+public:
+    ColorFilterBitmapOpItem(const sk_sp<SkImage> bitmapInfo, float left, float top, const SkPaint* paint);
+    ColorFilterBitmapOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
+    ~ColorFilterBitmapOpItem() override {}
+
+    RSOpType GetType() const override
+    {
+        return RSOpType::COLOR_FILTER_BITMAP_OPITEM;
+    }
+
+    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);

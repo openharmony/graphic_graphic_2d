@@ -192,7 +192,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow002, TestSize.Level1)
 {
     SkCanvas skCanvas;
     RSPaintFilterCanvas canvas(&skCanvas);
-    canvas.SetCacheEnabled(true);
+    canvas.SetCacheType(RSPaintFilterCanvas::CacheType::ENABLED);
     RSProperties properties;
     properties.SetShadowRadius(10.f);
     RRect rrect;
@@ -380,7 +380,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawFrame002, TestSize.Level1)
     RSPaintFilterCanvas canvas(&skCanvas);
     auto cmds = std::make_shared<DrawCmdList>(5, 5);
     RSPropertiesPainter::DrawFrame(properties, canvas, cmds);
-    canvas.SetCacheEnabled(true);
+    canvas.SetCacheType(RSPaintFilterCanvas::CacheType::ENABLED);
     RSPropertiesPainter::DrawFrame(properties, canvas, cmds);
 }
 

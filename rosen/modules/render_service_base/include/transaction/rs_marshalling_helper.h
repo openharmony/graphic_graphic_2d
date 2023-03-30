@@ -45,17 +45,17 @@ class PixelMap;
 }
 namespace Rosen {
 class DrawCmdList;
+class OpItem;
 class RSFilter;
 class RSImage;
 class RSImageBase;
 class RSMask;
 class RSPath;
-class RSShader;
 class RSRenderCurveAnimation;
 class RSRenderInterpolatingSpringAnimation;
 class RSRenderKeyframeAnimation;
-class RSRenderSpringAnimation;
 class RSRenderPathAnimation;
+class RSRenderSpringAnimation;
 class RSRenderTransition;
 class RSRenderTransitionEffect;
 class RSRenderModifier;
@@ -63,6 +63,7 @@ template<typename T>
 class RSRenderProperty;
 template<typename T>
 class RSRenderAnimatableProperty;
+class RSShader;
 
 class RSB_EXPORT RSMarshallingHelper {
 public:
@@ -150,6 +151,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)
 
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderModifier>)
+    DECLARE_FUNCTION_OVERLOAD(std::unique_ptr<OpItem>)
 #undef DECLARE_FUNCTION_OVERLOAD
 
     // reloaded marshalling & unmarshalling function for animation
@@ -199,6 +201,17 @@ public:
             }
         }
         return true;
+    }
+
+    template<class T1, class T2>
+    static bool Marshalling(Parcel& parcel, const std::pair<T1, T2>& val)
+    {
+        return Marshalling(parcel, val.first) && Marshalling(parcel, val.second);
+    }
+    template<class T1, class T2>
+    static bool Unmarshalling(Parcel& parcel, std::pair<T1, T2>& val)
+    {
+        return Unmarshalling(parcel, val.first) && Unmarshalling(parcel, val.second);
     }
 
     template<typename T, typename... Args>

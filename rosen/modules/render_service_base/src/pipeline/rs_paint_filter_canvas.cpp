@@ -15,16 +15,20 @@
 
 #include "pipeline/rs_paint_filter_canvas.h"
 
+#include "include/core/SkColorFilter.h"
+
 namespace OHOS {
 namespace Rosen {
 
 RSPaintFilterCanvas::RSPaintFilterCanvas(SkCanvas* canvas, float alpha)
-    : SkPaintFilterCanvas(canvas), alphaStack_({ std::clamp(alpha, 0.f, 1.f) }) // construct stack with given alpha
+    : SkPaintFilterCanvas(canvas), alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
+      envStack_({ Env({ Color(0x000000FF) }) }) // construct stack with default foreground color
 {}
 
 RSPaintFilterCanvas::RSPaintFilterCanvas(SkSurface* skSurface, float alpha)
     : SkPaintFilterCanvas(skSurface ? skSurface->getCanvas() : nullptr), skSurface_(skSurface),
-      alphaStack_({ std::clamp(alpha, 0.f, 1.f) }) // construct stack with given alpha
+      alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
+      envStack_({ Env({ Color(0x000000FF) }) })     // construct stack with default foreground color
 {}
 
 SkSurface* RSPaintFilterCanvas::GetSurface() const
@@ -61,7 +65,6 @@ void RSPaintFilterCanvas::MultiplyAlpha(float alpha)
     // multiply alpha to top of stack
     alphaStack_.top() *= std::clamp(alpha, 0.f, 1.f);
 }
-
 
 int RSPaintFilterCanvas::SaveAlpha()
 {
@@ -104,26 +107,6 @@ void RSPaintFilterCanvas::RestoreAlphaToCount(int count)
     }
 }
 
-std::pair<int, int> RSPaintFilterCanvas::SaveCanvasAndAlpha()
-{
-    // simultaneously save canvas and alpha
-    return { save(), SaveAlpha() };
-}
-
-std::pair<int, int> RSPaintFilterCanvas::GetSaveCount() const
-{
-    return { getSaveCount(), GetAlphaSaveCount() };
-}
-
-void RSPaintFilterCanvas::RestoreCanvasAndAlpha(std::pair<int, int>& count)
-{
-    // simultaneously restore canvas and alpha
-    restoreToCount(count.first);
-    RestoreAlphaToCount(count.second);
-}
-
-
-
 int RSPaintFilterCanvas::SaveEnv()
 {
     // make a copy of top of stack
@@ -131,7 +114,6 @@ int RSPaintFilterCanvas::SaveEnv()
     // return prev stack height
     return envStack_.size() - 1;
 }
-
 
 void RSPaintFilterCanvas::RestoreEnv()
 {
@@ -142,14 +124,135 @@ void RSPaintFilterCanvas::RestoreEnv()
     envStack_.pop();
 }
 
+void RSPaintFilterCanvas::RestoreEnvToCount(int count)
+{
+    // sanity check, stack should not be empty
+    if (count < 1) {
+        count = 1;
+    }
+    // poo stack until stack height equals count
+    int n = static_cast<int>(envStack_.size()) - count;
+    for (int i = 0; i < n; ++i) {
+        envStack_.pop();
+    }
+}
+
+int RSPaintFilterCanvas::GetEnvSaveCount() const
+{
+    return envStack_.size();
+}
+
 void RSPaintFilterCanvas::SetEnvForegroundColor(Color color)
 {
     // sanity check, stack should not be empty
     if (envStack_.empty()) {
         return;
     }
-    envStack_.top().envForegroundColor  = color;
+    envStack_.top().envForegroundColor = color;
 }
 
+Color RSPaintFilterCanvas::GetEnvForegroundColor() const
+{
+    // sanity check, stack should not be empty
+    if (envStack_.empty()) {
+        return Color { 0xFF000000 }; // 0xFF000000 is default value -- black
+    }
+    return envStack_.top().envForegroundColor;
+}
+
+RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::Save()
+{
+    // simultaneously save canvas and alpha
+    return { save(), SaveAlpha(), SaveEnv() };
+}
+
+RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::GetSaveStatus() const
+{
+    return { getSaveCount(), GetAlphaSaveCount(), GetEnvSaveCount() };
+}
+
+void RSPaintFilterCanvas::RestoreStatus(const SaveStatus& status)
+{
+    // simultaneously restore canvas and alpha
+    restoreToCount(status.canvasSaveCount);
+    RestoreAlphaToCount(status.alphaSaveCount);
+    RestoreEnvToCount(status.envSaveCount);
+}
+
+void RSPaintFilterCanvas::CopyConfiguration(const RSPaintFilterCanvas& other)
+{
+    // Note:
+    // 1. we don't need to copy alpha status, alpha will be applied when drawing cache.
+    // copy high contrast flag
+    isHighContrastEnabled_.store(other.isHighContrastEnabled_.load());
+    // copy env
+    envStack_.top() = other.envStack_.top();
+    // cache related
+    if (other.isHighContrastEnabled()) {
+        // explicit disable cache for high contrast mode
+        SetCacheType(RSPaintFilterCanvas::CacheType::DISABLED);
+    } else {
+        // planning: maybe we should copy source cache status
+        SetCacheType(RSPaintFilterCanvas::CacheType::UNDEFINED);
+    }
+}
+
+RSColorFilterCanvas::RSColorFilterCanvas(RSPaintFilterCanvas* canvas)
+    : RSPaintFilterCanvas(canvas)
+{}
+
+bool RSColorFilterCanvas::onFilter(SkPaint& paint) const
+{
+    // foreground color and foreground color strategy identification
+    if (paint.getColor() == 0x00000001) {
+        // creates a color filter that blends the foreground color with the destination color
+        paint.setColorFilter(SkColorFilters::Blend(GetEnvForegroundColor().AsArgbInt(), SkBlendMode::kDstIn));
+    }
+
+    return RSPaintFilterCanvas::onFilter(paint);
+}
+
+RSAutoCanvasRestore::RSAutoCanvasRestore(RSPaintFilterCanvas* canvas, SaveType type) : canvas_(canvas)
+{
+    if (canvas_) {
+        saveCount_ = canvas->GetSaveStatus();
+        if (SaveType::kCanvas & type) {
+            canvas->save();
+        }
+        if (SaveType::kAlpha & type) {
+            canvas->SaveAlpha();
+        }
+        if (SaveType::kEnv & type) {
+            canvas->SaveEnv();
+        }
+    }
+}
+
+void RSPaintFilterCanvas::SetHighContrast(bool enabled)
+{
+    isHighContrastEnabled_ = enabled;
+}
+bool RSPaintFilterCanvas::isHighContrastEnabled() const
+{
+    return isHighContrastEnabled_;
+}
+
+void RSPaintFilterCanvas::SetCacheType(CacheType type)
+{
+    cacheType_ = type;
+}
+RSPaintFilterCanvas::CacheType RSPaintFilterCanvas::GetCacheType() const
+{
+    return cacheType_;
+}
+
+void RSPaintFilterCanvas::SetVisibleRect(SkRect visibleRect)
+{
+    visibleRect_ = visibleRect;
+}
+SkRect RSPaintFilterCanvas::GetVisibleRect() const
+{
+    return visibleRect_;
+}
 } // namespace Rosen
 } // namespace OHOS

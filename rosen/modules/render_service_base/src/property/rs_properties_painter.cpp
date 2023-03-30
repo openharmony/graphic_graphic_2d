@@ -214,7 +214,8 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
 void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect)
 {
     // skip shadow if not valid or cache is enabled
-    if (properties.IsSpherizeValid() || !properties.IsShadowValid() || canvas.isCacheEnabled()) {
+    if (properties.IsSpherizeValid() || !properties.IsShadowValid() ||
+        canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED) {
         return;
     }
     RSAutoCanvasRestore acr(&canvas);
@@ -482,12 +483,6 @@ void RSPropertiesPainter::DrawFrame(const RSProperties& properties, RSPaintFilte
         canvas.concat(mat);
     }
     auto frameRect = Rect2SkRect(properties.GetFrameRect());
-    // Generate or clear cache on demand
-    if (canvas.isCacheEnabled()) {
-        cmds->GenerateCache(canvas.GetSurface());
-    } else {
-        cmds->ClearCache();
-    }
     cmds->Playback(canvas, &frameRect);
 }
 
@@ -627,12 +622,6 @@ void RSPropertiesPainter::DrawFrameForDriven(const RSProperties& properties, RSP
         canvas.concat(mat);
     }
     auto frameRect = Rect2SkRect(properties.GetFrameRect());
-    // Generate or clear cache on demand
-    if (canvas.isCacheEnabled()) {
-        cmds->GenerateCache(canvas.GetSurface());
-    } else {
-        cmds->ClearCache();
-    }
     // temporary solution for driven content clip
     cmds->ReplaceDrivenCmds();
     cmds->Playback(canvas, &frameRect);

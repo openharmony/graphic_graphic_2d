@@ -191,7 +191,7 @@ private:
     void ClassifyRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid);
     void ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid);
-    void ProcessAllSyncTransactionDatas();
+    void ProcessAllSyncTransactionData();
     void ProcessCommandForDividedRender();
     void ProcessCommandForUniRender();
     void WaitUntilUnmarshallingTaskFinished();
@@ -221,7 +221,7 @@ private:
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
     // Collect pids of surfaceview's update(ConsumeAndUpdateAllNodes), effective commands(processCommand) and Animate
     std::unordered_set<pid_t> activeProcessPids_;
-    std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> syncTransactionDatas_;
+    std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> syncTransactionData_;
     int32_t syncTransactionCount_ { 0 };
 
     TransactionDataMap cachedTransactionDataMap_;

@@ -35,7 +35,7 @@ RSTagTracker::RSTagTracker(GrContext* grContext, RSTagTracker::TAGTYPE tagType)
 #endif
 }
 
-void RSTagTracker::UpdateReleseGpuReousrceEnable(bool releaseResEnable)
+void RSTagTracker::UpdateReleaseGpuResourceEnable(bool releaseResEnable)
 {
     releaseGpuResourceEnable_ = releaseResEnable;
 }

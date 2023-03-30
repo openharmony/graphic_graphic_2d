@@ -383,21 +383,21 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData001, TestSize.Level1)
     pid_t pid = 0;
     rsTransactionData->SetSyncId(1);
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
-    ASSERT_EQ(mainThread->syncTransactionDatas_.empty(), false);
+    ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
 
-    // when syncTransactionDatas_ is not empty and SyncId is larger
+    // when syncTransactionData_ is not empty and SyncId is larger
     rsTransactionData = std::make_unique<RSTransactionData>();
     rsTransactionData->MarkNeedSync();
     rsTransactionData->SetSyncId(0);
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
     ASSERT_EQ(mainThread->activeProcessPids_.empty(), false);
 
-    // when syncTransactionDatas_ is not empty and SyncId is equal or smaller
+    // when syncTransactionData_ is not empty and SyncId is equal or smaller
     rsTransactionData->SetSyncTransactionNum(1);
     rsTransactionData->SetSyncId(1);
     mainThread->syncTransactionCount_ = 1;
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
-    ASSERT_EQ(mainThread->syncTransactionDatas_.empty(), true);
+    ASSERT_EQ(mainThread->syncTransactionData_.empty(), true);
 }
 
 /**
@@ -408,7 +408,7 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData001, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData002, TestSize.Level1)
 {
-    // when IsNeedSync() is true & syncTransactionDatas_ is empty & isNeedCloseSync is true
+    // when IsNeedSync() is true & syncTransactionData_ is empty & isNeedCloseSync is true
     auto mainThread = RSMainThread::Instance();
     auto rsTransactionData = std::make_unique<RSTransactionData>();
     pid_t pid = 0;
@@ -417,7 +417,7 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData002, TestSize.Level1)
     rsTransactionData->SetSyncTransactionNum(1);
     mainThread->syncTransactionCount_ = 0;
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
-    ASSERT_EQ(mainThread->syncTransactionDatas_.empty(), false);
+    ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
 }
 
 /**

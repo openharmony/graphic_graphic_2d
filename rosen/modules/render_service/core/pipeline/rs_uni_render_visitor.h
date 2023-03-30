@@ -238,7 +238,7 @@ private:
     bool isDirty_ = false;
     bool needFilter_ = false;
     ColorGamut newColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
-    std::vector<ScreenColorGamut> colorGamutmodes_;
+    std::vector<ScreenColorGamut> colorGamutModes_;
     pid_t currentFocusedPid_ = -1;
 
     bool needColdStartThread_ = false; // flag used for cold start app window

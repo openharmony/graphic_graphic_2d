@@ -21,64 +21,67 @@
 #include <vector>
 
 #include "include/core/SkSurface.h"
+
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
 
-class SkDrawable;
 namespace OHOS {
 namespace Rosen {
 
+// This class is used to filter the paint before drawing. currently, it is used to filter the alpha and foreground
+// color.
 class RSB_EXPORT RSPaintFilterCanvas : public SkPaintFilterCanvas {
 public:
     RSPaintFilterCanvas(SkCanvas* canvas, float alpha = 1.0f);
     RSPaintFilterCanvas(SkSurface* skSurface, float alpha = 1.0f);
     ~RSPaintFilterCanvas() override {};
 
+    void CopyConfiguration(const RSPaintFilterCanvas& other);
+
+    // alpha related
     void MultiplyAlpha(float alpha);
     float GetAlpha() const;
-
     int SaveAlpha();
     void RestoreAlpha();
     int GetAlphaSaveCount() const;
     void RestoreAlphaToCount(int count);
 
-    std::pair<int, int> SaveCanvasAndAlpha();
-    std::pair<int, int> GetSaveCount() const;
-    void RestoreCanvasAndAlpha(std::pair<int, int>& count);
-
+    // env related
+    void SetEnvForegroundColor(Color color);
+    Color GetEnvForegroundColor() const;
     int SaveEnv();
     void RestoreEnv();
-    void SetEnvForegroundColor(Color color);
+    int GetEnvSaveCount() const;
+    void RestoreEnvToCount(int count);
+
+    // save/restore utils
+    using SaveStatus = struct {
+        int canvasSaveCount;
+        int alphaSaveCount;
+        int envSaveCount;
+    };
+    SaveStatus Save();
+    SaveStatus GetSaveStatus() const;
+    void RestoreStatus(const SaveStatus& status);
 
     SkSurface* GetSurface() const;
 
-    void SetHighContrast(bool enabled)
-    {
-        isHighContrastEnabled_ = enabled;
-    }
-    bool isHighContrastEnabled() const
-    {
-        return isHighContrastEnabled_;
-    }
+    // high contrast
+    void SetHighContrast(bool enabled);
+    bool isHighContrastEnabled() const;
 
-    void SetCacheEnabled(bool enabled)
-    {
-        isCacheEnabled_ = enabled;
-    }
-    bool isCacheEnabled() const
-    {
-        return isCacheEnabled_;
-    }
+    enum CacheType : uint8_t {
+        UNDEFINED, // do not change current cache status
+        ENABLED,   // explicitly enable cache
+        DISABLED   // explicitly disable cache
+    };
+    // cache
+    void SetCacheType(CacheType type);
+    CacheType GetCacheType() const;
 
-    void SetVisibleRect(SkRect visibleRect)
-    {
-        visibleRect_ = visibleRect;
-    }
-
-    SkRect GetVisibleRect() const
-    {
-        return visibleRect_;
-    }
+    // visible rect
+    void SetVisibleRect(SkRect visibleRect);
+    SkRect GetVisibleRect() const;
 
 protected:
     bool onFilter(SkPaint& paint) const override;
@@ -87,51 +90,52 @@ protected:
 private:
     SkSurface* skSurface_ = nullptr;
     std::stack<float> alphaStack_;
-    typedef struct {
+    using Env = struct {
         Color envForegroundColor;
-    } Env;
-
-    Env envDefault = { Color(0xFF000000) }; // 0xFF000000 is default value -- black
-    std::stack<Env> envStack_ = std::stack<Env>({envDefault});
+    };
+    std::stack<Env> envStack_;
 
     std::atomic_bool isHighContrastEnabled_ { false };
-    bool isCacheEnabled_ { false };
+    CacheType cacheType_ { UNDEFINED };
     SkRect visibleRect_ = SkRect::MakeEmpty();
 };
 
-// Helper class similar to SkAutoCanvasRestore, but also restores alpha
-class RSAutoCanvasRestore {
+// This class extends RSPaintFilterCanvas to also create a color filter for the paint.
+class RSB_EXPORT RSColorFilterCanvas : public RSPaintFilterCanvas {
 public:
-    /** Preserves SkCanvas::save() and RSPaintFilterCanvas::SaveAlpha() count. Optionally saves SkCanvas clip /
-       SkCanvas matrix and RSPaintFilterCanvas alpha.
+    explicit RSColorFilterCanvas(RSPaintFilterCanvas* canvas);
+    ~RSColorFilterCanvas() override {};
 
+protected:
+    bool onFilter(SkPaint& paint) const override;
+};
+
+// Helper class similar to SkAutoCanvasRestore, but also restores alpha and/or env
+class RSB_EXPORT RSAutoCanvasRestore {
+public:
+    enum SaveType : uint8_t {
+        kNone   = 0x0,
+        kCanvas = 0x1,
+        kAlpha  = 0x2,
+        kEnv    = 0x4,
+        kALL    = kCanvas | kAlpha | kEnv,
+    };
+
+    /** Preserves canvas save count. Optionally call SkCanvas::save() and/or RSPaintFilterCanvas::SaveAlpha() and/or
+       RSPaintFilterCanvas::SaveEnv().
         @param canvas     RSPaintFilterCanvas to guard
         @param saveCanvas call SkCanvas::save()
         @param saveAlpha  call RSPaintFilterCanvas::SaveAlpha()
         @return           utility to restore RSPaintFilterCanvas state on destructor
     */
-    RSAutoCanvasRestore(RSPaintFilterCanvas* canvas, bool saveCanvas = true, bool saveAlpha = true)
-        : canvas_(canvas), saveCount_({ 0, 0 })
-    {
-        if (canvas_) {
-            saveCount_ = canvas->GetSaveCount();
-            if (saveCanvas) {
-                canvas->save();
-            }
-            if (saveAlpha) {
-                canvas->SaveAlpha();
-            }
-        }
-    }
+    RSAutoCanvasRestore(RSPaintFilterCanvas* canvas, SaveType type = SaveType::kALL);
 
     /** Allow RSAutoCanvasRestore to be used with std::unique_ptr and std::shared_ptr */
-    RSAutoCanvasRestore(
-        const std::unique_ptr<RSPaintFilterCanvas>& canvas, bool saveCanvas = true, bool saveAlpha = true)
-        : RSAutoCanvasRestore(canvas.get(), saveCanvas, saveAlpha)
+    RSAutoCanvasRestore(const std::unique_ptr<RSPaintFilterCanvas>& canvas, SaveType type = SaveType::kALL)
+        : RSAutoCanvasRestore(canvas.get(), type)
     {}
-    RSAutoCanvasRestore(
-        const std::shared_ptr<RSPaintFilterCanvas>& canvas, bool saveCanvas = true, bool saveAlpha = true)
-        : RSAutoCanvasRestore(canvas.get(), saveCanvas, saveAlpha)
+    RSAutoCanvasRestore(const std::shared_ptr<RSPaintFilterCanvas>& canvas, SaveType type = SaveType::kALL)
+        : RSAutoCanvasRestore(canvas.get(), type)
     {}
 
     /** Restores RSPaintFilterCanvas to saved state. Destructor is called when container goes out of
@@ -140,7 +144,7 @@ public:
     ~RSAutoCanvasRestore()
     {
         if (canvas_) {
-            canvas_->RestoreCanvasAndAlpha(saveCount_);
+            canvas_->RestoreStatus(saveCount_);
         }
     }
 
@@ -150,21 +154,20 @@ public:
     void restore()
     {
         if (canvas_) {
-            canvas_->RestoreCanvasAndAlpha(saveCount_);
+            canvas_->RestoreStatus(saveCount_);
             canvas_ = nullptr;
         }
     }
 
 private:
     RSPaintFilterCanvas* canvas_;
-    std::pair<int, int> saveCount_;
+    RSPaintFilterCanvas::SaveStatus saveCount_;
 
     RSAutoCanvasRestore(RSAutoCanvasRestore&&) = delete;
     RSAutoCanvasRestore(const RSAutoCanvasRestore&) = delete;
     RSAutoCanvasRestore& operator=(RSAutoCanvasRestore&&) = delete;
     RSAutoCanvasRestore& operator=(const RSAutoCanvasRestore&) = delete;
 };
-
 } // namespace Rosen
 } // namespace OHOS
 #endif // RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_PAINT_FILTER_CANVAS_H
