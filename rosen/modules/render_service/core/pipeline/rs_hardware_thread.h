@@ -42,7 +42,6 @@ public:
         PostTask([t(std::move(scheduledTask))]() { t->Run(); });
         return std::move(taskFuture);
     }
-    // void ReleaseAllNodesBuffer(std::vector<std::shared_ptr<BufferReleaseHandler>>& surfaceNodeBufferHandlers);
 private:
     RSHardwareThread() = default;
     ~RSHardwareThread() = default;
