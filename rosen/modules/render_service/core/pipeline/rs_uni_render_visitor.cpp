@@ -465,6 +465,10 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         isOpDropped_ = false;
         isPartialRenderEnabled_ = false;
     }
+    // avoid EntryView upload texture while screen rotation
+    if (node.GetName() == "EntryView" && curDisplayNode_) {
+        node.SetFreeze(curDisplayNode_->IsRotationChanged());
+    }
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     if (drivenInfo_ && (node.GetName() == "imeWindow" || node.GetName() == "RecentView")) {
         drivenInfo_->prepareInfo.hasInvalidScene = true;
