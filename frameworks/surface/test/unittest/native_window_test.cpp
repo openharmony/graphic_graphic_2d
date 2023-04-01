@@ -425,15 +425,21 @@ HWTEST_F(NativeWindowTest, FlushBuffer003, Function | MediumTest | Level2)
 {
     int fenceFd = -1;
     struct Region *region = new Region();
+    region->rectNumber = 0;
+    region->rects = nullptr;
+    ASSERT_EQ(OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, fenceFd, *region),
+              OHOS::GSERROR_OK);
+
+    region->rectNumber = 1;
     struct Region::Rect * rect = new Region::Rect();
     rect->x = 0x100;
     rect->y = 0x100;
     rect->w = 0x100;
     rect->h = 0x100;
     region->rects = rect;
-
     ASSERT_EQ(OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, fenceFd, *region),
               OHOS::GSERROR_OK);
+    delete rect;
     delete region;
 }
 

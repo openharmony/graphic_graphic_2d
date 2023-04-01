@@ -166,10 +166,13 @@ pid_t NativeWindowBufferTest::ChildProcessMain()
     rect->w = 0x100;
     rect->h = 0x100;
     region->rects = rect;
+    region->rectNumber = 1;
     ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, -1, *region);
     if (ret != OHOS::GSERROR_OK) {
         data = ret;
         write(pipeFd[1], &data, sizeof(data));
+        delete rect;
+        delete region;
         exit(0);
         return -1;
     }
@@ -179,6 +182,8 @@ pid_t NativeWindowBufferTest::ChildProcessMain()
     read(pipeFd[0], &data, sizeof(data));
     close(pipeFd[0]);
     close(pipeFd[1]);
+    delete rect;
+    delete region;
     exit(0);
     return 0;
 }

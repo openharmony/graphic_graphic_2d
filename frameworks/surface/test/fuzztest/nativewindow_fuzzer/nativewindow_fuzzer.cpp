@@ -99,8 +99,7 @@ namespace OHOS {
             fenceFd = DEFAULT_FENCE;
         }
         Region::Rect rect = GetData<Region::Rect>();
-        int32_t rectNumber = GetData<int32_t>();
-        Region region = {.rects = &rect, .rectNumber = rectNumber};
+        Region region = {.rects = &rect, .rectNumber = 1};
         uint32_t sequence = GetData<uint32_t>();
         OHScalingMode scalingMode = GetData<OHScalingMode>();
         OHHDRMetaData metaData = GetData<OHHDRMetaData>();

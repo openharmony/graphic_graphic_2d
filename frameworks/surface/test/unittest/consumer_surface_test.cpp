@@ -45,11 +45,10 @@ public:
     };
     static inline BufferFlushConfigWithDamages flushConfigWithDamages = {
         .damages = {
-            {
-                .w = 0x100,
-                .h = 0x100,
-            }
+            { .x = 0x100, .y = 0x100, .w = 0x100, .h = 0x100, },
+            { .x = 0x200, .y = 0x200, .w = 0x200, .h = 0x200, },
         },
+        .timestamp = 0x300,
     };
     static inline int64_t timestamp = 0;
     static inline Rect damage = {};
@@ -343,6 +342,10 @@ HWTEST_F(ConsumerSurfaceTest, RegisterConsumerListener002, Function | MediumTest
 
     ret = ps->FlushBuffer(buffer, -1, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    sptr<OHOS::SyncFence> flushFence;
+    ret = cs->AcquireBuffer(buffer, flushFence, timestamp, damage);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
 }
 
 /*
@@ -832,7 +835,15 @@ HWTEST_F(ConsumerSurfaceTest, ReqCanFluAcqRel005, Function | MediumTest | Level2
     ret = cs->AcquireBuffer(buffer, flushFence, timestamp, damages);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
+    ASSERT_EQ(damages.size(), flushConfigWithDamages.damages.size());
+    for (decltype(damages.size()) i = 0; i < damages.size(); i++) {
+        ASSERT_EQ(damages[i].x, flushConfigWithDamages.damages[i].x);
+        ASSERT_EQ(damages[i].y, flushConfigWithDamages.damages[i].y);
+        ASSERT_EQ(damages[i].w, flushConfigWithDamages.damages[i].w);
+        ASSERT_EQ(damages[i].h, flushConfigWithDamages.damages[i].h);
+    }
 
+    ASSERT_EQ(timestamp, flushConfigWithDamages.timestamp);
     ret = cs->ReleaseBuffer(buffer, -1);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
