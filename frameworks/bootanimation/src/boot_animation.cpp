@@ -218,7 +218,7 @@ void BootAnimation::CheckExitAnimation()
         system::SetParameter("bootevent.bootanimation.started", "true");
         setBootEvent_ = true;
     }
-    std::string windowInit = system::GetParameter("bootevent.wms.fullscreen.ready", "false");
+    std::string windowInit = system::GetParameter("bootevent.boot.completed", "false");
     if (windowInit == "true") {
         PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
         LOGI("CheckExitAnimation read windowInit is true");
