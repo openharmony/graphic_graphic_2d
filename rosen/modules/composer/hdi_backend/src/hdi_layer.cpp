@@ -500,7 +500,7 @@ void HdiLayer::MergeWithFramebufferFence(const sptr<SyncFence> &fbAcquireFence)
 void HdiLayer::MergeWithLayerFence(const sptr<SyncFence> &layerReleaseFence)
 {
     if (layerReleaseFence != nullptr) {
-        currSbuffer_->releaseFence_ = layerReleaseFence;
+        currSbuffer_->releaseFence_ = Merge(currSbuffer_->releaseFence_, layerReleaseFence);
     }
 }
 
