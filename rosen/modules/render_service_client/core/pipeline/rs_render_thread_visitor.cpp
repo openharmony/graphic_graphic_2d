@@ -25,6 +25,7 @@
 #include "rs_trace.h"
 
 #include "command/rs_base_node_command.h"
+#include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
@@ -594,6 +595,13 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     // 5. restore environments variables before continue traversal siblings
     childSurfaceNodeIds_ = std::move(siblingSurfaceNodeIds);
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
+
+    // 6.draw border
+    canvas_->save();
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+    canvas_->concat(geoPtr->GetMatrix());
+    RSPropertiesPainter::DrawBorder(node.GetRenderProperties(), *canvas_);
+    canvas_->restore();
 }
 
 void RSRenderThreadVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)

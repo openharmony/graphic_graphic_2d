@@ -293,6 +293,13 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanva
         skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
         RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr, canvas.GetSurface());
     }
+    canvas.save();
+    if (GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {
+        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+        canvas.concat(geoPtr->GetMatrix());
+    }
+    RSPropertiesPainter::DrawBorder(property, canvas);
+    canvas.restore();
 }
 
 void RSSurfaceRenderNode::SetContextBounds(const Vector4f bounds)
