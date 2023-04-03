@@ -128,6 +128,7 @@ HWTEST_F(RSDrivenRenderManagerTest, ClipHoleForDrivenNode, TestSize.Level1)
     isClipHole = RSDrivenRenderManager::GetInstance().ClipHoleForDrivenNode(canvas, *rsCanvasRenderNode);
     ASSERT_EQ(true, isClipHole);
 
+    // bounds(0, 0, 100, 100)
     rsCanvasRenderNode->GetMutableRenderProperties().SetBounds({0, 0, 100, 100});
     RSDrivenRenderManager::GetInstance().GetContentSurfaceNode()->SetDrivenCanvasNode(rsCanvasRenderNode);
     isClipHole = RSDrivenRenderManager::GetInstance().ClipHoleForDrivenNode(canvas, *rsCanvasRenderNode);

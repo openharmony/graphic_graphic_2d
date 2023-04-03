@@ -46,8 +46,61 @@ void RSDrivenRenderExtTest::TearDown() {}
 HWTEST_F(RSDrivenRenderExtTest, IsValidSurfaceName, TestSize.Level1)
 {
     std::string surfaceName = "";
-    RSDrivenRenderExt::Instance().OpenDrivenRenderExt();
     bool isValideSurface = RSDrivenRenderExt::Instance().IsValidSurfaceName(surfaceName);
     ASSERT_EQ(false, isValideSurface);
+
+    RSDrivenRenderExt::Instance().OpenDrivenRenderExt();
+    isValideSurface = RSDrivenRenderExt::Instance().IsValidSurfaceName(surfaceName);
+    ASSERT_EQ(false, isValideSurface);
 }
+
+/**
+ * @tc.name: DisabledRenderMode
+ * @tc.desc: Test RSDrivenRenderExtTest.DisabledRenderMode
+ * @tc.type: FUNC
+ * @tc.require: issueI6J4IL
+ */
+HWTEST_F(RSDrivenRenderExtTest, DisabledRenderMode, TestSize.Level1)
+{
+    DrivenExtInfo info;
+    RSDrivenRenderExt::Instance().DisabledRenderMode(info);
+
+    RSDrivenRenderExt::Instance().OpenDrivenRenderExt();
+    RSDrivenRenderExt::Instance().DisabledRenderMode(info);
+}
+
+/**
+ * @tc.name: SetCurrFrameBounds
+ * @tc.desc: Test RSDrivenRenderExtTest.SetCurrFrameBounds
+ * @tc.type: FUNC
+ * @tc.require: issueI6J4IL
+ */
+HWTEST_F(RSDrivenRenderExtTest, SetCurrFrameBounds, TestSize.Level1)
+{
+    DrivenExtInfo info;
+    RectF bounds;
+    RectF viewPort;
+    RectI contentAbsRect;
+    RSDrivenRenderExt::Instance().SetCurrFrameBounds(info, bounds, viewPort, contentAbsRect);
+
+    RSDrivenRenderExt::Instance().OpenDrivenRenderExt();
+    RSDrivenRenderExt::Instance().SetCurrFrameBounds(info, bounds, viewPort, contentAbsRect);
+}
+
+/**
+ * @tc.name: UpdateActivateFrameState
+ * @tc.desc: Test RSDrivenRenderExtTest.UpdateActivateFrameState
+ * @tc.type: FUNC
+ * @tc.require: issueI6J4IL
+ */
+HWTEST_F(RSDrivenRenderExtTest, UpdateActivateFrameState, TestSize.Level1)
+{
+    DrivenExtInfo info;
+    RectI dstRect;
+    RSDrivenRenderExt::Instance().UpdateActivateFrameState(info, dstRect, false, false, false);
+
+    RSDrivenRenderExt::Instance().OpenDrivenRenderExt();
+    RSDrivenRenderExt::Instance().UpdateActivateFrameState(info, dstRect, false, false, false);
+}
+
 } // namespace OHOS::Rosen
