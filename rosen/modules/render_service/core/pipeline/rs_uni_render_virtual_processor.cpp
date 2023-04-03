@@ -85,7 +85,6 @@ void RSUniRenderVirtualProcessor::PostProcess()
         RS_LOGE("RSUniRenderVirtualProcessor::PostProcess renderFrame_ is null.");
         return;
     }
-    RSProcessor::RequestPerf(3, true); // set perf level 3(top) in mirrorScreen state
     renderFrame_->Flush();
 }
 
