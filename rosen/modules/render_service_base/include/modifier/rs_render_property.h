@@ -137,10 +137,11 @@ public:
 
     void Set(const T& value)
     {
-        if (stagingValue_ != value) {
-            stagingValue_ = value;
-            OnChange();
+        if (value == stagingValue_) {
+            return;
         }
+        stagingValue_ = value;
+        OnChange();
     }
 
     T Get() const
