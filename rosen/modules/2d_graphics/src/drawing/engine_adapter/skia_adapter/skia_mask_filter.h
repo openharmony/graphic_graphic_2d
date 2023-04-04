@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +35,10 @@ public:
 
     void InitWithBlur(BlurType t, scalar sigma) override;
     sk_sp<SkMaskFilter> GetMaskFilter() const;
+    /*
+     * @brief  Update the member variable to filter, adaptation layer calls.
+     */
+    void SetSkMaskFilter(const sk_sp<SkMaskFilter>& filter);
 
 private:
     sk_sp<SkMaskFilter> filter_;

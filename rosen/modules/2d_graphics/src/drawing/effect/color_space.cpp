@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,9 @@ namespace Drawing {
 ColorSpace::ColorSpace(ColorSpaceType t) noexcept : ColorSpace()
 {
     type_ = t;
+    if (impl_ == nullptr) {
+        return;
+    }
     switch (type_) {
         case ColorSpace::ColorSpaceType::SRGB:
             impl_->InitWithSRGB();
@@ -38,7 +41,19 @@ ColorSpace::ColorSpace(ColorSpaceType t) noexcept : ColorSpace()
 ColorSpace::ColorSpace(ColorSpaceType t, const Image& image) noexcept : ColorSpace()
 {
     type_ = t;
+    if (impl_ == nullptr) {
+        return;
+    }
     impl_->InitWithImage(image);
+}
+
+ColorSpace::ColorSpace(ColorSpaceType t, const CMSTransferFuncType& func, const CMSMatrixType& matrix) noexcept : ColorSpace()
+{
+    type_ = t;
+    if (impl_ == nullptr) {
+        return;
+    }
+    impl_->InitWithRGB(func, matrix);
 }
 
 ColorSpace::ColorSpace() noexcept
@@ -63,6 +78,11 @@ std::shared_ptr<ColorSpace> ColorSpace::CreateSRGBLinear()
 std::shared_ptr<ColorSpace> ColorSpace::CreateRefImage(const Image& image)
 {
     return std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::REF_IMAGE, image);
+}
+
+std::shared_ptr<ColorSpace> ColorSpace::CreateRGB(const CMSTransferFuncType& func, const CMSMatrixType& matrix)
+{
+    return std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::RGB, func, matrix);
 }
 } // namespace Drawing
 } // namespace Rosen

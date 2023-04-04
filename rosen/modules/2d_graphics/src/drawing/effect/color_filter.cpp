@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,30 +25,49 @@ namespace Drawing {
 ColorFilter::ColorFilter(FilterType t, ColorQuad c, BlendMode mode) noexcept : ColorFilter()
 {
     type_ = t;
+
+    if (impl_ == nullptr) {
+        return;
+    }
     impl_->InitWithBlendMode(c, mode);
 }
 
 ColorFilter::ColorFilter(FilterType t, ColorMatrix& m) noexcept : ColorFilter()
 {
     type_ = t;
+
+    if (impl_ == nullptr) {
+        return;
+    }
     impl_->InitWithColorMatrix(m);
 }
 
 ColorFilter::ColorFilter(FilterType t, ColorFilter& f1, ColorFilter& f2) noexcept : ColorFilter()
 {
     type_ = t;
+
+    if (impl_ == nullptr) {
+        return;
+    }
     impl_->InitWithCompose(f1, f2);
 }
 
 ColorFilter::ColorFilter(FilterType t) noexcept : ColorFilter()
 {
     type_ = t;
+
+    if (impl_ == nullptr) {
+        return;
+    }
     switch (type_) {
         case ColorFilter::FilterType::LINEAR_TO_SRGB_GAMMA:
             impl_->InitWithLinearToSrgbGamma();
             break;
         case ColorFilter::FilterType::SRGB_GAMMA_TO_LINEAR:
             impl_->InitWithSrgbGammaToLinear();
+            break;
+        case ColorFilter::FilterType::LUMA:
+            impl_->InitWithLuma();
             break;
         default:
             break;
@@ -66,6 +85,10 @@ ColorFilter::FilterType ColorFilter::GetType() const
 
 void ColorFilter::Compose(ColorFilter& filter)
 {
+
+    if (impl_ == nullptr) {
+        return;
+    }
     impl_->Compose(filter);
 }
 
@@ -92,6 +115,11 @@ std::shared_ptr<ColorFilter> ColorFilter::CreateLinearToSrgbGamma()
 std::shared_ptr<ColorFilter> ColorFilter::CreateSrgbGammaToLinear()
 {
     return std::make_shared<ColorFilter>(ColorFilter::FilterType::SRGB_GAMMA_TO_LINEAR);
+}
+
+std::shared_ptr<ColorFilter> ColorFilter::CreateLumaColorFilter()
+{
+    return std::make_shared<ColorFilter>(ColorFilter::FilterType::LUMA);
 }
 } // namespace Drawing
 } // namespace Rosen

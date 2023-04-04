@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,9 @@
  */
 
 #include "skia_color_filter.h"
+
+#include "include/effects/SkLumaColorFilter.h"
+#include "include/effects/SkOverdrawColorFilter.h"
 
 #include "effect/color_filter.h"
 
@@ -61,9 +64,19 @@ void SkiaColorFilter::Compose(const ColorFilter& f)
     }
 }
 
+void SkiaColorFilter::InitWithLuma()
+{
+    filter_ = SkLumaColorFilter::Make();
+}
+
 sk_sp<SkColorFilter> SkiaColorFilter::GetColorFilter() const
 {
     return filter_;
+}
+
+void SkiaColorFilter::SetColorFilter(const sk_sp<SkColorFilter>& filter)
+{
+    filter_ = filter;
 }
 } // namespace Drawing
 } // namespace Rosen

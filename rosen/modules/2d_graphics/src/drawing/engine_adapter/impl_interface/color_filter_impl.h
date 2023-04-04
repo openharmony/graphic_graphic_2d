@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -42,6 +42,7 @@ public:
     virtual void InitWithSrgbGammaToLinear() = 0;
     virtual void InitWithCompose(const ColorFilter& f1, const ColorFilter& f2) = 0;
     virtual void Compose(const ColorFilter& f) = 0;
+    virtual void InitWithLuma() = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

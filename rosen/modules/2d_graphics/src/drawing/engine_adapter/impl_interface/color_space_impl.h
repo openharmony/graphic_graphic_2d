@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+enum class CMSTransferFuncType;
+enum class CMSMatrixType;
 class Image;
 class ColorSpaceImpl : public BaseImpl {
 public:
@@ -35,6 +37,7 @@ public:
     virtual void InitWithSRGB() = 0;
     virtual void InitWithSRGBLinear() = 0;
     virtual void InitWithImage(const Image& image) = 0;
+    virtual void InitWithRGB(const CMSTransferFuncType& func, const CMSMatrixType& matrix) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

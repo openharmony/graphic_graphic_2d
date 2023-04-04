@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,6 +36,7 @@ public:
         LINEAR_TO_SRGB_GAMMA,
         SRGB_GAMMA_TO_LINEAR,
         COMPOSE,
+        LUMA,
     };
 
     static std::shared_ptr<ColorFilter> CreateBlendModeColorFilter(ColorQuad c, BlendMode mode);
@@ -43,6 +44,11 @@ public:
     static std::shared_ptr<ColorFilter> CreateMatrixColorFilter(ColorMatrix& m);
     static std::shared_ptr<ColorFilter> CreateLinearToSrgbGamma();
     static std::shared_ptr<ColorFilter> CreateSrgbGammaToLinear();
+    /*
+     * @brief   Create a ColorFilter that its type is luma.
+     * @return  A shared pointer to ColorFilter that its type is luma.
+     */
+    static std::shared_ptr<ColorFilter> CreateLumaColorFilter();
 
     ~ColorFilter() {}
     FilterType GetType() const;
