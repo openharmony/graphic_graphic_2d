@@ -186,10 +186,10 @@ bool RSComposerAdapter::IsOutOfScreenRegion(const ComposeInfo& info) const
 void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const
 {
     const auto& property = node.GetRenderProperties();
-    const float frameWidth = info.buffer->GetSurfaceBufferWidth();
-    const float frameHeight = info.buffer->GetSurfaceBufferHeight();
-    const float boundsWidth = property.GetBoundsWidth();
-    const float boundsHeight = property.GetBoundsHeight();
+    const auto frameWidth = info.buffer->GetSurfaceBufferWidth();
+    const auto frameHeight = info.buffer->GetSurfaceBufferHeight();
+    const int boundsWidth = static_cast<int>(property.GetBoundsWidth());
+    const int boundsHeight = static_cast<int>(property.GetBoundsHeight());
     const Gravity frameGravity = property.GetFrameGravity();
     // we do not need to do additional works for Gravity::RESIZE and if frameSize == boundsSize.
     if (frameGravity == Gravity::RESIZE || (frameWidth == boundsWidth && frameHeight == boundsHeight)) {
