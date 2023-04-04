@@ -179,7 +179,7 @@ HWTEST(RSBaseRenderEngineUnitTest, CreateEglImageFromBuffer001, TestSize.Level1)
     auto img = renderEngine->CreateEglImageFromBuffer(*canvas, nullptr, nullptr);
     ASSERT_EQ(nullptr, img);
 
-    auto grContext = canvas->getGrContext();
+    [[maybe_unused]] auto grContext = canvas->getGrContext();
     grContext = nullptr;
     img = renderEngine->CreateEglImageFromBuffer(*canvas, node->GetBuffer(), nullptr);
     ASSERT_EQ(nullptr, img);
