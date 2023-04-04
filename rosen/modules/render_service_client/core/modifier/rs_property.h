@@ -352,7 +352,7 @@ public:
 
     void SetUpdateCallback(const std::function<void(T)>& updateCallback)
     {
-        updateUIAnimationValue_ = updateCallback;
+        propertyChangeListener_ = updateCallback;
     }
 
 protected:
@@ -372,6 +372,8 @@ protected:
             RSProperty<T>::MarkModifierDirty();
             if (renderProperty_ != nullptr) {
                 renderProperty_->Set(value);
+            } else {
+                NotifyPropertyChange();
             }
         }
     }
@@ -391,9 +393,7 @@ protected:
         auto renderProperty = std::static_pointer_cast<const RSRenderProperty<T>>(property);
         if (renderProperty != nullptr) {
             showingValue_ = renderProperty->Get();
-            if (updateUIAnimationValue_) {
-                updateUIAnimationValue_(showingValue_);
-            }
+            NotifyPropertyChange();
             RSProperty<T>::MarkModifierDirty();
         }
     }
@@ -439,11 +439,18 @@ protected:
         return renderProperty_;
     }
 
+    void NotifyPropertyChange()
+    {
+        if (propertyChangeListener_) {
+            propertyChangeListener_(showingValue_);
+        }
+    }
+
     T showingValue_ {};
     std::shared_ptr<RSRenderAnimatableProperty<T>> renderProperty_;
     int runningPathNum_ { 0 };
     std::shared_ptr<RSMotionPathOption> motionPathOption_ {};
-    std::function<void(T)> updateUIAnimationValue_;
+    std::function<void(T)> propertyChangeListener_;
 
 private:
     RSRenderPropertyType GetPropertyType() const override
