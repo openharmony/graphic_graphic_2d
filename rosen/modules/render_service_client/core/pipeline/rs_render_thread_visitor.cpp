@@ -332,7 +332,11 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     const auto& property = node.GetRenderProperties();
     const float bufferWidth = node.GetSuggestedBufferWidth() * property.GetScaleX();
     const float bufferHeight = node.GetSuggestedBufferHeight() * property.GetScaleY();
+#ifdef ROSEN_OHOS
     auto surfaceFrame = rsSurface->RequestFrame(bufferWidth, bufferHeight, uiTimestamp_);
+#else
+    auto surfaceFrame = rsSurface->RequestFrame(std::round(bufferWidth), std::round(bufferHeight), uiTimestamp_);
+#endif
     RS_TRACE_END();
     if (surfaceFrame == nullptr) {
         ROSEN_LOGI("ProcessRoot %s: Request Frame Failed", ptr->GetName().c_str());

@@ -28,6 +28,7 @@ if (rosen_cross_platform) {
   rs_common_define += [
     "ROSEN_CROSS_PLATFORM",
     "ROSEN_TRACE_DISABLE",
+    "ROSEN_DISABLE_DEBUGLOG"
   ]
 }
 
