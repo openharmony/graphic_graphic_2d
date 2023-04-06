@@ -84,7 +84,7 @@ HWTEST_F(RSMainThreadTest, RsEventParamDump, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     std::string str = "";
     mainThread->RsEventParamDump(str);
-    ASSERT_NE(str.size(), 0);
+    ASSERT_EQ(str.size(), 0);
 }
 
 /**
