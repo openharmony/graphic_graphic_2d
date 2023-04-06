@@ -161,6 +161,8 @@ public:
         } else {
             RSBaseRenderEngine::SetHighContrast(value.highContrastText);
         }
+        RSMainThread::Instance()->PostTask(
+            []() { RSMainThread::Instance()->SetAccessibilityConfigChanged(); });
     }
 };
 #endif
@@ -783,7 +785,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
     bool needTraverseNodeTree = true;
     doDirectComposition_ = false;
-    if (doDirectComposition_ && !isDirty_) {
+    if (doDirectComposition_ && !isDirty_ && !isAccessibilityConfigChanged_) {
         if (isHardwareEnabledBufferUpdated_) {
             needTraverseNodeTree = !uniVisitor->DoDirectComposition(rootNode);
         } else {
@@ -798,7 +800,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
     if (needTraverseNodeTree) {
         uniVisitor->SetAnimateState(doWindowAnimate_);
-        uniVisitor->SetDirtyFlag(isDirty_);
+        uniVisitor->SetDirtyFlag(isDirty_ || isAccessibilityConfigChanged_);
+        isAccessibilityConfigChanged_ = false;
         uniVisitor->SetFocusedWindowPid(focusAppPid_);
         rootNode->Prepare(uniVisitor);
         CalcOcclusion();
@@ -1505,6 +1508,11 @@ void RSMainThread::AddTransactionDataPidInfo(pid_t remotePid)
 void RSMainThread::SetDirtyFlag()
 {
     isDirty_ = true;
+}
+
+void RSMainThread::SetAccessibilityConfigChanged()
+{
+    isAccessibilityConfigChanged_ = true;
 }
 
 void RSMainThread::PerfAfterAnim()
