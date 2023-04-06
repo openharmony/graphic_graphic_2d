@@ -36,6 +36,7 @@ group("unittest") {
     ":RSRenderServiceListenerTest",
     ":RSRenderServiceVisitorTest",
     ":RSSurfaceCaptureTaskTest",
+    ":RSUniRenderComposerAdapterTest",
     ":RSUniRenderEngineTest",
     ":RSUniRenderJudgementTest",
     ":RSUniRenderUtilTest",
@@ -165,6 +166,15 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
     ":rs_test_common",
     "../../../../../modules/render_service_base:render_service_base_src",
   ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSUniRenderComposerAdapterTest
+ohos_unittest("RSUniRenderComposerAdapterTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_uni_render_composer_adapter_test.cpp" ]
+  deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines
 }
