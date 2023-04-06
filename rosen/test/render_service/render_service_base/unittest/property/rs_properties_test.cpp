@@ -220,6 +220,24 @@ HWTEST_F(RSPropertiesTest, SetShadowRadius001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetShadowMask001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetShadowMask001, TestSize.Level1)
+{
+    RSProperties properties;
+    bool shadowMask = true;
+    properties.SetShadowMask(shadowMask);
+    EXPECT_EQ(properties.GetShadowMask(), shadowMask);
+
+    shadowMask = false;
+    properties.SetShadowMask(shadowMask);
+    EXPECT_EQ(properties.GetShadowMask(), shadowMask);
+}
+
+/**
  * @tc.name: SetClipBounds001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -294,5 +312,224 @@ HWTEST_F(RSPropertiesTest, Dump001, TestSize.Level1)
     properties.Dump();
 }
 
+/**
+ * @tc.name: IsPixelStretchValid001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, IsPixelStretchValid001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.IsPixelStretchValid());
+
+    Vector4f stretchSize;
+    properties.SetPixelStretch(stretchSize);
+    EXPECT_FALSE(properties.IsPixelStretchValid());
+}
+
+/**
+ * @tc.name: IsPixelStretchValid002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, IsPixelStretchValid002, TestSize.Level1)
+{
+    RSProperties properties;
+    float x = 1e-6f;
+    float y = 1e-6f;
+    float z = 1e-6f;
+    float w = 1.0;
+    Vector4f stretchSize(x, y, z, w);
+    properties.SetPixelStretch(stretchSize);
+    EXPECT_TRUE(properties.IsPixelStretchValid());
+
+    x = -(1e-6f);
+    y = -(1e-6f);
+    z = -(1e-6f);
+    w = -1.0;
+    stretchSize = Vector4f(x, y, z, w);
+    properties.SetPixelStretch(stretchSize);
+    EXPECT_TRUE(properties.IsPixelStretchValid());
+}
+
+/**
+ * @tc.name: IsPixelStretchValid003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, IsPixelStretchValid003, TestSize.Level1)
+{
+    RSProperties properties;
+    float x = -1.0;
+    float y = -1.0;
+    float z = -1.0;
+    float w = 1.0;
+    Vector4f stretchSize(x, y, z, w);
+    properties.SetPixelStretch(stretchSize);
+    EXPECT_FALSE(properties.IsPixelStretchValid());
+
+    x = 1.0;
+    y = 1.0;
+    z = 1.0;
+    w = -1.0;
+    stretchSize = Vector4f(x, y, z, w);
+    properties.SetPixelStretch(stretchSize);
+    EXPECT_FALSE(properties.IsPixelStretchValid());
+}
+
+/**
+ * @tc.name: IsPixelStretchValid004
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, IsPixelStretchValid004, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f stretchSize(-(1e-6f));
+    properties.SetPixelStretch(stretchSize);
+    EXPECT_TRUE(properties.IsPixelStretchValid());
+
+    stretchSize = Vector4f(1e-6f);
+    properties.SetPixelStretch(stretchSize);
+    EXPECT_TRUE(properties.IsPixelStretchValid());
+}
+
+/**
+ * @tc.name: IsPixelStretchPercentValid001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, IsPixelStretchPercentValid001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.IsPixelStretchPercentValid());
+
+    Vector4f stretchPercent;
+    properties.SetPixelStretchPercent(stretchPercent);
+    EXPECT_FALSE(properties.IsPixelStretchPercentValid());
+}
+
+/**
+ * @tc.name: IsPixelStretchPercentValid002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, IsPixelStretchPercentValid002, TestSize.Level1)
+{
+    RSProperties properties;
+    float x = 1e-6f;
+    float y = 1e-6f;
+    float z = 1e-6f;
+    float w = 1.0;
+    Vector4f stretchPercent(x, y, z, w);
+    properties.SetPixelStretchPercent(stretchPercent);
+    EXPECT_TRUE(properties.IsPixelStretchPercentValid());
+
+    x = -(1e-6f);
+    y = -(1e-6f);
+    z = -(1e-6f);
+    w = -1.0;
+    stretchPercent = Vector4f(x, y, z, w);
+    properties.SetPixelStretchPercent(stretchPercent);
+    EXPECT_TRUE(properties.IsPixelStretchPercentValid());
+}
+
+/**
+ * @tc.name: IsPixelStretchPercentValid003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, IsPixelStretchPercentValid003, TestSize.Level1)
+{
+    RSProperties properties;
+    float x = -1.0;
+    float y = -1.0;
+    float z = -1.0;
+    float w = 1.0;
+    Vector4f stretchPercent(x, y, z, w);
+    properties.SetPixelStretchPercent(stretchPercent);
+    EXPECT_FALSE(properties.IsPixelStretchPercentValid());
+
+    x = 1.0;
+    y = 1.0;
+    z = 1.0;
+    w = -1.0;
+    stretchPercent = Vector4f(x, y, z, w);
+    properties.SetPixelStretchPercent(stretchPercent);
+    EXPECT_FALSE(properties.IsPixelStretchPercentValid());
+}
+
+/**
+ * @tc.name: IsPixelStretchPercentValid004
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, IsPixelStretchPercentValid004, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f stretchPercent(-(1e-6f));
+    properties.SetPixelStretchPercent(stretchPercent);
+    EXPECT_TRUE(properties.IsPixelStretchPercentValid());
+
+    stretchPercent = Vector4f(1e-6f);
+    properties.SetPixelStretchPercent(stretchPercent);
+    EXPECT_TRUE(properties.IsPixelStretchPercentValid());
+}
+
+/**
+ * @tc.name: IsPixelStretchExpanded001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, IsPixelStretchExpanded001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.IsPixelStretchExpanded());
+}
+
+/**
+ * @tc.name: IsPixelStretchExpanded002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, IsPixelStretchExpanded002, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f stretchSize(-1.0);
+    properties.SetPixelStretch(stretchSize);
+    EXPECT_FALSE(properties.IsPixelStretchExpanded());
+
+    stretchSize = Vector4f(1e-6f);
+    properties.SetPixelStretch(stretchSize);
+    EXPECT_TRUE(properties.IsPixelStretchExpanded());
+}
+
+/**
+ * @tc.name: IsPixelStretchExpanded003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, IsPixelStretchExpanded003, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f stretchPercent(-1.0);
+    properties.SetPixelStretchPercent(stretchPercent);
+    EXPECT_FALSE(properties.IsPixelStretchExpanded());
+
+    stretchPercent = Vector4f(1e-6f);
+    properties.SetPixelStretchPercent(stretchPercent);
+    EXPECT_TRUE(properties.IsPixelStretchExpanded());
+}
 } // namespace Rosen
 } // namespace OHOS
