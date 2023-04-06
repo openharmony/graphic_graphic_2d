@@ -271,6 +271,9 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     if (geoPtr != nullptr) {
         geoPtr->UpdateByMatrixFromSelf();
         parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
+        if (geoPtr->IsNeedClientCompose()) {
+            isHardwareForcedDisabled_ = true;
+        }
     }
     dirtyFlag_ = dirtyFlag_ || node.IsRotationChanged();
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
