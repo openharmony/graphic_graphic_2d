@@ -50,13 +50,19 @@ ohos_shared_library("skeffectchain") {
     "//foundation/multimedia/image_framework/frameworks/innerkitsimpl/pixelconverter:pixelconvertadapter",
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
     "//foundation/multimedia/image_framework/interfaces/kits/js/common:image",
-    "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
 
   if (ace_enable_gpu) {
     defines = gpu_defines
     public_deps += [ "//foundation/graphic/graphic_2d:libgl" ]
   }
+
+  if (defined(use_new_skia) && use_new_skia) {
+    public_deps += [ "//third_party/skia:skia" ]
+  } else {
+    public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  }
+
   external_deps = [
     "hitrace_native:hitrace_meter",
     "init:libbegetutil",
