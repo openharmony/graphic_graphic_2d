@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
+
 #include "transaction/rs_transaction.h"
 
 using namespace testing;
@@ -45,5 +46,26 @@ HWTEST_F(RSTransactionTest, FlushImplicitTransaction001, TestSize.Level1)
     //      which constructor is privated.
     //      Only use its static function.
     RSTransaction::FlushImplicitTransaction();
+}
+
+/**
+ * @tc.name: Marshalling001
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSTransactionTest, Marshalling001, TestSize.Level1)
+{
+    RSTransaction rsTransaction;
+    rsTransaction.Begin();
+    rsTransaction.OpenSyncTransaction();
+    MessageParcel messageParcel;
+    rsTransaction.MarshallTransactionSyncController(messageParcel);
+    rsTransaction.UnmarshallTransactionSyncController(messageParcel);
+    rsTransaction.Commit();
+    Parcel parcel;
+    EXPECT_TRUE(rsTransaction.Marshalling(parcel));
+    EXPECT_NE(rsTransaction.Unmarshalling(parcel), nullptr);
 }
 } // namespace OHOS::Rosen

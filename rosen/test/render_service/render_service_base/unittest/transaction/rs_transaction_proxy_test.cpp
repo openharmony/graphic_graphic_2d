@@ -38,12 +38,12 @@ void RSTransactionProxyTest::SetUp() {}
 void RSTransactionProxyTest::TearDown() {}
 
 /**
- * @tc.name: SetRenderThreadClient001
+ * @tc.name: SetRenderServiceClient001
  * @tc.desc: test
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSTransactionProxyTest, SetRenderThreadClient001, TestSize.Level1)
+HWTEST_F(RSTransactionProxyTest, SetRenderServiceClient001, TestSize.Level1)
 {
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
@@ -51,12 +51,12 @@ HWTEST_F(RSTransactionProxyTest, SetRenderThreadClient001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetRenderThreadClient002
+ * @tc.name: SetRenderServiceClient002
  * @tc.desc: test
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSTransactionProxyTest, SetRenderThreadClient002, TestSize.Level1)
+HWTEST_F(RSTransactionProxyTest, SetRenderServiceClient002, TestSize.Level1)
 {
     auto renderServiceClient = nullptr;
     ASSERT_EQ(renderServiceClient, nullptr);

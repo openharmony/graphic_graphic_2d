@@ -14,13 +14,14 @@
 import("//build/test.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
 
-module_output_path = "graphic/rosen_engine/render_service_base/Common"
+module_output_path = "graphic/rosen_engine/render_service_base/common"
 
 ##############################  RSRenderServiceBaseCommonTest  ##################################
 ohos_unittest("RSRenderServiceBaseCommonTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_color_test.cpp",
     "rs_occlusion_region_test.cpp",
     "rs_thread_looper_impl_test.cpp",
   ]

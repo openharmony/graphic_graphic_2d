@@ -17,7 +17,7 @@ import("//foundation/arkui/ace_engine/ace_config.gni")
 module_output_path = "graphic/rosen_engine/render_service_client/transaction"
 
 ##############################  RSRenderTransactionTest  ##################################
-ohos_unittest("RSRenderTransactionTest") {
+ohos_unittest("RSRenderServiceClientTransactionTest") {
   module_out_path = module_output_path
 
   sources = [ "rs_transaction_test.cpp" ]
@@ -29,7 +29,7 @@ ohos_unittest("RSRenderTransactionTest") {
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "../../../../../modules/render_service_client:render_service_client_src",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -49,5 +49,5 @@ config("ui_test") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":RSRenderTransactionTest" ]
+  deps = [ ":RSRenderServiceClientTransactionTest" ]
 }

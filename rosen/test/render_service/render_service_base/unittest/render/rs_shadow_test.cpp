@@ -43,7 +43,7 @@ HWTEST_F(RSShadowTest, LifeCycle001, TestSize.Level1)
     /**
      * @tc.steps: step1. create RSMask by Gradient
      */
-    std::shared_ptr<RSShadow>rsShadow = std::make_shared<RSShadow>();
+    std::shared_ptr<RSShadow> rsShadow = std::make_shared<RSShadow>();
     ASSERT_FALSE(rsShadow->IsValid());
     rsShadow->SetElevation(5.f);
     ASSERT_FALSE(rsShadow->IsValid());
