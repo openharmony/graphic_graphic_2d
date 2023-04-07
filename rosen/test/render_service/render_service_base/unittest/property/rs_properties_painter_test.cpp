@@ -49,6 +49,7 @@ HWTEST_F(RSPropertiesPainterTest, GetGravityMatrix001, TestSize.Level1)
     float w = 0.1;
     float h = 0.1;
     SkMatrix mat;
+    EXPECT_TRUE(RSPropertiesPainter::GetGravityMatrix(Gravity::CENTER, rect, w, h, mat));
     RSPropertiesPainter::GetGravityMatrix(Gravity::TOP, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::BOTTOM, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::LEFT, rect, w, h, mat);
@@ -60,6 +61,8 @@ HWTEST_F(RSPropertiesPainterTest, GetGravityMatrix001, TestSize.Level1)
     RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::DEFAULT, rect, w, h, mat);
+    Gravity gravity = static_cast<Gravity>(100);
+    EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(gravity, rect, w, h, mat));
 }
 
 /**
