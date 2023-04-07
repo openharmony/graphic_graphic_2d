@@ -33,6 +33,271 @@ std::shared_ptr<DrawCmdList> RSRecordingCanvas::GetDrawCmdList() const
     return drawCmdList_;
 }
 
+#ifdef NEW_SKIA
+SkISize RSRecordingCanvas::getBaseLayerSize() const
+{
+    return SkISize();
+}
+
+GrRecordingContext* RSRecordingCanvas::recordingContext()
+{
+    return grContext_;
+}
+
+void RSRecordingCanvas::SetGrRecordingContext(GrRecordingContext* context)
+{
+    grContext_ = context;
+}
+
+bool RSRecordingCanvas::isClipEmpty() const
+{
+    return true;
+}
+
+bool RSRecordingCanvas::isClipRect() const
+{
+    return true;
+}
+
+bool RSRecordingCanvas::onPeekPixels(SkPixmap* pixmap)
+{
+    return true;
+}
+
+bool RSRecordingCanvas::onAccessTopLayerPixels(SkPixmap* pixmap)
+{
+    return true;
+}
+
+SkImageInfo RSRecordingCanvas::onImageInfo() const
+{
+    return SkImageInfo();
+}
+
+bool RSRecordingCanvas::onGetProps(SkSurfaceProps* props) const
+{
+    return true;
+}
+
+void RSRecordingCanvas::onDrawGlyphRunList(const SkGlyphRunList& glyphRunList, const SkPaint& paint)
+{
+    ROSEN_LOGI("RSRecordingCanvas::onDrawGlyphRunList not support yet");
+}
+void RSRecordingCanvas::onDrawImage2(const SkImage* img, SkScalar dx, SkScalar dy,
+    const SkSamplingOptions& samplingOptions, const SkPaint* paint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<BitmapOpItem>(sk_ref_sp(img), dx, dy, samplingOptions, paint);
+    AddOp(std::move(op));
+}
+void RSRecordingCanvas::onDrawImageRect2(const SkImage* img, const SkRect& src, const SkRect& dst,
+    const SkSamplingOptions& samplingOptions, const SkPaint* paint, SrcRectConstraint constraint)
+{
+    std::unique_ptr<OpItem> op =
+        std::make_unique<BitmapRectOpItem>(sk_ref_sp(img), &src, dst, samplingOptions, paint, constraint);
+    AddOp(std::move(op));
+}
+void RSRecordingCanvas::onDrawImageLattice2(const SkImage* img, const Lattice& lattice, const SkRect& dst,
+    SkFilterMode mode, const SkPaint* paint)
+{
+    DrawImageLatticeAsBitmap(img, lattice, dst, paint);
+}
+
+void RSRecordingCanvas::onDrawAtlas2(const SkImage*, const SkRSXform[], const SkRect src[],
+    const SkColor[], int count, SkBlendMode mode, const SkSamplingOptions& samplingOptions,
+    const SkRect* cull, const SkPaint* paint)
+{
+    ROSEN_LOGI("RSRecordingCanvas::onDrawAtlas2 not support yet");
+}
+void RSRecordingCanvas::onDrawEdgeAAImageSet2(const ImageSetEntry imageSet[], int count,
+    const SkPoint dstClips[], const SkMatrix preViewMatrices[],
+    const SkSamplingOptions& SamplingOptions, const SkPaint* paint,
+    SrcRectConstraint constraint)
+{
+    ROSEN_LOGI("RSRecordingCanvas::onDrawEdgeAAImageSet2 not support yet");
+}
+void RSRecordingCanvas::onDrawVerticesObject(const SkVertices* vertices, SkBlendMode mode, const SkPaint& paint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<VerticesOpItem>(vertices, mode, paint);
+    AddOp(std::move(op));
+}
+void RSRecordingCanvas::onDrawEdgeAAQuad(const SkRect& rect, const SkPoint clip[4], QuadAAFlags aaFlags,
+    const SkColor4f& color, SkBlendMode mode)
+{
+    ROSEN_LOGI("RSRecordingCanvas::onDrawEdgeAAQuad not support yet");
+}
+void RSRecordingCanvas::onClipShader(sk_sp<SkShader>, SkClipOp)
+{
+    ROSEN_LOGI("RSRecordingCanvas::onClipShader not support yet");
+}
+
+void RSRecordingCanvas::onResetClip()
+{
+    ROSEN_LOGI("RSRecordingCanvas::onResetClip not support yet");
+}
+
+void RSRecordingCanvas::onDiscard()
+{
+    ROSEN_LOGI("RSRecordingCanvas::onDiscard not support yet");
+}
+
+void RSRecordingCanvas::DrawPixelMapRect(
+    const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& src, const SkRect& dst,
+    const SkSamplingOptions& samplingOptions, const SkPaint* paint, SrcRectConstraint constraint)
+{
+    std::unique_ptr<OpItem> op =
+        std::make_unique<PixelMapRectOpItem>(pixelmap, src, dst, samplingOptions, paint, constraint);
+    AddOp(std::move(op));
+}
+
+void RSRecordingCanvas::DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& dst,
+    const SkSamplingOptions& samplingOptions, const SkPaint* paint)
+{
+    DrawPixelMapRect(pixelmap, SkRect::MakeIWH(pixelmap->GetWidth(), pixelmap->GetHeight()),
+        dst, samplingOptions, paint);
+}
+
+void RSRecordingCanvas::DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap, SkScalar x, SkScalar y,
+    const SkSamplingOptions& samplingOptions, const SkPaint* paint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<PixelMapOpItem>(pixelmap, x, y, samplingOptions, paint);
+    AddOp(std::move(op));
+}
+#else
+GrContext* RSRecordingCanvas::getGrContext()
+{
+    return grContext_;
+}
+
+void RSRecordingCanvas::SetGrContext(GrContext* grContext)
+{
+    grContext_ = grContext;
+}
+
+void RSRecordingCanvas::didConcat(const SkMatrix& matrix)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<ConcatOpItem>(matrix);
+    AddOp(std::move(op));
+}
+
+void RSRecordingCanvas::didSetMatrix(const SkMatrix& matrix)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<MatrixOpItem>(matrix);
+    AddOp(std::move(op));
+}
+
+void RSRecordingCanvas::onDrawBitmap(const SkBitmap& bm, SkScalar x, SkScalar y, const SkPaint* paint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<BitmapOpItem>(SkImage::MakeFromBitmap(bm), x, y, paint);
+    AddOp(std::move(op));
+}
+
+void RSRecordingCanvas::onDrawBitmapLattice(
+    const SkBitmap& bm, const SkCanvas::Lattice& lattice, const SkRect& dst, const SkPaint* paint)
+{
+    // use DrawImageLatticeAsBitmap instead of BitmapLatticeOpItem
+    sk_sp<SkImage> image =  SkImage::MakeFromBitmap(bm);
+    DrawImageLatticeAsBitmap(image.get(), lattice, dst, paint);
+}
+
+void RSRecordingCanvas::onDrawBitmapNine(
+    const SkBitmap& bm, const SkIRect& center, const SkRect& dst, const SkPaint* paint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<BitmapNineOpItem>(SkImage::MakeFromBitmap(bm), center, dst, paint);
+    AddOp(std::move(op));
+}
+
+void RSRecordingCanvas::onDrawBitmapRect(
+    const SkBitmap& bm, const SkRect* src, const SkRect& dst, const SkPaint* paint, SrcRectConstraint constraint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<BitmapRectOpItem>(SkImage::MakeFromBitmap(bm), src, dst, paint);
+    AddOp(std::move(op));
+}
+
+void RSRecordingCanvas::onDrawImage(const SkImage* img, SkScalar x, SkScalar y, const SkPaint* paint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<BitmapOpItem>(sk_ref_sp(img), x, y, paint);
+    AddOp(std::move(op));
+}
+
+void RSRecordingCanvas::onDrawImageLattice(
+    const SkImage* img, const SkCanvas::Lattice& lattice, const SkRect& dst, const SkPaint* paint)
+{
+    // use DrawImageLatticeAsBitmap instead of BitmapLatticeOpItem
+    DrawImageLatticeAsBitmap(img, lattice, dst, paint);
+}
+
+void RSRecordingCanvas::onDrawImageNine(
+    const SkImage* img, const SkIRect& center, const SkRect& dst, const SkPaint* paint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<BitmapNineOpItem>(sk_ref_sp(img), center, dst, paint);
+    AddOp(std::move(op));
+}
+
+void RSRecordingCanvas::onDrawImageRect(
+    const SkImage* img, const SkRect* src, const SkRect& dst, const SkPaint* paint, SrcRectConstraint constraint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<BitmapRectOpItem>(sk_ref_sp(img), src, dst, paint);
+    AddOp(std::move(op));
+}
+
+void RSRecordingCanvas::onDrawVerticesObject(
+    const SkVertices* vertices, const SkVertices::Bone bones[], int boneCount, SkBlendMode mode, const SkPaint& paint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<VerticesOpItem>(vertices, bones, boneCount, mode, paint);
+    AddOp(std::move(op));
+}
+
+void RSRecordingCanvas::onDrawAtlas(const SkImage* atlas, const SkRSXform xforms[], const SkRect texs[],
+    const SkColor colors[], int count, SkBlendMode bmode, const SkRect* cull, const SkPaint* paint)
+{
+    // [PLANNING]: To be implemented
+    ROSEN_LOGE("RSRecordingCanvas::onDrawAtlas not support yet");
+}
+
+void RSRecordingCanvas::DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& src,
+    const SkRect& dst, const SkPaint* paint, SrcRectConstraint constraint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<PixelMapRectOpItem>(pixelmap, src, dst, paint);
+    AddOp(std::move(op));
+}
+
+void RSRecordingCanvas::DrawPixelMapRect(
+    const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& dst, const SkPaint* paint)
+{
+    DrawPixelMapRect(pixelmap, SkRect::MakeIWH(pixelmap->GetWidth(), pixelmap->GetHeight()), dst, paint);
+}
+
+void RSRecordingCanvas::DrawPixelMap(
+    const std::shared_ptr<Media::PixelMap>& pixelmap, SkScalar x, SkScalar y, const SkPaint* paint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<PixelMapOpItem>(pixelmap, x, y, paint);
+    AddOp(std::move(op));
+}
+#endif
+
+void RSRecordingCanvas::DrawImageLatticeAsBitmap(
+    const SkImage* image, const SkCanvas::Lattice& lattice, const SkRect& dst, const SkPaint* paint)
+{
+    SkBitmap bitmap;
+    auto imageInfo = SkImageInfo::Make(dst.width(), dst.height(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    bitmap.allocPixels(imageInfo);
+    SkCanvas tempCanvas(bitmap);
+    // align to [0, 0]
+    tempCanvas.translate(-dst.left(), -dst.top());
+#ifdef NEW_SKIA
+    tempCanvas.drawImageLattice(image, lattice, dst, SkFilterMode::kNearest, paint);
+#else
+    tempCanvas.drawImageLattice(image, lattice, dst, paint);
+#endif
+    tempCanvas.flush();
+    // draw on canvas with correct offset
+#ifdef NEW_SKIA
+    drawImage(bitmap.asImage(), dst.left(), dst.top());
+#else
+    drawBitmap(bitmap, dst.left(), dst.top());
+#endif
+}
+
 void RSRecordingCanvas::Clear() const
 {
     if (drawCmdList_ == nullptr) {
@@ -48,16 +313,6 @@ void RSRecordingCanvas::AddOp(std::unique_ptr<OpItem>&& opItem)
         return;
     }
     drawCmdList_->AddOp(std::move(opItem));
-}
-
-GrContext* RSRecordingCanvas::getGrContext()
-{
-    return grContext_;
-}
-
-void RSRecordingCanvas::SetGrContext(GrContext* grContext)
-{
-    grContext_ = grContext;
 }
 
 sk_sp<SkSurface> RSRecordingCanvas::onNewSurface(const SkImageInfo& info, const SkSurfaceProps& props)
@@ -93,18 +348,6 @@ void RSRecordingCanvas::willRestore()
         AddOp(std::move(op));
         --saveCount_;
     }
-}
-
-void RSRecordingCanvas::didConcat(const SkMatrix& matrix)
-{
-    std::unique_ptr<OpItem> op = std::make_unique<ConcatOpItem>(matrix);
-    AddOp(std::move(op));
-}
-
-void RSRecordingCanvas::didSetMatrix(const SkMatrix& matrix)
-{
-    std::unique_ptr<OpItem> op = std::make_unique<MatrixOpItem>(matrix);
-    AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::didTranslate(SkScalar dx, SkScalar dy)
@@ -148,26 +391,6 @@ void RSRecordingCanvas::DrawImageWithParm(const sk_sp<SkImage>img, const sk_sp<S
 {
     std::unique_ptr<OpItem> op = std::make_unique<ImageWithParmOpItem>(img, data, rsimageInfo, paint);
     AddOp(std::move(op));
-}
-
-void RSRecordingCanvas::DrawPixelMap(
-    const std::shared_ptr<Media::PixelMap>& pixelmap, SkScalar x, SkScalar y, const SkPaint* paint)
-{
-    std::unique_ptr<OpItem> op = std::make_unique<PixelMapOpItem>(pixelmap, x, y, paint);
-    AddOp(std::move(op));
-}
-
-void RSRecordingCanvas::DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& src,
-    const SkRect& dst, const SkPaint* paint, SrcRectConstraint constraint)
-{
-    std::unique_ptr<OpItem> op = std::make_unique<PixelMapRectOpItem>(pixelmap, src, dst, paint);
-    AddOp(std::move(op));
-}
-
-void RSRecordingCanvas::DrawPixelMapRect(
-    const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& dst, const SkPaint* paint)
-{
-    DrawPixelMapRect(pixelmap, SkRect::MakeIWH(pixelmap->GetWidth(), pixelmap->GetHeight()), dst, paint);
 }
 
 void RSRecordingCanvas::DrawPixelMapWithParm(
@@ -255,76 +478,6 @@ void RSRecordingCanvas::onDrawTextBlob(const SkTextBlob* blob, SkScalar x, SkSca
     AddOp(std::move(op));
 }
 
-void RSRecordingCanvas::onDrawBitmap(const SkBitmap& bm, SkScalar x, SkScalar y, const SkPaint* paint)
-{
-    std::unique_ptr<OpItem> op = std::make_unique<BitmapOpItem>(SkImage::MakeFromBitmap(bm), x, y, paint);
-    AddOp(std::move(op));
-}
-
-void RSRecordingCanvas::onDrawBitmapNine(
-    const SkBitmap& bm, const SkIRect& center, const SkRect& dst, const SkPaint* paint)
-{
-    std::unique_ptr<OpItem> op = std::make_unique<BitmapNineOpItem>(SkImage::MakeFromBitmap(bm), center, dst, paint);
-    AddOp(std::move(op));
-}
-
-void RSRecordingCanvas::onDrawBitmapRect(
-    const SkBitmap& bm, const SkRect* src, const SkRect& dst, const SkPaint* paint, SrcRectConstraint constraint)
-{
-    std::unique_ptr<OpItem> op = std::make_unique<BitmapRectOpItem>(SkImage::MakeFromBitmap(bm), src, dst, paint);
-    AddOp(std::move(op));
-}
-
-void RSRecordingCanvas::onDrawBitmapLattice(
-    const SkBitmap& bm, const SkCanvas::Lattice& lattice, const SkRect& dst, const SkPaint* paint)
-{
-    // use DrawImageLatticeAsBitmap instead of BitmapLatticeOpItem
-    sk_sp<SkImage> image =  SkImage::MakeFromBitmap(bm);
-    DrawImageLatticeAsBitmap(image.get(), lattice, dst, paint);
-}
-
-void RSRecordingCanvas::onDrawImage(const SkImage* img, SkScalar x, SkScalar y, const SkPaint* paint)
-{
-    std::unique_ptr<OpItem> op = std::make_unique<BitmapOpItem>(sk_ref_sp(img), x, y, paint);
-    AddOp(std::move(op));
-}
-
-void RSRecordingCanvas::onDrawImageNine(
-    const SkImage* img, const SkIRect& center, const SkRect& dst, const SkPaint* paint)
-{
-    std::unique_ptr<OpItem> op = std::make_unique<BitmapNineOpItem>(sk_ref_sp(img), center, dst, paint);
-    AddOp(std::move(op));
-}
-
-void RSRecordingCanvas::onDrawImageRect(
-    const SkImage* img, const SkRect* src, const SkRect& dst, const SkPaint* paint, SrcRectConstraint constraint)
-{
-    std::unique_ptr<OpItem> op = std::make_unique<BitmapRectOpItem>(sk_ref_sp(img), src, dst, paint);
-    AddOp(std::move(op));
-}
-
-void RSRecordingCanvas::onDrawImageLattice(
-    const SkImage* img, const SkCanvas::Lattice& lattice, const SkRect& dst, const SkPaint* paint)
-{
-    // use DrawImageLatticeAsBitmap instead of BitmapLatticeOpItem
-    DrawImageLatticeAsBitmap(img, lattice, dst, paint);
-}
-
-void RSRecordingCanvas::DrawImageLatticeAsBitmap(
-    const SkImage* image, const SkCanvas::Lattice& lattice, const SkRect& dst, const SkPaint* paint)
-{
-    SkBitmap bitmap;
-    auto imageInfo = SkImageInfo::Make(dst.width(), dst.height(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    bitmap.allocPixels(imageInfo);
-    SkCanvas tempCanvas(bitmap);
-    // align to [0, 0]
-    tempCanvas.translate(-dst.left(), -dst.top());
-    tempCanvas.drawImageLattice(image, lattice, dst, paint);
-    tempCanvas.flush();
-    // draw on canvas with correct offset
-    drawBitmap(bitmap, dst.left(), dst.top());
-}
-
 void RSRecordingCanvas::DrawAdaptiveRRect(float radius, const SkPaint& paint)
 {
     std::unique_ptr<OpItem> op = std::make_unique<AdaptiveRRectOpItem>(radius, paint);
@@ -360,20 +513,6 @@ void RSRecordingCanvas::onDrawPoints(SkCanvas::PointMode mode, size_t count, con
 {
     std::unique_ptr<OpItem> op = std::make_unique<PointsOpItem>(mode, count, pts, paint);
     AddOp(std::move(op));
-}
-
-void RSRecordingCanvas::onDrawVerticesObject(
-    const SkVertices* vertices, const SkVertices::Bone bones[], int boneCount, SkBlendMode mode, const SkPaint& paint)
-{
-    std::unique_ptr<OpItem> op = std::make_unique<VerticesOpItem>(vertices, bones, boneCount, mode, paint);
-    AddOp(std::move(op));
-}
-
-void RSRecordingCanvas::onDrawAtlas(const SkImage* atlas, const SkRSXform xforms[], const SkRect texs[],
-    const SkColor colors[], int count, SkBlendMode bmode, const SkRect* cull, const SkPaint* paint)
-{
-    // [PLANNING]: To be implemented
-    ROSEN_LOGE("RSRecordingCanvas::onDrawAtlas not support yet");
 }
 
 void RSRecordingCanvas::onDrawShadowRec(const SkPath& path, const SkDrawShadowRec& rec)
