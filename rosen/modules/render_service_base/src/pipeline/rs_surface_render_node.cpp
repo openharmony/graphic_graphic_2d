@@ -914,5 +914,12 @@ float RSSurfaceRenderNode::GetLocalZOrder() const
 {
     return localZOrder_;
 }
+
+void RSSurfaceRenderNode::OnApplyModifiers()
+{
+    // concat context matrix into bounds geometry
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(GetMutableRenderProperties().GetBoundsGeometry());
+    geoPtr->ConcatMatrix(contextMatrix_);
+}
 } // namespace Rosen
 } // namespace OHOS

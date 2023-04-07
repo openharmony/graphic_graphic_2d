@@ -523,7 +523,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     } else {
         dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_, prepareClipRect_);
     }
-    geoPtr->ConcatMatrix(node.GetContextMatrix());
     // if expand screen, start from screen width
     node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(curDisplayNode_->GetDisplayOffsetX(),
         curDisplayNode_->GetDisplayOffsetY(), screenInfo_.width, screenInfo_.height)));
