@@ -193,6 +193,8 @@ public:
 
     void SetContextBounds(const Vector4f bounds);
 
+    void OnApplyModifiers() override;
+
     void SetTotalMatrix(const SkMatrix& totalMatrix)
     {
         totalMatrix_ = totalMatrix;

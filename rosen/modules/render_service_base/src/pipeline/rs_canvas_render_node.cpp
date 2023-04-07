@@ -182,9 +182,8 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas)
     }
 }
 
-void RSCanvasRenderNode::ApplyModifiers()
+void RSCanvasRenderNode::OnApplyModifiers()
 {
-    RSRenderNode::ApplyModifiers();
     GetMutableRenderProperties().backref_ = ReinterpretCastTo<RSRenderNode>();
 }
 

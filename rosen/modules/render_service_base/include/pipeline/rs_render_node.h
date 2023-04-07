@@ -103,7 +103,8 @@ public:
     void AddModifier(const std::shared_ptr<RSRenderModifier> modifier);
     void RemoveModifier(const PropertyId& id);
 
-    virtual void ApplyModifiers();
+    void ApplyModifiers();
+    virtual void OnApplyModifiers() {}
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
 
     bool IsShadowValidLastFrame() const

@@ -318,7 +318,7 @@ void RSRenderNode::ApplyModifiers()
             modifier->Apply(context);
         }
     }
-
+    OnApplyModifiers();
     UpdateOverlayBounds();
 }
 
