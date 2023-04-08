@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,16 +28,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSSurfaceCaptureTask {
-public:
-    explicit RSSurfaceCaptureTask(NodeId nodeId, float scaleX, float scaleY)
-        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY) {}
-    ~RSSurfaceCaptureTask() = default;
-
-    std::unique_ptr<Media::PixelMap> Run();
-
-private:
-    class RSSurfaceCaptureVisitor : public RSNodeVisitor {
+class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:
         RSSurfaceCaptureVisitor(float scaleX, float scaleY, bool isUniRender);
         ~RSSurfaceCaptureVisitor() noexcept override = default;
@@ -98,7 +89,17 @@ private:
         std::shared_ptr<RSBaseRenderEngine> renderEngine_;
 
         std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
-    };
+};
+class RSSurfaceCaptureTask {
+public:
+    explicit RSSurfaceCaptureTask(NodeId nodeId, float scaleX, float scaleY)
+        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY) {}
+    ~RSSurfaceCaptureTask() = default;
+
+    std::unique_ptr<Media::PixelMap> Run();
+
+private:
+    std::shared_ptr<RSSurfaceCaptureVisitor> visitor_ = nullptr;
 
     sk_sp<SkSurface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
 
