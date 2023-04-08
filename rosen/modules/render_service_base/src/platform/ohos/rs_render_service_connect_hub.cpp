@@ -58,7 +58,7 @@ RSRenderServiceConnectHub::RSRenderServiceConnectHub()
     RS_LOGI("RSRenderServiceConnectHub: ctor");
 }
 
-RSRenderServiceConnectHub::~RSRenderServiceConnectHub()
+RSRenderServiceConnectHub::~RSRenderServiceConnectHub() noexcept
 {
     if (renderService_ && renderService_->AsObject() && deathRecipient_) {
         renderService_->AsObject()->RemoveDeathRecipient(deathRecipient_);
