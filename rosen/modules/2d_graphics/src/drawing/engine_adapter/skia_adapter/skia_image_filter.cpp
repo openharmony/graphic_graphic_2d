@@ -17,7 +17,7 @@
 
 #include "include/effects/SkImageFilters.h"
 
-#if !defined(USE_CANVASKIT0310_SKIA)
+#if !defined(USE_CANVASKIT0310_SKIA) && !defined(NEW_SKIA)
 #include "include/effects/SkBlurImageFilter.h"
 #endif
 
@@ -35,7 +35,7 @@ void SkiaImageFilter::InitWithBlur(scalar sigmaX, scalar sigmaY, const ImageFilt
 {
     auto input = f.GetImpl<SkiaImageFilter>();
     if (input != nullptr) {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
         filter_ = SkImageFilters::Blur(sigmaX, sigmaY, input->GetImageFilter());
 #else
         filter_ = SkBlurImageFilter::Make(sigmaX, sigmaY, input->GetImageFilter());

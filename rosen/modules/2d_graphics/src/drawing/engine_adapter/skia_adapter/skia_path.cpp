@@ -59,7 +59,7 @@ void SkiaPath::ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar 
 
 void SkiaPath::ArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar endX, scalar endY)
 {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     SkPathDirection pathDir = static_cast<SkPathDirection>(direction);
 #else
     SkPath::Direction pathDir = static_cast<SkPath::Direction>(direction);
@@ -80,7 +80,7 @@ void SkiaPath::QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endP
 
 void SkiaPath::AddRect(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir)
 {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
 #else
     SkPath::Direction pathDir = static_cast<SkPath::Direction>(dir);
@@ -90,7 +90,7 @@ void SkiaPath::AddRect(scalar left, scalar top, scalar right, scalar bottom, Pat
 
 void SkiaPath::AddOval(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir)
 {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
 #else
     SkPath::Direction pathDir = static_cast<SkPath::Direction>(dir);
@@ -114,7 +114,7 @@ void SkiaPath::AddPoly(const std::vector<Point>& points, int count, bool close)
 
 void SkiaPath::AddCircle(scalar x, scalar y, scalar radius, PathDirection dir)
 {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
 #else
     SkPath::Direction pathDir = static_cast<SkPath::Direction>(dir);
@@ -125,7 +125,7 @@ void SkiaPath::AddCircle(scalar x, scalar y, scalar radius, PathDirection dir)
 void SkiaPath::AddRoundRect(
     scalar left, scalar top, scalar right, scalar bottom, scalar xRadius, scalar yRadius, PathDirection dir)
 {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
 #else
     SkPath::Direction pathDir = static_cast<SkPath::Direction>(dir);
@@ -166,7 +166,7 @@ Rect SkiaPath::GetBounds() const
 
 void SkiaPath::SetFillStyle(PathFillType fillstyle)
 {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     SkPathFillType ft = static_cast<SkPathFillType>(fillstyle);
 #else
     SkPath::FillType ft = static_cast<SkPath::FillType>(fillstyle);
