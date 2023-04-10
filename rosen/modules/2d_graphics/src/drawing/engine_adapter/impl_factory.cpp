@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -94,6 +94,11 @@ std::unique_ptr<MatrixImpl> ImplFactory::CreateMatrixImpl()
 std::unique_ptr<CameraImpl> ImplFactory::CreateCameraImpl()
 {
     return EngineImplFactory::CreateCamera();
+}
+
+std::unique_ptr<RegionImpl> ImplFactory::CreateRegionImpl()
+{
+    return EngineImplFactory::CreateRegion();
 }
 } // namespace Drawing
 } // namespace Rosen

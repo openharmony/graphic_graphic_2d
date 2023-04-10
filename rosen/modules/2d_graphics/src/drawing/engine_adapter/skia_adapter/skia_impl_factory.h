@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,6 +28,7 @@
 #include "impl_interface/path_effect_impl.h"
 #include "impl_interface/path_impl.h"
 #include "impl_interface/picture_impl.h"
+#include "impl_interface/region_impl.h"
 #include "impl_interface/shader_effect_impl.h"
 
 namespace OHOS {
@@ -50,6 +51,7 @@ public:
     static std::unique_ptr<ColorSpaceImpl> CreateColorSpace();
     static std::unique_ptr<MatrixImpl> CreateMatrix();
     static std::unique_ptr<CameraImpl> CreateCamera();
+    static std::unique_ptr<RegionImpl> CreateRegion();
 };
 } // namespace Drawing
 } // namespace Rosen
