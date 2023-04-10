@@ -47,7 +47,7 @@ ThreadPrivateData* ThreadPrivateDataCtl::GetPrivateData()
 
 void ThreadPrivateDataCtl::ClearPrivateData()
 {
-    if (key_ != PTHREAD_KEY_T_NOT_INITIALIZED) {
+    if (key_ != static_cast<pthread_key_t>(PTHREAD_KEY_T_NOT_INITIALIZED)) {
         ThreadPrivateData *data = static_cast<ThreadPrivateData *>(pthread_getspecific(key_));
         if (data) {
             pthread_setspecific(key_, nullptr);
@@ -58,7 +58,7 @@ void ThreadPrivateDataCtl::ClearPrivateData()
 
 EGLint ThreadPrivateDataCtl::GetError()
 {
-    if (key_ == PTHREAD_KEY_T_NOT_INITIALIZED) {
+    if (key_ == static_cast<pthread_key_t>(PTHREAD_KEY_T_NOT_INITIALIZED)) {
         return EGL_SUCCESS;
     }
 
@@ -91,7 +91,7 @@ void ThreadPrivateDataCtl::SetContext(EGLContext ctx)
 
 EGLContext ThreadPrivateDataCtl::GetContext()
 {
-    if (key_ == PTHREAD_KEY_T_NOT_INITIALIZED) {
+    if (key_ == static_cast<pthread_key_t>(PTHREAD_KEY_T_NOT_INITIALIZED)) {
         return EGL_NO_CONTEXT;
     }
 
@@ -111,7 +111,7 @@ void ThreadPrivateDataCtl::SetGlHookTable(GlHookTable *table)
 
 GlHookTable *ThreadPrivateDataCtl::GetGlHookTable()
 {
-    if (key_ == PTHREAD_KEY_T_NOT_INITIALIZED) {
+    if (key_ == static_cast<pthread_key_t>(PTHREAD_KEY_T_NOT_INITIALIZED)) {
         return nullptr;
     }
 

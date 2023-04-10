@@ -177,11 +177,11 @@ uint32_t ColorExtract::CalcGrayMsd() const
     uint32_t *colorVal = colorVal_.get();
     long long int graySum = 0;
     long long int grayVar = 0;
-    for (int i = 0; i < colorValLen_; i++) {
+    for (uint32_t i = 0; i < colorValLen_; i++) {
         graySum += Rgb2Gray(colorVal[i]);
     }
     uint32_t grayAve = graySum / colorValLen_;
-    for (int i = 0; i < colorValLen_; i++) {
+    for (uint32_t i = 0; i < colorValLen_; i++) {
         grayVar += pow(static_cast<long long int>(Rgb2Gray(colorVal[i])) - grayAve, 2); // 2 is square
     }
     grayVar /= colorValLen_;
@@ -215,7 +215,7 @@ float ColorExtract::CalcContrastToWhite() const
     uint32_t *colorVal = colorVal_.get();
     float lightDegree = 0;
     float luminanceSum = 0;
-    for (int i = 0; i < colorValLen_; i++) {
+    for (uint32_t i = 0; i < colorValLen_; i++) {
         luminanceSum += CalcRelativeLum(colorVal[i]);
     }
     float luminanceAve = luminanceSum / colorValLen_;
@@ -252,7 +252,7 @@ void ColorExtract::GetNFeatureColors(int colorNum)
     colors_ = move(colorsShared);
 
     int distinctColorIndex = 0;
-    for (uint32_t color = 0; color < histLen; color++) {
+    for (int color = 0; color < histLen; color++) {
         if (hist[color] > 0) {
             colors[distinctColorIndex++] = color;
         }
