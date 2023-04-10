@@ -143,6 +143,7 @@ public:
     sptr<VSyncDistributor> rsVSyncDistributor_;
 
     void SetDirtyFlag();
+    void SetAccessibilityConfigChanged();
     void ForceRefreshForUni();
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, int pid = 0);
@@ -258,6 +259,9 @@ private:
     mutable std::mutex drivenRenderMutex_;
     bool drivenRenderFinished_ = false;
     std::condition_variable drivenRenderCond_;
+
+    // Used to refresh the whole display when AccessibilityConfig is changed
+    bool isAccessibilityConfigChanged_ = false;
 
     std::map<uint32_t, bool> lastPidVisMap_;
     VisibleData lastVisVec_;
