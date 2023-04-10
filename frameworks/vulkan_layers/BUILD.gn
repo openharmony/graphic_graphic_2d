@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -30,31 +30,25 @@ config("vulkan_config") {
 config("vulkan_public_config") {
   include_dirs = [
     "swapchain",
-    "utils",
     "include",
-    "//third_party/Vulkan-Loader/loader/generated",
-    "//drivers/peripheral/base",
-    "//foundation/graphic/graphic_2d/frameworks/surface/include",
-    "//foundation/graphic/graphic_2d/frameworks/inner_api/surface",
+    "//third_party/vulkan-loader/loader/generated",
+    "../../frameworks/surface/include",
   ]
 }
 
 ohos_shared_library("vulkan_swapchain_layer") {
-  sources = [
-    "swapchain_layer/swapchain_layer.cpp",
-    "utils/vk_layer_extension_utils.cpp",
-  ]
+  sources = [ "swapchain_layer/swapchain_layer.cpp" ]
+
   configs = [ ":vulkan_config" ]
 
   public_configs = [ ":vulkan_public_config" ]
 
-  public_deps = [
-    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
-    "//third_party/vulkan-headers:vulkan_headers",
-  ]
+  deps = [ "//third_party/vulkan-headers:vulkan_headers" ]
 
   external_deps = [
     "c_utils:utils",
+    "graphic_standard:surface",
+    "graphic_standard:sync_fence",
     "hilog_native:libhilog",
   ]
 
@@ -67,8 +61,11 @@ ohos_shared_library("vulkan_swapchain_layer") {
 
 ## Build libvulkan_swapchain.so }}}
 
+## Build VkLayer_swapchain.json {{{
 ohos_prebuilt_etc("vulkan_swapchain_layer_json") {
-  source = "//foundation/graphic/graphic_2d/frameworks/vulkan_layers/swapchain_layer/VkLayer_swapchain.json"
+  source = "swapchain_layer/VkLayer_swapchain.json"
   part_name = "graphic_standard"
+  subsystem_name = "graphic"
   module_install_dir = "etc/vulkan/implicit_layer.d"
 }
+## Build VkLayer_swapchain.json }}}
