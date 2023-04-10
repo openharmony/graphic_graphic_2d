@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,6 +39,10 @@ public:
     void InitWithSum(const PathEffect& e1, const PathEffect& e2) override;
     void InitWithCompose(const PathEffect& e1, const PathEffect& e2) override;
     sk_sp<SkPathEffect> GetPathEffect() const;
+    /*
+     * @brief  Update the member variable to pathEffect, adaptation layer calls.
+     */
+    void SetSkPathEffect(const sk_sp<SkPathEffect>& pathEffect);
 
 private:
     sk_sp<SkPathEffect> pathEffect_;

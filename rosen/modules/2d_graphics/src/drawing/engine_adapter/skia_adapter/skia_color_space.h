@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,6 +36,7 @@ public:
     void InitWithSRGB() override;
     void InitWithSRGBLinear() override;
     void InitWithImage(const Image& image) override;
+    void InitWithRGB(const CMSTransferFuncType& func, const CMSMatrixType& matrix) override;
     sk_sp<SkColorSpace> GetColorSpace() const;
 
 private:

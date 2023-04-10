@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@
 
 #include "base_impl.h"
 
+#include "effect/shader_effect.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -37,12 +38,12 @@ public:
         return AdapterType::BASE_INTERFACE;
     }
 
-    virtual void InitWithBlur(scalar sigmaX, scalar sigmaY, const ImageFilter& f) = 0;
-    virtual void InitWithColor(const ColorFilter& colorFilter, const ImageFilter& f) = 0;
-    virtual void InitWithOffset(scalar dx, scalar dy, const ImageFilter& f) = 0;
-    virtual void InitWithArithmetic(scalar k1, scalar k2, scalar k3, scalar k4, bool enforcePMColor,
-        const ImageFilter& f1, const ImageFilter& f2) = 0;
-    virtual void InitWithCompose(const ImageFilter& f1, const ImageFilter& f2) = 0;
+    virtual void InitWithBlur(scalar sigmaX, scalar sigmaY, TileMode mode, const std::shared_ptr<ImageFilter> f) = 0;
+    virtual void InitWithColor(const ColorFilter& colorFilter, const std::shared_ptr<ImageFilter> f) = 0;
+    virtual void InitWithOffset(scalar dx, scalar dy, const std::shared_ptr<ImageFilter> f) = 0;
+    virtual void InitWithArithmetic(const std::vector<scalar>& coefficients, bool enforcePMColor,
+        const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2) = 0;
+    virtual void InitWithCompose(const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

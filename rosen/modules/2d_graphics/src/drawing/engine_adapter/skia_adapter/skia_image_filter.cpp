@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "skia_image_filter.h"
 
 #include "include/effects/SkImageFilters.h"
+#include "include/core/SkTileMode.h"
 
 #if !defined(USE_CANVASKIT0310_SKIA)
 #include "include/effects/SkBlurImageFilter.h"
@@ -29,60 +30,101 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+static constexpr size_t numberOfCoefficients = 4;
+
 SkiaImageFilter::SkiaImageFilter() noexcept : filter_(nullptr) {}
 
-void SkiaImageFilter::InitWithBlur(scalar sigmaX, scalar sigmaY, const ImageFilter& f)
+static inline SkTileMode ConvertToSkTileMode(const TileMode& mode)
 {
-    auto input = f.GetImpl<SkiaImageFilter>();
-    if (input != nullptr) {
+    switch (mode) {
+        case TileMode::CLAMP:
+            return SkTileMode::kClamp;
+        case TileMode::REPEAT:
+            return SkTileMode::kRepeat;
+        case TileMode::MIRROR:
+            return SkTileMode::kMirror;
+        case TileMode::DECAL:
+            return SkTileMode::kDecal;
+        default:
+            return SkTileMode::kClamp;
+    }
+}
+
+void SkiaImageFilter::InitWithBlur(scalar sigmaX, scalar sigmaY, TileMode mode, const std::shared_ptr<ImageFilter> f)
+{
+    sk_sp<SkImageFilter> input = nullptr;
+    if (f != nullptr && f->GetImpl<SkiaImageFilter>() != nullptr) {
+        input = f->GetImpl<SkiaImageFilter>()->GetImageFilter();
+    }
 #if defined(USE_CANVASKIT0310_SKIA)
-        filter_ = SkImageFilters::Blur(sigmaX, sigmaY, input->GetImageFilter());
+    filter_ = SkImageFilters::Blur(sigmaX, sigmaY, ConvertToSkTileMode(mode), input);
 #else
-        filter_ = SkBlurImageFilter::Make(sigmaX, sigmaY, input->GetImageFilter());
+    filter_ = SkBlurImageFilter::Make(sigmaX, sigmaY, ConvertToSkTileMode(mode), input);
 #endif
-    }
 }
 
-void SkiaImageFilter::InitWithColor(const ColorFilter& colorFilter, const ImageFilter& f)
+void SkiaImageFilter::InitWithColor(const ColorFilter& colorFilter, const std::shared_ptr<ImageFilter> f)
 {
+    sk_sp<SkImageFilter> input = nullptr;
+    if (f != nullptr && f->GetImpl<SkiaImageFilter>() != nullptr) {
+        input = f->GetImpl<SkiaImageFilter>()->GetImageFilter();
+    }
     auto skColorFilterImpl = colorFilter.GetImpl<SkiaColorFilter>();
-    auto input = f.GetImpl<SkiaImageFilter>();
-    if (skColorFilterImpl != nullptr && input != nullptr) {
-        filter_ = SkImageFilters::ColorFilter(skColorFilterImpl->GetColorFilter(), input->GetImageFilter());
+    if (skColorFilterImpl != nullptr) {
+        filter_ = SkImageFilters::ColorFilter(skColorFilterImpl->GetColorFilter(), input);
     }
 }
 
-void SkiaImageFilter::InitWithOffset(scalar dx, scalar dy, const ImageFilter& f)
+void SkiaImageFilter::InitWithOffset(scalar dx, scalar dy, const std::shared_ptr<ImageFilter> f)
 {
-    auto input = f.GetImpl<SkiaImageFilter>();
-    if (input != nullptr) {
-        filter_ = SkImageFilters::Offset(dx, dy, input->GetImageFilter());
+    sk_sp<SkImageFilter> input = nullptr;
+    if (f != nullptr && f->GetImpl<SkiaImageFilter>() != nullptr) {
+        input = f->GetImpl<SkiaImageFilter>()->GetImageFilter();
     }
+    filter_ = SkImageFilters::Offset(dx, dy, input);
 }
 
-void SkiaImageFilter::InitWithArithmetic(
-    scalar k1, scalar k2, scalar k3, scalar k4, bool enforcePMColor, const ImageFilter& f1, const ImageFilter& f2)
+void SkiaImageFilter::InitWithArithmetic(const std::vector<scalar>& coefficients,
+    bool enforcePMColor, const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2)
 {
-    auto background = f1.GetImpl<SkiaImageFilter>();
-    auto foreground = f2.GetImpl<SkiaImageFilter>();
-    if (background != nullptr && foreground != nullptr) {
-        filter_ = SkImageFilters::Arithmetic(
-            k1, k2, k3, k4, enforcePMColor, background->GetImageFilter(), foreground->GetImageFilter());
+    if (coefficients.size() != numberOfCoefficients) {
+        LOGE("SkiaImageFilter::InitWithArithmetic: the number of coefficients must be 4");
+        return;
     }
+
+    sk_sp<SkImageFilter> background = nullptr;
+    sk_sp<SkImageFilter> foreground = nullptr;
+    if (f1 != nullptr && f1->GetImpl<SkiaImageFilter>() != nullptr) {
+        background = f1->GetImpl<SkiaImageFilter>()->GetImageFilter();
+    }
+    if (f2 != nullptr && f2->GetImpl<SkiaImageFilter>() != nullptr) {
+        foreground = f2->GetImpl<SkiaImageFilter>()->GetImageFilter();
+    }
+    filter_ = SkImageFilters::Arithmetic(
+        coefficients[0], coefficients[1], coefficients[2], coefficients[3], enforcePMColor, background, foreground);
 }
 
-void SkiaImageFilter::InitWithCompose(const ImageFilter& f1, const ImageFilter& f2)
+void SkiaImageFilter::InitWithCompose(const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2)
 {
-    auto outer = f1.GetImpl<SkiaImageFilter>();
-    auto inner = f2.GetImpl<SkiaImageFilter>();
-    if (outer != nullptr && inner != nullptr) {
-        filter_ = SkImageFilters::Compose(outer->GetImageFilter(), inner->GetImageFilter());
+    sk_sp<SkImageFilter> outer = nullptr;
+    sk_sp<SkImageFilter> inner = nullptr;
+    if (f1 != nullptr && f1->GetImpl<SkiaImageFilter>() != nullptr) {
+        outer = f1->GetImpl<SkiaImageFilter>()->GetImageFilter();
     }
+    if (f2 != nullptr && f2->GetImpl<SkiaImageFilter>() != nullptr) {
+        inner = f2->GetImpl<SkiaImageFilter>()->GetImageFilter();
+    }
+    filter_ = SkImageFilters::Compose(outer, inner);
 }
 
 sk_sp<SkImageFilter> SkiaImageFilter::GetImageFilter() const
 {
     return filter_;
+}
+
+void SkiaImageFilter::SetSkImageFilter(const sk_sp<SkImageFilter>& filter)
+{
+    filter_ = filter;
 }
 } // namespace Drawing
 } // namespace Rosen

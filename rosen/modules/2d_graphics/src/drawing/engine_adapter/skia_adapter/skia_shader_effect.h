@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,6 +48,10 @@ public:
     void InitWithSweepGradient(const Point& centerPt, const std::vector<ColorQuad>& colors,
         const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle) override;
     sk_sp<SkShader> GetShader() const;
+    /*
+     * @brief  Update the member variable to skShader, adaptation layer calls.
+     */
+    void SetSkShader(const sk_sp<SkShader>& skShader);
 
 private:
     sk_sp<SkShader> shader_;

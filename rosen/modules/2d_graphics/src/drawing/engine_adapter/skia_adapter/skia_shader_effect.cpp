@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -188,6 +188,11 @@ void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt, const std::v
 sk_sp<SkShader> SkiaShaderEffect::GetShader() const
 {
     return shader_;
+}
+
+void SkiaShaderEffect::SetSkShader(const sk_sp<SkShader>& skShader)
+{
+    shader_ = skShader;
 }
 } // namespace Drawing
 } // namespace Rosen

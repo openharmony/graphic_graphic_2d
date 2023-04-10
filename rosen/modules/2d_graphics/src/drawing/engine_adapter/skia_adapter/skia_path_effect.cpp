@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -70,6 +70,11 @@ void SkiaPathEffect::InitWithCompose(const PathEffect& e1, const PathEffect& e2)
 sk_sp<SkPathEffect> SkiaPathEffect::GetPathEffect() const
 {
     return pathEffect_;
+}
+
+void SkiaPathEffect::SetSkPathEffect(const sk_sp<SkPathEffect>& pathEffect)
+{
+    pathEffect_ = pathEffect;
 }
 } // namespace Drawing
 } // namespace Rosen
