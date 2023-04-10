@@ -1764,7 +1764,7 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
         }
         RS_TRACE_END();
     } else {
-        RS_TRACE_BEGIN("RSUniRenderVisitor::DrawChildRenderNode Init Draw nodeId = " +
+        RS_TRACE_NAME("RSUniRenderVisitor::DrawChildRenderNode Init Draw nodeId = " +
             std::to_string(node.GetId()));
         isFreeze_ = true;
         int width = std::ceil(node.GetRenderProperties().GetBoundsRect().GetWidth());
@@ -1773,6 +1773,13 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
 
         if (node.GetCacheSurface()) {
             auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
+            if (!cacheCanvas) {
+                RS_LOGE("RSUniRenderVisitor::DrawChildRenderNode %" PRIu64 " Create CacheCanvas failed",
+                    node.GetId());
+                return;
+            }
+            // copy current canvas properties into cacheCanvas
+            cacheCanvas->CopyConfiguration(*canvas_);
             // When drawing CacheSurface, all child node should be drawn.
             // So set isOpDropped_ = false here.
             bool isOpDropped = isOpDropped_;
@@ -1809,7 +1816,6 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
                 node.GetId());
         }
         isFreeze_ = false;
-        RS_TRACE_END();
     }
 }
 
