@@ -91,6 +91,11 @@ std::unique_ptr<MatrixImpl> ImplFactory::CreateMatrixImpl()
     return EngineImplFactory::CreateMatrix();
 }
 
+std::unique_ptr<Matrix44Impl> ImplFactory::CreateMatrix44Impl()
+{
+    return EngineImplFactory::CreateMatrix44();
+}
+
 std::unique_ptr<CameraImpl> ImplFactory::CreateCameraImpl()
 {
     return EngineImplFactory::CreateCamera();

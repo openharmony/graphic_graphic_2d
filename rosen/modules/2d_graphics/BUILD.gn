@@ -58,6 +58,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_impl_factory.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_mask_filter.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_matrix.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_matrix44.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_paint.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_path.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_path_effect.cpp",
@@ -70,6 +71,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/text/text.cpp",
       "$drawing_src_dir/utils/camera3d.cpp",
       "$drawing_src_dir/utils/matrix.cpp",
+      "$drawing_src_dir/utils/matrix44.cpp",
       "$drawing_src_dir/utils/region.cpp",
     ]
 
