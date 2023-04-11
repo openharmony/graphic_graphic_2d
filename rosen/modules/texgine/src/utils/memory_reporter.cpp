@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,9 @@
 #include "typography_impl.h"
 
 namespace OHOS {
+namespace Rosen {
 namespace TextEngine {
+//Enable memory test
 #ifdef TEXGINE_ENABLE_MEMORY
 class MemoryReporter {
 public:
@@ -46,9 +48,9 @@ private:
     MemoryReporter& operator=(const MemoryReporter &) = delete;
     MemoryReporter& operator=(MemoryReporter &&) = delete;
 
-    uint64_t now = 0;
-    std::vector<std::pair<uint64_t, std::string>> contents;
-    std::stack<std::string> scopeStack = {};
+    uint64_t now_ = 0;
+    std::vector<std::pair<uint64_t, std::string>> contents_;
+    std::stack<std::string> scopeStack_ = {};
 };
 
 MemoryReporter &MemoryReporter::GetInstance()
@@ -59,22 +61,22 @@ MemoryReporter &MemoryReporter::GetInstance()
 
 void MemoryReporter::Enter(const std::string &scopeType)
 {
-    scopeStack.push(scopeType);
-    contents.push_back(std::make_pair(now, "B" + scopeStack.top()));
+    scopeStack_.push(scopeType);
+    contents_.push_back(std::make_pair(now_, "B" + scopeStack_.top()));
 }
 
 void MemoryReporter::Exit()
 {
-    scopeStack.pop();
-    contents.push_back(std::make_pair(now, "E"));
+    scopeStack_.pop();
+    contents_.push_back(std::make_pair(now_, "E"));
 }
 
 void MemoryReporter::Report(const std::string &member, double usage)
 {
-    contents.push_back(std::make_pair(now, "B" + scopeStack.top() + "::" + member));
-    now += usage;
-    contents.push_back(std::make_pair(now, "Cusage|" + std::to_string(now)));
-    contents.push_back(std::make_pair(now, "E"));
+    contents_.push_back(std::make_pair(now_, "B" + scopeStack_.top() + "::" + member));
+    now_ += usage;
+    contents_.push_back(std::make_pair(now_, "Cusage|" + std::to_string(now_)));
+    contents_.push_back(std::make_pair(now_, "E"));
 }
 
 MemoryReporter::~MemoryReporter()
@@ -85,7 +87,7 @@ MemoryReporter::~MemoryReporter()
     }
 
     fprintf(fp, "# tracer: nop\n");
-    for (const auto &[timeUs, content] : contents) {
+    for (const auto &[timeUs, content] : contents_) {
         fprintf(fp, "texgine-1 (1) [000] .... %.6lf: tracing_mark_write: %c|1|%s\n",
                 timeUs / 1e6, content[0], content.substr(1).c_str());
     }
@@ -123,21 +125,38 @@ void DoReportMemoryUsage(const std::string &name, int usage)
 
 DECLARE_RMU(std::string)
 {
+    /*
+     * The capacity of string 16, 24 is the the critical value of string type memory usage
+     * If need calculate this pointer:
+     * If the capacity of string less than 16, it`s memory usage is 32
+     * If the capacity of string more than 16 and less than 24, it`s memory usage is 64
+     * If the capacity of string more than 24, it`s memory is 80 + (capacity - 64) / 16 * 16
+     * If don`t need calculate this pointer:
+     * If the capacity of string >= 16 and < 24, it`s memory usage is 32
+     * else it`s memory usage is 32 + (capacity - 24) / 16 * 16
+     */
+    int fisrtCapacity = 16;
+    int secondCapacity = 24;
+    int baseMemory = 16;
+    int fisrtMemory = 32;
+    int secondMemory = 64;
+    int thirdMemory = 80;
+
     if (needThis) {
-        if (that.capacity() < 16) {
-            DoReportMemoryUsage(member, 32);
-        } else if (that.capacity() < 24) {
-            DoReportMemoryUsage(member, 64);
+        if (that.capacity() < fisrtCapacity) {
+            DoReportMemoryUsage(member, fisrtMemory);
+        } else if (that.capacity() < secondCapacity) {
+            DoReportMemoryUsage(member, secondMemory);
         } else {
-            DoReportMemoryUsage(member, 80 + (that.capacity() - 24) / 16 * 16);
+            DoReportMemoryUsage(member, thirdMemory + (that.capacity() - secondCapacity) / fisrtCapacity * baseMemory);
         }
         return;
     }
 
-    if (that.capacity() >= 16 && that.capacity() < 24) {
-        DoReportMemoryUsage(member, 32);
+    if (that.capacity() >= fisrtCapacity && that.capacity() < secondCapacity) {
+        DoReportMemoryUsage(member, fisrtMemory);
     } else {
-        DoReportMemoryUsage(member, 48 + (that.capacity() - 24) / 16 * 16);
+        DoReportMemoryUsage(member, fisrtMemory + (that.capacity() - secondCapacity) / fisrtCapacity * baseMemory);
     }
 }
 
@@ -288,4 +307,5 @@ DECLARE_RMU(Ranges)
 DEFINE_RMU(struct Ranges::Range);
 #endif
 } // namespace TextEngine
+} // namespace Rosen
 } // namespace OHOS
