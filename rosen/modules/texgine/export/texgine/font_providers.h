@@ -24,45 +24,47 @@
 #include "texgine/ifont_provider.h"
 
 namespace OHOS {
+namespace Rosen {
 namespace TextEngine {
 class FontCollection;
 
-/* class FontProviders
- * FontProviders providers an interface for developers to determine the order in
- * which fonts are used.
- * Texgine is provided with the internal function of generate font collection by
- * using font families.
- *
- * The order in which fonts are used in generating depends on the order in which
- * the collection is appended with FontProvider.
+/*
+ * @brief FontProviders providers an interface for developers to determine the order in
+ *        which fonts are used.
+ *        Texgine is provided with the internal function of generate font collection by
+ *        using font families.
+ *        The order in which fonts are used in generating depends on the order in which
+ *        the collection is appended with FontProvider.
  */
 class FontProviders {
 public:
-    /* Allocates an empty FontProviders.
-     * @return FontProviders
+    /*
+     * @brief Allocates an empty FontProviders.
      */
     static std::unique_ptr<FontProviders> Create() noexcept(true);
 
-    /* Allocates a FontProviders that have only one FontProvider which is SystemFontProvider.
-     *
-     * The first FontProvider in the allocated FontProviders is SystemFontProvider,
-     * add additional FontProvider can be appended if necessary.
-     *
-     * @return FontProviders
+    /*
+     * @brief Allocates a FontProviders that have only one FontProvider which is SystemFontProvider.
+     *        The first FontProvider in the allocated FontProviders is SystemFontProvider,
+     *        add additional FontProvider can be appended if necessary.
      */
     static std::unique_ptr<FontProviders> SystemFontOnly() noexcept(true);
 
-    /* Append FontProvider into FontProviders.
+    /*
+     * @brief Append FontProvider into FontProviders.
      * @param provider  FontProvider that's going to be appended to the FontProviders
      *                  FontProvider cannot be appended repeatedly
      */
     void AppendFontProvider(const std::shared_ptr<IFontProvider>& provider) noexcept(true);
 
-    // Disable find and use fallback font.
+    /*
+     * @brief Disable find and use fallback font.
+     */
     void DisableFallback();
 
-    /* Generate font collection based on parameter font families and FontProvider that
-     * has been appended.
+    /*
+     * @brief Generate font collection based on parameter font families and FontProvider that
+     *        has been appended.
      * @param families  A family vector for selecting fonts from FontProviders
      * @return          FontCollection from selected fonts
      */
@@ -81,10 +83,10 @@ private:
     bool enableFallback_ = true;
     std::vector<std::shared_ptr<IFontProvider>> providers_ = {};
 
-    // Cache of font selection.
     mutable std::map<std::string, std::shared_ptr<VariantFontStyleSet>> fontStyleSetCache_ = {};
 };
 } // namespace TextEngine
+} // namespace Rosen
 } // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_EXPORT_TEXGINE_FONT_PROVIDERS_H

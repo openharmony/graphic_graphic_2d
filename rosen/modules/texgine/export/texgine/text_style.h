@@ -25,23 +25,29 @@
 #include "texgine/typography_types.h"
 
 namespace OHOS {
+namespace Rosen {
 namespace TextEngine {
-/* class FontFeatures
- * FontFeatures is the container that stores the
- * feature used to control how a font selects glyphs.
+/*
+ * @brief FontFeatures is the container that stores the
+ *        feature used to control how a font selects glyphs.
  */
 class FontFeatures {
 public:
-    /* Set a feature by integer value.
+    /*
+     * @brief Set a feature by integer value.
      * @param ftag   The tag of feature.
      * @param fvalue The integer value of feature.
      */
     void SetFeature(const std::string& ftag, int fvalue);
 
-    // Returns the feature map that user set.
+    /*
+     * @brief Returns the feature map that user set.
+     */
     const std::map<std::string, int>& GetFeatures() const;
 
-    // Implements the equality operator.
+    /*
+     * @brief Implements the equality operator.
+     */
     bool operator ==(const FontFeatures& rhs) const;
 
 private:
@@ -50,9 +56,9 @@ private:
     std::map<std::string, int> features_;
 };
 
-/* struct TextShadow
- * TextShadow contains parameters that control
- * how the text shadow is displayed.
+/*
+ * @brief TextShadow contains parameters that control
+ *        how the text shadow is displayed.
  */
 struct TextShadow {
     // The offset between the shaded text and the main text
@@ -65,9 +71,9 @@ struct TextShadow {
     bool operator ==(TextShadow const& rhs) const;
 };
 
-/* TextStyle
- * TextStyle is a collection of parameters that control how text is displayed,
- * including parameters for fonts, decorations, and text.
+/*
+ * @brief TextStyle is a collection of parameters that control how text is displayed,
+ *        including parameters for fonts, decorations, and text.
  */
 struct TextStyle {
     // font style
@@ -99,6 +105,7 @@ struct TextStyle {
     bool operator ==(TextStyle const& rhs) const;
 };
 } // namespace TextEngine
+} // namespace Rosen
 } // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_EXPORT_TEXGINE_TEXT_STYLE_H

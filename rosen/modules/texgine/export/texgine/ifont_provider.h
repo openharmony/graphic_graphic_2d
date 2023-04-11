@@ -23,20 +23,22 @@
 #include "texgine_font_manager.h"
 
 namespace OHOS {
+namespace Rosen {
 namespace TextEngine {
 class VariantFontStyleSet;
 
-/* class IFontProvider
- * IFontProvider is abstraction for a source of fonts. Subclasses can be backed by
- * a memory font, or a font directory, or a font file, or network fonts manager,
- * or something else.
+/*
+ * @brief IFontProvider is abstraction for a source of fonts. Subclasses can be backed by
+ *        a memory font, or a font directory, or a font file, or network fonts manager,
+ *        or something else.
  */
 class IFontProvider : public MemoryObject {
 public:
     virtual ~IFontProvider() = default;
 
-    /* Returns FontStyleSet when familyName can correspond to a FontStyleSet.
-     * This may return nullptr if there is no FontStyleSet correspond to familyName.
+    /*
+     * @brief Returns FontStyleSet when familyName can correspond to a FontStyleSet.
+     *        This may return nullptr if there is no FontStyleSet correspond to familyName.
      */
     virtual std::shared_ptr<VariantFontStyleSet> MatchFamily(const std::string& familyName) noexcept(true) = 0;
 
@@ -53,6 +55,7 @@ private:
     IFontProvider& operator=(const IFontProvider&&) = delete;
 };
 } // namespace TextEngine
+} // namespace Rosen
 } // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_EXPORT_TEXGINE_IFONT_PROVIDER_H
