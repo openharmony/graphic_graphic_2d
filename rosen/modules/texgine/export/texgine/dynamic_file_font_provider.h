@@ -21,19 +21,21 @@
 #include "texgine/dynamic_font_provider.h"
 
 namespace OHOS {
+namespace Rosen {
 namespace TextEngine {
-/* class DynamicFileFontProvider
- * FileFontProvider is a FontProvider that can load fonts dynamically.
- * FileFontProvider can accept font from file path.
+/*
+ * @brief FileFontProvider is a FontProvider that can load fonts dynamically.
+ *        FileFontProvider can accept font from file path.
  */
 class DynamicFileFontProvider : DynamicFontProvider, virtual public IFontProvider {
 public:
-    /* Create DynamicFileFontProvider instance.
-     * @return DynamicFileFontProvider
+    /*
+     * @brief Create DynamicFileFontProvider instance.
      */
     static std::shared_ptr<DynamicFileFontProvider> Create() noexcept(true);
 
-    /* Load font from path.
+    /*
+     * @brief Load font from path.
      * @param path        Path to the font file.
      * @param familyName  The name of the font family you want.
      * @return            0 if success else 1 means failed
@@ -44,6 +46,7 @@ private:
     std::map<std::string, std::shared_ptr<VariantFontStyleSet>> fontStyleSetMap_;
 };
 } // namespace TextEngine
+} // namespace Rosen
 } // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_EXPORT_TEXGINE_DYNAMIC_FILE_FONT_PROVIDER_H

@@ -22,9 +22,10 @@
 #include "texgine/utils/memory_object.h"
 
 namespace OHOS {
+namespace Rosen {
 namespace TextEngine {
-/* enum AnySpanAlignment
- * AnySpanAlignment is the alignment of the AnySpan in a Typography.
+/*
+ * @brief AnySpanAlignment is the alignment of the AnySpan in a Typography.
  */
 enum class AnySpanAlignment {
     OFFSET_AT_BASELINE,  // The bottom edge of the AnySpan is aligned with
@@ -39,30 +40,40 @@ enum class AnySpanAlignment {
                          // vertical centerline of the row box.
 };
 
-/* class AnySpan
- * AnySpan is a span that can be any width, height and draw any content.
+/*
+ * @brief AnySpan is a span that can be any width, height and draw any content.
  */
 class AnySpan : public MemoryObject {
 public:
-    // Is interface.
     virtual ~AnySpan() = default;
 
-    // Returns the width of the span.
+    /*
+     * @brief Returns the width of the span.
+     */
     virtual double GetWidth() const = 0;
 
-    // Returns the height of the span.
+    /*
+     * @brief Returns the height of the span.
+     */
     virtual double GetHeight() const = 0;
 
-    // Returns the alignment of the span.
+    /*
+     * @brief Returns the alignment of the span.
+     */
     virtual AnySpanAlignment GetAlignment() const = 0;
 
-    // Returns the baseline of the span.
+    /*
+     * @brief Returns the baseline of the span.
+     */
     virtual TextBaseline GetBaseline() const = 0;
 
-    // Returns the offset of the span.
+    /*
+     * @brief Returns the offset of the span.
+     */
     virtual double GetLineOffset() const = 0;
 
-    /* This method will be called when the Typography is drawn.
+    /*
+     * @brief This method will be called when the Typography is drawn.
      * @param canvas  Canvas to be drawn.
      * @param offsetx The Offset in x-asix of the starting point for drawing the AnySpan
      * @param offsety The Offset in y-asix of the starting point for drawing the AnySpan
@@ -74,6 +85,7 @@ private:
     void ReportMemoryUsage(const std::string& member, const bool needThis) const override;
 };
 } // namespace TextEngine
+} // namespace Rosen
 } // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_EXPORT_TEXGINE_ANY_SPAN_H

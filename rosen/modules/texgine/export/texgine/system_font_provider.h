@@ -19,18 +19,18 @@
 #include "texgine/ifont_provider.h"
 
 namespace OHOS {
+namespace Rosen {
 namespace TextEngine {
-/* class SystemFontProvider
- * SystemFontProvider can provide fonts registered in system.
+/*
+ * @brief SystemFontProvider can provide fonts registered in system.
  */
 class SystemFontProvider : public IFontProvider {
 public:
-    /* Returns single instance.
-     * @return SystemFontProvider single instance.
+    /*
+     * @brief Returns single instance.
      */
     static std::shared_ptr<SystemFontProvider> GetInstance() noexcept(true);
 
-    // |IFontProvider|
     std::shared_ptr<VariantFontStyleSet> MatchFamily(const std::string& familyName) noexcept(true) override;
 
 private:
@@ -39,6 +39,7 @@ private:
     static inline std::shared_ptr<SystemFontProvider> sfp = nullptr;
 };
 } // namespace TextEngine
+} // namespace Rosen
 } // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_EXPORT_TEXGINE_SYSTEM_FONT_PROVIDER_H
