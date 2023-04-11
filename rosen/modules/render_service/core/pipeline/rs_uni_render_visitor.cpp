@@ -1841,8 +1841,16 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
 
 void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
-    RS_TRACE_NAME("RSUniRender::Process:[" + node.GetName() + "]" + " " + node.GetDstRect().ToString()
-                    + " Alpha: " + std::to_string(node.GetGlobalAlpha()).substr(0, 4));
+    if (RSSystemProperties::GetProxyNodeDebugEnabled() && node.contextClipRect_.has_value()) {
+        RSAutoCanvasRestore acr(canvas_);
+        canvas_->concat(node.contextMatrix_.value_or(SkMatrix::I()));
+        SkPaint paint;
+        paint.setARGB(0x40, 0xFF, 0, 0); //transparent red
+        canvas_->drawRect(node.contextClipRect_.value(), paint);
+    }
+
+    RS_TRACE_NAME("RSUniRender::Process:[" + node.GetName() + "]" + " " + node.GetDstRect().ToString() +
+                  " Alpha: " + std::to_string(node.GetGlobalAlpha()).substr(0, 4));
     RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%" PRIu64 ",child size:%u,name:%s,OcclusionVisible:%d",
         node.GetId(), node.GetChildrenCount(), node.GetName().c_str(), node.GetOcclusionVisible());
     if (canvas_ != nullptr) {
@@ -2046,6 +2054,12 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
 void RSUniRenderVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)
 {
+    if (RSSystemProperties::GetProxyNodeDebugEnabled() && node.target_.lock() != nullptr &&
+        node.contextClipRect_.has_value()) {
+        SkPaint paint;
+        paint.setARGB(0x40, 0, 0xFF, 0); // Transparent green
+        canvas_->drawRect(node.contextClipRect_.value(), paint);
+    }
     ProcessBaseRenderNode(node);
 }
 

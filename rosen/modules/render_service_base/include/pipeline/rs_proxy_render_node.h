@@ -57,6 +57,8 @@ private:
     std::optional<SkMatrix> contextMatrix_;
     float contextAlpha_ = 0.0f;
     std::optional<SkRect> contextClipRect_;
+
+    friend class RSUniRenderVisitor;
 };
 } // namespace Rosen
 } // namespace OHOS

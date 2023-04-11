@@ -312,11 +312,6 @@ void RSSurfaceRenderNode::SetContextMatrix(const std::optional<SkMatrix>& matrix
     SendCommandFromRT(command, GetId());
 }
 
-const std::optional<SkMatrix>& RSSurfaceRenderNode::GetContextMatrix() const
-{
-    return contextMatrix_;
-}
-
 void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)
 {
     if (contextAlpha_ == alpha) {
@@ -332,11 +327,6 @@ void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)
     SendCommandFromRT(command, GetId());
 }
 
-float RSSurfaceRenderNode::GetContextAlpha() const
-{
-    return contextAlpha_;
-}
-
 void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<SkRect>& clipRegion, bool sendMsg)
 {
     if (contextClipRect_ == clipRegion) {
@@ -350,11 +340,6 @@ void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<SkRect>& clip
     // send a Command
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextClipRegion>(GetId(), clipRegion);
     SendCommandFromRT(command, GetId());
-}
-
-const std::optional<SkRect>& RSSurfaceRenderNode::GetContextClipRegion() const
-{
-    return contextClipRect_;
 }
 
 void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
@@ -918,7 +903,7 @@ void RSSurfaceRenderNode::OnApplyModifiers()
     geoPtr->SetContextMatrix(contextMatrix_);
 
     // No valid clipRect, return
-    auto clipRect = GetContextClipRegion().value_or(SkRect::MakeEmpty());
+    auto clipRect = contextClipRect_.value_or(SkRect::MakeEmpty());
     if (clipRect.width() < 1 || clipRect.height() < 1) {
         return;
     }

@@ -320,7 +320,7 @@ void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
         std::to_string(node->GetRenderProperties().GetCornerRadius().w_) + "]\n";
     dumpString += "Bounds: [" + std::to_string(node->GetRenderProperties().GetBoundsWidth()) + "," +
         std::to_string(node->GetRenderProperties().GetBoundsHeight()) + "]\n";
-    if (auto& contextClipRegion = node->GetContextClipRegion()) {
+    if (auto& contextClipRegion = node->contextClipRect_) {
         dumpString += "ContextClipRegion: [" + std::to_string(contextClipRegion->width()) + "," +
                       std::to_string(contextClipRegion->height()) + "]\n";
     } else {
@@ -331,7 +331,7 @@ void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
     dumpString += "Visible: " + std::to_string(node->GetRenderProperties().GetVisible()) + "\n";
     dumpString += "OcclusionBg: " + std::to_string(node->GetAbilityBgAlpha())+ "\n";
     dumpString += "Alpha: " + std::to_string(node->GetRenderProperties().GetAlpha()) +
-                  "(include ContextAlpha: " + std::to_string(node->GetContextAlpha()) + ")\n";
+                  "(include ContextAlpha: " + std::to_string(node->contextAlpha_) + ")\n";
     dumpString += "GlobalAlpha: " + std::to_string(node->GetGlobalAlpha()) + "\n";
     dumpString += node->GetVisibleRegion().GetRegionInfo() + "\n";
     const auto& consumer = node->GetConsumer();

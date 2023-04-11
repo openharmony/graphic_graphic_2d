@@ -279,7 +279,7 @@ void RSBaseRenderNode::DumpTree(int32_t depth, std::string& out) const
         const RSSurfaceHandler& surfaceHandler = static_cast<const RSSurfaceHandler&>(*surfaceNode);
         out += ", hasConsumer: " + std::to_string(surfaceHandler.HasConsumer());
         static int decimal = 3;
-        std::string contextAlpha = std::to_string(surfaceNode->GetContextAlpha());
+        std::string contextAlpha = std::to_string(surfaceNode->contextAlpha_);
         contextAlpha = contextAlpha.substr(0, contextAlpha.find(".") + decimal);
         std::string propertyAlpha = std::to_string(surfaceNode->GetRenderProperties().GetAlpha());
         propertyAlpha = propertyAlpha.substr(0, propertyAlpha.find(".") + decimal);

@@ -213,13 +213,8 @@ public:
     // - Alpha can be processed as an absolute value, as its parent (surface) node's alpha should always be 1.0f.
     // - The matrix and clipRegion should be applied according to the parent node's matrix.
     void SetContextMatrix(const std::optional<SkMatrix>& transform, bool sendMsg = true);
-    const std::optional<SkMatrix>& GetContextMatrix() const;
-
     void SetContextAlpha(float alpha, bool sendMsg = true);
-    float GetContextAlpha() const;
-
     void SetContextClipRegion(const std::optional<SkRect>& clipRegion, bool sendMsg = true);
-    const std::optional<SkRect>& GetContextClipRegion() const;
 
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
@@ -665,6 +660,10 @@ private:
     int32_t nodeCost_ = 0;
 
     bool animateState_ = false;
+
+    friend class RSUniRenderVisitor;
+    friend class RSBaseRenderNode;
+    friend class RSRenderService;
 };
 } // namespace Rosen
 } // namespace OHOS

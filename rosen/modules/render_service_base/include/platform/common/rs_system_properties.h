@@ -102,6 +102,7 @@ public:
 
     static bool GetColdStartThreadEnabled();
     static float GetAnimationScale();
+    static bool GetProxyNodeDebugEnabled();
     static bool GetSkipForAlphaZeroEnabled();
 
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
