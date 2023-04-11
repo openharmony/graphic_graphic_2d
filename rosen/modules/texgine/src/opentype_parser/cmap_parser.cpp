@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,9 +19,14 @@
 
 #include "opentype_basic_type.h"
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 #define FORMAT4 4
 #define FORMAT12 12
+#define SEG_SIZE 2
+#define SEG_OFFSET 3
+#define OFFSET 1
 
 struct CmapSubtable {
     OpenTypeBasicType::Uint16 format;
@@ -58,7 +63,7 @@ struct CmapSubtableFormat4 {
 
     int16_t GetSegCount() const
     {
-        return segCountX2.Get() / 2;
+        return segCountX2.Get() / SEG_SIZE;
     }
 
     const OpenTypeBasicType::Uint16 *GetEndCodes() const
@@ -68,17 +73,17 @@ struct CmapSubtableFormat4 {
 
     const OpenTypeBasicType::Uint16 *GetStartCodes() const
     {
-        return array + GetSegCount() + 1;
+        return array + GetSegCount() + OFFSET;
     }
 
     const OpenTypeBasicType::Int16 *GetIdDeltas() const
     {
-        return reinterpret_cast<const OpenTypeBasicType::Int16 *>(array + GetSegCount() * 2 + 1);
+        return reinterpret_cast<const OpenTypeBasicType::Int16 *>(array + GetSegCount() * SEG_SIZE + OFFSET);
     }
 
     const OpenTypeBasicType::Uint16 *GetIdRangeOffsets() const
     {
-        return array + GetSegCount() * 3 + 1;
+        return array + GetSegCount() * SEG_OFFSET + OFFSET;
     }
 };
 
@@ -101,12 +106,14 @@ struct CmapSubtableFormat12 {
 int CmapParser::Parse(const char *data, int32_t size)
 {
     int ret = 1;
+    if (data == nullptr) {
+        return ret;
+    }
+
     const auto &cmap = *reinterpret_cast<const struct CmapTable *>(data);
     for (auto i = 0; i < cmap.numTables.Get(); i++) {
         const auto &record = cmap.encodingRecords[i];
         const auto &subtable = *record.GetSubtable(data);
-        // printf(" - platformID: %u, encodingID: %u, format: %u\n",
-        //        record.platformID.get(), record.encodingID.get(), subtable.format.get());
         if (subtable.format.Get() == FORMAT4) {
             auto offset = record.subtableOffset.Get();
             if (ret = ParseFormat4(subtable, size - offset); ret) {
@@ -150,15 +157,15 @@ int CmapParser::ParseFormat4(const CmapSubtable &subtable, const std::size_t siz
         return 1;
     }
 
-    if (size < sizeof(CmapSubtableFormat4) + sizeof(uint16_t) * (subtable4.GetSegCount() * 4 + 1)) {
-        return 2;
+    if (size < sizeof(CmapSubtableFormat4) + sizeof(uint16_t) * (subtable4.GetSegCount() * FORMAT4 + 1)) {
+        return 1;
     }
 
     for (int16_t i = 0; i < subtable4.GetSegCount(); i++) {
         uint32_t end = endCodes[i].Get();
         uint32_t start = startCodes[i].Get();
         if (end < start) {
-            return 3;
+            return 1;
         }
 
         uint32_t idRangeOffset = idRangeOffsets[i].Get();
@@ -195,7 +202,7 @@ int CmapParser::ParseFormat12(const CmapSubtable &subtable, const std::size_t si
     }
 
     if (size < length) {
-        return 2;
+        return 1;
     }
 
     for (uint32_t i = 0; i < subtable12.numGroups.Get(); i++) {
@@ -206,4 +213,6 @@ int CmapParser::ParseFormat12(const CmapSubtable &subtable, const std::size_t si
     }
     return 0;
 }
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS

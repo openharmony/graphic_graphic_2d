@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,14 +21,29 @@
 
 #include "ranges.h"
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 struct CmapSubtable;
 class CmapParser {
 public:
     static constexpr int32_t InvalidGlyphId = Ranges::InvalidGlyphId;
 
+    /*
+     * @brief Parse the cmap data
+     * @param data The data stream of cmap table
+     * @param size The size of data
+     */
     int Parse(const char *data, int32_t size);
+
+    /*
+     * @brief Return the glyph id of the codepoint in cmap table
+     */
     int32_t GetGlyphId(int32_t codepoint) const;
+
+    /*
+     * @brief Print the dump info of cmap parse
+     */
     void Dump() const;
 
 private:
@@ -39,6 +54,8 @@ private:
 
     Ranges ranges_;
 };
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_OPENTYPE_PARSER_CMAP_PARSER_H
