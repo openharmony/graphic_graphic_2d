@@ -19,6 +19,7 @@
 #include <string>
 
 namespace OHOS {
+namespace Rosen {
 namespace TextEngine {
 class MemoryObject {
 protected:
@@ -26,6 +27,7 @@ protected:
     virtual void ReportMemoryUsage(const std::string &member, bool needThis) const = 0;
 };
 } // namespace TextEngine
+} // namespace Rosen
 } // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_EXPORT_TEXGINE_UTILS_MEMORY_OBJECT_H

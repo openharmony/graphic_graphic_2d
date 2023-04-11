@@ -18,15 +18,34 @@
 
 #include <string>
 
-namespace OHOS{
+namespace OHOS {
+namespace Rosen {
 namespace TextEngine {
 class ScopedTrace;
 
 class Trace {
 public:
+    /*
+     * @brief This method will be called when the scope trace starts.
+     * @param proc The process name for scope tracking.
+     */
     static void Start(const std::string &proc);
+
+    /*
+     * @brief End the scope tracking
+     */
     static void Finish();
+
+    /*
+     * @brief Append the count of key to trace content.
+     * @param key The proc what you what appned that counts to trace content
+     * @param val The count of the key
+     */
     static void Count(const std::string &key, int val);
+
+    /*
+     * @brief Disable the trace
+     */
     static void Disable();
 };
 
@@ -42,6 +61,9 @@ public:
         Finish();
     }
 
+    /*
+     * @brief End the scope tracking
+     */
     void Finish()
     {
         if (isFinished == false) {
@@ -54,6 +76,7 @@ private:
     bool isFinished = false;
 };
 } // namespace TextEngine
+} // namespace Rosen
 } // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_EXPORT_TEXGINE_UTILS_TRACE_H

@@ -19,6 +19,7 @@
 #include <string>
 
 namespace OHOS {
+namespace Rosen {
 namespace TextEngine {
 class MemoryUsageScope {
 public:
@@ -28,6 +29,7 @@ public:
 
 void DoReportMemoryUsage(const std::string &name, int usage);
 } // namespace TextEngine
+} // namespace Rosen
 } // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_EXPORT_TEXGINE_UTILS_MEMORY_USAGE_SCOPE_H
