@@ -31,6 +31,7 @@
 struct hb_blob_t;
 
 namespace OHOS {
+namespace Rosen {
 namespace TextEngine {
 #define DECLARE_CLASS_RMU(type) \
     void type::ReportMemoryUsage(const std::string &member, bool needThis) const
@@ -123,8 +124,10 @@ void ReportMemoryUsage(const std::string &member, const std::vector<T> &that, bo
 {
     auto nameT = GetTypeName<T>();
     MEMORY_USAGE_SCOPE("v<" + nameT + ">", that);
+    // 16 is the vector`s base memory footprint
+    int baseMemory = 16;
     if (that.capacity() != 0) {
-        DoReportMemoryUsage("*external", 16 + sizeof(T) * (that.capacity() - that.size()));
+        DoReportMemoryUsage("*external", baseMemory + sizeof(T) * (that.capacity() - that.size()));
         for (size_t i = 0; i < that.size(); i++) {
             ReportMemoryUsage(member + "[?]", that[i], true);
         }
@@ -168,10 +171,17 @@ void ReportMemoryUsage(const std::string &member, const std::map<K, V> &that, bo
         auto nameK = GetTypeName<K>();
         auto nameV = GetTypeName<V>();
         MEMORY_USAGE_SCOPE("m<" + nameK + ", " + nameV + ">", that);
-        DoReportMemoryUsage("*external", that.size() * ((sizeof(K) < 8 ? 0 : 8) + 40 + sizeof(K) + sizeof(V)));
+        // in std::map, the size of key, if more than 8, it`s base memory footprint is 8 + 40
+        // else base memory footprint is 40
+        int memoryDelta = 8;
+        int baseMemory = 40;
+        int sizeLimit = 8;
+        DoReportMemoryUsage("*external",
+                that.size() * ((sizeof(K) < sizeLimit ? 0 : memoryDelta) + baseMemory + sizeof(K) + sizeof(V)));
     }
 }
 } // namespace TextEngine
+} // namespace Rosen
 } // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_UTILS_MEMORY_REPORTER_H
