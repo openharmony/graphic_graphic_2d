@@ -98,18 +98,41 @@ void RSHardwareProcessor::CropLayers()
             .w = resDstRect.width_,
             .h = resDstRect.height_,
         };
-        srcRect.x = resDstRect.IsEmpty() ? 0 : std::ceil((resDstRect.left_ - dstRectI.left_) *
-            originSrcRect.w / dstRectI.width_);
-        srcRect.y = resDstRect.IsEmpty() ? 0 : std::ceil((resDstRect.top_ - dstRectI.top_) *
-            originSrcRect.h / dstRectI.height_);
-        srcRect.w = dstRectI.IsEmpty() ? 0 : originSrcRect.w * resDstRect.width_ / dstRectI.width_;
-        srcRect.h = dstRectI.IsEmpty() ? 0 : originSrcRect.h * resDstRect.height_ / dstRectI.height_;
+        srcRect = RotateSrcRect(originSrcRect, resDstRect, dstRectI, rotation_);
         layer->SetLayerSize(dstRect);
         layer->SetDirtyRegion(srcRect);
         layer->SetCropRect(srcRect);
         ROSEN_LOGD("RsDebug RSHardwareProcessor::CropLayers layer has been cropped dst[%d %d %d %d] src[%d %d %d %d]",
             dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h);
     }
+}
+
+IRect RSHardwareProcessor::RotateSrcRect(IRect originSrcRect, RectI resDstRect, RectI dstRectI, ScreenRotation rotation)
+{
+    IRect srcRect = {0, 0, 0, 0};
+    if (resDstRect.IsEmpty()) {
+        return srcRect;
+    }
+    if (rotation == ScreenRotation::ROTATION_90) {
+        srcRect.w = originSrcRect.h * resDstRect.height_ / dstRectI.height_;
+        srcRect.h = originSrcRect.w * resDstRect.width_ / dstRectI.width_;
+        if (dstRectI.top_ < 0) {
+            srcRect.x = 0;
+        }  else {
+            srcRect.x = originSrcRect.h - srcRect.w;
+        }
+        if (dstRectI.left_ < 0) {
+            srcRect.x = originSrcRect.w - srcRect.h;
+        }  else {
+            srcRect.y = 0;
+        }
+    } else {
+        srcRect.x = std::ceil((resDstRect.left_ - dstRectI.left_) * originSrcRect.w / dstRectI.width_);
+        srcRect.y = std::ceil((resDstRect.top_ - dstRectI.top_) * originSrcRect.h / dstRectI.height_);
+        srcRect.w = originSrcRect.w * resDstRect.width_ / dstRectI.width_;
+        srcRect.h = originSrcRect.h * resDstRect.height_ / dstRectI.height_;
+    }
+    return srcRect;
 }
 
 void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
