@@ -26,7 +26,7 @@ declare_args() {
 
 gpu_defines = []
 accessibility_defines = []
-if (graphic_standard_feature_ace_enable_gpu) {
+if (graphic_standard_feature_ace_enable_gpu && current_os != "ios") {
   if (graphic_standard_feature_enable_vulkan) {
     gpu_defines += [
       "ACE_ENABLE_VK",

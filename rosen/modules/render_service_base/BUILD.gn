@@ -231,7 +231,7 @@ ohos_shared_library("librender_service_base") {
 
 ohos_source_set("librender_service_base_static") {
   all_dependent_configs = [ ":render_service_base_all_deps_config" ]
-
+  deps = [ "$rosen_root/modules/platform:eventhandler" ]
   public_deps = [
     ":render_service_base_src",
     "src/platform:platform",

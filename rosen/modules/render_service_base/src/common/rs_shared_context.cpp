@@ -15,7 +15,11 @@
 
 #include "common/rs_shared_context.h"
 
-#include <EGL/egl.h>
+#ifdef ROSEN_IOS
+#include "render_context/render_context_egl_defines.h"
+#else
+#include "EGL/egl.h"
+#endif
 #include "tools/gpu/GrContextFactory.h"
 
 #include "platform/common/rs_log.h"

@@ -19,9 +19,9 @@ group("platform") {
     public_deps = [ "ohos" ]
   } else if (rosen_is_win || current_os == "linux") {
     public_deps = [ "windows" ]
-  } else if (rosen_is_mac || rosen_is_ios) {
+  } else if (rosen_is_mac) {
     public_deps = [ "darwin" ]
-  } else if (rosen_is_android) {
+  } else if (rosen_is_ios || rosen_is_android) {
     public_deps = [ "$appframework_root/graphic_2d:platform" ]
   } else if (rosen_is_linux) {
   } else {

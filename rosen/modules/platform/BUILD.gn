@@ -25,6 +25,8 @@ group("ace_skia") {
 group("eventhandler") {
   if (platform == "ohos") {
     public_deps = eventhandler_deps
+  } else if (cross_platform) {
+    public_deps = [ "$appframework_root/ability/ability_runtime/cross_platform/frameworks/native/base/event_handler:cross_platform_event_handler" ]
   } else {
     public_deps = [ ":impl_eventhandler" ]
   }
@@ -74,6 +76,8 @@ group("hilog") {
 group("image_native") {
   if (platform == "ohos") {
     public_deps = image_deps
+  } else if (platform == "ios") {
+    public_deps = [ "$image_framework_root/interfaces/innerkits:image_native" ]
   } else {
     public_deps = [ ":mock_image_native" ]
   }
@@ -127,6 +131,8 @@ ohos_source_set("mock_ipc_core") {
 group("utils") {
   if (platform == "ohos") {
     public_deps = utils_deps
+  } else if (platform == "ios") {
+    public_deps = [ "$c_utils_root/base:utils_staticIOS_PLATFORM" ]
   } else {
     public_deps = [ ":mock_utils" ]
   }

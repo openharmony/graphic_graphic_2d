@@ -22,8 +22,9 @@ rosen_is_linux = current_os == "linux"
 
 rs_common_define = []
 
-rosen_cross_platform = current_os == "mac" || current_os == "mingw" ||
-                       current_os == "linux" || current_os == "android"
+rosen_cross_platform =
+    current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
+    current_os == "android" || current_os == "ios"
 rosen_preview = rosen_is_mac || rosen_is_win || rosen_is_linux
 
 if (rosen_cross_platform) {

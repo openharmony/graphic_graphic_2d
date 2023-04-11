@@ -16,6 +16,8 @@ if (current_os == "mingw") {
   platform = "windows"
 }
 
+cross_platform = platform == "ios" || platform == "android"
+
 if (platform == "ohos") {
   eventhandler_deps = [
     "//base/notification/eventhandler/frameworks/eventhandler:libeventhandler",
@@ -35,3 +37,5 @@ if (platform == "ohos") {
 }
 
 appframework_root = "//foundation/appframework"
+c_utils_root = "//commonlibrary/c_utils"
+image_framework_root = "//foundation/multimedia/image_framework"

@@ -19,9 +19,15 @@
 #include <memory>
 #include <mutex>
 #include "common/rs_rect.h"
+
+#ifdef ROSEN_IOS
+#include "render_context_egl_defines.h"
+#else
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "GLES3/gl32.h"
+#endif
+
 #include "include/core/SkCanvas.h"
 #include "include/core/SkColorSpace.h"
 #include "include/core/SkImageInfo.h"

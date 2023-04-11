@@ -54,13 +54,13 @@
 
 static const std::string RT_INTERVAL_NAME = "renderthread";
 #endif
-#ifndef ROSEN_PREVIEW
+#if !defined(ROSEN_PREVIEW) && !defined(ROSEN_IOS)
 #include <sys/prctl.h>
 #endif
-
 static void SystemCallSetThreadName(const std::string& name)
 {
-#ifndef ROSEN_PREVIEW
+#if !defined(ROSEN_PREVIEW) && !defined(ROSEN_IOS)
+
     if (prctl(PR_SET_NAME, name.c_str()) < 0) {
         return;
     }
