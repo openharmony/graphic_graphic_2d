@@ -16,6 +16,7 @@
 #include "opentype_basic_type.h"
 
 namespace OHOS {
+namespace Rosen {
 namespace TextEngine {
 namespace OpenTypeBasicType {
 #define MAX_NUM 65536.0
@@ -27,7 +28,9 @@ constexpr union {
 
 const std::string Tag::Get() const
 {
-    char tagsWithZero[5];
+    // 5 is the size of open type table tags length
+    int size = 5;
+    char tagsWithZero[size];
     tagsWithZero[0] = tags[0];
     tagsWithZero[1] = tags[1];
     tagsWithZero[2] = tags[2];
@@ -80,4 +83,5 @@ float Fixed::Get() const
 }
 } // namespace OpenTypeBasicType
 } // namespace TextEngine
+} // namespace Rosen
 } // namespace OHOS

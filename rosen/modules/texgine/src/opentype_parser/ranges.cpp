@@ -19,6 +19,7 @@
 #include "texgine/utils/exlog.h"
 
 namespace OHOS {
+namespace Rosen {
 namespace TextEngine {
 void Ranges::AddRange(const struct Range &range)
 {
@@ -63,4 +64,5 @@ void Ranges::Dump() const
     }
 }
 } // namespace TextEngine
+} // namespace Rosen
 } // namespace OHOS

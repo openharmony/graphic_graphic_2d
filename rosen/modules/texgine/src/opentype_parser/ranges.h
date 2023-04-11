@@ -22,6 +22,7 @@
 #include <vector>
 
 namespace OHOS {
+namespace Rosen {
 namespace TextEngine {
 class Ranges {
 public:
@@ -32,8 +33,19 @@ public:
     };
     static constexpr int32_t InvalidGlyphId = -1;
 
+    /*
+     * @brief Add a new range
+     */
     void AddRange(const struct Range &range);
+
+    /*
+     * @brief Return the glyph id of the codepoint in ranges_
+     */
     int32_t GetGlyphId(uint32_t codepoint) const;
+
+    /*
+     * @brief Print the dump info
+     */
     void Dump() const;
 
 private:
@@ -43,6 +55,7 @@ private:
     std::map<uint32_t, int32_t> singles_;
 };
 } // namespace TextEngine
+} // namespace Rosen
 } // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_OPENTYPE_PARSER_RANGES_H

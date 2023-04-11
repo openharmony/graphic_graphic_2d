@@ -20,6 +20,7 @@
 
 namespace OHOS {
 namespace TextEngine {
+namespace Rosen {
 namespace OpenTypeBasicType {
 struct Tag {
     char tags[4];
@@ -52,6 +53,7 @@ struct Fixed {
 };
 } // namespace OpenTypeBasicType
 } // namespace TextEngine
+} // namespace Rosen
 } // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_OPENTYPE_PARSER_OPENTYPE_BASIC_TYPE_H
