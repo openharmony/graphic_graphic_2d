@@ -97,6 +97,7 @@ bool RSRenderNode::Update(
             modifier->Apply(context);
         }
     }
+    OnApplyModifiers();
     isDirtyRegionUpdated_ = false;
     UpdateDirtyRegion(dirtyManager, dirty, needClip, clipRect);
     isLastVisible_ = ShouldPaint();

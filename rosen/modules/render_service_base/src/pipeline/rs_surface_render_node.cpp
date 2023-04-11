@@ -61,26 +61,9 @@ void RSSurfaceRenderNode::SetConsumer(const sptr<IConsumerSurface>& consumer)
 }
 #endif
 
-static SkRect GetLocalClipBounds(const RSPaintFilterCanvas& canvas, SkIRect dstRect)
+void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const SkIRect& dstRect)
 {
-    if (dstRect.isEmpty()) {
-        return SkRect::MakeEmpty();
-    }
-
-    SkMatrix inverse;
-    // if we can't invert the CTM, we can't return local clip bounds
-    if (!(canvas.getTotalMatrix().invert(&inverse))) {
-        return SkRect::MakeEmpty();
-    }
-    SkRect bounds;
-    SkRect r = SkRect::Make(dstRect);
-    inverse.mapRect(&bounds, r);
-    return bounds;
-}
-
-void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, SkIRect dstRect)
-{
-    auto localClipRect = GetLocalClipBounds(canvas, dstRect);
+    auto localClipRect = RSPaintFilterCanvas::GetLocalClipBounds(canvas, &dstRect);
     const RSProperties& properties = GetRenderProperties();
     int left = std::clamp<int>(localClipRect.left(), 0, properties.GetBoundsWidth());
     int top = std::clamp<int>(localClipRect.top(), 0, properties.GetBoundsHeight());
@@ -117,20 +100,14 @@ std::string RSSurfaceRenderNode::DirtyRegionDump() const
 
 void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
+    // Save the current state of the canvas before modifying it.
     renderNodeSaveCount_ = canvas.Save();
 
-    // apply intermediate properties from RT to canvas
-    canvas.MultiplyAlpha(GetContextAlpha());
-    canvas.concat(GetContextMatrix());
-    auto clipRectFromRT = GetContextClipRegion();
-    if (clipRectFromRT.width() > std::numeric_limits<float>::epsilon() &&
-        clipRectFromRT.height() > std::numeric_limits<float>::epsilon()) {
-        canvas.clipRect(clipRectFromRT);
-    }
-
-    // apply node properties to canvas
+    // Apply alpha to canvas
     const RSProperties& properties = GetRenderProperties();
     canvas.MultiplyAlpha(properties.GetAlpha());
+
+    // Apply matrix to canvas
     auto currentGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
     if (currentGeoPtr != nullptr) {
         currentGeoPtr->UpdateByMatrixFromSelf();
@@ -140,17 +117,16 @@ void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canva
         canvas.concat(matrix);
     }
 
-    // clip by bounds
-    canvas.clipRect(
-        SkRect::MakeWH(std::floor(properties.GetBoundsWidth()), std::floor(properties.GetBoundsHeight())));
+    // Clip by bounds
+    canvas.clipRect(SkRect::MakeWH(std::floor(properties.GetBoundsWidth()), std::floor(properties.GetBoundsHeight())));
 
-    // extract srcDest and dstRect from SkCanvas, localCLipBounds as SrcRect, deviceClipBounds as DstRect
+    // Extract srcDest and dstRect from SkCanvas, localCLipBounds as SrcRect, deviceClipBounds as DstRect
     auto deviceClipRect = canvas.getDeviceClipBounds();
     UpdateSrcRect(canvas, deviceClipRect);
     RectI dstRect = { deviceClipRect.left(), deviceClipRect.top(), deviceClipRect.width(), deviceClipRect.height() };
     SetDstRect(dstRect);
 
-    // save TotalMatrix and GlobalAlpha for compositor
+    // Save TotalMatrix and GlobalAlpha for compositor
     SetTotalMatrix(canvas.getTotalMatrix());
     SetGlobalAlpha(canvas.GetAlpha());
 }
@@ -927,9 +903,43 @@ float RSSurfaceRenderNode::GetLocalZOrder() const
 
 void RSSurfaceRenderNode::OnApplyModifiers()
 {
-    // concat context matrix into bounds geometry
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(GetMutableRenderProperties().GetBoundsGeometry());
-    geoPtr->ConcatMatrix(contextMatrix_);
+    // Get the render properties and the bounds geometry
+    auto& properties = GetMutableRenderProperties();
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
+
+    // Multiply context alpha into alpha
+    properties.SetAlpha(properties.GetAlpha() * contextAlpha_);
+
+    // Apply the context matrix into the bounds geometry
+    geoPtr->SetContextMatrix(contextMatrix_);
+
+    // No valid clipRect, return
+    auto clipRect = GetContextClipRegion();
+    if (clipRect.width() < 1 || clipRect.height() < 1) {
+        return;
+    }
+
+    // Map clipRect from parent coordinate to local coordinate if needed
+    geoPtr->UpdateByMatrixFromSelf();
+    const auto& matrixWithoutContextMatrix = geoPtr->GetMatrixWithOutContext();
+    if (!matrixWithoutContextMatrix.isIdentity()) {
+        SkMatrix invertMatrix;
+        if (matrixWithoutContextMatrix.invert(&invertMatrix)) {
+            clipRect = invertMatrix.mapRect(clipRect);
+        }
+        // MatrixWithoutContextMatrix already includes bounds offset, we need to revert it
+        clipRect.offset(geoPtr->GetX(), geoPtr->GetY());
+    }
+
+    // Update BoundsRect with intersected clipRect
+    if (!clipRect.intersect(geoPtr->GetX(), geoPtr->GetY(), geoPtr->GetX() + geoPtr->GetWidth(),
+            geoPtr->GetY() + geoPtr->GetHeight())) {
+        // No visible area
+        properties.SetBounds({ 0, 0, 0, 0 });
+        return;
+    }
+
+    properties.SetBounds({ clipRect.x(), clipRect.y(), clipRect.width(), clipRect.height() });
 }
 } // namespace Rosen
 } // namespace OHOS

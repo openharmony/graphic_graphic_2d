@@ -43,19 +43,19 @@ public:
         return absRect_;
     }
     RectI MapAbsRect(const RectF& rect) const;
-    const SkMatrix& GetMatrix() const
-    {
-        return matrix_;
-    }
-
-    const SkMatrix& GetAbsMatrix() const
-    {
-        return absMatrix_;
-    }
+    
+    // return transform matrix (context + self)
+    const SkMatrix& GetMatrix() const;
+    // return transform matrix (only self)
+    const SkMatrix& GetMatrixWithOutContext() const;
+    // return transform matrix (parent + context + self)
+    const SkMatrix& GetAbsMatrix() const;
 
     bool IsPointInHotZone(const float x, const float y) const;
 
     bool IsNeedClientCompose() const;
+
+    void SetContextMatrix(const SkMatrix& matrix);
 
 private:
     void UpdateAbsMatrix2D();
@@ -66,7 +66,9 @@ private:
     bool IsPointInLine(const SkPoint& p1, const SkPoint& p2, const SkPoint& p, const float crossRes) const;
     RectI absRect_;
     SkMatrix matrix_;
-    SkMatrix absMatrix_;
+    std::unique_ptr<SkMatrix> matrixWithoutContext_;
+    std::unique_ptr<SkMatrix> absMatrix_;
+    std::unique_ptr<SkMatrix> contextMatrix_;
     SkPoint vertices_[4];
 };
 } // namespace Rosen

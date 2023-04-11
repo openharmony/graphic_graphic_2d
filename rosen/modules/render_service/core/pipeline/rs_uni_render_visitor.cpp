@@ -492,7 +492,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     auto& property = node.GetMutableRenderProperties();
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
     float alpha = curAlpha_;
-    curAlpha_ *= (property.GetAlpha() * node.GetContextAlpha());
+    curAlpha_ *= (property.GetAlpha());
     node.SetGlobalAlpha(curAlpha_);
 
     // if current surfacenode is a main window type, reset the curSurfaceDirtyManager
@@ -523,16 +523,21 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     } else {
         dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_, prepareClipRect_);
     }
-    // if expand screen, start from screen width
-    node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(curDisplayNode_->GetDisplayOffsetX(),
-        curDisplayNode_->GetDisplayOffsetY(), screenInfo_.width, screenInfo_.height)));
 
-    node.SetDstRect(RectI(node.GetDstRect().left_ - curDisplayNode_->GetDisplayOffsetX(),
-        node.GetDstRect().top_ - curDisplayNode_->GetDisplayOffsetY(),
-        node.GetDstRect().GetWidth(), node.GetDstRect().GetHeight()));
+    // Calculate the absolute destination rectangle of the node, initialize with absolute bounds rect
+    auto dstRect = geoPtr->GetAbsRect();
+    // If the screen is expanded, intersect the destination rectangle with the screen rectangle
+    dstRect = dstRect.IntersectRect(RectI(curDisplayNode_->GetDisplayOffsetX(), curDisplayNode_->GetDisplayOffsetY(),
+        screenInfo_.width, screenInfo_.height));
+    // Remove the offset of the screen
+    dstRect = RectI(dstRect.left_ - curDisplayNode_->GetDisplayOffsetX(),
+        dstRect.top_ - curDisplayNode_->GetDisplayOffsetY(), dstRect.GetWidth(), dstRect.GetHeight());
+    // If the node is a hardware-enabled type, intersect its destination rectangle with the prepare clip rectangle
     if (node.IsHardwareEnabledType()) {
-        node.SetDstRect(node.GetDstRect().IntersectRect(prepareClipRect_));
+        dstRect = dstRect.IntersectRect(prepareClipRect_);
     }
+    // Set the destination rectangle of the node
+    node.SetDstRect(dstRect);
 
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         // record node position for display render node dirtyManager
@@ -636,6 +641,8 @@ void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
     }
     node.SetContextMatrix(contextMatrix);
     node.SetContextAlpha(curAlpha_);
+    auto rect = property.GetBoundsRect();
+    node.SetContextClipRegion(SkRect::MakeXYWH(rect.left_, rect.top_, rect.width_, rect.height_));
 
     PrepareBaseRenderNode(node);
 }
@@ -1918,7 +1925,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 
     canvas_->MultiplyAlpha(property.GetAlpha());
-    canvas_->MultiplyAlpha(node.GetContextAlpha());
 
     bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
     // [planning] surfaceNode use frame instead
@@ -2143,9 +2149,7 @@ void RSUniRenderVisitor::PrepareOffscreenRender(RSRenderNode& node)
         return;
     }
     // create offscreen surface and canvas
-    auto offscreenInfo = SkImageInfo::Make(offscreenWidth, offscreenHeight, kRGBA_8888_SkColorType, kPremul_SkAlphaType,
-        canvas_->GetSurface()->imageInfo().refColorSpace());
-    offscreenSurface_ = canvas_->GetSurface()->makeSurface(offscreenInfo);
+    offscreenSurface_ = canvas_->GetSurface()->makeSurface(offscreenWidth, offscreenHeight);
     if (offscreenSurface_ == nullptr) {
         RS_LOGD("RSUniRenderVisitor::PrepareOffscreenRender, offscreenSurface is nullptr");
         canvas_->clipRect(SkRect::MakeWH(offscreenWidth, offscreenHeight));

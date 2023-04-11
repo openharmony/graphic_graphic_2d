@@ -252,6 +252,7 @@ void RSPaintFilterCanvas::SetVisibleRect(SkRect visibleRect)
 {
     visibleRect_ = visibleRect;
 }
+
 SkRect RSPaintFilterCanvas::GetVisibleRect() const
 {
     return visibleRect_;
@@ -265,6 +266,24 @@ void RSPaintFilterCanvas::SetDisplayNodeMatrix(SkMatrix matrix)
 SkMatrix RSPaintFilterCanvas::GetDisplayNodeMatrix() const
 {
     return displayNodeMatrix_;
+}
+
+SkRect RSPaintFilterCanvas::GetLocalClipBounds(const SkCanvas& canvas, const SkIRect* clipRect)
+{
+    // if clipRect is explicitly specified, use it as the device clip bounds
+    SkRect bounds = SkRect::Make((clipRect != nullptr) ? *clipRect : canvas.getDeviceClipBounds());
+
+    if (bounds.isEmpty()) {
+        return SkRect::MakeEmpty();
+    }
+
+    SkMatrix inverse;
+    // if we can't invert the CTM, we can't return local clip bounds
+    if (!(canvas.getTotalMatrix().invert(&inverse))) {
+        return SkRect::MakeEmpty();
+    }
+    // return the inverse of the CTM applied to the device clip bounds as local clip bounds
+    return inverse.mapRect(bounds);
 }
 } // namespace Rosen
 } // namespace OHOS

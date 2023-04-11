@@ -86,6 +86,8 @@ public:
     void SetDisplayNodeMatrix(SkMatrix matrix);
     SkMatrix GetDisplayNodeMatrix() const;
 
+    static SkRect GetLocalClipBounds(const SkCanvas& canvas, const SkIRect* clipBounds = nullptr);
+
 protected:
     bool onFilter(SkPaint& paint) const override;
     void onDrawPicture(const SkPicture* picture, const SkMatrix* matrix, const SkPaint* paint) override;

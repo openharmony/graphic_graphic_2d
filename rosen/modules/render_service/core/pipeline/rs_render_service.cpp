@@ -326,8 +326,8 @@ void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
     dumpString += "IsOnTheTree: " + std::to_string(node->IsOnTheTree()) + "\n";
     dumpString += "Visible: " + std::to_string(node->GetRenderProperties().GetVisible()) + "\n";
     dumpString += "OcclusionBg: " + std::to_string(node->GetAbilityBgAlpha())+ "\n";
-    dumpString += "ContentAlpha: " + std::to_string(node->GetContextAlpha()) + "\n";
-    dumpString += "RSPropertyAlpha: " + std::to_string(node->GetRenderProperties().GetAlpha()) + "\n";
+    dumpString += "Alpha: " + std::to_string(node->GetRenderProperties().GetAlpha()) +
+                  "(include ContextAlpha: " + std::to_string(node->GetContextAlpha()) + ")\n";
     dumpString += "GlobalAlpha: " + std::to_string(node->GetGlobalAlpha()) + "\n";
     dumpString += node->GetVisibleRegion().GetRegionInfo() + "\n";
     const auto& consumer = node->GetConsumer();
