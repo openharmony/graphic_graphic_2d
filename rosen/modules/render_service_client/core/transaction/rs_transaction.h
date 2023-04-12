@@ -56,6 +56,7 @@ private:
     void SetCreateFinishCallback(const std::function<void()>& callback);
 
     uint64_t syncId_ { 0 };
+    std::mutex mutex_;
     std::vector<sptr<RSISyncTransactionController>> controllers_;
     std::function<void()> createStartCallback_;
     std::function<void()> createFinishCallback_;

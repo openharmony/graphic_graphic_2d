@@ -90,6 +90,7 @@ uint64_t RSTransaction::GenerateSyncId()
 
 void RSTransaction::ResetSyncTransactionInfo()
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     syncId_ = 0;
     controllers_.clear();
 }
@@ -177,6 +178,7 @@ void RSTransaction::CallCreateFinishCallback()
 
 void RSTransaction::CreateTransactionFinish()
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     if (!controllers_.empty() && controllers_.back()) {
         controllers_.back()->CreateTransactionFinished();
     }
