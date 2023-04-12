@@ -188,7 +188,7 @@ void RenderContext::InitializeEglContext()
     LOGD("Create EGL context successfully, version %{public}d.%{public}d", major, minor);
 }
 
-void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context) const
+void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context)
 {
     if (surface == EGL_NO_SURFACE) {
         if (!eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, context)) {
@@ -199,6 +199,7 @@ void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context) const
             LOGE("Failed to make current on surface %{public}p, error is %{public}x", surface, eglGetError());
         }
     }
+    eglSurface_ = surface;
 }
 
 void RenderContext::SwapBuffers(EGLSurface surface) const
