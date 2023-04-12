@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,8 +20,10 @@
 
 #include "texgine_exception.h"
 
-namespace Texgine {
-std::ostream &operator <<(std::ostream &os, const struct IndexRange &range)
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
+std::ostream &operator<<(std::ostream &os, const struct IndexRange &range)
 {
     os << "[" << range.start_ << ", " << range.end_ << ")";
     return os;
@@ -156,4 +158,6 @@ CharGroupsPair CharGroups::GetSplitAll(const int &index) const
     retval[1].range_.start_ = index;
     return retval;
 }
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS

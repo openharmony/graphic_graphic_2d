@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,50 +22,53 @@
 #include <ostream>
 #include <vector>
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 struct Glyph {
-    uint32_t codepoint_;
-    double advanceX_;
-    double advanceY_;
-    double offsetX_;
-    double offsetY_;
+    uint32_t codepoint;
+    double advanceX;
+    double advanceY;
+    double offsetX;
+    double offsetY;
 };
 
 class Typeface;
 struct CharGroup {
-    std::vector<uint16_t> chars_;
-    std::vector<struct Glyph> glyphs_;
-    std::shared_ptr<Typeface> typeface_;
-    double visibleWidth_ = 0;
-    double invisibleWidth_ = 0;
+    std::vector<uint16_t> chars;
+    std::vector<struct Glyph> glyphs;
+    std::shared_ptr<Typeface> typeface;
+    double visibleWidth = 0;
+    double invisibleWidth = 0;
 
     double GetWidth() const
     {
-        return visibleWidth_ + invisibleWidth_;
+        return visibleWidth + invisibleWidth;
     }
 
     double GetHeight() const
     {
         double maxAdvanceY = 0;
         for (const auto &glyph : glyphs_) {
-            maxAdvanceY = std::max(maxAdvanceY, glyph.advanceY_);
+            maxAdvanceY = std::max(maxAdvanceY, glyph.advanceY);
         }
         return maxAdvanceY;
     }
 };
 
 struct IndexRange {
-    int start_ = 0;
-    int end_ = 0;
+    int start = 0;
+    int end = 0;
 
-    bool operator ==(IndexRange const &range) const
+    bool operator==(IndexRange const &range) const
     {
-        return range.start_ == start_ && range.end_ == end_;
+        return range.start == start && range.end == end;
     }
 };
 
-std::ostream &operator <<(std::ostream &os, const struct IndexRange &range);
+std::ostream &operator<<(std::ostream &os, const struct IndexRange &range);
 class CharGroups;
+// 2 is the count of CharGroups in the return value
 using CharGroupsPair = std::array<CharGroups, 2>;
 class CharGroups {
 public:
@@ -102,7 +105,7 @@ public:
     void Merge(const CharGroups &right);
     void PushBack(const struct CharGroup &cg);
     void ReverseAll();
-    bool operator ==(CharGroups const &cgs) const
+    bool operator==(CharGroups const &cgs) const
     {
         return IsSameCharGroups(cgs) && range_ == cgs.range_;
     }
@@ -113,6 +116,8 @@ private:
     std::shared_ptr<std::vector<struct CharGroup>> pcgs_ = nullptr;
     struct IndexRange range_ = {0, 0};
 };
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_CHAR_GROUPS_H
