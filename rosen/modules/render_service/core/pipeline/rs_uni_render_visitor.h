@@ -277,6 +277,9 @@ private:
     bool isParallel_ = false;
     bool doParallelComposition_ = false;
     bool doParallelRender_ = false;
+    // displayNodeMatrix only used in offScreen render case to ensure correct composer layer info when with rotation,
+    // displayNodeMatrix indicates display node's matrix info
+    std::optional<SkMatrix> displayNodeMatrix_;
     mutable std::mutex copyVisitorInfosMutex_;
 };
 } // namespace Rosen

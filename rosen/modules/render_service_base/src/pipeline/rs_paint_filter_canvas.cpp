@@ -258,16 +258,6 @@ SkRect RSPaintFilterCanvas::GetVisibleRect() const
     return visibleRect_;
 }
 
-void RSPaintFilterCanvas::SetDisplayNodeMatrix(SkMatrix matrix)
-{
-    displayNodeMatrix_ = matrix;
-}
-
-SkMatrix RSPaintFilterCanvas::GetDisplayNodeMatrix() const
-{
-    return displayNodeMatrix_;
-}
-
 std::optional<SkRect> RSPaintFilterCanvas::GetLocalClipBounds(const SkCanvas& canvas, const SkIRect* clipRect)
 {
     // if clipRect is explicitly specified, use it as the device clip bounds

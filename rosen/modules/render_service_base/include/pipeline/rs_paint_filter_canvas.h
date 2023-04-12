@@ -84,9 +84,6 @@ public:
     void SetVisibleRect(SkRect visibleRect);
     SkRect GetVisibleRect() const;
 
-    void SetDisplayNodeMatrix(SkMatrix matrix);
-    SkMatrix GetDisplayNodeMatrix() const;
-
     static std::optional<SkRect> GetLocalClipBounds(const SkCanvas& canvas, const SkIRect* clipBounds = nullptr);
 
 protected:
@@ -104,10 +101,6 @@ private:
     std::atomic_bool isHighContrastEnabled_ { false };
     CacheType cacheType_ { UNDEFINED };
     SkRect visibleRect_ = SkRect::MakeEmpty();
-
-    // displayNodeMatrix only used in offScreen render case to ensure correct composer layer info when with rotation,
-    // displayNodeMatrix indicates display node's matrix info
-    SkMatrix displayNodeMatrix_;
 };
 
 // This class extends RSPaintFilterCanvas to also create a color filter for the paint.
