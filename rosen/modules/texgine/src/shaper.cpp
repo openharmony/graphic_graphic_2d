@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,7 +30,9 @@
 #include "text_reverser.h"
 #include "text_shaper.h"
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 namespace {
 void DumpLineMetrics(std::vector<LineMetrics> &lineMetrics)
 {
@@ -43,12 +45,12 @@ void DumpLineMetrics(std::vector<LineMetrics> &lineMetrics)
 }
 } // namespace
 
-std::vector<LineMetrics> Shaper::Shape(std::vector<VariantSpan> spans,
-                                       const TypographyStyle &ys,
-                                       const std::unique_ptr<FontProviders> &fontProviders,
-                                       const double widthLimit)
+std::vector<LineMetrics> Shaper::DoShape(std::vector<VariantSpan> spans,
+                                         const TypographyStyle &ys,
+                                         const std::unique_ptr<FontProviders> &fontProviders,
+                                         const double widthLimit)
 {
-    ScopedTrace scope("Shaper::Shape");
+    ScopedTrace scope("Shaper::DoShape");
     TextBreaker tb;
     auto ret = tb.WordBreak(spans, ys, fontProviders);
     if (ret) {
@@ -87,4 +89,6 @@ std::vector<LineMetrics> Shaper::Shape(std::vector<VariantSpan> spans,
     DumpLineMetrics(lineMetrics);
     return lineMetrics;
 }
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS

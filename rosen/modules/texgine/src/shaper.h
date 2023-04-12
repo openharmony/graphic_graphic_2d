@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,14 +19,26 @@
 #include "line_metrics.h"
 #include "texgine/typography_style.h"
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 class Shaper {
 public:
-    static std::vector<LineMetrics> Shape(std::vector<VariantSpan> spans,
-                                          const TypographyStyle &tstyle,
-                                          const std::unique_ptr<FontProviders> &fontProviders,
-                                          const double widthLimit);
+    /*
+     * @brief Text shaping, in this, will do text breaker, bidirectional text processing
+     *        line breaker, text merge, text reverse, and shape with harfbuzz
+     * @param spans The text or non text what user want to panit
+     * @param style Typography Style that user want
+     * @param fontProviders The font providers setting by user
+     * @param widthLimit The maximum display width set by the user
+     */
+    static std::vector<LineMetrics> DoShape(std::vector<VariantSpan> spans,
+                                            const TypographyStyle &tstyle,
+                                            const std::unique_ptr<FontProviders> &fontProviders,
+                                            const double widthLimit);
 };
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_SHAPER_H

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include "measurer.h"
-
 #include <iomanip>
 #include <list>
 #include <queue>
@@ -24,7 +22,11 @@
 #include <unicode/utf16.h>
 #include <unicode/uchar.h>
 
-namespace Texgine {
+#include "measurer.h"
+
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 struct MeasuringRun {
     size_t start;
     size_t end;
@@ -35,60 +37,98 @@ struct MeasuringRun {
 class MeasurerImpl : public Measurer {
 public:
     MeasurerImpl(const std::vector<uint16_t> &text, const FontCollection &fontCollection);
+
+    /*
+     * @brief Get word boundary of text
+     */
     const std::vector<Boundary> &GetWordBoundary() const override;
+
+    /*
+     * @brief Measure font
+     * @param cgs The output parameter, after measurer will generate char groups
+     * @return 0 is measurer successed
+     *         1 is measurer failed
+     */
     int Measure(CharGroups &cgs) override;
+
+    /*
+     * @brief Seeks typeface for text, this should be private, now is for UT testing
+     * @param runs Input and output parameter, intermediate products of measurement
+     */
     void SeekTypeface(std::list<struct MeasuringRun> &runs);
+
+    /*
+     * @brief Seeks script for text, this should be private, now is for UT testing
+     * @param runs Input and output parameter, intermediate products of measurement
+     */
     void SeekScript(std::list<struct MeasuringRun> &runs);
+
+    /*
+     * @brief Text shaping, after this, information such as the width and height of the
+     *         text will be obtain. This should be private, now is for UT testing
+     * @param cgs The output parameter, char groups of text
+     * @param runs Input and output parameter, intermediate products of measurement
+     * @param boundary The word boundarys of text
+     * @return 0 is shape successed
+     *         1 is shape failed
+     */
     int Shape(CharGroups &cgs, std::list<struct MeasuringRun> &runs, std::vector<Boundary> boundaries_);
+
+    /*
+     * @brief Generate font features required for shaping.
+     *        This should be private, now is for UT testing.
+     * @param fontFeatures The output parameter. Will passed to harfbuzz
+     * @param ff Font features user want
+     */
     void GenerateHBFeatures(std::vector<hb_feature_t> &fontFeatures, const FontFeatures *ff);
 
 private:
     struct MeasurerCacheKey {
-        std::vector<uint16_t> text_;
-        FontStyles style_;
-        std::string locale_;
-        bool rtl_;
-        uint32_t size_;
-        size_t startIndex_;
-        size_t endIndex_;
-        double letterSpacing_;
-        double wordSpacing_;
+        std::vector<uint16_t> text = {};
+        FontStyles style;
+        std::string locale = "";
+        bool rtl = false;
+        uint32_t size = 16.0; // default TextStyle fontSize_
+        size_t startIndex = 0;
+        size_t endIndex = 0;
+        double letterSpacing = 0;
+        double wordSpacing = 0;
 
         bool operator <(const struct MeasurerCacheKey &rhs) const
         {
-            if (startIndex_ != rhs.startIndex_) {
-                return startIndex_ < rhs.startIndex_;
+            if (startIndex != rhs.startIndex) {
+                return startIndex < rhs.startIndex;
             }
-            if (endIndex_ != rhs.endIndex_) {
-                return endIndex_ < rhs.endIndex_;
+            if (endIndex != rhs.endIndex) {
+                return endIndex < rhs.endIndex;
             }
-            if (text_ != rhs.text_) {
-                return text_ < rhs.text_;
+            if (text != rhs.text) {
+                return text < rhs.text;
             }
-            if (rtl_ != rhs.rtl_) {
-                return rtl_ < rhs.rtl_;
+            if (rtl != rhs.rtl) {
+                return rtl < rhs.rtl;
             }
-            if (size_ != rhs.size_) {
-                return size_ < rhs.size_;
+            if (size != rhs.size) {
+                return size < rhs.size;
             }
-            if (style_ != rhs.style_) {
-                return style_ < rhs.style_;
+            if (style != rhs.style) {
+                return style < rhs.style;
             }
-            if (locale_ != rhs.locale_) {
-                return locale_ < rhs.locale_;
+            if (locale != rhs.locale) {
+                return locale < rhs.locale;
             }
-            if (letterSpacing_ != rhs.letterSpacing_) {
-                return letterSpacing_ < rhs.letterSpacing_;
+            if (letterSpacing != rhs.letterSpacing) {
+                return letterSpacing < rhs.letterSpacing;
             }
-            if (wordSpacing_ != rhs.wordSpacing_) {
-                return wordSpacing_ < rhs.wordSpacing_;
+            if (wordSpacing != rhs.wordSpacing) {
+                return wordSpacing < rhs.wordSpacing;
             }
             return false;
         }
     };
     struct MeasurerCacheVal {
-        CharGroups cgs_;
-        std::vector<Boundary> boundaries_;
+        CharGroups cgs;
+        std::vector<Boundary> boundaries = {};
     };
 
     void DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode_funcs_t *icuGetUnicodeFuncs);
@@ -98,8 +138,10 @@ private:
     void DoCgsByCluster(std::map<uint32_t, Texgine::CharGroup> &cgsByCluster);
 
     static inline std::map<struct MeasurerCacheKey, struct MeasurerCacheVal> cache_;
-    std::vector<Boundary> boundaries_;
+    std::vector<Boundary> boundaries_ = {};
 };
 
 hb_blob_t *HbFaceReferenceTableTypeface(hb_face_t *face, hb_tag_t tag, void *context);
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
