@@ -31,32 +31,38 @@ RSMessageProcessor::~RSMessageProcessor() {}
 
 void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>& command)
 {
+    std::unique_lock<std::mutex> lock(transactionMapMutex_);
     transactionMap_[pid].AddCommand(std::move(command), 0, FollowType::NONE);
 }
 
 void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>&& command)
 {
+    std::unique_lock<std::mutex> lock(transactionMapMutex_);
     transactionMap_[pid].AddCommand(std::move(command), 0, FollowType::NONE);
 }
 
 bool RSMessageProcessor::HasTransaction() const
 {
+    std::unique_lock<std::mutex> lock(transactionMapMutex_);
     return !transactionMap_.empty();
 }
 
 bool RSMessageProcessor::HasTransaction(uint32_t pid) const
 {
+    std::unique_lock<std::mutex> lock(transactionMapMutex_);
     auto iter = transactionMap_.find(pid);
     return iter != transactionMap_.end() && !iter->second.IsEmpty();
 }
 
 RSTransactionData&& RSMessageProcessor::GetTransaction(uint32_t pid)
 {
+    std::unique_lock<std::mutex> lock(transactionMapMutex_);
     return std::move(transactionMap_[pid]);
 }
 
 std::unordered_map<uint32_t, RSTransactionData>&& RSMessageProcessor::GetAllTransactions()
 {
+    std::unique_lock<std::mutex> lock(transactionMapMutex_);
     return std::move(transactionMap_);
 }
 
