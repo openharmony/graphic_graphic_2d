@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,9 @@
 #include "texgine/utils/exlog.h"
 #include "texgine/utils/trace.h"
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 void TextReverser::ReverseRTLText(std::vector<VariantSpan> &lineSpans)
 {
     ScopedTrace scope("Shaper::ReverseRTLText");
@@ -121,4 +123,6 @@ void TextReverser::ProcessTypoDirection(std::vector<VariantSpan> &lineSpans, con
         ReverseConDirectionText(lineSpans, index, lineSpans.size() - 1);
     }
 }
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS

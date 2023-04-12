@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,7 +22,9 @@
 #include "texgine/utils/trace.h"
 #include "text_span.h"
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 std::ostream &operator <<(std::ostream &os, const MergeResult &result)
 {
     switch (result) {
@@ -68,7 +70,7 @@ std::vector<VariantSpan> TextMerger::MergeSpans(const std::vector<VariantSpan> &
         }
 
         if (it == spans.begin()) {
-            continue;
+            throw TEXGINE_EXCEPTION(ErrorStatus);
         }
 
         auto &lastSpan = *(it - 1);
@@ -110,11 +112,11 @@ MergeResult TextMerger::MergeSpan(const VariantSpan &span, std::optional<bool> &
         throw TEXGINE_EXCEPTION(ErrorStatus);
     }
 
-    if (cgs.IsValid() == true && cgs.IsSameCharGroups(ts->cgs_) == false) {
+    if (cgs.IsValid() && !cgs.IsSameCharGroups(ts->cgs_)) {
         return MergeResult::REJECTED;
     }
 
-    if (cgs.IsValid() == false) {
+    if (!cgs.IsValid()) {
         cgs = ts->cgs_;
     } else if (cgs.Get(0).typeface_ != ts->typeface_) {
         return MergeResult::REJECTED;
@@ -129,4 +131,6 @@ MergeResult TextMerger::MergeSpan(const VariantSpan &span, std::optional<bool> &
         return MergeResult::ACCEPTED;
     }
 }
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
