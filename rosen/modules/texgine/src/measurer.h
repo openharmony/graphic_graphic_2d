@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,7 +25,9 @@
 #include "texgine/typography.h"
 #include "word_breaker.h"
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 class Measurer {
 public:
     static std::unique_ptr<Measurer> Create(const std::vector<uint16_t> &text, const FontCollection &fontCollection);
@@ -48,13 +50,15 @@ protected:
     FontStyles style_;
     std::string locale_ = "";
     bool rtl_ = false;
-    uint32_t size_ = 16;
+    uint32_t size_ = 16; // default text_style fontSize_
     size_t startIndex_ = 0;
     size_t endIndex_ = 0;
     const FontFeatures *fontFeatures_ = nullptr;
     double letterSpacing_ = 0.0;
     double wordSpacing_ = 0.0;
 };
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_MEASURER_H

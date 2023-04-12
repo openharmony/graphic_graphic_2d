@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,9 @@
 
 #include <filesystem>
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 MockIFStream::MockIFStream(const std::string &filename,
                 std::ios_base::openmode mode)
     : std::ifstream(filename, mode)
@@ -49,8 +51,16 @@ std::istream &MockIFStream::StdFilesystemRead(char_type *s, std::streamsize coun
     return std::ifstream::read(s, count);
 }
 
+void MockIFStream::StdFilestystemClose()
+{
+    std::ifstream::close();
+}
+
 bool StdFilesystemExists(const std::string &p, std::error_code &ec)
 {
     return std::filesystem::exists(p, ec);
 }
-} // namespace Texgine
+
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
