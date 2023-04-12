@@ -22,18 +22,20 @@
 #include "include/gpu/GrContext.h"
 #include "src/gpu/GrContextPriv.h"
 
+#include "common/rs_obj_abs_geometry.h"
+#include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t MEMUNIT_RATE = 1024;
-constexpr const char* MEM_RS_TYPE = "rs";
+constexpr const char* MEM_RS_TYPE = "renderservice";
 constexpr const char* MEM_CPU_TYPE = "cpu";
 constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr const char* MEM_JEMALLOC_TYPE = "jemalloc";
 }
-
 
 void MemoryManager::DumpMemoryUsage(DfxString& log, const GrContext* grContext, std::string& type)
 {
@@ -53,6 +55,54 @@ void MemoryManager::DumpMemoryUsage(DfxString& log, const GrContext* grContext, 
     }
 }
 
+void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, GrGpuResourceTag& tag)
+{
+#ifdef RS_ENABLE_GL
+    if(!grContext) {
+        RS_LOGE("ReleaseGpuResByTag fail, grContext is nullptr");
+    }
+    grContext->releaseByTag(tag);
+#endif
+}
+
+void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, NodeId surfaceNodeId)
+{
+#ifdef RS_ENABLE_GL
+    GrGpuResourceTag tag(ExtractPid(surfaceNodeId), 0, 0, 0);
+    ReleaseAllGpuResource(grContext, tag);
+#endif
+}
+
+void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, GrGpuResourceTag& tag)
+{
+#ifdef RS_ENABLE_GL
+    if(!grContext) {
+        RS_LOGE("ReleaseGpuResByTag fail, grContext is nullptr");
+    }
+    grContext->purgeUnlockedResourcesByTag(false, tag);
+#endif
+}
+
+void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, NodeId surfaceNodeId)
+{
+#ifdef RS_ENABLE_GL
+    GrGpuResourceTag tag(ExtractPid(surfaceNodeId), 0, 0, 0);
+    ReleaseUnlockGpuResource(grContext, tag); // clear gpu resource by pid
+#endif
+}
+
+void MemoryManager::ReleaseUnlockLauncherGpuResource(GrContext* grContext,
+    NodeId entryViewNodeId, NodeId wallpaperViewNodeId)
+{
+#ifdef RS_ENABLE_GL
+    if(!grContext) {
+        RS_LOGE("ReleaseGpuResByTag fail, grContext is nullptr");
+    }
+    ReleaseUnlockGpuResource(grContext, entryViewNodeId);
+    ReleaseUnlockGpuResource(grContext, wallpaperViewNodeId);
+#endif
+}
+
 void MemoryManager::DumpPidMemory(DfxString& log, int pid)
 {
     MemoryTrack::Instance().DumpMemoryStatistics(log, pid);
@@ -63,6 +113,7 @@ MemoryGraphic MemoryManager::CountPidMemory(int pid, const GrContext* grContext)
     MemoryGraphic totalMemGraphic;
 
     // Count mem of RS
+    totalMemGraphic.SetPid(pid);
     MemoryGraphic rsMemGraphic = MemoryTrack::Instance().CountRSMemory(pid);
     totalMemGraphic += rsMemGraphic;
 
@@ -89,10 +140,35 @@ void MemoryManager::CountMemory(std::vector<pid_t> pids, const GrContext* grCont
     std::for_each(pids.begin(), pids.end(), countMem);
 }
 
+static std::tuple<uint64_t, std::string, RectI> FindGeoById(uint64_t nodeId)
+{
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    uint64_t windowId = nodeId;
+    std::string windowName = "NONE";
+    RectI nodeFrameRect;
+    if (!node) {
+        return { windowId, windowName, nodeFrameRect };
+    }
+    nodeFrameRect =
+        std::static_pointer_cast<RSObjAbsGeometry>(node->GetRenderProperties().GetBoundsGeometry())->GetAbsRect();
+    // Obtain the window according to childId
+    auto parent = node->GetParent().lock();
+    while(parent) {
+        if (parent->IsInstanceOf<RSSurfaceRenderNode>()) {
+            const auto& surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parent);
+            windowName = surfaceNode->GetName();
+            break;
+        }
+        parent = parent->GetParent().lock();
+    }
+    return { windowId, windowName, nodeFrameRect };
+}
+
 void MemoryManager::DumpRenderServiceMemory(DfxString& log)
 {
     log.AppendFormat("\n----------\nRenderService caches:\n");
-    MemoryTrack::Instance().DumpMemoryStatistics(log);
+    MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoById);
 }
 
 void MemoryManager::DumpDrawingCpuMemory(DfxString& log)
@@ -124,21 +200,63 @@ void MemoryManager::DumpDrawingCpuMemory(DfxString& log)
     log.AppendFormat("\ncpu cache limit = %zu ( fontcache = %zu ):\n", cacheLimit, fontCacheLimit);
 }
 
-void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const GrContext* grContext)
+void MemoryManager::DumpGpuCache(DfxString& log, const GrContext* grContext, GrGpuResourceTag* tag, std::string& name)
 {
     if (!grContext) {
-        log.AppendFormat("No valid cache instance.\n");
+        log.AppendFormat("grContext is nullptr.\n");
         return;
     }
     /////////////////////////////GPU/////////////////////////
 #ifdef RS_ENABLE_GL
-    log.AppendFormat("\n---------------\nSkia GPU Caches:\n");
+    log.AppendFormat("\n---------------\nSkia GPU Caches:%s\n", name.c_str());
     SkiaMemoryTracer gpuTracer("category", true);
-    grContext->dumpMemoryStatistics(&gpuTracer);
+    if (tag) {
+        grContext->dumpMemoryStatisticsByTag(&gpuTracer, *tag);
+    } else {
+        grContext->dumpMemoryStatistics(&gpuTracer);
+    }
     gpuTracer.LogOutput(log);
     log.AppendFormat("Total GPU memory usage:\n");
     gpuTracer.LogTotals(log);
+#endif
+}
+void MemoryManager::DumpAllGpuInfo(DfxString& log, const GrContext* grContext)
+{
+    if (!grContext) {
+        log.AppendFormat("No valid gpu cache instance.\n");
+        return;
+    }
+#ifdef RS_ENABLE_GL
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraverseSurfaceNodes([&log, &grContext](const std::shared_ptr<RSSurfaceRenderNode> node) {
+        GrGpuResourceTag tag(ExtractPid(node->GetId()), 0, node->GetId(), 0);
+        std::string name = node->GetName() + " " + std::to_string(node->GetId());
+        DumpGpuCache(log, grContext, &tag, name);
+    });
+#endif
+}
 
+void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const GrContext* grContext)
+{
+    if (!grContext) {
+        log.AppendFormat("No valid gpu cache instance.\n");
+        return;
+    }
+    std::string gpuInfo;
+    /////////////////////////////GPU/////////////////////////
+#ifdef RS_ENABLE_GL
+    // total
+    DumpGpuCache(log, grContext, nullptr, gpuInfo);
+
+    // Get memory of window by tag
+    DumpAllGpuInfo(log, grContext);
+
+    // get memory of rs
+    for (uint32_t tagtype = RSTagTracker::TAG_DRAW_SURFACENODE; tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
+        GrGpuResourceTag tag(0, 0, 0, tagtype);
+        std::string tagType = RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype));
+        DumpGpuCache(log, grContext, &tag, tagType);
+    }
     // cache limit
     size_t cacheLimit = 0;
     size_t cacheUsed = 0;

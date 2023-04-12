@@ -14,10 +14,18 @@
  */
 #include "memory/MemoryTrack.h"
 
+#include "platform/common/rs_log.h"
 namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr uint32_t MEM_MAX_SIZE = 2;
+constexpr uint32_t MEM_SIZE_STRING_LEN = 10;
+constexpr uint32_t MEM_TYPE_STRING_LEN = 16;
+constexpr uint32_t MEM_PID_STRING_LEN = 8;
+constexpr uint32_t MEM_WID_STRING_LEN = 20;
+constexpr uint32_t MEM_SURNODE_STRING_LEN = 40;
+constexpr uint32_t MEM_FRAME_STRING_LEN = 35;
+constexpr uint32_t MEM_NODEID_STRING_LEN = 20;
 }
 
 MemoryNodeOfPid::MemoryNodeOfPid(size_t size, NodeId id) : nodeSize_(size), nodeId_(id) {}
@@ -46,14 +54,23 @@ void MemoryTrack::AddNodeRecord(const NodeId id, const MemoryInfo& info)
     memNodeOfPidMap_[info.pid].push_back(nodeInfoOfPid);
 }
 
-void MemoryTrack::RemoveNodeRecord(const NodeId id)
+bool MemoryTrack::RemoveNodeFromMap(const NodeId id, pid_t& pid, size_t& size)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    pid_t pid = memNodeMap_[id].pid;
-    size_t size = memNodeMap_[id].size;
-    memNodeMap_.erase(id);
-    auto pidItr = memNodeOfPidMap_.find(pid);
-    if (pidItr == memNodeOfPidMap_.end()) {
+    auto itr = memNodeMap_.find(id);
+    if (itr == memNodeMap_.end()) {
+        RS_LOGW("MemoryTrack::RemoveNodeFromMap no this nodeId = %" PRIu64, id);
+        return false;
+    }
+    pid = memNodeMap_[id].pid;
+    size = memNodeMap_[id].size;
+    memNodeMap_.erase(itr);
+    return true;
+}
+
+void MemoryTrack::RemoveNodeOfPidFromMap(const pid_t pid, const size_t size, const NodeId id)
+{
+    if (memNodeOfPidMap_.find(pid) == memNodeOfPidMap_.end()) {
+        RS_LOGW("MemoryTrack::RemoveNodeOfPidFromMap no this nodeId = %" PRIu64, id);
         return;
     }
     MemoryNodeOfPid nodeInfoOfPid = {size, id};
@@ -61,6 +78,18 @@ void MemoryTrack::RemoveNodeRecord(const NodeId id)
     if (itr != memNodeOfPidMap_[pid].end()) {
         memNodeOfPidMap_[pid].erase(itr);
     }
+}
+
+void MemoryTrack::RemoveNodeRecord(const NodeId id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    pid_t pid = 0;
+    size_t size = 0;
+    bool isSuccess = RemoveNodeFromMap(id, pid, size);
+    if (!isSuccess) {
+        return;
+    }
+    RemoveNodeOfPidFromMap(pid, size, id);
 }
 
 void MemoryTrack::DumpMemoryStatistics(DfxString& log, const pid_t pid)
@@ -104,10 +133,11 @@ MemoryGraphic MemoryTrack::CountRSMemory(const pid_t pid)
     return memoryGraphic;
 }
 
-void MemoryTrack::DumpMemoryStatistics(DfxString& log)
+void MemoryTrack::DumpMemoryStatistics(DfxString& log,
+    std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    DumpMemoryPicStatistics(log);
+    DumpMemoryPicStatistics(log, func);
     DumpMemoryNodeStatistics(log);
 }
 
@@ -141,10 +171,45 @@ const char* MemoryTrack::MemoryType2String(MEMORY_TYPE type)
     }
 }
 
-void MemoryTrack::DumpMemoryPicStatistics(DfxString& log)
+static std::string Data2String(std::string data, uint32_t tagetNumber)
+{
+    if (data.length() < tagetNumber) {
+        return std::string(tagetNumber - data.length(), ' ') + data;
+    } else {
+        return data;
+    }
+}
+
+std::string MemoryTrack::GenerateDumpTitle()
+{
+    std::string size_title = Data2String("Size", MEM_SIZE_STRING_LEN);
+    std::string type_title = Data2String("Type", MEM_TYPE_STRING_LEN);
+    std::string pid_title = Data2String("Pid", MEM_PID_STRING_LEN);
+    std::string wid_title = Data2String("Wid", MEM_WID_STRING_LEN);
+    std::string surfaceNode_title = Data2String("SurfaceName", MEM_SURNODE_STRING_LEN);
+    std::string frame_title = Data2String("Frame", MEM_FRAME_STRING_LEN);
+    std::string nid_title = Data2String("NodeId", MEM_NODEID_STRING_LEN);
+    return size_title + "\t" + type_title + "\t" + pid_title + "\t" + wid_title + "\t" +
+        surfaceNode_title + "\t" + frame_title + nid_title;
+}
+
+std::string MemoryTrack::GenerateDetail(MemoryInfo info, uint64_t wId, std::string& wName, RectI& nFrame)
+{
+    std::string size_str = Data2String(std::to_string(info.size), MEM_SIZE_STRING_LEN);
+    std::string type_str = Data2String(MemoryType2String(info.type), MEM_TYPE_STRING_LEN);
+    std::string pid_str = Data2String(std::to_string(ExtractPid(info.nid)), MEM_PID_STRING_LEN);
+    std::string wid_str = Data2String(std::to_string(wId), MEM_WID_STRING_LEN);
+    std::string wname_str = Data2String(wName, MEM_SURNODE_STRING_LEN);
+    std::string frame_str = Data2String(nFrame.ToString(), MEM_FRAME_STRING_LEN);
+    std::string nid_str = Data2String(std::to_string(info.nid), MEM_NODEID_STRING_LEN);
+    return size_str + "\t" + type_str + "\t" + pid_str + "\t" + wid_str + "\t" + wname_str + "\t" + frame_str + nid_str;
+}
+
+void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
+    std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func)
 {
     log.AppendFormat("RSImageCache:\n");
-    log.AppendFormat("addr\ttsize\ttname\tpid:\n");
+    log.AppendFormat("%s:\n", GenerateDumpTitle().c_str());
 
     int arrTotal[MEM_MAX_SIZE];
     int arrCount[MEM_MAX_SIZE];
@@ -160,7 +225,8 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log)
         //total of all
         totalSize += size;
         count++;
-        log.AppendFormat("%p\t%zu\t%s\t%d\n", addr, info.size, MemoryType2String(info.type), info.pid);
+        auto [windowId, windowName, nodeFrameRect] = func(info.nid);
+        log.AppendFormat("%s\n", GenerateDetail(info, windowId, windowName, nodeFrameRect).c_str());
     }
 
     for (int i = MEM_PIXELMAP; i < MEM_MAX_SIZE; i++) {

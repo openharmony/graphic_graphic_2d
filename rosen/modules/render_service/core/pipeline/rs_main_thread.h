@@ -29,6 +29,7 @@
 #include "vsync_receiver.h"
 
 #include "command/rs_command.h"
+#include "common/rs_common_def.h"
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
 #include "ipc_callbacks/iapplication_agent.h"
@@ -185,6 +186,8 @@ private:
     void RemoveRSEventDetector();
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
+    void ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext, NodeId surfaceNodeId);
+    void ReleaseBackGroundNodeUnlockGpuResource(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
     void ResetSortedChildren(std::shared_ptr<RSBaseRenderNode> node);

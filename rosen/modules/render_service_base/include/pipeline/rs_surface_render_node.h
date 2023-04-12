@@ -153,6 +153,9 @@ public:
         }
     }
 
+    void MarkUIHidden(bool isHidden);
+    bool IsUIHidden() const;
+
     std::string GetName() const
     {
         return name_;
@@ -612,6 +615,7 @@ private:
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;
+    bool isUIHidden_ = false;
     Occlusion::Region globalDirtyRegion_;
     // dirtyRegion caused by surfaceNode visible region after alignment
     Occlusion::Region extraDirtyRegionAfterAlignment_;

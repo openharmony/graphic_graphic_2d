@@ -50,6 +50,10 @@ public:
     void TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const;
     void TraverseSurfaceNodes(std::function<void (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const;
     void TraverseDrivenRenderNodes(std::function<void (const std::shared_ptr<RSRenderNode>&)> func) const;
+
+    NodeId GetEntryViewNodeId() const;
+    NodeId GetWallPaperViewNodeId() const;
+    void ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
 private:
     explicit RSRenderNodeMap();
     ~RSRenderNodeMap() = default;
@@ -62,6 +66,9 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>> renderNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> surfaceNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>> drivenRenderNodeMap_;
+
+    NodeId entryViewNodeId_ = 0;
+    NodeId wallpaperViewNodeId_ = 0;
 
     friend class RSContext;
     friend class RSMainThread;

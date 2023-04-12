@@ -164,6 +164,17 @@ FollowType RSSurfaceNode::GetFollowType() const
     }
 }
 
+void RSSurfaceNode::MarkUIHidden(bool isHidden)
+{
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        return;
+    }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeMarkUIHidden>(GetId(), isHidden);
+    transactionProxy->AddCommand(command, IsRenderServiceNode());
+    transactionProxy->FlushImplicitTransaction();
+}
+
 void RSSurfaceNode::OnBoundsSizeChanged() const
 {
     auto bounds = GetStagingProperties().GetBounds();

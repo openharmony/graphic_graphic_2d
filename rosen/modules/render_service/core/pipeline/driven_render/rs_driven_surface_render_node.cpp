@@ -29,7 +29,7 @@ RSDrivenSurfaceRenderNode::RSDrivenSurfaceRenderNode(
     : RSRenderNode(id, context), RSSurfaceHandler(id)
 {
     drivenExtInfo_.surfaceType_ = type;
-    MemoryInfo info = {sizeof(*this), ExtractPid(id), MEMORY_TYPE::MEM_RENDER_NODE};
+   MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
 }
 

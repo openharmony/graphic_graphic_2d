@@ -21,11 +21,37 @@
 
 namespace OHOS {
 namespace Rosen {
-
+namespace {
+constexpr const char* ENTRY_VIEW = "EntryView";
+constexpr const char* WALLPAPER_VIEW = "WallpaperView";
+};
 RSRenderNodeMap::RSRenderNodeMap()
 {
     // add animation fallback node
     renderNodeMap_.emplace(0, new RSCanvasRenderNode(0));
+}
+
+void RSRenderNodeMap::ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
+{
+    if (surfaceNode == nullptr) {
+        return;
+    }
+    if (surfaceNode->GetName() == ENTRY_VIEW) {
+        entryViewNodeId_ = surfaceNode->GetId();
+    }
+    if (surfaceNode->GetName() == WALLPAPER_VIEW) {
+        wallpaperViewNodeId_ = surfaceNode->GetId();
+    }
+}
+
+NodeId RSRenderNodeMap::GetEntryViewNodeId() const
+{
+    return entryViewNodeId_;
+}
+
+NodeId RSRenderNodeMap::GetWallPaperViewNodeId() const
+{
+    return wallpaperViewNodeId_;
 }
 
 bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr)
@@ -36,7 +62,9 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
     }
     renderNodeMap_.emplace(id, nodePtr);
     if (nodePtr->GetType() == RSRenderNodeType::SURFACE_NODE) {
-        surfaceNodeMap_.emplace(id, nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>());
+        std::shared_ptr<RSSurfaceRenderNode> surfaceNode = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
+        surfaceNodeMap_.emplace(id, surfaceNode);
+        ObtainLauncherNodeId(surfaceNode);
     }
     return true;
 }

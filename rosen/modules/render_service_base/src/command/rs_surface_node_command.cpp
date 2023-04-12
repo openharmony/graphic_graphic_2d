@@ -109,6 +109,13 @@ void SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable(RSContext& context, 
     }
 }
 
+void SurfaceNodeCommandHelper::MarkUIHidden(RSContext& context, NodeId id, bool isHidden)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->MarkUIHidden(isHidden);
+    }
+}
+
 void SurfaceNodeCommandHelper::SetSurfaceNodeType(RSContext& context, NodeId nodeId, uint8_t surfaceNodeType)
 {
     auto type = static_cast<RSSurfaceNodeType>(surfaceNodeType);

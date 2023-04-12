@@ -96,6 +96,10 @@ void RSUIDirector::GoForeground()
         if (auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_)) {
             node->SetEnableRender(true);
         }
+        auto surfaceNode = surfaceNode_.lock();
+        if (surfaceNode) {
+            surfaceNode->MarkUIHidden(false);
+        }
     }
 }
 
@@ -110,8 +114,11 @@ void RSUIDirector::GoBackground()
         if (auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_)) {
             node->SetEnableRender(false);
         }
-        // clean bufferQueue cache
         auto surfaceNode = surfaceNode_.lock();
+        if (surfaceNode) {
+            surfaceNode->MarkUIHidden(true);
+        }
+        // clean bufferQueue cache
         RSRenderThread::Instance().PostTask([surfaceNode]() {
             if (surfaceNode != nullptr) {
                 std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);

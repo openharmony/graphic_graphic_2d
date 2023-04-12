@@ -71,6 +71,7 @@ public:
     bool GetSecurityLayer() const;
     void SetAbilityBGAlpha(uint8_t alpha);
     void SetIsNotifyUIBufferAvailable(bool available);
+    void MarkUIHidden(bool isHidden);
 
     bool SetBufferAvailableCallback(BufferAvailableCallback callback);
     void SetAnimationFinished();

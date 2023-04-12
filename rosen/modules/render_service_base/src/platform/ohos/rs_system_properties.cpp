@@ -87,6 +87,12 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 #endif
 }
 
+ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
+{
+    return static_cast<ReleaseGpuResourceType>(
+        std::atoi((system::GetParameter("persist.release.gpuresource.enabled", "0")).c_str()));
+}
+
 bool RSSystemProperties::GetOcclusionEnabled()
 {
     return std::atoi((system::GetParameter("rosen.occlusion.enabled", "1")).c_str()) != 0;
@@ -159,11 +165,6 @@ long long int RSSystemProperties::GetDumpSurfaceId()
 bool RSSystemProperties::GetDumpLayersEnabled()
 {
     return std::atoi((system::GetParameter("rosen.dumplayer.enabled", "0")).c_str()) != 0;
-}
-
-bool RSSystemProperties::GetReleaseGpuResourceEnabled()
-{
-    return std::atoi((system::GetParameter("release.gpuresource.enabled", "0")).c_str()) != 0;
 }
 
 void RSSystemProperties::SetDrawTextAsBitmap(bool flag)

@@ -16,6 +16,7 @@
 
 #include <SkGraphics.h>
 #include <securec.h>
+#include "include/gpu/GrContext.h"
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 
@@ -23,6 +24,8 @@
 #include "command/rs_message_processor.h"
 #include "delegate/rs_functional_delegate.h"
 #include "memory/MemoryManager.h"
+#include "memory/MemoryTrack.h"
+#include "common/rs_common_def.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
@@ -656,10 +659,11 @@ void RSMainThread::ReleaseAllNodesBuffer()
 {
     RS_TRACE_NAME("RSMainThread::ReleaseAllNodesBuffer");
     const auto& nodeMap = GetContext().GetNodeMap();
-    nodeMap.TraverseSurfaceNodes([](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+    nodeMap.TraverseSurfaceNodes([this](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
         if (surfaceNode == nullptr) {
             return;
         }
+        ReleaseBackGroundNodeUnlockGpuResource(surfaceNode);
         // surfaceNode's buffer will be released in hardware thread if last frame enables hardware composer
         if (surfaceNode->IsHardwareEnabledType()) {
             surfaceNode->ResetCurrentFrameHardwareEnabledState();
@@ -677,6 +681,30 @@ void RSMainThread::ReleaseAllNodesBuffer()
         }
         RSBaseRenderUtil::ReleaseBuffer(static_cast<RSSurfaceHandler&>(*surfaceNode));
     });
+}
+
+void RSMainThread::ReleaseBackGroundNodeUnlockGpuResource(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
+{
+    if (surfaceNode == nullptr || !surfaceNode->IsUIHidden()) {
+        return;
+    }
+#ifdef RS_ENABLE_GL
+    auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
+    const auto& nodeMap = context_->GetNodeMap();
+    switch (RSSystemProperties::GetReleaseGpuResourceEnabled()) {
+        case ReleaseGpuResourceType::WINDOW_HIDDEN:
+            MemoryManager::ReleaseUnlockGpuResource(grContext, surfaceNode->GetId());
+            break;
+        case ReleaseGpuResourceType::WINDOW_HIDDEN_AND_LAUCHER:
+            MemoryManager::ReleaseUnlockGpuResource(grContext, surfaceNode->GetId());
+            MemoryManager::ReleaseUnlockLauncherGpuResource(grContext,
+                nodeMap.GetEntryViewNodeId(), nodeMap.GetWallPaperViewNodeId());
+            break;
+        default:
+            break;
+    }
+#endif
+    surfaceNode->MarkUIHidden(false);
 }
 
 void RSMainThread::WaitUtilUniRenderFinished()
@@ -1394,14 +1422,27 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
         grContext->flush();
         SkGraphics::PurgeAllCaches(); // clear cpu cache
-
-        if (RSSystemProperties::GetReleaseGpuResourceEnabled()) {
-            GrGpuResourceTag tag(remotePid, 0, 0, 0);
-            grContext->releaseByTag(tag); // clear gpu resource by pid
-        }
+        ReleaseExitSurfaceNodeAllGpuResource(grContext, remotePid);
         grContext->flush(kSyncCpu_GrFlushFlag, 0, nullptr);
         lastCleanCacheTimestamp_ = timestamp_;
 #endif
+    }
+}
+
+void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext, NodeId surfaceNodeId)
+{
+    const auto& nodeMap = context_->GetNodeMap();
+    switch (RSSystemProperties::GetReleaseGpuResourceEnabled()) {
+        case ReleaseGpuResourceType::WINDOW_HIDDEN:
+            MemoryManager::ReleaseUnlockGpuResource(grContext, surfaceNodeId);
+            break;
+        case ReleaseGpuResourceType::WINDOW_HIDDEN_AND_LAUCHER:
+            MemoryManager::ReleaseUnlockGpuResource(grContext, surfaceNodeId);
+            MemoryManager::ReleaseUnlockLauncherGpuResource(grContext,
+                nodeMap.GetEntryViewNodeId(), nodeMap.GetWallPaperViewNodeId());
+            break;
+        default:
+            break;
     }
 }
 
@@ -1486,7 +1527,7 @@ void RSMainThread::CountMem(std::vector<MemoryGraphic>& mems)
     nodeMap.TraverseSurfaceNodes([&pids] (const std::shared_ptr<RSSurfaceRenderNode>& node) {
         auto pid = ExtractPid(node->GetId());
         if (std::find(pids.begin(), pids.end(), pid) == pids.end()) {
-            pids.emplace_back();
+            pids.emplace_back(pid);
         }
     });
     MemoryManager::CountMemory(pids, GetRenderEngine()->GetRenderContext()->GetGrContext(), mems);

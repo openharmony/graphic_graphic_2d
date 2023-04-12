@@ -44,7 +44,8 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_IS_NOTIFY_BUFFER_AVAILABLE,
     SURFACE_NODE_SET_SURFACE_NODE_TYPE,
     SURFACE_NODE_SET_CONTAINER_WINDOW,
-    SURFACE_NODE_SET_ANIMATION_FINISHED
+    SURFACE_NODE_SET_ANIMATION_FINISHED,
+    SURFACE_NODE_MARK_UIHIDDEN
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -63,6 +64,7 @@ public:
     static void SetContextBounds(RSContext& context, NodeId id, Vector4f bounds);
     static void SetAbilityBGAlpha(RSContext& context, NodeId id, uint8_t alpha);
     static void SetIsNotifyUIBufferAvailable(RSContext& context, NodeId nodeId, bool available);
+    static void MarkUIHidden(RSContext& context, NodeId nodeId, bool isHidden);
     static void SetSurfaceNodeType(RSContext& context, NodeId nodeId, uint8_t surfaceNodeType);
     static void SetContainerWindow(RSContext& context, NodeId nodeId, bool hasContainerWindow, float density);
     static void SetAnimationFinished(RSContext& context, NodeId nodeId);
@@ -92,6 +94,8 @@ ADD_COMMAND(RSSurfaceNodeSetAbilityBGAlpha,
 ADD_COMMAND(RSSurfaceNodeSetIsNotifyUIBufferAvailable,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_IS_NOTIFY_BUFFER_AVAILABLE,
     SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeMarkUIHidden,
+    ARG(SURFACE_NODE, SURFACE_NODE_MARK_UIHIDDEN, SurfaceNodeCommandHelper::MarkUIHidden, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSurfaceNodeType,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SURFACE_NODE_TYPE,
     SurfaceNodeCommandHelper::SetSurfaceNodeType, NodeId, uint8_t))

@@ -64,7 +64,7 @@ bool RSSystemProperties::GetHighContrastStatus()
     return {};
 }
 
-bool RSSystemProperties::GetReleaseGpuResourceEnabled()
+ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
 {
     return {};
 }

@@ -26,7 +26,7 @@ RSProxyRenderNode::RSProxyRenderNode(
     NodeId id, std::weak_ptr<RSSurfaceRenderNode> target, NodeId targetId, std::weak_ptr<RSContext> context)
     : RSRenderNode(id, context), target_(target), targetId_(targetId)
 {
-    MemoryInfo info = {sizeof(*this), ExtractPid(id), MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
 }
 

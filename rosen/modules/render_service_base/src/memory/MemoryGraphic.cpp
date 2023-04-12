@@ -27,12 +27,12 @@ int32_t MemoryGraphic::GetPid() const
     return pid_;
 }
 
-float MemoryGraphic::GetGpuMemorySize() const
+float MemoryGraphic::GetCpuMemorySize() const
 {
     return cpuMemSize_;
 }
 
-float MemoryGraphic::GetCpuMemorySize() const
+float MemoryGraphic::GetGpuMemorySize() const
 {
     return gpuMemSize_;
 }
@@ -42,12 +42,12 @@ void MemoryGraphic::SetPid(int32_t pid)
     pid_ = pid;
 }
 
-void MemoryGraphic::SetGpuMemorySize(float cpuMemSize)
+void MemoryGraphic::SetCpuMemorySize(float cpuMemSize)
 {
     cpuMemSize_ = cpuMemSize;
 }
 
-void MemoryGraphic::SetCpuMemorySize(float gpuMemSize)
+void MemoryGraphic::SetGpuMemorySize(float gpuMemSize)
 {
     gpuMemSize_ = gpuMemSize;
 }

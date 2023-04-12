@@ -41,7 +41,7 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config
       nodeType_(config.nodeType),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
-    MemoryInfo info = {sizeof(*this), ExtractPid(config.id), MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(config.id, info);
 }
 
@@ -305,6 +305,16 @@ void RSSurfaceRenderNode::SetContextBounds(const Vector4f bounds)
 std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNode::GetDirtyManager() const
 {
     return dirtyManager_;
+}
+
+void RSSurfaceRenderNode::MarkUIHidden(bool isHidden)
+{
+    isUIHidden_ = isHidden;
+}
+
+bool RSSurfaceRenderNode::IsUIHidden() const
+{
+    return isUIHidden_;
 }
 
 void RSSurfaceRenderNode::SetContextMatrix(const SkMatrix& matrix, bool sendMsg)

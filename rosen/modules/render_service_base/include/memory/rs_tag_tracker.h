@@ -15,32 +15,35 @@
 #ifndef RS_TAG_TRACKER
 #define RS_TAG_TRACKER
 #include "include/gpu/GrContext.h"
+
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSTagTracker {
 public:
     enum TAGTYPE : uint32_t {
-        TAG_SAVELAYER_DRAW_NODE = 1,
+        TAG_DRAW_SURFACENODE = 1, // don't change head and tail, insert the middle if u add data.
+        TAG_SAVELAYER_DRAW_NODE,
         TAG_RESTORELAYER_DRAW_NODE,
         TAG_SAVELAYER_COLOR_FILTER,
-        TAG_CAPTURE,
         TAG_COLD_START,
         TAG_ACQUIRE_SURFACE,
-        TAG_DRAW_SURFACENODE,
+        TAG_CAPTURE,
     };
     RSTagTracker(GrContext* grContext, RSTagTracker::TAGTYPE tagType);
     RSTagTracker(GrContext* grContext, NodeId nodeId, RSTagTracker::TAGTYPE tagType);
     RSTagTracker(GrContext* grContext, GrGpuResourceTag& tag);
     void SetTagEnd();
     ~RSTagTracker();
-    static void UpdateReleaseGpuResourceEnable(bool releaseResEnable);
+    static void UpdateReleaseGpuResourceEnable(ReleaseGpuResourceType releaseResEnable);
+    static std::string TagType2String(TAGTYPE type);
 private:
     bool isSetTagEnd_ = false;
     GrContext* grContext_ = nullptr;
-    static bool releaseGpuResourceEnable_;
+    static ReleaseGpuResourceType releaseGpuResourceEnable_;
 }; 
 } // namespace OHOS  
 } // namespace Rosen

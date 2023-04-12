@@ -37,7 +37,7 @@ constexpr PropertyId ANONYMOUS_MODIFIER_ID = 0;
 
 RSCanvasRenderNode::RSCanvasRenderNode(NodeId id, std::weak_ptr<RSContext> context) : RSRenderNode(id, context)
 {
-    MemoryInfo info = {sizeof(*this), ExtractPid(id), MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
 }
 

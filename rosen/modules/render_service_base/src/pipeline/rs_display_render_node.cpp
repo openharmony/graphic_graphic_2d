@@ -28,7 +28,7 @@ RSDisplayRenderNode::RSDisplayRenderNode(NodeId id, const RSDisplayNodeConfig& c
       isMirroredDisplay_(config.isMirrored),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
-    MemoryInfo info = {sizeof(*this), ExtractPid(id), MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
 }
 

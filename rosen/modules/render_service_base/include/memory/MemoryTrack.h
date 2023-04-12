@@ -18,7 +18,10 @@
 #include <mutex>
 #include <vector>
 
+#include "include/core/SkImage.h"
+
 #include "common/rs_common_def.h"
+#include "common/rs_rect.h"
 #include "memory/DfxString.h"
 #include "memory/MemoryGraphic.h"
 
@@ -34,6 +37,7 @@ enum MEMORY_TYPE {
 struct MemoryInfo {
     size_t size = 0;
     int pid = 0;
+    uint64_t nid = 0;
     MEMORY_TYPE type;
 };
 
@@ -54,7 +58,7 @@ public:
     static MemoryTrack& Instance();
     void AddNodeRecord(const NodeId id, const MemoryInfo& info);
     void RemoveNodeRecord(const NodeId id);
-    void DumpMemoryStatistics(DfxString& log);
+    void DumpMemoryStatistics(DfxString& log, std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func);
     void DumpMemoryStatistics(DfxString& log, const pid_t pid);
     void AddPictureRecord(const void* addr, MemoryInfo info);
     void RemovePictureRecord(const void* addr);
@@ -69,8 +73,13 @@ private:
     MemoryTrack& operator=(const MemoryTrack&) = delete;
     MemoryTrack& operator=(const MemoryTrack&&) = delete;
     const char* MemoryType2String(MEMORY_TYPE type);
+    std::string GenerateDumpTitle();
+    std::string GenerateDetail(MemoryInfo info, uint64_t windowId, std::string& windowName, RectI& nodeFrameRect);
     void DumpMemoryNodeStatistics(DfxString& log);
-    void DumpMemoryPicStatistics(DfxString& log);
+    void DumpMemoryPicStatistics(DfxString& log,
+        std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func);
+    bool RemoveNodeFromMap(const NodeId id, pid_t& pid, size_t& size);
+    void RemoveNodeOfPidFromMap(const pid_t pid, const size_t size, const NodeId id);
     std::mutex mutex_;
     std::unordered_map<NodeId, MemoryInfo> memNodeMap_;
     std::unordered_map<const void*, MemoryInfo> memPicRecord_;

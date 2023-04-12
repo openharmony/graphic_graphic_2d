@@ -43,7 +43,7 @@ public:
 
     void setMemoryBacking(const char*, const char*, const char*) override {}
     void setDiscardableMemoryBacking(const char*, const SkDiscardableMemory&) override {}
-    
+
     LevelOfDetail getRequestedDetails() const override
     {
         return SkTraceMemoryDump::kLight_LevelOfDetail;

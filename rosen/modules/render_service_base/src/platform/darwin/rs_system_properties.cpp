@@ -88,7 +88,7 @@ bool RSSystemProperties::GetDrawTextAsBitmap()
     return {};
 }
 
-bool RSSystemProperties::GetReleaseGpuResourceEnabled()
+ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
 {
     return {};
 }

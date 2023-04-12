@@ -50,6 +50,12 @@ enum class PartialRenderType {
     SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY     // 4, drop draw_op if node is not in visible dirty region (unirender)
 };
 
+enum class ReleaseGpuResourceType {
+    DISABLED = 0,                               // 0, disable releaseGpuResource
+    WINDOW_HIDDEN,                              // 1, release window GpuResource when it Exit or GoBackGround
+    WINDOW_HIDDEN_AND_LAUCHER,                  // 2, release window and launcher GpuResource when it Exit or GoBackGround
+};
+
 enum class DumpSurfaceType {
     DISABLED = 0,
     SINGLESURFACE,
@@ -87,7 +93,7 @@ public:
     static bool GetDumpLayersEnabled();
     static bool GetQuickSkipPrepareEnabled();
     static bool GetHardwareComposerEnabled();
-    static bool GetReleaseGpuResourceEnabled();
+    static ReleaseGpuResourceType GetReleaseGpuResourceEnabled();
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
