@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,11 @@ const SkMatrix& SkiaMatrix::ExportSkiaMatrix() const
     return skMatrix_;
 }
 
+void SkiaMatrix::ImportMatrix(const SkMatrix& skMatrix)
+{
+    skMatrix_ = skMatrix;
+}
+
 void SkiaMatrix::Rotate(scalar degree, scalar px, scalar py)
 {
     skMatrix_.setRotate(degree, px, py);
@@ -40,6 +45,38 @@ void SkiaMatrix::Translate(scalar dx, scalar dy)
 void SkiaMatrix::Scale(scalar sx, scalar sy, scalar px, scalar py)
 {
     skMatrix_.setScale(sx, sy, px, py);
+}
+
+void SkiaMatrix::PreRotate(scalar degree)
+{
+    skMatrix_.preRotate(degree);
+}
+
+void SkiaMatrix::PreTranslate(scalar dx, scalar dy)
+{
+    skMatrix_.preTranslate(dx, dy);
+}
+
+void SkiaMatrix::PreScale(scalar sx, scalar sy)
+{
+    skMatrix_.preScale(sx, sy);
+}
+
+void SkiaMatrix::PreConcat(const Matrix& other)
+{
+    if (other.GetImpl<SkiaMatrix>() != nullptr) {
+        skMatrix_.preConcat(other.GetImpl<SkiaMatrix>()->ExportSkiaMatrix());
+    }
+}
+
+bool SkiaMatrix::Invert(Matrix& inverse) const
+{
+    SkMatrix skMatrix;
+    if (inverse.GetImpl<SkiaMatrix>() != nullptr && skMatrix_.invert(&skMatrix)) {
+        inverse.GetImpl<SkiaMatrix>()->ImportMatrix(skMatrix);
+        return true;
+    }
+    return false;
 }
 
 void SkiaMatrix::Multiply(const Matrix& a, const Matrix& b)
@@ -85,9 +122,30 @@ void SkiaMatrix::MapPoints(std::vector<Point>& dst, const std::vector<Point>& sr
     }
 }
 
+bool SkiaMatrix::MapRect(Rect& dst, const Rect& src) const
+{
+    SkRect skSrc = SkRect::MakeXYWH(src.GetLeft(), src.GetTop(), src.GetWidth(), src.GetHeight());
+    SkRect skDst;
+    if (skMatrix_.mapRect(&skDst, skSrc)) {
+        dst = Rect(skDst.fLeft, skDst.fTop, skDst.fRight, skDst.fBottom);
+        return true;
+    }
+    return false;
+}
+
+void SkiaMatrix::Set(int index, scalar value)
+{
+    skMatrix_.set(index, value);
+}
+
 scalar SkiaMatrix::Get(int index) const
 {
     return skMatrix_.get(index);
+}
+
+void SkiaMatrix::GetAll(std::array<scalar, MatrixImpl::MATRIX_SIZE>& buffer) const
+{
+    skMatrix_.get9(buffer.data());
 }
 } // namespace Drawing
 } // namespace Rosen

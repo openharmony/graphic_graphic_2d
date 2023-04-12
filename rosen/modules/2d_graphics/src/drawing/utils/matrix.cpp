@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,13 +39,46 @@ void Matrix::Scale(scalar sx, scalar sy, scalar px, scalar py)
     matrixImplPtr->Scale(sx, sy, px, py);
 }
 
+void Matrix::PreRotate(scalar degree)
+{
+    if (matrixImplPtr != nullptr) {
+        matrixImplPtr->PreRotate(degree);
+    }
+}
+
+void Matrix::PreTranslate(scalar dx, scalar dy)
+{
+    if (matrixImplPtr != nullptr) {
+        matrixImplPtr->PreTranslate(dx, dy);
+    }
+}
+
+void Matrix::PreScale(scalar sx, scalar sy)
+{
+    if (matrixImplPtr != nullptr) {
+        matrixImplPtr->PreScale(sx, sy);
+    }
+}
+
+void Matrix::PreConcat(const Matrix& other)
+{
+    if (matrixImplPtr != nullptr) {
+        matrixImplPtr->PreConcat(other);
+    }
+}
+
+bool Matrix::Invert(Matrix& inverse) const
+{
+    return (matrixImplPtr == nullptr) ? false : matrixImplPtr->Invert(inverse);
+}
+
 Matrix Matrix::operator*(const Matrix& m)
 {
     matrixImplPtr->Multiply(*this, m);
     return *this;
 }
 
-bool Matrix::operator==(const Matrix& m)
+bool Matrix::operator==(const Matrix& m) const
 {
     return matrixImplPtr->Equals(*this, m);
 }
@@ -61,9 +94,28 @@ void Matrix::MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, u
     matrixImplPtr->MapPoints(dst, src, count);
 }
 
+bool Matrix::MapRect(Rect& dst, const Rect& src) const
+{
+    return (matrixImplPtr == nullptr) ? false : matrixImplPtr->MapRect(dst, src);
+}
+
+void Matrix::Set(Index index, scalar value)
+{
+    if (matrixImplPtr != nullptr) {
+        matrixImplPtr->Set(index, value);
+    }
+}
+
 scalar Matrix::Get(int index) const
 {
     return matrixImplPtr->Get(index);
+}
+
+void Matrix::GetAll(Buffer& buffer) const
+{
+    if (matrixImplPtr != nullptr) {
+        matrixImplPtr->GetAll(buffer);
+    }
 }
 } // namespace Drawing
 } // namespace Rosen
