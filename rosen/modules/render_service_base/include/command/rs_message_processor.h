@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_MESSAGE_RS_MESSAGE_PROCESSOR_H
 
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 #include "transaction/rs_transaction_data.h"
 
@@ -45,6 +46,7 @@ private:
     RSMessageProcessor& operator=(const RSMessageProcessor&&) = delete;
 
 private:
+    mutable std::mutex transactionMapMutex_;
     std::unordered_map<uint32_t, RSTransactionData> transactionMap_;
 };
 } // namespace Rosen
