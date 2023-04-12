@@ -131,8 +131,6 @@ ohos_source_set("mock_ipc_core") {
 group("utils") {
   if (platform == "ohos") {
     public_deps = utils_deps
-  } else if (platform == "ios") {
-    public_deps = [ "$c_utils_root/base:utils_staticIOS_PLATFORM" ]
   } else {
     public_deps = [ ":mock_utils" ]
   }
@@ -142,14 +140,23 @@ config("utils_config") {
   include_dirs = [ "utils" ]
 }
 
+config("ios_utils_config") {
+  defines = [ "IOS_PLATFORM" ]
+}
+
 ohos_source_set("mock_utils") {
-  public_configs = [ ":utils_config" ]
-  sources = [
-    "utils/directory_ex.cpp",
-    "utils/parcel.cpp",
-    "utils/refbase.cpp",
-  ]
-  public_deps = [ "//third_party/bounds_checking_function:libsec_shared" ]
+  if (current_os == "ios") {
+    public_configs = [ ":ios_utils_config" ]
+    public_deps = [ "$c_utils_root/base:utilsbase" ]
+  } else {
+    public_configs = [ ":utils_config" ]
+    sources = [
+      "utils/directory_ex.cpp",
+      "utils/parcel.cpp",
+      "utils/refbase.cpp",
+    ]
+    public_deps = [ "//third_party/bounds_checking_function:libsec_shared" ]
+  }
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
