@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,19 +18,23 @@
 
 #include "variant_span.h"
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 class TextShaper {
 public:
     int Shape(const VariantSpan &span,
               const TypographyStyle &ys,
-              const std::unique_ptr<FontProviders> &fontProviders);
+              const std::unique_ptr<FontProviders> &fontProviders) const;
     int DoShape(std::shared_ptr<TextSpan> &span,
                 const TextStyle &xs,
                 const TypographyStyle &ys,
-                const std::unique_ptr<FontProviders> &fontProviders);
+                const std::unique_ptr<FontProviders> &fontProviders) const;
     std::shared_ptr<TexgineTextBlob> GenerateTextBlob(const TexgineFont &font, const CharGroups &cgs,
-        double &spanWidth, std::vector<double> &glyphWidths);
+        double &spanWidth, std::vector<double> &glyphWidths) const;
 };
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_TEXT_SHAPER_H

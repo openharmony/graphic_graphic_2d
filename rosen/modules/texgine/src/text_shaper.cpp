@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,11 +23,13 @@
 #include "texgine/utils/exlog.h"
 #include "texgine/utils/trace.h"
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 #define DOUBLE 2
 
 int TextShaper::Shape(const VariantSpan &span, const TypographyStyle &ys,
-                      const std::unique_ptr<FontProviders> &fontProviders)
+                      const std::unique_ptr<FontProviders> &fontProviders) const
 {
     ScopedTrace scope("TextShaper::ShapeLineSpans");
     LOGSCOPED(sl, LOG2EX_DEBUG(), "TextShaper::ShapeLineSpans");
@@ -37,6 +39,7 @@ int TextShaper::Shape(const VariantSpan &span, const TypographyStyle &ys,
     }
 
     if (span.TryToAnySpan() != nullptr) {
+        // Shape successed
         return 0;
     }
 
@@ -45,6 +48,7 @@ int TextShaper::Shape(const VariantSpan &span, const TypographyStyle &ys,
     auto ret = DoShape(ts, xs, ys, fontProviders);
     if (ret) {
         LOG2EX(ERROR) << "DoShape failed";
+        // Shape failed
         return 1;
     }
 
@@ -81,7 +85,7 @@ int TextShaper::Shape(const VariantSpan &span, const TypographyStyle &ys,
 int TextShaper::DoShape(std::shared_ptr<TextSpan> &span,
                         const TextStyle &xs,
                         const TypographyStyle &ys,
-                        const std::unique_ptr<FontProviders> &fontProviders)
+                        const std::unique_ptr<FontProviders> &fontProviders) const
 {
     if (fontProviders == nullptr || span == nullptr) {
         LOG2EX(ERROR) << "providers or span is nullptr";
@@ -118,7 +122,7 @@ int TextShaper::DoShape(std::shared_ptr<TextSpan> &span,
 }
 
 std::shared_ptr<TexgineTextBlob> TextShaper::GenerateTextBlob(const TexgineFont &font, const CharGroups &cgs,
-    double &spanWidth, std::vector<double> &glyphWidths)
+    double &spanWidth, std::vector<double> &glyphWidths) const
 {
     TexgineTextBlobBuilder builder;
     auto blob = builder.AllocRunPos(font, cgs.GetNumberOfGlyph());
@@ -145,4 +149,6 @@ std::shared_ptr<TexgineTextBlob> TextShaper::GenerateTextBlob(const TexgineFont 
     spanWidth = offset;
     return builder.Make();
 }
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
