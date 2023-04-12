@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,7 +21,9 @@
 #include "texgine/utils/exlog.h"
 #include "texgine_string.h"
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 #define MAX_WIDTH 10
 #define MAX_SLANT 2
 #define MAX_WEIGHT 10
@@ -145,4 +147,6 @@ void FontCollection::DisableFallback()
 {
     enableFallback_ = false;
 }
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
