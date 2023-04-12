@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,7 +21,9 @@
 #include "texgine/utils/exlog.h"
 #include "variant_font_style_set.h"
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 std::shared_ptr<SystemFontProvider> SystemFontProvider::GetInstance() noexcept(true)
 {
     if (sfp == nullptr) {
@@ -49,4 +51,6 @@ std::shared_ptr<VariantFontStyleSet> SystemFontProvider::MatchFamily(const std::
 
     return std::make_shared<VariantFontStyleSet>(fontStyleSet);
 }
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS

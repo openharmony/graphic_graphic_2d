@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,9 @@
 
 #include "variant_span.h"
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 class TextReverser {
 public:
     void ReverseRTLText(std::vector<VariantSpan> &lineSpans);
@@ -29,6 +31,8 @@ public:
 private:
     void ReverseConDirectionText(std::vector<VariantSpan> &lineSpans, int begin, int end);
 };
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_TEXT_REVERSER_H

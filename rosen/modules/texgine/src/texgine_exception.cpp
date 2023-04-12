@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,9 @@
 
 #include "texgine_exception.h"
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 TexgineException CustomException(const char *msg)
 {
     TexgineException te;
@@ -25,8 +27,10 @@ TexgineException CustomException(const char *msg)
 
 TexgineException APIFailedException(const char *msg)
 {
-    auto ex = TEXGINE_EXCEPTION(APIFailed);
+    auto ex = TEXGINE_EXCEPTION(API_FAILED);
     ex.message = msg;
     return ex;
 }
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS

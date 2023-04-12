@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,27 +18,29 @@
 
 #include <string>
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 #define TEXGINE_EXCEPTION(name) te##name
 
 #define EXCEPTION_LIST(MACRO) \
-    MACRO(InvalidArgument, "Invalid Argument") \
-    MACRO(APIFailed, "API Failed") \
-    MACRO(ErrorStatus, "Error Status") \
-    MACRO(OutOfRange, "Out Of Range") \
-    MACRO(InvalidCharGroups, "Invalid CharGroups") \
-    MACRO(Nullptr, "Null Pointer")
+    MACRO(INVALID_ARGUMENT, "Invalid Argument") \
+    MACRO(API_FAILED, "API Failed") \
+    MACRO(ERROR_STATUS, "Error Status") \
+    MACRO(OUT_OF_RANGE, "Out Of Range") \
+    MACRO(INVALID_CHAR_GROUPS, "Invalid CharGroups") \
+    MACRO(NULLPTR, "Null Pointer")
 
 enum class ExceptionType {
-    Custom = -1,
-    Success,
+    CUSTOM = -1,
+    SUCCESS,
 #define DEFINE_ENUM_MACRO(name, str) name,
     EXCEPTION_LIST(DEFINE_ENUM_MACRO)
 #undef DEFINE_ENUM_MACRO
 };
 
 struct TexgineException {
-    ExceptionType code = ExceptionType::Custom;
+    ExceptionType code = ExceptionType::CUSTOM;
     std::string message = "";
 };
 
@@ -50,6 +52,8 @@ EXCEPTION_LIST(DEFINE_CONSTVAR_MACRO);
 
 TexgineException CustomException(const char *msg);
 TexgineException APIFailedException(const char *msg);
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_TEXGINE_EXCEPTION_H
