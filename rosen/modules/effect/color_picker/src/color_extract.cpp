@@ -227,7 +227,7 @@ float ColorExtract::CalcContrastToWhite() const
 void ColorExtract::GetNFeatureColors(int colorNum)
 {
     uint32_t *colorVal = colorVal_.get();
-    int histLen = (1 << (QUANTIZE_WORD_WIDTH * 3));
+    uint32_t histLen = (1 << (QUANTIZE_WORD_WIDTH * 3));
     auto hist = new uint32_t[histLen]();
     std::shared_ptr<uint32_t> histShared(hist, [](uint32_t *ptr) {
         delete[] ptr;
@@ -238,7 +238,7 @@ void ColorExtract::GetNFeatureColors(int colorNum)
         hist[quantizedColor]++;
     }
 
-    for (int color = 0; color < histLen; color++) {
+    for (uint32_t color = 0; color < histLen; color++) {
         if (hist[color] > 0) {
             distinctColorCount_++;
         }
@@ -252,7 +252,7 @@ void ColorExtract::GetNFeatureColors(int colorNum)
     colors_ = move(colorsShared);
 
     int distinctColorIndex = 0;
-    for (int color = 0; color < histLen; color++) {
+    for (uint32_t color = 0; color < histLen; color++) {
         if (hist[color] > 0) {
             colors[distinctColorIndex++] = color;
         }
