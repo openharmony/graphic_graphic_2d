@@ -33,6 +33,9 @@
 namespace OHOS {
 namespace Rosen {
 
+const int FAKE_WIDTH = 10; // When the width and height of the node are not set, use the fake width
+const int FAKE_HEIGHT = 10; // When the width and height of the node are not set, use the fake height
+
 std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
 {
     if (ROSEN_EQ(scaleX_, 0.f) || ROSEN_EQ(scaleY_, 0.f) || scaleX_ < 0.f || scaleY_ < 0.f) {
@@ -44,18 +47,16 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
         RS_LOGE("RSUniUICapture::TakeLocalCapture node is nullptr return");
         return nullptr;
     }
+    std::shared_ptr<RSUniUICaptureVisitor> visitor =
+        std::make_shared<RSUniUICaptureVisitor>(nodeId_, scaleX_, scaleY_);
+    auto recordingCanvas = std::make_shared<RSRecordingCanvas>(FAKE_WIDTH, FAKE_HEIGHT);
+    PostTaskToRSRecord(recordingCanvas, node, visitor);
+    auto drawCallList = recordingCanvas->GetDrawCmdList();
     std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMapByNode(node);
     if (pixelmap == nullptr) {
         RS_LOGE("RSUniUICapture::TakeLocalCapture: pixelmap == nullptr!");
         return nullptr;
     }
-    std::shared_ptr<RSUniUICaptureVisitor> visitor =
-        std::make_shared<RSUniUICaptureVisitor>(nodeId_, scaleX_, scaleY_);
-    const auto& property = node->GetRenderProperties();
-    auto recordingCanvas =
-        std::make_shared<RSRecordingCanvas>(property.GetBoundsWidth(), property.GetBoundsHeight());
-    PostTaskToRSRecord(recordingCanvas, node, visitor);
-    auto drawCallList = recordingCanvas->GetDrawCmdList();
     auto skSurface = CreateSurface(pixelmap);
     if (skSurface == nullptr) {
         return nullptr;
