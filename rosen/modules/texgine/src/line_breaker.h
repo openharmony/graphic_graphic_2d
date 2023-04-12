@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,7 +21,9 @@
 #include "line_metrics.h"
 #include "texgine/typography_types.h"
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 struct ScoredSpan {
     VariantSpan span;
     double preBreak;
@@ -43,6 +45,8 @@ public:
     std::vector<LineMetrics> GenerateLineMetrics(std::vector<VariantSpan> &spans,
                                                  std::vector<int32_t> &breaks) noexcept(false);
 };
-}// namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_LINE_BREAKER_H

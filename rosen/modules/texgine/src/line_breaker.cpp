@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,9 @@
 #include "text_merger.h"
 #include "text_span.h"
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 std::vector<LineMetrics> LineBreaker::BreakLines(std::vector<VariantSpan> &spans,
                                                  const TypographyStyle &tstyle,
                                                  const double widthLimit)
@@ -186,4 +188,6 @@ std::vector<LineMetrics> LineBreaker::GenerateLineMetrics(std::vector<VariantSpa
 
     return lineMetrics;
 }
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
