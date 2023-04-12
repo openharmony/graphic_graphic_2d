@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,9 @@
 
 #include "texgine/text_style.h"
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 void FontFeatures::SetFeature(const std::string &ftag, int fvalue)
 {
     features_[ftag] = fvalue;
@@ -33,30 +35,32 @@ bool FontFeatures::operator ==(const FontFeatures &rhs) const
 
 bool TextShadow::operator ==(TextShadow const &rhs) const
 {
-    return offsetX_ == rhs.offsetX_ &&
-           offsetY_ == rhs.offsetY_ &&
-           color_ == rhs.color_ &&
-           blurLeave_ == rhs.blurLeave_;
+    return offsetX == rhs.offsetX &&
+           offsetY == rhs.offsetY &&
+           color == rhs.color &&
+           blurLeave == rhs.blurLeave;
 }
 
 bool TextStyle::operator ==(TextStyle const &rhs) const
 {
-    return color_ == rhs.color_ &&
-           fontSize_ == rhs.fontSize_ &&
-           fontFamilies_ == rhs.fontFamilies_ &&
-           heightOnly_ == rhs.heightOnly_ &&
-           heightScale_ == rhs.heightScale_ &&
-           decoration_ == rhs.decoration_ &&
-           decorationColor_ == rhs.decorationColor_ &&
-           decorationStyle_ == rhs.decorationStyle_ &&
-           decorationThicknessScale_ == rhs.decorationThicknessScale_ &&
-           shadows_ == rhs.shadows_ &&
-           foreground_ == rhs.foreground_ &&
-           background_ == rhs.background_ &&
-           fontWeight_ == rhs.fontWeight_ &&
-           fontStyle_ == rhs.fontStyle_ &&
-           fontFeature_ == rhs.fontFeature_ &&
-           letterSpacing_ == rhs.letterSpacing_ &&
-           wordSpacing_ == rhs.wordSpacing_;
+    return color == rhs.color &&
+           fontSize == rhs.fontSize &&
+           fontFamilies == rhs.fontFamilies &&
+           heightOnly == rhs.heightOnly &&
+           heightScale == rhs.heightScale &&
+           decoration == rhs.decoration &&
+           decorationColor == rhs.decorationColor &&
+           decorationStyle == rhs.decorationStyle &&
+           decorationThicknessScale == rhs.decorationThicknessScale &&
+           shadows == rhs.shadows &&
+           foreground == rhs.foreground &&
+           background == rhs.background &&
+           fontWeight == rhs.fontWeight &&
+           fontStyle == rhs.fontStyle &&
+           fontFeature == rhs.fontFeature &&
+           letterSpacing == rhs.letterSpacing &&
+           wordSpacing == rhs.wordSpacing;
 }
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS

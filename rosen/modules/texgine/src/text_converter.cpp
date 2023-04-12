@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,98 +17,101 @@
 
 #include <unicode/utf8.h>
 
-namespace Texgine {
-UTF8String TextConverter::ToUTF8(const UTF16String &u16text)
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
+UTF8String TextConverter::ToUTF8(const UTF16String &utf16Text)
 {
-    int32_t u16index = 0;
-    int codepoint = 0;
-    UTF8String u8text;
-    const int32_t length = u16text.size();
-    while (u16index < length) {
-        U16_NEXT(u16text.data(), u16index, length, codepoint);
-        size_t u8index = 0;
+    size_t utf16Index = 0;
+    size_t codePoint = 0;
+    UTF8String utf8Text;
+    while (utf16Index < utf16Text.size()) {
+        U16_NEXT(utf16Text.data(), utf16Index, utf16Text.size(), codePoint);
+        size_t utf8Index = 0;
         int error = 0;
-        uint8_t u8str[8] = {};
-        U8_APPEND(u8str, u8index, sizeof(u8str), codepoint, error);
-        for (int i = 0; i < u8index; i++) {
-            u8text.push_back(u8str[i]);
+        const int size = 8;
+        uint8_t utf8Str[size] = {};
+        U8_APPEND(utf8Str, utf8Index, sizeof(utf8Str), codePoint, error);
+        if (utf8Index >= size) {
+            return utf8Text;
+        }
+
+        for (int i = 0; i < utf8Index; i++) {
+            utf8Text.push_back(utf8Str[i]);
         }
     }
-    u8text.push_back(0);
-    return u8text;
+    utf8Text.push_back(0);
+    return utf8Text;
 }
 
-std::string TextConverter::ToStr(const UTF16String &u16text)
+std::string TextConverter::ToStr(const UTF16String &utf16Text)
 {
-    return reinterpret_cast<char *>(ToUTF8(u16text).data());
+    return reinterpret_cast<std::string>(ToUTF8(utf16Text).data());
 }
 
-UTF16String TextConverter::ToUTF16(const std::string &u8text)
+UTF16String TextConverter::ToUTF16(const std::string &utf8Text)
 {
-    int32_t u8index = 0;
-    uint32_t codepoint = 0;
-    UTF16String u16text;
-    const int32_t length = u8text.size();
-    while (u8index < length) {
-        U8_NEXT(u8text.c_str(), u8index, length, codepoint);
-        if (1 == U16_LENGTH(codepoint)) {
-            u16text.push_back(codepoint);
+    size_t utf8Index = 0;
+    size_t codePoint = 0;
+    UTF16String utf16Text;
+    while (utf8Index < utf8Text.size()) {
+        U8_NEXT(utf8Text.c_str(), utf8Index, utf8Text.size(), codePoint);
+        if (U16_LENGTH(codePoint) == 1) {
+            utf16Text.push_back(codePoint);
         } else {
-            u16text.push_back(U16_LEAD(codepoint));
-            u16text.push_back(U16_TRAIL(codepoint));
+            utf16Text.push_back(U16_LEAD(codePoint));
+            utf16Text.push_back(U16_TRAIL(codePoint));
         }
     }
-    return u16text;
+    return utf16Text;
 }
 
-UTF16String TextConverter::ToUTF16(const UTF8String &u8text)
+UTF16String TextConverter::ToUTF16(const UTF8String &utf8Text)
 {
-    int32_t u8index = 0;
-    uint32_t codepoint = 0;
-    UTF16String u16text;
-    const int32_t length = u8text.size();
-    while (u8index < length) {
-        U8_NEXT(u8text.data(), u8index, length, codepoint);
-        if (1 == U16_LENGTH(codepoint)) {
-            u16text.push_back(codepoint);
+    size_t utf8Index = 0;
+    size_t codePoint = 0;
+    UTF16String utf16Text;
+    while (utf8Index < utf8Text.size()) {
+        U8_NEXT(utf8Text.data(), utf8Index, utf8Text.size(), codePoint);
+        if (U16_LENGTH(codePoint) == 1) {
+            utf16Text.push_back(codePoint);
         } else {
-            u16text.push_back(U16_LEAD(codepoint));
-            u16text.push_back(U16_TRAIL(codepoint));
+            utf16Text.push_back(U16_LEAD(codePoint));
+            utf16Text.push_back(U16_TRAIL(codePoint));
         }
     }
-    return u16text;
+    return utf16Text;
 }
 
-UTF16String TextConverter::ToUTF16(const UTF32String &u32text)
+UTF16String TextConverter::ToUTF16(const UTF32String &utf32Text)
 {
-    int32_t u32index = 0;
-    int32_t codepoint = 0;
+    size_t utf32Index = 0;
+    size_t codePoint = 0;
     int error = 0;
-    UTF16String u16text;
-    const int32_t length = u32text.size();
-    while (u32index < length) {
-        UTF32_NEXT_CHAR_SAFE(u32text.data(), u32index, length, codepoint, error);
-        if (1 == U16_LENGTH(codepoint)) {
-            u16text.push_back(codepoint);
-        }
-        else {
-            u16text.push_back(U16_LEAD(codepoint));
-            u16text.push_back(U16_TRAIL(codepoint));
+    UTF16String utf16Text;
+    while (utf32Index < utf32Text.size()) {
+        UTF32_NEXT_CHAR_SAFE(utf32Text.data(), utf32Index, utf32Text.size(), codePoint, error);
+        if (U16_LENGTH(codePoint) == 1) {
+            utf16Text.push_back(codePoint);
+        } else {
+            utf16Text.push_back(U16_LEAD(codePoint));
+            utf16Text.push_back(U16_TRAIL(codePoint));
         }
     }
-    return u16text;
+    return utf16Text;
 }
 
-UTF32String TextConverter::ToUTF32(const UTF16String &u16text)
+UTF32String TextConverter::ToUTF32(const UTF16String &utf16Text)
 {
-    int32_t u16index = 0;
-    int64_t codepoint = 0;
-    UTF32String u32text;
-    const int32_t length = u16text.size();
-    while (u16index < length) {
-        U16_NEXT(u16text.data(), u16index, length, codepoint);
-        u32text.push_back(codepoint);
+    size_t utf16Index = 0;
+    size_t codePoint = 0;
+    UTF32String utf32Text;
+    while (utf16Index < utf16Text.size()) {
+        U16_NEXT(utf16Text.data(), utf16Index, utf16Text.size(), codePoint);
+        utf32Text.push_back(codePoint);
     }
-    return u32text;
+    return utf32Text;
 }
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS

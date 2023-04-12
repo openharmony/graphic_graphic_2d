@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,20 +18,24 @@
 #include <string>
 #include <vector>
 
-namespace Texgine {
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
 using UTF8String = std::vector<uint8_t>;
 using UTF16String = std::vector<uint16_t>;
 using UTF32String = std::vector<uint32_t>;
 
 class TextConverter {
 public:
-    static UTF8String  ToUTF8(const UTF16String &u16text);
-    static std::string ToStr(const UTF16String &u16text);
-    static UTF16String ToUTF16(const std::string &u8text);
-    static UTF16String ToUTF16(const UTF8String &u8text);
-    static UTF16String ToUTF16(const UTF32String &u32text);
-    static UTF32String ToUTF32(const UTF16String &u16text);
+    static UTF8String  ToUTF8(const UTF16String &utf16Text);
+    static std::string ToStr(const UTF16String &utf16Text);
+    static UTF16String ToUTF16(const std::string &utf8Text);
+    static UTF16String ToUTF16(const UTF8String &utf8Text);
+    static UTF16String ToUTF16(const UTF32String &utf32Text);
+    static UTF32String ToUTF32(const UTF16String &utf32Text);
 };
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_TEXT_CONVERTER_H
