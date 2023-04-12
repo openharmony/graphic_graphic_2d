@@ -41,6 +41,7 @@
             "header": {
               "header_files": [
                 "buffer_extra_data.h",
+                "common_types.h",
                 "egl_data.h",
                 "egl_surface.h",
                 "external_window.h",
@@ -65,6 +66,16 @@
                 "buffer_handle_utils.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/utils/buffer_handle/export"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/utils/sync_fence:sync_fence",
+            "header": {
+              "header_files": [
+                "sw_sync.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/utils/sync_fence/export"
             }
           }
         ]
