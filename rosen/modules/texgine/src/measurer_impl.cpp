@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,41 +20,46 @@
 #include "texgine/utils/trace.h"
 #include "text_converter.h"
 
-namespace Texgine {
-#define FIELDWIDTH1 2
-#define FIELDWIDTH2 4
-#define FIELDWIDTH3 6
-#define NUMBEROFDIGITS1 8
-#define NUMBEROFDIGITS2 16
-#define NUMBEROFDIGITS3 24
-#define TEXTLENGTH -1
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
+#define INVALID_TEXT_LENGTH (-1)
 
 namespace {
-void DumpCharGroup(int32_t index, const CharGroup &cg, double glyphEm, hb_glyph_info_t &info, hb_glyph_position_t &position)
+void DumpCharGroup(int32_t index, const CharGroup &cg, double glyphEm,
+    hb_glyph_info_t &info, hb_glyph_position_t &position)
 {
-    auto u8str = TextConverter::ToUTF8(cg.chars_);
+    auto uTF8Str = TextConverter::ToUTF8(cg.chars_);
+    // 0xffffff is the default char when the cg is null or invalid
     auto ch = (cg.chars_.size() > 0) ? cg.chars_[0] : 0xffffff;
-    LOG2EX_DEBUG() << std::setw(FIELDWIDTH1) << std::setfill('0') << index
-        << std::hex << std::uppercase
-        << ": " << std::right << std::setw(FIELDWIDTH2) << std::setfill(' ') << "\033[40m" << "'"
-        << u8str.data() << "'" << "\033[0m"
-        << " (char: 0x" << std::setw(FIELDWIDTH3) << std::setfill('0') << ch
-        << ", codepoint: 0x" << std::setw(FIELDWIDTH2) << std::setfill('0') << info.codepoint
-        << ", cluster: " << std::setw(FIELDWIDTH1) << std::setfill(' ') << std::dec << info.cluster << ")"
-        << " {" << glyphEm * position.x_advance << ", " << glyphEm * position.y_advance
-        << ", " << glyphEm * position.x_offset << ", " << glyphEm * position.y_offset << "}";
+    // the follow numbers is to align log
+    LOG2EX_DEBUG() << std::setw(2) << std::setfill('0') << index <<
+        std::hex << std::uppercase <<
+        ": " << std::right << std::setw(4) << std::setfill(' ') << "\033[40m" << "'" <<
+        uTF8Str.data() << "'" << "\033[0m" <<
+        " (char: 0x" << std::setw(6) << std::setfill('0') << ch <<
+        ", codepoint: 0x" << std::setw(4) << std::setfill('0') << info.codepoint <<
+        ", cluster: " << std::setw(2) << std::setfill(' ') << std::dec << info.cluster << ")" <<
+        " {" << glyphEm * position.x_advance << ", " << glyphEm * position.y_advance <<
+        ", " << glyphEm * position.x_offset << ", " << glyphEm * position.y_offset << "}";
 }
 } // namespace
 
 hb_blob_t *HbFaceReferenceTableTypeface(hb_face_t *face, hb_tag_t tag, void *context)
 {
+    if (context == nullptr) {
+        return nullptr;
+    }
+
     std::shared_ptr<TexgineTypeface> typeface = std::make_shared<TexgineTypeface>(context);
     if (typeface->GetTypeface() == nullptr) {
         return nullptr;
     }
 
+    // 584420 is five times of the tag`s max size now
+    const size_t maxSize = 584420;
     const size_t tableSize = typeface->GetTableSize(tag);
-    if (tableSize == 0) {
+    if (tableSize == 0 || tableSize > maxSize) {
         return nullptr;
     }
 
@@ -66,6 +71,7 @@ hb_blob_t *HbFaceReferenceTableTypeface(hb_face_t *face, hb_tag_t tag, void *con
     size_t actualSize = typeface->GetTableData(tag, 0, tableSize, buffer);
     if (tableSize != actualSize) {
         free(buffer);
+        buffer = nullptr;
         return nullptr;
     }
 
@@ -93,15 +99,15 @@ int MeasurerImpl::Measure(CharGroups &cgs)
     ScopedTrace scope("MeasurerImpl::Measure");
     LOGSCOPED(sl, LOG2EX_DEBUG(), "MeasurerImpl::Measure");
     struct MeasurerCacheKey key = {
-        .text_ = text_,
-        .style_ = style_,
-        .locale_ = locale_,
-        .rtl_ = rtl_,
-        .size_ = size_,
-        .startIndex_ = startIndex_,
-        .endIndex_ = endIndex_,
-        .letterSpacing_ = letterSpacing_,
-        .wordSpacing_ = wordSpacing_,
+        .text = text_,
+        .style = style_,
+        .locale = locale_,
+        .rtl = rtl_,
+        .size = size_,
+        .startIndex = startIndex_,
+        .endIndex = endIndex_,
+        .letterSpacing = letterSpacing_,
+        .wordSpacing = wordSpacing_,
     };
 
     if (fontFeatures_ == nullptr || fontFeatures_->GetFeatures().size() == 0) {
@@ -138,19 +144,18 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
     LOGSCOPED(sl, LOG2EX_DEBUG(), "typeface");
     int index = 0;
     for (auto runsit = runs.begin(); runsit != runs.end(); runsit++) {
-        auto u16index = runsit->start;
+        if (runsit->end > text_.size()) {
+            LOG2EX(ERROR) << "runsit->end overflow of text_";
+            throw TEXGINE_EXCEPTION(ErrorStatus);
+        }
+        size_t utf16Index = runsit->start;
         uint32_t cp = 0;
         std::shared_ptr<Typeface> lastTypeface = nullptr;
-        while (u16index < runsit->end) {
-            if (u16index >= text_.size()) {
-                LOG2EX(ERROR) << "u16index overflow of text_";
-                throw TEXGINE_EXCEPTION(ErrorStatus);
-            }
-            U16_NEXT(text_.data(), u16index, runsit->end, cp);
-            bool has = lastTypeface && lastTypeface->Has(cp);
-            LOG2EX_DEBUG(Logger::NoReturn) << "[" << std::setw(FIELDWIDTH1) << std::setfill('0') << index++
-                << ": 0x" << std::setw(FIELDWIDTH3) << std::setfill('0') << std::hex << std::uppercase << cp << "]";
-            if (has) {
+        while (utf16Index < runsit->end) {
+            U16_NEXT(text_.data(), utf16Index, runsit->end, cp);
+            LOG2EX_DEBUG(Logger::NoReturn) << "[" << std::setw(2) << std::setfill('0') << index++
+                << ": 0x" << std::setw(6) << std::setfill('0') << std::hex << std::uppercase << cp << "]";
+            if (lastTypeface && lastTypeface->Has(cp)) {
                 LOGCEX_DEBUG() << " cached";
                 continue;
             }
@@ -159,16 +164,20 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
                 LOGCEX_DEBUG() << " new";
                 auto next = runsit;
                 runs.insert(++next, {
-                    .start = u16index - U16_LENGTH(cp),
+                    .start = utf16Index - U16_LENGTH(cp),
                     .end = runsit->end,
                     .script = runsit->script,
                 });
-                runsit->end = u16index - U16_LENGTH(cp);
+                runsit->end = utf16Index - U16_LENGTH(cp);
                 break;
             }
-            char runScript[5] = {(char)(((runsit->script) >> NUMBEROFDIGITS3) & 0xFF),
-                                 (char)(((runsit->script) >> NUMBEROFDIGITS2) & 0xFF),
-                                 (char)(((runsit->script) >> NUMBEROFDIGITS1) & 0xFF),
+
+            const int firstByte = 24;
+            const int secondByte = 16;
+            const int thirdByte = 8;
+            char runScript[5] = {(char)(((runsit->script) >> firstByte) & 0xFF),
+                                 (char)(((runsit->script) >> secondByte) & 0xFF),
+                                 (char)(((runsit->script) >> thirdByte) & 0xFF),
                                  (char)((runsit->script) & 0xFF), '\0'};
             lastTypeface = fontCollection_.GetTypefaceForChar(cp, style_, runScript, locale_);
             if (lastTypeface == nullptr) {
@@ -199,25 +208,25 @@ void MeasurerImpl::SeekScript(std::list<struct MeasuringRun> &runs)
 
 void MeasurerImpl::DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode_funcs_t *icuGetUnicodeFuncs)
 {
-    auto index = 0;
+    int index = 0;
     for (auto it = runs.begin(); it != runs.end(); it++) {
         std::stringstream ss;
         ss << "[" << it->start << ", " << it->end << ")";
         LOGSCOPED(sl, LOG2EX_DEBUG(), ss.str());
 
-        auto ri = it->start;
+        size_t utf16Index = it->start;
         uint32_t cp = 0;
         auto &script = it->script;
-        while (ri < it->end) {
-            if (ri >= text_.size()) {
+        while (utf16Index < it->end) {
+            if (utf16Index >= text_.size()) {
                 LOG2EX(ERROR) << "u16index overflow of text_";
                 throw TEXGINE_EXCEPTION(ErrorStatus);
             }
 
-            U16_NEXT(text_.data(), ri, it->end, cp);
+            U16_NEXT(text_.data(), utf16Index, it->end, cp);
             auto s = hb_unicode_script(icuGetUnicodeFuncs, cp);
-            LOG2EX_DEBUG() << "[" << std::setw(FIELDWIDTH1) << std::setfill('0') << index++ << ": 0x"
-                << std::setw(FIELDWIDTH3) << std::setfill('0') << std::hex << std::uppercase << cp << "]" << " " << s;
+            LOG2EX_DEBUG() << "[" << std::setw(2) << std::setfill('0') << index++ << ": 0x"
+                << std::setw(6) << std::setfill('0') << std::hex << std::uppercase << cp << "]" << " " << s;
             if (script == HB_SCRIPT_INVALID) {
                 script = s;
             }
@@ -233,8 +242,8 @@ void MeasurerImpl::DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode
             } else {
                 index--;
                 auto next = it;
-                runs.insert(++next, { .start = ri - U16_LENGTH(cp), .end = it->end });
-                it->end = ri - U16_LENGTH(cp);
+                runs.insert(++next, { .start = utf16Index - U16_LENGTH(cp), .end = it->end });
+                it->end = utf16Index - U16_LENGTH(cp);
                 break;
             }
         }
@@ -247,4 +256,6 @@ void MeasurerImpl::DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode
         it->script = script;
     }
 }
-} // namespace Texgine
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
