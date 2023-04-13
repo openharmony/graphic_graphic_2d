@@ -24,6 +24,7 @@
 #include "skia_adapter/skia_image_filter.h"
 #include "skia_adapter/skia_mask_filter.h"
 #include "skia_adapter/skia_matrix.h"
+#include "skia_adapter/skia_matrix44.h"
 #include "skia_adapter/skia_path.h"
 #include "skia_adapter/skia_path_effect.h"
 #include "skia_adapter/skia_picture.h"
@@ -103,6 +104,11 @@ std::unique_ptr<ColorSpaceImpl> SkiaImplFactory::CreateColorSpace()
 std::unique_ptr<MatrixImpl> SkiaImplFactory::CreateMatrix()
 {
     return std::make_unique<SkiaMatrix>();
+}
+
+std::unique_ptr<Matrix44Impl> SkiaImplFactory::CreateMatrix44()
+{
+    return std::make_unique<SkiaMatrix44>();
 }
 
 std::unique_ptr<CameraImpl> SkiaImplFactory::CreateCamera()

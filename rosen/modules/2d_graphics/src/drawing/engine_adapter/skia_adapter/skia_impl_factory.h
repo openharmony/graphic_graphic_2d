@@ -25,6 +25,7 @@
 #include "impl_interface/image_impl.h"
 #include "impl_interface/mask_filter_impl.h"
 #include "impl_interface/matrix_impl.h"
+#include "impl_interface/matrix44_impl.h"
 #include "impl_interface/path_effect_impl.h"
 #include "impl_interface/path_impl.h"
 #include "impl_interface/picture_impl.h"
@@ -50,6 +51,7 @@ public:
     static std::unique_ptr<PathEffectImpl> CreatePathEffect();
     static std::unique_ptr<ColorSpaceImpl> CreateColorSpace();
     static std::unique_ptr<MatrixImpl> CreateMatrix();
+    static std::unique_ptr<Matrix44Impl> CreateMatrix44();
     static std::unique_ptr<CameraImpl> CreateCamera();
     static std::unique_ptr<RegionImpl> CreateRegion();
 };
