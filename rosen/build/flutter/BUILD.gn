@@ -181,7 +181,7 @@ template("flutter_engine_fml") {
         "$flutter_root/engine/flutter/fml/platform/posix/paths_posix.cc",
       ]
 
-      if (is_standard_system) {
+      if (is_standard_system && !build_cross_platform_version) {
         sources += [
           "$flutter_root/engine/flutter/fml/platform/linux/message_loop_linux.cc",
           "$flutter_root/engine/flutter/fml/platform/linux/paths_linux.cc",
@@ -195,9 +195,9 @@ template("flutter_engine_fml") {
           "$flutter_root/engine/flutter/fml/platform/android/paths_android.cc",
           "$flutter_root/engine/flutter/fml/platform/android/scoped_java_ref.cc",
         ]
-        aosp_deps = [
-          "shared_library:libandroid",
-          "shared_library:liblog",
+        libs = [
+          "android",
+          "log",
         ]
       }
     }
@@ -465,9 +465,9 @@ template("flutter_engine_shell") {
         "$flutter_root/engine/flutter/shell/platform/android/platform_message_response_android.cc",
       ]
 
-      aosp_deps = [
-        "shared_library:libEGL",
-        "shared_library:libGLESv2",
+      libs = [
+        "EGL",
+        "GLESv2",
       ]
 
       if (defined(config.use_agp_vsync) && config.use_agp_vsync) {
