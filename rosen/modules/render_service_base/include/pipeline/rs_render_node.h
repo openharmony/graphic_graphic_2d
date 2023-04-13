@@ -214,6 +214,16 @@ public:
     {
         return isContentChanged_ || !animationManager_.animations_.empty();
     }
+
+    void SetDrawRegion(std::shared_ptr<RectF> rect)
+    {
+        drawRegion_ = rect;
+    }
+
+    std::shared_ptr<RectF> GetDrawRegion() const
+    {
+        return drawRegion_;
+    }
     /////////////////////////////////////////////
 
 protected:
@@ -262,6 +272,7 @@ private:
     bool paintState_ = false;
     bool isContentChanged_ = false;
 
+    std::shared_ptr<RectF> drawRegion_ = nullptr;
     friend class RSRenderTransition;
     friend class RSRenderNodeMap;
     friend class RSProxyRenderNode;

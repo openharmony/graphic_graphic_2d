@@ -796,6 +796,25 @@ bool RSMarshallingHelper::SkipPixelMap(Parcel& parcel)
     return true;
 }
 
+// RectF
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RectT<float>>& val)
+{
+    if (!val) {
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling RectF is nullptr");
+        return parcel.WriteInt32(-1);
+    }
+    return parcel.WriteInt32(1) && val->Marshalling(parcel);
+}
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RectT<float>>& val)
+{
+    if (parcel.ReadInt32() == -1) {
+        val = nullptr;
+        return true;
+    }
+    val.reset(RectT<float>::Unmarshalling(parcel));
+    return val != nullptr;
+}
+
 #define MARSHALLING_AND_UNMARSHALLING(TYPE)                                                 \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TYPE>& val) \
     {                                                                                       \

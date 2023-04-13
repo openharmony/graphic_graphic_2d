@@ -82,5 +82,14 @@ void RSNodeCommandHelper::MarkContentChanged(RSContext& context, NodeId nodeId, 
         node->SetIsContentChanged(isChanged);
     }
 }
+
+void RSNodeCommandHelper::SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->SetDrawRegion(rect);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

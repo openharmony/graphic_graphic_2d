@@ -52,6 +52,7 @@ enum RSNodeCommandType : uint16_t {
     MARK_DRIVEN_RENDER_ITEM_INDEX,
     MARK_DRIVEN_RENDER_FRAME_PAINT_STATE,
     MARK_CONTENT_CHANGED,
+    SET_DRAW_REGION,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -79,6 +80,7 @@ public:
     static void MarkDrivenRenderItemIndex(RSContext& context, NodeId nodeId, int32_t index);
     static void MarkDrivenRenderFramePaintState(RSContext& context, NodeId nodeId, bool flag);
     static void MarkContentChanged(RSContext& context, NodeId nodeId, bool isChanged);
+    static void SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect);
 };
 
 ADD_COMMAND(RSAddModifier,
@@ -153,6 +155,10 @@ ADD_COMMAND(RSMarkDrivenRenderFramePaintState,
         RSNodeCommandHelper::MarkDrivenRenderFramePaintState, NodeId, bool))
 ADD_COMMAND(RSMarkContentChanged,
     ARG(RS_NODE, MARK_CONTENT_CHANGED, RSNodeCommandHelper::MarkContentChanged, NodeId, bool))
+
+ADD_COMMAND(RSSetDrawRegion,
+    ARG(RS_NODE, SET_DRAW_REGION, RSNodeCommandHelper::SetDrawRegion,
+        NodeId, std::shared_ptr<RectF>))
 } // namespace Rosen
 } // namespace OHOS
 

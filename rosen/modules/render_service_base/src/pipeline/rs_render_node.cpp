@@ -326,6 +326,11 @@ void RSRenderNode::UpdateOverlayBounds()
 {
     RSModifierContext context = { GetMutableRenderProperties() };
     RectF joinRect = RectF();
+    if (GetDrawRegion() != nullptr) {
+        joinRect = joinRect.JoinRect(*(GetDrawRegion()));
+        context.property_.SetOverlayBounds(std::make_shared<RectF>(joinRect));
+        return;
+    }
     for (auto& iterator : drawCmdModifiers_) {
         if (iterator.first == RSModifierType::GEOMETRYTRANS) {
             continue;

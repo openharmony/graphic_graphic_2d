@@ -205,6 +205,7 @@ public:
 
     void SetIsCustomTextType(bool isCustomTextType);
 
+    void SetDrawRegion(std::shared_ptr<RectF> rect);
 protected:
     explicit RSNode(bool isRenderServiceNode);
     explicit RSNode(bool isRenderServiceNode, NodeId id);

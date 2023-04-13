@@ -1096,5 +1096,14 @@ void RSNode::SetIsCustomTextType(bool isCustomTextType)
 {
     isCustomTextType_ = isCustomTextType;
 }
+
+void RSNode::SetDrawRegion(std::shared_ptr<RectF> rect)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetDrawRegion>(GetId(), rect);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
