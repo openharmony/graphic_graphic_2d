@@ -35,6 +35,7 @@
 #include "property/rs_properties_def.h"
 #include "render/rs_image.h"
 #include "transaction/rs_marshalling_helper.h"
+#include <optional>
 
 namespace OHOS {
 namespace Rosen {
