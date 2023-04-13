@@ -118,7 +118,7 @@ HWTEST_F(RSDropFrameProcessorTest, DropFrameProcessorTest002, TestSize.Level1)
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     GSError ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
-    while (ret != OHOS::GSERROR_NO_BUFFER) {
+    while (ret == OHOS::GSERROR_OK) {
         ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
     }
     // create RSHardwareProcessor
