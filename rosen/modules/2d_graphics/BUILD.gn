@@ -62,6 +62,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_path.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_path_effect.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_picture.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_region.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_shader_effect.cpp",
       "$drawing_src_dir/image/bitmap.cpp",
       "$drawing_src_dir/image/image.cpp",
@@ -69,6 +70,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/text/text.cpp",
       "$drawing_src_dir/utils/camera3d.cpp",
       "$drawing_src_dir/utils/matrix.cpp",
+      "$drawing_src_dir/utils/region.cpp",
     ]
 
     sources += [

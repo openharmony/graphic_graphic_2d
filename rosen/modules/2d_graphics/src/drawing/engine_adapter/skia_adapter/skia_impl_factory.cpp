@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@
 #include "skia_adapter/skia_path.h"
 #include "skia_adapter/skia_path_effect.h"
 #include "skia_adapter/skia_picture.h"
+#include "skia_adapter/skia_region.h"
 #include "skia_adapter/skia_shader_effect.h"
 
 namespace OHOS {
@@ -107,6 +108,11 @@ std::unique_ptr<MatrixImpl> SkiaImplFactory::CreateMatrix()
 std::unique_ptr<CameraImpl> SkiaImplFactory::CreateCamera()
 {
     return std::make_unique<SkiaCamera>();
+}
+
+std::unique_ptr<RegionImpl> SkiaImplFactory::CreateRegion()
+{
+    return std::make_unique<SkiaRegion>();
 }
 } // namespace Drawing
 } // namespace Rosen
