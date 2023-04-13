@@ -49,6 +49,7 @@ private:
     void CalculateInfoWithAnimation(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
         ComposeInfo& info, RSSurfaceRenderNode& node);
     void CalculateInfoWithVideo(ComposeInfo& info, RSSurfaceRenderNode& node);
+    IRect RotateSrcRect(IRect originSrcRect, RectI resDstRect, RectI dstRectI, ScreenRotation rotation);
     SkMatrix GetLayerTransform(const SkMatrix& canvasTransform, const LayerInfoPtr& layer);
     HdiBackend* backend_ = nullptr;
     sptr<RSScreenManager> screenManager_;
