@@ -465,6 +465,7 @@ void RSParallelSubThread::Composition()
     compositionVisitor_->SetProcessorRenderEngine(processorRenderEngine_);
     node->Process(compositionVisitor_);
     compositionVisitor_ = nullptr;
+    compositionTask_ = nullptr;
 }
 
 EGLContext RSParallelSubThread::GetSharedContext()
