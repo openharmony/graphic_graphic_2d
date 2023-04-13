@@ -26,6 +26,7 @@ namespace OHOS {
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
         size_t pos;
+        std::unique_ptr<HdiScreen> g_hdiScreen = nullptr;
     }
 
     /*
@@ -65,7 +66,6 @@ namespace OHOS {
     void HdiScreenFuzzTest2()
     {
         // get data
-        uint32_t screenId = GetData<uint32_t>();
         uint32_t propId = GetData<uint32_t>();
         uint64_t value = GetData<uint64_t>();
         GraphicInterfaceType type = GetData<GraphicInterfaceType>();
@@ -82,7 +82,12 @@ namespace OHOS {
         float minLum = GetData<float>();
 
         // test
-        std::unique_ptr<HdiScreen> hdiScreen = HdiScreen::CreateHdiScreen(screenId);
+        if (g_hdiScreen == nullptr) {
+            return;
+        }
+        GraphicGamutMap gamutMap = GetData<GraphicGamutMap>();
+        g_hdiScreen->SetScreenGamutMap(gamutMap);
+        g_hdiScreen->GetScreenGamutMap(gamutMap);
         GraphicPropertyObject props = {"propName", propId, value};
         GraphicDisplayCapability dcap = {
             .name = "dispName",
@@ -95,7 +100,7 @@ namespace OHOS {
             .propertyCount = propertyCount,
         };
         dcap.props.push_back(props);
-        hdiScreen->GetScreenCapability(dcap);
+        g_hdiScreen->GetScreenCapability(dcap);
 
         GraphicHDRCapability info = {
             .formatCount = formatCount,
@@ -104,7 +109,8 @@ namespace OHOS {
             .minLum = minLum,
         };
         info.formats.push_back(formats);
-        hdiScreen->GetHDRCapabilityInfos(info);
+        g_hdiScreen->GetHDRCapabilityInfos(info);
+        g_hdiScreen = nullptr;
     }
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
@@ -119,13 +125,11 @@ namespace OHOS {
         pos = 0;
 
         // get data
-        uint32_t screenId = GetData<uint32_t>();
         uint32_t modeId = GetData<uint32_t>();
         GraphicDispPowerStatus status = GetData<GraphicDispPowerStatus>();
         uint32_t level = GetData<uint32_t>();
         bool enabled = GetData<bool>();
         GraphicColorGamut gamut = GetData<GraphicColorGamut>();
-        GraphicGamutMap gamutMap = GetData<GraphicGamutMap>();
         float matrixElement = GetData<float>();
         std::vector<float> matrix = { matrixElement };
         uint32_t sequence = GetData<uint32_t>();
@@ -138,28 +142,35 @@ namespace OHOS {
         int32_t id = GetData<int32_t>();
 
         // test
-        std::unique_ptr<HdiScreen> hdiScreen = HdiScreen::CreateHdiScreen(screenId);
-        hdiScreen->Init();
-        hdiScreen->SetScreenMode(modeId);
-        hdiScreen->SetScreenPowerStatus(status);
-        hdiScreen->SetScreenBacklight(level);
-        hdiScreen->SetScreenVsyncEnabled(enabled);
-        hdiScreen->SetScreenColorGamut(gamut);
-        hdiScreen->SetScreenGamutMap(gamutMap);
-        hdiScreen->SetScreenColorTransform(matrix);
-        hdiScreen->OnVsync(sequence, ns, dt);
+        if (g_hdiScreen == nullptr) {
+            uint32_t screenId = GetData<uint32_t>();
+            g_hdiScreen = HdiScreen::CreateHdiScreen(screenId);
+            if (g_hdiScreen == nullptr) {
+                return false;
+            }
+            HdiDevice *device = HdiDevice::GetInstance();
+            bool ret = g_hdiScreen->SetHdiDevice(device);
+            if (!ret) {
+                return false;
+            }
+        }
+        
+        g_hdiScreen->SetScreenMode(modeId);
+        g_hdiScreen->SetScreenPowerStatus(status);
+        g_hdiScreen->SetScreenBacklight(level);
+        g_hdiScreen->SetScreenVsyncEnabled(enabled);
+        g_hdiScreen->SetScreenColorGamut(gamut);
+        g_hdiScreen->SetScreenColorTransform(matrix);
+        g_hdiScreen->OnVsync(sequence, ns, dt);
 
         GraphicDisplayModeInfo mode = {width, height, freshRate, id};
         std::vector<GraphicDisplayModeInfo> modes = {mode};
-        hdiScreen->GetScreenSupportedModes(modes);
-        hdiScreen->GetScreenMode(modeId);
-        hdiScreen->GetScreenPowerStatus(status);
-        hdiScreen->GetScreenBacklight(level);
-        hdiScreen->GetScreenColorGamut(gamut);
-        hdiScreen->GetScreenGamutMap(gamutMap);
-
+        g_hdiScreen->GetScreenSupportedModes(modes);
+        g_hdiScreen->GetScreenMode(modeId);
+        g_hdiScreen->GetScreenPowerStatus(status);
+        g_hdiScreen->GetScreenBacklight(level);
+        g_hdiScreen->GetScreenColorGamut(gamut);
         HdiScreenFuzzTest2();
-        
         return true;
     }
 }

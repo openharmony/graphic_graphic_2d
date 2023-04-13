@@ -175,9 +175,9 @@ int32_t HdiLayer::SetTransformMode()
 
 int32_t HdiLayer::SetLayerVisibleRegion()
 {
-    std::vector<GraphicIRect>& curVisibles = layerInfo_->GetVisibleRegions();
+    const std::vector<GraphicIRect>& curVisibles = layerInfo_->GetVisibleRegions();
     if (doLayerInfoCompare_) {
-        std::vector<GraphicIRect>& prevVisibles = prevLayerInfo_->GetVisibleRegions();
+        const std::vector<GraphicIRect>& prevVisibles = prevLayerInfo_->GetVisibleRegions();
         bool isSameVisble = (curVisibles.size() == prevVisibles.size());
         if (isSameVisble) {
             for (decltype(curVisibles.size()) i = 0; i < curVisibles.size(); i++) {
@@ -195,9 +195,9 @@ int32_t HdiLayer::SetLayerVisibleRegion()
 
 int32_t HdiLayer::SetLayerDirtyRegion()
 {
-    std::vector<GraphicIRect>& curDirtyRegions = layerInfo_->GetDirtyRegions();
+    const std::vector<GraphicIRect>& curDirtyRegions = layerInfo_->GetDirtyRegions();
     if (doLayerInfoCompare_) {
-        std::vector<GraphicIRect>& prevDirtyRegions = prevLayerInfo_->GetDirtyRegions();
+        const std::vector<GraphicIRect>& prevDirtyRegions = prevLayerInfo_->GetDirtyRegions();
         bool isSameDirtyRegions = (curDirtyRegions.size() == prevDirtyRegions.size());
         if (isSameDirtyRegions) {
             for (decltype(curDirtyRegions.size()) i = 0; i < curDirtyRegions.size(); i++) {
@@ -278,9 +278,9 @@ int32_t HdiLayer::SetLayerPreMulti()
 
 int32_t HdiLayer::SetLayerColorTransform()
 {
-    std::vector<float>& curMatrix = layerInfo_->GetColorTransform();
+    const std::vector<float>& curMatrix = layerInfo_->GetColorTransform();
     if (doLayerInfoCompare_) {
-        std::vector<float>& prevMatrix = prevLayerInfo_->GetColorTransform();
+        const std::vector<float>& prevMatrix = prevLayerInfo_->GetColorTransform();
         bool isSameMatrix = (curMatrix.size() == prevMatrix.size());
         if (isSameMatrix) {
             for (decltype(curMatrix.size()) i = 0; i < curMatrix.size(); i++) {

@@ -122,7 +122,7 @@ void HdiOutput::SetOutputDamages(const std::vector<GraphicIRect> &outputDamages)
     outputDamages_ = outputDamages;
 }
 
-/* const */ std::vector<GraphicIRect>& HdiOutput::GetOutputDamages()
+const std::vector<GraphicIRect>& HdiOutput::GetOutputDamages()
 {
     return outputDamages_;
 }

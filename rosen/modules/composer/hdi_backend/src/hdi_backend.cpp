@@ -292,7 +292,7 @@ int32_t HdiBackend::SetScreenClientInfo(const FrameBufferEntry &fbEntry, const O
         return ret;
     }
 
-    std::vector<GraphicIRect>& damageRects = output->GetOutputDamages();
+    const std::vector<GraphicIRect>& damageRects = output->GetOutputDamages();
     ret = device_->SetScreenClientDamage(output->GetScreenId(), damageRects);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         // SetScreenClientDamage is not supported in hdi, HLOGD here and no returen ret.
@@ -304,7 +304,7 @@ int32_t HdiBackend::SetScreenClientInfo(const FrameBufferEntry &fbEntry, const O
 
 std::map<LayerInfoPtr, sptr<SyncFence>> HdiBackend::GetLayersReleaseFence(const OutputPtr& output)
 {
-    if (output == nullptr) {
+    if (output == nullptr || device_ == nullptr) {
         return {};
     }
     uint32_t screenId = output->GetScreenId();

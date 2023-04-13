@@ -21,8 +21,6 @@
 
 namespace OHOS {
 namespace Rosen {
-using namespace OHOS::HDI::Display::Composer::V1_0;
-using namespace OHOS::HDI::Display;
 class HdiDeviceImpl : public HdiDevice {
 public:
     HdiDeviceImpl();
@@ -95,8 +93,6 @@ private:
     HdiDeviceImpl& operator=(const HdiDeviceImpl& rhs) = delete;
     HdiDeviceImpl(HdiDeviceImpl&& rhs) = delete;
     HdiDeviceImpl& operator=(HdiDeviceImpl&& rhs) = delete;
-
-    std::shared_ptr<IDisplayComposerInterface> composer_ = nullptr;
 
     void Destroy();
 };

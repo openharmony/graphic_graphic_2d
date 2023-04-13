@@ -32,7 +32,6 @@ public:
 void HdiDeviceTest::SetUpTestCase()
 {
     hdiDevice_ = HdiDevice::GetInstance();
-    hdiDevice_->ResetHdiFuncs();
 }
 
 void HdiDeviceTest::TearDownTestCase()

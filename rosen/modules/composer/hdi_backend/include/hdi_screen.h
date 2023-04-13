@@ -57,8 +57,8 @@ public:
 
     static void OnVsync(uint32_t sequence, uint64_t ns, void *data);
 
-    /* only used for mock tests */
-    void SetHdiDevice(HdiDevice* device);
+    /* only used for mock and fuzz tests */
+    bool SetHdiDevice(HdiDevice* device);
 
 private:
     uint32_t screenId_;
