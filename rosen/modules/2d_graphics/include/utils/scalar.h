@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@ namespace Rosen {
 namespace Drawing {
 typedef float scalar;
 static const scalar BLUR_SIGMA_SCALE = 0.57735f;
+static const scalar FLOAT_PI = 3.14159265f;
 
 inline bool IsScalarAlmostEqual(scalar a, scalar b)
 {
@@ -38,6 +39,15 @@ inline scalar ConvertRadiusToSigma(scalar radius)
 inline scalar ConvertSigmaToRadius(scalar sigma)
 {
     return sigma > 0.5f ? (sigma - 0.5f) / BLUR_SIGMA_SCALE : 0.0f;
+}
+
+/*
+ * @param radians   Radians values.
+ * @return          Return degrees values.
+ */
+inline scalar ConvertRadiansToDegrees(scalar radians)
+{
+    return radians * (180 / FLOAT_PI);
 }
 } // namespace Drawing
 } // namespace Rosen

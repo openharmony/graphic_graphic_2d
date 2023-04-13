@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,6 +49,20 @@ public:
     inline void SetBottom(scalar pos);
 
     inline void Offset(scalar dx, scalar dy);
+
+    /*
+     * @brief        If RectF intersects other, sets RectF to intersection.
+     * @param other  limit of result.
+     * @return       true if other and RectF have area in common.
+     */
+    inline bool Intersect(const RectF& other);
+
+    /*
+     * @brief        If other is valid, sets RectF to the union of itself and other.
+     * @param other  expansion RectF.
+     * @return       true if other is valid.
+     */
+    inline bool Join(const RectF& other);
 
     friend inline bool operator==(const RectF& r1, const RectF& r2);
     friend inline bool operator!=(const RectF& r1, const RectF& r2);
@@ -133,6 +147,31 @@ inline void RectF::Offset(scalar dx, scalar dy)
     bottom_ += dy;
 }
 
+inline bool RectF::Intersect(const RectF& other)
+{
+    RectF rectF(left_ > other.left_ ? left_ : other.left_, top_ > other.top_ ? top_ : other.top_,
+                right_ < other.right_ ? right_ : other.right_, bottom_ < other.bottom_ ? bottom_ : other.bottom_);
+    if (!rectF.IsValid()) {
+        return false;
+    }
+    *this = rectF;
+    return true;
+}
+
+inline bool RectF::Join(const RectF& other)
+{
+    if (!other.IsValid()) {
+        return false;
+    }
+    if (!IsValid()) {
+        *this = other;
+    } else {
+        *this = RectF(left_ < other.left_ ? left_ : other.left_, top_ < other.top_ ? top_ : other.top_,
+                right_ > other.right_ ? right_ : other.right_, bottom_ > other.bottom_ ? bottom_ : other.bottom_);
+    }
+    return true;
+}
+
 inline bool operator==(const RectF& r1, const RectF& r2)
 {
     return IsScalarAlmostEqual(r1.left_, r2.left_) && IsScalarAlmostEqual(r1.right_, r2.right_) &&
@@ -169,6 +208,20 @@ public:
     inline void SetBottom(int pos);
 
     inline void Offset(int dx, int dy);
+
+    /*
+     * @brief        If RectI intersects other, sets RectI to intersection.
+     * @param other  limit of result.
+     * @return       true if other and RectI have area in common.
+     */
+    inline bool Intersect(const RectI& other);
+
+    /*
+     * @brief        If other is valid, sets RectI to the union of itself and other.
+     * @param other  expansion RectI.
+     * @return       true if other is valid.
+     */
+    inline bool Join(const RectI& other);
 
     friend inline bool operator==(const RectI& r1, const RectI& r2);
     friend inline bool operator!=(const RectI& r1, const RectI& r2);
@@ -251,6 +304,29 @@ inline void RectI::Offset(int dx, int dy)
     right_ += dx;
     top_ += dy;
     bottom_ += dy;
+}
+
+inline bool RectI::Intersect(const RectI& other)
+{
+    RectI rectI(left_ > other.left_ ? left_ : other.left_, top_ > other.top_ ? top_ : other.top_,
+        right_ < other.right_ ? right_ : other.right_, bottom_ < other.bottom_ ? bottom_ : other.bottom_);
+    if (!rectI.IsValid()) {
+        return false;
+    }
+    *this = rectI;
+    return true;
+}
+
+inline bool RectI::Join(const RectI& other)
+{
+    if (!other.IsValid()) return false;
+    if (!IsValid()) {
+        *this = other;
+    } else {
+        *this = RectI(left_ < other.left_ ? left_ : other.left_, top_ < other.top_ ? top_ : other.top_,
+            right_ > other.right_ ? right_ : other.right_, bottom_ > other.bottom_ ? bottom_ : other.bottom_);
+    }
+    return true;
 }
 
 inline bool operator==(const RectI& r1, const RectI& r2)
