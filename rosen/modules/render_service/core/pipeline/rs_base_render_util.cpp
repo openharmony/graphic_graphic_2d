@@ -1095,11 +1095,11 @@ void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawPara
     Sk3DView sk3DView;
     switch (GetFlipTransform(transform)) {
         case GraphicTransformType::GRAPHIC_FLIP_H: {
-            sk3DView.rotateX(angle);
+            sk3DView.rotateY(angle);
             break;
         }
         case GraphicTransformType::GRAPHIC_FLIP_V: {
-            sk3DView.rotateY(angle);
+            sk3DView.rotateX(angle);
             break;
         }
         default: {

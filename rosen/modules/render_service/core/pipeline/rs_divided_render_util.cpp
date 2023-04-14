@@ -75,10 +75,9 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(
     params.buffer = buffer;
     params.acquireFence = node.GetAcquireFence();
     params.srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-
-    RSBaseRenderUtil::FlipMatrix(surface->GetTransform(), params);
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(surface->GetTransform(), property.GetFrameGravity(),
         localBounds, params);
+    RSBaseRenderUtil::FlipMatrix(surface->GetTransform(), params);
     return params;
 }
 

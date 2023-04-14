@@ -613,9 +613,9 @@ HWTEST_F(RSBaseRenderUtilTest, FlipMatrix_001, Function | SmallTest | Level2)
     rsNode->SetConsumer(surface);
     RSBaseRenderUtil::FlipMatrix(surface->GetTransform(), params);
 
-    ASSERT_EQ(params.matrix.get(1), -matrix.get(1));
-    ASSERT_EQ(params.matrix.get(4), -matrix.get(4));
-    ASSERT_EQ(params.matrix.get(7), -matrix.get(7));
+    ASSERT_EQ(params.matrix.get(0), -matrix.get(0));
+    ASSERT_EQ(params.matrix.get(3), -matrix.get(3));
+    ASSERT_EQ(params.matrix.get(6), -matrix.get(6));
 }
 
 /*
@@ -637,9 +637,9 @@ HWTEST_F(RSBaseRenderUtilTest, FlipMatrix_002, Function | SmallTest | Level2)
     rsNode->SetConsumer(surface);
     RSBaseRenderUtil::FlipMatrix(surface->GetTransform(), params);
 
-    ASSERT_EQ(params.matrix.get(0), -matrix.get(0));
-    ASSERT_EQ(params.matrix.get(3), -matrix.get(3));
-    ASSERT_EQ(params.matrix.get(6), -matrix.get(6));
+    ASSERT_EQ(params.matrix.get(1), -matrix.get(1));
+    ASSERT_EQ(params.matrix.get(4), -matrix.get(4));
+    ASSERT_EQ(params.matrix.get(7), -matrix.get(7));
 }
 
 /*
