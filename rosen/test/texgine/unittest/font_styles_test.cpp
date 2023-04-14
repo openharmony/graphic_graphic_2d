@@ -42,8 +42,12 @@ FontStyles GetFontStyles(int weight, int width, int slant)
     return fs;
 }
 
-// 异常测试
-// 等价类测试
+/**
+ * @tc.name: FontStyles1
+ * @tc.desc: Verify the FontStyles
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6I4
+ */
 HWTEST_F(FontStylesTest, FontStyles1, TestSize.Level1)
 {
     constexpr auto excption = ExceptionType::InvalidArgument;
@@ -68,8 +72,12 @@ HWTEST_F(FontStylesTest, FontStyles1, TestSize.Level1)
     ASSERT_EXCEPTION(excption, GetFontStyles(weight, 100));
 }
 
-// 异常测试
-// 等价类测试
+/**
+ * @tc.name: FontStyles2
+ * @tc.desc: Verify the FontStyles
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6I4
+ */
 HWTEST_F(FontStylesTest, FontStyles2, TestSize.Level1)
 {
     constexpr auto excption = ExceptionType::InvalidArgument;
@@ -105,22 +113,30 @@ HWTEST_F(FontStylesTest, FontStyles2, TestSize.Level1)
     ASSERT_EXCEPTION(excption, GetFontStyles(weight, width, 100));
 }
 
-// 过程测试
-// 创建FontStyles对象
-// 调用ToTexgineFontStyle函数
-// 检查weight、width、slant值
+/**
+ * @tc.name: ToTexgineFontStyle
+ * @tc.desc: Verify the ToTexgineFontStyle
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6I4
+ */
 HWTEST_F(FontStylesTest, ToTexgineFontStyle, TestSize.Level1)
 {
+    // (0, 0) is (FontWeight, FontStyle)
     EXPECT_EQ(GetFontStyles(0, 0).ToTexgineFontStyle().GetFontStyle()->weight(), 100);
     EXPECT_EQ(GetFontStyles(0, 0).ToTexgineFontStyle().GetFontStyle()->slant(), 0);
+
+    // (1, 0, 0) is (FontStyles::Weight, FontStyles::Width, FontStyles::Slant)
     EXPECT_EQ(GetFontStyles(1, 0, 0).ToTexgineFontStyle().GetFontStyle()->weight(), 100);
     EXPECT_EQ(GetFontStyles(1, 0, 0).ToTexgineFontStyle().GetFontStyle()->width(), 1);
     EXPECT_EQ(GetFontStyles(1, 0, 0).ToTexgineFontStyle().GetFontStyle()->slant(), 0);
 }
 
-// 过程测试
-// 创建fontStyles对象，传参为1，1，1
-// 创建对象传入不同参数判断是否等于fontStyles
+/**
+ * @tc.name: OperatorEqual
+ * @tc.desc: Verify the OperatorEqual
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6I4
+ */
 HWTEST_F(FontStylesTest, OperatorEqual, TestSize.Level1)
 {
     auto fontStyles = GetFontStyles(1, 1, 1);
@@ -130,9 +146,12 @@ HWTEST_F(FontStylesTest, OperatorEqual, TestSize.Level1)
     EXPECT_EQ(GetFontStyles(1, 1, 1), fontStyles);
 }
 
-// 过程测试
-// 创建fontStyles对象，传参为1，1，1
-// 创建对象传入不同参数判断是否小于fontStyles
+/**
+ * @tc.name: OperatorLessThan
+ * @tc.desc: Verify the OperatorLessThan
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6I4
+ */
 HWTEST_F(FontStylesTest, OperatorLessThan, TestSize.Level1)
 {
     auto fontStyles = GetFontStyles(1, 1, 1);
