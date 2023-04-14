@@ -599,9 +599,6 @@ bool RSSurfaceRenderNode::SubNodeNeedDraw(const RectI &r, PartialRenderType opDr
     if (dirtyManager_ == nullptr) {
         return true;
     }
-    if (r.IsEmpty()) {
-        return true;
-    }
     switch (opDropType) {
         case PartialRenderType::SET_DAMAGE_AND_DROP_OP:
             return SubNodeIntersectWithDirty(r);

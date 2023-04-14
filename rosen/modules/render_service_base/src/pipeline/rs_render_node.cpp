@@ -152,12 +152,12 @@ void RSRenderNode::UpdateDirtyRegion(
         if (needClip) {
             dirtyRect = dirtyRect.IntersectRect(clipRect);
         }
+        oldDirty_ = dirtyRect;
+        oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
         // filter invalid dirtyrect
         if (!dirtyRect.IsEmpty()) {
             dirtyManager.MergeDirtyRect(dirtyRect);
             isDirtyRegionUpdated_ = true;
-            oldDirty_ = dirtyRect;
-            oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
             // save types of dirty region of target dirty manager for dfx
             if (dirtyManager.IsTargetForDfx() &&
                 (GetType() == RSRenderNodeType::CANVAS_NODE || GetType() == RSRenderNodeType::SURFACE_NODE)) {
