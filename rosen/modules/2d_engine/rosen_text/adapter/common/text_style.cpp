@@ -40,7 +40,7 @@ std::string FontFeatures::GetFeatureSettings() const
     return ss.str();
 }
 
-const std::map<std::string, int> &FontFeatures::GetFontFeatures() const
+const std::map<std::string, int>& FontFeatures::GetFontFeatures() const
 {
     return featureMap_;
 }
@@ -76,7 +76,7 @@ bool TextShadow::HasShadow() const
     return offset_.GetX() != 0 || offset_.GetY() != 0 || blurRadius_ != 0.0;
 }
 
-bool TextStyle::operator ==(const TextStyle &rhs) const
+bool TextStyle::operator ==(const TextStyle& rhs) const
 {
     return color_ == rhs.color_ &&
            decoration_ == rhs.decoration_ &&
