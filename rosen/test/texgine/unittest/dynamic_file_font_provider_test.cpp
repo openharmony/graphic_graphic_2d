@@ -91,80 +91,108 @@ public:
     std::shared_ptr<DynamicFileFontProvider> dynamicFileFontProvider = DynamicFileFontProvider::Create();
 };
 
-// 过程测试
-// 调用Create函数
-// 判定返回值为非空指针
+/**
+ * @tc.name: Create
+ * @tc.desc: Verify the Create
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIHE
+ */
 HWTEST_F(DynamicFileFontProviderTest, Create, TestSize.Level1)
 {
     EXPECT_NE(DynamicFileFontProvider::Create(), nullptr);
 }
 
-// 异常测试
-// 重写StdFilesystemExists函数，控制ec的__val值为1
-// 判定返回值为1
+/**
+ * @tc.name: LoadFont1
+ * @tc.desc: Verify the LoadFont
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIHE
+ */
 HWTEST_F(DynamicFileFontProviderTest, LoadFont1, TestSize.Level1)
 {
     InitDffpMockVars({.errorCode_ = std::make_error_code(std::errc::file_exists)});
+    // 1 is data length
     EXPECT_EQ(dynamicFileFontProvider->LoadFont("LF1", {}), 1);
 }
 
-// 异常测试
-// 重写StdFilesystemExists函数，控制返回值为false
-// 判定返回值为1
+/**
+ * @tc.name: LoadFont2
+ * @tc.desc: Verify the LoadFont
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIHE
+ */
 HWTEST_F(DynamicFileFontProviderTest, LoadFont2, TestSize.Level1)
 {
     InitDffpMockVars({.existsReturnValue_ = false});
     EXPECT_EQ(dynamicFileFontProvider->LoadFont("LF2", {}), 1);
 }
 
-// 异常测试
-// 重写StdFilesystemIsOpen函数，控制返回值为false
-// 判定返回值为1
+/**
+ * @tc.name: LoadFont3
+ * @tc.desc: Verify the LoadFont
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIHE
+ */
 HWTEST_F(DynamicFileFontProviderTest, LoadFont3, TestSize.Level1)
 {
     InitDffpMockVars({.openReturnValue_ = false});
     EXPECT_EQ(dynamicFileFontProvider->LoadFont("LF3", {}), 1);
 }
 
-// 异常测试
-// 重写StdFilesystemSeekg(off_type off, std::ios_base::seekdir dir)函数,将流状态设置为badbit
-// 判定返回值为1
+/**
+ * @tc.name: LoadFont4
+ * @tc.desc: Verify the LoadFont
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIHE
+ */
 HWTEST_F(DynamicFileFontProviderTest, LoadFont4, TestSize.Level1)
 {
     InitDffpMockVars({.seekg2State_ = std::ios_base::badbit});
     EXPECT_EQ(dynamicFileFontProvider->LoadFont("LF4", {}), 1);
 }
 
-// 异常测试
-// 重写StdFilesystemTellg函数，将流状态设置为failbit
-// 判定返回值为1
+/**
+ * @tc.name: LoadFont5
+ * @tc.desc: Verify the LoadFont
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIHE
+ */
 HWTEST_F(DynamicFileFontProviderTest, LoadFont5, TestSize.Level1)
 {
     InitDffpMockVars({.tellgState_ = std::ios_base::failbit});
     EXPECT_EQ(dynamicFileFontProvider->LoadFont("LF5", {}), 1);
 }
 
-// 异常测试
-// 重写StdFilesystemSeekg(pos_type pos)函数,将流状态设置为badbit
-// 判定返回值为1
+/**
+ * @tc.name: LoadFont6
+ * @tc.desc: Verify the LoadFont
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIHE
+ */
 HWTEST_F(DynamicFileFontProviderTest, LoadFont6, TestSize.Level1)
 {
     InitDffpMockVars({.seekg1State_ = std::ios_base::badbit});
     EXPECT_EQ(dynamicFileFontProvider->LoadFont("LF6", {}), 1);
 }
 
-// 异常测试
-// 重写StdFilesystemRead函数,将流状态设置为badbit
-// 判定返回值为1
+/**
+ * @tc.name: LoadFont7
+ * @tc.desc: Verify the LoadFont
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIHE
+ */
 HWTEST_F(DynamicFileFontProviderTest, LoadFont7, TestSize.Level1)
 {
     InitDffpMockVars({.readState_ = std::ios_base::badbit});
     EXPECT_EQ(dynamicFileFontProvider->LoadFont("LF7", {}), 1);
 }
 
-// 逻辑测试
-// 参数设为默认状态
-// 判定返回值为0
+/**
+ * @tc.name: LoadFont8
+ * @tc.desc: Verify the LoadFont
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIHE
+ */
 HWTEST_F(DynamicFileFontProviderTest, LoadFont8, TestSize.Level1)
 {
     InitDffpMockVars({});
