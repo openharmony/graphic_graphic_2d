@@ -96,6 +96,7 @@ TextEngine::TextStyle Convert(const TextStyle &style)
     }
 
     for (const auto &[color, offset, radius] : style.shadows_) {
+        // 24, 16, 8, 0: How many bits are moved to the right
         auto shadowColor = (color.GetAlpha() << 24) | (color.GetRed() << 16) |
             (color.GetGreen() << 8) | (color.GetBlue() << 0);
         TextEngine::TextShadow shadow = {

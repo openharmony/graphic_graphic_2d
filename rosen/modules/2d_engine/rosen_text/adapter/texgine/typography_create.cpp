@@ -84,7 +84,7 @@ public:
         return span_.baselineOffset;
     }
 
-    void Paint(TextEngine::TexgineCanvas &canvas, double offsetx, double offsety) override
+    void Paint(TextEngine::TexgineCanvas &canvas, double offsetX, double offsetY) override
     {
     }
 
