@@ -34,17 +34,28 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
     "//commonlibrary/c_utils/base/include",
-    "//third_party/flutter/skia",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/drawing",
-    "//third_party/flutter/skia/include/",
   ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
-    "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
+
+  if (defined(use_new_skia) && use_new_skia) {
+    include_dirs += [
+      "//third_party/skia",
+      "//third_party/skia/include/",
+    ]
+    deps += [ "//third_party/skia:skia" ]
+  } else {
+    include_dirs += [
+      "//third_party/flutter/skia",
+      "//third_party/flutter/skia/include/",
+    ]
+    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  }
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
