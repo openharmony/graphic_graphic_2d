@@ -40,7 +40,7 @@ Boundary::Boundary(size_t left, size_t right)
     rightIndex_ = right;
 }
 
-bool Boundary::operator ==(const Boundary &rhs) const
+bool Boundary::operator ==(const Boundary& rhs) const
 {
     return leftIndex_ == rhs.leftIndex_ && rightIndex_ == rhs.rightIndex_;
 }
@@ -100,7 +100,7 @@ int Typography::GetLineCount() const
     return 0;
 }
 
-void Typography::SetIndents(const std::vector<float> &indents)
+void Typography::SetIndents(const std::vector<float>& indents)
 {
     auto paragraphTxt = reinterpret_cast<txt::ParagraphTxt *>(paragraph_.get());
     if (paragraphTxt) {
