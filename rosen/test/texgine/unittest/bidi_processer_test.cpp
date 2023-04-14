@@ -27,45 +27,45 @@ using namespace testing;
 using namespace testing::ext;
 
 struct UBiDi {};
-std::unique_ptr<UBiDi> bidi = nullptr;
+std::unique_ptr<UBiDi> g_bidi = nullptr;
 U_STABLE UBiDi * U_EXPORT2
 ubidi_open(void)
 {
-    return bidi.get();
+    return g_bidi.get();
 }
 
 U_STABLE void U_EXPORT2
 ubidi_close(UBiDi *pBiDi) {}
 
-auto status = U_ZERO_ERROR;
+auto g_status = U_ZERO_ERROR;
 U_STABLE void U_EXPORT2
 ubidi_setPara(UBiDi *pBiDi, const UChar *text, int32_t length,
               UBiDiLevel paraLevel, UBiDiLevel *embeddingLevels,
               UErrorCode *pErrorCode)
 {
-    *pErrorCode = status;
+    *pErrorCode = g_status;
 }
 
-int size = 0;
+int g_size = 0;
 U_STABLE int32_t U_EXPORT2
 ubidi_countRuns(UBiDi *pBiDi, UErrorCode *pErrorCode)
 {
-    return size;
+    return g_size;
 }
 
-std::vector<int> start;
-std::vector<int> length;
-int count = 0;
-UBiDiDirection rtl = UBIDI_RTL;
+std::vector<int> g_start;
+std::vector<int> g_length;
+int g_count = 0;
+UBiDiDirection g_rtl = UBIDI_RTL;
 U_STABLE UBiDiDirection U_EXPORT2
 ubidi_getVisualRun(UBiDi *pBiDi, int32_t runIndex,
                    int32_t *pLogicalStart, int32_t *pLength)
 {
-    assert(count < size);
-    *pLogicalStart = (start[count]);
-    *pLength = (length[count]);
-    count++;
-    return rtl;
+    assert(g_count < g_size);
+    *pLogicalStart = (g_start[g_count]);
+    *pLength = (g_length[g_count]);
+    g_count++;
+    return g_rtl;
 }
 
 struct Style {
@@ -79,13 +79,13 @@ struct Style {
 
 void InitMyMockVars(Style style)
 {
-    count = 0;
-    size = style.size_;
-    bidi = std::move(style.bidi_);
-    status = style.status_;
-    rtl = style.rtl_;
-    start = style.start_;
-    length = style.length_;
+    g_count = 0;
+    g_size = style.size_;
+    g_bidi = std::move(style.bidi_);
+    g_status = style.status_;
+    g_rtl = style.rtl_;
+    g_start = style.start_;
+    g_length = style.length_;
 }
 
 namespace OHOS {
@@ -109,9 +109,12 @@ public:
     BidiProcesser bp;
 };
 
-// 异常测试
-// 设置cgs为空
-// 判定抛出TexgineException异常
+/**
+ * @tc.name: DoBidiProcess1
+ * @tc.desc: Verify the DoBidiProcess
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6J4
+ */
 HWTEST_F(BidiProcesserTest, DoBidiProcess1, TestSize.Level1)
 {
     CharGroups cgs = CharGroups::CreateEmpty();
@@ -123,9 +126,12 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess1, TestSize.Level1)
     }
 }
 
-// 异常测试
-// 设置cgs为{}
-// 判定抛出TexgineException异常
+/**
+ * @tc.name: DoBidiProcess2
+ * @tc.desc: Verify the DoBidiProcess
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6J4
+ */
 HWTEST_F(BidiProcesserTest, DoBidiProcess2, TestSize.Level1)
 {
     CharGroups cgs = {};
@@ -137,9 +143,12 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess2, TestSize.Level1)
     }
 }
 
-// 异常测试
-// 控制ubidi_open()返回值为nullptr
-// 判定抛出TexgineException异常
+/**
+ * @tc.name: DoBidiProcess3
+ * @tc.desc: Verify the DoBidiProcess
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6J4
+ */
 HWTEST_F(BidiProcesserTest, DoBidiProcess3, TestSize.Level1)
 {
     InitMyMockVars({.bidi_ = nullptr});
@@ -151,9 +160,12 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess3, TestSize.Level1)
     }
 }
 
-// 异常测试
-// 控制ubidi_setPara，中status返回值为U_ILLEGAL_ARGUMENT_ERROR, ubidi_open()返回值不为nullptr
-// 判定抛出TexgineException异常
+/**
+ * @tc.name: DoBidiProcess4
+ * @tc.desc: Verify the DoBidiProcess
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6J4
+ */
 HWTEST_F(BidiProcesserTest, DoBidiProcess4, TestSize.Level1)
 {
     InitMyMockVars({.status_ = U_ILLEGAL_ARGUMENT_ERROR});
@@ -165,11 +177,15 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess4, TestSize.Level1)
     }
 }
 
-// 过程测试
-// 控制ubidi_countRuns返回值为0
-// 判定无异常抛出，并且返回值的大小为0
+/**
+ * @tc.name: DoBidiProcess5
+ * @tc.desc: Verify the DoBidiProcess
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6J4
+ */
 HWTEST_F(BidiProcesserTest, DoBidiProcess5, TestSize.Level1)
 {
+    // set ubidi_countRuns return 0
     InitMyMockVars({.size_ = 0,});
 
     EXPECT_NO_THROW({
@@ -178,11 +194,15 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess5, TestSize.Level1)
     });
 }
 
-// 异常测试
-// 控制ubidi_countRuns返回值为4,控制ubidi_getVisualRun(bidi, i, &start, &length)中start=-1, length=1
-// 判定抛出TexgineException异常
+/**
+ * @tc.name: DoBidiProcess6
+ * @tc.desc: Verify the DoBidiProcess
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6J4
+ */
 HWTEST_F(BidiProcesserTest, DoBidiProcess6, TestSize.Level1)
 {
+    // -1, 1: Set the output parameter of ubidi_getVisualRun
     InitMyMockVars({.start_ = {-1}, .length_ = {1},});
 
     try {
@@ -192,9 +212,12 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess6, TestSize.Level1)
     }
 }
 
-// 异常测试
-// 控制ubidi_countRuns返回值为1,控制ubidi_getVisualRun(bidi, i, &start, &length)中start=1, length=-1
-// 判定抛出TexgineException异常
+/**
+ * @tc.name: DoBidiProcess7
+ * @tc.desc: Verify the DoBidiProcess
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6J4
+ */
 HWTEST_F(BidiProcesserTest, DoBidiProcess7, TestSize.Level1)
 {
     InitMyMockVars({.start_ = {1}, .length_ = {-1},});
@@ -206,9 +229,12 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess7, TestSize.Level1)
     }
 }
 
-// 逻辑测试
-// 控制ubidi_countRuns返回值为4,每次修改start{0，1，2，3}和length{1, 1, 1, 1}的值，使IsIntersect的返回值为false
-// 判定不抛出异常, 并且返回值为1
+/**
+ * @tc.name: DoBidiProcess8
+ * @tc.desc: Verify the DoBidiProcess
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6J4
+ */
 HWTEST_F(BidiProcesserTest, DoBidiProcess8, TestSize.Level1)
 {
     InitMyMockVars({.size_ = 4, .start_ = {0, 1, 2, 3}, .length_ = {1, 1, 1, 1}});
@@ -219,9 +245,12 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess8, TestSize.Level1)
     });
 }
 
-// 逻辑测试
-// 控制ubidi_getVisualRun的返回值为UBIDI_RTL
-// 判定不抛出异常，并且获取返回值中rtl为true
+/**
+ * @tc.name: DoBidiProcess9
+ * @tc.desc: Verify the DoBidiProcess
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6J4
+ */
 HWTEST_F(BidiProcesserTest, DoBidiProcess9, TestSize.Level1)
 {
     InitMyMockVars({});
@@ -233,9 +262,12 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess9, TestSize.Level1)
     });
 }
 
-// 逻辑测试
-// 控制ubidi_getVisualRun的返回值为UBIDI_LTR
-// 判定不抛出异常，并且返回值中rtl为false
+/**
+ * @tc.name: DoBidiProcess10
+ * @tc.desc: Verify the DoBidiProcess
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6J4
+ */
 HWTEST_F(BidiProcesserTest, DoBidiProcess10, TestSize.Level1)
 {
     InitMyMockVars({.rtl_ = UBIDI_LTR,});
@@ -247,9 +279,12 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess10, TestSize.Level1)
     });
 }
 
-// 逻辑测试
-// 设置spans中的内容是AnySpan、TextSpan、AnySpan
-// 判定不抛出异常，返回值的大小为3，并且转换成相应的类型之后不为空指针
+/**
+ * @tc.name: ProcessBidiText1
+ * @tc.desc: Verify the ProcessBidiText
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6J4
+ */
 HWTEST_F(BidiProcesserTest, ProcessBidiText1, TestSize.Level1)
 {
     InitMyMockVars({});
@@ -264,9 +299,12 @@ HWTEST_F(BidiProcesserTest, ProcessBidiText1, TestSize.Level1)
     });
 }
 
-// 过程测试
-// 设置spans为空
-// 判定不抛出异常，返回值的大小为0
+/**
+ * @tc.name: ProcessBidiText2
+ * @tc.desc: Verify the ProcessBidiText
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6J4
+ */
 HWTEST_F(BidiProcesserTest, ProcessBidiText2, TestSize.Level1)
 {
     EXPECT_NO_THROW({
@@ -275,9 +313,12 @@ HWTEST_F(BidiProcesserTest, ProcessBidiText2, TestSize.Level1)
     });
 }
 
-// 过程测试
-// 所有参数均正常设置，测试正确流程
-// 判定不抛出异常，返回值的大小为3，返回值中span类型正确
+/**
+ * @tc.name: ProcessBidiText3
+ * @tc.desc: Verify the ProcessBidiText
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6J4
+ */
 HWTEST_F(BidiProcesserTest, ProcessBidiText3, TestSize.Level1)
 {
     InitMyMockVars({.size_ = 4, .start_ = {0, 1, 2, 3}, .length_ = {1, 1, 1, 1}});
