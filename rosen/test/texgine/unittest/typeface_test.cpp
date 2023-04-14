@@ -99,9 +99,11 @@ class TypefaceTest : public testing::Test {
 public:
 };
 
-// 逻辑测试
-// 设置texgineTypeface_为非空
-// 判定返回值不为空指针，可以得到name
+/**
+ * @tc.name: MakeFromFile1
+ * @tc.desc: Verify the MakeFromFile
+ * @tc.type:FUNC
+ */
 HWTEST_F(TypefaceTest, MakeFromFile1, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "cxt" });
@@ -110,9 +112,11 @@ HWTEST_F(TypefaceTest, MakeFromFile1, TestSize.Level1)
     EXPECT_EQ(typeface->GetName(), "cxt");
 }
 
-// 异常测试
-// 设置texgineTypeface_为空
-// 判定得不到name并抛出异常
+/**
+ * @tc.name: MakeFromFile2
+ * @tc.desc: Verify the MakeFromFile
+ * @tc.type:FUNC
+ */
 HWTEST_F(TypefaceTest, MakeFromFile2, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "cxxt", .texgineTypeface_ = nullptr });
@@ -120,63 +124,78 @@ HWTEST_F(TypefaceTest, MakeFromFile2, TestSize.Level1)
     EXPECT_NE(typefaceMockvars.typeface_->GetName(), "cxxt");
 }
 
-// 异常测试
-// 设置typeface_为空
-// 判定返回值为false
+/**
+ * @tc.name: Has1
+ * @tc.desc: Verify the Has
+ * @tc.type:FUNC
+ */
 HWTEST_F(TypefaceTest, Has1, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "one", .texgineTypeface_ = nullptr });
+    // 0x0006 is codepoint
     EXPECT_EQ(typefaceMockvars.typeface_->Has(0x0006), false);
 }
 
-// 异常测试
-// 设置size为0
-// 判定抛出异常
+/**
+ * @tc.name: Has2
+ * @tc.desc: Verify the Has
+ * @tc.type:FUNC
+ */
 HWTEST_F(TypefaceTest, Has2, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "two", .tableSize_ = {0} });
     ASSERT_EXCEPTION(ExceptionType::APIFailed, typefaceMockvars.typeface_->Has(0x0006));
 }
 
-// 异常测试
-// 设置retv为2，不等于size
-// 判定抛出异常
+/**
+ * @tc.name: Has3
+ * @tc.desc: Verify the Has
+ * @tc.type:FUNC
+ */
 HWTEST_F(TypefaceTest, Has3, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "three", .tableSize_ = {3}, .dataLength_ = {2} });
     ASSERT_EXCEPTION(ExceptionType::APIFailed, typefaceMockvars.typeface_->Has(0x0006));
 }
 
-// 异常测试
-// 设置blob_为空
-// 判定抛出异常
+/**
+ * @tc.name: Has4
+ * @tc.desc: Verify the Has
+ * @tc.type:FUNC
+ */
 HWTEST_F(TypefaceTest, Has4, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "four", .blob_ = nullptr });
     ASSERT_EXCEPTION(ExceptionType::APIFailed, typefaceMockvars.typeface_->Has(0x0006));
 }
 
-// 过程测试
-// 设置parseRetval_ 为-1
-// 判定返回值为false
+/**
+ * @tc.name: Has5
+ * @tc.desc: Verify the Has
+ * @tc.type:FUNC
+ */
 HWTEST_F(TypefaceTest, Has5, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "five", .parseRetval_ = -1 });
     EXPECT_EQ(typefaceMockvars.typeface_->Has(0x0006), false);
 }
 
-// 过程测试
-// 设置parseRetval_ 为0
-// 判定返回值为true
+/**
+ * @tc.name: Has6
+ * @tc.desc: Verify the Has
+ * @tc.type:FUNC
+ */
 HWTEST_F(TypefaceTest, Has6, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "six" });
     EXPECT_EQ(typefaceMockvars.typeface_->Has(0x0006), true);
 }
 
-// 逻辑测试
-// 设置两次都是成功走通
-// 第一次返回值为true，第二次返回值为false，判定sizeIndex_为1
+/**
+ * @tc.name: Has7
+ * @tc.desc: Verify the Has
+ * @tc.type:FUNC
+ */
 HWTEST_F(TypefaceTest, Has7, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "seven", .tableSize_ = {1, 1}, .dataLength_ = {1, 1}, .glyphId_ = {0, -1} });
@@ -187,9 +206,11 @@ HWTEST_F(TypefaceTest, Has7, TestSize.Level1)
     EXPECT_EQ(typefaceMockvars.sizeIndex_, 1);
 }
 
-// 逻辑测试
-// 设置第一次失败，第二次成功走通
-// 第一次会抛出异常，第二次返回值为true，判定sizeIndex_为2
+/**
+ * @tc.name: Has8
+ * @tc.desc: Verify the Has
+ * @tc.type:FUNC
+ */
 HWTEST_F(TypefaceTest, Has8, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "eight", .tableSize_ = {2, 1}, .dataLength_ = {1, 1} });
@@ -199,9 +220,11 @@ HWTEST_F(TypefaceTest, Has8, TestSize.Level1)
     EXPECT_EQ(typefaceMockvars.sizeIndex_, 2);
 }
 
-// 逻辑测试
-// 设置第一次失败，第二次失败
-// 第一次会抛出异常，第二次也会抛出异常，判定sizeIndex_为2
+/**
+ * @tc.name: Has9
+ * @tc.desc: Verify the Has
+ * @tc.type:FUNC
+ */
 HWTEST_F(TypefaceTest, Has9, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "nine", .tableSize_ = {0, 0} });
