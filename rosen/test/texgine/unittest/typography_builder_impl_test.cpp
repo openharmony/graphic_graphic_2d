@@ -63,11 +63,21 @@ public:
         std::make_shared<TypographyBuilderImpl>(TypographyStyle{}, FontProviders::Create());
 };
 
+/**
+ * @tc.name: Create
+ * @tc.desc: Verify the Create
+ * @tc.type:FUNC
+ */
 HWTEST_F(TypographyBuilderImplTest, Create, TestSize.Level1)
 {
     EXPECT_NE(TypographyBuilder::Create(), nullptr);
 }
 
+/**
+ * @tc.name: PushPopStyle
+ * @tc.desc: Verify the PushPopStyle
+ * @tc.type:FUNC
+ */
 HWTEST_F(TypographyBuilderImplTest, PushPopStyle, TestSize.Level1)
 {
     TextStyle s1 = {.fontSize_ = 1};
@@ -75,14 +85,12 @@ HWTEST_F(TypographyBuilderImplTest, PushPopStyle, TestSize.Level1)
     TextStyle s3 = {.fontSize_ = 3};
     auto normalAnySpan = std::make_shared<MockAnySpan>();
 
-    // YS
     InitMockVars({.ys_ = s1});
     TypographyBuilderImpl builder1({}, FontProviders::Create());
     builder1.AppendSpan(normalAnySpan);
     EXPECT_NE(builder1.Build(), nullptr);
     EXPECT_EQ(tbMockvars.catchedStyles_[0], s1);
 
-    // YS Push
     InitMockVars({.ys_ = s1});
     TypographyBuilderImpl builder2({}, FontProviders::Create());
     builder2.PushStyle(s2);
@@ -90,7 +98,6 @@ HWTEST_F(TypographyBuilderImplTest, PushPopStyle, TestSize.Level1)
     EXPECT_NE(builder2.Build(), nullptr);
     EXPECT_EQ(tbMockvars.catchedStyles_[0], s2);
 
-    // YS Push Push
     InitMockVars({.ys_ = s1});
     TypographyBuilderImpl builder3({}, FontProviders::Create());
     builder3.PushStyle(s2);
@@ -99,7 +106,6 @@ HWTEST_F(TypographyBuilderImplTest, PushPopStyle, TestSize.Level1)
     EXPECT_NE(builder3.Build(), nullptr);
     EXPECT_EQ(tbMockvars.catchedStyles_[0], s3);
 
-    // YS Push Push Pop
     InitMockVars({.ys_ = s1});
     TypographyBuilderImpl builder4({}, FontProviders::Create());
     builder4.PushStyle(s2);
@@ -110,27 +116,29 @@ HWTEST_F(TypographyBuilderImplTest, PushPopStyle, TestSize.Level1)
     EXPECT_EQ(tbMockvars.catchedStyles_[0], s2);
 }
 
+/**
+ * @tc.name: AppendSpan
+ * @tc.desc: Verify the AppendSpan
+ * @tc.type:FUNC
+ */
 HWTEST_F(TypographyBuilderImplTest, AppendSpan, TestSize.Level1)
 {
     TextStyle xs = {};
     std::shared_ptr<AnySpan> nullptrAnySpan = nullptr;
     std::shared_ptr<TextSpan> nullptrTextSpan = nullptr;
 
-    // A(nullptr)
     InitMockVars({});
     TypographyBuilderImpl builder1({}, FontProviders::Create());
     builder1.AppendSpan(nullptrAnySpan);
     EXPECT_NE(builder1.Build(), nullptr);
     EXPECT_EQ(tbMockvars.catchedSpans_.size(), 0u);
 
-    // T(nullptr)
     InitMockVars({});
     TypographyBuilderImpl builder2({}, FontProviders::Create());
     builder2.AppendSpan(nullptrTextSpan);
     EXPECT_NE(builder2.Build(), nullptr);
     EXPECT_EQ(tbMockvars.catchedSpans_.size(), 0u);
 
-    // A
     auto as1 = std::make_shared<MockAnySpan>();
     InitMockVars({});
     TypographyBuilderImpl builder3({}, FontProviders::Create());
@@ -139,7 +147,6 @@ HWTEST_F(TypographyBuilderImplTest, AppendSpan, TestSize.Level1)
     EXPECT_EQ(tbMockvars.catchedSpans_.size(), 1u);
     EXPECT_EQ(tbMockvars.catchedSpans_[0], as1);
 
-    // T
     auto ts1 = TextSpan::MakeEmpty();
     InitMockVars({});
     TypographyBuilderImpl builder4({}, FontProviders::Create());
@@ -148,7 +155,6 @@ HWTEST_F(TypographyBuilderImplTest, AppendSpan, TestSize.Level1)
     EXPECT_EQ(tbMockvars.catchedSpans_.size(), 1u);
     EXPECT_EQ(tbMockvars.catchedSpans_[0], ts1);
 
-    // A A
     auto as2 = std::make_shared<MockAnySpan>();
     auto as3 = std::make_shared<MockAnySpan>();
     InitMockVars({});
@@ -160,7 +166,6 @@ HWTEST_F(TypographyBuilderImplTest, AppendSpan, TestSize.Level1)
     EXPECT_EQ(tbMockvars.catchedSpans_[0], as2);
     EXPECT_EQ(tbMockvars.catchedSpans_[1], as3);
 
-    // T T
     auto ts2 = TextSpan::MakeEmpty();
     auto ts3 = TextSpan::MakeEmpty();
     InitMockVars({});
@@ -171,7 +176,6 @@ HWTEST_F(TypographyBuilderImplTest, AppendSpan, TestSize.Level1)
     EXPECT_EQ(tbMockvars.catchedSpans_.size(), 1u);
     EXPECT_EQ(tbMockvars.catchedSpans_[0], ts2);
 
-    // T Style T
     auto ts4 = TextSpan::MakeEmpty();
     auto ts5 = TextSpan::MakeEmpty();
     InitMockVars({});
@@ -184,7 +188,6 @@ HWTEST_F(TypographyBuilderImplTest, AppendSpan, TestSize.Level1)
     EXPECT_EQ(tbMockvars.catchedSpans_[0], ts4);
     EXPECT_EQ(tbMockvars.catchedSpans_[1], ts5);
 
-    // T A T
     auto ts6 = TextSpan::MakeEmpty();
     auto as4 = std::make_shared<MockAnySpan>();
     auto ts7 = TextSpan::MakeEmpty();

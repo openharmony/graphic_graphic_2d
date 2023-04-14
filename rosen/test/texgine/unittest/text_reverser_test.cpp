@@ -38,6 +38,11 @@ public:
 class TextReverserTest : public testing::Test {
 };
 
+/**
+ * @tc.name: ReverseRTLText
+ * @tc.desc: Verify the ReverseRTLText
+ * @tc.type:FUNC
+ */
 HWTEST_F(TextReverserTest, ReverseRTLText, TestSize.Level1)
 {
     std::shared_ptr<AnySpan> a1 = std::make_shared<MockAnySpan>();
