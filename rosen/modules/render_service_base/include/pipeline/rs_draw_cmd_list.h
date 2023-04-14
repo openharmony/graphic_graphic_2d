@@ -80,7 +80,7 @@ public:
     void MarkForceClear(bool flag);
 
     DrawCmdListManager() = default;
-    ~DrawCmdListManager() = default;
+    ~DrawCmdListManager();
 
 private:
     DrawCmdListManager(const DrawCmdListManager&) = delete;

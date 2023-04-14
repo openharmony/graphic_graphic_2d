@@ -251,6 +251,12 @@ DrawCmdListManager& DrawCmdListManager::Instance()
     return gDrawCmdListManagerInstance;
 }
 
+DrawCmdListManager::~DrawCmdListManager()
+{
+    std::lock_guard<std::mutex> lock(listsMutex_);
+    lists_.clear();
+}
+
 void DrawCmdListManager::RegisterDrawCmdList(NodeId id, std::shared_ptr<DrawCmdList> drawCmdList)
 {
     std::lock_guard<std::mutex> lock(listsMutex_);
