@@ -200,58 +200,72 @@ public:
     CharGroups charGroups_;
 };
 
-// 过程测试
-// 调用HbFaceReferenceTableTypeface函数
+/**
+ * @tc.name: HbFaceReferenceTableTypeface
+ * @tc.desc: Verify the HbFaceReferenceTableTypeface
+ * @tc.type:FUNC
+ */
 HWTEST_F(MeasurerImplTest, HbFaceReferenceTableTypeface, TestSize.Level1)
 {
-    // path: typeface is nullptr
     EXPECT_EQ(HbFaceReferenceTableTypeface({}, {}, nullptr), nullptr);
 
-    // path: tableSize is 0
     InitMiMockVars({.retvalGetTableSize_ = 0}, {});
     EXPECT_EQ(HbFaceReferenceTableTypeface({}, {}, this), nullptr);
 
-    // path: buffer is nullptr
     InitMiMockVars({.retvalGetTableSize_ = static_cast<size_t>(1000)}, {});
     EXPECT_EQ(HbFaceReferenceTableTypeface({}, {}, this), nullptr);
 
-    // path: tableSize != actualSize
     InitMiMockVars({.retvalGetTableSize_ = 2, .retvalGetTableData_ = 1}, {});
     EXPECT_EQ(HbFaceReferenceTableTypeface({}, {}, this), nullptr);
 
-    // path: normal
     InitMiMockVars({}, {});
     EXPECT_NE(HbFaceReferenceTableTypeface({}, {}, this), nullptr);
 }
 
-// 过程测试
-// 调用Create创建对象
-// 判定不抛出异常
+/**
+ * @tc.name: Create
+ * @tc.desc: Verify the Create
+ * @tc.type:FUNC
+ */
 HWTEST_F(MeasurerImplTest, Create, TestSize.Level1)
 {
     EXPECT_NE(MeasurerImpl::Create({}, fontCollection_), nullptr);
 }
 
-// 控制shape返回1
+/**
+ * @tc.name: Measure1
+ * @tc.desc: Verify the Measure
+ * @tc.type:FUNC
+ */
 HWTEST_F(MeasurerImplTest, Measure1, TestSize.Level1)
 {
     InitMiMockVars({.retvalBufferCreate_ = nullptr}, {});
-    text_ = {1};
+    uint16_t testText = 2;
+    text_ = {testText};
     MeasurerImpl mi(text_, fontCollection_);
-    mi.SetRange(0, 1);
+    int begin = 0;
+    int end = 1;
+    mi.SetRange(begine, end);
     mi.SetFontFeatures(emptyff_);
 
     EXPECT_EQ(mi.Measure(charGroups_), 1);
     EXPECT_EQ(measurerMockvars.calledHBFontCreate_, 0);
 }
 
-// 调用两次Measure方法，走找到缓存路径
+/**
+ * @tc.name: Measure2
+ * @tc.desc: Verify the Measure
+ * @tc.type:FUNC
+ */
 HWTEST_F(MeasurerImplTest, Measure2, TestSize.Level1)
 {
     InitMiMockVars({}, {});
-    text_ = {2};
+    uint16_t testText = 2;
+    text_ = {testText};
     MeasurerImpl mi(text_, fontCollection_);
-    mi.SetRange(0, 1);
+    int begin = 0;
+    int end = 1;
+    mi.SetRange(begine, end);
     mi.SetFontFeatures(emptyff_);
 
     EXPECT_EQ(mi.Measure(charGroups_), 0);
