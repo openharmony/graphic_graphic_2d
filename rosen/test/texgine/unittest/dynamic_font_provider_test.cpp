@@ -62,26 +62,36 @@ public:
     std::shared_ptr<DynamicFontProvider> dynamicFontProvider = DynamicFontProvider::Create();
 };
 
-// 过程测试
-// 调用Create函数
-// 判定返回值为非空指针
+/**
+ * @tc.name: Create
+ * @tc.desc: Verify the Create
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6JP
+ */
 HWTEST_F(DynamicFontProviderTest, Create, TestSize.Level1)
 {
     EXPECT_NE(DynamicFontProvider::Create(), nullptr);
 }
 
-// 异常测试
-// 调用LoadFont函数，第二个参数为nullptr
-// 判定不抛出异常，并且返回值为1
+/**
+ * @tc.name: LoadFont1
+ * @tc.desc: Verify the LoadFont
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6JP
+ */
 HWTEST_F(DynamicFontProviderTest, LoadFont1, TestSize.Level1)
 {
     InitMyMockVars({});
+    // 4 is data length, "LF1" length, 1 is PARAMETERERROR
     EXPECT_NO_THROW({ EXPECT_EQ(dynamicFontProvider->LoadFont("LF1", nullptr, 4), 1); });
 }
 
-// 异常测试
-// 调用LoadFont函数，第三个参数为0
-// 判定不抛出异常，并且返回值为1
+/**
+ * @tc.name: LoadFont2
+ * @tc.desc: Verify the LoadFont
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6JP
+ */
 HWTEST_F(DynamicFontProviderTest, LoadFont2, TestSize.Level1)
 {
     InitMyMockVars({});
@@ -89,27 +99,37 @@ HWTEST_F(DynamicFontProviderTest, LoadFont2, TestSize.Level1)
     EXPECT_NO_THROW({ EXPECT_EQ(dynamicFontProvider->LoadFont("LF2", this, 0), 1); });
 }
 
-// 异常测试
-// 重写MakeCopy函数返回nullptr，调用LoadFont函数
-// 判定不抛出异常，并且返回值为2
+/**
+ * @tc.name: LoadFont3
+ * @tc.desc: Verify the LoadFont
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6JP
+ */
 HWTEST_F(DynamicFontProviderTest, LoadFont3, TestSize.Level1)
 {
     InitMyMockVars({.memoryStream_ = nullptr});
+    // APIERROR
     EXPECT_NO_THROW({ EXPECT_EQ(dynamicFontProvider->LoadFont("LF3", this, 4), 2); });
 }
 
-// 异常测试
-// 重写MakeFromStream函数返回nullptr，调用LoadFont函数
-// 判定不抛出异常，并且返回值为2
+/**
+ * @tc.name: LoadFont4
+ * @tc.desc: Verify the LoadFont
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6JP
+ */
 HWTEST_F(DynamicFontProviderTest, LoadFont4, TestSize.Level1)
 {
     InitMyMockVars({.typeface_ = nullptr});
     EXPECT_NO_THROW({ EXPECT_EQ(dynamicFontProvider->LoadFont("LF4", this, 4), 2); });
 }
 
-// 逻辑测试
-// 调用LoadFont函数
-// 判定不抛出异常，并且返回值为0
+/**
+ * @tc.name: LoadFont5
+ * @tc.desc: Verify the LoadFont
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6JP
+ */
 HWTEST_F(DynamicFontProviderTest, LoadFont5, TestSize.Level1)
 {
     InitMyMockVars({});
@@ -119,19 +139,23 @@ HWTEST_F(DynamicFontProviderTest, LoadFont5, TestSize.Level1)
     });
 }
 
-// 过程测试
-// 未调用LoadFont函数加载任何Family
-// 调用MatchFamily函数查找名为“aaa”的Family
-// 判定返回值为空指针
+/**
+ * @tc.name: MatchFamily1
+ * @tc.desc: Verify the MatchFamily
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6JP
+ */
 HWTEST_F(DynamicFontProviderTest, MatchFamily1, TestSize.Level1)
 {
     EXPECT_EQ(dynamicFontProvider->MatchFamily("aaa"), nullptr);
 }
 
-// 过程测试
-// 调用LoadFont函数加载名为“aaa”的Family
-// 调用MatchFamily函数查找名为“aaa”的Family
-// 判定返回值为非空指针
+/**
+ * @tc.name: MatchFamily2
+ * @tc.desc: Verify the MatchFamily
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6JP
+ */
 HWTEST_F(DynamicFontProviderTest, MatchFamily2, TestSize.Level1)
 {
     InitMyMockVars({});
@@ -139,9 +163,12 @@ HWTEST_F(DynamicFontProviderTest, MatchFamily2, TestSize.Level1)
     EXPECT_NE(dynamicFontProvider->MatchFamily("aaa"), nullptr);
 }
 
-// 过程测试
-// 调用MatchFamily函数查找名为“bbb”的Family
-// 判定返回值为空指针
+/**
+ * @tc.name: MatchFamily3
+ * @tc.desc: Verify the MatchFamily
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6JP
+ */
 HWTEST_F(DynamicFontProviderTest, MatchFamily3, TestSize.Level1)
 {
     InitMyMockVars({});
