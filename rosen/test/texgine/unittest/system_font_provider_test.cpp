@@ -55,18 +55,23 @@ public:
     std::shared_ptr<SystemFontProvider> systemFontProvider = SystemFontProvider::GetInstance();
 };
 
-// 过程测试
-// 调用GetInstance函数
-// 判定返回值为非空指针
+/**
+ * @tc.name: GetInstance
+ * @tc.desc: Verify the GetInstance
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6JD
+ */
 HWTEST_F(SystemFontProviderTest, GetInstance, TestSize.Level1)
 {
     EXPECT_NE(SystemFontProvider::GetInstance(), nullptr);
 }
 
-// 异常测试
-// 控制RefDefault函数返回空指针
-// 调用MatchFamily函数
-// 判定返回空指针
+/**
+ * @tc.name: MatchFamily1
+ * @tc.desc: Verify the MatchFamily
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6JD
+ */
 HWTEST_F(SystemFontProviderTest, MatchFamily1, TestSize.Level1)
 {
     InitSfpMockVars({.fontMgr_ = nullptr});
@@ -74,11 +79,12 @@ HWTEST_F(SystemFontProviderTest, MatchFamily1, TestSize.Level1)
     EXPECT_EQ(fss, nullptr);
 }
 
-// 异常测试
-// 控制MatchFamily函数返回空指针
-// 调用MatchFamily函数
-// 调用Get方法
-// 判定返回空指针
+/**
+ * @tc.name: MatchFamily2
+ * @tc.desc: Verify the MatchFamily
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6JD
+ */
 HWTEST_F(SystemFontProviderTest, MatchFamily2, TestSize.Level1)
 {
     InitSfpMockVars({.fontStyleSet_ = nullptr});
@@ -86,11 +92,12 @@ HWTEST_F(SystemFontProviderTest, MatchFamily2, TestSize.Level1)
     EXPECT_EQ(fss->TryToTexgineFontStyleSet(), nullptr);
 }
 
-// 逻辑测试
-// 调用MatchFamily函数
-// 判定返回非空指针
-// 调用Get方法
-// 判定返回非空指针
+/**
+ * @tc.name: MatchFamily3
+ * @tc.desc: Verify the MatchFamily
+ * @tc.type:FUNC
+ * @tc.require: issueI6V6JD
+ */
 HWTEST_F(SystemFontProviderTest, MatchFamily3, TestSize.Level1)
 {
     InitSfpMockVars({});
