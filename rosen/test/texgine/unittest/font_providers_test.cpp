@@ -60,6 +60,11 @@ public:
     std::shared_ptr<VariantFontStyleSet> fontStyleSet2_ = std::make_shared<VariantFontStyleSet>(nullptr);
 };
 
+/**
+ * @tc.name: CreateAndSystemOnly
+ * @tc.desc: Verify the CreateAndSystemOnly
+ * @tc.type:FUNC
+ */
 HWTEST_F(FontProvidersTest, CreateAndSystemOnly, TestSize.Level1)
 {
     std::shared_ptr<VariantFontStyleSet> fss1 = std::make_shared<VariantFontStyleSet>(nullptr);
@@ -82,6 +87,11 @@ HWTEST_F(FontProvidersTest, CreateAndSystemOnly, TestSize.Level1)
     ASSERT_EQ(fpMockvars.catchedFontStyleSets[0], fss1);
 }
 
+/**
+ * @tc.name: AppendFontProvider
+ * @tc.desc: Verify the AppendFontProvider
+ * @tc.type:FUNC
+ */
 HWTEST_F(FontProvidersTest, AppendFontProvider, TestSize.Level1)
 {
     std::shared_ptr<VariantFontStyleSet> fss1 = std::make_shared<VariantFontStyleSet>(nullptr);
@@ -143,6 +153,11 @@ HWTEST_F(FontProvidersTest, AppendFontProvider, TestSize.Level1)
     ASSERT_EQ(fpMockvars.catchedFontStyleSets[1], fss2);
 }
 
+/**
+ * @tc.name: GenerateFontCollection
+ * @tc.desc: Verify the GenerateFontCollection
+ * @tc.type:FUNC
+ */
 HWTEST_F(FontProvidersTest, GenerateFontCollection, TestSize.Level1)
 {
     std::shared_ptr<VariantFontStyleSet> fss1 = std::make_shared<VariantFontStyleSet>(nullptr);
