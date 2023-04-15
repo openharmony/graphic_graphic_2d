@@ -34,29 +34,29 @@ struct MockVars {
     std::shared_ptr<TexgineTypeface> styleRetvalTypeface_ = std::make_shared<TexgineTypeface>();
     std::vector<std::shared_ptr<VariantFontStyleSet>> fontStyleSets_;
     std::shared_ptr<Texgine::FontCollection> fontCollection_;
-} fcMockvars;
+} fcMockVars;
 
 std::shared_ptr<TexgineFontManager> TexgineFontManager::RefDefault()
 {
-    return fcMockvars.fontMgr_;
+    return fcMockVars.fontMgr_;
 }
 
 std::shared_ptr<TexgineTypeface> TexgineFontManager::MatchFamilyStyleCharacter(const char familyName[],
     TexgineFontStyle &style, const char *bcp47[], int bcp47Count, int32_t character)
 {
-    fcMockvars.catchedSize_ = bcp47Count;
-    return fcMockvars.SCRetvalTypeface_;
+    fcMockVars.catchedSize_ = bcp47Count;
+    return fcMockVars.SCRetvalTypeface_;
 }
 
 std::shared_ptr<TexgineTypeface> VariantFontStyleSet::MatchStyle(std::shared_ptr<TexgineFontStyle> pattern)
 {
-    return fcMockvars.styleRetvalTypeface_;
+    return fcMockVars.styleRetvalTypeface_;
 }
 
 bool Typeface::Has(uint32_t ch)
 {
-    fcMockvars.hasCount_++;
-    return fcMockvars.hasRetval_;
+    fcMockVars.hasCount_++;
+    return fcMockVars.hasRetval_;
 }
 
 std::vector<std::shared_ptr<VariantFontStyleSet>> CreateSets()
@@ -69,111 +69,123 @@ std::vector<std::shared_ptr<VariantFontStyleSet>> CreateSets()
 
 void InitFcMockVars(MockVars vars)
 {
-    fcMockvars = vars;
-    fcMockvars.fontCollection_ = std::make_shared<FontCollection>(std::move(fcMockvars.fontStyleSets_));
+    fcMockVars = vars;
+    fcMockVars.fontCollection_ = std::make_shared<FontCollection>(std::move(fcMockVars.fontStyleSets_));
 }
 
 class FontCollectionTest : public testing::Test {
 };
 
-// 过程测试
-// 创建FontCollection对象
-// 判定不抛出异常
+/**
+ * @tc.name: FontCollection
+ * @tc.desc: Verify the FontCollection
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIIY
+ */
 HWTEST_F(FontCollectionTest, FontCollection, TestSize.Level1)
 {
     InitFcMockVars({});
-    EXPECT_NO_THROW(FontCollection fc(std::move(fcMockvars.fontStyleSets_)));
+    EXPECT_NO_THROW(FontCollection fc(std::move(fcMockVars.fontStyleSets_)));
 }
 
-// 过程测试
-// 调用GetTypefaceForChar函数，locale为空
-// 调用GetTypefaceForChar函数
-// 判定bcp47.size为0
-// 判定返回值为非空指针, 调用Get返回的typeface与传入的相同
+/**
+ * @tc.name: GetTypefaceForChar1
+ * @tc.desc: Verify the GetTypefaceForChar
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIIY
+ */
 HWTEST_F(FontCollectionTest, GetTypefaceForChar1, TestSize.Level1)
 {
     InitFcMockVars({});
-    auto tf = fcMockvars.fontCollection_->GetTypefaceForChar('a', {}, "", "");
+    auto tf = fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "", "");
     EXPECT_NE(tf, nullptr);
-    EXPECT_EQ(tf->Get(), fcMockvars.SCRetvalTypeface_);
-    EXPECT_EQ(fcMockvars.catchedSize_, 0);
+    EXPECT_EQ(tf->Get(), fcMockVars.SCRetvalTypeface_);
+    EXPECT_EQ(fcMockVars.catchedSize_, 0);
 }
 
-// 过程测试
-// 控制RefDefault返回nullptr
-// 调用GetTypefaceForChar函数
-// 判定返回值为空指针
+/**
+ * @tc.name: GetTypefaceForChar2
+ * @tc.desc: Verify the GetTypefaceForChar
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIIY
+ */
 HWTEST_F(FontCollectionTest, GetTypefaceForChar2, TestSize.Level1)
 {
     InitFcMockVars({.fontMgr_ = nullptr});
-    EXPECT_EQ(fcMockvars.fontCollection_->GetTypefaceForChar('a', {}, "zh_CN", ""), nullptr);
-    EXPECT_EQ(fcMockvars.catchedSize_, -1);
+    EXPECT_EQ(fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "zh_CN", ""), nullptr);
+    EXPECT_EQ(fcMockVars.catchedSize_, -1);
 }
 
-// 过程测试
-// 控制matchFamilyStyleCharacter返回nullptr
-// 调用GetTypefaceForChar函数
-// 判定返回值为空指针
+/**
+ * @tc.name: GetTypefaceForChar3
+ * @tc.desc: Verify the GetTypefaceForChar
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIIY
+ */
 HWTEST_F(FontCollectionTest, GetTypefaceForChar3, TestSize.Level1)
 {
     InitFcMockVars({.SCRetvalTypeface_ = nullptr});
-    EXPECT_EQ(fcMockvars.fontCollection_->GetTypefaceForChar('a', {}, "", "zh_CN"), nullptr);
-    EXPECT_NE(fcMockvars.catchedSize_, 0);
+    EXPECT_EQ(fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "", "zh_CN"), nullptr);
+    EXPECT_NE(fcMockVars.catchedSize_, 0);
 }
 
-// 过程测试
-// 调用两次GetTypefaceForChar函数
-// 第一次判定返回非空指针，bcp47.size不为0
-// 第二次判定返回非空指针，bcp47.size == -1
-// 判定两次得到的typeface相同
+/**
+ * @tc.name: GetTypefaceForChar4
+ * @tc.desc: Verify the GetTypefaceForChar
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIIY
+ */
 HWTEST_F(FontCollectionTest, GetTypefaceForChar4, TestSize.Level1)
 {
     InitFcMockVars({});
-    auto tf1 = fcMockvars.fontCollection_->GetTypefaceForChar('a', {}, "", "zh_HK");
+    auto tf1 = fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "", "zh_HK");
     EXPECT_NE(tf1, nullptr);
-    EXPECT_NE(fcMockvars.catchedSize_, 0);
+    EXPECT_NE(fcMockVars.catchedSize_, 0);
     InitFcMockVars({});
-    auto tf2 = fcMockvars.fontCollection_->GetTypefaceForChar('a', {}, "", "zh_HK");
+    auto tf2 = fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "", "zh_HK");
     EXPECT_NE(tf2, nullptr);
-    EXPECT_EQ(fcMockvars.catchedSize_, -1);
+    EXPECT_EQ(fcMockVars.catchedSize_, -1);
     EXPECT_EQ(tf1->Get(), tf2->Get());
 }
 
-// 过程测试
-// 控制matchStyle函数返回nullptr
-// 调用GetTypefaceForChar函数
-// 判定返回值为空指针
+/**
+ * @tc.name: GetTypefaceForChar5
+ * @tc.desc: Verify the GetTypefaceForChar
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIIY
+ */
 HWTEST_F(FontCollectionTest, GetTypefaceForChar5, TestSize.Level1)
 {
     InitFcMockVars({.fontMgr_ = nullptr, .styleRetvalTypeface_ = nullptr, .fontStyleSets_ = CreateSets()});
-    EXPECT_EQ(fcMockvars.fontCollection_->GetTypefaceForChar('a', {}, "", "en_US"), nullptr);
+    EXPECT_EQ(fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "", "en_US"), nullptr);
 }
 
-// 过程测试
-// Has返回false
-// 调用GetTypefaceForChar函数
-// 判定返回值非空指针
+/**
+ * @tc.name: GetTypefaceForChar6
+ * @tc.desc: Verify the GetTypefaceForChar
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIIY
+ */
 HWTEST_F(FontCollectionTest, GetTypefaceForChar6, TestSize.Level1)
 {
     InitFcMockVars({.fontMgr_ = nullptr, .fontStyleSets_ = CreateSets()});
-    EXPECT_EQ(fcMockvars.fontCollection_->GetTypefaceForChar('a', {}, "", "en_US"), nullptr);
+    EXPECT_EQ(fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "", "en_US"), nullptr);
 }
 
-// 过程测试
-// 控制Has返回值为true
-// 创建对象时传入非空vector
-// 调用两次GetTypefaceForChar函数
-// 判定返回值为非空指针
-// 判定Has调用两次
-// 判定两次得到的SkTypeface相同
+/**
+ * @tc.name: GetTypefaceForChar7
+ * @tc.desc: Verify the GetTypefaceForCha
+ * @tc.type:FUNC
+ * @tc.require: issueI6TIIY
+ */
 HWTEST_F(FontCollectionTest, GetTypefaceForChar7, TestSize.Level1)
 {
     InitFcMockVars({.hasRetval_ = true, .fontMgr_ = nullptr, .fontStyleSets_ = CreateSets()});
-    auto tf1 = fcMockvars.fontCollection_->GetTypefaceForChar('a', {}, "", "locale1");
-    auto tf2 = fcMockvars.fontCollection_->GetTypefaceForChar('a', {}, "", "locale1");
+    auto tf1 = fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "", "locale1");
+    auto tf2 = fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "", "locale1");
     EXPECT_NE(tf1, nullptr);
     EXPECT_NE(tf2, nullptr);
-    EXPECT_EQ(fcMockvars.hasCount_, 2);
+    EXPECT_EQ(fcMockVars.hasCount_, 2);
     EXPECT_EQ(tf1->Get(), tf2->Get());
 }
 } // namespace TextEngine
