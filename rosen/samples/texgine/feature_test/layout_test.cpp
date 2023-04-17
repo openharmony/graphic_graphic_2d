@@ -25,37 +25,37 @@ namespace {
 
 #if EXAMPLE == 0
 #elif EXAMPLE == 1
-constexpr auto exampleText = "Typography is the art and technique of arranging type to make written "
-                              "language legible, readable and appealing when displayed. The "
-                              "arrangement of type involves selecting typefaces, point sizes, "
-                              "line lengths, line-spacing (leading), and letter-spacing "
-                              "(tracking), as well as adjusting the space between pairs of "
-                              "letters (kerning).";
-constexpr auto exampleTextHalf = "Typography is the art and technique of arranging type to make written "
-                                  "language legible, readable and appealing when displayed.";
+constexpr auto EXAMPLE_TEXT = "Typography is the art and technique of arranging type to make written "
+    "language legible, readable and appealing when displayed. The "
+    "arrangement of type involves selecting typefaces, point sizes, "
+    "line lengths, line-spacing (leading), and letter-spacing "
+    "(tracking), as well as adjusting the space between pairs of "
+    "letters (kerning).";
+constexpr auto EXAMPLE_TEXT_HALF = "Typography is the art and technique of arranging type to make written "
+    "language legible, readable and appealing when displayed.";
 #elif EXAMPLE == 2
-constexpr auto exampleText = "مرحباً،";
-constexpr auto exampleTextHalf = "";
+constexpr auto EXAMPLE_TEXT = "مرحباً،";
+constexpr auto EXAMPLE_TEXT_HALF = "";
 #elif EXAMPLE == 3
-constexpr auto exampleText = "مرحباً، العالم";
-constexpr auto exampleTextHalf = "";
+constexpr auto EXAMPLE_TEXT = "مرحباً، العالم";
+constexpr auto EXAMPLE_TEXT_HALF = "";
 #elif EXAMPLE == 4
-constexpr auto exampleText = "مرحباً، العالم جاهز";
-constexpr auto exampleTextHalf = "";
+constexpr auto EXAMPLE_TEXT = "مرحباً، العالم جاهز";
+constexpr auto EXAMPLE_TEXT_HALF = "";
 #elif EXAMPLE == 5
-constexpr auto exampleText = "12345678 مرحباً، العالم جاهز "
-                             "22345678 مرحباً، العالم جاهز "
-                             "32345678 مرحباً، العالم جاهز "
-                             "42345678 مرحباً، العالم جاهز "
-                             "52345678 مرحباً، العالم جاهز "
-                             "62345678 مرحباً، العالم جاهز "
-                             "72345678 مرحباً، العالم جاهز ";
-constexpr auto exampleTextHalf = "12345678 مرحباً، العالم جاهز "
-                                 "22345678 مرحباً، العالم جاهز "
-                                 "32345678 مرحباً، العالم جاهز ";
+constexpr auto EXAMPLE_TEXT = "12345678 مرحباً، العالم جاهز "
+    "22345678 مرحباً، العالم جاهز "
+    "32345678 مرحباً، العالم جاهز "
+    "42345678 مرحباً، العالم جاهز "
+    "52345678 مرحباً، العالم جاهز "
+    "62345678 مرحباً، العالم جاهز "
+    "72345678 مرحباً، العالم جاهز ";
+constexpr auto EXAMPLE_TEXT_HALF = "12345678 مرحباً، العالم جاهز "
+    "22345678 مرحباً، العالم جاهز "
+    "32345678 مرحباً، العالم جاهز ";
 #elif EXAMPLE == 6
-constexpr auto exampleText = "مرحباً، العالم جاهز 1234567890";
-constexpr auto exampleTextHalf = "مرحباً،";
+constexpr auto EXAMPLE_TEXT = "مرحباً، العالم جاهز 1234567890";
+constexpr auto EXAMPLE_TEXT_HALF = "مرحباً،";
 #endif
 
 class LayoutTest : public TestFeature {
@@ -64,35 +64,36 @@ public:
     {
     }
 
-    void Layout()
+    void Layout() override
     {
         option_.needRainbowChar = true;
 
         TypographyStyle ys = {
-            .ellipsis_ = u"",
-            .breakStrategy_ = BreakStrategy::GREEDY,
-            .wordBreakType_ = WordBreakType::BREAKALL,
+            .ellipsis = u"",
+            .breakStrategy = BreakStrategy::GREEDY,
+            .wordBreakType = WordBreakType::BREAKALL,
         };
         auto builder = TypographyBuilder::Create(ys);
 
         TextStyle style = {
-            .fontSize_ = 16,
+            .fontSize = 16,
         };
 
         builder->PushStyle(style);
-        builder->AppendSpan(exampleTextHalf);
+        builder->AppendSpan(EXAMPLE_TEXT_HALF);
         builder->PopStyle();
 
         TextStyle style2 = {
-            .fontSize_ = 24,
+            .fontSize = 24,
         };
 
         builder->PushStyle(style2);
-        builder->AppendSpan((exampleText + strlen(exampleTextHalf)));
+        builder->AppendSpan((EXAMPLE_TEXT + strlen(EXAMPLE_TEXT_HALF)));
         builder->PopStyle();
 
         auto typography = builder->Build();
-        typography->Layout(300);
+        double widthLimit = 300.0;
+        typography->Layout(widthLimit);
         typographies_.push_back({
             .typography = typography
         });

@@ -32,5 +32,5 @@ void FeatureTestCollection::RegisterTest(const TestFeature *test)
     if (test == nullptr) {
         return;
     }
-    tests.push_back(const_cast<TestFeature *>(test));
+    tests_.push_back(const_cast<TestFeature *>(test));
 }

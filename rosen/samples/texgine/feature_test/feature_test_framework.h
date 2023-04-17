@@ -54,16 +54,22 @@ struct TypographyData {
 
 class TestFeature {
 public:
-    TestFeature(const std::string &testName);
+    explicit TestFeature(const std::string &testName);
     virtual ~TestFeature() = default;
 
     virtual void Layout() = 0;
 
+    /*
+     * @brief Returns the option in the feature test
+     */
     const struct FeatureTestOption &GetFeatureTestOption() const
     {
         return option_;
     }
 
+    /*
+     * @brief Returns the list of TypographyData user setting in feature test
+     */
     const std::list<struct TypographyData> &GetTypographies() const
     {
         return typographies_;
@@ -86,21 +92,29 @@ class FeatureTestCollection {
 public:
     ~FeatureTestCollection() = default;
     static FeatureTestCollection &GetInstance();
+
+    /*
+     * @brief Returns the list of all feature test
+     */
     const std::list<TestFeature*> &GetTests() const
     {
-        return tests;
+        return tests_;
     }
 
+    /*
+     * @brief Add feature test to FeatureTestCollection
+     * @param test The pointer of feature test
+     */
     void RegisterTest(const TestFeature *test);
 
 private:
     FeatureTestCollection() = default;
     FeatureTestCollection(const FeatureTestCollection &) = delete;
     FeatureTestCollection(FeatureTestCollection &&) = delete;
-    FeatureTestCollection &operator =(const FeatureTestCollection &) = delete;
-    FeatureTestCollection &operator =(FeatureTestCollection &&) = delete;
+    FeatureTestCollection &operator=(const FeatureTestCollection &) = delete;
+    FeatureTestCollection &operator=(FeatureTestCollection &&) = delete;
 
-    std::list<TestFeature*> tests;
+    std::list<TestFeature*> tests_;
 };
 
 #endif // ROSEN_SAMPLES_TEXGINE_FEATURE_TEST_FEATURE_TEST_FRAMEWORK_H
