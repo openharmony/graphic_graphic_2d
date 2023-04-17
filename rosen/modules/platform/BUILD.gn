@@ -76,8 +76,8 @@ group("hilog") {
 group("image_native") {
   if (platform == "ohos") {
     public_deps = image_deps
-  } else if (platform == "ios") {
-    public_deps = [ "$image_framework_root/interfaces/innerkits:image_native" ]
+  } else if (platform == "android" || platform == "ios") {
+    public_deps = [ "$image_framework_root/interfaces/innerkits:image_static" ]
   } else {
     public_deps = [ ":mock_image_native" ]
   }
