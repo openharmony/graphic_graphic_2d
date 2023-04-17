@@ -20,40 +20,40 @@
 
 using namespace OHOS::Rosen::TextEngine;
 
-constexpr const char *text = "hello world hello world hello world hello 123";
+constexpr const char *TEXT = "hello world hello world hello world hello 123";
 
 namespace {
 struct EllipsisInfo {
-    std::string span_;
-    TypographyStyle tpStyle_;
-    TextStyle style_;
-    std::string title_ = "";
-} infos[] = {
+    std::string span;
+    TypographyStyle tpStyle;
+    TextStyle style;
+    std::string title = "";
+} g_infos[] = {
     {
-        .span_ = text,
-        .title_ = "default",
+        .span = TEXT,
+        .title = "default",
     },
     {
-        .span_ = text,
-        .tpStyle_ = {
-            .maxLines_ = 1,
+        .span = TEXT,
+        .tpStyle = {
+            .maxLines = 1,
         },
-        .title_ = "maxline: 1, ellipse: default",
+        .title = "maxline: 1, ellipse: default",
     },
     {
-        .span_ = text,
-        .tpStyle_ = {
-            .ellipsis_ = u"",
+        .span = TEXT,
+        .tpStyle = {
+            .ellipsis = u"",
         },
-        .title_ = "maxline: defult, ellipse: \"\"",
+        .title = "maxline: defult, ellipse: \"\"",
     },
     {
-        .span_ = text,
-        .tpStyle_ = {
-            .maxLines_ = 1,
-            .ellipsis_ = u"",
+        .span = TEXT,
+        .tpStyle = {
+            .maxLines = 1,
+            .ellipsis = u"",
         },
-        .title_ = "maxline: 1, ellipse: \"\"",
+        .title = "maxline: 1, ellipse: \"\"",
     },
 };
 
@@ -65,15 +65,16 @@ public:
 
     void Layout()
     {
-        for (auto &info : infos) {
-            auto builder = TypographyBuilder::Create(info.tpStyle_);
-            builder->PushStyle(info.style_);
-            builder->AppendSpan(info.span_);
+        for (auto &info : g_infos) {
+            auto builder = TypographyBuilder::Create(info.tpStyle);
+            builder->PushStyle(info.style);
+            builder->AppendSpan(info.span);
             auto typography = builder->Build();
-            typography->Layout(300);
+            double widthLimit = 300.0;
+            typography->Layout(widthLimit);
             typographies_.push_back({
                 .typography = typography,
-                .comment = info.title_,
+                .comment = info.title,
             });
         }
     }

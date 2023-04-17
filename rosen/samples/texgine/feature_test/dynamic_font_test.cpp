@@ -22,25 +22,25 @@
 using namespace OHOS::Rosen::TextEngine;
 
 namespace {
-constexpr auto exampleText = "Hello World 1234";
+constexpr auto EXAMPLE_TEXT = "Hello World 1234";
 
 struct FontsInfo {
-    std::string path_ = "";
-    std::string fontFamily_;
-    std::string title_ = "";
-} infos[] = {
+    std::string path = "";
+    std::string fontFamily;
+    std::string title = "";
+} g_infos[] = {
     {
-        .title_ = "default",
+        .title = "default",
     },
     {
-        .path_ = RESOURCE_PATH_PREFIX "Roboto-Black.ttf",
-        .fontFamily_ = "Roboto",
-        .title_ = "Roboto",
+        .path = RESOURCE_PATH_PREFIX "Roboto-Black.ttf",
+        .fontFamily = "Roboto",
+        .title = "Roboto",
     },
     {
-        .path_ = RESOURCE_PATH_PREFIX "NotExists.ttf",
-        .fontFamily_ = "NotExists",
-        .title_ = "NotExists",
+        .path = RESOURCE_PATH_PREFIX "NotExists.ttf",
+        .fontFamily = "NotExists",
+        .title = "NotExists",
     },
 };
 
@@ -52,26 +52,27 @@ public:
 
     void Layout()
     {
-        for (auto &info : infos) {
+        for (auto &info : g_infos) {
             TypographyStyle tystyle;
-            auto dfprovider = DynamicFileFontProvider::Create();
-            dfprovider->LoadFont(info.fontFamily_, info.path_);
+            auto dyProvider = DynamicFileFontProvider::Create();
+            dfProvider->LoadFont(info.fontFamily, info.path);
             auto fps = FontProviders::Create();
-            fps->AppendFontProvider(dfprovider);
+            fps->AppendFontProvider(dfProvider);
             fps->AppendFontProvider(SystemFontProvider::GetInstance());
             auto builder = TypographyBuilder::Create(tystyle, std::move(fps));
 
             TextStyle style;
-            style.fontFamilies_ = {info.fontFamily_};
+            style.fontFamilies = {info.fontFamily};
             builder->PushStyle(style);
-            builder->AppendSpan(exampleText);
+            builder->AppendSpan(EXAMPLE_TEXT);
             builder->PopStyle();
 
             auto typography = builder->Build();
-            typography->Layout(300);
+            double widthLimit = 300.0;
+            typography->Layout(widthLimit);
             typographies_.push_back({
                 .typography = typography,
-                .comment = info.title_,
+                .comment = info.title,
             });
         }
     }

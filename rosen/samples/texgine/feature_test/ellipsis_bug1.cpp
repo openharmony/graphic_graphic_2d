@@ -21,23 +21,23 @@
 using namespace OHOS::Rosen::TextEngine;
 
 namespace {
-constexpr auto exampleText = "宽度限制过小导致省略号填充的bug";
+constexpr auto EXAMPLE_TEXT = "宽度限制过小导致省略号填充的bug";
 
 struct WidthInfo {
-    double widthLimit_ = 0;
-    std::string title_ = "";
-} infos[] = {
+    double widthLimit = 0;
+    std::string title = "";
+} g_infos[] = {
     {
-        .widthLimit_ = 400,
-        .title_ = "宽度限制可以容纳整个文本",
+        .widthLimit = 400,
+        .title = "宽度限制可以容纳整个文本",
     },
     {
-        .widthLimit_ = 50,
-        .title_ = "容纳部分文本",
+        .widthLimit = 50,
+        .title = "容纳部分文本",
     },
     {
-        .widthLimit_ = 5,
-        .title_ = "小于一个字符的宽度",
+        .widthLimit = 5,
+        .title = "小于一个字符的宽度",
     },
 };
 
@@ -49,19 +49,19 @@ public:
 
     void Layout()
     {
-        for (auto &info : infos) {
-            TypographyStyle ys = { .maxLines_ = 1, .ellipsis_ = u"..." };
+        for (auto &info : g_infos) {
+            TypographyStyle ys = { .maxLines = 1, .ellipsis = u"..." };
 
             auto builder = TypographyBuilder::Create(ys);
             TextStyle tstyle;
             builder->PushStyle(tstyle);
-            builder->AppendSpan(exampleText);
+            builder->AppendSpan(EXAMPLE_TEXT);
             auto typography = builder->Build();
-            typography->Layout(info.widthLimit_);
+            typography->Layout(info.widthLimit);
 
             typographies_.push_back({
                 .typography = typography,
-                .comment = info.title_,
+                .comment = info.title,
             });
         }
     }
