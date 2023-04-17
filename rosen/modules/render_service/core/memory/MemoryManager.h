@@ -36,7 +36,7 @@ public:
     static void ReleaseUnlockGpuResource(GrContext* grContext, GrGpuResourceTag& tag);
     static void ReleaseUnlockGpuResource(GrContext* grContext, NodeId surfaceNodeId);
     static void ReleaseAllGpuResource(GrContext* grContext, GrGpuResourceTag& tag);
-    static void ReleaseAllGpuResource(GrContext* grContext, NodeId surfaceNodeId);
+    static void ReleaseAllGpuResource(GrContext* grContext, pid_t pid);
     static void ReleaseUnlockLauncherGpuResource(GrContext* grContext,
         NodeId entryViewNodeId, NodeId wallpaperViewNodeId);
 

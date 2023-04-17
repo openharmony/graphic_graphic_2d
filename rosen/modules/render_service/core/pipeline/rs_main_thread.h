@@ -186,7 +186,7 @@ private:
     void RemoveRSEventDetector();
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
-    void ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext, NodeId surfaceNodeId);
+    void ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext, pid_t pid);
     void ReleaseBackGroundNodeUnlockGpuResource(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
