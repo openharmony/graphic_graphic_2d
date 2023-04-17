@@ -23,7 +23,7 @@ std::shared_ptr<SkFont> TexgineFont::GetFont() const
     return font_;
 }
 
-void TexgineFont::SetTypeface(std::shared_ptr<TexgineTypeface> tf)
+void TexgineFont::SetTypeface(const std::shared_ptr<TexgineTypeface> tf)
 {
     if (tf) {
         font_->setTypeface(tf->GetTypeface());
@@ -37,8 +37,12 @@ void TexgineFont::SetSize(float textSize)
     font_->setSize(textSize);
 }
 
-float TexgineFont::GetMetrics(TexgineFontMetrics *metrics)
+float TexgineFont::GetMetrics(TexgineFontMetrics *metrics) const
 {
+    if (metrics == nullptr) {
+        return 0
+    }
+
     return font_->getMetrics(metrics->GetFontMetrics().get());
 }
 } // namespace TextEngine

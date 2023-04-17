@@ -34,27 +34,35 @@ std::shared_ptr<TexgineFontManager> TexgineFontManager::RefDefault()
     return manager;
 }
 
-sk_sp<SkFontMgr> TexgineFontManager::GetFontMgr()
+sk_sp<SkFontMgr> TexgineFontManager::GetFontMgr() const
 {
     return fontMgr_;
 }
 
-void TexgineFontManager::SetFontMgr(sk_sp<SkFontMgr> mgr)
+void TexgineFontManager::SetFontMgr(const sk_sp<SkFontMgr> mgr)
 {
     fontMgr_ = mgr;
 }
 
-std::shared_ptr<TexgineTypeface> TexgineFontManager::MatchFamilyStyleCharacter(const char familyName[], TexgineFontStyle &style,
-                                          const char *bcp47[], int bcp47Count,
-                                          int32_t character)
+std::shared_ptr<TexgineTypeface> TexgineFontManager::MatchFamilyStyleCharacter(const std::string &familyName,
+    TexgineFontStyle &style, const char *bcp47[], int bcp47Count, int32_t character)
 {
-    auto tf = fontMgr_->matchFamilyStyleCharacter(familyName, *style.GetFontStyle(), bcp47, bcp47Count, character);
+    if (fontMgr_ == nullptr || style.GetFontStyle() == nullptr) {
+        return nullptr;
+    }
+
+    auto tf = fontMgr_->matchFamilyStyleCharacter(familyName.c_str(),
+        *style.GetFontStyle(), bcp47, bcp47Count, character);
     return std::make_shared<TexgineTypeface>(tf);
 }
 
-std::shared_ptr<TexgineFontStyleSet> TexgineFontManager::MatchFamily(const char familyName[])
+std::shared_ptr<TexgineFontStyleSet> TexgineFontManager::MatchFamily(const std::string &familyName)
 {
-    auto set = fontMgr_->matchFamily(familyName);
+    if (fontMgr_ == nullptr) {
+        return nullptr;
+    }
+
+    auto set = fontMgr_->matchFamily(familyName.c_str());
     return std::make_shared<TexgineFontStyleSet>(set);
 }
 } // namespace TextEngine

@@ -38,13 +38,17 @@ TexgineFontMetrics::TexgineFontMetrics()
     fStrikeoutPosition_ = &fontMetrics_->fStrikeoutPosition;
 }
 
-std::shared_ptr<SkFontMetrics> TexgineFontMetrics::GetFontMetrics()
+std::shared_ptr<SkFontMetrics> TexgineFontMetrics::GetFontMetrics() const
 {
     return fontMetrics_;
 }
 
 void TexgineFontMetrics::SetFontMetrics(std::shared_ptr<SkFontMetrics> metrics)
 {
+    if (metrics = nullptr) {
+        return;
+    }
+
     fontMetrics_ = metrics;
     fFlags_ = &fontMetrics_->fFlags;
     fTop_ = &fontMetrics_->fTop;

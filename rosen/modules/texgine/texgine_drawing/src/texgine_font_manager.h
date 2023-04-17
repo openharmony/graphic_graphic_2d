@@ -29,13 +29,37 @@ namespace Rosen {
 namespace TextEngine {
 class TexgineFontManager {
 public:
+    /*
+     * @brief Get default font manager
+     */
     static std::shared_ptr<TexgineFontManager> RefDefault();
     TexgineFontManager();
-    sk_sp<SkFontMgr> GetFontMgr();
-    void SetFontMgr(sk_sp<SkFontMgr> mgr);
-    std::shared_ptr<TexgineTypeface> MatchFamilyStyleCharacter(const char familyName[], TexgineFontStyle &style,
-                                          const char *bcp47[], int bcp47Count, int32_t character);
-    std::shared_ptr<TexgineFontStyleSet> MatchFamily(const char familyName[]);
+
+    /*
+     * @brief Get the font manager
+     */
+    sk_sp<SkFontMgr> GetFontMgr() const;
+    void SetFontMgr(const sk_sp<SkFontMgr> mgr);
+
+    /*
+     * @brief Use the system fallback to find a typeface for the given character.
+     * @param familyName The family names of user setting
+     *        style        The font style of user setting
+     *        bcp47[]      is a combination of ISO 639, 15924, and 3166-1 codes,
+     *                     so it is fine to just pass a ISO 639 here
+     *        bcp47Count   The length of bcp47[]
+     *        character    The character what you want to match typeface
+     * @return Will return nullptr if no family can be found
+     */
+    std::shared_ptr<TexgineTypeface> MatchFamilyStyleCharacter(const std::string &familyName,
+        TexgineFontStyle& style, const char* bcp47[], int bcp47Count, int32_t character);
+
+    /*
+     * @brief Get the font style set
+     * @param familyName The family names of user setting
+     * @return Never return nullptr, will return an empty set if the name is NULL
+     */
+    std::shared_ptr<TexgineFontStyleSet> MatchFamily(const std::string &familyName);
 
 private:
     sk_sp<SkFontMgr> fontMgr_;

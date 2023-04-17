@@ -29,9 +29,21 @@ namespace TextEngine {
 class TexgineFont {
 public:
     std::shared_ptr<SkFont> GetFont() const;
-    void SetTypeface(std::shared_ptr<TexgineTypeface> tf);
+
+    /*
+     * @brief Set typeface to SkFont
+     */
+    void SetTypeface(const std::shared_ptr<TexgineTypeface> tf);
+
+    /*
+     * @brief Set font size
+     */
     void SetSize(float textSize);
-    float GetMetrics(TexgineFontMetrics *metrics);
+
+    /*
+     * @brief Get metrics of the font
+     */
+    float GetMetrics(TexgineFontMetrics *metrics) const;
 
 private:
     std::shared_ptr<SkFont> font_ = std::make_shared<SkFont>();
