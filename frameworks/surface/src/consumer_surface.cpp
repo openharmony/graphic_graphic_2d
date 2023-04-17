@@ -115,11 +115,15 @@ GSError ConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFen
 {
     std::vector<Rect> damages;
     GSError ret = AcquireBuffer(buffer, fence, timestamp, damages);
-    if (ret == GSERROR_OK && damages.size() == 1) {
-        damage = damages[0];
+    if (ret != GSERROR_OK) {
         return ret;
     }
-    BLOGN_FAILURE("Acquire damage faild, the size of damages is %{public}zu, should Acquire damages", damages.size());
+    if (damages.size() == 1) {
+        damage = damages[0];
+        return GSERROR_OK;
+    }
+    BLOGN_FAILURE("AcquireBuffer Success but the size of damages is %{public}zu is not 1, should Acquire damages.",
+        damages.size());
     return GSERROR_INVALID_ARGUMENTS;
 }
 
