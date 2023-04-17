@@ -27,8 +27,14 @@ namespace Rosen {
 namespace TextEngine {
 class TexgineDashPathEffect {
 public:
+    /*
+     * @brief Make a Dash path
+     * @param intervals[] The array containing an even number of entries (>=2), This array will be
+     *                    copied in Make, and can be disposed of freely after.
+     *         count      The number of elements in the intervals array
+     *         phase      The offset to intervals
+     */
     static std::shared_ptr<TexginePathEffect> Make(const float intervals[], int count, float phase);
-
 };
 } // namespace TextEngine
 } // namespace Rosen

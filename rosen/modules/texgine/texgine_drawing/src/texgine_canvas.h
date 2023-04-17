@@ -29,18 +29,56 @@ namespace Rosen {
 namespace TextEngine {
 class TexgineCanvas {
 public:
-    void DrawLine(double x0, double y0, double x1, double y1, TexginePaint &paint);
+    /*
+     * @brief Draws line segment from (x0, y0) to (x1, y1) using clip, SkMatrix, and SkPaint paint.
+     */
+    void DrawLine(double x0, double y0, double x1, double y1, const TexginePaint &paint);
+
+    /*
+     * @brief Draws SkRect rect using clip, SkMatrix, and SkPaint paint.
+     */
     void DrawRect(TexgineRect &rect, const TexginePaint &paint) const;
-    void DrawTextBlob(std::shared_ptr<TexgineTextBlob> &blob, float x, float y, TexginePaint &paint);
-    void Clear(uint32_t clolor);
-    int Save();
-    void Translate(float dx, float dy);
-    SkCanvas *GetCanvas();
-    void Restore();
-    void SetCanvas(SkCanvas *canvas);
+
+    /*
+     * @brief Draws SkTextBlob blob at (x, y), using clip, SkMatrix, and SkPaint paint.
+     */
+    void DrawTextBlob(std::shared_ptr<TexgineTextBlob> &blob, float x, float y, const TexginePaint &paint);
+
+    /*
+     * @brief Fills clip with color color using SkBlendMode::kSrc.
+     *        This has the effect of replacing all pixels contained by clip with color.
+     * @param color unpremultiplied ARGB
+     */
+    void Clear(uint32_t color) const;
+
+    /*
+     * @brief Saves SkMatrix and clip, and allocates a SkBitmap for subsequent drawing.
+     */
+    int Save() const;
+
+    /*
+     * @brief Translates SkMatrix by dx along the x-axis and dy along the y-axis.
+     */
+    void Translate(float dx, float dy) const;
+
+    /*
+     * @brief Returns the pointer of SkCanvas what user sets to TexgineCanvas
+     */
+    std::shared_ptr<SkCanvas> GetCanvas() const;
+
+    /*
+     * @brief Removes changes to SkMatrix and clip since SkCanvas state was
+              last saved. The state is removed from the stack.
+    */
+    void Restore() const;
+
+    /*
+     * @brief Sets SkCanvas to TexgineCanvas what user want
+     */
+    void SetCanvas(const SkCanvas &canvas);
 
 private:
-    SkCanvas *canvas_;
+    std::shared_ptr<SkCanvas> canvas_ = std::make_shared<SkCanvas>();
 };
 } // namespace TextEngine
 } // namespace Rosen

@@ -28,12 +28,24 @@ namespace Rosen {
 namespace TextEngine {
 class TexgineData {
 public:
-    sk_sp<SkData> GetData();
-    void SetData(sk_sp<SkData> data);
-    static std::shared_ptr<TexgineData> MakeFromFileName(const char path[]);
+    /*
+     * @brief Return the instance of SkData
+     */
+    sk_sp<SkData> GetData() const;
+
+    /*
+     * @brief Set SkData to TexgineData
+     */
+    void SetData(const sk_sp<SkData> &data);
+
+    /*
+     * @brief Create a TexgineData from file
+     * @param path The file path
+     */
+    static std::shared_ptr<TexgineData> MakeFromFileName(const std::string &path);
 
 private:
-    sk_sp<SkData> data_;
+    sk_sp<SkData> data_ = nullptr;
 };
 } // namespace TextEngine
 } // namespace Rosen

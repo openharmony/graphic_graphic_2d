@@ -18,20 +18,20 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-sk_sp<SkData> TexgineData::GetData()
+sk_sp<SkData> TexgineData::GetData() const
 {
     return data_;
 }
 
-void TexgineData::SetData(sk_sp<SkData> data)
+void TexgineData::SetData(const sk_sp<SkData> &data)
 {
     data_ = data;
 }
 
-std::shared_ptr<TexgineData> TexgineData::MakeFromFileName(const char path[])
+std::shared_ptr<TexgineData> TexgineData::MakeFromFileName(const std::string &path)
 {
     auto data = std::make_shared<TexgineData>();
-    data->SetData(SkData::MakeFromFileName(path));
+    data->SetData(SkData::MakeFromFileName(path.c_str()));
     return data;
 }
 } // namespace TextEngine
