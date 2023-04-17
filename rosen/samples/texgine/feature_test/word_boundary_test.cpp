@@ -24,7 +24,7 @@
 using namespace OHOS::Rosen::TextEngine;
 
 namespace {
-std::vector<size_t> positions = {0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 17, 18, 19};
+std::vector<size_t> g_positions = {0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 17, 18, 19};
 
 class WordBoundaryTest : public TestFeature {
 public:
@@ -47,7 +47,7 @@ public:
         auto typography = builder->Build();
         typography->Layout(200);
 
-        for (const auto &index : positions) {
+        for (const auto &index : g_positions) {
             auto onPaint = [index](const struct TypographyData &tyData, TexgineCanvas &canvas, double x, double y) {
                 const auto &ty = tyData.typography;
                 ty->Paint(canvas, x, y);

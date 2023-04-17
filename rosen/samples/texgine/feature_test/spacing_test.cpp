@@ -23,11 +23,11 @@
 using namespace OHOS::Rosen::TextEngine;
 
 namespace {
-constexpr auto exampleText = "你好世界 Landscape engineering. Landscape engineering. Landscape engineering. ";
+constexpr auto EXAMPLE_TEXT = "你好世界 Landscape engineering. Landscape engineering. Landscape engineering. ";
 struct TestInfo {
     TextStyle xs_;
     TypographyStyle ys_;
-} datas[] = {
+} g_datas[] = {
     { },
     { .xs_ = { .letterSpacing_ = -1, }, },
     { .xs_ = { .letterSpacing_ = 5, }, },
@@ -47,14 +47,14 @@ public:
     {
     }
 
-       void Layout()
+    void Layout()
     {
         option_.needRainbowChar = true;
 
-        for (auto &[xs, ys] : datas) {
+        for (auto &[xs, ys] : g_datas) {
             auto builder = TypographyBuilder::Create(ys);
             builder->PushStyle(xs);
-            builder->AppendSpan(exampleText);
+            builder->AppendSpan(EXAMPLE_TEXT);
             builder->PopStyle();
             auto typography = builder->Build();
             typography->Layout(250);
