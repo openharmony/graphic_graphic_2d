@@ -24,7 +24,7 @@ namespace {
 struct StyledText {
     std::string text;
     TextStyle style;
-} texts[] = {
+} g_texts[] = {
     {
         .text = "Decoration对照",
         .style = {},
@@ -32,46 +32,46 @@ struct StyledText {
     {
         .text = "Decoration上划线",
         .style = {
-            .decoration_ = TextDecoration::OVERLINE,
+            .decoration = TextDecoration::OVERLINE,
         },
     },
     {
         .text = "Decoration删除线",
         .style = {
-            .decoration_ = TextDecoration::LINETHROUGH,
+            .decoration = TextDecoration::LINETHROUGH,
         },
     },
     {
         .text = "Decoration下划线",
         .style = {
-            .decoration_ = TextDecoration::UNDERLINE,
+            .decoration = TextDecoration::UNDERLINE,
         },
     },
     {
         .text = "Decoration两两混合1",
         .style = {
-            .decoration_ = TextDecoration::OVERLINE |
+            .decoration = TextDecoration::OVERLINE |
                 TextDecoration::LINETHROUGH,
         },
     },
     {
         .text = "Decoration两两混合2",
         .style = {
-            .decoration_ = TextDecoration::OVERLINE |
+            .decoration = TextDecoration::OVERLINE |
                 TextDecoration::UNDERLINE,
         },
     },
     {
         .text = "Decoration两两混合3",
         .style = {
-            .decoration_ = TextDecoration::LINETHROUGH |
+            .decoration = TextDecoration::LINETHROUGH |
                 TextDecoration::UNDERLINE,
         },
     },
     {
         .text = "Decoration全混合",
         .style = {
-            .decoration_ = TextDecoration::OVERLINE |
+            .decoration = TextDecoration::OVERLINE |
                 TextDecoration::LINETHROUGH |
                 TextDecoration::UNDERLINE,
         },
@@ -79,50 +79,50 @@ struct StyledText {
     {
         .text = "Decoration实下滑线",
         .style = {
-            .decoration_ = TextDecoration::UNDERLINE,
-            .decorationStyle_ = TextDecorationStyle::SOLID,
+            .decoration = TextDecoration::UNDERLINE,
+            .decorationStyle = TextDecorationStyle::SOLID,
         },
     },
     {
         .text = "Decoration虚下滑线",
         .style = {
-            .decoration_ = TextDecoration::UNDERLINE,
-            .decorationStyle_ = TextDecorationStyle::DASHED,
+            .decoration = TextDecoration::UNDERLINE,
+            .decorationStyle = TextDecorationStyle::DASHED,
         },
     },
     {
         .text = "Decoration点下滑线",
         .style = {
-            .decoration_ = TextDecoration::UNDERLINE,
-            .decorationStyle_ = TextDecorationStyle::DOTTED,
+            .decoration = TextDecoration::UNDERLINE,
+            .decorationStyle = TextDecorationStyle::DOTTED,
         },
     },
     {
         .text = "Decoration波浪下滑线",
         .style = {
-            .decoration_ = TextDecoration::UNDERLINE,
-            .decorationStyle_ = TextDecorationStyle::WAVY,
+            .decoration = TextDecoration::UNDERLINE,
+            .decorationStyle = TextDecorationStyle::WAVY,
         },
     },
     {
         .text = "Decoration双实下滑线",
         .style = {
-            .decoration_ = TextDecoration::UNDERLINE,
-            .decorationStyle_ = TextDecorationStyle::DOUBLE,
+            .decoration = TextDecoration::UNDERLINE,
+            .decorationStyle = TextDecorationStyle::DOUBLE,
         },
     },
     {
         .text = "Decoration粗下滑线",
         .style = {
-            .decoration_ = TextDecoration::UNDERLINE,
-            .decorationThicknessScale_ = 5.0f,
+            .decoration = TextDecoration::UNDERLINE,
+            .decorationThicknessScale = 5.0f,
         },
     },
     {
         .text = "Decoration红下划线",
         .style = {
-            .decoration_ = TextDecoration::UNDERLINE,
-            .decorationColor_ = 0xffff0000,
+            .decoration = TextDecoration::UNDERLINE,
+            .decorationColor = 0xffff0000,
         },
     },
 };
@@ -137,13 +137,14 @@ public:
     {
         option_.needBorder = false;
 
-        TypographyStyle tstyle;
-        for (auto &[text, style] : texts) {
-            auto builder = TypographyBuilder::Create(tstyle);
+        TypographyStyle tStyle;
+        for (auto &[text, style] : g_texts) {
+            auto builder = TypographyBuilder::Create(tStyle);
             builder->PushStyle(style);
             builder->AppendSpan(text);
             auto typography = builder->Build();
-            typography->Layout(200);
+            double widthLimit = 200.0;
+            typography->Layout(widthLimit);
             typographies_.push_back({
                 .typography = typography,
             });

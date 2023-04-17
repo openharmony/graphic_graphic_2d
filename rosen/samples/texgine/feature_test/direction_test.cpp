@@ -25,8 +25,8 @@
 using namespace OHOS::Rosen::TextEngine;
 
 namespace {
-constexpr auto exampleText = "hello" Watch Person " wolrd تحول " WomanSportVariant
-                             " كبير! hello 123 آخر الأخبار من محطة سكة حديد شيان هنا!" Watch;
+constexpr auto EXAMPLE_TEXT = "hello" Watch Person " wolrd تحول " WomanSportVariant
+    " كبير! hello 123 آخر الأخبار من محطة سكة حديد شيان هنا!" Watch;
 
 class DirectionTest : public TestFeature {
 public:
@@ -38,30 +38,31 @@ public:
     {
         for (auto &dir : {TextDirection::LTR, TextDirection::RTL}) {
             TypographyStyle tystyle = {
-                .direction_ = dir,
+                .direction = dir,
             };
 
-            auto dfprovider = DynamicFileFontProvider::Create();
-            dfprovider->LoadFont("Segoe UI Emoji", RESOURCE_PATH_PREFIX "seguiemj.ttf");
+            auto dfProvider = DynamicFileFontProvider::Create();
+            dfProvider->LoadFont("Segoe UI Emoji", RESOURCE_PATH_PREFIX "seguiemj.ttf");
             auto fps = FontProviders::Create();
-            fps->AppendFontProvider(dfprovider);
+            fps->AppendFontProvider(dfProvider);
             fps->AppendFontProvider(SystemFontProvider::GetInstance());
             auto builder = TypographyBuilder::Create(tystyle, std::move(fps));
 
             TextStyle style = {
-                .fontFamilies_ = {"Segoe UI Emoji"},
-                .fontSize_ = 24,
+                .fontFamilies = {"Segoe UI Emoji"},
+                .fontSize = 24,
             };
 
             builder->PushStyle(style);
-            builder->AppendSpan(exampleText);
+            builder->AppendSpan(EXAMPLE_TEXT);
             builder->PopStyle();
 
             std::stringstream ss;
             ss << "typography direction: " << (dir == TextDirection::LTR ? "LTR" : "RTL");
 
             auto typography = builder->Build();
-            typography->Layout(600);
+            double widthLimit = 600.0;
+            typography->Layout(widthLimit);
             typographies_.push_back({
                 .typography = typography,
                 .comment = ss.str(),
