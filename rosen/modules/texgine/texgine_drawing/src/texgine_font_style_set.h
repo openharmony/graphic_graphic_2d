@@ -29,16 +29,43 @@ namespace Rosen {
 namespace TextEngine {
 class TexgineFontStyleSet {
 public:
-    TexgineFontStyleSet(SkFontStyleSet *set);
+    explicit TexgineFontStyleSet(const SkFontStyleSet *set);
     ~TexgineFontStyleSet();
 
-    int Count();
-    void GetStyle(int index, std::shared_ptr<TexgineFontStyle> style, std::shared_ptr<TexgineString> name);
+    /*
+     * @brief Return the count of typeface
+     */
+    int GetCount() const;
+
+    /*
+     * @brief Get thr font style for the specified typeface
+     * @param index The index of a typeface
+     * @param style The style value that returned to the caller
+     * @param name  The style name that returned to the caller
+     */
+    void GetStyle(const int index, std::shared_ptr<TexgineFontStyle> style, std::shared_ptr<TexgineString> name) const;
+
+    /*
+     * @brief To create a typeface
+     * @param index The the index of the typeface in this font style set
+     */
     std::shared_ptr<TexgineTypeface> CreateTypeface(int index);
-    std::shared_ptr<TexgineTypeface> MatchStyle(std::shared_ptr<TexgineFontStyle> pattern);
+
+    /*
+     * @brief To get the closest matching typeface
+     * @param pattern The style value to be matching
+     */
+    std::shared_ptr<TexgineTypeface> MatchStyle(const std::shared_ptr<TexgineFontStyle> pattern);
+
+    /*
+     * @brief To create an empty TexgineFontStyleSet
+     */
     static std::shared_ptr<TexgineFontStyleSet> CreateEmpty();
 
-    SkFontStyleSet *Get() const
+    /*
+     * @brief Returns the SkFontStyleSet in TexgineFontStyleSet
+     */
+    SkFontStyleSet *GetFontStyleSet() const
     {
         return set_;
     }

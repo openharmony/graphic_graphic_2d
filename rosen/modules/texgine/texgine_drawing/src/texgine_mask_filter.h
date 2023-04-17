@@ -23,24 +23,35 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-enum TexgineBlurStyle : int {
-    kNormal_SkBlurStyle,
-    kSolid_SkBlurStyle,
-    kOuter_SkBlurStyle,
-    kInner_SkBlurStyle,
-
-    kLastEnum_SkBlurStyle = kInner_SkBlurStyle,
-};
-
 class TexgineMaskFilter {
 public:
-    sk_sp<SkMaskFilter> GetMaskFilter();
-    void SetMaskFilter(sk_sp<SkMaskFilter> filter);
-    static std::shared_ptr<TexgineMaskFilter> MakeBlur(TexgineBlurStyle style, float sigma,
-                                        bool respectCTM = true);
+    enum TexgineBlurStyle : int {
+        K_NORMAL_SK_BLUR_STYLE, // Inner and outer blur
+        K_SOLID_SK_BLUR_STYLE,  // solid inner and blur outer
+        K_OUTER_SK_BLUR_STYLE,  // only blur outer
+        K_INNER_SK_BLUR_STYLE,  // only blur inner
+
+        K_LAST_ENUM_SK_BLUR_STYLE = K_INNER_SK_BLUR_STYLE,
+    };
+
+    sk_sp<SkMaskFilter> GetMaskFilter() const;
+
+    /*
+     * @brief Sets SkMaskFilter that user want to TexgineMaskFilter
+     */
+    void SetMaskFilter(const sk_sp<SkMaskFilter> filter);
+
+    /*
+     * @brief Create a blur maskfilter
+     * @param style The TexgineBlurStyle to use
+     * @param sigma The standard deviation of the Gaussian blur to apply. Must be greater than 0
+     * @param respectCTM If true, the blurry Sigma is modified by CTM
+     */
+    static std::shared_ptr<TexgineMaskFilter> MakeBlur(TexgineBlurStyle style,
+        float sigma, bool respectCTM = true);
 
 private:
-    sk_sp<SkMaskFilter> filter_;
+    sk_sp<SkMaskFilter> filter_ = nullptr;
 };
 } // namespace TextEngine
 } // namespace Rosen

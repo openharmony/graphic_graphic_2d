@@ -28,32 +28,33 @@ SkPaint TexginePaint::GetPaint() const
     return *paint_.get();
 }
 
-void TexginePaint::SetPaint(SkPaint paint)
+void TexginePaint::SetPaint(const SkPaint &paint)
 {
     *paint_ = paint;
 }
 
-void TexginePaint::SetColor(uint32_t color)
+void TexginePaint::SetColor(const uint32_t color)
 {
     paint_->setColor(color);
 }
 
-void TexginePaint::SetAlphaf(float alpha)
+void TexginePaint::SetAlphaf(const float alpha)
 {
     paint_->setAlphaf(alpha);
 }
 
-void TexginePaint::SetStrokeWidth(double width)
+void TexginePaint::SetStrokeWidth(const double width)
 {
     paint_->setStrokeWidth(width);
 }
 
-void TexginePaint::SetAntiAlias(bool aa)
+void TexginePaint::SetAntiAlias(const bool aa)
 {
     paint_->setAntiAlias(aa);
 }
 
-void TexginePaint::SetARGB(unsigned int a, unsigned int r, unsigned int g, unsigned int b)
+void TexginePaint::SetARGB(const unsigned int a, const unsigned int r,
+    const unsigned int g, const unsigned int b)
 {
     paint_->setARGB(a, r, g, b);
 }
@@ -63,17 +64,25 @@ void TexginePaint::SetStyle(Style style)
     paint_->setStyle(static_cast<SkPaint::Style>(style));
 }
 
-void TexginePaint::SetPathEffect(std::shared_ptr<TexginePathEffect> pathEffect)
+void TexginePaint::SetPathEffect(const std::shared_ptr<TexginePathEffect> pathEffect)
 {
+    if (pathEffect == nullptr) {
+        return;
+    }
+
     paint_->setPathEffect(pathEffect->GetPathEffect());
 }
 
-void TexginePaint::SetMaskFilter(std::shared_ptr<TexgineMaskFilter> maskFilter)
+void TexginePaint::SetMaskFilter(const std::shared_ptr<TexgineMaskFilter> maskFilter)
 {
+    if (maskFilter == nullptr) {
+        return;
+    }
+
     paint_->setMaskFilter(maskFilter->GetMaskFilter());
 }
 
-void TexginePaint::SetAlpha(unsigned int alpha)
+void TexginePaint::SetAlpha(const unsigned int alpha)
 {
     paint_->setAlpha(alpha);
 }

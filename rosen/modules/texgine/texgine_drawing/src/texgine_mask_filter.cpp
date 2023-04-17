@@ -18,17 +18,18 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-sk_sp<SkMaskFilter> TexgineMaskFilter::GetMaskFilter()
+sk_sp<SkMaskFilter> TexgineMaskFilter::GetMaskFilter() const
 {
     return filter_;
 }
 
-void TexgineMaskFilter::SetMaskFilter(sk_sp<SkMaskFilter> filter)
+void TexgineMaskFilter::SetMaskFilter(const sk_sp<SkMaskFilter> filter)
 {
     filter_ = filter;
 }
 
-std::shared_ptr<TexgineMaskFilter> TexgineMaskFilter::MakeBlur(TexgineBlurStyle style, float sigma, bool respectCTM)
+std::shared_ptr<TexgineMaskFilter> TexgineMaskFilter::MakeBlur(TexgineBlurStyle style,
+    float sigma, bool respectCTM)
 {
     auto filter = SkMaskFilter::MakeBlur(static_cast<SkBlurStyle>(style), sigma, respectCTM);
     auto maskFilter = std::make_shared<TexgineMaskFilter>();
