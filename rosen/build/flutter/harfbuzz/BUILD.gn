@@ -14,6 +14,12 @@
 import("//build/ohos.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
 
+if (defined(use_new_skia) && use_new_skia) {
+  skia_root = "//third_party/skia"
+} else {
+  skia_root = "$flutter_root/skia"
+}
+
 config("libharfbuzz_compile_flags") {
   cflags_cc = [
     "-std=c++14",
@@ -38,8 +44,8 @@ config("libharfbuzz_compile_flags") {
   ]
 
   include_dirs = [
-    "$flutter_root/skia/third_party/harfbuzz",
-    "$flutter_root/skia/third_party/externals/harfbuzz/src",
+    "$skia_root/third_party/harfbuzz",
+    "$skia_root/third_party/externals/harfbuzz/src",
   ]
 }
 
@@ -66,57 +72,69 @@ template("rosen_libharfbuzz") {
     }
 
     sources = [
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-aat-layout.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-aat-map.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-blob.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-buffer-serialize.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-buffer.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-common.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-face.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-font.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-icu.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-map.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-cff1-table.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-cff2-table.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-color.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-face.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-font.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-layout.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-map.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-math.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-name.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-shape-complex-arabic.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-shape-complex-default.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-shape-complex-hangul.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-shape-complex-hebrew.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-shape-complex-indic-table.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-shape-complex-indic.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-shape-complex-khmer.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-shape-complex-myanmar.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-shape-complex-thai.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-shape-complex-use-table.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-shape-complex-use.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-shape-complex-vowel-constraints.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-shape-fallback.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-shape-normalize.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-shape.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-tag.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ot-var.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-set.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-shape-plan.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-shape.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-shaper.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-static.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-subset-cff-common.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-subset-cff1.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-subset-cff2.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-subset-input.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-subset-plan.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-subset.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-ucd.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-unicode.cc",
-      "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-warning.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-aat-layout.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-aat-map.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-blob.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-buffer-serialize.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-buffer.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-common.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-face.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-font.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-icu.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-map.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-cff1-table.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-cff2-table.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-color.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-face.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-font.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-layout.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-map.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-math.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-name.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape-complex-arabic.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape-complex-default.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape-complex-hangul.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape-complex-hebrew.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape-complex-indic-table.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape-complex-indic.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape-complex-khmer.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape-complex-myanmar.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape-complex-thai.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape-complex-use-table.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape-complex-use.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape-complex-vowel-constraints.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape-fallback.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape-normalize.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-tag.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ot-var.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-set.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-shape-plan.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-shape.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-shaper.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-static.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-subset-cff-common.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-subset-cff1.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-subset-cff2.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-subset-input.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-subset-plan.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-subset.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-ucd.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-unicode.cc",
+      "$skia_root/third_party/externals/harfbuzz/src/hb-warning.cc",
     ]
+    if (defined(use_new_skia) && use_new_skia) {
+      sources -= [
+        "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape-complex-use-table.cc",
+        "$skia_root/third_party/externals/harfbuzz/src/hb-warning.cc"
+      ]
+      sources += [
+        "$skia_root/third_party/externals/harfbuzz/src/hb-number.cc",
+        "$skia_root/third_party/externals/harfbuzz/src/hb-ot-metrics.cc",
+        "$skia_root/third_party/externals/harfbuzz/src/hb-fallback-shape.cc",
+        "$skia_root/third_party/externals/harfbuzz/src/hb-ot-shape-complex-syllabic.cc",
+      ]
+    }
 
     deps = [ "//foundation/graphic/graphic_2d/rosen/build/flutter/icu:rosen_libicu_$platform" ]
   }

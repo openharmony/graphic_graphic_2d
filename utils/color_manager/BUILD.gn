@@ -44,10 +44,13 @@ ohos_shared_library("color_manager") {
 
   public_configs = [ ":color_manager_public_config" ]
 
-  public_deps = [
-    "//third_party/bounds_checking_function:libsec_shared",
-    "//third_party/flutter/build/skia:ace_skia_ohos",
-  ]
+  public_deps = [ "//third_party/bounds_checking_function:libsec_shared" ]
+
+  if (defined(use_new_skia) && use_new_skia) {
+    public_deps += [ "//third_party/skia:skia" ]
+  } else {
+    public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  }
 
   subsystem_name = "graphic"
   part_name = "graphic_standard"

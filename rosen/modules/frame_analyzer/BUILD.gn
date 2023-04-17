@@ -48,8 +48,13 @@ ohos_shared_library("libframe_analyzer") {
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
       "//foundation/graphic/graphic_2d/utils/sandbox:sandbox_utils",
-      "//third_party/flutter/build/skia:ace_skia_ohos",
     ]
+
+    if (defined(use_new_skia) && use_new_skia) {
+      deps += [  "//third_party/skia:skia" ]
+    } else {
+      deps += [  "//third_party/flutter/build/skia:ace_skia_ohos" ]
+    }
 
     external_deps = [
       "c_utils:utils",

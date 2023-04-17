@@ -16,7 +16,11 @@ import("//foundation/graphic/graphic_2d/rosen/modules/platform/config.gni")
 
 # ace_skia {{{
 group("ace_skia") {
-  public_deps = [ "//third_party/flutter/build/skia:ace_skia_$platform" ]
+  if (defined(use_new_skia) && use_new_skia) {
+    public_deps = [ "//third_party/skia:skia" ]
+  } else {
+    public_deps = [ "//third_party/flutter/build/skia:ace_skia_$platform" ]
+  }
 }
 
 # ace_skia }}}
