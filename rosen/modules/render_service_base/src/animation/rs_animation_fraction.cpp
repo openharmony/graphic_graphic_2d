@@ -85,18 +85,19 @@ int64_t RSAnimationFraction::GetLastFrameTime() const
     return lastFrameTime_;
 }
 
-std::tuple<float, bool, bool> RSAnimationFraction::GetAnimationFraction(int64_t time)
+std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(int64_t time)
 {
     int64_t durationNs = duration_ * MS_TO_NS;
     int64_t startDelayNs = startDelay_ * MS_TO_NS;
     int64_t deltaTime = time - lastFrameTime_;
     lastFrameTime_ = time;
     bool isInStartDelay = false;
+    bool isRepeatFinished = false;
     bool isFinished = true;
 
     if (durationNs <= 0 || (repeatCount_ <= 0 && repeatCount_ != INFINITE)) {
         isFinished = true;
-        return { GetEndFraction(), isInStartDelay, isFinished };
+        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatFinished};
     }
     // 1. Calculates the total running fraction of animation
     float animationScale = GetAnimationScale();
@@ -116,7 +117,7 @@ std::tuple<float, bool, bool> RSAnimationFraction::GetAnimationFraction(int64_t 
     if (runningTime_ < startDelayNs) {
         isFinished = IsFinished();
         isInStartDelay = isFinished ? false : true;
-        return { GetStartFraction(), isInStartDelay, isFinished };
+        return { GetStartFraction(), isInStartDelay, isFinished, isRepeatFinished};
     }
 
     // 2. Calculate the running time of the current cycle animation.
@@ -131,6 +132,9 @@ std::tuple<float, bool, bool> RSAnimationFraction::GetAnimationFraction(int64_t 
             realPlayTime += durationNs;
         }
     }
+    if (isRepeatFinishCallBackEnable_) {
+        isRepeatFinished = (realPlayTime / durationNs) >= 1;
+    }
     playTime_ = realPlayTime % durationNs;
 
     // 4. update status for auto reverse
@@ -139,12 +143,12 @@ std::tuple<float, bool, bool> RSAnimationFraction::GetAnimationFraction(int64_t 
 
     // 5. get final animation fraction
     if (isFinished) {
-        return { GetEndFraction(), isInStartDelay, isFinished };
+        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatFinished};
     }
     currentTimeFraction_ = static_cast<float>(playTime_) / durationNs;
     currentTimeFraction_ = currentIsReverseCycle_ ? (1.0f - currentTimeFraction_) : currentTimeFraction_;
     currentTimeFraction_ = std::clamp(currentTimeFraction_, 0.0f, 1.0f);
-    return { currentTimeFraction_, isInStartDelay, isFinished };
+    return { currentTimeFraction_, isInStartDelay, isFinished, isRepeatFinished };
 }
 
 bool RSAnimationFraction::IsFinished() const

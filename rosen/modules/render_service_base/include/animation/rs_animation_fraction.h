@@ -38,8 +38,8 @@ public:
     static void SetAnimationScale(float animationScale);
     static void OnAnimationScaleChangedCallback(const char *key, const char *value, void *context);
 
-    // return <fraction, isInStartDelay, isFinished> as tuple
-    std::tuple<float, bool, bool> GetAnimationFraction(int64_t time);
+    // return <fraction, isInStartDelay, isFinished, isRepeatFinished> as tuple
+    std::tuple<float, bool, bool, bool> GetAnimationFraction(int64_t time);
     void UpdateRemainTimeFraction(float fraction, int remainTime = 0);
     float GetStartFraction() const;
     float GetEndFraction() const;

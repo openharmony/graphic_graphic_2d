@@ -20,6 +20,7 @@ namespace Rosen {
 
 namespace {
 static AnimationCommandHelper::FinishCallbackProcessor finishCallbackProcessor = nullptr;
+static AnimationCommandHelper::FinishCallbackProcessor repeatCallbackProcessor = nullptr;
 }
 
 void AnimationCommandHelper::AnimationFinishCallback(RSContext& context, NodeId targetId, AnimationId animId)
@@ -32,6 +33,18 @@ void AnimationCommandHelper::AnimationFinishCallback(RSContext& context, NodeId 
 void AnimationCommandHelper::SetFinishCallbackProcessor(FinishCallbackProcessor processor)
 {
     finishCallbackProcessor = processor;
+}
+
+void AnimationCommandHelper::AnimationRepeatCallback(RSContext& context, NodeId targetId, AnimationId animId)
+{
+    if (repeatCallbackProcessor != nullptr) {
+        repeatCallbackProcessor(targetId, animId);
+    }
+}
+
+void AnimationCommandHelper::SetRepeatCallbackProcessor(RepeatCallbackProcessor processor)
+{
+    repeatCallbackProcessor = processor;
 }
 
 void AnimationCommandHelper::CreateAnimation(

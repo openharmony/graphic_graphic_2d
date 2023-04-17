@@ -122,6 +122,16 @@ public:
         return animationFraction_.GetDirection();
     }
 
+    void SetRepeatCallBackEnable(bool isEnable)
+    {
+        animationFraction_.SetRepeatFinishCallBackEnable(isEnable);
+    }
+
+    bool GetRepeatCallBackEnable() const
+    {
+        return animationFraction_.GetRepeatFinishCallBackEnable();
+    }
+
     void Attach(RSRenderNode* renderNode);
     void Detach();
     RSRenderNode* GetTarget() const;
@@ -163,6 +173,8 @@ private:
     void ProcessFillModeOnStart(float startFraction);
 
     void ProcessFillModeOnFinish(float endFraction);
+
+    void ProcessOnRepeatFinish();
 
     AnimationId id_ = 0;
     NodeId targetId_ = 0;

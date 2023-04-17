@@ -58,7 +58,7 @@ public:
 
     static std::vector<std::shared_ptr<RSAnimation>> Animate(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback,
-        const std::function<void()>& finishCallback = nullptr);
+        const std::function<void()>& finishCallback = nullptr, const std::function<void()>& repeatCallback = nullptr);
 
     static std::vector<std::shared_ptr<RSAnimation>> AnimateWithCurrentOptions(
         const PropertyCallback& callback, const std::function<void()>& finishCallback, bool timingSensitive = true);
@@ -232,6 +232,7 @@ protected:
 
 private:
     bool AnimationFinish(AnimationId animationId);
+    bool AnimationRepeatFinish(AnimationId animationId);
     bool HasPropertyAnimation(const PropertyId& id);
     void FallbackAnimationsToRoot();
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);

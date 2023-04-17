@@ -65,6 +65,7 @@ RSUIDirector::~RSUIDirector()
 void RSUIDirector::Init(bool shouldCreateRenderThread)
 {
     AnimationCommandHelper::SetFinishCallbackProcessor(AnimationCallbackProcessor);
+    AnimationCommandHelper::SetRepeatCallbackProcessor(AnimationRepeatCallbackProcessor);
 
     isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
     if (shouldCreateRenderThread && !isUniRenderEnabled_) {
@@ -310,6 +311,17 @@ void RSUIDirector::PostTask(const std::function<void()>& task)
         return;
     }
     g_uiTaskRunner(task);
+}
+
+void RSUIDirector::AnimationRepeatCallbackProcessor(NodeId nodeId, AnimationId animId)
+{
+    // try find the node by nodeId
+    if (auto nodePtr = RSNodeMap::Instance().GetNode<RSNode>(nodeId)) {
+        if (!nodePtr->AnimationRepeatFinish(animId)) {
+            ROSEN_LOGE("RSUIDirector::AnimationRepeatCallbackProcessor, could not find animation %" PRIu64 " on node %" PRIu64
+                       ".", animId, nodeId);
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

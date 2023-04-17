@@ -135,7 +135,7 @@ void RSNode::AddKeyFrame(float fraction, const PropertyCallback& propertyCallbac
 
 std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback,
-    const std::function<void()>& finishCallback)
+    const std::function<void()>& finishCallback, const std::function<void()>& repeatCallback)
 {
     if (propertyCallback == nullptr) {
         ROSEN_LOGE("Failed to add curve animation, property callback is null!");
@@ -151,7 +151,12 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimin
     if (finishCallback != nullptr) {
         animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback);
     }
-    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(animationFinishCallback));
+    std::shared_ptr<AnimationRepeatCallback> animationRepeatCallback;
+    if (repeatCallback != nullptr) {
+        animationRepeatCallback = std::make_shared<AnimationRepeatCallback>(repeatCallback);
+    }
+    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(animationFinishCallback),
+        std::move(animationRepeatCallback));
     propertyCallback();
     return implicitAnimator->CloseImplicitAnimation();
 }
@@ -946,6 +951,23 @@ bool RSNode::AnimationFinish(AnimationId animationId)
 
     animation->CallFinishCallback();
     RemoveAnimationInner(animation);
+    return true;
+}
+
+bool RSNode::AnimationRepeatFinish(AnimationId animationId)
+{
+    auto animationItr = animations_.find(animationId);
+    if (animationItr == animations_.end()) {
+        ROSEN_LOGE("Failed to find animation[%" PRIu64 "]!", animationId);
+        return false;
+    }
+
+    auto& animation = animationItr->second;
+    if (animation == nullptr) {
+        ROSEN_LOGE("Failed to finish animation[%" PRIu64 "], animation is null!", animationId);
+        return false;
+    }
+    animation->CallRepeatCallback();
     return true;
 }
 

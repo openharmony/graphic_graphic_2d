@@ -30,7 +30,41 @@ namespace Rosen {
 int RSImplicitAnimator::OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve, const std::shared_ptr<AnimationFinishCallback>& finishCallback)
 {
-    globalImplicitParams_.push({ timingProtocol, timingCurve, finishCallback });
+    return OpenImplicitAnimation(timingProtocol, timingCurve, finishCallback, nullptr);
+}
+
+int RSImplicitAnimator::OpenImplicitAnimation(const std::shared_ptr<AnimationFinishCallback>& finishCallback)
+{
+    if (globalImplicitParams_.empty()) {
+        // if current implicit animation params is empty, use default params, if no animation created, call finish
+        // callback immediately
+        return OpenImplicitAnimation(
+            RSAnimationTimingProtocol::IMMEDIATE, RSAnimationTimingCurve::LINEAR, finishCallback);
+    } else {
+        // copy current implicit animation params and replace finish callback
+        [[maybe_unused]] auto& [protocol, curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
+        return OpenImplicitAnimation(protocol, curve, finishCallback);
+    }
+}
+
+int RSImplicitAnimator::OpenImplicitAnimation(
+    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve)
+{
+    if (globalImplicitParams_.empty()) {
+        // current implicit animation params is empty, use empty
+        return OpenImplicitAnimation(timingProtocol, timingCurve, nullptr);
+    } else {
+        // copy current implicit animation callback and replace timing protocol and curve
+        [[maybe_unused]] auto& [protocol, curve, callback, unused_repeatCallback] = globalImplicitParams_.top();
+        return OpenImplicitAnimation(timingProtocol, timingCurve, callback);
+    }
+}
+
+int RSImplicitAnimator::OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
+    const RSAnimationTimingCurve& timingCurve, const std::shared_ptr<AnimationFinishCallback>& finishCallback,
+    const std::shared_ptr<AnimationRepeatCallback>& repeatCallback)
+{
+    globalImplicitParams_.push({ timingProtocol, timingCurve, finishCallback, repeatCallback});
     implicitAnimations_.push({});
     keyframeAnimations_.push({});
     switch (timingCurve.type_) {
@@ -50,33 +84,6 @@ int RSImplicitAnimator::OpenImplicitAnimation(const RSAnimationTimingProtocol& t
     return static_cast<int>(globalImplicitParams_.size()) - 1;
 }
 
-int RSImplicitAnimator::OpenImplicitAnimation(const std::shared_ptr<AnimationFinishCallback>& finishCallback)
-{
-    if (globalImplicitParams_.empty()) {
-        // if current implicit animation params is empty, use default params, if no animation created, call finish
-        // callback immediately
-        return OpenImplicitAnimation(
-            RSAnimationTimingProtocol::IMMEDIATE, RSAnimationTimingCurve::LINEAR, finishCallback);
-    } else {
-        // copy current implicit animation params and replace finish callback
-        [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
-        return OpenImplicitAnimation(protocol, curve, finishCallback);
-    }
-}
-
-int RSImplicitAnimator::OpenImplicitAnimation(
-    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve)
-{
-    if (globalImplicitParams_.empty()) {
-        // current implicit animation params is empty, use empty
-        return OpenImplicitAnimation(timingProtocol, timingCurve, nullptr);
-    } else {
-        // copy current implicit animation callback and replace timing protocol and curve
-        [[maybe_unused]] auto& [protocol, curve, callback] = globalImplicitParams_.top();
-        return OpenImplicitAnimation(timingProtocol, timingCurve, callback);
-    }
-}
-
 std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnimation()
 {
     if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
@@ -85,6 +92,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
     }
 
     auto& finishCallback = std::get<std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());
+    auto& repeatCallback = std::get<std::shared_ptr<AnimationRepeatCallback>>(globalImplicitParams_.top());
     auto& currentAnimations = implicitAnimations_.top();
     auto& currentKeyframeAnimations = keyframeAnimations_.top();
     // if no implicit animation created
@@ -128,11 +136,13 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
         // this will actually create the RSRenderKeyframeAnimation
         target->AddAnimation(keyframeAnimation);
         keyframeAnimation->SetFinishCallback(finishCallback);
+        keyframeAnimation->SetRepeatCallback(repeatCallback);
         resultAnimations.emplace_back(keyframeAnimation);
     }
 
     for (const auto& [animation, nodeId] : currentAnimations) {
         animation->SetFinishCallback(finishCallback);
+        animation->SetRepeatCallback(repeatCallback);
         resultAnimations.emplace_back(animation);
     }
 
@@ -155,7 +165,7 @@ void RSImplicitAnimator::BeginImplicitKeyFrameAnimation(float fraction, const RS
         return;
     }
 
-    [[maybe_unused]] auto& [protocol, unused_curve, unused] = globalImplicitParams_.top();
+    [[maybe_unused]] auto& [protocol, unused_curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
     auto keyframeAnimationParam = std::make_shared<RSImplicitKeyframeAnimationParam>(protocol, timingCurve, fraction);
     PushImplicitParam(keyframeAnimationParam);
 }
@@ -189,7 +199,7 @@ bool RSImplicitAnimator::NeedImplicitAnimation()
 void RSImplicitAnimator::BeginImplicitCurveAnimation()
 {
     // params sanity already checked in BeginImplicitAnimation, no need to check again.
-    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    [[maybe_unused]] auto& [protocol, curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
     auto curveAnimationParam = std::make_shared<RSImplicitCurveAnimationParam>(protocol, curve);
     PushImplicitParam(curveAnimationParam);
 }
@@ -214,7 +224,7 @@ void RSImplicitAnimator::BeginImplicitPathAnimation(const std::shared_ptr<RSMoti
         return;
     }
 
-    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    [[maybe_unused]] auto& [protocol, curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
     if (curve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
         ROSEN_LOGE("Wrong type of timing curve!");
         return;
@@ -237,7 +247,7 @@ void RSImplicitAnimator::EndImplicitPathAnimation()
 void RSImplicitAnimator::BeginImplicitSpringAnimation()
 {
     // params sanity already checked in BeginImplicitAnimation, no need to check again.
-    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    [[maybe_unused]] auto& [protocol, curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
     auto springParam = std::make_shared<RSImplicitSpringAnimationParam>(protocol, curve);
     PushImplicitParam(springParam);
 }
@@ -245,7 +255,7 @@ void RSImplicitAnimator::BeginImplicitSpringAnimation()
 void RSImplicitAnimator::BeginImplicitInterpolatingSpringAnimation()
 {
     // params sanity already checked in BeginImplicitAnimation, no need to check again.
-    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    [[maybe_unused]] auto& [protocol, curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
     auto interpolatingSpringParam = std::make_shared<RSImplicitInterpolatingSpringAnimationParam>(protocol, curve);
     PushImplicitParam(interpolatingSpringParam);
 }
@@ -258,7 +268,7 @@ void RSImplicitAnimator::BeginImplicitTransition(
         return;
     }
 
-    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    [[maybe_unused]] auto& [protocol, curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
     if (curve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
         ROSEN_LOGE("Wrong type of timing curve!");
         return;

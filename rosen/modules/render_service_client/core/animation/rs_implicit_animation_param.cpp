@@ -45,6 +45,7 @@ void RSImplicitAnimationParam::ApplyTimingProtocol(const std::shared_ptr<RSAnima
     animation->SetAutoReverse(timingProtocol_.GetAutoReverse());
     animation->SetRepeatCount(timingProtocol_.GetRepeatCount());
     animation->SetFillMode(timingProtocol_.GetFillMode());
+    animation->SetRepeatFinishCallBackEnable(timingProtocol_.GetRepeatFinishCallBackEnable());
 }
 
 RSImplicitCurveAnimationParam::RSImplicitCurveAnimationParam(

@@ -53,6 +53,7 @@ enum RSAnimationCommandType : uint16_t {
 
     // UI operation
     ANIMATION_FINISH_CALLBACK,
+    ANIMATION_REPEAT_CALLBACK,
 };
 
 class RSB_EXPORT AnimationCommandHelper {
@@ -104,6 +105,9 @@ public:
     using FinishCallbackProcessor = void (*)(NodeId, AnimationId);
     static void AnimationFinishCallback(RSContext& context, NodeId targetId, AnimationId animId);
     static RSB_EXPORT void SetFinishCallbackProcessor(FinishCallbackProcessor processor);
+    using RepeatCallbackProcessor = void (*)(NodeId, AnimationId);
+    static void AnimationRepeatCallback(RSContext& context, NodeId targetId, AnimationId animId);
+    static RSB_EXPORT void SetRepeatCallbackProcessor(RepeatCallbackProcessor processor);
 };
 
 // animation operation
@@ -124,6 +128,9 @@ ADD_COMMAND(RSAnimationSetFraction,
 
 ADD_COMMAND(RSAnimationFinishCallback,
     ARG(ANIMATION, ANIMATION_FINISH_CALLBACK, AnimationCommandHelper::AnimationFinishCallback, NodeId, AnimationId))
+
+ADD_COMMAND(RSAnimationRepeatCallback,
+    ARG(ANIMATION, ANIMATION_REPEAT_CALLBACK, AnimationCommandHelper::AnimationRepeatCallback, NodeId, AnimationId))
 
 // create curve animation
 ADD_COMMAND(RSAnimationCreateCurve, ARG(ANIMATION, ANIMATION_CREATE_CURVE, AnimationCommandHelper::CreateAnimation,

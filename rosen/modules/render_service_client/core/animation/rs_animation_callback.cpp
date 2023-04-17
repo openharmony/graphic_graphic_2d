@@ -38,5 +38,12 @@ void AnimationFinishCallback::Execute()
         callback_ = nullptr;
     }
 }
+
+void AnimationRepeatCallback::Execute()
+{
+    if (callback_ != nullptr) {
+        callback_();
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

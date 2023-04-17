@@ -64,6 +64,7 @@ private:
     static void RecvMessages(std::shared_ptr<RSTransactionData> cmds);
     static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds); // receive message
     static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId);
+    static void AnimationRepeatCallbackProcessor(NodeId nodeId, AnimationId animId);
     static void PostTask(const std::function<void()>& task);
 
     RSUIDirector() = default;

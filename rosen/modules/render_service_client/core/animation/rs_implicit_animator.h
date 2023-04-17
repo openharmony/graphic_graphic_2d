@@ -27,6 +27,7 @@
 namespace OHOS {
 namespace Rosen {
 class AnimationFinishCallback;
+class AnimationRepeatCallback;
 class RSAnimation;
 class RSPropertyBase;
 class RSImplicitAnimationParam;
@@ -47,6 +48,10 @@ public:
     // open implicit animation with current callback and given timing protocol & curve
     int OpenImplicitAnimation(
         const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve);
+    // open implicit animation with given animation options, finish callback and repeatcallback
+    int OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
+        const RSAnimationTimingCurve& timingCurve, const std::shared_ptr<AnimationFinishCallback>& finishCallback,
+        const std::shared_ptr<AnimationRepeatCallback>& repeatCallback);
 
     // close implicit animation and return all animations
     std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation();
@@ -83,8 +88,8 @@ private:
 
     void ExecuteWithoutAnimation(const std::function<void()>& callback);
 
-    std::stack<std::tuple<RSAnimationTimingProtocol, RSAnimationTimingCurve, std::shared_ptr<AnimationFinishCallback>>>
-        globalImplicitParams_;
+    std::stack<std::tuple<RSAnimationTimingProtocol, RSAnimationTimingCurve, std::shared_ptr<AnimationFinishCallback>,
+        std::shared_ptr<AnimationRepeatCallback>>>  globalImplicitParams_;
     std::stack<std::shared_ptr<RSImplicitAnimationParam>> implicitAnimationParams_;
     std::stack<std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>>> implicitAnimations_;
     std::stack<std::map<std::pair<NodeId, PropertyId>, std::shared_ptr<RSAnimation>>> keyframeAnimations_;

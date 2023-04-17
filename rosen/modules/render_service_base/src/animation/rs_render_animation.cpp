@@ -15,7 +15,9 @@
 
 #include "animation/rs_render_animation.h"
 
+#include "command/rs_animation_command.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "command/rs_message_processor.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -229,6 +231,13 @@ void RSRenderAnimation::ProcessFillModeOnFinish(float endFraction)
     }
 }
 
+void RSRenderAnimation::ProcessOnRepeatFinish()
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationRepeatCallback>(targetId_, id_);
+    RSMessageProcessor::Instance().AddUIMessage(ExtractPid(id_), command);
+}
+
 bool RSRenderAnimation::Animate(int64_t time)
 {
     if (!IsRunning()) {
@@ -253,7 +262,7 @@ bool RSRenderAnimation::Animate(int64_t time)
     }
 
     // convert time to fraction
-    auto [fraction, isInStartDelay, isFinished] = animationFraction_.GetAnimationFraction(time);
+    auto [fraction, isInStartDelay, isFinished, isRepeatFinished] = animationFraction_.GetAnimationFraction(time);
     if (isInStartDelay) {
         ProcessFillModeOnStart(fraction);
         ROSEN_LOGD("RSRenderAnimation::Animate, isInStartDelay is true");
@@ -261,6 +270,9 @@ bool RSRenderAnimation::Animate(int64_t time)
     }
 
     OnAnimate(fraction);
+    if (isRepeatFinished) {
+        ProcessOnRepeatFinish();
+    }
     if (isFinished) {
         ProcessFillModeOnFinish(fraction);
         ROSEN_LOGD("RSRenderAnimation::Animate, isFinished is true");
