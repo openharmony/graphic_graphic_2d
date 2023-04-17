@@ -43,18 +43,18 @@ TexginePaint ConvertMyPaintToTexginePaint(const MyPaint& data)
 struct FontStyleTestData {
     std::string text;
     TextStyle style;
-} datas[] = {
+} g_datas[] = {
     {
         .text = "无样式",
         .style = {
-            .fontSize_ = 32,
+            .fontSize = 32,
         }
     },
     {
         .text = "前景样式：颜色",
         .style = {
-            .fontSize_ = 32,
-            .foreground_ = ConvertMyPaintToTexginePaint({
+            .fontSize = 32,
+            .foreground = ConvertMyPaintToTexginePaint({
                 .color = 0xFF00FF00,
             }),
         }
@@ -62,8 +62,8 @@ struct FontStyleTestData {
     {
         .text = "前景样式：模糊",
         .style = {
-            .fontSize_ = 32,
-            .foreground_ = ConvertMyPaintToTexginePaint({
+            .fontSize = 32,
+            .foreground = ConvertMyPaintToTexginePaint({
                 .blurRadius = 2.0f,
             }),
         }
@@ -71,7 +71,7 @@ struct FontStyleTestData {
     {
         .text = "背景样式：颜色",
         .style = {
-            .fontSize_ = 32,
+            .fontSize = 32,
             .background_ = ConvertMyPaintToTexginePaint({
                 .color = 0x5500FF00,
             }),
@@ -80,7 +80,7 @@ struct FontStyleTestData {
     {
         .text = "背景样式：边框",
         .style = {
-            .fontSize_ = 32,
+            .fontSize = 32,
             .background_ = ConvertMyPaintToTexginePaint({
                 .color = 0x5500FF00,
                 .style = TexginePaint::STROKE,
@@ -98,12 +98,13 @@ public:
 
     void Layout()
     {
-        for (auto& [text, style] : datas) {
+        for (auto& [text, style] : g_datas) {
             auto builder = TypographyBuilder::Create();
             builder->PushStyle(style);
             builder->AppendSpan(text);
             auto typography = builder->Build();
-            typography->Layout(300);
+            double widthLimit = 300.0;
+            typography->Layout(widthLimit);
             typographies_.push_back({
                 .typography = typography,
             });

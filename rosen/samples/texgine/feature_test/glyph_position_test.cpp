@@ -26,31 +26,31 @@ using namespace OHOS::Rosen::TextEngine;
 
 namespace {
 struct GlyphPosition {
-    double x_ = 0;
-    double y_ = 5;
-    TypographyStyle ys_;
-} datas[] {
-    { .x_ = -5,  .y_ = -5 },
-    { .x_ = -5,  .y_ = 15 },
-    { .x_ = 5,   .y_ = -5 },
-    { .x_ = -5,  .y_ = 85 },
-    { .x_ = 155, .y_ = -5 },
-    { .x_ = 155, .y_ = 15 },
-    { .x_ = 155, .y_ = 85 },
-    { .x_ = 96,  .y_ = 8 },
-    { .x_ = 100, .y_ = 8 },
-    { .x_ = 137, .y_ = 15 },
-    { .x_ = 96,  .y_ = 8, .ys_ = { .align_ = TextAlign::CENTER, }, },
-    { .x_ = 100, .y_ = 8, .ys_ = { .align_ = TextAlign::CENTER, }, },
-    { .x_ = 123, .y_ = 70, .ys_ = { .align_ = TextAlign::CENTER, }, },
-    { .x_ = 22,  .y_ = 70, .ys_ = { .align_ = TextAlign::CENTER, }, },
-    { .x_ = 46,  .y_ = 70, },
-    { .x_ = 52,  .y_ = 70, },
-    { .x_ = 55,  .y_ = 70, },
-    { .x_ = 52,  .y_ = 67, },
+    double x = 0;
+    double y = 5;
+    TypographyStyle ys;
+} g_datas[] {
+    { .x = -5,  .y = -5 },
+    { .x = -5,  .y = 15 },
+    { .x = 5,   .y = -5 },
+    { .x = -5,  .y = 85 },
+    { .x = 155, .y = -5 },
+    { .x = 155, .y = 15 },
+    { .x = 155, .y = 85 },
+    { .x = 96,  .y = 8 },
+    { .x = 100, .y = 8 },
+    { .x = 137, .y = 15 },
+    { .x = 96,  .y = 8, .ys = { .align_ = TextAlign::CENTER, }, },
+    { .x = 100, .y = 8, .ys = { .align_ = TextAlign::CENTER, }, },
+    { .x = 123, .y = 70, .ys = { .align_ = TextAlign::CENTER, }, },
+    { .x = 22,  .y = 70, .ys = { .align_ = TextAlign::CENTER, }, },
+    { .x = 46,  .y = 70, },
+    { .x = 52,  .y = 70, },
+    { .x = 55,  .y = 70, },
+    { .x = 52,  .y = 67, },
 };
 
-constexpr auto text = "hello world hello world 你好世界 你好世界， hello openharmony, hello openharmony, 你好鸿蒙";
+constexpr auto TEXT = "hello world hello world 你好世界 你好世界， hello openharmony, hello openharmony, 你好鸿蒙";
 
 class GlyphPositionTest : public TestFeature {
 public:
@@ -64,17 +64,16 @@ public:
         xs.fontFamilies_ = {"Segoe UI Emoji"};
         xs.fontSize_ = 14;
 
-        for (auto &data : datas) {
-            auto dfprovider = DynamicFileFontProvider::Create();
-            dfprovider->LoadFont("Segoe UI Emoji", RESOURCE_PATH_PREFIX "seguiemj.ttf");
+        for (auto &data : g_datas) {
+            auto dfProvider = DynamicFileFontProvider::Create();
+            dfProvider->LoadFont("Segoe UI Emoji", RESOURCE_PATH_PREFIX "seguiemj.ttf");
             auto fps = FontProviders::Create();
-            fps->AppendFontProvider(dfprovider);
+            fps->AppendFontProvider(dfProvider);
             fps->AppendFontProvider(SystemFontProvider::GetInstance());
 
-            auto builder = TypographyBuilder::Create(data.ys_, std::move(fps));
-
+            auto builder = TypographyBuilder::Create(data.ys, std::move(fps));
             builder->PushStyle(xs);
-            builder->AppendSpan(text);
+            builder->AppendSpan(TEXT);
             builder->PopStyle();
 
             std::string emojiText = Woman Skin1 ZWJ RedHeart ZWJ Man Skin0;
@@ -82,42 +81,50 @@ public:
             builder->AppendSpan(emojiText);
             builder->PopStyle();
 
-            auto onPaint = [data](const struct TypographyData &tyData, TexgineCanvas &canvas, double x, double y) {
-                auto &typography = tyData.typography;
-                typography->Paint(canvas, x, y);
-                TexginePaint paint;
-                paint.SetAntiAlias(true);
-                paint.SetColor(0x7F00FF00);
-                paint.SetStrokeWidth(5);
-                canvas.DrawLine(x + data.x_ - 10, y + data.y_, x + data.x_ + 10, y + data.y_, paint);
-                canvas.DrawLine(x + data.x_, y + data.y_ - 10, x + data.x_, y + data.y_ + 10, paint);
-                paint.SetColor(0xFF00FF);
-                paint.SetAlpha(255 * 0.3);
-                canvas.Save();
-                canvas.Translate(x, y);
-                auto ia = typography->GetGlyphIndexByCoordinate(data.x_, data.y_);
-                auto rects = typography->GetTextRectsByBoundary(Boundary{ia.index_, ia.index_ + 1},
-                    TextRectHeightStyle::COVER_TOP_AND_BOTTOM, TextRectWidthStyle::TIGHT);
-                if (rects.size()) {
-                    canvas.DrawRect(rects.back().rect_, paint);
-                }
-                canvas.Restore();
-            };
-
+            auto onPaint = GetPaintFunc(data);
             std::stringstream ss;
-            ss << "(" << data.x_ << ", " << data.y_ << ")";
-            if (data.ys_.align_ == TextAlign::CENTER) {
+            ss << "(" << data.x << ", " << data.y << ")";
+            if (data.ys.align_ == TextAlign::CENTER) {
                 ss << " align(center)";
             }
 
             auto typography = builder->Build();
-            typography->Layout(150);
+            double widthLimit = 150.0;
+            typography->Layout(widthLimit);
             typographies_.push_back({
                 .typography = typography,
                 .comment = ss.str(),
                 .onPaint = onPaint,
             });
         }
+    }
+
+    std::function<void(const struct TypographyData &, Texgine::TexgineCanvas &, double, double)> GetPaintFunc(
+        const GlyphPosition &data)
+    {
+        auto onPaint = [data](const struct TypographyData &tyData, TexgineCanvas &canvas, double x, double y) {
+            auto &typography = tyData.typography;
+            typography->Paint(canvas, x, y);
+            TexginePaint paint;
+            paint.SetAntiAlias(true);
+            paint.SetColor(0x7F00FF00);
+            paint.SetStrokeWidth(5);
+            canvas.DrawLine(x + data.x - 10, y + data.y, x + data.x + 10, y + data.y, paint);
+            canvas.DrawLine(x + data.x, y + data.y - 10, x + data.x, y + data.y + 10, paint);
+            paint.SetColor(0xFF00FF);
+            paint.SetAlpha(255 * 0.3);
+            canvas.Save();
+            canvas.Translate(x, y);
+            auto ia = typography->GetGlyphIndexByCoordinate(data.x, data.y);
+            auto rects = typography->GetTextRectsByBoundary(Boundary{ia.index_, ia.index_ + 1},
+                TextRectHeightStyle::COVER_TOP_AND_BOTTOM, TextRectWidthStyle::TIGHT);
+            if (rects.size()) {
+                canvas.DrawRect(rects.back().rect_, paint);
+            }
+            canvas.Restore();
+        };
+
+        return onPaint;
     }
 } g_test;
 } // namespace
