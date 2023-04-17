@@ -44,9 +44,9 @@ using namespace OHOS::Rosen;
 using namespace std::chrono_literals;
 using MMIPE = MMI::PointerEvent;
 
-#define TRACE_BEGIN(str) StartTrace(HITRACE_TAG_GRAPHIC_AGP, str);
-#define TRACE_END() FinishTrace(HITRACE_TAG_GRAPHIC_AGP);
-#define TRACE_COUNT(str, val) CountTrace(HITRACE_TAG_GRAPHIC_AGP, str, val);
+#define TRACE_BEGIN(str) StartTrace(HITRACE_TAG_GRAPHIC_AGP, str)
+#define TRACE_END() FinishTrace(HITRACE_TAG_GRAPHIC_AGP)
+#define TRACE_COUNT(str, val) CountTrace(HITRACE_TAG_GRAPHIC_AGP, str, val)
 #define TRACE_SCOPE(str) HitraceScoped trace(HITRACE_TAG_GRAPHIC_AGP, str)
 
 struct RSData {
@@ -154,7 +154,7 @@ void SkiaFramework::Run()
     // input
     auto mmi = MMI::InputManager::GetInstance();
     if (mmi == nullptr) {
-       return;
+        return;
     }
 
     struct PointerFilter : public OHOS::MMI::IInputEventFilter {
@@ -180,12 +180,13 @@ void SkiaFramework::Run()
                 const auto &y = firstPointer.GetDisplayY();
 
                 if (action == MMIPE::POINTER_ACTION_DOWN) {
+                    // 400 * 1000 is the discriminant time for consecutive clicks
                     if (time - rsdata.lastTime_ <= 400 * 1000) {
                         sf->right_ = false;
                         sf->left_ = true;
                     }
 
-                    if (sf->right_ == false && sf->left_ == false) {
+                    if (!sf->right_ && !sf->left_) {
                         sf->right_ = true;
                     }
                     rsdata.lastTime_ = pointerEvent->GetActionTime();
@@ -230,7 +231,6 @@ void SkiaFramework::Run()
                     sf->UpdateInvertMatrix();
                     sf->diffx_ = sf->diffy_ = 0;
                 }
-
             }
 
             if (ids.size() >= 2) {
@@ -256,7 +256,8 @@ void SkiaFramework::Run()
                     auto point = sf->invmat_.mapXY(sf->scalex_, sf->scaley_);
                     sf->mat_ = sf->scaleMat_;
                     sf->mat_ = sf->mat_.preConcat(SkMatrix::MakeTrans(+point.x(), +point.y()));
-                    sf->mat_ = sf->mat_.preConcat(SkMatrix::MakeScale(scalediff / sf->scalediff_.load()));
+                    sf->mat_ = sf->mat_.preConcat(SkMatrix::MakeScale(scalediff /
+                                (sf->scalediff_.load() != 0 ? sf->scalediff_.load() : 1)));
                     sf->mat_ = sf->mat_.preConcat(SkMatrix::MakeTrans(-point.x(), -point.y()));
                     sf->UpdateInvertMatrix();
                 }
