@@ -90,7 +90,7 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
 {
     return static_cast<ReleaseGpuResourceType>(
-        std::atoi((system::GetParameter("persist.release.gpuresource.enabled", "0")).c_str()));
+        std::atoi((system::GetParameter("persist.release.gpuresource.enabled", "2")).c_str()));
 }
 
 bool RSSystemProperties::GetOcclusionEnabled()

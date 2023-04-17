@@ -65,10 +65,10 @@ void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, GrGpuResourceTag
 #endif
 }
 
-void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, NodeId surfaceNodeId)
+void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, pid_t pid)
 {
 #ifdef RS_ENABLE_GL
-    GrGpuResourceTag tag(ExtractPid(surfaceNodeId), 0, 0, 0);
+    GrGpuResourceTag tag(pid, 0, 0, 0);
     ReleaseAllGpuResource(grContext, tag);
 #endif
 }
