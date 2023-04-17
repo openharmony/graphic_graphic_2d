@@ -69,18 +69,71 @@ public:
 
     TexginePaint();
     SkPaint GetPaint() const;
-    void SetPaint(SkPaint paint);
-    void SetColor(uint32_t color);
-    void SetAlphaf(float alpha);
-    void SetStrokeWidth(double width);
-    void SetAntiAlias(bool aa);
-    void SetARGB(unsigned int a, unsigned int r, unsigned int g, unsigned int b);
+    /*
+     * @brief Sets SkPaint to TexginePaint
+     */
+    void SetPaint(const SkPaint &paint);
+
+    /*
+     * @brief Sets alpha and RGB used when stroking and filling
+     */
+    void SetColor(const uint32_t color);
+
+    /*
+     * @brief Replace alpha while keeping RGB unchanged.
+     */
+    void SetAlphaf(const float alpha);
+
+    /*
+     * @brief Sets the thickness of the pen used by the paint to outline the shape
+     */
+    void SetStrokeWidth(const double width);
+
+    /*
+     * @brief Sets edge pixels are drawn as opaque or partially transparent.
+     */
+    void SetAntiAlias(const bool aa);
+
+    /*
+     * @brief Sets color used when drawing solid fills
+     * @param a The quantity, from completely transparent (0) to completely opaque (255)
+     * @param r Red, from no red (0) to full red (255)
+     * @param g Green, from no green (0) to full green (255)
+     * @param b blue, from no blue (0) to full blue (255)
+     */
+    void SetARGB(const unsigned int a, const unsigned int r,
+        const unsigned int g, const unsigned int b);
+
+    /*
+     * @brief Sets whether the geometry is filled, stroked or filled and stroked
+     */
     void SetStyle(Style style);
-    void SetPathEffect(std::shared_ptr<TexginePathEffect> pathEffect);
-    void SetMaskFilter(std::shared_ptr<TexgineMaskFilter> maskFilter);
-    void SetAlpha(unsigned int alpha);
+
+    /*
+     * @brief Sets TexginePathEffect to the paint
+     * @param pathEffect The path that replace SkPath when drawn
+     */
+    void SetPathEffect(const std::shared_ptr<TexginePathEffect> pathEffect);
+
+    /*
+     * @brief Sets TexgineMaskFilter to the paint
+     * @param maskFilter Modifies clipping mask generated from drawn geometry
+     */
+    void SetMaskFilter(const std::shared_ptr<TexgineMaskFilter> maskFilter);
+
+    /*
+     * @brief Replaces alpha, leaving RGB
+     * @param alpha Is from 0.0 to 1.0
+     *              0.0 makes color fully transparent
+     *              1.0 makes color fully opaque
+     */
+    void SetAlpha(const unsigned int alpha);
+
+    /*
+     * @brief Sets blend mode to paint
+     */
     void SetBlendMode(TexgineBlendMode mode);
-    bool operator ==(const TexginePaint &rhs) const;
+    bool operator==(const TexginePaint &rhs) const;
 
 private:
     std::shared_ptr<SkPaint> paint_ = nullptr;

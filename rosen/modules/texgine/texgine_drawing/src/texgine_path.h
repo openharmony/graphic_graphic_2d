@@ -26,22 +26,54 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 enum class TexginePathDirection {
-    kCW,  // clockwise direction for adding closed contours
-    kCCW, // counter-clockwise direction for adding closed contours
+    K_CW,  // clockwise direction for adding closed contours
+    K_CCW, // counter-clockwise direction for adding closed contours
 };
 
 struct TexginePoint {
-    float fX_;
-    float fY_;
+    float fX;
+    float fY;
 };
 
 class TexginePath {
 public:
-    SkPath GetPath();
-    void SetPath(std::shared_ptr<SkPath> path);
-    TexginePath &AddOval(TexgineRect &oval, TexginePathDirection dir = TexginePathDirection::kCW);
+    /*
+     * @brief Returns the SkPath that user sets to TexginePath or TexginePath`s own SkPath
+     */
+    std::shared_ptr<SkPath> GetPath() const;
+
+    /*
+     * @brief Sets SkPath to TexginePath
+     */
+    void SetPath(const std::shared_ptr<SkPath> path);
+
+    /*
+     * @brief Adds oval to path, Oval is upright ellipse bounded by SkRect oval with
+     *        radii equal to half oval width and half oval height
+     * @param oval The boundary of the added ellipse
+     * @param dir TexginePathDirection to wind ellipse
+     * @return reference to SkPath
+     */
+    TexginePath &AddOval(const TexgineRect &oval, TexginePathDirection dir = TexginePathDirection::K_CW);
+
+    /*
+     * @brief Add contour start point at SkPoint p
+     * @param p contour start
+     * @return reference to SkPath
+     */
     TexginePath &MoveTo(const TexginePoint &p);
+
+    /*
+     * @brief Add a quadrilateral from the last point to SkPoint p1 to SkPoint p2
+     * @param p1 Control the SkPoint of added quadrilaterals
+     * @param p2 The end of SkPoint added quad
+     */
     TexginePath &QuadTo(const TexginePoint &p1, const TexginePoint &p2);
+
+    /*
+     * @brief Adds line from last point to SkPoint p
+     * @param  end SkPoint of added line
+     */
     TexginePath &LineTo(const TexginePoint &p);
 
 private:

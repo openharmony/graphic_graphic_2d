@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-std::shared_ptr<TexginePathEffect> TexginePath1DPathEffect::Make(TexginePath &path,
+std::shared_ptr<TexginePathEffect> TexginePath1DPathEffect::Make(const TexginePath &path,
     float advance, float phase, Style style)
 {
     auto effect = SkPath1DPathEffect::Make(path.GetPath(), advance, phase,
