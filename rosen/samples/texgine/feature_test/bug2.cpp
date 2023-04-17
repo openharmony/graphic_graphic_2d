@@ -33,7 +33,8 @@ public:
         TextStyle tstyle;
         builder->AppendSpan("OpenHarmony 3.2.8.1");
         auto typography = builder->Build();
-        typography->Layout(651);
+        double widthLimit = 651.0;
+        typography->Layout(widthLimit);
         auto maxIntrinsicWidth = typography->GetMaxIntrinsicWidth();
         typography->Layout(maxIntrinsicWidth);
 

@@ -24,57 +24,57 @@ namespace {
 struct Info {
     std::string span;
     TextStyle style;
-} infos[] = {
+} g_infos[] = {
     {
         .span = " hello",
         .style = {
-            .fontSize_ = 16,
-            .decoration_ = TextDecoration::BASELINE,
+            .fontSize = 16,
+            .decoration = TextDecoration::BASELINE,
         },
     },
     {
         .span = " world",
         .style = {
-            .fontSize_ = 32,
-            .decoration_ = TextDecoration::BASELINE,
+            .fontSize = 32,
+            .decoration = TextDecoration::BASELINE,
         },
     },
     {
         .span = " hello",
         .style = {
-            .fontSize_ = 64,
-            .decoration_ = TextDecoration::BASELINE,
+            .fontSize = 64,
+            .decoration = TextDecoration::BASELINE,
         },
     },
     {
         .span = " world",
         .style = {
-            .fontSize_ = 32,
-            .decoration_ = TextDecoration::BASELINE,
+            .fontSize = 32,
+            .decoration = TextDecoration::BASELINE,
         },
     },
-     {
+    {
         .span = " HELLO",
         .style = {
-            .fontSize_ = 16,
-            .decoration_ = TextDecoration::BASELINE,
+            .fontSize = 16,
+            .decoration = TextDecoration::BASELINE,
         },
     },
 };
 
 struct StyleData {
-    TextRectHeightStyle heightStyle;
-    TextRectWidthStyle widthStyle;
+    TextRectHeightStyle heightstyle;
+    TextRectWidthStyle widthstyle;
     std::string title;
-} styleDatas [] = {
+} g_styleDatas [] = {
     {
-        .heightStyle = TextRectHeightStyle::TIGHT,
-        .widthStyle = TextRectWidthStyle::TIGHT,
+        .heightstyle = TextRectHeightStyle::TIGHT,
+        .widthstyle = TextRectWidthStyle::TIGHT,
         .title = "字体大小不同，最终的布局显示基线位置相同",
     },
     {
-        .heightStyle = TextRectHeightStyle::COVER_TOP_AND_BOTTOM,
-        .widthStyle = TextRectWidthStyle::TIGHT,
+        .heightstyle = TextRectHeightStyle::COVER_TOP_AND_BOTTOM,
+        .widthstyle = TextRectWidthStyle::TIGHT,
         .title = "复现MaxHeight现象",
     }
 };
@@ -90,21 +90,22 @@ public:
         option_.needRainbowChar = true;
 
         auto builder = TypographyBuilder::Create();
-        for (const auto &[span, style] : infos) {
+        for (const auto &[span, style] : g_infos) {
             builder->PushStyle(style);
             builder->AppendSpan(span);
             builder->PopStyle();
         }
 
         auto typography = builder->Build();
-        typography->Layout(300);
+        double widthLimit = 300.0;
+        typography->Layout(widthLimit);
 
-        for (const auto &style : styleDatas) {
+        for (const auto &style : g_styleDatas) {
             typographies_.push_back({
                 .typography = typography,
                 .comment = style.title,
-                .ws = style.widthStyle,
-                .hs = style.heightStyle,
+                .ws = style.widthstyle,
+                .hs = style.heightstyle,
             });
         }
     }

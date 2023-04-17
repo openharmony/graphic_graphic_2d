@@ -29,14 +29,15 @@ public:
 
     void Layout()
     {
-        TypographyStyle ys = { .maxLines_ = 1, .ellipsis_ = u"..." };
+        TypographyStyle ys = { .maxLines = 1, .ellipsis = u"..." };
 
         auto builder = TypographyBuilder::Create(ys);
         TextStyle tstyle;
         builder->PushStyle(tstyle);
         builder->AppendSpan("相机");
         auto typography = builder->Build();
-        typography->Layout(111);
+        double widthLimit = 111.0;
+        typography->Layout(widthLimit);
 
         auto actualWidth = typography->GetActualWidth();
         typography->Layout(actualWidth);
