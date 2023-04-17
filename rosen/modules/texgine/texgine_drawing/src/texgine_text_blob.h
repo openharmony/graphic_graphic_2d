@@ -25,11 +25,18 @@ namespace Rosen {
 namespace TextEngine {
 class TexgineTextBlob {
 public:
-    sk_sp<SkTextBlob> GetTextBlob();
-    void SetTextBlob(sk_sp<SkTextBlob> textBlob);
+    /*
+     * @brief Return the pointer of SkTextBlob to prepare the paint info
+     */
+    sk_sp<SkTextBlob> GetTextBlob() const;
+
+    /*
+     * @brief Sets SkTextBlob to TexgineTextBlob
+     */
+    void SetTextBlob(const sk_sp<SkTextBlob> textBlob);
 
 private:
-    sk_sp<SkTextBlob> textBlob_;
+    sk_sp<SkTextBlob> textBlob_ = nullptr;
 };
 } // namespace TextEngine
 } // namespace Rosen

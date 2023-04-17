@@ -18,23 +18,30 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-std::shared_ptr<SkTextBlobBuilder> TexgineTextBlobBuilder::GetTextBlobBuilder()
+std::shared_ptr<SkTextBlobBuilder> TexgineTextBlobBuilder::GetTextBlobBuilder() const
 {
     return textBlobBuilder_;
 }
 
 TexgineTextBlobBuilder::RunBuffer &TexgineTextBlobBuilder::AllocRunPos(const TexgineFont &font, int count)
 {
+    if (textBlobBuilder_ == nullptr || font.GetFont() == nullptr) {
+        return NULL;
+    }
+
     auto &runBuffer = textBlobBuilder_->allocRunPos(*font.GetFont(), count);
-    buffer_.glyphs_ = runBuffer.glyphs;
-    buffer_.pos_ = runBuffer.pos;
-    buffer_.utf8text_ = runBuffer.utf8text;
-    buffer_.clusters_ = runBuffer.clusters;
+    buffer_.glyphs = runBuffer.glyphs;
+    buffer_.pos = runBuffer.pos;
+    buffer_.utf8text = runBuffer.utf8text;
+    buffer_.clusters = runBuffer.clusters;
     return buffer_;
 }
 
 std::shared_ptr<TexgineTextBlob> TexgineTextBlobBuilder::Make()
 {
+    if (textBlobBuilder_ == nullptr) {
+        return nullptr;
+    }
     auto tb = std::make_shared<TexgineTextBlob>();
     auto blob = textBlobBuilder_->make();
     if (blob == nullptr) {

@@ -25,14 +25,14 @@ TexgineTypeface::TexgineTypeface()
     typeface_ = SkTypeface::MakeDefault();
 }
 
-TexgineTypeface::TexgineTypeface(SkTypeface *tf): TexgineTypeface(sk_sp<SkTypeface>(tf))
+TexgineTypeface::TexgineTypeface(SkTypeface *tf) : TexgineTypeface(sk_sp<SkTypeface>(tf))
 {
     if (tf) {
         tf->ref();
     }
 }
 
-TexgineTypeface::TexgineTypeface(sk_sp<SkTypeface> typeface)
+TexgineTypeface::TexgineTypeface(const sk_sp<SkTypeface> typeface)
 {
     typeface_ = typeface;
 }
@@ -46,41 +46,56 @@ TexgineTypeface::TexgineTypeface(void *context)
     }
 }
 
-sk_sp<SkTypeface> TexgineTypeface::GetTypeface()
+sk_sp<SkTypeface> TexgineTypeface::GetTypeface() const
 {
     return typeface_;
 }
 
-size_t TexgineTypeface::GetTableSize(uint32_t tag)
+size_t TexgineTypeface::GetTableSize(uint32_t tag) const
 {
+    if (typeface_ == nullptr) {
+        return 0;
+    }
     return typeface_->getTableSize(tag);
 }
 
-size_t TexgineTypeface::GetTableData(uint32_t tag, size_t offset, size_t length, void *data)
+size_t TexgineTypeface::GetTableData(uint32_t tag, size_t offset, size_t length, void *data) const
 {
+    if (typeface_ == nullptr) {
+        return 0;
+    }
     return typeface_->getTableData(tag, offset, length, data);
 }
 
-int TexgineTypeface::GetUnitsPerEm()
+int TexgineTypeface::GetUnitsPerEm() const
 {
+    if (typeface_ == nullptr) {
+        return 0;
+    }
     return typeface_->getUnitsPerEm();
 }
 
 std::shared_ptr<TexgineTypeface> TexgineTypeface::MakeFromStream(
     std::unique_ptr<TexgineMemoryStream> stream, int index)
 {
+    if (stream == nullptr) {
+        return nullptr;
+    }
     auto skTypeface = SkTypeface::MakeFromStream(stream->GetStream());
     return std::make_shared<TexgineTypeface>(skTypeface);
 }
 
-std::shared_ptr<TexgineTypeface> TexgineTypeface::MakeFromFile(const char path[], int index)
+std::shared_ptr<TexgineTypeface> TexgineTypeface::MakeFromFile(const std::string &path, int index)
 {
     auto st = SkTypeface::MakeFromFile(path, index);
     return std::make_shared<TexgineTypeface>(st);
 }
 
-void TexgineTypeface::GetFamilyName(TexgineString *name)
+void TexgineTypeface::GetFamilyName(TexgineString *name) const
 {
+    if (typeface_ == nullptr || name == nullptr) {
+        return;
+    }
     typeface_->getFamilyName(name->GetString());
 }
 

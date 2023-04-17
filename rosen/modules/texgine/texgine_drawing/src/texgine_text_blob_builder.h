@@ -29,19 +29,34 @@ namespace TextEngine {
 class TexgineTextBlobBuilder {
 public:
     struct RunBuffer {
-        uint16_t *glyphs_;
-        float*  pos_;
-        char*      utf8text_;
-        uint32_t*  clusters_;
+        uint16_t* glyphs;
+        float* pos;
+        char* utf8Text;
+        uint32_t* clusters;
     };
 
-    std::shared_ptr<SkTextBlobBuilder> GetTextBlobBuilder();
+    /*
+     * @brief Get the SkTextBlobBuilder.
+     *        SkTextBlobBuilder is helper class for constructing SkTextBlob
+     */
+    std::shared_ptr<SkTextBlobBuilder> GetTextBlobBuilder() const;
+
+    /*
+     * @brief Returns run with storage for glyphs and SkPoint positions
+     * @param font SkFont used for this run
+     * @param The count The number of glyphs
+     * @return Writable glyph buffer and SkPoint buffer
+     */
     RunBuffer &AllocRunPos(const TexgineFont &font, int count);
+
+    /*
+     * @brief Create TexgineTextBlob
+     */
     std::shared_ptr<TexgineTextBlob> Make();
 
 private:
     std::shared_ptr<SkTextBlobBuilder> textBlobBuilder_ = std::make_shared<SkTextBlobBuilder>();
-    RunBuffer buffer_;
+    RunBuffer buffer_ = {};
 };
 } // namespace TextEngine
 } // namespace Rosen
