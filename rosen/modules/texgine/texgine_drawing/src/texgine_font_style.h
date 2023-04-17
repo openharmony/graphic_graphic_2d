@@ -26,17 +26,28 @@ namespace TextEngine {
 class TexgineFontStyle {
 public:
     enum class Slant {
-        kUpright_Slant,
-        kItalic_Slant,
-        kOblique_Slant,
+        K_UPRIGHT_SLANT,
+        K_ITALIC_SLANT,
+        K_OBLIQUE_SLANT,
     };
 
     TexgineFontStyle();
     TexgineFontStyle(int weight, int width, Slant slant);
-    TexgineFontStyle(std::shared_ptr<SkFontStyle> style);
-    std::shared_ptr<SkFontStyle> GetFontStyle();
-    void SetFontStyle(std::shared_ptr<SkFontStyle> fontStyle);
-    void SetStyle(SkFontStyle style);
+    explicit TexgineFontStyle(const std::shared_ptr<SkFontStyle> style);
+    /*
+     * @brief Returns SkFontStyle
+     */
+    std::shared_ptr<SkFontStyle> GetFontStyle() const;
+
+    /*
+     * @brief Sets SkFontStyle to TexgineFontStyle
+     */
+    void SetFontStyle(const std::shared_ptr<SkFontStyle> fontStyle);
+
+    /*
+     * @brief Sets SkFontStyle to TexgineFontStyle
+     */
+    void SetStyle(SkFontStyle &style);
 
 private:
     std::shared_ptr<SkFontStyle> fontStyle_ = nullptr;

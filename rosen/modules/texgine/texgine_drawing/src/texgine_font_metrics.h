@@ -26,25 +26,32 @@ namespace TextEngine {
 class TexgineFontMetrics {
 public:
     TexgineFontMetrics();
-    std::shared_ptr<SkFontMetrics> GetFontMetrics();
-    void SetFontMetrics(std::shared_ptr<SkFontMetrics> metrics);
+    /*
+     * @brief Returns SkFontMetrics
+     */
+    std::shared_ptr<SkFontMetrics> GetFontMetrics() const;
 
-    uint32_t *fFlags_;
-    float *fTop_;
-    float *fAscent_;
-    float *fDescent_;
-    float *fBottom_;
-    float *fLeading_;
-    float *fAvgCharWidth_;
-    float *fMaxCharWidth_;
-    float *fXMin_;
-    float *fXMax_;
-    float *fXHeight_;
-    float *fCapHeight_;
-    float *fUnderlineThickness_;
-    float *fUnderlinePosition_;
-    float *fStrikeoutThickness_;
-    float *fStrikeoutPosition_;
+    /*
+     * @brief Sets SkFontMetrics to TexgineFontMetrics
+     */
+    void SetFontMetrics(const std::shared_ptr<SkFontMetrics> metrics);
+
+    uint32_t *fFlags_ = nullptr;
+    float *fTop_ = nullptr;
+    float *fAscent_ = nullptr;
+    float *fDescent_ = nullptr;
+    float *fBottom_ = nullptr;
+    float *fLeading_ = nullptr;
+    float *fAvgCharWidth_ = nullptr;
+    float *fMaxCharWidth_ = nullptr;
+    float *fXMin_ = nullptr;
+    float *fXMax_ = nullptr;
+    float *fXHeight_ = nullptr;
+    float *fCapHeight_ = nullptr;
+    float *fUnderlineThickness_ = nullptr;
+    float *fUnderlinePosition_ = nullptr;
+    float *fStrikeoutThickness_ = nullptr;
+    float *fStrikeoutPosition_ = nullptr;
 
 private:
     std::shared_ptr<SkFontMetrics> fontMetrics_ = std::make_shared<SkFontMetrics>();

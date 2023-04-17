@@ -33,18 +33,21 @@ TexgineFontStyle::TexgineFontStyle(std::shared_ptr<SkFontStyle> style)
     fontStyle_ = style;
 }
 
-std::shared_ptr<SkFontStyle> TexgineFontStyle::GetFontStyle()
+std::shared_ptr<SkFontStyle> TexgineFontStyle::GetFontStyle() const
 {
     return fontStyle_;
 }
 
-void TexgineFontStyle::SetFontStyle(std::shared_ptr<SkFontStyle> fontStyle)
+void TexgineFontStyle::SetFontStyle(const std::shared_ptr<SkFontStyle> fontStyle)
 {
     fontStyle_ = fontStyle;
 }
 
-void TexgineFontStyle::SetStyle(SkFontStyle style)
+void TexgineFontStyle::SetStyle(SkFontStyle &style)
 {
+    if (fontStyle_ == nullptr) {
+        return;
+    }
     *fontStyle_ = style;
 }
 } // namespace TextEngine

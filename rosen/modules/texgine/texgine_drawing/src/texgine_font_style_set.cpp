@@ -30,7 +30,7 @@ TexgineFontStyleSet::~TexgineFontStyleSet()
     }
 }
 
-int TexgineFontStyleSet::Count()
+int TexgineFontStyleSet::Count() const
 {
     if (set_ == nullptr) {
         return 0;
@@ -39,11 +39,13 @@ int TexgineFontStyleSet::Count()
 }
 
 void TexgineFontStyleSet::GetStyle(int index, std::shared_ptr<TexgineFontStyle> style,
-    std::shared_ptr<TexgineString> name)
+    std::shared_ptr<TexgineString> name) const
 {
-    if (set_) {
-        set_->getStyle(index, style->GetFontStyle().get(), name->GetString());
+    if (set_ == nullptr || style == nullptr || name == nullptr) {
+        return;
     }
+
+    set_->getStyle(index, style->GetFontStyle().get(), name->GetString());
 }
 
 std::shared_ptr<TexgineTypeface> TexgineFontStyleSet::CreateTypeface(int index)
@@ -57,7 +59,7 @@ std::shared_ptr<TexgineTypeface> TexgineFontStyleSet::CreateTypeface(int index)
 
 std::shared_ptr<TexgineTypeface> TexgineFontStyleSet::MatchStyle(std::shared_ptr<TexgineFontStyle> pattern)
 {
-    if (set_ == nullptr) {
+    if (set_ == nullptr || pattern == nullptr || pattern->GetFontStyle() == nullptr) {
         return nullptr;
     }
     auto style = *pattern->GetFontStyle();
