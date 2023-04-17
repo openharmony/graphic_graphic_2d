@@ -19,8 +19,7 @@ import { AsyncCallback } from './basic';
  * colorSpaceManager
  * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
  */
- declare namespace colorSpaceManager {
-
+declare namespace colorSpaceManager {
   /**
    * Enumerates color space types.
    * @since 9
@@ -141,7 +140,7 @@ import { AsyncCallback } from './basic';
    */
   interface ColorSpaceManager {
     /**
-     * Get color space type.
+     * Get the name of color space type.
      * @since 9
      * @throws {BusinessError} 18600001 - If param value is abnormal
      */
@@ -180,6 +179,6 @@ import { AsyncCallback } from './basic';
    * @throws {BusinessError} 18600001 - If param value is abnormal
    */
   function create(primaries: ColorSpacePrimaries, gamma: number): ColorSpaceManager;
- }
+}
 
- export default colorSpaceManager;
+export default colorSpaceManager;
