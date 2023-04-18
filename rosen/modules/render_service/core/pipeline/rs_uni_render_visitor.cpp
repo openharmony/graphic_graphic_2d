@@ -558,6 +558,8 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     auto screenRotation = curDisplayNode_->GetRotation();
     node.ResetSurfaceOpaqueRegion(RectI(0, 0, screenInfo_.width, screenInfo_.height), geoPtr->GetAbsRect(),
         screenRotation, node.IsFocusedWindow(currentFocusedPid_));
+    node.ResetSurfaceContainerRegion(RectI(0, 0, screenInfo_.width, screenInfo_.height), geoPtr->GetAbsRect(),
+        screenRotation);
 
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     bool isLeashWindowNode = false;
@@ -1579,15 +1581,16 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
                 surfaceNode->SetShadowValidLastFrame(false);
             }
         }
-        auto transparentRegion = surfaceNode->GetTransparentRegion();
-        Occlusion::Rect tmpRect = Occlusion::Rect { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
-            surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() };
-        Occlusion::Region surfaceDirtyRegion { tmpRect };
-        Occlusion::Region transparentDirtyRegion = transparentRegion.And(surfaceDirtyRegion);
-        if (!transparentDirtyRegion.IsEmpty()) {
-            RS_LOGD("CalcDirtyDisplayRegion merge TransparentDirtyRegion %s region %s",
-                surfaceNode->GetName().c_str(), transparentDirtyRegion.GetRegionInfo().c_str());
-            std::vector<Occlusion::Rect> rects = transparentDirtyRegion.GetRegionRects();
+        // If a surface's dirty is intersect with container region (which can be considered transparent)
+        // should be added to display dirty region.
+        // Note: we use containerRegion rather transparentRegion to bypass inner corner dirty problem.
+        auto containerRegion = surfaceNode->GetContainerRegion();
+        auto surfaceDirtyRegion = Occlusion::Region{Occlusion::Rect{surfaceDirtyRect}};
+        auto containerDirtyRegion = containerRegion.And(surfaceDirtyRegion);
+        if (!containerDirtyRegion.IsEmpty()) {
+            RS_LOGD("CalcDirtyDisplayRegion merge containerDirtyRegion %s region %s",
+                surfaceNode->GetName().c_str(), containerDirtyRegion.GetRegionInfo().c_str());
+            std::vector<Occlusion::Rect> rects = containerDirtyRegion.GetRegionRects();
             for (const auto& rect : rects) {
                 displayDirtyManager->MergeDirtyRect(RectI
                     { rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
@@ -2072,9 +2075,19 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
 #ifdef RS_ENABLE_EGLQUERYSURFACE
-    if (isOpDropped_ && curSurfaceNode_ && !node.HasChildrenOutOfRect() &&
-        !curSurfaceNode_->SubNodeNeedDraw(node.GetOldDirtyInSurface(), partialRenderType_)) {
-        return;
+    if (isOpDropped_ && (curSurfaceNode_ != nullptr)) {
+        // If all the child nodes have drawing areas that do not exceed the current node, then current node
+        // can be directly skipped if not intersect with any dirtyregion.
+        // Otherwise, its childrenRect_ should be considered.
+        if (!node.HasChildrenOutOfRect()) {
+            if (!curSurfaceNode_->SubNodeNeedDraw(node.GetOldDirtyInSurface(), partialRenderType_)) {
+                return;
+            }
+        } else {
+            if (!curSurfaceNode_->SubNodeNeedDraw(node.GetChildrenRect(), partialRenderType_)) {
+                return;
+            }
+        }
     }
 #endif
     if (!canvas_) {

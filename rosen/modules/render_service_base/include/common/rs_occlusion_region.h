@@ -187,7 +187,7 @@ public:
     };
 
     Region() = default;
-    explicit Region(Rect& r)
+    Region(Rect r)
     {
         rects_.push_back(r);
         bound_ = Rect { r };
