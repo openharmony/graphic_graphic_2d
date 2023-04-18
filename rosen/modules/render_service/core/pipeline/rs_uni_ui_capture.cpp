@@ -218,7 +218,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceRenderNodeWithUni(RSSu
     }
 
     RSAutoCanvasRestore acr(canvas_);
-    canvas_->MultiplyAlpha(node.GetRenderProperties().GetAlpha() * node.GetContextAlpha());
+    canvas_->MultiplyAlpha(node.GetRenderProperties().GetAlpha());
     ProcessSurfaceViewWithUni(node);
 }
 

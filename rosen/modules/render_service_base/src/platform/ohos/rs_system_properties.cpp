@@ -203,6 +203,12 @@ float RSSystemProperties::GetAnimationScale()
     return std::atof((system::GetParameter("persist.sys.graphic.animationscale", "1.0")).c_str());
 }
 
+bool RSSystemProperties::GetProxyNodeDebugEnabled()
+{
+    static bool flag = system::GetParameter("rosen.proxyNode.debug.enabled", "0") != "0";
+    return flag;
+}
+
 bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
 {
     return std::atoi((system::GetParameter(name, defaultValue ? "1" : "0")).c_str()) != 0;

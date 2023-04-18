@@ -51,9 +51,9 @@ enum RSSurfaceNodeCommandType : uint16_t {
 class RSB_EXPORT SurfaceNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId nodeId);
-    static void SetContextMatrix(RSContext& context, NodeId nodeId, SkMatrix matrix);
+    static void SetContextMatrix(RSContext& context, NodeId nodeId, const std::optional<SkMatrix>& matrix);
     static void SetContextAlpha(RSContext& context, NodeId nodeId, float alpha);
-    static void SetContextClipRegion(RSContext& context, NodeId nodeId, SkRect clipRect);
+    static void SetContextClipRegion(RSContext& context, NodeId nodeId, const std::optional<SkRect>& clipRect);
     static void SetSecurityLayer(RSContext& context, NodeId nodeId, bool isSecurityLayer);
 #ifndef ROSEN_CROSS_PLATFORM
     static void SetColorSpace(RSContext& context, NodeId nodeId, ColorGamut colorSpace);
@@ -71,12 +71,13 @@ public:
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate, ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId))
-ADD_COMMAND(RSSurfaceNodeSetContextMatrix,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_MATRIX, SurfaceNodeCommandHelper::SetContextMatrix, NodeId, SkMatrix))
+ADD_COMMAND(
+    RSSurfaceNodeSetContextMatrix, ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_MATRIX,
+                                       SurfaceNodeCommandHelper::SetContextMatrix, NodeId, std::optional<SkMatrix>))
 ADD_COMMAND(RSSurfaceNodeSetContextAlpha,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_ALPHA, SurfaceNodeCommandHelper::SetContextAlpha, NodeId, float))
 ADD_COMMAND(RSSurfaceNodeSetContextClipRegion, ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_CLIP_REGION,
-    SurfaceNodeCommandHelper::SetContextClipRegion, NodeId, SkRect))
+    SurfaceNodeCommandHelper::SetContextClipRegion, NodeId, std::optional<SkRect>))
 ADD_COMMAND(RSSurfaceNodeSetSecurityLayer,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SECURITY_LAYER, SurfaceNodeCommandHelper::SetSecurityLayer, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeUpdateSurfaceDefaultSize, ARG(SURFACE_NODE, SURFACE_NODE_UPDATE_SURFACE_SIZE,

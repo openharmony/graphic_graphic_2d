@@ -36,16 +36,17 @@ public:
         NodeId id, std::weak_ptr<RSSurfaceRenderNode> target, NodeId targetId, std::weak_ptr<RSContext> context = {});
     ~RSProxyRenderNode() override;
 
-    // void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
-    // void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
-
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
-    // pass render context (matrix/alpha/clip) from proxy to target
-    void SetContextMatrix(const SkMatrix& transform);
+    // Transfer the rendering context variables (matrix/alpha/clip) from the proxy node to the target node, usually a
+    // surface node. Note that:
+    // 1. All three variables (alpha, matrix, and clipRegion) are RELATIVE to its parent node.
+    // 2. Alpha can be processed as an absolute value, as its parent (surface) node's alpha should always be 1.0f.
+    // 3. The matrix and clipRegion should be applied according to the parent node's matrix.
+    void SetContextMatrix(const std::optional<SkMatrix>& transform);
     void SetContextAlpha(float alpha);
-    void SetContextClipRegion(SkRect clipRegion);
+    void SetContextClipRegion(const std::optional<SkRect>& clipRegion);
 
     void ResetContextVariableCache();
 
@@ -53,9 +54,11 @@ private:
     std::weak_ptr<RSSurfaceRenderNode> target_;
     NodeId targetId_;
 
-    SkMatrix contextMatrix_ = SkMatrix::I();
+    std::optional<SkMatrix> contextMatrix_;
     float contextAlpha_ = 0.0f;
-    SkRect contextClipRect_ = SkRect::MakeEmpty();
+    std::optional<SkRect> contextClipRect_;
+
+    friend class RSUniRenderVisitor;
 };
 } // namespace Rosen
 } // namespace OHOS

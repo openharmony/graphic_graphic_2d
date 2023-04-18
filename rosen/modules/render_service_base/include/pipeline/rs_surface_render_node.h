@@ -207,15 +207,15 @@ public:
         return totalMatrix_;
     }
 
-    // pass render context (matrix/alpha/clip) from RT to RS
-    void SetContextMatrix(const SkMatrix& transform, bool sendMsg = true);
-    const SkMatrix& GetContextMatrix() const;
-
+    // Transfer the rendering context variables (matrix, alpha, and clipRegion) from the source node (in the render thread) to the
+    // target node (in the render service). Note that:
+    // - All three variables are relative to their parent node.
+    // - Alpha can be processed as an absolute value, as its parent (surface) node's alpha should always be 1.0f.
+    // - The matrix and clipRegion should be applied according to the parent node's matrix.
+    void SetContextMatrix(const std::optional<SkMatrix>& transform, bool sendMsg = true);
     void SetContextAlpha(float alpha, bool sendMsg = true);
-    float GetContextAlpha() const;
-
-    void SetContextClipRegion(SkRect clipRegion, bool sendMsg = true);
-    const SkRect& GetContextClipRegion() const;
+    void SetContextClipRegion(const std::optional<SkRect>& clipRegion, bool sendMsg = true);
+    std::optional<SkRect> GetContextClipRegion() const override;
 
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
@@ -542,7 +542,7 @@ public:
     // if surfacenode's buffer has been comsumed, it should be set dirty
     bool UpdateDirtyIfFrameBufferConsumed();
 
-    void UpdateSrcRect(const RSPaintFilterCanvas& canvas, SkIRect dstRect);
+    void UpdateSrcRect(const RSPaintFilterCanvas& canvas, const SkIRect& dstRect);
 
     // if a surfacenode's dstrect is empty, its subnodes' prepare stage can be skipped
     bool ShouldPrepareSubnodes();
@@ -579,9 +579,9 @@ private:
 
     std::mutex parallelVisitMutex_;
 
-    SkMatrix contextMatrix_ = SkMatrix::I();
     float contextAlpha_ = 1.0f;
-    SkRect contextClipRect_ = SkRect::MakeEmpty();
+    std::optional<SkMatrix> contextMatrix_;
+    std::optional<SkRect> contextClipRect_;
 
     bool isSecurityLayer_ = false;
     RectI srcRect_;
@@ -686,6 +686,10 @@ private:
     int32_t nodeCost_ = 0;
 
     bool animateState_ = false;
+
+    friend class RSUniRenderVisitor;
+    friend class RSBaseRenderNode;
+    friend class RSRenderService;
 };
 } // namespace Rosen
 } // namespace OHOS
