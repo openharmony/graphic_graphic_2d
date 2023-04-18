@@ -31,6 +31,10 @@
 #include "include/core/SkTextBlob.h"
 #include "include/core/SkTypeface.h"
 #include "include/core/SkVertices.h"
+#ifdef NEW_SKIA
+#include "include/core/SkSamplingOptions.h"
+#include "src/core/SkVerticesPriv.h"
+#endif
 #include "memory/MemoryTrack.h"
 #include "pixel_map.h"
 #include "securec.h"
@@ -230,7 +234,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkPaint& val)
         return false;
     }
     SkReadBuffer reader(data->data(), data->size());
+#ifdef NEW_SKIA
+    val = reader.readPaint();
+#else
     reader.readPaint(&val, nullptr);
+#endif
     return true;
 }
 
@@ -252,7 +260,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkImage>& val)
         return Marshalling(parcel, data);
     } else {
         SkBitmap bitmap;
+#ifdef NEW_SKIA
+        if (!as_IB(val.get())->getROPixels(nullptr, &bitmap)) {
+#else
         if (!as_IB(val.get())->getROPixels(&bitmap)) {
+#endif
             ROSEN_LOGE("RSMarshallingHelper::Marshalling SkImage getROPixels failed");
             return false;
         }
@@ -425,11 +437,24 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkVertices>& v
         ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling SkVertices is nullptr");
         return Marshalling(parcel, data);
     }
+#ifdef NEW_SKIA
+    SkBinaryWriteBuffer writer;
+    SkVerticesPriv info(val->priv());
+    info.encode(writer);
+    size_t length = writer.bytesWritten();
+    data = SkData::MakeUninitialized(length);
+    writer.writeToMemory(data->writable_data());
+#else
     data = val->encode();
+#endif
     return Marshalling(parcel, data);
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkVertices>& val)
 {
+    if (!val) {
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Unmarshalling SkVertices is nullptr");
+        return false;
+    }
     sk_sp<SkData> data;
     if (!Unmarshalling(parcel, data)) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling SkVertices");
@@ -439,7 +464,13 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkVertices>& val)
         val = nullptr;
         return true;
     }
+#ifdef NEW_SKIA
+    SkReadBuffer reader(data->data(), data->size());
+    SkVerticesPriv info(val->priv());
+    val = info.Decode(reader);
+#else
     val = SkVertices::Decode(data->data(), data->size());
+#endif
     return val != nullptr;
 }
 
@@ -815,6 +846,47 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RectT<fl
     return val != nullptr;
 }
 
+#ifdef NEW_SKIA
+// SkPaint
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkSamplingOptions& val)
+{
+    bool success = parcel.WriteBool(val.useCubic) &&
+                   parcel.WriteFloat(val.cubic.B) &&
+                   parcel.WriteFloat(val.cubic.C) &&
+                   parcel.WriteInt32(static_cast<int32_t>(val.filter)) &&
+                   parcel.WriteInt32(static_cast<int32_t>(val.mipmap));
+    return success;
+}
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkSamplingOptions& val)
+{
+    bool useCubic = false;
+    float b = 0;
+    float c = 0;
+    int32_t filter = 0;
+    int32_t mipmap = 0;
+    bool success = parcel.ReadBool(useCubic) &&
+                   parcel.ReadFloat(b) &&
+                   parcel.ReadFloat(c) &&
+                   parcel.ReadInt32(filter) &&
+                   parcel.ReadInt32(mipmap);
+    if (!success) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling SkSamplingOptions");
+        return false;
+    }
+    if (useCubic) {
+        SkCubicResampler cubicResampler;
+        cubicResampler.B = b;
+        cubicResampler.C = c;
+        SkSamplingOptions options(cubicResampler);
+        val = options;
+    } else {
+        SkSamplingOptions options(static_cast<SkFilterMode>(filter), static_cast<SkMipmapMode>(mipmap));
+        val = options;
+    }
+    return true;
+}
+#endif
+
 #define MARSHALLING_AND_UNMARSHALLING(TYPE)                                                 \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TYPE>& val) \
     {                                                                                       \
@@ -1034,6 +1106,5 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::unique_ptr<OpItem>&
     val.reset(item);
     return true;
 }
-
 } // namespace Rosen
 } // namespace OHOS
