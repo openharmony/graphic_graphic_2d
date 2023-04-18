@@ -232,6 +232,197 @@ HWTEST_F(TextBreakerTest, BreakWord2, TestSize.Level1)
         ASSERT_EQ(span->GetPreBreak(), span->GetPostBreak());
     });
 }
+
+/**
+ * @tc.name: BreakWord3
+ * @tc.desc: Verify the BreakWord
+ * @tc.type:FUNC
+ */
+HWTEST_F(TextBreakerTest, BreakWord3, TestSize.Level1)
+{
+    EXPECT_NO_THROW({
+        breaker.BreakWord(cgs2_, tpstyle_, textStyle_, spans_);
+        ASSERT_EQ(spans_.size(), 1);
+        auto span = spans_[0].TryToTextSpan();
+        ASSERT_NE(span->GetPreBreak(), span->GetPostBreak());
+    });
+}
+
+/**
+ * @tc.name: BreakWord4
+ * @tc.desc: Verify the BreakWord
+ * @tc.type:FUNC
+ */
+HWTEST_F(TextBreakerTest, BreakWord4, TestSize.Level1)
+{
+    tpstyle_.wordBreakType_ = WordBreakType::BREAKALL;
+
+    EXPECT_NO_THROW({
+        breaker.BreakWord(cgs1_, tpstyle_, textStyle_, spans_);
+        ASSERT_EQ(spans_.size(), 4);
+        for (int i = 0; i < 4; i++) {
+            auto span = spans_[i].TryToTextSpan();
+            ASSERT_EQ(span->GetPreBreak(), span->GetPostBreak());
+        }
+    });
+}
+
+/**
+ * @tc.name: BreakWord5
+ * @tc.desc: Verify the BreakWord
+ * @tc.type:FUNC
+ */
+HWTEST_F(TextBreakerTest, BreakWord5, TestSize.Level1)
+{
+    tpstyle_.wordBreakType_ = WordBreakType::BREAKALL;
+
+    EXPECT_NO_THROW({
+        breaker.BreakWord(cgs2_, tpstyle_, textStyle_, spans_);
+        ASSERT_EQ(spans_.size(), 5);
+        for (int i = 0; i < 4; i++) {
+            auto span = spans_[i].TryToTextSpan();
+            ASSERT_EQ(span->GetPreBreak(), span->GetPostBreak());
+        }
+        auto span = spans_[4].TryToTextSpan();
+        ASSERT_NE(span->GetPreBreak(), span->GetPostBreak());
+    });
+}
+
+/**
+ * @tc.name: GenerateSpan1
+ * @tc.desc: Verify the GenerateSpan
+ * @tc.type:FUNC
+ */
+HWTEST_F(TextBreakerTest, GenerateSpan1, TestSize.Level1)
+{
+    ASSERT_EXCEPTION(ExceptionType::InvalidArgument,
+        breaker.GenerateSpan(emptyCgs_, tpstyle_, textStyle_, spans_));
+}
+
+/**
+ * @tc.name: GenerateSpan2
+ * @tc.desc: Verify the GenerateSpan
+ * @tc.type:FUNC
+ */
+HWTEST_F(TextBreakerTest, GenerateSpan2, TestSize.Level1)
+{
+    ASSERT_EXCEPTION(ExceptionType::InvalidArgument,
+        breaker.GenerateSpan({}, tpstyle_, textStyle_, spans_));
+}
+
+/**
+ * @tc.name: GenerateSpan3
+ * @tc.desc: Verify the GenerateSpan
+ * @tc.type:FUNC
+ */
+HWTEST_F(TextBreakerTest, GenerateSpan3, TestSize.Level1)
+{
+    EXPECT_NO_THROW({
+        breaker.GenerateSpan(cgs2_, tpstyle_, textStyle_, spans_);
+        ASSERT_EQ(spans_.size(), 1);
+    });
+}
+
+/**
+ * @tc.name: WordBreak1
+ * @tc.desc: Verify the WordBreak
+ * @tc.type:FUNC
+ */
+HWTEST_F(TextBreakerTest, WordBreak1, TestSize.Level1)
+{
+    spans_ = {std::make_shared<MockAnySpan>()};
+    EXPECT_NO_THROW({
+        breaker.WordBreak(spans_, tpstyle_, FontProviders::Create());
+        ASSERT_EQ(spans_.size(), 1);
+        auto span = spans_[0].TryToAnySpan();
+        ASSERT_NE(span, nullptr);
+    });
+}
+
+/**
+ * @tc.name: WordBreak2
+ * @tc.desc: Verify the WordBreak
+ * @tc.type:FUNC
+ */
+HWTEST_F(TextBreakerTest, WordBreak2, TestSize.Level1)
+{
+    // 1: Set the Return value of Measurer
+    PrepareWordBreak(1, cgs1_);
+
+    spans_ = {tsNormal_};
+    EXPECT_NO_THROW({
+        breaker.WordBreak(spans_, tpstyle_, FontProviders::Create());
+        ASSERT_EQ(spans_.size(), 0);
+    });
+}
+
+/**
+ * @tc.name: WordBreak3
+ * @tc.desc: Verify the WordBreak
+ * @tc.type:FUNC
+ */
+HWTEST_F(TextBreakerTest, WordBreak3, TestSize.Level1)
+{
+    EXPECT_NO_THROW({
+        breaker.WordBreak(spans_, tpstyle_, FontProviders::Create());
+        ASSERT_EQ(spans_.size(), 0);
+    });
+}
+
+/**
+ * @tc.name: WordBreak4
+ * @tc.desc: Verify the WordBreak
+ * @tc.type:FUNC
+ */
+HWTEST_F(TextBreakerTest, WordBreak4, TestSize.Level1)
+{
+    auto type = WordBreakType::BREAKWORD;
+    // {0, 4} is {leftIndex, rightIndex}
+    boundaries = {{ 0, 4 }};
+    PrepareWordBreak(0, cgs1_, type);
+
+    spans_ = {tsNormal_};
+    EXPECT_NO_THROW({
+        breaker.WordBreak(spans_, tpstyle_, FontProviders::Create());
+        ASSERT_EQ(spans_.size(), 1);
+    });
+}
+
+/**
+ * @tc.name: WordBreak5
+ * @tc.desc: Verify the WordBreak
+ * @tc.type:FUNC
+ */
+HWTEST_F(TextBreakerTest, WordBreak5, TestSize.Level1)
+{
+    auto type = WordBreakType::BREAKALL;
+    boundaries = {{ 0, 4 }};
+    PrepareWordBreak(0, cgs1_, type);
+
+    spans_ = {tsNormal_};
+    EXPECT_NO_THROW({
+        breaker.WordBreak(spans_, tpstyle_, FontProviders::Create());
+        ASSERT_EQ(spans_.size(), 4);
+    });
+}
+
+/**
+ * @tc.name: WordBreak6
+ * @tc.desc: Verify the WordBreak
+ * @tc.type:FUNC
+ */
+HWTEST_F(TextBreakerTest, WordBreak6, TestSize.Level1)
+{
+    auto type = WordBreakType::BREAKALL;
+    boundaries = {};
+    PrepareWordBreak(0, cgs1_, type);
+
+    spans_ = {tsNormal_};
+    EXPECT_NO_THROW({
+        breaker.WordBreak(spans_, tpstyle_, FontProviders::Create());
+        ASSERT_EQ(spans_.size(), 0);
+    });
+}
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS
