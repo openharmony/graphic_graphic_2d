@@ -37,6 +37,11 @@ std::unique_ptr<DataImpl> ImplFactory::CreateDataImpl()
     return EngineImplFactory::CreateData();
 }
 
+std::unique_ptr<GPUContextImpl> ImplFactory::CreateGPUContextImpl()
+{
+    return EngineImplFactory::CreateGPUContext();
+}
+
 std::unique_ptr<BitmapImpl> ImplFactory::CreateBitmapImpl()
 {
     return EngineImplFactory::CreateBitmap();

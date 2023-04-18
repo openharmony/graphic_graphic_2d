@@ -21,6 +21,7 @@
 #include "skia_adapter/skia_color_filter.h"
 #include "skia_adapter/skia_color_space.h"
 #include "skia_adapter/skia_data.h"
+#include "skia_adapter/skia_gpu_context.h"
 #include "skia_adapter/skia_image.h"
 #include "skia_adapter/skia_image_filter.h"
 #include "skia_adapter/skia_mask_filter.h"
@@ -49,6 +50,11 @@ std::unique_ptr<CoreCanvasImpl> SkiaImplFactory::CreateCoreCanvas(void* rawCanva
 std::unique_ptr<DataImpl> SkiaImplFactory::CreateData()
 {
     return std::make_unique<SkiaData>();
+}
+
+std::unique_ptr<GPUContextImpl> SkiaImplFactory::CreateGPUContext()
+{
+    return std::make_unique<SkiaGPUContext>();
 }
 
 std::unique_ptr<BitmapImpl> SkiaImplFactory::CreateBitmap()

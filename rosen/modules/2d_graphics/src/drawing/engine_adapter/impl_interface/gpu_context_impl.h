@@ -16,6 +16,8 @@
 #ifndef GPU_CONTEXT_IMPL_H
 #define GPU_CONTEXT_IMPL_H
 
+#include <chrono>
+
 #include "base_impl.h"
 
 namespace OHOS {

@@ -22,6 +22,7 @@
 #include "impl_interface/color_space_impl.h"
 #include "impl_interface/core_canvas_impl.h"
 #include "impl_interface/data_impl.h"
+#include "impl_interface/gpu_context_impl.h"
 #include "impl_interface/image_filter_impl.h"
 #include "impl_interface/image_impl.h"
 #include "impl_interface/mask_filter_impl.h"
@@ -41,6 +42,7 @@ public:
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvas();
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvas(void* rawCanvas);
     static std::unique_ptr<DataImpl> CreateData();
+    static std::unique_ptr<GPUContextImpl> CreateGPUContext();
     static std::unique_ptr<BitmapImpl> CreateBitmap();
     static std::unique_ptr<ImageImpl> CreateImage();
     static std::unique_ptr<ImageImpl> CreateImage(void* rawImg);
