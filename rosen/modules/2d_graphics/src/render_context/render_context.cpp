@@ -77,7 +77,8 @@ static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void* native_display, 
         if (extensions &&
             (CheckEglExtension(extensions, EGL_EXT_PLATFORM_WAYLAND) ||
                 CheckEglExtension(extensions, EGL_KHR_PLATFORM_WAYLAND))) {
-            eglGetPlatformDisplayExt = (GetPlatformDisplayExt)eglGetProcAddress(EGL_GET_PLATFORM_DISPLAY_EXT);
+            eglGetPlatformDisplayExt = reinterpret_cast<GetPlatformDisplayExt>(
+                eglGetProcAddress(EGL_GET_PLATFORM_DISPLAY_EXT));
         }
     }
 
@@ -85,7 +86,7 @@ static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void* native_display, 
         return eglGetPlatformDisplayExt(platform, native_display, attrib_list);
     }
 
-    return eglGetDisplay((EGLNativeDisplayType)native_display);
+    return eglGetDisplay(static_cast<EGLNativeDisplayType>(native_display));
 }
 
 RenderContext::RenderContext()
