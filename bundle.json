@@ -141,6 +141,16 @@
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/include"
             }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/utils/sync_fence:sync_fence",
+            "header": {
+              "header_files": [
+                "sync_fence.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/utils/sync_fence/export"
+            }
           }
         ],
         "test": [
