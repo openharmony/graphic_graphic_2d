@@ -28,9 +28,9 @@
 namespace OHOS {
 namespace Rosen {
 int RSImplicitAnimator::OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
-    const RSAnimationTimingCurve& timingCurve, const std::shared_ptr<AnimationFinishCallback>& finishCallback)
+    const RSAnimationTimingCurve& timingCurve, std::shared_ptr<AnimationFinishCallback>&& finishCallback)
 {
-    globalImplicitParams_.push({ timingProtocol, timingCurve, finishCallback });
+    globalImplicitParams_.push({ timingProtocol, timingCurve, std::move(finishCallback) });
     implicitAnimations_.push({});
     keyframeAnimations_.push({});
     switch (timingCurve.type_) {
@@ -50,17 +50,17 @@ int RSImplicitAnimator::OpenImplicitAnimation(const RSAnimationTimingProtocol& t
     return static_cast<int>(globalImplicitParams_.size()) - 1;
 }
 
-int RSImplicitAnimator::OpenImplicitAnimation(const std::shared_ptr<AnimationFinishCallback>& finishCallback)
+int RSImplicitAnimator::OpenImplicitAnimation(std::shared_ptr<AnimationFinishCallback>&& finishCallback)
 {
     if (globalImplicitParams_.empty()) {
         // if current implicit animation params is empty, use default params, if no animation created, call finish
         // callback immediately
         return OpenImplicitAnimation(
-            RSAnimationTimingProtocol::IMMEDIATE, RSAnimationTimingCurve::LINEAR, finishCallback);
+            RSAnimationTimingProtocol::IMMEDIATE, RSAnimationTimingCurve::LINEAR, std::move(finishCallback));
     } else {
         // copy current implicit animation params and replace finish callback
-        [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
-        return OpenImplicitAnimation(protocol, curve, finishCallback);
+        [[maybe_unused]] const auto& [protocol, curve, unused] = globalImplicitParams_.top();
+        return OpenImplicitAnimation(protocol, curve, std::move(finishCallback));
     }
 }
 
@@ -72,8 +72,9 @@ int RSImplicitAnimator::OpenImplicitAnimation(
         return OpenImplicitAnimation(timingProtocol, timingCurve, nullptr);
     } else {
         // copy current implicit animation callback and replace timing protocol and curve
-        [[maybe_unused]] auto& [protocol, curve, callback] = globalImplicitParams_.top();
-        return OpenImplicitAnimation(timingProtocol, timingCurve, callback);
+        [[maybe_unused]] const auto& [protocol, curve, callback] = globalImplicitParams_.top();
+        auto copyOfCallback = callback;
+        return OpenImplicitAnimation(timingProtocol, timingCurve, std::move(copyOfCallback));
     }
 }
 
@@ -84,7 +85,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
         return {};
     }
 
-    auto& finishCallback = std::get<std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());
+    const auto& finishCallback = std::get<const std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());
     auto& currentAnimations = implicitAnimations_.top();
     auto& currentKeyframeAnimations = keyframeAnimations_.top();
     // if no implicit animation created
@@ -155,7 +156,7 @@ void RSImplicitAnimator::BeginImplicitKeyFrameAnimation(float fraction, const RS
         return;
     }
 
-    [[maybe_unused]] auto& [protocol, unused_curve, unused] = globalImplicitParams_.top();
+    [[maybe_unused]] const auto& [protocol, unused_curve, unused] = globalImplicitParams_.top();
     auto keyframeAnimationParam = std::make_shared<RSImplicitKeyframeAnimationParam>(protocol, timingCurve, fraction);
     PushImplicitParam(keyframeAnimationParam);
 }
@@ -189,7 +190,7 @@ bool RSImplicitAnimator::NeedImplicitAnimation()
 void RSImplicitAnimator::BeginImplicitCurveAnimation()
 {
     // params sanity already checked in BeginImplicitAnimation, no need to check again.
-    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    [[maybe_unused]] const auto& [protocol, curve, unused] = globalImplicitParams_.top();
     auto curveAnimationParam = std::make_shared<RSImplicitCurveAnimationParam>(protocol, curve);
     PushImplicitParam(curveAnimationParam);
 }
@@ -214,7 +215,7 @@ void RSImplicitAnimator::BeginImplicitPathAnimation(const std::shared_ptr<RSMoti
         return;
     }
 
-    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    [[maybe_unused]] const auto& [protocol, curve, unused] = globalImplicitParams_.top();
     if (curve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
         ROSEN_LOGE("Wrong type of timing curve!");
         return;
@@ -237,7 +238,7 @@ void RSImplicitAnimator::EndImplicitPathAnimation()
 void RSImplicitAnimator::BeginImplicitSpringAnimation()
 {
     // params sanity already checked in BeginImplicitAnimation, no need to check again.
-    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    [[maybe_unused]] const auto& [protocol, curve, unused] = globalImplicitParams_.top();
     auto springParam = std::make_shared<RSImplicitSpringAnimationParam>(protocol, curve);
     PushImplicitParam(springParam);
 }
@@ -245,7 +246,7 @@ void RSImplicitAnimator::BeginImplicitSpringAnimation()
 void RSImplicitAnimator::BeginImplicitInterpolatingSpringAnimation()
 {
     // params sanity already checked in BeginImplicitAnimation, no need to check again.
-    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    [[maybe_unused]] const auto& [protocol, curve, unused] = globalImplicitParams_.top();
     auto interpolatingSpringParam = std::make_shared<RSImplicitInterpolatingSpringAnimationParam>(protocol, curve);
     PushImplicitParam(interpolatingSpringParam);
 }
@@ -258,7 +259,7 @@ void RSImplicitAnimator::BeginImplicitTransition(
         return;
     }
 
-    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    [[maybe_unused]] const auto& [protocol, curve, unused] = globalImplicitParams_.top();
     if (curve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
         ROSEN_LOGE("Wrong type of timing curve!");
         return;
