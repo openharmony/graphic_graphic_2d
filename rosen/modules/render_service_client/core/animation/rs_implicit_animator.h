@@ -41,9 +41,9 @@ public:
 
     // open implicit animation with given animation options and finish callback
     int OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
-        const RSAnimationTimingCurve& timingCurve, const std::shared_ptr<AnimationFinishCallback>& finishCallback);
+        const RSAnimationTimingCurve& timingCurve, std::shared_ptr<AnimationFinishCallback>&& finishCallback);
     // open implicit animation with current options and given finish callback
-    int OpenImplicitAnimation(const std::shared_ptr<AnimationFinishCallback>& finishCallback);
+    int OpenImplicitAnimation(std::shared_ptr<AnimationFinishCallback>&& finishCallback);
     // open implicit animation with current callback and given timing protocol & curve
     int OpenImplicitAnimation(
         const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve);
@@ -83,7 +83,8 @@ private:
 
     void ExecuteWithoutAnimation(const std::function<void()>& callback);
 
-    std::stack<std::tuple<RSAnimationTimingProtocol, RSAnimationTimingCurve, std::shared_ptr<AnimationFinishCallback>>>
+    std::stack<
+        std::tuple<RSAnimationTimingProtocol, RSAnimationTimingCurve, const std::shared_ptr<AnimationFinishCallback>>>
         globalImplicitParams_;
     std::stack<std::shared_ptr<RSImplicitAnimationParam>> implicitAnimationParams_;
     std::stack<std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>>> implicitAnimations_;
