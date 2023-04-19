@@ -166,6 +166,171 @@ TextEngine::TextRectHeightStyle Convert(const TextRectHeightStyle &style)
     }
     return TextEngine::TextRectHeightStyle::TIGHT;
 }
+
+TextEngine::TextRectWidthStyle Convert(const TextRectWidthStyle &style)
+{
+    switch (style) {
+        case TextRectWidthStyle::TIGHT:
+            return TextEngine::TextRectWidthStyle::TIGHT;
+        case TextRectWidthStyle::MAX:
+            return TextEngine::TextRectWidthStyle::MAX_WIDTH;
+    }
+    return TextEngine::TextRectWidthStyle::TIGHT;
+}
+
+TextEngine::WordBreakType Convert(const WordBreakType &style)
+{
+    switch (style) {
+        case WordBreakType::NORMAL:
+            return TextEngine::WordBreakType::NORMAL;
+        case WordBreakType::BREAK_ALL:
+            return TextEngine::WordBreakType::BREAK_ALL;
+        case WordBreakType::BREAK_WORD:
+            return TextEngine::WordBreakType::BREAK_WORD;
+    }
+    return TextEngine::WordBreakType::NORMAL;
+}
+
+TextEngine::BreakStrategy Convert(const BreakStrategy &style)
+{
+    switch (style) {
+        case BreakStrategy::GREEDY:
+            return TextEngine::BreakStrategy::GREEDY;
+        case BreakStrategy::HIGH_QUALITY:
+            return TextEngine::BreakStrategy::HIGH_QUALITY;
+        case BreakStrategy::BALANCED:
+            return TextEngine::BreakStrategy::BALANCED;
+    }
+    return TextEngine::BreakStrategy::GREEDY;
+}
+
+TextEngine::FontWeight Convert(const FontWeight &style)
+{
+    switch (style) {
+        case FontWeight::W100:
+            return TextEngine::FontWeight::W100;
+        case FontWeight::W200:
+            return TextEngine::FontWeight::W200;
+        case FontWeight::W300:
+            return TextEngine::FontWeight::W300;
+        case FontWeight::W400:
+            return TextEngine::FontWeight::W400;
+        case FontWeight::W500:
+            return TextEngine::FontWeight::W500;
+        case FontWeight::W600:
+            return TextEngine::FontWeight::W600;
+        case FontWeight::W700:
+            return TextEngine::FontWeight::W700;
+        case FontWeight::W800:
+            return TextEngine::FontWeight::W800;
+        case FontWeight::W900:
+            return TextEngine::FontWeight::W900;
+    }
+    return TextEngine::FontWeight::W400;
+}
+
+TextEngine::FontStyle Convert(const FontStyle &style)
+{
+    switch (style) {
+        case FontStyle::NORMAL:
+            return TextEngine::FontStyle::NORMAL;
+        case FontStyle::ITALIC:
+            return TextEngine::FontStyle::ITALIC;
+    }
+    return TextEngine::FontStyle::NORMAL;
+}
+
+TextEngine::TextAlign Convert(const TextAlign &align)
+{
+    switch (align) {
+        case TextAlign::LEFT:
+            return TextEngine::TextAlign::LEFT;
+        case TextAlign::RIGHT:
+            return TextEngine::TextAlign::RIGHT;
+        case TextAlign::CENTER:
+            return TextEngine::TextAlign::CENTER;
+        case TextAlign::JUSTIFY:
+            return TextEngine::TextAlign::JUSTIFY;
+        case TextAlign::START:
+            return TextEngine::TextAlign::START;
+        case TextAlign::END:
+            return TextEngine::TextAlign::END;
+    }
+    return TextEngine::TextAlign::START;
+}
+
+TextEngine::TextBaseline Convert(const TextBaseline &baseline)
+{
+    switch (baseline) {
+        case TextBaseline::ALPHABETIC:
+            return TextEngine::TextBaseline::ALPHABETIC;
+        case TextBaseline::IDEOGRAPHIC:
+            return TextEngine::TextBaseline::IDEOGRAPHIC;
+    }
+    return TextEngine::TextBaseline::ALPHABETIC;
+}
+
+TextEngine::TextDirection Convert(const TextDirection &direction)
+{
+    switch (direction) {
+        case TextDirection::LTR:
+            return TextEngine::TextDirection::LTR;
+        case TextDirection::RTL:
+            return TextEngine::TextDirection::RTL;
+    }
+    return TextEngine::TextDirection::LTR;
+}
+
+TextEngine::TextDecorationStyle Convert(const TextDecorationStyle &style)
+{
+    switch (style) {
+        case TextDecorationStyle::SOLID:
+            return TextEngine::TextDecorationStyle::SOLID;
+        case TextDecorationStyle::DOUBLE:
+            return TextEngine::TextDecorationStyle::DOUBLE;
+        case TextDecorationStyle::DOTTED:
+            return TextEngine::TextDecorationStyle::DOTTED;
+        case TextDecorationStyle::DASHED:
+            return TextEngine::TextDecorationStyle::DASHED;
+        case TextDecorationStyle::WAVY:
+            return TextEngine::TextDecorationStyle::WAVY;
+    }
+    return TextEngine::TextDecorationStyle::SOLID;
+}
+
+TextEngine::TextDecoration Convert(const TextDecoration &decoration)
+{
+    TextEngine::TextDecoration retval = TextEngine::TextDecoration::NONE;
+    if (decoration & TextDecoration::UNDERLINE) {
+        retval |= TextEngine::TextDecoration::UNDERLINE;
+    }
+    if (decoration & TextDecoration::OVERLINE) {
+        retval |= TextEngine::TextDecoration::OVERLINE;
+    }
+    if (decoration & TextDecoration::LINE_THROUGH) {
+        retval |= TextEngine::TextDecoration::LINE_THROUGH;
+    }
+    return retval;
+}
+
+TextEngine::AnySpanAlignment Convert(const PlaceholderVerticalAlignment &alignment)
+{
+    switch (alignment) {
+        case PlaceholderVerticalAlignment::OFFSET_AT_BASELINE:
+            return TextEngine::AnySpanAlignment::OFFSET_AT_BASELINE;
+        case PlaceholderVerticalAlignment::ABOVE_BASELINE:
+            return TextEngine::AnySpanAlignment::ABOVE_BASELINE;
+        case PlaceholderVerticalAlignment::BELOW_BASELINE:
+            return TextEngine::AnySpanAlignment::BELOW_BASELINE;
+        case PlaceholderVerticalAlignment::TOP_OF_ROW_BOX:
+            return TextEngine::AnySpanAlignment::TOP_OF_ROW_BOX;
+        case PlaceholderVerticalAlignment::BOTTOM_OF_ROW_BOX:
+            return TextEngine::AnySpanAlignment::BOTTOM_OF_ROW_BOX;
+        case PlaceholderVerticalAlignment::CENTER_OF_ROW_BOX:
+            return TextEngine::AnySpanAlignment::CENTER_OF_ROW_BOX;
+    }
+    return TextEngine::AnySpanAlignment::OFFSET_AT_BASELINE;
+}
 } // namespace AdapterTextEngine
 } // namespace Rosen
 } // namespace OHOS
