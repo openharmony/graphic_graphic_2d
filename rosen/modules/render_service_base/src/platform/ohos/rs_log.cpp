@@ -53,9 +53,11 @@ void RSLogOutput(RSLog::Tag tag, RSLog::Level level, const char* format, ...)
         case RSLog::LEVEL_INFO:
             OHOS::HiviewDFX::HiLog::Info(GenerateLabel(tag), "%{public}s", logStr);
             break;
+#ifndef ROSEN_DISABLE_DEBUGLOG
         case RSLog::LEVEL_DEBUG:
             OHOS::HiviewDFX::HiLog::Debug(GenerateLabel(tag), "%{public}s", logStr);
             break;
+#endif
         case RSLog::LEVEL_WARN:
             OHOS::HiviewDFX::HiLog::Warn(GenerateLabel(tag), "%{public}s", logStr);
             break;
