@@ -177,7 +177,7 @@ void SkiaCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar 
 
     auto paints = skiaPaint_.GetSortedPaints();
     if (paints.empty()) {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
         skiaCanvas_->drawImage(bmp.asImage(), px, py);
 #else
         skiaCanvas_->drawBitmap(bmp, px, py);
@@ -187,7 +187,7 @@ void SkiaCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar 
 
     for (auto d : skiaPaint_.GetSortedPaints()) {
         if (d != nullptr) {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
             skiaCanvas_->drawImage(bmp.asImage(), px, py, SkSamplingOptions(), &d->paint);
 #else
             skiaCanvas_->drawBitmap(bmp, px, py, &d->paint);
@@ -265,7 +265,7 @@ void SkiaCanvas::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const sc
 
     auto paints = skiaPaint_.GetSortedPaints();
     if (paints.empty()) {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
         skiaCanvas_->drawImage(bitmap.asImage(), px, py);
 #else
         skiaCanvas_->drawBitmap(bitmap, px, py);
@@ -275,7 +275,7 @@ void SkiaCanvas::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const sc
 
     for (auto d : paints) {
         if (d != nullptr) {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
             skiaCanvas_->drawImage(bitmap.asImage(), px, py, SkSamplingOptions(), &d->paint);
 #else
             skiaCanvas_->drawBitmap(bitmap, px, py, &d->paint);
@@ -304,7 +304,7 @@ void SkiaCanvas::DrawImage(const Image& image, const scalar px, const scalar py,
 
     for (auto d : paints) {
         if (d != nullptr) {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
             SkSamplingOptions samplingOptions;
             if (sampling.GetUseCubic()) {
                 samplingOptions = SkSamplingOptions({ sampling.GetCubicCoffB(), sampling.GetCubicCoffC() });
@@ -334,7 +334,7 @@ void SkiaCanvas::DrawImageRect(
 
     auto paints = skiaPaint_.GetSortedPaints();
     if (paints.empty()) {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
         SkSamplingOptions samplingOptions;
         skiaCanvas_->drawImageRect(
             img, srcRect, dstRect, samplingOptions, nullptr, static_cast<SkCanvas::SrcRectConstraint>(constraint));
@@ -347,7 +347,7 @@ void SkiaCanvas::DrawImageRect(
 
     for (auto d : paints) {
         if (d != nullptr) {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
             SkSamplingOptions samplingOptions;
             if (sampling.GetUseCubic()) {
                 samplingOptions = SkSamplingOptions({ sampling.GetCubicCoffB(), sampling.GetCubicCoffC() });
@@ -377,7 +377,7 @@ void SkiaCanvas::DrawImageRect(const Image& image, const Rect& dst, const Sampli
 
     auto paints = skiaPaint_.GetSortedPaints();
     if (paints.empty()) {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
         SkSamplingOptions samplingOptions;
         skiaCanvas_->drawImageRect(img, dstRect, samplingOptions, nullptr);
 #else
@@ -388,7 +388,7 @@ void SkiaCanvas::DrawImageRect(const Image& image, const Rect& dst, const Sampli
 
     for (auto d : paints) {
         if (d != nullptr) {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
             SkSamplingOptions samplingOptions;
             if (sampling.GetUseCubic()) {
                 samplingOptions = SkSamplingOptions({ sampling.GetCubicCoffB(), sampling.GetCubicCoffC() });
