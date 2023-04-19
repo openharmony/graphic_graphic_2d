@@ -92,12 +92,7 @@ template("thirdparty_lib_txt_rosen") {
     ]
 
     if (defined(use_new_skia) && use_new_skia) {
-      public_deps = [
-        "//foundation/graphic/graphic_2d/rosen/build/flutter/harfbuzz:rosen_libharfbuzz_$platform",
-        "//third_party/skia:skia_$platform",
-      ]
-      include_dirs +=
-          [ "//third_party/skia/third_party/externals/harfbuzz/src" ]
+      public_deps = [ "//third_party/skia:skia_$platform" ]
     } else {
       public_deps = [ "$ace_flutter_engine_root/skia:ace_skia_$platform" ]
     }
