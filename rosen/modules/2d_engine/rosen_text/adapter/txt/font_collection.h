@@ -25,7 +25,7 @@ namespace Rosen {
 namespace AdapterTxt {
 class FontCollection : public ::OHOS::Rosen::FontCollection {
 public:
-    FontCollection(std::shared_ptr<txt::FontCollection> fontCollection = nullptr);
+    explicit FontCollection(std::shared_ptr<txt::FontCollection> fontCollection = nullptr);
 
     std::shared_ptr<txt::FontCollection> Get();
 

@@ -44,55 +44,55 @@ struct Mockvars {
     std::shared_ptr<Texgine::TexgineTypeface> texgineTypeface_ = std::make_shared<Texgine::TexgineTypeface>();
     std::unique_ptr<hb_blob_t> blob_ = std::make_unique<hb_blob_t>();
     std::unique_ptr<Texgine::Typeface> typeface_ = nullptr;
-} typefaceMockvars;
+} g_typefaceMockvars;
 
 void InitMyMockVars(Mockvars vars)
 {
-    typefaceMockvars = std::move(vars);
-    typefaceMockvars.typeface_ = std::make_unique<Texgine::Typeface>(typefaceMockvars.texgineTypeface_);
+    g_typefaceMockvars = std::move(vars);
+    g_typefaceMockvars.typeface_ = std::make_unique<Texgine::Typeface>(g_typefaceMockvars.texgineTypeface_);
 }
 
 std::shared_ptr<TexgineTypeface> TexgineTypeface::MakeFromFile(const char path[], int index)
 {
-    return typefaceMockvars.texgineTypeface_;
+    return g_typefaceMockvars.texgineTypeface_;
 }
 
 size_t TexgineTypeface::GetTableSize(uint32_t tag)
 {
-    assert(typefaceMockvars.sizeIndex_ < typefaceMockvars.tableSize_.size());
-    return typefaceMockvars.tableSize_[typefaceMockvars.sizeIndex_++];
+    assert(g_typefaceMockvars.sizeIndex_ < g_typefaceMockvars.tableSize_.size());
+    return g_typefaceMockvars.tableSize_[g_typefaceMockvars.sizeIndex_++];
 }
 
 size_t TexgineTypeface::GetTableData(uint32_t tag, size_t offset, size_t length,void* data)
 {
-    return typefaceMockvars.dataLength_[typefaceMockvars.lengthIndex_++];
+    return g_typefaceMockvars.dataLength_[g_typefaceMockvars.lengthIndex_++];
 }
 
 void TexgineTypeface::GetFamilyName(TexgineString* name)
 {
-    name->SetString(typefaceMockvars.name_);
+    name->SetString(g_typefaceMockvars.name_);
 }
 
 extern "C" {
-hb_blob_t * hb_blob_create (const char *data, unsigned int length, hb_memory_mode_t mode,
-    void *user_data, hb_destroy_func_t destroy)
+hb_blob_t* hb_blob_create(const char* data, unsigned int length, hb_memory_mode_t mode,
+    void* user_data, hb_destroy_func_t destroy)
 {
-    return typefaceMockvars.blob_.get();
+    return g_typefaceMockvars.blob_.get();
 }
 
-void hb_blob_destroy(hb_blob_t *)
+void hb_blob_destroy(hb_blob_t*)
 {
 }
 }
 
-int CmapParser::Parse(const char *data, int32_t size)
+int CmapParser::Parse(const char* data, int32_t size)
 {
-    return typefaceMockvars.parseRetval_;
+    return g_typefaceMockvars.parseRetval_;
 }
 
 int32_t CmapParser::GetGlyphId(int32_t codepoint) const
 {
-    return typefaceMockvars.glyphId_[typefaceMockvars.idIndex_++];
+    return g_typefaceMockvars.glyphId_[g_typefaceMockvars.idIndex_++];
 }
 
 class TypefaceTest : public testing::Test {
@@ -121,7 +121,7 @@ HWTEST_F(TypefaceTest, MakeFromFile2, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "cxxt", .texgineTypeface_ = nullptr });
     ASSERT_EXCEPTION(ExceptionType::APIFailed, Typeface::MakeFromFile("aaa"));
-    EXPECT_NE(typefaceMockvars.typeface_->GetName(), "cxxt");
+    EXPECT_NE(g_typefaceMockvars.typeface_->GetName(), "cxxt");
 }
 
 /**
@@ -133,7 +133,7 @@ HWTEST_F(TypefaceTest, Has1, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "one", .texgineTypeface_ = nullptr });
     // 0x0006 is codepoint
-    EXPECT_EQ(typefaceMockvars.typeface_->Has(0x0006), false);
+    EXPECT_EQ(g_typefaceMockvars.typeface_->Has(0x0006), false);
 }
 
 /**
@@ -144,7 +144,7 @@ HWTEST_F(TypefaceTest, Has1, TestSize.Level1)
 HWTEST_F(TypefaceTest, Has2, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "two", .tableSize_ = {0} });
-    ASSERT_EXCEPTION(ExceptionType::APIFailed, typefaceMockvars.typeface_->Has(0x0006));
+    ASSERT_EXCEPTION(ExceptionType::APIFailed, g_typefaceMockvars.typeface_->Has(0x0006));
 }
 
 /**
@@ -155,7 +155,7 @@ HWTEST_F(TypefaceTest, Has2, TestSize.Level1)
 HWTEST_F(TypefaceTest, Has3, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "three", .tableSize_ = {3}, .dataLength_ = {2} });
-    ASSERT_EXCEPTION(ExceptionType::APIFailed, typefaceMockvars.typeface_->Has(0x0006));
+    ASSERT_EXCEPTION(ExceptionType::APIFailed, g_typefaceMockvars.typeface_->Has(0x0006));
 }
 
 /**
@@ -166,7 +166,7 @@ HWTEST_F(TypefaceTest, Has3, TestSize.Level1)
 HWTEST_F(TypefaceTest, Has4, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "four", .blob_ = nullptr });
-    ASSERT_EXCEPTION(ExceptionType::APIFailed, typefaceMockvars.typeface_->Has(0x0006));
+    ASSERT_EXCEPTION(ExceptionType::APIFailed, g_typefaceMockvars.typeface_->Has(0x0006));
 }
 
 /**
@@ -177,7 +177,7 @@ HWTEST_F(TypefaceTest, Has4, TestSize.Level1)
 HWTEST_F(TypefaceTest, Has5, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "five", .parseRetval_ = -1 });
-    EXPECT_EQ(typefaceMockvars.typeface_->Has(0x0006), false);
+    EXPECT_EQ(g_typefaceMockvars.typeface_->Has(0x0006), false);
 }
 
 /**
@@ -188,7 +188,7 @@ HWTEST_F(TypefaceTest, Has5, TestSize.Level1)
 HWTEST_F(TypefaceTest, Has6, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "six" });
-    EXPECT_EQ(typefaceMockvars.typeface_->Has(0x0006), true);
+    EXPECT_EQ(g_typefaceMockvars.typeface_->Has(0x0006), true);
 }
 
 /**
@@ -199,11 +199,11 @@ HWTEST_F(TypefaceTest, Has6, TestSize.Level1)
 HWTEST_F(TypefaceTest, Has7, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "seven", .tableSize_ = {1, 1}, .dataLength_ = {1, 1}, .glyphId_ = {0, -1} });
-    auto bool1 = typefaceMockvars.typeface_->Has(0x0006);
-    auto bool2 = typefaceMockvars.typeface_->Has(0x0006);
+    auto bool1 = g_typefaceMockvars.typeface_->Has(0x0006);
+    auto bool2 = g_typefaceMockvars.typeface_->Has(0x0006);
     EXPECT_EQ(bool1, true);
     EXPECT_EQ(bool2, false);
-    EXPECT_EQ(typefaceMockvars.sizeIndex_, 1);
+    EXPECT_EQ(g_typefaceMockvars.sizeIndex_, 1);
 }
 
 /**
@@ -214,10 +214,10 @@ HWTEST_F(TypefaceTest, Has7, TestSize.Level1)
 HWTEST_F(TypefaceTest, Has8, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "eight", .tableSize_ = {2, 1}, .dataLength_ = {1, 1} });
-    ASSERT_EXCEPTION(ExceptionType::APIFailed, typefaceMockvars.typeface_->Has(0x0006));
-    auto bool1 = typefaceMockvars.typeface_->Has(0x0006);
+    ASSERT_EXCEPTION(ExceptionType::APIFailed, g_typefaceMockvars.typeface_->Has(0x0006));
+    auto bool1 = g_typefaceMockvars.typeface_->Has(0x0006);
     EXPECT_EQ(bool1, true);
-    EXPECT_EQ(typefaceMockvars.sizeIndex_, 2);
+    EXPECT_EQ(g_typefaceMockvars.sizeIndex_, 2);
 }
 
 /**
@@ -228,9 +228,9 @@ HWTEST_F(TypefaceTest, Has8, TestSize.Level1)
 HWTEST_F(TypefaceTest, Has9, TestSize.Level1)
 {
     InitMyMockVars({ .name_ = "nine", .tableSize_ = {0, 0} });
-    ASSERT_EXCEPTION(ExceptionType::APIFailed, typefaceMockvars.typeface_->Has(0x0006));
-    ASSERT_EXCEPTION(ExceptionType::APIFailed, typefaceMockvars.typeface_->Has(0x0006));
-    EXPECT_EQ(typefaceMockvars.sizeIndex_, 2);
+    ASSERT_EXCEPTION(ExceptionType::APIFailed, g_typefaceMockvars.typeface_->Has(0x0006));
+    ASSERT_EXCEPTION(ExceptionType::APIFailed, g_typefaceMockvars.typeface_->Has(0x0006));
+    EXPECT_EQ(g_typefaceMockvars.sizeIndex_, 2);
 }
 } // namespace TextEngine
 } // namespace Rosen

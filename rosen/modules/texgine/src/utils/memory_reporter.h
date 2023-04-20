@@ -176,8 +176,8 @@ void ReportMemoryUsage(const std::string &member, const std::map<K, V> &that, bo
         int memoryDelta = 8;
         int baseMemory = 40;
         int sizeLimit = 8;
-        DoReportMemoryUsage("*external",
-                that.size() * ((sizeof(K) < sizeLimit ? 0 : memoryDelta) + baseMemory + sizeof(K) + sizeof(V)));
+        DoReportMemoryUsage("*external", that.size() *
+            ((sizeof(K) < sizeLimit ? 0 : memoryDelta) + baseMemory + sizeof(K) + sizeof(V)));
     }
 }
 } // namespace TextEngine

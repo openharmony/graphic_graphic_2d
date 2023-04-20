@@ -25,7 +25,7 @@ namespace Rosen {
 namespace AdapterTextEngine {
 class Typography : public ::OHOS::Rosen::Typography {
 public:
-    Typography(std::shared_ptr<TextEngine::Typography> typography);
+    explicit Typography(std::shared_ptr<TextEngine::Typography> typography);
 
     double GetMaxWidth() const override;
     double GetHeight() const override;

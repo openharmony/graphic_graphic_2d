@@ -34,21 +34,21 @@ public:
 struct MockVars {
     std::shared_ptr<VariantFontStyleSet> systemFontProviderMatchFamilyRetval;
     std::vector<std::shared_ptr<VariantFontStyleSet>> catchedFontStyleSets;
-} fpMockvars;
+} g_fpMockvars;
 
 void InitFpMockVars(struct MockVars &&vars)
 {
-    fpMockvars = std::move(vars);
+    g_fpMockvars = std::move(vars);
 }
 
 FontCollection::FontCollection(std::vector<std::shared_ptr<VariantFontStyleSet>> &&fontStyleSets)
 {
-    fpMockvars.catchedFontStyleSets = std::move(fontStyleSets);
+    g_fpMockvars.catchedFontStyleSets = std::move(fontStyleSets);
 }
 
 std::shared_ptr<VariantFontStyleSet> SystemFontProvider::MatchFamily(const std::string &familyName) noexcept(true)
 {
-    return fpMockvars.systemFontProviderMatchFamilyRetval;
+    return g_fpMockvars.systemFontProviderMatchFamilyRetval;
 }
 
 class FontProvidersTest : public testing::Test {
@@ -75,7 +75,7 @@ HWTEST_F(FontProvidersTest, CreateAndSystemOnly, TestSize.Level1)
     ASSERT_NE(fp1, nullptr);
     auto fc1 = fp1->GenerateFontCollection({"Create"});
     ASSERT_NE(fc1, nullptr);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets.size(), 0u);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets.size(), 0u);
 
     // SystemFontOnly
     InitFpMockVars({.systemFontProviderMatchFamilyRetval = fss1});
@@ -83,8 +83,8 @@ HWTEST_F(FontProvidersTest, CreateAndSystemOnly, TestSize.Level1)
     ASSERT_NE(fp2, nullptr);
     auto fc2 = fp2->GenerateFontCollection({"SystemFontOnly"});
     ASSERT_NE(fc2, nullptr);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets.size(), 1u);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets[0], fss1);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets.size(), 1u);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets[0], fss1);
 }
 
 /**
@@ -104,7 +104,7 @@ HWTEST_F(FontProvidersTest, AppendFontProvider, TestSize.Level1)
     fp1->AppendFontProvider(nullptr);
     auto fc1 = fp1->GenerateFontCollection({"AppendFontProvider1"});
     ASSERT_NE(fc1, nullptr);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets.size(), 0u);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets.size(), 0u);
 
     // AppendFontProvider mock1 once
     InitFpMockVars({});
@@ -115,8 +115,8 @@ HWTEST_F(FontProvidersTest, AppendFontProvider, TestSize.Level1)
     fp2->AppendFontProvider(mfp1);
     auto fc2 = fp2->GenerateFontCollection({"AppendFontProvider2"});
     ASSERT_NE(fc2, nullptr);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets.size(), 1u);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets[0], fss1);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets.size(), 1u);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets[0], fss1);
 
     // AppendFontProvider mock1 twice
     InitFpMockVars({});
@@ -128,8 +128,8 @@ HWTEST_F(FontProvidersTest, AppendFontProvider, TestSize.Level1)
     fp3->AppendFontProvider(mfp2);
     auto fc3 = fp3->GenerateFontCollection({"AppendFontProvider3"});
     ASSERT_NE(fc3, nullptr);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets.size(), 1u);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets[0], fss1);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets.size(), 1u);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets[0], fss1);
 
     // AppendFontProvider mock1 mock2
     InitFpMockVars({});
@@ -148,9 +148,9 @@ HWTEST_F(FontProvidersTest, AppendFontProvider, TestSize.Level1)
     fp4->AppendFontProvider(mfp4);
     auto fc4 = fp4->GenerateFontCollection({"AppendFontProvider4", "AppendFontProvider5"});
     ASSERT_NE(fc4, nullptr);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets.size(), 2u);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets[0], fss1);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets[1], fss2);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets.size(), 2u);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets[0], fss1);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets[1], fss2);
 }
 
 /**
@@ -172,7 +172,7 @@ HWTEST_F(FontProvidersTest, GenerateFontCollection, TestSize.Level1)
     fp1->AppendFontProvider(mfp1);
     auto fc1 = fp1->GenerateFontCollection({"GenerateFontCollection1"});
     ASSERT_NE(fc1, nullptr);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets.size(), 0u);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets.size(), 0u);
 
     // GenerateFontCollection use cache
     InitFpMockVars({});
@@ -183,11 +183,11 @@ HWTEST_F(FontProvidersTest, GenerateFontCollection, TestSize.Level1)
     fp2->AppendFontProvider(mfp2);
     auto fc21 = fp2->GenerateFontCollection({"GenerateFontCollection2"});
     ASSERT_NE(fc21, nullptr);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets.size(), 1u);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets[0], fss1);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets.size(), 1u);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets[0], fss1);
     auto fc22 = fp2->GenerateFontCollection({"GenerateFontCollection2"});
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets.size(), 1u);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets[0], fss1);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets.size(), 1u);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets[0], fss1);
 
     // GenerateFontCollection first failed, second success
     InitFpMockVars({});
@@ -201,8 +201,8 @@ HWTEST_F(FontProvidersTest, GenerateFontCollection, TestSize.Level1)
     fp3->AppendFontProvider(mfp4);
     auto fc3 = fp3->GenerateFontCollection({"GenerateFontCollection3"});
     ASSERT_NE(fc3, nullptr);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets.size(), 1u);
-    ASSERT_EQ(fpMockvars.catchedFontStyleSets[0], fss2);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets.size(), 1u);
+    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets[0], fss2);
 }
 } // namespace TextEngine
 } // namespace Rosen

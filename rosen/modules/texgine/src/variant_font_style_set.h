@@ -27,11 +27,11 @@ namespace TextEngine {
 class VariantFontStyleSet {
 public:
     VariantFontStyleSet() noexcept(true) = default;
-    VariantFontStyleSet(const std::shared_ptr<TexgineFontStyleSet> &tfss) noexcept(true);
-    VariantFontStyleSet(const std::shared_ptr<DynamicFontStyleSet> &dfss) noexcept(true);
-    VariantFontStyleSet(std::shared_ptr<TexgineFontStyleSet> &tfss) noexcept(true);
-    VariantFontStyleSet(std::shared_ptr<DynamicFontStyleSet> &dfss) noexcept(true);
-    VariantFontStyleSet(std::nullptr_t) noexcept(true);
+    explicit VariantFontStyleSet(const std::shared_ptr<TexgineFontStyleSet> &tfss) noexcept(true);
+    explicit VariantFontStyleSet(const std::shared_ptr<DynamicFontStyleSet> &dfss) noexcept(true);
+    explicit VariantFontStyleSet(std::shared_ptr<TexgineFontStyleSet> &tfss) noexcept(true);
+    explicit VariantFontStyleSet(std::shared_ptr<DynamicFontStyleSet> &dfss) noexcept(true);
+    explicit VariantFontStyleSet(std::nullptr_t) noexcept(true);
 
     std::shared_ptr<TexgineFontStyleSet> TryToTexgineFontStyleSet() const noexcept(false);
     std::shared_ptr<DynamicFontStyleSet> TryToDynamicFontStyleSet() const noexcept(false);

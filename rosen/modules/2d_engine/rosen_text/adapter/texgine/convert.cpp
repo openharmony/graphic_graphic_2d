@@ -19,7 +19,7 @@ namespace OHOS {
 namespace Rosen {
 namespace AdapterTextEngine {
 std::shared_ptr<OHOS::Rosen::AdapterTextEngine::FontCollection> Convert(
-        const std::shared_ptr<OHOS::Rosen::FontCollection> &fontCollection)
+    const std::shared_ptr<OHOS::Rosen::FontCollection> &fontCollection)
 {
     return std::static_pointer_cast<OHOS::Rosen::AdapterTextEngine::FontCollection>(fontCollection);
 }
