@@ -316,28 +316,31 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     // Expand the screenshot area to avoid animation flickering caused by floating points.
     // Interset with the screen to prevent exceeding the screen and ensure that the boundary is greater than zero.
     auto toSkIRect = [](const SkRect& rc) { return SkIRect::MakeXYWH(rc.left(), rc.top(), rc.width(), rc.height());};
-    auto clipBounds = SkRect::Make(canvas.getDeviceClipBounds());
-    auto radius = filter->GetBlurRadiusPx();
-    auto clipPadding = SkRect(clipBounds).makeOutset(radius, radius);
-    clipPadding.intersect(SkRect::MakeWH(skSurface->width(), skSurface->height()));
-    auto imageSnapshot = skSurface->makeImageSnapshot(toSkIRect(clipPadding));
+    auto clipIBounds = canvas.getDeviceClipBounds();
+    auto screenIRect = SkIRect::MakeWH(skSurface->width(), skSurface->height());
+    auto radius = (int32_t)filter->GetBlurRadiusPx();
+    auto clipIPadding = SkIRect(clipIBounds).makeOutset(radius, radius);
+    clipIPadding.intersect(screenIRect);
+    auto imageSnapshot = skSurface->makeImageSnapshot(clipIPadding);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");
         return;
     }
-    auto imgSub = imageSnapshot->makeSubset(toSkIRect(clipBounds.makeOffset(-clipPadding.left(), -clipPadding.top())));
+    auto imgSub = imageSnapshot->makeSubset(clipIBounds.makeOffset(-clipIPadding.left(), -clipIPadding.top()));
     filter->PreProcess(imgSub);
     canvas.resetMatrix();
-    auto visibleRect = canvas.GetVisibleRect();
-    if (visibleRect.intersect(clipBounds)) {
-        canvas.clipRect(visibleRect);
-        auto visiblePadding = SkRect(visibleRect).makeOutset(radius, radius);
-        visiblePadding.intersect(SkRect::MakeWH(skSurface->width(), skSurface->height()));
+    auto visibleIRect = toSkIRect(canvas.GetVisibleRect());
+    if (visibleIRect.intersect(clipIBounds)) {
+        canvas.clipRect(SkRect::Make(visibleIRect));
+        auto visibleIPadding = SkIRect(visibleIRect).makeOutset(radius, radius);
+        visibleIPadding.intersect(screenIRect);
         canvas.drawImageRect(imageSnapshot.get(),
-            visiblePadding.makeOffset(-clipPadding.left(), -clipPadding.top()), visiblePadding, &paint);
+            SkRect::Make(visibleIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())),
+            SkRect::Make(visibleIPadding), &paint);
     } else {
         canvas.drawImageRect(imageSnapshot.get(),
-            clipPadding.makeOffset(-clipPadding.left(), -clipPadding.top()), clipPadding, &paint);
+            SkRect::Make(clipIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())),
+            SkRect::Make(clipIPadding), &paint);
     }
     filter->PostProcess(canvas);
 }
