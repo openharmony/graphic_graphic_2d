@@ -37,10 +37,12 @@ std::unique_ptr<DataImpl> ImplFactory::CreateDataImpl()
     return EngineImplFactory::CreateData();
 }
 
+#ifdef ACE_ENABLE_GPU
 std::unique_ptr<GPUContextImpl> ImplFactory::CreateGPUContextImpl()
 {
     return EngineImplFactory::CreateGPUContext();
 }
+#endif
 
 std::unique_ptr<BitmapImpl> ImplFactory::CreateBitmapImpl()
 {
