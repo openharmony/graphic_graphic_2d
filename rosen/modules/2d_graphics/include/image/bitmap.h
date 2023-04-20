@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,9 +31,21 @@ public:
     Bitmap();
     virtual ~Bitmap();
     void Build(const int width, const int height, const BitmapFormat& format);
-    int GetWidth();
-    int GetHeight();
-    void* GetPixels();
+
+    /*
+     * @brief  Gets the width of Bitmap.
+     */
+    int GetWidth() const;
+
+    /*
+     * @brief  Gets the height of Bitmap.
+     */
+    int GetHeight() const;
+
+    /*
+     * @brief  Gets the pointer to Bitmap buffer.
+     */
+    void* GetPixels() const;
     void SetPixels(void* pixel);
     void CopyPixels(Bitmap& dst, int srcLeft, int srcTop, int width, int height) const;
     void ClearWithColor(const ColorQuad& color) const;
@@ -49,9 +61,6 @@ public:
 
 private:
     std::shared_ptr<BitmapImpl> bmpImplPtr;
-    void* pixels_;
-    int width_;
-    int height_;
     BitmapFormat format_;
 };
 } // namespace Drawing

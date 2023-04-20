@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,9 +34,9 @@ public:
     }
 
     void Build(const int width, const int height, const BitmapFormat& format) override;
-    int GetWidth() override;
-    int GetHeight() override;
-    void* GetPixels() override;
+    int GetWidth() const override;
+    int GetHeight() const override;
+    void* GetPixels() const override;
     void SetPixels(void* pixels) override;
     const SkBitmap& ExportSkiaBitmap() const;
     void CopyPixels(Bitmap& dst, int srcLeft, int srcTop, int width, int height) const override;

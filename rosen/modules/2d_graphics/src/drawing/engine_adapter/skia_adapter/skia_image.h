@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,9 @@
 #include "include/core/SkImage.h"
 #include "include/core/SkPaint.h"
 #include "include/core/SkPicture.h"
+#ifdef ACE_ENABLE_GPU
+#include "include/gpu/GrContext.h"
+#endif
 #include "skia_bitmap.h"
 #include "skia_color_space.h"
 #include "skia_matrix.h"
@@ -44,11 +47,34 @@ public:
     void* BuildFromBitmap(const Bitmap& bitmap) override;
     void* BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix, const Brush& brush,
         BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace) override;
-    int GetWidth() override;
-    int GetHeight() override;
+#ifdef ACE_ENABLE_GPU
+    bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap) override;
+    bool BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
+        CompressedType type) override;
+#endif
+    int GetWidth() const override;
+    int GetHeight() const override;
+    uint32_t GetUniqueID() const override;
+    bool ReadPixels(Bitmap& bitmap, int x, int y) override;
+    bool IsTextureBacked() const override;
+
     const sk_sp<SkImage> GetImage() const;
 
+    /*
+     * @brief  Update the member variable to skImage, adaptation layer calls.
+     */
+    void SetSkImage(const sk_sp<SkImage>& skImage);
+#ifdef ACE_ENABLE_GPU
+    /*
+     * @brief  Export Skia member variables for use by the adaptation layer.
+     */
+    sk_sp<GrContext> GetGrContext() const;
+#endif
+
 private:
+#ifdef ACE_ENABLE_GPU
+    sk_sp<GrContext> grContext_ = nullptr;
+#endif
     sk_sp<SkImage> skiaImage_;
     SkiaPaint skiaPaint_;
 };

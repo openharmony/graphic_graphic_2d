@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,6 +28,11 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Data;
+#ifdef ACE_ENABLE_GPU
+class GPUContext;
+enum class CompressedType;
+#endif
 enum class BitDepth;
 class ImageImpl : public BaseImpl {
 public:
@@ -41,8 +46,16 @@ public:
     virtual void* BuildFromBitmap(const Bitmap& bitmap) = 0;
     virtual void* BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
         const Brush& brush, BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace) = 0;
-    virtual int GetWidth() = 0;
-    virtual int GetHeight() = 0;
+#ifdef ACE_ENABLE_GPU
+    virtual bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap) = 0;
+    virtual bool BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
+        CompressedType type) = 0;
+#endif
+    virtual int GetWidth() const = 0;
+    virtual int GetHeight() const = 0;
+    virtual uint32_t GetUniqueID() const = 0;
+    virtual bool ReadPixels(Bitmap& bitmap, int x, int y) = 0;
+    virtual bool IsTextureBacked() const = 0;
 };
 } // namespace Drawing
 } // namespace Rosen
