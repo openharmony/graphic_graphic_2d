@@ -666,10 +666,11 @@ void RSMainThread::ReleaseAllNodesBuffer()
         ReleaseBackGroundNodeUnlockGpuResource(surfaceNode);
         // surfaceNode's buffer will be released in hardware thread if last frame enables hardware composer
         if (surfaceNode->IsHardwareEnabledType()) {
-            surfaceNode->ResetCurrentFrameHardwareEnabledState();
             if (surfaceNode->IsLastFrameHardwareEnabled()) {
+                surfaceNode->ResetCurrentFrameHardwareEnabledState();
                 return;
             }
+            surfaceNode->ResetCurrentFrameHardwareEnabledState();
         }
         // To avoid traverse surfaceNodeMap again, destroy cold start thread here
         if ((!surfaceNode->IsOnTheTree() || !surfaceNode->ShouldPaint()) &&
