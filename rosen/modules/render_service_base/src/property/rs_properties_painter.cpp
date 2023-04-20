@@ -313,33 +313,31 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         return;
     }
 
-    // canvas draw by snapshot instead of SaveLayer, since the blur layer moves while using saveLayer
-    auto imageSnapshot = skSurface->makeImageSnapshot();
+    // Expand the screenshot area to avoid animation flickering caused by floating points.
+    // Interset with the screen to prevent exceeding the screen and ensure that the boundary is greater than zero.
+    auto toSkIRect = [](const SkRect& rc) { return SkIRect::MakeXYWH(rc.left(), rc.top(), rc.width(), rc.height());};
+    auto clipBounds = SkRect::Make(canvas.getDeviceClipBounds());
+    auto radius = filter->GetBlurRadiusPx();
+    auto clipPadding = SkRect(clipBounds).makeOutset(radius, radius);
+    clipPadding.intersect(SkRect::MakeWH(skSurface->width(), skSurface->height()));
+    auto imageSnapshot = skSurface->makeImageSnapshot(toSkIRect(clipPadding));
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");
         return;
     }
-    auto clipBound = SkRect::Make(canvas.getDeviceClipBounds());
-    SkScalar radius = filter->GetBlurRadiusPx();
-    // Expand the screenshot range to avoid flickering issues
-    auto clipPadding = SkRect::MakeXYWH(clipBound.left() - radius, clipBound.top() - radius,
-        clipBound.width() + radius * 2, clipBound.height() + radius * 2);
-
-    auto imageSub = imageSnapshot->makeSubset(canvas.getDeviceClipBounds());
-    filter->PreProcess(imageSub);
+    auto imgSub = imageSnapshot->makeSubset(toSkIRect(clipBounds.makeOffset(-clipPadding.left(), -clipPadding.top())));
+    filter->PreProcess(imgSub);
     canvas.resetMatrix();
     auto visibleRect = canvas.GetVisibleRect();
-    auto visiblePadding = SkRect::MakeXYWH(visibleRect.left() - radius, visibleRect.top() - radius, 
-        visibleRect.width() + radius * 2, visibleRect.height() + radius * 2);
-    if (visibleRect.intersect(clipBound)) {
+    if (visibleRect.intersect(clipBounds)) {
         canvas.clipRect(visibleRect);
-    }
-    if (visibleRect.intersect(clipBound)) {
-        // the snapshot only contains the clip region, so we need to offset the src rect
-        canvas.drawImageRect(imageSnapshot.get(), visiblePadding, visiblePadding, &paint);
+        auto visiblePadding = SkRect(visibleRect).makeOutset(radius, radius);
+        visiblePadding.intersect(SkRect::MakeWH(skSurface->width(), skSurface->height()));
+        canvas.drawImageRect(imageSnapshot.get(),
+            visiblePadding.makeOffset(-clipPadding.left(), -clipPadding.top()), visiblePadding, &paint);
     } else {
-        // the snapshot only contains the clip region, so we need to offset the src rect
-        canvas.drawImageRect(imageSnapshot.get(), clipPadding, clipPadding, &paint);
+        canvas.drawImageRect(imageSnapshot.get(),
+            clipPadding.makeOffset(-clipPadding.left(), -clipPadding.top()), clipPadding, &paint);
     }
     filter->PostProcess(canvas);
 }
