@@ -223,6 +223,11 @@ void RSAnimation::Finish()
 
 void RSAnimation::OnFinish()
 {
+    if (uiAnimation_ != nullptr) {
+        uiAnimation_->Finish();
+        return;
+    }
+
     auto target = target_.lock();
     if (target == nullptr) {
         ROSEN_LOGE("Failed to finish animation, target is null!");
