@@ -23,10 +23,7 @@ config("rosen_text_ui_config") {
   ]
 
   if (defined(use_new_skia) && use_new_skia) {
-    include_dirs += [
-      "$flutter_root/txt/src",
-      "//third_party/skia/third_party/externals/harfbuzz/src"
-    ]
+    include_dirs += [ "$flutter_root/txt/src" ]
   } else {
     include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
   }
@@ -44,10 +41,7 @@ config("rosen_text_config") {
     "//third_party/bounds_checking_function/include",
   ]
   if (defined(use_new_skia) && use_new_skia) {
-    include_dirs += [
-      "$flutter_root/txt/src",
-      "//third_party/skia/third_party/externals/harfbuzz/src"
-    ]
+    include_dirs += [ "$flutter_root/txt/src" ]
   } else {
     include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
   }

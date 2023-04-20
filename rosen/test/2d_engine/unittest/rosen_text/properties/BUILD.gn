@@ -39,8 +39,7 @@ ohos_unittest("2d_engine_rosen_text_prop_test") {
   if (defined(use_new_skia) && use_new_skia) {
     include_dirs += [
       "//third_party/skia/third_party/externals/harfbuzz/src",
-      "//third_party/skia",
-      "//",
+      "//third_party/skia"
     ]
   } else {
     include_dirs += [
