@@ -333,6 +333,9 @@ HWTEST_F(OpenglWrapperApiTest, eglQuerySurface, TestSize.Level0)
 HWTEST_F(OpenglWrapperApiTest, glClearColor, TestSize.Level0)
 {
     glClearColor(0, 0, 0, 1.0);
+
+    EGLint error = eglGetError();
+    EXPECT_EQ(error, EGL_SUCCESS);
 }
 
 /*
@@ -345,6 +348,9 @@ HWTEST_F(OpenglWrapperApiTest, glClearColor, TestSize.Level0)
 HWTEST_F(OpenglWrapperApiTest, glClear, TestSize.Level0)
 {
     glClear(GL_COLOR_BUFFER_BIT);
+
+    EGLint error = eglGetError();
+    EXPECT_EQ(error, EGL_SUCCESS);
 }
 
 /*
