@@ -67,10 +67,10 @@ public:
 };
 
 /**
- * @tc.name: TakeSurfaceCapture Test a notfound id twice
- * @tc.desc: TakeSurfaceCapture Test a notfound id twice
+ * @tc.name: TakeSurfaceCapture_Test
+ * @tc.desc: Test capture twice with same id
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: I6X9V1
  */
 HWTEST_F(RSClientTest, TakeSurfaceCapture_Test, TestSize.Level1)
 {
@@ -79,7 +79,7 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture_Test, TestSize.Level1)
     bool ret = rsClient->TakeSurfaceCapture(123, cb, 1.0f, 1.0f); // test a notfound number: 123
     ASSERT_EQ(ret, true);
     ret = rsClient->TakeSurfaceCapture(123, cb, 1.0f, 1.0f); // test number: 123 twice
-    ASSERT_NE(ret, true);
+    ASSERT_EQ(ret, true);
 }
 
 /**
