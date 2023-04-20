@@ -42,11 +42,11 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_CONTEXT_BOUNDS,
     SURFACE_NODE_SET_ABILITY_BG_ALPHA,
     SURFACE_NODE_UPDATE_PARENT_WITHOUT_TRANSITION,
-    SURFACE_NODE_SET_IS_NOTIFY_BUFFER_AVAILABLE,
     SURFACE_NODE_SET_APP_FREEZE,
     SURFACE_NODE_SET_SURFACE_NODE_TYPE,
     SURFACE_NODE_SET_CONTAINER_WINDOW,
-    SURFACE_NODE_SET_ANIMATION_FINISHED
+    SURFACE_NODE_SET_ANIMATION_FINISHED,
+    SURFACE_NODE_SET_IS_NOTIFY_BUFFER_AVAILABLE,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -65,11 +65,11 @@ public:
     static void SetContextBounds(RSContext& context, NodeId id, Vector4f bounds);
     static void SetAbilityBGAlpha(RSContext& context, NodeId id, uint8_t alpha);
     static void UpdateParentWithoutTransition(RSContext& context, NodeId nodeId, NodeId parentId);
-    static void SetIsNotifyUIBufferAvailable(RSContext& context, NodeId nodeId, bool available);
     static void SetAppFreeze(RSContext& context, NodeId nodeId, bool isAppFreeze);
     static void SetSurfaceNodeType(RSContext& context, NodeId nodeId, RSSurfaceNodeType type);
     static void SetContainerWindow(RSContext& context, NodeId nodeId, bool hasContainerWindow, float density);
     static void SetAnimationFinished(RSContext& context, NodeId nodeId);
+    static void SetIsNotifyUIBufferAvailable(RSContext& context, NodeId nodeId, bool available);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate, ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId))
@@ -96,9 +96,6 @@ ADD_COMMAND(RSSurfaceNodeSetAbilityBGAlpha,
 ADD_COMMAND(RSSurfaceNodeUpdateParentWithoutTransition,
     ARG(SURFACE_NODE, SURFACE_NODE_UPDATE_PARENT_WITHOUT_TRANSITION,
         SurfaceNodeCommandHelper::UpdateParentWithoutTransition, NodeId, NodeId))
-ADD_COMMAND(RSSurfaceNodeSetIsNotifyUIBufferAvailable,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_IS_NOTIFY_BUFFER_AVAILABLE,
-    SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetAppFreeze,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_APP_FREEZE, SurfaceNodeCommandHelper::SetAppFreeze, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSurfaceNodeType,
@@ -109,6 +106,9 @@ ADD_COMMAND(RSSurfaceNodeSetContainerWindow,
     NodeId, bool, float))
 ADD_COMMAND(RSSurfaceNodeSetAnimationFinished,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_ANIMATION_FINISHED, SurfaceNodeCommandHelper::SetAnimationFinished, NodeId))
+ADD_COMMAND(RSSurfaceNodeSetIsNotifyUIBufferAvailable,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_IS_NOTIFY_BUFFER_AVAILABLE,
+    SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable, NodeId, bool))
 
 #ifndef ROSEN_CROSS_PLATFORM
 ADD_COMMAND(RSSurfaceNodeSetColorSpace,
