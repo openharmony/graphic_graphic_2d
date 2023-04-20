@@ -66,7 +66,7 @@ public:
     }
 
     WeakPtr GetParent() const;
-    virtual void ResetParent();
+    void ResetParent();
 
     NodeId GetId() const
     {
