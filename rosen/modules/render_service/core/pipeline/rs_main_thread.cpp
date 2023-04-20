@@ -247,7 +247,7 @@ void RSMainThread::Init()
         renderEngine_->Init();
     }
 #ifdef RS_ENABLE_GL
-    int cacheLimitsTimes = 2; // double skia Resource Cache Limits
+    int cacheLimitsTimes = 3; // double skia Resource Cache Limits
     auto grContext = isUniRender_? uniRenderEngine_->GetRenderContext()->GetGrContext() :
         renderEngine_->GetRenderContext()->GetGrContext();
     int maxResources = 0;
@@ -1435,10 +1435,10 @@ void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext, pi
     const auto& nodeMap = context_->GetNodeMap();
     switch (RSSystemProperties::GetReleaseGpuResourceEnabled()) {
         case ReleaseGpuResourceType::WINDOW_HIDDEN:
-            MemoryManager::ReleaseUnlockGpuResource(grContext, pid);
+            MemoryManager::ReleaseAllGpuResource(grContext, pid);
             break;
         case ReleaseGpuResourceType::WINDOW_HIDDEN_AND_LAUCHER:
-            MemoryManager::ReleaseUnlockGpuResource(grContext, pid);
+            MemoryManager::ReleaseAllGpuResource(grContext, pid);
             MemoryManager::ReleaseUnlockLauncherGpuResource(grContext,
                 nodeMap.GetEntryViewNodeId(), nodeMap.GetWallPaperViewNodeId());
             break;
