@@ -317,7 +317,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     // Interset with the screen to prevent exceeding the screen and ensure that the boundary is greater than zero.
     auto clipIBounds = canvas.getDeviceClipBounds();
     auto screenIRect = SkIRect::MakeWH(skSurface->width(), skSurface->height());
-    auto radius = (int32_t)filter->GetBlurRadiusPx();
+    auto radius = static_cast<int32_t>(filter->GetBlurRadiusPx());
     auto clipIPadding = clipIBounds.makeOutset(radius, radius);
     clipIPadding.intersect(screenIRect);
     auto imageSnapshot = skSurface->makeImageSnapshot(clipIPadding);
