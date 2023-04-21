@@ -39,7 +39,8 @@ namespace TextEngine {
 #define MINDEV 1e-3
 
 namespace {
-std::vector<LineMetrics> CreateEllipsisSpan(const TypographyStyle &ys, const std::unique_ptr<FontProviders> &fontProviders)
+std::vector<LineMetrics> CreateEllipsisSpan(const TypographyStyle &ys,
+    const std::unique_ptr<FontProviders> &fontProviders)
 {
     if (ys.ellipsis_.empty()) {
         return {};
