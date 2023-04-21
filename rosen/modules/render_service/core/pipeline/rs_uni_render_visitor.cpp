@@ -2125,14 +2125,10 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         // If all the child nodes have drawing areas that do not exceed the current node, then current node
         // can be directly skipped if not intersect with any dirtyregion.
         // Otherwise, its childrenRect_ should be considered.
-        if (!node.HasChildrenOutOfRect()) {
-            if (!curSurfaceNode_->SubNodeNeedDraw(node.GetOldDirtyInSurface(), partialRenderType_)) {
-                return;
-            }
-        } else {
-            if (!curSurfaceNode_->SubNodeNeedDraw(node.GetChildrenRect(), partialRenderType_)) {
-                return;
-            }
+        RectI dirtyRect = node.HasChildrenOutOfRect() ?
+            node.GetOldDirtyInSurface().JoinRect(node.GetChildrenRect()) : node.GetOldDirtyInSurface();
+        if (!curSurfaceNode_->SubNodeNeedDraw(dirtyRect, partialRenderType_)) {
+            return;
         }
     }
 #endif
