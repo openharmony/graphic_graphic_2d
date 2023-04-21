@@ -51,7 +51,7 @@ public:
     void PaintShadow(TexgineCanvas &canvas, double offsetx, double offsety, const std::vector<TextShadow> &shadows);
     std::shared_ptr<TextSpan> CloneWithCharGroups(CharGroups const &cgs);
 
-    void operator +=(TextSpan const &textSpan)
+    void operator+=(TextSpan const &textSpan)
     {
         u16vect_.insert(u16vect_.end(), textSpan.u16vect_.begin(), textSpan.u16vect_.end());
     }

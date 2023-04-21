@@ -25,77 +25,77 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-TextAlign operator &(TextAlign a, TextAlign b)
+TextAlign operator&(TextAlign a, TextAlign b)
 {
     return static_cast<TextAlign>(static_cast<int>(a) & static_cast<int>(b));
 }
 
-TextAlign operator |(TextAlign a, TextAlign b)
+TextAlign operator|(TextAlign a, TextAlign b)
 {
     return static_cast<TextAlign>(static_cast<int>(a) | static_cast<int>(b));
 }
 
-TextAlign operator ^(TextAlign a, TextAlign b)
+TextAlign operator^(TextAlign a, TextAlign b)
 {
     return static_cast<TextAlign>(static_cast<int>(a) ^ static_cast<int>(b));
 }
 
-TextAlign operator ~(TextAlign a)
+TextAlign operator~(TextAlign a)
 {
     return static_cast<TextAlign>(~static_cast<int>(a));
 }
 
-void operator &=(TextAlign &a, const TextAlign &b)
+void operator&=(TextAlign &a, const TextAlign &b)
 {
     a = static_cast<TextAlign>(static_cast<int>(a) & static_cast<int>(b));
 }
 
-void operator |=(TextAlign &a, const TextAlign &b)
+void operator|=(TextAlign &a, const TextAlign &b)
 {
     a = static_cast<TextAlign>(static_cast<int>(a) | static_cast<int>(b));
 }
 
-void operator ^=(TextAlign &a, const TextAlign &b)
+void operator^=(TextAlign &a, const TextAlign &b)
 {
     a = static_cast<TextAlign>(static_cast<int>(a) ^ static_cast<int>(b));
 }
 
-TextDecoration operator &(const TextDecoration &a, const TextDecoration &b)
+TextDecoration operator&(const TextDecoration &a, const TextDecoration &b)
 {
     return static_cast<enum TextDecoration>(static_cast<int32_t>(a) & static_cast<int32_t>(b));
 }
 
-TextDecoration operator |(const TextDecoration &a, const TextDecoration &b)
+TextDecoration operator|(const TextDecoration &a, const TextDecoration &b)
 {
     return static_cast<enum TextDecoration>(static_cast<int32_t>(a) | static_cast<int32_t>(b));
 }
 
-TextDecoration operator ^(const TextDecoration &a, const TextDecoration &b)
+TextDecoration operator^(const TextDecoration &a, const TextDecoration &b)
 {
     return static_cast<enum TextDecoration>(static_cast<int32_t>(a) ^ static_cast<int32_t>(b));
 }
 
-TextDecoration operator +(const TextDecoration &a, const TextDecoration &b)
+TextDecoration operator+(const TextDecoration &a, const TextDecoration &b)
 {
     return static_cast<enum TextDecoration>(static_cast<int32_t>(a) + static_cast<int32_t>(b));
 }
 
-void operator &=(TextDecoration &a, const TextDecoration &b)
+void operator&=(TextDecoration &a, const TextDecoration &b)
 {
     a = static_cast<enum TextDecoration>(static_cast<int32_t>(a) & static_cast<int32_t>(b));
 }
 
-void operator |=(TextDecoration &a, const TextDecoration &b)
+void operator|=(TextDecoration &a, const TextDecoration &b)
 {
     a = static_cast<enum TextDecoration>(static_cast<int32_t>(a) | static_cast<int32_t>(b));
 }
 
-void operator ^=(TextDecoration &a, const TextDecoration &b)
+void operator^=(TextDecoration &a, const TextDecoration &b)
 {
     a = static_cast<enum TextDecoration>(static_cast<int32_t>(a) ^ static_cast<int32_t>(b));
 }
 
-void operator +=(TextDecoration &a, const TextDecoration &b)
+void operator+=(TextDecoration &a, const TextDecoration &b)
 {
     a = static_cast<enum TextDecoration>(static_cast<int32_t>(a) + static_cast<int32_t>(b));
 }
