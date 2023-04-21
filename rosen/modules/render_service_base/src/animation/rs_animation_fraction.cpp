@@ -132,8 +132,8 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
             realPlayTime += durationNs;
         }
     }
-    if (isRepeatFinishCallBackEnable_) {
-        isRepeatFinished = (realPlayTime / durationNs) >= 1;
+    if (isRepeatCallbackEnable_) {
+        isRepeatFinished = (realPlayTime >= durationNs);
     }
     playTime_ = realPlayTime % durationNs;
 

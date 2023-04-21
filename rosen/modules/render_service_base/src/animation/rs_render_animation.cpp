@@ -37,7 +37,8 @@ bool RSRenderAnimation::Marshalling(Parcel& parcel) const
         parcel.WriteInt32(animationFraction_.GetRepeatCount()) &&
         parcel.WriteBool(animationFraction_.GetAutoReverse()) &&
         parcel.WriteBool(animationFraction_.GetDirection()) &&
-        parcel.WriteInt32(static_cast<std::underlying_type<FillMode>::type>(animationFraction_.GetFillMode())))) {
+        parcel.WriteInt32(static_cast<std::underlying_type<FillMode>::type>(animationFraction_.GetFillMode())) &&
+        parcel.WriteBool(animationFraction_.GetRepeatCallbackEnable()))) {
         ROSEN_LOGE("RSRenderAnimation::Marshalling, write param failed");
         return false;
     }
@@ -53,9 +54,10 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
     float speed = 0.0;
     bool autoReverse = false;
     bool direction = false;
+    bool isRepeatCallbackEnable = false;
     if (!(parcel.ReadUint64(id_) && parcel.ReadInt32(duration) && parcel.ReadInt32(startDelay) &&
             parcel.ReadFloat(speed) && parcel.ReadInt32(repeatCount) && parcel.ReadBool(autoReverse) &&
-            parcel.ReadBool(direction) && parcel.ReadInt32(fillMode))) {
+            parcel.ReadBool(direction) && parcel.ReadInt32(fillMode) && parcel.ReadBool(isRepeatCallbackEnable))) {
         ROSEN_LOGE("RSRenderAnimation::ParseParam, read param failed");
         return false;
     }
@@ -66,6 +68,7 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
     SetSpeed(speed);
     SetDirection(direction);
     SetFillMode(static_cast<FillMode>(fillMode));
+    SetRepeatCallbackEnable(isRepeatCallbackEnable);
     return true;
 }
 AnimationId RSRenderAnimation::GetAnimationId() const
@@ -234,7 +237,7 @@ void RSRenderAnimation::ProcessFillModeOnFinish(float endFraction)
 void RSRenderAnimation::ProcessOnRepeatFinish()
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationRepeatCallback>(targetId_, id_);
+        std::make_unique<RSAnimationCallback>(targetId_, id_, REPEAT_FINISHED);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(id_), command);
 }
 

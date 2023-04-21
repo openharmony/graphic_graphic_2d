@@ -320,14 +320,18 @@ void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
         std::to_string(node->GetRenderProperties().GetCornerRadius().w_) + "]\n";
     dumpString += "Bounds: [" + std::to_string(node->GetRenderProperties().GetBoundsWidth()) + "," +
         std::to_string(node->GetRenderProperties().GetBoundsHeight()) + "]\n";
-    dumpString += "ContextClipRegion: [" + std::to_string(node->GetContextClipRegion().width()) + "," +
-        std::to_string(node->GetContextClipRegion().height()) + "]\n";
+    if (auto& contextClipRegion = node->contextClipRect_) {
+        dumpString += "ContextClipRegion: [" + std::to_string(contextClipRegion->width()) + "," +
+                      std::to_string(contextClipRegion->height()) + "]\n";
+    } else {
+        dumpString += "ContextClipRegion: [ empty ]\n";
+    }
     dumpString += "Zorder: " + std::to_string(node->GetRenderProperties().GetPositionZ()) + "\n";
     dumpString += "IsOnTheTree: " + std::to_string(node->IsOnTheTree()) + "\n";
     dumpString += "Visible: " + std::to_string(node->GetRenderProperties().GetVisible()) + "\n";
     dumpString += "OcclusionBg: " + std::to_string(node->GetAbilityBgAlpha())+ "\n";
-    dumpString += "ContentAlpha: " + std::to_string(node->GetContextAlpha()) + "\n";
-    dumpString += "RSPropertyAlpha: " + std::to_string(node->GetRenderProperties().GetAlpha()) + "\n";
+    dumpString += "Alpha: " + std::to_string(node->GetRenderProperties().GetAlpha()) +
+                  "(include ContextAlpha: " + std::to_string(node->contextAlpha_) + ")\n";
     dumpString += "GlobalAlpha: " + std::to_string(node->GetGlobalAlpha()) + "\n";
     dumpString += node->GetVisibleRegion().GetRegionInfo() + "\n";
     const auto& consumer = node->GetConsumer();

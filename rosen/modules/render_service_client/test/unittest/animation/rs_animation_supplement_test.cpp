@@ -600,6 +600,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest010, TestSize.Level1)
     callback = []() {
         std::cout << "RSAnimationTest AnimationSupplementTest010" << std::endl;
     };
+    EXPECT_TRUE(callback != nullptr);
     AnimationFinishCallback* finishCallback2 = new AnimationFinishCallback(callback);
     delete finishCallback2;
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest010 end";

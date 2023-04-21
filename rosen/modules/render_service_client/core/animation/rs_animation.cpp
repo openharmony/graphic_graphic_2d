@@ -74,6 +74,9 @@ void RSAnimation::CallFinishCallback()
 
 void RSAnimation::CallRepeatCallback()
 {
+    if (repeatCallback_ == nullptr) {
+        return;
+    }
     repeatCallback_->Execute();
 }
 
@@ -159,6 +162,11 @@ void RSAnimation::Pause()
 
 void RSAnimation::OnPause()
 {
+    if (uiAnimation_ != nullptr) {
+        uiAnimation_->Pause();
+        return;
+    }
+
     auto target = target_.lock();
     if (target == nullptr) {
         ROSEN_LOGE("Failed to pause animation, target is null!");
@@ -196,6 +204,11 @@ void RSAnimation::Resume()
 
 void RSAnimation::OnResume()
 {
+    if (uiAnimation_ != nullptr) {
+        uiAnimation_->Resume();
+        return;
+    }
+
     auto target = target_.lock();
     if (target == nullptr) {
         ROSEN_LOGE("Failed to resume animation, target is null!");
@@ -233,6 +246,11 @@ void RSAnimation::Finish()
 
 void RSAnimation::OnFinish()
 {
+    if (uiAnimation_ != nullptr) {
+        uiAnimation_->Finish();
+        return;
+    }
+
     auto target = target_.lock();
     if (target == nullptr) {
         ROSEN_LOGE("Failed to finish animation, target is null!");
@@ -271,6 +289,11 @@ void RSAnimation::Reverse()
 
 void RSAnimation::OnReverse()
 {
+    if (uiAnimation_ != nullptr) {
+        uiAnimation_->SetReversed(isReversed_);
+        return;
+    }
+
     auto target = target_.lock();
     if (target == nullptr) {
         ROSEN_LOGE("Failed to reverse animation, target is null!");
@@ -312,6 +335,11 @@ void RSAnimation::SetFraction(float fraction)
 
 void RSAnimation::OnSetFraction(float fraction)
 {
+    if (uiAnimation_ != nullptr) {
+        uiAnimation_->SetFraction(fraction);
+        return;
+    }
+
     auto target = target_.lock();
     if (target == nullptr) {
         ROSEN_LOGE("Failed to set fraction, target is null!");
@@ -349,7 +377,7 @@ void RSAnimation::UpdateParamToRenderAnimation(const std::shared_ptr<RSRenderAni
     animation->SetSpeed(GetSpeed());
     animation->SetDirection(GetDirection());
     animation->SetFillMode(GetFillMode());
-    animation->SetRepeatCallBackEnable(GetRepeatFinishCallBackEnable());
+    animation->SetRepeatCallbackEnable(repeatCallback_ != nullptr);
 }
 
 void RSAnimation::StartCustomAnimation(const std::shared_ptr<RSRenderAnimation>& animation)

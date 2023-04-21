@@ -132,7 +132,7 @@ bool RSObjAbsGeometryFuzzTest(const uint8_t* data, size_t size)
     // Test
     RSObjAbsGeometry rsobjabsgeometry;
     rsobjabsgeometry.ConcatMatrix(matrix);
-    rsobjabsgeometry.UpdateMatrix(parent, offsetX, offsetY);
+    rsobjabsgeometry.UpdateMatrix(parent, SkPoint::Make(offsetX, offsetY), std::nullopt);
     (void)rsobjabsgeometry.MapAbsRect(rect);
     rsobjabsgeometry.IsPointInHotZone(x, y);
 

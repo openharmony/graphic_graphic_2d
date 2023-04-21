@@ -18,7 +18,6 @@
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 
-#include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
 #include "modifier/rs_modifier_manager.h"
 #include "modifier/rs_modifier_manager_map.h"
@@ -64,8 +63,7 @@ RSUIDirector::~RSUIDirector()
 
 void RSUIDirector::Init(bool shouldCreateRenderThread)
 {
-    AnimationCommandHelper::SetFinishCallbackProcessor(AnimationCallbackProcessor);
-    AnimationCommandHelper::SetRepeatCallbackProcessor(AnimationRepeatCallbackProcessor);
+    AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor);
 
     isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
     if (shouldCreateRenderThread && !isUniRenderEnabled_) {
@@ -283,11 +281,11 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
     cmds->Process(context);
 }
 
-void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId)
+void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, AnimationCallbackEvent event)
 {
     // try find the node by nodeId
     if (auto nodePtr = RSNodeMap::Instance().GetNode<RSNode>(nodeId)) {
-        if (!nodePtr->AnimationFinish(animId)) {
+        if (!nodePtr->AnimationCallback(animId, event)) {
             ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, could not find animation %" PRIu64 " on node %" PRIu64
                        ".", animId, nodeId);
         }
@@ -296,7 +294,7 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId)
 
     // if node not found, try fallback node
     auto& fallbackNode = RSNodeMap::Instance().GetAnimationFallbackNode();
-    if (fallbackNode && fallbackNode->AnimationFinish(animId)) {
+    if (fallbackNode && fallbackNode->AnimationCallback(animId, event)) {
         ROSEN_LOGD("RSUIDirector::AnimationCallbackProcessor, found animation %" PRIu64 " on fallback node.", animId);
     } else {
         ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, could not find animation %" PRIu64 " on fallback node.",
@@ -311,17 +309,6 @@ void RSUIDirector::PostTask(const std::function<void()>& task)
         return;
     }
     g_uiTaskRunner(task);
-}
-
-void RSUIDirector::AnimationRepeatCallbackProcessor(NodeId nodeId, AnimationId animId)
-{
-    // try find the node by nodeId
-    if (auto nodePtr = RSNodeMap::Instance().GetNode<RSNode>(nodeId)) {
-        if (!nodePtr->AnimationRepeatFinish(animId)) {
-            ROSEN_LOGE("RSUIDirector::AnimationRepeatCallbackProcessor, could not find animation %" PRIu64 " on node %" PRIu64
-                       ".", animId, nodeId);
-        }
-    }
 }
 } // namespace Rosen
 } // namespace OHOS

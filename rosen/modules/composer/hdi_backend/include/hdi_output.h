@@ -56,7 +56,7 @@ public:
     static std::shared_ptr<HdiOutput> CreateHdiOutput(uint32_t screenId);
     RosenError Init();
     const std::unordered_map<uint32_t, LayerPtr>& GetLayers();
-    std::vector<GraphicIRect>& GetOutputDamages();
+    const std::vector<GraphicIRect>& GetOutputDamages();
     sptr<Surface> GetFrameBufferSurface();
     std::unique_ptr<FrameBufferEntry> GetFramebuffer();
     int32_t ReleaseFramebuffer(

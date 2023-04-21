@@ -15,8 +15,11 @@
 
 #ifndef OHOS_SHADER_CACHE_H
 #define OHOS_SHADER_CACHE_H
-
+#if defined(NEW_SKIA)
+#include <include/gpu/GrDirectContext.h>
+#else
 #include <include/gpu/GrContext.h>
+#endif
 #include <include/gpu/GrContextOptions.h>
 #include <mutex>
 #include <memory>

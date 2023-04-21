@@ -62,7 +62,7 @@ std::shared_ptr<txt::FontCollection> FontCollectionTxt::GetFontCollection() cons
 
 void FontCollectionTxt::LoadSystemFont()
 {
-#ifndef USE_CANVASKIT0310_SKIA
+#if !defined(USE_CANVASKIT0310_SKIA) && !defined(NEW_SKIA)
     txtCollection->LoadSystemFont();
 #endif
     // 0x4e2d is unicode for '中'.

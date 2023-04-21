@@ -39,6 +39,10 @@ class SkTextBlob;
 class SkVertices;
 class SkTypeface;
 
+#ifdef NEW_SKIA
+struct SkSamplingOptions;
+#endif
+
 namespace OHOS {
 namespace Media {
 class PixelMap;
@@ -108,7 +112,7 @@ public:
     }
 
     // reloaded marshalling & unmarshalling function for types
-#define DECLARE_FUNCTION_OVERLOAD(TYPE)                       \
+#define DECLARE_FUNCTION_OVERLOAD(TYPE)                                  \
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const TYPE& val); \
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, TYPE& val);
 
@@ -155,6 +159,9 @@ public:
 
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderModifier>)
     DECLARE_FUNCTION_OVERLOAD(std::unique_ptr<OpItem>)
+#ifdef NEW_SKIA
+    DECLARE_FUNCTION_OVERLOAD(SkSamplingOptions)
+#endif
 #undef DECLARE_FUNCTION_OVERLOAD
 
     // reloaded marshalling & unmarshalling function for animation
@@ -169,10 +176,10 @@ public:
     DECLARE_ANIMATION_OVERLOAD(RSRenderPathAnimation)
 #undef DECLARE_ANIMATION_OVERLOAD
 
-#define DECLARE_TEMPLATE_OVERLOAD(TEMPLATE)                                           \
-    template<typename T>                                                              \
+#define DECLARE_TEMPLATE_OVERLOAD(TEMPLATE)                                                      \
+    template<typename T>                                                                         \
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<T>>& val); \
-    template<typename T>                                                              \
+    template<typename T>                                                                         \
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<T>>& val);
 
     DECLARE_TEMPLATE_OVERLOAD(RSRenderProperty)
@@ -203,6 +210,32 @@ public:
                 return false;
             }
         }
+        return true;
+    }
+
+    // reloaded marshalling & unmarshalling function for std::optional
+    template<typename T>
+    static bool Marshalling(Parcel& parcel, const std::optional<T>& val)
+    {
+        if (!val.has_value()) {
+            parcel.WriteBool(false);
+            return true;
+        }
+        parcel.WriteBool(true);
+        return Marshalling(parcel, val.value());
+    }
+    template<typename T>
+    static bool Unmarshalling(Parcel& parcel, std::optional<T>& val)
+    {
+        if (!parcel.ReadBool()) {
+            val.reset();
+            return true;
+        }
+        T value;
+        if (!Unmarshalling(parcel, value)) {
+            return false;
+        }
+        val = value;
         return true;
     }
 

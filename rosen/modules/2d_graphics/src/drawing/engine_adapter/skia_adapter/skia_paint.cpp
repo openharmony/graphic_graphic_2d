@@ -181,7 +181,7 @@ bool SkiaPaint::IsStrokeFirst() const
 
 void SkiaPaint::ApplyFilter(SkPaint& paint, const Filter& filter) const
 {
-#if !defined(USE_CANVASKIT0310_SKIA)
+#if !defined(USE_CANVASKIT0310_SKIA) && !defined(NEW_SKIA)
     switch (filter.GetFilterQuality()) {
         case Filter::FilterQuality::LOW:
             paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);

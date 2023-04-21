@@ -48,6 +48,16 @@ public:
     int64_t GetLastFrameTime() const;
     void ResetFraction();
 
+    void SetRepeatCallbackEnable(bool isEnable)
+    {
+        isRepeatCallbackEnable_ = isEnable;
+    }
+
+    bool GetRepeatCallbackEnable() const
+    {
+        return isRepeatCallbackEnable_;
+    }
+
 private:
     bool IsFinished() const;
     void UpdateReverseState(bool finish);
@@ -62,6 +72,7 @@ private:
     int64_t runningTime_ { 0 };
     bool currentIsReverseCycle_ { false };
     int64_t lastFrameTime_ { -1 };
+    bool isRepeatCallbackEnable_ {false};
 };
 } // namespace Rosen
 } // namespace OHOS

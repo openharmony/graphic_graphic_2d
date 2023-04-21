@@ -935,7 +935,7 @@ void RSNode::OnRemoveChildren()
     }
 }
 
-bool RSNode::AnimationFinish(AnimationId animationId)
+bool RSNode::AnimationCallback(AnimationId animationId, AnimationCallbackEvent event)
 {
     auto animationItr = animations_.find(animationId);
     if (animationItr == animations_.end()) {
@@ -945,30 +945,19 @@ bool RSNode::AnimationFinish(AnimationId animationId)
 
     auto& animation = animationItr->second;
     if (animation == nullptr) {
-        ROSEN_LOGE("Failed to finish animation[%" PRIu64 "], animation is null!", animationId);
+        ROSEN_LOGE("Failed to callback animation[%" PRIu64 "], animation is null!", animationId);
         return false;
     }
-
-    animation->CallFinishCallback();
-    RemoveAnimationInner(animation);
-    return true;
-}
-
-bool RSNode::AnimationRepeatFinish(AnimationId animationId)
-{
-    auto animationItr = animations_.find(animationId);
-    if (animationItr == animations_.end()) {
-        ROSEN_LOGE("Failed to find animation[%" PRIu64 "]!", animationId);
-        return false;
+    if (event == FINISHED) {
+        animation->CallFinishCallback();
+        RemoveAnimationInner(animation);
+        return true;
+    } else if (event == REPEAT_FINISHED) {
+        animation->CallRepeatCallback();
+        return true;
     }
-
-    auto& animation = animationItr->second;
-    if (animation == nullptr) {
-        ROSEN_LOGE("Failed to finish animation[%" PRIu64 "], animation is null!", animationId);
-        return false;
-    }
-    animation->CallRepeatCallback();
-    return true;
+    ROSEN_LOGE("Failed to callback animation event[%" PRIu64 "], event is null!", event);
+    return false;
 }
 
 void RSNode::SetPaintOrder(bool drawContentLast)

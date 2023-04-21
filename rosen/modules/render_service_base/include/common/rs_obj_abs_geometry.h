@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_COMMON_RS_OBJ_ABS_GEOMETRY_H
 
 #include <memory>
+#include <optional>
 
 #include "include/core/SkMatrix.h"
 #include "include/core/SkPoint.h"
@@ -33,7 +34,8 @@ public:
     RSObjAbsGeometry();
     ~RSObjAbsGeometry() override;
     void ConcatMatrix(const SkMatrix& matrix);
-    void UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& parent, float offsetX, float offsetY);
+    void UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& parent, const std::optional<SkPoint>& offset,
+        const std::optional<SkRect>& clipRect);
 
     // Using by RenderService
     void UpdateByMatrixFromSelf();
@@ -43,19 +45,17 @@ public:
         return absRect_;
     }
     RectI MapAbsRect(const RectF& rect) const;
-    const SkMatrix& GetMatrix() const
-    {
-        return matrix_;
-    }
-
-    const SkMatrix& GetAbsMatrix() const
-    {
-        return absMatrix_;
-    }
+    
+    // return transform matrix (context + self)
+    const SkMatrix& GetMatrix() const;
+    // return transform matrix (parent + context + self)
+    const SkMatrix& GetAbsMatrix() const;
 
     bool IsPointInHotZone(const float x, const float y) const;
 
     bool IsNeedClientCompose() const;
+
+    void SetContextMatrix(const std::optional<SkMatrix>& matrix);
 
 private:
     void UpdateAbsMatrix2D();
@@ -66,7 +66,8 @@ private:
     bool IsPointInLine(const SkPoint& p1, const SkPoint& p2, const SkPoint& p, const float crossRes) const;
     RectI absRect_;
     SkMatrix matrix_;
-    SkMatrix absMatrix_;
+    std::optional<SkMatrix> absMatrix_;
+    std::optional<SkMatrix> contextMatrix_;
     SkPoint vertices_[4];
 };
 } // namespace Rosen

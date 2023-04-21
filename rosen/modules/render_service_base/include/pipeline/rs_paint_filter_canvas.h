@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_PAINT_FILTER_CANVAS_H
 
 #include <include/utils/SkPaintFilterCanvas.h>
+#include <optional>
 #include <stack>
 #include <vector>
 
@@ -83,8 +84,7 @@ public:
     void SetVisibleRect(SkRect visibleRect);
     SkRect GetVisibleRect() const;
 
-    void SetDisplayNodeMatrix(SkMatrix matrix);
-    SkMatrix GetDisplayNodeMatrix() const;
+    static std::optional<SkRect> GetLocalClipBounds(const SkCanvas& canvas, const SkIRect* clipBounds = nullptr);
 
 protected:
     bool onFilter(SkPaint& paint) const override;
@@ -101,10 +101,6 @@ private:
     std::atomic_bool isHighContrastEnabled_ { false };
     CacheType cacheType_ { UNDEFINED };
     SkRect visibleRect_ = SkRect::MakeEmpty();
-
-    // displayNodeMatrix only used in offScreen render case to ensure correct composer layer info when with rotation,
-    // displayNodeMatrix indicates display node's matrix info
-    SkMatrix displayNodeMatrix_;
 };
 
 // This class extends RSPaintFilterCanvas to also create a color filter for the paint.

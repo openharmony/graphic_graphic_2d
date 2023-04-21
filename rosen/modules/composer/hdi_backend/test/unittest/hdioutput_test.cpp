@@ -144,7 +144,7 @@ HWTEST_F(HdiOutputTest, GetOutputDamage001, Function | MediumTest| Level3)
     std::vector<GraphicIRect> inDamages;
     inDamages.emplace_back(iRect);
     HdiOutputTest::hdiOutput_->SetOutputDamages(inDamages);
-    std::vector<GraphicIRect>& outDamages = HdiOutputTest::hdiOutput_->GetOutputDamages();
+    const std::vector<GraphicIRect>& outDamages = HdiOutputTest::hdiOutput_->GetOutputDamages();
     ASSERT_EQ(outDamages.size(), 1);
     ASSERT_EQ(outDamages[0].x, iRect.x);
     ASSERT_EQ(outDamages[0].y, iRect.y);

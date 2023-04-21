@@ -20,8 +20,13 @@ config("rosen_text_ui_config") {
   include_dirs = [
     "$rosen_2d_engine_root",
     "$rosen_2d_engine_root_ui",
-    "$flutter_root/engine/flutter/third_party/txt/src",
   ]
+
+  if (defined(use_new_skia) && use_new_skia) {
+    include_dirs += [ "$flutter_root/txt/src" ]
+  } else {
+    include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
+  }
 }
 config("rosen_text_config") {
   cflags_cc = [
@@ -31,11 +36,15 @@ config("rosen_text_config") {
   ]
   include_dirs = [
     "$rosen_2d_engine_root",
-    "$flutter_root/engine/flutter/third_party/txt/src",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
     "//third_party/bounds_checking_function/include",
   ]
+  if (defined(use_new_skia) && use_new_skia) {
+    include_dirs += [ "$flutter_root/txt/src" ]
+  } else {
+    include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
+  }
 }
 ohos_source_set("rosen_text_ui") {
   configs = [

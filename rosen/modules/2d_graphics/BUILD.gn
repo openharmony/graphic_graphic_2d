@@ -90,6 +90,15 @@ template("graphics2d_source_set") {
       "$rosen_text_root/ui/typography_create.cpp",
     ]
 
+    if (ace_enable_gpu) {
+      sources += [
+        "$drawing_src_dir/engine_adapter/skia_adapter/skia_gpu_context.cpp",
+        "$drawing_src_dir/image/gpu_context.cpp",
+      ]
+
+      defines += [ "ACE_ENABLE_GPU" ]
+    }
+
     include_dirs = [
       "include",
       "$src_dir",
@@ -113,11 +122,20 @@ template("graphics2d_source_set") {
         "//foundation/graphic/graphic_2d/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$platform",
         "//third_party/bounds_checking_function:libsec_static",
       ]
-      include_dirs += [
-        "$flutter_root/engine",
-        "$flutter_root/engine/flutter/third_party/txt/src",
-      ]
+      include_dirs += [ "$flutter_root/engine" ]
       defines += [ "SUPPORT_OHOS_PIXMAP" ]
+
+      if (defined(use_new_skia) && use_new_skia) {
+        remove_configs = [ "//build/config/compiler:default_include_dirs" ]
+        include_dirs += [
+          "$flutter_root/txt/src",
+          "//third_party/skia/third_party/externals/harfbuzz/src",
+          "//",
+          root_gen_dir,
+        ]
+      } else {
+        include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
+      }
     } else {
       cflags = [ "-Wno-c++17-extensions" ]
 

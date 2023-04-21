@@ -505,6 +505,8 @@ HWTEST_F(RSAnimationTest, AnimationFinishCallbackTest002, TestSize.Level1)
      */
     callback.reset();
     EXPECT_EQ(0, testData);
+    callbackCopy.reset();
+    EXPECT_EQ(1, testData);
 }
 
 /**

@@ -115,7 +115,7 @@ void VideoPlayerCallback::OnInfo(Media::PlayerOnInfoType type, int32_t extra, co
             LOGI("PlayerCallback: State Change");
             break;
         case Media::INFO_TYPE_POSITION_UPDATE: {
-            std::string windowInit = system::GetParameter("bootevent.wms.fullscreen.ready", "false");
+            std::string windowInit = system::GetParameter("bootevent.boot.completed", "false");
             if (windowInit == "true") {
                 LOGI("PlayerCallback: Position Update Exit Bootanimation");
                 boot_->StopVideo();

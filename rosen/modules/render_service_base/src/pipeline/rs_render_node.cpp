@@ -88,9 +88,11 @@ bool RSRenderNode::Update(
         return false;
     }
     // [planning] surfaceNode use frame instead
-    Vector2f offset = (parent == nullptr || IsInstanceOf<RSSurfaceRenderNode>()) ?
-        Vector2f { 0.f, 0.f } : Vector2f { parent->GetFrameOffsetX(), parent->GetFrameOffsetY() };
-    bool dirty = renderProperties_.UpdateGeometry(parent, parentDirty, offset);
+    std::optional<SkPoint> offset;
+    if (parent != nullptr && !IsInstanceOf<RSSurfaceRenderNode>()) {
+        offset = SkPoint { parent->GetFrameOffsetX(), parent->GetFrameOffsetY() };
+    }
+    bool dirty = renderProperties_.UpdateGeometry(parent, parentDirty, offset, GetContextClipRegion());
     if ((IsDirty() || dirty) && drawCmdModifiers_.count(RSModifierType::GEOMETRYTRANS)) {
         RSModifierContext context = { GetMutableRenderProperties() };
         for (auto& modifier : drawCmdModifiers_[RSModifierType::GEOMETRYTRANS]) {
@@ -152,12 +154,12 @@ void RSRenderNode::UpdateDirtyRegion(
         if (needClip) {
             dirtyRect = dirtyRect.IntersectRect(clipRect);
         }
+        oldDirty_ = dirtyRect;
+        oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
         // filter invalid dirtyrect
         if (!dirtyRect.IsEmpty()) {
             dirtyManager.MergeDirtyRect(dirtyRect);
             isDirtyRegionUpdated_ = true;
-            oldDirty_ = dirtyRect;
-            oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
             // save types of dirty region of target dirty manager for dfx
             if (dirtyManager.IsTargetForDfx() &&
                 (GetType() == RSRenderNodeType::CANVAS_NODE || GetType() == RSRenderNodeType::SURFACE_NODE)) {

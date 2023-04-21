@@ -505,7 +505,7 @@ void RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNod
     }
 
     RSAutoCanvasRestore acr(canvas_);
-    canvas_->MultiplyAlpha(node.GetRenderProperties().GetAlpha() * node.GetContextAlpha());
+    canvas_->MultiplyAlpha(node.GetRenderProperties().GetAlpha());
     if (isDisplayNode_) {
         CaptureSurfaceInDisplayWithUni(node);
     } else {

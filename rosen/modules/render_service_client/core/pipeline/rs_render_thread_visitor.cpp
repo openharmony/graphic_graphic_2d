@@ -521,24 +521,6 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
 }
 
-static SkRect getLocalClipBounds(RSPaintFilterCanvas* canvas)
-{
-    SkIRect ibounds = canvas->getDeviceClipBounds();
-    if (ibounds.isEmpty()) {
-        return SkRect::MakeEmpty();
-    }
-
-    SkMatrix inverse;
-    // if we can't invert the CTM, we can't return local clip bounds
-    if (!(canvas->getTotalMatrix().invert(&inverse))) {
-        return SkRect::MakeEmpty();
-    }
-    SkRect bounds;
-    SkRect r = SkRect::Make(ibounds);
-    inverse.mapRect(&bounds, r);
-    return bounds;
-}
-
 void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     if (!canvas_) {
@@ -567,10 +549,12 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     // We plan to refactor code here.
     node.SetContextBounds(node.GetRenderProperties().GetBounds());
 
-    auto clipRect = getLocalClipBounds(canvas_.get());
-    if (clipRect.width() < std::numeric_limits<float>::epsilon() ||
-        clipRect.height() < std::numeric_limits<float>::epsilon()) {
+    auto clipRect = RSPaintFilterCanvas::GetLocalClipBounds(*canvas_);
+    if (!clipRect.has_value() ||
+        clipRect->width() < std::numeric_limits<float>::epsilon() ||
+        clipRect->height() < std::numeric_limits<float>::epsilon()) {
         // if clipRect is empty, this node will be removed from parent's children list.
+        node.SetContextClipRegion(std::nullopt);
         return;
     }
     node.SetContextClipRegion(clipRect);
@@ -626,7 +610,6 @@ void RSRenderThreadVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)
 #ifdef ROSEN_OHOS
     SkMatrix invertMatrix;
     SkMatrix contextMatrix = canvas_->getTotalMatrix();
-
     if (parentSurfaceNodeMatrix_.invert(&invertMatrix)) {
         contextMatrix.preConcat(invertMatrix);
     } else {
@@ -634,6 +617,11 @@ void RSRenderThreadVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)
     }
     node.SetContextMatrix(contextMatrix);
     node.SetContextAlpha(canvas_->GetAlpha());
+
+    // context clipRect should be based on parent node's coordinate system, in dividend render mode, it is the
+    // same as canvas coordinate system.
+    auto clipRect = RSPaintFilterCanvas::GetLocalClipBounds(*canvas_);
+    node.SetContextClipRegion(clipRect);
 
     // for proxied nodes (i.e. remote window components), we only extract matrix & alpha, do not change their hierarchy
     // or clip or other properties.

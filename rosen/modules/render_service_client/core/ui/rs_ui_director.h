@@ -19,6 +19,7 @@
 #include <functional>
 #include <mutex>
 
+#include "command/rs_animation_command.h"
 #include "common/rs_common_def.h"
 
 namespace OHOS {
@@ -63,8 +64,7 @@ private:
     static void RecvMessages();
     static void RecvMessages(std::shared_ptr<RSTransactionData> cmds);
     static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds); // receive message
-    static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId);
-    static void AnimationRepeatCallbackProcessor(NodeId nodeId, AnimationId animId);
+    static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, AnimationCallbackEvent event);
     static void PostTask(const std::function<void()>& task);
 
     RSUIDirector() = default;

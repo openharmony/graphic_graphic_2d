@@ -247,7 +247,7 @@ void RSMainThread::Init()
         renderEngine_->Init();
     }
 #ifdef RS_ENABLE_GL
-    int cacheLimitsTimes = 2; // double skia Resource Cache Limits
+    int cacheLimitsTimes = 3; // double skia Resource Cache Limits
     auto grContext = isUniRender_? uniRenderEngine_->GetRenderContext()->GetGrContext() :
         renderEngine_->GetRenderContext()->GetGrContext();
     int maxResources = 0;
@@ -666,10 +666,11 @@ void RSMainThread::ReleaseAllNodesBuffer()
         ReleaseBackGroundNodeUnlockGpuResource(surfaceNode);
         // surfaceNode's buffer will be released in hardware thread if last frame enables hardware composer
         if (surfaceNode->IsHardwareEnabledType()) {
-            surfaceNode->ResetCurrentFrameHardwareEnabledState();
             if (surfaceNode->IsLastFrameHardwareEnabled()) {
+                surfaceNode->ResetCurrentFrameHardwareEnabledState();
                 return;
             }
+            surfaceNode->ResetCurrentFrameHardwareEnabledState();
         }
         // To avoid traverse surfaceNodeMap again, destroy cold start thread here
         if ((!surfaceNode->IsOnTheTree() || !surfaceNode->ShouldPaint()) &&
@@ -923,11 +924,6 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
         if (curSurface == nullptr || curSurface->GetDstRect().IsEmpty() || curSurface->IsLeashWindow()) {
             continue;
         }
-        // When a surfacenode is in animation (i.e. 3d animation), its dstrect cannot be trusted, we treated it as
-        // a full transparent layer.
-        if (curSurface->GetAnimateState()) {
-            continue;
-        }
         Occlusion::Rect occlusionRect;
         if (isUniRender_) {
             // In UniRender, CalcOcclusion should consider the shadow area of window
@@ -953,7 +949,13 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
                 }
             }
             if (isUniRender_) {
-                accumulatedRegion.OrSelf(curSurface->GetOpaqueRegion());
+                // When a surfacenode is in animation (i.e. 3d animation), its dstrect cannot be trusted, we treated
+                // it as a full transparent layer.
+                if (!(curSurface->GetAnimateState())) {
+                    accumulatedRegion.OrSelf(curSurface->GetOpaqueRegion());
+                } else {
+                    curSurface->ResetAnimateState();
+                }
             } else {
                 bool diff = (curSurface->GetDstRect().width_ > curSurface->GetBuffer()->GetWidth() ||
                             curSurface->GetDstRect().height_ > curSurface->GetBuffer()->GetHeight()) &&
@@ -1434,10 +1436,10 @@ void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext, pi
     const auto& nodeMap = context_->GetNodeMap();
     switch (RSSystemProperties::GetReleaseGpuResourceEnabled()) {
         case ReleaseGpuResourceType::WINDOW_HIDDEN:
-            MemoryManager::ReleaseUnlockGpuResource(grContext, pid);
+            MemoryManager::ReleaseAllGpuResource(grContext, pid);
             break;
         case ReleaseGpuResourceType::WINDOW_HIDDEN_AND_LAUCHER:
-            MemoryManager::ReleaseUnlockGpuResource(grContext, pid);
+            MemoryManager::ReleaseAllGpuResource(grContext, pid);
             MemoryManager::ReleaseUnlockLauncherGpuResource(grContext,
                 nodeMap.GetEntryViewNodeId(), nodeMap.GetWallPaperViewNodeId());
             break;

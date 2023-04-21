@@ -41,9 +41,9 @@ RSProxyRenderNode::~RSProxyRenderNode()
     }
 
     // reset target node context properties
-    target->SetContextAlpha(1, false);
-    target->SetContextMatrix(SkMatrix::I(), false);
-    target->SetContextClipRegion(SkRect::MakeEmpty(), false);
+    target->SetContextAlpha(1.0f, false);
+    target->SetContextMatrix(std::nullopt, false);
+    target->SetContextClipRegion(std::nullopt, false);
 
     // remove all modifiers and animations added via proxy node
     const auto pid_of_this_node = ExtractPid(GetId());
@@ -68,7 +68,7 @@ void RSProxyRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->ProcessProxyRenderNode(*this);
 }
 
-void RSProxyRenderNode::SetContextMatrix(const SkMatrix& matrix)
+void RSProxyRenderNode::SetContextMatrix(const std::optional<SkMatrix>& matrix)
 {
     if (contextMatrix_ == matrix) {
         return;
@@ -98,7 +98,7 @@ void RSProxyRenderNode::SetContextAlpha(float alpha)
     SendCommandFromRT(command, GetId());
 }
 
-void RSProxyRenderNode::SetContextClipRegion(SkRect clipRegion)
+void RSProxyRenderNode::SetContextClipRegion(const std::optional<SkRect>& clipRegion)
 {
     if (contextClipRect_ == clipRegion) {
         return;
@@ -117,7 +117,8 @@ void RSProxyRenderNode::ResetContextVariableCache()
 {
     // reset context variable cache, make sure next visit will flush correct context variables.
     contextAlpha_ = -1.0f;
-    contextMatrix_ = SkMatrix::InvalidMatrix();
+    contextMatrix_.reset();
+    contextClipRect_.reset();
 }
 } // namespace Rosen
 } // namespace OHOS

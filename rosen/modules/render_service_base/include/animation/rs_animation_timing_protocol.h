@@ -68,11 +68,6 @@ public:
         isForward_ = isForward;
     }
 
-    void SetRepeatFinishCallBackEnable(bool isEnalbe)
-    {
-        isRepeatFinishCallBackEnable_ = isEnalbe;
-    }
-
     int GetDuration() const
     {
         return duration_;
@@ -108,11 +103,6 @@ public:
         return isForward_;
     }
 
-    bool GetRepeatFinishCallBackEnable() const
-    {
-        return isRepeatFinishCallBackEnable_;
-    }
-
     static const RSAnimationTimingProtocol DEFAULT;
     static const RSAnimationTimingProtocol IMMEDIATE;
 
@@ -124,7 +114,6 @@ protected:
     bool autoReverse_ { false };
     FillMode fillMode_ { FillMode::FORWARDS };
     bool isForward_ { true };
-    bool isRepeatFinishCallBackEnable_ { false };
 };
 } // namespace Rosen
 } // namespace OHOS

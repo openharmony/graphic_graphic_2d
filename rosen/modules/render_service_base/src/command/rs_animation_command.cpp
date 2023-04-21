@@ -19,32 +19,20 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-static AnimationCommandHelper::FinishCallbackProcessor finishCallbackProcessor = nullptr;
-static AnimationCommandHelper::FinishCallbackProcessor repeatCallbackProcessor = nullptr;
+static AnimationCommandHelper::AnimationCallbackProcessor animationCallbackProcessor = nullptr;
 }
 
-void AnimationCommandHelper::AnimationFinishCallback(RSContext& context, NodeId targetId, AnimationId animId)
+void AnimationCommandHelper::AnimationCallback(RSContext& context, NodeId targetId, AnimationId animId,
+    AnimationCallbackEvent event)
 {
-    if (finishCallbackProcessor != nullptr) {
-        finishCallbackProcessor(targetId, animId);
+    if (animationCallbackProcessor != nullptr) {
+        animationCallbackProcessor(targetId, animId, event);
     }
 }
 
-void AnimationCommandHelper::SetFinishCallbackProcessor(FinishCallbackProcessor processor)
+void AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor processor)
 {
-    finishCallbackProcessor = processor;
-}
-
-void AnimationCommandHelper::AnimationRepeatCallback(RSContext& context, NodeId targetId, AnimationId animId)
-{
-    if (repeatCallbackProcessor != nullptr) {
-        repeatCallbackProcessor(targetId, animId);
-    }
-}
-
-void AnimationCommandHelper::SetRepeatCallbackProcessor(RepeatCallbackProcessor processor)
-{
-    repeatCallbackProcessor = processor;
+    animationCallbackProcessor = processor;
 }
 
 void AnimationCommandHelper::CreateAnimation(

@@ -224,7 +224,8 @@ const std::shared_ptr<RSObjGeometry>& RSProperties::GetFrameGeometry() const
     return frameGeo_;
 }
 
-bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag, Vector2f& offset)
+bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<SkPoint>& offset,
+    const std::optional<SkRect>& clipRect)
 {
     if (boundsGeo_ == nullptr) {
         return false;
@@ -234,9 +235,10 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag, Ve
 
     if (dirtyFlag || geoDirty_) {
         auto parentGeo = parent == nullptr ? nullptr : std::static_pointer_cast<RSObjAbsGeometry>(parent->boundsGeo_);
-        boundsGeoPtr->UpdateMatrix(parentGeo, offset.x_, offset.y_);
+        boundsGeoPtr->UpdateMatrix(parentGeo, offset, clipRect);
+        return true;
     }
-    return dirtyFlag || geoDirty_;
+    return false;
 }
 
 void RSProperties::SetPositionZ(float positionZ)

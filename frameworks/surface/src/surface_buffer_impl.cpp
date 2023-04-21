@@ -52,21 +52,21 @@ inline GSError GenerateError(GSError err, int32_t code)
 
 using namespace OHOS::HDI::Display::Buffer::V1_0;
 using IDisplayBufferSptr = std::shared_ptr<IDisplayBuffer>;
-static IDisplayBufferSptr g_DisplayBuffer = nullptr;
+static IDisplayBufferSptr g_displayBuffer;
 static std::mutex g_DisplayBufferMutex;
 IDisplayBufferSptr GetDisplayBuffer()
 {
     std::lock_guard<std::mutex> lock(g_DisplayBufferMutex);
-    if (g_DisplayBuffer != nullptr) {
-        return g_DisplayBuffer;
+    if (g_displayBuffer != nullptr) {
+        return g_displayBuffer;
     }
 
-    g_DisplayBuffer.reset(IDisplayBuffer::Get());
-    if (g_DisplayBuffer == nullptr) {
+    g_displayBuffer.reset(IDisplayBuffer::Get());
+    if (g_displayBuffer == nullptr) {
         BLOGE("IDisplayBuffer::Get return nullptr.");
         return nullptr;
     }
-    return g_DisplayBuffer;
+    return g_displayBuffer;
 }
 
 }
@@ -113,8 +113,8 @@ static const std::map<uint64_t, uint64_t> bufferUsageConvertMap = {
 void SurfaceBufferImpl::DisplayBufferDeathCallback(void* data)
 {
     std::lock_guard<std::mutex> lock(g_DisplayBufferMutex);
-    g_DisplayBuffer = nullptr;
-    BLOGD("gralloc_host died and g_DisplayBuffer is nullptr.");
+    g_displayBuffer = nullptr;
+    BLOGD("gralloc_host died and g_displayBuffer is nullptr.");
 }
 
 SurfaceBufferImpl::SurfaceBufferImpl()
@@ -172,7 +172,7 @@ GSError SurfaceBufferImpl::Alloc(const BufferRequestConfig &config)
     BufferHandle *handle = nullptr;
     uint64_t usage = BufferUsageToGrallocUsage(config.usage);
     AllocInfo info = {config.width, config.height, usage, config.format};
-    auto dret = g_DisplayBuffer->AllocMem(info, handle);
+    auto dret = g_displayBuffer->AllocMem(info, handle);
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         std::lock_guard<std::mutex> lock(mutex_);
         surfaceBufferColorGamut_ = static_cast<GraphicColorGamut>(config.colorGamut);
@@ -209,7 +209,7 @@ GSError SurfaceBufferImpl::Map()
 #ifdef RS_ENABLE_AFBC
     handle->usage |= (BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
 #endif
-    void *virAddr = g_DisplayBuffer->Mmap(*handle);
+    void *virAddr = g_displayBuffer->Mmap(*handle);
     if (virAddr == nullptr || virAddr == MAP_FAILED) {
         return GSERROR_API_FAILED;
     }
@@ -234,7 +234,7 @@ GSError SurfaceBufferImpl::Unmap()
         handle = handle_;
     }
 
-    auto dret = g_DisplayBuffer->Unmap(*handle);
+    auto dret = g_displayBuffer->Unmap(*handle);
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         handle_->virAddr = nullptr;
         return GSERROR_OK;
@@ -262,7 +262,7 @@ GSError SurfaceBufferImpl::FlushCache()
         return GSERROR_API_FAILED;
     }
 
-    auto dret = g_DisplayBuffer->FlushCache(*handle);
+    auto dret = g_displayBuffer->FlushCache(*handle);
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         return GSERROR_OK;
     }
@@ -286,7 +286,7 @@ GSError SurfaceBufferImpl::InvalidateCache()
         handle = handle_;
     }
 
-    auto dret = g_DisplayBuffer->InvalidateCache(*handle);
+    auto dret = g_displayBuffer->InvalidateCache(*handle);
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         return GSERROR_OK;
     }
@@ -297,8 +297,8 @@ GSError SurfaceBufferImpl::InvalidateCache()
 void SurfaceBufferImpl::FreeBufferHandleLocked()
 {
     if (handle_) {
-        if (handle_->virAddr != nullptr && g_DisplayBuffer != nullptr) {
-            g_DisplayBuffer->Unmap(*handle_);
+        if (handle_->virAddr != nullptr && g_displayBuffer != nullptr) {
+            g_displayBuffer->Unmap(*handle_);
             handle_->virAddr = nullptr;
         }
         FreeBufferHandle(handle_);

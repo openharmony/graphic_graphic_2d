@@ -28,7 +28,7 @@ void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id)
     nodeMap.RegisterRenderNode(node);
 }
 
-void SurfaceNodeCommandHelper::SetContextMatrix(RSContext& context, NodeId id, SkMatrix matrix)
+void SurfaceNodeCommandHelper::SetContextMatrix(RSContext& context, NodeId id, const std::optional<SkMatrix>& matrix)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         node->SetContextMatrix(matrix, false);
@@ -42,7 +42,7 @@ void SurfaceNodeCommandHelper::SetContextAlpha(RSContext& context, NodeId id, fl
     }
 }
 
-void SurfaceNodeCommandHelper::SetContextClipRegion(RSContext& context, NodeId id, SkRect clipRect)
+void SurfaceNodeCommandHelper::SetContextClipRegion(RSContext& context, NodeId id, const std::optional<SkRect>& clipRect)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         node->SetContextClipRegion(clipRect, false);

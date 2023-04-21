@@ -181,7 +181,7 @@ HWTEST_F(HdiLayerInfoTest, GetVisibleRegions001, Function | MediumTest| Level3)
     std::vector<GraphicIRect> inVisibles;
     inVisibles.emplace_back(iRect);
     HdiLayerInfoTest::hdiLayerInfo_->SetVisibleRegions(inVisibles);
-    std::vector<GraphicIRect>& outVisibles = HdiLayerInfoTest::hdiLayerInfo_->GetVisibleRegions();
+    const std::vector<GraphicIRect>& outVisibles = HdiLayerInfoTest::hdiLayerInfo_->GetVisibleRegions();
     ASSERT_EQ(outVisibles.size(), 1);
     ASSERT_EQ(outVisibles[0].x, iRect.x);
     ASSERT_EQ(outVisibles[0].y, iRect.y);
@@ -207,7 +207,7 @@ HWTEST_F(HdiLayerInfoTest, GetDirtyRegion001, Function | MediumTest| Level3)
     std::vector<GraphicIRect> inDirtyRegions;
     inDirtyRegions.emplace_back(iRect);
     HdiLayerInfoTest::hdiLayerInfo_->SetDirtyRegions(inDirtyRegions);
-    std::vector<GraphicIRect>& outDirtyRegions = HdiLayerInfoTest::hdiLayerInfo_->GetDirtyRegions();
+    const std::vector<GraphicIRect>& outDirtyRegions = HdiLayerInfoTest::hdiLayerInfo_->GetDirtyRegions();
     ASSERT_EQ(outDirtyRegions.size(), 1);
     ASSERT_EQ(outDirtyRegions[0].x, iRect.x);
     ASSERT_EQ(outDirtyRegions[0].y, iRect.y);
@@ -374,7 +374,7 @@ HWTEST_F(HdiLayerInfoTest, ColorTransform001, Function | MediumTest | Level1)
 {
     std::vector<float> matrix = {1, 0, 0, 0, 1, 0, 0, 0, 1};
     HdiLayerInfoTest::hdiLayerInfo_->SetColorTransform(matrix);
-    std::vector<float>& transform = HdiLayerInfoTest::hdiLayerInfo_->GetColorTransform();
+    const std::vector<float>& transform = HdiLayerInfoTest::hdiLayerInfo_->GetColorTransform();
     ASSERT_EQ(transform.size(), 9);
 }
 

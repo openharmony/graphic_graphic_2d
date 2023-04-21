@@ -122,7 +122,6 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
 void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap)
 {
     ROSEN_LOGI("RSRenderServiceClient::Into TriggerSurfaceCaptureCallback nodeId:[%" PRIu64 "]", id);
-    std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
     std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector;
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -136,12 +135,23 @@ void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, Media::Pixe
         ROSEN_LOGE("RSRenderServiceClient::TriggerSurfaceCaptureCallback: callbackVector is empty!");
         return;
     }
-    for (auto callback : callbackVector) {
-        if (callback == nullptr) {
+    for (decltype(callbackVector.size()) i = 0; i < callbackVector.size(); ++i) {
+        if (callbackVector[i] == nullptr) {
             ROSEN_LOGE("RSRenderServiceClient::TriggerSurfaceCaptureCallback: callback is nullptr!");
             continue;
         }
-        callback->OnSurfaceCapture(surfaceCapture);
+        Media::PixelMap* pixelmapCopyRelease = nullptr;
+        if (i != callbackVector.size() - 1) {
+            if (pixelmap != nullptr) {
+                Media::InitializationOptions options;
+                std::unique_ptr<Media::PixelMap> pixelmapCopy = Media::PixelMap::Create(*pixelmap, options);
+                pixelmapCopyRelease = pixelmapCopy.release();
+            }
+        } else {
+            pixelmapCopyRelease = pixelmap;
+        }
+        std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmapCopyRelease);
+        callbackVector[i]->OnSurfaceCapture(surfaceCapture);
     }
 }
 

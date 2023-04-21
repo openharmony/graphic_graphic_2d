@@ -285,7 +285,7 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest010, TestSi
     style.textShadows_.push_back(textShadow);
     txt::TextStyle txtStyle;
     RosenConvertTxtStyle(style, txtStyle);
-#ifdef USE_CANVASKIT0310_SKIA
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     EXPECT_EQ(txtStyle.text_shadows[0].blur_sigma, 0.0);
 #else
     EXPECT_EQ(txtStyle.text_shadows[0].blur_radius, 0.0);
