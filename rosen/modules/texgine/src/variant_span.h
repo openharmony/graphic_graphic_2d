@@ -30,7 +30,7 @@ namespace Rosen {
 namespace TextEngine {
 enum class DumpType {
     NORMAL,
-    DONTRETURN,
+    DONT_RETURN,
 };
 
 class VariantSpan {
@@ -45,8 +45,7 @@ public:
     template<typename Type,
              typename = std::enable_if_t<std::is_convertible_v<Type, std::shared_ptr<AnySpan>>>>
     VariantSpan(Type type) noexcept(true)
-        : VariantSpan(std::static_pointer_cast<AnySpan>(type))
-    { }
+        : VariantSpan(std::static_pointer_cast<AnySpan>(type)) {}
 
     std::shared_ptr<TextSpan> TryToTextSpan() const noexcept(false);
     std::shared_ptr<AnySpan> TryToAnySpan() const noexcept(false);
@@ -67,8 +66,8 @@ public:
     void AdjustOffsetX(double offset) noexcept(true);
     void AdjustOffsetY(double offset) noexcept(true);
 
-    void Paint(TexgineCanvas &canvas, double offsetx, double offsety) noexcept(false);
-    void PaintShadow(TexgineCanvas &canvas, double offsetx, double offsety) noexcept(false);
+    void Paint(TexgineCanvas &canvas, double offsetX, double offsetY) noexcept(false);
+    void PaintShadow(TexgineCanvas &canvas, double offsetX, double offsetY) noexcept(false);
     bool IsRTL() const noexcept(false);
 
     operator bool() const noexcept(false);
