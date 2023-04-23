@@ -129,9 +129,9 @@ void RSRenderNode::UpdateDirtyRegion(
     if (!ShouldPaint() && isLastVisible_) {
         ROSEN_LOGD("RSRenderNode:: id %" PRIu64 " UpdateDirtyRegion visible->invisible", GetId());
     } else {
-        RectI overlayRect;
+        RectI drawRegion;
         RectI shadowDirty;
-        auto dirtyRect = renderProperties_.GetDirtyRect(overlayRect);
+        auto dirtyRect = renderProperties_.GetDirtyRect(drawRegion);
         if (renderProperties_.IsShadowValid()) {
             SetShadowValidLastFrame(true);
             if (IsInstanceOf<RSSurfaceRenderNode>()) {
@@ -166,7 +166,7 @@ void RSRenderNode::UpdateDirtyRegion(
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
                     GetId(), GetType(), DirtyRegionType::UPDATE_DIRTY_REGION, oldDirtyInSurface_);
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
-                    GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, overlayRect);
+                    GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, drawRegion);
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
                     GetId(), GetType(), DirtyRegionType::SHADOW_RECT, shadowDirty);
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
@@ -302,9 +302,6 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         modifiers.remove_if([id](const auto& modifier) -> bool {
             return modifier ? modifier->GetPropertyId() == id : true;
         });
-        if (type == RSModifierType::OVERLAY_STYLE) {
-            UpdateOverlayBounds();
-        }
     }
 }
 
@@ -321,39 +318,32 @@ void RSRenderNode::ApplyModifiers()
         }
     }
     OnApplyModifiers();
-    UpdateOverlayBounds();
+    UpdateDrawRegion();
 }
 
-void RSRenderNode::UpdateOverlayBounds()
+void RSRenderNode::UpdateDrawRegion()
 {
     RSModifierContext context = { GetMutableRenderProperties() };
     RectF joinRect = RectF();
-    if (GetDrawRegion() != nullptr) {
-        joinRect = joinRect.JoinRect(*(GetDrawRegion()));
-        context.property_.SetOverlayBounds(std::make_shared<RectF>(joinRect));
-        return;
+    if (drawRegion_) {
+        joinRect = joinRect.JoinRect(*(drawRegion_));
     }
     for (auto& iterator : drawCmdModifiers_) {
-        if (iterator.first == RSModifierType::GEOMETRYTRANS) {
+        if (iterator.first > RSModifierType::NODE_MODIFIER) {
             continue;
         }
-        for (auto& overlayModifier : iterator.second) {
-            auto drawCmdModifier = std::static_pointer_cast<RSDrawCmdListRenderModifier>(overlayModifier);
+        for (auto& modifier : iterator.second) {
+            auto drawCmdModifier = std::static_pointer_cast<RSDrawCmdListRenderModifier>(modifier);
             if (!drawCmdModifier) {
                 continue;
             }
-            if (drawCmdModifier->GetOverlayBounds() != nullptr &&
-                !drawCmdModifier->GetOverlayBounds()->IsEmpty()) {
-                joinRect = joinRect.JoinRect(*(drawCmdModifier->GetOverlayBounds()));
-            } else if (drawCmdModifier->GetOverlayBounds() == nullptr) {
-                auto recording = std::static_pointer_cast<RSRenderProperty<DrawCmdListPtr>>(
+            auto recording = std::static_pointer_cast<RSRenderProperty<DrawCmdListPtr>>(
                     drawCmdModifier->GetProperty())->Get();
-                auto recordingRect = RectF(0, 0, recording->GetWidth(), recording->GetHeight());
-                joinRect = recordingRect.IsEmpty() ? joinRect : joinRect.JoinRect(recordingRect);
-            }
+            auto recordingRect = RectF(0, 0, recording->GetWidth(), recording->GetHeight());
+            joinRect = recordingRect.IsEmpty() ? joinRect : joinRect.JoinRect(recordingRect);
         }
     }
-    context.property_.SetOverlayBounds(std::make_shared<RectF>(joinRect));
+    context.property_.SetDrawRegion(std::make_shared<RectF>(joinRect));
 }
 
 std::shared_ptr<RSRenderModifier> RSRenderNode::GetModifier(const PropertyId& id)

@@ -65,21 +65,11 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
     { RSModifierType::EXTENDED, [](Parcel& parcel) -> RSRenderModifier* {
             std::shared_ptr<RSRenderProperty<std::shared_ptr<DrawCmdList>>> prop;
             int16_t type;
-            bool hasOverlayBounds;
-            if (!RSMarshallingHelper::Unmarshalling(parcel, prop) || !parcel.ReadInt16(type) ||
-                !parcel.ReadBool(hasOverlayBounds)) {
+            if (!RSMarshallingHelper::Unmarshalling(parcel, prop) || !parcel.ReadInt16(type)) {
                 return nullptr;
             }
             RSDrawCmdListRenderModifier* modifier = new RSDrawCmdListRenderModifier(prop);
             modifier->SetType(static_cast<RSModifierType>(type));
-            if (hasOverlayBounds) {
-                RectF overlayBounds;
-                if (!RSMarshallingHelper::Unmarshalling(parcel, overlayBounds)) {
-                    delete modifier;
-                    return nullptr;
-                }
-                modifier->SetOverlayBounds(std::make_shared<RectF>(overlayBounds));
-            }
             return modifier;
         },
     },
@@ -142,15 +132,8 @@ void RSDrawCmdListRenderModifier::Update(const std::shared_ptr<RSRenderPropertyB
 
 bool RSDrawCmdListRenderModifier::Marshalling(Parcel& parcel)
 {
-    if (parcel.WriteInt16(static_cast<int16_t>(RSModifierType::EXTENDED)) &&
-        RSMarshallingHelper::Marshalling(parcel, property_) && parcel.WriteInt16(static_cast<int16_t>(GetType())) &&
-        parcel.WriteBool(overlayRect_ != nullptr)) {
-        if (overlayRect_ != nullptr) {
-            return RSMarshallingHelper::Marshalling(parcel, *overlayRect_);
-        }
-        return true;
-    }
-    return false;
+    return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::EXTENDED)) &&
+        RSMarshallingHelper::Marshalling(parcel, property_) && parcel.WriteInt16(static_cast<int16_t>(GetType()));
 }
 
 RectF RSDrawCmdListRenderModifier::GetCmdsClipRect() const

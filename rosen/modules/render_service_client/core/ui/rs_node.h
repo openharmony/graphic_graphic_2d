@@ -251,6 +251,7 @@ private:
     std::unordered_map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
     std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
     std::shared_ptr<RSMotionPathOption> motionPathOption_;
+    std::shared_ptr<RectF> drawRegion_;
 
     void UpdateImplicitAnimator();
     pid_t implicitAnimatorTid_ = 0;

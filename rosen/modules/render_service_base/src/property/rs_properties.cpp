@@ -800,14 +800,14 @@ Gravity RSProperties::GetFrameGravity() const
     return frameGravity_;
 }
 
-void RSProperties::SetOverlayBounds(std::shared_ptr<RectF> rect)
+void RSProperties::SetDrawRegion(std::shared_ptr<RectF> rect)
 {
-    overlayRect_ = rect;
+    drawRegion_ = rect;
 }
 
-std::shared_ptr<RectF> RSProperties::GetOverlayBounds() const
+std::shared_ptr<RectF> RSProperties::GetDrawRegion() const
 {
-    return overlayRect_;
+    return drawRegion_;
 }
 
 void RSProperties::SetClipBounds(std::shared_ptr<RSPath> path)
@@ -975,20 +975,20 @@ RectI RSProperties::GetDirtyRect() const
             boundsGeometry->MapAbsRect(RectF(GetFrameOffsetX(), GetFrameOffsetY(), GetFrameWidth(), GetFrameHeight()));
         dirtyRect = boundsGeometry->GetAbsRect().JoinRect(frameRect);
     }
-    if (overlayRect_ == nullptr || overlayRect_->IsEmpty()) {
+    if (drawRegion_ == nullptr || drawRegion_->IsEmpty()) {
         return dirtyRect;
     } else {
-        auto overlayRect = boundsGeometry->MapAbsRect(*overlayRect_);
-        // this is used to fix the scene with overlayRect problem, which is need to be optimized
-        overlayRect.SetRight(overlayRect.GetRight() + 1);
-        overlayRect.SetBottom(overlayRect.GetBottom() + 1);
-        overlayRect.SetAll(overlayRect.left_ - 1, overlayRect.top_ - 1,
-            overlayRect.width_ + 1, overlayRect.height_ + 1);
-        return dirtyRect.JoinRect(overlayRect);
+        auto drawRegion = boundsGeometry->MapAbsRect(*drawRegion_);
+        // this is used to fix the scene with drawRegion problem, which is need to be optimized
+        drawRegion.SetRight(drawRegion.GetRight() + 1);
+        drawRegion.SetBottom(drawRegion.GetBottom() + 1);
+        drawRegion.SetAll(drawRegion.left_ - 1, drawRegion.top_ - 1,
+            drawRegion.width_ + 1, drawRegion.height_ + 1);
+        return dirtyRect.JoinRect(drawRegion);
     }
 }
 
-RectI RSProperties::GetDirtyRect(RectI& overlayRect) const
+RectI RSProperties::GetDirtyRect(RectI& drawRegion) const
 {
     RectI dirtyRect;
     auto boundsGeometry = std::static_pointer_cast<RSObjAbsGeometry>(boundsGeo_);
@@ -999,17 +999,17 @@ RectI RSProperties::GetDirtyRect(RectI& overlayRect) const
             boundsGeometry->MapAbsRect(RectF(GetFrameOffsetX(), GetFrameOffsetY(), GetFrameWidth(), GetFrameHeight()));
         dirtyRect = boundsGeometry->GetAbsRect().JoinRect(frameRect);
     }
-    if (overlayRect_ == nullptr || overlayRect_->IsEmpty()) {
-        overlayRect = RectI();
+    if (drawRegion_ == nullptr || drawRegion_->IsEmpty()) {
+        drawRegion = RectI();
         return dirtyRect;
     } else {
-        overlayRect = boundsGeometry->MapAbsRect(*overlayRect_);
-        // this is used to fix the scene with overlayRect problem, which is need to be optimized
-        overlayRect.SetRight(overlayRect.GetRight() + 1);
-        overlayRect.SetBottom(overlayRect.GetBottom() + 1);
-        overlayRect.SetAll(overlayRect.left_ - 1, overlayRect.top_ - 1,
-            overlayRect.width_ + 1, overlayRect.height_ + 1);
-        return dirtyRect.JoinRect(overlayRect);
+        drawRegion = boundsGeometry->MapAbsRect(*drawRegion_);
+        // this is used to fix the scene with drawRegion problem, which is need to be optimized
+        drawRegion.SetRight(drawRegion.GetRight() + 1);
+        drawRegion.SetBottom(drawRegion.GetBottom() + 1);
+        drawRegion.SetAll(drawRegion.left_ - 1, drawRegion.top_ - 1,
+            drawRegion.width_ + 1, drawRegion.height_ + 1);
+        return dirtyRect.JoinRect(drawRegion);
     }
 }
 
