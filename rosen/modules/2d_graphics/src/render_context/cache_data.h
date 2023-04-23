@@ -31,6 +31,8 @@ public:
     CacheData(const size_t maxKeySize, const size_t maxValueSize,
         const size_t maxTotalSize, const std::string& fileName);
 
+    ~CacheData();
+
     void Rewrite(const void *key, const size_t keySize, const void *value, const size_t valueSize);
 
     size_t Get(const void *key, const size_t keySize, void *value, const size_t valueSize);

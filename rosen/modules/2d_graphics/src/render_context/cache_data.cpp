@@ -31,6 +31,11 @@ CacheData::CacheData (const size_t maxKeySize, const size_t maxValueSize,
     maxTotalSize_(maxTotalSize),
     cacheDir_(fileName) {}
 
+CacheData::~CacheData()
+{
+    LOGE("CacheData: destroying CacheData");
+}
+
 void CacheData::ReadFromFile()
 {
     if (cacheDir_.length() <= 0) {
