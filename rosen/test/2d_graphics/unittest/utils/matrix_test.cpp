@@ -62,7 +62,9 @@ HWTEST_F(MatrixTest, CreateAndDestroy001, TestSize.Level1)
 HWTEST_F(MatrixTest, CreateAndDestroy002, TestSize.Level1)
 {
     // The best way to create Matrix.
-    Matrix matrix;
+    Matrix matrix1;
+    Matrix matrix2;
+    ASSERT_TRUE(matrix1.Invert(matrix2));
 }
 
 /**
@@ -269,7 +271,7 @@ HWTEST_F(MatrixTest, MatrixMapPointsTest001, TestSize.Level1)
     ASSERT_TRUE(matrix != nullptr);
     std::vector<Point> dst = { { 1, 2 } };
     std::vector<Point> src = { { 2, 3 } };
-    matrix->MapPoints(dst, src, 100);
+    matrix->MapPoints(dst, src, 1);
 }
 
 /**
@@ -285,7 +287,7 @@ HWTEST_F(MatrixTest, MatrixMapPointsTest002, TestSize.Level1)
     ASSERT_TRUE(matrix != nullptr);
     std::vector<Point> dst = { { 3, 2 } };
     std::vector<Point> src = { { 1, 3 } };
-    matrix->MapPoints(dst, src, 191);
+    matrix->MapPoints(dst, src, 1);
 }
 
 /**

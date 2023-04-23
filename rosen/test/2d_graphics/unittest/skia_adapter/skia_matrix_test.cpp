@@ -49,6 +49,7 @@ HWTEST_F(SkiaMatrixTest, Multiply001, TestSize.Level1)
     Matrix matrix2;
     SkiaMatrix skiaMatrix;
     skiaMatrix.Multiply(matrix1, matrix2);
+    EXPECT_EQ(skiaMatrix.Get(0), 1);
 }
 
 /**
@@ -64,7 +65,8 @@ HWTEST_F(SkiaMatrixTest, MapPoints001, TestSize.Level1)
     std::vector<Point> dst { point1 };
     std::vector<Point> src { point2 };
     SkiaMatrix skiaMatrix;
-    skiaMatrix.MapPoints(dst, src, 20);
+    skiaMatrix.MapPoints(dst, src, 1);
+    EXPECT_EQ(skiaMatrix.Get(0), 1);
 }
 
 /**
