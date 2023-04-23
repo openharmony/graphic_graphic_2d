@@ -231,8 +231,7 @@ CharGroups CharGroups::GetIntersect(const CharGroups &right) const
         throw CustomException("these two cgs is not intersect");
     }
 
-    CharGroups retval;
-    retval = *this;
+    CharGroups retval = *this;
     retval.range_.start_ = std::max(range_.start_, right.range_.start_);
     retval.range_.end_ = std::min(range_.end_, right.range_.end_);
     return retval;
