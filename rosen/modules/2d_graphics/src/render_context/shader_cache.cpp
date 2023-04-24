@@ -31,6 +31,11 @@ ShaderCache& ShaderCache::Instance()
     return cache_;
 }
 
+ShaderCache::~ShaderCache()
+{
+    LOGE("ShaderCache: destroying Shadercache");
+}
+
 void ShaderCache::InitShaderCache(const char* identity, const size_t size, bool isUni)
 {
     std::lock_guard<std::mutex> lock(mutex_);

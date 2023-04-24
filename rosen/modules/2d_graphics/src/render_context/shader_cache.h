@@ -67,6 +67,7 @@ public:
 
 private:
     ShaderCache() = default;
+    ~ShaderCache();
     ShaderCache(const ShaderCache &) = delete;
     void operator=(const ShaderCache &) = delete;
 
