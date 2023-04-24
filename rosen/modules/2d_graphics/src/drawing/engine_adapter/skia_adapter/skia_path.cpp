@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,9 @@
 
 #include "include/core/SkMatrix.h"
 #include "include/pathops/SkPathOps.h"
+#include "include/utils/SkParsePath.h"
+#include "include/core/SkPathMeasure.h"
+#include "include/core/SkString.h"
 #include "skia_matrix.h"
 
 #include "draw/path.h"
@@ -40,6 +43,19 @@ SkiaPath& SkiaPath::operator=(const SkiaPath& other) noexcept
 PathImpl* SkiaPath::Clone()
 {
     return new SkiaPath(*this);
+}
+
+bool SkiaPath::InitWithSVGString(const std::string& str)
+{
+    return SkParsePath::FromSVGString(str.c_str(), &path_);
+}
+
+std::string SkiaPath::ConvertToSVGString() const
+{
+    SkString skString;
+    SkParsePath::ToSVGString(path_, &skString);
+
+    return skString.c_str();
 }
 
 void SkiaPath::MoveTo(scalar x, scalar y)
@@ -133,6 +149,33 @@ void SkiaPath::AddRoundRect(
     path_.addRoundRect(SkRect::MakeLTRB(left, top, right, bottom), xRadius, yRadius, pathDir);
 }
 
+void SkiaPath::AddRoundRect(const RoundRect& rrect, PathDirection dir)
+{
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
+    SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
+#else
+    SkPath::Direction pathDir = static_cast<SkPath::Direction>(dir);
+#endif
+
+    Rect rect = rrect.GetRect();
+    SkRect outer = SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+
+    SkVector radii[4];
+    Point p;
+    p = rrect.GetCornerRadius(RoundRect::TOP_LEFT_POS);
+    radii[SkRRect::kUpperLeft_Corner] = { p.GetX(), p.GetY() };
+    p = rrect.GetCornerRadius(RoundRect::TOP_RIGHT_POS);
+    radii[SkRRect::kUpperRight_Corner] = { p.GetX(), p.GetY() };
+    p = rrect.GetCornerRadius(RoundRect::BOTTOM_RIGHT_POS);
+    radii[SkRRect::kLowerRight_Corner] = { p.GetX(), p.GetY() };
+    p = rrect.GetCornerRadius(RoundRect::BOTTOM_LEFT_POS);
+    radii[SkRRect::kLowerLeft_Corner] = { p.GetX(), p.GetY() };
+
+    SkRRect skRRect;
+    skRRect.setRectRadii(outer, radii);
+    path_.addRRect(skRRect, pathDir);
+}
+
 void SkiaPath::AddPath(const Path& src, scalar dx, scalar dy)
 {
     auto skPathImpl = src.GetImpl<SkiaPath>();
@@ -146,6 +189,14 @@ void SkiaPath::AddPath(const Path& src)
     auto skPathImpl = src.GetImpl<SkiaPath>();
     if (skPathImpl != nullptr) {
         path_.addPath(skPathImpl->GetPath());
+    }
+}
+
+void SkiaPath::ReverseAddPath(const Path& src)
+{
+    auto skPathImpl = src.GetImpl<SkiaPath>();
+    if (skPathImpl != nullptr) {
+        path_.reverseAddPath(skPathImpl->GetPath());
     }
 }
 
@@ -187,6 +238,18 @@ bool SkiaPath::Interpolate(const Path& ending, scalar weight, Path& out)
     return isSuccess;
 }
 
+bool SkiaPath::InitWithInterpolate(const Path& srcPath, const Path& endingPath, scalar weight)
+{
+    bool result = false;
+    auto srcSkiaPathImpl = srcPath.GetImpl<SkiaPath>();
+    auto endingSkiaPathImpl = endingPath.GetImpl<SkiaPath>();
+    if (srcSkiaPathImpl != nullptr && endingSkiaPathImpl != nullptr) {
+        const SkPath& srcSkPath = srcSkiaPathImpl->GetPath();
+        result = srcSkPath.interpolate(endingSkiaPathImpl->GetPath(), weight, &path_);
+    }
+    return result;
+}
+
 void SkiaPath::Transform(const Matrix& matrix)
 {
     auto skMatrixImpl = matrix.GetImpl<SkiaMatrix>();
@@ -217,6 +280,11 @@ bool SkiaPath::OpWith(const Path& path1, const Path& path2, PathOp op)
     return false;
 }
 
+bool SkiaPath::IsValid() const
+{
+    return !path_.isEmpty();
+}
+
 void SkiaPath::Reset()
 {
     path_.reset();
@@ -236,6 +304,30 @@ const SkPath& SkiaPath::GetPath() const
 {
     return path_;
 }
+
+scalar SkiaPath::GetLength(bool forceClosed) const
+{
+    SkPathMeasure pathMeasure(path_, forceClosed);
+    return pathMeasure.getLength();
+}
+
+bool SkiaPath::GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) const
+{
+    bool ret = false;
+    SkPoint skPosition;
+    SkVector skTangent;
+    SkPathMeasure pathMeasure(path_, forceClosed);
+    ret = pathMeasure.getPosTan(distance, &skPosition, &skTangent);
+    if (ret) {
+        position.SetX(skPosition.x());
+        position.SetY(skPosition.y());
+        tangent.SetX(skTangent.x());
+        tangent.SetY(skTangent.y());
+    }
+
+    return ret;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

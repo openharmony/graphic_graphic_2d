@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,7 @@
 #include "utils/matrix.h"
 #include "utils/point.h"
 #include "utils/rect.h"
+#include "utils/round_rect.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -45,6 +46,10 @@ public:
         return AdapterType::BASE_INTERFACE;
     }
     virtual PathImpl* Clone() = 0;
+
+    virtual bool InitWithSVGString(const std::string& str) = 0;
+    virtual std::string ConvertToSVGString() const = 0;
+    virtual bool InitWithInterpolate(const Path& srcPath, const Path& endingPath, scalar weight) = 0;
     virtual void MoveTo(scalar x, scalar y) = 0;
     virtual void LineTo(scalar x, scalar y) = 0;
     virtual void ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar startAngle, scalar sweepAngle) = 0;
@@ -60,10 +65,12 @@ public:
     virtual void AddCircle(scalar x, scalar y, scalar radius, PathDirection dir) = 0;
     virtual void AddRoundRect(
         scalar left, scalar top, scalar right, scalar bottom, scalar xRadius, scalar yRadius, PathDirection dir) = 0;
+    virtual void AddRoundRect(const RoundRect& rrect, PathDirection dir) = 0;
 
     virtual void AddPath(const Path& src, scalar dx, scalar dy) = 0;
     virtual void AddPath(const Path& src) = 0;
     virtual void AddPathWithMatrix(const Path& src, const Matrix& matrix) = 0;
+    virtual void ReverseAddPath(const Path& src) = 0;
 
     virtual Rect GetBounds() const = 0;
     virtual void SetFillStyle(PathFillType fillstyle) = 0;
@@ -73,9 +80,13 @@ public:
     virtual void Offset(scalar dx, scalar dy) = 0;
     virtual bool OpWith(const Path& path1, const Path& path2, PathOp op) = 0;
 
+    virtual bool IsValid() const = 0;
     virtual void Reset() = 0;
 
     virtual void Close() = 0;
+
+    virtual scalar GetLength(bool forceClosed) const = 0;
+    virtual bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) const = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

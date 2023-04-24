@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,6 +34,16 @@ Path& Path::operator=(const Path &other) noexcept
 }
 
 Path::~Path() {}
+
+bool Path::BuildFromSVGString(const std::string& str)
+{
+    return impl_->InitWithSVGString(str);
+}
+
+std::string Path::ConvertToSVGString() const
+{
+    return impl_->ConvertToSVGString();
+}
 
 void Path::MoveTo(scalar x, scalar y)
 {
@@ -115,6 +125,11 @@ void Path::AddRoundRect(const Rect& rect, scalar xRadius, scalar yRadius, PathDi
     impl_->AddRoundRect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom(), xRadius, yRadius, dir);
 }
 
+void Path::AddRoundRect(const RoundRect& rrect, PathDirection dir)
+{
+    impl_->AddRoundRect(rrect, dir);
+}
+
 void Path::AddPath(const Path& src, scalar dx, scalar dy)
 {
     impl_->AddPath(src, dx, dy);
@@ -128,6 +143,11 @@ void Path::AddPath(const Path& src)
 void Path::AddPath(const Path& src, const Matrix& matrix)
 {
     impl_->AddPathWithMatrix(src, matrix);
+}
+
+void Path::ReverseAddPath(const Path& src)
+{
+    impl_->ReverseAddPath(src);
 }
 
 Rect Path::GetBounds() const
@@ -160,6 +180,11 @@ bool Path::Op(const Path& path1, Path& path2, PathOp op)
     return impl_->OpWith(path1, path2, op);
 }
 
+bool Path::IsValid() const
+{
+    return impl_->IsValid();
+}
+
 void Path::Reset()
 {
     impl_->Reset();
@@ -169,6 +194,17 @@ void Path::Close()
 {
     impl_->Close();
 }
+
+scalar Path::GetLength(bool forceClosed) const
+{
+    return impl_->GetLength(forceClosed);
+}
+
+bool Path::GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) const
+{
+    return impl_->GetPositionAndTangent(distance, position, tangent, forceClosed);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
