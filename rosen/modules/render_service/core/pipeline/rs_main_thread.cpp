@@ -213,7 +213,9 @@ void RSMainThread::Init()
         rsEventManager_.UpdateParam();
         RS_LOGD("RsDebug mainLoop end");
     };
-
+#ifdef RS_ENABLE_RECORDING
+    RSRecordingThread::Instance().Start();
+#endif
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     if (isUniRender_) {
         unmarshalBarrierTask_ = [this]() {

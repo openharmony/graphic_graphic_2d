@@ -19,6 +19,26 @@
 
 namespace OHOS {
 namespace Rosen {
+int RSSystemProperties::GetDumpFrameNum()
+{
+    return 0;
+}
+
+bool RSSystemProperties::GetRecordingEnabled()
+{
+    return false;
+}
+
+void RSSystemProperties::SetRecordingDisenabled()
+{
+    return;
+}
+
+std::string RSSystemProperties::GetRecordingFile()
+{
+    return "";
+}
+
 bool RSSystemProperties::GetUniRenderEnabled()
 {
     return isUniRenderEnabled_;

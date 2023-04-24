@@ -76,6 +76,11 @@ public:
     ~RSSystemProperties() = default;
 
     // used by clients
+    static std::string GetRecordingFile();
+    static int GetDumpFrameNum();
+    static void SetRecordingDisenabled();
+    static bool GetRecordingEnabled();
+
     static bool GetUniRenderEnabled();
     static bool GetRenderNodeTraceEnabled();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
@@ -110,6 +115,7 @@ public:
 private:
     RSSystemProperties() = default;
 
+    static inline bool isRecordingEnabled_ = true;
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
 };
