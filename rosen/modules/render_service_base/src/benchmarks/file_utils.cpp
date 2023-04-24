@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "benchmarks/file_util.h"
+#include "benchmarks/file_utils.h"
 
 #include <sstream>
 #include <string>
@@ -28,6 +28,7 @@
 
 namespace OHOS {
 namespace Rosen {
+
 bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath)
 {
     int fd = open(filePath.c_str(), O_RDWR | O_CREAT, static_cast<mode_t>(0600));

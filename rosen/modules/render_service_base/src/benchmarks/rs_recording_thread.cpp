@@ -15,7 +15,7 @@
 
 #include "benchmarks/rs_recording_thread.h"
 
-#include "benchmarks/file_util.h"
+#include "benchmarks/file_utils.h"
 #include "common/rs_thread_handler.h"
 #include "message_parcel.h"
 #include "platform/common/rs_system_properties.h"
@@ -23,6 +23,7 @@
 #include "rs_trace.h"
 
 namespace OHOS::Rosen {
+
 RSRecordingThread &RSRecordingThread::Instance()
 {
     static RSRecordingThread instance;
