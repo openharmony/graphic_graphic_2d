@@ -1883,13 +1883,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     + " Alpha: " + std::to_string(node.GetGlobalAlpha()).substr(0, 4));
     RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%" PRIu64 ",child size:%u,name:%s,OcclusionVisible:%d",
         node.GetId(), node.GetChildrenCount(), node.GetName().c_str(), node.GetOcclusionVisible());
-    if (canvas_ != nullptr) {
 #ifndef NEW_SKIA
-        bool needSkip = node.GetId() == RSMainThread::Instance()->GetContext().GetNodeMap().GetScreenLockWindowNodeId();
-        RSTagTracker tagTracker(canvas_->getGrContext(), node.GetId(),
-            RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE, needSkip);
+    RSTagTracker tagTracker(canvas_ ? canvas_->getGrContext() : nullptr, node.GetId(),
+        RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
 #endif
-    }
     node.UpdatePositionZ();
     if (isSecurityDisplay_ && node.GetSecurityLayer()) {
         RS_TRACE_NAME(node.GetName() + " SecurityLayer Skip");

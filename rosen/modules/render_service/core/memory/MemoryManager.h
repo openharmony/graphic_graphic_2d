@@ -39,6 +39,7 @@ public:
         std::vector<MemoryGraphic>& mems);
     static void ReleaseUnlockGpuResource(GrDirectContext* grContext, GrGpuResourceTag& tag);
     static void ReleaseUnlockGpuResource(GrDirectContext* grContext, NodeId surfaceNodeId);
+    static void ReleaseUnlockGpuResource(GrDirectContext* grContext, pid_t pid);
     static void ReleaseAllGpuResource(GrDirectContext* grContext, GrGpuResourceTag& tag);
     static void ReleaseAllGpuResource(GrDirectContext* grContext, pid_t pid);
     static void ReleaseUnlockLauncherGpuResource(GrDirectContext* grContext,
@@ -51,6 +52,7 @@ public:
     static void CountMemory(std::vector<pid_t> pids, const GrContext* grContext, std::vector<MemoryGraphic>& mems);
     static void ReleaseUnlockGpuResource(GrContext* grContext, GrGpuResourceTag& tag);
     static void ReleaseUnlockGpuResource(GrContext* grContext, NodeId surfaceNodeId);
+    static void ReleaseUnlockGpuResource(GrContext* grContext, pid_t pid);
     static void ReleaseAllGpuResource(GrContext* grContext, GrGpuResourceTag& tag);
     static void ReleaseAllGpuResource(GrContext* grContext, pid_t pid);
     static void ReleaseUnlockLauncherGpuResource(GrContext* grContext,

@@ -117,6 +117,18 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, NodeId surfac
 }
 
 #ifdef NEW_SKIA
+void MemoryManager::ReleaseUnlockGpuResource(GrDirectContext* grContext, pid_t pid)
+#else
+void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, pid_t pid)
+#endif
+{
+#ifdef RS_ENABLE_GL
+    GrGpuResourceTag tag(pid, 0, 0, 0);
+    ReleaseUnlockGpuResource(grContext, tag); // clear gpu resource by pid
+#endif
+}
+
+#ifdef NEW_SKIA
 void MemoryManager::ReleaseUnlockLauncherGpuResource(GrDirectContext* grContext,
     NodeId entryViewNodeId, NodeId wallpaperViewNodeId)
 #else
