@@ -35,7 +35,7 @@ public:
         TAG_CAPTURE,
     };
     RSTagTracker(GrContext* grContext, RSTagTracker::TAGTYPE tagType);
-    RSTagTracker(GrContext* grContext, NodeId nodeId, RSTagTracker::TAGTYPE tagType, bool needSkip = false);
+    RSTagTracker(GrContext* grContext, NodeId nodeId, RSTagTracker::TAGTYPE tagType);
     RSTagTracker(GrContext* grContext, GrGpuResourceTag& tag);
     void SetTagEnd();
     ~RSTagTracker();

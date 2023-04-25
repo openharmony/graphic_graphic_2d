@@ -208,6 +208,8 @@ private:
     void PerfMultiWindow();
     void ResetHardwareEnabledState();
 
+    bool IsResidentProcess(pid_t pid);
+
     // Click animation, report the start event to RS
     void ResSchedDataStartReport(bool needRequestNextVsync);
     // Click animation, report the complete event to RS

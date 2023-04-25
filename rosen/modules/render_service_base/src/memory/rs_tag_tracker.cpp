@@ -72,7 +72,7 @@ std::string RSTagTracker::TagType2String(TAGTYPE type)
     return tagType;
 }
 
-RSTagTracker::RSTagTracker(GrContext* grContext, NodeId nodeId, RSTagTracker::TAGTYPE tagType, bool needSkip)
+RSTagTracker::RSTagTracker(GrContext* grContext, NodeId nodeId, RSTagTracker::TAGTYPE tagType)
     : grContext_(grContext)
 {
     if (!grContext_) {
@@ -80,10 +80,6 @@ RSTagTracker::RSTagTracker(GrContext* grContext, NodeId nodeId, RSTagTracker::TA
         return;
     }
     if (releaseGpuResourceEnable_ == ReleaseGpuResourceType::DISABLED) {
-        return;
-    }
-    if (needSkip) {
-        RS_LOGD("RSTagTracker tag fail, need skip");
         return;
     }
 #ifdef RS_ENABLE_GL
