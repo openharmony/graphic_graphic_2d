@@ -1454,10 +1454,10 @@ void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext, pi
     const auto& nodeMap = context_->GetNodeMap();
     switch (RSSystemProperties::GetReleaseGpuResourceEnabled()) {
         case ReleaseGpuResourceType::WINDOW_HIDDEN:
-            MemoryManager::ReleaseAllGpuResource(grContext, pid);
+            MemoryManager::ReleaseUnlockGpuResource(grContext, pid);
             break;
         case ReleaseGpuResourceType::WINDOW_HIDDEN_AND_LAUCHER:
-            MemoryManager::ReleaseAllGpuResource(grContext, pid);
+            MemoryManager::ReleaseUnlockGpuResource(grContext, pid);
             MemoryManager::ReleaseUnlockLauncherGpuResource(grContext,
                 nodeMap.GetEntryViewNodeId(), nodeMap.GetWallPaperViewNodeId());
             break;
