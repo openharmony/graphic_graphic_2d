@@ -22,7 +22,7 @@
 #include "rs_trace.h"
 #include "window.h"
 
-#ifndef NEW_SKIA
+#if !defined(NEW_SKIA)
 #include "memory/rs_tag_tracker.h"
 #endif
 #include "utils/log.h"
@@ -344,8 +344,8 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
 #else
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
-            break;
 #endif
+            break;
         case COLOR_GAMUT_ADOBE_RGB:
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);
             break;
@@ -355,7 +355,7 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
         default:
             break;
     }
-#ifndef NEW_SKIA
+#if !defined(NEW_SKIA)
     RSTagTracker tagTracker(GetGrContext(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
 #endif
     skSurface_ = SkSurface::MakeFromBackendRenderTarget(
