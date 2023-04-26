@@ -78,6 +78,7 @@ namespace OHOS {
         int64_t time = GetData<int64_t>();
         bool isInStartDelay = GetData<bool>();
         bool isFinished = GetData<bool>();
+        bool isRepeatFinished = GetData<bool>();
         float fraction = GetData<float>();
         int remainTime = GetData<int>();
         ForwardDirection direction = GetData<ForwardDirection>();
@@ -88,7 +89,8 @@ namespace OHOS {
         RSAnimationFraction::GetAnimationScale();
         RSAnimationFraction::SetAnimationScale(animationScale);
         auto animationFraction = std::make_shared<RSAnimationFraction>();
-        std::tie(fraction, isInStartDelay, isFinished) = animationFraction->GetAnimationFraction(time);
+        std::tie(fraction, isInStartDelay, isFinished, isRepeatFinished) =
+            animationFraction->GetAnimationFraction(time);
         animationFraction->UpdateRemainTimeFraction(fraction, remainTime);
         animationFraction->GetStartFraction();
         animationFraction->GetEndFraction();

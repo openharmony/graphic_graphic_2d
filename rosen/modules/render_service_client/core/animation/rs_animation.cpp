@@ -60,11 +60,24 @@ void RSAnimation::SetFinishCallback(const std::shared_ptr<AnimationFinishCallbac
     finishCallback_ = finishCallback;
 }
 
+void RSAnimation::SetRepeatCallback(const std::shared_ptr<AnimationRepeatCallback>& repeatCallback)
+{
+    repeatCallback_ = repeatCallback;
+}
+
 void RSAnimation::CallFinishCallback()
 {
     finishCallback_.reset();
     state_ = AnimationState::FINISHED;
     OnCallFinishCallback();
+}
+
+void RSAnimation::CallRepeatCallback()
+{
+    if (repeatCallback_ == nullptr) {
+        return;
+    }
+    repeatCallback_->Execute();
 }
 
 AnimationId RSAnimation::GetId() const
@@ -364,6 +377,7 @@ void RSAnimation::UpdateParamToRenderAnimation(const std::shared_ptr<RSRenderAni
     animation->SetSpeed(GetSpeed());
     animation->SetDirection(GetDirection());
     animation->SetFillMode(GetFillMode());
+    animation->SetRepeatCallbackEnable(repeatCallback_ != nullptr);
 }
 
 void RSAnimation::StartCustomAnimation(const std::shared_ptr<RSRenderAnimation>& animation)

@@ -135,7 +135,7 @@ void RSNode::AddKeyFrame(float fraction, const PropertyCallback& propertyCallbac
 
 std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback,
-    const std::function<void()>& finishCallback)
+    const std::function<void()>& finishCallback, const std::function<void()>& repeatCallback)
 {
     if (propertyCallback == nullptr) {
         ROSEN_LOGE("Failed to add curve animation, property callback is null!");
@@ -151,7 +151,12 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimin
     if (finishCallback != nullptr) {
         animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback);
     }
-    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(animationFinishCallback));
+    std::shared_ptr<AnimationRepeatCallback> animationRepeatCallback;
+    if (repeatCallback != nullptr) {
+        animationRepeatCallback = std::make_shared<AnimationRepeatCallback>(repeatCallback);
+    }
+    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(animationFinishCallback),
+        std::move(animationRepeatCallback));
     propertyCallback();
     return implicitAnimator->CloseImplicitAnimation();
 }
@@ -930,7 +935,7 @@ void RSNode::OnRemoveChildren()
     }
 }
 
-bool RSNode::AnimationFinish(AnimationId animationId)
+bool RSNode::AnimationCallback(AnimationId animationId, AnimationCallbackEvent event)
 {
     auto animationItr = animations_.find(animationId);
     if (animationItr == animations_.end()) {
@@ -940,13 +945,19 @@ bool RSNode::AnimationFinish(AnimationId animationId)
 
     auto& animation = animationItr->second;
     if (animation == nullptr) {
-        ROSEN_LOGE("Failed to finish animation[%" PRIu64 "], animation is null!", animationId);
+        ROSEN_LOGE("Failed to callback animation[%" PRIu64 "], animation is null!", animationId);
         return false;
     }
-
-    animation->CallFinishCallback();
-    RemoveAnimationInner(animation);
-    return true;
+    if (event == FINISHED) {
+        animation->CallFinishCallback();
+        RemoveAnimationInner(animation);
+        return true;
+    } else if (event == REPEAT_FINISHED) {
+        animation->CallRepeatCallback();
+        return true;
+    }
+    ROSEN_LOGE("Failed to callback animation event[%" PRIu64 "], event is null!", event);
+    return false;
 }
 
 void RSNode::SetPaintOrder(bool drawContentLast)

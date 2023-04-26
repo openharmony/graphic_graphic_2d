@@ -17,6 +17,7 @@
 
 #include <unordered_map>
 
+#include "command/rs_animation_command.h"
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_motion_path_option.h"
@@ -58,7 +59,7 @@ public:
 
     static std::vector<std::shared_ptr<RSAnimation>> Animate(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback,
-        const std::function<void()>& finishCallback = nullptr);
+        const std::function<void()>& finishCallback = nullptr, const std::function<void()>& repeatCallback = nullptr);
 
     static std::vector<std::shared_ptr<RSAnimation>> AnimateWithCurrentOptions(
         const PropertyCallback& callback, const std::function<void()>& finishCallback, bool timingSensitive = true);
@@ -231,7 +232,7 @@ protected:
     bool isCustomTextType_ = false;
 
 private:
-    bool AnimationFinish(AnimationId animationId);
+    bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
     void FallbackAnimationsToRoot();
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);

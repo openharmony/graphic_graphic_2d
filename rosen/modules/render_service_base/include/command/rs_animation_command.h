@@ -52,8 +52,10 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_SET_FRACTION,
 
     // UI operation
-    ANIMATION_FINISH_CALLBACK,
+    ANIMATION_CALLBACK,
 };
+
+enum AnimationCallbackEvent : uint16_t { REPEAT_FINISHED, FINISHED };
 
 class RSB_EXPORT AnimationCommandHelper {
 public:
@@ -101,9 +103,9 @@ public:
     static void CreateAnimation(
         RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderAnimation>& animation);
 
-    using FinishCallbackProcessor = void (*)(NodeId, AnimationId);
-    static void AnimationFinishCallback(RSContext& context, NodeId targetId, AnimationId animId);
-    static RSB_EXPORT void SetFinishCallbackProcessor(FinishCallbackProcessor processor);
+    using AnimationCallbackProcessor = void (*)(NodeId, AnimationId, AnimationCallbackEvent);
+    static void AnimationCallback(RSContext& context, NodeId targetId, AnimationId animId, AnimationCallbackEvent event);
+    static RSB_EXPORT void SetAnimationCallbackProcessor(AnimationCallbackProcessor processor);
 };
 
 // animation operation
@@ -122,8 +124,8 @@ ADD_COMMAND(RSAnimationSetFraction,
     ARG(ANIMATION, ANIMATION_SET_FRACTION, AnimationCommandHelper::AnimOp<float, &RSRenderAnimation::SetFraction>,
         NodeId, AnimationId, float))
 
-ADD_COMMAND(RSAnimationFinishCallback,
-    ARG(ANIMATION, ANIMATION_FINISH_CALLBACK, AnimationCommandHelper::AnimationFinishCallback, NodeId, AnimationId))
+ADD_COMMAND(RSAnimationCallback,
+    ARG(ANIMATION, ANIMATION_CALLBACK, AnimationCommandHelper::AnimationCallback, NodeId, AnimationId, AnimationCallbackEvent))
 
 // create curve animation
 ADD_COMMAND(RSAnimationCreateCurve, ARG(ANIMATION, ANIMATION_CREATE_CURVE, AnimationCommandHelper::CreateAnimation,

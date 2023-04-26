@@ -26,14 +26,14 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-    static void TestProcessor(NodeId, AnimationId);
+    static void TestProcessor(NodeId, AnimationId, AnimationCallbackEvent);
 };
 
 void RSAnimationCommandTest::SetUpTestCase() {}
 void RSAnimationCommandTest::TearDownTestCase() {}
 void RSAnimationCommandTest::SetUp() {}
 void RSAnimationCommandTest::TearDown() {}
-void RSAnimationCommandTest::TestProcessor(NodeId nodeId, AnimationId animId) {}
+void RSAnimationCommandTest::TestProcessor(NodeId nodeId, AnimationId animId, AnimationCallbackEvent event) {}
 
 /**
  * @tc.name: TestRSAnimationCommand001
@@ -45,7 +45,8 @@ HWTEST_F(RSAnimationCommandTest, TestRSAnimationCommand001, TestSize.Level1)
     RSContext context;
     NodeId targetId = static_cast<NodeId>(-1);
     AnimationId animId = static_cast<AnimationId>(1);
-    AnimationCommandHelper::SetFinishCallbackProcessor(TestProcessor);
-    AnimationCommandHelper::AnimationFinishCallback(context, targetId, animId);
+    AnimationCallbackEvent event = static_cast<AnimationCallbackEvent>(1);
+    AnimationCommandHelper::SetAnimationCallbackProcessor(TestProcessor);
+    AnimationCommandHelper::AnimationCallback(context, targetId, animId, event);
 }
 } // namespace OHOS::Rosen
