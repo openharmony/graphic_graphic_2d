@@ -181,6 +181,12 @@ public:
     void SetOverlayBounds(std::shared_ptr<RectF> rect);
     std::shared_ptr<RectF> GetOverlayBounds() const;
 
+    void SetClipRect(Vector4f clipRect);
+    void SetClipRadius(Vector4f clipRadius);
+    Vector4f GetClipRect() const;
+    Vector4f GetClipRadius() const;
+    RRect GetClipRRect() const;
+    bool GetClipToRRect() const;
     void SetClipBounds(std::shared_ptr<RSPath> path);
     std::shared_ptr<RSPath> GetClipBounds() const;
     void SetClipToBounds(bool clipToBounds);
@@ -249,6 +255,7 @@ private:
     bool clipToFrame_ = false;
     bool isDirty_ = false;
     bool geoDirty_ = false;
+    bool clipRRect_ = false;
 
     bool hasBounds_ = false;
 
@@ -279,6 +286,8 @@ private:
     std::unique_ptr<Vector4f> pixelStretch_ = nullptr;
 
     std::unique_ptr<Vector4f> pixelStretchPercent_ = nullptr;
+    std::unique_ptr<Vector4f> clipRect_ = nullptr;
+    std::unique_ptr<Vector4f> clipRadius_ = nullptr;
 
     friend class RSCanvasRenderNode;
     friend class RSPropertiesPainter;

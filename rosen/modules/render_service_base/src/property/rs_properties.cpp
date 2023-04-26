@@ -810,6 +810,49 @@ std::shared_ptr<RectF> RSProperties::GetOverlayBounds() const
     return overlayRect_;
 }
 
+void RSProperties::SetClipRect(Vector4f clipRect)
+{
+    if (!clipRect_) {
+        clipRect_ = std::make_unique<Vector4f>();
+    }
+    clipRRect_ = true;
+    clipRect_->SetValues(clipRect.x_, clipRect.y_, clipRect.z_, clipRect.w_);
+    SetDirty();
+}
+
+void RSProperties::SetClipRadius(Vector4f clipRadius)
+{
+    if (!clipRadius_) {
+        clipRadius_ = std::make_unique<Vector4f>();
+    }
+    clipRadius_->SetValues(clipRadius.x_, clipRadius.y_, clipRadius.z_, clipRadius.w_);
+    SetDirty();
+}
+
+Vector4f RSProperties::GetClipRect() const
+{
+    return clipRect_ ? *clipRect_ : Vector4f();
+}
+
+Vector4f RSProperties::GetClipRadius() const
+{
+    return clipRadius_ ? *clipRadius_ : Vector4f();
+}
+
+RRect RSProperties::GetClipRRect() const
+{
+    Vector4f clipRect = GetClipRect();
+    RectF rect = RectF(clipRect[0], clipRect[1], clipRect[2], clipRect[3]);
+    Vector4f clipRadius = GetClipRadius();
+    RRect rrect = RRect(rect, clipRadius);
+    return rrect;
+}
+
+bool RSProperties::GetClipToRRect() const
+{
+    return clipRRect_;
+}
+
 void RSProperties::SetClipBounds(std::shared_ptr<RSPath> path)
 {
     if (clipPath_ != path) {
@@ -922,6 +965,7 @@ void RSProperties::Reset()
     visible_ = true;
     clipToBounds_ = false;
     clipToFrame_ = false;
+    clipRRect_ = false;
 
     frameGravity_ = Gravity::DEFAULT;
     alpha_ = 1.f;
@@ -931,6 +975,8 @@ void RSProperties::Reset()
 
     backgroundFilter_ = nullptr;
     border_ = nullptr;
+    clipRect_ = nullptr;
+    clipRadius_ = nullptr;
     clipPath_ = nullptr;
     cornerRadius_ = nullptr;
     decoration_ = nullptr;

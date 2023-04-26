@@ -78,6 +78,10 @@ DECLARE_ANIMATABLE_MODIFIER(BackgroundFilter, std::shared_ptr<RSFilter>, BACKGRO
 
 DECLARE_NOANIMATABLE_MODIFIER(FrameGravity, Gravity, FRAME_GRAVITY, Appearance)
 
+DECLARE_ANIMATABLE_MODIFIER(ClipRect, Vector4f, CLIP_RECT, Replace, Appearance)
+
+DECLARE_ANIMATABLE_MODIFIER(ClipRadius, Vector4f, CLIP_RADIUS, Replace, Appearance)
+
 DECLARE_NOANIMATABLE_MODIFIER(ClipBounds, std::shared_ptr<RSPath>, CLIP_BOUNDS, Appearance)
 
 DECLARE_NOANIMATABLE_MODIFIER(ClipToBounds, bool, CLIP_TO_BOUNDS, Appearance)
