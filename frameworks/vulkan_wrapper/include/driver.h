@@ -17,8 +17,6 @@
 #define LIBVULKAN_DRIVER_H 1
 
 #include "vulkan/vulkan.h"
-#include "vulkan/vk_ohos_native_buffer.h"
-
 
 namespace vulkan {
 namespace driver {

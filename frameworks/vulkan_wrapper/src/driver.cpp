@@ -19,7 +19,7 @@
 #include <vector>
 #include "swapchain.h"
 #include "driver_loader.h"
-#include "vulkan/vk_ohos_native_buffer.h"
+#include "vulkan/vulkan.h"
 #include "wrapper_log.h"
 
 namespace vulkan {

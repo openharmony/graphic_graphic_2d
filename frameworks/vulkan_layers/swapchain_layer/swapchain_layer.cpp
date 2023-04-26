@@ -32,7 +32,6 @@
 #include <graphic_common.h>
 #include <native_window.h>
 #include <vulkan/vulkan.h>
-#include "vulkan/vk_ohos_native_buffer.h"
 #include "vk_dispatch_table_helper.h"
 #include "vk_layer_dispatch_table.h"
 #include "swapchain_layer_log.h"
@@ -102,7 +101,6 @@ static inline uint32_t ToUint32(uint64_t val)
 
 namespace SWAPCHAIN {
 std::unordered_map<DispatchKey, LayerData*> g_layerDataMap;
-PFN_vkGetNativeFenceFdOpenHarmony pfn_vkGetNativeFenceFdOpenHarmony = nullptr;
 
 LayerData* GetLayerDataPtr(DispatchKey dataKey)
 {
@@ -345,33 +343,6 @@ static bool IsFencePending(int fd)
     errno = 0;
     sptr<OHOS::SyncFence> syncFence = new OHOS::SyncFence(fd);
     return syncFence->Wait(0) == -1 && errno == ETIME;
-}
-
-VKAPI_ATTR VkResult GetSwapchainGrallocUsageOpenHarmony(VkDevice device,
-    VkFormat format,
-    VkImageUsageFlags imageUsage,
-    uint64_t* grallocUsage)
-{
-    PFN_vkGetSwapchainGrallocUsageOpenHarmony getSwapchainGrallocUsage =
-        reinterpret_cast<PFN_vkGetSwapchainGrallocUsageOpenHarmony>(
-            GetDeviceProcAddr(device, "vkGetSwapchainGrallocUsageOpenHarmony"));
-    if (getSwapchainGrallocUsage != nullptr) {
-        return getSwapchainGrallocUsage(device, format, imageUsage, grallocUsage);
-    }
-    return VK_ERROR_INITIALIZATION_FAILED;
-}
-
-VKAPI_ATTR VkResult SetNativeFenceFdOpenHarmony(VkDevice device,
-    int nativeFenceFd,
-    VkSemaphore semaphore,
-    VkFence fence)
-{
-    PFN_vkSetNativeFenceFdOpenHarmony acquireImage = reinterpret_cast<PFN_vkSetNativeFenceFdOpenHarmony>(
-        GetDeviceProcAddr(device, "vkSetNativeFenceFdOpenHarmony"));
-    if (acquireImage != nullptr) {
-        return acquireImage(device, nativeFenceFd, semaphore, fence);
-    }
-    return VK_ERROR_INITIALIZATION_FAILED;
 }
 
 void ReleaseSwapchainImage(VkDevice device, NativeWindow* window, int releaseFence, Swapchain::Image& image,
@@ -699,9 +670,10 @@ VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainK
         return VK_ERROR_OUT_OF_DATE_KHR;
     }
 
+    LayerData* deviceLayerData = GetLayerDataPtr(GetDispatchKey(device));
     if (swapchain.shared) {
         *imageIndex = 0;
-        return SetNativeFenceFdOpenHarmony(device, -1, semaphore, vkFence);
+        return deviceLayerData->deviceDispatchTable->SetNativeFenceFdOpenHarmony(device, -1, semaphore, vkFence);
     }
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
@@ -729,8 +701,7 @@ VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainK
         }
         return VK_ERROR_OUT_OF_DATE_KHR;
     }
-
-    result = SetNativeFenceFdOpenHarmony(device, -1, semaphore, vkFence);
+    result = deviceLayerData->deviceDispatchTable->SetNativeFenceFdOpenHarmony(device, -1, semaphore, vkFence);
     if (result != VK_SUCCESS) {
         if (NativeWindowCancelBuffer(nativeWindow, nativeWindowBuffer) != OHOS::GSERROR_OK) {
             SWLOGE("NativeWindowCancelBuffer failed: (%{public}d)", ret);
@@ -775,24 +746,12 @@ const VkPresentRegionKHR* GetPresentRegions(const VkPresentInfoKHR* presentInfo)
     }
 }
 
-VkResult GetNativeFenceFdOpenHarmony(
-    VkQueue queue,
-    uint32_t waitSemaphoreCount,
-    const VkSemaphore* pWaitSemaphores,
-    VkImage image,
-    int* pNativeFenceFd)
-{
-    if (pfn_vkGetNativeFenceFdOpenHarmony != nullptr) {
-        return pfn_vkGetNativeFenceFdOpenHarmony(queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
-    }
-    return VK_ERROR_INITIALIZATION_FAILED;
-}
-
 VkResult GetReleaseFence(VkQueue queue, const VkPresentInfoKHR* presentInfo,
     Swapchain::Image& img, int32_t &fence)
 {
-    VkResult result = GetNativeFenceFdOpenHarmony(queue, presentInfo->waitSemaphoreCount,
-        presentInfo->pWaitSemaphores, img.image, &fence);
+    LayerData* deviceLayerData = GetLayerDataPtr(GetDispatchKey(queue));
+    VkResult result = deviceLayerData->deviceDispatchTable->GetNativeFenceFdOpenHarmony(
+        queue, presentInfo->waitSemaphoreCount, presentInfo->pWaitSemaphores, img.image, &fence);
     if (img.releaseFence >= 0) {
         close(img.releaseFence);
         img.releaseFence = -1;
@@ -1201,10 +1160,6 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateDevice(VkPhysicalDevice gpu,
         return VK_ERROR_INITIALIZATION_FAILED;
     }
     deviceLayerData->fpSetDeviceLoaderData = callbackInfo->u.pfnSetDeviceLoaderData;
-    if (fpGetDeviceProcAddr != nullptr) {
-        pfn_vkGetNativeFenceFdOpenHarmony = reinterpret_cast<PFN_vkGetNativeFenceFdOpenHarmony>(
-            fpGetDeviceProcAddr(*pDevice, "vkGetNativeFenceFdOpenHarmony"));
-    }
 
     return VK_SUCCESS;
 }

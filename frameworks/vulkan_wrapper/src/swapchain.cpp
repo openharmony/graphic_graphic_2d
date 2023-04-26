@@ -24,7 +24,6 @@
 #include <native_buffer.h>
 #include <wrapper_log.h>
 #include <graphic_common.h>
-#include "vulkan/vk_ohos_native_buffer.h"
 #include <securec.h>
 
 namespace vulkan {
