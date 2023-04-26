@@ -13,11 +13,15 @@
  * limitations under the License.
  */
 
-#include "gtest/gtest.h"
 #include <hilog/log.h>
 #include <memory>
 #include <unistd.h>
+
+#include "gtest/gtest.h"
+
+#include "common/rs_common_def.h"
 #include "pipeline/rs_dirty_region_manager.h"
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -73,7 +77,7 @@ HWTEST_F(RSDirtyRegionManagerTest, SetBufferAge001, TestSize.Level1)
      */
     int age = -1;
     ASSERT_FALSE(rsDirtyManager->SetBufferAge(age));
-    
+
     age = 1;
     ASSERT_TRUE(rsDirtyManager->SetBufferAge(age));
 }
@@ -92,7 +96,7 @@ HWTEST_F(RSDirtyRegionManagerTest, SetSurfaceSize001, TestSize.Level1)
     int32_t width = -1;
     int32_t height = -1;
     ASSERT_FALSE(rsDirtyManager->SetSurfaceSize(width, height));
-    
+
     width = 1;
     height = 1;
     ASSERT_TRUE(rsDirtyManager->SetSurfaceSize(width, height));
@@ -103,7 +107,7 @@ HWTEST_F(RSDirtyRegionManagerTest, SetSurfaceSize001, TestSize.Level1)
  * @tc.desc: Get dirtyManager's default dirty region
  * @tc.type: FUNC
  * @tc.require: issueI5PWM0
-*/
+ */
 HWTEST_F(RSDirtyRegionManagerTest, GetDefaultDirtyRegion, Function | SmallTest | Level2)
 {
     RectI dirtyRect = rsDirtyManager->GetDirtyRegion();
@@ -115,7 +119,7 @@ HWTEST_F(RSDirtyRegionManagerTest, GetDefaultDirtyRegion, Function | SmallTest |
  * @tc.desc: DirtyManager's dirty region will not be changed if it merges invalid rect
  * @tc.type: FUNC
  * @tc.require: issueI5PWM0
-*/
+ */
 HWTEST_F(RSDirtyRegionManagerTest, MergeDirtyRectInvalid, Function | SmallTest | Level2)
 {
     std::vector<RectI> invalidRects;
@@ -146,7 +150,7 @@ HWTEST_F(RSDirtyRegionManagerTest, MergeDirtyRectInvalid, Function | SmallTest |
  * @tc.desc: DirtyManager's dirty region will be changed if it merges valid rects
  * @tc.type: FUNC
  * @tc.require: issueI5PWM0
-*/
+ */
 HWTEST_F(RSDirtyRegionManagerTest, MergeDirtyRectValid, Function | SmallTest | Level2)
 {
     std::vector<RectI> validRects;
@@ -172,7 +176,7 @@ HWTEST_F(RSDirtyRegionManagerTest, MergeDirtyRectValid, Function | SmallTest | L
  * @tc.desc: Reset dirtyManager's dirty region
  * @tc.type: FUNC
  * @tc.require: issueI5PWM0
-*/
+ */
 HWTEST_F(RSDirtyRegionManagerTest, ClearDirtyRegion, Function | SmallTest | Level2)
 {
     rsDirtyManager->Clear();
@@ -185,7 +189,7 @@ HWTEST_F(RSDirtyRegionManagerTest, ClearDirtyRegion, Function | SmallTest | Leve
  * @tc.desc: DirtyManager's dirty history will not be changed if dirtyRegion_ is invalid
  * @tc.type: FUNC
  * @tc.require: issueI5PWM0
-*/
+ */
 HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyInvalid, Function | SmallTest | Level2)
 {
     std::vector<RectI> invalidRects;
@@ -220,7 +224,7 @@ HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyInvalid, Function | SmallTest | Le
  * @tc.desc: DirtyManager's dirty history will be pushed if dirtyRegion_ is valid
  * @tc.type: FUNC
  * @tc.require: issueI5PWM0
-*/
+ */
 HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyValid, Function | SmallTest | Level2)
 {
     std::vector<RectI> validRects;
@@ -256,7 +260,7 @@ HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyValid, Function | SmallTest | Leve
  * @tc.desc: Set surface size invalid and get return false
  * @tc.type: FUNC
  * @tc.require: issueI5SXX0
-*/
+ */
 HWTEST_F(RSDirtyRegionManagerTest, SetSurfaceSizeInvalid, Function | SmallTest | Level2)
 {
     int32_t validWidth = 1920;
@@ -275,7 +279,7 @@ HWTEST_F(RSDirtyRegionManagerTest, SetSurfaceSizeInvalid, Function | SmallTest |
  * @tc.desc: Set surface size valid and get return true
  * @tc.type: FUNC
  * @tc.require: issueI5SXX0
-*/
+ */
 HWTEST_F(RSDirtyRegionManagerTest, SetSurfaceSizeValid, Function | SmallTest | Level2)
 {
     int32_t validWidth = 1920;
@@ -293,7 +297,7 @@ HWTEST_F(RSDirtyRegionManagerTest, SetSurfaceSizeValid, Function | SmallTest | L
  * @tc.desc: Set surface size and get rect flipped within surface
  * @tc.type: FUNC
  * @tc.require: issueI5SXX0
-*/
+ */
 HWTEST_F(RSDirtyRegionManagerTest, GetRectFlipWithinSurface, Function | SmallTest | Level2)
 {
     int32_t surfaceWidth = 1920;
@@ -312,7 +316,7 @@ HWTEST_F(RSDirtyRegionManagerTest, GetRectFlipWithinSurface, Function | SmallTes
  * @tc.desc: Get pixel aligned rect by assigned aligned bits
  * @tc.type: FUNC
  * @tc.require: issueI5SXX0
-*/
+ */
 HWTEST_F(RSDirtyRegionManagerTest, GetPixelAlignedRect, Function | SmallTest | Level2)
 {
     // When aligned bits is no more than 1, aligned rect does not change
@@ -327,4 +331,95 @@ HWTEST_F(RSDirtyRegionManagerTest, GetPixelAlignedRect, Function | SmallTest | L
     EXPECT_EQ(alignedRect, expectedRect);
 }
 
+/**
+ * @tc.name: UpdateDirtyRegionInfoForDfxTest001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyRegionInfoForDfxTest001, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    NodeId id = 0;
+    DirtyRegionType dirtyRegionType = DirtyRegionType::TYPE_AMOUNT;
+    RSRenderNodeType nodeType = RSRenderNodeType::BASE_NODE;
+    RectI rect;
+    fun.Clear();
+    fun.UpdateDirtyRegionInfoForDfx(id, nodeType, dirtyRegionType, rect);
+    std::map<NodeId, RectI> target;
+    fun.GetDirtyRegionInfo(target, nodeType, dirtyRegionType);
+    EXPECT_TRUE(target[id].IsEmpty());
+}
+/**
+ * @tc.name: UpdateDirtyRegionInfoForDfxTest002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyRegionInfoForDfxTest002, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    NodeId id = 0;
+    DirtyRegionType dirtyRegionType = DirtyRegionType::UPDATE_DIRTY_REGION;
+    RSRenderNodeType nodeType = RSRenderNodeType::CANVAS_NODE;
+    RectI rect = RectI(1, 2, 3, 4);
+    fun.Clear();
+    fun.UpdateDirtyRegionInfoForDfx(id, nodeType, dirtyRegionType, rect);
+    std::map<NodeId, RectI> target;
+    fun.GetDirtyRegionInfo(target, nodeType, dirtyRegionType);
+    EXPECT_TRUE(target[id] == rect);
+}
+/**
+ * @tc.name: UpdateDirtyRegionInfoForDfxTest003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyRegionInfoForDfxTest003, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    NodeId id = 0;
+    DirtyRegionType dirtyRegionType = DirtyRegionType::UPDATE_DIRTY_REGION;
+    RSRenderNodeType nodeType = RSRenderNodeType::SURFACE_NODE;
+    RectI rect = RectI(1, 2, 3, 4);
+    fun.Clear();
+    fun.UpdateDirtyRegionInfoForDfx(id, nodeType, dirtyRegionType, rect);
+    std::map<NodeId, RectI> target;
+    fun.GetDirtyRegionInfo(target, nodeType, dirtyRegionType);
+    EXPECT_TRUE(target[id] == rect);
+}
+
+/**
+ * @tc.name: UpdateDebugRegionTypeEnableTest001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDirtyRegionManagerTest, UpdateDebugRegionTypeEnableTest001, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    auto dirtyDebugType01 = DirtyRegionDebugType::CURRENT_SUB;
+    fun.UpdateDebugRegionTypeEnable(dirtyDebugType01);
+    auto var = DebugRegionType::CURRENT_SUB;
+    auto res = fun.IsDebugRegionTypeEnable(var);
+    EXPECT_TRUE(res);
+
+    auto dirtyDebugType02 = DirtyRegionDebugType::CURRENT_WHOLE;
+    fun.UpdateDebugRegionTypeEnable(dirtyDebugType02);
+    EXPECT_TRUE(fun.IsDebugRegionTypeEnable(DebugRegionType::CURRENT_WHOLE));
+
+    auto dirtyDebugType03 = DirtyRegionDebugType::MULTI_HISTORY;
+    fun.UpdateDebugRegionTypeEnable(dirtyDebugType03);
+    EXPECT_TRUE(fun.IsDebugRegionTypeEnable(DebugRegionType::MULTI_HISTORY));
+
+    auto dirtyDebugType04 = DirtyRegionDebugType::CURRENT_SUB_AND_WHOLE;
+    fun.UpdateDebugRegionTypeEnable(dirtyDebugType04);
+    EXPECT_TRUE(fun.IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB));
+    EXPECT_TRUE(fun.IsDebugRegionTypeEnable(DebugRegionType::CURRENT_WHOLE));
+
+    auto dirtyDebugType05 = DirtyRegionDebugType::CURRENT_WHOLE_AND_MULTI_HISTORY;
+    fun.UpdateDebugRegionTypeEnable(dirtyDebugType05);
+    EXPECT_TRUE(fun.IsDebugRegionTypeEnable(DebugRegionType::CURRENT_WHOLE));
+    EXPECT_TRUE(fun.IsDebugRegionTypeEnable(DebugRegionType::MULTI_HISTORY));
+
+    auto dirtyDebugType06 = DirtyRegionDebugType::EGL_DAMAGE;
+    fun.UpdateDebugRegionTypeEnable(dirtyDebugType06);
+    EXPECT_TRUE(fun.IsDebugRegionTypeEnable(DebugRegionType::EGL_DAMAGE));
+}
 } // namespace OHOS::Rosen
