@@ -68,7 +68,9 @@
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
             "//foundation/graphic/graphic_2d/frameworks/surfaceimage:libnative_image",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
-            "//foundation/graphic/graphic_2d/frameworks/vulkan_wrapper:vulkan"
+            "//foundation/graphic/graphic_2d/frameworks/vulkan_wrapper:vulkan",
+            "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer",
+            "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer_json"
           ],
           "fwk_group": [
             "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
