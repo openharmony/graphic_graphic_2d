@@ -221,10 +221,8 @@ public:
         drawRegion_ = rect;
     }
 
-    std::shared_ptr<RectF> GetDrawRegion() const
-    {
-        return drawRegion_;
-    }
+    void UpdateDrawRegion();
+
     /////////////////////////////////////////////
 
 protected:
@@ -238,7 +236,6 @@ protected:
 
 private:
     void FallbackAnimationsToRoot();
-    void UpdateOverlayBounds();
     void FilterModifiersByPid(pid_t pid);
 
     // clipRect only used in UniRener when calling PrepareCanvasRenderNode
@@ -272,8 +269,8 @@ private:
     bool isMarkDrivenRender_ = false;
     bool paintState_ = false;
     bool isContentChanged_ = false;
-
     std::shared_ptr<RectF> drawRegion_ = nullptr;
+
     friend class RSRenderTransition;
     friend class RSRenderNodeMap;
     friend class RSProxyRenderNode;

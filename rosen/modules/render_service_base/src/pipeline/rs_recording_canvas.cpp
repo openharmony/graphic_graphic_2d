@@ -81,7 +81,7 @@ bool RSRecordingCanvas::onGetProps(SkSurfaceProps* props) const
 
 void RSRecordingCanvas::onDrawGlyphRunList(const SkGlyphRunList& glyphRunList, const SkPaint& paint)
 {
-    ROSEN_LOGI("RSRecordingCanvas::onDrawGlyphRunList not support yet");
+    ROSEN_LOGE("RSRecordingCanvas::onDrawGlyphRunList not support yet");
 }
 void RSRecordingCanvas::onDrawImage2(const SkImage* img, SkScalar dx, SkScalar dy,
     const SkSamplingOptions& samplingOptions, const SkPaint* paint)
@@ -106,14 +106,14 @@ void RSRecordingCanvas::onDrawAtlas2(const SkImage*, const SkRSXform[], const Sk
     const SkColor[], int count, SkBlendMode mode, const SkSamplingOptions& samplingOptions,
     const SkRect* cull, const SkPaint* paint)
 {
-    ROSEN_LOGI("RSRecordingCanvas::onDrawAtlas2 not support yet");
+    ROSEN_LOGE("RSRecordingCanvas::onDrawAtlas2 not support yet");
 }
 void RSRecordingCanvas::onDrawEdgeAAImageSet2(const ImageSetEntry imageSet[], int count,
     const SkPoint dstClips[], const SkMatrix preViewMatrices[],
     const SkSamplingOptions& SamplingOptions, const SkPaint* paint,
     SrcRectConstraint constraint)
 {
-    ROSEN_LOGI("RSRecordingCanvas::onDrawEdgeAAImageSet2 not support yet");
+    ROSEN_LOGE("RSRecordingCanvas::onDrawEdgeAAImageSet2 not support yet");
 }
 void RSRecordingCanvas::onDrawVerticesObject(const SkVertices* vertices, SkBlendMode mode, const SkPaint& paint)
 {
@@ -123,21 +123,21 @@ void RSRecordingCanvas::onDrawVerticesObject(const SkVertices* vertices, SkBlend
 void RSRecordingCanvas::onDrawEdgeAAQuad(const SkRect& rect, const SkPoint clip[4], QuadAAFlags aaFlags,
     const SkColor4f& color, SkBlendMode mode)
 {
-    ROSEN_LOGI("RSRecordingCanvas::onDrawEdgeAAQuad not support yet");
+    ROSEN_LOGE("RSRecordingCanvas::onDrawEdgeAAQuad not support yet");
 }
 void RSRecordingCanvas::onClipShader(sk_sp<SkShader>, SkClipOp)
 {
-    ROSEN_LOGI("RSRecordingCanvas::onClipShader not support yet");
+    ROSEN_LOGE("RSRecordingCanvas::onClipShader not support yet");
 }
 
 void RSRecordingCanvas::onResetClip()
 {
-    ROSEN_LOGI("RSRecordingCanvas::onResetClip not support yet");
+    ROSEN_LOGE("RSRecordingCanvas::onResetClip not support yet");
 }
 
 void RSRecordingCanvas::onDiscard()
 {
-    ROSEN_LOGI("RSRecordingCanvas::onDiscard not support yet");
+    ROSEN_LOGE("RSRecordingCanvas::onDiscard not support yet");
 }
 
 void RSRecordingCanvas::DrawPixelMapRect(
@@ -399,6 +399,14 @@ void RSRecordingCanvas::DrawPixelMapWithParm(
     std::unique_ptr<OpItem> op = std::make_unique<ImageWithParmOpItem>(pixelmap, rsImageInfo, paint);
     AddOp(std::move(op));
 }
+
+#ifdef ROSEN_OHOS
+void RSRecordingCanvas::DrawSurfaceBuffer(const RSSurfaceBufferInfo& surfaceBufferInfo)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<SurfaceBufferOpItem>(surfaceBufferInfo);
+    AddOp(std::move(op));
+}
+#endif
 
 void RSRecordingCanvas::onDrawBehind(const SkPaint& paint)
 {

@@ -17,7 +17,11 @@
 
 #include "include/core/SkMatrix.h"
 #include "include/core/SkRect.h"
+#ifdef NEW_SKIA
+#include "include/gpu/GrDirectContext.h"
+#else
 #include "include/gpu/GrContext.h"
+#endif
 
 #include "command/rs_surface_node_command.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -568,9 +572,6 @@ bool RSSurfaceRenderNode::SubNodeIntersectWithDirty(const RectI& r) const
 bool RSSurfaceRenderNode::SubNodeNeedDraw(const RectI &r, PartialRenderType opDropType) const
 {
     if (dirtyManager_ == nullptr) {
-        return true;
-    }
-    if (r.IsEmpty()) {
         return true;
     }
     switch (opDropType) {

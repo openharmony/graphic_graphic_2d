@@ -16,7 +16,11 @@
 #ifndef SKIA_MATRIX44_H
 #define SKIA_MATRIX44_H
 
+#ifdef NEW_SKIA
+#include "include/core/SkM44.h"
+#else
 #include "include/core/SkMatrix44.h"
+#endif
 #include "impl_interface/matrix44_impl.h"
 
 namespace OHOS {
@@ -41,10 +45,18 @@ public:
     /*
      * @brief  Export Skia member variables for use by the adaptation layer.
      */
+#ifdef NEW_SKIA
+    const SkM44& GetSkMatrix44() const;
+#else
     const SkMatrix44& GetSkMatrix44() const;
+#endif
 
 private:
+#ifdef NEW_SKIA
+    SkM44 skMatrix44_;
+#else
     SkMatrix44 skMatrix44_;
+#endif
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -24,7 +24,12 @@
 #include "include/core/SkRRect.h"
 #include "include/core/SkSurface.h"
 #include "include/effects/Sk1DPathEffect.h"
+#ifdef NEW_SKIA
+#include "include/effects/SkImageFilters.h"
+#else
 #include "include/effects/SkBlurImageFilter.h"
+#endif
+
 #include "include/effects/SkDashPathEffect.h"
 #include "include/effects/SkLumaColorFilter.h"
 #include "include/utils/SkShadowUtils.h"
@@ -253,7 +258,11 @@ void RSPropertiesPainter::DrawColorfulShadowInner(
 
     // save layer, draw image with clipPath, blur and draw back
     SkPaint blurPaint;
+#ifdef NEW_SKIA
+    blurPaint.setImageFilter(SkImageFilters::Blur(blurRadius, blurRadius, SkTileMode::kDecal, nullptr));
+#else
     blurPaint.setImageFilter(SkBlurImageFilter::Make(blurRadius, blurRadius, SkTileMode::kDecal, nullptr));
+#endif
     canvas.saveLayer(nullptr, &blurPaint);
 
     canvas.translate(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
@@ -313,25 +322,45 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         return;
     }
 
-    // canvas draw by snapshot instead of SaveLayer, since the blur layer moves while using saveLayer
-    auto imageSnapshot = skSurface->makeImageSnapshot(canvas.getDeviceClipBounds());
+    // Expand the screenshot area to avoid animation flickering caused by floating points.
+    // Interset with the screen to prevent exceeding the screen and ensure that the boundary is greater than zero.
+    auto clipIBounds = canvas.getDeviceClipBounds();
+    auto screenIRect = SkIRect::MakeWH(skSurface->width(), skSurface->height());
+    auto radius = static_cast<int32_t>(filter->GetBlurRadiusPx());
+    auto clipIPadding = clipIBounds.makeOutset(radius, radius);
+    clipIPadding.intersect(screenIRect);
+    auto imageSnapshot = skSurface->makeImageSnapshot(clipIPadding);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");
         return;
     }
-
-    filter->PreProcess(imageSnapshot);
-    auto clipBounds = SkRect::Make(canvas.getDeviceClipBounds());
+    auto imgSub = imageSnapshot->makeSubset(clipIBounds.makeOffset(-clipIPadding.left(), -clipIPadding.top()));
+    filter->PreProcess(imgSub);
     canvas.resetMatrix();
-    auto visibleRect = canvas.GetVisibleRect();
-    if (visibleRect.intersect(clipBounds)) {
-        // the snapshot only contains the clip region, so we need to offset the src rect
-        canvas.drawImageRect(
-            imageSnapshot.get(), visibleRect.makeOffset(-clipBounds.left(), -clipBounds.top()), visibleRect, &paint);
+    auto visibleIRect = canvas.GetVisibleRect().round();
+    if (visibleIRect.intersect(clipIBounds)) {
+        canvas.clipRect(SkRect::Make(visibleIRect));
+        auto visibleIPadding = visibleIRect.makeOutset(radius, radius);
+        visibleIPadding.intersect(screenIRect);
+#ifdef NEW_SKIA
+        canvas.drawImageRect(imageSnapshot.get(),
+            SkRect::Make(visibleIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())),
+            SkRect::Make(visibleIPadding), SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
+#else
+        canvas.drawImageRect(imageSnapshot.get(),
+            SkRect::Make(visibleIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())),
+            SkRect::Make(visibleIPadding), &paint);
+#endif
     } else {
-        // the snapshot only contains the clip region, so we need to offset the src rect
-        canvas.drawImageRect(
-            imageSnapshot.get(), clipBounds.makeOffset(-clipBounds.left(), -clipBounds.top()), clipBounds, &paint);
+#ifdef NEW_SKIA
+        canvas.drawImageRect(imageSnapshot.get(),
+            SkRect::Make(clipIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())),
+            SkRect::Make(clipIPadding), SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
+#else
+        canvas.drawImageRect(imageSnapshot.get(),
+            SkRect::Make(clipIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())),
+            SkRect::Make(clipIPadding), &paint);
+#endif
     }
     filter->PostProcess(canvas);
 }
@@ -370,7 +399,7 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     canvas.restore();
 
     Vector4f stretchSize = GetStretchSize(properties);
-     
+
     auto scaledBounds = SkRect::MakeLTRB(bounds.left() - stretchSize.x_, bounds.top() - stretchSize.y_,
         bounds.right() + stretchSize.z_, bounds.bottom() + stretchSize.w_);
     if (scaledBounds.isEmpty() || clipBounds.isEmpty()) {
@@ -395,12 +424,20 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     }
 
     if (properties.IsPixelStretchExpanded()) {
+#ifdef NEW_SKIA
+        paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, SkSamplingOptions(), &scaleMat));
+#else
         paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, &scaleMat));
+#endif
         canvas.drawRect(SkRect::MakeXYWH(-stretchSize.x_, -stretchSize.y_, scaledBounds.width(), scaledBounds.height()),
             paint);
     } else {
         scaleMat.setScale(scaledBounds.width() / bounds.width(), scaledBounds.height() / bounds.height());
+#ifdef NEW_SKIA
+        paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, SkSamplingOptions(), &scaleMat));
+#else
         paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, &scaleMat));
+#endif
         canvas.save();
         canvas.translate(-stretchSize.x_, -stretchSize.y_);
         canvas.drawRect(SkRect::MakeXYWH(stretchSize.x_, stretchSize.y_, bounds.width(), bounds.height()), paint);
@@ -417,8 +454,11 @@ SkColor RSPropertiesPainter::CalcAverageColor(sk_sp<SkImage> imageSnapshot)
 
     // resize snapshot to 1x1 to calculate average color
     // kMedium_SkFilterQuality will do bilerp + mipmaps for down-scaling, we can easily get average color
+#ifdef NEW_SKIA
+    imageSnapshot->scalePixels(single_pixel, SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear));
+#else
     imageSnapshot->scalePixels(single_pixel, SkFilterQuality::kMedium_SkFilterQuality);
-
+#endif
     // convert color format and return average color
     return SkColor4f::FromBytes_RGBA(pixel[0]).toSkColor();
 }
@@ -652,7 +692,12 @@ void RSPropertiesPainter::DrawCachedSpherizeSurface(const RSRenderNode& node, RS
 
     SkPaint paint;
     paint.setBlendMode(SkBlendMode::kSrcOver);
+#ifdef NEW_SKIA
+    paint.setShader(imageSnapshot->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, SkSamplingOptions()));
+#else
     paint.setShader(imageSnapshot->makeShader(SkTileMode::kClamp, SkTileMode::kClamp));
+#endif
+
     float width = imageSnapshot->width();
     float height = imageSnapshot->height();
     float degree = properties.GetSpherize();

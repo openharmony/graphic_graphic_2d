@@ -178,8 +178,8 @@ public:
     void SetFrameGravity(Gravity gravity);
     Gravity GetFrameGravity() const;
 
-    void SetOverlayBounds(std::shared_ptr<RectF> rect);
-    std::shared_ptr<RectF> GetOverlayBounds() const;
+    void SetDrawRegion(std::shared_ptr<RectF> rect);
+    std::shared_ptr<RectF> GetDrawRegion() const;
 
     void SetClipBounds(std::shared_ptr<RSPath> path);
     std::shared_ptr<RSPath> GetClipBounds() const;
@@ -242,7 +242,7 @@ private:
     RRect GetInnerRRect() const;
     RectI GetDirtyRect() const;
     // added for update dirty region dfx
-    RectI GetDirtyRect(RectI& overlayRect) const;
+    RectI GetDirtyRect(RectI& drawRegion) const;
 
     bool visible_ = true;
     bool clipToBounds_ = false;
@@ -254,7 +254,7 @@ private:
 
     Gravity frameGravity_ = Gravity::DEFAULT;
 
-    std::shared_ptr<RectF> overlayRect_ = nullptr;
+    std::shared_ptr<RectF> drawRegion_ = nullptr;
 
     float alpha_ = 1.f;
     bool alphaOffscreen_ = true;

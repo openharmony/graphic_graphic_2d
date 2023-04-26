@@ -45,10 +45,11 @@ void SkiaColorFilterTest::TearDown() {}
  */
 HWTEST_F(SkiaColorFilterTest, InitWithCompose001, TestSize.Level1)
 {
-    auto colorFilter1 = ColorFilter::FilterType::COMPOSE;
-    auto colorFilter2 = ColorFilter::FilterType::MATRIX;
+    auto colorFilter1 = ColorFilter::FilterType::LINEAR_TO_SRGB_GAMMA;
+    auto colorFilter2 = ColorFilter::FilterType::SRGB_GAMMA_TO_LINEAR;
     SkiaColorFilter skiaColorFilter;
     skiaColorFilter.InitWithCompose(ColorFilter(colorFilter1), ColorFilter(colorFilter2));
+    EXPECT_TRUE(skiaColorFilter.GetColorFilter() != nullptr);
 }
 
 /**
@@ -59,9 +60,11 @@ HWTEST_F(SkiaColorFilterTest, InitWithCompose001, TestSize.Level1)
  */
 HWTEST_F(SkiaColorFilterTest, Compose001, TestSize.Level1)
 {
-    auto colorFilter = ColorFilter::FilterType::COMPOSE;
+    auto colorFilter = ColorFilter::FilterType::SRGB_GAMMA_TO_LINEAR;
     SkiaColorFilter skiaColorFilter;
+    skiaColorFilter.InitWithLinearToSrgbGamma();
     skiaColorFilter.Compose(ColorFilter(colorFilter));
+    EXPECT_TRUE(skiaColorFilter.GetColorFilter() != nullptr);
 }
 
 } // namespace Drawing

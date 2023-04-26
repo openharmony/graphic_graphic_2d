@@ -31,6 +31,9 @@
 #ifdef NEW_SKIA
 #include "src/core/SkVerticesPriv.h"
 #endif
+#ifdef ROSEN_OHOS
+#include "surface_buffer.h"
+#endif
 
 namespace OHOS {
 namespace Media {
@@ -39,6 +42,20 @@ class PixelMap;
 namespace Rosen {
 class DrawCmdList;
 class OpItem;
+#ifdef ROSEN_OHOS
+struct RSSurfaceBufferInfo {
+    RSSurfaceBufferInfo() = default;
+    RSSurfaceBufferInfo(
+        const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height)
+        : surfaceBuffer_(surfaceBuffer), offSetX_(offSetX), offSetY_(offSetY), width_(width), height_(height)
+    {}
+    sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
+    int offSetX_ = 0;
+    int offSetY_ = 0;
+    int width_ = 0;
+    int height_ = 0;
+};
+#endif
 class RSB_EXPORT RSRecordingCanvas : public SkCanvasVirtualEnforcer<SkNoDrawCanvas> {
 public:
     RSRecordingCanvas(int width, int height);
@@ -165,7 +182,9 @@ public:
         const Rosen::RsImageInfo& rsImageInfo, const SkPaint& paint);
     void DrawPixelMapWithParm(
         const std::shared_ptr<Media::PixelMap>& pixelmap, const Rosen::RsImageInfo& rsImageInfo, const SkPaint& paint);
-
+#ifdef ROSEN_OHOS
+    void DrawSurfaceBuffer(const RSSurfaceBufferInfo& surfaceBufferInfo);
+#endif
     void MultiplyAlpha(float alpha);
     void SaveAlpha();
     void RestoreAlpha();

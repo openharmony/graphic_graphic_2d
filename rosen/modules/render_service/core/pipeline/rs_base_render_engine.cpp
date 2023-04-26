@@ -95,7 +95,11 @@ sk_sp<SkImage> RSBaseRenderEngine::CreateEglImageFromBuffer(RSPaintFilterCanvas&
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer invalid param!");
         return nullptr;
     }
+#ifdef NEW_SKIA
+    if (canvas.recordingContext() == nullptr) {
+#else
     if (canvas.getGrContext() == nullptr) {
+#endif
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
         return nullptr;
     }
@@ -109,8 +113,13 @@ sk_sp<SkImage> RSBaseRenderEngine::CreateEglImageFromBuffer(RSPaintFilterCanvas&
     GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8 };
     GrBackendTexture backendTexture(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(),
         GrMipMapped::kNo, grExternalTextureInfo);
+#ifdef NEW_SKIA
+    return SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture,
+        kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+#else
     return SkImage::MakeFromTexture(canvas.getGrContext(), backendTexture,
         kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+#endif
 #else
     return nullptr;
 #endif // RS_ENABLE_EGLIMAGE
@@ -277,7 +286,12 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
         RS_LOGE("RSDividedRenderUtil::DrawBuffer: create bitmap failed.");
         return;
     }
+#ifdef NEW_SKIA
+    canvas.drawImageRect(bitmap.asImage(), params.srcRect, params.dstRect,
+        SkSamplingOptions(), &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
+#else
     canvas.drawBitmapRect(bitmap, params.srcRect, params.dstRect, &(params.paint));
+#endif
 }
 
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
@@ -288,7 +302,12 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         RS_LOGE("RSDividedRenderUtil::DrawImage: image is nullptr!");
         return;
     }
+#ifdef NEW_SKIA
+    canvas.drawImageRect(image, params.srcRect, params.dstRect,
+        SkSamplingOptions(), &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
+#else
     canvas.drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
+#endif
 }
 
 void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw)

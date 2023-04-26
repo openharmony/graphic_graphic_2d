@@ -51,8 +51,13 @@ public:
     void onDrawDrawable(SkDrawable* drawable, const SkMatrix* matrix) override;
     void onDrawPicture(const SkPicture* picture, const SkMatrix* matrix,
                        const SkPaint* paint) override;
+#ifdef NEW_SKIA
+    void onDrawImageRect2(const SkImage* image, const SkRect& src, const SkRect& dst,
+            const SkSamplingOptions& samplingOptions, const SkPaint* paint, SrcRectConstraint constraint) override;
+#else
     void onDrawImageRect(const SkImage* image, const SkRect* src, const SkRect& dst,
             const SkPaint* paint, SrcRectConstraint constraint) override;
+#endif
 
 private:
     std::shared_ptr<RSCanvasListener> listener_ = nullptr;

@@ -18,7 +18,7 @@
 #include "include/effects/SkImageFilters.h"
 #include "include/core/SkTileMode.h"
 
-#if !defined(USE_CANVASKIT0310_SKIA)
+#if !defined(USE_CANVASKIT0310_SKIA) && !defined(NEW_SKIA)
 #include "include/effects/SkBlurImageFilter.h"
 #endif
 
@@ -56,7 +56,7 @@ void SkiaImageFilter::InitWithBlur(scalar sigmaX, scalar sigmaY, TileMode mode, 
     if (f != nullptr && f->GetImpl<SkiaImageFilter>() != nullptr) {
         input = f->GetImpl<SkiaImageFilter>()->GetImageFilter();
     }
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     filter_ = SkImageFilters::Blur(sigmaX, sigmaY, ConvertToSkTileMode(mode), input);
 #else
     filter_ = SkBlurImageFilter::Make(sigmaX, sigmaY, ConvertToSkTileMode(mode), input);

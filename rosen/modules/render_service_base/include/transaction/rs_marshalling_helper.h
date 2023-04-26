@@ -39,6 +39,10 @@ class SkTextBlob;
 class SkVertices;
 class SkTypeface;
 
+#ifdef NEW_SKIA
+struct SkSamplingOptions;
+#endif
+
 namespace OHOS {
 namespace Media {
 class PixelMap;
@@ -155,6 +159,9 @@ public:
 
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderModifier>)
     DECLARE_FUNCTION_OVERLOAD(std::unique_ptr<OpItem>)
+#ifdef NEW_SKIA
+    DECLARE_FUNCTION_OVERLOAD(SkSamplingOptions)
+#endif
 #undef DECLARE_FUNCTION_OVERLOAD
 
     // reloaded marshalling & unmarshalling function for animation

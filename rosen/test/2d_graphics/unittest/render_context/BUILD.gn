@@ -73,8 +73,13 @@ ohos_unittest("2d_graphics_shader_cache_test") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_engine",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/render_context",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
-    "//third_party/flutter/skia/",
   ]
+
+  if (defined(use_new_skia) && use_new_skia) {
+    include_dirs += [ "//third_party/skia/" ]
+  } else {
+    include_dirs += [ "//third_party/flutter/skia/" ]
+  }
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",

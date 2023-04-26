@@ -67,7 +67,11 @@ static inline skcms_Matrix3x3 ConvertToSkCMSMatrix3x3(const CMSMatrixType& matri
         case CMSMatrixType::ADOBE_RGB:
             return SkNamedGamut::kAdobeRGB;
         case CMSMatrixType::DCIP3:
+#ifdef NEW_SKIA
+            return SkNamedGamut::kDisplayP3;
+#else
             return SkNamedGamut::kDCIP3;
+#endif
         case CMSMatrixType::REC2020:
             return SkNamedGamut::kRec2020;
         case CMSMatrixType::XYZ:

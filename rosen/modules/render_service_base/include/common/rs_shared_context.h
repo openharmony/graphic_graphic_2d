@@ -21,7 +21,11 @@
 
 #include "common/rs_macros.h"
 #include "include/core/SkRefCnt.h"
+#ifdef NEW_SKIA
+#include "include/gpu/GrDirectContext.h"
+#else
 #include "include/gpu/GrContext.h"
+#endif
 
 typedef void* EGLSurface;
 typedef void* EGLContext;
@@ -35,7 +39,11 @@ public:
 
     ~RSSharedContext();
     void MakeCurrent();
+#ifdef NEW_SKIA
+    sk_sp<GrDirectContext> MakeGrContext();
+#else
     sk_sp<GrContext> MakeGrContext();
+#endif
 
 private:
     RSSharedContext(EGLDisplay display, EGLContext context, EGLSurface surface)

@@ -16,13 +16,15 @@
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_MASK_H
 
 #include <memory>
-
-#include "experimental/svg/model/SkSVGDOM.h"
+#include "common/rs_macros.h"
 #include "include/core/SkPaint.h"
 #include "include/core/SkPath.h"
 #include "include/core/SkPicture.h"
-
-#include "common/rs_macros.h"
+#if defined(NEW_SKIA)
+#include "modules/svg/include/SkSVGDOM.h"
+#else
+#include "experimental/svg/model/SkSVGDOM.h"
+#endif
 #include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {

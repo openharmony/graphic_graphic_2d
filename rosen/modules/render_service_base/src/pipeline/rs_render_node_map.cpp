@@ -24,6 +24,7 @@ namespace Rosen {
 namespace {
 constexpr const char* ENTRY_VIEW = "EntryView";
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
+constexpr const char* SCREENLOCK_WINDOW = "ScreenLockWindow";
 };
 RSRenderNodeMap::RSRenderNodeMap()
 {
@@ -44,6 +45,16 @@ void RSRenderNodeMap::ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRender
     }
 }
 
+void RSRenderNodeMap::ObtainScreenLockWindowNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
+{
+    if (surfaceNode == nullptr) {
+        return;
+    }
+    if (surfaceNode->GetName() == SCREENLOCK_WINDOW) {
+        screenLockWindowNodeId_ = surfaceNode->GetId();
+    }
+}
+
 NodeId RSRenderNodeMap::GetEntryViewNodeId() const
 {
     return entryViewNodeId_;
@@ -52,6 +63,11 @@ NodeId RSRenderNodeMap::GetEntryViewNodeId() const
 NodeId RSRenderNodeMap::GetWallPaperViewNodeId() const
 {
     return wallpaperViewNodeId_;
+}
+
+NodeId RSRenderNodeMap::GetScreenLockWindowNodeId() const
+{
+    return screenLockWindowNodeId_;
 }
 
 bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr)
@@ -65,6 +81,7 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         std::shared_ptr<RSSurfaceRenderNode> surfaceNode = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
         surfaceNodeMap_.emplace(id, surfaceNode);
         ObtainLauncherNodeId(surfaceNode);
+        ObtainScreenLockWindowNodeId(surfaceNode);
     }
     return true;
 }

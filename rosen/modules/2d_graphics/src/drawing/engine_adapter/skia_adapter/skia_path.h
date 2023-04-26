@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +35,12 @@ public:
         return AdapterType::SKIA_ADAPTER;
     }
     PathImpl* Clone() override;
+
+    bool InitWithSVGString(const std::string& str) override;
+    std::string ConvertToSVGString() const override;
+
+    bool InitWithInterpolate(const Path& srcPath, const Path& endingPath, scalar weight) override;
+
     void MoveTo(scalar x, scalar y) override;
     void LineTo(scalar x, scalar y) override;
     void ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar startAngle, scalar sweepAngle) override;
@@ -50,10 +56,12 @@ public:
     void AddCircle(scalar x, scalar y, scalar radius, PathDirection dir) override;
     void AddRoundRect(scalar left, scalar top, scalar right, scalar bottom, scalar xRadius, scalar yRadius,
         PathDirection dir) override;
+    void AddRoundRect(const RoundRect& rrect, PathDirection dir) override;
 
     void AddPath(const Path& src, scalar dx, scalar dy) override;
     void AddPath(const Path& src) override;
     void AddPathWithMatrix(const Path& src, const Matrix& matrix) override;
+    void ReverseAddPath(const Path& src) override;
 
     Rect GetBounds() const override;
     void SetFillStyle(PathFillType fillstyle) override;
@@ -63,6 +71,7 @@ public:
     void Offset(scalar dx, scalar dy) override;
     bool OpWith(const Path& path1, const Path& path2, PathOp op) override;
 
+    bool IsValid() const override;
     void Reset() override;
 
     void Close() override;
@@ -71,6 +80,8 @@ public:
 
     const SkPath& GetPath() const;
 
+    scalar GetLength(bool forceClosed) const override;
+    bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) const override;
 private:
     SkPath path_;
 };

@@ -31,20 +31,20 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-int tempCount = 0;
+int g_tempCount = 0;
 
 std::vector<int32_t> tempIdeographic = {0};
 U_STABLE int32_t U_EXPORT2 u_getIntPropertyValue(UChar32 c, UProperty which)
 {
-    auto ret = tempIdeographic[tempCount];
+    auto ret = tempIdeographic[g_tempCount];
     return ret;
 }
 
 std::vector<UBool> isWhitespace = {0};
 U_STABLE UBool U_EXPORT2 u_isWhitespace(UChar32 c)
 {
-    auto ret = isWhitespace[tempCount];
-    tempCount++;
+    auto ret = isWhitespace[g_tempCount];
+    g_tempCount++;
     return ret;
 }
 
@@ -76,8 +76,8 @@ auto GenTestSpan(TextSpanInfo info)
 
 auto InitMockArgs(std::vector<int32_t> ideographics, std::vector<UBool> whitespaces, int count = 0)
 {
-    return [ideographics, whitespaces, count](){
-        tempCount = count;
+    return [ideographics, whitespaces, count]() {
+        g_tempCount = count;
         tempIdeographic = ideographics;
         isWhitespace = whitespaces;
     };
@@ -185,7 +185,6 @@ public:
                      GenTestSpan({.rtl_ = false, .cgs_  = cgs1_.GetSub(1, 2)}),
                      GenTestSpan({.rtl_ = false, .cgs_ = cgs2_.GetSub(0, 1)}),
                      GenTestSpan({.rtl_ = false, .cgs_ = cgs2_.GetSub(1, 2)}) };
-
     }
     static inline std::shared_ptr<TextSpan> tsCgs1_ = nullptr;
     static inline std::shared_ptr<TextSpan> tsSubCgs12_ = nullptr;
@@ -205,9 +204,14 @@ public:
 };
 
 #define PARAMFUNC MergeSpan
+/**
+ * @tc.name: MergeSpan
+ * @tc.desc: Verify the MergeSpan
+ * @tc.type:FUNC
+ */
 HWTEST_F(TextMergerTest, MergeSpan, TestSize.Level1)
 {
-    DEFINE_ALL_TESTINFO3(VariantSpan, std::optional<bool> , CharGroups);
+    DEFINE_ALL_TESTINFO3(VariantSpan, std::optional<bool>, CharGroups);
 
     std::shared_ptr<TextSpan> tsNull = nullptr;
     std::shared_ptr<MyAnySpan> asNull = nullptr;
@@ -249,6 +253,11 @@ HWTEST_F(TextMergerTest, MergeSpan, TestSize.Level1)
 #undef PARAMFUNC
 
 #define PARAMFUNC MergeSpans
+/**
+ * @tc.name: MergeSpans
+ * @tc.desc: Verify the MergeSpans
+ * @tc.type:FUNC
+ */
 HWTEST_F(TextMergerTest, MergeSpans, TestSize.Level1)
 {
     DEFINE_TESTINFO1(std::vector<VariantSpan>);

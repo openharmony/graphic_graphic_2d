@@ -20,7 +20,7 @@
 #include "include/core/SkMatrix.h"
 #include "include/core/SkTileMode.h"
 #include "include/effects/SkGradientShader.h"
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
 #include "include/core/SkSamplingOptions.h"
 #endif
 
@@ -66,7 +66,7 @@ void SkiaShaderEffect::InitWithImage(
         skiaMatrix = m->ExportSkiaMatrix();
         skiaImage = i->GetImage();
         if (skiaImage != nullptr) {
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
             SkSamplingOptions samplingOptions;
             if (sampling.GetUseCubic()) {
                 samplingOptions = SkSamplingOptions({ sampling.GetCubicCoffB(), sampling.GetCubicCoffC() });
@@ -97,9 +97,9 @@ void SkiaShaderEffect::InitWithPicture(
         skiaPicture = p->GetPicture();
         skiaMatrix = m->ExportSkiaMatrix();
         if (skiaPicture != nullptr) {
-#if defined(USE_CANVASKIT0310_SKIA)
-            SkFilterMode m = static_cast<SkFilterMode>(mode);
-            shader_ = skiaPicture->makeShader(modeX, modeY, m, &skiaMatrix, &r);
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
+            SkFilterMode skFilterMode = static_cast<SkFilterMode>(mode);
+            shader_ = skiaPicture->makeShader(modeX, modeY, skFilterMode, &skiaMatrix, &r);
 #else
             shader_ = skiaPicture->makeShader(modeX, modeY, &skiaMatrix, &r);
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,6 +39,8 @@ static inline SkColorType ConvertToSkColorType(const ColorType& format)
             return kRGBA_8888_SkColorType;
         case COLORTYPE_BGRA_8888:
             return kBGRA_8888_SkColorType;
+        case COLORTYPE_N32:
+            return kN32_SkColorType;
         default:
             return kUnknown_SkColorType;
     }
@@ -74,17 +76,17 @@ void SkiaBitmap::Build(const int width, const int height, const BitmapFormat& fo
     skiaBitmap_.allocPixels();
 }
 
-int SkiaBitmap::GetWidth()
+int SkiaBitmap::GetWidth() const
 {
     return skiaBitmap_.width();
 }
 
-int SkiaBitmap::GetHeight()
+int SkiaBitmap::GetHeight() const
 {
     return skiaBitmap_.height();
 }
 
-void* SkiaBitmap::GetPixels()
+void* SkiaBitmap::GetPixels() const
 {
     return skiaBitmap_.getPixels();
 }

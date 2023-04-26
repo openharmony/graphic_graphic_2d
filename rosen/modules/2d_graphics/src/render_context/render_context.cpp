@@ -22,7 +22,9 @@
 #include "rs_trace.h"
 #include "window.h"
 
+#ifndef NEW_SKIA
 #include "memory/rs_tag_tracker.h"
+#endif
 #include "utils/log.h"
 
 namespace OHOS {
@@ -285,7 +287,9 @@ bool RenderContext::SetUpGrContext()
     }
 
     GrContextOptions options;
+#if !defined(NEW_SKIA)
     options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
+#endif
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableDistanceFieldPaths = true;
 
@@ -297,7 +301,11 @@ bool RenderContext::SetUpGrContext()
     }
     mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
 
+#if defined(NEW_SKIA)
+    sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface), options));
+#else
     sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
+#endif
     if (grContext == nullptr) {
         LOGE("SetUpGrContext grContext is null");
         return false;
@@ -320,7 +328,11 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
     SkColorType colorType = kRGBA_8888_SkColorType;
 
     GrBackendRenderTarget backendRenderTarget(width, height, 0, 8, framebufferInfo);
+#if defined(NEW_SKIA)
+    SkSurfaceProps surfaceProps(0, kRGB_H_SkPixelGeometry);
+#else
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
+#endif
 
     sk_sp<SkColorSpace> skColorSpace = nullptr;
 
@@ -328,8 +340,12 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
         // [planning] in order to stay consistant with the colorspace used before, we disabled
         // COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
         case COLOR_GAMUT_DISPLAY_P3:
+#if defined(NEW_SKIA)
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
+#else
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
             break;
+#endif
         case COLOR_GAMUT_ADOBE_RGB:
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);
             break;
@@ -339,7 +355,9 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
         default:
             break;
     }
+#ifndef NEW_SKIA
     RSTagTracker tagTracker(GetGrContext(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
+#endif
     skSurface_ = SkSurface::MakeFromBackendRenderTarget(
         GetGrContext(), backendRenderTarget, kBottomLeft_GrSurfaceOrigin, colorType, skColorSpace, &surfaceProps);
     if (skSurface_ == nullptr) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,9 +35,9 @@ public:
         return AdapterType::BASE_INTERFACE;
     }
     virtual void Build(const int width, const int height, const BitmapFormat& format) = 0;
-    virtual int GetWidth() = 0;
-    virtual int GetHeight() = 0;
-    virtual void* GetPixels() = 0;
+    virtual int GetWidth() const = 0;
+    virtual int GetHeight() const = 0;
+    virtual void* GetPixels() const = 0;
     virtual void SetPixels(void* pixel) = 0;
     virtual void CopyPixels(Bitmap& dst, int srcLeft, int srcTop, int width, int height) const = 0;
     virtual void ClearWithColor(const ColorQuad& color) const = 0;

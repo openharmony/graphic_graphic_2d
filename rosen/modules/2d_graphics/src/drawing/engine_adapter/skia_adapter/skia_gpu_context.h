@@ -16,7 +16,11 @@
 #ifndef SKIA_GPUCONTEXT_H
 #define SKIA_GPUCONTEXT_H
 
+#ifdef NEW_SKIA
+#include "include/gpu/GrDirectContext.h"
+#else
 #include "include/gpu/GrContext.h"
+#endif
 #include "include/gpu/GrContextOptions.h"
 
 #include "impl_interface/gpu_context_impl.h"
@@ -49,11 +53,20 @@ public:
     void GetResourceCacheLimits(int& maxResource, size_t& maxResourceBytes) const override;
     void SetResourceCacheLimits(int maxResource, size_t maxResourceBytes) override;
 
+#ifdef NEW_SKIA
+    sk_sp<GrDirectContext> GetGrContext() const;
+    void SetGrContext(const sk_sp<GrDirectContext>& grContext);
+#else
     sk_sp<GrContext> GetGrContext() const;
     void SetGrContext(const sk_sp<GrContext>& grContext);
+#endif
 
 private:
+#ifdef NEW_SKIA
+    sk_sp<GrDirectContext> grContext_;
+#else
     sk_sp<GrContext> grContext_;
+#endif
     std::shared_ptr<SkiaPersistentCache> skiaPersistentCache_;
 };
 } // namespace Drawing

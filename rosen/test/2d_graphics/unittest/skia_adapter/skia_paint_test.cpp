@@ -16,7 +16,9 @@
 #include <cstddef>
 #include "core/SkPaint.h"
 #include "gtest/gtest.h"
+#define private public
 #include "skia_adapter/skia_paint.h"
+#undef private
 #include "draw/brush.h"
 #include "draw/color.h"
 #include "draw/pen.h"
@@ -55,8 +57,9 @@ HWTEST_F(SkiaPaintTest, BrushToSkPaint001, TestSize.Level1)
 {
     Brush brush;
     SkPaint skPaint;
-    SkiaPaint skiaPath;
-    skiaPath.BrushToSkPaint(brush, skPaint);
+    SkiaPaint skiaPaint;
+    skiaPaint.BrushToSkPaint(brush, skPaint);
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 /**
@@ -69,11 +72,12 @@ HWTEST_F(SkiaPaintTest, BrushToSkPaint002, TestSize.Level1)
 {
     Brush brush;
     SkPaint skPaint;
-    SkiaPaint skiaPath;
+    SkiaPaint skiaPaint;
     Color4f color4f;
     std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
     brush.SetColor(color4f, colorSpace);
-    skiaPath.BrushToSkPaint(brush, skPaint);
+    skiaPaint.BrushToSkPaint(brush, skPaint);
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 /**
@@ -86,10 +90,11 @@ HWTEST_F(SkiaPaintTest, BrushToSkPaint003, TestSize.Level1)
 {
     Brush brush;
     SkPaint skPaint;
-    SkiaPaint skiaPath;
+    SkiaPaint skiaPaint;
     std::shared_ptr<ShaderEffect> shaderEffect = ShaderEffect::CreateColorShader(20);
     brush.SetShaderEffect(shaderEffect);
-    skiaPath.BrushToSkPaint(brush, skPaint);
+    skiaPaint.BrushToSkPaint(brush, skPaint);
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 /**
@@ -102,8 +107,9 @@ HWTEST_F(SkiaPaintTest, PenToSkPaint001, TestSize.Level1)
 {
     Pen pen;
     SkPaint paint;
-    SkiaPaint skiaPath;
-    skiaPath.PenToSkPaint(pen, paint);
+    SkiaPaint skiaPaint;
+    skiaPaint.PenToSkPaint(pen, paint);
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 /**
@@ -116,11 +122,12 @@ HWTEST_F(SkiaPaintTest, PenToSkPaint002, TestSize.Level1)
 {
     Pen pen;
     SkPaint paint;
-    SkiaPaint skiaPath;
+    SkiaPaint skiaPaint;
     Color4f color4f;
     std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
     pen.SetColor(color4f, colorSpace);
-    skiaPath.PenToSkPaint(pen, paint);
+    skiaPaint.PenToSkPaint(pen, paint);
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 /**
@@ -133,13 +140,14 @@ HWTEST_F(SkiaPaintTest, PenToSkPaint003, TestSize.Level1)
 {
     Pen pen;
     SkPaint paint;
-    SkiaPaint skiaPath;
+    SkiaPaint skiaPaint;
     pen.SetCapStyle(Pen::CapStyle::FLAT_CAP);
-    skiaPath.PenToSkPaint(pen, paint);
+    skiaPaint.PenToSkPaint(pen, paint);
     pen.SetCapStyle(Pen::CapStyle::SQUARE_CAP);
-    skiaPath.PenToSkPaint(pen, paint);
+    skiaPaint.PenToSkPaint(pen, paint);
     pen.SetCapStyle(Pen::CapStyle::ROUND_CAP);
-    skiaPath.PenToSkPaint(pen, paint);
+    skiaPaint.PenToSkPaint(pen, paint);
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 /**
@@ -152,13 +160,14 @@ HWTEST_F(SkiaPaintTest, PenToSkPaint004, TestSize.Level1)
 {
     Pen pen;
     SkPaint paint;
-    SkiaPaint skiaPath;
+    SkiaPaint skiaPaint;
     pen.SetJoinStyle(Pen::JoinStyle::BEVEL_JOIN);
-    skiaPath.PenToSkPaint(pen, paint);
+    skiaPaint.PenToSkPaint(pen, paint);
     pen.SetJoinStyle(Pen::JoinStyle::MITER_JOIN);
-    skiaPath.PenToSkPaint(pen, paint);
+    skiaPaint.PenToSkPaint(pen, paint);
     pen.SetJoinStyle(Pen::JoinStyle::ROUND_JOIN);
-    skiaPath.PenToSkPaint(pen, paint);
+    skiaPaint.PenToSkPaint(pen, paint);
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 /**
@@ -171,8 +180,9 @@ HWTEST_F(SkiaPaintTest, PenToSkPaint005, TestSize.Level1)
 {
     Pen pen;
     SkPaint paint;
-    SkiaPaint skiaPath;
-    skiaPath.PenToSkPaint(pen, paint);
+    SkiaPaint skiaPaint;
+    skiaPaint.PenToSkPaint(pen, paint);
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 /**
@@ -185,10 +195,11 @@ HWTEST_F(SkiaPaintTest, PenToSkPaint006, TestSize.Level1)
 {
     Pen pen;
     SkPaint paint;
-    SkiaPaint skiaPath;
+    SkiaPaint skiaPaint;
     std::shared_ptr<ShaderEffect> shaderEffect = ShaderEffect::CreateColorShader(25);
     pen.SetShaderEffect(shaderEffect);
-    skiaPath.PenToSkPaint(pen, paint);
+    skiaPaint.PenToSkPaint(pen, paint);
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 /**
@@ -201,10 +212,11 @@ HWTEST_F(SkiaPaintTest, PenToSkPaint007, TestSize.Level1)
 {
     Pen pen;
     SkPaint paint;
-    SkiaPaint skiaPath;
+    SkiaPaint skiaPaint;
     std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateCornerPathEffect(25.0f);
     pen.SetPathEffect(pathEffect);
-    skiaPath.PenToSkPaint(pen, paint);
+    skiaPaint.PenToSkPaint(pen, paint);
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 /**
@@ -215,8 +227,9 @@ HWTEST_F(SkiaPaintTest, PenToSkPaint007, TestSize.Level1)
  */
 HWTEST_F(SkiaPaintTest, GetSortedPaints001, TestSize.Level1)
 {
-    SkiaPaint skiaPath;
-    skiaPath.GetSortedPaints();
+    SkiaPaint skiaPaint;
+    skiaPaint.GetSortedPaints();
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 /**
@@ -229,11 +242,12 @@ HWTEST_F(SkiaPaintTest, GetSortedPaints002, TestSize.Level1)
 {
     Pen pen;
     Brush brush;
-    SkiaPaint skiaPath;
-    skiaPath.SetStrokeFirst(true);
-    skiaPath.ApplyPenToStroke(pen);
-    skiaPath.ApplyBrushToFill(brush);
-    skiaPath.GetSortedPaints();
+    SkiaPaint skiaPaint;
+    skiaPaint.SetStrokeFirst(true);
+    skiaPaint.ApplyPenToStroke(pen);
+    skiaPaint.ApplyBrushToFill(brush);
+    skiaPaint.GetSortedPaints();
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 /**
@@ -245,10 +259,11 @@ HWTEST_F(SkiaPaintTest, GetSortedPaints002, TestSize.Level1)
 HWTEST_F(SkiaPaintTest, GetSortedPaints003, TestSize.Level1)
 {
     Pen pen;
-    SkiaPaint skiaPath;
-    skiaPath.SetStrokeFirst(true);
-    skiaPath.ApplyPenToStroke(pen);
-    skiaPath.GetSortedPaints();
+    SkiaPaint skiaPaint;
+    skiaPaint.SetStrokeFirst(true);
+    skiaPaint.ApplyPenToStroke(pen);
+    skiaPaint.GetSortedPaints();
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 /**
@@ -260,10 +275,11 @@ HWTEST_F(SkiaPaintTest, GetSortedPaints003, TestSize.Level1)
 HWTEST_F(SkiaPaintTest, GetSortedPaints004, TestSize.Level1)
 {
     Brush brush;
-    SkiaPaint skiaPath;
-    skiaPath.SetStrokeFirst(true);
-    skiaPath.ApplyBrushToFill(brush);
-    skiaPath.GetSortedPaints();
+    SkiaPaint skiaPaint;
+    skiaPaint.SetStrokeFirst(true);
+    skiaPaint.ApplyBrushToFill(brush);
+    skiaPaint.GetSortedPaints();
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 /**
@@ -276,8 +292,9 @@ HWTEST_F(SkiaPaintTest, ApplyFilter001, TestSize.Level1)
 {
     Brush brush;
     SkPaint paint;
-    SkiaPaint skiaPath;
-    skiaPath.BrushToSkPaint(brush, paint);
+    SkiaPaint skiaPaint;
+    skiaPaint.BrushToSkPaint(brush, paint);
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 /**
@@ -291,19 +308,20 @@ HWTEST_F(SkiaPaintTest, ApplyFilter002, TestSize.Level1)
     Brush brush;
     SkPaint paint;
     Filter filter;
-    SkiaPaint skiaPath;
+    SkiaPaint skiaPaint;
     filter.SetFilterQuality(Filter::FilterQuality::LOW);
     brush.SetFilter(filter);
-    skiaPath.BrushToSkPaint(brush, paint);
+    skiaPaint.BrushToSkPaint(brush, paint);
     filter.SetFilterQuality(Filter::FilterQuality::MEDIUM);
     brush.SetFilter(filter);
-    skiaPath.BrushToSkPaint(brush, paint);
+    skiaPaint.BrushToSkPaint(brush, paint);
     filter.SetFilterQuality(Filter::FilterQuality::HIGH);
     brush.SetFilter(filter);
-    skiaPath.BrushToSkPaint(brush, paint);
+    skiaPaint.BrushToSkPaint(brush, paint);
     filter.SetFilterQuality(Filter::FilterQuality::NONE);
     brush.SetFilter(filter);
-    skiaPath.BrushToSkPaint(brush, paint);
+    skiaPaint.BrushToSkPaint(brush, paint);
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 /**
@@ -317,10 +335,11 @@ HWTEST_F(SkiaPaintTest, ApplyFilter003, TestSize.Level1)
     Brush brush;
     SkPaint paint;
     Filter filter;
-    SkiaPaint skiaPath;
+    SkiaPaint skiaPaint;
     std::shared_ptr<MaskFilter> maskFilter = MaskFilter::CreateBlurMaskFilter(BlurType::INNER, 20.0f);
     filter.SetMaskFilter(maskFilter);
-    skiaPath.BrushToSkPaint(brush, paint);
+    skiaPaint.BrushToSkPaint(brush, paint);
+    EXPECT_TRUE(skiaPaint.stroke_ != nullptr);
 }
 
 } // namespace Drawing

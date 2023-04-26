@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,9 +22,6 @@ namespace Rosen {
 namespace Drawing {
 Bitmap::Bitmap()
     : bmpImplPtr(ImplFactory::CreateBitmapImpl()),
-      pixels_(nullptr),
-      width_(0),
-      height_(0),
       format_({ COLORTYPE_UNKNOWN, ALPHATYPE_UNKNOWN })
 {}
 
@@ -35,28 +32,24 @@ void Bitmap::Build(const int width, const int height, const BitmapFormat& format
     bmpImplPtr->Build(width, height, format);
 }
 
-int Bitmap::GetWidth()
+int Bitmap::GetWidth() const
 {
-    width_ = bmpImplPtr->GetWidth();
-    return width_;
+    return bmpImplPtr->GetWidth();
 }
 
-int Bitmap::GetHeight()
+int Bitmap::GetHeight() const
 {
-    height_ = bmpImplPtr->GetHeight();
-    return height_;
+    return bmpImplPtr->GetHeight();
 }
 
 void Bitmap::SetPixels(void* pixel)
 {
-    pixels_ = pixel;
     bmpImplPtr->SetPixels(pixel);
 }
 
-void* Bitmap::GetPixels()
+void* Bitmap::GetPixels() const
 {
-    pixels_ = bmpImplPtr->GetPixels();
-    return pixels_;
+    return bmpImplPtr->GetPixels();
 }
 
 void Bitmap::CopyPixels(Bitmap& dst, int srcLeft, int srcTop, int width, int height) const

@@ -205,7 +205,11 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 RS_LOGE("RSHardwareThread::Redraw CreateEglImageFromBuffer invalid param!");
                 continue;
             }
+#ifdef NEW_SKIA
+            if (canvas->recordingContext() == nullptr) {
+#else
             if (canvas->getGrContext() == nullptr) {
+#endif
                 RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
                 continue;
             }
@@ -226,13 +230,23 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8 };
             GrBackendTexture backendTexture(params.buffer->GetSurfaceBufferWidth(),
                 params.buffer->GetSurfaceBufferHeight(), GrMipMapped::kNo, grExternalTextureInfo);
+#ifdef NEW_SKIA
+            auto image = SkImage::MakeFromTexture(canvas->recordingContext(), backendTexture,
+                kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+#else
             auto image = SkImage::MakeFromTexture(canvas->getGrContext(), backendTexture,
                 kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+#endif
             if (image == nullptr) {
                 RS_LOGE("RSDividedRenderUtil::DrawImage: image is nullptr!");
                 return;
             }
+#ifdef NEW_SKIA
+            canvas->drawImageRect(image, params.srcRect, params.dstRect, SkSamplingOptions(),
+                &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
+#else
             canvas->drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
+#endif
         } else {
             uniRenderEngine_->DrawBuffer(*canvas, params);
         }

@@ -18,7 +18,11 @@
 
 #include <surface.h>
 
+#ifdef NEW_SKIA
+#include "include/gpu/GrDirectContext.h"
+#else
 #include "include/gpu/GrContext.h"
+#endif
 
 #include "platform/drawing/rs_surface_frame.h"
 #include "platform/ohos/rs_surface_frame_ohos.h"

@@ -83,7 +83,7 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
             }
             RS_LOGD("RSRenderEngine::DrawLayers dstRect[%d %d %d %d]", layer->GetLayerSize().x,
                     layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
-            std::vector<GraphicIRect>& dirtyRegions = layer->GetDirtyRegions();
+            const std::vector<GraphicIRect>& dirtyRegions = layer->GetDirtyRegions();
             for (auto iter = dirtyRegions.begin(); iter != dirtyRegions.end(); iter++) {
                 RS_LOGD("RSRenderEngine::DrawLayers SrcRect[%d %d %d %d]", iter->x, iter->y, iter->w, iter->h);
             }

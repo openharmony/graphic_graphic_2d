@@ -15,15 +15,30 @@
 
 #include "render/rs_blur_filter.h"
 
+#if defined(NEW_SKIA)
+#include "include/core/SkTileMode.h"
+#include "include/effects/SkImageFilters.h"
+#else
 #include "include/effects/SkBlurImageFilter.h"
+#endif
 namespace OHOS {
 namespace Rosen {
+constexpr float BLUR_SIGMA_SCALE = 0.57735f;
+#if defined(NEW_SKIA)
+RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(SkImageFilters::Blur(blurRadiusX,
+    blurRadiusY, SkTileMode::kClamp, nullptr)), blurRadiusX_(blurRadiusX),
+    blurRadiusY_(blurRadiusY)
+{
+    type_ = FilterType::BLUR;
+}
+#else
 RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(SkBlurImageFilter::Make(blurRadiusX,
     blurRadiusY, nullptr, nullptr, SkBlurImageFilter::kClamp_TileMode)), blurRadiusX_(blurRadiusX),
     blurRadiusY_(blurRadiusY)
 {
     type_ = FilterType::BLUR;
 }
+#endif
 
 RSBlurFilter::~RSBlurFilter() {}
 
@@ -37,9 +52,18 @@ float RSBlurFilter::GetBlurRadiusY()
     return blurRadiusY_;
 }
 
+float RSBlurFilter::GetBlurRadiusPx() const
+{
+    // sigma -> px
+    if (blurRadiusX_ > SK_ScalarHalf) {
+        return (blurRadiusX_ - SK_ScalarHalf) / BLUR_SIGMA_SCALE;
+    }
+    return 0.f;
+}
+
 std::string RSBlurFilter::GetDescription()
 {
-    return "RSBlurFilter blur radius is " + std::to_string(blurRadiusX_) + " sigma";
+    return "RSBlurFilter blur radius is " + std::to_string(GetBlurRadiusPx()) + " px";
 }
 
 std::shared_ptr<RSFilter> RSBlurFilter::Add(const std::shared_ptr<RSFilter>& rhs)

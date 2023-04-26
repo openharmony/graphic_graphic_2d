@@ -176,6 +176,10 @@ ohos_source_set("render_service_base_src") {
 
   if (rs_enable_gpu) {
     sources += [ "src/common/rs_shared_context.cpp" ]
+    defines += [
+      "GL_GLEXT_PROTOTYPES",
+      "EGL_EGLEXT_PROTOTYPES",
+    ]
   }
 
   if (current_os == "mingw" || current_os == "mac" || current_os == "linux") {
@@ -190,11 +194,15 @@ ohos_source_set("render_service_base_src") {
   }
 
   include_dirs = [
+    "$graphic_2d_root/frameworks/surface/include",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/utils/log",
-    "//third_party/flutter/skia/src",
   ]
-
+  if (defined(use_new_skia) && use_new_skia) {
+    include_dirs += [ "//third_party/skia/src" ]
+  } else {
+    include_dirs += [ "//third_party/flutter/skia/src" ]
+  }
   deps = [
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
     "$rosen_root/modules/platform:hilog",

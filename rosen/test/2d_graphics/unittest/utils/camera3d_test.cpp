@@ -15,7 +15,9 @@
 
 #include "gtest/gtest.h"
 
+#define private public
 #include "utils/camera3d.h"
+#undef private
 #include "utils/matrix.h"
 #include "utils/scalar.h"
 
@@ -63,6 +65,7 @@ HWTEST_F(Camera3DTest, Camera3DCreateAndDestroy002, TestSize.Level1)
 {
     // The best way to create Camera3D.
     Camera3D camera3d;
+    ASSERT_TRUE(camera3d.impl_ != nullptr);
 }
 
 /**

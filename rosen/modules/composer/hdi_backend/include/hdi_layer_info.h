@@ -249,12 +249,12 @@ public:
         return compositionType_;
     }
 
-    /* const */ std::vector<GraphicIRect>& GetVisibleRegions()
+    const std::vector<GraphicIRect>& GetVisibleRegions()
     {
         return visibleRegions_;
     }
 
-    /* const */ std::vector<GraphicIRect>& GetDirtyRegions()
+    const std::vector<GraphicIRect>& GetDirtyRegions()
     {
         return dirtyRegions_;
     }
@@ -289,7 +289,7 @@ public:
         return preMulti_;
     }
 
-    std::vector<float>& GetColorTransform()
+    const std::vector<float>& GetColorTransform()
     {
         return colorTransformMatrix_;
     }

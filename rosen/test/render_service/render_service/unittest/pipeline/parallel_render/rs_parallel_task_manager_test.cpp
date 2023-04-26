@@ -128,6 +128,8 @@ HWTEST_F(RSParallelTaskManagerTest, SetSubThreadRenderTaskLoadTest, TestSize.Lev
     parallelTaskManager_->SetSubThreadRenderTaskLoad(0, 1000, 1.0f);
     parallelTaskManager_->SetSubThreadRenderTaskLoad(1, 2000, 2.0f);
     parallelTaskManager_->SetSubThreadRenderTaskLoad(2, 3000, 3.0f);
+    auto num = parallelTaskManager_->GetTaskNum();
+    ASSERT_EQ(num, 0);
 }
 
 /**

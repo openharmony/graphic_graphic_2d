@@ -70,13 +70,18 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     }
 
     GrContextOptions grOptions;
+#ifndef NEW_SKIA
     grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
+#endif
     grOptions.fPreferExternalImagesOverES3 = true;
     grOptions.fDisableDistanceFieldPaths = true;
     grOptions.fAllowPathMaskCaching = true;
     grOptions.fPersistentCache = skiaPersistentCache_.get();
-
+#ifdef NEW_SKIA
+    grContext_ = GrDirectContext::MakeGL(std::move(glInterface), grOptions);
+#else
     grContext_ = GrContext::MakeGL(std::move(glInterface), grOptions);
+#endif
     if (grContext_) {
         return true;
     }
@@ -118,13 +123,19 @@ void SkiaGPUContext::SetResourceCacheLimits(int maxResource, size_t maxResourceB
     }
     grContext_->setResourceCacheLimits(maxResource, maxResourceBytes);
 }
-
+#ifdef NEW_SKIA
+sk_sp<GrDirectContext> SkiaGPUContext::GetGrContext() const
+#else
 sk_sp<GrContext> SkiaGPUContext::GetGrContext() const
+#endif
 {
     return grContext_;
 }
-
+#ifdef NEW_SKIA
+void SkiaGPUContext::SetGrContext(const sk_sp<GrDirectContext>& grContext)
+#else
 void SkiaGPUContext::SetGrContext(const sk_sp<GrContext>& grContext)
+#endif
 {
     grContext_ = grContext;
 }

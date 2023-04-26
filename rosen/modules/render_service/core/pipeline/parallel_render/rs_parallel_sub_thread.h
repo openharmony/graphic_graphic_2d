@@ -24,7 +24,11 @@
 #include "EGL/eglext.h"
 #include "SkImage.h"
 #include "include/core/SkSurface.h"
+#if defined(NEW_SKIA)
+#include "include/gpu/GrDirectContext.h"
+#else
 #include "include/gpu/GrContext.h"
+#endif
 #include "pipeline/parallel_render/rs_render_task.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
@@ -77,13 +81,21 @@ private:
     void CalcCost();
     void StartComposition();
     void Composition();
+#ifdef NEW_SKIA
+    sk_sp<GrDirectContext> CreateShareGrContext();
+#else
     sk_sp<GrContext> CreateShareGrContext();
+#endif
     void AcquireSubSkSurface(int width, int height);
 
     uint32_t threadIndex_;
     int surfaceWidth_ = 0;
     int surfaceHeight_ = 0;
+#ifdef NEW_SKIA
+    sk_sp<GrDirectContext> grContext_ = nullptr;
+#else
     sk_sp<GrContext> grContext_ = nullptr;
+#endif
     sk_sp<SkSurface> skSurface_ = nullptr;
     SkCanvas *skCanvas_ = nullptr;
     std::shared_ptr<RSPaintFilterCanvas> canvas_ = nullptr;

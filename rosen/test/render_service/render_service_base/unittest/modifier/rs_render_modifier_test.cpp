@@ -110,9 +110,6 @@ HWTEST_F(RSRenderModifierTest, DrawCmdListModifier001, TestSize.Level1)
     auto prop1 = std::make_shared<RSRenderProperty<DrawCmdListPtr>>(canvas.GetDrawCmdList(), id);
     modifier->Update(prop1, true);
 
-    std::shared_ptr<RectF> rect = std::make_shared<RectF>();
-    modifier->SetOverlayBounds(rect);
-    ASSERT_TRUE(modifier->GetOverlayBounds() == rect);
     ASSERT_TRUE(modifier->Marshalling(parcel));
     ASSERT_TRUE(RSDrawCmdListRenderModifier::Unmarshalling(parcel) != nullptr);
 

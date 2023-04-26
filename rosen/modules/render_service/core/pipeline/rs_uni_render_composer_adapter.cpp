@@ -268,8 +268,13 @@ void RSUniRenderComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& 
     RS_TRACE_NAME(traceInfo.c_str());
 
     // get current node's translate matrix and calculate gravity matrix.
+#ifdef NEW_SKIA
+    auto translateMatrix = SkMatrix::Translate(
+        std::ceil(node.GetTotalMatrix().getTranslateX()), std::ceil(node.GetTotalMatrix().getTranslateY()));
+#else
     auto translateMatrix = SkMatrix::MakeTrans(
         std::ceil(node.GetTotalMatrix().getTranslateX()), std::ceil(node.GetTotalMatrix().getTranslateY()));
+#endif
     SkMatrix gravityMatrix;
     (void)RSPropertiesPainter::GetGravityMatrix(frameGravity,
         RectF {0.0f, 0.0f, boundsWidth, boundsHeight}, frameWidth, frameHeight, gravityMatrix);

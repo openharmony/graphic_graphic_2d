@@ -54,7 +54,7 @@ void TypographyCreate::AppendText(const std::u16string& text)
 
 class TextEnginePlaceholderRun : public TextEngine::AnySpan {
 public:
-    TextEnginePlaceholderRun(const PlaceholderSpan &span)
+    explicit TextEnginePlaceholderRun(const PlaceholderSpan &span)
     {
         span_ = span;
     }

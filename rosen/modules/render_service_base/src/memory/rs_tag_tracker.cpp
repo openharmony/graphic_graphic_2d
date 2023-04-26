@@ -16,7 +16,7 @@
 #include "memory/rs_tag_tracker.h"
 
 #include "platform/common/rs_log.h"
-
+#ifndef NEW_SKIA
 namespace OHOS::Rosen {
 ReleaseGpuResourceType RSTagTracker::releaseGpuResourceEnable_ = ReleaseGpuResourceType::DISABLED;
 RSTagTracker::RSTagTracker(GrContext* grContext, RSTagTracker::TAGTYPE tagType)
@@ -133,3 +133,4 @@ RSTagTracker::~RSTagTracker()
 #endif
 }
 } // namespace OHOS::Rosen
+#endif

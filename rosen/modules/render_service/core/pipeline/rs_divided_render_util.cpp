@@ -36,7 +36,9 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(
 #endif // RS_ENABLE_EGLIMAGE
     params.paint.setAlphaf(node.GetGlobalAlpha());
     params.paint.setAntiAlias(true);
+#ifndef NEW_SKIA
     params.paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
+#endif
     params.setColorFilter = setColorFilter;
 
     const RSProperties& property = node.GetRenderProperties();

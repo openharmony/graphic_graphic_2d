@@ -64,7 +64,11 @@ private:
 #ifdef RS_ENABLE_GL
     std::shared_ptr<RSSharedContext> context_ = nullptr;
 #endif
-    sk_sp<GrContext> grContext_;
+#ifdef NEW_SKIA
+    sk_sp<GrDirectContext> grContext_ = nullptr;
+#else
+    sk_sp<GrContext> grContext_ = nullptr;
+#endif
     sk_sp<SkSurface> skSurface_;
     std::mutex mutex_;
     std::mutex imageMutex_;

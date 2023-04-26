@@ -70,6 +70,9 @@ static std::unordered_map<RSOpType, OpUnmarshallingFunc> opUnmarshallingFuncLUT 
     { MULTIPLY_ALPHA_OPITEM,       MultiplyAlphaOpItem::Unmarshalling },
     { SAVE_ALPHA_OPITEM,           SaveAlphaOpItem::Unmarshalling },
     { RESTORE_ALPHA_OPITEM,        RestoreAlphaOpItem::Unmarshalling },
+#ifdef ROSEN_OHOS
+    { SURFACEBUFFER_OPITEM,        SurfaceBufferOpItem::Unmarshalling },
+#endif
 };
 
 #ifdef ROSEN_OHOS

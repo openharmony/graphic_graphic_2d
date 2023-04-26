@@ -161,7 +161,16 @@ void RSListenedCanvas::onDrawPicture(const SkPicture* picture, const SkMatrix* m
         listener_->onDrawPicture(picture, matrix, paint);
     }
 }
-
+#ifdef NEW_SKIA
+void RSListenedCanvas::onDrawImageRect2(const SkImage* image, const SkRect& src, const SkRect& dst,
+    const SkSamplingOptions& samplingOptions, const SkPaint* paint, SrcRectConstraint constraint)
+{
+    RSPaintFilterCanvas::onDrawImageRect2(image, src, dst, samplingOptions, paint, constraint);
+    if (listener_ != nullptr) {
+        listener_->onDrawRect(dst, {});
+    }
+}
+#else
 void RSListenedCanvas::onDrawImageRect(const SkImage* image, const SkRect* src, const SkRect& dst,
                                        const SkPaint* paint, SrcRectConstraint constraint)
 {
@@ -170,5 +179,6 @@ void RSListenedCanvas::onDrawImageRect(const SkImage* image, const SkRect* src, 
         listener_->onDrawRect(dst, {});
     }
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

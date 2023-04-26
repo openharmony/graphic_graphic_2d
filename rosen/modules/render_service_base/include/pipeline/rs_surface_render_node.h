@@ -22,8 +22,10 @@
 
 #include "include/core/SkRect.h"
 #include "include/core/SkRefCnt.h"
+#ifndef NEW_SKIA
 #include "include/gpu/GrContext.h"
 #include "refbase.h"
+#endif
 
 #include "common/rs_macros.h"
 #include "common/rs_occlusion_region.h"

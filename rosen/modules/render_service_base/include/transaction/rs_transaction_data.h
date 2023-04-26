@@ -103,7 +103,7 @@ public:
         return isUniRender_;
     }
 
-    std::vector<std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>>& GetPayload()
+    std::list<std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>>& GetPayload()
     {
         return payload_;
     }
@@ -153,7 +153,7 @@ private:
     void AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType);
 
     bool UnmarshallingCommand(Parcel& parcel);
-    std::vector<std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>> payload_;
+    std::list<std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>> payload_;
     uint64_t timestamp_ = 0;
     std::string abilityName_;
     pid_t pid_ = 0;
