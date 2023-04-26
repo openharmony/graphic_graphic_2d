@@ -1131,12 +1131,14 @@ public:
         }
         rect_.dump(desc, depth);
         desc += "\tbackdrop_:Omit\n";
+#ifndef NEW_SKIA
         if (mask_ == nullptr) {
             desc += "\tmask_ = nullptr\n";
         } else {
             mask_->dump(desc, depth);
         }
         matrix_.dump(desc, depth);
+#endif
         desc += "\tflags_:" + std::to_string(static_cast<int>(flags_)) + "\n";
         desc += "}, \n";
         return desc;
@@ -1281,12 +1283,14 @@ public:
         } else {
             vertices_->dump(desc, depth);
         }
+#ifndef NEW_SKIA
         if (bones_ == nullptr) {
             desc += "\tbones_ = nullptr\n";
         } else {
             bones_->dump(desc, depth);
         }
         desc += "\tboneCount_:" + std::to_string(boneCount_) + "\n";
+#endif
         desc += "\tmode_:" + std::to_string(static_cast<int>(mode_)) + "\n";
         desc += "}, \n";
         return desc;
