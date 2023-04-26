@@ -46,7 +46,7 @@ public:
     static std::shared_ptr<PathEffect> CreateSumPathEffect(PathEffect& e1, PathEffect& e2);
     static std::shared_ptr<PathEffect> CreateComposePathEffect(PathEffect& e1, PathEffect& e2);
 
-    ~PathEffect() {}
+    virtual ~PathEffect() {}
     PathEffectType GetType() const;
 
     PathEffect(PathEffectType t, const scalar intervals[], int count, scalar phase) noexcept;
