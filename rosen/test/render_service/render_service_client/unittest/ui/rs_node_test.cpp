@@ -20,6 +20,10 @@
 #include "modifier/rs_property_modifier.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
+#include "animation/rs_animation_callback.h"
+#include "animation/rs_implicit_animator_map.h"
+#include "animation/rs_implicit_animator.h"
+#include "animation/rs_implicit_animation_param.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -3148,4 +3152,74 @@ HWTEST_F(RSNodeTest, SetModifier002, TestSize.Level1)
     node1->DumpNode(0);
     ASSERT_TRUE(node1->GetModifierIds().size() == 1);
 }
+
+/**
+ * @tc.name: OpenImplicitAnimationTest001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, OpenImplicitAnimationTest001, TestSize.Level1)
+{
+    std::function<void()> finishCallback;
+    RSAnimationTimingProtocol timingProtocal;
+    RSAnimationTimingCurve timingCurve;
+    RSNode::OpenImplicitAnimation(timingProtocal, timingCurve, finishCallback);
+}
+/**
+ * @tc.name: CloseImplicitAnimationTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, CloseImplicitAnimationTest, TestSize.Level1)
+{
+    RSNode::CloseImplicitAnimation();
+    std::vector<std::shared_ptr<RSAnimation>> vec;
+    EXPECT_EQ(vec, RSNode::CloseImplicitAnimation());
+}
+
+/**
+ * @tc.name: AnimateTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, AnimateTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    PropertyCallback propertyCallback = nullptr;
+    std::function<void()> finishCallback;
+    auto animate = RSNode::Animate(timingProtocol, timingCurve, propertyCallback, finishCallback);
+    std::vector<std::shared_ptr<RSAnimation>> vec;
+    EXPECT_EQ(vec, animate);
+}
+/**
+ * @tc.name: AnimateWithCurrentOptionsTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, AnimateWithCurrentOptionsTest, TestSize.Level1)
+{
+    PropertyCallback propertyCallback = nullptr;
+    std::function<void()> finishCallback = nullptr;
+    bool timingSensitive = true;
+    auto animateWithCurrentOptions =
+        RSNode::AnimateWithCurrentOptions(propertyCallback, finishCallback, timingSensitive);
+    std::vector<std::shared_ptr<RSAnimation>> vec;
+    EXPECT_EQ(vec, animateWithCurrentOptions);
+}
+/**
+ * @tc.name: AnimateWithCurrentCallbackTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, AnimateWithCurrentCallbackTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    PropertyCallback propertyCallback = nullptr;
+    auto Callback = RSNode::AnimateWithCurrentCallback(timingProtocol, timingCurve, propertyCallback);
+    std::vector<std::shared_ptr<RSAnimation>> vec;
+    EXPECT_EQ(vec, Callback);
+}
+
 } // namespace OHOS::Rosen
