@@ -47,11 +47,13 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(int32_t width,
     }
 
 #ifdef RS_ENABLE_AFBC
-    int32_t format = 0;
-    NativeWindowHandleOpt(mNativeWindow, GET_FORMAT, &format);
-    if (format == PIXEL_FMT_RGBA_8888 && useAFBC) {
-        bufferUsage_ =
-            (BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA);
+    if (RSSystemProperties::GetAFBCEnabled()) {
+        int32_t format = 0;
+        NativeWindowHandleOpt(mNativeWindow, GET_FORMAT, &format);
+        if (format == PIXEL_FMT_RGBA_8888 && useAFBC) {
+            bufferUsage_ =
+                (BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA);
+        }
     }
 #endif
 

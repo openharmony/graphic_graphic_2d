@@ -134,5 +134,10 @@ int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyCh
 {
     return {};
 }
+
+bool RSSystemProperties::GetAFBCEnabled()
+{
+    return {};
+}
 } // namespace Rosen
 } // namespace OHOS

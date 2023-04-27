@@ -93,6 +93,7 @@ public:
     static bool GetDumpLayersEnabled();
     static bool GetQuickSkipPrepareEnabled();
     static bool GetHardwareComposerEnabled();
+    static bool GetAFBCEnabled();
 #ifndef NEW_SKIA
      static ReleaseGpuResourceType GetReleaseGpuResourceEnabled();
 #endif
