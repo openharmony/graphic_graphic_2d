@@ -798,6 +798,7 @@ SurfaceBufferOpItem::SurfaceBufferOpItem(const RSSurfaceBufferInfo& surfaceBuffe
 
 SurfaceBufferOpItem::~SurfaceBufferOpItem()
 {
+#ifdef RS_ENABLE_GL
     if (eglImage_ != EGL_NO_IMAGE_KHR) {
         auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
         eglDestroyImageKHR(disp, eglImage_);
@@ -808,10 +809,12 @@ SurfaceBufferOpItem::~SurfaceBufferOpItem()
     if (texId_ != 0U) {
         glDeleteTextures(1, &texId_);
     }
+#endif
 }
 
 void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
+#ifdef RS_ENABLE_GL
     if (surfaceBufferInfo_.surfaceBuffer_ == nullptr) {
         ROSEN_LOGE("SurfaceBufferOpItem::Draw surfaceBuffer_ is nullptr");
         return;
@@ -854,8 +857,9 @@ void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
         kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
 
     canvas.drawImage(skImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_);
+#endif // RS_ENABLE_GL
 }
-#endif
+#endif // ROSEN_OHOS
 
 // RectOpItem
 bool RectOpItem::Marshalling(Parcel& parcel) const

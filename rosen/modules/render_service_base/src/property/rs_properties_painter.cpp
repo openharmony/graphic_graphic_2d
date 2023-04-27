@@ -322,26 +322,19 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         return;
     }
 
-    // Expand the screenshot area to avoid animation flickering caused by floating points.
-    // Interset with the screen to prevent exceeding the screen and ensure that the boundary is greater than zero.
     auto clipIBounds = canvas.getDeviceClipBounds();
-    auto screenIRect = SkIRect::MakeWH(skSurface->width(), skSurface->height());
-    auto radius = static_cast<int32_t>(filter->GetBlurRadiusPx());
-    auto clipIPadding = clipIBounds.makeOutset(radius, radius);
-    clipIPadding.intersect(screenIRect);
+    auto clipIPadding = clipIBounds.makeOutset(-1, -1);
     auto imageSnapshot = skSurface->makeImageSnapshot(clipIPadding);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");
         return;
     }
-    auto imgSub = imageSnapshot->makeSubset(clipIBounds.makeOffset(-clipIPadding.left(), -clipIPadding.top()));
-    filter->PreProcess(imgSub);
+    filter->PreProcess(imageSnapshot);
     canvas.resetMatrix();
     auto visibleIRect = canvas.GetVisibleRect().round();
     if (visibleIRect.intersect(clipIBounds)) {
         canvas.clipRect(SkRect::Make(visibleIRect));
-        auto visibleIPadding = visibleIRect.makeOutset(radius, radius);
-        visibleIPadding.intersect(screenIRect);
+        auto visibleIPadding = visibleIRect.makeOutset(-1, -1);
 #ifdef NEW_SKIA
         canvas.drawImageRect(imageSnapshot.get(),
             SkRect::Make(visibleIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())),
