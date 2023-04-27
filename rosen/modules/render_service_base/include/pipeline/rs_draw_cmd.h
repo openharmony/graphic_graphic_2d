@@ -970,9 +970,11 @@ public:
 
 private:
     RSSurfaceBufferInfo surfaceBufferInfo_;
+#ifdef RS_ENABLE_GL
     mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
     mutable GLuint texId_ = 0;
     mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
+#endif
 };
 #endif
 } // namespace Rosen
