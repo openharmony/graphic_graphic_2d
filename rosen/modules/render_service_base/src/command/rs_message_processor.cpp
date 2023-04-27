@@ -27,18 +27,21 @@ RSMessageProcessor& RSMessageProcessor::Instance()
     return processor;
 }
 
-RSMessageProcessor::~RSMessageProcessor() {}
+RSMessageProcessor::~RSMessageProcessor() {
+    std::unique_lock<std::mutex> lock(transactionMapMutex_);
+    transactionMap_.clear();
+}
 
 void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>& command)
 {
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
-    transactionMap_[pid].AddCommand(std::move(command), 0, FollowType::NONE);
+    transactionMap_[pid].AddCommand(command, 0, FollowType::NONE);
 }
 
 void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>&& command)
 {
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
-    transactionMap_[pid].AddCommand(std::move(command), 0, FollowType::NONE);
+    transactionMap_[pid].AddCommand(command, 0, FollowType::NONE);
 }
 
 bool RSMessageProcessor::HasTransaction() const
