@@ -819,7 +819,7 @@ void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
         ROSEN_LOGE("SurfaceBufferOpItem::Draw surfaceBuffer_ is nullptr");
         return;
     }
-    nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(surfaceBufferInfo_.surfaceBuffer_);
+    nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&(surfaceBufferInfo_.surfaceBuffer_));
     if (!nativeWindowBuffer_) {
         ROSEN_LOGE("SurfaceBufferOpItem::Draw create native window buffer fail");
         return;

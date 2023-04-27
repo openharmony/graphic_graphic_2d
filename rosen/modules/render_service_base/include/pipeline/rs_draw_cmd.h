@@ -969,7 +969,7 @@ public:
     static OpItem* Unmarshalling(Parcel& parcel);
 
 private:
-    RSSurfaceBufferInfo surfaceBufferInfo_;
+    mutable RSSurfaceBufferInfo surfaceBufferInfo_;
 #ifdef RS_ENABLE_GL
     mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
     mutable GLuint texId_ = 0;
