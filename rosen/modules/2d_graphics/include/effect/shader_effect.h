@@ -59,7 +59,7 @@ public:
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
         scalar endAngle);
 
-    ~ShaderEffect() {}
+    virtual ~ShaderEffect() = default;
     ShaderEffectType GetType() const;
     template<typename T>
     const std::shared_ptr<T> GetImpl() const
