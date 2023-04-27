@@ -18,7 +18,11 @@
 #include <securec.h>
 #include <stdint.h>
 #include <string>
+#ifdef NEW_SKIA
+#include "include/gpu/GrDirectContext.h"
+#else
 #include "include/gpu/GrContext.h"
+#endif
 #include "include/gpu/GrGpuResource.h"
 #include "rs_trace.h"
 #include "sandbox_utils.h"
@@ -1445,7 +1449,11 @@ bool RSMainThread::IsResidentProcess(pid_t pid)
         pid == ExtractPid(nodeMap.GetWallPaperViewNodeId());
 }
 
+#ifdef NEW_SKIA
+void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrDirectContext* grContext, pid_t pid)
+#else
 void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext, pid_t pid)
+#endif
 {
     if (IsResidentProcess(pid)) {
         RS_LOGW("ReleaseExitSurfaceNodeAllGpuResource pid:%d", pid);

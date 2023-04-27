@@ -37,10 +37,8 @@ public:
     static MemoryGraphic CountPidMemory(int pid, const GrDirectContext* grContext);
     static void CountMemory(std::vector<pid_t> pids, const GrDirectContext* grContext,
         std::vector<MemoryGraphic>& mems);
-    static void ReleaseUnlockGpuResource(GrDirectContext* grContext, GrGpuResourceTag& tag);
     static void ReleaseUnlockGpuResource(GrDirectContext* grContext, NodeId surfaceNodeId);
     static void ReleaseUnlockGpuResource(GrDirectContext* grContext, pid_t pid);
-    static void ReleaseAllGpuResource(GrDirectContext* grContext, GrGpuResourceTag& tag);
     static void ReleaseAllGpuResource(GrDirectContext* grContext, pid_t pid);
     static void ReleaseUnlockLauncherGpuResource(GrDirectContext* grContext,
         NodeId entryViewNodeId, NodeId wallpaperViewNodeId);
@@ -65,8 +63,6 @@ private:
     static void DumpDrawingCpuMemory(DfxString& log);
 #if defined(NEW_SKIA)
     static void DumpDrawingGpuMemory(DfxString& log, const GrDirectContext* grContext);
-    static void DumpGpuCache(DfxString& log, const GrDirectContext* grContext,
-        GrGpuResourceTag* tag, std::string& name);
     static void DumpAllGpuInfo(DfxString& log, const GrDirectContext* grContext);
 #else
     static void DumpDrawingGpuMemory(DfxString& log, const GrContext* grContext);
