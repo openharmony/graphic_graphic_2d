@@ -203,7 +203,7 @@ private:
 
     void CheckColdStartMap();
     void ClearDisplayBuffer();
-    void PerfAfterAnim();
+    void PerfAfterAnim(bool needRequestNextVsync);
     void PerfForBlurIfNeeded();
     void PerfMultiWindow();
     void ResetHardwareEnabledState();
