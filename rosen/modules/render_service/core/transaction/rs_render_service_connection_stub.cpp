@@ -127,7 +127,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION failed");
                 return ERR_INVALID_DATA;
             }
-            if (RSUniRenderJudgement::IsUniRender()) {
+            if (isUniRender) {
                 // post Unmarshalling task to RSUnmarshalThread
                 RSUnmarshalThread::Instance().RecvParcel(parsedParcel);
             } else {

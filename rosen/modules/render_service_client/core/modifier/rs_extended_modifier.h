@@ -84,6 +84,12 @@ protected:
         RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(node->GetId());
         Draw(ctx);
         auto drawCmdList = RSExtendedModifierHelper::FinishDrawing(ctx);
+        bool isEmpty = drawCmdList == nullptr || drawCmdList->GetSize() == 0;
+        if (lastDrawCmdListEmpty_ && isEmpty) {
+            return;
+        }
+        lastDrawCmdListEmpty_ = isEmpty;
+
         std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertyDrawCmdList>(
             node->GetId(), drawCmdList, property_->id_, false);
         auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -96,6 +102,8 @@ protected:
             }
         }
     }
+private:
+    bool lastDrawCmdListEmpty_ = false;
 };
 
 class RS_EXPORT RSGeometryTransModifier : public RSExtendedModifier {

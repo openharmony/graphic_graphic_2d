@@ -55,6 +55,10 @@ SkCanvas* RSCanvasNode::BeginRecording(int width, int height)
     if (transactionProxy == nullptr) {
         return recordingCanvas_;
     }
+    if (!recordingUpdated_) {
+        return recordingCanvas_;
+    }
+    recordingUpdated_ = false;
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeClearRecording>(GetId());
     transactionProxy->AddCommand(command, IsRenderServiceNode());
     return recordingCanvas_;
@@ -89,6 +93,7 @@ void RSCanvasNode::FinishRecording()
         drawContentLast_ ? static_cast<uint16_t>(RSModifierType::FOREGROUND_STYLE)
                          : static_cast<uint16_t>(RSModifierType::CONTENT_STYLE));
     transactionProxy->AddCommand(command, IsRenderServiceNode());
+    recordingUpdated_ = true;
 }
 
 void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
@@ -111,6 +116,7 @@ void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording, static_cast<uint16_t>(type));
     transactionProxy->AddCommand(command, IsRenderServiceNode());
+    recordingUpdated_ = true;
 }
 
 float RSCanvasNode::GetPaintWidth() const

@@ -55,6 +55,7 @@ protected:
 
 private:
     SkCanvas* recordingCanvas_ = nullptr;
+    bool recordingUpdated_ = false;
 
     friend class RSUIDirector;
     friend class RSAnimation;

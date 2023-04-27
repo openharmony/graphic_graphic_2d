@@ -1236,7 +1236,7 @@ void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsT
     if (!rsTransactionData) {
         return;
     }
-    if (rsTransactionData->GetUniRender()) {
+    if (isUniRender_) {
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
         cachedTransactionDataMap_[rsTransactionData->GetSendingPid()].emplace_back(std::move(rsTransactionData));
     } else {
