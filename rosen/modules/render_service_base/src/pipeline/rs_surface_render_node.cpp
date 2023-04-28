@@ -461,12 +461,20 @@ void RSSurfaceRenderNode::NotifyUIBufferAvailable()
 
 bool RSSurfaceRenderNode::IsNotifyRTBufferAvailable() const
 {
+#if defined(ROSEN_ANDROID) || defined(ROSEN_IOS)
+    return true;
+#else
     return isNotifyRTBufferAvailable_;
+#endif
 }
 
 bool RSSurfaceRenderNode::IsNotifyRTBufferAvailablePre() const
 {
+#if defined(ROSEN_ANDROID) || defined(ROSEN_IOS)
+    return true;
+#else
     return isNotifyRTBufferAvailablePre_;
+#endif
 }
 
 bool RSSurfaceRenderNode::IsNotifyUIBufferAvailable() const
