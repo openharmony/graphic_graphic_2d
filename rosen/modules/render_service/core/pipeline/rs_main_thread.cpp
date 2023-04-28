@@ -1222,7 +1222,7 @@ void RSMainThread::Animate(uint64_t timestamp)
         RequestNextVSync();
     }
     ResSchedDataCompleteReport(needRequestNextVsync);
-    PerfAfterAnim();
+    PerfAfterAnim(needRequestNextVsync);
 }
 
 void RSMainThread::CheckColdStartMap()
@@ -1535,7 +1535,7 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
     } else {
         uint32_t pid = std::stoll(type);
         GrGpuResourceTag tag(pid, 0, 0, 0);
-        MemoryManager::ReleaseAllGpuResource(grContext, tag);    
+        MemoryManager::ReleaseAllGpuResource(grContext, tag);
     }
     dumpString.append("trimMem: " + type + "\n");
 #else
@@ -1608,7 +1608,7 @@ void RSMainThread::SetAccessibilityConfigChanged()
     isAccessibilityConfigChanged_ = true;
 }
 
-void RSMainThread::PerfAfterAnim()
+void RSMainThread::PerfAfterAnim(bool needRequestNextVsync)
 {
     if (!isUniRender_) {
         return;
@@ -1618,12 +1618,12 @@ void RSMainThread::PerfAfterAnim()
     std::unordered_map<std::string, std::string> payload;
     payload["uid"] = std::to_string(getuid());
     payload["pid"] = std::to_string(GetRealPid());
-    if (!context_->animatingNodeList_.empty() && timestamp_ - prePerfTimestamp_ > PERF_PERIOD) {
+    if (needRequestNextVsync && timestamp_ - prePerfTimestamp_ > PERF_PERIOD) {
         RS_LOGD("RSMainThread:: soc perf to render_service_animation");
         OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(RES_TYPE_CONTINUE_ANIMATION,
             ANIMATION_START, payload);
         prePerfTimestamp_ = timestamp_;
-    } else if (context_->animatingNodeList_.empty()) {
+    } else if (!needRequestNextVsync && prePerfTimestamp_) {
         RS_LOGD("RSMainThread:: soc perf off render_service_animation");
         OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(RES_TYPE_CONTINUE_ANIMATION,
             ANIMATION_COMPLETE, payload);
