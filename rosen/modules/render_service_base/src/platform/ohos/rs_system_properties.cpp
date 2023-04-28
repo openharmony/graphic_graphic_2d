@@ -87,13 +87,16 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 #endif
 }
 
-#ifndef NEW_SKIA
 ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
 {
+#ifdef NEW_SKIA
+    return static_cast<ReleaseGpuResourceType>(
+        std::atoi((system::GetParameter("persist.release.gpuresource.enabled", "0")).c_str()));
+#else
     return static_cast<ReleaseGpuResourceType>(
         std::atoi((system::GetParameter("persist.release.gpuresource.enabled", "2")).c_str()));
-}
 #endif
+}
 
 bool RSSystemProperties::GetOcclusionEnabled()
 {

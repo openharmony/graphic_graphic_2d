@@ -107,7 +107,11 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
             mappedClipRect.offset(GetX(), GetY());
         }
 
+#ifdef NEW_SKIA
+        if (!mappedClipRect.intersect(SkRect(), {x_, y_, x_ + width_, y_ + height_})) {
+#else
         if (!mappedClipRect.intersect(x_, y_, x_ + width_, y_ + height_)) {
+#endif
             // No visible area
             x_ = y_ = width_ = height_ = 0.0f;
             return;
