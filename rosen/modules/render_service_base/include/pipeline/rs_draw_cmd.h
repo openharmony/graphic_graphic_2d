@@ -99,7 +99,60 @@ enum RSOpType : uint16_t {
     RESTORE_ALPHA_OPITEM,
     SURFACEBUFFER_OPITEM,
 };
-
+namespace {
+    std::string GetOpTypeString(RSOpType type)
+    {
+#define GETOPTYPESTRING(t) case (t): return #t
+        switch (type) {
+            GETOPTYPESTRING(OPITEM);
+            GETOPTYPESTRING(OPITEM_WITH_PAINT);
+            GETOPTYPESTRING(RECT_OPITEM);
+            GETOPTYPESTRING(ROUND_RECT_OPITEM);
+            GETOPTYPESTRING(IMAGE_WITH_PARM_OPITEM);
+            GETOPTYPESTRING(DRRECT_OPITEM);
+            GETOPTYPESTRING(OVAL_OPITEM);
+            GETOPTYPESTRING(REGION_OPITEM);
+            GETOPTYPESTRING(ARC_OPITEM);
+            GETOPTYPESTRING(SAVE_OPITEM);
+            GETOPTYPESTRING(RESTORE_OPITEM);
+            GETOPTYPESTRING(FLUSH_OPITEM);
+            GETOPTYPESTRING(MATRIX_OPITEM);
+            GETOPTYPESTRING(CLIP_RECT_OPITEM);
+            GETOPTYPESTRING(CLIP_RRECT_OPITEM);
+            GETOPTYPESTRING(CLIP_REGION_OPITEM);
+            GETOPTYPESTRING(TRANSLATE_OPITEM);
+            GETOPTYPESTRING(TEXTBLOB_OPITEM);
+            GETOPTYPESTRING(BITMAP_OPITEM);
+            GETOPTYPESTRING(COLOR_FILTER_BITMAP_OPITEM);
+            GETOPTYPESTRING(BITMAP_RECT_OPITEM);
+            GETOPTYPESTRING(BITMAP_NINE_OPITEM);
+            GETOPTYPESTRING(PIXELMAP_OPITEM);
+            GETOPTYPESTRING(PIXELMAP_RECT_OPITEM);
+            GETOPTYPESTRING(ADAPTIVE_RRECT_OPITEM);
+            GETOPTYPESTRING(ADAPTIVE_RRECT_SCALE_OPITEM);
+            GETOPTYPESTRING(CLIP_ADAPTIVE_RRECT_OPITEM);
+            GETOPTYPESTRING(CLIP_OUTSET_RECT_OPITEM);
+            GETOPTYPESTRING(PATH_OPITEM);
+            GETOPTYPESTRING(CLIP_PATH_OPITEM);
+            GETOPTYPESTRING(PAINT_OPITEM);
+            GETOPTYPESTRING(CONCAT_OPITEM);
+            GETOPTYPESTRING(SAVE_LAYER_OPITEM);
+            GETOPTYPESTRING(DRAWABLE_OPITEM);
+            GETOPTYPESTRING(PICTURE_OPITEM);
+            GETOPTYPESTRING(POINTS_OPITEM);
+            GETOPTYPESTRING(VERTICES_OPITEM);
+            GETOPTYPESTRING(SHADOW_REC_OPITEM);
+            GETOPTYPESTRING(MULTIPLY_ALPHA_OPITEM);
+            GETOPTYPESTRING(SAVE_ALPHA_OPITEM);
+            GETOPTYPESTRING(RESTORE_ALPHA_OPITEM);
+            GETOPTYPESTRING(SURFACEBUFFER_OPITEM);
+            default:
+                break;
+        }
+        return "";
+    }
+#undef GETOPTYPESTRING
+}
 class OpItem : public MemObject, public Parcelable {
 public:
     explicit OpItem(size_t size) : MemObject(size) {}
@@ -107,6 +160,7 @@ public:
 
     virtual void Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const {};
     virtual RSOpType GetType() const = 0;
+    virtual std::string GetTypeWithDesc() const = 0;
 
     virtual std::unique_ptr<OpItem> GenerateCachedOpItem(
         const RSPaintFilterCanvas* canvas = nullptr, const SkRect* rect = nullptr) const
@@ -157,6 +211,15 @@ public:
     ~RectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        rect_.dump(desc, depth);
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::RECT_OPITEM;
@@ -174,6 +237,15 @@ public:
     RoundRectOpItem(const SkRRect& rrect, const SkPaint& paint);
     ~RoundRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        rrect_.dump(desc, depth);
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -198,6 +270,19 @@ public:
     ~ImageWithParmOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        if (rsImage_ == nullptr) {
+            desc += "\trsImage_ == nullptr";
+        } else {
+            int depth = 1;
+            rsImage_->dump(desc, depth);
+        }
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::IMAGE_WITH_PARM_OPITEM;
@@ -215,6 +300,18 @@ public:
     DRRectOpItem(const SkRRect& outer, const SkRRect& inner, const SkPaint& paint);
     ~DRRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        desc += "outer_";
+        outer_.dump(desc, depth);
+        desc += "\ninner_";
+        inner_.dump(desc, depth);
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -239,6 +336,15 @@ public:
         return rect_;
     }
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        rect_.dump(desc, depth);
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::OVAL_OPITEM;
@@ -257,6 +363,15 @@ public:
     ~RegionOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        region_.dump(desc, depth);
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::REGION_OPITEM;
@@ -274,6 +389,18 @@ public:
     ArcOpItem(const SkRect& rect, float startAngle, float sweepAngle, bool useCenter, const SkPaint& paint);
     ~ArcOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        rect_.dump(desc, depth);
+        desc += "\tstartAngle_: " + std::to_string(startAngle_) + "\n";
+        desc += "\tsweepAngle_: " + std::to_string(sweepAngle_) + "\n";
+        desc += "\tuseCenter_: " + std::to_string(useCenter_) + "\n";
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -296,6 +423,13 @@ public:
     ~SaveOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::SAVE_OPITEM;
@@ -309,6 +443,13 @@ public:
     RestoreOpItem();
     ~RestoreOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -324,6 +465,13 @@ public:
     ~FlushOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::FLUSH_OPITEM;
@@ -337,6 +485,15 @@ public:
     MatrixOpItem(const SkMatrix& matrix);
     ~MatrixOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        matrix_.dump(desc, depth);
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -355,6 +512,17 @@ public:
     ClipRectOpItem(const SkRect& rect, SkClipOp op, bool doAA);
     ~ClipRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        rect_.dump(desc, depth);
+        desc += "\tclipOp_: " + std::to_string(static_cast<int>(clipOp_)) + "\n";
+        desc += "\tdoAA_: " + std::to_string(doAA_) + "\n";
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -383,6 +551,17 @@ public:
     ~ClipRRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        rrect_.dump(desc, depth);
+        desc += "\tclipOp_: " + std::to_string(static_cast<int>(clipOp_)) + "\n";
+        desc += "\tdoAA_: " + std::to_string(doAA_) + "\n";
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::CLIP_RRECT_OPITEM;
@@ -403,6 +582,16 @@ public:
     ~ClipRegionOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        region_.dump(desc, depth);
+        desc += "\tclipOp_: " + std::to_string(static_cast<int>(clipOp_)) + "\n";
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::CLIP_REGION_OPITEM;
@@ -421,6 +610,15 @@ public:
     TranslateOpItem(float distanceX, float distanceY);
     ~TranslateOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "\tdistanceX_: " + std::to_string(distanceX_) + "\n";
+        desc += "\tdistanceY_: " + std::to_string(distanceY_) + "\n";
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -444,6 +642,21 @@ public:
     {
         // bounds of textBlob_, with additional offset [x_, y_]. textBlob_ should never be null but we should check.
         return textBlob_ ? std::make_optional<SkRect>(textBlob_->bounds().makeOffset(x_, y_)) : std::nullopt;
+    }
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        if (textBlob_ == nullptr) {
+            desc += "\ttextBlob_ = nullptr\n";
+        } else {
+            textBlob_->dump(desc, depth);
+        }
+        desc += "\tx_: " + std::to_string(x_) + "\n";
+        desc += "\ty_: " + std::to_string(y_) + "\n";
+        desc += "}, \n";
+        return desc;
     }
 
     RSOpType GetType() const override
@@ -470,6 +683,13 @@ public:
     BitmapOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
 #endif
     ~BitmapOpItem() override {}
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -498,6 +718,13 @@ public:
 #endif
     ~ColorFilterBitmapOpItem() override {}
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::COLOR_FILTER_BITMAP_OPITEM;
@@ -522,6 +749,13 @@ public:
     BitmapRectOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
 #endif
     ~BitmapRectOpItem() override {}
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -550,6 +784,13 @@ public:
     PixelMapOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
 #endif
     ~PixelMapOpItem() override {}
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -580,6 +821,13 @@ public:
 #endif
     ~PixelMapRectOpItem() override {}
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::PIXELMAP_RECT_OPITEM;
@@ -607,6 +855,22 @@ public:
     ~BitmapNineOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        center_.dump(desc, depth);
+        rectDst_.dump(desc, depth);
+        if (bitmapInfo_ == nullptr) {
+            desc += "\tbitmapInfo_ = nullptr\n";
+        } else {
+            int depth = 1;
+            bitmapInfo_->dump(desc, depth);
+        }
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::BITMAP_NINE_OPITEM;
@@ -630,6 +894,15 @@ public:
     ~AdaptiveRRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "\tradius_: " + std::to_string(radius_);
+        desc += "\tpaint_: Omit";
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::ADAPTIVE_RRECT_OPITEM;
@@ -648,6 +921,15 @@ public:
     AdaptiveRRectScaleOpItem(float radiusRatio, const SkPaint& paint);
     ~AdaptiveRRectScaleOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "\tradiusRatio_: " + std::to_string(radiusRatio_) + "\n";
+        desc += "\tpaint_: Omit\n";
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -668,6 +950,19 @@ public:
     ~ClipAdaptiveRRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "\tradius_:{";
+        int radiusSize = 4;
+        for (int i = 0; i < radiusSize; i++) {
+            int depth = 2;
+            radius_[i].dump(desc, depth);
+        }
+        desc += "}}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::CLIP_ADAPTIVE_RRECT_OPITEM;
@@ -685,6 +980,15 @@ public:
     ClipOutsetRectOpItem(float dx, float dy);
     ~ClipOutsetRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "\tdx_: " + std::to_string(dx_) + "\n";
+        desc += "\tdy_: " + std::to_string(dy_) + "\n";
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -709,6 +1013,15 @@ public:
         return path_.getBounds();
     }
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        path_.dump(desc, depth);
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::PATH_OPITEM;
@@ -726,6 +1039,17 @@ public:
     ClipPathOpItem(const SkPath& path, SkClipOp clipOp, bool doAA);
     ~ClipPathOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        path_.dump(desc, depth);
+        desc += "\tclipOp_: " + std::to_string(static_cast<int>(clipOp_)) + "\n";
+        desc += "\tdoAA_: " + std::to_string(doAA_) + "\n";
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -747,6 +1071,13 @@ public:
     ~PaintOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::PAINT_OPITEM;
@@ -761,6 +1092,15 @@ public:
     ConcatOpItem(const SkMatrix& matrix);
     ~ConcatOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        matrix_.dump(desc, depth);
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -779,6 +1119,30 @@ public:
     SaveLayerOpItem(const SkCanvas::SaveLayerRec& rec);
     ~SaveLayerOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        if (rectPtr_ == nullptr) {
+            desc += "\trectPtr_ = nullptr\n";
+        } else {
+            rectPtr_->dump(desc, depth);
+        }
+        rect_.dump(desc, depth);
+        desc += "\tbackdrop_:Omit\n";
+#ifndef NEW_SKIA
+        if (mask_ == nullptr) {
+            desc += "\tmask_ = nullptr\n";
+        } else {
+            mask_->dump(desc, depth);
+        }
+        matrix_.dump(desc, depth);
+#endif
+        desc += "\tflags_:" + std::to_string(static_cast<int>(flags_)) + "\n";
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -805,6 +1169,20 @@ public:
     ~DrawableOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        if (drawable_ == nullptr) {
+            desc += "\tdrawable_ == nullptr\n";
+        } else {
+            desc += "\t drawable_:" + std::to_string(drawable_->getGenerationID()) + "\n";
+        }
+        matrix_.dump(desc, depth);
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::DRAWABLE_OPITEM;
@@ -823,6 +1201,16 @@ public:
     PictureOpItem(const sk_sp<SkPicture> picture, const SkMatrix* matrix, const SkPaint* paint);
     ~PictureOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        desc += "\tpicture_:Omit\n";
+        matrix_.dump(desc, depth);
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -845,6 +1233,21 @@ public:
         delete[] processedPoints_;
     }
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        desc += "\tmode_:" + std::to_string(static_cast<int>(mode_)) + "\n";
+        desc += "\tcount_:" + std::to_string(count_) + "\n";
+        if (processedPoints_ == nullptr) {
+            desc += "\tprocessedPoints_ == nullptr";
+        } else {
+            processedPoints_->dump(desc, depth);
+        }
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -871,6 +1274,28 @@ public:
     ~VerticesOpItem() override;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        if (vertices_ == nullptr) {
+            desc += "\tvertices_ = nullptr\n";
+        } else {
+            vertices_->dump(desc, depth);
+        }
+#ifndef NEW_SKIA
+        if (bones_ == nullptr) {
+            desc += "\tbones_ = nullptr\n";
+        } else {
+            bones_->dump(desc, depth);
+        }
+        desc += "\tboneCount_:" + std::to_string(boneCount_) + "\n";
+#endif
+        desc += "\tmode_:" + std::to_string(static_cast<int>(mode_)) + "\n";
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::VERTICES_OPITEM;
@@ -894,6 +1319,16 @@ public:
     ~ShadowRecOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        int depth = 1;
+        path_.dump(desc, depth);
+        rec_.dump(desc, depth);
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::SHADOW_REC_OPITEM;
@@ -913,6 +1348,14 @@ public:
     ~MultiplyAlphaOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "alpha_:" + std::to_string(alpha_);
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::MULTIPLY_ALPHA_OPITEM;
@@ -931,6 +1374,13 @@ public:
     ~SaveAlphaOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "}, \n";
+        return desc;
+    }
+
     RSOpType GetType() const override
     {
         return RSOpType::SAVE_ALPHA_OPITEM;
@@ -944,6 +1394,13 @@ public:
     RestoreAlphaOpItem();
     ~RestoreAlphaOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {
@@ -959,6 +1416,13 @@ public:
     SurfaceBufferOpItem(const RSSurfaceBufferInfo& surfaceBufferInfo);
     ~SurfaceBufferOpItem() override;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "}, \n";
+        return desc;
+    }
 
     RSOpType GetType() const override
     {

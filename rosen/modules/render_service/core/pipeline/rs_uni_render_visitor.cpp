@@ -46,6 +46,9 @@
 #include "render/rs_skia_filter.h"
 #include "pipeline/parallel_render/rs_parallel_render_manager.h"
 #include "system/rs_system_parameters.h"
+#ifdef RS_ENABLE_RECORDING
+#include "benchmarks/rs_recording_thread.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -1292,6 +1295,23 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             return;
         }
 
+#ifdef RS_ENABLE_RECORDING
+        RSRecordingCanvas canvas(node.GetRenderProperties().GetBoundsWidth(),
+                node.GetRenderProperties().GetBoundsHeight());
+        std::shared_ptr<RSPaintFilterCanvas> recordingCanvas;
+        bool recordingEnabled = false;
+        if (RSSystemProperties::GetRecordingEnabled()) {
+            RS_TRACE_BEGIN("RSUniRender:Recording begin");
+#ifdef RS_ENABLE_GL
+            canvas.SetGrContext(canvas_->getGrContext()); // SkImage::MakeFromCompressed need GrContext
+#endif
+            recordingCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+            recordingEnabled = true;
+            swap(canvas_, recordingCanvas);
+            RSRecordingThread::Instance().CheckAndRecording();
+        }
+#endif
+
 #ifdef RS_ENABLE_VK
         canvas_->clear(SK_ColorTRANSPARENT);
 #endif
@@ -1433,6 +1453,20 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 DrawAllSurfaceOpaqueRegionForDFX(node);
             }
         }
+#ifdef RS_ENABLE_RECORDING
+        if (recordingEnabled) {
+            swap(canvas_, recordingCanvas);
+            auto drawCmdList = canvas.GetDrawCmdList();
+            RS_TRACE_BEGIN("RSUniRender:DrawCmdList Playback");
+            drawCmdList->Playback(*canvas_);
+            RS_TRACE_END();
+            RS_TRACE_BEGIN("RSUniRender:RecordingToFile curFrameNum = " +
+                std::to_string(RSRecordingThread::Instance().GetCurDumpFrame()));
+            RSRecordingThread::Instance().RecordingToFile(drawCmdList);
+            RS_TRACE_END();
+            RS_TRACE_END();
+        }
+#endif
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
         RS_TRACE_END();

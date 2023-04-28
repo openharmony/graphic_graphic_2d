@@ -74,7 +74,20 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSImage* Unmarshalling(Parcel& parcel);
 #endif
-
+    void dump(std::string &desc, int depth) const
+    {
+        std::string split(depth, '\t');
+        desc += split + "RSImage:{";
+        desc += split + "\timageFit_: " + std::to_string(static_cast<int>(imageFit_)) + "\n";
+        desc += split + "\timageRepeat_: " + std::to_string(static_cast<int>(imageRepeat_)) + "\n";
+        int radiusSize = 4;
+        for (int i = 0; i < radiusSize; i++) {
+            radius_[i].dump(desc, depth + 1);
+        }
+        desc += split + frameRect_.ToString();
+        desc += split + "\tscale_: " + std::to_string(scale_) + "\n";
+        desc += split + "}\n";
+    }
 private:
     void ApplyImageFit();
     void ApplyCanvasClip(SkCanvas& canvas);

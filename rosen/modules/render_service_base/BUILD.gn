@@ -186,6 +186,13 @@ ohos_source_set("render_service_base_src") {
     sources -= [ "src/common/rs_shared_context.cpp" ]
   }
 
+  if (current_os == "ohos") {
+    sources += [
+      "src/benchmarks/file_utils.cpp",
+      "src/benchmarks/rs_recording_thread.cpp",
+    ]
+  }
+
   include_dirs = [
     "$graphic_2d_root/frameworks/surface/include",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",

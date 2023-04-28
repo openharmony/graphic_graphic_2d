@@ -15,6 +15,8 @@
 
 #include "pipeline/rs_draw_cmd_list.h"
 
+#include <fstream>
+#include <string>
 #include <unordered_map>
 
 #include "rs_trace.h"
@@ -140,6 +142,44 @@ void DrawCmdList::Playback(RSPaintFilterCanvas& canvas, const SkRect* rect)
         }
         it->Draw(canvas, rect);
     }
+}
+
+std::string DrawCmdList::PlayBackForRecord(SkCanvas& canvas, int startOpId, int endOpId, int descStartOpId, const SkRect* rect)
+{
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    return PlayBackForRecord(filterCanvas, startOpId, endOpId, descStartOpId, rect);
+}
+
+std::string DrawCmdList::PlayBackForRecord(RSPaintFilterCanvas& canvas, int startOpId, int endOpId, int descStartOpId,
+    const SkRect* rect)
+{
+    std::string str;
+    if (width_ <= 0 || height_ <= 0) {
+        return str;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (int i = startOpId; i < endOpId; ++i) {
+        if (ops_[i] == nullptr) {
+            continue;
+        }
+        if (i < descStartOpId) {
+            ops_[i]->GetTypeWithDesc();
+        } else {
+            str += std::to_string(i) + ":";
+            str += ops_[i]->GetTypeWithDesc();
+        }
+        ops_[i]->Draw(canvas, rect);
+    }
+    return str;
+}
+
+std::string DrawCmdList::GetOpsWithDesc() const
+{
+    std::string desc;
+    for (const auto& item : ops_) {
+        desc += item->GetTypeWithDesc();
+    }
+    return desc + "\n";
 }
 
 size_t DrawCmdList::GetSize() const
