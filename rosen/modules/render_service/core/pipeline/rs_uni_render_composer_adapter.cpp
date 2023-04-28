@@ -30,6 +30,7 @@
 namespace OHOS {
 namespace Rosen {
 using namespace std;
+constexpr uint32_t FLAT_ANGLE = 180;
 bool RSUniRenderComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY,
     float mirrorAdaptiveCoefficient)
 {
@@ -229,17 +230,30 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
     GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(node.GetConsumer()->GetTransform());
     if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
         transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
-        boundsWidth = property.GetBoundsHeight();
-        boundsHeight = property.GetBoundsWidth();
+        std::swap(boundsWidth, boundsHeight);
     }
     if (bufferWidth != boundsWidth || bufferHeight != boundsHeight) {
         float xScale = (ROSEN_EQ(boundsWidth, 0.0f) ? 1.0f : bufferWidth / boundsWidth);
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight / boundsHeight);
-        info.srcRect.x = info.srcRect.x * xScale;
-        info.srcRect.y = info.srcRect.y * yScale;
-        info.srcRect.w = info.srcRect.w * xScale;
-        info.srcRect.h = info.srcRect.h * yScale;
+
+        // If the scaling mode is SCALING_MODE_SCALE_TO_WINDOW, the scale should use smaller one.
+        ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+        if (node.GetConsumer()->GetScalingMode(info.buffer->GetSeqNum(), scalingMode) == GSERROR_OK &&
+            scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+            float scale = std::min(xScale, yScale);
+            info.srcRect.x = info.srcRect.x * scale;
+            info.srcRect.y = info.srcRect.y * scale;
+            info.srcRect.w = (bufferWidth / scale - (boundsWidth - info.srcRect.w)) * scale;
+            info.srcRect.h = (bufferHeight / scale - (boundsHeight - info.srcRect.h)) * scale;
+        } else {
+            info.srcRect.x = info.srcRect.x * xScale;
+            info.srcRect.y = info.srcRect.y * yScale;
+            info.srcRect.w = info.srcRect.w * xScale;
+            info.srcRect.h = info.srcRect.h * yScale;
+        }
     }
+    RS_LOGD("RsDebug RSUniRenderComposerAdapter::GetComposerInfoSrcRect surfaceNode id:%" PRIu64 ","\
+            "srcRect [%d %d %d %d]", node.GetId(), info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h);
 }
 
 bool RSUniRenderComposerAdapter::GetComposerInfoNeedClient(const ComposeInfo &info, RSRenderNode& node) const
@@ -326,27 +340,28 @@ RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(RSSurfaceRenderNode& no
     int width = srcRect.GetWidth();
     int height = srcRect.GetHeight();
     GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(node.GetConsumer()->GetTransform());
+    int boundsWidth = static_cast<int>(node.GetRenderProperties().GetBoundsWidth());
+    int boundsHeight = static_cast<int>(node.GetRenderProperties().GetBoundsHeight());
+    // Left > 0 means move xComponent to the left outside of the screen
     switch (transformType) {
         case GraphicTransformType::GRAPHIC_ROTATE_270: {
-            if (left > 0) {
-                left = 0;
-            } else if (width != static_cast<int>(node.GetRenderProperties().GetBoundsWidth())) {
-                top = static_cast<int>(node.GetRenderProperties().GetBoundsWidth()) - width;
-            }
+            top = boundsWidth - width - left > 0 ? boundsWidth - width - left : 0;
+            left = 0;
             srcRect = RectI {left, top, height, width};
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_180: {
-            left = left > 0 ? 0 : static_cast<int>(node.GetRenderProperties().GetBoundsWidth()) - width;
-            top = static_cast<int>(node.GetRenderProperties().GetBoundsHeight()) - height;
+            left = left > 0 ? 0 :
+                boundsWidth - width > 0 ? boundsWidth - width : 0;
+            top = boundsHeight - height > 0 ? boundsHeight - height : 0;
             srcRect = RectI {left, top, width, height};
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_90: {
             if (left > 0) {
-                top = static_cast<int>(node.GetRenderProperties().GetBoundsWidth()) - width;
+                top = boundsWidth - width > 0 ? boundsWidth - width : 0;
             }
-            left = static_cast<int>(node.GetRenderProperties().GetBoundsHeight()) - height;
+            left = boundsHeight - height > 0 ? boundsHeight - height : 0;
             srcRect = RectI {left, top, height, width};
             break;
         }
@@ -459,7 +474,7 @@ void RSUniRenderComposerAdapter::LayerCrop(const LayerInfoPtr& layer) const
 }
 
 // private func, guarantee the layer is valid
-void RSUniRenderComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer)
+void RSUniRenderComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer, RSSurfaceRenderNode& node)
 {
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     const auto& buffer = layer->GetBuffer();
@@ -477,6 +492,14 @@ void RSUniRenderComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer)
         uint32_t newHeight = static_cast<uint32_t>(srcRect.h);
         uint32_t dstWidth = static_cast<uint32_t>(dstRect.w);
         uint32_t dstHeight = static_cast<uint32_t>(dstRect.h);
+
+        // If surfaceRotation is not a multiple of 180, need to change the correspondence between width & height.
+        // ScreenRotation has been processed in SetLayerSize, and do not change the width & height correspondence.
+        int surfaceRotation = RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix()) +
+            RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()));
+        if (surfaceRotation % FLAT_ANGLE != 0) {
+            std::swap(dstWidth, dstHeight);
+        }
 
         if (newWidth * dstHeight > newHeight * dstWidth) {
             // too wide
@@ -563,7 +586,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
     LayerRotate(layer, node);
     LayerCrop(layer);
-    LayerScaleDown(layer);
+    LayerScaleDown(layer, node);
     return layer;
 }
 
