@@ -1365,18 +1365,15 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->SetCacheType(geoPtr->IsNeedClientCompose() ? RSPaintFilterCanvas::CacheType::ENABLED
                                                                     : RSPaintFilterCanvas::CacheType::DISABLED);
             }
-            if (clipPath) {
-                canvas_->SetCacheType(RSPaintFilterCanvas::CacheType::ENABLED);
-            }
 
-            bool cacheEnabled = canvas_->GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED;
-            if (cacheEnabled) {
+            bool needOffscreen = clipPath || canvas_->GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED;
+            if (needOffscreen) {
                 ClearTransparentBeforeSaveLayer(); // clear transparent before concat display node's matrix
             }
             if (geoPtr != nullptr) {
                 canvas_->concat(geoPtr->GetMatrix());
             }
-            if (cacheEnabled) {
+            if (needOffscreen) {
                 // we are doing rotation animation, try offscreen render if capable
                 displayNodeMatrix_ = canvas_->getTotalMatrix();
                 PrepareOffscreenRender(node);
