@@ -1375,10 +1375,10 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
             if (geoPtr != nullptr) {
                 canvas_->concat(geoPtr->GetMatrix());
-                displayNodeMatrix_ = canvas_->getTotalMatrix();
             }
             if (cacheEnabled) {
                 // we are doing rotation animation, try offscreen render if capable
+                displayNodeMatrix_ = canvas_->getTotalMatrix();
                 PrepareOffscreenRender(node);
                 ProcessBaseRenderNode(node);
                 FinishOffscreenRender();
