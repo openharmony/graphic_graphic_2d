@@ -140,6 +140,9 @@ group("utils") {
   } else {
     public_deps = [ ":mock_utils" ]
   }
+  if (platform == "ios") {
+    public_configs = [ ":ios_utils_config" ]
+  }
 }
 
 config("utils_config") {
