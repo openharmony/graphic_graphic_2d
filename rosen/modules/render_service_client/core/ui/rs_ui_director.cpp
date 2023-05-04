@@ -106,6 +106,14 @@ void RSUIDirector::GoBackground()
         if (auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_)) {
             node->SetEnableRender(false);
         }
+        // clean bufferQueue cache
+        auto surfaceNode = surfaceNode_.lock();
+        RSRenderThread::Instance().PostTask([surfaceNode]() {
+            if (surfaceNode != nullptr) {
+                std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
+                rsSurface->ClearBuffer();
+            }
+        });
 #ifdef ACE_ENABLE_GL
         RSRenderThread::Instance().PostTask([this]() {
             auto renderContext = RSRenderThread::Instance().GetRenderContext();

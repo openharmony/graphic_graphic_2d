@@ -161,6 +161,46 @@ void RSSurfaceRenderNode::CollectSurface(
     }
 }
 
+void RSSurfaceRenderNode::ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node)
+{
+    for (auto& child : node->GetSortedChildren()) {
+        auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (surfaceNode == nullptr) {
+            continue;
+        }
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
+        auto& consumer = surfaceNode->GetConsumer();
+        if (consumer != nullptr) {
+            consumer->GoBackground();
+        }
+#endif
+    }
+}
+
+void RSSurfaceRenderNode::ResetParent()
+{
+    RSBaseRenderNode::ResetParent();
+
+    if (nodeType_ == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+        ClearChildrenCache(shared_from_this());
+    } else {
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
+        auto& consumer = GetConsumer();
+        if (consumer != nullptr &&
+            (GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE &&
+            GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE &&
+            GetSurfaceNodeType() != RSSurfaceNodeType::ABILITY_COMPONENT_NODE)) {
+            consumer->GoBackground();
+        }
+#endif
+    }
+}
+
+void RSSurfaceRenderNode::SetIsNotifyUIBufferAvailable(bool available)
+{
+    isNotifyUIBufferAvailable_.store(available);
+}
+
 void RSSurfaceRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {
@@ -187,11 +227,6 @@ void RSSurfaceRenderNode::SetContextBounds(const Vector4f bounds)
 std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNode::GetDirtyManager() const
 {
     return dirtyManager_;
-}
-
-void RSSurfaceRenderNode::SetIsNotifyUIBufferAvailable(bool available)
-{
-    isNotifyUIBufferAvailable_.store(available);
 }
 
 void RSSurfaceRenderNode::SetContextMatrix(const SkMatrix& matrix, bool sendMsg)
