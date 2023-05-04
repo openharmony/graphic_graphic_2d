@@ -17,6 +17,7 @@
 
 #include <malloc.h>
 #include <SkGraphics.h>
+#include "rs_trace.h"
 
 #include "SkiaMemoryTracer.h"
 #ifdef NEW_SKIA
@@ -71,6 +72,8 @@ void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, GrGpuResourceTag
     if(!grContext) {
         RS_LOGE("ReleaseGpuResByTag fail, grContext is nullptr");
     }
+    RS_TRACE_NAME_FMT("ReleaseAllGpuResource [Pid:%d Tid:%d Nid:%d Funcid:%d]",
+        tag.fPid, tag.fTid, tag.fWid, tag.fFid);
     grContext->releaseByTag(tag);
 #endif
 }
@@ -97,6 +100,8 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, GrGpuResource
     if(!grContext) {
         RS_LOGE("ReleaseGpuResByTag fail, grContext is nullptr");
     }
+    RS_TRACE_NAME_FMT("ReleaseUnlockGpuResource [Pid:%d Tid:%d Nid:%d Funcid:%d]",
+        tag.fPid, tag.fTid, tag.fWid, tag.fFid);
     grContext->purgeUnlockedResourcesByTag(false, tag);
 #endif
 }
