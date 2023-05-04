@@ -108,7 +108,7 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
         }
 
 #ifdef NEW_SKIA
-        if (!mappedClipRect.intersect(SkRect(), {x_, y_, x_ + width_, y_ + height_})) {
+        if (!mappedClipRect.intersect({x_, y_, x_ + width_, y_ + height_})) {
 #else
         if (!mappedClipRect.intersect(x_, y_, x_ + width_, y_ + height_)) {
 #endif

@@ -22,8 +22,8 @@
 #include "include/gpu/GrDirectContext.h"
 #else
 #include "include/gpu/GrContext.h"
-#endif
 #include "include/gpu/GrGpuResource.h"
+#endif
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 
@@ -1534,8 +1534,10 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
         rendercontext->CleanAllShaderCache();
     } else {
         uint32_t pid = std::stoll(type);
+#ifndef NEW_SKIA
         GrGpuResourceTag tag(pid, 0, 0, 0);
         MemoryManager::ReleaseAllGpuResource(grContext, tag);
+#endif
     }
     dumpString.append("trimMem: " + type + "\n");
 #else

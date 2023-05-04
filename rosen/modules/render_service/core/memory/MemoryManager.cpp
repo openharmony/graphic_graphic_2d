@@ -128,8 +128,10 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, pid_t pid)
 #endif
 {
 #ifdef RS_ENABLE_GL
+#ifdef NEW_SKIA
     GrGpuResourceTag tag(pid, 0, 0, 0);
     ReleaseUnlockGpuResource(grContext, tag); // clear gpu resource by pid
+#endif
 #endif
 }
 
