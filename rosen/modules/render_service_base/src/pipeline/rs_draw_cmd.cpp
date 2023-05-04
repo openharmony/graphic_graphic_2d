@@ -17,7 +17,11 @@
 #ifdef ROSEN_OHOS
 #include "buffer_utils.h"
 #endif
+#ifdef NEW_SKIA
+#include "include/gpu/GrDurectContext.h"
+#else
 #include "include/gpu/GrContext.h"
+#endif
 #include "message_parcel.h"
 #include "rs_trace.h"
 #include "securec.h"
@@ -852,10 +856,13 @@ void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 
     GrBackendTexture backendTexture(
         surfaceBufferInfo_.width_, surfaceBufferInfo_.height_, GrMipMapped::kNo, textureInfo);
-
+#ifdef NEW_SKIA
+    auto skImage = SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
+		            kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
+#else
     auto skImage = SkImage::MakeFromTexture(canvas.getGrContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
         kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
-
+#endif
     canvas.drawImage(skImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_);
 #endif // RS_ENABLE_GL
 }
