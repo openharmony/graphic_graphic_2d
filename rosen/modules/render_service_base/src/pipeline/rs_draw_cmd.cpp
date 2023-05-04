@@ -18,7 +18,7 @@
 #include "buffer_utils.h"
 #endif
 #ifdef NEW_SKIA
-#include "include/gpu/GrDurectContext.h"
+#include "include/gpu/GrDirectContext.h"
 #else
 #include "include/gpu/GrContext.h"
 #endif
