@@ -25,9 +25,6 @@ namespace Drawing {
 ImageFilter::ImageFilter(FilterType t, scalar x, scalar y, std::shared_ptr<ImageFilter> input) noexcept : ImageFilter()
 {
     type_ = t;
-    if (impl_ == nullptr) {
-        return;
-    }
     impl_->InitWithOffset(x, y, input);
 }
 
@@ -35,9 +32,6 @@ ImageFilter::ImageFilter(FilterType t, scalar x, scalar y, TileMode mode, std::s
     : ImageFilter()
 {
     type_ = t;
-    if (impl_ == nullptr) {
-        return;
-    }
     impl_->InitWithBlur(x, y, mode, input);
 }
 
@@ -45,9 +39,6 @@ ImageFilter::ImageFilter(FilterType t, const ColorFilter& cf, std::shared_ptr<Im
     : ImageFilter()
 {
     type_ = t;
-    if (impl_ == nullptr) {
-        return;
-    }
     impl_->InitWithColor(cf, input);
 }
 
@@ -56,9 +47,6 @@ ImageFilter::ImageFilter(FilterType t, const std::vector<scalar>& coefficients, 
     :ImageFilter()
 {
     type_ = t;
-    if (impl_ == nullptr) {
-        return;
-    }
     impl_->InitWithArithmetic(coefficients, enforcePMColor, background, foreground);
 }
 
@@ -66,9 +54,6 @@ ImageFilter::ImageFilter(FilterType t, std::shared_ptr<ImageFilter> f1, std::sha
     : ImageFilter()
 {
     type_ = t;
-    if (impl_ == nullptr) {
-        return;
-    }
     impl_->InitWithCompose(f1, f2);
 }
 
