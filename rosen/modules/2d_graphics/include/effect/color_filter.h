@@ -50,9 +50,14 @@ public:
      */
     static std::shared_ptr<ColorFilter> CreateLumaColorFilter();
 
-    ~ColorFilter() {}
+    virtual ~ColorFilter() = default;
     FilterType GetType() const;
-    void Compose(ColorFilter& filter);
+
+    /*
+     * @brief         Combine with another ColorFilter, and set it to itself.
+     * @param filter  Another ColorFilter to Combine.
+     */
+    virtual void Compose(const ColorFilter& filter);
     template<typename T>
     const std::shared_ptr<T> GetImpl() const
     {

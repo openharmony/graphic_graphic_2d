@@ -83,7 +83,7 @@ ColorFilter::FilterType ColorFilter::GetType() const
     return type_;
 }
 
-void ColorFilter::Compose(ColorFilter& filter)
+void ColorFilter::Compose(const ColorFilter& filter)
 {
 
     if (impl_ == nullptr) {
