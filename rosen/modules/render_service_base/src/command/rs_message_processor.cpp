@@ -27,7 +27,11 @@ RSMessageProcessor& RSMessageProcessor::Instance()
     return processor;
 }
 
-RSMessageProcessor::~RSMessageProcessor() {}
+RSMessageProcessor::~RSMessageProcessor()
+{
+    std::unique_lock<std::mutex> lock(transactionMapMutex_);
+    transactionMap_.clear();
+}
 
 void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>& command)
 {
