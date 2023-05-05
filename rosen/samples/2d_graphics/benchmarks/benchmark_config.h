@@ -25,6 +25,7 @@ enum class BenchMarkName {
     SINGLETHREAD = 0,
     MULTITHREAD,
     API,
+    DCL,
     LASTNAME,
 };
 

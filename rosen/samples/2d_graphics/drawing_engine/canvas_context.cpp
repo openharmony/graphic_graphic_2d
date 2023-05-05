@@ -15,9 +15,12 @@
 
 #include "canvas_context.h"
 
+#include <iostream>
+
 #include "drawing_utils.h"
 #include "software_render_backend.h"
 #include "gles_render_backend.h"
+#include "vulkan_render_backend.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -25,13 +28,21 @@ CanvasContext* CanvasContext::Create()
 {
     auto type = Setting::GetRenderBackendType();
     switch (type) {
+        case RenderBackendType::VULKAN:
+#ifdef ACE_ENABLE_VK
+            LOGI("CanvasContext::Create with vulkan backend");
+            std::cout << "CanvasContext::Create with vulkan backend" << std::endl;
+            return new CanvasContext(std::make_unique<VulkanRenderBackend>());
+#endif
         case RenderBackendType::GLES:
 #ifdef ACE_ENABLE_GL
             LOGI("CanvasContext::Create with gles backend");
+            std::cout << "CanvasContext::Create with gles backend" << std::endl;
             return new CanvasContext(std::make_unique<GLESRenderBackend>());
 #endif
         case RenderBackendType::SOFTWARE:
             LOGE("CanvasContext::Create with software backend");
+            std::cout << "CanvasContext::Create with software backend" << std::endl;
             return new CanvasContext(std::make_unique<SoftwareRenderBackend>());
         default:
             return nullptr;

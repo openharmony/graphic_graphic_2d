@@ -111,8 +111,10 @@ void DrawingEngineSample::OnPrepareCompleted(
 
 void DrawingEngineSample::InitContext()
 {
+    std::cout << "DrawingEngineSample::InitContext+" << std::endl;
     drawingProxy = new DrawingProxy();
     drawingProxy->InitDrawContext();
+    std::cout << "DrawingEngineSample::InitContext-" << std::endl;
 }
 
 void DrawingEngineSample::Init()
@@ -183,10 +185,16 @@ void DrawingEngineSample::ExcuteBenchMark(SkCanvas* canvas)
 SurfaceError DrawingEngineSample::DoDraw()
 {
     LOGI("DrawingEngineSample::DoDraw+");
-
+#ifdef ACE_ENABLE_VK
+    if (!surface_) {
+        surface_ = OHOS::Rosen::SurfaceOhos::CreateSurface(drawingPSurface);
+        surface_->SetDrawingProxy(drawingProxy);
+    }
+    std::shared_ptr<SurfaceBase> surface = surface_;
+#else
     std::shared_ptr<SurfaceBase> surface = OHOS::Rosen::SurfaceOhos::CreateSurface(drawingPSurface);
     surface->SetDrawingProxy(drawingProxy);
-
+#endif
     auto surfaceFrame = surface->RequestFrame(drawingWidth, drawingHeight);
     if (surfaceFrame == nullptr) {
         std::cout << "Request Frame Failed" << std::endl;
