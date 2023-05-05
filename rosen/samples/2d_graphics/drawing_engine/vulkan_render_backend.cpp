@@ -21,39 +21,6 @@
 
 namespace OHOS {
 namespace Rosen {
-VulkanRenderBackend::VulkanRenderBackend() noexcept
-{
-}
-
-VulkanRenderBackend::~VulkanRenderBackend()
-{
-}
-
-void VulkanRenderBackend::InitDrawContext()
-{
-}
-
-bool VulkanRenderBackend::SetUpGrContext()
-{
-    return true;
-}
-
-void VulkanRenderBackend::MakeCurrent()
-{
-}
-
-void VulkanRenderBackend::SwapBuffers()
-{
-}
-
-void* VulkanRenderBackend::CreateSurface(void* window)
-{
-    return nullptr;
-}
-
-void VulkanRenderBackend::SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height)
-{
-}
 
 void VulkanRenderBackend::Destroy()
 {

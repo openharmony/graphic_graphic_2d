@@ -34,6 +34,7 @@ SurfaceOhosVulkan::~SurfaceOhosVulkan()
     frame_ = nullptr;
     if (mNativeWindow_ != nullptr) {
         DestoryNativeWindow(mNativeWindow_);
+        mNativeWindow_ = nullptr;
     }
     if (mVulkanWindow_ != nullptr) {
         delete mVulkanWindow_;

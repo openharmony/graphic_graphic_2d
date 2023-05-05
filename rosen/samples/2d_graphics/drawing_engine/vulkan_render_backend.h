@@ -33,13 +33,13 @@ namespace OHOS {
 namespace Rosen {
 class VulkanRenderBackend : public IRenderBackend {
 public:
-    VulkanRenderBackend() noexcept;
-    ~VulkanRenderBackend() override;
-    void InitDrawContext() override;
-    void MakeCurrent() override;
-    void SwapBuffers() override;
-    void* CreateSurface(void* window) override;
-    void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override;
+    VulkanRenderBackend() noexcept = default;
+    ~VulkanRenderBackend() override = default;
+    void InitDrawContext() override {}
+    void MakeCurrent() override {}
+    void SwapBuffers() override {}
+    void* CreateSurface(void* window) override {return nullptr}
+    void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override {}
 #if defined(USE_CANVASKIT0310_SKIA)
     GrDirectContext* GetGrContext() const
     {
@@ -51,7 +51,7 @@ public:
         return grContext_.get();
     }
 #endif
-    bool SetUpGrContext();
+    bool SetUpGrContext() {return true;}
     void Destroy() override;
     void RenderFrame() override;
     SkCanvas* AcquireCanvas(std::unique_ptr<SurfaceFrame>& frame) override;
