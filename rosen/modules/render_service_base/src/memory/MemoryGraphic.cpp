@@ -37,6 +37,11 @@ float MemoryGraphic::GetGpuMemorySize() const
     return gpuMemSize_;
 }
 
+float MemoryGraphic::GetTotalMemorySize() const
+{
+    return gpuMemSize_ + cpuMemSize_;
+}
+
 void MemoryGraphic::SetPid(int32_t pid)
 {
     pid_ = pid;

@@ -39,6 +39,7 @@ public:
     int32_t GetPid() const;
     float GetGpuMemorySize() const; // Memory of gpu = SkiaGpu
     float GetCpuMemorySize() const; // Memory of cpu = RSCpu + SkiaCpu
+    float GetTotalMemorySize() const;
 
     void SetPid(int32_t pid);
     void SetGpuMemorySize(float glSize);

@@ -92,26 +92,6 @@ void MemoryTrack::RemoveNodeRecord(const NodeId id)
     RemoveNodeOfPidFromMap(pid, size, id);
 }
 
-void MemoryTrack::DumpMemoryStatistics(DfxString& log, const pid_t pid)
-{
-    auto itr = memNodeOfPidMap_.find(pid);
-    if (itr == memNodeOfPidMap_.end()) {
-        return;
-    }
-    auto nodeInfoOfPid = memNodeOfPidMap_[pid];
-    if (nodeInfoOfPid.empty()) {
-        memNodeOfPidMap_.erase(pid);
-    } else {
-        size_t totalCount = 0;
-        int totalMemSize = 0;
-        std::for_each(nodeInfoOfPid.begin(), nodeInfoOfPid.end(), [&totalCount, &totalMemSize](MemoryNodeOfPid& info) {
-            totalCount++;
-            totalMemSize += info.GetMemSize();
-        });
-        log.AppendFormat("Total Node Memory = %d KB (%d entries)\n", totalMemSize / BYTE_CONVERT, totalCount);
-    }
-}
-
 MemoryGraphic MemoryTrack::CountRSMemory(const pid_t pid)
 {
     MemoryGraphic memoryGraphic;

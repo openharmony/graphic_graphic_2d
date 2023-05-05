@@ -59,7 +59,6 @@ public:
     void AddNodeRecord(const NodeId id, const MemoryInfo& info);
     void RemoveNodeRecord(const NodeId id);
     void DumpMemoryStatistics(DfxString& log, std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func);
-    void DumpMemoryStatistics(DfxString& log, const pid_t pid);
     void AddPictureRecord(const void* addr, MemoryInfo info);
     void RemovePictureRecord(const void* addr);
 

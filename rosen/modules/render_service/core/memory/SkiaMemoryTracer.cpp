@@ -142,8 +142,9 @@ void SkiaMemoryTracer::LogOutput(DfxString& log)
     }
 }
 
-float SkiaMemoryTracer::GetGLMemorySize() const
+float SkiaMemoryTracer::GetGLMemorySize()
 {
+    ProcessElement();
     return totalSize_.value;
 }
 

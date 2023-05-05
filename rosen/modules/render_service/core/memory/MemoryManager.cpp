@@ -20,6 +20,7 @@
 #include "rs_trace.h"
 
 #include "SkiaMemoryTracer.h"
+#include "memory/MemoryGraphic.h"
 #ifdef NEW_SKIA
 #include "include/gpu/GrDirectContext.h"
 #include "src/gpu/GrDirectContextPriv.h"
@@ -150,9 +151,17 @@ void MemoryManager::ReleaseUnlockLauncherGpuResource(GrContext* grContext,
 #endif
 }
 
-void MemoryManager::DumpPidMemory(DfxString& log, int pid)
+#ifdef NEW_SKIA
+void MemoryManager::DumpPidMemory(DfxString& log, int pid, const GrDirectContext* grContext)
+#else
+void MemoryManager::DumpPidMemory(DfxString& log, int pid, const GrContext* grContext)
+#endif
 {
-    MemoryTrack::Instance().DumpMemoryStatistics(log, pid);
+    //MemoryTrack::Instance().DumpMemoryStatistics(log, pid);
+    MemoryGraphic mem = CountPidMemory(pid, grContext);
+    log.AppendFormat("GPU Mem(MB):%f\n", mem.GetGpuMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
+    log.AppendFormat("CPU Mem(KB):%f\n", mem.GetCpuMemorySize() / MEMUNIT_RATE);
+    log.AppendFormat("Total Mem(MB):%f\n", mem.GetTotalMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
 }
 
 #ifdef NEW_SKIA
@@ -323,14 +332,6 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const GrContext* grCont
     // Get memory of window by tag
     DumpAllGpuInfo(log, grContext);
 
-    // get memory of rs
-#ifndef NEW_SKIA
-    for (uint32_t tagtype = RSTagTracker::TAG_DRAW_SURFACENODE; tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
-        GrGpuResourceTag tag(0, 0, 0, tagtype);
-        std::string tagType = RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype));
-        DumpGpuCache(log, grContext, &tag, tagType);
-    }
-#endif
     // cache limit
     size_t cacheLimit = 0;
     size_t cacheUsed = 0;

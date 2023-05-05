@@ -32,7 +32,7 @@ class MemoryManager {
 public:
 #if defined(NEW_SKIA)
     static void DumpMemoryUsage(DfxString& log, const GrDirectContext* grContext, std::string& type);
-    static void DumpPidMemory(DfxString& log, int pid);
+    static void DumpPidMemory(DfxString& log, int pid, const GrDirectContext* grContext);
     // Count memory for hidumper
     static MemoryGraphic CountPidMemory(int pid, const GrDirectContext* grContext);
     static void CountMemory(std::vector<pid_t> pids, const GrDirectContext* grContext,
@@ -44,7 +44,7 @@ public:
         NodeId entryViewNodeId, NodeId wallpaperViewNodeId);
 #else
     static void DumpMemoryUsage(DfxString& log, const GrContext* grContext, std::string& type);
-    static void DumpPidMemory(DfxString& log, int pid);
+    static void DumpPidMemory(DfxString& log, int pid, const GrContext* grContext);
     // Count memory for hidumper
     static MemoryGraphic CountPidMemory(int pid, const GrContext* grContext);
     static void CountMemory(std::vector<pid_t> pids, const GrContext* grContext, std::vector<MemoryGraphic>& mems);
