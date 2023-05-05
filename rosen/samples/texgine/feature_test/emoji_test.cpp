@@ -147,6 +147,218 @@ struct Emoji {
         .emoji = BOY,
         .title = "boy",
     },
+    {
+        .emoji_ = POST_BOX,
+        .title_ = "postbox",
+    },
+    {
+        .emoji_ = GRINNING_FACE,
+        .title_ = "grinning face",
+    },
+    {
+        .emoji_ = ROCKET,
+        .title_ = "rocket",
+    },
+    {
+        .emoji_ = CLOUD_WITH_RAIN,
+        .title_ = "cloud with rain",
+    },
+    {
+        .emoji_ = TORNADO,
+        .title_ = "tornado",
+    },
+    {
+        .emoji_ = FOG,
+        .title_ = "fog",
+    },
+    {
+        .emoji_ = PERSON_GOLFING,
+        .title_ = "person golfing",
+    },
+    {
+        .emoji_ = MOTORCYCLE,
+        .title_ = "motorcycle",
+    },
+    {
+        .emoji_ = CANDLE,
+        .title_ = "candle",
+    },
+    {
+        .emoji_ = SPIDER,
+        .title_ = "spider",
+    },
+    {
+        .emoji_ = BED,
+        .title_ = "bed",
+    },
+    {
+        .emoji_ = WORLD_MAP,
+        .title_ = "world map",
+    },
+    {
+        .emoji_ = SPEAKING_HEAD,
+        .title_ = "speaking head",
+    },
+    {
+        .emoji_ = SHARP,
+        .title_ = "sharp",
+    },
+    {
+        .emoji_ = ASTERISK,
+        .title_ = "asterisk",
+    },
+    {
+        .emoji_ = ZERO,
+        .title_ = "zero",
+    },
+    {
+        .emoji_ = ONE,
+        .title_ = "one",
+    },
+    {
+        .emoji_ = TWO,
+        .title_ = "two",
+    },
+    {
+        .emoji_ = THREE,
+        .title_ = "three",
+    },
+    {
+        .emoji_ = FOUR,
+        .title_ = "four",
+    },
+    {
+        .emoji_ = FIVE,
+        .title_ = "five",
+    },
+    {
+        .emoji_ = SIX,
+        .title_ = "six",
+    },
+    {
+        .emoji_ = SEVEN,
+        .title_ = "seven"
+    },
+    {
+        .emoji_ = CHINA,
+        .title_ = "China",
+    },
+    {
+        .emoji_ = AUSTRALIA,
+        .title_ = "Australia",
+    },
+    {
+        .emoji_ = CANADA,
+        .title_ = "Canada",
+    },
+    {
+        .emoji_ = FRANCE,
+        .title_ = "France",
+    },
+    {
+        .emoji_ = IRELAND,
+        .title_ = "Ireland",
+    },
+    {
+        .emoji_ = INDIA,
+        .title_ = "India",
+    },
+    {
+        .emoji_ = ICELAND,
+        .title_ = "Iceland",
+    },
+    {
+        .emoji_ = ITALY,
+        .title_ = "Italy",
+    },
+    {
+        .emoji_ = JAPAN,
+        .title_ = "Japan",
+    },
+    {
+        .emoji_ = RUSSIA,
+        .title_ = "Russia",
+    },
+    {
+        .emoji_ = BOY0,
+        .title_ = "boy ligth",
+    },
+    {
+        .emoji_ = BOY1,
+        .title_ = "boy medium light",
+    },
+    {
+        .emoji_ = BOY2,
+        .title_ = "boy medium skin",
+    },
+    {
+        .emoji_ = BOY3,
+        .title_ = "boy medium dark",
+    },
+    {
+        .emoji_ = BOY4,
+        .title_ = "boy dark",
+    },
+    {
+        .emoji_ = GIRL0,
+        .title_ = "girl ligth",
+    },
+    {
+        .emoji_ = GIRL1,
+        .title_ = "girl medium light",
+    },
+    {
+        .emoji_ = GIRL2,
+        .title_ = "girl medium skin",
+    },
+    {
+        .emoji_ = GIRL3,
+        .title_ = "girl medium dark",
+    },
+    {
+        .emoji_ = GIRL4,
+        .title_ = "girl dark",
+    },
+    {
+        .emoji_ = FAMILY1,
+        .title_ = "family 1",
+    },
+    {
+        .emoji_ = FAMILY2,
+        .title_ = "family 2",
+    },
+    {
+        .emoji_ = ROLE1,
+        .title_ = "role 1",
+    },
+    {
+        .emoji_ = ROLE2,
+        .title_ = "role 2",
+    },
+    {
+        .emoji_ = GENERED1,
+        .title_ = "genered 1",
+    },
+    {
+        .emoji_ = GENERED2,
+        .title_ = "genered 2",
+    },
+    {
+        .emoji_ = HAIR1,
+        .title_ = "hair 1",
+    },
+    {
+        .emoji_ = HAIR2,
+        .title_ = "hair 2",
+    },
+    {
+        .emoji_ = OTHER1,
+        .title_ = "other 1",
+    },
+    {
+        .emoji_ = OTHER2,
+        .title_ = "other 2",
+    }
 };
 
 class EmojiTest : public TestFeature {
