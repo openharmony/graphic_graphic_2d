@@ -22,15 +22,12 @@
 #include "include/core/SkSurface.h"
 #include "include/gpu/GrBackendSurface.h"
 #include "include/gpu/GrContextOptions.h"
-
 #if defined(USE_CANVASKIT0310_SKIA)
 #include "include/gpu/GrDirectContext.h"
 #else
 #include "include/gpu/GrContext.h"
 #endif
-
 #include "interface_render_backend.h"
-
 
 namespace OHOS {
 namespace Rosen {

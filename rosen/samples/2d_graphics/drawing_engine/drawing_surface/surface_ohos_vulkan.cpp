@@ -33,7 +33,7 @@ SurfaceOhosVulkan::~SurfaceOhosVulkan()
 {
     frame_ = nullptr;
     if (mNativeWindow_ != nullptr) {
-        delete mNativeWindow_;
+        DestoryNativeWindow(mNativeWindow_);
     }
     if (mVulkanWindow_ != nullptr) {
         delete mVulkanWindow_;
@@ -44,10 +44,10 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::RequestFrame(int32_t width, int
 {
     if (mNativeWindow_ == nullptr) {
         mNativeWindow_ = CreateNativeWindowBufferFromSurface(&producer_);
-    }
-    if (mNativeWindow_ == nullptr) {
-        LOGE("SurfaceOhosVulkan nativewindow is null");
-        return nullptr;
+        if (mNativeWindow_ == nullptr) {
+            LOGE("SurfaceOhosVulkan nativewindow is null");
+            return nullptr;
+        }
     }
 
     if (mVulkanWIndow_ == nullptr) {
@@ -55,7 +55,7 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::RequestFrame(int32_t width, int
         mVulkanWIndow_ = new vulkan::VulkanWindow(std::move(vulkan_surface_ohos));
     }
 
-    sk_sp<SkSurface> skSurface = mVulkanWIndow_ -> AcquireSurface();
+    sk_sp<SkSurface> skSurface = mVulkanWIndow_->AcquireSurface();
 
     frame_ = std::make_unique<SurfaceFrameOhosVulkan>(skSurface, width, height);
     frame_->SetColorSpace(ColorGamut::COLOR_GAMUT_SRGB);
@@ -69,6 +69,10 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::RequestFrame(int32_t width, int
 
 bool SurfaceOhosVulkan::FlushFrame(std::unique_ptr<SurfaceFrame>& frame)
 {
+    if (drawingProxy_ == nullptr) {
+        LOGE("drawingProxy_ is nullptr, can not FlushFrame");
+        return false;
+    }
     // gpu render flush
     drawingProxy_->RenderFrame();
     if (mVulkanWIndow_ != nullptr) {
@@ -81,6 +85,10 @@ bool SurfaceOhosVulkan::FlushFrame(std::unique_ptr<SurfaceFrame>& frame)
 
 SkCanvas* SurfaceOhosVulkan::GetCanvas(std::unique_ptr<SurfaceFrame>& frame)
 {
+    if (drawingProxy_ == nullptr) {
+        LOGE("drawingProxy_ is nullptr, can not GetCanvas");
+        return nullptr;
+    }
     return drawingProxy_->AcquireCanvas(frame);
 }
 } // namespace Rosen

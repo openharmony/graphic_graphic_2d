@@ -16,13 +16,13 @@
 #ifndef SURFACE_FRAME_OHOS_VULKAN_H
 #define SURFACE_FRAME_OHOS_VULKAN_H
 
+#include "include/core/SkCanvas.h"
+#include "include/core/SkSurface.h"
 #include <display_type.h>
 #include <surface.h>
 #include "surface_type.h"
 #include "surface_frame.h"
 #include "surface_frame_ohos.h"
-#include "include/core/SkCanvas.h"
-#include "include/core/SkSurface.h"
 
 namespace OHOS {
 namespace Rosen {

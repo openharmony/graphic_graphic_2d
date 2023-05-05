@@ -17,10 +17,8 @@
 #define SURFACE_OHOS_VULKAN_H
 
 #include <vulkan_window.h>
-
 #include "surface.h"
 #include "window.h"
-
 #include "surface_ohos.h"
 #include "surface_frame_ohos_vulkan.h"
 

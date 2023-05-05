@@ -74,6 +74,10 @@ bool SurfaceOhosRaster::FlushFrame(std::unique_ptr<SurfaceFrame>& frame)
 
 SkCanvas* SurfaceOhosRaster::GetCanvas(std::unique_ptr<SurfaceFrame>& frame)
 {
+    if (drawingProxy_ == nullptr) {
+        LOGE("drawingProxy_ is nullptr, can not GetCanvas");
+        return nullptr;
+    }
     return drawingProxy_->AcquireCanvas(frame);
 }
 } // namespace Rosen

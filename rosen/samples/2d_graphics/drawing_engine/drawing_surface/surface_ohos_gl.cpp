@@ -32,6 +32,10 @@ SurfaceOhosGl::~SurfaceOhosGl()
 
 std::unique_ptr<SurfaceFrame> SurfaceOhosGl::RequestFrame(int32_t width, int32_t height)
 {
+    if (drawingProxy_ == nullptr) {
+        LOGE("drawingProxy_ is nullptr, can not RequestFrame");
+        return nullptr;
+    }
     struct NativeWindow* nativeWindow = CreateNativeWindowFromSurface(&producer_);
     if (nativeWindow == nullptr) {
         return nullptr;
@@ -51,6 +55,10 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosGl::RequestFrame(int32_t width, int32_t
 
 bool SurfaceOhosGl::FlushFrame(std::unique_ptr<SurfaceFrame>& frame)
 {
+    if (drawingProxy_ == nullptr) {
+        LOGE("drawingProxy_ is nullptr, can not FlushFrame");
+        return false;
+    }
     // gpu render flush
     drawingProxy_->RenderFrame();
     drawingProxy_->SwapBuffers();
@@ -59,6 +67,10 @@ bool SurfaceOhosGl::FlushFrame(std::unique_ptr<SurfaceFrame>& frame)
 
 SkCanvas* SurfaceOhosGl::GetCanvas(std::unique_ptr<SurfaceFrame>& frame)
 {
+    if (drawingProxy_ == nullptr) {
+        LOGE("drawingProxy_ is nullptr, can not GetCanvas");
+        return nullptr;
+    }
     return drawingProxy_->AcquireCanvas(frame);
 }
 } // namespace Rosen

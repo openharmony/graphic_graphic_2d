@@ -63,10 +63,13 @@ void VulkanRenderBackend::Destroy()
 
 void VulkanRenderBackend::RenderFrame()
 {
+    if (skSurface == nullptr) {
+        LOGE("skSurface is nullptr, can not RenderFrame");
+        return;
+    }
     // flush commands
     if (skSurface_->getCanvas() != nullptr) {
         LOGD("RenderFrame: Canvas");
-        std::cout << "VulkanRenderBackend::RenderFrame flushing" << std::endl;
         skSurface_->getCanvas()->flush();
     } else {
         LOGW("canvas is nullptr!!!");

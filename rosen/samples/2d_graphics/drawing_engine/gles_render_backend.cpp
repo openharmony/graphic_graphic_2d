@@ -18,6 +18,7 @@
 #include "egl_manager.h"
 #include "drawing_utils.h"
 #include "surface_ohos_gl.h"
+#include "iostream"
 
 namespace OHOS {
 namespace Rosen {
@@ -125,6 +126,7 @@ void GLESRenderBackend::RenderFrame()
     // flush commands
     if (skSurface_->getCanvas() != nullptr) {
         LOGD("RenderFrame: Canvas");
+        std::cout << "GLESRenderBackend::RenderFrame flushing" << std::endl;
         skSurface_->getCanvas()->flush();
     } else {
         LOGW("canvas is nullptr!!!");

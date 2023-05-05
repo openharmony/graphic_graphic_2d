@@ -38,7 +38,7 @@ ColorGamut SurfaceFrameOhosVulkan::GetColorSpace() const
 
 SkCanvas* SurfaceFrameOhosVulkan::GetCanvas()
 {
-    return surface_ != nullptr > surface_->GetCanvas() : nullptr;
+    return surface_ != nullptr ? surface_->GetCanvas() : nullptr;
 }
 
 sk_sp<SkSurface> SurfaceFrameOhosVulkan::GetSurface()
