@@ -27,8 +27,13 @@
 #include <include/core/SkPoint3.h>
 #include <include/core/SkTypeface.h>
 
+#include <ui/rs_surface_node.h>
+
 class SkBitmap;
 class SkCanvas;
+class SkFont;
+class SkPaint;
+class PointerFilter;
 
 class SkiaFramework {
 public:
@@ -72,12 +77,12 @@ public:
     void DrawColorPicker(SkCanvas &canvas, SkBitmap &bitmap);
 
 private:
+    friend class PointerFilter;
     void UIThreadMain();
     void UpdateInvertMatrix();
-    void ProcessInput();
-    void ProcessSinglePointerEvent(int32_t id, const std::shared_ptr<OHOS::MMI::PointerEvent> pointerEvent);
-    void ProcessPointerAction(const int32_t &action);
-    void ProcessPointerEvents(std::vector<int32_t> &ids, const std::shared_ptr<OHOS::MMI::PointerEvent> pointerEvent);
+    void ProcessBitmap(SkBitmap &bitmap, const OHOS::sptr<OHOS::SurfaceBuffer> buffer);
+    void PrepareVsyncFunc();
+    void DrawPathAndString(SkCanvas &canvas, SkFont &font, SkPaint &paint1, SkPaint &paint2);
 
     DrawFunc onDraw_ = nullptr;
     ResizeFunc onResize_ = nullptr;

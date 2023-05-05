@@ -332,7 +332,6 @@ void SkiaFramework::PrepareVsyncFunc()
             return;
         }
         dirty_ = false;
-
         TRACE_SCOPE("OnVsync");
         auto &rsdata = *reinterpret_cast<struct RSData *>(data_);
         sptr<Surface> surface = rsdata.sNode->GetSurface();
@@ -361,7 +360,6 @@ void SkiaFramework::PrepareVsyncFunc()
         LOGI("buffer width:%{public}d, height:%{public}d", buffer->GetWidth(), buffer->GetHeight());
         SkBitmap bitmap;
         ProcessBitmap(bitmap, buffer);
-
         constexpr uint32_t stride = 4;
         uint32_t addrSize = buffer->GetWidth() * buffer->GetHeight() * stride;
         void* bitmapAddr = bitmap.getPixels();
@@ -566,4 +564,3 @@ void SkiaFramework::DrawAfter(SkCanvas &canvas)
 
     canvas.drawPath(path, paint);
 }
-
