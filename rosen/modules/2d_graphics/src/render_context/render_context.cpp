@@ -195,13 +195,13 @@ void RenderContext::InitializeEglContext()
 void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context)
 {
     if (surface == EGL_NO_SURFACE) {
-        if (!eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, context)) {
-            LOGE("Failed to make current on surface, error is %{public}x", eglGetError());
-        }
-    } else {
-        if (!eglMakeCurrent(eglDisplay_, surface, surface, eglContext_)) {
-            LOGE("Failed to make current on surface, error is %{public}x", eglGetError());
-        }
+        surface = pbufferSurface_;
+    }
+    if (context == EGL_NO_CONTEXT) {
+        context = eglContext_;
+    }
+    if (!eglMakeCurrent(eglDisplay_, surface, surface, context)) {
+        LOGE("Failed to make current on surface, error is %{public}x", eglGetError());
     }
     eglSurface_ = surface;
 }
