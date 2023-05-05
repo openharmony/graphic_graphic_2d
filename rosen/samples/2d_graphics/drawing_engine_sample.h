@@ -35,7 +35,7 @@ namespace Rosen {
 class DrawingEngineSample : public IBufferConsumerListenerClazz {
 public:
     DrawingEngineSample() = default;
-    virtual ~DrawingEngineSample() = default;
+    ~DrawingEngineSample();
     void Run();
     void SetBenchMark(OHOS::Rosen::BenchMark* benchMark);
 private:
@@ -64,9 +64,7 @@ private:
     std::unordered_map<uint64_t, sptr<SurfaceBuffer>> prevBufferMap_;
     std::unordered_map<uint64_t, sptr<SyncFence>> prevFenceMap_;
     OHOS::sptr<SurfaceBuffer> prevBuffer_;
-#ifdef ACE_ENABLE_VK
-    std::shared_ptr<SurfaceBase> surface_;
-#endif
+
     void Init();
     void InitContext();
     void OutPutDisplay();

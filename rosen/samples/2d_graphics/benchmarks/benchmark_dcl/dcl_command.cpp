@@ -27,17 +27,18 @@ DCLCommand::DCLCommand(int32_t argc, char* argv[])
 
 void DCLCommand::ParseCommand(std::vector<std::string> argv)
 {
-    const size_t twoParam_ = 2;
-    const size_t threeParam_ = 3;
+    const size_t twoParam = 2;
+    const size_t threeParam = 3;
     switch (argv.size()) {
-        case twoParam_:
+        case twoParam:
             std::cout << "iterate frame by default, beginFrame = " << beginFrame_ << ", endFrame = " <<
             endFrame_ << std::endl;
             break;
-        case threeParam_:
+        case threeParam:
             if (strcmp(argv.back().c_str(), "--help") != 0 || strcmp(argv.back().c_str(), "-h") != 0) {
                 std::cout << dclMsg_ << std::endl;
             }
+            break;
         default:
             for (size_t i = 2; i < argv.size(); ++i) {
                 std::string option = argv[i];
