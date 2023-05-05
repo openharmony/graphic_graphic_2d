@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,9 @@
 #include "draw/shadow.h"
 #include "effect/filter.h"
 #include "image/bitmap.h"
+#ifdef ACE_ENABLE_GPU
+#include "image/gpu_context.h"
+#endif
 #include "image/image.h"
 #include "image/picture.h"
 #include "text/text.h"
@@ -34,6 +37,7 @@
 #include "utils/point.h"
 #include "utils/point3.h"
 #include "utils/rect.h"
+#include "utils/region.h"
 #include "utils/round_rect.h"
 #include "utils/sampling_options.h"
 #include "utils/scalar.h"
@@ -57,6 +61,15 @@ public:
 
     virtual void Bind(const Bitmap& bitmap) = 0;
 
+    virtual Matrix GetTotalMatrix() const = 0;
+    virtual Rect GetLocalClipBounds() const = 0;
+    virtual RectI GetDeviceClipBounds() const = 0;
+#ifdef ACE_ENABLE_GPU
+    virtual std::shared_ptr<GPUContext> GetGPUContext() const = 0;
+#endif
+    virtual int GetWidth() const = 0;
+    virtual int GetHeight() const = 0;
+
     // shapes
     virtual void DrawPoint(const Point& point) = 0;
     virtual void DrawLine(const Point& startPt, const Point& endPt) = 0;
@@ -71,6 +84,7 @@ public:
     virtual void DrawBackground(const Brush& brush) = 0;
     virtual void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) = 0;
+    virtual void DrawRegion(const Region& region) = 0;
 
     // image
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) = 0;
@@ -82,9 +96,9 @@ public:
     virtual void DrawPicture(const Picture& picture) = 0;
 
     // clip
-    virtual void ClipRect(const Rect& rect, ClipOp op) = 0;
-    virtual void ClipRoundRect(const RoundRect& roundRect, ClipOp op) = 0;
-    virtual void ClipPath(const Path& path, ClipOp op, bool doAntiAlias) = 0;
+    virtual void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias = false) = 0;
+    virtual void ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias = false) = 0;
+    virtual void ClipPath(const Path& path, ClipOp op, bool doAntiAlias = false) = 0;
 
     // transform
     virtual void SetMatrix(const Matrix& matrix) = 0;
@@ -102,6 +116,7 @@ public:
     virtual void Save() = 0;
     virtual void SaveLayer(const Rect& rect, const Brush& brush) = 0;
     virtual void Restore() = 0;
+    virtual int  GetSaveCount() const = 0;
 
     // paint
     virtual void AttachPen(const Pen& pen) = 0;

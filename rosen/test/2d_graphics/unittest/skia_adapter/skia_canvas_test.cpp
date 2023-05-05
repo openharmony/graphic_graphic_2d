@@ -330,7 +330,7 @@ HWTEST_F(SkiaCanvasTest, ClipRoundRect001, TestSize.Level2)
 {
     RoundRect roundRect;
     SkiaCanvas skiaCanvas;
-    skiaCanvas.ClipRoundRect(roundRect, ClipOp::DIFFERENCE);
+    skiaCanvas.ClipRoundRect(roundRect, ClipOp::DIFFERENCE, false);
 }
 
 /**
@@ -345,7 +345,7 @@ HWTEST_F(SkiaCanvasTest, ClipPath001, TestSize.Level1)
     Pen pen;
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
-    skiaCanvas.ClipPath(path, ClipOp::DIFFERENCE);
+    skiaCanvas.ClipPath(path, ClipOp::DIFFERENCE, false);
 }
 
 /**
@@ -401,7 +401,6 @@ HWTEST_F(SkiaCanvasTest, ConcatMatrix001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, Rotate001, TestSize.Level2)
 {
     SkiaCanvas skiaCanvas;
-    skiaCanvas.Rotate(0.5f);
     skiaCanvas.Rotate(0.1f, 0.2f, 0.3f);
 }
 
