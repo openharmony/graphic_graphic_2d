@@ -184,7 +184,7 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
     LOGSCOPED(sl, LOG2EX_DEBUG(), ss.str());
 
     // process y < 0
-    if (height_ == 0 || y < 0) {
+    if (fabs(height_) < DBL_EPSILON || y < 0) {
         LOG2EX_DEBUG() << "special: y < 0";
         return {0, Affinity::NEXT};
     }
