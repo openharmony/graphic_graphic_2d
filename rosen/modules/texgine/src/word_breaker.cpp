@@ -72,6 +72,8 @@ std::vector<Boundary> WordBreaker::GetBoundary(const std::vector<uint16_t> &u16s
         beg = end;
     }
 
+    delete wbi;
+    wbi = nullptr;
     return boundaries;
 }
 } // namespace TextEngine

@@ -31,23 +31,23 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 struct MockVars {
-    std::shared_ptr<TexgineFontStyleSet> fontStyleSet_ = TexgineFontStyleSet::CreateEmpty();
-    std::shared_ptr<TexgineFontManager> fontMgr_ = std::make_shared<TexgineFontManager>();
-} sfpMockvars;
+    std::shared_ptr<TexgineFontStyleSet> fontStyleSet = TexgineFontStyleSet::CreateEmpty();
+    std::shared_ptr<TexgineFontManager> fontMgr = std::make_shared<TexgineFontManager>();
+} g_sfpMockvars;
 
 void InitSfpMockVars(MockVars vars)
 {
-    sfpMockvars = std::move(vars);
+    g_sfpMockvars = std::move(vars);
 }
 
 std::shared_ptr<TexgineFontManager> TexgineFontManager::RefDefault()
 {
-    return sfpMockvars.fontMgr_;
+    return g_sfpMockvars.fontMgr;
 }
 
 std::shared_ptr<TexgineFontStyleSet> TexgineFontManager::MatchFamily(const char familyName[])
 {
-    return sfpMockvars.fontStyleSet_;
+    return g_sfpMockvars.fontStyleSet;
 }
 
 class SystemFontProviderTest : public testing::Test {
@@ -74,7 +74,7 @@ HWTEST_F(SystemFontProviderTest, GetInstance, TestSize.Level1)
  */
 HWTEST_F(SystemFontProviderTest, MatchFamily1, TestSize.Level1)
 {
-    InitSfpMockVars({.fontMgr_ = nullptr});
+    InitSfpMockVars({.fontMgr = nullptr});
     auto fss = systemFontProvider->MatchFamily("");
     EXPECT_EQ(fss, nullptr);
 }
@@ -87,7 +87,7 @@ HWTEST_F(SystemFontProviderTest, MatchFamily1, TestSize.Level1)
  */
 HWTEST_F(SystemFontProviderTest, MatchFamily2, TestSize.Level1)
 {
-    InitSfpMockVars({.fontStyleSet_ = nullptr});
+    InitSfpMockVars({.fontStyleSet = nullptr});
     auto fss = systemFontProvider->MatchFamily("");
     EXPECT_EQ(fss->TryToTexgineFontStyleSet(), nullptr);
 }

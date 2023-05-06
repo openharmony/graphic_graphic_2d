@@ -27,47 +27,47 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 struct Mockvars {
-    double tsWidth_ = 0;
-    double tsHeight_ = 0;
-    int calledTimesPaint_ = 0;
-    int calledTimesPaintShadow_ = 0;
-    TexgineCanvas *catchedPaintCanvas_ = nullptr;
-    double catchedPaintOffsetX_ = 0;
-    double catchedPaintOffsetY_ = 0;
-    TexgineCanvas *catchedPaintShadowCanvas_ = nullptr;
-    double catchedPaintShadowOffsetX_ = 0;
-    double catchedPaintShadowOffsetY_ = 0;
-} variantMockvars;
+    double tsWidth = 0;
+    double tsHeight = 0;
+    int calledTimesPaint = 0;
+    int calledTimesPaintShadow = 0;
+    TexgineCanvas *catchedPaintCanvas = nullptr;
+    double catchedPaintOffsetX = 0;
+    double catchedPaintOffsetY = 0;
+    TexgineCanvas *catchedPaintShadowCanvas = nullptr;
+    double catchedPaintShadowOffsetX = 0;
+    double catchedPaintShadowOffsetY = 0;
+} g_variantMockvars;
 
 void InitMockvars(struct Mockvars &&vars)
 {
-    variantMockvars = std::move(vars);
+    g_variantMockvars = std::move(vars);
 }
 
 double TextSpan::GetWidth() const
 {
-    return variantMockvars.tsWidth_;
+    return g_variantMockvars.tsWidth;
 }
 
 double TextSpan::GetHeight() const
 {
-    return variantMockvars.tsHeight_;
+    return g_variantMockvars.tsHeight;
 }
 
 void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, const TextStyle &xs)
 {
-    variantMockvars.calledTimesPaint_++;
-    variantMockvars.catchedPaintCanvas_ = &canvas;
-    variantMockvars.catchedPaintOffsetX_ = offsetX;
-    variantMockvars.catchedPaintOffsetY_ = offsetY;
+    g_variantMockvars.calledTimesPaint++;
+    g_variantMockvars.catchedPaintCanvas = &canvas;
+    g_variantMockvars.catchedPaintOffsetX = offsetX;
+    g_variantMockvars.catchedPaintOffsetY = offsetY;
 }
 
 void TextSpan::PaintShadow(TexgineCanvas &canvas, double offsetX, double offsetY, const std::vector<TextShadow> &shadows)
 {
-    variantMockvars.calledTimesPaintShadow_++;
-    variantMockvars.catchedPaintShadowCanvas_ = &canvas;
-    variantMockvars.catchedPaintShadowOffsetX_ = offsetX;
-    variantMockvars.catchedPaintShadowOffsetY_ = offsetY;
+    g_variantMockvars.calledTimesPaintShadow++;
+    g_variantMockvars.catchedPaintShadowCanvas = &canvas;
+    g_variantMockvars.catchedPaintShadowOffsetX = offsetX;
+    g_variantMockvars.catchedPaintShadowOffsetY = offsetY;
 }
 
 class VariantSpanTest : public testing::Test {
@@ -121,7 +121,7 @@ HWTEST_F(VariantSpanTest, TryToTextAndAnySpan, TestSize.Level1)
  */
 HWTEST_F(VariantSpanTest, GetWidthAndHeight, TestSize.Level1)
 {
-    InitMockvars({.tsWidth_ = 8, .tsHeight_ = 4});
+    InitMockvars({.tsWidth = 8, .tsHeight = 4});
     EXPECT_CALL(*as, GetWidth).Times(1).WillOnce(testing::Return(2));
     EXPECT_CALL(*as, GetHeight).Times(1).WillOnce(testing::Return(1));
 
@@ -167,12 +167,12 @@ HWTEST_F(VariantSpanTest, PaintAndPaintShadow, TestSize.Level1)
     ASSERT_EXCEPTION(ExceptionType::Nullptr, span2.Paint(canvas, 0, 0));
     ASSERT_EXCEPTION(ExceptionType::Nullptr, span3.Paint(canvas, 0, 0));
     EXPECT_NO_THROW({
-        ASSERT_EQ(variantMockvars.calledTimesPaint_, 0);
+        ASSERT_EQ(g_variantMockvars.calledTimesPaint, 0);
         span4.Paint(canvas2, paintX1, paintY1);
-        ASSERT_EQ(variantMockvars.calledTimesPaint_, 1);
-        ASSERT_EQ(variantMockvars.catchedPaintCanvas_, &canvas2);
-        ASSERT_EQ(variantMockvars.catchedPaintOffsetX_, paintX1);
-        ASSERT_EQ(variantMockvars.catchedPaintOffsetY_, paintY1);
+        ASSERT_EQ(g_variantMockvars.calledTimesPaint, 1);
+        ASSERT_EQ(g_variantMockvars.catchedPaintCanvas, &canvas2);
+        ASSERT_EQ(g_variantMockvars.catchedPaintOffsetX, paintX1);
+        ASSERT_EQ(g_variantMockvars.catchedPaintOffsetY, paintY1);
     });
     EXPECT_NO_THROW({
         span5.Paint(canvas1, paintX2, paintY2);
@@ -186,12 +186,12 @@ HWTEST_F(VariantSpanTest, PaintAndPaintShadow, TestSize.Level1)
     ASSERT_EXCEPTION(ExceptionType::Nullptr, span2.PaintShadow(canvas, 0, 0));
     ASSERT_EXCEPTION(ExceptionType::Nullptr, span3.PaintShadow(canvas, 0, 0));
     EXPECT_NO_THROW({
-        ASSERT_EQ(variantMockvars.calledTimesPaintShadow_, 0);
+        ASSERT_EQ(g_variantMockvars.calledTimesPaintShadow, 0);
         span4.PaintShadow(canvas4, 32768, 65536);
-        ASSERT_EQ(variantMockvars.calledTimesPaintShadow_, 1);
-        ASSERT_EQ(variantMockvars.catchedPaintShadowCanvas_, &canvas4);
-        ASSERT_EQ(variantMockvars.catchedPaintShadowOffsetX_, 32768);
-        ASSERT_EQ(variantMockvars.catchedPaintShadowOffsetY_, 65536);
+        ASSERT_EQ(g_variantMockvars.calledTimesPaintShadow, 1);
+        ASSERT_EQ(g_variantMockvars.catchedPaintShadowCanvas, &canvas4);
+        ASSERT_EQ(g_variantMockvars.catchedPaintShadowOffsetX, 32768);
+        ASSERT_EQ(g_variantMockvars.catchedPaintShadowOffsetY, 65536);
     });
     EXPECT_NO_THROW({span5.PaintShadow(canvas3, 8192, 16384);});
 }

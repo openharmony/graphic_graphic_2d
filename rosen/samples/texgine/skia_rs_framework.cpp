@@ -50,12 +50,12 @@ using MMIPE = MMI::PointerEvent;
 #define TRACE_SCOPE(str) HitraceScoped trace(HITRACE_TAG_GRAPHIC_AGP, str)
 
 struct RSData {
-    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
-    std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
-    std::shared_ptr<RSSurfaceNode> snode_ = nullptr;
-    std::shared_ptr<RSDisplayNode> dnode_ = nullptr;
-    std::function<void(void)> onVsync_ = nullptr;
-    int64_t lastTime_ = 0;
+    std::shared_ptr<AppExecFwk::EventRunner> runner = nullptr;
+    std::shared_ptr<VSyncReceiver> receiver = nullptr;
+    std::shared_ptr<RSSurfaceNode> snode = nullptr;
+    std::shared_ptr<RSDisplayNode> dnode = nullptr;
+    std::function<void(void)> onVsync = nullptr;
+    int64_t lastTime = 0;
 
     void RequestVsync()
     {
@@ -64,11 +64,11 @@ struct RSData {
             TRACE_COUNT("RequestVsync", 0);
             (void) ts;
             (void) data;
-            if (this->onVsync_ != nullptr) {
-                this->onVsync_();
+            if (this->onVsync != nullptr) {
+                this->onVsync();
             }
         };
-        receiver_->RequestNextVSync({.callback_ = func});
+        receiver->RequestNextVSync({.callback_ = func});
     }
 };
 
@@ -81,9 +81,9 @@ SkiaFramework::SkiaFramework()
 SkiaFramework::~SkiaFramework()
 {
     auto &rsdata = *reinterpret_cast<struct RSData *>(data_);
-    rsdata.dnode_->RemoveChild(rsdata.snode_);
-    rsdata.snode_ = nullptr;
-    rsdata.dnode_ = nullptr;
+    rsdata.dnode->RemoveChild(rsdata.snode);
+    rsdata.snode = nullptr;
+    rsdata.dnode = nullptr;
 
     if (auto tp = RSTransactionProxy::GetInstance(); tp != nullptr) {
         tp->FlushImplicitTransaction();
@@ -146,12 +146,17 @@ void SkiaFramework::Run()
     TRACE_BEGIN("Run");
     auto &rsdata = *reinterpret_cast<struct RSData *>(data_);
     // vsync
-    rsdata.runner_ = AppExecFwk::EventRunner::Create(false);
-    auto handler = std::make_shared<AppExecFwk::EventHandler>(rsdata.runner_);
-    rsdata.receiver_ = RSInterfaces::GetInstance().CreateVSyncReceiver("vsync", handler);
-    rsdata.receiver_->Init();
+    rsdata.runner = AppExecFwk::EventRunner::Create(false);
+    auto handler = std::make_shared<AppExecFwk::EventHandler>(rsdata.runner);
+    rsdata.receiver = RSInterfaces::GetInstance().CreateVSyncReceiver("vsync", handler);
+    rsdata.receiver->Init();
 
     // input
+    ProcessInput();
+}
+
+void ProcessInput()
+{
     auto mmi = MMI::InputManager::GetInstance();
     if (mmi == nullptr) {
         return;
@@ -169,98 +174,14 @@ void SkiaFramework::Run()
             TRACE_BEGIN("HandleInputLocked");
             auto &rsdata = *reinterpret_cast<struct RSData *>(sf->data_);
             const auto &ids = pointerEvent->GetPointerIds();
-            const auto &time = pointerEvent->GetActionTime();
             const auto &action = pointerEvent->GetPointerAction();
-            MMI::PointerEvent::PointerItem firstPointer = {};
-            MMI::PointerEvent::PointerItem secondPointer = {};
 
             if (ids.size() == 1) {
-                pointerEvent->GetPointerItem(ids[0], firstPointer);
-                const auto &x = firstPointer.GetDisplayX();
-                const auto &y = firstPointer.GetDisplayY();
-
-                if (action == MMIPE::POINTER_ACTION_DOWN) {
-                    // 400 * 1000 is the discriminant time for consecutive clicks
-                    if (time - rsdata.lastTime_ <= 400 * 1000) {
-                        sf->right_ = false;
-                        sf->left_ = true;
-                    }
-
-                    if (!sf->right_ && !sf->left_) {
-                        sf->right_ = true;
-                    }
-                    rsdata.lastTime_ = pointerEvent->GetActionTime();
-                }
-
-                if (sf->left_ && action == MMIPE::POINTER_ACTION_DOWN) {
-                    sf->dirty_ = true;
-                    sf->clickx_ = x;
-                    sf->clicky_ = y;
-                }
-                if (sf->left_ && action == MMIPE::POINTER_ACTION_MOVE) {
-                    sf->dirty_ = true;
-                    sf->x_ = x;
-                    sf->y_ = y;
-                }
-                if (sf->left_ && action == MMIPE::POINTER_ACTION_UP) {
-                    sf->dirty_ = true;
-                    sf->left_ = false;
-                }
-
-                if (sf->right_ && action == MMIPE::POINTER_ACTION_DOWN) {
-                    sf->dirty_ = true;
-                    sf->downRX_ = x;
-                    sf->downRY_ = y;
-                }
-                if (sf->right_ && action == MMIPE::POINTER_ACTION_MOVE) {
-                    sf->dirty_ = true;
-                    sf->x_ = x;
-                    sf->y_ = y;
-
-                    sf->mat_ = SkMatrix::MakeTrans(-sf->diffx_, -sf->diffy_).preConcat(sf->mat_);
-                    sf->diffx_ = sf->x_ - sf->downRX_;
-                    sf->diffy_ = sf->y_ - sf->downRY_;
-                    sf->mat_ = SkMatrix::MakeTrans(sf->diffx_, sf->diffy_).preConcat(sf->mat_);
-                    sf->UpdateInvertMatrix();
-                }
-                if (sf->right_ && action == MMIPE::POINTER_ACTION_UP) {
-                    sf->dirty_ = true;
-                    sf->right_ = false;
-                    sf->mat_ = SkMatrix::MakeTrans(-sf->diffx_, -sf->diffy_).preConcat(sf->mat_);
-                    sf->mat_ = SkMatrix::MakeTrans(x - sf->downRX_, y - sf->downRY_).preConcat(sf->mat_);
-                    sf->UpdateInvertMatrix();
-                    sf->diffx_ = sf->diffy_ = 0;
-                }
+                ProcessSinglePointer(ids[0], pointerEvent);
             }
 
             if (ids.size() >= 2) {
-                sf->right_ = false;
-                sf->left_ = false;
-
-                pointerEvent->GetPointerItem(ids[0], firstPointer);
-                pointerEvent->GetPointerItem(ids[1], secondPointer);
-                const auto &x1 = firstPointer.GetDisplayX();
-                const auto &y1 = firstPointer.GetDisplayY();
-                const auto &x2 = secondPointer.GetDisplayX();
-                const auto &y2 = secondPointer.GetDisplayY();
-
-                if (action == MMIPE::POINTER_ACTION_DOWN) {
-                    sf->scalex_ = (x1 + x2) / 2;
-                    sf->scaley_ = (y1 + y2) / 2;
-                    sf->scalediff_ = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-                    sf->scaleMat_ = sf->mat_;
-                }
-                if (action == MMIPE::POINTER_ACTION_MOVE || action == MMIPE::POINTER_ACTION_UP) {
-                    sf->dirty_ = true;
-                    auto scalediff = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-                    auto point = sf->invmat_.mapXY(sf->scalex_, sf->scaley_);
-                    sf->mat_ = sf->scaleMat_;
-                    sf->mat_ = sf->mat_.preConcat(SkMatrix::MakeTrans(+point.x(), +point.y()));
-                    sf->mat_ = sf->mat_.preConcat(SkMatrix::MakeScale(scalediff /
-                                (sf->scalediff_.load() != 0 ? sf->scalediff_.load() : 1)));
-                    sf->mat_ = sf->mat_.preConcat(SkMatrix::MakeTrans(-point.x(), -point.y()));
-                    sf->UpdateInvertMatrix();
-                }
+                ProcessMultiplePointer(ids, pointerEvent, action);
             }
 
             rsdata.RequestVsync();
@@ -271,4 +192,107 @@ void SkiaFramework::Run()
 
         SkiaFramework* sf = nullptr;
     };
+}
+
+void ProcessSinglePointerEvent(int32_t id, const std::shared_ptr<OHOS::MMI::PointerEvent> pointerEvent)
+{
+    MMI::PointerEvent::PointerItem firstPointer = {};
+    pointerEvent->GetPointerItem(id, firstPointer);
+    auto &rsdata = *reinterpret_cast<struct RSData *>(sf->data_);
+    const auto &action = pointerEvent->GetPointerAction();
+    const auto &x = firstPointer.GetDisplayX();
+    const auto &y = firstPointer.GetDisplayY();
+
+    if (action == MMIPE::POINTER_ACTION_DOWN) {
+        // 400 * 1000 is the discriminant time for consecutive clicks
+        if (pointerEvent->GetActionTime() - rsdata.lastTime <= 400 * 1000) {
+            sf->right_ = false;
+            sf->left_ = true;
+        }
+
+        if (!sf->right_ && !sf->left_) {
+            sf->right_ = true;
+        }
+        rsdata.lastTime = pointerEvent->GetActionTime();
+    }
+
+    ProcessPointerAction(action);
+}
+
+void ProcessPointerAction(const int32_t &action)
+{
+    if (sf->left_ && action == MMIPE::POINTER_ACTION_DOWN) {
+        sf->dirty_ = true;
+        sf->clickx_ = x;
+        sf->clicky_ = y;
+    }
+    if (sf->left_ && action == MMIPE::POINTER_ACTION_MOVE) {
+        sf->dirty_ = true;
+        sf->x_ = x;
+        sf->y_ = y;
+    }
+    if (sf->left_ && action == MMIPE::POINTER_ACTION_UP) {
+        sf->dirty_ = true;
+        sf->left_ = false;
+    }
+
+    if (sf->right_ && action == MMIPE::POINTER_ACTION_DOWN) {
+        sf->dirty_ = true;
+        sf->downRX_ = x;
+        sf->downRY_ = y;
+    }
+    if (sf->right_ && action == MMIPE::POINTER_ACTION_MOVE) {
+        sf->dirty_ = true;
+        sf->x_ = x;
+        sf->y_ = y;
+
+        sf->mat_ = SkMatrix::MakeTrans(-sf->diffx_, -sf->diffy_).preConcat(sf->mat_);
+        sf->diffx_ = sf->x_ - sf->downRX_;
+        sf->diffy_ = sf->y_ - sf->downRY_;
+        sf->mat_ = SkMatrix::MakeTrans(sf->diffx_, sf->diffy_).preConcat(sf->mat_);
+        sf->UpdateInvertMatrix();
+    }
+    if (sf->right_ && action == MMIPE::POINTER_ACTION_UP) {
+        sf->dirty_ = true;
+        sf->right_ = false;
+        sf->mat_ = SkMatrix::MakeTrans(-sf->diffx_, -sf->diffy_).preConcat(sf->mat_);
+        sf->mat_ = SkMatrix::MakeTrans(x - sf->downRX_, y - sf->downRY_).preConcat(sf->mat_);
+        sf->UpdateInvertMatrix();
+        sf->diffx_ = sf->diffy_ = 0;
+    }
+}
+
+void ProcessPointerEvents(const std::vector<int32_t> &ids,
+    const std::shared_ptr<OHOS::MMI::PointerEvent> pointerEvent)
+{
+    MMI::PointerEvent::PointerItem firstPointer = {};
+    MMI::PointerEvent::PointerItem secondPointer = {};
+    const auto &action = pointerEvent->GetPointerAction();
+    sf->right_ = false;
+    sf->left_ = false;
+
+    pointerEvent->GetPointerItem(ids[0], firstPointer);
+    pointerEvent->GetPointerItem(ids[1], secondPointer);
+    const auto &x1 = firstPointer.GetDisplayX();
+    const auto &y1 = firstPointer.GetDisplayY();
+    const auto &x2 = secondPointer.GetDisplayX();
+    const auto &y2 = secondPointer.GetDisplayY();
+
+    if (action == MMIPE::POINTER_ACTION_DOWN) {
+        sf->scalex_ = (x1 + x2) / 2;
+        sf->scaley_ = (y1 + y2) / 2;
+        sf->scalediff_ = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+        sf->scaleMat_ = sf->mat_;
+    }
+    if (action == MMIPE::POINTER_ACTION_MOVE || action == MMIPE::POINTER_ACTION_UP) {
+        sf->dirty_ = true;
+        auto scalediff = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+        auto point = sf->invmat_.mapXY(sf->scalex_, sf->scaley_);
+        sf->mat_ = sf->scaleMat_;
+        sf->mat_ = sf->mat_.preConcat(SkMatrix::MakeTrans(+point.x(), +point.y()));
+        sf->mat_ = sf->mat_.preConcat(SkMatrix::MakeScale(scalediff /
+                    (sf->scalediff_.load() != 0 ? sf->scalediff_.load() : 1)));
+        sf->mat_ = sf->mat_.preConcat(SkMatrix::MakeTrans(-point.x(), -point.y()));
+        sf->UpdateInvertMatrix();
+    }
 }

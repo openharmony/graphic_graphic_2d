@@ -71,9 +71,8 @@ Boundary::Boundary(size_t left, size_t right)
     rightIndex_ = right;
 }
 
-TypographyImpl::TypographyImpl(TypographyStyle &ys,
-                               std::vector<VariantSpan> &spans,
-                               std::unique_ptr<FontProviders> providers)
+TypographyImpl::TypographyImpl(TypographyStyle &ys, std::vector<VariantSpan> &spans,
+    std::unique_ptr<FontProviders> providers)
 {
     typographyStyle_ = std::move(ys);
     spans_ = std::move(spans);

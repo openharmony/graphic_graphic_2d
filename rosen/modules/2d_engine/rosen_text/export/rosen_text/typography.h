@@ -86,8 +86,7 @@ public:
     virtual void Paint(Drawing::Canvas *canvas, double x, double y) = 0; // DRAWING
 
     virtual std::vector<TextRect> GetTextRectsByBoundary(size_t left, size_t right,
-                                                         TextRectHeightStyle heightStyle,
-                                                         TextRectWidthStyle widthStyle) = 0;
+        TextRectHeightStyle heightStyle, TextRectWidthStyle widthStyle) = 0;
     virtual std::vector<TextRect> GetTextRectsOfPlaceholders() = 0;
     virtual IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) = 0;
     virtual Boundary GetWordBoundaryByIndex(size_t index) = 0;

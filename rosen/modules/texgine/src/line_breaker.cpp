@@ -28,8 +28,7 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 std::vector<LineMetrics> LineBreaker::BreakLines(std::vector<VariantSpan> &spans,
-                                                 const TypographyStyle &tstyle,
-                                                 const double widthLimit)
+    const TypographyStyle &tstyle, const double widthLimit)
 {
     LOGSCOPED(sl, LOG2EX_DEBUG(), "BreakLines");
     auto ss = GenerateScoreSpans(spans);
@@ -85,9 +84,8 @@ std::vector<struct ScoredSpan> LineBreaker::GenerateScoreSpans(std::vector<Varia
     return scoredSpans;
 }
 
-void LineBreaker::DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans,
-                               const double widthLimit,
-                               const TypographyStyle &ys)
+void LineBreaker::DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans, const double widthLimit,
+    const TypographyStyle &ys)
 {
     LOGSCOPED(sl, LOG2EX_DEBUG(), "UpadateLineBreaksData");
     scoredSpans.emplace(scoredSpans.cbegin());
@@ -154,7 +152,7 @@ std::vector<int32_t> LineBreaker::GenerateBreaks(std::vector<struct ScoredSpan> 
 }
 
 std::vector<LineMetrics> LineBreaker::GenerateLineMetrics(std::vector<VariantSpan> &spans,
-                                                          std::vector<int32_t> &breaks)
+    std::vector<int32_t> &breaks)
 {
     LOGSCOPED(sl, LOG2EX_DEBUG(), "GenerateLineMetrics");
     LOG2EX_DEBUG() << "breaks.size(): " << breaks.size();

@@ -26,37 +26,37 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 struct MockVars {
-    int catchedSize_ = -1;
-    bool hasRetval_ = false;
-    int hasCount_ = 0;
-    std::shared_ptr<TexgineFontManager> fontMgr_ = std::make_shared<TexgineFontManager>();
-    std::shared_ptr<TexgineTypeface> SCRetvalTypeface_ = std::make_shared<TexgineTypeface>();
-    std::shared_ptr<TexgineTypeface> styleRetvalTypeface_ = std::make_shared<TexgineTypeface>();
-    std::vector<std::shared_ptr<VariantFontStyleSet>> fontStyleSets_;
-    std::shared_ptr<Texgine::FontCollection> fontCollection_;
-} fcMockVars;
+    int catchedSize = -1;
+    bool hasRetval = false;
+    int hasCount = 0;
+    std::shared_ptr<TexgineFontManager> fontMgr = std::make_shared<TexgineFontManager>();
+    std::shared_ptr<TexgineTypeface> SCRetvalTypeface = std::make_shared<TexgineTypeface>();
+    std::shared_ptr<TexgineTypeface> styleRetvalTypeface = std::make_shared<TexgineTypeface>();
+    std::vector<std::shared_ptr<VariantFontStyleSet>> fontStyleSets;
+    std::shared_ptr<Texgine::FontCollection> fontCollection;
+} g_fcMockVars;
 
 std::shared_ptr<TexgineFontManager> TexgineFontManager::RefDefault()
 {
-    return fcMockVars.fontMgr_;
+    return g_fcMockVars.fontMgr;
 }
 
 std::shared_ptr<TexgineTypeface> TexgineFontManager::MatchFamilyStyleCharacter(const char familyName[],
     TexgineFontStyle &style, const char *bcp47[], int bcp47Count, int32_t character)
 {
-    fcMockVars.catchedSize_ = bcp47Count;
-    return fcMockVars.SCRetvalTypeface_;
+    g_fcMockVars.catchedSize = bcp47Count;
+    return g_fcMockVars.SCRetvalTypeface;
 }
 
 std::shared_ptr<TexgineTypeface> VariantFontStyleSet::MatchStyle(std::shared_ptr<TexgineFontStyle> pattern)
 {
-    return fcMockVars.styleRetvalTypeface_;
+    return g_fcMockVars.styleRetvalTypeface;
 }
 
 bool Typeface::Has(uint32_t ch)
 {
-    fcMockVars.hasCount_++;
-    return fcMockVars.hasRetval_;
+    g_fcMockVars.hasCount++;
+    return g_fcMockVars.hasRetval;
 }
 
 std::vector<std::shared_ptr<VariantFontStyleSet>> CreateSets()
@@ -69,8 +69,8 @@ std::vector<std::shared_ptr<VariantFontStyleSet>> CreateSets()
 
 void InitFcMockVars(MockVars vars)
 {
-    fcMockVars = vars;
-    fcMockVars.fontCollection_ = std::make_shared<FontCollection>(std::move(fcMockVars.fontStyleSets_));
+    g_fcMockVars = vars;
+    g_fcMockVars.fontCollection = std::make_shared<FontCollection>(std::move(g_fcMockVars.fontStyleSets));
 }
 
 class FontCollectionTest : public testing::Test {
@@ -85,7 +85,7 @@ class FontCollectionTest : public testing::Test {
 HWTEST_F(FontCollectionTest, FontCollection, TestSize.Level1)
 {
     InitFcMockVars({});
-    EXPECT_NO_THROW(FontCollection fc(std::move(fcMockVars.fontStyleSets_)));
+    EXPECT_NO_THROW(FontCollection fc(std::move(g_fcMockVars.fontStyleSets)));
 }
 
 /**
@@ -97,10 +97,10 @@ HWTEST_F(FontCollectionTest, FontCollection, TestSize.Level1)
 HWTEST_F(FontCollectionTest, GetTypefaceForChar1, TestSize.Level1)
 {
     InitFcMockVars({});
-    auto tf = fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "", "");
+    auto tf = g_fcMockVars.fontCollection->GetTypefaceForChar('a', {}, "", "");
     EXPECT_NE(tf, nullptr);
-    EXPECT_EQ(tf->Get(), fcMockVars.SCRetvalTypeface_);
-    EXPECT_EQ(fcMockVars.catchedSize_, 0);
+    EXPECT_EQ(tf->Get(), g_fcMockVars.SCRetvalTypeface);
+    EXPECT_EQ(g_fcMockVars.catchedSize, 0);
 }
 
 /**
@@ -111,9 +111,9 @@ HWTEST_F(FontCollectionTest, GetTypefaceForChar1, TestSize.Level1)
  */
 HWTEST_F(FontCollectionTest, GetTypefaceForChar2, TestSize.Level1)
 {
-    InitFcMockVars({.fontMgr_ = nullptr});
-    EXPECT_EQ(fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "zh_CN", ""), nullptr);
-    EXPECT_EQ(fcMockVars.catchedSize_, -1);
+    InitFcMockVars({.fontMgr = nullptr});
+    EXPECT_EQ(g_fcMockVars.fontCollection->GetTypefaceForChar('a', {}, "zh_CN", ""), nullptr);
+    EXPECT_EQ(g_fcMockVars.catchedSize, -1);
 }
 
 /**
@@ -124,9 +124,9 @@ HWTEST_F(FontCollectionTest, GetTypefaceForChar2, TestSize.Level1)
  */
 HWTEST_F(FontCollectionTest, GetTypefaceForChar3, TestSize.Level1)
 {
-    InitFcMockVars({.SCRetvalTypeface_ = nullptr});
-    EXPECT_EQ(fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "", "zh_CN"), nullptr);
-    EXPECT_NE(fcMockVars.catchedSize_, 0);
+    InitFcMockVars({.SCRetvalTypeface = nullptr});
+    EXPECT_EQ(g_fcMockVars.fontCollection->GetTypefaceForChar('a', {}, "", "zh_CN"), nullptr);
+    EXPECT_NE(g_fcMockVars.catchedSize, 0);
 }
 
 /**
@@ -138,13 +138,13 @@ HWTEST_F(FontCollectionTest, GetTypefaceForChar3, TestSize.Level1)
 HWTEST_F(FontCollectionTest, GetTypefaceForChar4, TestSize.Level1)
 {
     InitFcMockVars({});
-    auto tf1 = fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "", "zh_HK");
+    auto tf1 = g_fcMockVars.fontCollection->GetTypefaceForChar('a', {}, "", "zh_HK");
     EXPECT_NE(tf1, nullptr);
-    EXPECT_NE(fcMockVars.catchedSize_, 0);
+    EXPECT_NE(g_fcMockVars.catchedSize, 0);
     InitFcMockVars({});
-    auto tf2 = fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "", "zh_HK");
+    auto tf2 = g_fcMockVars.fontCollection->GetTypefaceForChar('a', {}, "", "zh_HK");
     EXPECT_NE(tf2, nullptr);
-    EXPECT_EQ(fcMockVars.catchedSize_, -1);
+    EXPECT_EQ(g_fcMockVars.catchedSize, -1);
     EXPECT_EQ(tf1->Get(), tf2->Get());
 }
 
@@ -156,8 +156,8 @@ HWTEST_F(FontCollectionTest, GetTypefaceForChar4, TestSize.Level1)
  */
 HWTEST_F(FontCollectionTest, GetTypefaceForChar5, TestSize.Level1)
 {
-    InitFcMockVars({.fontMgr_ = nullptr, .styleRetvalTypeface_ = nullptr, .fontStyleSets_ = CreateSets()});
-    EXPECT_EQ(fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "", "en_US"), nullptr);
+    InitFcMockVars({.fontMgr = nullptr, .styleRetvalTypeface = nullptr, .fontStyleSets = CreateSets()});
+    EXPECT_EQ(g_fcMockVars.fontCollection->GetTypefaceForChar('a', {}, "", "en_US"), nullptr);
 }
 
 /**
@@ -168,8 +168,8 @@ HWTEST_F(FontCollectionTest, GetTypefaceForChar5, TestSize.Level1)
  */
 HWTEST_F(FontCollectionTest, GetTypefaceForChar6, TestSize.Level1)
 {
-    InitFcMockVars({.fontMgr_ = nullptr, .fontStyleSets_ = CreateSets()});
-    EXPECT_EQ(fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "", "en_US"), nullptr);
+    InitFcMockVars({.fontMgr = nullptr, .fontStyleSets = CreateSets()});
+    EXPECT_EQ(g_fcMockVars.fontCollection->GetTypefaceForChar('a', {}, "", "en_US"), nullptr);
 }
 
 /**
@@ -180,12 +180,12 @@ HWTEST_F(FontCollectionTest, GetTypefaceForChar6, TestSize.Level1)
  */
 HWTEST_F(FontCollectionTest, GetTypefaceForChar7, TestSize.Level1)
 {
-    InitFcMockVars({.hasRetval_ = true, .fontMgr_ = nullptr, .fontStyleSets_ = CreateSets()});
-    auto tf1 = fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "", "locale1");
-    auto tf2 = fcMockVars.fontCollection_->GetTypefaceForChar('a', {}, "", "locale1");
+    InitFcMockVars({.hasRetval = true, .fontMgr = nullptr, .fontStyleSets = CreateSets()});
+    auto tf1 = g_fcMockVars.fontCollection->GetTypefaceForChar('a', {}, "", "locale1");
+    auto tf2 = g_fcMockVars.fontCollection->GetTypefaceForChar('a', {}, "", "locale1");
     EXPECT_NE(tf1, nullptr);
     EXPECT_NE(tf2, nullptr);
-    EXPECT_EQ(fcMockVars.hasCount_, 2);
+    EXPECT_EQ(g_fcMockVars.hasCount, 2);
     EXPECT_EQ(tf1->Get(), tf2->Get());
 }
 } // namespace TextEngine

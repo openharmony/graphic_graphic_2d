@@ -74,6 +74,10 @@ public:
 private:
     void UIThreadMain();
     void UpdateInvertMatrix();
+    void ProcessInput();
+    void ProcessSinglePointerEvent(int32_t id, const std::shared_ptr<OHOS::MMI::PointerEvent> pointerEvent);
+    void ProcessPointerAction(const int32_t &action);
+    void ProcessPointerEvents(std::vector<int32_t> &ids, const std::shared_ptr<OHOS::MMI::PointerEvent> pointerEvent);
 
     DrawFunc onDraw_ = nullptr;
     ResizeFunc onResize_ = nullptr;

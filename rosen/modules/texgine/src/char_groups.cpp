@@ -287,7 +287,7 @@ std::vector<uint16_t> CharGroups::ToUTF16All() const
     return u16;
 }
 
-std::vector<struct CharGroup>::iterator CharGroups::begin() const
+std::vector<struct CharGroup>::iterator CharGroups::Begin() const
 {
     if (!IsValid()) {
         throw TEXGINE_EXCEPTION(InvalidCharGroups);
@@ -296,7 +296,7 @@ std::vector<struct CharGroup>::iterator CharGroups::begin() const
     return pcgs_->begin() + range_.start_;
 }
 
-std::vector<struct CharGroup>::iterator CharGroups::end() const
+std::vector<struct CharGroup>::iterator CharGroups::End() const
 {
     if (!IsValid()) {
         throw TEXGINE_EXCEPTION(InvalidCharGroups);

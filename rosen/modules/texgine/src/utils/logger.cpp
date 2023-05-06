@@ -20,7 +20,7 @@
 #include <iostream>
 #include <sys/syscall.h>
 #include <unistd.h>
-#define gettid() syscall(__NR_gettid)
+#define GetTid() syscall(__NR_gettid)
 
 #ifdef LOGGER_NO_COLOR
 #define IF_COLOR(x)
@@ -29,7 +29,7 @@
 #endif
 
 namespace OHOS {
-namespace Rosen
+namespace Rosen {
 namespace TextEngine {
 namespace {
 const char *GetLevelStr(enum Logger::LOG_LEVEL level)
@@ -167,7 +167,7 @@ void Logger::AppendFileFuncLine(Logger &logger, enum LOG_PHASE phase)
 void Logger::AppendPidTid(Logger &logger, enum LOG_PHASE phase)
 {
     if (phase == LOG_PHASE::BEGIN) {
-        logger << getpid() << ":" << gettid() << " ";
+        logger << getpid() << ":" << GetTid() << " ";
     }
 }
 

@@ -29,9 +29,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-int TextBreaker::WordBreak(std::vector<VariantSpan> &spans,
-                           const TypographyStyle &ys,
-                           const std::unique_ptr<FontProviders> &fontProviders)
+int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyle &ys,
+    const std::unique_ptr<FontProviders> &fontProviders)
 {
     ScopedTrace scope("TextBreaker::WordBreak");
     LOGSCOPED(sl, LOG2EX_DEBUG(), "WordBreak");
@@ -73,10 +72,8 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans,
     return 0;
 }
 
-std::shared_ptr<FontCollection> TextBreaker::GenerateFontCollection(
-    const TypographyStyle &ys,
-    const TextStyle &xs,
-    const std::unique_ptr<FontProviders> &fontProviders) noexcept(false)
+std::shared_ptr<FontCollection> TextBreaker::GenerateFontCollection(const TypographyStyle &ys,
+    const TextStyle &xs, const std::unique_ptr<FontProviders> &fontProviders) noexcept(false)
 {
     LOGSCOPED(sl, LOG2EX_DEBUG(), "TextBreaker::GenerateFontCollection");
     auto families = xs.fontFamilies_;
@@ -92,11 +89,8 @@ std::shared_ptr<FontCollection> TextBreaker::GenerateFontCollection(
     return fontProviders->GenerateFontCollection(families);
 }
 
-int TextBreaker::Measure(const TextStyle &xs,
-                         const std::vector<uint16_t> &u16vect,
-                         FontCollection &fontCollection,
-                         CharGroups &cgs,
-                         std::vector<Boundary> &boundaries) noexcept(false)
+int TextBreaker::Measure(const TextStyle &xs, const std::vector<uint16_t> &u16vect,
+    FontCollection &fontCollection, CharGroups &cgs, std::vector<Boundary> &boundaries) noexcept(false)
 {
     LOGSCOPED(sl, LOG2EX_DEBUG(), "TextBreaker::doMeasure");
     auto measurer = Measurer::Create(u16vect, fontCollection);
@@ -125,10 +119,8 @@ int TextBreaker::Measure(const TextStyle &xs,
     return 0;
 }
 
-void TextBreaker::BreakWord(const CharGroups &wordcgs,
-                            const TypographyStyle &ys,
-                            const TextStyle &xs,
-                            std::vector<VariantSpan> &spans)
+void TextBreaker::BreakWord(const CharGroups &wordcgs, const TypographyStyle &ys,
+    const TextStyle &xs, std::vector<VariantSpan> &spans)
 {
     size_t rangeOffset = 0;
     for (size_t i = 0; i < wordcgs.GetNumberOfCharGroup(); i++) {
@@ -158,10 +150,8 @@ void TextBreaker::BreakWord(const CharGroups &wordcgs,
     }
 }
 
-void TextBreaker::GenerateSpan(const CharGroups &currentCgs,
-                               const TypographyStyle &ys,
-                               const TextStyle &xs,
-                               std::vector<VariantSpan> &spans)
+void TextBreaker::GenerateSpan(const CharGroups &currentCgs, const TypographyStyle &ys,
+    const TextStyle &xs, std::vector<VariantSpan> &spans)
 {
     if (!currentCgs.IsValid() || currentCgs.GetSize() == 0) {
         throw TEXGINE_EXCEPTION(InvalidArgument);

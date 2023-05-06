@@ -181,8 +181,7 @@ public:
      * @return            The vector of bounding boxes.
      */
     virtual std::vector<TextRect> GetTextRectsByBoundary(Boundary boundary,
-                                                         TextRectHeightStyle heightStyle,
-                                                         TextRectWidthStyle widthStyle) const = 0;
+        TextRectHeightStyle heightStyle, TextRectWidthStyle widthStyle) const = 0;
 
     /*
      * @brief Return a vector of bounding boxes that bound all AnySpan in typography.

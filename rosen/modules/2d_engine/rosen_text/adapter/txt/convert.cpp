@@ -19,7 +19,7 @@ namespace OHOS {
 namespace Rosen {
 namespace AdapterTxt {
 std::shared_ptr<OHOS::Rosen::AdapterTxt::FontCollection> Convert(
-        const std::shared_ptr<OHOS::Rosen::FontCollection> &fontCollection)
+    const std::shared_ptr<OHOS::Rosen::FontCollection> &fontCollection)
 {
     return std::static_pointer_cast<OHOS::Rosen::AdapterTxt::FontCollection>(fontCollection);
 }

@@ -26,29 +26,29 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 struct Mockvars {
-    std::shared_ptr<TexgineTypeface> typeface_ = std::make_shared<TexgineTypeface>();
-    std::shared_ptr<TexgineFontStyle> fontStyle_ = std::make_shared<TexgineFontStyle>();
-    std::shared_ptr<Texgine::DynamicFontStyleSet> normset_ = nullptr;
-} dfssMockVars;
+    std::shared_ptr<TexgineTypeface> typeface = std::make_shared<TexgineTypeface>();
+    std::shared_ptr<TexgineFontStyle> fontStyle = std::make_shared<TexgineFontStyle>();
+    std::shared_ptr<Texgine::DynamicFontStyleSet> normalSet = nullptr;
+} g_dfssMockVars;
 
 
 auto Init(struct Mockvars vars)
 {
     return [vars = std::move(vars)] {
-        dfssMockVars = std::move(vars);
-        auto typeface = std::make_unique<Typeface>(dfssMockVars.typeface_);
-        dfssMockVars.normset_ = std::make_shared<DynamicFontStyleSet>(std::move(typeface));
+        g_dfssMockVars = std::move(vars);
+        auto typeface = std::make_unique<Typeface>(g_dfssMockVars.typeface);
+        g_dfssMockVars.normalSet = std::make_shared<DynamicFontStyleSet>(std::move(typeface));
     };
 }
 
 std::shared_ptr<TexgineFontStyle> TexgineTypeface::FontStyle()
 {
-    return dfssMockVars.fontStyle_;
+    return g_dfssMockVars.fontStyle;
 }
 
 Typeface::Typeface(std::shared_ptr<TexgineTypeface> tf)
 {
-    typeface_ = dfssMockVars.typeface_;
+    typeface = g_dfssMockVars.typeface;
 }
 
 #define PARAMCLASS DynamicFontStyleSet
@@ -64,7 +64,7 @@ HWTEST_F(DynamicFontStyleSetTest, Count, TestSize.Level1)
     DynamicFontStyleSet nullset(nullptr);
     RUN_TESTINFO0(nullset, {.checkFunc = CreateChecker(0)});
 
-    DynamicFontStyleSet normset(std::make_unique<Typeface>(dfssMockVars.typeface_));
+    DynamicFontStyleSet normset(std::make_unique<Typeface>(g_dfssMockVars.typeface));
     RUN_TESTINFO0(normset, {.checkFunc = CreateChecker(1)});
 }
 #undef PARAMFUNC
@@ -97,7 +97,7 @@ HWTEST_F(DynamicFontStyleSetTest, GetStyle, TestSize.Level1)
     {                                                  \
         std::shared_ptr<TexgineFontStyle> style = s1;  \
         RUN_VOID_TESTINFO3(obj, {                      \
-            .init = Init({.fontStyle_ = mock}),        \
+            .init = Init({.fontStyle = mock}),        \
             .arg1 = a1, .arg2 = style,                 \
             .checkFunc = CreateStyleChecker(expect)}); \
     }
@@ -108,15 +108,15 @@ HWTEST_F(DynamicFontStyleSetTest, GetStyle, TestSize.Level1)
     CORE_TEST(nullset, s2, -1, s1);
     CORE_TEST(nullset, s2, 0, s1);
     CORE_TEST(nullset, s2, 1, s1);
-    CORE_TEST(*dfssMockVars.normset_, s2, -1, s1);
-    CORE_TEST(*dfssMockVars.normset_, s2, 0, s2);
-    CORE_TEST(*dfssMockVars.normset_, s2, 1, s1);
+    CORE_TEST(*g_dfssMockVars.normalSet, s2, -1, s1);
+    CORE_TEST(*g_dfssMockVars.normalSet, s2, 0, s2);
+    CORE_TEST(*g_dfssMockVars.normalSet, s2, 1, s1);
 #undef CORE_TEST
 
     auto style = s1;
-    auto initfunc = Init({.typeface_ = nullptr, .fontStyle_ = s2});
+    auto initfunc = Init({.typeface = nullptr, .fontStyle = s2});
     auto checkfunc = CreateStyleChecker(s1);
-    RUN_VOID_TESTINFO3(*dfssMockVars.normset_, {.init = initfunc, .arg2 = style, .checkFunc = checkfunc});
+    RUN_VOID_TESTINFO3(*g_dfssMockVars.normalSet, {.init = initfunc, .arg2 = style, .checkFunc = checkfunc});
 }
 #undef PARAMFUNC
 
@@ -132,14 +132,14 @@ HWTEST_F(DynamicFontStyleSetTest, CreateTypeface, TestSize.Level1)
     DEFINE_TESTINFO1(int);
     Init({})();
     DynamicFontStyleSet nullset(nullptr);
-    DynamicFontStyleSet normset(std::make_unique<Typeface>(dfssMockVars.typeface_));
+    DynamicFontStyleSet normset(std::make_unique<Typeface>(g_dfssMockVars.typeface));
     // arg1 is the parameter of CreateTypeface, index
     RUN_TESTINFO1(nullset, {.arg1 = -1, .checkFunc = CreateChecker<std::shared_ptr<TexgineTypeface>>(nullptr)});
     RUN_TESTINFO1(nullset, {.arg1 = 0, .checkFunc = CreateChecker<std::shared_ptr<TexgineTypeface>>(nullptr)});
     RUN_TESTINFO1(nullset, {.arg1 = 1, .checkFunc = CreateChecker<std::shared_ptr<TexgineTypeface>>(nullptr)});
     RUN_TESTINFO1(normset, {.arg1 = -1, .checkFunc = CreateChecker<std::shared_ptr<TexgineTypeface>>(nullptr)});
     RUN_TESTINFO1(normset, {.arg1 = 0,
-        .checkFunc = CreateChecker<std::shared_ptr<TexgineTypeface>>(dfssMockVars.typeface_)});
+        .checkFunc = CreateChecker<std::shared_ptr<TexgineTypeface>>(g_dfssMockVars.typeface)});
     RUN_TESTINFO1(normset, {.arg1 = 1, .checkFunc = CreateChecker<std::shared_ptr<TexgineTypeface>>(nullptr)});
 }
 #undef PARAMFUNC
@@ -156,9 +156,9 @@ HWTEST_F(DynamicFontStyleSetTest, MatchStyle, TestSize.Level1)
     DEFINE_TESTINFO1(std::shared_ptr<TexgineFontStyle>);
     Init({})();
     DynamicFontStyleSet nullset(nullptr);
-    DynamicFontStyleSet normset(std::make_unique<Typeface>(dfssMockVars.typeface_));
+    DynamicFontStyleSet normset(std::make_unique<Typeface>(g_dfssMockVars.typeface));
     RUN_TESTINFO1(nullset, {.checkFunc = CreateChecker<std::shared_ptr<TexgineTypeface>>(nullptr)});
-    RUN_TESTINFO1(normset, {.checkFunc = CreateChecker<std::shared_ptr<TexgineTypeface>>(dfssMockVars.typeface_)});
+    RUN_TESTINFO1(normset, {.checkFunc = CreateChecker<std::shared_ptr<TexgineTypeface>>(g_dfssMockVars.typeface)});
 }
 #undef PARAMFUNC
 } // namespace TextEngine

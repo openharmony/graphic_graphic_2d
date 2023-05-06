@@ -29,7 +29,7 @@ namespace TextEngine {
 #define DOUBLE 2
 
 int TextShaper::Shape(const VariantSpan &span, const TypographyStyle &ys,
-                      const std::unique_ptr<FontProviders> &fontProviders) const
+    const std::unique_ptr<FontProviders> &fontProviders) const
 {
     ScopedTrace scope("TextShaper::ShapeLineSpans");
     LOGSCOPED(sl, LOG2EX_DEBUG(), "TextShaper::ShapeLineSpans");
@@ -82,10 +82,8 @@ int TextShaper::Shape(const VariantSpan &span, const TypographyStyle &ys,
     return 0;
 }
 
-int TextShaper::DoShape(std::shared_ptr<TextSpan> &span,
-                        const TextStyle &xs,
-                        const TypographyStyle &ys,
-                        const std::unique_ptr<FontProviders> &fontProviders) const
+int TextShaper::DoShape(std::shared_ptr<TextSpan> &span, const TextStyle &xs,
+    const TypographyStyle &ys, const std::unique_ptr<FontProviders> &fontProviders) const
 {
     if (fontProviders == nullptr || span == nullptr) {
         LOG2EX(ERROR) << "providers or span is nullptr";

@@ -171,15 +171,7 @@ int CmapParser::ParseFormat4(const CmapSubtable &subtable, const std::size_t siz
         uint32_t idRangeOffset = idRangeOffsets[i].Get();
         if (idRangeOffset == 0) {
             int32_t delta = idDeltas[i].Get();
-            if (((end + delta) & 0xffff) > end - start) {
-                ranges_.AddRange({start, end + 1, delta});
-            } else {
-                for (uint32_t j = start; j <= end; j++) {
-                    if ((j + delta) & 0xffff) {
-                        ranges_.AddRange({j, j + 1, delta});
-                    }
-                }
-            }
+            ParseFormat4NoOffset(delta, start, end);
         } else {
             for (uint32_t j = start; j <= end; j++) {
                 const auto &gid = idRangeOffsets[idRangeOffset / 2 + i + j - start].Get();
@@ -190,6 +182,19 @@ int CmapParser::ParseFormat4(const CmapSubtable &subtable, const std::size_t siz
         }
     }
     return 0;
+}
+
+void ParseFormat4NoOffset(int32_t delta, uint32_t start, uint32_t end)
+{
+    if (((end + delta) & 0xffff) > end - start) {
+        ranges_.AddRange({start, end + 1, delta});
+    } else {
+        for (uint32_t j = start; j <= end; j++) {
+            if ((j + delta) & 0xffff) {
+                ranges_.AddRange({j, j + 1, delta});
+            }
+        }
+    }
 }
 
 int CmapParser::ParseFormat12(const CmapSubtable &subtable, const std::size_t size)

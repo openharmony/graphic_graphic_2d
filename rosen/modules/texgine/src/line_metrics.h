@@ -24,9 +24,9 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 struct LineMetrics {
-    std::vector<VariantSpan> lineSpans_;
-    double width_ = 0.0;
-    double indent_ = 0.0;
+    std::vector<VariantSpan> lineSpans;
+    double width = 0.0;
+    double indent = 0.0;
 
     void AddSpanAndUpdateMetrics(const VariantSpan &span);
 };

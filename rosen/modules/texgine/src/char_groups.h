@@ -97,8 +97,8 @@ public:
     std::vector<uint16_t> ToUTF16() const;
     std::vector<uint16_t> ToUTF16All() const;
 
-    std::vector<struct CharGroup>::iterator begin() const;
-    std::vector<struct CharGroup>::iterator end() const;
+    std::vector<struct CharGroup>::iterator Begin() const;
+    std::vector<struct CharGroup>::iterator End() const;
 
     CharGroups Clone() const;
 
