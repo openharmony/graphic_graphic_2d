@@ -67,6 +67,54 @@ private:
     TileMode mode_;
     CmdListSiteInfo input_;
 };
+
+class CreateColorFilterImageFilterOpItem : public ImageFilterOpItem {
+public:
+    CreateColorFilterImageFilterOpItem(const CmdListSiteInfo& cf, const CmdListSiteInfo& input);
+    ~CreateColorFilterImageFilterOpItem() = default;
+
+    std::shared_ptr<ImageFilter> Playback(const MemAllocator& allocator) const;
+private:
+    CmdListSiteInfo cf_;
+    CmdListSiteInfo input_;
+};
+
+class CreateOffsetImageFilterOpItem : public ImageFilterOpItem {
+public:
+    CreateOffsetImageFilterOpItem(scalar dx, scalar dy, const CmdListSiteInfo& input);
+    ~CreateOffsetImageFilterOpItem() = default;
+
+    std::shared_ptr<ImageFilter> Playback(const MemAllocator& allocator) const;
+private:
+    scalar dx_;
+    scalar dy_;
+    CmdListSiteInfo input_;
+};
+
+class CreateArithmeticImageFilterOpItem : public ImageFilterOpItem {
+public:
+    CreateArithmeticImageFilterOpItem(std::pair<Offset_t, size_t> coefficients,
+        bool enforcePMColor, const CmdListSiteInfo& background, const CmdListSiteInfo& foreground);
+    ~CreateArithmeticImageFilterOpItem() = default;
+
+    std::shared_ptr<ImageFilter> Playback(const MemAllocator& allocator) const;
+private:
+    std::pair<Offset_t, size_t> coefficients_;
+    bool enforcePMColor_;
+    CmdListSiteInfo background_;
+    CmdListSiteInfo foreground_;
+};
+
+class CreateComposeImageFilterOpItem : public ImageFilterOpItem {
+public:
+    CreateComposeImageFilterOpItem(const CmdListSiteInfo& f1, const CmdListSiteInfo& f2);
+    ~CreateComposeImageFilterOpItem() = default;
+
+    std::shared_ptr<ImageFilter> Playback(const MemAllocator& allocator) const;
+private:
+    CmdListSiteInfo f1_;
+    CmdListSiteInfo f2_;
+};
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
