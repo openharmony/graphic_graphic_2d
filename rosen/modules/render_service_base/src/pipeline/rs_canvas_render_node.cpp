@@ -82,7 +82,7 @@ void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 
 void RSCanvasRenderNode::ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas)
 {
-    RSRenderNode::ProcessRenderBeforeChildren(canvas);
+    RSRenderNode::ProcessTransitionBeforeChildren(canvas);
 }
 
 void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas)
@@ -116,7 +116,6 @@ void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
 {
     ProcessTransitionBeforeChildren(canvas);
     ProcessAnimatePropertyBeforeChildren(canvas);
-    ProcessRenderContents(canvas);
 }
 
 void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas)

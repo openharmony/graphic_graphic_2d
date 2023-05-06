@@ -41,7 +41,7 @@ void RSNodeCommandHelper::SetFreeze(RSContext& context, NodeId nodeId, bool isFr
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (node) {
-        node->SetFreeze(isFreeze);
+        node->SetStaticCached(isFreeze);
     }
 }
 

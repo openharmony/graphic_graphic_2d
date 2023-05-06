@@ -230,21 +230,6 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     return params;
 }
 
-void RSUniRenderUtil::DrawCachedFreezeSurface(const RSRenderNode& node, RSPaintFilterCanvas& canvas,
-    const sk_sp<SkSurface>& surface)
-{
-    if (surface == nullptr) {
-        return;
-    }
-    canvas.save();
-    float width = node.GetRenderProperties().GetBoundsRect().GetWidth();
-    float height = node.GetRenderProperties().GetBoundsRect().GetHeight();
-    canvas.scale(width / surface->width(), height / surface->height());
-    SkPaint paint;
-    surface->draw(&canvas, 0.0, 0.0, &paint);
-    canvas.restore();
-}
-
 void RSUniRenderUtil::DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, sk_sp<SkImage> image)
 {
     if (image == nullptr) {

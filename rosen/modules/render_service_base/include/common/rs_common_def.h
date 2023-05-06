@@ -72,6 +72,13 @@ enum class RSRenderNodeType : uint32_t {
     ROOT_NODE    = 0x18111u,
 };
 
+enum class CacheType : uint8_t {
+    NONE = 0,
+    STATIC,
+    DYNAMIC,
+    SPHERIZE,
+};
+
 // priority for node, higher number means lower priority
 enum class NodePriorityType : uint32_t {
     MAIN_PRIORITY = 0, // node must render in main thread

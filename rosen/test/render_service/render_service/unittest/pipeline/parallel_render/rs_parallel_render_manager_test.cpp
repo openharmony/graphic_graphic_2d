@@ -219,7 +219,7 @@ HWTEST_F(RSParallelRenderManagerTest, SubmitSuperTaskTest, TestSize.Level1)
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
 
     rsSurfaceRenderNode->SetSrcRect(RectI(0, 0, 10, 10));
-    rsSurfaceRenderNode->SetFreeze(false);
+    rsSurfaceRenderNode->SetStaticCached(false);
     rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, -1);
     auto instance = RSParallelRenderManager::Instance();
     auto superTask = std::make_unique<RSSuperRenderTask>(*rsDisplayRenderNode);
