@@ -148,7 +148,7 @@ std::shared_ptr<RSFilter> RSMaterialFilter::Add(const std::shared_ptr<RSFilter>&
     materialParam.radius = radius_ + materialR->radius_;
     materialParam.saturation = saturation_ + materialR->saturation_;
     materialParam.brightness = brightness_ + materialR->brightness_;
-    materialParam.maskColor = maskColor_ + materialR->maskColor_; // A+A R+R G+G B+B
+    materialParam.maskColor = maskColor_ + materialR->maskColor_;
     return std::make_shared<RSMaterialFilter>(materialParam, materialR->colorMode_);
 }
 
@@ -162,7 +162,7 @@ std::shared_ptr<RSFilter> RSMaterialFilter::Sub(const std::shared_ptr<RSFilter>&
     materialParam.radius = radius_ - materialR->radius_;
     materialParam.saturation = saturation_ - materialR->saturation_;
     materialParam.brightness = brightness_ - materialR->brightness_;
-    materialParam.maskColor = maskColor_ - materialR->maskColor_; // A+A R+R G+G B+B
+    materialParam.maskColor = maskColor_ - materialR->maskColor_;
     return std::make_shared<RSMaterialFilter>(materialParam, materialR->colorMode_);
 }
 
