@@ -715,7 +715,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSFi
             auto material = std::static_pointer_cast<RSMaterialFilter>(val);
             success = success && parcel.WriteFloat(material->radius_) && parcel.WriteFloat(material->saturation_) &&
                       parcel.WriteFloat(material->brightness_) &&
-                      RSMarshallingHelper::Marshalling(material->maskColor_) && parcel.WriteInt32(material->colorMode_);
+                      RSMarshallingHelper::Marshalling(parcel, material->maskColor_) && parcel.WriteInt32(material->colorMode_);
             break;
         }
         case RSFilter::LIGHTUPEFFECT: {
