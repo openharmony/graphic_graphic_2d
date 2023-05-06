@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include "effect/color_space.h"
 #include "drawing/engine_adapter/impl_factory.h"
 #include "image/bitmap.h"
+#include "image/gpu_context.h"
 #include "image/image.h"
 #include "image/picture.h"
 #include "utils/matrix.h"
@@ -70,6 +71,26 @@ HWTEST_F(ImageTest, BuildFromBitmap001, TestSize.Level1)
     ASSERT_TRUE(image != nullptr);
     Bitmap bitmap;
     image->BuildFromBitmap(bitmap);
+}
+
+/**
+ * @tc.name: BuildFromPicture001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ImageTest, BuildFromPicture001, TestSize.Level1)
+{
+    std::unique_ptr<Image> image = std::make_unique<Image>();
+    ASSERT_TRUE(image != nullptr);
+    Picture picture;
+    SizeI dimensions;
+    Matrix matrix;
+    Brush brush;
+    BitDepth bitDepth = BitDepth::KU8;
+    std::shared_ptr<ColorSpace> colorSpace(new ColorSpace(ColorSpace::ColorSpaceType::NO_TYPE));
+    image->BuildFromPicture(picture, dimensions, matrix, brush, bitDepth, colorSpace);
 }
 
 /**
@@ -139,6 +160,145 @@ HWTEST_F(ImageTest, ImageGetHeightTest002, TestSize.Level1)
     image.BuildFromBitmap(bitmap);
     ASSERT_EQ(15, image.GetHeight());
 }
+
+/**
+ * @tc.name: ImageGetUniqueIDTest001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ImageTest, ImageGetUniqueIDTest001, TestSize.Level1)
+{
+    Bitmap bitmap;
+    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
+    bitmap.Build(15, 15, bitmapFormat);
+    Image image;
+    image.BuildFromBitmap(bitmap);
+    ASSERT_EQ(10, image.GetUniqueID());
+}
+
+/**
+ * @tc.name: ReadPixelsTest001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ImageTest, ReadPixelsTest001, TestSize.Level1)
+{
+    Bitmap bitmap;
+    Image image;
+    int x = 0;
+    int y = 0;
+    EXPECT_FALSE(image.ReadPixels(bitmap, x, y));
+}
+
+/**
+ * @tc.name: ReadPixelsTest002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ImageTest, ReadPixelsTest002, TestSize.Level1)
+{
+    Bitmap bitmap;
+    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
+    bitmap.Build(15, 15, bitmapFormat);
+    Image image;
+    image.BuildFromBitmap(bitmap);
+    int x = 0;
+    int y = 0;
+    EXPECT_TRUE(image.ReadPixels(bitmap, x, y));
+}
+
+/**
+ * @tc.name: IsTextureBackedTest001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ImageTest, IsTextureBackedTest001, TestSize.Level1)
+{
+    Bitmap bitmap;
+    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
+    bitmap.Build(15, 15, bitmapFormat);
+    Image image;
+    image.BuildFromBitmap(bitmap);
+    EXPECT_FALSE(image.IsTextureBacked());
+}
+
+#ifdef ACE_ENABLE_GPU
+/**
+ * @tc.name: BuildFromCompressedTest001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ImageTest, BuildFromCompressedTest001, TestSize.Level1)
+{
+    GPUContext gpuContext;
+    const std::shared_ptr<Data> data = nullptr;
+    std::unique_ptr<Image> image = std::make_unique<Image>();
+    ASSERT_TRUE(image != nullptr);
+    image->BuildFromCompressed(gpuContext, data, 15, 15, CompressedType::ASTC);
+}
+
+/**
+ * @tc.name: BuildFromCompressedTest002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ImageTest, BuildFromCompressedTest002, TestSize.Level1)
+{
+    GPUContext gpuContext;
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    ASSERT_TRUE(data != nullptr);
+    std::unique_ptr<Image> image = std::make_unique<Image>();
+    ASSERT_TRUE(image != nullptr);
+    image->BuildFromCompressed(gpuContext, data, 15, 15, CompressedType::ASTC);
+}
+
+/**
+ * @tc.name: BuildFromCompressedTest003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ImageTest, BuildFromCompressedTest003, TestSize.Level1)
+{
+    GPUContext gpuContext;
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    ASSERT_TRUE(data != nullptr);
+    std::unique_ptr<Image> image = std::make_unique<Image>();
+    ASSERT_TRUE(image != nullptr);
+    image->BuildFromCompressed(gpuContext, data, 15, 15, CompressedType::ETC1);
+}
+
+/**
+ * @tc.name: BuildFromBitmapTest001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ImageTest, BuildFromBitmapTest001, TestSize.Level1)
+{
+    GPUContext gpuContext;
+    Bitmap bitmap;
+    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
+    bitmap.Build(15, 15, bitmapFormat);
+    std::unique_ptr<Image> image = std::make_unique<Image>();
+    ASSERT_TRUE(image != nullptr);
+    image->BuildFromBitmap(gpuContext, bitmap);
+}
+#endif
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic_standard/rosen/modules/2d_graphics/image"
 
@@ -35,6 +36,10 @@ ohos_unittest("2d_graphics_image_test") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//third_party/googletest:gtest_main",
   ]
+
+  if (ace_enable_gpu) {
+    defines = [ "ACE_ENABLE_GPU" ]
+  }
 
   subsystem_name = "graphic"
   external_deps = [ "c_utils:utils" ]
