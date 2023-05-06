@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <atomic>
+
 #include "command/rs_message_processor.h"
 
 #include "command/rs_command.h"
@@ -21,37 +23,60 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+static std::atomic_bool g_instanceValid = false;
+}
+
+RSMessageProcessor::RSMessageProcessor()
+{
+    g_instanceValid.store(true);
+}
+
 RSMessageProcessor& RSMessageProcessor::Instance()
 {
     static RSMessageProcessor processor;
     return processor;
 }
 
-RSMessageProcessor::~RSMessageProcessor() {
+RSMessageProcessor::~RSMessageProcessor()
+{
+    g_instanceValid.store(false);
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
     transactionMap_.clear();
 }
 
 void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>& command)
 {
+    if (!g_instanceValid.load()) {
+        return;
+    }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
     transactionMap_[pid].AddCommand(command, 0, FollowType::NONE);
 }
 
 void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>&& command)
 {
+    if (!g_instanceValid.load()) {
+        return;
+    }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
     transactionMap_[pid].AddCommand(command, 0, FollowType::NONE);
 }
 
 bool RSMessageProcessor::HasTransaction() const
 {
+    if (!g_instanceValid.load()) {
+        return false;
+    }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
     return !transactionMap_.empty();
 }
 
 bool RSMessageProcessor::HasTransaction(uint32_t pid) const
 {
+    if (!g_instanceValid.load()) {
+        return false;
+    }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
     auto iter = transactionMap_.find(pid);
     return iter != transactionMap_.end() && !iter->second.IsEmpty();
