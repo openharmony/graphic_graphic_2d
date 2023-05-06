@@ -313,7 +313,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     if (drivenInfo_) {
         RS_TRACE_NAME("RSUniRender:DrivenRenderPrepare");
         drivenInfo_->prepareInfo.hasInvalidScene = drivenInfo_->prepareInfo.hasInvalidScene ||
-            node.GetChildrenCount() >= PARALLEL_RENDER_MINIMUM_RENDER_NODE_NUMBER ||
+            node.GetChildrenCount() >= 8 || // default value, count > 8 means invalid scene
             isHardwareForcedDisabled_ || node.GetRotation() != ScreenRotation::ROTATION_0;
         drivenInfo_->prepareInfo.screenRect = RectI(0, 0, screenInfo_.width, screenInfo_.height),
         // prepare driven render tree

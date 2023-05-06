@@ -973,10 +973,13 @@ void RSNode::SetPaintOrder(bool drawContentLast)
 
 void RSNode::MarkDrivenRender(bool flag)
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkDrivenRender>(GetId(), flag);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    if (drivenFlag_ != flag) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSMarkDrivenRender>(GetId(), flag);
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, IsRenderServiceNode());
+        }
+        drivenFlag_ = flag;
     }
 }
 

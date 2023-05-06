@@ -158,6 +158,22 @@ void RSDrivenRenderManager::DoPrepareRenderTask(const DrivenPrepareInfo& info)
 
 void RSDrivenRenderManager::DoProcessRenderTask(const DrivenProcessInfo& info)
 {
+    std::string traceMsg = "";
+    bool isReusableMode = false;
+    auto currBackground = backgroundSurfaceNode_->GetDrivenCanvasNode();
+    if (currBackground != nullptr && uniRenderMode_ == DrivenUniRenderMode::REUSE_WITH_CLIP_HOLE) {
+        auto rsParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(currBackground->GetParent().lock());
+        if (rsParent != nullptr) {
+            isReusableMode = true;
+            traceMsg = "RSDrivenRender::ReusableProcess:[" + rsParent->GetName() + "]" +
+                " " + rsParent->GetDstRect().ToString() +
+                " Alpha: " + std::to_string(rsParent->GetGlobalAlpha()).substr(0, 4); // get alpha value
+        }
+    }
+    if (isReusableMode) {
+        RS_TRACE_BEGIN(traceMsg);
+    }
+
     auto visitor = std::make_shared<RSDrivenRenderVisitor>();
     visitor->SetUniProcessor(info.uniProcessor);
     visitor->SetUniColorSpace(info.uniColorSpace);
@@ -174,6 +190,10 @@ void RSDrivenRenderManager::DoProcessRenderTask(const DrivenProcessInfo& info)
     uniRenderGlobalZOrder_ = 0.0;
     if (!backgroundSurfaceNode_->IsDisabledMode() || !contentSurfaceNode_->IsDisabledMode()) {
         isBufferCacheClear_ = false;
+    }
+
+    if (isReusableMode) {
+        RS_TRACE_END();
     }
 }
 

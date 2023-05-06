@@ -263,6 +263,9 @@ private:
 
     RSModifierExtractor stagingPropertiesExtractor_;
 
+    // driven render
+    bool drivenFlag_ = false;
+
     friend class RSAnimation;
     friend class RSCurveAnimation;
     friend class RSInterpolatingSpringAnimation;

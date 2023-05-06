@@ -628,16 +628,11 @@ void RSMainThread::CollectInfoForDrivenRender()
 
     std::vector<std::shared_ptr<RSRenderNode>> drivenNodes;
     std::vector<std::shared_ptr<RSRenderNode>> markRenderDrivenNodes;
-    std::vector<std::shared_ptr<RSRenderNode>> invalidDrivenNodes;
 
     const auto& nodeMap = GetContext().GetNodeMap();
     nodeMap.TraverseDrivenRenderNodes(
         [&](const std::shared_ptr<RSRenderNode>& node) mutable {
-            if (node == nullptr) {
-                return;
-            }
-            if (!node->IsOnTheTree()) {
-                invalidDrivenNodes.emplace_back(node);
+            if (node == nullptr || !node->IsOnTheTree()) {
                 return;
             }
             drivenNodes.emplace_back(node);
@@ -646,9 +641,6 @@ void RSMainThread::CollectInfoForDrivenRender()
             }
         });
 
-    for (auto& node : invalidDrivenNodes) {
-        GetContext().GetMutableNodeMap().RemoveDrivenRenderNode(node->GetId());
-    }
     for (auto& node : drivenNodes) {
         node->SetPaintState(false);
         node->SetIsMarkDrivenRender(false);
