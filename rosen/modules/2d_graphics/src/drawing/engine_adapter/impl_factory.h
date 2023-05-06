@@ -43,6 +43,7 @@ class ImplFactory {
 public:
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl();
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl(void* rawCanvas);
+    static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl(int32_t width, int32_t height);
     static std::unique_ptr<DataImpl> CreateDataImpl();
 #ifdef ACE_ENABLE_GPU
     static std::unique_ptr<GPUContextImpl> CreateGPUContextImpl();

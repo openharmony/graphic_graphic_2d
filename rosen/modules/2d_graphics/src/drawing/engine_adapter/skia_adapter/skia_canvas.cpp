@@ -21,8 +21,10 @@
 #ifdef ACE_ENABLE_GPU
 #include "skia_gpu_context.h"
 #endif
+#include "skia_image_filter.h"
 #include "skia_path.h"
 
+#include "draw/core_canvas.h"
 #include "image/bitmap.h"
 #include "image/image.h"
 
@@ -39,7 +41,7 @@ SkiaCanvas::SkiaCanvas(const std::shared_ptr<SkCanvas>& skCanvas) : skiaCanvas_(
     skCanvas_ = skiaCanvas_.get();
 }
 
-SkiaCanvas::SkiaCanvas(int width, int height)
+SkiaCanvas::SkiaCanvas(int32_t width, int32_t height)
     : skiaCanvas_(std::make_shared<SkCanvas>(width, height)), skiaPaint_()
 {
     skCanvas_ = skiaCanvas_.get();
@@ -127,12 +129,12 @@ std::shared_ptr<GPUContext> SkiaCanvas::GetGPUContext() const
 }
 #endif
 
-int SkiaCanvas::GetWidth() const
+int32_t SkiaCanvas::GetWidth() const
 {
     return (skCanvas_ != nullptr) ? skCanvas_->imageInfo().width() : 0;
 }
 
-int SkiaCanvas::GetHeight() const
+int32_t SkiaCanvas::GetHeight() const
 {
     return (skCanvas_ != nullptr) ? skCanvas_->imageInfo().height() : 0;
 }
@@ -687,11 +689,6 @@ void SkiaCanvas::Scale(scalar sx, scalar sy)
     skCanvas_->scale(sx, sy);
 }
 
-void SkiaCanvas::Rotate(scalar deg)
-{
-    skiaCanvas_->rotate(deg);
-}
-
 void SkiaCanvas::Rotate(scalar deg, scalar sx, scalar sy)
 {
     if (!skCanvas_) {
@@ -737,12 +734,34 @@ void SkiaCanvas::Save()
     skCanvas_->save();
 }
 
-void SkiaCanvas::SaveLayer(const Rect& rect, const Brush& brush)
+void SkiaCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)
 {
-    SkRect bounds = SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
-    SkPaint paint;
-    skiaPaint_.BrushToSkPaint(brush, paint);
-    skCanvas_->saveLayer(bounds, &paint);
+    if (!skCanvas_) {
+        LOGE("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    std::unique_ptr<SkRect> skBounds = nullptr;
+    auto bounds = saveLayerOps.GetBounds();
+    if (bounds != nullptr) {
+        skBounds = std::make_unique<SkRect>();
+        skBounds->setLTRB(bounds->GetLeft(), bounds->GetTop(), bounds->GetRight(), bounds->GetBottom());
+    }
+    std::unique_ptr<SkPaint> paint = nullptr;
+    auto brush = saveLayerOps.GetBrush();
+    if (brush != nullptr) {
+        paint = std::make_unique<SkPaint>();
+        skiaPaint_.BrushToSkPaint(*brush, *paint);
+    }
+    sk_sp<SkImageFilter> skImageFilter = nullptr;
+    auto imageFilter = saveLayerOps.GetImageFilter();
+    if (imageFilter != nullptr && imageFilter->GetImpl<SkiaImageFilter>() != nullptr) {
+        auto skiaImageFilter = imageFilter->GetImpl<SkiaImageFilter>();
+        skImageFilter = skiaImageFilter->GetImageFilter();
+    }
+
+    SkCanvas::SaveLayerRec slr(skBounds.get(), paint.get(), skImageFilter.get(),
+        static_cast<SkCanvas::SaveLayerFlags>(saveLayerOps.GetSaveLayerFlags() << 1));  // Offset 1 bit
+    skCanvas_->saveLayer(slr);
 }
 
 void SkiaCanvas::Restore()
@@ -754,7 +773,7 @@ void SkiaCanvas::Restore()
     skCanvas_->restore();
 }
 
-int SkiaCanvas::GetSaveCount() const
+uint32_t SkiaCanvas::GetSaveCount() const
 {
     return (skCanvas_ != nullptr) ? skCanvas_->getSaveCount() : 0;
 }

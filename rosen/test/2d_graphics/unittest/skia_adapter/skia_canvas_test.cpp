@@ -438,8 +438,9 @@ HWTEST_F(SkiaCanvasTest, SaveLayer001, TestSize.Level2)
 {
     Rect rect;
     Brush brush;
+    SaveLayerOps slo(&rect, &brush);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.SaveLayer(rect, brush);
+    skiaCanvas.SaveLayer(slo);
 }
 
 } // namespace Drawing

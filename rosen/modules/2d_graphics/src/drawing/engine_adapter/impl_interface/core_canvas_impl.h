@@ -49,6 +49,8 @@ class PixelMap;
 namespace Rosen {
 namespace Drawing {
 enum class SrcRectConstraint;
+class SaveLayerOps;
+
 class CoreCanvasImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
@@ -67,8 +69,8 @@ public:
 #ifdef ACE_ENABLE_GPU
     virtual std::shared_ptr<GPUContext> GetGPUContext() const = 0;
 #endif
-    virtual int GetWidth() const = 0;
-    virtual int GetHeight() const = 0;
+    virtual int32_t GetWidth() const = 0;
+    virtual int32_t GetHeight() const = 0;
 
     // shapes
     virtual void DrawPoint(const Point& point) = 0;
@@ -106,7 +108,6 @@ public:
     virtual void ConcatMatrix(const Matrix& matrix) = 0;
     virtual void Translate(scalar dx, scalar dy) = 0;
     virtual void Scale(scalar sx, scalar sy) = 0;
-    virtual void Rotate(scalar deg) = 0;
     virtual void Rotate(scalar deg, scalar sx, scalar sy) = 0;
     virtual void Shear(scalar sx, scalar sy) = 0;
 
@@ -114,9 +115,9 @@ public:
     virtual void Flush() = 0;
     virtual void Clear(ColorQuad color) = 0;
     virtual void Save() = 0;
-    virtual void SaveLayer(const Rect& rect, const Brush& brush) = 0;
+    virtual void SaveLayer(const SaveLayerOps& saveLayerOption) = 0;
     virtual void Restore() = 0;
-    virtual int  GetSaveCount() const = 0;
+    virtual uint32_t  GetSaveCount() const = 0;
 
     // paint
     virtual void AttachPen(const Pen& pen) = 0;

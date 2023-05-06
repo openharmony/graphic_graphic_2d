@@ -44,7 +44,7 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaCanvas();
     explicit SkiaCanvas(const std::shared_ptr<SkCanvas>& skCanvas);
-    SkiaCanvas(int width, int height);
+    SkiaCanvas(int32_t width, int32_t height);
     ~SkiaCanvas() override {};
     AdapterType GetType() const override
     {
@@ -59,8 +59,8 @@ public:
 #ifdef ACE_ENABLE_GPU
     std::shared_ptr<GPUContext> GetGPUContext() const override;
 #endif
-    int GetWidth() const override;
-    int GetHeight() const override;
+    int32_t GetWidth() const override;
+    int32_t GetHeight() const override;
 
     // shapes
     void DrawPoint(const Point& point) override;
@@ -98,7 +98,6 @@ public:
     void ConcatMatrix(const Matrix& matrix) override;
     void Translate(scalar dx, scalar dy) override;
     void Scale(scalar sx, scalar sy) override;
-    void Rotate(scalar deg) override;
     void Rotate(scalar deg, scalar sx, scalar sy) override;
     void Shear(scalar sx, scalar sy) override;
 
@@ -106,9 +105,9 @@ public:
     void Flush() override;
     void Clear(ColorQuad color) override;
     void Save() override;
-    void SaveLayer(const Rect& rect, const Brush& brush) override;
+    void SaveLayer(const SaveLayerOps& saveLayerOps) override;
     void Restore() override;
-    int GetSaveCount() const override;
+    uint32_t GetSaveCount() const override;
 
     // paint
     void AttachPen(const Pen& pen) override;

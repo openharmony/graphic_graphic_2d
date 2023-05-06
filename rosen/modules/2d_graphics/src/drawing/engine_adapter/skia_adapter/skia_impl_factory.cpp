@@ -49,6 +49,11 @@ std::unique_ptr<CoreCanvasImpl> SkiaImplFactory::CreateCoreCanvas(void* rawCanva
     return std::make_unique<SkiaCanvas>(*skCanvasPtr);
 }
 
+std::unique_ptr<CoreCanvasImpl> SkiaImplFactory::CreateCoreCanvas(int32_t width, int32_t height)
+{
+    return std::make_unique<SkiaCanvas>(width, height);
+}
+
 std::unique_ptr<DataImpl> SkiaImplFactory::CreateData()
 {
     return std::make_unique<SkiaData>();
