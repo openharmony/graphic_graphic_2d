@@ -31,7 +31,7 @@ int main(int argc, const char *argv[])
     while (displays.empty()) {
         LOGI("displays is empty, retry to get displays");
         displays = dms.GetAllDisplays();
-        sleep(1);
+        usleep(SLEEP_TIME_US);
     }
 
     BootAnimation bootAnimation;

@@ -17,6 +17,7 @@
 #include "rs_trace.h"
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_transaction.h"
 
 using namespace OHOS;
 
@@ -146,20 +147,27 @@ void BootAnimation::InitBootWindow()
     option->SetTouchable(false);
     if (animationConfig_.IsBootVideoEnabled()) {
         option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
-        option->SetWindowRect({pointX_, pointY_, realWidth_, realHeight_});
-    } else {
-        option->SetWindowRect({0, 0, windowWidth_, windowHeight_} );
     }
+    option->SetWindowRect({0, 0, windowWidth_, windowHeight_} );
     int displayId = 0;
     sptr<OHOS::Rosen::IWindowLifeCycle> listener = nullptr;
+    LOGI("Create window scene.");
     scene_ = new OHOS::Rosen::WindowScene();
+    LOGI("Init window scene.");
     scene_->Init(displayId, nullptr, listener, option);
     window_ = scene_->GetMainWindow();
     while (window_ == nullptr) {
         LOGI("window is nullptr, continue to init window");
         scene_->Init(displayId, nullptr, listener, option);
         window_ = scene_->GetMainWindow();
-        sleep(1);
+        usleep(SLEEP_TIME_US);
+    }
+    LOGI("Init window scene end.");
+    if (animationConfig_.IsBootVideoEnabled()) {
+        auto surfaceNode = window_->GetSurfaceNode();
+        surfaceNode->SetBackgroundColor(0xFF0000);
+        surfaceNode->SetFrameGravity(Rosen::Gravity::RESIZE_ASPECT);
+        OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
     }
     scene_->GoForeground();
 }
@@ -210,7 +218,7 @@ void BootAnimation::OnVsync()
     PostTask(std::bind(&BootAnimation::Draw, this));
 }
 
-void BootAnimation::CheckExitAnimation()
+bool BootAnimation::CheckExitAnimation()
 {
     if (!setBootEvent_) {
         LOGI("CheckExitAnimation set bootevent parameter");
@@ -219,10 +227,11 @@ void BootAnimation::CheckExitAnimation()
     }
     std::string windowInit = system::GetParameter("bootevent.boot.completed", "false");
     if (windowInit == "true") {
-        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
+        mainHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
         LOGI("CheckExitAnimation read windowInit is true");
-        return;
+        return true;
     }
+    return false;
 }
 
 void BootAnimation::PlaySound()
@@ -251,17 +260,20 @@ void BootAnimation::PlayVideo()
     }
     fcb_ = {
         .userData_ = this,
-        .callback_ = std::bind(&BootAnimation::CloseVidePlayer, this),
+        .callback_ = std::bind(&BootAnimation::CloseVideoPlayer, this),
     };
-    videoPlayer_ = std::make_shared<BootVideoPlayer>();
-    videoPlayer_->SetVideoPath(animationConfig_.GetCustVideoPath());
-    videoPlayer_->SetPlayerWindow(window_);
-    videoPlayer_->SetCallback(&fcb_);
-    videoPlayer_->PlayVideo();
+    bootVideoPlayer_ = std::make_shared<BootVideoPlayer>();
+    bootVideoPlayer_->SetVideoPath(animationConfig_.GetCustVideoPath());
+    bootVideoPlayer_->SetPlayerWindow(window_);
+    bootVideoPlayer_->SetCallback(&fcb_);
+    bootVideoPlayer_->PlayVideo();
 }
 
-void BootAnimation::CloseVidePlayer()
+void BootAnimation::CloseVideoPlayer()
 {
-    window_->Destroy();
-    mainHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
+    LOGI("Close video player.");
+    while (!CheckExitAnimation()) {
+        usleep(SLEEP_TIME_US);
+    }
+    LOGI("Check Exit Animation end.");
 }

@@ -40,6 +40,7 @@
 namespace OHOS {
 static const int READ_SIZE = 8192;
 static const int MAX_FILE_NAME = 512;
+static const int SLEEP_TIME_US = 30000;
 static const std::string BOOT_PIC_CONFIGFILE = "config.json";
 using MemStruct = struct MemStruct {
 public:
@@ -54,7 +55,6 @@ public:
             free(memBuffer);
             memBuffer = nullptr;
         }
-        LOGI("~MemStruct()");
     }
     void setOwnerShip(sk_sp<SkData>& skData)
     {
@@ -80,7 +80,6 @@ public:
     ~ImageStruct()
     {
         imageData = nullptr;
-        LOGI("~ImageStruct() %{public}s", fileName.c_str());
     }
 };
 using BootAniConfig = struct BootAniConfig {

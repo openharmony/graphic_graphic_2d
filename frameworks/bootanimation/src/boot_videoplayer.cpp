@@ -40,18 +40,18 @@ void BootVideoPlayer::SetPlayerWindow(const OHOS::sptr<OHOS::Rosen::Window>& win
 void BootVideoPlayer::PlayVideo()
 {
     LOGI("PlayVideo begin");
-    if (videoPlayer_ == nullptr) {
-        videoPlayer_ = Media::PlayerFactory::CreatePlayer();
+    if (mediaPlayer_ == nullptr) {
+        mediaPlayer_ = Media::PlayerFactory::CreatePlayer();
     }
     std::shared_ptr<VideoPlayerCallback> cb = std::make_shared<VideoPlayerCallback>(shared_from_this());
-    int32_t ret = videoPlayer_->SetPlayerCallback(cb);
+    int32_t ret = mediaPlayer_->SetPlayerCallback(cb);
     if (ret != 0) {
         LOGE("PlayVideo SetPlayerCallback fail, errorCode:%{public}d", ret);
         return;
     }
 
     std::string uri = "file:/" + videopath_;
-    ret = videoPlayer_->SetSource(uri);
+    ret = mediaPlayer_->SetSource(uri);
     if (ret != 0) {
         LOGE("PlayVideo SetSource fail, errorCode:%{public}d", ret);
         return;
@@ -61,23 +61,23 @@ void BootVideoPlayer::PlayVideo()
         LOGE("PlayVideo surface is null");
         return;
     }
-    ret = videoPlayer_->SetVideoSurface(surface);
+    ret = mediaPlayer_->SetVideoSurface(surface);
     if (ret != 0) {
         LOGE("PlayVideo SetVideoSurface fail, errorCode:%{public}d", ret);
         return;
     }
-    ret = videoPlayer_->Prepare();
+    ret = mediaPlayer_->Prepare();
     if (ret !=  0) {
         LOGE("PlayVideo Prepare fail, errorCode:%{public}d", ret);
         return;
     }
-    videoPlayer_->Play();
+    mediaPlayer_->Play();
     LOGI("PlayVideo end");
 }
 
 void BootVideoPlayer::StopVideo()
 {
-    videoPlayer_->Stop();
+    mediaPlayer_->Stop();
     vsyncCallbacks_(userData_);
 }
 
@@ -86,6 +86,7 @@ void VideoPlayerCallback::OnError(Media::PlayerErrorType errorType, int32_t erro
 {
     std::string err = Media::MSErrorToString(static_cast<Media::MediaServiceErrCode>(errorCode));
     LOGE("PlayerCallbackError received, errorCode:%{public}s", err.c_str());
+    boot_->StopVideo();
 }
 
 void VideoPlayerCallback::OnInfo(Media::PlayerOnInfoType type, int32_t extra, const Media::Format &infoBody)
@@ -115,11 +116,6 @@ void VideoPlayerCallback::OnInfo(Media::PlayerOnInfoType type, int32_t extra, co
             LOGI("PlayerCallback: State Change");
             break;
         case Media::INFO_TYPE_POSITION_UPDATE: {
-            std::string windowInit = system::GetParameter("bootevent.boot.completed", "false");
-            if (windowInit == "true") {
-                LOGI("PlayerCallback: Position Update Exit Bootanimation");
-                boot_->StopVideo();
-            }
             LOGI("PlayerCallback: Position Update");
             break;
         }
