@@ -89,6 +89,7 @@ public:
     virtual int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
                                                      GraphicPresentTimestampType &type) = 0;
     virtual int32_t GetPresentTimestamp(uint32_t screenId, uint32_t layerId, GraphicPresentTimestamp &timestamp) = 0;
+    virtual int32_t SetLayerMaskInfo(uint32_t screenId, uint32_t layerId, uint32_t maskInfo) = 0;
     /* set & get device layer info end */
 
     virtual int32_t CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t &layerId) = 0;

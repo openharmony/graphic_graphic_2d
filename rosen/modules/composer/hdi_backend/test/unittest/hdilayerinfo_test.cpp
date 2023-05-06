@@ -530,6 +530,40 @@ HWTEST_F(HdiLayerInfoTest, PresentTimestamp003, Function | MediumTest | Level1)
     ASSERT_EQ(timestampSet.type, timestampGet.type);
     ASSERT_EQ(timestampSet.time, timestampGet.time);
 }
+
+/*
+* Function: SetLayerMaskInfo and GetLayerMaskInfo
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetLayerMaskInfo
+*                  2. call GetLayerMaskInfo and check ret
+* @tc.require: issueI6WBXO
+ */
+HWTEST_F(HdiLayerInfoTest, SetLayerMaskInfo001, Function | MediumTest | Level1)
+{
+    HdiLayerInfo::LayerMask layerMask = HdiLayerInfo::LayerMask::LAYER_MASK_NORMAL;
+    HdiLayerInfoTest::hdiLayerInfo_->SetLayerMaskInfo(layerMask);
+    HdiLayerInfo::LayerMask Get = HdiLayerInfoTest::hdiLayerInfo_->GetLayerMaskInfo();
+    ASSERT_EQ(layerMask, Get);
+}
+
+/*
+* Function: SetLayerMaskInfo and GetLayerMaskInfo
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetLayerMaskInfo
+*                  2. call GetLayerMaskInfo and check ret
+* @tc.require: issueI6WBXO
+ */
+HWTEST_F(HdiLayerInfoTest, SetLayerMaskInfo002, Function | MediumTest | Level1)
+{
+    HdiLayerInfo::LayerMask layerMask = HdiLayerInfo::LayerMask::LAYER_MASK_HBM_SYNC;
+    HdiLayerInfoTest::hdiLayerInfo_->SetLayerMaskInfo(layerMask);
+    HdiLayerInfo::LayerMask Get = HdiLayerInfoTest::hdiLayerInfo_->GetLayerMaskInfo();
+    ASSERT_EQ(layerMask, Get);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

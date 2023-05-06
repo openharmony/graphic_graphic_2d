@@ -108,6 +108,7 @@ private:
     bool IsSameLayerMetaData();
     bool IsSameLayerMetaDataSet();
     inline void CheckRet(int32_t ret, const char* func);
+    int32_t SetLayerMaskInfo();
 };
 } // namespace Rosen
 } // namespace OHOS
