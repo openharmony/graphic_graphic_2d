@@ -159,7 +159,7 @@ static sk_sp<SkVertices> CreateSkVertices()
         builder.texCoords()[i].set(x, 2);
         builder.colors()[i] = SkColorSetARGB(0x5F, i, 0x80, 0);
     }
-    for (int i = 0; i < builder.indexCount(); ++i) {
+    for (int i = 0; i < iCount; ++i) {
         builder.indices()[i] = i % vCount;
     }
 
@@ -353,7 +353,9 @@ HWTEST_F(RSMarshallingTest, SkPaintSerialization001, Function | MediumTest | Lev
     SkPaint paintUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, paintUnmarshal));
     ASSERT_EQ(paintUnmarshal.getColor(), paint.getColor());
+#ifndef NEW_SKIA
     ASSERT_EQ(paintUnmarshal.getBlendMode(), paint.getBlendMode());
+#endif
     ASSERT_EQ(paintUnmarshal.getStrokeWidth(), paint.getStrokeWidth());
 }
 
@@ -496,9 +498,11 @@ HWTEST_F(RSMarshallingTest, SkVerticesSerialization001, Function | MediumTest | 
     sk_sp<SkVertices> verticesUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, verticesUnmarshal));
     ASSERT_TRUE(verticesUnmarshal != nullptr);
+#ifndef NEW_SKIA
     ASSERT_EQ(verticesUnmarshal->vertexCount(), vertices->vertexCount());
     ASSERT_EQ(verticesUnmarshal->indexCount(), vertices->indexCount());
     ASSERT_EQ(verticesUnmarshal->mode(), vertices->mode());
+#endif
 }
 
 /**
@@ -611,7 +615,9 @@ HWTEST_F(RSMarshallingTest, SkImageFilterSerialization001, Function | MediumTest
     sk_sp<SkImageFilter> filterUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, filterUnmarshal));
     ASSERT_TRUE(filterUnmarshal != nullptr);
+#ifndef NEW_SKIA
     ASSERT_EQ(filterUnmarshal->GetFlattenableType(), filter->GetFlattenableType());
+#endif
 }
 
 /**
@@ -630,7 +636,11 @@ HWTEST_F(RSMarshallingTest, SkShaderSerialization001, Function | MediumTest | Le
     bitmap.eraseColor(0xffff0000);
     bitmap.erase(0xff47f07f, SkIRect::MakeWH(150, 150));
     bitmap.erase(0xff3f53ff, SkIRect::MakeXYWH(150, 150, 50, 50));
+#ifdef NEW_SKIA
+    auto shader = bitmap.makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat, SkSamplingOptions());
+#else
     auto shader = bitmap.makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat);
+#endif
 
     /**
      * @tc.steps: step2. serialize SkShader

@@ -19,7 +19,11 @@
 #include <cstddef>
 #include <cstdint>
 
+#ifdef NEW_SKIA
+#include "include/core/SkM44.h"
+#else
 #include "include/core/SkMatrix44.h"
+#endif
 #include "include/utils/SkCamera.h"
 #include "rs_thread_handler_generic.h"
 #include "rs_thread_looper_generic.h"

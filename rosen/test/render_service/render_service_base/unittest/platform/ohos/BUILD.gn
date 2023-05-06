@@ -52,7 +52,6 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//third_party/flutter/build/skia:ace_skia_ohos",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -62,8 +61,14 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
-    "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
+  if (defined(use_new_skia) && use_new_skia) {
+    deps += [ "//third_party/skia:skia_ohos" ]
+    public_deps += [ "//third_party/skia:skia_ohos" ]
+  } else {
+    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+    public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  }
 
   if (ace_enable_gpu) {
     include_dirs += [ "//third_party/openssl/include" ]

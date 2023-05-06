@@ -134,10 +134,15 @@ int main()
     SkPaint paint;
     auto canvas = static_cast<RSRecordingCanvas*>(canvasNode->BeginRecording(600, 1200));
     cout << "DrawPixelMap" << endl;
+#ifdef NEW_SKIA
+    canvas->DrawPixelMap(pixelmap, 100, 200, SkSamplingOptions(), nullptr);
+    cout << "DrawPixelMapRect" << endl;
+    canvas->DrawPixelMapRect(pixelmap, SkRect::MakeXYWH(10, 10, 200, 200), SkRect::MakeXYWH(20, 300, 400, 600), SkSamplingOptions(), &paint);
+#else
     canvas->DrawPixelMap(pixelmap, 100, 200);
     cout << "DrawPixelMapRect" << endl;
     canvas->DrawPixelMapRect(pixelmap, SkRect::MakeXYWH(10, 10, 200, 200), SkRect::MakeXYWH(20, 300, 400, 600), &paint);
-
+#endif
     SkVector radii_[4] = { { 10, 10 }, { 10, 10 }, { 10, 10 }, { 10, 10 } };
     RsImageInfo rsImageInfo(5, 1, radii_, 0, 0, 0, 0);
     cout << "DrawPixelMapWithParm" << endl;

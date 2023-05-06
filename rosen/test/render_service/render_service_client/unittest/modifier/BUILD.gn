@@ -12,7 +12,6 @@
 # limitations under the License.
 
 import("//build/test.gni")
-
 module_output_path = "graphic/rosen_engine/render_service_client/modifier"
 
 ##############################  RSRenderServiceClientTest  ##################################

@@ -145,7 +145,12 @@ void DrawPixelmap(std::shared_ptr<RSSurfaceNode> surfaceNode, std::shared_ptr<Me
     SkPixmap pixmap(layerInfo, addr, pixelmap->GetRowBytes());
     SkBitmap bitmap;
     if (bitmap.installPixels(pixmap)) {
+#ifdef NEW_SKIA
+        canvas->drawImageRect(
+            bitmap.asImage(), SkRect::MakeXYWH(0, 0, sWidth, sHeight), SkSamplingOptions(), nullptr);
+#else
         canvas->drawBitmapRect(bitmap, SkRect::MakeXYWH(0, 0, sWidth, sHeight), nullptr);
+#endif
     }
     framePtr->SetDamageRegion(0, 0, sWidth, sHeight);
     auto framePtr1 = std::move(framePtr);

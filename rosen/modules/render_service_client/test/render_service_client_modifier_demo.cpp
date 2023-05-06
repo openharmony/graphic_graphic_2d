@@ -111,7 +111,11 @@ public:
         bitmap.erase(0xff3fff7f, SkIRect::MakeWH(50, 50));
         bitmap.erase(0xffff3f7f, SkIRect::MakeXYWH(50, 50, 50, 50));
         SkPaint p;
+#ifdef NEW_SKIA
+        p.setShader(bitmap.makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat, SkSamplingOptions()));
+#else
         p.setShader(bitmap.makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat));
+#endif
         auto animatableProperty = std::static_pointer_cast<RSAnimatableProperty<MyData>>(property_);
         p.setAlphaf(animatableProperty->Get().data);
         std::cout << "MyModifier Draw property get  " << animatableProperty->Get().data << std::endl;
