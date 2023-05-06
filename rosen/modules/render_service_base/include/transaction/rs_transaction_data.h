@@ -93,16 +93,6 @@ public:
         return marshallingIndex_;
     }
 
-    void SetUniRender(bool flag)
-    {
-        isUniRender_ = flag;
-    }
-
-    bool GetUniRender() const
-    {
-        return isUniRender_;
-    }
-
     std::list<std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>>& GetPayload()
     {
         return payload_;
@@ -158,7 +148,6 @@ private:
     std::string abilityName_;
     pid_t pid_ = 0;
     uint64_t index_ = 0;
-    bool isUniRender_ = false;
     mutable size_t marshallingIndex_ = 0;
     bool needSync_ { false };
     bool needCloseSync_ { false };

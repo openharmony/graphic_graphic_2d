@@ -26,19 +26,20 @@
 namespace OHOS::Rosen {
 RSImageBase::~RSImageBase()
 {
-    if (image_) {
-        image_ = nullptr;
-        if (uniqueId_ > 0) {
-            // if image_ is obtained by RSPixelMapUtil::ExtractSkImage, uniqueId_ here is related to pixelMap,
-            // image_ is not in SkiaImageCache, but still check it here
-            // in this case, the cached image_ will be removed when pixelMap cache is removed
-            RSImageCache::Instance().ReleaseSkiaImageCache(uniqueId_);
-        }
-    }
     if (pixelMap_) {
         pixelMap_ = nullptr;
         if (uniqueId_ > 0) {
             RSImageCache::Instance().ReleasePixelMapCache(uniqueId_);
+        }
+    } else { // if pixelMap_ not nullptr, do not release skImage cache
+        if (image_) {
+            image_ = nullptr;
+            if (uniqueId_ > 0) {
+                // if image_ is obtained by RSPixelMapUtil::ExtractSkImage, uniqueId_ here is related to pixelMap,
+                // image_ is not in SkiaImageCache, but still check it here
+                // in this case, the cached image_ will be removed when pixelMap cache is removed
+                RSImageCache::Instance().ReleaseSkiaImageCache(uniqueId_);
+            }
         }
     }
 }

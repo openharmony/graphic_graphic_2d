@@ -66,13 +66,7 @@ HWTEST_F(RSUnmarshalThreadTest, RecvParcel001, TestSize.Level1)
 
     RSUnmarshalThread::Instance().RecvParcel(data);
 
-    transactionData->SetUniRender(true);
     bool success = data->WriteParcelable(transactionData.get());
-    ASSERT_EQ(success, true);
-    RSUnmarshalThread::Instance().RecvParcel(data);
-
-    transactionData->SetUniRender(false);
-    success = data->WriteParcelable(transactionData.get());
     ASSERT_EQ(success, true);
     RSUnmarshalThread::Instance().RecvParcel(data);
 }

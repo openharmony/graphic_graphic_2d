@@ -41,7 +41,6 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
         return;
     }
     bool isUniMode = RSSystemProperties::GetUniRenderEnabled();
-    transactionData->SetUniRender(isUniMode);
     transactionData->SetSendingPid(pid_);
 
     // split to several parcels if parcel size > PARCEL_SPLIT_THRESHOLD during marshalling
@@ -81,8 +80,7 @@ bool RSRenderServiceConnectionProxy::FillParcelWithTransactionData(
 
     // 1. marshalling RSTransactionData
     RS_TRACE_BEGIN("MarshRSTransactionData cmdCount:" + std::to_string(transactionData->GetCommandCount()) +
-        " transactionFlag:[" + std::to_string(pid_) + "," + std::to_string(transactionData->GetIndex()) + "] isUni:" +
-        std::to_string(transactionData->GetUniRender()));
+        " transactionFlag:[" + std::to_string(pid_) + "," + std::to_string(transactionData->GetIndex()) + "]");
     bool success = data->WriteParcelable(transactionData.get());
     RS_TRACE_END();
     if (!success) {
