@@ -49,12 +49,12 @@ class BootAnimation {
 public:
     void Init(int32_t width, int32_t height);
     void Draw();
-    void CheckExitAnimation();
+    bool CheckExitAnimation();
     void PlaySound();
     void PlayVideo();
     void Run(std::vector<sptr<OHOS::Rosen::Display>>& displays);
     ~BootAnimation();
-    void CloseVidePlayer();
+    void CloseVideoPlayer();
 private:
     void OnVsync();
     void OnDraw(SkCanvas* canvas, int32_t curNo);
@@ -81,7 +81,7 @@ private:
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainHandler_;
     std::shared_ptr<AppExecFwk::EventRunner> runner_;
     bool setBootEvent_ = false;
-    std::shared_ptr<BootVideoPlayer> videoPlayer_;
+    std::shared_ptr<BootVideoPlayer> bootVideoPlayer_;
     BootAnimationConfig animationConfig_;
     OHOS::FrameCallback fcb_;
 };

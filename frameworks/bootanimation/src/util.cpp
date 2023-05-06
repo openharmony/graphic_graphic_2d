@@ -223,7 +223,7 @@ void WaitRenderServiceInit()
         sptr<ISystemAbilityManager> samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (samgr == nullptr) {
             LOGI("samgr is null");
-            sleep(1);
+            usleep(SLEEP_TIME_US);
             continue;
         }
         sptr<IRemoteObject> remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
@@ -232,7 +232,7 @@ void WaitRenderServiceInit()
             break;
         } else {
             LOGI("renderService is not inited, wait");
-            sleep(1);
+            usleep(SLEEP_TIME_US);
         }
     }
 }

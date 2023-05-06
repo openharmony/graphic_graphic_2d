@@ -43,7 +43,7 @@ public:
     void PlayVideo();
     void StopVideo();
 private:
-    std::shared_ptr<Media::Player> videoPlayer_;
+    std::shared_ptr<Media::Player> mediaPlayer_;
     OHOS::sptr<OHOS::Rosen::Window> window_;
     std::string videopath_;
     VSyncCallback vsyncCallbacks_;
