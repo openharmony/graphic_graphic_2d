@@ -49,6 +49,7 @@ bool RSImage::IsEqual(const RSImage& other) const
 
 void RSImage::CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkPaint& paint, bool isBackground)
 {
+    UpdateNodeIdToPicture(nodeId_);
     canvas.save();
     frameRect_.SetAll(rect.left(), rect.top(), rect.width(), rect.height());
     if (!isBackground) {
@@ -235,6 +236,11 @@ void RSImage::SetScale(double scale)
     }
 }
 
+void RSImage::SetNodeId(NodeId nodeId)
+{
+    nodeId_ = nodeId;
+}
+
 #ifdef ROSEN_OHOS
 static bool UnmarshallingIdAndSize(Parcel& parcel, uint64_t& uniqueId, int& width, int& height)
 {
@@ -283,6 +289,7 @@ bool RSImage::Marshalling(Parcel& parcel) const
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_)) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.height_)) &&
+                   RSMarshallingHelper::Marshalling(parcel, nodeId_) &&
                    parcel.WriteBool(pixelMap_ == nullptr) &&
                    RSMarshallingHelper::Marshalling(parcel, image) &&
                    RSMarshallingHelper::Marshalling(parcel, pixelMap_) &&
@@ -303,11 +310,17 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
         RS_LOGE("RSImage::Unmarshalling UnmarshallingIdAndSize fail");
         return nullptr;
     }
+    NodeId nodeId;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, nodeId)) {
+        RS_LOGE("RSImage::Unmarshalling nodeId fail");
+        return nullptr;
+    }
 
     bool useSkImage;
     sk_sp<SkImage> img;
     std::shared_ptr<Media::PixelMap> pixelMap;
-    if (!UnmarshallingSkImageAndPixelMap(parcel, uniqueId, useSkImage, img, pixelMap)) {
+    void* imagepixelAddr = nullptr;
+    if (!UnmarshallingSkImageAndPixelMap(parcel, uniqueId, useSkImage, img, imagepixelAddr, pixelMap)) {
         return nullptr;
     }
     sk_sp<SkData> compressData;
@@ -344,12 +357,14 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
 
     RSImage* rsImage = new RSImage();
     rsImage->SetImage(img);
+    rsImage->SetImagePixelAddr(imagepixelAddr);
     rsImage->SetCompressData(compressData, uniqueId, width, height);
     rsImage->SetPixelMap(pixelMap);
     rsImage->SetImageFit(fitNum);
     rsImage->SetImageRepeat(repeatNum);
     rsImage->SetRadius(radius);
     rsImage->SetScale(scale);
+    rsImage->SetNodeId(nodeId);
     rsImage->uniqueId_ = uniqueId;
 
     RSImageBase::IncreaseCacheRefCount(uniqueId, useSkImage, pixelMap);
