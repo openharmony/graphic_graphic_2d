@@ -216,6 +216,42 @@ public:
         return isContentChanged_ || !animationManager_.animations_.empty();
     }
 
+    bool HasFilter() const
+    {
+        return hasFilter_;
+    }
+
+    void SetHasFilter(bool hasFilter)
+    {
+        hasFilter_ = hasFilter;
+    }
+
+    bool IsMainThreadNode() const
+    {
+        return isMainThreadNode_;
+    }
+
+    void SetIsMainThreadNode(bool isMainThreadNode)
+    {
+        isMainThreadNode_ = isMainThreadNode;
+    }
+
+    void SetPriority(NodePriorityType priority)
+    {
+        priority_ = priority;
+    }
+
+    NodePriorityType GetPriority()
+    {
+        return priority_;
+    }
+
+    bool HasCachedTexture() const
+    {
+        // return true if cached texture existed, include itself or its children
+        return false;
+    }
+
     void SetDrawRegion(std::shared_ptr<RectF> rect)
     {
         drawRegion_ = rect;
@@ -262,6 +298,10 @@ private:
     sk_sp<SkSurface> cacheSurface_ = nullptr;
     CacheType cacheType_ = CacheType::NONE;
     bool cacheTypeChanged_ = false;
+
+    bool isMainThreadNode_ = false;
+    bool hasFilter_ = false;
+    NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 
     // driven render
     int itemIndex_ = -1;

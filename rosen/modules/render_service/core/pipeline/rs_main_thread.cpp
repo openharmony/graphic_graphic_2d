@@ -14,6 +14,7 @@
  */
 #include "pipeline/rs_main_thread.h"
 
+#include <list>
 #include <SkGraphics.h>
 #include <securec.h>
 #include <stdint.h>
@@ -46,6 +47,7 @@
 #include "pipeline/rs_unmarshal_thread.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_visitor.h"
+#include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_occlusion_config.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_innovation.h"
@@ -334,12 +336,13 @@ void RSMainThread::SetRSEventDetectorLoopFinishTag()
 }
 
 void RSMainThread::SetFocusAppInfo(
-    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName)
+    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
 {
     focusAppPid_ = pid;
     focusAppUid_ = uid;
     focusAppBundleName_ = bundleName;
     focusAppAbilityName_ = abilityName;
+    focusNodeId_ = focusNodeId;
 }
 
 void RSMainThread::Start()
@@ -858,6 +861,14 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                 PerfForBlurIfNeeded();
                 return;
             }
+        }
+        if (IsSingleDisplay()) {
+            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
+                rootNode->GetSortedChildren().front());
+            std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
+            std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
+            RSUniRenderUtil::AssignWindowNodes(displayNode, focusNodeId_, mainThreadNodes, subThreadNodes);
+            uniVisitor->SetAssignedWindowNodes(mainThreadNodes, subThreadNodes);
         }
         rootNode->Process(uniVisitor);
     }
@@ -1732,6 +1743,16 @@ sk_sp<SkImage> RSMainThread::GetWatermarkImg()
 bool RSMainThread::GetWatermarkFlag()
 {
     return isShow_;
+}
+
+bool RSMainThread::IsSingleDisplay()
+{
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
+    if (rootNode == nullptr) {
+        RS_LOGE("RSMainThread::IsSingleDisplay GetGlobalRootRenderNode fail");
+        return false;
+    }
+    return rootNode->GetChildrenCount() == 1;
 }
 } // namespace Rosen
 } // namespace OHOS

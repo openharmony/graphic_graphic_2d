@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_CORE_PIPELINE_RS_UNI_RENDER_VISITOR_H
 
 #include <cstdint>
+#include <list>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -79,6 +80,13 @@ public:
     void SetFocusedWindowPid(pid_t pid)
     {
         currentFocusedPid_ = pid;
+    }
+
+    void SetAssignedWindowNodes(const std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
+        const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
+    {
+        mainThreadNodes_ = mainThreadNodes;
+        subThreadNodes_ = subThreadNodes;
     }
 
     bool GetAnimateState() const
@@ -242,6 +250,9 @@ private:
     ColorGamut newColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
     std::vector<ScreenColorGamut> colorGamutModes_;
     pid_t currentFocusedPid_ = -1;
+
+    std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes_;
+    std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes_;
 
     bool needColdStartThread_ = false; // flag used for cold start app window
     bool needCheckFirstFrame_ = false; // flag used for avoiding notifying first frame repeatedly

@@ -366,7 +366,7 @@ HWTEST_F(RSMainThreadTest, SetFocusAppInfo, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     std::string str = "";
-    mainThread->SetFocusAppInfo(-1, -1, str, str);
+    mainThread->SetFocusAppInfo(-1, -1, str, str, 0);
 }
 
 /**

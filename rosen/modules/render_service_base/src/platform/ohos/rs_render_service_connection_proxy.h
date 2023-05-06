@@ -39,7 +39,8 @@ public:
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name) override;
 
     int32_t SetFocusAppInfo(
-        int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName) override;
+        int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
+        uint64_t focusNodeId) override;
 
     ScreenId GetDefaultScreenId() override;
 

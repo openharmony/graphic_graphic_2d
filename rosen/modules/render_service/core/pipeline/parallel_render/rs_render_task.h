@@ -53,6 +53,7 @@ public:
     enum class RenderNodeStage {
         PREPARE = 0,
         PROCESS,
+        CACHE,
         CALC_COST
     };
     explicit RSRenderTask(RSSurfaceRenderNode &node, RenderNodeStage stage)

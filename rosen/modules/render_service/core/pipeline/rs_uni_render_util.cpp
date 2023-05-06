@@ -20,6 +20,7 @@
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_path.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -291,6 +292,65 @@ int RSUniRenderUtil::GetRotationFromMatrix(SkMatrix matrix)
     static const std::map<int, int> supportedDegrees = {{90, 270}, {180, 180}, {-90, 90}};
     auto iter = supportedDegrees.find(rAngle);
     return iter != supportedDegrees.end() ? iter->second : 0;
+}
+
+void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& node, uint64_t focusNodeId,
+    std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
+    std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
+{
+    if (node == nullptr) {
+        ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes display node is null");
+        return;
+    }
+    RS_TRACE_NAME("AssignWindowNodes");
+    bool focusedNodeFound = false;
+    for (auto iter = node->GetSortedChildren().begin(); iter != node->GetSortedChildren().end(); iter++) {
+        auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*iter);
+        if (node == nullptr) {
+            ROSEN_LOGE(
+                "RSUniRenderUtil::AssignWindowNodes nullptr found in sortedChildren, this should not happen");
+            continue;
+        }
+        if (node->GetId() == focusNodeId) {
+            focusedNodeFound = true;
+        }
+        if (!focusedNodeFound && node->IsLeashWindow()) {
+            for (auto& child : node->GetSortedChildren()) {
+                if (child && child->GetId() == focusNodeId) {
+                    focusedNodeFound = true;
+                    break;
+                }
+            }
+        }
+        if (focusedNodeFound || node->HasFilter()) { // assign focus, above focus and has filter node to main thread
+            mainThreadNodes.emplace_back(node);
+            node->SetIsMainThreadNode(true);
+        } else {
+            subThreadNodes.emplace_back(node);
+            node->SetIsMainThreadNode(false);
+            if (node->HasCachedTexture()) {
+                node->SetPriority(NodePriorityType::SUB_LOW_PRIORITY);
+            } else {
+                node->SetPriority(NodePriorityType::SUB_HIGH_PRIORITY);
+            }
+        }
+    }
+
+    // sort subThreadNodes by priority and z-order
+    subThreadNodes.sort([](const auto& first, const auto& second) -> bool {
+        auto node1 = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(first);
+        auto node2 = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(second);
+        if (node1 == nullptr || node2 == nullptr) {
+            ROSEN_LOGE(
+                "RSUniRenderUtil::AssignWindowNodes sort nullptr found in subThreadNodes, this should not happen");
+            return false;
+        }
+        if (node1->GetPriority() == node2->GetPriority()) {
+            return node2->GetRenderProperties().GetPositionZ() < node1->GetRenderProperties().GetPositionZ();
+        } else {
+            return node1->GetPriority() < node2->GetPriority();
+        }
+    });
 }
 } // namespace Rosen
 } // namespace OHOS

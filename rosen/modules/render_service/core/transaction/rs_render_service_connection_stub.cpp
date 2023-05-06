@@ -169,7 +169,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             int32_t uid = data.ReadInt32();
             std::string bundleName = data.ReadString();
             std::string abilityName = data.ReadString();
-            int32_t status = SetFocusAppInfo(pid, uid, bundleName, abilityName);
+            uint64_t focusNodeId = data.ReadUint64();
+            int32_t status = SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
             reply.WriteInt32(status);
             break;
         }

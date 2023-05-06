@@ -77,6 +77,8 @@ public:
     void SetFrameSize(int height, int width);
     void GetFrameSize(int &height, int &width);
     void SubmitSuperTask(uint32_t taskIndex, std::unique_ptr<RSSuperRenderTask> superRenderTask);
+    void SubmitSubThreadTask(const std::shared_ptr<RSDisplayRenderNode>& node,
+        const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     void SubmitCompositionTask(uint32_t taskIndex, std::unique_ptr<RSCompositionTask> compositionTask);
     void SubMainThreadNotify(int threadIndex);
     void WaitSubMainThread(uint32_t threadIndex);
