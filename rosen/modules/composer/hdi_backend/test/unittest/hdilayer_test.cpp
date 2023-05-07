@@ -55,6 +55,7 @@ void HdiLayerTest::SetUpTestCase()
     layerInfo_->SetAlpha(layerAlpha);
     layerInfo_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     layerInfo_->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_NONE);
+    layerInfo_->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_NORMAL);
 
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
     EXPECT_CALL(*hdiDeviceMock_, SetLayerAlpha(_, _, _)).WillRepeatedly(testing::Return(0));
@@ -76,6 +77,7 @@ void HdiLayerTest::SetUpTestCase()
     EXPECT_CALL(*hdiDeviceMock_, SetLayerTunnelHandle(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, GetPresentTimestamp(_, _, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerMaskInfo(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, CloseLayer(_, _)).WillRepeatedly(testing::Return(0));
 }

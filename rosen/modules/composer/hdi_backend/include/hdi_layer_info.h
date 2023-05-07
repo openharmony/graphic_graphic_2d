@@ -20,6 +20,8 @@
 #include "iconsumer_surface.h"
 #include <surface.h>
 #include <sync_fence.h>
+#include "hdi_log.h"
+
 namespace OHOS {
 namespace Rosen {
 static const std::map<GraphicTransformType, std::string> TransformTypeStrs = {
@@ -73,6 +75,11 @@ class HdiLayerInfo {
 public:
     HdiLayerInfo() = default;
     virtual ~HdiLayerInfo() = default;
+
+    enum class LayerMask {
+        LAYER_MASK_NORMAL = 0,
+        LAYER_MASK_HBM_SYNC = 1,   // enable fingerprint
+    };
 
     /* rs create and set/get layer info begin */
     static std::shared_ptr<HdiLayerInfo> CreateHdiLayerInfo()
@@ -396,6 +403,26 @@ public:
             cSurface_->Dump(result);
         }
     }
+  
+    RosenError SetLayerMaskInfo(LayerMask mask)
+    {
+        switch (mask) {
+            case LayerMask::LAYER_MASK_NORMAL:
+            case LayerMask::LAYER_MASK_HBM_SYNC:
+                break;
+            default:
+                HLOGE("Invalid argument [mask:%{public}d]", static_cast<int32_t>(mask));
+                return ROSEN_ERROR_INVALID_ARGUMENTS;
+        }
+
+        layerMask_ = mask;
+        return ROSEN_ERROR_OK;
+    }
+
+    LayerMask GetLayerMaskInfo()
+    {
+        return layerMask_;
+    }
     /* hdiLayer get layer info end */
 
 private:
@@ -425,6 +452,7 @@ private:
     sptr<SurfaceBuffer> sbuffer_ = nullptr;
     sptr<SurfaceBuffer> pbuffer_ = nullptr;
     bool preMulti_ = false;
+    LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL; 
 };
 } // namespace Rosen
 } // namespace OHOS

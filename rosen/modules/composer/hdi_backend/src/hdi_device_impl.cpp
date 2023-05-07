@@ -546,6 +546,18 @@ int32_t HdiDeviceImpl::GetPresentTimestamp(uint32_t screenId, uint32_t layerId, 
     return ret;
 }
 
+int32_t HdiDeviceImpl::SetLayerMaskInfo(uint32_t screenId, uint32_t layerId, uint32_t maskInfo)
+{
+    CHECK_FUNC(g_composer);
+
+    // TODO: fix
+    (void)screenId;
+    (void)layerId;
+    (void)maskInfo;
+
+    return 0;
+}
+
 /* set & get device layer info end */
 int32_t HdiDeviceImpl::CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t &layerId)
 {

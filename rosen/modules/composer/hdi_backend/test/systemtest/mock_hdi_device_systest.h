@@ -78,6 +78,7 @@ public:
     MOCK_METHOD3(SetLayerTunnelHandle, int32_t(uint32_t, uint32_t, OHExtDataHandle *));
     MOCK_METHOD3(GetSupportedPresentTimestampType, int32_t(uint32_t, uint32_t, GraphicPresentTimestampType&));
     MOCK_METHOD3(GetPresentTimestamp, int32_t(uint32_t, uint32_t, GraphicPresentTimestamp&));
+    MOCK_METHOD3(SetLayerMaskInfo, int32_t(uint32_t, uint32_t, uint32_t));
     /* set & get device layer info end */
 
     MOCK_METHOD3(CreateLayer, int32_t(uint32_t, const GraphicLayerInfo&, uint32_t&));

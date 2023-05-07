@@ -154,6 +154,8 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
               GRAPHIC_DISPLAY_NULL_PTR);
     GraphicPresentTimestamp timestamp;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetPresentTimestamp(screenId, layerId, timestamp), GRAPHIC_DISPLAY_NULL_PTR);
+    uint32_t layerMask = 0;
+    ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMaskInfo(screenId, layerId, layerMask), GRAPHIC_DISPLAY_NULL_PTR);
 }
 
 /*
