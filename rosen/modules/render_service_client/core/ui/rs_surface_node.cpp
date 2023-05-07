@@ -204,6 +204,24 @@ bool RSSurfaceNode::GetSecurityLayer() const
     return isSecurityLayer_;
 }
 
+void RSSurfaceNode::SetFingerprint(bool hasFingerprint)
+{
+    hasFingerprint_ = hasFingerprint;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetFingerprint>(GetId(), hasFingerprint);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGD("RSSurfaceNode::SetFingerprint, surfaceNodeId:[%" PRIu64 "] hasFingerprint:%s", GetId(),
+        hasFingerprint ? "true" : "false");
+}
+
+bool RSSurfaceNode::GetFingerprint() const
+{
+    return hasFingerprint_;
+}
+
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceNode::SetColorSpace(ColorGamut colorSpace)
 {

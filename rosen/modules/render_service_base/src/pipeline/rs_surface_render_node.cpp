@@ -352,6 +352,16 @@ bool RSSurfaceRenderNode::GetSecurityLayer() const
     return isSecurityLayer_;
 }
 
+void RSSurfaceRenderNode::SetFingerprint(bool hasFingerprint)
+{
+    hasFingerprint_ = hasFingerprint;
+}
+
+bool RSSurfaceRenderNode::GetFingerprint() const
+{
+    return hasFingerprint_;
+}
+
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceRenderNode::SetColorSpace(ColorGamut colorSpace)
 {

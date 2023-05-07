@@ -1090,4 +1090,20 @@ HWTEST_F(RSSurfaceNodeTest, SetContainerWindow_False, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetContainerWindow(false, 1.0f);
 }
+
+/**
+ * @tc.name: Fingerprint Test
+ * @tc.desc: SetFingerprint and GetFingerprint
+ * @tc.type: FUNC
+ * @tc.require: issueI6Z3YK
+ */
+HWTEST_F(RSSurfaceNodeTest, Fingerprint, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetFingerprint(true);
+    ASSERT_EQ(true, surfaceNode->GetFingerprint());
+    surfaceNode->SetFingerprint(false);
+    ASSERT_EQ(false, surfaceNode->GetFingerprint());
+}
 } // namespace OHOS::Rosen

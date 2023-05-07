@@ -46,6 +46,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(int32_t width,
         ROSEN_LOGD("RSSurfaceOhosVulkan: create native window");
     }
 
+    NativeWindowHandleOpt(mNativeWindow, SET_FORMAT, pixelFormat_);
 #ifdef RS_ENABLE_AFBC
     if (RSSystemProperties::GetAFBCEnabled()) {
         int32_t format = 0;
@@ -116,6 +117,11 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 void RSSurfaceOhosVulkan::SetSurfaceBufferUsage(uint64_t usage)
 {
     bufferUsage_ = usage;
+}
+
+void RSSurfaceOhosVulkan::SetSurfacePixelFormat(int32_t pixelFormat)
+{
+    pixelFormat_ = pixelFormat;
 }
 
 void RSSurfaceOhosVulkan::ClearBuffer()

@@ -74,6 +74,12 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
             node.GetId());
         return;
     }
+    if (node.GetFingerprint()) {
+        layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_HBM_SYNC);
+        RS_LOGD("RSUniRenderProcessor::ProcessDisplaySurface, set layer mask hbm sync");
+    } else {
+        layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_NORMAL);
+    }
     layers_.emplace_back(layer);
     for (auto surface : node.GetCurAllSurfaces()) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);

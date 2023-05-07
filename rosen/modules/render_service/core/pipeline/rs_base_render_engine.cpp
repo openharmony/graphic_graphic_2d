@@ -134,6 +134,8 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
         return nullptr;
     }
 
+    rsSurface->SetSurfacePixelFormat(config.format);
+
     auto bufferUsage = config.usage;
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     if (forceCPU) {

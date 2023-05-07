@@ -32,6 +32,11 @@ void RSSurfaceOhosGl::SetSurfaceBufferUsage(uint64_t usage)
     bufferUsage_ = usage;
 }
 
+void RSSurfaceOhosGl::SetSurfacePixelFormat(int32_t pixelFormat)
+{
+    pixelFormat_ = pixelFormat;
+}
+
 RSSurfaceOhosGl::~RSSurfaceOhosGl()
 {
     DestoryNativeWindow(mWindow);
@@ -64,6 +69,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
 
     std::unique_ptr<RSSurfaceFrameOhosGl> frame = std::make_unique<RSSurfaceFrameOhosGl>(width, height);
 
+    NativeWindowHandleOpt(mWindow, SET_FORMAT, pixelFormat_);
 #ifdef RS_ENABLE_AFBC
     if (RSSystemProperties::GetAFBCEnabled()) {
         int32_t format = 0;

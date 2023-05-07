@@ -75,6 +75,16 @@ public:
         return offsetY_;
     }
 
+    bool GetFingerprint() const
+    {
+        return hasFingerprint_;
+    }
+
+    void SetFingerprint(bool hasFingerprint)
+    {
+        hasFingerprint_ = hasFingerprint;
+    }
+
     void CollectSurface(
         const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender) override;
@@ -222,6 +232,7 @@ private:
 
     std::shared_ptr<RSSurface> surface_;
     bool surfaceCreated_ { false };
+    bool hasFingerprint_ = false;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_;
 #endif

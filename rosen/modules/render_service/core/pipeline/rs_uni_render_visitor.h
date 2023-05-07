@@ -221,6 +221,8 @@ private:
     std::set<ScreenId> mirroredDisplays_;
     bool isSecurityDisplay_ = false;
 
+    bool hasFingerprint_ = false;
+
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
 
     std::shared_ptr<RSDirtyRegionManager> curDisplayDirtyManager_;
