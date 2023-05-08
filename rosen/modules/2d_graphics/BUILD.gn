@@ -50,6 +50,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/draw/path.cpp",
       "$drawing_src_dir/draw/pen.cpp",
       "$drawing_src_dir/effect/color_filter.cpp",
+      "$drawing_src_dir/effect/color_matrix.cpp",
       "$drawing_src_dir/effect/color_space.cpp",
       "$drawing_src_dir/effect/filter.cpp",
       "$drawing_src_dir/effect/image_filter.cpp",

@@ -26,6 +26,7 @@
 
 #include "effect/color_filter.h"
 #include "effect/image_filter.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {

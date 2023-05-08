@@ -16,11 +16,6 @@
 #ifndef COLOR_MATRIX_H
 #define COLOR_MATRIX_H
 
-#include <memory>
-#include <securec.h>
-#include <string>
-
-#include "utils/log.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -30,150 +25,16 @@ class ColorMatrix {
 public:
     // Color matrix is a 4x5 float type matrix.
     constexpr static int MATRIX_SIZE = 20;
-    // Hue RGB constant
-    constexpr static float HUE_R = 0.213f;
-    constexpr static float HUE_G = 0.715f;
-    constexpr static float HUE_B = 0.072f;
+    ColorMatrix() noexcept;
+    ~ColorMatrix();
 
-    enum Index {
-        SCALE_FACTOR_FOR_R = 0,
-        G_FACTOR_FOR_R = 1,
-        B_FACTOR_FOR_R = 2,
-        A_FACTOR_FOR_R = 3,
-        TRANS_FOR_R = 4,
-
-        R_FACTOR_FOR_G = 5,
-        SCALE_FACTOR_FOR_G = 6,
-        B_FACTOR_FOR_G = 7,
-        A_FACTOR_FOR_G = 8,
-        TRANS_FOR_G = 9,
-
-        R_FACTOR_FOR_B = 10,
-        G_FACTOR_FOR_B = 11,
-        SCALE_FACTOR_FOR_B = 12,
-        A_FACTOR_FOR_B = 13,
-        TRANS_FOR_B = 14,
-
-        R_FACTOR_FOR_A = 15,
-        G_FACTOR_FOR_A = 16,
-        B_FACTOR_FOR_A = 17,
-        SCALE_FACTOR_FOR_A = 18,
-        TRANS_FOR_A = 19,
-    };
-
-    ColorMatrix() noexcept
-    {
-        SetIdentity();
-    }
-
-    ~ColorMatrix() {}
-
-    void SetIdentity()
-    {
-        for (size_t i = 0; i < MATRIX_SIZE; i = i + 6) {
-            array_[i] = 1; // identity matrix, the value of the elements on the main diagonal is 1
-        }
-    }
-
-    void SetArray(const scalar src[MATRIX_SIZE])
-    {
-        auto ret = memcpy_s(array_, sizeof(array_), src, sizeof(array_));
-        if (ret != EOK) {
-            LOGE("Drawing: ColorMatrix memcpy_s failed");
-        }
-    }
-
-    void GetArray(scalar dst[MATRIX_SIZE]) const
-    {
-        auto ret = memcpy_s(dst, sizeof(array_), array_, sizeof(array_));
-        if (ret != EOK) {
-            LOGE("Drawing: ColorMatrix memcpy_s failed");
-        }
-    }
-
-    void SetConcat(const ColorMatrix& m1, const ColorMatrix& m2)
-    {
-        scalar tmp[MATRIX_SIZE] = { 0 };
-        scalar* target;
-
-        if (array_ == m1.array_ || array_ == m2.array_) {
-            target = tmp;
-        } else {
-            target = array_;
-        }
-
-        int index = 0;
-        for (int j = 0; j < MATRIX_SIZE; j = j + 5) {
-            for (int i = 0; i < 4; i++) { // Color matrix is a 4x5 float type matrix.
-                target[index++] = m1.array_[j + 0] * m2.array_[i + 0] + m1.array_[j + 1] * m2.array_[i + 5] +
-                    m1.array_[j + 2] * m2.array_[i + 10] + m1.array_[j + 3] * m2.array_[i + 15];
-            }
-            target[index++] = m1.array_[j + 0] * m2.array_[4] + m1.array_[j + 1] * m2.array_[9] +
-                m1.array_[j + 2] * m2.array_[14] + m1.array_[j + 3] * m2.array_[19] + m1.array_[j + 4];
-        }
-
-        if (target != array_) {
-            auto ret = memcpy_s(array_, sizeof(array_), target, sizeof(array_));
-            if (ret != EOK) {
-                LOGE("Drawing: ColorMatrix memcpy_s failed");
-            }
-        }
-    }
-
-    void PreConcat(const ColorMatrix& m)
-    {
-        SetConcat(*this, m);
-    }
-
-    void PostConcat(const ColorMatrix& m)
-    {
-        SetConcat(m, *this);
-    }
-
-    void SetScale(scalar sr, scalar sg, scalar sb, scalar sa)
-    {
-        auto ret = memset_s(array_, sizeof(array_), 0, sizeof(array_));
-        if (ret != EOK) {
-            LOGE("Drawing: ColorMatrix memset_s failed");
-            return;
-        }
-        array_[0] = sr;  // red vector scale
-        array_[6] = sg;  // green vector scale
-        array_[12] = sb; // blue vector scale
-        array_[18] = sa; // alpha vetor scale
-    }
-
-    /*
-     * @brief      Set the ColorMatrix to a saturation matrix.
-     * @param sat  Saturation value, 0 maps to gray-scale, 1 is identity
-     */
-    void SetSaturation(scalar sat)
-    {
-        auto ret = memset_s(array_, sizeof(array_), 0, sizeof(array_));
-        if (ret != EOK) {
-            LOGE("Drawing: ColorMatrix memset_s failed");
-            return;
-        }
-
-        const float R = HUE_R * (1 - sat);
-        const float G = HUE_G * (1 - sat);
-        const float B = HUE_B * (1 - sat);
-
-        // red channel
-        array_[SCALE_FACTOR_FOR_R] = R + sat;
-        array_[G_FACTOR_FOR_R] = G;
-        array_[B_FACTOR_FOR_R] = B;
-        // green channel
-        array_[R_FACTOR_FOR_G] = R;
-        array_[SCALE_FACTOR_FOR_G] = G + sat;
-        array_[B_FACTOR_FOR_G] = B;
-        // blue channel
-        array_[R_FACTOR_FOR_B] = R;
-        array_[G_FACTOR_FOR_B] = G;
-        array_[SCALE_FACTOR_FOR_B] = B + sat;
-        // alpha vetor scale
-        array_[SCALE_FACTOR_FOR_A] = 1;
-    }
+    void SetIdentity();
+    void SetArray(const scalar src[MATRIX_SIZE]);
+    void GetArray(scalar dst[MATRIX_SIZE]) const;
+    void SetConcat(const ColorMatrix& m1, const ColorMatrix& m2);
+    void PreConcat(const ColorMatrix& m);
+    void PostConcat(const ColorMatrix& m);
+    void SetScale(scalar sr, scalar sg, scalar sb, scalar sa);
 
 private:
     scalar array_[MATRIX_SIZE] = { 0 };
