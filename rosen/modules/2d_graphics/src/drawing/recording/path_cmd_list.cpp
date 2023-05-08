@@ -20,7 +20,9 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-namespace {
+static constexpr int FUNCTION_OVERLOADING_1 = 1;
+static constexpr int FUNCTION_OVERLOADING_2 = 2;
+
 PathCmdList::PathCmdList() {}
 
 PathCmdList::PathCmdList(const CmdListData& data)
@@ -50,15 +52,30 @@ void PathCmdList::Playback(Path& path) const
 }
 
 /* OpItem */
-class PathPlaybackFuncRegister {
-public:
-    PathPlaybackFuncRegister(PathOpItem::Type type, PathPlayer::PathPlaybackFunc func)
-    {
-        PathPlayer::opPlaybackFuncLUT_.emplace(type, func);
-    }
+std::unordered_map<uint32_t, PathPlayer::PathPlaybackFunc> PathPlayer::opPlaybackFuncLUT_ = {
+    { PathOpItem::BUILDFROMSVG_OPITEM,          BuildFromSVGOpItem::Playback },
+    { PathOpItem::MOVETO_OPITEM,                MoveToOpItem::Playback },
+    { PathOpItem::LINETO_OPITEM,                LineToOpItem::Playback },
+    { PathOpItem::ARCTO_OPITEM,                 ArcToOpItem::Playback },
+    { PathOpItem::CUBICTO_OPITEM,               CubicToOpItem::Playback },
+    { PathOpItem::QUADTO_OPITEM,                QuadToOpItem::Playback },
+    { PathOpItem::ADDRECT_OPITEM,               AddRectOpItem::Playback },
+    { PathOpItem::ADDOVAL_OPITEM,               AddOvalOpItem::Playback },
+    { PathOpItem::ADDARC_OPITEM,                AddArcOpItem::Playback },
+    { PathOpItem::ADDPOLY_OPITEM,               AddPolyOpItem::Playback },
+    { PathOpItem::ADDCIRCLE_OPITEM,             AddCircleOpItem::Playback },
+    { PathOpItem::ADDRRECT_OPITEM,              AddRoundRectOpItem::Playback },
+    { PathOpItem::ADDPATH_OPITEM,               AddPathOpItem::Playback },
+    { PathOpItem::ADDPATHWITHMATRIX_OPITEM,     AddPathWithMatrixOpItem::Playback },
+    { PathOpItem::REVERSEADDPATH_OPITEM,        ReverseAddPathOpItem::Playback },
+    { PathOpItem::SETFILLSTYLE_OPITEM,          SetFillStyleOpItem::Playback },
+    { PathOpItem::BUILDFROMINTERPOLATE_OPITEM,  BuildFromInterpolateOpItem::Playback },
+    { PathOpItem::TRANSFORM_OPITEM,             TransformOpItem::Playback },
+    { PathOpItem::OFFSET_OPITEM,                OffsetOpItem::Playback },
+    { PathOpItem::PATHOPWITH_OPITEM,            PathOpWithOpItem::Playback },
+    { PathOpItem::RESET_OPITEM,                 ResetOpItem::Playback },
+    { PathOpItem::CLOSE_OPITEM,                 CloseOpItem::Playback },
 };
-
-std::unordered_map<uint32_t, PathPlayer::PathPlaybackFunc> PathPlayer::opPlaybackFuncLUT_ = {};
 
 PathPlayer::PathPlayer(Path& path, const MemAllocator& opAllocator) : path_(path), opAllocator_(opAllocator) {}
 
@@ -75,7 +92,6 @@ bool PathPlayer::Playback(uint32_t type, const void* opItem)
     return true;
 }
 
-static PathPlaybackFuncRegister svgOpPlaybak(PathOpItem::BUILDFROMSVG_OPITEM, BuildFromSVGOpItem::Playback);
 BuildFromSVGOpItem::BuildFromSVGOpItem(const std::string& str) : PathOpItem(BUILDFROMSVG_OPITEM), str_(str) {}
 
 void BuildFromSVGOpItem::Playback(PathPlayer& player, const void* opItem)
@@ -90,6 +106,142 @@ void BuildFromSVGOpItem::Playback(Path& path) const
 {
     path.BuildFromSVGString(str_);
 }
+
+MoveToOpItem::MoveToOpItem(const scalar x, const scalar y) : PathOpItem(MOVETO_OPITEM), x_(x), y_(y) {}
+
+void MoveToOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto *op = static_cast<const MoveToOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void MoveToOpItem::Playback(Path& path) const
+{
+    path.MoveTo(x_, y_);
+}
+
+LineToOpItem::LineToOpItem(const scalar x, const scalar y) : PathOpItem(LINETO_OPITEM), x_(x), y_(y) {}
+
+void LineToOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto *op = static_cast<const LineToOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void LineToOpItem::Playback(Path& path) const
+{
+    path.LineTo(x_, y_);
+}
+
+ArcToOpItem::ArcToOpItem(const Point& pt1, const Point& pt2, const scalar startAngle, const scalar sweepAngle)
+    : PathOpItem(ARCTO_OPITEM), pt1_(pt1), pt2_(pt2), startAngle_(startAngle), sweepAngle_(sweepAngle),
+    methodIndex_(FUNCTION_OVERLOADING_1) {}
+
+ArcToOpItem::ArcToOpItem(const scalar rx, const scalar ry, const scalar angle, const PathDirection direction,
+    const scalar endX, const scalar endY) : PathOpItem(ARCTO_OPITEM), pt1_(rx, ry), pt2_(endX, endY),
+    startAngle_(angle), direction_(direction), methodIndex_(FUNCTION_OVERLOADING_2) {}
+
+void ArcToOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto *op = static_cast<const ArcToOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void ArcToOpItem::Playback(Path& path) const
+{
+    if (methodIndex_ == FUNCTION_OVERLOADING_1) {
+        path.ArcTo(pt1_, pt2_, startAngle_, sweepAngle_);
+    } else if (methodIndex_ == FUNCTION_OVERLOADING_2) {
+        path.ArcTo(pt1_.GetX(), pt1_.GetY(), startAngle_, direction_, pt2_.GetX(), pt2_.GetY());
+    }
+}
+
+CubicToOpItem::CubicToOpItem(const Point& ctrlPt1, const Point& ctrlPt2, const Point& endPt)
+    : PathOpItem(CUBICTO_OPITEM), ctrlPt1_(ctrlPt1), ctrlPt2_(ctrlPt2), endPt_(endPt) {}
+
+void CubicToOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto *op = static_cast<const CubicToOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void CubicToOpItem::Playback(Path& path) const
+{
+    path.CubicTo(ctrlPt1_, ctrlPt2_, endPt_);
+}
+
+QuadToOpItem::QuadToOpItem(const Point& ctrlPt, const Point& endPt)
+    : PathOpItem(QUADTO_OPITEM), ctrlPt_(ctrlPt), endPt_(endPt) {}
+
+void QuadToOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto *op = static_cast<const QuadToOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void QuadToOpItem::Playback(Path& path) const
+{
+    path.QuadTo(ctrlPt_, endPt_);
+}
+
+AddRectOpItem::AddRectOpItem(const Rect& rect, PathDirection dir)
+    : PathOpItem(ADDRECT_OPITEM), rect_(rect), dir_(dir) {}
+
+void AddRectOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto *op = static_cast<const AddRectOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void AddRectOpItem::Playback(Path& path) const
+{
+    path.AddRect(rect_, dir_);
+}
+
+AddOvalOpItem::AddOvalOpItem(const Rect& oval, PathDirection dir)
+    : PathOpItem(ADDOVAL_OPITEM), rect_(oval), dir_(dir) {}
+
+void AddOvalOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto *op = static_cast<const AddOvalOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void AddOvalOpItem::Playback(Path& path) const
+{
+    path.AddOval(rect_, dir_);
+}
+
+AddArcOpItem::AddArcOpItem(const Rect& oval, const scalar startAngle, const scalar sweepAngle)
+    : PathOpItem(ADDARC_OPITEM), rect_(oval), startAngle_(startAngle), sweepAngle_(sweepAngle) {}
+
+void AddArcOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto *op = static_cast<const AddArcOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void AddArcOpItem::Playback(Path& path) const
+{
+    path.AddArc(rect_, startAngle_, sweepAngle_);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

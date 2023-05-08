@@ -37,12 +37,19 @@ public:
 };
 
 /* OpItem */
-class PathPlaybackFuncRegister;
+/*
+ * @brief  Helper class for path playback.
+ *         Contains the playback context and a static mapping table: { OpItemType， OpItemPlaybackFunc }.
+ */
 class PathPlayer {
 public:
     PathPlayer(Path& path, const MemAllocator& opAllocator);
     ~PathPlayer() = default;
 
+    /*
+     * @brief  Obtain the corresponding func according to the type lookup mapping table
+     *         and then invoke the func to plays opItem back to path which in context.
+     */
     bool Playback(uint32_t type, const void* opItem);
 
     Path& path_;
@@ -51,7 +58,6 @@ public:
     using PathPlaybackFunc = void(*)(PathPlayer& palyer, const void* opItem);
 private:
     static std::unordered_map<uint32_t, PathPlaybackFunc> opPlaybackFuncLUT_;
-    friend PathPlaybackFuncRegister;
 };
 
 class PathOpItem : public OpItem {
@@ -90,13 +96,117 @@ class BuildFromSVGOpItem : public PathOpItem {
 public:
     BuildFromSVGOpItem(const std::string& str);
     ~BuildFromSVGOpItem() = default;
+
+    /*
+     * @brief         Plays the opItem back into path which hold by Player.
+     * @param opItem  opItem static_cast to this class.
+     */
     static void Playback(PathPlayer& player, const void* opItem);
+
+    /*
+     * @brief  Plays OpItem back into path.
+     */
     void Playback(Path& path) const;
 private:
     std::string str_;
 };
+
+class MoveToOpItem : public PathOpItem {
+public:
+    MoveToOpItem(const scalar x, const scalar y);
+    ~MoveToOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    scalar x_;
+    scalar y_;
+};
+
+class LineToOpItem : public PathOpItem {
+public:
+    LineToOpItem(const scalar x, const scalar y);
+    ~LineToOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    scalar x_;
+    scalar y_;
+};
+
+class ArcToOpItem : public PathOpItem {
+public:
+    ArcToOpItem(const Point& pt1, const Point& pt2, const scalar startAngle, const scalar sweepAngle);
+    ArcToOpItem(const scalar rx, const scalar ry, const scalar angle, const PathDirection direction, const scalar endX,
+                const scalar endY);
+    ~ArcToOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    Point pt1_;
+    Point pt2_;
+    scalar startAngle_;
+    scalar sweepAngle_;
+    PathDirection direction_;
+    const int methodIndex_;
+};
+
+class CubicToOpItem : public PathOpItem {
+public:
+    CubicToOpItem(const Point& ctrlPt1, const Point& ctrlPt2, const Point& endPt);
+    ~CubicToOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    Point ctrlPt1_;
+    Point ctrlPt2_;
+    Point endPt_;
+};
+
+class QuadToOpItem : public PathOpItem {
+public:
+    QuadToOpItem(const Point& ctrlPt, const Point& endPt);
+    ~QuadToOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    Point ctrlPt_;
+    Point endPt_;
+};
+
+class AddRectOpItem : public PathOpItem {
+public:
+    AddRectOpItem(const Rect& rect, PathDirection dir);
+    ~AddRectOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    Rect rect_;
+    PathDirection dir_;
+};
+
+class AddOvalOpItem : public PathOpItem {
+public:
+    AddOvalOpItem(const Rect& oval, PathDirection dir);
+    ~AddOvalOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    Rect rect_;
+    PathDirection dir_;
+};
+
+class AddArcOpItem : public PathOpItem {
+public:
+    AddArcOpItem(const Rect& oval, const scalar startAngle, const scalar sweepAngle);
+    ~AddArcOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    Rect rect_;
+    scalar startAngle_;
+    scalar sweepAngle_;
+};
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
-
-#endif // DRAW_CMD_LIST_H
+#endif
