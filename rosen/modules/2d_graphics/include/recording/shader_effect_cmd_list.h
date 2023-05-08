@@ -91,6 +91,111 @@ public:
 private:
     ColorQuad color_;
 };
+
+class CreateBlendShaderOpItem : public ShaderEffectOpItem {
+public:
+    CreateBlendShaderOpItem(const std::pair<int, size_t>& dst, const std::pair<int, size_t>& src, BlendMode mode);
+    ~CreateBlendShaderOpItem() = default;
+
+    std::shared_ptr<ShaderEffect> Playback(const MemAllocator& allocator) const;
+private:
+    std::pair<int, size_t> dst_;
+    std::pair<int, size_t> src_;
+    BlendMode mode_;
+};
+
+class CreateImageShaderOpItem : public ShaderEffectOpItem {
+public:
+    CreateImageShaderOpItem(const LargeObjectInfo& image, TileMode tileX, TileMode tileY,
+        const SamplingOptions& sampling, const Matrix& matrix);
+    ~CreateImageShaderOpItem() = default;
+
+    std::shared_ptr<ShaderEffect> Playback(const MemAllocator& largeObjectAllocator) const;
+private:
+    LargeObjectInfo image_;
+    TileMode tileX_;
+    TileMode tileY_;
+    SamplingOptions samplingOptions_;
+    Matrix matrix_;
+};
+
+class CreatePictureShaderOpItem : public ShaderEffectOpItem {
+public:
+    CreatePictureShaderOpItem(const LargeObjectInfo& picture, TileMode tileX, TileMode tileY,
+        FilterMode mode, const Matrix& matrix, const Rect& rect);
+    ~CreatePictureShaderOpItem() = default;
+
+    std::shared_ptr<ShaderEffect> Playback(const MemAllocator& largeObjectAllocator) const;
+private:
+    LargeObjectInfo picture_;
+    TileMode tileX_;
+    TileMode tileY_;
+    FilterMode filterMode_;
+    Matrix matrix_;
+    Rect rect_;
+};
+
+class CreateLinearGradientOpItem : public ShaderEffectOpItem {
+public:
+    CreateLinearGradientOpItem(const Point& startPt, const Point& endPt,
+        const std::pair<int, size_t>& colors, const std::pair<int, size_t>& pos, TileMode mode);
+    ~CreateLinearGradientOpItem() = default;
+
+    std::shared_ptr<ShaderEffect> Playback(const MemAllocator& allocator) const;
+private:
+    Point startPt_;
+    Point endPt_;
+    std::pair<int, size_t> colors_;
+    std::pair<int, size_t> pos_;
+    TileMode mode_;
+};
+class CreateRadialGradientOpItem : public ShaderEffectOpItem {
+public:
+    CreateRadialGradientOpItem(const Point& centerPt, scalar radius,
+        const std::pair<int, size_t>& colors, const std::pair<int, size_t>& pos, TileMode mode);
+    ~CreateRadialGradientOpItem() = default;
+
+    std::shared_ptr<ShaderEffect> Playback(const MemAllocator& allocator) const;
+private:
+    Point centerPt_;
+    scalar radius_;
+    std::pair<int, size_t> colors_;
+    std::pair<int, size_t> pos_;
+    TileMode mode_;
+};
+
+class CreateTwoPointConicalOpItem : public ShaderEffectOpItem {
+public:
+    CreateTwoPointConicalOpItem(const Point& startPt, scalar startRadius, const Point& endPt,
+        scalar endRadius, const std::pair<int, size_t>& colors, const std::pair<int, size_t>& pos, TileMode mode);
+    ~CreateTwoPointConicalOpItem() = default;
+
+    std::shared_ptr<ShaderEffect> Playback(const MemAllocator& allocator) const;
+private:
+    Point startPt_;
+    scalar startRadius_;
+    Point endPt_;
+    scalar endRadius_;
+    std::pair<int, size_t> colors_;
+    std::pair<int, size_t> pos_;
+    TileMode mode_;
+};
+
+class CreateSweepGradientOpItem : public ShaderEffectOpItem {
+public:
+    CreateSweepGradientOpItem(const Point& centerPt, const std::pair<int, size_t>& colors,
+        const std::pair<int, size_t>& pos, TileMode mode, scalar startAngle, scalar endAngle);
+    ~CreateSweepGradientOpItem() = default;
+
+    std::shared_ptr<ShaderEffect> Playback(const MemAllocator& allocator) const;
+private:
+    Point centerPt_;
+    std::pair<int, size_t> colors_;
+    std::pair<int, size_t> pos_;
+    TileMode mode_;
+    scalar startAngle_;
+    scalar endAngle_;
+};
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
