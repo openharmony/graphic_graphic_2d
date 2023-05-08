@@ -244,7 +244,6 @@ private:
     pid_t currentFocusedPid_ = -1;
 
     bool needColdStartThread_ = false; // flag used for cold start app window
-    bool needCheckFirstFrame_ = false; // flag used for avoiding notifying first frame repeatedly
 
     bool isDirtyRegionAlignedEnable_ = false;
     std::shared_ptr<std::mutex> surfaceNodePrepareMutex_;

@@ -1974,10 +1974,9 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         auto screenNum = screenManager->GetAllScreenIds().size();
         needColdStartThread_ = RSSystemProperties::GetColdStartThreadEnabled() &&
                                !node.IsStartAnimationFinished() && doAnimate_ && screenNum <= 1;
-        needCheckFirstFrame_ = node.GetChildrenCount() > 1; // childCount > 1 means startingWindow and appWindow
     }
 
-    if (node.IsAppWindow() && needColdStartThread_ && needCheckFirstFrame_ &&
+    if (node.IsAppWindow() && needColdStartThread_ &&
         !RSColdStartManager::Instance().IsColdStartThreadRunning(node.GetId())) {
         if (!IsFirstFrameReadyToDraw(node)) {
             return;
@@ -2069,7 +2068,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     needDrawCachedImage = true;
                 }
             }
-            if (needCheckFirstFrame_ && IsFirstFrameReadyToDraw(node)) {
+            if (!node.IsNotifyUIBufferAvailable() && IsFirstFrameReadyToDraw(node)) {
                 node.NotifyUIBufferAvailable();
             }
             if (!needDrawCachedImage || node.GetCachedImage() == nullptr) {
@@ -2094,7 +2093,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         if (node.GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
             // reset to default value
             needColdStartThread_ = false;
-            needCheckFirstFrame_ = false;
         }
 
         node.ProcessAnimatePropertyAfterChildren(*canvas_);

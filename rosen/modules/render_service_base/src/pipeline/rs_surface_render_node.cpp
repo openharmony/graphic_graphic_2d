@@ -392,8 +392,11 @@ void RSSurfaceRenderNode::RegisterBufferAvailableListener(
         std::lock_guard<std::mutex> lock(mutexRT_);
         callbackFromRT_ = callback;
     } else {
-        std::lock_guard<std::mutex> lock(mutexUI_);
-        callbackFromUI_ = callback;
+        {
+            std::lock_guard<std::mutex> lock(mutexUI_);
+            callbackFromUI_ = callback;
+        }
+        isNotifyUIBufferAvailable_ = false;
     }
 }
 
@@ -453,8 +456,6 @@ void RSSurfaceRenderNode::NotifyUIBufferAvailable()
         if (callbackFromUI_) {
             ROSEN_LOGD("RSSurfaceRenderNode::NotifyUIBufferAvailable nodeId = %" PRIu64, GetId());
             callbackFromUI_->OnBufferAvailable();
-        } else {
-            isNotifyUIBufferAvailable_ = false;
         }
     }
 }
