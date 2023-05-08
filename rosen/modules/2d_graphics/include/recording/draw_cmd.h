@@ -121,6 +121,121 @@ private:
     Point point_;
 };
 
+class DrawLineOpItem : public DrawOpItem {
+public:
+    DrawLineOpItem(const Point& startPt, const Point& endPt);
+    ~DrawLineOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+
+private:
+    Point startPt_;
+    Point endPt_;
+};
+
+class DrawRectOpItem : public DrawOpItem {
+public:
+    DrawRectOpItem(const Rect& rect);
+    ~DrawRectOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+
+private:
+    Rect rect_;
+};
+
+class DrawRoundRectOpItem : public DrawOpItem {
+public:
+    DrawRoundRectOpItem(const RoundRect& rrect);
+    ~DrawRoundRectOpItem()  = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+
+private:
+    RoundRect rrect_;
+};
+
+class DrawNestedRoundRectOpItem : public DrawOpItem {
+public:
+    DrawNestedRoundRectOpItem(const RoundRect& outer, const RoundRect& inner);
+    ~DrawNestedRoundRectOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+
+private:
+    RoundRect outer_;
+    RoundRect inner_;
+};
+
+class DrawArcOpItem : public DrawOpItem {
+public:
+    DrawArcOpItem(const Rect& rect, scalar startAngle, scalar sweepAngle);
+    ~DrawArcOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+
+private:
+    Rect rect_;
+    scalar startAngle_;
+    scalar sweepAngle_;
+};
+
+class DrawPieOpItem : public DrawOpItem {
+public:
+    DrawPieOpItem(const Rect& rect, scalar startAngle, scalar sweepAngle);
+    ~DrawPieOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+
+private:
+    Rect rect_;
+    scalar startAngle_;
+    scalar sweepAngle_;
+};
+
+class DrawOvalOpItem : public DrawOpItem {
+public:
+    DrawOvalOpItem(const Rect& rect);
+    ~DrawOvalOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+
+private:
+    Rect rect_;
+};
+
+class DrawCircleOpItem : public DrawOpItem {
+public:
+    DrawCircleOpItem(const Point& centerPt, scalar radius);
+    ~DrawCircleOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+
+private:
+    Point centerPt_;
+    scalar radius_;
+};
+
+class DrawPathOpItem : public DrawOpItem {
+public:
+    DrawPathOpItem(const CmdListSiteInfo info);
+    ~DrawPathOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const MemAllocator& memAllocator) const;
+
+private:
+    CmdListSiteInfo info_;
+};
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
