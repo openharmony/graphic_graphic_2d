@@ -40,12 +40,20 @@ ohos_executable("drawing_engine_sample") {
   ]
 
   if (ace_enable_gpu) {
-    sources += [
-      "drawing_engine/drawing_surface/surface_frame_ohos_gl.cpp",
-      "drawing_engine/drawing_surface/surface_ohos_gl.cpp",
-      "drawing_engine/egl_manager.cpp",
-      "drawing_engine/gles_render_backend.cpp",
-    ]
+    if (graphic_standard_feature_enable_vulkan) {
+      sources += [
+        "drawing_engine/drawing_surface/surface_frame_ohos_vulkan.cpp",
+        "drawing_engine/drawing_surface/surface_ohos_vulkan.cpp",
+        "drawing_engine/vulkan_render_backend.cpp",
+      ]
+    } else {
+      sources += [
+        "drawing_engine/drawing_surface/surface_frame_ohos_gl.cpp",
+        "drawing_engine/drawing_surface/surface_ohos_gl.cpp",
+        "drawing_engine/egl_manager.cpp",
+        "drawing_engine/gles_render_backend.cpp",
+      ]
+    }
   }
 
   configs = []
@@ -62,6 +70,8 @@ ohos_executable("drawing_engine_sample") {
 
   sources += [
     "benchmarks/benchmark_config.cpp",
+    "benchmarks/benchmark_dcl/dcl_command.cpp",
+    "benchmarks/benchmark_dcl/drawing_dcl.cpp",
     "benchmarks/benchmark_multithread/drawing_mutilthread.cpp",
     "benchmarks/benchmark_singlethread/drawing_singlethread.cpp",
   ]
@@ -71,6 +81,7 @@ ohos_executable("drawing_engine_sample") {
     "benchmarks/benchmark_singlethread",
     "benchmarks/benchmark_multithread",
     "benchmarks/benchmark_api",
+    "benchmarks/benchmark_dcl",
   ]
 
   deps = [
@@ -87,11 +98,20 @@ ohos_executable("drawing_engine_sample") {
   deps += [
     #"//third_party/skia:skia",
   ]
-
+  if (graphic_standard_feature_enable_vulkan) {
+    include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]
+  }
+  public_deps += [
+    "$graphic_2d_root:libvulkan",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "//third_party/openssl:libcrypto_shared",
+  ]
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog_native:libhilog",
+    "ipc:ipc_core",
+    "multimedia_image_framework:image_native",
   ]
 
   subsystem_name = "graphic"

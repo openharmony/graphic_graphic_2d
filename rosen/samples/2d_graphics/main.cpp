@@ -22,8 +22,7 @@
 #include "drawing_multithread.h"
 #include "drawing_singlethread.h"
 #include "drawing_api.h"
-
-#include "drawing_singlethread.h"
+#include "drawing_dcl.h"
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
@@ -50,6 +49,10 @@ int32_t main(int32_t argc, char *argv[])
         case BenchMarkName::API:
             std::cout << "new DrawingApi()" << std::endl;
             benchMark = new DrawingApi();
+            break;
+        case BenchMarkName::DCL:
+            std::cout << "new DrawingDCL()" << std::endl;
+            benchMark = new DrawingDCL(argc, argv);
             break;
         default:
             break;
