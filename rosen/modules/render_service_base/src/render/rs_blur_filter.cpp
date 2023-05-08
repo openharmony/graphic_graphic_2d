@@ -23,7 +23,6 @@
 #endif
 namespace OHOS {
 namespace Rosen {
-constexpr float BLUR_SIGMA_SCALE = 0.57735f;
 #if defined(NEW_SKIA)
 RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(SkImageFilters::Blur(blurRadiusX,
     blurRadiusY, SkTileMode::kClamp, nullptr)), blurRadiusX_(blurRadiusX),
@@ -52,18 +51,9 @@ float RSBlurFilter::GetBlurRadiusY()
     return blurRadiusY_;
 }
 
-float RSBlurFilter::GetBlurRadiusPx() const
-{
-    // sigma -> px
-    if (blurRadiusX_ > SK_ScalarHalf) {
-        return (blurRadiusX_ - SK_ScalarHalf) / BLUR_SIGMA_SCALE;
-    }
-    return 0.f;
-}
-
 std::string RSBlurFilter::GetDescription()
 {
-    return "RSBlurFilter blur radius is " + std::to_string(GetBlurRadiusPx()) + " px";
+    return "RSBlurFilter blur radius is " + std::to_string(blurRadiusX_) + " sigma";
 }
 
 std::shared_ptr<RSFilter> RSBlurFilter::Add(const std::shared_ptr<RSFilter>& rhs)

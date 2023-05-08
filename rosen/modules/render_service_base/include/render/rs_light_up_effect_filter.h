@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSLightUpEffectFilter : public RSSkiaFilter {
+class RSB_EXPORT RSLightUpEffectFilter : public RSSkiaFilter {
 public:
     RSLightUpEffectFilter(float lightUpDegree);
     ~RSLightUpEffectFilter() override;

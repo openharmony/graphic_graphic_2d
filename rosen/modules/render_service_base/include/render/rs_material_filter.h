@@ -17,6 +17,7 @@
 
 #include "render/rs_skia_filter.h"
 
+#include "common/rs_color.h"
 #include "include/core/SkColorFilter.h"
 #include "include/core/SkColor.h"
 #include "include/effects/SkColorMatrix.h"
@@ -43,14 +44,20 @@ enum MATERIAL_BLUR_STYLE : int {
     STYLE_BACKGROUND_LARGE_DARK   = 107,
     STYLE_BACKGROUND_XLARGE_DARK  = 108
 };
-
-class RSMaterialFilter : public RSSkiaFilter {
+// material blur style params
+struct MaterialParam {
+    float radius;
+    float saturation;
+    float brightness;
+    RSColor maskColor;
+};
+class RSB_EXPORT RSMaterialFilter : public RSSkiaFilter {
 public:
-    RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode);
+    RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio);
+    RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE mode);
     ~RSMaterialFilter() override;
     void PreProcess(sk_sp<SkImage> image) override;
     void PostProcess(RSPaintFilterCanvas& canvas) override;
-    float GetBlurRadiusPx() const override;
     std::string GetDescription() override;
 
     std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) override;
@@ -58,13 +65,14 @@ public:
     std::shared_ptr<RSFilter> Multiply(float rhs) override;
     std::shared_ptr<RSFilter> Negate() override;
 private:
-    float dipScale_;
-    MATERIAL_BLUR_STYLE style_;
     BLUR_COLOR_MODE colorMode_;
-    SkColor maskColor_;
+    float radius_ {};
+    float saturation_ = 1.f;
+    float brightness_ = 1.f;
+    RSColor maskColor_ = RSColor();
 
-    sk_sp<SkImageFilter> CreateMaterialStyle(MATERIAL_BLUR_STYLE style, float dipScale);
-    sk_sp<SkImageFilter> CreateMaterialFilter(float radius, float sat, SkColor maskColor);
+    sk_sp<SkImageFilter> CreateMaterialStyle(MATERIAL_BLUR_STYLE style, float dipScale, float ratio);
+    sk_sp<SkImageFilter> CreateMaterialFilter(float radius, float sat, float brightness);
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
 
     friend class RSMarshallingHelper;

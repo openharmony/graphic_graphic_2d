@@ -709,8 +709,9 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSFi
         }
         case RSFilter::MATERIAL: {
             auto material = std::static_pointer_cast<RSMaterialFilter>(val);
-            success = success && parcel.WriteInt32(material->style_) && parcel.WriteFloat(material->dipScale_) &&
-                      parcel.WriteInt32(material->colorMode_);
+            success = success && parcel.WriteFloat(material->radius_) && parcel.WriteFloat(material->saturation_) &&
+                      parcel.WriteFloat(material->brightness_) &&
+                      RSMarshallingHelper::Marshalling(parcel, material->maskColor_) && parcel.WriteInt32(material->colorMode_);
             break;
         }
         case RSFilter::LIGHTUPEFFECT: {
@@ -738,12 +739,14 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter
             break;
         }
         case RSFilter::MATERIAL: {
-            int style;
-            float dipScale;
+            MaterialParam materialParam;
             int colorMode;
-            success = success && parcel.ReadInt32(style) && parcel.ReadFloat(dipScale) && parcel.ReadInt32(colorMode);
+            success = success && parcel.ReadFloat(materialParam.radius) && parcel.ReadFloat(materialParam.saturation) &&
+                      parcel.ReadFloat(materialParam.brightness) &&
+                      RSMarshallingHelper::Unmarshalling(parcel, materialParam.maskColor) &&
+                      parcel.ReadInt32(colorMode);
             if (success) {
-                val = RSFilter::CreateMaterialFilter(style, dipScale, static_cast<BLUR_COLOR_MODE>(colorMode));
+                val = std::make_shared<RSMaterialFilter>(materialParam, static_cast<BLUR_COLOR_MODE>(colorMode));
             }
             break;
         }
