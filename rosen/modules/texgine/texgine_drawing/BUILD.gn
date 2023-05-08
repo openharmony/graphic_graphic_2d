@@ -1,0 +1,61 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+is_ok = false
+
+config("texgine_drawing_public_config") {
+  include_dirs = [ "./src" ]
+}
+
+ohos_shared_library("libtexgine_drawing") {
+  if (is_ok) {
+    sources = [
+      "src/texgine_canvas.cpp",
+      "src/texgine_dash_path_effect.cpp",
+      "src/texgine_data.cpp",
+      "src/texgine_font.cpp",
+      "src/texgine_font_manager.cpp",
+      "src/texgine_font_metrics.cpp",
+      "src/texgine_font_style.cpp",
+      "src/texgine_font_style_set.cpp",
+      "src/texgine_mask_filter.cpp",
+      "src/texgine_paint.cpp",
+      "src/texgine_path.cpp",
+      "src/texgine_path_1d_path_effect.cpp",
+      "src/texgine_path_effect.cpp",
+      "src/texgine_picture.cpp",
+      "src/texgine_rect.cpp",
+      "src/texgine_stream.cpp",
+      "src/texgine_string.cpp",
+      "src/texgine_text_blob.cpp",
+      "src/texgine_text_blob_builder.cpp",
+      "src/texgine_typeface.cpp",
+    ]
+  }
+
+  public_configs = [ ":texgine_drawing_public_config" ]
+
+  platform = current_os
+  if (platform == "mingw") {
+    platform = "windows"
+  }
+
+  public_deps = [ "//third_party/flutter/build/skia:ace_skia_$platform" ]
+
+  deps = []
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
