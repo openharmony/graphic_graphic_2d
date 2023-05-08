@@ -38,7 +38,7 @@ public:
     RSTransactionData&& GetTransaction(uint32_t pid);
     std::unordered_map<uint32_t, RSTransactionData>&& GetAllTransactions();
 private:
-    RSMessageProcessor() = default;
+    RSMessageProcessor();
     ~RSMessageProcessor();
     RSMessageProcessor(const RSMessageProcessor&) = delete;
     RSMessageProcessor(const RSMessageProcessor&&) = delete;
