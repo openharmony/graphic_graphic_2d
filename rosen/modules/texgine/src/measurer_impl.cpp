@@ -24,6 +24,8 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 #define INVALID_TEXT_LENGTH (-1)
+#define SUCCESSED 0
+#define FAILED 1
 
 namespace {
 void DumpCharGroup(int32_t index, const CharGroup &cg, double glyphEm,
@@ -115,7 +117,7 @@ int MeasurerImpl::Measure(CharGroups &cgs)
         if (it != cache_.end()) {
             cgs = it->second.cgs_.Clone();
             boundaries_ = it->second.boundaries_;
-            return 0;
+            return SUCCESSED;
         }
     }
 
@@ -135,7 +137,7 @@ int MeasurerImpl::Measure(CharGroups &cgs)
     if (fontFeatures_ == nullptr || fontFeatures_->GetFeatures().size() == 0) {
         cache_[key] = {cgs.Clone(), boundaries_};
     }
-    return 0;
+    return SUCCESSED;
 }
 
 void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
@@ -274,7 +276,7 @@ int MeasurerImpl::Shape(CharGroups &cgs, std::list<struct MeasuringRun> &runs, s
         LOGSCOPED(sl, LOG2EX_DEBUG(), ss.str());
 
         if (DoShape(cgs, run, index)) {
-            return 1;
+            return FAILED;
         }
     }
 
@@ -282,7 +284,7 @@ int MeasurerImpl::Shape(CharGroups &cgs, std::list<struct MeasuringRun> &runs, s
         const auto &wordcgs = cgs.GetSubFromU16RangeAll(start, end);
         wordcgs.Get(wordcgs.GetNumberOfCharGroup() - 1).invisibleWidth_ += wordSpacing_;
     }
-    return 0;
+    return SUCCESSED;
 }
 
 int MeasurerImpl::DoShape(CharGroups &cgs, MeasuringRun &run, int &index)
@@ -290,13 +292,13 @@ int MeasurerImpl::DoShape(CharGroups &cgs, MeasuringRun &run, int &index)
     auto typeface = run.typeface;
     if (typeface == nullptr) {
         LOG2EX(ERROR) << "there is no typeface";
-        return 1;
+        return FAILED;
     }
 
     auto hbuffer = hb_buffer_create();
     if (!hbuffer) {
         LOG2EX(ERROR) << "hbuffer is nullptr";
-        return 1;
+        return FAILED;
     }
 
     hb_buffer_add_utf16(hbuffer, reinterpret_cast<const uint16_t *>(text_.data()),
@@ -309,13 +311,16 @@ int MeasurerImpl::DoShape(CharGroups &cgs, MeasuringRun &run, int &index)
     auto hface = hb_face_create_for_tables(HbFaceReferenceTableTypeface, typeface->Get()->GetTypeface().get(), 0);
     if (!hface) {
         LOG2EX(ERROR) << "hface is nullptr";
-        return 1;
+        hb_buffer_destroy(hbuffer);
+        return FAILED;
     }
 
     auto hfont = hb_font_create(hface);
     if (!hfont) {
         LOG2EX(ERROR) << "hfont is nullptr";
-        return 1;
+        hb_buffer_destroy(hbuffer);
+        hb_face_destroy(hface);
+        return FAILED;
     }
 
     std::vector<hb_feature_t> ff;
@@ -323,13 +328,16 @@ int MeasurerImpl::DoShape(CharGroups &cgs, MeasuringRun &run, int &index)
     hb_shape(hfont, hbuffer, ff.data(), ff.size());
 
     if (GetGlyphs(cgs, run, index, hbuffer, typeface)) {
-        return 1;
+        hb_buffer_destroy(hbuffer);
+        hb_font_destroy(hfont);
+        hb_face_destroy(hface);
+        return FAILED;
     }
 
     hb_buffer_destroy(hbuffer);
     hb_font_destroy(hfont);
     hb_face_destroy(hface);
-    return 0;
+    return SUCCESSED;
 }
 
 int MeasurerImpl::GetGlyphs(CharGroups &cgs, MeasuringRun &run, int &index, hb_buffer_t *hbuffer,
@@ -339,20 +347,20 @@ int MeasurerImpl::GetGlyphs(CharGroups &cgs, MeasuringRun &run, int &index, hb_b
     auto hginfos = hb_buffer_get_glyph_infos(hbuffer, &ng);
     if (!hginfos) {
         LOG2EX(ERROR) << "hginfos is nullptr";
-        return 1;
+        return FAILED;
     }
 
     auto hgpositions = hb_buffer_get_glyph_positions(hbuffer, nullptr);
     if (!hgpositions) {
         LOG2EX(ERROR) << "hgpositions is nullptr";
-        return 1;
+        return FAILED;
     }
 
     LOG2EX_DEBUG() << "ng: " << ng;
     auto upe = typeface->Get()->GetUnitsPerEm();
     if (!upe) {
         LOG2EX(ERROR) << "upe is 0";
-        return 1;
+        return FAILED;
     }
 
     auto glyphEm = 1.0 * size_ / upe;
@@ -382,7 +390,7 @@ int MeasurerImpl::GetGlyphs(CharGroups &cgs, MeasuringRun &run, int &index, hb_b
     if (rtl_) {
         cgs.ReverseAll();
     }
-    return 0;
+    return SUCCESSED;
 }
 
 void MeasurerImpl::DoCgsByCluster(std::map<uint32_t, Texgine::CharGroup> &cgsByCluster)
