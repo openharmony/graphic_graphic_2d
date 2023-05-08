@@ -78,9 +78,9 @@ private:
         "\nExample: /data/drawing_ening_sample dcl -t 0 -b 1 -e 100 \n" + breakLine_ + "\n";
 
     IterateType iterateType_ = IterateType::ITERATE_FRAME;
-    int beginFrame_ = 0;
-    int endFrame_ = 100;
-    int loop_ = 1;
+    uint32_t beginFrame_ = 0;
+    uint32_t endFrame_ = 100;
+    uint32_t loop_ = 1;
     double opItemStep_ = 1;
     std::string inputFilePath_ = "/data/lkx/";
     std::string outputFilePath_ = "/data/lkx/";
