@@ -480,21 +480,6 @@ VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKH
         *numImages = 1;
     }
 
-    uint64_t nativeUsage = 0;
-    VkResult result = GetSwapchainGrallocUsageOpenHarmony(device, createInfo->imageFormat,
-                                                          createInfo->imageUsage, &nativeUsage);
-    if (result != VK_SUCCESS) {
-        SWLOGE("GetSwapchainGrallocUsageOpenHarmony failed: %{public}d", result);
-        return result;
-    }
-    if (createInfo->flags & VK_SWAPCHAIN_CREATE_PROTECTED_BIT_KHR) {
-        nativeUsage |= OHOS::BUFFER_USAGE_PROTECTED;
-    }
-    err = NativeWindowHandleOpt(window, SET_USAGE, nativeUsage);
-    if (err != OHOS::GSERROR_OK) {
-        SWLOGE("NativeWindow SET_USAGE failed: %{public}d", err);
-        return VK_ERROR_SURFACE_LOST_KHR;
-    }
     return VK_SUCCESS;
 }
 
