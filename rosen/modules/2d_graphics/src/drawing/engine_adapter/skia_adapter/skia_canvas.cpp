@@ -319,9 +319,13 @@ void SkiaCanvas::DrawRegion(const Region& region)
         return;
     }
     auto skRegionImpl = region.GetImpl<SkiaRegion>();
+    if (skRegionImpl == nullptr) {
+        LOGE("skiaRegion is null, return on line %{public}d", __LINE__);
+        return;
+    }
 
     for (auto d : skiaPaint_.GetSortedPaints()) {
-        if (skRegionImpl != nullptr && d != nullptr) {
+        if (d != nullptr) {
             skCanvas_->drawRegion(*skRegionImpl->GetSkRegion(), d->paint);
         }
     }
