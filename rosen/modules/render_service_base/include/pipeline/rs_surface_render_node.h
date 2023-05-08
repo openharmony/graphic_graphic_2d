@@ -56,6 +56,7 @@ public:
 
     void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
     void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
+    void ResetParent() override;
 
     bool IsAppWindow() const
     {
@@ -296,7 +297,6 @@ public:
 
     void NotifyUIBufferAvailable();
     bool IsNotifyUIBufferAvailable() const;
-
     void SetIsNotifyUIBufferAvailable(bool available);
 
     // UI Thread would not be notified when SurfaceNode created by Video/Camera in RenderService has available buffer.
@@ -541,6 +541,8 @@ public:
     }
 
 private:
+    void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
+
     std::mutex mutexRT_;
     std::mutex mutexUI_;
     std::mutex mutex_;
