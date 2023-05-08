@@ -33,6 +33,19 @@ namespace {
     sptr<VSyncReceiver> g_receiver = nullptr;
 }
 
+void DrawingEngineSample::~DrawingEngineSample()
+{
+    if (benchMark_ != nullptr) {
+        delete benchMark_;
+    }
+    if (backend_ != nullptr) {
+        delete backend_;
+    }
+    if (drawingProxy != nullptr) {
+        delete drawingProxy;
+    }
+}
+
 void DrawingEngineSample::SetBenchMark(OHOS::Rosen::BenchMark* benchMark)
 {
     benchMark_ = benchMark;
@@ -111,8 +124,10 @@ void DrawingEngineSample::OnPrepareCompleted(
 
 void DrawingEngineSample::InitContext()
 {
+    std::cout << "DrawingEngineSample::InitContext+" << std::endl;
     drawingProxy = new DrawingProxy();
     drawingProxy->InitDrawContext();
+    std::cout << "DrawingEngineSample::InitContext-" << std::endl;
 }
 
 void DrawingEngineSample::Init()
@@ -183,8 +198,10 @@ void DrawingEngineSample::ExcuteBenchMark(SkCanvas* canvas)
 SurfaceError DrawingEngineSample::DoDraw()
 {
     LOGI("DrawingEngineSample::DoDraw+");
-
     std::shared_ptr<SurfaceBase> surface = OHOS::Rosen::SurfaceOhos::CreateSurface(drawingPSurface);
+    if (surface == nullptr) {
+        return SURFACE_ERROR_ERROR;
+    }
     surface->SetDrawingProxy(drawingProxy);
 
     auto surfaceFrame = surface->RequestFrame(drawingWidth, drawingHeight);
@@ -198,8 +215,8 @@ SurfaceError DrawingEngineSample::DoDraw()
     ExcuteBenchMark(canvas);
 
     surface->FlushFrame(surfaceFrame);
-    
-    LOGI("DrawingEngineSample::DoDraw-"); 
+
+    LOGI("DrawingEngineSample::DoDraw-");
     return SURFACE_ERROR_OK;
 }
 

@@ -43,7 +43,9 @@ class Setting {
 public:
     static RenderBackendType GetRenderBackendType()
     {
-#ifdef ACE_ENABLE_GL
+#if defined(ACE_ENABLE_VK)
+        RenderBackendType type = RenderBackendType::VULKAN;
+#elif defined(ACE_ENABLE_GL)
         RenderBackendType type = RenderBackendType::GLES;
 #else
         RenderBackendType type = RenderBackendType::SOFTWARE;

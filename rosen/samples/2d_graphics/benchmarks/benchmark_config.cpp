@@ -28,6 +28,8 @@ void BenchmarkConfig::SetBenchMarkType(std::string type)
         benchMarkType_ = BenchMarkName::MULTITHREAD;
     } else if (type == "api") {
         benchMarkType_ = BenchMarkName::API;
+    } else if (type == "dcl") {
+        benchMarkType_ = BenchMarkName::DCL;
     } else {
         benchMarkType_ = BenchMarkName::LASTNAME;
     }

@@ -35,7 +35,7 @@ namespace Rosen {
 class DrawingEngineSample : public IBufferConsumerListenerClazz {
 public:
     DrawingEngineSample() = default;
-    virtual ~DrawingEngineSample() = default;
+    ~DrawingEngineSample();
     void Run();
     void SetBenchMark(OHOS::Rosen::BenchMark* benchMark);
 private:
