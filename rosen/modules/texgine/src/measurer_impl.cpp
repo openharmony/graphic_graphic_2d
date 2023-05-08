@@ -24,6 +24,8 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 #define INVALID_TEXT_LENGTH (-1)
+#define SUCCESSED 0
+#define FAILED 1
 
 namespace {
 void DumpCharGroup(int32_t index, const CharGroup &cg, double glyphEm,
@@ -115,7 +117,7 @@ int MeasurerImpl::Measure(CharGroups &cgs)
         if (it != cache_.end()) {
             cgs = it->second.cgs_.Clone();
             boundaries_ = it->second.boundaries_;
-            return 0;
+            return SUCCESSED;
         }
     }
 
@@ -135,7 +137,7 @@ int MeasurerImpl::Measure(CharGroups &cgs)
     if (fontFeatures_ == nullptr || fontFeatures_->GetFeatures().size() == 0) {
         cache_[key] = {cgs.Clone(), boundaries_};
     }
-    return 0;
+    return SUCCESSED;
 }
 
 void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
@@ -254,6 +256,191 @@ void MeasurerImpl::DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode
         }
 
         it->script = script;
+    }
+}
+
+int MeasurerImpl::Shape(CharGroups &cgs, std::list<struct MeasuringRun> &runs, std::vector<Boundary> boundaries)
+{
+    ScopedTrace scope("MeasurerImpl::Shape");
+    cgs = CharGroups::CreateEmpty();
+    LOGSCOPED(sl, LOG2EX_DEBUG(), "shape");
+    size_t index = 0;
+    for (auto &run : runs) {
+        if (run.end <= run.start) {
+            LOG2EX(ERROR) << "run have error range";
+            throw TEXGINE_EXCEPTION(ErrorStatus);
+        }
+
+        std::stringstream ss;
+        ss << "[" << run.start << ", " << run.end << ")";
+        LOGSCOPED(sl, LOG2EX_DEBUG(), ss.str());
+
+        if (DoShape(cgs, run, index)) {
+            return FAILED;
+        }
+    }
+
+    for (auto &[start, end] : boundaries) {
+        const auto &wordcgs = cgs.GetSubFromU16RangeAll(start, end);
+        wordcgs.Get(wordcgs.GetNumberOfCharGroup() - 1).invisibleWidth_ += wordSpacing_;
+    }
+    return SUCCESSED;
+}
+
+int MeasurerImpl::DoShape(CharGroups &cgs, MeasuringRun &run, int &index)
+{
+    auto typeface = run.typeface;
+    if (typeface == nullptr) {
+        LOG2EX(ERROR) << "there is no typeface";
+        return FAILED;
+    }
+
+    auto hbuffer = hb_buffer_create();
+    if (!hbuffer) {
+        LOG2EX(ERROR) << "hbuffer is nullptr";
+        return FAILED;
+    }
+
+    hb_buffer_add_utf16(hbuffer, reinterpret_cast<const uint16_t *>(text_.data()),
+        INVALID_TEXT_LENGTH, run.start, run.end - run.start);
+    hb_buffer_set_direction(hbuffer, rtl_ ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
+    hb_buffer_set_unicode_funcs(hbuffer, hb_unicode_funcs_create(hb_icu_get_unicode_funcs()));
+    hb_buffer_set_script(hbuffer, run.script);
+    hb_buffer_set_language(hbuffer, hb_language_from_string(locale_.c_str(), INVALID_TEXT_LENGTH));
+
+    auto hface = hb_face_create_for_tables(HbFaceReferenceTableTypeface, typeface->Get()->GetTypeface().get(), 0);
+    if (!hface) {
+        LOG2EX(ERROR) << "hface is nullptr";
+        hb_buffer_destroy(hbuffer);
+        return FAILED;
+    }
+
+    auto hfont = hb_font_create(hface);
+    if (!hfont) {
+        LOG2EX(ERROR) << "hfont is nullptr";
+        hb_buffer_destroy(hbuffer);
+        hb_face_destroy(hface);
+        return FAILED;
+    }
+
+    std::vector<hb_feature_t> ff;
+    GenerateHBFeatures(ff, fontFeatures_);
+    hb_shape(hfont, hbuffer, ff.data(), ff.size());
+
+    if (GetGlyphs(cgs, run, index, hbuffer, typeface)) {
+        hb_buffer_destroy(hbuffer);
+        hb_font_destroy(hfont);
+        hb_face_destroy(hface);
+        return FAILED;
+    }
+
+    hb_buffer_destroy(hbuffer);
+    hb_font_destroy(hfont);
+    hb_face_destroy(hface);
+    return SUCCESSED;
+}
+
+int MeasurerImpl::GetGlyphs(CharGroups &cgs, MeasuringRun &run, int &index, hb_buffer_t *hbuffer,
+    std::shared_ptr<Texgine::Typeface> typeface)
+{
+    uint32_t ng = 0u;
+    auto hginfos = hb_buffer_get_glyph_infos(hbuffer, &ng);
+    if (!hginfos) {
+        LOG2EX(ERROR) << "hginfos is nullptr";
+        return FAILED;
+    }
+
+    auto hgpositions = hb_buffer_get_glyph_positions(hbuffer, nullptr);
+    if (!hgpositions) {
+        LOG2EX(ERROR) << "hgpositions is nullptr";
+        return FAILED;
+    }
+
+    LOG2EX_DEBUG() << "ng: " << ng;
+    auto upe = typeface->Get()->GetUnitsPerEm();
+    if (!upe) {
+        LOG2EX(ERROR) << "upe is 0";
+        return FAILED;
+    }
+
+    auto glyphEm = 1.0 * size_ / upe;
+    std::map<uint32_t, CharGroup> cgsByCluster{{run.end, {}}};
+    for (uint32_t i = 0; i < ng; i++) {
+        auto &cg = cgsByCluster[hginfos[i].cluster];
+        cg.glyphs_.push_back({
+            .codepoint_ = hginfos[i].codepoint,
+            .advanceX_ = glyphEm * hgpositions[i].x_advance,
+            .advanceY_ = glyphEm * hgpositions[i].y_advance,
+            .offsetX_ = glyphEm * hgpositions[i].x_offset,
+            .offsetY_ = glyphEm * hgpositions[i].y_offset,
+        });
+        cg.typeface_ = typeface;
+    }
+
+    DoCgsByCluster(cgsByCluster);
+    cgsByCluster.erase(run.end);
+    for (uint32_t i = 0; i < ng; i++) {
+        DumpCharGroup(index++, cgsByCluster[hginfos[i].cluster], glyphEm, hginfos[i], hgpositions[i]);
+    }
+
+    for (const auto &[cluster, cg] : cgsByCluster) {
+        cgs.PushBack(cg);
+    }
+
+    if (rtl_) {
+        cgs.ReverseAll();
+    }
+    return SUCCESSED;
+}
+
+void MeasurerImpl::DoCgsByCluster(std::map<uint32_t, Texgine::CharGroup> &cgsByCluster)
+{
+    for (auto it = cgsByCluster.begin(); it != cgsByCluster.end(); it++) {
+        auto start = (it++)->first;
+        if (it == cgsByCluster.end()) {
+            break;
+        }
+
+        auto end = (it--)->first;
+        if (start > text_.size() || end > text_.size()) {
+            LOG2EX(ERROR) << "cgsByCluster is not align with text_";
+            throw TEXGINE_EXCEPTION(ErrorStatus);
+        }
+
+        it->second.chars_.insert(it->second.chars_.end(), text_.begin() + start, text_.begin() + end);
+        it->second.visibleWidth_ = 0;
+        for (const auto &glyph : it->second.glyphs_) {
+            it->second.visibleWidth_ += glyph.advanceX_;
+        }
+
+        it->second.invisibleWidth_ = letterSpacing_;
+        if (u_isWhitespace(it->second.chars_[0]) != 0) {
+            it->second.invisibleWidth_ += it->second.visibleWidth_;
+            it->second.visibleWidth_ = 0;
+        }
+    }
+}
+
+void MeasurerImpl::GenerateHBFeatures(std::vector<hb_feature_t> &fontFeatures, const FontFeatures *ff)
+{
+    LOGSCOPED(sl, LOG2EX_DEBUG(), "GenerateHBFeatures");
+    if (ff == nullptr) {
+        return;
+    }
+
+    auto features = ff->GetFeatures();
+    if (features.empty()) {
+        return;
+    }
+
+    for (auto &[ft, fv] : features) {
+        hb_feature_t hf;
+        if (hb_feature_from_string(ft.c_str(), ft.size(), &hf)) {
+            hf.value = fv;
+            fontFeatures.push_back(hf);
+        }
+
+        LOG2EX_DEBUG() << "feature tag:" << hf.tag << ", feature value:" << hf.value;
     }
 }
 } // namespace TextEngine
