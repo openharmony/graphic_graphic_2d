@@ -89,7 +89,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         node->GetName().find("sound_panel") != std::string::npos ||
         node->GetName().find("RosenWeb") != std::string::npos) {
         node->SetFrameGravity(Gravity::TOP_LEFT);
-    } else {
+    } else if (!isWindow) {
         node->SetFrameGravity(Gravity::RESIZE);
     }
     ROSEN_LOGD("RsDebug RSSurfaceNode::Create id:%" PRIu64, node->GetId());
