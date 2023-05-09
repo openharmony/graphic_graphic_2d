@@ -20,6 +20,7 @@ ohos_unittest("2d_graphics_utils_test") {
 
   sources = [
     "camera3d_test.cpp",
+    "data_test.cpp",
     "matrix_test.cpp",
     "point3_test.cpp",
     "point_test.cpp",
