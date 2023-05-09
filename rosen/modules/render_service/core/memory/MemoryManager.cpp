@@ -334,6 +334,14 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const GrContext* grCont
     // Get memory of window by tag
     DumpAllGpuInfo(log, grContext);
 
+// get memory of rs
+#ifndef NEW_SKIA
+    for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE; tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
+        GrGpuResourceTag tag(0, 0, 0, tagtype);
+        std::string tagType = RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype));
+        DumpGpuCache(log, grContext, &tag, tagType);
+    }
+#endif
     // cache limit
     size_t cacheLimit = 0;
     size_t cacheUsed = 0;

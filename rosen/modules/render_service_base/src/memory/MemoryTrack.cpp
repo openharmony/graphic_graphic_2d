@@ -107,6 +107,13 @@ MemoryGraphic MemoryTrack::CountRSMemory(const pid_t pid)
         std::for_each(nodeInfoOfPid.begin(), nodeInfoOfPid.end(), [&totalMemSize](MemoryNodeOfPid& info) {
             totalMemSize += info.GetMemSize();
         });
+
+        for (auto it = memPicRecord_.begin(); it != memPicRecord_.end(); it++) {
+            pid_t picPid = it->second.pid;
+            if (pid == picPid) {
+                totalMemSize += it->second.size;
+            }
+        }
         memoryGraphic.SetPid(pid);
         memoryGraphic.SetCpuMemorySize(totalMemSize);
     }
