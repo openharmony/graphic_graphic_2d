@@ -165,7 +165,7 @@ void BootAnimation::InitBootWindow()
     LOGI("Init window scene end.");
     if (animationConfig_.IsBootVideoEnabled()) {
         auto surfaceNode = window_->GetSurfaceNode();
-        surfaceNode->SetBackgroundColor(0xFF0000);
+        surfaceNode->SetBackgroundColor(0xFF000000);
         surfaceNode->SetFrameGravity(Rosen::Gravity::RESIZE_ASPECT);
         OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
     }
