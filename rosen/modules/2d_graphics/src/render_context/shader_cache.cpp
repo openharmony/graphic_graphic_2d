@@ -60,11 +60,19 @@ void ShaderCache::InitShaderCache(const char* identity, const size_t size, bool 
     SHA256_Final(idHash_.data(), &sha256Ctx);
     std::array<uint8_t, SHA256_DIGEST_LENGTH> shaArray;
     auto key = ID_KEY;
+
+    if (!cacheData_) {
+        LOGE("abandon, cacheData destructed");
+        return;
+    }
+
     auto loaded = cacheData_->Get(&key, sizeof(key), shaArray.data(), shaArray.size());
     if (!(loaded && std::equal(shaArray.begin(), shaArray.end(), idHash_.begin()))) {
         cacheData_->Clear();
         LOGW("abandon, bad hash value, cleared for future regeneration");
     }
+
+    LOGI("shadercache initiation success");
     initialized_ = true;
 }
 
@@ -93,8 +101,12 @@ sk_sp<SkData> ShaderCache::load(const SkData& key)
         LOGE("load: failed because unable to map memory");
         return nullptr;
     }
-    CacheData* cacheData = GetCacheData();
-    size_t valueSize = cacheData->Get(key.data(), keySize, valueBuffer, bufferSize_);
+    if (!cacheData_) {
+        LOGE("load: cachedata has been destructed");
+        return nullptr;
+    }
+
+    size_t valueSize = cacheData_->Get(key.data(), keySize, valueBuffer, bufferSize_);
     if (!valueSize) {
         free(valueBuffer);
         valueBuffer = nullptr;
@@ -104,7 +116,7 @@ sk_sp<SkData> ShaderCache::load(const SkData& key)
             return nullptr;
         }
         valueBuffer = newValueBuffer;
-        valueSize = cacheData->Get(key.data(), keySize, valueBuffer, bufferSize_);
+        valueSize = cacheData_->Get(key.data(), keySize, valueBuffer, bufferSize_);
     }
 
     if (!valueSize || valueSize > bufferSize_) {
@@ -150,9 +162,12 @@ void ShaderCache::store(const SkData& key, const SkData& data)
     }
 
     const void* value = data.data();
-    CacheData* cacheData = GetCacheData();
     cacheDirty_ = true;
-    cacheData->Rewrite(key.data(), keySize, value, valueSize);
+    if (!cacheData_) {
+        LOGE("store: cachedata has been destructed");
+        return;
+    }
+    cacheData_->Rewrite(key.data(), keySize, value, valueSize);
 
     if (!savePending_ && saveDelaySeconds_ > 0) {
         savePending_ = true;
