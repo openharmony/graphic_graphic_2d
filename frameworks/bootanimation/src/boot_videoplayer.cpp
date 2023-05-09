@@ -37,7 +37,7 @@ void BootVideoPlayer::SetPlayerWindow(const OHOS::sptr<OHOS::Rosen::Window>& win
     window_ = window;
 }
 
-void BootVideoPlayer::PlayVideo()
+bool BootVideoPlayer::PlayVideo()
 {
     LOGI("PlayVideo begin");
     if (mediaPlayer_ == nullptr) {
@@ -47,32 +47,33 @@ void BootVideoPlayer::PlayVideo()
     int32_t ret = mediaPlayer_->SetPlayerCallback(cb);
     if (ret != 0) {
         LOGE("PlayVideo SetPlayerCallback fail, errorCode:%{public}d", ret);
-        return;
+        return false;
     }
 
     std::string uri = "file:/" + videopath_;
     ret = mediaPlayer_->SetSource(uri);
     if (ret != 0) {
-        LOGE("PlayVideo SetSource fail, errorCode:%{public}d", ret);
-        return;
+        LOGE("PlayVideo SetSource fail, uri:%{public}s, errorCode:%{public}d", uri.c_str(), ret);
+        return false;
     }
     auto surface = window_->GetSurfaceNode()->GetSurface();
     if (surface == nullptr) {
         LOGE("PlayVideo surface is null");
-        return;
+        return false;
     }
     ret = mediaPlayer_->SetVideoSurface(surface);
     if (ret != 0) {
         LOGE("PlayVideo SetVideoSurface fail, errorCode:%{public}d", ret);
-        return;
+        return false;
     }
     ret = mediaPlayer_->Prepare();
     if (ret !=  0) {
         LOGE("PlayVideo Prepare fail, errorCode:%{public}d", ret);
-        return;
+        return false;
     }
     mediaPlayer_->Play();
     LOGI("PlayVideo end");
+    return true;
 }
 
 void BootVideoPlayer::StopVideo()

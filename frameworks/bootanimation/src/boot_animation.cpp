@@ -263,10 +263,13 @@ void BootAnimation::PlayVideo()
         .callback_ = std::bind(&BootAnimation::CloseVideoPlayer, this),
     };
     bootVideoPlayer_ = std::make_shared<BootVideoPlayer>();
-    bootVideoPlayer_->SetVideoPath(animationConfig_.GetCustVideoPath());
+    bootVideoPlayer_->SetVideoPath(animationConfig_.GetBootVideoPath());
     bootVideoPlayer_->SetPlayerWindow(window_);
     bootVideoPlayer_->SetCallback(&fcb_);
-    bootVideoPlayer_->PlayVideo();
+    if (!bootVideoPlayer_->PlayVideo()) {
+        LOGE("Play video failed.");
+        CloseVideoPlayer();
+    }
 }
 
 void BootAnimation::CloseVideoPlayer()

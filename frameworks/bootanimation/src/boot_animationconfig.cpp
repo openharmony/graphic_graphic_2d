@@ -19,6 +19,7 @@
 using namespace OHOS;
 static const std::string BOOT_CUSTOM_PATHSUFFIX = "etc/bootanimation/bootanimation_custom_config.json";
 static const std::string BOOT_PIC_ZIP = "/system/etc/graphic/bootpic.zip";
+static const std::string BOOT_VIDEO_PATH = "/system/etc/graphic/bootvideo.mp4";
 static const std::string BOOT_SOUND_URI = "file://system/etc/graphic/bootsound.wav";
 
 bool BootAnimationConfig::ReadPicZipFile(ImageStructVec& vec, int32_t& freq)
@@ -53,14 +54,14 @@ bool BootAnimationConfig::CheckFrameRateValid(int32_t ratevalue)
 
 void BootAnimationConfig::CheckBootVideoEnabled()
 {
-    if (custConfig_.custVideoPath.empty()) {
-        LOGI("video path not config");
+    if (custConfig_.custVideoPath.empty() && !custConfig_.custPicZipPath.empty()) {
+        LOGI("Custom picture path is config and custom video path is not config");
+        bootVideoEnabled_ = false;
         return;
     }
 
-    if (IsFileExisted(custConfig_.custVideoPath)) {
-        LOGI("video enable %{public}s", custConfig_.custVideoPath.c_str());
-        bootVideoEnabled_ = true;
+    if (!custConfig_.custVideoPath.empty() && !IsFileExisted(custConfig_.custVideoPath)) {
+        LOGE("Custom video file is not found");
     }
 }
 
@@ -108,8 +109,11 @@ std::string BootAnimationConfig::GetCustomCfgFile()
     return ret;
 }
 
-std::string BootAnimationConfig::GetCustVideoPath()
+std::string BootAnimationConfig::GetBootVideoPath()
 {
+    if (custConfig_.custVideoPath.empty()) {
+        return BOOT_VIDEO_PATH;
+    }
     return custConfig_.custVideoPath;
 }
 
