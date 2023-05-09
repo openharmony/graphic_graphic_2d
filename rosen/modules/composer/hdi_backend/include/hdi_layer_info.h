@@ -403,7 +403,7 @@ public:
             cSurface_->Dump(result);
         }
     }
-  
+
     RosenError SetLayerMaskInfo(LayerMask mask)
     {
         switch (mask) {
