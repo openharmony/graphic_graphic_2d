@@ -170,6 +170,19 @@ private:
         std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
         std::shared_ptr<RSDisplayRenderNode>& displayNode);
     void CalcDirtyFilterRegion(std::shared_ptr<RSDisplayRenderNode>& node);
+    /* Disable visible hwc surface if it intersects with filter region
+     * Save rest validNodes in prevHwcEnabledNodes
+     * [planning] Update hwc surface dirty status at the same time
+     */
+    void UpdateHardwardNodeStatusBasedOnFilter(std::shared_ptr<RSSurfaceRenderNode>& node,
+        std::vector<std::weak_ptr<RSSurfaceRenderNode>>& prevHwcEnabledNodes,
+        std::shared_ptr<RSDirtyRegionManager>& displayDirtyManager) const;
+    /* Disable hwc surface intersect with filter rects and merge dirty filter region
+     * [planning] If invisible filterRects could be removed
+     */
+    RectI UpdateHardwardEnableList(std::vector<RectI>& filterRects,
+        std::vector<std::weak_ptr<RSSurfaceRenderNode>>& validHwcNodes) const;
+    
     // set global dirty region to each surface node
     void SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node);
     void SetSurfaceGlobalAlignedDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node,

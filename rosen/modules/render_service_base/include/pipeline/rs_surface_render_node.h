@@ -120,6 +120,16 @@ public:
         isHardwareForcedDisabled_ = forcesDisabled;
     }
 
+    void SetHardwareForcedDisabledStateByFilter(bool forcesDisabled)
+    {
+        isHardwareForcedDisabledByFilter_ = forcesDisabled;
+    }
+
+    bool IsHardwareForcedDisabledByFilter() const
+    {
+        return isHardwareForcedDisabledByFilter_;
+    }
+
     bool IsHardwareForcedDisabled() const
     {
         return isHardwareForcedDisabled_ ||
@@ -692,6 +702,7 @@ private:
     // mark if this self-drawing node is forced not to use hardware composer
     // in case where this node's parent window node is occluded or is appFreeze, this variable will be marked true
     bool isHardwareForcedDisabled_ = false;
+    bool isHardwareForcedDisabledByFilter_ = false;
     float localZOrder_ = 0.0f;
     std::vector<WeakPtr> childHardwareEnabledNodes_;
     int32_t nodeCost_ = 0;

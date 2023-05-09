@@ -1745,6 +1745,74 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
         }
     }
 }
+RectI RSUniRenderVisitor::UpdateHardwardEnableList(std::vector<RectI>& filterRects,
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>>& validHwcNodes) const
+{
+    if (validHwcNodes.empty() || filterRects.empty()) {
+        return RectI();
+    }
+    // remove invisible surface since occlusion
+    // check intersected parts
+    RectI filterDirty;
+    for (auto iter = validHwcNodes.begin(); iter != validHwcNodes.end(); ++iter) {
+        auto childNode = iter->lock();
+        auto childDirtyRect = childNode->GetDstRect();
+        bool isIntersected = false;
+        // remove invisible surface since occlusion
+        for (auto filterRect : filterRects) {
+            if (!childDirtyRect.IntersectRect(filterRect).IsEmpty()) {
+                filterDirty = filterDirty.JoinRect(filterRect);
+                isIntersected = true;
+            }
+        }
+        if (isIntersected) {
+            childNode->SetHardwareForcedDisabledStateByFilter(true);
+            iter = validHwcNodes.erase(iter);
+            iter--;
+        }
+    }
+    return filterDirty;
+}
+
+void RSUniRenderVisitor::UpdateHardwardNodeStatusBasedOnFilter(std::shared_ptr<RSSurfaceRenderNode>& node,
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>>& prevHwcEnabledNodes,
+    std::shared_ptr<RSDirtyRegionManager>& displayDirtyManager) const
+{
+    if (node == nullptr || !node->IsAppWindow() || displayDirtyManager == nullptr) {
+        return;
+    }
+    auto filterRects = node->GetChildrenNeedFilterRects();
+    // collect valid hwc surface which is not intersected with filterRects
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> curHwcEnabledNodes;
+    // remove invisible surface since occlusion
+    auto visibleRegion = node->GetVisibleRegion();
+    for (auto subNode : node->GetChildHardwareEnabledNodes()) {
+        auto childNode = subNode.lock();
+        // recover disabled state before update
+        childNode->SetHardwareForcedDisabledStateByFilter(false);
+        if (visibleRegion.IsIntersectWith(Occlusion::Rect(childNode->GetOldDirtyInSurface()))) {
+            curHwcEnabledNodes.emplace_back(childNode);
+        }
+    }
+
+    auto dirtyManager = node->GetDirtyManager();
+    // Within App: disable hwc if intersect with filterRects
+    dirtyManager->MergeDirtyRect(UpdateHardwardEnableList(filterRects, curHwcEnabledNodes));
+    // Among App: disable lower hwc layers if intersect with upper transparent appWindow
+    if (node->IsTransparent()) {
+        if (node->GetRenderProperties().NeedFilter()) {
+            // Attention: if transparent appwindow needs filter, only need to check itself
+            filterRects = {node->GetDstRect()};
+        }
+        // In case of transparent window, filterRects need hwc surface's content
+        RectI globalTransDirty = UpdateHardwardEnableList(filterRects, prevHwcEnabledNodes);
+        displayDirtyManager->MergeDirtyRect(globalTransDirty);
+        dirtyManager->MergeDirtyRect(globalTransDirty);
+    }
+    if (!curHwcEnabledNodes.empty()) {
+        prevHwcEnabledNodes.insert(prevHwcEnabledNodes.end(), curHwcEnabledNodes.begin(), curHwcEnabledNodes.end());
+    }
+}
 
 void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(const RectI filterRect,
     std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
@@ -1800,15 +1868,22 @@ void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(const RectI filterRect,
 
 void RSUniRenderVisitor::CalcDirtyFilterRegion(std::shared_ptr<RSDisplayRenderNode>& displayNode)
 {
-    if (displayNode == nullptr) {
+    if (displayNode == nullptr || displayNode->GetDirtyManager() == nullptr) {
         return;
     }
-    for (auto it = displayNode->GetCurAllSurfaces().begin();
-        it != displayNode->GetCurAllSurfaces().end(); ++it) {
+    auto displayDirtyManager = displayNode->GetDirtyManager();
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> prevHwcEnabledNodes;
+    for (auto it = displayNode->GetCurAllSurfaces().begin(); it != displayNode->GetCurAllSurfaces().end(); ++it) {
         auto currentSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (currentSurfaceNode == nullptr) {
             continue;
         }
+        auto currentSurfaceDirtyManager = currentSurfaceNode->GetDirtyManager();
+        RectI currentSurfaceDirtyRect = currentSurfaceDirtyManager->GetDirtyRegion();
+        // [planning] Update hwc surface dirty status at the same time
+        UpdateHardwardNodeStatusBasedOnFilter(currentSurfaceNode, prevHwcEnabledNodes, displayDirtyManager);
+        RectI displayDirtyRect = displayDirtyManager->GetDirtyRegion();
+
         // child node (component) has filter
         auto filterRects = currentSurfaceNode->GetChildrenNeedFilterRects();
         if (currentSurfaceNode->IsAppWindow() && !filterRects.empty()) {
@@ -1824,9 +1899,6 @@ void RSUniRenderVisitor::CalcDirtyFilterRegion(std::shared_ptr<RSDisplayRenderNo
             CalcDirtyRegionForFilterNode(
                 currentSurfaceNode->GetOldDirtyInSurface(), currentSurfaceNode, displayNode);
         }
-    }
-    if (needFilter_) { // when need draw filter, disable hardware composer
-        isHardwareForcedDisabled_ = true;
     }
 }
 
@@ -2126,7 +2198,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
         if (node.GetBuffer() != nullptr) {
             if (node.IsHardwareEnabledType()) {
-                node.SetHardwareForcedDisabledState(isStaticCached_);
+                // since node has buffer, hwc disabledState could be reset by filter or surface cached
+                node.SetHardwareForcedDisabledState((node.IsHardwareForcedDisabledByFilter() || isStaticCached_));
             }
             // if this window is in freeze state, disable hardware composer for its child surfaceView
             if (IsHardwareComposerEnabled() && !node.IsHardwareForcedDisabled() && node.IsHardwareEnabledType()) {
