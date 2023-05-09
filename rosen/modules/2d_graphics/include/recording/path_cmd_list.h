@@ -206,6 +206,78 @@ private:
     scalar startAngle_;
     scalar sweepAngle_;
 };
+
+class AddPolyOpItem : public PathOpItem {
+public:
+    AddPolyOpItem(const int offset, int count, bool close);
+    ~AddPolyOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path, const MemAllocator& menAllocator) const;
+private:
+    int offset_;
+    int count_;
+    bool close_;
+};
+
+class AddCircleOpItem : public PathOpItem {
+public:
+    AddCircleOpItem(const scalar x, const scalar y, const scalar radius, PathDirection dir);
+    ~AddCircleOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    scalar x_;
+    scalar y_;
+    scalar radius_;
+    PathDirection dir_;
+};
+
+class AddRoundRectOpItem : public PathOpItem {
+public:
+    AddRoundRectOpItem(const Rect& rect, const scalar xRadius, const scalar yRadius, PathDirection dir);
+    AddRoundRectOpItem(const RoundRect& rrect, PathDirection dir);
+    ~AddRoundRectOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    RoundRect rrect_;
+    PathDirection dir_;
+};
+
+class AddPathOpItem : public PathOpItem {
+public:
+    AddPathOpItem(const CmdListSiteInfo& src, const scalar x, const scalar y);
+    AddPathOpItem(const CmdListSiteInfo& src);
+    ~AddPathOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path, const MemAllocator& memAllocator) const;
+private:
+    CmdListSiteInfo src_;
+    scalar x_;
+    scalar y_;
+    const int methodIndex_;
+};
+
+class AddPathWithMatrixOpItem : public PathOpItem {
+public:
+    AddPathWithMatrixOpItem(const CmdListSiteInfo& src, const Matrix& matrix);
+    ~AddPathWithMatrixOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path, const MemAllocator& memAllocator) const;
+private:
+    CmdListSiteInfo src_;
+    Matrix::Buffer matrixBuffer_;
+};
+
+class ReverseAddPathOpItem : public PathOpItem {
+public:
+    ReverseAddPathOpItem(const CmdListSiteInfo& src);
+    ~ReverseAddPathOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path, const MemAllocator& memAllocator) const;
+private:
+    CmdListSiteInfo src_;
+};
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
