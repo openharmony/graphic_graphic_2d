@@ -549,7 +549,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         // record node position for display render node dirtyManager
-        curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetDstRect());
+        curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirty());
 
         if (node.IsAppWindow()) {
             curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
