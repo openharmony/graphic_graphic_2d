@@ -16,47 +16,35 @@
 #ifndef DRAWING_DCL_H
 #define DRAWING_DCL_H
 
-#include "benchmark.h"
 #include <chrono>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+
 #include <message_parcel.h>
-#include "dcl_command.h"
 #include "pipeline/rs_draw_cmd_list.h"
+
+#include "benchmark.h"
+#include "dcl_command.h"
 
 namespace OHOS {
 namespace Rosen {
 class DrawingDCL : public BenchMark {
 public:
     DrawingDCL() { std::cout << "DrawingDCL" << std::endl; }
-
     DrawingDCL(int32_t argc, char* argvp[]);
-
     ~DrawingDCL();
-
     bool GetDirectionAndStep(std::string command, bool &isMoreOps);
-
     bool IterateFrame(int &curLoop, int &frame);
-
     bool PlayBackByFrame(SkCanvas *skiaCanvas, bool isDumpPicture = false);
-
     bool PlayBackByOpItem(SkCanvas *skiaCanvas, bool isMoreOps = true);
-
     void UpdateParameters(bool isNeeded);
-
     void UpdateParametersFromDCLCommand(const DCLCommand& dclCommand);
-
     void PrintDurationTime(const std::string &description, std::chrono::time_point<std::chrono::system_clock> start);
-
     void Start() override;
-
     void Stop() override;
-
     void Test(SkCanvas *canvas, int width, int height) override;
-
     void Output() override;
-
     int LoadDrawCmdList(std::string dclFile);
 
 private:
@@ -71,7 +59,6 @@ private:
     std::string inputFilePath_ = "/data/lkx/";
     std::string outputFilePath_ = "/data/lkx/";
 };
-
 }
 }
 
