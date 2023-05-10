@@ -81,6 +81,13 @@ bool RSRenderPropertyBase::Marshalling(Parcel& parcel, const std::shared_ptr<RSR
             }
             return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
         }
+        case RSRenderPropertyType::PROPERTY_RRECT: {
+            auto property = std::static_pointer_cast<RSRenderAnimatableProperty<RRect>>(val);
+            if (property == nullptr) {
+                return false;
+            }
+            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
+        }
         default: {
             return false;
         }
@@ -162,6 +169,14 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
                 return false;
             }
             val.reset(new RSRenderAnimatableProperty<Vector4<Color>>(value, id, type));
+            break;
+        }
+        case RSRenderPropertyType::PROPERTY_RRECT: {
+            RRect value;
+            if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                return false;
+            }
+            val.reset(new RSRenderAnimatableProperty<RRect>(value, id, type));
             break;
         }
         default: {

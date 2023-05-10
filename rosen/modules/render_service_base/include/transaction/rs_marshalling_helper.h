@@ -70,6 +70,8 @@ class RSRenderAnimatableProperty;
 class RSShader;
 template<typename T>
 class RectT;
+template<typename T>
+class RRectT;
 
 class RSB_EXPORT RSMarshallingHelper {
 public:
@@ -154,6 +156,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<DrawCmdList>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Media::PixelMap>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RectT<float>>)
+    DECLARE_FUNCTION_OVERLOAD(RRectT<float>)
     static bool SkipPixelMap(Parcel& parcel);
     // animation
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)

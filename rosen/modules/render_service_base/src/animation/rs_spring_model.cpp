@@ -251,6 +251,7 @@ template class RSSpringModel<Color>;
 template class RSSpringModel<Matrix3f>;
 template class RSSpringModel<Vector2f>;
 template class RSSpringModel<Vector4f>;
+template class RSSpringModel<RRect>;
 template class RSSpringModel<Quaternion>;
 template class RSSpringModel<Vector4<Color>>;
 template class RSSpringModel<std::shared_ptr<RSFilter>>;

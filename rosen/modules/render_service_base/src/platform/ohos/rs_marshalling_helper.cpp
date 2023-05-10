@@ -870,6 +870,20 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RectT<fl
     return val != nullptr;
 }
 
+//RRect
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RRectT<float>& val)
+{
+    return Marshalling(parcel, val.rect_) && Marshalling(parcel, val.radius_[0]) &&
+        Marshalling(parcel, val.radius_[1]) && Marshalling(parcel, val.radius_[2]) &&
+        Marshalling(parcel, val.radius_[3]);
+}
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RRectT<float>& val)
+{
+    return Unmarshalling(parcel, val.rect_) && Unmarshalling(parcel, val.radius_[0]) &&
+        Unmarshalling(parcel, val.radius_[1]) && Unmarshalling(parcel, val.radius_[2]) &&
+        Unmarshalling(parcel, val.radius_[3]);
+}
+
 #ifdef NEW_SKIA
 // SkPaint
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkSamplingOptions& val)
@@ -1024,6 +1038,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)               \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)                \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<DrawCmdList>) \
     EXPLICIT_INSTANTIATION(TEMPLATE, SkMatrix)
 #endif
@@ -1046,7 +1061,8 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>) \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderAnimatableProperty)
 

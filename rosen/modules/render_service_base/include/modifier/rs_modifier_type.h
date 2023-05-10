@@ -62,8 +62,7 @@ enum class RSModifierType : int16_t {
 
     FRAME_GRAVITY,
 
-    CLIP_RRECT_RECT,
-    CLIP_RRECT_RADIUS,
+    CLIP_RRECT,
     CLIP_BOUNDS,
     CLIP_TO_BOUNDS,
     CLIP_TO_FRAME,
@@ -108,6 +107,7 @@ enum class RSRenderPropertyType : int16_t {
     PROPERTY_VECTOR4F,
     PROPERTY_VECTOR4_COLOR,
     PROPERTY_SKMATRIX,
+    PROPERTY_RRECT,
 };
 } // namespace Rosen
 } // namespace OHOS

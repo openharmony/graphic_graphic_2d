@@ -44,6 +44,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_VECTOR4_BORDER_STYLE,
     UPDATE_MODIFIER_VECTOR4_COLOR,
     UPDATE_MODIFIER_VECTOR4F,
+    UPDATE_MODIFIER_RRECT,
     UPDATE_MODIFIER_DRAW_CMD_LIST,
     UPDATE_MODIFIER_SKMATRIX,
 
@@ -136,6 +137,9 @@ ADD_COMMAND(RSUpdatePropertyVector4Color,
 ADD_COMMAND(RSUpdatePropertyVector4f,
     ARG(RS_NODE, UPDATE_MODIFIER_VECTOR4F, RSNodeCommandHelper::UpdateModifier<Vector4f>,
         NodeId, Vector4f, PropertyId, bool))
+ADD_COMMAND(RSUpdatePropertyRRect,
+    ARG(RS_NODE, UPDATE_MODIFIER_RRECT, RSNodeCommandHelper::UpdateModifier<RRect>,
+        NodeId, RRect, PropertyId, bool))
 ADD_COMMAND(RSUpdatePropertyDrawCmdList,
     ARG(RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST, RSNodeCommandHelper::UpdateModifier<DrawCmdListPtr>,
         NodeId, DrawCmdListPtr, PropertyId, bool))
