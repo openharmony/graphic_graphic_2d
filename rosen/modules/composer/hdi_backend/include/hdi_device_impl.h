@@ -29,6 +29,7 @@ public:
     /* set & get device screen info begin */
     int32_t RegHotPlugCallback(HotPlugCallback callback, void *data) override;
     int32_t RegScreenVBlankCallback(uint32_t screenId, VBlankCallback callback, void *data) override;
+    bool RegHwcDeadCallback(OnHwcDeadCallback callback, void *data) override;
     int32_t GetScreenCapability(uint32_t screenId, GraphicDisplayCapability &info) override;
     int32_t GetScreenSupportedModes(uint32_t screenId, std::vector<GraphicDisplayModeInfo> &modes) override;
     int32_t GetScreenMode(uint32_t screenId, uint32_t &modeId) override;
@@ -88,14 +89,13 @@ public:
 
     int32_t CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t &layerId) override;
     int32_t CloseLayer(uint32_t screenId, uint32_t layerId) override;
+    void Destroy() override;
 
 private:
     HdiDeviceImpl(const HdiDeviceImpl& rhs) = delete;
     HdiDeviceImpl& operator=(const HdiDeviceImpl& rhs) = delete;
     HdiDeviceImpl(HdiDeviceImpl&& rhs) = delete;
     HdiDeviceImpl& operator=(HdiDeviceImpl&& rhs) = delete;
-
-    void Destroy();
 };
 
 } // namespace Rosen

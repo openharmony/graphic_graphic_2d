@@ -53,8 +53,13 @@ bool RSScreenManager::Init() noexcept
         return false;
     }
 
-    if (composer_->RegScreenHotplug(&RSScreenManager::OnHotPlug, this) == -1) {
+    if (composer_->RegScreenHotplug(&RSScreenManager::OnHotPlug, this) != 0) {
         RS_LOGE("RSScreenManager %s: Failed to register OnHotPlug Func to composer.", __func__);
+        return false;
+    }
+
+    if (composer_->RegHwcDeadListener(&RSScreenManager::OnHwcDead, this) != 0) {
+        RS_LOGE("RSScreenManager %s: Failed to register OnHwcDead Func to composer.", __func__);
         return false;
     }
 
@@ -104,6 +109,71 @@ void RSScreenManager::OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool co
         return;
     }
     mainThread->RequestNextVSync();
+}
+
+void RSScreenManager::OnHwcDead(void *data)
+{
+    RS_LOGD("RSScreenManager %s: The composer_host is already dead.", __func__);
+    RSScreenManager *screenManager = static_cast<RSScreenManager *>(RSScreenManager::GetInstance().GetRefPtr());
+    if (screenManager == nullptr) {
+        RS_LOGE("RSScreenManager %s: Failed to find RSScreenManager instance.", __func__);
+        return;
+    }
+
+    screenManager->OnHwcDeadEvent();
+
+    // Automatically recover when composer host dies.
+    screenManager->Reinit();
+}
+
+void RSScreenManager::OnHwcDeadEvent()
+{
+    for (const auto &[id, screen] : screens_) {
+        if (screen) {
+            for (auto &cb : screenChangeCallbacks_) {
+                cb->OnScreenChanged(id, ScreenEvent::DISCONNECTED);
+                RS_LOGD("RSScreenManager %s: The screen callback has been invoked.", __func__);
+            }
+            if (screenPowerStatus_.count(id) != 0) {
+                screenPowerStatus_.erase(id);
+            }
+        }
+        screens_.erase(id);
+    }
+    defaultScreenId_ = INVALID_SCREEN_ID;
+}
+
+void RSScreenManager::Reinit()
+{
+    RSScreenManager *screenManager = static_cast<RSScreenManager *>(RSScreenManager::GetInstance().GetRefPtr());
+    if (screenManager == nullptr) {
+        RS_LOGE("RSScreenManager %s: Failed to find RSScreenManager instance.", __func__);
+        return;
+    }
+
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        auto mainThread = RSMainThread::Instance();
+        if (mainThread == nullptr) {
+            RS_LOGE("RSScreenManager %s: Reinit failed, get RSMainThread failed.", __func__);
+            return;
+        }
+        mainThread->PostTask([screenManager, this]() {
+            composer_->ResetDevice();
+            if (!screenManager->Init()) {
+                RS_LOGE("RSScreenManager %s: Reinit failed, screenManager init failed in mainThread.", __func__);
+                return;
+            }
+        });
+    } else {
+        RSHardwareThread::Instance().PostTask([screenManager, this]() {
+            composer_->ResetDevice();
+            if (!screenManager->Init()) {
+                RS_LOGE("RSScreenManager %s: Reinit failed, screenManager init failed in HardwareThread.", __func__);
+                return;
+            }
+        });
+    }
 }
 
 void RSScreenManager::ProcessScreenHotPlugEvents()

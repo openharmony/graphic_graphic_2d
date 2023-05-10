@@ -33,6 +33,7 @@ public:
     /* set & get device screen info begin */
     MOCK_METHOD2(RegHotPlugCallback, int32_t(HotPlugCallback, void*));
     MOCK_METHOD3(RegScreenVBlankCallback, int32_t(uint32_t, VBlankCallback, void*));
+    MOCK_METHOD2(RegHwcDeadCallback, bool(OnHwcDeadCallback, void*));
     MOCK_METHOD2(GetScreenCapability, int32_t(uint32_t, GraphicDisplayCapability&));
     MOCK_METHOD2(GetScreenSupportedModes, int32_t(uint32_t, std::vector<GraphicDisplayModeInfo>&));
     MOCK_METHOD2(GetScreenMode, int32_t(uint32_t, uint32_t&));
@@ -84,6 +85,7 @@ public:
 
     MOCK_METHOD3(CreateLayer, int32_t(uint32_t, const GraphicLayerInfo&, uint32_t&));
     MOCK_METHOD2(CloseLayer, int32_t(uint32_t, uint32_t));
+    MOCK_METHOD0(Destroy, void());
 };
 } // namespace Mock
 } // namespace Rosen

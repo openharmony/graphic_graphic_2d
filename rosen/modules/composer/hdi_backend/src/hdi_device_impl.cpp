@@ -37,6 +37,22 @@ using IDisplayComposerInterfaceSptr = sptr<IDisplayComposerInterface>;
 static IDisplayComposerInterfaceSptr g_composer;
 }
 
+class HwcDeathRecipient : public IRemoteObject::DeathRecipient {
+public:
+    explicit HwcDeathRecipient(OnHwcDeadCallback callback = nullptr, void *data = nullptr)
+        : deathCbFunc_(callback), data_(data) {}
+    void OnRemoteDied(const wptr<IRemoteObject> &object) override
+    {
+        if (deathCbFunc_ != nullptr) {
+            HLOGI("%{public}s: notify the death event of composer to RS", __func__);
+            deathCbFunc_(data_);
+        }
+    }
+private:
+    OnHwcDeadCallback deathCbFunc_;
+    void *data_;
+};
+
 HdiDeviceImpl::HdiDeviceImpl()
 {
 }
@@ -68,6 +84,13 @@ int32_t HdiDeviceImpl::RegHotPlugCallback(HotPlugCallback callback, void *data)
 {
     CHECK_FUNC(g_composer);
     return g_composer->RegHotPlugCallback(callback, data);
+}
+
+bool HdiDeviceImpl::RegHwcDeadCallback(OnHwcDeadCallback callback, void *data)
+{
+    CHECK_FUNC(g_composer);
+    sptr<HwcDeathRecipient> recipient = new HwcDeathRecipient(callback, data);
+    return g_composer->AddDeathRecipient(recipient);
 }
 
 int32_t HdiDeviceImpl::RegScreenVBlankCallback(uint32_t screenId, VBlankCallback callback, void *data)

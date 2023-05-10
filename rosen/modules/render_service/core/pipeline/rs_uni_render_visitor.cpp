@@ -1504,7 +1504,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         node.SetFingerprint(hasFingerprint_);
         renderFrame_ = renderEngine_->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface), bufferConfig);
         RS_TRACE_BEGIN("RSUniRender::wait for bufferRequest cond");
-        RSMainThread::Instance()->WaitUntilDisplayNodeBufferReleased(node);
+        if (!RSMainThread::Instance()->WaitUntilDisplayNodeBufferReleased(node)) {
+            RS_TRACE_NAME("RSUniRenderVisitor no released buffer");
+            RS_TRACE_END();
+            RS_TRACE_END();
+            return;
+        }
         RS_TRACE_END();
         RS_TRACE_END();
 
