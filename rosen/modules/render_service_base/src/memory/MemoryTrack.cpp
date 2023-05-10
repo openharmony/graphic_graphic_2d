@@ -223,16 +223,6 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
     log.AppendFormat("Total Size = %d KB (%d entries)\n", totalSize, count);
 }
 
-void MemoryTrack::UpdatePictureInfo(const void* addr, NodeId nodeId, pid_t pid)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto itr = memPicRecord_.find(addr);
-    if (itr != memPicRecord_.end()) {
-        itr->second.pid = pid;
-        itr->second.nid = nodeId;
-    }
-}
-
 void MemoryTrack::AddPictureRecord(const void* addr, MemoryInfo info)
 {
     std::lock_guard<std::mutex> lock(mutex_);

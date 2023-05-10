@@ -1992,18 +1992,5 @@ OpItem* SurfaceBufferOpItem::Unmarshalling(Parcel& parcel)
     return new SurfaceBufferOpItem(surfaceBufferInfo);
 }
 #endif
-void OpItemWithRSImage::SetNodeId(NodeId id)
-{
-    if (rsImage_) {
-        rsImage_->UpdateNodeIdToPicture(id);
-    }
-}
-
-void ImageWithParmOpItem::SetNodeId(NodeId id)
-{
-    if (rsImage_) {
-        rsImage_->UpdateNodeIdToPicture(id);
-    }
-}
 } // namespace Rosen
 } // namespace OHOS

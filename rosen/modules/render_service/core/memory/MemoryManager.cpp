@@ -159,6 +159,7 @@ void MemoryManager::DumpPidMemory(DfxString& log, int pid, const GrDirectContext
 void MemoryManager::DumpPidMemory(DfxString& log, int pid, const GrContext* grContext)
 #endif
 {
+    //MemoryTrack::Instance().DumpMemoryStatistics(log, pid);
     MemoryGraphic mem = CountPidMemory(pid, grContext);
     log.AppendFormat("GPU Mem(MB):%f\n", mem.GetGpuMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
     log.AppendFormat("CPU Mem(KB):%f\n", mem.GetCpuMemorySize() / MEMUNIT_RATE);
@@ -226,7 +227,6 @@ static std::tuple<uint64_t, std::string, RectI> FindGeoById(uint64_t nodeId)
         if (parent->IsInstanceOf<RSSurfaceRenderNode>()) {
             const auto& surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parent);
             windowName = surfaceNode->GetName();
-            windowId = surfaceNode->GetId();
             break;
         }
         parent = parent->GetParent().lock();

@@ -32,7 +32,6 @@ void RSCanvasNodeCommandHelper::UpdateRecording(
     auto type = static_cast<RSModifierType>(modifierType);
     if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id)) {
         node->UpdateRecording(drawCmds, type);
-        drawCmds->UpdateNodeIdToPicture(id);
     }
 }
 

@@ -322,7 +322,7 @@ static void sk_free_releaseproc(const void* ptr, void*)
     free(const_cast<void*>(ptr));
 }
 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, void*& imagepixelAddr)
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
 {
     int32_t type = parcel.ReadInt32();
     if (type == -1) {
@@ -341,8 +341,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, voi
         return val != nullptr;
     } else {
         size_t pixmapSize = parcel.ReadUint32();
-        imagepixelAddr = const_cast<void*>(RSMarshallingHelper::ReadFromParcel(parcel, pixmapSize));
-        if (imagepixelAddr == nullptr) {
+        const void* addr = RSMarshallingHelper::ReadFromParcel(parcel, pixmapSize);
+        if (addr == nullptr) {
             ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling SkData addr");
             return false;
         }
@@ -381,12 +381,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, voi
 #ifdef RS_ENABLE_RECORDING
         auto skData = (pixmapSize < MIN_DATA_SIZE ||
             parcel.GetMaxCapacity() == RSRecordingThread::RECORDING_PARCEL_MAX_CAPCITY)
-                ? SkData::MakeWithCopy(imagepixelAddr, pixmapSize)
+                ? SkData::MakeWithCopy(addr, pixmapSize)
 #else
-        auto skData = pixmapSize < MIN_DATA_SIZE ? SkData::MakeWithCopy(imagepixelAddr, pixmapSize)
+        auto skData = pixmapSize < MIN_DATA_SIZE ? SkData::MakeWithCopy(addr, pixmapSize)
 #endif
-                                                : SkData::MakeWithProc(imagepixelAddr, pixmapSize, sk_free_releaseproc,
-                                                    nullptr);
+                                                : SkData::MakeWithProc(addr, pixmapSize, sk_free_releaseproc, nullptr);
         val = SkImage::MakeRasterData(imageInfo, skData, rb);
         // add to MemoryTrack for memoryManager
 #ifdef RS_ENABLE_RECORDING
@@ -395,8 +394,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, voi
 #else
         if (pixmapSize >= MIN_DATA_SIZE) {
 #endif
-            MemoryInfo info = { pixmapSize, 0, 0, MEMORY_TYPE::MEM_SKIMAGE };
-            MemoryTrack::Instance().AddPictureRecord(imagepixelAddr, info);
+            MemoryInfo info = { pixmapSize, 0, 0, MEMORY_TYPE::MEM_SKIMAGE }; // pid is set to 0 temporarily.
+            MemoryTrack::Instance().AddPictureRecord(addr, info);
         }
         return val != nullptr;
     }

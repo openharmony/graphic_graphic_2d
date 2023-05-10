@@ -61,7 +61,6 @@ public:
     void DumpMemoryStatistics(DfxString& log, std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func);
     void AddPictureRecord(const void* addr, MemoryInfo info);
     void RemovePictureRecord(const void* addr);
-    void UpdatePictureInfo(const void* addr, NodeId nodeId, pid_t pid);
 
     // count memory for hidumper
     MemoryGraphic CountRSMemory(const pid_t pid);

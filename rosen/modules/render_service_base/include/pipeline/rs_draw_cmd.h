@@ -181,11 +181,6 @@ public:
     {
         return true;
     }
-    virtual bool IsImageOp() const
-    {
-        return false;
-    }
-    virtual void SetNodeId(NodeId id) {}
 };
 
 class OpItemWithPaint : public OpItem {
@@ -209,11 +204,7 @@ public:
     explicit OpItemWithRSImage(size_t size) : OpItemWithPaint(size) {}
     ~OpItemWithRSImage() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
-    void SetNodeId(NodeId id) override;
-    bool IsImageOp() const override
-    {
-        return true;
-    }
+
 protected:
     std::shared_ptr<RSImageBase> rsImage_;
 };
@@ -310,11 +301,6 @@ public:
     {
         return RSOpType::IMAGE_WITH_PARM_OPITEM;
     }
-    bool IsImageOp() const override
-    {
-        return true;
-    }
-    void SetNodeId(NodeId id) override;
 
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
