@@ -80,6 +80,12 @@ bool RSSystemProperties::GetUniRenderEnabled()
     return isUniRenderEnabled_;
 }
 
+bool RSSystemProperties::GetDrawOpTraceEnabled()
+{
+    static bool code = system::GetParameter("persist.rosen.drawoptrace.enabled", "0") != "0";
+    return code;
+}
+
 bool RSSystemProperties::GetRenderNodeTraceEnabled()
 {
     static bool isNeedTrace = system::GetParameter("persist.rosen.rendernodetrace.enabled", "0") != "0";

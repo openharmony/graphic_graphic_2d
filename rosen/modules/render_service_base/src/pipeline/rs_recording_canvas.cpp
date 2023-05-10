@@ -18,6 +18,12 @@
 #include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "rs_trace.h"
+
+#define RS_DRAWOP_TRACE_FUNC() \
+    if (RSSystemProperties::GetDrawOpTraceEnabled()) { \
+        RS_TRACE_FUNC(); \
+    } do {} while (0)
 
 namespace OHOS {
 namespace Rosen {
@@ -46,18 +52,21 @@ void RSRecordingCanvas::SetGrRecordingContext(GrRecordingContext* context)
 
 void RSRecordingCanvas::didConcat44(const SkM44& mat)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<ConcatOpItem>(mat);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::didSetM44(const SkM44& mat)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<MatrixOpItem>(mat);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::didScale(SkScalar dx, SkScalar dy)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<ScaleOpItem>(dx, dy);
     AddOp(std::move(op));
 }
@@ -69,12 +78,14 @@ void RSRecordingCanvas::onDrawGlyphRunList(const SkGlyphRunList& glyphRunList, c
 void RSRecordingCanvas::onDrawImage2(const SkImage* img, SkScalar dx, SkScalar dy,
     const SkSamplingOptions& samplingOptions, const SkPaint* paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<BitmapOpItem>(sk_ref_sp(img), dx, dy, samplingOptions, paint);
     AddOp(std::move(op));
 }
 void RSRecordingCanvas::onDrawImageRect2(const SkImage* img, const SkRect& src, const SkRect& dst,
     const SkSamplingOptions& samplingOptions, const SkPaint* paint, SrcRectConstraint constraint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op =
         std::make_unique<BitmapRectOpItem>(sk_ref_sp(img), &src, dst, samplingOptions, paint, constraint);
     AddOp(std::move(op));
@@ -100,6 +111,7 @@ void RSRecordingCanvas::onDrawEdgeAAImageSet2(const ImageSetEntry imageSet[], in
 }
 void RSRecordingCanvas::onDrawVerticesObject(const SkVertices* vertices, SkBlendMode mode, const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<VerticesOpItem>(vertices, mode, paint);
     AddOp(std::move(op));
 }
@@ -113,6 +125,7 @@ void RSRecordingCanvas::DrawPixelMapRect(
     const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& src, const SkRect& dst,
     const SkSamplingOptions& samplingOptions, const SkPaint* paint, SrcRectConstraint constraint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op =
         std::make_unique<PixelMapRectOpItem>(pixelmap, src, dst, samplingOptions, paint, constraint);
     AddOp(std::move(op));
@@ -128,6 +141,7 @@ void RSRecordingCanvas::DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>&
 void RSRecordingCanvas::DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap, SkScalar x, SkScalar y,
     const SkSamplingOptions& samplingOptions, const SkPaint* paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<PixelMapOpItem>(pixelmap, x, y, samplingOptions, paint);
     AddOp(std::move(op));
 }
@@ -135,6 +149,7 @@ void RSRecordingCanvas::DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pix
 void RSRecordingCanvas::DrawImageWithParm(const sk_sp<SkImage>img, const sk_sp<SkData> data,
     const Rosen::RsImageInfo& rsimageInfo, const SkSamplingOptions& samplingOptions, const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<ImageWithParmOpItem>(
         img, data, rsimageInfo, samplingOptions, paint);
     AddOp(std::move(op));
@@ -143,6 +158,7 @@ void RSRecordingCanvas::DrawImageWithParm(const sk_sp<SkImage>img, const sk_sp<S
 void RSRecordingCanvas::DrawPixelMapWithParm(const std::shared_ptr<Media::PixelMap>& pixelmap,
     const Rosen::RsImageInfo& rsImageInfo, const SkSamplingOptions& samplingOptions, const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<ImageWithParmOpItem>(pixelmap, rsImageInfo, samplingOptions, paint);
     AddOp(std::move(op));
 }
@@ -159,18 +175,21 @@ void RSRecordingCanvas::SetGrContext(GrContext* grContext)
 
 void RSRecordingCanvas::didConcat(const SkMatrix& matrix)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<ConcatOpItem>(matrix);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::didSetMatrix(const SkMatrix& matrix)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<MatrixOpItem>(matrix);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::onDrawBitmap(const SkBitmap& bm, SkScalar x, SkScalar y, const SkPaint* paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<BitmapOpItem>(SkImage::MakeFromBitmap(bm), x, y, paint);
     AddOp(std::move(op));
 }
@@ -186,6 +205,7 @@ void RSRecordingCanvas::onDrawBitmapLattice(
 void RSRecordingCanvas::onDrawBitmapNine(
     const SkBitmap& bm, const SkIRect& center, const SkRect& dst, const SkPaint* paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<BitmapNineOpItem>(SkImage::MakeFromBitmap(bm), center, dst, paint);
     AddOp(std::move(op));
 }
@@ -193,12 +213,14 @@ void RSRecordingCanvas::onDrawBitmapNine(
 void RSRecordingCanvas::onDrawBitmapRect(
     const SkBitmap& bm, const SkRect* src, const SkRect& dst, const SkPaint* paint, SrcRectConstraint constraint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<BitmapRectOpItem>(SkImage::MakeFromBitmap(bm), src, dst, paint);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::onDrawImage(const SkImage* img, SkScalar x, SkScalar y, const SkPaint* paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<BitmapOpItem>(sk_ref_sp(img), x, y, paint);
     AddOp(std::move(op));
 }
@@ -213,6 +235,7 @@ void RSRecordingCanvas::onDrawImageLattice(
 void RSRecordingCanvas::onDrawImageNine(
     const SkImage* img, const SkIRect& center, const SkRect& dst, const SkPaint* paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<BitmapNineOpItem>(sk_ref_sp(img), center, dst, paint);
     AddOp(std::move(op));
 }
@@ -220,6 +243,7 @@ void RSRecordingCanvas::onDrawImageNine(
 void RSRecordingCanvas::onDrawImageRect(
     const SkImage* img, const SkRect* src, const SkRect& dst, const SkPaint* paint, SrcRectConstraint constraint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<BitmapRectOpItem>(sk_ref_sp(img), src, dst, paint);
     AddOp(std::move(op));
 }
@@ -227,6 +251,7 @@ void RSRecordingCanvas::onDrawImageRect(
 void RSRecordingCanvas::onDrawVerticesObject(
     const SkVertices* vertices, const SkVertices::Bone bones[], int boneCount, SkBlendMode mode, const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<VerticesOpItem>(vertices, bones, boneCount, mode, paint);
     AddOp(std::move(op));
 }
@@ -241,6 +266,7 @@ void RSRecordingCanvas::onDrawAtlas(const SkImage* atlas, const SkRSXform xforms
 void RSRecordingCanvas::DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& src,
     const SkRect& dst, const SkPaint* paint, SrcRectConstraint constraint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<PixelMapRectOpItem>(pixelmap, src, dst, paint);
     AddOp(std::move(op));
 }
@@ -254,6 +280,7 @@ void RSRecordingCanvas::DrawPixelMapRect(
 void RSRecordingCanvas::DrawPixelMap(
     const std::shared_ptr<Media::PixelMap>& pixelmap, SkScalar x, SkScalar y, const SkPaint* paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<PixelMapOpItem>(pixelmap, x, y, paint);
     AddOp(std::move(op));
 }
@@ -261,6 +288,7 @@ void RSRecordingCanvas::DrawPixelMap(
 void RSRecordingCanvas::DrawImageWithParm(const sk_sp<SkImage>img, const sk_sp<SkData> data,
     const Rosen::RsImageInfo& rsimageInfo, const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<ImageWithParmOpItem>(img, data, rsimageInfo, paint);
     AddOp(std::move(op));
 }
@@ -268,6 +296,7 @@ void RSRecordingCanvas::DrawImageWithParm(const sk_sp<SkImage>img, const sk_sp<S
 void RSRecordingCanvas::DrawPixelMapWithParm(
     const std::shared_ptr<Media::PixelMap>& pixelmap, const Rosen::RsImageInfo& rsImageInfo, const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<ImageWithParmOpItem>(pixelmap, rsImageInfo, paint);
     AddOp(std::move(op));
 }
@@ -320,12 +349,14 @@ sk_sp<SkSurface> RSRecordingCanvas::onNewSurface(const SkImageInfo& info, const 
 
 void RSRecordingCanvas::onFlush()
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<FlushOpItem>();
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::willSave()
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<SaveOpItem>();
     AddOp(std::move(op));
     saveCount_++;
@@ -333,6 +364,7 @@ void RSRecordingCanvas::willSave()
 
 SkCanvas::SaveLayerStrategy RSRecordingCanvas::getSaveLayerStrategy(const SaveLayerRec& rec)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<SaveLayerOpItem>(rec);
     AddOp(std::move(op));
     saveCount_++;
@@ -342,6 +374,7 @@ SkCanvas::SaveLayerStrategy RSRecordingCanvas::getSaveLayerStrategy(const SaveLa
 void RSRecordingCanvas::willRestore()
 {
     if (saveCount_ > 0) {
+        RS_DRAWOP_TRACE_FUNC();
         std::unique_ptr<OpItem> op = std::make_unique<RestoreOpItem>();
         AddOp(std::move(op));
         --saveCount_;
@@ -350,36 +383,42 @@ void RSRecordingCanvas::willRestore()
 
 void RSRecordingCanvas::didTranslate(SkScalar dx, SkScalar dy)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<TranslateOpItem>(dx, dy);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::onClipRect(const SkRect& rect, SkClipOp clipOp, ClipEdgeStyle style)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<ClipRectOpItem>(rect, clipOp, style == kSoft_ClipEdgeStyle);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::onClipRRect(const SkRRect& rrect, SkClipOp clipOp, ClipEdgeStyle style)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<ClipRRectOpItem>(rrect, clipOp, style == kSoft_ClipEdgeStyle);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::onClipPath(const SkPath& path, SkClipOp clipOp, ClipEdgeStyle style)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<ClipPathOpItem>(path, clipOp, style == kSoft_ClipEdgeStyle);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::onClipRegion(const SkRegion& region, SkClipOp clipop)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<ClipRegionOpItem>(region, clipop);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::onDrawPaint(const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<PaintOpItem>(paint);
     AddOp(std::move(op));
 }
@@ -387,6 +426,7 @@ void RSRecordingCanvas::onDrawPaint(const SkPaint& paint)
 #ifdef ROSEN_OHOS
 void RSRecordingCanvas::DrawSurfaceBuffer(const RSSurfaceBufferInfo& surfaceBufferInfo)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<SurfaceBufferOpItem>(surfaceBufferInfo);
     AddOp(std::move(op));
 }
@@ -400,24 +440,28 @@ void RSRecordingCanvas::onDrawBehind(const SkPaint& paint)
 
 void RSRecordingCanvas::onDrawPath(const SkPath& path, const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<PathOpItem>(path, paint);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::onDrawRect(const SkRect& rect, const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<RectOpItem>(rect, paint);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::onDrawRegion(const SkRegion& region, const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<RegionOpItem>(region, paint);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::onDrawOval(const SkRect& oval, const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<OvalOpItem>(oval, paint);
     AddOp(std::move(op));
 }
@@ -425,30 +469,35 @@ void RSRecordingCanvas::onDrawOval(const SkRect& oval, const SkPaint& paint)
 void RSRecordingCanvas::onDrawArc(
     const SkRect& oval, SkScalar startAngle, SkScalar sweepAngle, bool useCenter, const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<ArcOpItem>(oval, startAngle, sweepAngle, useCenter, paint);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::onDrawRRect(const SkRRect& rrect, const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<RoundRectOpItem>(rrect, paint);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::onDrawDRRect(const SkRRect& out, const SkRRect& in, const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<DRRectOpItem>(out, in, paint);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::onDrawDrawable(SkDrawable* drawable, const SkMatrix* matrix)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<DrawableOpItem>(drawable, matrix);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::onDrawPicture(const SkPicture* picture, const SkMatrix* matrix, const SkPaint* paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<PictureOpItem>(sk_ref_sp(picture), matrix, paint);
     AddOp(std::move(op));
 }
@@ -461,6 +510,7 @@ void RSRecordingCanvas::onDrawAnnotation(const SkRect& rect, const char key[], S
 
 void RSRecordingCanvas::onDrawTextBlob(const SkTextBlob* blob, SkScalar x, SkScalar y, const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<TextBlobOpItem>(sk_ref_sp(blob), x, y, paint);
     if (IsCustomTextType()) {
         // replace drawOpItem with cached one (generated by CPU)
@@ -472,24 +522,28 @@ void RSRecordingCanvas::onDrawTextBlob(const SkTextBlob* blob, SkScalar x, SkSca
 
 void RSRecordingCanvas::DrawAdaptiveRRect(float radius, const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<AdaptiveRRectOpItem>(radius, paint);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::DrawAdaptiveRRectScale(float radiusRatio, const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<AdaptiveRRectScaleOpItem>(radiusRatio, paint);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::ClipAdaptiveRRect(const SkVector radius[])
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<ClipAdaptiveRRectOpItem>(radius);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::ClipOutsetRect(float dx, float dy)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<ClipOutsetRectOpItem>(dx, dy);
     AddOp(std::move(op));
 }
@@ -503,30 +557,35 @@ void RSRecordingCanvas::onDrawPatch(const SkPoint cubics[12], const SkColor colo
 
 void RSRecordingCanvas::onDrawPoints(SkCanvas::PointMode mode, size_t count, const SkPoint pts[], const SkPaint& paint)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<PointsOpItem>(mode, count, pts, paint);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::onDrawShadowRec(const SkPath& path, const SkDrawShadowRec& rec)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<ShadowRecOpItem>(path, rec);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::MultiplyAlpha(float alpha)
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<MultiplyAlphaOpItem>(alpha);
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::SaveAlpha()
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<SaveAlphaOpItem>();
     AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::RestoreAlpha()
 {
+    RS_DRAWOP_TRACE_FUNC();
     std::unique_ptr<OpItem> op = std::make_unique<RestoreAlphaOpItem>();
     AddOp(std::move(op));
 }
