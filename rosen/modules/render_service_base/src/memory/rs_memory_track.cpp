@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "memory/MemoryTrack.h"
+#include "memory/rs_memory_track.h"
 
 #include "platform/common/rs_log.h"
 namespace OHOS {

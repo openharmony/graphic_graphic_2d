@@ -19,8 +19,8 @@
 #include <unordered_map>
 #include "include/core/SkImage.h"
 
-#include "memory/DfxString.h"
-#include "memory/MemoryTrack.h"
+#include "memory/rs_dfx_string.h"
+#include "memory/rs_memory_track.h"
 
 namespace OHOS {
 namespace Media {

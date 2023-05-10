@@ -16,7 +16,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_ROOT_RENDER_NODE_H
 
 #include "common/rs_macros.h"
-#include "memory/MemoryTrack.h"
+#include "memory/rs_memory_track.h"
 #include "pipeline/rs_canvas_render_node.h"
 
 namespace OHOS {

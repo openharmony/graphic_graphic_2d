@@ -21,7 +21,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_common_def.h"
 #include "include/core/SkCanvas.h"
-#include "memory/MemoryTrack.h"
+#include "memory/rs_memory_track.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"

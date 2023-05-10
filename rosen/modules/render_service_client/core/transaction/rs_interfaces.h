@@ -19,7 +19,7 @@
 #include <memory>
 #include <mutex>
 
-#include "memory/MemoryGraphic.h"
+#include "memory/rs_memory_graphic.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_surface_node.h"

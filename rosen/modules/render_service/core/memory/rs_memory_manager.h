@@ -21,9 +21,9 @@
 #include "include/gpu/GrContext.h"
 #endif
 
-#include "memory/DfxString.h"
-#include "memory/MemoryGraphic.h"
-#include "memory/MemoryTrack.h"
+#include "memory/rs_dfx_string.h"
+#include "memory/rs_memory_graphic.h"
+#include "memory/rs_memory_track.h"
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS::Rosen {

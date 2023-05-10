@@ -35,7 +35,7 @@
 #include "include/core/SkSamplingOptions.h"
 #include "src/core/SkVerticesPriv.h"
 #endif
-#include "memory/MemoryTrack.h"
+#include "memory/rs_memory_track.h"
 #include "pixel_map.h"
 #include "securec.h"
 #include "src/core/SkAutoMalloc.h"

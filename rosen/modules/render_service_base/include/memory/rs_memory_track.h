@@ -22,8 +22,8 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_rect.h"
-#include "memory/DfxString.h"
-#include "memory/MemoryGraphic.h"
+#include "memory/rs_dfx_string.h"
+#include "memory/rs_memory_graphic.h"
 
 namespace OHOS {
 namespace Rosen {
