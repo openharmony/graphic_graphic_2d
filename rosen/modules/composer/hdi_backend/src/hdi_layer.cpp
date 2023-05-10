@@ -464,7 +464,7 @@ int32_t HdiLayer::SetHdiLayerInfo()
     CheckRet(ret, "SetLayerPresentTimestamp");
     ret = SetLayerMaskInfo();
     CheckRet(ret, "SetLayerMask");
-    
+
     return GRAPHIC_DISPLAY_SUCCESS;
 }
 
