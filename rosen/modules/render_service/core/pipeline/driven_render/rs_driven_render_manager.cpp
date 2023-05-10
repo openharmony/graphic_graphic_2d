@@ -16,6 +16,7 @@
 #include "rs_driven_render_manager.h"
 
 #include <parameters.h>
+#include "common/rs_obj_abs_geometry.h"
 #include "platform/common/rs_log.h"
 #include "rs_driven_render_ext.h"
 #include "rs_driven_render_visitor.h"
@@ -57,6 +58,11 @@ const DrivenUniRenderMode& RSDrivenRenderManager::GetUniDrivenRenderMode() const
 float RSDrivenRenderManager::GetUniRenderGlobalZOrder() const
 {
     return uniRenderGlobalZOrder_;
+}
+
+RectI RSDrivenRenderManager::GetUniRenderSurfaceClipHoleRect() const
+{
+    return uniRenderSurfaceClipHoleRect_;
 }
 
 bool RSDrivenRenderManager::ClipHoleForDrivenNode(RSPaintFilterCanvas& canvas, const RSCanvasRenderNode& node) const
@@ -188,6 +194,7 @@ void RSDrivenRenderManager::DoProcessRenderTask(const DrivenProcessInfo& info)
 
     uniRenderMode_ = DrivenUniRenderMode::RENDER_WITH_NORMAL;
     uniRenderGlobalZOrder_ = 0.0;
+    uniRenderSurfaceClipHoleRect_.Clear();
     if (!backgroundSurfaceNode_->IsDisabledMode() || !contentSurfaceNode_->IsDisabledMode()) {
         isBufferCacheClear_ = false;
     }
@@ -205,6 +212,7 @@ void RSDrivenRenderManager::Reset()
     backgroundCanvasNodeId_ = 0;
     uniRenderMode_ = DrivenUniRenderMode::RENDER_WITH_NORMAL;
     uniRenderGlobalZOrder_ = 0.0;
+    uniRenderSurfaceClipHoleRect_.Clear();
 }
 
 void RSDrivenRenderManager::UpdateUniDrivenRenderMode(DrivenDirtyType dirtyType)
@@ -226,6 +234,7 @@ void RSDrivenRenderManager::UpdateUniDrivenRenderMode(DrivenDirtyType dirtyType)
         // uni-render mode should follow contentSurfaceNode render mode
         if (contentSurfaceNode_->IsExpandedMode()) {
             uniRenderMode_ = DrivenUniRenderMode::RENDER_WITH_CLIP_HOLE;
+            uniRenderSurfaceClipHoleRect_ = CalcUniRenderSurfaceClipHoleRect();
         } else if (contentSurfaceNode_->IsReusableMode()) {
             uniRenderMode_ = DrivenUniRenderMode::REUSE_WITH_CLIP_HOLE;
         } else {
@@ -243,6 +252,32 @@ void RSDrivenRenderManager::UpdateUniDrivenRenderMode(DrivenDirtyType dirtyType)
     auto backgroundRenderMode = backgroundSurfaceNode_->GetDrivenSurfaceRenderMode();
     RS_LOGD("RSDrivenRenderManager: contentRenderMode = %d, backgroundRenderMode = %d, uniRenderMode = %d",
         contentRenderMode, backgroundRenderMode, uniRenderMode_);
+}
+
+RectI RSDrivenRenderManager::CalcUniRenderSurfaceClipHoleRect()
+{
+    RectI rect;
+    if (contentSurfaceNode_->GetDrivenCanvasNode() != nullptr) {
+        auto canvasNode =
+            RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(contentSurfaceNode_->GetDrivenCanvasNode());
+        if (canvasNode == nullptr) {
+            return rect;
+        }
+        auto& property = canvasNode->GetRenderProperties();
+        Vector4f clipHoleRect = property.GetBounds();
+        if (clipHoleRect.IsZero()) {
+            clipHoleRect = property.GetFrame();
+        }
+
+        static int pixel = -1; // clip hole rect should large than content bounds
+        auto x = std::ceil(clipHoleRect.x_ + pixel); // x decrease 1 pixel
+        auto y = std::ceil(clipHoleRect.y_ + pixel); // y decrease 1 pixel
+        auto width = std::floor(clipHoleRect.z_ - (2 * pixel)); // width increase 2 pixels
+        auto height = std::floor(clipHoleRect.w_ - (2 * pixel)); // height increase 2 pixels
+        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+        rect = geoPtr->MapAbsRect(RectF(x, y, width, height));
+    }
+    return rect;
 }
 } // namespace Rosen
 } // namespace OHOS

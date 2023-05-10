@@ -83,6 +83,7 @@ public:
     float GetUniRenderGlobalZOrder() const;
 
     bool ClipHoleForDrivenNode(RSPaintFilterCanvas& canvas, const RSCanvasRenderNode& node) const;
+    RectI GetUniRenderSurfaceClipHoleRect() const;
 
     RSDrivenSurfaceRenderNode::SharedPtr GetContentSurfaceNode() const
     {
@@ -102,6 +103,7 @@ public:
 private:
     void Reset();
     void UpdateUniDrivenRenderMode(DrivenDirtyType dirtyType);
+    RectI CalcUniRenderSurfaceClipHoleRect();
 
     bool drivenRenderEnabled_ = false;
 
@@ -112,6 +114,7 @@ private:
 
     DrivenUniRenderMode uniRenderMode_ = DrivenUniRenderMode::RENDER_WITH_NORMAL;
     float uniRenderGlobalZOrder_ = 0.0;
+    RectI uniRenderSurfaceClipHoleRect_;
 
     NodeId contentCanvasNodeId_ = 0;
     NodeId backgroundCanvasNodeId_ = 0;
