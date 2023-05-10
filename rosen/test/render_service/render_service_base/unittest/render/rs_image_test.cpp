@@ -100,6 +100,24 @@ HWTEST_F(RSImageTest, LifeCycle001, TestSize.Level1)
     int height = 300;
     pixelmap = CreatePixelMap(width, height);
     rsImage.SetPixelMap(pixelmap);
+#ifdef NEW_SKIA
+    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, false);
+    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, true);
+    rsImage.SetImageFit(1);
+    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, true);
+    rsImage.SetImageFit(2);
+    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, true);
+    rsImage.SetImageFit(3);
+    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, true);
+    rsImage.SetImageFit(4);
+    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, true);
+    rsImage.SetImageFit(5);
+    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, true);
+    rsImage.SetImageFit(6);
+    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, true);
+    rsImage.SetImageFit(0);
+    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, true);
+#else
     rsImage.CanvasDrawImage(canvas, rect, paint, false);
     rsImage.CanvasDrawImage(canvas, rect, paint, true);
     rsImage.SetImageFit(1);
@@ -116,6 +134,7 @@ HWTEST_F(RSImageTest, LifeCycle001, TestSize.Level1)
     rsImage.CanvasDrawImage(canvas, rect, paint, true);
     rsImage.SetImageFit(0);
     rsImage.CanvasDrawImage(canvas, rect, paint, true);
+#endif
 }
 
 /**
@@ -158,9 +177,15 @@ HWTEST_F(RSImageTest, TestRSImage002, TestSize.Level1)
     SkRect rect;
     SkPaint paint;
     bool isBackground = false;
+#ifdef NEW_SKIA
+    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
+    isBackground = true;
+    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
+#else
     image.CanvasDrawImage(canvas, rect, paint, isBackground);
     isBackground = true;
     image.CanvasDrawImage(canvas, rect, paint, isBackground);
+#endif
 }
 
 /**
@@ -176,6 +201,21 @@ HWTEST_F(RSImageTest, TestRSImage003, TestSize.Level1)
     SkPaint paint;
     bool isBackground = false;
     image.SetImageFit(0);
+#ifdef NEW_SKIA
+    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
+    image.SetImageFit(5);
+    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
+    image.SetImageFit(2);
+    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
+    image.SetImageFit(3);
+    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
+    image.SetImageFit(4);
+    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
+    image.SetImageFit(6);
+    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
+    image.SetImageFit(1);
+    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
+#else
     image.CanvasDrawImage(canvas, rect, paint, isBackground);
     image.SetImageFit(5);
     image.CanvasDrawImage(canvas, rect, paint, isBackground);
@@ -189,5 +229,6 @@ HWTEST_F(RSImageTest, TestRSImage003, TestSize.Level1)
     image.CanvasDrawImage(canvas, rect, paint, isBackground);
     image.SetImageFit(1);
     image.CanvasDrawImage(canvas, rect, paint, isBackground);
+#endif
 }
 } // namespace OHOS::Rosen
