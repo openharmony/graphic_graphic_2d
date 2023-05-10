@@ -28,12 +28,12 @@ public:
     std::string GetPicZipPath();
     std::string GetSoundUrl();
     std::string GetCustomCfgFile();
-    std::string GetCustVideoPath();
+    std::string GetBootVideoPath();
     void ParserCustomCfgFile();
     bool IsBootVideoEnabled();
 private:
     BootCustomConfig custConfig_;
-    bool bootVideoEnabled_ = false;
+    bool bootVideoEnabled_ = true;
 };
 } // namespace OHOS
 

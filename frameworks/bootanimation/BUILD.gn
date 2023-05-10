@@ -90,7 +90,7 @@ ohos_executable("bootanimation") {
 
 ## Build bootanimation }}}
 
-## Install data/*.jpg to /system/etc/graphic/ {{{
+## Install boot animation resource to /system/etc/graphic/ {{{
 ohos_prebuilt_etc("bootanimation_pics") {
   source = "data/bootpic.zip"
   relative_install_dir = "graphic"
@@ -104,4 +104,11 @@ ohos_prebuilt_etc("bootanimation_sounds") {
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
-## Install data/*.jpg to /system/etc/graphic/ }}}
+
+ohos_prebuilt_etc("bootanimation_video") {
+  source = "data/bootvideo.mp4"
+  relative_install_dir = "graphic"
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+## Install boot animation resource to /system/etc/graphic/ }}}
