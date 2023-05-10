@@ -97,7 +97,7 @@ BuildFromSVGOpItem::BuildFromSVGOpItem(const std::string& str) : PathOpItem(BUIL
 void BuildFromSVGOpItem::Playback(PathPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const BuildFromSVGOpItem*>(opItem);
+        const auto* op = static_cast<const BuildFromSVGOpItem*>(opItem);
         op->Playback(player.path_);
     }
 }
@@ -112,7 +112,7 @@ MoveToOpItem::MoveToOpItem(const scalar x, const scalar y) : PathOpItem(MOVETO_O
 void MoveToOpItem::Playback(PathPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const MoveToOpItem*>(opItem);
+        const auto* op = static_cast<const MoveToOpItem*>(opItem);
         op->Playback(player.path_);
     }
 }
@@ -127,7 +127,7 @@ LineToOpItem::LineToOpItem(const scalar x, const scalar y) : PathOpItem(LINETO_O
 void LineToOpItem::Playback(PathPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const LineToOpItem*>(opItem);
+        const auto* op = static_cast<const LineToOpItem*>(opItem);
         op->Playback(player.path_);
     }
 }
@@ -148,7 +148,7 @@ ArcToOpItem::ArcToOpItem(const scalar rx, const scalar ry, const scalar angle, c
 void ArcToOpItem::Playback(PathPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const ArcToOpItem*>(opItem);
+        const auto* op = static_cast<const ArcToOpItem*>(opItem);
         op->Playback(player.path_);
     }
 }
@@ -168,7 +168,7 @@ CubicToOpItem::CubicToOpItem(const Point& ctrlPt1, const Point& ctrlPt2, const P
 void CubicToOpItem::Playback(PathPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const CubicToOpItem*>(opItem);
+        const auto* op = static_cast<const CubicToOpItem*>(opItem);
         op->Playback(player.path_);
     }
 }
@@ -184,7 +184,7 @@ QuadToOpItem::QuadToOpItem(const Point& ctrlPt, const Point& endPt)
 void QuadToOpItem::Playback(PathPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const QuadToOpItem*>(opItem);
+        const auto* op = static_cast<const QuadToOpItem*>(opItem);
         op->Playback(player.path_);
     }
 }
@@ -200,7 +200,7 @@ AddRectOpItem::AddRectOpItem(const Rect& rect, PathDirection dir)
 void AddRectOpItem::Playback(PathPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const AddRectOpItem*>(opItem);
+        const auto* op = static_cast<const AddRectOpItem*>(opItem);
         op->Playback(player.path_);
     }
 }
@@ -216,7 +216,7 @@ AddOvalOpItem::AddOvalOpItem(const Rect& oval, PathDirection dir)
 void AddOvalOpItem::Playback(PathPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const AddOvalOpItem*>(opItem);
+        const auto* op = static_cast<const AddOvalOpItem*>(opItem);
         op->Playback(player.path_);
     }
 }
@@ -232,7 +232,7 @@ AddArcOpItem::AddArcOpItem(const Rect& oval, const scalar startAngle, const scal
 void AddArcOpItem::Playback(PathPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const AddArcOpItem*>(opItem);
+        const auto* op = static_cast<const AddArcOpItem*>(opItem);
         op->Playback(player.path_);
     }
 }
@@ -242,6 +242,151 @@ void AddArcOpItem::Playback(Path& path) const
     path.AddArc(rect_, startAngle_, sweepAngle_);
 }
 
+AddPolyOpItem::AddPolyOpItem(const int offset, int count, bool close)
+    : PathOpItem(ADDPOLY_OPITEM), offset_(offset), count_(count), close_(close) {}
+
+void AddPolyOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const AddPolyOpItem*>(opItem);
+        op->Playback(player.path_, player.opAllocator_);
+    }
+}
+
+void AddPolyOpItem::Playback(Path& path, const MemAllocator& memAllocator) const
+{
+    std::vector<Point> points;
+    auto* point = static_cast<Point*>(memAllocator.OffsetToAddr(offset_));
+    for (int i = 0; i < count_; i++) {
+        if (point) {
+            points.push_back(*point);
+        }
+        point++;
+    }
+    path.AddPoly(points, count_, close_);
+}
+
+AddCircleOpItem::AddCircleOpItem(const scalar x, const scalar y, const scalar radius, PathDirection dir)
+    : PathOpItem(ADDCIRCLE_OPITEM), x_(x), y_(y), radius_(radius), dir_(dir) {}
+
+void AddCircleOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const AddCircleOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void AddCircleOpItem::Playback(Path& path) const
+{
+    path.AddCircle(x_, y_, radius_, dir_);
+}
+
+AddRoundRectOpItem::AddRoundRectOpItem(const Rect& rect, const scalar xRadius, const scalar yRadius, PathDirection dir)
+    : PathOpItem(ADDRRECT_OPITEM), rrect_(rect, xRadius, yRadius), dir_(dir) {}
+
+AddRoundRectOpItem::AddRoundRectOpItem(const RoundRect& rrect, PathDirection dir)
+    : PathOpItem(ADDRRECT_OPITEM), rrect_(rrect), dir_(dir) {}
+
+void AddRoundRectOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const AddRoundRectOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void AddRoundRectOpItem::Playback(Path& path) const
+{
+    path.AddRoundRect(rrect_, dir_);
+}
+
+AddPathOpItem::AddPathOpItem(const CmdListSiteInfo& src, const scalar x, const scalar y)
+    : PathOpItem(ADDPATH_OPITEM), src_(src), x_(x), y_(y), methodIndex_(FUNCTION_OVERLOADING_1) {}
+
+AddPathOpItem::AddPathOpItem(const CmdListSiteInfo& src)
+    : PathOpItem(ADDPATH_OPITEM), src_(src), x_(0), y_(0), methodIndex_(FUNCTION_OVERLOADING_2) {}
+
+void AddPathOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const AddPathOpItem*>(opItem);
+        op->Playback(player.path_, player.opAllocator_);
+    }
+}
+
+void AddPathOpItem::Playback(Path& path, const MemAllocator& memAllocator) const
+{
+    auto* pathPtr = memAllocator.OffsetToAddr(src_.first);
+    if (!pathPtr) {
+        return;
+    }
+    auto cmdlist = std::make_shared<PathCmdList>(std::make_pair(pathPtr, src_.second));
+    Path restorePath;
+    cmdlist->Playback(restorePath);
+
+    if (methodIndex_ == FUNCTION_OVERLOADING_1) {
+        path.AddPath(restorePath, x_, y_);
+    } else if (methodIndex_ == FUNCTION_OVERLOADING_2) {
+        path.AddPath(restorePath);
+    }
+}
+
+AddPathWithMatrixOpItem::AddPathWithMatrixOpItem(const CmdListSiteInfo& src, const Matrix& matrix)
+    : PathOpItem(ADDPATHWITHMATRIX_OPITEM), src_(src)
+{
+    matrix.GetAll(matrixBuffer_);
+}
+
+void AddPathWithMatrixOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const AddPathWithMatrixOpItem*>(opItem);
+        op->Playback(player.path_, player.opAllocator_);
+    }
+}
+
+void AddPathWithMatrixOpItem::Playback(Path& path, const MemAllocator& memAllocator) const
+{
+    auto* pathPtr = memAllocator.OffsetToAddr(src_.first);
+    if (!pathPtr) {
+        return;
+    }
+    auto cmdlist = std::make_shared<PathCmdList>(std::make_pair(pathPtr, src_.second));
+    Path restorePath;
+    cmdlist->Playback(restorePath);
+
+    Matrix matrix;
+    for (uint32_t i = 0; i < matrixBuffer_.size(); i++) {
+        matrix.Set(static_cast<Matrix::Index>(i), matrixBuffer_[i]);
+    }
+
+    path.AddPath(restorePath, matrix);
+}
+
+ReverseAddPathOpItem::ReverseAddPathOpItem(const CmdListSiteInfo& src)
+    : PathOpItem(REVERSEADDPATH_OPITEM), src_(src) {}
+
+void ReverseAddPathOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const ReverseAddPathOpItem*>(opItem);
+        op->Playback(player.path_, player.opAllocator_);
+    }
+}
+
+void ReverseAddPathOpItem::Playback(Path& path, const MemAllocator& memAllocator) const
+{
+    auto* pathPtr = memAllocator.OffsetToAddr(src_.first);
+    if (!pathPtr) {
+        return;
+    }
+    auto cmdlist = std::make_shared<PathCmdList>(std::make_pair(pathPtr, src_.second));
+    Path restorePath;
+    cmdlist->Playback(restorePath);
+
+    path.ReverseAddPath(restorePath);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
