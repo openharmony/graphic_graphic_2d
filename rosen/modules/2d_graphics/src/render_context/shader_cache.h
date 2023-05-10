@@ -71,11 +71,6 @@ private:
     ShaderCache(const ShaderCache &) = delete;
     void operator=(const ShaderCache &) = delete;
 
-    CacheData *GetCacheData()
-    {
-        return cacheData_.get();
-    }
-
     void WriteToDisk();
 
     bool initialized_ = false;
