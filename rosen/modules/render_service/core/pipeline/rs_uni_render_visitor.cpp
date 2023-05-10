@@ -1667,6 +1667,16 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
             displayDirtyManager->MergeDirtyRect(surfaceChangedRect);
         }
     }
+
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    // merge dirty rect for driven render
+    if (drivenInfo_ && !drivenInfo_->prepareInfo.hasInvalidScene &&
+        drivenInfo_->currDrivenRenderMode != DrivenUniRenderMode::RENDER_WITH_NORMAL) {
+        auto drivenRenderDirtyRect = RSDrivenRenderManager::GetInstance().GetUniRenderSurfaceClipHoleRect();
+        RS_TRACE_NAME("merge driven render dirty rect: " + drivenRenderDirtyRect.ToString());
+        displayDirtyManager->MergeDirtyRect(drivenRenderDirtyRect);
+    }
+#endif
 }
 
 void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(std::shared_ptr<RSDisplayRenderNode>& node)
