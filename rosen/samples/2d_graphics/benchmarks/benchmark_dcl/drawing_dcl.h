@@ -46,10 +46,12 @@ public:
     void Test(SkCanvas *canvas, int width, int height) override;
     void Output() override;
     int LoadDrawCmdList(std::string dclFile);
+    bool IsValidFile(char* realPath);
 
 private:
     friend class DCLCommand;
     const static size_t recordingParcelMaxCapcity_ = 234 * 1000 * 1024;
+    const static string dclFileDir_ = "/data/";
     DrawCmdList* dcl_ = nullptr;
     IterateType iterateType = IterateType::ITERATE_FRAME;
     int beginFrame_ = 0;
