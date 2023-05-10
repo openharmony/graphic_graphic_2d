@@ -105,7 +105,8 @@ bool DrawingDCL::PlayBackByOpItem(SkCanvas* skiaCanvas, bool isMoreOps)
     }
     std::cout << "play back to opitemId = " << static_cast<int>(opitemId) << std::endl;
     if (opitemId < dcl_->GetSize()) {
-        std::cout << dcl_->PlayBackForRecord(*skiaCanvas, 0, static_cast<int>(opitemId), static_cast<int>(oldOpId)) << std::endl;
+        std::cout << dcl_->PlayBackForRecord(*skiaCanvas, 0, static_cast<int>(opitemId), static_cast<int>(oldOpId))
+            << std::endl;
     } else {
         std::cout << dcl_->PlayBackForRecord(*skiaCanvas, 0, dcl_->GetSize(), static_cast<int>(oldOpId)) << std::endl;
         opitemId = 0;
