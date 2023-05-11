@@ -53,6 +53,37 @@ public:
     void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) override;
 
+    void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) override;
+    void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py) override;
+    void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling) override;
+    void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
+        SrcRectConstraint constraint = SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) override;
+    void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling) override;
+    void DrawPicture(const Picture& picture) override;
+
+    void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias) override;
+    void ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias) override;
+    void ClipPath(const Path& path, ClipOp op, bool doAntiAlias) override;
+
+    void SetMatrix(const Matrix& matrix) override;
+    void ResetMatrix() override;
+    void ConcatMatrix(const Matrix& matrix) override;
+    void Translate(scalar dx, scalar dy) override;
+    void Scale(scalar sx, scalar sy) override;
+    void Rotate(scalar deg, scalar sx, scalar sy) override;
+    void Shear(scalar sx, scalar sy) override;
+
+    void Flush() override;
+    void Clear(ColorQuad color) override;
+    void Save() override;
+    void SaveLayer(const SaveLayerRec& saveLayerRec) override;
+    void Restore() override;
+
+    CoreCanvas& AttachPen(const Pen& pen) override;
+    CoreCanvas& AttachBrush(const Brush& brush) override;
+    CoreCanvas& DetachPen() override;
+    CoreCanvas& DetachBrush() override;
+
 private:
     std::shared_ptr<DrawCmdList> cmdList_ = nullptr;
     int saveCount_ = 0;
