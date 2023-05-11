@@ -33,13 +33,10 @@ namespace {
     sptr<VSyncReceiver> g_receiver = nullptr;
 }
 
-void DrawingEngineSample::~DrawingEngineSample()
+DrawingEngineSample::~DrawingEngineSample()
 {
     if (benchMark_ != nullptr) {
         delete benchMark_;
-    }
-    if (backend_ != nullptr) {
-        delete backend_;
     }
     if (drawingProxy != nullptr) {
         delete drawingProxy;

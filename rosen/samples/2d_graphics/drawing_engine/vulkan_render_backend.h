@@ -38,7 +38,7 @@ public:
     void InitDrawContext() override {}
     void MakeCurrent() override {}
     void SwapBuffers() override {}
-    void* CreateSurface(void* window) override {return nullptr}
+    void* CreateSurface(void* window) override {return nullptr;}
     void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override {}
 #if defined(USE_CANVASKIT0310_SKIA)
     GrDirectContext* GetGrContext() const

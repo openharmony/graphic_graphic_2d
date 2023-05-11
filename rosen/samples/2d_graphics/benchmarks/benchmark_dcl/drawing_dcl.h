@@ -52,7 +52,7 @@ public:
 private:
     friend class DCLCommand;
     const static size_t recordingParcelMaxCapcity_ = 234 * 1000 * 1024;
-    const static string dclFileDir_ = "/data/";
+    inline const static std::string dclFileDir_ = "/data/";
     DrawCmdList* dcl_ = nullptr;
     IterateType iterateType = IterateType::ITERATE_FRAME;
     int beginFrame_ = 0;

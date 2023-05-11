@@ -193,7 +193,7 @@ void DrawingDCL::Test(SkCanvas* canvas, int width, int height)
         case IterateType::ITERATE_OPITEM:
             UpdateParameters(PlayBackByOpItem(canvas));
             break;
-        case IterateType::ITERATE_OPITEM_MANUALLY:
+        case IterateType::ITERATE_OPITEM_MANUALLY: {
             static bool isMoreOps = true;
             std::string opActionsStr = isMoreOps ? "more" : "less";
             std::cout << "Do you want to execute " << opItemStep_ << " OpItems " << opActionsStr << " ?\n"
@@ -205,8 +205,9 @@ void DrawingDCL::Test(SkCanvas* canvas, int width, int height)
             } while (!GetDirectionAndStep(line, isMoreOps));
             UpdateParameters(PlayBackByOpItem(canvas, isMoreOps));
             break;
-        default:
-            std::cout << "Wrong IterateType" << std::endl;
+        }
+        case IterateType::OTHER:
+            std::cout << "Unknown iteratetype, please reenter parameters!" << std::endl;
             break;
     }
     PrintDurationTime("This frame draw time is: ", start);
@@ -248,16 +249,18 @@ private:
     uint8_t *mapFile_;
 };
 
-std::string GetRealPathStr(std::string filePath)
+std::string DrawingDCL::GetRealPathStr(std::string filePath)
 {
-    string realPathStr = "";
-    char* realDclFilePath = realpath(dclFile, NULL);
+    std::string realPathStr = "";
+    char actualPath[PATH_MAX + 1] = {0};
+    char* realDclFilePath = realpath(filePath.c_str(), actualPath);
     if (realDclFilePath == nullptr) {
         std::cout << "The path of DrawCmdList file is empty!" << std::endl;
         return realPathStr;
     }
     realPathStr = realDclFilePath;
     free(realDclFilePath);
+    free(actualPath);
     realDclFilePath = nullptr;
     return realPathStr;
 }
@@ -269,7 +272,7 @@ bool DrawingDCL::IsValidFile(std::string realPathStr)
 
 int DrawingDCL::LoadDrawCmdList(std::string dclFile)
 {
-    string realDclFilePathStr = GetRealPathStr(dclFile);
+    std::string realDclFilePathStr = GetRealPathStr(dclFile);
     if (realDclFilePathStr.empty()) {
         return -1;
     }
@@ -277,7 +280,7 @@ int DrawingDCL::LoadDrawCmdList(std::string dclFile)
         std::cout << "The path of DrawCmdList file is not valid!" << std::endl;
         return -1;
     }
-    UniqueFd fd(open(realDclFilePathStr, O_RDONLY));
+    UniqueFd fd(open(realDclFilePathStr.c_str(), O_RDONLY));
     if (fd.Get() < 0) {
         std::cout << "Open file failed" << dclFile.c_str() << std::endl;
         return -1;
@@ -288,9 +291,9 @@ int DrawingDCL::LoadDrawCmdList(std::string dclFile)
     }
     std::cout << "statbuf.st_size = " << statbuf.st_size << std::endl;
 
-    auto mapFile = std::unique_ptr<uint8_t*, void(*)(void*)>(
+    auto mapFile = std::unique_ptr<uint8_t, void(*)(void*)>(
         static_cast<uint8_t*>(mmap(nullptr, statbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0)),
-        [](void* p) { munmap(p, statbuf.st_size); });
+        [](void* p) { struct stat statbuf; munmap(p, statbuf.st_size); });
 
     if (mapFile.get() == MAP_FAILED) {
         return -1;
