@@ -17,16 +17,18 @@
 
 namespace OHOS {
 namespace Rosen {
-RSSkiaFilter::RSSkiaFilter(sk_sp<SkImageFilter> imageFilter) : RSFilter(), imageFilter_(imageFilter) {}
+RSSkiaFilter::RSSkiaFilter(sk_sp<SkImageFilter> imageFilter) : RSFilter(), imageFilter_(imageFilter), otherFilter_(nullptr) {}
 
 RSSkiaFilter::~RSSkiaFilter() {}
 
-SkPaint RSSkiaFilter::GetPaint() const
+SkPaint RSSkiaFilter::GetPaint()
 {
     SkPaint paint;
     paint.setAntiAlias(true);
     paint.setBlendMode(SkBlendMode::kSrcOver);
-    paint.setImageFilter(imageFilter_);
+    sk_sp<SkImageFilter> composedFilter = SkImageFilters::Compose(imageFilter_, otherFilter_);
+    paint.setImageFilter(composedFilter);
+    otherFilter_ = nullptr;
     return paint;
 }
 
@@ -35,22 +37,12 @@ sk_sp<SkImageFilter> RSSkiaFilter::GetImageFilter() const
     return imageFilter_;
 }
 
-std::shared_ptr<RSSkiaFilter> RSSkiaFilter::Compose(const std::shared_ptr<RSSkiaFilter>& outer,
-    const std::shared_ptr<RSSkiaFilter>& inner)
+void RSSkiaFilter::Compose(const std::shared_ptr<RSSkiaFilter>& inner)
 {
-    if (outer == nullptr && inner == nullptr) {
-        return nullptr;
+    if (inner == nullptr) {
+        return;
     }
-    sk_sp<SkImageFilter> outerFilter = nullptr;
-    sk_sp<SkImageFilter> innerFilter = nullptr;
-    if (outer != nullptr) {
-        outerFilter = outer->GetImageFilter();
-    }
-    if (inner != nullptr) {
-        innerFilter = inner->GetImageFilter();
-    }
-    sk_sp<SkImageFilter> composedFilter = SkImageFilters::Compose(outerFilter, innerFilter);
-    return std::make_shared<RSSkiaFilter>(composedFilter);
+    otherFilter_ = inner->GetImageFilter();
 }
 } // namespace Rosen
 } // namespace OHOS

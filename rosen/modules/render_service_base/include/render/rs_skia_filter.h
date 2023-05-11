@@ -29,15 +29,15 @@ class RSSkiaFilter : public RSFilter {
 public:
     RSSkiaFilter(sk_sp<SkImageFilter> imagefilter);
     ~RSSkiaFilter() override;
-    SkPaint GetPaint() const;
+    SkPaint GetPaint();
     sk_sp<SkImageFilter> GetImageFilter() const;
-    static std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& outer,
-        const std::shared_ptr<RSSkiaFilter>& inner);
+    void Compose(const std::shared_ptr<RSSkiaFilter>& inner);
     virtual void PreProcess(sk_sp<SkImage> image) {};
     virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
 
 protected:
     sk_sp<SkImageFilter> imageFilter_ = nullptr;
+    sk_sp<SkImageFilter> otherFilter_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS
