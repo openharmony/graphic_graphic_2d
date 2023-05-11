@@ -33,6 +33,7 @@ RSRenderInterpolatingSpringAnimation::RSRenderInterpolatingSpringAnimation(Anima
       endValue_(endValue)
 {
     // spring model is not initialized, so we can't calculate estimated duration
+    minimumAmplitudeRatio_ = 0.0001;
 }
 
 void RSRenderInterpolatingSpringAnimation::SetSpringParameters(
