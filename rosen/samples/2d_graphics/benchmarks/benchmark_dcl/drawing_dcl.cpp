@@ -259,6 +259,7 @@ int DrawingDCL::LoadDrawCmdList(std::string dclFile)
         std::cout << "The path of DrawCmdList file is empty!" << std::endl;
         return -1;
     }
+
     string realDclFilePathStr(realDclFilePath);
     free(realDclFilePath);
     realDclFilePath = nullptr;
@@ -266,6 +267,7 @@ int DrawingDCL::LoadDrawCmdList(std::string dclFile)
         std::cout << "The path of DrawCmdList file is not valid!" << std::endl;
         return -1;
     }
+
     int32_t fd = open(realDclFilePath, O_RDONLY);
     if (fd < 0) {
         std::cout << "Open file failed" << dclFile.c_str() << std::endl;
