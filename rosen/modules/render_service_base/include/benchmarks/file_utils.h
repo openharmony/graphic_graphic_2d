@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace Benchmarks{
+namespace Benchmarks {
 bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath);
 
 bool WriteStringToFile(int fd, const std::string& str);

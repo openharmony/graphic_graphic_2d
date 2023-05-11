@@ -92,8 +92,11 @@ void RSRecordingThread::RecordingToFile(const std::shared_ptr<DrawCmdList> & dra
         return;
     }
     int tmpCurDumpFrame = curDumpFrame_;
+    MessageParcel messageParcel;
+    messageParcel.SetMaxCapacity(RECORDING_PARCEL_MAX_CAPCITY);
+    drawCmdList->Marshalling(messageParcel);
     FinishRecordingOneFrame();
-    RSTaskMessage::RSTask task = [this, drawCmdList, tmpCurDumpFrame]() {
+    RSTaskMessage::RSTask task = [this, tmpCurDumpFrame, drawCmdList, messageParcel]() {
         std::string line = "RSRecordingThread::RecordingToFile curDumpFrame = " + std::to_string(curDumpFrame_) +
             ", dumpFrameNum = " + std::to_string(dumpFrameNum_);
         RS_LOGD(line.c_str());
@@ -102,9 +105,6 @@ void RSRecordingThread::RecordingToFile(const std::shared_ptr<DrawCmdList> & dra
         std::string drawCmdListFile = fileDir_ + "/frame" + std::to_string(tmpCurDumpFrame) + ".txt";
         std::string opsFile = fileDir_ + "/ops_frame" + std::to_string(tmpCurDumpFrame) + ".txt";
         // get data
-        MessageParcel messageParcel;
-        messageParcel.SetMaxCapacity(RECORDING_PARCEL_MAX_CAPCITY);
-        drawCmdList->Marshalling(messageParcel);
         size_t sz = messageParcel.GetDataSize();
         uintptr_t buf = messageParcel.GetData();
         std::string opsDescription = drawCmdList->GetOpsWithDesc();

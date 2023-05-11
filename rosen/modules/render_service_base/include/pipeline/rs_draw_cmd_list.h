@@ -47,7 +47,8 @@ public:
     void Playback(SkCanvas& canvas, const SkRect* rect = nullptr);
     void Playback(RSPaintFilterCanvas& canvas, const SkRect* rect = nullptr);
 
-    std::string PlayBackForRecord(SkCanvas& canvas, int startOpId, int endOpId, int descStartOpId, const SkRect* rect = nullptr);
+    std::string PlayBackForRecord(SkCanvas& canvas, int startOpId, int endOpId, int descStartOpId,
+        const SkRect* rect = nullptr);
     std::string PlayBackForRecord(RSPaintFilterCanvas& canvas, int startOpId, int endOpId, int descStartOpId,
         const SkRect* rect = nullptr);
 

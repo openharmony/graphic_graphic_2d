@@ -144,7 +144,8 @@ void DrawCmdList::Playback(RSPaintFilterCanvas& canvas, const SkRect* rect)
     }
 }
 
-std::string DrawCmdList::PlayBackForRecord(SkCanvas& canvas, int startOpId, int endOpId, int descStartOpId, const SkRect* rect)
+std::string DrawCmdList::PlayBackForRecord(SkCanvas& canvas, int startOpId, int endOpId, int descStartOpId,
+    const SkRect* rect)
 {
     RSPaintFilterCanvas filterCanvas(&canvas);
     return PlayBackForRecord(filterCanvas, startOpId, endOpId, descStartOpId, rect);
