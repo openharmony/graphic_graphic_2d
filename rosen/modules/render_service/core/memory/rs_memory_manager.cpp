@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-#include "memory/MemoryManager.h"
+#include "memory/rs_memory_manager.h"
 
 #include <malloc.h>
 #include <SkGraphics.h>
 #include "rs_trace.h"
 
-#include "SkiaMemoryTracer.h"
-#include "memory/MemoryGraphic.h"
+#include "rs_skia_memory_tracer.h"
+#include "memory/rs_memory_graphic.h"
 #ifdef NEW_SKIA
 #include "include/gpu/GrDirectContext.h"
 #include "src/gpu/GrDirectContextPriv.h"

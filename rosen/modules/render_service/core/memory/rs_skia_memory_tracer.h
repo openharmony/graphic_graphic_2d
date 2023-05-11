@@ -18,7 +18,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "memory/DfxString.h"
+#include "memory/rs_dfx_string.h"
 
 namespace OHOS::Rosen {
 typedef std::pair<const char*, const char*> ResourcePair;

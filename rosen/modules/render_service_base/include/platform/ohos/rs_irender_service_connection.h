@@ -25,7 +25,7 @@
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
-#include "memory/MemoryGraphic.h"
+#include "memory/rs_memory_graphic.h"
 #include "screen_manager/rs_screen_capability.h"
 #include "screen_manager/rs_screen_data.h"
 #include "screen_manager/rs_screen_hdr_capability.h"
