@@ -261,6 +261,8 @@ int DrawingDCL::LoadDrawCmdList(std::string dclFile)
         return -1;
     }
     if (!IsValidFile(realDclFilePath)) {
+        free(realDclFilePath);
+        realDclFilePath = nullptr;
         std::cout << "The path of DrawCmdList file is not valid!" << std::endl;
         return -1;
     }
