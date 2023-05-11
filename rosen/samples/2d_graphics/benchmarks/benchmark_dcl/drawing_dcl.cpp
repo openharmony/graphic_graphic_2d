@@ -209,6 +209,9 @@ void DrawingDCL::Test(SkCanvas* canvas, int width, int height)
         case IterateType::OTHER:
             std::cout << "Unknown iteratetype, please reenter parameters!" << std::endl;
             break;
+        default:
+            std::cout << "Wrong iteratetype!" << std::endl;
+            break;
     }
     PrintDurationTime("This frame draw time is: ", start);
     std::cout << "DrawingDCL::Test-" << std::endl;
