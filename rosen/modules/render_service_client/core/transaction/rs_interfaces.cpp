@@ -45,7 +45,8 @@ int32_t RSInterfaces::SetFocusAppInfo(FocusAppInfo& info)
     int32_t uid = info.uid;
     const std::string bundleName = info.bundleName;
     const std::string abilityName = info.abilityName;
-    return renderServiceClient_->SetFocusAppInfo(pid, uid, bundleName, abilityName);
+    uint64_t focusNodeId = info.focusNodeId;
+    return renderServiceClient_->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
 }
 
 ScreenId RSInterfaces::GetDefaultScreenId()

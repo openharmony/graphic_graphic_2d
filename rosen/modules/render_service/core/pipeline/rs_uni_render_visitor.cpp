@@ -626,6 +626,14 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         dirtySurfaceNodeMap_.emplace(node.GetId(), node.ReinterpretCastTo<RSSurfaceRenderNode>());
     }
     if (node.IsAppWindow()) {
+        bool hasFilter = node.IsTransparent()
+            && (node.GetRenderProperties().NeedFilter() || !node.GetChildrenNeedFilterRects().empty());
+        auto rsParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());
+        if (rsParent && rsParent->IsLeashWindow()) {
+            rsParent->SetHasFilter(hasFilter);
+        } else {
+            node.SetHasFilter(hasFilter);
+        }
         RS_TRACE_NAME(node.GetName() + " PreparedNodes: " + std::to_string(preparedCanvasNodeInCurrentSurface_));
         preparedCanvasNodeInCurrentSurface_ = 0;
     }

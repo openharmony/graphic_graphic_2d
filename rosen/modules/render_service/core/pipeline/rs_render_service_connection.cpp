@@ -241,9 +241,9 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
 }
 
 int32_t RSRenderServiceConnection::SetFocusAppInfo(
-    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName)
+    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
 {
-    mainThread_->SetFocusAppInfo(pid, uid, bundleName, abilityName);
+    mainThread_->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
     return SUCCESS;
 }
 

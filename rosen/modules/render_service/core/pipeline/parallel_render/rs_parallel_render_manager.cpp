@@ -417,6 +417,38 @@ void RSParallelRenderManager::SubmitSuperTask(uint32_t taskIndex, std::unique_pt
     threadList_[taskIndex]->SetSuperTask(std::move(superRenderTask));
 }
 
+void RSParallelRenderManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRenderNode>& node,
+    const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
+{
+    if (node == nullptr) {
+        ROSEN_LOGE("RSUniRenderUtil::AssignSubThreadNodes display node is null");
+        return;
+    }
+    auto nodeNum = subThreadNodes.size();
+    if (nodeNum == 0) {
+        ROSEN_LOGD("RSUniRenderUtil::AssignSubThreadNodes subThread does not have any nodes");
+        return;
+    }
+    std::vector<std::unique_ptr<RSRenderTask>> renderTaskList;
+    for (auto& child : subThreadNodes) {
+        renderTaskList.push_back(std::make_unique<RSRenderTask>(*child, RSRenderTask::RenderNodeStage::CACHE));
+    }
+
+    std::vector<std::unique_ptr<RSSuperRenderTask>> superRenderTaskList;
+    for (uint32_t i = 0; i < PARALLEL_THREAD_NUM; i++) {
+        superRenderTaskList[i] = std::make_unique<RSSuperRenderTask>(node);
+    }
+    for (size_t i = 0; i < nodeNum; i++) {
+        uint32_t taskIndex = i % PARALLEL_THREAD_NUM;
+        if (superRenderTaskList[taskIndex]) {
+            superRenderTaskList[taskIndex]->AddTask(std::move(renderTaskList[i]));
+        }
+    }
+    for (uint32_t i = 0; i < PARALLEL_THREAD_NUM; i++) {
+        SubmitSuperTask(i, std::move(superRenderTaskList[i]));
+    }
+}
+
 void RSParallelRenderManager::SubmitCompositionTask(uint32_t taskIndex,
                                                     std::unique_ptr<RSCompositionTask> compositionTask)
 {

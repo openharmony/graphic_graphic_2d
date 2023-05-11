@@ -179,7 +179,7 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
 }
 
 int32_t RSRenderServiceConnectionProxy::SetFocusAppInfo(
-    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName)
+    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -194,6 +194,7 @@ int32_t RSRenderServiceConnectionProxy::SetFocusAppInfo(
     data.WriteInt32(uid);
     data.WriteString(bundleName);
     data.WriteString(abilityName);
+    data.WriteUint64(focusNodeId);
     int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::SET_FOCUS_APP_INFO, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetFocusAppInfo: Send Request err.");
