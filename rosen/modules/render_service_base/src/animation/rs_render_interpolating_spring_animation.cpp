@@ -36,11 +36,12 @@ RSRenderInterpolatingSpringAnimation::RSRenderInterpolatingSpringAnimation(Anima
 }
 
 void RSRenderInterpolatingSpringAnimation::SetSpringParameters(
-    float response, float dampingRatio, float normalizedInitialVelocity)
+    float response, float dampingRatio, float normalizedInitialVelocity, float minimumAmplitudeRatio)
 {
     response_ = response;
     dampingRatio_ = dampingRatio;
     normalizedInitialVelocity_ = normalizedInitialVelocity;
+    minimumAmplitudeRatio_ = minimumAmplitudeRatio;
 }
 
 #ifdef ROSEN_OHOS
@@ -58,7 +59,8 @@ bool RSRenderInterpolatingSpringAnimation::Marshalling(Parcel& parcel) const
 
     if (!(RSMarshallingHelper::Marshalling(parcel, response_) &&
             RSMarshallingHelper::Marshalling(parcel, dampingRatio_) &&
-            RSMarshallingHelper::Marshalling(parcel, normalizedInitialVelocity_))) {
+            RSMarshallingHelper::Marshalling(parcel, normalizedInitialVelocity_) &&
+            RSMarshallingHelper::Marshalling(parcel, minimumAmplitudeRatio_))) {
         return false;
     }
 
@@ -90,7 +92,8 @@ bool RSRenderInterpolatingSpringAnimation::ParseParam(Parcel& parcel)
 
     if (!(RSMarshallingHelper::Unmarshalling(parcel, response_) &&
             RSMarshallingHelper::Unmarshalling(parcel, dampingRatio_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, normalizedInitialVelocity_))) {
+            RSMarshallingHelper::Unmarshalling(parcel, normalizedInitialVelocity_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, minimumAmplitudeRatio_))) {
         return false;
     }
 
