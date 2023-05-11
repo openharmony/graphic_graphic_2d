@@ -115,7 +115,7 @@ DrawLineOpItem::DrawLineOpItem(const Point& startPt, const Point& endPt) : DrawO
 void DrawLineOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const DrawLineOpItem*>(opItem);
+        const auto* op = static_cast<const DrawLineOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -130,7 +130,7 @@ DrawRectOpItem::DrawRectOpItem(const Rect& rect) : DrawOpItem(RECT_OPITEM), rect
 void DrawRectOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const DrawRectOpItem*>(opItem);
+        const auto* op = static_cast<const DrawRectOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -145,7 +145,7 @@ DrawRoundRectOpItem::DrawRoundRectOpItem(const RoundRect& rrect) : DrawOpItem(RO
 void DrawRoundRectOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const DrawRoundRectOpItem*>(opItem);
+        const auto* op = static_cast<const DrawRoundRectOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -161,7 +161,7 @@ DrawNestedRoundRectOpItem::DrawNestedRoundRectOpItem(const RoundRect& outer, con
 void DrawNestedRoundRectOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const DrawNestedRoundRectOpItem*>(opItem);
+        const auto* op = static_cast<const DrawNestedRoundRectOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -177,7 +177,7 @@ DrawArcOpItem::DrawArcOpItem(const Rect& rect, scalar startAngle, scalar sweepAn
 void DrawArcOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const DrawArcOpItem*>(opItem);
+        const auto* op = static_cast<const DrawArcOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -193,7 +193,7 @@ DrawPieOpItem::DrawPieOpItem(const Rect& rect, scalar startAngle, scalar sweepAn
 void DrawPieOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const DrawPieOpItem*>(opItem);
+        const auto* op = static_cast<const DrawPieOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -208,7 +208,7 @@ DrawOvalOpItem::DrawOvalOpItem(const Rect& rect) : DrawOpItem(OVAL_OPITEM), rect
 void DrawOvalOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const DrawOvalOpItem*>(opItem);
+        const auto* op = static_cast<const DrawOvalOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -224,7 +224,7 @@ DrawCircleOpItem::DrawCircleOpItem(const Point& centerPt, scalar radius)
 void DrawCircleOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const DrawCircleOpItem*>(opItem);
+        const auto* op = static_cast<const DrawCircleOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -239,7 +239,7 @@ DrawPathOpItem::DrawPathOpItem(const CmdListSiteInfo info) : DrawOpItem(PATH_OPI
 void DrawPathOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
-        const auto *op = static_cast<const DrawPathOpItem*>(opItem);
+        const auto* op = static_cast<const DrawPathOpItem*>(opItem);
         op->Playback(player.canvas_, player.opAllocator_);
     }
 }
@@ -254,6 +254,158 @@ void DrawPathOpItem::Playback(Canvas& canvas, const MemAllocator& memAllocator) 
     canvas.DrawPath(path);
 }
 
+DrawBackgroundOpItem::DrawBackgroundOpItem(const Color& color, const BlendMode mode, const bool isAntiAlias,
+    const Filter::FilterQuality filterQuality, const BrushHandle brushHandle)
+    : DrawOpItem(BACKGROUND_OPITEM), color_(color), mode_(mode), isAntiAlias_(isAntiAlias),
+    filterQuality_(filterQuality), brushHandle_(brushHandle) {}
+
+void DrawBackgroundOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const DrawBackgroundOpItem*>(opItem);
+        op->Playback(player.canvas_, player.opAllocator_, player.largeObjectAllocator_);
+    }
+}
+
+void DrawBackgroundOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
+{
+    auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+        cmdList, brushHandle_.colorSpaceHandle);
+    auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+        cmdList, brushHandle_.shaderEffectHandle);
+    auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+        cmdList, brushHandle_.colorFilterHandle);
+    auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+        cmdList, brushHandle_.imageFilterHanle);
+    auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+        cmdList, brushHandle_.maskFilterHandle);
+
+    Filter filter;
+    filter.SetColorFilter(colorFilter);
+    filter.SetImageFilter(imageFilter);
+    filter.SetMaskFilter(maskFilter);
+    filter.SetFilterQuality(filterQuality_);
+
+    const Color4f color4f = { color_.GetRedF(), color_.GetGreenF(), color_.GetBlueF(), color_.GetAlphaF() };
+
+    Brush brush;
+    brush.SetColor(color4f, colorSpace);
+    brush.SetShaderEffect(shaderEffect);
+    brush.SetBlendMode(mode_);
+    brush.SetAntiAlias(isAntiAlias_);
+    brush.SetFilter(filter);
+
+    canvas.DrawBackground(brush);
+}
+
+DrawShadowOpItem::DrawShadowOpItem(const CmdListHandle& path, const Point3& planeParams, const Point3& devLightPos,
+    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag)
+    : DrawOpItem(SHADOW_OPITEM), path_(path), planeParams_(planeParams), devLightPos_(devLightPos),
+    lightRadius_(lightRadius), ambientColor_(ambientColor), spotColor_(spotColor), flag_(flag) {}
+
+void DrawShadowOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const DrawShadowOpItem*>(opItem);
+        op->Playback(player.canvas_, player.opAllocator_);
+    }
+}
+
+void DrawShadowOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
+{
+    auto path = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, path_);
+    if (path == nullptr) {
+        LOGE("path is nullptr!")
+        return;
+    }
+
+    canvas.DrawShadow(*path, planeParams_, devLightPos_, lightRadius_, ambientColor_, spotColor_, flag_);
+}
+
+DrawBitmapOpItem::DrawBitmapOpItem(ImageHandle bitmap, const scalar px, const scalar py)
+    : DrawOpItem(BITMAP_OPITEM), bitmap_(bitmap), px_(px), py_(py) {}
+
+void DrawBitmapOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const DrawBitmapOpItem*>(opItem);
+        op->Playback(player.canvas_, player.largeObjectAllocator_);
+    }
+}
+
+void DrawBitmapOpItem::Playback(Canvas& canvas, const CmdList& largeObjectAllocator) const
+{
+    auto bitmap = CmdListHelper::GetBitmapFromCmdList(cmdList, bitmap_);
+    if (bitmap == nullptr) {
+        return nullptr;
+    }
+
+    canvas.DrawBitmap(*bitmap, px_, py_);
+}
+
+DrawImageOpItem::DrawImageOpItem(ImageHandle image, const scalar px, const scalar py,
+    const SamplingOptions& samplingOptions) : DrawOpItem(IMAGE_OPITEM),
+    image_(std::move(image)), px_(px), py_(py), samplingOptions_(samplingOptions) {}
+
+void DrawImageOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const DrawImageOpItem*>(opItem);
+        op->Playback(player.canvas_, player.largeObjectAllocator_);
+    }
+}
+
+void DrawImageOpItem::Playback(Canvas& canvas, const CmdList& largeObjectAllocator) const
+{
+    auto image = CmdListHelper::GetBitmapFromCmdList(cmdList, image_);
+    if (image == nullptr) {
+        return nullptr;
+    }
+
+    canvas.DrawImage(*image, px_, py_, samplingOptions_);
+}
+
+DrawImageRectOpItem::DrawImageRectOpItem(ImageHandle image, const Rect& src, const Rect& dst,
+    const SamplingOptions& sampling, SrcRectConstraint constraint)
+    : DrawOpItem(IMAGE_OPITEM), image_(image), src_(src), dst_(dst), sampling_(sampling), constraint_(constraint) {}
+
+void DrawImageRectOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const DrawImageRectOpItem*>(opItem);
+        op->Playback(player.canvas_, player.largeObjectAllocator_);
+    }
+}
+
+void DrawImageRectOpItem::Playback(Canvas& canvas, const CmdList& largeObjectAllocator) const
+{
+    auto image = CmdListHelper::GetBitmapFromCmdList(cmdList, image_);
+    if (image == nullptr) {
+        return nullptr;
+    }
+
+    canvas.DrawImageRect(*image, src_, dst_, sampling_, constraint_);
+}
+
+DrawPictureOpItem::DrawPictureOpItem(ImageHandle picture) : DrawOpItem(PICTURE_OPITEM), picture_(picture) {}
+
+void DrawPictureOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const DrawPictureOpItem*>(opItem);
+        op->Playback(player.canvas_, player.largeObjectAllocator_);
+    }
+}
+
+void DrawPictureOpItem::Playback(Canvas& canvas, const CmdList& largeObjectAllocator) const
+{
+    auto picture = CmdListHelper::GetBitmapFromCmdList(cmdList, picture_);
+    if (picture == nullptr) {
+        return nullptr;
+    }
+
+    canvas.DrawPicture(*picture);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

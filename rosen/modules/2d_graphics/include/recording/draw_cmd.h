@@ -236,6 +236,99 @@ private:
     CmdListSiteInfo info_;
 };
 
+class DrawBackgroundOpItem : public DrawOpItem {
+public:
+    DrawBackgroundOpItem(const Color& color, const BlendMode mode, const bool isAntiAlias,
+        const Filter::FilterQuality filterQuality, const BrushHandle brushHandle);
+    ~DrawBackgroundOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
+private:
+    Color color_;
+    BlendMode mode_;
+    bool isAntiAlias_;
+    Filter::FilterQuality filterQuality_;
+    BrushHandle brushHandle_;
+};
+
+class DrawShadowOpItem : public DrawOpItem {
+public:
+    DrawShadowOpItem(const CmdListHandle& path, const Point3& planeParams, const Point3& devLightPos,
+        scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag);
+    ~DrawShadowOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
+private:
+    CmdListHandle path_;
+    Point3 planeParams_;
+    Point3 devLightPos_;
+    scalar lightRadius_;
+    Color ambientColor_;
+    Color spotColor_;
+    ShadowFlags flag_;
+};
+
+class DrawBitmapOpItem : public DrawOpItem {
+public:
+    DrawBitmapOpItem(ImageHandle bitmap, const scalar px, const scalar py);
+    ~DrawBitmapOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
+private:
+    ImageHandle bitmap_;
+    scalar px_;
+    scalar py_;
+};
+
+class DrawImageOpItem : public DrawOpItem {
+public:
+    DrawImageOpItem(ImageHandle image, const scalar px, const scalar py, const SamplingOptions& samplingOptions);
+    ~DrawImageOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
+private:
+    ImageHandle image_;
+    scalar px_;
+    scalar py_;
+    SamplingOptions samplingOptions_;
+};
+
+class DrawImageRectOpItem : public DrawOpItem {
+public:
+    DrawImageRectOpItem(ImageHandle image, const Rect& src, const Rect& dst,
+        const SamplingOptions& sampling, SrcRectConstraint constraint);
+    ~DrawImageRectOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
+private:
+    ImageHandle image_;
+    Rect src_;
+    Rect dst_;
+    SamplingOptions sampling_;
+    SrcRectConstraint constraint_;
+};
+
+class DrawPictureOpItem : public DrawOpItem {
+public:
+    DrawPictureOpItem(ImageHandle picture);
+    ~DrawPictureOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
+private:
+    ImageHandle picture_;
+};
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
