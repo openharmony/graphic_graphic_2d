@@ -1207,7 +1207,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     } else {
 #ifdef RS_ENABLE_EGLQUERYSURFACE
         curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
-        ClosePartialRenderWhenAnimatingWindows(displayNodePtr);
         if (isPartialRenderEnabled_) {
             CalcDirtyDisplayRegion(displayNodePtr);
             CalcDirtyRegionForFilterNode(displayNodePtr);
