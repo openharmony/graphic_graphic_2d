@@ -406,6 +406,121 @@ void DrawPictureOpItem::Playback(Canvas& canvas, const CmdList& largeObjectAlloc
 
     canvas.DrawPicture(*picture);
 }
+
+ClipRectOpItem::ClipRectOpItem(const Rect& rect, ClipOp op, bool doAntiAlias)
+    : DrawOpItem(CLIP_RECT_OPITEM), rect_(rect), clipOp_(op), doAntiAlias_(doAntiAlias) {}
+
+void ClipRectOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const ClipRectOpItem*>(opItem);
+        op->Playback(player.canvas_);
+    }
+}
+
+void ClipRectOpItem::Playback(Canvas& canvas) const
+{
+    canvas.ClipRect(rect_, clipOp_, doAntiAlias_);
+}
+
+ClipRoundRectOpItem::ClipRoundRectOpItem(const RoundRect& roundRect, ClipOp op, bool doAntiAlias)
+    : DrawOpItem(CLIP_ROUND_RECT_OPITEM), roundRect_(roundRect), clipOp_(op), doAntiAlias_(doAntiAlias) {}
+
+void ClipRoundRectOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const ClipRoundRectOpItem*>(opItem);
+        op->Playback(player.canvas_);
+    }
+}
+
+void ClipRoundRectOpItem::Playback(Canvas& canvas) const
+{
+    canvas.ClipRoundRect(roundRect_, clipOp_, doAntiAlias_);
+}
+
+ClipPathOpItem::ClipPathOpItem(const CmdListHandle& path, ClipOp clipOp, bool doAntiAlias)
+    : DrawOpItem(CLIP_PATH_OPITEM), path_(path), clipOp_(clipOp), doAntiAlias_(doAntiAlias) {}
+
+void ClipPathOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const ClipPathOpItem*>(opItem);
+        op->Playback(player.canvas_, player.opAllocator_);
+    }
+}
+
+void ClipPathOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
+{
+    auto path = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, path_);
+    if (path == nullptr) {
+        LOGE("path is nullptr!")
+        return;
+    }
+
+    canvas.ClipPath(path, clipOp_, doAntiAlias_);
+}
+
+SetMatrixOpItem::SetMatrixOpItem(const Matrix& matrix) : DrawOpItem(SET_MATRIX_OPITEM)
+{
+    matrix.GetAll(matrixBuffer_);
+}
+
+void SetMatrixOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const SetMatrixOpItem*>(opItem);
+        op->Playback(player.canvas_);
+    }
+}
+
+void SetMatrixOpItem::Playback(Canvas& canvas) const
+{
+    Matrix matrix;
+    for (uint32_t i = 0; i < matrixBuffer_.size(); i++) {
+        matrix.Set(static_cast<Matrix::Index>(i), matrixBuffer_[i]);
+    }
+
+    canvas.SetMatrix(matrix);
+}
+
+ResetMatrixOpItem::ResetMatrixOpItem() : DrawOpItem(RESET_MATRIX_OPITEM) {}
+
+void ResetMatrixOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const ResetMatrixOpItem*>(opItem);
+        op->Playback(player.canvas_);
+    }
+}
+
+void ResetMatrixOpItem::Playback(Canvas& canvas) const
+{
+    canvas.ResetMatrix();
+}
+
+ConcatMatrixOpItem::ConcatMatrixOpItem(const Matrix& matrix) : DrawOpItem(CONCAT_MATRIX_OPITEM)
+{
+    matrix.GetAll(matrixBuffer_);
+}
+
+void ConcatMatrixOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const ConcatMatrixOpItem*>(opItem);
+        op->Playback(player.canvas_);
+    }
+}
+
+void ConcatMatrixOpItem::Playback(Canvas& canvas) const
+{
+    Matrix matrix;
+    for (uint32_t i = 0; i < matrixBuffer_.size(); i++) {
+        matrix.Set(static_cast<Matrix::Index>(i), matrixBuffer_[i]);
+    }
+
+    canvas.ConcatMatrix(matrix);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -329,6 +329,81 @@ public:
 private:
     ImageHandle picture_;
 };
+
+class ClipRectOpItem : public DrawOpItem {
+public:
+    ClipRectOpItem(const Rect& rect, ClipOp op, bool doAntiAlias);
+    ~ClipRectOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+
+private:
+    Rect rect_;
+    ClipOp clipOp_;
+    bool doAntiAlias_;
+};
+
+class ClipRoundRectOpItem : public DrawOpItem {
+public:
+    ClipRoundRectOpItem(const RoundRect& roundRect, ClipOp op, bool doAntiAlias);
+    ~ClipRoundRectOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+
+private:
+    RoundRect roundRect_;
+    ClipOp clipOp_;
+    bool doAntiAlias_;
+};
+
+class ClipPathOpItem : public DrawOpItem {
+public:
+    ClipPathOpItem(const CmdListHandle& path, ClipOp clipOp, bool doAntiAlias);
+    ~ClipPathOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
+private:
+    CmdListHandle path_;
+    ClipOp clipOp_;
+    bool doAntiAlias_;
+};
+
+class SetMatrixOpItem : public DrawOpItem {
+public:
+    SetMatrixOpItem(const Matrix& matrix);
+    ~SetMatrixOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+
+private:
+    Matrix::Buffer matrixBuffer_;
+};
+
+class ResetMatrixOpItem : public DrawOpItem {
+public:
+    ResetMatrixOpItem();
+    ~ResetMatrixOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+};
+
+class ConcatMatrixOpItem : public DrawOpItem {
+public:
+    ConcatMatrixOpItem(const Matrix& matrix);
+    ~ConcatMatrixOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+
+private:
+    Matrix::Buffer matrixBuffer_;
+};
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
