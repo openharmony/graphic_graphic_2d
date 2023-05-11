@@ -26,9 +26,14 @@ namespace Rosen {
 namespace Drawing {
 class PathCmdList : public CmdList {
 public:
-    PathCmdList();
-    explicit PathCmdList(const CmdListData& data);
+    PathCmdList() = default;
     ~PathCmdList() override = default;
+
+    /*
+     * @brief       Creates a PathCmdList with contiguous buffers.
+     * @param data  A contiguous buffers.
+     */
+    static std::shared_ptr<PathCmdList> CreateFromData(const CmdListData& data);
 
     /*
      * @brief  Calls the corresponding operations of all opitems in PathCmdList to the path.
@@ -43,7 +48,7 @@ public:
  */
 class PathPlayer {
 public:
-    PathPlayer(Path& path, const MemAllocator& opAllocator);
+    PathPlayer(Path& path, const CmdList& cmdList);
     ~PathPlayer() = default;
 
     /*
@@ -53,7 +58,7 @@ public:
     bool Playback(uint32_t type, const void* opItem);
 
     Path& path_;
-    const MemAllocator& opAllocator_;
+    const CmdList& cmdList_;
 
     using PathPlaybackFunc = void(*)(PathPlayer& palyer, const void* opItem);
 private:
@@ -147,7 +152,7 @@ private:
     scalar startAngle_;
     scalar sweepAngle_;
     PathDirection direction_;
-    const int methodIndex_;
+    const int32_t methodIndex_;
 };
 
 class CubicToOpItem : public PathOpItem {
@@ -209,13 +214,13 @@ private:
 
 class AddPolyOpItem : public PathOpItem {
 public:
-    AddPolyOpItem(const int offset, int count, bool close);
+    AddPolyOpItem(const std::pair<int32_t, size_t>& points, int32_t count, bool close);
     ~AddPolyOpItem() = default;
     static void Playback(PathPlayer& player, const void* opItem);
-    void Playback(Path& path, const MemAllocator& menAllocator) const;
+    void Playback(Path& path, const CmdList& menAllocator) const;
 private:
-    int offset_;
-    int count_;
+    std::pair<int32_t, size_t> points_;
+    int32_t count_;
     bool close_;
 };
 
@@ -246,37 +251,108 @@ private:
 
 class AddPathOpItem : public PathOpItem {
 public:
-    AddPathOpItem(const CmdListSiteInfo& src, const scalar x, const scalar y);
-    AddPathOpItem(const CmdListSiteInfo& src);
+    AddPathOpItem(const CmdListHandle& src, const scalar x, const scalar y);
+    AddPathOpItem(const CmdListHandle& src);
     ~AddPathOpItem() = default;
     static void Playback(PathPlayer& player, const void* opItem);
-    void Playback(Path& path, const MemAllocator& memAllocator) const;
+    void Playback(Path& path, const CmdList& cmdList) const;
 private:
-    CmdListSiteInfo src_;
+    CmdListHandle src_;
     scalar x_;
     scalar y_;
-    const int methodIndex_;
+    const int32_t methodIndex_;
 };
 
 class AddPathWithMatrixOpItem : public PathOpItem {
 public:
-    AddPathWithMatrixOpItem(const CmdListSiteInfo& src, const Matrix& matrix);
+    AddPathWithMatrixOpItem(const CmdListHandle& src, const Matrix& matrix);
     ~AddPathWithMatrixOpItem() = default;
     static void Playback(PathPlayer& player, const void* opItem);
-    void Playback(Path& path, const MemAllocator& memAllocator) const;
+    void Playback(Path& path, const CmdList& cmdList) const;
 private:
-    CmdListSiteInfo src_;
+    CmdListHandle src_;
     Matrix::Buffer matrixBuffer_;
 };
 
 class ReverseAddPathOpItem : public PathOpItem {
 public:
-    ReverseAddPathOpItem(const CmdListSiteInfo& src);
+    ReverseAddPathOpItem(const CmdListHandle& src);
     ~ReverseAddPathOpItem() = default;
     static void Playback(PathPlayer& player, const void* opItem);
-    void Playback(Path& path, const MemAllocator& memAllocator) const;
+    void Playback(Path& path, const CmdList& cmdList) const;
 private:
-    CmdListSiteInfo src_;
+    CmdListHandle src_;
+};
+
+class SetFillStyleOpItem : public PathOpItem {
+public:
+    SetFillStyleOpItem(const PathFillType fillstyle);
+    ~SetFillStyleOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    PathFillType fillstyle_;
+};
+
+class BuildFromInterpolateOpItem : public PathOpItem {
+public:
+    BuildFromInterpolateOpItem(const CmdListHandle& src, const CmdListHandle& ending, const scalar weight);
+    ~BuildFromInterpolateOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path, const CmdList& cmdList) const;
+private:
+    CmdListHandle src_;
+    CmdListHandle ending_;
+    scalar weight_;
+};
+
+class TransformOpItem : public PathOpItem {
+public:
+    TransformOpItem(const Matrix& matrix);
+    ~TransformOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    Matrix::Buffer matrixBuffer_;
+};
+
+class OffsetOpItem : public PathOpItem {
+public:
+    OffsetOpItem(const scalar dx, const scalar dy);
+    ~OffsetOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    scalar x_;
+    scalar y_;
+};
+
+class PathOpWithOpItem : public PathOpItem {
+public:
+    PathOpWithOpItem(const CmdListHandle& path1, const CmdListHandle& path2, PathOp op);
+    ~PathOpWithOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path, const CmdList& cmdList) const;
+private:
+    CmdListHandle path1_;
+    CmdListHandle path2_;
+    PathOp op_;
+};
+
+class ResetOpItem : public PathOpItem {
+public:
+    ResetOpItem();
+    ~ResetOpItem();
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+};
+
+class CloseOpItem : public PathOpItem {
+public:
+    CloseOpItem();
+    ~CloseOpItem();
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -20,10 +20,15 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-static constexpr int FUNCTION_OVERLOADING_1 = 1;
-static constexpr int FUNCTION_OVERLOADING_2 = 2;
+static constexpr int32_t FUNCTION_OVERLOADING_1 = 1;
+static constexpr int32_t FUNCTION_OVERLOADING_2 = 2;
 
-PathCmdList::PathCmdList() {}
+std::shared_ptr<PathCmdList> PathCmdList::CreateFromData(const CmdListData& data)
+{
+    auto cmdList = std::make_shared<PathCmdList>();
+    cmdList->opAllocator_.BuildFromData(data.first, data.second);
+    return cmdList;
+}
 
 PathCmdList::PathCmdList(const CmdListData& data)
 {
@@ -32,7 +37,7 @@ PathCmdList::PathCmdList(const CmdListData& data)
 
 void PathCmdList::Playback(Path& path) const
 {
-    int offset = 0;
+    int32_t offset = 0;
     PathPlayer player(path, opAllocator_);
     do {
         void* itemPtr = opAllocator_.OffsetToAddr(offset);
@@ -77,7 +82,7 @@ std::unordered_map<uint32_t, PathPlayer::PathPlaybackFunc> PathPlayer::opPlaybac
     { PathOpItem::CLOSE_OPITEM,                 CloseOpItem::Playback },
 };
 
-PathPlayer::PathPlayer(Path& path, const MemAllocator& opAllocator) : path_(path), opAllocator_(opAllocator) {}
+PathPlayer::PathPlayer(Path& path, const CmdList& cmdList) : path_(path), cmdList_(cmdList) {}
 
 bool PathPlayer::Playback(uint32_t type, const void* opItem)
 {
@@ -242,8 +247,8 @@ void AddArcOpItem::Playback(Path& path) const
     path.AddArc(rect_, startAngle_, sweepAngle_);
 }
 
-AddPolyOpItem::AddPolyOpItem(const int offset, int count, bool close)
-    : PathOpItem(ADDPOLY_OPITEM), offset_(offset), count_(count), close_(close) {}
+AddPolyOpItem::AddPolyOpItem(const std::pair<int32_t, size_t>& points, int32_t count, bool close)
+    : PathOpItem(ADDPOLY_OPITEM), points_(points), count_(count), close_(close) {}
 
 void AddPolyOpItem::Playback(PathPlayer& player, const void* opItem)
 {
@@ -253,16 +258,9 @@ void AddPolyOpItem::Playback(PathPlayer& player, const void* opItem)
     }
 }
 
-void AddPolyOpItem::Playback(Path& path, const MemAllocator& memAllocator) const
+void AddPolyOpItem::Playback(Path& path, const CmdList& cmdList) const
 {
-    std::vector<Point> points;
-    auto* point = static_cast<Point*>(memAllocator.OffsetToAddr(offset_));
-    for (int i = 0; i < count_; i++) {
-        if (point) {
-            points.push_back(*point);
-        }
-        point++;
-    }
+    std::vector<Point> points = CmdListHelper::GetVectorFormCmdList<Point>(cmdList, points_)
     path.AddPoly(points, count_, close_);
 }
 
@@ -301,10 +299,10 @@ void AddRoundRectOpItem::Playback(Path& path) const
     path.AddRoundRect(rrect_, dir_);
 }
 
-AddPathOpItem::AddPathOpItem(const CmdListSiteInfo& src, const scalar x, const scalar y)
+AddPathOpItem::AddPathOpItem(const CmdListHandle& src, const scalar x, const scalar y)
     : PathOpItem(ADDPATH_OPITEM), src_(src), x_(x), y_(y), methodIndex_(FUNCTION_OVERLOADING_1) {}
 
-AddPathOpItem::AddPathOpItem(const CmdListSiteInfo& src)
+AddPathOpItem::AddPathOpItem(const CmdListHandle& src)
     : PathOpItem(ADDPATH_OPITEM), src_(src), x_(0), y_(0), methodIndex_(FUNCTION_OVERLOADING_2) {}
 
 void AddPathOpItem::Playback(PathPlayer& player, const void* opItem)
@@ -315,24 +313,21 @@ void AddPathOpItem::Playback(PathPlayer& player, const void* opItem)
     }
 }
 
-void AddPathOpItem::Playback(Path& path, const MemAllocator& memAllocator) const
+void AddPathOpItem::Playback(Path& path, const CmdList& cmdList) const
 {
-    auto* pathPtr = memAllocator.OffsetToAddr(src_.first);
-    if (!pathPtr) {
+    auto srcPath = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, src_);
+    if (srcPath == nullptr) {
         return;
     }
-    auto cmdlist = std::make_shared<PathCmdList>(std::make_pair(pathPtr, src_.second));
-    Path restorePath;
-    cmdlist->Playback(restorePath);
 
     if (methodIndex_ == FUNCTION_OVERLOADING_1) {
-        path.AddPath(restorePath, x_, y_);
+        path.AddPath(*srcPath, x_, y_);
     } else if (methodIndex_ == FUNCTION_OVERLOADING_2) {
-        path.AddPath(restorePath);
+        path.AddPath(*srcPath);
     }
 }
 
-AddPathWithMatrixOpItem::AddPathWithMatrixOpItem(const CmdListSiteInfo& src, const Matrix& matrix)
+AddPathWithMatrixOpItem::AddPathWithMatrixOpItem(const CmdListHandle& src, const Matrix& matrix)
     : PathOpItem(ADDPATHWITHMATRIX_OPITEM), src_(src)
 {
     matrix.GetAll(matrixBuffer_);
@@ -346,25 +341,22 @@ void AddPathWithMatrixOpItem::Playback(PathPlayer& player, const void* opItem)
     }
 }
 
-void AddPathWithMatrixOpItem::Playback(Path& path, const MemAllocator& memAllocator) const
+void AddPathWithMatrixOpItem::Playback(Path& path, const CmdList& memAllocator) const
 {
-    auto* pathPtr = memAllocator.OffsetToAddr(src_.first);
-    if (!pathPtr) {
+    auto srcPath = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, src_);
+    if (srcPath == nullptr) {
         return;
     }
-    auto cmdlist = std::make_shared<PathCmdList>(std::make_pair(pathPtr, src_.second));
-    Path restorePath;
-    cmdlist->Playback(restorePath);
 
     Matrix matrix;
     for (uint32_t i = 0; i < matrixBuffer_.size(); i++) {
         matrix.Set(static_cast<Matrix::Index>(i), matrixBuffer_[i]);
     }
 
-    path.AddPath(restorePath, matrix);
+    path.AddPath(*srcPath, matrix);
 }
 
-ReverseAddPathOpItem::ReverseAddPathOpItem(const CmdListSiteInfo& src)
+ReverseAddPathOpItem::ReverseAddPathOpItem(const CmdListHandle& src)
     : PathOpItem(REVERSEADDPATH_OPITEM), src_(src) {}
 
 void ReverseAddPathOpItem::Playback(PathPlayer& player, const void* opItem)
@@ -375,17 +367,142 @@ void ReverseAddPathOpItem::Playback(PathPlayer& player, const void* opItem)
     }
 }
 
-void ReverseAddPathOpItem::Playback(Path& path, const MemAllocator& memAllocator) const
+void ReverseAddPathOpItem::Playback(Path& path, const CmdList& memAllocator) const
 {
-    auto* pathPtr = memAllocator.OffsetToAddr(src_.first);
-    if (!pathPtr) {
+    auto srcPath = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, src_);
+    if (srcPath == nullptr) {
         return;
     }
-    auto cmdlist = std::make_shared<PathCmdList>(std::make_pair(pathPtr, src_.second));
-    Path restorePath;
-    cmdlist->Playback(restorePath);
 
-    path.ReverseAddPath(restorePath);
+    path.ReverseAddPath(*srcPath);
+}
+
+SetFillStyleOpItem::SetFillStyleOpItem(const PathFillType fillstyle)
+    : PathOpItem(SETFILLSTYLE_OPITEM), fillstyle_(fillstyle) {}
+
+void SetFillStyleOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const SetFillStyleOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void SetFillStyleOpItem::Playback(Path& path) const
+{
+    path.SetFillStyle(fillstyle_);
+}
+
+BuildFromInterpolateOpItem::BuildFromInterpolateOpItem(const CmdListHandle& src, const CmdListHandle& ending,
+    const scalar weight) : PathOpItem(BUILDFROMINTERPOLATE_OPITEM), src_(src), ending_(ending), weight_(weight) {}
+
+void BuildFromInterpolateOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const BuildFromInterpolateOpItem*>(opItem);
+        op->Playback(player.path_, player.opAllocator_);
+    }
+}
+
+void BuildFromInterpolateOpItem::Playback(Path& path, const CmdList& cmdList) const
+{
+    auto srcPath = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, src_);
+    auto endingPath = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, ending_);
+    if (srcPath == nullptr || endingPath == nullptr) {
+        return;
+    }
+
+    path.BuildFromInterpolate(*srcPath, *endingPath, weight_);
+}
+
+TransformOpItem::TransformOpItem(const Matrix& matrix) : PathOpItem(TRANSFORM_OPITEM)
+{
+    matrix.GetAll(matrixBuffer_);
+}
+
+void TransformOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const TransformOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void TransformOpItem::Playback(Path& path) const
+{
+    Matrix matrix;
+    for (uint32_t i = 0; i < matrixBuffer_.size(); i++) {
+        matrix.Set(static_cast<Matrix::Index>(i), matrixBuffer_[i]);
+    }
+
+    path.Transform(matrix);
+}
+
+OffsetOpItem::OffsetOpItem(const scalar dx, const scalar dy) : PathOpItem(OFFSET_OPITEM), x_(dx), y_(dy) {}
+
+void OffsetOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const OffsetOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void OffsetOpItem::Playback(Path& path) const
+{
+    path.Offset(x_, y_);
+}
+
+PathOpWithOpItem::PathOpWithOpItem(const CmdListHandle& path1, const CmdListHandle& path2, PathOp op)
+    : PathOpItem(PATHOPWITH_OPITEM), path1_(path1), path2_(path2), op_(op) {}
+
+void PathOpWithOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const PathOpWithOpItem*>(opItem);
+        op->Playback(player.path_, player.opAllocator_);
+    }
+}
+
+void PathOpWithOpItem::Playback(Path& path, const CmdList& cmdList) const
+{
+    auto path1 = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, path1_);
+    auto path2 = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, path2_);
+    if (path1 == nullptr || path2 == nullptr) {
+        return;
+    }
+
+    path.Op(*path1, *path2, op_);
+}
+
+ResetOpItem::ResetOpItem() : PathOpItem(RESET_OPITEM) {}
+
+void ResetOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const ResetOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void ResetOpItem::Playback(Path& path) const
+{
+    path.Reset();
+}
+
+CloseOpItem::CloseOpItem() : PathOpItem(CLOSE_OPITEM) {}
+
+void CloseOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const CloseOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void CloseOpItem::Playback(Path& path) const
+{
+    path.Close();
 }
 } // namespace Drawing
 } // namespace Rosen
