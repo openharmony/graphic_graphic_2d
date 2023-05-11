@@ -282,7 +282,7 @@ private:
     void PreparePairedSharedTransitionNodes();
     void ProcessPairedSharedTransitionNodes();
 
-    std::shared_ptr<RSBaseRenderNode> logicParentNode_;
+    std::weak_ptr<RSBaseRenderNode> logicParentNode_;
 
     bool isCalcCostEnable_ = false;
 

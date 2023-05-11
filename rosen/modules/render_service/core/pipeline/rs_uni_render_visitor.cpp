@@ -211,7 +211,7 @@ void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 
     // backup environment variables
     auto parentNode = std::move(logicParentNode_);
-    logicParentNode_ = node.shared_from_this();
+    logicParentNode_ = node.weak_from_this();
     auto unpairedTransitionNodes = std::move(unpairedTransitionNodes_);
     node.ResetChildrenRect();
 
@@ -229,7 +229,7 @@ void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 
     // restore environment variables
     unpairedTransitionNodes_ = std::move(unpairedTransitionNodes);
-    logicParentNode_ = parentNode;
+    logicParentNode_ = std::move(parentNode);
 }
 
 void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
@@ -621,15 +621,15 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         PrepareBaseRenderNode(node);
     }
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
-    auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(logicParentNode_);
+    auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(logicParentNode_.lock());
     if (rsParent == curDisplayNode_) {
         std::unique_lock<std::mutex> lock(*surfaceNodePrepareMutex_);
-        node.UpdateParentChildrenRect(logicParentNode_);
+        node.UpdateParentChildrenRect(logicParentNode_.lock());
     } else {
-        node.UpdateParentChildrenRect(logicParentNode_);
+        node.UpdateParentChildrenRect(logicParentNode_.lock());
     }
 #else
-    node.UpdateParentChildrenRect(logicParentNode_);
+    node.UpdateParentChildrenRect(logicParentNode_.lock());
 #endif
     // restore flags
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
@@ -659,7 +659,7 @@ void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
     if (!dirtyFlag_) {
         return;
     }
-    auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(logicParentNode_);
+    auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(logicParentNode_.lock());
     if (rsParent == nullptr) {
         return;
     }
@@ -699,7 +699,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
     RectI prepareClipRect = prepareClipRect_;
 
-    auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(logicParentNode_);
+    auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(node.GetParent().lock());
     const auto& property = node.GetRenderProperties();
     bool geoDirty = property.IsGeoDirty();
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
@@ -737,7 +737,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     }
     node.UpdateChildrenOutOfRectFlag(false);
     PrepareBaseRenderNode(node);
-    node.UpdateParentChildrenRect(logicParentNode_);
+    node.UpdateParentChildrenRect(logicParentNode_.lock());
 
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
     curAlpha_ = alpha;
@@ -828,7 +828,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     node.UpdateChildrenOutOfRectFlag(false);
     PrepareBaseRenderNode(node);
     // attention: accumulate direct parent's childrenRect
-    node.UpdateParentChildrenRect(logicParentNode_);
+    node.UpdateParentChildrenRect(logicParentNode_.lock());
     if (property.NeedFilter() && curSurfaceNode_) {
         // filterRects_ is used in RSUniRenderVisitor::CalcDirtyRegionForFilterNode
         // When oldDirtyRect of node with filter has intersect with any surfaceNode or displayNode dirtyRegion,
@@ -1028,8 +1028,6 @@ void RSUniRenderVisitor::DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node
 void RSUniRenderVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 {
     // backup environment variables
-    auto parentNode = logicParentNode_;
-    logicParentNode_ = node.shared_from_this();
     auto unpairedTransitionNodes = std::move(unpairedTransitionNodes_);
 
     for (auto& child : node.GetSortedChildren()) {
@@ -1047,7 +1045,6 @@ void RSUniRenderVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 
     // restore environment variables, pass unpaired transition nodes to parent
     unpairedTransitionNodes_ = std::move(unpairedTransitionNodes);
-    logicParentNode_ = parentNode;
 }
 
 void RSUniRenderVisitor::ProcessParallelDisplayRenderNode(RSDisplayRenderNode& node)
@@ -2551,7 +2548,8 @@ void RSUniRenderVisitor::FindPairedSharedTransitionNodes(decltype(unpairedTransi
     if (unpairedTransitionNodes_.empty()) {
         return;
     }
-    for (auto& [key, node2Param] : std::move(unpairedTransitionNodes_)) {
+    auto unpairedTransitionNodes = std::move(unpairedTransitionNodes_);
+    for (auto& [key, node2Param] : unpairedTransitionNodes) {
         // key must exist in outList, no need to check
         auto& node1Param = outList[key];
         pairedTransitionNodes_.emplace_back(std::move(node1Param), std::move(node2Param));
@@ -2566,7 +2564,8 @@ void RSUniRenderVisitor::PreparePairedSharedTransitionNodes()
     }
 
     auto curAlpha = curAlpha_;
-    for (auto& [param1, param2] : std::move(pairedTransitionNodes_)) {
+    auto pairedTransitionNodes = std::move(pairedTransitionNodes_);
+    for (auto& [param1, param2] : pairedTransitionNodes) {
         {
             // restore curAlpha_ and prepare first node
             auto& [node, alpha, matrix] = param1;
@@ -2590,19 +2589,20 @@ void RSUniRenderVisitor::ProcessPairedSharedTransitionNodes()
     }
 
     RSAutoCanvasRestore pairedNodeAcr(canvas_);
-    for (auto& [param1, param2] : std::move(pairedTransitionNodes_)) {
+    auto pairedTransitionNodes = std::move(pairedTransitionNodes_);
+    for (auto& [param1, param2] : pairedTransitionNodes) {
         {
             RSAutoCanvasRestore acr(canvas_);
-            auto& [node, alpha, matrix] = param1;
             // restore render context and process first node, we don't need to check validity of params again
+            auto& [node, alpha, matrix] = param1;
             canvas_->SetAlpha(alpha);
             canvas_->setMatrix(matrix.value());
             node->Process(shared_from_this());
         }
         {
             RSAutoCanvasRestore acr(canvas_);
-            auto& [node, alpha, matrix] = param2;
             // restore render context and process second node, we don't need to check validity of params again
+            auto& [node, alpha, matrix] = param2;
             canvas_->SetAlpha(alpha);
             canvas_->setMatrix(matrix.value());
             node->Process(shared_from_this());

@@ -98,10 +98,10 @@ void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, Nod
     auto inNode = nodeMap.GetRenderNode<RSRenderNode>(inNodeId);
     auto outNode = nodeMap.GetRenderNode<RSRenderNode>(outNodeId);
     if (inNode && outNode) {
-        auto inNodeParam = std::make_optional<std::pair<bool, std::weak_ptr<RSRenderNode>>>(true, outNode);
+        RSRenderNode::SharedTransitionParam inNodeParam { true, outNode };
         inNode->SetSharedTransitionParam(std::move(inNodeParam));
 
-        auto outNodeParam = std::make_optional<std::pair<bool, std::weak_ptr<RSRenderNode>>>(false, inNode);
+        RSRenderNode::SharedTransitionParam outNodeParam { false, inNode };
         outNode->SetSharedTransitionParam(std::move(outNodeParam));
     }
 }

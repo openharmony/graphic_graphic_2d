@@ -379,7 +379,7 @@ bool RSRenderNode::ShouldPaint() const
            (renderProperties_.GetAlpha() > 0.0f);
 }
 
-void RSRenderNode::SetSharedTransitionParam(const SharedTransitionParam&& sharedTransitionParam)
+void RSRenderNode::SetSharedTransitionParam(const std::optional<SharedTransitionParam>&& sharedTransitionParam)
 {
     if (!sharedTransitionParam_.has_value() && !sharedTransitionParam.has_value()) {
         // both are empty, do nothing
@@ -387,6 +387,11 @@ void RSRenderNode::SetSharedTransitionParam(const SharedTransitionParam&& shared
     }
     sharedTransitionParam_ = sharedTransitionParam;
     SetDirty();
+}
+
+const std::optional<RSRenderNode::SharedTransitionParam>& RSRenderNode::GetSharedTransitionParam() const
+{
+    return sharedTransitionParam_;
 }
 
 void RSRenderNode::SetGlobalAlpha(float alpha)

@@ -226,20 +226,13 @@ public:
     /////////////////////////////////////////////
 
     // shared transition params, in format <isAppearing, target weakPtr>, nullopt means no transition
-    using SharedTransitionParam = std::optional<std::pair<bool, std::weak_ptr<RSRenderNode>>>;
-
-    void SetSharedTransitionParam(const SharedTransitionParam&& sharedTransitionParam);
-
-    const SharedTransitionParam& GetSharedTransitionParam() const
-    {
-        return sharedTransitionParam_;
-    }
+    using SharedTransitionParam = std::pair<bool, std::weak_ptr<RSRenderNode>>;
+    void SetSharedTransitionParam(const std::optional<SharedTransitionParam>&& sharedTransitionParam);
+    const std::optional<SharedTransitionParam>& GetSharedTransitionParam() const;
 
     void SetGlobalAlpha(float alpha);
-
-    virtual void OnAlphaChanged() {}
-
     float GetGlobalAlpha() const;
+    virtual void OnAlphaChanged() {}
 
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
@@ -285,7 +278,7 @@ private:
     bool paintState_ = false;
     bool isContentChanged_ = false;
     float globalAlpha_ = 1.0f;
-    SharedTransitionParam sharedTransitionParam_;
+    std::optional<SharedTransitionParam> sharedTransitionParam_;
 
     std::shared_ptr<RectF> drawRegion_ = nullptr;
 
