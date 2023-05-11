@@ -202,27 +202,22 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
             trans_->pivotY_ * height_ + y_ + trans_->translateY_, z_ + trans_->translateZ_);
 
         // Rotate
-#ifdef NEW_SKIA
-        SkM44 matrix4;
-#else
-        SkMatrix44 matrix4;
-#endif
         float x = trans_->quaternion_[0];
         float y = trans_->quaternion_[1];
         float z = trans_->quaternion_[2];
         float w = trans_->quaternion_[3];
 #ifdef NEW_SKIA
-        SkScalar r[16] = {
-            1.f - 2.f * (y * y + z * z), 2.f * (x * y + z * w), 2.f * (x * z - y * w), 0,
-            2.f * (x * y - z * w), 1.f - 2.f * (x * x + z * z), 2.f * (y * z + x * w), 0,
-            2.f * (x * z + y * w), 2.f * (y * z - x * w), 1.f - 2.f * (x * x + y * y), 0,
-            0, 0, 0, 1
-        };
-        matrix4.RowMajor(r);
+        SkMatrix mat = SkMatrix::MakeAll(
+            1.f - 2.f * (y * y + z * z), 2.f * (x * y - z * w), 2.f * (x * z + y * w),
+            2.f * (x * y + z * w), 1.f - 2.f * (x * x + z * z), 2.f * (y * z - x * w),
+            2.f * (x * z - y * w), 2.f * (y * z + x * w), 1.f - 2.f * (x * x + y * y));
+        SkM44 matrix4 = SkM44(mat);
 #else
-        matrix4.set3x3(1.f - 2.f * (y * y + z * z), 2.f * (x * y + z * w), 2.f * (x * z - y * w), 2.f * (x * y - z * w),
-            1.f - 2.f * (x * x + z * z), 2.f * (y * z + x * w), 2.f * (x * z + y * w), 2.f * (y * z - x * w),
-            1.f - 2.f * (x * x + y * y));
+        SkMatrix44 matrix4;
+        matrix4.set3x3(
+            1.f - 2.f * (y * y + z * z), 2.f * (x * y + z * w), 2.f * (x * z - y * w),
+            2.f * (x * y - z * w), 1.f - 2.f * (x * x + z * z), 2.f * (y * z + x * w),
+            2.f * (x * z + y * w), 2.f * (y * z - x * w), 1.f - 2.f * (x * x + y * y));
 #endif
         matrix3D = matrix3D * matrix4;
 
