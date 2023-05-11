@@ -213,7 +213,12 @@ public:
 
     bool IsContentChanged() const
     {
-        return isContentChanged_ || !animationManager_.animations_.empty();
+        return isContentChanged_ || HasAnimation();
+    }
+
+    bool HasAnimation() const
+    {
+        return !animationManager_.animations_.empty();
     }
 
     void SetDrawRegion(std::shared_ptr<RectF> rect)
@@ -225,8 +230,8 @@ public:
 
     /////////////////////////////////////////////
 
-    // shared transition params, in format <isAppearing, target weakPtr>, nullopt means no transition
-    using SharedTransitionParam = std::pair<bool, std::weak_ptr<RSRenderNode>>;
+    // shared transition params, in format <InNodeId, target weakPtr>, nullopt means no transition
+    using SharedTransitionParam = std::pair<NodeId, std::weak_ptr<RSRenderNode>>;
     void SetSharedTransitionParam(const std::optional<SharedTransitionParam>&& sharedTransitionParam);
     const std::optional<SharedTransitionParam>& GetSharedTransitionParam() const;
 

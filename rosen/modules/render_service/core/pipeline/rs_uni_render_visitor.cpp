@@ -221,11 +221,10 @@ void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
         }
 
         // collect unpaired transition nodes from child, and try to pair them.
-        // move unpaired ones into unpairedTransitionNodes, and paired ones into pairedTransitionNodes_
-        FindPairedSharedTransitionNodes(unpairedTransitionNodes);
+        // move unpaired ones into unpairedTransitionNodes, and prepare paired ones .
+        FindPairedSharedTransitionNodes(
+            unpairedTransitionNodes, &RSUniRenderVisitor::PreparePairedSharedTransitionNodes);
     }
-    // Prepare paired transition nodes
-    PreparePairedSharedTransitionNodes();
 
     // restore environment variables
     unpairedTransitionNodes_ = std::move(unpairedTransitionNodes);
@@ -1037,11 +1036,10 @@ void RSUniRenderVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
         }
 
         // collect unpaired transition nodes from child, and try to pair them.
-        // move unpaired ones into unpairedTransitionNodes, and paired ones into pairedTransitionNodes_
-        FindPairedSharedTransitionNodes(unpairedTransitionNodes);
+        // move unpaired ones into unpairedTransitionNodes, and process paired ones.
+        FindPairedSharedTransitionNodes(
+            unpairedTransitionNodes, &RSUniRenderVisitor::ProcessPairedSharedTransitionNodes);
     }
-    // process paired transition nodes
-    ProcessPairedSharedTransitionNodes();
 
     // restore environment variables, pass unpaired transition nodes to parent
     unpairedTransitionNodes_ = std::move(unpairedTransitionNodes);
@@ -2487,8 +2485,26 @@ bool RSUniRenderVisitor::PrepareSharedTransitionNode(RSBaseRenderNode& node)
         return true;
     }
 
-    // use NodeId for the InNode as the key.
-    auto key = transitionParam->first ? node.GetId() : pairedNode->GetId();
+    auto pairedParam = pairedNode->GetSharedTransitionParam();
+    if (!pairedParam.has_value() || pairedParam->first != transitionParam->first) {
+        // paired node is not a transition node or paired node is not paired with this node,
+        // clear transition param and prepare directly
+        renderChild->SetSharedTransitionParam(std::nullopt);
+        return true;
+    }
+
+    if (node.GetId() == transitionParam->first && !renderChild->HasAnimation()) {
+        // this node is transition in node and the all animation are ended, clear transition param for both nodes and
+        // prepare directly.
+        pairedNode->SetSharedTransitionParam(std::nullopt);
+        renderChild->SetSharedTransitionParam(std::nullopt);
+        // PLANNING: maybe we should re-prepare the pairedNode (aka the out node) if we skipped it before, but since
+        // it's a transition out node, usually it was nearly invisible right now, just ignore it.
+        return true;
+    }
+
+    // use transition key (aka in node id) as map index.
+    auto key = transitionParam->first;
     // add this node and render params (only alpha for prepare phase) into unpairedTransitionNodes_.
     RenderParam value { std::move(renderChild), curAlpha_, std::nullopt };
     unpairedTransitionNodes_.emplace(key, std::move(value));
@@ -2511,21 +2527,17 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
         return true;
     }
 
-    auto pairedNode = transitionParam->second.lock();
-    if (pairedNode == nullptr) {
-        // transitionParam exists, but pairedNode is nullptr, which means the paired node is destroyed.
-        // we already checked this the in the prepare phase, so we should not reach here.
-        renderChild->SetSharedTransitionParam(std::nullopt);
-        return true;
-    }
+    // Note: pairedNode validation, transition param validation and animation validation already done in the prepare
+    // phase, no need to do it again
 
+    auto pairedNode = transitionParam->second.lock();
     if (pairedNode->GetGlobalAlpha() <= 0.0f) {
         // visitor may never visit the paired node, ignore the transition logic and process directly.
         return true;
     }
 
-    // use NodeId for the InNode as the key.
-    auto key = transitionParam->first ? node.GetId() : pairedNode->GetId();
+    // use transition key (in node id) as map index.
+    auto key = transitionParam->first;
     // add this node and render params (alpha and matrix) into unpairedTransitionNodes_.
     RenderParam value { std::move(renderChild), canvas_->GetAlpha(), canvas_->getTotalMatrix() };
     unpairedTransitionNodes_.emplace(key, std::move(value));
@@ -2534,8 +2546,9 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
     return false;
 }
 
-// Merge unpairedTransitionNodes_ into outList, and check for paired node (duplicated keys).
-void RSUniRenderVisitor::FindPairedSharedTransitionNodes(decltype(unpairedTransitionNodes_)& outList)
+// Merge unpairedTransitionNodes_ into outList, and call func for paired node (aka duplicated keys).
+void RSUniRenderVisitor::FindPairedSharedTransitionNodes(std::unordered_map<NodeId, RenderParam>& outList,
+    void (RSUniRenderVisitor::*func)(const RenderParam&, const RenderParam&))
 {
     if (unpairedTransitionNodes_.empty()) {
         return;
@@ -2552,61 +2565,46 @@ void RSUniRenderVisitor::FindPairedSharedTransitionNodes(decltype(unpairedTransi
     for (auto& [key, node2Param] : unpairedTransitionNodes) {
         // key must exist in outList, no need to check
         auto& node1Param = outList[key];
-        pairedTransitionNodes_.emplace_back(std::move(node1Param), std::move(node2Param));
+        (this->*func)(std::move(node1Param), std::move(node2Param));
         outList.erase(key);
     }
 }
 
-void RSUniRenderVisitor::PreparePairedSharedTransitionNodes()
+void RSUniRenderVisitor::PreparePairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second)
 {
-    if (pairedTransitionNodes_.empty()) {
-        return;
-    }
-
     auto curAlpha = curAlpha_;
-    auto pairedTransitionNodes = std::move(pairedTransitionNodes_);
-    for (auto& [param1, param2] : pairedTransitionNodes) {
-        {
-            // restore curAlpha_ and prepare first node
-            auto& [node, alpha, matrix] = param1;
-            curAlpha_ = alpha;
-            node->Prepare(shared_from_this());
-        }
-        {
-            // restore curAlpha_ and prepare first node
-            auto& [node, alpha, matrix] = param2;
-            curAlpha_ = alpha;
-            node->Prepare(shared_from_this());
-        }
+    {
+        // restore curAlpha_ and prepare first node
+        auto& [node, alpha, matrix] = first;
+        curAlpha_ = alpha;
+        node->Prepare(shared_from_this());
+    }
+    {
+        // restore curAlpha_ and prepare first node
+        auto& [node, alpha, matrix] = second;
+        curAlpha_ = alpha;
+        node->Prepare(shared_from_this());
     }
     curAlpha_ = curAlpha;
 }
 
-void RSUniRenderVisitor::ProcessPairedSharedTransitionNodes()
+void RSUniRenderVisitor::ProcessPairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second)
 {
-    if (pairedTransitionNodes_.empty()) {
-        return;
+    {
+        RSAutoCanvasRestore acr(canvas_);
+        // restore render context and process first node, we don't need to check validity of params again
+        auto& [node, alpha, matrix] = first;
+        canvas_->SetAlpha(alpha);
+        canvas_->setMatrix(matrix.value());
+        node->Process(shared_from_this());
     }
-
-    RSAutoCanvasRestore pairedNodeAcr(canvas_);
-    auto pairedTransitionNodes = std::move(pairedTransitionNodes_);
-    for (auto& [param1, param2] : pairedTransitionNodes) {
-        {
-            RSAutoCanvasRestore acr(canvas_);
-            // restore render context and process first node, we don't need to check validity of params again
-            auto& [node, alpha, matrix] = param1;
-            canvas_->SetAlpha(alpha);
-            canvas_->setMatrix(matrix.value());
-            node->Process(shared_from_this());
-        }
-        {
-            RSAutoCanvasRestore acr(canvas_);
-            // restore render context and process second node, we don't need to check validity of params again
-            auto& [node, alpha, matrix] = param2;
-            canvas_->SetAlpha(alpha);
-            canvas_->setMatrix(matrix.value());
-            node->Process(shared_from_this());
-        }
+    {
+        RSAutoCanvasRestore acr(canvas_);
+        // restore render context and process second node, we don't need to check validity of params again
+        auto& [node, alpha, matrix] = second;
+        canvas_->SetAlpha(alpha);
+        canvas_->setMatrix(matrix.value());
+        node->Process(shared_from_this());
     }
 }
 } // namespace Rosen

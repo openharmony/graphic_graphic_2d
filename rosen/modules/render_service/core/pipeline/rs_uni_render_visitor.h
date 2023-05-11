@@ -277,10 +277,11 @@ private:
     // return true if we should prepare/process, false if we should skip.
     bool PrepareSharedTransitionNode(RSBaseRenderNode& node);
     bool ProcessSharedTransitionNode(RSBaseRenderNode& node);
-    // merge unpairedTransitionNodes_ and outList, move paired into pairedTransitionNodes_, left unpaired in outList
-    void FindPairedSharedTransitionNodes(decltype(unpairedTransitionNodes_)& outList);
-    void PreparePairedSharedTransitionNodes();
-    void ProcessPairedSharedTransitionNodes();
+    // try to pair nodes, call func on paired ones, and move unpaired ones to outList
+    void FindPairedSharedTransitionNodes(std::unordered_map<NodeId, RenderParam>& outList,
+        void (RSUniRenderVisitor::*func)(const RenderParam&, const RenderParam&));
+    void PreparePairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second);
+    void ProcessPairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second);
 
     std::weak_ptr<RSBaseRenderNode> logicParentNode_;
 

@@ -98,22 +98,12 @@ void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, Nod
     auto inNode = nodeMap.GetRenderNode<RSRenderNode>(inNodeId);
     auto outNode = nodeMap.GetRenderNode<RSRenderNode>(outNodeId);
     if (inNode && outNode) {
-        RSRenderNode::SharedTransitionParam inNodeParam { true, outNode };
+        // used inNode id as transition key
+        RSRenderNode::SharedTransitionParam inNodeParam { inNode->GetId(), outNode };
         inNode->SetSharedTransitionParam(std::move(inNodeParam));
 
-        RSRenderNode::SharedTransitionParam outNodeParam { false, inNode };
+        RSRenderNode::SharedTransitionParam outNodeParam { inNode->GetId(), inNode };
         outNode->SetSharedTransitionParam(std::move(outNodeParam));
-    }
-}
-
-void RSNodeCommandHelper::UnregisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId)
-{
-    auto& nodeMap = context.GetNodeMap();
-    if (auto inNode = nodeMap.GetRenderNode<RSRenderNode>(inNodeId)) {
-        inNode->SetSharedTransitionParam(std::nullopt);
-    }
-    if (auto outNode = nodeMap.GetRenderNode<RSRenderNode>(outNodeId)) {
-        outNode->SetSharedTransitionParam(std::nullopt);
     }
 }
 } // namespace Rosen
