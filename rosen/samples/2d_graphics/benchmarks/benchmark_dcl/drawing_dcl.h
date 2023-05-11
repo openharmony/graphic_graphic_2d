@@ -46,7 +46,8 @@ public:
     void Test(SkCanvas *canvas, int width, int height) override;
     void Output() override;
     int LoadDrawCmdList(std::string dclFile);
-    bool IsValidFile(string realPathStr);
+    std::string GetRealPathStr(std::string filePath);
+    bool IsValidFile(std::string realPathStr);
 
 private:
     friend class DCLCommand;
