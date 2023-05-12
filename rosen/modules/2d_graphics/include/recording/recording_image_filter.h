@@ -83,8 +83,6 @@ public:
     }
 
 private:
-    CmdListSiteInfo AddCmdListData(const std::shared_ptr<ImageFilter>& filter);
-
     std::shared_ptr<ImageFilterCmdList> cmdList_;
 };
 } // namespace Drawing

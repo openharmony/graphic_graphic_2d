@@ -15,6 +15,7 @@
 
 #include "recording/recording_path_effect.h"
 
+#include "recording/cmd_list_helper.h"
 #include "recording/recording_path.h"
 #include "utils/log.h"
 
@@ -43,18 +44,11 @@ std::shared_ptr<RecordingPathEffect> RecordingPathEffect::CreateDashPathEffect(
 std::shared_ptr<RecordingPathEffect> RecordingPathEffect::CreatePathDashEffect(
     const Path& path, scalar advance, scalar phase, PathDashStyle style)
 {
-    auto pathCmdList = static_cast<const RecordingPath&>(path).GetCmdList();
-    if (pathCmdList == nullptr) {
-        LOGE("RecordingPathEffect::CreatePathDashEffect, path is valid!");
-        return nullptr;
-    }
-
-    auto cmdData = pathCmdList->GetData();
     auto pathEffect = std::make_shared<RecordingPathEffect>();
-    auto offset = pathEffect->GetCmdList()->AddCmdListData(cmdData);
-    CmdListSiteInfo pathData(offset, cmdData.second);
+    auto pathHandle = CmdListHelper::AddRecordedToCmdList(
+        *pathEffect->GetCmdList(), static_cast<const RecordingPath&>(path));
 
-    pathEffect->GetCmdList()->AddOp<CreatePathDashEffectOpItem>(pathData, advance, phase, style);
+    pathEffect->GetCmdList()->AddOp<CreatePathDashEffectOpItem>(pathHandle, advance, phase, style);
     return pathEffect;
 }
 
@@ -68,46 +62,30 @@ std::shared_ptr<RecordingPathEffect> RecordingPathEffect::CreateCornerPathEffect
 std::shared_ptr<RecordingPathEffect> RecordingPathEffect::CreateSumPathEffect(
     const PathEffect& e1, const PathEffect& e2)
 {
-    auto e1CmdList = static_cast<const RecordingPathEffect&>(e1).GetCmdList();
-    auto e2CmdList = static_cast<const RecordingPathEffect&>(e2).GetCmdList();
-    if (e1CmdList == nullptr || e2CmdList == nullptr) {
-        LOGE("RecordingPathEffect::CreateSumPathEffect, effect1 or effect2 is valid!");
-        return nullptr;
-    }
-
     auto pathEffect = std::make_shared<RecordingPathEffect>();
-    auto cmdData = e1CmdList->GetData();
-    auto offset = pathEffect->GetCmdList()->AddCmdListData(cmdData);
-    CmdListSiteInfo e1Data(offset, cmdData.second);
 
-    cmdData = e2CmdList->GetData();
-    offset = pathEffect->GetCmdList()->AddCmdListData(cmdData);
-    CmdListSiteInfo e2Data(offset, cmdData.second);
+    auto pathEffectHandle1 = CmdListHelper::AddRecordedToCmdList(
+        *pathEffect->GetCmdList(), static_cast<const RecordingPathEffect&>(e1));
 
-    pathEffect->GetCmdList()->AddOp<CreateSumPathEffectOpItem>(e1Data, e2Data);
+    auto pathEffectHandle2 = CmdListHelper::AddRecordedToCmdList(
+        *pathEffect->GetCmdList(), static_cast<const RecordingPathEffect&>(e2));
+
+    pathEffect->GetCmdList()->AddOp<CreateSumPathEffectOpItem>(pathEffectHandle1, pathEffectHandle2);
     return pathEffect;
 }
 
 std::shared_ptr<RecordingPathEffect> RecordingPathEffect::CreateComposePathEffect(
     const PathEffect& e1, const PathEffect& e2)
 {
-    auto e1CmdList = static_cast<const RecordingPathEffect&>(e1).GetCmdList();
-    auto e2CmdList = static_cast<const RecordingPathEffect&>(e2).GetCmdList();
-    if (e1CmdList == nullptr || e2CmdList == nullptr) {
-        LOGE("RecordingPathEffect::CreateSumPathEffect, effect1 or effect2 is valid!");
-        return nullptr;
-    }
-
     auto pathEffect = std::make_shared<RecordingPathEffect>();
-    auto cmdData = e1CmdList->GetData();
-    auto offset = pathEffect->GetCmdList()->AddCmdListData(cmdData);
-    CmdListSiteInfo e1Data(offset, cmdData.second);
 
-    cmdData = e2CmdList->GetData();
-    offset = pathEffect->GetCmdList()->AddCmdListData(cmdData);
-    CmdListSiteInfo e2Data(offset, cmdData.second);
+    auto pathEffectHandle1 = CmdListHelper::AddRecordedToCmdList(
+        *pathEffect->GetCmdList(), static_cast<const RecordingPathEffect&>(e1));
 
-    pathEffect->GetCmdList()->AddOp<CreateComposePathEffectOpItem>(e1Data, e2Data);
+    auto pathEffectHandle2 = CmdListHelper::AddRecordedToCmdList(
+        *pathEffect->GetCmdList(), static_cast<const RecordingPathEffect&>(e2));
+
+    pathEffect->GetCmdList()->AddOp<CreateComposePathEffectOpItem>(pathEffectHandle1, pathEffectHandle2);
     return pathEffect;
 }
 } // namespace Drawing

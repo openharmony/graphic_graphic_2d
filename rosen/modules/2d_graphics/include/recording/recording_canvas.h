@@ -54,7 +54,6 @@ public:
         Color ambientColor, Color spotColor, ShadowFlags flag) override;
 
     void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) override;
-    void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py) override;
     void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling) override;
     void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
         SrcRectConstraint constraint = SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) override;
@@ -76,7 +75,7 @@ public:
     void Flush() override;
     void Clear(ColorQuad color) override;
     void Save() override;
-    void SaveLayer(const SaveLayerRec& saveLayerRec) override;
+    void SaveLayer(const SaveLayerOps& saveLayerOps) override;
     void Restore() override;
 
     CoreCanvas& AttachPen(const Pen& pen) override;

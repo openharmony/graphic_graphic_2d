@@ -15,6 +15,9 @@
 
 #include "recording/recording_color_filter.h"
 
+#include "recording/cmd_list_helper.h"
+#include "utils/log.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -32,23 +35,13 @@ std::shared_ptr<RecordingColorFilter> RecordingColorFilter::CreateBlendModeColor
 std::shared_ptr<RecordingColorFilter> RecordingColorFilter::CreateComposeColorFilter(
     const ColorFilter& f1, const ColorFilter& f2)
 {
-    auto f1CmdList = static_cast<const RecordingColorFilter&>(f1).GetCmdList();
-    auto f2CmdList = static_cast<const RecordingColorFilter&>(f2).GetCmdList();
-    if (f1CmdList == nullptr || f2CmdList == nullptr) {
-        LOGE("RecordingColorFilter::CreateComposeColorFilter, color filter is valid!");
-        return nullptr;
-    }
-
     auto colorFilter = std::make_shared<RecordingColorFilter>();
-    auto cmdData = f1CmdList->GetData();
-    auto offset = colorFilter->GetCmdList()->AddCmdListData(cmdData);
-    CmdListSiteInfo f1Data(offset, cmdData.second);
 
-    cmdData = f2CmdList->GetData();
-    offset = colorFilter->GetCmdList()->AddCmdListData(cmdData);
-    CmdListSiteInfo f2Data(offset, cmdData.second);
-
-    colorFilter->GetCmdList()->AddOp<CreateComposeOpItem>(f1Data, f2Data);
+    auto colorFilterHandle1 = CmdListHelper::AddRecordedToCmdList(
+        *colorFilter->GetCmdList(), static_cast<const RecordingColorFilter&>(f1));
+    auto colorFilterHandle2 = CmdListHelper::AddRecordedToCmdList(
+        *colorFilter->GetCmdList(), static_cast<const RecordingColorFilter&>(f2));
+    colorFilter->GetCmdList()->AddOp<CreateComposeOpItem>(colorFilterHandle1, colorFilterHandle2);
     return colorFilter;
 }
 
@@ -82,16 +75,9 @@ std::shared_ptr<RecordingColorFilter> RecordingColorFilter::CreateLumaColorFilte
 
 void RecordingColorFilter::Compose(const ColorFilter& filter)
 {
-    auto filterCmdList = static_cast<const RecordingColorFilter&>(filter).GetCmdList();
-    if (filterCmdList == nullptr) {
-        LOGE("RecordingColorFilter::Compose failed, color filter is valid!");
-        return;
-    }
-    auto cmdData = filterCmdList->GetData();
-    auto offset = cmdList_->AddCmdListData(cmdData);
-    CmdListSiteInfo filterData(offset, cmdData.second);
-
-    cmdList_->AddOp<ColorFilterComposeOpItem>(filterData);
+    auto colorFilterHandle = CmdListHelper::AddRecordedToCmdList(
+        *cmdList_, static_cast<const RecordingColorFilter&>(filter));
+    cmdList_->AddOp<ColorFilterComposeOpItem>(colorFilterHandle);
 }
 } // namespace Drawing
 } // namespace Rosen

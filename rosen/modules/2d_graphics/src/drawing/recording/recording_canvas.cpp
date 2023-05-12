@@ -15,6 +15,7 @@
 
 #include "recording/recording_canvas.h"
 
+#include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd.h"
 #include "recording/draw_cmd_list.h"
 #include "recording/recording_path.h"
@@ -102,15 +103,15 @@ void RecordingCanvas::DrawBackground(const Brush& brush)
     Filter filter = brush.GetFilter();
     BrushHandle brushHandle = {
         CmdListHelper::AddRecordedToCmdList(
-            *cmdList_, std::static_pointer_cast<RecordingColorSpace>(brush->GetColorSpace()));
+            *cmdList_, std::static_pointer_cast<RecordingColorSpace>(brush.GetColorSpace())),
         CmdListHelper::AddRecordedToCmdList(
-            *cmdList_, std::static_pointer_cast<RecordingShaderEffect>(brush->GetShaderEffect()));
+            *cmdList_, std::static_pointer_cast<RecordingShaderEffect>(brush.GetShaderEffect())),
         CmdListHelper::AddRecordedToCmdList(
-            *cmdList_, std::static_pointer_cast<RecordingColorFilter>(filter->GetColorFilter()));
+            *cmdList_, std::static_pointer_cast<RecordingColorFilter>(filter.GetColorFilter())),
         CmdListHelper::AddRecordedToCmdList(
-            *cmdList_, std::static_pointer_cast<RecordingImageFilter>(filter->GetImageFilter()));
+            *cmdList_, std::static_pointer_cast<RecordingImageFilter>(filter.GetImageFilter())),
         CmdListHelper::AddRecordedToCmdList(
-            *cmdList_, std::static_pointer_cast<RecordingMaskFilter>(filter->GetMaskFilter()));
+            *cmdList_, std::static_pointer_cast<RecordingMaskFilter>(filter.GetMaskFilter())),
     };
     cmdList_->AddOp<DrawBackgroundOpItem>(brush.GetColor(), brush.GetBlendMode(), brush.IsAntiAlias(),
         filter.GetFilterQuality(), brushHandle);
@@ -222,7 +223,7 @@ void RecordingCanvas::Save()
     saveCount_++;
 }
 
-void RecordingCanvas::SaveLayer(const SaveLayerRec& saveLayerRec)
+void RecordingCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)
 {
     Rect rect;
     bool hasBrush = false;
@@ -233,10 +234,10 @@ void RecordingCanvas::SaveLayer(const SaveLayerRec& saveLayerRec)
     BrushHandle brushHandle;
     CmdListHandle imageFilterHandle;
 
-    if (saveLayerRec.GetBounds() != nullptr) {
-        rect = *saveLayerRec.GetBounds();
+    if (saveLayerOps.GetBounds() != nullptr) {
+        rect = *saveLayerOps.GetBounds();
     }
-    const Brush* brush = saveLayerRec.GetBrush();
+    const Brush* brush = saveLayerOps.GetBrush();
     if (brush != nullptr) {
         hasBrush = true;
         color = brush->GetColor();
@@ -246,22 +247,22 @@ void RecordingCanvas::SaveLayer(const SaveLayerRec& saveLayerRec)
         Filter filter = brush->GetFilter();
         brushHandle = {
             CmdListHelper::AddRecordedToCmdList(
-                *cmdList_, std::static_pointer_cast<RecordingColorSpace>(brush->GetColorSpace()));
+                *cmdList_, std::static_pointer_cast<RecordingColorSpace>(brush->GetColorSpace())),
             CmdListHelper::AddRecordedToCmdList(
-                *cmdList_, std::static_pointer_cast<RecordingShaderEffect>(brush->GetShaderEffect()));
+                *cmdList_, std::static_pointer_cast<RecordingShaderEffect>(brush->GetShaderEffect())),
             CmdListHelper::AddRecordedToCmdList(
-                *cmdList_, std::static_pointer_cast<RecordingColorFilter>(filter->GetColorFilter()));
+                *cmdList_, std::static_pointer_cast<RecordingColorFilter>(filter.GetColorFilter())),
             CmdListHelper::AddRecordedToCmdList(
-                *cmdList_, std::static_pointer_cast<RecordingImageFilter>(filter->GetImageFilter()));
+                *cmdList_, std::static_pointer_cast<RecordingImageFilter>(filter.GetImageFilter())),
             CmdListHelper::AddRecordedToCmdList(
-                *cmdList_, std::static_pointer_cast<RecordingMaskFilter>(filter->GetMaskFilter()));
+                *cmdList_, std::static_pointer_cast<RecordingMaskFilter>(filter.GetMaskFilter())),
         };
     }
     imageFilterHandle = CmdListHelper::AddRecordedToCmdList(
-        *cmdList_, std::static_pointer_cast<RecordingImageFilter>(saveLayerRec.GetImageFilter()));
+        *cmdList_, static_cast<const RecordingImageFilter*>(saveLayerOps.GetImageFilter()));
 
     cmdList_->AddOp<SaveLayerOpItem>(rect, hasBrush, color, mode, isAntiAlias, filterQuality, brushHandle,
-        imageFilterHandle, saveLayerRec.GetSaveLayerFlags());
+        imageFilterHandle, saveLayerOps.GetSaveLayerFlags());
     saveCount_++;
 }
 
@@ -278,17 +279,17 @@ CoreCanvas& RecordingCanvas::AttachPen(const Pen& pen)
     Filter filter = pen.GetFilter();
     PenHandle penHandle = {
         CmdListHelper::AddRecordedToCmdList(
-            *cmdList_, std::static_pointer_cast<RecordingPathEffect>(pen.GetPathEffect()));
+            *cmdList_, std::static_pointer_cast<RecordingPathEffect>(pen.GetPathEffect())),
         CmdListHelper::AddRecordedToCmdList(
-            *cmdList_, std::static_pointer_cast<RecordingColorSpace>(pen->GetColorSpace()));
+            *cmdList_, std::static_pointer_cast<RecordingColorSpace>(pen.GetColorSpace())),
         CmdListHelper::AddRecordedToCmdList(
-            *cmdList_, std::static_pointer_cast<RecordingShaderEffect>(pen->GetShaderEffect()));
+            *cmdList_, std::static_pointer_cast<RecordingShaderEffect>(pen.GetShaderEffect())),
         CmdListHelper::AddRecordedToCmdList(
-            *cmdList_, std::static_pointer_cast<RecordingColorFilter>(filter->GetColorFilter()));
+            *cmdList_, std::static_pointer_cast<RecordingColorFilter>(filter.GetColorFilter())),
         CmdListHelper::AddRecordedToCmdList(
-            *cmdList_, std::static_pointer_cast<RecordingImageFilter>(filter->GetImageFilter()));
+            *cmdList_, std::static_pointer_cast<RecordingImageFilter>(filter.GetImageFilter())),
         CmdListHelper::AddRecordedToCmdList(
-            *cmdList_, std::static_pointer_cast<RecordingMaskFilter>(filter->GetMaskFilter()));
+            *cmdList_, std::static_pointer_cast<RecordingMaskFilter>(filter.GetMaskFilter())),
     };
     cmdList_->AddOp<AttachPenOpItem>(pen.GetColor(), pen.GetWidth(), pen.GetMiterLimit(), pen.GetCapStyle(),
         pen.GetJoinStyle(), pen.GetBlendMode(), pen.IsAntiAlias(), filter.GetFilterQuality(), penHandle);
@@ -301,15 +302,15 @@ CoreCanvas& RecordingCanvas::AttachBrush(const Brush& brush)
     Filter filter = brush.GetFilter();
     BrushHandle brushHandle = {
         CmdListHelper::AddRecordedToCmdList(
-            *cmdList_, std::static_pointer_cast<RecordingColorSpace>(brush->GetColorSpace()));
+            *cmdList_, std::static_pointer_cast<RecordingColorSpace>(brush.GetColorSpace())),
         CmdListHelper::AddRecordedToCmdList(
-            *cmdList_, std::static_pointer_cast<RecordingShaderEffect>(brush->GetShaderEffect()));
+            *cmdList_, std::static_pointer_cast<RecordingShaderEffect>(brush.GetShaderEffect())),
         CmdListHelper::AddRecordedToCmdList(
-            *cmdList_, std::static_pointer_cast<RecordingColorFilter>(filter->GetColorFilter()));
+            *cmdList_, std::static_pointer_cast<RecordingColorFilter>(filter.GetColorFilter())),
         CmdListHelper::AddRecordedToCmdList(
-            *cmdList_, std::static_pointer_cast<RecordingImageFilter>(filter->GetImageFilter()));
+            *cmdList_, std::static_pointer_cast<RecordingImageFilter>(filter.GetImageFilter())),
         CmdListHelper::AddRecordedToCmdList(
-            *cmdList_, std::static_pointer_cast<RecordingMaskFilter>(filter->GetMaskFilter()));
+            *cmdList_, std::static_pointer_cast<RecordingMaskFilter>(filter.GetMaskFilter())),
     };
     cmdList_->AddOp<AttachBrushOpItem>(brush.GetColor(), brush.GetBlendMode(), brush.IsAntiAlias(),
         filter.GetFilterQuality(), brushHandle);

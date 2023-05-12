@@ -15,7 +15,7 @@
 
 #include "recording/recording_path.h"
 
-#include "recording/mem_allocator.h"
+#include "recording/cmd_list_helper.h"
 #include "utils/log.h"
 
 namespace OHOS {
@@ -102,8 +102,8 @@ void RecordingPath::AddArc(const Rect& oval, scalar startAngle, scalar sweepAngl
 
 void RecordingPath::AddPoly(const std::vector<Point>& points, int count, bool close)
 {
-    int offset = cmdList_->AddCmdListData(std::make_pair<const void*, size_t>(&points, sizeof(Point) * count));
-    cmdList_->AddOp<AddPolyOpItem>(offset, count, close);
+    auto pointsInfo = CmdListHelper::AddVectorToCmdList<Point>(*cmdList_, points);
+    cmdList_->AddOp<AddPolyOpItem>(pointsInfo, count, close);
 }
 
 void RecordingPath::AddCircle(scalar x, scalar y, scalar radius, PathDirection dir)
@@ -123,50 +123,26 @@ void RecordingPath::AddRoundRect(const RoundRect& rrect, PathDirection dir)
 
 void RecordingPath::AddPath(const Path& src, scalar dx, scalar dy)
 {
-    auto pathCmdList = static_cast<const RecordingPath&>(src).GetCmdList();
-    if (pathCmdList == nullptr) {
-        LOGE("RecordingPath::AddPath, src path is valid!");
-        return;
-    }
-    int offset = cmdList_->AddCmdListData(pathCmdList->GetData());
-    CmdListSiteInfo pathCmdListInfo(offset, pathCmdList->GetData().second);
-    cmdList_->AddOp<AddPathOpItem>(pathCmdListInfo, dx, dy);
+    auto pathHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(src));
+    cmdList_->AddOp<AddPathOpItem>(pathHandle, dx, dy);
 }
 
 void RecordingPath::AddPath(const Path& src)
 {
-    auto pathCmdList = static_cast<const RecordingPath&>(src).GetCmdList();
-    if (pathCmdList == nullptr) {
-        LOGE("RecordingPath::AddPath, src path is valid!");
-        return;
-    }
-    int offset = cmdList_->AddCmdListData(pathCmdList->GetData());
-    CmdListSiteInfo pathCmdListInfo(offset, pathCmdList->GetData().second);
-    cmdList_->AddOp<AddPathOpItem>(pathCmdListInfo);
+    auto pathHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(src));
+    cmdList_->AddOp<AddPathOpItem>(pathHandle);
 }
 
 void RecordingPath::AddPath(const Path& src, const Matrix& matrix)
 {
-    auto pathCmdList = static_cast<const RecordingPath&>(src).GetCmdList();
-    if (pathCmdList == nullptr) {
-        LOGE("RecordingPath::AddPathWithMatrix, src path is valid!");
-        return;
-    }
-    int offset = cmdList_->AddCmdListData(pathCmdList->GetData());
-    CmdListSiteInfo pathCmdListInfo(offset, pathCmdList->GetData().second);
-    cmdList_->AddOp<AddPathWithMatrixOpItem>(pathCmdListInfo, matrix);
+    auto pathHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(src));
+    cmdList_->AddOp<AddPathWithMatrixOpItem>(pathHandle, matrix);
 }
 
 void RecordingPath::ReverseAddPath(const Path& src)
 {
-    auto pathCmdList = static_cast<const RecordingPath&>(src).GetCmdList();
-    if (pathCmdList == nullptr) {
-        LOGE("RecordingPath::ReverseAddPath, src path is valid!");
-        return;
-    }
-    int offset = cmdList_->AddCmdListData(pathCmdList->GetData());
-    CmdListSiteInfo pathCmdListInfo(offset, pathCmdList->GetData().second);
-    cmdList_->AddOp<ReverseAddPathOpItem>(pathCmdListInfo);
+    auto pathHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(src));
+    cmdList_->AddOp<ReverseAddPathOpItem>(pathHandle);
 }
 
 void RecordingPath::SetFillStyle(PathFillType fillstyle)
@@ -176,18 +152,9 @@ void RecordingPath::SetFillStyle(PathFillType fillstyle)
 
 bool RecordingPath::BuildFromInterpolate(const Path& src, const Path& ending, scalar weight)
 {
-    auto srcCmdList = static_cast<const RecordingPath&>(src).GetCmdList();
-    auto endingCmdList = static_cast<const RecordingPath&>(ending).GetCmdList();
-    if (srcCmdList == nullptr || endingCmdList == nullptr) {
-        LOGE("RecordingPath::BuildFromInterpolate, src or ending path is valid!");
-        return false;
-    }
-    int offset = cmdList_->AddCmdListData(srcCmdList->GetData());
-    CmdListSiteInfo srcCmdListInfo(offset, srcCmdList->GetData().second);
-
-    offset = cmdList_->AddCmdListData(endingCmdList->GetData());
-    CmdListSiteInfo endingCmdListInfo(offset, endingCmdList->GetData().second);
-    cmdList_->AddOp<BuildFromInterpolateOpItem>(srcCmdListInfo, endingCmdListInfo, weight);
+    auto srcHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(src));
+    auto endingHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(ending));
+    cmdList_->AddOp<BuildFromInterpolateOpItem>(srcHandle, endingHandle, weight);
 
     return true;
 }
@@ -204,18 +171,9 @@ void RecordingPath::Offset(scalar dx, scalar dy)
 
 bool RecordingPath::Op(const Path& path1, Path& path2, PathOp op)
 {
-    auto path1CmdList = static_cast<const RecordingPath&>(path1).GetCmdList();
-    auto path2CmdList = static_cast<const RecordingPath&>(path2).GetCmdList();
-    if (path1CmdList == nullptr || path2CmdList == nullptr) {
-        LOGE("RecordingPath::Op, path1 or path2 is valid!");
-        return false;
-    }
-    int offset = cmdList_->AddCmdListData(path1CmdList->GetData());
-    CmdListSiteInfo path1CmdListInfo(offset, path1CmdList->GetData().second);
-
-    offset = cmdList_->AddCmdListData(path2CmdList->GetData());
-    CmdListSiteInfo path2CmdListInfo(offset, path2CmdList->GetData().second);
-    cmdList_->AddOp<PathOpWithOpItem>(path1CmdListInfo, path2CmdListInfo, op);
+    auto pathHandle1 = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(path1));
+    auto pathHandle2 = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(path2));
+    cmdList_->AddOp<PathOpWithOpItem>(pathHandle1, pathHandle2, op);
 
     return true;
 }

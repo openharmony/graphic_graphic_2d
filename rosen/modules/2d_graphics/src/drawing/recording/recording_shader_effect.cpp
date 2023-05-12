@@ -16,6 +16,7 @@
 #include "recording/recording_shader_effect.h"
 
 #include "image/image.h"
+#include "recording/cmd_list_helper.h"
 #include "utils/log.h"
 
 namespace OHOS {
@@ -33,59 +34,33 @@ std::shared_ptr<RecordingShaderEffect> RecordingShaderEffect::CreateColorShader(
 std::shared_ptr<RecordingShaderEffect> RecordingShaderEffect::CreateBlendShader(
     const ShaderEffect& dst, const ShaderEffect& src, BlendMode mode)
 {
-    auto dstCmdList = static_cast<const RecordingShaderEffect&>(dst).GetCmdList();
-    auto srcCmdList = static_cast<const RecordingShaderEffect&>(src).GetCmdList();
-    if (dstCmdList == nullptr || srcCmdList == nullptr) {
-        LOGE("RecordingShaderEffect::CreateBlendShader, dst or src is valid!");
-        return nullptr;
-    }
-
     auto shaderEffect = std::make_shared<RecordingShaderEffect>();
-    auto cmdData = dstCmdList->GetData();
-    auto offset = shaderEffect->GetCmdList()->AddCmdListData(cmdData);
-    CmdListSiteInfo dstData(offset, cmdData.second);
+    auto dstHandle = CmdListHelper::AddRecordedToCmdList(
+        *shaderEffect->GetCmdList(), static_cast<const RecordingShaderEffect&>(dst));
+    auto srcHandle = CmdListHelper::AddRecordedToCmdList(
+        *shaderEffect->GetCmdList(), static_cast<const RecordingShaderEffect&>(src));
 
-    cmdData = srcCmdList->GetData();
-    offset = shaderEffect->GetCmdList()->AddCmdListData(cmdData);
-    CmdListSiteInfo srcData(offset, cmdData.second);
-
-    shaderEffect->GetCmdList()->AddOp<CreateBlendShaderOpItem>(dstData, srcData, mode);
+    shaderEffect->GetCmdList()->AddOp<CreateBlendShaderOpItem>(dstHandle, srcHandle, mode);
     return shaderEffect;
 }
 
 std::shared_ptr<RecordingShaderEffect> RecordingShaderEffect::CreateImageShader(
     const Image& image, TileMode tileX, TileMode tileY, const SamplingOptions& sampling, const Matrix& matrix)
 {
-    // Use deep copy to implement, and then use shared memory optimization
-    auto data = image.Serialize();
-    if (data->GetSize() == 0) {
-        LOGE("RecordingShaderEffect::CreateImageShader, image is valid!");
-        return nullptr;
-    }
-
     auto shaderEffect = std::make_shared<RecordingShaderEffect>();
-    auto offset = shaderEffect->GetCmdList()->AddLargeObject(LargeObjectData(data->GetData(), data->GetSize()));
-    LargeObjectInfo info(offset, data->GetSize());
+    auto imageHandle = CmdListHelper::AddImageToCmdList(*shaderEffect->GetCmdList(), image);
 
-    shaderEffect->GetCmdList()->AddOp<CreateImageShaderOpItem>(info, tileX, tileY, sampling, matrix);
+    shaderEffect->GetCmdList()->AddOp<CreateImageShaderOpItem>(imageHandle, tileX, tileY, sampling, matrix);
     return shaderEffect;
 }
 
 std::shared_ptr<RecordingShaderEffect> RecordingShaderEffect::CreatePictureShader(const Picture& picture,
     TileMode tileX, TileMode tileY, FilterMode mode, const Matrix& matrix, const Rect& rect)
 {
-    // Use deep copy to implement, and then use shared memory optimization
-    auto data = picture.Serialize();
-    if (data->GetSize() == 0) {
-        LOGE("RecordingShaderEffect::CreatePictureShader, picture is valid!");
-        return nullptr;
-    }
-
     auto shaderEffect = std::make_shared<RecordingShaderEffect>();
-    auto offset = shaderEffect->GetCmdList()->AddLargeObject(LargeObjectData(data->GetData(), data->GetSize()));
-    LargeObjectInfo info(offset, data->GetSize());
+    auto pictureHandle = CmdListHelper::AddPictureToCmdList(*shaderEffect->GetCmdList(), picture);
 
-    shaderEffect->GetCmdList()->AddOp<CreatePictureShaderOpItem>(info, tileX, tileY, mode, matrix, rect);
+    shaderEffect->GetCmdList()->AddOp<CreatePictureShaderOpItem>(pictureHandle, tileX, tileY, mode, matrix, rect);
     return shaderEffect;
 }
 

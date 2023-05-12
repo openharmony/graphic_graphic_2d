@@ -16,6 +16,7 @@
 #include "recording/recording_color_space.h"
 
 #include "image/image.h"
+#include "recording/cmd_list_helper.h"
 #include "utils/log.h"
 
 namespace OHOS {
@@ -39,18 +40,10 @@ std::shared_ptr<RecordingColorSpace> RecordingColorSpace::CreateSRGBLinear()
 
 std::shared_ptr<RecordingColorSpace> RecordingColorSpace::CreateRefImage(const Image& image)
 {
-    // Use deep copy to implement, and then use shared memory optimization
-    auto data = image.Serialize();
-    if (data->GetSize() == 0) {
-        LOGE("RecordingColorSpace::CreateRefImage, image is valid!");
-        return nullptr;
-    }
-
     auto colorSpace = std::make_shared<RecordingColorSpace>();
-    auto offset = colorSpace->GetCmdList()->AddLargeObject(LargeObjectData(data->GetData(), data->GetSize()));
-    LargeObjectInfo info(offset, data->GetSize());
+    auto imageHandle = CmdListHelper::AddImageToCmdList(*colorSpace->GetCmdList(), image);
 
-    colorSpace->GetCmdList()->AddOp<CreateRefImageOpItem>(info);
+    colorSpace->GetCmdList()->AddOp<CreateRefImageOpItem>(imageHandle);
     return colorSpace;
 }
 

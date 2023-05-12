@@ -15,8 +15,9 @@
 
 #include "recording/recording_region.h"
 
+#include "recording/cmd_list_helper.h"
 #include "recording/recording_path.h"
-#include "recording/mem_allocator.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,35 +37,16 @@ bool RecordingRegion::SetRect(const RectI& rectI)
 
 bool RecordingRegion::SetPath(const Path& path, const Region& clip)
 {
-    auto pathCmdList = static_cast<const RecordingPath&>(path).GetCmdList();
-    auto regionCmdList = static_cast<const RecordingRegion&>(clip).GetCmdList();
-    if (pathCmdList == nullptr || regionCmdList == nullptr) {
-        LOGE("RecordingRegion::SetPath, path or clip is valid!");
-        return false;
-    }
-
-    int pathOffset = cmdList_->AddCmdListData(pathCmdList->GetData());
-    CmdListSiteInfo pathCmdListInfo(pathOffset, pathCmdList->GetData().second);
-
-    int regionOffset = cmdList_->AddCmdListData(regionCmdList->GetData());
-    CmdListSiteInfo regionCmdListInfo(regionOffset, regionCmdList->GetData().second);
-
-    cmdList_->AddOp<SetPathOpItem>(pathCmdListInfo, regionCmdListInfo);
+    auto pathHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(path));
+    auto regionHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingRegion&>(clip));
+    cmdList_->AddOp<SetPathOpItem>(pathHandle, regionHandle);
     return true;
 }
 
 bool RecordingRegion::Op(const Region& region, RegionOp op)
 {
-    auto regionCmdList = static_cast<const RecordingRegion&>(region).GetCmdList();
-    if (regionCmdList == nullptr) {
-        LOGE("RecordingRegion::Op, region is valid!");
-        return false;
-    }
-
-    int regionOffset = cmdList_->AddCmdListData(regionCmdList->GetData());
-    CmdListSiteInfo regionCmdListInfo(regionOffset, regionCmdList->GetData().second);
-
-    cmdList_->AddOp<RegionOpWithOpItem>(regionCmdListInfo, op);
+    auto regionHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingRegion&>(region));
+    cmdList_->AddOp<RegionOpWithOpItem>(regionHandle, op);
     return true;
 }
 } // namespace Drawing
