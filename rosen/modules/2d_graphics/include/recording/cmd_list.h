@@ -16,15 +16,55 @@
 #ifndef CMD_LIST_H
 #define CMD_LIST_H
 
-#include "op_item.h"
+#include "draw/color.h"
+#include "recording/op_item.h"
 #include "recording/mem_allocator.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+struct ImageHandle {
+    int32_t offset;
+    size_t size;
+    int32_t width;
+    int32_t height;
+    ColorType colorType;
+    AlphaType alphaType;
+};
+
+struct CmdListHandle {
+    uint32_t type;
+    uint32_t offset;
+    size_t size;
+    uint32_t imageOffset;
+    size_t imageSize;
+};
+
+using CmdListData = std::pair<const void*, size_t>;
+
 class CmdList {
 public:
+    enum Type : uint32_t {
+        CMD_LIST = 0,
+        COLOR_FILTER_CMD_LIST,
+        COLOR_SPACE_CMD_LIST,
+        DRAW_CMD_LIST,
+        IMAGE_FILTER_CMD_LIST,
+        MASK_FILTER_CMD_LIST,
+        PATH_CMD_LIST,
+        PATH_EFFECT_CMD_LIST,
+        REGION_CMD_LIST,
+        SHADER_EFFECT_CMD_LIST,
+    };
+
+    CmdList() = default;
+    explicit CmdList(const CmdListData& cmdListData);
     virtual ~CmdList() = default;
+
+    virtual uint32_t GetType()
+    {
+        return Type::CMD_LIST;
+    }
 
     /*
      * @brief       Add OpItem to CmdList.
@@ -53,10 +93,18 @@ public:
      */
     int AddCmdListData(const CmdListData& data);
 
+    const void* GetCmdListData(uint32_t offset) const;
+
     /*
      * @brief   Gets the contiguous buffers of CmdList.
      */
     CmdListData GetData() const;
+
+    // using for recording, should to remove after using shared memory
+    bool SetUpImageData(const void* data, size_t size);
+    int AddImageData(const void* data, size_t size);
+    const void* GetImageData(uint32_t offset) const;
+    CmdListData GetAllImageData() const;
 
     CmdList(CmdList&&) = delete;
     CmdList(const CmdList&) = delete;
@@ -64,10 +112,8 @@ public:
     CmdList& operator=(const CmdList&) = delete;
 
 protected:
-    CmdList() = default;
-    explicit CmdList(const CmdListData& cmdListData);
-
     MemAllocator opAllocator_;
+    MemAllocator imageAllocator_;
     OpItem* lastOpItem_ = nullptr;
     std::mutex mutex_;
 };

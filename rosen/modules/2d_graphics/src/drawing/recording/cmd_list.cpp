@@ -41,11 +41,41 @@ int CmdList::AddCmdListData(const CmdListData& data)
     return opAllocator_.AddrToOffset(addr);
 }
 
+const void* CmdList::GetCmdListData(uint32_t offset) const
+{
+    return opAllocator_.OffsetToAddr(offset);
+}
+
 CmdListData CmdList::GetData() const
 {
     return std::make_pair(opAllocator_.GetData(), opAllocator_.GetSize());
 }
 
+bool CmdList::SetUpImageData(const void* data, size_t size)
+{
+    return imageAllocator_.BuildFromData(data, size);
+}
+
+int CmdList::AddImageData(const void* data, size_t size)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    void* addr = imageAllocator_.Add(data, size);
+    if (addr == nullptr) {
+        LOGE("CmdList AddImageData failed!");
+        return 0;
+    }
+    return imageAllocator_.AddrToOffset(addr);
+}
+
+const void* CmdList::GetImageData(uint32_t offset) const
+{
+    return imageAllocator_.OffsetToAddr(offset);
+}
+
+CmdListData CmdList::GetAllImageData() const
+{
+    return std::make_pair(opAllocator_.GetData(), opAllocator_.GetSize());
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
