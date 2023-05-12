@@ -705,15 +705,13 @@ void RSMainThread::ReleaseBackGroundNodeUnlockGpuResource(const std::shared_ptr<
     }
 #ifdef RS_ENABLE_GL
     auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
-    const auto& nodeMap = context_->GetNodeMap();
     switch (RSSystemProperties::GetReleaseGpuResourceEnabled()) {
         case ReleaseGpuResourceType::WINDOW_HIDDEN:
             MemoryManager::ReleaseUnlockGpuResource(grContext, surfaceNode->GetId());
             break;
         case ReleaseGpuResourceType::WINDOW_HIDDEN_AND_LAUCHER:
             MemoryManager::ReleaseUnlockGpuResource(grContext, surfaceNode->GetId());
-            MemoryManager::ReleaseUnlockLauncherGpuResource(grContext,
-                nodeMap.GetEntryViewNodeId(), nodeMap.GetWallPaperViewNodeId());
+            MemoryManager::ReleaseUnlockGpuResource(grContext);
             break;
         default:
             break;
@@ -1474,15 +1472,13 @@ void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext, pi
         RS_LOGW("ReleaseExitSurfaceNodeAllGpuResource pid:%d", pid);
         return;
     }
-    const auto& nodeMap = context_->GetNodeMap();
     switch (RSSystemProperties::GetReleaseGpuResourceEnabled()) {
         case ReleaseGpuResourceType::WINDOW_HIDDEN:
             MemoryManager::ReleaseUnlockGpuResource(grContext, pid);
             break;
         case ReleaseGpuResourceType::WINDOW_HIDDEN_AND_LAUCHER:
             MemoryManager::ReleaseUnlockGpuResource(grContext, pid);
-            MemoryManager::ReleaseUnlockLauncherGpuResource(grContext,
-                nodeMap.GetEntryViewNodeId(), nodeMap.GetWallPaperViewNodeId());
+            MemoryManager::ReleaseUnlockGpuResource(grContext);
             break;
         default:
             break;

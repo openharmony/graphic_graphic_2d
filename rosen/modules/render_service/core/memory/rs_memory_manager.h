@@ -40,8 +40,7 @@ public:
     static void ReleaseUnlockGpuResource(GrDirectContext* grContext, NodeId surfaceNodeId);
     static void ReleaseUnlockGpuResource(GrDirectContext* grContext, pid_t pid);
     static void ReleaseAllGpuResource(GrDirectContext* grContext, pid_t pid);
-    static void ReleaseUnlockLauncherGpuResource(GrDirectContext* grContext,
-        NodeId entryViewNodeId, NodeId wallpaperViewNodeId);
+    static void ReleaseUnlockGpuResource(GrDirectContext* grContext, bool scratchResourcesOnly = true);
 #else
     static void DumpMemoryUsage(DfxString& log, const GrContext* grContext, std::string& type);
     static void DumpPidMemory(DfxString& log, int pid, const GrContext* grContext);
@@ -53,8 +52,7 @@ public:
     static void ReleaseUnlockGpuResource(GrContext* grContext, pid_t pid);
     static void ReleaseAllGpuResource(GrContext* grContext, GrGpuResourceTag& tag);
     static void ReleaseAllGpuResource(GrContext* grContext, pid_t pid);
-    static void ReleaseUnlockLauncherGpuResource(GrContext* grContext,
-        NodeId entryViewNodeId, NodeId wallpaperViewNodeId);
+    static void ReleaseUnlockGpuResource(GrContext* grContext, bool scratchResourcesOnly = true);
 #endif
 
 private:

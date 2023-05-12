@@ -137,19 +137,17 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, pid_t pid)
 }
 
 #ifdef NEW_SKIA
-void MemoryManager::ReleaseUnlockLauncherGpuResource(GrDirectContext* grContext,
-    NodeId entryViewNodeId, NodeId wallpaperViewNodeId)
+void MemoryManager::ReleaseUnlockGpuResource(GrDirectContext* grContext, bool scratchResourcesOnly)
 #else
-void MemoryManager::ReleaseUnlockLauncherGpuResource(GrContext* grContext,
-    NodeId entryViewNodeId, NodeId wallpaperViewNodeId)
+void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, bool scratchResourcesOnly)
 #endif
 {
 #ifdef RS_ENABLE_GL
     if(!grContext) {
         RS_LOGE("ReleaseGpuResByTag fail, grContext is nullptr");
     }
-    ReleaseUnlockGpuResource(grContext, entryViewNodeId);
-    ReleaseUnlockGpuResource(grContext, wallpaperViewNodeId);
+    RS_TRACE_NAME_FMT("ReleaseUnlockGpuResource scratchResourcesOnly:%d", scratchResourcesOnly);
+    grContext->purgeUnlockedResources(scratchResourcesOnly);
 #endif
 }
 
