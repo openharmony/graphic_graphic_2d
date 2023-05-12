@@ -106,5 +106,21 @@ void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, Nod
         outNode->SetSharedTransitionParam(std::move(outNodeParam));
     }
 }
+
+void RSNodeCommandHelper::UnregisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto inNode = nodeMap.GetRenderNode<RSRenderNode>(inNodeId);
+    auto outNode = nodeMap.GetRenderNode<RSRenderNode>(outNodeId);
+    // Sanity check, if any check failed, RSUniRenderVisitor will auto unregister the pair, we do nothing here.
+    if (inNode && outNode &&
+        inNode->GetSharedTransitionParam().has_value() &&
+        inNode->GetSharedTransitionParam()->first == inNode->GetId() &&
+        outNode->GetSharedTransitionParam().has_value() &&
+        outNode->GetSharedTransitionParam()->first == inNode->GetId()) {
+        inNode->SetSharedTransitionParam(std::nullopt);
+        outNode->SetSharedTransitionParam(std::nullopt);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
