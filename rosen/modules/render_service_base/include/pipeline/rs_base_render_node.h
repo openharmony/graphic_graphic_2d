@@ -183,6 +183,7 @@ protected:
     {
         return context_;
     }
+    virtual void OnTreeStateChanged() {}
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
 private:

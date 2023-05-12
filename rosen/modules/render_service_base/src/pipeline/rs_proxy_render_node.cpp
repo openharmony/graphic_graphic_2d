@@ -34,21 +34,7 @@ RSProxyRenderNode::~RSProxyRenderNode()
 {
     ROSEN_LOGD("RSProxyRenderNode::~RSProxyRenderNode, proxy id:%" PRIu64 " target:%" PRIu64, GetId(), targetId_);
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
-    // if target do not exist (in RT) or already destroyed (in RS), skip reset
-    auto target = target_.lock();
-    if (target == nullptr) {
-        return;
-    }
-
-    // reset target node context properties
-    target->SetContextAlpha(1.0f, false);
-    target->SetContextMatrix(std::nullopt, false);
-    target->SetContextClipRegion(std::nullopt, false);
-
-    // remove all modifiers and animations added via proxy node
-    const auto pid_of_this_node = ExtractPid(GetId());
-    target->FilterModifiersByPid(pid_of_this_node);
-    target->GetAnimationManager().FilterAnimationByPid(pid_of_this_node);
+    CleanUp(true);
 }
 
 void RSProxyRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -119,6 +105,41 @@ void RSProxyRenderNode::ResetContextVariableCache()
     contextAlpha_ = -1.0f;
     contextMatrix_.reset();
     contextClipRect_.reset();
+}
+
+void RSProxyRenderNode::OnTreeStateChanged()
+{
+    if (IsOnTheTree()) {
+        // new added to tree
+        SetDirty();
+    } else {
+        // removed from tree, clean up context variables
+        CleanUp(false);
+    }
+    ResetContextVariableCache();
+}
+
+void RSProxyRenderNode::CleanUp(bool removeModifiers)
+{
+    // if target do not exist (in RT) or already destroyed (in RS), skip reset
+    auto target = target_.lock();
+    if (target == nullptr) {
+        return;
+    }
+
+    // reset target node context properties
+    target->SetContextAlpha(1.0f, false);
+    target->SetContextMatrix(std::nullopt, false);
+    target->SetContextClipRegion(std::nullopt, false);
+
+    if (!removeModifiers) {
+        return;
+    }
+
+    // remove all modifiers and animations added via proxy node
+    const auto pid_of_this_node = ExtractPid(GetId());
+    target->FilterModifiersByPid(pid_of_this_node);
+    target->GetAnimationManager().FilterAnimationByPid(pid_of_this_node);
 }
 } // namespace Rosen
 } // namespace OHOS

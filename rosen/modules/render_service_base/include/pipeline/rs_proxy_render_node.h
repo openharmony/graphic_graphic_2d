@@ -49,6 +49,8 @@ public:
     void SetContextClipRegion(const std::optional<SkRect>& clipRegion);
 
     void ResetContextVariableCache();
+protected:
+    void OnTreeStateChanged() override;
 
 private:
     std::weak_ptr<RSSurfaceRenderNode> target_;
@@ -57,6 +59,8 @@ private:
     std::optional<SkMatrix> contextMatrix_;
     float contextAlpha_ = 0.0f;
     std::optional<SkRect> contextClipRect_;
+
+    void CleanUp(bool removeModifiers);
 
     friend class RSUniRenderVisitor;
 };

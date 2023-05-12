@@ -104,11 +104,12 @@ void RSBaseRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
 void RSBaseRenderNode::SetIsOnTheTree(bool flag)
 {
     // We do not need to label a child when the child is removed from a parent that is not on the tree
-    if (!flag && !isOnTheTree_) {
+    if (flag == isOnTheTree_) {
         return;
     }
-
     isOnTheTree_ = flag;
+    OnTreeStateChanged();
+
     for (auto& childWeakPtr : children_) {
         auto child = childWeakPtr.lock();
         if (child == nullptr) {
