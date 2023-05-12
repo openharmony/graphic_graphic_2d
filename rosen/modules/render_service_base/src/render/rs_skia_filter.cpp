@@ -17,7 +17,9 @@
 
 namespace OHOS {
 namespace Rosen {
-RSSkiaFilter::RSSkiaFilter(sk_sp<SkImageFilter> imageFilter) : RSFilter(), imageFilter_(imageFilter), otherFilter_(nullptr) {}
+RSSkiaFilter::RSSkiaFilter(sk_sp<SkImageFilter> imageFilter)
+    : RSFilter(), imageFilter_(imageFilter), otherFilter_(nullptr)
+{}
 
 RSSkiaFilter::~RSSkiaFilter() {}
 
