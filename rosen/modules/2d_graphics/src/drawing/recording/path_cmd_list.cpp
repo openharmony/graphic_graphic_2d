@@ -15,6 +15,7 @@
 
 #include "recording/path_cmd_list.h"
 
+#include "recording/cmd_list_helper.h"
 #include "utils/log.h"
 
 namespace OHOS {
@@ -30,15 +31,11 @@ std::shared_ptr<PathCmdList> PathCmdList::CreateFromData(const CmdListData& data
     return cmdList;
 }
 
-PathCmdList::PathCmdList(const CmdListData& data)
-{
-    opAllocator_.BuildFromDataWithCopy(data.first, data.second);
-}
-
-void PathCmdList::Playback(Path& path) const
+std::shared_ptr<Path> PathCmdList::Playback() const
 {
     int32_t offset = 0;
-    PathPlayer player(path, opAllocator_);
+    auto path = std::make_shared<Path>();
+    PathPlayer player(*path, *this);
     do {
         void* itemPtr = opAllocator_.OffsetToAddr(offset);
         OpItem* curOpItemPtr = static_cast<OpItem*>(itemPtr);
@@ -54,6 +51,8 @@ void PathCmdList::Playback(Path& path) const
             break;
         }
     } while (offset != 0);
+
+    return path;
 }
 
 /* OpItem */
@@ -254,13 +253,13 @@ void AddPolyOpItem::Playback(PathPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const AddPolyOpItem*>(opItem);
-        op->Playback(player.path_, player.opAllocator_);
+        op->Playback(player.path_, player.cmdList_);
     }
 }
 
 void AddPolyOpItem::Playback(Path& path, const CmdList& cmdList) const
 {
-    std::vector<Point> points = CmdListHelper::GetVectorFormCmdList<Point>(cmdList, points_)
+    std::vector<Point> points = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, points_);
     path.AddPoly(points, count_, close_);
 }
 
@@ -309,7 +308,7 @@ void AddPathOpItem::Playback(PathPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const AddPathOpItem*>(opItem);
-        op->Playback(player.path_, player.opAllocator_);
+        op->Playback(player.path_, player.cmdList_);
     }
 }
 
@@ -337,11 +336,11 @@ void AddPathWithMatrixOpItem::Playback(PathPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const AddPathWithMatrixOpItem*>(opItem);
-        op->Playback(player.path_, player.opAllocator_);
+        op->Playback(player.path_, player.cmdList_);
     }
 }
 
-void AddPathWithMatrixOpItem::Playback(Path& path, const CmdList& memAllocator) const
+void AddPathWithMatrixOpItem::Playback(Path& path, const CmdList& cmdList) const
 {
     auto srcPath = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, src_);
     if (srcPath == nullptr) {
@@ -363,11 +362,11 @@ void ReverseAddPathOpItem::Playback(PathPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const ReverseAddPathOpItem*>(opItem);
-        op->Playback(player.path_, player.opAllocator_);
+        op->Playback(player.path_, player.cmdList_);
     }
 }
 
-void ReverseAddPathOpItem::Playback(Path& path, const CmdList& memAllocator) const
+void ReverseAddPathOpItem::Playback(Path& path, const CmdList& cmdList) const
 {
     auto srcPath = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, src_);
     if (srcPath == nullptr) {
@@ -377,7 +376,7 @@ void ReverseAddPathOpItem::Playback(Path& path, const CmdList& memAllocator) con
     path.ReverseAddPath(*srcPath);
 }
 
-SetFillStyleOpItem::SetFillStyleOpItem(const PathFillType fillstyle)
+SetFillStyleOpItem::SetFillStyleOpItem(PathFillType fillstyle)
     : PathOpItem(SETFILLSTYLE_OPITEM), fillstyle_(fillstyle) {}
 
 void SetFillStyleOpItem::Playback(PathPlayer& player, const void* opItem)
@@ -400,7 +399,7 @@ void BuildFromInterpolateOpItem::Playback(PathPlayer& player, const void* opItem
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const BuildFromInterpolateOpItem*>(opItem);
-        op->Playback(player.path_, player.opAllocator_);
+        op->Playback(player.path_, player.cmdList_);
     }
 }
 
@@ -460,7 +459,7 @@ void PathOpWithOpItem::Playback(PathPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const PathOpWithOpItem*>(opItem);
-        op->Playback(player.path_, player.opAllocator_);
+        op->Playback(player.path_, player.cmdList_);
     }
 }
 

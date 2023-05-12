@@ -42,7 +42,7 @@ public:
 /* OpItem */
 class MaskFilterOpItem : public OpItem {
 public:
-    MaskFilterOpItem(uint32_t type) : OpItem(type) {}
+    explicit MaskFilterOpItem(uint32_t type) : OpItem(type) {}
 
     enum Type : uint32_t {
         OPITEM_HEAD = 0,    // OPITEM_HEAD must be 0

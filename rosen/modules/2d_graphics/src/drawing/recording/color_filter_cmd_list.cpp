@@ -14,7 +14,10 @@
  */
 
 #include "recording/color_filter_cmd_list.h"
+
+#include "recording/cmd_list_helper.h"
 #include "recording/recording_color_filter.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -22,17 +25,13 @@ namespace Drawing {
 std::shared_ptr<ColorFilterCmdList> ColorFilterCmdList::CreateFromData(const CmdListData& data)
 {
     auto cmdList = std::make_shared<ColorFilterCmdList>();
-    if (cmdList == nullptr) {
-        LOGE("ColorFilterCmdList create from data failed!");
-        return nullptr;
-    }
     cmdList->opAllocator_.BuildFromData(data.first, data.second);
     return cmdList;
 }
 
 std::shared_ptr<ColorFilter> ColorFilterCmdList::Playback() const
 {
-    int offset = 0;
+    int32_t offset = 0;
     std::shared_ptr<ColorFilter> cf = nullptr;
     do {
         OpItem* itemPtr = static_cast<OpItem*>(opAllocator_.OffsetToAddr(offset));
@@ -46,7 +45,7 @@ std::shared_ptr<ColorFilter> ColorFilterCmdList::Playback() const
                 cf = static_cast<CreateBlendModeOpItem*>(itemPtr)->Playback();
                 break;
             case ColorFilterOpItem::CREATE_COMPOSE:
-                cf = static_cast<CreateComposeOpItem*>(itemPtr)->Playback(opAllocator_);
+                cf = static_cast<CreateComposeOpItem*>(itemPtr)->Playback(*this);
                 break;
             case ColorFilterOpItem::CREATE_MATRIX:
                 cf = static_cast<CreateMatrixOpItem*>(itemPtr)->Playback();
@@ -62,7 +61,7 @@ std::shared_ptr<ColorFilter> ColorFilterCmdList::Playback() const
                 break;
             case ColorFilterOpItem::COMPOSE:
                 if (cf != nullptr) {
-                    static_cast<ColorFilterComposeOpItem*>(itemPtr)->Playback(*cf, opAllocator_);
+                    static_cast<ColorFilterComposeOpItem*>(itemPtr)->Playback(*cf, *this);
                 }
                 break;
             default:
@@ -84,27 +83,13 @@ std::shared_ptr<ColorFilter> CreateBlendModeOpItem::Playback() const
     return ColorFilter::CreateBlendModeColorFilter(color_, mode_);
 }
 
-CreateComposeOpItem::CreateComposeOpItem(const CmdListSiteInfo& f1, const CmdListSiteInfo& f2)
+CreateComposeOpItem::CreateComposeOpItem(const CmdListHandle& f1, const CmdListHandle& f2)
     : ColorFilterOpItem(CREATE_COMPOSE), colorFilter1_(f1), colorFilter2_(f2) {}
 
-std::shared_ptr<ColorFilter> CreateComposeOpItem::Playback(const MemAllocator& allocator) const
+std::shared_ptr<ColorFilter> CreateComposeOpItem::Playback(const CmdList& cmdList) const
 {
-    void* ptr1 = allocator.OffsetToAddr(colorFilter1_.first);
-    void* ptr2 = allocator.OffsetToAddr(colorFilter2_.first);
-    if (!ptr1 || !ptr2) {
-        LOGE("ColorFilterCmdList offset invalid!");
-        return nullptr;
-    }
-
-    auto cmdList1 = ColorFilterCmdList::CreateFromData({ ptr1, colorFilter1_.second });
-    auto cmdList2 = ColorFilterCmdList::CreateFromData({ ptr2, colorFilter2_.second });
-    if (!cmdList1 || !cmdList2) {
-        LOGE("ColorFilterCmdList create cmd list failed!");
-        return nullptr;
-    }
-
-    auto colorFilter1 = cmdList1->Playback();
-    auto colorFilter2 = cmdList2->Playback();
+    auto colorFilter1 = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(cmdList, colorFilter1_);
+    auto colorFilter2 = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(cmdList, colorFilter2_);
     if (!colorFilter1 || !colorFilter2) {
         LOGE("ColorFilterCmdList Playback failed!");
         return nullptr;
@@ -141,24 +126,12 @@ std::shared_ptr<ColorFilter> CreateLumaOpItem::Playback() const
     return ColorFilter::CreateLumaColorFilter();
 }
 
-ColorFilterComposeOpItem::ColorFilterComposeOpItem(const CmdListSiteInfo& filter)
-    : ColorFilterOpItem(CF_COMPOSE), filter_(filter) {}
+ColorFilterComposeOpItem::ColorFilterComposeOpItem(const CmdListHandle& filter)
+    : ColorFilterOpItem(COMPOSE), filter_(filter) {}
 
-void ColorFilterComposeOpItem::Playback(ColorFilter& filter, const MemAllocator& allocator) const
+void ColorFilterComposeOpItem::Playback(ColorFilter& filter, const CmdList& cmdList) const
 {
-    void* ptr = allocator.OffsetToAddr(filter_.first);
-    if (!ptr) {
-        LOGE("ColorFilterCmdList offset invalid!");
-        return;
-    }
-
-    auto cmdList = ColorFilterCmdList::CreateFromData({ ptr, filter_.second });
-    if (!cmdList) {
-        LOGE("ColorFilterCmdList create cmd list failed!");
-        return;
-    }
-
-    auto colorFilter = cmdList->Playback();
+    auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(cmdList, filter_);
     if (!colorFilter) {
         LOGE("ColorFilterCmdList Playback failed!");
         return;

@@ -34,27 +34,6 @@ public:
     static std::shared_ptr<ColorSpaceCmdList> CreateFromData(const CmdListData& data);
 
     /*
-     * @brief                  Creates a ColorSpaceCmdList with contiguous buffers and large memory object.
-     * @param data             A contiguous buffers.
-     * @param largeObjectData  A large memory object buffers.
-     */
-    static std::shared_ptr<ColorSpaceCmdList> CreateFromData(
-        const CmdListData& data, const LargeObjectData& largeObjectData);
-
-    /*
-     * @brief       Add large object data to the buffers of ColorSpaceCmdList.
-     * @param data  A large object data.
-     * @return      Returns the offset of the contiguous buffers and ColorSpaceCmdList head point.
-     * @note        using for recording, should to remove after using shared memory
-     */
-    int AddLargeObject(const LargeObjectData& data);
-
-    /*
-     * @brief  Gets the large Object buffers of the ColorSpaceCmdList.
-     */
-    LargeObjectData GetLargeObjectData() const;
-
-    /*
      * @brief  Creates a ColorSpace by the ColorSpaceCmdList playback operation.
      */
     std::shared_ptr<ColorSpace> Playback() const;
@@ -66,7 +45,7 @@ private:
 /* OpItem */
 class ColorSpaceOpItem : public OpItem {
 public:
-    ColorSpaceOpItem(uint32_t type) : OpItem(type) {}
+    explicit ColorSpaceOpItem(uint32_t type) : OpItem(type) {}
     ~ColorSpaceOpItem() = default;
 
     enum Type : uint32_t {
@@ -102,17 +81,16 @@ public:
 
 class CreateRefImageOpItem : public ColorSpaceOpItem {
 public:
-    CreateRefImageOpItem(const LargeObjectInfo& image);
+    explicit CreateRefImageOpItem(const ImageHandle& image);
     ~CreateRefImageOpItem() = default;
 
     /*
      * @brief            Restores arguments from contiguous memory and plays back the OpItem to create ColorSpace.
-     * @param allocator  A contiguous memory for storing large objects.
      */
-    std::shared_ptr<ColorSpace> Playback(const MemAllocator& largeObjectAllocator) const;
+    std::shared_ptr<ColorSpace> Playback(const CmdList& cmdList) const;
 
 private:
-    LargeObjectInfo image_;
+    ImageHandle image_;
 };
 
 class CreateRGBOpItem : public ColorSpaceOpItem {

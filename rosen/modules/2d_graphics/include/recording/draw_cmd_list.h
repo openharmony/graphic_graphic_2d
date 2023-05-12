@@ -24,23 +24,15 @@ namespace Rosen {
 namespace Drawing {
 class DrawCmdList : public CmdList {
 public:
-    DrawCmdList(int width, int height);
-    explicit DrawCmdList(const CmdListData& cmdListData);
-    DrawCmdList(const CmdListData& cmdListData, const LargeObjectData& largeObjectData);
+    DrawCmdList() = default;
+    DrawCmdList(int32_t width, int32_t height);
     ~DrawCmdList() override = default;
 
     /*
-     * @brief       Add large object data to the buffers of DrawCmdList.
-     * @param data  A large object data.
-     * @return      Returns the offset of the contiguous buffers and DrawCmdList head point.
-     * @note        using for recording, should to remove after using shared memory
+     * @brief       Creates a DrawCmdList with contiguous buffers.
+     * @param data  A contiguous buffers.
      */
-    int AddLargeObject(const LargeObjectData& data);
-
-    /*
-     * @brief  Gets the large object buffers of the DrawCmdList.
-     */
-    LargeObjectData GetLargeObjectData() const;
+    static std::shared_ptr<DrawCmdList> CreateFromData(const CmdListData& data);
 
     /*
      * @brief         Calls the corresponding operations of all opitems in DrawCmdList to the canvas.
@@ -51,27 +43,27 @@ public:
     /*
      * @brief  Gets the width of the DrawCmdList.
      */
-    int GetWidth() const;
+    int32_t GetWidth() const;
 
     /*
      * @brief  Gets the height of the DrawCmdList.
      */
-    int GetHeight() const;
+    int32_t GetHeight() const;
 
     /*
      * @brief  Sets the width of the DrawCmdList.
      */
-    void SetWidth(int width);
+    void SetWidth(int32_t width);
 
     /*
      * @brief  Sets the height of the DrawCmdList.
      */
-    void SetHeight(int height);
+    void SetHeight(int32_t height);
 
 private:
     MemAllocator largeObjectAllocator_;
-    int width_;
-    int height_;
+    int32_t width_;
+    int32_t height_;
 };
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;

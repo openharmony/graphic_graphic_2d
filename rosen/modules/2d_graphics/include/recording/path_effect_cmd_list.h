@@ -42,7 +42,7 @@ public:
 /* OpItem */
 class PathEffectOpItem : public OpItem {
 public:
-    PathEffectOpItem(uint32_t type) : OpItem(type) {}
+    explicit PathEffectOpItem(uint32_t type) : OpItem(type) {}
     ~PathEffectOpItem() = default;
 
     enum Type : uint32_t {
@@ -57,31 +57,31 @@ public:
 
 class CreateDashPathEffectOpItem : public PathEffectOpItem {
 public:
-    CreateDashPathEffectOpItem(const std::pair<int, size_t>& intervals, scalar phase);
+    CreateDashPathEffectOpItem(const std::pair<int32_t, size_t>& intervals, scalar phase);
     ~CreateDashPathEffectOpItem() = default;
 
     /*
      * @brief            Restores arguments from contiguous memory and plays back the OpItem to create PathEffect.
-     * @param allocator  A contiguous memory.
+     * @param cmdList  A contiguous memory.
      */
-    std::shared_ptr<PathEffect> Playback(const MemAllocator& allocator) const;
+    std::shared_ptr<PathEffect> Playback(const CmdList& cmdList) const;
 private:
-    std::pair<int, size_t> intervals_;
+    std::pair<int32_t, size_t> intervals_;
     scalar phase_;
 };
 
 class CreatePathDashEffectOpItem : public PathEffectOpItem {
 public:
-    CreatePathDashEffectOpItem(const CmdListSiteInfo& path, scalar advance, scalar phase, PathDashStyle style);
+    CreatePathDashEffectOpItem(const CmdListHandle& path, scalar advance, scalar phase, PathDashStyle style);
     ~CreatePathDashEffectOpItem() = default;
 
     /*
      * @brief            Restores arguments from contiguous memory and plays back the OpItem to create PathEffect.
-     * @param allocator  A contiguous memory.
+     * @param cmdList  A contiguous memory.
      */
-    std::shared_ptr<PathEffect> Playback(const MemAllocator& allocator) const;
+    std::shared_ptr<PathEffect> Playback(const CmdList& cmdList) const;
 private:
-    CmdListSiteInfo path_;
+    CmdListHandle path_;
     scalar advance_;
     scalar phase_;
     PathDashStyle style_;
@@ -89,7 +89,7 @@ private:
 
 class CreateCornerPathEffectOpItem : public PathEffectOpItem {
 public:
-    CreateCornerPathEffectOpItem(scalar radius);
+    explicit CreateCornerPathEffectOpItem(scalar radius);
     ~CreateCornerPathEffectOpItem() = default;
 
     /*
@@ -102,32 +102,32 @@ private:
 
 class CreateSumPathEffectOpItem : public PathEffectOpItem {
 public:
-    CreateSumPathEffectOpItem(const CmdListSiteInfo& effect1, const CmdListSiteInfo& effect2);
+    CreateSumPathEffectOpItem(const CmdListHandle& effect1, const CmdListHandle& effect2);
     ~CreateSumPathEffectOpItem() = default;
 
     /*
      * @brief            Restores arguments from contiguous memory and plays back the OpItem to create PathEffect.
-     * @param allocator  A contiguous memory.
+     * @param cmdList  A contiguous memory.
      */
-    std::shared_ptr<PathEffect> Playback(const MemAllocator& allocator) const;
+    std::shared_ptr<PathEffect> Playback(const CmdList& cmdList) const;
 private:
-    CmdListSiteInfo effect1_;
-    CmdListSiteInfo effect2_;
+    CmdListHandle effect1_;
+    CmdListHandle effect2_;
 };
 
 class CreateComposePathEffectOpItem : public PathEffectOpItem {
 public:
-    CreateComposePathEffectOpItem(const CmdListSiteInfo& effect1, const CmdListSiteInfo& effect2);
+    CreateComposePathEffectOpItem(const CmdListHandle& effect1, const CmdListHandle& effect2);
     ~CreateComposePathEffectOpItem() = default;
 
     /*
      * @brief            Restores arguments from contiguous memory and plays back the OpItem to create PathEffect.
-     * @param allocator  A contiguous memory.
+     * @param cmdList  A contiguous memory.
      */
-    std::shared_ptr<PathEffect> Playback(const MemAllocator& allocator) const;
+    std::shared_ptr<PathEffect> Playback(const CmdList& cmdList) const;
 private:
-    CmdListSiteInfo effect1_;
-    CmdListSiteInfo effect2_;
+    CmdListHandle effect1_;
+    CmdListHandle effect2_;
 };
 } // namespace Drawing
 } // namespace Rosen
