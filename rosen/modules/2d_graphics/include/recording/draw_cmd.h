@@ -26,38 +26,32 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-
-struct BrushSiteInfo {
-    CmdListSiteInfo colorSpaceCmdListInfo;
-    LargeObjectInfo colorSpaceLargeObjectInfo;
-    CmdListSiteInfo shaderEffectCmdListInfo;
-    LargeObjectInfo shaderEffectLargeObjectInfo;
-    CmdListSiteInfo colorFilterCmdListInfo;
-    CmdListSiteInfo imageFilterCmdListInfo;
-    CmdListSiteInfo maskFilterCmdListInfo;
+struct BrushHandle {
+    CmdListHandle colorSpaceHandle;
+    CmdListHandle shaderEffectHandle;
+    CmdListHandle colorFilterHandle;
+    CmdListHandle imageFilterHandle;
+    CmdListHandle maskFilterHandle;
 };
 
-struct PenSiteInfo {
-    CmdListSiteInfo pathEffectCmdListInfo;
-    CmdListSiteInfo colorSpaceCmdListInfo;
-    LargeObjectInfo colorSpaceLargeObjectInfo;
-    CmdListSiteInfo shaderEffectCmdListInfo;
-    LargeObjectInfo shaderEffectLargeObjectInfo;
-    CmdListSiteInfo colorFilterCmdListInfo;
-    CmdListSiteInfo imageFilterCmdListInfo;
-    CmdListSiteInfo maskFilterCmdListInfo;
+struct PenHandle {
+    CmdListHandle pathEffectHandle;
+    CmdListHandle colorSpaceHandle;
+    CmdListHandle shaderEffectHandle;
+    CmdListHandle colorFilterHandle;
+    CmdListHandle imageFilterHandle;
+    CmdListHandle maskFilterHandle;
 };
 
 class CanvasPlayer {
 public:
-    CanvasPlayer(Canvas& canvas, const MemAllocator& opAllocator, const MemAllocator& largeObjectAllocator);
+    CanvasPlayer(Canvas& canvas, const CmdList& cmdList);
     ~CanvasPlayer() = default;
 
     bool Playback(uint32_t type, const void* opItem);
 
     Canvas& canvas_;
-    const MemAllocator& opAllocator_;
-    const MemAllocator& largeObjectAllocator_;
+    const CmdList& cmdList_;
 
     using PlaybackFunc = void(*)(CanvasPlayer& palyer, const void* opItem);
 private:
@@ -226,14 +220,14 @@ private:
 
 class DrawPathOpItem : public DrawOpItem {
 public:
-    DrawPathOpItem(const CmdListSiteInfo info);
+    DrawPathOpItem(const CmdListHandle& path);
     ~DrawPathOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
-    void Playback(Canvas& canvas, const MemAllocator& memAllocator) const;
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
 
 private:
-    CmdListSiteInfo info_;
+    CmdListHandle path_;
 };
 
 class DrawBackgroundOpItem : public DrawOpItem {
@@ -518,8 +512,64 @@ public:
     static void Playback(CanvasPlayer& player, const void* opItem);
     void Playback(Canvas& canvas) const;
 };
+
+class AttachPenOpItem : public DrawOpItem {
+public:
+    AttachPenOpItem(const Color& color, const scalar width, const scalar miterLimit, const Pen::CapStyle capStyle,
+        const Pen::JoinStyle joinStyle, const BlendMode mode, bool isAntiAlias,
+        const Filter::FilterQuality filterQuality, const PenHandle penHandle);
+    ~AttachPenOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
+private:
+    Color color_;
+    scalar width_;
+    scalar miterLimit_;
+    Pen::CapStyle capStyle_;
+    Pen::JoinStyle joinStyle_;
+    BlendMode mode_;
+    bool isAntiAlias_;
+    Filter::FilterQuality filterQuality_;
+    PenHandle penHandle_;
+};
+
+class AttachBrushOpItem : public DrawOpItem {
+public:
+    AttachBrushOpItem(const Color& color, const BlendMode mode, const bool isAntiAlias,
+        const Filter::FilterQuality filterQuality, const BrushHandle brushHandle);
+    ~AttachBrushOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
+private:
+    Color color_;
+    BlendMode mode_;
+    bool isAntiAlias_;
+    Filter::FilterQuality filterQuality_;
+    BrushHandle brushHandle_;
+};
+
+class DetachPenOpItem : public DrawOpItem {
+public:
+    DetachPenOpItem();
+    ~DetachPenOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+};
+
+class DetachBrushOpItem : public DrawOpItem {
+public:
+    DetachBrushOpItem();
+    ~DetachBrushOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+};
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
-
-#endif // DRAW_CMD_H
+#endif

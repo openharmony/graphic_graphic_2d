@@ -77,8 +77,8 @@ std::unordered_map<uint32_t, CanvasPlayer::PlaybackFunc> CanvasPlayer::opPlaybac
     { DrawOpItem::DETACH_BRUSH_OPITEM,      DetachBrushOpItem::Playback },
 };
 
-CanvasPlayer::CanvasPlayer(Canvas& canvas, const MemAllocator& opAllocator, const MemAllocator& largeObjectAllocator)
-    : canvas_(canvas), opAllocator_(opAllocator), largeObjectAllocator_(largeObjectAllocator) {}
+CanvasPlayer::CanvasPlayer(Canvas& canvas, const CmdList& cmdList)
+    : canvas_(canvas), cmdList_(cmdList) {}
 
 bool CanvasPlayer::Playback(uint32_t type, const void* opItem)
 {
@@ -234,24 +234,25 @@ void DrawCircleOpItem::Playback(Canvas& canvas) const
     canvas.DrawCircle(centerPt_, radius_);
 }
 
-DrawPathOpItem::DrawPathOpItem(const CmdListSiteInfo info) : DrawOpItem(PATH_OPITEM), info_(info) {}
+DrawPathOpItem::DrawPathOpItem(const CmdListHandle& path) : DrawOpItem(PATH_OPITEM), path_(path) {}
 
 void DrawPathOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const DrawPathOpItem*>(opItem);
-        op->Playback(player.canvas_, player.opAllocator_);
+        op->Playback(player.canvas_, player.cmdList_);
     }
 }
 
-void DrawPathOpItem::Playback(Canvas& canvas, const MemAllocator& memAllocator) const
+void DrawPathOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 {
-    Path path;
-    auto pathCmdList = std::make_shared<PathCmdList>(memAllocator.OffsetToAddr(info_.first), info_.second);
-    if (pathCmdList) {
-        pathCmdList->Playback(path);
+    auto path = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, path_);
+    if (path == nullptr) {
+        LOGE("path is nullptr!")
+        return;
     }
-    canvas.DrawPath(path);
+
+    canvas.DrawPath(*path);
 }
 
 DrawBackgroundOpItem::DrawBackgroundOpItem(const Color& color, const BlendMode mode, const bool isAntiAlias,
@@ -263,7 +264,7 @@ void DrawBackgroundOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const DrawBackgroundOpItem*>(opItem);
-        op->Playback(player.canvas_, player.opAllocator_, player.largeObjectAllocator_);
+        op->Playback(player.canvas_, player.cmdList_);
     }
 }
 
@@ -307,7 +308,7 @@ void DrawShadowOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const DrawShadowOpItem*>(opItem);
-        op->Playback(player.canvas_, player.opAllocator_);
+        op->Playback(player.canvas_, player.cmdList_);
     }
 }
 
@@ -329,11 +330,11 @@ void DrawBitmapOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const DrawBitmapOpItem*>(opItem);
-        op->Playback(player.canvas_, player.largeObjectAllocator_);
+        op->Playback(player.canvas_, player.cmdList_);
     }
 }
 
-void DrawBitmapOpItem::Playback(Canvas& canvas, const CmdList& largeObjectAllocator) const
+void DrawBitmapOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 {
     auto bitmap = CmdListHelper::GetBitmapFromCmdList(cmdList, bitmap_);
     if (bitmap == nullptr) {
@@ -351,11 +352,11 @@ void DrawImageOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const DrawImageOpItem*>(opItem);
-        op->Playback(player.canvas_, player.largeObjectAllocator_);
+        op->Playback(player.canvas_, player.cmdList_);
     }
 }
 
-void DrawImageOpItem::Playback(Canvas& canvas, const CmdList& largeObjectAllocator) const
+void DrawImageOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 {
     auto image = CmdListHelper::GetBitmapFromCmdList(cmdList, image_);
     if (image == nullptr) {
@@ -373,11 +374,11 @@ void DrawImageRectOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const DrawImageRectOpItem*>(opItem);
-        op->Playback(player.canvas_, player.largeObjectAllocator_);
+        op->Playback(player.canvas_, player.cmdList_);
     }
 }
 
-void DrawImageRectOpItem::Playback(Canvas& canvas, const CmdList& largeObjectAllocator) const
+void DrawImageRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 {
     auto image = CmdListHelper::GetBitmapFromCmdList(cmdList, image_);
     if (image == nullptr) {
@@ -393,11 +394,11 @@ void DrawPictureOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const DrawPictureOpItem*>(opItem);
-        op->Playback(player.canvas_, player.largeObjectAllocator_);
+        op->Playback(player.canvas_, player.cmdList_);
     }
 }
 
-void DrawPictureOpItem::Playback(Canvas& canvas, const CmdList& largeObjectAllocator) const
+void DrawPictureOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 {
     auto picture = CmdListHelper::GetBitmapFromCmdList(cmdList, picture_);
     if (picture == nullptr) {
@@ -446,7 +447,7 @@ void ClipPathOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const ClipPathOpItem*>(opItem);
-        op->Playback(player.canvas_, player.opAllocator_);
+        op->Playback(player.canvas_, player.cmdList_);
     }
 }
 
@@ -638,7 +639,7 @@ void SaveLayerOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const SaveLayerOpItem*>(opItem);
-        op->Playback(player.canvas_, player.opAllocator_, player.largeObjectAllocator_);
+        op->Playback(player.canvas_, player.cmdList_);
     }
 }
 
@@ -699,6 +700,131 @@ void RestoreOpItem::Playback(CanvasPlayer& player, const void* opItem)
 void RestoreOpItem::Playback(Canvas& canvas) const
 {
     canvas.Restore();
+}
+
+AttachPenOpItem::AttachPenOpItem(const Color& color, const scalar width, const scalar miterLimit,
+    const Pen::CapStyle capStyle, const Pen::JoinStyle joinStyle, const BlendMode mode, bool isAntiAlias,
+    const Filter::FilterQuality filterQuality, const PenHandle penHandle)
+    : DrawOpItem(ATTACH_PEN_OPITEM), color_(color), width_(width), miterLimit_(miterLimit), capStyle_(capStyle),
+    joinStyle_(joinStyle), mode_(mode), filterQuality_(filterQuality), penHandle_(penHandle) {}
+
+void AttachPenOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const AttachPenOpItem*>(opItem);
+        op->Playback(player.canvas_, player.cmdList_);
+    }
+}
+
+void AttachPenOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
+{
+    auto pathEffect = CmdListHelper::GetFromCmdList<PathEffectCmdList, PathEffect>(
+        cmdList, penHandle_.pathEffectHandle);
+    auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+        cmdList, penHandle_.colorSpaceHandle);
+    auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+        cmdList, penHandle_.shaderEffectHandle);
+    auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+        cmdList, penHandle_.colorFilterHandle);
+    auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+        cmdList, penHandle_.imageFilterHanle);
+    auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+        cmdList, penHandle_.maskFilterHandle);
+
+    Filter filter;
+    filter.SetColorFilter(colorFilter);
+    filter.SetImageFilter(imageFilter);
+    filter.SetMaskFilter(maskFilter);
+    filter.SetFilterQuality(filterQuality_);
+
+    const Color4f color4f = { color_.GetRedF(), color_.GetGreenF(), color_.GetBlueF(), color_.GetAlphaF() };
+    Pen pen;
+    pen.SetPathEffect(pathEffect);
+    pen.SetColor(color4f, colorSpace);
+    pen.SetShaderEffect(shaderEffect);
+    pen.SetWidth(width_);
+    pen.SetMiterLimit(miterLimit_);
+    pen.SetCapStyle(capStyle_);
+    pen.SetJoinStyle(joinStyle_);
+    pen.SetColor(color_);
+    pen.SetBlendMode(mode_);
+    pen.SetAntiAlias(isAntiAlias_);
+    pen.SetFilter(filter);
+
+    canvas.AttachPen(pen);
+}
+
+AttachBrushOpItem::AttachBrushOpItem(const Color& color, const BlendMode mode, const bool isAntiAlias,
+    const Filter::FilterQuality filterQuality, const BrushHandle brushHandle)
+    : DrawOpItem(ATTACH_BRUSH_OPITEM), color_(color), mode_(mode), isAntiAlias_(isAntiAlias),
+    filterQuality_(filterQuality), brushHandle_(brushHandle) {}
+
+void AttachBrushOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const AttachBrushOpItem*>(opItem);
+        op->Playback(player.canvas_, player.cmdList_);
+    }
+}
+
+void AttachBrushOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
+{
+    auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+        cmdList, brushHandle_.colorSpaceHandle);
+    auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+        cmdList, brushHandle_.shaderEffectHandle);
+    auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+        cmdList, brushHandle_.colorFilterHandle);
+    auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+        cmdList, brushHandle_.imageFilterHanle);
+    auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+        cmdList, brushHandle_.maskFilterHandle);
+
+    Filter filter;
+    filter.SetColorFilter(colorFilter);
+    filter.SetImageFilter(imageFilter);
+    filter.SetMaskFilter(maskFilter);
+    filter.SetFilterQuality(filterQuality_);
+
+    const Color4f color4f = { color_.GetRedF(), color_.GetGreenF(), color_.GetBlueF(), color_.GetAlphaF() };
+    Brush brush;
+    brush.SetColor(color4f, colorSpace);
+    brush.SetShaderEffect(shaderEffect);
+    brush.SetBlendMode(mode_);
+    brush.SetAntiAlias(isAntiAlias_);
+    brush.SetFilter(filter);
+
+    canvas.AttachBrush(brush);
+}
+
+DetachPenOpItem::DetachPenOpItem() : DrawOpItem(DETACH_PEN_OPITEM) {}
+
+void DetachPenOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const DetachPenOpItem*>(opItem);
+        op->Playback(player.canvas_);
+    }
+}
+
+void DetachPenOpItem::Playback(Canvas& canvas) const
+{
+    canvas.DetachPen();
+}
+
+DetachBrushOpItem::DetachBrushOpItem() : DrawOpItem(DETACH_BRUSH_OPITEM) {}
+
+void DetachBrushOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const DetachBrushOpItem*>(opItem);
+        op->Playback(player.canvas_);
+    }
+}
+
+void DetachBrushOpItem::Playback(Canvas& canvas) const
+{
+    canvas.DetachBrush();
 }
 } // namespace Drawing
 } // namespace Rosen
