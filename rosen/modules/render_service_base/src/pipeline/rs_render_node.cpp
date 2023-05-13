@@ -220,6 +220,7 @@ void RSRenderNode::RenderTraceDebug() const
 
 void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
+    renderNodeSaveCount_ = canvas.Save();
     auto boundsGeo = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
     if (boundsGeo && !boundsGeo->IsEmpty()) {
         canvas.concat(boundsGeo->GetMatrix());
@@ -239,6 +240,7 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
     GetMutableRenderProperties().ResetBounds();
+    canvas.RestoreStatus(renderNodeSaveCount_);
 }
 
 void RSRenderNode::CheckCacheType()
@@ -377,35 +379,6 @@ bool RSRenderNode::ShouldPaint() const
     // alpha is not zero
     return (renderProperties_.GetVisible() || HasDisappearingTransition(false)) &&
            (renderProperties_.GetAlpha() > 0.0f);
-}
-
-void RSRenderNode::SetSharedTransitionParam(const std::optional<SharedTransitionParam>&& sharedTransitionParam)
-{
-    if (!sharedTransitionParam_.has_value() && !sharedTransitionParam.has_value()) {
-        // both are empty, do nothing
-        return;
-    }
-    sharedTransitionParam_ = sharedTransitionParam;
-    SetDirty();
-}
-
-const std::optional<RSRenderNode::SharedTransitionParam>& RSRenderNode::GetSharedTransitionParam() const
-{
-    return sharedTransitionParam_;
-}
-
-void RSRenderNode::SetGlobalAlpha(float alpha)
-{
-    if (globalAlpha_ == alpha) {
-        return;
-    }
-    globalAlpha_ = alpha;
-    OnAlphaChanged();
-}
-
-float RSRenderNode::GetGlobalAlpha() const
-{
-    return globalAlpha_;
 }
 } // namespace Rosen
 } // namespace OHOS

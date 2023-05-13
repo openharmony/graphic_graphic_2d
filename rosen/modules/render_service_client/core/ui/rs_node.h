@@ -67,9 +67,6 @@ public:
         const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
         const PropertyCallback& callback);
 
-    static void RegisterTransitionPair(NodeId inNodeId, NodeId outNodeId);
-    static void UnregisterTransitionPair(NodeId inNodeId, NodeId outNodeId);
-
     static void OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const std::function<void()>& finishCallback = nullptr);
     static std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation();

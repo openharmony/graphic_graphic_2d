@@ -102,8 +102,11 @@ std::string RSSurfaceRenderNode::DirtyRegionDump() const
     return dump;
 }
 
-void RSSurfaceRenderNode::ExtractSurfaceParams(RSPaintFilterCanvas& canvas)
+void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
+    // Save the current state of the canvas before modifying it.
+    renderNodeSaveCount_ = canvas.Save();
+
     // Apply alpha to canvas
     const RSProperties& properties = GetRenderProperties();
     canvas.MultiplyAlpha(properties.GetAlpha());
@@ -132,6 +135,10 @@ void RSSurfaceRenderNode::ExtractSurfaceParams(RSPaintFilterCanvas& canvas)
     SetGlobalAlpha(canvas.GetAlpha());
 }
 
+void RSSurfaceRenderNode::PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas)
+{
+    canvas.RestoreStatus(renderNodeSaveCount_);
+}
 
 void RSSurfaceRenderNode::CollectSurface(
     const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec, bool isUniRender)

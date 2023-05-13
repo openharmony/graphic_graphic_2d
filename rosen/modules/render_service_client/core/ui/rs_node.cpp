@@ -1159,25 +1159,5 @@ void RSNode::SetDrawRegion(std::shared_ptr<RectF> rect)
         }
     }
 }
-
-void RSNode::RegisterTransitionPair(NodeId inNodeId, NodeId outNodeId)
-{
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSRegisterGeometryTransitionNodePair>(inNodeId, outNodeId);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
-}
-
-void RSNode::UnregisterTransitionPair(NodeId inNodeId, NodeId outNodeId)
-{
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSUnregisterGeometryTransitionNodePair>(inNodeId, outNodeId);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
-}
 } // namespace Rosen
 } // namespace OHOS

@@ -54,9 +54,6 @@ enum RSNodeCommandType : uint16_t {
     MARK_DRIVEN_RENDER_FRAME_PAINT_STATE,
     MARK_CONTENT_CHANGED,
     SET_DRAW_REGION,
-
-    REGISTER_GEOMETRY_TRANSITION,
-    UNREGISTER_GEOMETRY_TRANSITION,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -85,9 +82,6 @@ public:
     static void MarkDrivenRenderFramePaintState(RSContext& context, NodeId nodeId, bool flag);
     static void MarkContentChanged(RSContext& context, NodeId nodeId, bool isChanged);
     static void SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect);
-
-    static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
-    static void UnregisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
 };
 
 ADD_COMMAND(RSAddModifier,
@@ -169,11 +163,6 @@ ADD_COMMAND(RSMarkContentChanged,
 ADD_COMMAND(RSSetDrawRegion,
     ARG(RS_NODE, SET_DRAW_REGION, RSNodeCommandHelper::SetDrawRegion,
         NodeId, std::shared_ptr<RectF>))
-
-ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
-    ARG(RS_NODE, REGISTER_GEOMETRY_TRANSITION, RSNodeCommandHelper::RegisterGeometryTransitionPair, NodeId, NodeId))
-ADD_COMMAND(RSUnregisterGeometryTransitionNodePair,
-    ARG(RS_NODE, UNREGISTER_GEOMETRY_TRANSITION, RSNodeCommandHelper::UnregisterGeometryTransitionPair, NodeId, NodeId))
 } // namespace Rosen
 } // namespace OHOS
 

@@ -68,11 +68,6 @@ void RSPaintFilterCanvas::MultiplyAlpha(float alpha)
     alphaStack_.top() *= std::clamp(alpha, 0.f, 1.f);
 }
 
-void RSPaintFilterCanvas::SetAlpha(float alpha)
-{
-    alphaStack_.top() = std::clamp(alpha, 0.f, 1.f);
-}
-
 int RSPaintFilterCanvas::SaveAlpha()
 {
     // make a copy of top of stack

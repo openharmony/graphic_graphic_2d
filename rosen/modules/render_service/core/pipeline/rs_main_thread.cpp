@@ -1203,20 +1203,19 @@ void RSMainThread::Animate(uint64_t timestamp)
             return true;
         }
         activeProcessPids_.emplace(ExtractPid(node->GetId()));
-        auto [hasRunningAnimation, nodeNeedRequestNextVsync] = node->Animate(timestamp);
-        if (!hasRunningAnimation) {
+        auto result = node->Animate(timestamp);
+        if (!result.first) {
             RS_LOGD("RSMainThread::Animate removing finished animating node %" PRIu64, node->GetId());
         }
-        // request vsync if: 1. node has running animation, or 2. transition animation just ended
-        needRequestNextVsync = needRequestNextVsync || nodeNeedRequestNextVsync || (node.use_count() == 1);
-        if (node->template IsInstanceOf<RSSurfaceRenderNode>() && hasRunningAnimation) {
+        needRequestNextVsync = needRequestNextVsync || result.second;
+        if (node->template IsInstanceOf<RSSurfaceRenderNode>() && result.first) {
             if (isUniRender_) {
                 auto surfacenode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
                 surfacenode->SetAnimateState();
             }
             curWinAnim = true;
         }
-        return !hasRunningAnimation;
+        return !result.first;
     });
     ResSchedDataStartReport(needRequestNextVsync);
     if (!doWindowAnimate_ && curWinAnim && RSInnovation::UpdateQosVsyncEnabled()) {
