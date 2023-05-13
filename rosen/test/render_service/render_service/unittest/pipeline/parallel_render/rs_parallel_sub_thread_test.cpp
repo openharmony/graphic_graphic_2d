@@ -181,6 +181,7 @@ HWTEST_F(RSParallelSubThreadTest, CalcCostTest3, TestSize.Level1)
     curThread->CalcCost();
     ASSERT_FALSE(curThread->threadTask_ == nullptr);
 }
+
 /**
  * @tc.name: CalcCostTest
  * @tc.desc: Test RSParallelSubThreadTest.CalcCostTest
@@ -205,4 +206,5 @@ HWTEST_F(RSParallelSubThreadTest, CalcCostTest4, TestSize.Level1)
     curThread->CalcCost();
     ASSERT_FALSE(curThread->threadTask_ == nullptr);
 }
+
 } // namespace OHOS::Rosen
