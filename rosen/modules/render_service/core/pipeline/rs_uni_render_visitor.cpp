@@ -333,6 +333,14 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         drivenInfo_->prepareInfo.screenRect = RectI(0, 0, screenInfo_.width, screenInfo_.height),
         // prepare driven render tree
         RSDrivenRenderManager::GetInstance().DoPrepareRenderTask(drivenInfo_->prepareInfo);
+        // merge dirty rect for driven render
+        auto uniDrivenRenderMode = RSDrivenRenderManager::GetInstance().GetUniDrivenRenderMode();
+        if (uniDrivenRenderMode == DrivenUniRenderMode::RENDER_WITH_CLIP_HOLE &&
+            drivenInfo_->surfaceDirtyManager != nullptr) {
+            auto drivenRenderDirtyRect = RSDrivenRenderManager::GetInstance().GetUniRenderSurfaceClipHoleRect();
+            RS_TRACE_NAME("merge driven render dirty rect: " + drivenRenderDirtyRect.ToString());
+            drivenInfo_->surfaceDirtyManager->MergeDirtyRect(drivenRenderDirtyRect);
+        }
     }
 #endif
     if (!unpairedTransitionNodes_.empty()) {
@@ -794,6 +802,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
             drivenInfo_->prepareInfo.contentNode = node.shared_from_this();
             drivenInfo_->drivenUniTreePrepareMode = DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE;
             drivenInfo_->prepareInfo.dirtyInfo.contentDirty = false;
+            drivenInfo_->surfaceDirtyManager = curSurfaceDirtyManager_;
             isContentCanvasNode = true;
             isBeforeContentNodeDirty = drivenInfo_->prepareInfo.dirtyInfo.nonContentDirty;
             if (node.IsMarkDrivenRender()) {
@@ -1720,16 +1729,6 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
             displayDirtyManager->MergeDirtyRect(surfaceChangedRect);
         }
     }
-
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
-    // merge dirty rect for driven render
-    if (drivenInfo_ && !drivenInfo_->prepareInfo.hasInvalidScene &&
-        drivenInfo_->currDrivenRenderMode != DrivenUniRenderMode::RENDER_WITH_NORMAL) {
-        auto drivenRenderDirtyRect = RSDrivenRenderManager::GetInstance().GetUniRenderSurfaceClipHoleRect();
-        RS_TRACE_NAME("merge driven render dirty rect: " + drivenRenderDirtyRect.ToString());
-        displayDirtyManager->MergeDirtyRect(drivenRenderDirtyRect);
-    }
-#endif
 }
 
 void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(std::shared_ptr<RSDisplayRenderNode>& node)

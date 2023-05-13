@@ -68,7 +68,8 @@ struct DrivenInfo {
     // used in RSUniRenderVisitor
     bool hasDrivenNodeMarkRender = false;
     bool isPrepareLeashWinSubTree = false;
-    RSBaseRenderNode::SharedPtr currentRootNode;
+    std::shared_ptr<RSDirtyRegionManager> surfaceDirtyManager = nullptr;
+    RSBaseRenderNode::SharedPtr currentRootNode = nullptr;
     DrivenUniTreePrepareMode drivenUniTreePrepareMode = DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_BEFORE;
     DrivenUniRenderMode currDrivenRenderMode = DrivenUniRenderMode::RENDER_WITH_NORMAL;
 };
