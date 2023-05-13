@@ -670,22 +670,21 @@ void RSPropertiesPainter::DrawFrameForDriven(const RSProperties& properties, RSP
 #endif
 }
 
-void RSPropertiesPainter::DrawCachedSpherizeSurface(const RSRenderNode& node, RSPaintFilterCanvas& canvas,
-    const sk_sp<SkSurface>& cacheSurface)
+void RSPropertiesPainter::DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
+    const sk_sp<SkSurface>& spherizeSurface)
 {
-    if (cacheSurface == nullptr) {
+    if (spherizeSurface == nullptr) {
         return;
     }
     SkAutoCanvasRestore acr(&canvas, true);
-    const RSProperties& properties = node.GetRenderProperties();
     float canvasWidth = properties.GetBoundsRect().GetWidth();
     float canvasHeight = properties.GetBoundsRect().GetHeight();
-    if (cacheSurface->width() == 0 || cacheSurface->height() == 0) {
+    if (spherizeSurface->width() == 0 || spherizeSurface->height() == 0) {
         return;
     }
-    canvas.scale(canvasWidth / cacheSurface->width(), canvasHeight / cacheSurface->height());
+    canvas.scale(canvasWidth / spherizeSurface->width(), canvasHeight / spherizeSurface->height());
 
-    auto imageSnapshot = cacheSurface->makeImageSnapshot();
+    auto imageSnapshot = spherizeSurface->makeImageSnapshot();
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawCachedSpherizeSurface image  is null");
         return;

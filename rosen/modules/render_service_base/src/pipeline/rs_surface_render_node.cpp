@@ -227,8 +227,18 @@ void RSSurfaceRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->ProcessSurfaceRenderNode(*this);
 }
 
+void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
+{
+    needDrawAnimateProperty_ = true;
+    ProcessAnimatePropertyBeforeChildren(canvas);
+    needDrawAnimateProperty_ = false;
+}
+
 void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas)
 {
+    if (GetCacheType() != CacheType::SPHERIZE && !needDrawAnimateProperty_) {
+        return;
+    }
     const auto& property = GetRenderProperties();
     const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
@@ -249,6 +259,13 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanv
         RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr, canvas.GetSurface());
     }
     SetTotalMatrix(canvas.getTotalMatrix());
+}
+
+void RSSurfaceRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
+{
+    needDrawAnimateProperty_ = true;
+    ProcessAnimatePropertyAfterChildren(canvas);
+    needDrawAnimateProperty_ = false;
 }
 
 void RSSurfaceRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas)

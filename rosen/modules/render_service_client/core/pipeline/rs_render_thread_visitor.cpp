@@ -510,16 +510,9 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
 #endif
     node.CheckCacheType();
-    auto cacheType = node.GetCacheType();
-    if (cacheType == RSRenderNode::SPHERIZE) {
-        node.ProcessTransitionBeforeChildren(*canvas_);
-        DrawChildRenderNode(node);
-        node.ProcessTransitionAfterChildren(*canvas_);
-    } else {
-        node.ProcessRenderBeforeChildren(*canvas_);
-        DrawChildRenderNode(node);
-        node.ProcessRenderAfterChildren(*canvas_);
-    }
+    node.ProcessTransitionBeforeChildren(*canvas_);
+    DrawChildRenderNode(node);
+    node.ProcessTransitionAfterChildren(*canvas_);
 }
 
 void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
@@ -671,30 +664,25 @@ void RSRenderThreadVisitor::DrawChildRenderNode(RSRenderNode& node)
         node.ClearCacheSurface();
         node.SetCacheTypeChanged(false);
     }
-    if (node.GetCacheType() != RSRenderNode::SPHERIZE) {
+    if (node.GetCacheType() != CacheType::SPHERIZE) {
+        node.ProcessAnimatePropertyBeforeChildren(*canvas_);
+        node.ProcessRenderContents(*canvas_);
         ProcessBaseRenderNode(node);
+        node.ProcessAnimatePropertyAfterChildren(*canvas_);
         return;
     }
-    if (node.GetCacheSurface()) {
+    if (node.GetCompletedCacheSurface()) {
         RS_TRACE_NAME("RSRenderThreadVisitor::DrawChildRenderNode Draw nodeId = " +
             std::to_string(node.GetId()));
-        RSPropertiesPainter::DrawCachedSpherizeSurface(node, *canvas_, node.GetCacheSurface());
+        RSPropertiesPainter::DrawSpherize(
+            node.GetRenderProperties(), *canvas_, node.GetCompletedCacheSurface());
         return;
     }
     RS_TRACE_NAME("RSRenderThreadVisitor::DrawChildRenderNode Init Draw nodeId = " +
         std::to_string(node.GetId()));
     int width = std::ceil(node.GetRenderProperties().GetBoundsRect().GetWidth());
     int height = std::ceil(node.GetRenderProperties().GetBoundsRect().GetHeight());
-#if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
-    SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
-#ifdef NEW_SKIA
-    node.SetCacheSurface(SkSurface::MakeRenderTarget(canvas_->recordingContext(), SkBudgeted::kYes, info));
-#else
-    node.SetCacheSurface(SkSurface::MakeRenderTarget(canvas_->getGrContext(), SkBudgeted::kYes, info));
-#endif
-#else
-    node.SetCacheSurface(SkSurface::MakeRasterN32Premul(width, height));
-#endif
+    node.InitCacheSurface(*canvas_, width, height);
     if (!node.GetCacheSurface()) {
         RS_LOGE("RSRenderThreadVisitor::DrawChildRenderNode %" PRIu64 " Create CacheSurface failed",
             node.GetId());
@@ -712,10 +700,13 @@ void RSRenderThreadVisitor::DrawChildRenderNode(RSRenderNode& node)
     node.ProcessRenderContents(*canvas_);
     ProcessBaseRenderNode(node);
     node.ProcessAnimatePropertyAfterChildren(*canvas_);
+
     swap(cacheCanvas, canvas_);
 
     isOpDropped_ = isOpDropped;
-    RSPropertiesPainter::DrawCachedSpherizeSurface(node, *canvas_, node.GetCacheSurface());
+    node.UpdateCompletedCacheSurface();
+    RSPropertiesPainter::DrawSpherize(
+        node.GetRenderProperties(), *canvas_, node.GetCompletedCacheSurface());
 }
 } // namespace Rosen
 } // namespace OHOS

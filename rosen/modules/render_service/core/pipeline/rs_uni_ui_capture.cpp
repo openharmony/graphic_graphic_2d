@@ -186,6 +186,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
         canvas_->setMatrix(relativeMatrix);
     }
     node.ProcessRenderBeforeChildren(*canvas_);
+    node.ProcessRenderContents(*canvas_);
     ProcessBaseRenderNode(node);
     node.ProcessRenderAfterChildren(*canvas_);
 }
