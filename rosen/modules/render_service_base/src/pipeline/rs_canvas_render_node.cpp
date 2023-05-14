@@ -124,13 +124,13 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
     ApplyDrawCmdModifier(context, RSModifierType::FOREGROUND_STYLE);
 
     auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetFilter());
-    std::shared_ptr<RSSkiaFilter> lightUpFilter = nullptr;
     if (GetRenderProperties().IsLightUpEffectValid()) {
-        lightUpFilter = std::make_shared<RSLightUpEffectFilter>(GetRenderProperties().GetLightUpEffect());
+        std::shared_ptr<RSSkiaFilter> lightUpFilter =
+            std::make_shared<RSLightUpEffectFilter>(GetRenderProperties().GetLightUpEffect());
+        filter = filter ? filter->Compose(lightUpFilter) : lightUpFilter;
     }
-    auto composedFilter = RSSkiaFilter::Compose(filter, lightUpFilter);
-    if (composedFilter != nullptr) {
-        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, composedFilter, nullptr, canvas.GetSurface());
+    if (filter != nullptr) {
+        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
     }
     RSPropertiesPainter::DrawBorder(GetRenderProperties(), canvas);
     ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);

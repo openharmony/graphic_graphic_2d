@@ -58,6 +58,7 @@ public:
     ~RSMaterialFilter() override;
     void PreProcess(sk_sp<SkImage> image) override;
     void PostProcess(RSPaintFilterCanvas& canvas) override;
+    std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& inner) override;
     std::string GetDescription() override;
 
     std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) override;

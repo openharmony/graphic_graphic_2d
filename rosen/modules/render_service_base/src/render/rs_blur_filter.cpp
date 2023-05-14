@@ -56,6 +56,13 @@ std::string RSBlurFilter::GetDescription()
     return "RSBlurFilter blur radius is " + std::to_string(blurRadiusX_) + " sigma";
 }
 
+std::shared_ptr<RSSkiaFilter> RSBlurFilter::Compose(const std::shared_ptr<RSSkiaFilter>& inner)
+{
+    std::shared_ptr<RSBlurFilter> blur = std::make_shared<RSBlurFilter>(blurRadiusX_, blurRadiusY_);
+    blur->imageFilter_ = SkImageFilters::Compose(imageFilter_, inner->GetImageFilter());
+    return blur;
+}
+
 std::shared_ptr<RSFilter> RSBlurFilter::Add(const std::shared_ptr<RSFilter>& rhs)
 {
     if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::BLUR)) {
