@@ -241,6 +241,21 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag, co
     return false;
 }
 
+void RSProperties::SetSandBox(Vector2f parentPosition)
+{
+    if (!sandboxPosition_) {
+        sandboxPosition_ = std::make_unique<Vector2f>();
+    }
+    *sandboxPosition_ = parentPosition;
+    geoDirty_ = true;
+    SetDirty();
+}
+
+Vector2f RSProperties::GetSandBox() const
+{
+    return sandboxPosition_ ? *sandboxPosition_ : Vector2f(-INFINITY, -INFINITY);
+}
+
 void RSProperties::SetPositionZ(float positionZ)
 {
     boundsGeo_->SetZ(positionZ);
@@ -961,6 +976,8 @@ void RSProperties::Reset()
     lightUpEffectDegree_ = 1.0f;
     pixelStretch_ = nullptr;
     pixelStretchPercent_ = nullptr;
+
+    sandboxPosition_ = nullptr;
 }
 
 void RSProperties::SetDirty()

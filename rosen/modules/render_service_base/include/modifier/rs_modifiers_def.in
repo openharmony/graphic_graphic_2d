@@ -24,6 +24,8 @@ DECLARE_ANIMATABLE_MODIFIER(BoundsPosition, Vector2f, BOUNDS, Replace, Geometry)
 
 DECLARE_ANIMATABLE_MODIFIER(Frame, Vector4f, FRAME, Replace, Geometry)
 
+DECLARE_ANIMATABLE_MODIFIER(SandBox, Vector2f, SANDBOX, Replace, Geometry)
+
 DECLARE_ANIMATABLE_MODIFIER(PositionZ, float, POSITION_Z, Add, Geometry)
 
 DECLARE_ANIMATABLE_MODIFIER(Pivot, Vector2f, PIVOT, Replace, Geometry)

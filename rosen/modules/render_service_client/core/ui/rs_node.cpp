@@ -450,6 +450,19 @@ void RSNode::SetFramePositionY(float positionY)
     property->Set(frame);
 }
 
+void RSNode::SetSandBox(std::optional<Vector2f> parentPosition)
+{
+    if (!parentPosition.has_value()) {
+        auto iter = propertyModifiers_.find(RSModifierType::SANDBOX);
+        if (iter != propertyModifiers_.end()) {
+            RemoveModifier(iter->second);
+            propertyModifiers_.erase(iter);
+        }
+        return;
+    }
+    SetProperty<RSSandBoxModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::SANDBOX, parentPosition.value());
+}
+
 void RSNode::SetPositionZ(float positionZ)
 {
     SetProperty<RSPositionZModifier, RSAnimatableProperty<float>>(RSModifierType::POSITION_Z, positionZ);

@@ -83,6 +83,8 @@ enum class RSModifierType : int16_t {
     PIXEL_STRETCH,
     PIXEL_STRETCH_PERCENT,
 
+    SANDBOX,
+
     CUSTOM,
     EXTENDED,
     TRANSITION,

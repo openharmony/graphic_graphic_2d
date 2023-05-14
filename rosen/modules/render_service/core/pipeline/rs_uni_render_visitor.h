@@ -297,6 +297,8 @@ private:
 
     bool isCalcCostEnable_ = false;
 
+    SkMatrix rootMatrix_;
+
     uint32_t appWindowNum_ = 0;
 
     bool isParallel_ = false;

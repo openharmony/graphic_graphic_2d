@@ -65,6 +65,15 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSSandBoxModifier : public RSGeometryModifier {
+public:
+    explicit RSSandBoxModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSSandBoxModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 class RSC_EXPORT RSPivotModifier : public RSGeometryModifier {
 public:
     explicit RSPivotModifier(const std::shared_ptr<RSPropertyBase>& property);

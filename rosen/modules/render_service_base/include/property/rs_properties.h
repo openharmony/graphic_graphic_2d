@@ -72,6 +72,9 @@ public:
     float GetFrameOffsetX() const;
     float GetFrameOffsetY() const;
 
+    void SetSandBox(Vector2f parentPosition);
+    Vector2f GetSandBox() const;
+
     void SetPositionZ(float positionZ);
     float GetPositionZ() const;
 
@@ -278,6 +281,8 @@ private:
     float lightUpEffectDegree_ = 1.0f;
 
     std::weak_ptr<RSRenderNode> backref_;
+
+    std::unique_ptr<Vector2f> sandboxPosition_ = nullptr;
 
     std::unique_ptr<Vector4f> pixelStretch_ = nullptr;
 

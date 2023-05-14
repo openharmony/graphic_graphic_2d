@@ -109,6 +109,8 @@ public:
     // The property is valid only for CanvasNode and SurfaceNode in uniRender.
     virtual void SetFreeze(bool isFreeze);
 
+    void SetSandBox(std::optional<Vector2f> parentPosition);
+
     void SetPositionZ(float positionZ);
 
     void SetPivot(const Vector2f& pivot);
