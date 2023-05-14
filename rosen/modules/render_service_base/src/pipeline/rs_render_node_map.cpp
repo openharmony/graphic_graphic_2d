@@ -111,10 +111,6 @@ void RSRenderNodeMap::AddDrivenRenderNode(const std::shared_ptr<RSBaseRenderNode
 
 void RSRenderNodeMap::RemoveDrivenRenderNode(NodeId id)
 {
-    // Node 0 is fallback node, can not be removed
-    if (id == 0) {
-        return;
-    }
     drivenRenderNodeMap_.erase(id);
 }
 
@@ -181,10 +177,6 @@ void RSRenderNodeMap::TraverseDrivenRenderNodes(std::function<void (const std::s
 template<>
 const std::shared_ptr<RSBaseRenderNode> RSRenderNodeMap::GetRenderNode(NodeId id) const
 {
-    // Node 0 is fallback node, cannot use it as normal node
-    if (id == 0) {
-        return nullptr;
-    }
     auto itr = renderNodeMap_.find(id);
     if (itr == renderNodeMap_.end()) {
         return nullptr;
