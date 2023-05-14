@@ -17,34 +17,22 @@
 
 namespace OHOS {
 namespace Rosen {
-RSSkiaFilter::RSSkiaFilter(sk_sp<SkImageFilter> imageFilter)
-    : RSFilter(), imageFilter_(imageFilter), otherFilter_(nullptr)
-{}
+RSSkiaFilter::RSSkiaFilter(sk_sp<SkImageFilter> imageFilter) : RSFilter(), imageFilter_(imageFilter) {}
 
 RSSkiaFilter::~RSSkiaFilter() {}
 
-SkPaint RSSkiaFilter::GetPaint()
+SkPaint RSSkiaFilter::GetPaint() const
 {
     SkPaint paint;
     paint.setAntiAlias(true);
     paint.setBlendMode(SkBlendMode::kSrcOver);
-    sk_sp<SkImageFilter> composedFilter = SkImageFilters::Compose(imageFilter_, otherFilter_);
-    paint.setImageFilter(composedFilter);
-    otherFilter_ = nullptr;
+    paint.setImageFilter(imageFilter_);
     return paint;
 }
 
-sk_sp<SkImageFilter> RSSkiaFilter::GetImageFilter() const
+sk_sp<SkImageFilter> RSSkiaFilter::GetImageFilter() const             
 {
     return imageFilter_;
-}
-
-void RSSkiaFilter::Compose(const std::shared_ptr<RSSkiaFilter>& inner)
-{
-    if (inner == nullptr) {
-        return;
-    }
-    otherFilter_ = inner->GetImageFilter();
 }
 } // namespace Rosen
 } // namespace OHOS

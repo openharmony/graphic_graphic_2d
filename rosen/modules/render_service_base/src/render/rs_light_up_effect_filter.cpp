@@ -49,6 +49,13 @@ std::string RSLightUpEffectFilter::GetDescription()
     return "RSLightUpEffectFilter light up degree is " + std::to_string(lightUpDegree_);
 }
 
+std::shared_ptr<RSSkiaFilter> RSLightUpEffectFilter::Compose(const std::shared_ptr<RSSkiaFilter>& inner)
+{
+    std::shared_ptr<RSLightUpEffectFilter> lightUp = std::make_shared<RSLightUpEffectFilter>(lightUpDegree_);
+    lightUp->imageFilter_ = SkImageFilters::Compose(imageFilter_, inner->GetImageFilter());
+    return lightUp;
+}
+
 std::shared_ptr<RSFilter> RSLightUpEffectFilter::Add(const std::shared_ptr<RSFilter>& rhs)
 {
     if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::LIGHTUPEFFECT)) {

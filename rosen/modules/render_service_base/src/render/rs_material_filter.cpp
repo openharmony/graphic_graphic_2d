@@ -81,6 +81,14 @@ std::string RSMaterialFilter::GetDescription()
     return "RSMaterialFilter blur radius is " + std::to_string(radius_) + " sigma";
 }
 
+std::shared_ptr<RSSkiaFilter> RSMaterialFilter::Compose(const std::shared_ptr<RSSkiaFilter>& inner)
+{
+    MaterialParam materialParam = {radius_, saturation_, brightness_, maskColor_};
+    std::shared_ptr<RSMaterialFilter> material = std::make_shared<RSMaterialFilter>(materialParam, colorMode_);
+    material->imageFilter_ = SkImageFilters::Compose(imageFilter_, inner->GetImageFilter());
+    return material;
+}
+
 sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialFilter(float radius, float sat, float brightness)
 {
 #if defined(NEW_SKIA)
