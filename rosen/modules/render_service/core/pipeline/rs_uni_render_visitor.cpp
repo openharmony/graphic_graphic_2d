@@ -2506,7 +2506,7 @@ bool RSUniRenderVisitor::PrepareSharedTransitionNode(RSBaseRenderNode& node)
     RenderParam value { std::move(renderChild), curAlpha_, std::nullopt };
     unpairedTransitionNodes_.emplace(key, std::move(value));
 
-    // skip prepare for transition node and its children
+    // skip prepare for shared transition node and its children
     return false;
 }
 
@@ -2547,7 +2547,7 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
 void RSUniRenderVisitor::FindPairedSharedTransitionNodes(std::unordered_map<NodeId, RenderParam>& outList,
     void (RSUniRenderVisitor::*func)(const RenderParam&, const RenderParam&))
 {
-    if (unpairedTransitionNodes_.empty()) {
+    if (unpairedTransitionNodes_.empty() || func == nullptr) {
         return;
     }
 
@@ -2577,7 +2577,7 @@ void RSUniRenderVisitor::PreparePairedSharedTransitionNodes(const RenderParam& f
         node->Prepare(shared_from_this());
     }
     {
-        // restore curAlpha_ and prepare first node
+        // restore curAlpha_ and prepare second node
         auto& [node, alpha, matrix] = second;
         curAlpha_ = alpha;
         node->Prepare(shared_from_this());
