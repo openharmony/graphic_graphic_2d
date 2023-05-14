@@ -30,7 +30,7 @@ SkPaint RSSkiaFilter::GetPaint() const
     return paint;
 }
 
-sk_sp<SkImageFilter> RSSkiaFilter::GetImageFilter() const             
+sk_sp<SkImageFilter> RSSkiaFilter::GetImageFilter() const
 {
     return imageFilter_;
 }
