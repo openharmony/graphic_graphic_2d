@@ -27,6 +27,11 @@ public:
     ShaderEffectCmdList() = default;
     ~ShaderEffectCmdList() override = default;
 
+    uint32_t GetType() const override
+    {
+        return Type::SHADER_EFFECT_CMD_LIST;
+    }
+
     /*
      * @brief       Creates a ShaderEffectCmdList with contiguous buffers.
      * @param data  A contiguous buffers.

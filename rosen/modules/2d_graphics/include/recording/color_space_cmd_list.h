@@ -27,6 +27,11 @@ public:
     ColorSpaceCmdList() = default;
     ~ColorSpaceCmdList() override = default;
 
+    uint32_t GetType() const override
+    {
+        return Type::COLOR_SPACE_CMD_LIST;
+    }
+
     /*
      * @brief       Creates a ColorSpaceCmdList with contiguous buffers.
      * @param data  A contiguous buffers.

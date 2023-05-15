@@ -27,6 +27,11 @@ public:
     ColorFilterCmdList() = default;
     ~ColorFilterCmdList() override = default;
 
+    uint32_t GetType() const override
+    {
+        return Type::COLOR_FILTER_CMD_LIST;
+    }
+
     /*
      * @brief       Creates a ColorFilterCmdList with contiguous buffers.
      * @param data  A contiguous buffers.

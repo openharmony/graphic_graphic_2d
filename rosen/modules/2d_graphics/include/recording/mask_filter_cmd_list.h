@@ -27,6 +27,11 @@ public:
     MaskFilterCmdList() = default;
     ~MaskFilterCmdList() override = default;
 
+    uint32_t GetType() const override
+    {
+        return Type::MASK_FILTER_CMD_LIST;
+    }
+
     /*
      * @brief       Creates a MaskFilterCmdList with contiguous buffers.
      * @param data  A contiguous buffers.

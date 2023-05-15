@@ -27,6 +27,11 @@ public:
     PathEffectCmdList() = default;
     ~PathEffectCmdList() override = default;
 
+    uint32_t GetType() const override
+    {
+        return Type::PATH_EFFECT_CMD_LIST;
+    }
+
     /*
      * @brief       Creates a PathEffectCmdList with contiguous buffers.
      * @param data  A contiguous buffsers.

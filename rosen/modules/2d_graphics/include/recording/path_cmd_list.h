@@ -29,6 +29,11 @@ public:
     PathCmdList() = default;
     ~PathCmdList() override = default;
 
+    uint32_t GetType() const override
+    {
+        return Type::PATH_CMD_LIST;
+    }
+
     /*
      * @brief       Creates a PathCmdList with contiguous buffers.
      * @param data  A contiguous buffers.

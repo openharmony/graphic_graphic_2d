@@ -27,6 +27,11 @@ public:
     ImageFilterCmdList() = default;
     ~ImageFilterCmdList() override = default;
 
+    uint32_t GetType() const override
+    {
+        return Type::IMAGE_FILTER_CMD_LIST;
+    }
+
     /*
      * @brief       Creates a ImageFilterCmdList with contiguous buffers.
      * @param data  A contiguous buffers.

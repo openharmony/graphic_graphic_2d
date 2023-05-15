@@ -28,6 +28,11 @@ public:
     DrawCmdList(int32_t width, int32_t height);
     ~DrawCmdList() override = default;
 
+    uint32_t GetType() const override
+    {
+        return Type::DRAW_CMD_LIST;
+    }
+
     /*
      * @brief       Creates a DrawCmdList with contiguous buffers.
      * @param data  A contiguous buffers.
