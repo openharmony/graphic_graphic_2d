@@ -224,7 +224,7 @@ private:
     SkMatrix parentSurfaceNodeMatrix_;
 
     ScreenId currentVisitDisplay_;
-    std::map<ScreenId, bool> displayHasSecSurface_;
+    std::map<ScreenId, int> displayHasSecSurface_;
     std::set<ScreenId> mirroredDisplays_;
     bool isSecurityDisplay_ = false;
 
@@ -306,6 +306,8 @@ private:
     // displayNodeMatrix indicates display node's matrix info
     std::optional<SkMatrix> displayNodeMatrix_;
     mutable std::mutex copyVisitorInfosMutex_;
+    sk_sp<SkImage> cacheImgForCapture_ = nullptr;
+    bool resetRotate_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

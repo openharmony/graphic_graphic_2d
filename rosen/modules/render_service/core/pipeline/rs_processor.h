@@ -42,6 +42,11 @@ public:
     virtual void ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node) = 0;
     virtual void PostProcess() = 0;
 
+    const SkMatrix& GetScreenTransformMatrix() const
+    {
+        return screenTransformMatrix_;
+    }
+
 protected:
     void CalculateMirrorAdaptiveCoefficient(float curWidth, float curHeight,
         float mirroredWidth, float mirroredHeight);
