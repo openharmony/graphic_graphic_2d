@@ -104,7 +104,6 @@ void RSDrivenRenderVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
         return;
     }
     for (auto& child : node.GetSortedChildren()) {
-        RSAutoCanvasRestore autoRestore(canvas_);
         child->Process(shared_from_this());
     }
     // clear SortedChildren, it will be generated again in next frame
@@ -131,6 +130,7 @@ void RSDrivenRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
     node.GetMutableRenderProperties().CheckEmptyBounds();
     node.ProcessRenderBeforeChildren(*canvas_);
+    node.ProcessRenderContents(*canvas_);
     ProcessBaseRenderNode(node);
     node.ProcessRenderAfterChildren(*canvas_);
 }

@@ -172,7 +172,6 @@ private:
     void SetSurfaceGlobalAlignedDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node,
         const Occlusion::Region alignedDirtyRegion);
 
-    void InitCacheSurface(RSRenderNode& node, int width, int height);
     void DrawChildRenderNode(RSRenderNode& node);
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void AddOverDrawListener(std::unique_ptr<RSRenderFrame>& renderFrame,
@@ -225,7 +224,7 @@ private:
     SkMatrix parentSurfaceNodeMatrix_;
 
     ScreenId currentVisitDisplay_;
-    std::map<ScreenId, bool> displayHasSecSurface_;
+    std::map<ScreenId, int> displayHasSecSurface_;
     std::set<ScreenId> mirroredDisplays_;
     bool isSecurityDisplay_ = false;
 
@@ -271,7 +270,7 @@ private:
     unsigned int processedCanvasNodeInCurrentSurface_ = 0;
 
     float globalZOrder_ = 0.0f;
-    bool isFreeze_ = false;
+    bool isStaticCached_ = false;
     bool isHardwareForcedDisabled_ = false; // indicates if hardware composer is totally disabled
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     // vector of all app window nodes with surfaceView, sorted by zOrder
@@ -307,6 +306,8 @@ private:
     // displayNodeMatrix indicates display node's matrix info
     std::optional<SkMatrix> displayNodeMatrix_;
     mutable std::mutex copyVisitorInfosMutex_;
+    sk_sp<SkImage> cacheImgForCapture_ = nullptr;
+    bool resetRotate_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

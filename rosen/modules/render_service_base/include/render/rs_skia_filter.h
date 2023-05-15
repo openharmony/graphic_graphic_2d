@@ -31,8 +31,7 @@ public:
     ~RSSkiaFilter() override;
     SkPaint GetPaint() const;
     sk_sp<SkImageFilter> GetImageFilter() const;
-    static std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& outer,
-        const std::shared_ptr<RSSkiaFilter>& inner);
+    virtual std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& inner) = 0;
     virtual void PreProcess(sk_sp<SkImage> image) {};
     virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
 

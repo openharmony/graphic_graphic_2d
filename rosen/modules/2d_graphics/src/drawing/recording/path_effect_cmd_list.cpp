@@ -15,6 +15,7 @@
 
 #include "recording/path_effect_cmd_list.h"
 
+#include "recording/cmd_list_helper.h"
 #include "recording/path_cmd_list.h"
 #include "utils/log.h"
 
@@ -24,19 +25,14 @@ namespace Drawing {
 std::shared_ptr<PathEffectCmdList> PathEffectCmdList::CreateFromData(const CmdListData& data)
 {
     auto cmdList = std::make_shared<PathEffectCmdList>();
-    if (cmdList == nullptr) {
-        LOGE("PathEffectCmdList create from data failed!");
-        return nullptr;
-    }
     cmdList->opAllocator_.BuildFromData(data.first, data.second);
     return cmdList;
 }
 
 std::shared_ptr<PathEffect> PathEffectCmdList::Playback() const
 {
-    int offset = 0;
+    int32_t offset = 0;
     std::shared_ptr<PathEffect> pe = nullptr;
-
     do {
         OpItem* itemPtr = static_cast<OpItem*>(opAllocator_.OffsetToAddr(offset));
         if (itemPtr == nullptr) {
@@ -46,19 +42,19 @@ std::shared_ptr<PathEffect> PathEffectCmdList::Playback() const
 
         switch (itemPtr->GetType()) {
             case PathEffectOpItem::CREATE_DASH:
-                pe = static_cast<CreateDashPathEffectOpItem*>(itemPtr)->Playback(opAllocator_);
+                pe = static_cast<CreateDashPathEffectOpItem*>(itemPtr)->Playback(*this);
                 break;
             case PathEffectOpItem::CREATE_PATH_DASH:
-                pe = static_cast<CreatePathDashEffectOpItem*>(itemPtr)->Playback(opAllocator_);
+                pe = static_cast<CreatePathDashEffectOpItem*>(itemPtr)->Playback(*this);
                 break;
             case PathEffectOpItem::CREATE_CORNER:
                 pe = static_cast<CreateCornerPathEffectOpItem*>(itemPtr)->Playback();
                 break;
             case PathEffectOpItem::CREATE_SUM:
-                pe = static_cast<CreateSumPathEffectOpItem*>(itemPtr)->Playback(opAllocator_);
+                pe = static_cast<CreateSumPathEffectOpItem*>(itemPtr)->Playback(*this);
                 break;
             case PathEffectOpItem::CREATE_COMPOSE:
-                pe = static_cast<CreateComposePathEffectOpItem*>(itemPtr)->Playback(opAllocator_);
+                pe = static_cast<CreateComposePathEffectOpItem*>(itemPtr)->Playback(*this);
                 break;
             default:
                 LOGE("PathEffectCmdList unknown OpItem type!");
@@ -71,32 +67,27 @@ std::shared_ptr<PathEffect> PathEffectCmdList::Playback() const
 }
 
 /* OpItem */
-CreateDashPathEffectOpItem::CreateDashPathEffectOpItem(const std::pair<int, size_t>& intervals, scalar phase)
+CreateDashPathEffectOpItem::CreateDashPathEffectOpItem(const std::pair<int32_t, size_t>& intervals, scalar phase)
     : PathEffectOpItem(CREATE_DASH), intervals_(intervals), phase_(phase) {}
 
-std::shared_ptr<PathEffect> CreateDashPathEffectOpItem::Playback(const MemAllocator& allocator) const
+std::shared_ptr<PathEffect> CreateDashPathEffectOpItem::Playback(const CmdList& cmdList) const
 {
-    auto* intervals = static_cast<scalar*>(allocator.OffsetToAddr(intervals_.first));
-    int count = intervals_.second / sizeof(scalar);
-
-    return PathEffect::CreateDashPathEffect(intervals, count, phase_);
+    auto intervals = CmdListHelper::GetVectorFromCmdList<scalar>(cmdList, intervals_);
+    int32_t count = intervals_.second / sizeof(scalar);
+    return PathEffect::CreateDashPathEffect(intervals.data(), count, phase_);
 }
 
 CreatePathDashEffectOpItem::CreatePathDashEffectOpItem(
-    const CmdListSiteInfo& path, scalar advance, scalar phase, PathDashStyle style)
+    const CmdListHandle& path, scalar advance, scalar phase, PathDashStyle style)
     : PathEffectOpItem(CREATE_PATH_DASH), path_(path), advance_(advance), phase_(phase), style_(style) {}
 
-std::shared_ptr<PathEffect> CreatePathDashEffectOpItem::Playback(const MemAllocator& allocator) const
+std::shared_ptr<PathEffect> CreatePathDashEffectOpItem::Playback(const CmdList& cmdList) const
 {
-    void* ptr = allocator.OffsetToAddr(path_.first);
-    if (!ptr) {
+    auto path = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, path_);
+    if (path == nullptr) {
         return nullptr;
     }
-    auto cmdList = std::make_shared<PathCmdList>(std::make_pair(ptr, path_.second));
-    Path path;
-    cmdList->Playback(path);
-
-    return PathEffect::CreatePathDashEffect(path, advance_, phase_, style_);
+    return PathEffect::CreatePathDashEffect(*path, advance_, phase_, style_);
 }
 
 CreateCornerPathEffectOpItem::CreateCornerPathEffectOpItem(scalar radius)
@@ -107,52 +98,32 @@ std::shared_ptr<PathEffect> CreateCornerPathEffectOpItem::Playback() const
     return PathEffect::CreateCornerPathEffect(radius_);
 }
 
-CreateSumPathEffectOpItem::CreateSumPathEffectOpItem(const CmdListSiteInfo& effect1, const CmdListSiteInfo& effect2)
+CreateSumPathEffectOpItem::CreateSumPathEffectOpItem(const CmdListHandle& effect1, const CmdListHandle& effect2)
     : PathEffectOpItem(CREATE_SUM), effect1_(effect1), effect2_(effect2) {}
 
-std::shared_ptr<PathEffect> CreateSumPathEffectOpItem::Playback(const MemAllocator& allocator) const
+std::shared_ptr<PathEffect> CreateSumPathEffectOpItem::Playback(const CmdList& cmdList) const
 {
-    void* ptr = allocator.OffsetToAddr(effect1_.first);
-    auto cmdList = PathEffectCmdList::CreateFromData({ ptr, effect1_.second });
-    if (cmdList == nullptr) {
-        return nullptr;
-    }
-    auto effect1 = cmdList->Playback();
-
-    ptr = allocator.OffsetToAddr(effect2_.first);
-    cmdList = PathEffectCmdList::CreateFromData({ ptr, effect2_.second });
-    if (cmdList == nullptr) {
-        return nullptr;
-    }
-    auto effect2 = cmdList->Playback();
+    auto effect1 = CmdListHelper::GetFromCmdList<PathEffectCmdList, PathEffect>(cmdList, effect1_);
+    auto effect2 = CmdListHelper::GetFromCmdList<PathEffectCmdList, PathEffect>(cmdList, effect2_);
     if (effect1 == nullptr || effect2 == nullptr) {
         return nullptr;
     }
+
     return PathEffect::CreateSumPathEffect(*effect1, *effect2);
 }
 
 CreateComposePathEffectOpItem::CreateComposePathEffectOpItem(
-    const CmdListSiteInfo& effect1, const CmdListSiteInfo& effect2)
+    const CmdListHandle& effect1, const CmdListHandle& effect2)
     : PathEffectOpItem(CREATE_COMPOSE), effect1_(effect1), effect2_(effect2) {}
 
-std::shared_ptr<PathEffect> CreateComposePathEffectOpItem::Playback(const MemAllocator& allocator) const
+std::shared_ptr<PathEffect> CreateComposePathEffectOpItem::Playback(const CmdList& cmdList) const
 {
-    void* ptr = allocator.OffsetToAddr(effect1_.first);
-    auto cmdList = PathEffectCmdList::CreateFromData({ ptr, effect1_.second });
-    if (cmdList == nullptr) {
-        return nullptr;
-    }
-    auto effect1 = cmdList->Playback();
-
-    ptr = allocator.OffsetToAddr(effect2_.first);
-    cmdList = PathEffectCmdList::CreateFromData({ ptr, effect2_.second });
-    if (cmdList == nullptr) {
-        return nullptr;
-    }
-    auto effect2 = cmdList->Playback();
+    auto effect1 = CmdListHelper::GetFromCmdList<PathEffectCmdList, PathEffect>(cmdList, effect1_);
+    auto effect2 = CmdListHelper::GetFromCmdList<PathEffectCmdList, PathEffect>(cmdList, effect2_);
     if (effect1 == nullptr || effect2 == nullptr) {
         return nullptr;
     }
+
     return PathEffect::CreateComposePathEffect(*effect1, *effect2);
 }
 } // namespace Drawing

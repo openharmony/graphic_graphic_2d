@@ -21,11 +21,11 @@ group("ohos") {
 
 config("export_config") {
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/modules/composer/vsync/include",
     "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
-    "//foundation/graphic/graphic_2d/frameworks/surface/src",
+    "$graphic_2d_root/frameworks/surface/src",
     "//foundation/multimedia/image_framework/interfaces/innerkits/include",
   ]
 }
@@ -82,30 +82,30 @@ ohos_source_set("rosen_ohos_sources") {
     }
 
     sources += [
-      "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/render_context/cache_data.cpp",
-      "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/render_context/memory_handler.cpp",
-      "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/render_context/render_context.cpp",
-      "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/render_context/shader_cache.cpp",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/cache_data.cpp",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/memory_handler.cpp",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/render_context.cpp",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/shader_cache.cpp",
     ]
   }
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
     "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
-    "//foundation/graphic/graphic_2d/prebuilts/librarys/gpu/include",
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
     "//drivers/peripheral/display/interfaces/include/",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
-    "//foundation/graphic/graphic_2d/utils/log",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
   ]
 
   public_deps = [
+    "$graphic_2d_root:libsurface",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/utils:sync_fence",
     "//commonlibrary/c_utils/base:utils",
-    "//foundation/graphic/graphic_2d:libsurface",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
-    "//foundation/graphic/graphic_2d/utils:sync_fence",
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
   ]
   if (defined(use_new_skia) && use_new_skia) {
@@ -134,8 +134,8 @@ ohos_source_set("rosen_ohos_sources") {
       include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]
     }
     public_deps += [
+      "$graphic_2d_root:libgl",
       "$graphic_2d_root:libvulkan",
-      "//foundation/graphic/graphic_2d:libgl",
       "//third_party/openssl:libcrypto_shared",
     ]
   }
@@ -169,7 +169,7 @@ ohos_source_set("rosen_ohos_sources") {
         graphic_2d_ext_configs.librender_service_base_platform_ohos_ext_sources
 
     if (ace_enable_gpu && is_emulator) {
-      sources -= [ "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/render_context/render_context.cpp" ]
+      sources -= [ "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/render_context.cpp" ]
 
       sources +=
           graphic_2d_ext_configs.librender_service_base_2d_graphics_ext_sources

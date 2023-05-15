@@ -15,22 +15,24 @@
 
 #include "recording/region_cmd_list.h"
 
+#include "recording/cmd_list_helper.h"
 #include "recording/path_cmd_list.h"
 #include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-RegionCmdList::RegionCmdList() {}
-
-RegionCmdList::RegionCmdList(const CmdListData& data)
+std::shared_ptr<RegionCmdList> RegionCmdList::CreateFromData(const CmdListData& data)
 {
-    opAllocator_.BuildFromDataWithCopy(data.first, data.second);
+    auto cmdList = std::make_shared<RegionCmdList>();
+    cmdList->opAllocator_.BuildFromData(data.first, data.second);
+    return cmdList;
 }
 
-void RegionCmdList::Playback(Region& region) const
+std::shared_ptr<Region> RegionCmdList::Playback() const
 {
-    int offset = 0;
+    int32_t offset = 0;
+    auto region = std::make_shared<Region>();
     do {
         void* itemPtr = opAllocator_.OffsetToAddr(offset);
         OpItem* curOpItemPtr = static_cast<OpItem*>(itemPtr);
@@ -41,20 +43,22 @@ void RegionCmdList::Playback(Region& region) const
 
         switch (curOpItemPtr->GetType()) {
             case RegionOpItem::SETRECT_OPITEM:
-                static_cast<SetRectOpItem*>(itemPtr)->Playback(region);
+                static_cast<SetRectOpItem*>(itemPtr)->Playback(*region);
                 break;
             case RegionOpItem::SETPATH_OPITEM:
-                static_cast<SetPathOpItem*>(itemPtr)->Playback(region, opAllocator_);
+                static_cast<SetPathOpItem*>(itemPtr)->Playback(*region, *this);
                 break;
             case RegionOpItem::REGIONOPWITH_OPITEM:
-                static_cast<RegionOpWithOpItem*>(itemPtr)->Playback(region, opAllocator_);
+                static_cast<RegionOpWithOpItem*>(itemPtr)->Playback(*region, *this);
                 break;
             default:
-                LOGE("ColorFilterCmdList unknown OpItem type!");
+                LOGE("unknown OpItem type!");
                 break;
         }
         offset = curOpItemPtr->GetNextOpItemOffset();
     } while (offset != 0);
+
+    return region;
 }
 
 SetRectOpItem::SetRectOpItem(const RectI& rectI) : RegionOpItem(SETRECT_OPITEM), rectI_(rectI) {}
@@ -64,44 +68,29 @@ void SetRectOpItem::Playback(Region& region) const
     region.SetRect(rectI_);
 }
 
-SetPathOpItem::SetPathOpItem(const CmdListSiteInfo& path, const CmdListSiteInfo& region)
+SetPathOpItem::SetPathOpItem(const CmdListHandle& path, const CmdListHandle& region)
     : RegionOpItem(SETPATH_OPITEM), path_(path), region_(region) {}
 
-void SetPathOpItem::Playback(Region& region, const MemAllocator& memAllocator) const
+void SetPathOpItem::Playback(Region& region, const CmdList& cmdList) const
 {
-    auto* pathPtr = memAllocator.OffsetToAddr(path_.first);
-    auto* regionPtr = memAllocator.OffsetToAddr(region_.first);
-    if (!pathPtr || !regionPtr) {
+    auto path = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, path_);
+    auto clip = CmdListHelper::GetFromCmdList<RegionCmdList, Region>(cmdList, region_);
+    if (path == nullptr || clip == nullptr) {
         return;
     }
-
-    auto pathCmdList = std::make_shared<PathCmdList>(std::make_pair(pathPtr, path_.second));
-    auto regionCmdList = std::make_shared<RegionCmdList>(std::make_pair(regionPtr, region_.second));
-
-    Path restorePath;
-    pathCmdList->Playback(restorePath);
-    Region restoreRegion;
-    regionCmdList->Playback(restoreRegion);
-
-    region.SetPath(restorePath, restoreRegion);
+    region.SetPath(*path, *clip);
 }
 
-RegionOpWithOpItem::RegionOpWithOpItem(const CmdListSiteInfo& region, RegionOp op)
+RegionOpWithOpItem::RegionOpWithOpItem(const CmdListHandle& region, RegionOp op)
     : RegionOpItem(REGIONOPWITH_OPITEM), region_(region), op_(op) {}
 
-void RegionOpWithOpItem::Playback(Region& region, const MemAllocator& memAllocator) const
+void RegionOpWithOpItem::Playback(Region& region, const CmdList& cmdList) const
 {
-    auto* regionPtr = memAllocator.OffsetToAddr(region_.first);
-    if (!regionPtr) {
+    auto other = CmdListHelper::GetFromCmdList<RegionCmdList, Region>(cmdList, region_);
+    if (other == nullptr) {
         return;
     }
-
-    auto regionCmdList = std::make_shared<RegionCmdList>(std::make_pair(regionPtr, region_.second));
-
-    Region restoreRegion;
-    regionCmdList->Playback(restoreRegion);
-
-    region.Op(restoreRegion, op_);
+    region.Op(*other, op_);
 }
 } // namespace Drawing
 } // namespace Rosen

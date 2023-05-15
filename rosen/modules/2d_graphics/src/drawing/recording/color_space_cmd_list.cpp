@@ -16,6 +16,7 @@
 #include "recording/color_space_cmd_list.h"
 
 #include "image/image.h"
+#include "recording/cmd_list_helper.h"
 #include "utils/data.h"
 #include "utils/log.h"
 
@@ -29,39 +30,9 @@ std::shared_ptr<ColorSpaceCmdList> ColorSpaceCmdList::CreateFromData(const CmdLi
     return cmdList;
 }
 
-std::shared_ptr<ColorSpaceCmdList> ColorSpaceCmdList::CreateFromData(
-    const CmdListData& data, const LargeObjectData& largeObjectData)
-{
-    auto cmdList = std::make_shared<ColorSpaceCmdList>();
-    cmdList->opAllocator_.BuildFromData(data.first, data.second);
-
-    if (largeObjectData.second) {
-        cmdList->largeObjectAllocator_.BuildFromData(largeObjectData.first, largeObjectData.second);
-    }
-    return cmdList;
-}
-
-int ColorSpaceCmdList::AddLargeObject(const LargeObjectData& data)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    void* dst = largeObjectAllocator_.Add(data.first, data.second);
-    if (dst == nullptr) {
-        LOGE("ColorSpaceCmdList AddLargeObject failed!");
-        return 0;
-    }
-    return largeObjectAllocator_.AddrToOffset(dst);
-}
-
-LargeObjectData ColorSpaceCmdList::GetLargeObjectData() const
-{
-    const void* data = largeObjectAllocator_.GetData();
-    size_t size = largeObjectAllocator_.GetSize();
-    return {data, size};
-}
-
 std::shared_ptr<ColorSpace> ColorSpaceCmdList::Playback() const
 {
-    int offset = 0;
+    int32_t offset = 0;
     std::shared_ptr<ColorSpace> cs = nullptr;
 
     do {
@@ -79,7 +50,7 @@ std::shared_ptr<ColorSpace> ColorSpaceCmdList::Playback() const
                 cs = static_cast<CreateSRGBLinearOpItem*>(itemPtr)->Playback();
                 break;
             case ColorSpaceOpItem::CREATE_REF_IMAGE:
-                cs = static_cast<CreateRefImageOpItem*>(itemPtr)->Playback(largeObjectAllocator_);
+                cs = static_cast<CreateRefImageOpItem*>(itemPtr)->Playback(*this);
                 break;
             case ColorSpaceOpItem::CREATE_RGB:
                 cs = static_cast<CreateRGBOpItem*>(itemPtr)->Playback();
@@ -109,17 +80,17 @@ std::shared_ptr<ColorSpace> CreateSRGBLinearOpItem::Playback() const
     return ColorSpace::CreateSRGBLinear();
 }
 
-CreateRefImageOpItem::CreateRefImageOpItem(const LargeObjectInfo& image)
+CreateRefImageOpItem::CreateRefImageOpItem(const ImageHandle& image)
     : ColorSpaceOpItem(CREATE_REF_IMAGE), image_(image) {}
 
-std::shared_ptr<ColorSpace> CreateRefImageOpItem::Playback(const MemAllocator& largeObjectAllocator) const
+std::shared_ptr<ColorSpace> CreateRefImageOpItem::Playback(const CmdList& cmdList) const
 {
-    auto imageData = std::make_shared<Data>();
-    imageData->BuildWithoutCopy(largeObjectAllocator.OffsetToAddr(image_.first), image_.second);
-    Image image;
-    image.Deserialize(imageData);
+    auto image = CmdListHelper::GetImageFromCmdList(cmdList, image_);
+    if (image == nullptr) {
+        return nullptr;
+    }
 
-    return ColorSpace::CreateRefImage(image);
+    return ColorSpace::CreateRefImage(*image);
 }
 
 CreateRGBOpItem::CreateRGBOpItem(const CMSTransferFuncType& func, const CMSMatrixType& matrix)

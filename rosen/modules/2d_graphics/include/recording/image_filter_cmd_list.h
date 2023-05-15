@@ -27,6 +27,11 @@ public:
     ImageFilterCmdList() = default;
     ~ImageFilterCmdList() override = default;
 
+    uint32_t GetType() const override
+    {
+        return Type::IMAGE_FILTER_CMD_LIST;
+    }
+
     /*
      * @brief       Creates a ImageFilterCmdList with contiguous buffers.
      * @param data  A contiguous buffers.
@@ -42,7 +47,7 @@ public:
 /* OpItem */
 class ImageFilterOpItem : public OpItem {
 public:
-    ImageFilterOpItem(uint32_t type) : OpItem(type) {}
+    explicit ImageFilterOpItem(uint32_t type) : OpItem(type) {}
     ~ImageFilterOpItem() = default;
 
     enum Type : uint32_t {
@@ -57,63 +62,63 @@ public:
 
 class CreateBlurImageFilterOpItem : public ImageFilterOpItem {
 public:
-    CreateBlurImageFilterOpItem(scalar sigmaX, scalar sigmaY, TileMode mode, const CmdListSiteInfo& input);
+    CreateBlurImageFilterOpItem(scalar sigmaX, scalar sigmaY, TileMode mode, const CmdListHandle& input);
     ~CreateBlurImageFilterOpItem() = default;
 
-    std::shared_ptr<ImageFilter> Playback(const MemAllocator& allocator) const;
+    std::shared_ptr<ImageFilter> Playback(const CmdList& cmdList) const;
 private:
     scalar sigmaX_;
     scalar sigmaY_;
     TileMode mode_;
-    CmdListSiteInfo input_;
+    CmdListHandle input_;
 };
 
 class CreateColorFilterImageFilterOpItem : public ImageFilterOpItem {
 public:
-    CreateColorFilterImageFilterOpItem(const CmdListSiteInfo& cf, const CmdListSiteInfo& input);
+    CreateColorFilterImageFilterOpItem(const CmdListHandle& cf, const CmdListHandle& input);
     ~CreateColorFilterImageFilterOpItem() = default;
 
-    std::shared_ptr<ImageFilter> Playback(const MemAllocator& allocator) const;
+    std::shared_ptr<ImageFilter> Playback(const CmdList& cmdList) const;
 private:
-    CmdListSiteInfo cf_;
-    CmdListSiteInfo input_;
+    CmdListHandle cf_;
+    CmdListHandle input_;
 };
 
 class CreateOffsetImageFilterOpItem : public ImageFilterOpItem {
 public:
-    CreateOffsetImageFilterOpItem(scalar dx, scalar dy, const CmdListSiteInfo& input);
+    CreateOffsetImageFilterOpItem(scalar dx, scalar dy, const CmdListHandle& input);
     ~CreateOffsetImageFilterOpItem() = default;
 
-    std::shared_ptr<ImageFilter> Playback(const MemAllocator& allocator) const;
+    std::shared_ptr<ImageFilter> Playback(const CmdList& cmdList) const;
 private:
     scalar dx_;
     scalar dy_;
-    CmdListSiteInfo input_;
+    CmdListHandle input_;
 };
 
 class CreateArithmeticImageFilterOpItem : public ImageFilterOpItem {
 public:
-    CreateArithmeticImageFilterOpItem(std::pair<Offset_t, size_t> coefficients,
-        bool enforcePMColor, const CmdListSiteInfo& background, const CmdListSiteInfo& foreground);
+    CreateArithmeticImageFilterOpItem(std::pair<int32_t, size_t> coefficients,
+        bool enforcePMColor, const CmdListHandle& background, const CmdListHandle& foreground);
     ~CreateArithmeticImageFilterOpItem() = default;
 
-    std::shared_ptr<ImageFilter> Playback(const MemAllocator& allocator) const;
+    std::shared_ptr<ImageFilter> Playback(const CmdList& cmdList) const;
 private:
-    std::pair<Offset_t, size_t> coefficients_;
+    std::pair<int32_t, size_t> coefficients_;
     bool enforcePMColor_;
-    CmdListSiteInfo background_;
-    CmdListSiteInfo foreground_;
+    CmdListHandle background_;
+    CmdListHandle foreground_;
 };
 
 class CreateComposeImageFilterOpItem : public ImageFilterOpItem {
 public:
-    CreateComposeImageFilterOpItem(const CmdListSiteInfo& f1, const CmdListSiteInfo& f2);
+    CreateComposeImageFilterOpItem(const CmdListHandle& f1, const CmdListHandle& f2);
     ~CreateComposeImageFilterOpItem() = default;
 
-    std::shared_ptr<ImageFilter> Playback(const MemAllocator& allocator) const;
+    std::shared_ptr<ImageFilter> Playback(const CmdList& cmdList) const;
 private:
-    CmdListSiteInfo f1_;
-    CmdListSiteInfo f2_;
+    CmdListHandle f1_;
+    CmdListHandle f2_;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -29,6 +29,11 @@ public:
     PathCmdList() = default;
     ~PathCmdList() override = default;
 
+    uint32_t GetType() const override
+    {
+        return Type::PATH_CMD_LIST;
+    }
+
     /*
      * @brief       Creates a PathCmdList with contiguous buffers.
      * @param data  A contiguous buffers.
@@ -38,7 +43,7 @@ public:
     /*
      * @brief  Calls the corresponding operations of all opitems in PathCmdList to the path.
      */
-    void Playback(Path& path) const;
+    std::shared_ptr<Path> Playback() const;
 };
 
 /* OpItem */
@@ -99,7 +104,7 @@ public:
 
 class BuildFromSVGOpItem : public PathOpItem {
 public:
-    BuildFromSVGOpItem(const std::string& str);
+    explicit BuildFromSVGOpItem(const std::string& str);
     ~BuildFromSVGOpItem() = default;
 
     /*
@@ -276,7 +281,7 @@ private:
 
 class ReverseAddPathOpItem : public PathOpItem {
 public:
-    ReverseAddPathOpItem(const CmdListHandle& src);
+    explicit ReverseAddPathOpItem(const CmdListHandle& src);
     ~ReverseAddPathOpItem() = default;
     static void Playback(PathPlayer& player, const void* opItem);
     void Playback(Path& path, const CmdList& cmdList) const;
@@ -286,7 +291,7 @@ private:
 
 class SetFillStyleOpItem : public PathOpItem {
 public:
-    SetFillStyleOpItem(const PathFillType fillstyle);
+    explicit SetFillStyleOpItem(PathFillType fillstyle);
     ~SetFillStyleOpItem() = default;
     static void Playback(PathPlayer& player, const void* opItem);
     void Playback(Path& path) const;
@@ -308,7 +313,7 @@ private:
 
 class TransformOpItem : public PathOpItem {
 public:
-    TransformOpItem(const Matrix& matrix);
+    explicit TransformOpItem(const Matrix& matrix);
     ~TransformOpItem() = default;
     static void Playback(PathPlayer& player, const void* opItem);
     void Playback(Path& path) const;

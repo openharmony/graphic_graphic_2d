@@ -29,9 +29,8 @@ std::shared_ptr<MaskFilterCmdList> MaskFilterCmdList::CreateFromData(const CmdLi
 
 std::shared_ptr<MaskFilter> MaskFilterCmdList::Playback() const
 {
-    Offset_t offset = 0;
+    int32_t offset = 0;
     std::shared_ptr<MaskFilter> mf = nullptr;
-
     do {
         OpItem* itemPtr = static_cast<OpItem*>(opAllocator_.OffsetToAddr(offset));
         if (itemPtr == nullptr) {

@@ -15,6 +15,7 @@
 
 #include "recording/draw_cmd.h"
 
+#include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd_list.h"
 #include "recording/mem_allocator.h"
 #include "recording/op_item.h"
@@ -248,7 +249,7 @@ void DrawPathOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 {
     auto path = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, path_);
     if (path == nullptr) {
-        LOGE("path is nullptr!")
+        LOGE("path is nullptr!");
         return;
     }
 
@@ -277,7 +278,7 @@ void DrawBackgroundOpItem::Playback(Canvas& canvas, const CmdList& cmdList) cons
     auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
         cmdList, brushHandle_.colorFilterHandle);
     auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
-        cmdList, brushHandle_.imageFilterHanle);
+        cmdList, brushHandle_.imageFilterHandle);
     auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
         cmdList, brushHandle_.maskFilterHandle);
 
@@ -316,14 +317,14 @@ void DrawShadowOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 {
     auto path = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, path_);
     if (path == nullptr) {
-        LOGE("path is nullptr!")
+        LOGE("path is nullptr!");
         return;
     }
 
     canvas.DrawShadow(*path, planeParams_, devLightPos_, lightRadius_, ambientColor_, spotColor_, flag_);
 }
 
-DrawBitmapOpItem::DrawBitmapOpItem(ImageHandle bitmap, const scalar px, const scalar py)
+DrawBitmapOpItem::DrawBitmapOpItem(const ImageHandle& bitmap, scalar px, scalar py)
     : DrawOpItem(BITMAP_OPITEM), bitmap_(bitmap), px_(px), py_(py) {}
 
 void DrawBitmapOpItem::Playback(CanvasPlayer& player, const void* opItem)
@@ -338,13 +339,13 @@ void DrawBitmapOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 {
     auto bitmap = CmdListHelper::GetBitmapFromCmdList(cmdList, bitmap_);
     if (bitmap == nullptr) {
-        return nullptr;
+        return;
     }
 
     canvas.DrawBitmap(*bitmap, px_, py_);
 }
 
-DrawImageOpItem::DrawImageOpItem(ImageHandle image, const scalar px, const scalar py,
+DrawImageOpItem::DrawImageOpItem(const ImageHandle& image, scalar px, scalar py,
     const SamplingOptions& samplingOptions) : DrawOpItem(IMAGE_OPITEM),
     image_(std::move(image)), px_(px), py_(py), samplingOptions_(samplingOptions) {}
 
@@ -358,15 +359,15 @@ void DrawImageOpItem::Playback(CanvasPlayer& player, const void* opItem)
 
 void DrawImageOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 {
-    auto image = CmdListHelper::GetBitmapFromCmdList(cmdList, image_);
+    auto image = CmdListHelper::GetImageFromCmdList(cmdList, image_);
     if (image == nullptr) {
-        return nullptr;
+        return;
     }
 
     canvas.DrawImage(*image, px_, py_, samplingOptions_);
 }
 
-DrawImageRectOpItem::DrawImageRectOpItem(ImageHandle image, const Rect& src, const Rect& dst,
+DrawImageRectOpItem::DrawImageRectOpItem(const ImageHandle& image, const Rect& src, const Rect& dst,
     const SamplingOptions& sampling, SrcRectConstraint constraint)
     : DrawOpItem(IMAGE_OPITEM), image_(image), src_(src), dst_(dst), sampling_(sampling), constraint_(constraint) {}
 
@@ -380,15 +381,15 @@ void DrawImageRectOpItem::Playback(CanvasPlayer& player, const void* opItem)
 
 void DrawImageRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 {
-    auto image = CmdListHelper::GetBitmapFromCmdList(cmdList, image_);
+    auto image = CmdListHelper::GetImageFromCmdList(cmdList, image_);
     if (image == nullptr) {
-        return nullptr;
+        return;
     }
 
     canvas.DrawImageRect(*image, src_, dst_, sampling_, constraint_);
 }
 
-DrawPictureOpItem::DrawPictureOpItem(ImageHandle picture) : DrawOpItem(PICTURE_OPITEM), picture_(picture) {}
+DrawPictureOpItem::DrawPictureOpItem(const ImageHandle& picture) : DrawOpItem(PICTURE_OPITEM), picture_(picture) {}
 
 void DrawPictureOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
@@ -400,9 +401,9 @@ void DrawPictureOpItem::Playback(CanvasPlayer& player, const void* opItem)
 
 void DrawPictureOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 {
-    auto picture = CmdListHelper::GetBitmapFromCmdList(cmdList, picture_);
+    auto picture = CmdListHelper::GetPictureFromCmdList(cmdList, picture_);
     if (picture == nullptr) {
-        return nullptr;
+        return;
     }
 
     canvas.DrawPicture(*picture);
@@ -455,11 +456,11 @@ void ClipPathOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 {
     auto path = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, path_);
     if (path == nullptr) {
-        LOGE("path is nullptr!")
+        LOGE("path is nullptr!");
         return;
     }
 
-    canvas.ClipPath(path, clipOp_, doAntiAlias_);
+    canvas.ClipPath(*path, clipOp_, doAntiAlias_);
 }
 
 SetMatrixOpItem::SetMatrixOpItem(const Matrix& matrix) : DrawOpItem(SET_MATRIX_OPITEM)
@@ -630,7 +631,7 @@ void SaveOpItem::Playback(Canvas& canvas) const
 
 SaveLayerOpItem::SaveLayerOpItem(const Rect& rect, bool hasBrush, const Color& color, BlendMode mode, bool isAntiAlias,
     Filter::FilterQuality filterQuality, const BrushHandle brushHandle, const CmdListHandle& imageFilter,
-    const SaveLayerFlags saveLayerFlags)
+    uint32_t saveLayerFlags)
     : DrawOpItem(SAVE_LAYER_OPITEM), rect_(rect), color_(color), mode_(mode), isAntiAlias_(isAntiAlias),
     filterQuality_(filterQuality), brushHandle_(brushHandle), imageFilter_(imageFilter),
     saveLayerFlags_(saveLayerFlags) {}
@@ -659,7 +660,7 @@ void SaveLayerOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
         auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
             cmdList, brushHandle_.colorFilterHandle);
         auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
-            cmdList, brushHandle_.imageFilterHanle);
+            cmdList, brushHandle_.imageFilterHandle);
         auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
             cmdList, brushHandle_.maskFilterHandle);
 
@@ -680,11 +681,10 @@ void SaveLayerOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
         brush->SetFilter(filter);
     }
 
-    auto saveImageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
-        cmdList, brushHandle_.imageFilter);
+    auto saveImageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(cmdList, imageFilter_);
 
-    SaveLayerRec slr(rectPtr, brush.get(), saveImageFilter.get(), saveLayerFlags_);
-    canvas.SaveLayer(slr);
+    SaveLayerOps slo(rectPtr, brush.get(), saveImageFilter.get(), saveLayerFlags_);
+    canvas.SaveLayer(slo);
 }
 
 RestoreOpItem::RestoreOpItem() : DrawOpItem(RESTORE_OPITEM) {}
@@ -727,7 +727,7 @@ void AttachPenOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
     auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
         cmdList, penHandle_.colorFilterHandle);
     auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
-        cmdList, penHandle_.imageFilterHanle);
+        cmdList, penHandle_.imageFilterHandle);
     auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
         cmdList, penHandle_.maskFilterHandle);
 
@@ -776,7 +776,7 @@ void AttachBrushOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
     auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
         cmdList, brushHandle_.colorFilterHandle);
     auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
-        cmdList, brushHandle_.imageFilterHanle);
+        cmdList, brushHandle_.imageFilterHandle);
     auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
         cmdList, brushHandle_.maskFilterHandle);
 

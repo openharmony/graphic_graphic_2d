@@ -44,11 +44,6 @@ public:
         return Type;
     }
 
-    enum CacheType {
-        NONE = 0,
-        FREEZE,
-        SPHERIZE,
-    };
     ~RSRenderNode() override;
     bool IsDirty() const override;
 
@@ -73,13 +68,16 @@ public:
         return animationManager_;
     }
 
-    virtual void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas);
-    virtual void ProcessRenderContents(RSPaintFilterCanvas& canvas) {}
-    virtual void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas);
-    virtual void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas) {}
+    virtual void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas);
     virtual void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas) {}
+    virtual void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas);
+
+    virtual void ProcessRenderContents(RSPaintFilterCanvas& canvas) {}
+
+    virtual void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas);
     virtual void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) {}
-    virtual void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) {}
+    virtual void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas);
+
     void CheckCacheType();
     void RenderTraceDebug() const;
     bool HasDisappearingTransition(bool recursive) const override
@@ -120,30 +118,39 @@ public:
     // update parent's children rect including childRect and itself
     void UpdateParentChildrenRect(std::shared_ptr<RSBaseRenderNode> parentNode) const;
 
-    void SetFreeze(bool isFreeze)
+    void SetStaticCached(bool isStaticCached)
     {
-        isFreeze_ = isFreeze;
+        isStaticCached_ = isStaticCached;
     }
 
-    bool IsFreeze() const
+    bool IsStaticCached() const
     {
-        return isFreeze_;
+        return isStaticCached_;
     }
 
-    void SetCacheSurface(sk_sp<SkSurface> cacheSurface)
-    {
-        cacheSurface_ = std::move(cacheSurface);
-    }
-
+    void InitCacheSurface(RSPaintFilterCanvas& canvas, int width, int height);
     sk_sp<SkSurface> GetCacheSurface() const
     {
         return cacheSurface_;
     }
 
+    void UpdateCompletedCacheSurface()
+    {
+        std::swap(cacheSurface_, cacheCompletedSurface_);
+    }
+
+    sk_sp<SkSurface> GetCompletedCacheSurface() const
+    {
+        return cacheCompletedSurface_;
+    }
+
     void ClearCacheSurface()
     {
         cacheSurface_ = nullptr;
+        cacheCompletedSurface_ = nullptr;
     }
+
+    void DrawCacheSurface(RSPaintFilterCanvas& canvas) const;
 
     void SetCacheType(CacheType cacheType)
     {
@@ -278,6 +285,7 @@ public:
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier> modifier);
+    RSPaintFilterCanvas::SaveStatus renderNodeSaveCount_;
     std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> drawCmdModifiers_;
     // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
     bool isRenderUpdateIgnored_ = false;
@@ -307,8 +315,9 @@ private:
     std::shared_ptr<RSRenderModifier> boundsModifier_;
     std::shared_ptr<RSRenderModifier> frameModifier_;
 
-    std::atomic<bool> isFreeze_ = false;
     sk_sp<SkSurface> cacheSurface_ = nullptr;
+    sk_sp<SkSurface> cacheCompletedSurface_ = nullptr;
+    std::atomic<bool> isStaticCached_ = false;
     CacheType cacheType_ = CacheType::NONE;
     bool cacheTypeChanged_ = false;
 

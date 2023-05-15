@@ -27,6 +27,11 @@ public:
     MaskFilterCmdList() = default;
     ~MaskFilterCmdList() override = default;
 
+    uint32_t GetType() const override
+    {
+        return Type::MASK_FILTER_CMD_LIST;
+    }
+
     /*
      * @brief       Creates a MaskFilterCmdList with contiguous buffers.
      * @param data  A contiguous buffers.
@@ -42,7 +47,7 @@ public:
 /* OpItem */
 class MaskFilterOpItem : public OpItem {
 public:
-    MaskFilterOpItem(uint32_t type) : OpItem(type) {}
+    explicit MaskFilterOpItem(uint32_t type) : OpItem(type) {}
 
     enum Type : uint32_t {
         OPITEM_HEAD = 0,    // OPITEM_HEAD must be 0

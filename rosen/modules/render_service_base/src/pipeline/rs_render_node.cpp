@@ -218,8 +218,9 @@ void RSRenderNode::RenderTraceDebug() const
     }
 }
 
-void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
+void RSRenderNode::ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas)
 {
+    renderNodeSaveCount_ = canvas.Save();
     auto boundsGeo = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
     if (boundsGeo && !boundsGeo->IsEmpty()) {
         canvas.concat(boundsGeo->GetMatrix());
@@ -236,9 +237,20 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
     RSPropertiesPainter::DrawMask(GetRenderProperties(), canvas);
 }
 
-void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
+void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
+{
+    RSRenderNode::ProcessTransitionBeforeChildren(canvas);
+}
+
+void RSRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)
 {
     GetMutableRenderProperties().ResetBounds();
+    canvas.RestoreStatus(renderNodeSaveCount_);
+}
+
+void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
+{
+    RSRenderNode::ProcessTransitionAfterChildren(canvas);
 }
 
 void RSRenderNode::CheckCacheType()
@@ -246,8 +258,8 @@ void RSRenderNode::CheckCacheType()
     auto newCacheType = CacheType::NONE;
     if (GetRenderProperties().IsSpherizeValid()) {
         newCacheType = CacheType::SPHERIZE;
-    } else if (isFreeze_) {
-        newCacheType = CacheType::FREEZE;
+    } else if (isStaticCached_) {
+        newCacheType = CacheType::STATIC;
     }
     if (cacheType_ != newCacheType) {
         cacheType_ = newCacheType;
@@ -406,6 +418,39 @@ void RSRenderNode::SetGlobalAlpha(float alpha)
 float RSRenderNode::GetGlobalAlpha() const
 {
     return globalAlpha_;
+}
+
+void RSRenderNode::InitCacheSurface(RSPaintFilterCanvas& canvas, int width, int height)
+{
+#if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
+    SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
+#ifdef NEW_SKIA
+    cacheSurface_ = SkSurface::MakeRenderTarget(canvas.recordingContext(), SkBudgeted::kYes, info);
+#else
+    cacheSurface_ = SkSurface::MakeRenderTarget(canvas.getGrContext(), SkBudgeted::kYes, info);
+#endif
+#else
+    cacheSurface_ = SkSurface::MakeRasterN32Premul(width, height);
+#endif
+}
+
+void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas) const
+{
+    auto surface = GetCompletedCacheSurface();
+    if (surface == nullptr || (surface->width() == 0 || surface->height() == 0)) {
+        return;
+    }
+    if (GetCacheType() == CacheType::SPHERIZE) {
+        RSPropertiesPainter::DrawSpherize(GetRenderProperties(), canvas, surface);
+    } else {
+        canvas.save();
+        float width = GetRenderProperties().GetBoundsRect().GetWidth();
+        float height = GetRenderProperties().GetBoundsRect().GetHeight();
+        canvas.scale(width / surface->width(), height / surface->height());
+        SkPaint paint;
+        surface->draw(&canvas, 0.0, 0.0, &paint);
+        canvas.restore();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

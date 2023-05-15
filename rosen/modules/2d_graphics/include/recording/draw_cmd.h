@@ -20,8 +20,7 @@
 
 #include "draw/canvas.h"
 #include "draw/pen.h"
-#include "recording/op_item.h"
-#include "recording/mem_allocator.h"
+#include "recording/cmd_list.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -60,7 +59,7 @@ private:
 
 class DrawOpItem : public OpItem {
 public:
-    DrawOpItem(uint32_t type) : OpItem(type) {}
+    explicit DrawOpItem(uint32_t type) : OpItem(type) {}
     ~DrawOpItem() = default;
 
     enum Type : uint32_t {
@@ -105,7 +104,7 @@ public:
 
 class DrawPointOpItem : public DrawOpItem {
 public:
-    DrawPointOpItem(const Point& point);
+    explicit DrawPointOpItem(const Point& point);
     ~DrawPointOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
@@ -130,7 +129,7 @@ private:
 
 class DrawRectOpItem : public DrawOpItem {
 public:
-    DrawRectOpItem(const Rect& rect);
+    explicit DrawRectOpItem(const Rect& rect);
     ~DrawRectOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
@@ -142,7 +141,7 @@ private:
 
 class DrawRoundRectOpItem : public DrawOpItem {
 public:
-    DrawRoundRectOpItem(const RoundRect& rrect);
+    explicit DrawRoundRectOpItem(const RoundRect& rrect);
     ~DrawRoundRectOpItem()  = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
@@ -195,7 +194,7 @@ private:
 
 class DrawOvalOpItem : public DrawOpItem {
 public:
-    DrawOvalOpItem(const Rect& rect);
+    explicit DrawOvalOpItem(const Rect& rect);
     ~DrawOvalOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
@@ -220,7 +219,7 @@ private:
 
 class DrawPathOpItem : public DrawOpItem {
 public:
-    DrawPathOpItem(const CmdListHandle& path);
+    explicit DrawPathOpItem(const CmdListHandle& path);
     ~DrawPathOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
@@ -268,7 +267,7 @@ private:
 
 class DrawBitmapOpItem : public DrawOpItem {
 public:
-    DrawBitmapOpItem(ImageHandle bitmap, const scalar px, const scalar py);
+    DrawBitmapOpItem(const ImageHandle& bitmap, scalar px, scalar py);
     ~DrawBitmapOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
@@ -282,7 +281,7 @@ private:
 
 class DrawImageOpItem : public DrawOpItem {
 public:
-    DrawImageOpItem(ImageHandle image, const scalar px, const scalar py, const SamplingOptions& samplingOptions);
+    DrawImageOpItem(const ImageHandle& image, scalar px, scalar py, const SamplingOptions& samplingOptions);
     ~DrawImageOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
@@ -297,7 +296,7 @@ private:
 
 class DrawImageRectOpItem : public DrawOpItem {
 public:
-    DrawImageRectOpItem(ImageHandle image, const Rect& src, const Rect& dst,
+    DrawImageRectOpItem(const ImageHandle& image, const Rect& src, const Rect& dst,
         const SamplingOptions& sampling, SrcRectConstraint constraint);
     ~DrawImageRectOpItem() = default;
 
@@ -314,7 +313,7 @@ private:
 
 class DrawPictureOpItem : public DrawOpItem {
 public:
-    DrawPictureOpItem(ImageHandle picture);
+    explicit DrawPictureOpItem(const ImageHandle& picture);
     ~DrawPictureOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
@@ -368,7 +367,7 @@ private:
 
 class SetMatrixOpItem : public DrawOpItem {
 public:
-    SetMatrixOpItem(const Matrix& matrix);
+    explicit SetMatrixOpItem(const Matrix& matrix);
     ~SetMatrixOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
@@ -389,7 +388,7 @@ public:
 
 class ConcatMatrixOpItem : public DrawOpItem {
 public:
-    ConcatMatrixOpItem(const Matrix& matrix);
+    explicit ConcatMatrixOpItem(const Matrix& matrix);
     ~ConcatMatrixOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
@@ -463,7 +462,7 @@ public:
 
 class ClearOpItem : public DrawOpItem {
 public:
-    ClearOpItem(ColorQuad color);
+    explicit ClearOpItem(ColorQuad color);
     ~ClearOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
@@ -486,7 +485,7 @@ class SaveLayerOpItem : public DrawOpItem {
 public:
     SaveLayerOpItem(const Rect& rect, bool hasBrush, const Color& color, BlendMode mode, bool isAntiAlias,
         Filter::FilterQuality filterQuality, const BrushHandle brushHandle, const CmdListHandle& imageFilter,
-        const SaveLayerFlags saveLayerFlags = 0);
+        uint32_t saveLayerFlags);
     ~SaveLayerOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
@@ -501,7 +500,7 @@ private:
     Filter::FilterQuality filterQuality_;
     BrushHandle brushHandle_;
     CmdListHandle imageFilter_;
-    SaveLayerFlags saveLayerFlags_;
+    uint32_t saveLayerFlags_;
 };
 
 class RestoreOpItem : public DrawOpItem {

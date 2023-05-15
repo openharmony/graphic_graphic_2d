@@ -102,8 +102,11 @@ std::string RSSurfaceRenderNode::DirtyRegionDump() const
     return dump;
 }
 
-void RSSurfaceRenderNode::ExtractSurfaceParams(RSPaintFilterCanvas& canvas)
+void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
+    // Save the current state of the canvas before modifying it.
+    renderNodeSaveCount_ = canvas.Save();
+
     // Apply alpha to canvas
     const RSProperties& properties = GetRenderProperties();
     canvas.MultiplyAlpha(properties.GetAlpha());
@@ -132,6 +135,10 @@ void RSSurfaceRenderNode::ExtractSurfaceParams(RSPaintFilterCanvas& canvas)
     SetGlobalAlpha(canvas.GetAlpha());
 }
 
+void RSSurfaceRenderNode::PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas)
+{
+    canvas.RestoreStatus(renderNodeSaveCount_);
+}
 
 void RSSurfaceRenderNode::CollectSurface(
     const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec, bool isUniRender)
@@ -227,8 +234,18 @@ void RSSurfaceRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->ProcessSurfaceRenderNode(*this);
 }
 
+void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
+{
+    needDrawAnimateProperty_ = true;
+    ProcessAnimatePropertyBeforeChildren(canvas);
+    needDrawAnimateProperty_ = false;
+}
+
 void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas)
 {
+    if (GetCacheType() != CacheType::SPHERIZE && !needDrawAnimateProperty_) {
+        return;
+    }
     const auto& property = GetRenderProperties();
     const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
@@ -249,6 +266,13 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanv
         RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr, canvas.GetSurface());
     }
     SetTotalMatrix(canvas.getTotalMatrix());
+}
+
+void RSSurfaceRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
+{
+    needDrawAnimateProperty_ = true;
+    ProcessAnimatePropertyAfterChildren(canvas);
+    needDrawAnimateProperty_ = false;
 }
 
 void RSSurfaceRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas)

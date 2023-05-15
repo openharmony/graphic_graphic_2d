@@ -74,10 +74,7 @@ void RSScreen::PhysicalScreenInit() noexcept
         RS_LOGE("RSScreen %s: RSScreen(id %" PRIu64 ") failed to GetScreenSupportedModes.",
             __func__, id_);
     }
-    if (hdiScreen_->GetScreenCapability(capability_) < 0) {
-        RS_LOGE("RSScreen %s: RSScreen(id %" PRIu64 ") failed to GetScreenCapability.",
-            __func__, id_);
-    }
+    
     if (hdiScreen_->GetHDRCapabilityInfos(hdrCapability_) < 0) {
         RS_LOGE("RSScreen %s: RSScreen(id %" PRIu64 ") failed to GetHDRCapabilityInfos.",
             __func__, id_);

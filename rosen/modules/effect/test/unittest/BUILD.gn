@@ -52,12 +52,12 @@ ohos_unittest("EffectTest") {
   }
 
   deps += [
+    "$graphic_2d_root:libgl",
+    "$graphic_2d_root/rosen/modules/effect/color_picker:color_picker",
+    "$graphic_2d_root/rosen/modules/effect/effectChain:libeffectchain",
+    "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect",
+    "$graphic_2d_root/utils/color_manager:color_manager",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic_2d:libgl",
-    "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
-    "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
-    "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
-    "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
     "//foundation/multimedia/image_framework/interfaces/kits/js/common:image",
     "//third_party/flutter/build/skia:ace_skia_ohos",
@@ -65,7 +65,7 @@ ohos_unittest("EffectTest") {
 
   configs = [
     ":effect_test_config",
-    "//foundation/graphic/graphic_2d/utils/color_manager:color_manager_public_config",
+    "$graphic_2d_root/utils/color_manager:color_manager_public_config",
   ]
   external_deps = [ "c_utils:utils" ]
 }
@@ -76,10 +76,10 @@ config("effect_test_config") {
     "//third_party/EGL/api",
     "//third_party/openGLES/api",
     "//third_party/skia",
-    "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/effect/egl/include",
-    "//foundation/graphic/graphic_2d/utils/color_manager/export",
+    "$graphic_2d_root/rosen/modules/effect/color_picker/include",
+    "$graphic_2d_root/rosen/modules/effect/effectChain/include",
+    "$graphic_2d_root/rosen/modules/effect/egl/include",
+    "$graphic_2d_root/utils/color_manager/export",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
     "//foundation/multimedia/image_framework/interfaces/innerkits/include/",
   ]

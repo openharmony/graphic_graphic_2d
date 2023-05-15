@@ -27,6 +27,11 @@ public:
     ColorFilterCmdList() = default;
     ~ColorFilterCmdList() override = default;
 
+    uint32_t GetType() const override
+    {
+        return Type::COLOR_FILTER_CMD_LIST;
+    }
+
     /*
      * @brief       Creates a ColorFilterCmdList with contiguous buffers.
      * @param data  A contiguous buffers.
@@ -42,7 +47,7 @@ public:
 /* OpItem */
 class ColorFilterOpItem : public OpItem {
 public:
-    ColorFilterOpItem(uint32_t type) : OpItem(type) {}
+    explicit ColorFilterOpItem(uint32_t type) : OpItem(type) {}
     ~ColorFilterOpItem() = default;
 
     enum Type : uint32_t {
@@ -70,18 +75,18 @@ private:
 
 class CreateComposeOpItem : public ColorFilterOpItem {
 public:
-    CreateComposeOpItem(const CmdListSiteInfo& f1, const CmdListSiteInfo& f2);
+    CreateComposeOpItem(const CmdListHandle& f1, const CmdListHandle& f2);
     ~CreateComposeOpItem() = default;
 
-    std::shared_ptr<ColorFilter> Playback(const MemAllocator& allocator) const;
+    std::shared_ptr<ColorFilter> Playback(const CmdList& cmdList) const;
 private:
-    CmdListSiteInfo colorFilter1_;
-    CmdListSiteInfo colorFilter2_;
+    CmdListHandle colorFilter1_;
+    CmdListHandle colorFilter2_;
 };
 
 class CreateMatrixOpItem : public ColorFilterOpItem {
 public:
-    CreateMatrixOpItem(const ColorMatrix& m);
+    explicit CreateMatrixOpItem(const ColorMatrix& m);
     ~CreateMatrixOpItem() = default;
 
     std::shared_ptr<ColorFilter> Playback() const;
@@ -115,12 +120,12 @@ public:
 
 class ColorFilterComposeOpItem : public ColorFilterOpItem {
 public:
-    ColorFilterComposeOpItem(const CmdListSiteInfo& filter);
+    explicit ColorFilterComposeOpItem(const CmdListHandle& filter);
     ~ColorFilterComposeOpItem() = default;
 
-    void Playback(ColorFilter& filter, const MemAllocator& allocator) const;
+    void Playback(ColorFilter& filter, const CmdList& cmdList) const;
 private:
-    CmdListSiteInfo filter_;
+    CmdListHandle filter_;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -268,14 +268,8 @@ RectI RSDrivenRenderManager::CalcUniRenderSurfaceClipHoleRect()
         if (clipHoleRect.IsZero()) {
             clipHoleRect = property.GetFrame();
         }
-
-        static int pixel = -1; // clip hole rect should large than content bounds
-        auto x = std::ceil(clipHoleRect.x_ + pixel); // x decrease 1 pixel
-        auto y = std::ceil(clipHoleRect.y_ + pixel); // y decrease 1 pixel
-        auto width = std::floor(clipHoleRect.z_ - (2 * pixel)); // width increase 2 pixels
-        auto height = std::floor(clipHoleRect.w_ - (2 * pixel)); // height increase 2 pixels
         auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
-        rect = geoPtr->MapAbsRect(RectF(x, y, width, height));
+        rect = geoPtr->MapAbsRect(RectF(clipHoleRect.x_, clipHoleRect.y_, clipHoleRect.z_, clipHoleRect.w_));
     }
     return rect;
 }

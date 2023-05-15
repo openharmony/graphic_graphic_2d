@@ -68,7 +68,7 @@ HWTEST_F(RSParallelSubThreadTest, StartSubThreadPrepareTest, TestSize.Level1)
         auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
         rsSurfaceRenderNodeList.push_back(rsSurfaceRenderNode);
         rsSurfaceRenderNode->SetSrcRect(RectI((i - 1) * 10, (i - 1) * 10, i * 10, i * 10));
-        rsSurfaceRenderNode->SetFreeze(false);
+        rsSurfaceRenderNode->SetStaticCached(false);
         rsSurfaceRenderNode->SetSecurityLayer(true);
         rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, i);
     }
@@ -106,7 +106,7 @@ HWTEST_F(RSParallelSubThreadTest, StartSubThreadProcessTest, TestSize.Level1)
         auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
         rsSurfaceRenderNodeList.push_back(rsSurfaceRenderNode);
         rsSurfaceRenderNode->SetSrcRect(RectI((i - 1) * 10, (i - 1) * 10, i * 10, i * 10));
-        rsSurfaceRenderNode->SetFreeze(false);
+        rsSurfaceRenderNode->SetStaticCached(false);
         rsSurfaceRenderNode->SetSecurityLayer(true);
         rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, i);
     }
@@ -181,7 +181,6 @@ HWTEST_F(RSParallelSubThreadTest, CalcCostTest3, TestSize.Level1)
     curThread->CalcCost();
     ASSERT_FALSE(curThread->threadTask_ == nullptr);
 }
-
 /**
  * @tc.name: CalcCostTest
  * @tc.desc: Test RSParallelSubThreadTest.CalcCostTest
@@ -206,5 +205,4 @@ HWTEST_F(RSParallelSubThreadTest, CalcCostTest4, TestSize.Level1)
     curThread->CalcCost();
     ASSERT_FALSE(curThread->threadTask_ == nullptr);
 }
-
 } // namespace OHOS::Rosen

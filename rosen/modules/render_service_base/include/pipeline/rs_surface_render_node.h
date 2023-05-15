@@ -57,7 +57,8 @@ public:
     explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, std::weak_ptr<RSContext> context = {});
     ~RSSurfaceRenderNode() override;
 
-    void ExtractSurfaceParams(RSPaintFilterCanvas& canvas);
+    void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
+    void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
     void ResetParent() override;
 
     bool IsAppWindow() const
@@ -192,8 +193,14 @@ public:
         bool isUniRender) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
+
+    void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas) override {}
     void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas) override;
+    void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
+
+    void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override {}
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
+    void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
 
     void SetContextBounds(const Vector4f bounds);
 
@@ -681,6 +688,8 @@ private:
     int32_t nodeCost_ = 0;
 
     bool animateState_ = false;
+
+    bool needDrawAnimateProperty_ = false;
 
     friend class RSUniRenderVisitor;
     friend class RSBaseRenderNode;

@@ -32,6 +32,8 @@ public:
 
     static ImageHandle AddImageToCmdList(CmdList& cmdList, const Image& image);
     static std::shared_ptr<Image> GetImageFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle);
+    static ImageHandle AddBitmapToCmdList(CmdList& cmdList, const Bitmap& bitmap);
+    static std::shared_ptr<Bitmap> GetBitmapFromCmdList(const CmdList& cmdList, const ImageHandle& bitmapHandle);
     static ImageHandle AddPictureToCmdList(CmdList& cmdList, const Picture& picture);
     static std::shared_ptr<Picture> GetPictureFromCmdList(const CmdList& cmdList, const ImageHandle& pictureHandle);
 
@@ -48,6 +50,17 @@ public:
 
     template<typename Recorded>
     static CmdListHandle AddRecordedToCmdList(CmdList& cmdList, const std::shared_ptr<Recorded>& recorded)
+    {
+        if (recorded == nullptr || recorded->GetCmdList() == nullptr) {
+            LOGE("recorded is invalid!");
+            return { 0 };
+        }
+
+        return AddChildToCmdList(cmdList, recorded->GetCmdList());
+    }
+
+    template<typename Recorded>
+    static CmdListHandle AddRecordedToCmdList(CmdList& cmdList, const Recorded* recorded)
     {
         if (recorded == nullptr || recorded->GetCmdList() == nullptr) {
             LOGE("recorded is invalid!");

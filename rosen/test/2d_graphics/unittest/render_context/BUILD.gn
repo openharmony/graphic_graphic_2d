@@ -34,7 +34,8 @@ ohos_unittest("RenderContextTest") {
 
 ## Build render_context.a {{{
 config("render_context_public_config") {
-  include_dirs = [ "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/render_context" ]
+  include_dirs =
+      [ "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context" ]
 
   cflags = [
     "-Wall",
@@ -52,7 +53,7 @@ ohos_static_library("render_context") {
   public_configs = [ ":render_context_public_config" ]
 
   public_deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "//third_party/googletest:gtest_main",
   ]
   subsystem_name = "graphic"
@@ -70,9 +71,9 @@ ohos_unittest("2d_graphics_shader_cache_test") {
   ]
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_engine",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/render_context",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_engine",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
   ]
 
   if (defined(use_new_skia) && use_new_skia) {
@@ -82,9 +83,9 @@ ohos_unittest("2d_graphics_shader_cache_test") {
   }
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//third_party/googletest:gtest_main",
   ]
 
