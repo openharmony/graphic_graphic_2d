@@ -22,7 +22,7 @@ config("render_config") {
 
 ohos_source_set("webgl_src") {
   include_dirs = [
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
+    "$graphic_2d_root/interfaces/inner_api/surface",
     "src",
     "//third_party/node/src",
     "//commonlibrary/c_utils/base/include",
@@ -72,7 +72,7 @@ ohos_source_set("webgl_src") {
       "src/webgl/src/webgl_vertex_array_object.cpp",
     ]
 
-    deps += [ "//foundation/graphic/graphic_2d:libgl" ]
+    deps += [ "$graphic_2d_root:libgl" ]
   }
 
   cflags = [

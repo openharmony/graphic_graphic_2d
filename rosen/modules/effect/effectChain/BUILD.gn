@@ -35,7 +35,7 @@ config("effect_public_config") {
   include_dirs = [
     "//third_party/cJSON",
     "//foundation/multimedia/image_framework/interfaces/innerkits/include",
-    "//foundation/graphic/graphic_2d/utils/log",
+    "$graphic_2d_root/utils/log",
     "include",
   ]
   if (effect_enable_gpu) {
@@ -76,7 +76,7 @@ ohos_shared_library("libeffectchain") {
       "src/vertical_blur_filter.cpp",
     ]
 
-    deps += [ "//foundation/graphic/graphic_2d:libgl" ]
+    deps += [ "$graphic_2d_root:libgl" ]
   }
 
   configs = [ ":effect_config" ]

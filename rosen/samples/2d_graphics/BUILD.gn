@@ -62,9 +62,9 @@ ohos_executable("drawing_engine_sample") {
     "include",
     "drawing_engine",
     "drawing_engine/drawing_surface",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/graphic_2d/utils/sync_fence/export",
-    "//foundation/graphic/graphic_2d/rosen/include/common",
+    "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+    "$graphic_2d_root/utils/sync_fence/export",
+    "$graphic_2d_root/rosen/include/common",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]
 
@@ -85,9 +85,9 @@ ohos_executable("drawing_engine_sample") {
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d:libsurface",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/graphic_2d/utils:sync_fence",
+    "$graphic_2d_root:libsurface",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/utils:sync_fence",
     "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
   public_deps = libgl
@@ -124,19 +124,19 @@ ohos_executable("drawing_sample_rs") {
   sources = [ "drawing_c_sample.cpp" ]
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client",
-    "//foundation/graphic/graphic_2d/rosen/include/common",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_client",
+    "$graphic_2d_root/rosen/include/common",
     "//foundation/window/window_manager/interfaces/innerkits/wm",
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "//third_party/zlib:libz",
   ]
 
@@ -152,20 +152,20 @@ ohos_executable("drawing_sample_canvaskit0310") {
   sources = [ "drawing_sample_canvaskit0310.cpp" ]
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/graphic_2d/rosen/include/common",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+    "$graphic_2d_root/rosen/include/common",
+    "$graphic_2d_root/interfaces/inner_api/common",
+    "$graphic_2d_root/rosen/modules/composer/vsync/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d:libsurface",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics_canvaskit0310",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
-    "//foundation/graphic/graphic_2d/utils:sync_fence",
+    "$graphic_2d_root:libsurface",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_canvaskit0310",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/utils:libgraphic_utils",
+    "$graphic_2d_root/utils:sync_fence",
   ]
 
   external_deps = [

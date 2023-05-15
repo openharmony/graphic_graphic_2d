@@ -130,8 +130,8 @@ template("graphics2d_source_set") {
       ]
       deps = [
         "$ace_flutter_engine_root:flutter_engine_fml_$platform",
-        "//foundation/graphic/graphic_2d/rosen/build/flutter/icu:rosen_libicu_$platform",
-        "//foundation/graphic/graphic_2d/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$platform",
+        "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
+        "$graphic_2d_root/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$platform",
         "//third_party/bounds_checking_function:libsec_static",
       ]
       include_dirs += [ "$flutter_root/engine" ]
@@ -267,7 +267,7 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
 
   if (!is_cross_platform_build) {
     deps = [
-      "//foundation/graphic/graphic_2d:libsurface",
+      "$graphic_2d_root:libsurface",
       # "//third_party/skia_canvaskit0310:skia",
     ]
   }

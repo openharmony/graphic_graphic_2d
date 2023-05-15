@@ -30,9 +30,9 @@ config("surface_config") {
 config("surface_public_config") {
   include_dirs = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
-    "//foundation/graphic/graphic_2d/utils/sandbox",
+    "$graphic_2d_root/interfaces/inner_api/surface",
+    "$graphic_2d_root/interfaces/inner_api/common",
+    "$graphic_2d_root/utils/sandbox",
   ]
 
   if (defined(graphic_2d_ext_configs.vendor_root)) {
@@ -78,16 +78,16 @@ ohos_shared_library("surface") {
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/utils/gslogger:libgslogger",
-    "//foundation/graphic/graphic_2d/utils/sync_fence:sync_fence",
+    "$graphic_2d_root/utils/gslogger:libgslogger",
+    "$graphic_2d_root/utils/sync_fence:sync_fence",
   ]
 
   public_deps = [
+    "$graphic_2d_root/utils/buffer_handle:buffer_handle",
+    "$graphic_2d_root/utils/sandbox:sandbox_utils",
+    "$graphic_2d_root/utils/scoped_bytrace:scoped_bytrace",
     "//commonlibrary/c_utils/base:utils",
     "//drivers/peripheral/display/hdi_service/gralloc/client:hdi_gralloc_client",
-    "//foundation/graphic/graphic_2d/utils/buffer_handle:buffer_handle",
-    "//foundation/graphic/graphic_2d/utils/sandbox:sandbox_utils",
-    "//foundation/graphic/graphic_2d/utils/scoped_bytrace:scoped_bytrace",
     "//third_party/EGL:libEGL",
     "//third_party/openGLES:libGLES",
   ]

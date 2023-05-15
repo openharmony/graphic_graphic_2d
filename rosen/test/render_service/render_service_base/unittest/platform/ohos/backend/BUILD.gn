@@ -30,18 +30,18 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
   configs = [
     ":render_test",
     "$ace_root:ace_test_config",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:export_config",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
   ]
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/rosen/include",
-    "//foundation/graphic/graphic_2d/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "//third_party/googletest:gtest_main",
   ]
   if (defined(use_new_skia) && use_new_skia) {
@@ -63,7 +63,7 @@ config("render_test") {
   visibility = [ ":*" ]
   include_dirs = [
     "$ace_root",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base",
   ]
 }
 

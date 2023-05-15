@@ -195,8 +195,8 @@ ohos_source_set("render_service_base_src") {
 
   include_dirs = [
     "$graphic_2d_root/frameworks/surface/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/utils/log",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/utils/log",
   ]
   if (defined(use_new_skia) && use_new_skia) {
     include_dirs += [ "//third_party/skia/src" ]

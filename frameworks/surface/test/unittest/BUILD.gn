@@ -197,7 +197,7 @@ ohos_unittest("native_image_test") {
 ## Build surface_test_common.a {{{
 config("surface_test_common_public_config") {
   include_dirs = [
-    "//foundation/graphic/graphic_2d/frameworks/surface/include",
+    "$graphic_2d_root/frameworks/surface/include",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
     "//base/security/access_token/interfaces/innerkits/nativetoken/include",
     "//base/security/access_token/interfaces/innerkits/accesstoken/include",
@@ -220,15 +220,15 @@ ohos_static_library("surface_test_common") {
   public_configs = [ ":surface_test_common_public_config" ]
 
   public_deps = [
+    "$graphic_2d_root:libnative_image",
+    "$graphic_2d_root:libsurface",
+    "$graphic_2d_root/utils:buffer_handle",
+    "$graphic_2d_root/utils:libgraphic_utils",
+    "$graphic_2d_root/utils:sync_fence",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//base/security/access_token/interfaces/innerkits/accesstoken:libaccesstoken_sdk",
     "//base/security/access_token/interfaces/innerkits/nativetoken:libnativetoken",
     "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
-    "//foundation/graphic/graphic_2d:libnative_image",
-    "//foundation/graphic/graphic_2d:libsurface",
-    "//foundation/graphic/graphic_2d/utils:buffer_handle",
-    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
-    "//foundation/graphic/graphic_2d/utils:sync_fence",
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gtest_main",
   ]
