@@ -1051,7 +1051,6 @@ void RSUniRenderVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 
     for (auto& child : node.GetSortedChildren()) {
         if (ProcessSharedTransitionNode(*child)) {
-            RSAutoCanvasRestore acr(canvas_);
             child->Process(shared_from_this());
         }
 
@@ -1961,7 +1960,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (RSSystemProperties::GetProxyNodeDebugEnabled() && node.contextClipRect_.has_value() && canvas_ != nullptr) {
         // draw transparent red rect to indicate valid clip area
         {
-            SkAutoCanvasRestore acr(canvas_.get(), true);
+            RSAutoCanvasRestore acr(canvas_);
             canvas_->concat(node.contextMatrix_.value_or(SkMatrix::I()));
             SkPaint paint;
             paint.setARGB(0x80, 0xFF, 0, 0); // transparent red
@@ -2211,6 +2210,7 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     }
 
     ColorFilterMode colorFilterMode = renderEngine_->GetColorFilterMode();
+    int saveCount;
     if (colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
         colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE) {
         RS_LOGD("RsDebug RSBaseRenderEngine::SetColorFilterModeToPaint mode:%d", static_cast<int32_t>(colorFilterMode));
@@ -2219,9 +2219,12 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #ifndef NEW_SKIA
         RSTagTracker tagTracker(canvas_->getGrContext(), RSTagTracker::TAGTYPE::TAG_SAVELAYER_COLOR_FILTER);
 #endif
-        canvas_->saveLayer(nullptr, &paint);
+        saveCount = canvas_->saveLayer(nullptr, &paint);
+    } else {
+        saveCount = canvas_->save();
     }
     ProcessCanvasRenderNode(node);
+    canvas_->restoreToCount(saveCount);
 }
 
 void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)

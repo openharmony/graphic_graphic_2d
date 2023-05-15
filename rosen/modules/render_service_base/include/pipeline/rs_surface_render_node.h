@@ -57,7 +57,8 @@ public:
     explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, std::weak_ptr<RSContext> context = {});
     ~RSSurfaceRenderNode() override;
 
-    void ExtractSurfaceParams(RSPaintFilterCanvas& canvas);
+    void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
+    void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
     void ResetParent() override;
 
     bool IsAppWindow() const
