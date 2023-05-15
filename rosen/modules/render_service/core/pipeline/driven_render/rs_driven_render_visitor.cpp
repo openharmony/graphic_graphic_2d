@@ -104,7 +104,6 @@ void RSDrivenRenderVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
         return;
     }
     for (auto& child : node.GetSortedChildren()) {
-        RSAutoCanvasRestore autoRestore(canvas_);
         child->Process(shared_from_this());
     }
     // clear SortedChildren, it will be generated again in next frame

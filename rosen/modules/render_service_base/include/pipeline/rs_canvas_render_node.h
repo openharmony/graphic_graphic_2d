@@ -40,15 +40,13 @@ public:
     void UpdateRecording(std::shared_ptr<DrawCmdList> drawCmds, RSModifierType type);
     void ClearRecording();
 
+    void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
+    void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas) override;
-    void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
-
     void ProcessRenderContents(RSPaintFilterCanvas& canvas) override;
-
-    void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
-    void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
+    void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override;
 
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
@@ -73,6 +71,7 @@ private:
     void DrawDrivenContent(RSPaintFilterCanvas& canvas);
     // functions that are dedicated to driven render [end]
 
+    RSPaintFilterCanvas::SaveStatus canvasNodeSaveCount_;
     mutable std::mutex canvasNodeProcessMutex_;
 
     friend class RSRenderTransition;

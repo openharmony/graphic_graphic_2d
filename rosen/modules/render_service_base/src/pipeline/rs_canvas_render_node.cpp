@@ -98,6 +98,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
     }
     ApplyDrawCmdModifier(context, RSModifierType::BACKGROUND_STYLE);
 
+    canvasNodeSaveCount_ = canvas.Save();
     ApplyDrawCmdModifier(context, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
     canvas.translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
 
@@ -123,6 +124,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
     ApplyDrawCmdModifier(context, RSModifierType::FOREGROUND_STYLE);
 
+    canvas.RestoreStatus(canvasNodeSaveCount_);
     auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetFilter());
     if (GetRenderProperties().IsLightUpEffectValid()) {
         std::shared_ptr<RSSkiaFilter> lightUpFilter =
@@ -147,6 +149,7 @@ void RSCanvasRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
     ProcessAnimatePropertyAfterChildren(canvas);
     ProcessTransitionAfterChildren(canvas);
+    canvas.RestoreEnv();
 }
 
 void RSCanvasRenderNode::ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type) const
@@ -204,6 +207,7 @@ void RSCanvasRenderNode::ProcessDrivenBackgroundRender(RSPaintFilterCanvas& canv
 void RSCanvasRenderNode::ProcessDrivenContentRender(RSPaintFilterCanvas& canvas)
 {
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    canvasNodeSaveCount_ = canvas.Save();
     canvas.translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
     DrawDrivenContent(canvas);
 #endif
@@ -217,6 +221,7 @@ void RSCanvasRenderNode::ProcessDrivenContentRenderAfterChildren(RSPaintFilterCa
     ApplyDrawCmdModifier(context, RSModifierType::FOREGROUND_STYLE);
 
     GetMutableRenderProperties().ResetBounds();
+    canvas.RestoreStatus(canvasNodeSaveCount_);
 #endif
 }
 
