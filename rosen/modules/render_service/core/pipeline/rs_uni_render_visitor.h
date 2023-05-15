@@ -166,7 +166,10 @@ private:
      * global dirty region will be skipped
      */
     void CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node) const;
-    void CalcDirtyRegionForFilterNode(std::shared_ptr<RSDisplayRenderNode>& node);
+    void CalcDirtyRegionForFilterNode(const RectI filterRect,
+        std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
+        std::shared_ptr<RSDisplayRenderNode>& displayNode);
+    void CalcDirtyFilterRegion(std::shared_ptr<RSDisplayRenderNode>& node);
     // set global dirty region to each surface node
     void SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node);
     void SetSurfaceGlobalAlignedDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node,

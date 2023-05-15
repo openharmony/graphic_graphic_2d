@@ -849,7 +849,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     // attention: accumulate direct parent's childrenRect
     node.UpdateParentChildrenRect(logicParentNode_.lock());
     if (property.NeedFilter() && curSurfaceNode_) {
-        // filterRects_ is used in RSUniRenderVisitor::CalcDirtyRegionForFilterNode
+        // filterRects_ is used in RSUniRenderVisitor::CalcDirtyFilterRegion
         // When oldDirtyRect of node with filter has intersect with any surfaceNode or displayNode dirtyRegion,
         // the whole oldDirtyRect should be render in this vsync.
         // Partial rendering of node with filter would cause display problem.
@@ -1284,7 +1284,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
         if (isPartialRenderEnabled_) {
             CalcDirtyDisplayRegion(displayNodePtr);
-            CalcDirtyRegionForFilterNode(displayNodePtr);
+            CalcDirtyFilterRegion(displayNodePtr);
             displayNodePtr->ClearCurrentSurfacePos();
         } else {
             // if isPartialRenderEnabled_ is disabled for some reason (i.e. screen rotation, pointer window, and window animation),
@@ -1745,56 +1745,83 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
     }
 }
 
-void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(std::shared_ptr<RSDisplayRenderNode>& node)
+void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(const RectI filterRect,
+    std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
+    std::shared_ptr<RSDisplayRenderNode>& displayNode)
 {
-    auto displayDirtyManager = node->GetDirtyManager();
-    RectI displayDirtyRect = displayDirtyManager ? displayDirtyManager->GetDirtyRegion() : RectI{0, 0, 0, 0};
-    for (auto it = node->GetCurAllSurfaces().begin(); it != node->GetCurAllSurfaces().end(); ++it) {
+    auto displayDirtyManager = displayNode->GetDirtyManager();
+    auto currentSurfaceDirtyManager = currentSurfaceNode->GetDirtyManager();
+    if (displayDirtyManager == nullptr || currentSurfaceDirtyManager == nullptr) {
+        return;
+    }
+
+    RectI displayDirtyRect = displayDirtyManager->GetDirtyRegion();
+    RectI currentSurfaceDirtyRect = currentSurfaceDirtyManager->GetDirtyRegion();
+
+    if (!displayDirtyRect.IntersectRect(filterRect).IsEmpty() ||
+        !currentSurfaceDirtyRect.IntersectRect(filterRect).IsEmpty()) {
+        currentSurfaceDirtyManager->MergeDirtyRect(filterRect);
+    }
+
+    if (currentSurfaceNode->IsTransparent()) {
+        if (!displayDirtyRect.IntersectRect(filterRect).IsEmpty()) {
+            displayDirtyManager->MergeDirtyRect(filterRect);
+            return;
+        }
+        // If currentSurfaceNode is transparent and displayDirtyRect is not intersect with filterRect,
+        // We should check whether window below currentSurfaceNode has dirtyRect intersect with filterRect.
+        for (auto belowSurface = displayNode->GetCurAllSurfaces().begin();
+            belowSurface != displayNode->GetCurAllSurfaces().end(); ++belowSurface) {
+            auto belowSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*belowSurface);
+            if (belowSurfaceNode == currentSurfaceNode) {
+                break;
+            }
+            if (belowSurfaceNode == nullptr || !belowSurfaceNode->IsAppWindow()) {
+                continue;
+            }
+            auto belowSurfaceDirtyManager = belowSurfaceNode->GetDirtyManager();
+            RectI belowDirtyRect =
+                belowSurfaceDirtyManager ? belowSurfaceDirtyManager->GetDirtyRegion() : RectI{0, 0, 0, 0};
+            if (belowDirtyRect.IsEmpty()) {
+                continue;
+            }
+            // To minimize dirtyRect, only filterRect has intersect with both visibleRegion and dirtyRect
+            // of window below, we add filterRect to displayDirtyRect and currentSurfaceDirtyRect.
+            if (belowSurfaceNode->GetVisibleRegion().IsIntersectWith(filterRect) &&
+                !belowDirtyRect.IntersectRect(filterRect).IsEmpty()) {
+                displayDirtyManager->MergeDirtyRect(filterRect);
+                currentSurfaceDirtyManager->MergeDirtyRect(filterRect);
+                break;
+            }
+        }
+    }
+}
+
+void RSUniRenderVisitor::CalcDirtyFilterRegion(std::shared_ptr<RSDisplayRenderNode>& displayNode)
+{
+    if (displayNode == nullptr) {
+        return;
+    }
+    for (auto it = displayNode->GetCurAllSurfaces().begin();
+        it != displayNode->GetCurAllSurfaces().end(); ++it) {
         auto currentSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (currentSurfaceNode == nullptr) {
             continue;
         }
-        auto currentSurfaceDirtyManager = currentSurfaceNode->GetDirtyManager();
-        RectI currentSurfaceDirtyRect = currentSurfaceDirtyManager->GetDirtyRegion();
-
         // child node (component) has filter
         auto filterRects = currentSurfaceNode->GetChildrenNeedFilterRects();
         if (currentSurfaceNode->IsAppWindow() && !filterRects.empty()) {
             needFilter_ = needFilter_ || !currentSurfaceNode->IsStaticCached();
-            for (auto subRect : filterRects) {
-                if (!displayDirtyRect.IntersectRect(subRect).IsEmpty()) {
-                    if (currentSurfaceNode->IsTransparent()) {
-                        displayDirtyManager->MergeDirtyRect(subRect);
-                    }
-                    currentSurfaceDirtyManager->MergeDirtyRect(subRect);
-                } else if (!currentSurfaceDirtyRect.IntersectRect(subRect).IsEmpty()) {
-                    currentSurfaceDirtyManager->MergeDirtyRect(subRect);
-                }
+            for (auto filterRect : filterRects) {
+                CalcDirtyRegionForFilterNode(
+                    filterRect, currentSurfaceNode, displayNode);
             }
         }
-
         // surfaceNode self has filter
         if (currentSurfaceNode->GetRenderProperties().NeedFilter()) {
             needFilter_ = needFilter_ || !currentSurfaceNode->IsStaticCached();
-            if (!displayDirtyRect.IntersectRect(currentSurfaceNode->GetOldDirtyInSurface()).IsEmpty() ||
-                !currentSurfaceDirtyRect.IntersectRect(currentSurfaceNode->GetOldDirtyInSurface()).IsEmpty()) {
-                currentSurfaceDirtyManager->MergeDirtyRect(currentSurfaceNode->GetOldDirtyInSurface());
-            }
-
-            if (currentSurfaceNode->IsTransparent()) {
-                for (auto& iter : node->GetCurAllSurfaces()) {
-                    auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(iter);
-                    if (surfaceNode == nullptr) {
-                        continue;
-                    }
-                    if (!surfaceNode->GetDirtyManager()->GetDirtyRegion().IntersectRect(
-                        currentSurfaceNode->GetOldDirtyInSurface()).IsEmpty()) {
-                        currentSurfaceDirtyManager->MergeDirtyRect(currentSurfaceNode->GetOldDirtyInSurface());
-                        displayDirtyManager->MergeDirtyRect(currentSurfaceNode->GetOldDirtyInSurface());
-                        break;
-                    }
-                }
-            }
+            CalcDirtyRegionForFilterNode(
+                currentSurfaceNode->GetOldDirtyInSurface(), currentSurfaceNode, displayNode);
         }
     }
     if (needFilter_) { // when need draw filter, disable hardware composer
