@@ -70,8 +70,7 @@ group("unittest") {
 
 ###############################################################################
 config("pipeline_test") {
-  include_dirs =
-      [ "//foundation/graphic/graphic_2d/rosen/modules/render_service/core" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service/core" ]
 }
 
 ## Build RSVirtualScreenProcessorTest
@@ -412,11 +411,11 @@ ohos_unittest("RSUnmarshalThreadTest") {
 ## Build rs_test_common.a {{{
 config("rs_test_common_public_config") {
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service/core",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/rosen/test/include",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/test/include",
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
   ]
 
@@ -438,11 +437,11 @@ ohos_static_library("rs_test_common") {
   public_configs = [ ":rs_test_common_public_config" ]
 
   public_deps = [
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//third_party/googletest:gtest_main",
   ]
 

@@ -19,10 +19,10 @@ import("//foundation/graphic/graphic_2d/rosen/modules/effect/effect_config.gni")
 
 ohos_shared_library("libegl_effect") {
   include_dirs = [
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
+    "$graphic_2d_root/interfaces/inner_api/surface",
     "//third_party/EGL/api",
     "//third_party/openGLES/api",
-    "//foundation/graphic/graphic_2d/utils/log",
+    "$graphic_2d_root/utils/log",
     "include",
   ]
 
@@ -46,7 +46,7 @@ ohos_shared_library("libegl_effect") {
   if (effect_enable_gpu) {
     sources += [ "src/egl_manager.cpp" ]
 
-    deps += [ "//foundation/graphic/graphic_2d:libgl" ]
+    deps += [ "$graphic_2d_root:libgl" ]
   }
 
   if (effect_enable_gpu) {

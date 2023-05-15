@@ -26,18 +26,18 @@ ohos_executable("test_effect_chain") {
     sources = [ "test_effect_chain.cpp" ]
 
     include_dirs = [
-      "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain/include",
-      "//foundation/graphic/graphic_2d/rosen/modules/effect/egl/include",
-      "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
+      "$graphic_2d_root/rosen/modules/effect/effectChain/include",
+      "$graphic_2d_root/rosen/modules/effect/egl/include",
+      "$graphic_2d_root/interfaces/inner_api/surface",
       "//third_party/EGL/api",
       "//third_party/openGLES/api",
     ]
 
     deps = [
-      "//foundation/graphic/graphic_2d:libgl",
-      "//foundation/graphic/graphic_2d:libsurface",
-      "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
-      "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
+      "$graphic_2d_root:libgl",
+      "$graphic_2d_root:libsurface",
+      "$graphic_2d_root/rosen/modules/effect/effectChain:libeffectchain",
+      "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect",
     ]
 
     external_deps = [ "c_utils:utils" ]
