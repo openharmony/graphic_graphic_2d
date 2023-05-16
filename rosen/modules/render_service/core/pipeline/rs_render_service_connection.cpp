@@ -95,6 +95,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
         CleanVirtualScreens();
         CleanRenderNodes();
         mainThread_->ClearTransactionDataPidInfo(remotePid_);
+        mainThread_->UnRegisterOcclusionChangeCallback(remotePid_);
     }).wait();
 
     for (auto& conn : vsyncConnections_) {
@@ -678,18 +679,7 @@ int32_t RSRenderServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclu
         RS_LOGD("RSRenderServiceConnection::RegisterOcclusionChangeCallback: callback is nullptr");
         return StatusCode::INVALID_ARGUMENTS;
     }
-    mainThread_->RegisterOcclusionChangeCallback(callback);
-    return StatusCode::SUCCESS;
-}
-
-int32_t RSRenderServiceConnection::UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (!callback) {
-        RS_LOGD("RSRenderServiceConnection::UnRegisterOcclusionChangeCallback: callback is nullptr");
-        return StatusCode::INVALID_ARGUMENTS;
-    }
-    mainThread_->UnRegisterOcclusionChangeCallback(callback);
+    mainThread_->RegisterOcclusionChangeCallback(remotePid_, callback);
     return StatusCode::SUCCESS;
 }
 

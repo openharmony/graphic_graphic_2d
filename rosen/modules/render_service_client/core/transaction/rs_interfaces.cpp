@@ -266,11 +266,6 @@ int32_t RSInterfaces::RegisterOcclusionChangeCallback(const OcclusionChangeCallb
     return renderServiceClient_->RegisterOcclusionChangeCallback(callback);
 }
 
-int32_t RSInterfaces::UnRegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
-{
-    return renderServiceClient_->UnRegisterOcclusionChangeCallback(callback);
-}
-
 void RSInterfaces::SetAppWindowNum(uint32_t num)
 {
     renderServiceClient_->SetAppWindowNum(num);

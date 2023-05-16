@@ -298,19 +298,7 @@ HWTEST_F(RSMainThreadTest, Animate002, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, UnRegisterOcclusionChangeCallback, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    mainThread->UnRegisterOcclusionChangeCallback(nullptr);
-}
-
-/**
- * @tc.name: CleanOcclusionListener
- * @tc.desc: Test RSMainThreadTest.CleanOcclusionListener
- * @tc.type: FUNC
- * @tc.require: issueI60QXK
- */
-HWTEST_F(RSMainThreadTest, CleanOcclusionListener, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    mainThread->CleanOcclusionListener();
+    mainThread->UnRegisterOcclusionChangeCallback(0);
 }
 
 /**

@@ -183,33 +183,6 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub004
     res = connectionStub_->OnRemoteRequest(
         RSRenderServiceConnectionStub::REGISTER_OCCLUSION_CHANGE_CALLBACK, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::UNREGISTER_OCCLUSION_CHANGE_CALLBACK, data, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_STATE);
-}
-
-/**
- * @tc.name: TestRSRenderServiceConnectionStub005
- * @tc.desc: Test if data has content.
- * @tc.type: FUNC
- * @tc.require: issueI60KUK
- */
-HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub005, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    int res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_SURFACE, data, reply, option);
-    ASSERT_EQ(res, ERR_NULL_OBJECT);
-
-    MessageParcel data4;
-    data4.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::UNREGISTER_OCCLUSION_CHANGE_CALLBACK, data4, reply, option);
-    ASSERT_EQ(res, ERR_NULL_OBJECT);
 }
 
 /**
@@ -218,7 +191,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub005
  * @tc.type: FUNC
  * @tc.require: issueI60KUK
  */
-HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub006, TestSize.Level1)
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub005, TestSize.Level1)
 {
     MessageParcel data;
     MessageParcel reply;

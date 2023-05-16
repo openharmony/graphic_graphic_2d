@@ -121,9 +121,8 @@ public:
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
 
-    void RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback);
-    void UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback);
-    void CleanOcclusionListener();
+    void RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback);
+    void UnRegisterOcclusionChangeCallback(pid_t pid);
 
     void WaitUtilUniRenderFinished();
     void NotifyUniRenderFinish();
@@ -248,7 +247,7 @@ private:
     std::shared_ptr<RSContext> context_;
     std::thread::id mainThreadId_;
     std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
-    std::vector<sptr<RSIOcclusionChangeCallback>> occlusionListeners_;
+    std::map<pid_t, sptr<RSIOcclusionChangeCallback>> occlusionListeners_;
 
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     RSTaskMessage::RSTask unmarshalBarrierTask_;

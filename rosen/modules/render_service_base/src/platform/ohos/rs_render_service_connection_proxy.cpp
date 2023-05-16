@@ -965,25 +965,6 @@ int32_t RSRenderServiceConnectionProxy::RegisterOcclusionChangeCallback(sptr<RSI
     return result;
 }
 
-int32_t RSRenderServiceConnectionProxy::UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return RS_CONNECTION_ERROR;
-    }
-    option.SetFlags(MessageOption::TF_SYNC);
-    data.WriteRemoteObject(callback->AsObject());
-    int32_t err = Remote()->SendRequest(
-        RSIRenderServiceConnection::UNREGISTER_OCCLUSION_CHANGE_CALLBACK, data, reply, option);
-    if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
-    }
-    int32_t result = reply.ReadInt32();
-    return result;
-}
-
 void RSRenderServiceConnectionProxy::SetAppWindowNum(uint32_t num)
 {
     MessageParcel data;
