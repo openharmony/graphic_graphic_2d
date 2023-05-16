@@ -75,10 +75,9 @@ HWTEST_F(ImageTest, BuildFromBitmap001, TestSize.Level1)
 
 /**
  * @tc.name: BuildFromPicture001
- * @tc.desc:
+ * @tc.desc: test for creating Image from Picture.
  * @tc.type: FUNC
- * @tc.require:AR000GGNV3
- * @tc.author:
+ * @tc.require: I70OWN
  */
 HWTEST_F(ImageTest, BuildFromPicture001, TestSize.Level1)
 {
@@ -163,10 +162,9 @@ HWTEST_F(ImageTest, ImageGetHeightTest002, TestSize.Level1)
 
 /**
  * @tc.name: ImageGetUniqueIDTest001
- * @tc.desc:
+ * @tc.desc: test for geting the unique Id of Image.
  * @tc.type: FUNC
- * @tc.require:AR000GGNV3
- * @tc.author:
+ * @tc.require: I70OWN
  */
 HWTEST_F(ImageTest, ImageGetUniqueIDTest001, TestSize.Level1)
 {
@@ -180,10 +178,9 @@ HWTEST_F(ImageTest, ImageGetUniqueIDTest001, TestSize.Level1)
 
 /**
  * @tc.name: ReadPixelsTest001
- * @tc.desc:
+ * @tc.desc: test for Coping a Rect of pixels from Image to Bitmap.
  * @tc.type: FUNC
- * @tc.require:AR000GGNV3
- * @tc.author:
+ * @tc.require: I70OWN
  */
 HWTEST_F(ImageTest, ReadPixelsTest001, TestSize.Level1)
 {
@@ -196,10 +193,9 @@ HWTEST_F(ImageTest, ReadPixelsTest001, TestSize.Level1)
 
 /**
  * @tc.name: ReadPixelsTest002
- * @tc.desc:
+ * @tc.desc: test for Coping a Rect of pixels from Image to Bitmap.
  * @tc.type: FUNC
- * @tc.require:AR000GGNV3
- * @tc.author:
+ * @tc.require: I70OWN
  */
 HWTEST_F(ImageTest, ReadPixelsTest002, TestSize.Level1)
 {
@@ -215,10 +211,9 @@ HWTEST_F(ImageTest, ReadPixelsTest002, TestSize.Level1)
 
 /**
  * @tc.name: IsTextureBackedTest001
- * @tc.desc:
+ * @tc.desc: test for IsTextureBacked function.
  * @tc.type: FUNC
- * @tc.require:AR000GGNV3
- * @tc.author:
+ * @tc.require: I70OWN
  */
 HWTEST_F(ImageTest, IsTextureBackedTest001, TestSize.Level1)
 {
@@ -233,10 +228,9 @@ HWTEST_F(ImageTest, IsTextureBackedTest001, TestSize.Level1)
 #ifdef ACE_ENABLE_GPU
 /**
  * @tc.name: BuildFromCompressedTest001
- * @tc.desc:
+ * @tc.desc: test for creating a GPU-backed Image from compressed data.
  * @tc.type: FUNC
- * @tc.require:AR000GGNV3
- * @tc.author:
+ * @tc.require: I70OWN
  */
 HWTEST_F(ImageTest, BuildFromCompressedTest001, TestSize.Level1)
 {
@@ -249,10 +243,9 @@ HWTEST_F(ImageTest, BuildFromCompressedTest001, TestSize.Level1)
 
 /**
  * @tc.name: BuildFromCompressedTest002
- * @tc.desc:
+ * @tc.desc: test for creating a GPU-backed Image from compressed data.
  * @tc.type: FUNC
- * @tc.require:AR000GGNV3
- * @tc.author:
+ * @tc.require: I70OWN
  */
 HWTEST_F(ImageTest, BuildFromCompressedTest002, TestSize.Level1)
 {
@@ -266,10 +259,9 @@ HWTEST_F(ImageTest, BuildFromCompressedTest002, TestSize.Level1)
 
 /**
  * @tc.name: BuildFromCompressedTest003
- * @tc.desc:
+ * @tc.desc: test for creating a GPU-backed Image from compressed data.
  * @tc.type: FUNC
- * @tc.require:AR000GGNV3
- * @tc.author:
+ * @tc.require: I70OWN
  */
 HWTEST_F(ImageTest, BuildFromCompressedTest003, TestSize.Level1)
 {
@@ -283,10 +275,9 @@ HWTEST_F(ImageTest, BuildFromCompressedTest003, TestSize.Level1)
 
 /**
  * @tc.name: BuildFromBitmapTest001
- * @tc.desc:
+ * @tc.desc: test for creating Image from Bitmap. Image is uploaded to GPU back-end using context.
  * @tc.type: FUNC
- * @tc.require:AR000GGNV3
- * @tc.author:
+ * @tc.require: I70OWN
  */
 HWTEST_F(ImageTest, BuildFromBitmapTest001, TestSize.Level1)
 {
@@ -297,6 +288,24 @@ HWTEST_F(ImageTest, BuildFromBitmapTest001, TestSize.Level1)
     std::unique_ptr<Image> image = std::make_unique<Image>();
     ASSERT_TRUE(image != nullptr);
     image->BuildFromBitmap(gpuContext, bitmap);
+}
+
+/**
+ * @tc.name: BuildFromTextureTest001
+ * @tc.desc: test for creating Image from GPU texture associated with context.
+ * @tc.type: FUNC
+ * @tc.require: I70OWN
+ */
+HWTEST_F(ImageTest, BuildFromTextureTest001, TestSize.Level1)
+{
+    GPUContext gpuContext;
+    TextureInfo info;
+    info.SetWidth(10);
+    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
+    std::shared_ptr<ColorSpace> colorSpace(new ColorSpace(ColorSpace::ColorSpaceType::NO_TYPE));
+    std::unique_ptr<Image> image = std::make_unique<Image>();
+    ASSERT_TRUE(image != nullptr);
+    image->BuildFromTexture(gpuContext, info, TextureOrigin::TOP_LEFT, bitmapFormat, colorSpace);
 }
 #endif
 } // namespace Drawing
