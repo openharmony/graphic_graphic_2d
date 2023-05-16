@@ -58,7 +58,7 @@ HWTEST_F(CanvasTest, CreateAndDestroy001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasSaveLayerTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     SaveLayerOps saveLayerOps;
     canvas->SaveLayer(saveLayerOps);
 }
@@ -72,7 +72,7 @@ HWTEST_F(CanvasTest, CanvasSaveLayerTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasSaveLayerTest002, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Rect rect(0.0f, 0.0f, 10.0f, 20.0f);
     Brush brush;
     uint32_t saveLayerFlags = 0;
@@ -89,7 +89,7 @@ HWTEST_F(CanvasTest, CanvasSaveLayerTest002, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasRestoreTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Rect rect(0.0f, 0.0f, 10.0f, 20.0f);
     Brush brush;
     uint32_t saveLayerFlags = 0;
@@ -107,7 +107,7 @@ HWTEST_F(CanvasTest, CanvasRestoreTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasGetSaveCountTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     canvas->Save();
     EXPECT_TRUE(2 == canvas->GetSaveCount());
 }
@@ -121,7 +121,7 @@ HWTEST_F(CanvasTest, CanvasGetSaveCountTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasRestoreToCountTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     canvas->RestoreToCount(2);
 }
 
@@ -134,7 +134,7 @@ HWTEST_F(CanvasTest, CanvasRestoreToCountTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasAttachAndDetachPenTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Pen pen(Color::COLOR_GREEN);
     canvas->AttachPen(pen);
     canvas->DetachPen();
@@ -149,7 +149,7 @@ HWTEST_F(CanvasTest, CanvasAttachAndDetachPenTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasAttachAndDetachBrushTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Brush brush(Color::COLOR_GREEN);
     canvas->AttachBrush(brush);
     canvas->DetachBrush();
@@ -235,7 +235,7 @@ HWTEST_F(CanvasTest, AutoCanvasRestoreTest001, TestSize.Level1)
     Canvas canvas;
     bool doSave = true;
     auto autoCanvasRestore = std::make_unique<AutoCanvasRestore>(canvas, doSave);
-    ASSERT_TRUE(nullptr != autoCanvasRestore);
+    ASSERT_TRUE(autoCanvasRestore != nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen
