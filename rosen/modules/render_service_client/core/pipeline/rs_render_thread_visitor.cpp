@@ -508,10 +508,63 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
 #endif
-    node.CheckCacheType();
-    node.ProcessTransitionBeforeChildren(*canvas_);
-    DrawChildRenderNode(node);
-    node.ProcessTransitionAfterChildren(*canvas_);
+    const auto& property = node.GetRenderProperties();
+    if (property.IsSpherizeValid()) {
+        if (node.GetCacheType() != CacheType::ANIMATE_PROPERTY) {
+            node.SetCacheType(CacheType::ANIMATE_PROPERTY);
+            node.ClearCacheSurface();
+            node.InitCacheSurface(*canvas_);
+        }
+        if (!node.GetCompletedCacheSurface() && UpdateAnimatePropertyCacheSurface(node)) {
+            node.UpdateCompletedCacheSurface();
+        }
+        node.ProcessTransitionBeforeChildren(*canvas_);
+        RSPropertiesPainter::DrawSpherize(
+            property, *canvas_, node.GetCompletedCacheSurface());
+        node.ProcessTransitionAfterChildren(*canvas_);
+        return;
+    }
+
+    if (node.GetCompletedCacheSurface()) {
+        node.SetCacheType(CacheType::NONE);
+        node.ClearCacheSurface();
+    }
+    node.ProcessRenderBeforeChildren(*canvas_);
+    node.ProcessRenderContents(*canvas_);
+    ProcessBaseRenderNode(node);
+    node.ProcessRenderAfterChildren(*canvas_);
+}
+
+bool RSRenderThreadVisitor::UpdateAnimatePropertyCacheSurface(RSRenderNode& node)
+{
+    if (node.GetCompletedCacheSurface()) {
+        return true;
+    }
+    if (!node.GetCacheSurface()) {
+        return false;
+    }
+    auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
+    if (!cacheCanvas) {
+        return false;
+    }
+
+    // copy current canvas properties into cacheCanvas
+    cacheCanvas->CopyConfiguration(*canvas_);
+
+    // When drawing CacheSurface, all child node should be drawn.
+    // So set isOpDropped_ = false here.
+    bool isOpDropped = isOpDropped_;
+    isOpDropped_ = false;
+
+    swap(cacheCanvas, canvas_);
+    node.ProcessAnimatePropertyBeforeChildren(*canvas_);
+    node.ProcessRenderContents(*canvas_);
+    ProcessBaseRenderNode(node);
+    node.ProcessAnimatePropertyAfterChildren(*canvas_);
+    swap(cacheCanvas, canvas_);
+
+    isOpDropped_ = isOpDropped;
+    return true;
 }
 
 void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
@@ -655,57 +708,6 @@ void RSRenderThreadVisitor::SendCommandFromRT(std::unique_ptr<RSCommand>& comman
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommandFromRT(command, nodeId, followType);
     }
-}
-
-void RSRenderThreadVisitor::DrawChildRenderNode(RSRenderNode& node)
-{
-    if (node.GetCacheTypeChanged()) {
-        node.ClearCacheSurface();
-        node.SetCacheTypeChanged(false);
-    }
-    if (node.GetCacheType() != CacheType::SPHERIZE) {
-        node.ProcessAnimatePropertyBeforeChildren(*canvas_);
-        node.ProcessRenderContents(*canvas_);
-        ProcessBaseRenderNode(node);
-        node.ProcessAnimatePropertyAfterChildren(*canvas_);
-        return;
-    }
-    if (node.GetCompletedCacheSurface()) {
-        RS_TRACE_NAME("RSRenderThreadVisitor::DrawChildRenderNode Draw nodeId = " +
-            std::to_string(node.GetId()));
-        RSPropertiesPainter::DrawSpherize(
-            node.GetRenderProperties(), *canvas_, node.GetCompletedCacheSurface());
-        return;
-    }
-    RS_TRACE_NAME("RSRenderThreadVisitor::DrawChildRenderNode Init Draw nodeId = " +
-        std::to_string(node.GetId()));
-    int width = std::ceil(node.GetRenderProperties().GetBoundsRect().GetWidth());
-    int height = std::ceil(node.GetRenderProperties().GetBoundsRect().GetHeight());
-    node.InitCacheSurface(*canvas_, width, height);
-    if (!node.GetCacheSurface()) {
-        RS_LOGE("RSRenderThreadVisitor::DrawChildRenderNode %" PRIu64 " Create CacheSurface failed",
-            node.GetId());
-        return;
-    }
-    auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
-    // When drawing CacheSurface, all child node should be drawn.
-    // So set isOpDropped_ = false here.
-    bool isOpDropped = isOpDropped_;
-    isOpDropped_ = false;
-
-    swap(cacheCanvas, canvas_);
-
-    node.ProcessAnimatePropertyBeforeChildren(*canvas_);
-    node.ProcessRenderContents(*canvas_);
-    ProcessBaseRenderNode(node);
-    node.ProcessAnimatePropertyAfterChildren(*canvas_);
-
-    swap(cacheCanvas, canvas_);
-
-    isOpDropped_ = isOpDropped;
-    node.UpdateCompletedCacheSurface();
-    RSPropertiesPainter::DrawSpherize(
-        node.GetRenderProperties(), *canvas_, node.GetCompletedCacheSurface());
 }
 } // namespace Rosen
 } // namespace OHOS

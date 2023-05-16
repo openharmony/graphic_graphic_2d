@@ -78,7 +78,6 @@ public:
     virtual void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) {}
     virtual void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
-    void CheckCacheType();
     void RenderTraceDebug() const;
     bool HasDisappearingTransition(bool recursive) const override
     {
@@ -128,7 +127,7 @@ public:
         return isStaticCached_;
     }
 
-    void InitCacheSurface(RSPaintFilterCanvas& canvas, int width, int height);
+    void InitCacheSurface(RSPaintFilterCanvas& canvas);
     sk_sp<SkSurface> GetCacheSurface() const
     {
         return cacheSurface_;
@@ -160,16 +159,6 @@ public:
     CacheType GetCacheType() const
     {
         return cacheType_;
-    }
-
-    void SetCacheTypeChanged(bool cacheTypeChanged)
-    {
-        cacheTypeChanged_ = cacheTypeChanged;
-    }
-
-    bool GetCacheTypeChanged() const
-    {
-        return cacheTypeChanged_;
     }
 
     // driven render ///////////////////////////////////
@@ -319,7 +308,6 @@ private:
     sk_sp<SkSurface> cacheCompletedSurface_ = nullptr;
     std::atomic<bool> isStaticCached_ = false;
     CacheType cacheType_ = CacheType::NONE;
-    bool cacheTypeChanged_ = false;
 
     bool isMainThreadNode_ = false;
     bool hasFilter_ = false;
