@@ -51,10 +51,9 @@ HWTEST_F(CanvasTest, CreateAndDestroy001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasBindTest001
- * @tc.desc:
+ * @tc.desc: Test for bind Bitmap function.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasBindTest001, TestSize.Level1)
 {
@@ -66,10 +65,9 @@ HWTEST_F(CanvasTest, CanvasBindTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasGetTotalMatrixTest001
- * @tc.desc:
+ * @tc.desc: Test for geting the total matrix of Canvas to device.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasGetTotalMatrixTest001, TestSize.Level1)
 {
@@ -81,10 +79,9 @@ HWTEST_F(CanvasTest, CanvasGetTotalMatrixTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasGetLocalClipBoundsTest001
- * @tc.desc:
+ * @tc.desc: Test for geting bounds of clip in local coordinates.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasGetLocalClipBoundsTest001, TestSize.Level1)
 {
@@ -96,10 +93,9 @@ HWTEST_F(CanvasTest, CanvasGetLocalClipBoundsTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasGetDeviceClipBoundsTest001
- * @tc.desc:
+ * @tc.desc: Test for geting bounds of clip in device corrdinates.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasGetDeviceClipBoundsTest001, TestSize.Level1)
 {
@@ -111,10 +107,9 @@ HWTEST_F(CanvasTest, CanvasGetDeviceClipBoundsTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasGetWidthTest001
- * @tc.desc:
+ * @tc.desc: Test for geting width of Canvas.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasGetWidthTest001, TestSize.Level1)
 {
@@ -126,10 +121,9 @@ HWTEST_F(CanvasTest, CanvasGetWidthTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasGetHeightTest001
- * @tc.desc:
+ * @tc.desc: Test for geting height of Canvas.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasGetHeightTest001, TestSize.Level1)
 {
@@ -141,10 +135,9 @@ HWTEST_F(CanvasTest, CanvasGetHeightTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasDrawPointTest001
- * @tc.desc:
+ * @tc.desc: Test for DrawPoint function.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasDrawPointTest001, TestSize.Level1)
 {
@@ -156,10 +149,9 @@ HWTEST_F(CanvasTest, CanvasDrawPointTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasDrawLineTest001
- * @tc.desc:
+ * @tc.desc: Test for DrawLine function.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasDrawLineTest001, TestSize.Level1)
 {
@@ -172,10 +164,9 @@ HWTEST_F(CanvasTest, CanvasDrawLineTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasDrawRectTest001
- * @tc.desc:
+ * @tc.desc: Test for DrawRect function.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasDrawRectTest001, TestSize.Level1)
 {
@@ -187,10 +178,9 @@ HWTEST_F(CanvasTest, CanvasDrawRectTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasDrawRoundRectTest001
- * @tc.desc:
+ * @tc.desc: Test for DrawRoundRect function.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasDrawRoundRectTest001, TestSize.Level1)
 {
@@ -203,10 +193,9 @@ HWTEST_F(CanvasTest, CanvasDrawRoundRectTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasDrawNestedRoundRectTest001
- * @tc.desc:
+ * @tc.desc: Test for DrawNestedRoundRect function.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasDrawNestedRoundRectTest001, TestSize.Level1)
 {
@@ -221,10 +210,9 @@ HWTEST_F(CanvasTest, CanvasDrawNestedRoundRectTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasDrawArcTest001
- * @tc.desc:
+ * @tc.desc: Test for DrawArc function.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasDrawArcTest001, TestSize.Level1)
 {
@@ -236,10 +224,9 @@ HWTEST_F(CanvasTest, CanvasDrawArcTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasDrawPieTest001
- * @tc.desc:
+ * @tc.desc: Test for DrawPie function.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasDrawPieTest001, TestSize.Level1)
 {
@@ -251,10 +238,9 @@ HWTEST_F(CanvasTest, CanvasDrawPieTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasDrawOvalTest001
- * @tc.desc:
+ * @tc.desc: Test for DrawOval function.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasDrawOvalTest001, TestSize.Level1)
 {
@@ -266,10 +252,9 @@ HWTEST_F(CanvasTest, CanvasDrawOvalTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasDrawCircleTest001
- * @tc.desc:
+ * @tc.desc: Test for DrawOval function.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasDrawCircleTest001, TestSize.Level1)
 {
@@ -281,10 +266,9 @@ HWTEST_F(CanvasTest, CanvasDrawCircleTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasDrawPathTest001
- * @tc.desc:
+ * @tc.desc: Test for DrawPath function.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasDrawPathTest001, TestSize.Level1)
 {
@@ -296,10 +280,9 @@ HWTEST_F(CanvasTest, CanvasDrawPathTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasDrawBackgroundTest001
- * @tc.desc:
+ * @tc.desc: Test for DrawBackground function.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasDrawBackgroundTest001, TestSize.Level1)
 {
@@ -311,10 +294,9 @@ HWTEST_F(CanvasTest, CanvasDrawBackgroundTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasDrawShadowTest001
- * @tc.desc:
+ * @tc.desc: Test for DrawShadow function.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719NQ
  */
 HWTEST_F(CanvasTest, CanvasDrawShadowTest001, TestSize.Level1)
 {
