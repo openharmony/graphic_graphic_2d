@@ -46,7 +46,7 @@ void CanvasTest::TearDown() {}
 HWTEST_F(CanvasTest, CreateAndDestroy001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    EXPECT_TRUE(nullptr != canvas);
+    EXPECT_TRUE(canvas != nullptr);
 }
 
 /**
@@ -58,7 +58,7 @@ HWTEST_F(CanvasTest, CreateAndDestroy001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasBindTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Bitmap bitmap;
     canvas->Bind(bitmap);
 }
@@ -72,9 +72,9 @@ HWTEST_F(CanvasTest, CanvasBindTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasGetTotalMatrixTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     auto matrix = std::make_unique<Matrix>(canvas->GetTotalMatrix());
-    EXPECT_TRUE(nullptr != matrix);
+    EXPECT_TRUE(matrix != nullptr);
 }
 
 /**
@@ -86,9 +86,9 @@ HWTEST_F(CanvasTest, CanvasGetTotalMatrixTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasGetLocalClipBoundsTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     auto rect = std::make_unique<Rect>(canvas->GetLocalClipBounds());
-    EXPECT_TRUE(nullptr != rect);
+    EXPECT_TRUE(rect != nullptr);
 }
 
 /**
@@ -100,9 +100,9 @@ HWTEST_F(CanvasTest, CanvasGetLocalClipBoundsTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasGetDeviceClipBoundsTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     auto rect = std::make_unique<RectI>(canvas->GetDeviceClipBounds());
-    EXPECT_TRUE(nullptr != rect);
+    EXPECT_TRUE(rect != nullptr);
 }
 
 /**
@@ -114,7 +114,7 @@ HWTEST_F(CanvasTest, CanvasGetDeviceClipBoundsTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasGetWidthTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     auto rect = canvas->GetWidth();
     EXPECT_EQ(rect, 0);
 }
@@ -128,7 +128,7 @@ HWTEST_F(CanvasTest, CanvasGetWidthTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasGetHeightTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     auto rect = canvas->GetHeight();
     EXPECT_EQ(rect, 0);
 }
@@ -142,7 +142,7 @@ HWTEST_F(CanvasTest, CanvasGetHeightTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasDrawPointTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Point point(10.0f, 20.0f);
     canvas->DrawPoint(point);
 }
@@ -156,7 +156,7 @@ HWTEST_F(CanvasTest, CanvasDrawPointTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasDrawLineTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Point startPoint(10.0f, 20.0f);
     Point endPoint(30.0f, 20.0f);
     canvas->DrawLine(startPoint, endPoint);
@@ -171,7 +171,7 @@ HWTEST_F(CanvasTest, CanvasDrawLineTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasDrawRectTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Rect rect(0.0f, 0.0f, 10.0f, 20.0f);
     canvas->DrawRect(rect);
 }
@@ -185,7 +185,7 @@ HWTEST_F(CanvasTest, CanvasDrawRectTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasDrawRoundRectTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Rect rect(0.0f, 0.0f, 10.0f, 20.0f);
     RoundRect roundRect(rect, 1.0f, 1.0f);
     canvas->DrawRoundRect(roundRect);
@@ -200,7 +200,7 @@ HWTEST_F(CanvasTest, CanvasDrawRoundRectTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasDrawNestedRoundRectTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Rect rect1(0.0f, 0.0f, 10.0f, 20.0f);
     RoundRect roundRect1(rect1, 1.0f, 1.0f);
     Rect rect2(0.0f, 0.0f, 5.0f, 10.0f);
@@ -217,7 +217,7 @@ HWTEST_F(CanvasTest, CanvasDrawNestedRoundRectTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasDrawArcTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Rect rect(0.0f, 0.0f, 10.0f, 20.0f);
     canvas->DrawArc(rect, 0.0f, 90.0f);
 }
@@ -231,7 +231,7 @@ HWTEST_F(CanvasTest, CanvasDrawArcTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasDrawPieTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Rect rect(0.0f, 0.0f, 10.0f, 20.0f);
     canvas->DrawPie(rect, 0.0f, 90.0f);
 }
@@ -245,7 +245,7 @@ HWTEST_F(CanvasTest, CanvasDrawPieTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasDrawOvalTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Rect rect(0.0f, 0.0f, 10.0f, 20.0f);
     canvas->DrawOval(rect);
 }
@@ -259,7 +259,7 @@ HWTEST_F(CanvasTest, CanvasDrawOvalTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasDrawCircleTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Point centerpoint(10.0f, 20.0f);
     canvas->DrawCircle(centerpoint, 10.0f);
 }
@@ -273,7 +273,7 @@ HWTEST_F(CanvasTest, CanvasDrawCircleTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasDrawPathTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Path path;
     canvas->DrawPath(path);
 }
@@ -287,7 +287,7 @@ HWTEST_F(CanvasTest, CanvasDrawPathTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasDrawBackgroundTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Brush brush(Color::COLOR_RED);
     canvas->DrawBackground(brush);
 }
@@ -301,7 +301,7 @@ HWTEST_F(CanvasTest, CanvasDrawBackgroundTest001, TestSize.Level1)
 HWTEST_F(CanvasTest, CanvasDrawShadowTest001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(nullptr != canvas);
+    ASSERT_TRUE(canvas != nullptr);
     Path path;
     Point3 planeParams(1.0f, 0.0f, 0.0f);
     Point3 devLightPos(1.0f, 1.0f, 1.0f);
