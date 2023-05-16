@@ -16,150 +16,51 @@
 #ifndef RENDER_CONTEXT_H
 #define RENDER_CONTEXT_H
 
-#include <memory>
-#include <mutex>
-#include "common/rs_rect.h"
-
-#ifdef ROSEN_IOS
-#include "render_context_egl_defines.h"
-#else
-#include "EGL/egl.h"
-#include "EGL/eglext.h"
-#include "GLES3/gl32.h"
-#endif
-
-#include "include/core/SkCanvas.h"
-#include "include/core/SkColorSpace.h"
-#include "include/core/SkImageInfo.h"
 #include "include/core/SkSurface.h"
-#include "include/gpu/GrBackendSurface.h"
 #if defined(NEW_SKIA)
 #include "include/gpu/GrDirectContext.h"
 #else
 #include "include/gpu/GrContext.h"
 #endif
-#include "include/gpu/gl/GrGLInterface.h"
-#include "memory_handler.h"
-#ifndef ROSEN_CROSS_PLATFORM
-#include "surface_type.h"
+#ifdef IOS_PLATFORM
+#include "render_context_egl_defines.h"
+#else
+#include "EGL/egl.h"
 #endif
-
-#define GLES_VERSION 2
 namespace OHOS {
 namespace Rosen {
 class RenderContext {
 public:
-    RenderContext();
-    virtual ~RenderContext();
-    void CreateCanvas(int width, int height);
-    sk_sp<SkSurface> AcquireSurface(int width, int height);
-
-    void InitializeEglContext();
+    virtual ~RenderContext() = default;
+    virtual void InitializeEglContext() = 0;
+    virtual sk_sp<SkSurface> AcquireSurface(int width, int height) = 0;
+    virtual sk_sp<SkSurface> GetSurface() const = 0;
+    virtual bool SetUpGrContext() = 0;
+    virtual void MakeCurrent(EGLSurface surface = nullptr, EGLContext context = EGL_NO_CONTEXT) = 0;
+    virtual void RenderFrame() = 0;
 #if defined(NEW_SKIA)
-    GrDirectContext* GetGrContext() const
-    {
-        return grContext_.get();
-    }
+    virtual GrDirectContext* GetGrContext() const = 0;
 #else
-    GrContext* GetGrContext() const
-    {
-        return grContext_.get();
-    }
+    virtual GrContext* GetGrContext() const = 0;
 #endif
-    sk_sp<SkSurface> GetSurface() const
-    {
-        return skSurface_;
-    }
-
-    bool SetUpGrContext();
-
-    EGLSurface CreateEGLSurface(EGLNativeWindowType eglNativeWindow);
-    void DestroyEGLSurface(EGLSurface surface);
-    void MakeCurrent(EGLSurface surface, EGLContext context = EGL_NO_CONTEXT);
-    void SwapBuffers(EGLSurface surface) const;
-    void RenderFrame();
-    EGLint QueryEglBufferAge();
-    void DamageFrame(int32_t left, int32_t top, int32_t width, int32_t height);
-    void DamageFrame(const std::vector<RectI> &rects);
-    void ClearRedundantResources();
-    void CreatePbufferSurface();
-    void ShareMakeCurrent(EGLContext shareContext);
-    void ShareMakeCurrentNoSurface(EGLContext shareContext);
-    void MakeSelfCurrent();
-    EGLSurface GetEGLSurface() const
-    {
-        return eglSurface_;
-    }
-
-    EGLContext GetEGLContext() const
-    {
-        return eglContext_;
-    }
-
-    EGLDisplay GetEGLDisplay() const
-    {
-        return eglDisplay_;
-    }
-
-#ifndef ROSEN_CROSS_PLATFORM
-    void SetColorSpace(ColorGamut colorSpace);
-    ColorGamut GetColorSpace() const
-    {
-        return colorSpace_;
-    }
-#endif
-
-    bool IsEglContextReady() const
-    {
-        return eglContext_ != EGL_NO_DISPLAY;
-    }
-
-    void SetCacheDir(const std::string& filePath)
-    {
-        cacheDir_ = filePath;
-    }
-
-    void SetUniRenderMode(bool isUni)
-    {
-        isUniRenderMode_ = isUni;
-    }
+    virtual void SetCacheDir(const std::string& filePath) {}
+    virtual EGLContext GetEGLContext() const { return nullptr; }
+    virtual EGLSurface CreateEGLSurface(EGLNativeWindowType) = 0;
+    virtual void SwapBuffers(EGLSurface surface = nullptr) const = 0;
+    virtual EGLint QueryEglBufferAge() { return 0;}
+    virtual void ClearRedundantResources() {}
+    virtual void SetUniRenderMode(bool isUni) {}
 #ifdef RS_ENABLE_GL
-    std::string GetShaderCacheSize() const
+    virtual std::string GetShaderCacheSize() const
     {
-        return mHandler_->QuerryShader();
+        return {};
     }
 
-    std::string CleanAllShaderCache() const
+    virtual std::string CleanAllShaderCache() const
     {
-        return mHandler_->ClearShader();
+        return {};
     }
 #endif
-    EGLContext CreateShareContext();
-
-private:
-#if defined(NEW_SKIA)
-    sk_sp<GrDirectContext> grContext_;
-#else
-    sk_sp<GrContext> grContext_;
-#endif
-    sk_sp<SkSurface> skSurface_;
-
-    EGLNativeWindowType nativeWindow_;
-
-    EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
-    EGLContext eglContext_ = EGL_NO_CONTEXT;
-    EGLSurface eglSurface_ = EGL_NO_SURFACE;
-    EGLSurface pbufferSurface_= EGL_NO_SURFACE;
-    EGLConfig config_;
-#ifndef ROSEN_CROSS_PLATFORM
-    ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
-#endif
-
-    bool isUniRenderMode_ = false;
-    const std::string UNIRENDER_CACHE_DIR = "/data/service/el0/render_service";
-    std::string cacheDir_;
-    std::shared_ptr<MemoryHandler> mHandler_;
-    std::mutex shareContextMutex_;
 };
 
 class RenderContextFactory {
@@ -174,21 +75,15 @@ public:
         context_ = nullptr;
     }
 
-    RenderContext* CreateEngine()
-    {
-        if (context_ == nullptr) {
-            context_ = new RenderContext();
-        }
-
-        return context_;
-    }
+    RenderContext* CreateEngine();
+    RenderContext* CreateNewEngine();
 
 private:
     RenderContextFactory() : context_(nullptr) {}
     RenderContextFactory(const RenderContextFactory&) = delete;
     RenderContextFactory& operator=(const RenderContextFactory&) = delete;
 
-    RenderContext* context_;
+    RenderContext* context_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -204,9 +204,12 @@ int32_t RSRenderThread::GetTid()
 
 void RSRenderThread::CreateAndInitRenderContextIfNeed()
 {
-#if defined(RS_ENABLE_GL) && !defined(ROSEN_PREVIEW)
+#ifndef RS_ENABLE_GL
+        return;
+#else
+#if defined(IOS_PLATFORM) || (defined(RS_ENABLE_GL) && !defined(ROSEN_PREVIEW))
     if (renderContext_ == nullptr) {
-        renderContext_ = new RenderContext();
+        renderContext_ = RenderContextFactory::GetInstance().CreateEngine();
         ROSEN_LOGD("Create RenderContext");
         RS_TRACE_NAME("InitializeEglContext");
 #ifdef ROSEN_OHOS
@@ -217,6 +220,8 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
 #endif
     }
 #endif
+#endif
+
 }
 
 void RSRenderThread::RenderLoop()

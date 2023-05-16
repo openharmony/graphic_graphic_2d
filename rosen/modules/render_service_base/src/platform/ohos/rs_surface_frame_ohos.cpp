@@ -16,12 +16,13 @@
 #include "rs_surface_frame_ohos.h"
 
 #include "platform/common/rs_log.h"
+#include "render_context/render_context_egl.h"
 
 namespace OHOS {
 namespace Rosen {
 void RSSurfaceFrameOhos::SetRenderContext(RenderContext* context)
 {
-    renderContext_ = context;
+    renderContext_ = static_cast<RenderContextEGL*>(context);
 }
 } // namespace Rosen
 } // namespace OHOS

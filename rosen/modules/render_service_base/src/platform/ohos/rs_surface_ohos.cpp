@@ -14,6 +14,7 @@
  */
 
 #include "rs_surface_frame_ohos.h"
+#include "render_context/render_context_egl.h"
 #include "rs_surface_ohos.h"
 namespace OHOS {
 namespace Rosen {
@@ -24,7 +25,7 @@ RenderContext* RSSurfaceOhos::GetRenderContext()
 
 void RSSurfaceOhos::SetRenderContext(RenderContext* context)
 {
-    context_ = context;
+    context_ = static_cast<RenderContextEGL*>(context);
 }
 
 void RSSurfaceOhos::SetColorSpace(ColorGamut colorSpace)

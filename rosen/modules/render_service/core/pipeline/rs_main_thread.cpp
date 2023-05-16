@@ -1499,7 +1499,7 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
         SkGraphics::PurgeAllCaches();
         grContext->freeGpuResources();
         grContext->purgeUnlockedResources(true);
-        std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+        auto rendercontext = std::shared_ptr<RenderContext>(RenderContextFactory::GetInstance().CreateNewEngine());
         rendercontext->CleanAllShaderCache();
 #ifdef NEW_SKIA
         grContext->flushAndSubmit(true);
@@ -1531,7 +1531,7 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
         grContext->flush(kSyncCpu_GrFlushFlag, 0, nullptr);
 #endif
     } else if (type == "shader") {
-        std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+        auto rendercontext = std::shared_ptr<RenderContext>(RenderContextFactory::GetInstance().CreateNewEngine());
         rendercontext->CleanAllShaderCache();
     } else {
         uint32_t pid = std::stoll(type);

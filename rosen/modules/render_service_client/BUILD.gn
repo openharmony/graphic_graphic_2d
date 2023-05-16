@@ -105,6 +105,17 @@ template("render_service_client_source_set") {
       sources -= graphic_2d_ext_configs.librender_service_client_ext_sources_del
     }
 
+    if (rosen_is_ios) {
+      if (ace_enable_gpu) {
+        sources += [
+          "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/render_context.mm",
+          "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/render_context_eagl.mm",
+        ]
+      }
+    } else if (!rosen_preview) {
+      sources += [ "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/render_context.cpp" ]
+    }
+
     cflags = [
       "-Wall",
       "-Wno-pointer-arith",
@@ -126,6 +137,10 @@ template("render_service_client_source_set") {
 
     if (enable_export_macro) {
       defines += [ "ENABLE_EXPORT_MACRO" ]
+    }
+
+    if (target_os == "ios") {
+      defines += [ "IOS_PLATFORM" ]
     }
 
     if (rosen_is_ohos) {

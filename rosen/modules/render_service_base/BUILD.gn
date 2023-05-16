@@ -175,15 +175,10 @@ ohos_source_set("render_service_base_src") {
   }
 
   if (rs_enable_gpu) {
-    sources += [ "src/common/rs_shared_context.cpp" ]
     defines += [
       "GL_GLEXT_PROTOTYPES",
       "EGL_EGLEXT_PROTOTYPES",
     ]
-  }
-
-  if (current_os == "mingw" || current_os == "mac" || current_os == "linux") {
-    sources -= [ "src/common/rs_shared_context.cpp" ]
   }
 
   if (current_os == "ohos") {
@@ -191,6 +186,9 @@ ohos_source_set("render_service_base_src") {
       "src/benchmarks/file_utils.cpp",
       "src/benchmarks/rs_recording_thread.cpp",
     ]
+    if (rs_enable_gpu) {
+      sources += [ "src/common/rs_shared_context.cpp" ]
+    }
   }
 
   include_dirs = [
