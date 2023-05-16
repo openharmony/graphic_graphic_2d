@@ -51,10 +51,9 @@ HWTEST_F(CanvasTest, CreateAndDestroy001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasSaveLayerTest001
- * @tc.desc:
+ * @tc.desc: Test for saving Matrix and clipping area, and allocates Surface for subsequent drawing.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719U5
  */
 HWTEST_F(CanvasTest, CanvasSaveLayerTest001, TestSize.Level1)
 {
@@ -66,10 +65,9 @@ HWTEST_F(CanvasTest, CanvasSaveLayerTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasSaveLayerTest002
- * @tc.desc:
+ * @tc.desc: Test for saving Matrix and clipping area, and allocates Surface for subsequent drawing.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719U5
  */
 HWTEST_F(CanvasTest, CanvasSaveLayerTest002, TestSize.Level1)
 {
@@ -84,10 +82,9 @@ HWTEST_F(CanvasTest, CanvasSaveLayerTest002, TestSize.Level1)
 
 /**
  * @tc.name: CanvasRestoreTest001
- * @tc.desc:
+ * @tc.desc: Test for Restore function.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719U5
  */
 HWTEST_F(CanvasTest, CanvasRestoreTest001, TestSize.Level1)
 {
@@ -103,10 +100,9 @@ HWTEST_F(CanvasTest, CanvasRestoreTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasGetSaveCountTest001
- * @tc.desc:
+ * @tc.desc: Test for geting the number of saved states.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719U5
  */
 HWTEST_F(CanvasTest, CanvasGetSaveCountTest001, TestSize.Level1)
 {
@@ -118,10 +114,9 @@ HWTEST_F(CanvasTest, CanvasGetSaveCountTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasRestoreToCountTest001
- * @tc.desc:
+ * @tc.desc: Test for restoring Canvas Matrix and clip value state to count.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719U5
  */
 HWTEST_F(CanvasTest, CanvasRestoreToCountTest001, TestSize.Level1)
 {
@@ -132,10 +127,9 @@ HWTEST_F(CanvasTest, CanvasRestoreToCountTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasAttachAndDetachPenTest001
- * @tc.desc:
+ * @tc.desc: Test for AttachPen and DetachPen functions.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719U5
  */
 HWTEST_F(CanvasTest, CanvasAttachAndDetachPenTest001, TestSize.Level1)
 {
@@ -148,10 +142,9 @@ HWTEST_F(CanvasTest, CanvasAttachAndDetachPenTest001, TestSize.Level1)
 
 /**
  * @tc.name: CanvasAttachAndDetachBrushTest001
- * @tc.desc:
+ * @tc.desc: Test for AttachBrush and DetachBrush functions.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719U5
  */
 HWTEST_F(CanvasTest, CanvasAttachAndDetachBrushTest001, TestSize.Level1)
 {
@@ -164,10 +157,9 @@ HWTEST_F(CanvasTest, CanvasAttachAndDetachBrushTest001, TestSize.Level1)
 
 /**
  * @tc.name: GetBounds001
- * @tc.desc:
+ * @tc.desc: Test for geting the bounds of layer.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719U5
  */
 HWTEST_F(CanvasTest, GetBounds001, TestSize.Level1)
 {
@@ -183,10 +175,9 @@ HWTEST_F(CanvasTest, GetBounds001, TestSize.Level1)
 
 /**
  * @tc.name: GetBrush001
- * @tc.desc:
+ * @tc.desc: Test for geting the brush of layer.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719U5
  */
 HWTEST_F(CanvasTest, GetBrush001, TestSize.Level1)
 {
@@ -201,10 +192,9 @@ HWTEST_F(CanvasTest, GetBrush001, TestSize.Level1)
 
 /**
  * @tc.name: GetImageFilter001
- * @tc.desc:
+ * @tc.desc: Test for geting the image filter of layer.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719U5
  */
 HWTEST_F(CanvasTest, GetImageFilter001, TestSize.Level1)
 {
@@ -219,10 +209,9 @@ HWTEST_F(CanvasTest, GetImageFilter001, TestSize.Level1)
 
 /**
  * @tc.name: GetSaveLayerFlags001
- * @tc.desc:
+ * @tc.desc: Test for geting the options to modify layer.
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719U5
  */
 HWTEST_F(CanvasTest, GetSaveLayerFlags001, TestSize.Level1)
 {
@@ -237,10 +226,9 @@ HWTEST_F(CanvasTest, GetSaveLayerFlags001, TestSize.Level1)
 
 /**
  * @tc.name: AutoCanvasRestoreTest001
- * @tc.desc:
+ * @tc.desc: Test for Creating AutoCanvasRestore;
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
- * @tc.author:
+ * @tc.require: I719U5
  */
 HWTEST_F(CanvasTest, AutoCanvasRestoreTest001, TestSize.Level1)
 {
