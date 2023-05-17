@@ -15,6 +15,10 @@
 
 #ifndef RENDER_SERVICE_BASE_SRC_PLATFORM_IOS_RENDER_CONTEXT_IOS_H
 #define RENDER_SERVICE_BASE_SRC_PLATFORM_IOS_RENDER_CONTEXT_IOS_H
+typedef int   GLint;    /* 4-byte signed */
+typedef unsigned int  GLuint;   /* 4-byte unsigned */
+typedef int   GLsizei;  /* 4-byte signed */
+typedef float   GLfloat;  /* single precision float */
 
 // For temporary ios build
 typedef void *EGLConfig;
@@ -36,5 +40,6 @@ typedef long long EGLint;
 #define EGL_NO_CONTEXT                    EGL_CAST(EGLContext,0)
 #define EGL_NO_DISPLAY                    EGL_CAST(EGLDisplay,0)
 #define EGL_NO_SURFACE                    EGL_CAST(EGLSurface,0)
+#define EGL_UNKNOWN                       EGL_CAST(EGLint,-1)
 
 #endif // RENDER_SERVICE_BASE_SRC_PLATFORM_IOS_RENDER_CONTEXT_IOS_H
