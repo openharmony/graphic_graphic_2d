@@ -38,7 +38,7 @@ public:
     void Terminate();
 
     /* before window operation */
-    int CreateWindow(int32_t width, int32_t height, bool visible);
+    int CreateGlfwWindow(int32_t width, int32_t height, bool visible);
     void DestroyWindow();
 
     /* window operation */

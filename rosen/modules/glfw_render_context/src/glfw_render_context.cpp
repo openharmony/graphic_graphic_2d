@@ -80,7 +80,7 @@ void GlfwRenderContext::Terminate()
     glfwTerminate();
 }
 
-int GlfwRenderContext::CreateWindow(int32_t width, int32_t height, bool visible)
+int GlfwRenderContext::CreateGlfwWindow(int32_t width, int32_t height, bool visible)
 {
     if (external_) {
         return 0;
