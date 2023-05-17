@@ -81,6 +81,9 @@ public:
 #endif
 #endif
 
+    std::shared_ptr<Data> Serialize() const override;
+    bool Deserialize(std::shared_ptr<Data> data) override;
+
 private:
 #ifdef ACE_ENABLE_GPU
 #ifdef NEW_SKIA

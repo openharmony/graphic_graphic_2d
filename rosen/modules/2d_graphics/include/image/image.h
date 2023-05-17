@@ -231,6 +231,10 @@ public:
         return imageImplPtr->DowncastingTo<T>();
     }
 
+    // using for recording, should to remove after using shared memory
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
+
 private:
     std::shared_ptr<ImageImpl> imageImplPtr;
 };

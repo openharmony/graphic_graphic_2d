@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,9 @@
  */
 
 #include "skia_picture.h"
-
+#include "skia_adapter/skia_data.h"
+#include "utils/data.h"
+#include "utils/log.h"
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -23,6 +25,32 @@ SkiaPicture::SkiaPicture() noexcept : skiaPicture_(nullptr) {}
 const sk_sp<SkPicture> SkiaPicture::GetPicture() const
 {
     return skiaPicture_;
+}
+
+std::shared_ptr<Data> SkiaPicture::Serialize() const
+{
+    if (skiaPicture_ == nullptr) {
+        LOGE("SkiaPicture::Serialize, SkPicture is nullptr!");
+        return nullptr;
+    }
+
+    auto skData = skiaPicture_->serialize();
+    auto data = std::make_shared<Data>();
+    if (data->GetImpl<SkiaData>() != nullptr) {
+        data->GetImpl<SkiaData>()->SetSkData(skData);
+    }
+
+    return data;
+}
+
+bool SkiaPicture::Deserialize(std::shared_ptr<Data> data)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    skiaPicture_ = SkPicture::MakeFromData(data->GetData(), data->GetSize());
+    return skiaPicture_ != nullptr;
 }
 } // namespace Drawing
 } // namespace Rosen

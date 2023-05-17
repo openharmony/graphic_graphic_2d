@@ -24,6 +24,10 @@
 #ifdef ACE_ENABLE_GPU
 #include "skia_gpu_context.h"
 #endif
+#ifdef ROSEN_OHOS
+#include "src/core/SkReadBuffer.h"
+#include "src/core/SkWriteBuffer.h"
+#endif
 
 #include "image/bitmap.h"
 #include "image/image.h"
@@ -245,6 +249,42 @@ sk_sp<GrContext> SkiaImage::GetGrContext() const
     return grContext_;
 }
 #endif
+
+std::shared_ptr<Data> SkiaImage::Serialize() const
+{
+#ifdef ROSEN_OHOS
+    if (skiaImage_ == nullptr) {
+        LOGE("SkiaImage::Serialize, SkImage is nullptr!");
+        return nullptr;
+    }
+
+    SkBinaryWriteBuffer writer;
+    writer.writeImage(skiaImage_.get());
+    size_t length = writer.bytesWritten();
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->BuildUninitialized(length);
+    writer.writeToMemory(data->WritableData());
+    return data;
+#else
+    return nullptr;
+#endif
+}
+
+bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
+{
+#ifdef ROSEN_OHOS
+    if (data == nullptr) {
+        LOGE("SkiaImage::Deserialize, data is invalid!");
+        return false;
+    }
+
+    SkReadBuffer reader(data->GetData(), data->GetSize());
+    skiaImage_ = reader.readImage();
+    return skiaImage_ != nullptr;
+#else
+    return false;
+#endif
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

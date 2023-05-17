@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.. All rights reserved.
+# Copyright (c) 2022-2023 Huawei Device Co., Ltd.. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -135,7 +135,10 @@ template("graphics2d_source_set") {
         "//third_party/bounds_checking_function:libsec_static",
       ]
       include_dirs += [ "$flutter_root/engine" ]
-      defines += [ "SUPPORT_OHOS_PIXMAP" ]
+      defines += [
+        "SUPPORT_OHOS_PIXMAP",
+        "ROSEN_OHOS",
+      ]
 
       if (defined(use_new_skia) && use_new_skia) {
         remove_configs = [ "//build/config/compiler:default_include_dirs" ]

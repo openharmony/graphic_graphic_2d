@@ -80,6 +80,17 @@ bool Image::IsTextureBacked() const
 {
     return (imageImplPtr == nullptr) ? false : imageImplPtr->IsTextureBacked();
 }
+
+std::shared_ptr<Data> Image::Serialize() const
+{
+    return (imageImplPtr == nullptr) ? nullptr : imageImplPtr->Serialize();
+}
+
+bool Image::Deserialize(std::shared_ptr<Data> data)
+{
+    return (imageImplPtr == nullptr) ? false : imageImplPtr->Deserialize(data);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
