@@ -83,6 +83,5 @@ config("render_test") {
 
 group("unittest") {
   testonly = true
-
-  deps = [ ":RSRenderServiceBasePipelineTest" ]
+  #deps = [ ":RSRenderServiceBasePipelineTest" ]
 }

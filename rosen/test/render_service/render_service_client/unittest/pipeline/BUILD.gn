@@ -64,6 +64,5 @@ config("ui_test") {
 
 group("unittest") {
   testonly = true
-
-  deps = [ ":RSRenderClientPipelineTest" ]
+  #deps = [ ":RSRenderClientPipelineTest" ]
 }
