@@ -37,7 +37,7 @@ ohos_source_set("rosen_ohos_sources") {
   defines += gpu_defines
 
   sources = [
-    #backend
+  #backend
     "backend/rs_surface_frame_ohos_raster.cpp",
     "backend/rs_surface_ohos_raster.cpp",
     "rs_ashmem_helper.cpp",
@@ -113,9 +113,7 @@ ohos_source_set("rosen_ohos_sources") {
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
   ]
   if (defined(use_new_skia) && use_new_skia) {
-    public_deps += [
-      "//third_party/skia:skia_ohos",
-    ]
+    public_deps += [ "//third_party/skia:skia_ohos" ]
   } else {
     public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
   }
@@ -168,13 +166,13 @@ ohos_source_set("rosen_ohos_sources") {
     include_dirs += graphic_2d_ext_configs.librender_service_base_platform_ohos_ext_include_dirs
 
     sources +=
-        graphic_2d_ext_configs.librender_service_base_platform_ohos_ext_sources
+    graphic_2d_ext_configs.librender_service_base_platform_ohos_ext_sources
 
     if (ace_enable_gpu && is_emulator) {
       sources -= [ "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/render_context.cpp" ]
       sources -= [ "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/render_context.mm" ]
       sources +=
-          graphic_2d_ext_configs.librender_service_base_2d_graphics_ext_sources
+      graphic_2d_ext_configs.librender_service_base_2d_graphics_ext_sources
     }
 
     if ((current_os == "ios" && !ace_enable_gpu) || current_os == "android") {
@@ -183,7 +181,7 @@ ohos_source_set("rosen_ohos_sources") {
   }
 
   if (defined(global_parts_info) &&
-      defined(global_parts_info.resourceschedule_soc_perf)) {
+  defined(global_parts_info.resourceschedule_soc_perf)) {
     external_deps += [ "resource_schedule_service:ressched_client" ]
     defines += [ "RES_SCHED_ENABLE" ]
   }
