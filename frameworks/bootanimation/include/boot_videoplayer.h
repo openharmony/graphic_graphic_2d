@@ -61,7 +61,7 @@ public:
     };
     virtual ~VideoPlayerCallback() = default;
 
-    void OnError(Media::PlayerErrorType errorType, int32_t errorCode) override;
+    void OnError(int32_t errorCode, const std::string &errorMsg) override;
     void OnInfo(Media::PlayerOnInfoType type, int32_t extra, const Media::Format &infoBody) override;
 private:
     std::shared_ptr<BootVideoPlayer> boot_;

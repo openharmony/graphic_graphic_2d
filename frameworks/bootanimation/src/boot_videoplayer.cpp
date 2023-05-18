@@ -83,7 +83,7 @@ void BootVideoPlayer::StopVideo()
 }
 
 // PlayerCallback override
-void VideoPlayerCallback::OnError(Media::PlayerErrorType errorType, int32_t errorCode)
+void VideoPlayerCallback::OnError(int32_t errorCode, const std::string &errorMsg)
 {
     std::string err = Media::MSErrorToString(static_cast<Media::MediaServiceErrCode>(errorCode));
     LOGE("PlayerCallbackError received, errorCode:%{public}s", err.c_str());
