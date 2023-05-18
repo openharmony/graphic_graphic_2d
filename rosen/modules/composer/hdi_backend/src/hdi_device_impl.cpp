@@ -33,7 +33,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 using namespace OHOS::HDI::Display::Composer::V1_0;
-using IDisplayComposerInterfaceSptr = std::shared_ptr<IDisplayComposerInterface>;
+using IDisplayComposerInterfaceSptr = sptr<IDisplayComposerInterface>;
 static IDisplayComposerInterfaceSptr g_composer;
 }
 
@@ -49,7 +49,7 @@ HdiDeviceImpl::~HdiDeviceImpl()
 RosenError HdiDeviceImpl::Init()
 {
     if (g_composer == nullptr) {
-        g_composer.reset(IDisplayComposerInterface::Get());
+        g_composer = IDisplayComposerInterface::Get();
         if (g_composer == nullptr) {
             HLOGE("IDisplayComposerInterface::Get return nullptr.");
             return ROSEN_ERROR_NOT_INIT;
