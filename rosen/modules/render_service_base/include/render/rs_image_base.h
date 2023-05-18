@@ -38,6 +38,8 @@ public:
     void SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap);
     void SetSrcRect(const RectF& dstRect);
     void SetDstRect(const RectF& dstRect);
+    void SetImagePixelAddr(void* addr);
+    void UpdateNodeIdToPicture(NodeId nodeId);
 #ifdef ROSEN_OHOS
     virtual bool Marshalling(Parcel& parcel) const;
     [[nodiscard]] static RSImageBase* Unmarshalling(Parcel& parcel);
@@ -47,12 +49,13 @@ protected:
     void ConvertPixelMapToSkImage();
     void GenUniqueId(uint32_t id);
     static bool UnmarshallingSkImageAndPixelMap(Parcel& parcel, uint64_t uniqueId, bool& useSkImage,
-        sk_sp<SkImage>& img, std::shared_ptr<Media::PixelMap>& pixelMap);
+        sk_sp<SkImage>& img, std::shared_ptr<Media::PixelMap>& pixelMap, void*& imagepixelAddr);
     static void IncreaseCacheRefCount(uint64_t uniqueId,
             bool useSkImage = true, std::shared_ptr<Media::PixelMap> pixelMap = nullptr);
 
     mutable std::mutex mutex_;
     sk_sp<SkImage> image_;
+    void* imagePixelAddr_ = nullptr;
     std::shared_ptr<Media::PixelMap> pixelMap_;
 
     RectF srcRect_;

@@ -113,6 +113,10 @@ public:
         return false;
     }
 
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const sk_sp<SkImage>& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, void*& imagepixelAddr);
+
     // reloaded marshalling & unmarshalling function for types
 #define DECLARE_FUNCTION_OVERLOAD(TYPE)                                  \
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const TYPE& val); \
@@ -140,7 +144,6 @@ public:
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkPicture>)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkDrawable>)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkImageFilter>)
-    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkImage>)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkVertices>)
     static bool SkipSkData(Parcel& parcel);
     static bool SkipSkImage(Parcel& parcel);
