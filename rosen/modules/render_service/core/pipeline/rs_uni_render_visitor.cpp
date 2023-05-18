@@ -1239,6 +1239,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
             if (cacheImgForCapture_ && displayHasSecSurface_[mirrorNode->GetScreenId()] == 1) {
                 canvas_->save();
+                // If both canvas and skImage have rotated, we need to reset the canvas
                 if (resetRotate_) {
                     SkMatrix invertMatrix;
                     if (processor->GetScreenTransformMatrix().invert(&invertMatrix)) {

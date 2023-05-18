@@ -248,6 +248,7 @@ private:
     std::thread::id mainThreadId_;
     std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
     std::map<pid_t, sptr<RSIOcclusionChangeCallback>> occlusionListeners_;
+    std::mutex occlusionMutex_;
 
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     RSTaskMessage::RSTask unmarshalBarrierTask_;
