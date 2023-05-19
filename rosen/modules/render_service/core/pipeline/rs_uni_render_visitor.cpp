@@ -2225,12 +2225,15 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         saveCount = canvas_->save();
     }
 
-    if (node.GetChildrenCount() > 0) {
+    bool saveRootMatrix = node.GetChildrenCount() > 0 && !rootMatrix_.has_value();
+    if (saveRootMatrix) {
         rootMatrix_ = canvas_->getTotalMatrix();
     }
-
     ProcessCanvasRenderNode(node);
     canvas_->restoreToCount(saveCount);
+    if (saveRootMatrix) {
+        rootMatrix_.reset();
+    }
 }
 
 void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
@@ -2269,8 +2272,8 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     node.GetMutableRenderProperties().CheckEmptyBounds();
     // draw self and children in sandbox which will not be affected by parent's transition
     const auto& sandboxPos = node.GetRenderProperties().GetSandBox();
-    if (!sandboxPos.IsInfinite()) {
-        canvas_->setMatrix(rootMatrix_);
+    if (!sandboxPos.IsInfinite() && rootMatrix_.has_value()) {
+        canvas_->setMatrix(rootMatrix_.value());
         canvas_->translate(sandboxPos.x_, sandboxPos.y_);
     }
 

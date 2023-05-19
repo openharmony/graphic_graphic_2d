@@ -297,7 +297,7 @@ private:
 
     bool isCalcCostEnable_ = false;
 
-    SkMatrix rootMatrix_;
+    std::optional<SkMatrix> rootMatrix_ = std::nullopt;
 
     uint32_t appWindowNum_ = 0;
 
