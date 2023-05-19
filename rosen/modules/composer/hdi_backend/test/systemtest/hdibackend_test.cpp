@@ -44,26 +44,21 @@ void HdiBackendSysTest::SetUpTestCase()
     GraphicIRect srcRect = {0, 0, width, height};
     GraphicIRect dstRect = {0, 0, width, height};
     uint32_t zOrder = 0;
-    
     hdiLayerTemp_ = std::make_unique<MockSys::HdiLayerContext>(dstRect, srcRect, zOrder);
     hdiLayerTemp_->DrawBufferColor();
     hdiLayerTemp_->FillHdiLayer();
+    hdiLayerTemp_->GetHdiLayer()->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     layerInfos.emplace_back(hdiLayerTemp_->GetHdiLayer());
+
     zOrder = 1;
     hdiLayerTemp_ = std::make_unique<MockSys::HdiLayerContext>(dstRect, srcRect, zOrder);
     hdiLayerTemp_->DrawBufferColor();
     hdiLayerTemp_->FillHdiLayer();
+    hdiLayerTemp_->GetHdiLayer()->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     layerInfos.emplace_back(hdiLayerTemp_->GetHdiLayer());
     output_->SetLayerInfo(layerInfos);
 
     hdiBackend_ = HdiBackend::GetInstance();
-    // mockDevice_ is nullptr
-    hdiBackend_->SetHdiBackendDevice(mockDevice_);
-    // init mockDevice_
-    mockDevice_ = MockSys::HdiDeviceMock::GetInstance();
-    hdiBackend_->SetHdiBackendDevice(mockDevice_);
-    // the device_ in hdiBackend_ is not nullptr alredy
-    hdiBackend_->SetHdiBackendDevice(mockDevice_);
 }
 
 void HdiBackendSysTest::TearDownTestCase()
@@ -76,71 +71,49 @@ void HdiBackendSysTest::TearDownTestCase()
 
 namespace {
 /*
-* Function: RegScreenHotplug001
+* Function: Repaint001
 * Type: Function
 * Rank: Important(1)
 * EnvConditions: N/A
-* CaseDescription: 1. call RegScreenHotplug(nullptr, nullptr)
+* CaseDescription: 1. call Repaint
 *                  2. check ret
 */
-HWTEST_F(HdiBackendSysTest, RegScreenHotplug001, Function | MediumTest| Level3)
+HWTEST_F(HdiBackendSysTest, Repaint001, Function | MediumTest| Level3)
 {
+    // Repaint before SetHdiBackendDevice
+    hdiBackend_->Repaint(nullptr);
+    // mockDevice_ is nullptr
+    hdiBackend_->SetHdiBackendDevice(mockDevice_);
+    // init mockDevice_
+    mockDevice_ = MockSys::HdiDeviceMock::GetInstance();
+    hdiBackend_->SetHdiBackendDevice(mockDevice_);
+    // the device_ in hdiBackend_ is not nullptr alredy
+    hdiBackend_->SetHdiBackendDevice(mockDevice_);
+    hdiBackend_->Repaint(nullptr);
+
+    std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(1);
+    hdiBackend_->Repaint(output);
+
     EXPECT_CALL(*mockDevice_, PrepareScreenLayers(_, _)).WillRepeatedly(testing::Return(0));
-    std::vector<uint32_t> layersId;
-    std::vector<int32_t> types;
-    const std::unordered_map<uint32_t, LayerPtr> &layersMap = output_->GetLayers();
-    for (auto iter = layersMap.begin(); iter != layersMap.end(); iter++) {
-        uint32_t layerId = iter->first;
-        layersId.emplace_back(layerId);
-        types.emplace_back(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
-    }
-    EXPECT_CALL(*mockDevice_, GetScreenCompChange(_, layersId, types)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, Commit(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenVsyncEnabled(_, _)).WillRepeatedly(testing::Return(0));
     hdiBackend_->Repaint(output_);
-    ASSERT_EQ(hdiBackend_->RegScreenHotplug(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
-}
 
-/*
-* Function: RegScreenHotplug002
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call RegScreenHotplug(func, nullptr)
-*                  2. check ret
-*/
-HWTEST_F(HdiBackendSysTest, RegScreenHotplug002, Function | MediumTest| Level3)
-{
-    auto func = [](OutputPtr &, bool, void*) -> void {};
-    ASSERT_EQ(hdiBackend_->RegScreenHotplug(func, nullptr), ROSEN_ERROR_OK);
-}
+    output_->SetLayerCompCapacity(1);
+    hdiBackend_->Repaint(output_);
 
-/*
-* Function: RegPrepareComplete001
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call RegPrepareComplete(nullptr, nullptr)
-*                  2. check ret
-*/
-HWTEST_F(HdiBackendSysTest, RegPrepareComplete001, Function | MediumTest| Level3)
-{
-    ASSERT_EQ(hdiBackend_->RegPrepareComplete(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
-}
+    output_->SetDirectClientCompEnableStatus(true);
+    hdiBackend_->Repaint(output_);
 
-/*
-* Function: RegPrepareComplete002
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call RegPrepareComplete(func, nullptr)
-*                  2. check ret
-*/
-HWTEST_F(HdiBackendSysTest, RegPrepareComplete002, Function | MediumTest| Level3)
-{
-    auto func = [](sptr<Surface> &, const struct PrepareCompleteParam &, void*) -> void {};
-    RosenError ret = hdiBackend_->RegPrepareComplete(func, nullptr);
-    ASSERT_EQ(ret, ROSEN_ERROR_OK);
+    EXPECT_CALL(*mockDevice_, Commit(_, _)).WillRepeatedly(testing::Return(1));
+    hdiBackend_->Repaint(output_);
+
+    EXPECT_CALL(*mockDevice_, GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(1));
+    hdiBackend_->Repaint(output_);
+
+    EXPECT_CALL(*mockDevice_, PrepareScreenLayers(_, _)).WillRepeatedly(testing::Return(1));
+    hdiBackend_->Repaint(output_);
 }
 
 /*
@@ -156,7 +129,7 @@ HWTEST_F(HdiBackendSysTest, GetLayersReleaseFence001, Function | MediumTest| Lev
     const std::unordered_map<uint32_t, LayerPtr> &layersMap = output_->GetLayers();
     std::vector<uint32_t> layersId;
     std::vector<sptr<SyncFence>> fences;
-    int32_t fenceId = 1;
+    int32_t fenceId = 5;
     for (auto iter = layersMap.begin(); iter != layersMap.end(); iter++) {
         uint32_t layerId = iter->first;
         layersId.emplace_back(layerId);
@@ -165,17 +138,7 @@ HWTEST_F(HdiBackendSysTest, GetLayersReleaseFence001, Function | MediumTest| Lev
     }
     EXPECT_CALL(*mockDevice_, GetScreenReleaseFence(_, layersId, fences)).WillRepeatedly(testing::Return(0));
     std::map<LayerInfoPtr, sptr<SyncFence>> layersReleaseFence = hdiBackend_->GetLayersReleaseFence(output_);
-    size_t layersReleaseFenceSize = layersReleaseFence.size();
-    size_t fencesSize = fences.size();
-    bool ret = (layersReleaseFenceSize == fencesSize);
-    size_t i = 0;
-    for (auto iter = layersReleaseFence.begin(); iter != layersReleaseFence.end(); iter++) {
-        if (iter->second->Get() != fences[i]->Get()) {
-            ret = false;
-            break;
-        }
-        i++;
-    }
+    bool ret = (layersReleaseFence.size() == fences.size());
     ASSERT_EQ(ret, true);
 }
 

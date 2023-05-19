@@ -287,7 +287,6 @@ void HdiOutput::ClearFpsDump(std::string &result, const std::string &arg)
     }
 }
 
-
 static inline bool Cmp(const LayerDumpInfo &layer1, const LayerDumpInfo &layer2)
 {
     return layer1.layer->GetLayerInfo()->GetZorder() < layer2.layer->GetLayerInfo()->GetZorder();
