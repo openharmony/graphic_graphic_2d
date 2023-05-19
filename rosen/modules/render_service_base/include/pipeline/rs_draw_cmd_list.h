@@ -44,6 +44,9 @@ public:
     void AddOp(std::unique_ptr<OpItem>&& op);
     void ClearOp();
 
+    void UpdateNodeIdToPicture(NodeId nodeId);
+    void FindIndexOfImage() const;
+
     void Playback(SkCanvas& canvas, const SkRect* rect = nullptr);
     void Playback(RSPaintFilterCanvas& canvas, const SkRect* rect = nullptr);
 
@@ -74,6 +77,7 @@ public:
 
 private:
     std::vector<std::unique_ptr<OpItem>> ops_;
+    mutable std::vector<uint32_t> imageIndexs_;
     mutable std::mutex mutex_;
     int width_;
     int height_;

@@ -153,6 +153,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
     return {};
 }
 
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, void*& imagepixelAddr)
+{
+    return {};
+}
+
 bool RSMarshallingHelper::SkipSkImage(Parcel& parcel)
 {
     return {};

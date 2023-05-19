@@ -327,6 +327,12 @@ static void sk_free_releaseproc(const void* ptr, void*)
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
 {
+    void* addr = nullptr;
+    return Unmarshalling(parcel, val, addr);
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, void*& imagepixelAddr)
+{
     int32_t type = parcel.ReadInt32();
     if (type == -1) {
         val = nullptr;
@@ -397,8 +403,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
 #else
         if (pixmapSize >= MIN_DATA_SIZE) {
 #endif
-            MemoryInfo info = { pixmapSize, 0, 0, MEMORY_TYPE::MEM_SKIMAGE }; // pid is set to 0 temporarily.
+            MemoryInfo info = { pixmapSize, 0, 0, MEMORY_TYPE::MEM_SKIMAGE };
             MemoryTrack::Instance().AddPictureRecord(addr, info);
+            imagepixelAddr = const_cast<void*>(addr);
         }
         return val != nullptr;
     }
