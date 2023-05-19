@@ -21,7 +21,7 @@
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #if ACE_ENABLE_GL
-#include "render_context/render_context_egl.h"
+#include "render_context/render_context.h"
 #endif
 
 namespace OHOS {
@@ -60,7 +60,7 @@ bool RSSurfaceOhosFuzzTest(const uint8_t* data, size_t size)
 
     auto rsSurfaceFrameOhosRaster = RSSurfaceFrameOhosRaster(GetData<int32_t>(), GetData<int32_t>());
 #if ACE_ENABLE_GL
-    RenderContextEGL renderContext_;
+    RenderContext renderContext_;
     rsSurfaceFrameOhosRaster.SetRenderContext(&renderContext_);
 #endif
     (void)rsSurfaceFrameOhosRaster.GetBufferAge();

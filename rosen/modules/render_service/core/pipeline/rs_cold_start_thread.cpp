@@ -19,7 +19,6 @@
 #include "include/core/SkImageInfo.h"
 #ifdef RS_ENABLE_GL
 #include <EGL/egl.h>
-#include <GLES3/gl32.h>
 #if defined(NEW_SKIA)
 #include "include/gpu/GrDirectContext.h"
 #else

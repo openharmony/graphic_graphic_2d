@@ -350,7 +350,7 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const GrContext* grCont
 
     //////////////////////////ShaderCache///////////////////
     log.AppendFormat("\n---------------\nShader Caches:\n");
-    auto rendercontext = std::shared_ptr<RenderContext>(RenderContextFactory::GetInstance().CreateNewEngine());
+    std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
     log.AppendFormat(rendercontext->GetShaderCacheSize().c_str());
 
     // gpu stat

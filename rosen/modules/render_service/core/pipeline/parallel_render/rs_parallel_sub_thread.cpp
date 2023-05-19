@@ -44,10 +44,7 @@ RSParallelSubThread::RSParallelSubThread(int threadIndex)
     : threadIndex_(threadIndex), subThread_(nullptr), renderType_(ParallelRenderType::DRAW_IMAGE) {}
 
 RSParallelSubThread::RSParallelSubThread(RenderContext *context, ParallelRenderType renderType, int threadIndex)
-    : threadIndex_(threadIndex), subThread_(nullptr),
-      renderContext_(static_cast<RenderContextEGL*>(context)), renderType_(renderType)
-{
-}
+    : threadIndex_(threadIndex), subThread_(nullptr), renderContext_(context), renderType_(renderType) {}
 
 RSParallelSubThread::~RSParallelSubThread()
 {
