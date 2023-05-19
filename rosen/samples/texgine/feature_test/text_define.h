@@ -38,7 +38,7 @@
 #define BLACK_LARGE_SQUARE "\u2B1B"
 #define CURLY_LOOP "\u27B0"
 #define PLUS "\u2795"
-#define SNOW_MAN "\u26C4"
+#define SNOWMAN "\u26C4"
 #define VOLTAGE "\u26A1"
 
 // basic emoji first plane with FEOF
@@ -166,7 +166,7 @@
 #define HAIR_CURLY "\U0001F9B1"
 #define HAIR_BALD "\U0001F9B2"
 #define HAIR_WHITE "\U0001F9B3"
-#define FLAG "\U0001F3F3"
+#define F_FLAG "\U0001F3F3"
 #define TRANSGENDER "\u26A7"
 
 #endif // ROSEN_SAMPLES_TEXGINE_FEATURE_TEST_TEXT_DEFINE_H

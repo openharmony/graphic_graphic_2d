@@ -15,7 +15,7 @@
 
 #include "typography_builder_impl.h"
 
-#include <cassert.h>
+#include <cassert>
 #include <iostream>
 #include <memory>
 
@@ -31,7 +31,7 @@ std::unique_ptr<TypographyBuilder> TypographyBuilder::Create(const TypographySty
 }
 
 TypographyBuilderImpl::TypographyBuilderImpl(const TypographyStyle& ys,
-                                             std::unique_ptr<FontProviders> fontProviders)
+    std::unique_ptr<FontProviders> fontProviders)
 {
     ys_ = std::move(ys);
     fontProviders_ = std::move(fontProviders);
@@ -115,7 +115,7 @@ void TypographyBuilderImpl::AppendSpan(const std::vector<uint32_t>& text)
 
 std::shared_ptr<Typography> TypographyBuilderImpl::Build()
 {
-    return std::make_shared<TypographyImpl>(ys_, spans, std::move(fontProviders_));
+    return std::make_shared<TypographyImpl>(ys_, spans_, std::move(fontProviders_));
 }
 } // namespace TextEngine
 } // namespace Rosen

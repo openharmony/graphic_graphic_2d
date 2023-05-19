@@ -22,6 +22,6 @@ static __attribute__((constructor)) void Init()
     u_setDataDirectory("/system/usr/ohos_icu");
 
 #ifndef TEXGINE_ENABLE_TRACE
-    Texgine::Trace::Disable();
+    OHOS::Rosen::TextEngine::Trace::Disable();
 #endif
 }

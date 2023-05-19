@@ -32,10 +32,10 @@ namespace {
 #define HAIR1 MAN SKIN2 ZWJ HAIR_BALD
 #define HAIR2 PERSON SKIN4 ZWJ HAIR_CURLY
 #define OTHER1 RED_HEART ZWJ "\U0001F525"
-#define OTHER2 FLAG EMOJI_VARIANT ZWJ TRANSGENDER EMOJI_VARIANT
+#define OTHER2 F_FLAG EMOJI_VARIANT ZWJ TRANSGENDER EMOJI_VARIANT
 
 struct Emoji {
-    TextStyle style = { .fontSize_ = 32 };
+    TextStyle style = { .fontSize = 32 };
     std::string emoji;
     std::string title;
 } g_emojis[] = {
@@ -148,216 +148,216 @@ struct Emoji {
         .title = "boy",
     },
     {
-        .emoji_ = POST_BOX,
-        .title_ = "postbox",
+        .emoji = POST_BOX,
+        .title = "postbox",
     },
     {
-        .emoji_ = GRINNING_FACE,
-        .title_ = "grinning face",
+        .emoji = GRINNING_FACE,
+        .title = "grinning face",
     },
     {
-        .emoji_ = ROCKET,
-        .title_ = "rocket",
+        .emoji = ROCKET,
+        .title = "rocket",
     },
     {
-        .emoji_ = CLOUD_WITH_RAIN,
-        .title_ = "cloud with rain",
+        .emoji = CLOUD_WITH_RAIN,
+        .title = "cloud with rain",
     },
     {
-        .emoji_ = TORNADO,
-        .title_ = "tornado",
+        .emoji = TORNADO,
+        .title = "tornado",
     },
     {
-        .emoji_ = FOG,
-        .title_ = "fog",
+        .emoji = FOG,
+        .title = "fog",
     },
     {
-        .emoji_ = PERSON_GOLFING,
-        .title_ = "person golfing",
+        .emoji = PERSON_GOLFING,
+        .title = "person golfing",
     },
     {
-        .emoji_ = MOTORCYCLE,
-        .title_ = "motorcycle",
+        .emoji = MOTOR_CYCLE,
+        .title = "motorcycle",
     },
     {
-        .emoji_ = CANDLE,
-        .title_ = "candle",
+        .emoji = CANDLE,
+        .title = "candle",
     },
     {
-        .emoji_ = SPIDER,
-        .title_ = "spider",
+        .emoji = SPIDER,
+        .title = "spider",
     },
     {
-        .emoji_ = BED,
-        .title_ = "bed",
+        .emoji = BED,
+        .title = "bed",
     },
     {
-        .emoji_ = WORLD_MAP,
-        .title_ = "world map",
+        .emoji = WORLD_MAP,
+        .title = "world map",
     },
     {
-        .emoji_ = SPEAKING_HEAD,
-        .title_ = "speaking head",
+        .emoji = SPEAKING_HEAD,
+        .title = "speaking head",
     },
     {
-        .emoji_ = SHARP,
-        .title_ = "sharp",
+        .emoji = SHARP,
+        .title = "sharp",
     },
     {
-        .emoji_ = ASTERISK,
-        .title_ = "asterisk",
+        .emoji = ASTERISK,
+        .title = "asterisk",
     },
     {
-        .emoji_ = ZERO,
-        .title_ = "zero",
+        .emoji = ZERO,
+        .title = "zero",
     },
     {
-        .emoji_ = ONE,
-        .title_ = "one",
+        .emoji = ONE,
+        .title = "one",
     },
     {
-        .emoji_ = TWO,
-        .title_ = "two",
+        .emoji = TWO,
+        .title = "two",
     },
     {
-        .emoji_ = THREE,
-        .title_ = "three",
+        .emoji = THREE,
+        .title = "three",
     },
     {
-        .emoji_ = FOUR,
-        .title_ = "four",
+        .emoji = FOUR,
+        .title = "four",
     },
     {
-        .emoji_ = FIVE,
-        .title_ = "five",
+        .emoji = FIVE,
+        .title = "five",
     },
     {
-        .emoji_ = SIX,
-        .title_ = "six",
+        .emoji = SIX,
+        .title = "six",
     },
     {
-        .emoji_ = SEVEN,
-        .title_ = "seven"
+        .emoji = SEVEN,
+        .title = "seven"
     },
     {
-        .emoji_ = CHINA,
-        .title_ = "China",
+        .emoji = CHINA,
+        .title = "China",
     },
     {
-        .emoji_ = AUSTRALIA,
-        .title_ = "Australia",
+        .emoji = AUSTRALIA,
+        .title = "Australia",
     },
     {
-        .emoji_ = CANADA,
-        .title_ = "Canada",
+        .emoji = CANADA,
+        .title = "Canada",
     },
     {
-        .emoji_ = FRANCE,
-        .title_ = "France",
+        .emoji = FRANCE,
+        .title = "France",
     },
     {
-        .emoji_ = IRELAND,
-        .title_ = "Ireland",
+        .emoji = IRELAND,
+        .title = "Ireland",
     },
     {
-        .emoji_ = INDIA,
-        .title_ = "India",
+        .emoji = INDIA,
+        .title = "India",
     },
     {
-        .emoji_ = ICELAND,
-        .title_ = "Iceland",
+        .emoji = ICELAND,
+        .title = "Iceland",
     },
     {
-        .emoji_ = ITALY,
-        .title_ = "Italy",
+        .emoji = ITALY,
+        .title = "Italy",
     },
     {
-        .emoji_ = JAPAN,
-        .title_ = "Japan",
+        .emoji = JAPAN,
+        .title = "Japan",
     },
     {
-        .emoji_ = RUSSIA,
-        .title_ = "Russia",
+        .emoji = RUSSIA,
+        .title = "Russia",
     },
     {
-        .emoji_ = BOY0,
-        .title_ = "boy ligth",
+        .emoji = BOY0,
+        .title = "boy ligth",
     },
     {
-        .emoji_ = BOY1,
-        .title_ = "boy medium light",
+        .emoji = BOY1,
+        .title = "boy medium light",
     },
     {
-        .emoji_ = BOY2,
-        .title_ = "boy medium skin",
+        .emoji = BOY2,
+        .title = "boy medium skin",
     },
     {
-        .emoji_ = BOY3,
-        .title_ = "boy medium dark",
+        .emoji = BOY3,
+        .title = "boy medium dark",
     },
     {
-        .emoji_ = BOY4,
-        .title_ = "boy dark",
+        .emoji = BOY4,
+        .title = "boy dark",
     },
     {
-        .emoji_ = GIRL0,
-        .title_ = "girl ligth",
+        .emoji = GIRL0,
+        .title = "girl ligth",
     },
     {
-        .emoji_ = GIRL1,
-        .title_ = "girl medium light",
+        .emoji = GIRL1,
+        .title = "girl medium light",
     },
     {
-        .emoji_ = GIRL2,
-        .title_ = "girl medium skin",
+        .emoji = GIRL2,
+        .title = "girl medium skin",
     },
     {
-        .emoji_ = GIRL3,
-        .title_ = "girl medium dark",
+        .emoji = GIRL3,
+        .title = "girl medium dark",
     },
     {
-        .emoji_ = GIRL4,
-        .title_ = "girl dark",
+        .emoji = GIRL4,
+        .title = "girl dark",
     },
     {
-        .emoji_ = FAMILY1,
-        .title_ = "family 1",
+        .emoji = FAMILY1,
+        .title = "family 1",
     },
     {
-        .emoji_ = FAMILY2,
-        .title_ = "family 2",
+        .emoji = FAMILY2,
+        .title = "family 2",
     },
     {
-        .emoji_ = ROLE1,
-        .title_ = "role 1",
+        .emoji = ROLE1,
+        .title = "role 1",
     },
     {
-        .emoji_ = ROLE2,
-        .title_ = "role 2",
+        .emoji = ROLE2,
+        .title = "role 2",
     },
     {
-        .emoji_ = GENERED1,
-        .title_ = "genered 1",
+        .emoji = GENERED1,
+        .title = "genered 1",
     },
     {
-        .emoji_ = GENERED2,
-        .title_ = "genered 2",
+        .emoji = GENERED2,
+        .title = "genered 2",
     },
     {
-        .emoji_ = HAIR1,
-        .title_ = "hair 1",
+        .emoji = HAIR1,
+        .title = "hair 1",
     },
     {
-        .emoji_ = HAIR2,
-        .title_ = "hair 2",
+        .emoji = HAIR2,
+        .title = "hair 2",
     },
     {
-        .emoji_ = OTHER1,
-        .title_ = "other 1",
+        .emoji = OTHER1,
+        .title = "other 1",
     },
     {
-        .emoji_ = OTHER2,
-        .title_ = "other 2",
+        .emoji = OTHER2,
+        .title = "other 2",
     }
 };
 
@@ -378,7 +378,7 @@ public:
             fps->AppendFontProvider(SystemFontProvider::GetInstance());
             auto builder = TypographyBuilder::Create(tystyle, std::move(fps));
 
-            emoji.style.fontFamilies_ = {"Segoe UI Emoji"};
+            emoji.style.fontFamilies = {"Segoe UI Emoji"};
             builder->PushStyle(emoji.style);
             builder->AppendSpan(emoji.emoji);
             builder->PopStyle();

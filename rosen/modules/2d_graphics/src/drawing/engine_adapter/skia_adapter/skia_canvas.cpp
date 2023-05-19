@@ -27,6 +27,7 @@
 #include "draw/core_canvas.h"
 #include "image/bitmap.h"
 #include "image/image.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {

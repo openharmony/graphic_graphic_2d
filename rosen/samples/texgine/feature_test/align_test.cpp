@@ -82,7 +82,7 @@ public:
 
         for (auto &[title, tstyle] : g_datas) {
             for (auto dir : {TextDirection::LTR, TextDirection::RTL}) {
-                tstyle.direction_ = dir;
+                tstyle.direction = dir;
                 auto builder = TypographyBuilder::Create(tstyle);
                 builder->PushStyle(style);
                 builder->AppendSpan(EXAMPLE_TEXT);

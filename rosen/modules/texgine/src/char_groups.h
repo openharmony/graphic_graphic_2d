@@ -49,7 +49,7 @@ struct CharGroup {
     double GetHeight() const
     {
         double maxAdvanceY = 0;
-        for (const auto &glyph : glyphs_) {
+        for (const auto &glyph : glyphs) {
             maxAdvanceY = std::max(maxAdvanceY, glyph.advanceY);
         }
         return maxAdvanceY;
@@ -97,8 +97,8 @@ public:
     std::vector<uint16_t> ToUTF16() const;
     std::vector<uint16_t> ToUTF16All() const;
 
-    std::vector<struct CharGroup>::iterator Begin() const;
-    std::vector<struct CharGroup>::iterator End() const;
+    std::vector<struct CharGroup>::iterator begin() const;
+    std::vector<struct CharGroup>::iterator end() const;
 
     CharGroups Clone() const;
 

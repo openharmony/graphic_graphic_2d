@@ -46,7 +46,7 @@ UTF8String TextConverter::ToUTF8(const UTF16String &utf16Text)
 
 std::string TextConverter::ToStr(const UTF16String &utf16Text)
 {
-    return reinterpret_cast<std::string>(ToUTF8(utf16Text).data());
+    return reinterpret_cast<char *>(ToUTF8(utf16Text).data());
 }
 
 UTF16String TextConverter::ToUTF16(const std::string &utf8Text)

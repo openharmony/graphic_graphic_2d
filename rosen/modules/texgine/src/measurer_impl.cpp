@@ -31,11 +31,11 @@ namespace {
 void DumpCharGroup(int32_t index, const CharGroup &cg, double glyphEm,
     hb_glyph_info_t &info, hb_glyph_position_t &position)
 {
-    auto uTF8Str = TextConverter::ToUTF8(cg.chars_);
+    auto uTF8Str = TextConverter::ToUTF8(cg.chars);
     // 0xffffff is the default char when the cg is null or invalid
-    auto ch = (cg.chars_.size() > 0) ? cg.chars_[0] : 0xffffff;
+    auto ch = (cg.chars.size() > 0) ? cg.chars[0] : 0xffffff;
     // the follow numbers is to align log
-    LOG2EX_DEBUG() << std::setw(2) << std::setfill('0') << index <<
+    LOGEX_FUNC_LINE_DEBUG() << std::setw(2) << std::setfill('0') << index <<
         std::hex << std::uppercase <<
         ": " << std::right << std::setw(4) << std::setfill(' ') << "\033[40m" << "'" <<
         uTF8Str.data() << "'" << "\033[0m" <<
@@ -99,7 +99,7 @@ const std::vector<Boundary> &MeasurerImpl::GetWordBoundary() const
 int MeasurerImpl::Measure(CharGroups &cgs)
 {
     ScopedTrace scope("MeasurerImpl::Measure");
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "MeasurerImpl::Measure");
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "MeasurerImpl::Measure");
     struct MeasurerCacheKey key = {
         .text = text_,
         .style = style_,
@@ -115,8 +115,8 @@ int MeasurerImpl::Measure(CharGroups &cgs)
     if (fontFeatures_ == nullptr || fontFeatures_->GetFeatures().size() == 0) {
         auto it = cache_.find(key);
         if (it != cache_.end()) {
-            cgs = it->second.cgs_.Clone();
-            boundaries_ = it->second.boundaries_;
+            cgs = it->second.cgs.Clone();
+            boundaries_ = it->second.boundaries;
             return SUCCESSED;
         }
     }
@@ -130,7 +130,7 @@ int MeasurerImpl::Measure(CharGroups &cgs)
     SeekScript(runs);
     SeekTypeface(runs);
     if (auto ret = Shape(cgs, runs, boundaries_); ret) {
-        LOG2EX(ERROR) << "Shape failed";
+        LOGEX_FUNC_LINE(ERROR) << "Shape failed";
         return ret;
     }
 
@@ -143,19 +143,19 @@ int MeasurerImpl::Measure(CharGroups &cgs)
 void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
 {
     ScopedTrace scope("MeasurerImpl::SeekTypeface");
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "typeface");
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "typeface");
     int index = 0;
     for (auto runsit = runs.begin(); runsit != runs.end(); runsit++) {
         if (runsit->end > text_.size()) {
-            LOG2EX(ERROR) << "runsit->end overflow of text_";
-            throw TEXGINE_EXCEPTION(ErrorStatus);
+            LOGEX_FUNC_LINE(ERROR) << "runsit->end overflow of text_";
+            throw TEXGINE_EXCEPTION(ERROR_STATUS);
         }
         size_t utf16Index = runsit->start;
         uint32_t cp = 0;
         std::shared_ptr<Typeface> lastTypeface = nullptr;
         while (utf16Index < runsit->end) {
             U16_NEXT(text_.data(), utf16Index, runsit->end, cp);
-            LOG2EX_DEBUG(Logger::NoReturn) << "[" << std::setw(2) << std::setfill('0') << index++
+            LOGEX_FUNC_LINE_DEBUG(Logger::SetToNoReturn) << "[" << std::setw(2) << std::setfill('0') << index++
                 << ": 0x" << std::setw(6) << std::setfill('0') << std::hex << std::uppercase << cp << "]";
             if (lastTypeface && lastTypeface->Has(cp)) {
                 LOGCEX_DEBUG() << " cached";
@@ -196,11 +196,11 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
 void MeasurerImpl::SeekScript(std::list<struct MeasuringRun> &runs)
 {
     ScopedTrace scope("MeasurerImpl::SeekScript");
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "script");
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "script");
     auto icuGetUnicodeFuncs = hb_unicode_funcs_create(hb_icu_get_unicode_funcs());
     if (icuGetUnicodeFuncs == nullptr) {
-        LOG2EX(ERROR) << "hb_unicode_funcs_create return nullptr";
-        throw TEXGINE_EXCEPTION(APIFailed);
+        LOGEX_FUNC_LINE(ERROR) << "hb_unicode_funcs_create return nullptr";
+        throw TEXGINE_EXCEPTION(API_FAILED);
     }
 
     runs.push_back({.start = startIndex_, .end = endIndex_});
@@ -214,20 +214,20 @@ void MeasurerImpl::DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode
     for (auto it = runs.begin(); it != runs.end(); it++) {
         std::stringstream ss;
         ss << "[" << it->start << ", " << it->end << ")";
-        LOGSCOPED(sl, LOG2EX_DEBUG(), ss.str());
+        LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), ss.str());
 
         size_t utf16Index = it->start;
         uint32_t cp = 0;
         auto &script = it->script;
         while (utf16Index < it->end) {
             if (utf16Index >= text_.size()) {
-                LOG2EX(ERROR) << "u16index overflow of text_";
-                throw TEXGINE_EXCEPTION(ErrorStatus);
+                LOGEX_FUNC_LINE(ERROR) << "u16index overflow of text_";
+                throw TEXGINE_EXCEPTION(ERROR_STATUS);
             }
 
             U16_NEXT(text_.data(), utf16Index, it->end, cp);
             auto s = hb_unicode_script(icuGetUnicodeFuncs, cp);
-            LOG2EX_DEBUG() << "[" << std::setw(2) << std::setfill('0') << index++ << ": 0x"
+            LOGEX_FUNC_LINE_DEBUG() << "[" << std::setw(2) << std::setfill('0') << index++ << ": 0x"
                 << std::setw(6) << std::setfill('0') << std::hex << std::uppercase << cp << "]" << " " << s;
             if (script == HB_SCRIPT_INVALID) {
                 script = s;
@@ -251,8 +251,8 @@ void MeasurerImpl::DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode
         }
 
         if (it->end <= it->start) {
-            LOG2EX(ERROR) << "run have error range";
-            throw TEXGINE_EXCEPTION(ErrorStatus);
+            LOGEX_FUNC_LINE(ERROR) << "run have error range";
+            throw TEXGINE_EXCEPTION(ERROR_STATUS);
         }
 
         it->script = script;
@@ -263,17 +263,17 @@ int MeasurerImpl::Shape(CharGroups &cgs, std::list<struct MeasuringRun> &runs, s
 {
     ScopedTrace scope("MeasurerImpl::Shape");
     cgs = CharGroups::CreateEmpty();
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "shape");
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "shape");
     size_t index = 0;
     for (auto &run : runs) {
         if (run.end <= run.start) {
-            LOG2EX(ERROR) << "run have error range";
-            throw TEXGINE_EXCEPTION(ErrorStatus);
+            LOGEX_FUNC_LINE(ERROR) << "run have error range";
+            throw TEXGINE_EXCEPTION(ERROR_STATUS);
         }
 
         std::stringstream ss;
         ss << "[" << run.start << ", " << run.end << ")";
-        LOGSCOPED(sl, LOG2EX_DEBUG(), ss.str());
+        LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), ss.str());
 
         if (DoShape(cgs, run, index)) {
             return FAILED;
@@ -282,22 +282,22 @@ int MeasurerImpl::Shape(CharGroups &cgs, std::list<struct MeasuringRun> &runs, s
 
     for (auto &[start, end] : boundaries) {
         const auto &wordcgs = cgs.GetSubFromU16RangeAll(start, end);
-        wordcgs.Get(wordcgs.GetNumberOfCharGroup() - 1).invisibleWidth_ += wordSpacing_;
+        wordcgs.Get(wordcgs.GetNumberOfCharGroup() - 1).invisibleWidth += wordSpacing_;
     }
     return SUCCESSED;
 }
 
-int MeasurerImpl::DoShape(CharGroups &cgs, MeasuringRun &run, int &index)
+int MeasurerImpl::DoShape(CharGroups &cgs, MeasuringRun &run, size_t &index)
 {
     auto typeface = run.typeface;
     if (typeface == nullptr) {
-        LOG2EX(ERROR) << "there is no typeface";
+        LOGEX_FUNC_LINE(ERROR) << "there is no typeface";
         return FAILED;
     }
 
     auto hbuffer = hb_buffer_create();
     if (!hbuffer) {
-        LOG2EX(ERROR) << "hbuffer is nullptr";
+        LOGEX_FUNC_LINE(ERROR) << "hbuffer is nullptr";
         return FAILED;
     }
 
@@ -310,14 +310,14 @@ int MeasurerImpl::DoShape(CharGroups &cgs, MeasuringRun &run, int &index)
 
     auto hface = hb_face_create_for_tables(HbFaceReferenceTableTypeface, typeface->Get()->GetTypeface().get(), 0);
     if (!hface) {
-        LOG2EX(ERROR) << "hface is nullptr";
+        LOGEX_FUNC_LINE(ERROR) << "hface is nullptr";
         hb_buffer_destroy(hbuffer);
         return FAILED;
     }
 
     auto hfont = hb_font_create(hface);
     if (!hfont) {
-        LOG2EX(ERROR) << "hfont is nullptr";
+        LOGEX_FUNC_LINE(ERROR) << "hfont is nullptr";
         hb_buffer_destroy(hbuffer);
         hb_face_destroy(hface);
         return FAILED;
@@ -340,26 +340,26 @@ int MeasurerImpl::DoShape(CharGroups &cgs, MeasuringRun &run, int &index)
     return SUCCESSED;
 }
 
-int MeasurerImpl::GetGlyphs(CharGroups &cgs, MeasuringRun &run, int &index, hb_buffer_t *hbuffer,
-    std::shared_ptr<Texgine::Typeface> typeface)
+int MeasurerImpl::GetGlyphs(CharGroups &cgs, MeasuringRun &run, size_t &index, hb_buffer_t *hbuffer,
+    std::shared_ptr<TextEngine::Typeface> typeface)
 {
     uint32_t ng = 0u;
     auto hginfos = hb_buffer_get_glyph_infos(hbuffer, &ng);
     if (!hginfos) {
-        LOG2EX(ERROR) << "hginfos is nullptr";
+        LOGEX_FUNC_LINE(ERROR) << "hginfos is nullptr";
         return FAILED;
     }
 
     auto hgpositions = hb_buffer_get_glyph_positions(hbuffer, nullptr);
     if (!hgpositions) {
-        LOG2EX(ERROR) << "hgpositions is nullptr";
+        LOGEX_FUNC_LINE(ERROR) << "hgpositions is nullptr";
         return FAILED;
     }
 
-    LOG2EX_DEBUG() << "ng: " << ng;
+    LOGEX_FUNC_LINE_DEBUG() << "ng: " << ng;
     auto upe = typeface->Get()->GetUnitsPerEm();
     if (!upe) {
-        LOG2EX(ERROR) << "upe is 0";
+        LOGEX_FUNC_LINE(ERROR) << "upe is 0";
         return FAILED;
     }
 
@@ -367,14 +367,14 @@ int MeasurerImpl::GetGlyphs(CharGroups &cgs, MeasuringRun &run, int &index, hb_b
     std::map<uint32_t, CharGroup> cgsByCluster{{run.end, {}}};
     for (uint32_t i = 0; i < ng; i++) {
         auto &cg = cgsByCluster[hginfos[i].cluster];
-        cg.glyphs_.push_back({
-            .codepoint_ = hginfos[i].codepoint,
-            .advanceX_ = glyphEm * hgpositions[i].x_advance,
-            .advanceY_ = glyphEm * hgpositions[i].y_advance,
-            .offsetX_ = glyphEm * hgpositions[i].x_offset,
-            .offsetY_ = glyphEm * hgpositions[i].y_offset,
+        cg.glyphs.push_back({
+            .codepoint = hginfos[i].codepoint,
+            .advanceX = glyphEm * hgpositions[i].x_advance,
+            .advanceY = glyphEm * hgpositions[i].y_advance,
+            .offsetX = glyphEm * hgpositions[i].x_offset,
+            .offsetY = glyphEm * hgpositions[i].y_offset,
         });
-        cg.typeface_ = typeface;
+        cg.typeface = typeface;
     }
 
     DoCgsByCluster(cgsByCluster);
@@ -393,7 +393,7 @@ int MeasurerImpl::GetGlyphs(CharGroups &cgs, MeasuringRun &run, int &index, hb_b
     return SUCCESSED;
 }
 
-void MeasurerImpl::DoCgsByCluster(std::map<uint32_t, Texgine::CharGroup> &cgsByCluster)
+void MeasurerImpl::DoCgsByCluster(std::map<uint32_t, TextEngine::CharGroup> &cgsByCluster)
 {
     for (auto it = cgsByCluster.begin(); it != cgsByCluster.end(); it++) {
         auto start = (it++)->first;
@@ -403,27 +403,27 @@ void MeasurerImpl::DoCgsByCluster(std::map<uint32_t, Texgine::CharGroup> &cgsByC
 
         auto end = (it--)->first;
         if (start > text_.size() || end > text_.size()) {
-            LOG2EX(ERROR) << "cgsByCluster is not align with text_";
-            throw TEXGINE_EXCEPTION(ErrorStatus);
+            LOGEX_FUNC_LINE(ERROR) << "cgsByCluster is not align with text_";
+            throw TEXGINE_EXCEPTION(ERROR_STATUS);
         }
 
-        it->second.chars_.insert(it->second.chars_.end(), text_.begin() + start, text_.begin() + end);
-        it->second.visibleWidth_ = 0;
-        for (const auto &glyph : it->second.glyphs_) {
-            it->second.visibleWidth_ += glyph.advanceX_;
+        it->second.chars.insert(it->second.chars.end(), text_.begin() + start, text_.begin() + end);
+        it->second.visibleWidth = 0;
+        for (const auto &glyph : it->second.glyphs) {
+            it->second.visibleWidth += glyph.advanceX;
         }
 
-        it->second.invisibleWidth_ = letterSpacing_;
-        if (u_isWhitespace(it->second.chars_[0]) != 0) {
-            it->second.invisibleWidth_ += it->second.visibleWidth_;
-            it->second.visibleWidth_ = 0;
+        it->second.invisibleWidth = letterSpacing_;
+        if (u_isWhitespace(it->second.chars[0]) != 0) {
+            it->second.invisibleWidth += it->second.visibleWidth;
+            it->second.visibleWidth = 0;
         }
     }
 }
 
 void MeasurerImpl::GenerateHBFeatures(std::vector<hb_feature_t> &fontFeatures, const FontFeatures *ff)
 {
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "GenerateHBFeatures");
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "GenerateHBFeatures");
     if (ff == nullptr) {
         return;
     }
@@ -440,7 +440,7 @@ void MeasurerImpl::GenerateHBFeatures(std::vector<hb_feature_t> &fontFeatures, c
             fontFeatures.push_back(hf);
         }
 
-        LOG2EX_DEBUG() << "feature tag:" << hf.tag << ", feature value:" << hf.value;
+        LOGEX_FUNC_LINE_DEBUG() << "feature tag:" << hf.tag << ", feature value:" << hf.value;
     }
 }
 } // namespace TextEngine

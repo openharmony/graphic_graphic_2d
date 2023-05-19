@@ -77,7 +77,7 @@ public:
             style.fontFamilies = {info.fontFamily};
             style.fontSize = 64;
             for (const auto &[feature, value] : info.features) {
-                style.fontFeature_.SetFeature(feature, value);
+                style.fontFeature.SetFeature(feature, value);
             }
 
             builder->PushStyle(style);

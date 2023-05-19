@@ -54,7 +54,7 @@ public:
     {
         for (auto &info : g_infos) {
             TypographyStyle tystyle;
-            auto dyProvider = DynamicFileFontProvider::Create();
+            auto dfProvider = DynamicFileFontProvider::Create();
             dfProvider->LoadFont(info.fontFamily, info.path);
             auto fps = FontProviders::Create();
             fps->AppendFontProvider(dfProvider);

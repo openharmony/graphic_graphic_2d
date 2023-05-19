@@ -29,13 +29,13 @@ namespace Rosen {
 namespace TextEngine {
 class TexgineFontStyleSet {
 public:
-    explicit TexgineFontStyleSet(const SkFontStyleSet *set);
+    explicit TexgineFontStyleSet(SkFontStyleSet *set);
     ~TexgineFontStyleSet();
 
     /*
      * @brief Return the count of typeface
      */
-    int GetCount() const;
+    int Count() const;
 
     /*
      * @brief Get thr font style for the specified typeface

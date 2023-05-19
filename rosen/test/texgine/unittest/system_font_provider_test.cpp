@@ -45,7 +45,7 @@ std::shared_ptr<TexgineFontManager> TexgineFontManager::RefDefault()
     return g_sfpMockvars.fontMgr;
 }
 
-std::shared_ptr<TexgineFontStyleSet> TexgineFontManager::MatchFamily(const char familyName[])
+std::shared_ptr<TexgineFontStyleSet> TexgineFontManager::MatchFamily(const std::string &familyName)
 {
     return g_sfpMockvars.fontStyleSet;
 }
@@ -103,7 +103,7 @@ HWTEST_F(SystemFontProviderTest, MatchFamily3, TestSize.Level1)
     InitSfpMockVars({});
     auto fss = systemFontProvider->MatchFamily("");
     EXPECT_NE(fss, nullptr);
-    EXPECT_NE(fss->TryToTexgineFontStyleSet()->Get(), nullptr);
+    EXPECT_NE(fss->TryToTexgineFontStyleSet()->GetFontStyleSet(), nullptr);
 }
 } // namespace TextEngine
 } // namespace Rosen

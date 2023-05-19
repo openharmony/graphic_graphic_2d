@@ -32,81 +32,81 @@ struct ShadowTestData {
     {
         .text = "阴影数量1.",
         .style = {
-            .shadows_ = { { .offsetX_ = 4, .offsetY_ = 4, }, },
+            .shadows = { { .offsetX = 4, .offsetY = 4, }, },
         },
     },
     {
         .text = "阴影数量4.",
         .style = {
-            .shadows_ = {
-                { .offsetX_ = +4, .offsetY_ = +4, },
-                { .offsetX_ = +4, .offsetY_ = -4, },
-                { .offsetX_ = -4, .offsetY_ = +4, },
-                { .offsetX_ = -4, .offsetY_ = -4, },
+            .shadows = {
+                { .offsetX = +4, .offsetY = +4, },
+                { .offsetX = +4, .offsetY = -4, },
+                { .offsetX = -4, .offsetY = +4, },
+                { .offsetX = -4, .offsetY = -4, },
             },
         },
     },
     {
         .text = "阴影X偏移量0.",
-        .style = { .shadows_ = { { .offsetX_ = 0, }, }, },
+        .style = { .shadows = { { .offsetX = 0, }, }, },
     },
     {
         .text = "阴影X偏移量15.",
-        .style = { .shadows_ = { { .offsetX_ = 15, }, }, },
+        .style = { .shadows = { { .offsetX = 15, }, }, },
     },
     {
         .text = "阴影X偏移量-15.",
-        .style = { .shadows_ = { { .offsetX_ = -15, }, }, },
+        .style = { .shadows = { { .offsetX = -15, }, }, },
     },
     {
         .text = "阴影Y偏移量0.",
-        .style = { .shadows_ = { { .offsetY_ = 0, }, }, },
+        .style = { .shadows = { { .offsetY = 0, }, }, },
     },
     {
         .text = "阴影Y偏移量15.",
-        .style = { .shadows_ = { { .offsetY_ = 15, }, }, },
+        .style = { .shadows = { { .offsetY = 15, }, }, },
     },
     {
         .text = "阴影Y偏移量-15.",
-        .style = { .shadows_ = { { .offsetY_ = -15, }, }, },
+        .style = { .shadows = { { .offsetY = -15, }, }, },
     },
     {
         .text = "阴影模糊半径0.",
         .style = {
-            .shadows_ = {
-                { .offsetX_ = 2, .offsetY_ = 2, .color_ = SK_ColorBLACK, .blurLeave_ = 0, },
+            .shadows = {
+                { .offsetX = 2, .offsetY = 2, .color = SK_ColorBLACK, .blurLeave = 0, },
             },
         },
     },
     {
         .text = "阴影模糊半径2.",
         .style = {
-            .shadows_ = {
-                { .offsetX_ = 2, .offsetY_ = 2, .color_ = SK_ColorBLACK, .blurLeave_ = 2, },
+            .shadows = {
+                { .offsetX = 2, .offsetY = 2, .color = SK_ColorBLACK, .blurLeave = 2, },
             },
         },
     },
     {
         .text = "阴影模糊半径8.",
         .style = {
-            .shadows_ = {
-                { .offsetX_ = 2, .offsetY_ = 2, .color_ = SK_ColorBLACK, .blurLeave_ = 8, },
+            .shadows = {
+                { .offsetX = 2, .offsetY = 2, .color = SK_ColorBLACK, .blurLeave = 8, },
             },
         },
     },
     {
         .text = "阴影模糊半径32.",
         .style = {
-            .shadows_ = {
-                { .offsetX_ = 2, .offsetY_ = 2, .color_ = SK_ColorBLACK, .blurLeave_ = 32, },
+            .shadows = {
+                { .offsetX = 2, .offsetY = 2, .color = SK_ColorBLACK, .blurLeave = 32, },
             },
         },
     },
     {
         .text = "阴影颜色红色.",
         .style = {
-            .shadows_ = {
-                { .offsetX_ = 2, .offsetY_ = 2, .color_ = SK_ColorRED, },
+            .shadows = {
+                { .offsetX = 2, .offsetY = 2, .color = SK_ColorRED, },
             },
         },
     },

@@ -27,15 +27,15 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 struct StrutMetrics {
-    double ascent_ = 0;
-    double descent_ = 0;
-    double halfLeading_ = 0;
+    double ascent = 0;
+    double descent = 0;
+    double halfLeading = 0;
 };
 
 struct CalcResult {
-    bool need_ = true;
-    double ascent_ = 0;
-    double descent_ = 0;
+    bool need = true;
+    double ascent = 0;
+    double descent = 0;
 };
 
 class TypographyImpl : public Typography {
@@ -71,7 +71,8 @@ private:
     void DoLayout();
     int UpdateMetrics();
     int UpdateSpanMetrics(VariantSpan &span, double &ascent);
-    int DoUpdateSpanMetrics(const TexgineFontMetrics &metrics, const TextStyle &style);
+    int DoUpdateSpanMetrics(VariantSpan &span, const TexgineFontMetrics &metrics,
+        const TextStyle &style, double &coveredAscent);
     void UpadateAnySpanMetrics(std::shared_ptr<AnySpan> &span, double &coveredAscent, double &coveredDescent);
     void ApplyAlignment();
     size_t FindGlyphTargetLine(double y) const;

@@ -55,9 +55,9 @@ std::vector<VariantSpan> TextMerger::MergeSpans(const std::vector<VariantSpan> &
         CharGroups cgs;
         std::optional<bool> currentRTL = std::nullopt;
         for (; it != spans.end(); it++) {
-            LOGSCOPED(sl, LOG2EX_DEBUG(), "MergeSpan");
+            LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "MergeSpan");
             auto result = MergeSpan(*it, currentRTL, cgs);
-            it->Dump(DumpType::DONTRETURN);
+            it->Dump(DumpType::DONT_RETURN);
             LOGCEX_DEBUG() << result;
             if (result == MergeResult::BREAKED) {
                 it++;
@@ -70,12 +70,12 @@ std::vector<VariantSpan> TextMerger::MergeSpans(const std::vector<VariantSpan> &
         }
 
         if (it == spans.begin()) {
-            throw TEXGINE_EXCEPTION(ErrorStatus);
+            throw TEXGINE_EXCEPTION(ERROR_STATUS);
         }
 
         auto &lastSpan = *(it - 1);
         if (auto ts = lastSpan.TryToTextSpan(); ts != nullptr) {
-            lastSpan.Dump(DumpType::DONTRETURN);
+            lastSpan.Dump(DumpType::DONT_RETURN);
             LOGCEX_DEBUG() << "generated";
 
             auto mergedSpan = ts->CloneWithCharGroups(cgs);
@@ -90,7 +90,7 @@ std::vector<VariantSpan> TextMerger::MergeSpans(const std::vector<VariantSpan> &
 MergeResult TextMerger::MergeSpan(const VariantSpan &span, std::optional<bool> &currentRTL, CharGroups &cgs)
 {
     if (span == nullptr) {
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
     auto ts = span.TryToTextSpan();
@@ -109,7 +109,7 @@ MergeResult TextMerger::MergeSpan(const VariantSpan &span, std::optional<bool> &
 
     currentRTL = rtl;
     if (!ts->cgs_.IsValid() || ts->cgs_.GetSize() == 0) {
-        throw TEXGINE_EXCEPTION(ErrorStatus);
+        throw TEXGINE_EXCEPTION(ERROR_STATUS);
     }
 
     if (cgs.IsValid() && !cgs.IsSameCharGroups(ts->cgs_)) {
@@ -118,13 +118,13 @@ MergeResult TextMerger::MergeSpan(const VariantSpan &span, std::optional<bool> &
 
     if (!cgs.IsValid()) {
         cgs = ts->cgs_;
-    } else if (cgs.Get(0).typeface_ != ts->typeface_) {
+    } else if (cgs.Get(0).typeface != ts->typeface_) {
         return MergeResult::REJECTED;
     } else {
         cgs.Merge(ts->cgs_);
     }
 
-    bool isWhitespace = (u_isWhitespace(ts->cgs_.GetBack().chars_[0]) == 1);
+    bool isWhitespace = (u_isWhitespace(ts->cgs_.GetBack().chars[0]) == 1);
     if (isWhitespace) {
         return MergeResult::BREAKED;
     } else {

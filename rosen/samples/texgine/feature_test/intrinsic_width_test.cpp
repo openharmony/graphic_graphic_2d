@@ -35,35 +35,35 @@ struct IntrinsicTestData {
 } g_datas[] = {
     {
         .ys = {
-            .ellipsis_ = u"",
+            .ellipsis = u"",
         },
         .title = "不换行的对照组",
         .widthLimit = 700,
     },
     {
         .ys = {
-            .ellipsis_ = u"",
-            .wordBreakType_ = WordBreakType::BREAKWORD,
+            .ellipsis = u"",
+            .wordBreakType = WordBreakType::BREAK_WORD,
         },
         .title = "breakWord",
     },
     {
         .ys = {
-            .ellipsis_ = u"",
-            .wordBreakType_ = WordBreakType::BREAKALL,
+            .ellipsis = u"",
+            .wordBreakType = WordBreakType::BREAK_ALL,
         },
         .title = "breakAll",
     },
     {
         .ys = {
-            .maxLines_ = 1,
+            .maxLines = 1,
         },
         .title = "maxline = 1",
     },
     {
         .ys = {
-            .ellipsis_ = u"",
-            .wordBreakType_ = WordBreakType::BREAKALL,
+            .ellipsis = u"",
+            .wordBreakType = WordBreakType::BREAK_ALL,
         },
         .title = "breakAll，中文",
         .widthLimit = 120,

@@ -22,7 +22,7 @@ namespace Rosen {
 namespace TextEngine {
 std::unique_ptr<FontProviders> FontProviders::Create() noexcept(true)
 {
-    return std::make_unique<FontProviders>();
+    return std::unique_ptr<FontProviders>(new FontProviders());
 }
 
 std::unique_ptr<FontProviders> FontProviders::SystemFontOnly() noexcept(true)
