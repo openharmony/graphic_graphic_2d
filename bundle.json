@@ -170,6 +170,62 @@
               ],
               "header_base": "//foundation/graphic/graphic_2d/utils/sync_fence/export"
             }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+            "header": {
+              "header_files": [
+                "animation/rs_animation_timing_protocol.h",
+                "common/rs_macros.h",
+                "common/rs_rect.h",
+                "common/rs_vector3.h",
+                "common/rs_vector4.h",
+                "render/rs_image.h",
+                "render/rs_light_up_effect_filter.h",
+                "render/rs_pixel_map_util.h",
+                "render/rs_shader.h",
+                "render/rs_filter.h",
+                "render/rs_image_cache.h",
+                "render/rs_shadow.h",
+                "render/rs_mask.h",
+                "render/rs_path.h",
+                "render/rs_border.h",
+                "render/rs_image_base.h",
+                "modifier/rs_animatable_arithmetic.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+            "header": {
+              "header_files": [
+                "animation/rs_animation.h",
+                "animation/rs_transition.h",
+                "animation/rs_animation_timing_curve.h",
+                "animation/rs_motion_path_option.h",
+                "ui/rs_node.h",
+                "ui/rs_proxy_node.h",
+                "ui/rs_base_node.h",
+                "ui/rs_ui_share_context.h",
+                "ui/rs_ui_director.h",
+                "ui/rs_surface_extractor.h",
+                "ui/rs_surface_node.h",
+                "ui/rs_canvas_node.h",
+                "ui/rs_display_node.h",
+                "ui/rs_root_node.h",
+                "modifier/rs_modifier.h",
+                "modifier/rs_modifier_manager_map.h",
+                "modifier/rs_modifier_extractor.h",
+                "modifier/rs_modifier_manager.h",
+                "modifier/rs_property.h",
+                "modifier/rs_extended_modifier.h",
+                "modifier/rs_property_modifier.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core"
+            }
           }
         ],
         "test": [
