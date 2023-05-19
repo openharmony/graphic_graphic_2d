@@ -317,18 +317,6 @@ RectI RSObjAbsGeometry::MapAbsRect(const RectF& rect) const
             rect.width_ * matrix.getScaleX()));
         int bottom = static_cast<int>(std::ceil(rect.top_ + matrix.getTranslateY() +
             rect.height_ * matrix.getScaleY()));
-
-        // Assuming matrix is identity,
-        // if rect.left_ = 100.5, rect.width_ = 0.5,
-        // then absRect.left_ = 101, right = 101, absRect.width_ = 0, the node cannot be drawn.
-        // So if right - absRect.left_ == 0 and rect.width_ * matrix.getScaleX() > 0,
-        // we should decrease absRect.left_ to make sure absRect.width_ would not be zero
-        if (right - absRect.left_ == 0 && rect.width_ * matrix.getScaleX() > 0) {
-            absRect.left_ = absRect.left_ - 1;
-        }
-        if (bottom - absRect.top_ == 0 && rect.height_ * matrix.getScaleY() > 0) {
-            absRect.top_ = absRect.top_ - 1;
-        }
         absRect.width_ = right - absRect.left_;
         absRect.height_ = bottom - absRect.top_;
     }
