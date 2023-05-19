@@ -41,7 +41,7 @@ RSBaseRenderEngine::~RSBaseRenderEngine() noexcept
 void RSBaseRenderEngine::Init()
 {
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
-    renderContext_ = std::shared_ptr<RenderContext>(RenderContextFactory::GetInstance().CreateNewEngine());
+    renderContext_ = std::make_shared<RenderContext>();
     renderContext_->InitializeEglContext();
     if (RSUniRenderJudgement::IsUniRender()) {
         RS_LOGI("RSRenderEngine::RSRenderEngine set new cacheDir");

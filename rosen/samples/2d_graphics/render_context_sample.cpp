@@ -86,7 +86,7 @@ void RenderContextSample::OnPrepareCompleted(
 
 void RenderContextSample::InitEGL()
 {
-    renderContext = RenderContextFactory::GetInstance().CreateNewEngine();
+    renderContext = new RenderContext();
     renderContext->InitializeEglContext();
 }
 

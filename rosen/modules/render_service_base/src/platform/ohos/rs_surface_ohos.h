@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RenderContextEGL;
+class RenderContext;
 class RSSurfaceOhos : public RSSurface {
 public:
     RSSurfaceOhos(const sptr<Surface>& producer) : producer_(producer)
@@ -45,7 +45,7 @@ public:
     void ClearAllBuffer() override;
 protected:
     sptr<Surface> producer_;
-    RenderContextEGL* context_ = nullptr;
+    RenderContext* context_ = nullptr;
     ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
     int32_t pixelFormat_ = PIXEL_FMT_RGBA_8888;
     uint64_t bufferUsage_ = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;

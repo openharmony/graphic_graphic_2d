@@ -14,12 +14,10 @@
  */
 
 #include "rs_surface_ohos_gl.h"
-
+#include "platform/common/rs_log.h"
+#include "window.h"
 #include <hilog/log.h>
 #include "pipeline/rs_render_thread.h"
-#include "platform/common/rs_log.h"
-#include "render_context/render_context_egl.h"
-#include "window.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -57,7 +55,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
         ROSEN_LOGE("RSSurfaceOhosGl::RequestFrame, GetRenderContext failed!");
         return nullptr;
     }
-    static_cast<RenderContextEGL*>(context)->SetColorSpace(colorSpace_);
+    context->SetColorSpace(colorSpace_);
     if (mWindow == nullptr) {
         mWindow = CreateNativeWindowFromSurface(&producer_);
         mEglSurface = context->CreateEGLSurface((EGLNativeWindowType)mWindow);

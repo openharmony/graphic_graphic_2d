@@ -22,12 +22,12 @@
 
 namespace OHOS {
 namespace Rosen {
-class RenderContextEGL;
+class RenderContext;
 class RSSurfaceFrameOhos : public RSSurfaceFrame {
 public:
     virtual void SetRenderContext(RenderContext* context);
 protected:
-    RenderContextEGL* renderContext_;
+    RenderContext* renderContext_;
 };
 
 } // namespace Rosen

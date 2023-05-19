@@ -33,7 +33,7 @@
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "render_context/render_context_egl.h"
+#include "render_context/render_context.h"
 #include "pipeline/rs_base_render_engine.h"
 
 namespace OHOS {
@@ -108,7 +108,7 @@ private:
     std::thread *subThread_;
     std::condition_variable cvFlush_;
     std::mutex flushMutex_;
-    RenderContextEGL *renderContext_ = nullptr;
+    RenderContext *renderContext_ = nullptr;
     std::unique_ptr<RSSuperRenderTask> threadTask_;
     std::unique_ptr<RSCompositionTask> compositionTask_ = nullptr;
 

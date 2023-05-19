@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <hilog/log.h>
 
-#include "render_context_egl.h"
+#include "render_context.h"
 
 using namespace testing::ext;
 
@@ -44,7 +44,7 @@ HWTEST_F(RenderContextTest, CreateEGLSurfaceTest001, Function | SmallTest | Leve
 {
 #ifdef ACE_ENABLE_GL
     // start CreateEGLSurfaceTest001 test
-    RenderContextEGL renderContext;
+    RenderContext renderContext;
     EGLSurface eglSurface = renderContext.CreateEGLSurface(nullptr);
     EXPECT_EQ(eglSurface, EGL_NO_SURFACE);
 #endif
@@ -59,7 +59,7 @@ HWTEST_F(RenderContextTest, CreateEGLSurfaceTest002, Function | SmallTest | Leve
 {
 #ifdef ACE_ENABLE_GL
     // start CreateEGLSurfaceTest002 test
-    RenderContextEGL renderContext;
+    RenderContext renderContext;
     renderContext.InitializeEglContext();
     EGLSurface eglSurface = renderContext.CreateEGLSurface(nullptr);
     EXPECT_EQ(eglSurface, EGL_NO_SURFACE);
@@ -75,7 +75,7 @@ HWTEST_F(RenderContextTest, SetUpGrContextTest, Function | SmallTest | Level2)
 {
 #ifdef ACE_ENABLE_GL
     // start SetUpGrContextTest test
-    RenderContextEGL renderContext;
+    RenderContext renderContext;
     bool grContext = renderContext.SetUpGrContext();
     EXPECT_EQ(grContext, false);
 #endif
@@ -90,7 +90,7 @@ HWTEST_F(RenderContextTest, AcquireSurfaceTest, Function | SmallTest | Level2)
 {
 #ifdef ACE_ENABLE_GL
     // start AcquireSurfaceTest test
-    RenderContextEGL renderContext;
+    RenderContext renderContext;
     auto surface = renderContext.AcquireSurface(0, 0);
     EXPECT_TRUE(surface == nullptr);
 #endif
@@ -105,7 +105,7 @@ HWTEST_F(RenderContextTest, QueryEglBufferAgeTest001, Function | SmallTest | Lev
 {
 #ifdef ACE_ENABLE_GL
     // start QueryEglBufferAgeTest001 test
-    RenderContextEGL renderContext;
+    RenderContext renderContext;
     EGLint bufferAge = renderContext.QueryEglBufferAge();
     EXPECT_EQ(bufferAge, EGL_UNKNOWN);
 #endif
@@ -120,7 +120,7 @@ HWTEST_F(RenderContextTest, QueryEglBufferAgeTest002, Function | SmallTest | Lev
 {
 #ifdef ACE_ENABLE_GL
     // start QueryEglBufferAgeTest002 test
-    RenderContextEGL renderContext;
+    RenderContext renderContext;
     EGLint bufferAge = renderContext.QueryEglBufferAge();
     EXPECT_EQ(bufferAge, EGL_UNKNOWN);
 #endif

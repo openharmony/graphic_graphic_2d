@@ -95,7 +95,7 @@ void RSParallelRenderManager::StartSubRenderThread(uint32_t threadNum, RenderCon
         expectedSubThreadNum_ = threadNum;
         flipCoin_ = std::vector<uint8_t>(expectedSubThreadNum_, 0);
         firstFlush_ = true;
-        renderContext_ = static_cast<RenderContextEGL*>(context);
+        renderContext_ = context;
 #ifdef RS_ENABLE_GL
         if (context) {
 #endif
