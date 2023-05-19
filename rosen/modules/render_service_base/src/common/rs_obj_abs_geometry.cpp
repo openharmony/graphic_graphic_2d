@@ -309,26 +309,12 @@ RectI RSObjAbsGeometry::MapAbsRect(const RectF& rect) const
         absRect.height_ = static_cast<int>(std::ceil(yRange[1] - absRect.top_));
     } else {
         // Calculate the absolute rectangle based on the matrix's translation and scaling
-        absRect.left_ = static_cast<int>(std::ceil(rect.left_ + matrix.getTranslateX()));
-        absRect.top_ = static_cast<int>(std::ceil(rect.top_ + matrix.getTranslateY()));
-        int right = static_cast<int>(std::ceil(rect.left_ + matrix.getTranslateX() +
-            rect.width_ * matrix.getScaleX()));
-        int bottom = static_cast<int>(std::ceil(rect.top_ + matrix.getTranslateY() +
-            rect.height_ * matrix.getScaleY()));
-
-        // Assuming matrix is identity,
-        // if rect.left_ = 100.5, rect.width_ = 0.5,
-        // then absRect.left_ = 101, right = 101, absRect.width_ = 0, the node cannot be drawn.
-        // So if right - absRect.left_ == 0 and rect.width_ * matrix.getScaleX() > 0,
-        // we should decrease absRect.left_ to make sure absRect.width_ would not be zero
-        if (right - absRect.left_ == 0 && rect.width_ * matrix.getScaleX() > 0) {
-            absRect.left_ = absRect.left_ - 1;
-        }
-        if (bottom - absRect.top_ == 0 && rect.height_ * matrix.getScaleY() > 0) {
-            absRect.top_ = absRect.top_ - 1;
-        }
-        absRect.width_ = right - absRect.left_;
-        absRect.height_ = bottom - absRect.top_;
+        absRect.left_ = static_cast<int>(rect.left_ + matrix.getTranslateX());
+        absRect.top_ = static_cast<int>(rect.top_ + matrix.getTranslateY());
+        float right = rect.left_ + matrix.getTranslateX() + rect.width_ * matrix.getScaleX();
+        float bottom = rect.top_ + matrix.getTranslateY() + rect.height_ * matrix.getScaleY();
+        absRect.width_ = static_cast<int>(std::ceil(right - absRect.left_));
+        absRect.height_ = static_cast<int>(std::ceil(bottom - absRect.top_));
     }
     return absRect;
 }
