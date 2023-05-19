@@ -445,7 +445,7 @@ void RSParallelRenderManager::SubmitSubThreadTask(const std::shared_ptr<RSDispla
 
     std::vector<std::unique_ptr<RSSuperRenderTask>> superRenderTaskList;
     for (uint32_t i = 0; i < PARALLEL_THREAD_NUM; i++) {
-        superRenderTaskList[i] = std::make_unique<RSSuperRenderTask>(node);
+        superRenderTaskList.emplace_back(std::make_unique<RSSuperRenderTask>(node));
     }
 
     for (size_t i = 0; i < nodeNum; i++) {

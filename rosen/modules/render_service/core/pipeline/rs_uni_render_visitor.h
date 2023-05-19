@@ -23,6 +23,7 @@
 #include <parameters.h>
 #include <set>
 
+#include "parallel_render/rs_parallel_sub_thread.h"
 #include "rs_base_render_engine.h"
 
 #include "pipeline/driven_render/rs_driven_render_manager.h"
@@ -88,6 +89,9 @@ public:
         mainThreadNodes_ = mainThreadNodes;
         subThreadNodes_ = subThreadNodes;
     }
+
+    void DrawSurfaceLayer(RSDisplayRenderNode& node);
+    void DrawCacheRenderNode(RSRenderNode& node);
 
     bool GetAnimateState() const
     {
@@ -273,6 +277,8 @@ private:
 
     std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes_;
     std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes_;
+    bool isSubThread_ = false;
+    bool isUIFirst_ = false;
 
     bool needColdStartThread_ = false; // flag used for cold start app window
 

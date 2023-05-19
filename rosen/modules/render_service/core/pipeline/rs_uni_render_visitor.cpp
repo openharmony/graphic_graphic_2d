@@ -107,6 +107,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
 #if defined(RS_ENABLE_PARALLEL_RENDER)
     isCalcCostEnable_ = RSSystemParameters::GetCalcCostEnabled();
 #endif
+    isUIFirst_ = RSSystemProperties::GetUIFirstEnabled();
 }
 
 RSUniRenderVisitor::RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas, uint32_t surfaceIndex)
@@ -173,6 +174,8 @@ void RSUniRenderVisitor::CopyPropertyForParallelVisitor(RSUniRenderVisitor *main
     isHardwareForcedDisabled_ = mainVisitor->isHardwareForcedDisabled_;
     isOpDropped_ = mainVisitor->isOpDropped_;
     isPartialRenderEnabled_ = mainVisitor->isPartialRenderEnabled_;
+    isUIFirst_ = mainVisitor->isUIFirst_;
+    isSubThread_ = true;
 }
 
 void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
@@ -483,7 +486,7 @@ void RSUniRenderVisitor::AdjustLocalZOrder(std::shared_ptr<RSSurfaceRenderNode> 
         return;
     }
     localZOrder_ = static_cast<float>(hardwareEnabledNodes.size());
-    if (isParallel_) {
+    if (isParallel_ && !isUIFirst_) {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
         RSParallelRenderManager::Instance()->AddAppWindowNode(parallelRenderVisitorIndex_, surfaceNode);
 #endif
@@ -1321,7 +1324,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             parallelRenderManager->CopyVisitorAndPackTask(*this, node);
             parallelRenderManager->InitDisplayNodeAndRequestFrame(renderEngine_, screenInfo_);
             parallelRenderManager->LoadBalanceAndNotify(TaskType::PROCESS_TASK);
-            parallelRenderManager->WaitProcessEnd(*this);
+            parallelRenderManager->WaitProcessEnd();
             parallelRenderManager->CommitSurfaceNum(node.GetChildrenCount());
             vulkan::VulkanWindow::PresentAll();
 
@@ -1454,7 +1457,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
 #endif
         RSPropertiesPainter::SetBgAntiAlias(true);
-        if (!isParallel_) {
+        if (!isParallel_ || isUIFirst_) {
             int saveCount = canvas_->save();
             canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
             auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
@@ -1479,12 +1482,15 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 FinishOffscreenRender();
             } else {
                 // render directly
+                if (isUIFirst_) {
+                    DrawSurfaceLayer(node);
+                }
                 ProcessBaseRenderNode(node);
             }
             canvas_->restoreToCount(saveCount);
         }
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-        if ((isParallel_ && ((rects.size() > 0) || !isPartialRenderEnabled_)) && isCalcCostEnable_) {
+        if ((isParallel_ && !isUIFirst_ && ((rects.size() > 0) || !isPartialRenderEnabled_)) && isCalcCostEnable_) {
             auto parallelRenderManager = RSParallelRenderManager::Instance();
             parallelRenderManager->CopyCalcCostVisitorAndPackTask(*this, node, isNeedCalcCost,
                 doAnimate_, isOpDropped_);
@@ -1494,7 +1500,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 parallelRenderManager->UpdateNodeCost(node);
             }
         }
-        if (isParallel_ && ((rects.size() > 0) || !isPartialRenderEnabled_)) {
+        if (isParallel_ && !isUIFirst_ && ((rects.size() > 0) || !isPartialRenderEnabled_)) {
             ClearTransparentBeforeSaveLayer();
             auto parallelRenderManager = RSParallelRenderManager::Instance();
             parallelRenderManager->SetFrameSize(screenInfo_.width, screenInfo_.height);
@@ -1573,6 +1579,37 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
 }
 
+void RSUniRenderVisitor::DrawSurfaceLayer(RSDisplayRenderNode& node)
+{
+    auto parallelRenderManager = RSParallelRenderManager::Instance();
+    std::shared_ptr<RSBaseRenderNode> nodePtr = node.shared_from_this();
+    auto displayNodePtr = nodePtr->ReinterpretCastTo<RSDisplayRenderNode>();
+    parallelRenderManager->CopyCacheVisitor(*this, node);
+    parallelRenderManager->SubmitSubThreadTask(displayNodePtr, subThreadNodes_);
+}
+
+void RSUniRenderVisitor::DrawCacheRenderNode(RSRenderNode& node)
+{
+    RS_TRACE_NAME_FMT("draw cache render node %llu", node.GetId());
+    isUpdateCachedSurface_ = true;
+    if (node.GetCacheSurface()) {
+        auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
+        if (!cacheCanvas) {
+            RS_LOGE("draw cache render node canvas is null");
+            return;
+        }
+        bool isOpDropped = isOpDropped_;
+        isOpDropped_ = false;
+        swap(cacheCanvas, canvas_);
+        node.ProcessRenderContents(*canvas_);
+        ProcessBaseRenderNode(node);
+        swap(cacheCanvas, canvas_);
+        isOpDropped_ = isOpDropped;
+    } else {
+        RS_LOGI("get cache surface failed");
+    }
+}
+
 void RSUniRenderVisitor::AssignGlobalZOrderAndCreateLayer()
 {
     if (!IsHardwareComposerEnabled()) {
@@ -1581,7 +1618,7 @@ void RSUniRenderVisitor::AssignGlobalZOrderAndCreateLayer()
     if (hardwareEnabledNodes_.empty()) {
         return;
     }
-    if (isParallel_) {
+    if (isParallel_ && !isUIFirst_) {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>().swap(appWindowNodesInZOrder_);
         auto subThreadNum = RSParallelRenderManager::Instance()->GetParallelThreadNumber();
@@ -2084,6 +2121,12 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
 
 void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
+    if (isUIFirst_ && isSubThread_) {
+        if (auto parentNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(node.GetParent().lock())) {
+            DrawCacheRenderNode(node);
+            return;
+        }
+    }
     if (RSSystemProperties::GetProxyNodeDebugEnabled() && node.contextClipRect_.has_value() && canvas_ != nullptr) {
         // draw transparent red rect to indicate valid clip area
         {
@@ -2231,6 +2274,9 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             property, *canvas_, node.GetCompletedCacheSurface());
         node.ProcessTransitionAfterChildren(*canvas_);
     } else {
+        if (isUIFirst_ && RSUniRenderUtil::HandleCachedNode(node, *canvas_)) {
+            return;
+        }
         node.ProcessRenderBeforeChildren(*canvas_);
 
         if (node.GetBuffer() != nullptr) {
@@ -2541,7 +2587,7 @@ void RSUniRenderVisitor::FinishOffscreenRender()
 bool RSUniRenderVisitor::AdaptiveSubRenderThreadMode(bool doParallel)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
-    doParallel = doParallel && (parallelRenderType_ != ParallelRenderingType::DISABLE);
+    doParallel = (doParallel && (parallelRenderType_ != ParallelRenderingType::DISABLE)) || isUIFirst_;
     if (!doParallel) {
         return doParallel;
     }
@@ -2565,7 +2611,7 @@ bool RSUniRenderVisitor::AdaptiveSubRenderThreadMode(bool doParallel)
 void RSUniRenderVisitor::ParallelRenderEnableHardwareComposer(RSSurfaceRenderNode& node)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined (RS_ENABLE_GL)
-    if (isParallel_) {
+    if (isParallel_ && !isUIFirst_) {
         const auto& property = node.GetRenderProperties();
         auto dstRect = node.GetDstRect();
         RectF clipRect = {dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetWidth(), dstRect.GetHeight()};

@@ -242,6 +242,11 @@ bool RSSystemProperties::GetProxyNodeDebugEnabled()
     return flag;
 }
 
+bool RSSystemProperties::GetUIFirstEnabled()
+{
+    return std::atoi((system::GetParameter("rosen.ui.first.enabled", "0")).c_str()) != 0;
+}
+
 bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
 {
     return std::atoi((system::GetParameter(name, defaultValue ? "1" : "0")).c_str()) != 0;

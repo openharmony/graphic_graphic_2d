@@ -255,8 +255,7 @@ public:
 
     bool HasCachedTexture() const
     {
-        // return true if cached texture existed, include itself or its children
-        return false;
+        return cacheCompletedSurface_ != nullptr;
     }
 
     void SetDrawRegion(std::shared_ptr<RectF> rect)
@@ -315,7 +314,7 @@ private:
     std::atomic<bool> isStaticCached_ = false;
     CacheType cacheType_ = CacheType::NONE;
 
-    bool isMainThreadNode_ = false;
+    bool isMainThreadNode_ = true;
     bool hasFilter_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 

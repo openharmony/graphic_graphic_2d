@@ -16,6 +16,7 @@
 #include "rs_uni_render_util.h"
 #include <cstdint>
 
+#include "pipeline/parallel_render/rs_parallel_render_manager.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
@@ -265,6 +266,19 @@ Occlusion::Region RSUniRenderUtil::AlignedDirtyRegion(const Occlusion::Region& d
     return alignedRegion;
 }
 
+bool RSUniRenderUtil::HandleCachedNode(const RSRenderNode& node, RSPaintFilterCanvas& canvas)
+{
+    if (node.IsMainThreadNode()) {
+        return false;
+    }
+    RS_TRACE_NAME_FMT("Handle Cached Node %llu", node.GetId());
+    if (!node.HasCachedTexture()) {
+        RSParallelRenderManager::Instance()->WaitNodeTask(node.GetId());
+    }
+    node.DrawCacheSurface(canvas);
+    return true;
+}
+
 int RSUniRenderUtil::GetRotationFromMatrix(SkMatrix matrix)
 {
     float value[9];
@@ -313,6 +327,9 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         } else {
             subThreadNodes.emplace_back(node);
             node->SetIsMainThreadNode(false);
+            if (node->GetCacheSurface()) {
+                node->UpdateCompletedCacheSurface();
+            }
             if (node->HasCachedTexture()) {
                 node->SetPriority(NodePriorityType::SUB_LOW_PRIORITY);
             } else {
