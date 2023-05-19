@@ -249,27 +249,26 @@ private:
     void UpdateModifierMotionPathOption();
     void MarkAllExtendModifierDirty();
     void ResetExtendModifierDirty();
+    void UpdateImplicitAnimator();
 
     // Planning: refactor RSUIAnimationManager and remove this method
     void ClearAllModifiers();
 
-    std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
-    std::unordered_map<PropertyId, uint32_t> animatingPropertyNum_;
-    std::unordered_map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
-    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
-    std::shared_ptr<RSMotionPathOption> motionPathOption_;
-    std::shared_ptr<RectF> drawRegion_;
-
-    void UpdateImplicitAnimator();
     pid_t implicitAnimatorTid_ = 0;
-    std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
-    std::shared_ptr<const RSTransitionEffect> transitionEffect_;
     bool extendModifierIsDirty_ { false };
-
-    RSModifierExtractor stagingPropertiesExtractor_;
-
     // driven render
     bool drivenFlag_ = false;
+
+    RSModifierExtractor stagingPropertiesExtractor_;
+    std::unordered_map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
+    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
+    std::shared_ptr<RectF> drawRegion_;
+
+    std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
+    std::unordered_map<PropertyId, uint32_t> animatingPropertyNum_;
+    std::shared_ptr<RSMotionPathOption> motionPathOption_;
+    std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
+    std::shared_ptr<const RSTransitionEffect> transitionEffect_;
 
     friend class RSAnimation;
     friend class RSCurveAnimation;
