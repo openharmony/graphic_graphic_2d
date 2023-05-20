@@ -40,6 +40,7 @@ public:
     static void ReleaseUnlockGpuResource(GrDirectContext* grContext, NodeId surfaceNodeId);
     static void ReleaseUnlockGpuResource(GrDirectContext* grContext, pid_t pid);
     static void ReleaseAllGpuResource(GrDirectContext* grContext, pid_t pid);
+    static void ReleaseAllGpuResource(GrDirectContext* grContext, GrGpuResourceTag& tag);
     static void ReleaseUnlockGpuResource(GrDirectContext* grContext, bool scratchResourcesOnly = true);
 #else
     static void DumpMemoryUsage(DfxString& log, const GrContext* grContext, std::string& type);
@@ -62,6 +63,8 @@ private:
 #if defined(NEW_SKIA)
     static void DumpDrawingGpuMemory(DfxString& log, const GrDirectContext* grContext);
     static void DumpAllGpuInfo(DfxString& log, const GrDirectContext* grContext);
+    static void DumpGpuCache(
+        DfxString& log, const GrDirectContext* grContext, GrGpuResourceTag* tag, std::string& name);
 #else
     static void DumpDrawingGpuMemory(DfxString& log, const GrContext* grContext);
     static void DumpGpuCache(DfxString& log, const GrContext* grContext, GrGpuResourceTag* tag, std::string& name);
