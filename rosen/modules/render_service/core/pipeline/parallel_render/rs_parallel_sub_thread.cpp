@@ -321,7 +321,9 @@ void RSParallelSubThread::Flush()
     if (renderType_ == ParallelRenderType::DRAW_IMAGE) {
         RS_TRACE_BEGIN("Flush");
 #ifdef NEW_SKIA
-        grContext_->flushAndSubmit(false);
+        if (grContext_) {
+            grContext_->flushAndSubmit(false);
+        }
 #else
         // skCanvas_->flush() may tasks a long time when window is zoomed in and out. So let flush operation of
         // subMainThreads are executed in sequence to reduce probability rather than solve the question.
