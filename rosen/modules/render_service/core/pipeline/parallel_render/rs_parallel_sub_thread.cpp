@@ -100,10 +100,14 @@ void RSParallelSubThread::MainLoop()
                 Flush();
                 break;
             }
-            default: {
+            case TaskType::COMPOSITION_TASK: {
                 StartComposition();
                 Composition();
                 RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
+                break;
+            }
+            default: {
+                break;
             }
         }
     }

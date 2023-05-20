@@ -172,6 +172,13 @@ void RSParallelRenderManager::CopyPrepareVisitorAndPackTask(RSUniRenderVisitor &
     taskType_ = TaskType::PREPARE_TASK;
 }
 
+void RSParallelRenderManager::CopyCacheVisitor(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node)
+{
+    displayNode_ = node.shared_from_this();
+    uniVisitor_ = &visitor;
+    taskType_ = TaskType::CACHE_TASK;
+}
+
 void RSParallelRenderManager::CopyCalcCostVisitorAndPackTask(RSUniRenderVisitor &visitor,
     RSDisplayRenderNode &node, bool isNeedCalc, bool doAnimate, bool isOpDropped)
 {
@@ -288,7 +295,7 @@ void RSParallelRenderManager::WaitPrepareEnd(RSUniRenderVisitor &visitor)
     }
 }
 
-void RSParallelRenderManager::WaitProcessEnd(RSUniRenderVisitor &visitor)
+void RSParallelRenderManager::WaitProcessEnd()
 {
     for (uint32_t i = 0; i < expectedSubThreadNum_; ++i) {
         WaitSubMainThread(i);
@@ -420,6 +427,7 @@ void RSParallelRenderManager::SubmitSuperTask(uint32_t taskIndex, std::unique_pt
 void RSParallelRenderManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRenderNode>& node,
     const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
 {
+    RS_TRACE_NAME("RSParallelRenderManager::SubmitSubThreadTask");
     if (node == nullptr) {
         ROSEN_LOGE("RSUniRenderUtil::AssignSubThreadNodes display node is null");
         return;
@@ -431,6 +439,7 @@ void RSParallelRenderManager::SubmitSubThreadTask(const std::shared_ptr<RSDispla
     }
     std::vector<std::unique_ptr<RSRenderTask>> renderTaskList;
     for (auto& child : subThreadNodes) {
+        nodeTaskState_[child->GetId()] = 1;
         renderTaskList.push_back(std::make_unique<RSRenderTask>(*child, RSRenderTask::RenderNodeStage::CACHE));
     }
 
@@ -438,15 +447,56 @@ void RSParallelRenderManager::SubmitSubThreadTask(const std::shared_ptr<RSDispla
     for (uint32_t i = 0; i < PARALLEL_THREAD_NUM; i++) {
         superRenderTaskList[i] = std::make_unique<RSSuperRenderTask>(node);
     }
+
     for (size_t i = 0; i < nodeNum; i++) {
-        uint32_t taskIndex = i % PARALLEL_THREAD_NUM;
-        if (superRenderTaskList[taskIndex]) {
-            superRenderTaskList[taskIndex]->AddTask(std::move(renderTaskList[i]));
+        auto renderNode = renderTaskList[i]->GetNode();
+        auto surfaceNode = renderNode->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (surfaceNode == nullptr) {
+            ROSEN_LOGE("RSParallelRenderManager::SubmitSubThreadTask surfaceNode is null");
+            continue;
         }
+        auto threadIndex = surfaceNode->GetSubmittedSubThreadIndex();
+        if (threadIndex != INT_MAX && superRenderTaskList[threadIndex]) {
+            superRenderTaskList[threadIndex]->AddTask(std::move(renderTaskList[i]));
+        } else {
+            if (superRenderTaskList[minLoadThreadIndex_]) {
+                superRenderTaskList[minLoadThreadIndex_]->AddTask(std::move(renderTaskList[i]));
+                surfaceNode->SetSubmittedSubThreadIndex(minLoadThreadIndex_);
+            }
+        }
+        uint32_t minLoadThreadIndex = 0;
+        auto minNodesNum = superRenderTaskList[0]->GetTaskSize();
+        for (auto i = 0; i < PARALLEL_THREAD_NUM; i++) {
+            auto num = superRenderTaskList[i]->GetTaskSize();
+            if (num < minNodesNum) {
+                minNodesNum = num;
+                minLoadThreadIndex = i;
+            }
+        }
+        minLoadThreadIndex_ = minLoadThreadIndex;
     }
-    for (uint32_t i = 0; i < PARALLEL_THREAD_NUM; i++) {
+
+    for (auto i = 0; i < PARALLEL_THREAD_NUM; i++) {
         SubmitSuperTask(i, std::move(superRenderTaskList[i]));
+        flipCoin_[i] = 1;
     }
+    cvParallelRender_.notify_all();
+}
+
+void RSParallelRenderManager::WaitNodeTask(uint64_t nodeId)
+{
+    ROSEN_LOGD("RSParallelRenderManager::waitNodeTask, id is %llu", nodeId);
+    std::unique_lock<std::mutex> lock(parallelRenderMutex_);
+    cvParallelRender_.wait(lock, [&]() {
+        return !nodeTaskState_[nodeId];
+    });
+}
+
+void RSParallelRenderManager::NodeTaskNotify(uint64_t nodeId)
+{
+    ROSEN_LOGD("RSParallelRenderManager::NodeTaskNotify, id is %llu", nodeId);
+    nodeTaskState_[nodeId] = 0;
+    cvParallelRender_.notify_one();
 }
 
 void RSParallelRenderManager::SubmitCompositionTask(uint32_t taskIndex,
