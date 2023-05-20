@@ -74,8 +74,9 @@ enum class RSRenderNodeType : uint32_t {
 
 enum class CacheType : uint8_t {
     NONE = 0,
-    CONTENT,
-    ANIMATE_PROPERTY,
+    STATIC,
+    DYNAMIC,
+    SPHERIZE,
 };
 
 // priority for node, higher number means lower priority

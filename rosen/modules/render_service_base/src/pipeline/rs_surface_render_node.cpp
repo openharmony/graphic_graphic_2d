@@ -253,7 +253,7 @@ void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canva
 
 void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas)
 {
-    if (GetCacheType() != CacheType::ANIMATE_PROPERTY && !needDrawAnimateProperty_) {
+    if (GetCacheType() != CacheType::SPHERIZE && !needDrawAnimateProperty_) {
         return;
     }
     const auto& property = GetRenderProperties();

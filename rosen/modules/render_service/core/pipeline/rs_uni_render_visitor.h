@@ -188,9 +188,7 @@ private:
     void SetSurfaceGlobalAlignedDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node,
         const Occlusion::Region alignedDirtyRegion);
 
-    bool UpdateCacheSurface(RSRenderNode& node);
     void DrawChildRenderNode(RSRenderNode& node);
-
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void AddOverDrawListener(std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSCanvasListener>& overdrawListener);
@@ -288,7 +286,7 @@ private:
     unsigned int processedCanvasNodeInCurrentSurface_ = 0;
 
     float globalZOrder_ = 0.0f;
-    bool isUpdateCachedSurface_ = false;
+    bool isStaticCached_ = false;
     bool isHardwareForcedDisabled_ = false; // indicates if hardware composer is totally disabled
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     // vector of all app window nodes with surfaceView, sorted by zOrder
