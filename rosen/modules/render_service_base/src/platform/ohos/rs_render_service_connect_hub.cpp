@@ -123,7 +123,8 @@ bool RSRenderServiceConnectHub::Connect()
         return false;
     }
 
-    deathRecipient_ = new RenderServiceDeathRecipient(this);
+    wptr<RSRenderServiceConnectHub> rsConnhub = this;
+    deathRecipient_ = new RenderServiceDeathRecipient(rsConnhub);
     if (!renderService->AsObject()->AddDeathRecipient(deathRecipient_)) {
         ROSEN_LOGW("RSRenderServiceConnectHub::Connect, failed to AddDeathRecipient of render service.");
     }
