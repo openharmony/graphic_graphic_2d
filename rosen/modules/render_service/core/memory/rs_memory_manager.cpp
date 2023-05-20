@@ -66,11 +66,8 @@ void MemoryManager::DumpMemoryUsage(DfxString& log, const GrContext* grContext, 
     }
 }
 
-#ifdef NEW_SKIA
-void MemoryManager::ReleaseAllGpuResource(GrDirectContext* grContext, GrGpuResourceTag& tag)
-#else
+#ifndef NEW_SKIA
 void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, GrGpuResourceTag& tag)
-#endif
 {
 #ifdef RS_ENABLE_GL
     if(!grContext) {
@@ -81,6 +78,7 @@ void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, GrGpuResourceTag
     grContext->releaseByTag(tag);
 #endif
 }
+#endif
 
 #ifdef NEW_SKIA
 void MemoryManager::ReleaseAllGpuResource(GrDirectContext* grContext, pid_t pid)
@@ -183,8 +181,10 @@ MemoryGraphic MemoryManager::CountPidMemory(int pid, const GrContext* grContext)
     // Count mem of Skia GPU
     if (grContext) {
         SkiaMemoryTracer gpuTracer("category", true);
+#ifndef NEW_SKIA
         GrGpuResourceTag tag(pid, 0, 0, 0);
         grContext->dumpMemoryStatisticsByTag(&gpuTracer, tag);
+#endif
         float gpuMem = gpuTracer.GetGLMemorySize();
         totalMemGraphic.IncreaseGpuMemory(gpuMem);
     }
@@ -267,13 +267,8 @@ void MemoryManager::DumpDrawingCpuMemory(DfxString& log)
     size_t fontCacheLimit = SkGraphics::GetFontCacheLimit();
     log.AppendFormat("\ncpu cache limit = %zu ( fontcache = %zu ):\n", cacheLimit, fontCacheLimit);
 }
-
-#ifdef NEW_SKIA
-void MemoryManager::DumpGpuCache(
-    DfxString& log, const GrDirectContext* grContext, GrGpuResourceTag* tag, std::string& name)
-#else
+#ifndef NEW_SKIA
 void MemoryManager::DumpGpuCache(DfxString& log, const GrContext* grContext, GrGpuResourceTag* tag, std::string& name)
-#endif
 {
     if (!grContext) {
         log.AppendFormat("grContext is nullptr.\n");
@@ -293,6 +288,7 @@ void MemoryManager::DumpGpuCache(DfxString& log, const GrContext* grContext, GrG
     gpuTracer.LogTotals(log);
 #endif
 }
+#endif
 
 #ifdef NEW_SKIA
 void MemoryManager::DumpAllGpuInfo(DfxString& log, const GrDirectContext* grContext)
@@ -307,11 +303,11 @@ void MemoryManager::DumpAllGpuInfo(DfxString& log, const GrContext* grContext)
 #ifdef RS_ENABLE_GL
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes([&log, &grContext](const std::shared_ptr<RSSurfaceRenderNode> node) {
-
+#ifndef NEW_SKIA
         GrGpuResourceTag tag(ExtractPid(node->GetId()), 0, node->GetId(), 0);
         std::string name = node->GetName() + " " + std::to_string(node->GetId());
         DumpGpuCache(log, grContext, &tag, name);
-
+#endif
     });
 #endif
 }
@@ -330,14 +326,21 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const GrContext* grCont
     /////////////////////////////GPU/////////////////////////
 #ifdef RS_ENABLE_GL
     // total
+#ifndef NEW_SKIA
     DumpGpuCache(log, grContext, nullptr, gpuInfo);
+#endif
+
     // Get memory of window by tag
     DumpAllGpuInfo(log, grContext);
+
+// get memory of rs
+#ifndef NEW_SKIA
     for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE; tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
         GrGpuResourceTag tag(0, 0, 0, tagtype);
         std::string tagType = RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype));
         DumpGpuCache(log, grContext, &tag, tagType);
     }
+#endif
     // cache limit
     size_t cacheLimit = 0;
     size_t cacheUsed = 0;

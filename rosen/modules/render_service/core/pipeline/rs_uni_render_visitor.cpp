@@ -94,7 +94,9 @@ RSUniRenderVisitor::RSUniRenderVisitor()
         && (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_ && !isOpaqueRegionDfxEnabled_);
     isQuickSkipPreparationEnabled_ = RSSystemProperties::GetQuickSkipPrepareEnabled();
     isHardwareComposerEnabled_ = RSSystemProperties::GetHardwareComposerEnabled();
+#ifndef NEW_SKIA
     RSTagTracker::UpdateReleaseGpuResourceEnable(RSSystemProperties::GetReleaseGpuResourceEnabled());
+#endif
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     if (RSDrivenRenderManager::GetInstance().GetDrivenRenderEnabled()) {
         drivenInfo_ = std::make_unique<DrivenInfo>();
@@ -1501,8 +1503,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
 #endif
         if (saveLayerCnt > 0) {
-            RSTagTracker tagTracker(
-                renderEngine_->GetRenderContext()->GetGrContext(), RSTagTracker::TAGTYPE::TAG_RESTORELAYER_DRAW_NODE);
+#ifndef NEW_SKIA
+            RSTagTracker tagTracker(canvas_->getGrContext(), RSTagTracker::TAGTYPE::TAG_RESTORELAYER_DRAW_NODE);
+#endif
             RS_TRACE_NAME("RSUniRender:RestoreLayer");
             canvas_->restoreToCount(saveLayerCnt);
         }
@@ -2079,13 +2082,11 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     + " Alpha: " + std::to_string(node.GetGlobalAlpha()).substr(0, 4));
     RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%" PRIu64 ",child size:%u,name:%s,OcclusionVisible:%d",
         node.GetId(), node.GetChildrenCount(), node.GetName().c_str(), node.GetOcclusionVisible());
-#ifdef NEW_SKIA
-    GrDirectContext* grContext = renderEngine_->GetRenderContext()->GetGrContext();
-#else
-    GrContext* grContext = renderEngine_->GetRenderContext()->GetGrContext();
+#ifndef NEW_SKIA
+    RSTagTracker tagTracker(canvas_ ? canvas_->getGrContext() : nullptr, node.GetId(),
+        RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
+    node.SetGrContext(canvas_->getGrContext());
 #endif
-    RSTagTracker tagTracker(grContext, node.GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
-    node.SetGrContext(grContext);
     node.UpdatePositionZ();
     if (isSecurityDisplay_ && node.GetSecurityLayer()) {
         RS_TRACE_NAME(node.GetName() + " SecurityLayer Skip");
@@ -2351,8 +2352,9 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         RS_LOGD("RsDebug RSBaseRenderEngine::SetColorFilterModeToPaint mode:%d", static_cast<int32_t>(colorFilterMode));
         SkPaint paint;
         RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
-        RSTagTracker tagTracker(
-            renderEngine_->GetRenderContext()->GetGrContext(), RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
+#ifndef NEW_SKIA
+        RSTagTracker tagTracker(canvas_->getGrContext(), RSTagTracker::TAGTYPE::TAG_SAVELAYER_COLOR_FILTER);
+#endif
         saveCount = canvas_->saveLayer(nullptr, &paint);
     } else {
         saveCount = canvas_->save();
