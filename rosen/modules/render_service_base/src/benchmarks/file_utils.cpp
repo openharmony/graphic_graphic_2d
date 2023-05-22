@@ -14,16 +14,8 @@
  */
 
 #include "benchmarks/file_utils.h"
-
-#include <sstream>
-#include <string>
-#include <fstream>
-
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/stat.h>
-
-#include "directory_ex.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
