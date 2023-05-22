@@ -24,10 +24,15 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
-#include "include/core/SkMatrix.h"
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_render_property.h"
+#ifndef USE_ROSEN_DRAWING
+#include "include/core/SkMatrix.h"
 #include "pipeline/rs_draw_cmd_list.h"
+#else
+#include "recording/draw_cmd_list.h"
+#include "utils/matrix.h"
+#endif
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
 #include "render/rs_image.h"
@@ -64,9 +69,13 @@ public:
 
 class RSB_EXPORT RSGeometryTransRenderModifier : public RSRenderModifier {
 public:
+#ifndef USE_ROSEN_DRAWING
     RSGeometryTransRenderModifier(const std::shared_ptr<RSRenderProperty<SkMatrix>>& property)
-        : property_(property ? property : std::make_shared<RSRenderProperty<SkMatrix>>())
-    {}
+        : property_(property ? property : std::make_shared<RSRenderProperty<SkMatrix>>()) {}
+#else
+    RSGeometryTransRenderModifier(const std::shared_ptr<RSRenderProperty<Drawing::Matrix>>& property)
+        : property_(property ? property : std::make_shared<RSRenderProperty<Drawing::Matrix>>()) {}
+#endif
     virtual ~RSGeometryTransRenderModifier() = default;
     void Apply(RSModifierContext& context) const override;
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
@@ -93,14 +102,24 @@ public:
 
 protected:
     RSModifierType drawStyle_ = RSModifierType::GEOMETRYTRANS;
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<RSRenderProperty<SkMatrix>> property_;
+#else
+    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property_;
+#endif
 };
 
 class RSB_EXPORT RSDrawCmdListRenderModifier : public RSRenderModifier {
 public:
+#ifndef USE_ROSEN_DRAWING
     RSDrawCmdListRenderModifier(const std::shared_ptr<RSRenderProperty<DrawCmdListPtr>>& property)
         : property_(property ? property : std::make_shared<RSRenderProperty<DrawCmdListPtr>>())
     {}
+#else
+    RSDrawCmdListRenderModifier(const std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>>& property)
+        : property_(property ? property : std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>())
+    {}
+#endif
     virtual ~RSDrawCmdListRenderModifier() = default;
     void Apply(RSModifierContext& context) const override;
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
@@ -131,7 +150,11 @@ public:
     // functions that are dedicated to driven render [end]
 protected:
     RSModifierType drawStyle_ = RSModifierType::EXTENDED;
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<RSRenderProperty<DrawCmdListPtr>> property_;
+#else
+    std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> property_;
+#endif
 };
 
 class RSAnimatableRenderModifier : public RSRenderModifier {
