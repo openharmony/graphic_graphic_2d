@@ -15,10 +15,10 @@
 
 #ifndef RENDER_SERVICE_BASE_SRC_PLATFORM_IOS_RENDER_CONTEXT_IOS_H
 #define RENDER_SERVICE_BASE_SRC_PLATFORM_IOS_RENDER_CONTEXT_IOS_H
-typedef int   GLint;    /* 4-byte signed */
-typedef unsigned int  GLuint;   /* 4-byte unsigned */
-typedef int   GLsizei;  /* 4-byte signed */
-typedef float   GLfloat;  /* single precision float */
+// typedef int   GLint;    /* 4-byte signed */
+// typedef unsigned int  GLuint;   /* 4-byte unsigned */
+// typedef int   GLsizei;  /* 4-byte signed */
+// typedef float   GLfloat;  /* single precision float */
 
 // For temporary ios build
 typedef void *EGLConfig;

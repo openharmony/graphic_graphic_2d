@@ -137,6 +137,8 @@ public:
     EGLContext CreateShareContext();
 #ifdef ROSEN_IOS    
     sk_sp<SkColorSpace> ColorSpace() const { return color_space_; }
+    bool UpdateStorageSizeIfNecessary();
+    bool ResourceMakeCurrent();
 #endif    
 
 private:
@@ -155,14 +157,12 @@ private:
     EGLSurface pbufferSurface_= EGL_NO_SURFACE;
 #ifdef ROSEN_IOS
     sk_sp<SkColorSpace> color_space_ = nullptr;
-    bool UpdateStorageSizeIfNecessary();
-    bool ResourceMakeCurrent();
     void *layer_ = nullptr;
     EGLContext resource_context_ = EGL_NO_CONTEXT;
-    GLuint framebuffer_ = 0;
-    GLuint colorbuffer_ = 0;
-    GLint storage_size_width_ = 0;
-    GLint storage_size_height_ = 0;
+    unsigned int framebuffer_ = 0;
+    unsigned int colorbuffer_ = 0;
+    int storage_size_width_ = 0;
+    int storage_size_height_ = 0;
     bool valid_ = false;
 #endif   
     EGLConfig config_;
