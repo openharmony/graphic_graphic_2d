@@ -130,19 +130,19 @@ void RSRenderNode::UpdateDirtyRegion(
         ROSEN_LOGD("RSRenderNode:: id %" PRIu64 " UpdateDirtyRegion visible->invisible", GetId());
     } else {
         RectI drawRegion;
-        RectI shadowDirty;
+
         auto dirtyRect = renderProperties_.GetDirtyRect(drawRegion);
         if (renderProperties_.IsShadowValid()) {
             SetShadowValidLastFrame(true);
             if (IsInstanceOf<RSSurfaceRenderNode>()) {
                 const RectF absBounds = {0, 0, renderProperties_.GetBoundsWidth(), renderProperties_.GetBoundsHeight()};
                 RRect absClipRRect = RRect(absBounds, renderProperties_.GetCornerRadius());
-                RSPropertiesPainter::GetShadowDirtyRect(shadowDirty, renderProperties_, &absClipRRect);
+                RSPropertiesPainter::GetShadowDirtyRect(shadowRect_, renderProperties_, &absClipRRect);
             } else {
-                RSPropertiesPainter::GetShadowDirtyRect(shadowDirty, renderProperties_);
+                RSPropertiesPainter::GetShadowDirtyRect(shadowRect_, renderProperties_);
             }
-            if (!shadowDirty.IsEmpty()) {
-                dirtyRect = dirtyRect.JoinRect(shadowDirty);
+            if (!shadowRect_.IsEmpty()) {
+                dirtyRect = dirtyRect.JoinRect(shadowRect_);
             }
         }
 
@@ -168,7 +168,7 @@ void RSRenderNode::UpdateDirtyRegion(
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
                     GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, drawRegion);
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
-                    GetId(), GetType(), DirtyRegionType::SHADOW_RECT, shadowDirty);
+                    GetId(), GetType(), DirtyRegionType::SHADOW_RECT, shadowRect_);
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
                     GetId(), GetType(), DirtyRegionType::PREPARE_CLIP_RECT, clipRect);
             }
@@ -409,8 +409,22 @@ float RSRenderNode::GetGlobalAlpha() const
 void RSRenderNode::InitCacheSurface(RSPaintFilterCanvas& canvas)
 {
     ClearCacheSurface();
-    float width = GetRenderProperties().GetBoundsRect().GetWidth();
-    float height = GetRenderProperties().GetBoundsRect().GetHeight();
+    auto cacheType = GetCacheType();
+    float width = 0.0f, height = 0.0f;
+    if (cacheType == CacheType::ANIMATE_PROPERTY &&
+        renderProperties_.IsShadowValid() && !renderProperties_.IsSpherizeValid()) {
+        width = shadowRect_.GetWidth();
+        height = shadowRect_.GetHeight();
+        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(renderProperties_.GetBoundsGeometry());
+        if (!geoPtr) {
+            return;
+        }
+        shadowRectOffsetX_ = geoPtr->GetAbsRect().GetLeft() - shadowRect_.GetLeft();
+        shadowRectOffsetY_ = geoPtr->GetAbsRect().GetTop() - shadowRect_.GetTop();
+    } else {
+        width = renderProperties_.GetBoundsRect().GetWidth();
+        height = renderProperties_.GetBoundsRect().GetHeight();
+    }
 #if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
     SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
 #ifdef NEW_SKIA
@@ -429,12 +443,26 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas) const
     if (surface == nullptr || (surface->width() == 0 || surface->height() == 0)) {
         return;
     }
+    auto cacheType = GetCacheType();
+    float width = 0.0f, height = 0.0f;
+    float scaleX = 0.0f, scaleY = 0.0f;
     canvas.save();
-    float width = GetRenderProperties().GetBoundsRect().GetWidth();
-    float height = GetRenderProperties().GetBoundsRect().GetHeight();
-    canvas.scale(width / surface->width(), height / surface->height());
+    if (cacheType == CacheType::ANIMATE_PROPERTY && renderProperties_.IsShadowValid()) {
+        width = shadowRect_.GetWidth();
+        height = shadowRect_.GetHeight();
+    } else {
+        width = renderProperties_.GetBoundsRect().GetWidth();
+        height = renderProperties_.GetBoundsRect().GetHeight();
+    }
+    scaleX = width / surface->width();
+    scaleY = height / surface->height();
+    canvas.scale(scaleX, scaleY);
     SkPaint paint;
-    surface->draw(&canvas, 0.0, 0.0, &paint);
+    if (cacheType == CacheType::ANIMATE_PROPERTY && renderProperties_.IsShadowValid()) {
+        surface->draw(&canvas, -shadowRectOffsetX_ * scaleX, -shadowRectOffsetY_ * scaleY, &paint);
+    } else {
+        surface->draw(&canvas, 0.0, 0.0, &paint);
+    }
     canvas.restore();
 }
 } // namespace Rosen
