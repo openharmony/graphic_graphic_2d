@@ -21,7 +21,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace Benchmarks {
-bool IsValidFile(const std::string& realPathStr, const std::string& validFile){
+bool IsValidFile(const std::string& realPathStr, const std::string& validFile)
+{
     return realPathStr.find(validFile) == 0;
 }
 
