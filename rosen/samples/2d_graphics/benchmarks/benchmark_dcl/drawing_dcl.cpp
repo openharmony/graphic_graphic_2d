@@ -262,6 +262,7 @@ std::string DrawingDCL::GetRealPathStr(std::string filePath)
         return realPathStr;
     }
     realPathStr = realDclFilePath;
+    free(realDclFilePath);
     realDclFilePath = nullptr;
     return realPathStr;
 }
