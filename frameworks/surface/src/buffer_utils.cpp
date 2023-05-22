@@ -79,6 +79,10 @@ void ReadFlushConfig(MessageParcel &parcel, BufferFlushConfigWithDamages &config
         BLOGE("The size of damages read from message parcel is 0");
         return;
     }
+    if (size > SURFACE_PARCEL_SIZE_LIMIT) {
+        BLOGE("The size of damages read from message parcel exceed the limit");
+        return;
+    }
     config.damages.clear();
     config.damages.reserve(size);
     for (uint32_t i = 0; i < size; i++) {
@@ -95,7 +99,12 @@ void ReadFlushConfig(MessageParcel &parcel, BufferFlushConfigWithDamages &config
 
 void WriteFlushConfig(MessageParcel &parcel, BufferFlushConfigWithDamages const & config)
 {
-    parcel.WriteUint32(config.damages.size());
+    uint32_t size = config.damages.size();
+    if (size > SURFACE_PARCEL_SIZE_LIMIT) {
+        BLOGE("The size of damages read from message parcel exceed the limit");
+        return;
+    }
+    parcel.WriteUint32(size);
     for (const auto& rect : config.damages) {
         parcel.WriteInt32(rect.x);
         parcel.WriteInt32(rect.y);
@@ -129,6 +138,10 @@ void WriteSurfaceBufferImpl(MessageParcel &parcel,
 void ReadVerifyAllocInfo(MessageParcel &parcel, std::vector<BufferVerifyAllocInfo> &infos)
 {
     uint32_t size = parcel.ReadUint32();
+    if (size > SURFACE_PARCEL_SIZE_LIMIT) {
+        BLOGE("Too much data obtained from Parcel");
+        return;
+    }
     infos.clear();
     BufferVerifyAllocInfo info;
     for (uint32_t index = 0; index < size; index++) {
@@ -142,7 +155,12 @@ void ReadVerifyAllocInfo(MessageParcel &parcel, std::vector<BufferVerifyAllocInf
 
 void WriteVerifyAllocInfo(MessageParcel &parcel, const std::vector<BufferVerifyAllocInfo> &infos)
 {
-    parcel.WriteUint32(infos.size());
+    uint32_t size = infos.size();
+    if (size > SURFACE_PARCEL_SIZE_LIMIT) {
+        BLOGE("Too much data obtained from BufferVerifyAllocInfos");
+        return;
+    }
+    parcel.WriteUint32(size);
     for (const auto &info : infos) {
         parcel.WriteUint32(info.width);
         parcel.WriteUint32(info.height);
@@ -154,6 +172,10 @@ void WriteVerifyAllocInfo(MessageParcel &parcel, const std::vector<BufferVerifyA
 void ReadHDRMetaData(MessageParcel &parcel, std::vector<GraphicHDRMetaData> &metaData)
 {
     uint32_t size = parcel.ReadUint32();
+    if (size > SURFACE_PARCEL_SIZE_LIMIT) {
+        BLOGE("Too much data obtained from Parcel");
+        return;
+    }
     metaData.clear();
     GraphicHDRMetaData data;
     for (uint32_t index = 0; index < size; index++) {
@@ -165,7 +187,12 @@ void ReadHDRMetaData(MessageParcel &parcel, std::vector<GraphicHDRMetaData> &met
 
 void WriteHDRMetaData(MessageParcel &parcel, const std::vector<GraphicHDRMetaData> &metaData)
 {
-    parcel.WriteUint32(metaData.size());
+    uint32_t size = metaData.size();
+    if (size > SURFACE_PARCEL_SIZE_LIMIT) {
+        BLOGE("Too much data obtained from GraphicHDRMetaDatas");
+        return;
+    }
+    parcel.WriteUint32(size);
     for (const auto &data : metaData) {
         parcel.WriteUint32(static_cast<uint32_t>(data.key));
         parcel.WriteFloat(data.value);
@@ -175,6 +202,10 @@ void WriteHDRMetaData(MessageParcel &parcel, const std::vector<GraphicHDRMetaDat
 void ReadHDRMetaDataSet(MessageParcel &parcel, std::vector<uint8_t> &metaData)
 {
     uint32_t size = parcel.ReadUint32();
+    if (size > SURFACE_PARCEL_SIZE_LIMIT) {
+        BLOGE("Too much data obtained from Parcel");
+        return;
+    }
     metaData.clear();
     for (uint32_t index = 0; index < size; index++) {
         uint8_t data = parcel.ReadUint8();
@@ -184,7 +215,12 @@ void ReadHDRMetaDataSet(MessageParcel &parcel, std::vector<uint8_t> &metaData)
 
 void WriteHDRMetaDataSet(MessageParcel &parcel, const std::vector<uint8_t> &metaData)
 {
-    parcel.WriteUint32(metaData.size());
+    uint32_t size = metaData.size();
+    if (size > SURFACE_PARCEL_SIZE_LIMIT) {
+        BLOGE("Too much data obtained from metaDatas");
+        return;
+    }
+    parcel.WriteUint32(size);
     for (const auto &data : metaData) {
         parcel.WriteUint8(data);
     }
@@ -197,6 +233,10 @@ void ReadExtDataHandle(MessageParcel &parcel, sptr<SurfaceTunnelHandle> &handle)
         return;
     }
     uint32_t reserveInts = parcel.ReadUint32();
+    if (reserveInts > SURFACE_PARCEL_SIZE_LIMIT) {
+        BLOGE("Too much data obtained from parcel");
+        return;
+    }
     OHExtDataHandle *tunnelHandle = AllocExtDataHandle(reserveInts);
     if (tunnelHandle == nullptr) {
         BLOGE("AllocExtDataHandle failed");
@@ -219,7 +259,12 @@ void WriteExtDataHandle(MessageParcel &parcel, const OHExtDataHandle *handle)
         BLOGE("WriteExtDataHandle failed, handle is null");
         return;
     }
-    parcel.WriteUint32(handle->reserveInts);
+    uint32_t reserveInts = handle->reserveInts;
+    if (reserveInts > SURFACE_PARCEL_SIZE_LIMIT) {
+        BLOGE("Too much data obtained from reserveInts");
+        return;
+    }
+    parcel.WriteUint32(reserveInts);
     WriteFileDescriptor(parcel, handle->fd);
     for (uint32_t index = 0; index < handle->reserveInts; index++) {
         parcel.WriteInt32(handle->reserve[index]);

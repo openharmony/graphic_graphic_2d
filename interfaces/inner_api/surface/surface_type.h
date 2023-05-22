@@ -32,6 +32,8 @@ namespace OHOS {
 #define SURFACE_DEFAULT_STRIDE_ALIGNMENT 4
 #define SURFACE_MAX_SIZE 58982400 // 8K * 8K
 
+constexpr uint32_t SURFACE_PARCEL_SIZE_LIMIT = 1024;
+
 /*
  * @brief Enumerates return values of the functions.
  */
