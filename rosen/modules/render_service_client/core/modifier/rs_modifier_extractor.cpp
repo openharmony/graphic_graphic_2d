@@ -34,6 +34,9 @@ RSModifierExtractor::RSModifierExtractor(NodeId id) : id_(id) {}
         }                                                                                                           \
         auto iter = node->propertyModifiers_.find(RSModifierType::propertyType);                                    \
         if (iter != node->propertyModifiers_.end()) {                                                               \
+            if (!iter->second || !iter->second->GetProperty()) {                                                    \
+                return defaultValue;                                                                                \
+            }                                                                                                       \
             return std::static_pointer_cast<RSProperty<T>>(iter->second->GetProperty())->Get();                     \
         }                                                                                                           \
         T value = defaultValue;                                                                                     \
