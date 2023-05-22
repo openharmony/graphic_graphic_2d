@@ -33,7 +33,11 @@ public:
     void PostTask(const std::function<void()> & task);
     bool CheckAndRecording();
     void FinishRecordingOneFrame();
+#ifndef USE_ROSEN_DRAWING
     void RecordingToFile(const std::shared_ptr<DrawCmdList> & drawCmdList);
+#else
+    //void RecordingToFile(const std::shared_ptr<Drawing::DrawCmdList> & drawCmdList);
+#endif
     [[nodiscard]] int GetCurDumpFrame() const
     {
         return curDumpFrame_;
