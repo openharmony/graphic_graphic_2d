@@ -154,6 +154,9 @@ public:
                nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     }
 
+    // used to determine whether the layer-1 surfacenodes can be skipped in the subthread of focus-first framework
+    bool IsCurrentFrameStatic();
+
     RSSurfaceNodeType GetSurfaceNodeType() const
     {
         return nodeType_;

@@ -1035,5 +1035,28 @@ bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded()
     return false;
 }
 
+bool RSSurfaceRenderNode::IsCurrentFrameStatic()
+{
+    if (dirtyManager_ == nullptr || !dirtyManager_->GetLastestHistory().IsEmpty()) {
+        return false;
+    }
+    if (IsMainWindowType()) {
+        return true;
+    } else if (IsLeashWindow()) {
+        for(auto& child : GetChildren()) {
+            auto childNode = child.lock();
+            const auto childNodeSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(childNode);
+            if (!childNodeSurface->IsCurrentFrameStatic()) {
+                return false;
+            }
+        }
+        return true;
+    } else if (IsSelfDrawingType()) {
+        return isCurrentFrameBufferConsumed_;
+    } else {
+        return false;
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

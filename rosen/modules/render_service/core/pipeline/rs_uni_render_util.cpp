@@ -310,6 +310,8 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         if (focusedNodeFound || node->HasFilter()) { // assign focus, above focus and has filter node to main thread
             mainThreadNodes.emplace_back(node);
             node->SetIsMainThreadNode(true);
+        } else if (node->IsCurrentFrameStatic() && node->HasCachedTexture()) {
+            node->SetIsMainThreadNode(false);
         } else {
             subThreadNodes.emplace_back(node);
             node->SetIsMainThreadNode(false);

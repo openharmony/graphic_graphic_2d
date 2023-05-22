@@ -153,6 +153,11 @@ void RSDirtyRegionManager::GetDirtyRegionInfo(std::map<NodeId, RectI>& target,
     }
 }
 
+RectI RSDirtyRegionManager::GetLastestHistory() const
+{
+    return GetHistory(historyHead_);
+}
+
 bool RSDirtyRegionManager::SetBufferAge(const int age)
 {
     if (age < 0) {

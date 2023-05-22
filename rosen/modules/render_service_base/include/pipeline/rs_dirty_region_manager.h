@@ -112,6 +112,8 @@ public:
         return isDfxTarget_;
     }
 
+    RectI GetLastestHistory() const; // Get lastest dirtyregion history
+
 private:
     RectI MergeHistory(unsigned int age, RectI rect) const;
     void PushHistory(RectI rect);
