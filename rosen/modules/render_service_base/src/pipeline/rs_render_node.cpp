@@ -253,20 +253,6 @@ void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
     RSRenderNode::ProcessTransitionAfterChildren(canvas);
 }
 
-void RSRenderNode::CheckCacheType()
-{
-    auto newCacheType = CacheType::NONE;
-    if (GetRenderProperties().IsSpherizeValid()) {
-        newCacheType = CacheType::SPHERIZE;
-    } else if (isStaticCached_) {
-        newCacheType = CacheType::STATIC;
-    }
-    if (cacheType_ != newCacheType) {
-        cacheType_ = newCacheType;
-        cacheTypeChanged_ = true;
-    }
-}
-
 void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier> modifier)
 {
     if (!modifier) {
@@ -420,8 +406,11 @@ float RSRenderNode::GetGlobalAlpha() const
     return globalAlpha_;
 }
 
-void RSRenderNode::InitCacheSurface(RSPaintFilterCanvas& canvas, int width, int height)
+void RSRenderNode::InitCacheSurface(RSPaintFilterCanvas& canvas)
 {
+    ClearCacheSurface();
+    float width = GetRenderProperties().GetBoundsRect().GetWidth();
+    float height = GetRenderProperties().GetBoundsRect().GetHeight();
 #if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
     SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
 #ifdef NEW_SKIA
@@ -440,17 +429,13 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas) const
     if (surface == nullptr || (surface->width() == 0 || surface->height() == 0)) {
         return;
     }
-    if (GetCacheType() == CacheType::SPHERIZE) {
-        RSPropertiesPainter::DrawSpherize(GetRenderProperties(), canvas, surface);
-    } else {
-        canvas.save();
-        float width = GetRenderProperties().GetBoundsRect().GetWidth();
-        float height = GetRenderProperties().GetBoundsRect().GetHeight();
-        canvas.scale(width / surface->width(), height / surface->height());
-        SkPaint paint;
-        surface->draw(&canvas, 0.0, 0.0, &paint);
-        canvas.restore();
-    }
+    canvas.save();
+    float width = GetRenderProperties().GetBoundsRect().GetWidth();
+    float height = GetRenderProperties().GetBoundsRect().GetHeight();
+    canvas.scale(width / surface->width(), height / surface->height());
+    SkPaint paint;
+    surface->draw(&canvas, 0.0, 0.0, &paint);
+    canvas.restore();
 }
 } // namespace Rosen
 } // namespace OHOS

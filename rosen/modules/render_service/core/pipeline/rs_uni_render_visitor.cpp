@@ -169,7 +169,7 @@ void RSUniRenderVisitor::CopyPropertyForParallelVisitor(RSUniRenderVisitor *main
     }
     doAnimate_ = mainVisitor->doAnimate_;
     isParallel_ = mainVisitor->isParallel_;
-    isStaticCached_ = mainVisitor->isStaticCached_;
+    isUpdateCachedSurface_ = mainVisitor->isUpdateCachedSurface_;
     isHardwareForcedDisabled_ = mainVisitor->isHardwareForcedDisabled_;
     isOpDropped_ = mainVisitor->isOpDropped_;
     isPartialRenderEnabled_ = mainVisitor->isPartialRenderEnabled_;
@@ -1745,6 +1745,74 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
         }
     }
 }
+RectI RSUniRenderVisitor::UpdateHardwardEnableList(std::vector<RectI>& filterRects,
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>>& validHwcNodes) const
+{
+    if (validHwcNodes.empty() || filterRects.empty()) {
+        return RectI();
+    }
+    // remove invisible surface since occlusion
+    // check intersected parts
+    RectI filterDirty;
+    for (auto iter = validHwcNodes.begin(); iter != validHwcNodes.end(); ++iter) {
+        auto childNode = iter->lock();
+        auto childDirtyRect = childNode->GetDstRect();
+        bool isIntersected = false;
+        // remove invisible surface since occlusion
+        for (auto filterRect : filterRects) {
+            if (!childDirtyRect.IntersectRect(filterRect).IsEmpty()) {
+                filterDirty = filterDirty.JoinRect(filterRect);
+                isIntersected = true;
+            }
+        }
+        if (isIntersected) {
+            childNode->SetHardwareForcedDisabledStateByFilter(true);
+            iter = validHwcNodes.erase(iter);
+            iter--;
+        }
+    }
+    return filterDirty;
+}
+
+void RSUniRenderVisitor::UpdateHardwardNodeStatusBasedOnFilter(std::shared_ptr<RSSurfaceRenderNode>& node,
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>>& prevHwcEnabledNodes,
+    std::shared_ptr<RSDirtyRegionManager>& displayDirtyManager) const
+{
+    if (node == nullptr || !node->IsAppWindow() || displayDirtyManager == nullptr) {
+        return;
+    }
+    auto filterRects = node->GetChildrenNeedFilterRects();
+    // collect valid hwc surface which is not intersected with filterRects
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> curHwcEnabledNodes;
+    // remove invisible surface since occlusion
+    auto visibleRegion = node->GetVisibleRegion();
+    for (auto subNode : node->GetChildHardwareEnabledNodes()) {
+        auto childNode = subNode.lock();
+        // recover disabled state before update
+        childNode->SetHardwareForcedDisabledStateByFilter(false);
+        if (visibleRegion.IsIntersectWith(Occlusion::Rect(childNode->GetOldDirtyInSurface()))) {
+            curHwcEnabledNodes.emplace_back(childNode);
+        }
+    }
+
+    auto dirtyManager = node->GetDirtyManager();
+    // Within App: disable hwc if intersect with filterRects
+    dirtyManager->MergeDirtyRect(UpdateHardwardEnableList(filterRects, curHwcEnabledNodes));
+    // Among App: disable lower hwc layers if intersect with upper transparent appWindow
+    if (node->IsTransparent()) {
+        if (node->GetRenderProperties().NeedFilter()) {
+            // Attention: if transparent appwindow needs filter, only need to check itself
+            filterRects = {node->GetDstRect()};
+        }
+        // In case of transparent window, filterRects need hwc surface's content
+        RectI globalTransDirty = UpdateHardwardEnableList(filterRects, prevHwcEnabledNodes);
+        displayDirtyManager->MergeDirtyRect(globalTransDirty);
+        dirtyManager->MergeDirtyRect(globalTransDirty);
+    }
+    if (!curHwcEnabledNodes.empty()) {
+        prevHwcEnabledNodes.insert(prevHwcEnabledNodes.end(), curHwcEnabledNodes.begin(), curHwcEnabledNodes.end());
+    }
+}
 
 void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(const RectI filterRect,
     std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
@@ -1800,15 +1868,22 @@ void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(const RectI filterRect,
 
 void RSUniRenderVisitor::CalcDirtyFilterRegion(std::shared_ptr<RSDisplayRenderNode>& displayNode)
 {
-    if (displayNode == nullptr) {
+    if (displayNode == nullptr || displayNode->GetDirtyManager() == nullptr) {
         return;
     }
-    for (auto it = displayNode->GetCurAllSurfaces().begin();
-        it != displayNode->GetCurAllSurfaces().end(); ++it) {
+    auto displayDirtyManager = displayNode->GetDirtyManager();
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> prevHwcEnabledNodes;
+    for (auto it = displayNode->GetCurAllSurfaces().begin(); it != displayNode->GetCurAllSurfaces().end(); ++it) {
         auto currentSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (currentSurfaceNode == nullptr) {
             continue;
         }
+        auto currentSurfaceDirtyManager = currentSurfaceNode->GetDirtyManager();
+        RectI currentSurfaceDirtyRect = currentSurfaceDirtyManager->GetDirtyRegion();
+        // [planning] Update hwc surface dirty status at the same time
+        UpdateHardwardNodeStatusBasedOnFilter(currentSurfaceNode, prevHwcEnabledNodes, displayDirtyManager);
+        RectI displayDirtyRect = displayDirtyManager->GetDirtyRegion();
+
         // child node (component) has filter
         auto filterRects = currentSurfaceNode->GetChildrenNeedFilterRects();
         if (currentSurfaceNode->IsAppWindow() && !filterRects.empty()) {
@@ -1824,9 +1899,6 @@ void RSUniRenderVisitor::CalcDirtyFilterRegion(std::shared_ptr<RSDisplayRenderNo
             CalcDirtyRegionForFilterNode(
                 currentSurfaceNode->GetOldDirtyInSurface(), currentSurfaceNode, displayNode);
         }
-    }
-    if (needFilter_) { // when need draw filter, disable hardware composer
-        isHardwareForcedDisabled_ = true;
     }
 }
 
@@ -1911,74 +1983,83 @@ std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &re
 }
 #endif
 
+bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
+{
+    CacheType cacheType = node.GetCacheType();
+    if (cacheType == CacheType::NONE) {
+        return;
+    }
+
+    if (!node.GetCacheSurface()) {
+        return false;
+    }
+    auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
+    if (!cacheCanvas) {
+        return false;
+    }
+
+    // copy current canvas properties into cacheCanvas
+    cacheCanvas->CopyConfiguration(*canvas_);
+
+    // When drawing CacheSurface, all child node should be drawn.
+    // So set isOpDropped_ = false here.
+    bool isOpDropped = isOpDropped_;
+    isOpDropped_ = false;
+    isUpdateCachedSurface_ = true;
+
+    swap(cacheCanvas, canvas_);
+    // When cacheType == CacheType::ANIMATE_PROPERTY,
+    // we should draw AnimateProperty on cacheCanvas
+    if (cacheType == CacheType::ANIMATE_PROPERTY) {
+        node.ProcessAnimatePropertyBeforeChildren(*canvas_);
+    }
+
+    node.ProcessRenderContents(*canvas_);
+    ProcessBaseRenderNode(node);
+
+    if (cacheType == CacheType::ANIMATE_PROPERTY) {
+        node.ProcessAnimatePropertyAfterChildren(*canvas_);
+    }
+    swap(cacheCanvas, canvas_);
+
+    isUpdateCachedSurface_ = false;
+    isOpDropped_ = isOpDropped;
+
+    // To get all FreezeNode
+    // execute: "param set rosen.dumpsurfacetype.enabled 2 && setenforce 0"
+    // To get specific FreezeNode
+    // execute: "param set rosen.dumpsurfacetype.enabled 1 && setenforce 0 && "
+    // "param set rosen.dumpsurfaceid "NodeId" "
+    // Png file could be found in /data
+    RSBaseRenderUtil::WriteCacheRenderNodeToPng(node);
+    return true;
+}
+
 void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
 {
-    node.CheckCacheType();
-    if (node.GetCacheTypeChanged()) {
-        node.ClearCacheSurface();
-        node.SetCacheTypeChanged(false);
-    }
     CacheType cacheType = node.GetCacheType();
     node.ProcessTransitionBeforeChildren(*canvas_);
-    if (cacheType == CacheType::NONE) {
-        node.ProcessAnimatePropertyBeforeChildren(*canvas_);
-        node.ProcessRenderContents(*canvas_);
-        ProcessBaseRenderNode(node);
-        node.ProcessAnimatePropertyAfterChildren(*canvas_);
-    } else if (node.GetCompletedCacheSurface()) {
-        RS_TRACE_BEGIN("RSUniRenderVisitor::DrawChildRenderNode Draw nodeId = " +
-            std::to_string(node.GetId()));
-        node.DrawCacheSurface(*canvas_);
-        RS_TRACE_END();
-    } else {
-        RS_TRACE_NAME("RSUniRenderVisitor::DrawChildRenderNode Init Draw nodeId = " +
-            std::to_string(node.GetId()));
-        isStaticCached_ = true;
-        int width = std::ceil(node.GetRenderProperties().GetBoundsRect().GetWidth());
-        int height = std::ceil(node.GetRenderProperties().GetBoundsRect().GetHeight());
-        node.InitCacheSurface(*canvas_, width, height);
-
-        if (node.GetCacheSurface()) {
-            auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
-            if (!cacheCanvas) {
-                RS_LOGE("RSUniRenderVisitor::DrawChildRenderNode %" PRIu64 " Create CacheCanvas failed",
-                    node.GetId());
-                return;
-            }
-            // copy current canvas properties into cacheCanvas
-            cacheCanvas->CopyConfiguration(*canvas_);
-
-            // When drawing CacheSurface, all child node should be drawn.
-            // So set isOpDropped_ = false here.
-            bool isOpDropped = isOpDropped_;
-            isOpDropped_ = false;
-
-            node.ProcessAnimatePropertyBeforeChildren(
-                cacheType == CacheType::SPHERIZE ? *cacheCanvas : *canvas_);
-            swap(cacheCanvas, canvas_);
+    switch (cacheType)
+    {
+        case CacheType::NONE: {
+            node.ProcessAnimatePropertyBeforeChildren(*canvas_);
             node.ProcessRenderContents(*canvas_);
             ProcessBaseRenderNode(node);
-            swap(cacheCanvas, canvas_);
-            node.ProcessAnimatePropertyAfterChildren(
-                cacheType == CacheType::SPHERIZE ? *cacheCanvas : *canvas_);
-
-            isOpDropped_ = isOpDropped;
-
-            node.UpdateCompletedCacheSurface();
-            node.DrawCacheSurface(*canvas_);
-
-            // To get all FreezeNode
-            // execute: "set param rosen.dumpsurfacetype.enabled 2 && setenforce 0"
-            // To get specific FreezeNode
-            // execute: "set param rosen.dumpsurfacetype.enabled 1 && setenforce 0 && "
-            // "set param rosen.dumpsurfaceid "NodeId" "
-            // Png file could be found in /data
-            RSBaseRenderUtil::WriteCacheRenderNodeToPng(node);
-        } else {
-            RS_LOGE("RSUniRenderVisitor::DrawChildRenderNode %" PRIu64 " Create CacheSurface failed",
-                node.GetId());
+            node.ProcessAnimatePropertyAfterChildren(*canvas_);
+            break;
         }
-        isStaticCached_ = false;
+        case CacheType::CONTENT: {
+            node.ProcessAnimatePropertyBeforeChildren(*canvas_);
+            node.DrawCacheSurface(*canvas_);
+            node.ProcessAnimatePropertyAfterChildren(*canvas_);
+            break;
+        }
+        case CacheType::ANIMATE_PROPERTY: {
+            node.DrawCacheSurface(*canvas_);
+            break;
+        }
+        default:
+            break;
     }
     node.ProcessTransitionAfterChildren(*canvas_);
 }
@@ -2113,20 +2194,31 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     // to avoid child node being layout according to the BoundsRect of RosenRenderTexture.
     // Temporarily, we use parent of SELF_DRAWING_NODE which has the same paintRect with its child instead.
     // to draw child node of SELF_DRAWING_NODE
-    node.CheckCacheType();
-    if (isSelfDrawingSurface && node.GetCacheType() != CacheType::SPHERIZE) {
+    if (isSelfDrawingSurface && !property.IsSpherizeValid()) {
         canvas_->save();
     }
 
     canvas_->concat(geoPtr->GetMatrix());
-    if (node.GetCacheType() == CacheType::SPHERIZE) {
-        DrawChildRenderNode(node);
+    if (property.IsSpherizeValid()) {
+        if (node.GetCacheType() != CacheType::ANIMATE_PROPERTY) {
+            node.SetCacheType(CacheType::ANIMATE_PROPERTY);
+            node.ClearCacheSurface();
+            node.InitCacheSurface(*canvas_);
+        }
+        if (!node.GetCompletedCacheSurface() && UpdateCacheSurface(node)) {
+            node.UpdateCompletedCacheSurface();
+        }
+        node.ProcessTransitionBeforeChildren(*canvas_);
+        RSPropertiesPainter::DrawSpherize(
+            property, *canvas_, node.GetCompletedCacheSurface());
+        node.ProcessTransitionAfterChildren(*canvas_);
     } else {
         node.ProcessRenderBeforeChildren(*canvas_);
 
         if (node.GetBuffer() != nullptr) {
             if (node.IsHardwareEnabledType()) {
-                node.SetHardwareForcedDisabledState(isStaticCached_);
+                // since node has buffer, hwc disabledState could be reset by filter or surface cached
+                node.SetHardwareForcedDisabledState((node.IsHardwareForcedDisabledByFilter() || isUpdateCachedSurface_));
             }
             // if this window is in freeze state, disable hardware composer for its child surfaceView
             if (IsHardwareComposerEnabled() && !node.IsHardwareForcedDisabled() && node.IsHardwareEnabledType()) {
@@ -2177,6 +2269,21 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 node.NotifyUIBufferAvailable();
             }
             if (!needDrawCachedImage || node.GetCachedImage() == nullptr) {
+                if (node.IsStaticCached()) {
+                    if (node.GetCacheType() != CacheType::CONTENT) {
+                        node.SetCacheType(CacheType::CONTENT);
+                        node.ClearCacheSurface();
+                        node.InitCacheSurface(*canvas_);
+                    }
+                    if (!node.GetCompletedCacheSurface() && UpdateCacheSurface(node)) {
+                        node.UpdateCompletedCacheSurface();
+                    }
+                } else {
+                    node.SetCacheType(CacheType::NONE);
+                    if (node.GetCompletedCacheSurface()) {
+                        node.ClearCacheSurface();
+                    }
+                }
                 DrawChildRenderNode(node);
             } else {
                 RS_LOGD("RSUniRenderVisitor cold start thread not idle, don't stop it, still use cached image");
@@ -2253,12 +2360,15 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         saveCount = canvas_->save();
     }
 
-    if (node.GetChildrenCount() > 0) {
+    bool saveRootMatrix = node.GetChildrenCount() > 0 && !rootMatrix_.has_value();
+    if (saveRootMatrix) {
         rootMatrix_ = canvas_->getTotalMatrix();
     }
-
     ProcessCanvasRenderNode(node);
     canvas_->restoreToCount(saveCount);
+    if (saveRootMatrix) {
+        rootMatrix_.reset();
+    }
 }
 
 void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
@@ -2297,11 +2407,42 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     node.GetMutableRenderProperties().CheckEmptyBounds();
     // draw self and children in sandbox which will not be affected by parent's transition
     const auto& sandboxPos = node.GetRenderProperties().GetSandBox();
-    if (!sandboxPos.IsInfinite()) {
-        canvas_->setMatrix(rootMatrix_);
+    if (!sandboxPos.IsInfinite() && rootMatrix_.has_value()) {
+        canvas_->setMatrix(rootMatrix_.value());
         canvas_->translate(sandboxPos.x_, sandboxPos.y_);
     }
 
+    const auto& property = node.GetRenderProperties();
+    if (property.IsSpherizeValid()) {
+        if (node.GetCacheType() != CacheType::ANIMATE_PROPERTY) {
+            node.SetCacheType(CacheType::ANIMATE_PROPERTY);
+            node.ClearCacheSurface();
+            node.InitCacheSurface(*canvas_);
+        }
+        if (!node.GetCompletedCacheSurface() && UpdateCacheSurface(node)) {
+            node.UpdateCompletedCacheSurface();
+        }
+        node.ProcessTransitionBeforeChildren(*canvas_);
+        RSPropertiesPainter::DrawSpherize(
+            property, *canvas_, node.GetCompletedCacheSurface());
+        node.ProcessTransitionAfterChildren(*canvas_);
+        return;
+    }
+    if (node.IsStaticCached()) {
+        if (node.GetCacheType() != CacheType::CONTENT) {
+            node.SetCacheType(CacheType::CONTENT);
+            node.ClearCacheSurface();
+            node.InitCacheSurface(*canvas_);
+        }
+        if (!node.GetCompletedCacheSurface() && UpdateCacheSurface(node)) {
+            node.UpdateCompletedCacheSurface();
+        }
+    } else {
+        node.SetCacheType(CacheType::NONE);
+        if (node.GetCompletedCacheSurface()) {
+            node.ClearCacheSurface();
+        }
+    }
     DrawChildRenderNode(node);
 }
 

@@ -120,6 +120,16 @@ public:
         isHardwareForcedDisabled_ = forcesDisabled;
     }
 
+    void SetHardwareForcedDisabledStateByFilter(bool forcesDisabled)
+    {
+        isHardwareForcedDisabledByFilter_ = forcesDisabled;
+    }
+
+    bool IsHardwareForcedDisabledByFilter() const
+    {
+        return isHardwareForcedDisabledByFilter_;
+    }
+
     bool IsHardwareForcedDisabled() const
     {
         return isHardwareForcedDisabled_ ||
@@ -577,6 +587,16 @@ public:
     }
 #endif
 
+    void SetSubmittedSubThreadIndex(uint32_t index)
+    {
+        submittedSubThreadIndex_ = index;
+    }
+
+    uint32_t GetSubmittedSubThreadIndex() const
+    {
+        return submittedSubThreadIndex_;        
+    }
+
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
     bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;
@@ -692,6 +712,7 @@ private:
     // mark if this self-drawing node is forced not to use hardware composer
     // in case where this node's parent window node is occluded or is appFreeze, this variable will be marked true
     bool isHardwareForcedDisabled_ = false;
+    bool isHardwareForcedDisabledByFilter_ = false;
     float localZOrder_ = 0.0f;
     std::vector<WeakPtr> childHardwareEnabledNodes_;
     int32_t nodeCost_ = 0;
@@ -699,6 +720,9 @@ private:
     bool animateState_ = false;
 
     bool needDrawAnimateProperty_ = false;
+
+    // UIFirst
+    uint32_t submittedSubThreadIndex_ = INT_MAX;
 
     friend class RSUniRenderVisitor;
     friend class RSBaseRenderNode;

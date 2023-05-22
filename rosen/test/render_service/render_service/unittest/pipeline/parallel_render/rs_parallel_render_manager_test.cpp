@@ -14,6 +14,7 @@
  */
 
 #include <cstdint>
+#include <list>
 #include <memory>
 
 #include "gtest/gtest.h"
@@ -278,6 +279,60 @@ HWTEST_F(RSParallelRenderManagerTest, SetParallelModeTest2, TestSize.Level1)
     }
     bool mode = instance->GetParallelMode();
     ASSERT_EQ(false, mode);
+}
+
+/**
+ * @tc.name: LoadBalanceAndNotifyTest
+ * @tc.desc: Test RSParallelRenderManagerTest.LoadBalanceAndNotifyTest
+ * @tc.type: FUNC
+ * @tc.require: issueI69JAV
+ */
+HWTEST_F(RSParallelRenderManagerTest, LoadBalanceAndNotifyTest, TestSize.Level1)
+{
+    auto renderManager = std::make_shared<RSParallelRenderManager>();
+    renderManager->LoadBalanceAndNotify(TaskType::PREPARE_TASK);
+    renderManager->LoadBalanceAndNotify(TaskType::PROCESS_TASK);
+    renderManager->LoadBalanceAndNotify(TaskType::CALC_COST_TASK);
+}
+
+/**
+ * @tc.name: TimingTest
+ * @tc.desc: Test RSParallelRenderManagerTest.TimingTest
+ * @tc.type: FUNC
+ * @tc.require: issueI69JAV
+ */
+HWTEST_F(RSParallelRenderManagerTest, TimingTest, TestSize.Level1)
+{
+    auto renderManager = std::make_shared<RSParallelRenderManager>();
+    renderManager->StartTiming(0);
+    renderManager->StartTiming(1);
+    renderManager->StartTiming(2);
+    usleep(2000);
+    renderManager->StopTimingAndSetRenderTaskCost(0, 10, TaskType::PREPARE_TASK);
+    renderManager->StopTimingAndSetRenderTaskCost(1, 20, TaskType::PROCESS_TASK);
+    renderManager->StopTimingAndSetRenderTaskCost(2, 30, TaskType::CALC_COST_TASK);
+}
+
+
+/**
+ * @tc.name: AddAppWindiwTest
+ * @tc.desc: Test RSParallelRenderManagerTest.AddAppWindiwTest
+ * @tc.type: FUNC
+ * @tc.require: issueI69JAV
+ */
+HWTEST_F(RSParallelRenderManagerTest, AddAppWindiwTest, TestSize.Level1)
+{
+    auto renderManager = std::make_shared<RSParallelRenderManager>();
+    renderManager->InitAppWindowNodeMap();
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config1;
+    config1.id = 10;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config1, rsContext->weak_from_this());
+    renderManager->AddAppWindowNode(10, std::move(rsSurfaceRenderNode));
+    RSSurfaceRenderNodeConfig config2;
+    config2.id = 100;
+    auto rsSurfaceRenderNode2 = std::make_shared<RSSurfaceRenderNode>(config2, rsContext->weak_from_this());
+    renderManager->AddAppWindowNode(1, std::move(rsSurfaceRenderNode2));
 }
 
 /**

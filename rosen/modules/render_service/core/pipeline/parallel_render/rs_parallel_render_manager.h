@@ -53,6 +53,7 @@ enum class ParallelStatus {
 enum class TaskType {
     PREPARE_TASK = 0,
     PROCESS_TASK,
+    CACHE_TASK,
     CALC_COST_TASK,
     COMPOSITION_TASK
 };
@@ -69,6 +70,7 @@ public:
     void CopyPrepareVisitorAndPackTask(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node);
     void CopyCalcCostVisitorAndPackTask(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node, bool isNeedCalc,
         bool doAnimate, bool isOpDropped);
+    void CopyCacheVisitor(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node);
     void PackRenderTask(RSSurfaceRenderNode &node, TaskType type = TaskType::PROCESS_TASK);
     void PackParallelCompositionTask(std::shared_ptr<RSNodeVisitor> visitor,
                                      const std::shared_ptr<RSBaseRenderNode> node);
@@ -85,6 +87,8 @@ public:
     void SubMainThreadWait(uint32_t threadIndex);
     void WaitCalcCostEnd();
     void WaitCompositionEnd();
+    void WaitNodeTask(uint64_t nodeId);
+    void NodeTaskNotify(uint64_t nodeId);
     void UpdateNodeCost(RSDisplayRenderNode& node);
     bool IsNeedCalcCost() const;
     int32_t GetCost(RSRenderNode &node) const;
@@ -144,7 +148,7 @@ public:
     }
 
     // Use for Vulkan
-    void WaitProcessEnd(RSUniRenderVisitor &visitor);
+    void WaitProcessEnd();
     void InitDisplayNodeAndRequestFrame(
         const std::shared_ptr<RSBaseRenderEngine> renderEngine, const ScreenInfo screenInfo);
     void ProcessParallelDisplaySurface(RSUniRenderVisitor &visitor);
@@ -207,6 +211,9 @@ private:
 
     std::vector<timespec> startTime_;
     std::vector<timespec> stopTime_;
+
+    std::map<uint64_t, bool> nodeTaskState_;
+    uint32_t minLoadThreadIndex_ = 0;
 
     // Use for Vulkan
     std::vector<std::shared_ptr<RSDisplayRenderNode>> parallelDisplayNodes_;

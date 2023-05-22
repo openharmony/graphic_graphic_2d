@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cstdint>
 #include <memory>
 
 #include "gtest/gtest.h"
@@ -194,6 +195,41 @@ HWTEST_F(RSParallelTaskManagerTest, UpdateNodeCostTest2, TestSize.Level1)
     parallelTaskManager_->UpdateNodeCost(*rsDisplayRenderNode, vec);
     auto result = vec.size();
     ASSERT_EQ(result, 5);
+}
+
+/**
+ * @tc.name: LoadBalancingTest
+ * @tc.desc: Test RSParallelTaskManagerTest.LoadBalancingTest
+ * @tc.type: FUNC
+ * @tc.require: issueI6FZHQ
+ */
+HWTEST_F(RSParallelTaskManagerTest, LoadBalancingTest, TestSize.Level1)
+{
+    auto taskManager = std::make_unique<RSParallelTaskManager>();
+    taskManager->isParallelRenderExtEnabled_ = false;
+    uint32_t threadNum = 0;
+    taskManager->Initialize(threadNum);
+    taskManager->Reset();
+    taskManager->LoadBalancing();
+    threadNum = 3;
+    taskManager->Initialize(threadNum);
+        auto rsContext = std::make_shared<RSContext>();
+    taskManager->LoadBalancing();
+    RSSurfaceRenderNodeConfig config1;
+    config1.id = 10;
+    auto rsSurfaceRenderNode1 = std::make_shared<RSSurfaceRenderNode>(config1, rsContext->weak_from_this());
+    rsSurfaceRenderNode1->SetSrcRect(RectI(0, 0, 10, 10));
+    auto renderTask1 = std::make_unique<RSRenderTask>(*rsSurfaceRenderNode1, RSRenderTask::RenderNodeStage::PREPARE);
+    taskManager->PushRenderTask(std::move(renderTask1));
+
+    RSSurfaceRenderNodeConfig config2;
+    config2.id = 20;
+    auto rsSurfaceRenderNode2 = std::make_shared<RSSurfaceRenderNode>(config2, rsContext->weak_from_this());
+    rsSurfaceRenderNode2->SetSrcRect(RectI(20, 20, 10, 10));
+    auto renderTask2 = std::make_unique<RSRenderTask>(*rsSurfaceRenderNode2, RSRenderTask::RenderNodeStage::PREPARE);
+    taskManager->PushRenderTask(std::move(renderTask2));
+    taskManager->LoadBalancing();
+    ASSERT_TRUE(taskManager->threadNum_ == threadNum);
 }
 
 /**

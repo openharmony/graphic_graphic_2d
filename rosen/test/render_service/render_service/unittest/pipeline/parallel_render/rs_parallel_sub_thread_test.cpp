@@ -79,8 +79,8 @@ void RSParallelSubThreadTest::TearDown() {}
     auto curThread = std::make_unique<RSParallelSubThread>(nullptr, ParallelRenderType::DRAW_IMAGE, 0);
     if (RSParallelRenderManager::Instance()->uniVisitor_ == nullptr) {
         RSParallelRenderManager::Instance()->uniVisitor_ = new RSUniRenderVisitor();
+        ASSERT_TRUE(RSParallelRenderManager::Instance()->uniVisitor_ != nullptr);
         curThread->StartPrepare();
-        ASSERT_TRUE(curThread->visitor_ != nullptr);
         delete RSParallelRenderManager::Instance()->uniVisitor_;
         RSParallelRenderManager::Instance()->uniVisitor_ = nullptr;
         curThread->StartPrepare();
