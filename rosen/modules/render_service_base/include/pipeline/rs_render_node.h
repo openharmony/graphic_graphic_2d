@@ -128,6 +128,12 @@ public:
     }
 
     void InitCacheSurface(RSPaintFilterCanvas& canvas);
+    
+    void InitCacheSurface(sk_sp<SkSurface> cacheSurface)
+    {
+        cacheSurface_ = cacheSurface;
+    }
+
     sk_sp<SkSurface> GetCacheSurface() const
     {
         return cacheSurface_;

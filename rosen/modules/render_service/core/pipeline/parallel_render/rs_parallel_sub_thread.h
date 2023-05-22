@@ -72,6 +72,9 @@ private:
     void StartRender();
     void InitSubThread();
     void Render();
+    void InitUniVisitor();
+    void StartRenderCache();
+    void RenderCache();
     void Flush();
     void CreateResource();
     void CreatePbufferSurface();
