@@ -40,6 +40,7 @@ namespace Rosen {
 class RSPaintFilterCanvas;
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
+    using SurfaceDirtyMgrPair = std::pair<std::weak_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSDirtyRegionManager>>;
     RSUniRenderVisitor();
     RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas, uint32_t surfaceIndex);
     explicit RSUniRenderVisitor(const RSUniRenderVisitor& visitor);
@@ -175,13 +176,13 @@ private:
      * [planning] Update hwc surface dirty status at the same time
      */
     void UpdateHardwardNodeStatusBasedOnFilter(std::shared_ptr<RSSurfaceRenderNode>& node,
-        std::vector<std::weak_ptr<RSSurfaceRenderNode>>& prevHwcEnabledNodes,
+        std::vector<SurfaceDirtyMgrPair>& prevHwcEnabledNodes,
         std::shared_ptr<RSDirtyRegionManager>& displayDirtyManager) const;
     /* Disable hwc surface intersect with filter rects and merge dirty filter region
      * [planning] If invisible filterRects could be removed
      */
     RectI UpdateHardwardEnableList(std::vector<RectI>& filterRects,
-        std::vector<std::weak_ptr<RSSurfaceRenderNode>>& validHwcNodes) const;
+        std::vector<SurfaceDirtyMgrPair>& validHwcNodes) const;
     void AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDisplayRenderNode>& node) const;
 
     // set global dirty region to each surface node
@@ -202,6 +203,7 @@ private:
      * If so, reset status flag and stop traversal
      */
     bool CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& node);
+    void PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRenderNode& node);
     bool IsHardwareComposerEnabled();
 
     void ClearTransparentBeforeSaveLayer();
