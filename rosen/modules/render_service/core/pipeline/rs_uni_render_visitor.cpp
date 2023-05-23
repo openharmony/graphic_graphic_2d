@@ -2039,7 +2039,7 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
 {
     CacheType cacheType = node.GetCacheType();
     if (cacheType == CacheType::NONE) {
-        return;
+        return false;
     }
 
     if (!node.GetCacheSurface()) {
