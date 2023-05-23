@@ -104,7 +104,8 @@ public:
         RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderAnimation>& animation);
 
     using AnimationCallbackProcessor = void (*)(NodeId, AnimationId, AnimationCallbackEvent);
-    static void AnimationCallback(RSContext& context, NodeId targetId, AnimationId animId, AnimationCallbackEvent event);
+    static void AnimationCallback(RSContext& context,
+                                  NodeId targetId, AnimationId animId, AnimationCallbackEvent event);
     static RSB_EXPORT void SetAnimationCallbackProcessor(AnimationCallbackProcessor processor);
 };
 
@@ -125,7 +126,8 @@ ADD_COMMAND(RSAnimationSetFraction,
         NodeId, AnimationId, float))
 
 ADD_COMMAND(RSAnimationCallback,
-    ARG(ANIMATION, ANIMATION_CALLBACK, AnimationCommandHelper::AnimationCallback, NodeId, AnimationId, AnimationCallbackEvent))
+    ARG(ANIMATION, ANIMATION_CALLBACK,
+        AnimationCommandHelper::AnimationCallback, NodeId, AnimationId, AnimationCallbackEvent))
 
 // create curve animation
 ADD_COMMAND(RSAnimationCreateCurve, ARG(ANIMATION, ANIMATION_CREATE_CURVE, AnimationCommandHelper::CreateAnimation,

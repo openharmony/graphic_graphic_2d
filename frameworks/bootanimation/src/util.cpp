@@ -61,17 +61,17 @@ bool ReadCustomBootConfig(const std::string& path, BootCustomConfig& aniconfig)
         return false;
     }
     cJSON* custPicPath = cJSON_GetObjectItem(overallData, "cust.bootanimation.pics");
-    if (custPicPath != nullptr) {
+    if (custPicPath != nullptr && custPicPath->valuestring != nullptr) {
         aniconfig.custPicZipPath = custPicPath->valuestring;
         LOGI("cust piczip path: %{public}s", aniconfig.custPicZipPath.c_str());
     }
     cJSON* custSoundPath = cJSON_GetObjectItem(overallData, "cust.bootanimation.sounds");
-    if (custSoundPath != nullptr) {
+    if (custSoundPath != nullptr && custSoundPath->valuestring != nullptr) {
         aniconfig.custSoundsPath = custSoundPath->valuestring;
         LOGI("cust sound path: %{public}s", aniconfig.custSoundsPath.c_str());
     }
     cJSON* custVideoPath = cJSON_GetObjectItem(overallData, "cust.bootanimation.video");
-    if (custVideoPath != nullptr) {
+    if (custVideoPath != nullptr && custVideoPath->valuestring != nullptr) {
         aniconfig.custVideoPath = custVideoPath->valuestring;
         LOGI("cust video path: %{public}s", aniconfig.custVideoPath.c_str());
     }

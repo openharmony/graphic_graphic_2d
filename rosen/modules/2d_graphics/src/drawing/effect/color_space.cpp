@@ -41,7 +41,8 @@ ColorSpace::ColorSpace(ColorSpaceType t, const Image& image) noexcept : ColorSpa
     impl_->InitWithImage(image);
 }
 
-ColorSpace::ColorSpace(ColorSpaceType t, const CMSTransferFuncType& func, const CMSMatrixType& matrix) noexcept : ColorSpace()
+ColorSpace::ColorSpace(ColorSpaceType t,
+                       const CMSTransferFuncType& func, const CMSMatrixType& matrix) noexcept : ColorSpace()
 {
     type_ = t;
     impl_->InitWithRGB(func, matrix);
