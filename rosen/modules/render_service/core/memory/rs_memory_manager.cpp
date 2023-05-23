@@ -162,7 +162,7 @@ void MemoryManager::DumpPidMemory(DfxString& log, int pid, const GrContext* grCo
     //MemoryTrack::Instance().DumpMemoryStatistics(log, pid);
     MemoryGraphic mem = CountPidMemory(pid, grContext);
     log.AppendFormat("GPU Mem(MB):%f\n", mem.GetGpuMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
-    log.AppendFormat("CPU Mem(KB):%f\n", mem.GetCpuMemorySize() / MEMUNIT_RATE);
+    log.AppendFormat("CPU Mem(MB):%f\n", mem.GetCpuMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
     log.AppendFormat("Total Mem(MB):%f\n", mem.GetTotalMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
 }
 
