@@ -26,19 +26,16 @@ bool IsValidFile(const std::string& realPathStr, const std::string& validFile)
     return realPathStr.find(validFile) == 0;
 }
 
-std::string GetRealPath(std::string filePath)
+std::string GetRealPath(const std::string& filePath)
 {
     std::string realPathStr = "";
     char actualPath[PATH_MAX + 1] = {0};
-    char* realDclFilePath = realpath(filePath.c_str(), actualPath);
-    if (realDclFilePath == nullptr) {
+    if (realpath(filePath.c_str(), actualPath) == nullptr) {
         RS_LOGE("The file path is empty!");
         return realPathStr;
     }
     realPathStr = realDclFilePath;
-    free(realDclFilePath);
-    realDclFilePath = nullptr;
-    if (IsValidFile(realDclFilePath)) {
+    if (IsValidFile(realPathStr)) {
         return realPathStr;
     } else {
         RS_LOGE("The file path is not valid!");

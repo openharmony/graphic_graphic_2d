@@ -49,8 +49,8 @@ public:
 
     std::string PlayBackForRecord(SkCanvas& canvas, int startOpId, int endOpId, int descStartOpId,
         const SkRect* rect = nullptr);
-    std::string PlayBackForRecord(RSPaintFilterCanvas& canvas, int startOpId, int endOpId, int descStartOpId,
-        const SkRect* rect = nullptr);
+    std::string PlayBackForRecord(RSPaintFilterCanvas& canvas, int startOpId, int endOpId,
+        int descStartOpId, const SkRect* rect = nullptr);
 
     std::string GetOpsWithDesc() const;
     size_t GetSize() const;
