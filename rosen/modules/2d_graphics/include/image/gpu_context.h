@@ -117,7 +117,7 @@ public:
     template<typename T>
     const std::shared_ptr<T> GetImpl() const
     {
-        return (impl_ == nullptr) ? nullptr : impl_->DowncastingTo<T>();
+        return impl_->DowncastingTo<T>();
     }
 private:
     std::shared_ptr<GPUContextImpl> impl_;
