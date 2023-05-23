@@ -135,6 +135,11 @@ public:
     }
 #endif
     EGLContext CreateShareContext();
+#ifdef ROSEN_IOS    
+    sk_sp<SkColorSpace> ColorSpace() const { return color_space_; }
+    bool UpdateStorageSizeIfNecessary();
+    bool ResourceMakeCurrent();
+#endif    
 
 private:
 #if defined(NEW_SKIA)
@@ -150,6 +155,16 @@ private:
     EGLContext eglContext_ = EGL_NO_CONTEXT;
     EGLSurface eglSurface_ = EGL_NO_SURFACE;
     EGLSurface pbufferSurface_= EGL_NO_SURFACE;
+#ifdef ROSEN_IOS
+    sk_sp<SkColorSpace> color_space_ = nullptr;
+    void *layer_ = nullptr;
+    EGLContext resource_context_ = EGL_NO_CONTEXT;
+    uint32_t framebuffer_ = 0;
+    uint32_t colorbuffer_ = 0;
+    int32_t storage_width_ = 0;
+    int32_t storage_height_ = 0;
+    bool valid_ = false;
+#endif   
     EGLConfig config_;
 #ifndef ROSEN_CROSS_PLATFORM
     ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;

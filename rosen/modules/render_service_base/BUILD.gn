@@ -182,7 +182,8 @@ ohos_source_set("render_service_base_src") {
     ]
   }
 
-  if (current_os == "mingw" || current_os == "mac" || current_os == "linux") {
+  if (current_os == "mingw" || current_os == "mac" || current_os == "linux" ||
+      current_os == "ios") {
     sources -= [ "src/common/rs_shared_context.cpp" ]
   }
 
