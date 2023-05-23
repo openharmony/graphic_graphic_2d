@@ -46,7 +46,11 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_VECTOR4F,
     UPDATE_MODIFIER_RRECT,
     UPDATE_MODIFIER_DRAW_CMD_LIST,
+#ifndef USE_ROSEN_DRAWING
     UPDATE_MODIFIER_SKMATRIX,
+#else
+    UPDATE_MODIFIER_DRAWING_MATRIX,
+#endif
 
     SET_FREEZE,
     MARK_DRIVEN_RENDER,
@@ -150,12 +154,21 @@ ADD_COMMAND(RSUpdatePropertyVector4f,
 ADD_COMMAND(RSUpdatePropertyRRect,
     ARG(RS_NODE, UPDATE_MODIFIER_RRECT, RSNodeCommandHelper::UpdateModifier<RRect>,
         NodeId, RRect, PropertyId, bool))
+#ifndef USE_ROSEN_DRAWING
 ADD_COMMAND(RSUpdatePropertyDrawCmdList,
     ARG(RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST, RSNodeCommandHelper::UpdateModifier<DrawCmdListPtr>,
         NodeId, DrawCmdListPtr, PropertyId, bool))
 ADD_COMMAND(RSUpdatePropertySkMatrix,
     ARG(RS_NODE, UPDATE_MODIFIER_SKMATRIX, RSNodeCommandHelper::UpdateModifier<SkMatrix>,
         NodeId, SkMatrix, PropertyId, bool))
+#else
+ADD_COMMAND(RSUpdatePropertyDrawCmdList,
+    ARG(RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST, RSNodeCommandHelper::UpdateModifier<Drawing::DrawCmdListPtr>,
+        NodeId, Drawing::DrawCmdListPtr, PropertyId, bool))
+ADD_COMMAND(RSUpdatePropertyDrawingMatrix,
+    ARG(RS_NODE, UPDATE_MODIFIER_DRAWING_MATRIX, RSNodeCommandHelper::UpdateModifier<Drawing::Matrix>,
+        NodeId, Drawing::Matrix, PropertyId, bool))
+#endif
 
 ADD_COMMAND(RSSetFreeze,
     ARG(RS_NODE, SET_FREEZE, RSNodeCommandHelper::SetFreeze, NodeId, bool))

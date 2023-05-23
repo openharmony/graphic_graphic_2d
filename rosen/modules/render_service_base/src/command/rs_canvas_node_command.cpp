@@ -26,8 +26,13 @@ void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id)
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSCanvasNodeCommandHelper::UpdateRecording(
     RSContext& context, NodeId id, std::shared_ptr<DrawCmdList> drawCmds, uint16_t modifierType)
+#else
+void RSCanvasNodeCommandHelper::UpdateRecording(
+    RSContext& context, NodeId id, std::shared_ptr<Drawing::DrawCmdList> drawCmds, uint16_t modifierType)
+#endif
 {
     auto type = static_cast<RSModifierType>(modifierType);
     if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id)) {

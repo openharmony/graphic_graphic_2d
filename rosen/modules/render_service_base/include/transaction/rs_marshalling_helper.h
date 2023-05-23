@@ -18,11 +18,15 @@
 
 #include <memory>
 #include "common/rs_macros.h"
+#ifdef USE_ROSEN_DRAWING
+#include "image/image.h"
+#endif
 
 #include <parcel.h>
 
 #include "common/rs_common_def.h"
 
+#ifndef USE_ROSEN_DRAWING
 template<typename T>
 class sk_sp;
 class SkData;
@@ -42,14 +46,23 @@ class SkTypeface;
 #ifdef NEW_SKIA
 struct SkSamplingOptions;
 #endif
+#endif
 
 namespace OHOS {
 namespace Media {
 class PixelMap;
 }
 namespace Rosen {
+#ifndef USE_ROSEN_DRAWING
 class DrawCmdList;
 class OpItem;
+#else
+namespace Drawing {
+class DrawCmdList;
+class Data;
+class Image;
+}
+#endif
 class RSFilter;
 class RSImage;
 class RSImageBase;
@@ -113,9 +126,15 @@ public:
         return false;
     }
 
+#ifndef USE_ROSEN_DRAWING
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const sk_sp<SkImage>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, void*& imagepixelAddr);
+#else
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr);
+#endif
 
     // reloaded marshalling & unmarshalling function for types
 #define DECLARE_FUNCTION_OVERLOAD(TYPE)                                  \
@@ -135,6 +154,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(float)
     DECLARE_FUNCTION_OVERLOAD(double)
     // skia types
+#ifndef USE_ROSEN_DRAWING
     DECLARE_FUNCTION_OVERLOAD(SkPath)
     DECLARE_FUNCTION_OVERLOAD(SkPaint)
     DECLARE_FUNCTION_OVERLOAD(SkRect)
@@ -147,6 +167,10 @@ public:
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkVertices>)
     static bool SkipSkData(Parcel& parcel);
     static bool SkipSkImage(Parcel& parcel);
+#else
+    static bool SkipData(Parcel& parcel);
+    static bool SkipImage(Parcel& parcel);
+#endif
     // RS types
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSShader>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSPath>)
@@ -154,7 +178,11 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImageBase>)
+#ifndef USE_ROSEN_DRAWING
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<DrawCmdList>)
+#else
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::DrawCmdList>)
+#endif
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Media::PixelMap>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RectT<float>>)
     DECLARE_FUNCTION_OVERLOAD(RRectT<float>)
@@ -164,9 +192,11 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)
 
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderModifier>)
+#ifndef USE_ROSEN_DRAWING
     DECLARE_FUNCTION_OVERLOAD(std::unique_ptr<OpItem>)
 #ifdef NEW_SKIA
     DECLARE_FUNCTION_OVERLOAD(SkSamplingOptions)
+#endif
 #endif
 #undef DECLARE_FUNCTION_OVERLOAD
 
@@ -267,16 +297,24 @@ public:
         return Unmarshalling(parcel, first) && Unmarshalling(parcel, args...);
     }
 
+#ifndef USE_ROSEN_DRAWING
     static bool Marshalling(Parcel& parcel, sk_sp<SkData> val);
     static bool Unmarshalling(Parcel& parcel, sk_sp<SkData>& val);
     static bool UnmarshallingWithCopy(Parcel& parcel, sk_sp<SkData>& val);
+#else
+    static bool Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Data> val);
+    static bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Data>& val);
+    static bool UnmarshallingWithCopy(Parcel& parcel, std::shared_ptr<Drawing::Data>& val);
+#endif
 
 private:
     static bool WriteToParcel(Parcel& parcel, const void* data, size_t size);
     static const void* ReadFromParcel(Parcel& parcel, size_t size);
     static bool SkipFromParcel(Parcel& parcel, size_t size);
+#ifndef USE_ROSEN_DRAWING
     static sk_sp<SkData> SerializeTypeface(SkTypeface* tf, void* ctx);
     static sk_sp<SkTypeface> DeserializeTypeface(const void* data, size_t length, void* ctx);
+#endif
 
     static constexpr size_t MAX_DATA_SIZE = 128 * 1024 * 1024; // 128M
     static constexpr size_t MIN_DATA_SIZE = 8 * 1024;          // 8k
