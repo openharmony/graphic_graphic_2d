@@ -234,8 +234,10 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilt
     } else {
         if (rrect != nullptr) {
             skPath.addRRect(RRect2SkRRect(*rrect));
+            canvas.clipRRect(RRect2SkRRect(*rrect), SkClipOp::kDifference, true);
         } else {
             skPath.addRRect(RRect2SkRRect(properties.GetRRect()));
+            canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), SkClipOp::kDifference, true);
         }
     }
     if (properties.GetShadowMask()) {
