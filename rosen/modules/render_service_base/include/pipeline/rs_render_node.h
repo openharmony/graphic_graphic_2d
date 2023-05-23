@@ -18,8 +18,12 @@
 #include <memory>
 #include <unordered_set>
 
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkRefCnt.h"
 #include "include/core/SkSurface.h"
+#else
+#include "draw/surface.h"
+#endif
 
 #include "animation/rs_animation_manager.h"
 #include "common/rs_macros.h"
@@ -29,7 +33,9 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties.h"
 
+#ifndef USE_ROSEN_DRAWING
 class SkCanvas;
+#endif
 namespace OHOS {
 namespace Rosen {
 class DrawCmdList;
@@ -52,7 +58,11 @@ public:
     bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty, RectI clipRect);
     // Other situation
     bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty);
+#ifndef USE_ROSEN_DRAWING
     virtual std::optional<SkRect> GetContextClipRegion() const { return std::nullopt; }
+#else
+    virtual std::optional<Drawing::Rect> GetContextClipRegion() const { return std::nullopt; }
+#endif
 
     RSProperties& GetMutableRenderProperties();
     const RSProperties& GetRenderProperties() const;
@@ -128,13 +138,21 @@ public:
     }
 
     void InitCacheSurface(RSPaintFilterCanvas& canvas);
-    
+#ifndef USE_ROSEN_DRAWING
     void InitCacheSurface(sk_sp<SkSurface> cacheSurface)
     {
         cacheSurface_ = cacheSurface;
     }
 
     sk_sp<SkSurface> GetCacheSurface() const
+#else
+    void InitCacheSurface(std::shared_ptr<Drawing::Surface> cacheSurface)
+    {
+        cacheSurface_ = cacheSurface;
+    }
+
+    std::shared_ptr<Drawing::Surface> GetCacheSurface() const
+#endif
     {
         return cacheSurface_;
     }
@@ -144,7 +162,11 @@ public:
         std::swap(cacheSurface_, cacheCompletedSurface_);
     }
 
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> GetCompletedCacheSurface() const
+#else
+    std::shared_ptr<Drawing::Surface> GetCompletedCacheSurface() const
+#endif
     {
         return cacheCompletedSurface_;
     }
@@ -325,8 +347,13 @@ private:
     std::shared_ptr<RSRenderModifier> boundsModifier_;
     std::shared_ptr<RSRenderModifier> frameModifier_;
 
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> cacheSurface_ = nullptr;
     sk_sp<SkSurface> cacheCompletedSurface_ = nullptr;
+#else
+    std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
+    std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
+#endif
     std::atomic<bool> isStaticCached_ = false;
     CacheType cacheType_ = CacheType::NONE;
 

@@ -209,12 +209,21 @@ public:
         return isFirstTimeToProcessor_;
     }
 
+#ifndef USE_ROSEN_DRAWING
     void SetInitMatrix(const SkMatrix& skMatrix) {
         initMatrix_ = skMatrix;
+#else
+    void SetInitMatrix(const Drawing::Matrix& matrix) {
+        initMatrix_ = matrix;
+#endif
         isFirstTimeToProcessor_ = false;
     }
 
+#ifndef USE_ROSEN_DRAWING
     const SkMatrix& GetInitMatrix() const {
+#else
+    const Drawing::Matrix& GetInitMatrix() const {
+#endif
         return initMatrix_;
     }
 private:
@@ -227,7 +236,11 @@ private:
     bool isSecurityDisplay_ = false;
     WeakPtr mirrorSource_;
     float lastRotation_ = 0.f;
+#ifndef USE_ROSEN_DRAWING
     SkMatrix initMatrix_;
+#else
+    Drawing::Matrix initMatrix_;
+#endif
     bool isFirstTimeToProcessor_ = true;
 
     std::shared_ptr<RSSurface> surface_;
