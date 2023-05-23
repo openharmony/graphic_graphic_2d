@@ -145,9 +145,10 @@ bool RSPropertiesPainter::GetGravityMatrix(Gravity gravity, RectF rect, float w,
     }
 }
 
-void RSPropertiesPainter::Clip(SkCanvas& canvas, RectF rect)
+void RSPropertiesPainter::Clip(SkCanvas& canvas, RectF rect, bool isAntiAlias)
 {
-    canvas.clipRect(Rect2SkRect(rect), true);
+    // isAntiAlias is false only the method is called in ProcessAnimatePropertyBeforeChildren().
+    canvas.clipRect(Rect2SkRect(rect), isAntiAlias);
 }
 
 void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties, const RRect* rrect)
@@ -461,16 +462,26 @@ int RSPropertiesPainter::GetAndResetBlurCnt()
     return blurCnt;
 }
 
-void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas, bool isAntiAlias)
 {
     DrawShadow(properties, canvas);
-    // only disable antialias when background is rect and g_forceBgAntiAlias is true
+    // only disable antialias when background is rect and g_forceBgAntiAlias is false
     bool antiAlias = g_forceBgAntiAlias || !properties.GetCornerRadius().IsZero();
     // clip
     if (properties.GetClipBounds() != nullptr) {
         canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), antiAlias);
     } else if (properties.GetClipToBounds()) {
+    // In NEW_SKIA version, L476 code will cause crash if the second parameter is true.
+    // so isAntiAlias is false only the method is called in ProcessAnimatePropertyBeforeChildren().
+#ifdef NEW_SKIA
+        if (properties.GetCornerRadius().IsZero()) {
+            canvas.clipRect(Rect2SkRect(properties.GetBoundsRect()), isAntiAlias);
+        } else {
+            canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), antiAlias);
+        }
+#else
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), antiAlias);
+#endif
     } else if (properties.GetClipToRRect()) {
         canvas.clipRRect(RRect2SkRRect(properties.GetClipRRect()), antiAlias);
     }

@@ -91,8 +91,12 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
     ApplyDrawCmdModifier(context, RSModifierType::TRANSITION);
     ApplyDrawCmdModifier(context, RSModifierType::ENV_FOREGROUND_COLOR);
-
+    // In NEW_SKIA version, L96 code will cause dump if the 3rd parameter is true.
+#ifdef NEW_SKIA
+    RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas, false);
+#else
     RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas);
+#endif
     auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetBackgroundFilter());
     if (filter != nullptr) {
 #ifndef NEW_SKIA
@@ -107,7 +111,12 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
     canvas.translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
 
     if (GetRenderProperties().GetClipToFrame()) {
+    // In NEW_SKIA version, L116 code will cause dump if the 3rd parameter is true.
+#ifdef NEW_SKIA
+        RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect(), false);
+#else
         RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect());
+#endif
     }
 }
 
