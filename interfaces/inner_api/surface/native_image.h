@@ -22,7 +22,7 @@
  *
  * @brief Provides the native image capability.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeImage
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @since 9
  * @version 1.0
  */
@@ -49,7 +49,7 @@ typedef struct NativeWindow OHNativeWindow;
 /**
  * @brief Create a <b>OH_NativeImage</b> related to an OPENGL ES texture and target. \n
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeImage
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @param textureId Indicates the id of the OPENGL ES texture which the native image attached to.
  * @param textureTarget Indicates the OPENGL ES target.
  * @return Returns the pointer to the <b>OH_NativeImage</b> instance created if the operation is successful, \n
@@ -63,7 +63,7 @@ OH_NativeImage* OH_NativeImage_Create(uint32_t textureId, uint32_t textureTarget
  * @brief Acquire the OHNativeWindow for the OH_NativeImage. This OHNativeWindow should be released by \n
  * OH_NativeWindow_DestroyNativeWindow when no longer needed.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeImage
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
  * @return Returns the pointer to the OHNativeWindow if the operation is successful, returns <b>NULL</b> otherwise.
  * @since 9
@@ -75,7 +75,7 @@ OHNativeWindow* OH_NativeImage_AcquireNativeWindow(OH_NativeImage* image);
  * @brief Attach the OH_NativeImage to OPENGL ES context, and the OPENGL ES texture is bound to the \n
  * GL_TEXTURE_EXTERNAL_OES, which will update by the OH_NativeImage.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeImage
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
  * @param textureId Indicates the id of the OPENGL ES texture which the native image attached to.
  * @return Returns an error code defined in <b>SurfaceError</b>.
@@ -87,7 +87,7 @@ int32_t OH_NativeImage_AttachContext(OH_NativeImage* image, uint32_t textureId);
 /**
  * @brief Detach the OH_NativeImage from the OPENGL ES context.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeImage
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
  * @return Returns an error code defined in <b>SurfaceError</b>.
  * @since 9
@@ -99,7 +99,7 @@ int32_t OH_NativeImage_DetachContext(OH_NativeImage* image);
 /**
  * @brief Update the related OPENGL ES texture with the OH_NativeImage acquired buffer.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeImage
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
  * @return Returns an error code defined in <b>SurfaceError</b>.
  * @since 9
@@ -110,7 +110,7 @@ int32_t OH_NativeImage_UpdateSurfaceImage(OH_NativeImage* image);
 /**
  * @brief Get the timestamp of the texture image set by the most recent call to OH_NativeImage_UpdateSurfaceImage.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeImage
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
  * @return Returns the timestamp associated to the texture image.
  * @since 9
@@ -122,7 +122,7 @@ int64_t OH_NativeImage_GetTimestamp(OH_NativeImage* image);
  * @brief Return the transform matrix of the texture image set by the most recent call to \n
  * OH_NativeImage_UpdateSurfaceImage.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeImage
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
  * @param matrix Indicates the retrieved 4*4 transform matrix .
  * @return Returns an error code defined in <b>SurfaceError</b>.
@@ -135,7 +135,7 @@ int32_t OH_NativeImage_GetTransformMatrix(OH_NativeImage* image, float matrix[16
  * @brief Destroy the <b>OH_NativeImage</b> created by OH_NativeImage_Create, and the pointer to \n
  * <b>OH_NativeImage</b> will be null after this operation.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeImage
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @param image Indicates the pointer to a <b>OH_NativeImage</b> pointer.
  * @since 9
  * @version 1.0
