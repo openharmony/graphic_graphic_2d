@@ -88,12 +88,13 @@ private:
     static Drawing::RoundRect RRect2DrawingRRect(const RRect& rr);
     static Drawing::Rect Rect2DrawingRect(const RectF& r);
     static int GetAndResetBlurCnt();
-    static Drawing::Color CalcAverageColor(std::shared_ptr<Drawing::Image> imageSnapshot);
+    static Drawing::ColorQuad CalcAverageColor(std::shared_ptr<Drawing::Image> imageSnapshot);
 
     static void DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas);
-    // functions that are dedicated to driven render [start]    
+    // functions that are dedicated to driven render [start]
     static RectF GetCmdsClipRect(Drawing::DrawCmdListPtr& cmds);
-    static void DrawFrameForDriven(const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::DrawCmdListPtr& cmds);
+    static void DrawFrameForDriven(const RSProperties& properties, RSPaintFilterCanvas& canvas,
+        Drawing::DrawCmdListPtr& cmds);
     // functions that are dedicated to driven render [end]
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const std::shared_ptr<Drawing::Surface>& spherizeSurface);

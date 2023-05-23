@@ -76,7 +76,6 @@ class RSRenderSpringAnimation;
 class RSRenderTransition;
 class RSRenderTransitionEffect;
 class RSRenderModifier;
-class OpItem;
 template<typename T>
 class RSRenderProperty;
 template<typename T>
@@ -127,9 +126,15 @@ public:
         return false;
     }
 
+#ifndef USE_ROSEN_DRAWING
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const sk_sp<SkImage>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, void*& imagepixelAddr);
+#else
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr);
+#endif
 
     // reloaded marshalling & unmarshalling function for types
 #define DECLARE_FUNCTION_OVERLOAD(TYPE)                                  \
@@ -163,11 +168,8 @@ public:
     static bool SkipSkData(Parcel& parcel);
     static bool SkipSkImage(Parcel& parcel);
 #else
-    //Todo Drawing
-    //DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::Image>)
     static bool SkipData(Parcel& parcel);
     static bool SkipImage(Parcel& parcel);
-
 #endif
     // RS types
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSShader>)
@@ -176,11 +178,11 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImageBase>)
-    #ifndef USE_ROSEN_DRAWING
+#ifndef USE_ROSEN_DRAWING
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<DrawCmdList>)
-    #else
+#else
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::DrawCmdList>)
-    #endif
+#endif
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Media::PixelMap>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RectT<float>>)
     DECLARE_FUNCTION_OVERLOAD(RRectT<float>)
@@ -190,9 +192,11 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)
 
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderModifier>)
+#ifndef USE_ROSEN_DRAWING
     DECLARE_FUNCTION_OVERLOAD(std::unique_ptr<OpItem>)
 #ifdef NEW_SKIA
     DECLARE_FUNCTION_OVERLOAD(SkSamplingOptions)
+#endif
 #endif
 #undef DECLARE_FUNCTION_OVERLOAD
 

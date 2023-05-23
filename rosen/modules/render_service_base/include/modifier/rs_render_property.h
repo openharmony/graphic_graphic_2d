@@ -24,8 +24,6 @@
 #include "pipeline/rs_base_render_node.h"
 #include "transaction/rs_marshalling_helper.h"
 
-#include "utils/matrix.h"
-
 namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSRenderPropertyBase : public std::enable_shared_from_this<RSRenderPropertyBase> {
