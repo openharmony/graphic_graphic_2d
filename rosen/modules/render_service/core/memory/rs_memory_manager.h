@@ -39,6 +39,7 @@ public:
         std::vector<MemoryGraphic>& mems);
     static void ReleaseUnlockGpuResource(GrDirectContext* grContext, NodeId surfaceNodeId);
     static void ReleaseUnlockGpuResource(GrDirectContext* grContext, pid_t pid);
+    static void ReleaseUnlockGpuResource(GrDirectContext* grContext, GrGpuResourceTag& tag);
     static void ReleaseAllGpuResource(GrDirectContext* grContext, pid_t pid);
     static void ReleaseAllGpuResource(GrDirectContext* grContext, GrGpuResourceTag& tag);
     static void ReleaseUnlockGpuResource(GrDirectContext* grContext, bool scratchResourcesOnly = true);

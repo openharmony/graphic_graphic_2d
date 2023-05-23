@@ -1538,7 +1538,7 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
         std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
         rendercontext->CleanAllShaderCache();
     } else {
-        uint32_t pid = std::stoll(type);
+        uint32_t pid = static_cast<uint32_t>(std::stoll(type));
         GrGpuResourceTag tag(pid, 0, 0, 0);
         MemoryManager::ReleaseAllGpuResource(grContext, tag);
     }

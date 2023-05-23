@@ -208,8 +208,8 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
     log.AppendFormat("RSImageCache:\n");
     log.AppendFormat("%s:\n", GenerateDumpTitle().c_str());
 
-    int arrTotal[MEM_MAX_SIZE];
-    int arrCount[MEM_MAX_SIZE];
+    int arrTotal[MEM_MAX_SIZE] = {0};
+    int arrCount[MEM_MAX_SIZE] = {0};
     int totalSize = 0;
     int count = 0;
     //calculate by byte

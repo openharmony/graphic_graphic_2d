@@ -344,9 +344,9 @@ void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
 
 static bool IsNumber(const std::string& type)
 {
-    int number = std::count_if(type.begin(), type.end(), [](unsigned char c) {
+    auto number = static_cast<uint32_t>(std::count_if(type.begin(), type.end(), [](unsigned char c) {
         return std::isdigit(c);
-    });
+    }));
     return number == type.length();
 }
 

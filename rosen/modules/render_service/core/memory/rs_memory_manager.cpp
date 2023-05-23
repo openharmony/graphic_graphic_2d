@@ -89,15 +89,16 @@ void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, pid_t pid)
 #endif
 {
 #ifdef RS_ENABLE_GL
-#ifndef NEW_SKIA
     GrGpuResourceTag tag(pid, 0, 0, 0);
     ReleaseAllGpuResource(grContext, tag);
 #endif
-#endif
 }
 
-#ifndef NEW_SKIA
+#ifdef NEW_SKIA
+void MemoryManager::ReleaseUnlockGpuResource(GrDirectContext* grContext, GrGpuResourceTag& tag)
+#else
 void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, GrGpuResourceTag& tag)
+#endif
 {
 #ifdef RS_ENABLE_GL
     if(!grContext) {
@@ -108,7 +109,6 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, GrGpuResource
     grContext->purgeUnlockedResourcesByTag(false, tag);
 #endif
 }
-#endif
 
 #ifdef NEW_SKIA
 void MemoryManager::ReleaseUnlockGpuResource(GrDirectContext* grContext, NodeId surfaceNodeId)
@@ -117,10 +117,8 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, NodeId surfac
 #endif
 {
 #ifdef RS_ENABLE_GL
-#ifndef NEW_SKIA
     GrGpuResourceTag tag(ExtractPid(surfaceNodeId), 0, 0, 0);
     ReleaseUnlockGpuResource(grContext, tag); // clear gpu resource by pid
-#endif
 #endif
 }
 
@@ -131,10 +129,8 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, pid_t pid)
 #endif
 {
 #ifdef RS_ENABLE_GL
-#ifndef NEW_SKIA
     GrGpuResourceTag tag(pid, 0, 0, 0);
     ReleaseUnlockGpuResource(grContext, tag); // clear gpu resource by pid
-#endif
 #endif
 }
 
@@ -353,9 +349,8 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const GrContext* grCont
     // gpu stat
     log.AppendFormat("\n---------------\ndumpGpuStats:\n");
     SkString stat;
-#ifndef NEW_SKIA
     grContext->priv().dumpGpuStats(&stat);
-#endif
+
     log.AppendFormat("%s\n", stat.c_str());
 #endif
 }
