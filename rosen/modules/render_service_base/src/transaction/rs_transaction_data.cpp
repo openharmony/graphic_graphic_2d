@@ -138,7 +138,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         return false;
     }
 
-    for (int i = 0; i < commandSize; i++) {
+    for (size_t i = 0; i < len; i++) {
         if (!isUniRender) {
             if (!parcel.ReadUint64(nodeId)) {
                 ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read nodeId");
