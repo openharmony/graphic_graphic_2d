@@ -16,7 +16,9 @@
 #define RS_TAG_TRACKER
 #ifndef NEW_SKIA
 #include "include/gpu/GrContext.h"
-
+#else
+#include "include/gpu/GrDirectContext.h"
+#endif
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "platform/common/rs_system_properties.h"
@@ -33,21 +35,31 @@ public:
         TAG_COLD_START,
         TAG_ACQUIRE_SURFACE,
         TAG_FILTER,
+        TAG_RENDER_FRAME,
         TAG_CAPTURE,
     };
+#if defined(NEW_SKIA)
+    RSTagTracker(GrDirectContext* grContext, RSTagTracker::TAGTYPE tagType);
+    RSTagTracker(GrDirectContext* grContext, NodeId nodeId, RSTagTracker::TAGTYPE tagType);
+    RSTagTracker(GrDirectContext* grContext, GrGpuResourceTag& tag);
+#else
     RSTagTracker(GrContext* grContext, RSTagTracker::TAGTYPE tagType);
     RSTagTracker(GrContext* grContext, NodeId nodeId, RSTagTracker::TAGTYPE tagType);
     RSTagTracker(GrContext* grContext, GrGpuResourceTag& tag);
+#endif
     void SetTagEnd();
     ~RSTagTracker();
     static void UpdateReleaseGpuResourceEnable(ReleaseGpuResourceType releaseResEnable);
     static std::string TagType2String(TAGTYPE type);
 private:
     bool isSetTagEnd_ = false;
+#if defined(NEW_SKIA)
+    GrDirectContext* grContext_ = nullptr;
+#else
     GrContext* grContext_ = nullptr;
+#endif
     static ReleaseGpuResourceType releaseGpuResourceEnable_;
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif
 #endif
