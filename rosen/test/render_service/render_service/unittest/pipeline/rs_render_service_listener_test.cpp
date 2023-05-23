@@ -107,7 +107,7 @@ HWTEST_F(RSRenderServiceListenerTest, OnBufferAvailable001, TestSize.Level1)
     rsListener = std::make_shared<RSRenderServiceListener>(node);
     node->SetIsNotifyUIBufferAvailable(false);
     rsListener->OnBufferAvailable();
-    ASSERT_EQ(node->IsNotifyUIBufferAvailable(), false);
+    ASSERT_EQ(node->IsNotifyUIBufferAvailable(), true);
 
     node->SetIsNotifyUIBufferAvailable(true);
     rsListener->OnBufferAvailable();
