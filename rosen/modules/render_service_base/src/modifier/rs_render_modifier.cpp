@@ -270,7 +270,7 @@ Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSMod
         return Color(0);
     }
     std::unique_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
-    auto data = (uint8_t *)malloc(pixelmap->GetRowBytes() * pixelmap->GetHeight());
+    uint8_t* data = static_cast<uint8_t*>(malloc(pixelmap->GetRowBytes() * pixelmap->GetHeight()));
     if (data == nullptr) {
         RS_LOGE("RSRenderModifier::GetInvertBackgroundColor: data is nullptr");
         return Color(0);
