@@ -1603,7 +1603,6 @@ void RSUniRenderVisitor::DrawSurfaceLayer(RSDisplayRenderNode& node)
 
 void RSUniRenderVisitor::DrawCacheRenderNode(RSRenderNode& node)
 {
-    RS_TRACE_NAME_FMT("draw cache render node %llu", node.GetId());
     isUpdateCachedSurface_ = true;
     if (node.GetCacheSurface()) {
         auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());

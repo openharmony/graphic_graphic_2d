@@ -309,6 +309,46 @@ void RSParallelRenderManager::WaitCompositionEnd()
     }
 }
 
+void RSParallelRenderManager::DrawCacheSurface(RSPaintFilterCanvas& canvas, const RSRenderNode& node)
+{
+    auto surface = node.GetCompletedCacheSurface();
+    if (surface == nullptr || (surface->width() == 0 || surface->height() == 0)) {
+        RS_LOGE("invalid cache surface");
+        return;
+    }
+    canvas.save();
+    float width = node.GetRenderProperties().GetBoundsRect().GetWidth();
+    float height = node.GetRenderProperties().GetBoundsRect().GetHeight();
+    canvas.scale(width / surface->width(), height / surface->height());
+#ifdef NEW_SKIA
+    if (renderContext_ == nullptr) {
+        RS_LOGE("DrawCacheSurface render context is nullptr");
+        return;
+    }
+    auto mainGrContext = renderContext_->GetGrContext();
+    if (mainGrContext == nullptr) {
+        RS_LOGE("DrawCacheSurface GrDirectContext is nullptr");
+        return;
+    }
+    auto sharedBackendTexture =
+        surface->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
+    if (!sharedBackendTexture.isValid()) {
+        RS_LOGE("DrawCacheSurface does not has GPU backend, %llu", node.GetId());
+        return;
+    }
+    auto sharedTexture = SkImage::MakeFromTexture(mainGrContext, sharedBackendTexture,
+        kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+    if (sharedTexture == nullptr) {
+        RS_LOGE("DrawCacheSurface shared texture is nullptr, %llu", node.GetId());
+        return;
+    }
+    canvas.drawImage(sharedTexture, 0, 0);
+    sharedTexture.reset();
+    sharedTexture = nullptr;
+#endif
+    canvas.restore();
+}
+
 void RSParallelRenderManager::DrawImageMergeFunc(RSPaintFilterCanvas& canvas)
 {
     for (unsigned int i = 0; i < expectedSubThreadNum_; ++i) {
@@ -439,7 +479,6 @@ void RSParallelRenderManager::SubmitSubThreadTask(const std::shared_ptr<RSDispla
     }
     std::vector<std::unique_ptr<RSRenderTask>> renderTaskList;
     for (auto& child : subThreadNodes) {
-        nodeTaskState_[child->GetId()] = 1;
         renderTaskList.push_back(std::make_unique<RSRenderTask>(*child, RSRenderTask::RenderNodeStage::CACHE));
     }
 
@@ -481,22 +520,6 @@ void RSParallelRenderManager::SubmitSubThreadTask(const std::shared_ptr<RSDispla
         flipCoin_[i] = 1;
     }
     cvParallelRender_.notify_all();
-}
-
-void RSParallelRenderManager::WaitNodeTask(uint64_t nodeId)
-{
-    ROSEN_LOGD("RSParallelRenderManager::waitNodeTask, id is %llu", nodeId);
-    std::unique_lock<std::mutex> lock(parallelRenderMutex_);
-    cvParallelRender_.wait(lock, [&]() {
-        return !nodeTaskState_[nodeId];
-    });
-}
-
-void RSParallelRenderManager::NodeTaskNotify(uint64_t nodeId)
-{
-    ROSEN_LOGD("RSParallelRenderManager::NodeTaskNotify, id is %llu", nodeId);
-    nodeTaskState_[nodeId] = 0;
-    cvParallelRender_.notify_one();
 }
 
 void RSParallelRenderManager::SubmitCompositionTask(uint32_t taskIndex,

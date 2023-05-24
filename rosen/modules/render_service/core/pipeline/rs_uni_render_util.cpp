@@ -272,10 +272,11 @@ bool RSUniRenderUtil::HandleCachedNode(const RSRenderNode& node, RSPaintFilterCa
         return false;
     }
     RS_TRACE_NAME_FMT("Handle Cached Node %llu", node.GetId());
-    if (!node.HasCachedTexture()) {
-        RSParallelRenderManager::Instance()->WaitNodeTask(node.GetId());
-    }
+#ifdef NEW_SKIA
+    RSParallelRenderManager::Instance()->DrawCacheSurface(canvas, node);
+#else
     node.DrawCacheSurface(canvas);
+#endif
     return true;
 }
 

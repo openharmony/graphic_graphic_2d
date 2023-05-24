@@ -23,7 +23,6 @@
 #include <parameters.h>
 #include <set>
 
-#include "parallel_render/rs_parallel_sub_thread.h"
 #include "rs_base_render_engine.h"
 
 #include "pipeline/driven_render/rs_driven_render_manager.h"

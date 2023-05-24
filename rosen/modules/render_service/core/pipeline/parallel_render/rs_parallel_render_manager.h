@@ -76,6 +76,7 @@ public:
                                      const std::shared_ptr<RSBaseRenderNode> node);
     void LoadBalanceAndNotify(TaskType type = TaskType::PROCESS_TASK);
     void MergeRenderResult(RSPaintFilterCanvas& canvas);
+    void DrawCacheSurface(RSPaintFilterCanvas& canvas, const RSRenderNode& node);
     void SetFrameSize(int width, int height);
     void GetFrameSize(int &width, int &height);
     void SubmitSuperTask(uint32_t taskIndex, std::unique_ptr<RSSuperRenderTask> superRenderTask);
@@ -87,8 +88,6 @@ public:
     void SubMainThreadWait(uint32_t threadIndex);
     void WaitCalcCostEnd();
     void WaitCompositionEnd();
-    void WaitNodeTask(uint64_t nodeId);
-    void NodeTaskNotify(uint64_t nodeId);
     void UpdateNodeCost(RSDisplayRenderNode& node);
     bool IsNeedCalcCost() const;
     int32_t GetCost(RSRenderNode &node) const;
@@ -212,7 +211,6 @@ private:
     std::vector<timespec> startTime_;
     std::vector<timespec> stopTime_;
 
-    std::map<uint64_t, bool> nodeTaskState_;
     uint32_t minLoadThreadIndex_ = 0;
 
     // Use for Vulkan
