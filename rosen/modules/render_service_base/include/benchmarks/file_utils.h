@@ -21,10 +21,10 @@
 namespace OHOS {
 namespace Rosen {
 namespace Benchmarks {
+bool IsValidFile(const std::string& realPathStr, const std::string& validPath = "/data/");
+std::string GetRealPath(const std::string& filePath);
 bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath);
-
 bool WriteStringToFile(int fd, const std::string& str);
-
 bool WriteStringToFile(const std::string& str, const std::string& filePath);
 
 } // namespace Benchmarks

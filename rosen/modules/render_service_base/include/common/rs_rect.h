@@ -175,6 +175,10 @@ public:
         T height = std::max(GetBottom(), rect.GetBottom()) - top;
         return ((width <= 0) || (height <= 0)) ? RectT<T>() : RectT<T>(left, top, width, height);
     }
+    RectT<T> Offset(const T x, const T y) const
+    {
+        return RectT<T>(left_ + x, top_ + y, width_, height_);
+    }
     template<typename P>
     RectT<P> ConvertTo()
     {

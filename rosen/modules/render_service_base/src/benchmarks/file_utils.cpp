@@ -14,26 +14,44 @@
  */
 
 #include "benchmarks/file_utils.h"
-
-#include <sstream>
-#include <string>
-#include <fstream>
-
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/stat.h>
-
-#include "directory_ex.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Benchmarks {
+bool IsValidFile(const std::string& realPathStr, const std::string& validFile)
+{
+    return realPathStr.find(validFile) == 0;
+}
+
+std::string GetRealPath(const std::string& filePath)
+{
+    std::string realPathStr = "";
+    char actualPath[PATH_MAX + 1] = {0};
+    if (realpath(filePath.c_str(), actualPath) == nullptr) {
+        RS_LOGE("The file path is empty!");
+        return realPathStr;
+    }
+    realPathStr = actualPath;
+    if (IsValidFile(realPathStr)) {
+        return realPathStr;
+    } else {
+        RS_LOGE("The file path is not valid!");
+        return "";
+    }
+}
+
 bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath)
 {
-    int fd = open(filePath.c_str(), O_RDWR | O_CREAT, static_cast<mode_t>(0600));
+    std::string realDclFilePathStr = GetRealPath(filePath);
+    if (realDclFilePathStr.empty()) {
+        return false;
+    }
+    int fd = open(realDclFilePathStr.c_str(), O_RDWR | O_CREAT, static_cast<mode_t>(0600));
     if (fd < 0) {
-        RS_LOGE("%{public}s failed. file: %s, fd = %{public}d", __func__, filePath.c_str(), fd);
+        RS_LOGE("%{public}s failed. file: %s, fd = %{public}d", __func__, realDclFilePathStr.c_str(), fd);
         return false;
     }
     ssize_t nwrite = write(fd, reinterpret_cast<uint8_t *>(data), size);
@@ -47,7 +65,7 @@ bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath)
 bool WriteStringToFile(int fd, const std::string& str)
 {
     const char* p = str.data();
-    size_t remaining = str.size();
+    ssize_t remaining = static_cast<ssize_t>(str.size());
     while (remaining > 0) {
         ssize_t n = write(fd, p, remaining);
         if (n == -1) {
@@ -56,14 +74,19 @@ bool WriteStringToFile(int fd, const std::string& str)
         p += n;
         remaining -= n;
     }
+    p = nullptr;
     return true;
 }
 
 bool WriteStringToFile(const std::string& str, const std::string& filePath)
 {
-    int fd = open(filePath.c_str(), O_RDWR | O_CREAT, static_cast<mode_t>(0600));
+    std::string realDclFilePathStr = GetRealPath(filePath);
+    if (realDclFilePathStr.empty()) {
+        return false;
+    }
+    int fd = open(realDclFilePathStr.c_str(), O_RDWR | O_CREAT, static_cast<mode_t>(0600));
     if (fd < 0) {
-        RS_LOGE("%{public}s failed. file: %s, fd = %{public}d", __func__, filePath.c_str(), fd);
+        RS_LOGE("%{public}s failed. file: %s, fd = %{public}d", __func__, realDclFilePathStr.c_str(), fd);
         return false;
     }
     bool result = WriteStringToFile(fd, str);

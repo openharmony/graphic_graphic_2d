@@ -69,7 +69,6 @@ ColorFilter::FilterType ColorFilter::GetType() const
 
 void ColorFilter::Compose(const ColorFilter& filter)
 {
-
     if (impl_ == nullptr) {
         return;
     }

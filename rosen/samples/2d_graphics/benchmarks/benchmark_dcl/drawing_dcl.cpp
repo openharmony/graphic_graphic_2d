@@ -256,13 +256,11 @@ std::string DrawingDCL::GetRealPathStr(std::string filePath)
 {
     std::string realPathStr = "";
     char actualPath[PATH_MAX + 1] = {0};
-    char* realDclFilePath = realpath(filePath.c_str(), actualPath);
-    if (realDclFilePath == nullptr) {
+    if (realpath(filePath.c_str(), actualPath) == nullptr) {
         std::cout << "The path of DrawCmdList file is empty!" << std::endl;
         return realPathStr;
     }
-    realPathStr = realDclFilePath;
-    realDclFilePath = nullptr;
+    realPathStr = actualPath;
     return realPathStr;
 }
 

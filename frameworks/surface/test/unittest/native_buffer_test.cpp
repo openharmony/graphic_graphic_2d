@@ -235,6 +235,12 @@ HWTEST_F(NativeBufferTest, OHNativeBufferGetBufferHandle001, Function | MediumTe
 {
     const BufferHandle* handle = OH_NativeBuffer_GetBufferHandle(buffer);
     ASSERT_NE(handle, nullptr);
+    int32_t ret = FreeBufferHandle(nullptr);
+    ASSERT_EQ(ret, 0);
+    BufferHandle* cloneHandle = CloneBufferHandle(nullptr);
+    ASSERT_EQ(cloneHandle, nullptr);
+    cloneHandle = CloneBufferHandle(handle);
+    ASSERT_EQ(cloneHandle->width, handle->width);
 }
 
 /*

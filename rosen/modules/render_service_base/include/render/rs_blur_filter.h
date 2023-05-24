@@ -20,13 +20,21 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifndef USE_ROSEN_DRAWING
 class RSB_EXPORT RSBlurFilter : public RSSkiaFilter {
+#else
+class RSB_EXPORT RSBlurFilter : public RSDrawingFilter {
+#endif
 public:
     RSBlurFilter(float blurRadiusX, float blurRadiusY);
     ~RSBlurFilter() override;
     float GetBlurRadiusX();
     float GetBlurRadiusY();
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& inner) override;
+#else
+    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& inner) override;
+#endif
     std::string GetDescription() override;
 
     std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) override;

@@ -33,7 +33,7 @@ public:
     explicit DCLCommand(std::string commandLine);
     ~DCLCommand()= default;
     void ParseCommand(std::vector<std::string> argv);
-    void HandleCommand(std::string argStr, std::string value);
+    void HandleCommand(std::string option, std::string augment);
     void CheckParameter();
 private:
     friend class DrawingDCL;

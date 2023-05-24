@@ -17,9 +17,15 @@
 
 #include <memory>
 #include "common/rs_macros.h"
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkPaint.h"
 #include "include/core/SkPath.h"
 #include "include/core/SkPicture.h"
+#else
+#include "draw/brush.h"
+#include "draw/path.h"
+#include "image/picture.h"
+#endif
 #if defined(NEW_SKIA)
 #include "modules/svg/include/SkSVGDOM.h"
 #else
@@ -40,8 +46,13 @@ class RSB_EXPORT RSMask : public std::enable_shared_from_this<RSMask> {
 public:
     RSMask();
     virtual ~RSMask();
+#ifndef USE_ROSEN_DRAWING
     static std::shared_ptr<RSMask> CreateGradientMask(const SkPaint& maskPaint);
     static std::shared_ptr<RSMask> CreatePathMask(const SkPath& maskPath, const SkPaint& maskPaint);
+#else
+    static std::shared_ptr<RSMask> CreateGradientMask(const Drawing::Brush& maskBrush);
+    static std::shared_ptr<RSMask> CreatePathMask(const Drawing::Path& maskPath, const Drawing::Brush& maskBrush);
+#endif
     static std::shared_ptr<RSMask> CreateSVGMask(double x, double y, double scaleX, double scaleY,
         const sk_sp<SkSVGDOM>& svgDom);
 
@@ -53,13 +64,24 @@ public:
     double GetScaleX() const;
     void SetScaleY(double scaleY);
     double GetScaleY() const;
+#ifndef USE_ROSEN_DRAWING
     void SetMaskPath(const SkPath& path);
     SkPath GetMaskPath() const;
     void SetMaskPaint(const SkPaint& paint);
     SkPaint GetMaskPaint() const;
+#else
+    void SetMaskPath(const Drawing::Path& path);
+    Drawing::Path GetMaskPath() const;
+    void SetMaskBrush(const Drawing::Brush& brush);
+    Drawing::Brush GetMaskBrush() const;
+#endif
     void SetSvgDom(const sk_sp<SkSVGDOM>& svgDom);
     sk_sp<SkSVGDOM> GetSvgDom() const;
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkPicture> GetSvgPicture() const;
+#else
+    std::shared_ptr<Drawing::Picture> GetSvgPicture() const;
+#endif
     void SetMaskType(MaskType type);
     bool IsSvgMask() const;
     bool IsGradientMask() const;
@@ -83,9 +105,15 @@ private:
     double scaleX_ = 1.0f;
     double scaleY_ = 1.0f;
     sk_sp<SkSVGDOM> svgDom_;
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkPicture> svgPicture_;
     SkPaint maskPaint_;
     SkPath maskPath_;
+#else
+    std::shared_ptr<Drawing::Picture> svgPicture_;
+    Drawing::Brush maskBrush_;
+    Drawing::Path maskPath_;
+#endif
 
 };
 } // namespace Rosen

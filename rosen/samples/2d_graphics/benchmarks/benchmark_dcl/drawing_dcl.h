@@ -32,13 +32,13 @@ namespace Rosen {
 class DrawingDCL : public BenchMark {
 public:
     DrawingDCL() { std::cout << "DrawingDCL" << std::endl; }
-    DrawingDCL(int32_t argc, char* argvp[]);
+    DrawingDCL(int32_t argc, char* argv[]);
     ~DrawingDCL();
     bool GetDirectionAndStep(std::string command, bool &isMoreOps);
     bool IterateFrame(int &curLoop, int &frame);
     bool PlayBackByFrame(SkCanvas *skiaCanvas, bool isDumpPicture = false);
     bool PlayBackByOpItem(SkCanvas *skiaCanvas, bool isMoreOps = true);
-    void UpdateParameters(bool isNeeded);
+    void UpdateParameters(bool notNeeded);
     void UpdateParametersFromDCLCommand(const DCLCommand& dclCommand);
     void PrintDurationTime(const std::string &description, std::chrono::time_point<std::chrono::system_clock> start);
     void Start() override {};
