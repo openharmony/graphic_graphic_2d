@@ -229,7 +229,8 @@ struct RectIComparator {
 };
 
 struct RectI_Hash_Func {
-    size_t operator()(const RectI& _r) const {
+    size_t operator()(const RectI& _r) const
+    {
         // this is set for all rects can be compared
         int hash_value = 0;
         return std::hash<int>()(hash_value);

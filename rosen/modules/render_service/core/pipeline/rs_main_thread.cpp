@@ -912,7 +912,8 @@ void RSMainThread::Render()
     PerfForBlurIfNeeded();
 }
 
-bool RSMainThread::CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface)
+bool RSMainThread::CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces,
+    std::shared_ptr<RSSurfaceRenderNode> curSurface)
 {
     bool needProcess = false;
     if (curSurface->IsFocusedWindow(focusAppPid_)) {

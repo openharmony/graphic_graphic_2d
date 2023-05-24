@@ -1305,7 +1305,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             CalcDirtyFilterRegion(displayNodePtr);
             displayNodePtr->ClearCurrentSurfacePos();
         } else {
-            // if isPartialRenderEnabled_ is disabled for some reason (i.e. screen rotation, pointer window, and window animation),
+            // if isPartialRenderEnabled_ is disabled for some reason (i.e. screen rotation),
             // we should keep a fullscreen dirtyregion history to avoid dirtyregion losses.
             // isPartialRenderEnabled_ should not be disabled after current position.
             curDisplayDirtyManager_->MergeSurfaceRect();
