@@ -1100,6 +1100,7 @@ void RSMainThread::CallbackToWMS(VisibleData& curVisVec)
         }
     }
     if (visibleChanged) {
+        std::lock_guard<std::mutex> lock(occlusionMutex_);
         for (auto it = occlusionListeners_.begin(); it != occlusionListeners_.end(); it++) {
             if (it->second) {
                 RS_LOGD("RSMainThread::CallbackToWMS curVisVec size:%u", curVisVec.size());
@@ -1308,11 +1309,13 @@ void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 
 void RSMainThread::RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback)
 {
+    std::lock_guard<std::mutex> lock(occlusionMutex_);
     occlusionListeners_[pid] = callback;
 }
 
 void RSMainThread::UnRegisterOcclusionChangeCallback(pid_t pid)
 {
+    std::lock_guard<std::mutex> lock(occlusionMutex_);
     occlusionListeners_.erase(pid);
 }
 
