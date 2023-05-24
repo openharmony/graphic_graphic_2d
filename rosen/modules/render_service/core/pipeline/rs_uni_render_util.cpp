@@ -328,6 +328,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
             node->SetIsMainThreadNode(false);
         } else {
             subThreadNodes.emplace_back(node);
+            node->UpdateCacheSurfaceDirtyManager(2);
             node->SetIsMainThreadNode(false);
             if (node->GetCacheSurface()) {
                 node->UpdateCompletedCacheSurface();

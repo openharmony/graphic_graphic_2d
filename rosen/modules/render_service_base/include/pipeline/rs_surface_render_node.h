@@ -156,8 +156,10 @@ public:
                nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     }
 
+    std::shared_ptr<RSSurfaceRenderNode> GetLeashWindowNestedAppSurface();
     // used to determine whether the layer-1 surfacenodes can be skipped in the subthread of focus-first framework
     bool IsCurrentFrameStatic();
+    void UpdateCacheSurfaceDirtyManager(int bufferAge = 2);
 
     RSSurfaceNodeType GetSurfaceNodeType() const
     {
@@ -248,6 +250,7 @@ public:
     bool GetFingerprint() const;
 
     std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
+    std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
 
     void SetSrcRect(const RectI& rect)
     {
@@ -657,6 +660,7 @@ private:
     Occlusion::Region alignedVisibleDirtyRegion_;
     bool isOcclusionVisible_ = true;
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
+    std::shared_ptr<RSDirtyRegionManager> cacheSurfaceDirtyManager_ = nullptr;
     RectI dstRect_;
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;

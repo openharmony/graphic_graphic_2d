@@ -113,6 +113,9 @@ public:
     }
 
     RectI GetLastestHistory() const; // Get lastest dirtyregion history
+    bool HasOffset();
+    bool SetOffset(int offsetX, int offsetY);
+    RectI GetOffsetedDirtyRegion() const;
 
 private:
     RectI MergeHistory(unsigned int age, RectI rect) const;
@@ -135,6 +138,17 @@ private:
     // may add new set function for bufferAge
     unsigned int bufferAge_ = HISTORY_QUEUE_MAX_SIZE;
     bool isDirtyRegionAlignedEnable_ = false;
+
+    // Used for coordinate switch, i.e. dirtyRegion = dirtyRegion + offset.
+    // For example when dirtymanager is used in cachesurface when surfacenode's
+    // shadow and surfacenode are cached in a surface, dirty region's coordinate should start
+    // from shadow's left-top rather than that of displaynode.
+    // Normally, this value should be set to:
+    //      offsetX_ =  - surfacePos.x + shadowWidth
+    //      offsetY_ =  - surfacePos.y + shadowHeight
+    bool hasOffset_ = false;
+    int offsetX_ = 0;
+    int offsetY_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

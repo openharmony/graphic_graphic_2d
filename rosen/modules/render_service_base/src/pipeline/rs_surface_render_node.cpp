@@ -44,7 +44,8 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config
       RSSurfaceHandler(config.id),
       name_(config.name),
       nodeType_(config.nodeType),
-      dirtyManager_(std::make_shared<RSDirtyRegionManager>())
+      dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
+      cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(config.id, info);
@@ -318,6 +319,11 @@ void RSSurfaceRenderNode::SetContextBounds(const Vector4f bounds)
 std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNode::GetDirtyManager() const
 {
     return dirtyManager_;
+}
+
+std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNode::GetCacheSurfaceDirtyManager() const
+{
+    return cacheSurfaceDirtyManager_;
 }
 
 void RSSurfaceRenderNode::MarkUIHidden(bool isHidden)
@@ -1039,6 +1045,23 @@ bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded()
     return false;
 }
 
+std::shared_ptr<RSSurfaceRenderNode> RSSurfaceRenderNode::GetLeashWindowNestedAppSurface()
+{
+    if (!IsLeashWindow()) {
+        return nullptr;
+    }
+    for(auto& child : GetChildren()) {
+        auto childNode = child.lock();
+        if (childNode) {
+            auto childNodeSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(childNode);
+            if (childNodeSurface) {
+                return childNodeSurface;
+            }
+        }
+    }
+    return nullptr;
+}
+
 bool RSSurfaceRenderNode::IsCurrentFrameStatic()
 {
     if (dirtyManager_ == nullptr || !dirtyManager_->GetLastestHistory().IsEmpty()) {
@@ -1047,18 +1070,30 @@ bool RSSurfaceRenderNode::IsCurrentFrameStatic()
     if (IsMainWindowType()) {
         return true;
     } else if (IsLeashWindow()) {
-        for(auto& child : GetChildren()) {
-            auto childNode = child.lock();
-            const auto childNodeSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(childNode);
-            if (!childNodeSurface->IsCurrentFrameStatic()) {
-                return false;
-            }
+        auto appSurfaceNode = GetLeashWindowNestedAppSurface();
+        if (appSurfaceNode) {
+            return appSurfaceNode->IsCurrentFrameStatic();
         }
-        return true;
     } else if (IsSelfDrawingType()) {
         return isCurrentFrameBufferConsumed_;
     } else {
         return false;
+    }
+}
+
+void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
+{
+    if (!cacheSurfaceDirtyManager_ || !dirtyManager_) {
+        return;
+    }
+    cacheSurfaceDirtyManager_->Clear();
+    cacheSurfaceDirtyManager_->MergeDirtyRect(dirtyManager_->GetLastestHistory());
+    cacheSurfaceDirtyManager_->SetBufferAge(bufferAge);
+    cacheSurfaceDirtyManager_->UpdateDirty(false);
+    // for leashwindow type, nested app surfacenode's cacheSurfaceDirtyManager update is required
+    auto appSurfaceNode = GetLeashWindowNestedAppSurface();
+    if (appSurfaceNode) {
+        appSurfaceNode->UpdateCacheSurfaceDirtyManager(bufferAge);
     }
 }
 
