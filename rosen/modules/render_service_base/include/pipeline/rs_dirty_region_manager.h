@@ -114,7 +114,7 @@ public:
 
     RectI GetLastestHistory() const; // Get lastest dirtyregion history
     bool HasOffset();
-    bool SetOffset(int offsetX, int offsetY);
+    void SetOffset(int offsetX, int offsetY);
     RectI GetOffsetedDirtyRegion() const;
 
 private:
