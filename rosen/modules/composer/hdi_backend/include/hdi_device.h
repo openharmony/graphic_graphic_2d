@@ -57,15 +57,15 @@ public:
     virtual int32_t GetScreenColorGamut(uint32_t screenId, GraphicColorGamut &gamut) = 0;
     virtual int32_t SetScreenGamutMap(uint32_t screenId, GraphicGamutMap gamutMap) = 0;
     virtual int32_t GetScreenGamutMap(uint32_t screenId, GraphicGamutMap &gamutMap) = 0;
-    virtual int32_t SetScreenColorTransform(uint32_t screenId, const std::vector<float>& matrix) = 0;
+    virtual int32_t SetScreenColorTransform(uint32_t screenId, const std::vector<float> &matrix) = 0;
     virtual int32_t GetHDRCapabilityInfos(uint32_t screenId, GraphicHDRCapability &info) = 0;
     virtual int32_t GetSupportedMetaDataKey(uint32_t screenId, std::vector<GraphicHDRMetadataKey> &keys) = 0;
     virtual int32_t Commit(uint32_t screenId, sptr<SyncFence> &fence) = 0;
     /* set & get device screen info end */
 
     /* set & get device layer info begin */
-    virtual int32_t SetLayerAlpha(uint32_t screenId, uint32_t layerId, GraphicLayerAlpha &alpha) = 0;
-    virtual int32_t SetLayerSize(uint32_t screenId, uint32_t layerId, GraphicIRect &layerRect) = 0;
+    virtual int32_t SetLayerAlpha(uint32_t screenId, uint32_t layerId, const GraphicLayerAlpha &alpha) = 0;
+    virtual int32_t SetLayerSize(uint32_t screenId, uint32_t layerId, const GraphicIRect &layerRect) = 0;
     virtual int32_t SetTransformMode(uint32_t screenId, uint32_t layerId, GraphicTransformType type) = 0;
     virtual int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId,
                                           const std::vector<GraphicIRect> &visibles) = 0;
@@ -75,10 +75,10 @@ public:
                                    const sptr<SyncFence> &acquireFence) = 0;
     virtual int32_t SetLayerCompositionType(uint32_t screenId, uint32_t layerId, GraphicCompositionType type) = 0;
     virtual int32_t SetLayerBlendType(uint32_t screenId, uint32_t layerId, GraphicBlendType type) = 0;
-    virtual int32_t SetLayerCrop(uint32_t screenId, uint32_t layerId, GraphicIRect &crop) = 0;
+    virtual int32_t SetLayerCrop(uint32_t screenId, uint32_t layerId, const GraphicIRect &crop) = 0;
     virtual int32_t SetLayerZorder(uint32_t screenId, uint32_t layerId, uint32_t zorder) = 0;
     virtual int32_t SetLayerPreMulti(uint32_t screenId, uint32_t layerId, bool isPreMulti) = 0;
-    virtual int32_t SetLayerColorTransform(uint32_t screenId, uint32_t layerId, const std::vector<float>& matrix) = 0;
+    virtual int32_t SetLayerColorTransform(uint32_t screenId, uint32_t layerId, const std::vector<float> &matrix) = 0;
     virtual int32_t SetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, GraphicColorDataSpace colorSpace) = 0;
     virtual int32_t GetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, GraphicColorDataSpace &colorSpace) = 0;
     virtual int32_t SetLayerMetaData(uint32_t screenId, uint32_t layerId,

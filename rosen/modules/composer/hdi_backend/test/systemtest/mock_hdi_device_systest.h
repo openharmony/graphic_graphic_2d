@@ -52,25 +52,25 @@ public:
     MOCK_METHOD2(GetScreenColorGamut, int32_t(uint32_t, GraphicColorGamut&));
     MOCK_METHOD2(SetScreenGamutMap, int32_t(uint32_t, GraphicGamutMap));
     MOCK_METHOD2(GetScreenGamutMap, int32_t(uint32_t, GraphicGamutMap&));
-    MOCK_METHOD2(SetScreenColorTransform, int32_t(uint32_t, const std::vector<float>& matrix));
+    MOCK_METHOD2(SetScreenColorTransform, int32_t(uint32_t, const std::vector<float> &matrix));
     MOCK_METHOD2(GetHDRCapabilityInfos, int32_t(uint32_t, GraphicHDRCapability&));
     MOCK_METHOD2(GetSupportedMetaDataKey, int32_t(uint32_t, std::vector<GraphicHDRMetadataKey>&));
     MOCK_METHOD2(Commit, int32_t(uint32_t, sptr<SyncFence>&));
     /* set & get device screen info end */
 
     /* set & get device layer info begin */
-    MOCK_METHOD3(SetLayerAlpha, int32_t(uint32_t, uint32_t, GraphicLayerAlpha&));
-    MOCK_METHOD3(SetLayerSize, int32_t(uint32_t, uint32_t, GraphicIRect&));
+    MOCK_METHOD3(SetLayerAlpha, int32_t(uint32_t, uint32_t, const GraphicLayerAlpha&));
+    MOCK_METHOD3(SetLayerSize, int32_t(uint32_t, uint32_t, const GraphicIRect&));
     MOCK_METHOD3(SetTransformMode, int32_t(uint32_t, uint32_t, GraphicTransformType));
-    MOCK_METHOD3(SetLayerVisibleRegion, int32_t(uint32_t, uint32_t, const std::vector<GraphicIRect> &));
-    MOCK_METHOD3(SetLayerDirtyRegion, int32_t(uint32_t, uint32_t, const std::vector<GraphicIRect> &));
+    MOCK_METHOD3(SetLayerVisibleRegion, int32_t(uint32_t, uint32_t, const std::vector<GraphicIRect>&));
+    MOCK_METHOD3(SetLayerDirtyRegion, int32_t(uint32_t, uint32_t, const std::vector<GraphicIRect>&));
     MOCK_METHOD4(SetLayerBuffer, int32_t(uint32_t, uint32_t, const BufferHandle*, const sptr<SyncFence>&));
     MOCK_METHOD3(SetLayerCompositionType, int32_t(uint32_t, uint32_t, GraphicCompositionType));
     MOCK_METHOD3(SetLayerBlendType, int32_t(uint32_t, uint32_t, GraphicBlendType));
-    MOCK_METHOD3(SetLayerCrop, int32_t(uint32_t, uint32_t, GraphicIRect&));
+    MOCK_METHOD3(SetLayerCrop, int32_t(uint32_t, uint32_t, const GraphicIRect&));
     MOCK_METHOD3(SetLayerZorder, int32_t(uint32_t, uint32_t, uint32_t));
     MOCK_METHOD3(SetLayerPreMulti, int32_t(uint32_t, uint32_t, bool));
-    MOCK_METHOD3(SetLayerColorTransform, int32_t(uint32_t, uint32_t, const std::vector<float>& matrix));
+    MOCK_METHOD3(SetLayerColorTransform, int32_t(uint32_t, uint32_t, const std::vector<float> &matrix));
     MOCK_METHOD3(SetLayerColorDataSpace, int32_t(uint32_t, uint32_t, GraphicColorDataSpace));
     MOCK_METHOD3(GetLayerColorDataSpace, int32_t(uint32_t, uint32_t, GraphicColorDataSpace&));
     MOCK_METHOD3(SetLayerMetaData, int32_t(uint32_t, uint32_t, const std::vector<GraphicHDRMetaData>&));
