@@ -34,7 +34,7 @@ class RenderContext;
 using OnRenderFunc = bool (*)(const void*, const size_t, const int32_t, const int32_t);
 class RSSurfaceDarwin : public RSSurface {
 public:
-    RSSurfaceDarwin(OnRenderFunc onRender);
+    explicit RSSurfaceDarwin(OnRenderFunc onRender);
     ~RSSurfaceDarwin() override = default;
 
     bool IsValid() const override;

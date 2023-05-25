@@ -537,8 +537,11 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.GetSecurityLayer()) {
         displayHasSecSurface_[currentVisitDisplay_]++;
     }
+    if (curDisplayNode_ == nullptr) {
+        return;
+    }
     // avoid EntryView upload texture while screen rotation
-    if (node.GetName() == "EntryView" && curDisplayNode_) {
+    if (node.GetName() == "EntryView") {
         node.SetStaticCached(curDisplayNode_->IsRotationChanged());
     }
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)

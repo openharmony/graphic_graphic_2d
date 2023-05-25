@@ -318,8 +318,8 @@ private:
     // clipRect only used in UniRener when calling PrepareCanvasRenderNode
     // PrepareCanvasRenderNode in UniRender: needClip = true and clipRect is meaningful
     // Other situation: needClip = false and clipRect is meaningless
-    bool Update(
-        RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty, bool needClip, RectI clipRect);
+    bool Update(RSDirtyRegionManager& dirtyManager,
+        const RSProperties* parent, bool parentDirty, bool needClip, RectI clipRect);
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, bool needClip, RectI clipRect);
 
     bool isDirtyRegionUpdated_ = false;

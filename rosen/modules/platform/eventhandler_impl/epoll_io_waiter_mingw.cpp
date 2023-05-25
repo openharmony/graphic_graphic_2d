@@ -26,10 +26,10 @@
 
 DEFINE_HILOG_LABEL("EpollIoWaiter");
 
-#define _UVERR(call, err) HILOGE(#call " failed because %{public}s", uv_strerror(err))
-#define UVERR(call, err) { if (err) { _UVERR(call, err); } }
-#define UVERRRET(call, err) { if (err) { _UVERR(call, err); return; } }
-#define UVERRRETVAL(call, err) { if (err) { _UVERR(call, err); return err; } }
+#define UVERRLOG(call, err) HILOGE(#call " failed because %{public}s", uv_strerror(err))
+#define UVERR(call, err) { if (err) { UVERRLOG(call, err); } }
+#define UVERRRET(call, err) { if (err) { UVERRLOG(call, err); return; } }
+#define UVERRRETVAL(call, err) { if (err) { UVERRLOG(call, err); return err; } }
 #define UVCALL(call, ...) { if (auto err = call(__VA_ARGS__)) { UVERR(#call, err); } }
 #define UVCALLRET(call, ...) { if (auto err = call(__VA_ARGS__)) { UVERRRET(#call, err); } }
 #define UVCALLRETVAL(call, ...) { if (auto err = call(__VA_ARGS__)) { UVERRRETVAL(#call, err); } }
