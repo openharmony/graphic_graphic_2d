@@ -211,7 +211,7 @@ void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
         RS_TRACE_NAME(childInfo + "]");
     }
 
-    // backup environment variables
+    // backup environment variables.
     auto parentNode = std::move(logicParentNode_);
     logicParentNode_ = node.weak_from_this();
     auto unpairedTransitionNodes = std::move(unpairedTransitionNodes_);
@@ -222,10 +222,17 @@ void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
             child->Prepare(shared_from_this());
         }
 
-        // collect unpaired transition nodes from child, and try to pair them.
-        // move unpaired ones into unpairedTransitionNodes, and prepare paired ones .
-        FindPairedSharedTransitionNodes(
-            unpairedTransitionNodes, &RSUniRenderVisitor::PreparePairedSharedTransitionNodes);
+        if (unpairedTransitionNodes_.empty()) {
+            continue;
+        }
+        // collect newly transition nodes from child (stored in unpairedTransitionNodes_), and try to pair them with
+        // existing transition nodes (stored in unpairedTransitionNodes), call PreparePairedSharedTransitionNodes() for
+        // matched pairs, and move unmatched nodes to unpairedTransitionNodes.
+        auto existingNodes = std::move(unpairedTransitionNodes);
+        auto newNodes = std::move(unpairedTransitionNodes_);
+        auto stillUnpairedNodes = FindPairedSharedTransitionNodes(
+            existingNodes, newNodes, &RSUniRenderVisitor::PreparePairedSharedTransitionNodes);
+        unpairedTransitionNodes = std::move(stillUnpairedNodes);
     }
 
     // restore environment variables
@@ -1063,7 +1070,7 @@ void RSUniRenderVisitor::DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node
 
 void RSUniRenderVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 {
-    // backup environment variables
+    // backup environment variables.
     auto unpairedTransitionNodes = std::move(unpairedTransitionNodes_);
 
     for (auto& child : node.GetSortedChildren()) {
@@ -1071,10 +1078,17 @@ void RSUniRenderVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
             child->Process(shared_from_this());
         }
 
-        // collect unpaired transition nodes from child, and try to pair them.
-        // move unpaired ones into unpairedTransitionNodes, and process paired ones.
-        FindPairedSharedTransitionNodes(
-            unpairedTransitionNodes, &RSUniRenderVisitor::ProcessPairedSharedTransitionNodes);
+        if (unpairedTransitionNodes_.empty()) {
+            continue;
+        }
+        // collect new transition nodes from child (stored in unpairedTransitionNodes_), and try to pair them with
+        // existing transition nodes (stored in unpairedTransitionNodes), call ProcessPairedSharedTransitionNodes() for
+        // matched pairs, and move unmatched nodes to unpairedTransitionNodes.
+        auto existingNodes = std::move(unpairedTransitionNodes);
+        auto newNodes = std::move(unpairedTransitionNodes_);
+        auto stillUnpairedNodes = FindPairedSharedTransitionNodes(
+            existingNodes, newNodes, &RSUniRenderVisitor::ProcessPairedSharedTransitionNodes);
+        unpairedTransitionNodes = std::move(stillUnpairedNodes);
     }
 
     // restore environment variables, pass unpaired transition nodes to parent
@@ -1582,7 +1596,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
     processor_->PostProcess();
     if (!unpairedTransitionNodes_.empty()) {
-        RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode unpairedTransitionNodes_ is not empty.");
+        RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode  unpairedTransitionNodes_ is not empty.");
         // We can't find the paired transition node, so we should clear the transition param.
         for (auto& [key, params] : unpairedTransitionNodes_) {
             std::get<std::shared_ptr<RSRenderNode>>(params)->SetSharedTransitionParam(std::nullopt);
@@ -2580,8 +2594,7 @@ void RSUniRenderVisitor::PrepareOffscreenRender(RSRenderNode& node)
     offscreenCanvas->CopyConfiguration(*canvas_);
 
     // backup current canvas and replace with offscreen canvas
-    canvasBackup_ = std::move(canvas_);
-    canvas_ = std::move(offscreenCanvas);
+    canvasBackup_ = std::exchange(canvas_, offscreenCanvas);
 }
 
 void RSUniRenderVisitor::FinishOffscreenRender()
@@ -2797,7 +2810,7 @@ bool RSUniRenderVisitor::PrepareSharedTransitionNode(RSBaseRenderNode& node)
     auto key = transitionParam->first;
     // add this node and render params (only alpha for prepare phase) into unpairedTransitionNodes_.
     RenderParam value { std::move(renderChild), curAlpha_, std::nullopt };
-    unpairedTransitionNodes_.emplace(key, std::move(value));
+    unpairedTransitionNodes_.emplace_back(key, std::move(value));
 
     // skip prepare for shared transition node and its children
     return false;
@@ -2830,37 +2843,45 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
     auto key = transitionParam->first;
     // add this node and render params (alpha and matrix) into unpairedTransitionNodes_.
     RenderParam value { std::move(renderChild), canvas_->GetAlpha(), canvas_->getTotalMatrix() };
-    unpairedTransitionNodes_.emplace(key, std::move(value));
+    unpairedTransitionNodes_.emplace_back(key, std::move(value));
 
     // skip processing the current node and all its children.
     return false;
 }
 
-// Merge unpairedTransitionNodes_ into outList, and call func for paired node (aka duplicated keys).
-void RSUniRenderVisitor::FindPairedSharedTransitionNodes(std::unordered_map<NodeId, RenderParam>& outList,
-    void (RSUniRenderVisitor::*func)(const RenderParam&, const RenderParam&))
+// merge existingNodes and newNodes, call func for each paired node, and return the remaining unpaired nodes.
+RSUniRenderVisitor::TransitionNodeList RSUniRenderVisitor::FindPairedSharedTransitionNodes(
+    TransitionNodeList& existingNodes, TransitionNodeList& newNodes,
+    TransitionNodeList (RSUniRenderVisitor::*func)(const RenderParam&, const RenderParam&))
 {
-    if (unpairedTransitionNodes_.empty() || func == nullptr) {
-        return;
+    // newNode already checked before calling this function, so we don't need to check it again.
+    if (existingNodes.empty()) {
+        // no existing nodes, just return newNodes
+        return std::move(newNodes);
     }
-
-    // merge unpairedTransitionNodes_ into outList, the remaining elements in unpairedTransitionNodes_ are actually the
-    // paired nodes.
-    outList.merge(unpairedTransitionNodes_);
-
-    if (unpairedTransitionNodes_.empty()) {
-        return;
+    // both existingNodes and newNodes are not empty, try to find all paired nodes.
+    // call func for each paired node, and move the remaining unpaired nodes into existingList.
+    for (auto newNodeIter = newNodes.begin(); newNodeIter != newNodes.end(); ++newNodeIter) {
+        // PLANNING: existingNode will grow during the loop, we should skip the newly added nodes in find_if.
+        auto existingNodeIter = std::find_if(existingNodes.begin(), existingNodes.end(),
+            [id = newNodeIter->first](const auto& existingNode) { return existingNode.first == id; });
+        if (existingNodeIter == existingNodes.end()) {
+            // no paired node found, just move the node into existingList
+            existingNodes.emplace_back(std::move(*newNodeIter));
+            continue;
+        }
+        // func may generate new unpaired nodes, we need to append them into newNode.
+        auto newlyGeneratedUnpairedNodes = (this->*func)(existingNodeIter->second, newNodeIter->second);
+        if (!newlyGeneratedUnpairedNodes.empty()) {
+            newNodes.insert(newNodes.end(), newlyGeneratedUnpairedNodes.begin(), newlyGeneratedUnpairedNodes.end());
+        }
+        existingNodes.erase(existingNodeIter);
     }
-    auto unpairedTransitionNodes = std::move(unpairedTransitionNodes_);
-    for (auto& [key, node2Param] : unpairedTransitionNodes) {
-        // key must exist in outList, no need to check
-        auto& node1Param = outList[key];
-        (this->*func)(std::move(node1Param), std::move(node2Param));
-        outList.erase(key);
-    }
+    return existingNodes;
 }
 
-void RSUniRenderVisitor::PreparePairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second)
+RSUniRenderVisitor::TransitionNodeList RSUniRenderVisitor::PreparePairedSharedTransitionNodes(
+    const RenderParam& first, const RenderParam& second)
 {
     auto curAlpha = curAlpha_;
     {
@@ -2876,9 +2897,12 @@ void RSUniRenderVisitor::PreparePairedSharedTransitionNodes(const RenderParam& f
         node->Prepare(shared_from_this());
     }
     curAlpha_ = curAlpha;
+    auto newUnpairedNodes = std::move(unpairedTransitionNodes_);
+    return newUnpairedNodes;
 }
 
-void RSUniRenderVisitor::ProcessPairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second)
+RSUniRenderVisitor::TransitionNodeList RSUniRenderVisitor::ProcessPairedSharedTransitionNodes(
+    const RenderParam& first, const RenderParam& second)
 {
     {
         RSAutoCanvasRestore acr(canvas_);
@@ -2896,6 +2920,8 @@ void RSUniRenderVisitor::ProcessPairedSharedTransitionNodes(const RenderParam& f
         canvas_->setMatrix(matrix.value());
         node->Process(shared_from_this());
     }
+    auto newUnpairedNodes = std::move(unpairedTransitionNodes_);
+    return newUnpairedNodes;
 }
 } // namespace Rosen
 } // namespace OHOS

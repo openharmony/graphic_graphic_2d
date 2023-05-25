@@ -308,17 +308,16 @@ private:
     std::unique_ptr<DrivenInfo> drivenInfo_ = nullptr;
 
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<SkMatrix>>;
-    // Note: we use the NodeId of in node as the key
-    std::unordered_map<NodeId, RenderParam> unpairedTransitionNodes_;
-    std::vector<std::pair<RenderParam, RenderParam>> pairedTransitionNodes_;
+    using TransitionNodeList = std::vector<std::pair<NodeId, RenderParam>>;
+    TransitionNodeList unpairedTransitionNodes_;
     // return true if we should prepare/process, false if we should skip.
     bool PrepareSharedTransitionNode(RSBaseRenderNode& node);
     bool ProcessSharedTransitionNode(RSBaseRenderNode& node);
     // try to pair nodes, call func on paired ones, and move unpaired ones to outList
-    void FindPairedSharedTransitionNodes(std::unordered_map<NodeId, RenderParam>& outList,
-        void (RSUniRenderVisitor::*func)(const RenderParam&, const RenderParam&));
-    void PreparePairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second);
-    void ProcessPairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second);
+    TransitionNodeList FindPairedSharedTransitionNodes(TransitionNodeList& existingNodes, TransitionNodeList& newNodes,
+        TransitionNodeList (RSUniRenderVisitor::*func)(const RenderParam&, const RenderParam&));
+    TransitionNodeList PreparePairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second);
+    TransitionNodeList ProcessPairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second);
 
     std::weak_ptr<RSBaseRenderNode> logicParentNode_;
 
