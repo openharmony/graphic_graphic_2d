@@ -1071,9 +1071,7 @@ bool RSSurfaceRenderNode::IsCurrentFrameStatic()
         return true;
     } else if (IsLeashWindow()) {
         auto appSurfaceNode = GetLeashWindowNestedAppSurface();
-        if (appSurfaceNode) {
-            return appSurfaceNode->IsCurrentFrameStatic();
-        }
+        return appSurfaceNode ? appSurfaceNode->IsCurrentFrameStatic() : true;
     } else if (IsSelfDrawingType()) {
         return isCurrentFrameBufferConsumed_;
     } else {
