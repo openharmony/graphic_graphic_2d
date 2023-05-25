@@ -506,6 +506,11 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRe
     // reset leash window's dirtyManager pointer to avoid curSurfaceDirtyManager mis-pointing
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         curSurfaceDirtyManager_ = node.GetDirtyManager();
+        if (curSurfaceDirtyManager_ == nullptr) {
+            RS_LOGE("RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate %s has no SurfaceDirtyManager",
+                node.GetName().c_str());
+            return;
+        }
         curSurfaceDirtyManager_->Clear();
         curSurfaceDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
         if (isTargetDirtyRegionDfxEnabled_ && CheckIfSurfaceTargetedForDFX(node.GetName())) {
@@ -575,7 +580,12 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetGlobalAlpha(curAlpha_);
     // before node update, prepare node's setting by types
     PrepareTypesOfSurfaceRenderNodeBeforeUpdate(node);
-    
+
+    if (curSurfaceDirtyManager_ == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::PrepareSurfaceRenderNode %s curSurfaceDirtyManager is nullptr",
+            node.GetName().c_str());
+        return;
+    }
     // Update node properties, including position (dstrect), OldDirty()
     if (auto parentNode = node.GetParent().lock()) {
         auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
@@ -746,6 +756,10 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     bool geoDirty = property.IsGeoDirty();
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
 
+    if (curSurfaceDirtyManager_ == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::PrepareRootRenderNode curSurfaceDirtyManager is nullptr");
+        return;
+    }
     dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
         dirtyFlag_);
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
@@ -805,6 +819,10 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         rsParent = nodeParent->ReinterpretCastTo<RSRenderNode>();
     }
 
+    if (curSurfaceDirtyManager_ == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::PrepareCanvasRenderNode curSurfaceDirtyManager is nullptr");
+        return;
+    }
     dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
         dirtyFlag_, prepareClipRect_);
 
