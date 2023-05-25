@@ -53,9 +53,9 @@ bool SkiaSurface::Bind(const Bitmap& bitmap)
     return true;
 }
 
+#ifdef ACE_ENABLE_GPU
 bool SkiaSurface::Bind(const Image& image)
 {
-#ifdef ACE_ENABLE_GPU
     auto skiaImageImpl = image.GetImpl<SkiaImage>();
     auto skImage = skiaImageImpl->GetImage();
     auto grContext = skiaImageImpl->GetGrContext();
@@ -90,15 +90,10 @@ bool SkiaSurface::Bind(const Image& image)
 
     skImage_ = skImage;
     return true;
-#else
-    LOGE("SkiaSurface bind Image failed: device does not support GPU");
-    return false;
-#endif
 }
 
 bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
 {
-#ifdef ACE_ENABLE_GPU
     if (frameBuffer.gpuContext == nullptr) {
         LOGE("SkiaSurface bind FBO failed: gpuContext is invalid");
         return false;
@@ -134,11 +129,8 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
         return false;
     }
     return true;
-#else
-    LOGE("SkiaSurface bind FrameBuffer failed: device does not support GPU");
-    return false;
-#endif
 }
+#endif
 
 std::shared_ptr<Canvas> SkiaSurface::GetCanvas() const
 {

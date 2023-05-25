@@ -21,10 +21,13 @@ ohos_unittest("2d_graphics_image_test") {
 
   sources = [
     "bitmap_test.cpp",
-    "gpu_context_test.cpp",
     "image_test.cpp",
     "picture_test.cpp",
   ]
+
+  if (ace_enable_gpu) {
+    sources += [ "gpu_context_test.cpp" ]
+  }
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",

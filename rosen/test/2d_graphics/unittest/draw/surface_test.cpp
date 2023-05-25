@@ -81,6 +81,7 @@ HWTEST_F(SurfaceTest, SurfaceBind002, TestSize.Level1)
     ASSERT_TRUE(surface->Bind(bitmap));
 }
 
+#ifdef ACE_ENABLE_GPU
 /**
  * @tc.name: SurfaceBind003
  * @tc.desc: Test for binding texture Surface.
@@ -114,6 +115,7 @@ HWTEST_F(SurfaceTest, SurfaceBind004, TestSize.Level1)
     info.colorSpace = ColorSpace::CreateSRGB();
     ASSERT_FALSE(surface->Bind(info));
 }
+#endif
 
 /**
  * @tc.name: GetCanvas001
