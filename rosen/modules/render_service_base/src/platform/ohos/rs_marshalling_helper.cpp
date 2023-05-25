@@ -355,7 +355,8 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkImage>& val)
     } else {
         SkBitmap bitmap;
 #ifdef NEW_SKIA
-        if (!as_IB(val.get())->getROPixels(nullptr, &bitmap)) {
+        auto context = as_IB(val.get())->directContext();
+        if (!as_IB(val.get())->getROPixels(context, &bitmap)) {
 #else
         if (!as_IB(val.get())->getROPixels(&bitmap)) {
 #endif

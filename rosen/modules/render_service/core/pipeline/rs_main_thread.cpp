@@ -918,8 +918,8 @@ bool RSMainThread::CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces,
     bool needProcess = false;
     if (curSurface->IsFocusedWindow(focusAppPid_)) {
         needProcess = true;
-        if (!curSurface->HasContainerWindow() && !curSurface->IsTransparent() ||
-            curSurface->GetName().find("hisearch") != std::string::npos) {
+        if (!curSurface->HasContainerWindow() && !curSurface->IsTransparent() &&
+            curSurface->GetName().find("hisearch") == std::string::npos) {
             occlusionSurfaces.insert(curSurface->GetDstRect());
         }
     } else {

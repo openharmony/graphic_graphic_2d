@@ -335,6 +335,8 @@ private:
     mutable std::mutex copyVisitorInfosMutex_;
     sk_sp<SkImage> cacheImgForCapture_ = nullptr;
     bool resetRotate_ = false;
+    bool needCacheImg_ = false;
+    uint32_t captureWindowZorder_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

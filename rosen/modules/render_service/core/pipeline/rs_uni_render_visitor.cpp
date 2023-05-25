@@ -543,6 +543,12 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     RS_TRACE_NAME("RSUniRender::Prepare:[" + node.GetName() + "] pid: " + std::to_string(ExtractPid(node.GetId())) +
         ", nodeType " + std::to_string(static_cast<uint>(node.GetSurfaceNodeType())));
+    if (node.GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
+        needCacheImg_ = true;
+        captureWindowZorder_ = static_cast<uint32_t>(node.GetRenderProperties().GetPositionZ());
+    } else {
+        needCacheImg_ = captureWindowZorder_ > static_cast<uint32_t>(node.GetRenderProperties().GetPositionZ());
+    }
     if (node.GetFingerprint() && node.GetBuffer() != nullptr) {
         hasFingerprint_ = true;
     }
@@ -2264,7 +2270,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     // when surfacenode named "CapsuleWindow", cache the current canvas as SkImage for screen recording
     if (node.GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos &&
-        canvas_->GetSurface() != nullptr) {
+        canvas_->GetSurface() != nullptr && needCacheImg_) {
         int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas_->getTotalMatrix());
         resetRotate_ = angle != 0 && angle % 90 == 0;
         cacheImgForCapture_ = canvas_->GetSurface()->makeImageSnapshot();
