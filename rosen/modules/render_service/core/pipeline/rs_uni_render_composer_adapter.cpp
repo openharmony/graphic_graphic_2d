@@ -329,7 +329,7 @@ void RSUniRenderComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& 
     info.srcRect = newSrcRect;
 }
 
-RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(RSSurfaceRenderNode& node) const
+RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(RSSurfaceRenderNode& node)
 {
     if (node.GetConsumer() == nullptr) {
         return node.GetSrcRect();
@@ -422,8 +422,8 @@ bool RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNod
 
     const auto& buffer = node.GetBuffer();
     if (buffer == nullptr) {
-        RS_LOGD("RsDebug RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer:node(%" PRIu64 ") has no available buffer.",
-            node.GetId());
+        RS_LOGD("RsDebug RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer:"\
+            " node(%" PRIu64 ") has no available buffer.", node.GetId());
         return false;
     }
     const auto& dstRect = node.GetDstRect();
@@ -435,8 +435,8 @@ bool RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNod
 
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
-        RS_LOGW("RsDebug RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer: node(%" PRIu64 ")'s geoPtr is nullptr!",
-            node.GetId());
+        RS_LOGW("RsDebug RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer:"\
+            " node(%" PRIu64 ")'s geoPtr is nullptr!", node.GetId());
         return false;
     }
     return true;

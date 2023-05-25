@@ -1555,7 +1555,7 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
 #ifdef RS_ENABLE_GL
     DfxString log;
     auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
-    if(pid != 0) {
+    if (pid != 0) {
         MemoryManager::DumpPidMemory(log, pid, grContext);
     } else {
         MemoryManager::DumpMemoryUsage(log, grContext, type);
