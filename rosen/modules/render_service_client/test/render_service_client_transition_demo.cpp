@@ -39,6 +39,17 @@ using namespace std;
 using namespace OHOS;
 using namespace OHOS::Rosen;
 
+constexpr int64_t START_NUMBER = 181154000809;
+constexpr int64_t INCREASE_NUMBER = 10000000;
+constexpr int64_t SLEEP_TIME = 10000;
+constexpr int NUMBER_HALF = 2;
+constexpr int NUMBER_TWO = 2;
+constexpr int CLIP_NUMBER = 10;
+constexpr int COLOR_VALUE_MAX = 255;
+constexpr int WINDOW_WIDTH = 720;
+constexpr int WINDOW_HEIGHT = 1280;
+constexpr int ANIMATION_DURATION = 2000;
+constexpr int ANIMATION_DELAY_TIME = 500;
 std::shared_ptr<RSNode> rootNode;
 std::vector<std::shared_ptr<RSCanvasNode>> nodes;
 std::shared_ptr<RSUIDirector> rsUiDirector;
@@ -55,8 +66,9 @@ public:
         }
         context.canvas->save();
         SkPath path;
-        path.addCircle(context.width / 2, context.height / 2,
-            radius_->Get() * sqrt(pow(context.width / 2, 2) + pow(context.height / 2, 2)));
+        path.addCircle(context.width / NUMBER_HALF, context.height / NUMBER_HALF,
+            radius_->Get() * sqrt(pow(context.width / NUMBER_HALF, NUMBER_TWO) +
+            pow(context.height / NUMBER_HALF, NUMBER_TWO)));
         context.canvas->clipPath(path);
         SkRect rect = SkRect::MakeXYWH(0, 0, context.width, context.height);
         SkPaint p;
@@ -100,7 +112,7 @@ public:
     {
         // should set property of before transition-in
         SetRadius(0);
-        SetBackgroundColor(Color(255, 0, 0));
+        SetBackgroundColor(Color(COLOR_VALUE_MAX, 0, 0));
         SetAlpha(0);
     }
 
@@ -108,7 +120,7 @@ public:
     {
         // should set property of after transition-in
         SetRadius(1);
-        SetBackgroundColor(Color(0, 0, 255));
+        SetBackgroundColor(Color(0, 0, COLOR_VALUE_MAX));
         SetAlpha(1);
     }
 
@@ -128,7 +140,7 @@ public:
         }
         context.canvas->save();
         SkPath path;
-        path.addCircle(0, 0, radius * sqrt(pow(context.width, 2) + pow(context.height, 2)));
+        path.addCircle(0, 0, radius * sqrt(pow(context.width, NUMBER_TWO) + pow(context.height, NUMBER_TWO)));
         context.canvas->clipPath(path);
         SkRect rect = SkRect::MakeXYWH(0, 0, context.width, context.height);
         SkPaint p;
@@ -166,7 +178,7 @@ public:
 
 private:
     std::shared_ptr<RSAnimatableProperty<float>> radius_;
-    Color backgroundColor_ = Color(255, 0, 0);
+    Color backgroundColor_ = Color(COLOR_VALUE_MAX, 0, 0);
 };
 
 class TransitionModifier3 : public RSTransitionModifier {
@@ -219,8 +231,8 @@ public:
 
 private:
     std::shared_ptr<RSAnimatableProperty<float>> clipWidth_;
-    Color backgroundColor_ = Color(255, 0, 0);
-    int clipPieces_ = 10;
+    Color backgroundColor_ = Color(COLOR_VALUE_MAX, 0, 0);
+    int clipPieces_ = CLIP_NUMBER;
 };
 
 class TransitionModifier4 : public RSTransitionModifier {
@@ -274,8 +286,8 @@ public:
 
 private:
     std::shared_ptr<RSAnimatableProperty<float>> clipWidth_;
-    Color backgroundColor_ = Color(255, 0, 0);
-    int clipPieces_ = 10;
+    Color backgroundColor_ = Color(COLOR_VALUE_MAX, 0, 0);
+    int clipPieces_ = CLIP_NUMBER;
 };
 
 class TransitionModifier5 : public RSTransitionModifier {
@@ -328,18 +340,18 @@ public:
 
 private:
     std::shared_ptr<RSAnimatableProperty<float>> clipHeight_;
-    Color backgroundColor_ = Color(255, 0, 0);
-    int clipPieces_ = 10;
+    Color backgroundColor_ = Color(COLOR_VALUE_MAX, 0, 0);
+    int clipPieces_ = CLIP_NUMBER;
 };
 
 void Transition1()
 {
     nodes.emplace_back(RSCanvasNode::Create());
-    nodes[0]->SetBounds({ 0, 0, 720, 1280});
+    nodes[0]->SetBounds({ 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT});
     // define custom modifier for transition
     auto transitionModifier1 = std::make_shared<TransitionModifier1>();
     auto transitionModifier2 = std::make_shared<TransitionModifier2>();
-    transitionModifier2->SetBackgroundColor(Color(0, 0, 255));
+    transitionModifier2->SetBackgroundColor(Color(0, 0, COLOR_VALUE_MAX));
     // add the modifier to node
     nodes[0]->AddModifier(transitionModifier1);
     nodes[0]->AddModifier(transitionModifier2);
@@ -350,20 +362,20 @@ void Transition1()
     // define animation protocol
     RSAnimationTimingProtocol protocol;
     // set duration as 2000 millisecond
-    protocol.SetDuration(2000);
+    protocol.SetDuration(ANIMATION_DURATION);
     // create transition-in animation
     RSNode::Animate(protocol, RSAnimationTimingCurve::EASE_IN_OUT, [&]() {
         rootNode->AddChild(nodes[0]);
     }, []() {
         std::cout << "nodes0 appears" << std::endl;
     });
-    uint64_t timeStamp = 181154000809;
+    uint64_t timeStamp = START_NUMBER;
     bool hasRunningAnimation = true;
     while (hasRunningAnimation) {
         hasRunningAnimation = rsUiDirector->RunningCustomAnimation(timeStamp);
         rsUiDirector->SendMessages();
-        timeStamp += 10000000;
-        usleep(10000);
+        timeStamp += INCREASE_NUMBER;
+        usleep(SLEEP_TIME);
     }
     nodes[0]->RemoveModifier(transitionModifier1);
 }
@@ -371,12 +383,12 @@ void Transition1()
 void Transition2()
 {
     nodes.emplace_back(RSCanvasNode::Create());
-    nodes[1]->SetBounds({ 0, 0, 720, 1280});
+    nodes[1]->SetBounds({ 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT});
     // define custom modifier for transition
     auto transitionModifier2 = std::make_shared<TransitionModifier2>();
     auto transitionModifier3 = std::make_shared<TransitionModifier3>();
-    transitionModifier2->SetBackgroundColor(Color(0, 255, 0));
-    transitionModifier3->SetBackgroundColor(Color(0, 255, 0));
+    transitionModifier2->SetBackgroundColor(Color(0, COLOR_VALUE_MAX, 0));
+    transitionModifier3->SetBackgroundColor(Color(0, COLOR_VALUE_MAX, 0));
     // add the modifier to node
     nodes[1]->AddModifier(transitionModifier2);
     nodes[1]->AddModifier(transitionModifier3);
@@ -387,27 +399,27 @@ void Transition2()
     // define animation protocol
     RSAnimationTimingProtocol protocol;
     // set duration as 2000 millisecond
-    protocol.SetDuration(2000);
+    protocol.SetDuration(ANIMATION_DURATION);
     // create transition-out animation
     RSNode::Animate(protocol, RSAnimationTimingCurve::EASE_IN_OUT, [&]() {
         rootNode->RemoveChild(nodes[0]);
     }, []() {
         std::cout << "nodes0 disappears" << std::endl;
     });
-    protocol.SetStartDelay(500);
+    protocol.SetStartDelay(ANIMATION_DELAY_TIME);
     // create transition-in animation
     RSNode::Animate(protocol, RSAnimationTimingCurve::EASE_IN_OUT, [&]() {
         rootNode->AddChild(nodes[1]);
     }, []() {
         std::cout << "nodes1 appears" << std::endl;
     });
-    uint64_t timeStamp = 181154000809;
+    uint64_t timeStamp = START_NUMBER;
     bool hasRunningAnimation = true;
     while (hasRunningAnimation) {
         hasRunningAnimation = rsUiDirector->RunningCustomAnimation(timeStamp);
         rsUiDirector->SendMessages();
-        timeStamp += 10000000;
-        usleep(10000);
+        timeStamp += INCREASE_NUMBER;
+        usleep(SLEEP_TIME);
     }
     nodes[1]->RemoveModifier(transitionModifier2);
 }
@@ -415,23 +427,23 @@ void Transition2()
 void Transition3()
 {
     nodes.emplace_back(RSCanvasNode::Create());
-    nodes[2]->SetBounds({ 0, 0, 720, 1280});
+    nodes[2]->SetBounds({ 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT});
     // define custom modifier for transition
     auto transitionModifier4 = std::make_shared<TransitionModifier4>();
     auto transitionModifier5 = std::make_shared<TransitionModifier5>();
-    transitionModifier4->SetBackgroundColor(Color(0, 255, 255));
-    transitionModifier5->SetBackgroundColor(Color(0, 255, 255));
+    transitionModifier4->SetBackgroundColor(Color(0, COLOR_VALUE_MAX, COLOR_VALUE_MAX));
+    transitionModifier5->SetBackgroundColor(Color(0, COLOR_VALUE_MAX, COLOR_VALUE_MAX));
     // add the modifier to node
-    nodes[2]->AddModifier(transitionModifier4);
-    nodes[2]->AddModifier(transitionModifier5);
+    nodes[NUMBER_TWO]->AddModifier(transitionModifier4);
+    nodes[NUMBER_TWO]->AddModifier(transitionModifier5);
     // create transition effect
     auto transitionInEffect = RSTransitionEffect::Create()->Custom(transitionModifier4);
     auto transitionOutEffect = RSTransitionEffect::Create()->Custom(transitionModifier5);
-    nodes[2]->SetTransitionEffect(RSTransitionEffect::Asymmetric(transitionInEffect, transitionOutEffect));
+    nodes[NUMBER_TWO]->SetTransitionEffect(RSTransitionEffect::Asymmetric(transitionInEffect, transitionOutEffect));
     // define animation protocol
     RSAnimationTimingProtocol protocol;
     // set duration as 2000 millisecond
-    protocol.SetDuration(2000);
+    protocol.SetDuration(ANIMATION_DURATION);
     // create transition-out animation
     RSNode::Animate(protocol, RSAnimationTimingCurve::EASE_IN_OUT, [&]() {
         rootNode->RemoveChild(nodes[1]);
@@ -440,19 +452,19 @@ void Transition3()
     });
     // create transition-in animation
     RSNode::Animate(protocol, RSAnimationTimingCurve::EASE_IN_OUT, [&]() {
-        rootNode->AddChild(nodes[2]);
+        rootNode->AddChild(nodes[NUMBER_TWO]);
     }, []() {
         std::cout << "nodes2 appears" << std::endl;
     });
-    uint64_t timeStamp = 181154000809;
+    uint64_t timeStamp = START_NUMBER;
     bool hasRunningAnimation = true;
     while (hasRunningAnimation) {
         hasRunningAnimation = rsUiDirector->RunningCustomAnimation(timeStamp);
         rsUiDirector->SendMessages();
-        timeStamp += 10000000;
-        usleep(10000);
+        timeStamp += INCREASE_NUMBER;
+        usleep(SLEEP_TIME);
     }
-    nodes[2]->RemoveModifier(transitionModifier4);
+    nodes[NUMBER_TWO]->RemoveModifier(transitionModifier4);
 }
 
 void Transition4()
@@ -460,20 +472,20 @@ void Transition4()
     // define animation protocol
     RSAnimationTimingProtocol protocol;
     // set duration as 2000 millisecond
-    protocol.SetDuration(2000);
+    protocol.SetDuration(ANIMATION_DURATION);
     // create transition-out animation
     RSNode::Animate(protocol, RSAnimationTimingCurve::EASE_IN_OUT, [&]() {
-        rootNode->RemoveChild(nodes[2]);
+        rootNode->RemoveChild(nodes[NUMBER_TWO]);
     }, []() {
         std::cout << "nodes2 disappears" << std::endl;
     });
-    uint64_t timeStamp = 181154000809;
+    uint64_t timeStamp = START_NUMBER;
     bool hasRunningAnimation = true;
     while (hasRunningAnimation) {
         hasRunningAnimation = rsUiDirector->RunningCustomAnimation(timeStamp);
         rsUiDirector->SendMessages();
-        timeStamp += 10000000;
-        usleep(10000);
+        timeStamp += INCREASE_NUMBER;
+        usleep(SLEEP_TIME);
     }
 }
 
@@ -485,7 +497,7 @@ int main()
     sptr<WindowOption> option = new WindowOption();
     option->SetWindowType(WindowType::WINDOW_TYPE_FLOAT);
     option->SetWindowMode(WindowMode::WINDOW_MODE_FLOATING);
-    option->SetWindowRect({ 0, 0, 720, 1280 });
+    option->SetWindowRect({ 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT });
     auto window = Window::Create("transition", option);
     window->Show();
     auto rect = window->GetRect();
@@ -516,16 +528,16 @@ int main()
 
     std::cout << "nodes[0] appearing." << std::endl;
     Transition1();
-    sleep(2);
+    sleep(NUMBER_TWO);
     std::cout << "nodes[0] disappearing and nodes[1] appearing." << std::endl;
     Transition2();
-    sleep(2);
+    sleep(NUMBER_TWO);
     std::cout << "nodes[1] disappearing and nodes[2] appearing." << std::endl;
     Transition3();
-    sleep(2);
+    sleep(NUMBER_TWO);
     std::cout << "nodes[2] disappearing." << std::endl;
     Transition4();
-    sleep(2);
+    sleep(NUMBER_TWO);
 
     std::cout << "transition demo end!" << std::endl;
     window->Hide();
