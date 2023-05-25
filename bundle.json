@@ -19,7 +19,8 @@
         "SystemCapability.Graphic.Graphic2D.NativeWindow",
         "SystemCapability.Graphic.Graphic2D.NativeDrawing",
         "SystemCapability.Graphic.Graphic2D.WebGL",
-        "SystemCapability.Graphic.Graphic2D.WebGL2"
+        "SystemCapability.Graphic.Graphic2D.WebGL2",
+        "SystemCapability.Graphic.Vulkan"
       ],
       "adapted_system_type": [ "standard" ],
       "features": [
