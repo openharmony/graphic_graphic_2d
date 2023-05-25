@@ -132,10 +132,11 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
             realPlayTime += durationNs;
         }
     }
-    if (isRepeatCallbackEnable_) {
-        isRepeatFinished = (realPlayTime >= durationNs);
-    }
+
     playTime_ = realPlayTime % durationNs;
+    if (IsInRepeat()) {
+        isRepeatFinished = ((playTime_ + deltaTime) >= durationNs);
+    }
 
     // 4. update status for auto reverse
     isFinished = IsFinished();
@@ -143,12 +144,20 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
 
     // 5. get final animation fraction
     if (isFinished) {
-        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatFinished};
+        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatCallbackEnable_};
     }
     currentTimeFraction_ = static_cast<float>(playTime_) / durationNs;
     currentTimeFraction_ = currentIsReverseCycle_ ? (1.0f - currentTimeFraction_) : currentTimeFraction_;
     currentTimeFraction_ = std::clamp(currentTimeFraction_, 0.0f, 1.0f);
     return { currentTimeFraction_, isInStartDelay, isFinished, isRepeatFinished };
+}
+
+bool RSAnimationFraction::IsInRepeat() const
+{
+    if (isRepeatCallbackEnable_ && ((repeatCount_ == INFINITE) || ((currentRepeatCount_ + 1) < repeatCount_))) {
+        return true;
+    }
+    return false;
 }
 
 bool RSAnimationFraction::IsFinished() const
