@@ -268,14 +268,16 @@ void RSParallelSubThread::RenderCache()
             RS_LOGE("RenderCache ReinterpretCastTo fail");
             continue;
         }
+        RS_TRACE_NAME_FMT("draw cache render node: [%s, %llu]", surfaceNodePtr->GetName().c_str(),
+            surfaceNodePtr->GetId());
         if (surfaceNodePtr->GetCacheSurface() == nullptr) {
             int width = std::ceil(surfaceNodePtr->GetRenderProperties().GetBoundsRect().GetWidth());
             int height = std::ceil(surfaceNodePtr->GetRenderProperties().GetBoundsRect().GetHeight());
             AcquireSubSkSurface(width, height);
             surfaceNodePtr->InitCacheSurface(skSurface_);
         }
-        bool needNotify = !surfaceNodePtr->HasCachedTexture();
         node->Process(visitor_);
+#ifndef NEW_SKIA
         auto skCanvas = surfaceNodePtr->GetCacheSurface() ? surfaceNodePtr->GetCacheSurface()->getCanvas() : nullptr;
         if (skCanvas) {
             RS_TRACE_NAME_FMT("render cache flush, %s", surfaceNodePtr->GetName().c_str());
@@ -283,12 +285,15 @@ void RSParallelSubThread::RenderCache()
         } else {
             RS_LOGE("skCanvas is nullptr, flush failed");
         }
-        if (needNotify) {
-            RSParallelRenderManager::Instance()->NodeTaskNotify(node->GetId());
-        }
+#endif
     }
+#ifdef NEW_SKIA
+    if (grContext_) {
+        RS_TRACE_NAME_FMT("render cache grContext flush and submit");
+        grContext_->flushAndSubmit(false);
+    }
+#endif
     eglSync_ = eglCreateSyncKHR(renderContext_->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
-    WaitReleaseFence();
 #endif
 }
 
