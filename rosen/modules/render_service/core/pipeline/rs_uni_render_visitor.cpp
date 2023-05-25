@@ -1300,10 +1300,16 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             if (!IsHardwareComposerEnabled()) {
                 return;
             }
-            for (auto& node: hardwareEnabledNodes_) {
-                if (!node->IsHardwareForcedDisabled()) {
-                    node->MarkCurrentFrameHardwareEnabled();
+            bool needCreateDisplayNodeLayer = false;
+            for (auto& surfaceNode: hardwareEnabledNodes_) {
+                if (!surfaceNode->IsHardwareForcedDisabled()) {
+                    needCreateDisplayNodeLayer = true;
+                    processor_->ProcessSurface(*surfaceNode);
                 }
+            }
+            if (needCreateDisplayNodeLayer) {
+                processor_->ProcessDisplaySurface(node);
+                processor_->PostProcess();
             }
             return;
         }
