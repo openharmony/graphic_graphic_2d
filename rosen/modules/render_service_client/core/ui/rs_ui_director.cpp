@@ -271,7 +271,7 @@ void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
     if (cmds == nullptr || cmds->IsEmpty()) {
         return;
     }
-
+    ROSEN_LOGD("RSUIDirector::RecvMessages success");
     PostTask([cmds]() { RSUIDirector::ProcessMessages(cmds); });
 }
 
@@ -308,6 +308,7 @@ void RSUIDirector::PostTask(const std::function<void()>& task)
         ROSEN_LOGE("RSUIDirector::PostTask, uiTaskRunner is null");
         return;
     }
+    ROSEN_LOGD("RSUIDirector::PostTask success");
     g_uiTaskRunner(task);
 }
 } // namespace Rosen
