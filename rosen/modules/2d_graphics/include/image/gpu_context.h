@@ -48,6 +48,9 @@ public:
      */
     class PersistentCache {
     public:
+        PersistentCache() = default;
+        virtual ~PersistentCache() = default;
+
         /*
          * @brief  Returns the data for the key if it exists in the cache.
          */

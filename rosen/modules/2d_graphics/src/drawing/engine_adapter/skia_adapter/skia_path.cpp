@@ -194,10 +194,7 @@ void SkiaPath::AddPath(const Path& src)
 
 void SkiaPath::ReverseAddPath(const Path& src)
 {
-    auto skPathImpl = src.GetImpl<SkiaPath>();
-    if (skPathImpl != nullptr) {
-        path_.reverseAddPath(skPathImpl->GetPath());
-    }
+    path_.reverseAddPath(src.GetImpl<SkiaPath>()->GetPath());
 }
 
 void SkiaPath::AddPathWithMatrix(const Path& src, const Matrix& matrix)
@@ -240,14 +237,8 @@ bool SkiaPath::Interpolate(const Path& ending, scalar weight, Path& out)
 
 bool SkiaPath::InitWithInterpolate(const Path& srcPath, const Path& endingPath, scalar weight)
 {
-    bool result = false;
-    auto srcSkiaPathImpl = srcPath.GetImpl<SkiaPath>();
-    auto endingSkiaPathImpl = endingPath.GetImpl<SkiaPath>();
-    if (srcSkiaPathImpl != nullptr && endingSkiaPathImpl != nullptr) {
-        const SkPath& srcSkPath = srcSkiaPathImpl->GetPath();
-        result = srcSkPath.interpolate(endingSkiaPathImpl->GetPath(), weight, &path_);
-    }
-    return result;
+    const SkPath& srcSkPath = srcPath.GetImpl<SkiaPath>()->GetPath();
+    return srcSkPath.interpolate(endingPath.GetImpl<SkiaPath>()->GetPath(), weight, &path_);
 }
 
 void SkiaPath::Transform(const Matrix& matrix)

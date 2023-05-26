@@ -31,6 +31,15 @@ namespace Rosen {
 namespace Drawing {
 constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 
+class ShaderPersistentCache : public GPUContextOptions::PersistentCache {
+public:
+    ShaderPersistentCache() = default;
+    ~ShaderPersistentCache() override = default;
+
+    std::shared_ptr<Data> Load(const Data& key) override { return nullptr; };
+    void Store(const Data& key, const Data& data) override {};
+};
+
 class GpuContextTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -156,6 +165,22 @@ HWTEST_F(GpuContextTest, BuildFromGLTest001, TestSize.Level1)
     size_t maxResourceBytes = 1000;
     gpuContext->GetResourceCacheLimits(maxResource, maxResourceBytes);
     gpuContext->SetResourceCacheLimits(maxResource, maxResourceBytes);
+}
+
+/**
+ * @tc.name: GPUContextCreateTest002
+ * @tc.desc: Test for creating a GL GPUContext for a backend context.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, BuildFromGLTest002, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    GPUContextOptions options;
+    auto persistentCache = std::make_shared<ShaderPersistentCache>();
+    options.SetPersistentCache(persistentCache.get());
+    EXPECT_TRUE(gpuContext->BuildFromGL(options));
 }
 
 /**

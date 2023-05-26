@@ -320,6 +320,7 @@ HWTEST_F(ImageTest, BuildFromTextureTest001, TestSize.Level1)
     image->BuildFromTexture(gpuContext, info, TextureOrigin::BOTTOM_LEFT, bitmapFormat, colorSpace);
 
     bitmapFormat.colorType = COLORTYPE_RGBA_8888;
+    bitmapFormat.alphaType = static_cast<AlphaType>(-1);
     image->BuildFromTexture(gpuContext, info, TextureOrigin::BOTTOM_LEFT, bitmapFormat, colorSpace);
 
     bitmapFormat.colorType = COLORTYPE_BGRA_8888;
@@ -327,6 +328,9 @@ HWTEST_F(ImageTest, BuildFromTextureTest001, TestSize.Level1)
 
     bitmapFormat.colorType = COLORTYPE_N32;
     image->BuildFromTexture(gpuContext, info, TextureOrigin::BOTTOM_LEFT, bitmapFormat, colorSpace);
+
+    bitmapFormat.colorType = static_cast<ColorType>(-1);
+    image->BuildFromTexture(gpuContext, info, static_cast<TextureOrigin>(-1), bitmapFormat, colorSpace);
 }
 
 /**
