@@ -270,8 +270,8 @@ public:
     */
     ~RSAutoCanvasRestore()
     {
-        if (canvas_) {
-            canvas_->RestoreStatus(saveCount_);
+        if (canvas_ && saveCount_.has_value()) {
+            canvas_->RestoreStatus(saveCount_.value());
         }
     }
 
@@ -280,15 +280,16 @@ public:
     */
     void restore()
     {
-        if (canvas_) {
-            canvas_->RestoreStatus(saveCount_);
+        if (canvas_ && saveCount_.has_value()) {
+            canvas_->RestoreStatus(saveCount_.value());
             canvas_ = nullptr;
+            saveCount_.reset();
         }
     }
 
 private:
     RSPaintFilterCanvas* canvas_;
-    RSPaintFilterCanvas::SaveStatus saveCount_;
+    std::optional<RSPaintFilterCanvas::SaveStatus> saveCount_;
 
     RSAutoCanvasRestore(RSAutoCanvasRestore&&) = delete;
     RSAutoCanvasRestore(const RSAutoCanvasRestore&) = delete;
