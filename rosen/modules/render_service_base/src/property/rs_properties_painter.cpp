@@ -14,8 +14,15 @@
  */
 
 #include "property/rs_properties_painter.h"
+#ifdef USE_ROSEN_DRAWING
+#include <cstdint>
+#include "draw/clip.h"
+#include "drawing/draw/core_canvas.h"
+#include "utils/rect.h"
+#endif
 
 #include "rs_trace.h"
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkCanvas.h"
 #include "include/core/SkColorFilter.h"
 #include "include/core/SkMaskFilter.h"
@@ -33,6 +40,9 @@
 #include "include/effects/SkDashPathEffect.h"
 #include "include/effects/SkLumaColorFilter.h"
 #include "include/utils/SkShadowUtils.h"
+#else
+#include "draw/canvas.h"
+#endif
 
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector2.h"
@@ -59,11 +69,19 @@ constexpr float MAX_SPOT_RATIO = 1.95f;
 constexpr float MAX_AMBIENT_RADIUS = 150.0f;
 } // namespace
 
+#ifndef USE_ROSEN_DRAWING
 SkRect RSPropertiesPainter::Rect2SkRect(const RectF& r)
 {
     return SkRect::MakeXYWH(r.left_, r.top_, r.width_, r.height_);
 }
+#else
+Drawing::Rect RSPropertiesPainter::Rect2DrawingRect(const RectF& r)
+{
+    return Drawing::Rect(r.left_, r.top_, r.left_ + r.width_, r.top_ + r.height_);
+}
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 SkRRect RSPropertiesPainter::RRect2SkRRect(const RRect& rr)
 {
     SkRect rect = SkRect::MakeXYWH(rr.rect_.left_, rr.rect_.top_, rr.rect_.width_, rr.rect_.height_);
@@ -79,7 +97,24 @@ SkRRect RSPropertiesPainter::RRect2SkRRect(const RRect& rr)
     rrect.setRectRadii(rect, vec);
     return rrect;
 }
+#else
+Drawing::RoundRect RSPropertiesPainter::RRect2DrawingRRect(const RRect& rr)
+{
+    Drawing::Rect rect = Drawing::Rect(rr.rect_.left_, rr.rect_.top_,
+        rr.rect_.left_ + rr.rect_.width_, rr.rect_.top_ + rr.rect_.height_);
 
+    // set radius for all 4 corner of RRect
+    constexpr uint32_t NUM_OF_CORNERS_IN_RECT = 4;
+    std::vector<Drawing::Point> radii(NUM_OF_CORNERS_IN_RECT);
+    for (uint32_t i = 0; i < NUM_OF_CORNERS_IN_RECT; i++) {
+        radii.at(i).SetX(rr.radius_[i].x_);
+        radii.at(i).SetY(rr.radius_[i].y_);
+    }
+    return Drawing::RoundRect(rect, radii);
+}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
 bool RSPropertiesPainter::GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, SkMatrix& mat)
 {
     if (w == rect.width_ && h == rect.height_) {
@@ -144,13 +179,87 @@ bool RSPropertiesPainter::GetGravityMatrix(Gravity gravity, RectF rect, float w,
         }
     }
 }
+#else
+bool RSPropertiesPainter::GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, Drawing::Matrix& mat)
+{
+    if (w == rect.width_ && h == rect.height_) {
+        return false;
+    }
+    mat = Drawing::Matrix();
+    switch (gravity) {
+        case Gravity::CENTER: {
+            mat.PreTranslate((rect.width_ - w) / PARAM_DOUBLE, (rect.height_ - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::TOP: {
+            mat.PreTranslate((rect.width_ - w) / PARAM_DOUBLE, 0);
+            return true;
+        }
+        case Gravity::BOTTOM: {
+            mat.PreTranslate((rect.width_ - w) / PARAM_DOUBLE, rect.height_ - h);
+            return true;
+        }
+        case Gravity::LEFT: {
+            mat.PreTranslate(0, (rect.height_ - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::RIGHT: {
+            mat.PreTranslate(rect.width_ - w, (rect.height_ - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::TOP_LEFT: {
+            return false;
+        }
+        case Gravity::TOP_RIGHT: {
+            mat.PreTranslate(rect.width_ - w, 0);
+            return true;
+        }
+        case Gravity::BOTTOM_LEFT: {
+            mat.PreTranslate(0, rect.height_ - h);
+            return true;
+        }
+        case Gravity::BOTTOM_RIGHT: {
+            mat.PreTranslate(rect.width_ - w, rect.height_ - h);
+            return true;
+        }
+        case Gravity::RESIZE: {
+            mat.PreScale(rect.width_ / w, rect.height_ / h);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT: {
+            float scale = std::min(rect.width_ / w, rect.height_ / h);
+            mat.PreScale(scale, scale);
+            mat.PreTranslate((rect.width_ / scale - w) / PARAM_DOUBLE, (rect.height_ / scale - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_FILL: {
+            float scale = std::max(rect.width_ / w, rect.height_ / h);
+            mat.PreScale(scale, scale);
+            mat.PreTranslate((rect.width_ / scale - w) / PARAM_DOUBLE, (rect.height_ / scale - h) / PARAM_DOUBLE);
+            return true;
+        }
+        default: {
+            ROSEN_LOGE("GetGravityMatrix unknow gravity=[%d]", gravity);
+            return false;
+        }
+    }
+}
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::Clip(SkCanvas& canvas, RectF rect, bool isAntiAlias)
 {
     // isAntiAlias is false only the method is called in ProcessAnimatePropertyBeforeChildren().
     canvas.clipRect(Rect2SkRect(rect), isAntiAlias);
 }
+#else
+void RSPropertiesPainter::Clip(Drawing::Canvas& canvas, RectF rect, bool isAntiAlias)
+{
+    canvas.ClipRect(Rect2DrawingRect(rect), Drawing::ClipOp::INTERSECT, isAntiAlias);
+}
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties, const RRect* rrect)
 {
     // [Planning]: After Skia being updated, we should directly call SkShadowUtils::GetLocalBounds here.
@@ -216,6 +325,91 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
     dirtyShadow.width_ = shadowRect.width();
     dirtyShadow.height_ = shadowRect.height();
 }
+#else
+void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties, const RRect* rrect)
+{
+    // [Planning]: After Skia being updated, we should directly call SkShadowUtils::GetLocalBounds here.
+    if (!properties.IsShadowValid()) {
+        return;
+    }
+    Drawing::Path path;
+    if (properties.GetShadowPath() && !properties.GetShadowPath()->GetDrawingPath().IsValid()) {
+        path = properties.GetShadowPath()->GetDrawingPath();
+    } else if (properties.GetClipBounds()) {
+        path = properties.GetClipBounds()->GetDrawingPath();
+    } else {
+        if (rrect != nullptr) {
+            path.AddRoundRect(RRect2DrawingRRect(*rrect));
+        } else {
+            path.AddRoundRect(RRect2DrawingRRect(properties.GetRRect()));
+        }
+    }
+    path.Offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
+
+    Drawing::Rect shadowRect = path.GetBounds();
+    if (properties.shadow_->GetHardwareAcceleration()) {
+        if (properties.GetShadowElevation() <= 0.f) {
+            return;
+        }
+        float elevation = properties.GetShadowElevation() + DEFAULT_TRANSLATION_Z;
+
+        float userTransRatio =
+            (elevation != DEFAULT_LIGHT_HEIGHT) ? elevation / (DEFAULT_LIGHT_HEIGHT - elevation) : MAX_TRANS_RATIO;
+        float transRatio = std::max(MIN_TRANS_RATIO, std::min(userTransRatio, MAX_TRANS_RATIO));
+
+        float userSpotRatio = (elevation != DEFAULT_LIGHT_HEIGHT)
+                                  ? DEFAULT_LIGHT_HEIGHT / (DEFAULT_LIGHT_HEIGHT - elevation)
+                                  : MAX_SPOT_RATIO;
+        float spotRatio = std::max(MIN_SPOT_RATIO, std::min(userSpotRatio, MAX_SPOT_RATIO));
+
+        Drawing::Rect ambientRect = path.GetBounds();
+        Drawing::Rect spotRect = Drawing::Rect(ambientRect.GetLeft() * spotRatio, ambientRect.GetTop() * spotRatio,
+            ambientRect.GetRight() * spotRatio, ambientRect.GetBottom() * spotRatio);
+        spotRect.Offset(-transRatio * DEFAULT_LIGHT_POSITION_X, -transRatio * DEFAULT_LIGHT_POSITION_Y);
+        // spotRect outset (transRatio * DEFAULT_LIGHT_RADIUS, transRatio * DEFAULT_LIGHT_RADIUS)
+        spotRect.SetLeft(spotRect.GetLeft() - transRatio * DEFAULT_LIGHT_RADIUS);
+        spotRect.SetTop(spotRect.GetTop() - transRatio * DEFAULT_LIGHT_RADIUS);
+        spotRect.SetRight(spotRect.GetRight() + transRatio * DEFAULT_LIGHT_RADIUS);
+        spotRect.SetBottom(spotRect.GetBottom() + transRatio * DEFAULT_LIGHT_RADIUS);
+
+        shadowRect = ambientRect;
+        std::min(elevation * 0.5f, MAX_AMBIENT_RADIUS);
+        float ambientBlur = std::min(elevation * 0.5f, MAX_AMBIENT_RADIUS);
+        // shadowRect outset (ambientBlur, ambientBlur)
+        shadowRect.SetLeft(shadowRect.GetLeft() - ambientBlur);
+        shadowRect.SetTop(shadowRect.GetTop() - ambientBlur);
+        shadowRect.SetRight(shadowRect.GetRight() + ambientBlur);
+        shadowRect.SetBottom(shadowRect.GetBottom() + ambientBlur);
+
+        shadowRect.Join(spotRect);
+        // shadowRect outset (1, 1)
+        shadowRect.SetLeft(shadowRect.GetLeft() - 1);
+        shadowRect.SetTop(shadowRect.GetTop() - 1);
+        shadowRect.SetRight(shadowRect.GetRight() + 1);
+        shadowRect.SetBottom(shadowRect.GetBottom() + 1);
+    } else {
+        Drawing::Brush brush;
+        brush.SetAntiAlias(true);
+        Drawing::Filter filter;
+        filter.SetMaskFilter(
+            Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, properties.GetShadowRadius()));
+        brush.SetFilter(filter);
+        // TODO paint.canComputeFastBounds()
+        // if (paint.canComputeFastBounds()) {
+        //     paint.computeFastBounds(shadowRect, &shadowRect);
+        // }
+    }
+
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
+    Drawing::Matrix matrix = geoPtr ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
+    matrix.MapRect(shadowRect, shadowRect);
+
+    dirtyShadow.left_ = shadowRect.GetLeft();
+    dirtyShadow.top_ = shadowRect.GetTop();
+    dirtyShadow.width_ = shadowRect.GetWidth();
+    dirtyShadow.height_ = shadowRect.GetHeight();
+}
+#endif
 
 void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect)
 {
