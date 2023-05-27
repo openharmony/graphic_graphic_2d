@@ -222,7 +222,8 @@
                 "modifier/rs_modifier_manager.h",
                 "modifier/rs_property.h",
                 "modifier/rs_extended_modifier.h",
-                "modifier/rs_property_modifier.h"
+                "modifier/rs_property_modifier.h",
+                "transaction/rs_interfaces.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core"
             }
