@@ -398,17 +398,17 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     canvas.restore();
 
     Vector4f stretchSize = GetStretchSize(properties);
-
+    // Calculates the relative coordinates of the clipbounds with respect to the origin of the current canvas coordinates
     SkMatrix worldToLocalMat;
     if (!canvas.getTotalMatrix().invert(&worldToLocalMat)) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch get invert matrix failed.");
     }
-
     SkRect localClipBounds;
     SkRect fClipBounds = SkRect::MakeXYWH(clipBounds.x(), clipBounds.y(), clipBounds.width(), clipBounds.height());
     if (!worldToLocalMat.mapRect(&localClipBounds, fClipBounds)) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch map rect failed.");
     }
+    
     if (!bounds.intersect(localClipBounds)) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch intersect clipbounds failed");
     }
