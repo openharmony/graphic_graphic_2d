@@ -605,4 +605,25 @@ HWTEST_F(RSMainThreadTest, PostSyncTask, TestSize.Level1)
     RSTaskMessage::RSTask task = []() -> void { return; };
     mainThread->PostSyncTask(task);
 }
+
+/**
+ * @tc.name: ShowWatermark
+ * @tc.desc: ShowWatermark test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSMainThreadTest, ShowWatermark, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    const uint32_t color[8] = { 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80 };
+    uint32_t colorLength = sizeof(color) / sizeof(color[0]);
+    const int32_t offset = 0;
+    Media::InitializationOptions opts;
+    int32_t stride = 3;
+    std::unique_ptr<Media::PixelMap> pixelMap1 = Media::PixelMap::Create(color, colorLength, offset, stride, opts);
+    mainThread->ShowWatermark(std::move(pixelMap1), true);
+    ASSERT_EQ(mainThread->GetWatermarkFlag(), true);
+    mainThread->ShowWatermark(nullptr, false);
+    ASSERT_EQ(mainThread->GetWatermarkFlag(), false);
+}
 } // namespace OHOS::Rosen
