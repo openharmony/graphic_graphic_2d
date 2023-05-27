@@ -570,6 +570,7 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRe
     // collect app window node's child hardware enabled node
     if (node.IsHardwareEnabledType() && node.GetBuffer() != nullptr && curSurfaceNode_) {
         curSurfaceNode_->AddChildHardwareEnabledNode(node.ReinterpretCastTo<RSSurfaceRenderNode>());
+        node.SetLocalZOrder(localZOrder_++);
     }
 
     if (node.IsSelfDrawingType()) {
@@ -665,6 +666,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         if (node.IsAppWindow()) {
             curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
             // if update appwindow, its children should not skip
+            localZOrder_ = 0.0f;
             isQuickSkipPreparationEnabled_ = false;
             node.ResetAbilityNodeIds();
             node.ResetChildHardwareEnabledNodes();
@@ -1743,8 +1745,8 @@ void RSUniRenderVisitor::AssignGlobalZOrderAndCreateLayer()
             auto node2 = second.lock();
             return node1 && node2 && node1->GetLocalZOrder() < node2->GetLocalZOrder();
         });
+        localZOrder_ = 0.0f;
         for (auto& child : childHardwareEnabledNodes) {
-            localZOrder_ = 0.0f;
             auto childNode = child.lock();
             if (childNode && childNode->GetBuffer() != nullptr && !childNode->IsHardwareForcedDisabled()) {
                 // assign local zOrder here to ensure it range from 0 to childHardwareEnabledNodes.size()
@@ -2288,7 +2290,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #ifdef RS_ENABLE_EGLQUERYSURFACE
     if (node.IsAppWindow()) {
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-        localZOrder_ = 0.0f;
         AdjustLocalZOrder(curSurfaceNode_);
     }
     // skip clean surface node
@@ -2401,7 +2402,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             if (IsHardwareComposerEnabled() && !node.IsHardwareForcedDisabled() && node.IsHardwareEnabledType()) {
                 canvas_->clear(SK_ColorTRANSPARENT);
                 node.SetGlobalAlpha(canvas_->GetAlpha());
-                node.SetLocalZOrder(localZOrder_++);
                 ParallelRenderEnableHardwareComposer(node);
 
                 {
