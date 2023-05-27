@@ -711,6 +711,104 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 }
 #endif
 
+bool RSPropertiesPainter::DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas,
+    std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& rect)
+{
+    g_blurCnt++;
+    auto paint = filter->GetPaint();
+    SkSurface* skSurface = canvas.GetSurface();
+    if (skSurface == nullptr) {
+        return false;
+    }
+
+    auto imageSnapshot = skSurface->makeImageSnapshot(rect);
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundEffect image snapshot null");
+        return false;
+    }
+
+    filter->PreProcess(imageSnapshot);
+    //create a offscreen sksurface
+    sk_sp<SkSurface> offscreenSurface = skSurface->makeSurface(imageSnapshot->imageInfo());
+    if (offscreenSurface == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundEffect offscreenSurface null");
+        return false;
+    }
+    RSPaintFilterCanvas offsceenCanvas(offscreenSurface.get());
+    auto clipBounds = SkRect::MakeIWH(rect.width(), rect.height());
+
+#ifdef NEW_SKIA
+    offsceenCanvas.drawImageRect(imageSnapshot, clipBounds, SkSamplingOptions(), &paint);
+#else
+    offsceenCanvas.drawImageRect(imageSnapshot, clipBounds, &paint);
+#endif
+    filter->PostProcess(offsceenCanvas);
+
+    auto imageCache = offscreenSurface->makeImageSnapshot();
+    if (imageCache == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundEffect imageCache snapshot null");
+        return false;
+    }
+    CacheEffectData data = { imageCache, rect };
+    canvas.SaveEffectData(data);
+    return true;
+}
+
+void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+    SkAutoCanvasRestore acr(&canvas, true);
+    CacheEffectData data = canvas.GetEffectData();
+    auto bgImage = data.image;
+    if (bgImage == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::ApplyBackgroundEffect bgImage null");
+        return;
+    }
+    SkIRect imageIRect = data.clipRect;
+
+    if (properties.GetClipBounds() != nullptr) {
+        canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
+    } else {
+        canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
+    }
+
+    SkPaint defaultPaint;
+    defaultPaint.setAntiAlias(true);
+    defaultPaint.setBlendMode(SkBlendMode::kSrcOver);
+
+    auto skSurface = canvas.GetSurface();
+    if (skSurface == nullptr) {
+        return;
+    }
+
+    auto clipIBounds = canvas.getDeviceClipBounds();
+    auto clipIPadding = clipIBounds.makeOutset(-1, -1);
+    canvas.resetMatrix();
+    auto visibleIRect = canvas.GetVisibleRect().round();
+    if (visibleIRect.intersect(clipIBounds)) {
+        canvas.clipRect(SkRect::Make(visibleIRect));
+        auto visibleIPadding = visibleIRect.makeOutset(-1, -1);
+#ifdef NEW_SKIA
+        canvas.drawImageRect(bgImage.get(),
+            SkRect::Make(visibleIPadding.makeOffset(-imageIRect.left(), -imageIRect.top())),
+            SkRect::Make(visibleIPadding), SkSamplingOptions(), &defaultPaint, SkCanvas::kStrict_SrcRectConstraint);
+#else
+        canvas.drawImageRect(bgImage.get(),
+            SkRect::Make(visibleIPadding.makeOffset(-imageIRect.left(), -imageIRect.top())),
+            SkRect::Make(visibleIPadding), &defaultPaint);
+#endif
+    } else {
+#ifdef NEW_SKIA
+        canvas.drawImageRect(bgImage.get(),
+            SkRect::Make(clipIPadding.makeOffset(-imageIRect.left(), -imageIRect.top())),
+            SkRect::Make(clipIPadding), SkSamplingOptions(), &defaultPaint, SkCanvas::kStrict_SrcRectConstraint);
+#else
+        canvas.drawImageRect(bgImage.get(),
+            SkRect::Make(clipIPadding.makeOffset(-imageIRect.left(), -imageIRect.top())),
+            SkRect::Make(clipIPadding), &defaultPaint);
+#endif
+    }
+}
+
 static Vector4f GetStretchSize(const RSProperties& properties)
 {
     Vector4f stretchSize;
@@ -757,7 +855,7 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     if (!worldToLocalMat.mapRect(&localClipBounds, fClipBounds)) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch map rect failed.");
     }
-    
+
     if (!bounds.intersect(localClipBounds)) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch intersect clipbounds failed");
     }

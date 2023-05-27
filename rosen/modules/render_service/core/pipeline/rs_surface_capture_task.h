@@ -21,6 +21,7 @@
 #include "include/core/SkMatrix.h"
 #include "include/core/SkSurface.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pixel_map.h"
 #include "rs_base_render_engine.h"
@@ -38,6 +39,7 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
         void PrepareRootRenderNode(RSRootRenderNode& node) override {}
         void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
+        void PrepareEffectRenderNode(RSEffectRenderNode& node) override {}
 
         void ProcessBaseRenderNode(RSBaseRenderNode& node) override;
         void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
@@ -45,6 +47,7 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         void ProcessProxyRenderNode(RSProxyRenderNode& node) override {}
         void ProcessRootRenderNode(RSRootRenderNode& node) override;
         void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+        void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
 
         void SetSurface(SkSurface* surface);
         void IsDisplayNode(bool isDisplayNode)

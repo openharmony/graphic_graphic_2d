@@ -36,13 +36,14 @@ using PropertyId = uint64_t;
 // types in the same layer should be 0/1/2/4/8
 // types for UINode
 enum class RSUINodeType : uint32_t {
-    BASE_NODE    = 0x00010u,
-    RS_NODE      = 0x00110u,   // formerly RSPropertyNode
-    DISPLAY_NODE = 0x01110u,
-    SURFACE_NODE = 0x02110u,
-    PROXY_NODE   = 0x04110u,
-    CANVAS_NODE  = 0x08110u,   // formerly RSNode
-    ROOT_NODE    = 0x18110u,
+    BASE_NODE    = 0x000010u,
+    RS_NODE      = 0x000110u,   // formerly RSPropertyNode
+    DISPLAY_NODE = 0x001110u,
+    SURFACE_NODE = 0x002110u,
+    PROXY_NODE   = 0x004110u,
+    CANVAS_NODE  = 0x008110u,   // formerly RSNode
+    EFFECT_NODE  = 0x010110u,
+    ROOT_NODE    = 0x108110u,
 };
 
 enum class FollowType : uint8_t {
@@ -59,17 +60,19 @@ static inline const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeSt
     {RSUINodeType::PROXY_NODE,   "ProxyNode"},
     {RSUINodeType::CANVAS_NODE,  "CanvasNode"},
     {RSUINodeType::ROOT_NODE,    "RootNode"},
+    {RSUINodeType::EFFECT_NODE,  "EffectNode"},
 };
 
 // types for RenderNode
 enum class RSRenderNodeType : uint32_t {
-    BASE_NODE    = 0x00011u,
-    RS_NODE      = 0x00111u,   // formerly RSPropertyRenderNode
-    DISPLAY_NODE = 0x01111u,
-    SURFACE_NODE = 0x02111u,
-    PROXY_NODE   = 0x04111u,
-    CANVAS_NODE  = 0x08111u,   // formerly RSRenderNode
-    ROOT_NODE    = 0x18111u,
+    BASE_NODE    = 0x000011u,
+    RS_NODE      = 0x000111u,   // formerly RSPropertyRenderNode
+    DISPLAY_NODE = 0x001111u,
+    SURFACE_NODE = 0x002111u,
+    PROXY_NODE   = 0x004111u,
+    CANVAS_NODE  = 0x008111u,   // formerly RSRenderNode
+    EFFECT_NODE  = 0x010111u,
+    ROOT_NODE    = 0x108111u,
 };
 
 enum class CacheType : uint8_t {

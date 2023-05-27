@@ -168,6 +168,22 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCa
     node.ProcessRenderAfterChildren(*canvas_);
 }
 
+void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
+{
+    if (!node.ShouldPaint()) {
+        RS_LOGD("RSDividedUICapture::RSDividedUICaptureVisitor, no need process");
+        return;
+    }
+    if (!canvas_) {
+        RS_LOGE("RSDividedUICapture::RSDividedUICaptureVisitor, canvas is nullptr");
+        return;
+    }
+    node.ProcessRenderBeforeChildren(*canvas_);
+    ProcessBaseRenderNode(node);
+    node.ProcessRenderAfterChildren(*canvas_);
+}
+
+
 class RSOffscreenRenderCallback : public SurfaceCaptureCallback {
 public:
     void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
@@ -264,6 +280,14 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareRootRenderNode(RSRoot
 {
     node.ApplyModifiers();
     PrepareCanvasRenderNode(node);
+}
+
+void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
+{
+    node.ApplyModifiers();
+    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+    node.Update(*dirtyManager, nullptr, false);
+    PrepareBaseRenderNode(node);
 }
 
 } // namespace Rosen

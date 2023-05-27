@@ -52,6 +52,7 @@ public:
     void PrepareProxyRenderNode(RSProxyRenderNode& node) override;
     void PrepareRootRenderNode(RSRootRenderNode& node) override;
     void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+    void PrepareEffectRenderNode(RSEffectRenderNode& node) override;
 
     void ProcessBaseRenderNode(RSBaseRenderNode& node) override;
     void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
@@ -59,6 +60,7 @@ public:
     void ProcessProxyRenderNode(RSProxyRenderNode& node) override;
     void ProcessRootRenderNode(RSRootRenderNode& node) override;
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+    void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
 
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool ParallelComposition(const std::shared_ptr<RSBaseRenderNode> rootNode);

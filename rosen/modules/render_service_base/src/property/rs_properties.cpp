@@ -1024,6 +1024,7 @@ void RSProperties::Reset()
     lightUpEffectDegree_ = 1.0f;
     pixelStretch_ = nullptr;
     pixelStretchPercent_ = nullptr;
+    useEffect_ = false;
 
     sandboxPosition_.reset();
     grayScale_.reset();
@@ -1175,6 +1176,17 @@ bool RSProperties::IsLightUpEffectValid() const
 {
     constexpr float epsilon = 0.001f;
     return 1.0 - GetLightUpEffect() > epsilon;
+}
+
+void RSProperties::SetUseEffect(bool useEffect)
+{
+    useEffect_ = useEffect;
+    SetDirty();
+}
+
+bool RSProperties::GetUseEffect() const
+{
+    return useEffect_;
 }
 
 void RSProperties::SetPixelStretch(Vector4f stretchSize)

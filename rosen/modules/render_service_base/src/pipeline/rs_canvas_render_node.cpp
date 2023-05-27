@@ -97,6 +97,10 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
 #else
     RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas);
 #endif
+
+    if (GetRenderProperties().GetUseEffect()) {
+        RSPropertiesPainter::ApplyBackgroundEffect(GetRenderProperties(), canvas);
+    }
     auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetBackgroundFilter());
     if (filter != nullptr) {
 #ifndef NEW_SKIA

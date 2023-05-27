@@ -35,6 +35,7 @@ public:
     void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
     void PrepareRootRenderNode(RSRootRenderNode& node) override {}
     void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+    void PrepareEffectRenderNode(RSEffectRenderNode& node) override {}
 
     void ProcessBaseRenderNode(RSBaseRenderNode& node) override;
     void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override {}
@@ -42,6 +43,7 @@ public:
     void ProcessProxyRenderNode(RSProxyRenderNode& node) override {}
     void ProcessRootRenderNode(RSRootRenderNode& node) override {}
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+    void ProcessEffectRenderNode(RSEffectRenderNode& node) override {}
 
     void CalcDisplayRenderNodeCost(RSDisplayRenderNode& node) const;
 private:
@@ -56,4 +58,5 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
+
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_PARALLEL_PACK_VISITOR_H

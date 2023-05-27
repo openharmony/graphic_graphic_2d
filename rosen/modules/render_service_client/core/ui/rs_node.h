@@ -204,6 +204,8 @@ public:
         transitionEffect_ = effect;
     }
 
+    void SetUseEffect(bool useEffect);
+
     // driven render
     void MarkDrivenRender(bool flag);
     void MarkDrivenRenderItemIndex(int index);

@@ -29,6 +29,7 @@
 #include "common/rs_vector4.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
+#include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_render_thread.h"
@@ -186,6 +187,23 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     dirtyFlag_ = dirtyFlag;
 }
 
+void RSRenderThreadVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
+{
+    node.ApplyModifiers();
+    if (!node.ShouldPaint()) {
+        return;
+    }
+    bool dirtyFlag = dirtyFlag_;
+    auto nodeParent = node.GetParent().lock();
+    std::shared_ptr<RSRenderNode> rsParent = nullptr;
+    if (nodeParent != nullptr) {
+        rsParent = nodeParent->ReinterpretCastTo<RSRenderNode>();
+    }
+    dirtyFlag_ = node.Update(*curDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr, dirtyFlag_);
+    ResetAndPrepareChildrenNode(node, nodeParent);
+    dirtyFlag_ = dirtyFlag;
+}
+
 void RSRenderThreadVisitor::DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color,
     const SkPaint::Style fillType, float alpha, int strokeWidth)
 {
@@ -249,7 +267,7 @@ void RSRenderThreadVisitor::DrawDirtyRegion()
                 nid, subRect.ToString().c_str());
             DrawRectOnCanvas(subRect, 0x88FF0000, SkPaint::kStroke_Style, edgeAlpha, strokeWidth);
         }
-        
+
         curDirtyManager_->GetDirtyRegionInfo(dirtyRegionRects_, RSRenderNodeType::SURFACE_NODE,
             DirtyRegionType::UPDATE_DIRTY_REGION);
         ROSEN_LOGD("DrawDirtyRegion surface dirtyRegionRects_ size %zu", dirtyRegionRects_.size());
@@ -569,6 +587,21 @@ bool RSRenderThreadVisitor::UpdateAnimatePropertyCacheSurface(RSRenderNode& node
 
     isOpDropped_ = isOpDropped;
     return true;
+}
+
+void RSRenderThreadVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
+{
+    if (!node.ShouldPaint()) {
+        RS_LOGD("RSRenderThreadVisitor::ProcessEffectRenderNode, no need process");
+        return;
+    }
+    if (!canvas_) {
+        RS_LOGE("RSRenderThreadVisitor::ProcessEffectRenderNode, canvas is nullptr");
+        return;
+    }
+    node.ProcessRenderBeforeChildren(*canvas_);
+    ProcessBaseRenderNode(node);
+    node.ProcessRenderAfterChildren(*canvas_);
 }
 
 void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)

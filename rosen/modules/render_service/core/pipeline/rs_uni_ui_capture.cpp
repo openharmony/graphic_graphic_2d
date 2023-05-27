@@ -190,6 +190,20 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
     node.ProcessRenderAfterChildren(*canvas_);
 }
 
+void RSUniUICapture::RSUniUICaptureVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
+{
+    if (!node.ShouldPaint()) {
+        RS_LOGD("RSUniUICapture::RSUniUICaptureVisitor::ProcessEffectRenderNode, no need process");
+        return;
+    }
+    if (!canvas_) {
+        RS_LOGE("RSUniUICapture::RSUniUICaptureVisitor::ProcessEffectRenderNode, canvas is nullptr");
+        return;
+    }
+    node.ProcessRenderBeforeChildren(*canvas_);
+    ProcessBaseRenderNode(node);
+    node.ProcessRenderAfterChildren(*canvas_);
+}
 
 void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
@@ -348,6 +362,14 @@ void RSUniUICapture::RSUniUICaptureVisitor::PrepareRootRenderNode(RSRootRenderNo
 {
     node.ApplyModifiers();
     PrepareCanvasRenderNode(node);
+}
+
+void RSUniUICapture::RSUniUICaptureVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
+{
+    node.ApplyModifiers();
+    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+    node.Update(*dirtyManager, nullptr, false);
+    PrepareBaseRenderNode(node);
 }
 
 } // namespace Rosen

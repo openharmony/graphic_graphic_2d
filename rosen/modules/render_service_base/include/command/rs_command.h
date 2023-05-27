@@ -34,6 +34,7 @@ enum RSCommandType : uint16_t {
     PROXY_NODE,
     ROOT_NODE,
     DISPLAY_NODE,
+    EFFECT_NODE,
     // animation commands
     ANIMATION,
     // read showing properties (deprecated, will be removed later)

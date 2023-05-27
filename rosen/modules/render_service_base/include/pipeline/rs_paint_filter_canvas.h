@@ -36,6 +36,11 @@
 namespace OHOS {
 namespace Rosen {
 
+struct CacheEffectData {
+    sk_sp<SkImage> image = nullptr;
+    SkIRect clipRect;
+};
+
 #ifdef USE_ROSEN_DRAWING
 class RSB_EXPORT RSPaintFilterCanvasBase : public Drawing::Canvas {
 public:
@@ -191,6 +196,11 @@ public:
         return isParallelCanvas_;
     }
 
+    // effect cache data related
+    void SaveEffectData(const CacheEffectData& effectData);
+    CacheEffectData GetEffectData() const;
+    void RestoreEffecctData();
+
 protected:
 #ifndef USE_ROSEN_DRAWING
     bool onFilter(SkPaint& paint) const override;
@@ -224,7 +234,9 @@ private:
 #else
     Drawing::Rect visibleRect_ = Drawing::Rect();
 #endif
+
     bool isParallelCanvas_ = false;
+    std::stack<CacheEffectData> effectStack_;
 };
 
 // This class extends RSPaintFilterCanvas to also create a color filter for the paint.

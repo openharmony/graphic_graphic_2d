@@ -30,6 +30,7 @@
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_cold_start_thread.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_processor_factory.h"
@@ -993,6 +994,29 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 #endif
 }
 
+void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
+{
+    node.ApplyModifiers();
+    bool dirtyFlag = dirtyFlag_;
+    RectI prepareClipRect = prepareClipRect_;
+    float alpha = curAlpha_;
+
+    const auto& property = node.GetRenderProperties();
+    curAlpha_ *= property.GetAlpha();
+
+    auto parentNode = node.GetParent().lock();
+    auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
+    dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
+        dirtyFlag_, prepareClipRect_);
+
+    node.UpdateChildrenOutOfRectFlag(false);
+    PrepareBaseRenderNode(node);
+    node.UpdateParentChildrenRect(logicParentNode_.lock());
+
+    curAlpha_ = alpha;
+    dirtyFlag_ = dirtyFlag;
+    prepareClipRect_ = prepareClipRect;
+}
 
 void RSUniRenderVisitor::CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisitor> visitor)
 {
@@ -2740,6 +2764,23 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
     CheckAndSetNodeCacheType(node);
     DrawChildRenderNode(node);
+}
+
+void RSUniRenderVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
+{
+    if (!node.ShouldPaint()) {
+        RS_LOGD("RSUniRenderVisitor::ProcessEffectRenderNode, no need process");
+        return;
+    }
+    if (!canvas_) {
+        RS_LOGE("RSUniRenderVisitor::ProcessEffectRenderNode, canvas is nullptr");
+        return;
+    }
+    int saveCount = canvas_->save();
+    node.ProcessRenderBeforeChildren(*canvas_);
+    ProcessBaseRenderNode(node);
+    node.ProcessRenderAfterChildren(*canvas_);
+    canvas_->restoreToCount(saveCount);
 }
 
 void RSUniRenderVisitor::RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& node, float width, float height)

@@ -28,6 +28,7 @@
 #include "pipeline/rs_cold_start_thread.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_divided_render_util.h"
+#include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_service_connection.h"
 #include "pipeline/rs_root_render_node.h"
@@ -76,7 +77,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
 #ifdef RS_ENABLE_GL
 
     auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
-#ifdef NEW_SKIA 
+#ifdef NEW_SKIA
     GrDirectContext* grContext = renderContext != nullptr ? renderContext->GetGrContext() : nullptr;
 #else
     GrContext* grContext = renderContext != nullptr ? renderContext->GetGrContext() : nullptr;
@@ -300,6 +301,24 @@ void RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node
     } else {
         ProcessBaseRenderNode(node);
     }
+}
+
+void RSSurfaceCaptureVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
+{
+    if (!IsUniRender()) {
+        return;
+    }
+    if (!node.ShouldPaint()) {
+        RS_LOGD("RSSurfaceCaptureVisitor::ProcessEffectRenderNode, no need process");
+        return;
+    }
+    if (!canvas_) {
+        RS_LOGE("RSSurfaceCaptureVisitor::ProcessEffectRenderNode, canvas is nullptr");
+        return;
+    }
+    node.ProcessRenderBeforeChildren(*canvas_);
+    ProcessBaseRenderNode(node);
+    node.ProcessRenderAfterChildren(*canvas_);
 }
 
 void RSSurfaceCaptureVisitor::FindHardwareEnabledNodes()

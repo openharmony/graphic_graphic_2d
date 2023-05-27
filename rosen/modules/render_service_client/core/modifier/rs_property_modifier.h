@@ -562,6 +562,15 @@ protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
+
+class RSC_EXPORT RSUseEffectModifier : public RSBackgroundModifier {
+public:
+    explicit RSUseEffectModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSUseEffectModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
 } // namespace Rosen
 } // namespace OHOS
 

@@ -48,6 +48,9 @@ public:
     static void DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         std::shared_ptr<RSSkiaFilter>& filter, const std::unique_ptr<SkRect>& rect = nullptr,
         SkSurface* sKSurface = nullptr);
+    static bool DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas,
+        std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& rect);
+    static void ApplyBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void DrawForegroundColor(const RSProperties& properties, SkCanvas& canvas);
     static void DrawMask(const RSProperties& properties, SkCanvas& canvas);
     static void DrawMask(const RSProperties& properties, SkCanvas& canvas, SkRect maskBounds);

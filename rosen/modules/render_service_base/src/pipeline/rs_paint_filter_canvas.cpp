@@ -288,5 +288,27 @@ SkCanvas::SaveLayerStrategy RSPaintFilterCanvas::getSaveLayerStrategy(const Save
     }
     return SkPaintFilterCanvas::getSaveLayerStrategy(tmpRec);
 }
+
+void RSPaintFilterCanvas::SaveEffectData(const CacheEffectData& effectData)
+{
+    effectStack_.push(effectData);
+}
+
+CacheEffectData RSPaintFilterCanvas::GetEffectData() const
+{
+    if (effectStack_.empty()) {
+        return CacheEffectData{ nullptr, SkIRect::MakeEmpty() };
+    }
+    return effectStack_.top();
+}
+
+void RSPaintFilterCanvas::RestoreEffecctData()
+{
+    if (effectStack_.size() < 1u) {
+        return;
+    }
+    effectStack_.pop();
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -24,6 +24,7 @@
 
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -51,6 +52,7 @@ private:
         void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
         void PrepareRootRenderNode(RSRootRenderNode& node) override;
         void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+        void PrepareEffectRenderNode(RSEffectRenderNode& node) override;
 
         void ProcessBaseRenderNode(RSBaseRenderNode& node) override;
         void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
@@ -58,6 +60,7 @@ private:
         void ProcessProxyRenderNode(RSProxyRenderNode& node) override {}
         void ProcessRootRenderNode(RSRootRenderNode& node) override;
         void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+        void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
 
         void SetCanvas(std::shared_ptr<RSRecordingCanvas> canvas);
 
