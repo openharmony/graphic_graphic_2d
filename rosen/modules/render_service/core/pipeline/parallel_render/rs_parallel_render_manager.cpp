@@ -309,18 +309,14 @@ void RSParallelRenderManager::WaitCompositionEnd()
     }
 }
 
-void RSParallelRenderManager::DrawCacheSurface(RSPaintFilterCanvas& canvas, const RSRenderNode& node)
+void RSParallelRenderManager::SaveCacheTexture(RSRenderNode& node) const
 {
+#ifdef NEW_SKIA
     auto surface = node.GetCompletedCacheSurface();
     if (surface == nullptr || (surface->width() == 0 || surface->height() == 0)) {
         RS_LOGE("invalid cache surface");
         return;
     }
-    canvas.save();
-    float width = node.GetRenderProperties().GetBoundsRect().GetWidth();
-    float height = node.GetRenderProperties().GetBoundsRect().GetHeight();
-    canvas.scale(width / surface->width(), height / surface->height());
-#ifdef NEW_SKIA
     if (renderContext_ == nullptr) {
         RS_LOGE("DrawCacheSurface render context is nullptr");
         return;
@@ -342,11 +338,8 @@ void RSParallelRenderManager::DrawCacheSurface(RSPaintFilterCanvas& canvas, cons
         RS_LOGE("DrawCacheSurface shared texture is nullptr, %llu", node.GetId());
         return;
     }
-    canvas.drawImage(sharedTexture, 0, 0);
-    sharedTexture.reset();
-    sharedTexture = nullptr;
+    node.SetCacheTexture(sharedTexture);
 #endif
-    canvas.restore();
 }
 
 void RSParallelRenderManager::DrawImageMergeFunc(RSPaintFilterCanvas& canvas)

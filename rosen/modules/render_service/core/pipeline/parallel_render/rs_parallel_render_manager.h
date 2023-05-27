@@ -76,7 +76,7 @@ public:
                                      const std::shared_ptr<RSBaseRenderNode> node);
     void LoadBalanceAndNotify(TaskType type = TaskType::PROCESS_TASK);
     void MergeRenderResult(RSPaintFilterCanvas& canvas);
-    void DrawCacheSurface(RSPaintFilterCanvas& canvas, const RSRenderNode& node);
+    void SaveCacheTexture(RSRenderNode& node) const;
     void SetFrameSize(int width, int height);
     void GetFrameSize(int &width, int &height) const;
     void SubmitSuperTask(uint32_t taskIndex, std::unique_ptr<RSSuperRenderTask> superRenderTask);

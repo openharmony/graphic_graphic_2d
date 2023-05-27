@@ -273,7 +273,7 @@ bool RSUniRenderUtil::HandleCachedNode(const RSRenderNode& node, RSPaintFilterCa
     }
     RS_TRACE_NAME_FMT("Handle Cached Node %llu", node.GetId());
 #ifdef NEW_SKIA
-    RSParallelRenderManager::Instance()->DrawCacheSurface(canvas, node);
+    node.DrawCacheTexture(canvas);
 #else
     node.DrawCacheSurface(canvas);
 #endif
@@ -333,6 +333,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
             node->SetIsMainThreadNode(false);
             if (node->GetCacheSurface()) {
                 node->UpdateCompletedCacheSurface();
+                RSParallelRenderManager::Instance()->SaveCacheTexture(*node);
             }
             if (node->HasCachedTexture()) {
                 node->SetPriority(NodePriorityType::SUB_LOW_PRIORITY);

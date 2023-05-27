@@ -469,6 +469,25 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas) const
     canvas.restore();
 }
 
+void RSRenderNode::DrawCacheTexture(RSPaintFilterCanvas& canvas) const
+{
+    auto surface = GetCompletedCacheSurface();
+    if (surface == nullptr || (surface->width() == 0 || surface->height() == 0)) {
+        RS_LOGE("invalid cache surface");
+        return;
+    }
+    canvas.save();
+    float width = GetRenderProperties().GetBoundsRect().GetWidth();
+    float height = GetRenderProperties().GetBoundsRect().GetHeight();
+    canvas.scale(width / surface->width(), height / surface->height());
+    if (cacheTexture_ == nullptr) {
+        RS_LOGE("invalid cache texture");
+        return;
+    }
+    canvas.drawImage(cacheTexture_, 0, 0);
+    canvas.restore();
+}
+
 bool RSRenderNode::HasGroupableAnimations() const
 {
     for (auto& [_, animation] : animationManager_.animations_) {

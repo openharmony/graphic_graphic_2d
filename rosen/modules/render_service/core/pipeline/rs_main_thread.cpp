@@ -863,7 +863,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                 return;
             }
         }
-        if (IsSingleDisplay()) {
+        if (RSSystemProperties::GetUIFirstEnabled() && IsSingleDisplay()) {
             auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
                 rootNode->GetSortedChildren().front());
             std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;

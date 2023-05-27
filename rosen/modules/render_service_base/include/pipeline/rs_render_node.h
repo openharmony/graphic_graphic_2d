@@ -290,6 +290,18 @@ public:
         return cacheCompletedSurface_ != nullptr;
     }
 
+    void SetCacheTexture(sk_sp<SkImage> texture)
+    {
+        cacheTexture_ = texture;
+    }
+
+    sk_sp<SkImage> GetCacheTexture() const
+    {
+        return cacheTexture_;
+    }
+
+    void DrawCacheTexture(RSPaintFilterCanvas& canvas) const;
+
     void SetDrawRegion(std::shared_ptr<RectF> rect)
     {
         drawRegion_ = rect;
@@ -367,6 +379,7 @@ private:
     std::atomic<bool> isStaticCached_ = false;
     CacheType cacheType_ = CacheType::NONE;
 
+    sk_sp<SkImage> cacheTexture_;
     bool isMainThreadNode_ = true;
     bool hasFilter_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
