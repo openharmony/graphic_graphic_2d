@@ -138,20 +138,15 @@ public:
         return isStaticCached_;
     }
 
-    void InitCacheSurface(RSPaintFilterCanvas& canvas);
-#ifndef USE_ROSEN_DRAWING
-    void InitCacheSurface(sk_sp<SkSurface> cacheSurface)
-    {
-        cacheSurface_ = cacheSurface;
-    }
+#ifdef NEW_SKIA
+    void InitCacheSurface(GrRecordingContext* grContext);
+#else
+    void InitCacheSurface(GrContext* grContext);
+#endif
 
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> GetCacheSurface() const
 #else
-    void InitCacheSurface(std::shared_ptr<Drawing::Surface> cacheSurface)
-    {
-        cacheSurface_ = cacheSurface;
-    }
-
     std::shared_ptr<Drawing::Surface> GetCacheSurface() const
 #endif
     {
@@ -178,7 +173,7 @@ public:
         cacheCompletedSurface_ = nullptr;
     }
 
-    void DrawCacheSurface(RSPaintFilterCanvas& canvas) const;
+    void DrawCacheSurface(RSPaintFilterCanvas& canvas, bool isSubThreadNode = false) const;
 
     void SetCacheType(CacheType cacheType)
     {
@@ -320,8 +315,6 @@ public:
     {
         return cacheTexture_;
     }
-
-    void DrawCacheTexture(RSPaintFilterCanvas& canvas) const;
 
     void SetDrawRegion(std::shared_ptr<RectF> rect)
     {

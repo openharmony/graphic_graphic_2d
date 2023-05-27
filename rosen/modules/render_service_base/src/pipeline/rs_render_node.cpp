@@ -421,9 +421,13 @@ float RSRenderNode::GetGlobalAlpha() const
     return globalAlpha_;
 }
 
-void RSRenderNode::InitCacheSurface(RSPaintFilterCanvas& canvas)
+#ifdef NEW_SKIA
+void RSRenderNode::InitCacheSurface(GrRecordingContext* grContext)
+#else
+void RSRenderNode::InitCacheSurface(GrContext* grContext)
+#endif
 {
-    ClearCacheSurface();
+    cacheSurface_ = nullptr;
     auto cacheType = GetCacheType();
     float width = 0.0f, height = 0.0f;
     boundsWidth_ = renderProperties_.GetBoundsRect().GetWidth();
@@ -444,17 +448,13 @@ void RSRenderNode::InitCacheSurface(RSPaintFilterCanvas& canvas)
     }
 #if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
     SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
-#ifdef NEW_SKIA
-    cacheSurface_ = SkSurface::MakeRenderTarget(canvas.recordingContext(), SkBudgeted::kYes, info);
-#else
-    cacheSurface_ = SkSurface::MakeRenderTarget(canvas.getGrContext(), SkBudgeted::kYes, info);
-#endif
+    cacheSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kYes, info);
 #else
     cacheSurface_ = SkSurface::MakeRasterN32Premul(width, height);
 #endif
 }
 
-void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas) const
+void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, bool isSubThreadNode) const
 {
     auto surface = GetCompletedCacheSurface();
     if (surface == nullptr || (boundsWidth_ == 0 || boundsHeight_ == 0)) {
@@ -466,30 +466,21 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas) const
     float scaleY = renderProperties_.GetBoundsRect().GetHeight() / boundsHeight_;
     canvas.scale(scaleX, scaleY);
     SkPaint paint;
+#ifdef NEW_SKIA
+    if (isSubThreadNode) {
+        if (cacheTexture_ == nullptr) {
+            RS_LOGE("invalid cache texture");
+            return;
+        }
+        canvas.drawImage(cacheTexture_, -shadowRectOffsetX_ * scaleX, -shadowRectOffsetY_ * scaleY);
+        return;
+    }
+#endif
     if (cacheType == CacheType::ANIMATE_PROPERTY && renderProperties_.IsShadowValid()) {
         surface->draw(&canvas, -shadowRectOffsetX_ * scaleX, -shadowRectOffsetY_ * scaleY, &paint);
     } else {
         surface->draw(&canvas, 0.0, 0.0, &paint);
     }
-    canvas.restore();
-}
-
-void RSRenderNode::DrawCacheTexture(RSPaintFilterCanvas& canvas) const
-{
-    auto surface = GetCompletedCacheSurface();
-    if (surface == nullptr || (surface->width() == 0 || surface->height() == 0)) {
-        RS_LOGE("invalid cache surface");
-        return;
-    }
-    canvas.save();
-    float width = GetRenderProperties().GetBoundsRect().GetWidth();
-    float height = GetRenderProperties().GetBoundsRect().GetHeight();
-    canvas.scale(width / surface->width(), height / surface->height());
-    if (cacheTexture_ == nullptr) {
-        RS_LOGE("invalid cache texture");
-        return;
-    }
-    canvas.drawImage(cacheTexture_, 0, 0);
     canvas.restore();
 }
 

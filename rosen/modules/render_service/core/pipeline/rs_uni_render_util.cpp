@@ -266,17 +266,13 @@ Occlusion::Region RSUniRenderUtil::AlignedDirtyRegion(const Occlusion::Region& d
     return alignedRegion;
 }
 
-bool RSUniRenderUtil::HandleCachedNode(const RSRenderNode& node, RSPaintFilterCanvas& canvas)
+bool RSUniRenderUtil::HandleSubThreadNode(const RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
     if (node.IsMainThreadNode()) {
         return false;
     }
-    RS_TRACE_NAME_FMT("Handle Cached Node %llu", node.GetId());
-#ifdef NEW_SKIA
-    node.DrawCacheTexture(canvas);
-#else
-    node.DrawCacheSurface(canvas);
-#endif
+    RS_TRACE_NAME_FMT("RSUniRenderUtil::HandleSubThreadNode %" PRIu64 "", node.GetId());
+    node.DrawCacheSurface(canvas, true);
     return true;
 }
 
@@ -325,12 +321,15 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         if (focusedNodeFound || node->HasFilter()) { // assign focus, above focus and has filter node to main thread
             mainThreadNodes.emplace_back(node);
             node->SetIsMainThreadNode(true);
+            node->SetCacheType(CacheType::NONE);
+            node->ClearCacheSurface();
         } else if (node->IsCurrentFrameStatic() && node->HasCachedTexture()) {
             node->SetIsMainThreadNode(false);
         } else {
             subThreadNodes.emplace_back(node);
             node->UpdateCacheSurfaceDirtyManager(2);
             node->SetIsMainThreadNode(false);
+            node->SetCacheType(CacheType::ANIMATE_PROPERTY);
             if (node->GetCacheSurface()) {
                 node->UpdateCompletedCacheSurface();
                 RSParallelRenderManager::Instance()->SaveCacheTexture(*node);

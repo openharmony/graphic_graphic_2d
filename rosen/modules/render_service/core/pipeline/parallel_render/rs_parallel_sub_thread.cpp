@@ -271,10 +271,14 @@ void RSParallelSubThread::RenderCache()
         RS_TRACE_NAME_FMT("draw cache render node: [%s, %llu]", surfaceNodePtr->GetName().c_str(),
             surfaceNodePtr->GetId());
         if (surfaceNodePtr->GetCacheSurface() == nullptr) {
-            int width = std::ceil(surfaceNodePtr->GetRenderProperties().GetBoundsRect().GetWidth());
-            int height = std::ceil(surfaceNodePtr->GetRenderProperties().GetBoundsRect().GetHeight());
-            AcquireSubSkSurface(width, height);
-            surfaceNodePtr->InitCacheSurface(skSurface_);
+            if (grContext_ == nullptr) {
+                grContext_ = CreateShareGrContext();
+            }
+            if (grContext_ == nullptr) {
+                RS_LOGE("Share GrContext is not ready!!!");
+                return;
+            }
+            surfaceNodePtr->InitCacheSurface(grContext_.get());
         }
         node->Process(visitor_);
 #ifndef NEW_SKIA
