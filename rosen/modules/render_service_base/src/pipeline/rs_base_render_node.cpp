@@ -349,6 +349,17 @@ bool RSBaseRenderNode::IsDirty() const
     return dirtyStatus_ == NodeDirty::DIRTY;
 }
 
+// attention: current all base node's dirty ops causing content dirty
+bool RSBaseRenderNode::IsContentDirty() const
+{
+    return dirtyStatus_ == NodeDirty::DIRTY;
+}
+
+void RSBaseRenderNode::SetContentDirty()
+{
+    dirtyStatus_ = NodeDirty::DIRTY;
+}
+
 void RSBaseRenderNode::SetDirty()
 {
     dirtyStatus_ = NodeDirty::DIRTY;

@@ -192,6 +192,11 @@ bool RSRenderNode::IsDirty() const
     return RSBaseRenderNode::IsDirty() || renderProperties_.IsDirty();
 }
 
+bool RSRenderNode::IsContentDirty() const
+{
+    return !RSBaseRenderNode::IsContentDirty() && renderProperties_.IsContentDirty();
+}
+
 void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled)
 {
     auto dirtyRect = renderProperties_.GetDirtyRect();

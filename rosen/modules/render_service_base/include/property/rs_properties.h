@@ -231,6 +231,7 @@ public:
     RectF GetBoundsRect() const;
 
     bool IsGeoDirty() const;
+    bool IsContentDirty() const;
 
     void SetSpherize(float spherizeDegree);
     float GetSpherize() const;
@@ -260,6 +261,7 @@ private:
     bool clipToFrame_ = false;
     bool isDirty_ = false;
     bool geoDirty_ = false;
+    bool contentDirty_ = false;
 
     bool hasBounds_ = false;
 

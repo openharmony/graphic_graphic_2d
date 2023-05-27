@@ -586,6 +586,10 @@ public:
 
     // if surfacenode's buffer has been comsumed, it should be set dirty
     bool UpdateDirtyIfFrameBufferConsumed();
+    // if buffer content updated, marked it as content dirty
+    bool IsDirty() const override;
+    bool IsContentDirty() const override;
+    void SetClean() override;
 
 #ifndef USE_ROSEN_DRAWING
     void UpdateSrcRect(const RSPaintFilterCanvas& canvas, const SkIRect& dstRect);

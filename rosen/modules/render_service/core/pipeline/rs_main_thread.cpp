@@ -621,7 +621,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
         // setDirty for surfaceView if last frame is hardware enabled
         for (auto& surfaceNode : hardwareEnabledNodes_) {
             if (surfaceNode->IsLastFrameHardwareEnabled()) {
-                surfaceNode->SetDirty();
+                surfaceNode->SetContentDirty();
                 activeProcessPids_.emplace(ExtractPid(surfaceNode->GetId()));
             }
         }
