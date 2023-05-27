@@ -28,7 +28,6 @@ public:
 
     ~DfxString() = default;
 
-
     void AppendFormat(const char* fmt, ...)
     {
         va_list args;
