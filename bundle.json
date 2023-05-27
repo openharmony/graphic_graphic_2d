@@ -226,6 +226,18 @@
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core"
             }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+            "header": {
+              "header_files": [
+                "draw/canvas.h",
+                "draw/pen.h",
+                "image/bitmap.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include"
+            }
           }
         ],
         "test": [
