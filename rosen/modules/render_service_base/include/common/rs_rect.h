@@ -75,7 +75,6 @@ public:
             ROSEN_EQ<T>(width_, rect.width_) && ROSEN_EQ<T>(height_, rect.height_);
     }
 
-    
     inline bool IsNearEqual(const RectT<T>& rect, T threshold = std::numeric_limits<T>::epsilon()) const
     {
         return ROSEN_EQ<T>(left_, rect.left_, threshold) && ROSEN_EQ<T>(top_, rect.top_, threshold) &&

@@ -375,10 +375,10 @@ bool RSRenderAnimatableProperty<Vector4<Color>>::IsNearEqual(const std::shared_p
     if (animatableProperty != nullptr) {
         auto thisData = RSRenderProperty<Vector4<Color>>::stagingValue_.data_;
         auto otherValue = animatableProperty->Get();
-        auto ohterData = otherValue.data_;
+        auto otherData = otherValue.data_;
         int16_t threshold = static_cast<int16_t>(zeroThreshold_);
-        return thisData[0].IsNearEqual(ohterData[0], threshold) && thisData[2].IsNearEqual(ohterData[2], threshold) &&
-               thisData[2].IsNearEqual(ohterData[2], threshold) && thisData[3].IsNearEqual(ohterData[3], threshold);
+        return thisData[0].IsNearEqual(otherData[0], threshold) && thisData[2].IsNearEqual(otherData[2], threshold) &&
+               thisData[2].IsNearEqual(otherData[2], threshold) && thisData[3].IsNearEqual(otherData[3], threshold);
     }
     return true;
 }
