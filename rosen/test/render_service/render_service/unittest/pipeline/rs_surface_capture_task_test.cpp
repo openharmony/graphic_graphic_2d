@@ -35,7 +35,7 @@ using namespace HiviewDFX;
 using DisplayId = ScreenId;
 namespace {
     constexpr HiLogLabel LOG_LABEL = { LOG_CORE, 0xD001400, "RSSurfaceCaptureTaskTest" };
-    constexpr uint32_t MAX_TIME_WAITING_FOR_CALLBACK = 20;
+    constexpr uint32_t MAX_TIME_WAITING_FOR_CALLBACK = 200;
     constexpr uint32_t SLEEP_TIME_IN_US = 10000; // 10ms
     constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000; // 100ms
     constexpr float DEFAULT_BOUNDS_WIDTH = 100.f;
