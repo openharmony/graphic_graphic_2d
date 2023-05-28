@@ -246,19 +246,16 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag, co
     return false;
 }
 
-void RSProperties::SetSandBox(Vector2f parentPosition)
+void RSProperties::SetSandBox(const std::optional<Vector2f>& parentPosition)
 {
-    if (!sandboxPosition_) {
-        sandboxPosition_ = std::make_unique<Vector2f>();
-    }
-    *sandboxPosition_ = parentPosition;
+    sandboxPosition_ = parentPosition;
     geoDirty_ = true;
     SetDirty();
 }
 
-Vector2f RSProperties::GetSandBox() const
+const std::optional<Vector2f>& RSProperties::GetSandBox() const
 {
-    return sandboxPosition_ ? *sandboxPosition_ : Vector2f(-INFINITY, -INFINITY);
+    return sandboxPosition_;
 }
 
 void RSProperties::SetPositionZ(float positionZ)
@@ -1028,7 +1025,16 @@ void RSProperties::Reset()
     pixelStretch_ = nullptr;
     pixelStretchPercent_ = nullptr;
 
-    sandboxPosition_ = nullptr;
+    sandboxPosition_.reset();
+    grayScale_.reset();
+    brightness_.reset();
+    contrast_.reset();
+    saturate_.reset();
+    sepia_.reset();
+    invert_.reset();
+    hueRotate_.reset();
+    colorBlend_.reset();
+    colorFilter_ = nullptr;
 }
 
 void RSProperties::SetDirty()
@@ -1292,6 +1298,250 @@ bool RSProperties::IsPixelStretchPercentValid() const
     return false;
 }
 
+// Image effect properties
+void RSProperties::SetGrayScale(const std::optional<float>& grayScale)
+{
+    grayScale_ = grayScale;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const std::optional<float>& RSProperties::GetGrayScale() const
+{
+    return grayScale_;
+}
+
+void RSProperties::SetBrightness(const std::optional<float>& brightness)
+{
+    brightness_ = brightness;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const std::optional<float>& RSProperties::GetBrightness() const
+{
+    return brightness_;
+}
+
+void RSProperties::SetContrast(const std::optional<float>& contrast)
+{
+    contrast_ = contrast;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const std::optional<float>& RSProperties::GetContrast() const
+{
+    return contrast_;
+}
+
+void RSProperties::SetSaturate(const std::optional<float>& saturate)
+{
+    saturate_ = saturate;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const std::optional<float>& RSProperties::GetSaturate() const
+{
+    return saturate_;
+}
+
+void RSProperties::SetSepia(const std::optional<float>& sepia)
+{
+    sepia_ = sepia;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const std::optional<float>& RSProperties::GetSepia() const
+{
+    return sepia_;
+}
+
+void RSProperties::SetInvert(const std::optional<float>& invert)
+{
+    invert_ = invert;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const std::optional<float>& RSProperties::GetInvert() const
+{
+    return invert_;
+}
+
+void RSProperties::SetHueRotate(const std::optional<float>& hueRotate)
+{
+    hueRotate_ = hueRotate;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const std::optional<float>& RSProperties::GetHueRotate() const
+{
+    return hueRotate_;
+}
+
+void RSProperties::SetColorBlend(const std::optional<Color>& colorBlend)
+{
+    colorBlend_ = colorBlend;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const std::optional<Color>& RSProperties::GetColorBlend() const
+{
+    return colorBlend_;
+}
+
+static bool GreatNotEqual(double left, double right)
+{
+    constexpr double epsilon = 0.001f;
+    return (left - right) > epsilon;
+}
+
+static bool NearEqual(const double left, const double right)
+{
+    constexpr double epsilon = 0.001f;
+    return (std::abs(left - right) <= epsilon);
+}
+
+static bool GreatOrEqual(double left, double right)
+{
+    constexpr double epsilon = -0.001f;
+    return (left - right) > epsilon;
+}
+
+const sk_sp<SkColorFilter> RSProperties::GetColorFilter() const
+{
+    // return colorMatrix_;
+    if (!grayScale_ && !brightness_ && !contrast_ && !saturate_ && !sepia_ && !invert_ && !hueRotate_ && !colorBlend_) {
+        return nullptr;
+    }
+    if (colorFilter_) {
+        return colorFilter_;
+    }
+    sk_sp<SkColorFilter> filter = nullptr;
+    sk_sp<SkColorFilter> tmpFilter = nullptr;
+    if (grayScale_.has_value() && GreatNotEqual(*grayScale_, 0.f)) {
+        auto grayScale = grayScale_.value();
+        float matrix[20] = { 0.0f };
+        matrix[0] = matrix[5] = matrix[10] = 0.2126f * grayScale;
+        matrix[1] = matrix[6] = matrix[11] = 0.7152f * grayScale;
+        matrix[2] = matrix[7] = matrix[12] = 0.0722f * grayScale;
+        matrix[18] = 1.0 * grayScale;
+        tmpFilter = SkColorFilters::Matrix(matrix);
+        filter = tmpFilter->makeComposed(filter);
+    }
+    if (brightness_.has_value() && !NearEqual(*brightness_, 1.0)) {
+        auto brightness = brightness_.value();
+        float matrix[20] = { 0.0f };
+        // shift brightness to (-1, 1)
+        brightness = brightness - 1;
+        matrix[0] = matrix[6] = matrix[12] = matrix[18] = 1.0f;
+        matrix[4] = matrix[9] = matrix[14] = brightness;
+        tmpFilter = SkColorFilters::Matrix(matrix);
+        filter = tmpFilter->makeComposed(filter);
+    }
+    if (contrast_.has_value() && !NearEqual(*contrast_, 1.0)) {
+        auto contrast = contrast_.value();
+        float matrix[20] = { 0.0f };
+        matrix[0] = matrix[6] = matrix[12] = contrast;
+        matrix[4] = matrix[9] = matrix[14] = 128 * (1 - contrast) / 255;
+        matrix[18] = 1.0f;
+        tmpFilter = SkColorFilters::Matrix(matrix);
+        filter = tmpFilter->makeComposed(filter);
+    }
+    if (saturate_.has_value() && !NearEqual(*saturate_, 1.0) && GreatOrEqual(*saturate_, 0.0)) {
+        auto saturate = saturate_.value();
+        float matrix[20] = { 0.0f };
+        matrix[0] = 0.3086f * (1 - saturate) + saturate;
+        matrix[1] = matrix[11] = 0.6094f * (1 - saturate);
+        matrix[2] = matrix[7] = 0.0820f * (1 - saturate);
+        matrix[5] = matrix[10] = 0.3086f * (1 - saturate);
+        matrix[6] = 0.6094f * (1 - saturate) + saturate;
+        matrix[12] = 0.0820f * (1 - saturate) + saturate;
+        matrix[18] = 1.0f;
+        tmpFilter = SkColorFilters::Matrix(matrix);
+        filter = tmpFilter->makeComposed(filter);
+    }
+    if (sepia_.has_value() && GreatNotEqual(*sepia_, 0.0)) {
+        auto sepia = sepia_.value();
+        float matrix[20] = { 0.0f };
+        matrix[0] = 0.393f * sepia;
+        matrix[1] = 0.769f * sepia;
+        matrix[2] = 0.189f * sepia;
+
+        matrix[5] = 0.349f * sepia;
+        matrix[6] = 0.686f * sepia;
+        matrix[7] = 0.168f * sepia;
+
+        matrix[10] = 0.272f * sepia;
+        matrix[11] = 0.534f * sepia;
+        matrix[12] = 0.131f * sepia;
+        matrix[18] = 1.0f * sepia;
+        tmpFilter = SkColorFilters::Matrix(matrix);
+        filter = tmpFilter->makeComposed(filter);
+    }
+    if (invert_.has_value() && GreatNotEqual(*invert_, 0.0)) {
+        auto invert = invert_.value();
+        float matrix[20] = { 0.0f };
+        if (invert > 1.0) {
+            invert = 1.0;
+        }
+        // complete color invert when dstRGB = 1 - srcRGB
+        // map (0, 1) to (1, -1)
+        matrix[0] = matrix[6] = matrix[12] = 1.0 - 2.0 * invert;
+        matrix[18] = 1.0f;
+        // invert = 0.5 -> RGB = (0.5, 0.5, 0.5) -> image completely gray
+        matrix[4] = matrix[9] = matrix[14] = invert;
+        tmpFilter = SkColorFilters::Matrix(matrix);
+        filter = tmpFilter->makeComposed(filter);
+    }
+    if (hueRotate_.has_value() && GreatNotEqual(*hueRotate_, 0.0)) {
+        auto hueRotate = hueRotate_.value();
+        while (hueRotate >= 360) {
+            hueRotate -= 360;
+        }
+        float matrix[20] = { 0.0f };
+        int32_t type = hueRotate / 120;
+        float N = (hueRotate - 120 * type) / 120;
+        switch (type) {
+            case 0:
+                // color change = R->G, G->B, B->R
+                matrix[2] = matrix[5] = matrix[11] = N;
+                matrix[0] = matrix[6] = matrix[12] = 1 - N;
+                matrix[18] = 1.0f;
+                break;
+            case 1:
+                // compare to original: R->B, G->R, B->G
+                matrix[1] = matrix[7] = matrix[10] = N;
+                matrix[2] = matrix[5] = matrix[11] = 1 - N;
+                matrix[18] = 1.0f;
+                break;
+            case 2:
+                // back to normal color
+                matrix[0] = matrix[6] = matrix[12] = N;
+                matrix[1] = matrix[7] = matrix[10] = 1 - N;
+                matrix[18] = 1.0f;
+                break;
+            default:
+                break;
+        }
+        tmpFilter = SkColorFilters::Matrix(matrix);
+        filter = tmpFilter->makeComposed(filter);
+    }
+    if (colorBlend_.has_value() && *colorBlend_ != RgbPalette::Transparent()) {
+        auto colorBlend = colorBlend_.value();
+        tmpFilter = SkColorFilters::Blend(
+            SkColorSetARGB(colorBlend.GetAlpha(), colorBlend.GetRed(), colorBlend.GetGreen(), colorBlend.GetBlue()),
+            SkBlendMode::kPlus);
+        filter = tmpFilter->makeComposed(filter);
+    }
+    return filter;
+}
+
 std::string RSProperties::Dump() const
 {
     std::string dumpInfo;
@@ -1541,6 +1791,94 @@ std::string RSProperties::Dump() const
     // IsVisible
     if (!GetVisible()) {
         dumpInfo.append(", IsVisible[false]");
+    }
+
+    // Gray Scale
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for GrayScale, ret=" + std::to_string(ret);
+    }
+    auto grayScale = GetGrayScale();
+    if (grayScale.has_value() && !ROSEN_EQ(*grayScale, 0.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", GrayScale[%.1f]", *grayScale) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // Brightness
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for Brightness, ret=" + std::to_string(ret);
+    }
+    auto brightness = GetBrightness();
+    if (brightness.has_value() && !ROSEN_EQ(*brightness, 1.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", Brightness[%.1f]", *brightness) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // Contrast
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for Contrast, ret=" + std::to_string(ret);
+    }
+    auto contrast = GetContrast();
+    if (contrast.has_value() && !ROSEN_EQ(*contrast, 1.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", Contrast[%.1f]", *contrast) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // Saturate
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for Saturate, ret=" + std::to_string(ret);
+    }
+    auto saturate = GetSaturate();
+    if (saturate.has_value() && !ROSEN_EQ(*saturate, 1.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", Saturate[%.1f]", *saturate) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // Sepia
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for Sepia, ret=" + std::to_string(ret);
+    }
+    auto sepia = GetSepia();
+    if (sepia.has_value() && !ROSEN_EQ(*sepia, 0.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", Sepia[%.1f]", *sepia) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // Invert
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for Invert, ret=" + std::to_string(ret);
+    }
+    auto invert = GetInvert();
+    if (invert.has_value() && !ROSEN_EQ(*invert, 0.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", Invert[%.1f]", *invert) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // Hue Rotate
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for HueRotate, ret=" + std::to_string(ret);
+    }
+    auto hueRotate = GetHueRotate();
+    if (hueRotate.has_value() && !ROSEN_EQ(*hueRotate, 0.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", HueRotate[%.1f]", *hueRotate) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // Color Blend
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for ColorBlend, ret=" + std::to_string(ret);
+    }
+    auto colorBlend = GetColorBlend();
+    if (colorBlend.has_value() && !ROSEN_EQ(*colorBlend, RgbPalette::Transparent()) &&
+        sprintf_s(buffer, UINT8_MAX, ", ColorBlend[#%08X]", colorBlend->AsArgbInt()) != -1) {
+        dumpInfo.append(buffer);
     }
 
     return dumpInfo;

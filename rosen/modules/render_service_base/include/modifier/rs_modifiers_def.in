@@ -115,3 +115,19 @@ DECLARE_ANIMATABLE_MODIFIER(LightUpEffect, float, LIGHT_UP_EFFECT, Replace, Fore
 DECLARE_ANIMATABLE_MODIFIER(PixelStretch, Vector4f, PIXEL_STRETCH, Replace, Geometry)
 
 DECLARE_ANIMATABLE_MODIFIER(PixelStretchPercent, Vector4f, PIXEL_STRETCH_PERCENT, Replace, Geometry)
+
+DECLARE_ANIMATABLE_MODIFIER(GrayScale, float, GRAY_SCALE, Add, Foreground)
+
+DECLARE_ANIMATABLE_MODIFIER(Brightness, float, BRIGHTNESS, Add, Foreground)
+
+DECLARE_ANIMATABLE_MODIFIER(Contrast, float, CONTRAST, Add, Foreground)
+
+DECLARE_ANIMATABLE_MODIFIER(Saturate, float, SATURATE, Add, Foreground)
+
+DECLARE_ANIMATABLE_MODIFIER(Sepia, float, SEPIA, Add, Foreground)
+
+DECLARE_ANIMATABLE_MODIFIER(Invert, float, INVERT, Add, Foreground)
+
+DECLARE_ANIMATABLE_MODIFIER(HueRotate, float, HUE_ROTATE, Add, Foreground)
+
+DECLARE_ANIMATABLE_MODIFIER(ColorBlend, Color, COLOR_BLEND, Add, Foreground)

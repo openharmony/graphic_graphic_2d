@@ -1448,5 +1448,20 @@ void RSPropertiesPainter::DrawSpherize(const RSProperties& properties, RSPaintFi
     // TODO DRAWING
 }
 #endif
+
+void RSPropertiesPainter::DrawColorFilter(const RSProperties &properties, SkCanvas *canvas)
+{
+    auto colorFilter = properties.GetColorFilter();
+    if (colorFilter == nullptr) {
+        return;
+    }
+    SkAutoCanvasRestore acr(canvas, true);
+    canvas->clipRRect(RRect2SkRRect(properties.GetRRect()), true);
+    SkPaint paint;
+    paint.setAntiAlias(true);
+    paint.setColorFilter(colorFilter);
+    SkCanvas::SaveLayerRec slr(nullptr, &paint, SkCanvas::kInitWithPrevious_SaveLayerFlag);
+    canvas->saveLayer(slr);
+}
 } // namespace Rosen
 } // namespace OHOS

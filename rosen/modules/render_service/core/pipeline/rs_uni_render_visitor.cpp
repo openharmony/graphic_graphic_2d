@@ -2599,9 +2599,9 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     node.GetMutableRenderProperties().CheckEmptyBounds();
     // draw self and children in sandbox which will not be affected by parent's transition
     const auto& sandboxPos = node.GetRenderProperties().GetSandBox();
-    if (!sandboxPos.IsInfinite() && rootMatrix_.has_value()) {
+    if (sandboxPos.has_value() && rootMatrix_.has_value()) {
         canvas_->setMatrix(rootMatrix_.value());
-        canvas_->translate(sandboxPos.x_, sandboxPos.y_);
+        canvas_->translate(sandboxPos->x_, sandboxPos->y_);
     }
 
     const auto& property = node.GetRenderProperties();

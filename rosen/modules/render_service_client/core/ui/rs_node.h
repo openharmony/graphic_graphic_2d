@@ -219,6 +219,23 @@ public:
 
     // Mark preferentially draw node and childrens
     void MarkNodeGroup(bool isNodeGroup);
+
+    void SetGrayScale(float grayScale);
+
+    void SetBrightness(float brightness);
+
+    void SetContrast(float contrast);
+
+    void SetSaturate(float saturate);
+
+    void SetSepia(float sepia);
+
+    void SetInvert(float invert);
+
+    void SetHueRotate(float hueRotate);
+
+    void SetColorBlend(uint32_t colorValue);
+
 protected:
     explicit RSNode(bool isRenderServiceNode);
     explicit RSNode(bool isRenderServiceNode, NodeId id);

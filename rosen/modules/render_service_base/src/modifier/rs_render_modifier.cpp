@@ -19,9 +19,10 @@
 #include "draw/color.h"
 #include "image/bitmap.h"
 #endif
-#include "modifier/rs_modifier_type.h"
 #include <memory>
 #include <unordered_map>
+
+#include "include/effects/SkColorMatrix.h"
 #include "pixel_map.h"
 
 #include "common/rs_obj_abs_geometry.h"
@@ -362,12 +363,29 @@ T Add(T a, T b)
     return a + b;
 }
 template<typename T>
+T Add(const std::optional<T>& a, T b)
+{
+    return a.has_value() ? *a + b : b;
+}
+
+template<typename T>
 T Multiply(T a, T b)
 {
     return a * b;
 }
 template<typename T>
+T Multiply(const std::optional<T>& a, T b)
+{
+    return a.has_value() ? *a * b : b;
+}
+
+template<typename T>
 T Replace(T a, T b)
+{
+    return b;
+}
+template<typename T>
+T Replace(const std::optional<T>& a, T b)
 {
     return b;
 }
