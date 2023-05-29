@@ -88,8 +88,14 @@ ohos_executable("drawing_engine_sample") {
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
-    "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
+
+  if (defined(use_new_skia) && use_new_skia) {
+    deps += [ "//third_party/skia:skia_ohos" ]
+  } else {
+    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  }
+
   public_deps = libgl
   defines = gpu_defines
 

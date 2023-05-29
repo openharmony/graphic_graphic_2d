@@ -20,6 +20,7 @@
 #include "include/core/SkCanvas.h"
 #include "include/core/SkPaint.h"
 #include "include/core/SkBitmap.h"
+#include "include/core/SkImage.h"
 
 #include "benchmark_result.h"
 

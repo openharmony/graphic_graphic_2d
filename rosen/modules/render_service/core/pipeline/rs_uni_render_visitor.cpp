@@ -1303,7 +1303,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (RSSystemProperties::GetRecordingEnabled()) {
             RS_TRACE_BEGIN("RSUniRender:Recording begin");
 #ifdef RS_ENABLE_GL
+#ifdef NEW_SKIA
+            canvas.SetGrRecordingContext(canvas_->getGrContrext());
+#else
             canvas.SetGrContext(canvas_->getGrContext()); // SkImage::MakeFromCompressed need GrContext
+#endif
 #endif
             recordingCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
             recordingEnabled = true;
