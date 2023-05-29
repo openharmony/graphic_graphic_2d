@@ -115,7 +115,7 @@ RSUniRenderVisitor::RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canv
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
     parallelRenderVisitorIndex_ = surfaceIndex;
 #if defined(RS_ENABLE_GL)
-    canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    canvas_ = canvas;
 #endif
 #endif
 }

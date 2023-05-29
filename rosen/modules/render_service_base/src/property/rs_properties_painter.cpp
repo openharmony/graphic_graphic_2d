@@ -321,10 +321,12 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     }
     auto paint = filter->GetPaint();
     if (skSurface == nullptr) {
-        ROSEN_LOGD("RSPropertiesPainter::DrawFilter skSurface null");
-        SkCanvas::SaveLayerRec slr(nullptr, &paint, SkCanvas::kInitWithPrevious_SaveLayerFlag);
-        canvas.saveLayer(slr);
-        filter->PostProcess(canvas);
+        if (!canvas.GetIsParallelCanvas()) {
+            ROSEN_LOGD("RSPropertiesPainter::DrawFilter skSurface null");
+            SkCanvas::SaveLayerRec slr(nullptr, &paint, SkCanvas::kInitWithPrevious_SaveLayerFlag);
+            canvas.saveLayer(slr);
+            filter->PostProcess(canvas);
+        }
         return;
     }
 

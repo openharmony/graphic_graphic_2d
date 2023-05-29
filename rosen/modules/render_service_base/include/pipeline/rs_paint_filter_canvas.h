@@ -182,6 +182,14 @@ public:
     CoreCanvas& AttachPen(const Drawing::Pen& pen) override;
     CoreCanvas& AttachBrush(const Drawing::Brush& brush) override;
 #endif
+    void SetIsParallelCanvas(bool isParallel) {
+        isParallelCanvas_ = isParallel;
+    }
+
+    bool GetIsParallelCanvas() const
+    {
+        return isParallelCanvas_;
+    }
 
 protected:
 #ifndef USE_ROSEN_DRAWING
@@ -216,6 +224,7 @@ private:
 #else
     Drawing::Rect visibleRect_ = Drawing::Rect();
 #endif
+    bool isParallelCanvas_ = false;
 };
 
 // This class extends RSPaintFilterCanvas to also create a color filter for the paint.

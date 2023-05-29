@@ -459,6 +459,7 @@ void RSParallelSubThread::CreateResource()
         }
         skCanvas_ = skSurface_->getCanvas();
         canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_);
+        canvas_->SetIsParallelCanvas(true);
     }
     visitor_ = std::make_shared<RSUniRenderVisitor>(canvas_, threadIndex_);
 #elif RS_ENABLE_VK
