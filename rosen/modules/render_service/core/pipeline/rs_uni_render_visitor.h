@@ -40,7 +40,7 @@ namespace Rosen {
 class RSPaintFilterCanvas;
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
-    using SurfaceDirtyMgrPair = std::pair<std::weak_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSDirtyRegionManager>>;
+    using SurfaceDirtyMgrPair = std::pair<std::weak_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>;
     RSUniRenderVisitor();
     RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas, uint32_t surfaceIndex);
     explicit RSUniRenderVisitor(const RSUniRenderVisitor& visitor);
@@ -179,12 +179,12 @@ private:
      */
     void UpdateHardwardNodeStatusBasedOnFilter(std::shared_ptr<RSSurfaceRenderNode>& node,
         std::vector<SurfaceDirtyMgrPair>& prevHwcEnabledNodes,
-        std::shared_ptr<RSDirtyRegionManager>& displayDirtyManager) const;
+        std::shared_ptr<RSDirtyRegionManager>& displayDirtyManager);
     /* Disable hwc surface intersect with filter rects and merge dirty filter region
      * [planning] If invisible filterRects could be removed
      */
     RectI UpdateHardwardEnableList(std::vector<RectI>& filterRects,
-        std::vector<SurfaceDirtyMgrPair>& validHwcNodes) const;
+        std::vector<SurfaceDirtyMgrPair>& validHwcNodes);
     void AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDisplayRenderNode>& node) const;
 
     // set global dirty region to each surface node

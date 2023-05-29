@@ -1870,7 +1870,7 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
 }
 
 RectI RSUniRenderVisitor::UpdateHardwardEnableList(std::vector<RectI>& filterRects,
-    std::vector<SurfaceDirtyMgrPair>& validHwcNodes) const
+    std::vector<SurfaceDirtyMgrPair>& validHwcNodes)
 {
     if (validHwcNodes.empty() || filterRects.empty()) {
         return RectI();
@@ -1891,7 +1891,11 @@ RectI RSUniRenderVisitor::UpdateHardwardEnableList(std::vector<RectI>& filterRec
         }
         if (isIntersected) {
             childNode->SetHardwareForcedDisabledStateByFilter(true);
-            iter->second->MergeDirtyRect(childDirtyRect);
+            auto node = iter->second;
+            if (node && node->GetDirtyManager()) {
+                node->GetDirtyManager()->MergeDirtyRect(childDirtyRect);
+                dirtySurfaceNodeMap_.emplace(node->GetId(), node);
+            }
             iter = validHwcNodes.erase(iter);
             iter--;
         }
@@ -1901,7 +1905,7 @@ RectI RSUniRenderVisitor::UpdateHardwardEnableList(std::vector<RectI>& filterRec
 
 void RSUniRenderVisitor::UpdateHardwardNodeStatusBasedOnFilter(std::shared_ptr<RSSurfaceRenderNode>& node,
     std::vector<SurfaceDirtyMgrPair>& prevHwcEnabledNodes,
-    std::shared_ptr<RSDirtyRegionManager>& displayDirtyManager) const
+    std::shared_ptr<RSDirtyRegionManager>& displayDirtyManager)
 {
     if (node == nullptr || !node->IsAppWindow() || node->GetDirtyManager() == nullptr ||
         displayDirtyManager == nullptr) {
@@ -1918,7 +1922,7 @@ void RSUniRenderVisitor::UpdateHardwardNodeStatusBasedOnFilter(std::shared_ptr<R
         // recover disabled state before update
         childNode->SetHardwareForcedDisabledStateByFilter(false);
         if (visibleRegion.IsIntersectWith(Occlusion::Rect(childNode->GetOldDirtyInSurface()))) {
-            curHwcEnabledNodes.emplace_back(std::make_pair(subNode, dirtyManager));
+            curHwcEnabledNodes.emplace_back(std::make_pair(subNode, node));
         }
     }
     // Within App: disable hwc if intersect with filterRects
