@@ -1491,7 +1491,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_TRACE_BEGIN("RSUniRender:Recording begin");
 #ifdef RS_ENABLE_GL
 #ifdef NEW_SKIA
-            canvas.SetGrRecordingContext(canvas_->getGrContrext());
+            canvas.SetGrRecordingContext(canvas_->recordingContrext());
 #else
             canvas.SetGrContext(canvas_->getGrContext()); // SkImage::MakeFromCompressed need GrContext
 #endif
