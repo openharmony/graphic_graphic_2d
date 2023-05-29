@@ -25,9 +25,17 @@
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_def.h"
 
+#ifndef USE_ROSEN_DRAWING
 class SkCanvas;
 class SkPaint;
 class SkRRect;
+#else
+#include "draw/canvas.h"
+#include "draw/brush.h"
+#include "draw/pen.h"
+#include "utils/rect.h"
+#include "utils/round_rect.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -73,6 +81,7 @@ public:
     std::string ToString() const;
 
 protected:
+#ifndef USE_ROSEN_DRAWING
     bool ApplyFillStyle(SkPaint& paint) const;
     bool ApplyPathStyle(SkPaint& paint) const;
     bool ApplyFourLine(SkPaint& paint) const;
@@ -82,6 +91,18 @@ protected:
     void PaintRightPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const;
     void PaintBottomPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const;
     void PaintLeftPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const;
+#else
+    bool ApplyFillStyle(Drawing::Brush& brush) const;
+    bool ApplyPathStyle(Drawing::Pen& pen) const;
+    bool ApplyFourLine(Drawing::Pen& pen) const;
+    bool ApplyLineStyle(Drawing::Pen& pen, int borderIdx, float length) const;
+
+    void PaintFourLine(Drawing::Canvas& canvas, Drawing::Pen& pen, RectF rect) const;
+    void PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const;
+    void PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const;
+    void PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const;
+    void PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const;
+#endif
 
 private:
     // Vectors containing uniform or four-sided border attributes.

@@ -25,37 +25,37 @@ Data::Data() noexcept : impl_(ImplFactory::CreateDataImpl()) {}
 
 bool Data::BuildFromMalloc(const void* data, size_t length)
 {
-    return (impl_ == nullptr) ? false : impl_->BuildFromMalloc(data, length);
+    return impl_->BuildFromMalloc(data, length);
 }
 
 bool Data::BuildWithCopy(const void* data, size_t length)
 {
-    return (impl_ == nullptr) ? false : impl_->BuildWithCopy(data, length);
+    return impl_->BuildWithCopy(data, length);
 }
 
 bool Data::BuildWithoutCopy(const void* data, size_t length)
 {
-    return (impl_ == nullptr) ? false : impl_->BuildWithoutCopy(data, length);
+    return impl_->BuildWithoutCopy(data, length);
 }
 
 bool Data::BuildUninitialized(size_t length)
 {
-    return (impl_ == nullptr) ? false : impl_->BuildUninitialized(length);
+    return impl_->BuildUninitialized(length);
 }
 
 size_t Data::GetSize() const
 {
-    return (impl_ == nullptr) ? 0 : impl_->GetSize();
+    return impl_->GetSize();
 }
 
 const void* Data::GetData() const
 {
-    return (impl_ == nullptr) ? nullptr : impl_->GetData();
+    return impl_->GetData();
 }
 
 void* Data::WritableData()
 {
-    return (impl_ == nullptr) ? nullptr : impl_->WritableData();
+    return impl_->WritableData();
 }
 } // namespace Drawing
 } // namespace Rosen

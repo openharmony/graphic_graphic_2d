@@ -88,15 +88,12 @@ HWTEST_F(FontProvidersTest, CreateAndSystemOnly, TestSize.Level1)
 }
 
 /**
- * @tc.name: AppendFontProvider
+ * @tc.name: AppendFontProvider1
  * @tc.desc: Verify the AppendFontProvider
  * @tc.type:FUNC
  */
-HWTEST_F(FontProvidersTest, AppendFontProvider, TestSize.Level1)
+HWTEST_F(FontProvidersTest, AppendFontProvider1, TestSize.Level1)
 {
-    std::shared_ptr<VariantFontStyleSet> fss1 = std::make_shared<VariantFontStyleSet>(nullptr);
-    std::shared_ptr<VariantFontStyleSet> fss2 = std::make_shared<VariantFontStyleSet>(nullptr);
-
     // AppendFontProvider nullptr
     InitFpMockVars({});
     auto fp1 = FontProviders::Create();
@@ -105,6 +102,16 @@ HWTEST_F(FontProvidersTest, AppendFontProvider, TestSize.Level1)
     auto fc1 = fp1->GenerateFontCollection({"AppendFontProvider1"});
     ASSERT_NE(fc1, nullptr);
     ASSERT_EQ(g_fpMockvars.catchedFontStyleSets.size(), 0u);
+}
+
+/**
+ * @tc.name: AppendFontProvider2
+ * @tc.desc: Verify the AppendFontProvider
+ * @tc.type:FUNC
+ */
+HWTEST_F(FontProvidersTest, AppendFontProvider2, TestSize.Level1)
+{
+    std::shared_ptr<VariantFontStyleSet> fss1 = std::make_shared<VariantFontStyleSet>(nullptr);
 
     // AppendFontProvider mock1 once
     InitFpMockVars({});
@@ -117,19 +124,17 @@ HWTEST_F(FontProvidersTest, AppendFontProvider, TestSize.Level1)
     ASSERT_NE(fc2, nullptr);
     ASSERT_EQ(g_fpMockvars.catchedFontStyleSets.size(), 1u);
     ASSERT_EQ(g_fpMockvars.catchedFontStyleSets[0], fss1);
+}
 
-    // AppendFontProvider mock1 twice
-    InitFpMockVars({});
-    auto fp3 = FontProviders::Create();
-    ASSERT_NE(fp3, nullptr);
-    auto mfp2 = std::make_shared<MockFontProvider>();
-    EXPECT_CALL(*mfp2, MatchFamily("AppendFontProvider3")).Times(1).WillOnce(testing::Return(fss1));
-    fp3->AppendFontProvider(mfp2);
-    fp3->AppendFontProvider(mfp2);
-    auto fc3 = fp3->GenerateFontCollection({"AppendFontProvider3"});
-    ASSERT_NE(fc3, nullptr);
-    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets.size(), 1u);
-    ASSERT_EQ(g_fpMockvars.catchedFontStyleSets[0], fss1);
+/**
+ * @tc.name: AppendFontProvider3
+ * @tc.desc: Verify the AppendFontProvider
+ * @tc.type:FUNC
+ */
+HWTEST_F(FontProvidersTest, AppendFontProvider3, TestSize.Level1)
+{
+    std::shared_ptr<VariantFontStyleSet> fss1 = std::make_shared<VariantFontStyleSet>(nullptr);
+    std::shared_ptr<VariantFontStyleSet> fss2 = std::make_shared<VariantFontStyleSet>(nullptr);
 
     // AppendFontProvider mock1 mock2
     InitFpMockVars({});
@@ -154,15 +159,12 @@ HWTEST_F(FontProvidersTest, AppendFontProvider, TestSize.Level1)
 }
 
 /**
- * @tc.name: GenerateFontCollection
+ * @tc.name: GenerateFontCollection1
  * @tc.desc: Verify the GenerateFontCollection
  * @tc.type:FUNC
  */
-HWTEST_F(FontProvidersTest, GenerateFontCollection, TestSize.Level1)
+HWTEST_F(FontProvidersTest, GenerateFontCollection1, TestSize.Level1)
 {
-    std::shared_ptr<VariantFontStyleSet> fss1 = std::make_shared<VariantFontStyleSet>(nullptr);
-    std::shared_ptr<VariantFontStyleSet> fss2 = std::make_shared<VariantFontStyleSet>(nullptr);
-
     // GenerateFontCollection set=nullptr
     InitFpMockVars({});
     auto fp1 = FontProviders::Create();
@@ -173,6 +175,16 @@ HWTEST_F(FontProvidersTest, GenerateFontCollection, TestSize.Level1)
     auto fc1 = fp1->GenerateFontCollection({"GenerateFontCollection1"});
     ASSERT_NE(fc1, nullptr);
     ASSERT_EQ(g_fpMockvars.catchedFontStyleSets.size(), 0u);
+}
+
+/**
+ * @tc.name: GenerateFontCollection2
+ * @tc.desc: Verify the GenerateFontCollection
+ * @tc.type:FUNC
+ */
+HWTEST_F(FontProvidersTest, GenerateFontCollection2, TestSize.Level1)
+{
+    std::shared_ptr<VariantFontStyleSet> fss1 = std::make_shared<VariantFontStyleSet>(nullptr);
 
     // GenerateFontCollection use cache
     InitFpMockVars({});
@@ -188,6 +200,16 @@ HWTEST_F(FontProvidersTest, GenerateFontCollection, TestSize.Level1)
     auto fc22 = fp2->GenerateFontCollection({"GenerateFontCollection2"});
     ASSERT_EQ(g_fpMockvars.catchedFontStyleSets.size(), 1u);
     ASSERT_EQ(g_fpMockvars.catchedFontStyleSets[0], fss1);
+}
+
+/**
+ * @tc.name: GenerateFontCollection3
+ * @tc.desc: Verify the GenerateFontCollection
+ * @tc.type:FUNC
+ */
+HWTEST_F(FontProvidersTest, GenerateFontCollection3, TestSize.Level1)
+{
+    std::shared_ptr<VariantFontStyleSet> fss2 = std::make_shared<VariantFontStyleSet>(nullptr);
 
     // GenerateFontCollection first failed, second success
     InitFpMockVars({});

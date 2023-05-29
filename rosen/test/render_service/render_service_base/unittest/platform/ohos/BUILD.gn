@@ -32,45 +32,50 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
   configs = [
     ":render_test",
     "$ace_root:ace_test_config",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:export_config",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
   ]
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
-    "//foundation/graphic/graphic_2d/rosen/include",
-    "//foundation/graphic/graphic_2d/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
     "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
-    "//foundation/graphic/graphic_2d/prebuilts/librarys/gpu/include",
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
     "//drivers/peripheral/display/interfaces/include/",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
-    "//foundation/graphic/graphic_2d/utils/log",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//third_party/flutter/build/skia:ace_skia_ohos",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "//third_party/googletest:gtest_main",
   ]
 
   public_deps = [
+    "$graphic_2d_root:libsurface",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/utils:sync_fence",
     "//commonlibrary/c_utils/base:utils",
-    "//foundation/graphic/graphic_2d:libsurface",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
-    "//foundation/graphic/graphic_2d/utils:sync_fence",
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
-    "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
+  if (defined(use_new_skia) && use_new_skia) {
+    deps += [ "//third_party/skia:skia_ohos" ]
+    public_deps += [ "//third_party/skia:skia_ohos" ]
+  } else {
+    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+    public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  }
 
   if (ace_enable_gpu) {
     include_dirs += [ "//third_party/openssl/include" ]
 
     public_deps += [
-      "//foundation/graphic/graphic_2d:libgl",
-      "//third_party/openssl:crypto_source",
+      "$graphic_2d_root:libgl",
+      "//third_party/openssl:libcrypto_shared",
     ]
   }
 
@@ -93,7 +98,7 @@ config("render_test") {
   visibility = [ ":*" ]
   include_dirs = [
     "$ace_root",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base",
   ]
 }
 

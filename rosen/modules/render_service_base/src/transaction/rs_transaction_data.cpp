@@ -18,6 +18,7 @@
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -46,10 +47,14 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
     success = success && parcel.WriteInt32(static_cast<int32_t>(payload_.size()));
     size_t marshaledSize = 0;
     auto iter = payload_.begin();
+    static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
+    success = success && parcel.WriteBool(isUniRender);
     while (marshallingIndex_ < payload_.size()) {
         auto& [nodeId, followType, command] = *iter;
-        success = success && parcel.WriteUint64(nodeId);
-        success = success && parcel.WriteUint8(static_cast<uint8_t>(followType));
+        if (!isUniRender) {
+            success = success && parcel.WriteUint64(nodeId);
+            success = success && parcel.WriteUint8(static_cast<uint8_t>(followType));
+        }
         success = success && command->Marshalling(parcel);
         if (!success) {
             ROSEN_LOGE("failed RSTransactionData::Marshalling type:%s", command->PrintType().c_str());
@@ -76,7 +81,6 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
     success = success && parcel.WriteUint64(timestamp_);
     success = success && parcel.WriteInt32(pid_);
     success = success && parcel.WriteUint64(index_);
-    success = success && parcel.WriteBool(isUniRender_);
     success = success && parcel.WriteUint64(syncId_);
     return success;
 }
@@ -128,14 +132,22 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         return false;
     }
 
-    for (int i = 0; i < commandSize; i++) {
-        if (!parcel.ReadUint64(nodeId)) {
-            ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read nodeId");
-            return false;
-        }
-        if (!parcel.ReadUint8(followType)) {
-            ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read followType");
-            return false;
+    bool isUniRender = false;
+    if (!parcel.ReadBool(isUniRender)) {
+        ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read isUniRender");
+        return false;
+    }
+
+    for (size_t i = 0; i < len; i++) {
+        if (!isUniRender) {
+            if (!parcel.ReadUint64(nodeId)) {
+                ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read nodeId");
+                return false;
+            }
+            if (!parcel.ReadUint8(followType)) {
+                ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read followType");
+                return false;
+            }
         }
 
         if (!(parcel.ReadUint16(commandType) && parcel.ReadUint16(commandSubType))) {
@@ -156,7 +168,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
     int32_t pid;
     return parcel.ReadBool(needSync_) && parcel.ReadBool(needCloseSync_) && parcel.ReadInt32(syncTransactionCount_) &&
         parcel.ReadUint64(timestamp_) && parcel.ReadInt32(pid) && ({pid_ = pid; true;}) &&
-        parcel.ReadUint64(index_) && parcel.ReadBool(isUniRender_) && parcel.ReadUint64(syncId_);
+        parcel.ReadUint64(index_) && parcel.ReadUint64(syncId_);
 }
 
 

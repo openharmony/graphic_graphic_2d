@@ -44,7 +44,7 @@ public:
 
 private:
     bool IsOutOfScreenRegion(const ComposeInfo& info) const;
-    RectI SrcRectRotateTransform(RSSurfaceRenderNode& node) const;
+    static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);
     ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node) const;
     ComposeInfo BuildComposeInfo(RSDisplayRenderNode& node) const;
     ComposeInfo BuildComposeInfo(RSDrivenSurfaceRenderNode& node) const;
@@ -60,7 +60,7 @@ private:
     LayerInfoPtr CreateBufferLayer(RSSurfaceRenderNode& node) const;
 
     void LayerCrop(const LayerInfoPtr& layer) const;
-    static void LayerScaleDown(const LayerInfoPtr& layer);
+    static void LayerScaleDown(const LayerInfoPtr& layer, RSSurfaceRenderNode& node);
     static void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface);
 
     static void GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node);

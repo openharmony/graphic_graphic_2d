@@ -863,20 +863,6 @@ HWTEST_F(RSInterfacesTest, RegisterOcclusionChangeCallback_Test, Function | Smal
 }
 
 /*
- * @tc.name: UnRegisterOcclusionChangeCallback Test
- * @tc.desc: UnRegisterOcclusionChangeCallback Test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSInterfacesTest, UnRegisterOcclusionChangeCallback_Test, Function | SmallTest | Level2)
-{
-    ASSERT_NE(rsInterfaces, nullptr);
-    OcclusionChangeCallback cb = [](std::shared_ptr<RSOcclusionData> data){};
-    int32_t ret = rsInterfaces->UnRegisterOcclusionChangeCallback(cb);
-    ASSERT_EQ(ret, 0);
-}
-
-/*
  * @tc.name: SetVirtualScreenSurface Test a notfound id
  * @tc.desc: SetVirtualScreenSurface Test a notfound id
  * @tc.type: FUNC

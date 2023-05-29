@@ -25,7 +25,7 @@
 #endif
 
 #include "common/rs_macros.h"
-#include "memory/MemoryTrack.h"
+#include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include "platform/drawing/rs_surface.h"
@@ -73,6 +73,16 @@ public:
     int32_t GetDisplayOffsetY() const
     {
         return offsetY_;
+    }
+
+    bool GetFingerprint() const
+    {
+        return hasFingerprint_;
+    }
+
+    void SetFingerprint(bool hasFingerprint)
+    {
+        hasFingerprint_ = hasFingerprint;
     }
 
     void CollectSurface(
@@ -199,12 +209,21 @@ public:
         return isFirstTimeToProcessor_;
     }
 
+#ifndef USE_ROSEN_DRAWING
     void SetInitMatrix(const SkMatrix& skMatrix) {
         initMatrix_ = skMatrix;
+#else
+    void SetInitMatrix(const Drawing::Matrix& matrix) {
+        initMatrix_ = matrix;
+#endif
         isFirstTimeToProcessor_ = false;
     }
 
+#ifndef USE_ROSEN_DRAWING
     const SkMatrix& GetInitMatrix() const {
+#else
+    const Drawing::Matrix& GetInitMatrix() const {
+#endif
         return initMatrix_;
     }
 private:
@@ -217,11 +236,16 @@ private:
     bool isSecurityDisplay_ = false;
     WeakPtr mirrorSource_;
     float lastRotation_ = 0.f;
+#ifndef USE_ROSEN_DRAWING
     SkMatrix initMatrix_;
+#else
+    Drawing::Matrix initMatrix_;
+#endif
     bool isFirstTimeToProcessor_ = true;
 
     std::shared_ptr<RSSurface> surface_;
     bool surfaceCreated_ { false };
+    bool hasFingerprint_ = false;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_;
 #endif

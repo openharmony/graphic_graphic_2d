@@ -197,7 +197,7 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest006, TestSi
  * @tc.desc: test for word break type
  * @tc.type: FUNC
  */
-
+#ifndef NEW_SKIA
 HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest007, TestSize.Level1)
 {
     TypographyStyle style;
@@ -214,7 +214,7 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest007, TestSi
     RosenConvertTypographyStyle(style, txtStyle);
     EXPECT_EQ(txtStyle.word_break_type, minikin::WordBreakType::kWordBreakType_BreakWord);
 }
-
+#endif
 /*
  * @tc.name: OH_Drawing_RosenConverterTest008
  * @tc.desc: test for text direction

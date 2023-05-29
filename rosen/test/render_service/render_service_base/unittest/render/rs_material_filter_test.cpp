@@ -46,11 +46,12 @@ HWTEST_F(RSMaterialFilterTest, CreateMaterialStyle001, TestSize.Level1)
     float dipScale = 1.0;
     BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
     MATERIAL_BLUR_STYLE style = static_cast<MATERIAL_BLUR_STYLE>(0);
-    RSMaterialFilter rsMaterialFilter(style, dipScale, mode);
+    float ratio = 1.0;
+    RSMaterialFilter rsMaterialFilter(style, dipScale, mode, ratio);
     EXPECT_EQ(rsMaterialFilter.GetImageFilter(), nullptr);
 
     style = MATERIAL_BLUR_STYLE::STYLE_CARD_DARK;
-    rsMaterialFilter = RSMaterialFilter(style, dipScale, mode);
+    rsMaterialFilter = RSMaterialFilter(style, dipScale, mode, ratio);
     EXPECT_NE(rsMaterialFilter.GetImageFilter(), nullptr);
 }
 } // namespace OHOS::Rosen

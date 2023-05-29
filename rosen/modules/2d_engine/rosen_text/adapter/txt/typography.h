@@ -18,7 +18,11 @@
 
 #include "rosen_text/typography.h"
 
+#ifdef NEW_SKIA
+#include "third_party/flutter/txt/src/txt/paragraph.h"
+#else
 #include "third_party/flutter/engine/flutter/third_party/txt/src/txt/paragraph.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -43,8 +47,7 @@ public:
     void Paint(Drawing::Canvas *canvas, double x, double y) override;
 
     std::vector<TextRect> GetTextRectsByBoundary(size_t left, size_t right,
-                                                TextRectHeightStyle heightStyle,
-                                                TextRectWidthStyle widthStyle) override;
+        TextRectHeightStyle heightStyle, TextRectWidthStyle widthStyle) override;
     std::vector<TextRect> GetTextRectsOfPlaceholders() override;
     IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) override;
     Boundary GetWordBoundaryByIndex(size_t index) override;

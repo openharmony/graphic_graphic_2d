@@ -39,7 +39,8 @@ public:
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name) override;
 
     int32_t SetFocusAppInfo(
-        int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName) override;
+        int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
+        uint64_t focusNodeId) override;
 
     ScreenId GetDefaultScreenId() override;
 
@@ -108,8 +109,6 @@ public:
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
 
     int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
-
-    int32_t UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
 
     void SetAppWindowNum(uint32_t num) override;
 

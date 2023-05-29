@@ -78,6 +78,7 @@ bool VariantSpan::operator !=(const VariantSpan &rhs) const noexcept(false)
 
 double VariantSpan::GetWidth() const noexcept(false)
 {
+    CheckPointer();
     if (as_) {
         return as_->GetWidth();
     }
@@ -91,6 +92,7 @@ double VariantSpan::GetWidth() const noexcept(false)
 
 double VariantSpan::GetHeight() const noexcept(false)
 {
+    CheckPointer();
     if (as_) {
         return as_->GetHeight();
     }
@@ -104,6 +106,7 @@ double VariantSpan::GetHeight() const noexcept(false)
 
 size_t VariantSpan::GetNumberOfCharGroup() const noexcept(false)
 {
+    CheckPointer();
     if (ts_) {
         return ts_->cgs_.GetNumberOfCharGroup();
     }
@@ -117,6 +120,7 @@ size_t VariantSpan::GetNumberOfCharGroup() const noexcept(false)
 
 std::vector<double> VariantSpan::GetGlyphWidths() const noexcept(false)
 {
+    CheckPointer();
     std::vector<double> widths;
     if (ts_) {
         for (const auto &cg : ts_->cgs_) {
@@ -133,15 +137,16 @@ std::vector<double> VariantSpan::GetGlyphWidths() const noexcept(false)
 
 double VariantSpan::GetVisibleWidth() const noexcept(false)
 {
+    CheckPointer();
     if (ts_) {
         double width = 0;
         double continuousInvisibleWidth = 0;
         for (const auto &cg : ts_->cgs_) {
-            width += (cg.visibleWidth_ + cg.invisibleWidth_);
-            if (cg.visibleWidth_ > 0) {
+            width += (cg.visibleWidth + cg.invisibleWidth);
+            if (cg.visibleWidth > 0) {
                 continuousInvisibleWidth = 0;
             }
-            continuousInvisibleWidth += cg.invisibleWidth_;
+            continuousInvisibleWidth += cg.invisibleWidth;
         }
         return width - continuousInvisibleWidth;
     }
@@ -155,13 +160,14 @@ double VariantSpan::GetVisibleWidth() const noexcept(false)
 
 void VariantSpan::Dump(const DumpType &dtype) const noexcept(false)
 {
+    CheckPointer(true);
     if (as_) {
         switch (dtype) {
             case DumpType::NORMAL:
-                LOG2EX_DEBUG() << "VariantSpan";
+                LOGEX_FUNC_LINE_DEBUG() << "VariantSpan";
                 break;
-            case DumpType::DONTRETURN:
-                LOG2EX_DEBUG(Logger::NoReturn) << "VariantSpan ";
+            case DumpType::DONT_RETURN:
+                LOGEX_FUNC_LINE_DEBUG(Logger::SetToNoReturn) << "VariantSpan ";
                 break;
         }
         return;
@@ -173,12 +179,12 @@ void VariantSpan::Dump(const DumpType &dtype) const noexcept(false)
 
     switch (dtype) {
         case DumpType::NORMAL:
-            LOG2EX_DEBUG() << "(" << offsetX_ << ", " << offsetY_ << ") " <<
+            LOGEX_FUNC_LINE_DEBUG() << "(" << offsetX_ << ", " << offsetY_ << ") " <<
                 (ts_->rtl_ ? "<-" : "->") << " " << ts_->cgs_.GetRange() <<
                 ": '\033[40m" << TextConverter::ToStr(ts_->cgs_.ToUTF16()) << "\033[0m'";
             break;
-        case DumpType::DONTRETURN:
-            LOG2EX_DEBUG(Logger::NoReturn) << "(" << offsetX_ << ", " << offsetY_ << ") "<<
+        case DumpType::DONT_RETURN:
+            LOGEX_FUNC_LINE_DEBUG(Logger::SetToNoReturn) << "(" << offsetX_ << ", " << offsetY_ << ") "<<
                 (ts_->rtl_ ? "<-" : "->") << " " << ts_->cgs_.GetRange() <<
                 ": '\033[40m" << TextConverter::ToStr(ts_->cgs_.ToUTF16()) << "\033[0m'" << " ";
             break;
@@ -234,6 +240,7 @@ void VariantSpan::AdjustOffsetY(double offset) noexcept(true)
 
 void VariantSpan::Paint(TexgineCanvas &canvas, double offsetx, double offsety) noexcept(false)
 {
+    CheckPointer();
     if (as_) {
         as_->Paint(canvas, offsetx, offsety);
     }
@@ -245,13 +252,15 @@ void VariantSpan::Paint(TexgineCanvas &canvas, double offsetx, double offsety) n
 
 void VariantSpan::PaintShadow(TexgineCanvas &canvas, double offsetx, double offsety) noexcept(false)
 {
+    CheckPointer();
     if (ts_) {
-        ts_->PaintShadow(canvas, offsetx, offsety, xs_.shadows_);
+        ts_->PaintShadow(canvas, offsetx, offsety, xs_.shadows);
     }
 }
 
 bool VariantSpan::IsRTL() const noexcept(false)
 {
+    CheckPointer();
     if (ts_) {
         return ts_->IsRTL();
     }
@@ -262,11 +271,11 @@ bool VariantSpan::IsRTL() const noexcept(false)
 void VariantSpan::CheckPointer(bool nullable) const noexcept(false)
 {
     if (!nullable && as_ == nullptr && ts_ == nullptr) {
-        throw TEXGINE_EXCEPTION(Nullptr);
+        throw TEXGINE_EXCEPTION(NULLPTR);
     }
 
     if (as_ != nullptr && ts_ != nullptr) {
-        throw TEXGINE_EXCEPTION(ErrorStatus);
+        throw TEXGINE_EXCEPTION(ERROR_STATUS);
     }
 }
 } // namespace TextEngine

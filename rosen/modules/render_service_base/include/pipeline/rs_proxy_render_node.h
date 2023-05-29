@@ -44,19 +44,35 @@ public:
     // 1. All three variables (alpha, matrix, and clipRegion) are RELATIVE to its parent node.
     // 2. Alpha can be processed as an absolute value, as its parent (surface) node's alpha should always be 1.0f.
     // 3. The matrix and clipRegion should be applied according to the parent node's matrix.
+#ifndef USE_ROSEN_DRAWING
     void SetContextMatrix(const std::optional<SkMatrix>& transform);
     void SetContextAlpha(float alpha);
     void SetContextClipRegion(const std::optional<SkRect>& clipRegion);
+#else
+    void SetContextMatrix(const std::optional<Drawing::Matrix>& transform);
+    void SetContextAlpha(float alpha);
+    void SetContextClipRegion(const std::optional<Drawing::Rect>& clipRegion);
+#endif
 
     void ResetContextVariableCache();
+protected:
+    void OnTreeStateChanged() override;
 
 private:
     std::weak_ptr<RSSurfaceRenderNode> target_;
     NodeId targetId_;
 
+#ifndef USE_ROSEN_DRAWING
     std::optional<SkMatrix> contextMatrix_;
     float contextAlpha_ = 0.0f;
     std::optional<SkRect> contextClipRect_;
+#else
+    std::optional<Drawing::Matrix> contextMatrix_;
+    float contextAlpha_ = 0.0f;
+    std::optional<Drawing::Rect> contextClipRect_;
+#endif
+
+    void CleanUp(bool removeModifiers);
 
     friend class RSUniRenderVisitor;
 };

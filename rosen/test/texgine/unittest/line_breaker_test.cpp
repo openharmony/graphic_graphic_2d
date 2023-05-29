@@ -40,9 +40,9 @@ std::vector<ScoredSpan> GenScoredSpansByBreaks(const std::vector<std::pair<doubl
 }
 
 struct ScoredSpanCheck {
-    double preBreak_ = 0;
-    double postBreak_ = 0;
-    bool isAnySpan_ = false;
+    double preBreak = 0;
+    double postBreak = 0;
+    bool isAnySpan = false;
 };
 
 auto ScoredSpansChecker(const std::vector<struct ScoredSpanCheck> &cls)
@@ -50,9 +50,9 @@ auto ScoredSpansChecker(const std::vector<struct ScoredSpanCheck> &cls)
     return [cls](std::vector<struct ScoredSpan> sss) {
         ASSERT_EQ(cls.size(), sss.size());
         for (auto i = 0u; i < sss.size(); i++) {
-            ASSERT_EQ(sss[i].preBreak, cls[i].preBreak_);
-            ASSERT_EQ(sss[i].postBreak, cls[i].postBreak_);
-            if (cls[i].isAnySpan_) {
+            ASSERT_EQ(sss[i].preBreak, cls[i].preBreak);
+            ASSERT_EQ(sss[i].postBreak, cls[i].postBreak);
+            if (cls[i].isAnySpan) {
                 ASSERT_NE(sss[i].span.TryToAnySpan(), nullptr);
             } else {
                 ASSERT_NE(sss[i].span.TryToTextSpan(), nullptr);
@@ -94,7 +94,7 @@ auto LineMetricsSizesChecker(const std::vector<size_t> &sizes)
             return false;
         }
         for (auto i = 0u; i < lineMetrics.size(); i++) {
-            if (lineMetrics[i].lineSpans_.size() != sizes[i]) {
+            if (lineMetrics[i].lineSpans.size() != sizes[i]) {
                 return false;
             }
         }
@@ -105,16 +105,16 @@ auto LineMetricsSizesChecker(const std::vector<size_t> &sizes)
 class ControllerForTest {
 public:
     struct TextSpanInfo {
-        double preBreak_ = 0;
-        double postBreak_ = 0;
+        double preBreak = 0;
+        double postBreak = 0;
         CharGroups cgs_ = {};
     };
 
     static std::shared_ptr<TextSpan> GenerateTestSpan(const TextSpanInfo &info)
     {
         auto ts = std::make_shared<TextSpan>();
-        ts->preBreak_ = info.preBreak_;
-        ts->postBreak_ = info.postBreak_;
+        ts->preBreak_ = info.preBreak;
+        ts->postBreak_ = info.postBreak;
         ts->cgs_ = info.cgs_;
         return ts;
     }
@@ -127,21 +127,21 @@ public:
     {
         CharGroups cgs1 = CharGroups::CreateEmpty();
         // {0x013B, 13.664}: {glyph codepont, davanceX}
-        cgs1.PushBack({.chars_ = TextConverter::ToUTF16("m"), .glyphs_ = {{0x013B, 13.664}}});
-        cgs1.PushBack({.chars_ = TextConverter::ToUTF16("o"), .glyphs_ = {{0x0145, 9.456}}});
-        cgs1.PushBack({.chars_ = TextConverter::ToUTF16("s"), .glyphs_ = {{0x0166, 7.28}}});
-        cgs1.PushBack({.chars_ = TextConverter::ToUTF16("t"), .glyphs_ = {{0x016E, 5.88}}});
-        ts10_ = ControllerForTest::GenerateTestSpan({.preBreak_ = 0, .postBreak_ = 10, .cgs_ = cgs1});
+        cgs1.PushBack({.chars = TextConverter::ToUTF16("m"), .glyphs = {{0x013B, 13.664}}});
+        cgs1.PushBack({.chars = TextConverter::ToUTF16("o"), .glyphs = {{0x0145, 9.456}}});
+        cgs1.PushBack({.chars = TextConverter::ToUTF16("s"), .glyphs = {{0x0166, 7.28}}});
+        cgs1.PushBack({.chars = TextConverter::ToUTF16("t"), .glyphs = {{0x016E, 5.88}}});
+        ts10_ = ControllerForTest::GenerateTestSpan({.preBreak = 0, .postBreak = 10, .cgs_ = cgs1});
 
         CharGroups cgs2 = CharGroups::CreateEmpty();
-        cgs2.PushBack({.chars_ = TextConverter::ToUTF16("m"), .glyphs_ = {{0x013B, 13.664}}});
-        ts20_ = ControllerForTest::GenerateTestSpan({.preBreak_ = 20, .postBreak_ = 20, .cgs_ = cgs2});
+        cgs2.PushBack({.chars = TextConverter::ToUTF16("m"), .glyphs = {{0x013B, 13.664}}});
+        ts20_ = ControllerForTest::GenerateTestSpan({.preBreak = 20, .postBreak = 20, .cgs_ = cgs2});
 
-        ts11_ = ControllerForTest::GenerateTestSpan({.preBreak_ = 10, .postBreak_ = 10, .cgs_ = cgs1.GetSub(0, 1)});
-        ts12_ = ControllerForTest::GenerateTestSpan({.preBreak_ = 10, .postBreak_ = 20, .cgs_ = cgs1.GetSub(1, 2)});
+        ts11_ = ControllerForTest::GenerateTestSpan({.preBreak = 10, .postBreak = 10, .cgs_ = cgs1.GetSub(0, 1)});
+        ts12_ = ControllerForTest::GenerateTestSpan({.preBreak = 10, .postBreak = 20, .cgs_ = cgs1.GetSub(1, 2)});
 
-        gStyle_.breakStrategy_ = BreakStrategy::GREEDY;
-        hStyle_.breakStrategy_ = BreakStrategy::HIGHQUALITY;
+        gStyle_.breakStrategy = BreakStrategy::GREEDY;
+        hStyle_.breakStrategy = BreakStrategy::HIGH_QUALITY;
     }
 
     static inline std::shared_ptr<TextSpan> ts10_ = nullptr;
@@ -162,8 +162,8 @@ auto longChecker1 = ScoredSpansChecker({{0, 10, false}, {20, 20, true}, {40, 40,
 auto longChecker2 = ScoredSpansChecker(
     {{0, 10, false}, {20, 20, true}, {30, 30, false}, {30, 40, false}, {60, 60, true}});
 DEFINE_PARAM_TEST1(LineBreaker, GenerateScoreSpans, std::vector<VariantSpan>, {
-    { .arg1 = {tsNullptr}, .exception = ExceptionType::InvalidArgument },
-    { .arg1 = {asNullptr}, .exception = ExceptionType::InvalidArgument },
+    { .arg1 = {tsNullptr}, .exception = ExceptionType::INVALID_ARGUMENT },
+    { .arg1 = {asNullptr}, .exception = ExceptionType::INVALID_ARGUMENT },
     { .arg1 = {ts10_}, .checkFunc = ScoredSpansChecker({{0, 10, false}}) },
     { .arg1 = {as10}, .checkFunc = ScoredSpansChecker({{10, 10, true}}) },
     { .arg1 = {ts10_, as10, ts20_, as20}, .checkFunc = longChecker1 },
@@ -214,9 +214,9 @@ HWTEST_F(LineBreakerTest, DoBreakLines, TestSize.Level1) {
  * @tc.type:FUNC
  */
 DEFINE_PARAM_TEST1(LineBreaker, GenerateBreaks, std::vector<ScoredSpan>, {
-    { .arg1 = GenScoredSpansByPrevs({0, 2}), .exception = ExceptionType::ErrorStatus },
-    { .arg1 = GenScoredSpansByPrevs({0, 3, 2}), .exception = ExceptionType::ErrorStatus },
-    { .arg1 = GenScoredSpansByPrevs({0, 2, 5}), .exception = ExceptionType::ErrorStatus },
+    { .arg1 = GenScoredSpansByPrevs({0, 2}), .exception = ExceptionType::ERROR_STATUS },
+    { .arg1 = GenScoredSpansByPrevs({0, 3, 2}), .exception = ExceptionType::ERROR_STATUS },
+    { .arg1 = GenScoredSpansByPrevs({0, 2, 5}), .exception = ExceptionType::ERROR_STATUS },
     { .arg1 = GenScoredSpansByPrevs({0, 0, 0, 2, 2, 4, 4, 4, 7}),
       .checkFunc = GetResultChecker(std::vector<int>{2, 4, 7, 9}) },
 });
@@ -232,9 +232,9 @@ HWTEST_F(LineBreakerTest, GenerateLineMetrics, TestSize.Level1)
     DEFINE_TESTINFO2(std::vector<VariantSpan>, std::vector<int32_t>);
     LineBreaker breaker;
     RUN_TESTINFO2(breaker, { .arg1 = {3, VariantSpan{}}, .arg2 = {2, 10},
-        .exception = ExceptionType::OutOfRange });
+        .exception = ExceptionType::OUT_OF_RANGE });
     RUN_TESTINFO2(breaker, { .arg1 = {3, VariantSpan{}}, .arg2 = {3, 1},
-        .exception = ExceptionType::ErrorStatus });
+        .exception = ExceptionType::ERROR_STATUS });
     RUN_TESTINFO2(breaker, { .arg1 = {9, VariantSpan{}}, .arg2 = {2, 4, 7, 9},
         .checkFunc = LineMetricsSizesChecker({2, 2, 3, 2}) });
 }

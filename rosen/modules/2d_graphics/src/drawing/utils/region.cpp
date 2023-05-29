@@ -24,22 +24,22 @@ Region::Region() : impl_(ImplFactory::CreateRegionImpl()) {}
 
 bool Region::SetRect(const RectI& rectI)
 {
-    return (impl_ == nullptr) ? false : impl_->SetRect(rectI);
+    return impl_->SetRect(rectI);
 }
 
 bool Region::SetPath(const Path& path, const Region& clip)
 {
-    return (impl_ == nullptr) ? false : impl_->SetPath(path, clip);
+    return impl_->SetPath(path, clip);
 }
 
 bool Region::IsIntersects(const Region& other) const
 {
-    return (impl_ == nullptr) ? false : impl_->IsIntersects(other);
+    return impl_->IsIntersects(other);
 }
 
 bool Region::Op(const Region& region, RegionOp op)
 {
-    return (impl_ == nullptr) ? false : impl_->Op(region, op);
+    return impl_->Op(region, op);
 }
 } // namespace Drawing
 } // namespace Rosen

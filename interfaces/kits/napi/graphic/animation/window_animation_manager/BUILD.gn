@@ -47,6 +47,14 @@ ohos_shared_library("windowanimationmanager_napi") {
     "window_manager:libwm",
   ]
 
+  defines = []
+
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.resourceschedule_soc_perf)) {
+    external_deps += [ "soc_perf:socperf_client" ]
+    defines += [ "SOC_PERF_ENABLE" ]
+  }
+
   relative_install_dir = "module/animation"
   part_name = "graphic_standard"
   subsystem_name = "graphic"

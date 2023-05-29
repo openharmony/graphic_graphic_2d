@@ -83,6 +83,7 @@ public:
     int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
                                              GraphicPresentTimestampType &type) override;
     int32_t GetPresentTimestamp(uint32_t screenId, uint32_t layerId, GraphicPresentTimestamp &timestamp) override;
+    int32_t SetLayerMaskInfo(uint32_t screenId, uint32_t layerId, uint32_t maskInfo) override;
     /* set & get device layer info end */
 
     int32_t CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t &layerId) override;

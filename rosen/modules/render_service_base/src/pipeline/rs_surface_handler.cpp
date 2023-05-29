@@ -29,9 +29,9 @@ void RSSurfaceHandler::IncreaseAvailableBuffer()
     bufferAvailableCount_++;
 }
 
-int32_t RSSurfaceHandler::ReduceAvailableBuffer()
+void RSSurfaceHandler::ReduceAvailableBuffer()
 {
-    return --bufferAvailableCount_;
+    --bufferAvailableCount_;
 }
 
 void RSSurfaceHandler::SetGlobalZOrder(float globalZOrder)

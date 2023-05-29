@@ -241,6 +241,21 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag, co
     return false;
 }
 
+void RSProperties::SetSandBox(Vector2f parentPosition)
+{
+    if (!sandboxPosition_) {
+        sandboxPosition_ = std::make_unique<Vector2f>();
+    }
+    *sandboxPosition_ = parentPosition;
+    geoDirty_ = true;
+    SetDirty();
+}
+
+Vector2f RSProperties::GetSandBox() const
+{
+    return sandboxPosition_ ? *sandboxPosition_ : Vector2f(-INFINITY, -INFINITY);
+}
+
 void RSProperties::SetPositionZ(float positionZ)
 {
     boundsGeo_->SetZ(positionZ);
@@ -463,6 +478,7 @@ void RSProperties::SetAlphaOffscreen(bool alphaOffscreen)
 {
     alphaOffscreen_ = alphaOffscreen;
     SetDirty();
+    contentDirty_ = true;
 }
 
 bool RSProperties::GetAlphaOffscreen() const
@@ -493,6 +509,7 @@ void RSProperties::SetForegroundColor(Color color)
     }
     decoration_->foregroundColor_ = color;
     SetDirty();
+    contentDirty_ = true;
 }
 
 Color RSProperties::GetForegroundColor() const
@@ -508,6 +525,7 @@ void RSProperties::SetBackgroundColor(Color color)
     }
     decoration_->backgroundColor_ = color;
     SetDirty();
+    contentDirty_ = true;
 }
 
 Color RSProperties::GetBackgroundColor() const
@@ -522,6 +540,7 @@ void RSProperties::SetBackgroundShader(std::shared_ptr<RSShader> shader)
     }
     decoration_->bgShader_ = shader;
     SetDirty();
+    contentDirty_ = true;
 }
 
 std::shared_ptr<RSShader> RSProperties::GetBackgroundShader() const
@@ -536,6 +555,7 @@ void RSProperties::SetBgImage(std::shared_ptr<RSImage> image)
     }
     decoration_->bgImage_ = image;
     SetDirty();
+    contentDirty_ = true;
 }
 
 std::shared_ptr<RSImage> RSProperties::GetBgImage() const
@@ -550,6 +570,7 @@ void RSProperties::SetBgImageWidth(float width)
     }
     decoration_->bgImageRect_.width_ = width;
     SetDirty();
+    contentDirty_ = true;
 }
 
 void RSProperties::SetBgImageHeight(float height)
@@ -559,6 +580,7 @@ void RSProperties::SetBgImageHeight(float height)
     }
     decoration_->bgImageRect_.height_ = height;
     SetDirty();
+    contentDirty_ = true;
 }
 
 void RSProperties::SetBgImagePositionX(float positionX)
@@ -568,6 +590,7 @@ void RSProperties::SetBgImagePositionX(float positionX)
     }
     decoration_->bgImageRect_.left_ = positionX;
     SetDirty();
+    contentDirty_ = true;
 }
 
 void RSProperties::SetBgImagePositionY(float positionY)
@@ -577,6 +600,7 @@ void RSProperties::SetBgImagePositionY(float positionY)
     }
     decoration_->bgImageRect_.top_ = positionY;
     SetDirty();
+    contentDirty_ = true;
 }
 
 float RSProperties::GetBgImageWidth() const
@@ -607,6 +631,7 @@ void RSProperties::SetBorderColor(Vector4<Color> color)
     }
     border_->SetColorFour(color);
     SetDirty();
+    contentDirty_ = true;
 }
 
 void RSProperties::SetBorderWidth(Vector4f width)
@@ -616,6 +641,7 @@ void RSProperties::SetBorderWidth(Vector4f width)
     }
     border_->SetWidthFour(width);
     SetDirty();
+    contentDirty_ = true;
 }
 
 void RSProperties::SetBorderStyle(Vector4<uint32_t> style)
@@ -625,6 +651,7 @@ void RSProperties::SetBorderStyle(Vector4<uint32_t> style)
     }
     border_->SetStyleFour(style);
     SetDirty();
+    contentDirty_ = true;
 }
 
 Vector4<Color> RSProperties::GetBorderColor() const
@@ -651,12 +678,14 @@ void RSProperties::SetBackgroundFilter(std::shared_ptr<RSFilter> backgroundFilte
 {
     backgroundFilter_ = backgroundFilter;
     SetDirty();
+    contentDirty_ = true;
 }
 
 void RSProperties::SetFilter(std::shared_ptr<RSFilter> filter)
 {
     filter_ = filter;
     SetDirty();
+    contentDirty_ = true;
 }
 
 std::shared_ptr<RSFilter> RSProperties::GetBackgroundFilter() const
@@ -677,6 +706,9 @@ void RSProperties::SetShadowColor(Color color)
     }
     shadow_->SetColor(color);
     SetDirty();
+    // [planning] if shadow stores as texture and out of node
+    // node content would not be affected
+    contentDirty_ = true;
 }
 
 void RSProperties::SetShadowOffsetX(float offsetX)
@@ -686,6 +718,9 @@ void RSProperties::SetShadowOffsetX(float offsetX)
     }
     shadow_->SetOffsetX(offsetX);
     SetDirty();
+    // [planning] if shadow stores as texture and out of node
+    // node content would not be affected
+    contentDirty_ = true;
 }
 
 void RSProperties::SetShadowOffsetY(float offsetY)
@@ -695,6 +730,9 @@ void RSProperties::SetShadowOffsetY(float offsetY)
     }
     shadow_->SetOffsetY(offsetY);
     SetDirty();
+    // [planning] if shadow stores as texture and out of node
+    // node content would not be affected
+    contentDirty_ = true;
 }
 
 void RSProperties::SetShadowAlpha(float alpha)
@@ -704,6 +742,9 @@ void RSProperties::SetShadowAlpha(float alpha)
     }
     shadow_->SetAlpha(alpha);
     SetDirty();
+    // [planning] if shadow stores as texture and out of node
+    // node content would not be affected
+    contentDirty_ = true;
 }
 
 void RSProperties::SetShadowElevation(float elevation)
@@ -713,6 +754,9 @@ void RSProperties::SetShadowElevation(float elevation)
     }
     shadow_->SetElevation(elevation);
     SetDirty();
+    // [planning] if shadow stores as texture and out of node
+    // node content would not be affected
+    contentDirty_ = true;
 }
 
 void RSProperties::SetShadowRadius(float radius)
@@ -722,6 +766,9 @@ void RSProperties::SetShadowRadius(float radius)
     }
     shadow_->SetRadius(radius);
     SetDirty();
+    // [planning] if shadow stores as texture and out of node
+    // node content would not be affected
+    contentDirty_ = true;
 }
 
 void RSProperties::SetShadowPath(std::shared_ptr<RSPath> shadowPath)
@@ -731,6 +778,9 @@ void RSProperties::SetShadowPath(std::shared_ptr<RSPath> shadowPath)
     }
     shadow_->SetPath(shadowPath);
     SetDirty();
+    // [planning] if shadow stores as texture and out of node
+    // node content would not be affected
+    contentDirty_ = true;
 }
 
 void RSProperties::SetShadowMask(bool shadowMask)
@@ -740,6 +790,9 @@ void RSProperties::SetShadowMask(bool shadowMask)
     }
     shadow_->SetMask(shadowMask);
     SetDirty();
+    // [planning] if shadow stores as texture and out of node
+    // node content would not be affected
+    contentDirty_ = true;
 }
 
 Color RSProperties::GetShadowColor() const
@@ -792,6 +845,7 @@ void RSProperties::SetFrameGravity(Gravity gravity)
     if (frameGravity_ != gravity) {
         frameGravity_ = gravity;
         SetDirty();
+        contentDirty_ = true;
     }
 }
 
@@ -803,6 +857,8 @@ Gravity RSProperties::GetFrameGravity() const
 void RSProperties::SetDrawRegion(std::shared_ptr<RectF> rect)
 {
     drawRegion_ = rect;
+    SetDirty();
+    geoDirty_ = true;  // since drawRegion affect dirtyRegion, mark it as geoDirty
 }
 
 std::shared_ptr<RectF> RSProperties::GetDrawRegion() const
@@ -810,11 +866,32 @@ std::shared_ptr<RectF> RSProperties::GetDrawRegion() const
     return drawRegion_;
 }
 
+void RSProperties::SetClipRRect(RRect clipRRect)
+{
+    if (!clipRRect_) {
+        clipRRect_ = std::make_unique<RRect>();
+    }
+    clipRRect_->SetValues(clipRRect.rect_, clipRRect.radius_);
+    SetDirty();
+    geoDirty_ = true;  // [planning] all clip ops should be checked
+}
+
+RRect RSProperties::GetClipRRect() const
+{
+    return clipRRect_ ? *clipRRect_ : RRect();
+}
+
+bool RSProperties::GetClipToRRect() const
+{
+    return clipRRect_ != nullptr;
+}
+
 void RSProperties::SetClipBounds(std::shared_ptr<RSPath> path)
 {
     if (clipPath_ != path) {
         clipPath_ = path;
         SetDirty();
+        geoDirty_ = true;  // [planning] all clip ops should be checked
     }
 }
 
@@ -828,6 +905,7 @@ void RSProperties::SetClipToBounds(bool clipToBounds)
     if (clipToBounds_ != clipToBounds) {
         clipToBounds_ = clipToBounds;
         SetDirty();
+        geoDirty_ = true;  // [planning] all clip ops should be checked
     }
 }
 
@@ -841,6 +919,7 @@ void RSProperties::SetClipToFrame(bool clipToFrame)
     if (clipToFrame_ != clipToFrame) {
         clipToFrame_ = clipToFrame;
         SetDirty();
+        geoDirty_ = true;  // [planning] all clip ops should be checked
     }
 }
 
@@ -873,6 +952,7 @@ void RSProperties::SetVisible(bool visible)
     if (visible_ != visible) {
         visible_ = visible;
         SetDirty();
+        contentDirty_ = true;
     }
 }
 
@@ -931,6 +1011,7 @@ void RSProperties::Reset()
 
     backgroundFilter_ = nullptr;
     border_ = nullptr;
+    clipRRect_ = nullptr;
     clipPath_ = nullptr;
     cornerRadius_ = nullptr;
     decoration_ = nullptr;
@@ -941,6 +1022,8 @@ void RSProperties::Reset()
     lightUpEffectDegree_ = 1.0f;
     pixelStretch_ = nullptr;
     pixelStretchPercent_ = nullptr;
+
+    sandboxPosition_ = nullptr;
 }
 
 void RSProperties::SetDirty()
@@ -952,6 +1035,7 @@ void RSProperties::ResetDirty()
 {
     isDirty_ = false;
     geoDirty_ = false;
+    contentDirty_ = false;
 }
 
 bool RSProperties::IsDirty() const
@@ -962,6 +1046,11 @@ bool RSProperties::IsDirty() const
 bool RSProperties::IsGeoDirty() const
 {
     return geoDirty_;
+}
+
+bool RSProperties::IsContentDirty() const
+{
+    return contentDirty_;
 }
 
 RectI RSProperties::GetDirtyRect() const
@@ -1033,6 +1122,7 @@ void RSProperties::SetMask(std::shared_ptr<RSMask> mask)
 {
     mask_ = mask;
     SetDirty();
+    contentDirty_ = true;
 }
 
 std::shared_ptr<RSMask> RSProperties::GetMask() const
@@ -1043,6 +1133,8 @@ std::shared_ptr<RSMask> RSProperties::GetMask() const
 void RSProperties::SetSpherize(float spherizeDegree)
 {
     spherizeDegree_ = spherizeDegree;
+    SetDirty();
+    contentDirty_ = true;
 }
 
 float RSProperties::GetSpherize() const
@@ -1060,6 +1152,7 @@ void RSProperties::SetLightUpEffect(float lightUpEffectDegree)
 {
     lightUpEffectDegree_ = lightUpEffectDegree;
     SetDirty();
+    contentDirty_ = true;
 }
 
 float RSProperties::GetLightUpEffect() const
@@ -1082,6 +1175,7 @@ void RSProperties::SetPixelStretch(Vector4f stretchSize)
     pixelStretch_->SetValues(stretchSize.x_, stretchSize.y_, stretchSize.z_, stretchSize.w_);
 
     SetDirty();
+    contentDirty_ = true;
 }
 
 Vector4f RSProperties::GetPixelStretch() const
@@ -1155,6 +1249,7 @@ void RSProperties::SetPixelStretchPercent(Vector4f stretchPercent)
     pixelStretchPercent_->SetValues(stretchPercent.x_, stretchPercent.y_, stretchPercent.z_, stretchPercent.w_);
 
     SetDirty();
+    contentDirty_ = true;
 }
 
 Vector4f RSProperties::GetPixelStretchPercent() const

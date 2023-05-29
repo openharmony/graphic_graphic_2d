@@ -55,6 +55,8 @@ public:
     bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap) override;
     bool BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
         CompressedType type) override;
+    bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
+        BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) override;
 #endif
     int GetWidth() const override;
     int GetHeight() const override;
@@ -78,6 +80,9 @@ public:
     sk_sp<GrContext> GetGrContext() const;
 #endif
 #endif
+
+    std::shared_ptr<Data> Serialize() const override;
+    bool Deserialize(std::shared_ptr<Data> data) override;
 
 private:
 #ifdef ACE_ENABLE_GPU

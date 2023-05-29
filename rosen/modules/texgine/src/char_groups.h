@@ -49,7 +49,7 @@ struct CharGroup {
     double GetHeight() const
     {
         double maxAdvanceY = 0;
-        for (const auto &glyph : glyphs_) {
+        for (const auto &glyph : glyphs) {
             maxAdvanceY = std::max(maxAdvanceY, glyph.advanceY);
         }
         return maxAdvanceY;

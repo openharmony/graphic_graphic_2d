@@ -32,6 +32,11 @@ void RSSurfaceOhosGl::SetSurfaceBufferUsage(uint64_t usage)
     bufferUsage_ = usage;
 }
 
+void RSSurfaceOhosGl::SetSurfacePixelFormat(int32_t pixelFormat)
+{
+    pixelFormat_ = pixelFormat;
+}
+
 RSSurfaceOhosGl::~RSSurfaceOhosGl()
 {
     DestoryNativeWindow(mWindow);
@@ -64,12 +69,15 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
 
     std::unique_ptr<RSSurfaceFrameOhosGl> frame = std::make_unique<RSSurfaceFrameOhosGl>(width, height);
 
+    NativeWindowHandleOpt(mWindow, SET_FORMAT, pixelFormat_);
 #ifdef RS_ENABLE_AFBC
-    int32_t format = 0;
-    NativeWindowHandleOpt(mWindow, GET_FORMAT, &format);
-    if (format == PIXEL_FMT_RGBA_8888 && useAFBC) {
-        bufferUsage_ =
-            (BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA);
+    if (RSSystemProperties::GetAFBCEnabled()) {
+        int32_t format = 0;
+        NativeWindowHandleOpt(mWindow, GET_FORMAT, &format);
+        if (format == PIXEL_FMT_RGBA_8888 && useAFBC) {
+            bufferUsage_ =
+                (BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA);
+        }
     }
 #endif
     NativeWindowHandleOpt(mWindow, SET_USAGE, bufferUsage_);

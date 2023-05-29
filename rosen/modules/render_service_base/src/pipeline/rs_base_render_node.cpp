@@ -104,21 +104,18 @@ void RSBaseRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
 void RSBaseRenderNode::SetIsOnTheTree(bool flag)
 {
     // We do not need to label a child when the child is removed from a parent that is not on the tree
-    if (!flag && !isOnTheTree_) {
+    if (flag == isOnTheTree_) {
         return;
     }
-
     isOnTheTree_ = flag;
+    OnTreeStateChanged();
+
     for (auto& childWeakPtr : children_) {
         auto child = childWeakPtr.lock();
         if (child == nullptr) {
             continue;
         }
         child->SetIsOnTheTree(flag);
-    }
-
-    if (flag) {
-        return;
     }
 
     for (auto& childPtr : disappearingChildren_) {
@@ -350,6 +347,17 @@ void RSBaseRenderNode::DumpNodeType(std::string& out) const
 bool RSBaseRenderNode::IsDirty() const
 {
     return dirtyStatus_ == NodeDirty::DIRTY;
+}
+
+// attention: current all base node's dirty ops causing content dirty
+bool RSBaseRenderNode::IsContentDirty() const
+{
+    return dirtyStatus_ == NodeDirty::DIRTY;
+}
+
+void RSBaseRenderNode::SetContentDirty()
+{
+    dirtyStatus_ = NodeDirty::DIRTY;
 }
 
 void RSBaseRenderNode::SetDirty()

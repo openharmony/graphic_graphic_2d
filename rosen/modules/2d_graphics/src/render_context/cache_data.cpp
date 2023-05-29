@@ -29,7 +29,10 @@ CacheData::CacheData (const size_t maxKeySize, const size_t maxValueSize,
     : maxKeySize_(maxKeySize),
     maxValueSize_(maxValueSize),
     maxTotalSize_(maxTotalSize),
-    cacheDir_(fileName) {}
+    cacheDir_(fileName)
+{
+    LOGW("CacheData: construction of CacheData");
+}
 
 CacheData::~CacheData()
 {
@@ -189,6 +192,8 @@ void CacheData::Rewrite(const void *key, const size_t keySize, const void *value
 
 size_t CacheData::Get(const void *key, const size_t keySize, void *value, const size_t valueSize)
 {
+    LOGW("CacheData start to get a piece of cache");
+    
     if (maxKeySize_ < keySize) {
         LOGE("abandon, because the key is too large");
         return 0;

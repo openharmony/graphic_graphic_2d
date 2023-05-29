@@ -45,6 +45,8 @@ private:
     std::vector<VariantSpan> spans_;
     std::shared_ptr<TextSpan> lastTextSpan_ = nullptr;
 };
-} // namespace Texgine
+} // namespace OHOS
+} // namespace Rosen
+} // namespace TextEngine
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_TYPOGRAPHY_BUILDER_IMPL_H

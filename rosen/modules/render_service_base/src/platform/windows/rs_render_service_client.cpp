@@ -108,7 +108,7 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
 }
 
 int32_t RSRenderServiceClient::SetFocusAppInfo(
-    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName)
+    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
 {
     return false;
 }
@@ -241,11 +241,6 @@ int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t 
 }
 
 int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
-{
-    return {};
-}
-
-int32_t RSRenderServiceClient::UnRegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
     return {};
 }

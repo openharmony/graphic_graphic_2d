@@ -228,7 +228,11 @@ bool RSImageFuzzTest(const uint8_t* data, size_t size)
 
     RSImage rsImage;
     rsImage.IsEqual(other);
+#ifdef NEW_SKIA
+    rsImage.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
+#else
     rsImage.CanvasDrawImage(canvas, rect, paint, isBackground);
+#endif
     rsImage.SetImage(image);
     rsImage.SetDstRect(dstRect);
     rsImage.SetImageFit(fitNum);

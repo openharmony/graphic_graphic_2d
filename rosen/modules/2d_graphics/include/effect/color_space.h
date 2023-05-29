@@ -59,7 +59,7 @@ public:
      */
     static std::shared_ptr<ColorSpace> CreateRGB(const CMSTransferFuncType& func, const CMSMatrixType& matrix);
 
-    ~ColorSpace() {}
+    virtual ~ColorSpace() = default;
     ColorSpaceType GetType() const;
     template<typename T>
     const std::shared_ptr<T> GetImpl() const

@@ -16,18 +16,13 @@ import("//foundation/graphic/graphic_2d/utils/wmlayout/wmlayout.gni")
 import("graphic_config.gni")
 
 group("default") {
-  public_deps = [
-    ":graphic.rc",
-    "frameworks/dumper:gdumper",
-    "frameworks/dumper:gdumper.ini",
-    "frameworks/dumper:graphic_dumper_server",
-    "frameworks/vulkan_wrapper:vulkan",
-  ]
+  public_deps = [ ":graphic.rc" ]
 
   if (graphic_standard_feature_bootanimation_enable) {
     public_deps += [ "frameworks/bootanimation:bootanimation" ]
     public_deps += [ "frameworks/bootanimation:bootanimation_pics" ]
     public_deps += [ "frameworks/bootanimation:bootanimation_sounds" ]
+    public_deps += [ "frameworks/bootanimation:bootanimation_video" ]
   }
 }
 
@@ -37,7 +32,7 @@ group("graphic_2d_test") {
   public_deps = [
     "frameworks/opengl_wrapper/test:test",
     "frameworks/surface/test:test",
-    "frameworks/vulkan_wrapper/test:test",
+    "frameworks/vulkan_layers/test:test",
     "rosen/modules/composer:test",
     "rosen/modules/effect/test/unittest:test",
     "rosen/test/frame_analyzer:test",
@@ -73,10 +68,6 @@ group("libgl") {
 
 group("libvulkan") {
   public_deps = libvulkan
-}
-
-group("libgraphic_dumper_client") {
-  public_deps = [ "frameworks/dumper:libgraphic_dumper_client" ]
 }
 
 group("libnative_image") {

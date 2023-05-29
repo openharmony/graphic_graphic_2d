@@ -33,7 +33,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 using namespace OHOS::HDI::Display::Composer::V1_0;
-using IDisplayComposerInterfaceSptr = std::shared_ptr<IDisplayComposerInterface>;
+using IDisplayComposerInterfaceSptr = sptr<IDisplayComposerInterface>;
 static IDisplayComposerInterfaceSptr g_composer;
 }
 
@@ -49,7 +49,7 @@ HdiDeviceImpl::~HdiDeviceImpl()
 RosenError HdiDeviceImpl::Init()
 {
     if (g_composer == nullptr) {
-        g_composer.reset(IDisplayComposerInterface::Get());
+        g_composer = IDisplayComposerInterface::Get();
         if (g_composer == nullptr) {
             HLOGE("IDisplayComposerInterface::Get return nullptr.");
             return ROSEN_ERROR_NOT_INIT;
@@ -544,6 +544,13 @@ int32_t HdiDeviceImpl::GetPresentTimestamp(uint32_t screenId, uint32_t layerId, 
         timestamp.type = static_cast<GraphicPresentTimestampType>(hdiTimestamp.type);
     }
     return ret;
+}
+
+int32_t HdiDeviceImpl::SetLayerMaskInfo(uint32_t screenId, uint32_t layerId, uint32_t maskInfo)
+{
+    CHECK_FUNC(g_composer);
+    MaskInfo info = static_cast<MaskInfo>(maskInfo);
+    return g_composer->SetLayerMaskInfo(screenId, layerId, info);
 }
 
 /* set & get device layer info end */

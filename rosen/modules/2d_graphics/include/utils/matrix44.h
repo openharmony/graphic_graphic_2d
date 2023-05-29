@@ -57,7 +57,7 @@ public:
      * @brief   Converts the Matrix44 to Matrix.
      * @return  A Matrix which converts by Matrix44.
      */
-    operator Matrix() const;
+    explicit operator Matrix() const;
 
     /*
      * @brief         Sets Matrix44 to sixteen values in buffer.
@@ -73,7 +73,7 @@ public:
     template<typename T>
     const std::shared_ptr<T> GetImpl() const
     {
-        return (impl_ == nullptr) ? nullptr : impl_->DowncastingTo<T>();
+        return impl_->DowncastingTo<T>();
     }
 private:
     std::shared_ptr<Matrix44Impl> impl_;

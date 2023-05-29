@@ -23,9 +23,6 @@ namespace Drawing {
 ColorSpace::ColorSpace(ColorSpaceType t) noexcept : ColorSpace()
 {
     type_ = t;
-    if (impl_ == nullptr) {
-        return;
-    }
     switch (type_) {
         case ColorSpace::ColorSpaceType::SRGB:
             impl_->InitWithSRGB();
@@ -41,18 +38,13 @@ ColorSpace::ColorSpace(ColorSpaceType t) noexcept : ColorSpace()
 ColorSpace::ColorSpace(ColorSpaceType t, const Image& image) noexcept : ColorSpace()
 {
     type_ = t;
-    if (impl_ == nullptr) {
-        return;
-    }
     impl_->InitWithImage(image);
 }
 
-ColorSpace::ColorSpace(ColorSpaceType t, const CMSTransferFuncType& func, const CMSMatrixType& matrix) noexcept : ColorSpace()
+ColorSpace::ColorSpace(ColorSpaceType t,
+                       const CMSTransferFuncType& func, const CMSMatrixType& matrix) noexcept : ColorSpace()
 {
     type_ = t;
-    if (impl_ == nullptr) {
-        return;
-    }
     impl_->InitWithRGB(func, matrix);
 }
 

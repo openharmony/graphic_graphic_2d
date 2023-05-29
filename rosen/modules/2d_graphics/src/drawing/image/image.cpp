@@ -39,40 +39,57 @@ Image* Image::BuildFromPicture(const Picture& picture, const SizeI& dimensions, 
 #ifdef ACE_ENABLE_GPU
 bool Image::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
 {
-    return (imageImplPtr == nullptr) ? false : imageImplPtr->BuildFromBitmap(gpuContext, bitmap);
+    return imageImplPtr->BuildFromBitmap(gpuContext, bitmap);
 }
 
 bool Image::BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
     CompressedType type)
 {
-    return (imageImplPtr == nullptr) ? false : imageImplPtr->BuildFromCompressed(gpuContext, data, width, height, type);
+    return imageImplPtr->BuildFromCompressed(gpuContext, data, width, height, type);
+}
+
+bool Image::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
+    BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace)
+{
+    return imageImplPtr->BuildFromTexture(gpuContext, info, origin, bitmapFormat, colorSpace);
 }
 #endif
 
 int Image::GetWidth() const
 {
-    return (imageImplPtr == nullptr) ? 0 : imageImplPtr->GetWidth();
+    return imageImplPtr->GetWidth();
 }
 
 int Image::GetHeight() const
 {
-    return (imageImplPtr == nullptr) ? 0 : imageImplPtr->GetHeight();
+    return imageImplPtr->GetHeight();
 }
 
 uint32_t Image::GetUniqueID() const
 {
-    return (imageImplPtr == nullptr) ? 0 : imageImplPtr->GetUniqueID();
+    return imageImplPtr->GetUniqueID();
 }
 
 bool Image::ReadPixels(Bitmap& bitmap, int x, int y)
 {
-    return (imageImplPtr == nullptr) ? false : imageImplPtr->ReadPixels(bitmap, x, y);
+    return imageImplPtr->ReadPixels(bitmap, x, y);
 }
 
 bool Image::IsTextureBacked() const
 {
-    return (imageImplPtr == nullptr) ? false : imageImplPtr->IsTextureBacked();
+    return imageImplPtr->IsTextureBacked();
 }
+
+std::shared_ptr<Data> Image::Serialize() const
+{
+    return imageImplPtr->Serialize();
+}
+
+bool Image::Deserialize(std::shared_ptr<Data> data)
+{
+    return imageImplPtr->Deserialize(data);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

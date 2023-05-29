@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef ROSEN_MODULES_RENDER_SERVICE_CLIENT_TEST_UNITTEST_ANIMATION_RS_ANIMATION_TEST_UTILS_H
+#define ROSEN_MODULES_RENDER_SERVICE_CLIENT_TEST_UNITTEST_ANIMATION_RS_ANIMATION_TEST_UTILS_H
+
 #include "animation/rs_animation_common.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
@@ -77,3 +80,4 @@ constexpr bool SUCCESS_BOOL = true;
 }
 } // namespace Rosen
 } // namespace OHOS
+#endif // ROSEN_MODULES_RENDER_SERVICE_CLIENT_TEST_UNITTEST_ANIMATION_RS_ANIMATION_TEST_UTILS_H

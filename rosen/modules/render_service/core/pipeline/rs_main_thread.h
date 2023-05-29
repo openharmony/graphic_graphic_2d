@@ -34,7 +34,7 @@
 #include "common/rs_thread_looper.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
-#include "memory/MemoryGraphic.h"
+#include "memory/rs_memory_graphic.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/drawing/rs_vsync_client.h"
@@ -121,9 +121,8 @@ public:
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
 
-    void RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback);
-    void UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback);
-    void CleanOcclusionListener();
+    void RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback);
+    void UnRegisterOcclusionChangeCallback(pid_t pid);
 
     void WaitUtilUniRenderFinished();
     void NotifyUniRenderFinish();
@@ -139,7 +138,7 @@ public:
     void AddTransactionDataPidInfo(pid_t remotePid);
 
     void SetFocusAppInfo(
-        int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName);
+        int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId);
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
 
@@ -166,6 +165,7 @@ private:
     RSMainThread& operator=(const RSMainThread&) = delete;
     RSMainThread& operator=(const RSMainThread&&) = delete;
 
+    bool IsSingleDisplay();
     void OnVsync(uint64_t timestamp, void* data);
     void ProcessCommand();
     void Animate(uint64_t timestamp);
@@ -186,8 +186,11 @@ private:
     void RemoveRSEventDetector();
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
+#ifdef NEW_SKIA
+    void ReleaseExitSurfaceNodeAllGpuResource(GrDirectContext* grContext, pid_t pid);
+#else
     void ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext, pid_t pid);
-    void ReleaseBackGroundNodeUnlockGpuResource(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
+#endif
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
     void ResetSortedChildren(std::shared_ptr<RSBaseRenderNode> node);
@@ -203,7 +206,7 @@ private:
 
     void CheckColdStartMap();
     void ClearDisplayBuffer();
-    void PerfAfterAnim();
+    void PerfAfterAnim(bool needRequestNextVsync);
     void PerfForBlurIfNeeded();
     void PerfMultiWindow();
     void ResetHardwareEnabledState();
@@ -214,6 +217,8 @@ private:
     void ResSchedDataStartReport(bool needRequestNextVsync);
     // Click animation, report the complete event to RS
     void ResSchedDataCompleteReport(bool needRequestNextVsync);
+
+    bool NeedReleaseGpuResource(const RSRenderNodeMap& nodeMap);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -243,7 +248,8 @@ private:
     std::shared_ptr<RSContext> context_;
     std::thread::id mainThreadId_;
     std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
-    std::vector<sptr<RSIOcclusionChangeCallback>> occlusionListeners_;
+    std::map<pid_t, sptr<RSIOcclusionChangeCallback>> occlusionListeners_;
+    std::mutex occlusionMutex_;
 
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     RSTaskMessage::RSTask unmarshalBarrierTask_;
@@ -280,8 +286,10 @@ private:
     const uint8_t opacity_ = 255;
     std::string focusAppBundleName_ = "";
     std::string focusAppAbilityName_ = "";
+    uint64_t focusNodeId_ = 0;
     uint32_t appWindowNum_ = 0;
     uint32_t requestNextVsyncNum_ = 0;
+    bool lastFrameHasFilter_ = false;
 
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;

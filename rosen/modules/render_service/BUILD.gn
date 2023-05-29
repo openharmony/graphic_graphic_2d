@@ -28,8 +28,8 @@ ohos_shared_library("librender_service") {
   defines += gpu_defines
 
   sources = [
-    "core/memory/MemoryManager.cpp",
-    "core/memory/SkiaMemoryTracer.cpp",
+    "core/memory/rs_memory_manager.cpp",
+    "core/memory/rs_skia_memory_tracer.cpp",
     "core/pipeline/rs_base_render_engine.cpp",
     "core/pipeline/rs_base_render_util.cpp",
     "core/pipeline/rs_cold_start_thread.cpp",
@@ -93,23 +93,23 @@ ohos_shared_library("librender_service") {
 
   include_dirs = [
     "core",
-    "//foundation/graphic/graphic_2d/frameworks/surface/include",
-    "//foundation/graphic/graphic_2d/rosen/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
+    "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/modules/composer/vsync/include",
     "$graphic_2d_root/rosen/modules/render_frame_trace/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/rosen/modules/utils",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/utils",
     "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
-    "//foundation/graphic/graphic_2d/utils/log",
+    "$graphic_2d_root/utils/log",
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
   ]
 
   deps = [
+    "$graphic_2d_root:libsurface",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
-    "//foundation/graphic/graphic_2d:libsurface",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk:system_ability_fwk",
   ]
 
@@ -122,8 +122,6 @@ ohos_shared_library("librender_service") {
   }
 
   if (rs_enable_gpu) {
-    include_dirs += [ "$graphic_2d_root/frameworks/vulkan_wrapper/include" ]
-
     if (graphic_standard_feature_enable_vulkan) {
       include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]
     }
@@ -174,8 +172,8 @@ ohos_executable("render_service") {
 
   deps = [
     ":librender_service",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
 
   part_name = "graphic_standard"

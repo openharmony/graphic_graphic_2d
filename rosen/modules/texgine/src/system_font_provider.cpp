@@ -40,13 +40,13 @@ std::shared_ptr<VariantFontStyleSet> SystemFontProvider::MatchFamily(const std::
 {
     auto fontMgr = TexgineFontManager::RefDefault();
     if (fontMgr == nullptr || fontMgr->GetFontMgr() == nullptr) {
-        LOG2EX(ERROR) << "fontMgr is nullptr!";
+        LOGEX_FUNC_LINE(ERROR) << "fontMgr is nullptr!";
         return nullptr;
     }
 
     auto fontStyleSet = fontMgr->MatchFamily(familyName.c_str());
-    if (fontStyleSet == nullptr || fontStyleSet->Get() == nullptr) {
-        LOG2EX_DEBUG() << "fontStyleSet is nullptr!";
+    if (fontStyleSet == nullptr || fontStyleSet->GetFontStyleSet() == nullptr) {
+        LOGEX_FUNC_LINE_DEBUG() << "fontStyleSet is nullptr!";
     }
 
     return std::make_shared<VariantFontStyleSet>(fontStyleSet);

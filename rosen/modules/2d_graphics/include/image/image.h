@@ -31,6 +31,124 @@ enum class CompressedType {
     ASTC,
 };
 
+enum class TextureOrigin {
+    TOP_LEFT,
+    BOTTOM_LEFT,
+};
+
+class TextureInfo {
+public:
+    /*
+     * @brief  Sets the width value of Texture.
+     */
+    void SetWidth(int width)
+    {
+        width_ = width;
+    }
+
+    /*
+     * @brief  Sets the height value of Texture.
+     */
+    void SetHeight(int height)
+    {
+        height_ = height;
+    }
+
+    /*
+     * @brief  Used to say whether a texture has mip levels allocated or not.
+     */
+    void SetIsMipMapped(bool isMipMapped)
+    {
+        isMipMapped_ = isMipMapped;
+    }
+
+    /*
+     * @brief         Sets the target type of texture to render.
+     * @param target  The target type of texture.
+     */
+    void SetTarget(unsigned int target)
+    {
+        target_ = target;
+    }
+
+    /*
+     * @brief     Sets the Id of texture to render.
+     * @param id  Texture Id value.
+     */
+    void SetID(unsigned int id)
+    {
+        id_ = id;
+    }
+
+    /*
+     * @brief         Set the format of texture.
+     * @param format  The format of texture.
+     */
+    void SetFormat(unsigned int format)
+    {
+        format_ = format;
+    }
+
+    /*
+     * @brief  Gets the width of TextureInfo.
+     */
+    int GetWidth() const
+    {
+        return width_;
+    }
+
+    /*
+     * @brief  Gets the height of TextureInfo.
+     */
+    int GetHeight() const
+    {
+        return height_;
+    }
+
+    /*
+     * @brief  Gets whether the texture has mip levels allocated.
+     */
+    bool GetIsMipMapped() const
+    {
+        return isMipMapped_;
+    }
+
+    /*
+     * @brief   Gets the target type of TextureInfo.
+     * @return  The target type of TextureInfo.
+     */
+    unsigned int GetTarget() const
+    {
+        return target_;
+    }
+
+    /*
+     * @brief   Gets the Id of TextureInfo.
+     * @return  The Id of TextureInfo.
+     */
+    unsigned int GetID() const
+    {
+        return id_;
+    }
+
+    /*
+     * @brief   Gets the format of TextureInfo.
+     * @return  The target format of TextureInfo.
+     */
+    unsigned int GetFormat() const
+    {
+        return format_;
+    }
+
+private:
+    int width_ = 0;
+    int height_ = 0;
+    bool isMipMapped_ = false;
+    unsigned int target_ = 0;
+    unsigned int id_ = 0;
+    unsigned int format_ = 0;
+};
+
 class Image {
 public:
     Image() noexcept;
@@ -61,6 +179,19 @@ public:
      */
     bool BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
         CompressedType type);
+
+    /*
+     * @brief               Create Image from GPU texture associated with context.
+     * @param gpuContext    GPU context.
+     * @param info          Texture info.
+     * @param origin        The origin of the texture space corresponds to the context pixel.
+                            One of TextureOrigin::Top_Left, TextureOrigion::Bottom_Left.
+     * @param bitmapFormat  It contains ColorType and AlphaType.
+     * @param colorSpace    Range of colors, may be nullptr.
+     * @return              True if Image is created successed.
+     */
+    bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
+        BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace);
 #endif
 
     /*
@@ -99,6 +230,10 @@ public:
     {
         return imageImplPtr->DowncastingTo<T>();
     }
+
+    // using for recording, should to remove after using shared memory
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
 
 private:
     std::shared_ptr<ImageImpl> imageImplPtr;

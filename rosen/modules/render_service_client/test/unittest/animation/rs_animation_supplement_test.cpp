@@ -159,7 +159,7 @@ public:
 
 class RSKeyframeAnimationMock : public RSKeyframeAnimation {
 public:
-    RSKeyframeAnimationMock(std::shared_ptr<RSPropertyBase> property) : RSKeyframeAnimation(property) {}
+    explicit RSKeyframeAnimationMock(std::shared_ptr<RSPropertyBase> property) : RSKeyframeAnimation(property) {}
     ~RSKeyframeAnimationMock() = default;
 
     void OnStart() override

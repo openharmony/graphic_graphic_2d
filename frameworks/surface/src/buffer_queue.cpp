@@ -411,6 +411,11 @@ void BufferQueue::DumpToFile(uint32_t sequence)
         return;
     }
 
+    sptr<SurfaceBuffer>& buffer = bufferQueueCache_[sequence].buffer;
+    if (buffer == nullptr) {
+        return;
+    }
+
     ScopedBytrace func(__func__);
     struct timeval now;
     gettimeofday(&now, nullptr);
@@ -418,9 +423,8 @@ void BufferQueue::DumpToFile(uint32_t sequence)
     int64_t nowVal = (int64_t)now.tv_sec * secToUsec + (int64_t)now.tv_usec;
 
     std::stringstream ss;
-    ss << "/data/bq_" << GetRealPid() << "_" << name_ << "_" << nowVal << ".raw";
-
-    sptr<SurfaceBuffer>& buffer = bufferQueueCache_[sequence].buffer;
+    ss << "/data/bq_" << GetRealPid() << "_" << name_ << "_" << nowVal << "_" << buffer->GetWidth()
+        << "x" << buffer->GetHeight() << ".raw";
     std::ofstream rawDataFile(ss.str(), std::ofstream::binary);
     if (!rawDataFile.good()) {
         BLOGE("open failed: (%{public}d)%{public}s", errno, strerror(errno));

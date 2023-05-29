@@ -18,7 +18,6 @@
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 
-#include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
 #include "modifier/rs_modifier_manager.h"
 #include "modifier/rs_modifier_manager_map.h"
@@ -64,7 +63,7 @@ RSUIDirector::~RSUIDirector()
 
 void RSUIDirector::Init(bool shouldCreateRenderThread)
 {
-    AnimationCommandHelper::SetFinishCallbackProcessor(AnimationCallbackProcessor);
+    AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor);
 
     isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
     if (shouldCreateRenderThread && !isUniRenderEnabled_) {
@@ -272,8 +271,11 @@ void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
     if (cmds == nullptr || cmds->IsEmpty()) {
         return;
     }
-
-    PostTask([cmds]() { RSUIDirector::ProcessMessages(cmds); });
+    ROSEN_LOGD("RSUIDirector::RecvMessages success");
+    PostTask([cmds]() {
+        ROSEN_LOGD("RSUIDirector::ProcessMessages success");
+        RSUIDirector::ProcessMessages(cmds);
+    });
 }
 
 void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
@@ -282,11 +284,11 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
     cmds->Process(context);
 }
 
-void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId)
+void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, AnimationCallbackEvent event)
 {
     // try find the node by nodeId
     if (auto nodePtr = RSNodeMap::Instance().GetNode<RSNode>(nodeId)) {
-        if (!nodePtr->AnimationFinish(animId)) {
+        if (!nodePtr->AnimationCallback(animId, event)) {
             ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, could not find animation %" PRIu64 " on node %" PRIu64
                        ".", animId, nodeId);
         }
@@ -295,7 +297,7 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId)
 
     // if node not found, try fallback node
     auto& fallbackNode = RSNodeMap::Instance().GetAnimationFallbackNode();
-    if (fallbackNode && fallbackNode->AnimationFinish(animId)) {
+    if (fallbackNode && fallbackNode->AnimationCallback(animId, event)) {
         ROSEN_LOGD("RSUIDirector::AnimationCallbackProcessor, found animation %" PRIu64 " on fallback node.", animId);
     } else {
         ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, could not find animation %" PRIu64 " on fallback node.",
@@ -309,6 +311,7 @@ void RSUIDirector::PostTask(const std::function<void()>& task)
         ROSEN_LOGE("RSUIDirector::PostTask, uiTaskRunner is null");
         return;
     }
+    ROSEN_LOGD("RSUIDirector::PostTask success");
     g_uiTaskRunner(task);
 }
 } // namespace Rosen

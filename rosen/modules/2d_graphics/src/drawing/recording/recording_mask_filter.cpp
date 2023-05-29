@@ -19,13 +19,12 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-RecordingMaskFilter::RecordingMaskFilter() noexcept : cmdList_(std::make_shared<MaskFilterCmdList>())
-{}
+RecordingMaskFilter::RecordingMaskFilter() noexcept : cmdList_(std::make_shared<MaskFilterCmdList>()) {}
 
 std::shared_ptr<RecordingMaskFilter> RecordingMaskFilter::CreateBlurMaskFilter(BlurType blurType, scalar sigma)
 {
     auto maskFilter = std::make_shared<RecordingMaskFilter>();
-    maskFilter->cmdList_->AddOp<CreateBlurMaskFilterOpItem>(blurType, sigma);
+    maskFilter->GetCmdList()->AddOp<CreateBlurMaskFilterOpItem>(blurType, sigma);
     return maskFilter;
 }
 

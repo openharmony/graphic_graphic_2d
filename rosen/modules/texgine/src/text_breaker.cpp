@@ -29,12 +29,11 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-int TextBreaker::WordBreak(std::vector<VariantSpan> &spans,
-                           const TypographyStyle &ys,
-                           const std::unique_ptr<FontProviders> &fontProviders)
+int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyle &ys,
+    const std::unique_ptr<FontProviders> &fontProviders)
 {
     ScopedTrace scope("TextBreaker::WordBreak");
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "WordBreak");
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "WordBreak");
     std::vector<VariantSpan> visitingSpans;
     std::swap(visitingSpans, spans);
     for (const auto &vspan : visitingSpans) {
@@ -58,14 +57,14 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans,
             return 1;
         }
 
-        LOGSCOPED(sl2, LOG2EX_DEBUG(), "TextBreaker::doWordBreak algo");
+        LOGSCOPED(sl2, LOGEX_FUNC_LINE_DEBUG(), "TextBreaker::doWordBreak algo");
         preBreak_ = 0;
         postBreak_ = 0;
         for (auto &[start, end] : boundaries) {
             const auto &wordcgs = cgs.GetSubFromU16RangeAll(start, end);
             std::stringstream ss;
             ss << "u16range: [" << start << ", " << end << "), range: " << wordcgs.GetRange();
-            LOGSCOPED(sl, LOG2EX_DEBUG(), ss.str());
+            LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), ss.str());
             BreakWord(wordcgs, ys, xs, spans);
         }
     }
@@ -73,78 +72,71 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans,
     return 0;
 }
 
-std::shared_ptr<FontCollection> TextBreaker::GenerateFontCollection(
-    const TypographyStyle &ys,
-    const TextStyle &xs,
-    const std::unique_ptr<FontProviders> &fontProviders) noexcept(false)
+std::shared_ptr<FontCollection> TextBreaker::GenerateFontCollection(const TypographyStyle &ys,
+    const TextStyle &xs, const std::unique_ptr<FontProviders> &fontProviders) noexcept(false)
 {
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "TextBreaker::GenerateFontCollection");
-    auto families = xs.fontFamilies_;
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "TextBreaker::GenerateFontCollection");
+    auto families = xs.fontFamilies;
     if (families.empty()) {
-        families = ys.fontFamilies_;
+        families = ys.fontFamilies;
     }
 
     if (fontProviders == nullptr) {
-        LOG2EX(ERROR) << "fontProviders is nullptr";
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        LOGEX_FUNC_LINE(ERROR) << "fontProviders is nullptr";
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
     return fontProviders->GenerateFontCollection(families);
 }
 
-int TextBreaker::Measure(const TextStyle &xs,
-                         const std::vector<uint16_t> &u16vect,
-                         FontCollection &fontCollection,
-                         CharGroups &cgs,
-                         std::vector<Boundary> &boundaries) noexcept(false)
+int TextBreaker::Measure(const TextStyle &xs, const std::vector<uint16_t> &u16vect,
+    FontCollection &fontCollection, CharGroups &cgs, std::vector<Boundary> &boundaries) noexcept(false)
 {
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "TextBreaker::doMeasure");
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "TextBreaker::doMeasure");
     auto measurer = Measurer::Create(u16vect, fontCollection);
     if (measurer == nullptr) {
-        LOG2EX(ERROR) << "Measurer::Create return nullptr";
-        throw TEXGINE_EXCEPTION(APIFailed);
+        LOGEX_FUNC_LINE(ERROR) << "Measurer::Create return nullptr";
+        throw TEXGINE_EXCEPTION(API_FAILED);
     }
 
-    measurer->SetLocale(xs.locale_);
+    measurer->SetLocale(xs.locale);
     measurer->SetRTL(false);
-    measurer->SetSize(xs.fontSize_);
-    FontStyles style(xs.fontWeight_, xs.fontStyle_);
+    measurer->SetSize(xs.fontSize);
+    FontStyles style(xs.fontWeight, xs.fontStyle);
     measurer->SetFontStyle(style);
     measurer->SetRange(0, u16vect.size());
-    measurer->SetSpacing(xs.letterSpacing_, xs.wordSpacing_);
+    measurer->SetSpacing(xs.letterSpacing, xs.wordSpacing);
     auto ret = measurer->Measure(cgs);
     if (ret != 0) {
-        LOG2EX(ERROR) << "Measure failed!";
+        LOGEX_FUNC_LINE(ERROR) << "Measure failed!";
         return ret;
     }
     boundaries = measurer->GetWordBoundary();
     if (boundaries.size() == 0) {
-        LOG2EX(ERROR) << "Measurer GetWordBoundary failed!";
+        LOGEX_FUNC_LINE(ERROR) << "Measurer GetWordBoundary failed!";
         return 1;
     }
     return 0;
 }
 
-void TextBreaker::BreakWord(const CharGroups &wordcgs,
-                            const TypographyStyle &ys,
-                            const TextStyle &xs,
-                            std::vector<VariantSpan> &spans)
+void TextBreaker::BreakWord(const CharGroups &wordcgs, const TypographyStyle &ys,
+    const TextStyle &xs, std::vector<VariantSpan> &spans)
 {
     size_t rangeOffset = 0;
     for (size_t i = 0; i < wordcgs.GetNumberOfCharGroup(); i++) {
         const auto &cg = wordcgs.Get(i);
         postBreak_ += cg.GetWidth();
-        if (u_isWhitespace(cg.chars_[0]) == 0) {
+        if (u_isWhitespace(cg.chars[0]) == 0) {
             // not white space
             preBreak_ = postBreak_;
         }
 
-        LOG2EX_DEBUG() << "Now: [" << i << "] '" << TextConverter::ToStr(cg.chars_) << "'"
+        LOGEX_FUNC_LINE_DEBUG() << "Now: [" << i << "] '" << TextConverter::ToStr(cg.chars) << "'"
             << " preBreak_: " << preBreak_ << ", postBreak_: " << postBreak_;
 
-        const auto &breakType = ys.wordBreakType_;
-        bool isBreakAll = (breakType == WordBreakType::BREAKALL);
-        bool isBreakWord = (breakType == WordBreakType::BREAKWORD);
+        const auto &breakType = ys.wordBreakType;
+        bool isBreakAll = (breakType == WordBreakType::BREAK_ALL);
+        bool isBreakWord = (breakType == WordBreakType::BREAK_WORD);
         bool isFinalCharGroup = (i == wordcgs.GetNumberOfCharGroup() - 1);
         bool needGenerateSpan = isBreakAll;
         needGenerateSpan = needGenerateSpan || (isBreakWord && isFinalCharGroup);
@@ -158,26 +150,24 @@ void TextBreaker::BreakWord(const CharGroups &wordcgs,
     }
 }
 
-void TextBreaker::GenerateSpan(const CharGroups &currentCgs,
-                               const TypographyStyle &ys,
-                               const TextStyle &xs,
-                               std::vector<VariantSpan> &spans)
+void TextBreaker::GenerateSpan(const CharGroups &currentCgs, const TypographyStyle &ys,
+    const TextStyle &xs, std::vector<VariantSpan> &spans)
 {
     if (!currentCgs.IsValid() || currentCgs.GetSize() == 0) {
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
-    LOG2EX_DEBUG(Logger::NoReturn) << "AddWord " << spans.size()
+    LOGEX_FUNC_LINE_DEBUG(Logger::SetToNoReturn) << "AddWord " << spans.size()
         << " " << currentCgs.GetRange() << ": \033[40m'";
     LOGCEX_DEBUG() << TextConverter::ToStr(currentCgs.ToUTF16()) << "'\033[0m";
     auto newSpan = std::make_shared<TextSpan>();
     newSpan->cgs_ = currentCgs;
     newSpan->postBreak_ = postBreak_;
     newSpan->preBreak_ = preBreak_;
-    newSpan->typeface_ = currentCgs.Get(0).typeface_;
+    newSpan->typeface_ = currentCgs.Get(0).typeface;
 
     for ([[maybe_unused]] const auto &cg : currentCgs) {
-        assert(cg.typeface_ == newSpan->typeface_);
+        assert(cg.typeface == newSpan->typeface_);
     }
     VariantSpan vs(newSpan);
     vs.SetTextStyle(xs);

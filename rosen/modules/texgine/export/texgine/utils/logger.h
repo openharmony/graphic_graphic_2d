@@ -122,10 +122,12 @@ public:
 
 class ScopedLogger {
 public:
+    ScopedLogger(const ScopedLogger &) = default;
     ScopedLogger(NoLogger &&logger);
     ScopedLogger(NoLogger &&logger, const std::string &name);
     ScopedLogger(Logger &&logger);
     ScopedLogger(Logger &&logger, const std::string &name);
+    ScopedLogger &operator=(const ScopedLogger &) = default;
     ~ScopedLogger();
 
     void Finish();
@@ -146,86 +148,86 @@ private:
  * @brief stdout
  */
 #define LOGNSO(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::NoReturn, Logger::Continue, Logger::Stdout, NULL)
+    Logger::SetToNoReturn, Logger::SetToContinue, Logger::OutputByStdout, NULL)
 #define LOGCSO(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::Continue, Logger::Stdout, NULL)
+    Logger::SetToContinue, Logger::OutputByStdout, NULL)
 #define LOGSO(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::Stdout, NULL)
+    Logger::OutputByStdout, NULL)
 #define LOGSO_FUNC(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::Func, Logger::Stdout, NULL)
+    Logger::AppendFunc, Logger::OutputByStdout, NULL)
 #define LOGSO_FUNC_LINE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::FuncLine, Logger::Stdout, NULL)
+    Logger::AppendFuncLine, Logger::OutputByStdout, NULL)
 #define LOGSO_FILE_LINE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::FileLine, Logger::Stdout, NULL)
+    Logger::AppendFileLine, Logger::OutputByStdout, NULL)
 #define LOGSO_FFL(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::FileFuncLine, Logger::Stdout, NULL)
+    Logger::AppendFileFuncLine, Logger::OutputByStdout, NULL)
 #define LOGSO_PT(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::PidTid, Logger::Stdout, NULL)
+    Logger::AppendPidTid, Logger::OutputByStdout, NULL)
 #define LOGSO_PT_FUNC(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::PidTid, Logger::Func, Logger::Stdout, NULL)
+    Logger::AppendPidTid, Logger::AppendFunc, Logger::OutputByStdout, NULL)
 #define LOGSO_PT_FUNC_LINE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::PidTid, Logger::FuncLine, Logger::Stdout, NULL)
+    Logger::AppendPidTid, Logger::AppendFuncLine, Logger::OutputByStdout, NULL)
 #define LOGSO_PT_FILE_LINE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::PidTid, Logger::FileLine, Logger::Stdout, NULL)
+    Logger::AppendPidTid, Logger::AppendFileLine, Logger::OutputByStdout, NULL)
 #define LOGSO_PT_FFL(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::PidTid, Logger::FileFuncLine, Logger::Stdout, NULL)
+    Logger::AppendPidTid, Logger::AppendFileFuncLine, Logger::OutputByStdout, NULL)
 
 /*
  * @brief stderr
  */
 #define LOGNSE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::NoReturn, Logger::Continue, Logger::Stderr, NULL)
+    Logger::SetToNoReturn, Logger::SetToContinue, Logger::OutputByStderr, NULL)
 #define LOGCSE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::Continue, Logger::Stderr, NULL)
+    Logger::SetToContinue, Logger::OutputByStderr, NULL)
 #define LOGSE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::Stderr, NULL)
+    Logger::OutputByStderr, NULL)
 #define LOGSE_FUNC(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::Func, Logger::Stderr, NULL)
+    Logger::AppendFunc, Logger::OutputByStderr, NULL)
 #define LOGSE_FUNC_LINE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::FuncLine, Logger::Stderr, NULL)
+    Logger::AppendFuncLine, Logger::OutputByStderr, NULL)
 #define LOGSE_FILE_LINE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::FileLine, Logger::Stderr, NULL)
+    Logger::AppendFileLine, Logger::OutputByStderr, NULL)
 #define LOGSE_FFL(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::FileFuncLine, Logger::Stderr, NULL)
+    Logger::AppendFileFuncLine, Logger::OutputByStderr, NULL)
 #define LOGSE_PT(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::PidTid, Logger::Stderr, NULL)
+    Logger::AppendPidTid, Logger::OutputByStderr, NULL)
 #define LOGSE_PT_FUNC(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::PidTid, Logger::Func, Logger::Stderr, NULL)
+    Logger::AppendPidTid, Logger::AppendFunc, Logger::OutputByStderr, NULL)
 #define LOGSE_PT_FUNC_LINE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::PidTid, Logger::FuncLine, Logger::Stderr, NULL)
+    Logger::AppendPidTid, Logger::AppendFuncLine, Logger::OutputByStderr, NULL)
 #define LOGSE_PT_FILE_LINE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::PidTid, Logger::FileLine, Logger::Stderr, NULL)
+    Logger::AppendPidTid, Logger::AppendFileLine, Logger::OutputByStderr, NULL)
 #define LOGSE_PT_FFL(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::PidTid, Logger::FileFuncLine, Logger::Stderr, NULL)
+    Logger::AppendPidTid, Logger::AppendFileFuncLine, Logger::OutputByStderr, NULL)
 
 /*
  * @brief filelog
  */
 #define DEFINE_FILE_LABEL(str) namespace { constexpr const char *FILE_LABEL = str; }
 #define LOGNF(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::NoReturn, Logger::Continue, Logger::FileLog, FILE_LABEL, NULL)
+    Logger::SetToNoReturn, Logger::SetToContinue, Logger::OutputByFileLog, FILE_LABEL, NULL)
 #define LOGCF(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::Continue, Logger::FileLog, FILE_LABEL, NULL)
+    Logger::SetToContinue, Logger::OutputByFileLog, FILE_LABEL, NULL)
 #define LOGF(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::FileLog, FILE_LABEL, NULL)
+    Logger::OutputByFileLog, FILE_LABEL, NULL)
 #define LOGF_FUNC(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::Func, Logger::FileLog, FILE_LABEL, NULL)
+    Logger::AppendFunc, Logger::OutputByFileLog, FILE_LABEL, NULL)
 #define LOGF_FUNC_LINE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::FuncLine, Logger::FileLog, FILE_LABEL, NULL)
+    Logger::AppendFuncLine, Logger::OutputByFileLog, FILE_LABEL, NULL)
 #define LOGF_FILE_LINE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::FileLine, Logger::FileLog, FILE_LABEL, NULL)
+    Logger::AppendFileLine, Logger::OutputByFileLog, FILE_LABEL, NULL)
 #define LOGF_FFL(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::FileFuncLine, Logger::FileLog, FILE_LABEL, NULL)
+    Logger::AppendFileFuncLine, Logger::OutputByFileLog, FILE_LABEL, NULL)
 #define LOGF_PT(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::PidTid, Logger::FileLog, FILE_LABEL, NULL)
+    Logger::AppendPidTid, Logger::OutputByFileLog, FILE_LABEL, NULL)
 #define LOGF_PT_FUNC(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::PidTid, Logger::Func, Logger::FileLog, FILE_LABEL, NULL)
+    Logger::AppendPidTid, Logger::AppendFunc, Logger::OutputByFileLog, FILE_LABEL, NULL)
 #define LOGF_PT_FUNC_LINE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::PidTid, Logger::FuncLine, Logger::FileLog, FILE_LABEL, NULL)
+    Logger::AppendPidTid, Logger::AppendFuncLine, Logger::OutputByFileLog, FILE_LABEL, NULL)
 #define LOGF_PT_FILE_LINE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::PidTid, Logger::FileLine, Logger::FileLog, FILE_LABEL, NULL)
+    Logger::AppendPidTid, Logger::AppendFileLine, Logger::OutputByFileLog, FILE_LABEL, NULL)
 #define LOGF_PT_FFL(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::PidTid, Logger::FileFuncLine, Logger::FileLog, FILE_LABEL, NULL)
+    Logger::AppendPidTid, Logger::AppendFileFuncLine, Logger::OutputByFileLog, FILE_LABEL, NULL)
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

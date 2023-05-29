@@ -53,6 +53,13 @@ public:
         data_[2] = width;
         data_[3] = height;
     }
+    RectT(Vector4<T> vector)
+    {
+        data_[0] = vector[0];
+        data_[1] = vector[1];
+        data_[2] = vector[2];
+        data_[3] = vector[3];
+    }
     explicit RectT(const T* v)
     {
         data_[0] = v[0];
@@ -64,12 +71,13 @@ public:
 
     inline bool operator==(const RectT<T>& rect) const
     {
-        return (left_ == rect.left_) && (top_ == rect.top_) && (width_ == rect.width_) && (height_ == rect.height_);
+        return ROSEN_EQ<T>(left_, rect.left_) && ROSEN_EQ<T>(top_, rect.top_) &&
+            ROSEN_EQ<T>(width_, rect.width_) && ROSEN_EQ<T>(height_, rect.height_);
     }
 
     inline bool operator!=(const RectT<T>& rect) const
     {
-        return (left_ != rect.left_) || (top_ != rect.top_) || (width_ != rect.width_) || (height_ != rect.height_);
+        return !operator==(rect);
     }
 
     inline RectT& operator=(const RectT& other)
@@ -167,6 +175,10 @@ public:
         T height = std::max(GetBottom(), rect.GetBottom()) - top;
         return ((width <= 0) || (height <= 0)) ? RectT<T>() : RectT<T>(left, top, width, height);
     }
+    RectT<T> Offset(const T x, const T y) const
+    {
+        return RectT<T>(left_ + x, top_ + y, width_, height_);
+    }
     template<typename P>
     RectT<P> ConvertTo()
     {
@@ -221,7 +233,8 @@ struct RectIComparator {
 };
 
 struct RectI_Hash_Func {
-    size_t operator()(const RectI& _r) const {
+    size_t operator()(const RectI& _r) const
+    {
         // this is set for all rects can be compared
         int hash_value = 0;
         return std::hash<int>()(hash_value);
@@ -264,8 +277,137 @@ public:
         radius_[2] = { radius[2], radius[2] };
         radius_[3] = { radius[3], radius[3] };
     }
+
+    void SetValues(RectT<T> rect, const Vector2f* radius)
+    {
+        rect_ = rect;
+        radius_[0] = radius[0];
+        radius_[1] = radius[1];
+        radius_[2] = radius[2];
+        radius_[3] = radius[3];
+    }
+
+    RRectT operator-(const RRectT<T>& other) const;
+    RRectT operator+(const RRectT<T>& other) const;
+    RRectT operator/(float scale) const;
+    RRectT operator*(float scale) const;
+    RRectT& operator-=(const RRectT<T>& other);
+    RRectT& operator+=(const RRectT<T>& other);
+    RRectT& operator*=(float scale);
+    RRectT& operator=(const RRectT<T>& other);
+    bool operator==(const RRectT& other) const;
+    bool operator!=(const RRectT& other) const;
 };
+
 typedef RRectT<float> RRect;
+
+template<typename T>
+RRectT<T> RRectT<T>::operator-(const RRectT<T>& other) const
+{
+    RRectT<T> rrect;
+    rrect.rect_.SetAll(rect_.GetLeft() - other.rect_.GetLeft(), rect_.GetTop() - other.rect_.GetTop(),
+        rect_.GetWidth() - other.rect_.GetWidth(), rect_.GetHeight() - other.rect_.GetHeight());
+    for (int index = 0; index < 4; index++) {
+        rrect.radius_[index] = radius_[index] - other.radius_[index];
+    }
+    return rrect;
+}
+
+template<typename T>
+RRectT<T> RRectT<T>::operator+(const RRectT<T>& other) const
+{
+    RRectT<T> rrect;
+    rrect.rect_.SetAll(rect_.GetLeft() + other.rect_.GetLeft(), rect_.GetTop() + other.rect_.GetTop(),
+        rect_.GetWidth() + other.rect_.GetWidth(), rect_.GetHeight() + other.rect_.GetHeight());
+    for (int index = 0; index < 4; index++) {
+        rrect.radius_[index] = radius_[index] + other.radius_[index];
+    }
+    return rrect;
+}
+
+template<typename T>
+RRectT<T> RRectT<T>::operator/(float scale) const
+{
+    if (ROSEN_EQ<float>(scale, 0)) {
+        return *this;
+    }
+    RRectT<T> rrect;
+    rrect.rect_.SetAll(rect_.GetLeft() / scale, rect_.GetTop() / scale,
+        rect_.GetWidth() / scale, rect_.GetHeight() / scale);
+    for (int index = 0; index < 4; index++) {
+        rrect.radius_[index] = radius_[index] / scale;
+    }
+    return rrect;
+}
+
+template<typename T>
+RRectT<T> RRectT<T>::operator*(float scale) const
+{
+    RRectT<T> rrect;
+    rrect.rect_.SetAll(rect_.GetLeft() * scale, rect_.GetTop() * scale,
+        rect_.GetWidth() * scale, rect_.GetHeight() * scale);
+    for (int index = 0; index < 4; index++) {
+        rrect.radius_[index] = radius_[index] * scale;
+    }
+    return rrect;
+}
+
+template<typename T>
+RRectT<T>& RRectT<T>::operator-=(const RRectT<T>& other)
+{
+    rect_.SetAll(rect_.GetLeft() - other.rect_.GetLeft(), rect_.GetTop() - other.rect_.GetTop(),
+        rect_.GetWidth() - other.rect_.GetWidth(), rect_.GetHeight() - other.rect_.GetHeight());
+    for (int index = 0; index < 4; index++) {
+        radius_[index] = radius_[index] - other.radius_[index];
+    }
+    return *this;
+}
+
+template<typename T>
+RRectT<T>& RRectT<T>::operator+=(const RRectT<T>& other)
+{
+    rect_.SetAll(rect_.GetLeft() + other.rect_.GetLeft(), rect_.GetTop() + other.rect_.GetTop(),
+        rect_.GetWidth() + other.rect_.GetWidth(), rect_.GetHeight() + other.rect_.GetHeight());
+    for (int index = 0; index < 4; index++) {
+        radius_[index] = radius_[index] + other.radius_[index];
+    }
+    return *this;
+}
+
+template<typename T>
+RRectT<T>& RRectT<T>::operator*=(float scale)
+{
+    rect_.SetAll(rect_.GetLeft() * scale, rect_.GetTop() * scale,
+        rect_.GetWidth() * scale, rect_.GetHeight() * scale);
+    for (int index = 0; index < 4; index++) {
+        radius_[index] = radius_[index] * scale;
+    }
+    return *this;
+}
+
+template<typename T>
+RRectT<T>& RRectT<T>::operator=(const RRectT<T>& other)
+{
+    rect_ = other.rect_;
+    for (int index = 0; index < 4; index++) {
+        radius_[index] = other.radius_[index];
+    }
+    return *this;
+}
+
+template<typename T>
+inline bool RRectT<T>::operator==(const RRectT& other) const
+{
+    return (rect_ == other.rect_) && (radius_[0] == other.radius_[0]) &&
+        (radius_[1] == other.radius_[1]) && (radius_[2] == other.radius_[2]) &&
+        (radius_[3] == other.radius_[3]);
+}
+
+template<typename T>
+inline bool RRectT<T>::operator!=(const RRectT& other) const
+{
+    return !operator==(other);
+}
 } // namespace Rosen
 } // namespace OHOS
 #endif

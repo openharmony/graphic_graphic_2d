@@ -31,6 +31,8 @@ namespace Drawing {
 class Data;
 #ifdef ACE_ENABLE_GPU
 class GPUContext;
+class TextureInfo;
+enum class TextureOrigin;
 enum class CompressedType;
 #endif
 enum class BitDepth;
@@ -50,12 +52,18 @@ public:
     virtual bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap) = 0;
     virtual bool BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
         CompressedType type) = 0;
+    virtual bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
+        BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) = 0;
 #endif
     virtual int GetWidth() const = 0;
     virtual int GetHeight() const = 0;
     virtual uint32_t GetUniqueID() const = 0;
     virtual bool ReadPixels(Bitmap& bitmap, int x, int y) = 0;
     virtual bool IsTextureBacked() const = 0;
+
+    // using for recording, should to remove after using shared memory
+    virtual std::shared_ptr<Data> Serialize() const = 0;
+    virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -65,6 +65,21 @@ HWTEST_F(BitmapTest, BitmapBuildTest001, TestSize.Level1)
     ASSERT_TRUE(bitmap != nullptr);
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
     bitmap->Build(100, 200, bitmapFormat);
+
+    bitmapFormat = { COLORTYPE_RGB_565, ALPHATYPE_PREMUL };
+    bitmap->Build(100, 200, bitmapFormat);
+
+    bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_UNPREMUL };
+    bitmap->Build(100, 200, bitmapFormat);
+
+    bitmapFormat.colorType = COLORTYPE_RGBA_8888;
+    bitmap->Build(100, 200, bitmapFormat);
+
+    bitmapFormat.colorType = COLORTYPE_BGRA_8888;
+    bitmap->Build(100, 200, bitmapFormat);
+
+    bitmapFormat.colorType = COLORTYPE_N32;
+    bitmap->Build(100, 200, bitmapFormat);
 }
 
 /**

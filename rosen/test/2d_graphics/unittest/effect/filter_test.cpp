@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -81,6 +81,40 @@ HWTEST_F(FilterTest, GetterAndSetterColorFilter002, TestSize.Level1)
     filter->SetColorFilter(colorFilter);
     auto result = filter->GetColorFilter();
     EXPECT_FALSE(result != colorFilter);
+}
+
+/*
+ * @tc.name: GetterAndSetterImageFilter001
+ * @tc.desc: test for seting and geting imageFilter.
+ * @tc.type: FUNC
+ * @tc.require: I73UXK
+ */
+HWTEST_F(FilterTest, GetterAndSetterImageFilter001, TestSize.Level1)
+{
+    auto filter = std::make_unique<Filter>();
+    ASSERT_TRUE(filter != nullptr);
+    auto imageFilter = ImageFilter::CreateBlurImageFilter(10.0f, 10.0f, TileMode::CLAMP, nullptr);
+    ASSERT_TRUE(imageFilter != nullptr);
+    filter->SetImageFilter(imageFilter);
+    auto result = filter->GetImageFilter();
+    EXPECT_FALSE(result != imageFilter);
+}
+
+/*
+ * @tc.name: GetterAndSetterImageFilter002
+ * @tc.desc: test for seting and geting imageFilter.
+ * @tc.type: FUNC
+ * @tc.require: I73UXK
+ */
+HWTEST_F(FilterTest, GetterAndSetterImageFilter002, TestSize.Level1)
+{
+    auto filter = std::make_unique<Filter>();
+    ASSERT_TRUE(filter != nullptr);
+    auto imageFilter = ImageFilter::CreateBlurImageFilter(20.0f, 20.0f, TileMode::CLAMP, nullptr);
+    ASSERT_TRUE(imageFilter != nullptr);
+    filter->SetImageFilter(imageFilter);
+    auto result = filter->GetImageFilter();
+    EXPECT_FALSE(result != imageFilter);
 }
 
 /*

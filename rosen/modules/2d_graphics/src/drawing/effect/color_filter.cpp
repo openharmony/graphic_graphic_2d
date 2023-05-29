@@ -25,40 +25,24 @@ namespace Drawing {
 ColorFilter::ColorFilter(FilterType t, ColorQuad c, BlendMode mode) noexcept : ColorFilter()
 {
     type_ = t;
-
-    if (impl_ == nullptr) {
-        return;
-    }
     impl_->InitWithBlendMode(c, mode);
 }
 
 ColorFilter::ColorFilter(FilterType t, ColorMatrix& m) noexcept : ColorFilter()
 {
     type_ = t;
-
-    if (impl_ == nullptr) {
-        return;
-    }
     impl_->InitWithColorMatrix(m);
 }
 
 ColorFilter::ColorFilter(FilterType t, ColorFilter& f1, ColorFilter& f2) noexcept : ColorFilter()
 {
     type_ = t;
-
-    if (impl_ == nullptr) {
-        return;
-    }
     impl_->InitWithCompose(f1, f2);
 }
 
 ColorFilter::ColorFilter(FilterType t) noexcept : ColorFilter()
 {
     type_ = t;
-
-    if (impl_ == nullptr) {
-        return;
-    }
     switch (type_) {
         case ColorFilter::FilterType::LINEAR_TO_SRGB_GAMMA:
             impl_->InitWithLinearToSrgbGamma();
@@ -83,9 +67,8 @@ ColorFilter::FilterType ColorFilter::GetType() const
     return type_;
 }
 
-void ColorFilter::Compose(ColorFilter& filter)
+void ColorFilter::Compose(const ColorFilter& filter)
 {
-
     if (impl_ == nullptr) {
         return;
     }

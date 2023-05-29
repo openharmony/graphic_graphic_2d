@@ -32,6 +32,11 @@ std::unique_ptr<CoreCanvasImpl> ImplFactory::CreateCoreCanvasImpl(void* rawCanva
     return EngineImplFactory::CreateCoreCanvas(rawCanvas);
 }
 
+std::unique_ptr<CoreCanvasImpl> ImplFactory::CreateCoreCanvasImpl(int32_t width, int32_t height)
+{
+    return EngineImplFactory::CreateCoreCanvas(width, height);
+}
+
 std::unique_ptr<DataImpl> ImplFactory::CreateDataImpl()
 {
     return EngineImplFactory::CreateData();
@@ -86,6 +91,11 @@ std::unique_ptr<ImageFilterImpl> ImplFactory::CreateImageFilterImpl()
 std::unique_ptr<ShaderEffectImpl> ImplFactory::CreateShaderEffectImpl()
 {
     return EngineImplFactory::CreateShaderEffect();
+}
+
+std::unique_ptr<SurfaceImpl> ImplFactory::CreateSurfaceImpl()
+{
+    return EngineImplFactory::CreateSurface();
 }
 
 std::unique_ptr<PathEffectImpl> ImplFactory::CreatePathEffectImpl()

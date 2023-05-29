@@ -24,6 +24,10 @@
 #ifdef ACE_ENABLE_GPU
 #include "skia_gpu_context.h"
 #endif
+#ifdef ROSEN_OHOS
+#include "src/core/SkReadBuffer.h"
+#include "src/core/SkWriteBuffer.h"
+#endif
 
 #include "image/bitmap.h"
 #include "image/image.h"
@@ -72,14 +76,6 @@ void* SkiaImage::BuildFromPicture(const Picture& picture, const SizeI& dimension
 #ifdef ACE_ENABLE_GPU
 bool SkiaImage::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
 {
-    if (gpuContext.GetImpl<SkiaGPUContext>() == nullptr) {
-        LOGE("SkiaImage::BuildFromBitmap, build failed, GPUContext is invalid");
-        return false;
-    }
-    if (bitmap.GetImpl<SkiaBitmap>() == nullptr) {
-        LOGE("SkiaImage::BuildFromBitmap, build failed, bitmap is invalid");
-        return false;
-    }
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
     auto& skBitmap = bitmap.GetImpl<SkiaBitmap>()->ExportSkiaBitmap();
 
@@ -91,11 +87,7 @@ bool SkiaImage::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
 bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
     CompressedType type)
 {
-    if (gpuContext.GetImpl<SkiaGPUContext>() == nullptr) {
-        LOGE("SkiaImage::BuildFromCompressed, build failed, GPUContext is invalid");
-        return false;
-    }
-    if (data == nullptr || data->GetImpl<SkiaData>() == nullptr) {
+    if (data == nullptr) {
         LOGE("SkiaImage::BuildFromCompressed, build failed, data is invalid");
         return false;
     }
@@ -109,6 +101,82 @@ bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_pt
     skiaImage_ = SkImage::MakeFromCompressed(grContext_.get(),
         skData, width, height, static_cast<SkImage::CompressionType>(type));
 #endif
+    return (skiaImage_ != nullptr) ? true : false;
+}
+
+static SkColorType ConvertToSkColorType(const ColorType& format)
+{
+    switch (format) {
+        case COLORTYPE_UNKNOWN:
+            return kUnknown_SkColorType;
+        case COLORTYPE_ALPHA_8:
+            return kAlpha_8_SkColorType;
+        case COLORTYPE_RGB_565:
+            return kRGB_565_SkColorType;
+        case COLORTYPE_ARGB_4444:
+            return kARGB_4444_SkColorType;
+        case COLORTYPE_RGBA_8888:
+            return kRGBA_8888_SkColorType;
+        case COLORTYPE_BGRA_8888:
+            return kBGRA_8888_SkColorType;
+        case COLORTYPE_N32:
+            return kN32_SkColorType;
+        default:
+            return kUnknown_SkColorType;
+    }
+}
+
+static SkAlphaType ConvertToSkAlphaType(const AlphaType& format)
+{
+    switch (format) {
+        case ALPHATYPE_UNKNOWN:
+            return kUnknown_SkAlphaType;
+        case ALPHATYPE_OPAQUE:
+            return kOpaque_SkAlphaType;
+        case ALPHATYPE_PREMUL:
+            return kPremul_SkAlphaType;
+        case ALPHATYPE_UNPREMUL:
+            return kUnpremul_SkAlphaType;
+        default:
+            return kUnknown_SkAlphaType;
+    }
+}
+
+static GrBackendTexture ConvertToGrBackendTexture(const TextureInfo& info)
+{
+    GrGLTextureInfo grGLTextureInfo = { info.GetTarget(), info.GetID(), info.GetFormat() };
+    GrBackendTexture backendTexture(info.GetWidth(), info.GetHeight(), static_cast<GrMipMapped>(info.GetIsMipMapped()),
+        grGLTextureInfo);
+
+    return backendTexture;
+}
+
+static GrSurfaceOrigin ConvertToGrSurfaceOrigin(const TextureOrigin& origin)
+{
+    switch (origin) {
+        case TextureOrigin::TOP_LEFT:
+            return GrSurfaceOrigin::kTopLeft_GrSurfaceOrigin;
+        case TextureOrigin::BOTTOM_LEFT:
+            return GrSurfaceOrigin::kBottomLeft_GrSurfaceOrigin;
+        default:
+            return GrSurfaceOrigin::kTopLeft_GrSurfaceOrigin;
+    }
+}
+
+bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
+    BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace)
+{
+    grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
+
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    if (colorSpace != nullptr) {
+        skColorSpace = colorSpace->GetImpl<SkiaColorSpace>()->GetColorSpace();
+    }
+
+    skiaImage_ = SkImage::MakeFromTexture(grContext_.get(), ConvertToGrBackendTexture(info),
+        ConvertToGrSurfaceOrigin(origin), ConvertToSkColorType(bitmapFormat.colorType),
+        ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
+
     return (skiaImage_ != nullptr) ? true : false;
 }
 #endif
@@ -130,13 +198,7 @@ uint32_t SkiaImage::GetUniqueID() const
 
 bool SkiaImage::ReadPixels(Bitmap& bitmap, int x, int y)
 {
-    auto skiaBitmap = bitmap.GetImpl<SkiaBitmap>();
-    if (skiaBitmap == nullptr) {
-        LOGE("SkiaImage::ReadPixels, bitmap is invalid");
-        return false;
-    }
-
-    const auto& skBitmap = skiaBitmap->ExportSkiaBitmap();
+    const auto& skBitmap = bitmap.GetImpl<SkiaBitmap>()->ExportSkiaBitmap();
     const auto& skPixmap = skBitmap.pixmap();
 
     return (skiaImage_ == nullptr) ? false : skiaImage_->readPixels(skPixmap, x, y);
@@ -167,6 +229,42 @@ sk_sp<GrContext> SkiaImage::GetGrContext() const
     return grContext_;
 }
 #endif
+
+std::shared_ptr<Data> SkiaImage::Serialize() const
+{
+#ifdef ROSEN_OHOS
+    if (skiaImage_ == nullptr) {
+        LOGE("SkiaImage::Serialize, SkImage is nullptr!");
+        return nullptr;
+    }
+
+    SkBinaryWriteBuffer writer;
+    writer.writeImage(skiaImage_.get());
+    size_t length = writer.bytesWritten();
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->BuildUninitialized(length);
+    writer.writeToMemory(data->WritableData());
+    return data;
+#else
+    return nullptr;
+#endif
+}
+
+bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
+{
+#ifdef ROSEN_OHOS
+    if (data == nullptr) {
+        LOGE("SkiaImage::Deserialize, data is invalid!");
+        return false;
+    }
+
+    SkReadBuffer reader(data->GetData(), data->GetSize());
+    skiaImage_ = reader.readImage();
+    return skiaImage_ != nullptr;
+#else
+    return false;
+#endif
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -16,12 +16,15 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 
+#ifdef ROSEN_OHOS
 #include <GLES/gl.h>
 
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "GLES2/gl2.h"
 #include "GLES2/gl2ext.h"
+#endif
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkCanvas.h"
 #include "include/core/SkDrawable.h"
 #include "include/core/SkImage.h"
@@ -98,6 +101,7 @@ enum RSOpType : uint16_t {
     SAVE_ALPHA_OPITEM,
     RESTORE_ALPHA_OPITEM,
     SURFACEBUFFER_OPITEM,
+    SCALE_OPITEM,
 };
 namespace {
     std::string GetOpTypeString(RSOpType type)
@@ -146,6 +150,7 @@ namespace {
             GETOPTYPESTRING(SAVE_ALPHA_OPITEM);
             GETOPTYPESTRING(RESTORE_ALPHA_OPITEM);
             GETOPTYPESTRING(SURFACEBUFFER_OPITEM);
+            GETOPTYPESTRING(SCALE_OPITEM);
             default:
                 break;
         }
@@ -177,6 +182,11 @@ public:
     {
         return true;
     }
+    virtual bool IsImageOp() const
+    {
+        return false;
+    }
+    virtual void SetNodeId(NodeId id) {}
 };
 
 class OpItemWithPaint : public OpItem {
@@ -200,7 +210,11 @@ public:
     explicit OpItemWithRSImage(size_t size) : OpItemWithPaint(size) {}
     ~OpItemWithRSImage() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
-
+    void SetNodeId(NodeId id) override;
+    bool IsImageOp() const override
+    {
+        return true;
+    }
 protected:
     std::shared_ptr<RSImageBase> rsImage_;
 };
@@ -261,12 +275,22 @@ private:
 
 class ImageWithParmOpItem : public OpItemWithPaint {
 public:
+#ifdef NEW_SKIA
+    ImageWithParmOpItem(
+        const sk_sp<SkImage> img, const sk_sp<SkData> data, const RsImageInfo& rsimageInfo,
+        const SkSamplingOptions& samplingOptions, const SkPaint& paint);
+    ImageWithParmOpItem(
+        const std::shared_ptr<Media::PixelMap>& pixelmap, const RsImageInfo& rsimageInfo,
+        const SkSamplingOptions& samplingOptions, const SkPaint& paint);
+    ImageWithParmOpItem(const std::shared_ptr<RSImage>& rsImage,
+        const SkSamplingOptions& samplingOptions, const SkPaint& paint);
+#else
     ImageWithParmOpItem(
         const sk_sp<SkImage> img, const sk_sp<SkData> data, const RsImageInfo& rsimageInfo, const SkPaint& paint);
     ImageWithParmOpItem(
         const std::shared_ptr<Media::PixelMap>& pixelmap, const RsImageInfo& rsimageInfo, const SkPaint& paint);
     ImageWithParmOpItem(const std::shared_ptr<RSImage>& rsImage, const SkPaint& paint);
-
+#endif
     ~ImageWithParmOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
@@ -287,12 +311,20 @@ public:
     {
         return RSOpType::IMAGE_WITH_PARM_OPITEM;
     }
+    bool IsImageOp() const override
+    {
+        return true;
+    }
+    void SetNodeId(NodeId id) override;
 
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
 
 private:
     std::shared_ptr<RSImage> rsImage_;
+#ifdef NEW_SKIA
+    SkSamplingOptions samplingOptions_;
+#endif
 };
 
 class DRRectOpItem : public OpItemWithPaint {
@@ -482,15 +514,21 @@ public:
 
 class MatrixOpItem : public OpItem {
 public:
+#ifdef NEW_SKIA
+    MatrixOpItem(const SkM44& matrix);
+#else
     MatrixOpItem(const SkMatrix& matrix);
+#endif
     ~MatrixOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
     {
         std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+#ifndef NEW_SKIA
         int depth = 1;
         matrix_.dump(desc, depth);
+#endif
         desc += "}, \n";
         return desc;
     }
@@ -504,7 +542,11 @@ public:
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
 
 private:
+#ifdef NEW_SKIA
+    SkM44 matrix_;
+#else
     SkMatrix matrix_;
+#endif
 };
 
 class ClipRectOpItem : public OpItem {
@@ -631,6 +673,34 @@ public:
 private:
     float distanceX_;
     float distanceY_;
+};
+
+class ScaleOpItem : public OpItem {
+public:
+    ScaleOpItem(float scaleX, float scaleY);
+    ~ScaleOpItem() override {}
+    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "\tscaleX_: " + std::to_string(scaleX_) + "\n";
+        desc += "\tscaleY_: " + std::to_string(scaleY_) + "\n";
+        desc += "}, \n";
+        return desc;
+    }
+
+    RSOpType GetType() const override
+    {
+        return RSOpType::SCALE_OPITEM;
+    }
+
+    bool Marshalling(Parcel& parcel) const override;
+    [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
+
+private:
+    float scaleX_ = 1.0f;
+    float scaleY_ = 1.0f;
 };
 
 class TextBlobOpItem : public OpItemWithPaint {
@@ -1089,15 +1159,21 @@ public:
 
 class ConcatOpItem : public OpItem {
 public:
+#ifdef NEW_SKIA
+    ConcatOpItem(const SkM44& matrix);
+#else
     ConcatOpItem(const SkMatrix& matrix);
+#endif
     ~ConcatOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
     {
         std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+#ifndef NEW_SKIA
         int depth = 1;
         matrix_.dump(desc, depth);
+#endif
         desc += "}, \n";
         return desc;
     }
@@ -1111,7 +1187,11 @@ public:
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
 
 private:
+#ifdef NEW_SKIA
+    SkM44 matrix_;
+#else
     SkMatrix matrix_;
+#endif
 };
 
 class SaveLayerOpItem : public OpItemWithPaint {
@@ -1433,13 +1513,16 @@ public:
     static OpItem* Unmarshalling(Parcel& parcel);
 
 private:
-    RSSurfaceBufferInfo surfaceBufferInfo_;
+    mutable RSSurfaceBufferInfo surfaceBufferInfo_;
+#ifdef RS_ENABLE_GL
     mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
     mutable GLuint texId_ = 0;
     mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
+#endif
 };
 #endif
 } // namespace Rosen
 } // namespace OHOS
 
+#endif // USE_ROSEN_DRAWING
 #endif // RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H

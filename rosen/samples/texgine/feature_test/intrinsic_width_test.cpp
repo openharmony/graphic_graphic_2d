@@ -27,47 +27,47 @@ constexpr auto EXAMPLE_TEXT = "hello world, hello openharmony!";
 constexpr auto EXAMPLE_TEXT2 = "你 好 世 界 你好鸿蒙！";
 
 struct IntrinsicTestData {
-    TypographyStyle ys_;
-    std::string title_;
-    double widthLimit_ = 150;
-    const char *text_ = EXAMPLE_TEXT;
-    std::shared_ptr<MyAnySpan> as_ = std::make_shared<MyAnySpan>(20, 80);
+    TypographyStyle ys;
+    std::string title;
+    double widthLimit = 150;
+    const char *text = EXAMPLE_TEXT;
+    std::shared_ptr<MyAnySpan> as = std::make_shared<MyAnySpan>(20, 80);
 } g_datas[] = {
     {
-        .ys_ = {
-            .ellipsis_ = u"",
+        .ys = {
+            .ellipsis = u"",
         },
-        .title_ = "不换行的对照组",
-        .widthLimit_ = 700,
+        .title = "不换行的对照组",
+        .widthLimit = 700,
     },
     {
-        .ys_ = {
-            .ellipsis_ = u"",
-            .wordBreakType_ = WordBreakType::BREAKWORD,
+        .ys = {
+            .ellipsis = u"",
+            .wordBreakType = WordBreakType::BREAK_WORD,
         },
-        .title_ = "breakWord",
+        .title = "breakWord",
     },
     {
-        .ys_ = {
-            .ellipsis_ = u"",
-            .wordBreakType_ = WordBreakType::BREAKALL,
+        .ys = {
+            .ellipsis = u"",
+            .wordBreakType = WordBreakType::BREAK_ALL,
         },
-        .title_ = "breakAll",
+        .title = "breakAll",
     },
     {
-        .ys_ = {
-            .maxLines_ = 1,
+        .ys = {
+            .maxLines = 1,
         },
-        .title_ = "maxline = 1",
+        .title = "maxline = 1",
     },
     {
-        .ys_ = {
-            .ellipsis_ = u"",
-            .wordBreakType_ = WordBreakType::BREAKALL,
+        .ys = {
+            .ellipsis = u"",
+            .wordBreakType = WordBreakType::BREAK_ALL,
         },
-        .title_ = "breakAll，中文",
-        .widthLimit_ = 120,
-        .text_ = EXAMPLE_TEXT2,
+        .title = "breakAll，中文",
+        .widthLimit = 120,
+        .text = EXAMPLE_TEXT2,
     },
 };
 

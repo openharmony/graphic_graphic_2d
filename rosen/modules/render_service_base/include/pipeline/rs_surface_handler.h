@@ -54,7 +54,7 @@ public:
     };
 
     void IncreaseAvailableBuffer();
-    int32_t ReduceAvailableBuffer();
+    void ReduceAvailableBuffer();
 
     NodeId GetNodeId() const
     {

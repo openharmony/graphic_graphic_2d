@@ -24,29 +24,29 @@ namespace TextEngine {
 void ExTime(Logger &logger, enum Logger::LOG_PHASE phase);
 
 #define LOGNEX(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::NoReturn, Logger::Continue, Logger::FileLog, "exlog", NULL)
+    Logger::SetToNoReturn, Logger::SetToContinue, Logger::OutputByFileLog, "exlog", NULL)
 #define LOGCEX(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::Continue, Logger::FileLog, "exlog", NULL)
+    Logger::SetToContinue, Logger::OutputByFileLog, "exlog", NULL)
 #define LOGEX_FILE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::FileLog, "exlog", NULL)
+    Logger::OutputByFileLog, "exlog", NULL)
 #define LOGEX_FUNC(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    ExTime, Logger::Func, Logger::FileLog, "exlog", NULL)
+    ExTime, Logger::AppendFunc, Logger::OutputByFileLog, "exlog", NULL)
 #define LOGEX_FUNC_LINE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    ExTime, Logger::FuncLine, Logger::FileLog, "exlog", NULL)
+    ExTime, Logger::AppendFuncLine, Logger::OutputByFileLog, "exlog", NULL)
 #define LOGEX_FILE_LINE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    ExTime, Logger::FileLine, Logger::FileLog, "exlog", NULL)
+    ExTime, Logger::AppendFileLine, Logger::OutputByFileLog, "exlog", NULL)
 #define LOGEX_FFL(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    ExTime, Logger::FileFuncLine, Logger::FileLog, "exlog", NULL)
+    ExTime, Logger::AppendFileFuncLine, Logger::OutputByFileLog, "exlog", NULL)
 #define LOGEX_PT_FILE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    Logger::PidTid, Logger::FileLog, "exlog", NULL)
+    Logger::AppendPidTid, Logger::OutputByFileLog, "exlog", NULL)
 #define LOGEX_PT_FUNC(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    ExTime, Logger::PidTid, Logger::Func, Logger::FileLog, "exlog", NULL)
+    ExTime, Logger::AppendPidTid, Logger::AppendFunc, Logger::OutputByFileLog, "exlog", NULL)
 #define LOGEX_PT_FUNC_LINE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    ExTime, Logger::PidTid, Logger::FuncLine, Logger::FileLog, "exlog", NULL)
+    ExTime, Logger::AppendPidTid, Logger::AppendFuncLine, Logger::OutputByFileLog, "exlog", NULL)
 #define LOGEX_PT_FILE_LINE(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    ExTime, Logger::PidTid, Logger::FileLine, Logger::FileLog, "exlog", NULL)
+    ExTime, Logger::AppendPidTid, Logger::AppendFileLine, Logger::OutputByFileLog, "exlog", NULL)
 #define LOGEX_PT_FFL(level, ...) Logger(LOGGER_ARG(level), ##__VA_ARGS__, \
-    ExTime, Logger::PidTid, Logger::FileFuncLine, Logger::FileLog, "exlog", NULL)
+    ExTime, Logger::AppendPidTid, Logger::AppendFileFuncLine, Logger::OutputByFileLog, "exlog", NULL)
 
 #ifdef TEXGINE_ENABLE_DEBUGLOG
 #define LOGNEX_DEBUG(...) LOGNEX(DEBUG, ##__VA_ARGS__)

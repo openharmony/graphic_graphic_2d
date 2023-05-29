@@ -44,6 +44,11 @@ bool RSSystemProperties::GetUniRenderEnabled()
     return isUniRenderEnabled_;
 }
 
+bool RSSystemProperties::GetDrawOpTraceEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetRenderNodeTraceEnabled()
 {
     return {};
@@ -151,6 +156,11 @@ bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultVal
 }
 
 int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
+{
+    return {};
+}
+
+bool RSSystemProperties::GetAFBCEnabled()
 {
     return {};
 }

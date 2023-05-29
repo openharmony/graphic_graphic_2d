@@ -26,30 +26,20 @@ namespace Rosen {
 namespace TextEngine {
 class TextBreaker {
 public:
-    int WordBreak(std::vector<VariantSpan> &spans,
-                  const TypographyStyle &ys,
-                  const std::unique_ptr<FontProviders> &fontProviders);
+    int WordBreak(std::vector<VariantSpan> &spans, const TypographyStyle &ys,
+        const std::unique_ptr<FontProviders> &fontProviders);
 
-    std::shared_ptr<FontCollection> GenerateFontCollection(
-       const TypographyStyle &ys,
-       const TextStyle &xs,
-       const std::unique_ptr<FontProviders> &fontProviders) noexcept(false);
+    std::shared_ptr<FontCollection> GenerateFontCollection(const TypographyStyle &ys,
+       const TextStyle &xs, const std::unique_ptr<FontProviders> &fontProviders) noexcept(false);
 
-    int Measure(const TextStyle &xs,
-                const std::vector<uint16_t> &u16vect,
-                FontCollection &fontCollection,
-                CharGroups &cgs,
-                std::vector<Boundary> &boundaries) noexcept(false);
+    int Measure(const TextStyle &xs, const std::vector<uint16_t> &u16vect, FontCollection &fontCollection,
+        CharGroups &cgs, std::vector<Boundary> &boundaries) noexcept(false);
 
-    void BreakWord(const CharGroups &wordcgs,
-                   const TypographyStyle &ys,
-                   const TextStyle &xs,
-                   std::vector<VariantSpan> &spans) noexcept(false);
+    void BreakWord(const CharGroups &wordcgs, const TypographyStyle &ys,
+        const TextStyle &xs, std::vector<VariantSpan> &spans) noexcept(false);
 
-    void GenerateSpan(const CharGroups &currentCgs,
-                      const TypographyStyle &ys,
-                      const TextStyle &xs,
-                      std::vector<VariantSpan> &spans) noexcept(false);
+    void GenerateSpan(const CharGroups &currentCgs, const TypographyStyle &ys,
+        const TextStyle &xs, std::vector<VariantSpan> &spans) noexcept(false);
 
     double preBreak_ = 0;
     double postBreak_ = 0;

@@ -25,7 +25,7 @@ namespace Drawing {
 class RecordingRegion : public Region {
 public:
     RecordingRegion();
-    ~RecordingRegion();
+    ~RecordingRegion() override = default;
 
     std::shared_ptr<RegionCmdList> GetCmdList() const;
 

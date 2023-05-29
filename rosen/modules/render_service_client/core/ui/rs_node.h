@@ -17,6 +17,7 @@
 
 #include <unordered_map>
 
+#include "command/rs_animation_command.h"
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_motion_path_option.h"
@@ -58,13 +59,16 @@ public:
 
     static std::vector<std::shared_ptr<RSAnimation>> Animate(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback,
-        const std::function<void()>& finishCallback = nullptr);
+        const std::function<void()>& finishCallback = nullptr, const std::function<void()>& repeatCallback = nullptr);
 
     static std::vector<std::shared_ptr<RSAnimation>> AnimateWithCurrentOptions(
         const PropertyCallback& callback, const std::function<void()>& finishCallback, bool timingSensitive = true);
     static std::vector<std::shared_ptr<RSAnimation>> AnimateWithCurrentCallback(
         const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
         const PropertyCallback& callback);
+
+    static void RegisterTransitionPair(NodeId inNodeId, NodeId outNodeId);
+    static void UnregisterTransitionPair(NodeId inNodeId, NodeId outNodeId);
 
     static void OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const std::function<void()>& finishCallback = nullptr);
@@ -104,6 +108,8 @@ public:
 
     // The property is valid only for CanvasNode and SurfaceNode in uniRender.
     virtual void SetFreeze(bool isFreeze);
+
+    void SetSandBox(std::optional<Vector2f> parentPosition);
 
     void SetPositionZ(float positionZ);
 
@@ -178,6 +184,7 @@ public:
 
     void SetFrameGravity(Gravity gravity);
 
+    void SetClipRRect(const Vector4f& clipRect, const Vector4f& clipRadius);
     void SetClipBounds(const std::shared_ptr<RSPath>& clipToBounds);
     void SetClipToBounds(bool clipToBounds);
     void SetClipToFrame(bool clipToFrame);
@@ -209,6 +216,9 @@ public:
     void SetIsCustomTextType(bool isCustomTextType);
 
     void SetDrawRegion(std::shared_ptr<RectF> rect);
+
+    // Mark preferentially draw node and childrens
+    void MarkNodeGroup(bool isNodeGroup);
 protected:
     explicit RSNode(bool isRenderServiceNode);
     explicit RSNode(bool isRenderServiceNode, NodeId id);
@@ -231,7 +241,7 @@ protected:
     bool isCustomTextType_ = false;
 
 private:
-    bool AnimationFinish(AnimationId animationId);
+    bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
     void FallbackAnimationsToRoot();
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);
@@ -242,24 +252,28 @@ private:
     void UpdateModifierMotionPathOption();
     void MarkAllExtendModifierDirty();
     void ResetExtendModifierDirty();
+    void UpdateImplicitAnimator();
 
     // Planning: refactor RSUIAnimationManager and remove this method
     void ClearAllModifiers();
 
-    std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
-    std::unordered_map<PropertyId, uint32_t> animatingPropertyNum_;
-    std::unordered_map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
-    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
-    std::shared_ptr<RSMotionPathOption> motionPathOption_;
-    std::shared_ptr<RectF> drawRegion_;
-
-    void UpdateImplicitAnimator();
     pid_t implicitAnimatorTid_ = 0;
-    std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
-    std::shared_ptr<const RSTransitionEffect> transitionEffect_;
     bool extendModifierIsDirty_ { false };
+    // driven render
+    bool drivenFlag_ = false;
+
+    bool isNodeGroup_ = false;
 
     RSModifierExtractor stagingPropertiesExtractor_;
+    std::unordered_map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
+    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
+    std::shared_ptr<RectF> drawRegion_;
+
+    std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
+    std::unordered_map<PropertyId, uint32_t> animatingPropertyNum_;
+    std::shared_ptr<RSMotionPathOption> motionPathOption_;
+    std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
+    std::shared_ptr<const RSTransitionEffect> transitionEffect_;
 
     friend class RSAnimation;
     friend class RSCurveAnimation;

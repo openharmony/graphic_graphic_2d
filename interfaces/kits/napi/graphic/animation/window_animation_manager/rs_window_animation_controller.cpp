@@ -21,6 +21,9 @@
 #include <rs_window_animation_log.h>
 
 #include "rs_window_animation_utils.h"
+#ifdef SOC_PERF_ENABLE
+#include "socperf_client.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -205,7 +208,10 @@ void RSWindowAnimationController::OnScreenUnlock(const sptr<RSIWindowAnimationFi
             controllerSptr->HandleOnScreenUnlock(finishedCallback);
         }
     );
-
+#ifdef SOC_PERF_ENABLE
+    constexpr int32_t ACTION_TYPE_CPU_BOOST_CMDID = 10050;
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(ACTION_TYPE_CPU_BOOST_CMDID, true, "");
+#endif
     NativeReference* callback = nullptr;
     std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
     AsyncTask::Schedule("RSWindowAnimationController::OnScreenUnlock", engine_,

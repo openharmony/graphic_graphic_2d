@@ -14,18 +14,15 @@
  */
 
 #include "recording/recording_region.h"
+
+#include "recording/cmd_list_helper.h"
 #include "recording/recording_path.h"
-#include "recording/mem_allocator.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-RecordingRegion::RecordingRegion()
-{
-    cmdList_ = std::make_shared<RegionCmdList>();
-}
-
-RecordingRegion::~RecordingRegion() {}
+RecordingRegion::RecordingRegion() : cmdList_(std::make_shared<RegionCmdList>()) {}
 
 std::shared_ptr<RegionCmdList> RecordingRegion::GetCmdList() const
 {
@@ -34,35 +31,22 @@ std::shared_ptr<RegionCmdList> RecordingRegion::GetCmdList() const
 
 bool RecordingRegion::SetRect(const RectI& rectI)
 {
-    if (cmdList_ == nullptr) {
-        return false;
-    }
     cmdList_->AddOp<SetRectOpItem>(rectI);
     return true;
 }
 
 bool RecordingRegion::SetPath(const Path& path, const Region& clip)
 {
-    if (cmdList_ == nullptr) {
-        return false;
-    }
-    auto recordingPath = static_cast<const RecordingPath&>(path);
-    Offset_t pathOffset = cmdList_->AddCmdListData(recordingPath.GetCmdList()->GetData());
-    auto recordingRegion = static_cast<const RecordingRegion&>(clip);
-    Offset_t regionOffset = cmdList_->AddCmdListData(recordingRegion.GetCmdList()->GetData());
-    cmdList_->AddOp<SetPathOpItem>(pathOffset, recordingPath.GetCmdList()->GetData().second,
-                                    regionOffset, recordingRegion.GetCmdList()->GetData().second);
+    auto pathHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(path));
+    auto regionHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingRegion&>(clip));
+    cmdList_->AddOp<SetPathOpItem>(pathHandle, regionHandle);
     return true;
 }
 
 bool RecordingRegion::Op(const Region& region, RegionOp op)
 {
-    if (cmdList_ == nullptr) {
-        return false;
-    }
-    auto recordingRegion = static_cast<const RecordingRegion&>(region);
-    Offset_t regionOffset = cmdList_->AddCmdListData(recordingRegion.GetCmdList()->GetData());
-    cmdList_->AddOp<RegionOpWithOpItem>(op, regionOffset, recordingRegion.GetCmdList()->GetData().second);
+    auto regionHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingRegion&>(region));
+    cmdList_->AddOp<RegionOpWithOpItem>(regionHandle, op);
     return true;
 }
 } // namespace Drawing

@@ -112,8 +112,13 @@ RSRenderThread::RSRenderThread()
     jankDetector_ = std::make_shared<RSJankDetector>();
 #ifdef ACCESSIBILITY_ENABLE
     RSAccessibility::GetInstance().ListenHighContrastChange([](bool newHighContrast) {
-        auto& renderThread = RSRenderThread::Instance();
-        renderThread.SetHighContrast(newHighContrast);
+        std::thread thread(
+            [](bool newHighContrast) {
+                auto& renderThread = RSRenderThread::Instance();
+                renderThread.SetHighContrast(newHighContrast);
+            },
+            newHighContrast);
+        thread.detach();
     });
 #endif
 }

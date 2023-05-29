@@ -243,6 +243,12 @@ void RSProperty<Vector4f>::UpdateToRender(const Vector4f& value, bool isDelta, b
 }
 
 template<>
+void RSProperty<RRect>::UpdateToRender(const RRect& value, bool isDelta, bool forceUpdate) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyRRect, value, isDelta, forceUpdate);
+}
+
+template<>
 bool RSProperty<float>::IsValid(const float& value)
 {
     return !isinf(value);
@@ -297,6 +303,11 @@ template<>
 RSRenderPropertyType RSAnimatableProperty<Vector4<Color>>::GetPropertyType() const
 {
     return RSRenderPropertyType::PROPERTY_VECTOR4_COLOR;
+}
+template<>
+RSRenderPropertyType RSAnimatableProperty<RRect>::GetPropertyType() const
+{
+    return RSRenderPropertyType::PROPERTY_RRECT;
 }
 } // namespace Rosen
 } // namespace OHOS

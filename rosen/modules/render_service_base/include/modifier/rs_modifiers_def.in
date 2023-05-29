@@ -24,6 +24,8 @@ DECLARE_ANIMATABLE_MODIFIER(BoundsPosition, Vector2f, BOUNDS, Replace, Geometry)
 
 DECLARE_ANIMATABLE_MODIFIER(Frame, Vector4f, FRAME, Replace, Geometry)
 
+DECLARE_ANIMATABLE_MODIFIER(SandBox, Vector2f, SANDBOX, Replace, Geometry)
+
 DECLARE_ANIMATABLE_MODIFIER(PositionZ, float, POSITION_Z, Add, Geometry)
 
 DECLARE_ANIMATABLE_MODIFIER(Pivot, Vector2f, PIVOT, Replace, Geometry)
@@ -77,6 +79,8 @@ DECLARE_ANIMATABLE_MODIFIER(Filter, std::shared_ptr<RSFilter>, FILTER, Add, Fore
 DECLARE_ANIMATABLE_MODIFIER(BackgroundFilter, std::shared_ptr<RSFilter>, BACKGROUND_FILTER, Add, Background)
 
 DECLARE_NOANIMATABLE_MODIFIER(FrameGravity, Gravity, FRAME_GRAVITY, Appearance)
+
+DECLARE_ANIMATABLE_MODIFIER(ClipRRect, RRect, CLIP_RRECT, Replace, Appearance)
 
 DECLARE_NOANIMATABLE_MODIFIER(ClipBounds, std::shared_ptr<RSPath>, CLIP_BOUNDS, Appearance)
 

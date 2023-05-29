@@ -35,6 +35,7 @@
 #include "impl_interface/picture_impl.h"
 #include "impl_interface/region_impl.h"
 #include "impl_interface/shader_effect_impl.h"
+#include "impl_interface/surface_impl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -43,6 +44,7 @@ class ImplFactory {
 public:
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl();
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl(void* rawCanvas);
+    static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl(int32_t width, int32_t height);
     static std::unique_ptr<DataImpl> CreateDataImpl();
 #ifdef ACE_ENABLE_GPU
     static std::unique_ptr<GPUContextImpl> CreateGPUContextImpl();
@@ -56,6 +58,7 @@ public:
     static std::unique_ptr<ImageFilterImpl> CreateImageFilterImpl();
     static std::unique_ptr<PictureImpl> CreatePictureImpl();
     static std::unique_ptr<ShaderEffectImpl> CreateShaderEffectImpl();
+    static std::unique_ptr<SurfaceImpl> CreateSurfaceImpl();
     static std::unique_ptr<PathEffectImpl> CreatePathEffectImpl();
     static std::unique_ptr<ColorSpaceImpl> CreateColorSpaceImpl();
     static std::unique_ptr<MatrixImpl> CreateMatrixImpl();

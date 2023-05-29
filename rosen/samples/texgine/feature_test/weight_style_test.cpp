@@ -34,68 +34,68 @@ struct TestInfo {
     {
         .title = "italic",
         .style = {
-            .fontStyle_ = FontStyle::ITALIC,
+            .fontStyle = FontStyle::ITALIC,
         }
     },
     {
         .title = "W100 thin",
         .style = {
-            .fontWeight_ = FontWeight::W100,
+            .fontWeight = FontWeight::W100,
         }
     },
     {
         .title = "W200",
         .style = {
-            .fontWeight_ = FontWeight::W200,
+            .fontWeight = FontWeight::W200,
         }
     },
     {
         .title = "W300",
         .style = {
-            .fontWeight_ = FontWeight::W300,
+            .fontWeight = FontWeight::W300,
         }
     },
     {
         .title = "W400 normal",
         .style = {
-            .fontWeight_ = FontWeight::W400,
+            .fontWeight = FontWeight::W400,
         }
     },
     {
         .title = "W500",
         .style = {
-            .fontWeight_ = FontWeight::W500,
+            .fontWeight = FontWeight::W500,
         }
     },
     {
         .title = "W600",
         .style = {
-            .fontWeight_ = FontWeight::W600,
+            .fontWeight = FontWeight::W600,
         }
     },
     {
         .title = "W700 bold",
         .style = {
-            .fontWeight_ = FontWeight::W700,
+            .fontWeight = FontWeight::W700,
         }
     },
     {
         .title = "W800",
         .style = {
-            .fontWeight_ = FontWeight::W800,
+            .fontWeight = FontWeight::W800,
         }
     },
     {
         .title = "W900",
         .style = {
-            .fontWeight_ = FontWeight::W900,
+            .fontWeight = FontWeight::W900,
         }
     },
     {
         .title = "W700 bold",
         .style = {
-            .fontWeight_ = FontWeight::W700,
-            .fontStyle_ = FontStyle::ITALIC,
+            .fontWeight = FontWeight::W700,
+            .fontStyle = FontStyle::ITALIC,
         }
     },
 };

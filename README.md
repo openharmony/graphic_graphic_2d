@@ -35,7 +35,6 @@ foundataion/graphic/graphic_2d
 ├── frameworks                   # framework code directory
 │   ├── animation_server         # animationServer code
 │   ├── bootanimation            # Boot animation directory
-│   ├── dumper                   # graphic dumper code
 │   ├── fence                    # fence code
 │   ├── vsync                    # Vsync code
 ├── rosen                        # framework code directory

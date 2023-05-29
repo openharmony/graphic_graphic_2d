@@ -28,6 +28,9 @@
 #include "include/core/SkTextBlob.h"
 #include "include/core/SkTypeface.h"
 #include "include/core/SkVertices.h"
+#ifdef NEW_SKIA
+#include "include/core/SkSamplingOptions.h"
+#endif
 #include "securec.h"
 #include "src/core/SkAutoMalloc.h"
 #include "src/core/SkPaintPriv.h"
@@ -146,6 +149,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkImage>& val)
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
+{
+    return {};
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, void*& imagepixelAddr)
 {
     return {};
 }
@@ -315,6 +323,28 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RectT<fl
     return {};
 }
 
+//RRect
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RRectT<float>& val)
+{
+    return {};
+}
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RRectT<float>& val)
+{
+    return {};
+}
+
+#ifdef NEW_SKIA
+// SkPaint
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkSamplingOptions& val)
+{
+    return {};
+}
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkSamplingOptions& val)
+{
+    return {};
+}
+#endif
+
 #define MARSHALLING_AND_UNMARSHALLING(TYPE)                                                 \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TYPE>& val) \
     {                                                                                       \
@@ -402,6 +432,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                   \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)                       \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<DrawCmdList>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, SkMatrix)
 
@@ -423,7 +454,8 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderAnimatableProperty)
 

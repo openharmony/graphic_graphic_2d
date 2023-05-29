@@ -122,8 +122,7 @@ void Typography::Paint(Drawing::Canvas *drawCanvas, double x, double y)
 }
 
 std::vector<TextRect> Typography::GetTextRectsByBoundary(size_t left, size_t right,
-                                                        TextRectHeightStyle heightStyle,
-                                                        TextRectWidthStyle widthStyle)
+    TextRectHeightStyle heightStyle, TextRectWidthStyle widthStyle)
 {
     auto txtRectHeightStyle = Convert(heightStyle);
     auto txtRectWidthStyle = Convert(widthStyle);

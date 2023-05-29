@@ -25,6 +25,7 @@ namespace {
 constexpr const char* ENTRY_VIEW = "EntryView";
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* SCREENLOCK_WINDOW = "ScreenLockWindow";
+constexpr const char* SYSUI_DROPDOWN = "SysUI_Dropdown";
 };
 RSRenderNodeMap::RSRenderNodeMap()
 {
@@ -70,6 +71,11 @@ NodeId RSRenderNodeMap::GetScreenLockWindowNodeId() const
     return screenLockWindowNodeId_;
 }
 
+static bool IsResidentProcess(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
+{
+    return surfaceNode->GetName() == ENTRY_VIEW || surfaceNode->GetName() == SYSUI_DROPDOWN;
+}
+
 bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr)
 {
     NodeId id = nodePtr->GetId();
@@ -80,6 +86,9 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
     if (nodePtr->GetType() == RSRenderNodeType::SURFACE_NODE) {
         std::shared_ptr<RSSurfaceRenderNode> surfaceNode = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
         surfaceNodeMap_.emplace(id, surfaceNode);
+        if (IsResidentProcess(surfaceNode)) {
+            residentSurfaceNodeMap_.emplace(id, surfaceNode);
+        }
         ObtainLauncherNodeId(surfaceNode);
         ObtainScreenLockWindowNodeId(surfaceNode);
     }
@@ -91,6 +100,7 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     renderNodeMap_.erase(id);
     surfaceNodeMap_.erase(id);
     drivenRenderNodeMap_.erase(id);
+    residentSurfaceNodeMap_.erase(id);
 }
 
 void RSRenderNodeMap::AddDrivenRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr)
@@ -135,6 +145,10 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         return ExtractPid(pair.first) == pid;
     });
 
+    EraseIf(residentSurfaceNodeMap_, [pid](const auto& pair) -> bool {
+        return ExtractPid(pair.first) == pid;
+    });
+
     auto it = renderNodeMap_.find(0);
     if (it != renderNodeMap_.end()) {
         auto fallbackNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(it->second);
@@ -164,6 +178,11 @@ void RSRenderNodeMap::TraverseDrivenRenderNodes(std::function<void (const std::s
     for (const auto& [_, node] : drivenRenderNodeMap_) {
         func(node);
     }
+}
+
+std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> RSRenderNodeMap::GetResidentSurfaceNodeMap() const
+{
+    return residentSurfaceNodeMap_;
 }
 
 template<>

@@ -132,10 +132,10 @@ private:
     };
 
     void DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode_funcs_t *icuGetUnicodeFuncs);
-    int DoShape(CharGroups &cgs, MeasuringRun &run, int &index);
-    int GetGlyphs(CharGroups &cgs, MeasuringRun &run, int &index, hb_buffer_t *hbuffer,
-        std::shared_ptr<Texgine::Typeface> typeface);
-    void DoCgsByCluster(std::map<uint32_t, Texgine::CharGroup> &cgsByCluster);
+    int DoShape(CharGroups &cgs, MeasuringRun &run, size_t &index);
+    int GetGlyphs(CharGroups &cgs, MeasuringRun &run, size_t &index, hb_buffer_t *hbuffer,
+        std::shared_ptr<TextEngine::Typeface> typeface);
+    void DoCgsByCluster(std::map<uint32_t, TextEngine::CharGroup> &cgsByCluster);
 
     static inline std::map<struct MeasurerCacheKey, struct MeasurerCacheVal> cache_;
     std::vector<Boundary> boundaries_ = {};

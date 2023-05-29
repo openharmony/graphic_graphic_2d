@@ -69,6 +69,8 @@ public:
 
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
+    void SetFingerprint(bool hasFingerprint);
+    bool GetFingerprint() const;
     void SetAbilityBGAlpha(uint8_t alpha);
     void SetIsNotifyUIBufferAvailable(bool available);
     void MarkUIHidden(bool isHidden);
@@ -125,6 +127,7 @@ private:
     ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
 #endif
     bool isSecurityLayer_ = false;
+    bool hasFingerprint_ = false;
     bool isChildOperationDisallowed_ { false };
 
     uint32_t windowId_;

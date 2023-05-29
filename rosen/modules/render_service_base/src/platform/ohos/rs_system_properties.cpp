@@ -80,6 +80,12 @@ bool RSSystemProperties::GetUniRenderEnabled()
     return isUniRenderEnabled_;
 }
 
+bool RSSystemProperties::GetDrawOpTraceEnabled()
+{
+    static bool code = system::GetParameter("persist.rosen.drawoptrace.enabled", "0") != "0";
+    return code;
+}
+
 bool RSSystemProperties::GetRenderNodeTraceEnabled()
 {
     static bool isNeedTrace = system::GetParameter("persist.rosen.rendernodetrace.enabled", "0") != "0";
@@ -109,13 +115,11 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 #endif
 }
 
-#ifndef NEW_SKIA
 ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
 {
     return static_cast<ReleaseGpuResourceType>(
         std::atoi((system::GetParameter("persist.release.gpuresource.enabled", "2")).c_str()));
 }
-#endif
 
 bool RSSystemProperties::GetOcclusionEnabled()
 {
@@ -130,6 +134,11 @@ bool RSSystemProperties::GetQuickSkipPrepareEnabled()
 bool RSSystemProperties::GetHardwareComposerEnabled()
 {
     return system::GetParameter("rosen.hardwarecomposer.enabled", "1") != "0";
+}
+
+bool RSSystemProperties::GetAFBCEnabled()
+{
+    return system::GetParameter("rosen.afbc.enabled", "1") != "0";
 }
 
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
@@ -231,6 +240,11 @@ bool RSSystemProperties::GetProxyNodeDebugEnabled()
 {
     static bool flag = system::GetParameter("rosen.proxyNode.debug.enabled", "0") != "0";
     return flag;
+}
+
+bool RSSystemProperties::GetUIFirstEnabled()
+{
+    return std::atoi((system::GetParameter("rosen.ui.first.enabled", "0")).c_str()) != 0;
 }
 
 bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)

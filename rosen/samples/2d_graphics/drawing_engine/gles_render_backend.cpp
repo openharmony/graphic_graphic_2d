@@ -60,6 +60,7 @@ bool GLESRenderBackend::SetUpGrContext()
     GrContextOptions options;
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableDistanceFieldPaths = true;
+    options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
 #if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface), options));
     if (grContext == nullptr) {
@@ -67,7 +68,6 @@ bool GLESRenderBackend::SetUpGrContext()
         return false;
     }
 #else
-    options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
     sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
     if (grContext == nullptr) {
         LOGE("SetUpGrContext grContext is null");

@@ -28,7 +28,12 @@ void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id)
     nodeMap.RegisterRenderNode(node);
 }
 
+#ifndef USE_ROSEN_DRAWING
 void SurfaceNodeCommandHelper::SetContextMatrix(RSContext& context, NodeId id, const std::optional<SkMatrix>& matrix)
+#else
+void SurfaceNodeCommandHelper::SetContextMatrix(
+    RSContext& context, NodeId id, const std::optional<Drawing::Matrix>& matrix)
+#endif
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         node->SetContextMatrix(matrix, false);
@@ -42,7 +47,13 @@ void SurfaceNodeCommandHelper::SetContextAlpha(RSContext& context, NodeId id, fl
     }
 }
 
-void SurfaceNodeCommandHelper::SetContextClipRegion(RSContext& context, NodeId id, const std::optional<SkRect>& clipRect)
+#ifndef USE_ROSEN_DRAWING
+void SurfaceNodeCommandHelper::SetContextClipRegion(
+    RSContext& context, NodeId id, const std::optional<SkRect>& clipRect)
+#else
+void SurfaceNodeCommandHelper::SetContextClipRegion(
+    RSContext& context, NodeId id, const std::optional<Drawing::Rect>& clipRect)
+#endif
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         node->SetContextClipRegion(clipRect, false);
@@ -53,6 +64,13 @@ void SurfaceNodeCommandHelper::SetSecurityLayer(RSContext& context, NodeId id, b
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         node->SetSecurityLayer(isSecurityLayer);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetFingerprint(RSContext& context, NodeId id, bool hasFingerprint)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->SetFingerprint(hasFingerprint);
     }
 }
 
@@ -79,7 +97,8 @@ void SurfaceNodeCommandHelper::ConnectToNodeInRenderService(RSContext& context, 
     }
 }
 
-void SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh(RSContext& context, NodeId id, std::function<void(void)> callback)
+void SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh(
+    RSContext& context, NodeId id, std::function<void(void)> callback)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         if (node->NeedSetCallbackForRenderThreadRefresh()) {
@@ -124,8 +143,8 @@ void SurfaceNodeCommandHelper::SetSurfaceNodeType(RSContext& context, NodeId nod
     }
 }
 
-void SurfaceNodeCommandHelper::SetContainerWindow(RSContext& context, NodeId nodeId,
-    bool hasContainerWindow, float density)
+void SurfaceNodeCommandHelper::SetContainerWindow(
+    RSContext& context, NodeId nodeId, bool hasContainerWindow, float density)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetContainerWindow(hasContainerWindow, density);

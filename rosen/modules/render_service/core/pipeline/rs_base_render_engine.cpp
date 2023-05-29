@@ -134,6 +134,8 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
         return nullptr;
     }
 
+    rsSurface->SetSurfacePixelFormat(config.format);
+
     auto bufferUsage = config.usage;
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     if (forceCPU) {
@@ -177,7 +179,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
         } else {
             rsSurfaces_[surfaceId] = std::make_shared<RSSurfaceOhosGl>(targetSurface);
         }
-#elif RS_ENABLE_VK
+#elif defined(RS_ENABLE_VK)
         rsSurfaces_[surfaceId] = std::make_shared<RSSurfaceOhosVulkan>(targetSurface);
 #else
         rsSurfaces_[surfaceId] = std::make_shared<RSSurfaceOhosRaster>(targetSurface);

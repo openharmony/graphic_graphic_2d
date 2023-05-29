@@ -289,5 +289,22 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetNodeCostTest, TestSize.Level1)
     ASSERT_EQ(6, result);
 }
 
+/**
+ * @tc.name: Fingerprint Test
+ * @tc.desc: SetFingerprint and GetFingerprint
+ * @tc.type:FUNC
+ * @tc.require: issueI6Z3YK
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, FingerprintTest, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.SetFingerprint(true);
+    auto result = surfaceRenderNode.GetFingerprint();
+    ASSERT_EQ(true, result);
+    surfaceRenderNode.SetFingerprint(false);
+    result = surfaceRenderNode.GetFingerprint();
+    ASSERT_EQ(false, result);
+}
+
 } // namespace Rosen
 } // namespace OHOS

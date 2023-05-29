@@ -270,4 +270,18 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetContainerWindow001, TestSize.Level1)
     SurfaceNodeCommandHelper::Create(*context2, id2);
     SurfaceNodeCommandHelper::SetContainerWindow(*context2, id2, hasContainerWindow, density);
 }
+
+/**
+ * @tc.name: Fingerprint Test
+ * @tc.desc: SetFingerprint and GetFingerprint
+ * @tc.type: FUNC
+ * @tc.require: issueI6Z3YK
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, FingerprintTest001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(-1);
+    SurfaceNodeCommandHelper::SetFingerprint(context, id, true);
+    SurfaceNodeCommandHelper::SetFingerprint(context, id, false);
+}
 } // namespace OHOS::Rosen

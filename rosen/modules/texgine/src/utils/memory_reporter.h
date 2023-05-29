@@ -40,7 +40,7 @@ namespace TextEngine {
     void ReportMemoryUsage(const std::string &member, type const &that, bool needThis)
 
 #define MEMORY_USAGE_REPORT(member) \
-    ::Texgine::ReportMemoryUsage(#member, currentVal.member, false)
+    OHOS::Rosen::TextEngine::ReportMemoryUsage(#member, currentVal.member, false)
 
 #define MEMORY_USAGE_SCOPE(classname, var) \
     MemoryUsageScope s(std::string(classname) + " " + member); \

@@ -15,68 +15,38 @@
 
 #include "recording/mask_filter_cmd_list.h"
 
-#include "recording/recording_mask_filter.h"
 #include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-/* MaskFilterCmdList */
-std::shared_ptr<MaskFilterCmdList> MaskFilterCmdList::CreateFromData(CmdListData data)
+std::shared_ptr<MaskFilterCmdList> MaskFilterCmdList::CreateFromData(const CmdListData& data)
 {
     auto cmdList = std::make_shared<MaskFilterCmdList>();
-    if (cmdList == nullptr) {
-        LOGE("MaskFilterCmdList create from data failed!");
-        return nullptr;
-    }
-    cmdList->allocator_.BuildFromData(data.first, data.second);
+    cmdList->opAllocator_.BuildFromData(data.first, data.second);
     return cmdList;
-}
-
-Offset_t MaskFilterCmdList::AddCmdListData(CmdListData src)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (lastOpItem == nullptr) {
-        lastOpItem = allocator_.Allocate<OpItem>(MaskFilterOpItem::OPITEM_HEAD);
-    }
-    void* dst = allocator_.Add(src.first, src.second);
-    if (dst == nullptr) {
-        LOGE("MaskFilterCmdList AddCmdListData failed!");
-        return 0;
-    }
-    return allocator_.AddrToOffset(dst);
-}
-
-CmdListData MaskFilterCmdList::GetData() const
-{
-    const void* data = allocator_.GetData();
-    size_t size = allocator_.GetSize();
-    return std::pair<const void*, size_t>(data, size);
 }
 
 std::shared_ptr<MaskFilter> MaskFilterCmdList::Playback() const
 {
-    Offset_t offset = 0;
+    int32_t offset = 0;
     std::shared_ptr<MaskFilter> mf = nullptr;
-
     do {
-        OpItem* itemPtr = static_cast<OpItem*>(allocator_.OffsetToAddr(offset));
-        if (itemPtr != nullptr) {
-            switch (itemPtr->GetType()) {
-                case MaskFilterOpItem::CREATE_BLUR: {
-                    mf = static_cast<CreateBlurMaskFilterOpItem*>(itemPtr)->Playback();
-                    break;
-                }
-                default: {
-                    LOGE("MaskFilterCmdList unknown OpItem type!");
-                    break;
-                }
-            }
-            offset = itemPtr->GetNextOpItemOffset();
-        } else {
+        OpItem* itemPtr = static_cast<OpItem*>(opAllocator_.OffsetToAddr(offset));
+        if (itemPtr == nullptr) {
             LOGE("MaskFilterCmdList Playback failed!");
             break;
         }
+
+        switch (itemPtr->GetType()) {
+            case MaskFilterOpItem::CREATE_BLUR:
+                mf = static_cast<CreateBlurMaskFilterOpItem*>(itemPtr)->Playback();
+                break;
+            default:
+                LOGE("MaskFilterCmdList unknown OpItem type!");
+                break;
+        }
+        offset = itemPtr->GetNextOpItemOffset();
     } while (offset != 0);
 
     return mf;
@@ -90,7 +60,6 @@ std::shared_ptr<MaskFilter> CreateBlurMaskFilterOpItem::Playback() const
 {
     return MaskFilter::CreateBlurMaskFilter(blurType_, sigma_);
 }
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

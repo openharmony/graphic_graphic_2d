@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -131,6 +131,18 @@ HWTEST_F(ColorFilterTest, CreateLinearToSrgbGamma001, TestSize.Level1)
 HWTEST_F(ColorFilterTest, CreateSrgbGammaToLinear001, TestSize.Level1)
 {
     auto colorFilter = ColorFilter::CreateSrgbGammaToLinear();
+    EXPECT_FALSE(nullptr == colorFilter);
+}
+
+/**
+ * @tc.name: CreateLumaColorFilter001
+ * @tc.desc: test for creating a ColorFilter that its type is luma.
+ * @tc.type: FUNC
+ * @tc.require: I73UXK
+ */
+HWTEST_F(ColorFilterTest, CreateLumaColorFilter001, TestSize.Level1)
+{
+    auto colorFilter = ColorFilter::CreateLumaColorFilter();
     EXPECT_FALSE(nullptr == colorFilter);
 }
 

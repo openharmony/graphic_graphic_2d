@@ -85,12 +85,20 @@ HWTEST_F(HdiOutputSysTest, TestHdiOutput001, Function | MediumTest| Level3)
 
     std::string dumpStr = "";
     HdiOutputSysTest::hdiOutput_->Dump(dumpStr);
-    uint32_t dumpStrLen = dumpStr.size();
-    ASSERT_NE(dumpStrLen, 0u);
+    std::size_t found = dumpStr.find("FrameBufferSurface");
+    ASSERT_NE(found, -1);
+
     std::string dumpFpsStr = "";
     HdiOutputSysTest::hdiOutput_->DumpFps(dumpFpsStr, "composer");
-    uint32_t dumpFpsStrLen = dumpFpsStr.size();
-    ASSERT_NE(dumpFpsStrLen, 0u);
+    HdiOutputSysTest::hdiOutput_->DumpFps(dumpFpsStr, "noname");
+    found = dumpFpsStr.find("screen");
+    ASSERT_NE(found, -1);
+
+    std::string clearFpsStr = "";
+    HdiOutputSysTest::hdiOutput_->ClearFpsDump(clearFpsStr, "composer");
+    found = clearFpsStr.find("screen");
+    ASSERT_NE(found, -1);
+
     ASSERT_NE(HdiOutputSysTest::hdiOutput_->GetFrameBufferSurface(), nullptr);
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->GetFramebuffer(), nullptr);
 }

@@ -81,7 +81,7 @@ public:
     static std::shared_ptr<ImageFilter> CreateComposeImageFilter(std::shared_ptr<ImageFilter> f1,
         std::shared_ptr<ImageFilter> f2);
 
-    ~ImageFilter() {}
+    virtual ~ImageFilter() = default;
     FilterType GetType() const;
     template<typename T>
     const std::shared_ptr<T> GetImpl() const

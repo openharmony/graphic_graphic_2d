@@ -31,6 +31,11 @@ void RSSurfaceOhosRaster::SetSurfaceBufferUsage(uint64_t usage)
     bufferUsage_ = usage;
 }
 
+void RSSurfaceOhosRaster::SetSurfacePixelFormat(int32_t pixelFormat)
+{
+    pixelFormat_ = pixelFormat;
+}
+
 std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width, int32_t height,
     uint64_t uiTimestamp, bool useAFBC)
 {
@@ -41,6 +46,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width,
 
     std::unique_ptr<RSSurfaceFrameOhosRaster> frame = std::make_unique<RSSurfaceFrameOhosRaster>(width, height);
     frame->requestConfig_.usage = bufferUsage_;
+    frame->requestConfig_.format = pixelFormat_;
     SurfaceError err = producer_->RequestBuffer(frame->buffer_, frame->releaseFence_, frame->requestConfig_);
     if (err != SURFACE_ERROR_OK) {
         ROSEN_LOGE("RSSurfaceOhosRaster::Requestframe Failed, error is : %s", SurfaceErrorStr(err).c_str());

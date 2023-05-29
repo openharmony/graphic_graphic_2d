@@ -17,24 +17,37 @@
 #define REGION_CMD_LIST_H
 
 #include "utils/region.h"
-#include "cmd_list.h"
+#include "recording/cmd_list.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 class RegionCmdList : public CmdList {
 public:
-    RegionCmdList();
-    RegionCmdList(const CmdListData& data);
+    RegionCmdList() = default;
     ~RegionCmdList() override = default;
 
-    void Playback(Region& region) const;
+    uint32_t GetType() const override
+    {
+        return Type::REGION_CMD_LIST;
+    }
+
+    /*
+     * @brief       Creates a RegionCmdList with contiguous buffers.
+     * @param data  A contiguous buffers.
+     */
+    static std::shared_ptr<RegionCmdList> CreateFromData(const CmdListData& data);
+
+    /*
+     * @brief  Calls the corresponding operations of all opitems in RegionCmdList to the region.
+     */
+    std::shared_ptr<Region> Playback() const;
 };
 
 /* OpItem */
 class RegionOpItem : public OpItem {
 public:
-    RegionOpItem(uint32_t type) : OpItem(type) {}
+    explicit RegionOpItem(uint32_t type) : OpItem(type) {}
     ~RegionOpItem() = default;
 
     enum Type : uint32_t {
@@ -47,7 +60,7 @@ public:
 
 class SetRectOpItem : public RegionOpItem {
 public:
-    SetRectOpItem(const RectI& rectI);
+    explicit SetRectOpItem(const RectI& rectI);
     ~SetRectOpItem() = default;
 
     void Playback(Region& region) const;
@@ -57,23 +70,23 @@ private:
 
 class SetPathOpItem : public RegionOpItem {
 public:
-    SetPathOpItem(const CmdListSiteInfo& path, const CmdListSiteInfo& region);
+    SetPathOpItem(const CmdListHandle& path, const CmdListHandle& region);
     ~SetPathOpItem() = default;
 
-    void Playback(Region& region, const MemAllocator& memAllocator) const;
+    void Playback(Region& region, const CmdList& CmdList) const;
 private:
-    CmdListSiteInfo path_;
-    CmdListSiteInfo region_;
+    CmdListHandle path_;
+    CmdListHandle region_;
 };
 
 class RegionOpWithOpItem : public RegionOpItem {
 public:
-    RegionOpWithOpItem(const CmdListSiteInfo& region, RegionOp op);
+    RegionOpWithOpItem(const CmdListHandle& region, RegionOp op);
     ~RegionOpWithOpItem() = default;
 
-    void Playback(Region& region, const MemAllocator& memAllocator) const;
+    void Playback(Region& region, const CmdList& cmdList) const;
 private:
-    CmdListSiteInfo region_;
+    CmdListHandle region_;
     RegionOp op_;
 };
 

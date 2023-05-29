@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path =
     "graphic_standard/rosen/modules/2d_graphics/engine_adapter/skia_adapter"
@@ -55,6 +56,10 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
       "//third_party/flutter/skia/include/",
     ]
     deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  }
+
+  if (ace_enable_gpu) {
+    defines = [ "ACE_ENABLE_GPU" ]
   }
 
   part_name = "graphic_standard"

@@ -32,6 +32,8 @@ namespace OHOS {
 #define SURFACE_DEFAULT_STRIDE_ALIGNMENT 4
 #define SURFACE_MAX_SIZE 58982400 // 8K * 8K
 
+constexpr uint32_t SURFACE_PARCEL_SIZE_LIMIT = 1024;
+
 /*
  * @brief Enumerates return values of the functions.
  */
@@ -121,6 +123,7 @@ using GraphicPixelFormat = enum {
     GRAPHIC_PIXEL_FMT_UYVY_422_PKG,              /**< UYVY422 packed format */
     GRAPHIC_PIXEL_FMT_YVYU_422_PKG,              /**< YVYU422 packed format */
     GRAPHIC_PIXEL_FMT_VYUY_422_PKG,              /**< VYUY422 packed format */
+    GRAPHIC_PIXEL_FMT_RGBA_1010102,              /**< RGBA_1010102 packed format */
     GRAPHIC_PIXEL_FMT_VENDER_MASK = 0X7FFF0000,  /**< vendor mask format */
     GRAPHIC_PIXEL_FMT_BUTT = 0X7FFFFFFF          /**< Invalid pixel format */
 };

@@ -21,13 +21,14 @@
 namespace OHOS {
 namespace Rosen {
 std::unique_ptr<TypographyCreate> TypographyCreate::Create(const TypographyStyle& style,
-                                                           std::shared_ptr<FontCollection> collection)
+    std::shared_ptr<FontCollection> collection)
 {
     return std::make_unique<AdapterTxt::TypographyCreate>(style, collection);
 }
 
 namespace AdapterTxt {
-TypographyCreate::TypographyCreate(const TypographyStyle& style, std::shared_ptr<OHOS::Rosen::FontCollection> collection)
+TypographyCreate::TypographyCreate(const TypographyStyle& style,
+    std::shared_ptr<OHOS::Rosen::FontCollection> collection)
 {
     auto paragraphStyle = Convert(style);
     auto txtFontCollection = Convert(collection)->Get();

@@ -32,11 +32,6 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "rs_node_cost_manager.h"
 #include "rs_parallel_render_manager.h"
-#ifdef NEW_SKIA
-#include "include/gpu/GrDirectContext.h"
-#else
-#include "include/gpu/GrContext.h"
-#endif
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_uni_render_visitor.h"
 #include "rs_parallel_render_ext.h"
@@ -105,10 +100,22 @@ void RSParallelSubThread::MainLoop()
                 Flush();
                 break;
             }
-            default: {
+            case TaskType::COMPOSITION_TASK: {
                 StartComposition();
                 Composition();
                 RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
+                break;
+            }
+            case TaskType::CACHE_TASK: {
+                RS_TRACE_BEGIN("SubThreadCacheProcess[" + std::to_string(threadIndex_) + "]");
+                StartRenderCache();
+                RenderCache();
+                RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
+                RS_TRACE_END();
+                break;
+            }
+            default: {
+                break;
             }
         }
     }
@@ -156,6 +163,11 @@ void RSParallelSubThread::CreateShareEglContext()
 }
 
 void RSParallelSubThread::StartPrepare()
+{
+    InitUniVisitor();
+}
+
+void RSParallelSubThread::InitUniVisitor()
 {
     RSUniRenderVisitor *uniVisitor = RSParallelRenderManager::Instance()->GetUniVisitor();
     if (uniVisitor == nullptr) {
@@ -227,6 +239,62 @@ void RSParallelSubThread::CalcCost()
         RSParallelRenderManager::Instance()->StopTimingAndSetRenderTaskCost(
             threadIndex_, task->GetIdx(), TaskType::CALC_COST_TASK);
     }
+}
+
+void RSParallelSubThread::StartRenderCache()
+{
+    InitUniVisitor();
+    if (visitor_) {
+        visitor_->CopyPropertyForParallelVisitor(RSParallelRenderManager::Instance()->GetUniVisitor());
+    }
+}
+
+void RSParallelSubThread::RenderCache()
+{
+#ifdef RS_ENABLE_GL
+    while (threadTask_->GetTaskSize() > 0) {
+        auto task = threadTask_->GetNextRenderTask();
+        if (!task || (task->GetIdx() == 0)) {
+            RS_LOGE("renderTask is nullptr");
+            continue;
+        }
+        auto node = task->GetNode();
+        if (!node) {
+            RS_LOGE("surfaceNode is nullptr");
+            continue;
+        }
+        auto surfaceNodePtr = node->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (!surfaceNodePtr) {
+            RS_LOGE("RenderCache ReinterpretCastTo fail");
+            continue;
+        }
+        RS_TRACE_NAME_FMT("draw cache render node: [%s, %llu]", surfaceNodePtr->GetName().c_str(),
+            surfaceNodePtr->GetId());
+        if (surfaceNodePtr->GetCacheSurface() == nullptr) {
+            int width = std::ceil(surfaceNodePtr->GetRenderProperties().GetBoundsRect().GetWidth());
+            int height = std::ceil(surfaceNodePtr->GetRenderProperties().GetBoundsRect().GetHeight());
+            AcquireSubSkSurface(width, height);
+            surfaceNodePtr->InitCacheSurface(skSurface_);
+        }
+        node->Process(visitor_);
+#ifndef NEW_SKIA
+        auto skCanvas = surfaceNodePtr->GetCacheSurface() ? surfaceNodePtr->GetCacheSurface()->getCanvas() : nullptr;
+        if (skCanvas) {
+            RS_TRACE_NAME_FMT("render cache flush, %s", surfaceNodePtr->GetName().c_str());
+            skCanvas->flush();
+        } else {
+            RS_LOGE("skCanvas is nullptr, flush failed");
+        }
+#endif
+    }
+#ifdef NEW_SKIA
+    if (grContext_) {
+        RS_TRACE_NAME_FMT("render cache grContext flush and submit");
+        grContext_->flushAndSubmit(false);
+    }
+#endif
+    eglSync_ = eglCreateSyncKHR(renderContext_->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
+#endif
 }
 
 void RSParallelSubThread::StartRender()
@@ -325,11 +393,17 @@ void RSParallelSubThread::Flush()
     }
     if (renderType_ == ParallelRenderType::DRAW_IMAGE) {
         RS_TRACE_BEGIN("Flush");
+#ifdef NEW_SKIA
+        if (grContext_) {
+            grContext_->flushAndSubmit(false);
+        }
+#else
         // skCanvas_->flush() may tasks a long time when window is zoomed in and out. So let flush operation of
         // subMainThreads are executed in sequence to reduce probability rather than solve the question.
         RSParallelRenderManager::Instance()->LockFlushMutex();
         skCanvas_->flush();
         RSParallelRenderManager::Instance()->UnlockFlushMutex();
+#endif
         RS_TRACE_END();
         RS_TRACE_BEGIN("Create Fence");
         eglSync_ = eglCreateSyncKHR(renderContext_->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
@@ -411,13 +485,11 @@ sk_sp<GrContext> RSParallelSubThread::CreateShareGrContext()
     }
 
     GrContextOptions options = {};
-#ifndef NEW_SKIA
-    options.fGpuPathRenderers = GpuPathRenderers::kAll & ~GpuPathRenderers::kCoverageCounting;
-#endif
+    options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableDistanceFieldPaths = true;
 #ifdef NEW_SKIA
-    sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(GrGLMakeNativeInterface(), options);
+    sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
 #else
     sk_sp<GrContext> grContext = GrContext::MakeGL(std::move(glInterface), options);
 #endif
@@ -481,12 +553,12 @@ void RSParallelSubThread::Composition()
     compositionTask_ = nullptr;
 }
 
-EGLContext RSParallelSubThread::GetSharedContext()
+EGLContext RSParallelSubThread::GetSharedContext() const
 {
     return eglShareContext_;
 }
 
-sk_sp<SkSurface> RSParallelSubThread::GetSkSurface()
+sk_sp<SkSurface> RSParallelSubThread::GetSkSurface() const
 {
     return skSurface_;
 }
@@ -501,7 +573,7 @@ void RSParallelSubThread::SetCompositionTask(std::unique_ptr<RSCompositionTask> 
     compositionTask_ = std::move(compositionTask);
 }
 
-sk_sp<SkImage> RSParallelSubThread::GetTexture()
+sk_sp<SkImage> RSParallelSubThread::GetTexture() const
 {
     return texture_;
 }

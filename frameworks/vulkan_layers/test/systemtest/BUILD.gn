@@ -1,0 +1,66 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+
+module_out_path = "graphic_standard/vulkan_layers"
+
+group("systemtest") {
+  testonly = true
+
+  deps = [ ":vulkan_loader_system_test" ]
+}
+
+ohos_systemtest("vulkan_loader_system_test") {
+  module_out_path = module_out_path
+  sources = [ "vulkan_loader_system_test.cpp" ]
+  deps = [ ":vulkan_loader_test_common" ]
+}
+
+config("vulkan_loader_test_common_public_config") {
+  include_dirs = [
+    "../../../surface/include",
+    "../../../../interfaces/inner_api/surface",
+    "../../../../interfaces/inner_api/common",
+    "../../../../rosen/modules/render_service_client",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+ohos_static_library("vulkan_loader_test_common") {
+  visibility = [ ":*" ]
+  testonly = true
+
+  public_configs = [ ":vulkan_loader_test_common_public_config" ]
+
+  public_deps = [
+    "../../../../rosen/modules/2d_graphics:2d_graphics",
+    "../../../../rosen/modules/render_service_base:librender_service_base",
+    "../../../../rosen/modules/render_service_client:librender_service_client",
+    "../../../../utils:libgraphic_utils",
+    "../../../surface:surface",
+    "//third_party/googletest:gtest_main",
+    "//third_party/vulkan-headers:vulkan_headers",
+    "//third_party/zlib:libz",
+  ]
+
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
+}

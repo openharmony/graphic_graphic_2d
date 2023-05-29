@@ -17,7 +17,6 @@
 #define FRAMEWORKS_SURFACE_INCLUDE_BUFFER_EXTRA_DATA_IMPL_H
 
 #include <buffer_extra_data.h>
-
 #include <any>
 
 namespace OHOS {

@@ -130,6 +130,7 @@ void RSDrivenRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
     node.GetMutableRenderProperties().CheckEmptyBounds();
     node.ProcessRenderBeforeChildren(*canvas_);
+    node.ProcessRenderContents(*canvas_);
     ProcessBaseRenderNode(node);
     node.ProcessRenderAfterChildren(*canvas_);
 }

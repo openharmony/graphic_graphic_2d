@@ -54,8 +54,8 @@ public:
     // The first element is color, the second element is pixel num of this color.
     std::vector<std::pair<uint32_t, uint32_t>> featureColors_;
 
-    // Specified number of extracted theme colors, default value is 16;
-    int specifiedFeatureColorNum_ = 16;
+    // Specified number of extracted theme colors, default value is 10;
+    int specifiedFeatureColorNum_ = 10;
 
     std::shared_ptr<uint32_t> hist_ = nullptr;
     int distinctColorCount_ = 0;

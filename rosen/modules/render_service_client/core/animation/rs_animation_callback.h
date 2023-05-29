@@ -38,6 +38,16 @@ public:
 
     const bool isTimingSensitive_;
 };
+
+class AnimationRepeatCallback {
+public:
+    AnimationRepeatCallback(const std::function<void()>& callback) : callback_(callback) {};
+    ~AnimationRepeatCallback() {};
+    // Execute the callback function repeatitive.
+    void Execute();
+protected:
+    std::function<void()> callback_;
+};
 } // namespace Rosen
 } // namespace OHOS
 

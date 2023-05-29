@@ -21,30 +21,30 @@ namespace TextEngine {
 TextStyle TypographyStyle::ConvertToTextStyle() const
 {
     TextStyle style;
-    style.fontSize_ = fontSize_;
-    style.fontFamilies_ = fontFamilies_;
-    style.heightScale_ = heightScale_;
-    style.heightOnly_ = heightOnly_;
-    style.fontWeight_ = fontWeight_;
-    style.fontStyle_ = fontStyle_;
+    style.fontSize = fontSize;
+    style.fontFamilies = fontFamilies;
+    style.heightScale = heightScale;
+    style.heightOnly = heightOnly;
+    style.fontWeight = fontWeight;
+    style.fontStyle = fontStyle;
 
     return style;
 }
 
 TextAlign TypographyStyle::GetEquivalentAlign() const
 {
-    TextAlign align = align_;
-    bool isLTR = direction_ == TextDirection::LTR;
-    TextAlign trim = align & TextAlign::TRIM;
-    align &= ~TextAlign::TRIM;
-    if (align == TextAlign::START) {
-        align = isLTR ? TextAlign::LEFT : TextAlign::RIGHT;
-    } else if (align == TextAlign::END) {
-        align = isLTR ? TextAlign::RIGHT : TextAlign::LEFT;
-    } else if (align == TextAlign::JUSTIFY) {
-        align = isLTR ? TextAlign::JUSTIFY : TextAlign::RIGHT;
+    TextAlign textAlign = align;
+    bool isLTR = direction == TextDirection::LTR;
+    TextAlign trim = textAlign & TextAlign::TRIM;
+    textAlign &= ~TextAlign::TRIM;
+    if (textAlign == TextAlign::START) {
+        textAlign = isLTR ? TextAlign::LEFT : TextAlign::RIGHT;
+    } else if (textAlign == TextAlign::END) {
+        textAlign = isLTR ? TextAlign::RIGHT : TextAlign::LEFT;
+    } else if (textAlign == TextAlign::JUSTIFY) {
+        textAlign = isLTR ? TextAlign::JUSTIFY : TextAlign::RIGHT;
     }
-    return align | trim;
+    return textAlign | trim;
 }
 } // namespace TextEngine
 } // namespace Rosen

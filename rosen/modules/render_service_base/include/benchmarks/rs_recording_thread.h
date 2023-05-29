@@ -17,7 +17,13 @@
 #define ROSEN_RENDER_SERVICE_BASE_BENCHMARKS_RS_RECORDING_THREAD_H
 
 
+#ifndef USE_ROSEN_DRAWING
 #include "pipeline/rs_draw_cmd_list.h"
+#else
+#include "common/rs_common_def.h"
+#include "common/rs_macros.h"
+#include "recording/draw_cmd_list.h"
+#endif
 
 #include <sys/stat.h>
 
@@ -33,7 +39,11 @@ public:
     void PostTask(const std::function<void()> & task);
     bool CheckAndRecording();
     void FinishRecordingOneFrame();
+#ifndef USE_ROSEN_DRAWING
     void RecordingToFile(const std::shared_ptr<DrawCmdList> & drawCmdList);
+#else
+    void RecordingToFile(const std::shared_ptr<Drawing::DrawCmdList> & drawCmdList);
+#endif
     [[nodiscard]] int GetCurDumpFrame() const
     {
         return curDumpFrame_;

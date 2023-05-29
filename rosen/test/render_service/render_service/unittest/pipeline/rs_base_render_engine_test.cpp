@@ -178,8 +178,11 @@ HWTEST(RSBaseRenderEngineUnitTest, CreateEglImageFromBuffer001, TestSize.Level1)
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
     auto img = renderEngine->CreateEglImageFromBuffer(*canvas, nullptr, nullptr);
     ASSERT_EQ(nullptr, img);
-
+#ifdef NEW_SKIA
+    [[maybe_unused]] auto grContext = canvas->recordingContext();
+#else
     [[maybe_unused]] auto grContext = canvas->getGrContext();
+#endif
     grContext = nullptr;
     img = renderEngine->CreateEglImageFromBuffer(*canvas, node->GetBuffer(), nullptr);
     ASSERT_EQ(nullptr, img);

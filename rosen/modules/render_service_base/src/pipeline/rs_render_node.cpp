@@ -16,9 +16,11 @@
 #include "pipeline/rs_render_node.h"
 
 #include <algorithm>
+#include <set>
 
 #include "animation/rs_render_animation.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -28,6 +30,14 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+const std::set<RSModifierType> GROUPABLE_ANIMATION_TYPE = {
+    RSModifierType::ALPHA,
+    RSModifierType::ROTATION,
+    RSModifierType::SCALE,
+};
+}
+
 RSRenderNode::RSRenderNode(NodeId id, std::weak_ptr<RSContext> context) : RSBaseRenderNode(id, context) {}
 
 RSRenderNode::~RSRenderNode()
@@ -130,19 +140,19 @@ void RSRenderNode::UpdateDirtyRegion(
         ROSEN_LOGD("RSRenderNode:: id %" PRIu64 " UpdateDirtyRegion visible->invisible", GetId());
     } else {
         RectI drawRegion;
-        RectI shadowDirty;
+
         auto dirtyRect = renderProperties_.GetDirtyRect(drawRegion);
         if (renderProperties_.IsShadowValid()) {
             SetShadowValidLastFrame(true);
             if (IsInstanceOf<RSSurfaceRenderNode>()) {
                 const RectF absBounds = {0, 0, renderProperties_.GetBoundsWidth(), renderProperties_.GetBoundsHeight()};
                 RRect absClipRRect = RRect(absBounds, renderProperties_.GetCornerRadius());
-                RSPropertiesPainter::GetShadowDirtyRect(shadowDirty, renderProperties_, &absClipRRect);
+                RSPropertiesPainter::GetShadowDirtyRect(shadowRect_, renderProperties_, &absClipRRect);
             } else {
-                RSPropertiesPainter::GetShadowDirtyRect(shadowDirty, renderProperties_);
+                RSPropertiesPainter::GetShadowDirtyRect(shadowRect_, renderProperties_);
             }
-            if (!shadowDirty.IsEmpty()) {
-                dirtyRect = dirtyRect.JoinRect(shadowDirty);
+            if (!shadowRect_.IsEmpty()) {
+                dirtyRect = dirtyRect.JoinRect(shadowRect_);
             }
         }
 
@@ -168,7 +178,7 @@ void RSRenderNode::UpdateDirtyRegion(
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
                     GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, drawRegion);
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
-                    GetId(), GetType(), DirtyRegionType::SHADOW_RECT, shadowDirty);
+                    GetId(), GetType(), DirtyRegionType::SHADOW_RECT, shadowRect_);
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
                     GetId(), GetType(), DirtyRegionType::PREPARE_CLIP_RECT, clipRect);
             }
@@ -180,6 +190,11 @@ void RSRenderNode::UpdateDirtyRegion(
 bool RSRenderNode::IsDirty() const
 {
     return RSBaseRenderNode::IsDirty() || renderProperties_.IsDirty();
+}
+
+bool RSRenderNode::IsContentDirty() const
+{
+    return !RSBaseRenderNode::IsContentDirty() && renderProperties_.IsContentDirty();
 }
 
 void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled)
@@ -218,7 +233,7 @@ void RSRenderNode::RenderTraceDebug() const
     }
 }
 
-void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
+void RSRenderNode::ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     renderNodeSaveCount_ = canvas.Save();
     auto boundsGeo = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
@@ -227,7 +242,7 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
     }
     auto alpha = renderProperties_.GetAlpha();
     if (alpha < 1.f) {
-        if ((GetChildrenCount() == 0) || !GetRenderProperties().GetAlphaOffscreen()) {
+        if ((GetChildrenCount() == 0) || !(GetRenderProperties().GetAlphaOffscreen() || isForcedDrawInGroup())) {
             canvas.MultiplyAlpha(alpha);
         } else {
             auto rect = RSPropertiesPainter::Rect2SkRect(GetRenderProperties().GetBoundsRect());
@@ -237,24 +252,20 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
     RSPropertiesPainter::DrawMask(GetRenderProperties(), canvas);
 }
 
-void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
+void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
+{
+    RSRenderNode::ProcessTransitionBeforeChildren(canvas);
+}
+
+void RSRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)
 {
     GetMutableRenderProperties().ResetBounds();
     canvas.RestoreStatus(renderNodeSaveCount_);
 }
 
-void RSRenderNode::CheckCacheType()
+void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
-    auto newCacheType = CacheType::NONE;
-    if (GetRenderProperties().IsSpherizeValid()) {
-        newCacheType = CacheType::SPHERIZE;
-    } else if (isFreeze_) {
-        newCacheType = CacheType::FREEZE;
-    }
-    if (cacheType_ != newCacheType) {
-        cacheType_ = newCacheType;
-        cacheTypeChanged_ = true;
-    }
+    RSRenderNode::ProcessTransitionAfterChildren(canvas);
 }
 
 void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier> modifier)
@@ -380,5 +391,136 @@ bool RSRenderNode::ShouldPaint() const
     return (renderProperties_.GetVisible() || HasDisappearingTransition(false)) &&
            (renderProperties_.GetAlpha() > 0.0f);
 }
+
+void RSRenderNode::SetSharedTransitionParam(const std::optional<SharedTransitionParam>&& sharedTransitionParam)
+{
+    if (!sharedTransitionParam_.has_value() && !sharedTransitionParam.has_value()) {
+        // both are empty, do nothing
+        return;
+    }
+    sharedTransitionParam_ = sharedTransitionParam;
+    SetDirty();
+}
+
+const std::optional<RSRenderNode::SharedTransitionParam>& RSRenderNode::GetSharedTransitionParam() const
+{
+    return sharedTransitionParam_;
+}
+
+void RSRenderNode::SetGlobalAlpha(float alpha)
+{
+    if (globalAlpha_ == alpha) {
+        return;
+    }
+    globalAlpha_ = alpha;
+    OnAlphaChanged();
+}
+
+float RSRenderNode::GetGlobalAlpha() const
+{
+    return globalAlpha_;
+}
+
+void RSRenderNode::InitCacheSurface(RSPaintFilterCanvas& canvas)
+{
+    ClearCacheSurface();
+    auto cacheType = GetCacheType();
+    float width = 0.0f, height = 0.0f;
+    boundsWidth_ = renderProperties_.GetBoundsRect().GetWidth();
+    boundsHeight_ = renderProperties_.GetBoundsRect().GetHeight();
+    if (cacheType == CacheType::ANIMATE_PROPERTY &&
+        renderProperties_.IsShadowValid() && !renderProperties_.IsSpherizeValid()) {
+        width = shadowRect_.GetWidth();
+        height = shadowRect_.GetHeight();
+        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(renderProperties_.GetBoundsGeometry());
+        if (!geoPtr) {
+            return;
+        }
+        shadowRectOffsetX_ = geoPtr->GetAbsRect().GetLeft() - shadowRect_.GetLeft();
+        shadowRectOffsetY_ = geoPtr->GetAbsRect().GetTop() - shadowRect_.GetTop();
+    } else {
+        width = boundsWidth_;
+        height = boundsHeight_;
+    }
+#if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
+    SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
+#ifdef NEW_SKIA
+    cacheSurface_ = SkSurface::MakeRenderTarget(canvas.recordingContext(), SkBudgeted::kYes, info);
+#else
+    cacheSurface_ = SkSurface::MakeRenderTarget(canvas.getGrContext(), SkBudgeted::kYes, info);
+#endif
+#else
+    cacheSurface_ = SkSurface::MakeRasterN32Premul(width, height);
+#endif
+}
+
+void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas) const
+{
+    auto surface = GetCompletedCacheSurface();
+    if (surface == nullptr || (boundsWidth_ == 0 || boundsHeight_ == 0)) {
+        return;
+    }
+    auto cacheType = GetCacheType();
+    canvas.save();
+    float scaleX = renderProperties_.GetBoundsRect().GetWidth() / boundsWidth_;
+    float scaleY = renderProperties_.GetBoundsRect().GetHeight() / boundsHeight_;
+    canvas.scale(scaleX, scaleY);
+    SkPaint paint;
+    if (cacheType == CacheType::ANIMATE_PROPERTY && renderProperties_.IsShadowValid()) {
+        surface->draw(&canvas, -shadowRectOffsetX_ * scaleX, -shadowRectOffsetY_ * scaleY, &paint);
+    } else {
+        surface->draw(&canvas, 0.0, 0.0, &paint);
+    }
+    canvas.restore();
+}
+
+void RSRenderNode::DrawCacheTexture(RSPaintFilterCanvas& canvas) const
+{
+    auto surface = GetCompletedCacheSurface();
+    if (surface == nullptr || (surface->width() == 0 || surface->height() == 0)) {
+        RS_LOGE("invalid cache surface");
+        return;
+    }
+    canvas.save();
+    float width = GetRenderProperties().GetBoundsRect().GetWidth();
+    float height = GetRenderProperties().GetBoundsRect().GetHeight();
+    canvas.scale(width / surface->width(), height / surface->height());
+    if (cacheTexture_ == nullptr) {
+        RS_LOGE("invalid cache texture");
+        return;
+    }
+    canvas.drawImage(cacheTexture_, 0, 0);
+    canvas.restore();
+}
+
+bool RSRenderNode::HasGroupableAnimations() const
+{
+    for (auto& [_, animation] : animationManager_.animations_) {
+        if (!animation || !modifiers_.count(animation->GetPropertyId())) {
+            continue;
+        }
+        const auto& modifier = modifiers_.at(animation->GetPropertyId());
+        if (modifier && GROUPABLE_ANIMATION_TYPE.count(modifier->GetType())) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool RSRenderNode::isForcedDrawInGroup() const
+{
+    return (nodeGroupType_ == NodeGroupType::GROUPED_BY_UI) && (renderProperties_.GetAlpha() < 1.f);
+}
+
+bool RSRenderNode::isSuggestedDrawInGroup() const
+{
+    return nodeGroupType_ != NodeGroupType::NONE;
+}
+
+void RSRenderNode::MarkNodeGroup(NodeGroupType type)
+{
+    nodeGroupType_ = type;
+}
+
 } // namespace Rosen
 } // namespace OHOS

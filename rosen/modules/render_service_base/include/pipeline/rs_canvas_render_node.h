@@ -18,14 +18,20 @@
 #include <memory>
 #include <unordered_set>
 
-#include "memory/MemoryTrack.h"
+#include "memory/rs_memory_track.h"
 
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
+#ifndef USE_ROSEN_DRAWING
 class DrawCmdList;
+#else
+namespace Drawing {
+class DrawCmdList;
+}
+#endif
 struct RSModifierContext;
 
 class RSCanvasRenderNode : public RSRenderNode {
@@ -37,7 +43,11 @@ public:
     explicit RSCanvasRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     virtual ~RSCanvasRenderNode();
 
+#ifndef USE_ROSEN_DRAWING
     void UpdateRecording(std::shared_ptr<DrawCmdList> drawCmds, RSModifierType type);
+#else
+    void UpdateRecording(std::shared_ptr<Drawing::DrawCmdList> drawCmds, RSModifierType type);
+#endif
     void ClearRecording();
 
     void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;

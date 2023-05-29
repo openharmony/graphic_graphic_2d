@@ -52,7 +52,11 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceDarwin::RequestFrame(
     }
 
     constexpr auto colorType = kRGBA_8888_SkColorType;
+#if defined(NEW_SKIA)
+    SkSurfaceProps surfaceProps(0, kRGB_H_SkPixelGeometry);
+#else
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
+#endif
     constexpr uint32_t format = 0x8058; // GL_RGBA8
     GrBackendRenderTarget backendRenderTarget(
         frame->width_, frame->height_, 0, 8, {.fFBOID = 0, .fFormat = format});
@@ -171,7 +175,11 @@ bool RSSurfaceDarwin::SetupGrContext()
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableDistanceFieldPaths = true;
     options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
+#if defined(NEW_SKIA)
+    const auto &grContext = GrDirectContext::MakeGL(glinterface, options);
+#else
     const auto &grContext = GrContext::MakeGL(glinterface, options);
+#endif
     if (grContext == nullptr) {
         ROSEN_LOGE("grContext is nullptr");
         return false;

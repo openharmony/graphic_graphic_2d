@@ -45,26 +45,31 @@ extern "C" {
 
 /**
  * @brief native window.
+ * @since 8
  */
 struct NativeWindow;
 
 /**
  * @brief native window buffer.
+ * @since 8
  */
 struct NativeWindowBuffer;
 
 /**
  * @brief define the new type name OHNativeWindow for struct NativeWindow.
+ * @since 8
  */
 typedef struct NativeWindow OHNativeWindow;
 
 /**
  * @brief define the new type name OHNativeWindowBuffer for struct NativeWindowBuffer.
+ * @since 8
  */
 typedef struct NativeWindowBuffer OHNativeWindowBuffer;
 
 /**
  * @brief indicates a dirty region where content is updated.
+ * @since 8
  */
 typedef struct Region {
     /** if rects is nullptr, fill the Buffer dirty size by default */
@@ -81,6 +86,7 @@ typedef struct Region {
 
 /**
  * @brief Indicates the operation code in the function OH_NativeWindow_NativeWindowHandleOpt.
+ * @since 8
  */
 enum NativeWindowOperation {
     /**
@@ -189,6 +195,8 @@ enum NativeWindowOperation {
 
 /**
  * @brief Indicates Scaling Mode.
+ * @since 9
+ * @deprecated(since = "9")
  */
 typedef enum {
     /**
@@ -214,6 +222,8 @@ typedef enum {
 
 /**
  * @brief Enumerates the HDR metadata keys.
+ * @since 9
+ * @deprecated(since = "9")
  */
 typedef enum {
     OH_METAKEY_RED_PRIMARY_X = 0,
@@ -234,6 +244,8 @@ typedef enum {
 
 /**
  * @brief Defines the HDR metadata.
+ * @since 9
+ * @deprecated(since = "9")
  */
 typedef struct {
     OHHDRMetadataKey key;
@@ -390,6 +402,7 @@ int32_t OH_NativeWindow_GetNativeObjectMagic(void *obj);
  * @return Returns an error code defined in <b>GSError</b>.
  * @since 9
  * @version 1.0
+ * @deprecated(since = "9")
  */
 int32_t OH_NativeWindow_NativeWindowSetScalingMode(OHNativeWindow *window, uint32_t sequence,
                                                    OHScalingMode scalingMode);
@@ -405,6 +418,7 @@ int32_t OH_NativeWindow_NativeWindowSetScalingMode(OHNativeWindow *window, uint3
  * @return Returns an error code defined in <b>GSError</b>.
  * @since 9
  * @version 1.0
+ * @deprecated(since = "9")
  */
 int32_t OH_NativeWindow_NativeWindowSetMetaData(OHNativeWindow *window, uint32_t sequence, int32_t size,
                                                 const OHHDRMetaData *metaData);
@@ -421,6 +435,7 @@ int32_t OH_NativeWindow_NativeWindowSetMetaData(OHNativeWindow *window, uint32_t
  * @return Returns an error code defined in <b>GSError</b>.
  * @since 9
  * @version 1.0
+ * @deprecated(since = "9")
  */
 int32_t OH_NativeWindow_NativeWindowSetMetaDataSet(OHNativeWindow *window, uint32_t sequence, OHHDRMetadataKey key,
                                                    int32_t size, const uint8_t *metaData);
@@ -434,6 +449,7 @@ int32_t OH_NativeWindow_NativeWindowSetMetaDataSet(OHNativeWindow *window, uint3
  * @return Returns an error code defined in <b>GSError</b>.
  * @since 9
  * @version 1.0
+ * @deprecated(since = "9")
  */
 int32_t OH_NativeWindow_NativeWindowSetTunnelHandle(OHNativeWindow *window, const OHExtDataHandle *handle);
 

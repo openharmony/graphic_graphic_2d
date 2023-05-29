@@ -16,10 +16,12 @@
 #include "rs_uni_render_util.h"
 #include <cstdint>
 
+#include "pipeline/parallel_render/rs_parallel_render_manager.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_path.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -71,6 +73,66 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::shared_ptr<RSDis
     return allSurfaceVisibleDirtyRegion;
 }
 
+void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceRenderNode& node)
+{
+    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    const auto& buffer = node.GetBuffer();
+    const auto& surface = node.GetConsumer();
+    if (buffer == nullptr || surface == nullptr) {
+        return;
+    }
+
+    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK &&
+        scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        const RSProperties& property = node.GetRenderProperties();
+        uint32_t newWidth = static_cast<uint32_t>(params.srcRect.width());
+        uint32_t newHeight = static_cast<uint32_t>(params.srcRect.height());
+        // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
+        uint32_t boundsWidth = static_cast<uint32_t>(property.GetBoundsWidth());
+        uint32_t boundsHeight = static_cast<uint32_t>(property.GetBoundsHeight());
+
+        // If transformType is not a multiple of 180, need to change the correspondence between width & height.
+        GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(surface->GetTransform());
+        if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
+            transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
+            std::swap(boundsWidth, boundsHeight);
+        }
+
+        if (newWidth * boundsHeight > newHeight * boundsWidth) {
+            // too wide
+            newWidth = boundsWidth * newHeight / boundsHeight;
+        } else if (newWidth * boundsHeight < newHeight * boundsWidth) {
+            // too tall
+            newHeight = boundsHeight * newWidth / boundsWidth;
+        } else {
+            return;
+        }
+
+        uint32_t currentWidth = static_cast<uint32_t>(params.srcRect.width());
+        uint32_t currentHeight = static_cast<uint32_t>(params.srcRect.height());
+        if (newWidth < currentWidth) {
+            // the crop is too wide
+            uint32_t dw = currentWidth - newWidth;
+            auto halfdw = dw / 2;
+            params.srcRect = SkRect::MakeXYWH(params.srcRect.left() + static_cast<int32_t>(halfdw),
+                                              params.srcRect.top(),
+                                              static_cast<int32_t>(newWidth),
+                                              params.srcRect.height());
+        } else {
+            // thr crop is too tall
+            uint32_t dh = currentHeight - newHeight;
+            auto halfdh = dh / 2;
+            params.srcRect = SkRect::MakeXYWH(params.srcRect.left(),
+                                              params.srcRect.top() + static_cast<int32_t>(halfdh),
+                                              params.srcRect.width(),
+                                              static_cast<int32_t>(newHeight));
+        }
+        RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown surfaceNode id:%" PRIu64 ", srcRect [%f %f %f %f]",
+            node.GetId(), params.srcRect.left(), params.srcRect.top(),
+            params.srcRect.width(), params.srcRect.height());
+    }
+}
+
 BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode& node, bool forceCPU)
 {
     BufferDrawParam params;
@@ -100,6 +162,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     RectF localBounds = { 0.0f, 0.0f, property.GetBoundsWidth(), property.GetBoundsHeight() };
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, property.GetFrameGravity(), localBounds, params);
     RSBaseRenderUtil::FlipMatrix(transform, params);
+    SrcRectScaleDown(params, node);
     return params;
 }
 
@@ -168,21 +231,6 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     return params;
 }
 
-void RSUniRenderUtil::DrawCachedFreezeSurface(const RSRenderNode& node, RSPaintFilterCanvas& canvas,
-    const sk_sp<SkSurface>& surface)
-{
-    if (surface == nullptr) {
-        return;
-    }
-    canvas.save();
-    float width = node.GetRenderProperties().GetBoundsRect().GetWidth();
-    float height = node.GetRenderProperties().GetBoundsRect().GetHeight();
-    canvas.scale(width / surface->width(), height / surface->height());
-    SkPaint paint;
-    surface->draw(&canvas, 0.0, 0.0, &paint);
-    canvas.restore();
-}
-
 void RSUniRenderUtil::DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, sk_sp<SkImage> image)
 {
     if (image == nullptr) {
@@ -206,7 +254,7 @@ Occlusion::Region RSUniRenderUtil::AlignedDirtyRegion(const Occlusion::Region& d
     if (alignedBits <= 1) {
         return dirtyRegion;
     }
-    for (auto& dirtyRect : dirtyRegion.GetRegionRects()) {
+    for (const auto& dirtyRect : dirtyRegion.GetRegionRects()) {
         int32_t left = (dirtyRect.left_ / alignedBits) * alignedBits;
         int32_t top = (dirtyRect.top_ / alignedBits) * alignedBits;
         int32_t width = ((dirtyRect.right_ + alignedBits - 1) / alignedBits) * alignedBits - left;
@@ -216,6 +264,20 @@ Occlusion::Region RSUniRenderUtil::AlignedDirtyRegion(const Occlusion::Region& d
         alignedRegion.OrSelf(singleAlignedRegion);
     }
     return alignedRegion;
+}
+
+bool RSUniRenderUtil::HandleCachedNode(const RSRenderNode& node, RSPaintFilterCanvas& canvas)
+{
+    if (node.IsMainThreadNode()) {
+        return false;
+    }
+    RS_TRACE_NAME_FMT("Handle Cached Node %llu", node.GetId());
+#ifdef NEW_SKIA
+    node.DrawCacheTexture(canvas);
+#else
+    node.DrawCacheSurface(canvas);
+#endif
+    return true;
 }
 
 int RSUniRenderUtil::GetRotationFromMatrix(SkMatrix matrix)
@@ -230,6 +292,72 @@ int RSUniRenderUtil::GetRotationFromMatrix(SkMatrix matrix)
     static const std::map<int, int> supportedDegrees = {{90, 270}, {180, 180}, {-90, 90}};
     auto iter = supportedDegrees.find(rAngle);
     return iter != supportedDegrees.end() ? iter->second : 0;
+}
+
+void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& node, uint64_t focusNodeId,
+    std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
+    std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
+{
+    if (node == nullptr) {
+        ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes display node is null");
+        return;
+    }
+    RS_TRACE_NAME("AssignWindowNodes");
+    bool focusedNodeFound = false;
+    for (auto iter = node->GetSortedChildren().begin(); iter != node->GetSortedChildren().end(); iter++) {
+        auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*iter);
+        if (node == nullptr) {
+            ROSEN_LOGE(
+                "RSUniRenderUtil::AssignWindowNodes nullptr found in sortedChildren, this should not happen");
+            continue;
+        }
+        if (node->GetId() == focusNodeId) {
+            focusedNodeFound = true;
+        }
+        if (!focusedNodeFound && node->IsLeashWindow()) {
+            for (auto& child : node->GetSortedChildren()) {
+                if (child && child->GetId() == focusNodeId) {
+                    focusedNodeFound = true;
+                    break;
+                }
+            }
+        }
+        if (focusedNodeFound || node->HasFilter()) { // assign focus, above focus and has filter node to main thread
+            mainThreadNodes.emplace_back(node);
+            node->SetIsMainThreadNode(true);
+        } else if (node->IsCurrentFrameStatic() && node->HasCachedTexture()) {
+            node->SetIsMainThreadNode(false);
+        } else {
+            subThreadNodes.emplace_back(node);
+            node->UpdateCacheSurfaceDirtyManager(2);
+            node->SetIsMainThreadNode(false);
+            if (node->GetCacheSurface()) {
+                node->UpdateCompletedCacheSurface();
+                RSParallelRenderManager::Instance()->SaveCacheTexture(*node);
+            }
+            if (node->HasCachedTexture()) {
+                node->SetPriority(NodePriorityType::SUB_LOW_PRIORITY);
+            } else {
+                node->SetPriority(NodePriorityType::SUB_HIGH_PRIORITY);
+            }
+        }
+    }
+
+    // sort subThreadNodes by priority and z-order
+    subThreadNodes.sort([](const auto& first, const auto& second) -> bool {
+        auto node1 = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(first);
+        auto node2 = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(second);
+        if (node1 == nullptr || node2 == nullptr) {
+            ROSEN_LOGE(
+                "RSUniRenderUtil::AssignWindowNodes sort nullptr found in subThreadNodes, this should not happen");
+            return false;
+        }
+        if (node1->GetPriority() == node2->GetPriority()) {
+            return node2->GetRenderProperties().GetPositionZ() < node1->GetRenderProperties().GetPositionZ();
+        } else {
+            return node1->GetPriority() < node2->GetPriority();
+        }
+    });
 }
 } // namespace Rosen
 } // namespace OHOS

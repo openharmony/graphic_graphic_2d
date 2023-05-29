@@ -79,6 +79,7 @@ namespace OHOS {
         GraphicHDRMetadataKey key = GetData<GraphicHDRMetadataKey>();
         uint8_t metaData2 = GetData<uint8_t>();
         GraphicPresentTimestamp timestamp = GetData<GraphicPresentTimestamp>();
+        uint32_t maskInfo = GetData<uint32_t>();
 
         // test
         HdiDevice *device = HdiDevice::GetInstance();
@@ -103,6 +104,7 @@ namespace OHOS {
         device->SetLayerMetaDataSet(screenId, layerId, key, metaDatas2);
         device->SetLayerTunnelHandle(screenId, layerId, nullptr);
         device->GetPresentTimestamp(screenId, layerId, timestamp);
+        device->SetLayerMaskInfo(screenId, layerId, maskInfo);
     }
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)

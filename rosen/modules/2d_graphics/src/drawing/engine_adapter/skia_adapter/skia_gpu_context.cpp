@@ -29,7 +29,7 @@ SkiaPersistentCache::SkiaPersistentCache(GPUContextOptions::PersistentCache* cac
 sk_sp<SkData> SkiaPersistentCache::load(const SkData& key)
 {
     Data keyData;
-    if (!cache_ || !keyData.GetImpl<SkiaData>()) {
+    if (!cache_) {
         LOGE("SkiaPersistentCache::load, failed! cache or key invalid");
         return nullptr;
     }
@@ -37,7 +37,7 @@ sk_sp<SkData> SkiaPersistentCache::load(const SkData& key)
     skiaKeyDataImpl->SetSkData(sk_ref_sp(&key));
 
     auto retData = cache_->Load(keyData);
-    if (!retData || !retData->GetImpl<SkiaData>()) {
+    if (retData == nullptr) {
         LOGE("SkiaPersistentCache::load, failed! load data invalid");
         return nullptr;
     }
@@ -49,14 +49,13 @@ void SkiaPersistentCache::store(const SkData& key, const SkData& data)
 {
     Data keyData;
     Data storeData;
-    if (!cache_ || !keyData.GetImpl<SkiaData>() || !storeData.GetImpl<SkiaData>()) {
+    if (!cache_) {
         LOGE("SkiaPersistentCache::store, failed! cache or {key,data} invalid");
         return;
     }
 
     keyData.GetImpl<SkiaData>()->SetSkData(sk_ref_sp(&key));
     storeData.GetImpl<SkiaData>()->SetSkData(sk_ref_sp(&data));
-
     cache_->Store(keyData, storeData);
 }
 
@@ -70,9 +69,7 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     }
 
     GrContextOptions grOptions;
-#ifndef NEW_SKIA
     grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-#endif
     grOptions.fPreferExternalImagesOverES3 = true;
     grOptions.fDisableDistanceFieldPaths = true;
     grOptions.fAllowPathMaskCaching = true;
@@ -82,10 +79,7 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
 #else
     grContext_ = GrContext::MakeGL(std::move(glInterface), grOptions);
 #endif
-    if (grContext_) {
-        return true;
-    }
-    return false;
+    return grContext_ != nullptr ? true : false;
 }
 
 void SkiaGPUContext::Flush()

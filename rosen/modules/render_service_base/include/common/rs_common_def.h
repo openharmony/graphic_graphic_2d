@@ -72,6 +72,25 @@ enum class RSRenderNodeType : uint32_t {
     ROOT_NODE    = 0x18111u,
 };
 
+enum class CacheType : uint8_t {
+    NONE = 0,
+    CONTENT,
+    ANIMATE_PROPERTY,
+};
+
+enum RSDrawingCacheType : uint16_t {
+    DISABLED_CACHE = 0,
+    FORCED_CACHE,    // must-to-do case
+    TARGETED_CACHE   // suggested case which could be disabled by optimized strategy
+};
+
+// priority for node, higher number means lower priority
+enum class NodePriorityType : uint32_t {
+    MAIN_PRIORITY = 0, // node must render in main thread
+    SUB_HIGH_PRIORITY, // node render in sub thread with high priority
+    SUB_LOW_PRIORITY, // node render in sub thread with low priority
+};
+
 // types for RSSurfaceRenderNode
 enum class RSSurfaceNodeType : uint8_t {
     DEFAULT,

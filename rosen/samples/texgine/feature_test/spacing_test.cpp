@@ -29,15 +29,15 @@ struct TestInfo {
     TypographyStyle ys_;
 } g_datas[] = {
     { },
-    { .xs_ = { .letterSpacing_ = -1, }, },
-    { .xs_ = { .letterSpacing_ = 5, }, },
-    { .xs_ = { .letterSpacing_ = 20, }, },
-    { .xs_ = { .wordSpacing_ = -5, }, },
-    { .xs_ = { .wordSpacing_ = 5, }, },
-    { .xs_ = { .wordSpacing_ = 20, }, },
+    { .xs_ = { .letterSpacing = -1, }, },
+    { .xs_ = { .letterSpacing = 5, }, },
+    { .xs_ = { .letterSpacing = 20, }, },
+    { .xs_ = { .wordSpacing = -5, }, },
+    { .xs_ = { .wordSpacing = 5, }, },
+    { .xs_ = { .wordSpacing = 20, }, },
     {
-        .xs_ = { .letterSpacing_ = 20, .wordSpacing_ = 20, },
-        .ys_ = { .wordBreakType_ = WordBreakType::BREAKALL, },
+        .xs_ = { .letterSpacing = 20, .wordSpacing = 20, },
+        .ys_ = { .wordBreakType = WordBreakType::BREAK_ALL, },
     },
 };
 
@@ -60,13 +60,13 @@ public:
             typography->Layout(250);
 
             std::stringstream ss;
-            if (xs.letterSpacing_) {
-                ss << "LetterSpacing: " << xs.letterSpacing_ << " ";
+            if (xs.letterSpacing) {
+                ss << "LetterSpacing: " << xs.letterSpacing << " ";
             }
-            if (xs.wordSpacing_) {
-                ss << "WordSpacing: " << xs.wordSpacing_ << " ";
+            if (xs.wordSpacing) {
+                ss << "WordSpacing: " << xs.wordSpacing << " ";
             }
-            if (ys.wordBreakType_ == WordBreakType::BREAKALL) {
+            if (ys.wordBreakType == WordBreakType::BREAK_ALL) {
                 ss << "BreakAll";
             }
 

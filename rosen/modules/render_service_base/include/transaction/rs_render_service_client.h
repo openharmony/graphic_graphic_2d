@@ -29,7 +29,7 @@
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
-#include "memory/MemoryGraphic.h"
+#include "memory/rs_memory_graphic.h"
 #include "platform/drawing/rs_surface.h"
 #include "rs_irender_client.h"
 #include "screen_manager/rs_screen_capability.h"
@@ -76,7 +76,8 @@ public:
 
     bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY);
 
-    int32_t SetFocusAppInfo(int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName);
+    int32_t SetFocusAppInfo(int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
+        uint64_t focusNodeId);
 
     ScreenId GetDefaultScreenId();
 
@@ -143,8 +144,6 @@ public:
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
 
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
-
-    int32_t UnRegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
     void SetAppWindowNum(uint32_t num);
 

@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RECORDING_CANVAS_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RECORDING_CANVAS_H
 
+#ifndef USE_ROSEN_DRAWING
+
 #include "common/rs_macros.h"
 #include "include/core/SkBitmap.h"
 #include "include/core/SkCanvas.h"
@@ -64,21 +66,11 @@ public:
     void Clear() const;
     void AddOp(std::unique_ptr<OpItem>&& opItem);
 #ifdef NEW_SKIA
-    SkISize getBaseLayerSize() const override;
     GrRecordingContext* recordingContext() override;
     void SetGrRecordingContext(GrRecordingContext* context);
-    bool isClipEmpty() const override;
-    bool isClipRect() const override;
-    bool onPeekPixels(SkPixmap* pixmap) override;
-    bool onAccessTopLayerPixels(SkPixmap* pixmap) override;
-    SkImageInfo onImageInfo() const override;
-    bool onGetProps(SkSurfaceProps* props) const override;
-    bool onDoSaveBehind(const SkRect*) override { return true; }
-    void didRestore() override {}
-    void onMarkCTM(const char*) override {}
-    void didConcat44(const SkM44&) override {}
-    void didSetM44(const SkM44&) override {}
-    void didScale(SkScalar, SkScalar) override {}
+    void didConcat44(const SkM44&) override;
+    void didSetM44(const SkM44&) override;
+    void didScale(SkScalar, SkScalar) override;
     void onDrawGlyphRunList(const SkGlyphRunList& glyphRunList, const SkPaint& paint) override;
     void onDrawImage2(const SkImage* img, SkScalar dx, SkScalar dy, const SkSamplingOptions& samplingOptions,
         const SkPaint* paint) override;
@@ -96,10 +88,6 @@ public:
     void onDrawVerticesObject(const SkVertices* vertices, SkBlendMode mode, const SkPaint& paint) override;
     void onDrawEdgeAAQuad(const SkRect& rect, const SkPoint clip[4], QuadAAFlags aaFlags,
         const SkColor4f& color, SkBlendMode mode) override;
-    void onClipShader(sk_sp<SkShader>, SkClipOp) override;
-    void onResetClip() override;
-    void onDiscard() override;
-    SkPaintFilterCanvas* internal_private_asPaintFilterCanvas() const override { return nullptr; }
     void DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& src, const SkRect& dst,
         const SkSamplingOptions& samplingOptions, const SkPaint* paint,
         SrcRectConstraint constraint = kStrict_SrcRectConstraint);
@@ -107,6 +95,11 @@ public:
         const SkSamplingOptions& samplingOptions, const SkPaint* paint);
     void DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap, SkScalar x, SkScalar y,
         const SkSamplingOptions& samplingOptions, const SkPaint* paint = nullptr);
+    void DrawImageWithParm(const sk_sp<SkImage> image, const sk_sp<SkData> data,
+        const Rosen::RsImageInfo& rsImageInfo, const SkSamplingOptions& samplingOptions, const SkPaint& paint);
+    void DrawPixelMapWithParm(
+        const std::shared_ptr<Media::PixelMap>& pixelmap,
+        const Rosen::RsImageInfo& rsImageInfo, const SkSamplingOptions& samplingOptions, const SkPaint& paint);
 #else
     GrContext* getGrContext() override;
     void SetGrContext(GrContext* grContext);
@@ -137,6 +130,10 @@ public:
     void DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& dst, const SkPaint* paint);
     void DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap, SkScalar x, SkScalar y,
         const SkPaint* paint = nullptr);
+    void DrawImageWithParm(const sk_sp<SkImage> image, const sk_sp<SkData> data,
+        const Rosen::RsImageInfo& rsImageInfo, const SkPaint& paint);
+    void DrawPixelMapWithParm(
+        const std::shared_ptr<Media::PixelMap>& pixelmap, const Rosen::RsImageInfo& rsImageInfo, const SkPaint& paint);
 #endif
     sk_sp<SkSurface> onNewSurface(const SkImageInfo& info, const SkSurfaceProps& props) override;
 
@@ -178,10 +175,6 @@ public:
     void DrawAdaptiveRRect(float radius, const SkPaint& paint);
     void DrawAdaptiveRRectScale(float radiusRatio, const SkPaint& paint);
     void ClipAdaptiveRRect(const SkVector radius[]);
-    void DrawImageWithParm(const sk_sp<SkImage> image, const sk_sp<SkData> data,
-        const Rosen::RsImageInfo& rsImageInfo, const SkPaint& paint);
-    void DrawPixelMapWithParm(
-        const std::shared_ptr<Media::PixelMap>& pixelmap, const Rosen::RsImageInfo& rsImageInfo, const SkPaint& paint);
 #ifdef ROSEN_OHOS
     void DrawSurfaceBuffer(const RSSurfaceBufferInfo& surfaceBufferInfo);
 #endif
@@ -207,4 +200,5 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
+#endif // USE_ROSEN_DRAWING
 #endif // RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RECORDING_CANVAS_H

@@ -16,6 +16,7 @@
 #include "hdi_layer.h"
 #include "mock_hdi_device.h"
 #include <gtest/gtest.h>
+#include "surface_buffer_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -55,6 +56,10 @@ void HdiLayerTest::SetUpTestCase()
     layerInfo_->SetAlpha(layerAlpha);
     layerInfo_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     layerInfo_->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_NONE);
+    layerInfo_->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_NORMAL);
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    sptr<SyncFence> fence = new SyncFence(1);
+    layerInfo_->SetBuffer(buffer, fence);
 
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
     EXPECT_CALL(*hdiDeviceMock_, SetLayerAlpha(_, _, _)).WillRepeatedly(testing::Return(0));
@@ -76,8 +81,7 @@ void HdiLayerTest::SetUpTestCase()
     EXPECT_CALL(*hdiDeviceMock_, SetLayerTunnelHandle(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, GetPresentTimestamp(_, _, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*hdiDeviceMock_, CloseLayer(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerMaskInfo(_, _, _)).WillRepeatedly(testing::Return(0));
 }
 
 void HdiLayerTest::TearDownTestCase() {}
@@ -112,7 +116,29 @@ HWTEST_F(HdiLayerTest, SetHdiDeviceMock001, Function | MediumTest| Level1)
 HWTEST_F(HdiLayerTest, Init001, Function | MediumTest| Level1)
 {
     ASSERT_EQ(HdiLayerTest::hdiLayer_->Init(nullptr), false);
+    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _)).WillRepeatedly(testing::Return(1));
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->Init(HdiLayerTest::layerInfo_), false);
+    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _)).WillRepeatedly(testing::Return(0));
     ASSERT_EQ(HdiLayerTest::hdiLayer_->Init(HdiLayerTest::layerInfo_), true);
+}
+
+/*
+* Function: GetReleaseFence001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetReleaseFence()
+*                  2. check ret
+*/
+HWTEST_F(HdiLayerTest, GetReleaseFence001, Function | MediumTest| Level1)
+{
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(), GRAPHIC_DISPLAY_FAILURE);
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->GetReleaseFence(), SyncFence::INVALID_FENCE);
+    HdiLayerTest::hdiLayer_->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    HdiLayerTest::hdiLayer_->UpdateLayerInfo(layerInfo_);
+    HdiLayerTest::hdiLayer_->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    HdiLayerTest::hdiLayer_->RecordPresentTime(0);
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->GetReleaseFence(), SyncFence::INVALID_FENCE);
 }
 
 /*
@@ -125,11 +151,30 @@ HWTEST_F(HdiLayerTest, Init001, Function | MediumTest| Level1)
 */
 HWTEST_F(HdiLayerTest, SetHdiLayerInfo001, Function | MediumTest| Level1)
 {
-    hdiLayer_->UpdateLayerInfo(layerInfo_);
     ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(), GRAPHIC_DISPLAY_SUCCESS);
-
     hdiLayer_->SavePrevLayerInfo();
     ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(), GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
+* Function: SetLayerTunnelHandle001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetLayerTunnelHandle()
+*                  2. check ret
+*/
+HWTEST_F(HdiLayerTest, SetLayerTunnelHandle001, Function | MediumTest| Level3)
+{
+    HdiLayerTest::layerInfo_->SetTunnelHandleChange(true);
+    HdiLayerTest::layerInfo_->SetTunnelHandle(nullptr);
+    HdiLayerTest::hdiLayer_->UpdateLayerInfo(HdiLayerTest::layerInfo_);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerTunnelHandle(_, _, _)).WillRepeatedly(testing::Return(0));
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetLayerTunnelHandle(), GRAPHIC_DISPLAY_SUCCESS);
+
+    HdiLayerTest::layerInfo_->SetTunnelHandle(new SurfaceTunnelHandle());
+    HdiLayerTest::hdiLayer_->UpdateLayerInfo(HdiLayerTest::layerInfo_);
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetLayerTunnelHandle(), GRAPHIC_DISPLAY_SUCCESS);
 }
 
 /*
@@ -151,13 +196,33 @@ HWTEST_F(HdiLayerTest, GetLayerStatus001, Function | MediumTest| Level3)
     HdiLayerTest::hdiLayer_->SetLayerStatus(isUsing);
     ASSERT_EQ(HdiLayerTest::hdiLayer_->GetLayerStatus(), false);
 
-    sptr<SyncFence> fbAcquireFence = new SyncFence(-1);
+    sptr<SyncFence> fbAcquireFence = nullptr;
     hdiLayer_->MergeWithFramebufferFence(fbAcquireFence);
+    hdiLayer_->MergeWithLayerFence(fbAcquireFence);
+    fbAcquireFence = new SyncFence(-1);
+    hdiLayer_->MergeWithFramebufferFence(fbAcquireFence);
+    hdiLayer_->MergeWithLayerFence(fbAcquireFence);
     hdiLayer_->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     std::string dumpStr = "";
     hdiLayer_->Dump(dumpStr);
 }
 
+/*
+* Function: CloseLayer001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call CloseLayer()
+*                  2. check ret
+*/
+HWTEST_F(HdiLayerTest, CreateLayer001, Function | MediumTest| Level1)
+{
+    uint32_t layerId = 1;
+    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, layerId)).WillRepeatedly(testing::Return(0));
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->Init(HdiLayerTest::layerInfo_), true);
+    EXPECT_CALL(*hdiDeviceMock_, CloseLayer(_, _)).WillRepeatedly(testing::Return(1));
+    HdiLayerTest::hdiLayer_ = nullptr;
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

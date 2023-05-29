@@ -28,10 +28,9 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 std::vector<LineMetrics> LineBreaker::BreakLines(std::vector<VariantSpan> &spans,
-                                                 const TypographyStyle &tstyle,
-                                                 const double widthLimit)
+    const TypographyStyle &tstyle, const double widthLimit)
 {
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "BreakLines");
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "BreakLines");
     auto ss = GenerateScoreSpans(spans);
     DoBreakLines(ss, widthLimit, tstyle);
     auto lineBreaks = GenerateBreaks(ss);
@@ -40,7 +39,7 @@ std::vector<LineMetrics> LineBreaker::BreakLines(std::vector<VariantSpan> &spans
 
 std::vector<struct ScoredSpan> LineBreaker::GenerateScoreSpans(std::vector<VariantSpan> &spans)
 {
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "GenerateScoreSpans");
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "GenerateScoreSpans");
     std::vector<struct ScoredSpan> scoredSpans = {{}};
     double offset = 0;
     double preBreak = 0.0;
@@ -48,7 +47,7 @@ std::vector<struct ScoredSpan> LineBreaker::GenerateScoreSpans(std::vector<Varia
     CharGroups lastcgs;
     for (const auto &span : spans) {
         if (span == nullptr) {
-            throw TEXGINE_EXCEPTION(InvalidArgument);
+            throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
         }
 
         if (auto ts = span.TryToTextSpan(); ts != nullptr) {
@@ -69,7 +68,7 @@ std::vector<struct ScoredSpan> LineBreaker::GenerateScoreSpans(std::vector<Varia
             lastcgs = {};
         }
 
-        LOG2EX_DEBUG() << "[" << scoredSpans.size() << "]"
+        LOGEX_FUNC_LINE_DEBUG() << "[" << scoredSpans.size() << "]"
             << ": offset: " << offset
             << ", preBreak: " << preBreak
             << ", postBreak: " << postBreak;
@@ -85,34 +84,33 @@ std::vector<struct ScoredSpan> LineBreaker::GenerateScoreSpans(std::vector<Varia
     return scoredSpans;
 }
 
-void LineBreaker::DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans,
-                               const double widthLimit,
-                               const TypographyStyle &ys)
+void LineBreaker::DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans, const double widthLimit,
+    const TypographyStyle &ys)
 {
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "UpadateLineBreaksData");
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "UpadateLineBreaksData");
     scoredSpans.emplace(scoredSpans.cbegin());
     for (size_t i = 1; i < scoredSpans.size(); i++) {
         auto &is = scoredSpans[i];
         is.prev = scoredSpans[i - 1].prev;
-        LOG2EX_DEBUG() << "[" << i << "]: is.preBreak: " << is.preBreak
+        LOGEX_FUNC_LINE_DEBUG() << "[" << i << "]: is.preBreak: " << is.preBreak
             << ", prev.postBreak: " << scoredSpans[is.prev].postBreak;
         if (FLOATING_GT(is.preBreak - scoredSpans[is.prev].postBreak, widthLimit)) {
             is.prev = i - 1;
-            LOG2EX_DEBUG() << "  -> [" << is.prev
+            LOGEX_FUNC_LINE_DEBUG() << "  -> [" << is.prev
                 << "]: prev.postBreak: " << scoredSpans[is.prev].postBreak;
         }
 
-        if (ys.breakStrategy_ == BreakStrategy::GREEDY) {
+        if (ys.breakStrategy == BreakStrategy::GREEDY) {
             continue;
         }
 
-        LOGSCOPED(sl1, LOG2EX_DEBUG(), "algo");
+        LOGSCOPED(sl1, LOGEX_FUNC_LINE_DEBUG(), "algo");
         double delta = widthLimit - (is.preBreak - scoredSpans[is.prev].postBreak);
         is.score = delta * delta + scoredSpans[is.prev].score;
 
         std::stringstream ss;
         ss << i;
-        LOGSCOPED(sl, LOG2EX_DEBUG(), ss.str());
+        LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), ss.str());
         for (size_t j = 0; j < i; j++) {
             auto &js = scoredSpans[j];
             double jdelta = widthLimit - (is.preBreak - js.postBreak);
@@ -121,7 +119,7 @@ void LineBreaker::DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans,
             }
 
             double jscore = js.score + jdelta * jdelta;
-            LOG2EX_DEBUG() << "[" << j << "]"
+            LOGEX_FUNC_LINE_DEBUG() << "[" << j << "]"
                 << " s(" << jscore << ")" << " = js(" << js.score << ")"
                 << " + dd(" << jdelta * jdelta << ")" << " (jdelta: " << jdelta << ")";
 
@@ -130,7 +128,7 @@ void LineBreaker::DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans,
                 is.prev = j;
             }
         }
-        LOG2EX_DEBUG() << "[" << i << "] Any{" << is.prev << "<-" << " b(" << is.preBreak << ", "
+        LOGEX_FUNC_LINE_DEBUG() << "[" << i << "] Any{" << is.prev << "<-" << " b(" << is.preBreak << ", "
                       << is.postBreak << ")" << " s(" << is.score << ")}";
     }
     scoredSpans.erase(scoredSpans.begin());
@@ -138,15 +136,15 @@ void LineBreaker::DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans,
 
 std::vector<int32_t> LineBreaker::GenerateBreaks(std::vector<struct ScoredSpan> &scoredSpans)
 {
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "GenerateBreaks");
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "GenerateBreaks");
 
     std::vector<int32_t> lineBreaks;
     for (int i = scoredSpans.size(); i > 0; i = scoredSpans[i - 1].prev) {
         if (scoredSpans[i - 1].prev >= i) {
-            throw TEXGINE_EXCEPTION(ErrorStatus);
+            throw TEXGINE_EXCEPTION(ERROR_STATUS);
         }
 
-        LOG2EX_DEBUG() << "break at " << i;
+        LOGEX_FUNC_LINE_DEBUG() << "break at " << i;
         lineBreaks.push_back(i);
     }
     std::reverse(lineBreaks.begin(), lineBreaks.end());
@@ -154,25 +152,25 @@ std::vector<int32_t> LineBreaker::GenerateBreaks(std::vector<struct ScoredSpan> 
 }
 
 std::vector<LineMetrics> LineBreaker::GenerateLineMetrics(std::vector<VariantSpan> &spans,
-                                                          std::vector<int32_t> &breaks)
+    std::vector<int32_t> &breaks)
 {
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "GenerateLineMetrics");
-    LOG2EX_DEBUG() << "breaks.size(): " << breaks.size();
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "GenerateLineMetrics");
+    LOGEX_FUNC_LINE_DEBUG() << "breaks.size(): " << breaks.size();
 
     std::vector<LineMetrics> lineMetrics;
     auto prev = 0;
     if (!breaks.empty() && breaks.back() > spans.size()) {
-        throw TEXGINE_EXCEPTION(OutOfRange);
+        throw TEXGINE_EXCEPTION(OUT_OF_RANGE);
     }
 
     for (const auto &lb : breaks) {
         if (lb <= prev) {
-            throw TEXGINE_EXCEPTION(ErrorStatus);
+            throw TEXGINE_EXCEPTION(ERROR_STATUS);
         }
 
         std::stringstream ss;
         ss << "[" << prev << ", " << lb << ")";
-        LOGSCOPED(sl, LOG2EX_DEBUG(), ss.str());
+        LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), ss.str());
 
         std::vector<VariantSpan> vss;
         for (int32_t i = prev; i < lb; i++) {
@@ -181,7 +179,7 @@ std::vector<LineMetrics> LineBreaker::GenerateLineMetrics(std::vector<VariantSpa
         }
 
         lineMetrics.push_back({
-            .lineSpans_ = vss,
+            .lineSpans = vss,
         });
         prev = lb;
     }

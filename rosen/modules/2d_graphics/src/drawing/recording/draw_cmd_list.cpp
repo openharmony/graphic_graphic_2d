@@ -21,63 +21,40 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-DrawCmdList::DrawCmdList(int width, int height) : width_(width), height_(height)
+DrawCmdList::DrawCmdList(int32_t width, int32_t height) : width_(width), height_(height)
 {
-    opAllocator_.Add(&width_, sizeof(int));
-    opAllocator_.Add(&height_, sizeof(int));
+    opAllocator_.Add(&width_, sizeof(int32_t));
+    opAllocator_.Add(&height_, sizeof(int32_t));
 }
 
-DrawCmdList::DrawCmdList(const CmdListData& cmdListData) : CmdList(cmdListData)
+std::shared_ptr<DrawCmdList> DrawCmdList::CreateFromData(const CmdListData& data)
 {
-    int* width = static_cast<int*>(opAllocator_.OffsetToAddr(0));
-    int* height = static_cast<int*>(opAllocator_.OffsetToAddr(sizeof(int)));
+    auto cmdList = std::make_shared<DrawCmdList>();
+    cmdList->opAllocator_.BuildFromData(data.first, data.second);
+
+    int32_t* width = static_cast<int32_t*>(cmdList->opAllocator_.OffsetToAddr(0));
+    int32_t* height = static_cast<int32_t*>(cmdList->opAllocator_.OffsetToAddr(sizeof(int32_t)));
     if (width && height) {
-        width_ = *width;
-        height_ = *height;
+        cmdList->width_ = *width;
+        cmdList->height_ = *height;
     } else {
-        width_ = 0;
-        height_ = 0;
+        cmdList->width_ = 0;
+        cmdList->height_ = 0;
     }
+    return cmdList;
 }
 
-DrawCmdList::DrawCmdList(const CmdListData& cmdListData, const LargeObjectData& largeObjectData)
-    : DrawCmdList(cmdListData)
-{
-    largeObjectAllocator_.BuildFromData(largeObjectData.first, largeObjectData.second);
-}
-
-int DrawCmdList::AddLargeObject(const LargeObjectData& data)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    void* addr = largeObjectAllocator_.Add(data.first, data.second);
-    if (addr == nullptr) {
-        LOGE("DrawCmdList AddLargeObject failed!");
-        return 0;
-    }
-    return largeObjectAllocator_.AddrToOffset(addr);
-}
-
-LargeObjectData DrawCmdList::GetLargeObjectData() const
-{
-    return std::make_pair(largeObjectAllocator_.GetData(), largeObjectAllocator_.GetSize());
-}
-
-int DrawCmdList::GetWidth() const
-{
-    return width_;
-}
-
-int DrawCmdList::GetHeight() const
+int32_t DrawCmdList::GetHeight() const
 {
     return height_;
 }
 
-void DrawCmdList::SetWidth(int width)
+void DrawCmdList::SetWidth(int32_t width)
 {
     width_ = width;
 }
 
-void DrawCmdList::SetHeight(int height)
+void DrawCmdList::SetHeight(int32_t height)
 {
     height_ = height;
 }
@@ -88,9 +65,9 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect) const
         return;
     }
 
-    int offset = 2 * sizeof(int);   // 2 is width and height. Offset of first OpItem is behind the width and height
+    int32_t offset = 2 * sizeof(int32_t);   // 2 is width and height. Offset of first OpItem is behind them
 
-    CanvasPlayer player = { canvas, opAllocator_, largeObjectAllocator_ };
+    CanvasPlayer player = { canvas, *this };
     do {
         void* itemPtr = opAllocator_.OffsetToAddr(offset);
         auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);

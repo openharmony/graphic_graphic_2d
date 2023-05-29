@@ -164,6 +164,18 @@ private:
 
     void ProcessFillModeOnFinish(float endFraction);
 
+    void ProcessOnRepeatFinish();
+
+    void SetRepeatCallbackEnable(bool isEnable)
+    {
+        animationFraction_.SetRepeatCallbackEnable(isEnable);
+    }
+
+    bool GetRepeatCallbackEnable() const
+    {
+        return animationFraction_.GetRepeatCallbackEnable();
+    }
+
     AnimationId id_ = 0;
     NodeId targetId_ = 0;
     AnimationState state_ { AnimationState::INITIALIZED };

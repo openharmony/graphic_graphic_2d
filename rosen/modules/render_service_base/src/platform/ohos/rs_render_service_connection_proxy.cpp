@@ -41,7 +41,6 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
         return;
     }
     bool isUniMode = RSSystemProperties::GetUniRenderEnabled();
-    transactionData->SetUniRender(isUniMode);
     transactionData->SetSendingPid(pid_);
 
     // split to several parcels if parcel size > PARCEL_SPLIT_THRESHOLD during marshalling
@@ -81,8 +80,7 @@ bool RSRenderServiceConnectionProxy::FillParcelWithTransactionData(
 
     // 1. marshalling RSTransactionData
     RS_TRACE_BEGIN("MarshRSTransactionData cmdCount:" + std::to_string(transactionData->GetCommandCount()) +
-        " transactionFlag:[" + std::to_string(pid_) + "," + std::to_string(transactionData->GetIndex()) + "] isUni:" +
-        std::to_string(transactionData->GetUniRender()));
+        " transactionFlag:[" + std::to_string(pid_) + "," + std::to_string(transactionData->GetIndex()) + "]");
     bool success = data->WriteParcelable(transactionData.get());
     RS_TRACE_END();
     if (!success) {
@@ -181,7 +179,7 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
 }
 
 int32_t RSRenderServiceConnectionProxy::SetFocusAppInfo(
-    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName)
+    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -196,6 +194,7 @@ int32_t RSRenderServiceConnectionProxy::SetFocusAppInfo(
     data.WriteInt32(uid);
     data.WriteString(bundleName);
     data.WriteString(abilityName);
+    data.WriteUint64(focusNodeId);
     int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::SET_FOCUS_APP_INFO, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetFocusAppInfo: Send Request err.");
@@ -959,25 +958,6 @@ int32_t RSRenderServiceConnectionProxy::RegisterOcclusionChangeCallback(sptr<RSI
     data.WriteRemoteObject(callback->AsObject());
     int32_t err = Remote()->SendRequest(
         RSIRenderServiceConnection::REGISTER_OCCLUSION_CHANGE_CALLBACK, data, reply, option);
-    if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
-    }
-    int32_t result = reply.ReadInt32();
-    return result;
-}
-
-int32_t RSRenderServiceConnectionProxy::UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return RS_CONNECTION_ERROR;
-    }
-    option.SetFlags(MessageOption::TF_SYNC);
-    data.WriteRemoteObject(callback->AsObject());
-    int32_t err = Remote()->SendRequest(
-        RSIRenderServiceConnection::UNREGISTER_OCCLUSION_CHANGE_CALLBACK, data, reply, option);
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }

@@ -408,6 +408,11 @@ int32_t HdiLayer::SetLayerPresentTimestamp()
     return ret;
 }
 
+int32_t HdiLayer::SetLayerMaskInfo()
+{
+    return device_->SetLayerMaskInfo(screenId_, layerId_, static_cast<uint32_t>(layerInfo_->GetLayerMaskInfo()));
+}
+
 int32_t HdiLayer::SetHdiLayerInfo()
 {
     /*
@@ -457,6 +462,9 @@ int32_t HdiLayer::SetHdiLayerInfo()
     CheckRet(ret, "SetLayerTunnelHandle");
     ret = SetLayerPresentTimestamp();
     CheckRet(ret, "SetLayerPresentTimestamp");
+    ret = SetLayerMaskInfo();
+    CheckRet(ret, "SetLayerMask");
+
     return GRAPHIC_DISPLAY_SUCCESS;
 }
 
@@ -573,5 +581,6 @@ void HdiLayer::ClearDump()
 {
     presentTimeRecords.fill(0);
 }
+
 } // namespace Rosen
 } // namespace OHOS

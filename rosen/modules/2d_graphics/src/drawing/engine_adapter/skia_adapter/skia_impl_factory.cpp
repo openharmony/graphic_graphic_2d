@@ -34,6 +34,7 @@
 #include "skia_adapter/skia_picture.h"
 #include "skia_adapter/skia_region.h"
 #include "skia_adapter/skia_shader_effect.h"
+#include "skia_adapter/skia_surface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,6 +48,11 @@ std::unique_ptr<CoreCanvasImpl> SkiaImplFactory::CreateCoreCanvas(void* rawCanva
 {
     auto skCanvasPtr = reinterpret_cast<std::shared_ptr<SkCanvas>*>(rawCanvas);
     return std::make_unique<SkiaCanvas>(*skCanvasPtr);
+}
+
+std::unique_ptr<CoreCanvasImpl> SkiaImplFactory::CreateCoreCanvas(int32_t width, int32_t height)
+{
+    return std::make_unique<SkiaCanvas>(width, height);
 }
 
 std::unique_ptr<DataImpl> SkiaImplFactory::CreateData()
@@ -105,6 +111,11 @@ std::unique_ptr<ImageFilterImpl> SkiaImplFactory::CreateImageFilter()
 std::unique_ptr<ShaderEffectImpl> SkiaImplFactory::CreateShaderEffect()
 {
     return std::make_unique<SkiaShaderEffect>();
+}
+
+std::unique_ptr<SurfaceImpl> SkiaImplFactory::CreateSurface()
+{
+    return std::make_unique<SkiaSurface>();
 }
 
 std::unique_ptr<PathEffectImpl> SkiaImplFactory::CreatePathEffect()

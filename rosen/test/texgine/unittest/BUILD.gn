@@ -1,0 +1,146 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+module_output_path = "graphic_standard/rosen/test/texgine/unittest"
+is_ok = false
+
+group("unittest") {
+  testonly = true
+  if (is_ok) {
+    deps = [
+      ":texgine_unittest_part1",
+      ":texgine_unittest_part2",
+      ":texgine_unittest_part3",
+      ":texgine_unittest_part4",
+      ":texgine_unittest_part5",
+    ]
+  }
+}
+
+config("texgine_test_config") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/texgine/exports/texgine",
+    "$graphic_2d_root/rosen/modules/texgine/src",
+    "$graphic_2d_root/rosen/modules/texgine/texgine_drawing",
+  ]
+}
+
+group("common_deps") {
+  deps = [
+    "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_ohos",
+    "$graphic_2d_root/rosen/modules/texgine:libtexgine",
+    "$graphic_2d_root/rosen/modules/texgine/texgine_drawing:libtexgine_drawing",
+    "$graphic_2d_root/utils/test_header:test_header",
+    "//third_party/googletest:gmock",
+    "//third_party/googletest:gtest",
+  ]
+}
+
+ohos_unittest("texgine_unittest_part1") {
+  module_out_path = module_output_path
+
+  sources = [
+    "bidi_processer_test.cpp",
+    "char_groups_test.cpp",
+    "dynamic_file_font_provider_test.cpp",
+    "dynamic_font_style_set_test.cpp",
+    "font_styles_test.cpp",
+    "text_converter_test.cpp",
+    "text_merger_test.cpp",
+    "text_reverser_test.cpp",
+    "typography_builder_impl_test.cpp",
+    "variant_span_test.cpp",
+  ]
+
+  configs = [ ":texgine_test_config" ]
+
+  deps = [ ":common_deps" ]
+
+  use_exceptions = true
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+ohos_unittest("texgine_unittest_part2") {
+  module_out_path = module_output_path
+
+  sources = [
+    "dynamic_font_provider_test.cpp",
+    "system_font_provider_test.cpp",
+    "text_shaper_test.cpp",
+    "typeface_test.cpp",
+    "word_breaker_test.cpp",
+  ]
+
+  configs = [ ":texgine_test_config" ]
+  deps = [ ":common_deps" ]
+
+  use_exceptions = true
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+ohos_unittest("texgine_unittest_part3") {
+  module_out_path = module_output_path
+
+  sources = [
+    "font_collection_test.cpp",
+    "line_breaker_test.cpp",
+    "text_breaker_test.cpp",
+  ]
+
+  configs = [ ":texgine_test_config" ]
+  deps = [ ":common_deps" ]
+
+  use_exceptions = true
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+ohos_unittest("texgine_unittest_part4") {
+  module_out_path = module_output_path
+
+  sources = [
+    "font_providers_test.cpp",
+    "measurer_test.cpp",
+  ]
+
+  configs = [ ":texgine_test_config" ]
+  deps = [ ":common_deps" ]
+
+  use_exceptions = true
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+ohos_unittest("texgine_unittest_part5") {
+  module_out_path = module_output_path
+
+  sources = [ "measurer_impl_test.cpp" ]
+
+  configs = [ ":texgine_test_config" ]
+  deps = [ ":common_deps" ]
+
+  use_exceptions = true
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}

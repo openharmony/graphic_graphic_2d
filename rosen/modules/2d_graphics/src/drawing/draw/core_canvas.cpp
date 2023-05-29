@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.. All rights reserved.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,9 +24,43 @@ CoreCanvas::CoreCanvas() : impl_(ImplFactory::CreateCoreCanvasImpl()) {}
 
 CoreCanvas::CoreCanvas(void* rawCanvas) : impl_(ImplFactory::CreateCoreCanvasImpl(rawCanvas)) {}
 
+CoreCanvas::CoreCanvas(int32_t width, int32_t height) : impl_(ImplFactory::CreateCoreCanvasImpl(width, height)) {}
+
 void CoreCanvas::Bind(const Bitmap& bitmap)
 {
     impl_->Bind(bitmap);
+}
+
+Matrix CoreCanvas::GetTotalMatrix() const
+{
+    return impl_->GetTotalMatrix();
+}
+
+Rect CoreCanvas::GetLocalClipBounds() const
+{
+    return impl_->GetLocalClipBounds();
+}
+
+RectI CoreCanvas::GetDeviceClipBounds() const
+{
+    return impl_->GetDeviceClipBounds();
+}
+
+#ifdef ACE_ENABLE_GPU
+std::shared_ptr<GPUContext> CoreCanvas::GetGPUContext() const
+{
+    return impl_->GetGPUContext();
+}
+#endif
+
+int32_t CoreCanvas::GetWidth() const
+{
+    return impl_->GetWidth();
+}
+
+int32_t CoreCanvas::GetHeight() const
+{
+    return impl_->GetHeight();
 }
 
 void CoreCanvas::DrawPoint(const Point& point)
@@ -90,6 +124,11 @@ void CoreCanvas::DrawShadow(const Path& path, const Point3& planeParams, const P
     impl_->DrawShadow(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
 }
 
+void CoreCanvas::DrawRegion(const Region& region)
+{
+    impl_->DrawRegion(region);
+}
+
 void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
     impl_->DrawBitmap(bitmap, px, py);
@@ -121,14 +160,14 @@ void CoreCanvas::DrawPicture(const Picture& picture)
     impl_->DrawPicture(picture);
 }
 
-void CoreCanvas::ClipRect(const Rect& rect, ClipOp op)
+void CoreCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)
 {
-    impl_->ClipRect(rect, op);
+    impl_->ClipRect(rect, op, doAntiAlias);
 }
 
-void CoreCanvas::ClipRoundRect(const RoundRect& roundRect, ClipOp op)
+void CoreCanvas::ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias)
 {
-    impl_->ClipRoundRect(roundRect, op);
+    impl_->ClipRoundRect(roundRect, op, doAntiAlias);
 }
 
 void CoreCanvas::ClipPath(const Path& path, ClipOp op, bool doAntiAlias)
@@ -161,11 +200,6 @@ void CoreCanvas::Scale(scalar sx, scalar sy)
     impl_->Scale(sx, sy);
 }
 
-void CoreCanvas::Rotate(scalar deg)
-{
-    impl_->Rotate(deg);
-}
-
 void CoreCanvas::Rotate(scalar deg, scalar sx, scalar sy)
 {
     impl_->Rotate(deg, sx, sy);
@@ -191,14 +225,19 @@ void CoreCanvas::Save()
     impl_->Save();
 }
 
-void CoreCanvas::SaveLayer(const Rect& rect, const Brush& brush)
+void CoreCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)
 {
-    impl_->SaveLayer(rect, brush);
+    impl_->SaveLayer(saveLayerOps);
 }
 
 void CoreCanvas::Restore()
 {
     impl_->Restore();
+}
+
+uint32_t CoreCanvas::GetSaveCount() const
+{
+    return impl_->GetSaveCount();
 }
 
 CoreCanvas& CoreCanvas::AttachPen(const Pen& pen)

@@ -80,6 +80,19 @@ HWTEST_F(BufferQueueTest, Init001, Function | MediumTest | Level2)
 }
 
 /*
+* Function: GetUsedSize
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetUsedSize and check ret
+ */
+HWTEST_F(BufferQueueTest, GetUsedSize001, Function | MediumTest | Level2)
+{
+    uint32_t usedSize = bq->GetUsedSize();
+    ASSERT_NE(usedSize, -1);
+}
+
+/*
 * Function: SetQueueSize and GetQueueSize
 * Type: Function
 * Rank: Important(2)
@@ -517,5 +530,128 @@ HWTEST_F(BufferQueueTest, RequestBuffer006, Function | MediumTest | Level2)
 
     GSError ret = bq->RequestBuffer(config, bedata, retval);
     ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+}
+
+/*
+* Function: QueryIfBufferAvailable
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call QueryIfBufferAvailable and check ret
+ */
+HWTEST_F(BufferQueueTest, QueryIfBufferAvailable001, Function | MediumTest | Level2)
+{
+    bq->CleanCache();
+    bool ret = bq->QueryIfBufferAvailable();
+    ASSERT_EQ(ret, true);
+
+    GSError reqRet = OHOS::GSERROR_OK;
+    IBufferProducer::RequestBufferReturnValue retval;
+    BufferRequestConfig config = requestConfig;
+    while (reqRet != OHOS::GSERROR_NO_BUFFER) {
+        reqRet = bq->RequestBuffer(config, bedata, retval);
+    }
+
+    ret = bq->QueryIfBufferAvailable();
+    ASSERT_EQ(ret, false);
+}
+
+/*
+* Function: GetName
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetName and check ret
+ */
+HWTEST_F(BufferQueueTest, GetName001, Function | MediumTest | Level2)
+{
+    std::string name("na");
+    GSError ret = bq->GetName(name);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_NE(name, "na");
+}
+
+/*
+* Function: RegisterConsumerListener
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RegisterConsumerListener and check ret
+ */
+HWTEST_F(BufferQueueTest, RegisterConsumerListener001, Function | MediumTest | Level2)
+{
+    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
+    GSError ret = bq->RegisterConsumerListener(listener);
+    ASSERT_EQ(ret, GSERROR_OK);
+}
+
+/*
+* Function: SetDefaultWidthAndHeight
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetDefaultWidthAndHeight and check ret
+ */
+HWTEST_F(BufferQueueTest, SetDefaultWidthAndHeight001, Function | MediumTest | Level2)
+{
+    int width = 0;
+    int height = 0;
+    GSError ret = bq->SetDefaultWidthAndHeight(width, height);
+    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
+
+    width = 1;
+    ret = bq->SetDefaultWidthAndHeight(width, height);
+    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
+
+    width = 80;
+    height = 80;
+    ret = bq->SetDefaultWidthAndHeight(width, height);
+    ASSERT_EQ(ret, GSERROR_OK);
+}
+
+/*
+* Function: GetDefaultWidth and GetDefaultHeight
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetDefaultWidth and check ret
+ */
+HWTEST_F(BufferQueueTest, GetDefaultWidth001, Function | MediumTest | Level2)
+{
+    int32_t width = 80;
+    int32_t height = 80;
+    GSError ret = bq->SetDefaultWidthAndHeight(width, height);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    ASSERT_EQ(width, bq->GetDefaultWidth());
+    ASSERT_EQ(height, bq->GetDefaultHeight());
+}
+
+/*
+* Function: SetDefaultUsage and GetDefaultUsage
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetDefaultUsage and check ret
+ */
+HWTEST_F(BufferQueueTest, SetDefaultUsage001, Function | MediumTest | Level2)
+{
+    uint32_t usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;
+    GSError ret = bq->SetDefaultUsage(usage);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(usage, bq->GetDefaultUsage());
+}
+
+/*
+* Function: CleanCache
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call CleanCache and check ret
+ */
+HWTEST_F(BufferQueueTest, CleanCache001, Function | MediumTest | Level2)
+{
+    GSError ret = bq->CleanCache();
+    ASSERT_EQ(ret, GSERROR_OK);
 }
 }

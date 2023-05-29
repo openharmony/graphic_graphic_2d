@@ -46,8 +46,8 @@ void SkiaImageTest::TearDown() {}
 HWTEST_F(SkiaImageTest, BuildFromBitmap001, TestSize.Level1)
 {
     Bitmap bitmap;
-    SkiaImage skiaImage;
-    auto image = skiaImage.BuildFromBitmap(bitmap);
+    std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
+    auto image = skiaImage->BuildFromBitmap(bitmap);
     EXPECT_EQ(image, nullptr);
 }
 
@@ -65,8 +65,8 @@ HWTEST_F(SkiaImageTest, BuildFromPicture001, TestSize.Level1)
     Brush brush;
     BitDepth bitDepth = BitDepth::KF16;
     std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
-    SkiaImage skiaImage;
-    auto image = skiaImage.BuildFromPicture(picture, dimensions, matrix, brush, bitDepth, colorSpace);
+    std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
+    auto image = skiaImage->BuildFromPicture(picture, dimensions, matrix, brush, bitDepth, colorSpace);
     EXPECT_EQ(image, nullptr);
 }
 

@@ -27,10 +27,10 @@ config("hello_native_image_config") {
 
 config("hello_native_image_public_config") {
   include_dirs = [
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
-    "//foundation/graphic/graphic_2d/frameworks/surface/include",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
-    "//foundation/graphic/graphic_2d/utils",
+    "$graphic_2d_root/interfaces/inner_api/surface",
+    "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/interfaces/inner_api/common",
+    "$graphic_2d_root/utils",
     "//drivers/peripheral/base",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]
@@ -51,9 +51,9 @@ ohos_executable("hello_native_image") {
   public_configs = [ ":hello_native_image_public_config" ]
 
   deps = [
-    "//foundation/graphic/graphic_2d:libgl",
-    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
-    "//foundation/graphic/graphic_2d/frameworks/surfaceimage:libnative_image",
+    "$graphic_2d_root:libgl",
+    "$graphic_2d_root/frameworks/surface:surface",
+    "$graphic_2d_root/frameworks/surfaceimage:libnative_image",
   ]
 
   part_name = "graphic_standard"

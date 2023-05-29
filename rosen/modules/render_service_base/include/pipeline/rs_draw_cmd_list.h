@@ -26,6 +26,8 @@
 #include "common/rs_macros.h"
 #include <parcel.h>
 
+#ifndef USE_ROSEN_DRAWING
+
 class SkCanvas;
 class SkSurface;
 struct SkRect;
@@ -43,6 +45,9 @@ public:
 
     void AddOp(std::unique_ptr<OpItem>&& op);
     void ClearOp();
+
+    void UpdateNodeIdToPicture(NodeId nodeId);
+    void FindIndexOfImage() const;
 
     void Playback(SkCanvas& canvas, const SkRect* rect = nullptr);
     void Playback(RSPaintFilterCanvas& canvas, const SkRect* rect = nullptr);
@@ -74,6 +79,7 @@ public:
 
 private:
     std::vector<std::unique_ptr<OpItem>> ops_;
+    mutable std::vector<uint32_t> imageIndexs_;
     mutable std::mutex mutex_;
     int width_;
     int height_;
@@ -99,4 +105,5 @@ using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;
 } // namespace Rosen
 } // namespace OHOS
 
+#endif // USE_ROSEN_DRAWING
 #endif // RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_LIST_H

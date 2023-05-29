@@ -19,7 +19,7 @@
 #include <memory>
 #include <mutex>
 
-#include "memory/MemoryGraphic.h"
+#include "memory/rs_memory_graphic.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_surface_node.h"
@@ -33,6 +33,7 @@ struct FocusAppInfo {
     int32_t uid = -1;
     std::string bundleName;
     std::string abilityName;
+    uint64_t focusNodeId;
 };
 
 class RSC_EXPORT RSInterfaces {
@@ -128,8 +129,6 @@ public:
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr);
 
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
-
-    int32_t UnRegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
     void SetAppWindowNum(uint32_t num);
 

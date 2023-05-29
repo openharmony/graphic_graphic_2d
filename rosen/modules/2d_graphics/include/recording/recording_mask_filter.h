@@ -27,7 +27,7 @@ public:
     static std::shared_ptr<RecordingMaskFilter> CreateBlurMaskFilter(BlurType blurType, scalar sigma);
 
     RecordingMaskFilter() noexcept;
-    ~RecordingMaskFilter() = default;
+    ~RecordingMaskFilter() override = default;
 
     std::shared_ptr<MaskFilterCmdList> GetCmdList() const
     {

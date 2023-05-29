@@ -20,7 +20,7 @@
 #include <iostream>
 #include <sys/syscall.h>
 #include <unistd.h>
-#define gettid() syscall(__NR_gettid)
+#define GetTid() syscall(__NR_gettid)
 
 #ifdef LOGGER_NO_COLOR
 #define IF_COLOR(x)
@@ -29,7 +29,7 @@
 #endif
 
 namespace OHOS {
-namespace Rosen
+namespace Rosen {
 namespace TextEngine {
 namespace {
 const char *GetLevelStr(enum Logger::LOG_LEVEL level)
@@ -50,17 +50,17 @@ const char *GetLevelStr(enum Logger::LOG_LEVEL level)
 }
 } // namespace
 
-void Logger::SetToNoReturn(Logger& logger, enum LOG_PHASE phase)
+void Logger::SetToNoReturn(Logger &logger, enum LOG_PHASE phase)
 {
     logger.return_ = false;
 }
 
-void Logger::SetToContinue(Logger& logger, enum LOG_PHASE phase)
+void Logger::SetToContinue(Logger &logger, enum LOG_PHASE phase)
 {
     logger.continue_ = true;
 }
 
-void Logger::OutputByStdout(Logger& logger, enum LOG_PHASE phase)
+void Logger::OutputByStdout(Logger &logger, enum LOG_PHASE phase)
 {
     if (phase == LOG_PHASE::BEGIN) {
         return;
@@ -77,7 +77,7 @@ void Logger::OutputByStdout(Logger& logger, enum LOG_PHASE phase)
     }
 }
 
-void Logger::OutputByStderr(Logger& logger, enum LOG_PHASE phase)
+void Logger::OutputByStderr(Logger &logger, enum LOG_PHASE phase)
 {
     if (phase == LOG_PHASE::BEGIN) {
         return;
@@ -94,7 +94,7 @@ void Logger::OutputByStderr(Logger& logger, enum LOG_PHASE phase)
     }
 }
 
-void Logger::OutputByFileLog(Logger& logger, enum LOG_PHASE phase)
+void Logger::OutputByFileLog(Logger &logger, enum LOG_PHASE phase)
 {
     struct FileLogData {
         const char *filename;
@@ -124,7 +124,7 @@ void Logger::OutputByFileLog(Logger& logger, enum LOG_PHASE phase)
     ofs.close();
 }
 
-void Logger::AppendFunc(Logger& logger, enum LOG_PHASE phase)
+void Logger::AppendFunc(Logger &logger, enum LOG_PHASE phase)
 {
     if (phase == LOG_PHASE::BEGIN) {
         logger << IF_COLOR("\033[34m");
@@ -133,7 +133,7 @@ void Logger::AppendFunc(Logger& logger, enum LOG_PHASE phase)
     }
 }
 
-void Logger::AppendFuncLine(Logger& logger, enum LOG_PHASE phase)
+void Logger::AppendFuncLine(Logger &logger, enum LOG_PHASE phase)
 {
     if (phase == LOG_PHASE::BEGIN) {
         logger << IF_COLOR("\033[34m");
@@ -141,6 +141,205 @@ void Logger::AppendFuncLine(Logger& logger, enum LOG_PHASE phase)
         logger << logger.GetFunc() << " ";
         logger.AlignLine();
         logger << IF_COLOR("\033[35m") "+" << logger.GetLine() << IF_COLOR("\033[0m") " ";
+    }
+}
+
+void Logger::AppendFileLine(Logger &logger, enum LOG_PHASE phase)
+{
+    if (phase == LOG_PHASE::BEGIN) {
+        logger << IF_COLOR("\033[34m") << logger.GetFile() << " ";
+        logger.AlignLine();
+        logger << IF_COLOR("\033[35m") "+" << logger.GetLine() << IF_COLOR("\033[0m") " ";
+    }
+}
+
+void Logger::AppendFileFuncLine(Logger &logger, enum LOG_PHASE phase)
+{
+    if (phase == LOG_PHASE::BEGIN) {
+        logger << IF_COLOR("\033[34m") << logger.GetFile() << " ";
+        logger.AlignLine();
+        logger << IF_COLOR("\033[35m") "+" << logger.GetLine() << " ";
+        logger.AlignFunc();
+        logger << logger.GetFunc() << IF_COLOR("\033[0m") " ";
+    }
+}
+
+void Logger::AppendPidTid(Logger &logger, enum LOG_PHASE phase)
+{
+    if (phase == LOG_PHASE::BEGIN) {
+        logger << getpid() << ":" << GetTid() << " ";
+    }
+}
+
+void Logger::SetScopeParam(int func, int line)
+{
+    alignFunc = func;
+    alignLine = line;
+}
+
+void Logger::EnterScope()
+{
+    std::lock_guard<std::mutex> lock(scopeMutex_);
+    scope_++;
+}
+
+void Logger::ExitScope()
+{
+    std::lock_guard<std::mutex> lock(scopeMutex_);
+    scope_--;
+}
+
+Logger::Logger(const std::string &file, const std::string &func, int line, enum LOG_LEVEL level, ...)
+{
+    *this << std::boolalpha;
+    file_ = file;
+    func_ = func;
+    line_ = line;
+    level_ = level;
+    va_start(vl_, level);
+
+    while (true) {
+        LoggerWrapperFunc f = va_arg(vl_, LoggerWrapperFunc);
+        if (f == nullptr) {
+            break;
+        }
+
+        f(*this, LOG_PHASE::BEGIN);
+        wrappers_.push_back(f);
+    }
+
+#ifdef LOGGER_ENABLE_SCOPE
+    {
+        std::lock_guard<std::mutex> lock(scopeMutex_);
+        // The number of space if enable scope
+        Align(scope_ * 2);
+    }
+#endif
+}
+
+Logger::Logger(const Logger &logger)
+{
+    file_ = logger.file_;
+    func_ = logger.func_;
+    line_ = logger.line_;
+    level_ = logger.level_;
+    data_ = logger.data_;
+    wrappers_ = logger.wrappers_;
+    *this << logger.str();
+}
+
+Logger::Logger(Logger &&logger)
+{
+    file_ = logger.file_;
+    func_ = logger.func_;
+    line_ = logger.line_;
+    level_ = logger.level_;
+    data_ = logger.data_;
+    wrappers_ = logger.wrappers_;
+    *this << logger.str();
+
+    logger.wrappers_.clear();
+}
+
+Logger::~Logger()
+{
+    for (const auto &wrapper : wrappers_) {
+        wrapper(*this, LOG_PHASE::END);
+    }
+}
+
+const std::string &Logger::GetFile() const
+{
+    return file_;
+}
+
+const std::string &Logger::GetFunc() const
+{
+    return func_;
+}
+
+int Logger::GetLine() const
+{
+    return line_;
+}
+
+enum Logger::LOG_LEVEL Logger::GetLevel() const
+{
+    return level_;
+}
+
+va_list &Logger::GetVariousArgument()
+{
+    return vl_;
+}
+
+void Logger::Align(int num)
+{
+    if (continue_) {
+        return;
+    }
+
+    for (int32_t i = 0; i < num; i++) {
+        *this << " ";
+    }
+}
+
+void Logger::AlignLine()
+{
+    if (alignLine) {
+        auto line = GetLine();
+        auto num = line == 0 ? 1 : 0;
+        while (line) {
+            // 10 is to calculate the number of bits in the row where the function is located
+            line /= 10;
+            num++;
+        }
+        Align(alignLine - num);
+    }
+}
+
+void Logger::AlignFunc()
+{
+    if (alignFunc) {
+        Align(alignFunc - GetFunc().size());
+    }
+}
+
+ScopedLogger::ScopedLogger(NoLogger &&logger)
+{
+}
+
+ScopedLogger::ScopedLogger(NoLogger &&logger, const std::string &name)
+{
+}
+
+ScopedLogger::ScopedLogger(Logger &&logger)
+    : ScopedLogger(std::move(logger), "")
+{
+}
+
+ScopedLogger::ScopedLogger(Logger &&logger, const std::string &name)
+{
+#ifdef LOGGER_ENABLE_SCOPE
+    logger_ = new Logger(logger);
+    *logger_ << "} " << name;
+    logger << "{ ";
+#endif
+    logger << name;
+    Logger::EnterScope();
+}
+
+ScopedLogger::~ScopedLogger()
+{
+    Finish();
+}
+
+void ScopedLogger::Finish()
+{
+    if (logger_) {
+        Logger::ExitScope();
+        delete logger_;
+        logger_ = nullptr;
     }
 }
 } // namespace TextEngine

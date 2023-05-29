@@ -83,6 +83,7 @@ public:
 
     static bool GetUniRenderEnabled();
     static bool GetRenderNodeTraceEnabled();
+    static bool GetDrawOpTraceEnabled();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
@@ -98,9 +99,8 @@ public:
     static bool GetDumpLayersEnabled();
     static bool GetQuickSkipPrepareEnabled();
     static bool GetHardwareComposerEnabled();
-#ifndef NEW_SKIA
-     static ReleaseGpuResourceType GetReleaseGpuResourceEnabled();
-#endif
+    static bool GetAFBCEnabled();
+    static ReleaseGpuResourceType GetReleaseGpuResourceEnabled();
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
@@ -114,6 +114,7 @@ public:
 
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
+    static bool GetUIFirstEnabled();
 private:
     RSSystemProperties() = default;
 

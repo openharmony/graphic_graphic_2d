@@ -20,11 +20,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-MockIFStream::MockIFStream(const std::string &filename,
-                std::ios_base::openmode mode)
-    : std::ifstream(filename, mode)
-{
-}
+MockIFStream::MockIFStream(const std::string &filename, std::ios_base::openmode mode)
+    : std::ifstream(filename, mode) {}
 
 bool MockIFStream::StdFilesystemIsOpen() const
 {

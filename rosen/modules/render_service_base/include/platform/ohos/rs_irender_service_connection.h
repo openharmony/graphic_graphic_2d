@@ -25,7 +25,7 @@
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
-#include "memory/MemoryGraphic.h"
+#include "memory/rs_memory_graphic.h"
 #include "screen_manager/rs_screen_capability.h"
 #include "screen_manager/rs_screen_data.h"
 #include "screen_manager/rs_screen_hdr_capability.h"
@@ -83,7 +83,6 @@ public:
         GET_SCREEN_TYPE,
         SET_SCREEN_SKIP_FRAME_INTERVAL,
         REGISTER_OCCLUSION_CHANGE_CALLBACK,
-        UNREGISTER_OCCLUSION_CHANGE_CALLBACK,
         SET_APP_WINDOW_NUM,
         SHOW_WATERMARK,
         GET_MEMORY_GRAPHIC,
@@ -100,7 +99,8 @@ public:
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name) = 0;
 
     virtual int32_t SetFocusAppInfo(
-        int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName) = 0;
+        int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
+        uint64_t focusNodeId) = 0;
 
     virtual ScreenId GetDefaultScreenId() = 0;
 
@@ -174,8 +174,6 @@ public:
     virtual int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) = 0;
 
     virtual int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) = 0;
-
-    virtual int32_t UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) = 0;
 
     virtual void SetAppWindowNum(uint32_t num) = 0;
 

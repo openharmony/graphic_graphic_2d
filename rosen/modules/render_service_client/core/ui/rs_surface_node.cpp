@@ -89,7 +89,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         node->GetName().find("sound_panel") != std::string::npos ||
         node->GetName().find("RosenWeb") != std::string::npos) {
         node->SetFrameGravity(Gravity::TOP_LEFT);
-    } else {
+    } else if (!isWindow) {
         node->SetFrameGravity(Gravity::RESIZE);
     }
     ROSEN_LOGD("RsDebug RSSurfaceNode::Create id:%" PRIu64, node->GetId());
@@ -202,6 +202,24 @@ void RSSurfaceNode::SetSecurityLayer(bool isSecurityLayer)
 bool RSSurfaceNode::GetSecurityLayer() const
 {
     return isSecurityLayer_;
+}
+
+void RSSurfaceNode::SetFingerprint(bool hasFingerprint)
+{
+    hasFingerprint_ = hasFingerprint;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetFingerprint>(GetId(), hasFingerprint);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGD("RSSurfaceNode::SetFingerprint, surfaceNodeId:[%" PRIu64 "] hasFingerprint:%s", GetId(),
+        hasFingerprint ? "true" : "false");
+}
+
+bool RSSurfaceNode::GetFingerprint() const
+{
+    return hasFingerprint_;
 }
 
 #ifndef ROSEN_CROSS_PLATFORM

@@ -25,11 +25,11 @@ using namespace testing;
 using namespace testing::ext;
 
 #define INVALID_CGS(...) \
-    {.object = invalid1Cgs_, ##__VA_ARGS__, .exception = ExceptionType::ErrorStatus}, \
-    {.object = invalid2Cgs_, ##__VA_ARGS__, .exception = ExceptionType::ErrorStatus}, \
-    {.object = invalid3Cgs_, ##__VA_ARGS__, .exception = ExceptionType::ErrorStatus}, \
-    {.object = invalid4Cgs_, ##__VA_ARGS__, .exception = ExceptionType::ErrorStatus}, \
-    {.object = invalid5Cgs_, ##__VA_ARGS__, .exception = ExceptionType::ErrorStatus}
+    {.object = invalid1Cgs_, ##__VA_ARGS__, .exception = ExceptionType::ERROR_STATUS}, \
+    {.object = invalid2Cgs_, ##__VA_ARGS__, .exception = ExceptionType::ERROR_STATUS}, \
+    {.object = invalid3Cgs_, ##__VA_ARGS__, .exception = ExceptionType::ERROR_STATUS}, \
+    {.object = invalid4Cgs_, ##__VA_ARGS__, .exception = ExceptionType::ERROR_STATUS}, \
+    {.object = invalid5Cgs_, ##__VA_ARGS__, .exception = ExceptionType::ERROR_STATUS}
 
 namespace OHOS {
 namespace Rosen {
@@ -39,12 +39,12 @@ public:
     static void SetUpTestCase()
     {
         // {0x013B, 13.664} is {codepoint, advanceX}
-        normalCgs_.PushBack({.chars_ = TextConverter::ToUTF16("m"), .glyphs_ = {{0x013B, 13.664}}});
-        normalCgs_.PushBack({.chars_ = TextConverter::ToUTF16("o"), .glyphs_ = {{0x0145, 9.456}}});
-        normalCgs_.PushBack({.chars_ = TextConverter::ToUTF16("s"), .glyphs_ = {{0x0166, 7.28}}});
-        normalCgs_.PushBack({.chars_ = TextConverter::ToUTF16("t"), .glyphs_ = {{0x016E, 5.88}}});
-        glyphsCgs_.PushBack({.chars_ = TextConverter::ToUTF16("most"),
-            .glyphs_ = {{0x013B, 13.664}, {0x0145, 9.456}, {0x0166, 7.28}, {0x016E, 5.88}}});
+        normalCgs_.PushBack({.chars = TextConverter::ToUTF16("m"), .glyphs = {{0x013B, 13.664}}});
+        normalCgs_.PushBack({.chars = TextConverter::ToUTF16("o"), .glyphs = {{0x0145, 9.456}}});
+        normalCgs_.PushBack({.chars = TextConverter::ToUTF16("s"), .glyphs = {{0x0166, 7.28}}});
+        normalCgs_.PushBack({.chars = TextConverter::ToUTF16("t"), .glyphs = {{0x016E, 5.88}}});
+        glyphsCgs_.PushBack({.chars = TextConverter::ToUTF16("most"),
+            .glyphs = {{0x013B, 13.664}, {0x0145, 9.456}, {0x0166, 7.28}, {0x016E, 5.88}}});
         normalSubCgs1_ = normalCgs_.GetSub(0, 1);
         normalSubCgs2_ = normalCgs_.GetSub(1, 2);
     }
@@ -61,22 +61,22 @@ public:
     static inline CharGroups invalid3Cgs_ = CharGroups::CreateWithInvalidRange({-4, -1});
     static inline CharGroups invalid4Cgs_ = CharGroups::CreateWithInvalidRange({2, 5});
     static inline CharGroups invalid5Cgs_ = CharGroups::CreateWithInvalidRange({0x7ffffffe, 0x7fffffff});
-    static inline CharGroup  cg_ = {.chars_ = TextConverter::ToUTF16("n"), .glyphs_ = {{0x013C, 13.664}}};
+    static inline CharGroup  cg_ = {.chars = TextConverter::ToUTF16("n"), .glyphs = {{0x013C, 13.664}}};
 };
 
 auto GetObjectRangeChecker(int t1, int t2)
 {
     return [t1, t2](CharGroups &&ret) {
-        ASSERT_EQ(t1, ret.GetRange().start_);
-        ASSERT_EQ(t2, ret.GetRange().end_);
+        ASSERT_EQ(t1, ret.GetRange().start);
+        ASSERT_EQ(t2, ret.GetRange().end);
     };
 }
 
 auto GetIndexRangeChecker(int t1, int t2)
 {
     return [t1, t2](IndexRange ret) {
-        ASSERT_EQ(t1, ret.start_);
-        ASSERT_EQ(t2, ret.end_);
+        ASSERT_EQ(t1, ret.start);
+        ASSERT_EQ(t2, ret.end);
     };
 }
 
@@ -88,7 +88,7 @@ auto GetIndexRangeChecker(int t1, int t2)
  */
 DEFINE_PARAM_TEST0(CharGroups, GetNumberOfGlyph, {
     INVALID_CGS(),
-    {.object = defaultCgs_,  .exception = ExceptionType::InvalidCharGroups},
+    {.object = defaultCgs_,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
     // 0u, 4u: check the return value
     {.object = emptyCgs_,    .checkFunc = GetResultChecker(0u)},
     {.object = normalCgs_,   .checkFunc = GetResultChecker(4u)},
@@ -103,7 +103,7 @@ DEFINE_PARAM_TEST0(CharGroups, GetNumberOfGlyph, {
  */
 DEFINE_PARAM_TEST0(CharGroups, GetNumberOfCharGroup, {
     INVALID_CGS(),
-    {.object = defaultCgs_,  .exception = ExceptionType::InvalidCharGroups},
+    {.object = defaultCgs_,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_,    .checkFunc = GetResultChecker(0u)},
     {.object = normalCgs_,   .checkFunc = GetResultChecker(4u)},
     {.object = glyphsCgs_,   .checkFunc = GetResultChecker(1u)},
@@ -136,13 +136,13 @@ DEFINE_PARAM_TEST0(CharGroups, GetRange, {
  */
 DEFINE_PARAM_TEST0(CharGroups, GetBack, {
     INVALID_CGS(),
-    {.object = defaultCgs_,  .exception = ExceptionType::InvalidCharGroups},
-    {.object = emptyCgs_,    .exception = ExceptionType::OutOfRange},
+    {.object = defaultCgs_,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
+    {.object = emptyCgs_,    .exception = ExceptionType::OUT_OF_RANGE},
     {.object = normalCgs_,   .checkFunc = [](CharGroup cg) {
-        ASSERT_EQ(TextConverter::ToStr(cg.chars_), "t");
+        ASSERT_EQ(TextConverter::ToStr(cg.chars), "t");
     }},
     {.object = glyphsCgs_,   .checkFunc = [](CharGroup cg) {
-        ASSERT_EQ(TextConverter::ToStr(cg.chars_), "most");
+        ASSERT_EQ(TextConverter::ToStr(cg.chars), "most");
     }},
 });
 
@@ -154,7 +154,7 @@ DEFINE_PARAM_TEST0(CharGroups, GetBack, {
  */
 DEFINE_PARAM_TEST0(CharGroups, GetSize, {
     INVALID_CGS(),
-    {.object = defaultCgs_,  .exception = ExceptionType::InvalidCharGroups},
+    {.object = defaultCgs_,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_,    .checkFunc = GetResultChecker(0u)},
     {.object = normalCgs_,   .checkFunc = GetResultChecker(4u)},
     {.object = glyphsCgs_,   .checkFunc = GetResultChecker(1u)},
@@ -196,8 +196,8 @@ DEFINE_PARAM_TEST1(CharGroups, IsSameCharGroups, CharGroups, {
  */
 DEFINE_PARAM_TEST1(CharGroups, IsIntersect, CharGroups, {
     INVALID_CGS(.arg1 = {}),
-    {.object = emptyCgs_,      .arg1 = invalid3Cgs_,   .exception = ExceptionType::InvalidArgument},
-    {.object = defaultCgs_,    .arg1 = defaultCgs_,    .exception = ExceptionType::InvalidCharGroups},
+    {.object = emptyCgs_,      .arg1 = invalid3Cgs_,   .exception = ExceptionType::INVALID_ARGUMENT},
+    {.object = defaultCgs_,    .arg1 = defaultCgs_,    .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = normalSubCgs1_, .arg1 = normalSubCgs2_, .checkFunc = GetResultChecker(false)},
     {.object = normalCgs_,     .arg1 = normalSubCgs1_, .checkFunc = GetResultChecker(true)},
     {.object = normalCgs_,     .arg1 = normalSubCgs2_, .checkFunc = GetResultChecker(true)},
@@ -212,18 +212,18 @@ DEFINE_PARAM_TEST1(CharGroups, IsIntersect, CharGroups, {
  */
 DEFINE_PARAM_TEST1(CharGroups, GetSplit, int, {
     // arg1 is parameters of GetSplit
-    {.object = normalCgs_,   .arg1 = -1, .exception = ExceptionType::InvalidArgument},
+    {.object = normalCgs_,   .arg1 = -1, .exception = ExceptionType::INVALID_ARGUMENT},
     INVALID_CGS(.arg1 = 1),
-    {.object = defaultCgs_,  .arg1 = 1,  .exception = ExceptionType::InvalidCharGroups},
-    {.object = normalCgs_,   .arg1 = 0,  .exception = ExceptionType::OutOfRange},
-    {.object = normalCgs_,   .arg1 = 4,  .exception = ExceptionType::OutOfRange},
+    {.object = defaultCgs_,  .arg1 = 1,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
+    {.object = normalCgs_,   .arg1 = 0,  .exception = ExceptionType::OUT_OF_RANGE},
+    {.object = normalCgs_,   .arg1 = 4,  .exception = ExceptionType::OUT_OF_RANGE},
     {.object = normalCgs_,   .arg1 = 1,  .checkFunc = [](CharGroupsPair ret) {
-        ASSERT_EQ(ret[0].GetRange().end_, 1);
-        ASSERT_EQ(ret[1].GetRange().start_, 1);
+        ASSERT_EQ(ret[0].GetRange().end, 1);
+        ASSERT_EQ(ret[1].GetRange().start, 1);
     }},
     {.object = normalCgs_,   .arg1 = 3,  .checkFunc = [](CharGroupsPair ret) {
-        ASSERT_EQ(ret[0].GetRange().end_, 3);
-        ASSERT_EQ(ret[1].GetRange().start_, 3);
+        ASSERT_EQ(ret[0].GetRange().end, 3);
+        ASSERT_EQ(ret[1].GetRange().start, 3);
     }},
 });
 
@@ -236,16 +236,16 @@ DEFINE_PARAM_TEST1(CharGroups, GetSplit, int, {
 DEFINE_PARAM_TEST1(CharGroups, GetSplitAll, int, {
     // arg1 is parameters of GetSplitAll
     INVALID_CGS(.arg1 = 1),
-    {.object = defaultCgs_,  .arg1 = 1, .exception = ExceptionType::InvalidCharGroups},
-    {.object = normalCgs_,   .arg1 = 0, .exception = ExceptionType::OutOfRange},
-    {.object = normalCgs_,   .arg1 = 4, .exception = ExceptionType::OutOfRange},
+    {.object = defaultCgs_,  .arg1 = 1, .exception = ExceptionType::INVALID_CHAR_GROUPS},
+    {.object = normalCgs_,   .arg1 = 0, .exception = ExceptionType::OUT_OF_RANGE},
+    {.object = normalCgs_,   .arg1 = 4, .exception = ExceptionType::OUT_OF_RANGE},
     {.object = normalCgs_,   .arg1 = 1, .checkFunc = [](CharGroupsPair ret) {
-        ASSERT_EQ(ret[0].GetRange().end_, 1);
-        ASSERT_EQ(ret[1].GetRange().start_, 1);
+        ASSERT_EQ(ret[0].GetRange().end, 1);
+        ASSERT_EQ(ret[1].GetRange().start, 1);
     }},
     {.object = normalCgs_,   .arg1 = 3, .checkFunc = [](CharGroupsPair ret) {
-        ASSERT_EQ(ret[0].GetRange().end_, 3);
-        ASSERT_EQ(ret[1].GetRange().start_, 3);
+        ASSERT_EQ(ret[0].GetRange().end, 3);
+        ASSERT_EQ(ret[1].GetRange().start, 3);
     }},
 });
 
@@ -257,10 +257,10 @@ DEFINE_PARAM_TEST1(CharGroups, GetSplitAll, int, {
  */
 DEFINE_PARAM_TEST2(CharGroups, GetSub, int, int, {
     // arg1 and arg2 are parameters of GetSub, arg1 is start, arg2 is end
-    {.object = normalCgs_,     .arg1 = -1, .arg2 = 2, .exception = ExceptionType::InvalidArgument},
-    {.object = normalCgs_,     .arg1 = 2,  .arg2 = 1, .exception = ExceptionType::InvalidArgument},
-    {.object = normalSubCgs2_, .arg1 = -1, .arg2 = 1, .exception = ExceptionType::InvalidArgument},
-    {.object = normalCgs_,     .arg1 = 2,  .arg2 = 6, .exception = ExceptionType::InvalidArgument},
+    {.object = normalCgs_,     .arg1 = -1, .arg2 = 2, .exception = ExceptionType::INVALID_ARGUMENT},
+    {.object = normalCgs_,     .arg1 = 2,  .arg2 = 1, .exception = ExceptionType::INVALID_ARGUMENT},
+    {.object = normalSubCgs2_, .arg1 = -1, .arg2 = 1, .exception = ExceptionType::INVALID_ARGUMENT},
+    {.object = normalCgs_,     .arg1 = 2,  .arg2 = 6, .exception = ExceptionType::INVALID_ARGUMENT},
     {.object = normalCgs_,     .arg1 = 0,  .arg2 = 0, .checkFunc = GetObjectRangeChecker(0, 0)},
     {.object = normalCgs_,     .arg1 = 1,  .arg2 = 2, .checkFunc = GetObjectRangeChecker(1, 2)},
     {.object = normalCgs_,     .arg1 = 4,  .arg2 = 4, .checkFunc = GetObjectRangeChecker(4, 4)},
@@ -275,10 +275,10 @@ DEFINE_PARAM_TEST2(CharGroups, GetSub, int, int, {
 DEFINE_PARAM_TEST2(CharGroups, GetSubAll, int, int, {
     // arg1 and arg2 are parameters of GetSubAll, arg1 is start, arg2 is end
     INVALID_CGS(.arg1 = 0, .arg2 = 0),
-    {.object = defaultCgs_,  .arg1 = 0,  .arg2 = 0, .exception = ExceptionType::InvalidCharGroups},
-    {.object = normalCgs_,   .arg1 = -1, .arg2 = 2, .exception = ExceptionType::InvalidArgument},
-    {.object = normalCgs_,   .arg1 = 2,  .arg2 = 1, .exception = ExceptionType::InvalidArgument},
-    {.object = normalCgs_,   .arg1 = 1,  .arg2 = 9, .exception = ExceptionType::InvalidArgument},
+    {.object = defaultCgs_,  .arg1 = 0,  .arg2 = 0, .exception = ExceptionType::INVALID_CHAR_GROUPS},
+    {.object = normalCgs_,   .arg1 = -1, .arg2 = 2, .exception = ExceptionType::INVALID_ARGUMENT},
+    {.object = normalCgs_,   .arg1 = 2,  .arg2 = 1, .exception = ExceptionType::INVALID_ARGUMENT},
+    {.object = normalCgs_,   .arg1 = 1,  .arg2 = 9, .exception = ExceptionType::INVALID_ARGUMENT},
     {.object = normalCgs_,   .arg1 = 0,  .arg2 = 0, .checkFunc = GetObjectRangeChecker(0, 0)},
     {.object = normalCgs_,   .arg1 = 0,  .arg2 = 4, .checkFunc = GetObjectRangeChecker(0, 4)},
     {.object = normalCgs_,   .arg1 = 2,  .arg2 = 3, .checkFunc = GetObjectRangeChecker(2, 3)},
@@ -293,10 +293,10 @@ DEFINE_PARAM_TEST2(CharGroups, GetSubAll, int, int, {
 DEFINE_PARAM_TEST2(CharGroups, GetSubFromU16RangeAll, int, int, {
     // arg1 and arg2 are parameters of GetSubFromU16RangeAll, arg1 is start, arg2 is end
     INVALID_CGS(.arg1 = 1, .arg2 = 2),
-    {.object = defaultCgs_,  .arg1 = 1,  .arg2 = 2,  .exception = ExceptionType::InvalidCharGroups},
-    {.object = normalCgs_,   .arg1 = -1, .arg2 = 2,  .exception = ExceptionType::InvalidArgument},
-    {.object = normalCgs_,   .arg1 = 2,  .arg2 = 1,  .exception = ExceptionType::InvalidArgument},
-    {.object = normalCgs_,   .arg1 = 10, .arg2 = 20, .exception = ExceptionType::InvalidArgument},
+    {.object = defaultCgs_,  .arg1 = 1,  .arg2 = 2,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
+    {.object = normalCgs_,   .arg1 = -1, .arg2 = 2,  .exception = ExceptionType::INVALID_ARGUMENT},
+    {.object = normalCgs_,   .arg1 = 2,  .arg2 = 1,  .exception = ExceptionType::INVALID_ARGUMENT},
+    {.object = normalCgs_,   .arg1 = 10, .arg2 = 20, .exception = ExceptionType::INVALID_ARGUMENT},
     {.object = normalCgs_,   .arg1 = 0,  .arg2 = 0,  .checkFunc = GetObjectRangeChecker(0, 0)},
     {.object = normalCgs_,   .arg1 = 1,  .arg2 = 2,  .checkFunc = GetObjectRangeChecker(1, 2)},
     {.object = normalCgs_,   .arg1 = 4,  .arg2 = 4,  .checkFunc = GetObjectRangeChecker(4, 4)},
@@ -314,10 +314,10 @@ DEFINE_PARAM_TEST2(CharGroups, GetSubFromU16RangeAll, int, int, {
  */
 DEFINE_PARAM_TEST1(CharGroups, GetIntersect, CharGroups, {
     INVALID_CGS(.arg1 = {}),
-    {.object = normalCgs_,     .arg1 = invalid1Cgs_,   .exception = ExceptionType::InvalidArgument},
-    {.object = defaultCgs_,    .arg1 = normalCgs_,     .exception = ExceptionType::InvalidCharGroups},
-    {.object = normalCgs_,     .arg1 = defaultCgs_,    .exception = ExceptionType::InvalidArgument},
-    {.object = normalSubCgs1_, .arg1 = normalSubCgs2_, .exception = ExceptionType::Custom},
+    {.object = normalCgs_,     .arg1 = invalid1Cgs_,   .exception = ExceptionType::INVALID_ARGUMENT},
+    {.object = defaultCgs_,    .arg1 = normalCgs_,     .exception = ExceptionType::INVALID_CHAR_GROUPS},
+    {.object = normalCgs_,     .arg1 = defaultCgs_,    .exception = ExceptionType::INVALID_ARGUMENT},
+    {.object = normalSubCgs1_, .arg1 = normalSubCgs2_, .exception = ExceptionType::CUSTOM},
     {.object = normalCgs_,     .arg1 = normalSubCgs1_, .checkFunc = GetObjectRangeChecker(0, 1)},
     {.object = normalCgs_,     .arg1 = normalSubCgs2_, .checkFunc = GetObjectRangeChecker(1, 2)},
 });
@@ -329,14 +329,14 @@ DEFINE_PARAM_TEST1(CharGroups, GetIntersect, CharGroups, {
  * @tc.require: issueI6TIIF
  */
 DEFINE_PARAM_TEST1(CharGroups, Get, int32_t, {
-    {.object = normalSubCgs2_, .arg1 = -1, .exception = ExceptionType::InvalidArgument},
+    {.object = normalSubCgs2_, .arg1 = -1, .exception = ExceptionType::INVALID_ARGUMENT},
     {.object = normalSubCgs1_, .arg1 = 0,
      .checkFunc = [](struct CharGroup ret) {
-         ASSERT_EQ(TextConverter::ToStr(ret.chars_), "m");
+         ASSERT_EQ(TextConverter::ToStr(ret.chars), "m");
     }},
     {.object = normalSubCgs2_, .arg1 = 0,
      .checkFunc = [](struct CharGroup ret) {
-         ASSERT_EQ(TextConverter::ToStr(ret.chars_), "o");
+         ASSERT_EQ(TextConverter::ToStr(ret.chars), "o");
     }},
 });
 
@@ -348,16 +348,16 @@ DEFINE_PARAM_TEST1(CharGroups, Get, int32_t, {
  */
 DEFINE_PARAM_TEST1(CharGroups, GetAll, int32_t, {
     INVALID_CGS(.arg1 = 0),
-    {.object = defaultCgs_,    .arg1 = 0,  .exception = ExceptionType::InvalidCharGroups},
-    {.object = normalCgs_,     .arg1 = -1, .exception = ExceptionType::OutOfRange},
-    {.object = normalCgs_,     .arg1 = 4,  .exception = ExceptionType::OutOfRange},
+    {.object = defaultCgs_,    .arg1 = 0,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
+    {.object = normalCgs_,     .arg1 = -1, .exception = ExceptionType::OUT_OF_RANGE},
+    {.object = normalCgs_,     .arg1 = 4,  .exception = ExceptionType::OUT_OF_RANGE},
     {.object = normalCgs_,     .arg1 = 0,
      .checkFunc = [](struct CharGroup ret) {
-         ASSERT_EQ(TextConverter::ToStr(ret.chars_), "m");
+         ASSERT_EQ(TextConverter::ToStr(ret.chars), "m");
     }},
     {.object = normalSubCgs2_, .arg1 = 0,
      .checkFunc = [](struct CharGroup ret) {
-         ASSERT_EQ(TextConverter::ToStr(ret.chars_), "m");
+         ASSERT_EQ(TextConverter::ToStr(ret.chars), "m");
     }},
 });
 
@@ -369,7 +369,7 @@ DEFINE_PARAM_TEST1(CharGroups, GetAll, int32_t, {
  */
 DEFINE_PARAM_TEST0(CharGroups, ToUTF16, {
     INVALID_CGS(),
-    {.object = defaultCgs_,    .exception = ExceptionType::InvalidCharGroups},
+    {.object = defaultCgs_,    .exception = ExceptionType::INVALID_CHAR_GROUPS},
     // 0 is the return size
     {.object = emptyCgs_,      .checkFunc = GetVecSizeChecker<uint16_t>(0)},
     {.object = normalCgs_,     .checkFunc = GetVecSizeChecker<uint16_t>(4)},
@@ -386,7 +386,7 @@ DEFINE_PARAM_TEST0(CharGroups, ToUTF16, {
  */
 DEFINE_PARAM_TEST0(CharGroups, ToUTF16All, {
     INVALID_CGS(),
-    {.object = defaultCgs_,    .exception = ExceptionType::InvalidCharGroups},
+    {.object = defaultCgs_,    .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_,      .checkFunc = GetVecSizeChecker<uint16_t>(0)},
     {.object = normalCgs_,     .checkFunc = GetVecSizeChecker<uint16_t>(4)},
     {.object = normalSubCgs1_, .checkFunc = GetVecSizeChecker<uint16_t>(4)},
@@ -402,12 +402,12 @@ DEFINE_PARAM_TEST0(CharGroups, ToUTF16All, {
  */
 DEFINE_PARAM_TEST0(CharGroups, begin, {
     INVALID_CGS(),
-    {.object = defaultCgs_,  .exception = ExceptionType::InvalidCharGroups},
+    {.object = defaultCgs_,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_,    .checkFunc = [&](std::vector<struct CharGroup>::iterator ret) {
         ASSERT_EQ(ret, emptyCgs_.end());
     }},
     {.object = normalCgs_,   .checkFunc = [](std::vector<struct CharGroup>::iterator ret) {
-        ASSERT_EQ(TextConverter::ToStr(ret->chars_), "m");
+        ASSERT_EQ(TextConverter::ToStr(ret->chars), "m");
     }},
 });
 
@@ -419,12 +419,12 @@ DEFINE_PARAM_TEST0(CharGroups, begin, {
  */
 DEFINE_PARAM_TEST0(CharGroups, end, {
     INVALID_CGS(),
-    {.object = defaultCgs_,  .exception = ExceptionType::InvalidCharGroups},
+    {.object = defaultCgs_,  .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_,    .checkFunc = [](std::vector<struct CharGroup>::iterator ret) {
         ASSERT_EQ(ret, emptyCgs_.begin());
     }},
     {.object = normalCgs_,   .checkFunc = [](std::vector<struct CharGroup>::iterator ret) {
-        ASSERT_EQ(TextConverter::ToStr((ret - 1)->chars_), "t");
+        ASSERT_EQ(TextConverter::ToStr((ret - 1)->chars), "t");
     }},
 });
 
@@ -432,8 +432,8 @@ auto GetCharGroupsEqualChecker(const CharGroups &cgs)
 {
     return [cgs](CharGroups &&obj) {
         ASSERT_FALSE(obj.IsSameCharGroups(cgs));
-        ASSERT_EQ(obj.GetRange().start_, cgs.GetRange().start_);
-        ASSERT_EQ(obj.GetRange().end_, cgs.GetRange().end_);
+        ASSERT_EQ(obj.GetRange().start, cgs.GetRange().start);
+        ASSERT_EQ(obj.GetRange().end, cgs.GetRange().end);
     };
 }
 
@@ -445,7 +445,7 @@ auto GetCharGroupsEqualChecker(const CharGroups &cgs)
  */
 DEFINE_PARAM_TEST0(CharGroups, Clone, {
     INVALID_CGS(),
-    {.object = defaultCgs_,    .exception = ExceptionType::InvalidCharGroups},
+    {.object = defaultCgs_,    .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_,      .checkFunc = GetCharGroupsEqualChecker(emptyCgs_)},
     {.object = normalCgs_,     .checkFunc = GetCharGroupsEqualChecker(normalCgs_)},
     {.object = normalSubCgs1_, .checkFunc = GetCharGroupsEqualChecker(normalSubCgs1_)},
@@ -461,13 +461,13 @@ DEFINE_PARAM_TEST0(CharGroups, Clone, {
  */
 DEFINE_VOID_PARAM_TEST1(CharGroups, Merge, CharGroups, {
     INVALID_CGS(.arg1 = normalSubCgs1_),
-    {.object = defaultCgs_,    .arg1 = normalSubCgs1_, .exception = ExceptionType::InvalidCharGroups},
-    {.object = normalSubCgs1_, .arg1 = defaultCgs_,    .exception = ExceptionType::InvalidArgument},
-    {.object = normalSubCgs1_, .arg1 = invalid1Cgs_,   .exception = ExceptionType::InvalidArgument},
-    {.object = normalSubCgs1_, .arg1 = normalSubCgs1_, .exception = ExceptionType::Custom},
-    {.object = normalSubCgs2_, .arg1 = normalSubCgs1_, .exception = ExceptionType::Custom},
+    {.object = defaultCgs_,    .arg1 = normalSubCgs1_, .exception = ExceptionType::INVALID_CHAR_GROUPS},
+    {.object = normalSubCgs1_, .arg1 = defaultCgs_,    .exception = ExceptionType::INVALID_ARGUMENT},
+    {.object = normalSubCgs1_, .arg1 = invalid1Cgs_,   .exception = ExceptionType::INVALID_ARGUMENT},
+    {.object = normalSubCgs1_, .arg1 = normalSubCgs1_, .exception = ExceptionType::CUSTOM},
+    {.object = normalSubCgs2_, .arg1 = normalSubCgs1_, .exception = ExceptionType::CUSTOM},
     {.object = normalSubCgs1_, .arg1 = normalSubCgs2_, .checkFunc = [](CharGroups &arg1, CharGroups &obj) {
-        ASSERT_EQ(obj.GetRange().end_, 2);
+        ASSERT_EQ(obj.GetRange().end, 2);
     }},
 });
 
@@ -479,20 +479,20 @@ DEFINE_VOID_PARAM_TEST1(CharGroups, Merge, CharGroups, {
  */
 DEFINE_VOID_PARAM_TEST1(CharGroups, PushBack, CharGroup, {
     INVALID_CGS(.arg1 = cg_),
-    {.object = defaultCgs_,            .arg1 = cg_, .exception = ExceptionType::InvalidCharGroups},
+    {.object = defaultCgs_,            .arg1 = cg_, .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_.Clone(),      .arg1 = cg_, .checkFunc = [](CharGroup &arg1, CharGroups &obj) {
         ASSERT_EQ(obj.GetSize(), 1);
-        ASSERT_EQ(TextConverter::ToStr(obj.GetAll(0).chars_), "n");
+        ASSERT_EQ(TextConverter::ToStr(obj.GetAll(0).chars), "n");
     }},
     {.object = normalCgs_.Clone(),     .arg1 = cg_, .checkFunc = [](CharGroup &arg1, CharGroups &obj) {
         ASSERT_EQ(obj.GetSize(), 5);
-        ASSERT_EQ(TextConverter::ToStr(obj.GetAll(4).chars_), "n");
+        ASSERT_EQ(TextConverter::ToStr(obj.GetAll(4).chars), "n");
     }},
-    {.object = normalSubCgs1_.Clone(), .arg1 = cg_, .exception = ExceptionType::Custom},
-    {.object = normalSubCgs2_.Clone(), .arg1 = cg_, .exception = ExceptionType::Custom},
+    {.object = normalSubCgs1_.Clone(), .arg1 = cg_, .exception = ExceptionType::CUSTOM},
+    {.object = normalSubCgs2_.Clone(), .arg1 = cg_, .exception = ExceptionType::CUSTOM},
     {.object = glyphsCgs_.Clone(),     .arg1 = cg_, .checkFunc = [](CharGroup &arg1, CharGroups &obj) {
         ASSERT_EQ(obj.GetSize(), 2);
-        ASSERT_EQ(TextConverter::ToStr(obj.GetAll(1).chars_), "n");
+        ASSERT_EQ(TextConverter::ToStr(obj.GetAll(1).chars), "n");
     }},
 });
 
@@ -504,16 +504,16 @@ DEFINE_VOID_PARAM_TEST1(CharGroups, PushBack, CharGroup, {
  */
 DEFINE_VOID_PARAM_TEST0(CharGroups, ReverseAll, {
     INVALID_CGS(),
-    {.object = defaultCgs_,            .exception = ExceptionType::InvalidCharGroups},
+    {.object = defaultCgs_,            .exception = ExceptionType::INVALID_CHAR_GROUPS},
     {.object = emptyCgs_.Clone(),      .checkFunc = [](CharGroups &obj) {}},
     {.object = normalCgs_.Clone(),     .checkFunc = [](CharGroups &obj) {
-        ASSERT_EQ(TextConverter::ToStr((obj.begin())->chars_), "t");
-        ASSERT_EQ(TextConverter::ToStr((obj.end() - 1)->chars_), "m");
+        ASSERT_EQ(TextConverter::ToStr((obj.begin())->chars), "t");
+        ASSERT_EQ(TextConverter::ToStr((obj.end() - 1)->chars), "m");
     }},
-    {.object = normalSubCgs1_.Clone(), .exception = ExceptionType::Custom},
-    {.object = normalSubCgs2_.Clone(), .exception = ExceptionType::Custom},
+    {.object = normalSubCgs1_.Clone(), .exception = ExceptionType::CUSTOM},
+    {.object = normalSubCgs2_.Clone(), .exception = ExceptionType::CUSTOM},
     {.object = glyphsCgs_.Clone(),     .checkFunc = [](CharGroups &obj) {
-        ASSERT_EQ(TextConverter::ToStr((obj.begin())->chars_), "most");
+        ASSERT_EQ(TextConverter::ToStr((obj.begin())->chars), "most");
     }},
 });
 } // namespace TextEngine

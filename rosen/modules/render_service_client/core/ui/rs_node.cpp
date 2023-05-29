@@ -135,7 +135,7 @@ void RSNode::AddKeyFrame(float fraction, const PropertyCallback& propertyCallbac
 
 std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback,
-    const std::function<void()>& finishCallback)
+    const std::function<void()>& finishCallback, const std::function<void()>& repeatCallback)
 {
     if (propertyCallback == nullptr) {
         ROSEN_LOGE("Failed to add curve animation, property callback is null!");
@@ -151,7 +151,12 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimin
     if (finishCallback != nullptr) {
         animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback);
     }
-    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(animationFinishCallback));
+    std::shared_ptr<AnimationRepeatCallback> animationRepeatCallback;
+    if (repeatCallback != nullptr) {
+        animationRepeatCallback = std::make_shared<AnimationRepeatCallback>(repeatCallback);
+    }
+    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(animationFinishCallback),
+        std::move(animationRepeatCallback));
     propertyCallback();
     return implicitAnimator->CloseImplicitAnimation();
 }
@@ -445,6 +450,19 @@ void RSNode::SetFramePositionY(float positionY)
     property->Set(frame);
 }
 
+void RSNode::SetSandBox(std::optional<Vector2f> parentPosition)
+{
+    if (!parentPosition.has_value()) {
+        auto iter = propertyModifiers_.find(RSModifierType::SANDBOX);
+        if (iter != propertyModifiers_.end()) {
+            RemoveModifier(iter->second);
+            propertyModifiers_.erase(iter);
+        }
+        return;
+    }
+    SetProperty<RSSandBoxModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::SANDBOX, parentPosition.value());
+}
+
 void RSNode::SetPositionZ(float positionZ)
 {
     SetProperty<RSPositionZModifier, RSAnimatableProperty<float>>(RSModifierType::POSITION_Z, positionZ);
@@ -671,6 +689,7 @@ void RSNode::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
 // background
 void RSNode::SetBgImage(const std::shared_ptr<RSImage>& image)
 {
+    image->SetNodeId(GetId());
     SetProperty<RSBgImageModifier, RSProperty<std::shared_ptr<RSImage>>>(RSModifierType::BG_IMAGE, image);
 }
 
@@ -826,6 +845,12 @@ void RSNode::SetFrameGravity(Gravity gravity)
     SetProperty<RSFrameGravityModifier, RSProperty<Gravity>>(RSModifierType::FRAME_GRAVITY, gravity);
 }
 
+void RSNode::SetClipRRect(const Vector4f& clipRect, const Vector4f& clipRadius)
+{
+    SetProperty<RSClipRRectModifier, RSAnimatableProperty<RRect>>(
+        RSModifierType::CLIP_RRECT, RRect(clipRect, clipRadius));
+}
+
 void RSNode::SetClipBounds(const std::shared_ptr<RSPath>& path)
 {
     SetProperty<RSClipBoundsModifier, RSProperty<std::shared_ptr<RSPath>>>(RSModifierType::CLIP_BOUNDS, path);
@@ -930,7 +955,7 @@ void RSNode::OnRemoveChildren()
     }
 }
 
-bool RSNode::AnimationFinish(AnimationId animationId)
+bool RSNode::AnimationCallback(AnimationId animationId, AnimationCallbackEvent event)
 {
     auto animationItr = animations_.find(animationId);
     if (animationItr == animations_.end()) {
@@ -938,15 +963,21 @@ bool RSNode::AnimationFinish(AnimationId animationId)
         return false;
     }
 
-    auto& animation = animationItr->second;
+    auto animation = animationItr->second;
     if (animation == nullptr) {
-        ROSEN_LOGE("Failed to finish animation[%" PRIu64 "], animation is null!", animationId);
+        ROSEN_LOGE("Failed to callback animation[%" PRIu64 "], animation is null!", animationId);
         return false;
     }
-
-    animation->CallFinishCallback();
-    RemoveAnimationInner(animation);
-    return true;
+    if (event == FINISHED) {
+        RemoveAnimationInner(animation);
+        animation->CallFinishCallback();
+        return true;
+    } else if (event == REPEAT_FINISHED) {
+        animation->CallRepeatCallback();
+        return true;
+    }
+    ROSEN_LOGE("Failed to callback animation event[%" PRIu64 "], event is null!", event);
+    return false;
 }
 
 void RSNode::SetPaintOrder(bool drawContentLast)
@@ -956,10 +987,13 @@ void RSNode::SetPaintOrder(bool drawContentLast)
 
 void RSNode::MarkDrivenRender(bool flag)
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkDrivenRender>(GetId(), flag);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    if (drivenFlag_ != flag) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSMarkDrivenRender>(GetId(), flag);
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, IsRenderServiceNode());
+        }
+        drivenFlag_ = flag;
     }
 }
 
@@ -1138,6 +1172,39 @@ void RSNode::SetDrawRegion(std::shared_ptr<RectF> rect)
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
         }
+    }
+}
+
+void RSNode::RegisterTransitionPair(NodeId inNodeId, NodeId outNodeId)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSRegisterGeometryTransitionNodePair>(inNodeId, outNodeId);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+}
+
+void RSNode::UnregisterTransitionPair(NodeId inNodeId, NodeId outNodeId)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSUnregisterGeometryTransitionNodePair>(inNodeId, outNodeId);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+}
+
+void RSNode::MarkNodeGroup(bool isNodeGroup)
+{
+    if (isNodeGroup_ == isNodeGroup) {
+        return;
+    }
+    isNodeGroup_ = isNodeGroup;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkNodeGroup>(GetId(), isNodeGroup);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
     }
 }
 } // namespace Rosen

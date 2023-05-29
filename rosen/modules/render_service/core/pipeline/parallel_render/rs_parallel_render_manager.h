@@ -53,6 +53,7 @@ enum class ParallelStatus {
 enum class TaskType {
     PREPARE_TASK = 0,
     PROCESS_TASK,
+    CACHE_TASK,
     CALC_COST_TASK,
     COMPOSITION_TASK
 };
@@ -69,14 +70,18 @@ public:
     void CopyPrepareVisitorAndPackTask(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node);
     void CopyCalcCostVisitorAndPackTask(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node, bool isNeedCalc,
         bool doAnimate, bool isOpDropped);
+    void CopyCacheVisitor(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node);
     void PackRenderTask(RSSurfaceRenderNode &node, TaskType type = TaskType::PROCESS_TASK);
     void PackParallelCompositionTask(std::shared_ptr<RSNodeVisitor> visitor,
                                      const std::shared_ptr<RSBaseRenderNode> node);
     void LoadBalanceAndNotify(TaskType type = TaskType::PROCESS_TASK);
     void MergeRenderResult(RSPaintFilterCanvas& canvas);
-    void SetFrameSize(int height, int width);
-    void GetFrameSize(int &height, int &width);
+    void SaveCacheTexture(RSRenderNode& node) const;
+    void SetFrameSize(int width, int height);
+    void GetFrameSize(int &width, int &height) const;
     void SubmitSuperTask(uint32_t taskIndex, std::unique_ptr<RSSuperRenderTask> superRenderTask);
+    void SubmitSubThreadTask(const std::shared_ptr<RSDisplayRenderNode>& node,
+        const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     void SubmitCompositionTask(uint32_t taskIndex, std::unique_ptr<RSCompositionTask> compositionTask);
     void SubMainThreadNotify(int threadIndex);
     void WaitSubMainThread(uint32_t threadIndex);
@@ -95,7 +100,7 @@ public:
     void ReadySubThreadNumIncrement();
     void CommitSurfaceNum(int surfaceNum);
     void WaitPrepareEnd(RSUniRenderVisitor &visitor);
-    TaskType GetTaskType();
+    TaskType GetTaskType() const;
     RSUniRenderVisitor* GetUniVisitor() const
     {
         return uniVisitor_;
@@ -142,7 +147,7 @@ public:
     }
 
     // Use for Vulkan
-    void WaitProcessEnd(RSUniRenderVisitor &visitor);
+    void WaitProcessEnd();
     void InitDisplayNodeAndRequestFrame(
         const std::shared_ptr<RSBaseRenderEngine> renderEngine, const ScreenInfo screenInfo);
     void ProcessParallelDisplaySurface(RSUniRenderVisitor &visitor);
@@ -171,14 +176,14 @@ private:
     RSParallelTaskManager prepareTaskManager_;
     RSParallelTaskManager calcCostTaskManager_;
     RSParallelTaskManager compositionTaskManager_;
-    int height_;
-    int width_;
+    int width_ = 0;
+    int height_ = 0;
     std::vector<uint8_t> flipCoin_;
     std::mutex parallelRenderMutex_;
     std::mutex cvParallelRenderMutex_;
     std::mutex flushMutex_;
     std::condition_variable cvParallelRender_;
-    RenderContext *renderContext_;
+    RenderContext *renderContext_ = nullptr;
     ParallelRenderType renderType_ = ParallelRenderType::DRAW_IMAGE;
     std::shared_ptr<RSBaseRenderNode> displayNode_ = nullptr;
     std::shared_ptr<RSDisplayRenderNode> mainDisplayNode_ = nullptr;
@@ -205,6 +210,8 @@ private:
 
     std::vector<timespec> startTime_;
     std::vector<timespec> stopTime_;
+
+    uint32_t minLoadThreadIndex_ = 0;
 
     // Use for Vulkan
     std::vector<std::shared_ptr<RSDisplayRenderNode>> parallelDisplayNodes_;

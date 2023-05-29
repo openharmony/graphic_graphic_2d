@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -346,6 +346,84 @@ HWTEST_F(RectTest, RectFNotEqual002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RectIntersect001
+ * @tc.desc: test for seting RectF to intersection.
+ * @tc.type: FUNC
+ * @tc.require: I6ZMMK
+ */
+HWTEST_F(RectTest, RectIntersect001, TestSize.Level1)
+{
+    RectF rectf1(1.0f, 2.0f, 3.0f, 4.0f);
+    RectF rectf2;
+    EXPECT_FALSE(rectf2.Intersect(rectf1));
+}
+
+/**
+ * @tc.name: RectIntersect002
+ * @tc.desc: test for seting RectF to intersection.
+ * @tc.type: FUNC
+ * @tc.require: I6ZMMK
+ */
+HWTEST_F(RectTest, RectIntersect002, TestSize.Level1)
+{
+    RectF rectf1;
+    RectF rectf2;
+    EXPECT_FALSE(rectf2.Intersect(rectf1));
+}
+
+/**
+ * @tc.name: RectIntersect003
+ * @tc.desc: test for seting RectF to intersection.
+ * @tc.type: FUNC
+ * @tc.require: I6ZMMK
+ */
+HWTEST_F(RectTest, RectIntersect003, TestSize.Level1)
+{
+    RectF rectf1(1.0f, 2.0f, 3.0f, 4.0f);
+    RectF rectf2(1.0f, 2.0f, 3.0f, 5.0f);
+    EXPECT_TRUE(rectf2.Intersect(rectf1));
+}
+
+/**
+ * @tc.name: RectJoin001
+ * @tc.desc: test for seting RectF to the union of itself and other.
+ * @tc.type: FUNC
+ * @tc.require: I6ZMMK
+ */
+HWTEST_F(RectTest, RectJoin001, TestSize.Level1)
+{
+    RectF rectf1(1.0f, 2.0f, 3.0f, 4.0f);
+    RectF rectf2;
+    EXPECT_TRUE(rectf2.Join(rectf1));
+}
+
+/**
+ * @tc.name: RectJoin002
+ * @tc.desc: test for seting RectF to the union of itself and other.
+ * @tc.type: FUNC
+ * @tc.require: I6ZMMK
+ */
+HWTEST_F(RectTest, RectJoin002, TestSize.Level1)
+{
+    RectF rectf1;
+    RectF rectf2;
+    EXPECT_FALSE(rectf2.Join(rectf1));
+}
+
+/**
+ * @tc.name: RectJoin003
+ * @tc.desc: test for seting RectF to the union of itself and other.
+ * @tc.type: FUNC
+ * @tc.require: I6ZMMK
+ */
+HWTEST_F(RectTest, RectJoin003, TestSize.Level1)
+{
+    RectF rectf1(2.0f, 4.0f, 6.0f, 8.0f);
+    RectF rectf2(1.0f, 2.0f, 3.0f, 5.0f);
+    EXPECT_TRUE(rectf2.Join(rectf1));
+}
+
+/**
  * @tc.name: RectICreateAndDestroy001
  * @tc.desc:
  * @tc.type: FUNC
@@ -651,6 +729,86 @@ HWTEST_F(RectTest, RectINotEqual002, TestSize.Level1)
     RectI recti2;
     recti2.SetLeft(2.0f);
     EXPECT_TRUE(recti1 != recti2);
+}
+
+/**
+ * @tc.name: RectIIntersect001
+ * @tc.desc: test for seting RectI to intersection.
+ * @tc.type: FUNC
+ * @tc.require: I6ZMMK
+ */
+HWTEST_F(RectTest, RectIIntersect001, TestSize.Level1)
+{
+    RectI rectI1(1, 2, 3, 4);
+    RectI rectI2;
+    EXPECT_FALSE(rectI2.Intersect(rectI1));
+}
+
+/**
+ * @tc.name: RectIIntersect002
+ * @tc.desc: test for seting RectI to intersection.
+ * @tc.type: FUNC
+ * @tc.require: I6ZMMK
+ */
+HWTEST_F(RectTest, RectIIntersect002, TestSize.Level1)
+{
+    RectI rectI1;
+    RectI rectI2;
+    EXPECT_TRUE(rectI2.Intersect(rectI1));
+}
+
+/**
+ * @tc.name: RectIIntersect003
+ * @tc.desc: test for seting RectI to intersection.
+ * @tc.type: FUNC
+ * @tc.require: I6ZMMK
+ */
+HWTEST_F(RectTest, RectIIntersect003, TestSize.Level1)
+{
+    RectI rectI1(1, 2, 3, 4);
+    RectI rectI2(1, 2, 3, 5);
+    EXPECT_TRUE(rectI2.Intersect(rectI1));
+}
+
+/**
+ * @tc.name: RectIJoin001
+ * @tc.desc: test for seting RectI to the union of itself and other.
+ * @tc.type: FUNC
+ * @tc.require: I6ZMMK
+ */
+HWTEST_F(RectTest, RectIJoin001, TestSize.Level1)
+{
+    RectI rectI1(1, 2, 3, 4);
+    RectI rectI2;
+    EXPECT_TRUE(rectI2.Join(rectI1));
+}
+
+/**
+ * @tc.name: RectIJoin002
+ * @tc.desc: test for seting RectI to the union of itself and other.
+ * @tc.type: FUNC
+ * @tc.require: I6ZMMK
+ */
+HWTEST_F(RectTest, RectIJoin002, TestSize.Level1)
+{
+    RectI rectI1;
+    RectI rectI2;
+    EXPECT_TRUE(rectI2.Join(rectI1));
+}
+
+/**
+ * @tc.name: RectIJoin003
+ * @tc.desc: test for seting RectI to the union of itself and other.
+ * @tc.type: FUNC
+ * @tc.require: I6ZMMK
+ */
+HWTEST_F(RectTest, RectIJoin003, TestSize.Level1)
+{
+    RectI rectI1(2, 4, 6, 8);
+    RectI rectI2(1, 2, 3, 5);
+    EXPECT_TRUE(rectI2.Join(rectI1));
+    EXPECT_EQ(rectI2.GetLeft(), 1);
+    EXPECT_EQ(rectI2.GetBottom(), 8);
 }
 } // namespace Drawing
 } // namespace Rosen

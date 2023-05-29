@@ -40,10 +40,10 @@ public:
         vsyncCallbacks_ = cb->callback_;
         userData_ = cb->userData_;
     }
-    void PlayVideo();
+    bool PlayVideo();
     void StopVideo();
 private:
-    std::shared_ptr<Media::Player> videoPlayer_;
+    std::shared_ptr<Media::Player> mediaPlayer_;
     OHOS::sptr<OHOS::Rosen::Window> window_;
     std::string videopath_;
     VSyncCallback vsyncCallbacks_;
@@ -61,7 +61,7 @@ public:
     };
     virtual ~VideoPlayerCallback() = default;
 
-    void OnError(Media::PlayerErrorType errorType, int32_t errorCode) override;
+    void OnError(int32_t errorCode, const std::string &errorMsg) override;
     void OnInfo(Media::PlayerOnInfoType type, int32_t extra, const Media::Format &infoBody) override;
 private:
     std::shared_ptr<BootVideoPlayer> boot_;

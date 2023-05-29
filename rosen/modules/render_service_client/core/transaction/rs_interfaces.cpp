@@ -45,7 +45,8 @@ int32_t RSInterfaces::SetFocusAppInfo(FocusAppInfo& info)
     int32_t uid = info.uid;
     const std::string bundleName = info.bundleName;
     const std::string abilityName = info.abilityName;
-    return renderServiceClient_->SetFocusAppInfo(pid, uid, bundleName, abilityName);
+    uint64_t focusNodeId = info.focusNodeId;
+    return renderServiceClient_->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
 }
 
 ScreenId RSInterfaces::GetDefaultScreenId()
@@ -263,11 +264,6 @@ int32_t RSInterfaces::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrame
 int32_t RSInterfaces::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
     return renderServiceClient_->RegisterOcclusionChangeCallback(callback);
-}
-
-int32_t RSInterfaces::UnRegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
-{
-    return renderServiceClient_->UnRegisterOcclusionChangeCallback(callback);
 }
 
 void RSInterfaces::SetAppWindowNum(uint32_t num)

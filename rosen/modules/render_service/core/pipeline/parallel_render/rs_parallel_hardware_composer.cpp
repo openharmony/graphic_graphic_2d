@@ -49,7 +49,7 @@ void RSParallelHardwareComposer::ClearTransparentColor(RSPaintFilterCanvas& canv
 }
 
 void RSParallelHardwareComposer::AddTransparentColorArea(unsigned int surfaceIndex,
-    std::unique_ptr<RSParallelSelfDrawingSurfaceShape> && shape)
+    std::unique_ptr<RSParallelSelfDrawingSurfaceShape> &&shape)
 {
     if (surfaceAndHolesMap_.count(surfaceIndex) > 0) {
         surfaceAndHolesMap_[surfaceIndex].push_back(std::move(shape));

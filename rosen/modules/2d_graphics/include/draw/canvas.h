@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,10 +27,46 @@ namespace Drawing {
 class Canvas : public CoreCanvas {
 public:
     Canvas() {}
+    Canvas(int32_t width, int32_t height) : CoreCanvas(width, height) {}
 
     // constructor adopt a raw canvas ptr, using for ArkUI, should remove after rosen modifier provide drawing Canvas.
     explicit Canvas(void* rawCanvas) : CoreCanvas(rawCanvas) {}
     virtual ~Canvas() {};
+
+    /*
+     * @brief        Restores Canvas Matrix and clip value state to count.
+     * @param count  Depth of state stack to restore.
+     */
+    void RestoreToCount(uint32_t count)
+    {
+        for (uint32_t i = this->GetSaveCount(); i > count; i--) {
+            this->Restore();
+        }
+    }
+};
+
+class AutoCanvasRestore {
+public:
+    AutoCanvasRestore(Canvas& canvas, bool doSave) : canvas_(canvas)
+    {
+        saveCount_ = canvas_.GetSaveCount();
+        if (doSave) {
+            canvas_.Save();
+        }
+    }
+    ~AutoCanvasRestore()
+    {
+        canvas_.RestoreToCount(saveCount_);
+    }
+
+    AutoCanvasRestore(AutoCanvasRestore&&) = delete;
+    AutoCanvasRestore(const AutoCanvasRestore&) = delete;
+    AutoCanvasRestore& operator=(AutoCanvasRestore&&) = delete;
+    AutoCanvasRestore& operator=(const AutoCanvasRestore&) = delete;
+
+private:
+    Canvas& canvas_;
+    uint32_t saveCount_;
 };
 } // namespace Drawing
 } // namespace Rosen

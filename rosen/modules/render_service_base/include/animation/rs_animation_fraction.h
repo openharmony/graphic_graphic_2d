@@ -38,8 +38,8 @@ public:
     static void SetAnimationScale(float animationScale);
     static void OnAnimationScaleChangedCallback(const char *key, const char *value, void *context);
 
-    // return <fraction, isInStartDelay, isFinished> as tuple
-    std::tuple<float, bool, bool> GetAnimationFraction(int64_t time);
+    // return <fraction, isInStartDelay, isFinished, isRepeatFinished> as tuple
+    std::tuple<float, bool, bool, bool> GetAnimationFraction(int64_t time);
     void UpdateRemainTimeFraction(float fraction, int remainTime = 0);
     float GetStartFraction() const;
     float GetEndFraction() const;
@@ -48,7 +48,18 @@ public:
     int64_t GetLastFrameTime() const;
     void ResetFraction();
 
+    void SetRepeatCallbackEnable(bool isEnable)
+    {
+        isRepeatCallbackEnable_ = isEnable;
+    }
+
+    bool GetRepeatCallbackEnable() const
+    {
+        return isRepeatCallbackEnable_;
+    }
+
 private:
+    bool IsInRepeat() const;
     bool IsFinished() const;
     void UpdateReverseState(bool finish);
 
@@ -62,6 +73,7 @@ private:
     int64_t runningTime_ { 0 };
     bool currentIsReverseCycle_ { false };
     int64_t lastFrameTime_ { -1 };
+    bool isRepeatCallbackEnable_ {false};
 };
 } // namespace Rosen
 } // namespace OHOS

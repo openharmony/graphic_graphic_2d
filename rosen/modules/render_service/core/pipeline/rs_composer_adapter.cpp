@@ -141,23 +141,24 @@ void RSComposerAdapter::DumpLayersToFile(const std::vector<LayerInfoPtr>& layers
         if (layerInfo == nullptr || layerInfo->GetSurface() == nullptr) {
             continue;
         }
+        auto buffer = layerInfo->GetBuffer();
+        if (buffer == nullptr) {
+            RS_LOGW("RSComposerAdapter::DumpLayersToFile: Buffer is null");
+            continue;
+        }
         struct timeval now;
         gettimeofday(&now, nullptr);
         constexpr int secToUsec = 1000 * 1000;
         int64_t nowVal = static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
 
         std::stringstream ss;
-        ss << "/data/layer_" << layerInfo->GetSurface()->GetName()  << "_" << nowVal << ".raw";
+        ss << "/data/layer_" << layerInfo->GetSurface()->GetName()  << "_" << nowVal << "_" << buffer->GetWidth()
+            << "x" << buffer->GetHeight() << ".raw";
 
         std::ofstream rawDataFile(ss.str(), std::ofstream::binary);
         if (!rawDataFile.good()) {
             RS_LOGW("RSComposerAdapter::DumpLayersToFile: Open failed!");
-            return;
-        }
-        auto buffer = layerInfo->GetBuffer();
-        if (buffer == nullptr) {
-            RS_LOGW("RSComposerAdapter::DumpLayersToFile: Buffer is null");
-            return;
+            continue;
         }
         rawDataFile.write(static_cast<const char *>(buffer->GetVirAddr()), buffer->GetSize());
         rawDataFile.close();
@@ -222,10 +223,10 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
     }
     auto canvas = std::make_unique<SkCanvas>(screenWidth, screenHeight);
     canvas->concat(translateMatrix);
-    canvas->concat(gravityMatrix);
     SkRect clipRect;
     gravityMatrix.mapRect(&clipRect, SkRect::MakeWH(frameWidth, frameHeight));
-    canvas->clipRect(SkRect::MakeWH(clipRect.width(), clipRect.height()));
+    canvas->clipRect(clipRect);
+    canvas->concat(gravityMatrix);
     SkIRect newDstRect = canvas->getDeviceClipBounds();
     // we make the newDstRect as the intersection of new and old dstRect,
     // to deal with the situation that frameSize > boundsSize.

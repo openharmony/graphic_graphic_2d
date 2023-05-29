@@ -153,6 +153,25 @@ void RSDirtyRegionManager::GetDirtyRegionInfo(std::map<NodeId, RectI>& target,
     }
 }
 
+RectI RSDirtyRegionManager::GetLastestHistory() const
+{
+    return GetHistory(historyHead_);
+}
+
+bool RSDirtyRegionManager::HasOffset()
+{
+    return hasOffset_;
+}
+void RSDirtyRegionManager::SetOffset(int offsetX, int offsetY)
+{
+    offsetX_ = offsetX;
+    offsetY_ = offsetY;
+}
+RectI RSDirtyRegionManager::GetOffsetedDirtyRegion() const
+{
+    return GetDirtyRegion().Offset(offsetX_, offsetY_);
+}
+
 bool RSDirtyRegionManager::SetBufferAge(const int age)
 {
     if (age < 0) {

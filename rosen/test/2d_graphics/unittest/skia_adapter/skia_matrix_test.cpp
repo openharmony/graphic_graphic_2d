@@ -65,6 +65,7 @@ HWTEST_F(SkiaMatrixTest, MapPoints001, TestSize.Level1)
     std::vector<Point> dst { point1 };
     std::vector<Point> src { point2 };
     SkiaMatrix skiaMatrix;
+    skiaMatrix.MapPoints(dst, src, 0);
     skiaMatrix.MapPoints(dst, src, 1);
     EXPECT_EQ(skiaMatrix.Get(0), 1);
 }

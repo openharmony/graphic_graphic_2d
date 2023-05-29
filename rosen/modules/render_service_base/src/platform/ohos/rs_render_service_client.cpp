@@ -201,14 +201,14 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
 }
 
 int32_t RSRenderServiceClient::SetFocusAppInfo(
-    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName)
+    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
 
-    return renderService->SetFocusAppInfo(pid, uid, bundleName, abilityName);
+    return renderService->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
 }
 
 ScreenId RSRenderServiceClient::GetDefaultScreenId()
@@ -583,17 +583,6 @@ int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionCh
     }
     sptr<CustomOcclusionChangeCallback> cb = new CustomOcclusionChangeCallback(callback);
     return renderService->RegisterOcclusionChangeCallback(cb);
-}
-
-int32_t RSRenderServiceClient::UnRegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService == nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient::UnRegisterOcclusionChangeCallback renderService == nullptr!");
-        return RENDER_SERVICE_NULL;
-    }
-    sptr<CustomOcclusionChangeCallback> cb = new CustomOcclusionChangeCallback(callback);
-    return renderService->UnRegisterOcclusionChangeCallback(cb);
 }
 
 void RSRenderServiceClient::SetAppWindowNum(uint32_t num)

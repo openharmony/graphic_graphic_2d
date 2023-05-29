@@ -18,7 +18,11 @@
 
 #include <memory>
 
+#if defined(NEW_SKIA)
+#include <include/gpu/GrDirectContext.h>
+#else
 #include <include/gpu/GrContext.h>
+#endif
 
 #include "common/rs_common_def.h"
 #include "platform/drawing/rs_surface.h"
@@ -53,7 +57,11 @@ private:
     bool SetupGrContext();
 
     RenderContext* renderContext_ = nullptr;
+#if defined(NEW_SKIA)
+    sk_sp<GrDirectContext> grContext_ = nullptr;
+#else
     sk_sp<GrContext> grContext_ = nullptr;
+#endif
     sk_sp<SkColorSpace> skColorSpace_ = nullptr;
     OnRenderFunc onRender_ = nullptr;
 };

@@ -19,8 +19,8 @@
 #include <string>
 
 namespace OHOS {
-namespace TextEngine {
 namespace Rosen {
+namespace TextEngine {
 namespace OpenTypeBasicType {
 struct Tag {
     char tags[4];

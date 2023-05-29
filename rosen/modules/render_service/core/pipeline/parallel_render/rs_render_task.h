@@ -53,6 +53,7 @@ public:
     enum class RenderNodeStage {
         PREPARE = 0,
         PROCESS,
+        CACHE,
         CALC_COST
     };
     explicit RSRenderTask(RSSurfaceRenderNode &node, RenderNodeStage stage)
@@ -74,7 +75,7 @@ public:
 
     void AddTask(std::unique_ptr<RSRenderTask> &&task);
 
-    int GetTaskSize()
+    int GetTaskSize() const
     {
         return tasks_.size();
     }

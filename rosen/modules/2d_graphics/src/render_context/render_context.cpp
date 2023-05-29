@@ -22,9 +22,9 @@
 #include "rs_trace.h"
 #include "window.h"
 
-#ifndef NEW_SKIA
+
 #include "memory/rs_tag_tracker.h"
-#endif
+
 #include "utils/log.h"
 
 namespace OHOS {
@@ -195,13 +195,13 @@ void RenderContext::InitializeEglContext()
 void RenderContext::MakeCurrent(EGLSurface surface, EGLContext context)
 {
     if (surface == EGL_NO_SURFACE) {
-        if (!eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, context)) {
-            LOGE("Failed to make current on surface, error is %{public}x", eglGetError());
-        }
-    } else {
-        if (!eglMakeCurrent(eglDisplay_, surface, surface, eglContext_)) {
-            LOGE("Failed to make current on surface, error is %{public}x", eglGetError());
-        }
+        surface = pbufferSurface_;
+    }
+    if (context == EGL_NO_CONTEXT) {
+        context = eglContext_;
+    }
+    if (!eglMakeCurrent(eglDisplay_, surface, surface, context)) {
+        LOGE("Failed to make current on surface, error is %{public}x", eglGetError());
     }
     eglSurface_ = surface;
 }
@@ -287,9 +287,7 @@ bool RenderContext::SetUpGrContext()
     }
 
     GrContextOptions options;
-#if !defined(NEW_SKIA)
     options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-#endif
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableDistanceFieldPaths = true;
 
@@ -344,8 +342,8 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
 #else
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
-            break;
 #endif
+            break;
         case COLOR_GAMUT_ADOBE_RGB:
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);
             break;
@@ -355,9 +353,9 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
         default:
             break;
     }
-#ifndef NEW_SKIA
+
     RSTagTracker tagTracker(GetGrContext(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
-#endif
+
     skSurface_ = SkSurface::MakeFromBackendRenderTarget(
         GetGrContext(), backendRenderTarget, kBottomLeft_GrSurfaceOrigin, colorType, skColorSpace, &surfaceProps);
     if (skSurface_ == nullptr) {
@@ -375,6 +373,7 @@ void RenderContext::RenderFrame()
     // flush commands
     if (skSurface_->getCanvas() != nullptr) {
         LOGD("RenderFrame: Canvas");
+        RSTagTracker tagTracker(GetGrContext(),RSTagTracker::TAGTYPE::TAG_RENDER_FRAME);
         skSurface_->getCanvas()->flush();
     } else {
         LOGW("canvas is nullptr!!!");

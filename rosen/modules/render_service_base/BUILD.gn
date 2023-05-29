@@ -96,8 +96,8 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/surface_capture_callback_stub.cpp",
 
     #memory
-    "src/memory/MemoryGraphic.cpp",
-    "src/memory/MemoryTrack.cpp",
+    "src/memory/rs_memory_graphic.cpp",
+    "src/memory/rs_memory_track.cpp",
     "src/memory/rs_tag_tracker.cpp",
 
     #pipeline
@@ -182,7 +182,8 @@ ohos_source_set("render_service_base_src") {
     ]
   }
 
-  if (current_os == "mingw" || current_os == "mac" || current_os == "linux") {
+  if (current_os == "mingw" || current_os == "mac" || current_os == "linux" ||
+      current_os == "ios") {
     sources -= [ "src/common/rs_shared_context.cpp" ]
   }
 
@@ -195,8 +196,8 @@ ohos_source_set("render_service_base_src") {
 
   include_dirs = [
     "$graphic_2d_root/frameworks/surface/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/utils/log",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/utils/log",
   ]
   if (defined(use_new_skia) && use_new_skia) {
     include_dirs += [ "//third_party/skia/src" ]

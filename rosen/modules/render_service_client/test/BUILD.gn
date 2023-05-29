@@ -23,6 +23,12 @@ group("test") {
   ]
 }
 
+if (defined(use_new_skia) && use_new_skia) {
+  public_deps_skia = "//third_party/skia:skia_ohos"
+} else {
+  public_deps_skia = "//third_party/flutter/build/skia:ace_skia_ohos"
+}
+
 ohos_executable("render_service_client_rs_demo") {
   sources = [ "render_service_client_rs_demo.cpp" ]
 
@@ -42,7 +48,7 @@ ohos_executable("render_service_client_rs_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  public_deps = [ "$public_deps_skia" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -64,7 +70,7 @@ ohos_executable("render_service_client_app_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  public_deps = [ "$public_deps_skia" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -86,7 +92,7 @@ ohos_executable("render_service_client_modifier_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  public_deps = [ "$public_deps_skia" ]
 
   external_deps = [ "eventhandler:libeventhandler" ]
 
@@ -110,7 +116,32 @@ ohos_executable("render_service_client_transition_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  public_deps = [ "$public_deps_skia" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+ohos_executable("render_service_client_gesture_interrupt_animation_demo") {
+  sources = [ "render_service_client_gesture_interrupt_animation_demo.cpp" ]
+
+  include_dirs =
+      [ "./../../../../../../window/window_manager/interfaces/innerkits" ]
+
+  deps = [
+    "./../../../../../../../base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "./../../../../../../../third_party/zlib:libz",
+    "./../../../../../../systemabilitymgr/safwk/interfaces/innerkits/safwk:system_ability_fwk",
+    "./../../../../../../window/window_manager/wm:libwm",
+    "./../../../../../../window/window_manager/wmserver:libwms",
+    "./../../2d_graphics:2d_graphics",
+    "./../../render_service_base:librender_service_base",
+    "./../../render_service_client:librender_service_client",
+  ]
+
+  public_deps = [ "$public_deps_skia" ]
+
+  external_deps = [ "eventhandler:libeventhandler" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -132,7 +163,7 @@ ohos_executable("render_service_client_gravity_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  public_deps = [ "$public_deps_skia" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -158,7 +189,7 @@ ohos_executable("render_service_client_ui_capture_demo") {
   ]
 
   public_deps = [
-    "//third_party/flutter/build/skia:ace_skia_ohos",
+    "$public_deps_skia",
     "//third_party/libpng:libpng",
     "//third_party/zlib:libz",
   ]
@@ -183,7 +214,7 @@ ohos_executable("render_service_client_scale_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  public_deps = [ "$public_deps_skia" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -205,7 +236,7 @@ ohos_executable("render_service_client_rs_animation_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  public_deps = [ "$public_deps_skia" ]
 
   external_deps = [ "eventhandler:libeventhandler" ]
 
@@ -225,7 +256,7 @@ ohos_executable("surface_capture_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  public_deps = [ "$public_deps_skia" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -258,7 +289,7 @@ ohos_executable("render_service_client_surface_node_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  public_deps = [ "$public_deps_skia" ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
@@ -280,7 +311,7 @@ ohos_executable("render_service_client_uni_render_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  public_deps = [ "$public_deps_skia" ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
@@ -296,7 +327,11 @@ ohos_executable("render_service_client_watermark_demo") {
 
   deps = [ "../../render_service_client:librender_service_client" ]
 
-  public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  if (defined(use_new_skia) && use_new_skia) {
+    public_deps = [ "//third_party/skia:skia_ohos" ]
+  } else {
+    public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  }
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -317,7 +352,7 @@ ohos_executable("rs_uni_render_pixelmap_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  public_deps = [ "$public_deps_skia" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -342,7 +377,7 @@ ohos_executable("render_service_display_mode_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  public_deps = [ "$public_deps_skia" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -416,6 +451,26 @@ ohos_executable("snapshot_surface") {
   ]
 
   public_deps = [ "//third_party/libpng:libpng" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+ohos_executable("screen_info_demo") {
+  sources = [ "screen_info_demo.cpp" ]
+  include_dirs = [
+    "./../../../include",
+    "./../../../modules/render_service/core",
+    "./../../../modules/render_service_client/core",
+    "./../../../modules/render_service_base/src",
+  ]
+
+  deps = [
+    "./../../../modules/composer:libcomposer",
+    "./../../../modules/render_service:librender_service",
+    "./../../../modules/render_service_base:librender_service_base",
+    "./../../../modules/render_service_client:librender_service_client",
+  ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

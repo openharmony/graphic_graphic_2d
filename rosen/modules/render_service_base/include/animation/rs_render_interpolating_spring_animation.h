@@ -28,7 +28,8 @@ public:
         const std::shared_ptr<RSRenderPropertyBase>& originValue,
         const std::shared_ptr<RSRenderPropertyBase>& startValue, const std::shared_ptr<RSRenderPropertyBase>& endValue);
 
-    void SetSpringParameters(float response, float dampingRatio, float normalizedInitialVelocity);
+    void SetSpringParameters(
+        float response, float dampingRatio, float normalizedInitialVelocity, float minimumAmplitudeRatio = 0.0001f);
 
     ~RSRenderInterpolatingSpringAnimation() override = default;
 

@@ -65,24 +65,24 @@ enum class Affinity {
  *        and the affinity for the previous and next glyph.
  */
 struct IndexAndAffinity {
-    size_t index_;
-    Affinity affinity_;
+    size_t index;
+    Affinity affinity;
 };
 
 /*
  * @brief TextRect contains a TexgineRect and a text direction.
  */
 struct TextRect {
-    TexgineRect rect_;
-    TextDirection direction_;
+    TexgineRect rect;
+    TextDirection direction;
 };
 
 /*
  * @brief Boundary is the range of index.
  */
 struct Boundary {
-    size_t leftIndex_ = 0;
-    size_t rightIndex_ = 0;
+    size_t leftIndex = 0;
+    size_t rightIndex = 0;
 
     Boundary(size_t left, size_t right);
 };
@@ -181,8 +181,7 @@ public:
      * @return            The vector of bounding boxes.
      */
     virtual std::vector<TextRect> GetTextRectsByBoundary(Boundary boundary,
-                                                         TextRectHeightStyle heightStyle,
-                                                         TextRectWidthStyle widthStyle) const = 0;
+        TextRectHeightStyle heightStyle, TextRectWidthStyle widthStyle) const = 0;
 
     /*
      * @brief Return a vector of bounding boxes that bound all AnySpan in typography.

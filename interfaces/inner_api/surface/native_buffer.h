@@ -22,7 +22,7 @@
  *
  * @brief Provides the native buffer capability.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeBuffer
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
  * @since 9
  * @version 1.0
  */
@@ -49,7 +49,7 @@ typedef struct OH_NativeBuffer OH_NativeBuffer;
  * @brief <b>OH_NativeBuffer</b> config. \n
  * Used to allocating new <b>OH_NativeBuffer</b> andquery parameters if existing ones.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeBuffer
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
  * @since 9
  * @version 1.0
  */
@@ -64,7 +64,7 @@ typedef struct {
  * @brief Alloc a <b>OH_NativeBuffer</b> that matches the passed BufferRequestConfig. \n
  * A new <b>OH_NativeBuffer</b> instance is created each time this function is called.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeBuffer
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
  * @param config Indicates the pointer to a <b>BufferRequestConfig</b> instance.
  * @return Returns the pointer to the <b>OH_NativeBuffer</b> instance created if the operation is successful, \n
  * returns <b>NULL</b> otherwise.
@@ -76,7 +76,7 @@ OH_NativeBuffer* OH_NativeBuffer_Alloc(const OH_NativeBuffer_Config* config);
 /**
  * @brief Adds the reference count of a OH_NativeBuffer.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeBuffer
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
  * @param buffer Indicates the pointer to a <b>OH_NativeBuffer</b> instance.
  * @return Returns an error code defined in <b>GSError</b>.
  * @since 9
@@ -88,7 +88,7 @@ int32_t OH_NativeBuffer_Reference(OH_NativeBuffer *buffer);
  * @brief Decreases the reference count of a OH_NativeBuffer and, when the reference count reaches 0, \n
  * destroys this OH_NativeBuffer.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeBuffer
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
  * @param buffer Indicates the pointer to a <b>OH_NativeBuffer</b> instance.
  * @return Returns an error code defined in <b>GSError</b>.
  * @since 9
@@ -99,7 +99,7 @@ int32_t OH_NativeBuffer_Unreference(OH_NativeBuffer *buffer);
 /**
  * @brief Return a config of the OH_NativeBuffer in the passed OHNativeBufferConfig struct.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeBuffer
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
  * @param buffer Indicates the pointer to a <b>OH_NativeBuffer</b> instance.
  * @param config Indicates the pointer to the <b>NativeBufferConfig</b> of the buffer.
  * @return Returns the pointer to the <b>BufferRequestConfig</b> instance if the operation is successful, \n
@@ -112,7 +112,7 @@ void OH_NativeBuffer_GetConfig(OH_NativeBuffer *buffer, OH_NativeBuffer_Config* 
 /**
  * @brief Provide direct cpu access to the OH_NativeBuffer in the process's address space.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeBuffer
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
  * @param buffer Indicates the pointer to a <b>OH_NativeBuffer</b> instance.
  * @param virAddr Indicates the address of the <b>OH_NativeBuffer</b> in virtual memory.
  * @return Returns an error code defined in <b>GSError</b>.
@@ -125,7 +125,7 @@ int32_t OH_NativeBuffer_Map(OH_NativeBuffer *buffer, void **virAddr);
 /**
  * @brief Remove direct cpu access ability of the OH_NativeBuffer in the process's address space.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeBuffer
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
  * @param buffer Indicates the pointer to a <b>OH_NativeBuffer</b> instance.
  * @return Returns an error code defined in <b>GSError</b>.
  * @since 9
@@ -136,7 +136,7 @@ int32_t OH_NativeBuffer_Unmap(OH_NativeBuffer *buffer);
 /**
  * @brief Get the systen wide unique sequence number of the OH_NativeBuffer.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.OH_NativeBuffer
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
  * @param buffer Indicates the pointer to a <b>OH_NativeBuffer</b> instance.
  * @return Returns the sequence number, which is unique for each OH_NativeBuffer.
  * @since 9

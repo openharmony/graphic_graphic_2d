@@ -127,7 +127,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION failed");
                 return ERR_INVALID_DATA;
             }
-            if (RSUniRenderJudgement::IsUniRender()) {
+            if (isUniRender) {
                 // post Unmarshalling task to RSUnmarshalThread
                 RSUnmarshalThread::Instance().RecvParcel(parsedParcel);
             } else {
@@ -169,7 +169,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             int32_t uid = data.ReadInt32();
             std::string bundleName = data.ReadString();
             std::string abilityName = data.ReadString();
-            int32_t status = SetFocusAppInfo(pid, uid, bundleName, abilityName);
+            uint64_t focusNodeId = data.ReadUint64();
+            int32_t status = SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
             reply.WriteInt32(status);
             break;
         }
@@ -621,23 +622,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteInt32(status);
             break;
         }
-        case UNREGISTER_OCCLUSION_CHANGE_CALLBACK: {
-            auto token = data.ReadInterfaceToken();
-            if (token != RSIRenderServiceConnection::GetDescriptor()) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
 
-            auto remoteObject = data.ReadRemoteObject();
-            if (remoteObject == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                break;
-            }
-            sptr<RSIOcclusionChangeCallback> callback = iface_cast<RSIOcclusionChangeCallback>(remoteObject);
-            int32_t status = UnRegisterOcclusionChangeCallback(callback);
-            reply.WriteInt32(status);
-            break;
-        }
         case SET_APP_WINDOW_NUM: {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {

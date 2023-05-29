@@ -155,7 +155,7 @@ private:
     std::shared_ptr<HdiOutput> hdiOutput_; // has value if the screen is physical
     std::unique_ptr<HdiScreen> hdiScreen_; // has value if the screen is physical
     std::vector<GraphicDisplayModeInfo> supportedModes_;
-    GraphicDisplayCapability capability_ = {"", GRAPHIC_DISP_INTF_HDMI, 0, 0, 0, 0, true, 0};
+    GraphicDisplayCapability capability_ = {"test1", GRAPHIC_DISP_INTF_HDMI, 1921, 1081, 0, 0, true, 0};
     GraphicHDRCapability hdrCapability_;
     sptr<Surface> producerSurface_;  // has value if the screen is virtual
     GraphicDispPowerStatus powerStatus_ = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
@@ -164,7 +164,9 @@ private:
         COLOR_GAMUT_SRGB,
         COLOR_GAMUT_DCI_P3,
         COLOR_GAMUT_ADOBE_RGB };
+    std::vector<ScreenColorGamut> supportedPhysicalColorGamuts_;
     int32_t currentVirtualColorGamutIdx_ = 0;
+    int32_t currentPhysicalColorGamutIdx_ = 0;
     ScreenGamutMap currentVirtualGamutMap_ = GAMUT_MAP_CONSTANT;
     RSScreenType screenType_ = RSScreenType::UNKNOWN_TYPE_SCREEN;
     uint32_t skipFrameInterval_ = DEFAULT_SKIP_FRAME_INTERVAL;

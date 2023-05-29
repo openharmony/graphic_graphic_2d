@@ -23,7 +23,7 @@ namespace Rosen {
 namespace TextEngine {
 #define ColorGRAY 4287137928U
 
-class MyAnySpan: public AnySpan {
+class MyAnySpan : public AnySpan {
 public:
     MyAnySpan(double width, double height,
               AnySpanAlignment align = AnySpanAlignment::ABOVE_BASELINE,

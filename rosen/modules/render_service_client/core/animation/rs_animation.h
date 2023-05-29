@@ -43,6 +43,7 @@ namespace OHOS {
 namespace Rosen {
 class RSNode;
 class AnimationFinishCallback;
+class AnimationRepeatCallback;
 class RSRenderAnimation;
 
 class RSC_EXPORT RSAnimation : public RSAnimationTimingProtocol, public std::enable_shared_from_this<RSAnimation> {
@@ -107,13 +108,16 @@ private:
     const AnimationId id_;
 
     void SetFinishCallback(const std::shared_ptr<AnimationFinishCallback>& finishCallback);
+    void SetRepeatCallback(const std::shared_ptr<AnimationRepeatCallback>& repeatCallback);
     void UpdateStagingValue(bool isFirstStart);
     void CallFinishCallback();
+    void CallRepeatCallback();
 
     bool isReversed_ { false };
     AnimationState state_ { AnimationState::INITIALIZED };
     std::weak_ptr<RSNode> target_;
     std::shared_ptr<AnimationFinishCallback> finishCallback_;
+    std::shared_ptr<AnimationRepeatCallback> repeatCallback_;
     std::shared_ptr<RSRenderAnimation> uiAnimation_;
 
     friend class RSCurveImplicitAnimParam;

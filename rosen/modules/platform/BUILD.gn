@@ -81,7 +81,7 @@ group("image_native") {
   if (platform == "ohos") {
     public_deps = image_deps
   } else if (platform == "android" || platform == "ios") {
-    public_deps = [ "$image_framework_root/interfaces/innerkits:image_static" ]
+    public_deps = [ "$image_framework_root/interfaces/innerkits:image_native" ]
   } else {
     public_deps = [ ":mock_image_native" ]
   }
@@ -135,8 +135,13 @@ ohos_source_set("mock_ipc_core") {
 group("utils") {
   if (platform == "ohos") {
     public_deps = utils_deps
+  } else if (platform == "android" || platform == "ios") {
+    public_deps = [ "$c_utils_root/base:utilsbase" ]
   } else {
     public_deps = [ ":mock_utils" ]
+  }
+  if (platform == "ios") {
+    public_configs = [ ":ios_utils_config" ]
   }
 }
 

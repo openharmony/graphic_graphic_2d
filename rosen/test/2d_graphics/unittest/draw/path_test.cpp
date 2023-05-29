@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,6 +47,75 @@ HWTEST_F(PathTest, CreateAndDestroy001, TestSize.Level1)
 {
     auto path = std::make_unique<Path>();
     ASSERT_TRUE(path != nullptr);
+}
+
+/**
+ * @tc.name: BuildFromSVGString001
+ * @tc.desc: Test for Parsing the SVG format string and sets the Path.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, BuildFromSVGString001, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    std::string str;
+    EXPECT_TRUE(path->BuildFromSVGString(str));
+}
+
+/**
+ * @tc.name: BuildFromSVGString002
+ * @tc.desc: Test for Parsing the SVG format string and sets the Path.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, BuildFromSVGString002, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    std::string str = "string";
+    EXPECT_FALSE(path->BuildFromSVGString(str));
+}
+
+/**
+ * @tc.name: BuildFromSVGString003
+ * @tc.desc: Test for Parsing the SVG format string and sets the Path.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, BuildFromSVGString003, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    path->AddRect(1.0f, 4.0f, 3.0f, 2.0f);
+    EXPECT_TRUE(path->BuildFromSVGString(path->ConvertToSVGString()));
+}
+
+/**
+ * @tc.name: ConvertToSVGString001
+ * @tc.desc: Test for Parsing into a string in SVG format that describes the Path.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, ConvertToSVGString001, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    EXPECT_EQ(path->ConvertToSVGString(), "");
+}
+
+/**
+ * @tc.name: ConvertToSVGString002
+ * @tc.desc: Test for Parsing into a string in SVG format that describes the Path.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, ConvertToSVGString002, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    path->AddRect(1.0f, 4.0f, 3.0f, 2.0f);
+    EXPECT_TRUE(path->ConvertToSVGString() != "");
 }
 
 /**
@@ -514,6 +583,49 @@ HWTEST_F(PathTest, AddRoundRect002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddRoundRect003
+ * @tc.desc: Test for adding the circle rectangle to the Path.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, AddRoundRect003, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    RoundRect roundRect;
+    path->AddRoundRect(roundRect, PathDirection::CCW_DIRECTION);
+}
+
+/**
+ * @tc.name: AddRoundRect004
+ * @tc.desc: Test for adding the circle rectangle to the Path.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, AddRoundRect004, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    RoundRect roundRect;
+    path->AddRoundRect(roundRect);
+}
+
+/**
+ * @tc.name: AddRoundRect005
+ * @tc.desc: Test for adding the circle rectangle to the Path.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, AddRoundRect005, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    Rect rect;
+    RoundRect roundRect(rect, 12.6f, 77.4f);
+    path->AddRoundRect(roundRect);
+}
+
+/**
  * @tc.name: AddPath3001
  * @tc.desc:
  * @tc.type: FUNC
@@ -588,6 +700,35 @@ HWTEST_F(PathTest, AddPath2002, TestSize.Level1)
     Path path1;
     Matrix matrix;
     path->AddPath(path1, matrix);
+}
+
+/**
+ * @tc.name: ReverseAddPath001
+ * @tc.desc: Test for adding the src from back forward to the Path.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, ReverseAddPath001, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    Path path1;
+    path->ReverseAddPath(path1);
+}
+
+/**
+ * @tc.name: ReverseAddPath002
+ * @tc.desc: Test for adding the src from back forward to the Path.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, ReverseAddPath002, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    Path path2;
+    path2.AddRect(1.0f, 4.0f, 3.0f, 2.0f);
+    path->ReverseAddPath(path2);
 }
 
 /**
@@ -740,6 +881,33 @@ HWTEST_F(PathTest, Op002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsValid001
+ * @tc.desc: Test for Checking whether the Path is valid.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, IsValid001, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    EXPECT_FALSE(path->IsValid());
+}
+
+/**
+ * @tc.name: IsValid002
+ * @tc.desc: Test for Checking whether the Path is valid.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, IsValid002, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    path->AddRect(1.0f, 4.0f, 3.0f, 2.0f);
+    EXPECT_TRUE(path->IsValid());
+}
+
+/**
  * @tc.name: Reset001
  * @tc.desc:
  * @tc.type: FUNC
@@ -765,6 +933,93 @@ HWTEST_F(PathTest, Close001, TestSize.Level1)
     auto path = std::make_unique<Path>();
     ASSERT_TRUE(path != nullptr);
     path->Close();
+}
+
+/**
+ * @tc.name: GetLength001
+ * @tc.desc: Test for geting the length of the current path object.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, GetLength001, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    EXPECT_EQ(path->GetLength(false), 0);
+}
+
+/**
+ * @tc.name: GetLength002
+ * @tc.desc: Test for geting the length of the current path object.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, GetLength002, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    EXPECT_EQ(path->GetLength(true), 0);
+}
+
+/**
+ * @tc.name: GetLength003
+ * @tc.desc: Test for geting the length of the current path object.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, GetLength003, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    path->AddRect(1.0f, 4.0f, 3.0f, 2.0f);
+    EXPECT_EQ(path->GetLength(true), 8);
+}
+
+/**
+ * @tc.name: GetPositionAndTangent001
+ * @tc.desc: Test for geting the position and tangent of the distance from the starting position of the Path.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, GetPositionAndTangent001, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    Point point1;
+    Point point2;
+    EXPECT_FALSE(path->GetPositionAndTangent(0, point1, point2, false));
+}
+
+/**
+ * @tc.name: GetPositionAndTangent002
+ * @tc.desc: Test for geting the position and tangent of the distance from the starting position of the Path.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, GetPositionAndTangent002, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    Point point1;
+    Point point2;
+    path->AddRect(1.0f, 4.0f, 3.0f, 2.0f);
+    EXPECT_TRUE(path->GetPositionAndTangent(10, point1, point2, true));
+}
+
+/**
+ * @tc.name: GetPositionAndTangent003
+ * @tc.desc: Test for geting the position and tangent of the distance from the starting position of the Path.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, GetPositionAndTangent003, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    Point point1(0.5f, 0.3f);
+    Point point2(3.5f, 3.3f);
+    path->AddRect(1.0f, 4.0f, 3.0f, 2.0f);
+    EXPECT_TRUE(path->GetPositionAndTangent(0.1f, point1, point2, false));
 }
 
 /**

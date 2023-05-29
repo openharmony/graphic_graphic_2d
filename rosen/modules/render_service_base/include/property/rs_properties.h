@@ -72,6 +72,9 @@ public:
     float GetFrameOffsetX() const;
     float GetFrameOffsetY() const;
 
+    void SetSandBox(Vector2f parentPosition);
+    Vector2f GetSandBox() const;
+
     void SetPositionZ(float positionZ);
     float GetPositionZ() const;
 
@@ -181,6 +184,9 @@ public:
     void SetDrawRegion(std::shared_ptr<RectF> rect);
     std::shared_ptr<RectF> GetDrawRegion() const;
 
+    void SetClipRRect(RRect clipRRect);
+    RRect GetClipRRect() const;
+    bool GetClipToRRect() const;
     void SetClipBounds(std::shared_ptr<RSPath> path);
     std::shared_ptr<RSPath> GetClipBounds() const;
     void SetClipToBounds(bool clipToBounds);
@@ -213,13 +219,19 @@ public:
 
     const std::shared_ptr<RSObjGeometry>& GetBoundsGeometry() const;
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
+#ifndef USE_ROSEN_DRAWING
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<SkPoint>& offset,
         const std::optional<SkRect>& clipRect);
+#else
+    bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<Drawing::Point>& offset,
+        const std::optional<Drawing::Rect>& clipRect);
+#endif
     void CheckEmptyBounds();
     void ResetBounds();
     RectF GetBoundsRect() const;
 
     bool IsGeoDirty() const;
+    bool IsContentDirty() const;
 
     void SetSpherize(float spherizeDegree);
     float GetSpherize() const;
@@ -249,6 +261,7 @@ private:
     bool clipToFrame_ = false;
     bool isDirty_ = false;
     bool geoDirty_ = false;
+    bool contentDirty_ = false;
 
     bool hasBounds_ = false;
 
@@ -276,9 +289,12 @@ private:
 
     std::weak_ptr<RSRenderNode> backref_;
 
+    std::unique_ptr<Vector2f> sandboxPosition_ = nullptr;
+
     std::unique_ptr<Vector4f> pixelStretch_ = nullptr;
 
     std::unique_ptr<Vector4f> pixelStretchPercent_ = nullptr;
+    std::unique_ptr<RRect> clipRRect_ = nullptr;
 
     friend class RSCanvasRenderNode;
     friend class RSPropertiesPainter;

@@ -65,6 +65,15 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSSandBoxModifier : public RSGeometryModifier {
+public:
+    explicit RSSandBoxModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSSandBoxModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 class RSC_EXPORT RSPivotModifier : public RSGeometryModifier {
 public:
     explicit RSPivotModifier(const std::shared_ptr<RSPropertyBase>& property);
@@ -324,6 +333,15 @@ class RSC_EXPORT RSFrameGravityModifier : public RSAppearanceModifier {
 public:
     explicit RSFrameGravityModifier(const std::shared_ptr<RSPropertyBase>& property);
     virtual ~RSFrameGravityModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSClipRRectModifier : public RSAppearanceModifier {
+public:
+    explicit RSClipRRectModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSClipRRectModifier() = default;
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;

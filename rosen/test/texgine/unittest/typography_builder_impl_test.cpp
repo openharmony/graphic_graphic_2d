@@ -30,9 +30,9 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 struct MockVars {
-    TextStyle ys_;
-    std::vector<VariantSpan> catchedSpans_;
-    std::vector<TextStyle> catchedStyles_;
+    TextStyle ys;
+    std::vector<VariantSpan> catchedSpans;
+    std::vector<TextStyle> catchedStyles;
 } g_tbMockvars;
 
 void InitMockVars(struct MockVars &&vars)
@@ -40,21 +40,20 @@ void InitMockVars(struct MockVars &&vars)
     g_tbMockvars = std::move(vars);
 }
 
-TypographyImpl::TypographyImpl(TypographyStyle &ys,
-                               std::vector<VariantSpan> &spans,
-                               std::unique_ptr<FontProviders> providers)
+TypographyImpl::TypographyImpl(TypographyStyle &ys, std::vector<VariantSpan> &spans,
+    std::unique_ptr<FontProviders> providers)
 {
-    g_tbMockvars.catchedSpans_ = spans;
+    g_tbMockvars.catchedSpans = spans;
 }
 
 void VariantSpan::SetTextStyle(const TextStyle &style) noexcept(true)
 {
-    g_tbMockvars.catchedStyles_.push_back(style);
+    g_tbMockvars.catchedStyles.push_back(style);
 }
 
 TextStyle TypographyStyle::ConvertToTextStyle() const
 {
-    return g_tbMockvars.ys_;
+    return g_tbMockvars.ys;
 }
 
 class TypographyBuilderImplTest : public testing::Test {
@@ -80,40 +79,40 @@ HWTEST_F(TypographyBuilderImplTest, Create, TestSize.Level1)
  */
 HWTEST_F(TypographyBuilderImplTest, PushPopStyle, TestSize.Level1)
 {
-    TextStyle s1 = {.fontSize_ = 1};
-    TextStyle s2 = {.fontSize_ = 2};
-    TextStyle s3 = {.fontSize_ = 3};
+    TextStyle s1 = {.fontSize = 1};
+    TextStyle s2 = {.fontSize = 2};
+    TextStyle s3 = {.fontSize = 3};
     auto normalAnySpan = std::make_shared<MockAnySpan>();
 
-    InitMockVars({.ys_ = s1});
+    InitMockVars({.ys = s1});
     TypographyBuilderImpl builder1({}, FontProviders::Create());
     builder1.AppendSpan(normalAnySpan);
     EXPECT_NE(builder1.Build(), nullptr);
-    EXPECT_EQ(g_tbMockvars.catchedStyles_[0], s1);
+    EXPECT_EQ(g_tbMockvars.catchedStyles[0], s1);
 
-    InitMockVars({.ys_ = s1});
+    InitMockVars({.ys = s1});
     TypographyBuilderImpl builder2({}, FontProviders::Create());
     builder2.PushStyle(s2);
     builder2.AppendSpan(normalAnySpan);
     EXPECT_NE(builder2.Build(), nullptr);
-    EXPECT_EQ(g_tbMockvars.catchedStyles_[0], s2);
+    EXPECT_EQ(g_tbMockvars.catchedStyles[0], s2);
 
-    InitMockVars({.ys_ = s1});
+    InitMockVars({.ys = s1});
     TypographyBuilderImpl builder3({}, FontProviders::Create());
     builder3.PushStyle(s2);
     builder3.PushStyle(s3);
     builder3.AppendSpan(normalAnySpan);
     EXPECT_NE(builder3.Build(), nullptr);
-    EXPECT_EQ(g_tbMockvars.catchedStyles_[0], s3);
+    EXPECT_EQ(g_tbMockvars.catchedStyles[0], s3);
 
-    InitMockVars({.ys_ = s1});
+    InitMockVars({.ys = s1});
     TypographyBuilderImpl builder4({}, FontProviders::Create());
     builder4.PushStyle(s2);
     builder4.PushStyle(s3);
     builder4.PopStyle();
     builder4.AppendSpan(normalAnySpan);
     EXPECT_NE(builder4.Build(), nullptr);
-    EXPECT_EQ(g_tbMockvars.catchedStyles_[0], s2);
+    EXPECT_EQ(g_tbMockvars.catchedStyles[0], s2);
 }
 
 /**
@@ -131,29 +130,29 @@ HWTEST_F(TypographyBuilderImplTest, AppendSpan, TestSize.Level1)
     TypographyBuilderImpl builder1({}, FontProviders::Create());
     builder1.AppendSpan(nullptrAnySpan);
     EXPECT_NE(builder1.Build(), nullptr);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_.size(), 0u);
+    EXPECT_EQ(g_tbMockvars.catchedSpans.size(), 0u);
 
     InitMockVars({});
     TypographyBuilderImpl builder2({}, FontProviders::Create());
     builder2.AppendSpan(nullptrTextSpan);
     EXPECT_NE(builder2.Build(), nullptr);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_.size(), 0u);
+    EXPECT_EQ(g_tbMockvars.catchedSpans.size(), 0u);
 
     auto as1 = std::make_shared<MockAnySpan>();
     InitMockVars({});
     TypographyBuilderImpl builder3({}, FontProviders::Create());
     builder3.AppendSpan(as1);
     EXPECT_NE(builder3.Build(), nullptr);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_.size(), 1u);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_[0], as1);
+    EXPECT_EQ(g_tbMockvars.catchedSpans.size(), 1u);
+    EXPECT_EQ(g_tbMockvars.catchedSpans[0], as1);
 
     auto ts1 = TextSpan::MakeEmpty();
     InitMockVars({});
     TypographyBuilderImpl builder4({}, FontProviders::Create());
     builder4.AppendSpan(ts1);
     EXPECT_NE(builder4.Build(), nullptr);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_.size(), 1u);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_[0], ts1);
+    EXPECT_EQ(g_tbMockvars.catchedSpans.size(), 1u);
+    EXPECT_EQ(g_tbMockvars.catchedSpans[0], ts1);
 
     auto as2 = std::make_shared<MockAnySpan>();
     auto as3 = std::make_shared<MockAnySpan>();
@@ -162,9 +161,9 @@ HWTEST_F(TypographyBuilderImplTest, AppendSpan, TestSize.Level1)
     builder5.AppendSpan(as2);
     builder5.AppendSpan(as3);
     EXPECT_NE(builder5.Build(), nullptr);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_.size(), 2u);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_[0], as2);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_[1], as3);
+    EXPECT_EQ(g_tbMockvars.catchedSpans.size(), 2u);
+    EXPECT_EQ(g_tbMockvars.catchedSpans[0], as2);
+    EXPECT_EQ(g_tbMockvars.catchedSpans[1], as3);
 
     auto ts2 = TextSpan::MakeEmpty();
     auto ts3 = TextSpan::MakeEmpty();
@@ -173,8 +172,8 @@ HWTEST_F(TypographyBuilderImplTest, AppendSpan, TestSize.Level1)
     builder6.AppendSpan(ts2);
     builder6.AppendSpan(ts3);
     EXPECT_NE(builder6.Build(), nullptr);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_.size(), 1u);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_[0], ts2);
+    EXPECT_EQ(g_tbMockvars.catchedSpans.size(), 1u);
+    EXPECT_EQ(g_tbMockvars.catchedSpans[0], ts2);
 
     auto ts4 = TextSpan::MakeEmpty();
     auto ts5 = TextSpan::MakeEmpty();
@@ -184,9 +183,9 @@ HWTEST_F(TypographyBuilderImplTest, AppendSpan, TestSize.Level1)
     builder7.PushStyle(xs);
     builder7.AppendSpan(ts5);
     EXPECT_NE(builder7.Build(), nullptr);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_.size(), 2u);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_[0], ts4);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_[1], ts5);
+    EXPECT_EQ(g_tbMockvars.catchedSpans.size(), 2u);
+    EXPECT_EQ(g_tbMockvars.catchedSpans[0], ts4);
+    EXPECT_EQ(g_tbMockvars.catchedSpans[1], ts5);
 
     auto ts6 = TextSpan::MakeEmpty();
     auto as4 = std::make_shared<MockAnySpan>();
@@ -197,10 +196,10 @@ HWTEST_F(TypographyBuilderImplTest, AppendSpan, TestSize.Level1)
     builder8.AppendSpan(as4);
     builder8.AppendSpan(ts7);
     EXPECT_NE(builder8.Build(), nullptr);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_.size(), 3u);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_[0], ts6);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_[1], as4);
-    EXPECT_EQ(g_tbMockvars.catchedSpans_[2], ts7);
+    EXPECT_EQ(g_tbMockvars.catchedSpans.size(), 3u);
+    EXPECT_EQ(g_tbMockvars.catchedSpans[0], ts6);
+    EXPECT_EQ(g_tbMockvars.catchedSpans[1], as4);
+    EXPECT_EQ(g_tbMockvars.catchedSpans[2], ts7);
 }
 } // namespace TextEngine
 } // namespace Rosen

@@ -43,9 +43,9 @@ std::shared_ptr<SkFontMetrics> TexgineFontMetrics::GetFontMetrics() const
     return fontMetrics_;
 }
 
-void TexgineFontMetrics::SetFontMetrics(std::shared_ptr<SkFontMetrics> metrics)
+void TexgineFontMetrics::SetFontMetrics(const std::shared_ptr<SkFontMetrics> metrics)
 {
-    if (metrics = nullptr) {
+    if (metrics == nullptr) {
         return;
     }
 

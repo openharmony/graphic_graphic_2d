@@ -16,6 +16,7 @@
 #include "rs_driven_render_manager.h"
 
 #include <parameters.h>
+#include "common/rs_obj_abs_geometry.h"
 #include "platform/common/rs_log.h"
 #include "rs_driven_render_ext.h"
 #include "rs_driven_render_visitor.h"
@@ -57,6 +58,11 @@ const DrivenUniRenderMode& RSDrivenRenderManager::GetUniDrivenRenderMode() const
 float RSDrivenRenderManager::GetUniRenderGlobalZOrder() const
 {
     return uniRenderGlobalZOrder_;
+}
+
+RectI RSDrivenRenderManager::GetUniRenderSurfaceClipHoleRect() const
+{
+    return uniRenderSurfaceClipHoleRect_;
 }
 
 bool RSDrivenRenderManager::ClipHoleForDrivenNode(RSPaintFilterCanvas& canvas, const RSCanvasRenderNode& node) const
@@ -158,6 +164,22 @@ void RSDrivenRenderManager::DoPrepareRenderTask(const DrivenPrepareInfo& info)
 
 void RSDrivenRenderManager::DoProcessRenderTask(const DrivenProcessInfo& info)
 {
+    std::string traceMsg = "";
+    bool isReusableMode = false;
+    auto currBackground = backgroundSurfaceNode_->GetDrivenCanvasNode();
+    if (currBackground != nullptr && uniRenderMode_ == DrivenUniRenderMode::REUSE_WITH_CLIP_HOLE) {
+        auto rsParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(currBackground->GetParent().lock());
+        if (rsParent != nullptr) {
+            isReusableMode = true;
+            traceMsg = "RSDrivenRender::ReusableProcess:[" + rsParent->GetName() + "]" +
+                " " + rsParent->GetDstRect().ToString() +
+                " Alpha: " + std::to_string(rsParent->GetGlobalAlpha()).substr(0, 4); // substr[0]-[4] is alpha value
+        }
+    }
+    if (isReusableMode) {
+        RS_TRACE_BEGIN(traceMsg);
+    }
+
     auto visitor = std::make_shared<RSDrivenRenderVisitor>();
     visitor->SetUniProcessor(info.uniProcessor);
     visitor->SetUniColorSpace(info.uniColorSpace);
@@ -172,8 +194,13 @@ void RSDrivenRenderManager::DoProcessRenderTask(const DrivenProcessInfo& info)
 
     uniRenderMode_ = DrivenUniRenderMode::RENDER_WITH_NORMAL;
     uniRenderGlobalZOrder_ = 0.0;
+    uniRenderSurfaceClipHoleRect_.Clear();
     if (!backgroundSurfaceNode_->IsDisabledMode() || !contentSurfaceNode_->IsDisabledMode()) {
         isBufferCacheClear_ = false;
+    }
+
+    if (isReusableMode) {
+        RS_TRACE_END();
     }
 }
 
@@ -185,6 +212,7 @@ void RSDrivenRenderManager::Reset()
     backgroundCanvasNodeId_ = 0;
     uniRenderMode_ = DrivenUniRenderMode::RENDER_WITH_NORMAL;
     uniRenderGlobalZOrder_ = 0.0;
+    uniRenderSurfaceClipHoleRect_.Clear();
 }
 
 void RSDrivenRenderManager::UpdateUniDrivenRenderMode(DrivenDirtyType dirtyType)
@@ -206,6 +234,7 @@ void RSDrivenRenderManager::UpdateUniDrivenRenderMode(DrivenDirtyType dirtyType)
         // uni-render mode should follow contentSurfaceNode render mode
         if (contentSurfaceNode_->IsExpandedMode()) {
             uniRenderMode_ = DrivenUniRenderMode::RENDER_WITH_CLIP_HOLE;
+            uniRenderSurfaceClipHoleRect_ = CalcUniRenderSurfaceClipHoleRect();
         } else if (contentSurfaceNode_->IsReusableMode()) {
             uniRenderMode_ = DrivenUniRenderMode::REUSE_WITH_CLIP_HOLE;
         } else {
@@ -223,6 +252,26 @@ void RSDrivenRenderManager::UpdateUniDrivenRenderMode(DrivenDirtyType dirtyType)
     auto backgroundRenderMode = backgroundSurfaceNode_->GetDrivenSurfaceRenderMode();
     RS_LOGD("RSDrivenRenderManager: contentRenderMode = %d, backgroundRenderMode = %d, uniRenderMode = %d",
         contentRenderMode, backgroundRenderMode, uniRenderMode_);
+}
+
+RectI RSDrivenRenderManager::CalcUniRenderSurfaceClipHoleRect()
+{
+    RectI rect;
+    if (contentSurfaceNode_->GetDrivenCanvasNode() != nullptr) {
+        auto canvasNode =
+            RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(contentSurfaceNode_->GetDrivenCanvasNode());
+        if (canvasNode == nullptr) {
+            return rect;
+        }
+        auto& property = canvasNode->GetRenderProperties();
+        Vector4f clipHoleRect = property.GetBounds();
+        if (clipHoleRect.IsZero()) {
+            clipHoleRect = property.GetFrame();
+        }
+        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+        rect = geoPtr->MapAbsRect(RectF(clipHoleRect.x_, clipHoleRect.y_, clipHoleRect.z_, clipHoleRect.w_));
+    }
+    return rect;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.. All rights reserved.
+# Copyright (c) 2022-2023 Huawei Device Co., Ltd.. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -20,6 +20,15 @@ import(
 drawing_src_dir = "$rosen_root/modules/2d_graphics/src/drawing"
 src_dir = "$rosen_root/modules/2d_graphics/src"
 
+config("export_config") {
+  include_dirs = [
+    "include",
+    "$src_dir",
+    "$drawing_src_dir",
+    "$drawing_src_dir/engine_adapter",
+  ]
+}
+
 template("graphics2d_source_set") {
   forward_variables_from(invoker, "*")
 
@@ -40,7 +49,9 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/draw/core_canvas.cpp",
       "$drawing_src_dir/draw/path.cpp",
       "$drawing_src_dir/draw/pen.cpp",
+      "$drawing_src_dir/draw/surface.cpp",
       "$drawing_src_dir/effect/color_filter.cpp",
+      "$drawing_src_dir/effect/color_matrix.cpp",
       "$drawing_src_dir/effect/color_space.cpp",
       "$drawing_src_dir/effect/filter.cpp",
       "$drawing_src_dir/effect/image_filter.cpp",
@@ -66,6 +77,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_picture.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_region.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_shader_effect.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_surface.cpp",
       "$drawing_src_dir/image/bitmap.cpp",
       "$drawing_src_dir/image/image.cpp",
       "$drawing_src_dir/image/picture.cpp",
@@ -118,12 +130,15 @@ template("graphics2d_source_set") {
       ]
       deps = [
         "$ace_flutter_engine_root:flutter_engine_fml_$platform",
-        "//foundation/graphic/graphic_2d/rosen/build/flutter/icu:rosen_libicu_$platform",
-        "//foundation/graphic/graphic_2d/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$platform",
+        "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
+        "$graphic_2d_root/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$platform",
         "//third_party/bounds_checking_function:libsec_static",
       ]
       include_dirs += [ "$flutter_root/engine" ]
-      defines += [ "SUPPORT_OHOS_PIXMAP" ]
+      defines += [
+        "SUPPORT_OHOS_PIXMAP",
+        "ROSEN_OHOS",
+      ]
 
       if (defined(use_new_skia) && use_new_skia) {
         remove_configs = [ "//build/config/compiler:default_include_dirs" ]
@@ -141,14 +156,23 @@ template("graphics2d_source_set") {
 
       deps = [
         "$ace_flutter_engine_root:flutter_engine_fml_$platform",
-        "$ace_flutter_engine_root/icu:ace_libicu_$platform",
         "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform",
-        "$ace_flutter_engine_root/skia:ace_skia_$platform",
       ]
-      include_dirs += [
-        "$flutter_root/engine",
-        "$flutter_root/engine/flutter/third_party/txt/src",
-      ]
+      include_dirs += [ "$flutter_root/engine" ]
+
+      if (defined(use_new_skia) && use_new_skia) {
+        deps += [ "//third_party/skia:skia_$platform" ]
+        include_dirs += [
+          "$flutter_root/txt/src",
+          "//third_party/skia/third_party/externals/harfbuzz/src",
+        ]
+      } else {
+        deps += [
+          "$ace_flutter_engine_root/icu:ace_libicu_$platform",
+          "$ace_flutter_engine_root/skia:ace_skia_$platform",
+        ]
+        include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
+      }
 
       if (!is_cross_platform_build) {
         deps += [ "//base/hiviewdfx/hilog/frameworks/libhilog:libhilog_source_$platform" ]
@@ -190,6 +214,7 @@ if (!is_cross_platform_build) {
     version_script = "2d_graphics.versionscript"
     symlink_target_name = [ "libnative_drawing.so" ]
     deps = [ ":2d_graphics_source_ohos" ]
+    public_configs = [ ":export_config" ]
     part_name = "graphic_standard"
     subsystem_name = "graphic"
   }
@@ -245,7 +270,7 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
 
   if (!is_cross_platform_build) {
     deps = [
-      "//foundation/graphic/graphic_2d:libsurface",
+      "$graphic_2d_root:libsurface",
       # "//third_party/skia_canvaskit0310:skia",
     ]
   }

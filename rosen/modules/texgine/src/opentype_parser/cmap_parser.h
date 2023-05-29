@@ -51,6 +51,7 @@ private:
 
     int ParseFormat4(const CmapSubtable &subtable, const std::size_t size);
     int ParseFormat12(const CmapSubtable &subtable, const std::size_t size);
+    void ParseFormat4NoOffset(int32_t delta, uint32_t start, uint32_t end);
 
     Ranges ranges_;
 };

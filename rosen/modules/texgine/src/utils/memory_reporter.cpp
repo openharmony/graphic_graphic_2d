@@ -163,16 +163,16 @@ DECLARE_RMU(std::string)
 DECLARE_RMU(struct LineMetrics)
 {
     MEMORY_USAGE_SCOPE("LineMetrics", that);
-    MEMORY_USAGE_REPORT(lineSpans_);
+    MEMORY_USAGE_REPORT(lineSpans);
 }
 
 DECLARE_RMU(struct TypographyStyle)
 {
     MEMORY_USAGE_SCOPE("Typography::Style", that);
-    MEMORY_USAGE_REPORT(fontFamilies_);
-    MEMORY_USAGE_REPORT(ellipsis_);
-    MEMORY_USAGE_REPORT(lineStyle_.fontFamilies_);
-    MEMORY_USAGE_REPORT(locale_);
+    MEMORY_USAGE_REPORT(fontFamilies);
+    MEMORY_USAGE_REPORT(ellipsis);
+    MEMORY_USAGE_REPORT(lineStyle.fontFamilies);
+    MEMORY_USAGE_REPORT(locale);
 }
 
 DECLARE_RMU(VariantSpan)
@@ -271,9 +271,9 @@ DECLARE_RMU(CharGroups)
 DECLARE_RMU(struct TextStyle)
 {
     MEMORY_USAGE_SCOPE("TextSpan::Style", that);
-    MEMORY_USAGE_REPORT(fontFamilies_);
-    MEMORY_USAGE_REPORT(shadows_);
-    MEMORY_USAGE_REPORT(fontFeature_);
+    MEMORY_USAGE_REPORT(fontFamilies);
+    MEMORY_USAGE_REPORT(shadows);
+    MEMORY_USAGE_REPORT(fontFeature);
 }
 
 DECLARE_RMU(CmapParser)
@@ -285,9 +285,9 @@ DECLARE_RMU(CmapParser)
 DECLARE_RMU(CharGroup)
 {
     MEMORY_USAGE_SCOPE("CharGroup", that);
-    MEMORY_USAGE_REPORT(chars_);
-    MEMORY_USAGE_REPORT(glyphs_);
-    MEMORY_USAGE_REPORT(typeface_);
+    MEMORY_USAGE_REPORT(chars);
+    MEMORY_USAGE_REPORT(glyphs);
+    MEMORY_USAGE_REPORT(typeface);
 }
 
 DECLARE_RMU(FontFeatures)

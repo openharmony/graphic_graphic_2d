@@ -35,7 +35,6 @@ foundation/graphic/graphic_2d/
 ├── frameworks              # 框架代码目录
 │   ├── animation_server    # AnimationServer代码
 │   ├── bootanimation       # 开机动画目录
-│   ├── dumper              # graphic dumper代码
 │   ├── fence               # fence代码
 │   ├── opengl_wrapper      # opengl_wrapper
 │   ├── surface             # Surface代码

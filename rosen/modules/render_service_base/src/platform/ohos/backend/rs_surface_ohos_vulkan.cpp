@@ -46,12 +46,15 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(int32_t width,
         ROSEN_LOGD("RSSurfaceOhosVulkan: create native window");
     }
 
+    NativeWindowHandleOpt(mNativeWindow, SET_FORMAT, pixelFormat_);
 #ifdef RS_ENABLE_AFBC
-    int32_t format = 0;
-    NativeWindowHandleOpt(mNativeWindow, GET_FORMAT, &format);
-    if (format == PIXEL_FMT_RGBA_8888 && useAFBC) {
-        bufferUsage_ =
-            (BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA);
+    if (RSSystemProperties::GetAFBCEnabled()) {
+        int32_t format = 0;
+        NativeWindowHandleOpt(mNativeWindow, GET_FORMAT, &format);
+        if (format == PIXEL_FMT_RGBA_8888 && useAFBC) {
+            bufferUsage_ =
+                (BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA);
+        }
     }
 #endif
 
@@ -114,6 +117,11 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 void RSSurfaceOhosVulkan::SetSurfaceBufferUsage(uint64_t usage)
 {
     bufferUsage_ = usage;
+}
+
+void RSSurfaceOhosVulkan::SetSurfacePixelFormat(int32_t pixelFormat)
+{
+    pixelFormat_ = pixelFormat;
 }
 
 void RSSurfaceOhosVulkan::ClearBuffer()
