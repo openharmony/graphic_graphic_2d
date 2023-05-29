@@ -1045,7 +1045,7 @@ std::optional<SkRect> RSSurfaceRenderNode::GetContextClipRegion() const
     return contextClipRect_;
 }
 
-bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded()
+bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded(std::shared_ptr<RSSurfaceRenderNode>& appNode)
 {
     if (!IsLeashWindow()) {
         return false;
@@ -1054,6 +1054,7 @@ bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded()
         auto childNode = child.lock();
         const auto& childNodeSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(childNode);
         if (childNodeSurface->GetVisibleRegion().IsEmpty()) {
+            appNode = childNodeSurface;
             return true;
         }
     }

@@ -500,7 +500,7 @@ void RSUniRenderVisitor::MarkSubHardwareEnableNodeState(RSSurfaceRenderNode& sur
         return;
     }
 
-    if (!surfaceNode.IsAppWindow() && !surfaceNode.IsAbilityComponent()) {
+    if (!surfaceNode.IsAppWindow() && !surfaceNode.IsAbilityComponent() && !surfaceNode.IsLeashWindow()) {
         return;
     }
 
@@ -515,9 +515,20 @@ void RSUniRenderVisitor::MarkSubHardwareEnableNodeState(RSSurfaceRenderNode& sur
         }
         return;
     }
-
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes;
+    if (surfaceNode.IsAppWindow()) {
+        hardwareEnabledNodes = surfaceNode.GetChildHardwareEnabledNodes();
+    } else {
+        for (auto& child : surfaceNode.GetChildren()) {
+            auto appNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child.lock());
+            if (appNode && appNode->IsAppWindow()) {
+                hardwareEnabledNodes = appNode->GetChildHardwareEnabledNodes();
+                break;
+            }
+        }
+    }
     // app window type case: mark all child hardware enabled nodes
-    for (auto& node : surfaceNode.GetChildHardwareEnabledNodes()) {
+    for (auto& node : hardwareEnabledNodes) {
         auto childNode = node.lock();
         if (childNode) {
             childNode->SetHardwareForcedDisabledState(true);
@@ -2284,7 +2295,11 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode
         RS_TRACE_NAME(node.GetName() + " Empty AbilityComponent Skip");
         return false;
     }
-    if (node.LeashWindowRelatedAppWindowOccluded()) {
+    std::shared_ptr<RSSurfaceRenderNode> appNode;
+    if (node.LeashWindowRelatedAppWindowOccluded(appNode)) {
+        if (appNode != nullptr) {
+            MarkSubHardwareEnableNodeState(*appNode);
+        }
         RS_TRACE_NAME(node.GetName() + " App Occluded Leashwindow Skip");
         return false;
     }

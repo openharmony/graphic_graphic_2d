@@ -620,7 +620,7 @@ public:
     bool GetAnimateState() const{
         return animateState_;
     }
-    bool LeashWindowRelatedAppWindowOccluded();
+    bool LeashWindowRelatedAppWindowOccluded(std::shared_ptr<RSSurfaceRenderNode>& appNode);
 
     void OnTreeStateChanged() override;
 
