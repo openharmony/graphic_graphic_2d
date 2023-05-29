@@ -77,13 +77,15 @@ bool CreateFile(const std::string& filePath)
 
 bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath)
 {
-    std::string realDclFilePathStr = CreateFile(filePath);
-    if (realDclFilePathStr.empty()) {
+    if (!CreateFile(filePath)) {
         return false;
     }
-    int fd = open(realDclFilePathStr.c_str(), O_RDWR | O_CREAT, static_cast<mode_t>(0600));
+    if (filePath.empty()) {
+        return false;
+    }
+    int fd = open(filePath.c_str(), O_RDWR | O_CREAT, static_cast<mode_t>(0600));
     if (fd < 0) {
-        RS_LOGE("%{public}s failed. file: %s, fd = %{public}d", __func__, realDclFilePathStr.c_str(), fd);
+        RS_LOGE("%{public}s failed. file: %s, fd = %{public}d", __func__, filePath.c_str(), fd);
         return false;
     }
     ssize_t nwrite = write(fd, reinterpret_cast<uint8_t *>(data), size);
@@ -112,13 +114,15 @@ bool WriteStringToFile(int fd, const std::string& str)
 
 bool WriteStringToFile(const std::string& str, const std::string& filePath)
 {
-    std::string realDclFilePathStr = CreateFile(filePath);
-    if (realDclFilePathStr.empty()) {
+    if (!CreateFile(filePath)) {
         return false;
     }
-    int fd = open(realDclFilePathStr.c_str(), O_RDWR | O_CREAT, static_cast<mode_t>(0600));
+    if (filePath.empty()) {
+        return false;
+    }
+    int fd = open(filePath.c_str(), O_RDWR | O_CREAT, static_cast<mode_t>(0600));
     if (fd < 0) {
-        RS_LOGE("%{public}s failed. file: %s, fd = %{public}d", __func__, realDclFilePathStr.c_str(), fd);
+        RS_LOGE("%{public}s failed. file: %s, fd = %{public}d", __func__, filePath.c_str(), fd);
         return false;
     }
     bool result = WriteStringToFile(fd, str);
