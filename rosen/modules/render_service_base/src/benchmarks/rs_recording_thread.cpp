@@ -85,6 +85,7 @@ void RSRecordingThread::FinishRecordingOneFrame()
         RS_LOGD("RSRecordingThread::FinishRecordingOneFrame isRecordingEnabled = false");
     }
 }
+
 #ifndef USE_ROSEN_DRAWING
 void RSRecordingThread::RecordingToFile(const std::shared_ptr<DrawCmdList> & drawCmdList)
 {
