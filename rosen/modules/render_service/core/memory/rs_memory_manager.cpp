@@ -73,7 +73,7 @@ void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, GrGpuResourceTag
 #endif
 {
 #ifdef RS_ENABLE_GL
-    if(!grContext) {
+    if (!grContext) {
         RS_LOGE("ReleaseGpuResByTag fail, grContext is nullptr");
     }
     RS_TRACE_NAME_FMT("ReleaseAllGpuResource [Pid:%d Tid:%d Nid:%d Funcid:%d]",
@@ -101,7 +101,7 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, GrGpuResource
 #endif
 {
 #ifdef RS_ENABLE_GL
-    if(!grContext) {
+    if (!grContext) {
         RS_LOGE("ReleaseGpuResByTag fail, grContext is nullptr");
     }
     RS_TRACE_NAME_FMT("ReleaseUnlockGpuResource [Pid:%d Tid:%d Nid:%d Funcid:%d]",
@@ -141,7 +141,7 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, bool scratchR
 #endif
 {
 #ifdef RS_ENABLE_GL
-    if(!grContext) {
+    if (!grContext) {
         RS_LOGE("ReleaseGpuResByTag fail, grContext is nullptr");
     }
     RS_TRACE_NAME_FMT("ReleaseUnlockGpuResource scratchResourcesOnly:%d", scratchResourcesOnly);
@@ -197,7 +197,7 @@ void MemoryManager::CountMemory(std::vector<pid_t> pids, const GrContext* grCont
 #endif
 {
     auto countMem = [&grContext, &mems] (pid_t pid) {
-       mems.emplace_back(CountPidMemory(pid, grContext));
+        mems.emplace_back(CountPidMemory(pid, grContext));
     };
     // Count mem of Skia GPU
     std::for_each(pids.begin(), pids.end(), countMem);
@@ -217,7 +217,7 @@ static std::tuple<uint64_t, std::string, RectI> FindGeoById(uint64_t nodeId)
         std::static_pointer_cast<RSObjAbsGeometry>(node->GetRenderProperties().GetBoundsGeometry())->GetAbsRect();
     // Obtain the window according to childId
     auto parent = node->GetParent().lock();
-    while(parent) {
+    while (parent) {
         if (parent->IsInstanceOf<RSSurfaceRenderNode>()) {
             const auto& surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parent);
             windowName = surfaceNode->GetName();
@@ -303,11 +303,9 @@ void MemoryManager::DumpAllGpuInfo(DfxString& log, const GrContext* grContext)
 #ifdef RS_ENABLE_GL
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes([&log, &grContext](const std::shared_ptr<RSSurfaceRenderNode> node) {
-
         GrGpuResourceTag tag(ExtractPid(node->GetId()), 0, node->GetId(), 0);
         std::string name = node->GetName() + " " + std::to_string(node->GetId());
         DumpGpuCache(log, grContext, &tag, name);
-
     });
 #endif
 }
@@ -357,21 +355,23 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const GrContext* grCont
 
 void MemoryManager::DumpMallocStat(std::string& log)
 {
-    malloc_stats_print([](void *fp, const char* str) {
-        if (!fp) {
-            RS_LOGE("DumpMallocStat fp is nullptr");
-            return;
-        }
-        std::string* sp = static_cast<std::string*>(fp);
-        if (str) {
-            // cause log only support 2096 len. we need to only output critical log
-            // and only put total log in RSLOG
-            // get allocated string
-            if (strncmp(str, "Allocated", strlen("Allocated")) == 0) {
-                sp->append(str);
+    malloc_stats_print(
+        [](void* fp, const char* str) {
+            if (!fp) {
+                RS_LOGE("DumpMallocStat fp is nullptr");
+                return;
             }
-            RS_LOGW("[mallocstat]:%s", str);
-        }
-    }, &log, nullptr);
+            std::string* sp = static_cast<std::string*>(fp);
+            if (str) {
+                // cause log only support 2096 len. we need to only output critical log
+                // and only put total log in RSLOG
+                // get allocated string
+                if (strncmp(str, "Allocated", strlen("Allocated")) == 0) {
+                    sp->append(str);
+                }
+                RS_LOGW("[mallocstat]:%s", str);
+            }
+        },
+        &log, nullptr);
 }
 } // namespace OHOS::Rosen
