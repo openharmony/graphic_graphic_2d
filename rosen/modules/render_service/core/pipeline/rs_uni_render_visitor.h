@@ -91,7 +91,6 @@ public:
     }
 
     void DrawSurfaceLayer(RSDisplayRenderNode& node);
-    void DrawCacheRenderNode(RSRenderNode& node);
 
     bool GetAnimateState() const
     {

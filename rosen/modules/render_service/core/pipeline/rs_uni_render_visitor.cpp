@@ -1698,23 +1698,6 @@ void RSUniRenderVisitor::DrawSurfaceLayer(RSDisplayRenderNode& node)
     parallelRenderManager->SubmitSubThreadTask(displayNodePtr, subThreadNodes_);
 }
 
-void RSUniRenderVisitor::DrawCacheRenderNode(RSRenderNode& node)
-{
-    isUpdateCachedSurface_ = true;
-    if (node.GetCacheSurface()) {
-        auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
-        bool isOpDropped = isOpDropped_;
-        isOpDropped_ = false;
-        swap(cacheCanvas, canvas_);
-        node.ProcessRenderContents(*canvas_);
-        ProcessBaseRenderNode(node);
-        swap(cacheCanvas, canvas_);
-        isOpDropped_ = isOpDropped;
-    } else {
-        RS_LOGI("get cache surface failed");
-    }
-}
-
 void RSUniRenderVisitor::AssignGlobalZOrderAndCreateLayer()
 {
     if (!IsHardwareComposerEnabled()) {
@@ -2148,7 +2131,11 @@ void RSUniRenderVisitor::CheckAndSetNodeCacheType(RSRenderNode& node)
         if (node.GetCacheType() != CacheType::CONTENT) {
             node.SetCacheType(CacheType::CONTENT);
             node.ClearCacheSurface();
-            node.InitCacheSurface(*canvas_);
+#ifdef NEW_SKIA
+        node.InitCacheSurface(canvas_->recordingContext());
+#else
+        node.InitCacheSurface(canvas_->getGrContext());
+#endif
         }
         if (!node.GetCompletedCacheSurface() && UpdateCacheSurface(node)) {
             node.UpdateCompletedCacheSurface();
@@ -2177,13 +2164,20 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
     }
 
     // copy current canvas properties into cacheCanvas
-    cacheCanvas->CopyConfiguration(*canvas_);
+    if (renderEngine_) {
+        cacheCanvas->SetHighContrast(renderEngine_->IsHighContrastEnabled());
+    }
+    if (canvas_) {
+        cacheCanvas->CopyConfiguration(*canvas_);
+    }
 
     // When drawing CacheSurface, all child node should be drawn.
     // So set isOpDropped_ = false here.
     bool isOpDropped = isOpDropped_;
     isOpDropped_ = false;
     isUpdateCachedSurface_ = true;
+
+    cacheCanvas->clear(SK_ColorTRANSPARENT);
 
     swap(cacheCanvas, canvas_);
     // When cacheType == CacheType::ANIMATE_PROPERTY,
@@ -2227,7 +2221,11 @@ void RSUniRenderVisitor::DrawSpherize(RSRenderNode& node)
     if (node.GetCacheType() != CacheType::ANIMATE_PROPERTY) {
         node.SetCacheType(CacheType::ANIMATE_PROPERTY);
         node.ClearCacheSurface();
-        node.InitCacheSurface(*canvas_);
+#ifdef NEW_SKIA
+        node.InitCacheSurface(canvas_->recordingContext());
+#else
+        node.InitCacheSurface(canvas_->getGrContext());
+#endif
     }
     if (!node.GetCompletedCacheSurface() && UpdateCacheSurface(node)) {
         node.UpdateCompletedCacheSurface();
@@ -2297,7 +2295,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     if (isUIFirst_ && isSubThread_) {
         if (auto parentNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(node.GetParent().lock())) {
-            DrawCacheRenderNode(node);
+            UpdateCacheSurface(node);
             return;
         }
     }
@@ -2419,7 +2417,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (property.IsSpherizeValid()) {
         DrawSpherize(node);
     } else {
-        if (isUIFirst_ && RSUniRenderUtil::HandleCachedNode(node, *canvas_)) {
+        if (isUIFirst_ && RSUniRenderUtil::HandleSubThreadNode(node, *canvas_)) {
             return;
         }
         node.ProcessRenderBeforeChildren(*canvas_);

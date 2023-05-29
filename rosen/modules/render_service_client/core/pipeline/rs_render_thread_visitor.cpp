@@ -513,7 +513,11 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         if (node.GetCacheType() != CacheType::ANIMATE_PROPERTY) {
             node.SetCacheType(CacheType::ANIMATE_PROPERTY);
             node.ClearCacheSurface();
-            node.InitCacheSurface(*canvas_);
+#ifdef NEW_SKIA
+            node.InitCacheSurface(canvas_->recordingContext());
+#else
+            node.InitCacheSurface(canvas_->getGrContext());
+#endif
         }
         if (!node.GetCompletedCacheSurface() && UpdateAnimatePropertyCacheSurface(node)) {
             node.UpdateCompletedCacheSurface();
