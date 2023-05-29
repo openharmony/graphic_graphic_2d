@@ -995,7 +995,7 @@ void RSUniRenderVisitor::CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisit
     isPartialRenderEnabled_ = isPartialRenderEnabled_ && visitor->isPartialRenderEnabled_;
     isOpDropped_ = isOpDropped_ && visitor->isOpDropped_;
     needFilter_ = needFilter_ || visitor->needFilter_;
-    for (auto &u : visitor->displayHasSecSurface_) {
+    for (const auto &u : visitor->displayHasSecSurface_) {
         displayHasSecSurface_[u.first] += u.second;
     }
 
@@ -2060,8 +2060,8 @@ void RSUniRenderVisitor::AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDispla
                 surfaceNode->GetName().c_str(), containerDirtyRegion.GetRegionInfo().c_str());
             std::vector<Occlusion::Rect> rects = containerDirtyRegion.GetRegionRects();
             for (const auto& rect : rects) {
-                displayDirtyManager->MergeDirtyRect(RectI
-                    { rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
+                displayDirtyManager->MergeDirtyRect(RectI{
+                    rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
             }
         }
     }

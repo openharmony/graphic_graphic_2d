@@ -259,7 +259,7 @@ private:
     std::shared_ptr<RSProcessor> processor_;
     SkMatrix parentSurfaceNodeMatrix_;
 
-    ScreenId currentVisitDisplay_;
+    ScreenId currentVisitDisplay_ = INVALID_SCREEN_ID;
     std::map<ScreenId, int> displayHasSecSurface_;
     std::set<ScreenId> mirroredDisplays_;
     bool isSecurityDisplay_ = false;

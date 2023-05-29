@@ -592,7 +592,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
 
 LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSSurfaceRenderNode& node)
 {
-    auto& consumer = node.GetConsumer();
+    const auto& consumer = node.GetConsumer();
     if (consumer == nullptr) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer get consumer fail");
         return nullptr;

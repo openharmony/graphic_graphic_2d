@@ -471,7 +471,7 @@ void RSParallelRenderManager::SubmitSubThreadTask(const std::shared_ptr<RSDispla
         return;
     }
     std::vector<std::unique_ptr<RSRenderTask>> renderTaskList;
-    for (auto& child : subThreadNodes) {
+    for (const auto& child : subThreadNodes) {
         renderTaskList.push_back(std::make_unique<RSRenderTask>(*child, RSRenderTask::RenderNodeStage::CACHE));
     }
 

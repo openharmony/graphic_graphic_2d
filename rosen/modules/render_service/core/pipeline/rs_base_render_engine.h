@@ -113,7 +113,7 @@ public:
 
     // There would only one user(thread) to renderFrame(request frame) at one time.
     // for framebuffer surface
-    std::unique_ptr<RSRenderFrame> RequestFrame(const sptr<Surface>& rsSurface,
+    std::unique_ptr<RSRenderFrame> RequestFrame(const sptr<Surface>& targetSurface,
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true);
     // There would only one user(thread) to renderFrame(request frame) at one time.
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
