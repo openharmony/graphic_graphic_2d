@@ -86,7 +86,7 @@ void TexgineCanvas::Restore() const
     canvas_->restore();
 }
 
-void TexgineCanvas::SetCanvas(const SkCanvas *canvas)
+void TexgineCanvas::SetCanvas(SkCanvas *canvas)
 {
     canvas_ = canvas;
 }

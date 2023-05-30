@@ -75,7 +75,7 @@ public:
     /*
      * @brief Sets SkCanvas to TexgineCanvas what user want
      */
-    void SetCanvas(const SkCanvas *canvas);
+    void SetCanvas(SkCanvas *canvas);
 
 private:
     SkCanvas *canvas_ = nullptr;
