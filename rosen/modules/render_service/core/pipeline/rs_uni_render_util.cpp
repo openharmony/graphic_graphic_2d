@@ -153,12 +153,15 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     params.dstRect = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
 
     const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
+    if (buffer == nullptr) {
+        return params;
+    }
     params.buffer = buffer;
     params.acquireFence = node.GetAcquireFence();
     params.srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
 
     auto& consumer = node.GetConsumer();
-    if (consumer == nullptr || buffer == nullptr) {
+    if (consumer == nullptr) {
         return params;
     }
     auto transform = consumer->GetTransform();
