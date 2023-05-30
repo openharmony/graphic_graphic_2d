@@ -192,11 +192,11 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
 #ifdef RS_ENABLE_GL
     if (compressData_) {
         auto cache = RSImageCache::Instance().GetDrawingImageCache(uniqueId_);
-		std::lock_guard<std::mutex> lock(mutex_);
+        std::lock_guard<std::mutex> lock(mutex_);
         if (cache) {
             image_ = cache;
         } else {
-			if (canvas.GetGPUContext() == nullptr) {
+            if (canvas.GetGPUContext() == nullptr) {
                 return;
             }
             RS_TRACE_NAME("make compress img");
@@ -278,7 +278,8 @@ void RSImage::DrawImageRepeatRect(Drawing::Canvas& canvas)
             auto dst = Drawing::Rect(dstRect_.left_ + i * dstRect_.width_, dstRect_.top_ + j * dstRect_.height_,
                 dstRect_.left_ + (i + 1) * dstRect_.width_, dstRect_.top_ + (j + 1) * dstRect_.height_);
             Drawing::SamplingOptions samplingOptions;
-            canvas.DrawImageRect(*image_, src, dst, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+            canvas.DrawImageRect(*image_, src, dst, samplingOptions,
+                Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
 #endif
         }
     }

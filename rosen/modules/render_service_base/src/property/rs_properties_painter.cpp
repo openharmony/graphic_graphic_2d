@@ -395,9 +395,6 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
             Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, properties.GetShadowRadius()));
         brush.SetFilter(filter);
         // TODO paint.canComputeFastBounds()
-        // if (paint.canComputeFastBounds()) {
-        //     paint.computeFastBounds(shadowRect, &shadowRect);
-        // }
     }
 
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
@@ -825,8 +822,6 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     canvas.Save();
     auto bounds = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     canvas.ClipRect(bounds, Drawing::ClipOp::INTERSECT, false);
-    //auto clipBounds = canvas.GetDeviceClipBounds();
-    //clipBounds.setXYWH(clipBounds.left(), clipBounds.top(), clipBounds.width() - 1, clipBounds.height() - 1);
     auto tmpBounds = canvas.GetDeviceClipBounds();
     Drawing::Rect clipBounds(
         tmpBounds.GetLeft(), tmpBounds.GetTop(), tmpBounds.GetWidth() - 1, tmpBounds.GetHeight() - 1);
@@ -836,7 +831,7 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
 
     auto scaledBounds = Drawing::Rect(bounds.GetLeft() - stretchSize.x_, bounds.GetTop() - stretchSize.y_,
         bounds.GetRight() + stretchSize.z_, bounds.GetBottom() + stretchSize.w_);
-    if (scaledBounds.IsValid() || clipBounds.IsValid()) {
+    if (!scaledBounds.IsValid() || !bounds.IsValid() || !clipBounds.IsValid()) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch invalid scaled bounds");
         return;
     }
@@ -869,7 +864,8 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
             -stretchSize.x_ + scaledBounds.GetWidth(), -stretchSize.y_ + scaledBounds.GetHeight()));
         canvas.DetachBrush();
     } else {
-        scaleMat.Scale(scaledBounds.GetWidth() / bounds.GetWidth(), scaledBounds.GetHeight() / bounds.GetHeight(), 0, 0);
+        scaleMat.Scale(
+            scaledBounds.GetWidth() / bounds.GetWidth(), scaledBounds.GetHeight() / bounds.GetHeight(), 0, 0);
         brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
             *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, scaleMat));
 
@@ -906,18 +902,8 @@ SkColor RSPropertiesPainter::CalcAverageColor(sk_sp<SkImage> imageSnapshot)
 Drawing::Color RSPropertiesPainter::CalcAverageColor(std::shared_ptr<Drawing::Image> imageSnapshot)
 {
     // create a 1x1 SkPixmap
-    // TODO SkPixmap
+    // TODO Drawing::Image scalePixels
     return Drawing::Color();
-    // uint32_t pixel[1] = { 0 };
-    // auto single_pixel_info = SkImageInfo::MakeN32Premul(1, 1);
-    // SkPixmap single_pixel(single_pixel_info, pixel, single_pixel_info.bytesPerPixel());
-
-    // // resize snapshot to 1x1 to calculate average color
-    // // kMedium_SkFilterQuality will do bilerp + mipmaps for down-scaling, we can easily get average color
-    // imageSnapshot->scalePixels(single_pixel, SkFilterQuality::kMedium_SkFilterQuality);
-
-    // // convert color format and return average color
-    // return SkColor4f::FromBytes_RGBA(pixel[0]).toSkColor();
 }
 #endif
 
@@ -1046,11 +1032,6 @@ void RSPropertiesPainter::DrawFrame(
     auto frameRect = Rect2DrawingRect(properties.GetFrameRect());
     // Generate or clear cache on demand
     // TODO Drawing::CmdList::GenerateCache()
-    // if (canvas.isCacheEnabled()) {
-    //     cmds->GenerateCache(canvas.GetSurface());
-    // } else {
-    //     cmds->ClearCache();
-    // }
     cmds->Playback(canvas, &frameRect);
 }
 #endif
