@@ -31,7 +31,7 @@ const struct NameTable* NameTableParser::Parse(const char* data, int32_t size) c
 void NameTableParser::Dump() const
 {
     const auto& nameTable = *reinterpret_cast<const struct NameTable*>(data_);
-    LOG2SO(INFO) << "nameTable size:" << size_ << ", version:" << nameTable.version.Get();
+    LOGSO_FUNC_LINE(INFO) << "nameTable size:" << size_ << ", version:" << nameTable.version.Get();
     auto count = nameTable.count.Get();
     auto strOffset = data_ + nameTable.storageOffset.Get();
     for (auto i = 0; i < count; ++i) {
@@ -42,7 +42,7 @@ void NameTableParser::Dump() const
         auto offset = nameTable.nameRecord[i].stringOffset.Get();
         std::string Recordinfo(strOffset + offset, len);
         auto nameId = nameTable.nameRecord[i].nameId.Get();
-        LOG2SO(INFO) << "nameId:" << nameId << ", Recordinfo:" << std::uppercase << std::hex << std::setw(len)
+        LOGSO_FUNC_LINE(INFO) << "nameId:" << nameId << ", Recordinfo:" << std::uppercase << std::hex << std::setw(len)
             << Recordinfo;
     }
 }

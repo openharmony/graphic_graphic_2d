@@ -50,7 +50,7 @@ FontParser::FontParser()
     fontSet_ = fontConfig.GetFontSet();
 }
 
-void FontParser::ProcessCmapTable(const struct CmapTables* cmapTable, FontParser::FontDescriptor& fontDescriptor)
+void FontParser::ProcessCmapTable(const struct CmapTables* cmapTable, FontParser::FontDescriptor& fontDescriptor) const
 {
     for (auto i = 0; i < cmapTable->numTables.Get(); ++i) {
         const auto& record = cmapTable->encodingRecords[i];
@@ -64,7 +64,7 @@ void FontParser::ProcessCmapTable(const struct CmapTables* cmapTable, FontParser
 }
 
 void FontParser::GetStringFromNameId(FontParser::NameId nameId, const char* stringStorage, uint16_t stringOffset,
-    uint16_t len, FontParser::FontDescriptor& fontDescriptor)
+    uint16_t len, FontParser::FontDescriptor& fontDescriptor) const
 {
     switch (nameId) {
         case FontParser::NameId::FONT_FAMILY: {
@@ -93,7 +93,7 @@ void FontParser::GetStringFromNameId(FontParser::NameId nameId, const char* stri
     }
 }
 
-void FontParser::ProcessNameTable(const struct NameTable* nameTable, FontParser::FontDescriptor& fontDescriptor)
+void FontParser::ProcessNameTable(const struct NameTable* nameTable, FontParser::FontDescriptor& fontDescriptor) const
 {
     auto count = nameTable->count.Get();
     auto storageOffset = nameTable->storageOffset.Get();
@@ -110,7 +110,7 @@ void FontParser::ProcessNameTable(const struct NameTable* nameTable, FontParser:
     }
 }
 
-void FontParser::ProcessPostTable(const struct PostTable* postTable, FontParser::FontDescriptor& fontDescriptor)
+void FontParser::ProcessPostTable(const struct PostTable* postTable, FontParser::FontDescriptor& fontDescriptor) const
 {
     if (postTable->italicAngle.Get() != 0) {
         fontDescriptor.italic = true;
@@ -125,21 +125,21 @@ int FontParser::ParseCmapTable(sk_sp<SkTypeface> typeface, FontParser::FontDescr
     auto tag = HB_TAG('c', 'm', 'a', 'p');
     auto size = typeface->getTableSize(tag);
     if (size <= 0) {
-        LOG2EX(ERROR) << "haven't cmap";
+        LOGSO_FUNC_LINE(ERROR) << "haven't cmap";
         return FAILED;
     }
     std::unique_ptr<char[]> tableData = nullptr;
     tableData = std::make_unique<char[]>(size);
     auto retTableData = typeface->getTableData(tag, 0, size, tableData.get());
     if (size != retTableData) {
-        LOG2EX(ERROR) <<"get table data failed size: " << size << ", ret: " << retTableData;
+        LOGSO_FUNC_LINE(ERROR) <<"get table data failed size: " << size << ", ret: " << retTableData;
         return FAILED;
     }
     hb_blob_t* hblob = nullptr;
     hblob = hb_blob_create(
         reinterpret_cast<const char*>(tableData.get()), size, HB_MEMORY_MODE_WRITABLE, tableData.get(), nullptr);
     if (hblob == nullptr) {
-        LOG2EX(ERROR) << "hblob is nullptr";
+        LOGSO_FUNC_LINE(ERROR) << "hblob is nullptr";
         return FAILED;
     }
     data_ = hb_blob_get_data(hblob, nullptr);
@@ -156,21 +156,21 @@ int FontParser::ParseNameTable(sk_sp<SkTypeface> typeface, FontParser::FontDescr
     auto tag = HB_TAG('n', 'a', 'm', 'e');
     auto size = typeface->getTableSize(tag);
     if (size <= 0) {
-        LOG2EX(ERROR) << "haven't name";
+        LOGSO_FUNC_LINE(ERROR) << "haven't name";
         return FAILED;
     }
     std::unique_ptr<char[]> tableData = nullptr;
     tableData = std::make_unique<char[]>(size);
     auto retTableData = typeface->getTableData(tag, 0, size, tableData.get());
     if (size != retTableData) {
-        LOG2EX(ERROR) <<"get table data failed size: " << size << ", ret: " << retTableData;
+        LOGSO_FUNC_LINE(ERROR) <<"get table data failed size: " << size << ", ret: " << retTableData;
         return FAILED;
     }
     hb_blob_t* hblob = nullptr;
     hblob = hb_blob_create(
         reinterpret_cast<const char*>(tableData.get()), size, HB_MEMORY_MODE_WRITABLE, tableData.get(), nullptr);
     if (hblob == nullptr) {
-        LOG2EX(ERROR) << "hblob is nullptr";
+        LOGSO_FUNC_LINE(ERROR) << "hblob is nullptr";
         return FAILED;
     }
     data_ = hb_blob_get_data(hblob, nullptr);
@@ -187,21 +187,21 @@ int FontParser::ParsePostTable(sk_sp<SkTypeface> typeface, FontParser::FontDescr
     auto tag = HB_TAG('p', 'o', 's', 't');
     auto size = typeface->getTableSize(tag);
     if (size <= 0) {
-        LOG2EX(ERROR) << "haven't post";
+        LOGSO_FUNC_LINE(ERROR) << "haven't post";
         return FAILED;
     }
     std::unique_ptr<char[]> tableData = nullptr;
     tableData = std::make_unique<char[]>(size);
     auto retTableData = typeface->getTableData(tag, 0, size, tableData.get());
     if (size != retTableData) {
-        LOG2EX(ERROR) <<"get table data failed size: " << size << ", ret: " << retTableData;
+        LOGSO_FUNC_LINE(ERROR) <<"get table data failed size: " << size << ", ret: " << retTableData;
         return FAILED;
     }
     hb_blob_t* hblob = nullptr;
     hblob = hb_blob_create(
         reinterpret_cast<const char*>(tableData.get()), size, HB_MEMORY_MODE_WRITABLE, tableData.get(), nullptr);
     if (hblob == nullptr) {
-        LOG2EX(ERROR) << "hblob is nullptr";
+        LOGSO_FUNC_LINE(ERROR) << "hblob is nullptr";
         return FAILED;
     }
     data_ = hb_blob_get_data(hblob, nullptr);
@@ -216,15 +216,15 @@ int FontParser::ParsePostTable(sk_sp<SkTypeface> typeface, FontParser::FontDescr
 int FontParser::ParseTable(sk_sp<SkTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
 {
     if (ParseCmapTable(typeface, fontDescriptor) != SUCCESSED) {
-        LOG2EX(ERROR) << "parse cmap failed";
+        LOGSO_FUNC_LINE(ERROR) << "parse cmap failed";
         return FAILED;
     }
     if (ParseNameTable(typeface, fontDescriptor) != SUCCESSED) {
-        LOG2EX(ERROR) << "parse name failed";
+        LOGSO_FUNC_LINE(ERROR) << "parse name failed";
         return FAILED;
     }
     if (ParsePostTable(typeface, fontDescriptor) != SUCCESSED) {
-        LOG2EX(ERROR) << "parse post failed";
+        LOGSO_FUNC_LINE(ERROR) << "parse post failed";
         return FAILED;
     }
 
@@ -239,14 +239,14 @@ int FontParser::SetFontDescriptor()
         const char* path = fontSet_[i].c_str();
         auto typeface = SkTypeface::MakeFromFile(path);
         if (typeface == nullptr) {
-            LOG2EX(ERROR) << "typeface is nullptr";
+            LOGSO_FUNC_LINE(ERROR) << "typeface is nullptr";
             return FAILED;
         }
         auto fontStyle = typeface->fontStyle();
         fontDescriptor.weight = fontStyle.weight();
         fontDescriptor.width = fontStyle.width();
         if (ParseTable(typeface, fontDescriptor) !=  SUCCESSED) {
-            LOG2EX(ERROR) << "parse table failed";
+            LOGSO_FUNC_LINE(ERROR) << "parse table failed";
             return FAILED;
         }
         visibilityFonts_.emplace_back(fontDescriptor);
@@ -255,10 +255,10 @@ int FontParser::SetFontDescriptor()
     return SUCCESSED;
 }
 
-std::vector<FontParser::FontDescriptor> FontParser::GetVisibilityFonts() const
+std::vector<FontParser::FontDescriptor> FontParser::GetVisibilityFonts()
 {
     if (SetFontDescriptor() != SUCCESSED) {
-        LOG2EX(ERROR) << "set visibility font descriptor failed";
+        LOGSO_FUNC_LINE(ERROR) << "set visibility font descriptor failed";
     }
 
     return visibilityFonts_;

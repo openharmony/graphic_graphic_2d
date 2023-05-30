@@ -53,6 +53,8 @@ ohos_shared_library("libtexgine") {
       "src/dynamic_font_provider.cpp",
       "src/dynamic_font_style_set.cpp",
       "src/font_collection.cpp",
+      "src/font_config.cpp",
+      "src/font_parser.cpp",
       "src/font_providers.cpp",
       "src/font_styles.cpp",
       "src/init.cpp",
@@ -61,7 +63,10 @@ ohos_shared_library("libtexgine") {
       "src/measurer_impl.cpp",
       "src/mock.cpp",
       "src/opentype_parser/cmap_parser.cpp",
+      "src/opentype_parser/cmap_table_parser.cpp",
+      "src/opentype_parser/name_table_parser.cpp",
       "src/opentype_parser/opentype_basic_type.cpp",
+      "src/opentype_parser/post_table_parser.cpp",
       "src/opentype_parser/ranges.cpp",
       "src/shaper.cpp",
       "src/system_font_provider.cpp",
@@ -104,6 +109,7 @@ ohos_shared_library("libtexgine") {
       "$hilog_root/interfaces/native/innerkits:libhilog",
       "texgine_drawing:libtexgine_drawing",
       "//third_party/harfbuzz:harfbuzz_static",
+      "//third_party/jsoncpp:jsoncpp",
     ]
 
     external_deps = [ "hitrace_native:hitrace_meter" ]
