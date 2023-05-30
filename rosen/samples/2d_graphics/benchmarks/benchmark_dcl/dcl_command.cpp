@@ -70,25 +70,30 @@ DCLCommand::DCLCommand(std::string commandLine)
     ParseCommand(params);
 }
 
+void DCLCommand::HandleCommandIterateType(const std::string& inputStr)
+{
+    switch (std::stoi(inputStr.c_str())) {
+        case static_cast<int>(IterateType::ITERATE_FRAME):
+            iterateType_ = IterateType::ITERATE_FRAME;
+            break;
+        case static_cast<int>(IterateType::ITERATE_OPITEM):
+            iterateType_ = IterateType::ITERATE_OPITEM;
+            break;
+        case static_cast<int>(IterateType::ITERATE_OPITEM_MANUALLY):
+            iterateType_ = IterateType::ITERATE_OPITEM_MANUALLY;
+            break;
+        default:
+            std::cout <<"Wrong Parameter: iterateType" << std::endl;
+            return;
+    }
+}
+
 void DCLCommand::HandleCommand(std::string option, const std::string& augment)
 {
     int inputNum = 0;
     switch (commandMap_.at(option)) {
         case CommandType::CT_T:
-            switch (std::stoi(augment.c_str())) {
-                case static_cast<int>(IterateType::ITERATE_FRAME):
-                    iterateType_ = IterateType::ITERATE_FRAME;
-                    break;
-                case static_cast<int>(IterateType::ITERATE_OPITEM):
-                    iterateType_ = IterateType::ITERATE_OPITEM;
-                    break;
-                case static_cast<int>(IterateType::ITERATE_OPITEM_MANUALLY):
-                    iterateType_ = IterateType::ITERATE_OPITEM_MANUALLY;
-                    break;
-                default:
-                    std::cout <<"Wrong Parameter: iterateType" << std::endl;
-                    return;
-            }
+            HandleCommandIterateType(augment);
             break;
         case CommandType::CT_B:
             inputNum = std::stoi(augment.c_str());
