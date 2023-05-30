@@ -62,6 +62,9 @@ public:
 
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool ParallelComposition(const std::shared_ptr<RSBaseRenderNode> rootNode);
+    void UpdateCacheRenderNodeMap(RSRenderNode& node);
+    bool GenerateNodeContentCache(RSRenderNode& node);
+    bool InitNodeCache(RSRenderNode& node);
     void CopyVisitorInfos(std::shared_ptr<RSUniRenderVisitor> visitor);
     void SetProcessorRenderEngine(std::shared_ptr<RSBaseRenderEngine> renderEngine)
     {
@@ -246,6 +249,7 @@ private:
     bool dirtyFlag_ { false };
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
+    std::map<NodeId, uint32_t> cacheRenderNodeMap_;
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
     SkRect boundsRect_ {};
     Gravity frameGravity_ = Gravity::DEFAULT;

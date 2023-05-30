@@ -54,6 +54,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr uint32_t PHONE_MAX_APP_WINDOW_NUM = 1;
+constexpr uint32_t CACHE_MAX_UPDATE_TIME = 5;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 
 bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
@@ -2155,6 +2156,8 @@ void RSUniRenderVisitor::CheckAndSetNodeCacheType(RSRenderNode& node)
         if (!node.GetCompletedCacheSurface() && UpdateCacheSurface(node)) {
             node.UpdateCompletedCacheSurface();
         }
+    } else if (isDrawingCacheEnabled_ && GenerateNodeContentCache(node)) {
+        UpdateCacheRenderNodeMap(node);
     } else {
         node.SetCacheType(CacheType::NONE);
         if (node.GetCompletedCacheSurface()) {
@@ -2579,6 +2582,91 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     canvas_->restoreToCount(saveCount);
     if (saveRootMatrix) {
         rootMatrix_.reset();
+    }
+}
+
+bool RSUniRenderVisitor::GenerateNodeContentCache(RSRenderNode& node)
+{
+    // Node cannot have cache.
+    if (node.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
+        if (cacheRenderNodeMap_.count(node.GetId()) > 0) {
+            node.SetCacheType(CacheType::NONE);
+            node.ClearCacheSurface();
+            cacheRenderNodeMap_.erase(node.GetId());
+        }
+        return false;
+    }
+
+    // The node goes down the tree to clear the cache.
+    if (!node.IsOnTheTree() && cacheRenderNodeMap_.count(node.GetId()) > 0) {
+        node.SetCacheType(CacheType::NONE);
+        node.ClearCacheSurface();
+        cacheRenderNodeMap_.erase(node.GetId());
+        return false;
+    }
+    return true;
+}
+
+bool RSUniRenderVisitor::InitNodeCache(RSRenderNode& node)
+{
+    if (node.GetDrawingCacheType() == RSDrawingCacheType::FORCED_CACHE ||
+        node.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
+        if (cacheRenderNodeMap_.count(node.GetId()) == 0) {
+            node.SetCacheType(CacheType::CONTENT);
+            node.ClearCacheSurface();
+#ifdef NEW_SKIA
+            node.InitCacheSurface(canvas_->recordingContext());
+#else
+            node.InitCacheSurface(canvas_->getGrContext());
+#endif
+            if (UpdateCacheSurface(node)) {
+                node.UpdateCompletedCacheSurface();
+                cacheRenderNodeMap_[node.GetId()] = 0;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
+{
+    if (InitNodeCache(node)) {
+        RS_LOGD("RSUniRenderVisitor::UpdateCacheRenderNodeMap, generate the node cache for the first time.");
+        return;
+    }
+    uint32_t updateTimes = 0;
+    if (node.GetDrawingCacheType() == RSDrawingCacheType::FORCED_CACHE) {
+        // Regardless of the number of consecutive refreshes, the current cache is forced to be updated.
+        if (node.GetDrawingCacheChanged()) {
+            updateTimes = cacheRenderNodeMap_[node.GetId()] + 1;
+            node.SetCacheType(CacheType::CONTENT);
+            if (UpdateCacheSurface(node)) {
+                node.UpdateCompletedCacheSurface();
+                cacheRenderNodeMap_[node.GetId()] = updateTimes;
+            }
+            return;
+        }
+        // The cache is not refreshed continuously.
+        cacheRenderNodeMap_[node.GetId()] = 0;
+        return;
+    }
+    if (node.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
+        // If the number of consecutive refreshes exceeds CACHE_MAX_UPDATE_TIME times, the cache is cleaned,
+        // otherwise the cache is updated.
+        if (node.GetDrawingCacheChanged()) {
+            updateTimes = cacheRenderNodeMap_[node.GetId()] + 1;
+            if (updateTimes >= CACHE_MAX_UPDATE_TIME) {
+                node.SetCacheType(CacheType::NONE);
+                node.ClearCacheSurface();
+                cacheRenderNodeMap_.erase(node.GetId());
+                return;
+            }
+            node.SetCacheType(CacheType::CONTENT);
+            UpdateCacheSurface(node);
+            node.UpdateCompletedCacheSurface();
+            cacheRenderNodeMap_[node.GetId()] = updateTimes;
+        }
     }
 }
 
