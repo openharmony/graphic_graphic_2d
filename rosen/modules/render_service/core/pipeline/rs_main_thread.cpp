@@ -378,14 +378,82 @@ void RSMainThread::ProcessCommand()
     }
 }
 
+void RSMainThread::CacheCommands()
+{
+    RS_TRACE_FUNC();
+    for (auto& [pid, _] : cacheCmdSkippedInfo_) {
+        if (effectiveTransactionDataIndexMap_.count(pid)) {
+            RS_TRACE_NAME("cacheCmd pid: " + std::to_string(pid)); 
+            cacheCmdSkippedInfo_[pid].second = true;
+            auto nodeIdVec = cacheCmdSkippedInfo_[pid].first;
+            for (auto nodeId : nodeIdVec) {
+                cacheCmdSkippedNodes_[nodeId] = true;
+            }
+            auto& transactionVec = effectiveTransactionDataIndexMap_[pid].second;
+            cachedTransactionDataMap_[pid].insert(cachedTransactionDataMap_[pid].begin(),
+                std::make_move_iterator(transactionVec.begin()), std::make_move_iterator(transactionVec.end()));
+            RS_LOGD("RSMainThread::CacheCommands effectiveCmd pid:%d cached", pid);
+        }
+    }
+}
+
+std::unordered_map<NodeId, bool> RSMainThread::GetCacheCmdSkippedNodes() const
+{
+    return cacheCmdSkippedNodes_;
+}
+
+void RSMainThread::CheckParallelSubThreadNodesStatus()
+{
+    RS_TRACE_FUNC();
+    cacheCmdSkippedInfo_.clear();
+    cacheCmdSkippedNodes_.clear();
+    for (auto& node : subThreadNodes_) {
+        if (node == nullptr) {
+            RS_LOGE("RSMainThread::CheckParallelSubThreadNodesStatus sunThreadNode is nullptr!");
+            continue;
+        }
+        if (!node->GetCacheSurfaceProcessedStatus()) {
+            RS_TRACE_NAME("node:[ " + node->GetName() + "]");
+            pid_t pid = 0;
+            if (node->IsAppWindow()) {
+                pid = ExtractPid(node->GetId());
+            } else if (node->IsLeashWindow()) {
+                for (auto& child : node->GetSortedChildren()) {
+                    auto surfaceNodePtr = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+                    if (surfaceNodePtr->IsAppWindow()) {
+                        pid = ExtractPid(child->GetId());
+                        break;
+                    }
+                }
+            }
+            if (pid == 0) {
+                continue;
+            }
+            RS_LOGD("RSMainThread::CheckParallelSubThreadNodesStatus pid = %s, node name: %s, id: %llu",
+                std::to_string(pid).c_str(), node->GetName().c_str(), node->GetId());
+            if (cacheCmdSkippedInfo_.count(pid) == 0) {
+                cacheCmdSkippedInfo_[pid] = std::make_pair(std::vector<NodeId>{node->GetId()}, false);
+            } else {
+                cacheCmdSkippedInfo_[pid].first.push_back(node->GetId());
+            }
+            cacheCmdSkippedNodes_[node->GetId()] = false;
+        }
+    }
+}
+
 void RSMainThread::ProcessCommandForUniRender()
 {
     ResetHardwareEnabledState();
     TransactionDataMap transactionDataEffective;
     std::string transactionFlags;
+    if (RSSystemProperties::GetUIFirstEnabled() && RSSystemProperties::GetCacheCmdEnabled()) {
+        CheckParallelSubThreadNodesStatus();
+    }
     {
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
-
+        if (RSSystemProperties::GetUIFirstEnabled() && RSSystemProperties::GetCacheCmdEnabled()) {
+            CacheCommands();
+        }
         for (auto& elem: effectiveTransactionDataIndexMap_) {
             auto& transactionVec = elem.second.second;
             std::sort(transactionVec.begin(), transactionVec.end(), Compare);
@@ -888,8 +956,11 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                 rootNode->GetSortedChildren().front());
             std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
             std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
-            RSUniRenderUtil::AssignWindowNodes(displayNode, focusNodeId_, mainThreadNodes, subThreadNodes);
+            RSUniRenderUtil::AssignWindowNodes(displayNode, focusNodeId_, mainThreadNodes,
+                subThreadNodes, GetCacheCmdSkippedNodes());
             uniVisitor->SetAssignedWindowNodes(mainThreadNodes, subThreadNodes);
+            subThreadNodes_.clear();
+            subThreadNodes_ = subThreadNodes;
         }
         rootNode->Process(uniVisitor);
     }

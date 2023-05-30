@@ -50,13 +50,14 @@ public:
     static int GetRotationFromMatrix(SkMatrix matrix);
     static void AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode, uint64_t focusNodeId,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
-        std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
+        std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
+        const std::unordered_map<NodeId, bool>& cacheSkippedNodeMap);
 
 private:
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
         const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
-        const std::shared_ptr<RSSurfaceRenderNode>& node);
+        const std::shared_ptr<RSSurfaceRenderNode>& node, const std::unordered_map<NodeId, bool>& cacheSkippedNodeMap);
     static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
 };
 }

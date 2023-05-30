@@ -298,7 +298,8 @@ int RSUniRenderUtil::GetRotationFromMatrix(SkMatrix matrix)
 
 void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode, uint64_t focusNodeId,
     std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
-    std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
+    std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
+    const std::unordered_map<NodeId, bool>& cacheSkippedNodeMap)
 {
     if (displayNode == nullptr) {
         ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes display node is null");
@@ -334,10 +335,8 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         }
         if (node->HasFilter() || (!node->IsScale() && isFocusNode)) {
             AssignMainThreadNode(mainThreadNodes, node);
-        } else if (node->IsCurrentFrameStatic() && node->HasCachedTexture()) {
-            node->SetIsMainThreadNode(false);
         } else {
-            AssignSubThreadNode(subThreadNodes, node);
+            AssignSubThreadNode(subThreadNodes, node, cacheSkippedNodeMap);
         }
     }
     if (entryViewNode) {
@@ -347,7 +346,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
             if (entryViewNode->HasFilter() || (!entryViewNode->IsScale() && entryViewNode->GetId() == focusNodeId)) {
                 AssignMainThreadNode(mainThreadNodes, entryViewNode);
             } else {
-                AssignSubThreadNode(subThreadNodes, entryViewNode);
+                AssignSubThreadNode(subThreadNodes, entryViewNode, cacheSkippedNodeMap);
             }
         }
     } else {
@@ -370,7 +369,7 @@ void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRe
 }
 
 void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
-    const std::shared_ptr<RSSurfaceRenderNode>& node)
+    const std::shared_ptr<RSSurfaceRenderNode>& node, const std::unordered_map<NodeId, bool>& cacheSkippedNodeMap)
 {
     if (node == nullptr) {
         ROSEN_LOGW("RSUniRenderUtil::AssignSubThreadNode node is nullptr");
@@ -380,7 +379,7 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
     node->SetIsMainThreadNode(false);
     node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
     node->SetCacheType(CacheType::ANIMATE_PROPERTY);
-    if (node->GetCacheSurface()) {
+    if (cacheSkippedNodeMap.count(node->GetId()) == 0 && node->GetCacheSurface()) {
         node->UpdateCompletedCacheSurface();
         RSParallelRenderManager::Instance()->SaveCacheTexture(*node);
     }

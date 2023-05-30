@@ -634,7 +634,7 @@ public:
     {
         grContext_ = grContext;
     }
-
+    // UIFirst
     void SetSubmittedSubThreadIndex(uint32_t index)
     {
         submittedSubThreadIndex_ = index;
@@ -643,6 +643,18 @@ public:
     uint32_t GetSubmittedSubThreadIndex() const
     {
         return submittedSubThreadIndex_;        
+    }
+
+    void SetCacheSurfaceProcessedStatus(bool isCacheSurfaceProcessed)
+    {
+        std::lock_guard<std::mutex> lock(cacheSurfaceProcessedMutex_);
+        isCacheSurfaceProcessed_ = isCacheSurfaceProcessed;
+    }
+
+    bool GetCacheSurfaceProcessedStatus() const
+    {
+        std::lock_guard<std::mutex> lock(cacheSurfaceProcessedMutex_);
+        return isCacheSurfaceProcessed_;
     }
 
 private:
@@ -787,6 +799,8 @@ private:
 
     // UIFirst
     uint32_t submittedSubThreadIndex_ = INT_MAX;
+    mutable std::mutex cacheSurfaceProcessedMutex_;
+    bool isCacheSurfaceProcessed_ = true;
 
     friend class RSUniRenderVisitor;
     friend class RSBaseRenderNode;

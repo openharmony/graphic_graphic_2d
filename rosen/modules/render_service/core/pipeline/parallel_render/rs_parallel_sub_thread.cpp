@@ -280,6 +280,8 @@ void RSParallelSubThread::RenderCache()
             }
             surfaceNodePtr->InitCacheSurface(grContext_.get());
         }
+        // flag CacheSurfaceProcessed is used for cacheCmdskippedNodes collection in rs_mainThread
+        surfaceNodePtr->SetCacheSurfaceProcessedStatus(false);
         node->Process(visitor_);
 #ifndef NEW_SKIA
         auto skCanvas = surfaceNodePtr->GetCacheSurface() ? surfaceNodePtr->GetCacheSurface()->getCanvas() : nullptr;
@@ -289,14 +291,12 @@ void RSParallelSubThread::RenderCache()
         } else {
             RS_LOGE("skCanvas is nullptr, flush failed");
         }
+#else
+        RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
+        surfaceNodePtr->GetCacheSurface()->flushAndSubmit(false);
 #endif
+        surfaceNodePtr->SetCacheSurfaceProcessedStatus(true);
     }
-#ifdef NEW_SKIA
-    if (grContext_) {
-        RS_TRACE_NAME_FMT("render cache grContext flush and submit");
-        grContext_->flushAndSubmit(false);
-    }
-#endif
     eglSync_ = eglCreateSyncKHR(renderContext_->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
 #endif
 }

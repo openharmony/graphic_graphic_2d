@@ -139,6 +139,7 @@ public:
 
     void SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId);
+    std::unordered_map<NodeId, bool> GetCacheCmdSkippedNodes() const;
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
 
@@ -219,6 +220,10 @@ private:
     void ResSchedDataCompleteReport(bool needRequestNextVsync);
 
     bool NeedReleaseGpuResource(const RSRenderNodeMap& nodeMap);
+
+    // UIFirst
+    void CheckParallelSubThreadNodesStatus();
+    void CacheCommands();
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -316,6 +321,11 @@ private:
 
     // used for control start and end of the click animation
     bool requestResschedReport_ = true;
+
+    // UIFirst
+    std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes_;
+    std::unordered_map<NodeId, bool> cacheCmdSkippedNodes_;
+    std::unordered_map<pid_t, std::pair<std::vector<NodeId>, bool>> cacheCmdSkippedInfo_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

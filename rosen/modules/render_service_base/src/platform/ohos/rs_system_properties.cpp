@@ -247,6 +247,11 @@ bool RSSystemProperties::GetUIFirstEnabled()
     return std::atoi((system::GetParameter("rosen.ui.first.enabled", "0")).c_str()) != 0;
 }
 
+bool RSSystemProperties::GetCacheCmdEnabled()
+{
+    return std::atoi((system::GetParameter("rosen.cacheCmd.enabled", "1")).c_str()) != 0;
+}
+
 bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
 {
     return std::atoi((system::GetParameter(name, defaultValue ? "1" : "0")).c_str()) != 0;
