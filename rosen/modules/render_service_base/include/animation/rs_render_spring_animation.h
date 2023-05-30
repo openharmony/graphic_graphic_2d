@@ -34,6 +34,8 @@ public:
 
     ~RSRenderSpringAnimation() override = default;
 
+    void SetZeroThreshold(float zeroThreshold);
+
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSRenderSpringAnimation* Unmarshalling(Parcel& parcel);
@@ -47,6 +49,7 @@ protected:
     void OnDetach() override;
     void OnInitialize(int64_t time) override;
     void ProcessFillModeOnFinishByTime(float endTime = 0) override;
+    AnimationTimingMode GetAnimationTimingMode() const override;
 
 private:
 #ifdef ROSEN_OHOS
@@ -70,6 +73,9 @@ private:
     std::shared_ptr<RSRenderPropertyBase> endValue_;
     // save the origin startValue_, as startValue_ will change when inherit happened
     std::shared_ptr<RSRenderPropertyBase> originStartValue_;
+
+    // used to determine the end of animation
+    float zeroThreshold_ = 2.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

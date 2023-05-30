@@ -38,8 +38,7 @@ bool RSRenderAnimation::Marshalling(Parcel& parcel) const
         parcel.WriteBool(animationFraction_.GetAutoReverse()) &&
         parcel.WriteBool(animationFraction_.GetDirection()) &&
         parcel.WriteInt32(static_cast<std::underlying_type<FillMode>::type>(animationFraction_.GetFillMode())) &&
-        parcel.WriteBool(animationFraction_.GetRepeatCallbackEnable()) &&
-        parcel.WriteInt32(static_cast<std::underlying_type<AnimationTimingMode>::type>(timingMode_)))) {
+        parcel.WriteBool(animationFraction_.GetRepeatCallbackEnable()))) {
         ROSEN_LOGE("RSRenderAnimation::Marshalling, write param failed");
         return false;
     }
@@ -56,11 +55,9 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
     bool autoReverse = false;
     bool direction = false;
     bool isRepeatCallbackEnable = false;
-    int32_t timingMode = 0;
     if (!(parcel.ReadUint64(id_) && parcel.ReadInt32(duration) && parcel.ReadInt32(startDelay) &&
             parcel.ReadFloat(speed) && parcel.ReadInt32(repeatCount) && parcel.ReadBool(autoReverse) &&
-            parcel.ReadBool(direction) && parcel.ReadInt32(fillMode) && parcel.ReadBool(isRepeatCallbackEnable) &&
-            parcel.ReadInt32(timingMode))) {
+            parcel.ReadBool(direction) && parcel.ReadInt32(fillMode) && parcel.ReadBool(isRepeatCallbackEnable))) {
         ROSEN_LOGE("RSRenderAnimation::ParseParam, read param failed");
         return false;
     }
@@ -72,7 +69,6 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
     SetDirection(direction);
     SetFillMode(static_cast<FillMode>(fillMode));
     SetRepeatCallbackEnable(isRepeatCallbackEnable);
-    SetAnimationTimingMode(static_cast<AnimationTimingMode>(timingMode));
     return true;
 }
 AnimationId RSRenderAnimation::GetAnimationId() const
@@ -222,7 +218,7 @@ void RSRenderAnimation::OnSetFraction(float fraction)
 
 void RSRenderAnimation::ProcessFillModeOnStart(float startFraction)
 {
-    if (timingMode_ == AnimationTimingMode::BY_FRACTION) {
+    if (GetAnimationTimingMode() == AnimationTimingMode::BY_FRACTION) {
         ProcessFillModeOnStartByFraction(startFraction);
     } else {
         ProcessFillModeOnStartByTime();
@@ -241,7 +237,7 @@ void RSRenderAnimation::ProcessFillModeOnStartByTime(float startTime) const {}
 
 void RSRenderAnimation::ProcessFillModeOnFinish(float endFraction)
 {
-    if (timingMode_ == AnimationTimingMode::BY_FRACTION) {
+    if (GetAnimationTimingMode() == AnimationTimingMode::BY_FRACTION) {
         ProcessFillModeOnFinishByFraction(endFraction);
     } else {
         ProcessFillModeOnFinishByTime();
@@ -288,17 +284,26 @@ bool RSRenderAnimation::Animate(int64_t time)
         OnInitialize(time);
     }
 
+    float currentProgress = 0.0f;
+    bool isInStartDelay = false;
+    bool isFinished = false;
+    bool isRepeatFinished = false;
+
     // convert time to fraction or real play time in current round of animation
-    auto [currentProgress, isInStartDelay, isFinished, isRepeatFinished] =
-        timingMode_ == AnimationTimingMode::BY_FRACTION ? animationFraction_.GetAnimationFraction(time)
-                                                        : animationFraction_.GetAnimationPlayTime(time);
+    if (GetAnimationTimingMode() == AnimationTimingMode::BY_FRACTION) {
+        std::tie(currentProgress, isInStartDelay, isFinished, isRepeatFinished) =
+            animationFraction_.GetAnimationFraction(time);
+    } else {
+        std::tie(currentProgress, isInStartDelay) = animationFraction_.GetAnimationPlayTime(time);
+    }
+
     if (isInStartDelay) {
         ProcessFillModeOnStart(currentProgress);
         ROSEN_LOGD("RSRenderAnimation::Animate, isInStartDelay is true");
         return false;
     }
 
-    if (timingMode_ == AnimationTimingMode::BY_FRACTION) {
+    if (GetAnimationTimingMode() == AnimationTimingMode::BY_FRACTION) {
         OnAnimate(currentProgress);
     } else {
         std::tie(isFinished, isRepeatFinished) = OnAnimateByTime(currentProgress);

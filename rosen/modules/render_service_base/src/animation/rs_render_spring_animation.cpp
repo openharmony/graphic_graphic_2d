@@ -36,8 +36,6 @@ RSRenderSpringAnimation::RSRenderSpringAnimation(AnimationId id, const PropertyI
     : RSRenderPropertyAnimation(id, propertyId, originValue), RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>(),
       startValue_(startValue), endValue_(endValue), originStartValue_(startValue_)
 {
-    // the default timingMode of spring animation is BY_TIME, which means not support to animate by fraction
-    SetAnimationTimingMode(AnimationTimingMode::BY_TIME);
     // spring model is not initialized, so we can't calculate estimated duration
 }
 
@@ -47,6 +45,11 @@ void RSRenderSpringAnimation::SetSpringParameters(float response, float dampingR
     finalResponse_ = response;
     dampingRatio_ = dampingRatio;
     blendDuration_ = blendDuration * SECOND_TO_NANOSECOND; // convert to ns
+}
+
+void RSRenderSpringAnimation::SetZeroThreshold(float zeroThreshold)
+{
+    zeroThreshold_ = zeroThreshold;
 }
 
 #ifdef ROSEN_OHOS
@@ -148,14 +151,15 @@ std::tuple<bool, bool> RSRenderSpringAnimation::OnAnimateByTime(float time)
     auto currentValue =
         animationFraction_.CurrentIsReverseCycle() ? startValue_ - displacement : endValue_ + displacement;
     auto targetValue = animationFraction_.CurrentIsReverseCycle() ? startValue_ : endValue_;
-    if ((currentValue->IsNearEqual(targetValue)) || (timeInSecond >= SPRING_MAX_DURATION)) {
+    if ((currentValue->IsNearEqual(targetValue, zeroThreshold_)) || (timeInSecond >= SPRING_MAX_DURATION)) {
         currentValue = targetValue;
         constexpr double FRAME_TIME_INTERVAL = 1.0f / 60.0f;
         auto velocity = CalculateVelocity(timeInSecond);
         auto zero = startValue_ - startValue_;
         // only when the distance between two frames is also close to 0, can the spring animation be seen as finished.
         // limit the duration of spring animation by SPRING_MAX_DURATION
-        if (((velocity * FRAME_TIME_INTERVAL)->IsNearEqual(zero)) || (timeInSecond >= SPRING_MAX_DURATION)) {
+        if (((velocity * FRAME_TIME_INTERVAL)->IsNearEqual(zero, zeroThreshold_)) ||
+            (timeInSecond >= SPRING_MAX_DURATION)) {
             animationFraction_.OnCurrentAnimationRoundFinish();
             animationFraction_.ResetPlayTime();
             if (animationFraction_.IsInRepeat()) {
@@ -257,14 +261,10 @@ void RSRenderSpringAnimation::OnInitialize(int64_t time)
     }
     CalculateSpringParameters();
 
-    if (blendDuration_) {
-        // blend is still in progress, no need to estimate duration, use 300ms as default
-        SetDuration(300);
-    } else {
-        // blend finished, estimate duration until the spring system reaches rest
-        SetDuration(std::lroundf(EstimateDuration() * SECOND_TO_MILLISECOND));
+    if (!blendDuration_) {
         // this will set needInitialize_ to false
         RSRenderPropertyAnimation::OnInitialize(time);
+        SetZeroThreshold(startValue_->GetZeroThresholdByDefault());
     }
 }
 
@@ -280,6 +280,11 @@ void RSRenderSpringAnimation::ProcessFillModeOnFinishByTime(float endTime)
     } else {
         OnRemoveOnCompletion();
     }
+}
+
+AnimationTimingMode RSRenderSpringAnimation::GetAnimationTimingMode() const
+{
+    return AnimationTimingMode::BY_TIME;
 }
 
 std::tuple<std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSRenderPropertyBase>, int64_t>
@@ -309,11 +314,10 @@ void RSRenderSpringAnimation::InheritSpringStatus(const RSRenderSpringAnimation*
 
 std::shared_ptr<RSRenderPropertyBase> RSRenderSpringAnimation::CalculateVelocity(float time) const
 {
-    constexpr float TIME_INTERVAL = 1e-6f; // 1e-6f : 1 microsecond
-    auto velocity = (CalculateDisplacement(time + TIME_INTERVAL) - CalculateDisplacement(time)) * (1 / TIME_INTERVAL);
-    if (animationFraction_.CurrentIsReverseCycle()) {
-        velocity *= (-1);
-    }
+    float TIME_INTERVAL = animationFraction_.CurrentIsReverseCycle() ? -1e-6f : 1e-6f; // 1e-6f : 1 microsecond
+    auto velocity =
+        (CalculateDisplacement(time + TIME_INTERVAL) - CalculateDisplacement(time)) * (1 / std::fabs(TIME_INTERVAL));
+
     return velocity;
 }
 } // namespace Rosen

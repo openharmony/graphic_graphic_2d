@@ -40,9 +40,8 @@ public:
 
     // return <fraction, isInStartDelay, isFinished, isRepeatFinished> as tuple
     std::tuple<float, bool, bool, bool> GetAnimationFraction(int64_t time);
-    // return <fraction, isInStartDelay, placeholder, placeholder> as tuple, the third and fourth return values are
-    // placeholders to ensure that the return type is the same as the function GetAnimationFraction
-    std::tuple<float, bool, bool, bool> GetAnimationPlayTime(int64_t time);
+    // return <playTime, isInStartDelay> as tuple
+    std::tuple<float, bool> GetAnimationPlayTime(int64_t time);
     void UpdateRemainTimeFraction(float fraction, int remainTime = 0);
     float GetStartFraction() const;
     float GetEndFraction() const;

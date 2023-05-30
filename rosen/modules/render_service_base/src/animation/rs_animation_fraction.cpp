@@ -145,7 +145,7 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
 
     // 5. get final animation fraction
     if (isFinished) {
-        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatCallbackEnable_};
+        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatCallbackEnable_ };
     }
     currentTimeFraction_ = static_cast<float>(playTime_) / durationNs;
     currentTimeFraction_ = currentIsReverseCycle_ ? (1.0f - currentTimeFraction_) : currentTimeFraction_;
@@ -161,15 +161,13 @@ bool RSAnimationFraction::IsInRepeat() const
     return false;
 }
 
-std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationPlayTime(int64_t time)
+std::tuple<float, bool> RSAnimationFraction::GetAnimationPlayTime(int64_t time)
 {
-    constexpr bool PLACEHOLDER = false;
-
     int64_t deltaTime = time - lastFrameTime_;
     bool isInStartDelay = false;
 
     if (time < lastFrameTime_) {
-        return { 0.0f, isInStartDelay, PLACEHOLDER, PLACEHOLDER };
+        return { 0.0f, isInStartDelay };
     }
     lastFrameTime_ = time;
 
@@ -185,13 +183,13 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationPlayTime(in
     // 2. process start delay
     if (playTime_ <= remainingDelayTime_) {
         isInStartDelay = true;
-        return { 0.0f, isInStartDelay, PLACEHOLDER, PLACEHOLDER };
+        return { 0.0f, isInStartDelay };
     } else {
         playTime_ -= remainingDelayTime_;
         remainingDelayTime_ = 0;
     }
 
-    return { static_cast<float>(playTime_ * NS_TO_MS), isInStartDelay, PLACEHOLDER, PLACEHOLDER };
+    return { static_cast<float>(playTime_ * NS_TO_MS), isInStartDelay };
 }
 
 bool RSAnimationFraction::IsFinished() const

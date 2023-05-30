@@ -158,7 +158,7 @@ protected:
 
     virtual void OnAnimate(float fraction) {}
 
-    // the time unit is millisecond
+    // return <isFinished, isRepeatFinished> as tuple, and the time unit is millisecond
     virtual std::tuple<bool, bool> OnAnimateByTime(float time)
     {
         return { true, true };
@@ -168,9 +168,9 @@ protected:
 
     void FinishOnCurrentPosition();
 
-    void SetAnimationTimingMode(const AnimationTimingMode timingMode)
+    virtual AnimationTimingMode GetAnimationTimingMode() const
     {
-        timingMode_ = timingMode;
+        return AnimationTimingMode::BY_FRACTION;
     }
 
     virtual void ProcessFillModeOnFinishByTime(float endTime = 0) {}
@@ -206,7 +206,6 @@ private:
     bool needUpdateStartTime_ { true };
     bool needInitialize_ { true };
     RSRenderNode* target_ { nullptr };
-    AnimationTimingMode timingMode_ { AnimationTimingMode::BY_FRACTION };
 
     friend class RSAnimation;
 };

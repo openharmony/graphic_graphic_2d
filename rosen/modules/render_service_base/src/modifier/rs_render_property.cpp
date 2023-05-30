@@ -30,72 +30,63 @@ bool RSRenderPropertyBase::Marshalling(Parcel& parcel, const std::shared_ptr<RSR
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get()) &&
-                   parcel.WriteFloat(property->zeroThreshold_);
+            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
         }
         case RSRenderPropertyType::PROPERTY_COLOR: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Color>>(val);
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get()) &&
-                   parcel.WriteFloat(property->zeroThreshold_);
+            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
         }
         case RSRenderPropertyType::PROPERTY_MATRIX3F: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Matrix3f>>(val);
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get()) &&
-                   parcel.WriteFloat(property->zeroThreshold_);
+            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
         }
         case RSRenderPropertyType::PROPERTY_QUATERNION: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Quaternion>>(val);
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get()) &&
-                   parcel.WriteFloat(property->zeroThreshold_);
+            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
         }
         case RSRenderPropertyType::PROPERTY_FILTER: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>>(val);
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get()) &&
-                   parcel.WriteFloat(property->zeroThreshold_);
+            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
         }
         case RSRenderPropertyType::PROPERTY_VECTOR2F: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(val);
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get()) &&
-                   parcel.WriteFloat(property->zeroThreshold_);
+            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
         }
         case RSRenderPropertyType::PROPERTY_VECTOR4F: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(val);
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get()) &&
-                   parcel.WriteFloat(property->zeroThreshold_);
+            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
         }
         case RSRenderPropertyType::PROPERTY_VECTOR4_COLOR: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4<Color>>>(val);
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get()) &&
-                   parcel.WriteFloat(property->zeroThreshold_);
+            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
         }
         case RSRenderPropertyType::PROPERTY_RRECT: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<RRect>>(val);
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get()) &&
-                   parcel.WriteFloat(property->zeroThreshold_);
+            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
         }
         default: {
             return false;
@@ -192,11 +183,6 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
             return false;
         }
     }
-    float zerothreshold = 0.0f;
-    if (!parcel.ReadFloat(zerothreshold)) {
-        return false;
-    }
-    val->SetZeroThreshold(zerothreshold);
 
     return val != nullptr;
 }
@@ -295,88 +281,95 @@ bool operator==(
 }
 
 template<>
-bool RSRenderAnimatableProperty<float>::IsNearEqual(const std::shared_ptr<RSRenderPropertyBase>& value) const
+bool RSRenderAnimatableProperty<float>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
     auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<float>>(value);
     if (animatableProperty != nullptr) {
-        return fabs(RSRenderProperty<float>::stagingValue_ - animatableProperty->stagingValue_) <= zeroThreshold_;
+        return fabs(RSRenderProperty<float>::stagingValue_ - animatableProperty->stagingValue_) <= zeroThreshold;
     }
     return true;
 }
 
 template<>
-bool RSRenderAnimatableProperty<Vector2f>::IsNearEqual(const std::shared_ptr<RSRenderPropertyBase>& value) const
+bool RSRenderAnimatableProperty<Vector2f>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
     auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<Vector2f>>(value);
     if (animatableProperty != nullptr) {
-        return RSRenderProperty<Vector2f>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold_);
+        return RSRenderProperty<Vector2f>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold);
     }
     return true;
 }
 
 template<>
-bool RSRenderAnimatableProperty<Quaternion>::IsNearEqual(const std::shared_ptr<RSRenderPropertyBase>& value) const
+bool RSRenderAnimatableProperty<Quaternion>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
     auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<Quaternion>>(value);
     if (animatableProperty != nullptr) {
-        return RSRenderProperty<Quaternion>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold_);
+        return RSRenderProperty<Quaternion>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold);
     }
     return true;
 }
 
 template<>
-bool RSRenderAnimatableProperty<Vector4f>::IsNearEqual(const std::shared_ptr<RSRenderPropertyBase>& value) const
+bool RSRenderAnimatableProperty<Vector4f>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
     auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<Vector4f>>(value);
     if (animatableProperty != nullptr) {
-        return RSRenderProperty<Vector4f>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold_);
+        return RSRenderProperty<Vector4f>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold);
     }
     return true;
 }
 
 template<>
-bool RSRenderAnimatableProperty<Matrix3f>::IsNearEqual(const std::shared_ptr<RSRenderPropertyBase>& value) const
+bool RSRenderAnimatableProperty<Matrix3f>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
     auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<Matrix3f>>(value);
     if (animatableProperty != nullptr) {
-        return RSRenderProperty<Matrix3f>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold_);
+        return RSRenderProperty<Matrix3f>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold);
     }
     return true;
 }
 
 template<>
-bool RSRenderAnimatableProperty<Color>::IsNearEqual(const std::shared_ptr<RSRenderPropertyBase>& value) const
+bool RSRenderAnimatableProperty<Color>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
     auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<Color>>(value);
     if (animatableProperty != nullptr) {
         return RSRenderProperty<Color>::stagingValue_.IsNearEqual(
-            animatableProperty->Get(), static_cast<int16_t>(zeroThreshold_));
+            animatableProperty->Get(), static_cast<int16_t>(zeroThreshold));
     }
     return true;
 }
 
 template<>
 bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsNearEqual(
-    const std::shared_ptr<RSRenderPropertyBase>& value) const
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
     auto animatableProperty =
         std::static_pointer_cast<const RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>>(value);
     if (animatableProperty != nullptr) {
         return RSRenderProperty<std::shared_ptr<RSFilter>>::stagingValue_->IsNearEqual(
-            animatableProperty->Get(), zeroThreshold_);
+            animatableProperty->Get(), zeroThreshold);
     }
     return true;
 }
 
 template<>
-bool RSRenderAnimatableProperty<Vector4<Color>>::IsNearEqual(const std::shared_ptr<RSRenderPropertyBase>& value) const
+bool RSRenderAnimatableProperty<Vector4<Color>>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
     auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<Vector4<Color>>>(value);
     if (animatableProperty != nullptr) {
         auto thisData = RSRenderProperty<Vector4<Color>>::stagingValue_.data_;
         auto otherValue = animatableProperty->Get();
         auto otherData = otherValue.data_;
-        int16_t threshold = static_cast<int16_t>(zeroThreshold_);
+        int16_t threshold = static_cast<int16_t>(zeroThreshold);
         return thisData[0].IsNearEqual(otherData[0], threshold) && thisData[2].IsNearEqual(otherData[2], threshold) &&
                thisData[2].IsNearEqual(otherData[2], threshold) && thisData[3].IsNearEqual(otherData[3], threshold);
     }
@@ -384,11 +377,12 @@ bool RSRenderAnimatableProperty<Vector4<Color>>::IsNearEqual(const std::shared_p
 }
 
 template<>
-bool RSRenderAnimatableProperty<RRect>::IsNearEqual(const std::shared_ptr<RSRenderPropertyBase>& value) const
+bool RSRenderAnimatableProperty<RRect>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
     auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<RRect>>(value);
     if (animatableProperty != nullptr) {
-        return RSRenderProperty<RRect>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold_);
+        return RSRenderProperty<RRect>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold);
     }
     return true;
 }

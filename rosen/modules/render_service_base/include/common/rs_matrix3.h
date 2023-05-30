@@ -376,12 +376,9 @@ template<typename T>
 bool Matrix3<T>::IsNearEqual(const Matrix3& other, T threshold) const
 {
     const T* otherData = other.data_;
-
-    return (ROSEN_EQ<T>(data_[0], otherData[0], threshold)) && (ROSEN_EQ<T>(data_[1], otherData[1], threshold)) &&
-           (ROSEN_EQ<T>(data_[2], otherData[2], threshold)) && (ROSEN_EQ<T>(data_[3], otherData[3], threshold)) &&
-           (ROSEN_EQ<T>(data_[4], otherData[4], threshold)) && (ROSEN_EQ<T>(data_[5], otherData[5], threshold)) &&
-           (ROSEN_EQ<T>(data_[6], otherData[6], threshold)) && (ROSEN_EQ<T>(data_[7], otherData[7], threshold)) &&
-           (ROSEN_EQ<T>(data_[8], otherData[8], threshold));
+    auto result = std::equal(data_, data_ + 8, otherData,
+        [&threshold](const T& left, const T& right) { return ROSEN_EQ<T>(left, right, threshold); });
+    return result;
 }
 
 template<typename T>
