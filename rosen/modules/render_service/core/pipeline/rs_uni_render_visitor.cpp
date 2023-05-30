@@ -760,6 +760,13 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (parentNode != nullptr && node.GetRenderProperties().NeedFilter()) {
         parentNode->SetChildHasFilter(true);
     }
+    if (isUIFirst_ && node.IsLeashWindow()) {
+        auto matrix = geoPtr->GetAbsMatrix();
+        // 1.0f means node does not have scale
+        bool isScale = (matrix.getScaleX() > 0 && matrix.getScaleX() != 1.0f)
+            || (matrix.getScaleY() > 0 && matrix.getScaleY() != 1.0f);
+        node.SetIsScale(isScale);
+    }
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     if (drivenInfo_ && isLeashWindowNode) {
         drivenInfo_->isPrepareLeashWinSubTree = false;

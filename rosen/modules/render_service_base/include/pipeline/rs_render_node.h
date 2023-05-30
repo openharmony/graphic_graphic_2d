@@ -291,6 +291,16 @@ public:
         isMainThreadNode_ = isMainThreadNode;
     }
 
+    bool IsScale() const
+    {
+        return isScale_;
+    }
+
+    void SetIsScale(bool isScale)
+    {
+        isScale_ = isScale;
+    }
+
     void SetPriority(NodePriorityType priority)
     {
         priority_ = priority;
@@ -398,6 +408,7 @@ private:
 
     sk_sp<SkImage> cacheTexture_;
     bool isMainThreadNode_ = true;
+    bool isScale_ = false;
     bool hasFilter_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 
