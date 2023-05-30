@@ -21,7 +21,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr static float SECOND_TO_MILLISECOND = 1e3;
 constexpr static float MILLISECOND_TO_SECOND = 1e-3;
 constexpr static float SECOND_TO_NANOSECOND = 1e9;
 constexpr static float RESPONSE_THRESHOLD = 0.001f;
