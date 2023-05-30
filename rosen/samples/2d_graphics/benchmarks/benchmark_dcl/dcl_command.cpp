@@ -70,7 +70,7 @@ DCLCommand::DCLCommand(std::string commandLine)
     ParseCommand(params);
 }
 
-void DCLCommand::HandleCommand(std::string option, std::string augment)
+void DCLCommand::HandleCommand(std::string option,const std::string& augment)
 {
     switch (commandMap_.at(option)) {
         case CommandType::CT_T:

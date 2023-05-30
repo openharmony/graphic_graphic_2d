@@ -33,7 +33,7 @@ public:
     explicit DCLCommand(std::string commandLine);
     ~DCLCommand()= default;
     void ParseCommand(std::vector<std::string> argv);
-    void HandleCommand(std::string option, std::string augment);
+    void HandleCommand(std::string option, const std::string& augment);
     void CheckParameter();
 private:
     friend class DrawingDCL;
@@ -78,9 +78,9 @@ private:
         "\nExample: /data/drawing_ening_sample dcl -t 0 -b 1 -e 100 \n" + breakLine_ + "\n";
 
     IterateType iterateType_ = IterateType::ITERATE_FRAME;
-    uint32_t beginFrame_ = 0;
-    uint32_t endFrame_ = 100;
-    uint32_t loop_ = 1;
+    int32_t beginFrame_ = 0;
+    int32_t endFrame_ = 100;
+    int32_t loop_ = 1;
     double opItemStep_ = 1;
     std::string inputFilePath_ = "/data/lkx/";
     std::string outputFilePath_ = "/data/lkx/";
