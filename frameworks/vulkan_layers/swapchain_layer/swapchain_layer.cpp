@@ -37,7 +37,7 @@
 #include "swapchain_layer_log.h"
 #include "sync_fence.h"
 
-#define SWAPCHAIN_SURFACE_NAME "VK_LAYER_OpenHarmony_OHOS_surface"
+#define SWAPCHAIN_SURFACE_NAME "VK_LAYER_OHOS_surface"
 
 using namespace OHOS;
 struct LayerData {
@@ -175,7 +175,7 @@ static const VkExtensionProperties instanceExtensions[] = {
         .specVersion = 25,
     },
     {
-        .extensionName = VK_OPENHARMONY_OHOS_SURFACE_EXTENSION_NAME,
+        .extensionName = VK_OHOS_SURFACE_EXTENSION_NAME,
         .specVersion = 1,
     }
 };
@@ -535,7 +535,8 @@ VKAPI_ATTR VkResult CreateImages(int32_t &numImages, Swapchain* swapchain, const
         img.requested = true;
         imageCreate.extent = VkExtent3D {static_cast<uint32_t>(img.buffer->sfbuffer->GetSurfaceBufferWidth()),
                                           static_cast<uint32_t>(img.buffer->sfbuffer->GetSurfaceBufferHeight()), 1};
-        ((VkNativeBufferOpenHarmony*)(imageCreate.pNext))->handle = img.buffer->sfbuffer->GetBufferHandle();
+        ((VkNativeBufferOHOS*)(imageCreate.pNext))->handle =
+            reinterpret_cast<struct OHBufferHandle *>(img.buffer->sfbuffer->GetBufferHandle());
         result = pDisp->CreateImage(device, &imageCreate, nullptr, &img.image);
         if (result != VK_SUCCESS) {
             SWLOGD("vkCreateImage native buffer failed: %{public}u", result);
@@ -607,12 +608,12 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateSwapchainKHR(VkDevice device, const VkSwapc
 
     Swapchain* swapchain = new (mem) Swapchain(surface, numImages, createInfo->presentMode,
         TranslateVulkanToNativeTransform(createInfo->preTransform));
-    VkSwapchainImageCreateInfoOpenHarmony swapchainImageCreate = {
-        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_IMAGE_CREATE_INFO_OPENHARMONY,
+    VkSwapchainImageCreateInfoOHOS swapchainImageCreate = {
+        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_IMAGE_CREATE_INFO_OHOS,
         .pNext = nullptr,
     };
-    VkNativeBufferOpenHarmony imageNativeBuffer = {
-        .sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_OPENHARMONY,
+    VkNativeBufferOHOS imageNativeBuffer = {
+        .sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_OHOS,
         .pNext = &swapchainImageCreate,
     };
 
@@ -673,7 +674,8 @@ VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainK
     LayerData* deviceLayerData = GetLayerDataPtr(GetDispatchKey(device));
     if (swapchain.shared) {
         *imageIndex = 0;
-        return deviceLayerData->deviceDispatchTable->SetNativeFenceFdOpenHarmony(device, -1, semaphore, vkFence);
+        return deviceLayerData->deviceDispatchTable->AcquireImageOHOS(device, swapchain.images[*imageIndex].image, -1,
+                                                                      semaphore, vkFence);
     }
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
@@ -701,7 +703,8 @@ VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainK
         }
         return VK_ERROR_OUT_OF_DATE_KHR;
     }
-    result = deviceLayerData->deviceDispatchTable->SetNativeFenceFdOpenHarmony(device, -1, semaphore, vkFence);
+    result = deviceLayerData->deviceDispatchTable->AcquireImageOHOS(device, swapchain.images[index].image, -1,
+                                                                    semaphore, vkFence);
     if (result != VK_SUCCESS) {
         if (NativeWindowCancelBuffer(nativeWindow, nativeWindowBuffer) != OHOS::GSERROR_OK) {
             SWLOGE("NativeWindowCancelBuffer failed: (%{public}d)", ret);
@@ -746,11 +749,11 @@ const VkPresentRegionKHR* GetPresentRegions(const VkPresentInfoKHR* presentInfo)
     }
 }
 
-VkResult GetReleaseFence(VkQueue queue, const VkPresentInfoKHR* presentInfo,
+VkResult ReleaseImage(VkQueue queue, const VkPresentInfoKHR* presentInfo,
     Swapchain::Image &img, int32_t &fence)
 {
     LayerData* deviceLayerData = GetLayerDataPtr(GetDispatchKey(queue));
-    VkResult result = deviceLayerData->deviceDispatchTable->GetNativeFenceFdOpenHarmony(
+    VkResult result = deviceLayerData->deviceDispatchTable->QueueSignalReleaseImageOHOS(
         queue, presentInfo->waitSemaphoreCount, presentInfo->pWaitSemaphores, img.image, &fence);
     if (img.releaseFence >= 0) {
         close(img.releaseFence);
@@ -853,7 +856,7 @@ VKAPI_ATTR VkResult VKAPI_CALL QueuePresentKHR(
         Swapchain::Image &img = swapchain.images[presentInfo->pImageIndices[i]];
         const VkPresentRegionKHR* region = GetPresentRegion(regions, swapchain, i);
         int32_t fence = -1;
-        ret = GetReleaseFence(queue, presentInfo, img, fence);
+        ret = ReleaseImage(queue, presentInfo, img, fence);
         if (swapchain.surface.swapchainHandle == presentInfo->pSwapchains[i]) {
             if (ret == VK_SUCCESS) {
                 ret = FlushBuffer(region, rects, swapchain, img, fence);
@@ -883,8 +886,8 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceSupportKHR(
     return VK_SUCCESS;
 }
 
-VKAPI_ATTR VkResult VKAPI_CALL CreateOHOSSurfaceOpenHarmony(VkInstance instance,
-    const VkOHOSSurfaceCreateInfoOpenHarmony* pCreateInfo,
+VKAPI_ATTR VkResult VKAPI_CALL CreateSurfaceOHOS(VkInstance instance,
+    const VkSurfaceCreateInfoOHOS* pCreateInfo,
     const VkAllocationCallbacks* allocator, VkSurfaceKHR* outSurface)
 {
     if (allocator == nullptr) {
@@ -980,7 +983,7 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceFormatsKHR(
 
 void QueryPresentationProperties(
     VkPhysicalDevice physicalDevice,
-    VkPhysicalDevicePresentationPropertiesOpenHarmony* presentationProperties)
+    VkPhysicalDevicePresentationPropertiesOHOS* presentationProperties)
 {
     VkPhysicalDeviceProperties2 properties = {
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
@@ -989,7 +992,7 @@ void QueryPresentationProperties(
     };
 
     presentationProperties->sType =
-        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENTATION_PROPERTIES_OPENHARMONY;
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENTATION_PROPERTIES_OHOS;
     presentationProperties->pNext = nullptr;
     presentationProperties->sharedImage = VK_FALSE;
 
@@ -1010,7 +1013,7 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfacePresentModesKHR(
         VK_PRESENT_MODE_FIFO_KHR
     };
 
-    VkPhysicalDevicePresentationPropertiesOpenHarmony presentProperties = {};
+    VkPhysicalDevicePresentationPropertiesOHOS presentProperties = {};
     QueryPresentationProperties(physicalDevice, &presentProperties);
     if (presentProperties.sharedImage) {
         presentModes.push_back(VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR);
@@ -1099,9 +1102,9 @@ VkResult AddDeviceExtensions(VkPhysicalDevice gpu, const LayerData* gpuLayerData
                 return VK_ERROR_INITIALIZATION_FAILED;
             }
             enabledExtensions.push_back(VK_OHOS_NATIVE_BUFFER_EXTENSION_NAME);
-            if (CheckExtensionAvailable(VK_OPENHARMONY_EXTERNAL_MEMORY_OHOS_NATIVE_BUFFER_EXTENSION_NAME,
+            if (CheckExtensionAvailable(VK_OHOS_EXTERNAL_MEMORY_EXTENSION_NAME,
                                         deviceExtensions)) {
-                enabledExtensions.push_back(VK_OPENHARMONY_EXTERNAL_MEMORY_OHOS_NATIVE_BUFFER_EXTENSION_NAME);
+                enabledExtensions.push_back(VK_OHOS_EXTERNAL_MEMORY_EXTENSION_NAME);
             }
         }
     }
@@ -1362,8 +1365,8 @@ static inline PFN_vkVoidFunction LayerInterceptInstanceProc(const char* name)
     if (strcmp("vkDestroyDebugUtilsMessengerEXT", name) == 0) {
         return reinterpret_cast<PFN_vkVoidFunction>(DestroyDebugUtilsMessengerEXT);
     }
-    if (strcmp("vkCreateOHOSSurfaceOpenHarmony", name) == 0) {
-        return reinterpret_cast<PFN_vkVoidFunction>(CreateOHOSSurfaceOpenHarmony);
+    if (strcmp("vkCreateSurfaceOHOS", name) == 0) {
+        return reinterpret_cast<PFN_vkVoidFunction>(CreateSurfaceOHOS);
     }
     if (strcmp("vkDestroySurfaceKHR", name) == 0) {
         return reinterpret_cast<PFN_vkVoidFunction>(DestroySurfaceKHR);
