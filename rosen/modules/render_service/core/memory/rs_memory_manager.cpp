@@ -320,9 +320,9 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const GrContext* grCont
         log.AppendFormat("No valid gpu cache instance.\n");
         return;
     }
-    std::string gpuInfo;
     /////////////////////////////GPU/////////////////////////
 #ifdef RS_ENABLE_GL
+    std::string gpuInfo;
     // total
     DumpGpuCache(log, grContext, nullptr, gpuInfo);
     // Get memory of window by tag

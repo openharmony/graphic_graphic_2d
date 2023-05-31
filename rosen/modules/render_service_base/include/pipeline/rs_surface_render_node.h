@@ -648,9 +648,9 @@ private:
     std::mutex mutexUI_;
     std::mutex mutex_;
 #ifdef NEW_SKIA
-    GrDirectContext* grContext_;
+    GrDirectContext* grContext_ = nullptr;
 #else
-    GrContext* grContext_;
+    GrContext* grContext_ = nullptr;
 #endif
     std::mutex parallelVisitMutex_;
 
