@@ -297,7 +297,7 @@ public:
     }
 
 private:
-    RSPaintFilterCanvas* canvas_;
+    RSPaintFilterCanvas* canvas_ = nullptr;
     std::optional<RSPaintFilterCanvas::SaveStatus> saveCount_;
 
     RSAutoCanvasRestore(RSAutoCanvasRestore&&) = delete;
