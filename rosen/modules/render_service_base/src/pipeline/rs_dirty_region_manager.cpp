@@ -162,7 +162,7 @@ bool RSDirtyRegionManager::HasOffset()
 {
     return hasOffset_;
 }
-bool RSDirtyRegionManager::SetOffset(int offsetX, int offsetY)
+void RSDirtyRegionManager::SetOffset(int offsetX, int offsetY)
 {
     offsetX_ = offsetX;
     offsetY_ = offsetY;

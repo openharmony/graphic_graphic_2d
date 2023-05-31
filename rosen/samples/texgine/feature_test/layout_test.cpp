@@ -71,7 +71,7 @@ public:
         TypographyStyle ys = {
             .ellipsis = u"",
             .breakStrategy = BreakStrategy::GREEDY,
-            .wordBreakType = WordBreakType::BREAKALL,
+            .wordBreakType = WordBreakType::BREAK_ALL,
         };
         auto builder = TypographyBuilder::Create(ys);
 

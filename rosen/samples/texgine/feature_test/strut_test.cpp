@@ -74,13 +74,13 @@ public:
         option_.needRainbowChar = true;
 
         TextStyle style = {
-            .fontSize_ = 64,
+            .fontSize = 64,
         };
 
         TypographyStyle tpStyle = {
-            .lineStyle_ = {
-                .only_ = true,
-                .fontSize_ = 64,
+            .lineStyle = {
+                .only = true,
+                .fontSize = 64,
             },
         };
 

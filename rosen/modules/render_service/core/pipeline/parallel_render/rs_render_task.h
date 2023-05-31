@@ -75,7 +75,7 @@ public:
 
     void AddTask(std::unique_ptr<RSRenderTask> &&task);
 
-    int GetTaskSize()
+    int GetTaskSize() const
     {
         return tasks_.size();
     }

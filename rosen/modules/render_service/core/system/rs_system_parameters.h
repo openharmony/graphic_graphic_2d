@@ -28,6 +28,7 @@ class RSB_EXPORT RSSystemParameters final {
 public:
     ~RSSystemParameters() = default;
     static bool GetCalcCostEnabled();
+    static bool GetDrawingCacheEnabled();
 };
 
 } // namespace Rosen

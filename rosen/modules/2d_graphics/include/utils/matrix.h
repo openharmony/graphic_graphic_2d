@@ -50,7 +50,8 @@ public:
     void Scale(scalar sx, scalar sy, scalar px, scalar py);
 
     /*
-     * @brief         Sets Matrix to Matrix multiplied by Matrix constructed from rotating by degrees about pivot point(0,0).
+     * @brief         Sets Matrix to Matrix multiplied by Matrix constructed
+     *                from rotating by degrees about pivot point(0,0).
      * @param degree  Angle of axes relative to upright axes.
      */
     void PreRotate(scalar degree);
@@ -63,7 +64,8 @@ public:
     void PreTranslate(scalar dx, scalar dy);
 
     /*
-     * @brief     Sets Matrix to Matrix multiplied by Matrix constructed from scaling by (sx, sy) about pivot point (0, 0).
+     * @brief     Sets Matrix to Matrix multiplied by Matrix constructed
+     *            from scaling by (sx, sy) about pivot point (0, 0).
      * @param sx  Horizontal scale factor.
      * @param sy  Vertical scale factor.
      */

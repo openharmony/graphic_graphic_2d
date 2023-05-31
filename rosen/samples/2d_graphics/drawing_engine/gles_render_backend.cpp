@@ -61,7 +61,7 @@ bool GLESRenderBackend::SetUpGrContext()
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableDistanceFieldPaths = true;
     options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface), options));
     if (grContext == nullptr) {
         LOGE("SetUpGrContext grContext is null");
@@ -158,7 +158,7 @@ SkCanvas* GLESRenderBackend::AcquireCanvas(std::unique_ptr<SurfaceFrame>& frame)
     const int stencilBufferSize = 8;
 
     GrBackendRenderTarget backendRenderTarget(width, height, 0, stencilBufferSize, framebufferInfo);
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     SkSurfaceProps surfaceProps(0, kRGB_H_SkPixelGeometry);
 #else
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;

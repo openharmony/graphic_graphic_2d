@@ -78,6 +78,12 @@ enum class CacheType : uint8_t {
     ANIMATE_PROPERTY,
 };
 
+enum RSDrawingCacheType : uint16_t {
+    DISABLED_CACHE = 0,
+    FORCED_CACHE,    // must-to-do case
+    TARGETED_CACHE   // suggested case which could be disabled by optimized strategy
+};
+
 // priority for node, higher number means lower priority
 enum class NodePriorityType : uint32_t {
     MAIN_PRIORITY = 0, // node must render in main thread

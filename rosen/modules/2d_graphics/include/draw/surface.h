@@ -26,6 +26,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
+#ifdef ACE_ENABLE_GPU
 struct FrameBuffer {
     int width;
     int height;
@@ -34,6 +35,7 @@ struct FrameBuffer {
     std::shared_ptr<GPUContext> gpuContext;
     std::shared_ptr<ColorSpace> colorSpace;
 };
+#endif
 
 class Surface {
 public:
@@ -46,6 +48,7 @@ public:
      */
     bool Bind(const Bitmap& bitmap);
 
+#ifdef ACE_ENABLE_GPU
     /*
      * @brief         Bind GPU texture Surface.
      * @param image   In GPU memory as a GPU texture.
@@ -57,6 +60,7 @@ public:
      * @param info  FrameBuffer object info.
      */
     bool Bind(const FrameBuffer& frameBuffer);
+#endif
 
     /*
      * @brief   Gets Canvas that draws into Surface.

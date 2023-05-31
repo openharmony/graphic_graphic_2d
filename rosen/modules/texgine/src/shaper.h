@@ -32,10 +32,8 @@ public:
      * @param fontProviders The font providers setting by user
      * @param widthLimit The maximum display width set by the user
      */
-    static std::vector<LineMetrics> DoShape(std::vector<VariantSpan> spans,
-                                            const TypographyStyle &tstyle,
-                                            const std::unique_ptr<FontProviders> &fontProviders,
-                                            const double widthLimit);
+    static std::vector<LineMetrics> DoShape(std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
+        const std::unique_ptr<FontProviders> &fontProviders, const double widthLimit);
 };
 } // namespace TextEngine
 } // namespace Rosen

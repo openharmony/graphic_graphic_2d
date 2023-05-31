@@ -77,4 +77,50 @@ HWTEST_F(LocalSocketPairTest, ReceiveData001, Function | SmallTest | Level2)
     ret = socketPair.ReceiveData(&data, sizeof(int32_t));
     ASSERT_EQ(data, 10);
 }
+
+/*
+* Function: SendData
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: test SendData without CreateChannel before
+*/
+HWTEST_F(LocalSocketPairTest, TestSendDataWithoutCreateChannel, Function | SmallTest | Level2)
+{
+    LocalSocketPair socketPair;
+    int32_t data = 10;
+    int32_t ret = socketPair.SendData((void *)&data, sizeof(int32_t));
+    ASSERT_EQ(ret, -1);
+}
+
+/*
+* Function: CreateChannel, SendData
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: test SendData with nullptr
+*/
+HWTEST_F(LocalSocketPairTest, TestSendNullptr, Function | SmallTest | Level2)
+{
+    LocalSocketPair socketPair;
+    int32_t ret = socketPair.CreateChannel(8, 8);
+    ASSERT_EQ(ret, 0);
+    ret = socketPair.SendData(nullptr, sizeof(int32_t));
+    ASSERT_EQ(ret, -1);
+}
+
+/*
+* Function: CreateChannel
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: test CreateChannel after closing 0 fd
+*/
+HWTEST_F(LocalSocketPairTest, Close0Fd, Function | SmallTest | Level2)
+{
+    LocalSocketPair socketPair;
+    close(0);
+    int32_t ret = socketPair.CreateChannel(8, 8);
+    ASSERT_EQ(ret, 0);
+}
 }

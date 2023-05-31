@@ -34,34 +34,34 @@ namespace TextEngine {
  */
 struct TypographyStyle {
     // default TextStyle
-    FontWeight fontWeight_ = FontWeight::W400;
-    FontStyle fontStyle_ = FontStyle::NORMAL;
-    std::vector<std::string> fontFamilies_ = {};
-    double fontSize_ = 16.0;
-    double heightScale_ = 1.0;
-    bool heightOnly_ = false;
-    std::string locale_;
+    FontWeight fontWeight = FontWeight::W400;
+    FontStyle fontStyle = FontStyle::NORMAL;
+    std::vector<std::string> fontFamilies = {};
+    double fontSize = 16.0;
+    double heightScale = 1.0;
+    bool heightOnly = false;
+    std::string locale;
 
     // multi-text
-    size_t maxLines_ = 1e9;
-    std::u16string ellipsis_ = u"...";
-    BreakStrategy breakStrategy_ = BreakStrategy::GREEDY;
-    WordBreakType wordBreakType_ = WordBreakType::BREAK_WORD;
-    TextAlign align_ = TextAlign::START;
-    TextDirection direction_ = TextDirection::LTR;
+    size_t maxLines = 1e9;
+    std::u16string ellipsis = u"...";
+    BreakStrategy breakStrategy = BreakStrategy::GREEDY;
+    WordBreakType wordBreakType = WordBreakType::BREAK_WORD;
+    TextAlign align = TextAlign::START;
+    TextDirection direction = TextDirection::LTR;
 
     // lineStyle
-    bool useLineStyle_ = false;
+    bool useLineStyle = false;
     struct LineStyle {
-        bool only_ = false;
-        FontWeight fontWeight_ = FontWeight::W400;
-        FontStyle fontStyle_ = FontStyle::NORMAL;
-        std::vector<std::string> fontFamilies_ = {};
-        bool heightOnly_ = false;
-        double fontSize_ = 16.0;
-        double heightScale_ = 1;
-        std::optional<double> spacingScale_ = std::nullopt;
-    } lineStyle_;
+        bool only = false;
+        FontWeight fontWeight = FontWeight::W400;
+        FontStyle fontStyle = FontStyle::NORMAL;
+        std::vector<std::string> fontFamilies = {};
+        bool heightOnly = false;
+        double fontSize = 16.0;
+        double heightScale = 1;
+        std::optional<double> spacingScale = std::nullopt;
+    } lineStyle;
 
     /*
      * @brief Returns the equivalent align by TextAlign and TextDirection.

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "texgine/dynamic_font_provider.h"
+#include "dynamic_font_provider.h"
 
 #include <gtest/gtest.h>
 #include <iostream>
@@ -36,14 +36,14 @@ std::unique_ptr<TexgineMemoryStream> memoryStream = nullptr;
 std::shared_ptr<TexgineTypeface> typeface = nullptr;
 
 struct Style {
-    std::unique_ptr<TexgineMemoryStream> memoryStream_ = std::make_unique<TexgineMemoryStream>();
-    std::shared_ptr<TexgineTypeface> typeface_ = std::make_shared<TexgineTypeface>();
+    std::unique_ptr<TexgineMemoryStream> memoryStream = std::make_unique<TexgineMemoryStream>();
+    std::shared_ptr<TexgineTypeface> typeface = std::make_shared<TexgineTypeface>();
 };
 
 void InitMyMockVars(Style style)
 {
-    memoryStream = std::move(style.memoryStream_);
-    typeface = style.typeface_;
+    memoryStream = std::move(style.memoryStream);
+    typeface = style.typeface;
 }
 
 std::unique_ptr<TexgineMemoryStream> TexgineMemoryStream::MakeCopy(const void *data, size_t length)
@@ -107,7 +107,7 @@ HWTEST_F(DynamicFontProviderTest, LoadFont2, TestSize.Level1)
  */
 HWTEST_F(DynamicFontProviderTest, LoadFont3, TestSize.Level1)
 {
-    InitMyMockVars({.memoryStream_ = nullptr});
+    InitMyMockVars({.memoryStream = nullptr});
     // APIERROR
     EXPECT_NO_THROW({ EXPECT_EQ(dynamicFontProvider->LoadFont("LF3", this, 4), 2); });
 }
@@ -120,7 +120,7 @@ HWTEST_F(DynamicFontProviderTest, LoadFont3, TestSize.Level1)
  */
 HWTEST_F(DynamicFontProviderTest, LoadFont4, TestSize.Level1)
 {
-    InitMyMockVars({.typeface_ = nullptr});
+    InitMyMockVars({.typeface = nullptr});
     EXPECT_NO_THROW({ EXPECT_EQ(dynamicFontProvider->LoadFont("LF4", this, 4), 2); });
 }
 

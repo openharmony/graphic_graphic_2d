@@ -26,5 +26,10 @@ bool RSSystemParameters::GetCalcCostEnabled()
 {
     return std::atoi((system::GetParameter("rosen.calcCost.enabled", "0")).c_str()) != 0;
 }
+
+bool RSSystemParameters::GetDrawingCacheEnabled()
+{
+    return std::atoi((system::GetParameter("rosen.drawingCache.enabled", "0")).c_str()) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS

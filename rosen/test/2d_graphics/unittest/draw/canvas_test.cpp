@@ -105,6 +105,22 @@ HWTEST_F(CanvasTest, CanvasGetDeviceClipBoundsTest001, TestSize.Level1)
     EXPECT_TRUE(rect != nullptr);
 }
 
+#ifdef ACE_ENABLE_GPU
+/**
+ * @tc.name: CanvasGetGPUContextTest001
+ * @tc.desc: Test for geting gpu context.
+ * @tc.type: FUNC
+ * @tc.require: I782P9
+ */
+HWTEST_F(CanvasTest, CanvasGetGPUContextTest001, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    auto gpuContetxt = canvas->GetGPUContext();
+    EXPECT_TRUE(gpuContetxt == nullptr);
+}
+#endif
+
 /**
  * @tc.name: CanvasGetWidthTest001
  * @tc.desc: Test for geting width of Canvas.
@@ -305,8 +321,7 @@ HWTEST_F(CanvasTest, CanvasDrawShadowTest001, TestSize.Level1)
     Path path;
     Point3 planeParams(1.0f, 0.0f, 0.0f);
     Point3 devLightPos(1.0f, 1.0f, 1.0f);
-    canvas->DrawShadow(path, planeParams, devLightPos, 1.0f, 
-                        Color::COLOR_BLACK, Color::COLOR_BLUE, ShadowFlags::NONE);
+    canvas->DrawShadow(path, planeParams, devLightPos, 1.0f, Color::COLOR_BLACK, Color::COLOR_BLUE, ShadowFlags::NONE);
 }
 
 /**

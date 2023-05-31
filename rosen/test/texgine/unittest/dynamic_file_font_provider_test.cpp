@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 
 #include "mock.h"
-#include "texgine/dynamic_file_font_provider.h"
+#include "dynamic_file_font_provider.h"
 
 using namespace testing;
 using namespace testing::ext;

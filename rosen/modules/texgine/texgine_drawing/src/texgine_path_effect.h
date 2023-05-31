@@ -29,7 +29,7 @@ public:
     void SetPathEffect(const sk_sp<SkPathEffect> effect);
 
 private:
-    sk_sp<SkPathEffect> pathEffect_ == nullptr;
+    sk_sp<SkPathEffect> pathEffect_ = nullptr;
 };
 } // namespace TextEngine
 } // namespace Rosen

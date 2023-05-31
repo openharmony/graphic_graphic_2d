@@ -40,7 +40,7 @@ public:
      */
     static Occlusion::Region MergeVisibleDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node,
         bool useAlignedDirtyRegion = false);
-    static bool HandleCachedNode(const RSRenderNode& node, RSPaintFilterCanvas& canvas);
+    static bool HandleSubThreadNode(const RSRenderNode& node, RSPaintFilterCanvas& canvas);
     static void SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceRenderNode& node);
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU);
@@ -48,9 +48,16 @@ public:
     static void DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, sk_sp<SkImage> image);
     static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
     static int GetRotationFromMatrix(SkMatrix matrix);
-    static void AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& node, uint64_t focusNodeId,
+    static void AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode, uint64_t focusNodeId,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
+
+private:
+    static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
+        const std::shared_ptr<RSSurfaceRenderNode>& node);
+    static void AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
+        const std::shared_ptr<RSSurfaceRenderNode>& node);
+    static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
 };
 }
 }

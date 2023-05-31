@@ -32,7 +32,6 @@
 #include "image/image.h"
 #include "image/picture.h"
 #include "text/text.h"
-#include "utils/log.h"
 #include "utils/matrix.h"
 #include "utils/point.h"
 #include "utils/point3.h"

@@ -26,6 +26,7 @@ namespace Rosen {
 
 RSParallelTaskManager::RSParallelTaskManager()
     : threadNum_(0),
+      taskNum_(0),
       isParallelRenderExtEnabled_(RSParallelRenderExt::OpenParallelRenderExt())
 {
     if (isParallelRenderExtEnabled_ && (RSParallelRenderExt::initParallelRenderLBFunc_ != nullptr)) {
@@ -138,7 +139,7 @@ std::vector<uint32_t> RSParallelTaskManager::LoadBalancing()
     return loadNumPerThread;
 }
 
-uint32_t RSParallelTaskManager::GetTaskNum()
+uint32_t RSParallelTaskManager::GetTaskNum() const
 {
     return taskNum_;
 }

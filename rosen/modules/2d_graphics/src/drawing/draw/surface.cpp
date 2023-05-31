@@ -27,6 +27,7 @@ bool Surface::Bind(const Bitmap& bitmap)
     return impl_->Bind(bitmap);
 }
 
+#ifdef ACE_ENABLE_GPU
 bool Surface::Bind(const Image& image)
 {
     return impl_->Bind(image);
@@ -36,6 +37,7 @@ bool Surface::Bind(const FrameBuffer& frameBuffer)
 {
     return impl_->Bind(frameBuffer);
 }
+#endif
 
 std::shared_ptr<Canvas> Surface::GetCanvas() const
 {

@@ -50,7 +50,7 @@ FontStyles GetFontStyles(int weight, int width, int slant)
  */
 HWTEST_F(FontStylesTest, FontStyles1, TestSize.Level1)
 {
-    constexpr auto excption = ExceptionType::InvalidArgument;
+    constexpr auto excption = ExceptionType::INVALID_ARGUMENT;
     constexpr auto weight = 0;
     constexpr auto style = 0;
 
@@ -80,7 +80,7 @@ HWTEST_F(FontStylesTest, FontStyles1, TestSize.Level1)
  */
 HWTEST_F(FontStylesTest, FontStyles2, TestSize.Level1)
 {
-    constexpr auto excption = ExceptionType::InvalidArgument;
+    constexpr auto excption = ExceptionType::INVALID_ARGUMENT;
     constexpr auto weight = 0;
     constexpr auto width = 0;
     constexpr auto slant = 0;

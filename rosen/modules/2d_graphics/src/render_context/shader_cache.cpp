@@ -61,11 +61,6 @@ void ShaderCache::InitShaderCache(const char* identity, const size_t size, bool 
     std::array<uint8_t, SHA256_DIGEST_LENGTH> shaArray;
     auto key = ID_KEY;
 
-    if (!cacheData_) {
-        LOGE("abandon, cacheData destructed");
-        return;
-    }
-
     auto loaded = cacheData_->Get(&key, sizeof(key), shaArray.data(), shaArray.size());
     if (!(loaded && std::equal(shaArray.begin(), shaArray.end(), idHash_.begin()))) {
         cacheData_->Clear();
@@ -103,6 +98,8 @@ sk_sp<SkData> ShaderCache::load(const SkData& key)
     }
     if (!cacheData_) {
         LOGE("load: cachedata has been destructed");
+        free(valueBuffer);
+        valueBuffer = nullptr;
         return nullptr;
     }
 

@@ -556,10 +556,25 @@ void RSSurfaceRenderNode::SetStartAnimationFinished()
 bool RSSurfaceRenderNode::UpdateDirtyIfFrameBufferConsumed()
 {
     if (isCurrentFrameBufferConsumed_) {
-        SetDirty();
+        SetContentDirty();
         return true;
     }
     return false;
+}
+
+bool RSSurfaceRenderNode::IsDirty() const
+{
+    return RSRenderNode::IsDirty();
+}
+
+bool RSSurfaceRenderNode::IsContentDirty() const
+{
+    return RSRenderNode::IsContentDirty();
+}
+
+void RSSurfaceRenderNode::SetClean()
+{
+    RSRenderNode::SetClean();
 }
 
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
@@ -1030,7 +1045,7 @@ std::optional<SkRect> RSSurfaceRenderNode::GetContextClipRegion() const
     return contextClipRect_;
 }
 
-bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded()
+bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded(std::shared_ptr<RSSurfaceRenderNode>& appNode)
 {
     if (!IsLeashWindow()) {
         return false;
@@ -1039,6 +1054,7 @@ bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded()
         auto childNode = child.lock();
         const auto& childNodeSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(childNode);
         if (childNodeSurface->GetVisibleRegion().IsEmpty()) {
+            appNode = childNodeSurface;
             return true;
         }
     }
@@ -1071,9 +1087,7 @@ bool RSSurfaceRenderNode::IsCurrentFrameStatic()
         return true;
     } else if (IsLeashWindow()) {
         auto appSurfaceNode = GetLeashWindowNestedAppSurface();
-        if (appSurfaceNode) {
-            return appSurfaceNode->IsCurrentFrameStatic();
-        }
+        return appSurfaceNode ? appSurfaceNode->IsCurrentFrameStatic() : true;
     } else if (IsSelfDrawingType()) {
         return isCurrentFrameBufferConsumed_;
     } else {

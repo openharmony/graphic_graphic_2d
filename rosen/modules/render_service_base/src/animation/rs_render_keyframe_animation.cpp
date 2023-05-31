@@ -22,6 +22,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+static constexpr int MAX_KEYFRAME_SIZE_NUMBER = 100000;
+}
 RSRenderKeyframeAnimation::RSRenderKeyframeAnimation(AnimationId id, const PropertyId& propertyId,
     const std::shared_ptr<RSRenderPropertyBase>& originValue)
     : RSRenderPropertyAnimation(id, propertyId, originValue)
@@ -96,6 +99,10 @@ bool RSRenderKeyframeAnimation::ParseParam(Parcel& parcel)
     uint32_t size = 0;
     if (!parcel.ReadUint32(size)) {
         ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Parse Keyframes size fail");
+        return false;
+    }
+    if (size > MAX_KEYFRAME_SIZE_NUMBER) {
+        ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Keyframes size number is too large.");
         return false;
     }
     float tupValue0 = 0;

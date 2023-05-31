@@ -97,6 +97,15 @@ void RSScreen::PhysicalScreenInit() noexcept
     } else {
         screenType_ = RSScreenType::EXTERNAL_TYPE_SCREEN;
     }
+    std::vector<GraphicColorGamut> supportedColorGamuts;
+    if (hdiScreen_->GetScreenSupportedColorGamuts(supportedColorGamuts) != GRAPHIC_DISPLAY_SUCCESS) {
+        RS_LOGE("RSScreen %s: RSScreen(id %" PRIu64 ") failed to GetScreenSupportedColorGamuts.",
+            __func__, id_);
+    } else {
+        for (auto item : supportedColorGamuts) {
+            supportedPhysicalColorGamuts_.push_back(static_cast<ScreenColorGamut>(item));
+        }
+    }
 }
 
 ScreenId RSScreen::Id() const
@@ -489,21 +498,16 @@ int32_t RSScreen::GetScreenBacklight() const
 
 int32_t RSScreen::GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &mode) const
 {
+    mode.clear();
     if (IsVirtual()) {
-        mode.clear();
         mode = supportedVirtualColorGamuts_;
-        return StatusCode::SUCCESS;
+    } else {
+        mode = supportedPhysicalColorGamuts_;
     }
-    std::vector<GraphicColorGamut> hdiMode;
-    int32_t result = hdiScreen_->GetScreenSupportedColorGamuts(hdiMode);
-    if (result == GRAPHIC_DISPLAY_SUCCESS) {
-        mode.clear();
-        for (auto m : hdiMode) {
-            mode.push_back(static_cast<ScreenColorGamut>(m));
-        }
-        return StatusCode::SUCCESS;
+    if (mode.size() == 0) {
+        return StatusCode::HDI_ERROR;
     }
-    return StatusCode::HDI_ERROR;
+    return StatusCode::SUCCESS;
 }
 
 int32_t RSScreen::GetScreenSupportedMetaDataKeys(std::vector<ScreenHDRMetadataKey> &keys) const
@@ -536,11 +540,12 @@ int32_t RSScreen::GetScreenColorGamut(ScreenColorGamut &mode) const
     if (IsVirtual()) {
         mode = supportedVirtualColorGamuts_[currentVirtualColorGamutIdx_];
         return StatusCode::SUCCESS;
-    }
-    GraphicColorGamut hdiMode;
-    int32_t result = hdiScreen_->GetScreenColorGamut(hdiMode);
-    if (result == GRAPHIC_DISPLAY_SUCCESS) {
-        mode = static_cast<ScreenColorGamut>(hdiMode);
+    } else {
+        if (supportedPhysicalColorGamuts_.size() == 0) {
+            RS_LOGE("RSScreen %s: RSScreen(id %" PRIu64 ") failed to GetScreenColorGamuts.", __func__, id_);
+            return StatusCode::HDI_ERROR;
+        }
+        mode = supportedPhysicalColorGamuts_[currentPhysicalColorGamutIdx_];
         return StatusCode::SUCCESS;
     }
     return StatusCode::HDI_ERROR;
@@ -564,6 +569,7 @@ int32_t RSScreen::SetScreenColorGamut(int32_t modeIdx)
     }
     int32_t result = hdiScreen_->SetScreenColorGamut(hdiMode[modeIdx]);
     if (result == GRAPHIC_DISPLAY_SUCCESS) {
+        currentPhysicalColorGamutIdx_ = modeIdx;
         return StatusCode::SUCCESS;
     }
     return StatusCode::HDI_ERROR;

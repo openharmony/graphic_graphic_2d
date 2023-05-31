@@ -160,16 +160,16 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
     TexginePaint paint;
     paint.SetAntiAlias(true);
     paint.SetARGB(MAXRGB, MAXRGB, 0, 0);
-    paint.SetColor(xs.color_);
+    paint.SetColor(xs.color);
     paint.SetStyle(TexginePaint::FILL);
-    if (xs.background_.has_value()) {
+    if (xs.background.has_value()) {
         auto rect = TexgineRect::MakeXYWH(offsetX, offsetY + *tmetrics_.fAscent_, width_,
             *tmetrics_.fDescent_ - *tmetrics_.fAscent_);
-        canvas.DrawRect(rect, xs.background_.value());
+        canvas.DrawRect(rect, xs.background.value());
     }
 
-    if (xs.foreground_.has_value()) {
-        paint = xs.foreground_.value();
+    if (xs.foreground.has_value()) {
+        paint = xs.foreground.value();
     }
     canvas.DrawTextBlob(textBlob_, offsetX, offsetY, paint);
     PaintDecoration(canvas, offsetX, offsetY, xs);
@@ -180,19 +180,19 @@ void TextSpan::PaintDecoration(TexgineCanvas &canvas, double offsetX, double off
     double left = offsetX;
     double right = left + GetWidth();
 
-    if ((xs.decoration_ & TextDecoration::UNDERLINE) == TextDecoration::UNDERLINE) {
+    if ((xs.decoration & TextDecoration::UNDERLINE) == TextDecoration::UNDERLINE) {
         double y = offsetY + *tmetrics_.fUnderlinePosition_;
         PaintDecorationStyle(canvas, left, right, y, xs);
     }
-    if ((xs.decoration_ & TextDecoration::OVERLINE) == TextDecoration::OVERLINE) {
+    if ((xs.decoration & TextDecoration::OVERLINE) == TextDecoration::OVERLINE) {
         double y = offsetY - abs(*tmetrics_.fAscent_);
         PaintDecorationStyle(canvas, left, right, y, xs);
     }
-    if ((xs.decoration_ & TextDecoration::LINETHROUGH) == TextDecoration::LINETHROUGH) {
+    if ((xs.decoration & TextDecoration::LINE_THROUGH) == TextDecoration::LINE_THROUGH) {
         double y = offsetY - (*tmetrics_.fCapHeight_ * HALF);
         PaintDecorationStyle(canvas, left, right, y, xs);
     }
-    if ((xs.decoration_ & TextDecoration::BASELINE) == TextDecoration::BASELINE) {
+    if ((xs.decoration & TextDecoration::BASELINE) == TextDecoration::BASELINE) {
         double y = offsetY;
         PaintDecorationStyle(canvas, left, right, y, xs);
     }
@@ -203,10 +203,10 @@ void TextSpan::PaintDecorationStyle(TexgineCanvas &canvas, double left, double r
     TexginePaint paint;
     paint.SetAntiAlias(true);
     paint.SetARGB(MAXRGB, MAXRGB, 0, 0);
-    paint.SetColor(xs.decorationColor_.value_or(xs.color_));
-    paint.SetStrokeWidth(xs.decorationThicknessScale_);
+    paint.SetColor(xs.decorationColor.value_or(xs.color));
+    paint.SetStrokeWidth(xs.decorationThicknessScale);
 
-    switch (xs.decorationStyle_) {
+    switch (xs.decorationStyle) {
         case TextDecorationStyle::SOLID:
             break;
         case TextDecorationStyle::DOUBLE:
@@ -218,7 +218,7 @@ void TextSpan::PaintDecorationStyle(TexgineCanvas &canvas, double left, double r
             auto rect = TexgineRect::MakeWH(WIDTH_SCALAR, HEIGHT_SCALAR);
             circle.AddOval(rect);
             paint.SetPathEffect(TexginePath1DPathEffect::Make(circle, DOTTED_ADVANCE, PHASE,
-                                                              TexginePath1DPathEffect::kRotate_Style));
+                TexginePath1DPathEffect::kRotate_Style));
             break;
         }
         case TextDecorationStyle::DASHED: {
@@ -229,7 +229,7 @@ void TextSpan::PaintDecorationStyle(TexgineCanvas &canvas, double left, double r
         }
         case TextDecorationStyle::WAVY: {
             TexginePath wavy;
-            float thickness = xs.decorationThicknessScale_;
+            float thickness = xs.decorationThicknessScale;
             wavy.MoveTo({POINTX0, POINTY2 - thickness});
             wavy.QuadTo({POINTX1, POINTY0 - thickness}, {POINTX2, POINTY2 - thickness});
             wavy.LineTo({POINTX3, POINTY4 - thickness});
@@ -242,7 +242,7 @@ void TextSpan::PaintDecorationStyle(TexgineCanvas &canvas, double left, double r
             wavy.QuadTo({POINTX1, POINTY0 + thickness}, {POINTX0, POINTY2 + thickness});
             wavy.LineTo({POINTX0, POINTY2 - thickness});
             paint.SetPathEffect(TexginePath1DPathEffect::Make(wavy, WAVY_ADVANCE, PHASE,
-                                                              TexginePath1DPathEffect::kRotate_Style));
+                TexginePath1DPathEffect::kRotate_Style));
             paint.SetStyle(TexginePaint::STROKE);
             break;
         }
@@ -254,14 +254,14 @@ void TextSpan::PaintShadow(TexgineCanvas &canvas, double offsetX, double offsetY
     const std::vector<TextShadow> &shadows)
 {
     for (const auto &shadow : shadows) {
-        auto x = offsetX + shadow.offsetX_;
-        auto y = offsetY + shadow.offsetY_;
-        auto blurRadius = std::min(shadow.blurLeave_, MAX_BLURRADIUS);
+        auto x = offsetX + shadow.offsetX;
+        auto y = offsetY + shadow.offsetY;
+        auto blurRadius = std::min(shadow.blurLeave, MAX_BLURRADIUS);
 
         TexginePaint paint;
         paint.SetAntiAlias(true);
-        paint.SetColor(shadow.color_);
-        paint.SetMaskFilter(TexgineMaskFilter::MakeBlur(kNormal_SkBlurStyle, blurRadius));
+        paint.SetColor(shadow.color);
+        paint.SetMaskFilter(TexgineMaskFilter::MakeBlur(TexgineMaskFilter::K_NORMAL_SK_BLUR_STYLE, blurRadius));
 
         canvas.DrawTextBlob(textBlob_, x, y, paint);
     }

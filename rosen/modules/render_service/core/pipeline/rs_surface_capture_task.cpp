@@ -332,7 +332,7 @@ void RSSurfaceCaptureVisitor::AdjustZOrderAndDrawSurfaceNode()
     // draw hardwareEnabledNodes
     for (auto& surfaceNode : hardwareEnabledNodes_) {
         if (surfaceNode->IsLastFrameHardwareEnabled() && surfaceNode->GetBuffer() != nullptr) {
-            CaptureSingleSurfaceNodeWithUni(*surfaceNode);
+            CaptureSurfaceInDisplayWithUni(*surfaceNode);
         }
     }
 }
@@ -399,9 +399,6 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
             skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
             RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
         }
-    }
-
-    if (isSelfDrawingSurface) {
         canvas_->restore();
     }
     if (node.IsAppWindow() && RSColdStartManager::Instance().IsColdStartThreadRunning(node.GetId()) &&
@@ -461,8 +458,11 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
     }
 
     if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
+        canvas_->save();
+        canvas_->setMatrix(node.GetTotalMatrix());
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+        canvas_->restore();
     }
 
     if (isSelfDrawingSurface) {

@@ -14,23 +14,75 @@
  */
 
 #include "benchmarks/file_utils.h"
-
-#include <sstream>
-#include <string>
 #include <fstream>
-
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/stat.h>
-
-#include "directory_ex.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Benchmarks {
+bool IsValidFile(const std::string& realPathStr, const std::string& validFile)
+{
+    return realPathStr.find(validFile) == 0;
+}
+
+std::string GetRealPath(const std::string& filePath)
+{
+    std::string realPathStr = "";
+    char actualPath[PATH_MAX + 1] = {0};
+    if (realpath(filePath.c_str(), actualPath) == nullptr) {
+        RS_LOGE("The file path is not exist!");
+        return realPathStr;
+    }
+    realPathStr = actualPath;
+    if (IsValidFile(realPathStr)) {
+        return realPathStr;
+    } else {
+        RS_LOGE("The file path is not valid!");
+        return "";
+    }
+}
+
+bool IsExistFile(const std::string& filePath)
+{
+    char actualPath[PATH_MAX + 1] = {0};
+    if (filePath.size() > PATH_MAX || realpath(filePath.c_str(), actualPath) == nullptr) {
+        return false;
+    }
+    std::ifstream inFile(actualPath);
+    if (inFile.is_open()) {
+        inFile.clear();
+        inFile.close();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool CreateFile(const std::string& filePath)
+{
+    if (IsExistFile(filePath)) {
+        return true;
+    }
+    std::ofstream outFile(filePath.c_str());
+    if (!outFile.is_open()) {
+        RS_LOGE("file %s open failed!");
+        return false;
+    }
+    outFile.clear();
+    outFile.close();
+    return true;
+}
+
 bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath)
 {
+    if (!CreateFile(filePath)) {
+        return false;
+    }
+    if (filePath.empty()) {
+        return false;
+    }
     int fd = open(filePath.c_str(), O_RDWR | O_CREAT, static_cast<mode_t>(0600));
     if (fd < 0) {
         RS_LOGE("%{public}s failed. file: %s, fd = %{public}d", __func__, filePath.c_str(), fd);
@@ -47,7 +99,7 @@ bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath)
 bool WriteStringToFile(int fd, const std::string& str)
 {
     const char* p = str.data();
-    size_t remaining = str.size();
+    ssize_t remaining = static_cast<ssize_t>(str.size());
     while (remaining > 0) {
         ssize_t n = write(fd, p, remaining);
         if (n == -1) {
@@ -56,11 +108,18 @@ bool WriteStringToFile(int fd, const std::string& str)
         p += n;
         remaining -= n;
     }
+    p = nullptr;
     return true;
 }
 
 bool WriteStringToFile(const std::string& str, const std::string& filePath)
 {
+    if (!CreateFile(filePath)) {
+        return false;
+    }
+    if (filePath.empty()) {
+        return false;
+    }
     int fd = open(filePath.c_str(), O_RDWR | O_CREAT, static_cast<mode_t>(0600));
     if (fd < 0) {
         RS_LOGE("%{public}s failed. file: %s, fd = %{public}d", __func__, filePath.c_str(), fd);

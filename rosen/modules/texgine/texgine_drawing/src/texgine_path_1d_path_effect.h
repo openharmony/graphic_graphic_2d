@@ -42,7 +42,7 @@ public:
      * @param advance Space between path instances
      * @param style Path transformation style between each point
      */
-    static std::shared_ptr<TexginePathEffect> Make(TexginePath& path, float advance, float phase, Style style);
+    static std::shared_ptr<TexginePathEffect> Make(const TexginePath& path, float advance, float phase, Style style);
 };
 } // namespace TextEngine
 } // namespace Rosen

@@ -40,16 +40,17 @@ struct FeatureTestOption {
 };
 
 struct TypographyData {
-    std::shared_ptr<Texgine::Typography> typography = nullptr;
+    std::shared_ptr<OHOS::Rosen::TextEngine::Typography> typography = nullptr;
     std::string comment = "";
     size_t rainbowStart = 0;
     size_t rainbowEnd = 1e9;
-    Texgine::TextRectWidthStyle ws = Texgine::TextRectWidthStyle::TIGHT;
-    Texgine::TextRectHeightStyle hs = Texgine::TextRectHeightStyle::TIGHT;
+    OHOS::Rosen::TextEngine::TextRectWidthStyle ws = OHOS::Rosen::TextEngine::TextRectWidthStyle::TIGHT;
+    OHOS::Rosen::TextEngine::TextRectHeightStyle hs = OHOS::Rosen::TextEngine::TextRectHeightStyle::TIGHT;
     std::optional<bool> needRainbowChar = std::nullopt;
     bool atNewline = false;
 
-    std::function<void(const struct TypographyData &, Texgine::TexgineCanvas &, double, double)> onPaint = nullptr;
+    std::function<void(
+        const struct TypographyData &, OHOS::Rosen::TextEngine::TexgineCanvas &, double, double)> onPaint = nullptr;
 };
 
 class TestFeature {

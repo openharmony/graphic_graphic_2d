@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RECORDING_CANVAS_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RECORDING_CANVAS_H
 
+#ifndef USE_ROSEN_DRAWING
+
 #include "common/rs_macros.h"
 #include "include/core/SkBitmap.h"
 #include "include/core/SkCanvas.h"
@@ -198,4 +200,5 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
+#endif // USE_ROSEN_DRAWING
 #endif // RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RECORDING_CANVAS_H

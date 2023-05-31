@@ -59,3 +59,4 @@ HWTEST_F(FileUtilsTest, WriteStringToFileNoSuchFile, TestSize.Level1)
     bool ret = WriteToFile(line, testFile);
     EXPECT_EQ(ret, false);
 }
+}

@@ -22,10 +22,12 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-struct FrameBuffer;
+class Bitmap;
 class Canvas;
 class Image;
-class Bitmap;
+#ifdef ACE_ENABLE_GPU
+struct FrameBuffer;
+#endif
 
 class SurfaceImpl : public BaseImpl {
 public:
@@ -39,8 +41,10 @@ public:
     }
 
     virtual bool Bind(const Bitmap& bitmap) = 0;
+#ifdef ACE_ENABLE_GPU
     virtual bool Bind(const Image& image) = 0;
     virtual bool Bind(const FrameBuffer& frameBuffer) = 0;
+#endif
 
     virtual std::shared_ptr<Canvas> GetCanvas() const = 0;
     virtual std::shared_ptr<Image> GetImageSnapshot() const = 0;

@@ -30,8 +30,10 @@ public:
     ~SkiaSurface() override = default;
 
     bool Bind(const Bitmap& bitmap) override;
+#ifdef ACE_ENABLE_GPU
     bool Bind(const Image& image) override;
     bool Bind(const FrameBuffer& frameBuffer) override;
+#endif
 
     std::shared_ptr<Canvas> GetCanvas() const override;
     std::shared_ptr<Image> GetImageSnapshot() const override;

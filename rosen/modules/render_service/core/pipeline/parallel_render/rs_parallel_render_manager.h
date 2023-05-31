@@ -76,8 +76,9 @@ public:
                                      const std::shared_ptr<RSBaseRenderNode> node);
     void LoadBalanceAndNotify(TaskType type = TaskType::PROCESS_TASK);
     void MergeRenderResult(RSPaintFilterCanvas& canvas);
-    void SetFrameSize(int height, int width);
-    void GetFrameSize(int &height, int &width);
+    void SaveCacheTexture(RSRenderNode& node) const;
+    void SetFrameSize(int width, int height);
+    void GetFrameSize(int &width, int &height) const;
     void SubmitSuperTask(uint32_t taskIndex, std::unique_ptr<RSSuperRenderTask> superRenderTask);
     void SubmitSubThreadTask(const std::shared_ptr<RSDisplayRenderNode>& node,
         const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
@@ -87,8 +88,6 @@ public:
     void SubMainThreadWait(uint32_t threadIndex);
     void WaitCalcCostEnd();
     void WaitCompositionEnd();
-    void WaitNodeTask(uint64_t nodeId);
-    void NodeTaskNotify(uint64_t nodeId);
     void UpdateNodeCost(RSDisplayRenderNode& node);
     bool IsNeedCalcCost() const;
     int32_t GetCost(RSRenderNode &node) const;
@@ -101,7 +100,7 @@ public:
     void ReadySubThreadNumIncrement();
     void CommitSurfaceNum(int surfaceNum);
     void WaitPrepareEnd(RSUniRenderVisitor &visitor);
-    TaskType GetTaskType();
+    TaskType GetTaskType() const;
     RSUniRenderVisitor* GetUniVisitor() const
     {
         return uniVisitor_;
@@ -177,14 +176,14 @@ private:
     RSParallelTaskManager prepareTaskManager_;
     RSParallelTaskManager calcCostTaskManager_;
     RSParallelTaskManager compositionTaskManager_;
-    int height_;
-    int width_;
+    int width_ = 0;
+    int height_ = 0;
     std::vector<uint8_t> flipCoin_;
     std::mutex parallelRenderMutex_;
     std::mutex cvParallelRenderMutex_;
     std::mutex flushMutex_;
     std::condition_variable cvParallelRender_;
-    RenderContext *renderContext_;
+    RenderContext *renderContext_ = nullptr;
     ParallelRenderType renderType_ = ParallelRenderType::DRAW_IMAGE;
     std::shared_ptr<RSBaseRenderNode> displayNode_ = nullptr;
     std::shared_ptr<RSDisplayRenderNode> mainDisplayNode_ = nullptr;
@@ -212,7 +211,6 @@ private:
     std::vector<timespec> startTime_;
     std::vector<timespec> stopTime_;
 
-    std::map<uint64_t, bool> nodeTaskState_;
     uint32_t minLoadThreadIndex_ = 0;
 
     // Use for Vulkan

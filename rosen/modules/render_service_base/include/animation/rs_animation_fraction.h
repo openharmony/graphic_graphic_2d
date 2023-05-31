@@ -59,6 +59,7 @@ public:
     }
 
 private:
+    bool IsInRepeat() const;
     bool IsFinished() const;
     void UpdateReverseState(bool finish);
 

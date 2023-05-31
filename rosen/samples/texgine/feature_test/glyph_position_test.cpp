@@ -40,10 +40,10 @@ struct GlyphPosition {
     { .x = 96,  .y = 8 },
     { .x = 100, .y = 8 },
     { .x = 137, .y = 15 },
-    { .x = 96,  .y = 8, .ys = { .align_ = TextAlign::CENTER, }, },
-    { .x = 100, .y = 8, .ys = { .align_ = TextAlign::CENTER, }, },
-    { .x = 123, .y = 70, .ys = { .align_ = TextAlign::CENTER, }, },
-    { .x = 22,  .y = 70, .ys = { .align_ = TextAlign::CENTER, }, },
+    { .x = 96,  .y = 8, .ys = { .align = TextAlign::CENTER, }, },
+    { .x = 100, .y = 8, .ys = { .align = TextAlign::CENTER, }, },
+    { .x = 123, .y = 70, .ys = { .align = TextAlign::CENTER, }, },
+    { .x = 22,  .y = 70, .ys = { .align = TextAlign::CENTER, }, },
     { .x = 46,  .y = 70, },
     { .x = 52,  .y = 70, },
     { .x = 55,  .y = 70, },
@@ -61,8 +61,8 @@ public:
     void Layout()
     {
         TextStyle xs;
-        xs.fontFamilies_ = {"Segoe UI Emoji"};
-        xs.fontSize_ = 14;
+        xs.fontFamilies = {"Segoe UI Emoji"};
+        xs.fontSize = 14;
 
         for (auto &data : g_datas) {
             auto dfProvider = DynamicFileFontProvider::Create();
@@ -76,7 +76,7 @@ public:
             builder->AppendSpan(TEXT);
             builder->PopStyle();
 
-            std::string emojiText = Woman Skin1 ZWJ RedHeart ZWJ Man Skin0;
+            std::string emojiText = WOMAN SKIN1 ZWJ RED_HEART ZWJ MAN SKIN0;
             builder->PushStyle(xs);
             builder->AppendSpan(emojiText);
             builder->PopStyle();
@@ -84,7 +84,7 @@ public:
             auto onPaint = GetPaintFunc(data);
             std::stringstream ss;
             ss << "(" << data.x << ", " << data.y << ")";
-            if (data.ys.align_ == TextAlign::CENTER) {
+            if (data.ys.align == TextAlign::CENTER) {
                 ss << " align(center)";
             }
 
@@ -99,7 +99,7 @@ public:
         }
     }
 
-    std::function<void(const struct TypographyData &, Texgine::TexgineCanvas &, double, double)> GetPaintFunc(
+    std::function<void(const struct TypographyData &, TexgineCanvas &, double, double)> GetPaintFunc(
         const GlyphPosition &data)
     {
         auto onPaint = [data](const struct TypographyData &tyData, TexgineCanvas &canvas, double x, double y) {
@@ -116,10 +116,10 @@ public:
             canvas.Save();
             canvas.Translate(x, y);
             auto ia = typography->GetGlyphIndexByCoordinate(data.x, data.y);
-            auto rects = typography->GetTextRectsByBoundary(Boundary{ia.index_, ia.index_ + 1},
+            auto rects = typography->GetTextRectsByBoundary(Boundary{ia.index, ia.index + 1},
                 TextRectHeightStyle::COVER_TOP_AND_BOTTOM, TextRectWidthStyle::TIGHT);
             if (rects.size()) {
-                canvas.DrawRect(rects.back().rect_, paint);
+                canvas.DrawRect(rects.back().rect, paint);
             }
             canvas.Restore();
         };

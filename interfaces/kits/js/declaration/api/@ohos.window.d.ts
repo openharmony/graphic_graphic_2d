@@ -75,7 +75,7 @@ declare namespace window {
     setWindowType(type: WindowType): Promise<void>;
   }
 
-  function setSystemBarEnable(names: Array<'status'|'navigation'>): Promise<void>;
+  function setSystemBarEnable(names: Array<'status' | 'navigation'>): Promise<void>;
 }
 
 export default window;

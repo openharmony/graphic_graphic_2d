@@ -53,7 +53,7 @@ std::shared_ptr<SkRect> TexgineRect::GetRect() const
     return rect_;
 }
 
-void TexgineRect::SetRect(SkRect rect)
+void TexgineRect::SetRect(const SkRect &rect)
 {
     *rect_ = rect;
     fBottom_ = &rect_->fBottom;

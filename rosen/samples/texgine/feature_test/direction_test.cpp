@@ -25,8 +25,8 @@
 using namespace OHOS::Rosen::TextEngine;
 
 namespace {
-constexpr auto EXAMPLE_TEXT = "hello" Watch Person " wolrd تحول " WomanSportVariant
-    " كبير! hello 123 آخر الأخبار من محطة سكة حديد شيان هنا!" Watch;
+constexpr auto EXAMPLE_TEXT = "hello" WATCH PERSON " wolrd تحول " WOMAN_SPORT_VARIANT
+    " كبير! hello 123 آخر الأخبار من محطة سكة حديد شيان هنا!" WATCH;
 
 class DirectionTest : public TestFeature {
 public:

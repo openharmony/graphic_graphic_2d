@@ -118,10 +118,6 @@ void RSBaseRenderNode::SetIsOnTheTree(bool flag)
         child->SetIsOnTheTree(flag);
     }
 
-    if (flag) {
-        return;
-    }
-
     for (auto& childPtr : disappearingChildren_) {
         auto child = childPtr.first;
         if (child == nullptr) {
@@ -351,6 +347,17 @@ void RSBaseRenderNode::DumpNodeType(std::string& out) const
 bool RSBaseRenderNode::IsDirty() const
 {
     return dirtyStatus_ == NodeDirty::DIRTY;
+}
+
+// attention: current all base node's dirty ops causing content dirty
+bool RSBaseRenderNode::IsContentDirty() const
+{
+    return dirtyStatus_ == NodeDirty::DIRTY;
+}
+
+void RSBaseRenderNode::SetContentDirty()
+{
+    dirtyStatus_ = NodeDirty::DIRTY;
 }
 
 void RSBaseRenderNode::SetDirty()

@@ -62,7 +62,6 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
             return typeface;
         }
     }
-
     return FindFallBackTypeface(ch, style, script, locale);
 }
 
@@ -131,7 +130,7 @@ std::shared_ptr<Typeface> FontCollection::FindFallBackTypeface(const uint32_t &c
     }
 
     auto tfs = style.ToTexgineFontStyle();
-    auto fallbackTypeface = fm->MatchFamilyStyleCharacter(nullptr, tfs,
+    auto fallbackTypeface = fm->MatchFamilyStyleCharacter("", tfs,
         bcp47.data(), bcp47.size(), ch);
 
     if (fallbackTypeface == nullptr || fallbackTypeface->GetTypeface() == nullptr) {

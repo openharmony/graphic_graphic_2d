@@ -27,13 +27,48 @@ class HdiScreenTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
-    static void CheckNullFunc();
 
     static inline std::unique_ptr<HdiScreen> hdiScreen_;
     static inline Mock::HdiDeviceMock* mockDevice_;
 };
 
-void HdiScreenTest::CheckNullFunc()
+void HdiScreenTest::SetUpTestCase()
+{
+    uint32_t screenId = 0;
+    hdiScreen_ = HdiScreen::CreateHdiScreen(screenId);
+    mockDevice_ = Mock::HdiDeviceMock::GetInstance();
+
+    EXPECT_CALL(*mockDevice_, GetScreenCapability(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, GetScreenSupportedModes(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, GetScreenMode(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, SetScreenMode(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, GetScreenPowerStatus(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, SetScreenPowerStatus(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, GetScreenBacklight(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, SetScreenBacklight(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, GetScreenSupportedColorGamuts(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, SetScreenColorGamut(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, GetScreenColorGamut(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, SetScreenGamutMap(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, GetScreenGamutMap(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, GetHDRCapabilityInfos(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, GetSupportedMetaDataKey(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, SetScreenVsyncEnabled(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, SetScreenColorTransform(_, _)).WillRepeatedly(testing::Return(0));
+}
+
+void HdiScreenTest::TearDownTestCase() {}
+
+namespace {
+/*
+* Function: CheckDeviceNull001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call ScreenFuncs before Init
+*                  2. check ret
+*/
+HWTEST_F(HdiScreenTest, CheckDeviceNull001, Function | MediumTest| Level3)
 {
     GraphicDisplayCapability dcap;
     ASSERT_EQ(hdiScreen_->GetScreenCapability(dcap), GRAPHIC_DISPLAY_NULL_PTR);
@@ -66,40 +101,6 @@ void HdiScreenTest::CheckNullFunc()
     ASSERT_EQ(hdiScreen_->GetSupportedMetaDataKey(keys), GRAPHIC_DISPLAY_NULL_PTR);
 }
 
-void HdiScreenTest::SetUpTestCase()
-{
-    uint32_t screenId = 0;
-    hdiScreen_ = HdiScreen::CreateHdiScreen(screenId);
-    mockDevice_ = Mock::HdiDeviceMock::GetInstance();
-
-    EXPECT_CALL(*mockDevice_, GetScreenCapability(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, GetScreenSupportedModes(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, GetScreenMode(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, SetScreenMode(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, GetScreenPowerStatus(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, SetScreenPowerStatus(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, GetScreenBacklight(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, SetScreenBacklight(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, GetScreenSupportedColorGamuts(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, SetScreenColorGamut(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, GetScreenColorGamut(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, SetScreenGamutMap(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, GetScreenGamutMap(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, GetHDRCapabilityInfos(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, GetSupportedMetaDataKey(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, SetScreenVsyncEnabled(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, SetScreenColorTransform(_, _)).WillRepeatedly(testing::Return(0));
-    // set hdiScreen_->hdidevice_ to null
-    hdiScreen_->SetHdiDevice(nullptr);
-    // set hdiScreen_->hdidevice_ to mockDevice_
-    hdiScreen_->SetHdiDevice(mockDevice_);
-    // reset hdiScreen_->hdidevice_ to mockDevice_
-    hdiScreen_->SetHdiDevice(mockDevice_);
-}
-
-void HdiScreenTest::TearDownTestCase() {}
-
-namespace {
 /*
 * Function: Init001
 * Type: Function
@@ -110,6 +111,13 @@ namespace {
 */
 HWTEST_F(HdiScreenTest, Init001, Function | MediumTest| Level3)
 {
+    // set hdiScreen_->hdidevice_ to null
+    hdiScreen_->SetHdiDevice(nullptr);
+    // set hdiScreen_->hdidevice_ to mockDevice_
+    hdiScreen_->SetHdiDevice(mockDevice_);
+    // reset hdiScreen_->hdidevice_ to mockDevice_
+    hdiScreen_->SetHdiDevice(mockDevice_);
+
     hdiScreen_->OnVsync(0, 0, nullptr);
     hdiScreen_->OnVsync(0, 1, nullptr);
     ASSERT_EQ(HdiScreenTest::hdiScreen_->Init(), true);
@@ -374,6 +382,7 @@ HWTEST_F(HdiScreenTest, GetSupportedMetaDataKey001, Function | MediumTest | Leve
     std::vector<GraphicHDRMetadataKey> keys = { key };
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetSupportedMetaDataKey(keys), 0);
 }
+
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

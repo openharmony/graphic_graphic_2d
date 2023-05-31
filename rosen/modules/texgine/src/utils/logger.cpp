@@ -268,7 +268,7 @@ enum Logger::LOG_LEVEL Logger::GetLevel() const
     return level_;
 }
 
-va_list &Logger::GetVariousArgument() const
+va_list &Logger::GetVariousArgument()
 {
     return vl_;
 }

@@ -172,11 +172,9 @@ HWTEST_F(Matrix44Test, Matrix44MultiplyTest002, TestSize.Level1)
     std::unique_ptr<Matrix44> matrix44 = std::make_unique<Matrix44>();
     ASSERT_TRUE(matrix44 != nullptr);
     Matrix44 matrix1;
-    matrix1.SetMatrix44({200, 150, 800, 60, 200, 150, 800, 60, 90, 22, 
-        3, 55, 66, 99, 14, 16});
+    matrix1.SetMatrix44({200, 150, 800, 60, 200, 150, 800, 60, 90, 22, 3, 55, 66, 99, 14, 16});
     Matrix44 matrix2;
-    matrix2.SetMatrix44({200, 150, 800, 60, 200, 150, 800, 60, 90, 22, 
-        3, 55, 66, 99, 14, 16});
+    matrix2.SetMatrix44({200, 150, 800, 60, 200, 150, 800, 60, 90, 22, 3, 55, 66, 99, 14, 16});
     Matrix44 matrix3 = matrix1 * matrix2;
 }
 } // namespace Drawing

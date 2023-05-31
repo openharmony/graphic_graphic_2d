@@ -92,6 +92,7 @@ void RSSharedContext::MakeCurrent()
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
 sk_sp<GrDirectContext> RSSharedContext::MakeGrContext()
 #else
@@ -108,4 +109,13 @@ sk_sp<GrContext> RSSharedContext::MakeGrContext()
     return GrContext::MakeGL(GrGLMakeNativeInterface(), options);
 #endif
 }
+#else // USE_ROSEN_DRAWING
+std::shared_ptr<Drawing::GPUContext> RSSharedContext::MakeDrContext()
+{
+    Drawing::GPUContextOptions options;
+    std::shared_ptr<Drawing::GPUContext> GPUContext = std::make_shared<Drawing::GPUContext>();
+    GPUContext->BuildFromGL(options);
+    return GPUContext;
+}
+#endif
 } // namespace OHOS::Rosen

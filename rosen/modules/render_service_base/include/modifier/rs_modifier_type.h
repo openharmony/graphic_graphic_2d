@@ -85,6 +85,15 @@ enum class RSModifierType : int16_t {
 
     SANDBOX,
 
+    GRAY_SCALE,
+    BRIGHTNESS,
+    CONTRAST,
+    SATURATE,
+    SEPIA,
+    INVERT,
+    HUE_ROTATE,
+    COLOR_BLEND,
+
     CUSTOM,
     EXTENDED,
     TRANSITION,

@@ -38,9 +38,9 @@ FontStyles::Slant ToSlant(const FontStyle style)
 TexgineFontStyle::Slant ToTexgineSlant(const FontStyles::Slant slant)
 {
     std::map<FontStyles::Slant, TexgineFontStyle::Slant> switchMap = {
-        {FontStyles::Slant::UPRIGHT, TexgineFontStyle::Slant::kUpright_Slant},
-        {FontStyles::Slant::ITALIC, TexgineFontStyle::Slant::kItalic_Slant},
-        {FontStyles::Slant::OBLIQUE, TexgineFontStyle::Slant::kOblique_Slant},
+        {FontStyles::Slant::UPRIGHT, TexgineFontStyle::Slant::K_UPRIGHT_SLANT},
+        {FontStyles::Slant::ITALIC, TexgineFontStyle::Slant::K_ITALIC_SLANT},
+        {FontStyles::Slant::OBLIQUE, TexgineFontStyle::Slant::K_OBLIQUE_SLANT},
     };
     return switchMap[slant];
 }
@@ -49,13 +49,13 @@ TexgineFontStyle::Slant ToTexgineSlant(const FontStyles::Slant slant)
 FontStyles::FontStyles(FontWeight weight, FontStyle style)
 {
     if (!(0 <= static_cast<int>(weight) && weight < FontWeight::MAX)) {
-        LOG2EX(ERROR) << "FontWeight Error!";
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        LOGEX_FUNC_LINE(ERROR) << "FontWeight Error!";
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
     if (!(0 <= static_cast<int>(style) && style < FontStyle::MAX)) {
-        LOG2EX(ERROR) << "FontStyle Error!";
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        LOGEX_FUNC_LINE(ERROR) << "FontStyle Error!";
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
     slant_ = ToSlant(style);
@@ -65,18 +65,18 @@ FontStyles::FontStyles(FontWeight weight, FontStyle style)
 FontStyles::FontStyles(FontStyles::Weight weight, FontStyles::Width width, FontStyles::Slant slant)
 {
     if (!(0 <= static_cast<int>(weight) && weight < Weight::MAX)) {
-        LOG2EX(ERROR) << "Weight Error!";
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        LOGEX_FUNC_LINE(ERROR) << "Weight Error!";
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
     if (!(0 <= static_cast<int>(width) && width < Width::MAX)) {
-        LOG2EX(ERROR) << "Width Error!";
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        LOGEX_FUNC_LINE(ERROR) << "Width Error!";
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
     if (!(0 <= static_cast<int>(slant) && slant < FontStyles::Slant::MAX)) {
-        LOG2EX(ERROR) << "Slant Error!";
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        LOGEX_FUNC_LINE(ERROR) << "Slant Error!";
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
     weight_ = weight;

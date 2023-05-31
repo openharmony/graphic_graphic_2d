@@ -23,7 +23,7 @@ namespace TextEngine {
 std::shared_ptr<TexginePathEffect> TexginePath1DPathEffect::Make(const TexginePath &path,
     float advance, float phase, Style style)
 {
-    auto effect = SkPath1DPathEffect::Make(path.GetPath(), advance, phase,
+    auto effect = SkPath1DPathEffect::Make(*path.GetPath().get(), advance, phase,
         static_cast<SkPath1DPathEffect::Style>(style));
     auto pathEffect = std::make_shared<TexginePathEffect>();
     pathEffect->SetPathEffect(effect);

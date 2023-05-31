@@ -23,7 +23,7 @@
 #include "include/gpu/GrBackendSurface.h"
 #include "include/gpu/GrContextOptions.h"
 
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
 #include "include/gpu/GrDirectContext.h"
 #else
 #include "include/gpu/GrContext.h"
@@ -43,7 +43,7 @@ public:
     void SwapBuffers() override;
     void* CreateSurface(void* window) override;
     void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override;
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     GrDirectContext* GetGrContext() const
     {
         return grContext_.get();
@@ -60,7 +60,7 @@ public:
     SkCanvas* AcquireCanvas(std::unique_ptr<SurfaceFrame>& frame) override;
 private:
     EGLManager* eglManager_ = nullptr;
-#if defined(USE_CANVASKIT0310_SKIA)
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     sk_sp<GrDirectContext> grContext_ = nullptr;
 #else
     sk_sp<GrContext> grContext_ = nullptr;

@@ -79,19 +79,19 @@ class TextBreakerTest : public testing::Test {
 public:
     static void SetUpTestCase()
     {
-        tpstyle_.fontFamilies_ = {"seguiemj"};
-        cgs1_.PushBack({.chars_ = TextConverter::ToUTF16("m"), .glyphs_ = {{0x013B, 13.664}}, .visibleWidth_ = 14,});
-        cgs1_.PushBack({.chars_ = TextConverter::ToUTF16("o"), .glyphs_ = {{0x0145, 9.456}}, .visibleWidth_ = 10,});
-        cgs1_.PushBack({.chars_ = TextConverter::ToUTF16("s"), .glyphs_ = {{0x0166, 7.28}}, .visibleWidth_ = 8,});
-        cgs1_.PushBack({.chars_ = TextConverter::ToUTF16("t"), .glyphs_ = {{0x016E, 5.88}}, .visibleWidth_ = 6,});
+        tpstyle_.fontFamilies = {"seguiemj"};
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16("m"), .glyphs = {{0x013B, 13.664}}, .visibleWidth = 14,});
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16("o"), .glyphs = {{0x0145, 9.456}}, .visibleWidth = 10,});
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16("s"), .glyphs = {{0x0166, 7.28}}, .visibleWidth = 8,});
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16("t"), .glyphs = {{0x016E, 5.88}}, .visibleWidth = 6,});
 
         cgs2_ = cgs1_;
-        cgs2_.PushBack({.chars_ = TextConverter::ToUTF16(" "), .glyphs_ = {{0x0002, 4.32}}, .invisibleWidth_ = 5,});
+        cgs2_.PushBack({.chars = TextConverter::ToUTF16(" "), .glyphs = {{0x0002, 4.32}}, .invisibleWidth = 5,});
     }
 
-    void PrepareWordBreak(int ret, CharGroups &cgs, WordBreakType type = WordBreakType::BREAKWORD)
+    void PrepareWordBreak(int ret, CharGroups &cgs, WordBreakType type = WordBreakType::BREAK_WORD)
     {
-        tpstyle_.wordBreakType_ = type;
+        tpstyle_.wordBreakType = type;
         auto m = std::make_unique<MeasurerForTest>();
         m->SetMeasurerArgs(ret, cgs);
         measurer = std::move(m);
@@ -117,12 +117,12 @@ public:
  */
 HWTEST_F(TextBreakerTest, GenerateFontCollection1, TestSize.Level1)
 {
-    textStyle_.fontFamilies_ = {};
+    textStyle_.fontFamilies = {};
 
     EXPECT_NO_THROW({
         auto ret = breaker.GenerateFontCollection(tpstyle_, textStyle_, FontProviders::Create());
         ASSERT_NE(ret, nullptr);
-        ASSERT_EQ(tpstyle_.fontFamilies_, families_);
+        ASSERT_EQ(tpstyle_.fontFamilies, families_);
     });
 }
 
@@ -133,7 +133,7 @@ HWTEST_F(TextBreakerTest, GenerateFontCollection1, TestSize.Level1)
  */
 HWTEST_F(TextBreakerTest, GenerateFontCollection2, TestSize.Level1)
 {
-    ASSERT_EXCEPTION(ExceptionType::InvalidArgument, breaker.GenerateFontCollection(tpstyle_, textStyle_, nullptr));
+    ASSERT_EXCEPTION(ExceptionType::INVALID_ARGUMENT, breaker.GenerateFontCollection(tpstyle_, textStyle_, nullptr));
 }
 
 /**
@@ -143,13 +143,13 @@ HWTEST_F(TextBreakerTest, GenerateFontCollection2, TestSize.Level1)
  */
 HWTEST_F(TextBreakerTest, GenerateFontCollection3, TestSize.Level1)
 {
-    tpstyle_.fontFamilies_ = {"seguiemj"};
-    textStyle_.fontFamilies_ = {"robot"};
+    tpstyle_.fontFamilies = {"seguiemj"};
+    textStyle_.fontFamilies = {"robot"};
 
     EXPECT_NO_THROW({
         auto ret = breaker.GenerateFontCollection(tpstyle_, textStyle_, FontProviders::Create());
         ASSERT_NE(ret, nullptr);
-        ASSERT_EQ(textStyle_.fontFamilies_, families_);
+        ASSERT_EQ(textStyle_.fontFamilies, families_);
     });
 }
 
@@ -255,7 +255,7 @@ HWTEST_F(TextBreakerTest, BreakWord3, TestSize.Level1)
  */
 HWTEST_F(TextBreakerTest, BreakWord4, TestSize.Level1)
 {
-    tpstyle_.wordBreakType_ = WordBreakType::BREAKALL;
+    tpstyle_.wordBreakType = WordBreakType::BREAK_ALL;
 
     EXPECT_NO_THROW({
         breaker.BreakWord(cgs1_, tpstyle_, textStyle_, spans_);
@@ -274,7 +274,7 @@ HWTEST_F(TextBreakerTest, BreakWord4, TestSize.Level1)
  */
 HWTEST_F(TextBreakerTest, BreakWord5, TestSize.Level1)
 {
-    tpstyle_.wordBreakType_ = WordBreakType::BREAKALL;
+    tpstyle_.wordBreakType = WordBreakType::BREAK_ALL;
 
     EXPECT_NO_THROW({
         breaker.BreakWord(cgs2_, tpstyle_, textStyle_, spans_);
@@ -295,7 +295,7 @@ HWTEST_F(TextBreakerTest, BreakWord5, TestSize.Level1)
  */
 HWTEST_F(TextBreakerTest, GenerateSpan1, TestSize.Level1)
 {
-    ASSERT_EXCEPTION(ExceptionType::InvalidArgument,
+    ASSERT_EXCEPTION(ExceptionType::INVALID_ARGUMENT,
         breaker.GenerateSpan(emptyCgs_, tpstyle_, textStyle_, spans_));
 }
 
@@ -306,7 +306,7 @@ HWTEST_F(TextBreakerTest, GenerateSpan1, TestSize.Level1)
  */
 HWTEST_F(TextBreakerTest, GenerateSpan2, TestSize.Level1)
 {
-    ASSERT_EXCEPTION(ExceptionType::InvalidArgument,
+    ASSERT_EXCEPTION(ExceptionType::INVALID_ARGUMENT,
         breaker.GenerateSpan({}, tpstyle_, textStyle_, spans_));
 }
 
@@ -376,7 +376,7 @@ HWTEST_F(TextBreakerTest, WordBreak3, TestSize.Level1)
  */
 HWTEST_F(TextBreakerTest, WordBreak4, TestSize.Level1)
 {
-    auto type = WordBreakType::BREAKWORD;
+    auto type = WordBreakType::BREAK_WORD;
     // {0, 4} is {leftIndex, rightIndex}
     boundaries = {{ 0, 4 }};
     PrepareWordBreak(0, cgs1_, type);
@@ -395,7 +395,7 @@ HWTEST_F(TextBreakerTest, WordBreak4, TestSize.Level1)
  */
 HWTEST_F(TextBreakerTest, WordBreak5, TestSize.Level1)
 {
-    auto type = WordBreakType::BREAKALL;
+    auto type = WordBreakType::BREAK_ALL;
     boundaries = {{ 0, 4 }};
     PrepareWordBreak(0, cgs1_, type);
 
@@ -413,7 +413,7 @@ HWTEST_F(TextBreakerTest, WordBreak5, TestSize.Level1)
  */
 HWTEST_F(TextBreakerTest, WordBreak6, TestSize.Level1)
 {
-    auto type = WordBreakType::BREAKALL;
+    auto type = WordBreakType::BREAK_ALL;
     boundaries = {};
     PrepareWordBreak(0, cgs1_, type);
 

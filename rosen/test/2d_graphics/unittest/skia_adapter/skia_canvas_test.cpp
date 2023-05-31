@@ -48,6 +48,9 @@ HWTEST_F(SkiaCanvasTest, Bind001, TestSize.Level1)
     Bitmap bitmap;
     SkiaCanvas skiaCanvas;
     skiaCanvas.Bind(bitmap);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.Bind(bitmap);
 }
 
 /**
@@ -61,6 +64,10 @@ HWTEST_F(SkiaCanvasTest, DrawPoint001, TestSize.Level1)
     Point point;
     Pen pen;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.AttachPen(pen);
+    skiaCanvas.DrawPoint(point);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
     skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawPoint(point);
 }
@@ -79,6 +86,9 @@ HWTEST_F(SkiaCanvasTest, DrawLine001, TestSize.Level1)
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawLine(startPt, endPt);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.DrawLine(startPt, endPt);
 }
 
 /**
@@ -93,6 +103,9 @@ HWTEST_F(SkiaCanvasTest, DrawRect001, TestSize.Level1)
     Pen pen;
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
+    skiaCanvas.DrawRect(rect);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
     skiaCanvas.DrawRect(rect);
 }
 
@@ -109,6 +122,9 @@ HWTEST_F(SkiaCanvasTest, DrawRoundRect001, TestSize.Level1)
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawRoundRect(roundRect);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.DrawRoundRect(roundRect);
 }
 
 /**
@@ -124,6 +140,9 @@ HWTEST_F(SkiaCanvasTest, DrawNestedRoundRect001, TestSize.Level1)
     Pen pen;
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
+    skiaCanvas.DrawNestedRoundRect(outer, inner);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
     skiaCanvas.DrawNestedRoundRect(outer, inner);
 }
 
@@ -142,6 +161,9 @@ HWTEST_F(SkiaCanvasTest, DrawArc001, TestSize.Level1)
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawArc(oval, startAngle, sweepAngle);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.DrawArc(oval, startAngle, sweepAngle);
 }
 
 /**
@@ -159,6 +181,9 @@ HWTEST_F(SkiaCanvasTest, DrawPie001, TestSize.Level1)
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawPie(oval, startAngle, sweepAngle);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.DrawPie(oval, startAngle, sweepAngle);
 }
 
 /**
@@ -173,6 +198,9 @@ HWTEST_F(SkiaCanvasTest, DrawOval001, TestSize.Level1)
     Pen pen;
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
+    skiaCanvas.DrawOval(oval);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
     skiaCanvas.DrawOval(oval);
 }
 
@@ -190,6 +218,9 @@ HWTEST_F(SkiaCanvasTest, DrawCircle001, TestSize.Level1)
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawCircle(centerPt, radius);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.DrawCircle(centerPt, radius);
 }
 
 /**
@@ -205,6 +236,9 @@ HWTEST_F(SkiaCanvasTest, DrawPath001, TestSize.Level1)
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawPath(path);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.DrawPath(path);
 }
 
 /**
@@ -217,6 +251,9 @@ HWTEST_F(SkiaCanvasTest, DrawBackground001, TestSize.Level2)
 {
     Brush brush;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.DrawBackground(brush);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
     skiaCanvas.DrawBackground(brush);
 }
 
@@ -235,6 +272,9 @@ HWTEST_F(SkiaCanvasTest, DrawShadow001, TestSize.Level2)
     Color spotColor;
     SkiaCanvas skiaCanvas;
     skiaCanvas.DrawShadow(path, planeParams, devLightPos, 1.0f, ambientColor, spotColor, ShadowFlags::NONE);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.DrawShadow(path, planeParams, devLightPos, 1.0f, ambientColor, spotColor, ShadowFlags::NONE);
 }
 
 /**
@@ -251,6 +291,9 @@ HWTEST_F(SkiaCanvasTest, DrawBitmap001, TestSize.Level1)
     Pen pen;
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
+    skiaCanvas.DrawBitmap(bitmap, px, py);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
     skiaCanvas.DrawBitmap(bitmap, px, py);
 }
 
@@ -270,6 +313,9 @@ HWTEST_F(SkiaCanvasTest, DrawImage001, TestSize.Level1)
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawImage(image, px, py, sampling);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.DrawImage(image, px, py, sampling);
 }
 
 /**
@@ -288,6 +334,9 @@ HWTEST_F(SkiaCanvasTest, DrawImageRect001, TestSize.Level1)
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawImageRect(image, src, dst, sampling, SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.DrawImageRect(image, src, dst, sampling, SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
 }
 
 /**
@@ -305,6 +354,9 @@ HWTEST_F(SkiaCanvasTest, DrawImageRect002, TestSize.Level1)
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
     skiaCanvas.DrawImageRect(image, dst, sampling);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.DrawImageRect(image, dst, sampling);
 }
 
 /**
@@ -318,6 +370,9 @@ HWTEST_F(SkiaCanvasTest, DrawPicture001, TestSize.Level1)
     Picture picture;
     SkiaCanvas skiaCanvas;
     skiaCanvas.DrawPicture(picture);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.DrawPicture(picture);
 }
 
 /**
@@ -330,6 +385,9 @@ HWTEST_F(SkiaCanvasTest, ClipRoundRect001, TestSize.Level2)
 {
     RoundRect roundRect;
     SkiaCanvas skiaCanvas;
+    skiaCanvas.ClipRoundRect(roundRect, ClipOp::DIFFERENCE, false);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
     skiaCanvas.ClipRoundRect(roundRect, ClipOp::DIFFERENCE, false);
 }
 
@@ -346,6 +404,9 @@ HWTEST_F(SkiaCanvasTest, ClipPath001, TestSize.Level1)
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
     skiaCanvas.ClipPath(path, ClipOp::DIFFERENCE, false);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.ClipPath(path, ClipOp::DIFFERENCE, false);
 }
 
 /**
@@ -361,6 +422,9 @@ HWTEST_F(SkiaCanvasTest, SetMatrix001, TestSize.Level1)
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
     skiaCanvas.SetMatrix(matrix);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.SetMatrix(matrix);
 }
 
 /**
@@ -374,6 +438,9 @@ HWTEST_F(SkiaCanvasTest, ResetMatrix001, TestSize.Level2)
     Matrix matrix;
     SkiaCanvas skiaCanvas;
     skiaCanvas.SetMatrix(matrix);
+    skiaCanvas.ResetMatrix();
+
+    skiaCanvas.ImportSkCanvas(nullptr);
     skiaCanvas.ResetMatrix();
 }
 
@@ -390,6 +457,9 @@ HWTEST_F(SkiaCanvasTest, ConcatMatrix001, TestSize.Level1)
     SkiaCanvas skiaCanvas;
     skiaCanvas.AttachPen(pen);
     skiaCanvas.ConcatMatrix(matrix);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.ConcatMatrix(matrix);
 }
 
 /**
@@ -401,6 +471,9 @@ HWTEST_F(SkiaCanvasTest, ConcatMatrix001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, Rotate001, TestSize.Level2)
 {
     SkiaCanvas skiaCanvas;
+    skiaCanvas.Rotate(0.1f, 0.2f, 0.3f);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
     skiaCanvas.Rotate(0.1f, 0.2f, 0.3f);
 }
 
@@ -414,6 +487,9 @@ HWTEST_F(SkiaCanvasTest, Shear001, TestSize.Level2)
 {
     SkiaCanvas skiaCanvas;
     skiaCanvas.Shear(0.5f, 0.5f);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.Shear(0.5f, 0.5f);
 }
 
 /**
@@ -425,6 +501,9 @@ HWTEST_F(SkiaCanvasTest, Shear001, TestSize.Level2)
 HWTEST_F(SkiaCanvasTest, Flush001, TestSize.Level2)
 {
     SkiaCanvas skiaCanvas;
+    skiaCanvas.Flush();
+
+    skiaCanvas.ImportSkCanvas(nullptr);
     skiaCanvas.Flush();
 }
 
@@ -441,8 +520,72 @@ HWTEST_F(SkiaCanvasTest, SaveLayer001, TestSize.Level2)
     SaveLayerOps slo(&rect, &brush);
     SkiaCanvas skiaCanvas;
     skiaCanvas.SaveLayer(slo);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.SaveLayer(slo);
 }
 
+/**
+ * @tc.name: GetTotalMatrixTest001
+ * @tc.desc: Test for geting the total matrix of SkiaCanvas to device.
+ * @tc.type: FUNC
+ * @tc.require: I782P9
+ */
+HWTEST_F(SkiaCanvasTest, GetTotalMatrixTest001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+
+    skiaCanvas->ImportSkCanvas(nullptr);
+    auto matrix = skiaCanvas->GetTotalMatrix();
+}
+
+/**
+ * @tc.name: GetLocalClipBoundsTest001
+ * @tc.desc: Test for geting bounds of clip in local coordinates.
+ * @tc.type: FUNC
+ * @tc.require: I782P9
+ */
+HWTEST_F(SkiaCanvasTest, GetLocalClipBoundsTest001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+
+    skiaCanvas->ImportSkCanvas(nullptr);
+    auto rect = skiaCanvas->GetLocalClipBounds();
+}
+
+/**
+ * @tc.name: GetDeviceClipBoundsTest001
+ * @tc.desc: Test for geting bounds of clip in device corrdinates.
+ * @tc.type: FUNC
+ * @tc.require: I782P9
+ */
+HWTEST_F(SkiaCanvasTest, GetDeviceClipBoundsTest001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+
+    skiaCanvas->ImportSkCanvas(nullptr);
+    auto rect = skiaCanvas->GetDeviceClipBounds();
+}
+
+#ifdef ACE_ENABLE_GPU
+/**
+ * @tc.name: GetGPUContextTest001
+ * @tc.desc: Test for geting gpu context.
+ * @tc.type: FUNC
+ * @tc.require: I782P9
+ */
+HWTEST_F(SkiaCanvasTest, GetGPUContextTest001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+
+    skiaCanvas->ImportSkCanvas(nullptr);
+    auto gpuContetxt = skiaCanvas->GetGPUContext();
+}
+#endif
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

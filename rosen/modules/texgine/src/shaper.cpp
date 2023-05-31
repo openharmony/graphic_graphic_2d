@@ -36,32 +36,30 @@ namespace TextEngine {
 namespace {
 void DumpLineMetrics(std::vector<LineMetrics> &lineMetrics)
 {
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "DumpLineMetrics");
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "DumpLineMetrics");
     for (auto &metric : lineMetrics) {
-        for (auto &span : metric.lineSpans_) {
+        for (auto &span : metric.lineSpans) {
             span.Dump();
         }
     }
 }
 } // namespace
 
-std::vector<LineMetrics> Shaper::DoShape(std::vector<VariantSpan> spans,
-                                         const TypographyStyle &ys,
-                                         const std::unique_ptr<FontProviders> &fontProviders,
-                                         const double widthLimit)
+std::vector<LineMetrics> Shaper::DoShape(std::vector<VariantSpan> spans, const TypographyStyle &ys,
+    const std::unique_ptr<FontProviders> &fontProviders, const double widthLimit)
 {
     ScopedTrace scope("Shaper::DoShape");
     TextBreaker tb;
     auto ret = tb.WordBreak(spans, ys, fontProviders);
     if (ret) {
-        LOG2EX(ERROR) << "word break failed";
+        LOGEX_FUNC_LINE(ERROR) << "word break failed";
         return {};
     }
 
     BidiProcesser bp;
-    auto newSpans = bp.ProcessBidiText(spans, ys.direction_);
+    auto newSpans = bp.ProcessBidiText(spans, ys.direction);
     if (newSpans.empty()) {
-        LOG2EX(ERROR) << "Process BidiText failed";
+        LOGEX_FUNC_LINE(ERROR) << "Process BidiText failed";
         return {};
     }
 
@@ -70,19 +68,19 @@ std::vector<LineMetrics> Shaper::DoShape(std::vector<VariantSpan> spans,
 
     TextMerger tm;
     for (auto &metric : lineMetrics) {
-        auto ret = tm.MergeSpans(metric.lineSpans_);
-        std::swap(ret, metric.lineSpans_);
+        auto ret = tm.MergeSpans(metric.lineSpans);
+        std::swap(ret, metric.lineSpans);
     }
 
     TextReverser tr;
     for (auto &metric : lineMetrics) {
-        tr.ReverseRTLText(metric.lineSpans_);
-        tr.ProcessTypoDirection(metric.lineSpans_, ys.direction_);
+        tr.ReverseRTLText(metric.lineSpans);
+        tr.ProcessTypoDirection(metric.lineSpans, ys.direction);
     }
 
     TextShaper textShaper;
     for (const auto &metric : lineMetrics) {
-        for (const auto &span : metric.lineSpans_) {
+        for (const auto &span : metric.lineSpans) {
             textShaper.Shape(span, ys, fontProviders);
         }
     }

@@ -49,8 +49,8 @@ U_STABLE UBool U_EXPORT2 u_isWhitespace(UChar32 c)
 }
 
 struct TextSpanInfo {
-    bool rtl_ = false;
-    CharGroups cgs_ = CharGroups::CreateEmpty();
+    bool rtl = false;
+    CharGroups cgs = CharGroups::CreateEmpty();
 };
 
 class ControllerForTest {
@@ -58,8 +58,8 @@ public:
     static std::shared_ptr<TextSpan> GenerateTestSpan(TextSpanInfo info)
     {
         auto ts = std::make_shared<TextSpan>();
-        ts->rtl_ = info.rtl_;
-        ts->cgs_ = info.cgs_;
+        ts->rtl_ = info.rtl;
+        ts->cgs_ = info.cgs;
         return ts;
     }
 
@@ -138,53 +138,53 @@ public:
     static void SetUpTestCase()
     {
         // {0x013B, 13.664}: {glyph codepoint, glyph advanceX}
-        cgs1_.PushBack({.chars_ = TextConverter::ToUTF16("m"), .glyphs_ = {{0x013B, 13.664}}});
-        cgs1_.PushBack({.chars_ = TextConverter::ToUTF16("o"), .glyphs_ = {{0x0145, 9.456}}});
-        cgs1_.PushBack({.chars_ = TextConverter::ToUTF16("s"), .glyphs_ = {{0x0166, 7.28}}});
-        cgs1_.PushBack({.chars_ = TextConverter::ToUTF16("t"), .glyphs_ = {{0x016E, 5.88}}});
-        cgs1_.PushBack({.chars_ = TextConverter::ToUTF16(" "), .glyphs_ = {{0x0002, 4.32}}});
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16("m"), .glyphs = {{0x013B, 13.664}}});
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16("o"), .glyphs = {{0x0145, 9.456}}});
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16("s"), .glyphs = {{0x0166, 7.28}}});
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16("t"), .glyphs = {{0x016E, 5.88}}});
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16(" "), .glyphs = {{0x0002, 4.32}}});
 
-        cgs2_.PushBack({.chars_ = TextConverter::ToUTF16("m"), .glyphs_ = {{0x013B, 13.664}}});
-        cgs2_.PushBack({.chars_ = TextConverter::ToUTF16("o"), .glyphs_ = {{0x0145, 9.456}}});
+        cgs2_.PushBack({.chars = TextConverter::ToUTF16("m"), .glyphs = {{0x013B, 13.664}}});
+        cgs2_.PushBack({.chars = TextConverter::ToUTF16("o"), .glyphs = {{0x0145, 9.456}}});
 
-        tsCgs1_ = GenTestSpan({.rtl_ = false, .cgs_ = cgs1_});
+        tsCgs1_ = GenTestSpan({.rtl = false, .cgs = cgs1_});
         // (1, 2): (sart, end)
-        tsSubCgs12_ = GenTestSpan({.rtl_ = false, .cgs_ = cgs1_.GetSub(1, 2)});
+        tsSubCgs12_ = GenTestSpan({.rtl = false, .cgs = cgs1_.GetSub(1, 2)});
 
-        seqT_ = {GenTestSpan({.rtl_ = false, .cgs_  = cgs1_.GetSub(0, 1)})};
+        seqT_ = {GenTestSpan({.rtl = false, .cgs  = cgs1_.GetSub(0, 1)})};
 
-        seqTT_ = { GenTestSpan({.rtl_ = false, .cgs_  = cgs1_.GetSub(0, 1)}),
-                   GenTestSpan({.rtl_ = false, .cgs_  = cgs1_.GetSub(1, 2)}) };
+        seqTT_ = { GenTestSpan({.rtl = false, .cgs  = cgs1_.GetSub(0, 1)}),
+                   GenTestSpan({.rtl = false, .cgs  = cgs1_.GetSub(1, 2)}) };
 
-        seqTTST_ = { GenTestSpan({.rtl_ = false, .cgs_  = cgs1_.GetSub(0, 1)}),
-                     GenTestSpan({.rtl_ = false, .cgs_ = cgs1_.GetSub(1, 5)}),
-                     GenTestSpan({.rtl_ = false, .cgs_  = cgs1_.GetSub(0, 1)}) };
+        seqTTST_ = { GenTestSpan({.rtl = false, .cgs  = cgs1_.GetSub(0, 1)}),
+                     GenTestSpan({.rtl = false, .cgs = cgs1_.GetSub(1, 5)}),
+                     GenTestSpan({.rtl = false, .cgs  = cgs1_.GetSub(0, 1)}) };
 
-        seqTiTi_ = { GenTestSpan({.rtl_ = false, .cgs_  = cgs1_.GetSub(0, 1)}),
-                     GenTestSpan({.rtl_ = false, .cgs_  = cgs1_.GetSub(1, 2)}) };
+        seqTiTi_ = { GenTestSpan({.rtl = false, .cgs  = cgs1_.GetSub(0, 1)}),
+                     GenTestSpan({.rtl = false, .cgs  = cgs1_.GetSub(1, 2)}) };
 
-        seqTA_ = { GenTestSpan({.rtl_ = false, .cgs_  = cgs1_.GetSub(0, 1)}), std::make_shared<MyAnySpan>(0, 0) };
+        seqTA_ = { GenTestSpan({.rtl = false, .cgs  = cgs1_.GetSub(0, 1)}), std::make_shared<MyAnySpan>(0, 0) };
 
-        seqTTATT_ = { GenTestSpan({.rtl_ = false, .cgs_  = cgs1_.GetSub(0, 1)}),
-                      GenTestSpan({.rtl_ = false, .cgs_  = cgs1_.GetSub(1, 2)}),
+        seqTTATT_ = { GenTestSpan({.rtl = false, .cgs  = cgs1_.GetSub(0, 1)}),
+                      GenTestSpan({.rtl = false, .cgs  = cgs1_.GetSub(1, 2)}),
                       std::make_shared<MyAnySpan>(0, 0),
-                      GenTestSpan({.rtl_ = false, .cgs_ = cgs1_.GetSub(2, 3)}),
-                      GenTestSpan({.rtl_ = false, .cgs_ = cgs1_.GetSub(3, 4)}) };
+                      GenTestSpan({.rtl = false, .cgs = cgs1_.GetSub(2, 3)}),
+                      GenTestSpan({.rtl = false, .cgs = cgs1_.GetSub(3, 4)}) };
 
-        seqRL_ = { GenTestSpan({.rtl_ = true, .cgs_  = cgs1_.GetSub(0, 1)}),
-                   GenTestSpan({.rtl_ = false, .cgs_  = cgs1_.GetSub(1, 2)}) };
+        seqRL_ = { GenTestSpan({.rtl = true, .cgs  = cgs1_.GetSub(0, 1)}),
+                   GenTestSpan({.rtl = false, .cgs  = cgs1_.GetSub(1, 2)}) };
 
-        seqLR_ = { GenTestSpan({.rtl_ = false, .cgs_  = cgs1_.GetSub(0, 1)}),
-                   GenTestSpan({.rtl_ = true, .cgs_  = cgs1_.GetSub(1, 2)}) };
+        seqLR_ = { GenTestSpan({.rtl = false, .cgs  = cgs1_.GetSub(0, 1)}),
+                   GenTestSpan({.rtl = true, .cgs  = cgs1_.GetSub(1, 2)}) };
 
-        seqRLR_ = { GenTestSpan({.rtl_ = false, .cgs_  = cgs1_.GetSub(0, 1)}),
-                    GenTestSpan({.rtl_ = true, .cgs_  = cgs1_.GetSub(1, 2)}),
-                    GenTestSpan({.rtl_ = false, .cgs_ = cgs1_.GetSub(2, 3)}) };
+        seqRLR_ = { GenTestSpan({.rtl = false, .cgs  = cgs1_.GetSub(0, 1)}),
+                    GenTestSpan({.rtl = true, .cgs  = cgs1_.GetSub(1, 2)}),
+                    GenTestSpan({.rtl = false, .cgs = cgs1_.GetSub(2, 3)}) };
 
-        seqTTtt_ = { GenTestSpan({.rtl_ = false, .cgs_  = cgs1_.GetSub(0, 1)}),
-                     GenTestSpan({.rtl_ = false, .cgs_  = cgs1_.GetSub(1, 2)}),
-                     GenTestSpan({.rtl_ = false, .cgs_ = cgs2_.GetSub(0, 1)}),
-                     GenTestSpan({.rtl_ = false, .cgs_ = cgs2_.GetSub(1, 2)}) };
+        seqTTtt_ = { GenTestSpan({.rtl = false, .cgs  = cgs1_.GetSub(0, 1)}),
+                     GenTestSpan({.rtl = false, .cgs  = cgs1_.GetSub(1, 2)}),
+                     GenTestSpan({.rtl = false, .cgs = cgs2_.GetSub(0, 1)}),
+                     GenTestSpan({.rtl = false, .cgs = cgs2_.GetSub(1, 2)}) };
     }
     static inline std::shared_ptr<TextSpan> tsCgs1_ = nullptr;
     static inline std::shared_ptr<TextSpan> tsSubCgs12_ = nullptr;
@@ -217,21 +217,21 @@ HWTEST_F(TextMergerTest, MergeSpan, TestSize.Level1)
     std::shared_ptr<MyAnySpan> asNull = nullptr;
 
     TextMerger tm;
-    RUN_ALL_TESTINFO3(tm, {.arg1 = tsNull, .arg2 = false, .arg3 = {}, .exception = ExceptionType::InvalidArgument });
-    RUN_ALL_TESTINFO3(tm, {.arg1 = tsNull, .arg2 = false, .arg3 = {}, .exception = ExceptionType::InvalidArgument });
-    RUN_ALL_TESTINFO3(tm, {.arg1 = asNull, .arg2 = false, .arg3 = {}, .exception = ExceptionType::InvalidArgument });
+    RUN_ALL_TESTINFO3(tm, {.arg1 = tsNull, .arg2 = false, .arg3 = {}, .exception = ExceptionType::INVALID_ARGUMENT });
+    RUN_ALL_TESTINFO3(tm, {.arg1 = tsNull, .arg2 = false, .arg3 = {}, .exception = ExceptionType::INVALID_ARGUMENT });
+    RUN_ALL_TESTINFO3(tm, {.arg1 = asNull, .arg2 = false, .arg3 = {}, .exception = ExceptionType::INVALID_ARGUMENT });
     // (0, 0): (width, height)
     RUN_ALL_TESTINFO3(tm, {.arg1 = std::make_shared<MyAnySpan>(0, 0), .arg2 = false, .arg3 = CharGroups::CreateEmpty(),
      .checkFunc = GetMergerResultChecker(MergeResult::REJECTED) });
     RUN_ALL_TESTINFO3(tm, {.arg1 = std::make_shared<MyAnySpan>(0, 0), .arg2 = false, .arg3 = {},
      .checkFunc = GetMergerResultChecker(MergeResult::IGNORE) });
-    RUN_ALL_TESTINFO3(tm, {.arg1 = GenTestSpan({.rtl_ = true, .cgs_ = {}}), .arg2 = false, .arg3 = {},
+    RUN_ALL_TESTINFO3(tm, {.arg1 = GenTestSpan({.rtl = true, .cgs = {}}), .arg2 = false, .arg3 = {},
      .checkFunc = GetMergerResultChecker(MergeResult::REJECTED) });
-    RUN_ALL_TESTINFO3(tm, {.arg1 = GenTestSpan({.rtl_ = false, .cgs_ = {}}), .arg2 = false, .arg3 = {},
-     .exception = ExceptionType::ErrorStatus });
-    RUN_ALL_TESTINFO3(tm, {.arg1 = GenTestSpan({.rtl_ = false, .cgs_ = CharGroups::CreateEmpty()}),
-     .arg2 = false, .arg3 = {}, .exception = ExceptionType::ErrorStatus });
-    RUN_ALL_TESTINFO3(tm, {.arg1 = GenTestSpan({.rtl_ = false, .cgs_ = cgs1_}),
+    RUN_ALL_TESTINFO3(tm, {.arg1 = GenTestSpan({.rtl = false, .cgs = {}}), .arg2 = false, .arg3 = {},
+     .exception = ExceptionType::ERROR_STATUS });
+    RUN_ALL_TESTINFO3(tm, {.arg1 = GenTestSpan({.rtl = false, .cgs = CharGroups::CreateEmpty()}),
+     .arg2 = false, .arg3 = {}, .exception = ExceptionType::ERROR_STATUS });
+    RUN_ALL_TESTINFO3(tm, {.arg1 = GenTestSpan({.rtl = false, .cgs = cgs1_}),
      .arg2 = false, .arg3 = CharGroups::CreateEmpty(), .checkFunc = GetMergerResultChecker(MergeResult::REJECTED) });
     RUN_ALL_TESTINFO3(tm, {.init = InitMockArgs({1}, {0}), .arg1 = tsCgs1_, .arg2 = false, .arg3 = {},
      .checkFunc = GetMergerResultChecker(MergeResult::ACCEPTED, ControllerForTest::GetCharGroups(tsCgs1_)) });
@@ -269,8 +269,8 @@ HWTEST_F(TextMergerTest, MergeSpans, TestSize.Level1)
     std::shared_ptr<MyAnySpan> asNull = nullptr;
 
     TextMerger tm;
-    RUN_TESTINFO1(tm, { .arg1 = {tsNull}, .exception = ExceptionType::InvalidArgument });
-    RUN_TESTINFO1(tm, { .arg1 = {asNull}, .exception = ExceptionType::InvalidArgument });
+    RUN_TESTINFO1(tm, { .arg1 = {tsNull}, .exception = ExceptionType::INVALID_ARGUMENT });
+    RUN_TESTINFO1(tm, { .arg1 = {asNull}, .exception = ExceptionType::INVALID_ARGUMENT });
     RUN_TESTINFO1(tm, { .arg1 = {}, .checkFunc = CreateVecSizeChecker<VariantSpan>(0) });
     RUN_TESTINFO1(tm, { .arg1 = seqA, .checkFunc = MergedSpanChecker({{.isAnySpan_ = true}}) });
     RUN_TESTINFO1(tm, { .arg1 = seqAA, .checkFunc = MergedSpanChecker({{.isAnySpan_ = true}, {.isAnySpan_ = true}}) });

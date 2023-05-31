@@ -50,8 +50,8 @@ void RSParallelSubThreadTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
- HWTEST_F(RSParallelSubThreadTest, CreateResourceTest, TestSize.Level1)
- {
+HWTEST_F(RSParallelSubThreadTest, CreateResourceTest, TestSize.Level1)
+{
     auto renderContext = new RenderContext();
     ASSERT_TRUE(renderContext != nullptr);
     renderContext->InitializeEglContext();
@@ -66,7 +66,7 @@ void RSParallelSubThreadTest::TearDown() {}
     curThread->CreateResource();
     delete renderContext;
     renderContext = nullptr;
- }
+}
 
 /**
  * @tc.name: StartPrepareTest
@@ -74,8 +74,8 @@ void RSParallelSubThreadTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
- HWTEST_F(RSParallelSubThreadTest, StartPrepareTest, TestSize.Level1)
- {
+HWTEST_F(RSParallelSubThreadTest, StartPrepareTest, TestSize.Level1)
+{
     auto curThread = std::make_unique<RSParallelSubThread>(nullptr, ParallelRenderType::DRAW_IMAGE, 0);
     if (RSParallelRenderManager::Instance()->uniVisitor_ == nullptr) {
         RSParallelRenderManager::Instance()->uniVisitor_ = new RSUniRenderVisitor();
@@ -92,7 +92,7 @@ void RSParallelSubThreadTest::TearDown() {}
         RSParallelRenderManager::Instance()->uniVisitor_ = visitor;
     }
     ASSERT_TRUE(curThread->visitor_ != nullptr);
- }
+}
 
 /**
  * @tc.name: PrepareTest
@@ -100,7 +100,7 @@ void RSParallelSubThreadTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
- HWTEST_F(RSParallelSubThreadTest, PrepareTest, TestSize.Level1)
+HWTEST_F(RSParallelSubThreadTest, PrepareTest, TestSize.Level1)
 {
     auto curThread = std::make_unique<RSParallelSubThread>(0);
     curThread->threadTask_ = nullptr;
@@ -193,8 +193,8 @@ HWTEST_F(RSParallelSubThreadTest, FlushTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
- HWTEST_F(RSParallelSubThreadTest, WaitReleaseFenceTest, TestSize.Level1)
- {
+HWTEST_F(RSParallelSubThreadTest, WaitReleaseFenceTest, TestSize.Level1)
+{
     auto renderContext = new RenderContext();
     ASSERT_TRUE(renderContext != nullptr);
     auto curThread = std::make_unique<RSParallelSubThread>(renderContext, ParallelRenderType::FLUSH_ONE_BUFFER, 0);
@@ -204,7 +204,7 @@ HWTEST_F(RSParallelSubThreadTest, FlushTest, TestSize.Level1)
     curThread->WaitReleaseFence();
     delete renderContext;
     renderContext = nullptr;
- }
+}
 
 /**
  * @tc.name: CalcCostTest

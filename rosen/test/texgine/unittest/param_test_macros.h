@@ -101,7 +101,7 @@ HWTEST_F(CLASS##Test, FUNC, testing::ext::TestSize.Level1)                      
         std::function<void(void)> init = nullptr;                                      \
         CLASS object;                                                                  \
         PARAM_DEFINE_ARG##N(__VA_ARGS__)                                               \
-        ExceptionType exception = ExceptionType::Success;                              \
+        ExceptionType exception = ExceptionType::SUCCESS;                              \
         DEFINE_CHECK_##CHECKING##_FN(N, CLASS, FUNC, __VA_ARGS__) checkFunc = nullptr; \
     };                                                                                 \
     std::vector<struct TestInfo> data = PARAM_DATA_ARGS##N(__VA_ARGS__);               \
@@ -109,7 +109,7 @@ HWTEST_F(CLASS##Test, FUNC, testing::ext::TestSize.Level1)                      
         if (init != nullptr) {                                                         \
             init();                                                                    \
         }                                                                              \
-        if (exception != ExceptionType::Success) {                                     \
+        if (exception != ExceptionType::SUCCESS) {                                     \
             ASSERT_EXCEPTION(exception, object.FUNC(PARAM_CALLING_ARGS##N));           \
         } else {                                                                       \
             ASSERT_NE(checkFunc, nullptr);                                             \
@@ -139,7 +139,7 @@ HWTEST_F(CLASS##Test, FUNC, testing::ext::TestSize.Level1)                      
     struct TestInfo {                                                                            \
         std::function<void(void)> init = nullptr;                                                \
         PARAM_DEFINE_ARG##N(__VA_ARGS__)                                                         \
-        ExceptionType exception = ExceptionType::Success;                                        \
+        ExceptionType exception = ExceptionType::SUCCESS;                                        \
         DEFINE_CHECK_##CHECKING##_FN2(N, PARAMCLASS, PARAMFUNC, __VA_ARGS__) checkFunc = nullptr; \
     };                                                                                           \
 
@@ -149,7 +149,7 @@ HWTEST_F(CLASS##Test, FUNC, testing::ext::TestSize.Level1)                      
         if (init != nullptr) {                                                            \
             init();                                                                       \
         }                                                                                 \
-        if (exception != ExceptionType::Success) {                                        \
+        if (exception != ExceptionType::SUCCESS) {                                        \
             ASSERT_EXCEPTION(exception, (object).PARAMFUNC(PARAM_CALLING_ARGS##N));       \
         } else {                                                                          \
             ASSERT_NE(checkFunc, nullptr);                                                \

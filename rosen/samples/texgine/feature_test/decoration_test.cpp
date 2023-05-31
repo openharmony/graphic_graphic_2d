@@ -38,7 +38,7 @@ struct StyledText {
     {
         .text = "Decoration删除线",
         .style = {
-            .decoration = TextDecoration::LINETHROUGH,
+            .decoration = TextDecoration::LINE_THROUGH,
         },
     },
     {
@@ -51,7 +51,7 @@ struct StyledText {
         .text = "Decoration两两混合1",
         .style = {
             .decoration = TextDecoration::OVERLINE |
-                TextDecoration::LINETHROUGH,
+                TextDecoration::LINE_THROUGH,
         },
     },
     {
@@ -64,7 +64,7 @@ struct StyledText {
     {
         .text = "Decoration两两混合3",
         .style = {
-            .decoration = TextDecoration::LINETHROUGH |
+            .decoration = TextDecoration::LINE_THROUGH |
                 TextDecoration::UNDERLINE,
         },
     },
@@ -72,7 +72,7 @@ struct StyledText {
         .text = "Decoration全混合",
         .style = {
             .decoration = TextDecoration::OVERLINE |
-                TextDecoration::LINETHROUGH |
+                TextDecoration::LINE_THROUGH |
                 TextDecoration::UNDERLINE,
         },
     },

@@ -63,7 +63,7 @@
           "multimedia_image_framework",
           "cjson",
           "ipc",
-          "multimedia_player_framework"
+          "player_framework"
         ],
         "third_party": [
           "flutter",
@@ -85,6 +85,7 @@
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
             "//foundation/graphic/graphic_2d/frameworks/surfaceimage:libnative_image",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
+            "//foundation/graphic/graphic_2d/rosen/modules/texgine:libtexgine",
             "//third_party/vulkan-loader/openharmony:vulkan_loader",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer_json"
@@ -222,9 +223,22 @@
                 "modifier/rs_modifier_manager.h",
                 "modifier/rs_property.h",
                 "modifier/rs_extended_modifier.h",
-                "modifier/rs_property_modifier.h"
+                "modifier/rs_property_modifier.h",
+                "transaction/rs_interfaces.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+            "header": {
+              "header_files": [
+                "draw/canvas.h",
+                "draw/pen.h",
+                "image/bitmap.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include"
             }
           }
         ],

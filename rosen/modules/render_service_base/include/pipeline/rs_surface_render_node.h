@@ -21,6 +21,7 @@
 #include <memory>
 #include <tuple>
 
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkRect.h"
 #include "include/core/SkRefCnt.h"
 #ifdef NEW_SKIA
@@ -28,6 +29,7 @@
 #else
 #include "include/gpu/GrContext.h"
 #include "refbase.h"
+#endif
 #endif
 
 #include "common/rs_macros.h"
@@ -224,11 +226,19 @@ public:
 
     void OnApplyModifiers() override;
 
+#ifndef USE_ROSEN_DRAWING
     void SetTotalMatrix(const SkMatrix& totalMatrix)
+#else
+    void SetTotalMatrix(const Drawing::Matrix& totalMatrix)
+#endif
     {
         totalMatrix_ = totalMatrix;
     }
+#ifndef USE_ROSEN_DRAWING
     const SkMatrix& GetTotalMatrix() const
+#else
+    const Drawing::Matrix& GetTotalMatrix() const
+#endif
     {
         return totalMatrix_;
     }
@@ -238,10 +248,17 @@ public:
     // - All three variables are relative to their parent node.
     // - Alpha can be processed as an absolute value, as its parent (surface) node's alpha should always be 1.0f.
     // - The matrix and clipRegion should be applied according to the parent node's matrix.
+#ifndef USE_ROSEN_DRAWING
     void SetContextMatrix(const std::optional<SkMatrix>& transform, bool sendMsg = true);
     void SetContextAlpha(float alpha, bool sendMsg = true);
     void SetContextClipRegion(const std::optional<SkRect>& clipRegion, bool sendMsg = true);
     std::optional<SkRect> GetContextClipRegion() const override;
+#else
+    void SetContextMatrix(const std::optional<Drawing::Matrix>& transform, bool sendMsg = true);
+    void SetContextAlpha(float alpha, bool sendMsg = true);
+    void SetContextClipRegion(const std::optional<Drawing::Rect>& clipRegion, bool sendMsg = true);
+    std::optional<Drawing::Rect> GetContextClipRegion() const override;
+#endif
 
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
@@ -540,14 +557,22 @@ public:
 
     bool IsStartAnimationFinished() const;
     void SetStartAnimationFinished();
+#ifndef USE_ROSEN_DRAWING
     void SetCachedImage(sk_sp<SkImage> image)
+#else
+    void SetCachedImage(std::shared_ptr<Drawing::Image> image)
+#endif
     {
         SetDirty();
         std::lock_guard<std::mutex> lock(cachedImageMutex_);
         cachedImage_ = image;
     }
 
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> GetCachedImage() const
+#else
+    std::shared_ptr<Drawing::Image> GetCachedImage() const
+#endif
     {
         std::lock_guard<std::mutex> lock(cachedImageMutex_);
         return cachedImage_;
@@ -561,8 +586,16 @@ public:
 
     // if surfacenode's buffer has been comsumed, it should be set dirty
     bool UpdateDirtyIfFrameBufferConsumed();
+    // if buffer content updated, marked it as content dirty
+    bool IsDirty() const override;
+    bool IsContentDirty() const override;
+    void SetClean() override;
 
+#ifndef USE_ROSEN_DRAWING
     void UpdateSrcRect(const RSPaintFilterCanvas& canvas, const SkIRect& dstRect);
+#else
+    void UpdateSrcRect(const RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect);
+#endif
 
     // if a surfacenode's dstrect is empty, its subnodes' prepare stage can be skipped
     bool ShouldPrepareSubnodes();
@@ -587,7 +620,7 @@ public:
     bool GetAnimateState() const{
         return animateState_;
     }
-    bool LeashWindowRelatedAppWindowOccluded();
+    bool LeashWindowRelatedAppWindowOccluded(std::shared_ptr<RSSurfaceRenderNode>& appNode);
 
     void OnTreeStateChanged() override;
 
@@ -626,13 +659,22 @@ private:
     std::mutex parallelVisitMutex_;
 
     float contextAlpha_ = 1.0f;
+#ifndef USE_ROSEN_DRAWING
     std::optional<SkMatrix> contextMatrix_;
     std::optional<SkRect> contextClipRect_;
+#else
+    std::optional<Drawing::Matrix> contextMatrix_;
+    std::optional<Drawing::Rect> contextClipRect_;
+#endif
 
     bool isSecurityLayer_ = false;
     bool hasFingerprint_ = false;
     RectI srcRect_;
+#ifndef USE_ROSEN_DRAWING
     SkMatrix totalMatrix_;
+#else
+    Drawing::Matrix totalMatrix_;
+#endif
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float positionZ_ = 0.0f;
@@ -720,7 +762,11 @@ private:
 
     bool startAnimationFinished_ = false;
     mutable std::mutex cachedImageMutex_;
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> cachedImage_;
+#else
+    std::shared_ptr<Drawing::Image> cachedImage_;
+#endif
 
     // used for hardware enabled nodes
     bool isCurrentFrameHardwareEnabled_ = false;

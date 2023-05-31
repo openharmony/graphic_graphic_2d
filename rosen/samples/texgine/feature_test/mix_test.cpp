@@ -118,7 +118,7 @@ struct Info {
     {
         .res = g_longRes,
         .imageHeight = 16,
-        .tpStyle = { .maxLines_ = 2 },
+        .tpStyle = { .maxLines = 2 },
         .title = "maxLines: 2",
     },
     {

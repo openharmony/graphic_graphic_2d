@@ -199,13 +199,13 @@ struct Surface {
 };
 
 struct Swapchain {
-    Swapchain(Surface& surface, uint32_t numImages, VkPresentModeKHR presentMode, int preTransform)
+    Swapchain(Surface &surface, uint32_t numImages, VkPresentModeKHR presentMode, int preTransform)
         : surface(surface), numImages(numImages), mailboxMode(presentMode == VK_PRESENT_MODE_MAILBOX_KHR),
           preTransform(preTransform), frameTimestampsEnabled(false),
           shared(presentMode == VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR ||
                  presentMode == VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR) {}
 
-    Surface& surface;
+    Surface &surface;
     uint32_t numImages;
     bool mailboxMode;
     int preTransform;
@@ -286,7 +286,7 @@ VKAPI_ATTR void DefaultFree(void*, void* ptr)
     free(ptr);
 }
 
-const VkAllocationCallbacks& GetDefaultAllocator()
+const VkAllocationCallbacks &GetDefaultAllocator()
 {
     static const VkAllocationCallbacks defaultAllocCallbacks = {
         .pUserData = nullptr,
@@ -345,7 +345,7 @@ static bool IsFencePending(int fd)
     return syncFence->Wait(0) == -1 && errno == ETIME;
 }
 
-void ReleaseSwapchainImage(VkDevice device, NativeWindow* window, int releaseFence, Swapchain::Image& image,
+void ReleaseSwapchainImage(VkDevice device, NativeWindow* window, int releaseFence, Swapchain::Image &image,
                            bool deferIfPending)
 {
     if (releaseFence != -1 && !image.requested) {
@@ -428,7 +428,7 @@ GraphicPixelFormat GetPixelFormat(VkFormat format)
 VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKHR* createInfo, int32_t* numImages)
 {
     GraphicPixelFormat pixelFormat = GetPixelFormat(createInfo->imageFormat);
-    Surface& surface = *SurfaceFromHandle(createInfo->surface);
+    Surface &surface = *SurfaceFromHandle(createInfo->surface);
 
     NativeWindow* window = surface.window;
     int err = NativeWindowHandleOpt(window, SET_FORMAT, pixelFormat);
@@ -510,12 +510,12 @@ void InitImageCreateInfo(const VkSwapchainCreateInfoKHR* createInfo, VkImageCrea
     imageCreate->pQueueFamilyIndices = createInfo->pQueueFamilyIndices;
 }
 
-VKAPI_ATTR VkResult CreateImages(int32_t& numImages, Swapchain* swapchain, const VkSwapchainCreateInfoKHR* createInfo,
-    VkImageCreateInfo& imageCreate, VkDevice device)
+VKAPI_ATTR VkResult CreateImages(int32_t &numImages, Swapchain* swapchain, const VkSwapchainCreateInfoKHR* createInfo,
+    VkImageCreateInfo &imageCreate, VkDevice device)
 {
     VkLayerDispatchTable* pDisp =
         GetLayerDataPtr(GetDispatchKey(device))->deviceDispatchTable.get();
-    Surface& surface = *SurfaceFromHandle(createInfo->surface);
+    Surface &surface = *SurfaceFromHandle(createInfo->surface);
     NativeWindow* window = surface.window;
     if (createInfo->oldSwapchain != VK_NULL_HANDLE) {
         SWLOGI("recreate swapchain ,clean buffer queue");
@@ -523,7 +523,7 @@ VKAPI_ATTR VkResult CreateImages(int32_t& numImages, Swapchain* swapchain, const
     }
     VkResult result = VK_SUCCESS;
     for (int32_t i = 0; i < numImages; i++) {
-        Swapchain::Image& img = swapchain->images[i];
+        Swapchain::Image &img = swapchain->images[i];
         NativeWindowBuffer* buffer = nullptr;
         int err = NativeWindowRequestBuffer(window, &buffer, &img.requestFence);
         if (err != OHOS::GSERROR_OK) {
@@ -545,7 +545,7 @@ VKAPI_ATTR VkResult CreateImages(int32_t& numImages, Swapchain* swapchain, const
 
     SWLOGD("swapchain init shared %{public}d", swapchain->shared);
     for (int32_t i = 0; i < numImages; i++) {
-        Swapchain::Image& img = swapchain->images[i];
+        Swapchain::Image &img = swapchain->images[i];
         if (img.requested) {
             if (!swapchain->shared) {
                 NativeWindowCancelBuffer(window, img.buffer);
@@ -585,7 +585,7 @@ static void DestroySwapchainInternal(VkDevice device, VkSwapchainKHR swapchainHa
 VKAPI_ATTR VkResult VKAPI_CALL CreateSwapchainKHR(VkDevice device, const VkSwapchainCreateInfoKHR* createInfo,
     const VkAllocationCallbacks* allocator, VkSwapchainKHR* swapchainHandle)
 {
-    Surface& surface = *SurfaceFromHandle(createInfo->surface);
+    Surface &surface = *SurfaceFromHandle(createInfo->surface);
     if (surface.swapchainHandle != createInfo->oldSwapchain) {
         return VK_ERROR_NATIVE_WINDOW_IN_USE_KHR;
     }
@@ -640,7 +640,7 @@ VKAPI_ATTR void VKAPI_CALL DestroySwapchainKHR(
 VKAPI_ATTR VkResult VKAPI_CALL GetSwapchainImagesKHR(
     VkDevice device, VkSwapchainKHR vkSwapchain, uint32_t* count, VkImage* images)
 {
-    const Swapchain& swapchain = *SwapchainFromHandle(vkSwapchain);
+    const Swapchain &swapchain = *SwapchainFromHandle(vkSwapchain);
     if (images == nullptr) {
         *count = swapchain.numImages;
         return VK_SUCCESS;
@@ -662,7 +662,7 @@ VKAPI_ATTR VkResult VKAPI_CALL GetSwapchainImagesKHR(
 VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainKHR swapchainHandle,
     uint64_t timeout, VkSemaphore semaphore, VkFence vkFence, uint32_t* imageIndex)
 {
-    Swapchain& swapchain = *SwapchainFromHandle(swapchainHandle);
+    Swapchain &swapchain = *SwapchainFromHandle(swapchainHandle);
     NativeWindow* nativeWindow = swapchain.surface.window;
     VkResult result = VK_SUCCESS;
 
@@ -723,7 +723,7 @@ VkResult AcquireNextImage2KHR(VkDevice device, const VkAcquireNextImageInfoKHR* 
 }
 
 const VkPresentRegionKHR* GetPresentRegion(
-    const VkPresentRegionKHR* regions, const Swapchain& swapchain, uint32_t index)
+    const VkPresentRegionKHR* regions, const Swapchain &swapchain, uint32_t index)
 {
     return (regions && !swapchain.mailboxMode) ? &regions[index] : nullptr;
 }
@@ -747,7 +747,7 @@ const VkPresentRegionKHR* GetPresentRegions(const VkPresentInfoKHR* presentInfo)
 }
 
 VkResult GetReleaseFence(VkQueue queue, const VkPresentInfoKHR* presentInfo,
-    Swapchain::Image& img, int32_t &fence)
+    Swapchain::Image &img, int32_t &fence)
 {
     LayerData* deviceLayerData = GetLayerDataPtr(GetDispatchKey(queue));
     VkResult result = deviceLayerData->deviceDispatchTable->GetNativeFenceFdOpenHarmony(
@@ -781,7 +781,7 @@ void InitRegionRect(const VkRectLayerKHR* layer, struct Region::Rect* rect)
 }
 
 VkResult FlushBuffer(const VkPresentRegionKHR* region, struct Region::Rect* rects,
-    Swapchain& swapchain, Swapchain::Image& img, int32_t fence)
+    Swapchain &swapchain, Swapchain::Image &img, int32_t fence)
 {
     const VkAllocationCallbacks* defaultAllocator = &GetDefaultAllocator();
     Region localRegion = {};
@@ -849,8 +849,8 @@ VKAPI_ATTR VkResult VKAPI_CALL QueuePresentKHR(
     VkDevice device = deviceLayerData->device;
 
     for (uint32_t i = 0; i < presentInfo->swapchainCount; i++) {
-        Swapchain& swapchain = *(reinterpret_cast<Swapchain*>(presentInfo->pSwapchains[i]));
-        Swapchain::Image& img = swapchain.images[presentInfo->pImageIndices[i]];
+        Swapchain &swapchain = *(reinterpret_cast<Swapchain*>(presentInfo->pSwapchains[i]));
+        Swapchain::Image &img = swapchain.images[presentInfo->pImageIndices[i]];
         const VkPresentRegionKHR* region = GetPresentRegion(regions, swapchain, i);
         int32_t fence = -1;
         ret = GetReleaseFence(queue, presentInfo, img, fence);
@@ -1070,8 +1070,8 @@ VKAPI_ATTR void VKAPI_CALL DestroyInstance(
     FreeLayerDataPtr(instanceKey);
 }
 
-bool CheckExtensionAvailable(const std::string extensionName,
-                             const std::vector<VkExtensionProperties>& deviceExtensions)
+bool CheckExtensionAvailable(const std::string &extensionName,
+                             const std::vector<VkExtensionProperties> &deviceExtensions)
 {
     bool extensionAvailable = false;
     for (uint32_t i = 0; i < deviceExtensions.size(); i++) {
@@ -1084,7 +1084,7 @@ bool CheckExtensionAvailable(const std::string extensionName,
 }
 
 VkResult AddDeviceExtensions(VkPhysicalDevice gpu, const LayerData* gpuLayerData,
-                             std::vector<const char*>& enabledExtensions)
+                             std::vector<const char*> &enabledExtensions)
 {
     VkResult result = VK_SUCCESS;
     uint32_t deviceExtensionCount = 0;

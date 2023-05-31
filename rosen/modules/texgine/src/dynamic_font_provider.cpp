@@ -39,29 +39,29 @@ std::shared_ptr<DynamicFontProvider> DynamicFontProvider::Create() noexcept(true
 int DynamicFontProvider::LoadFont(const std::string &familyName, const void *data, size_t datalen) noexcept(true)
 {
     if (data == nullptr) {
-        LOG2EX(ERROR) << "data is nullptr!";
+        LOGEX_FUNC_LINE(ERROR) << "data is nullptr!";
         return PARAMETERERROR;
     }
 
     if (datalen == 0) {
-        LOG2EX(ERROR) << "datalen is 0!";
+        LOGEX_FUNC_LINE(ERROR) << "datalen is 0!";
         return PARAMETERERROR;
     }
 
     auto stream = TexgineMemoryStream::MakeCopy(data, datalen);
     if (stream == nullptr) {
-        LOG2EX(ERROR) << "stream is nullptr!";
+        LOGEX_FUNC_LINE(ERROR) << "stream is nullptr!";
         return APIERROR;
     }
 
     auto texgineTypeface = TexgineTypeface::MakeFromStream(std::move(stream));
     if (texgineTypeface == nullptr) {
-        LOG2EX(ERROR) << "texgineTypeface is nullptr!";
+        LOGEX_FUNC_LINE(ERROR) << "texgineTypeface is nullptr!";
         return APIERROR;
     }
 
     auto typeface = std::make_unique<Typeface>(texgineTypeface);
-    LOG2EX_DEBUG() << "load font name:" << familyName;
+    LOGEX_FUNC_LINE_DEBUG() << "load font name:" << familyName;
     auto dfss = std::make_shared<DynamicFontStyleSet>(std::move(typeface));
     fontStyleSetMap_[familyName] = std::make_shared<VariantFontStyleSet>(dfss);
     return 0;

@@ -54,9 +54,9 @@ public:
     bool GetRenderFinish();
     void SetSuperTask(std::unique_ptr<RSSuperRenderTask> superRenderTask);
     void SetCompositionTask(std::unique_ptr<RSCompositionTask> compositionTask);
-    EGLContext GetSharedContext();
-    sk_sp<SkSurface> GetSkSurface();
-    sk_sp<SkImage> GetTexture();
+    EGLContext GetSharedContext() const;
+    sk_sp<SkSurface> GetSkSurface() const;
+    sk_sp<SkImage> GetTexture() const;
     bool WaitReleaseFence();
     std::shared_ptr<RSUniRenderVisitor> GetUniVisitor() const
     {
@@ -115,7 +115,7 @@ private:
     std::unique_ptr<RSSuperRenderTask> threadTask_;
     std::unique_ptr<RSCompositionTask> compositionTask_ = nullptr;
 
-    RSUniRenderVisitor *mainVisitor_;
+    RSUniRenderVisitor *mainVisitor_ = nullptr;
     ParallelRenderType renderType_;
     sk_sp<SkImage> texture_;
     EGLSyncKHR eglSync_ = EGL_NO_SYNC_KHR;

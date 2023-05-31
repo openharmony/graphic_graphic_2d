@@ -53,7 +53,7 @@ void TexgineCanvas::Clear(uint32_t color) const
     canvas_->clear(color);
 }
 
-int TexgineCanvas::Save()
+int TexgineCanvas::Save() const
 {
     if (canvas_ == nullptr) {
         // 1 is failed
@@ -72,7 +72,7 @@ void TexgineCanvas::Translate(float dx, float dy) const
     canvas_->translate(dx, dy);
 }
 
-std::shared_ptr<SkCanvas> TexgineCanvas::GetCanvas() const
+SkCanvas *TexgineCanvas::GetCanvas() const
 {
     return canvas_;
 }
@@ -86,13 +86,9 @@ void TexgineCanvas::Restore() const
     canvas_->restore();
 }
 
-void TexgineCanvas::SetCanvas(const SkCanvas &canvas)
+void TexgineCanvas::SetCanvas(SkCanvas *canvas)
 {
-    if (canvas_ == nullptr) {
-        return;
-    }
-
-    *canvas_ = canvas;
+    canvas_ = canvas;
 }
 } // namespace TextEngine
 } // namespace Rosen

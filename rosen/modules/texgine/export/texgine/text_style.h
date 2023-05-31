@@ -62,10 +62,10 @@ private:
  */
 struct TextShadow {
     // The offset between the shaded text and the main text
-    double offsetX_ = 0.0;
-    double offsetY_ = 0.0;
-    uint32_t color_ = 0xffcccccc;
-    uint32_t blurLeave_ = 0;
+    double offsetX = 0.0;
+    double offsetY = 0.0;
+    uint32_t color = 0xffcccccc;
+    uint32_t blurLeave = 0;
 
     // Implements the equality operator.
     bool operator ==(TextShadow const& rhs) const;
@@ -77,29 +77,29 @@ struct TextShadow {
  */
 struct TextStyle {
     // font style
-    FontWeight fontWeight_ = FontWeight::W400;
-    FontStyle fontStyle_ = FontStyle::NORMAL;
-    std::vector<std::string> fontFamilies_ = {};
-    double fontSize_ = 16.0;
-    FontFeatures fontFeature_;
+    FontWeight fontWeight = FontWeight::W400;
+    FontStyle fontStyle = FontStyle::NORMAL;
+    std::vector<std::string> fontFamilies = {};
+    double fontSize = 16.0;
+    FontFeatures fontFeature;
 
     // Decoration style
-    TextDecoration decoration_ = TextDecoration::NONE;
-    std::optional<uint32_t> decorationColor_ = std::nullopt;
-    TextDecorationStyle decorationStyle_ = TextDecorationStyle::SOLID;
-    double decorationThicknessScale_ = 1.0;
+    TextDecoration decoration = TextDecoration::NONE;
+    std::optional<uint32_t> decorationColor = std::nullopt;
+    TextDecorationStyle decorationStyle = TextDecorationStyle::SOLID;
+    double decorationThicknessScale = 1.0;
 
     // text style
-    uint32_t color_ = 0xff000000; // black
-    TextBaseline baseline_ = TextBaseline::ALPHABETIC;
-    std::string locale_;
-    bool heightOnly_ = false; // true means text height is heightScale_ * fontSize_
-    double heightScale_ = 1.0;
-    double letterSpacing_ = 0.0;
-    double wordSpacing_ = 0.0;
-    std::optional<TexginePaint> foreground_ = std::nullopt;
-    std::optional<TexginePaint> background_ = std::nullopt;
-    std::vector<TextShadow> shadows_;
+    uint32_t color = 0xff000000; // black
+    TextBaseline baseline = TextBaseline::ALPHABETIC;
+    std::string locale = "";
+    bool heightOnly = false; // true means text height is heightScale_ * fontSize_
+    double heightScale = 1.0;
+    double letterSpacing = 0.0;
+    double wordSpacing = 0.0;
+    std::optional<TexginePaint> foreground = std::nullopt;
+    std::optional<TexginePaint> background = std::nullopt;
+    std::vector<TextShadow> shadows;
 
     // Implements the equality operator.
     bool operator ==(TextStyle const& rhs) const;

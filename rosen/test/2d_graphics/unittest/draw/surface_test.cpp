@@ -13,9 +13,12 @@
  * limitations under the License.
  */
 
+#include <memory>
 #include "gtest/gtest.h"
 
 #include "draw/surface.h"
+#include "effect/color_space.h"
+#include "image/gpu_context.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -40,7 +43,7 @@ void SurfaceTest::TearDown() {}
  * @tc.name: Surface001
  * @tc.desc: Test for creating Surface.
  * @tc.type: FUNC
- * @tc.require:I774GD 
+ * @tc.require:I774GD
  */
 HWTEST_F(SurfaceTest, Surface001, TestSize.Level1)
 {
@@ -78,6 +81,7 @@ HWTEST_F(SurfaceTest, SurfaceBind002, TestSize.Level1)
     ASSERT_TRUE(surface->Bind(bitmap));
 }
 
+#ifdef ACE_ENABLE_GPU
 /**
  * @tc.name: SurfaceBind003
  * @tc.desc: Test for binding texture Surface.
@@ -104,7 +108,14 @@ HWTEST_F(SurfaceTest, SurfaceBind004, TestSize.Level1)
     ASSERT_TRUE(surface != nullptr);
     FrameBuffer info;
     ASSERT_FALSE(surface->Bind(info));
+
+    info.gpuContext = std::make_shared<GPUContext>();
+    ASSERT_FALSE(surface->Bind(info));
+
+    info.colorSpace = ColorSpace::CreateSRGB();
+    ASSERT_FALSE(surface->Bind(info));
 }
+#endif
 
 /**
  * @tc.name: GetCanvas001

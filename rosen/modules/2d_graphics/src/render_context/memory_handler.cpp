@@ -30,9 +30,9 @@ void MemoryHandler::ConfigureContext(GrContextOptions* context, const char* iden
     context->fPersistentCache = &cache;
 }
 
-std::string MemoryHandler::QuerryShader() const
+std::string MemoryHandler::QuerryShader()
 {
-    auto& cache = ShaderCache::Instance();
+    const auto& cache = ShaderCache::Instance();
     if (!cache.IfInitialized()) {
         LOGW("ShaderCache is not intialized.");
     }
@@ -43,9 +43,9 @@ std::string MemoryHandler::QuerryShader() const
     return ramString;
 }
 
-std::string MemoryHandler::ClearShader() const
+std::string MemoryHandler::ClearShader()
 {
-    auto& cache = ShaderCache::Instance();
+    const auto& cache = ShaderCache::Instance();
     LOGW("All shaders are cleaned");
     size_t cleanedRam = cache.CleanAllShaders();
     std::string ramString = "All shaders are cleaned, RAM freed: " + std::to_string(cleanedRam);

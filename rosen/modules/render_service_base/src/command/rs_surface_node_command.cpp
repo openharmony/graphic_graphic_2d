@@ -48,7 +48,8 @@ void SurfaceNodeCommandHelper::SetContextAlpha(RSContext& context, NodeId id, fl
 }
 
 #ifndef USE_ROSEN_DRAWING
-void SurfaceNodeCommandHelper::SetContextClipRegion(RSContext& context, NodeId id, const std::optional<SkRect>& clipRect)
+void SurfaceNodeCommandHelper::SetContextClipRegion(
+    RSContext& context, NodeId id, const std::optional<SkRect>& clipRect)
 #else
 void SurfaceNodeCommandHelper::SetContextClipRegion(
     RSContext& context, NodeId id, const std::optional<Drawing::Rect>& clipRect)
@@ -96,7 +97,8 @@ void SurfaceNodeCommandHelper::ConnectToNodeInRenderService(RSContext& context, 
     }
 }
 
-void SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh(RSContext& context, NodeId id, std::function<void(void)> callback)
+void SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh(
+    RSContext& context, NodeId id, std::function<void(void)> callback)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         if (node->NeedSetCallbackForRenderThreadRefresh()) {
@@ -141,8 +143,8 @@ void SurfaceNodeCommandHelper::SetSurfaceNodeType(RSContext& context, NodeId nod
     }
 }
 
-void SurfaceNodeCommandHelper::SetContainerWindow(RSContext& context, NodeId nodeId,
-    bool hasContainerWindow, float density)
+void SurfaceNodeCommandHelper::SetContainerWindow(
+    RSContext& context, NodeId nodeId, bool hasContainerWindow, float density)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetContainerWindow(hasContainerWindow, density);
