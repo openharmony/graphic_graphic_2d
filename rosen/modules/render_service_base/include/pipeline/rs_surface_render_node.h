@@ -103,6 +103,11 @@ public:
         return isLastFrameHardwareEnabled_;
     }
 
+    bool IsCurrentFrameHardwareEnabled() const
+    {
+        return isCurrentFrameHardwareEnabled_;
+    }
+
     void MarkCurrentFrameHardwareEnabled()
     {
         isCurrentFrameHardwareEnabled_ = true;

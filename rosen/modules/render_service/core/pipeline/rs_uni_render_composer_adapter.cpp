@@ -87,14 +87,9 @@ void RSUniRenderComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& l
 
 void RSUniRenderComposerAdapter::SetPreBufferInfo(RSSurfaceHandler& surfaceHandler, ComposeInfo& info) const
 {
-    if (surfaceHandler.IsPreBufferReleased()) {
-        // reset prevBuffer if same layer has been committed successfully,
-        // to avoid releasing the same buffer next frame in some situations.
-        info.preBuffer = nullptr;
-    } else {
-        info.preBuffer = surfaceHandler.GetPreBuffer().buffer;
-        surfaceHandler.SetPreBufferReleased(true);
-    }
+    auto preBuffer = surfaceHandler.GetPreBuffer();
+    info.preBuffer = preBuffer.buffer;
+    preBuffer.Reset();
 }
 
 // private func, for RSDisplayRenderNode
