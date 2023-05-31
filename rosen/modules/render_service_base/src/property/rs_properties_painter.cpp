@@ -749,7 +749,7 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     canvas.restore();
 
     Vector4f stretchSize = GetStretchSize(properties);
-    /* Calculates the relative coordinates of the clipbounds 
+    /* Calculates the relative coordinates of the clipbounds
         with respect to the origin of the current canvas coordinates */
     SkMatrix worldToLocalMat;
     if (!canvas.getTotalMatrix().invert(&worldToLocalMat)) {
