@@ -243,7 +243,8 @@ public:
         return totalMatrix_;
     }
 
-    // Transfer the rendering context variables (matrix, alpha, and clipRegion) from the source node (in the render thread) to the
+    // Transfer the rendering context variables (matrix, alpha, and clipRegion) from the
+    // source node (in the render thread) to the
     // target node (in the render service). Note that:
     // - All three variables are relative to their parent node.
     // - Alpha can be processed as an absolute value, as its parent (surface) node's alpha should always be 1.0f.

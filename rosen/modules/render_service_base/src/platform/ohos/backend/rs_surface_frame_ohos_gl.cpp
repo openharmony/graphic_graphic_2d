@@ -49,6 +49,10 @@ SkCanvas* RSSurfaceFrameOhosGl::GetCanvas()
     if (skSurface_ == nullptr) {
         CreateSurface();
     }
+    if (skSurface_ == nullptr) {
+        ROSEN_LOGE("RSSurfaceFrameOhosGl::GetCanvas, skSurface_ is nullptr.");
+        return nullptr;
+    }
     return skSurface_->getCanvas();
 }
 

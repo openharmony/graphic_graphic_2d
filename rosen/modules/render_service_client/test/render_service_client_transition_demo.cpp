@@ -427,7 +427,7 @@ void Transition2()
 void Transition3()
 {
     nodes.emplace_back(RSCanvasNode::Create());
-    nodes[2]->SetBounds({ 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT});
+    nodes[NUMBER_TWO]->SetBounds({ 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT});
     // define custom modifier for transition
     auto transitionModifier4 = std::make_shared<TransitionModifier4>();
     auto transitionModifier5 = std::make_shared<TransitionModifier5>();
