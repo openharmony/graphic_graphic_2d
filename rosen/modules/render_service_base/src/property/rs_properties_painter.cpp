@@ -746,7 +746,8 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     canvas.restore();
 
     Vector4f stretchSize = GetStretchSize(properties);
-    // Calculates the relative coordinates of the clipbounds with respect to the origin of the current canvas coordinates
+    /* Calculates the relative coordinates of the clipbounds
+        with respect to the origin of the current canvas coordinates */
     SkMatrix worldToLocalMat;
     if (!canvas.getTotalMatrix().invert(&worldToLocalMat)) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch get invert matrix failed.");
@@ -795,7 +796,8 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
         canvas.drawRect(SkRect::MakeXYWH(-stretchSize.x_, -stretchSize.y_, scaledBounds.width(), scaledBounds.height()),
             paint);
     } else {
-        scaleMat.setScale(scaledBounds.width() / bounds.width(), scaledBounds.height() / bounds.height());
+        scaleMat.setScale(scaledBounds.width() / bounds.width() * scaleMat.getScaleX(),
+            scaledBounds.height() / bounds.height() * scaleMat.getScaleY());
 #ifdef NEW_SKIA
         paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, SkSamplingOptions(), &scaleMat));
 #else
