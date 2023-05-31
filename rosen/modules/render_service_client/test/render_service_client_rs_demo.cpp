@@ -317,9 +317,7 @@ public:
             .SetSurfaceNodeSize(SkRect::MakeXYWH(SURFACE_NODE_SIZE, 0, screenWidth_ * 0.4f, screenheight_ * 0.3f))
             .SetBufferSizeAuto()
             .SetDraw([&](SkCanvas &canvas, SkPaint &paint) -> void {
-                canvas.drawRect(
-                    SkRect::MakeXYWH(0, 0, screenWidth_ * 0.4f, screenheight_ * 0.3f),
-                    paint);
+                canvas.drawRect(SkRect::MakeXYWH(0, 0, screenWidth_ * 0.4f, screenheight_ * 0.3f), paint);
             })
             .Run();
         pipelineTestUtils::ToDrawSurface()
