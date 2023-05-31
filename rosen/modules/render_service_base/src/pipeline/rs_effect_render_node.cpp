@@ -70,19 +70,16 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
         }
     }
 
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetBackgroundFilter());
-    if (filter != nullptr) {
+    if (GetRenderProperties().GetBackgroundFilter() != nullptr) {
         RectI childRec = GetChildrenRect();
-        SkIRect skIRect;
-        skIRect.setXYWH(childRec.GetLeft(), childRec.GetTop(), childRec.GetWidth(), childRec.GetHeight());
-        RSPropertiesPainter::DrawBackgroundEffect(GetRenderProperties(), canvas, filter, skIRect);
+        RSPropertiesPainter::DrawBackgroundEffect(GetRenderProperties(), canvas,
+            { childRec.GetLeft(), childRec.GetTop(), childRec.GetRight(), childRec.GetBottom() });
     }
-    // temporarily adapt to color filter
-    canvas.SetColorFilter(GetRenderProperties().GetColorFilter());
 }
 
 void RSEffectRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
+    RSPropertiesPainter::DrawForegroundEffect(GetRenderProperties(), canvas);
     canvas.RestoreEffectData();
 }
 

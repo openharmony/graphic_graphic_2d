@@ -24,8 +24,9 @@
 #include <vector>
 
 #ifndef USE_ROSEN_DRAWING
-#include "include/core/SkSurface.h"
 #include "include/core/SkColorFilter.h"
+#include "include/core/SkPath.h"
+#include "include/core/SkSurface.h"
 #else
 #include "draw/canvas.h"
 #include "draw/surface.h"
@@ -39,9 +40,9 @@ namespace Rosen {
 
 #ifndef USE_ROSEN_DRAWING
 struct CacheEffectData {
-    sk_sp<SkImage> image = nullptr;
-    SkIRect clipRect;
-    sk_sp<SkColorFilter> colorFilter = nullptr;
+    sk_sp<SkImage> cachedImage_ = nullptr;
+    SkIRect cachedRect_ = SkIRect::MakeEmpty();
+    SkPath childrenPath_;
 };
 #endif
 
@@ -203,8 +204,8 @@ public:
 #ifndef USE_ROSEN_DRAWING
     // effect cache data related
     void SetEffectData(const CacheEffectData& effectData);
-    void SetColorFilter(const sk_sp<SkColorFilter>& colorFilter);
-    CacheEffectData GetEffectData() const;
+    void SetChildrenPath(const SkPath& childrenPath);
+    const CacheEffectData& GetEffectData() const;
 
     void SaveEffectData();
     void RestoreEffectData();

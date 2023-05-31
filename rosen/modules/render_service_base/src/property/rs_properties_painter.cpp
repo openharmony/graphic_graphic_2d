@@ -711,9 +711,13 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 }
 #endif
 
-void RSPropertiesPainter::DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas,
-    std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& rect)
+void RSPropertiesPainter::DrawBackgroundEffect(
+    const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkIRect& rect)
 {
+    auto filter = std::static_pointer_cast<RSSkiaFilter>(properties.GetBackgroundFilter());
+    if (filter == nullptr) {
+        return;
+    }
     g_blurCnt++;
     auto paint = filter->GetPaint();
     SkSurface* skSurface = canvas.GetSurface();
@@ -757,19 +761,28 @@ void RSPropertiesPainter::DrawBackgroundEffect(const RSProperties& properties, R
 void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
     SkAutoCanvasRestore acr(&canvas, true);
-    CacheEffectData data = canvas.GetEffectData();
-    auto bgImage = data.image;
+    const auto& data = canvas.GetEffectData();
+    SkPath clipPath;
+    if (properties.GetClipBounds() != nullptr) {
+        clipPath = properties.GetClipBounds()->GetSkiaPath();
+        canvas.clipPath(clipPath, true);
+    } else {
+        auto rrect = RRect2SkRRect(properties.GetRRect());
+        canvas.clipRRect(rrect, true);
+        clipPath.addRRect(rrect);
+    }
+
+    // accumulate children clip path, with matrix
+    auto childrenPath = data.childrenPath_;
+    childrenPath.addPath(clipPath, canvas.getTotalMatrix());
+    canvas.SetChildrenPath(childrenPath);
+
+    auto& bgImage = data.cachedImage_;
     if (bgImage == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::ApplyBackgroundEffect bgImage null");
         return;
     }
-    SkIRect imageIRect = data.clipRect;
-
-    if (properties.GetClipBounds() != nullptr) {
-        canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
-    } else {
-        canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
-    }
+    SkIRect imageIRect = data.cachedRect_;
 
     SkPaint defaultPaint;
     defaultPaint.setAntiAlias(true);
@@ -807,6 +820,27 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
             SkRect::Make(clipIPadding), &defaultPaint);
 #endif
     }
+}
+
+void RSPropertiesPainter::DrawForegroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+    const auto& data = canvas.GetEffectData();
+    if (data.childrenPath_.isEmpty()) {
+        return;
+    }
+    auto& colorFilter = properties.GetColorFilter();
+    if (colorFilter == nullptr) {
+        return;
+    }
+    SkAutoCanvasRestore acr(&canvas, true);
+    canvas.resetMatrix();
+    canvas.clipPath(data.childrenPath_, true);
+    SkPaint paint;
+    paint.setAntiAlias(true);
+    paint.setColorFilter(colorFilter);
+    auto pathBounds = data.childrenPath_.getBounds();
+    SkCanvas::SaveLayerRec slr(&pathBounds, &paint, SkCanvas::kInitWithPrevious_SaveLayerFlag);
+    canvas.saveLayer(slr);
 }
 
 static Vector4f GetStretchSize(const RSProperties& properties)
@@ -1532,20 +1566,20 @@ void RSPropertiesPainter::DrawSpherize(const RSProperties& properties, RSPaintFi
 }
 #endif
 
-void RSPropertiesPainter::DrawColorFilter(const RSProperties& properties, RSPaintFilterCanvas* canvas)
+void RSPropertiesPainter::DrawColorFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
     // if useEffect defined, use color filter from parent EffectView.
-    auto& colorFilter = properties.GetUseEffect() ? canvas->GetEffectData().colorFilter : properties.GetColorFilter();
+    auto& colorFilter = properties.GetColorFilter();
     if (colorFilter == nullptr) {
         return;
     }
-    SkAutoCanvasRestore acr(canvas, true);
-    canvas->clipRRect(RRect2SkRRect(properties.GetRRect()), true);
+    SkAutoCanvasRestore acr(&canvas, true);
+    canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
     SkPaint paint;
     paint.setAntiAlias(true);
     paint.setColorFilter(colorFilter);
     SkCanvas::SaveLayerRec slr(nullptr, &paint, SkCanvas::kInitWithPrevious_SaveLayerFlag);
-    canvas->saveLayer(slr);
+    canvas.saveLayer(slr);
 }
 } // namespace Rosen
 } // namespace OHOS

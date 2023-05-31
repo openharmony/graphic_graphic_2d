@@ -298,16 +298,13 @@ void RSPaintFilterCanvas::SetEffectData(const CacheEffectData& effectData)
     effectStack_.top() = effectData;
 }
 
-void RSPaintFilterCanvas::SetColorFilter(const sk_sp<SkColorFilter>& colorFilter)
+void RSPaintFilterCanvas::SetChildrenPath(const SkPath& childrenPath)
 {
-    effectStack_.top().colorFilter = colorFilter;
+    effectStack_.top().childrenPath_ = childrenPath;
 }
 
-CacheEffectData RSPaintFilterCanvas::GetEffectData() const
+const CacheEffectData& RSPaintFilterCanvas::GetEffectData() const
 {
-    if (effectStack_.empty()) {
-        return CacheEffectData{ nullptr, SkIRect::MakeEmpty() };
-    }
     return effectStack_.top();
 }
 
