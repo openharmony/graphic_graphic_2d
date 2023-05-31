@@ -56,7 +56,8 @@ public:
 
     std::pair<bool, bool> Animate(int64_t timestamp) override;
     // PrepareCanvasRenderNode in UniRender
-    bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty, RectI clipRect);
+    bool Update(
+        RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty, RectI clipRect);
     // Other situation
     bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty);
 #ifndef USE_ROSEN_DRAWING
