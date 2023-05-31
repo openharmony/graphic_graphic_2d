@@ -48,7 +48,7 @@ public:
     static void DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         std::shared_ptr<RSSkiaFilter>& filter, const std::unique_ptr<SkRect>& rect = nullptr,
         SkSurface* sKSurface = nullptr);
-    static bool DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas,
+    static void DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& rect);
     static void ApplyBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void DrawForegroundColor(const RSProperties& properties, SkCanvas& canvas);
@@ -68,7 +68,8 @@ public:
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const sk_sp<SkSurface>& spherizeSurface);
 
-    static void DrawColorFilter(const RSProperties& properties, SkCanvas* canvas);
+    static void DrawColorFilter(const RSProperties& properties, RSPaintFilterCanvas* canvas);
+
 private:
     inline static int g_blurCnt = 0;
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);

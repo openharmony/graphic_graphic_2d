@@ -883,7 +883,7 @@ void RSNode::SetMask(const std::shared_ptr<RSMask>& mask)
 
 void RSNode::SetUseEffect(bool useEffect)
 {
-    SetProperty<RSUseEffectModifier, RSProperty<bool>>(RSModifierType::USEEFFECT, useEffect);
+    SetProperty<RSUseEffectModifier, RSProperty<bool>>(RSModifierType::USE_EFFECT, useEffect);
 }
 
 void RSNode::SetPixelStretch(const Vector4f& stretchSize)

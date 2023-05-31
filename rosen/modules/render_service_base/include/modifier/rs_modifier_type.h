@@ -82,7 +82,7 @@ enum class RSModifierType : int16_t {
     LIGHT_UP_EFFECT,
     PIXEL_STRETCH,
     PIXEL_STRETCH_PERCENT,
-    USEEFFECT,
+    USE_EFFECT,
 
     SANDBOX,
 

@@ -711,47 +711,47 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 }
 #endif
 
-bool RSPropertiesPainter::DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas,
+void RSPropertiesPainter::DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas,
     std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& rect)
 {
     g_blurCnt++;
     auto paint = filter->GetPaint();
     SkSurface* skSurface = canvas.GetSurface();
     if (skSurface == nullptr) {
-        return false;
+        return;
     }
 
     auto imageSnapshot = skSurface->makeImageSnapshot(rect);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundEffect image snapshot null");
-        return false;
+        return;
     }
 
     filter->PreProcess(imageSnapshot);
-    //create a offscreen sksurface
+    // create a offscreen sksurface
     sk_sp<SkSurface> offscreenSurface = skSurface->makeSurface(imageSnapshot->imageInfo());
     if (offscreenSurface == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundEffect offscreenSurface null");
-        return false;
+        return;
     }
-    RSPaintFilterCanvas offsceenCanvas(offscreenSurface.get());
+    RSPaintFilterCanvas offscreenCanvas(offscreenSurface.get());
     auto clipBounds = SkRect::MakeIWH(rect.width(), rect.height());
 
 #ifdef NEW_SKIA
-    offsceenCanvas.drawImageRect(imageSnapshot, clipBounds, SkSamplingOptions(), &paint);
+    offscreenCanvas.drawImageRect(imageSnapshot, clipBounds, SkSamplingOptions(), &paint);
 #else
-    offsceenCanvas.drawImageRect(imageSnapshot, clipBounds, &paint);
+    offscreenCanvas.drawImageRect(imageSnapshot, clipBounds, &paint);
 #endif
-    filter->PostProcess(offsceenCanvas);
+    filter->PostProcess(offscreenCanvas);
 
     auto imageCache = offscreenSurface->makeImageSnapshot();
     if (imageCache == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundEffect imageCache snapshot null");
-        return false;
+        return;
     }
     CacheEffectData data = { imageCache, rect };
-    canvas.SaveEffectData(data);
-    return true;
+    canvas.SetEffectData(data);
+    return;
 }
 
 void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
@@ -1532,9 +1532,10 @@ void RSPropertiesPainter::DrawSpherize(const RSProperties& properties, RSPaintFi
 }
 #endif
 
-void RSPropertiesPainter::DrawColorFilter(const RSProperties &properties, SkCanvas *canvas)
+void RSPropertiesPainter::DrawColorFilter(const RSProperties& properties, RSPaintFilterCanvas* canvas)
 {
-    auto colorFilter = properties.GetColorFilter();
+    // if useEffect defined, use color filter from parent EffectView.
+    auto& colorFilter = properties.GetUseEffect() ? canvas->GetEffectData().colorFilter : properties.GetColorFilter();
     if (colorFilter == nullptr) {
         return;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,6 +55,7 @@ void RSEffectRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 
 void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
+    canvas.SaveEffectData();
     auto boundsGeo = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
     if (boundsGeo && !boundsGeo->IsEmpty()) {
         canvas.concat(boundsGeo->GetMatrix());
@@ -69,21 +70,20 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
         }
     }
 
-    dataCached_ = false;
     auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetBackgroundFilter());
     if (filter != nullptr) {
         RectI childRec = GetChildrenRect();
         SkIRect skIRect;
         skIRect.setXYWH(childRec.GetLeft(), childRec.GetTop(), childRec.GetWidth(), childRec.GetHeight());
-        dataCached_ = RSPropertiesPainter::DrawBackgroundEffect(GetRenderProperties(), canvas, filter, skIRect);
+        RSPropertiesPainter::DrawBackgroundEffect(GetRenderProperties(), canvas, filter, skIRect);
     }
+    // temporarily adapt to color filter
+    canvas.SetColorFilter(GetRenderProperties().GetColorFilter());
 }
 
 void RSEffectRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
-    if (dataCached_) {
-        canvas.RestoreEffecctData();
-    }
+    canvas.RestoreEffectData();
 }
 
 } // namespace Rosen

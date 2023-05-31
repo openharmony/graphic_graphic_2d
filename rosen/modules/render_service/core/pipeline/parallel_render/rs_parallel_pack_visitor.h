@@ -59,4 +59,3 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_PARALLEL_PACK_VISITOR_H
-
