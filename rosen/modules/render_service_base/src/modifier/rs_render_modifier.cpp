@@ -45,10 +45,7 @@ using ModifierUnmarshallingFunc = RSRenderModifier* (*)(Parcel& parcel);
                 return nullptr;                                                                         \
             }                                                                                           \
             auto modifier = new RS##MODIFIER_NAME##RenderModifier(prop);                                \
-            if (!modifier) {                                                                            \
-                return nullptr;                                                                         \
-            }                                                                                           \
-            return modifier;                                                                            \
+            return ((!modifier) ? nullptr : modifier);                                                  \
         },                                                                                              \
     },
 
@@ -59,10 +56,7 @@ using ModifierUnmarshallingFunc = RSRenderModifier* (*)(Parcel& parcel);
                 return nullptr;                                                                         \
             }                                                                                           \
             auto modifier = new RS##MODIFIER_NAME##RenderModifier(prop);                                \
-            if (!modifier) {                                                                            \
-                return nullptr;                                                                         \
-            }                                                                                           \
-            return modifier;                                                                            \
+            return ((!modifier) ? nullptr : modifier);                                                  \
         },                                                                                              \
     },
 
