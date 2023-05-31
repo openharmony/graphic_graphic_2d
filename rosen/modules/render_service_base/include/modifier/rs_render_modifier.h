@@ -278,7 +278,7 @@ public:
         void Apply(RSModifierContext& context) const override;                                      \
         void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;      \
         bool Marshalling(Parcel& parcel) override;                                                  \
-        RSModifierType GetType() override { return RSModifierType::MODIFIER_TYPE; }                 \
+        RSModifierType GetType() override { return (RSModifierType::MODIFIER_TYPE); }               \
     };
 
 #define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, MODIFIER_TIER) \

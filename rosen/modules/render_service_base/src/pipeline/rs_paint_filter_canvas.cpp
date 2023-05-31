@@ -267,11 +267,9 @@ std::optional<SkRect> RSPaintFilterCanvas::GetLocalClipBounds(const SkCanvas& ca
 {
     // if clipRect is explicitly specified, use it as the device clip bounds
     SkRect bounds = SkRect::Make((clipRect != nullptr) ? *clipRect : canvas.getDeviceClipBounds());
-
     if (bounds.isEmpty()) {
         return std::nullopt;
     }
-
     SkMatrix inverse;
     // if we can't invert the CTM, we can't return local clip bounds
     if (!(canvas.getTotalMatrix().invert(&inverse))) {
