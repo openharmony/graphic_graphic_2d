@@ -203,7 +203,7 @@ bool RSMaterialFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, float
     return ROSEN_EQ(radius_, otherMaterialFilter->radius_, threshold) &&
            ROSEN_EQ(saturation_, otherMaterialFilter->saturation_, threshold) &&
            ROSEN_EQ(brightness_, otherMaterialFilter->brightness_, threshold) &&
-           maskColor_.IsNearEqual(otherMaterialFilter->maskColor_, 2);
+           maskColor_.IsNearEqual(otherMaterialFilter->maskColor_, 1);
 }
 } // namespace Rosen
 } // namespace OHOS

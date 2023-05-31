@@ -27,7 +27,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr static float FLOAT_NEAR_ZERO_THRESHOLD = 1.0f / 256.0f;
+constexpr static float FLOAT_NEAR_ZERO_THRESHOLD = 1.0f / 5000.0f;
 constexpr static float INT16T_NEAR_ZERO_THRESHOLD = 1.0f;
 constexpr static float DEFAULT_NEAR_ZERO_THRESHOLD = 5.0f;
 } // namespace
