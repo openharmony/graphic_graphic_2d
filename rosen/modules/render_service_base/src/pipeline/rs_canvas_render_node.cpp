@@ -143,7 +143,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
     if (GetRenderProperties().IsLightUpEffectValid()) {
         std::shared_ptr<RSSkiaFilter> lightUpFilter =
             std::make_shared<RSLightUpEffectFilter>(GetRenderProperties().GetLightUpEffect());
-        filter = filter ? filter->Compose(lightUpFilter) : lightUpFilter;
+        filter = filter && filter->IsValid() ? filter->Compose(lightUpFilter) : lightUpFilter;
     }
     if (filter != nullptr) {
 #ifndef NEW_SKIA

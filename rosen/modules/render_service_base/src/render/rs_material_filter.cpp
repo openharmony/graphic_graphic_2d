@@ -23,6 +23,7 @@
 #include "include/effects/SkBlurImageFilter.h"
 #endif
 
+#include "common/rs_common_def.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
 
@@ -143,6 +144,26 @@ void RSMaterialFilter::PostProcess(RSPaintFilterCanvas& canvas)
     SkPaint paint;
     paint.setColor(maskColor_.AsArgbInt());
     canvas.drawPaint(paint);
+}
+
+std::shared_ptr<RSFilter> RSMaterialFilter::TransformFilter(float fraction)
+{
+    MaterialParam materialParam;
+    materialParam.radius = radius_ * fraction;
+    materialParam.saturation = (saturation_ - 1) * fraction + 1.0;
+    materialParam.brightness = (brightness_ - 1) * fraction + 1.0;
+    materialParam.maskColor = RSColor(maskColor_.GetRed(), maskColor_.GetGreen(),
+        maskColor_.GetBlue(), maskColor_.GetAlpha() * fraction);
+    return std::make_shared<RSMaterialFilter>(materialParam, colorMode_);
+}
+
+bool RSMaterialFilter::IsValid() const
+{
+    constexpr float epsilon = 0.001f;
+    if (ROSEN_EQ(radius_, 0.f, epsilon)) {
+        return false;
+    }
+    return true;
 }
 
 std::shared_ptr<RSFilter> RSMaterialFilter::Add(const std::shared_ptr<RSFilter>& rhs)

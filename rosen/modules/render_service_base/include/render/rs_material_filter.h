@@ -67,6 +67,8 @@ public:
     RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio);
     RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE mode);
     ~RSMaterialFilter() override;
+    std::shared_ptr<RSFilter> TransformFilter(float fraction);
+    bool IsValid() const override;
 #ifndef USE_ROSEN_DRAWING
     void PreProcess(sk_sp<SkImage> image) override;
 #else

@@ -30,6 +30,7 @@ public:
     ~RSBlurFilter() override;
     float GetBlurRadiusX();
     float GetBlurRadiusY();
+    bool IsValid() const override;
 #ifndef USE_ROSEN_DRAWING
     std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& inner) override;
 #else

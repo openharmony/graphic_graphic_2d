@@ -20,6 +20,7 @@
 
 #include "platform/common/rs_log.h"
 #include "render/rs_filter.h"
+#include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 
 namespace OHOS {
@@ -987,7 +988,8 @@ RRect RSProperties::GetInnerRRect() const
 
 bool RSProperties::NeedFilter() const
 {
-    return (backgroundFilter_ != nullptr) || (filter_ != nullptr) || IsLightUpEffectValid();
+    return (backgroundFilter_ != nullptr && backgroundFilter_->IsValid()) ||
+        (filter_ != nullptr && filter_->IsValid()) || IsLightUpEffectValid();
 }
 
 bool RSProperties::NeedClip() const
@@ -1173,8 +1175,7 @@ float RSProperties::GetLightUpEffect() const
 
 bool RSProperties::IsLightUpEffectValid() const
 {
-    constexpr float epsilon = 0.001f;
-    return 1.0 - GetLightUpEffect() > epsilon;
+    return GreatOrEqual(GetLightUpEffect(), 0.0) && LessNotEqual(GetLightUpEffect(), 1.0);
 }
 
 void RSProperties::SetPixelStretch(Vector4f stretchSize)
