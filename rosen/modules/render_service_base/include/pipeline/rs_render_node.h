@@ -186,12 +186,12 @@ public:
         return cacheType_;
     }
 
-    float GetShadowRectOffsetX() const
+    int GetShadowRectOffsetX() const
     {
         return shadowRectOffsetX_;
     }
 
-    float GetShadowRectOffsetY() const
+    int GetShadowRectOffsetY() const
     {
         return shadowRectOffsetY_;
     }
@@ -425,10 +425,9 @@ private:
     std::shared_ptr<RectF> drawRegion_ = nullptr;
     NodeGroupType nodeGroupType_ = NodeGroupType::NONE;
 
-    RectI shadowRect_;
     // shadowRectOffset means offset between shadowRect and absRect of node
-    float shadowRectOffsetX_ = 0.0f;
-    float shadowRectOffsetY_ = 0.0f;
+    int shadowRectOffsetX_ = 0;
+    int shadowRectOffsetY_ = 0;
     // Only use in RSRenderNode::DrawCacheSurface to calculate scale factor
     float boundsWidth_ = 0.0f;
     float boundsHeight_ = 0.0f;

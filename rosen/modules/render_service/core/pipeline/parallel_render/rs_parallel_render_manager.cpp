@@ -472,6 +472,9 @@ void RSParallelRenderManager::SubmitSubThreadTask(const std::shared_ptr<RSDispla
     }
     std::vector<std::unique_ptr<RSRenderTask>> renderTaskList;
     for (const auto& child : subThreadNodes) {
+        if (!child->ShouldPaint()) {
+            continue;
+        }
         renderTaskList.push_back(std::make_unique<RSRenderTask>(*child, RSRenderTask::RenderNodeStage::CACHE));
     }
 
@@ -480,7 +483,7 @@ void RSParallelRenderManager::SubmitSubThreadTask(const std::shared_ptr<RSDispla
         superRenderTaskList.emplace_back(std::make_unique<RSSuperRenderTask>(node));
     }
 
-    for (size_t i = 0; i < nodeNum; i++) {
+    for (size_t i = 0; i < renderTaskList.size(); i++) {
         auto renderNode = renderTaskList[i]->GetNode();
         auto surfaceNode = renderNode->ReinterpretCastTo<RSSurfaceRenderNode>();
         if (surfaceNode == nullptr) {

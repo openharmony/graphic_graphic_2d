@@ -309,7 +309,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
     bool entryViewNeedReassign = false;
     for (auto iter = displayNode->GetSortedChildren().begin(); iter != displayNode->GetSortedChildren().end(); iter++) {
         auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*iter);
-        if (node == nullptr) {
+        if (node == nullptr || !node->ShouldPaint()) {
             ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes nullptr found in sortedChildren, this should not happen");
             continue;
         }

@@ -140,19 +140,19 @@ void RSRenderNode::UpdateDirtyRegion(
         ROSEN_LOGD("RSRenderNode:: id %" PRIu64 " UpdateDirtyRegion visible->invisible", GetId());
     } else {
         RectI drawRegion;
-
+        RectI shadowRect;
         auto dirtyRect = renderProperties_.GetDirtyRect(drawRegion);
         if (renderProperties_.IsShadowValid()) {
             SetShadowValidLastFrame(true);
             if (IsInstanceOf<RSSurfaceRenderNode>()) {
                 const RectF absBounds = {0, 0, renderProperties_.GetBoundsWidth(), renderProperties_.GetBoundsHeight()};
                 RRect absClipRRect = RRect(absBounds, renderProperties_.GetCornerRadius());
-                RSPropertiesPainter::GetShadowDirtyRect(shadowRect_, renderProperties_, &absClipRRect);
+                RSPropertiesPainter::GetShadowDirtyRect(shadowRect, renderProperties_, &absClipRRect);
             } else {
-                RSPropertiesPainter::GetShadowDirtyRect(shadowRect_, renderProperties_);
+                RSPropertiesPainter::GetShadowDirtyRect(shadowRect, renderProperties_);
             }
-            if (!shadowRect_.IsEmpty()) {
-                dirtyRect = dirtyRect.JoinRect(shadowRect_);
+            if (!shadowRect.IsEmpty()) {
+                dirtyRect = dirtyRect.JoinRect(shadowRect);
             }
         }
 
@@ -178,7 +178,7 @@ void RSRenderNode::UpdateDirtyRegion(
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
                     GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, drawRegion);
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
-                    GetId(), GetType(), DirtyRegionType::SHADOW_RECT, shadowRect_);
+                    GetId(), GetType(), DirtyRegionType::SHADOW_RECT, shadowRect);
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
                     GetId(), GetType(), DirtyRegionType::PREPARE_CLIP_RECT, clipRect);
             }
@@ -435,14 +435,14 @@ void RSRenderNode::InitCacheSurface(GrContext* grContext)
     boundsHeight_ = renderProperties_.GetBoundsRect().GetHeight();
     if (cacheType == CacheType::ANIMATE_PROPERTY &&
         renderProperties_.IsShadowValid() && !renderProperties_.IsSpherizeValid()) {
-        width = shadowRect_.GetWidth();
-        height = shadowRect_.GetHeight();
-        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(renderProperties_.GetBoundsGeometry());
-        if (!geoPtr) {
-            return;
-        }
-        shadowRectOffsetX_ = geoPtr->GetAbsRect().GetLeft() - shadowRect_.GetLeft();
-        shadowRectOffsetY_ = geoPtr->GetAbsRect().GetTop() - shadowRect_.GetTop();
+        const RectF boundsRect = renderProperties_.GetBoundsRect();
+        RRect rrect = RRect(boundsRect, {0, 0, 0, 0});
+        RectI shadowRect;
+        RSPropertiesPainter::GetShadowDirtyRect(shadowRect, renderProperties_, &rrect, false);
+        width = shadowRect.GetWidth();
+        height = shadowRect.GetHeight();
+        shadowRectOffsetX_ = -shadowRect.GetLeft();
+        shadowRectOffsetY_ = -shadowRect.GetTop();
     } else {
         width = boundsWidth_;
         height = boundsHeight_;

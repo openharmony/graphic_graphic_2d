@@ -260,7 +260,8 @@ void RSPropertiesPainter::Clip(Drawing::Canvas& canvas, RectF rect, bool isAntiA
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties, const RRect* rrect)
+void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties,
+    const RRect* rrect, bool isAbsCoordinate)
 {
     // [Planning]: After Skia being updated, we should directly call SkShadowUtils::GetLocalBounds here.
     if (!properties.IsShadowValid()) {
@@ -317,7 +318,7 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
     }
 
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
-    SkMatrix matrix = geoPtr ? geoPtr->GetAbsMatrix() : SkMatrix::I();
+    SkMatrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : SkMatrix::I();
     matrix.mapRect(&shadowRect);
 
     dirtyShadow.left_ = shadowRect.left();
