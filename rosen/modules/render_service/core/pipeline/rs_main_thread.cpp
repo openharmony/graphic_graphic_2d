@@ -683,10 +683,10 @@ bool RSMainThread::NeedReleaseGpuResource(const RSRenderNodeMap& nodeMap)
         }
         // needReleaseGpuResource will be set true when all nodes don't need filter, otherwise false.
         needReleaseGpuResource = needReleaseGpuResource &&
-            !(surfaceNode->HasFilter() || !(surfaceNode->GetChildrenNeedFilterRects().empty()));
+            !(surfaceNode->GetRenderProperties().NeedFilter() || !(surfaceNode->GetChildrenNeedFilterRects().empty()));
         // currentFrameHasFilter will be set true when one node needs filter, otherwise false.
         currentFrameHasFilter = currentFrameHasFilter ||
-            surfaceNode->HasFilter() || !(surfaceNode->GetChildrenNeedFilterRects().empty());
+            surfaceNode->GetRenderProperties().NeedFilter() || !(surfaceNode->GetChildrenNeedFilterRects().empty());
     }
     lastFrameHasFilter_ = currentFrameHasFilter;
     return needReleaseGpuResource;
