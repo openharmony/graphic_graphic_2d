@@ -77,7 +77,7 @@ private:
     GLuint CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer);
 
     mutable std::mutex opMutex_;
-    static constexpr size_t MAX_CACHE_SIZE = 64;
+    static constexpr size_t MAX_CACHE_SIZE = 16;
     std::queue<int32_t> cacheQueue_; // fifo, size restricted by MAX_CACHE_SIZE
     std::unordered_map<int32_t, std::unique_ptr<ImageCacheSeq>> imageCacheSeqs_; // guarded by opMutex_.
     EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;

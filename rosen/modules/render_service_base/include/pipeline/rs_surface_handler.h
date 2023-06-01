@@ -27,6 +27,7 @@
 
 namespace OHOS {
 namespace Rosen {
+using OnDeleteBufferFunc = std::function<void(int32_t)>;
 class RSB_EXPORT RSSurfaceHandler {
 public:
     // indicates which node this handler belongs to.
@@ -34,9 +35,23 @@ public:
     virtual ~RSSurfaceHandler() noexcept = default;
 
     struct SurfaceBufferEntry {
+#ifndef ROSEN_CROSS_PLATFORM
+        void RegisterDeleteBufferListener(OnDeleteBufferFunc bufferDeleteCb)
+        {
+            if (bufferDeleteCb_ == nullptr) {
+                bufferDeleteCb_ = bufferDeleteCb;
+            }
+        }
+#endif
         void Reset()
         {
 #ifndef ROSEN_CROSS_PLATFORM
+            if (buffer == nullptr) {
+                return;
+            }
+            if (bufferDeleteCb_) {
+                bufferDeleteCb_(buffer->GetSeqNum());
+            }
             buffer = nullptr;
             acquireFence = SyncFence::INVALID_FENCE;
             releaseFence = SyncFence::INVALID_FENCE;
@@ -49,6 +64,7 @@ public:
         sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
         sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
         Rect damageRect = {0, 0, 0, 0};
+        OnDeleteBufferFunc bufferDeleteCb_ = nullptr;
 #endif
         int64_t timestamp = 0;
     };
@@ -162,6 +178,15 @@ public:
     {
         isCurrentFrameBufferConsumed_ = true;
     }
+
+#ifndef ROSEN_CROSS_PLATFORM
+    void RegisterDeleteBufferListener(OnDeleteBufferFunc bufferDeleteCb)
+    {
+        if (bufferDeleteCb != nullptr) {
+            buffer_.RegisterDeleteBufferListener(bufferDeleteCb);
+        }
+    }
+#endif
 
 protected:
 #ifndef ROSEN_CROSS_PLATFORM

@@ -329,6 +329,16 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
 #endif // #ifdef RS_ENABLE_EGLIMAGE
 }
 
+void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
+{
+#ifdef RS_ENABLE_EGLIMAGE
+    auto regUnMapEglImageFunc = [this](int32_t bufferId) {
+        eglImageManager_->UnMapEglImageFromSurfaceBuffer(bufferId);
+    };
+    handler.RegisterDeleteBufferListener(regUnMapEglImageFunc);
+#endif // #ifdef RS_ENABLE_EGLIMAGE
+}
+
 void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 {
 #ifdef RS_ENABLE_EGLIMAGE
