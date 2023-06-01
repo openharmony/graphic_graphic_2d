@@ -48,7 +48,7 @@ public:
     {
         return type_;
     }
-    bool IsValid() const
+    virtual bool IsValid() const
     {
         return type_ != FilterType::NONE;
     }

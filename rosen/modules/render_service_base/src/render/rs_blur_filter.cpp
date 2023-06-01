@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "common/rs_common_def.h"
 #include "render/rs_blur_filter.h"
 
 #if defined(NEW_SKIA)
@@ -54,6 +55,15 @@ float RSBlurFilter::GetBlurRadiusY()
 std::string RSBlurFilter::GetDescription()
 {
     return "RSBlurFilter blur radius is " + std::to_string(blurRadiusX_) + " sigma";
+}
+
+bool RSBlurFilter::IsValid() const
+{
+    constexpr float epsilon = 0.001f;
+    if (ROSEN_EQ(blurRadiusX_, 0.f, epsilon) && ROSEN_EQ(blurRadiusY_, 0.f, epsilon)) {
+        return false;
+    }
+    return true;
 }
 
 std::shared_ptr<RSSkiaFilter> RSBlurFilter::Compose(const std::shared_ptr<RSSkiaFilter>& inner)
