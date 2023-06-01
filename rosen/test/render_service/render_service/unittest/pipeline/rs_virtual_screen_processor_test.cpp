@@ -132,4 +132,36 @@ HWTEST_F(RSVirtualScreenProcessorTest, PostProcess001, TestSize.Level1)
         SOFTWARE_COMPOSITE);
     rsSoftwareProcessor->PostProcess();
 }
+
+/**
+ * @tc.name: ProcessSurfaceTest
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSVirtualScreenProcessorTest, ProcessSurfaceTest, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig config;
+    RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    RSVirtualScreenProcessor rsVirtualScreenProcessor;
+    rsVirtualScreenProcessor.ProcessSurface(rsSurfaceRenderNode);
+}
+
+/**
+ * @tc.name: ProcessDisplaySurfaceTest
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSVirtualScreenProcessorTest, ProcessDisplaySurfaceTest, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    NodeId id = 0;
+    RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    RSVirtualScreenProcessor rsVirtualScreenProcessor;
+    rsVirtualScreenProcessor.ProcessDisplaySurface(rsDisplayRenderNode);
+}
+
 } // namespace OHOS::Rosen

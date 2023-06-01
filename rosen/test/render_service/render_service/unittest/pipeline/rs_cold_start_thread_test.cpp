@@ -153,4 +153,97 @@ HWTEST_F(RSColdStartThreadTest, RSColdStartManager004, TestSize.Level1)
     RSColdStartManager::Instance().PostPlayBackTask(sp->GetId(), nullptr, width, height);
     RSColdStartManager::Instance().StopColdStartThread(sp->GetId());
 }
+
+/**
+ * @tc.name: PostPlayBackTaskTest001
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSColdStartThreadTest, PostPlayBackTaskTest001, TestSize.Level1)
+{
+    std::shared_ptr<DrawCmdList> drawCmdList;
+    float width = 0.0;
+    float height = 0.0;
+    std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode;
+    NodeId nodeId = 0;
+    RSColdStartThread rsColdStartThread(surfaceRenderNode, nodeId);
+    rsColdStartThread.PostPlayBackTask(drawCmdList, width, height);
+}
+
+/**
+ * @tc.name: PostPlayBackTaskTest003
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSColdStartThreadTest, PostPlayBackTaskTest002, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::shared_ptr<DrawCmdList> drawCmdList;
+    float width = 0.0;
+    float height = 0.0;
+    std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode;
+    RSColdStartManager rsColdStartManager;
+    rsColdStartManager.PostPlayBackTask(nodeId, drawCmdList, width, height);
+}
+
+HWTEST_F(RSColdStartThreadTest, PostPlayBackTaskTest003, TestSize.Level1)
+{
+    std::shared_ptr<DrawCmdList> drawCmdList1 = nullptr ;
+    float width = 0.0;
+    float height = 0.0;
+    std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode;
+    NodeId nodeId = 0;
+    RSColdStartThread rsColdStartThread(surfaceRenderNode, nodeId);
+    rsColdStartThread.PostPlayBackTask(drawCmdList1, width, height);
+}
+/**
+ * @tc.name: IsColdStartThreadIdleTest
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSColdStartThreadTest, IsColdStartThreadIdleTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSColdStartManager rsColdStartManager;
+    auto isColdStartThreadIdle = rsColdStartManager.IsColdStartThreadIdle(nodeId);
+    EXPECT_FALSE(isColdStartThreadIdle);
+}
+
+/**
+ * @tc.name: CheckColdStartMapTest
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSColdStartThreadTest, CheckColdStartMapTest, TestSize.Level1)
+{
+    RSRenderNodeMap nodeMap;
+    RSColdStartManager rsColdStartManager;
+    rsColdStartManager.CheckColdStartMap(nodeMap);
+}
+
+/**
+ * @tc.name: DestroyColdStartThreadTest
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSColdStartThreadTest, DestroyColdStartThreadTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(node);
+    RSColdStartThread thread { surfaceRenderNode, nodeId };
+    RSColdStartManager rsColdStartManager;
+    rsColdStartManager.DestroyColdStartThread(nodeId);
+}
+
 } // namespace OHOS::Rosen
