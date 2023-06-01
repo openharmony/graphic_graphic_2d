@@ -81,9 +81,11 @@ public:
     void SetPivot(Vector2f pivot);
     void SetPivotX(float pivotX);
     void SetPivotY(float pivotY);
+    void SetPivotZ(float pivotZ);
     Vector2f GetPivot() const;
     float GetPivotX() const;
     float GetPivotY() const;
+    float GetPivotZ() const;
 
     void SetCornerRadius(Vector4f cornerRadius);
     Vector4f GetCornerRadius() const;
