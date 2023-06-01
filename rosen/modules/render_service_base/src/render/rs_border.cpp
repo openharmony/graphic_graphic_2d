@@ -335,7 +335,8 @@ void RSBorder::PaintFourLine(Drawing::Canvas& canvas, Drawing::Pen& pen, RectF r
         float addLen = (GetStyle(RSBorder::RIGHT) != BorderStyle::DOTTED) ? 0.0f : 0.5f;
         canvas.AttachPen(pen);
         canvas.DrawLine(
-            Drawing::Point(rect.GetRight() - borderRightWidth / PARAM_DOUBLE, rect.GetBottom() - addLen * borderBottomWidth),
+            Drawing::Point(rect.GetRight() - borderRightWidth / PARAM_DOUBLE,
+                rect.GetBottom() - addLen * borderBottomWidth),
             Drawing::Point(rect.GetRight() - borderRightWidth / PARAM_DOUBLE, rect.top_ + borderTopWidth));
         canvas.DetachPen();
     }
@@ -388,8 +389,10 @@ void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing:
 #else
     float tlX = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_LEFT_POS).GetX() - (topW + leftW) / 4.0f);
     float tlY = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_LEFT_POS).GetY() - (topW + leftW) / 4.0f);
-    float trX = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_RIGHT_POS).GetX() - (topW + rightW) / 4.0f);
-    float trY = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_RIGHT_POS).GetY() - (topW + rightW) / 4.0f);
+    float trX =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_RIGHT_POS).GetX() - (topW + rightW) / 4.0f);
+    float trY =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_RIGHT_POS).GetY() - (topW + rightW) / 4.0f);
 #endif
     if (topW > 0.f) {
 #ifndef USE_ROSEN_DRAWING
@@ -495,10 +498,14 @@ void RSBorder::PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawin
     float brX = std::max(0.0f, rrect.radii(SkRRect::kLowerRight_Corner).x() - (bottomW + rightW) / 4.0f);
     float brY = std::max(0.0f, rrect.radii(SkRRect::kLowerRight_Corner).y() - (bottomW + rightW) / 4.0f);
 #else
-    float trX = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_RIGHT_POS).GetX() - (topW + rightW) / 4.0f);
-    float trY = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_RIGHT_POS).GetY() - (topW + rightW) / 4.0f);
-    float brX = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_RIGHT_POS).GetX() - (bottomW + rightW) / 4.0f);
-    float brY = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_RIGHT_POS).GetY() - (bottomW + rightW) / 4.0f);
+    float trX =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_RIGHT_POS).GetX() - (topW + rightW) / 4.0f);
+    float trY =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_RIGHT_POS).GetY() - (topW + rightW) / 4.0f);
+    float brX =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_RIGHT_POS).GetX() - (bottomW + rightW) / 4.0f);
+    float brY =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_RIGHT_POS).GetY() - (bottomW + rightW) / 4.0f);
 #endif
     if (rightW > 0.f) {
 #ifndef USE_ROSEN_DRAWING
@@ -604,10 +611,14 @@ void RSBorder::PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawi
     float blX = std::max(0.0f, rrect.radii(SkRRect::kLowerLeft_Corner).x() - (bottomW + leftW) / 4.0f);
     float blY = std::max(0.0f, rrect.radii(SkRRect::kLowerLeft_Corner).y() - (bottomW + leftW) / 4.0f);
 #else
-    float brX = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_RIGHT_POS).GetX() - (bottomW + rightW) / 4.0f);
-    float brY = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_RIGHT_POS).GetY() - (bottomW + rightW) / 4.0f);
-    float blX = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_LEFT_POS).GetX() - (bottomW + leftW) / 4.0f);
-    float blY = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_LEFT_POS).GetY() - (bottomW + leftW) / 4.0f);
+    float brX =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_RIGHT_POS).GetX() - (bottomW + rightW) / 4.0f);
+    float brY =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_RIGHT_POS).GetY() - (bottomW + rightW) / 4.0f);
+    float blX =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_LEFT_POS).GetX() - (bottomW + leftW) / 4.0f);
+    float blY =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_LEFT_POS).GetY() - (bottomW + leftW) / 4.0f);
 #endif
     if (bottomW > 0.f) {
 #ifndef USE_ROSEN_DRAWING
@@ -716,8 +727,10 @@ void RSBorder::PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing
 #else
     float tlX = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_LEFT_POS).GetX() - (topW + leftW) / 4.0f);
     float tlY = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_LEFT_POS).GetY() - (topW + leftW) / 4.0f);
-    float blX = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_LEFT_POS).GetX() - (bottomW + leftW) / 4.0f);
-    float blY = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_LEFT_POS).GetY() - (bottomW + leftW) / 4.0f);
+    float blX =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_LEFT_POS).GetX() - (bottomW + leftW) / 4.0f);
+    float blY =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_LEFT_POS).GetY() - (bottomW + leftW) / 4.0f);
 #endif
     if (leftW > 0.f) {
 #ifndef USE_ROSEN_DRAWING
