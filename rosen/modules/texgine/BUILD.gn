@@ -41,6 +41,7 @@ config("libtexgine_public_config") {
   include_dirs = [
     "export",
     "texgine_drawing",
+    "//third_party/skia/third_party/externals/harfbuzz/src",
   ]
 }
 
@@ -108,7 +109,6 @@ ohos_shared_library("libtexgine") {
       "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
       "$hilog_root/interfaces/native/innerkits:libhilog",
       "texgine_drawing:libtexgine_drawing",
-      "//third_party/harfbuzz:harfbuzz_static",
       "//third_party/jsoncpp:jsoncpp",
     ]
 
