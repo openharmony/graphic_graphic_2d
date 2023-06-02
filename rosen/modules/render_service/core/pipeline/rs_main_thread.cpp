@@ -703,21 +703,6 @@ void RSMainThread::ReleaseAllNodesBuffer()
         // surfaceNode's buffer will be released in hardware thread if last frame enables hardware composer
         if (surfaceNode->IsHardwareEnabledType()) {
             if (surfaceNode->IsLastFrameHardwareEnabled()) {
-                if (!surfaceNode->IsCurrentFrameHardwareEnabled()) {
-                    auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*surfaceNode);
-                    auto preBuffer = surfaceHandler.GetPreBuffer();
-                    if (preBuffer.buffer != nullptr) {
-                        auto releaseTask = [buffer = preBuffer.buffer, consumer = surfaceHandler.GetConsumer(),
-                            fence = preBuffer.releaseFence]() mutable {
-                            auto ret = consumer->ReleaseBuffer(buffer, fence);
-                            if (ret != OHOS::SURFACE_ERROR_OK) {
-                                RS_LOGW("surfaceHandler ReleaseBuffer failed(ret: %d)!", ret);
-                            }
-                        };
-                        preBuffer.Reset();
-                        RSHardwareThread::Instance().PostTask(releaseTask);
-                    }
-                }
                 surfaceNode->ResetCurrentFrameHardwareEnabledState();
                 return;
             }
