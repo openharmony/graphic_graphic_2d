@@ -203,11 +203,13 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
     if (!RSSystemProperties::GetUniRenderEnabled()) {
         return;
     }
+#ifdef RS_ENABLE_GL
     if (grContext_ && !IsOnTheTree() && IsLeashWindow()) {
         RS_TRACE_NAME_FMT("purgeUnlockedResources this SurfaceNode isn't onthe tree Id:%" PRIu64 " Name:%s",
             GetId(), GetName().c_str());
         grContext_->purgeUnlockedResources(true);
     }
+#endif
 }
 
 void RSSurfaceRenderNode::ResetParent()

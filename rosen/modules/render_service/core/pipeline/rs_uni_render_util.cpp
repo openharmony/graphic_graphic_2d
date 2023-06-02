@@ -380,10 +380,12 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
     node->SetIsMainThreadNode(false);
     node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
     node->SetCacheType(CacheType::ANIMATE_PROPERTY);
+#ifdef RS_ENABLE_GL
     if (node->GetCacheSurface()) {
         node->UpdateCompletedCacheSurface();
         RSParallelRenderManager::Instance()->SaveCacheTexture(*node);
     }
+#endif
     if (node->HasCachedTexture()) {
         node->SetPriority(NodePriorityType::SUB_LOW_PRIORITY);
     } else {

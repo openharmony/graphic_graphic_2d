@@ -1720,19 +1720,23 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
         unpairedTransitionNodes_.clear();
     }
+#ifdef RS_ENABLE_GL
     if (isUIFirst_) {
         RSParallelRenderManager::Instance()->WaitProcessEnd();
     }
+#endif
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
 }
 
 void RSUniRenderVisitor::DrawSurfaceLayer(RSDisplayRenderNode& node)
 {
+#ifdef RS_ENABLE_GL
     auto parallelRenderManager = RSParallelRenderManager::Instance();
     std::shared_ptr<RSBaseRenderNode> nodePtr = node.shared_from_this();
     auto displayNodePtr = nodePtr->ReinterpretCastTo<RSDisplayRenderNode>();
     parallelRenderManager->CopyCacheVisitor(*this, node);
     parallelRenderManager->SubmitSubThreadTask(displayNodePtr, subThreadNodes_);
+#endif
 }
 
 void RSUniRenderVisitor::AssignGlobalZOrderAndCreateLayer()
@@ -2369,8 +2373,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     GrContext* grContext = renderEngine_->GetRenderContext()->GetGrContext();
 #endif
     RSTagTracker tagTracker(grContext, node.GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
-#endif
     node.SetGrContext(grContext);
+#endif
     node.UpdatePositionZ();
     if (!CheckIfSurfaceRenderNodeNeedProcess(node)) {
         return;
