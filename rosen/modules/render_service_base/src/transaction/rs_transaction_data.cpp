@@ -38,6 +38,11 @@ RSTransactionData* RSTransactionData::Unmarshalling(Parcel& parcel)
     return nullptr;
 }
 
+RSTransactionData::~RSTransactionData()
+{
+    Clear();
+}
+
 bool RSTransactionData::Marshalling(Parcel& parcel) const
 {
     bool success = true;
