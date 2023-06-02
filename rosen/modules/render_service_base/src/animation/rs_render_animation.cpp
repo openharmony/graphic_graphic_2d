@@ -109,6 +109,7 @@ void RSRenderAnimation::Attach(RSRenderNode* renderNode)
     target_ = renderNode;
     if (target_ != nullptr) {
         targetId_ = target_->GetId();
+        target_->CheckGroupableAnimation(GetPropertyId(), true);
     }
     OnAttach();
     Start();
@@ -118,6 +119,9 @@ void RSRenderAnimation::Attach(RSRenderNode* renderNode)
 void RSRenderAnimation::Detach()
 {
     OnDetach();
+    if (target_ != nullptr) {
+        target_->CheckGroupableAnimation(GetPropertyId(), false);
+    }
     target_ = nullptr;
 }
 

@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <unordered_set>
+#include "common/rs_common_def.h"
 
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkRefCnt.h"
@@ -334,17 +335,17 @@ public:
 
     void UpdateDrawRegion();
 
-    bool HasGroupableAnimations() const;
+    void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
     bool isForcedDrawInGroup() const;
     bool isSuggestedDrawInGroup() const;
 
     enum NodeGroupType {
-        NONE,
+        NONE = 0,
         GROUPED_BY_ANIM,
         GROUPED_BY_UI,
         GROUPED_BY_USER,
     };
-    void MarkNodeGroup(NodeGroupType type);
+    void MarkNodeGroup(NodeGroupType type, bool isNodeGroup);
     NodeGroupType GetNodeGroupType()
     {
         return nodeGroupType_;

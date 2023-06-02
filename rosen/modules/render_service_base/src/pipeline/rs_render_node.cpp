@@ -485,23 +485,33 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, bool isSubThrea
     canvas.restore();
 }
 
-bool RSRenderNode::HasGroupableAnimations() const
+void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
 {
+    if (id <= 0) {
+        return;
+    }
+    auto target = modifiers_.find(id);
+    if (target == modifiers_.end() || !target->second || !GROUPABLE_ANIMATION_TYPE.count(target->second->GetType())) {
+        return;
+    }
+    if (isAnimAdd) {
+        MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, true);
+    }
     for (auto& [_, animation] : animationManager_.animations_) {
-        if (!animation || !modifiers_.count(animation->GetPropertyId())) {
+        if (!animation || id == animation->GetPropertyId()) {
             continue;
         }
-        const auto& modifier = modifiers_.at(animation->GetPropertyId());
-        if (modifier && GROUPABLE_ANIMATION_TYPE.count(modifier->GetType())) {
-            return true;
+        auto itr = modifiers_.find(animation->GetPropertyId());
+        if (itr != modifiers_.end() && itr->second && GROUPABLE_ANIMATION_TYPE.count(itr->second->GetType())) {
+            return;
         }
     }
-    return false;
+    MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, false);
 }
 
 bool RSRenderNode::isForcedDrawInGroup() const
 {
-    return (nodeGroupType_ == NodeGroupType::GROUPED_BY_UI) && (renderProperties_.GetAlpha() < 1.f);
+    return (nodeGroupType_ == NodeGroupType::GROUPED_BY_USER) && (renderProperties_.GetAlpha() < 1.f);
 }
 
 bool RSRenderNode::isSuggestedDrawInGroup() const
@@ -509,9 +519,18 @@ bool RSRenderNode::isSuggestedDrawInGroup() const
     return nodeGroupType_ != NodeGroupType::NONE;
 }
 
-void RSRenderNode::MarkNodeGroup(NodeGroupType type)
+void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup)
 {
-    nodeGroupType_ = type;
+    if (type >= nodeGroupType_) {
+        nodeGroupType_ = isNodeGroup ? type : NodeGroupType::NONE;
+        if ((nodeGroupType_ == NodeGroupType::GROUPED_BY_USER) && (renderProperties_.GetAlpha() < 1.f)) {
+            SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+        } else if (nodeGroupType_ != NodeGroupType::NONE) {
+            SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
+        } else {
+            SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+        }
+    }
 }
 
 } // namespace Rosen

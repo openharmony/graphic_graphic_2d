@@ -49,7 +49,7 @@ void RSNodeCommandHelper::MarkNodeGroup(RSContext& context, NodeId nodeId, bool 
 {
     auto& nodeMap = context.GetNodeMap();
     if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
-        node->MarkNodeGroup(isNodeGroup ? RSRenderNode::GROUPED_BY_UI : RSRenderNode::NONE);
+        node->MarkNodeGroup(RSRenderNode::GROUPED_BY_USER, isNodeGroup);
     }
 }
 
