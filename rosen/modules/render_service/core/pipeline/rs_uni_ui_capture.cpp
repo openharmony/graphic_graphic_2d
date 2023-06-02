@@ -276,6 +276,12 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
             skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
             RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
         }
+        auto para = property.GetLinearGradientBlurPara();
+        if (para != nullptr && para->blurRadius_ > 0) {
+            auto skRectPtr = std::make_unique<SkRect>();
+            skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
+            RSPropertiesPainter::DrawLinearGradientBlurFilter(property, *canvas_, skRectPtr);
+        }
     }
     canvas_->restore();
     ProcessBaseRenderNode(node);

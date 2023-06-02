@@ -18,13 +18,13 @@
 
 #include <optional>
 #include <vector>
-
 #include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
+#include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
 #include "render/rs_mask.h"
 #include "render/rs_path.h"
@@ -154,8 +154,10 @@ public:
 
     // filter properties
     void SetBackgroundFilter(std::shared_ptr<RSFilter> backgroundFilter);
+    void SetLinearGradientBlurPara(std::shared_ptr<RSLinearGradientBlurPara> para);
     void SetFilter(std::shared_ptr<RSFilter> filter);
     std::shared_ptr<RSFilter> GetBackgroundFilter() const;
+    std::shared_ptr<RSLinearGradientBlurPara> GetLinearGradientBlurPara() const;
     std::shared_ptr<RSFilter> GetFilter() const;
     bool NeedFilter() const;
 
@@ -274,6 +276,7 @@ private:
     std::shared_ptr<RSObjGeometry> frameGeo_;
 
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
+    std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
     std::shared_ptr<RSPath> clipPath_ = nullptr;
     std::unique_ptr<Vector4f> cornerRadius_ = nullptr;

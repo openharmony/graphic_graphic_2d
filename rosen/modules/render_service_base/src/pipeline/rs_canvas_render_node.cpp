@@ -100,6 +100,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
 #endif
         RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
     }
+
     ApplyDrawCmdModifier(context, RSModifierType::BACKGROUND_STYLE);
 
     canvasNodeSaveCount_ = canvas.Save();
@@ -141,6 +142,11 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
 #endif
         RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
     }
+    auto para = GetRenderProperties().GetLinearGradientBlurPara();
+    if (para != nullptr && para->blurRadius_ > 0) {
+        RSPropertiesPainter::DrawLinearGradientBlurFilter(GetRenderProperties(), canvas, nullptr);
+    }
+
     RSPropertiesPainter::DrawBorder(GetRenderProperties(), canvas);
     ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);
     RSPropertiesPainter::DrawForegroundColor(GetRenderProperties(), canvas);

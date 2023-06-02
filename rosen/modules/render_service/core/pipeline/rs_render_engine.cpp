@@ -156,6 +156,12 @@ void RSRenderEngine::RSSurfaceNodeCommonPostProcess(RSSurfaceRenderNode& node, R
         skRectPtr->setXYWH(0, 0, params.srcRect.width(), params.srcRect.height());
         RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr, canvas.GetSurface());
     }
+    auto para = property.GetLinearGradientBlurPara();
+    if (para != nullptr && para->blurRadius_ > 0) {
+        auto skRectPtr = std::make_unique<SkRect>();
+        skRectPtr->setXYWH(0, 0, params.srcRect.width(), params.srcRect.height());
+        RSPropertiesPainter::DrawLinearGradientBlurFilter(property, canvas, skRectPtr);
+    }
 }
 
 void RSRenderEngine::DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
