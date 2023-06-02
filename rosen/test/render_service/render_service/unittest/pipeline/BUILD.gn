@@ -42,6 +42,7 @@ group("unittest") {
     ":RSUniRenderUtilTest",
     ":RSUniRenderVirtualProcessorTest",
     ":RSUniRenderVisitorTest",
+    ":RSUniUiCaptureTest",
     ":RSUnmarshalThreadTest",
     ":RSVirtualScreenProcessorTest",
   ]
@@ -196,6 +197,15 @@ ohos_unittest("RSUniRenderVisitorTest") {
     "../../../../../modules/render_service_base:render_service_base_src",
   ]
   external_deps = [ "init:libbegetutil" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSUniUiCaptureTest
+ohos_unittest("RSUniUiCaptureTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_uni_ui_capture_test.cpp" ]
+  deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines
 }
