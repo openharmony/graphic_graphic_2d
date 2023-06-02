@@ -170,7 +170,7 @@ void SetBorderEffect(Drawing::Pen& pen, BorderStyle style, float width, float sp
 #else
         dotPath.AddCircle(0.0f, 0.0f, width / PARAM_DOUBLE);
         pen.SetPathEffect(Drawing::PathEffect::CreatePathDashEffect(dotPath, spaceBetweenDot, 0.0,
-                            Drawing::PathDashStyle::ROTATE));
+            Drawing::PathDashStyle::ROTATE));
 #endif
     } else if (style == BorderStyle::DASHED) {
         double addLen = 0.0; // When left < 2 * gap, splits left to gaps.
@@ -436,9 +436,9 @@ void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing:
         topBorder.arcTo(rectEnd, TOP_END, SWEEP_ANGLE + 0.5f, false);
 #else
         topBorder.ArcTo(rectStart.GetLeft(), rectStart.GetTop(), rectStart.GetRight(), rectStart.GetBottom(),
-                            TOP_START, SWEEP_ANGLE);
+            TOP_START, SWEEP_ANGLE);
         topBorder.ArcTo(rectEnd.GetLeft(), rectEnd.GetTop(), rectEnd.GetRight(), rectEnd.GetBottom(),
-                            TOP_END, SWEEP_ANGLE + 0.5f);
+            TOP_END, SWEEP_ANGLE + 0.5f);
 #endif
         if (ROSEN_EQ(trX, 0.f) && !ROSEN_EQ(rightW, 0.f)) {
 #ifndef USE_ROSEN_DRAWING
@@ -549,9 +549,9 @@ void RSBorder::PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawin
         rightBorder.arcTo(rectEnd, RIGHT_END, SWEEP_ANGLE + 0.5f, false);
 #else
         rightBorder.ArcTo(rectStart.GetLeft(), rectStart.GetTop(), rectStart.GetRight(), rectStart.GetBottom(),
-                            RIGHT_START, SWEEP_ANGLE);
+            RIGHT_START, SWEEP_ANGLE);
         rightBorder.ArcTo(rectEnd.GetLeft(), rectEnd.GetTop(), rectEnd.GetRight(), rectEnd.GetBottom(),
-                            RIGHT_END, SWEEP_ANGLE + 0.5f);
+            RIGHT_END, SWEEP_ANGLE + 0.5f);
 #endif
         if (ROSEN_EQ(brX, 0.f) && !ROSEN_EQ(bottomW, 0.f)) {
 #ifndef USE_ROSEN_DRAWING
@@ -666,9 +666,9 @@ void RSBorder::PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawi
         bottomBorder.arcTo(rectEnd, BOTTOM_END, SWEEP_ANGLE + 0.5f, false);
 #else
         bottomBorder.ArcTo(rectStart.GetLeft(), rectStart.GetTop(), rectStart.GetRight(), rectStart.GetBottom(),
-                                BOTTOM_START, SWEEP_ANGLE);
+            BOTTOM_START, SWEEP_ANGLE);
         bottomBorder.ArcTo(rectEnd.GetLeft(), rectEnd.GetTop(), rectEnd.GetRight(), rectEnd.GetBottom(),
-                                BOTTOM_END, SWEEP_ANGLE + 0.5f);
+            BOTTOM_END, SWEEP_ANGLE + 0.5f);
 #endif
         if (ROSEN_EQ(blX, 0.f) && !ROSEN_EQ(leftW, 0.f)) {
 #ifndef USE_ROSEN_DRAWING
@@ -779,9 +779,9 @@ void RSBorder::PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing
 #else
 
         leftBorder.ArcTo(rectStart.GetLeft(), rectStart.GetTop(), rectStart.GetRight(), rectStart.GetBottom(),
-                                LEFT_START, SWEEP_ANGLE);
+            LEFT_START, SWEEP_ANGLE);
         leftBorder.ArcTo(rectEnd.GetLeft(), rectEnd.GetTop(), rectEnd.GetRight(), rectEnd.GetBottom(),
-                                LEFT_END, SWEEP_ANGLE + 0.5f);
+            LEFT_END, SWEEP_ANGLE + 0.5f);
 #endif
         if (ROSEN_EQ(tlX, 0.f) && !ROSEN_EQ(topW, 0.f)) {
 #ifndef USE_ROSEN_DRAWING
