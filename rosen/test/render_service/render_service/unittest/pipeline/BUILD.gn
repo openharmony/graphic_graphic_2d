@@ -39,6 +39,7 @@ group("unittest") {
     ":RSUniRenderComposerAdapterTest",
     ":RSUniRenderEngineTest",
     ":RSUniRenderJudgementTest",
+    ":RSUniRenderProcessorTest",
     ":RSUniRenderUtilTest",
     ":RSUniRenderVirtualProcessorTest",
     ":RSUniRenderVisitorTest",
@@ -86,6 +87,15 @@ ohos_unittest("RSVirtualScreenProcessorTest") {
 ohos_unittest("RSUniRenderJudgementTest") {
   module_out_path = module_output_path
   sources = [ "rs_uni_render_judgement_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSUniRenderProcessorTest
+ohos_unittest("RSUniRenderProcessorTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_uni_render_processor_test.cpp" ]
   deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines
