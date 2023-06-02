@@ -16,11 +16,9 @@
 
 namespace OHOS {
 namespace Rosen {
-MemoryGraphic::MemoryGraphic(int32_t pid, float cpuMemSize, float gpuMemSize) : pid_(pid),
-    cpuMemSize_(cpuMemSize), gpuMemSize_(gpuMemSize)
-{
-
-}
+MemoryGraphic::MemoryGraphic(int32_t pid, float cpuMemSize, float gpuMemSize)
+    : pid_(pid), cpuMemSize_(cpuMemSize), gpuMemSize_(gpuMemSize)
+{}
 
 int32_t MemoryGraphic::GetPid() const
 {

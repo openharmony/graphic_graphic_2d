@@ -85,9 +85,9 @@ RSColor RSColor::operator/(float scale) const
 uint32_t RSColor::AsRgbaInt() const
 {
     return (static_cast<uint32_t>(std::clamp<int16_t>(alpha_, 0, UINT8_MAX))) |
-           ((static_cast<uint32_t>(std::clamp<int16_t>(red_, 0, UINT8_MAX))) << 24) |
-           ((static_cast<uint32_t>(std::clamp<int16_t>(green_, 0, UINT8_MAX))) << 16) |
-           ((static_cast<uint32_t>(std::clamp<int16_t>(blue_, 0, UINT8_MAX))) << 8);
+           ((static_cast<uint32_t>(std::clamp<int16_t>(red_, 0, UINT8_MAX))) << 24) |    // 24 red shift
+           ((static_cast<uint32_t>(std::clamp<int16_t>(green_, 0, UINT8_MAX))) << 16) |  // 16 green shift
+           ((static_cast<uint32_t>(std::clamp<int16_t>(blue_, 0, UINT8_MAX))) << 8);     // 8 blue shift
 }
 
 RSColor RSColor::FromRgbaInt(uint32_t rgba)
@@ -97,9 +97,9 @@ RSColor RSColor::FromRgbaInt(uint32_t rgba)
 
 uint32_t RSColor::AsArgbInt() const
 {
-    return ((static_cast<uint32_t>(std::clamp<int16_t>(alpha_, 0, UINT8_MAX))) << 24) |
-           ((static_cast<uint32_t>(std::clamp<int16_t>(red_, 0, UINT8_MAX))) << 16) |
-           ((static_cast<uint32_t>(std::clamp<int16_t>(green_, 0, UINT8_MAX))) << 8) |
+    return ((static_cast<uint32_t>(std::clamp<int16_t>(alpha_, 0, UINT8_MAX))) << 24) |   // 24 alpha shift
+           ((static_cast<uint32_t>(std::clamp<int16_t>(red_, 0, UINT8_MAX))) << 16) |     // 16 red shift
+           ((static_cast<uint32_t>(std::clamp<int16_t>(green_, 0, UINT8_MAX))) << 8) |    // 8 green shift
            (static_cast<uint32_t>(std::clamp<int16_t>(blue_, 0, UINT8_MAX)));
 }
 
@@ -112,9 +112,9 @@ RSColor RSColor::FromArgbInt(uint32_t argb)
 uint32_t RSColor::AsBgraInt() const
 {
     return (static_cast<uint32_t>(std::clamp<int16_t>(alpha_, 0, UINT8_MAX))) |
-           ((static_cast<uint32_t>(std::clamp<int16_t>(red_, 0, UINT8_MAX))) << 8) |
-           ((static_cast<uint32_t>(std::clamp<int16_t>(green_, 0, UINT8_MAX))) << 16) |
-           ((static_cast<uint32_t>(std::clamp<int16_t>(blue_, 0, UINT8_MAX))) << 24);
+           ((static_cast<uint32_t>(std::clamp<int16_t>(red_, 0, UINT8_MAX))) << 8) |      // 8 red shift
+           ((static_cast<uint32_t>(std::clamp<int16_t>(green_, 0, UINT8_MAX))) << 16) |   // 16 green shift
+           ((static_cast<uint32_t>(std::clamp<int16_t>(blue_, 0, UINT8_MAX))) << 24);     // 24 blue shift
 }
 
 RSColor RSColor::FromBgraInt(uint32_t bgra)

@@ -47,7 +47,7 @@ void RSTagTracker::UpdateReleaseGpuResourceEnable(ReleaseGpuResourceType release
 std::string RSTagTracker::TagType2String(TAGTYPE type)
 {
     std::string tagType;
-    switch(type) {
+    switch (type) {
         case TAG_SAVELAYER_DRAW_NODE :
             tagType = "savelayer_draw_node";
             break;

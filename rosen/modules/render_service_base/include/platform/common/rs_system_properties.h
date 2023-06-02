@@ -51,9 +51,9 @@ enum class PartialRenderType {
 };
 
 enum class ReleaseGpuResourceType {
-    DISABLED = 0,                               // 0, disable releaseGpuResource
-    WINDOW_HIDDEN,                              // 1, release window GpuResource when it Exit or GoBackGround
-    WINDOW_HIDDEN_AND_LAUCHER,                  // 2, release window and launcher GpuResource when it Exit or GoBackGround
+    DISABLED = 0,                            // 0, disable releaseGpuResource
+    WINDOW_HIDDEN,                           // 1, release window GpuResource when it Exit or GoBackGround
+    WINDOW_HIDDEN_AND_LAUCHER,               // 2, release window and launcher GpuResource when it Exit or GoBackGround
 };
 
 enum class DumpSurfaceType {

@@ -229,8 +229,8 @@ const std::shared_ptr<RSObjGeometry>& RSProperties::GetFrameGeometry() const
 bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<SkPoint>& offset,
     const std::optional<SkRect>& clipRect)
 #else
-bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<Drawing::Point>& offset,
-    const std::optional<Drawing::Rect>& clipRect)
+bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
+    const std::optional<Drawing::Point>& offset, const std::optional<Drawing::Rect>& clipRect)
 #endif
 {
     if (boundsGeo_ == nullptr) {
