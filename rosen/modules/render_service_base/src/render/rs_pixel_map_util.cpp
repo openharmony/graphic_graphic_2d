@@ -194,12 +194,10 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
     }
     ImageInfo imageInfo;
     pixelMap->GetImageInfo(imageInfo);
-    
+
     Drawing::BitmapFormat format = MakeDrawingBitmapFormat(imageInfo);
     Drawing::Bitmap bitmap;
     bitmap.Build(imageInfo.size.width, imageInfo.size.height, format);
-    // TODO SkImage::MakeFromRaster(skPixmap, PixelMapReleaseProc, new PixelMapReleaseContext(pixelMap));
-    // bitmap.SetPixels(const_cast<uint8_t *>(pixelMap->GetPixels()));
 
     auto image = std::make_shared<Drawing::Image>();
     image->BuildFromBitmap(bitmap);

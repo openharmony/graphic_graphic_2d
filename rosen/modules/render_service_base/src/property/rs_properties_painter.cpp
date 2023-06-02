@@ -395,7 +395,6 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
         filter.SetMaskFilter(
             Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, properties.GetShadowRadius()));
         brush.SetFilter(filter);
-        // TODO paint.canComputeFastBounds()
     }
 
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
@@ -523,7 +522,7 @@ void RSPropertiesPainter::DrawColorfulShadowInner(
         blurRadius, blurRadius, Drawing::TileMode::DECAL, nullptr));
     blurBrush.SetFilter(filter);
 
-    canvas.SaveLayer( {nullptr, &blurBrush} );
+    canvas.SaveLayer({nullptr, &blurBrush});
 
     canvas.Translate(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
 
@@ -677,7 +676,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     auto brush = filter->GetBrush();
     if (surface == nullptr) {
         ROSEN_LOGD("RSPropertiesPainter::DrawFilter surface null");
-        Drawing::SaveLayerOps slr(nullptr, &brush, 4);
+        Drawing::SaveLayerOps slr(nullptr, &brush, Drawing::SaveLayerOps::Flags::INIT_WITH_PREVIOUS);
         canvas.SaveLayer(slr);
         filter->PostProcess(canvas);
         return;
@@ -761,7 +760,7 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     if (!worldToLocalMat.mapRect(&localClipBounds, fClipBounds)) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch map rect failed.");
     }
-    
+
     if (!bounds.intersect(localClipBounds)) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch intersect clipbounds failed");
     }
@@ -908,7 +907,6 @@ SkColor RSPropertiesPainter::CalcAverageColor(sk_sp<SkImage> imageSnapshot)
 Drawing::Color RSPropertiesPainter::CalcAverageColor(std::shared_ptr<Drawing::Image> imageSnapshot)
 {
     // create a 1x1 SkPixmap
-    // TODO Drawing::Image scalePixels
     return Drawing::Color();
 }
 #endif
@@ -1037,7 +1035,6 @@ void RSPropertiesPainter::DrawFrame(
     }
     auto frameRect = Rect2DrawingRect(properties.GetFrameRect());
     // Generate or clear cache on demand
-    // TODO Drawing::CmdList::GenerateCache()
     cmds->Playback(canvas, &frameRect);
 }
 #endif
@@ -1434,7 +1431,6 @@ void RSPropertiesPainter::DrawSpherize(const RSProperties& properties, RSPaintFi
 void RSPropertiesPainter::DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
     const std::shared_ptr<Drawing::Surface>& spherizeSurface)
 {
-    // TODO DRAWING
 }
 #endif
 
