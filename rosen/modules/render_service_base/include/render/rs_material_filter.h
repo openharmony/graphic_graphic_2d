@@ -88,6 +88,7 @@ public:
     std::shared_ptr<RSFilter> Negate() override;
     bool IsNearEqual(
         const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const override;
+    bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const override;
 
 private:
     BLUR_COLOR_MODE colorMode_;

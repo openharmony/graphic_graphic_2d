@@ -112,5 +112,10 @@ bool RSBlurFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, float thr
     return ROSEN_EQ(blurRadiusX_, otherBlurFilter->GetBlurRadiusX(), threshold) &&
            ROSEN_EQ(blurRadiusY_, otherBlurFilter->GetBlurRadiusY(), threshold);
 }
+
+bool RSBlurFilter::IsNearZero(float threshold) const
+{
+    return ROSEN_EQ(blurRadiusX_, 0.0f, threshold) && ROSEN_EQ(blurRadiusY_, 0.0f, threshold);
+}
 } // namespace Rosen
 } // namespace OHOS
