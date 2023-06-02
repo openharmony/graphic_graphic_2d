@@ -353,11 +353,22 @@ bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsNearEqual(
 {
     auto animatableProperty =
         std::static_pointer_cast<const RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>>(value);
-    if (animatableProperty != nullptr) {
-        return RSRenderProperty<std::shared_ptr<RSFilter>>::stagingValue_->IsNearEqual(
-            animatableProperty->Get(), zeroThreshold);
+    if (animatableProperty == nullptr) {
+        return true;
     }
-    return true;
+
+    auto filter = RSRenderProperty<std::shared_ptr<RSFilter>>::stagingValue_;
+    auto otherFilter = animatableProperty->Get();
+
+    if ((filter != nullptr) && (otherFilter != nullptr)) {
+        return filter->IsNearEqual(otherFilter, zeroThreshold);
+    } else if ((filter == nullptr) && (otherFilter == nullptr)) {
+        return true;
+    } else if (filter == nullptr) {
+        return otherFilter->IsNearZero(zeroThreshold);
+    } else {
+        return filter->IsNearZero(zeroThreshold);
+    }
 }
 
 template<>

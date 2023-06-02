@@ -59,6 +59,11 @@ public:
         return true;
     }
 
+    virtual bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const
+    {
+        return true;
+    }
+
 protected:
     FilterType type_;
     RSFilter();

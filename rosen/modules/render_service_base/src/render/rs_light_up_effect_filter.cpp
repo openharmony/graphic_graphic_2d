@@ -93,5 +93,10 @@ bool RSLightUpEffectFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, 
     float otherLightUpDegree = otherLightUpFilter->GetLightUpDegree();
     return ROSEN_EQ(lightUpDegree_, otherLightUpDegree, threshold);
 }
+
+bool RSLightUpEffectFilter::IsNearZero(float threshold) const
+{
+    return ROSEN_EQ(lightUpDegree_, 0.0f, threshold);
+}
 } // namespace Rosen
 } // namespace OHOS
