@@ -24,12 +24,13 @@ namespace Rosen {
 class Transform {
 public:
     Transform()
-        : pivotX_(0.5f), pivotY_(0.5f), scaleX_(1.f), scaleY_(1.f), rotation_(0.f), rotationX_(0.f), rotationY_(0.f),
-          translateX_(0), translateY_(0), translateZ_(0), cameraDistance_(0.f)
+        : pivotX_(0.5f), pivotY_(0.5f), pivotZ_(0.f), scaleX_(1.f), scaleY_(1.f), rotation_(0.f), rotationX_(0.f),
+          rotationY_(0.f), translateX_(0), translateY_(0), translateZ_(0), cameraDistance_(0.f)
     {}
     ~Transform() {}
     float pivotX_;
     float pivotY_;
+    float pivotZ_;
     float scaleX_;
     float scaleY_;
     float rotation_;
@@ -111,6 +112,15 @@ public:
         }
         if (!ROSEN_EQ(trans_->pivotY_, y)) {
             trans_->pivotY_ = y;
+        }
+    }
+    void SetPivotZ(float z)
+    {
+        if (trans_ == nullptr) {
+            trans_ = std::make_unique<Transform>();
+        }
+        if (!ROSEN_EQ(trans_->pivotZ_, z)) {
+            trans_->pivotZ_ = z;
         }
     }
     void SetPivot(float x, float y)
@@ -241,6 +251,10 @@ public:
     float GetPivotY() const
     {
         return trans_ ? trans_->pivotY_ : 0.5f;
+    }
+    float GetPivotZ() const
+    {
+        return trans_ ? trans_->pivotZ_ : 0.f;
     }
     float GetScaleX() const
     {

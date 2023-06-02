@@ -293,6 +293,13 @@ void RSProperties::SetPivotY(float pivotY)
     SetDirty();
 }
 
+void RSProperties::SetPivotZ(float pivotZ)
+{
+    boundsGeo_->SetPivotZ(pivotZ);
+    geoDirty_ = true;
+    SetDirty();
+}
+
 Vector2f RSProperties::GetPivot() const
 {
     return { boundsGeo_->GetPivotX(), boundsGeo_->GetPivotY() };
@@ -306,6 +313,11 @@ float RSProperties::GetPivotX() const
 float RSProperties::GetPivotY() const
 {
     return boundsGeo_->GetPivotY();
+}
+
+float RSProperties::GetPivotZ() const
+{
+    return boundsGeo_->GetPivotZ();
 }
 
 void RSProperties::SetCornerRadius(Vector4f cornerRadius)

@@ -36,6 +36,7 @@ constexpr unsigned RIGHT_BOTTOM_POINT = 2;
 constexpr unsigned LEFT_BOTTOM_POINT = 3;
 constexpr float INCH_TO_PIXEL = 72;
 constexpr float EPSILON = 1e-4f;
+constexpr float DEGREE_TO_RADIAN = M_PI / 180;
 
 RSObjAbsGeometry::RSObjAbsGeometry() : RSObjGeometry()
 {
@@ -307,18 +308,15 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
 #else
         SkMatrix44 matrix3D;
 #endif
-
         // Translate
         matrix3D.setTranslate(trans_->pivotX_ * width_ + x_ + trans_->translateX_,
             trans_->pivotY_ * height_ + y_ + trans_->translateY_, z_ + trans_->translateZ_);
 #else // USE_ROSEN_DRAWING
         Drawing::Matrix44 matrix3D;
-
         // Translate
         matrix3D.Translate(trans_->pivotX_ * width_ + x_ + trans_->translateX_,
             trans_->pivotY_ * height_ + y_ + trans_->translateY_, z_ + trans_->translateZ_);
 #endif
-
         // Rotate
         float x = trans_->quaternion_[0];
         float y = trans_->quaternion_[1];
@@ -350,7 +348,6 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         matrix4.SetMatrix44(buffer);
 #endif
         matrix3D = matrix3D * matrix4;
-
         // Scale
         if (!ROSEN_EQ(trans_->scaleX_, 1.f) || !ROSEN_EQ(trans_->scaleY_, 1.f)) {
 #ifndef USE_ROSEN_DRAWING
@@ -361,7 +358,6 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
             matrix3D = matrix3D * matrix44;
 #endif
         }
-
         // Translate
 #ifndef USE_ROSEN_DRAWING
         matrix3D.preTranslate(-trans_->pivotX_ * width_, -trans_->pivotY_ * height_, 0);
@@ -385,7 +381,6 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
 
         // Z Position
         camera.translate(0, 0, z_ + trans_->translateZ_);
-
         // Set camera distance
         if (trans_->cameraDistance_ == 0) {
             float zOffSet = sqrt(width_ * width_ + height_ * height_) / 2;
@@ -395,6 +390,12 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         }
 
         // Rotate
+        if (trans_->pivotZ_ != 0.f) {
+            camera.translate(sin(trans_->rotationY_ * DEGREE_TO_RADIAN) * trans_->pivotZ_,
+                sin(trans_->rotationX_ * DEGREE_TO_RADIAN) * trans_->pivotZ_,
+                (cos(trans_->rotationX_ * DEGREE_TO_RADIAN) + cos(trans_->rotationX_ * DEGREE_TO_RADIAN)) *
+                    trans_->pivotZ_);
+        }
         camera.rotateX(-trans_->rotationX_);
         camera.rotateY(-trans_->rotationY_);
         camera.rotateZ(-trans_->rotation_);
@@ -412,14 +413,12 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         } else {
             camera.SetCameraPos(0, 0, trans_->cameraDistance_);
         }
-
         // Rotate
         camera.RotateXDegrees(trans_->rotationX_);
         camera.RotateYDegrees(trans_->rotationY_);
         camera.RotateZDegrees(trans_->rotation_);
         camera.ApplyToMatrix(matrix3D);
 #endif
-
         // Scale
         if (!ROSEN_EQ(trans_->scaleX_, 1.f) || !ROSEN_EQ(trans_->scaleY_, 1.f)) {
 #ifndef USE_ROSEN_DRAWING
@@ -428,7 +427,6 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
             matrix3D.PreScale(trans_->scaleX_, trans_->scaleY_);
 #endif
         }
-
         // Translate
 #ifndef USE_ROSEN_DRAWING
         matrix3D.preTranslate(-trans_->pivotX_ * width_, -trans_->pivotY_ * height_);
@@ -446,7 +444,6 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         matrix.Translate(
             trans_->pivotX_ * width_ + x_ + trans_->translateX_, trans_->pivotY_ * height_ + y_ + trans_->translateY_);
         matrix3D = matrix * matrix3D;
-
         matrix_ = matrix_ * matrix3D;
 #endif
     }

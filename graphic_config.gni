@@ -113,6 +113,8 @@ if (exec_script(check_graphic_ext_file_script,
 
 graphic_2d_root = "//foundation/graphic/graphic_2d"
 hilog_root = "//base/hiviewdfx/hilog"
+window_base_path = "//foundation/window/window_manager"
+safwk_base = "//foundation/systemabilitymgr/safwk"
 
 accessibility_enable = false
 if (defined(global_parts_info) &&

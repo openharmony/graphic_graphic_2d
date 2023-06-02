@@ -30,6 +30,8 @@ DECLARE_ANIMATABLE_MODIFIER(PositionZ, float, POSITION_Z, Add, Geometry)
 
 DECLARE_ANIMATABLE_MODIFIER(Pivot, Vector2f, PIVOT, Replace, Geometry)
 
+DECLARE_ANIMATABLE_MODIFIER(PivotZ, float, PIVOT_Z, Replace, Geometry)
+
 DECLARE_ANIMATABLE_MODIFIER(Quaternion, Quaternion, QUATERNION, Replace, Geometry)
 
 DECLARE_ANIMATABLE_MODIFIER(Rotation, float, ROTATION, Add, Geometry)

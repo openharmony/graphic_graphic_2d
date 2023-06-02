@@ -117,6 +117,7 @@ public:
     void SetPivot(float pivotX, float pivotY);
     void SetPivotX(float pivotX);
     void SetPivotY(float pivotY);
+    void SetPivotZ(float pivotZ);
 
     void SetCornerRadius(float cornerRadius);
     void SetCornerRadius(const Vector4f& cornerRadius);
