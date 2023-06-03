@@ -164,4 +164,80 @@ HWTEST_F(RSScreenTest, SetScreenVsyncEnabled_001, testing::ext::TestSize.Level1)
     auto virtualScreen = std::make_unique<impl::RSScreen>(config);
     virtualScreen->SetScreenVsyncEnabled(true);
 }
+
+/*
+ * @tc.name: SetActiveMode_001
+ * @tc.desc: SetActiveMode Test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSScreenTest, SetActiveMode_001, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    uint32_t modeId = static_cast<uint32_t>(1);
+    virtualScreen->SetActiveMode(modeId);
+}
+
+/*
+ * @tc.name: SetPowerStatus_002
+ * @tc.desc: SetPowerStatus Test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSScreenTest, SetPowerStatus_002, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    uint32_t status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
+    virtualScreen->SetPowerStatus(status);
+}
+
+/*
+ * @tc.name: GetActiveMode_001
+ * @tc.desc: SetPowerStatus Test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSScreenTest, GetActiveMode_001, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    ASSERT_EQ(virtualScreen->GetActiveMode().has_value(), false);
+}
+
+/*
+ * @tc.name: GetScreenSupportedMetaDataKeys_001
+ * @tc.desc: GetScreenSupportedMetaDataKeys Test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSScreenTest, GetScreenSupportedMetaDataKeys_001, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    std::vector<ScreenHDRMetadataKey> keys;
+    ASSERT_EQ(virtualScreen->GetScreenSupportedMetaDataKeys(keys), INVALID_BACKLIGHT_VALUE);
+    ScreenId id = static_cast<uint64_t>(1);
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    ASSERT_EQ(rsScreen->GetScreenSupportedMetaDataKeys(keys), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetScreenGamutMap_001
+ * @tc.desc: SetScreenGamutMap Test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSScreenTest, SetScreenGamutMap_001, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    ScreenGamutMap map1 = ScreenGamutMap::GAMUT_MAP_CONSTANT;
+    auto result1 = virtualScreen->SetScreenGamutMap(map1);
+    ASSERT_EQ(result1, StatusCode::SUCCESS);
+    ScreenGamutMap map2 = ScreenGamutMap::GAMUT_MAP_CONSTANT;
+    const auto result2 = virtualScreen->GetScreenGamutMap(map2);
+    ASSERT_EQ(result2, StatusCode::SUCCESS);
+}
 } // namespace OHOS::Rosen
