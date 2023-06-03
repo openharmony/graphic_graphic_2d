@@ -21,10 +21,13 @@ ohos_unittest("2d_graphics_image_test") {
 
   sources = [
     "bitmap_test.cpp",
-    "gpu_context_test.cpp",
     "image_test.cpp",
     "picture_test.cpp",
   ]
+
+  if (ace_enable_gpu) {
+    sources += [ "gpu_context_test.cpp" ]
+  }
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
@@ -39,8 +42,9 @@ ohos_unittest("2d_graphics_image_test") {
     "//third_party/googletest:gtest_main",
   ]
 
+  defines = [ "ROSEN_OHOS" ]
   if (ace_enable_gpu) {
-    defines = [ "ACE_ENABLE_GPU" ]
+    defines += [ "ACE_ENABLE_GPU" ]
   }
 
   subsystem_name = "graphic"

@@ -58,8 +58,8 @@ public:
     /* set & get device screen info end */
 
     /* set & get device layer info begin */
-    int32_t SetLayerAlpha(uint32_t screenId, uint32_t layerId, GraphicLayerAlpha &alpha) override;
-    int32_t SetLayerSize(uint32_t screenId, uint32_t layerId, GraphicIRect &layerRect) override;
+    int32_t SetLayerAlpha(uint32_t screenId, uint32_t layerId, const GraphicLayerAlpha &alpha) override;
+    int32_t SetLayerSize(uint32_t screenId, uint32_t layerId, const GraphicIRect &layerRect) override;
     int32_t SetTransformMode(uint32_t screenId, uint32_t layerId, GraphicTransformType type) override;
     int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId,
                                   const std::vector<GraphicIRect> &visibles) override;
@@ -69,10 +69,10 @@ public:
                            const sptr<SyncFence> &acquireFence) override;
     int32_t SetLayerCompositionType(uint32_t screenId, uint32_t layerId, GraphicCompositionType type) override;
     int32_t SetLayerBlendType(uint32_t screenId, uint32_t layerId, GraphicBlendType type) override;
-    int32_t SetLayerCrop(uint32_t screenId, uint32_t layerId, GraphicIRect &crop) override;
+    int32_t SetLayerCrop(uint32_t screenId, uint32_t layerId, const GraphicIRect &crop) override;
     int32_t SetLayerZorder(uint32_t screenId, uint32_t layerId, uint32_t zorder) override;
     int32_t SetLayerPreMulti(uint32_t screenId, uint32_t layerId, bool isPreMulti) override;
-    int32_t SetLayerColorTransform(uint32_t screenId, uint32_t layerId, const std::vector<float>& matrix) override;
+    int32_t SetLayerColorTransform(uint32_t screenId, uint32_t layerId, const std::vector<float> &matrix) override;
     int32_t SetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, GraphicColorDataSpace colorSpace) override;
     int32_t GetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, GraphicColorDataSpace &colorSpace) override;
     int32_t SetLayerMetaData(uint32_t screenId, uint32_t layerId,

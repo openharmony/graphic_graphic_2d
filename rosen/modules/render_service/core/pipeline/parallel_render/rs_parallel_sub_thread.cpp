@@ -268,14 +268,22 @@ void RSParallelSubThread::RenderCache()
             RS_LOGE("RenderCache ReinterpretCastTo fail");
             continue;
         }
+        RS_TRACE_NAME_FMT("draw cache render node: [%s, %llu]", surfaceNodePtr->GetName().c_str(),
+            surfaceNodePtr->GetId());
         if (surfaceNodePtr->GetCacheSurface() == nullptr) {
-            int width = std::ceil(surfaceNodePtr->GetRenderProperties().GetBoundsRect().GetWidth());
-            int height = std::ceil(surfaceNodePtr->GetRenderProperties().GetBoundsRect().GetHeight());
-            AcquireSubSkSurface(width, height);
-            surfaceNodePtr->InitCacheSurface(skSurface_);
+            if (grContext_ == nullptr) {
+                grContext_ = CreateShareGrContext();
+            }
+            if (grContext_ == nullptr) {
+                RS_LOGE("Share GrContext is not ready!!!");
+                return;
+            }
+            surfaceNodePtr->InitCacheSurface(grContext_.get());
         }
-        bool needNotify = !surfaceNodePtr->HasCachedTexture();
+        // flag CacheSurfaceProcessed is used for cacheCmdskippedNodes collection in rs_mainThread
+        surfaceNodePtr->SetCacheSurfaceProcessedStatus(false);
         node->Process(visitor_);
+#ifndef NEW_SKIA
         auto skCanvas = surfaceNodePtr->GetCacheSurface() ? surfaceNodePtr->GetCacheSurface()->getCanvas() : nullptr;
         if (skCanvas) {
             RS_TRACE_NAME_FMT("render cache flush, %s", surfaceNodePtr->GetName().c_str());
@@ -283,12 +291,13 @@ void RSParallelSubThread::RenderCache()
         } else {
             RS_LOGE("skCanvas is nullptr, flush failed");
         }
-        if (needNotify) {
-            RSParallelRenderManager::Instance()->NodeTaskNotify(node->GetId());
-        }
+#else
+        RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
+        surfaceNodePtr->GetCacheSurface()->flushAndSubmit(false);
+#endif
+        surfaceNodePtr->SetCacheSurfaceProcessedStatus(true);
     }
     eglSync_ = eglCreateSyncKHR(renderContext_->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
-    WaitReleaseFence();
 #endif
 }
 
@@ -450,6 +459,7 @@ void RSParallelSubThread::CreateResource()
         }
         skCanvas_ = skSurface_->getCanvas();
         canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_);
+        canvas_->SetIsParallelCanvas(true);
     }
     visitor_ = std::make_shared<RSUniRenderVisitor>(canvas_, threadIndex_);
 #elif RS_ENABLE_VK
@@ -548,12 +558,12 @@ void RSParallelSubThread::Composition()
     compositionTask_ = nullptr;
 }
 
-EGLContext RSParallelSubThread::GetSharedContext()
+EGLContext RSParallelSubThread::GetSharedContext() const
 {
     return eglShareContext_;
 }
 
-sk_sp<SkSurface> RSParallelSubThread::GetSkSurface()
+sk_sp<SkSurface> RSParallelSubThread::GetSkSurface() const
 {
     return skSurface_;
 }
@@ -568,7 +578,7 @@ void RSParallelSubThread::SetCompositionTask(std::unique_ptr<RSCompositionTask> 
     compositionTask_ = std::move(compositionTask);
 }
 
-sk_sp<SkImage> RSParallelSubThread::GetTexture()
+sk_sp<SkImage> RSParallelSubThread::GetTexture() const
 {
     return texture_;
 }

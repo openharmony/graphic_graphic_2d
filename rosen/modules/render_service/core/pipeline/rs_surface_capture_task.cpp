@@ -332,7 +332,7 @@ void RSSurfaceCaptureVisitor::AdjustZOrderAndDrawSurfaceNode()
     // draw hardwareEnabledNodes
     for (auto& surfaceNode : hardwareEnabledNodes_) {
         if (surfaceNode->IsLastFrameHardwareEnabled() && surfaceNode->GetBuffer() != nullptr) {
-            CaptureSingleSurfaceNodeWithUni(*surfaceNode);
+            CaptureSurfaceInDisplayWithUni(*surfaceNode);
         }
     }
 }
@@ -428,7 +428,6 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
         return;
     }
     bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
-
     if (isSelfDrawingSurface) {
         canvas_->save();
     }
@@ -468,8 +467,11 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
     }
 
     if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
+        canvas_->save();
+        canvas_->setMatrix(node.GetTotalMatrix());
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+        canvas_->restore();
     }
 
     if (isSelfDrawingSurface) {

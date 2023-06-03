@@ -26,6 +26,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_surface_extractor.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 
 using namespace testing::ext;
 
@@ -35,11 +36,13 @@ using namespace HiviewDFX;
 using DisplayId = ScreenId;
 namespace {
     constexpr HiLogLabel LOG_LABEL = { LOG_CORE, 0xD001400, "RSSurfaceCaptureTaskTest" };
-    constexpr uint32_t MAX_TIME_WAITING_FOR_CALLBACK = 20;
+    constexpr uint32_t MAX_TIME_WAITING_FOR_CALLBACK = 200;
     constexpr uint32_t SLEEP_TIME_IN_US = 10000; // 10ms
     constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000; // 100ms
     constexpr float DEFAULT_BOUNDS_WIDTH = 100.f;
     constexpr float DEFAULT_BOUNDS_HEIGHT = 200.f;
+    constexpr uint32_t DEFAULT_CANVAS_WIDTH = 800;
+    constexpr uint32_t DEFAULT_CANVAS_HEIGHT = 600;
 }
 
 class CustomizedSurfaceCapture : public SurfaceCaptureCallback {
@@ -323,6 +326,290 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureOfSecurityLayer, Function |
     displayNode = nullptr;
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
+}
+
+/*
+ * @tc.name: Run
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.Run
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, Run, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    ASSERT_EQ(nullptr, task.Run());
+}
+
+/*
+ * @tc.name: CreatePixelMapByDisplayNode001
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapByDisplayNode
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNode001, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(nullptr));
+}
+
+/*
+ * @tc.name: CreatePixelMapBySurfaceNode001
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapBySurfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapBySurfaceNode001, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    ASSERT_EQ(nullptr, task.CreatePixelMapBySurfaceNode(nullptr, false));
+}
+
+/*
+ * @tc.name: CreatePixelMapBySurfaceNode002
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapBySurfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapBySurfaceNode002, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    ASSERT_EQ(nullptr, task.CreatePixelMapBySurfaceNode(nullptr, true));
+}
+
+/*
+ * @tc.name: CreatePixelMapBySurfaceNode003
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapBySurfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapBySurfaceNode003, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    RSSurfaceRenderNodeConfig config;
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_EQ(nullptr, task.CreatePixelMapBySurfaceNode(node, false));
+}
+
+/*
+ * @tc.name: CreatePixelMapBySurfaceNode004
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.CreatePixelMapBySurfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapBySurfaceNode004, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    RSSurfaceRenderNodeConfig config;
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_EQ(nullptr, task.CreatePixelMapBySurfaceNode(node, true));
+}
+
+/*
+ * @tc.name: CreateSurface001
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.CreateSurface001
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, CreateSurface001, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    ASSERT_EQ(nullptr, task.CreateSurface(nullptr));
+}
+
+/*
+ * @tc.name: CreateSurface002
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.CreateSurface002
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, CreateSurface002, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    std::unique_ptr<Media::PixelMap> pixelmap = nullptr;
+    ASSERT_EQ(nullptr, task.CreateSurface(pixelmap));
+}
+
+/*
+ * @tc.name: SetSurface
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.SetSurface
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, SetSurface, Function | SmallTest | Level2)
+{
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    std::shared_ptr<RSSurfaceCaptureVisitor> visitor =
+        std::make_shared<RSSurfaceCaptureVisitor>(scaleX, scaleY, false);
+    ASSERT_NE(nullptr, visitor);
+    visitor->canvas_ = nullptr;
+    visitor->SetSurface(nullptr);
+    ASSERT_EQ(nullptr, visitor->canvas_);
+}
+
+/*
+ * @tc.name: ProcessRootRenderNode001
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessRootRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, ProcessRootRenderNode001, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    std::shared_ptr<RSSurfaceCaptureVisitor> visitor =
+        std::make_shared<RSSurfaceCaptureVisitor>(scaleX, scaleY, false);
+    ASSERT_NE(nullptr, visitor);
+    visitor->canvas_ = nullptr;
+    visitor->SetSurface(nullptr);
+    ASSERT_EQ(nullptr, visitor->canvas_);
+    RSRootRenderNode node(id);
+    visitor->ProcessRootRenderNode(node);
+}
+
+/*
+ * @tc.name: ProcessCanvasRenderNode001
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessCanvasRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, ProcessCanvasRenderNode001, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    std::shared_ptr<RSSurfaceCaptureVisitor> visitor =
+        std::make_shared<RSSurfaceCaptureVisitor>(scaleX, scaleY, false);
+    ASSERT_NE(nullptr, visitor);
+    RSCanvasRenderNode node(id);
+    visitor->isUniRender_ = true;
+    visitor->ProcessCanvasRenderNode(node);
+}
+
+/*
+ * @tc.name: ProcessCanvasRenderNode002
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessCanvasRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, ProcessCanvasRenderNode002, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    std::shared_ptr<RSSurfaceCaptureVisitor> visitor =
+        std::make_shared<RSSurfaceCaptureVisitor>(scaleX, scaleY, false);
+    ASSERT_NE(nullptr, visitor);
+    RSCanvasRenderNode node(id);
+    visitor->isUniRender_ = false;
+    visitor->ProcessCanvasRenderNode(node);
+}
+
+/*
+ * @tc.name: ProcessSurfaceRenderNode001
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessSurfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode001, Function | SmallTest | Level2)
+{
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    std::shared_ptr<RSSurfaceCaptureVisitor> visitor =
+        std::make_shared<RSSurfaceCaptureVisitor>(scaleX, scaleY, false);
+    ASSERT_NE(nullptr, visitor);
+    RSSurfaceRenderNodeConfig config;
+    RSSurfaceRenderNode node(config);
+    visitor->canvas_ = nullptr;
+    visitor->ProcessSurfaceRenderNode(node);
+}
+
+/*
+ * @tc.name: ProcessSurfaceRenderNode002
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessSurfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode002, Function | SmallTest | Level2)
+{
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    std::shared_ptr<RSSurfaceCaptureVisitor> visitor =
+        std::make_shared<RSSurfaceCaptureVisitor>(scaleX, scaleY, false);
+    ASSERT_NE(nullptr, visitor);
+    RSSurfaceRenderNodeConfig config;
+    RSSurfaceRenderNode node(config);
+    node.renderProperties_.SetAlpha(0.0f);
+    visitor->ProcessSurfaceRenderNode(node);
+}
+
+/*
+ * @tc.name: ProcessSurfaceRenderNode003
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessSurfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode003, Function | SmallTest | Level2)
+{
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    std::shared_ptr<RSSurfaceCaptureVisitor> visitor =
+        std::make_shared<RSSurfaceCaptureVisitor>(scaleX, scaleY, false);
+    ASSERT_NE(nullptr, visitor);
+    RSSurfaceRenderNodeConfig config;
+    RSSurfaceRenderNode node(config);
+    node.renderProperties_.SetAlpha(0.0f);
+    visitor->IsDisplayNode(false);
+    SkCanvas skCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    visitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(&skCanvas);
+    visitor->ProcessSurfaceRenderNodeWithoutUni(node);
+}
+
+/*
+ * @tc.name: ProcessSurfaceRenderNode004
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessSurfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode004, Function | SmallTest | Level2)
+{
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    std::shared_ptr<RSSurfaceCaptureVisitor> visitor =
+        std::make_shared<RSSurfaceCaptureVisitor>(scaleX, scaleY, false);
+    ASSERT_NE(nullptr, visitor);
+    RSSurfaceRenderNodeConfig config;
+    RSSurfaceRenderNode node(config);
+    node.renderProperties_.SetAlpha(0.0f);
+    visitor->IsDisplayNode(true);
+    SkCanvas skCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    visitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(&skCanvas);
+    visitor->ProcessSurfaceRenderNodeWithoutUni(node);
 }
 } // namespace Rosen
 } // namespace OHOS

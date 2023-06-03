@@ -31,47 +31,47 @@ std::shared_ptr<DynamicFileFontProvider> DynamicFileFontProvider::Create() noexc
 
 int DynamicFileFontProvider::LoadFont(const std::string &familyName, const std::string &path) noexcept(true)
 {
-    LOG2EX(DEBUG) << "loading font: '" << path << "'";
+    LOGEX_FUNC_LINE(DEBUG) << "loading font: '" << path << "'";
     std::error_code ec;
     auto ret = StdFilesystemExists(path, ec);
     if (ec) {
-        LOG2EX(ERROR) << "open file failed: " << ec.message();
+        LOGEX_FUNC_LINE(ERROR) << "open file failed: " << ec.message();
         return FAILED;
     }
 
     if (!ret) {
-        LOG2EX(ERROR) << "file is not exists";
+        LOGEX_FUNC_LINE(ERROR) << "file is not exists";
         return FAILED;
     }
 
     MockIFStream ifs(path);
     if (!ifs.StdFilesystemIsOpen()) {
-        LOG2EX(ERROR) << "file open failed";
+        LOGEX_FUNC_LINE(ERROR) << "file open failed";
         return FAILED;
     }
 
     ifs.StdFilesystemSeekg(0, ifs.end);
     if (!ifs.good()) {
-        LOG2EX(ERROR) << "seekg(0, ifs.end) failed!";
+        LOGEX_FUNC_LINE(ERROR) << "seekg(0, ifs.end) failed!";
         return FAILED;
     }
 
     auto size = ifs.StdFilesystemTellg();
     if (ifs.fail()) {
-        LOG2EX(ERROR) << "tellg failed!";
+        LOGEX_FUNC_LINE(ERROR) << "tellg failed!";
         return FAILED;
     }
 
     ifs.StdFilesystemSeekg(ifs.beg);
     if (!ifs.good()) {
-        LOG2EX(ERROR) << "seekg(ifs.beg) failed!";
+        LOGEX_FUNC_LINE(ERROR) << "seekg(ifs.beg) failed!";
         return FAILED;
     }
 
     std::unique_ptr<char[]> buf = std::make_unique<char[]>(size);
     ifs.StdFilesystemRead(buf.get(), size);
     if (!ifs.good()) {
-        LOG2EX(ERROR) << "read failed!";
+        LOGEX_FUNC_LINE(ERROR) << "read failed!";
         return FAILED;
     }
 

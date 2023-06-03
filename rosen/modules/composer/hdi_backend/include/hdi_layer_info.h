@@ -92,7 +92,7 @@ public:
         cSurface_ = surface;
     }
 
-    void SetBuffer(const sptr<SurfaceBuffer> &sbuffer, const sptr<SyncFence>& acquireFence)
+    void SetBuffer(const sptr<SurfaceBuffer> &sbuffer, const sptr<SyncFence> &acquireFence)
     {
         sbuffer_ = sbuffer;
         acquireFence_ = acquireFence;
@@ -168,7 +168,7 @@ public:
         return additionalInfo_;
     }
 
-    void SetColorTransform(const std::vector<float>& matrix)
+    void SetColorTransform(const std::vector<float> &matrix)
     {
         colorTransformMatrix_ = matrix;
     }
@@ -208,7 +208,7 @@ public:
         return IsSupportedPresentTimestamp_;
     }
 
-    const GraphicPresentTimestamp& GetPresentTimestamp()
+    const GraphicPresentTimestamp &GetPresentTimestamp()
     {
         return presentTimestamp_;
     }
@@ -241,7 +241,7 @@ public:
         return acquireFence_;
     }
 
-    /* const */ GraphicLayerAlpha& GetAlpha()
+    const GraphicLayerAlpha &GetAlpha()
     {
         return layerAlpha_;
     }
@@ -256,12 +256,12 @@ public:
         return compositionType_;
     }
 
-    const std::vector<GraphicIRect>& GetVisibleRegions()
+    const std::vector<GraphicIRect> &GetVisibleRegions()
     {
         return visibleRegions_;
     }
 
-    const std::vector<GraphicIRect>& GetDirtyRegions()
+    const std::vector<GraphicIRect> &GetDirtyRegions()
     {
         return dirtyRegions_;
     }
@@ -271,12 +271,12 @@ public:
         return blendType_;
     }
 
-    /* const */ GraphicIRect& GetCropRect()
+    const GraphicIRect &GetCropRect()
     {
         return cropRect_;
     }
 
-    /* const */ GraphicIRect& GetLayerSize()
+    const GraphicIRect &GetLayerSize()
     {
         return layerRect_;
     }
@@ -296,7 +296,7 @@ public:
         return preMulti_;
     }
 
-    const std::vector<float>& GetColorTransform()
+    const std::vector<float> &GetColorTransform()
     {
         return colorTransformMatrix_;
     }
@@ -306,7 +306,7 @@ public:
         return colorSpace_;
     }
 
-    std::vector<GraphicHDRMetaData>& GetMetaData()
+    std::vector<GraphicHDRMetaData> &GetMetaData()
     {
         return metaData_;
     }
@@ -452,7 +452,7 @@ private:
     sptr<SurfaceBuffer> sbuffer_ = nullptr;
     sptr<SurfaceBuffer> pbuffer_ = nullptr;
     bool preMulti_ = false;
-    LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL; 
+    LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL;
 };
 } // namespace Rosen
 } // namespace OHOS

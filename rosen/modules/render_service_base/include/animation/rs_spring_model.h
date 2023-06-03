@@ -25,7 +25,7 @@ template<typename RSAnimatableType>
 class RSB_EXPORT RSSpringModel {
 public:
     explicit RSSpringModel(float response, float dampingRatio, const RSAnimatableType& initialOffset,
-        const RSAnimatableType& initialVelocity, float minimumAmplitude);
+        const RSAnimatableType& initialVelocity, float minimumAmplitudeRatio);
 
     virtual ~RSSpringModel() = default;
 
@@ -45,6 +45,23 @@ protected:
     // estimated duration until the spring is at rest
     float minimumAmplitudeRatio_ { 0.001f };
 
+    void SetMinimumAmplitudeRatio(float minimumAmplitudeRatio)
+    {
+        minimumAmplitudeRatio_ = minimumAmplitudeRatio;
+    }
+
+    float BinarySearchTime(float left, float right, RSAnimatableType target) const
+    {
+        // only used when RSAnimatableType is float
+        return 1.0f;
+    }
+
+    float BinarySearchTime(float left, float right, RSAnimatableType target, bool& isIncrease) const
+    {
+        // only used when RSAnimatableType is float
+        return 1.0f;
+    }
+
 private:
     // calculated intermediate coefficient
     float coeffDecay_ { 0.0f };
@@ -53,6 +70,13 @@ private:
     RSAnimatableType coeffScaleAlt_ {};
     float coeffDecayAlt_ { 0.0f };
 };
+
+template<>
+RSB_EXPORT float RSSpringModel<float>::EstimateDuration() const;
+template<>
+RSB_EXPORT float RSSpringModel<float>::BinarySearchTime(float left, float right, float target) const;
+template<>
+RSB_EXPORT float RSSpringModel<float>::BinarySearchTime(float left, float right, float target, bool& isIncrease) const;
 } // namespace Rosen
 } // namespace OHOS
 

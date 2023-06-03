@@ -73,7 +73,7 @@ private:
     float scaleX_;
     float scaleY_;
     float scaleZ_;
-    std::shared_ptr<RSRenderAnimatableProperty<Vector2<float>>> property_;
+    std::shared_ptr<RSRenderAnimatableProperty<Vector2f>> property_;
     const std::shared_ptr<RSRenderModifier> CreateModifier() override;
 };
 
@@ -91,7 +91,7 @@ private:
     float translateX_;
     float translateY_;
     float translateZ_;
-    std::shared_ptr<RSRenderAnimatableProperty<Vector2<float>>> property_;
+    std::shared_ptr<RSRenderAnimatableProperty<Vector2f>> property_;
     const std::shared_ptr<RSRenderModifier> CreateModifier() override;
 };
 

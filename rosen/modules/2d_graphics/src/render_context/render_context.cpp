@@ -373,7 +373,7 @@ void RenderContext::RenderFrame()
     // flush commands
     if (skSurface_->getCanvas() != nullptr) {
         LOGD("RenderFrame: Canvas");
-        RSTagTracker tagTracker(GetGrContext(),RSTagTracker::TAGTYPE::TAG_RENDER_FRAME);
+        RSTagTracker tagTracker(GetGrContext(), RSTagTracker::TAGTYPE::TAG_RENDER_FRAME);
         skSurface_->getCanvas()->flush();
     } else {
         LOGW("canvas is nullptr!!!");

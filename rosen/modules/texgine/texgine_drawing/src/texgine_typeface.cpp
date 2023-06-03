@@ -32,7 +32,7 @@ TexgineTypeface::TexgineTypeface(SkTypeface *tf) : TexgineTypeface(sk_sp<SkTypef
     }
 }
 
-TexgineTypeface::TexgineTypeface(const sk_sp<SkTypeface> typeface)
+TexgineTypeface::TexgineTypeface(sk_sp<SkTypeface> typeface)
 {
     typeface_ = typeface;
 }
@@ -87,7 +87,7 @@ std::shared_ptr<TexgineTypeface> TexgineTypeface::MakeFromStream(
 
 std::shared_ptr<TexgineTypeface> TexgineTypeface::MakeFromFile(const std::string &path, int index)
 {
-    auto st = SkTypeface::MakeFromFile(path, index);
+    auto st = SkTypeface::MakeFromFile(path.c_str(), index);
     return std::make_shared<TexgineTypeface>(st);
 }
 
@@ -99,7 +99,7 @@ void TexgineTypeface::GetFamilyName(TexgineString *name) const
     typeface_->getFamilyName(name->GetString());
 }
 
-std::shared_ptr<TexgineFontStyle> TexgineTypeface::FontStyle()
+std::shared_ptr<TexgineFontStyle> TexgineTypeface::GetFontStyle() const
 {
     if (typeface_ == nullptr) {
         return nullptr;

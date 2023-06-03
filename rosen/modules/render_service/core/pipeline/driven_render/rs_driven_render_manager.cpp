@@ -173,7 +173,7 @@ void RSDrivenRenderManager::DoProcessRenderTask(const DrivenProcessInfo& info)
             isReusableMode = true;
             traceMsg = "RSDrivenRender::ReusableProcess:[" + rsParent->GetName() + "]" +
                 " " + rsParent->GetDstRect().ToString() +
-                " Alpha: " + std::to_string(rsParent->GetGlobalAlpha()).substr(0, 4); // get alpha value
+                " Alpha: " + std::to_string(rsParent->GetGlobalAlpha()).substr(0, 4); // substr[0]-[4] is alpha value
         }
     }
     if (isReusableMode) {

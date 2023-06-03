@@ -33,7 +33,7 @@ void ExTime(Logger &algnlogger, enum Logger::LOG_PHASE phase)
         int month = now->tm_mon + 1;
         int day = now->tm_mday;
         int hour = nowMs / (1000LL * 60 * 60) % 24;
-        int minute = nowMs / (1000LL * 60) % 60
+        int minute = nowMs / (1000LL * 60) % 60;
         int second = nowMs / (1000LL) % 60;
         int milliseconds = nowMs % 1000;
         int longWidth = 4;
@@ -50,7 +50,7 @@ void ExTime(Logger &algnlogger, enum Logger::LOG_PHASE phase)
     }
 
     if (algnlogger.GetLevel() != Logger::LOG_LEVEL::DEBUG) {
-        Logger::Stdout(algnlogger, phase);
+        Logger::OutputByStdout(algnlogger, phase);
     }
 }
 } // namespace TextEngine

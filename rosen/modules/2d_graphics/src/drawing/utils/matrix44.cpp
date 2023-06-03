@@ -25,39 +25,29 @@ Matrix44::Matrix44() : impl_(ImplFactory::CreateMatrix44Impl()) {}
 
 void Matrix44::Translate(scalar dx, scalar dy, scalar dz)
 {
-    if (impl_ != nullptr) {
-        impl_->Translate(dx, dy, dz);
-    }
+    impl_->Translate(dx, dy, dz);
 }
 
 void Matrix44::Scale(scalar sx, scalar sy, scalar sz)
 {
-    if (impl_ != nullptr) {
-        impl_->Scale(sx, sy, sz);
-    }
+    impl_->Scale(sx, sy, sz);
 }
 
 Matrix44 Matrix44::operator*(const Matrix44& other)
 {
-    if (impl_ != nullptr) {
-        impl_->Multiply(*this, other);
-    }
-
+    impl_->Multiply(*this, other);
     return *this;
 }
 
 Matrix44::operator Matrix() const
 {
-    return (impl_ == nullptr) ? *this : impl_->ConvertToMatrix();
+    return impl_->ConvertToMatrix();
 }
 
 void Matrix44::SetMatrix44(const Buffer& buffer)
 {
-    if (impl_ != nullptr) {
-        impl_->SetMatrix44(buffer);
-    }
+    impl_->SetMatrix44(buffer);
 }
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

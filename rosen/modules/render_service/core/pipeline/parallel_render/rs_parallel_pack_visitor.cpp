@@ -24,8 +24,8 @@
 namespace OHOS {
 namespace Rosen {
 RSParallelPackVisitor::RSParallelPackVisitor(RSUniRenderVisitor &visitor)
+    : partialRenderType_(RSSystemProperties::GetUniPartialRenderEnabled())
 {
-    partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     isPartialRenderEnabled_ = visitor.GetIsPartialRenderEnabled();
     isOpDropped_ = visitor.GetIsOpDropped();

@@ -31,7 +31,7 @@ namespace Rosen {
 namespace Drawing {
 class SkiaPersistentCache : public GrContextOptions::PersistentCache {
 public:
-    SkiaPersistentCache(GPUContextOptions::PersistentCache* cache);
+    explicit SkiaPersistentCache(GPUContextOptions::PersistentCache* cache);
     ~SkiaPersistentCache() {}
 
     sk_sp<SkData> load(const SkData& key) override;
@@ -44,7 +44,13 @@ class SkiaGPUContext : public GPUContextImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaGPUContext();
-    ~SkiaGPUContext() override {};
+    ~SkiaGPUContext() override = default;;
+
+    AdapterType GetType() const override
+    {
+        return AdapterType::SKIA_ADAPTER;
+    }
+
     bool BuildFromGL(const GPUContextOptions& options) override;
 
     void Flush() override;

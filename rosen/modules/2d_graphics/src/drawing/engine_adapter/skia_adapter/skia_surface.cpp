@@ -44,13 +44,7 @@ SkiaSurface::SkiaSurface() {}
 
 bool SkiaSurface::Bind(const Bitmap& bitmap)
 {
-    auto skiaBitmapImpl = bitmap.GetImpl<SkiaBitmap>();
-    if (skiaBitmapImpl == nullptr) {
-        LOGE("SkiaSurface bind Bitmap failed: bitmap is invalid");
-        return false;
-    }
-
-    const auto &skBitmap = skiaBitmapImpl->ExportSkiaBitmap();
+    const auto &skBitmap = bitmap.GetImpl<SkiaBitmap>()->ExportSkiaBitmap();
     skSurface_ = SkSurface::MakeRasterDirect(skBitmap.info(), skBitmap.getPixels(), skBitmap.rowBytes());
     if (skSurface_ == nullptr) {
         LOGE("SkiaSurface bind Bitmap failed: skSurface is nullptr");
@@ -59,15 +53,10 @@ bool SkiaSurface::Bind(const Bitmap& bitmap)
     return true;
 }
 
+#ifdef ACE_ENABLE_GPU
 bool SkiaSurface::Bind(const Image& image)
 {
-#ifdef ACE_ENABLE_GPU
     auto skiaImageImpl = image.GetImpl<SkiaImage>();
-    if (skiaImageImpl == nullptr) {
-        LOGE("SkiaSurface bind Image failed: image is invalid");
-        return false;
-    }
-
     auto skImage = skiaImageImpl->GetImage();
     auto grContext = skiaImageImpl->GetGrContext();
     if (skImage == nullptr || grContext == nullptr) {
@@ -101,16 +90,11 @@ bool SkiaSurface::Bind(const Image& image)
 
     skImage_ = skImage;
     return true;
-#else
-    LOGE("SkiaSurface bind Image failed: device does not support GPU");
-    return false;
-#endif
 }
 
 bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
 {
-#ifdef ACE_ENABLE_GPU
-    if (frameBuffer.gpuContext == nullptr || frameBuffer.gpuContext->GetImpl<SkiaGPUContext>() == nullptr) {
+    if (frameBuffer.gpuContext == nullptr) {
         LOGE("SkiaSurface bind FBO failed: gpuContext is invalid");
         return false;
     }
@@ -124,7 +108,7 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
 
     SkColorType colorType = kRGBA_8888_SkColorType;
 
-    if (frameBuffer.colorSpace == nullptr || frameBuffer.colorSpace->GetImpl<SkiaColorSpace>() == nullptr) {
+    if (frameBuffer.colorSpace == nullptr) {
         LOGE("SkiaSurface bind FBO failed: colorSpaceImpl is invalid");
         return false;
     }
@@ -145,11 +129,8 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
         return false;
     }
     return true;
-#else
-    LOGE("SkiaSurface bind FrameBuffer failed: device does not support GPU");
-    return false;
-#endif
 }
+#endif
 
 std::shared_ptr<Canvas> SkiaSurface::GetCanvas() const
 {
@@ -159,13 +140,8 @@ std::shared_ptr<Canvas> SkiaSurface::GetCanvas() const
     }
 
     auto canvas = std::make_shared<Canvas>();
-    if (canvas->GetImpl<SkiaCanvas>() != nullptr) {
-        canvas->GetImpl<SkiaCanvas>()->ImportSkCanvas(skSurface_->getCanvas());
-        return canvas;
-    } else {
-        LOGE("skiaCanvas is nullptr");
-        return nullptr;
-    }
+    canvas->GetImpl<SkiaCanvas>()->ImportSkCanvas(skSurface_->getCanvas());
+    return canvas;
 }
 
 std::shared_ptr<Image> SkiaSurface::GetImageSnapshot() const
@@ -182,13 +158,8 @@ std::shared_ptr<Image> SkiaSurface::GetImageSnapshot() const
     }
 
     auto image = std::make_shared<Image>();
-    if (image->GetImpl<SkiaImage>() != nullptr) {
-        image->GetImpl<SkiaImage>()->SetSkImage(skImage);
-        return image;
-    } else {
-        LOGE("skiaImage is nullptr");
-        return nullptr;
-    }
+    image->GetImpl<SkiaImage>()->SetSkImage(skImage);
+    return image;
 }
 
 std::shared_ptr<Image> SkiaSurface::GetImageSnapshot(const RectI& bounds) const
@@ -206,13 +177,8 @@ std::shared_ptr<Image> SkiaSurface::GetImageSnapshot(const RectI& bounds) const
     }
 
     auto image = std::make_shared<Image>();
-    if (image->GetImpl<SkiaImage>() != nullptr) {
-        image->GetImpl<SkiaImage>()->SetSkImage(skImage);
-        return image;
-    } else {
-        LOGE("skiaImage is nullptr");
-        return nullptr;
-    }
+    image->GetImpl<SkiaImage>()->SetSkImage(skImage);
+    return image;
 }
 
 } // namespace Drawing

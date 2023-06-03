@@ -504,7 +504,7 @@ LayerInfoPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node) con
     return layer;
 }
 
-LayerInfoPtr RSComposerAdapter::CreateLayer(RSSurfaceRenderNode& node)
+LayerInfoPtr RSComposerAdapter::CreateLayer(RSSurfaceRenderNode& node) const
 {
     auto& consumer = node.GetConsumer();
     if (consumer == nullptr) {
@@ -519,7 +519,7 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSSurfaceRenderNode& node)
     }
 }
 
-LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
+LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node) const
 {
     if (output_ == nullptr) {
         RS_LOGE("RSComposerAdapter::CreateLayer: output is nullptr");

@@ -26,7 +26,7 @@ namespace TextEngine {
 std::vector<VariantSpan> BidiProcesser::ProcessBidiText(const std::vector<VariantSpan> &spans, const TextDirection dir)
 {
     ScopedTrace scope("BidiProcesser::ProcessBidiText");
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "ProcessBidiText");
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "ProcessBidiText");
     std::vector<VariantSpan> newSpans;
     for (auto const &span : spans) {
         auto ts = span.TryToTextSpan();
@@ -50,9 +50,9 @@ std::vector<VariantSpan> BidiProcesser::ProcessBidiText(const std::vector<Varian
 
 std::vector<NewSpanInfo> BidiProcesser::DoBidiProcess(const CharGroups &cgs, const TextDirection dir)
 {
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "BidiProcesser::doBidiProcess");
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "BidiProcesser::doBidiProcess");
     if (!cgs.IsValid() || cgs.GetSize() == 0) {
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
     auto deleter = [](UBiDi *p) {ubidi_close(p);};
@@ -82,7 +82,7 @@ std::vector<NewSpanInfo> BidiProcesser::DoBidiProcess(const CharGroups &cgs, con
         }
 
         auto cc = cgs.GetSubFromU16RangeAll(start, start + length);
-        LOG2EX_DEBUG(Logger::NoReturn) <<
+        LOGEX_FUNC_LINE_DEBUG(Logger::SetToNoReturn) <<
             "u16[" << start << ", " << start + length << ")" <<
             " is " << (nsi.rtl ? "rtl" : "ltr") << " ";
         if (cgs.IsIntersect(cc) == false) {

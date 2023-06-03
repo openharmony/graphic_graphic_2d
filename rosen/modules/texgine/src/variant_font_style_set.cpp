@@ -115,11 +115,11 @@ std::shared_ptr<TexgineTypeface> VariantFontStyleSet::MatchStyle(std::shared_ptr
 void VariantFontStyleSet::CheckPointer(bool nullable) const noexcept(false)
 {
     if (!nullable && tfss_ == nullptr && dfss_ == nullptr) {
-        throw TEXGINE_EXCEPTION(Nullptr);
+        throw TEXGINE_EXCEPTION(NULLPTR);
     }
 
     if (tfss_ != nullptr && dfss_ != nullptr) {
-        throw TEXGINE_EXCEPTION(ErrorStatus);
+        throw TEXGINE_EXCEPTION(ERROR_STATUS);
     }
 }
 } // namespace TextEngine

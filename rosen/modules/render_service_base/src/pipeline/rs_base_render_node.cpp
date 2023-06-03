@@ -118,10 +118,6 @@ void RSBaseRenderNode::SetIsOnTheTree(bool flag)
         child->SetIsOnTheTree(flag);
     }
 
-    if (flag) {
-        return;
-    }
-
     for (auto& childPtr : disappearingChildren_) {
         auto child = childPtr.first;
         if (child == nullptr) {
@@ -272,6 +268,12 @@ void RSBaseRenderNode::DumpTree(int32_t depth, std::string& out) const
     out += "| ";
     DumpNodeType(out);
     out += "[" + std::to_string(GetId()) + "]";
+    if (IsInstanceOf<RSRenderNode>()) {
+        auto node = (static_cast<const RSRenderNode*>(this));
+        if (node->isSuggestedDrawInGroup()) {
+            out += ", [node group]";
+        }
+    }
     if (GetType() == RSRenderNodeType::SURFACE_NODE) {
         auto surfaceNode = (static_cast<const RSSurfaceRenderNode*>(this));
         auto p = parent_.lock();
@@ -351,6 +353,17 @@ void RSBaseRenderNode::DumpNodeType(std::string& out) const
 bool RSBaseRenderNode::IsDirty() const
 {
     return dirtyStatus_ == NodeDirty::DIRTY;
+}
+
+// attention: current all base node's dirty ops causing content dirty
+bool RSBaseRenderNode::IsContentDirty() const
+{
+    return dirtyStatus_ == NodeDirty::DIRTY;
+}
+
+void RSBaseRenderNode::SetContentDirty()
+{
+    dirtyStatus_ = NodeDirty::DIRTY;
 }
 
 void RSBaseRenderNode::SetDirty()

@@ -82,6 +82,30 @@ HWTEST_F(ColorSpaceTest, CreatedByStaticMethod003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreatedByStaticMethod004
+ * @tc.desc: Test for Create RGB ColorSpace
+ * @tc.type: FUNC
+ * @tc.require: I782P9
+ */
+HWTEST_F(ColorSpaceTest, CreatedByStaticMethod004, TestSize.Level1)
+{
+    auto colorSpace = ColorSpace::CreateRGB(CMSTransferFuncType::SRGB, CMSMatrixType::SRGB);
+    EXPECT_FALSE(colorSpace == nullptr);
+
+    colorSpace = ColorSpace::CreateRGB(CMSTransferFuncType::DOT2, CMSMatrixType::ADOBE_RGB);
+    EXPECT_FALSE(colorSpace == nullptr);
+
+    colorSpace = ColorSpace::CreateRGB(CMSTransferFuncType::LINEAR, CMSMatrixType::DCIP3);
+    EXPECT_FALSE(colorSpace == nullptr);
+
+    colorSpace = ColorSpace::CreateRGB(CMSTransferFuncType::REC2020, CMSMatrixType::REC2020);
+    EXPECT_FALSE(colorSpace == nullptr);
+
+    colorSpace = ColorSpace::CreateRGB(CMSTransferFuncType::REC2020, CMSMatrixType::XYZ);
+    EXPECT_FALSE(colorSpace == nullptr);
+}
+
+/**
  * @tc.name: CreateAndGetType001
  * @tc.desc:
  * @tc.type: FUNC

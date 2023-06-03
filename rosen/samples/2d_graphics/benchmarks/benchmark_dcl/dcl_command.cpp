@@ -70,36 +70,46 @@ DCLCommand::DCLCommand(std::string commandLine)
     ParseCommand(params);
 }
 
-void DCLCommand::HandleCommand(std::string option, std::string augment)
+void DCLCommand::HandleCommandIterateType(const std::string& inputStr)
 {
+    switch (std::stoi(inputStr.c_str())) {
+        case static_cast<int>(IterateType::ITERATE_FRAME):
+            iterateType_ = IterateType::ITERATE_FRAME;
+            break;
+        case static_cast<int>(IterateType::ITERATE_OPITEM):
+            iterateType_ = IterateType::ITERATE_OPITEM;
+            break;
+        case static_cast<int>(IterateType::ITERATE_OPITEM_MANUALLY):
+            iterateType_ = IterateType::ITERATE_OPITEM_MANUALLY;
+            break;
+        default:
+            std::cout <<"Wrong Parameter: iterateType" << std::endl;
+            return;
+    }
+}
+
+void DCLCommand::HandleCommand(std::string option, const std::string& augment)
+{
+    int inputNum = 0;
     switch (commandMap_.at(option)) {
         case CommandType::CT_T:
-            switch (std::stoi(augment.c_str())) {
-                case static_cast<int>(IterateType::ITERATE_FRAME):
-                    iterateType_ = IterateType::ITERATE_FRAME;
-                    break;
-                case static_cast<int>(IterateType::ITERATE_OPITEM):
-                    iterateType_ = IterateType::ITERATE_OPITEM;
-                    break;
-                case static_cast<int>(IterateType::ITERATE_OPITEM_MANUALLY):
-                    iterateType_ = IterateType::ITERATE_OPITEM_MANUALLY;
-                    break;
-                default:
-                    std::cout <<"Wrong Parameter: iterateType" << std::endl;
-                    return;
-            }
+            HandleCommandIterateType(augment);
             break;
         case CommandType::CT_B:
-            beginFrame_ = std::stoi(augment.c_str());
+            inputNum = std::stoi(augment.c_str());
+            beginFrame_ = inputNum > 0 ? inputNum : 0;
             break;
         case CommandType::CT_E:
-            endFrame_ = std::stoi(augment.c_str());
+            inputNum = std::stoi(augment.c_str());
+            endFrame_ = inputNum > 0 ? inputNum : 0;
             break;
         case CommandType::CT_L:
-            loop_ = std::stoi(augment.c_str());
+            inputNum = std::stoi(augment.c_str());
+            loop_ = inputNum > 0 ? inputNum : 0;
             break;
         case CommandType::CT_S:
-            opItemStep_ = std::stoi(augment.c_str());
+            opItemStep_ = std::stod(augment.c_str());
+            opItemStep_ = opItemStep_ > 0 ? opItemStep_ : 1;
             break;
         case CommandType::CT_I:
             inputFilePath_ = augment;
@@ -124,14 +134,10 @@ void DCLCommand::HandleCommand(std::string option, std::string augment)
 
 void DCLCommand::CheckParameter()
 {
-    if (beginFrame_ < 0 || beginFrame_ > endFrame_) {
+    if (beginFrame_ > endFrame_) {
         std::cout << "Wrong Parameter: beginFrame or endFrame!" << std::endl;
         beginFrame_ = 0;
         endFrame_ = 0;
-    }
-    if (loop_ < 0) {
-        std::cout << "Wrong parameter: loop!" << std::endl;
-        loop_ = 1;
     }
     if (opItemStep_ < 0) {
         std::cout << "Wrong Parameter: opItemStep!" << std::endl;

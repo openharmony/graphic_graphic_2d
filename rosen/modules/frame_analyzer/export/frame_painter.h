@@ -20,7 +20,14 @@
 
 #include <vector>
 
+#ifdef USE_ROSEN_DRAWING
+#include "draw/canvas.h"
+#include "draw/color.h"
+#endif
+
+#ifndef USE_ROSEN_DRAWING
 class SkCanvas;
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -28,7 +35,11 @@ class FramePainter {
 public:
     FramePainter(FrameCollector &collector);
 
+#ifndef USE_ROSEN_DRAWING
     void Draw(SkCanvas &canvas);
+#else
+    void Draw(Drawing::Canvas &canvas);
+#endif
 
 private:
     struct TimeBar {
@@ -40,7 +51,11 @@ private:
         double height = 0;
     };
 
+#ifndef USE_ROSEN_DRAWING
     void DrawFPSLine(SkCanvas &canvas, uint32_t fps, double thickness, uint32_t color);
+#else
+    void DrawFPSLine(Drawing::Canvas &canvas, uint32_t fps, double thickness, uint32_t color);
+#endif
     std::vector<struct TimeBar> GenerateTimeBars(uint32_t width, uint32_t height, uint32_t fps);
     double SumTimesInMs(const struct FrameInfo &info);
 

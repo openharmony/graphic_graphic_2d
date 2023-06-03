@@ -267,11 +267,9 @@ std::optional<SkRect> RSPaintFilterCanvas::GetLocalClipBounds(const SkCanvas& ca
 {
     // if clipRect is explicitly specified, use it as the device clip bounds
     SkRect bounds = SkRect::Make((clipRect != nullptr) ? *clipRect : canvas.getDeviceClipBounds());
-
     if (bounds.isEmpty()) {
         return std::nullopt;
     }
-
     SkMatrix inverse;
     // if we can't invert the CTM, we can't return local clip bounds
     if (!(canvas.getTotalMatrix().invert(&inverse))) {
@@ -279,6 +277,16 @@ std::optional<SkRect> RSPaintFilterCanvas::GetLocalClipBounds(const SkCanvas& ca
     }
     // return the inverse of the CTM applied to the device clip bounds as local clip bounds
     return inverse.mapRect(bounds);
+}
+
+SkCanvas::SaveLayerStrategy RSPaintFilterCanvas::getSaveLayerStrategy(const SaveLayerRec& rec)
+{
+    SkPaint p = rec.fPaint ? *rec.fPaint : SkPaint();
+    SaveLayerRec tmpRec = rec;
+    if (onFilter(p)) {
+        tmpRec.fPaint = &p;
+    }
+    return SkPaintFilterCanvas::getSaveLayerStrategy(tmpRec);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -53,6 +53,7 @@ public:
     T& operator[](int index);
     bool operator==(const Vector2& other) const;
     bool operator!=(const Vector2& other) const;
+    bool IsNearEqual(const Vector2& other, T threshold = std::numeric_limits<T>::epsilon()) const;
     T* GetData();
 
     T GetLength() const;
@@ -212,6 +213,14 @@ inline bool Vector2<T>::operator==(const Vector2& other) const
     const T* oData = other.data_;
 
     return (ROSEN_EQ<T>(data_[0], oData[0])) && (ROSEN_EQ<T>(data_[1], oData[1]));
+}
+
+template<typename T>
+bool Vector2<T>::IsNearEqual(const Vector2& other, T threshold) const
+{
+    const T* otherData = other.data_;
+
+    return (ROSEN_EQ<T>(data_[0], otherData[0], threshold)) && (ROSEN_EQ<T>(data_[1], otherData[1], threshold));
 }
 
 template<typename T>

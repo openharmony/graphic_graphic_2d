@@ -75,6 +75,12 @@ public:
             ROSEN_EQ<T>(width_, rect.width_) && ROSEN_EQ<T>(height_, rect.height_);
     }
 
+    inline bool IsNearEqual(const RectT<T>& rect, T threshold = std::numeric_limits<T>::epsilon()) const
+    {
+        return ROSEN_EQ<T>(left_, rect.left_, threshold) && ROSEN_EQ<T>(top_, rect.top_, threshold) &&
+               ROSEN_EQ<T>(width_, rect.width_, threshold) && ROSEN_EQ<T>(height_, rect.height_, threshold);
+    }
+
     inline bool operator!=(const RectT<T>& rect) const
     {
         return !operator==(rect);
@@ -175,6 +181,10 @@ public:
         T height = std::max(GetBottom(), rect.GetBottom()) - top;
         return ((width <= 0) || (height <= 0)) ? RectT<T>() : RectT<T>(left, top, width, height);
     }
+    RectT<T> Offset(const T x, const T y) const
+    {
+        return RectT<T>(left_ + x, top_ + y, width_, height_);
+    }
     template<typename P>
     RectT<P> ConvertTo()
     {
@@ -229,7 +239,8 @@ struct RectIComparator {
 };
 
 struct RectI_Hash_Func {
-    size_t operator()(const RectI& _r) const {
+    size_t operator()(const RectI& _r) const
+    {
         // this is set for all rects can be compared
         int hash_value = 0;
         return std::hash<int>()(hash_value);
@@ -292,6 +303,7 @@ public:
     RRectT& operator=(const RRectT<T>& other);
     bool operator==(const RRectT& other) const;
     bool operator!=(const RRectT& other) const;
+    bool IsNearEqual(const RRectT& other, T threshold = std::numeric_limits<T>::epsilon()) const;
 };
 
 typedef RRectT<float> RRect;
@@ -396,6 +408,15 @@ inline bool RRectT<T>::operator==(const RRectT& other) const
     return (rect_ == other.rect_) && (radius_[0] == other.radius_[0]) &&
         (radius_[1] == other.radius_[1]) && (radius_[2] == other.radius_[2]) &&
         (radius_[3] == other.radius_[3]);
+}
+
+template<typename T>
+inline bool RRectT<T>::IsNearEqual(const RRectT& other, T threshold) const
+{
+    return (rect_.IsNearEqual(other.rect_, threshold)) && (radius_[0].IsNearEqual(other.radius_[0], threshold)) &&
+           (radius_[1].IsNearEqual(other.radius_[1], threshold)) &&
+           (radius_[2].IsNearEqual(other.radius_[2], threshold)) &&
+           (radius_[3].IsNearEqual(other.radius_[3], threshold));
 }
 
 template<typename T>

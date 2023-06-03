@@ -30,7 +30,7 @@ void TexgineString::SetString(const std::shared_ptr<SkString> string)
 
 void TexgineString::SetString(const std::string &s)
 {
-    *string_ = string.c_str();
+    *string_ = s.c_str();
 }
 
 std::string TexgineString::ToString()

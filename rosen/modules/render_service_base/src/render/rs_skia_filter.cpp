@@ -14,13 +14,25 @@
  */
 
 #include "render/rs_skia_filter.h"
+#ifdef USE_ROSEN_DRAWING
+#include <memory>
+#include "draw/blend_mode.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
+#ifndef USE_ROSEN_DRAWING
 RSSkiaFilter::RSSkiaFilter(sk_sp<SkImageFilter> imageFilter) : RSFilter(), imageFilter_(imageFilter) {}
 
 RSSkiaFilter::~RSSkiaFilter() {}
+#else
+RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter)
+    : RSFilter(), imageFilter_(imageFilter) {}
 
+RSDrawingFilter::~RSDrawingFilter() {}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
 SkPaint RSSkiaFilter::GetPaint() const
 {
     SkPaint paint;
@@ -29,8 +41,24 @@ SkPaint RSSkiaFilter::GetPaint() const
     paint.setImageFilter(imageFilter_);
     return paint;
 }
+#else
+Drawing::Brush RSDrawingFilter::GetBrush() const
+{
+    Drawing::Brush brush;
+    brush.SetAntiAlias(true);
+    brush.SetBlendMode(Drawing::BlendMode::SRC_OVER);
+    Drawing::Filter filter;
+    filter.SetImageFilter(imageFilter_);
+    brush.SetFilter(filter);
+    return brush;
+}
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkImageFilter> RSSkiaFilter::GetImageFilter() const
+#else
+std::shared_ptr<Drawing::ImageFilter> RSDrawingFilter::GetImageFilter() const
+#endif
 {
     return imageFilter_;
 }

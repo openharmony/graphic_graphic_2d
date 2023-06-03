@@ -23,6 +23,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 static constexpr int MAX_FLOATING_WINDOW_NUMBER = 100;
+static constexpr int MAX_WINDOW_NUMBER = 100;
 }
 const std::map<uint32_t, WindowAnimationStubFunc> RSWindowAnimationStub::stubFuncMap_{
     std::make_pair(RSIWindowAnimationController::ON_START_APP, &RSWindowAnimationStub::StartApp),
@@ -156,6 +157,10 @@ int RSWindowAnimationStub::MinimizeAllWindow(MessageParcel& data, MessageParcel&
 {
     WALOGD("Window animation minimize all window!");
     size_t dataCount = data.ReadUint32();
+    if (dataCount > MAX_WINDOW_NUMBER) {
+        WALOGE("Windows are too much!");
+        return ERR_INVALID_DATA;
+    }
     std::vector<sptr<RSWindowAnimationTarget>> minimizingWindows;
     for (size_t i = 0; i < dataCount; i++) {
         sptr<RSWindowAnimationTarget> minimizingWindow(data.ReadParcelable<RSWindowAnimationTarget>());

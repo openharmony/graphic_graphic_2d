@@ -40,7 +40,7 @@ void TexgineFont::SetSize(float textSize)
 float TexgineFont::GetMetrics(TexgineFontMetrics *metrics) const
 {
     if (metrics == nullptr) {
-        return 0
+        return 0;
     }
 
     return font_->getMetrics(metrics->GetFontMetrics().get());

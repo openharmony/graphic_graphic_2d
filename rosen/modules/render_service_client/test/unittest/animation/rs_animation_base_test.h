@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef ROSEN_MODULES_RENDER_SERVICE_CLIENT_TEST_UNITTEST_ANIMATION_RS_ANIMATION_BASE_TEST_H
+#define ROSEN_MODULES_RENDER_SERVICE_CLIENT_TEST_UNITTEST_ANIMATION_RS_ANIMATION_BASE_TEST_H
+
 #include "gtest/gtest.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
@@ -44,3 +47,4 @@ protected:
 };
 } // namespace Rosen
 } // namespace OHOS
+#endif // ROSEN_MODULES_RENDER_SERVICE_CLIENT_TEST_UNITTEST_ANIMATION_RS_ANIMATION_BASE_TEST_H

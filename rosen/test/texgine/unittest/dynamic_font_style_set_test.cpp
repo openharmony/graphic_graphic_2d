@@ -28,7 +28,7 @@ namespace TextEngine {
 struct Mockvars {
     std::shared_ptr<TexgineTypeface> typeface = std::make_shared<TexgineTypeface>();
     std::shared_ptr<TexgineFontStyle> fontStyle = std::make_shared<TexgineFontStyle>();
-    std::shared_ptr<Texgine::DynamicFontStyleSet> normalSet = nullptr;
+    std::shared_ptr<TextEngine::DynamicFontStyleSet> normalSet = nullptr;
 } g_dfssMockVars;
 
 
@@ -41,14 +41,14 @@ auto Init(struct Mockvars vars)
     };
 }
 
-std::shared_ptr<TexgineFontStyle> TexgineTypeface::FontStyle()
+std::shared_ptr<TexgineFontStyle> TexgineTypeface::GetFontStyle() const
 {
     return g_dfssMockVars.fontStyle;
 }
 
 Typeface::Typeface(std::shared_ptr<TexgineTypeface> tf)
 {
-    typeface = g_dfssMockVars.typeface;
+    typeface_ = g_dfssMockVars.typeface;
 }
 
 #define PARAMCLASS DynamicFontStyleSet
@@ -102,7 +102,7 @@ HWTEST_F(DynamicFontStyleSetTest, GetStyle, TestSize.Level1)
             .checkFunc = CreateStyleChecker(expect)}); \
     }
 
-    RUN_VOID_TESTINFO3(nullset, {.arg2 = nullptr, .exception = ExceptionType::InvalidArgument});
+    RUN_VOID_TESTINFO3(nullset, {.arg2 = nullptr, .exception = ExceptionType::INVALID_ARGUMENT});
 
     // -1 is the parameter of GetStyle, index
     CORE_TEST(nullset, s2, -1, s1);

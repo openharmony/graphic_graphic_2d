@@ -18,6 +18,8 @@
 
 #include <optional>
 #include <vector>
+
+#include "include/effects/SkColorMatrix.h"
 #include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
@@ -72,8 +74,8 @@ public:
     float GetFrameOffsetX() const;
     float GetFrameOffsetY() const;
 
-    void SetSandBox(Vector2f parentPosition);
-    Vector2f GetSandBox() const;
+    void SetSandBox(const std::optional<Vector2f>& parentPosition);
+    const std::optional<Vector2f>& GetSandBox() const;
 
     void SetPositionZ(float positionZ);
     float GetPositionZ() const;
@@ -81,9 +83,11 @@ public:
     void SetPivot(Vector2f pivot);
     void SetPivotX(float pivotX);
     void SetPivotY(float pivotY);
+    void SetPivotZ(float pivotZ);
     Vector2f GetPivot() const;
     float GetPivotX() const;
     float GetPivotY() const;
+    float GetPivotZ() const;
 
     void SetCornerRadius(Vector4f cornerRadius);
     Vector4f GetCornerRadius() const;
@@ -233,6 +237,7 @@ public:
     RectF GetBoundsRect() const;
 
     bool IsGeoDirty() const;
+    bool IsContentDirty() const;
 
     void SetSpherize(float spherizeDegree);
     float GetSpherize() const;
@@ -241,6 +246,27 @@ public:
     void SetLightUpEffect(float lightUpEffectDegree);
     float GetLightUpEffect() const;
     bool IsLightUpEffectValid() const;
+
+    // Image effect properties
+    void SetGrayScale(const std::optional<float>& grayScale);
+    const std::optional<float>& GetGrayScale() const;
+    void SetBrightness(const std::optional<float>& brightness);
+    const std::optional<float>& GetBrightness() const;
+    void SetContrast(const std::optional<float>& contrast);
+    const std::optional<float>& GetContrast() const;
+    void SetSaturate(const std::optional<float>& saturate);
+    const std::optional<float>& GetSaturate() const;
+    void SetSepia(const std::optional<float>& sepia);
+    const std::optional<float>& GetSepia() const;
+    void SetInvert(const std::optional<float>& invert);
+    const std::optional<float>& GetInvert() const;
+    void SetHueRotate(const std::optional<float>& hueRotate);
+    const std::optional<float>& GetHueRotate() const;
+    void SetColorBlend(const std::optional<Color>& colorBlend);
+    const std::optional<Color>& GetColorBlend() const;
+
+    const sk_sp<SkColorFilter> GetColorFilter() const;
+
 private:
     void Reset();
     void SetDirty();
@@ -262,6 +288,7 @@ private:
     bool clipToFrame_ = false;
     bool isDirty_ = false;
     bool geoDirty_ = false;
+    bool contentDirty_ = false;
 
     bool hasBounds_ = false;
 
@@ -290,12 +317,22 @@ private:
 
     std::weak_ptr<RSRenderNode> backref_;
 
-    std::unique_ptr<Vector2f> sandboxPosition_ = nullptr;
+    std::optional<Vector2f> sandboxPosition_;
 
     std::unique_ptr<Vector4f> pixelStretch_ = nullptr;
 
     std::unique_ptr<Vector4f> pixelStretchPercent_ = nullptr;
     std::unique_ptr<RRect> clipRRect_ = nullptr;
+
+    std::optional<float> grayScale_;
+    std::optional<float> brightness_;
+    std::optional<float> contrast_;
+    std::optional<float> saturate_;
+    std::optional<float> sepia_;
+    std::optional<float> invert_;
+    std::optional<float> hueRotate_;
+    std::optional<Color> colorBlend_;
+    sk_sp<SkColorFilter> colorFilter_ = nullptr;
 
     friend class RSCanvasRenderNode;
     friend class RSPropertiesPainter;

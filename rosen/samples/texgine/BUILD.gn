@@ -13,60 +13,29 @@
 
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-is_ok = false
 group("texgine_feature_test") {
-  if (is_ok) {
-    public_deps = [
-      ":texgine_sample_align",
-      ":texgine_sample_alignment",
-      ":texgine_sample_bug",
-      ":texgine_sample_calibrate",
-      ":texgine_sample_decoration",
-      ":texgine_sample_direction",
-      ":texgine_sample_dynamic_font",
-      ":texgine_sample_ellipsis",
-      ":texgine_sample_emoji",
-      ":texgine_sample_feature",
-      ":texgine_sample_font_style",
-      ":texgine_sample_glyph_position",
-      ":texgine_sample_intrinsic_width",
-      ":texgine_sample_layout",
-      ":texgine_sample_mix",
-      ":texgine_sample_shadow",
-      ":texgine_sample_spacing",
-      ":texgine_sample_text_color",
-      ":texgine_sample_weight_style",
-      ":texgine_sample_word_boundary",
-    ]
-  }
-}
-
-template("ohos_prebuilt_etcs") {
-  group_sources = []
-  foreach(source, invoker.sources) {
-    source_file = get_path_info(source, "file")
-    ohos_prebuilt_etc(source_file) {
-      source = source
-      relative_install_dir = "test_resources"
-      part_name = "graphic_standard"
-      subsystem_name = "graphic"
-    }
-    group_sources += [ ":${source_file}" ]
-  }
-  group(target_name) {
-    public_deps = group_sources
-  }
-}
-
-ohos_prebuilt_etcs("texgine_sample_resources") {
-  if (is_ok) {
-    sources = [
-      "resources/Roboto-Black.ttf",
-      "resources/seguiemj.ttf",
-    ]
-  }
-  part_name = "graphic_standard"
-  subsystem_name = "graphic"
+  public_deps = [
+    ":texgine_sample_align",
+    ":texgine_sample_alignment",
+    ":texgine_sample_bug",
+    ":texgine_sample_calibrate",
+    ":texgine_sample_decoration",
+    ":texgine_sample_direction",
+    ":texgine_sample_dynamic_font",
+    ":texgine_sample_ellipsis",
+    ":texgine_sample_emoji",
+    ":texgine_sample_feature",
+    ":texgine_sample_font_style",
+    ":texgine_sample_glyph_position",
+    ":texgine_sample_intrinsic_width",
+    ":texgine_sample_layout",
+    ":texgine_sample_mix",
+    ":texgine_sample_shadow",
+    ":texgine_sample_spacing",
+    ":texgine_sample_text_color",
+    ":texgine_sample_weight_style",
+    ":texgine_sample_word_boundary",
+  ]
 }
 
 config("libskia_rs_framework_config") {
@@ -118,7 +87,6 @@ ohos_source_set("texgine_sample") {
 
   public_deps = [
     ":libskia_rs_framework",
-    ":texgine_sample_resources",
     "$graphic_2d_root/rosen/modules/texgine:libtexgine",
   ]
 

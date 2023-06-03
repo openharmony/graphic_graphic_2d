@@ -22,33 +22,33 @@ using namespace OHOS::Rosen::TextEngine;
 
 namespace {
 struct Info {
-    TextStyle style_;
-    std::string textContent_;
-    std::string title_;
-} infos[] = {
+    TextStyle style;
+    std::string textContent;
+    std::string title;
+} g_infos[] = {
     {
-        .textContent_ = "0xff000000",
-        .title_ = "default",
+        .textContent = "0xff000000",
+        .title = "default",
     },
     {
-        .style_ = { .color_ = 0xffff0000 },
-        .textContent_ = "0xffff0000",
-        .title_ = "不透明 红色",
+        .style = { .color = 0xffff0000 },
+        .textContent = "0xffff0000",
+        .title = "不透明 红色",
     },
     {
-        .style_ = { .color_ = 0xff00ffff },
-        .textContent_ = "0xff00ffff",
-        .title_ = "不透明 绿色",
+        .style = { .color = 0xff00ffff },
+        .textContent = "0xff00ffff",
+        .title = "不透明 绿色",
     },
     {
-        .style_ = { .color_ = 0x77ff0000 },
-        .textContent_ = "0x77ff0000",
-        .title_ = "透明 红色",
+        .style = { .color = 0x77ff0000 },
+        .textContent = "0x77ff0000",
+        .title = "透明 红色",
     },
     {
-        .style_ = { .color_ = 0x7700ff00 },
-        .textContent_ = "0x7700ff00",
-        .title_ = "透明 绿色",
+        .style = { .color = 0x7700ff00 },
+        .textContent = "0x7700ff00",
+        .title = "透明 绿色",
     }
 };
 
@@ -60,10 +60,10 @@ public:
 
     void Layout()
     {
-        for (auto &info : infos) {
+        for (auto &info : g_infos) {
             auto builder = TypographyBuilder::Create();
-            builder->PushStyle(info.style_);
-            builder->AppendSpan(info.textContent_);
+            builder->PushStyle(info.style);
+            builder->AppendSpan(info.textContent);
 
             auto typography = builder->Build();
             typography->Layout(200);

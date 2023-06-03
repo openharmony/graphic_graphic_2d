@@ -104,7 +104,6 @@ private:
     int32_t SetLayerTunnelHandle();
     int32_t SetLayerPresentTimestamp();
     int32_t InitDevice();
-    bool IsSameRect(const GraphicIRect& rect1, const GraphicIRect& rect2);
     bool IsSameLayerMetaData();
     bool IsSameLayerMetaDataSet();
     inline void CheckRet(int32_t ret, const char* func);

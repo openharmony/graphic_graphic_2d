@@ -64,15 +64,13 @@ void SkiaMatrix::PreScale(scalar sx, scalar sy)
 
 void SkiaMatrix::PreConcat(const Matrix& other)
 {
-    if (other.GetImpl<SkiaMatrix>() != nullptr) {
-        skMatrix_.preConcat(other.GetImpl<SkiaMatrix>()->ExportSkiaMatrix());
-    }
+    skMatrix_.preConcat(other.GetImpl<SkiaMatrix>()->ExportSkiaMatrix());
 }
 
 bool SkiaMatrix::Invert(Matrix& inverse) const
 {
     SkMatrix skMatrix;
-    if (inverse.GetImpl<SkiaMatrix>() != nullptr && skMatrix_.invert(&skMatrix)) {
+    if (skMatrix_.invert(&skMatrix)) {
         inverse.GetImpl<SkiaMatrix>()->ImportMatrix(skMatrix);
         return true;
     }

@@ -30,8 +30,8 @@ namespace TextEngine {
 class TexgineTypeface {
 public:
     TexgineTypeface();
-    explicit TexgineTypeface(const SkTypeface *tf);
-    explicit TexgineTypeface(const sk_sp<SkTypeface> typeface);
+    explicit TexgineTypeface(SkTypeface *tf);
+    explicit TexgineTypeface(sk_sp<SkTypeface> typeface);
     explicit TexgineTypeface(void *context);
     sk_sp<SkTypeface> GetTypeface() const;
     /*
@@ -75,7 +75,7 @@ public:
      * @path The typeface file path
      * @index The ttc index, default is 0
      */
-    static std::shared_ptr<TexgineTypeface> MakeFromFile(const std::string path, int index = 0);
+    static std::shared_ptr<TexgineTypeface> MakeFromFile(const std::string &path, int index = 0);
 
 private:
     sk_sp<SkTypeface> typeface_ = nullptr;

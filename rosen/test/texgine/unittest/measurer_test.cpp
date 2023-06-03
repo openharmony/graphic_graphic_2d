@@ -59,13 +59,13 @@ HWTEST_F(MeasurerTest, Measure, TestSize.Level1)
     for (const auto &cg : cgs) {
         std::stringstream ss;
         ss << "cg: " << "width=" << cg.GetWidth() << ", ";
-        for (const auto &c : cg.chars_) {
+        for (const auto &c : cg.chars) {
             ss << "[0x" << std::hex << c << "]";
             GTEST_ASSERT_GT(c, 0);
         }
         DEBUG_LOG() << ss.str();
 
-        GTEST_ASSERT_GT(cg.chars_.size(), 0u);
+        GTEST_ASSERT_GT(cg.chars.size(), 0u);
         GTEST_ASSERT_GT(cg.GetWidth(), 0);
     }
 }

@@ -39,20 +39,82 @@ SkColor colors[] = {
 };
 } // namespace
 
+TexginePaint g_rainbowPaint;
+TexginePaint g_actualBorderPaint;
+TexginePaint g_borderPaint;
+
+double Draw(TexgineCanvas &texgineCanvas, const std::list<struct TypographyData> &typographies,
+    const struct FeatureTestOption &option, double y)
+{
+    double maxHeight = 0;
+    double x = 0;
+    for (const auto &data : typographies) {
+        const auto &typography = data.typography;
+        if ((x + typography->GetMaxWidth() >= 800) || (x != 0 && data.atNewline)) {
+            x = 0;
+            y += maxHeight + option.marginTop;
+            maxHeight = 0;
+        }
+        if (data.onPaint) {
+            data.onPaint(data, texgineCanvas, x, y);
+        } else {
+            typography->Paint(texgineCanvas, x, y);
+        }
+
+        if (data.needRainbowChar.value_or(option.needRainbowChar)) {
+            texgineCanvas.Save();
+            texgineCanvas.Translate(x, y);
+            Boundary boundary = {data.rainbowStart, data.rainbowEnd};
+            auto boxes = typography->GetTextRectsByBoundary(boundary, data.hs, data.ws);
+            int32_t rainbowColorIndex = 0;
+            for (auto &box : boxes) {
+                g_rainbowPaint.SetColor(colors[rainbowColorIndex++]);
+                g_rainbowPaint.SetAlpha(255 * 0.2);
+                texgineCanvas.DrawRect(box.rect, g_rainbowPaint);
+                g_rainbowPaint.SetColor(SK_ColorGRAY);
+                g_rainbowPaint.SetAlpha(255 * 0.3);
+                texgineCanvas.DrawRect(box.rect, g_rainbowPaint);
+                rainbowColorIndex %= sizeof(colors) / sizeof(SkColor);
+            }
+            texgineCanvas.Restore();
+        }
+        if (!data.comment.empty()) {
+            SkiaFramework::DrawString(*texgineCanvas.GetCanvas(), data.comment, x, y);
+        }
+        if (option.needBorder) {
+            g_borderPaint.SetColor(option.colorBorder);
+            TexgineRect rect1 = TexgineRect::MakeXYWH(x, y, typography->GetMaxWidth(), typography->GetHeight());
+            texgineCanvas.DrawRect(rect1, g_borderPaint);
+
+            g_actualBorderPaint.SetColor(option.colorBorder);
+            TexgineRect rect2 = TexgineRect::MakeXYWH(x, y, typography->GetActualWidth(), typography->GetHeight());
+            texgineCanvas.DrawRect(rect2, g_actualBorderPaint);
+        }
+        x += typography->GetMaxWidth() + option.marginLeft;
+        maxHeight = std::max(maxHeight, typography->GetHeight());
+    }
+    // The upper and lower intervals of each test content is 50
+    y += maxHeight + option.marginTop + 50;
+
+    return y;
+}
+
 void OnDraw(SkCanvas &canvas)
 {
-    SkPaint actualBorderPaint;
-    actualBorderPaint.setStyle(SkPaint::kStroke_Style);
+    g_actualBorderPaint.SetStyle(TexginePaint::STROKE);
 
-    SkPaint borderPaint = actualBorderPaint;
+    SkPaint borderPaint = g_actualBorderPaint.GetPaint();
     const SkScalar intervals[2] = {1.0f, 1.0f};
     borderPaint.setPathEffect(SkDashPathEffect::Make(intervals, 2, 0.0f));
+    TexginePaint paint;
+    paint.SetPaint(borderPaint);
+    g_borderPaint = paint;
 
     SkPaint testBorderPaint = borderPaint;
     testBorderPaint.setColor(0xff000000);
 
-    SkPaint rainbowPaint;
-    rainbowPaint.setStyle(SkPaint::kFill_Style);
+    TexginePaint g_rainbowPaint;
+    g_rainbowPaint.SetStyle(TexginePaint::Style::FILL);
 
     canvas.save();
     // move canvas to (50, 50)
@@ -72,69 +134,13 @@ void OnDraw(SkCanvas &canvas)
         canvas.translate(50, 50);
         const auto &option = ptest->GetFeatureTestOption();
         const auto &typographies = ptest->GetTypographies();
-        y = Draw(canvas, typographies, option, y);
+        y = Draw(texgineCanvas, typographies, option, y);
         canvas.restore();
         // 800 is the max width of all test
         canvas.drawRect(SkRect::MakeXYWH(0, yStart, 800, y - yStart), testBorderPaint);
         SkiaFramework::DrawString(canvas, ptest->GetTestName(), 0, yStart);
     }
     canvas.restore();
-}
-
-double Draw(SkCanvas &canvas, const std::list<struct TypographyData> &typographies,
-    const struct FeatureTestOption &option, double y)
-{
-    double maxHeight = 0;
-    double x = 0;
-    for (const auto &data : typographies) {
-        const auto &typography = data.typography;
-        if ((x + typography->GetMaxWidth() >= 800) || (x != 0 && data.atNewline)) {
-            x = 0;
-            y += maxHeight + option.marginTop;
-            maxHeight = 0;
-        }
-        if (data.onPaint) {
-            data.onPaint(data, texgineCanvas, x, y);
-        } else {
-            typography->Paint(texgineCanvas, x, y);
-        }
-
-        if (data.needRainbowChar.value_or(option.needRainbowChar)) {
-            canvas.save();
-            canvas.translate(x, y);
-            Boundary boundary = {data.rainbowStart, data.rainbowEnd};
-            auto boxes = typography->GetTextRectsByBoundary(boundary, data.hs, data.ws);
-            int32_t rainbowColorIndex = 0;
-            for (auto &box : boxes) {
-                rainbowPaint.setColor(colors[rainbowColorIndex++]);
-                rainbowPaint.setAlpha(255 * 0.2);
-                canvas.drawRect(*(box.rect_.GetRect().get()), rainbowPaint);
-                rainbowPaint.setColor(SK_ColorGRAY);
-                rainbowPaint.setAlpha(255 * 0.3);
-                canvas.drawRect(*(box.rect_.GetRect().get()), rainbowPaint);
-                rainbowColorIndex %= sizeof(colors) / sizeof(SkColor);
-            }
-            canvas.restore();
-        }
-        if (!data.comment.empty()) {
-            SkiaFramework::DrawString(canvas, data.comment, x, y);
-        }
-        if (option.needBorder) {
-            borderPaint.setColor(option.colorBorder);
-            canvas.drawRect(SkRect::MakeXYWH(x, y, typography->GetMaxWidth(),
-                typography->GetHeight()), borderPaint);
-
-            actualBorderPaint.setColor(option.colorBorder);
-            canvas.drawRect(SkRect::MakeXYWH(x, y, typography->GetActualWidth(),
-                typography->GetHeight()), actualBorderPaint);
-        }
-        x += typography->GetMaxWidth() + option.marginLeft;
-        maxHeight = std::max(maxHeight, typography->GetHeight());
-    }
-    // The upper and lower intervals of each test content is 50
-    y += maxHeight + option.marginTop + 50;
-
-    return y;
 }
 
 int main()
@@ -147,7 +153,7 @@ int main()
 
         MemoryUsageScope scope(ptest->GetTestName());
         ScopedTrace layoutScope(ptest->GetTestName());
-        LOGSCOPED(sl, LOG2EX_DEBUG(), ptest->GetTestName());
+        LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), ptest->GetTestName());
         ptest->Layout();
         for (const auto &typography : ptest->GetTypographies()) {
             ReportMemoryUsage("typography", *typography.typography, true);

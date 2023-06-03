@@ -27,7 +27,7 @@ void RSProcessTransactionController::CreateTransactionFinished()
     }
 }
 
-void RSProcessTransactionController::SetTransactionFinishedCallback(TransactionFinishedCallback& callback)
+void RSProcessTransactionController::SetTransactionFinishedCallback(const TransactionFinishedCallback& callback)
 {
     callback_ = callback;
 }

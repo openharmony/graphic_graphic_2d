@@ -15,8 +15,11 @@
 
 #include "gtest/gtest.h"
 #include "include/core/SkSurface.h"
-#include "include/render/rs_image.h"
+#include "message_parcel.h"
+#include "render/rs_image.h"
+#include "render/rs_image_cache.h"
 #include "pixel_map.h"
+#include "transaction/rs_marshalling_helper.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -51,7 +54,7 @@ HWTEST_F(RSImageTest, IsEqual001, TestSize.Level1)
     RSImage other;
     other.SetScale(2.f);
     res = rsImage.IsEqual(other);
-    ASSERT_FALSE(res);  
+    ASSERT_FALSE(res);
 }
 
 static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
@@ -94,7 +97,7 @@ HWTEST_F(RSImageTest, LifeCycle001, TestSize.Level1)
     rsImage.SetImageFit(0);
     SkRect rect { fLeft, ftop, fRight, fBottom };
     SkPaint paint;
-    std::shared_ptr<Media::PixelMap>pixelmap;
+    std::shared_ptr<Media::PixelMap> pixelmap;
     rsImage.SetPixelMap(pixelmap);
     int width = 200;
     int height = 300;
@@ -215,6 +218,8 @@ HWTEST_F(RSImageTest, TestRSImage003, TestSize.Level1)
     image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
     image.SetImageFit(1);
     image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
+    image.SetImageFit(7);
+    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, isBackground);
 #else
     image.CanvasDrawImage(canvas, rect, paint, isBackground);
     image.SetImageFit(5);
@@ -229,6 +234,95 @@ HWTEST_F(RSImageTest, TestRSImage003, TestSize.Level1)
     image.CanvasDrawImage(canvas, rect, paint, isBackground);
     image.SetImageFit(1);
     image.CanvasDrawImage(canvas, rect, paint, isBackground);
+    image.SetImageFit(7);
+    image.CanvasDrawImage(canvas, rect, paint, isBackground);
 #endif
+}
+
+/**
+ * @tc.name: TestRSImage004
+ * @tc.desc: SetImageRepeat test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageTest, TestRSImage004, TestSize.Level1)
+{
+    RSImage image;
+    SkCanvas canvas;
+    SkRect rect = SkRect::MakeWH(100, 100);
+    RectF dstRect(10, 10, 80, 80);
+    SkPaint paint;
+    image.SetDstRect(dstRect);
+    image.SetImageRepeat(1);
+#ifdef NEW_SKIA
+    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint);
+    image.SetImageRepeat(2);
+    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint);
+    image.SetImageRepeat(3);
+    image.CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint);
+#else
+    image.CanvasDrawImage(canvas, rect, paint);
+    image.SetImageRepeat(2);
+    image.CanvasDrawImage(canvas, rect, paint);
+    image.SetImageRepeat(3);
+    image.CanvasDrawImage(canvas, rect, paint);
+#endif
+
+}
+
+/**
+ * @tc.name: RSImageBase001
+ * @tc.desc: RSImageBase test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageTest, RSImageBase001, TestSize.Level1)
+{
+    RSImageBase imageBase;
+    RectF rect(0, 0, 100, 100);
+    imageBase.SetSrcRect(rect);
+    imageBase.SetDstRect(rect);
+    SkCanvas canvas;
+    SkPaint paint;
+    imageBase.DrawImage(canvas, paint);
+}
+
+/**
+* @tc.name: RSImageCache001
+* @tc.desc: RSImageBase test.
+* @tc.type: FUNC
+*/
+HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    std::shared_ptr<Media::PixelMap> pixelMap;
+    int width = 200;
+    int height = 300;
+    pixelMap = CreatePixelMap(width, height);
+    rsImage->SetPixelMap(pixelMap);
+
+    MessageParcel parcel;
+    EXPECT_EQ(RSMarshallingHelper::Marshalling(parcel, rsImage), true);
+    std::shared_ptr<RSImage> newImage;
+    EXPECT_EQ(RSMarshallingHelper::Unmarshalling(parcel, newImage), true);
+
+    SkCanvas canvas;
+    SkPaint paint;
+    SkRect rect = SkRect::MakeWH(100, 100);
+#ifdef NEW_SKIA
+    newImage->CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint);
+    newImage->CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint);
+#else
+    newImage->CanvasDrawImage(canvas, rect, paint);
+    newImage->CanvasDrawImage(canvas, rect, paint);
+#endif
+
+    MessageParcel parcel2;
+    EXPECT_EQ(RSMarshallingHelper::Marshalling(parcel2, rsImage), true);
+    std::shared_ptr<RSImage> newImage2;
+    EXPECT_EQ(RSMarshallingHelper::Unmarshalling(parcel2, newImage2), true);
+
+    RSImageCache::Instance().CachePixelMap(1, nullptr);
+    RSImageCache::Instance().CachePixelMap(0, pixelMap);
+    RSImageCache::Instance().CacheRenderSkiaImageByPixelMapId(1, nullptr);
+    RSImageCache::Instance().CacheRenderSkiaImageByPixelMapId(0, nullptr);
 }
 } // namespace OHOS::Rosen

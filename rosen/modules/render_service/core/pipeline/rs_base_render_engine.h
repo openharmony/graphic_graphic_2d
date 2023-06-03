@@ -113,7 +113,7 @@ public:
 
     // There would only one user(thread) to renderFrame(request frame) at one time.
     // for framebuffer surface
-    std::unique_ptr<RSRenderFrame> RequestFrame(const sptr<Surface>& rsSurface,
+    std::unique_ptr<RSRenderFrame> RequestFrame(const sptr<Surface>& targetSurface,
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true);
     // There would only one user(thread) to renderFrame(request frame) at one time.
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
@@ -161,6 +161,7 @@ public:
 #endif // RS_ENABLE_EGLIMAGE
 protected:
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
+    void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;

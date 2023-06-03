@@ -64,7 +64,7 @@ public:
     /*
      * @brief Returns the pointer of SkCanvas what user sets to TexgineCanvas
      */
-    std::shared_ptr<SkCanvas> GetCanvas() const;
+    SkCanvas *GetCanvas() const;
 
     /*
      * @brief Removes changes to SkMatrix and clip since SkCanvas state was
@@ -75,10 +75,10 @@ public:
     /*
      * @brief Sets SkCanvas to TexgineCanvas what user want
      */
-    void SetCanvas(const SkCanvas &canvas);
+    void SetCanvas(SkCanvas *canvas);
 
 private:
-    std::shared_ptr<SkCanvas> canvas_ = std::make_shared<SkCanvas>();
+    SkCanvas *canvas_ = nullptr;
 };
 } // namespace TextEngine
 } // namespace Rosen

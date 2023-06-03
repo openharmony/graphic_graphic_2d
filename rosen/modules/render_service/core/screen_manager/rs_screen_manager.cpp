@@ -696,7 +696,10 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
     info.id = id;
     info.width = screen->Width();
     info.height = screen->Height();
-    (void)screen->GetScreenColorGamut(info.colorGamut);
+    auto ret = screen->GetScreenColorGamut(info.colorGamut);
+    if (ret != StatusCode::SUCCESS) {
+        info.colorGamut = COLOR_GAMUT_SRGB;
+    }
 
     if (!screen->IsEnable()) {
         info.state = ScreenState::DISABLED;

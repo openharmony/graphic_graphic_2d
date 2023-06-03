@@ -130,7 +130,7 @@ private:
     bool hasFingerprint_ = false;
     bool isChildOperationDisallowed_ { false };
 
-    uint32_t windowId_;
+    uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceDelegate> surfaceDelegate_;
     sptr<SurfaceDelegate::ISurfaceCallback> surfaceCallback_;

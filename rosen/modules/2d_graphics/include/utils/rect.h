@@ -167,7 +167,7 @@ inline bool RectF::Join(const RectF& other)
         *this = other;
     } else {
         *this = RectF(left_ < other.left_ ? left_ : other.left_, top_ < other.top_ ? top_ : other.top_,
-                right_ > other.right_ ? right_ : other.right_, bottom_ > other.bottom_ ? bottom_ : other.bottom_);
+            right_ > other.right_ ? right_ : other.right_, bottom_ > other.bottom_ ? bottom_ : other.bottom_);
     }
     return true;
 }

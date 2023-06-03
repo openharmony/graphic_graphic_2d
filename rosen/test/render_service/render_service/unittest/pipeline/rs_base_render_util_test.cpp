@@ -90,6 +90,8 @@ private:
 };
 std::shared_ptr<RSSurfaceRenderNode> node_ = nullptr;
 
+const uint32_t STUB_PIXEL_FMT_RGBA_16161616 = 0X7fff0001;
+
 void RSBaseRenderUtilTest::SetUpTestCase()
 {
     RSSurfaceRenderNodeConfig config;
@@ -176,6 +178,27 @@ HWTEST_F(RSBaseRenderUtilTest, ReleaseBuffer_001, TestSize.Level2)
 }
 
 /*
+ * @tc.name: ReleaseBuffer_002
+ * @tc.desc: Test ReleaseBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
+ */
+HWTEST_F(RSBaseRenderUtilTest, ReleaseBuffer_002, TestSize.Level2)
+{
+    NodeId id = 0;
+    RSSurfaceHandler surfaceHandler(id);
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create();
+    surfaceHandler.SetConsumer(consumer);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    int64_t timestamp = 0;
+    Rect damage;
+    surfaceHandler.SetBuffer(buffer, acquireFence, damage, timestamp);
+    surfaceHandler.SetBuffer(buffer, acquireFence, damage, timestamp);
+    ASSERT_EQ(true, RSBaseRenderUtil::ReleaseBuffer(surfaceHandler));
+}
+
+/*
  * @tc.name: SetColorFilterModeToPaint_001
  * @tc.desc: Test SetColorFilterModeToPaint
  * @tc.type: FUNC
@@ -235,6 +258,18 @@ HWTEST_F(RSBaseRenderUtilTest, IsColorFilterModeValid_001, TestSize.Level2)
 {
     ColorFilterMode colorFilterMode = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
     ASSERT_EQ(true, RSBaseRenderUtil::IsColorFilterModeValid(colorFilterMode));
+}
+
+/*
+ * @tc.name: IsColorFilterModeValid_002
+ * @tc.desc: Test IsColorFilterModeValid
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
+ */
+HWTEST_F(RSBaseRenderUtilTest, IsColorFilterModeValid_002, TestSize.Level2)
+{
+    ColorFilterMode colorFilterMode = static_cast<ColorFilterMode>(50);
+    ASSERT_EQ(false, RSBaseRenderUtil::IsColorFilterModeValid(colorFilterMode));
 }
 
 /*
@@ -328,6 +363,37 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_003, TestSize.Level2)
 }
 
 /*
+ * @tc.name: ConvertBufferToBitmap_004
+ * @tc.desc: Test ConvertBufferToBitmap by CreateNewColorGamutBitmap
+ * @tc.type: FUNC
+ * @tc.require: issueI614RU
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_004, TestSize.Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf->SetQueueSize(1);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    requestConfig.format = STUB_PIXEL_FMT_RGBA_16161616;
+    [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+    OHOS::sptr<SurfaceBuffer> cbuffer;
+    Rect damage;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    int64_t timestamp = 0;
+    ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
+
+    std::vector<uint8_t> newBuffer;
+    ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_SRGB;
+    SkBitmap bitmap;
+    ASSERT_EQ(false, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
+}
+
+/*
  * @tc.name: WritePixelMapToPng_001
  * @tc.desc: Test WritePixelMapToPng
  * @tc.type: FUNC
@@ -360,7 +426,7 @@ HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_001, TestSize.L
     sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
     rsNode->SetConsumer(csurf);
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(csurf->GetTransform(),
-        rsNode->GetRenderProperties().GetFrameGravity(),localBounds, params);
+        rsNode->GetRenderProperties().GetFrameGravity(), localBounds, params);
 }
 
 /*
@@ -674,6 +740,22 @@ HWTEST_F(RSBaseRenderUtilTest, GetRotateTransform_002, Function | SmallTest | Le
 }
 
 /*
+ * @tc.name: GetRotateTransform_003
+ * @tc.desc: Test GetRotateTransform GRAPHIC_FLIP_V_ROT180
+ * @tc.type: FUNC
+ * @tc.require: issueI6AOQZ
+*/
+HWTEST_F(RSBaseRenderUtilTest, GetRotateTransform_003, Function | SmallTest | Level2)
+{
+    RSSurfaceRenderNodeConfig config;
+    std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name);
+    surface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT180);
+    auto transform = RSBaseRenderUtil::GetRotateTransform(surface->GetTransform());
+    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_ROTATE_180);
+}
+
+/*
  * @tc.name: GetFlipTransform_001
  * @tc.desc: Test GetFlipTransform Default
  * @tc.type: FUNC
@@ -822,5 +904,95 @@ HWTEST_F(RSBaseRenderUtilTest, ClockwiseToAntiClockwiseTransform_006, Function |
 {
     auto transform = RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT270);
     ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_FLIP_H_ROT270);
+}
+
+/*
+ * @tc.name: ClockwiseToAntiClockwiseTransform
+ * @tc.desc: Test ClockwiseToAntiClockwiseTransform GRAPHIC_ROTATE_NONE
+ * @tc.type: FUNC
+ * @tc.require: I6HE0M
+ */
+HWTEST_F(RSBaseRenderUtilTest, ClockwiseToAntiClockwiseTransform_007, Function | SmallTest | Level2)
+{
+    auto transform = RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_ROTATE_NONE);
+}
+
+/*
+ * @tc.name: GetSurfaceTransformMatrix_001
+ * @tc.desc: Test GetSurfaceTransformMatrix GRAPHIC_ROTATE_90
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix_001, TestSize.Level2)
+{
+    RectF bounds(1, 2, 3, 4);
+    SkMatrix matrix;
+    const float boundsHeight = bounds.GetHeight();
+    matrix.preTranslate(0, boundsHeight);
+    matrix.preRotate(-90);
+    GraphicTransformType rotationTransform = GraphicTransformType::GRAPHIC_ROTATE_90;
+    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds));
+}
+
+/*
+ * @tc.name: GetSurfaceTransformMatrix_002
+ * @tc.desc: Test GetSurfaceTransformMatrix GRAPHIC_ROTATE_180
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix_002, TestSize.Level2)
+{
+    RectF bounds(1, 2, 3, 4);
+    SkMatrix matrix;
+    const float boundsWidth = bounds.GetWidth();
+    const float boundsHeight = bounds.GetHeight();
+    matrix.preTranslate(boundsWidth, boundsHeight);
+    matrix.preRotate(-180);
+    GraphicTransformType rotationTransform = GraphicTransformType::GRAPHIC_ROTATE_180;
+    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds));
+}
+
+/*
+ * @tc.name: GetSurfaceTransformMatrix_003
+ * @tc.desc: Test GetSurfaceTransformMatrix GRAPHIC_ROTATE_270
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix_003, TestSize.Level2)
+{
+    RectF bounds(1, 2, 3, 4);
+    SkMatrix matrix;
+    const float boundsWidth = bounds.GetWidth();
+    matrix.preTranslate(boundsWidth, 0);
+    matrix.preRotate(-270);
+    GraphicTransformType rotationTransform = GraphicTransformType::GRAPHIC_ROTATE_270;
+    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds));
+}
+
+/*
+ * @tc.name: WriteToPng_001
+ * @tc.desc: Test WriteToPng
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteToPng_001, TestSize.Level2)
+{
+    std::string filename = "";
+    WriteToPngParam param;
+    ASSERT_EQ(false, RSBaseRenderUtil::WriteToPng(filename, param));
+}
+
+/*
+ * @tc.name: RotateEnumToInt_001
+ * @tc.desc: Test RotateEnumToInt GRAPHIC_FLIP_H
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, RotateEnumToInt_001, TestSize.Level2)
+{
+    int angle = 0;
+    GraphicTransformType flip = GraphicTransformType::GRAPHIC_FLIP_H;
+    ASSERT_EQ(flip, RSBaseRenderUtil::RotateEnumToInt(angle, flip));
 }
 } // namespace OHOS::Rosen

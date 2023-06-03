@@ -31,61 +31,40 @@ SkiaRegion::SkiaRegion() noexcept : skRegion_(std::make_shared<SkRegion>()) {}
 bool SkiaRegion::SetRect(const RectI& rectI)
 {
     auto skIRect = SkIRect::MakeLTRB(rectI.GetLeft(), rectI.GetTop(), rectI.GetRight(), rectI.GetBottom());
-    return (skRegion_ == nullptr) ? false : skRegion_->setRect(skIRect);
+    return skRegion_->setRect(skIRect);
 }
 
 bool SkiaRegion::SetPath(const Path& path, const Region& clip)
 {
-    auto skPathImpl = path.GetImpl<SkiaPath>();
-    if (skPathImpl == nullptr) {
-        LOGE("SkiaRegion::SetPath, skPathImpl is nullptr");
-        return false;
-    }
-    auto skPath = skPathImpl->GetPath();
-
-    auto skRegionImpl = clip.GetImpl<SkiaRegion>();
-    if (skRegionImpl == nullptr) {
-        LOGE("SkiaRegion::SetPath, skRegionImpl is nullptr");
-        return false;
-    }
-    auto skRegion = skRegionImpl->GetSkRegion();
+    auto skPath = path.GetImpl<SkiaPath>()->GetPath();
+    auto skRegion = clip.GetImpl<SkiaRegion>()->GetSkRegion();
     if (skRegion == nullptr) {
         LOGE("SkiaRegion::SetPath, skRegion is nullptr");
         return false;
     }
 
-    return (skRegion_ == nullptr) ? false : skRegion_->setPath(skPath, *skRegion);
+    return skRegion_->setPath(skPath, *skRegion);
 }
 
 bool SkiaRegion::IsIntersects(const Region& other) const
 {
-    auto skRegionImpl = other.GetImpl<SkiaRegion>();
-    if (skRegionImpl == nullptr) {
-        LOGE("SkiaRegion::SetPath, skRegionImpl is nullptr");
-        return false;
-    }
-    auto skRegion = skRegionImpl->GetSkRegion();
+    auto skRegion = other.GetImpl<SkiaRegion>()->GetSkRegion();
     if (skRegion == nullptr) {
         LOGE("SkiaRegion::SetPath, skRegion is nullptr");
         return false;
     }
 
-    return (skRegion_ == nullptr) ? false : skRegion_->intersects(*skRegion);
+    return skRegion_->intersects(*skRegion);
 }
 
 bool SkiaRegion::Op(const Region& region, RegionOp op)
 {
-    auto skiaRegion = region.GetImpl<SkiaRegion>();
-    if (skiaRegion == nullptr) {
-        LOGE("SkiaRegion::SetPath, skiaRegion is nullptr");
-        return false;
-    }
-    auto skRegion = skiaRegion->GetSkRegion();
+    auto skRegion = region.GetImpl<SkiaRegion>()->GetSkRegion();
     if (skRegion == nullptr) {
         LOGE("SkiaRegion::SetPath, skRegion is nullptr");
         return false;
     }
-    return (skRegion_ == nullptr) ? false : skRegion_->op(*skRegion, static_cast<SkRegion::Op>(op));
+    return skRegion_->op(*skRegion, static_cast<SkRegion::Op>(op));
 }
 
 std::shared_ptr<SkRegion> SkiaRegion::GetSkRegion() const

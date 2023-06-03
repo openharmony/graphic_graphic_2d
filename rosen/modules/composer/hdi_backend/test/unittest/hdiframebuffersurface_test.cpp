@@ -14,7 +14,7 @@
  */
 
 #include "hdi_framebuffer_surface.h"
-
+#include "surface_buffer_impl.h"
 #include <gtest/gtest.h>
 
 using namespace testing;
@@ -39,6 +39,26 @@ void HdiFramebufferSurfaceTest::SetUpTestCase()
 void HdiFramebufferSurfaceTest::TearDownTestCase()
 {
     hdiFramebufferSurface_ = nullptr;
+}
+
+namespace {
+/*
+* Function: ReleaseFramebuffer001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call ReleaseFramebuffer
+*                  2. check ret
+*/
+HWTEST_F(HdiFramebufferSurfaceTest, ReleaseFramebuffer001, Function | MediumTest| Level3)
+{
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SyncFence> fence = new SyncFence(10);
+    ASSERT_EQ(hdiFramebufferSurface_->ReleaseFramebuffer(buffer, fence), 0);
+    buffer = new SurfaceBufferImpl();
+    ASSERT_NE(hdiFramebufferSurface_->ReleaseFramebuffer(buffer, fence), 0);
+}
+
 }
 } // namespace Rosen
 } // namespace OHOS

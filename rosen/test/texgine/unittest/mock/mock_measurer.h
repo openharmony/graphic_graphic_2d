@@ -18,6 +18,7 @@
 
 #include <gmock/gmock.h>
 
+#include "font_collection.h"
 #include "measurer.h"
 
 namespace OHOS {

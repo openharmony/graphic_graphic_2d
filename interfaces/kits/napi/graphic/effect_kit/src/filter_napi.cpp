@@ -159,7 +159,7 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
                             filterNapi,
                             FilterNapi::Destructor,
                             nullptr, /* finalize_hint */
-                            &filterNapi->wrapper_));
+                            nullptr));
     return _this;
 }
 

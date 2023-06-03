@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_out_path = "graphic_standard/composer"
 
@@ -131,6 +132,7 @@ config("hdibackend_test_common_public_config") {
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/test",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
+    "$graphic_2d_root/frameworks/surface/include",
   ]
 
   cflags = [

@@ -19,9 +19,10 @@
 #include "draw/color.h"
 #include "image/bitmap.h"
 #endif
-#include "modifier/rs_modifier_type.h"
 #include <memory>
 #include <unordered_map>
+
+#include "include/effects/SkColorMatrix.h"
 #include "pixel_map.h"
 
 #include "common/rs_obj_abs_geometry.h"
@@ -44,10 +45,7 @@ using ModifierUnmarshallingFunc = RSRenderModifier* (*)(Parcel& parcel);
                 return nullptr;                                                                         \
             }                                                                                           \
             auto modifier = new RS##MODIFIER_NAME##RenderModifier(prop);                                \
-            if (!modifier) {                                                                            \
-                return nullptr;                                                                         \
-            }                                                                                           \
-            return modifier;                                                                            \
+            return ((!modifier) ? nullptr : modifier);                                                  \
         },                                                                                              \
     },
 
@@ -58,10 +56,7 @@ using ModifierUnmarshallingFunc = RSRenderModifier* (*)(Parcel& parcel);
                 return nullptr;                                                                         \
             }                                                                                           \
             auto modifier = new RS##MODIFIER_NAME##RenderModifier(prop);                                \
-            if (!modifier) {                                                                            \
-                return nullptr;                                                                         \
-            }                                                                                           \
-            return modifier;                                                                            \
+            return ((!modifier) ? nullptr : modifier);                                                  \
         },                                                                                              \
     },
 
@@ -270,7 +265,7 @@ Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSMod
         return Color(0);
     }
     std::unique_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
-    auto data = (uint8_t *)malloc(pixelmap->GetRowBytes() * pixelmap->GetHeight());
+    uint8_t* data = static_cast<uint8_t*>(malloc(pixelmap->GetRowBytes() * pixelmap->GetHeight()));
     if (data == nullptr) {
         RS_LOGE("RSRenderModifier::GetInvertBackgroundColor: data is nullptr");
         return Color(0);
@@ -362,12 +357,29 @@ T Add(T a, T b)
     return a + b;
 }
 template<typename T>
+T Add(const std::optional<T>& a, T b)
+{
+    return a.has_value() ? *a + b : b;
+}
+
+template<typename T>
 T Multiply(T a, T b)
 {
     return a * b;
 }
 template<typename T>
+T Multiply(const std::optional<T>& a, T b)
+{
+    return a.has_value() ? *a * b : b;
+}
+
+template<typename T>
 T Replace(T a, T b)
+{
+    return b;
+}
+template<typename T>
+T Replace(const std::optional<T>& a, T b)
 {
     return b;
 }

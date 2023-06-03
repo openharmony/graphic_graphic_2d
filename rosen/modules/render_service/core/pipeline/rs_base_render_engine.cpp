@@ -179,7 +179,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
         } else {
             rsSurfaces_[surfaceId] = std::make_shared<RSSurfaceOhosGl>(targetSurface);
         }
-#elif RS_ENABLE_VK
+#elif defined(RS_ENABLE_VK)
         rsSurfaces_[surfaceId] = std::make_shared<RSSurfaceOhosVulkan>(targetSurface);
 #else
         rsSurfaces_[surfaceId] = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
@@ -326,6 +326,16 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
         (consumer->RegisterDeleteBufferListener(regUnMapEglImageFunc, isForUniRedraw) != GSERROR_OK)) {
         RS_LOGE("RSBaseRenderEngine::RegisterDeleteBufferListener: failed to register UnMapEglImage callback.");
     }
+#endif // #ifdef RS_ENABLE_EGLIMAGE
+}
+
+void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
+{
+#ifdef RS_ENABLE_EGLIMAGE
+    auto regUnMapEglImageFunc = [this](int32_t bufferId) {
+        eglImageManager_->UnMapEglImageFromSurfaceBuffer(bufferId);
+    };
+    handler.RegisterDeleteBufferListener(regUnMapEglImageFunc);
 #endif // #ifdef RS_ENABLE_EGLIMAGE
 }
 

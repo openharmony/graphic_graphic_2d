@@ -37,13 +37,14 @@ class RSPaintFilterCanvas;
 class RSB_EXPORT RSPropertiesPainter {
 public:
 #ifndef USE_ROSEN_DRAWING
-    static void Clip(SkCanvas& canvas, RectF rect);
+    static void Clip(SkCanvas& canvas, RectF rect, bool isAntiAlias = true);
     static void SetBgAntiAlias(bool forceBgAntiAlias);
     static bool GetBgAntiAlias();
-    static void DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+    static void DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas, bool isAntiAlias = true);
     static void DrawBorder(const RSProperties& properties, SkCanvas& canvas);
     static void DrawFrame(const RSProperties& properties, RSPaintFilterCanvas& canvas, DrawCmdListPtr& drawCmdList);
-    static void GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties, const RRect* rrect = nullptr);
+    static void GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties,
+        const RRect* rrect = nullptr, bool isAbsCoordinate = true);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static void DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         std::shared_ptr<RSSkiaFilter>& filter, const std::unique_ptr<SkRect>& rect = nullptr,
@@ -66,6 +67,8 @@ public:
     // functions that are dedicated to driven render [end]
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const sk_sp<SkSurface>& spherizeSurface);
+
+    static void DrawColorFilter(const RSProperties& properties, SkCanvas* canvas);
 private:
     inline static int g_blurCnt = 0;
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);

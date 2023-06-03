@@ -68,6 +68,11 @@ Vector2f RSModifierExtractor::GetPivot() const
     GET_PROPERTY_FROM_MODIFIERS(Vector2f, PIVOT, Vector2f(0.5f, 0.5f), =);
 }
 
+float RSModifierExtractor::GetPivotZ() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, PIVOT_Z, 0.f, =);
+}
+
 Quaternion RSModifierExtractor::GetQuaternion() const
 {
     GET_PROPERTY_FROM_MODIFIERS(Quaternion, QUATERNION, Quaternion(), =);

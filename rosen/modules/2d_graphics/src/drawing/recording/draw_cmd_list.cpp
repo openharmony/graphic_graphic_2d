@@ -65,7 +65,7 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect) const
         return;
     }
 
-    int32_t offset = 2 * sizeof(int32_t);   // 2 is width and height. Offset of first OpItem is behind the width and height
+    int32_t offset = 2 * sizeof(int32_t);   // 2 is width and height. Offset of first OpItem is behind them
 
     CanvasPlayer player = { canvas, *this };
     do {

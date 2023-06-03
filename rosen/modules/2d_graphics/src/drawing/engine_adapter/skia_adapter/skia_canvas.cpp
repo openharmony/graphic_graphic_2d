@@ -27,6 +27,7 @@
 #include "draw/core_canvas.h"
 #include "image/bitmap.h"
 #include "image/image.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -119,11 +120,7 @@ std::shared_ptr<GPUContext> SkiaCanvas::GetGPUContext() const
 #endif
 
     auto gpuContext = std::make_shared<GPUContext>();
-    auto skiaGPUContextImpl = gpuContext->GetImpl<SkiaGPUContext>();
-    if (skiaGPUContextImpl == nullptr) {
-        return nullptr;
-    }
-    skiaGPUContextImpl->SetGrContext(sk_ref_sp(grContext));
+    gpuContext->GetImpl<SkiaGPUContext>()->SetGrContext(sk_ref_sp(grContext));
 
     return gpuContext;
 }
@@ -318,15 +315,10 @@ void SkiaCanvas::DrawRegion(const Region& region)
         LOGE("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
     }
-    auto skRegionImpl = region.GetImpl<SkiaRegion>();
-    if (skRegionImpl == nullptr) {
-        LOGE("skiaRegion is null, return on line %{public}d", __LINE__);
-        return;
-    }
 
     for (auto d : skiaPaint_.GetSortedPaints()) {
         if (d != nullptr) {
-            skCanvas_->drawRegion(*skRegionImpl->GetSkRegion(), d->paint);
+            skCanvas_->drawRegion(*region.GetImpl<SkiaRegion>()->GetSkRegion(), d->paint);
         }
     }
 }
@@ -758,7 +750,7 @@ void SkiaCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)
     }
     sk_sp<SkImageFilter> skImageFilter = nullptr;
     auto imageFilter = saveLayerOps.GetImageFilter();
-    if (imageFilter != nullptr && imageFilter->GetImpl<SkiaImageFilter>() != nullptr) {
+    if (imageFilter != nullptr) {
         auto skiaImageFilter = imageFilter->GetImpl<SkiaImageFilter>();
         skImageFilter = skiaImageFilter->GetImageFilter();
     }

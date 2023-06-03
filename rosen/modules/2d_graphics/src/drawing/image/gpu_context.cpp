@@ -24,38 +24,26 @@ GPUContext::GPUContext() : impl_(ImplFactory::CreateGPUContextImpl()) {}
 
 bool GPUContext::BuildFromGL(const GPUContextOptions& options)
 {
-    return (impl_ == nullptr) ? false : impl_->BuildFromGL(options);
+    return impl_->BuildFromGL(options);
 }
 
 void GPUContext::GetResourceCacheLimits(int& maxResource, size_t& maxResourceBytes) const
 {
-    if (impl_ == nullptr) {
-        return;
-    }
     impl_->GetResourceCacheLimits(maxResource, maxResourceBytes);
 }
 
 void GPUContext::SetResourceCacheLimits(int maxResource, size_t maxResourceBytes)
 {
-    if (impl_ == nullptr) {
-        return;
-    }
     impl_->SetResourceCacheLimits(maxResource, maxResourceBytes);
 }
 
 void GPUContext::Flush()
 {
-    if (impl_ == nullptr) {
-        return;
-    }
     impl_->Flush();
 }
 
 void GPUContext::PerformDeferredCleanup(std::chrono::milliseconds msNotUsed)
 {
-    if (impl_ == nullptr) {
-        return;
-    }
     impl_->PerformDeferredCleanup(msNotUsed);
 }
 

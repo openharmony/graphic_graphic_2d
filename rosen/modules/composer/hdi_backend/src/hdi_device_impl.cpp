@@ -200,7 +200,7 @@ int32_t HdiDeviceImpl::SetScreenClientBuffer(uint32_t screenId, const BufferHand
     return g_composer->SetDisplayClientBuffer(screenId, *buffer, fenceFd);
 }
 
-int32_t HdiDeviceImpl::SetScreenClientDamage(uint32_t screenId, const std::vector<GraphicIRect>& damageRect)
+int32_t HdiDeviceImpl::SetScreenClientDamage(uint32_t screenId, const std::vector<GraphicIRect> &damageRect)
 {
     CHECK_FUNC(g_composer);
     std::vector<IRect> hdiDamageRect;
@@ -222,7 +222,7 @@ int32_t HdiDeviceImpl::GetScreenReleaseFence(uint32_t screenId, std::vector<uint
     CHECK_FUNC(g_composer);
     std::vector<int32_t> fenceFds;
     int32_t ret = g_composer->GetDisplayReleaseFence(screenId, layers, fenceFds);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS || fenceFds.size() <= 0) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS || fenceFds.size() == 0) {
         return ret;
     }
 
@@ -291,7 +291,7 @@ int32_t HdiDeviceImpl::GetScreenGamutMap(uint32_t screenId, GraphicGamutMap &gam
     return ret;
 }
 
-int32_t HdiDeviceImpl::SetScreenColorTransform(uint32_t screenId, const std::vector<float>& matrix)
+int32_t HdiDeviceImpl::SetScreenColorTransform(uint32_t screenId, const std::vector<float> &matrix)
 {
     CHECK_FUNC(g_composer);
     return g_composer->SetDisplayColorTransform(screenId, matrix);
@@ -353,7 +353,7 @@ int32_t HdiDeviceImpl::Commit(uint32_t screenId, sptr<SyncFence> &fence)
 /* set & get device screen info end */
 
 /* set & get device layer info begin */
-int32_t HdiDeviceImpl::SetLayerAlpha(uint32_t screenId, uint32_t layerId, GraphicLayerAlpha &alpha)
+int32_t HdiDeviceImpl::SetLayerAlpha(uint32_t screenId, uint32_t layerId, const GraphicLayerAlpha &alpha)
 {
     CHECK_FUNC(g_composer);
     LayerAlpha hdiLayerAlpha = {
@@ -366,7 +366,7 @@ int32_t HdiDeviceImpl::SetLayerAlpha(uint32_t screenId, uint32_t layerId, Graphi
     return g_composer->SetLayerAlpha(screenId, layerId, hdiLayerAlpha);
 }
 
-int32_t HdiDeviceImpl::SetLayerSize(uint32_t screenId, uint32_t layerId, GraphicIRect &layerRect)
+int32_t HdiDeviceImpl::SetLayerSize(uint32_t screenId, uint32_t layerId, const GraphicIRect &layerRect)
 {
     CHECK_FUNC(g_composer);
     IRect hdiLayerRect = {
@@ -444,7 +444,7 @@ int32_t HdiDeviceImpl::SetLayerBlendType(uint32_t screenId, uint32_t layerId, Gr
     return g_composer->SetLayerBlendType(screenId, layerId, hdiBlendType);
 }
 
-int32_t HdiDeviceImpl::SetLayerCrop(uint32_t screenId, uint32_t layerId, GraphicIRect &crop)
+int32_t HdiDeviceImpl::SetLayerCrop(uint32_t screenId, uint32_t layerId, const GraphicIRect &crop)
 {
     CHECK_FUNC(g_composer);
     IRect hdiCropRect = {
@@ -468,7 +468,7 @@ int32_t HdiDeviceImpl::SetLayerPreMulti(uint32_t screenId, uint32_t layerId, boo
     return g_composer->SetLayerPreMulti(screenId, layerId, isPreMulti);
 }
 
-int32_t HdiDeviceImpl::SetLayerColorTransform(uint32_t screenId, uint32_t layerId, const std::vector<float>& matrix)
+int32_t HdiDeviceImpl::SetLayerColorTransform(uint32_t screenId, uint32_t layerId, const std::vector<float> &matrix)
 {
     CHECK_FUNC(g_composer);
     return g_composer->SetLayerColorTransform(screenId, layerId, matrix);

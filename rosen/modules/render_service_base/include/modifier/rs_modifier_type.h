@@ -28,6 +28,7 @@ enum class RSModifierType : int16_t {
     POSITION_Z,
 
     PIVOT,
+    PIVOT_Z,
     QUATERNION,
     ROTATION,
     ROTATION_X,
@@ -85,6 +86,15 @@ enum class RSModifierType : int16_t {
     PIXEL_STRETCH_PERCENT,
 
     SANDBOX,
+
+    GRAY_SCALE,
+    BRIGHTNESS,
+    CONTRAST,
+    SATURATE,
+    SEPIA,
+    INVERT,
+    HUE_ROTATE,
+    COLOR_BLEND,
 
     CUSTOM,
     EXTENDED,

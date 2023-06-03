@@ -32,22 +32,22 @@ namespace Rosen {
 class DrawingDCL : public BenchMark {
 public:
     DrawingDCL() { std::cout << "DrawingDCL" << std::endl; }
-    DrawingDCL(int32_t argc, char* argvp[]);
+    DrawingDCL(int32_t argc, char* argv[]);
     ~DrawingDCL();
     bool GetDirectionAndStep(std::string command, bool &isMoreOps);
     bool IterateFrame(int &curLoop, int &frame);
-    bool PlayBackByFrame(SkCanvas *skiaCanvas, bool isDumpPicture = false);
+    bool PlayBackByFrame(SkCanvas *skiaCanvas, bool isDumpPictures = false);
     bool PlayBackByOpItem(SkCanvas *skiaCanvas, bool isMoreOps = true);
-    void UpdateParameters(bool isNeeded);
+    void UpdateParameters(bool notNeeded);
     void UpdateParametersFromDCLCommand(const DCLCommand& dclCommand);
     void PrintDurationTime(const std::string &description, std::chrono::time_point<std::chrono::system_clock> start);
     void Start() override {};
     void Stop() override {};
     void Test(SkCanvas *canvas, int width, int height) override;
     void Output() override;
-    int LoadDrawCmdList(std::string dclFile);
-    std::string GetRealPathStr(std::string filePath);
-    bool IsValidFile(std::string realPathStr);
+    int LoadDrawCmdList(const std::string& dclFile);
+    std::string GetRealPathStr(const std::string& filePath);
+    bool IsValidFile(const std::string& realPathStr);
 
 private:
     friend class DCLCommand;

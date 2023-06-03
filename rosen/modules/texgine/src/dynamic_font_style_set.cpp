@@ -35,12 +35,12 @@ void DynamicFontStyleSet::GetStyle(int index, std::shared_ptr<TexgineFontStyle> 
     std::shared_ptr<TexgineString> name) const
 {
     if (style == nullptr || style->GetFontStyle() == nullptr) {
-        LOG2EX(ERROR) << "style is nullptr";
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        LOGEX_FUNC_LINE(ERROR) << "style is nullptr";
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
     if (index == 0 && typeface_ != nullptr && typeface_->Get() != nullptr) {
-        *style = *typeface_->Get()->FontStyle();
+        *style = *typeface_->Get()->GetFontStyle();
     }
 }
 

@@ -76,14 +76,6 @@ void* SkiaImage::BuildFromPicture(const Picture& picture, const SizeI& dimension
 #ifdef ACE_ENABLE_GPU
 bool SkiaImage::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
 {
-    if (gpuContext.GetImpl<SkiaGPUContext>() == nullptr) {
-        LOGE("SkiaImage::BuildFromBitmap, build failed, GPUContext is invalid");
-        return false;
-    }
-    if (bitmap.GetImpl<SkiaBitmap>() == nullptr) {
-        LOGE("SkiaImage::BuildFromBitmap, build failed, bitmap is invalid");
-        return false;
-    }
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
     auto& skBitmap = bitmap.GetImpl<SkiaBitmap>()->ExportSkiaBitmap();
 
@@ -95,11 +87,7 @@ bool SkiaImage::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
 bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
     CompressedType type)
 {
-    if (gpuContext.GetImpl<SkiaGPUContext>() == nullptr) {
-        LOGE("SkiaImage::BuildFromCompressed, build failed, GPUContext is invalid");
-        return false;
-    }
-    if (data == nullptr || data->GetImpl<SkiaData>() == nullptr) {
+    if (data == nullptr) {
         LOGE("SkiaImage::BuildFromCompressed, build failed, data is invalid");
         return false;
     }
@@ -131,6 +119,8 @@ static SkColorType ConvertToSkColorType(const ColorType& format)
             return kRGBA_8888_SkColorType;
         case COLORTYPE_BGRA_8888:
             return kBGRA_8888_SkColorType;
+        case COLORTYPE_N32:
+            return kN32_SkColorType;
         default:
             return kUnknown_SkColorType;
     }
@@ -176,14 +166,10 @@ static GrSurfaceOrigin ConvertToGrSurfaceOrigin(const TextureOrigin& origin)
 bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
     BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace)
 {
-    if (gpuContext.GetImpl<SkiaGPUContext>() == nullptr) {
-        LOGE("SkiaImage::BuildFromTexture, build failed, GPUContext is invalid");
-        return false;
-    }
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
 
     sk_sp<SkColorSpace> skColorSpace = nullptr;
-    if (colorSpace != nullptr && colorSpace->GetImpl<SkiaColorSpace>() != nullptr) {
+    if (colorSpace != nullptr) {
         skColorSpace = colorSpace->GetImpl<SkiaColorSpace>()->GetColorSpace();
     }
 
@@ -212,13 +198,7 @@ uint32_t SkiaImage::GetUniqueID() const
 
 bool SkiaImage::ReadPixels(Bitmap& bitmap, int x, int y)
 {
-    auto skiaBitmap = bitmap.GetImpl<SkiaBitmap>();
-    if (skiaBitmap == nullptr) {
-        LOGE("SkiaImage::ReadPixels, bitmap is invalid");
-        return false;
-    }
-
-    const auto& skBitmap = skiaBitmap->ExportSkiaBitmap();
+    const auto& skBitmap = bitmap.GetImpl<SkiaBitmap>()->ExportSkiaBitmap();
     const auto& skPixmap = skBitmap.pixmap();
 
     return (skiaImage_ == nullptr) ? false : skiaImage_->readPixels(skPixmap, x, y);

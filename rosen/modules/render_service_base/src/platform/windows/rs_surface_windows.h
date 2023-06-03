@@ -34,8 +34,8 @@ class RenderContext;
 using OnRenderFunc = bool (*)(const void*, const size_t, const int32_t, const int32_t);
 class RSSurfaceWindows : public RSSurface {
 public:
-    RSSurfaceWindows(OnRenderFunc onRender);
-    ~RSSurfaceWindows() override = default;
+    explicit RSSurfaceWindows(OnRenderFunc onRender);
+    ~RSSurfaceWindows() override;
 
     bool IsValid() const override;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "common/rs_common_def.h"
 #include "render/rs_blur_filter.h"
 
 #if defined(NEW_SKIA)
@@ -56,6 +57,15 @@ std::string RSBlurFilter::GetDescription()
     return "RSBlurFilter blur radius is " + std::to_string(blurRadiusX_) + " sigma";
 }
 
+bool RSBlurFilter::IsValid() const
+{
+    constexpr float epsilon = 0.001f;
+    if (ROSEN_EQ(blurRadiusX_, 0.f, epsilon) && ROSEN_EQ(blurRadiusY_, 0.f, epsilon)) {
+        return false;
+    }
+    return true;
+}
+
 std::shared_ptr<RSSkiaFilter> RSBlurFilter::Compose(const std::shared_ptr<RSSkiaFilter>& inner)
 {
     std::shared_ptr<RSBlurFilter> blur = std::make_shared<RSBlurFilter>(blurRadiusX_, blurRadiusY_);
@@ -91,6 +101,21 @@ std::shared_ptr<RSFilter> RSBlurFilter::Multiply(float rhs)
 std::shared_ptr<RSFilter> RSBlurFilter::Negate()
 {
     return std::make_shared<RSBlurFilter>(-blurRadiusX_, -blurRadiusY_);
+}
+
+bool RSBlurFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, float threshold) const
+{
+    auto otherBlurFilter = std::static_pointer_cast<RSBlurFilter>(other);
+    if (otherBlurFilter == nullptr) {
+        return true;
+    }
+    return ROSEN_EQ(blurRadiusX_, otherBlurFilter->GetBlurRadiusX(), threshold) &&
+           ROSEN_EQ(blurRadiusY_, otherBlurFilter->GetBlurRadiusY(), threshold);
+}
+
+bool RSBlurFilter::IsNearZero(float threshold) const
+{
+    return ROSEN_EQ(blurRadiusX_, 0.0f, threshold) && ROSEN_EQ(blurRadiusY_, 0.0f, threshold);
 }
 } // namespace Rosen
 } // namespace OHOS

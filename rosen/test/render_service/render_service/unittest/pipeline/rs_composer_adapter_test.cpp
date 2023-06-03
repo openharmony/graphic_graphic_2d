@@ -19,6 +19,7 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "rs_test_util.h"
 #include "transaction/rs_interfaces.h"
+#include "pipeline/rs_hardware_thread.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -115,6 +116,29 @@ HWTEST_F(RSComposerAdapterTest, CommitLayersTest002, Function | SmallTest | Leve
         ScreenRotation::ROTATION_0);
     auto infoPtr = composerAdapter_->CreateLayer(*surfaceNode1);
     layers.emplace_back(infoPtr);
+    composerAdapter_->CommitLayers(layers);
+    composerAdapter_ = nullptr;
+}
+
+/**
+ * @tc.name: CommitLayersTest003
+ * @tc.desc: commitLayer when csurface is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+ */
+HWTEST_F(RSComposerAdapterTest, CommitLayersTest003, Function | SmallTest | Level2)
+{
+    SetUp();
+    std::vector<std::shared_ptr<HdiLayerInfo>> layers;
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode1, nullptr);
+    ASSERT_NE(surfaceNode2, nullptr);
+    auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    auto infoPtr2 = composerAdapter_->CreateLayer(*surfaceNode2);
+    layers.emplace_back(infoPtr1);
+    layers.emplace_back(infoPtr2);
+    RSHardwareThread::Instance().Start();
     composerAdapter_->CommitLayers(layers);
     composerAdapter_ = nullptr;
 }

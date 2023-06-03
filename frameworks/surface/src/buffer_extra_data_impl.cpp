@@ -31,7 +31,7 @@ GSError BufferExtraDataImpl::ReadFromParcel(MessageParcel &parcel)
     }
 
     int32_t size = parcel.ReadInt32();
-    if (size > SURFACE_PARCEL_SIZE_LIMIT) {
+    if (size > SURFACE_MAX_USER_DATA_COUNT) {
         BLOGE("Too much data obtained from Parcel");
         return GSERROR_INTERNAL;
     }
@@ -64,11 +64,6 @@ GSError BufferExtraDataImpl::ReadFromParcel(MessageParcel &parcel)
 GSError BufferExtraDataImpl::WriteToParcel(MessageParcel &parcel)
 {
     parcel.WriteInt32(BUFFER_EXTRA_DATA_MAGIC);
-    int32_t size = datas.size();
-    if (size > SURFACE_PARCEL_SIZE_LIMIT) {
-        BLOGE("Too much data obtained from datas");
-        return GSERROR_INTERNAL;
-    }
     parcel.WriteInt32(datas.size());
     for (const auto &[key, data] : datas) {
         parcel.WriteString(key);

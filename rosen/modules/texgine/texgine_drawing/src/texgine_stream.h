@@ -31,7 +31,7 @@ public:
     /*
      * @brief Returns SkMemoryStream that user init or set to TexgineMemoryStream
      */
-    std::unique_ptr<SkMemoryStream> GetStream() const;
+    std::unique_ptr<SkMemoryStream> GetStream();
 
     /*
      * @brief Returns a stream with a copy of the input data.

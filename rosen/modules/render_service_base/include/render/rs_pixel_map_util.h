@@ -21,9 +21,13 @@
 #include "common/rs_common_def.h"
 #include "pixel_map.h"
 
+#ifndef USE_ROSEN_DRAWING
 template <typename T>
 class sk_sp;
 class SkImage;
+#else
+#include "image/image.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -31,7 +35,11 @@ class RSB_EXPORT RSPixelMapUtil {
 public:
     // The generated SkImage already holds the shared_ptr of the source PixelMap,
     // and the PixelMap should not hold SkImage to avoid circular references.
+#ifndef USE_ROSEN_DRAWING
     static sk_sp<SkImage> ExtractSkImage(std::shared_ptr<Media::PixelMap> pixelMap);
+#else
+    static std::shared_ptr<Drawing::Image> ExtractDrawingImage(std::shared_ptr<Media::PixelMap> pixelMap);
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

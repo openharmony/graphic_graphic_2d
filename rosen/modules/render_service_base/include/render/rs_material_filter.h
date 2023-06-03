@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,10 +18,17 @@
 #include "render/rs_skia_filter.h"
 
 #include "common/rs_color.h"
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkColorFilter.h"
 #include "include/core/SkColor.h"
 #include "include/effects/SkColorMatrix.h"
 #include "include/effects/SkImageFilters.h"
+#else
+#include "effect/color_filter.h"
+#include "draw/color.h"
+#include "effect/color_matrix.h"
+#include "effect/image_filter.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -51,20 +58,38 @@ struct MaterialParam {
     float brightness;
     RSColor maskColor;
 };
+#ifndef USE_ROSEN_DRAWING
 class RSB_EXPORT RSMaterialFilter : public RSSkiaFilter {
+#else
+class RSB_EXPORT RSMaterialFilter : public RSDrawingFilter {
+#endif
 public:
     RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio);
     RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE mode);
     ~RSMaterialFilter() override;
+    std::shared_ptr<RSFilter> TransformFilter(float fraction);
+    bool IsValid() const override;
+#ifndef USE_ROSEN_DRAWING
     void PreProcess(sk_sp<SkImage> image) override;
+#else
+    void PreProcess(std::shared_ptr<Drawing::Image> image) override;
+#endif
     void PostProcess(RSPaintFilterCanvas& canvas) override;
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& inner) override;
+#else
+    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& inner) override;
+#endif
     std::string GetDescription() override;
 
     std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) override;
     std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) override;
     std::shared_ptr<RSFilter> Multiply(float rhs) override;
     std::shared_ptr<RSFilter> Negate() override;
+    bool IsNearEqual(
+        const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const override;
+    bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const override;
+
 private:
     BLUR_COLOR_MODE colorMode_;
     float radius_ {};
@@ -72,8 +97,13 @@ private:
     float brightness_ = 1.f;
     RSColor maskColor_ = RSColor();
 
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkImageFilter> CreateMaterialStyle(MATERIAL_BLUR_STYLE style, float dipScale, float ratio);
     sk_sp<SkImageFilter> CreateMaterialFilter(float radius, float sat, float brightness);
+#else
+    std::shared_ptr<Drawing::ImageFilter> CreateMaterialStyle(MATERIAL_BLUR_STYLE style, float dipScale, float ratio);
+    std::shared_ptr<Drawing::ImageFilter> CreateMaterialFilter(float radius, float sat, float brightness);
+#endif
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
 
     friend class RSMarshallingHelper;

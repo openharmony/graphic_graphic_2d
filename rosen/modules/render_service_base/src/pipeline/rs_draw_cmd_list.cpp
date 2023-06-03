@@ -152,8 +152,8 @@ std::string DrawCmdList::PlayBackForRecord(SkCanvas& canvas, int startOpId, int 
     return PlayBackForRecord(filterCanvas, startOpId, endOpId, descStartOpId, rect);
 }
 
-std::string DrawCmdList::PlayBackForRecord(RSPaintFilterCanvas& canvas, int startOpId, int endOpId, int descStartOpId,
-    const SkRect* rect)
+std::string DrawCmdList::PlayBackForRecord(RSPaintFilterCanvas& canvas, int startOpId, int endOpId,
+    int descStartOpId, const SkRect* rect)
 {
     std::string str;
     if (width_ <= 0 || height_ <= 0) {
@@ -204,6 +204,7 @@ int DrawCmdList::GetHeight() const
 
 void DrawCmdList::UpdateNodeIdToPicture(NodeId nodeId)
 {
+#ifdef ROSEN_OHOS
     if (imageIndexs_.empty()) {
         RS_LOGD("DrawCmdList::UpdateNodeIdToPicture no need update");
         return;
@@ -216,6 +217,7 @@ void DrawCmdList::UpdateNodeIdToPicture(NodeId nodeId)
         }
         ops_[index]->SetNodeId(nodeId);
     }
+#endif
 }
 
 void DrawCmdList::FindIndexOfImage() const

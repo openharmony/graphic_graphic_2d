@@ -164,17 +164,17 @@ void PointerFilter::ProcessSingleAction(const uint32_t action, int x, int y) con
         sf->x_ = x;
         sf->y_ = y;
 
-        sf->mat_ = SkMatrix::MakeTrans(-sf->diffx_, -sf->diffy_).preConcat(sf->mat_);
+        sf->mat_ = SkMatrix::Translate(-sf->diffx_, -sf->diffy_).preConcat(sf->mat_);
         sf->diffx_ = sf->x_ - sf->downRX_;
         sf->diffy_ = sf->y_ - sf->downRY_;
-        sf->mat_ = SkMatrix::MakeTrans(sf->diffx_, sf->diffy_).preConcat(sf->mat_);
+        sf->mat_ = SkMatrix::Translate(sf->diffx_, sf->diffy_).preConcat(sf->mat_);
         sf->UpdateInvertMatrix();
     }
     if (sf->right_ && action == MMIPE::POINTER_ACTION_UP) {
         sf->dirty_ = true;
         sf->right_ = false;
-        sf->mat_ = SkMatrix::MakeTrans(-sf->diffx_, -sf->diffy_).preConcat(sf->mat_);
-        sf->mat_ = SkMatrix::MakeTrans(x - sf->downRX_, y - sf->downRY_).preConcat(sf->mat_);
+        sf->mat_ = SkMatrix::Translate(-sf->diffx_, -sf->diffy_).preConcat(sf->mat_);
+        sf->mat_ = SkMatrix::Translate(x - sf->downRX_, y - sf->downRY_).preConcat(sf->mat_);
         sf->UpdateInvertMatrix();
         sf->diffx_ = sf->diffy_ = 0;
     }
@@ -208,9 +208,11 @@ void PointerFilter::ProcessPointerEvents(const std::shared_ptr<OHOS::MMI::Pointe
         auto scalediff = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
         auto point = sf->invmat_.mapXY(sf->scalex_, sf->scaley_);
         sf->mat_ = sf->scaleMat_;
-        sf->mat_ = sf->mat_.preConcat(SkMatrix::MakeTrans(+point.x(), +point.y()));
-        sf->mat_ = sf->mat_.preConcat(SkMatrix::MakeScale(scalediff / sf->scalediff_.load()));
-        sf->mat_ = sf->mat_.preConcat(SkMatrix::MakeTrans(-point.x(), -point.y()));
+        sf->mat_ = sf->mat_.preConcat(SkMatrix::Translate(+point.x(), +point.y()));
+        auto scale = (scalediff / sf->scalediff_.load()) == 0 ?
+            1 : scalediff / sf->scalediff_.load();
+        sf->mat_ = sf->mat_.preConcat(SkMatrix::Scale(scale, scale));
+        sf->mat_ = sf->mat_.preConcat(SkMatrix::Translate(-point.x(), -point.y()));
         sf->UpdateInvertMatrix();
     }
 }
@@ -318,7 +320,7 @@ void SkiaFramework::Run()
     }
 
     PrepareVsyncFunc();
-    mat_ = mat_.preConcat(SkMatrix::MakeScale(windowScale_, windowScale_));
+    mat_ = mat_.preConcat(SkMatrix::Scale(windowScale_, windowScale_));
     rsdata.RequestVsync();
     TRACE_END();
     rsdata.runner->Run();

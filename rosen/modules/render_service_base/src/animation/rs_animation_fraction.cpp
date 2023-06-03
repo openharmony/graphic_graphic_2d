@@ -28,6 +28,7 @@ namespace Rosen {
 namespace {
 static constexpr int INFINITE = -1;
 static constexpr int64_t MS_TO_NS = 1000000;
+static constexpr float NS_TO_MS = 1e-6;
 static constexpr int REVERSE_COUNT = 2;
 static constexpr int MAX_SPEED = 1000000;
 constexpr const char* ANIMATION_SCALE_NAME = "persist.sys.graphic.animationscale";
@@ -97,7 +98,7 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
 
     if (durationNs <= 0 || (repeatCount_ <= 0 && repeatCount_ != INFINITE)) {
         isFinished = true;
-        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatFinished};
+        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatFinished };
     }
     // 1. Calculates the total running fraction of animation
     float animationScale = GetAnimationScale();
@@ -117,7 +118,7 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
     if (runningTime_ < startDelayNs) {
         isFinished = IsFinished();
         isInStartDelay = isFinished ? false : true;
-        return { GetStartFraction(), isInStartDelay, isFinished, isRepeatFinished};
+        return { GetStartFraction(), isInStartDelay, isFinished, isRepeatFinished };
     }
 
     // 2. Calculate the running time of the current cycle animation.
@@ -132,10 +133,11 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
             realPlayTime += durationNs;
         }
     }
-    if (isRepeatCallbackEnable_) {
-        isRepeatFinished = (realPlayTime >= durationNs);
-    }
+
     playTime_ = realPlayTime % durationNs;
+    if (IsInRepeat()) {
+        isRepeatFinished = ((playTime_ + deltaTime) >= durationNs);
+    }
 
     // 4. update status for auto reverse
     isFinished = IsFinished();
@@ -143,12 +145,51 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
 
     // 5. get final animation fraction
     if (isFinished) {
-        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatFinished};
+        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatCallbackEnable_ };
     }
     currentTimeFraction_ = static_cast<float>(playTime_) / durationNs;
     currentTimeFraction_ = currentIsReverseCycle_ ? (1.0f - currentTimeFraction_) : currentTimeFraction_;
     currentTimeFraction_ = std::clamp(currentTimeFraction_, 0.0f, 1.0f);
     return { currentTimeFraction_, isInStartDelay, isFinished, isRepeatFinished };
+}
+
+bool RSAnimationFraction::IsInRepeat() const
+{
+    if (isRepeatCallbackEnable_ && ((repeatCount_ == INFINITE) || ((currentRepeatCount_ + 1) < repeatCount_))) {
+        return true;
+    }
+    return false;
+}
+
+std::tuple<float, bool> RSAnimationFraction::GetAnimationPlayTime(int64_t time)
+{
+    int64_t deltaTime = time - lastFrameTime_;
+    bool isInStartDelay = false;
+
+    if (time < lastFrameTime_) {
+        return { 0.0f, isInStartDelay };
+    }
+    lastFrameTime_ = time;
+
+    // 1. adjusting the actual delta time through scale and speed
+    float animationScale = GetAnimationScale();
+    if (animationScale == 0.0) {
+        deltaTime = static_cast<int64_t>(deltaTime * MAX_SPEED);
+    } else {
+        deltaTime = static_cast<int64_t>(deltaTime * speed_ / animationScale);
+    }
+    playTime_ += deltaTime;
+
+    // 2. process start delay
+    if (playTime_ <= remainingDelayTime_) {
+        isInStartDelay = true;
+        return { 0.0f, isInStartDelay };
+    } else {
+        playTime_ -= remainingDelayTime_;
+        remainingDelayTime_ = 0;
+    }
+
+    return { static_cast<float>(playTime_ * NS_TO_MS), isInStartDelay };
 }
 
 bool RSAnimationFraction::IsFinished() const
@@ -230,6 +271,50 @@ void RSAnimationFraction::ResetFraction()
     currentTimeFraction_ = 0.0f;
     currentRepeatCount_ = 0;
     currentIsReverseCycle_ = false;
+}
+
+void RSAnimationFraction::ResetPlayTime()
+{
+    playTime_ = 0.0f;
+}
+
+void RSAnimationFraction::SetRemainingDelayTime(int64_t time)
+{
+    remainingDelayTime_ = time;
+}
+
+int64_t RSAnimationFraction::GetRemainingDelayTime() const
+{
+    return remainingDelayTime_;
+}
+
+void RSAnimationFraction::OnCurrentAnimationRoundFinish()
+{
+    currentRepeatCount_++;
+}
+
+int RSAnimationFraction::GetRemainingRepeatCount() const
+{
+    if (repeatCount_ == INFINITE) {
+        return INFINITE;
+    }
+    if (currentRepeatCount_ >= repeatCount_) {
+        return 0;
+    } else {
+        return repeatCount_ - currentRepeatCount_;
+    }
+}
+
+void RSAnimationFraction::SetStartDelay(int startDelay)
+{
+    startDelay_ = startDelay;
+    // initialize remain delay time
+    remainingDelayTime_ = startDelay_ * MS_TO_NS;
+}
+
+bool RSAnimationFraction::CurrentIsReverseCycle() const
+{
+    return currentIsReverseCycle_;
 }
 } // namespace Rosen
 } // namespace OHOS

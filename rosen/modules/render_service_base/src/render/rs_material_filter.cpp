@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,7 @@
 #include "include/effects/SkBlurImageFilter.h"
 #endif
 
+#include "common/rs_common_def.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
 
@@ -145,6 +146,26 @@ void RSMaterialFilter::PostProcess(RSPaintFilterCanvas& canvas)
     canvas.drawPaint(paint);
 }
 
+std::shared_ptr<RSFilter> RSMaterialFilter::TransformFilter(float fraction)
+{
+    MaterialParam materialParam;
+    materialParam.radius = radius_ * fraction;
+    materialParam.saturation = (saturation_ - 1) * fraction + 1.0;
+    materialParam.brightness = (brightness_ - 1) * fraction + 1.0;
+    materialParam.maskColor = RSColor(maskColor_.GetRed(), maskColor_.GetGreen(),
+        maskColor_.GetBlue(), maskColor_.GetAlpha() * fraction);
+    return std::make_shared<RSMaterialFilter>(materialParam, colorMode_);
+}
+
+bool RSMaterialFilter::IsValid() const
+{
+    constexpr float epsilon = 0.001f;
+    if (ROSEN_EQ(radius_, 0.f, epsilon)) {
+        return false;
+    }
+    return true;
+}
+
 std::shared_ptr<RSFilter> RSMaterialFilter::Add(const std::shared_ptr<RSFilter>& rhs)
 {
     if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::MATERIAL)) {
@@ -192,6 +213,23 @@ std::shared_ptr<RSFilter> RSMaterialFilter::Negate()
     materialParam.brightness = -brightness_;
     materialParam.maskColor = RSColor(0x00000000) - maskColor_;
     return std::make_shared<RSMaterialFilter>(materialParam, colorMode_);
+}
+
+bool RSMaterialFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, float threshold) const
+{
+    auto otherMaterialFilter = std::static_pointer_cast<RSMaterialFilter>(other);
+    if (otherMaterialFilter == nullptr) {
+        return true;
+    }
+    return ROSEN_EQ(radius_, otherMaterialFilter->radius_, threshold) &&
+           ROSEN_EQ(saturation_, otherMaterialFilter->saturation_, threshold) &&
+           ROSEN_EQ(brightness_, otherMaterialFilter->brightness_, threshold) &&
+           maskColor_.IsNearEqual(otherMaterialFilter->maskColor_, 1);
+}
+
+bool RSMaterialFilter::IsNearZero(float threshold) const
+{
+    return ROSEN_EQ(radius_, 0.0f, threshold);
 }
 } // namespace Rosen
 } // namespace OHOS

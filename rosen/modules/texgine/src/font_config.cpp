@@ -36,7 +36,7 @@ FontConfig::FontConfig(const char* fname)
 {
     int err = ParseConfig(fname);
     if (err != 0) {
-        LOG2EX(ERROR) << "parse config err";
+        LOGSO_FUNC_LINE(ERROR) << "parse config err";
     }
 }
 
@@ -64,7 +64,7 @@ int FontConfig::CheckConfigFile(const char* fname, Json::Value& root) const
     int size = 0;
     char* data = GetFileData(fname, size);
     if (data == nullptr) {
-        LOG2EX(ERROR) << "data is null";
+        LOGSO_FUNC_LINE(ERROR) << "data is null";
         return FAILED;
     }
     JSONCPP_STRING errs;
@@ -75,7 +75,7 @@ int FontConfig::CheckConfigFile(const char* fname, Json::Value& root) const
     data = nullptr;
 
     if (!isJson || !errs.empty()) {
-        LOG2EX(ERROR) << "not json or errs no empty";
+        LOGSO_FUNC_LINE(ERROR) << "not json or errs no empty";
         return FAILED;
     }
     return SUCCESSED;
@@ -94,13 +94,13 @@ int FontConfig::ParseFont(const Json::Value& root)
 int FontConfig::ParseConfig(const char* fname)
 {
     if (fname == nullptr) {
-        LOG2EX(ERROR) << "fname is null";
+        LOGSO_FUNC_LINE(ERROR) << "fname is null";
         return FAILED;
     }
     Json::Value root;
     int err = CheckConfigFile(fname, root);
     if (err != 0) {
-        LOG2EX(ERROR) << "check config file failed";
+        LOGSO_FUNC_LINE(ERROR) << "check config file failed";
         return err;
     }
     const char* key = "font";
@@ -108,11 +108,11 @@ int FontConfig::ParseConfig(const char* fname)
         if (root[key].isArray()) {
             ParseFont(root[key]);
         } else {
-            LOG2EX(ERROR) << "not array";
+            LOGSO_FUNC_LINE(ERROR) << "not array";
             return FAILED;
         }
     } else {
-        LOG2EX(ERROR) << "not member";
+        LOGSO_FUNC_LINE(ERROR) << "not member";
         return FAILED;
     }
 
@@ -122,7 +122,7 @@ int FontConfig::ParseConfig(const char* fname)
 void FontConfig::Dump() const
 {
     for (auto it : fontSet_) {
-        LOG2SO(INFO) << "fname:" << it;
+        LOGSO_FUNC_LINE(INFO) << "fname:" << it;
     }
 }
 

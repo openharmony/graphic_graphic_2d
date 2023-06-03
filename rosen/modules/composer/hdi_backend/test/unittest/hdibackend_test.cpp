@@ -38,44 +38,62 @@ void HdiBackendTest::SetUpTestCase()
 void HdiBackendTest::TearDownTestCase() {}
 
 namespace {
-/**
- * @tc.name: RegScreenHotplug001
- * @tc.desc: Verify the RegScreenHotplug of hdibackend
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
+
+
+/*
+* Function: RegScreenHotplug001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call RegScreenHotplug(nullptr, nullptr)
+*                  2. check ret
+*/
 HWTEST_F(HdiBackendTest, RegScreenHotplug001, Function | MediumTest| Level3)
 {
     ASSERT_EQ(HdiBackendTest::hdiBackend_->RegScreenHotplug(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
 }
 
-/**
- * @tc.name: RegPrepareComplete001
- * @tc.desc: Verify the RegPrepareComplete of hdibackend
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
+/*
+* Function: RegScreenHotplug002
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call RegScreenHotplug(func, nullptr)
+*                  2. check ret
+*/
+HWTEST_F(HdiBackendTest, RegScreenHotplug002, Function | MediumTest| Level3)
+{
+    auto func = [](OutputPtr &, bool, void*) -> void {};
+    ASSERT_EQ(HdiBackendTest::hdiBackend_->RegScreenHotplug(func, nullptr), ROSEN_ERROR_OK);
+}
 
+/*
+* Function: RegPrepareComplete001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call RegPrepareComplete(nullptr, nullptr)
+*                  2. check ret
+*/
 HWTEST_F(HdiBackendTest, RegPrepareComplete001, Function | MediumTest| Level3)
+{
+    ASSERT_EQ(HdiBackendTest::hdiBackend_->RegPrepareComplete(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
+}
+
+/*
+* Function: RegPrepareComplete002
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call RegPrepareComplete(func, nullptr)
+*                  2. check ret
+*/
+HWTEST_F(HdiBackendTest, RegPrepareComplete002, Function | MediumTest| Level3)
 {
     auto func = [](sptr<Surface> &, const struct PrepareCompleteParam &param, void* data) -> void {};
     ASSERT_EQ(HdiBackendTest::hdiBackend_->RegPrepareComplete(func, nullptr), ROSEN_ERROR_OK);
 }
 
-/**
- * @tc.name: RegPrepareComplete002
- * @tc.desc: Verify the RegPrepareComplete of hdibackend
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
-
-HWTEST_F(HdiBackendTest, RegPrepareComplete002, Function | MediumTest| Level3)
-{
-    ASSERT_EQ(HdiBackendTest::hdiBackend_->RegPrepareComplete(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
-}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

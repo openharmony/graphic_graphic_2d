@@ -41,35 +41,27 @@ void Matrix::Scale(scalar sx, scalar sy, scalar px, scalar py)
 
 void Matrix::PreRotate(scalar degree)
 {
-    if (matrixImplPtr != nullptr) {
-        matrixImplPtr->PreRotate(degree);
-    }
+    matrixImplPtr->PreRotate(degree);
 }
 
 void Matrix::PreTranslate(scalar dx, scalar dy)
 {
-    if (matrixImplPtr != nullptr) {
-        matrixImplPtr->PreTranslate(dx, dy);
-    }
+    matrixImplPtr->PreTranslate(dx, dy);
 }
 
 void Matrix::PreScale(scalar sx, scalar sy)
 {
-    if (matrixImplPtr != nullptr) {
-        matrixImplPtr->PreScale(sx, sy);
-    }
+    matrixImplPtr->PreScale(sx, sy);
 }
 
 void Matrix::PreConcat(const Matrix& other)
 {
-    if (matrixImplPtr != nullptr) {
-        matrixImplPtr->PreConcat(other);
-    }
+    matrixImplPtr->PreConcat(other);
 }
 
 bool Matrix::Invert(Matrix& inverse) const
 {
-    return (matrixImplPtr == nullptr) ? false : matrixImplPtr->Invert(inverse);
+    return matrixImplPtr->Invert(inverse);
 }
 
 Matrix Matrix::operator*(const Matrix& m)
@@ -96,14 +88,12 @@ void Matrix::MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, u
 
 bool Matrix::MapRect(Rect& dst, const Rect& src) const
 {
-    return (matrixImplPtr == nullptr) ? false : matrixImplPtr->MapRect(dst, src);
+    return matrixImplPtr->MapRect(dst, src);
 }
 
 void Matrix::Set(Index index, scalar value)
 {
-    if (matrixImplPtr != nullptr) {
-        matrixImplPtr->Set(index, value);
-    }
+    matrixImplPtr->Set(index, value);
 }
 
 scalar Matrix::Get(int index) const
@@ -113,9 +103,7 @@ scalar Matrix::Get(int index) const
 
 void Matrix::GetAll(Buffer& buffer) const
 {
-    if (matrixImplPtr != nullptr) {
-        matrixImplPtr->GetAll(buffer);
-    }
+    matrixImplPtr->GetAll(buffer);
 }
 } // namespace Drawing
 } // namespace Rosen

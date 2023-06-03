@@ -33,7 +33,7 @@ struct MockVars {
     std::shared_ptr<TexgineTypeface> SCRetvalTypeface = std::make_shared<TexgineTypeface>();
     std::shared_ptr<TexgineTypeface> styleRetvalTypeface = std::make_shared<TexgineTypeface>();
     std::vector<std::shared_ptr<VariantFontStyleSet>> fontStyleSets;
-    std::shared_ptr<Texgine::FontCollection> fontCollection;
+    std::shared_ptr<TextEngine::FontCollection> fontCollection;
 } g_fcMockVars;
 
 std::shared_ptr<TexgineFontManager> TexgineFontManager::RefDefault()
@@ -41,7 +41,7 @@ std::shared_ptr<TexgineFontManager> TexgineFontManager::RefDefault()
     return g_fcMockVars.fontMgr;
 }
 
-std::shared_ptr<TexgineTypeface> TexgineFontManager::MatchFamilyStyleCharacter(const char familyName[],
+std::shared_ptr<TexgineTypeface> TexgineFontManager::MatchFamilyStyleCharacter(const std::string &familyName,
     TexgineFontStyle &style, const char *bcp47[], int bcp47Count, int32_t character)
 {
     g_fcMockVars.catchedSize = bcp47Count;

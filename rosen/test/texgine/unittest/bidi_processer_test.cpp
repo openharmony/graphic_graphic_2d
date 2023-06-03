@@ -69,23 +69,23 @@ ubidi_getVisualRun(UBiDi *pBiDi, int32_t runIndex,
 }
 
 struct Style {
-    int size_ = 1;
-    std::unique_ptr<UBiDi> bidi_ = std::make_unique<UBiDi>();
-    UErrorCode status_ = U_ZERO_ERROR;
-    UBiDiDirection rtl_ = UBIDI_RTL;
-    std::vector<int> start_ = {0};
-    std::vector<int> length_ = {4};
+    int size = 1;
+    std::unique_ptr<UBiDi> bidi = std::make_unique<UBiDi>();
+    UErrorCode status = U_ZERO_ERROR;
+    UBiDiDirection rtl = UBIDI_RTL;
+    std::vector<int> start = {0};
+    std::vector<int> length = {4};
 };
 
 void InitMyMockVars(Style style)
 {
     g_count = 0;
-    g_size = style.size_;
-    g_bidi = std::move(style.bidi_);
-    g_status = style.status_;
-    g_rtl = style.rtl_;
-    g_start = style.start_;
-    g_length = style.length_;
+    g_size = style.size;
+    g_bidi = std::move(style.bidi);
+    g_status = style.status;
+    g_rtl = style.rtl;
+    g_start = style.start;
+    g_length = style.length;
 }
 
 namespace OHOS {
@@ -96,10 +96,10 @@ public:
     static void SetUpTestCase()
     {
         tpstyle_ = std::make_shared<TypographyStyle>();
-        cgs1_.PushBack({.chars_ = TextConverter::ToUTF16("m"), .glyphs_ = {{0x013B, 13.664}}});
-        cgs1_.PushBack({.chars_ = TextConverter::ToUTF16("o"), .glyphs_ = {{0x0145, 9.456}}});
-        cgs1_.PushBack({.chars_ = TextConverter::ToUTF16("s"), .glyphs_ = {{0x0166, 7.28}}});
-        cgs1_.PushBack({.chars_ = TextConverter::ToUTF16("t"), .glyphs_ = {{0x016E, 5.88}}});
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16("m"), .glyphs = {{0x013B, 13.664}}});
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16("o"), .glyphs = {{0x0145, 9.456}}});
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16("s"), .glyphs = {{0x0166, 7.28}}});
+        cgs1_.PushBack({.chars = TextConverter::ToUTF16("t"), .glyphs = {{0x016E, 5.88}}});
     }
 
     static inline std::shared_ptr<TypographyStyle> tpstyle_ = nullptr;
@@ -122,7 +122,7 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess1, TestSize.Level1)
     try {
         bp.DoBidiProcess(cgs, TextDirection::LTR);
     } catch(const TexgineException &err) {
-        ASSERT_EQ(ExceptionType::InvalidArgument, err.code);
+        ASSERT_EQ(ExceptionType::INVALID_ARGUMENT, err.code);
     }
 }
 
@@ -139,7 +139,7 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess2, TestSize.Level1)
     try {
         bp.DoBidiProcess(cgs, TextDirection::LTR);
     } catch(const TexgineException &err) {
-        ASSERT_EQ(ExceptionType::InvalidArgument, err.code);
+        ASSERT_EQ(ExceptionType::INVALID_ARGUMENT, err.code);
     }
 }
 
@@ -151,12 +151,12 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess2, TestSize.Level1)
  */
 HWTEST_F(BidiProcesserTest, DoBidiProcess3, TestSize.Level1)
 {
-    InitMyMockVars({.bidi_ = nullptr});
+    InitMyMockVars({.bidi = nullptr});
 
     try {
         bp.DoBidiProcess(cgs1_, TextDirection::LTR);
     } catch(const TexgineException &err) {
-        ASSERT_EQ(ExceptionType::APIFailed, err.code);
+        ASSERT_EQ(ExceptionType::API_FAILED, err.code);
     }
 }
 
@@ -168,12 +168,12 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess3, TestSize.Level1)
  */
 HWTEST_F(BidiProcesserTest, DoBidiProcess4, TestSize.Level1)
 {
-    InitMyMockVars({.status_ = U_ILLEGAL_ARGUMENT_ERROR});
+    InitMyMockVars({.status = U_ILLEGAL_ARGUMENT_ERROR});
 
     try {
         bp.DoBidiProcess(cgs1_, TextDirection::LTR);
     } catch(const TexgineException &err) {
-        ASSERT_EQ(ExceptionType::APIFailed, err.code);
+        ASSERT_EQ(ExceptionType::API_FAILED, err.code);
     }
 }
 
@@ -186,7 +186,7 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess4, TestSize.Level1)
 HWTEST_F(BidiProcesserTest, DoBidiProcess5, TestSize.Level1)
 {
     // set ubidi_countRuns return 0
-    InitMyMockVars({.size_ = 0,});
+    InitMyMockVars({.size = 0,});
 
     EXPECT_NO_THROW({
         auto ret = bp.DoBidiProcess(cgs1_, TextDirection::LTR);
@@ -203,12 +203,12 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess5, TestSize.Level1)
 HWTEST_F(BidiProcesserTest, DoBidiProcess6, TestSize.Level1)
 {
     // -1, 1: Set the output parameter of ubidi_getVisualRun
-    InitMyMockVars({.start_ = {-1}, .length_ = {1},});
+    InitMyMockVars({.start = {-1}, .length = {1},});
 
     try {
         bp.DoBidiProcess(cgs1_, TextDirection::LTR);
     } catch(const TexgineException &err) {
-        ASSERT_EQ(ExceptionType::APIFailed, err.code);
+        ASSERT_EQ(ExceptionType::API_FAILED, err.code);
     }
 }
 
@@ -220,12 +220,12 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess6, TestSize.Level1)
  */
 HWTEST_F(BidiProcesserTest, DoBidiProcess7, TestSize.Level1)
 {
-    InitMyMockVars({.start_ = {1}, .length_ = {-1},});
+    InitMyMockVars({.start = {1}, .length = {-1},});
 
     try {
         bp.DoBidiProcess(cgs1_, TextDirection::LTR);
     } catch(const TexgineException &err) {
-        ASSERT_EQ(ExceptionType::APIFailed, err.code);
+        ASSERT_EQ(ExceptionType::API_FAILED, err.code);
     }
 }
 
@@ -237,7 +237,7 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess7, TestSize.Level1)
  */
 HWTEST_F(BidiProcesserTest, DoBidiProcess8, TestSize.Level1)
 {
-    InitMyMockVars({.size_ = 4, .start_ = {0, 1, 2, 3}, .length_ = {1, 1, 1, 1}});
+    InitMyMockVars({.size = 4, .start = {0, 1, 2, 3}, .length = {1, 1, 1, 1}});
     auto c = cgs1_.GetSub(0, 1);
     EXPECT_NO_THROW({
         auto ret = bp.DoBidiProcess(c, TextDirection::LTR);
@@ -258,7 +258,7 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess9, TestSize.Level1)
     EXPECT_NO_THROW({
         auto ret = bp.DoBidiProcess(cgs1_, TextDirection::LTR);
         ASSERT_EQ(ret.size(), 1);
-        ASSERT_EQ(ret[0].rtl_, true);
+        ASSERT_EQ(ret[0].rtl, true);
     });
 }
 
@@ -270,12 +270,12 @@ HWTEST_F(BidiProcesserTest, DoBidiProcess9, TestSize.Level1)
  */
 HWTEST_F(BidiProcesserTest, DoBidiProcess10, TestSize.Level1)
 {
-    InitMyMockVars({.rtl_ = UBIDI_LTR,});
+    InitMyMockVars({.rtl = UBIDI_LTR,});
 
     EXPECT_NO_THROW({
         auto ret = bp.DoBidiProcess(cgs1_, TextDirection::LTR);
         ASSERT_EQ(ret.size(), 1);
-        ASSERT_EQ(ret[0].rtl_, false);
+        ASSERT_EQ(ret[0].rtl, false);
     });
 }
 
@@ -321,7 +321,7 @@ HWTEST_F(BidiProcesserTest, ProcessBidiText2, TestSize.Level1)
  */
 HWTEST_F(BidiProcesserTest, ProcessBidiText3, TestSize.Level1)
 {
-    InitMyMockVars({.size_ = 4, .start_ = {0, 1, 2, 3}, .length_ = {1, 1, 1, 1}});
+    InitMyMockVars({.size = 4, .start = {0, 1, 2, 3}, .length = {1, 1, 1, 1}});
     auto c = cgs1_.GetSub(0, 1);
     spans_ = {std::make_shared<MockAnySpan>(), TextSpan::MakeFromCharGroups(c), std::make_shared<MockAnySpan>()};
 

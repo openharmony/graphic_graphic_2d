@@ -513,6 +513,11 @@ void RSNode::SetPivotY(float pivotY)
     property->Set(pivot);
 }
 
+void RSNode::SetPivotZ(const float pivotZ)
+{
+    SetProperty<RSPivotZModifier, RSAnimatableProperty<float>>(RSModifierType::PIVOT_Z, pivotZ);
+}
+
 void RSNode::SetCornerRadius(float cornerRadius)
 {
     SetCornerRadius(Vector4f(cornerRadius));
@@ -852,7 +857,8 @@ void RSNode::SetFrameGravity(Gravity gravity)
 
 void RSNode::SetClipRRect(const Vector4f& clipRect, const Vector4f& clipRadius)
 {
-    SetProperty<RSClipRRectModifier, RSAnimatableProperty<RRect>>(RSModifierType::CLIP_RRECT, RRect(clipRect, clipRadius));
+    SetProperty<RSClipRRectModifier, RSAnimatableProperty<RRect>>(
+        RSModifierType::CLIP_RRECT, RRect(clipRect, clipRadius));
 }
 
 void RSNode::SetClipBounds(const std::shared_ptr<RSPath>& path)
@@ -1210,6 +1216,48 @@ void RSNode::MarkNodeGroup(bool isNodeGroup)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
     }
+}
+
+
+void RSNode::SetGrayScale(float grayScale)
+{
+    SetProperty<RSGrayScaleModifier, RSAnimatableProperty<float>>(RSModifierType::GRAY_SCALE, grayScale);
+}
+
+void RSNode::SetBrightness(float brightness)
+{
+    SetProperty<RSBrightnessModifier, RSAnimatableProperty<float>>(RSModifierType::BRIGHTNESS, brightness);
+}
+
+void RSNode::SetContrast(float contrast)
+{
+    SetProperty<RSContrastModifier, RSAnimatableProperty<float>>(RSModifierType::CONTRAST, contrast);
+}
+
+void RSNode::SetSaturate(float saturate)
+{
+    SetProperty<RSSaturateModifier, RSAnimatableProperty<float>>(RSModifierType::SATURATE, saturate);
+}
+
+void RSNode::SetSepia(float sepia)
+{
+    SetProperty<RSSepiaModifier, RSAnimatableProperty<float>>(RSModifierType::SEPIA, sepia);
+}
+
+void RSNode::SetInvert(float invert)
+{
+    SetProperty<RSInvertModifier, RSAnimatableProperty<float>>(RSModifierType::INVERT, invert);
+}
+
+void RSNode::SetHueRotate(float hueRotate)
+{
+    SetProperty<RSHueRotateModifier, RSAnimatableProperty<float>>(RSModifierType::HUE_ROTATE, hueRotate);
+}
+
+void RSNode::SetColorBlend(uint32_t colorValue)
+{
+    auto colorBlend = Color::FromArgbInt(colorValue);
+    SetProperty<RSColorBlendModifier, RSAnimatableProperty<Color>>(RSModifierType::COLOR_BLEND, colorBlend);
 }
 } // namespace Rosen
 } // namespace OHOS

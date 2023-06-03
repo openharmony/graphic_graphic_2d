@@ -53,8 +53,6 @@ public:
     {
         return true;
     }
-
-
 private:
     struct TraceValue {
         TraceValue(const char* units, uint64_t value) : units(units), value(value), count(1) {}

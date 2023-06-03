@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -63,9 +63,9 @@ float toFloat(Vector2f value)
 
 template<typename RSAnimatableType>
 RSSpringModel<RSAnimatableType>::RSSpringModel(float response, float dampingRatio,
-    const RSAnimatableType& initialOffset, const RSAnimatableType& initialVelocity, float minimumAmplitude)
+    const RSAnimatableType& initialOffset, const RSAnimatableType& initialVelocity, float minimumAmplitudeRatio)
     : response_(response), dampingRatio_(dampingRatio), initialOffset_(initialOffset),
-      initialVelocity_(initialVelocity), minimumAmplitudeRatio_(minimumAmplitude)
+      initialVelocity_(initialVelocity), minimumAmplitudeRatio_(minimumAmplitudeRatio)
 {
     CalculateSpringParameters();
 }
@@ -243,6 +243,100 @@ std::shared_ptr<RSRenderPropertyBase> RSSpringModel<std::shared_ptr<RSRenderProp
         // over-damped
         double coeffDecayAlt = exp(coeffDecayAlt_ * time);
         return (coeffScale_ * coeffDecay) += (coeffScaleAlt_ * coeffDecayAlt);
+    }
+}
+
+template<>
+float RSSpringModel<float>::EstimateDuration() const
+{
+    if (dampingRatio_ <= 0.0f) {
+        ROSEN_LOGE("RSSpringModel::%s, uninitialized spring model", __func__);
+        return 0.0f;
+    }
+    float estimatedDuration = 0.0f;
+    float naturalAngularVelocity = 2.0f * PI / response_;
+    float threshold = toFloat(minimumAmplitudeRatio_ * initialOffset_);
+    if (dampingRatio_ < 1.0f) { // Under-damped
+        float dampingAngularVelocity = sqrt(1.0f - dampingRatio_ * dampingRatio_) * naturalAngularVelocity;
+        float tmpCoeffA = -1.0f / (dampingRatio_ * naturalAngularVelocity);
+        float tmpCoeffB = sqrt(
+            pow(initialOffset_, 2) +
+            (pow((initialVelocity_ + dampingRatio_ * naturalAngularVelocity * initialOffset_) / dampingAngularVelocity,
+                2)));
+        estimatedDuration = tmpCoeffA * log(std::fabs(threshold / tmpCoeffB));
+    } else if (dampingRatio_ == 1.0f) { // Critically-damped
+        float tmpCoeff = (initialVelocity_ + naturalAngularVelocity * initialOffset_);
+        if (tmpCoeff == 0.0f) {
+            estimatedDuration = 1 / naturalAngularVelocity * log(std::fabs(initialOffset_ / threshold));
+        } else {
+            float extremumTime = initialVelocity_ / (naturalAngularVelocity * tmpCoeff);
+            if (extremumTime <= 0.0f) {
+                threshold = initialOffset_ >= 0.0f ? threshold : -threshold;
+                estimatedDuration = BinarySearchTime(0, SPRING_MAX_DURATION, threshold);
+            } else {
+                threshold = initialVelocity_ >= 0.0f ? threshold : -threshold;
+                float extremumValue = RSSpringModel<float>::CalculateDisplacement(extremumTime);
+                if (std::fabs(extremumValue) < std::fabs(threshold)) {
+                    estimatedDuration = BinarySearchTime(0, extremumTime, threshold);
+                } else {
+                    estimatedDuration = BinarySearchTime(extremumTime, SPRING_MAX_DURATION, threshold);
+                }
+            }
+        }
+    } else { // Over-damped
+        float tmpCoeffA = dampingRatio_ + sqrt(pow(dampingRatio_, 2) - 1);
+        float tmpCoeffB = dampingRatio_ - sqrt(pow(dampingRatio_, 2) - 1);
+        float tmpCoeffC = initialOffset_ * naturalAngularVelocity + initialVelocity_ * tmpCoeffA;
+        float tmpCoeffD = initialOffset_ * naturalAngularVelocity + initialVelocity_ * tmpCoeffB;
+        float tmpCoeffE = 1.0f / (2.0f * naturalAngularVelocity * sqrt(pow(dampingRatio_, 2) - 1.0f));
+
+        if (tmpCoeffC == 0.0f) {
+            float tmpCoeff = initialOffset_ * naturalAngularVelocity * tmpCoeffA + initialVelocity_;
+            estimatedDuration =
+                1 / (-tmpCoeffB * naturalAngularVelocity) * log(std::fabs(tmpCoeffE * threshold / tmpCoeff));
+        } else if (tmpCoeffB == 0.0f) {
+            float tmpCoeff = -initialOffset_ * naturalAngularVelocity * tmpCoeffB - initialVelocity_;
+            estimatedDuration =
+                1 / (-tmpCoeffA * naturalAngularVelocity) * log(std::fabs(tmpCoeffE * threshold / tmpCoeff));
+        } else if (tmpCoeffA / tmpCoeffB <= 1.0f) {
+            threshold = initialOffset_ >= 0.0f ? threshold : -threshold;
+            estimatedDuration = BinarySearchTime(0.0f, SPRING_MAX_DURATION, threshold);
+        } else {
+            float extremumTime = 1 / tmpCoeffE * log(tmpCoeffC / tmpCoeffD);
+            threshold = initialVelocity_ > 0.0f ? threshold : -threshold;
+            float extremumValue = RSSpringModel<float>::CalculateDisplacement(extremumTime);
+            if (std::fabs(extremumValue) < std::fabs(threshold)) {
+                estimatedDuration = BinarySearchTime(0, extremumTime, threshold);
+            } else {
+                estimatedDuration = BinarySearchTime(extremumTime, SPRING_MAX_DURATION, threshold);
+            }
+        }
+    }
+    return std::clamp(estimatedDuration, SPRING_MIN_DURATION, SPRING_MAX_DURATION);
+}
+
+template<>
+float RSSpringModel<float>::BinarySearchTime(float left, float right, float target) const
+{
+    bool isIncrease = CalculateDisplacement(left) < CalculateDisplacement(right) ? true : false;
+    return BinarySearchTime(left, right, target, isIncrease);
+}
+
+template<>
+float RSSpringModel<float>::BinarySearchTime(float left, float right, float target, bool& isIncrease) const
+{
+    if (left >= right) {
+        return right;
+    }
+
+    float midTime = left + (right - left) / 2.0f;
+    auto midValue = RSSpringModel<float>::CalculateDisplacement(midTime);
+    if (std::fabs(midValue - target) < 1e-6) {
+        return midTime;
+    } else if ((midValue < target) ^ isIncrease) {
+        return BinarySearchTime(left, midTime, target, isIncrease);
+    } else {
+        return BinarySearchTime(midTime, right, target, isIncrease);
     }
 }
 

@@ -34,7 +34,8 @@ TexginePaint ConvertMyPaintToTexginePaint(const MyPaint& data)
     TexginePaint paint;
     paint.SetAntiAlias(data.isAntiAlias);
     paint.SetColor(data.color);
-    paint.SetMaskFilter(TexgineMaskFilter::MakeBlur(TexgineBlurStyle::kNormal_SkBlurStyle, data.blurRadius));
+    paint.SetMaskFilter(TexgineMaskFilter::MakeBlur(TexgineMaskFilter::TexgineBlurStyle::K_NORMAL_SK_BLUR_STYLE,
+        data.blurRadius));
     paint.SetStrokeWidth(data.strokeWidth);
     paint.SetStyle(data.style);
     return paint;
@@ -72,7 +73,7 @@ struct FontStyleTestData {
         .text = "背景样式：颜色",
         .style = {
             .fontSize = 32,
-            .background_ = ConvertMyPaintToTexginePaint({
+            .background = ConvertMyPaintToTexginePaint({
                 .color = 0x5500FF00,
             }),
         }
@@ -81,7 +82,7 @@ struct FontStyleTestData {
         .text = "背景样式：边框",
         .style = {
             .fontSize = 32,
-            .background_ = ConvertMyPaintToTexginePaint({
+            .background = ConvertMyPaintToTexginePaint({
                 .color = 0x5500FF00,
                 .style = TexginePaint::STROKE,
                 .strokeWidth = 2.0f,

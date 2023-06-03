@@ -31,6 +31,15 @@ namespace Rosen {
 namespace Drawing {
 constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 
+class ShaderPersistentCache : public GPUContextOptions::PersistentCache {
+public:
+    ShaderPersistentCache() = default;
+    ~ShaderPersistentCache() override = default;
+
+    std::shared_ptr<Data> Load(const Data& key) override { return nullptr; };
+    void Store(const Data& key, const Data& data) override {};
+};
+
 class GpuContextTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -85,18 +94,18 @@ void GpuContextTest::InitEGL()
     unsigned int ret;
     EGLConfig config;
     EGLint count;
-    EGLint config_attribs[] = { EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8,
+    EGLint configAttribs[] = { EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8,
         EGL_ALPHA_SIZE, 8, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_NONE };
 
-    ret = eglChooseConfig(eglDisplay_, config_attribs, &config, 1, &count);
+    ret = eglChooseConfig(eglDisplay_, configAttribs, &config, 1, &count);
     if (!(ret && static_cast<unsigned int>(count) >= 1)) {
         LOGE("Failed to eglChooseConfig");
         return;
     }
 
-    static const EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, EGL_CONTEXT_CLIENT_VERSION_NUM, EGL_NONE };
+    static const EGLint contextAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, EGL_CONTEXT_CLIENT_VERSION_NUM, EGL_NONE };
 
-    eglContext_ = eglCreateContext(eglDisplay_, config, EGL_NO_CONTEXT, context_attribs);
+    eglContext_ = eglCreateContext(eglDisplay_, config, EGL_NO_CONTEXT, contextAttribs);
     if (eglContext_ == EGL_NO_CONTEXT) {
         LOGE("Failed to create egl context %{public}x", eglGetError());
         return;
@@ -147,6 +156,30 @@ HWTEST_F(GpuContextTest, BuildFromGLTest001, TestSize.Level1)
     std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
     GPUContextOptions options;
+    EXPECT_TRUE(gpuContext->BuildFromGL(options));
+
+    gpuContext->Flush();
+    std::chrono::milliseconds msNotUsed;
+    gpuContext->PerformDeferredCleanup(msNotUsed);
+    int32_t maxResource = 100;
+    size_t maxResourceBytes = 1000;
+    gpuContext->GetResourceCacheLimits(maxResource, maxResourceBytes);
+    gpuContext->SetResourceCacheLimits(maxResource, maxResourceBytes);
+}
+
+/**
+ * @tc.name: GPUContextCreateTest002
+ * @tc.desc: Test for creating a GL GPUContext for a backend context.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, BuildFromGLTest002, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    GPUContextOptions options;
+    auto persistentCache = std::make_shared<ShaderPersistentCache>();
+    options.SetPersistentCache(persistentCache.get());
     EXPECT_TRUE(gpuContext->BuildFromGL(options));
 }
 

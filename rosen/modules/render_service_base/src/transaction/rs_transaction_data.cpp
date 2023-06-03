@@ -46,11 +46,10 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
     size_t recordPosition = parcel.GetWritePosition();
     success = success && parcel.WriteInt32(static_cast<int32_t>(payload_.size()));
     size_t marshaledSize = 0;
-    auto iter = payload_.begin();
     static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
     success = success && parcel.WriteBool(isUniRender);
     while (marshallingIndex_ < payload_.size()) {
-        auto& [nodeId, followType, command] = *iter;
+        auto& [nodeId, followType, command] = payload_[marshallingIndex_];
         if (!isUniRender) {
             success = success && parcel.WriteUint64(nodeId);
             success = success && parcel.WriteUint8(static_cast<uint8_t>(followType));
@@ -62,7 +61,6 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
         }
         ++marshallingIndex_;
         ++marshaledSize;
-        ++iter;
         if (parcel.GetDataSize() > PARCEL_SPLIT_THRESHOLD) {
             break;
         }

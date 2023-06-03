@@ -125,17 +125,17 @@ HWTEST_F(VariantSpanTest, GetWidthAndHeight, TestSize.Level1)
     EXPECT_CALL(*as, GetWidth).Times(1).WillOnce(testing::Return(2));
     EXPECT_CALL(*as, GetHeight).Times(1).WillOnce(testing::Return(1));
 
-    ASSERT_EXCEPTION(ExceptionType::ErrorStatus, span0.GetWidth());
-    ASSERT_EXCEPTION(ExceptionType::Nullptr, span1.GetWidth());
-    ASSERT_EXCEPTION(ExceptionType::Nullptr, span2.GetWidth());
-    ASSERT_EXCEPTION(ExceptionType::Nullptr, span3.GetWidth());
+    ASSERT_EXCEPTION(ExceptionType::ERROR_STATUS, span0.GetWidth());
+    ASSERT_EXCEPTION(ExceptionType::NULLPTR, span1.GetWidth());
+    ASSERT_EXCEPTION(ExceptionType::NULLPTR, span2.GetWidth());
+    ASSERT_EXCEPTION(ExceptionType::NULLPTR, span3.GetWidth());
     ASSERT_EQ(span4.GetWidth(), 8);
     ASSERT_EQ(span5.GetWidth(), 2);
 
-    ASSERT_EXCEPTION(ExceptionType::ErrorStatus, span0.GetHeight());
-    ASSERT_EXCEPTION(ExceptionType::Nullptr, span1.GetHeight());
-    ASSERT_EXCEPTION(ExceptionType::Nullptr, span2.GetHeight());
-    ASSERT_EXCEPTION(ExceptionType::Nullptr, span3.GetHeight());
+    ASSERT_EXCEPTION(ExceptionType::ERROR_STATUS, span0.GetHeight());
+    ASSERT_EXCEPTION(ExceptionType::NULLPTR, span1.GetHeight());
+    ASSERT_EXCEPTION(ExceptionType::NULLPTR, span2.GetHeight());
+    ASSERT_EXCEPTION(ExceptionType::NULLPTR, span3.GetHeight());
     ASSERT_EQ(span4.GetHeight(), 4);
     ASSERT_EQ(span5.GetHeight(), 1);
 }
@@ -162,10 +162,10 @@ HWTEST_F(VariantSpanTest, PaintAndPaintShadow, TestSize.Level1)
         asY = offsetY;
     });
 
-    ASSERT_EXCEPTION(ExceptionType::ErrorStatus, span0.Paint(canvas, 0, 0));
-    ASSERT_EXCEPTION(ExceptionType::Nullptr, span1.Paint(canvas, 0, 0));
-    ASSERT_EXCEPTION(ExceptionType::Nullptr, span2.Paint(canvas, 0, 0));
-    ASSERT_EXCEPTION(ExceptionType::Nullptr, span3.Paint(canvas, 0, 0));
+    ASSERT_EXCEPTION(ExceptionType::ERROR_STATUS, span0.Paint(canvas, 0, 0));
+    ASSERT_EXCEPTION(ExceptionType::NULLPTR, span1.Paint(canvas, 0, 0));
+    ASSERT_EXCEPTION(ExceptionType::NULLPTR, span2.Paint(canvas, 0, 0));
+    ASSERT_EXCEPTION(ExceptionType::NULLPTR, span3.Paint(canvas, 0, 0));
     EXPECT_NO_THROW({
         ASSERT_EQ(g_variantMockvars.calledTimesPaint, 0);
         span4.Paint(canvas2, paintX1, paintY1);
@@ -181,10 +181,10 @@ HWTEST_F(VariantSpanTest, PaintAndPaintShadow, TestSize.Level1)
         ASSERT_EQ(asY, paintY2);
     });
 
-    ASSERT_EXCEPTION(ExceptionType::ErrorStatus, span0.PaintShadow(canvas, 0, 0));
-    ASSERT_EXCEPTION(ExceptionType::Nullptr, span1.PaintShadow(canvas, 0, 0));
-    ASSERT_EXCEPTION(ExceptionType::Nullptr, span2.PaintShadow(canvas, 0, 0));
-    ASSERT_EXCEPTION(ExceptionType::Nullptr, span3.PaintShadow(canvas, 0, 0));
+    ASSERT_EXCEPTION(ExceptionType::ERROR_STATUS, span0.PaintShadow(canvas, 0, 0));
+    ASSERT_EXCEPTION(ExceptionType::NULLPTR, span1.PaintShadow(canvas, 0, 0));
+    ASSERT_EXCEPTION(ExceptionType::NULLPTR, span2.PaintShadow(canvas, 0, 0));
+    ASSERT_EXCEPTION(ExceptionType::NULLPTR, span3.PaintShadow(canvas, 0, 0));
     EXPECT_NO_THROW({
         ASSERT_EQ(g_variantMockvars.calledTimesPaintShadow, 0);
         span4.PaintShadow(canvas4, 32768, 65536);
@@ -203,23 +203,23 @@ HWTEST_F(VariantSpanTest, PaintAndPaintShadow, TestSize.Level1)
  */
 HWTEST_F(VariantSpanTest, Operator, TestSize.Level1)
 {
-    ASSERT_EXCEPTION(ExceptionType::ErrorStatus, (void)(bool)span0);
+    ASSERT_EXCEPTION(ExceptionType::ERROR_STATUS, (void)(bool)span0);
     ASSERT_FALSE(span1);
     ASSERT_FALSE(span2);
     ASSERT_FALSE(span3);
     ASSERT_TRUE(span4);
     ASSERT_TRUE(span5);
 
-    ASSERT_EXCEPTION(ExceptionType::ErrorStatus, (void)(span0 == nullptr));
-    ASSERT_EXCEPTION(ExceptionType::ErrorStatus, (void)(span0 != nullptr));
+    ASSERT_EXCEPTION(ExceptionType::ERROR_STATUS, (void)(span0 == nullptr));
+    ASSERT_EXCEPTION(ExceptionType::ERROR_STATUS, (void)(span0 != nullptr));
     ASSERT_EQ(span1, nullptr);
     ASSERT_EQ(span2, nullptr);
     ASSERT_EQ(span3, nullptr);
     ASSERT_NE(span4, nullptr);
     ASSERT_NE(span5, nullptr);
 
-    ASSERT_EXCEPTION(ExceptionType::ErrorStatus, (void)(span0 == span1));
-    ASSERT_EXCEPTION(ExceptionType::ErrorStatus, (void)(span0 != span1));
+    ASSERT_EXCEPTION(ExceptionType::ERROR_STATUS, (void)(span0 == span1));
+    ASSERT_EXCEPTION(ExceptionType::ERROR_STATUS, (void)(span0 != span1));
     ASSERT_EQ(span1, span1);
     ASSERT_EQ(span1, span2);
     ASSERT_EQ(span1, span3);

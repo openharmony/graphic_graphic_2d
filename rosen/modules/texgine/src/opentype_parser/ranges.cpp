@@ -53,13 +53,13 @@ int32_t Ranges::GetGlyphId(uint32_t codepoint) const
 void Ranges::Dump() const
 {
     for (const auto &[start, end, gid] : ranges_) {
-        LOG2SO(INFO) << "0x" << std::uppercase << std::hex << std::setw(4) << std::setfill('0') << start
+        LOGSO_FUNC_LINE(INFO) << "0x" << std::uppercase << std::hex << std::setw(4) << std::setfill('0') << start
             << " ~ 0x" << std::uppercase << std::hex << std::setw(4) << std::setfill('0') << end
             << ": offset " << std::dec << end;
     }
 
     for (const auto &[codepoint, gid] : singles_) {
-        LOG2SO(INFO) << "0x" << std::uppercase << std::hex << std::setw(4) << std::setfill('0') << codepoint
+        LOGSO_FUNC_LINE(INFO) << "0x" << std::uppercase << std::hex << std::setw(4) << std::setfill('0') << codepoint
             << ": glyphid " << std::dec << (codepoint + gid) % (1 << 16);
     }
 }

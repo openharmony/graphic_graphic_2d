@@ -78,6 +78,12 @@ enum class CacheType : uint8_t {
     ANIMATE_PROPERTY,
 };
 
+enum RSDrawingCacheType : uint16_t {
+    DISABLED_CACHE = 0,
+    FORCED_CACHE,    // must-to-do case
+    TARGETED_CACHE   // suggested case which could be disabled by optimized strategy
+};
+
 // priority for node, higher number means lower priority
 enum class NodePriorityType : uint32_t {
     MAIN_PRIORITY = 0, // node must render in main thread
@@ -136,6 +142,18 @@ template<typename T>
 inline bool ROSEN_EQ(const std::weak_ptr<T>& x, const std::weak_ptr<T>& y)
 {
     return !(x.owner_before(y) || y.owner_before(x));
+}
+
+inline bool ROSEN_LNE(float left, float right) //less not equal
+{
+    constexpr float epsilon = -0.001f;
+    return (left - right) < epsilon;
+}
+
+inline bool ROSEN_GE(float left, float right) //great or equal
+{
+    constexpr float epsilon = -0.001f;
+    return (left - right) > epsilon;
 }
 
 class MemObject {

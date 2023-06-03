@@ -273,16 +273,12 @@ public:
     class RSB_EXPORT RS##MODIFIER_NAME##RenderModifier : public RS##MODIFIER_TIER##RenderModifier { \
     public:                                                                                         \
         RS##MODIFIER_NAME##RenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)    \
-            : RS##MODIFIER_TIER##RenderModifier(property)                                           \
-        {}                                                                                          \
+            : RS##MODIFIER_TIER##RenderModifier(property) {}                                        \
         virtual ~RS##MODIFIER_NAME##RenderModifier() = default;                                     \
         void Apply(RSModifierContext& context) const override;                                      \
         void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;      \
         bool Marshalling(Parcel& parcel) override;                                                  \
-        RSModifierType GetType() override                                                           \
-        {                                                                                           \
-            return RSModifierType::MODIFIER_TYPE;                                                   \
-        }                                                                                           \
+        RSModifierType GetType() override { return (RSModifierType::MODIFIER_TYPE); }               \
     };
 
 #define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, MODIFIER_TIER) \

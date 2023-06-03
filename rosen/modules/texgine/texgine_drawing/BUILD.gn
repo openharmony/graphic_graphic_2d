@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 
-is_ok = false
+is_ok = true
 
 config("texgine_drawing_public_config") {
   include_dirs = [ "./src" ]
@@ -52,7 +52,11 @@ ohos_shared_library("libtexgine_drawing") {
     platform = "windows"
   }
 
-  public_deps = [ "//third_party/flutter/build/skia:ace_skia_$platform" ]
+  if (defined(use_new_skia) && use_new_skia) {
+    public_deps = [ "//third_party/skia:skia_$platform" ]
+  } else {
+    public_deps = [ "//third_party/flutter/build/skia:ace_skia_$platform" ]
+  }
 
   deps = []
 

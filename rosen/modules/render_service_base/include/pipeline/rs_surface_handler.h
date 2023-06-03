@@ -27,6 +27,7 @@
 
 namespace OHOS {
 namespace Rosen {
+using OnDeleteBufferFunc = std::function<void(int32_t)>;
 class RSB_EXPORT RSSurfaceHandler {
 public:
     // indicates which node this handler belongs to.
@@ -34,9 +35,23 @@ public:
     virtual ~RSSurfaceHandler() noexcept = default;
 
     struct SurfaceBufferEntry {
+#ifndef ROSEN_CROSS_PLATFORM
+        void RegisterDeleteBufferListener(OnDeleteBufferFunc bufferDeleteCb)
+        {
+            if (bufferDeleteCb_ == nullptr) {
+                bufferDeleteCb_ = bufferDeleteCb;
+            }
+        }
+#endif
         void Reset()
         {
 #ifndef ROSEN_CROSS_PLATFORM
+            if (buffer == nullptr) {
+                return;
+            }
+            if (bufferDeleteCb_) {
+                bufferDeleteCb_(buffer->GetSeqNum());
+            }
             buffer = nullptr;
             acquireFence = SyncFence::INVALID_FENCE;
             releaseFence = SyncFence::INVALID_FENCE;
@@ -49,12 +64,13 @@ public:
         sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
         sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
         Rect damageRect = {0, 0, 0, 0};
+        OnDeleteBufferFunc bufferDeleteCb_ = nullptr;
 #endif
         int64_t timestamp = 0;
     };
 
     void IncreaseAvailableBuffer();
-    int32_t ReduceAvailableBuffer();
+    void ReduceAvailableBuffer();
 
     NodeId GetNodeId() const
     {
@@ -89,7 +105,6 @@ public:
         buffer_.acquireFence = acquireFence;
         buffer_.damageRect = damage;
         buffer_.timestamp = timestamp;
-        isPreBufferReleased_ = false;
     }
 
     const sptr<SurfaceBuffer>& GetBuffer() const
@@ -129,16 +144,6 @@ public:
         return buffer_.timestamp;
     }
 
-    bool IsPreBufferReleased() const
-    {
-        return isPreBufferReleased_;
-    }
-
-    void SetPreBufferReleased(bool isPreBufferReleased)
-    {
-        isPreBufferReleased_ = isPreBufferReleased;
-    }
-
     void CleanCache()
     {
         buffer_.Reset();
@@ -174,6 +179,15 @@ public:
         isCurrentFrameBufferConsumed_ = true;
     }
 
+#ifndef ROSEN_CROSS_PLATFORM
+    void RegisterDeleteBufferListener(OnDeleteBufferFunc bufferDeleteCb)
+    {
+        if (bufferDeleteCb != nullptr) {
+            buffer_.RegisterDeleteBufferListener(bufferDeleteCb);
+        }
+    }
+#endif
+
 protected:
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IConsumerSurface> consumer_;
@@ -186,7 +200,6 @@ private:
     SurfaceBufferEntry preBuffer_;
     float globalZOrder_ = 0.0f;
     std::atomic<int> bufferAvailableCount_ = 0;
-    bool isPreBufferReleased_ = false;
 };
 }
 }

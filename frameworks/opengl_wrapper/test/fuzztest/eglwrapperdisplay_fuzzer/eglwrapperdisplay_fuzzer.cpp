@@ -50,7 +50,6 @@ namespace OHOS {
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
-
         if (data == nullptr || size < 0) {
             return false;
         }
@@ -89,7 +88,7 @@ namespace OHOS {
         EglWrapperDisplay* disp4 =  EglWrapperDisplay::GetWrapperDisplay(display2);
         EglWrapperObject *obj2 = new  EglWrapperObject(disp4);
         EGLSurface surf3 = GetData<EGLSurface>();
-        NativePixmapType target1 =GetData<NativePixmapType>();
+        NativePixmapType target1 = GetData<NativePixmapType>();
         EGLConfig config3 = GetData<EGLConfig>();
         EGLint attribList5 = GetData<EGLint>();
         EGLConfig config4 = GetData<EGLConfig>();
@@ -109,7 +108,7 @@ namespace OHOS {
         EGLSurface surf8 = GetData<EGLSurface>();
         EGLint attribList9 = GetData<EGLint>();
         EGLint value3 = GetData<EGLint>();
-        EGLenum buftype1 =GetData<EGLenum>();
+        EGLenum buftype1 = GetData<EGLenum>();
         EGLClientBuffer buffer3 = GetData<EGLClientBuffer>();
         EGLConfig config5 = GetData<EGLConfig>();
         EGLint attribList10 = GetData<EGLint>();

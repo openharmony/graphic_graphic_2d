@@ -25,7 +25,7 @@ namespace Rosen {
 namespace TextEngine {
 std::ostream &operator<<(std::ostream &os, const struct IndexRange &range)
 {
-    os << "[" << range.start_ << ", " << range.end_ << ")";
+    os << "[" << range.start << ", " << range.end << ")";
     return os;
 }
 
@@ -47,12 +47,12 @@ CharGroups CharGroups::CreateWithInvalidRange(IndexRange range)
 size_t CharGroups::GetNumberOfGlyph() const
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
     size_t sum = 0;
-    for (size_t i = range_.start_; i < range_.end_; i++) {
-        sum += pcgs_->at(i).glyphs_.size();
+    for (size_t i = range_.start; i < range_.end; i++) {
+        sum += pcgs_->at(i).glyphs.size();
     }
     return sum;
 }
@@ -60,10 +60,10 @@ size_t CharGroups::GetNumberOfGlyph() const
 size_t CharGroups::GetNumberOfCharGroup() const
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
-    return range_.end_ - range_.start_;
+    return range_.end - range_.start;
 }
 
 const IndexRange &CharGroups::GetRange() const
@@ -74,20 +74,20 @@ const IndexRange &CharGroups::GetRange() const
 CharGroup &CharGroups::GetBack() const
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
     if (GetSize() == 0) {
-        throw TEXGINE_EXCEPTION(OutOfRange);
+        throw TEXGINE_EXCEPTION(OUT_OF_RANGE);
     }
 
-    return *(pcgs_->begin() + range_.end_ - 1);
+    return *(pcgs_->begin() + range_.end - 1);
 }
 
 size_t CharGroups::GetSize() const
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
     return pcgs_->size();
@@ -99,9 +99,9 @@ bool CharGroups::IsValid() const
         return false;
     }
 
-    if (range_.start_ > range_.end_ || range_.start_ < 0 ||  range_.end_ < 0 ||
-        range_.end_ > pcgs_->size() || range_.start_ > pcgs_->size()) {
-        throw TEXGINE_EXCEPTION(ErrorStatus);
+    if (range_.start > range_.end || range_.start < 0 ||  range_.end < 0 ||
+        range_.end > pcgs_->size() || range_.start > pcgs_->size()) {
+        throw TEXGINE_EXCEPTION(ERROR_STATUS);
     }
 
     return true;
@@ -115,67 +115,67 @@ bool CharGroups::IsSameCharGroups(const CharGroups &right) const
 bool CharGroups::IsIntersect(const CharGroups &right) const
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
     try {
         if (!right.IsValid()) {
-            throw TEXGINE_EXCEPTION(InvalidArgument);
+            throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
         }
     } catch(const struct TexgineException &err) {
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
     if (pcgs_ != right.pcgs_) {
         return false;
     }
 
-    return range_.start_ < right.range_.end_ && right.range_.start_ < range_.end_;
+    return range_.start < right.range_.end && right.range_.start < range_.end;
 }
 
 CharGroupsPair CharGroups::GetSplit(const int &index) const
 {
     if (index < 0) {
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
-    return GetSplitAll(index + range_.start_);
+    return GetSplitAll(index + range_.start);
 }
 
 CharGroupsPair CharGroups::GetSplitAll(const int &index) const
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
-    if (index <= range_.start_ || index >= range_.end_) {
-        throw TEXGINE_EXCEPTION(OutOfRange);
+    if (index <= range_.start || index >= range_.end) {
+        throw TEXGINE_EXCEPTION(OUT_OF_RANGE);
     }
     CharGroupsPair retval;
     retval[0] = *this;
-    retval[0].range_.end_ = index;
+    retval[0].range_.end = index;
     retval[1] = *this;
-    retval[1].range_.start_ = index;
+    retval[1].range_.start = index;
     return retval;
 }
 
 CharGroups CharGroups::GetSub(const int &start, const int &end) const
 {
     if (!(0 <= start && start <= end)) {
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
-    return GetSubAll(start + range_.start_, end + range_.start_);
+    return GetSubAll(start + range_.start, end + range_.start);
 }
 
 CharGroups CharGroups::GetSubAll(const int &start, const int &end) const
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
     if (!(0 <= start && start <= end && end <= GetSize())) {
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
     CharGroups cgs = *this;
@@ -186,11 +186,11 @@ CharGroups CharGroups::GetSubAll(const int &start, const int &end) const
 CharGroups CharGroups::GetSubFromU16RangeAll(const int &u16start, const int &u16end) const
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
     if (!(0 <= u16start && u16start <= u16end)) {
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
     size_t sum = 0;
@@ -202,7 +202,7 @@ CharGroups CharGroups::GetSubFromU16RangeAll(const int &u16start, const int &u16
         }
 
         if (0 <= i && i < pcgs_->size()) {
-            sum += pcgs_->at(i).chars_.size();
+            sum += pcgs_->at(i).chars.size();
         }
 
         if (sum >= u16end) {
@@ -216,15 +216,15 @@ CharGroups CharGroups::GetSubFromU16RangeAll(const int &u16start, const int &u16
 CharGroups CharGroups::GetIntersect(const CharGroups &right) const
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
     try {
         if (!right.IsValid()) {
-            throw TEXGINE_EXCEPTION(InvalidArgument);
+            throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
         }
     } catch(const TexgineException &err) {
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
     if (!IsIntersect(right)) {
@@ -232,28 +232,28 @@ CharGroups CharGroups::GetIntersect(const CharGroups &right) const
     }
 
     CharGroups retval = *this;
-    retval.range_.start_ = std::max(range_.start_, right.range_.start_);
-    retval.range_.end_ = std::min(range_.end_, right.range_.end_);
+    retval.range_.start = std::max(range_.start, right.range_.start);
+    retval.range_.end = std::min(range_.end, right.range_.end);
     return retval;
 }
 
 struct CharGroup &CharGroups::Get(const int32_t &index) const
 {
     if (index < 0) {
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
-    return GetAll(index + range_.start_);
+    return GetAll(index + range_.start);
 }
 
 struct CharGroup &CharGroups::GetAll(const int32_t &index) const
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
     if (!(0 <= index && index < GetSize())) {
-        throw TEXGINE_EXCEPTION(OutOfRange);
+        throw TEXGINE_EXCEPTION(OUT_OF_RANGE);
     }
 
     return pcgs_->at(index);
@@ -262,12 +262,12 @@ struct CharGroup &CharGroups::GetAll(const int32_t &index) const
 std::vector<uint16_t> CharGroups::ToUTF16() const
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
     std::vector<uint16_t> u16;
-    for (auto i = range_.start_; i < range_.end_; i++) {
-        u16.insert(u16.end(), pcgs_->at(i).chars_.begin(), pcgs_->at(i).chars_.end());
+    for (auto i = range_.start; i < range_.end; i++) {
+        u16.insert(u16.end(), pcgs_->at(i).chars.begin(), pcgs_->at(i).chars.end());
     }
 
     return u16;
@@ -276,39 +276,39 @@ std::vector<uint16_t> CharGroups::ToUTF16() const
 std::vector<uint16_t> CharGroups::ToUTF16All() const
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
     std::vector<uint16_t> u16;
     for (const auto &cg : *pcgs_) {
-        u16.insert(u16.end(), cg.chars_.begin(), cg.chars_.end());
+        u16.insert(u16.end(), cg.chars.begin(), cg.chars.end());
     }
 
     return u16;
 }
 
-std::vector<struct CharGroup>::iterator CharGroups::Begin() const
+std::vector<struct CharGroup>::iterator CharGroups::begin() const
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
-    return pcgs_->begin() + range_.start_;
+    return pcgs_->begin() + range_.start;
 }
 
-std::vector<struct CharGroup>::iterator CharGroups::End() const
+std::vector<struct CharGroup>::iterator CharGroups::end() const
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
-    return pcgs_->begin() + range_.end_;
+    return pcgs_->begin() + range_.end;
 }
 
 CharGroups CharGroups::Clone() const
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
     auto ret = CharGroups::CreateEmpty();
@@ -320,45 +320,45 @@ CharGroups CharGroups::Clone() const
 void CharGroups::Merge(const CharGroups &right)
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
     try {
         if (!right.IsValid()) {
-            throw TEXGINE_EXCEPTION(InvalidArgument);
+            throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
         }
     } catch(const struct TexgineException &err) {
-        throw TEXGINE_EXCEPTION(InvalidArgument);
+        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
-    if (range_.end_ != right.range_.start_) {
+    if (range_.end != right.range_.start) {
         throw CustomException("the right start not equal this end");
     }
 
-    range_.end_ += right.range_.end_ - right.range_.start_;
+    range_.end += right.range_.end - right.range_.start;
 }
 
 void CharGroups::PushBack(const struct CharGroup &cg)
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
-    if (!(0 == range_.start_ && range_.end_ == pcgs_->size())) {
+    if (!(0 == range_.start && range_.end == pcgs_->size())) {
         throw CustomException("incomplete CharGroups cannot revert");
     }
 
     pcgs_->push_back(cg);
-    range_.end_++;
+    range_.end++;
 }
 
 void CharGroups::ReverseAll()
 {
     if (!IsValid()) {
-        throw TEXGINE_EXCEPTION(InvalidCharGroups);
+        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
-    if (!(0 == range_.start_ && range_.end_ == pcgs_->size())) {
+    if (!(0 == range_.start && range_.end == pcgs_->size())) {
         throw CustomException("incomplete CharGroups cannot revert");
     }
 

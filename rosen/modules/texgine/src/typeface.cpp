@@ -28,7 +28,7 @@ std::unique_ptr<Typeface> Typeface::MakeFromFile(const std::string &filename)
 {
     auto st = TexgineTypeface::MakeFromFile(filename.c_str());
     if (st == nullptr || st->GetTypeface() == nullptr) {
-        throw TEXGINE_EXCEPTION(APIFailed);
+        throw TEXGINE_EXCEPTION(API_FAILED);
     }
 
     return std::make_unique<Typeface>(st);
@@ -56,32 +56,32 @@ std::string Typeface::GetName()
 
 bool Typeface::ParseCmap(const std::shared_ptr<CmapParser> &parser)
 {
-    LOG2EX(DEBUG) << "Parse Cmap: " << GetName();
+    LOGEX_FUNC_LINE(DEBUG) << "Parse Cmap: " << GetName();
     ScopedTrace scope("Typeface::InitCmap");
     auto tag = HB_TAG('c', 'm', 'a', 'p');
     if (typeface_ == nullptr || typeface_->GetTypeface() == nullptr) {
-        LOG2EX(WARN) << "typeface_ is nullptr";
+        LOGEX_FUNC_LINE(WARN) << "typeface_ is nullptr";
         return false;
     }
 
     auto size = typeface_->GetTableSize(tag);
     if (size <= 0) {
-        LOG2EX(ERROR) << name_.ToString() << " haven't cmap";
-        throw TEXGINE_EXCEPTION(APIFailed);
+        LOGEX_FUNC_LINE(ERROR) << name_.ToString() << " haven't cmap";
+        throw TEXGINE_EXCEPTION(API_FAILED);
     }
 
     cmapData_ = std::make_unique<char[]>(size);
     auto retv = typeface_->GetTableData(tag, 0, size, cmapData_.get());
     if (size != retv) {
-        LOG2EX(ERROR) << "getTableData failed size: " << size << ", retv: " << retv;
-        throw TEXGINE_EXCEPTION(APIFailed);
+        LOGEX_FUNC_LINE(ERROR) << "getTableData failed size: " << size << ", retv: " << retv;
+        throw TEXGINE_EXCEPTION(API_FAILED);
     }
 
     hblob_ = hb_blob_create(reinterpret_cast<const char *>(cmapData_.get()),
         size, HB_MEMORY_MODE_WRITABLE, cmapData_.get(), nullptr);
     if (hblob_ == nullptr) {
-        LOG2EX(ERROR) << "hblob_ is nullptr";
-        throw TEXGINE_EXCEPTION(APIFailed);
+        LOGEX_FUNC_LINE(ERROR) << "hblob_ is nullptr";
+        throw TEXGINE_EXCEPTION(API_FAILED);
     }
 
     scope.Finish();

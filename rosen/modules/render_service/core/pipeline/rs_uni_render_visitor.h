@@ -23,7 +23,6 @@
 #include <parameters.h>
 #include <set>
 
-#include "parallel_render/rs_parallel_sub_thread.h"
 #include "rs_base_render_engine.h"
 
 #include "pipeline/driven_render/rs_driven_render_manager.h"
@@ -41,6 +40,7 @@ namespace Rosen {
 class RSPaintFilterCanvas;
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
+    using SurfaceDirtyMgrPair = std::pair<std::weak_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>;
     RSUniRenderVisitor();
     RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas, uint32_t surfaceIndex);
     explicit RSUniRenderVisitor(const RSUniRenderVisitor& visitor);
@@ -62,6 +62,9 @@ public:
 
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool ParallelComposition(const std::shared_ptr<RSBaseRenderNode> rootNode);
+    void UpdateCacheRenderNodeMap(RSRenderNode& node);
+    bool GenerateNodeContentCache(RSRenderNode& node);
+    bool InitNodeCache(RSRenderNode& node);
     void CopyVisitorInfos(std::shared_ptr<RSUniRenderVisitor> visitor);
     void SetProcessorRenderEngine(std::shared_ptr<RSBaseRenderEngine> renderEngine)
     {
@@ -91,7 +94,6 @@ public:
     }
 
     void DrawSurfaceLayer(RSDisplayRenderNode& node);
-    void DrawCacheRenderNode(RSRenderNode& node);
 
     bool GetAnimateState() const
     {
@@ -179,13 +181,13 @@ private:
      * [planning] Update hwc surface dirty status at the same time
      */
     void UpdateHardwardNodeStatusBasedOnFilter(std::shared_ptr<RSSurfaceRenderNode>& node,
-        std::vector<std::weak_ptr<RSSurfaceRenderNode>>& prevHwcEnabledNodes,
-        std::shared_ptr<RSDirtyRegionManager>& displayDirtyManager) const;
+        std::vector<SurfaceDirtyMgrPair>& prevHwcEnabledNodes,
+        std::shared_ptr<RSDirtyRegionManager>& displayDirtyManager);
     /* Disable hwc surface intersect with filter rects and merge dirty filter region
      * [planning] If invisible filterRects could be removed
      */
     RectI UpdateHardwardEnableList(std::vector<RectI>& filterRects,
-        std::vector<std::weak_ptr<RSSurfaceRenderNode>>& validHwcNodes) const;
+        std::vector<SurfaceDirtyMgrPair>& validHwcNodes);
     void AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDisplayRenderNode>& node) const;
 
     // set global dirty region to each surface node
@@ -193,7 +195,9 @@ private:
     void SetSurfaceGlobalAlignedDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node,
         const Occlusion::Region alignedDirtyRegion);
 
+    void CheckAndSetNodeCacheType(RSRenderNode& node);
     bool UpdateCacheSurface(RSRenderNode& node);
+    void DrawSpherize(RSRenderNode& node);
     void DrawChildRenderNode(RSRenderNode& node);
 
     void CheckColorSpace(RSSurfaceRenderNode& node);
@@ -206,7 +210,15 @@ private:
      * If so, reset status flag and stop traversal
      */
     bool CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& node);
+    void PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRenderNode& node);
+    // judge if node's cache changes
+    void UpdateCacheChangeStatus(RSBaseRenderNode& node);
+    // set node cacheable animation after checking whold child tree
+    void SetNodeCacheChangeStatus(RSBaseRenderNode& node, int markedCachedNodeCnt);
+
     bool IsHardwareComposerEnabled();
+
+    bool CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode& node);
 
     void ClearTransparentBeforeSaveLayer();
     // mark surfaceNode's child surfaceView nodes hardware forced disabled
@@ -237,6 +249,7 @@ private:
     bool dirtyFlag_ { false };
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
+    std::map<NodeId, uint32_t> cacheRenderNodeMap_;
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
     SkRect boundsRect_ {};
     Gravity frameGravity_ = Gravity::DEFAULT;
@@ -246,7 +259,7 @@ private:
     std::shared_ptr<RSProcessor> processor_;
     SkMatrix parentSurfaceNodeMatrix_;
 
-    ScreenId currentVisitDisplay_;
+    ScreenId currentVisitDisplay_ = INVALID_SCREEN_ID;
     std::map<ScreenId, int> displayHasSecSurface_;
     std::set<ScreenId> mirroredDisplays_;
     bool isSecurityDisplay_ = false;
@@ -270,6 +283,11 @@ private:
     PartialRenderType partialRenderType_;
     DirtyRegionDebugType dirtyRegionDebugType_;
     bool isDirty_ = false;
+    // added for judge if drawing cache changes
+    bool isDrawingCacheEnabled_ = false;
+    bool isDrawingCacheChanged_ = false;
+    int markedCachedNodes_ = 0;
+
     bool needFilter_ = false;
     ColorGamut newColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
     std::vector<ScreenColorGamut> colorGamutModes_;
@@ -306,17 +324,16 @@ private:
     std::unique_ptr<DrivenInfo> drivenInfo_ = nullptr;
 
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<SkMatrix>>;
-    // Note: we use the NodeId of in node as the key
-    std::unordered_map<NodeId, RenderParam> unpairedTransitionNodes_;
-    std::vector<std::pair<RenderParam, RenderParam>> pairedTransitionNodes_;
+    using TransitionNodeList = std::vector<std::pair<NodeId, RenderParam>>;
+    TransitionNodeList unpairedTransitionNodes_;
     // return true if we should prepare/process, false if we should skip.
     bool PrepareSharedTransitionNode(RSBaseRenderNode& node);
     bool ProcessSharedTransitionNode(RSBaseRenderNode& node);
     // try to pair nodes, call func on paired ones, and move unpaired ones to outList
-    void FindPairedSharedTransitionNodes(std::unordered_map<NodeId, RenderParam>& outList,
-        void (RSUniRenderVisitor::*func)(const RenderParam&, const RenderParam&));
-    void PreparePairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second);
-    void ProcessPairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second);
+    TransitionNodeList FindPairedSharedTransitionNodes(TransitionNodeList& existingNodes, TransitionNodeList& newNodes,
+        TransitionNodeList (RSUniRenderVisitor::*func)(const RenderParam&, const RenderParam&));
+    TransitionNodeList PreparePairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second);
+    TransitionNodeList ProcessPairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second);
 
     std::weak_ptr<RSBaseRenderNode> logicParentNode_;
 
@@ -335,6 +352,8 @@ private:
     mutable std::mutex copyVisitorInfosMutex_;
     sk_sp<SkImage> cacheImgForCapture_ = nullptr;
     bool resetRotate_ = false;
+    bool needCacheImg_ = false;
+    uint32_t captureWindowZorder_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

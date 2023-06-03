@@ -24,7 +24,7 @@ namespace TextEngine {
 void TextReverser::ReverseRTLText(std::vector<VariantSpan> &lineSpans)
 {
     ScopedTrace scope("Shaper::ReverseRTLText");
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "ReverseRTLText");
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "ReverseRTLText");
     const auto &endit = lineSpans.end();
     auto rtlSpansBeginIt = endit;
     auto rtlSpansEndIt = endit;
@@ -49,7 +49,7 @@ void TextReverser::ReverseRTLText(std::vector<VariantSpan> &lineSpans)
         }
 
         rtlSpansEndIt++;
-        LOGSCOPED(sl, LOG2EX_DEBUG(), "reverse");
+        LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "reverse");
         for (auto it = rtlSpansBeginIt; it != rtlSpansEndIt; it++) {
             it->Dump();
         }
@@ -60,7 +60,7 @@ void TextReverser::ReverseRTLText(std::vector<VariantSpan> &lineSpans)
 
     if (rtlSpansBeginIt != endit) {
         rtlSpansEndIt++;
-        LOGSCOPED(sl, LOG2EX_DEBUG(), "reverse");
+        LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "reverse");
         for (auto it = rtlSpansBeginIt; it != rtlSpansEndIt; it++) {
             it->Dump();
         }
@@ -94,7 +94,7 @@ void TextReverser::ReverseConDirectionText(std::vector<VariantSpan> &lineSpans, 
 void TextReverser::ProcessTypoDirection(std::vector<VariantSpan> &lineSpans, const TextDirection dir)
 {
     ScopedTrace scope("ProcessTypoDirection");
-    LOGSCOPED(sl, LOG2EX_DEBUG(), "ProcessTypoDirection");
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "ProcessTypoDirection");
     if (dir == TextDirection::LTR) {
         return;
     }

@@ -33,13 +33,13 @@ public:
     void PushCompositionTask(std::unique_ptr<RSCompositionTask> compositionTask);
     void LBCalcAndSubmitSuperTask(std::shared_ptr<RSBaseRenderNode> displayNode);
     void LBCalcAndSubmitCompositionTask(std::shared_ptr<RSBaseRenderNode> baseNode);
-    uint32_t GetTaskNum();
+    uint32_t GetTaskNum() const;
     void Reset();
     void SetSubThreadRenderTaskLoad(uint32_t threadIdx, uint64_t loadId, float cost);
     void UpdateNodeCost(RSDisplayRenderNode& node, std::vector<uint32_t>& parallelPolicy) const;
     void LoadParallelPolicy(std::vector<uint32_t>& parallelPolicy);
     void GetCostFactor(std::map<std::string, int32_t>& costFactor, std::map<int64_t, int32_t>& imageFactor) const;
-    bool GetParallelRenderExtEnable()
+    bool GetParallelRenderExtEnable() const
     {
         return isParallelRenderExtEnabled_;
     }

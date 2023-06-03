@@ -164,7 +164,9 @@ private:
         COLOR_GAMUT_SRGB,
         COLOR_GAMUT_DCI_P3,
         COLOR_GAMUT_ADOBE_RGB };
+    std::vector<ScreenColorGamut> supportedPhysicalColorGamuts_;
     int32_t currentVirtualColorGamutIdx_ = 0;
+    int32_t currentPhysicalColorGamutIdx_ = 0;
     ScreenGamutMap currentVirtualGamutMap_ = GAMUT_MAP_CONSTANT;
     RSScreenType screenType_ = RSScreenType::UNKNOWN_TYPE_SCREEN;
     uint32_t skipFrameInterval_ = DEFAULT_SKIP_FRAME_INTERVAL;

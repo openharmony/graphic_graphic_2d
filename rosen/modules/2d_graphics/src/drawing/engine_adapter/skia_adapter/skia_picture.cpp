@@ -36,9 +36,7 @@ std::shared_ptr<Data> SkiaPicture::Serialize() const
 
     auto skData = skiaPicture_->serialize();
     auto data = std::make_shared<Data>();
-    if (data->GetImpl<SkiaData>() != nullptr) {
-        data->GetImpl<SkiaData>()->SetSkData(skData);
-    }
+    data->GetImpl<SkiaData>()->SetSkData(skData);
 
     return data;
 }

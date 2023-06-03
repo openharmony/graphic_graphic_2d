@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic_standard/rosen/test/texgine/unittest"
-is_ok = false
+is_ok = true
 
 group("unittest") {
   testonly = true
@@ -31,16 +31,16 @@ group("unittest") {
 }
 
 config("texgine_test_config") {
-  visibility = [ ":*" ]
   include_dirs = [
-    "$graphic_2d_root/rosen/modules/texgine/exports/texgine",
+    "$graphic_2d_root/rosen/modules/texgine/export/texgine",
     "$graphic_2d_root/rosen/modules/texgine/src",
     "$graphic_2d_root/rosen/modules/texgine/texgine_drawing",
   ]
 }
 
 group("common_deps") {
-  deps = [
+  testonly = true
+  public_deps = [
     "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_ohos",
     "$graphic_2d_root/rosen/modules/texgine:libtexgine",
     "$graphic_2d_root/rosen/modules/texgine/texgine_drawing:libtexgine_drawing",
@@ -66,9 +66,9 @@ ohos_unittest("texgine_unittest_part1") {
     "variant_span_test.cpp",
   ]
 
-  configs = [ ":texgine_test_config" ]
+  public_configs = [ ":texgine_test_config" ]
 
-  deps = [ ":common_deps" ]
+  public_deps = [ ":common_deps" ]
 
   use_exceptions = true
 
@@ -84,11 +84,10 @@ ohos_unittest("texgine_unittest_part2") {
     "system_font_provider_test.cpp",
     "text_shaper_test.cpp",
     "typeface_test.cpp",
-    "word_breaker_test.cpp",
   ]
 
-  configs = [ ":texgine_test_config" ]
-  deps = [ ":common_deps" ]
+  public_configs = [ ":texgine_test_config" ]
+  public_deps = [ ":common_deps" ]
 
   use_exceptions = true
 
@@ -105,8 +104,8 @@ ohos_unittest("texgine_unittest_part3") {
     "text_breaker_test.cpp",
   ]
 
-  configs = [ ":texgine_test_config" ]
-  deps = [ ":common_deps" ]
+  public_configs = [ ":texgine_test_config" ]
+  public_deps = [ ":common_deps" ]
 
   use_exceptions = true
 
@@ -122,8 +121,8 @@ ohos_unittest("texgine_unittest_part4") {
     "measurer_test.cpp",
   ]
 
-  configs = [ ":texgine_test_config" ]
-  deps = [ ":common_deps" ]
+  public_configs = [ ":texgine_test_config" ]
+  public_deps = [ ":common_deps" ]
 
   use_exceptions = true
 
@@ -136,8 +135,8 @@ ohos_unittest("texgine_unittest_part5") {
 
   sources = [ "measurer_impl_test.cpp" ]
 
-  configs = [ ":texgine_test_config" ]
-  deps = [ ":common_deps" ]
+  public_configs = [ ":texgine_test_config" ]
+  public_deps = [ ":common_deps" ]
 
   use_exceptions = true
 

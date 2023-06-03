@@ -25,6 +25,7 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, R
     canvas.concat(params.matrix);
     if (!params.useCPU) {
         RegisterDeleteBufferListener(node.GetConsumer());
+        RegisterDeleteBufferListener(node);
         DrawImage(canvas, params);
     } else {
         DrawBuffer(canvas, params);

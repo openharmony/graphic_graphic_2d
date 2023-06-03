@@ -47,7 +47,7 @@ public:
      * @param The count The number of glyphs
      * @return Writable glyph buffer and SkPoint buffer
      */
-    RunBuffer &AllocRunPos(const TexgineFont &font, int count);
+    std::shared_ptr<RunBuffer> AllocRunPos(const TexgineFont &font, int count);
 
     /*
      * @brief Create TexgineTextBlob
@@ -56,7 +56,7 @@ public:
 
 private:
     std::shared_ptr<SkTextBlobBuilder> textBlobBuilder_ = std::make_shared<SkTextBlobBuilder>();
-    RunBuffer buffer_ = {};
+    std::shared_ptr<RunBuffer> buffer_ = std::make_shared<RunBuffer>();
 };
 } // namespace TextEngine
 } // namespace Rosen

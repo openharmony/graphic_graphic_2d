@@ -59,6 +59,10 @@ public:
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual bool IsDirty() const;
+    // attention: current all base node's dirty ops causing content dirty
+    // if there is any new dirty op, check it
+    virtual bool IsContentDirty() const;
+    virtual void SetContentDirty();
 
     // return if any animation is running
     virtual std::pair<bool, bool> Animate(int64_t timestamp)
@@ -167,6 +171,16 @@ public:
         return childrenRect_;
     }
 
+    bool ChildHasFilter() const
+    {
+        return childHasFilter_;
+    }
+
+    void SetChildHasFilter(bool childHasFilter)
+    {
+        childHasFilter_ = childHasFilter;
+    }
+
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
     void SetDirty();
@@ -175,7 +189,7 @@ protected:
         CLEAN = 0,
         DIRTY,
     };
-    void SetClean();
+    virtual void SetClean();
 
     void DumpNodeType(std::string& out) const;
 
@@ -208,6 +222,7 @@ private:
     bool hasRemovedChild_ = false;
     bool hasChildrenOutOfRect_ = false;
     RectI childrenRect_;
+    bool childHasFilter_ = false;  // only cllect children filter status
 
     void InternalRemoveSelfFromDisappearingChildren();
 };

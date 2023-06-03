@@ -242,13 +242,11 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
         }
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-            RSHardwareThread::Instance().ScheduleTask([this, &dumpString, &layerArg]() {
-                return screenManager_->FpsDump(dumpString, layerArg);
-            }).wait();
+            RSHardwareThread::Instance().ScheduleTask(
+                [this, &dumpString, &layerArg]() { return screenManager_->FpsDump(dumpString, layerArg); }).wait();
         } else {
-            mainThread_->ScheduleTask([this, &dumpString, &layerArg]() {
-                return screenManager_->FpsDump(dumpString, layerArg);
-            }).wait();
+            mainThread_->ScheduleTask(
+                [this, &dumpString, &layerArg]() { return screenManager_->FpsDump(dumpString, layerArg); }).wait();
         }
     }
 }
@@ -266,13 +264,15 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
         }
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-            RSHardwareThread::Instance().ScheduleTask([this, &dumpString, &layerArg]() {
-                return screenManager_->ClearFpsDump(dumpString, layerArg);
-            }).wait();
+            RSHardwareThread::Instance().ScheduleTask(
+                [this, &dumpString, &layerArg]() {
+                    return screenManager_->ClearFpsDump(dumpString, layerArg);
+                }).wait();
         } else {
-            mainThread_->ScheduleTask([this, &dumpString, &layerArg]() {
-                return screenManager_->ClearFpsDump(dumpString, layerArg);
-            }).wait();
+            mainThread_->ScheduleTask(
+                [this, &dumpString, &layerArg]() {
+                    return screenManager_->ClearFpsDump(dumpString, layerArg);
+                }).wait();
         }
     }
 }
@@ -344,9 +344,9 @@ void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
 
 static bool IsNumber(const std::string& type)
 {
-    int number = std::count_if(type.begin(), type.end(), [](unsigned char c) {
+    auto number = static_cast<uint32_t>(std::count_if(type.begin(), type.end(), [](unsigned char c) {
         return std::isdigit(c);
-    });
+    }));
     return number == type.length();
 }
 
@@ -366,9 +366,10 @@ void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::
         if (!type.empty() && IsNumber(type)) {
             pid = std::stoi(type);
         }
-        mainThread_->ScheduleTask([this, &argSets, &dumpString, &type, &pid]() {
-            return mainThread_->DumpMem(argSets, dumpString, type, pid);
-        }).wait();
+        mainThread_->ScheduleTask(
+            [this, &argSets, &dumpString, &type, &pid]() {
+                return mainThread_->DumpMem(argSets, dumpString, type, pid);
+            }).wait();
         return;
     }
 }
@@ -391,64 +392,54 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-            RSHardwareThread::Instance().ScheduleTask([this, &dumpString]() {
-                screenManager_->DisplayDump(dumpString);
-            }).wait();
+            RSHardwareThread::Instance().ScheduleTask(
+                [this, &dumpString]() { screenManager_->DisplayDump(dumpString); }).wait();
         } else {
-            mainThread_->ScheduleTask([this, &dumpString]() {
-                screenManager_->DisplayDump(dumpString);
-            }).wait();
+            mainThread_->ScheduleTask(
+                [this, &dumpString]() { screenManager_->DisplayDump(dumpString); }).wait();
         }
     }
     if (argSets.count(arg9) || argSets.count(arg2) != 0) {
-        mainThread_->ScheduleTask([this, &dumpString]() {
-            return screenManager_->SurfaceDump(dumpString);
-        }).wait();
+        mainThread_->ScheduleTask(
+            [this, &dumpString]() { return screenManager_->SurfaceDump(dumpString); }).wait();
     }
     if (argSets.count(arg9) || argSets.count(arg4) != 0) {
-        mainThread_->ScheduleTask([this, &dumpString]() {
-            DumpNodesNotOnTheTree(dumpString);
-        }).wait();
+        mainThread_->ScheduleTask(
+            [this, &dumpString]() { DumpNodesNotOnTheTree(dumpString); }).wait();
     }
     if (argSets.count(arg9) || argSets.count(arg5) != 0) {
-        mainThread_->ScheduleTask([this, &dumpString]() {
-            DumpAllNodesMemSize(dumpString);
-        }).wait();
+        mainThread_->ScheduleTask(
+            [this, &dumpString]() { DumpAllNodesMemSize(dumpString); }).wait();
     }
     if (argSets.count(arg9) || argSets.count(arg6) != 0) {
-        mainThread_->ScheduleTask([this, &dumpString]() {
-            DumpRenderServiceTree(dumpString);
-        }).wait();
+        mainThread_->ScheduleTask(
+            [this, &dumpString]() { DumpRenderServiceTree(dumpString); }).wait();
     }
     if (argSets.count(arg9) ||argSets.count(arg7) != 0) {
-        mainThread_->ScheduleTask([this, &dumpString]() {
-            DumpRSEvenParam(dumpString);
-        }).wait();
+        mainThread_->ScheduleTask(
+            [this, &dumpString]() { DumpRSEvenParam(dumpString); }).wait();
     }
     if (argSets.count(arg10)) {
-        mainThread_->ScheduleTask([this, &argSets, &dumpString]() {
-            return mainThread_->TrimMem(argSets, dumpString);
-        }).wait();
+        mainThread_->ScheduleTask(
+            [this, &argSets, &dumpString]() { return mainThread_->TrimMem(argSets, dumpString); }).wait();
     }
     if (argSets.count(arg11)) {
         DumpMem(argSets, dumpString);
     }
     if (auto iter = argSets.find(arg12) != argSets.end()) {
-        iter = argSets.erase(arg12);
+        argSets.erase(arg12);
         if (!argSets.empty()) {
             NodeId id = std::stoull(
                 std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(*argSets.begin()));
-            mainThread_->ScheduleTask([this, &dumpString, &id]() {
-                return DumpSurfaceNode(dumpString, id);
-            }).wait();
+            mainThread_->ScheduleTask(
+                [this, &dumpString, &id]() { return DumpSurfaceNode(dumpString, id); }).wait();
         }
     }
     FPSDUMPProcess(argSets, dumpString, arg3);
     FPSDUMPClearProcess(argSets, dumpString, arg13);
     if (argSets.size() == 0 || argSets.count(arg8) != 0 || dumpString.empty()) {
-        mainThread_->ScheduleTask([this, &dumpString]() {
-            DumpHelpInfo(dumpString);
-        }).wait();
+        mainThread_->ScheduleTask(
+            [this, &dumpString]() { DumpHelpInfo(dumpString); }).wait();
     }
 }
 } // namespace Rosen

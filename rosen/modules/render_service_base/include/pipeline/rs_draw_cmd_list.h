@@ -26,6 +26,8 @@
 #include "common/rs_macros.h"
 #include <parcel.h>
 
+#ifndef USE_ROSEN_DRAWING
+
 class SkCanvas;
 class SkSurface;
 struct SkRect;
@@ -52,8 +54,8 @@ public:
 
     std::string PlayBackForRecord(SkCanvas& canvas, int startOpId, int endOpId, int descStartOpId,
         const SkRect* rect = nullptr);
-    std::string PlayBackForRecord(RSPaintFilterCanvas& canvas, int startOpId, int endOpId, int descStartOpId,
-        const SkRect* rect = nullptr);
+    std::string PlayBackForRecord(RSPaintFilterCanvas& canvas, int startOpId, int endOpId,
+        int descStartOpId, const SkRect* rect = nullptr);
 
     std::string GetOpsWithDesc() const;
     size_t GetSize() const;
@@ -103,4 +105,5 @@ using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;
 } // namespace Rosen
 } // namespace OHOS
 
+#endif // USE_ROSEN_DRAWING
 #endif // RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_LIST_H
