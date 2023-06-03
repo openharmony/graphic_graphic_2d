@@ -12,16 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <parameter.h>
+#include <parameters.h>
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_qos_thread.h"
+#include "platform/common/rs_system_properties.h"
+#include "rs_test_util.h"
+#if defined(ACCESSIBILITY_ENABLE)
+#include "accessibility_config.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
 class RSMainThreadTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -84,7 +92,7 @@ HWTEST_F(RSMainThreadTest, RsEventParamDump, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     std::string str = "";
     mainThread->RsEventParamDump(str);
-    ASSERT_EQ(str.size(), 0);
+    ASSERT_TRUE(str.empty());
 }
 
 /**
@@ -496,9 +504,9 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData004, TestSize.Level1)
     int index = 0;
     node->SetIsOnTheTree(true);
     node->AddChild(node, index);
-    ASSERT_EQ(node->GetChildrenCount(), 0);
+    ASSERT_EQ(static_cast<int>(node->GetChildrenCount()), 0);
     node->AddChild(childNode, index);
-    ASSERT_EQ(node->GetChildrenCount(), 1);
+    ASSERT_EQ(static_cast<int>(node->GetChildrenCount()), 1);
     ASSERT_TRUE(childNode->IsOnTheTree());
 
     mainThread->cachedCommands_.clear();
@@ -534,17 +542,17 @@ HWTEST_F(RSMainThreadTest, ResetSortedChildren, TestSize.Level1)
     int index = -1;
     node->SetIsOnTheTree(true);
     node->AddChild(node, index);
-    ASSERT_EQ(node->GetChildrenCount(), 0);
+    ASSERT_EQ(static_cast<int>(node->GetChildrenCount()), 0);
 
     node->AddChild(childNode, index);
-    ASSERT_EQ(node->GetChildrenCount(), 1);
+    ASSERT_EQ(static_cast<int>(node->GetChildrenCount()), 1);
     ASSERT_TRUE(childNode->IsOnTheTree());
 
     node->GetSortedChildren();
-    ASSERT_EQ(node->sortedChildren_.size(), 1);
+    ASSERT_EQ(static_cast<int>(node->sortedChildren_.size()), 1);
 
     mainThread->ResetSortedChildren(node);
-    ASSERT_EQ(node->sortedChildren_.size(), 0);
+    ASSERT_EQ(static_cast<int>(node->sortedChildren_.size()), 0);
 }
 
 /**
@@ -559,7 +567,7 @@ HWTEST_F(RSMainThreadTest, AddActivePid, TestSize.Level1)
     mainThread->activeProcessPids_.clear();
     pid_t pid = 1;
     mainThread->AddActivePid(pid);
-    ASSERT_EQ(mainThread->activeProcessPids_.size(), 1);
+    ASSERT_EQ(static_cast<int>(mainThread->activeProcessPids_.size()), 1);
     ASSERT_EQ(*(mainThread->activeProcessPids_.begin()), pid);
 }
 
@@ -626,4 +634,53 @@ HWTEST_F(RSMainThreadTest, ShowWatermark, TestSize.Level1)
     mainThread->ShowWatermark(nullptr, false);
     ASSERT_EQ(mainThread->GetWatermarkFlag(), false);
 }
+
+/**
+ * @tc.name: ProcessCommandForUniRender
+ * @tc.desc: ProcessCommandForUniRender test with invalid data
+ * @tc.type: FUNC
+ * @tc.require: issueI7A39J
+ */
+HWTEST_F(RSMainThreadTest, ProcessCommandForUniRender, TestSize.Level1)
+{
+    constexpr uint64_t REFRESH_PERIOD = 16666667;
+    constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_EQ(mainThread->effectiveTransactionDataIndexMap_.empty(), true);
+
+    // // let lastindex same as timeout index and test timeout case at first
+    mainThread->transactionDataLastWaitTime_[0] = 0;
+    mainThread->timestamp_ = REFRESH_PERIOD * SKIP_COMMAND_FREQ_LIMIT + 1;
+    mainThread->effectiveTransactionDataIndexMap_[0].first = 0;
+    // default data with index 0
+    auto data = std::make_unique<RSTransactionData>();
+    mainThread->effectiveTransactionDataIndexMap_[0].second.emplace_back(std::move(data));
+    // empty data
+    mainThread->effectiveTransactionDataIndexMap_[0].second.emplace_back(nullptr);
+    mainThread->ProcessCommandForUniRender();
+}
+
+/**
+ * @tc.name: ObserverConfigChangeColorFilter
+ * @tc.desc: AccessibilityObserver changes different config of case ColorFilter
+ * @tc.type: FUNC
+ * @tc.require: issueI7A39J
+ */
+#if defined(ACCESSIBILITY_ENABLE)
+HWTEST_F(RSMainThreadTest, ObserverConfigChangeColorFilter, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto observer = mainThread->accessibilityObserver_;
+    ASSERT_NE(observer, nullptr);
+
+    CONFIG_ID id = CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER;
+    std::vector<DALTONIZATION_TYPE> dalTypes = {DALTONIZATION_TYPE::Normal, DALTONIZATION_TYPE::Protanomaly,
+        DALTONIZATION_TYPE::Deuteranomaly, DALTONIZATION_TYPE::Tritanomaly};
+    ConfigValue value;
+    for (auto dalType : dalTypes) {
+        value.daltonizationColorFilter = dalType;
+        observer->OnConfigChanged(id, value);
+    }
+}
+#endif
 } // namespace OHOS::Rosen

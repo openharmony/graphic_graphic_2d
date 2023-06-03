@@ -18,6 +18,7 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_main_thread.h"
 #include "render_context/render_context.h"
+#include "rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -115,5 +116,84 @@ HWTEST_F(RSEglImageManagerTest, MapEglImageFromSurfaceBuffer001, TestSize.Level1
         auto ret = eglImageManager_->MapEglImageFromSurfaceBuffer(buffer, acquireFence);
         ASSERT_NE(ret, 0);
     }
+}
+
+/**
+ * @tc.name: WaitAcquireFence001
+ * @tc.desc: Wait nullptr acquirefence
+ * @tc.type: FUNC
+ * @tc.require: issueI7A39J
+ */
+HWTEST_F(RSEglImageManagerTest, WaitAcquireFence001, TestSize.Level1)
+{
+    ASSERT_NE(eglImageManager_, nullptr);
+    eglImageManager_->WaitAcquireFence(nullptr);
+}
+
+/**
+ * @tc.name: ShrinkCachesIfNeeded001
+ * @tc.desc: Shrink Caches
+ * @tc.type: FUNC
+ * @tc.require: issueI7A39J
+ */
+HWTEST_F(RSEglImageManagerTest, ShrinkCachesIfNeeded001, TestSize.Level1)
+{
+    ASSERT_NE(eglImageManager_, nullptr);
+    for (size_t i = 0; i <= eglImageManager_->MAX_CACHE_SIZE; i++) {
+        eglImageManager_->cacheQueue_.push(i);
+        eglImageManager_->imageCacheSeqs_[i] = nullptr;
+    }
+    eglImageManager_->ShrinkCachesIfNeeded(true);
+    ASSERT_EQ(eglImageManager_->cacheQueue_.size(), eglImageManager_->MAX_CACHE_SIZE);
+
+    eglImageManager_->cacheQueue_.push(eglImageManager_->MAX_CACHE_SIZE);
+    eglImageManager_->imageCacheSeqs_[eglImageManager_->MAX_CACHE_SIZE] = nullptr;
+    eglImageManager_->ShrinkCachesIfNeeded(false);
+    ASSERT_EQ(eglImageManager_->cacheQueue_.size(), eglImageManager_->MAX_CACHE_SIZE);
+}
+
+/**
+ * @tc.name: ShrinkCachesIfNeeded001
+ * @tc.desc: UnMap eglImage with invaild seqNum
+ * @tc.type: FUNC
+ * @tc.require: issueI7A39J
+ */
+HWTEST_F(RSEglImageManagerTest, UnMapEglImage001, TestSize.Level1)
+{
+    ASSERT_NE(eglImageManager_, nullptr);
+    const int invaildSeqNum = -1;
+    eglImageManager_->UnMapEglImageFromSurfaceBuffer(invaildSeqNum);
+    eglImageManager_->UnMapEglImageFromSurfaceBufferForUniRedraw(invaildSeqNum);
+}
+
+/**
+ * @tc.name: ImageCacheSeqCreate001
+ * @tc.desc: Create ImageCacheSeq
+ * @tc.type: FUNC
+ * @tc.require: issueI7A39J
+ */
+HWTEST_F(RSEglImageManagerTest, ImageCacheSeqCreate001, TestSize.Level1)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto imageCache = ImageCacheSeq::Create(EGL_NO_DISPLAY, EGL_NO_IMAGE_KHR, node->GetBuffer());
+    ASSERT_EQ(imageCache, nullptr);
+    imageCache = ImageCacheSeq::Create(renderContext_->GetEGLDisplay(), EGL_NO_CONTEXT, node->GetBuffer());
+    ASSERT_NE(imageCache, nullptr);
+}
+
+/**
+ * @tc.name: ImageCacheSeqBindToTexture001
+ * @tc.desc: Bind to texture
+ * @tc.type: FUNC
+ * @tc.require: issueI7A39J
+ */
+HWTEST_F(RSEglImageManagerTest, ImageCacheSeqBindToTexture001, TestSize.Level1)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto imageCache = ImageCacheSeq::Create(renderContext_->GetEGLDisplay(), EGL_NO_CONTEXT, node->GetBuffer());
+    ASSERT_NE(imageCache, nullptr);
+    ASSERT_EQ(imageCache->BindToTexture(), true);
+    imageCache->eglImage_ =  EGL_NO_IMAGE_KHR;
+    ASSERT_EQ(imageCache->BindToTexture(), false);
 }
 } // namespace OHOS::Rosen
