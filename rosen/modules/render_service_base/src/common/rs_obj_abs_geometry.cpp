@@ -393,7 +393,7 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         if (trans_->pivotZ_ != 0.f) {
             camera.translate(sin(trans_->rotationY_ * DEGREE_TO_RADIAN) * trans_->pivotZ_,
                 sin(trans_->rotationX_ * DEGREE_TO_RADIAN) * trans_->pivotZ_,
-                (cos(trans_->rotationX_ * DEGREE_TO_RADIAN) + cos(trans_->rotationX_ * DEGREE_TO_RADIAN)) *
+                (cos(trans_->rotationX_ * DEGREE_TO_RADIAN) + cos(trans_->rotationY_ * DEGREE_TO_RADIAN)) *
                     trans_->pivotZ_);
         }
         camera.rotateX(-trans_->rotationX_);
