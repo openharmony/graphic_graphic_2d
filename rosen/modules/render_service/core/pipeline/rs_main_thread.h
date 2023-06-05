@@ -127,7 +127,7 @@ public:
     void WaitUtilUniRenderFinished();
     void NotifyUniRenderFinish();
 
-    void WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node);
+    bool WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node);
     void NotifyDisplayNodeBufferReleased();
 
     // driven render

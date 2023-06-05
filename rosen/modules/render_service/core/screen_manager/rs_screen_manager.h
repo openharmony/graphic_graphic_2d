@@ -276,6 +276,9 @@ private:
 
     static void OnHotPlug(std::shared_ptr<HdiOutput> &output, bool connected, void *data);
     void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
+    static void OnHwcDead(void *data);
+    void OnHwcDeadEvent();
+    void Reinit();
     void ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &output);
     void ProcessScreenDisConnectedLocked(std::shared_ptr<HdiOutput> &output);
     void HandleDefaultScreenDisConnectedLocked();

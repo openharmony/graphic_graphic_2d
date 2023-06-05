@@ -141,6 +141,16 @@ typedef void (*HotPlugCallback)(uint32_t devId, bool connected, void *data);
  */
 typedef void (*VBlankCallback)(unsigned int sequence, uint64_t ns, void *data);
 
+
+/*
+ * @brief Called when composer host process died.
+ *
+ * This callback must be registered by calling <b>RegComposerDeathCallback</b>.
+ *
+ * @param data Indicates the pointer to the private data carried by the graphics service.
+ */
+typedef void (*OnHwcDeadCallback)(void *data);
+
 #ifdef __cplusplus
 }
 #endif

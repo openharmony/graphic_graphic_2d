@@ -35,6 +35,7 @@ public:
     /* set & get device screen info begin */
     virtual int32_t RegHotPlugCallback(HotPlugCallback callback, void *data) = 0;
     virtual int32_t RegScreenVBlankCallback(uint32_t screenId, VBlankCallback callback, void *data) = 0;
+    virtual bool RegHwcDeadCallback(OnHwcDeadCallback callback, void *data) = 0;
     virtual int32_t GetScreenCapability(uint32_t screenId, GraphicDisplayCapability &info) = 0;
     virtual int32_t GetScreenSupportedModes(uint32_t screenId, std::vector<GraphicDisplayModeInfo> &modes) = 0;
     virtual int32_t GetScreenMode(uint32_t screenId, uint32_t &modeId) = 0;
@@ -94,6 +95,7 @@ public:
 
     virtual int32_t CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t &layerId) = 0;
     virtual int32_t CloseLayer(uint32_t screenId, uint32_t layerId) = 0;
+    virtual void Destroy() = 0;
 
 private:
     HdiDevice(const HdiDevice& rhs) = delete;

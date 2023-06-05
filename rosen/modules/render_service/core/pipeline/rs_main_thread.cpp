@@ -104,6 +104,7 @@ constexpr uint64_t PERF_PERIOD_BLUR = 80000000;
 constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
+constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 #ifdef RES_SCHED_ENABLE
 constexpr uint64_t PERF_PERIOD                  = 250000000;
 constexpr uint32_t RES_TYPE_CLICK_ANIMATION     = 35;
@@ -820,14 +821,15 @@ void RSMainThread::WaitUtilUniRenderFinished()
     uniRenderFinished_ = false;
 }
 
-void RSMainThread::WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node)
+bool RSMainThread::WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node)
 {
     std::unique_lock<std::mutex> lock(displayNodeBufferReleasedMutex_);
     displayNodeBufferReleased_ = false; // prevent spurious wakeup of condition variable
     if (node.GetConsumer()->QueryIfBufferAvailable()) {
-        return;
+        return true;
     }
-    displayNodeBufferReleasedCond_.wait(lock, [this]() { return displayNodeBufferReleased_; });
+    return displayNodeBufferReleasedCond_.wait_until(lock, std::chrono::system_clock::now() +
+        std::chrono::milliseconds(WAIT_FOR_RELEASED_BUFFER_TIMEOUT), [this]() { return displayNodeBufferReleased_; });
 }
 
 void RSMainThread::WaitUtilDrivenRenderFinished()

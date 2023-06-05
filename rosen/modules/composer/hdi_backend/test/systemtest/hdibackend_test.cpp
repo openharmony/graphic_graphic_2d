@@ -142,6 +142,40 @@ HWTEST_F(HdiBackendSysTest, GetLayersReleaseFence001, Function | MediumTest| Lev
     ASSERT_EQ(ret, true);
 }
 
+/*
+* Function: RegHwcDeadListener001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call RegHwcDeadListener
+*                  2. check ret
+*/
+HWTEST_F(HdiBackendSysTest, RegHwcDeadListener001, Function | MediumTest| Level3)
+{
+    ASSERT_EQ(HdiBackendSysTest::hdiBackend_->RegHwcDeadListener(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
+}
+
+
+/*
+* Function: RegHwcDeadListener002
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call RegHwcDeadListener
+*                  2. check ret
+*/
+HWTEST_F(HdiBackendSysTest, RegHwcDeadListener002, Function | MediumTest| Level3)
+{
+    auto func = [](void* data) -> void {};
+    EXPECT_CALL(*mockDevice_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(false));
+    RosenError ret = HdiBackendSysTest::hdiBackend_->RegHwcDeadListener(func, nullptr);
+    ASSERT_EQ(ret, ROSEN_ERROR_API_FAILED);
+
+    EXPECT_CALL(*mockDevice_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(true));
+    ret = HdiBackendSysTest::hdiBackend_->RegHwcDeadListener(func, nullptr);
+    ASSERT_EQ(ret, ROSEN_ERROR_OK);
+}
+
 } // namespace
 } // namespace Rosen
 } // namespace OHOS
