@@ -131,6 +131,7 @@ public:
         desc += split + "}\n";
     }
 private:
+    bool HasRadius() const;
     void ApplyImageFit();
 #ifndef USE_ROSEN_DRAWING
     void ApplyCanvasClip(SkCanvas& canvas);

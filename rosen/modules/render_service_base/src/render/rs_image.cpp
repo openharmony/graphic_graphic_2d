@@ -14,6 +14,7 @@
  */
 
 #include "render/rs_image.h"
+#include "SkCanvas.h"
 
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
@@ -58,7 +59,7 @@ void RSImage::CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkPain
 #endif
 {
     UpdateNodeIdToPicture(nodeId_);
-    canvas.save();
+    SkAutoCanvasRestore acr(&canvas, HasRadius());
     frameRect_.SetAll(rect.left(), rect.top(), rect.width(), rect.height());
 #else
 void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect, bool isBackground)
@@ -76,7 +77,6 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
 #else
     DrawImageRepeatRect(paint, canvas);
 #endif
-    canvas.restore();
 #else
     DrawImageRepeatRect(canvas);
     canvas.Restore();
@@ -130,9 +130,22 @@ void RSImage::ApplyImageFit()
     dstRect_.SetAll((frameW - dstW) / 2, (frameH - dstH) / 2, dstW, dstH);
 }
 
+bool RSImage::HasRadius() const
+{
+    for (auto i = 0; i < CORNER_SIZE; i++) {
+        if (!radius_[i].isZero()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 #ifndef USE_ROSEN_DRAWING
 void RSImage::ApplyCanvasClip(SkCanvas& canvas)
 {
+    if (!HasRadius()) {
+        return;
+    }
     auto rect = (imageRepeat_ == ImageRepeat::NO_REPEAT) ? dstRect_.IntersectRect(frameRect_) : frameRect_;
     SkRRect rrect = SkRRect::MakeEmpty();
     rrect.setRectRadii(RSPropertiesPainter::Rect2SkRect(rect), radius_);

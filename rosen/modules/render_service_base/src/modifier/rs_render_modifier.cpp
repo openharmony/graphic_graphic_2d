@@ -29,6 +29,7 @@
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_render_node.h"
 #include "property/rs_properties.h"
 #include "property/rs_properties_def.h"
 #include "property/rs_properties_painter.h"
@@ -142,6 +143,12 @@ void RSDrawCmdListRenderModifier::Update(const std::shared_ptr<RSRenderPropertyB
         property_->Set(property->Get());
     }
 #endif
+    if (auto renderNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(property_->GetNode())) {
+        renderNode->SetRecordedContents(nullptr);
+        if (renderNode->GetRecordedContents()) {
+            renderNode->SetRecordedContents(nullptr);
+        }
+    }
 }
 
 bool RSDrawCmdListRenderModifier::Marshalling(Parcel& parcel)
