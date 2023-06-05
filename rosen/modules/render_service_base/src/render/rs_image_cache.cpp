@@ -26,6 +26,7 @@ RSImageCache& RSImageCache::Instance()
     return gRSImageCacheInstance;
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSImageCache::CacheSkiaImage(uint64_t uniqueId, sk_sp<SkImage> img)
 {
     if (img && uniqueId > 0) {
@@ -33,7 +34,17 @@ void RSImageCache::CacheSkiaImage(uint64_t uniqueId, sk_sp<SkImage> img)
         skiaImageCache_.emplace(uniqueId, std::make_pair(img, 0));
     }
 }
+#else
+void RSImageCache::CacheDrawingImage(uint64_t uniqueId, std::shared_ptr<Drawing::Image> img)
+{
+    if (img && uniqueId > 0) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        drawingImageCache_.emplace(uniqueId, std::make_pair(img, 0));
+    }
+}
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> RSImageCache::GetSkiaImageCache(uint64_t uniqueId) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -43,7 +54,19 @@ sk_sp<SkImage> RSImageCache::GetSkiaImageCache(uint64_t uniqueId) const
     }
     return nullptr;
 }
+#else
+std::shared_ptr<Drawing::Image> RSImageCache::GetDrawingImageCache(uint64_t uniqueId) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = drawingImageCache_.find(uniqueId);
+    if (it != drawingImageCache_.end()) {
+        return it->second.first;
+    }
+    return nullptr;
+}
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 void RSImageCache::IncreaseSkiaImageCacheRefCount(uint64_t uniqueId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -52,7 +75,18 @@ void RSImageCache::IncreaseSkiaImageCacheRefCount(uint64_t uniqueId)
         it->second.second++;
     }
 }
+#else
+void RSImageCache::IncreaseDrawingImageCacheRefCount(uint64_t uniqueId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = drawingImageCache_.find(uniqueId);
+    if (it != drawingImageCache_.end()) {
+        it->second.second++;
+    }
+}
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 void RSImageCache::ReleaseSkiaImageCache(uint64_t uniqueId)
 {
     // release the skImage if no RSImage holds it
@@ -65,6 +99,20 @@ void RSImageCache::ReleaseSkiaImageCache(uint64_t uniqueId)
         }
     }
 }
+#else
+void RSImageCache::ReleaseDrawingImageCache(uint64_t uniqueId)
+{
+    // release the Drawing::Image if no RSImage holds it
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = drawingImageCache_.find(uniqueId);
+    if (it != drawingImageCache_.end()) {
+        it->second.second--;
+        if (it->second.first == nullptr || it->second.second == 0) {
+            drawingImageCache_.erase(it);
+        }
+    }
+}
+#endif
 
 void RSImageCache::CachePixelMap(uint64_t uniqueId, std::shared_ptr<Media::PixelMap> pixelMap)
 {
@@ -102,11 +150,16 @@ void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
         it->second.second--;
         if (it->second.first == nullptr || it->second.second == 0) {
             pixelMapCache_.erase(it);
+#ifndef USE_ROSEN_DRAWING
             ReleaseSkiaImageCacheByPixelMapId(uniqueId);
+#else
+            ReleaseDrawingImageCacheByPixelMapId(uniqueId);
+#endif
         }
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSImageCache::CacheRenderSkiaImageByPixelMapId(uint64_t uniqueId, sk_sp<SkImage> img)
 {
     if (uniqueId > 0 && img) {
@@ -114,7 +167,17 @@ void RSImageCache::CacheRenderSkiaImageByPixelMapId(uint64_t uniqueId, sk_sp<SkI
         pixelMapIdRelatedSkiaImageCache_.emplace(std::make_pair(uniqueId, img));
     }
 }
+#else
+void RSImageCache::CacheRenderDrawingImageByPixelMapId(uint64_t uniqueId, std::shared_ptr<Drawing::Image> img)
+{
+    if (uniqueId > 0 && img) {
+        std::lock_guard<std::mutex> lock(mapMutex_);
+        pixelMapIdRelatedDrawingImageCache_.emplace(std::make_pair(uniqueId, img));
+    }
+}
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> RSImageCache::GetRenderSkiaImageCacheByPixelMapId(uint64_t uniqueId) const
 {
     std::lock_guard<std::mutex> lock(mapMutex_);
@@ -124,7 +187,19 @@ sk_sp<SkImage> RSImageCache::GetRenderSkiaImageCacheByPixelMapId(uint64_t unique
     }
     return nullptr;
 }
+#else
+std::shared_ptr<Drawing::Image> RSImageCache::GetRenderDrawingImageCacheByPixelMapId(uint64_t uniqueId) const
+{
+    std::lock_guard<std::mutex> lock(mapMutex_);
+    auto it = pixelMapIdRelatedDrawingImageCache_.find(uniqueId);
+    if (it != pixelMapIdRelatedDrawingImageCache_.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 void RSImageCache::ReleaseSkiaImageCacheByPixelMapId(uint64_t uniqueId)
 {
     std::lock_guard<std::mutex> lock(mapMutex_);
@@ -133,5 +208,15 @@ void RSImageCache::ReleaseSkiaImageCacheByPixelMapId(uint64_t uniqueId)
         pixelMapIdRelatedSkiaImageCache_.erase(it);
     }
 }
+#else
+void RSImageCache::ReleaseDrawingImageCacheByPixelMapId(uint64_t uniqueId)
+{
+    std::lock_guard<std::mutex> lock(mapMutex_);
+    auto it = pixelMapIdRelatedDrawingImageCache_.find(uniqueId);
+    if (it != pixelMapIdRelatedDrawingImageCache_.end()) {
+        pixelMapIdRelatedDrawingImageCache_.erase(it);
+    }
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

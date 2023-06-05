@@ -15,14 +15,17 @@
 
 #include "render/rs_blur_filter.h"
 
+#ifndef USE_ROSEN_DRAWING
 #if defined(NEW_SKIA)
 #include "include/core/SkTileMode.h"
 #include "include/effects/SkImageFilters.h"
 #else
 #include "include/effects/SkBlurImageFilter.h"
 #endif
+#endif
 namespace OHOS {
 namespace Rosen {
+#ifndef USE_ROSEN_DRAWING
 #if defined(NEW_SKIA)
 RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(SkImageFilters::Blur(blurRadiusX,
     blurRadiusY, SkTileMode::kClamp, nullptr)), blurRadiusX_(blurRadiusX),
@@ -34,6 +37,14 @@ RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(S
 RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(SkBlurImageFilter::Make(blurRadiusX,
     blurRadiusY, nullptr, nullptr, SkBlurImageFilter::kClamp_TileMode)), blurRadiusX_(blurRadiusX),
     blurRadiusY_(blurRadiusY)
+{
+    type_ = FilterType::BLUR;
+}
+#endif
+#else
+RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY)
+    : RSDrawingFilter(Drawing::ImageFilter::CreateBlurImageFilter(blurRadiusX, blurRadiusY, Drawing::TileMode::CLAMP,
+    nullptr)), blurRadiusX_(blurRadiusX), blurRadiusY_(blurRadiusY)
 {
     type_ = FilterType::BLUR;
 }
