@@ -156,13 +156,7 @@ HWTEST_F(HdiScreenTest, GetScreenCapability001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiScreenTest, GetScreenSupportedModes001, Function | MediumTest| Level3)
 {
-    GraphicDisplayModeInfo displayModeInfo = {
-        .width = 800,
-        .height = 600,
-        .freshRate = 60,
-        .id = 0,
-    };
-    std::vector<GraphicDisplayModeInfo> modeInfo = { displayModeInfo };
+    std::vector<GraphicDisplayModeInfo> modeInfo = {};
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenSupportedModes(modeInfo), 0);
 }
 

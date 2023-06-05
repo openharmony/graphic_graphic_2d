@@ -136,11 +136,6 @@ namespace OHOS {
         uint64_t ns = GetData<uint64_t>();
         void* dt = static_cast<void*>(GetStringFromData(STR_LEN).data());
 
-        int32_t width = GetData<int32_t>();
-        int32_t height = GetData<int32_t>();
-        uint32_t freshRate = GetData<uint32_t>();
-        int32_t id = GetData<int32_t>();
-
         // test
         if (g_hdiScreen == nullptr) {
             uint32_t screenId = GetData<uint32_t>();
@@ -163,8 +158,7 @@ namespace OHOS {
         g_hdiScreen->SetScreenColorTransform(matrix);
         g_hdiScreen->OnVsync(sequence, ns, dt);
 
-        GraphicDisplayModeInfo mode = {width, height, freshRate, id};
-        std::vector<GraphicDisplayModeInfo> modes = {mode};
+        std::vector<GraphicDisplayModeInfo> modes = {};
         g_hdiScreen->GetScreenSupportedModes(modes);
         g_hdiScreen->GetScreenMode(modeId);
         g_hdiScreen->GetScreenPowerStatus(status);

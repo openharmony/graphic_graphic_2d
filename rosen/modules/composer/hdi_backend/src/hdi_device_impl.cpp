@@ -139,6 +139,7 @@ int32_t HdiDeviceImpl::GetScreenSupportedModes(uint32_t screenId, std::vector<Gr
     std::vector<DisplayModeInfo> hdiModes;
     int32_t ret = g_composer->GetDisplaySupportedModes(screenId, hdiModes);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("Get screen supported modes failed, ret is %{public}d.", ret);
         return ret;
     }
 
