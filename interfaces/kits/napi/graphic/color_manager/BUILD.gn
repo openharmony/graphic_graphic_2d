@@ -41,6 +41,7 @@ ohos_shared_library("color_space_object_convertor") {
 
   cflags_cc = [ "-std=c++17" ]
 
+  innerapi_tags = [ "platformsdk" ]
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }

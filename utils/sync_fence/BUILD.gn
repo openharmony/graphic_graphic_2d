@@ -58,6 +58,10 @@ ohos_shared_library("sync_fence") {
     "ipc:ipc_single",
   ]
 
+  innerapi_tags = [
+    "chipsetsdk_indirect",
+    "platformsdk_indirect",
+  ]
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }

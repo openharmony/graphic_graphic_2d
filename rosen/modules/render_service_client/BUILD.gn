@@ -179,6 +179,7 @@ render_service_client_source_set("render_service_client_src_static") {
 
 ohos_shared_library("librender_service_client") {
   public_deps = [ ":render_service_client_src" ]
+  innerapi_tags = [ "platformsdk" ]
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }

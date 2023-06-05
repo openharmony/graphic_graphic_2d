@@ -52,6 +52,7 @@ ohos_shared_library("color_manager") {
     public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
   }
 
+  innerapi_tags = [ "platformsdk" ]
   subsystem_name = "graphic"
   part_name = "graphic_standard"
 }
