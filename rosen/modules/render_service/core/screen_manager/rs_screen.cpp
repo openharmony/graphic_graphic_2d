@@ -97,6 +97,8 @@ void RSScreen::PhysicalScreenInit() noexcept
     } else {
         screenType_ = RSScreenType::EXTERNAL_TYPE_SCREEN;
     }
+    ScreenCapabilityInit();
+
     std::vector<GraphicColorGamut> supportedColorGamuts;
     if (hdiScreen_->GetScreenSupportedColorGamuts(supportedColorGamuts) != GRAPHIC_DISPLAY_SUCCESS) {
         RS_LOGE("RSScreen %s: RSScreen(id %" PRIu64 ") failed to GetScreenSupportedColorGamuts.",
@@ -105,6 +107,29 @@ void RSScreen::PhysicalScreenInit() noexcept
         for (auto item : supportedColorGamuts) {
             supportedPhysicalColorGamuts_.push_back(static_cast<ScreenColorGamut>(item));
         }
+    }
+}
+
+void RSScreen::ScreenCapabilityInit() noexcept
+{
+    if (IsVirtual()) {
+        RS_LOGW("RSScreen %s: this is virtual screen, use the default display capability.",  __func__);
+        return;
+    }
+    int32_t ret = hdiScreen_->GetScreenCapability(capability_);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        RS_LOGW("RSScreen %s: get display capability failed, ret is %d, use the default display capability.",
+                __func__, ret);
+        capability_ = {
+            .name = "test1",
+            .type = GRAPHIC_DISP_INTF_HDMI,
+            .phyWidth = 1921,
+            .phyHeight = 1081,
+            .supportLayers = 0,
+            .virtualDispCount = 0,
+            .supportWriteBack = true,
+            .propertyCount = 0
+        };
     }
 }
 
@@ -316,7 +341,7 @@ void RSScreen::ModeInfoDump(std::string& dumpString)
 void RSScreen::CapabilityTypeDump(GraphicInterfaceType capabilityType, std::string& dumpString)
 {
     dumpString += "type=";
-    switch (capability_.type) {
+    switch (capabilityType) {
         case GRAPHIC_DISP_INTF_HDMI: {
             dumpString += "DISP_INTF_HDMI, ";
             break;

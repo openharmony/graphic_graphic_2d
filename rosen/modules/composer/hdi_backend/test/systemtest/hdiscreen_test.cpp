@@ -64,16 +64,7 @@ HWTEST_F(HdiScreenSysTest, TestHdiScreen001, Function | MediumTest| Level3)
 {
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->Init(), true);
 
-    GraphicDisplayCapability displayCapability = {
-        .name = "test",
-        .type = GraphicInterfaceType::GRAPHIC_DISP_INTF_BT1120,
-        .phyWidth = 800,
-        .phyHeight = 600,
-        .supportLayers = 1,
-        .virtualDispCount = 1,
-        .supportWriteBack = true,
-        .propertyCount = 1,
-    };
+    GraphicDisplayCapability displayCapability = {};
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->GetScreenCapability(displayCapability), 0);
 
     GraphicDisplayModeInfo displayModeInfo = {

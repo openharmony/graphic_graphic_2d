@@ -65,22 +65,6 @@ namespace OHOS {
 
     void HdiScreenFuzzTest2()
     {
-        // get data
-        uint32_t propId = GetData<uint32_t>();
-        uint64_t value = GetData<uint64_t>();
-        GraphicInterfaceType type = GetData<GraphicInterfaceType>();
-        uint32_t phyWidth = GetData<uint32_t>();
-        uint32_t phyHeight = GetData<uint32_t>();
-        uint32_t supportLayers = GetData<uint32_t>();
-        uint32_t virtualDispCount = GetData<uint32_t>();
-        bool supportWriteBack = GetData<bool>();
-        uint32_t propertyCount = GetData<uint32_t>();
-        uint32_t formatCount = GetData<uint32_t>();
-        GraphicHDRFormat formats = GetData<GraphicHDRFormat>();
-        float maxLum = GetData<float>();
-        float maxAverageLum = GetData<float>();
-        float minLum = GetData<float>();
-
         // test
         if (g_hdiScreen == nullptr) {
             return;
@@ -88,27 +72,10 @@ namespace OHOS {
         GraphicGamutMap gamutMap = GetData<GraphicGamutMap>();
         g_hdiScreen->SetScreenGamutMap(gamutMap);
         g_hdiScreen->GetScreenGamutMap(gamutMap);
-        GraphicPropertyObject props = {"propName", propId, value};
-        GraphicDisplayCapability dcap = {
-            .name = "dispName",
-            .type = type,
-            .phyWidth = phyWidth,
-            .phyHeight = phyHeight,
-            .supportLayers = supportLayers,
-            .virtualDispCount = virtualDispCount,
-            .supportWriteBack = supportWriteBack,
-            .propertyCount = propertyCount,
-        };
-        dcap.props.push_back(props);
+        GraphicDisplayCapability dcap = {};
         g_hdiScreen->GetScreenCapability(dcap);
 
-        GraphicHDRCapability info = {
-            .formatCount = formatCount,
-            .maxLum = maxLum,
-            .maxAverageLum = maxAverageLum,
-            .minLum = minLum,
-        };
-        info.formats.push_back(formats);
+        GraphicHDRCapability info = {};
         g_hdiScreen->GetHDRCapabilityInfos(info);
         g_hdiScreen = nullptr;
     }

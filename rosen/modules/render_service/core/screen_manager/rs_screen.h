@@ -133,6 +133,7 @@ public:
 private:
     // create hdiScreen and get some information from drivers.
     void PhysicalScreenInit() noexcept;
+    void ScreenCapabilityInit() noexcept;
 
     void ModeInfoDump(std::string& dumpString);
     void CapabilityDump(std::string& dumpString);
