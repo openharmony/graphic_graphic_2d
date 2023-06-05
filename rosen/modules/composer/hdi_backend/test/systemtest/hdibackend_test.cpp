@@ -31,14 +31,17 @@ public:
     static inline MockSys::HdiDeviceMock* mockDevice_ = nullptr;
     static inline std::shared_ptr<HdiOutput> output_ = nullptr;
     static inline std::shared_ptr<MockSys::HdiLayerContext> hdiLayerTemp_ = nullptr;
+    static inline std::vector<LayerInfoPtr> layerInfos_ = {};
 };
 
 void HdiBackendSysTest::SetUpTestCase()
 {
+    mockDevice_ = MockSys::HdiDeviceMock::GetInstance();
     uint32_t screenId = 0;
     output_ = HdiOutput::CreateHdiOutput(screenId);
+    output_->SetHdiOutputDevice(mockDevice_);
     output_->Init();
-    std::vector<LayerInfoPtr> layerInfos;
+
     int32_t width = 50;
     int32_t height = 50;
     GraphicIRect srcRect = {0, 0, width, height};
@@ -48,15 +51,13 @@ void HdiBackendSysTest::SetUpTestCase()
     hdiLayerTemp_->DrawBufferColor();
     hdiLayerTemp_->FillHdiLayer();
     hdiLayerTemp_->GetHdiLayer()->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
-    layerInfos.emplace_back(hdiLayerTemp_->GetHdiLayer());
+    layerInfos_.emplace_back(hdiLayerTemp_->GetHdiLayer());
 
     zOrder = 1;
     hdiLayerTemp_ = std::make_unique<MockSys::HdiLayerContext>(dstRect, srcRect, zOrder);
     hdiLayerTemp_->DrawBufferColor();
     hdiLayerTemp_->FillHdiLayer();
     hdiLayerTemp_->GetHdiLayer()->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
-    layerInfos.emplace_back(hdiLayerTemp_->GetHdiLayer());
-    output_->SetLayerInfo(layerInfos);
 
     hdiBackend_ = HdiBackend::GetInstance();
 }
@@ -82,98 +83,29 @@ HWTEST_F(HdiBackendSysTest, Repaint001, Function | MediumTest| Level3)
 {
     // Repaint before SetHdiBackendDevice
     hdiBackend_->Repaint(nullptr);
-    // mockDevice_ is nullptr
-    hdiBackend_->SetHdiBackendDevice(mockDevice_);
-    // init mockDevice_
-    mockDevice_ = MockSys::HdiDeviceMock::GetInstance();
-    hdiBackend_->SetHdiBackendDevice(mockDevice_);
-    // the device_ in hdiBackend_ is not nullptr alredy
-    hdiBackend_->SetHdiBackendDevice(mockDevice_);
-    hdiBackend_->Repaint(nullptr);
+    
+    // repaint when layermap in output is empty
+    hdiBackend_->Repaint(output_);
 
-    std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(1);
-    hdiBackend_->Repaint(output);
-
+    // repaint when layermap in output is not empty
+    output_->SetLayerInfo(layerInfos_);
     EXPECT_CALL(*mockDevice_, PrepareScreenLayers(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, Commit(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenVsyncEnabled(_, _)).WillRepeatedly(testing::Return(0));
     hdiBackend_->Repaint(output_);
-
-    output_->SetLayerCompCapacity(1);
-    hdiBackend_->Repaint(output_);
-
-    output_->SetDirectClientCompEnableStatus(true);
-    hdiBackend_->Repaint(output_);
-
     EXPECT_CALL(*mockDevice_, Commit(_, _)).WillRepeatedly(testing::Return(1));
     hdiBackend_->Repaint(output_);
 
-    EXPECT_CALL(*mockDevice_, GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(1));
+    // client composition while onPrepareCompleteCb_ is nullptr
+    layerInfos_.emplace_back(hdiLayerTemp_->GetHdiLayer());
+    output_->SetLayerInfo(layerInfos_);
     hdiBackend_->Repaint(output_);
 
-    EXPECT_CALL(*mockDevice_, PrepareScreenLayers(_, _)).WillRepeatedly(testing::Return(1));
+    // client composition while onPrepareCompleteCb_ is not nullptr
+    auto func = [](sptr<Surface> &, const struct PrepareCompleteParam &param, void* data) -> void {};
+    ASSERT_EQ(hdiBackend_->RegPrepareComplete(func, nullptr), ROSEN_ERROR_OK);
     hdiBackend_->Repaint(output_);
-}
-
-/*
-* Function: GetLayersReleaseFence001
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call GetLayersReleaseFence
-*                  2. check ret
-*/
-HWTEST_F(HdiBackendSysTest, GetLayersReleaseFence001, Function | MediumTest| Level3)
-{
-    const std::unordered_map<uint32_t, LayerPtr> &layersMap = output_->GetLayers();
-    std::vector<uint32_t> layersId;
-    std::vector<sptr<SyncFence>> fences;
-    int32_t fenceId = 5;
-    for (auto iter = layersMap.begin(); iter != layersMap.end(); iter++) {
-        uint32_t layerId = iter->first;
-        layersId.emplace_back(layerId);
-        fences.emplace_back(new SyncFence(fenceId));
-        fenceId++;
-    }
-    EXPECT_CALL(*mockDevice_, GetScreenReleaseFence(_, layersId, fences)).WillRepeatedly(testing::Return(0));
-    std::map<LayerInfoPtr, sptr<SyncFence>> layersReleaseFence = hdiBackend_->GetLayersReleaseFence(output_);
-    bool ret = (layersReleaseFence.size() == fences.size());
-    ASSERT_EQ(ret, true);
-}
-
-/*
-* Function: RegHwcDeadListener001
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call RegHwcDeadListener
-*                  2. check ret
-*/
-HWTEST_F(HdiBackendSysTest, RegHwcDeadListener001, Function | MediumTest| Level3)
-{
-    ASSERT_EQ(HdiBackendSysTest::hdiBackend_->RegHwcDeadListener(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
-}
-
-
-/*
-* Function: RegHwcDeadListener002
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call RegHwcDeadListener
-*                  2. check ret
-*/
-HWTEST_F(HdiBackendSysTest, RegHwcDeadListener002, Function | MediumTest| Level3)
-{
-    auto func = [](void* data) -> void {};
-    EXPECT_CALL(*mockDevice_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(false));
-    RosenError ret = HdiBackendSysTest::hdiBackend_->RegHwcDeadListener(func, nullptr);
-    ASSERT_EQ(ret, ROSEN_ERROR_API_FAILED);
-
-    EXPECT_CALL(*mockDevice_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(true));
-    ret = HdiBackendSysTest::hdiBackend_->RegHwcDeadListener(func, nullptr);
-    ASSERT_EQ(ret, ROSEN_ERROR_OK);
 }
 
 } // namespace

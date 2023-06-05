@@ -95,7 +95,6 @@ namespace OHOS {
         hdiBackend_->RegScreenHotplug(onScreenHotplugFunc, data1);
         hdiBackend_->RegPrepareComplete(onPrepareCompleteFunc, data2);
         hdiBackend_->Repaint(outputptr);
-        hdiBackend_->GetLayersReleaseFence(outputptr);
 
         return true;
     }

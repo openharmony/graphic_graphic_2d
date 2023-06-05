@@ -25,7 +25,6 @@
 #include "hdi_layer.h"
 #include "hdi_output.h"
 #include "surface_type.h"
-#include "vsync_sampler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -50,12 +49,11 @@ public:
     RosenError RegPrepareComplete(OnPrepareCompleteFunc func, void* data);
     RosenError RegHwcDeadListener(OnHwcDeadCallback func, void* data);
     void Repaint(const OutputPtr &output);
-    std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFence(const OutputPtr& output);
     void ResetDevice();
     /* for RS end */
 
     /* only used for mock tests */
-    void SetHdiBackendDevice(HdiDevice* device);
+    RosenError SetHdiBackendDevice(HdiDevice* device);
 private:
     HdiBackend() = default;
     virtual ~HdiBackend() = default;
@@ -79,18 +77,7 @@ private:
     void OnScreenHotplug(uint32_t screenId, bool connected);
     void ReorderLayerInfo(std::vector<LayerInfoPtr> &newLayerInfos);
     void OnPrepareComplete(bool needFlush, const OutputPtr &output, std::vector<LayerInfoPtr> &newLayerInfos);
-    int32_t FlushScreen(const OutputPtr &output, std::vector<LayerPtr> &compClientLayers, sptr<SurfaceBuffer> &buffer);
-    void ReleaseFramebuffer(const OutputPtr &output, sptr<SyncFence> &presentFence, const sptr<SurfaceBuffer> &buffer);
-    int32_t SetScreenClientInfo(const FrameBufferEntry &fbEntry, const OutputPtr &output);
-    int32_t UpdateLayerCompType(uint32_t screenId, const std::unordered_map<uint32_t, LayerPtr> &layersMap);
-    int32_t PreProcessLayersComp(const OutputPtr &output, bool &needFlush);
-    int32_t PrepareCompleteIfNeed(const OutputPtr &output, bool needFlush, sptr<SurfaceBuffer> &buffer);
-    void UpdateInfosAfterCommit(const OutputPtr &output, sptr<SyncFence> fbFence);
-    
-
-    sptr<VSyncSampler> sampler_ = nullptr;
-    std::unordered_map<int, sptr<SurfaceBuffer>> lastFrameBuffers_;
-    sptr<SyncFence> lastPresentFence_ = SyncFence::INVALID_FENCE;
+    int32_t PrepareCompleteIfNeed(const OutputPtr &output, bool needFlush);
 };
 } // namespace Rosen
 } // namespace OHOS
