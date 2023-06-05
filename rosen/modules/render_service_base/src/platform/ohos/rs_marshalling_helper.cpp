@@ -859,6 +859,42 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader
 }
 #endif
 
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSLinearGradientBlurPara>& val)
+{
+    bool success = Marshalling(parcel, val->blurRadius_);
+    success = success && parcel.WriteUint32(static_cast<uint32_t>(val->fractionStops_.size()));
+    for (size_t i = 0; i < val->fractionStops_.size(); i++) {
+        success = success && Marshalling(parcel, val->fractionStops_[i].first);
+        success = success && Marshalling(parcel, val->fractionStops_[i].second);
+    }
+    success = success && Marshalling(parcel, val->direction_);
+    return success;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSLinearGradientBlurPara>& val)
+{
+    float blurRadius;
+    std::vector<std::pair<float, float>> fractionStops;
+    GradientDirection direction = GradientDirection::NONE;
+    bool success = Unmarshalling(parcel, blurRadius);
+    uint32_t fractionStopsSize = parcel.ReadUint32();
+    for (size_t i = 0; i < fractionStopsSize; i++) {
+        std::pair<float, float> fractionStop;
+        float first = 0.0;
+        float second = 0.0;
+        success = success && Unmarshalling(parcel, first);
+        fractionStop.first = first;
+        success = success && Unmarshalling(parcel, second);
+        fractionStop.second = second;
+        fractionStops.push_back(fractionStop);
+    }
+    success = success && Unmarshalling(parcel, direction);
+    if (success) {
+        val = std::make_shared<RSLinearGradientBlurPara>(blurRadius, fractionStops, direction);
+    }
+    return success;
+}
+
 // RSPath
 #ifndef USE_ROSEN_DRAWING
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSPath>& val)
@@ -1324,6 +1360,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, int)                          \
     EXPLICIT_INSTANTIATION(TEMPLATE, Color)                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)            \
     EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                   \
@@ -1347,6 +1384,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, int)                          \
     EXPLICIT_INSTANTIATION(TEMPLATE, Color)                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)            \
     EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                   \
@@ -1371,6 +1409,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, int)                          \
     EXPLICIT_INSTANTIATION(TEMPLATE, Color)                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)            \
     EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                   \
@@ -1379,6 +1418,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)      \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)      \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)    \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)    \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)               \
