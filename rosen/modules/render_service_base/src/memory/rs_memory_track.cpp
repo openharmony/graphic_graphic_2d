@@ -226,7 +226,7 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
         log.AppendFormat("%s\n", GenerateDetail(info, windowId, windowName, nodeFrameRect).c_str());
     }
 
-    for (int i = MEM_PIXELMAP; i < MEM_MAX_SIZE; i++) {
+    for (uint32_t i = MEM_PIXELMAP; i < MEM_MAX_SIZE; i++) {
         MEMORY_TYPE type = static_cast<MEMORY_TYPE>(i);
         log.AppendFormat("  %s:Size = %d KB (%d entries)\n", MemoryType2String(type), arrTotal[i], arrCount[i]);
     }

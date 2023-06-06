@@ -227,7 +227,6 @@ void DrawCmdList::FindIndexOfImage() const
             imageIndexs_.emplace_back(index);
         }
     }
-
 }
 
 bool DrawCmdList::Marshalling(Parcel& parcel) const
