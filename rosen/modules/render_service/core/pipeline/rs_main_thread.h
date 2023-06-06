@@ -319,6 +319,9 @@ private:
     bool hasDrivenNodeOnUniTree_ = false;
     bool hasDrivenNodeMarkRender_ = false;
 
+    // used for print control of trace
+    bool isSkiaTraceEnabled_ = false;
+
     // used for control start and end of the click animation
     bool requestResschedReport_ = true;
 

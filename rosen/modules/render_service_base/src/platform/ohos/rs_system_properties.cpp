@@ -80,6 +80,12 @@ bool RSSystemProperties::GetUniRenderEnabled()
     return isUniRenderEnabled_;
 }
 
+bool RSSystemProperties::GetSkiaTraceEnabled()
+{
+    static bool isSkiaTraceEnabled = system::GetParameter("persist.rosen.skiatrace.enabled", "0") != "0";
+    return isSkiaTraceEnabled;
+}
+
 bool RSSystemProperties::GetDrawOpTraceEnabled()
 {
     static bool code = system::GetParameter("persist.rosen.drawoptrace.enabled", "0") != "0";

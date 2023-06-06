@@ -19,6 +19,8 @@
 #include <securec.h>
 #include <stdint.h>
 #include <string>
+#include <src/core/SkTraceEventCommon.h>
+
 #ifdef NEW_SKIA
 #include "include/gpu/GrDirectContext.h"
 #else
@@ -300,6 +302,11 @@ void RSMainThread::Init()
     auto delegate = RSFunctionalDelegate::Create();
     delegate->SetRepaintCallback([]() { RSMainThread::Instance()->RequestNextVSync(); });
     RSOverdrawController::GetInstance().SetDelegate(delegate);
+
+#ifdef SK_BUILD_TRACE_FOR_OHOS
+    isSkiaTraceEnabled_ = RSSystemProperties::GetSkiaTraceEnabled();
+    SkOHOSTraceUtil::setEnableTracing(isSkiaTraceEnabled_);
+#endif
 }
 
 void RSMainThread::RsEventParamDump(std::string& dumpString)
@@ -1231,6 +1238,12 @@ void RSMainThread::RequestNextVSync()
 
 void RSMainThread::OnVsync(uint64_t timestamp, void* data)
 {
+#ifdef SK_BUILD_TRACE_FOR_OHOS
+    if (isSkiaTraceEnabled_) {
+        RS_LOGI("RSMainThread::OnVsync - Start");
+        SkOHOSTraceUtil::clearOpsCount();
+    }
+#endif
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::OnVsync");
     timestamp_ = timestamp;
     requestNextVsyncNum_ = 0;
@@ -1249,6 +1262,18 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
         }
     }
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+#ifdef SK_BUILD_TRACE_FOR_OHOS
+    if (isSkiaTraceEnabled_) {
+        uint64_t opsCount = SkOHOSTraceUtil::getOpsCount();
+        RS_LOGI("RSMainThread::OnVsync - End with totally %" PRIu64 " ops", opsCount);
+        std::vector<std::pair<std::string, uint64_t>> opsCountVtr = SkOHOSTraceUtil::getOpsCountVector(true);
+        uint32_t topId = 1;
+        for (const auto& opItem : opsCountVtr) {
+            RS_LOGI("RSMainThread::OnVsync - End with [ %s ] : %" PRIu64 " ops (Top-%" PRIu32 ")", 
+                opItem.first.c_str(), opItem.second, topId++);
+        }
+    }
+#endif
 }
 
 void RSMainThread::ResSchedDataStartReport(bool needRequestNextVsync)

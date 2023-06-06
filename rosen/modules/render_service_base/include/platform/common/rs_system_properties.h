@@ -83,6 +83,7 @@ public:
 
     static bool GetUniRenderEnabled();
     static bool GetRenderNodeTraceEnabled();
+    static bool GetSkiaTraceEnabled();
     static bool GetDrawOpTraceEnabled();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();

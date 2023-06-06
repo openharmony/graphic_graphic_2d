@@ -15,6 +15,8 @@
 
 #include "ui/rs_ui_director.h"
 
+#include <src/core/SkTraceEventCommon.h>
+
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 
@@ -25,6 +27,7 @@
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "transaction/rs_application_agent_impl.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -82,6 +85,11 @@ void RSUIDirector::Init(bool shouldCreateRenderThread)
     RSApplicationAgentImpl::Instance().RegisterRSApplicationAgent();
 
     GoForeground();
+
+#ifdef SK_BUILD_TRACE_FOR_OHOS
+    isSkiaTraceEnabled_ = RSSystemProperties::GetSkiaTraceEnabled();
+    SkOHOSTraceUtil::setEnableTracing(isSkiaTraceEnabled_);
+#endif
 }
 
 void RSUIDirector::GoForeground()
