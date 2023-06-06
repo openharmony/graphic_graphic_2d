@@ -17,6 +17,7 @@
 #include <iostream>
 #include <surface.h>
 
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkBitmap.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkColor.h"
@@ -25,6 +26,7 @@
 #include "include/core/SkPaint.h"
 #include "include/core/SkRect.h"
 #include "include/core/SkTileMode.h"
+#endif
 #include "wm/window.h"
 
 #include "modifier/rs_extended_modifier.h"
@@ -51,12 +53,20 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     rootNode = RSRootNode::Create();
     rootNode->SetBounds(0, 0, width, height);
     rootNode->SetFrame(0, 0, width, height);
+#ifndef USE_ROSEN_DRAWING
     rootNode->SetBackgroundColor(SK_ColorYELLOW);
+#else
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
+#endif
 
     nodes.emplace_back(RSCanvasNode::Create());
     nodes[0]->SetBounds(0, 0, 100, 100);
     nodes[0]->SetFrame(0, 0, 100, 100);
+#ifndef USE_ROSEN_DRAWING
     nodes[0]->SetBackgroundColor(SK_ColorBLUE);
+#else
+    nodes[0]->SetBackgroundColor(Drawing::Color::COLOR_BLUE);
+#endif
 
     rootNode->AddChild(nodes[0], -1);
 
@@ -105,6 +115,7 @@ public:
     ~MyModifier() = default;
     void Draw(RSDrawingContext& context) const override
     {
+#ifndef USE_ROSEN_DRAWING
         SkBitmap bitmap;
         bitmap.allocN32Pixels(100, 100);
         bitmap.eraseColor(0xffff7f3f);
@@ -120,6 +131,42 @@ public:
         p.setAlphaf(animatableProperty->Get().data);
         std::cout << "MyModifier Draw property get  " << animatableProperty->Get().data << std::endl;
         context.canvas->drawRect(SkRect::MakeWH(context.width, context.height), p);
+#else
+        Drawing::Bitmap bitmap;
+        bitmap.Build(100, 100, Drawing::BitmapFormat {
+            Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_PREMUL});
+        Drawing::Surface surface;
+        surface.Bind(bitmap);
+        auto tempCanvas = surface.GetCanvas();
+        tempCanvas->Clear(0xffff3f7f);
+
+        Drawing::Brush tempBrush;
+        tempBrush.SetColor(Drawing::Color(0xff3fff7f));
+        tempCanvas->AttachBrush(tempBrush);
+        tempCanvas->DrawRect(Drawing::Rect(0, 0, 50, 50));
+
+        tempBrush.SetColor(Drawing::Color(0xffff3f7f));
+        tempCanvas->AttachBrush(tempBrush);
+        tempCanvas->DrawRect(Drawing::Rect(50, 50, 100, 100));
+        tempCanvas->DetachBrush();
+
+        auto image = surface.GetImageSnapshot();
+        if (image == nullptr) {
+            return;
+        }
+        Drawing::SamplingOptions sampling;
+        Drawing::Matrix matrix;
+        Drawing::Brush brush;
+        brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
+            *image, Drawing::TileMode::REPEAT, Drawing::TileMode::REPEAT, sampling, matrix));
+        auto animatableProperty = std::static_pointer_cast<RSAnimatableProperty<MyData>>(property_);
+        brush.SetAlphaf(animatableProperty->Get().data);
+
+        std::cout << "MyModifier Draw property get  " << animatableProperty->Get().data << std::endl;
+        context.canvas->AttachBrush(brush);
+        context.canvas->DrawRect(Drawing::Rect(0, 0, context.width, context.height));
+        context.canvas->DetachBrush();
+#endif
     }
 };
 
