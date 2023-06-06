@@ -76,7 +76,11 @@ OverdrawColorArray RSOverdrawController::GetColorArray() const
     return colorArray_;
 }
 
+#ifndef USE_ROSEN_DRAWING
 std::map<int, SkColor> RSOverdrawController::GetColorMap() const
+#else
+std::map<int, Drawing::ColorQuad> RSOverdrawController::GetColorMap() const
+#endif
 {
     std::lock_guard lock(colorMutex_);
     return colorMap_;
@@ -130,7 +134,11 @@ void RSOverdrawController::OnColorChange(const char *key, const char *value, voi
         }
 
         // map
+#ifndef USE_ROSEN_DRAWING
         std::map<int, SkColor> colorMap;
+#else
+        std::map<int, Drawing::ColorQuad> colorMap;
+#endif
         for (size_t i = 0; i < colors.size(); i++) {
             colorMap[i + 1] = colors[i];
         }
