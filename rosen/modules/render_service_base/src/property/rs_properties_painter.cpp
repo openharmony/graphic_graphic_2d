@@ -672,7 +672,7 @@ sk_sp<SkShader> RSPropertiesPainter::MakeHorizontalMeanBlurShader(
         {
             half4 sum = vec4(0.0);
             half div = 0;
-            for (half x = -50.0; x < 50.0; x += 1.0) {
+            for (half x = -30.0; x < 30.0; x += 1.0) {
                 if (x > radius) {
                     break;
                 }
@@ -710,7 +710,7 @@ sk_sp<SkShader> RSPropertiesPainter::MakeVerticalMeanBlurShader(
         {
             half4 sum = vec4(0.0);
             half div = 0;
-            for (half y = -50.0; y < 50.0; y += 1.0) {
+            for (half y = -30.0; y < 30.0; y += 1.0) {
                 if (y > radius) {
                     break;
                 }
