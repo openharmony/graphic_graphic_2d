@@ -1570,7 +1570,7 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         grContext->flush();
         SkGraphics::PurgeAllCaches(); // clear cpu cache
         if (!IsResidentProcess(remotePid)) {
-            ReleaseExitSurfaceNodeAllGpuResource(grContext, remotePid);
+            ReleaseExitSurfaceNodeAllGpuResource(grContext);
         } else {
             RS_LOGW("this pid:%d is resident process, no need release gpu resource", remotePid);
         }
@@ -1592,15 +1592,15 @@ bool RSMainThread::IsResidentProcess(pid_t pid)
 }
 
 #ifdef NEW_SKIA
-void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrDirectContext* grContext, pid_t pid)
+void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrDirectContext* grContext)
 #else
-void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext, pid_t pid)
+void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext)
 #endif
 {
     switch (RSSystemProperties::GetReleaseGpuResourceEnabled()) {
         case ReleaseGpuResourceType::WINDOW_HIDDEN:
         case ReleaseGpuResourceType::WINDOW_HIDDEN_AND_LAUCHER:
-            MemoryManager::ReleaseUnlockGpuResource(grContext);
+            MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
             break;
         default:
             break;

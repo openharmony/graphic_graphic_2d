@@ -188,9 +188,9 @@ private:
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
 #ifdef NEW_SKIA
-    void ReleaseExitSurfaceNodeAllGpuResource(GrDirectContext* grContext, pid_t pid);
+    void ReleaseExitSurfaceNodeAllGpuResource(GrDirectContext* grContext);
 #else
-    void ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext, pid_t pid);
+    void ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext);
 #endif
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);

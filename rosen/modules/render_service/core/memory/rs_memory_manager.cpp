@@ -213,6 +213,34 @@ void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, bo
 
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
+void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(GrDirectContext* grContext)
+#else
+void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(GrContext* grContext)
+#endif
+{
+#ifdef RS_ENABLE_GL
+    if (!grContext) {
+        RS_LOGE("ReleaseUnlockAndSafeCacheGpuResource fail, grContext is nullptr");
+    }
+    RS_TRACE_NAME_FMT("ReleaseUnlockAndSafeCacheGpuResource");
+    grContext->purgeUnlockAndSafeCacheGpuResources();
+#endif
+}
+#else
+void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* gpuContext)
+{
+#ifdef RS_ENABLE_GL
+    if(!gpuContext) {
+        RS_LOGE("ReleaseUnlockAndSafeCacheGpuResource fail, gpuContext is nullptr");
+    }
+    RS_TRACE_NAME_FMT("ReleaseUnlockAndSafeCacheGpuResource");
+    // TODO Drawing grContext->purgeUnlockedResources(scratchResourcesOnly);
+#endif
+}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
+#ifdef NEW_SKIA
 void MemoryManager::DumpPidMemory(DfxString& log, int pid, const GrDirectContext* grContext)
 #else
 void MemoryManager::DumpPidMemory(DfxString& log, int pid, const GrContext* grContext)
