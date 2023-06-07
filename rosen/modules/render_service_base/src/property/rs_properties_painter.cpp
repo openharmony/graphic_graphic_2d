@@ -1270,8 +1270,8 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
     if (properties.GetClipBounds() != nullptr) {
         canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), antiAlias);
     } else if (properties.GetClipToBounds()) {
-    // In NEW_SKIA version, L476 code will cause crash if the second parameter is true.
-    // so isAntiAlias is false only the method is called in ProcessAnimatePropertyBeforeChildren().
+        // In NEW_SKIA version, L476 code will cause crash if the second parameter is true.
+        // so isAntiAlias is false only the method is called in ProcessAnimatePropertyBeforeChildren().
 #ifdef NEW_SKIA
         if (properties.GetCornerRadius().IsZero()) {
             canvas.clipRect(Rect2SkRect(properties.GetBoundsRect()), isAntiAlias);
@@ -1292,7 +1292,13 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
     if (bgColor != RgbPalette::Transparent()) {
         paint.setColor(bgColor.AsArgbInt());
         canvas.drawRRect(RRect2SkRRect(properties.GetRRect()), paint);
-    } else if (const auto& bgImage = properties.GetBgImage()) {
+    }
+    if (const auto& bgShader = properties.GetBackgroundShader()) {
+        canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), antiAlias);
+        paint.setShader(bgShader->GetSkShader());
+        canvas.drawPaint(paint);
+    }
+    if (const auto& bgImage = properties.GetBgImage()) {
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), antiAlias);
         auto boundsRect = Rect2SkRect(properties.GetBoundsRect());
         bgImage->SetDstRect(properties.GetBgImageRect());
@@ -1301,10 +1307,6 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
 #else
         bgImage->CanvasDrawImage(canvas, boundsRect, paint, true);
 #endif
-    } else if (const auto& bgShader = properties.GetBackgroundShader()) {
-        canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), antiAlias);
-        paint.setShader(bgShader->GetSkShader());
-        canvas.drawPaint(paint);
     }
     canvas.restore();
 #else
@@ -1323,17 +1325,19 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
         canvas.AttachBrush(brush);
         canvas.DrawRoundRect(RRect2DrawingRRect(properties.GetRRect()));
         canvas.DetachBrush();
-    } else if (const auto& bgImage = properties.GetBgImage()) {
+    }
+    if (const auto& bgShader = properties.GetBackgroundShader()) {
+        canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
+        brush.SetShaderEffect(bgShader->GetDrawingShader());
+        canvas.DrawBackground(brush);
+    }
+    if (const auto& bgImage = properties.GetBgImage()) {
         canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
         auto boundsRect = Rect2DrawingRect(properties.GetBoundsRect());
         bgImage->SetDstRect(properties.GetBgImageRect());
         canvas.AttachBrush(brush);
         bgImage->CanvasDrawImage(canvas, boundsRect, true);
         canvas.DetachBrush();
-    } else if (const auto& bgShader = properties.GetBackgroundShader()) {
-        canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
-        brush.SetShaderEffect(bgShader->GetDrawingShader());
-        canvas.DrawBackground(brush);
     }
     canvas.Restore();
 #endif
