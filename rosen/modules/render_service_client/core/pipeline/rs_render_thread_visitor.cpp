@@ -531,11 +531,6 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         if (node.GetCacheType() != CacheType::ANIMATE_PROPERTY) {
             node.SetCacheType(CacheType::ANIMATE_PROPERTY);
             node.ClearCacheSurface();
-#ifdef NEW_SKIA
-            node.InitCacheSurface(canvas_->recordingContext());
-#else
-            node.InitCacheSurface(canvas_->getGrContext());
-#endif
         }
         if (!node.GetCompletedCacheSurface() && UpdateAnimatePropertyCacheSurface(node)) {
             node.UpdateCompletedCacheSurface();
@@ -559,11 +554,12 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 
 bool RSRenderThreadVisitor::UpdateAnimatePropertyCacheSurface(RSRenderNode& node)
 {
-    if (node.GetCompletedCacheSurface()) {
-        return true;
-    }
     if (!node.GetCacheSurface()) {
-        return false;
+#ifdef NEW_SKIA
+        node.InitCacheSurface(canvas_ ? canvas_->recordingContext() : nullptr);
+#else
+        node.InitCacheSurface(canvas_ ? canvas_->getGrContext() : nullptr);
+#endif
     }
     auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
     if (!cacheCanvas) {
