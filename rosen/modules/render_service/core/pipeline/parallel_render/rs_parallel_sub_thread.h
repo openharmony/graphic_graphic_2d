@@ -55,8 +55,13 @@ public:
     void SetSuperTask(std::unique_ptr<RSSuperRenderTask> superRenderTask);
     void SetCompositionTask(std::unique_ptr<RSCompositionTask> compositionTask);
     EGLContext GetSharedContext() const;
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> GetSkSurface() const;
     sk_sp<SkImage> GetTexture() const;
+#else
+    std::shared_ptr<Drawing::Surface> GetDrawingSurface() const;
+    std::shared_ptr<Drawing::Image> GetTexture() const;
+#endif
     bool WaitReleaseFence();
     std::shared_ptr<RSUniRenderVisitor> GetUniVisitor() const
     {
@@ -84,16 +89,22 @@ private:
     void CalcCost();
     void StartComposition();
     void Composition();
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     sk_sp<GrDirectContext> CreateShareGrContext();
 #else
     sk_sp<GrContext> CreateShareGrContext();
 #endif
     void AcquireSubSkSurface(int width, int height);
+#else
+    std::shared_ptr<Drawing::GPUContext> CreateShareGPUContext();
+    void AcquireSubDrawingSurface(int width, int height);
+#endif
 
     uint32_t threadIndex_;
     int surfaceWidth_ = 0;
     int surfaceHeight_ = 0;
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     sk_sp<GrDirectContext> grContext_ = nullptr;
 #else
@@ -101,6 +112,11 @@ private:
 #endif
     sk_sp<SkSurface> skSurface_ = nullptr;
     SkCanvas *skCanvas_ = nullptr;
+#else
+    std::shared_ptr<Drawing::GPUContext> drContext_ = nullptr;
+    std::shared_ptr<Drawing::Surface> surface_ = nullptr;
+    Drawing::Canvas *drCanvas_ = nullptr;
+#endif
     std::shared_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
     std::shared_ptr<RSUniRenderVisitor> visitor_;
     std::shared_ptr<RSUniRenderVisitor> compositionVisitor_ = nullptr;
@@ -117,7 +133,11 @@ private:
 
     RSUniRenderVisitor *mainVisitor_ = nullptr;
     ParallelRenderType renderType_;
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> texture_;
+#else
+    std::shared_ptr<Drawing::Image> texture_;
+#endif
     EGLSyncKHR eglSync_ = EGL_NO_SYNC_KHR;
 
     // Use for Vulkan

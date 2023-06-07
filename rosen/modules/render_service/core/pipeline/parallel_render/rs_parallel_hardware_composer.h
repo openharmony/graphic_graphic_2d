@@ -20,8 +20,12 @@
 #include <memory>
 #include <vector>
 
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkRRect.h"
 #include "include/core/SkRect.h"
+#else
+#include "utils/round_rect.h"
+#endif
 
 #include "common/rs_vector4.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -37,6 +41,7 @@ public:
     {
         return isRRect_;
     }
+#ifndef USE_ROSEN_DRAWING
     SkRect GetRect()
     {
         return SkRect::MakeXYWH(rect_.GetLeft(), rect_.GetTop(), rect_.GetWidth(), rect_.GetHeight());
@@ -51,6 +56,23 @@ public:
         RRect absClipRect = RRect(rect_, radius);
         return RSPropertiesPainter::RRect2SkRRect(absClipRect);
     }
+#else
+    Drawing::Rect GetRect()
+    {
+        return Drawing::Rect(rect_.GetLeft(), rect_.GetTop(),
+            rect_.GetWidth() + rect_.GetLeft(), rect_.GetHeight() + rect_.GetTop());
+    }
+    Drawing::RoundRect GetRRect()
+    {
+        if (isRRect_) {
+            RRect absClipRRect = RRect(rect_, cornerRadius_);
+            return RSPropertiesPainter::RRect2DrawingRRect(absClipRRect);
+        }
+        Vector4f radius = {0.f, 0.f, 0.f, 0.f};
+        RRect absClipRect = RRect(rect_, radius);
+        return RSPropertiesPainter::RRect2DrawingRRect(absClipRect);
+    }
+#endif
 private:
     bool isRRect_;
     RectF rect_;

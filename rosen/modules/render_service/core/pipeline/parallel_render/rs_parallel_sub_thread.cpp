@@ -55,7 +55,11 @@ RSParallelSubThread::~RSParallelSubThread()
     }
     texture_ = nullptr;
     canvas_ = nullptr;
+#ifndef USE_ROSEN_DRAWING
     skSurface_ = nullptr;
+#else
+    surface_ = nullptr;
+#endif
     RS_LOGI("~RSParallelSubThread():%d", threadIndex_);
 }
 
@@ -326,6 +330,7 @@ void RSParallelSubThread::Render()
         RS_LOGE("Canvas is nullptr");
         return;
     }
+#ifndef USE_ROSEN_DRAWING
     int saveCount = canvas_->save();
     if (RSMainThread::Instance()->GetRenderEngine()) {
         canvas_->SetHighContrast(RSMainThread::Instance()->GetRenderEngine()->IsHighContrastEnabled());
@@ -339,6 +344,22 @@ void RSParallelSubThread::Render()
         canvas_->SetCacheType(physicalGeoPtr->IsNeedClientCompose() ? RSPaintFilterCanvas::CacheType::ENABLED
                                                                     : RSPaintFilterCanvas::CacheType::DISABLED);
     }
+#else
+    auto saveCount = canvas_->GetSaveCount();
+    canvas_->Save();
+    if (RSMainThread::Instance()->GetRenderEngine()) {
+        canvas_->SetHighContrast(RSMainThread::Instance()->GetRenderEngine()->IsHighContrastEnabled());
+    }
+    if (renderType_ == ParallelRenderType::DRAW_IMAGE) {
+        canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    }
+    canvas_->Save();
+    if (physicalGeoPtr != nullptr) {
+        canvas_->ConcatMatrix(physicalGeoPtr->GetMatrix());
+        canvas_->SetCacheType(physicalGeoPtr->IsNeedClientCompose() ? RSPaintFilterCanvas::CacheType::ENABLED
+            : RSPaintFilterCanvas::CacheType::DISABLED);
+    }
+#endif
     while (threadTask_->GetTaskSize() > 0) {
         RSParallelRenderManager::Instance()->StartTiming(threadIndex_);
         auto task = threadTask_->GetNextRenderTask();
@@ -355,7 +376,11 @@ void RSParallelSubThread::Render()
         RSParallelRenderManager::Instance()->StopTimingAndSetRenderTaskCost(
             threadIndex_, task->GetIdx(), TaskType::PROCESS_TASK);
     }
+#ifndef USE_ROSEN_DRAWING
     canvas_->restoreToCount(saveCount);
+#else
+    canvas_->RestoreToCount(saveCount);
+#endif
 #elif RS_ENABLE_VK
     if (!displayNode_) {
         RS_LOGE("RSParallelSubThread::Render displayNode_ nullptr");
@@ -397,6 +422,7 @@ void RSParallelSubThread::Flush()
 {
     threadTask_ = nullptr;
 #ifdef RS_ENABLE_GL
+#ifndef USE_ROSEN_DRAWING
     if (skCanvas_ == nullptr) {
         RS_LOGE("in Flush(), skCanvas is nullptr");
         return;
@@ -421,6 +447,25 @@ void RSParallelSubThread::Flush()
         texture_ = skSurface_->makeImageSnapshot();
         skCanvas_->discard();
     }
+#else
+    if (drCanvas_ == nullptr) {
+        RS_LOGE("in Flush(), drCanvas is nullptr");
+        return;
+    }
+    if (renderType_ == ParallelRenderType::DRAW_IMAGE) {
+        RS_TRACE_BEGIN("Flush");
+        // drCanvas->flush() may tasks a long time when window is zoomed in and out. So let flush operation of
+        // subMainThreads are executed in sequence to reduce probability rather than solve the question.
+        RSParallelRenderManager::Instance()->LockFlushMutex();
+        drCanvas_->Flush();
+        RSParallelRenderManager::Instance()->UnlockFlushMutex();
+        RS_TRACE_END();
+        RS_TRACE_BEGIN("Create Fence");
+        eglSync_ = eglCreateSyncKHR(renderContext_->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
+        RS_TRACE_END();
+        texture_ = surface_->GetImageSnapshot();
+    }
+#endif
 #endif
     // FIRSTFLUSH or WAITFIRSTFLUSH
     ParallelStatus parallelStatus = RSParallelRenderManager::Instance()->GetParallelRenderingStatus();
@@ -458,6 +503,7 @@ void RSParallelSubThread::CreateResource()
             threadIndex_, width, height, surfaceWidth_, surfaceHeight_);
         surfaceWidth_ = width;
         surfaceHeight_ = height;
+#ifndef USE_ROSEN_DRAWING
         AcquireSubSkSurface(surfaceWidth_, surfaceHeight_);
         if (skSurface_ == nullptr) {
             RS_LOGE("in CreateResource, skSurface is nullptr");
@@ -466,6 +512,16 @@ void RSParallelSubThread::CreateResource()
         skCanvas_ = skSurface_->getCanvas();
         canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_);
         canvas_->SetIsParallelCanvas(true);
+#else
+        AcquireSubDrawingSurface(surfaceWidth_, surfaceHeight_);
+        if (surface_ == nullptr) {
+            RS_LOGE("in CreateResource, surface_ is nullptr");
+            return;
+        }
+        drCanvas_ = surface_->GetCanvas().get();
+        canvas_ = std::make_shared<RSPaintFilterCanvas>(drCanvas_);
+        canvas_->SetIsParallelCanvas(true);
+#endif
     }
     visitor_ = std::make_shared<RSUniRenderVisitor>(canvas_, threadIndex_);
 #elif RS_ENABLE_VK
@@ -482,6 +538,7 @@ void RSParallelSubThread::CreateResource()
         RSParallelRenderManager::Instance()->GetUniVisitor());
 }
 
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
 sk_sp<GrDirectContext> RSParallelSubThread::CreateShareGrContext()
 #else
@@ -510,7 +567,21 @@ sk_sp<GrContext> RSParallelSubThread::CreateShareGrContext()
     }
     return grContext;
 }
+#else
+std::shared_ptr<Drawing::GPUContext> RSParallelSubThread::CreateShareGPUContext()
+{
+    auto drGPUContext = std::make_shared<Drawing::GPUContext>();
+    if (drGPUContext == nullptr) {
+        RS_LOGE("nullptr grContext is null");
+        return nullptr;
+    }
+    Drawing::GPUContextOptions options;
+    drGPUContext->BuildFromGL(options);
+    return drGPUContext;
+}
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 void RSParallelSubThread::AcquireSubSkSurface(int width, int height)
 {
     if (grContext_ == nullptr) {
@@ -529,6 +600,33 @@ void RSParallelSubThread::AcquireSubSkSurface(int width, int height)
         return;
     }
 }
+#else
+void RSParallelSubThread::AcquireSubDrawingSurface(int width, int height)
+{
+    if (drContext_ == nullptr) {
+        drContext_ = CreateShareGPUContext();
+    }
+
+    if (drContext_ == nullptr) {
+        RS_LOGE("Share GrContext is not ready!!!");
+        return;
+    }
+
+    Drawing::BitmapFormat format = { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    Drawing::Bitmap bitmap;
+    bitmap.Build(width, height, format);
+
+    Drawing::Image image;
+    image.BuildFromBitmap(*drContext_, bitmap);
+
+    surface_ = std::make_shared<Drawing::Surface>();
+    if (surface_ == nullptr) {
+        RS_LOGE("skSurface is not ready!!!");
+        return;
+    }
+    surface_->Bind(image);
+}
+#endif
 
 void RSParallelSubThread::StartComposition()
 {
@@ -569,10 +667,17 @@ EGLContext RSParallelSubThread::GetSharedContext() const
     return eglShareContext_;
 }
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkSurface> RSParallelSubThread::GetSkSurface() const
 {
     return skSurface_;
 }
+#else
+std::shared_ptr<Drawing::Surface> RSParallelSubThread::GetDrawingSurface() const
+{
+    return surface_;
+}
+#endif
 
 void RSParallelSubThread::SetSuperTask(std::unique_ptr<RSSuperRenderTask> superRenderTask)
 {
@@ -584,10 +689,15 @@ void RSParallelSubThread::SetCompositionTask(std::unique_ptr<RSCompositionTask> 
     compositionTask_ = std::move(compositionTask);
 }
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> RSParallelSubThread::GetTexture() const
+#else
+std::shared_ptr<Drawing::Image> RSParallelSubThread::GetTexture() const
+#endif
 {
     return texture_;
 }
+
 
 } // namespace Rosen
 } // namespace OHOS
