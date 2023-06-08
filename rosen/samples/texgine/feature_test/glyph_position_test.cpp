@@ -62,7 +62,7 @@ public:
     {
         TextStyle xs;
         xs.fontFamilies = {"Segoe UI Emoji"};
-        xs.fontSize = 14;
+        xs.fontSize = 14;   // 14 means the font size
 
         for (auto &data : g_datas) {
             auto dfProvider = DynamicFileFontProvider::Create();
