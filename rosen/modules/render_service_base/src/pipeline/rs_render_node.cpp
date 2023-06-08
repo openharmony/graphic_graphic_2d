@@ -448,6 +448,10 @@ void RSRenderNode::InitCacheSurface(GrContext* grContext)
         height = boundsHeight_;
     }
 #if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
+    if (grContext == nullptr) {
+        cacheSurface_ = nullptr;
+        return;
+    }
     SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
     cacheSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kYes, info);
 #else

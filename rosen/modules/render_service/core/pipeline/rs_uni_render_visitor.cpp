@@ -2219,11 +2219,6 @@ void RSUniRenderVisitor::CheckAndSetNodeCacheType(RSRenderNode& node)
         if (node.GetCacheType() != CacheType::CONTENT) {
             node.SetCacheType(CacheType::CONTENT);
             node.ClearCacheSurface();
-#ifdef NEW_SKIA
-        node.InitCacheSurface(canvas_->recordingContext());
-#else
-        node.InitCacheSurface(canvas_->getGrContext());
-#endif
         }
         if (!node.GetCompletedCacheSurface() && UpdateCacheSurface(node)) {
             node.UpdateCompletedCacheSurface();
@@ -2246,7 +2241,11 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
     }
 
     if (!node.GetCacheSurface()) {
-        return false;
+#ifdef NEW_SKIA
+        node.InitCacheSurface(canvas_ ? canvas_->recordingContext() : nullptr);
+#else
+        node.InitCacheSurface(canvas_ ? canvas_->getGrContext() : nullptr);
+#endif
     }
     auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
     if (!cacheCanvas) {
@@ -2311,11 +2310,6 @@ void RSUniRenderVisitor::DrawSpherize(RSRenderNode& node)
     if (node.GetCacheType() != CacheType::ANIMATE_PROPERTY) {
         node.SetCacheType(CacheType::ANIMATE_PROPERTY);
         node.ClearCacheSurface();
-#ifdef NEW_SKIA
-        node.InitCacheSurface(canvas_->recordingContext());
-#else
-        node.InitCacheSurface(canvas_->getGrContext());
-#endif
     }
     if (!node.GetCompletedCacheSurface() && UpdateCacheSurface(node)) {
         node.UpdateCompletedCacheSurface();
@@ -2689,11 +2683,6 @@ bool RSUniRenderVisitor::InitNodeCache(RSRenderNode& node)
         if (cacheRenderNodeMap.count(node.GetId()) == 0) {
             node.SetCacheType(CacheType::CONTENT);
             node.ClearCacheSurface();
-#ifdef NEW_SKIA
-            node.InitCacheSurface(canvas_->recordingContext());
-#else
-            node.InitCacheSurface(canvas_->getGrContext());
-#endif
             if (UpdateCacheSurface(node)) {
                 node.UpdateCompletedCacheSurface();
                 cacheRenderNodeMap[node.GetId()] = 0;
