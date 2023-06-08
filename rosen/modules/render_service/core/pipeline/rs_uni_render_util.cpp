@@ -374,9 +374,11 @@ bool RSUniRenderUtil::HandleSubThreadNode(RSRenderNode& node, RSPaintFilterCanva
     }
     if (!node.HasCachedTexture()) {
         RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", node.GetId());
+#ifdef RS_ENABLE_GL
         RSParallelRenderManager::Instance()->WaitNodeTask(node.GetId());
         node.UpdateCompletedCacheSurface();
         RSParallelRenderManager::Instance()->SaveCacheTexture(node);
+#endif
     }
     RS_TRACE_NAME_FMT("RSUniRenderUtil::HandleSubThreadNode %" PRIu64 "", node.GetId());
     node.DrawCacheSurface(canvas, true);
