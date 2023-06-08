@@ -567,7 +567,7 @@ int32_t RSScreen::GetScreenColorGamut(ScreenColorGamut &mode) const
         return StatusCode::SUCCESS;
     } else {
         if (supportedPhysicalColorGamuts_.size() == 0) {
-            RS_LOGE("RSScreen %s: RSScreen(id %" PRIu64 ") failed to GetScreenColorGamuts.", __func__, id_);
+            RS_LOGD("RSScreen %s: RSScreen(id %" PRIu64 ") failed to GetScreenColorGamuts.", __func__, id_);
             return StatusCode::HDI_ERROR;
         }
         mode = supportedPhysicalColorGamuts_[currentPhysicalColorGamutIdx_];
