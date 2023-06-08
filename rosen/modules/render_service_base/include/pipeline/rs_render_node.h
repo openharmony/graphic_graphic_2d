@@ -283,6 +283,26 @@ public:
         hasFilter_ = hasFilter;
     }
 
+    bool HasHardwareNode() const
+    {
+        return hasHardwareNode_;
+    }
+
+    void SetHasHardwareNode(bool hasHardwareNode)
+    {
+        hasHardwareNode_ = hasHardwareNode;
+    }
+
+    bool HasAbilityComponent() const
+    {
+        return hasAbilityComponent_;
+    }
+
+    void SetHasAbilityComponent(bool hasAbilityComponent)
+    {
+        hasAbilityComponent_ = hasAbilityComponent;
+    }
+
     bool IsMainThreadNode() const
     {
         return isMainThreadNode_;
@@ -412,6 +432,8 @@ private:
     bool isMainThreadNode_ = true;
     bool isScale_ = false;
     bool hasFilter_ = false;
+    bool hasHardwareNode_ = false;
+    bool hasAbilityComponent_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 
     // driven render

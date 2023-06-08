@@ -130,6 +130,11 @@ public:
         isHardwareForcedDisabled_ = forcesDisabled;
     }
 
+    void SetHardwareDisabledByCache(bool disabledByCache)
+    {
+        isHardwareDisabledByCache_ = disabledByCache;
+    }
+
     void SetHardwareForcedDisabledStateByFilter(bool forcesDisabled)
     {
         isHardwareForcedDisabledByFilter_ = forcesDisabled;
@@ -142,7 +147,7 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        return isHardwareForcedDisabled_ ||
+        return isHardwareForcedDisabled_ || isHardwareDisabledByCache_ ||
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
 
@@ -791,6 +796,7 @@ private:
     // in case where this node's parent window node is occluded or is appFreeze, this variable will be marked true
     bool isHardwareForcedDisabled_ = false;
     bool isHardwareForcedDisabledByFilter_ = false;
+    bool isHardwareDisabledByCache_ = false;
     float localZOrder_ = 0.0f;
     std::vector<WeakPtr> childHardwareEnabledNodes_;
     int32_t nodeCost_ = 0;

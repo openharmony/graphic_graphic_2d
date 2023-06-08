@@ -453,7 +453,8 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
                 }
             }
         }
-        if (node->HasFilter() || (!node->IsScale() && isFocusNode)) {
+        if (node->HasFilter() || node->HasHardwareNode() || node->HasAbilityComponent() ||
+            (!node->IsScale() && isFocusNode)) {
             AssignMainThreadNode(mainThreadNodes, node);
         } else {
             AssignSubThreadNode(subThreadNodes, node, cacheSkippedNodeMap);
@@ -463,7 +464,9 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         if (entryViewNeedReassign) {
             AssignMainThreadNode(mainThreadNodes, entryViewNode);
         } else {
-            if (entryViewNode->HasFilter() || (!entryViewNode->IsScale() && entryViewNode->GetId() == focusNodeId)) {
+            if (entryViewNode->HasFilter() || entryViewNode->HasHardwareNode() ||
+                entryViewNode->HasAbilityComponent() ||
+                (!entryViewNode->IsScale() && entryViewNode->GetId() == focusNodeId)) {
                 AssignMainThreadNode(mainThreadNodes, entryViewNode);
             } else {
                 AssignSubThreadNode(subThreadNodes, entryViewNode, cacheSkippedNodeMap);
@@ -486,6 +489,7 @@ void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRe
     node->SetIsMainThreadNode(true);
     node->SetCacheType(CacheType::NONE);
     node->ClearCacheSurface();
+    HandleHardwareNode(node);
 }
 
 void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
@@ -529,6 +533,29 @@ void RSUniRenderUtil::SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRend
             return node1->GetPriority() < node2->GetPriority();
         }
     });
+}
+void RSUniRenderUtil::HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node)
+{
+    if (!node->HasHardwareNode()) {
+        return;
+    }
+    auto appWindow = node;
+    if (node->IsLeashWindow()) {
+        for (auto& child : node->GetSortedChildren()) {
+            auto surfaceNodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+            if (surfaceNodePtr && surfaceNodePtr->IsAppWindow()) {
+                appWindow = surfaceNodePtr;
+                break;
+            }
+        }
+    }
+    auto hardwareEnabledNodes = appWindow->GetChildHardwareEnabledNodes();
+    for (auto& hardwareEnabledNode : hardwareEnabledNodes) {
+        auto hardwareEnabledNodePtr = hardwareEnabledNode.lock();
+        if (hardwareEnabledNodePtr) {
+            hardwareEnabledNodePtr->SetHardwareDisabledByCache(false);
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

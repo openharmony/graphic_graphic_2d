@@ -70,6 +70,7 @@ private:
     static void AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
         const std::shared_ptr<RSSurfaceRenderNode>& node, const std::unordered_map<NodeId, bool>& cacheSkippedNodeMap);
     static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
+    static void HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node);
 };
 }
 }
