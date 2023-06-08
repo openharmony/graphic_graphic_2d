@@ -33,6 +33,7 @@
 #include "include/effects/Sk1DPathEffect.h"
 #ifdef NEW_SKIA
 #include "include/effects/SkImageFilters.h"
+#include "include/effects/SkRuntimeEffect.h"
 #else
 #include "include/effects/SkBlurImageFilter.h"
 #endif
@@ -40,7 +41,6 @@
 #include "include/effects/SkDashPathEffect.h"
 #include "include/effects/SkGradientShader.h"
 #include "include/effects/SkLumaColorFilter.h"
-#include "include/effects/SkRuntimeEffect.h"
 #include "include/utils/SkShadowUtils.h"
 #else
 #include "draw/canvas.h"
@@ -601,6 +601,7 @@ void RSPropertiesPainter::DrawShadowInner(
 #endif
 
 #ifndef USE_ROSEN_DRAWING
+#ifdef NEW_SKIA
 sk_sp<SkShader> RSPropertiesPainter::MakeAlphaGradientShader(
     const SkRect clipBounds, const std::shared_ptr<RSLinearGradientBlurPara> para)
 {
@@ -737,10 +738,12 @@ sk_sp<SkShader> RSPropertiesPainter::MakeVerticalMeanBlurShader(
     return effect->makeShader(SkData::MakeWithCopy(
         &radiusIn, sizeof(radiusIn)), children, childCount, nullptr, false);
 }
+#endif
 
 void RSPropertiesPainter::DrawLinearGradientBlurFilter(
     const RSProperties& properties, RSPaintFilterCanvas& canvas, const std::unique_ptr<SkRect>& rect)
 {
+#ifdef NEW_SKIA
     SkSurface* skSurface = canvas.GetSurface();
     if (skSurface == nullptr) {
         return;
@@ -805,6 +808,8 @@ void RSPropertiesPainter::DrawLinearGradientBlurFilter(
     SkPaint paint4;
     paint4.setShader(shader);
     canvas.drawRect(SkRect::Make(clipIPadding), paint4);
+#endif
+
 }
 
 void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
