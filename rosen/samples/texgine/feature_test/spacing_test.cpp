@@ -57,7 +57,7 @@ public:
             builder->AppendSpan(EXAMPLE_TEXT);
             builder->PopStyle();
             auto typography = builder->Build();
-            typography->Layout(250);
+            typography->Layout(250);    // 250 means layout width
 
             std::stringstream ss;
             if (xs.letterSpacing) {

@@ -66,7 +66,7 @@ public:
             builder->AppendSpan(info.textContent);
 
             auto typography = builder->Build();
-            typography->Layout(200);
+            typography->Layout(200);    // 200 means layout width
             typographies_.push_back({
                 .typography = typography
             });
