@@ -400,6 +400,7 @@ void RSMainThread::CacheCommands()
             auto& transactionVec = effectiveTransactionDataIndexMap_[pid].second;
             cachedTransactionDataMap_[pid].insert(cachedTransactionDataMap_[pid].begin(),
                 std::make_move_iterator(transactionVec.begin()), std::make_move_iterator(transactionVec.end()));
+            transactionVec.clear();
             RS_LOGD("RSMainThread::CacheCommands effectiveCmd pid:%d cached", pid);
         }
     }

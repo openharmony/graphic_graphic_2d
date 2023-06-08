@@ -776,11 +776,17 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.IsAppWindow()) {
         bool hasFilter = node.IsTransparent()
             && (node.GetRenderProperties().NeedFilter() || !node.GetChildrenNeedFilterRects().empty());
+        bool hasHardwareNode = !node.GetChildHardwareEnabledNodes().empty();
+        bool hasAbilityComponent =!node.GetAbilityNodeIds().empty();
         auto rsParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());
         if (rsParent && rsParent->IsLeashWindow()) {
             rsParent->SetHasFilter(hasFilter);
+            rsParent->SetHasHardwareNode(hasHardwareNode);
+            rsParent->SetHasAbilityComponent(hasAbilityComponent);
         } else {
             node.SetHasFilter(hasFilter);
+            node.SetHasHardwareNode(hasHardwareNode);
+            node.SetHasAbilityComponent(hasAbilityComponent);
         }
         RS_TRACE_NAME(node.GetName() + " PreparedNodes: " + std::to_string(preparedCanvasNodeInCurrentSurface_));
         preparedCanvasNodeInCurrentSurface_ = 0;
@@ -2520,8 +2526,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         if (node.GetBuffer() != nullptr) {
             if (node.IsHardwareEnabledType()) {
                 // since node has buffer, hwc disabledState could be reset by filter or surface cached
-                node.SetHardwareForcedDisabledState((node.IsHardwareForcedDisabledByFilter() ||
-                    isUpdateCachedSurface_));
+                node.SetHardwareForcedDisabledState(node.IsHardwareForcedDisabledByFilter());
+                node.SetHardwareDisabledByCache(isUpdateCachedSurface_);
             }
             // if this window is in freeze state, disable hardware composer for its child surfaceView
             if (IsHardwareComposerEnabled() && !node.IsHardwareForcedDisabled() && node.IsHardwareEnabledType()) {
