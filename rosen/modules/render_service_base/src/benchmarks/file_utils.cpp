@@ -46,28 +46,27 @@ std::string GetRealPath(const std::string& filePath)
 
 bool IsExistFile(const std::string& filePath)
 {
-    char actualPath[PATH_MAX + 1] = {0};
-    if (filePath.size() > PATH_MAX || realpath(filePath.c_str(), actualPath) == nullptr) {
+    std::ifstream inFile(filePath.c_str());
+    if (!inFile.is_open()) {
         return false;
     }
-    std::ifstream inFile(actualPath);
-    if (inFile.is_open()) {
-        inFile.clear();
-        inFile.close();
-        return true;
-    } else {
-        return false;
-    }
+    inFile.clear();
+    inFile.close();
+    return true;
 }
 
 bool CreateFile(const std::string& filePath)
 {
-    if (IsExistFile(filePath)) {
+    std::string realPath = GetRealPath(filePath);
+    if (realPath.empty()) {
+        return false;
+    }
+    if (IsExistFile(realPath)) {
         return true;
     }
-    std::ofstream outFile(filePath.c_str());
+    std::ofstream outFile(realPath.c_str());
     if (!outFile.is_open()) {
-        RS_LOGE("file %{public}s open failed!", filePath.c_str());
+        RS_LOGE("file %{public}s open failed!", realPath.c_str());
         return false;
     }
     outFile.clear();

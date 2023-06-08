@@ -51,13 +51,13 @@ int RSSystemProperties::GetDumpFrameNum()
 
 bool RSSystemProperties::GetRecordingEnabled()
 {
-    return (system::GetParameter("rosen.recording.enabled", "0") != "0") && isRecordingEnabled_;
+    return (system::GetParameter("debug.rosen.recording.enabled", "0") != "0") && isRecordingEnabled_;
 }
 
 void RSSystemProperties::SetRecordingDisenabled()
 {
     isRecordingEnabled_ = false;
-    system::SetParameter("rosen.recording enabled", "0");
+    system::SetParameter("debug.rosen.recording enabled", "0");
     RS_LOGD("RSSystemProperties::SetRecordingDisenabled");
 }
 
