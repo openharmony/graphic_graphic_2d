@@ -17,6 +17,7 @@
 #include <list>
 #include <SkGraphics.h>
 #include <securec.h>
+#include <sstream>
 #include <stdint.h>
 #include <string>
 #include <src/core/SkTraceEventCommon.h>
@@ -304,8 +305,8 @@ void RSMainThread::Init()
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 
 #ifdef SK_BUILD_TRACE_FOR_OHOS
-    isSkiaTraceEnabled_ = RSSystemProperties::GetSkiaTraceEnabled();
-    SkOHOSTraceUtil::setEnableTracing(isSkiaTraceEnabled_);
+    skiaTraceEnabled_ = RSSystemProperties::GetSkiaTraceEnabled();
+    SkOHOSTraceUtil::setEnableTracing((skiaTraceEnabled_ != SkiaTraceType::DISABLED));
 #endif
 }
 
@@ -1238,13 +1239,8 @@ void RSMainThread::RequestNextVSync()
 
 void RSMainThread::OnVsync(uint64_t timestamp, void* data)
 {
-#ifdef SK_BUILD_TRACE_FOR_OHOS
-    if (isSkiaTraceEnabled_) {
-        RS_LOGI("RSMainThread::OnVsync - Start");
-        SkOHOSTraceUtil::clearOpsCount();
-    }
-#endif
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::OnVsync");
+    DrawOpStatisticBegin();
     timestamp_ = timestamp;
     requestNextVsyncNum_ = 0;
     if (isUniRender_) {
@@ -1261,18 +1257,69 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
             PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
         }
     }
+    DrawOpStatisticEnd("RSMainThread::OnVsync");
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+}
+
+void RSMainThread::DrawOpStatisticBegin() const
+{
 #ifdef SK_BUILD_TRACE_FOR_OHOS
-    if (isSkiaTraceEnabled_) {
-        uint64_t opsCount = SkOHOSTraceUtil::getOpsCount();
-        RS_LOGI("RSMainThread::OnVsync - End with totally %" PRIu64 " ops", opsCount);
-        std::vector<std::pair<std::string, uint64_t>> opsCountVtr = SkOHOSTraceUtil::getOpsCountVector(true);
-        uint32_t topId = 1;
-        for (const auto& opItem : opsCountVtr) {
-            RS_LOGI("RSMainThread::OnVsync - End with [ %s ] : %" PRIu64 " ops (Top-%" PRIu32 ")", 
-                opItem.first.c_str(), opItem.second, topId++);
-        }
+    if (skiaTraceEnabled_ == SkiaTraceType::DISABLED) {
+        return;
     }
+
+    // when trace is enabled
+    SkOHOSTraceUtil::clearOpsCount();
+#endif
+}
+
+void RSMainThread::DrawOpStatisticEnd(const std::string &logPrefix) const
+{
+#ifdef SK_BUILD_TRACE_FOR_OHOS
+    if (skiaTraceEnabled_ == SkiaTraceType::DISABLED) {
+        return;
+    }
+
+    // when trace is enabled
+    uint64_t opsCntMerged = SkOHOSTraceUtil::getOpsCountMerged();
+    uint64_t opsCntUnmerged = SkOHOSTraceUtil::getOpsCountUnmerged();
+    RS_TRACE_NAME(logPrefix + " drawop statistic (total) - merged ops : " + std::to_string(opsCntMerged));
+    RS_TRACE_NAME(logPrefix + " drawop statistic (total) - unmerged ops : " + std::to_string(opsCntUnmerged));
+    if (skiaTraceEnabled_ == SkiaTraceType::TRACE_ONLY) {
+        return;
+    }
+
+    // when log is enabled
+    RS_LOGI("%s drawop statistic (total) - merged ops : %" PRIu64 " / unmerged ops : %" PRIu64,
+            logPrefix.c_str(), opsCntMerged, opsCntUnmerged);
+    if (skiaTraceEnabled_ != SkiaTraceType::TRACE_AND_DETAILED_LOG) {
+        return;
+    }
+
+    // when detailed log is enabled
+    std::stringstream logMerged;
+    logMerged << logPrefix << " drawop statistic (merged) -";
+    std::vector<std::pair<std::string, uint64_t>> opsCntVtrMerged = SkOHOSTraceUtil::getOpsCountVectorMerged();
+    for (size_t topId = 0; topId < opsCntVtrMerged.size(); ++topId) {
+        logMerged << " opId [ " << opsCntVtrMerged[topId].first << " ] : "
+                  << opsCntVtrMerged[topId].second << " (top-" << (topId + 1) << ") /";
+    }
+    std::string tempMerged = logMerged.str();
+    RS_LOGI(tempMerged.c_str());
+
+    std::stringstream logUnmerged;
+    logUnmerged << logPrefix << " drawop statistic (unmerged) -";
+    std::vector<std::pair<std::string, uint64_t>> opsCntVtrUnmerged = SkOHOSTraceUtil::getOpsCountVectorUnmerged();
+    for (size_t topId = 0; topId < opsCntVtrUnmerged.size(); ++topId) {
+        logUnmerged << " opId [ " << opsCntVtrUnmerged[topId].first << " ] : "
+                    << opsCntVtrUnmerged[topId].second << " (top-" << (topId + 1) << ") /";
+    }
+    std::string tempUnmerged = logUnmerged.str();
+    RS_LOGI(tempUnmerged.c_str());
+
+    RS_LOGI("%s drawop statistic (typical) - cause order violation ops : %" PRIu64
+            " / reach max candidates ops : %" PRIu64, logPrefix.c_str(),
+            SkOHOSTraceUtil::getCauseOrderViolationOpsCount(), SkOHOSTraceUtil::getReachMaxCandidatesOpsCount());
 #endif
 }
 

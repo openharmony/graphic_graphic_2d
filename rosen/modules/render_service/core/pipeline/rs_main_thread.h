@@ -39,6 +39,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "platform/common/rs_event_manager.h"
+#include "platform/common/rs_system_properties.h"
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS::Rosen {
@@ -214,6 +215,10 @@ private:
 
     bool IsResidentProcess(pid_t pid);
 
+    // used for drawop statistic
+    void DrawOpStatisticBegin() const;
+    void DrawOpStatisticEnd(const std::string &logPrefix) const;
+
     // Click animation, report the start event to RS
     void ResSchedDataStartReport(bool needRequestNextVsync);
     // Click animation, report the complete event to RS
@@ -320,7 +325,7 @@ private:
     bool hasDrivenNodeMarkRender_ = false;
 
     // used for print control of trace
-    bool isSkiaTraceEnabled_ = false;
+    SkiaTraceType skiaTraceEnabled_ = SkiaTraceType::DISABLED;
 
     // used for control start and end of the click animation
     bool requestResschedReport_ = true;
