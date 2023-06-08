@@ -503,7 +503,7 @@ public:
 
     bool GetZorderChanged() const
     {
-        return (std::abs(GetRenderProperties().GetPositionZ() - positionZ_) > (std::numeric_limits<float>::epsilon()));
+        return zOrderChanged_;
     }
 
     bool IsZOrderPromoted() const
@@ -513,6 +513,7 @@ public:
 
     void UpdatePositionZ()
     {
+        zOrderChanged_ = !ROSEN_EQ(GetRenderProperties().GetPositionZ(), positionZ_);
         positionZ_ = GetRenderProperties().GetPositionZ();
     }
 
@@ -692,6 +693,7 @@ private:
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float positionZ_ = 0.0f;
+    bool zOrderChanged_ = false;
     bool qosPidCal_ = false;
 
     std::string name_;
