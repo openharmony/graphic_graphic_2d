@@ -3292,30 +3292,26 @@ void RSUniRenderVisitor::DrawWatermarkIfNeed()
     if (RSMainThread::Instance()->GetWatermarkFlag()) {
 #ifndef USE_ROSEN_DRAWING
         sk_sp<SkImage> skImage = RSMainThread::Instance()->GetWatermarkImg();
-#ifdef NEW_SKIA
-        sk_sp<SkShader> shader = skImage->makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat, SkSamplingOptions());
-#else
-        sk_sp<SkShader> shader = skImage->makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat);
-#endif
         SkPaint rectPaint;
-        rectPaint.setShader(shader);
-        canvas_->drawRect(SkRect::MakeWH(screenInfo_.width, screenInfo_.height), rectPaint);
+        auto skSrcRect = SkRect::MakeWH(skImage->width(), skImage->height());
+        auto skDstRect = SkRect::MakeWH(screenInfo_.width, screenInfo_.height);
+#ifdef NEW_SKIA
+        canvas_->drawImageRect(
+            skImage, skSrcRect, skDstRect, SkSamplingOptions(), &rectPaint, SkCanvas::kStrict_SrcRectConstraint);
+#else
+        canvas_->drawImageRect(skImage, skSrcRect, skDstRect, &rectPaint);
+#endif
 #else
         std::shared_ptr<Drawing::Image> drImage = RSMainThread::Instance()->GetWatermarkImg();
-
-        Drawing::SamplingOptions sampling =
-            Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
-        Drawing::Matrix matrix;
-
-        std::shared_ptr<Drawing::ShaderEffect> shader = Drawing::ShaderEffect::CreateImageShader(
-            *drImage.get(), Drawing::TileMode::REPEAT, Drawing::TileMode::REPEAT, sampling, matrix);
-
-        Drawing::Pen rectPaint;
-        rectPaint.SetShaderEffect(shader);
-
-        canvas_->AttachPen(rectPaint);
-        canvas_->DrawRect(Drawing::Rect(0, 0, screenInfo_.width, screenInfo_.height));
-        canvas_->DetachPen();
+        if (drImage == nullptr) {
+            return;
+        }
+        Drawing::Brush rectPaint;
+        canvas_->AttachBrush(rectPaint);
+        auto srcRect = Drawing::Rect(0, 0, drImage->GetWidth(), drImage->GetHeight());
+        auto dstRect = Drawing::Rect(0, 0, screenInfo_.width, screenInfo_.height);
+        canvas_->DrawImageRect(*drImage, srcRect, dstRect, Drawing::SamplingOptions());
+        canvas_->DetachBrush();
 #endif
     }
 }

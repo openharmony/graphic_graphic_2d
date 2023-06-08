@@ -665,14 +665,15 @@ void RSSurfaceCaptureVisitor::DrawWatermarkIfNeed(float screenWidth, float scree
 {
     if (RSMainThread::Instance()->GetWatermarkFlag()) {
         sk_sp<SkImage> skImage = RSMainThread::Instance()->GetWatermarkImg();
-#ifdef NEW_SKIA
-        sk_sp<SkShader> shader = skImage->makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat, SkSamplingOptions());
-#else
-        sk_sp<SkShader> shader = skImage->makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat);
-#endif
         SkPaint rectPaint;
-        rectPaint.setShader(shader);
-        canvas_->drawRect(SkRect::MakeWH(screenWidth, screenHeight), rectPaint);
+        auto skSrcRect = SkRect::MakeWH(skImage->width(), skImage->height());
+        auto skDstRect = SkRect::MakeWH(screenWidth, screenHeight);
+#ifdef NEW_SKIA
+        canvas_->drawImageRect(
+            skImage, skSrcRect, skDstRect, SkSamplingOptions(), &rectPaint, SkCanvas::kStrict_SrcRectConstraint);
+#else
+        canvas_->drawImageRect(skImage, skSrcRect, skDstRect, &rectPaint);
+#endif
     }
 }
 } // namespace Rosen
