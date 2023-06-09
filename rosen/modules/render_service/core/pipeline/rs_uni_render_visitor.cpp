@@ -791,7 +791,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     dirtyFlag_ = dirtyFlag;
     isQuickSkipPreparationEnabled_ = isQuickSkipPreparationEnabled;
     prepareClipRect_ = prepareClipRect;
-    if (node.GetDstRectChanged() || (node.GetDirtyManager() && node.GetDirtyManager()->IsDirty())) {
+    if (node.GetDstRectChanged() || (node.GetDirtyManager() && node.GetDirtyManager()->IsCurrentFrameDirty())) {
         dirtySurfaceNodeMap_.emplace(node.GetId(), node.ReinterpretCastTo<RSSurfaceRenderNode>());
     }
     if (node.IsAppWindow()) {
@@ -1601,7 +1601,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             curDisplayDirtyManager_->MergeSurfaceRect();
             curDisplayDirtyManager_->UpdateDirty(isDirtyRegionAlignedEnable_);
         }
-        if (isOpDropped_ && dirtySurfaceNodeMap_.empty() && !curDisplayDirtyManager_->IsDirty()) {
+        if (isOpDropped_ && dirtySurfaceNodeMap_.empty() && !curDisplayDirtyManager_->IsCurrentFrameDirty()) {
             RS_LOGD("DisplayNode skip");
             RS_TRACE_NAME("DisplayNode skip");
             if (!IsHardwareComposerEnabled()) {
@@ -2079,7 +2079,7 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
             continue;
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
-        RectI surfaceDirtyRect = surfaceDirtyManager->GetDirtyRegion();
+        RectI surfaceDirtyRect = surfaceDirtyManager->GetCurrentFrameDirtyRegion();
         if (surfaceNode->IsTransparent()) {
             // Handles the case of transparent surface, merge transparent dirty rect
             RectI transparentDirtyRect = surfaceNode->GetDstRect().IntersectRect(surfaceDirtyRect);
@@ -2223,8 +2223,8 @@ void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(const RectI filterRect,
         return;
     }
 
-    RectI displayDirtyRect = displayDirtyManager->GetDirtyRegion();
-    RectI currentSurfaceDirtyRect = currentSurfaceDirtyManager->GetDirtyRegion();
+    RectI displayDirtyRect = displayDirtyManager->GetCurrentFrameDirtyRegion();
+    RectI currentSurfaceDirtyRect = currentSurfaceDirtyManager->GetCurrentFrameDirtyRegion();
 
     if (!displayDirtyRect.IntersectRect(filterRect).IsEmpty() ||
         !currentSurfaceDirtyRect.IntersectRect(filterRect).IsEmpty()) {
@@ -2249,7 +2249,7 @@ void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(const RectI filterRect,
             }
             auto belowSurfaceDirtyManager = belowSurfaceNode->GetDirtyManager();
             RectI belowDirtyRect =
-                belowSurfaceDirtyManager ? belowSurfaceDirtyManager->GetDirtyRegion() : RectI{0, 0, 0, 0};
+                belowSurfaceDirtyManager ? belowSurfaceDirtyManager->GetCurrentFrameDirtyRegion() : RectI{0, 0, 0, 0};
             if (belowDirtyRect.IsEmpty()) {
                 continue;
             }
@@ -2322,7 +2322,7 @@ void RSUniRenderVisitor::AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDispla
                 surfaceNode->GetName().c_str(), containerDirtyRegion.GetRegionInfo().c_str());
             std::vector<Occlusion::Rect> rects = containerDirtyRegion.GetRegionRects();
             for (const auto& rect : rects) {
-                displayDirtyManager->MergeDirtyRect(RectI{
+                displayDirtyManager->MergeDirtyRectAfterMergeHistory(RectI{
                     rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
             }
         }

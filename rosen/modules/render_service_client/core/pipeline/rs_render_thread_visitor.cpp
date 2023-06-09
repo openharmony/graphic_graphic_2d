@@ -523,8 +523,8 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         Gravity::RESIZE, RectF { 0.0f, 0.0f, bufferWidth, bufferHeight }, rootWidth, rootHeight, gravityMatrix);
 
     if (isRenderForced_ ||
-        curDirtyManager_->GetDirtyRegion().GetWidth() == 0 ||
-        curDirtyManager_->GetDirtyRegion().GetHeight() == 0 ||
+        curDirtyManager_->GetCurrentFrameDirtyRegion().GetWidth() == 0 ||
+        curDirtyManager_->GetCurrentFrameDirtyRegion().GetHeight() == 0 ||
 #ifndef USE_ROSEN_DRAWING
         !gravityMatrix.isIdentity()) {
 #else
