@@ -208,16 +208,16 @@ sk_sp<SkSurface> RSRenderSurfaceOhos::GetSurface()
     return frame_->skSurface_;
 }
 
-ColorGamut RSRenderSurfaceOhos::GetColorSpace()
+GraphicColorGamut RSRenderSurfaceOhos::GetColorSpace()
 {
     if (frame_ == nullptr) {
         LOGE("Failed to get color space, frame_ is nullptr");
-        return ColorGamut::COLOR_GAMUT_SRGB;
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
     return frame_->colorSpace_;
 }
 
-void RSRenderSurfaceOhos::SetColorSpace(ColorGamut colorSpace)
+void RSRenderSurfaceOhos::SetColorSpace(GraphicColorGamut colorSpace)
 {
     if (frame_ == nullptr) {
         LOGE("Failed to set color space, frame_ is nullptr");

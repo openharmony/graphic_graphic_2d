@@ -296,7 +296,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_001, TestSize.Level2)
 {
     sptr<SurfaceBuffer> cbuffer;
     std::vector<uint8_t> newBuffer;
-    ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_SRGB;
+    GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     SkBitmap bitmap;
     ASSERT_EQ(false, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
 }
@@ -326,7 +326,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_002, TestSize.Level2)
     ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
 
     std::vector<uint8_t> newBuffer;
-    ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_SRGB;
+    GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     SkBitmap bitmap;
     (void)RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap);
 }
@@ -357,7 +357,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_003, TestSize.Level2)
     ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
 
     std::vector<uint8_t> newBuffer;
-    ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_INVALID;
+    GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_INVALID;
     SkBitmap bitmap;
     ASSERT_EQ(true, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
 }
@@ -388,7 +388,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_004, TestSize.Level2)
     ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
 
     std::vector<uint8_t> newBuffer;
-    ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_SRGB;
+    GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     SkBitmap bitmap;
     ASSERT_EQ(false, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
 }

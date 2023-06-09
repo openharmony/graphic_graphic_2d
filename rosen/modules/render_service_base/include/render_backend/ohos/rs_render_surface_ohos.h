@@ -45,8 +45,8 @@ public:
     void ClearBuffer() override;
     SkCanvas* GetCanvas() override;
     sk_sp<SkSurface> GetSurface() override;
-    ColorGamut GetColorSpace() override;
-    void SetColorSpace(ColorGamut colorSpace) override;
+    GraphicColorGamut GetColorSpace() override;
+    void SetColorSpace(GraphicColorGamut colorSpace) override;
     void SetSurfaceBufferUsage(uint64_t usage);
     void SetSurfacePixelFormat(uint64_t pixelFormat);
     void SetDrawingContext(const std::shared_ptr<DrawingContext>& drawingContext);

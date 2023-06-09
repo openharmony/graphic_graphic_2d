@@ -31,13 +31,13 @@ public:
     SurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int32_t width, int32_t height);
     ~SurfaceFrameOhosVulkan() override;
     void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override {};
-    void SetColorSpace(ColorGamut colorSpace) override;
-    ColorGamut GetColorSpace() const override;
+    void SetColorSpace(GraphicColorGamut colorSpace) override;
+    GraphicColorGamut GetColorSpace() const override;
     SkCanvas* GetCanvas();
     sk_sp<SkSurface> GetSurface();
 private:
     sk_sp<SkSurface> surface_;
-    ColorGamut colorSpace_;
+    GraphicColorGamut colorSpace_;
 };
 } // namespace Rosen
 } // namespace OHOS

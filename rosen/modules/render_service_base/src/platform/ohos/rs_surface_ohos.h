@@ -36,8 +36,8 @@ public:
 
     virtual RenderContext* GetRenderContext() override;
     virtual void SetRenderContext(RenderContext* context) override;
-    virtual void SetColorSpace(ColorGamut colorSpace) override;
-    virtual ColorGamut GetColorSpace() const override;
+    virtual void SetColorSpace(GraphicColorGamut colorSpace) override;
+    virtual GraphicColorGamut GetColorSpace() const override;
     virtual uint32_t GetQueueSize() const override;
 
     virtual void SetSurfaceBufferUsage(uint64_t usage) = 0;
@@ -46,8 +46,8 @@ public:
 protected:
     sptr<Surface> producer_;
     RenderContext* context_ = nullptr;
-    ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
-    int32_t pixelFormat_ = PIXEL_FMT_RGBA_8888;
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    int32_t pixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_8888;
     uint64_t bufferUsage_ = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;
 };
 

@@ -580,35 +580,35 @@ bool IsSupportedFormatForGamutConversion(int32_t pixelFormat)
         supportedFormats.count(static_cast<PixelFormat>(pixelFormat)) > 0;
 }
 
-bool IsSupportedColorGamut(ColorGamut colorGamut)
+bool IsSupportedColorGamut(GraphicColorGamut colorGamut)
 {
-    static std::unordered_set<ColorGamut> supportedColorGamuts = {
-        ColorGamut::COLOR_GAMUT_SRGB,
-        ColorGamut::COLOR_GAMUT_ADOBE_RGB,
-        ColorGamut::COLOR_GAMUT_DISPLAY_P3,
-        ColorGamut::COLOR_GAMUT_DCI_P3,
-        ColorGamut::COLOR_GAMUT_BT2020,
-        ColorGamut::COLOR_GAMUT_BT2100_PQ
+    static std::unordered_set<GraphicColorGamut> supportedColorGamuts = {
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2100_PQ
     };
     return supportedColorGamuts.count(colorGamut) > 0;
 }
 
-SimpleColorSpace& GetColorSpaceOfCertainGamut(ColorGamut colorGamut,
+SimpleColorSpace& GetColorSpaceOfCertainGamut(GraphicColorGamut colorGamut,
                                               const std::vector<GraphicHDRMetaData> &metaData = {})
 {
     switch (colorGamut) {
-        case ColorGamut::COLOR_GAMUT_SRGB: {
+        case GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB: {
             return GetSRGBColorSpace();
         }
-        case ColorGamut::COLOR_GAMUT_ADOBE_RGB: {
+        case GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB: {
             return GetAdobeRGBColorSpace();
         }
-        case ColorGamut::COLOR_GAMUT_DISPLAY_P3:
-        case ColorGamut::COLOR_GAMUT_DCI_P3: {
+        case GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+        case GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3: {
             return GetDisplayP3ColorSpace(); // Currently p3 colorspace is displayP3
         }
-        case ColorGamut::COLOR_GAMUT_BT2020:
-        case ColorGamut::COLOR_GAMUT_BT2100_PQ: {
+        case GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020:
+        case GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2100_PQ: {
             return GetHdrPqColorSpace(metaData);
         }
         default: {
@@ -725,7 +725,7 @@ Offset ConvertColorGamut(uint8_t* dst, uint8_t* src, int32_t pixelFormat, Simple
 }
 
 bool ConvertBufferColorGamut(std::vector<uint8_t>& dstBuf, const sptr<OHOS::SurfaceBuffer>& srcBuf,
-    ColorGamut srcGamut, ColorGamut dstGamut, const std::vector<GraphicHDRMetaData>& metaDatas)
+    GraphicColorGamut srcGamut, GraphicColorGamut dstGamut, const std::vector<GraphicHDRMetaData>& metaDatas)
 {
     RS_TRACE_NAME("ConvertBufferColorGamut");
 
@@ -1400,17 +1400,17 @@ void RSBaseRenderUtil::SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const
 
 #ifndef USE_ROSEN_DRAWING
 bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-    ColorGamut dstGamut, SkBitmap& bitmap, const std::vector<GraphicHDRMetaData>& metaDatas)
+    GraphicColorGamut dstGamut, SkBitmap& bitmap, const std::vector<GraphicHDRMetaData>& metaDatas)
 #else
 bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-    ColorGamut dstGamut, Drawing::Bitmap& bitmap, const std::vector<GraphicHDRMetaData>& metaDatas)
+    GraphicColorGamut dstGamut, Drawing::Bitmap& bitmap, const std::vector<GraphicHDRMetaData>& metaDatas)
 #endif
 {
     if (!IsBufferValid(buffer)) {
         return false;
     }
     bool bitmapCreated = false;
-    ColorGamut srcGamut = static_cast<ColorGamut>(buffer->GetSurfaceBufferColorGamut());
+    GraphicColorGamut srcGamut = static_cast<GraphicColorGamut>(buffer->GetSurfaceBufferColorGamut());
     // [PLANNING]: We will not use this tmp newBuffer if we use GPU to do the color conversions.
     // Attention: make sure newBuffer's lifecycle is longer than the moment call drawBitmap
     if (buffer->GetFormat() == PIXEL_FMT_YCRCB_420_SP || buffer->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
@@ -1466,7 +1466,8 @@ bool RSBaseRenderUtil::CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& 
 }
 
 bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-    SkBitmap& bitmap, ColorGamut srcGamut, ColorGamut dstGamut, const std::vector<GraphicHDRMetaData>& metaDatas)
+    SkBitmap& bitmap, GraphicColorGamut srcGamut, GraphicColorGamut dstGamut,
+    const std::vector<GraphicHDRMetaData>& metaDatas)
 {
     bool convertRes = Detail::ConvertBufferColorGamut(newBuffer, buffer, srcGamut, dstGamut, metaDatas);
     if (convertRes) {

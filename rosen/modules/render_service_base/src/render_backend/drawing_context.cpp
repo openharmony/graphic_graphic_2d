@@ -179,21 +179,21 @@ sk_sp<SkColorSpace> DrawingContext::GetSkColorSpace(const std::shared_ptr<RSRend
 {
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     
-    ColorGamut colorSpace = frame->colorSpace_;
+    GraphicColorGamut colorSpace = frame->colorSpace_;
     switch (colorSpace) {
         // [planning] in order to stay consistant with the colorspace used before, we disabled
-        // COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
-        case COLOR_GAMUT_DISPLAY_P3:
+        // GRAPHIC_COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
 #if defined(NEW_SKIA)
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
 #else
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
 #endif
             break;
-        case COLOR_GAMUT_ADOBE_RGB:
+        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);
             break;
-        case COLOR_GAMUT_BT2020:
+        case GRAPHIC_COLOR_GAMUT_BT2020:
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kRec2020);
             break;
         default:

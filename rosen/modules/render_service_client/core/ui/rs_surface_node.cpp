@@ -223,7 +223,7 @@ bool RSSurfaceNode::GetFingerprint() const
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
-void RSSurfaceNode::SetColorSpace(ColorGamut colorSpace)
+void RSSurfaceNode::SetColorSpace(GraphicColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
     std::unique_ptr<RSCommand> command =

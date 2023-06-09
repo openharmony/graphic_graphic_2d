@@ -306,7 +306,7 @@ void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
 {
     if (node.IsAppWindow()) {
         auto surfaceNodeColorSpace = node.GetColorSpace();
-        if (surfaceNodeColorSpace != ColorGamut::COLOR_GAMUT_SRGB) {
+        if (surfaceNodeColorSpace != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
             ROSEN_LOGD("RSUniRenderVisitor::CheckColorSpace: node (%s) set new colorspace %d",
                 node.GetName().c_str(), surfaceNodeColorSpace);
             if (std::find(colorGamutModes_.begin(), colorGamutModes_.end(),

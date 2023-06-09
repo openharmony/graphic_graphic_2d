@@ -132,7 +132,7 @@ public:
         return isOpDropped_;
     }
     // Use in vulkan parallel rendering
-    ColorGamut GetColorGamut() const
+    GraphicColorGamut GetColorGamut() const
     {
         return newColorSpace_;
     }
@@ -311,7 +311,7 @@ private:
     int markedCachedNodes_ = 0;
 
     bool needFilter_ = false;
-    ColorGamut newColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
+    GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     std::vector<ScreenColorGamut> colorGamutModes_;
     pid_t currentFocusedPid_ = -1;
 

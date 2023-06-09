@@ -43,8 +43,8 @@ public:
     virtual void SetDamageRegion(const std::vector<RectI>& rects) = 0;
     virtual int32_t GetBufferAge() = 0;
 #ifndef ROSEN_CROSS_PLATFORM
-    virtual ColorGamut GetColorSpace() = 0;
-    virtual void SetColorSpace(ColorGamut colorSpace) = 0;
+    virtual GraphicColorGamut GetColorSpace() = 0;
+    virtual void SetColorSpace(GraphicColorGamut colorSpace) = 0;
 #endif
     virtual void ClearBuffer() = 0;
     virtual SkCanvas* GetCanvas() = 0;

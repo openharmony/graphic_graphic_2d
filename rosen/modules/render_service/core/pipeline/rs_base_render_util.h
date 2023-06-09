@@ -72,7 +72,7 @@ struct BufferDrawParam {
     Drawing::Brush paint;
     Drawing::ColorQuad backgroundColor = Drawing::Color::COLOR_TRANSPARENT;
 #endif
-    ColorGamut targetColorGamut = ColorGamut::COLOR_GAMUT_SRGB;
+    GraphicColorGamut targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 
     bool useCPU = false;
     bool setColorFilter = true;
@@ -125,10 +125,10 @@ public:
 
 #ifndef USE_ROSEN_DRAWING
     static bool ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-        ColorGamut dstGamut, SkBitmap& bitmap, const std::vector<GraphicHDRMetaData>& metaDatas = {});
+        GraphicColorGamut dstGamut, SkBitmap& bitmap, const std::vector<GraphicHDRMetaData>& metaDatas = {});
 #else
     static bool ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-        ColorGamut dstGamut, Drawing::Bitmap& bitmap, const std::vector<GraphicHDRMetaData>& metaDatas = {});
+        GraphicColorGamut dstGamut, Drawing::Bitmap& bitmap, const std::vector<GraphicHDRMetaData>& metaDatas = {});
 #endif
     /**
      * @brief Set the Color Filter Mode To Paint object
@@ -167,7 +167,7 @@ private:
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         SkBitmap& bitmap);
     static bool CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-                                          SkBitmap& bitmap, ColorGamut srcGamut, ColorGamut dstGamut,
+                                          SkBitmap& bitmap, GraphicColorGamut srcGamut, GraphicColorGamut dstGamut,
                                           const std::vector<GraphicHDRMetaData>& metaDatas = {});
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap);
 #else

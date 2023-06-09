@@ -127,7 +127,7 @@ HWTEST_F(RSUniRenderTest, RSUniRenderTest001, TestSize.Level2)
     rsUiDirector->SendMessages();
     sleep(1);
 
-    surfaceNode->SetColorSpace(ColorGamut::COLOR_GAMUT_DISPLAY_P3);
+    surfaceNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 
     std::cout << "rs uni render demo stage 2 SetFilter" << std::endl;
     auto filter = RSFilter::CreateBlurFilter(5.f, 5.f);

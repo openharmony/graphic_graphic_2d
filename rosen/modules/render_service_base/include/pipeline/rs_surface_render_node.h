@@ -439,8 +439,8 @@ public:
     float GetLocalZOrder() const;
 
 #ifndef ROSEN_CROSS_PLATFORM
-    void SetColorSpace(ColorGamut colorSpace);
-    ColorGamut GetColorSpace() const;
+    void SetColorSpace(GraphicColorGamut colorSpace);
+    GraphicColorGamut GetColorSpace() const;
     void SetConsumer(const sptr<IConsumerSurface>& consumer);
     void SetBlendType(GraphicBlendType blendType);
     GraphicBlendType GetBlendType();
@@ -704,7 +704,7 @@ private:
     std::string name_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
 #ifndef ROSEN_CROSS_PLATFORM
-    ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
 #endif
     bool isNotifyRTBufferAvailablePre_ = false;

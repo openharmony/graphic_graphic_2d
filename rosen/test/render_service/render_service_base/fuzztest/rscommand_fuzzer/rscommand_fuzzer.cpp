@@ -67,7 +67,7 @@ bool RSSurfaceNodeCommandFuzzTest(const uint8_t* data, size_t size)
     uint64_t id = GetData<uint64_t>();
     float contextAlpha = GetData<float>();
     bool isSecurityLayer = GetData<bool>();
-    ColorGamut colorSpace = GetData<ColorGamut>();
+    GraphicColorGamut colorSpace = GetData<GraphicColorGamut>();
     float width = GetData<float>();
     float height = GetData<float>();
     uint8_t alpha = GetData<uint8_t>();

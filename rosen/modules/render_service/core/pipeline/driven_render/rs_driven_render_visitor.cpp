@@ -177,7 +177,7 @@ void RSDrivenRenderVisitor::SetUniProcessor(std::shared_ptr<RSProcessor> process
     uniProcessor_ = processor;
 }
 
-void RSDrivenRenderVisitor::SetUniColorSpace(ColorGamut colorSpace)
+void RSDrivenRenderVisitor::SetUniColorSpace(GraphicColorGamut colorSpace)
 {
     uniColorSpace_ = colorSpace;
 }
