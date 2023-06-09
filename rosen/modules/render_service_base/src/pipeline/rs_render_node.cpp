@@ -98,10 +98,17 @@ bool RSRenderNode::Update(
         return false;
     }
     // [planning] surfaceNode use frame instead
+#ifndef USE_ROSEN_DRAWING
     std::optional<SkPoint> offset;
     if (parent != nullptr && !IsInstanceOf<RSSurfaceRenderNode>()) {
         offset = SkPoint { parent->GetFrameOffsetX(), parent->GetFrameOffsetY() };
     }
+#else
+    std::optional<Drawing::Point> offset;
+    if (parent != nullptr && !IsInstanceOf<RSSurfaceRenderNode>()) {
+        Drawing::Point offset(parent->GetFrameOffsetX(), parent->GetFrameOffsetY());
+    }
+#endif
     bool dirty = renderProperties_.UpdateGeometry(parent, parentDirty, offset, GetContextClipRegion());
     if ((IsDirty() || dirty) && drawCmdModifiers_.count(RSModifierType::GEOMETRYTRANS)) {
         RSModifierContext context = { GetMutableRenderProperties() };
@@ -236,18 +243,34 @@ void RSRenderNode::RenderTraceDebug() const
 
 void RSRenderNode::ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas)
 {
+#ifndef USE_ROSEN_DRAWING
     renderNodeSaveCount_ = canvas.Save();
+#else
+    renderNodeSaveCount_ = canvas.SaveAllStatus();
+#endif
     auto boundsGeo = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
     if (boundsGeo && !boundsGeo->IsEmpty()) {
+#ifndef USE_ROSEN_DRAWING
         canvas.concat(boundsGeo->GetMatrix());
+#else
+        canvas.ConcatMatrix(boundsGeo->GetMatrix());
+#endif
     }
     auto alpha = renderProperties_.GetAlpha();
     if (alpha < 1.f) {
         if ((GetChildrenCount() == 0) || !(GetRenderProperties().GetAlphaOffscreen() || isForcedDrawInGroup())) {
             canvas.MultiplyAlpha(alpha);
         } else {
+#ifndef USE_ROSEN_DRAWING
             auto rect = RSPropertiesPainter::Rect2SkRect(GetRenderProperties().GetBoundsRect());
             canvas.saveLayerAlpha(&rect, std::clamp(alpha, 0.f, 1.f) * UINT8_MAX);
+#else
+            auto rect = RSPropertiesPainter::Rect2DrawingRect(GetRenderProperties().GetBoundsRect());
+            Drawing::Brush brush;
+            brush.SetAlphaF(std::clamp(alpha, 0.f, 1.f) * UINT8_MAX);
+            Drawing::SaveLayerOps slr(&rect, &brush);
+            canvas.SaveLayer(slr);
+#endif
         }
     }
     RSPropertiesPainter::DrawMask(GetRenderProperties(), canvas);
@@ -349,7 +372,11 @@ void RSRenderNode::UpdateDrawRegion()
             if (!drawCmdModifier) {
                 continue;
             }
+#ifndef USE_ROSEN_DRAWING
             auto recording = std::static_pointer_cast<RSRenderProperty<DrawCmdListPtr>>(
+#else
+            auto recording = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(
+#endif
                     drawCmdModifier->GetProperty())->Get();
             auto recordingRect = RectF(0, 0, recording->GetWidth(), recording->GetHeight());
             joinRect = recordingRect.IsEmpty() ? joinRect : joinRect.JoinRect(recordingRect);

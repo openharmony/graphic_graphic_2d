@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#ifndef USE_ROSEN_DRAWING
+
 #include "pipeline/rs_draw_cmd.h"
 #ifdef ROSEN_OHOS
 #include "buffer_utils.h"
@@ -2007,3 +2009,5 @@ void ImageWithParmOpItem::SetNodeId(NodeId id)
 }
 } // namespace Rosen
 } // namespace OHOS
+
+#endif // USE_ROSEN_DRAWING

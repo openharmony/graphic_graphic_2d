@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#ifndef USE_ROSEN_DRAWING
 #include "pipeline/rs_draw_cmd_list.h"
 
 #include <fstream>
@@ -358,3 +359,4 @@ void DrawCmdList::RestoreOriginCmdsForDriven()
 #endif
 } // namespace Rosen
 } // namespace OHOS
+#endif // USE_ROSEN_DRAWING
