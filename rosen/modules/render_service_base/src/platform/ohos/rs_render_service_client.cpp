@@ -600,5 +600,13 @@ void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap>
         renderService->ShowWatermark(watermarkImg, isShow);
     }
 }
+
+void RSRenderServiceClient::ReportJankStats()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->ReportJankStats();
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

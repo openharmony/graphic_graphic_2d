@@ -148,6 +148,8 @@ public:
     void SetAppWindowNum(uint32_t num);
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
+
+    void ReportJankStats();
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
     std::mutex mutex_;

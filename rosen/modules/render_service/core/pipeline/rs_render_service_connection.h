@@ -143,6 +143,8 @@ private:
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
 
+    void ReportJankStats() override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;

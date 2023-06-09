@@ -45,6 +45,7 @@
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_hardware_thread.h"
+#include "pipeline/rs_jank_stats.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_unmarshal_thread.h"
 #include "pipeline/rs_uni_render_engine.h"
@@ -1268,6 +1269,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     }
 #endif
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::OnVsync");
+    RSJankStats::GetInstance().SetStartTime();
     timestamp_ = timestamp;
     requestNextVsyncNum_ = 0;
     frameCount_++;
@@ -1285,6 +1287,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
             PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
         }
     }
+    RSJankStats::GetInstance().SetEndTime();
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 #ifdef SK_BUILD_TRACE_FOR_OHOS
     if (isSkiaTraceEnabled_) {

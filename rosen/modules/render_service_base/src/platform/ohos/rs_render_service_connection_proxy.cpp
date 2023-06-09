@@ -999,5 +999,20 @@ void RSRenderServiceConnectionProxy::ShowWatermark(const std::shared_ptr<Media::
         ROSEN_LOGE("RSRenderServiceConnectionProxy::ShowWatermark: Send Request err.");
     }
 }
+
+void RSRenderServiceConnectionProxy::ReportJankStats()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::REPORT_JANK_STATS, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportJankStats: Send Request err.");
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
