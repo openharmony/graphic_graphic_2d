@@ -24,6 +24,12 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
 
+#ifdef USE_ROSEN_DRAWING
+#include "draw/brush.h"
+#include "draw/color.h"
+#include "draw/pen.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 class RSDirtyRegionManager;
@@ -54,8 +60,17 @@ public:
     // Partial render status and renderForce flag should be updated by rt thread
     void SetPartialRenderStatus(PartialRenderType status, bool isRenderForced);
 private:
+#ifndef USE_ROSEN_DRAWING
     void DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color, const SkPaint::Style fillType, float alpha,
         int strokeWidth = 6);
+#else
+    enum class RSPaintStyle {
+        FILL,
+        STROKE
+    };
+    void DrawRectOnCanvas(const RectI& dirtyRect, const Drawing::ColorQuad color, RSPaintStyle fillType, float alpha,
+        int strokeWidth = 6);
+#endif // USE_ROSEN_DRAWING
     void DrawDirtyRegion();
     // Update damageRegion based on buffer age, and then set it through egl api
     void UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSSurfaceFrame>& surfaceFrame);
@@ -80,7 +95,11 @@ private:
     void ClipHoleForSurfaceNode(RSSurfaceRenderNode& node);
 
     std::vector<NodeId> childSurfaceNodeIds_;
+#ifndef USE_ROSEN_DRAWING
     SkMatrix parentSurfaceNodeMatrix_;
+#else
+    Drawing::Matrix parentSurfaceNodeMatrix_;
+#endif // USE_ROSEN_DRAWING
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     static bool IsValidRootRenderNode(RSRootRenderNode& node);
