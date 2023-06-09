@@ -118,7 +118,6 @@ public:
 private:
     RSSystemProperties() = default;
 
-    static inline bool isRecordingEnabled_ = true;
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
 };

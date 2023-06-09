@@ -51,12 +51,11 @@ int RSSystemProperties::GetDumpFrameNum()
 
 bool RSSystemProperties::GetRecordingEnabled()
 {
-    return (system::GetParameter("debug.graphic.recording.enabled", "0") != "0") && isRecordingEnabled_;
+    return (system::GetParameter("debug.graphic.recording.enabled", "0") != "0");
 }
 
 void RSSystemProperties::SetRecordingDisenabled()
 {
-    isRecordingEnabled_ = false;
     system::SetParameter("debug.graphic.recording.enabled", "0");
     RS_LOGD("RSSystemProperties::SetRecordingDisenabled");
 }
