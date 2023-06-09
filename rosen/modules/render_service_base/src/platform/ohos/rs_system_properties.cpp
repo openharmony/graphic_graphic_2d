@@ -46,23 +46,24 @@ static void ParseDfxSurfaceNamesString(const std::string& paramsStr,
 // used by clients
 int RSSystemProperties::GetDumpFrameNum()
 {
-    return std::atoi((system::GetParameter("debug.graphic.recording.frameNum", "0")).c_str());
+    return std::atoi((system::GetParameter("rosen.recording.frameNum", "0")).c_str());
 }
 
 bool RSSystemProperties::GetRecordingEnabled()
 {
-    return (system::GetParameter("debug.graphic.recording.enabled", "0") != "0");
+    return (system::GetParameter("rosen.recording.enabled", "0") != "0") && isRecordingEnabled_;
 }
 
 void RSSystemProperties::SetRecordingDisenabled()
 {
-    system::SetParameter("debug.graphic.recording.enabled", "0");
+    isRecordingEnabled_ = false;
+    system::SetParameter("rosen.recording enabled", "0");
     RS_LOGD("RSSystemProperties::SetRecordingDisenabled");
 }
 
 std::string RSSystemProperties::GetRecordingFile()
 {
-    return system::GetParameter("debug.graphic.dumpfile.path", "");
+    return system::GetParameter("rosen.dumpfile.path", "");
 }
 
 bool RSSystemProperties::GetUniRenderEnabled()
