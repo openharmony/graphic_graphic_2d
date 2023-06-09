@@ -20,6 +20,7 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifndef USE_ROSEN_DRAWING
 void MemoryHandler::ConfigureContext(GrContextOptions* context, const char* identity,
     const size_t size, const std::string& cacheFilePath, bool isUni)
 {
@@ -29,6 +30,16 @@ void MemoryHandler::ConfigureContext(GrContextOptions* context, const char* iden
     cache.InitShaderCache(identity, size, isUni);
     context->fPersistentCache = &cache;
 }
+#else
+void MemoryHandler::ConfigureContext(Drawing::GPUContextOptions* context, const char* identity,
+    const size_t size, const std::string& cacheFilePath, bool isUni)
+{
+    auto& cache = ShaderCache::Instance();
+    cache.SetFilePath(cacheFilePath);
+    cache.InitShaderCache(identity, size, isUni);
+    context->SetPersistentCache(&cache);
+}
+#endif
 
 std::string MemoryHandler::QuerryShader()
 {

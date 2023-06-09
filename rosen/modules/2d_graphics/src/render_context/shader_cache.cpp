@@ -81,10 +81,19 @@ void ShaderCache::SetFilePath(const std::string& filename)
     filePath_ = filename + "/shader_cache";
 }
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkData> ShaderCache::load(const SkData& key)
+#else
+std::shared_ptr<Drawing::Data> ShaderCache::Load(const Drawing::Data& key)
+#endif
 {
+#ifndef USE_ROSEN_DRAWING
     RS_TRACE_NAME("load shader");
     size_t keySize = key.size();
+#else
+    RS_TRACE_NAME("Load shader");
+    size_t keySize = key.GetSize();
+#endif
     std::lock_guard<std::mutex> lock(mutex_);
     if (!initialized_) {
         LOGW("load: failed because ShaderCache is not initialized");
@@ -103,7 +112,11 @@ sk_sp<SkData> ShaderCache::load(const SkData& key)
         return nullptr;
     }
 
+#ifndef USE_ROSEN_DRAWING
     size_t valueSize = cacheData_->Get(key.data(), keySize, valueBuffer, bufferSize_);
+#else
+    size_t valueSize = cacheData_->Get(key.GetData(), keySize, valueBuffer, bufferSize_);
+#endif
     if (!valueSize) {
         free(valueBuffer);
         valueBuffer = nullptr;
@@ -113,7 +126,11 @@ sk_sp<SkData> ShaderCache::load(const SkData& key)
             return nullptr;
         }
         valueBuffer = newValueBuffer;
+#ifndef USE_ROSEN_DRAWING
         valueSize = cacheData_->Get(key.data(), keySize, valueBuffer, bufferSize_);
+#else
+        valueSize = cacheData_->Get(key.GetData(), keySize, valueBuffer, bufferSize_);
+#endif
     }
 
     if (!valueSize || valueSize > bufferSize_) {
@@ -122,7 +139,18 @@ sk_sp<SkData> ShaderCache::load(const SkData& key)
         valueBuffer = nullptr;
         return nullptr;
     }
+#ifndef USE_ROSEN_DRAWING
     return SkData::MakeFromMalloc(valueBuffer, valueSize);
+#else
+    auto data = std::make_shared<Drawing::Data>();
+    if (!data->BuildFromMalloc(valueBuffer, valueSize)) {
+        LOGE("load: failed to build drawing data");
+        free(valueBuffer);
+        valueBuffer = nullptr;
+        return nullptr;
+    }
+    return data;
+#endif
 }
 
 void ShaderCache::WriteToDisk()
@@ -141,9 +169,15 @@ void ShaderCache::WriteToDisk()
     savePending_ = false;
 }
 
+#ifndef USE_ROSEN_DRAWING
 void ShaderCache::store(const SkData& key, const SkData& data)
 {
     RS_TRACE_NAME("store shader");
+#else
+void ShaderCache::Store(const Drawing::Data& key, const Drawing::Data& data)
+{
+    RS_TRACE_NAME("Store shader");
+#endif
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (!initialized_) {
@@ -151,20 +185,33 @@ void ShaderCache::store(const SkData& key, const SkData& data)
         return;
     }
 
+#ifndef USE_ROSEN_DRAWING
     size_t valueSize = data.size();
     size_t keySize = key.size();
+#else
+    size_t valueSize = data.GetSize();
+    size_t keySize = key.GetSize();
+#endif
     if (keySize == 0 || valueSize == 0 || valueSize >= MAX_VALUE_SIZE) {
         LOGE("store: failed because of illegal cache sizes");
         return;
     }
 
+#ifndef USE_ROSEN_DRAWING
     const void* value = data.data();
+#else
+    const void* value = data.GetData();
+#endif
     cacheDirty_ = true;
     if (!cacheData_) {
         LOGE("store: cachedata has been destructed");
         return;
     }
+#ifndef USE_ROSEN_DRAWING
     cacheData_->Rewrite(key.data(), keySize, value, valueSize);
+#else
+    cacheData_->Rewrite(key.GetData(), keySize, value, valueSize);
+#endif
 
     if (!savePending_ && saveDelaySeconds_ > 0) {
         savePending_ = true;
