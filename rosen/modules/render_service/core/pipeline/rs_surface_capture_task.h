@@ -17,9 +17,15 @@
 #define RS_SURFACE_CAPTURE_TASK
 
 #include "common/rs_common_def.h"
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkCanvas.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkSurface.h"
+#else
+#include "draw/canvas.h"
+#include "draw/surface.h"
+#include "utils/matrix.h"
+#endif
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -49,7 +55,11 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
         void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
 
+#ifndef USE_ROSEN_DRAWING
         void SetSurface(SkSurface* surface);
+#else
+        void SetSurface(Drawing::Surface* surface);
+#endif
         void IsDisplayNode(bool isDisplayNode)
         {
             isDisplayNode_ = isDisplayNode;
@@ -102,7 +112,11 @@ public:
 private:
     std::shared_ptr<RSSurfaceCaptureVisitor> visitor_ = nullptr;
 
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
+#else
+    std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
+#endif
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapBySurfaceNode(std::shared_ptr<RSSurfaceRenderNode> node,
         bool isUniRender = false);
