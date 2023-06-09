@@ -152,7 +152,11 @@ public:
     void CountMem(std::vector<MemoryGraphic>& mems);
     void SetAppWindowNum(uint32_t num);
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> GetWatermarkImg();
+#else
+    std::shared_ptr<Drawing::Image> GetWatermarkImg();
+#endif
     bool GetWatermarkFlag();
     void AddActivePid(pid_t pid);
 private:
@@ -187,10 +191,14 @@ private:
     void RemoveRSEventDetector();
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     void ReleaseExitSurfaceNodeAllGpuResource(GrDirectContext* grContext);
 #else
     void ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext);
+#endif
+#else
+    void ReleaseExitSurfaceNodeAllGpuResource(Drawing::GPUContext* grContext, pid_t pid);
 #endif
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
@@ -312,7 +320,11 @@ private:
 
     // used for watermark
     std::mutex watermarkMutex_;
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> watermarkImg_ = nullptr;
+#else
+    std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
+#endif
     bool isShow_ = false;
 
     // driven render
