@@ -218,7 +218,7 @@ void TextSpan::PaintDecorationStyle(TexgineCanvas &canvas, double left, double r
             auto rect = TexgineRect::MakeWH(WIDTH_SCALAR, HEIGHT_SCALAR);
             circle.AddOval(rect);
             paint.SetPathEffect(TexginePath1DPathEffect::Make(circle, DOTTED_ADVANCE, PHASE,
-                TexginePath1DPathEffect::kRotate_Style));
+                TexginePath1DPathEffect::K_ROTATE_STYLE));
             break;
         }
         case TextDecorationStyle::DASHED: {
@@ -242,7 +242,7 @@ void TextSpan::PaintDecorationStyle(TexgineCanvas &canvas, double left, double r
             wavy.QuadTo({POINTX1, POINTY0 + thickness}, {POINTX0, POINTY2 + thickness});
             wavy.LineTo({POINTX0, POINTY2 - thickness});
             paint.SetPathEffect(TexginePath1DPathEffect::Make(wavy, WAVY_ADVANCE, PHASE,
-                TexginePath1DPathEffect::kRotate_Style));
+                TexginePath1DPathEffect::K_ROTATE_STYLE));
             paint.SetStyle(TexginePaint::STROKE);
             break;
         }

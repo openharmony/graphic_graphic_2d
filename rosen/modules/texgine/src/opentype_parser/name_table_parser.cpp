@@ -40,10 +40,10 @@ void NameTableParser::Dump() const
             continue;
         }
         auto offset = nameTable.nameRecord[i].stringOffset.Get();
-        std::string Recordinfo(strOffset + offset, len);
+        std::string recordinfo(strOffset + offset, len);
         auto nameId = nameTable.nameRecord[i].nameId.Get();
-        LOGSO_FUNC_LINE(INFO) << "nameId:" << nameId << ", Recordinfo:" << std::uppercase << std::hex << std::setw(len)
-            << Recordinfo;
+        LOGSO_FUNC_LINE(INFO) << "nameId:" << nameId << ", recordinfo:" << std::uppercase << std::hex << std::setw(len)
+            << recordinfo;
     }
 }
 } // namespace TextEngine

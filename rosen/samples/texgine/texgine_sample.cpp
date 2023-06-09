@@ -50,6 +50,7 @@ double Draw(TexgineCanvas &texgineCanvas, const std::list<struct TypographyData>
     double x = 0;
     for (const auto &data : typographies) {
         const auto &typography = data.typography;
+        // 800 is the max width of all test
         if ((x + typography->GetMaxWidth() >= 800) || (x != 0 && data.atNewline)) {
             x = 0;
             y += maxHeight + option.marginTop;
@@ -69,9 +70,11 @@ double Draw(TexgineCanvas &texgineCanvas, const std::list<struct TypographyData>
             int32_t rainbowColorIndex = 0;
             for (auto &box : boxes) {
                 g_rainbowPaint.SetColor(colors[rainbowColorIndex++]);
+                // 255 is the max value of Alpha, 0.2 means the transparency set to 0.2
                 g_rainbowPaint.SetAlpha(255 * 0.2);
                 texgineCanvas.DrawRect(box.rect, g_rainbowPaint);
                 g_rainbowPaint.SetColor(SK_ColorGRAY);
+                // 255 is the max value of Alpha, 0.2 means the transparency set to 0.3
                 g_rainbowPaint.SetAlpha(255 * 0.3);
                 texgineCanvas.DrawRect(box.rect, g_rainbowPaint);
                 rainbowColorIndex %= sizeof(colors) / sizeof(SkColor);
@@ -105,6 +108,7 @@ void OnDraw(SkCanvas &canvas)
 
     SkPaint borderPaint = g_actualBorderPaint.GetPaint();
     const SkScalar intervals[2] = {1.0f, 1.0f};
+    // 2 means number of elements in the intervals array
     borderPaint.setPathEffect(SkDashPathEffect::Make(intervals, 2, 0.0f));
     TexginePaint paint;
     paint.SetPaint(borderPaint);
@@ -131,7 +135,7 @@ void OnDraw(SkCanvas &canvas)
 
         double yStart = y;
         canvas.save();
-        canvas.translate(50, 50);
+        canvas.translate(50, 50);   // move canvas to (50, 50)
         const auto &option = ptest->GetFeatureTestOption();
         const auto &typographies = ptest->GetTypographies();
         y = Draw(texgineCanvas, typographies, option, y);
@@ -161,9 +165,9 @@ int main()
     }
 
     SkiaFramework sf;
-    sf.SetWindowWidth(720);
-    sf.SetWindowHeight(1280);
-    sf.SetWindowScale(720.0 / 900.0);
+    sf.SetWindowWidth(720);     // 720 means the window width
+    sf.SetWindowHeight(1280);   // 1280 means the window width
+    sf.SetWindowScale(720.0 / 900.0);   // 720 / 900 means tht window's scale
     sf.SetDrawFunc(OnDraw);
     sf.Run();
     return 0;

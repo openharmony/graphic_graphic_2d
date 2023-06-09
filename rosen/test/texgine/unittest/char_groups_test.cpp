@@ -46,7 +46,7 @@ public:
         glyphsCgs_.PushBack({.chars = TextConverter::ToUTF16("most"),
             .glyphs = {{0x013B, 13.664}, {0x0145, 9.456}, {0x0166, 7.28}, {0x016E, 5.88}}});
         normalSubCgs1_ = normalCgs_.GetSub(0, 1);
-        normalSubCgs2_ = normalCgs_.GetSub(1, 2);
+        normalSubCgs2_ = normalCgs_.GetSub(1, 2);   // 1, 2 means getting the range of sub chargrops {start, end}
     }
 
     static inline CharGroups normalCgs_ = CharGroups::CreateEmpty();

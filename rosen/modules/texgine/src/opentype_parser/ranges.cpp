@@ -47,18 +47,20 @@ int32_t Ranges::GetGlyphId(uint32_t codepoint) const
         break;
     }
 
-    return InvalidGlyphId;
+    return INVALID_GLYPH_ID;
 }
 
 void Ranges::Dump() const
 {
     for (const auto &[start, end, gid] : ranges_) {
+        // 4 means output width，0 means fill with 0
         LOGSO_FUNC_LINE(INFO) << "0x" << std::uppercase << std::hex << std::setw(4) << std::setfill('0') << start
             << " ~ 0x" << std::uppercase << std::hex << std::setw(4) << std::setfill('0') << end
             << ": offset " << std::dec << end;
     }
 
     for (const auto &[codepoint, gid] : singles_) {
+        // 4 means output width，1 means operand, 16 means offset, 1 << 16 means residual multiple
         LOGSO_FUNC_LINE(INFO) << "0x" << std::uppercase << std::hex << std::setw(4) << std::setfill('0') << codepoint
             << ": glyphid " << std::dec << (codepoint + gid) % (1 << 16);
     }
