@@ -47,7 +47,11 @@ void RSBaseRenderEngine::Init()
         RS_LOGI("RSRenderEngine::RSRenderEngine set new cacheDir");
         renderContext_->SetUniRenderMode(true);
     }
+#ifndef USE_ROSEN_DRAWING
     renderContext_->SetUpGrContext();
+#else
+    renderContext_->SetUpGpuContext();
+#endif // USE_ROSEN_DRAWING
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
 
 #ifdef RS_ENABLE_EGLIMAGE
@@ -87,18 +91,27 @@ bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
     return forceCPU;
 }
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> RSBaseRenderEngine::CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
     const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence)
+#else
+std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
+    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence)
+#endif
 {
 #ifdef RS_ENABLE_EGLIMAGE
     if (!RSBaseRenderUtil::IsBufferValid(buffer)) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer invalid param!");
         return nullptr;
     }
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     if (canvas.recordingContext() == nullptr) {
 #else
     if (canvas.getGrContext() == nullptr) {
+#endif
+#else
+    if (canvas.GetGpuContext() == nullptr) {
 #endif
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
         return nullptr;
@@ -113,12 +126,18 @@ sk_sp<SkImage> RSBaseRenderEngine::CreateEglImageFromBuffer(RSPaintFilterCanvas&
     GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8 };
     GrBackendTexture backendTexture(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(),
         GrMipMapped::kNo, grExternalTextureInfo);
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     return SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture,
         kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
 #else
     return SkImage::MakeFromTexture(canvas.getGrContext(), backendTexture,
         kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+#endif
+#else
+    Drawing image;
+    image.BuildFromTexture();
+    return image;
 #endif
 #else
     return nullptr;
@@ -281,18 +300,24 @@ void RSBaseRenderEngine::SetColorFilterMode(ColorFilterMode mode)
 void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
     RS_TRACE_NAME("RSBaseRenderEngine::DrawBuffer(CPU)");
+#ifndef USE_ROSEN_DRAWING
     SkBitmap bitmap;
+#else
+    Drawing::Bitmap bitmap;
+#endif
     std::vector<uint8_t> newBuffer;
     if (!RSBaseRenderUtil::ConvertBufferToBitmap(params.buffer, newBuffer, params.targetColorGamut, bitmap,
         params.metaDatas)) {
         RS_LOGE("RSDividedRenderUtil::DrawBuffer: create bitmap failed.");
         return;
     }
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     canvas.drawImageRect(bitmap.asImage(), params.srcRect, params.dstRect,
         SkSamplingOptions(), &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
 #else
     canvas.drawBitmapRect(bitmap, params.srcRect, params.dstRect, &(params.paint));
+#endif
 #endif
 }
 
@@ -304,11 +329,18 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         RS_LOGE("RSDividedRenderUtil::DrawImage: image is nullptr!");
         return;
     }
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     canvas.drawImageRect(image, params.srcRect, params.dstRect,
         SkSamplingOptions(), &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
 #else
     canvas.drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
+#endif
+#else
+    canvas.AttachBrush(params.paint);
+    canvas.DrawImageRect(*image.get(), params.srcRect, params.dstRect,
+        Drawing::SamplingOptions(), Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    canvas.DetachBrush();
 #endif
 }
 

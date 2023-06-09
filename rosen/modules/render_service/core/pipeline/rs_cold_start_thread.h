@@ -43,7 +43,11 @@ class RSColdStartThread final {
 public:
     RSColdStartThread(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode, NodeId surfaceNodeId);
     ~RSColdStartThread();
+#ifndef USE_ROSEN_DRAWING
     void PostPlayBackTask(std::shared_ptr<DrawCmdList> drawCmdList, float width, float height);
+#else
+    void PostPlayBackTask(std::shared_ptr<Drawing::DrawCmdList> drawCmdList, float width, float height);
+#endif
     void Stop();
     void PostTask(std::function<void()> task);
     bool IsIdle();
@@ -64,22 +68,35 @@ private:
 #ifdef RS_ENABLE_GL
     std::shared_ptr<RSSharedContext> context_ = nullptr;
 #endif
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     sk_sp<GrDirectContext> grContext_ = nullptr;
 #else
     sk_sp<GrContext> grContext_ = nullptr;
 #endif
     sk_sp<SkSurface> skSurface_;
+#else
+    std::shared_ptr<Drawing::GPUContext> gpuContext_;
+    std::shared_ptr<Drawing::Surface> drSurface_;
+#endif
     std::mutex mutex_;
     std::mutex imageMutex_;
+#ifndef USE_ROSEN_DRAWING
     std::queue<sk_sp<SkImage>> images_;
+#else
+    std::queue<std::shared_ptr<Drawing::Image>> images_;
+#endif
     std::condition_variable cv_;
 };
 
 class RSColdStartManager {
 public:
     static RSColdStartManager& Instance();
+#ifndef USE_ROSEN_DRAWING
     void PostPlayBackTask(NodeId id, std::shared_ptr<DrawCmdList> drawCmdList, float width, float height);
+#else
+    void PostPlayBackTask(NodeId id, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, float width, float height);
+#endif
     bool IsColdStartThreadRunning(NodeId id);
     bool IsColdStartThreadIdle(NodeId id);
     void StartColdStartThreadIfNeed(std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
