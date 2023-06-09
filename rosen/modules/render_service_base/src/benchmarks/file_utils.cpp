@@ -15,6 +15,7 @@
 
 #include "benchmarks/file_utils.h"
 #include <fstream>
+#include <filesystem>
 #include <fcntl.h>
 #include <unistd.h>
 #include "platform/common/rs_log.h"
@@ -27,19 +28,13 @@ bool IsValidFile(const std::string& realPathStr, const std::string& validFile)
     return realPathStr.find(validFile) == 0;
 }
 
-std::string GetRealPath(const std::string& filePath)
+std::string GetRealAndValidPath(const std::string& filePath)
 {
-    std::string realPathStr = "";
-    char actualPath[PATH_MAX + 1] = {0};
-    if (realpath(filePath.c_str(), actualPath) == nullptr) {
-        RS_LOGE("The file path is not exist!");
-        return realPathStr;
-    }
-    realPathStr = actualPath;
+    std::string realPathStr = std::filesystem::path(filePath).lexically_normal().string();
     if (IsValidFile(realPathStr)) {
         return realPathStr;
     } else {
-        RS_LOGE("The file path is not valid!");
+        RS_LOGE("FileUtils: The file path is not valid!");
         return "";
     }
 }
@@ -57,16 +52,13 @@ bool IsExistFile(const std::string& filePath)
 
 bool CreateFile(const std::string& filePath)
 {
-    std::string realPath = GetRealPath(filePath);
+    std::string realPath = GetRealAndValidPath(filePath);
     if (realPath.empty()) {
         return false;
     }
-    if (IsExistFile(realPath)) {
-        return true;
-    }
-    std::ofstream outFile(realPath.c_str());
+    std::ofstream outFile(realPath);
     if (!outFile.is_open()) {
-        RS_LOGE("file %{public}s open failed!", realPath.c_str());
+        RS_LOGE("FileUtils: file %s open failed!", realPath.c_str());
         return false;
     }
     outFile.clear();
@@ -84,12 +76,12 @@ bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath)
     }
     int fd = open(filePath.c_str(), O_RDWR | O_CREAT, static_cast<mode_t>(0600));
     if (fd < 0) {
-        RS_LOGE("%{public}s failed. file: %{public}s, fd = %{public}d", __func__, filePath.c_str(), fd);
+        RS_LOGE("FileUtils: %s failed. file: %s, fd = %d", __func__, filePath.c_str(), fd);
         return false;
     }
     ssize_t nwrite = write(fd, reinterpret_cast<uint8_t *>(data), size);
     if (nwrite < 0) {
-        RS_LOGE("%{public}s failed to persist data = %{public}d, size = %{public}d,  fd = %{public}d",
+        RS_LOGE("FileUtils: %s failed to persist data = %d, size = %d,  fd = %d",
             __func__, data, size, fd);
     }
     close(fd);
@@ -122,7 +114,7 @@ bool WriteStringToFile(const std::string& str, const std::string& filePath)
     }
     int fd = open(filePath.c_str(), O_RDWR | O_CREAT, static_cast<mode_t>(0600));
     if (fd < 0) {
-        RS_LOGE("%{public}s failed. file: %{public}s, fd = %{public}d", __func__, filePath.c_str(), fd);
+        RS_LOGE("FileUtils: %s failed. file: %s, fd = %d", __func__, filePath.c_str(), fd);
         return false;
     }
     bool result = WriteStringToFile(fd, str);
