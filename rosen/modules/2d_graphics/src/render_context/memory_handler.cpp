@@ -41,7 +41,11 @@ void MemoryHandler::ConfigureContext(Drawing::GPUContextOptions* context, const 
 }
 #endif
 
+#ifdef NEW_RENDER_CONTEXT
 std::string MemoryHandler::QuerryShader()
+#else
+std::string MemoryHandler::QuerryShader() const
+#endif
 {
     const auto& cache = ShaderCache::Instance();
     if (!cache.IfInitialized()) {
@@ -54,7 +58,11 @@ std::string MemoryHandler::QuerryShader()
     return ramString;
 }
 
+#ifdef NEW_RENDER_CONTEXT
 std::string MemoryHandler::ClearShader()
+#else
+std::string MemoryHandler::ClearShader() const
+#endif
 {
     const auto& cache = ShaderCache::Instance();
     LOGW("All shaders are cleaned");

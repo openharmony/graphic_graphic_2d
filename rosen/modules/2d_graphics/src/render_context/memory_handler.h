@@ -41,8 +41,13 @@ public:
         const std::string& cacheFilePath, bool isUni);
 #endif
     MemoryHandler() = default;
+#ifdef NEW_RENDER_CONTEXT
     static std::string QuerryShader();
     static std::string ClearShader();
+#else
+    std::string QuerryShader() const;
+    std::string ClearShader() const;
+#endif
 };
 }   // namespace Rosen
 }   // namespace OHOS
