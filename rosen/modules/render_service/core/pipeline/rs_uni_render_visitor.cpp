@@ -798,7 +798,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         bool hasFilter = node.IsTransparent()
             && (node.GetRenderProperties().NeedFilter() || !node.GetChildrenNeedFilterRects().empty());
         bool hasHardwareNode = !node.GetChildHardwareEnabledNodes().empty();
-        bool hasAbilityComponent =!node.GetAbilityNodeIds().empty();
+        bool hasAbilityComponent = !node.GetAbilityNodeIds().empty();
         auto rsParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());
         if (rsParent && rsParent->IsLeashWindow()) {
             rsParent->SetHasFilter(hasFilter);

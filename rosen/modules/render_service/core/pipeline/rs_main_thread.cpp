@@ -438,7 +438,7 @@ void RSMainThread::CheckParallelSubThreadNodesStatus()
             RS_LOGE("RSMainThread::CheckParallelSubThreadNodesStatus sunThreadNode is nullptr!");
             continue;
         }
-        if (!node->GetCacheSurfaceProcessedStatus()) {
+        if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
             RS_TRACE_NAME("node:[ " + node->GetName() + "]");
             pid_t pid = 0;
             if (node->IsAppWindow()) {
@@ -987,8 +987,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                 rootNode->GetSortedChildren().front());
             std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
             std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
-            RSUniRenderUtil::AssignWindowNodes(displayNode, focusNodeId_, mainThreadNodes,
-                subThreadNodes, GetCacheCmdSkippedNodes());
+            RSUniRenderUtil::AssignWindowNodes(displayNode, focusNodeId_, mainThreadNodes, subThreadNodes);
+            const auto& nodeMap = context_->GetNodeMap();
+            RSUniRenderUtil::ClearSurfaceIfNeed(nodeMap, displayNode, oldDisplayChildren_, subThreadNodes);
             uniVisitor->SetAssignedWindowNodes(mainThreadNodes, subThreadNodes);
             subThreadNodes_.clear();
             subThreadNodes_ = subThreadNodes;
@@ -1269,6 +1270,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::OnVsync");
     timestamp_ = timestamp;
     requestNextVsyncNum_ = 0;
+    frameCount_++;
     if (isUniRender_) {
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
         RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);

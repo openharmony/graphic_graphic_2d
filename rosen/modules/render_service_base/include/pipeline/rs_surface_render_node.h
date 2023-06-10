@@ -651,16 +651,16 @@ public:
         return submittedSubThreadIndex_;        
     }
 
-    void SetCacheSurfaceProcessedStatus(bool isCacheSurfaceProcessed)
+    void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus)
     {
         std::lock_guard<std::mutex> lock(cacheSurfaceProcessedMutex_);
-        isCacheSurfaceProcessed_ = isCacheSurfaceProcessed;
+        cacheProcessStatus_ = cacheProcessStatus;
     }
 
-    bool GetCacheSurfaceProcessedStatus() const
+    CacheProcessStatus GetCacheSurfaceProcessedStatus() const
     {
         std::lock_guard<std::mutex> lock(cacheSurfaceProcessedMutex_);
-        return isCacheSurfaceProcessed_;
+        return cacheProcessStatus_;
     }
 
 private:
@@ -808,7 +808,7 @@ private:
     // UIFirst
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     mutable std::mutex cacheSurfaceProcessedMutex_;
-    bool isCacheSurfaceProcessed_ = true;
+    CacheProcessStatus cacheProcessStatus_ = CacheProcessStatus::WAITING;
 
     friend class RSUniRenderVisitor;
     friend class RSBaseRenderNode;

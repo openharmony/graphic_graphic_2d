@@ -94,6 +94,13 @@ enum class NodePriorityType : uint32_t {
     SUB_LOW_PRIORITY, // node render in sub thread with low priority
 };
 
+// priority for node, higher number means lower priority
+enum class CacheProcessStatus : uint32_t {
+    WAITING = 0, // node must render in main thread
+    DOING, // node render in sub thread with high priority
+    DONE, // node render in sub thread with low priority
+};
+
 // types for RSSurfaceRenderNode
 enum class RSSurfaceNodeType : uint8_t {
     DEFAULT,

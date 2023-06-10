@@ -114,7 +114,9 @@ void RSParallelSubThread::MainLoop()
                 RS_TRACE_BEGIN("SubThreadCacheProcess[" + std::to_string(threadIndex_) + "]");
                 StartRenderCache();
                 RenderCache();
-                RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
+                if (threadTask_ == nullptr || RSMainThread::Instance()->GetFrameCount() == threadTask_->GetFrameCount()) {
+                    RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
+                }
                 RS_TRACE_END();
                 break;
             }
@@ -249,10 +251,15 @@ void RSParallelSubThread::StartRenderCache()
 {
     visitor_ = std::make_shared<RSUniRenderVisitor>();
     visitor_->CopyPropertyForParallelVisitor(RSParallelRenderManager::Instance()->GetUniVisitor());
+    threadTask_ = nullptr;
+    threadTask_ = std::move(cacheThreadTask_);
 }
 
 void RSParallelSubThread::RenderCache()
 {
+    if (threadTask_ == nullptr) {
+        return;
+    }
 #ifdef RS_ENABLE_GL
     while (threadTask_->GetTaskSize() > 0) {
         auto task = threadTask_->GetNextRenderTask();
@@ -270,6 +277,23 @@ void RSParallelSubThread::RenderCache()
             RS_LOGE("RenderCache ReinterpretCastTo fail");
             continue;
         }
+        // flag CacheSurfaceProcessed is used for cacheCmdskippedNodes collection in rs_mainThread
+        surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
+        if (surfaceNodePtr->NeedClear()) {
+            surfaceNodePtr->SetNeedClearFlag(false);
+            surfaceNodePtr->ClearCacheSurface();
+            surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DONE);
+            continue;
+        }
+
+        if (RSMainThread::Instance()->GetFrameCount() != threadTask_->GetFrameCount()) {
+            surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
+            if (!surfaceNodePtr->HasCachedTexture()) {
+                RSParallelRenderManager::Instance()->NodeTaskNotify(node->GetId());
+            }
+            continue;
+        }
+
         RS_TRACE_NAME_FMT("draw cache render node: [%s, %llu]", surfaceNodePtr->GetName().c_str(),
             surfaceNodePtr->GetId());
         if (surfaceNodePtr->GetCacheSurface() == nullptr) {
@@ -282,8 +306,6 @@ void RSParallelSubThread::RenderCache()
             }
             surfaceNodePtr->InitCacheSurface(grContext_.get());
         }
-        // flag CacheSurfaceProcessed is used for cacheCmdskippedNodes collection in rs_mainThread
-        surfaceNodePtr->SetCacheSurfaceProcessedStatus(false);
 
         bool needNotify = !surfaceNodePtr->HasCachedTexture();
         node->Process(visitor_);
@@ -299,7 +321,7 @@ void RSParallelSubThread::RenderCache()
         RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
         surfaceNodePtr->GetCacheSurface()->flushAndSubmit(false);
 #endif
-        surfaceNodePtr->SetCacheSurfaceProcessedStatus(true);
+        surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DONE);
 
         if (needNotify) {
             RSParallelRenderManager::Instance()->NodeTaskNotify(node->GetId());
@@ -307,6 +329,11 @@ void RSParallelSubThread::RenderCache()
     }
     eglSync_ = eglCreateSyncKHR(renderContext_->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
 #endif
+}
+
+void RSParallelSubThread::AddSuperTask(std::unique_ptr<RSSuperRenderTask> superRenderTask)
+{
+    cacheThreadTask_ = std::move(superRenderTask);
 }
 
 void RSParallelSubThread::StartRender()

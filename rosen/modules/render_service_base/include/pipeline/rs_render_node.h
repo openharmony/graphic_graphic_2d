@@ -173,6 +173,7 @@ public:
     {
         cacheSurface_ = nullptr;
         cacheCompletedSurface_ = nullptr;
+        cacheTexture_ = nullptr;
     }
 
     void DrawCacheSurface(RSPaintFilterCanvas& canvas, bool isSubThreadNode = false) const;
@@ -335,17 +336,28 @@ public:
 
     bool HasCachedTexture() const
     {
-        return cacheCompletedSurface_ != nullptr;
+        return cacheTexture_ != nullptr;
     }
 
     void SetCacheTexture(sk_sp<SkImage> texture)
     {
+        cacheTexture_ = nullptr;
         cacheTexture_ = texture;
     }
 
     sk_sp<SkImage> GetCacheTexture() const
     {
         return cacheTexture_;
+    }
+
+    void SetNeedClearFlag(bool needClear)
+    {
+        needClear_ = needClear;
+    }
+
+    bool NeedClear() const
+    {
+        return needClear_;
     }
 
     void SetDrawRegion(std::shared_ptr<RectF> rect)
@@ -434,6 +446,7 @@ private:
     bool hasFilter_ = false;
     bool hasHardwareNode_ = false;
     bool hasAbilityComponent_ = false;
+    bool needClear_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 
     // driven render
