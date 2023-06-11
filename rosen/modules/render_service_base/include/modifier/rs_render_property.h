@@ -26,11 +26,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-constexpr static float FLOAT_NEAR_ZERO_THRESHOLD = 1.0f / 5000.0f;
-constexpr static float INT16T_NEAR_ZERO_THRESHOLD = 1.0f;
-constexpr static float DEFAULT_NEAR_ZERO_THRESHOLD = 5.0f;
-} // namespace
 
 class RSB_EXPORT RSRenderPropertyBase : public std::enable_shared_from_this<RSRenderPropertyBase> {
 public:
@@ -50,11 +45,6 @@ public:
 
     static bool Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val);
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
-
-    virtual float GetZeroThresholdByDefault() const
-    {
-        return DEFAULT_NEAR_ZERO_THRESHOLD;
-    }
 
 protected:
     void OnChange() const
@@ -192,27 +182,6 @@ public:
     {}
 
     virtual ~RSRenderAnimatableProperty() = default;
-
-    float GetZeroThresholdByDefault() const override
-    {
-        switch (type_) {
-            case RSRenderPropertyType::PROPERTY_FLOAT:
-            case RSRenderPropertyType::PROPERTY_VECTOR2F:
-            case RSRenderPropertyType::PROPERTY_VECTOR4F:
-            case RSRenderPropertyType::PROPERTY_QUATERNION:
-            case RSRenderPropertyType::PROPERTY_MATRIX3F:
-            case RSRenderPropertyType::PROPERTY_FILTER:
-            case RSRenderPropertyType::PROPERTY_RRECT: {
-                return FLOAT_NEAR_ZERO_THRESHOLD;
-            }
-            case RSRenderPropertyType::PROPERTY_COLOR:
-            case RSRenderPropertyType::PROPERTY_VECTOR4_COLOR: {
-                return INT16T_NEAR_ZERO_THRESHOLD;
-            }
-            default:
-                return DEFAULT_NEAR_ZERO_THRESHOLD;
-        }
-    }
 
 protected:
     const std::shared_ptr<RSRenderPropertyBase> Clone() const override

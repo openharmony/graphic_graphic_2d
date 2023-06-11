@@ -389,8 +389,8 @@ bool Vector4<T>::IsNearEqual(const Vector4& other, T threshold) const
 {
     const T* otherData = other.data_;
 
-    return (ROSEN_EQ<T>(data_[0], otherData[0], threshold)) && (ROSEN_EQ<T>(data_[1], otherData[1]), threshold) &&
-           (ROSEN_EQ<T>(data_[2], otherData[2], threshold)) && (ROSEN_EQ<T>(data_[3], otherData[3]), threshold);
+    return (ROSEN_EQ<T>(data_[0], otherData[0], threshold)) && (ROSEN_EQ<T>(data_[1], otherData[1], threshold)) &&
+           (ROSEN_EQ<T>(data_[2], otherData[2], threshold)) && (ROSEN_EQ<T>(data_[3], otherData[3], threshold));
 }
 
 template<typename T>

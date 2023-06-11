@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,6 +41,71 @@ PropertyId GeneratePropertyId()
 
 RSPropertyBase::RSPropertyBase() : id_(GeneratePropertyId())
 {}
+
+float RSPropertyBase::GetZeroThresholdByModifierType() const
+{
+    switch (type_) {
+        case RSModifierType::BOUNDS:
+        case RSModifierType::FRAME:
+        case RSModifierType::SANDBOX:
+        case RSModifierType::POSITION_Z:
+        case RSModifierType::TRANSLATE:
+        case RSModifierType::TRANSLATE_Z:
+        case RSModifierType::CORNER_RADIUS:
+        case RSModifierType::BG_IMAGE_WIDTH:
+        case RSModifierType::BG_IMAGE_HEIGHT:
+        case RSModifierType::BG_IMAGE_POSITION_X:
+        case RSModifierType::BG_IMAGE_POSITION_Y:
+        case RSModifierType::BORDER_WIDTH:
+        case RSModifierType::CLIP_RRECT:
+        case RSModifierType::SHADOW_OFFSET_X:
+        case RSModifierType::SHADOW_OFFSET_Y:
+        case RSModifierType::SHADOW_ELEVATION:
+        case RSModifierType::SHADOW_RADIUS:
+        case RSModifierType::LIGHT_UP_EFFECT:
+        case RSModifierType::PIXEL_STRETCH:
+        case RSModifierType::GRAY_SCALE:
+        case RSModifierType::BRIGHTNESS:
+        case RSModifierType::CONTRAST:
+        case RSModifierType::SATURATE:
+        case RSModifierType::SEPIA:
+        case RSModifierType::INVERT:
+        case RSModifierType::HUE_ROTATE: {
+            return FLOAT_NEAR_ZERO_COARSE_THRESHOLD;
+        }
+
+        case RSModifierType::ALPHA:
+        case RSModifierType::FILTER:
+        case RSModifierType::BACKGROUND_FILTER:
+        case RSModifierType::SHADOW_ALPHA:
+        case RSModifierType::PIXEL_STRETCH_PERCENT: {
+            return FLOAT_NEAR_ZERO_MEDIUM_THRESHOLD;
+        }
+
+        case RSModifierType::PIVOT:
+        case RSModifierType::PIVOT_Z:
+        case RSModifierType::QUATERNION:
+        case RSModifierType::ROTATION:
+        case RSModifierType::ROTATION_X:
+        case RSModifierType::ROTATION_Y:
+        case RSModifierType::CAMERA_DISTANCE:
+        case RSModifierType::SCALE:
+        case RSModifierType::SPHERIZE: {
+            return FLOAT_NEAR_ZERO_FINE_THRESHOLD;
+        }
+
+        case RSModifierType::FOREGROUND_COLOR:
+        case RSModifierType::BACKGROUND_COLOR:
+        case RSModifierType::BORDER_COLOR:
+        case RSModifierType::SHADOW_COLOR:
+        case RSModifierType::COLOR_BLEND: {
+            return INT16T_NEAR_ZERO_THRESHOLD;
+        }
+
+        default:
+            return DEFAULT_NEAR_ZERO_THRESHOLD;
+    }
+}
 
 void RSPropertyBase::MarkModifierDirty()
 {
