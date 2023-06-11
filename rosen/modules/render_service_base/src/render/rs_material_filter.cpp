@@ -221,7 +221,7 @@ bool RSMaterialFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, float
     if (otherMaterialFilter == nullptr) {
         return true;
     }
-    return ROSEN_EQ(radius_, otherMaterialFilter->radius_, threshold) &&
+    return ROSEN_EQ(radius_, otherMaterialFilter->radius_, 1.0f) &&
            ROSEN_EQ(saturation_, otherMaterialFilter->saturation_, threshold) &&
            ROSEN_EQ(brightness_, otherMaterialFilter->brightness_, threshold) &&
            maskColor_.IsNearEqual(otherMaterialFilter->maskColor_, 1);
