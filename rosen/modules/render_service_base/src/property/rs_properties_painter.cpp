@@ -850,6 +850,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     filter->PreProcess(imageSnapshot);
     canvas.resetMatrix();
     auto visibleIRect = canvas.GetVisibleRect().round();
+    // for online opacity, rendering result already applied opacity, so drawImage should not apply opacity again
     canvas.SaveAlpha();
     canvas.SetAlpha(1.0);
     if (visibleIRect.intersect(clipIBounds)) {
