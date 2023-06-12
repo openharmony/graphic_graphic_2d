@@ -58,6 +58,7 @@ ohos_source_set("render_service_base_src") {
     #command
     "src/command/rs_animation_command.cpp",
     "src/command/rs_base_node_command.cpp",
+    "src/command/rs_canvas_drawing_node_command.cpp",
     "src/command/rs_canvas_node_command.cpp",
     "src/command/rs_command_factory.cpp",
     "src/command/rs_display_node_command.cpp",
@@ -103,6 +104,7 @@ ohos_source_set("render_service_base_src") {
 
     #pipeline
     "src/pipeline/rs_base_render_node.cpp",
+    "src/pipeline/rs_canvas_drawing_render_node.cpp",
     "src/pipeline/rs_canvas_render_node.cpp",
     "src/pipeline/rs_context.cpp",
     "src/pipeline/rs_dirty_region_manager.cpp",

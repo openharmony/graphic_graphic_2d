@@ -35,6 +35,7 @@ enum RSCommandType : uint16_t {
     ROOT_NODE,
     DISPLAY_NODE,
     EFFECT_NODE,
+    CANVAS_DRAWING_NODE,
     // animation commands
     ANIMATION,
     // read showing properties (deprecated, will be removed later)
