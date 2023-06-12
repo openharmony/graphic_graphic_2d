@@ -67,7 +67,8 @@ bool RSRenderSpringAnimation::Marshalling(Parcel& parcel) const
 
     if (!(RSMarshallingHelper::Marshalling(parcel, response_) &&
             RSMarshallingHelper::Marshalling(parcel, dampingRatio_) &&
-            RSMarshallingHelper::Marshalling(parcel, blendDuration_))) {
+            RSMarshallingHelper::Marshalling(parcel, blendDuration_) &&
+            RSMarshallingHelper::Marshalling(parcel, zeroThreshold_))) {
         return false;
     }
 
@@ -100,7 +101,8 @@ bool RSRenderSpringAnimation::ParseParam(Parcel& parcel)
 
     if (!(RSMarshallingHelper::Unmarshalling(parcel, response_) &&
             RSMarshallingHelper::Unmarshalling(parcel, dampingRatio_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, blendDuration_))) {
+            RSMarshallingHelper::Unmarshalling(parcel, blendDuration_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, zeroThreshold_))) {
         return false;
     }
     // copy response to final response
@@ -263,7 +265,6 @@ void RSRenderSpringAnimation::OnInitialize(int64_t time)
     if (!blendDuration_) {
         // this will set needInitialize_ to false
         RSRenderPropertyAnimation::OnInitialize(time);
-        SetZeroThreshold(startValue_->GetZeroThresholdByDefault());
     }
 }
 

@@ -75,7 +75,7 @@ private:
     std::shared_ptr<RSRenderPropertyBase> originStartValue_;
 
     // used to determine the end of animation
-    float zeroThreshold_ = 2.0f;
+    float zeroThreshold_ = 1.0f / 256.0f;
 };
 } // namespace Rosen
 } // namespace OHOS
