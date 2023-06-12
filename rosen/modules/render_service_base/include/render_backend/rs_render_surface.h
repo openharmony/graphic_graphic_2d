@@ -34,7 +34,7 @@ class RSRenderSurface {
 public:
     explicit RSRenderSurface() = default;
     virtual ~RSRenderSurface() = default;
-    virtual bool IsValid() = 0;
+    virtual bool IsValid() const = 0;
     virtual uint32_t GetQueueSize() const = 0;
     virtual std::shared_ptr<RSRenderSurfaceFrame> RequestFrame(
         int32_t width, int32_t height, uint64_t uiTimestamp = 0, bool useAFBC = true) = 0;

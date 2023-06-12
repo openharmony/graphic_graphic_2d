@@ -19,6 +19,8 @@
 #include "utils/log.h"
 #include "window.h"
 
+#include "render_backend_utils.h"
+
 namespace OHOS {
 namespace Rosen {
 RenderContextOhosVk::~RenderContextOhosVk()
@@ -38,38 +40,52 @@ bool RenderContextOhosVk::IsContextReady()
 
 bool RenderContextOhosVk::CreateSurface(const std::shared_ptr<RSRenderSurfaceFrame>& frame)
 {
-    if (frame == nullptr) {
-        LOGE("Failed to create surface, frame is nullptr");
+    if (!RenderBackendUtils::IsValidFrame(frame)) {
+        LOGE("Failed to create surface, frame is invalid");
         return false;
     }
-    if (frame->nativeWindow_ == nullptr) {
-        frame->nativeWindow_ = CreateNativeWindowFromSurface(&(frame->producer_));
-        if (frame->nativeWindow_ == nullptr) {
+
+    std::shared_ptr<SurfaceConfig> surfaceConfig = frame->surfaceConfig;
+    if (surfaceConfig->producer == nullptr) {
+        LOGE("Failed to create surface, producer is nullptr");
+        return false;
+    }
+    if (surfaceConfig->nativeWindow == nullptr) {
+        sptr<Surface> producer = surfaceConfig->producer;
+        surfaceConfig->nativeWindow = CreateNativeWindowFromSurface(&producer);
+        if (surfaceConfig->nativeWindow == nullptr) {
             LOGE("Failed to create surface, native window is nullptr");
             return false;
         }
     }
-    NativeWindowHandleOpt(frame->nativeWindow_, SET_FORMAT, frame->pixelFormat_);
+
+    std::shared_ptr<FrameConfig> frameConfig = frame->frameConfig;
+
+    NativeWindowHandleOpt(surfaceConfig->nativeWindow, SET_FORMAT, frameConfig->pixelFormat);
 #ifdef RS_ENABLE_AFBC
     if (RSSystemProperties::GetAFBCEnabled()) {
         int32_t format = 0;
-        NativeWindowHandleOpt(frame->nativeWindow_, GET_FORMAT, &format);
+        NativeWindowHandleOpt(surfaceConfig->nativeWindow, GET_FORMAT, &format);
         if (format == PIXEL_FMT_RGBA_8888 && useAFBC) {
             bufferUsage_ =
                 (BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA);
         }
     }
 #endif
-    NativeWindowHandleOpt(frame->nativeWindow_, SET_USAGE, frame->bufferUsage_);
-    NativeWindowHandleOpt(frame->nativeWindow_, SET_BUFFER_GEOMETRY, frame->width, frame->height);
-    NativeWindowHandleOpt(frame->nativeWindow_, SET_COLOR_GAMUT, frame->colorSpace_);
-    NativeWindowHandleOpt(frame->nativeWindow_, SET_UI_TIMESTAMP, frame->uiTimestamp_);
+    NativeWindowHandleOpt(surfaceConfig->nativeWindow, SET_USAGE, frameConfig->bufferUsage);
+    NativeWindowHandleOpt(surfaceConfig->nativeWindow, SET_BUFFER_GEOMETRY, frameConfig->width, frameConfig->height);
+    NativeWindowHandleOpt(surfaceConfig->nativeWindow, SET_COLOR_GAMUT, frameConfig->colorSpace);
+    NativeWindowHandleOpt(surfaceConfig->nativeWindow, SET_UI_TIMESTAMP, frameConfig->uiTimestamp);
 
-    if (vulkanWindow_ == nullptr) {
-        auto vulkanSurface = std::make_unique<vulkan::VulkanNativeSurfaceOHOS>(nativeWindow_);
-        vulkanWindow_ = std::make_unique<vulkan::VulkanWindow>(std::move(vulkanSurface));
+    VulkanState* vulkanState = frame->vulkanState;
+    if (vulkanState == nullptr) {
+        LOGE("Failed to acquire surface in vulkan, vulkanState is nullptr");
+        return nullptr;
     }
-    frame->vulkanWindow_ = vulkanWindow_;
+    if (vulkanState->vulkanWindow == nullptr) {
+        auto vulkanSurface = std::make_unique<vulkan::VulkanNativeSurfaceOHOS>(surfaceConfig->nativeWindow);
+        vulkanState->vulkanWindow = std::make_unique<vulkan::VulkanWindow>(std::move(vulkanSurface));
+    }
     return true;
 }
 

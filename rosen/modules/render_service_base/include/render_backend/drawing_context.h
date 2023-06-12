@@ -28,9 +28,9 @@ namespace OHOS {
 namespace Rosen {
 class DrawingContext {
 public:
-    explicit DrawingContext() = default;
+    explicit DrawingContext(RenderType renderType) : renderType_(renderType) {}
     ~DrawingContext() = default;
-    sk_sp<SkSurface> AcquireSurface(const std::shared_ptr<RSRenderSurfaceFrame>& frame, const RenderType& renderType);
+    sk_sp<SkSurface> AcquireSurface(const std::shared_ptr<RSRenderSurfaceFrame>& frame);
     bool SetUpDrawingContext();
 #if defined(NEW_SKIA)
     GrDirectContext* GetDrawingContext() const;
@@ -47,6 +47,7 @@ private:
 #else
     sk_sp<GrContext> grContext_ = nullptr;
 #endif
+    RenderType renderType_;
 };
 }
 }
