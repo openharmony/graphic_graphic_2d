@@ -61,7 +61,8 @@ float RSPropertyBase::GetZeroThresholdByModifierType() const
         case RSModifierType::SHADOW_OFFSET_X:
         case RSModifierType::SHADOW_OFFSET_Y:
         case RSModifierType::SHADOW_ELEVATION:
-        case RSModifierType::SHADOW_RADIUS: {
+        case RSModifierType::SHADOW_RADIUS:
+        case RSModifierType::PIXEL_STRETCH: {
             return FLOAT_NEAR_ZERO_COARSE_THRESHOLD;
         }
 
@@ -70,9 +71,8 @@ float RSPropertyBase::GetZeroThresholdByModifierType() const
         case RSModifierType::FILTER:
         case RSModifierType::BACKGROUND_FILTER:
         case RSModifierType::SHADOW_ALPHA:
+        case RSModifierType::SPHERIZE:
         case RSModifierType::LIGHT_UP_EFFECT:
-        case RSModifierType::PIXEL_STRETCH:
-        case RSModifierType::PIXEL_STRETCH_PERCENT:
         case RSModifierType::GRAY_SCALE:
         case RSModifierType::BRIGHTNESS:
         case RSModifierType::CONTRAST:
@@ -90,7 +90,7 @@ float RSPropertyBase::GetZeroThresholdByModifierType() const
         case RSModifierType::ROTATION_X:
         case RSModifierType::ROTATION_Y:
         case RSModifierType::SCALE:
-        case RSModifierType::SPHERIZE: {
+        case RSModifierType::PIXEL_STRETCH_PERCENT: {
             return FLOAT_NEAR_ZERO_FINE_THRESHOLD;
         }
 
