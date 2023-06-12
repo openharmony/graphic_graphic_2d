@@ -173,7 +173,6 @@ public:
     {
         cacheSurface_ = nullptr;
         cacheCompletedSurface_ = nullptr;
-        cacheTexture_ = nullptr;
     }
 
     void DrawCacheSurface(RSPaintFilterCanvas& canvas, bool isSubThreadNode = false) const;
@@ -341,7 +340,6 @@ public:
 
     void SetCacheTexture(sk_sp<SkImage> texture)
     {
-        cacheTexture_ = nullptr;
         cacheTexture_ = texture;
     }
 

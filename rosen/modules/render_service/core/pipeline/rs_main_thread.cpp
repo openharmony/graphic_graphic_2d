@@ -1359,6 +1359,10 @@ void RSMainThread::Animate(uint64_t timestamp)
             RS_LOGD("RSMainThread::Animate removing expired animating node");
             return true;
         }
+        if (cacheCmdSkippedInfo_.count(ExtractPid(node->GetId())) > 0) {
+            RS_LOGD("RSMainThread::Animate skip the cached node");
+            return true;
+        }
         activeProcessPids_.emplace(ExtractPid(node->GetId()));
         auto [hasRunningAnimation, nodeNeedRequestNextVsync] = node->Animate(timestamp);
         if (!hasRunningAnimation) {

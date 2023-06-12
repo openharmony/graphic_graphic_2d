@@ -283,14 +283,12 @@ void RSParallelSubThread::RenderCache()
             surfaceNodePtr->SetNeedClearFlag(false);
             surfaceNodePtr->ClearCacheSurface();
             surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DONE);
+            RSParallelRenderManager::Instance()->NodeTaskNotify(node->GetId());
             continue;
         }
 
         if (RSMainThread::Instance()->GetFrameCount() != threadTask_->GetFrameCount()) {
             surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
-            if (!surfaceNodePtr->HasCachedTexture()) {
-                RSParallelRenderManager::Instance()->NodeTaskNotify(node->GetId());
-            }
             continue;
         }
 
