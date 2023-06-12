@@ -29,16 +29,64 @@
 #define RS_TRACE_INT(name, value) CountTrace(HITRACE_TAG_GRAPHIC_AGP, name, value)
 #define RS_TRACE_FUNC() RS_TRACE_NAME(__func__)
 #else
-#define ROSEN_TRACE_BEGIN(tag, name)
-#define RS_TRACE_BEGIN(name)
-#define ROSEN_TRACE_END(tag)
-#define RS_TRACE_END()
-#define RS_TRACE_NAME(name)
+
+#ifdef ROSEN_ANDROID
+#include <android/trace.h>
+#include "platform/common/rs_log.h"
+inline void RosenTraceBegin(const char* name)
+{
+    if (name != nullptr) {
+        ATrace_beginSection(name);
+    }
+}
+
+inline void RosenTraceBegin(std::string name)
+{
+    ATrace_beginSection(name.c_str());
+}
+#define ROSEN_TRACE_BEGIN(tag, name) RosenTraceBegin(name)
+#define RS_TRACE_BEGIN(name) RosenTraceBegin(name)
+#define ROSEN_TRACE_END(tag) ATrace_endSection()
+#define RS_TRACE_END() ATrace_endSection()
 #define RS_TRACE_NAME_FMT(fmt, ...)
 #define RS_ASYNC_TRACE_BEGIN(name, value)
 #define RS_ASYNC_TRACE_END(name, value)
 #define RS_TRACE_INT(name, value)
+
+class ScopedTrace {
+    public:
+      inline ScopedTrace(const char *name) {
+        if (name != nullptr) {
+            ATrace_beginSection(name);
+        }
+      }
+
+      inline ScopedTrace(std::string name) {
+          ATrace_beginSection(name.c_str());
+      }
+
+      inline ~ScopedTrace() {
+          ATrace_endSection();
+      }
+};
+
+#define RS_TRACE_NAME(name) ScopedTrace ___tracer(name)
+
+// RS_TRACE_FUNC() is an RS_TRACE_NAME that uses the current function name.
+#define RS_TRACE_FUNC() RS_TRACE_NAME(__FUNCTION__)
+#else
+
+#define ROSEN_TRACE_BEGIN(tag, name)
+#define RS_TRACE_BEGIN(name)
+#define ROSEN_TRACE_END(tag)
+#define RS_TRACE_END()
+#define RS_TRACE_NAME_FMT(fmt, ...)
+#define RS_ASYNC_TRACE_BEGIN(name, value)
+#define RS_ASYNC_TRACE_END(name, value)
+#define RS_TRACE_INT(name, value)
+#define RS_TRACE_NAME(name)
 #define RS_TRACE_FUNC()
-#endif
+#endif //ROSEN_ANDROID
+#endif //ROSEN_TRACE_DISABLE
 
 #endif // GRAPHIC_RS_TRACE_H
