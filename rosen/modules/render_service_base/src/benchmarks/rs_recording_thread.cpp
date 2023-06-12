@@ -78,7 +78,7 @@ void RSRecordingThread::FinishRecordingOneFrame()
         curDumpFrame_++;
     } else {
         isRecordingEnabled_ = false;
-        curDumpFrame_ = -1;
+        curDumpFrame_ = 0;
         dumpFrameNum_ = 0;
         fileDir_ = "";
         RSSystemProperties::SetRecordingDisenabled();
