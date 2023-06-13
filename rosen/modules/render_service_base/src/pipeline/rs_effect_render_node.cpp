@@ -78,7 +78,7 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
             { effectRect.GetLeft(), effectRect.GetTop(), effectRect.GetRight(), effectRect.GetBottom() });
     }
     if (properties.GetColorFilter() != nullptr &&
-        effectRegion_.has_value() && !(effectRegion_.value().second.IsEmpty())) {
+        effectRegion_.has_value() && !(effectRegion_.value().second.isEmpty())) {
         canvas.SetChildrenPath(effectRegion_.value().second);
     }
 }
