@@ -74,7 +74,11 @@ public:
 
     std::unique_ptr<RSPaintFilterCanvas> GetCanvas()
     {
+#ifndef USE_ROSEN_DRAWING
         return std::make_unique<RSPaintFilterCanvas>(surfaceFrame_->GetSurface().get());
+#else
+        return std::make_unique<RSPaintFilterCanvas>(surfaceFrame_->GetSurface().get());
+#endif
     }
 
     int32_t GetBufferAge()
@@ -167,8 +171,13 @@ protected:
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
 
 private:
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence);
+#else
+    std::shared_ptr<Drawing::Image> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
+        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence);
+#endif
 
     static inline std::atomic_bool isHighContrastEnabled_ = false;
 

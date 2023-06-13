@@ -43,7 +43,7 @@ public:
     }
 protected:
     sptr<Surface> producer_;
-    ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -32,11 +32,11 @@ public:
     ~SurfaceFrameOhosGl() override;
     void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override {};
     void SetSurface(EGLSurface surface);
-    void SetColorSpace(ColorGamut colorSpace) override;
-    ColorGamut GetColorSpace() const override;
+    void SetColorSpace(GraphicColorGamut colorSpace) override;
+    GraphicColorGamut GetColorSpace() const override;
 private:
     EGLSurface eglSurface_;
-    ColorGamut colorSpace_;
+    GraphicColorGamut colorSpace_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -29,11 +29,11 @@ namespace TextEngine {
 class TexginePath1DPathEffect {
 public:
     enum Style {
-        kTranslate_Style,
-        kRotate_Style,
-        kMorph_Style,
+        K_TRANSLATE_STYLE,
+        K_ROTATE_STYLE,
+        K_MORPH_STYLE,
 
-        kLastEnum_Style = kMorph_Style,
+        K_LASTENUM_STYLE = K_MORPH_STYLE,
     };
 
     /*

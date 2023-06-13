@@ -30,7 +30,9 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
 
+#ifndef USE_ROSEN_DRAWING
 class SkCanvas;
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -88,8 +90,8 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<OHOS::Surface> GetSurface() const;
 
-    void SetColorSpace(ColorGamut colorSpace);
-    ColorGamut GetColorSpace()
+    void SetColorSpace(GraphicColorGamut colorSpace);
+    GraphicColorGamut GetColorSpace()
     {
         return colorSpace_;
     }
@@ -124,7 +126,7 @@ private:
     std::mutex mutex_;
     BufferAvailableCallback callback_;
 #ifndef ROSEN_CROSS_PLATFORM
-    ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #endif
     bool isSecurityLayer_ = false;
     bool hasFingerprint_ = false;

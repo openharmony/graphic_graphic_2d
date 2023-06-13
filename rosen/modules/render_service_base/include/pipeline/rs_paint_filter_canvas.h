@@ -150,7 +150,7 @@ public:
 #ifndef USE_ROSEN_DRAWING
     SaveStatus Save();
 #else
-    SaveStatus DrSave();
+    SaveStatus SaveAllStatus();
 #endif
     SaveStatus GetSaveStatus() const;
     void RestoreStatus(const SaveStatus& status);

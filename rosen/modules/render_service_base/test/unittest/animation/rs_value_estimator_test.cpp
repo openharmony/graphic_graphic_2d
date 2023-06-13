@@ -45,7 +45,7 @@ void RSValueEstimatorTest::TearDown() {}
 HWTEST_F(RSValueEstimatorTest, EstimateTest001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSValueEstimatorTest EstimateTest001 start";
-    auto startValue = RSFilter::CreateBlurFilter(0.f, 0.f);
+    auto startValue = RSFilter::CreateBlurFilter(1.f, 1.f);
     auto endValue = RSFilter::CreateBlurFilter(10.f, 10.f);
     auto curveValueEstimator = std::make_shared<RSCurveValueEstimator<float>>();
 

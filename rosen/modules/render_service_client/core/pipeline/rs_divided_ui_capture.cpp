@@ -17,7 +17,11 @@
 
 #include <mutex>
 
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkMatrix.h"
+#else
+#include "utils/matrix.h"
+#endif
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -47,7 +51,11 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::TakeLocalCapture()
     }
     std::shared_ptr<RSDividedUICaptureVisitor> visitor =
         std::make_shared<RSDividedUICaptureVisitor>(nodeId_, scaleX_, scaleY_);
+#ifndef USE_ROSEN_DRAWING
     auto recordingCanvas = std::make_shared<RSRecordingCanvas>(FAKE_WIDTH, FAKE_HEIGHT);
+#else
+    auto recordingCanvas = std::make_shared<Drawing::RecordingCanvas>(FAKE_WIDTH, FAKE_HEIGHT);
+#endif
     PostTaskToRTRecord(recordingCanvas, node, visitor);
     auto drawCallList = recordingCanvas->GetDrawCmdList();
     std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMapByNode(node);
@@ -55,11 +63,19 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::TakeLocalCapture()
         ROSEN_LOGE("RSDividedUICapture::TakeLocalCapture: pixelmap == nullptr!");
         return nullptr;
     }
+#ifndef USE_ROSEN_DRAWING
     auto skSurface = CreateSurface(pixelmap);
     if (skSurface == nullptr) {
         return nullptr;
     }
     auto canvas = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
+#else
+    auto drSurface = CreateSurface(pixelmap);
+    if (drSurface == nullptr) {
+        return nullptr;
+    }
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
+#endif
     drawCallList->Playback(*canvas);
     return pixelmap;
 }
@@ -74,7 +90,12 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::CreatePixelMapByNode(std::s
     return Media::PixelMap::Create(opts);
 }
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkSurface> RSDividedUICapture::CreateSurface(const std::shared_ptr<Media::PixelMap>& pixelmap) const
+#else
+std::shared_ptr<Drawing::Surface> RSDividedUICapture::CreateSurface(
+    const std::shared_ptr<Media::PixelMap>& pixelmap) const
+#endif
 {
     if (pixelmap == nullptr) {
         ROSEN_LOGE("RSDividedUICapture::CreateSurface: pixelmap == nullptr");
@@ -85,23 +106,48 @@ sk_sp<SkSurface> RSDividedUICapture::CreateSurface(const std::shared_ptr<Media::
         ROSEN_LOGE("RSDividedUICapture::CreateSurface: address == nullptr");
         return nullptr;
     }
+#ifndef USE_ROSEN_DRAWING
     SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
         kRGBA_8888_SkColorType, kPremul_SkAlphaType);
     return SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
+#else
+    Drawing::BitmapFormat format = { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::Bitmap bitmap;
+    bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format);
+    bitmap.SetPixels(address);
+
+    auto surface = std::make_shared<Drawing::Surface>();
+    surface->Bind(bitmap);
+    return surface;
+#endif
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSDividedUICapture::RSDividedUICaptureVisitor::SetCanvas(std::shared_ptr<RSRecordingCanvas> canvas)
+#else
+void RSDividedUICapture::RSDividedUICaptureVisitor::SetCanvas(std::shared_ptr<Drawing::RecordingCanvas> canvas)
+#endif
 {
     if (canvas == nullptr) {
         ROSEN_LOGE("RSDividedUICaptureVisitor::SetCanvas: canvas == nullptr");
         return;
     }
+#ifndef USE_ROSEN_DRAWING
     canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     canvas_->scale(scaleX_, scaleY_);
+#else
+    canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    canvas_->Scale(scaleX_, scaleY_);
+#endif
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSDividedUICapture::PostTaskToRTRecord(std::shared_ptr<RSRecordingCanvas> canvas,
     std::shared_ptr<RSRenderNode> node, std::shared_ptr<RSDividedUICaptureVisitor> visitor)
+#else
+void RSDividedUICapture::PostTaskToRTRecord(std::shared_ptr<Drawing::RecordingCanvas> canvas,
+    std::shared_ptr<RSRenderNode> node, std::shared_ptr<RSDividedUICaptureVisitor> visitor)
+#endif
 {
     std::function<void()> recordingDrawCall = [canvas, node, visitor]() -> void {
         visitor->SetCanvas(canvas);
@@ -134,9 +180,15 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessRootRenderNode(RSRoot
         return;
     }
 
+#ifndef USE_ROSEN_DRAWING
     canvas_->save();
     ProcessCanvasRenderNode(node);
     canvas_->restore();
+#else
+    canvas_->Save();
+    ProcessCanvasRenderNode(node);
+    canvas_->Restore();
+#endif
 }
 
 void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
@@ -153,6 +205,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCa
         // When drawing nodes, canvas will offset the bounds value, so we will move in reverse here first
         const auto& property = node.GetRenderProperties();
         auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+#ifndef USE_ROSEN_DRAWING
         SkMatrix relativeMatrix = SkMatrix::I();
         relativeMatrix.setScaleY(scaleX_);
         relativeMatrix.setScaleY(scaleY_);
@@ -161,6 +214,16 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCa
             relativeMatrix.preConcat(invertMatrix);
         }
         canvas_->setMatrix(relativeMatrix);
+#else
+        Drawing::Matrix relativeMatrix;
+        relativeMatrix.Set(Drawing::Matrix::SCALE_X, scaleX_);
+        relativeMatrix.Set(Drawing::Matrix::SCALE_Y, scaleY_);
+        Drawing::Matrix invertMatrix;
+        if (geoPtr->GetMatrix().Invert(invertMatrix)) {
+            relativeMatrix.PreConcat(invertMatrix);
+        }
+        canvas_->SetMatrix(relativeMatrix);
+#endif
     }
     node.ProcessRenderBeforeChildren(*canvas_);
     node.ProcessRenderContents(*canvas_);
@@ -229,6 +292,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
         // When drawing nodes, canvas will offset the bounds value, so we will move in reverse here first
         const auto& property = node.GetRenderProperties();
         auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+#ifndef USE_ROSEN_DRAWING
         SkMatrix relativeMatrix = SkMatrix::I();
         relativeMatrix.setScaleX(scaleX_);
         relativeMatrix.setScaleY(scaleY_);
@@ -237,6 +301,16 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
             relativeMatrix.preConcat(invertMatrix);
         }
         canvas_->setMatrix(relativeMatrix);
+#else
+        Drawing::Matrix relativeMatrix;
+        relativeMatrix.Set(Drawing::Matrix::SCALE_X, scaleX_);
+        relativeMatrix.Set(Drawing::Matrix::SCALE_Y, scaleY_);
+        Drawing::Matrix invertMatrix;
+        if (geoPtr->GetMatrix().Invert(invertMatrix)) {
+            relativeMatrix.PreConcat(invertMatrix);
+        }
+        canvas_->SetMatrix(relativeMatrix);
+#endif
     }
     std::shared_ptr<RSOffscreenRenderCallback> callback = std::make_shared<RSOffscreenRenderCallback>();
     auto renderServiceClient = std::make_unique<RSRenderServiceClient>();
@@ -247,9 +321,15 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
         return;
     }
     // draw pixelmap in canvas
+#ifndef USE_ROSEN_DRAWING
     auto image = RSPixelMapUtil::ExtractSkImage(pixelMap);
     canvas_->drawImage(
         image, node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY());
+#else
+    auto image = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
+    canvas_->DrawImage(*image, node.GetRenderProperties().GetBoundsPositionX(),
+        node.GetRenderProperties().GetBoundsPositionY(), Drawing::SamplingOptions());
+#endif
     ProcessBaseRenderNode(node);
 }
 

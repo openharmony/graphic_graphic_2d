@@ -277,6 +277,7 @@ void RSUniRenderComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& 
     RS_TRACE_NAME(traceInfo.c_str());
 
     // get current node's translate matrix and calculate gravity matrix.
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     auto translateMatrix = SkMatrix::Translate(
         std::ceil(node.GetTotalMatrix().getTranslateX()), std::ceil(node.GetTotalMatrix().getTranslateY()));
@@ -285,6 +286,12 @@ void RSUniRenderComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& 
         std::ceil(node.GetTotalMatrix().getTranslateX()), std::ceil(node.GetTotalMatrix().getTranslateY()));
 #endif
     SkMatrix gravityMatrix;
+#else
+    auto translateMatrix = Drawing::Matrix();
+    translateMatrix.Translate(node.GetTotalMatrix().Get(Drawing::Matrix::Index::TRANS_X),
+        std::ceil(node.GetTotalMatrix().Get(Drawing::Matrix::Index::TRANS_Y)));
+    Drawing::Matrix gravityMatrix;
+#endif
     (void)RSPropertiesPainter::GetGravityMatrix(frameGravity,
         RectF {0.0f, 0.0f, boundsWidth, boundsHeight}, frameWidth, frameHeight, gravityMatrix);
 
@@ -295,6 +302,7 @@ void RSUniRenderComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& 
     if (screenRotation == ScreenRotation::ROTATION_90 || screenRotation == ScreenRotation::ROTATION_270) {
         std::swap(screenWidth, screenHeight);
     }
+#ifndef USE_ROSEN_DRAWING
     auto canvas = std::make_unique<SkCanvas>(screenWidth, screenHeight);
     canvas->concat(translateMatrix);
     canvas->concat(gravityMatrix);
@@ -322,6 +330,36 @@ void RSUniRenderComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& 
         newSrcRect.x, newSrcRect.y, newSrcRect.w, newSrcRect.h);
     info.dstRect = {newDstRect.left(), newDstRect.top(), newDstRect.width(), newDstRect.height()};
     info.srcRect = newSrcRect;
+#else
+    auto canvas = std::make_unique<Drawing::Canvas>(screenWidth, screenHeight);
+    canvas->ConcatMatrix(translateMatrix);
+    canvas->ConcatMatrix(gravityMatrix);
+    Drawing::Rect clipRect;
+    gravityMatrix.MapRect(clipRect, Drawing::Rect(0, 0, frameWidth, frameHeight));
+    canvas->ClipRect(Drawing::Rect(0, 0, clipRect.GetWidth(), clipRect.GetHeight()), Drawing::ClipOp::INTERSECT);
+    Drawing::RectI newDstRect = canvas->GetDeviceClipBounds();
+    // we make the newDstRect as the intersection of new and old dstRect,
+    // to deal with the situation that frameSize > boundsSize.
+    newDstRect.Intersect(Drawing::RectI(
+        info.dstRect.x, info.dstRect.y, info.dstRect.w + info.dstRect.x, info.dstRect.h + info.dstRect.y));
+    auto localRect = canvas->GetLocalClipBounds();
+    int left = std::clamp<int>(localRect.GetLeft(), 0, frameWidth);
+    int top = std::clamp<int>(localRect.GetTop(), 0, frameHeight);
+    int width = std::clamp<int>(localRect.GetWidth(), 0, frameWidth - left);
+    int height = std::clamp<int>(localRect.GetHeight(), 0, frameHeight - top);
+    GraphicIRect newSrcRect = {left, top, width, height};
+
+    // log and apply new dstRect and srcRect
+    RS_LOGD("RsDebug DealWithNodeGravity: name[%s], gravity[%d], oldDstRect[%d %d %d %d], newDstRect[%d %d %d %d],"\
+        " oldSrcRect[%d %d %d %d], newSrcRect[%d %d %d %d].",
+        node.GetName().c_str(), static_cast<int>(frameGravity),
+        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
+        newDstRect.GetLeft(), newDstRect.GetTop(), newDstRect.GetWidth(), newDstRect.GetHeight(),
+        info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h,
+        newSrcRect.x, newSrcRect.y, newSrcRect.w, newSrcRect.h);
+    info.dstRect = {newDstRect.GetLeft(), newDstRect.GetTop(), newDstRect.GetWidth(), newDstRect.GetHeight()};
+    info.srcRect = newSrcRect;
+#endif
 }
 
 RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(RSSurfaceRenderNode& node)
@@ -398,9 +436,17 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& no
     info.dstRect.y -= static_cast<int32_t>(static_cast<float>(offsetY_) * mirrorAdaptiveCoefficient_);
     info.visibleRect = info.dstRect;
     auto totalMatrix = node.GetTotalMatrix();
+#ifndef USE_ROSEN_DRAWING
     info.matrix = GraphicMatrix {totalMatrix[0], totalMatrix[1], totalMatrix[2],
                                  totalMatrix[3], totalMatrix[4], totalMatrix[5],
                                  totalMatrix[6], totalMatrix[7], totalMatrix[8]};
+#else
+    info.matrix = GraphicMatrix {totalMatrix.Get(Drawing::Matrix::Index::SCALE_X),
+        totalMatrix.Get(Drawing::Matrix::Index::SKEW_X), totalMatrix.Get(Drawing::Matrix::Index::TRANS_X),
+        totalMatrix.Get(Drawing::Matrix::Index::SKEW_Y), totalMatrix.Get(Drawing::Matrix::Index::SCALE_Y),
+        totalMatrix.Get(Drawing::Matrix::Index::TRANS_Y), totalMatrix.Get(Drawing::Matrix::Index::PERSP_0),
+        totalMatrix.Get(Drawing::Matrix::Index::PERSP_1), totalMatrix.Get(Drawing::Matrix::Index::PERSP_2)};
+#endif
 
     const auto& property = node.GetRenderProperties();
     info.boundRect = { 0, 0,

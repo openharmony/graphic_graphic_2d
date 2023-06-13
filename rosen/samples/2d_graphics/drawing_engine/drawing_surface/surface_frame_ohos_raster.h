@@ -28,8 +28,8 @@ public:
     SurfaceFrameOhosRaster(int32_t width, int32_t height);
     ~SurfaceFrameOhosRaster() override;
     void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override;
-    void SetColorSpace(ColorGamut colorSpace) override;
-    ColorGamut GetColorSpace() const override;
+    void SetColorSpace(GraphicColorGamut colorSpace) override;
+    GraphicColorGamut GetColorSpace() const override;
     friend class SurfaceOhosRaster;
     sptr<SurfaceBuffer> GetBuffer() const
     {
@@ -54,7 +54,7 @@ private:
             .h = 0x100,
         },
     };
-    ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 };
 } // namespace Rosen
 } // namespace OHOS

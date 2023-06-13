@@ -17,7 +17,9 @@
 
 #include "ui/rs_node.h"
 
+#ifndef USE_ROSEN_DRAWING
 class SkCanvas;
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -37,7 +39,11 @@ public:
 
     static SharedPtr Create(bool isRenderServiceNode = false);
 
+#ifndef USE_ROSEN_DRAWING
     SkCanvas* BeginRecording(int width, int height);
+#else
+    Drawing::RecordingCanvas* BeginRecording(int width, int height);
+#endif
     bool IsRecording() const;
     void FinishRecording();
     float GetPaintWidth() const;
@@ -54,7 +60,11 @@ protected:
     RSCanvasNode& operator=(const RSCanvasNode&&) = delete;
 
 private:
+#ifndef USE_ROSEN_DRAWING
     SkCanvas* recordingCanvas_ = nullptr;
+#else
+    Drawing::RecordingCanvas* recordingCanvas_ = nullptr;
+#endif
     bool recordingUpdated_ = false;
 
     friend class RSUIDirector;

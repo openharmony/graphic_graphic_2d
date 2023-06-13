@@ -15,12 +15,16 @@
 
 #ifndef OHOS_SHADER_CACHE_H
 #define OHOS_SHADER_CACHE_H
+#ifndef USE_ROSEN_DRAWING
 #if defined(NEW_SKIA)
 #include <include/gpu/GrDirectContext.h>
 #else
 #include <include/gpu/GrContext.h>
 #endif
 #include <include/gpu/GrContextOptions.h>
+#else
+#include "image/gpu_context.h"
+#endif
 #include <mutex>
 #include <memory>
 #include <string>
@@ -29,7 +33,11 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifndef USE_ROSEN_DRAWING
 class ShaderCache : public GrContextOptions::PersistentCache {
+#else
+class ShaderCache : public Drawing::GPUContextOptions::PersistentCache {
+#endif
 public:
     static ShaderCache& Instance();
 
@@ -41,8 +49,13 @@ public:
 
     virtual void SetFilePath(const std::string& filename);
 
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkData> load(const SkData &key) override;
     void store(const SkData &key, const SkData &data) override;
+#else
+    std::shared_ptr<Drawing::Data> Load(const Drawing::Data &key) override;
+    void Store(const Drawing::Data &key, const Drawing::Data &data) override;
+#endif
 
     bool IfInitialized() const
     {

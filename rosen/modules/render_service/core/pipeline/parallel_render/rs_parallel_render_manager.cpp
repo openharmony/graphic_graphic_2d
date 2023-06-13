@@ -88,7 +88,7 @@ bool RSParallelRenderManager::GetParallelMode() const
     ParallelStatus status = GetParallelRenderingStatus();
     return (status == ParallelStatus::ON) || (status == ParallelStatus::FIRSTFLUSH);
 }
- 
+
 void RSParallelRenderManager::StartSubRenderThread(uint32_t threadNum, RenderContext *context)
 {
     if (GetParallelRenderingStatus() == ParallelStatus::OFF) {
@@ -357,6 +357,7 @@ void RSParallelRenderManager::DrawImageMergeFunc(RSPaintFilterCanvas& canvas)
                 RS_LOGE("Texture of subThread(%d) is nullptr", i);
                 continue;
             }
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
             if (renderContext_ == nullptr) {
                 RS_LOGE("RS main thread render context is nullptr");
@@ -381,16 +382,21 @@ void RSParallelRenderManager::DrawImageMergeFunc(RSPaintFilterCanvas& canvas)
 #else
             canvas.drawImage(texture, 0, 0);
 #endif
+#else
+            canvas.DrawImage(*texture, 0, 0, Drawing::SamplingOptions());
+#endif
             // For any one subMainThread' sksurface, we just clear transparent color of self drawing
             // surface drawed in larger skSurface, such as skSurface 0 should clear self drawing surface
             // areas drawed in skSurface 1.
             auto clearTransparentColorSurfaceIndex = i + 1;
             ClearSelfDrawingSurface(canvas, clearTransparentColorSurfaceIndex);
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
             sharedTexture.reset();
             sharedTexture = nullptr;
             texture.reset();
             texture = nullptr;
+#endif
 #endif
         }
     }
@@ -405,12 +411,22 @@ void RSParallelRenderManager::FlushOneBufferFunc()
         }
         renderContext_->ShareMakeCurrent(threadList_[i]->GetSharedContext());
         RS_TRACE_BEGIN("Start Flush");
+#ifndef USE_ROSEN_DRAWING
         auto skSurface = threadList_[i]->GetSkSurface();
         if (skSurface) {
             skSurface->flush();
         } else {
             RS_LOGE("skSurface is nullptr, thread index:%d", i);
         }
+#else
+        auto drSurface = threadList_[i]->GetDrawingSurface();
+        if (drSurface) {
+            auto canvas = drSurface->GetCanvas();
+            canvas->Flush();
+        } else {
+            RS_LOGE("skSurface is nullptr, thread index:%d", i);
+        }
+#endif
         RS_TRACE_END();
         renderContext_->ShareMakeCurrent(EGL_NO_CONTEXT);
     }
@@ -473,20 +489,22 @@ void RSParallelRenderManager::SubmitSubThreadTask(const std::shared_ptr<RSDispla
     std::vector<std::unique_ptr<RSRenderTask>> renderTaskList;
     auto cacheSkippedNodeMap = RSMainThread::Instance()->GetCacheCmdSkippedNodes();
     for (const auto& child : subThreadNodes) {
-        if (!child->ShouldPaint()) {
+        if (!child->ShouldPaint() && !child->NeedClear()) {
             continue;
         }
-        if (cacheSkippedNodeMap.count(child->GetId()) != 0) {
+        if (cacheSkippedNodeMap.count(child->GetId()) != 0 && !child->NeedClear()) {
             RS_TRACE_NAME_FMT("SubmitTask cacheCmdSkippedNode: %s", child->GetName().c_str());
             continue;
         }
         nodeTaskState_[child->GetId()] = 1;
+        child->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
         renderTaskList.push_back(std::make_unique<RSRenderTask>(*child, RSRenderTask::RenderNodeStage::CACHE));
     }
 
     std::vector<std::unique_ptr<RSSuperRenderTask>> superRenderTaskList;
     for (uint32_t i = 0; i < PARALLEL_THREAD_NUM; i++) {
-        superRenderTaskList.emplace_back(std::make_unique<RSSuperRenderTask>(node));
+        superRenderTaskList.emplace_back(std::make_unique<RSSuperRenderTask>(node,
+            RSMainThread::Instance()->GetFrameCount()));
     }
 
     for (size_t i = 0; i < renderTaskList.size(); i++) {
@@ -518,7 +536,7 @@ void RSParallelRenderManager::SubmitSubThreadTask(const std::shared_ptr<RSDispla
     }
 
     for (auto i = 0; i < PARALLEL_THREAD_NUM; i++) {
-        SubmitSuperTask(i, std::move(superRenderTaskList[i]));
+        threadList_[i]->AddSuperTask(std::move(superRenderTaskList[i]));
         flipCoin_[i] = 1;
     }
     cvParallelRender_.notify_all();

@@ -58,6 +58,14 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr float DEFAULT_NEAR_ZERO_THRESHOLD = 1.0f / 256.0f;
+constexpr float FLOAT_NEAR_ZERO_COARSE_THRESHOLD = 0.5f;
+constexpr float FLOAT_NEAR_ZERO_MEDIUM_THRESHOLD = 1.0f / 256.0f;
+constexpr float FLOAT_NEAR_ZERO_FINE_THRESHOLD = 1.0f / 3072.0f;
+constexpr float INT16T_NEAR_ZERO_THRESHOLD = 1.0f;
+} //namespace
+
 template<class...>
 struct make_void { using type = void; };
 template<class... T>
@@ -111,6 +119,8 @@ protected:
     {
         return RSRenderPropertyType::INVALID;
     }
+
+    float GetZeroThresholdByModifierType() const;
 
     virtual void UpdateOnAllAnimationFinish() {}
 
@@ -523,6 +533,9 @@ RSC_EXPORT void RSProperty<std::shared_ptr<RSMask>>::UpdateToRender(
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSPath>>::UpdateToRender(
     const std::shared_ptr<RSPath>& value, bool isDelta, bool forceUpdate) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>::UpdateToRender(
+    const std::shared_ptr<RSLinearGradientBlurPara>& value, bool isDelta, bool forceUpdate) const;
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSShader>>::UpdateToRender(
     const std::shared_ptr<RSShader>& value, bool isDelta, bool forceUpdate) const;

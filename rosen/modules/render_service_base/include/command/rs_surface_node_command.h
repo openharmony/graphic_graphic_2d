@@ -71,7 +71,7 @@ public:
     static void SetSecurityLayer(RSContext& context, NodeId nodeId, bool isSecurityLayer);
     static void SetFingerprint(RSContext& context, NodeId nodeId, bool hasFingerprint);
 #ifndef ROSEN_CROSS_PLATFORM
-    static void SetColorSpace(RSContext& context, NodeId nodeId, ColorGamut colorSpace);
+    static void SetColorSpace(RSContext& context, NodeId nodeId, GraphicColorGamut colorSpace);
 #endif
     static void UpdateSurfaceDefaultSize(RSContext& context, NodeId nodeId, float width, float height);
     static void ConnectToNodeInRenderService(RSContext& context, NodeId id);
@@ -135,7 +135,7 @@ ADD_COMMAND(RSSurfaceNodeSetAnimationFinished,
 
 #ifndef ROSEN_CROSS_PLATFORM
 ADD_COMMAND(RSSurfaceNodeSetColorSpace,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_COLOR_SPACE, SurfaceNodeCommandHelper::SetColorSpace, NodeId, ColorGamut))
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_COLOR_SPACE, SurfaceNodeCommandHelper::SetColorSpace, NodeId, GraphicColorGamut))
 #endif
 } // namespace Rosen
 } // namespace OHOS

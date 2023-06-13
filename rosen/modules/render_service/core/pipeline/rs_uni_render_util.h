@@ -23,7 +23,12 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_render_node_map.h"
 #include "common/rs_obj_abs_geometry.h"
+
+#ifdef USE_ROSEN_DRAWING
+#include "utils/matrix.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -45,20 +50,31 @@ public:
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU);
+#ifndef USE_ROSEN_DRAWING
     static void DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, sk_sp<SkImage> image);
     static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
     static int GetRotationFromMatrix(SkMatrix matrix);
+#else
+    static void DrawCachedImage(
+        RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image);
+    static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
+    static int GetRotationFromMatrix(Drawing::Matrix matrix);
+#endif
     static void AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode, uint64_t focusNodeId,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
-        std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
-        const std::unordered_map<NodeId, bool>& cacheSkippedNodeMap);
+        std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
+    static void ClearSurfaceIfNeed(const RSRenderNodeMap& map, const std::shared_ptr<RSDisplayRenderNode>& displayNode,
+        std::set<std::shared_ptr<RSBaseRenderNode>>& oldChildren,
+        std::list<std::shared_ptr<RSSurfaceRenderNode>>& currentNodes);
 
 private:
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
-        const std::shared_ptr<RSSurfaceRenderNode>& node);
+        const std::shared_ptr<RSSurfaceRenderNode>& node,
+        std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     static void AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
-        const std::shared_ptr<RSSurfaceRenderNode>& node, const std::unordered_map<NodeId, bool>& cacheSkippedNodeMap);
+        const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
+    static void HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node);
 };
 }
 }

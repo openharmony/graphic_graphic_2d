@@ -113,5 +113,29 @@ HWTEST_F(RSTransactionControllerTest, RSTransactionControllerTest003, TestSize.L
     GTEST_LOG_(INFO) << "RSTransactionControllerTest RSTransactionControllerTest003 end";
 }
 
+/**
+ * @tc.name: RSTransactionControllerTest004
+ * @tc.desc: Verify sync transaction controller
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionControllerTest, RSTransactionControllerTest004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSTransactionControllerTest RSTransactionControllerTest004 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    auto controller = RSSyncTransactionController::GetInstance();
+    controller->OpenSyncTransaction();
+    auto transaction = controller->GetRSTransaction();
+    EXPECT_TRUE(controller != nullptr);
+    MessageParcel messageParcel;
+    transaction->MarshallTransactionSyncController(messageParcel);
+    transaction->UnmarshallTransactionSyncController(messageParcel);
+    transaction->MarshallTransactionSyncController(messageParcel);
+    transaction->UnmarshallTransactionSyncController(messageParcel);
+    transaction->Commit();
+    controller->CloseSyncTransaction();
+    GTEST_LOG_(INFO) << "RSTransactionControllerTest RSTransactionControllerTest004 end";
+}
 } // namespace Rosen
 } // namespace OHOS

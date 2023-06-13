@@ -16,16 +16,22 @@
 #ifndef RS_UNI_UI_CAPTURE
 #define RS_UNI_UI_CAPTURE
 
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkCanvas.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkSurface.h"
+#endif
 #include "pixel_map.h"
 #include "rs_base_render_engine.h"
 
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
+#ifndef USE_ROSEN_DRAWING
 #include "pipeline/rs_recording_canvas.h"
+#else
+#include "recording/recording_canvas.h"
+#endif
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "visitor/rs_node_visitor.h"
@@ -62,7 +68,11 @@ private:
         void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
         void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
 
+#ifndef USE_ROSEN_DRAWING
         void SetCanvas(std::shared_ptr<RSRecordingCanvas> canvas);
+#else
+        void SetCanvas(std::shared_ptr<Drawing::RecordingCanvas> canvas);
+#endif
 
     private:
         void ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode& node);
@@ -74,6 +84,7 @@ private:
         float scaleX_ = 1.0f;
         float scaleY_ = 1.0f;
 
+#ifndef USE_ROSEN_DRAWING
         SkMatrix captureMatrix_ = SkMatrix::I();
         bool isUniRender_ = false;
         std::shared_ptr<RSBaseRenderEngine> renderEngine_;
@@ -81,6 +92,15 @@ private:
     sk_sp<SkSurface> CreateSurface(const std::shared_ptr<Media::PixelMap>& pixelmap) const;
     void PostTaskToRSRecord(std::shared_ptr<RSRecordingCanvas> canvas, std::shared_ptr<RSRenderNode> node,
         std::shared_ptr<RSUniUICaptureVisitor> visitor);
+#else
+        Drawing::Matrix captureMatrix_ = Drawing::Matrix();
+        bool isUniRender_ = false;
+        std::shared_ptr<RSBaseRenderEngine> renderEngine_;
+    };
+    std::shared_ptr<Drawing::Surface> CreateSurface(const std::shared_ptr<Media::PixelMap>& pixelmap) const;
+    void PostTaskToRSRecord(std::shared_ptr<Drawing::RecordingCanvas> canvas, std::shared_ptr<RSRenderNode> node,
+        std::shared_ptr<RSUniUICaptureVisitor> visitor);
+#endif
     std::shared_ptr<Media::PixelMap> CreatePixelMapByNode(std::shared_ptr<RSRenderNode> node) const;
 
     NodeId nodeId_;

@@ -68,7 +68,7 @@ typedef struct FrameConfig {
         releaseFence = -1;
         pixelFormat = PIXEL_FMT_RGBA_8888;
         bufferUsage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
-        ColorGamut colorSpace = ColorGamut::COLOR_GAMUT_SRGB;
+        GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
         requestConfig = {
             .width = 0x100,
             .height = 0x100,
@@ -93,7 +93,7 @@ typedef struct FrameConfig {
     int32_t releaseFence;
     int32_t pixelFormat;
     uint64_t bufferUsage;
-    ColorGamut colorSpace;
+    GraphicColorGamut colorSpace;
     std::vector<RectI> damageRects;
     std::unique_ptr<uint32_t[]> addr;
     BufferRequestConfig requestConfig;
@@ -108,11 +108,11 @@ typedef struct SurfaceConfig {
 } SurfaceConfig;
 
 typedef struct RSRenderSurfaceFrame {
-    SurfaceConfig* surfaceConfig;
-    FrameConfig* frameConfig;
-    EGLState* eglState;
+    std::shared_ptr<SurfaceConfig> surfaceConfig;
+    std::shared_ptr<FrameConfig> frameConfig;
+    std::shared_ptr<EGLState> eglState;
 #if defined(RS_ENABLE_VK)
-    VulkanState* vulkanState;
+    std::shared_ptr<VulkanState> vulkanState;
 #endif
 } RSRenderSurfaceFrame;
 }

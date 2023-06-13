@@ -125,7 +125,7 @@ public:
             builder->PushStyle(style);
             builder->AppendSpan(text);
             auto typography = builder->Build();
-            typography->Layout(300);
+            typography->Layout(300);    // 300 means layout width
             typographies_.push_back({
                 .typography = typography,
             });

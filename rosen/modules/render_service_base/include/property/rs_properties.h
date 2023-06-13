@@ -124,8 +124,8 @@ public:
     void SetAlphaOffscreen(bool alphaOffscreen);
     bool GetAlphaOffscreen() const;
 
-    void SetSublayerTransform(Matrix3f sublayerTransform);
-    Matrix3f GetSublayerTransform() const;
+    void SetSublayerTransform(const std::optional<Matrix3f>& sublayerTransform);
+    const std::optional<Matrix3f>& GetSublayerTransform() const;
 
     // foreground properties
     void SetForegroundColor(Color color);
@@ -310,23 +310,21 @@ private:
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
     std::shared_ptr<RSPath> clipPath_ = nullptr;
-    std::unique_ptr<Vector4f> cornerRadius_ = nullptr;
-    std::unique_ptr<Decoration> decoration_ = nullptr;
+    std::optional<Vector4f> cornerRadius_;
+    std::optional<Decoration> decoration_;
     std::shared_ptr<RSFilter> filter_ = nullptr;
     std::shared_ptr<RSMask> mask_ = nullptr;
-    std::unique_ptr<RSShadow> shadow_ = nullptr;
-    std::unique_ptr<Matrix3f> sublayerTransform_ = nullptr;
+    std::optional<RSShadow> shadow_;
+    std::optional<Matrix3f> sublayerTransform_;
     float spherizeDegree_ = 0.f;
     float lightUpEffectDegree_ = 1.0f;
 
     std::weak_ptr<RSRenderNode> backref_;
 
     std::optional<Vector2f> sandboxPosition_;
-
-    std::unique_ptr<Vector4f> pixelStretch_ = nullptr;
-
-    std::unique_ptr<Vector4f> pixelStretchPercent_ = nullptr;
-    std::unique_ptr<RRect> clipRRect_ = nullptr;
+    std::optional<Vector4f> pixelStretch_;
+    std::optional<Vector4f> pixelStretchPercent_;
+    std::optional<RRect> clipRRect_;
 
     std::optional<float> grayScale_;
     std::optional<float> brightness_;

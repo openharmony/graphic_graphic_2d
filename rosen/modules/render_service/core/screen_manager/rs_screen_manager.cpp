@@ -493,8 +493,7 @@ ScreenPowerStatus RSScreenManager::GetScreenPowerStatusLocked(ScreenId id) const
 std::vector<ScreenId> RSScreenManager::GetAllScreenIds()
 {
     std::vector<ScreenId> ids;
-    for (std::unordered_map<ScreenId, std::unique_ptr<OHOS::Rosen::RSScreen>>::iterator iter = screens_.begin();
-        iter != screens_.end(); ++iter) {
+    for (auto iter = screens_.begin(); iter != screens_.end(); ++iter) {
         ids.emplace_back(iter->first);
     }
     return ids;

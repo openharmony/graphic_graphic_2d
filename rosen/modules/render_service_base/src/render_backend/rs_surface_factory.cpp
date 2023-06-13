@@ -18,6 +18,7 @@
 #include "render_context_base.h"
 #include "utils/log.h"
 #include "ohos/rs_render_surface_ohos.h"
+
 namespace OHOS {
 namespace Rosen {
 std::shared_ptr<RSRenderSurface> RSSurfaceFactory::CreateRSSurface(const PlatformName& platformName,
@@ -27,7 +28,6 @@ std::shared_ptr<RSRenderSurface> RSSurfaceFactory::CreateRSSurface(const Platfor
     if (platformName == PlatformName::OHOS) {
         rsSurface = std::make_shared<RSRenderSurfaceOhos>(surface, drawingContext);
     }
-    LOGD("Create rsSurface successfully");
     return rsSurface;
 }
 }

@@ -23,6 +23,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_ui_capture.h"
 #include "platform/common/rs_log.h"
+#include "rs_jank_stats.h"
 #include "rs_main_thread.h"
 #include "rs_trace.h"
 
@@ -661,6 +662,12 @@ void RSRenderServiceConnection::ShowWatermark(const std::shared_ptr<Media::Pixel
     auto task = [this, watermarkImg, isShow]() -> void {
         mainThread_->ShowWatermark(watermarkImg, isShow);
     };
+    mainThread_->PostTask(task);
+}
+
+void RSRenderServiceConnection::ReportJankStats()
+{
+    auto task = [this]() -> void { RSJankStats::GetInstance().ReportJankStats(); };
     mainThread_->PostTask(task);
 }
 } // namespace Rosen

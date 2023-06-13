@@ -130,6 +130,11 @@ public:
         isHardwareForcedDisabled_ = forcesDisabled;
     }
 
+    void SetHardwareDisabledByCache(bool disabledByCache)
+    {
+        isHardwareDisabledByCache_ = disabledByCache;
+    }
+
     void SetHardwareForcedDisabledStateByFilter(bool forcesDisabled)
     {
         isHardwareForcedDisabledByFilter_ = forcesDisabled;
@@ -142,7 +147,7 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        return isHardwareForcedDisabled_ ||
+        return isHardwareForcedDisabled_ || isHardwareDisabledByCache_ ||
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
 
@@ -434,8 +439,8 @@ public:
     float GetLocalZOrder() const;
 
 #ifndef ROSEN_CROSS_PLATFORM
-    void SetColorSpace(ColorGamut colorSpace);
-    ColorGamut GetColorSpace() const;
+    void SetColorSpace(GraphicColorGamut colorSpace);
+    GraphicColorGamut GetColorSpace() const;
     void SetConsumer(const sptr<IConsumerSurface>& consumer);
     void SetBlendType(GraphicBlendType blendType);
     GraphicBlendType GetBlendType();
@@ -503,7 +508,7 @@ public:
 
     bool GetZorderChanged() const
     {
-        return (std::abs(GetRenderProperties().GetPositionZ() - positionZ_) > (std::numeric_limits<float>::epsilon()));
+        return zOrderChanged_;
     }
 
     bool IsZOrderPromoted() const
@@ -513,6 +518,7 @@ public:
 
     void UpdatePositionZ()
     {
+        zOrderChanged_ = !ROSEN_EQ(GetRenderProperties().GetPositionZ(), positionZ_);
         positionZ_ = GetRenderProperties().GetPositionZ();
     }
 
@@ -645,16 +651,16 @@ public:
         return submittedSubThreadIndex_;        
     }
 
-    void SetCacheSurfaceProcessedStatus(bool isCacheSurfaceProcessed)
+    void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus)
     {
         std::lock_guard<std::mutex> lock(cacheSurfaceProcessedMutex_);
-        isCacheSurfaceProcessed_ = isCacheSurfaceProcessed;
+        cacheProcessStatus_ = cacheProcessStatus;
     }
 
-    bool GetCacheSurfaceProcessedStatus() const
+    CacheProcessStatus GetCacheSurfaceProcessedStatus() const
     {
         std::lock_guard<std::mutex> lock(cacheSurfaceProcessedMutex_);
-        return isCacheSurfaceProcessed_;
+        return cacheProcessStatus_;
     }
 
 private:
@@ -692,12 +698,13 @@ private:
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float positionZ_ = 0.0f;
+    bool zOrderChanged_ = false;
     bool qosPidCal_ = false;
 
     std::string name_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
 #ifndef ROSEN_CROSS_PLATFORM
-    ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
 #endif
     bool isNotifyRTBufferAvailablePre_ = false;
@@ -789,6 +796,7 @@ private:
     // in case where this node's parent window node is occluded or is appFreeze, this variable will be marked true
     bool isHardwareForcedDisabled_ = false;
     bool isHardwareForcedDisabledByFilter_ = false;
+    bool isHardwareDisabledByCache_ = false;
     float localZOrder_ = 0.0f;
     std::vector<WeakPtr> childHardwareEnabledNodes_;
     int32_t nodeCost_ = 0;
@@ -800,7 +808,7 @@ private:
     // UIFirst
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     mutable std::mutex cacheSurfaceProcessedMutex_;
-    bool isCacheSurfaceProcessed_ = true;
+    CacheProcessStatus cacheProcessStatus_ = CacheProcessStatus::WAITING;
 
     friend class RSUniRenderVisitor;
     friend class RSBaseRenderNode;

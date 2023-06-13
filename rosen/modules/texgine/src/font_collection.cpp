@@ -85,7 +85,7 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForFontStyles(const FontSty
                                           matchingStyle->GetFontStyle()->width())) * SECOND_PRIORITY;
             score += (MAX_SLANT - std::abs(providingStyle.GetFontStyle()->slant() -
                                           matchingStyle->GetFontStyle()->slant())) * FIRST_PRIORITY;
-            score += (MAX_WEIGHT - std::abs(providingStyle.GetFontStyle()->weight() / 100 -
+            score += (MAX_WEIGHT - std::abs(providingStyle.GetFontStyle()->weight() / MULTIPLE -
                                            matchingStyle->GetFontStyle()->weight() / MULTIPLE));
             if (score > bestScore) {
                 bestScore = score;

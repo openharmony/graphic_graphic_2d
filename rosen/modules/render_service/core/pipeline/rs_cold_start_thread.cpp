@@ -94,6 +94,7 @@ void RSColdStartThread::Stop()
                 images_.pop();
             }
         }
+#ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_GL
         if (grContext_ != nullptr) {
             grContext_->releaseResourcesAndAbandonContext();
@@ -101,6 +102,15 @@ void RSColdStartThread::Stop()
         }
 #endif
         skSurface_ = nullptr;
+#else
+#ifdef RS_ENABLE_GL
+        if (gpuContext_ != nullptr) {
+            gpuContext_->releaseResourcesAndAbandonContext();
+            gpuContext_ = nullptr;
+        }
+#endif
+        drSurface_ = nullptr;
+#endif
 #ifdef RS_ENABLE_GL
         context_ = nullptr;
 #endif
@@ -159,7 +169,11 @@ void RSColdStartThread::Run()
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSColdStartThread::PostPlayBackTask(std::shared_ptr<DrawCmdList> drawCmdList, float width, float height)
+#else
+void RSColdStartThread::PostPlayBackTask(std::shared_ptr<Drawing::DrawCmdList> drawCmdList, float width, float height)
+#endif
 {
     if (handler_ == nullptr) {
         RS_LOGE("RSColdStartThread::PostPlayBackTask failed, handler_ is nullptr");
@@ -181,6 +195,7 @@ void RSColdStartThread::PostPlayBackTask(std::shared_ptr<DrawCmdList> drawCmdLis
             RS_LOGE("RSColdStartThread::PostPlayBackTask surfaceNode is nullptr");
             return;
         }
+#ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_GL
         if (grContext_ == nullptr) {
             grContext_ = context_->MakeGrContext();
@@ -204,10 +219,33 @@ void RSColdStartThread::PostPlayBackTask(std::shared_ptr<DrawCmdList> drawCmdLis
 
         RS_TRACE_BEGIN("flush");
         skSurface_->flush();
+#else // USE_ROSEN_DRAWING
+#ifdef RS_ENABLE_GL
+        if (gpuContext_ == nullptr) {
+            gpuContext_ = context_->MakeDrContext();
+        }
+#endif
+        if (drSurface_ == nullptr || drSurface_->GetCanvas() == nullptr) {
+            RS_LOGE("RSColdStartThread::PostPlayBackTask make SkSurface failed");
+            return;
+        }
+
+        RS_LOGD("RSColdStartThread::PostPlayBackTask drawCmdList Playback");
+        RS_TRACE_NAME_FMT("RSColdStartThread Playback:%s", node->GetName().c_str());
+        auto canvas = drSurface_->GetCanvas();
+        canvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+        drawCmdList->Playback(*canvas);
+
+        RS_TRACE_BEGIN("flush");
+#endif // USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_GL
         glFinish();
 #endif
+#ifndef USE_ROSEN_DRAWING
         sk_sp<SkImage> image = skSurface_->makeImageSnapshot();
+#else
+        std::shared_ptr<Drawing::Image> image = drSurface_->GetImageSnapshot();
+#endif
         RS_TRACE_END();
 
         if (node->GetCachedImage() == nullptr) {
@@ -246,8 +284,13 @@ RSColdStartManager& RSColdStartManager::Instance()
     return instance;
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSColdStartManager::PostPlayBackTask(NodeId id, std::shared_ptr<DrawCmdList> drawCmdList,
     float width, float height)
+#else
+void RSColdStartManager::PostPlayBackTask(NodeId id, std::shared_ptr<Drawing::DrawCmdList> drawCmdList,
+    float width, float height)
+#endif
 {
     if (coldStartThreadMap_.count(id) != 0 && coldStartThreadMap_[id] != nullptr) {
         coldStartThreadMap_[id]->PostPlayBackTask(drawCmdList, width, height);

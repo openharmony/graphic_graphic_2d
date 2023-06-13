@@ -20,6 +20,7 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifndef USE_ROSEN_DRAWING
 void MemoryHandler::ConfigureContext(GrContextOptions* context, const char* identity,
     const size_t size, const std::string& cacheFilePath, bool isUni)
 {
@@ -29,8 +30,22 @@ void MemoryHandler::ConfigureContext(GrContextOptions* context, const char* iden
     cache.InitShaderCache(identity, size, isUni);
     context->fPersistentCache = &cache;
 }
+#else
+void MemoryHandler::ConfigureContext(Drawing::GPUContextOptions* context, const char* identity,
+    const size_t size, const std::string& cacheFilePath, bool isUni)
+{
+    auto& cache = ShaderCache::Instance();
+    cache.SetFilePath(cacheFilePath);
+    cache.InitShaderCache(identity, size, isUni);
+    context->SetPersistentCache(&cache);
+}
+#endif
 
+#ifdef NEW_RENDER_CONTEXT
 std::string MemoryHandler::QuerryShader()
+#else
+std::string MemoryHandler::QuerryShader() const
+#endif
 {
     const auto& cache = ShaderCache::Instance();
     if (!cache.IfInitialized()) {
@@ -43,7 +58,11 @@ std::string MemoryHandler::QuerryShader()
     return ramString;
 }
 
+#ifdef NEW_RENDER_CONTEXT
 std::string MemoryHandler::ClearShader()
+#else
+std::string MemoryHandler::ClearShader() const
+#endif
 {
     const auto& cache = ShaderCache::Instance();
     LOGW("All shaders are cleaned");

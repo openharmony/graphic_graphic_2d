@@ -18,7 +18,6 @@
 
 #include "pipeline/parallel_render/rs_parallel_render_manager.h"
 #include "pipeline/rs_base_render_util.h"
-#include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_path.h"
 #include "rs_trace.h"
@@ -88,8 +87,13 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceR
     if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK &&
         scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         const RSProperties& property = node.GetRenderProperties();
+#ifndef USE_ROSEN_DRAWING
         uint32_t newWidth = static_cast<uint32_t>(params.srcRect.width());
         uint32_t newHeight = static_cast<uint32_t>(params.srcRect.height());
+#else
+        uint32_t newWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
+        uint32_t newHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
+#endif
         // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
         uint32_t boundsWidth = static_cast<uint32_t>(property.GetBoundsWidth());
         uint32_t boundsHeight = static_cast<uint32_t>(property.GetBoundsHeight());
@@ -111,28 +115,53 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceR
             return;
         }
 
+#ifndef USE_ROSEN_DRAWING
         uint32_t currentWidth = static_cast<uint32_t>(params.srcRect.width());
         uint32_t currentHeight = static_cast<uint32_t>(params.srcRect.height());
+#else
+        uint32_t currentWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
+        uint32_t currentHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
+#endif
         if (newWidth < currentWidth) {
             // the crop is too wide
             uint32_t dw = currentWidth - newWidth;
             auto halfdw = dw / 2;
+#ifndef USE_ROSEN_DRAWING
             params.srcRect = SkRect::MakeXYWH(params.srcRect.left() + static_cast<int32_t>(halfdw),
                                               params.srcRect.top(),
                                               static_cast<int32_t>(newWidth),
                                               params.srcRect.height());
+#else
+            params.srcRect =
+                Drawing::Rect(params.srcRect.GetLeft() + static_cast<int32_t>(halfdw), params.srcRect.GetTop(),
+                    params.srcRect.GetLeft() + static_cast<int32_t>(halfdw) + static_cast<int32_t>(newWidth),
+                    params.srcRect.GetTop() + params.srcRect.GetHeight());
+#endif
         } else {
             // thr crop is too tall
             uint32_t dh = currentHeight - newHeight;
             auto halfdh = dh / 2;
+#ifndef USE_ROSEN_DRAWING
             params.srcRect = SkRect::MakeXYWH(params.srcRect.left(),
                                               params.srcRect.top() + static_cast<int32_t>(halfdh),
                                               params.srcRect.width(),
                                               static_cast<int32_t>(newHeight));
+#else
+            params.srcRect =
+                Drawing::Rect(params.srcRect.GetLeft(), params.srcRect.GetTop() + static_cast<int32_t>(halfdh),
+                    params.srcRect.GetLeft() + params.srcRect.GetWidth(),
+                    params.srcRect.GetTop() + static_cast<int32_t>(halfdh) + static_cast<int32_t>(newHeight));
+#endif
         }
+#ifndef USE_ROSEN_DRAWING
         RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown surfaceNode id:%" PRIu64 ", srcRect [%f %f %f %f]",
             node.GetId(), params.srcRect.left(), params.srcRect.top(),
             params.srcRect.width(), params.srcRect.height());
+#else
+        RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown surfaceNode id:%" PRIu64 ", srcRect [%f %f %f %f]",
+            node.GetId(), params.srcRect.GetLeft(), params.srcRect.GetTop(),
+            params.srcRect.GetWidth(), params.srcRect.GetHeight());
+#endif
     }
 }
 
@@ -144,6 +173,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
 #else // RS_ENABLE_EGLIMAGE
     params.useCPU = true;
 #endif // RS_ENABLE_EGLIMAGE
+#ifndef USE_ROSEN_DRAWING
     params.paint.setAntiAlias(true);
 #ifndef NEW_SKIA
     params.paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
@@ -151,6 +181,15 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
 
     const RSProperties& property = node.GetRenderProperties();
     params.dstRect = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
+#else
+    params.paint.SetAntiAlias(true);
+    Drawing::Filter filter;
+    filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
+    params.paint.SetFilter(filter);
+
+    const RSProperties& property = node.GetRenderProperties();
+    params.dstRect = Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
+#endif
 
     const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
     if (buffer == nullptr) {
@@ -158,7 +197,11 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     }
     params.buffer = buffer;
     params.acquireFence = node.GetAcquireFence();
+#ifndef USE_ROSEN_DRAWING
     params.srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+#else
+    params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+#endif
 
     auto& consumer = node.GetConsumer();
     if (consumer == nullptr) {
@@ -180,6 +223,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode
 #else // RS_ENABLE_EGLIMAGE
     params.useCPU = true;
 #endif // RS_ENABLE_EGLIMAGE
+#ifndef USE_ROSEN_DRAWING
     params.paint.setAntiAlias(true);
 #ifndef NEW_SKIA
     params.paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
@@ -190,6 +234,18 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode
     params.acquireFence = node.GetAcquireFence();
     params.srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     params.dstRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+#else
+    params.paint.SetAntiAlias(true);
+    Drawing::Filter filter;
+    filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
+    params.paint.SetFilter(filter);
+
+    const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
+    params.buffer = buffer;
+    params.acquireFence = node.GetAcquireFence();
+    params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    params.dstRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+#endif
     return params;
 }
 
@@ -201,11 +257,19 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
 #else // RS_ENABLE_EGLIMAGE
     params.useCPU = true;
 #endif // RS_ENABLE_EGLIMAGE
+#ifndef USE_ROSEN_DRAWING
     params.paint.setAntiAlias(true);
 #ifndef NEW_SKIA
     params.paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
 #endif
     params.paint.setAlphaf(layer->GetAlpha().gAlpha);
+#else
+    params.paint.SetAntiAlias(true);
+    Drawing::Filter filter;
+    filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
+    params.paint.SetFilter(filter);
+    params.paint.SetAlphaF(layer->GetAlpha().gAlpha);
+#endif
 
     sptr<SurfaceBuffer> buffer = layer->GetBuffer();
     if (buffer == nullptr) {
@@ -213,6 +277,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     }
     params.acquireFence = layer->GetAcquireFence();
     params.buffer = buffer;
+#ifndef USE_ROSEN_DRAWING
     params.srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     auto boundRect = layer->GetBoundSize();
     params.dstRect = SkRect::MakeWH(boundRect.w, boundRect.h);
@@ -221,7 +286,16 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     params.matrix = SkMatrix::MakeAll(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX,
                                       layerMatrix.skewY, layerMatrix.scaleY, layerMatrix.transY,
                                       layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
+#else
+    params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    auto boundRect = layer->GetBoundSize();
+    params.dstRect = Drawing::Rect(0, 0, boundRect.w, boundRect.h);
 
+    auto layerMatrix = layer->GetMatrix();
+    params.matrix = Drawing::Matrix();
+    params.matrix.SetMatrix(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX, layerMatrix.skewY,
+        layerMatrix.scaleY, layerMatrix.transY, layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
+#endif
     int nodeRotation = RSUniRenderUtil::GetRotationFromMatrix(params.matrix); // rotation degree anti-clockwise
     auto layerTransform = layer->GetTransformType();
     // calculate clockwise rotation degree excluded rotation in total matrix
@@ -237,6 +311,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     return params;
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSUniRenderUtil::DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, sk_sp<SkImage> image)
 {
     if (image == nullptr) {
@@ -253,6 +328,25 @@ void RSUniRenderUtil::DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCa
 #endif
     canvas.restore();
 }
+#else
+void RSUniRenderUtil::DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas,
+    std::shared_ptr<Drawing::Image> image)
+{
+    if (image == nullptr) {
+        return;
+    }
+    canvas.Save();
+    canvas.Scale(node.GetRenderProperties().GetBoundsWidth() / image->GetWidth(),
+        node.GetRenderProperties().GetBoundsHeight() / image->GetHeight());
+    Drawing::Brush brush;
+    canvas.AttachBrush(brush);
+    Drawing::SamplingOptions sampling =
+        Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+    canvas.DrawImage(*image.get(), 0.0, 0.0, sampling);
+    canvas.DetachBrush();
+    canvas.Restore();
+}
+#endif
 
 Occlusion::Region RSUniRenderUtil::AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits)
 {
@@ -279,15 +373,18 @@ bool RSUniRenderUtil::HandleSubThreadNode(RSRenderNode& node, RSPaintFilterCanva
     }
     if (!node.HasCachedTexture()) {
         RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", node.GetId());
+#ifdef RS_ENABLE_GL
         RSParallelRenderManager::Instance()->WaitNodeTask(node.GetId());
         node.UpdateCompletedCacheSurface();
         RSParallelRenderManager::Instance()->SaveCacheTexture(node);
+#endif
     }
     RS_TRACE_NAME_FMT("RSUniRenderUtil::HandleSubThreadNode %" PRIu64 "", node.GetId());
     node.DrawCacheSurface(canvas, true);
     return true;
 }
 
+#ifndef USE_ROSEN_DRAWING
 int RSUniRenderUtil::GetRotationFromMatrix(SkMatrix matrix)
 {
     float value[9];
@@ -301,11 +398,26 @@ int RSUniRenderUtil::GetRotationFromMatrix(SkMatrix matrix)
     auto iter = supportedDegrees.find(rAngle);
     return iter != supportedDegrees.end() ? iter->second : 0;
 }
+#else
+int RSUniRenderUtil::GetRotationFromMatrix(Drawing::Matrix matrix)
+{
+    Drawing::Matrix::Buffer value;
+    matrix.GetAll(value);
+
+    int rAngle = static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::SKEW_X],
+        value[Drawing::Matrix::Index::SKEW_Y]) * (180 / PI)));
+    // transfer the result to anti-clockwise degrees
+    // only rotation with 90°, 180°, 270° are composed through hardware,
+    // in which situation the transformation of the layer needs to be set.
+    static const std::map<int, int> supportedDegrees = {{90, 270}, {180, 180}, {-90, 90}};
+    auto iter = supportedDegrees.find(rAngle);
+    return iter != supportedDegrees.end() ? iter->second : 0;
+}
+#endif
 
 void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode, uint64_t focusNodeId,
     std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
-    std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
-    const std::unordered_map<NodeId, bool>& cacheSkippedNodeMap)
+    std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
 {
     if (displayNode == nullptr) {
         ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes display node is null");
@@ -339,20 +451,23 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
                 }
             }
         }
-        if (node->HasFilter() || (!node->IsScale() && isFocusNode)) {
-            AssignMainThreadNode(mainThreadNodes, node);
+        if (node->HasFilter() || node->HasHardwareNode() || node->HasAbilityComponent() ||
+            (!node->IsScale() && isFocusNode)) {
+            AssignMainThreadNode(mainThreadNodes, node, subThreadNodes);
         } else {
-            AssignSubThreadNode(subThreadNodes, node, cacheSkippedNodeMap);
+            AssignSubThreadNode(subThreadNodes, node);
         }
     }
     if (entryViewNode) {
         if (entryViewNeedReassign) {
-            AssignMainThreadNode(mainThreadNodes, entryViewNode);
+            AssignMainThreadNode(mainThreadNodes, entryViewNode, subThreadNodes);
         } else {
-            if (entryViewNode->HasFilter() || (!entryViewNode->IsScale() && entryViewNode->GetId() == focusNodeId)) {
-                AssignMainThreadNode(mainThreadNodes, entryViewNode);
+            if (entryViewNode->HasFilter() || entryViewNode->HasHardwareNode() ||
+                entryViewNode->HasAbilityComponent() ||
+                (!entryViewNode->IsScale() && entryViewNode->GetId() == focusNodeId)) {
+                AssignMainThreadNode(mainThreadNodes, entryViewNode, subThreadNodes);
             } else {
-                AssignSubThreadNode(subThreadNodes, entryViewNode, cacheSkippedNodeMap);
+                AssignSubThreadNode(subThreadNodes, entryViewNode);
             }
         }
     } else {
@@ -362,7 +477,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
 }
 
 void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
-    const std::shared_ptr<RSSurfaceRenderNode>& node)
+    const std::shared_ptr<RSSurfaceRenderNode>& node, std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
 {
     if (node == nullptr) {
         ROSEN_LOGW("RSUniRenderUtil::AssignMainThreadNode node is nullptr");
@@ -371,11 +486,15 @@ void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRe
     mainThreadNodes.emplace_back(node);
     node->SetIsMainThreadNode(true);
     node->SetCacheType(CacheType::NONE);
-    node->ClearCacheSurface();
+    node->SetNeedClearFlag(true);
+    node->SetCacheTexture(nullptr);
+    node->SetPriority(NodePriorityType::SUB_HIGH_PRIORITY);
+    subThreadNodes.emplace_front(node);
+    HandleHardwareNode(node);
 }
 
 void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
-    const std::shared_ptr<RSSurfaceRenderNode>& node, const std::unordered_map<NodeId, bool>& cacheSkippedNodeMap)
+    const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     if (node == nullptr) {
         ROSEN_LOGW("RSUniRenderUtil::AssignSubThreadNode node is nullptr");
@@ -385,8 +504,9 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
     node->SetIsMainThreadNode(false);
     node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
     node->SetCacheType(CacheType::ANIMATE_PROPERTY);
+    node->SetNeedClearFlag(false);
 #ifdef RS_ENABLE_GL
-    if (cacheSkippedNodeMap.count(node->GetId()) == 0 && node->GetCacheSurface()) {
+    if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE && node->GetCacheSurface()) {
         node->UpdateCompletedCacheSurface();
         RSParallelRenderManager::Instance()->SaveCacheTexture(*node);
     }
@@ -415,6 +535,52 @@ void RSUniRenderUtil::SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRend
             return node1->GetPriority() < node2->GetPriority();
         }
     });
+}
+void RSUniRenderUtil::HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node)
+{
+    if (!node->HasHardwareNode()) {
+        return;
+    }
+    auto appWindow = node;
+    if (node->IsLeashWindow()) {
+        for (auto& child : node->GetSortedChildren()) {
+            auto surfaceNodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+            if (surfaceNodePtr && surfaceNodePtr->IsAppWindow()) {
+                appWindow = surfaceNodePtr;
+                break;
+            }
+        }
+    }
+    auto hardwareEnabledNodes = appWindow->GetChildHardwareEnabledNodes();
+    for (auto& hardwareEnabledNode : hardwareEnabledNodes) {
+        auto hardwareEnabledNodePtr = hardwareEnabledNode.lock();
+        if (hardwareEnabledNodePtr) {
+            hardwareEnabledNodePtr->SetHardwareDisabledByCache(false);
+        }
+    }
+}
+
+void RSUniRenderUtil::ClearSurfaceIfNeed(const RSRenderNodeMap& map,
+    const std::shared_ptr<RSDisplayRenderNode>& displayNode,
+    std::set<std::shared_ptr<RSBaseRenderNode>>& oldChildren,
+    std::list<std::shared_ptr<RSSurfaceRenderNode>>& currentNodes)
+{
+    if (displayNode == nullptr) {
+        return;
+    }
+    auto sortedChildren = displayNode->GetSortedChildren();
+    std::set<std::shared_ptr<RSBaseRenderNode>> tmpSet(sortedChildren.begin(), sortedChildren.end());
+    for (auto& child : oldChildren) {
+        auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+        if (tmpSet.count(surface) == 0) {
+            if (surface && map.GetRenderNode(surface->GetId()) != nullptr) {
+                surface->SetNeedClearFlag(true);
+                surface->SetCacheTexture(nullptr);
+                currentNodes.emplace_front(surface);
+            }
+        }
+    }
+    oldChildren.swap(tmpSet);
 }
 } // namespace Rosen
 } // namespace OHOS

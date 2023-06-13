@@ -32,11 +32,19 @@
 #include "render/rs_path.h"
 #include "ui/rs_base_node.h"
 
+#ifndef USE_ROSEN_DRAWING
 class SkCanvas;
+#else
+#include "recording/recording_canvas.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
+#ifndef USE_ROSEN_DRAWING
 using DrawFunc = std::function<void(std::shared_ptr<SkCanvas>)>;
+#else
+using DrawFunc = std::function<void(std::shared_ptr<Drawing::RecordingCanvas>)>;
+#endif
 using PropertyCallback = std::function<void()>;
 class RSAnimation;
 class RSCommand;

@@ -24,14 +24,14 @@ namespace OpenTypeBasicType {
 constexpr union {
     unsigned int i;
     unsigned char big;
-} g_endian{1};
+} G_ENDIAN{1};
 
 const std::string Tag::Get() const
 {
     // 5 is the size of open type table tags length
     int size = 5;
     char tagsWithZero[size];
-    tagsWithZero[0] = tags[0];
+    tagsWithZero[0] = tags[0];  // numbers means array subscripts
     tagsWithZero[1] = tags[1];
     tagsWithZero[2] = tags[2];
     tagsWithZero[3] = tags[3];
@@ -41,8 +41,8 @@ const std::string Tag::Get() const
 
 int16_t Int16::Get() const
 {
-    if (g_endian.big) {
-        return ((data & 0x0000ff00) >> 8) | ((data & 0x000000ff) << 8);
+    if (G_ENDIAN.big) {
+        return ((data & 0x0000ff00) >> 8) | ((data & 0x000000ff) << 8);     // 8 means offset
     } else {
         return data;
     }
@@ -50,8 +50,8 @@ int16_t Int16::Get() const
 
 uint16_t Uint16::Get() const
 {
-    if (g_endian.big) {
-        return ((data & 0x0000ff00) >> 8) | ((data & 0x000000ff) << 8);
+    if (G_ENDIAN.big) {
+        return ((data & 0x0000ff00) >> 8) | ((data & 0x000000ff) << 8);     // 8 means offset
     } else {
         return data;
     }
@@ -59,8 +59,8 @@ uint16_t Uint16::Get() const
 
 int32_t Int32::Get() const
 {
-    if (g_endian.big) {
-        return ((data & 0xff000000) >> 24) | ((data & 0x00ff0000) >> 8) |
+    if (G_ENDIAN.big) {
+        return ((data & 0xff000000) >> 24) | ((data & 0x00ff0000) >> 8) |   // 8 & 24 means offset
             ((data & 0x0000ff00) << 8) | ((data & 0x000000ff) << 24);
     } else {
         return data;
@@ -69,8 +69,8 @@ int32_t Int32::Get() const
 
 uint32_t Uint32::Get() const
 {
-    if (g_endian.big) {
-        return ((data & 0xff000000) >> 24) | ((data & 0x00ff0000) >> 8) |
+    if (G_ENDIAN.big) {
+        return ((data & 0xff000000) >> 24) | ((data & 0x00ff0000) >> 8) |   // 8 & 24 means offset
             ((data & 0x0000ff00) << 8) | ((data & 0x000000ff) << 24);
     } else {
         return data;

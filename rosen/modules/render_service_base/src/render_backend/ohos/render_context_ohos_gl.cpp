@@ -21,6 +21,8 @@
 #include "window.h"
 #include "utils/log.h"
 
+#include "render_backend_utils.h"
+
 namespace OHOS {
 namespace Rosen {
 using GetPlatformDisplayExt = PFNEGLGETPLATFORMDISPLAYEXTPROC;
@@ -156,9 +158,7 @@ void RenderContextOhosGl::Init()
         LOGE("Failed to make current on surface, error is %{public}x", eglGetError());
         return;
     }
-    frame_->eglDisplay_ = eglDisplay_;
-    frame_->eglContext_ = eglContext_;
-    LOGD("Init context successfully, version %{public}d.%{public}d", major, minor);
+    SetEGLState();
 }
 
 bool RenderContextOhosGl::IsContextReady()
@@ -207,46 +207,45 @@ void* RenderContextOhosGl::CreateContext(bool share)
 
 bool RenderContextOhosGl::CreateSurface(const std::shared_ptr<RSRenderSurfaceFrame>& frame)
 {
-    if (frame == nullptr) {
-        LOGE("Failed to create surface, frame is nullptr");
+    if (!RenderBackendUtils::IsValidFrame(frame)) {
+        LOGE("Failed to create surface, frame is invalid");
         return false;
     }
-
-    if (frame->nativeWindow_ != nullptr) {
+    std::shared_ptr<FrameConfig> frameConfig = frame->frameConfig;
+    std::shared_ptr<SurfaceConfig> surfaceConfig = frame->surfaceConfig;
+    if (surfaceConfig->nativeWindow != nullptr) {
         LOGD("Native window has been created");
         return true;
     }
-
-    frame->nativeWindow_ = CreateNativeWindowFromSurface(&(frame->producer_));
-    nativeWindow_ = frame->nativeWindow_;
+    sptr<Surface> producer = surfaceConfig->producer;
+    surfaceConfig->nativeWindow = CreateNativeWindowFromSurface(&producer);
+    nativeWindow_ = static_cast<EGLNativeWindowType>(surfaceConfig->nativeWindow);
     if (!IsContextReady()) {
         LOGE("Failed to create surface, EGL context has not initialized");
         return false;
     }
-    
     eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-
     EGLSurface surface = eglCreateWindowSurface(eglDisplay_, config_, nativeWindow_, NULL);
     if (surface == EGL_NO_SURFACE) {
         LOGE("Failed to create eglsurface!!! %{public}x", eglGetError());
         return false;
     }
 
-    NativeWindowHandleOpt(nativeWindow_, SET_FORMAT, frame->pixelFormat_);
+    NativeWindowHandleOpt(surfaceConfig->nativeWindow, SET_FORMAT, frameConfig->pixelFormat);
 #ifdef RS_ENABLE_AFBC
     if (RSSystemProperties::GetAFBCEnabled()) {
         int32_t format = 0;
-        NativeWindowHandleOpt(nativeWindow_, GET_FORMAT, &format);
+        NativeWindowHandleOpt(surfaceConfig->nativeWindow, GET_FORMAT, &format);
         if (format == PIXEL_FMT_RGBA_8888 && useAFBC) {
             bufferUsage_ =
                 (BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA);
         }
     }
 #endif
-    NativeWindowHandleOpt(nativeWindow_, SET_USAGE, frame->bufferUsage_);
-    NativeWindowHandleOpt(nativeWindow_, SET_BUFFER_GEOMETRY, frame->width_, frame->height_);
-    NativeWindowHandleOpt(nativeWindow_, SET_COLOR_GAMUT, frame->colorSpace_);
-    NativeWindowHandleOpt(nativeWindow_, SET_UI_TIMESTAMP, frame->uiTimestamp_);
+    NativeWindowHandleOpt(surfaceConfig->nativeWindow, SET_USAGE, frameConfig->bufferUsage);
+    NativeWindowHandleOpt(surfaceConfig->nativeWindow, SET_BUFFER_GEOMETRY, frameConfig->width, frameConfig->height);
+    NativeWindowHandleOpt(surfaceConfig->nativeWindow, SET_COLOR_GAMUT, frameConfig->colorSpace);
+    NativeWindowHandleOpt(surfaceConfig->nativeWindow, SET_UI_TIMESTAMP, frameConfig->uiTimestamp);
 
     eglSurface_ = surface;
     if (!eglMakeCurrent(eglDisplay_, eglSurface_, eglSurface_, eglContext_)) {
@@ -265,8 +264,8 @@ void RenderContextOhosGl::DestroySurface()
 
 void RenderContextOhosGl::DamageFrame(const std::shared_ptr<RSRenderSurfaceFrame>& frame)
 {
-    if (frame == nullptr) {
-        LOGE("Failed to damage frame, frame is nullptr");
+    if (!RenderBackendUtils::IsValidFrame(frame)) {
+        LOGE("Failed to damage frame, frame is invalid");
         return;
     }
 
@@ -274,8 +273,8 @@ void RenderContextOhosGl::DamageFrame(const std::shared_ptr<RSRenderSurfaceFrame
         LOGE("Failed to damage frame, eglDisplay or eglSurface is nullptr");
         return;
     }
-
-    std::vector<RectI> rects = frame->damageRects;
+    std::shared_ptr<FrameConfig> frameConfig = frame->frameConfig;
+    auto& rects = frameConfig->damageRects;
     size_t size = rects.size();
     if (size == 0) {
         LOGE("Failed to damage frame, invalid rects size");
@@ -301,13 +300,13 @@ void RenderContextOhosGl::DamageFrame(const std::shared_ptr<RSRenderSurfaceFrame
 int32_t RenderContextOhosGl::GetBufferAge()
 {
     if ((eglDisplay_ == nullptr) || (eglSurface_ == nullptr)) {
-        LOGE("Failed to damage frame, eglDisplay or eglSurface is nullptr");
+        LOGE("Failed to get buffer age, eglDisplay or eglSurface is nullptr");
         return EGL_UNKNOWN;
     }
     EGLint bufferAge = EGL_UNKNOWN;
     EGLBoolean ret = eglQuerySurface(eglDisplay_, eglSurface_, EGL_BUFFER_AGE_KHR, &bufferAge);
     if (ret == EGL_FALSE) {
-        LOGE("Failed to damage frame, eglQuerySurface is failed");
+        LOGE("Failed to get buffer age, eglQuerySurface is failed");
         return EGL_UNKNOWN;
     }
     return static_cast<int32_t>(bufferAge);
@@ -336,6 +335,21 @@ void RenderContextOhosGl::CreatePbufferSurface()
             return;
         }
     }
+}
+
+void RenderContextOhosGl::SetEGLState()
+{
+    if (frame_ == nullptr) {
+        LOGE("Failed to set egl state, frame_ is nullptr");
+        return;
+    }
+    std::shared_ptr<EGLState> eglState = frame_->eglState;
+    if (eglState == nullptr) {
+        LOGE("Failed to set egl state, frame_->eglState is nullptr");
+        return;
+    }
+    eglState->eglDisplay = eglDisplay_;
+    eglState->eglContext = eglContext_;
 }
 }
 }

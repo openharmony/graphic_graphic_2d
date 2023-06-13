@@ -69,4 +69,80 @@ HWTEST_F(RSPaintFilterCanvasTest, RestoreAlpha001, TestSize.Level1)
 {
     canvas_->RestoreAlpha();
 }
+
+/**
+ * @tc.name: RestoreAlphaToCountTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, RestoreAlphaToCountTest, TestSize.Level1)
+{
+    int count = 0;
+    canvas_->RestoreAlphaToCount(count);
+    ASSERT_EQ(canvas_->GetAlphaSaveCount(), 1);
+}
+
+/**
+ * @tc.name: RestoreAlphaToCount
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, RestoreEnvTest, TestSize.Level1)
+{
+    canvas_->RestoreEnv();
+}
+
+/**
+ * @tc.name: RestoreEnvToCountTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, RestoreEnvToCountTest, TestSize.Level1)
+{
+    int count = 0;
+    canvas_->RestoreEnvToCount(count);
+    ASSERT_EQ(canvas_->GetAlphaSaveCount(), 1);
+}
+
+/**
+ * @tc.name: SetEnvForegroundColorTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SetEnvForegroundColorTest, TestSize.Level1)
+{
+    Color color;
+    canvas_->SetEnvForegroundColor(color);
+}
+
+/**
+ * @tc.name: GetEnvForegroundColorTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, GetEnvForegroundColorTest, TestSize.Level1)
+{
+    Color color {0xFF000000};
+    Color setColor {};
+    canvas_->SetEnvForegroundColor(setColor);
+}
+
+/**
+ * @tc.name: onFilterTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, onFilterTest, TestSize.Level1)
+{
+    SkColor color {0x00000001};
+    SkPaint paint;
+    paint.setColor(color);
+    canvas_->onFilter(paint);
+}
 } // namespace OHOS::Rosen

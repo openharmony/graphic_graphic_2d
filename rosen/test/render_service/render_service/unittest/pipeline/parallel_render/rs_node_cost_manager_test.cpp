@@ -332,7 +332,7 @@ HWTEST_F(RsNodeCostManagerTest, CalcCanvasRenderNodeCostTest2, TestSize.Level1)
     node.UpdateChildrenOutOfRectFlag(false);
     rsNodeCostManager->CalcCanvasRenderNodeCost(node);
     auto result = rsNodeCostManager->GetDirtyNodeCost();
-    ASSERT_EQ(1, result);
+    ASSERT_EQ(0, result);
 }
 #endif
 #endif

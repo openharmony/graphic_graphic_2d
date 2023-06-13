@@ -46,6 +46,7 @@
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_hardware_thread.h"
+#include "pipeline/rs_jank_stats.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_unmarshal_thread.h"
 #include "pipeline/rs_uni_render_engine.h"
@@ -271,6 +272,7 @@ void RSMainThread::Init()
     }
 #ifdef RS_ENABLE_GL
     int cacheLimitsTimes = 3;
+#ifndef USE_ROSEN_DRAWING
     auto grContext = isUniRender_? uniRenderEngine_->GetRenderContext()->GetGrContext() :
         renderEngine_->GetRenderContext()->GetGrContext();
     int maxResources = 0;
@@ -282,6 +284,22 @@ void RSMainThread::Init()
     } else {
         grContext->setResourceCacheLimits(DEFAULT_SKIA_CACHE_COUNT, DEFAULT_SKIA_CACHE_SIZE);
     }
+#else
+    auto gpuContext = isUniRender_? uniRenderEngine_->GetRenderContext()->GetDrGPUContext() :
+        renderEngine_->GetRenderContext()->GetDrGPUContext();
+    if (gpuContext == nullptr) {
+        RS_LOGE("RSMainThread::Init gpuContext is nullptr!");
+        return;
+    }
+    int32_t maxResources = 0;
+    size_t maxResourcesSize = 0;
+    gpuContext->GetResourceCacheLimits(maxResources, maxResourcesSize);
+    if (maxResourcesSize > 0) {
+        gpuContext->SetResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes * maxResourcesSize);
+    } else {
+        gpuContext->SetResourceCacheLimits(DEFAULT_SKIA_CACHE_COUNT, DEFAULT_SKIA_CACHE_SIZE);
+    }
+#endif
 #endif
     RSInnovation::OpenInnovationSo();
     Occlusion::Region::InitDynamicLibraryFunction();
@@ -392,7 +410,7 @@ void RSMainThread::CacheCommands()
     RS_TRACE_FUNC();
     for (auto& [pid, _] : cacheCmdSkippedInfo_) {
         if (effectiveTransactionDataIndexMap_.count(pid)) {
-            RS_TRACE_NAME("cacheCmd pid: " + std::to_string(pid)); 
+            RS_TRACE_NAME("cacheCmd pid: " + std::to_string(pid));
             cacheCmdSkippedInfo_[pid].second = true;
             auto nodeIdVec = cacheCmdSkippedInfo_[pid].first;
             for (auto nodeId : nodeIdVec) {
@@ -401,6 +419,7 @@ void RSMainThread::CacheCommands()
             auto& transactionVec = effectiveTransactionDataIndexMap_[pid].second;
             cachedTransactionDataMap_[pid].insert(cachedTransactionDataMap_[pid].begin(),
                 std::make_move_iterator(transactionVec.begin()), std::make_move_iterator(transactionVec.end()));
+            transactionVec.clear();
             RS_LOGD("RSMainThread::CacheCommands effectiveCmd pid:%d cached", pid);
         }
     }
@@ -421,7 +440,7 @@ void RSMainThread::CheckParallelSubThreadNodesStatus()
             RS_LOGE("RSMainThread::CheckParallelSubThreadNodesStatus sunThreadNode is nullptr!");
             continue;
         }
-        if (!node->GetCacheSurfaceProcessedStatus()) {
+        if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
             RS_TRACE_NAME("node:[ " + node->GetName() + "]");
             pid_t pid = 0;
             if (node->IsAppWindow()) {
@@ -813,7 +832,11 @@ void RSMainThread::ReleaseAllNodesBuffer()
 #ifdef RS_ENABLE_GL
     if (NeedReleaseGpuResource(nodeMap)) {
         PostTask([this]() {
+#ifndef USE_ROSEN_DRAWING
             MemoryManager::ReleaseUnlockGpuResource(GetRenderEngine()->GetRenderContext()->GetGrContext());
+#else
+            MemoryManager::ReleaseUnlockGpuResource(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+#endif
         });
     }
 #endif
@@ -966,8 +989,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                 rootNode->GetSortedChildren().front());
             std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
             std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
-            RSUniRenderUtil::AssignWindowNodes(displayNode, focusNodeId_, mainThreadNodes,
-                subThreadNodes, GetCacheCmdSkippedNodes());
+            RSUniRenderUtil::AssignWindowNodes(displayNode, focusNodeId_, mainThreadNodes, subThreadNodes);
+            const auto& nodeMap = context_->GetNodeMap();
+            RSUniRenderUtil::ClearSurfaceIfNeed(nodeMap, displayNode, oldDisplayChildren_, subThreadNodes);
             uniVisitor->SetAssignedWindowNodes(mainThreadNodes, subThreadNodes);
             subThreadNodes_.clear();
             subThreadNodes_ = subThreadNodes;
@@ -1241,8 +1265,10 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::OnVsync");
     DrawOpStatisticBegin();
+    RSJankStats::GetInstance().SetStartTime();
     timestamp_ = timestamp;
     requestNextVsyncNum_ = 0;
+    frameCount_++;
     if (isUniRender_) {
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
         RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
@@ -1257,6 +1283,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
             PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
         }
     }
+    RSJankStats::GetInstance().SetEndTime();
     DrawOpStatisticEnd("RSMainThread::OnVsync");
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
@@ -1377,6 +1404,10 @@ void RSMainThread::Animate(uint64_t timestamp)
         auto node = iter.second.lock();
         if (node == nullptr) {
             RS_LOGD("RSMainThread::Animate removing expired animating node");
+            return true;
+        }
+        if (cacheCmdSkippedInfo_.count(ExtractPid(node->GetId())) > 0) {
+            RS_LOGD("RSMainThread::Animate skip the cached node");
             return true;
         }
         activeProcessPids_.emplace(ExtractPid(node->GetId()));
@@ -1613,11 +1644,12 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
     if ((timestamp_ - lastCleanCacheTimestamp_) / REFRESH_PERIOD > CLEAN_CACHE_FREQ) {
 #ifdef RS_ENABLE_GL
         RS_LOGD("RSMainThread: clear cpu cache pid:%d", remotePid);
+#ifndef USE_ROSEN_DRAWING
         auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
         grContext->flush();
         SkGraphics::PurgeAllCaches(); // clear cpu cache
         if (!IsResidentProcess(remotePid)) {
-            ReleaseExitSurfaceNodeAllGpuResource(grContext, remotePid);
+            ReleaseExitSurfaceNodeAllGpuResource(grContext);
         } else {
             RS_LOGW("this pid:%d is resident process, no need release gpu resource", remotePid);
         }
@@ -1626,6 +1658,13 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
 #else
         grContext->flush(kSyncCpu_GrFlushFlag, 0, nullptr);
 #endif
+#else
+        auto gpuContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        if (gpuContext == nullptr) {
+            return;
+        }
+        gpuContext->Flush();
+#endif // USE_ROSEN_DRAWING
         lastCleanCacheTimestamp_ = timestamp_;
 #endif
     }
@@ -1638,16 +1677,24 @@ bool RSMainThread::IsResidentProcess(pid_t pid)
         pid == ExtractPid(nodeMap.GetWallPaperViewNodeId());
 }
 
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
-void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrDirectContext* grContext, pid_t pid)
+void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrDirectContext* grContext)
 #else
-void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext, pid_t pid)
+void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext)
+#endif
+#else
+void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(Drawing::GPUContext* gpuContext, pid_t pid)
 #endif
 {
     switch (RSSystemProperties::GetReleaseGpuResourceEnabled()) {
         case ReleaseGpuResourceType::WINDOW_HIDDEN:
         case ReleaseGpuResourceType::WINDOW_HIDDEN_AND_LAUCHER:
-            MemoryManager::ReleaseUnlockGpuResource(grContext);
+#ifndef USE_ROSEN_DRAWING
+            MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
+#else
+            MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(gpuContext);
+#endif
             break;
         default:
             break;
@@ -1666,14 +1713,19 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
     if (!argSets.empty()) {
         type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
     }
+#ifndef USE_ROSEN_DRAWING
     auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
     if (type.empty()) {
         grContext->flush();
         SkGraphics::PurgeAllCaches();
         grContext->freeGpuResources();
         grContext->purgeUnlockedResources(true);
+#ifdef NEW_RENDER_CONTEXT
+        MemoryHandler::ClearShader();
+#else
         std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
         rendercontext->CleanAllShaderCache();
+#endif
 #ifdef NEW_SKIA
         grContext->flushAndSubmit(true);
 #else
@@ -1712,6 +1764,7 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
         MemoryManager::ReleaseAllGpuResource(grContext, tag);
     }
     dumpString.append("trimMem: " + type + "\n");
+#endif
 #else
     dumpString.append("No GPU in this device");
 #endif
@@ -1722,12 +1775,23 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
 {
 #ifdef RS_ENABLE_GL
     DfxString log;
+#ifndef USE_ROSEN_DRAWING
     auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
     if (pid != 0) {
         MemoryManager::DumpPidMemory(log, pid, grContext);
     } else {
         MemoryManager::DumpMemoryUsage(log, grContext, type);
     }
+#else
+    auto gpuContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+    if (gpuContext != nullptr) {
+        if (pid != 0) {
+            MemoryManager::DumpPidMemory(log, pid, gpuContext);
+        } else {
+            MemoryManager::DumpMemoryUsage(log, gpuContext, type);
+        }
+    }
+#endif
     dumpString.append("dumpMem: " + type + "\n");
     dumpString.append(log.GetString());
 #else
@@ -1738,7 +1802,11 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
 void RSMainThread::CountMem(int pid, MemoryGraphic& mem)
 {
 #ifdef RS_ENABLE_GL
+#ifndef USE_ROSEN_DRAWING
     mem = MemoryManager::CountPidMemory(pid, GetRenderEngine()->GetRenderContext()->GetGrContext());
+#else
+    mem = MemoryManager::CountPidMemory(pid, GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+#endif
 #endif
 }
 
@@ -1757,7 +1825,11 @@ void RSMainThread::CountMem(std::vector<MemoryGraphic>& mems)
             pids.emplace_back(pid);
         }
     });
+#ifndef USE_ROSEN_DRAWING
     MemoryManager::CountMemory(pids, GetRenderEngine()->GetRenderContext()->GetGrContext(), mems);
+#else
+    MemoryManager::CountMemory(pids, GetRenderEngine()->GetRenderContext()->GetDrGPUContext(), mems);
+#endif
 #endif
 }
 
@@ -1891,7 +1963,11 @@ void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &waterma
     std::lock_guard<std::mutex> lock(watermarkMutex_);
     isShow_ = isShow;
     if (isShow_) {
+#ifndef USE_ROSEN_DRAWING
         watermarkImg_ = RSPixelMapUtil::ExtractSkImage(std::move(watermarkImg));
+#else
+        watermarkImg_ = RSPixelMapUtil::ExtractDrawingImage(std::move(watermarkImg));
+#endif
     } else {
         watermarkImg_ = nullptr;
     }
@@ -1899,7 +1975,11 @@ void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &waterma
     RequestNextVSync();
 }
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> RSMainThread::GetWatermarkImg()
+#else
+std::shared_ptr<Drawing::Image> RSMainThread::GetWatermarkImg()
+#endif
 {
     return watermarkImg_;
 }

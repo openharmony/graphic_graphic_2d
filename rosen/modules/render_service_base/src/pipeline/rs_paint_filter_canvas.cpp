@@ -15,11 +15,292 @@
 
 #include "pipeline/rs_paint_filter_canvas.h"
 
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkColorFilter.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
 
+#ifdef USE_ROSEN_DRAWING
+using namespace Drawing;
+
+RSPaintFilterCanvasBase::RSPaintFilterCanvasBase(Drawing::Canvas* canvas) : canvas_(canvas) {}
+
+void RSPaintFilterCanvasBase::DrawPoint(const Point& point)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawPoint(point);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawLine(const Point& startPt, const Point& endPt)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawLine(startPt, endPt);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawRect(const Rect& rect)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawRect(rect);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawRoundRect(const RoundRect& roundRect)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawRoundRect(roundRect);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawNestedRoundRect(const RoundRect& outer, const RoundRect& inner)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawNestedRoundRect(outer, inner);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawArc(const Rect& oval, scalar startAngle, scalar sweepAngle)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawArc(oval, startAngle, sweepAngle);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawPie(const Rect& oval, scalar startAngle, scalar sweepAngle)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawPie(oval, startAngle, sweepAngle);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawOval(const Rect& oval)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawOval(oval);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawCircle(const Point& centerPt, scalar radius)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawCircle(centerPt, radius);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawPath(const Path& path)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawPath(path);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawBackground(const Brush& brush)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawBackground(brush);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos,
+    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawShadow(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawRegion(const Drawing::Region& region)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawRegion(region);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawBitmap(bitmap, px, py);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawBitmap(pixelMap, px, py);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawImage(image, px, py, sampling);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawImageRect(const Image& image, const Rect& src, const Rect& dst,
+    const SamplingOptions& sampling, SrcRectConstraint constraint)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawImageRect(image, src, dst, sampling, constraint);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawImageRect(image, dst, sampling);
+    }
+}
+
+void RSPaintFilterCanvasBase::DrawPicture(const Picture& picture)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawPicture(picture);
+    }
+}
+
+void RSPaintFilterCanvasBase::ClipRect(const Drawing::Rect& rect, Drawing::ClipOp op, bool doAntiAlias)
+{
+    if (canvas_ != nullptr) {
+        canvas_->ClipRect(rect, op, doAntiAlias);
+    }
+}
+
+void RSPaintFilterCanvasBase::ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias)
+{
+    if (canvas_ != nullptr) {
+        canvas_->ClipRoundRect(roundRect, op, doAntiAlias);
+    }
+}
+
+void RSPaintFilterCanvasBase::ClipPath(const Path& path, ClipOp op, bool doAntiAlias)
+{
+    if (canvas_ != nullptr) {
+        canvas_->ClipPath(path, op, doAntiAlias);
+    }
+}
+
+void RSPaintFilterCanvasBase::SetMatrix(const Matrix& matrix)
+{
+    if (canvas_ != nullptr) {
+        canvas_->SetMatrix(matrix);
+    }
+}
+
+void RSPaintFilterCanvasBase::ResetMatrix()
+{
+    if (canvas_ != nullptr) {
+        canvas_->ResetMatrix();
+    }
+}
+
+void RSPaintFilterCanvasBase::ConcatMatrix(const Matrix& matrix)
+{
+    if (canvas_ != nullptr) {
+        canvas_->ConcatMatrix(matrix);
+    }
+}
+
+void RSPaintFilterCanvasBase::Translate(scalar dx, scalar dy)
+{
+    if (canvas_ != nullptr) {
+        canvas_->Translate(dx, dy);
+    }
+}
+
+void RSPaintFilterCanvasBase::Scale(scalar sx, scalar sy)
+{
+    if (canvas_ != nullptr) {
+        canvas_->Scale(sx, sy);
+    }
+}
+
+void RSPaintFilterCanvasBase::Rotate(scalar deg, scalar sx, scalar sy)
+{
+    if (canvas_ != nullptr) {
+        canvas_->Rotate(deg, sx, sy);
+    }
+}
+
+void RSPaintFilterCanvasBase::Shear(scalar sx, scalar sy)
+{
+    if (canvas_ != nullptr) {
+        canvas_->Shear(sx, sy);
+    }
+}
+
+void RSPaintFilterCanvasBase::Flush()
+{
+    if (canvas_ != nullptr) {
+        canvas_->Flush();
+    }
+}
+
+void RSPaintFilterCanvasBase::Clear(ColorQuad color)
+{
+    if (canvas_ != nullptr) {
+        canvas_->Clear(color);
+    }
+}
+
+void RSPaintFilterCanvasBase::Save()
+{
+    if (canvas_ != nullptr) {
+        canvas_->Save();
+    }
+}
+
+void RSPaintFilterCanvasBase::SaveLayer(const SaveLayerOps& saveLayerRec)
+{
+    if (canvas_ != nullptr) {
+        canvas_->SaveLayer(saveLayerRec);
+    }
+}
+
+void RSPaintFilterCanvasBase::Restore()
+{
+    if (canvas_ != nullptr) {
+        canvas_->Restore();
+    }
+}
+
+CoreCanvas& RSPaintFilterCanvasBase::AttachPen(const Pen& pen)
+{
+    if (canvas_ != nullptr) {
+        canvas_->AttachPen(pen);
+    }
+    return *this;
+}
+
+CoreCanvas& RSPaintFilterCanvasBase::AttachBrush(const Brush& brush)
+{
+    if (canvas_ != nullptr) {
+        canvas_->AttachBrush(brush);
+    }
+    return *this;
+}
+
+CoreCanvas& RSPaintFilterCanvasBase::DetachPen()
+{
+    if (canvas_ != nullptr) {
+        canvas_->DetachPen();
+    }
+    return *this;
+}
+
+CoreCanvas& RSPaintFilterCanvasBase::DetachBrush()
+{
+    if (canvas_ != nullptr) {
+        canvas_->DetachBrush();
+    }
+    return *this;
+}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
 RSPaintFilterCanvas::RSPaintFilterCanvas(SkCanvas* canvas, float alpha)
     : SkPaintFilterCanvas(canvas),
       alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
@@ -64,6 +345,70 @@ void RSPaintFilterCanvas::onDrawPicture(const SkPicture* picture, const SkMatrix
         this->SkCanvas::onDrawPicture(picture, matrix, &filteredPaint);
     }
 }
+#else
+RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha)
+    : RSPaintFilterCanvasBase(canvas), alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
+      // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
+      envStack_({ Env({ RSColor(0xFF000000) }) }) // construct stack with default foreground color
+{}
+
+RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Surface* surface, float alpha)
+    : RSPaintFilterCanvasBase(surface ? surface->GetCanvas().get() : nullptr), surface_(surface),
+      alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
+      // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
+      envStack_({ Env({ RSColor(0xFF000000) }) }) // construct stack with default foreground color
+{}
+
+Drawing::Surface* RSPaintFilterCanvas::GetSurface() const
+{
+    return surface_;
+}
+
+CoreCanvas& RSPaintFilterCanvas::AttachPen(const Pen& pen)
+{
+    if (canvas_ == nullptr) {
+        return *this;
+    }
+
+    Pen p(pen);
+    if (p.GetColor() == 0x00000001) { // foreground color and foreground color strategy identification
+        p.SetColor(envStack_.top().envForegroundColor.AsArgbInt());
+    }
+
+    // use alphaStack_.top() to multiply alpha
+    if (alphaStack_.top() < 1 && alphaStack_.top() > 0) {
+        p.SetAlpha(p.GetAlpha() * alphaStack_.top());
+    }
+
+    canvas_->AttachPen(p);
+    return *this;
+}
+
+CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
+{
+    if (canvas_ == nullptr) {
+        return *this;
+    }
+
+    Brush b(brush);
+    if (b.GetColor() == 0x00000001) { // foreground color and foreground color strategy identification
+        b.SetColor(envStack_.top().envForegroundColor.AsArgbInt());
+    }
+
+    // use alphaStack_.top() to multiply alpha
+    if (alphaStack_.top() < 1 && alphaStack_.top() > 0) {
+        b.SetAlpha(b.GetAlpha() * alphaStack_.top());
+    }
+
+    canvas_->AttachBrush(b);
+    return *this;
+}
+
+bool RSPaintFilterCanvas::OnFilter() const
+{
+    return alphaStack_.top() > 0.f;
+}
+#endif // USE_ROSEN_DRAWING
 
 void RSPaintFilterCanvas::MultiplyAlpha(float alpha)
 {
@@ -152,7 +497,11 @@ int RSPaintFilterCanvas::GetEnvSaveCount() const
     return envStack_.size();
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSPaintFilterCanvas::SetEnvForegroundColor(Color color)
+#else
+void RSPaintFilterCanvas::SetEnvForegroundColor(Rosen::RSColor color)
+#endif
 {
     // sanity check, stack should not be empty
     if (envStack_.empty()) {
@@ -161,6 +510,7 @@ void RSPaintFilterCanvas::SetEnvForegroundColor(Color color)
     envStack_.top().envForegroundColor = color;
 }
 
+#ifndef USE_ROSEN_DRAWING
 Color RSPaintFilterCanvas::GetEnvForegroundColor() const
 {
     // sanity check, stack should not be empty
@@ -169,22 +519,50 @@ Color RSPaintFilterCanvas::GetEnvForegroundColor() const
     }
     return envStack_.top().envForegroundColor;
 }
+#else
+RSColor RSPaintFilterCanvas::GetEnvForegroundColor() const
+{
+    // sanity check, stack should not be empty
+    if (envStack_.empty()) {
+        return RSColor { 0xFF000000 }; // 0xFF000000 is default value -- black
+    }
+    return envStack_.top().envForegroundColor;
+}
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::Save()
 {
     // simultaneously save canvas and alpha
     return { save(), SaveAlpha(), SaveEnv() };
 }
+#else
+RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::SaveAllStatus()
+{
+    // simultaneously save canvas and alpha
+    int canvasSaveCount = GetSaveCount();
+    Save();
+    return { canvasSaveCount, SaveAlpha(), SaveEnv() };
+}
+#endif
 
 RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::GetSaveStatus() const
 {
+#ifndef USE_ROSEN_DRAWING
     return { getSaveCount(), GetAlphaSaveCount(), GetEnvSaveCount() };
+#else
+    return { GetSaveCount(), GetAlphaSaveCount(), GetEnvSaveCount() };
+#endif
 }
 
 void RSPaintFilterCanvas::RestoreStatus(const SaveStatus& status)
 {
     // simultaneously restore canvas and alpha
+#ifndef USE_ROSEN_DRAWING
     restoreToCount(status.canvasSaveCount);
+#else
+    RestoreToCount(status.canvasSaveCount);
+#endif
     RestoreAlphaToCount(status.alphaSaveCount);
     RestoreEnvToCount(status.envSaveCount);
 }
@@ -211,6 +589,7 @@ RSColorFilterCanvas::RSColorFilterCanvas(RSPaintFilterCanvas* canvas)
     : RSPaintFilterCanvas(canvas)
 {}
 
+#ifndef USE_ROSEN_DRAWING
 bool RSColorFilterCanvas::onFilter(SkPaint& paint) const
 {
     // foreground color and foreground color strategy identification
@@ -221,13 +600,68 @@ bool RSColorFilterCanvas::onFilter(SkPaint& paint) const
 
     return RSPaintFilterCanvas::onFilter(paint);
 }
+#else
+CoreCanvas& RSColorFilterCanvas::AttachPen(const Pen& pen)
+{
+    if (canvas_ == nullptr) {
+        return *this;
+    }
+
+    Pen p(pen);
+    if (p.GetColor() == 0x00000001) { // foreground color and foreground color strategy identification
+        p.SetColor(GetEnvStack().top().envForegroundColor.AsArgbInt());
+        // creates a color filter that blends the foreground color with the destination color
+        Drawing::Filter filter;
+        filter.SetColorFilter(Drawing::ColorFilter::CreateBlendModeColorFilter(
+            GetEnvForegroundColor().AsArgbInt(), Drawing::BlendMode::DST_IN));
+        p.SetFilter(filter);
+    }
+
+    // use alphaStack_.top() to multiply alpha
+    if (GetAlphaStack().top() < 1 && GetAlphaStack().top() > 0) {
+        p.SetAlpha(p.GetAlpha() * GetAlphaStack().top());
+    }
+
+    canvas_->AttachPen(p);
+    return *this;
+}
+
+CoreCanvas& RSColorFilterCanvas::AttachBrush(const Brush& brush)
+{
+    if (canvas_ == nullptr) {
+        return *this;
+    }
+
+    Brush b(brush);
+    if (b.GetColor() == 0x00000001) { // foreground color and foreground color strategy identification
+        b.SetColor(GetEnvStack().top().envForegroundColor.AsArgbInt());
+        // creates a color filter that blends the foreground color with the destination color
+        Drawing::Filter filter;
+        filter.SetColorFilter(Drawing::ColorFilter::CreateBlendModeColorFilter(
+            GetEnvForegroundColor().AsArgbInt(), Drawing::BlendMode::DST_IN));
+        b.SetFilter(filter);
+    }
+
+    // use alphaStack_.top() to multiply alpha
+    if (GetAlphaStack().top() < 1 && GetAlphaStack().top() > 0) {
+        b.SetAlpha(b.GetAlpha() * GetAlphaStack().top());
+    }
+
+    canvas_->AttachBrush(b);
+    return *this;
+}
+#endif
 
 RSAutoCanvasRestore::RSAutoCanvasRestore(RSPaintFilterCanvas* canvas, SaveType type) : canvas_(canvas)
 {
     if (canvas_) {
         saveCount_ = canvas->GetSaveStatus();
         if (SaveType::kCanvas & type) {
+#ifndef USE_ROSEN_DRAWING
             canvas->save();
+#else
+            canvas->Save();
+#endif
         }
         if (SaveType::kAlpha & type) {
             canvas->SaveAlpha();
@@ -256,6 +690,7 @@ RSPaintFilterCanvas::CacheType RSPaintFilterCanvas::GetCacheType() const
     return cacheType_;
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSPaintFilterCanvas::SetVisibleRect(SkRect visibleRect)
 {
     visibleRect_ = visibleRect;
@@ -265,7 +700,19 @@ SkRect RSPaintFilterCanvas::GetVisibleRect() const
 {
     return visibleRect_;
 }
+#else
+void RSPaintFilterCanvas::SetVisibleRect(Drawing::Rect visibleRect)
+{
+    visibleRect_ = visibleRect;
+}
 
+Drawing::Rect RSPaintFilterCanvas::GetVisibleRect() const
+{
+    return visibleRect_;
+}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
 std::optional<SkRect> RSPaintFilterCanvas::GetLocalClipBounds(const SkCanvas& canvas, const SkIRect* clipRect)
 {
     // if clipRect is explicitly specified, use it as the device clip bounds
@@ -281,7 +728,42 @@ std::optional<SkRect> RSPaintFilterCanvas::GetLocalClipBounds(const SkCanvas& ca
     // return the inverse of the CTM applied to the device clip bounds as local clip bounds
     return inverse.mapRect(bounds);
 }
+#else
+std::optional<Drawing::Rect> RSPaintFilterCanvas::GetLocalClipBounds(const Drawing::Canvas& canvas,
+    const Drawing::RectI* clipRect)
+{
+    // if clipRect is explicitly specified, use it as the device clip bounds
+    auto tmpRect = (clipRect != nullptr) ? *clipRect : canvas.GetDeviceClipBounds();
+    Drawing::Rect bounds(static_cast<scalar>(tmpRect.GetLeft()), static_cast<scalar>(tmpRect.GetTop()),
+        static_cast<scalar>(tmpRect.GetRight()), static_cast<scalar>(tmpRect.GetBottom()));
 
+    if (!bounds.IsValid()) {
+        return std::nullopt;
+    }
+
+    Drawing::Matrix inverse;
+    // if we can't invert the CTM, we can't return local clip bounds
+    if (!(canvas.GetTotalMatrix().Invert(inverse))) {
+        return std::nullopt;
+    }
+    // return the inverse of the CTM applied to the device clip bounds as local clip bounds
+    Drawing::Rect dst;
+    inverse.MapRect(dst, bounds);
+    return dst;
+}
+
+std::stack<float> RSPaintFilterCanvas::GetAlphaStack()
+{
+    return alphaStack_;
+}
+
+std::stack<RSPaintFilterCanvas::Env> RSPaintFilterCanvas::GetEnvStack()
+{
+    return envStack_;
+}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
 SkCanvas::SaveLayerStrategy RSPaintFilterCanvas::getSaveLayerStrategy(const SaveLayerRec& rec)
 {
     SkPaint p = rec.fPaint ? *rec.fPaint : SkPaint();
@@ -291,6 +773,7 @@ SkCanvas::SaveLayerStrategy RSPaintFilterCanvas::getSaveLayerStrategy(const Save
     }
     return SkPaintFilterCanvas::getSaveLayerStrategy(tmpRec);
 }
+#endif
 
 #ifndef USE_ROSEN_DRAWING
 void RSPaintFilterCanvas::SetEffectData(const CacheEffectData& effectData)

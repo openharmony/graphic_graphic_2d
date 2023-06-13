@@ -66,7 +66,7 @@ bool RSSurfaceNodeFuzzTest(const uint8_t* data, size_t size)
     RSSurfaceNodeConfig surfaceNodeConfig;
     std::shared_ptr<RSBaseNode> child = RSCanvasNode::Create();
     int index = GetData<int>();
-    ColorGamut colorSpace = GetData<ColorGamut>();
+    GraphicColorGamut colorSpace = GetData<GraphicColorGamut>();
     bool isSecurityLayer = GetData<bool>();
     uint8_t alpha = GetData<uint8_t>();
     bool available = GetData<bool>();

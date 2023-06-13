@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <include/core/SkTextBlob.h>
 
 #include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_recording_canvas.h"
@@ -97,5 +98,30 @@ HWTEST_F(RSRecordingCanvasTest, RSRecordingCanvas001, TestSize.Level1)
     canvas.Clear();
 }
 
+/**
+ * @tc.name: RSRecordingCanvas002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRecordingCanvasTest, RSRecordingCanvas002, TestSize.Level1)
+{
+    int width = 1;
+    int height = 1;
+    RSRecordingCanvas canvas(width, height);
+    canvas.willSave();
+    canvas.willRestore();
+    sk_sp<SkTextBlob> blob = SkTextBlob::MakeFromString("TextBlob", SkFont(nullptr, 24.0f, 1.0f, 0.0f));
+    SkScalar x = 1.0;
+    SkScalar y = 1.0;
+    SkPaint paint;
+    canvas.SetIsCustomTextType(false);
+    ASSERT_FALSE(canvas.IsCustomTextType());
+    canvas.onDrawTextBlob(blob.get(), x, y, paint);
+    canvas.SetIsCustomTextType(true);
+    ASSERT_TRUE(canvas.IsCustomTextType());
+    canvas.onDrawTextBlob(blob.get(), x, y, paint);
+    canvas.Clear();
+}
 } // namespace Rosen
 } // namespace OHOS

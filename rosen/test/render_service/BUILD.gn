@@ -36,6 +36,7 @@ group("test") {
     "render_service_base/unittest/command:unittest",
     "render_service_base/unittest/common:unittest",
     "render_service_base/unittest/delegate:unittest",
+    "render_service_base/unittest/memory:unittest",
     "render_service_base/unittest/modifier:unittest",
     "render_service_base/unittest/offscreen_render:unittest",
     "render_service_base/unittest/overdraw:unittest",

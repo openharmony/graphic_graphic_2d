@@ -645,6 +645,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             ShowWatermark(watermarkImg, isShow);
             break;
         }
+        case REPORT_JANK_STATS: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ReportJankStats();
+            break;
+        }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }

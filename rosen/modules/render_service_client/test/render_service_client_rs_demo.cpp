@@ -20,8 +20,10 @@
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkCanvas.h"
 #include "include/core/SkImageInfo.h"
+#endif
 #include "pipeline/rs_render_result.h"
 #include "pipeline/rs_render_thread.h"
 #include "ui/rs_canvas_node.h"
@@ -61,7 +63,11 @@ namespace pipelineTestUtils {
 
     class ToDrawSurface {
     public:
+#ifndef USE_ROSEN_DRAWING
         using drawFun = std::function<void(SkCanvas&, SkPaint&)>;
+#else
+        using drawFun = std::function<void(Drawing::Canvas&, Drawing::Brush&)>;
+#endif
         ToDrawSurface() {};
 
         inline ToDrawSurface& SetSurfaceNode(const std::shared_ptr<RSSurfaceNode> surfaceNode)
@@ -70,7 +76,11 @@ namespace pipelineTestUtils {
             return *this;
         }
 
+#ifndef USE_ROSEN_DRAWING
         inline ToDrawSurface& SetSurfaceNodeSize(SkRect surfaceGeometry)
+#else
+        inline ToDrawSurface& SetSurfaceNodeSize(Drawing::Rect surfaceGeometry)
+#endif
         {
             surfaceGeometry_ = surfaceGeometry;
             return *this;
@@ -78,8 +88,13 @@ namespace pipelineTestUtils {
 
         inline ToDrawSurface& SetBufferSize(int width, int height)
         {
+#ifndef USE_ROSEN_DRAWING
             bufferSize_ = SkRect::MakeXYWH(0, 0, width, height);
             return *this;
+#else
+            bufferSize_ = Drawing::Rect(0, 0, width, height);
+            return *this;
+#endif
         }
 
         inline ToDrawSurface& SetBufferSizeAuto()
@@ -114,10 +129,17 @@ namespace pipelineTestUtils {
                 printf("DrawSurface: surfaceNode_ is nullptr\n");
                 return false;
             }
+#ifndef USE_ROSEN_DRAWING
             auto x = surfaceGeometry_.x();
             auto y = surfaceGeometry_.y();
             auto width = surfaceGeometry_.width();
             auto height = surfaceGeometry_.height();
+#else
+            auto x = surfaceGeometry_.GetLeft();
+            auto y = surfaceGeometry_.GetTop();
+            auto width = surfaceGeometry_.GetWidth();
+            auto height = surfaceGeometry_.GeyHeight();
+#endif
             surfaceNode_->SetBounds(x, y, width, height);
             std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode_);
             if (rsSurface == nullptr) {
@@ -131,7 +153,11 @@ namespace pipelineTestUtils {
                 printf("DrawSurface: RenderContext is nullptr\n");
             }
 #endif
+#ifndef USE_ROSEN_DRAWING
             auto framePtr = rsSurface->RequestFrame(bufferSize_.width(), bufferSize_.height());
+#else
+            auto framePtr = rsSurface->RequestFrame(bufferSize_.GetWidth(), bufferSize_.GetHeight());
+#endif
             if (!framePtr) {
                 // SetRenderContext must before rsSurface->RequestFrame,
                 //      or frameptr will be nullptr.
@@ -143,6 +169,7 @@ namespace pipelineTestUtils {
                 printf("DrawSurface: canvas is nullptr\n");
                 return wrongExit;
             }
+#ifndef USE_ROSEN_DRAWING
             canvas->clear(SK_ColorTRANSPARENT);
             SkPaint paint;
             paint.setAntiAlias(true);
@@ -156,12 +183,29 @@ namespace pipelineTestUtils {
             }
             drawShape_(*(canvas), paint);
             framePtr->SetDamageRegion(0, 0, surfaceGeometry_.width(), surfaceGeometry_.height());
+#else
+            canvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+            Drawing::Brush brush;
+            brush.SetAntiAlias(true);
+            brush.SetColor(color_);
+            if (!drawShape_) {
+                printf("DrawSurface: drawShape_ is nullptr\n");
+                return wrongExit;
+            }
+            drawShape_(*canvas, brush);
+            framePtr->SetDamageRegion(0, 0, surfaceGeometry_.GetWidth(), surfaceGeometry_.GetHeight());
+#endif
             rsSurface->FlushFrame(framePtr);
             return successExit;
         }
     private:
+#ifndef USE_ROSEN_DRAWING
         SkRect surfaceGeometry_ = {0.f, 0.f, 0.f, 0.f};
         SkRect bufferSize_ = {0.f, 0.f, 0.f, 0.f};
+#else
+        Drawing::Rect surfaceGeometry_ = {0.f, 0.f, 0.f, 0.f};
+        Drawing::Rect bufferSize_ = {0.f, 0.f, 0.f, 0.f};
+#endif
         drawFun drawShape_;
         uint32_t color_ = 0;
         std::shared_ptr<RSSurfaceNode> surfaceNode_ = nullptr;
@@ -311,6 +355,7 @@ public:
         auto surfaceNode1 = pipelineTestUtils::CreateSurface();
         auto surfaceNode2 = pipelineTestUtils::CreateSurface();
 
+#ifndef USE_ROSEN_DRAWING
         pipelineTestUtils::ToDrawSurface()
             .SetSurfaceNode(surfaceNode1)
             .SetShapeColor(0xff00ffff)
@@ -320,6 +365,22 @@ public:
                 canvas.drawRect(SkRect::MakeXYWH(0, 0, screenWidth_ * 0.4f, screenheight_ * 0.3f), paint);
             })
             .Run();
+#else
+        pipelineTestUtils::ToDrawSurface()
+            .SetSurfaceNode(surfaceNode1)
+            .SetShapeColor(0xff00ffff)
+            .SetSurfaceNodeSize(Drawing::Rect(SURFACE_NODE_SIZE, 0,
+                screenWidth_ * 0.4f + SURFACE_NODE_SIZE, screenheight_ * 0.3f))
+            .SetBufferSizeAuto()
+            .SetDraw([&](Drawing::Canvas &canvas, Drawing::Brush &brush) -> void {
+                canvas.AttachBrush(brush);
+                canvas.drawRect(Drawing::Rect::MakeXYWH(0, 0, screenWidth_ * 0.4f, screenheight_ * 0.3f));
+                canvas.DetachBrush();
+            })
+            .Run();
+#endif
+
+#ifndef USE_ROSEN_DRAWING
         pipelineTestUtils::ToDrawSurface()
             .SetSurfaceNode(surfaceNode2)
             .SetShapeColor(0xffff0000)
@@ -332,6 +393,20 @@ public:
                     paint);
             })
             .Run();
+#else
+        pipelineTestUtils::ToDrawSurface()
+            .SetSurfaceNode(surfaceNode2)
+            .SetShapeColor(0xffff0000)
+            .SetSurfaceNodeSize(Drawing::Rect(SURFACE_NODE_SIZE, screenheight_ * 0.8f,
+                screenWidth_ * 0.4f + SURFACE_NODE_SIZE, screenheight_))
+            .SetBufferSizeAuto()
+            .SetDraw([&](Drawing::Canvas &canvas, Drawing::Brush &brush) -> void {
+                canvas.AttachBrush(brush);
+                canvas.drawRect(Drawing::Rect(0, 0, screenWidth_ * 0.4f, screenheight_ * 0.2f));
+                canvas.DetachBrush();
+            })
+            .Run();
+#endif
 
         RSDisplayNodeConfig config;
         RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);

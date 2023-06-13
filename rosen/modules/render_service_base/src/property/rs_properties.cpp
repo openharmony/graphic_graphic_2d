@@ -37,7 +37,9 @@ constexpr int32_t INDEX_11 = 11;
 constexpr int32_t INDEX_12 = 12;
 constexpr int32_t INDEX_14 = 14;
 constexpr int32_t INDEX_18 = 18;
-}
+
+const Vector4f Vector4fZero { 0.f, 0.f, 0.f, 0.f };
+} // namespace
 
 RSProperties::RSProperties()
 {
@@ -336,16 +338,13 @@ float RSProperties::GetPivotZ() const
 
 void RSProperties::SetCornerRadius(Vector4f cornerRadius)
 {
-    if (!cornerRadius_) {
-        cornerRadius_ = std::make_unique<Vector4f>();
-    }
-    cornerRadius_->SetValues(cornerRadius.x_, cornerRadius.y_, cornerRadius.z_, cornerRadius.w_);
+    cornerRadius_ = cornerRadius;
     SetDirty();
 }
 
 Vector4f RSProperties::GetCornerRadius() const
 {
-    return cornerRadius_ ? *cornerRadius_ : Vector4f();
+    return cornerRadius_.value_or(Vector4fZero);
 }
 
 void RSProperties::SetQuaternion(Quaternion quaternion)
@@ -515,26 +514,22 @@ bool RSProperties::GetAlphaOffscreen() const
     return alphaOffscreen_;
 }
 
-void RSProperties::SetSublayerTransform(Matrix3f sublayerTransform)
+void RSProperties::SetSublayerTransform(const std::optional<Matrix3f>& sublayerTransform)
 {
-    if (sublayerTransform_) {
-        *sublayerTransform_ = sublayerTransform;
-    } else {
-        sublayerTransform_ = std::make_unique<Matrix3f>(sublayerTransform);
-    }
+    sublayerTransform_ = sublayerTransform;
     SetDirty();
 }
 
-Matrix3f RSProperties::GetSublayerTransform() const
+const std::optional<Matrix3f>& RSProperties::GetSublayerTransform() const
 {
-    return (sublayerTransform_ != nullptr) ? *sublayerTransform_ : Matrix3f::IDENTITY;
+    return sublayerTransform_;
 }
 
 // foreground properties
 void RSProperties::SetForegroundColor(Color color)
 {
     if (!decoration_) {
-        decoration_ = std::make_unique<Decoration>();
+        decoration_ = std::make_optional<Decoration>();
     }
     decoration_->foregroundColor_ = color;
     SetDirty();
@@ -550,7 +545,7 @@ Color RSProperties::GetForegroundColor() const
 void RSProperties::SetBackgroundColor(Color color)
 {
     if (!decoration_) {
-        decoration_ = std::make_unique<Decoration>();
+        decoration_ = std::make_optional<Decoration>();
     }
     decoration_->backgroundColor_ = color;
     SetDirty();
@@ -565,7 +560,7 @@ Color RSProperties::GetBackgroundColor() const
 void RSProperties::SetBackgroundShader(std::shared_ptr<RSShader> shader)
 {
     if (!decoration_) {
-        decoration_ = std::make_unique<Decoration>();
+        decoration_ = std::make_optional<Decoration>();
     }
     decoration_->bgShader_ = shader;
     SetDirty();
@@ -580,7 +575,7 @@ std::shared_ptr<RSShader> RSProperties::GetBackgroundShader() const
 void RSProperties::SetBgImage(std::shared_ptr<RSImage> image)
 {
     if (!decoration_) {
-        decoration_ = std::make_unique<Decoration>();
+        decoration_ = std::make_optional<Decoration>();
     }
     decoration_->bgImage_ = image;
     SetDirty();
@@ -595,7 +590,7 @@ std::shared_ptr<RSImage> RSProperties::GetBgImage() const
 void RSProperties::SetBgImageWidth(float width)
 {
     if (!decoration_) {
-        decoration_ = std::make_unique<Decoration>();
+        decoration_ = std::make_optional<Decoration>();
     }
     decoration_->bgImageRect_.width_ = width;
     SetDirty();
@@ -605,7 +600,7 @@ void RSProperties::SetBgImageWidth(float width)
 void RSProperties::SetBgImageHeight(float height)
 {
     if (!decoration_) {
-        decoration_ = std::make_unique<Decoration>();
+        decoration_ = std::make_optional<Decoration>();
     }
     decoration_->bgImageRect_.height_ = height;
     SetDirty();
@@ -615,7 +610,7 @@ void RSProperties::SetBgImageHeight(float height)
 void RSProperties::SetBgImagePositionX(float positionX)
 {
     if (!decoration_) {
-        decoration_ = std::make_unique<Decoration>();
+        decoration_ = std::make_optional<Decoration>();
     }
     decoration_->bgImageRect_.left_ = positionX;
     SetDirty();
@@ -625,7 +620,7 @@ void RSProperties::SetBgImagePositionX(float positionX)
 void RSProperties::SetBgImagePositionY(float positionY)
 {
     if (!decoration_) {
-        decoration_ = std::make_unique<Decoration>();
+        decoration_ = std::make_optional<Decoration>();
     }
     decoration_->bgImageRect_.top_ = positionY;
     SetDirty();
@@ -741,8 +736,8 @@ std::shared_ptr<RSFilter> RSProperties::GetFilter() const
 // shadow properties
 void RSProperties::SetShadowColor(Color color)
 {
-    if (shadow_ == nullptr) {
-        shadow_ = std::make_unique<RSShadow>();
+    if (!shadow_.has_value()) {
+        shadow_ = std::make_optional<RSShadow>();
     }
     shadow_->SetColor(color);
     SetDirty();
@@ -753,8 +748,8 @@ void RSProperties::SetShadowColor(Color color)
 
 void RSProperties::SetShadowOffsetX(float offsetX)
 {
-    if (shadow_ == nullptr) {
-        shadow_ = std::make_unique<RSShadow>();
+    if (!shadow_.has_value()) {
+        shadow_ = std::make_optional<RSShadow>();
     }
     shadow_->SetOffsetX(offsetX);
     SetDirty();
@@ -765,8 +760,8 @@ void RSProperties::SetShadowOffsetX(float offsetX)
 
 void RSProperties::SetShadowOffsetY(float offsetY)
 {
-    if (shadow_ == nullptr) {
-        shadow_ = std::make_unique<RSShadow>();
+    if (!shadow_.has_value()) {
+        shadow_ = std::make_optional<RSShadow>();
     }
     shadow_->SetOffsetY(offsetY);
     SetDirty();
@@ -777,8 +772,8 @@ void RSProperties::SetShadowOffsetY(float offsetY)
 
 void RSProperties::SetShadowAlpha(float alpha)
 {
-    if (shadow_ == nullptr) {
-        shadow_ = std::make_unique<RSShadow>();
+    if (!shadow_.has_value()) {
+        shadow_ = std::make_optional<RSShadow>();
     }
     shadow_->SetAlpha(alpha);
     SetDirty();
@@ -789,8 +784,8 @@ void RSProperties::SetShadowAlpha(float alpha)
 
 void RSProperties::SetShadowElevation(float elevation)
 {
-    if (shadow_ == nullptr) {
-        shadow_ = std::make_unique<RSShadow>();
+    if (!shadow_.has_value()) {
+        shadow_ = std::make_optional<RSShadow>();
     }
     shadow_->SetElevation(elevation);
     SetDirty();
@@ -801,8 +796,8 @@ void RSProperties::SetShadowElevation(float elevation)
 
 void RSProperties::SetShadowRadius(float radius)
 {
-    if (shadow_ == nullptr) {
-        shadow_ = std::make_unique<RSShadow>();
+    if (!shadow_.has_value()) {
+        shadow_ = std::make_optional<RSShadow>();
     }
     shadow_->SetRadius(radius);
     SetDirty();
@@ -813,8 +808,8 @@ void RSProperties::SetShadowRadius(float radius)
 
 void RSProperties::SetShadowPath(std::shared_ptr<RSPath> shadowPath)
 {
-    if (shadow_ == nullptr) {
-        shadow_ = std::make_unique<RSShadow>();
+    if (!shadow_.has_value()) {
+        shadow_ = std::make_optional<RSShadow>();
     }
     shadow_->SetPath(shadowPath);
     SetDirty();
@@ -825,8 +820,8 @@ void RSProperties::SetShadowPath(std::shared_ptr<RSPath> shadowPath)
 
 void RSProperties::SetShadowMask(bool shadowMask)
 {
-    if (shadow_ == nullptr) {
-        shadow_ = std::make_unique<RSShadow>();
+    if (!shadow_.has_value()) {
+        shadow_ = std::make_optional<RSShadow>();
     }
     shadow_->SetMask(shadowMask);
     SetDirty();
@@ -908,10 +903,7 @@ std::shared_ptr<RectF> RSProperties::GetDrawRegion() const
 
 void RSProperties::SetClipRRect(RRect clipRRect)
 {
-    if (!clipRRect_) {
-        clipRRect_ = std::make_unique<RRect>();
-    }
-    clipRRect_->SetValues(clipRRect.rect_, clipRRect.radius_);
+    clipRRect_ = clipRRect;
     SetDirty();
     geoDirty_ = true;  // [planning] all clip ops should be checked
 }
@@ -923,7 +915,7 @@ RRect RSProperties::GetClipRRect() const
 
 bool RSProperties::GetClipToRRect() const
 {
-    return clipRRect_ != nullptr;
+    return clipRRect_.has_value();
 }
 
 void RSProperties::SetClipBounds(std::shared_ptr<RSPath> path)
@@ -1050,20 +1042,20 @@ void RSProperties::Reset()
     boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     frameGeo_ = std::make_shared<RSObjGeometry>();
 
-    backgroundFilter_ = nullptr;
-    linearGradientBlurPara_ = nullptr;
-    border_ = nullptr;
-    clipRRect_ = nullptr;
-    clipPath_ = nullptr;
-    cornerRadius_ = nullptr;
-    decoration_ = nullptr;
-    filter_ = nullptr;
-    mask_ = nullptr;
-    shadow_ = nullptr;
-    sublayerTransform_ = nullptr;
+    backgroundFilter_.reset();
+    linearGradientBlurPara_.reset();
+    border_.reset();
+    clipRRect_.reset();
+    clipPath_.reset();
+    cornerRadius_.reset();
+    decoration_.reset();
+    filter_.reset();
+    mask_.reset();
+    shadow_.reset();
+    sublayerTransform_.reset();
     lightUpEffectDegree_ = 1.0f;
-    pixelStretch_ = nullptr;
-    pixelStretchPercent_ = nullptr;
+    pixelStretch_.reset();
+    pixelStretchPercent_.reset();
     useEffect_ = false;
 
     sandboxPosition_.reset();
@@ -1075,7 +1067,7 @@ void RSProperties::Reset()
     invert_.reset();
     hueRotate_.reset();
     colorBlend_.reset();
-    colorFilter_ = nullptr;
+    colorFilter_.reset();
 }
 
 void RSProperties::SetDirty()
@@ -1230,19 +1222,14 @@ bool RSProperties::GetUseEffect() const
 
 void RSProperties::SetPixelStretch(Vector4f stretchSize)
 {
-    if (!pixelStretch_) {
-        pixelStretch_ = std::make_unique<Vector4f>();
-    }
-
-    pixelStretch_->SetValues(stretchSize.x_, stretchSize.y_, stretchSize.z_, stretchSize.w_);
-
+    pixelStretch_ = stretchSize;
     SetDirty();
     contentDirty_ = true;
 }
 
 Vector4f RSProperties::GetPixelStretch() const
 {
-    return pixelStretch_ ? *pixelStretch_ : Vector4f();
+    return pixelStretch_.value_or(Vector4fZero);
 }
 
 bool RSProperties::IsPixelStretchValid() const
@@ -1304,29 +1291,25 @@ RectI RSProperties::GetPixelStretchDirtyRect() const
 
 void RSProperties::SetPixelStretchPercent(Vector4f stretchPercent)
 {
-    if (!pixelStretchPercent_) {
-        pixelStretchPercent_ = std::make_unique<Vector4f>();
-    }
-
-    pixelStretchPercent_->SetValues(stretchPercent.x_, stretchPercent.y_, stretchPercent.z_, stretchPercent.w_);
-
+    pixelStretchPercent_ = stretchPercent;
     SetDirty();
     contentDirty_ = true;
 }
 
 Vector4f RSProperties::GetPixelStretchPercent() const
 {
-    return pixelStretchPercent_ ? *pixelStretchPercent_ : Vector4f();
+    return pixelStretchPercent_.value_or(Vector4fZero);
 }
 
 Vector4f RSProperties::GetPixelStretchByPercent() const
 {
     auto bounds = GetBoundsRect();
-    float widthLeft = bounds.width_ * GetPixelStretchPercent().x_;
-    float heightUp = bounds.height_ * GetPixelStretchPercent().y_;
-    float widthRight = bounds.width_ * GetPixelStretchPercent().z_;
-    float heightBottom = bounds.height_ * GetPixelStretchPercent().w_;
-    return Vector4f(widthLeft, heightUp, widthRight, heightBottom);
+    const auto& percent = GetPixelStretchPercent();
+    float widthLeft = bounds.width_ * percent.x_;
+    float heightUp = bounds.height_ * percent.y_;
+    float widthRight = bounds.width_ * percent.z_;
+    float heightBottom = bounds.height_ * percent.w_;
+    return { widthLeft, heightUp, widthRight, heightBottom };
 }
 
 bool RSProperties::IsPixelStretchPercentValid() const

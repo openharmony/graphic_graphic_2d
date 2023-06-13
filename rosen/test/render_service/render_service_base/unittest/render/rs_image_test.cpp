@@ -266,7 +266,6 @@ HWTEST_F(RSImageTest, TestRSImage004, TestSize.Level1)
     image.SetImageRepeat(3);
     image.CanvasDrawImage(canvas, rect, paint);
 #endif
-
 }
 
 /**

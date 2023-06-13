@@ -44,6 +44,7 @@ enum class RSUINodeType : uint32_t {
     CANVAS_NODE  = 0x008110u,   // formerly RSNode
     EFFECT_NODE  = 0x010110u,
     ROOT_NODE    = 0x108110u,
+    CANVAS_DRAWING_NODE = 0x208110u,
 };
 
 enum class FollowType : uint8_t {
@@ -53,14 +54,15 @@ enum class FollowType : uint8_t {
 };
 
 static inline const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
-    {RSUINodeType::BASE_NODE,    "BaseNode"},
-    {RSUINodeType::DISPLAY_NODE, "DisplayNode"},
-    {RSUINodeType::RS_NODE,      "RsNode"},
-    {RSUINodeType::SURFACE_NODE, "SurfaceNode"},
-    {RSUINodeType::PROXY_NODE,   "ProxyNode"},
-    {RSUINodeType::CANVAS_NODE,  "CanvasNode"},
-    {RSUINodeType::ROOT_NODE,    "RootNode"},
-    {RSUINodeType::EFFECT_NODE,  "EffectNode"},
+    {RSUINodeType::BASE_NODE,           "BaseNode"},
+    {RSUINodeType::DISPLAY_NODE,        "DisplayNode"},
+    {RSUINodeType::RS_NODE,             "RsNode"},
+    {RSUINodeType::SURFACE_NODE,        "SurfaceNode"},
+    {RSUINodeType::PROXY_NODE,          "ProxyNode"},
+    {RSUINodeType::CANVAS_NODE,         "CanvasNode"},
+    {RSUINodeType::ROOT_NODE,           "RootNode"},
+    {RSUINodeType::EFFECT_NODE,         "EffectNode"},
+    {RSUINodeType::CANVAS_DRAWING_NODE, "CanvasDrawingNode"},
 };
 
 // types for RenderNode
@@ -73,6 +75,7 @@ enum class RSRenderNodeType : uint32_t {
     CANVAS_NODE  = 0x008111u,   // formerly RSRenderNode
     EFFECT_NODE  = 0x010111u,
     ROOT_NODE    = 0x108111u,
+    CANVAS_DRAWING_NODE = 0x208111u,
 };
 
 enum class CacheType : uint8_t {
@@ -92,6 +95,13 @@ enum class NodePriorityType : uint32_t {
     MAIN_PRIORITY = 0, // node must render in main thread
     SUB_HIGH_PRIORITY, // node render in sub thread with high priority
     SUB_LOW_PRIORITY, // node render in sub thread with low priority
+};
+
+// status for sub thread node
+enum class CacheProcessStatus : uint32_t {
+    WAITING = 0, // waiting for process
+    DOING, // processing
+    DONE, // processed
 };
 
 // types for RSSurfaceRenderNode

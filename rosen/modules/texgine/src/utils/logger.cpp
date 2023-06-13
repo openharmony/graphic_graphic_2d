@@ -20,7 +20,7 @@
 #include <iostream>
 #include <sys/syscall.h>
 #include <unistd.h>
-#define GetTid() syscall(__NR_gettid)
+#define GET_TID() syscall(__NR_gettid)
 
 #ifdef LOGGER_NO_COLOR
 #define IF_COLOR(x)
@@ -167,7 +167,7 @@ void Logger::AppendFileFuncLine(Logger &logger, enum LOG_PHASE phase)
 void Logger::AppendPidTid(Logger &logger, enum LOG_PHASE phase)
 {
     if (phase == LOG_PHASE::BEGIN) {
-        logger << getpid() << ":" << GetTid() << " ";
+        logger << getpid() << ":" << GET_TID() << " ";
     }
 }
 
@@ -212,7 +212,7 @@ Logger::Logger(const std::string &file, const std::string &func, int line, enum 
     {
         std::lock_guard<std::mutex> lock(scopeMutex_);
         // The number of space if enable scope
-        Align(scope_ * 2);
+        Align(scope_ * 2);  // 2 means multiple
     }
 #endif
 }

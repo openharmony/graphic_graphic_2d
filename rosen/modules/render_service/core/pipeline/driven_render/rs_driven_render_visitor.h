@@ -52,7 +52,7 @@ public:
     void SetScreenRect(const RectI& rect);
 
     void SetUniProcessor(std::shared_ptr<RSProcessor> processor);
-    void SetUniColorSpace(ColorGamut colorSpace);
+    void SetUniColorSpace(GraphicColorGamut colorSpace);
     void SetUniGlobalZOrder(float globalZOrder);
 
 private:
@@ -70,7 +70,7 @@ private:
     RectI screenRect_;
 
     std::shared_ptr<RSProcessor> uniProcessor_ = nullptr;
-    ColorGamut uniColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
+    GraphicColorGamut uniColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     float uniGlobalZOrder_ = 0.0f;
 
     bool hasTraverseDrivenNode_ = false;
