@@ -22,7 +22,6 @@ declare_args() {
   graphic_standard_feature_freemem_enable = false
   graphic_standard_feature_parallel_render_enable = true
   graphic_standard_feature_enable_vulkan = false
-  use_new_render_context = false
 }
 
 gpu_defines = []
