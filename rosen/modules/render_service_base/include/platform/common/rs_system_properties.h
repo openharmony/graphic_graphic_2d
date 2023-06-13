@@ -25,6 +25,13 @@
 namespace OHOS {
 namespace Rosen {
 
+enum class SkiaTraceType {
+    DISABLED = 0,                        // 0, disable trace and log
+    TRACE_ONLY,                          // 1, print trace only
+    TRACE_AND_BRIEF_LOG,                 // 2, print trace and brief log
+    TRACE_AND_DETAILED_LOG               // 3, print trace and detailed log
+};
+
 enum class DirtyRegionDebugType {
     DISABLED = 0,
     CURRENT_SUB,
@@ -83,7 +90,7 @@ public:
 
     static bool GetUniRenderEnabled();
     static bool GetRenderNodeTraceEnabled();
-    static bool GetSkiaTraceEnabled();
+    static SkiaTraceType GetSkiaTraceEnabled();
     static bool GetDrawOpTraceEnabled();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
