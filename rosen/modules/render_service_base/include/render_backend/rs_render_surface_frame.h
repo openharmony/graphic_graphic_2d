@@ -108,11 +108,11 @@ typedef struct SurfaceConfig {
 } SurfaceConfig;
 
 typedef struct RSRenderSurfaceFrame {
-    std::shared_ptr<SurfaceConfig> surfaceConfig;
-    std::shared_ptr<FrameConfig> frameConfig;
-    std::shared_ptr<EGLState> eglState;
+    SurfaceConfig* surfaceConfig;
+    FrameConfig* frameConfig;
+    EGLState* eglState;
 #if defined(RS_ENABLE_VK)
-    std::shared_ptr<VulkanState> vulkanState;
+    VulkanState* vulkanState;
 #endif
 } RSRenderSurfaceFrame;
 }

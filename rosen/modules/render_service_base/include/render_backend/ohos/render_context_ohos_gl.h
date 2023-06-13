@@ -45,7 +45,6 @@ public:
     void SwapBuffers(const std::shared_ptr<RSRenderSurfaceFrame>& frame) override;
 private:
     void CreatePbufferSurface();
-    void SetEGLState();
 
     EGLNativeWindowType nativeWindow_;
     EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;

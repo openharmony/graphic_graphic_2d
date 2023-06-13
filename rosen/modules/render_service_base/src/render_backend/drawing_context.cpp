@@ -31,15 +31,16 @@
 namespace OHOS {
 namespace Rosen {
 const int STENCIL_BUFFER_SIZE = 8;
-sk_sp<SkSurface> DrawingContext::AcquireSurface(const std::shared_ptr<RSRenderSurfaceFrame>& frame)
+sk_sp<SkSurface> DrawingContext::AcquireSurface(const std::shared_ptr<RSRenderSurfaceFrame>& frame,
+    const RenderType& renderType)
 {
     if (frame == nullptr) {
         LOGE("Failed to acquire Surface, frame is nullptr");
         return nullptr;
     }
-    if (renderType_ == RenderType::GLES) {
+    if (renderType == RenderType::GLES) {
         return AcquireSurfaceInGLES(frame);
-    } else if (renderType_ == RenderType::RASTER) {
+    } else if (renderType == RenderType::RASTER) {
         return AcquireSurfaceInRaster(frame);
     } else {
         return AcquireSurfaceInVulkan(frame);
@@ -106,9 +107,9 @@ GrContext* DrawingContext::GetDrawingContext() const
 sk_sp<SkSurface> DrawingContext::AcquireSurfaceInGLES(const std::shared_ptr<RSRenderSurfaceFrame>& frame)
 {
 #if defined(NEW_SKIA)
-    GrDirectContext* grContext = GetDrawingContext();
+    GrDirectContext* grContext = GetGrContext();
 #else
-    GrContext* grContext = GetDrawingContext();
+    GrContext* grContext = GetGrContext();
 #endif
     GrGLFramebufferInfo framebufferInfo;
     framebufferInfo.fFBOID = 0;
@@ -116,13 +117,7 @@ sk_sp<SkSurface> DrawingContext::AcquireSurfaceInGLES(const std::shared_ptr<RSRe
 
     SkColorType colorType = kRGBA_8888_SkColorType;
 
-    std::shared_ptr<FrameConfig> frameConfig = frame->frameConfig;
-    if (frameConfig == nullptr) {
-        LOGE("Failed to acquire surface in gles, frameConfig is nullptr");
-        return nullptr;
-    }
-    GrBackendRenderTarget backendRenderTarget(frameConfig->width, frameConfig->height, 0, STENCIL_BUFFER_SIZE,
-        framebufferInfo);
+    GrBackendRenderTarget backendRenderTarget(frame->width_, frame->height_, 0, STENCIL_BUFFER_SIZE, framebufferInfo);
 #if defined(NEW_SKIA)
     SkSurfaceProps surfaceProps(0, kRGB_H_SkPixelGeometry);
 #else
@@ -137,50 +132,44 @@ sk_sp<SkSurface> DrawingContext::AcquireSurfaceInGLES(const std::shared_ptr<RSRe
         grContext, backendRenderTarget, kBottomLeft_GrSurfaceOrigin, colorType,
         skColorSpace, &surfaceProps);
     if (skSurface == nullptr) {
-        LOGE("Failed to acquire surface in gles, skSurface is nullptr");
+        LOGE("skSurface is nullptr");
         return nullptr;
     }
+
+    LOGD("Acquire skSurface in gles successfully");
     return skSurface;
 }
 
 sk_sp<SkSurface> DrawingContext::AcquireSurfaceInRaster(const std::shared_ptr<RSRenderSurfaceFrame>& frame)
 {
-    std::shared_ptr<FrameConfig> frameConfig = frame->frameConfig;
-    if (frameConfig == nullptr) {
-        LOGE("Failed to acquire surface in raster, frameConfig is nullptr");
-        return nullptr;
-    }
-    sptr<SurfaceBuffer> buffer = frameConfig->buffer;
+    sptr<SurfaceBuffer> buffer = frame->buffer_;
     if ((buffer == nullptr) || (buffer->GetWidth() <= 0) || (buffer->GetHeight() <= 0)) {
-        LOGE("Failed to acquire surface in raster, buffer is invalide");
+        LOGE("Buffer is invalide");
         return nullptr;
     }
 
     auto addr = static_cast<uint32_t*>(buffer->GetVirAddr());
     if (addr == nullptr) {
-        LOGE("Failed to acquire surface in raster, buffer addr is invalid");
+        LOGE("buffer addr is invalid");
         return nullptr;
     }
     SkImageInfo info =
         SkImageInfo::Make(buffer->GetWidth(), buffer->GetHeight(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
     sk_sp<SkSurface> skSurface = SkSurface::MakeRasterDirect(info, addr, buffer->GetStride());
+
+    LOGE("Acquire skSurface in raster successfully");
+    
     return skSurface;
 }
 
 sk_sp<SkSurface> DrawingContext::AcquireSurfaceInVulkan(const std::shared_ptr<RSRenderSurfaceFrame>& frame)
 {
 #ifdef RS_ENABLE_VK
-    VulkanState* vulkanState = frame->vulkanState;
-    if (vulkanState == nullptr) {
-        LOGE("Failed to acquire surface in vulkan, vulkanState is nullptr");
+    if (frame->vulkanWindow_ == nullptr) {
+        LOGE("Failed to acquire skSurface in vulkan, vulkanWindow_ is nullptr");
         return nullptr;
     }
-    std::shared_ptr<vulkan::VulkanWindow> vulkanWindow = vulkanState->vulkanWindow;
-    if (vulkanWindow == nullptr) {
-        LOGE("Failed to acquire surface in vulkan, vulkanWindow is nullptr");
-        return nullptr;
-    }
-    return vulkanWindow->AcquireSurface();
+    return frame_->vulkanWindow_->AcquireSurface();
 #else
     return nullptr;
 #endif
@@ -189,11 +178,7 @@ sk_sp<SkSurface> DrawingContext::AcquireSurfaceInVulkan(const std::shared_ptr<RS
 sk_sp<SkColorSpace> DrawingContext::GetSkColorSpace(const std::shared_ptr<RSRenderSurfaceFrame>& frame)
 {
     sk_sp<SkColorSpace> skColorSpace = nullptr;
-    std::shared_ptr<FrameConfig> frameConfig = frame->frameConfig;
-    if (frameConfig == nullptr) {
-        LOGE("Failed to get sk color space, frameConfig is nullptr");
-        return nullptr;
-    }
+    
     GraphicColorGamut colorSpace = frame->colorSpace_;
     switch (colorSpace) {
         // [planning] in order to stay consistant with the colorspace used before, we disabled

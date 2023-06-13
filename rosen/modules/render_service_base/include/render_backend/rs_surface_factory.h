@@ -25,8 +25,8 @@ namespace OHOS {
 namespace Rosen {
 class RSSurfaceFactory {
 public:
-    static std::shared_ptr<RSRenderSurface> CreateRSSurface(const PlatformName& platformName,
-        const sptr<Surface>& surface, std::shared_ptr<DrawingContext> drawingContext = nullptr);
+    static std::shared_ptr<RSRenderSurface> CreateRSSurface(const sptr<Surface>& surface,
+        std::shared_ptr<DrawingContext> drawingContext = nullptr);
 };
 }
 }
