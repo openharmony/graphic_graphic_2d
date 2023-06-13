@@ -403,7 +403,7 @@ void RSRenderNode::UpdateEffectRegion(std::optional<std::pair<RectI, SkPath>>& r
     if (property.GetClipBounds() != nullptr) {
         clipPath = property.GetClipBounds()->GetSkiaPath();
     } else {
-        auto rrect = RRect2SkRRect(property.GetRRect());
+        auto rrect = RSPropertiesPainter::RRect2SkRRect(property.GetRRect());
         clipPath.addRRect(rrect);
     }
 
