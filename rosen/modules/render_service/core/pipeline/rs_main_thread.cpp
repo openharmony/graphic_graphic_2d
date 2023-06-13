@@ -1669,12 +1669,8 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
         SkGraphics::PurgeAllCaches();
         grContext->freeGpuResources();
         grContext->purgeUnlockedResources(true);
-#ifdef NEW_RENDER_CONTEXT
-        MemoryHandler::ClearShader();
-#else
         std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
         rendercontext->CleanAllShaderCache();
-#endif
 #ifdef NEW_SKIA
         grContext->flushAndSubmit(true);
 #else

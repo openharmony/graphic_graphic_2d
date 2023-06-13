@@ -239,22 +239,6 @@ void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* gp
 }
 #endif
 
-#if defined(NEW_RENDER_CONTEXT)
-#ifdef NEW_SKIA
-void MemoryManager::ClearRedundantResources(GrDirectContext* grContext)
-#else
-void MemoryManager::ClearRedundantResources(GrContext* grContext)
-#endif
-{
-    if (grContext != nullptr) {
-        RS_LOGD("grContext clear redundant resources");
-        grContext->flush();
-        // GPU resources that haven't been used in the past 10 seconds
-        grContext->purgeResourcesNotUsedInMs(std::chrono::seconds(10));
-    }
-}
-#endif
-
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
 void MemoryManager::DumpPidMemory(DfxString& log, int pid, const GrDirectContext* grContext)
