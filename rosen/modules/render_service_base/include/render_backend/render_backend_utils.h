@@ -13,22 +13,19 @@
  * limitations under the License.
  */
 
-#include "rs_surface_factory.h"
+#ifndef RENDER_BACKEND_UTILS_H
+#define RENDER_BACKEND_UTILS_H
 
-#include "render_context_base.h"
-#include "utils/log.h"
-#include "ohos/rs_render_surface_ohos.h"
+#include <memory>
+
+#include "rs_render_surface_frame.h"
 
 namespace OHOS {
 namespace Rosen {
-std::shared_ptr<RSRenderSurface> RSSurfaceFactory::CreateRSSurface(const PlatformName& platformName,
-    const sptr<Surface>& surface, std::shared_ptr<DrawingContext> drawingContext)
-{
-    std::shared_ptr<RSRenderSurface> rsSurface;
-    if (platformName == PlatformName::OHOS) {
-        rsSurface = std::make_shared<RSRenderSurfaceOhos>(surface, drawingContext);
-    }
-    return rsSurface;
+class RenderBackendUtils {
+public:
+    static bool IsValidFrame(const std::shared_ptr<RSRenderSurfaceFrame>& frame);
+};
 }
 }
-}
+#endif

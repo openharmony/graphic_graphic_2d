@@ -25,14 +25,22 @@
 #include "memory/rs_tag_tracker.h"
 #endif
 
+#include "render_backend_utils.h"
+
 namespace OHOS {
 namespace Rosen {
-RSRenderSurfaceOhos::RSRenderSurfaceOhos(const sptr<Surface>& producer,
+RSRenderSurfaceOhos::RSRenderSurfaceOhos(const sptr<Surface>& surface,
     const std::shared_ptr<DrawingContext>& drawingContext)
 {
-    frame_ = std::make_shared<RSRenderSurfaceFrame>();
-    frame_->producer_ = producer;
     drawingContext_ = drawingContext;
+    frame_ = std::make_shared<RSRenderSurfaceFrame>();
+    std::shared_ptr<FrameConfig> frameConfig = std::make_shared<FrameConfig>();
+    std::shared_ptr<SurfaceConfig> surfaceConfig = std::make_shared<SurfaceConfig>();
+    std::shared_ptr<EGLState> eglState = std::make_shared<EGLState>();
+    surfaceConfig->producer = surface;
+    frame_->frameConfig = frameConfig;
+    frame_->surfaceConfig = surfaceConfig;
+    frame_->eglState = eglState;
 }
 
 RSRenderSurfaceOhos::~RSRenderSurfaceOhos()
@@ -41,13 +49,13 @@ RSRenderSurfaceOhos::~RSRenderSurfaceOhos()
     drawingContext_ = nullptr;
     renderContext_ = nullptr;
 }
-bool RSRenderSurfaceOhos::IsValid()
+bool RSRenderSurfaceOhos::IsValid() const
 {
-    if (frame_ == nullptr) {
-        LOGE("Failed to get queue size, frame_ is nullptr");
+    if (!RenderBackendUtils::IsValidFrame(frame_)) {
+        LOGE("Failed to check surface is valid, frame_ is invalid");
         return false;
     }
-    return frame_->producer_ != nullptr;
+    return frame_->surfaceConfig->producer != nullptr;
 }
 
 sptr<Surface> RSRenderSurfaceOhos::GetSurfaceOhos() const
@@ -56,16 +64,17 @@ sptr<Surface> RSRenderSurfaceOhos::GetSurfaceOhos() const
         LOGE("Failed to get ohos render surface, render surface is invalid");
         return nullptr;
     }
-    return frame_->producer_;
+    return frame_->surfaceConfig->producer;
 }
 
 uint32_t RSRenderSurfaceOhos::GetQueueSize() const
 {
-    if (!IsValid()) {
+    sptr<Surface> producer = GetSurfaceOhos();
+    if (producer == nullptr) {
         LOGE("Failed to get queue size, render surface is invalid");
         return 0;
     }
-    return frame_->producer_->GetQueueSize();
+    return producer->GetQueueSize();
 }
 
 std::shared_ptr<RSRenderSurfaceFrame> RSRenderSurfaceOhos::RequestFrame(
@@ -75,23 +84,25 @@ std::shared_ptr<RSRenderSurfaceFrame> RSRenderSurfaceOhos::RequestFrame(
         LOGE("Failed to request frame, renderContext_ is nullptr");
         return nullptr;
     }
-
-    if (frame_ == nullptr) {
-        LOGE("Failed to request frame, frame_ is nullptr");
+    if (!RenderBackendUtils::IsValidFrame(frame_)) {
+        LOGE("Failed to request frame, frame_ is invalid");
         return nullptr;
     }
-    
-    frame_->width_ = width;
-    frame_->height_ = height;
-    frame_->uiTimestamp_ = uiTimestamp;
-    
+    std::shared_ptr<FrameConfig> frameConfig = frame_->frameConfig;
+    frameConfig->width = width;
+    frameConfig->height = height;
+    frameConfig->uiTimestamp = uiTimestamp;
+    std::shared_ptr<SurfaceConfig> surfaceConfig = frame_->surfaceConfig;
+    if (surfaceConfig->producer == nullptr) {
+        LOGE("Failed to request frame, surfaceConfig->producer is invalid");
+        return nullptr;
+    }
     bool isSuccess = renderContext_->CreateSurface(frame_);
     if (!isSuccess) {
         LOGE("Failed to request frame, create surface by renderContext_ failed");
         return nullptr;
     }
-
-    LOGD("Request frame successfully, width is %d, height is %d", width, height);
+    LOGD("Request frame successfully, width is %{public}d, height is %{public}d", width, height);
     return frame_;
 }
 
@@ -107,7 +118,6 @@ bool RSRenderSurfaceOhos::FlushFrame(uint64_t uiTimestamp)
         RenderFrame();
     }
     renderContext_->SwapBuffers(frame_);
-    LOGD("Flush frame successfully");
     return true;
 }
 
@@ -118,23 +128,29 @@ void RSRenderSurfaceOhos::SetUiTimeStamp(uint64_t uiTimestamp)
         return;
     }
 
+    if (!RenderBackendUtils::IsValidFrame(frame_)) {
+        LOGE("Failed to set ui timestamp, frame_ is invalid");
+        return;
+    }
     RenderType renderType = renderContext_->GetRenderType();
     struct timespec curTime = {0, 0};
     clock_gettime(CLOCK_MONOTONIC, &curTime);
     // 1000000000 is used for transfer second to nsec
     uint64_t duration = static_cast<uint64_t>(curTime.tv_sec) * 1000000000 + static_cast<uint64_t>(curTime.tv_nsec);
+    std::shared_ptr<SurfaceConfig> surfaceConfig = frame_->surfaceConfig;
+    std::shared_ptr<FrameConfig> frameConfig = frame_->frameConfig;
     if (renderType == RenderType::GLES || renderType == RenderType::VULKAN) {
-        NativeWindowHandleOpt(frame_->nativeWindow_, SET_UI_TIMESTAMP, duration);
+        NativeWindowHandleOpt(surfaceConfig->nativeWindow, SET_UI_TIMESTAMP, duration);
     } else {
-        if (frame_ == nullptr || frame_->buffer_ == nullptr) {
-            LOGE("Failed to set ui timestamp, frame buffer is nullptr");
+        if (frame_ == nullptr || frameConfig->buffer == nullptr) {
+            LOGE("Failed to set ui timestamp, frameConfig buffer is nullptr");
             return;
         }
-        if (frame_->buffer_->GetExtraData() == nullptr) {
+        if (frameConfig->buffer->GetExtraData() == nullptr) {
             LOGE("Failed to set ui timestamp, frame_->buffer_->GetExtraData is nullptr");
             return;
         }
-        GSError ret = frame_->buffer_->GetExtraData()->ExtraSet("timeStamp", static_cast<int64_t>(duration));
+        GSError ret = frameConfig->buffer->GetExtraData()->ExtraSet("timeStamp", static_cast<int64_t>(duration));
         if (ret != GSERROR_OK) {
             LOGE("Failed to set ui timestamp, frame buffer get ExtraSet failed");
         }
@@ -147,12 +163,12 @@ void RSRenderSurfaceOhos::SetDamageRegion(const std::vector<RectI>& rects)
         LOGE("Failed to set damage region, renderContext_ is nullptr");
         return;
     }
-
-    if (frame_ == nullptr) {
-        LOGE("Failed to set damage region, frame_ is nullptr");
+    if (!RenderBackendUtils::IsValidFrame(frame_)) {
+        LOGE("Failed to set damage region, frame_ is invalid");
         return;
     }
-    frame_->damageRects = rects;
+    std::shared_ptr<FrameConfig> frameConfig = frame_->frameConfig;
+    frameConfig->damageRects = rects;
     renderContext_->DamageFrame(frame_);
 }
 
@@ -160,7 +176,7 @@ int32_t RSRenderSurfaceOhos::GetBufferAge()
 {
     if (renderContext_ == nullptr) {
         LOGE("Failed to set damage region, renderContext_ is nullptr");
-        return;
+        return 0;
     }
     return renderContext_->GetBufferAge();
 }
@@ -168,24 +184,29 @@ int32_t RSRenderSurfaceOhos::GetBufferAge()
 void RSRenderSurfaceOhos::ClearBuffer()
 {
     if (renderContext_ == nullptr) {
-        LOGE("Failed to set clear buffer, renderContext_ is nullptr");
+        LOGE("Failed to clear buffer, renderContext_ is nullptr");
         return;
     }
-    DestoryNativeWindow(frame_->nativeWindow_);
+    if (!RenderBackendUtils::IsValidFrame(frame_)) {
+        LOGE("Failed to clear buffer, frame_ is invalid");
+        return;
+    }
+    std::shared_ptr<SurfaceConfig> surfaceConfig = frame_->surfaceConfig;
+    DestoryNativeWindow(surfaceConfig->nativeWindow);
     renderContext_->MakeCurrent();
     renderContext_->DestroySurface();
     if (!IsValid()) {
         LOGE("Failed to clear buffer, render surface is invalid");
         return;
     }
-    frame_->producer_->GoBackground();
+    surfaceConfig->producer->GoBackground();
 }
 
 SkCanvas* RSRenderSurfaceOhos::GetCanvas()
 {
     sk_sp<SkSurface> skSurface = GetSurface();
     if (skSurface == nullptr) {
-        LOGE("Failed to get canvas, skSurface is nullptr")
+        LOGE("Failed to get canvas, skSurface is nullptr");
         return nullptr;
     }
     return skSurface->getCanvas();
@@ -193,88 +214,96 @@ SkCanvas* RSRenderSurfaceOhos::GetCanvas()
 
 sk_sp<SkSurface> RSRenderSurfaceOhos::GetSurface()
 {
-    if (frame_ == nullptr) {
-        LOGE("Failed to get surface, frame_ is nullptr");
+    if (!RenderBackendUtils::IsValidFrame(frame_)) {
+        LOGE("Failed to get surface, frame_ is invalid");
         return nullptr;
     }
-    if (frame_->skSurface_ == nullptr) {
+    std::shared_ptr<FrameConfig> frameConfig = frame_->frameConfig;
+    if (frameConfig->skSurface == nullptr) {
         if (drawingContext_ == nullptr) {
             LOGE("Failed to get surface, drawingContext_ is nullptr");
             return nullptr;
         }
         drawingContext_->SetUpDrawingContext();
-        frame_->skSurface_ = drawingContext_->AcquireSurface(frame_);
+        frameConfig->skSurface = drawingContext_->AcquireSurface(frame_);
     }
-    return frame_->skSurface_;
+    return frameConfig->skSurface;
 }
 
 GraphicColorGamut RSRenderSurfaceOhos::GetColorSpace()
 {
-    if (frame_ == nullptr) {
-        LOGE("Failed to get color space, frame_ is nullptr");
+    if (!RenderBackendUtils::IsValidFrame(frame_)) {
+        LOGE("Failed to get color space, frame_ is invalid");
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
-    return frame_->colorSpace_;
+    std::shared_ptr<FrameConfig> frameConfig = frame_->frameConfig;
+    return frameConfig->colorSpace;
 }
 
 void RSRenderSurfaceOhos::SetColorSpace(GraphicColorGamut colorSpace)
 {
-    if (frame_ == nullptr) {
-        LOGE("Failed to set color space, frame_ is nullptr");
+    if (!RenderBackendUtils::IsValidFrame(frame_)) {
+        LOGE("Failed to set color space, frame_ is invalid");
         return;
     }
-    frame_->colorSpace_ = colorSpace;
+    std::shared_ptr<FrameConfig> frameConfig = frame_->frameConfig;
+    frameConfig->colorSpace = colorSpace;
 }
 
 void RSRenderSurfaceOhos::SetSurfaceBufferUsage(uint64_t usage)
 {
-    if (frame_ == nullptr) {
-        LOGE("Failed to set suface buffer usage, frame_ is nullptr");
+    if (!RenderBackendUtils::IsValidFrame(frame_)) {
+        LOGE("Failed to set surface buffer usage, frame_ is invalid");
         return;
     }
-    frame_->bufferUsage_ = usage;
+    std::shared_ptr<FrameConfig> frameConfig = frame_->frameConfig;
+    frameConfig->bufferUsage = usage;
 }
 
 void RSRenderSurfaceOhos::SetSurfacePixelFormat(uint64_t pixelFormat)
 {
-    if (frame_ == nullptr) {
-        LOGE("Failed to set suface pixel format, frame_ is nullptr");
+    if (!RenderBackendUtils::IsValidFrame(frame_)) {
+        LOGE("Failed to set suface pixel format, frame_ is invalid");
         return;
     }
-    frame_->pixelFormat_ = pixelFormat;
+    std::shared_ptr<FrameConfig> frameConfig = frame_->frameConfig;
+    frameConfig->pixelFormat = pixelFormat;
 }
 
 void RSRenderSurfaceOhos::SetReleaseFence(const int32_t& fence)
 {
-    if (frame_ == nullptr) {
-        LOGE("Failed to set release fence, frame_ is nullptr");
+    if (!RenderBackendUtils::IsValidFrame(frame_)) {
+        LOGE("Failed to set release fence, frame_ is invalid");
         return;
     }
-    frame_->releaseFence_ = fence;
+    std::shared_ptr<FrameConfig> frameConfig = frame_->frameConfig;
+    frameConfig->releaseFence = fence;
 }
 
 int32_t RSRenderSurfaceOhos::GetReleaseFence() const
 {
-    if (frame_ == nullptr) {
-        LOGE("Failed to get release fence, frame_ is nullptr");
+    if (!RenderBackendUtils::IsValidFrame(frame_)) {
+        LOGE("Failed to get release fence, frame_ is invalid");
         return -1;
     }
-    return frame_->releaseFence_;
+    std::shared_ptr<FrameConfig> frameConfig = frame_->frameConfig;
+    return frameConfig->releaseFence;
 }
 
 void RSRenderSurfaceOhos::RenderFrame()
 {
-    if (frame_ == nullptr) {
-        LOGE("Failed to render frame, frame_ is nullptr");
+    if (!RenderBackendUtils::IsValidFrame(frame_)) {
+        LOGE("Failed to render frame, frame_ is invalid");
         return;
     }
-    if (frame_->skSurface_ == nullptr) {
-        LOGE("Failed to render frame, frame_->skSurface is nullptr");
+    std::shared_ptr<FrameConfig> frameConfig = frame_->frameConfig;
+    if (frameConfig->skSurface == nullptr) {
+        LOGE("Failed to render frame, frameConfig skSurface is nullptr");
         return;
     }
     RS_TRACE_FUNC();
-    if (frame_->skSurface_->getCanvas() != nullptr) {
-        frame_->skSurface_->getCanvas()->flush();
+    if (frameConfig->skSurface->getCanvas() != nullptr) {
+        frameConfig->skSurface->getCanvas()->flush();
     } else {
         LOGE("Failed to render frame, canvas is nullptr");
     }

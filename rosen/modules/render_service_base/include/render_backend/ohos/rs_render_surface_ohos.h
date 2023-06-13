@@ -14,7 +14,7 @@
  */
 
 #ifndef RS_RENDER_SURFACE_OHOS_H
-#define RS_REDNER_SURFACE_OHOS_H
+#define RS_RENDER_SURFACE_OHOS_H
 
 #include <memory>
 
@@ -31,9 +31,9 @@ namespace OHOS {
 namespace Rosen {
 class RSRenderSurfaceOhos : public RSRenderSurface {
 public:
-    explicit RSRenderSurfaceOhos(const sptr<Surface>& producer, const std::shared_ptr<DrawingContext>& drawingContext);
+    explicit RSRenderSurfaceOhos(const sptr<Surface>& surface, const std::shared_ptr<DrawingContext>& drawingContext);
     ~RSRenderSurfaceOhos();
-    bool IsValid() override;
+    bool IsValid() const override;
     sptr<Surface> GetSurfaceOhos() const;
     uint32_t GetQueueSize() const override;
     std::shared_ptr<RSRenderSurfaceFrame> RequestFrame(

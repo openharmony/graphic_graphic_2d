@@ -25,6 +25,8 @@ public:
     explicit RenderContextBase()
     {
         frame_ = std::make_unique<RSRenderSurfaceFrame>();
+        std::shared_ptr<EGLState> eglState = std::make_shared<EGLState>();
+        frame_->eglState = eglState;
     }
     virtual ~RenderContextBase() = default;
     virtual void Init() = 0;
