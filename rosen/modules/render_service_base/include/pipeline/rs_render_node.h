@@ -383,6 +383,11 @@ public:
         drawRegion_ = rect;
     }
 
+    std::shared_ptr<RectF> GetDrawRegion() const
+    {
+        return drawRegion_;
+    }
+
     void UpdateDrawRegion();
     void UpdateEffectRegion(std::optional<SkPath>& region) const;
 

@@ -54,7 +54,10 @@ public:
     static bool Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val);
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
 
-    std::shared_ptr<RSBaseRenderNode> GetNode() { return node_.lock(); }
+    std::shared_ptr<RSRenderNode> GetNode()
+    {
+        return node_.lock();
+    }
 
 protected:
     void OnChange() const;

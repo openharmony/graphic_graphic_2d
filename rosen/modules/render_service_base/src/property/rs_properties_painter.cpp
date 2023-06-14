@@ -1309,18 +1309,19 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
     // paint backgroundColor
     SkPaint paint;
     paint.setAntiAlias(antiAlias);
-    canvas.save();
     auto bgColor = properties.GetBackgroundColor();
     if (bgColor != RgbPalette::Transparent()) {
         paint.setColor(bgColor.AsArgbInt());
         canvas.drawRRect(RRect2SkRRect(properties.GetRRect()), paint);
     }
     if (const auto& bgShader = properties.GetBackgroundShader()) {
+        SkAutoCanvasRestore acr(&canvas, true);
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), antiAlias);
         paint.setShader(bgShader->GetSkShader());
         canvas.drawPaint(paint);
     }
     if (const auto& bgImage = properties.GetBgImage()) {
+        SkAutoCanvasRestore acr(&canvas, true);
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), antiAlias);
         auto boundsRect = Rect2SkRect(properties.GetBoundsRect());
         bgImage->SetDstRect(properties.GetBgImageRect());
@@ -1330,7 +1331,6 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
         bgImage->CanvasDrawImage(canvas, boundsRect, paint, true);
 #endif
     }
-    canvas.restore();
 #else
     if (properties.GetClipBounds() != nullptr) {
         canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, antiAlias);

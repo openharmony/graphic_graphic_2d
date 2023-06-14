@@ -145,9 +145,6 @@ void RSDrawCmdListRenderModifier::Update(const std::shared_ptr<RSRenderPropertyB
 #endif
     if (auto renderNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(property_->GetNode())) {
         renderNode->SetRecordedContents(nullptr);
-        if (renderNode->GetRecordedContents()) {
-            renderNode->SetRecordedContents(nullptr);
-        }
     }
 }
 

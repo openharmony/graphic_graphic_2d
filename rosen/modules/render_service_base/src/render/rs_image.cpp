@@ -14,7 +14,6 @@
  */
 
 #include "render/rs_image.h"
-#include "SkCanvas.h"
 
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
@@ -132,12 +131,7 @@ void RSImage::ApplyImageFit()
 
 bool RSImage::HasRadius() const
 {
-    for (auto i = 0; i < CORNER_SIZE; i++) {
-        if (!radius_[i].isZero()) {
-            return true;
-        }
-    }
-    return false;
+    return hasRadius_;
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -345,6 +339,7 @@ void RSImage::SetRadius(const std::vector<Drawing::Point>& radius)
 {
     for (auto i = 0; i < CORNER_SIZE; i++) {
         radius_[i] = radius[i];
+        hasRadius_ = hasRadius_ || !radius_[i].isZero();
     }
 }
 
