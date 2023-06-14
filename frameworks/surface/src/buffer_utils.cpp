@@ -114,14 +114,16 @@ void WriteFlushConfig(MessageParcel &parcel, BufferFlushConfigWithDamages const 
     parcel.WriteInt64(config.timestamp);
 }
 
-void ReadSurfaceBufferImpl(MessageParcel &parcel,
-                           uint32_t &sequence, sptr<SurfaceBuffer>& buffer)
+GSError ReadSurfaceBufferImpl(MessageParcel &parcel,
+                              uint32_t &sequence, sptr<SurfaceBuffer>& buffer)
 {
+    GSError ret = GSERROR_OK;
     sequence = parcel.ReadUint32();
     if (parcel.ReadBool()) {
         buffer = new SurfaceBufferImpl(sequence);
-        buffer->ReadFromMessageParcel(parcel);
+        ret = buffer->ReadFromMessageParcel(parcel);
     }
+    return ret;
 }
 
 void WriteSurfaceBufferImpl(MessageParcel &parcel,

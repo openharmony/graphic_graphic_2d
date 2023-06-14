@@ -35,30 +35,37 @@ GSError BufferExtraDataImpl::ReadFromParcel(MessageParcel &parcel)
         BLOGE("Too much data obtained from Parcel");
         return GSERROR_INTERNAL;
     }
+
+    GSError ret = GSERROR_OK;
     for (int32_t i = 0; i < size; i++) {
         auto key = parcel.ReadString();
         auto type = static_cast<ExtraDataType>(parcel.ReadInt32());
         switch (type) {
             case ExtraDataType::i32: {
-                ExtraSet(key, type, parcel.ReadInt32());
+                ret = ExtraSet(key, type, parcel.ReadInt32());
                 break;
             }
             case ExtraDataType::i64: {
-                ExtraSet(key, type, parcel.ReadInt64());
+                ret = ExtraSet(key, type, parcel.ReadInt64());
                 break;
             }
             case ExtraDataType::f64: {
-                ExtraSet(key, type, parcel.ReadDouble());
+                ret = ExtraSet(key, type, parcel.ReadDouble());
                 break;
             }
             case ExtraDataType::string: {
-                ExtraSet(key, type, parcel.ReadString());
+                ret = ExtraSet(key, type, parcel.ReadString());
                 break;
             }
             default: break;
         }
+
+        if (ret != GSERROR_OK) {
+            BLOGE("Set extra data failed, return %{public}d", ret);
+            break;
+        }
     }
-    return GSERROR_OK;
+    return ret;
 }
 
 GSError BufferExtraDataImpl::WriteToParcel(MessageParcel &parcel)
