@@ -70,7 +70,7 @@ EPS_LCD_FREQ:
 
 JANK_STATS_RS:
   __BASE: {type: STATISTIC, level: MINOR, tag: performance, desc: jank statistic}
-  STARTTIME: {type: UINT32, desc: begin time since last report}
-  DURATION: {type: UINT32, desc: duration since last report}
-  JANK_STATS: {type: STRING, desc: jank frame stats}
+  STARTTIME: {type: UINT64, desc: begin time since last report}
+  DURATION: {type: UINT64, desc: duration since last report}
+  JANK_STATS: {type: UINT16, desc: jank frame stats}
   JANK_STATS_VER: {type: UINT32, desc: jank range version}
