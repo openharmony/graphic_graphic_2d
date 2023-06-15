@@ -26,6 +26,7 @@
 
 #include "benchmark.h"
 #include "drawing_command.h"
+#include "skia_recording.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -61,6 +62,7 @@ private:
     double opItemStep_ = 1;
     std::string inputFilePath_ = "/data/lkx/";
     std::string outputFilePath_ = "/data/lkx/";
+    SkiaRecording skiaRecording;
 };
 }
 }

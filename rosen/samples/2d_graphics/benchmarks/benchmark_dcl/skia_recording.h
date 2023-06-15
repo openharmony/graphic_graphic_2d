@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "include/core/SkCanvas.h"
+#include "include/core/SkStream.h"
 namespace OHOS {
 namespace Rosen {
 class SkiaRecording {
@@ -27,9 +29,10 @@ public:
         MultiFrame,
         None,
     };
+    bool GetCaptureEnabled();
     void InitConfigsFromParam();
     void SetupMultiFrame();
-    void BeginCapture();
+    SkCanvas*  BeginCapture(SkSurface* surface);
     void EndCapture();
 
 private:
@@ -37,6 +40,14 @@ private:
     int captureFrameNum_ = 0;
     std::string captureFileName_ = "";
     SkiaCaptureMode captureMode_ = SkiaCaptureMode::None;
+
+    // Should be decleared before other serializing member
+    std::unique_ptr<SkSharingSerialContext> serialContext_;
+    std::unique_ptr<SkFILEWStream> openMultiPicStream_;
+    sk_sp<SkDocument> multiPic_;
+
+    std::unique_ptr<SkPictureRecorder> recorder_;
+    std::unique_ptr<SkNWayCanvas> nwayCanvas_;
 };
 }
 }

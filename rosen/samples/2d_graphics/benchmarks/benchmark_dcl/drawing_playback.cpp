@@ -185,6 +185,10 @@ void DrawingDCL::UpdateParameters(bool notNeeded)
 void DrawingDCL::Test(SkCanvas* canvas, int width, int height)
 {
     std::cout << "DrawingDCL::Test+" << std::endl;
+    skiaRecording.InitConfigsFromParam();
+    if (skiaRecording.GetCaptureEnabled()) {
+        canvas = skiaRecording.BeginCapture();
+    }
     auto start = std::chrono::system_clock::now();
     switch (iterateType) {
         case IterateType::ITERATE_FRAME:
@@ -214,6 +218,9 @@ void DrawingDCL::Test(SkCanvas* canvas, int width, int height)
             break;
     }
     PrintDurationTime("This frame draw time is: ", start);
+    if (skiaRecording.GetCaptureEnabled()) {
+        canvas = skiaRecording.EndCapture();
+    }
     std::cout << "DrawingDCL::Test-" << std::endl;
 }
 

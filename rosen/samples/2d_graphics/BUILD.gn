@@ -119,6 +119,7 @@ ohos_executable("drawing_engine_sample") {
     "hilog_native:libhilog",
     "ipc:ipc_core",
     "multimedia_image_framework:image_native",
+    "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
