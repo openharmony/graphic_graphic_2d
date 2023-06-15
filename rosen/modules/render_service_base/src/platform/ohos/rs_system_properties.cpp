@@ -82,7 +82,7 @@ bool RSSystemProperties::GetUniRenderEnabled()
 SkiaTraceType RSSystemProperties::GetSkiaTraceEnabled()
 {
     return static_cast<SkiaTraceType>(
-        std::atoi((system::GetParameter("persist.rosen.skiatrace.enabled", "1")).c_str()));
+        std::atoi((system::GetParameter("persist.rosen.skiatrace.enabled", "0")).c_str()));
 }
 
 bool RSSystemProperties::GetDrawOpTraceEnabled()
