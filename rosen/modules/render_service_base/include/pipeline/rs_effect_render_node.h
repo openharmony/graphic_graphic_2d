@@ -39,10 +39,10 @@ public:
 
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
-    void SetEffectRegion(const std::optional<std::pair<RectI, SkPath>>& region) { effectRegion_ = region; }
+    void SetEffectRegion(const std::optional<SkPath>& region) { effectRegion_ = region; }
 
 private:
-    std::optional<std::pair<RectI, SkPath>> effectRegion_ = std::nullopt;
+    std::optional<SkPath> effectRegion_ = std::nullopt;
 };
 } // namespace Rosen
 } // namespace OHOS

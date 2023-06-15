@@ -364,7 +364,7 @@ public:
     }
 
     void UpdateDrawRegion();
-    void UpdateEffectRegion(std::optional<std::pair<RectI, SkPath>>& region) const;
+    void UpdateEffectRegion(std::optional<SkPath>& region) const;
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
     bool isForcedDrawInGroup() const;

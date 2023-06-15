@@ -1079,7 +1079,7 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     float alpha = curAlpha_;
     auto effectRegion = effectRegion_;
 
-    effectRegion_ = std::make_pair(RectI(), SkPath());
+    effectRegion_ = SkPath();
     const auto& property = node.GetRenderProperties();
     curAlpha_ *= property.GetAlpha();
 

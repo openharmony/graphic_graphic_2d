@@ -71,15 +71,15 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
         }
     }
 
-    if (properties.GetBackgroundFilter() != nullptr &&
-        effectRegion_.has_value() && !(effectRegion_.value().first.IsEmpty())) {
-        auto effectRect = effectRegion_.value().first;
-        RSPropertiesPainter::DrawBackgroundEffect(properties, canvas,
-            { effectRect.GetLeft(), effectRect.GetTop(), effectRect.GetRight(), effectRect.GetBottom() });
-    }
-    if (properties.GetColorFilter() != nullptr &&
-        effectRegion_.has_value() && !(effectRegion_.value().second.isEmpty())) {
-        canvas.SetChildrenPath(effectRegion_.value().second);
+    if (effectRegion_.has_value() && !(effectRegion_.value().isEmpty())) {
+        if (properties.GetBackgroundFilter() != nullptr) {
+            SkPath& path = effectRegion_.value();
+            auto effectIRect = path.getBounds().roundOut();
+            RSPropertiesPainter::DrawBackgroundEffect(properties, canvas, effectIRect);
+        }
+        if (properties.GetColorFilter() != nullptr) {
+            canvas.SetChildrenPath(effectRegion_.value());
+        }
     }
 }
 

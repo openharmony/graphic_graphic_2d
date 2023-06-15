@@ -201,7 +201,7 @@ void RSRenderThreadVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     }
     auto effectRegion = effectRegion_;
 
-    effectRegion_ = std::make_pair(RectI(), SkPath());
+    effectRegion_ = SkPath();
     bool dirtyFlag = dirtyFlag_;
     auto nodeParent = node.GetParent().lock();
     std::shared_ptr<RSRenderNode> rsParent = nullptr;

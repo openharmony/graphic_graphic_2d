@@ -100,7 +100,7 @@ private:
 #else
     Drawing::Matrix parentSurfaceNodeMatrix_;
 #endif // USE_ROSEN_DRAWING
-    std::optional<std::pair<RectI, SkPath>> effectRegion_ = std::nullopt;
+    std::optional<SkPath> effectRegion_ = std::nullopt;
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     static bool IsValidRootRenderNode(RSRootRenderNode& node);
