@@ -36,7 +36,7 @@ RSJankStats& RSJankStats::GetInstance()
 
 void RSJankStats::SetStartTime()
 {
-    auto start = std::chrono::steady_clock::now().time_since_epoch();
+    auto start = std::chrono::system_clock::now().time_since_epoch();
     startTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(start).count();
     if (isfirstSetStart_) {
         lastReportTime_ = startTime_;
@@ -46,7 +46,7 @@ void RSJankStats::SetStartTime()
 
 void RSJankStats::SetEndTime()
 {
-    auto end = std::chrono::steady_clock::now().time_since_epoch();
+    auto end = std::chrono::system_clock::now().time_since_epoch();
     endTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(end).count();
     auto duration = endTime_ - startTime_;
     if (duration >= VSYNC_PERIOD) {
@@ -77,27 +77,27 @@ void RSJankStats::SetRSJankStats(int times)
         ROSEN_LOGW("RSInterfaces::SetJankStatas Jank Frame Skip more than 180");
         return;
     }
-    if (rsJankStats_[type] != ULONG_MAX) {
+    if (rsJankStats_[type] != USHRT_MAX) {
         rsJankStats_[type]++;
     }
+    isNeedReport_ = true;
 }
 
 void RSJankStats::ReportJankStats()
 {
-    auto report = std::chrono::steady_clock::now().time_since_epoch();
+    if (!isNeedReport_) {
+        ROSEN_LOGW("RSInterfaces::ReportJankStats Nothing need to report");
+        return;
+    }
+    auto report = std::chrono::system_clock::now().time_since_epoch();
     auto reportTime = std::chrono::duration_cast<std::chrono::milliseconds>(report).count();
     auto reportDuration = reportTime - lastReportTime_;
-    std::string msg = "";
-    for (int index = 0; index < JANK_STATS_SIZE; index++) {
-        msg += std::to_string(rsJankStats_[index]);
-        rsJankStats_[index] = 0;
-        msg += ",";
-    }
     auto reportName = "JANK_STATS_RS";
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
         OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "STARTTIME", lastReportTime_, "DURATION", reportDuration,
-        "JANK_STATS", msg, "JANK_STATS_VER", 1);
+        "JANK_STATS", rsJankStats_, "JANK_STATS_VER", 1);
     lastReportTime_ = reportTime;
+    isNeedReport_ = false;
 }
 
 } // namespace Rosen

@@ -17,6 +17,7 @@
 #define ROSEN_JANK_STATS_H
 
 #include <cstdint>
+#include <vector>
 
 namespace OHOS {
 namespace Rosen {
@@ -37,10 +38,11 @@ private:
     void operator=(const RSJankStats&&) = delete;
     constexpr static int JANK_STATS_SIZE = 8;
     bool isfirstSetStart_ = true;
-    uint32_t startTime_ = 0;
-    uint32_t endTime_ = 0;
-    uint32_t lastReportTime_ = 0;
-    uint64_t rsJankStats_[JANK_STATS_SIZE] = { 0 };
+    bool isNeedReport_ = false;
+    uint64_t startTime_ = 0;
+    uint64_t endTime_ = 0;
+    uint64_t lastReportTime_ = 0;
+    std::vector<uint16_t> rsJankStats_ = std::vector<uint16_t>(JANK_STATS_SIZE, 0);
 
     enum JankRangeType : int16_t {
         JANK_FRAME_6_FREQ = 0,
