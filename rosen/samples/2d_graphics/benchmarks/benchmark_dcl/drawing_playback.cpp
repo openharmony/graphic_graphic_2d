@@ -219,7 +219,7 @@ void DrawingDCL::Test(SkCanvas* canvas, int width, int height)
     }
     PrintDurationTime("This frame draw time is: ", start);
     if (skiaRecording.GetCaptureEnabled()) {
-        canvas = skiaRecording.EndCapture();
+        skiaRecording.EndCapture();
     }
     std::cout << "DrawingDCL::Test-" << std::endl;
 }

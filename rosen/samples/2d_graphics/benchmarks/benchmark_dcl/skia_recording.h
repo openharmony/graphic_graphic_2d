@@ -20,6 +20,11 @@
 
 #include "include/core/SkCanvas.h"
 #include "include/core/SkStream.h"
+#include "include/core/SkDocument.h"
+#include "include/core/SkPictureRecorder.h"
+#include "include/core/SkNWayCanvas.h"
+#include "tools/SkSharingProc.h"
+
 namespace OHOS {
 namespace Rosen {
 class SkiaRecording {
@@ -32,7 +37,7 @@ public:
     bool GetCaptureEnabled();
     void InitConfigsFromParam();
     void SetupMultiFrame();
-    SkCanvas*  BeginCapture(SkSurface* surface);
+    SkCanvas*  BeginCapture(SkCanvas* canvas, int width, int height);
     void EndCapture();
 
 private:

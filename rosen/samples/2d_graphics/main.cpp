@@ -18,7 +18,7 @@
 #include <iostream>
 #include <string>
 
-#include "benchmark_config.h"
+#include "benchmark_config.h"  1
 #include "drawing_multithread.h"
 #include "drawing_singlethread.h"
 #include "drawing_api.h"
