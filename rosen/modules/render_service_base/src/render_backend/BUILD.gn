@@ -59,7 +59,12 @@ ohos_static_library("librender_backend") {
       "$graphic_2d_root/interfaces/inner_api/common",
     ]
 
-    sources += [ "ohos/render_context_ohos_gl.cpp" ]
+    sources += [
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/cache_data.cpp",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/memory_handler.cpp",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/shader_cache.cpp",
+      "ohos/render_context_ohos_gl.cpp",
+    ]
 
     if (defined(use_new_skia) && use_new_skia) {
       include_dirs += [ "//third_party/skia" ]
@@ -68,19 +73,14 @@ ohos_static_library("librender_backend") {
     }
 
     if (graphic_standard_feature_enable_vulkan) {
-      include_dirs += [
-        "$graphic_2d_root/frameworks/vulkan_wrapper/include",
-        "//third_party/flutter/engine/flutter/vulkan",
-      ]
+      include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]
       sources += [ "ohos/render_context_ohos_vk.cpp" ]
     }
 
     public_deps += [
       "$graphic_2d_root:libgl",
-      "$graphic_2d_root:libsurface",
       "$graphic_2d_root:libvulkan",
       "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
-      "$graphic_2d_root/utils:sync_fence",
       "//third_party/openssl:libcrypto_shared",
     ]
   }

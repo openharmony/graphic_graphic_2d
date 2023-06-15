@@ -45,10 +45,24 @@ RSRenderSurfaceOhos::RSRenderSurfaceOhos(const sptr<Surface>& surface,
 
 RSRenderSurfaceOhos::~RSRenderSurfaceOhos()
 {
+    if (!RenderBackendUtils::IsValidFrame(frame_)) {
+        LOGE("Failed to ~RSRenderSurfaceOhos, frame_ is invalid");
+        return;
+    }
+    std::shared_ptr<SurfaceConfig> surfaceConfig = frame_->surfaceConfig;
+    std::shared_ptr<EGLState> eglState = frame_->eglState;
+    if (surfaceConfig->nativeWindow != nullptr) {
+        DestoryNativeWindow(surfaceConfig->nativeWindow);
+        surfaceConfig->nativeWindow = nullptr;
+    }
+    if (renderContext_ != nullptr) {
+        renderContext_->DestroySurface(frame_);
+    }
     frame_ = nullptr;
     drawingContext_ = nullptr;
     renderContext_ = nullptr;
 }
+
 bool RSRenderSurfaceOhos::IsValid() const
 {
     if (!RenderBackendUtils::IsValidFrame(frame_)) {
@@ -192,9 +206,11 @@ void RSRenderSurfaceOhos::ClearBuffer()
         return;
     }
     std::shared_ptr<SurfaceConfig> surfaceConfig = frame_->surfaceConfig;
+    std::shared_ptr<EGLState> eglState = frame_->eglState;
     DestoryNativeWindow(surfaceConfig->nativeWindow);
+    surfaceConfig->nativeWindow = nullptr;
     renderContext_->MakeCurrent();
-    renderContext_->DestroySurface();
+    renderContext_->DestroySurface(frame_);
     if (!IsValid()) {
         LOGE("Failed to clear buffer, render surface is invalid");
         return;

@@ -23,7 +23,6 @@
 
 #include "common/rs_rect.h"
 
-#include "drawing_context.h"
 #include "rs_render_surface.h"
 #include "rs_render_surface_frame.h"
 
@@ -49,13 +48,10 @@ public:
     void SetColorSpace(GraphicColorGamut colorSpace) override;
     void SetSurfaceBufferUsage(uint64_t usage);
     void SetSurfacePixelFormat(uint64_t pixelFormat);
-    void SetDrawingContext(const std::shared_ptr<DrawingContext>& drawingContext);
 private:
     void RenderFrame();
     void SetReleaseFence(const int32_t& fence);
     int32_t GetReleaseFence() const;
-
-    std::shared_ptr<DrawingContext> drawingContext_;
 };
 }
 } // namespace Rosen

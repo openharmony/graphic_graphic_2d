@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace Rosen {
-std::shared_ptr<RenderContextBase> RenderContextFactory::CreateRenderContext(RenderType renderType)
+std::shared_ptr<RenderContextBase> RenderContextBaseFactory::CreateRenderContext(RenderType renderType)
 {
     std::shared_ptr<RenderContextBase> renderContext;
 #if defined(ROSEN_OHOS)

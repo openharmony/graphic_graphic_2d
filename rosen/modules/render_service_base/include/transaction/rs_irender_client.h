@@ -19,7 +19,11 @@
 #include <memory>
 
 #include "common/rs_common_def.h"
+#ifdef NEW_RENDER_CONTEXT
+#include "render_backend/rs_render_surface.h"
+#else
 #include "platform/drawing/rs_surface.h"
+#endif
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS {

@@ -25,6 +25,8 @@
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_type.h"
 #endif
+
+#include "drawing_context.h"
 #include "rs_render_surface_frame.h"
 #include "render_context_base.h"
 
@@ -57,9 +59,14 @@ public:
     {
         renderContext_ = renderContext;
     }
+    void SetDrawingContext(const std::shared_ptr<DrawingContext>& drawingContext)
+    {
+        drawingContext_ = drawingContext;
+    }
 protected:
     std::shared_ptr<RSRenderSurfaceFrame> frame_;
     std::shared_ptr<RenderContextBase> renderContext_;
+    std::shared_ptr<DrawingContext> drawingContext_;
 };
 }
 } // namespace Rosen

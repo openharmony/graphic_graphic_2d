@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RenderContextFactory {
+class RenderContextBaseFactory {
 public:
     static std::shared_ptr<RenderContextBase> CreateRenderContext(RenderType renderType = RenderType::GLES);
 };

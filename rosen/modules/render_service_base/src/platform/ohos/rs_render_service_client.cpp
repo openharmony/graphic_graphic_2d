@@ -27,6 +27,9 @@
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "platform/common/rs_log.h"
+#ifdef NEW_RENDER_CONTEXT
+#include "render_backend/rs_surface_factory.h"
+#endif
 #include "rs_render_service_connect_hub.h"
 #include "rs_surface_ohos.h"
 
@@ -82,7 +85,11 @@ bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
     return renderService->CreateNode(config);
 }
 
+#ifdef NEW_RENDER_CONTEXT
+std::shared_ptr<RSRenderSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
+#else
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
+#endif
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -92,6 +99,13 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSS
     return CreateRSSurface(surface);
 }
 
+#if defined(NEW_RENDER_CONTEXT)
+std::shared_ptr<RSRenderSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Surface> &surface)
+{
+    std::shared_ptr<RSRenderSurface> producer = RSSurfaceFactory::CreateRSSurface(PlatformName::OHOS, surface);
+    return producer;
+}
+#else
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Surface> &surface)
 {
 #if defined(ACE_ENABLE_VK)
@@ -106,6 +120,7 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Sur
 #endif
     return producer;
 }
+#endif
 
 std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     const std::string& name,

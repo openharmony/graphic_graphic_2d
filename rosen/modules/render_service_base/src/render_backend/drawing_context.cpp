@@ -194,7 +194,8 @@ sk_sp<SkColorSpace> DrawingContext::GetSkColorSpace(const std::shared_ptr<RSRend
         LOGE("Failed to get sk color space, frameConfig is nullptr");
         return nullptr;
     }
-    GraphicColorGamut colorSpace = frame->colorSpace_;
+
+    GraphicColorGamut colorSpace = frameConfig->colorSpace;
     switch (colorSpace) {
         // [planning] in order to stay consistant with the colorspace used before, we disabled
         // GRAPHIC_COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
