@@ -253,6 +253,14 @@ typedef struct {
 } OHHDRMetaData;
 
 /**
+ * @brief Defines the ExtData Handle
+ * @since 9
+ * @deprecated(since = "9")
+ */
+struct OHExtDataHandle;
+typedef struct OHExtDataHandle OHExtDataHandle;
+
+/**
  * @brief Creates a <b>NativeWindow</b> instance. A new <b>NativeWindow</b> instance is created each time this function is called.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
