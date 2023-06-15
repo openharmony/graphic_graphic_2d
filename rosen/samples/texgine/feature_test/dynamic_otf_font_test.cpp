@@ -68,7 +68,7 @@ public:
             builder->PopStyle();
 
             auto typography = builder->Build();
-            double widthLimit = 300.0;
+            double widthLimit = 300.0; // 300 mean width limit
             typography->Layout(widthLimit);
             typographies_.push_back({
                 .typography = typography,
