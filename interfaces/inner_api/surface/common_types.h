@@ -24,7 +24,7 @@ extern "C" {
 /**
  * @brief Defines the ExtData Handle
  */
-typedef struct {
+typedef struct OHExtDataHandle {
     /**< Handle fd, -1 if not supported */
     int32_t fd;
     /**< the number of reserved integer value */
