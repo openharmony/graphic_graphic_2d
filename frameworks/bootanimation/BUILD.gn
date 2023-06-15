@@ -73,6 +73,10 @@ ohos_executable("bootanimation") {
     deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
   }
 
+  if (defined(use_new_render_context) && use_new_render_context) {
+    deps += [ "$graphic_2d_root/rosen/modules/render_service_base/src/render_backend:librender_backend" ]
+  }
+
   external_deps = [
     "hitrace_native:hitrace_meter",
     "ipc:ipc_core",

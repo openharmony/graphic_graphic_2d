@@ -31,7 +31,12 @@
 #include <iservice_registry.h>
 #include <platform/ohos/rs_irender_service.h>
 #include <parameters.h>
+#ifdef NEW_RENDER_CONTEXT
+#include "render_context_base.h"
+#include "rs_render_surface.h"
+#else
 #include <render_context/render_context.h>
+#endif
 #include <system_ability_definition.h>
 #include <ui/rs_surface_extractor.h>
 #include <window.h>
@@ -65,9 +70,14 @@ private:
     int32_t windowHeight_;
     sptr<OHOS::Rosen::Window> window_;
     sptr<OHOS::Rosen::WindowScene> scene_;
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<OHOS::Rosen::RenderContextBase> renderContext_;
+    std::shared_ptr<OHOS::Rosen::RSRenderSurface> rsSurface_;
+#else
     std::unique_ptr<OHOS::Rosen::RSSurfaceFrame> framePtr_;
     std::shared_ptr<OHOS::Rosen::RSSurface> rsSurface_;
     OHOS::Rosen::RenderContext* rc_;
+#endif
     int32_t freq_ = 30;
     int32_t realHeight_ = 0;
     int32_t realWidth_ = 0;
