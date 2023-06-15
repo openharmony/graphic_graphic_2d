@@ -440,6 +440,9 @@ RSScreenModeInfo RSRenderServiceConnection::GetScreenActiveMode(ScreenId id)
 MemoryGraphic RSRenderServiceConnection::GetMemoryGraphic(int pid)
 {
     MemoryGraphic memoryGraphic;
+    if (!RSMainThread::Instance()->GetContext().GetNodeMap().ContainPid(pid)) {
+        return memoryGraphic;
+    }
     mainThread_->ScheduleTask(
         [this, &pid, &memoryGraphic]() { return mainThread_->CountMem(pid, memoryGraphic); }).wait();
     return memoryGraphic;

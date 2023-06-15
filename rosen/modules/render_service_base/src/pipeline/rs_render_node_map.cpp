@@ -14,6 +14,7 @@
  */
 
 #include "pipeline/rs_render_node_map.h"
+#include "common/rs_common_def.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -172,6 +173,18 @@ void RSRenderNodeMap::TraverseSurfaceNodes(std::function<void (const std::shared
     for (const auto& [_, node] : surfaceNodeMap_) {
         func(node);
     }
+}
+
+bool RSRenderNodeMap::ContainPid(pid_t pid) const
+{
+    bool flag = false;
+    for (const auto& [nodeId, _] : surfaceNodeMap_) {
+        if (pid == ExtractPid(nodeId)) {
+            flag = true;
+            break;
+        }
+    }
+    return flag;
 }
 
 void RSRenderNodeMap::TraverseDrivenRenderNodes(std::function<void (const std::shared_ptr<RSRenderNode>&)> func) const

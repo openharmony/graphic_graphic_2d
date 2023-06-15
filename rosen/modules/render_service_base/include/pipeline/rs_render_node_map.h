@@ -46,6 +46,7 @@ public:
 
     const std::shared_ptr<RSRenderNode> GetAnimationFallbackNode() const;
 
+    bool ContainPid(pid_t pid) const;
     void FilterNodeByPid(pid_t pid);
     void TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const;
     void TraverseSurfaceNodes(std::function<void (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const;
