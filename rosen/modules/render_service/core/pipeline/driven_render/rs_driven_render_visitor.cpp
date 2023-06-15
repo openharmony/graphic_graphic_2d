@@ -228,11 +228,19 @@ void RSDrivenRenderVisitor::RenderExpandedFrame(RSDrivenSurfaceRenderNode& node)
         RS_LOGE("RSDrivenRenderVisitor Request Frame Failed");
         return;
     }
+#ifdef NEW_RENDER_CONTEXT
+    if (renderFrame->GetSurface() == nullptr) {
+        RS_LOGE("RSDrivenRenderVisitor::RenderExpandedFrame: RSSurfaceFrame is null");
+        return;
+    }
+    auto skSurface = renderFrame->GetSurface()->GetSurface();
+#else
     if (renderFrame->GetFrame() == nullptr) {
         RS_LOGE("RSDrivenRenderVisitor::RenderExpandedFrame: RSSurfaceFrame is null");
         return;
     }
     auto skSurface = renderFrame->GetFrame()->GetSurface();
+#endif
     if (skSurface == nullptr) {
         RS_LOGE("RSDrivenRenderVisitor::RenderExpandedFrame: skSurface is null");
         return;
@@ -241,7 +249,6 @@ void RSDrivenRenderVisitor::RenderExpandedFrame(RSDrivenSurfaceRenderNode& node)
         ROSEN_LOGE("RSDrivenRenderVisitor skSurface.getCanvas is null.");
         return;
     }
-
     canvas_ = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
     canvas_->save();
     canvas_->translate(node.GetFrameOffsetX(), node.GetFrameOffsetY());

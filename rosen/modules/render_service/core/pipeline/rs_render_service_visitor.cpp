@@ -32,7 +32,11 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_innovation.h"
+#ifdef NEW_RENDER_CONTEXT
+#include "rs_render_surface.h"
+#else
 #include "platform/drawing/rs_surface.h"
+#endif
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
 

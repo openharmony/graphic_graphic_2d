@@ -373,7 +373,7 @@ bool RSUniRenderUtil::HandleSubThreadNode(RSRenderNode& node, RSPaintFilterCanva
     }
     if (!node.HasCachedTexture()) {
         RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", node.GetId());
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_RENDER)
         RSParallelRenderManager::Instance()->WaitNodeTask(node.GetId());
         node.UpdateCompletedCacheSurface();
         RSParallelRenderManager::Instance()->SaveCacheTexture(node);
@@ -505,7 +505,7 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
     node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
     node->SetCacheType(CacheType::ANIMATE_PROPERTY);
     node->SetNeedClearFlag(false);
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_RENDER)
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE && node->GetCacheSurface()) {
         node->UpdateCompletedCacheSurface();
         RSParallelRenderManager::Instance()->SaveCacheTexture(*node);

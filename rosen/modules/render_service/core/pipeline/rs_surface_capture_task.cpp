@@ -79,13 +79,22 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
         RS_LOGE("RSSurfaceCaptureTask::Run: pixelmap == nullptr!");
         return nullptr;
     }
-#ifdef RS_ENABLE_GL
 #ifndef USE_ROSEN_DRAWING
+#if defined(RS_ENABLE_GL)
+#if defined(NEW_RENDER_CONTEXT)
+    auto drawingContext = RSMainThread::Instance()->GetRenderEngine()->GetDrawingContext();
+#ifdef NEW_SKIA
+    GrDirectContext* grContext = drawingContext != nullptr ? drawingContext->GetDrawingContext() : nullptr;
+#else
+    GrContext* grContext = drawingContext != nullptr ? drawingContext->GetDrawingContext() : nullptr;
+#endif
+#else
     auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
 #ifdef NEW_SKIA
     GrDirectContext* grContext = renderContext != nullptr ? renderContext->GetGrContext() : nullptr;
 #else
     GrContext* grContext = renderContext != nullptr ? renderContext->GetGrContext() : nullptr;
+#endif
 #endif
     RSTagTracker tagTracker(grContext, node->GetId(), RSTagTracker::TAGTYPE::TAG_CAPTURE);
 #endif
@@ -242,6 +251,15 @@ sk_sp<SkSurface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media
     SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
         kRGBA_8888_SkColorType, kPremul_SkAlphaType);
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#if defined(NEW_RENDER_CONTEXT)
+    auto drawingContext = RSMainThread::Instance()->GetRenderEngine()->GetDrawingContext();
+    if (drawingContext == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
+        return nullptr;
+    }
+    drawingContext->SetUpDrawingContext();
+    return SkSurface::MakeRenderTarget(drawingContext->GetDrawingContext(), SkBudgeted::kNo, info);
+#else
     auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
     if (renderContext == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
@@ -249,6 +267,7 @@ sk_sp<SkSurface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media
     }
     renderContext->SetUpGrContext();
     return SkSurface::MakeRenderTarget(renderContext->GetGrContext(), SkBudgeted::kNo, info);
+#endif
 #endif
     return SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }
@@ -995,14 +1014,10 @@ void RSSurfaceCaptureVisitor::DrawWatermarkIfNeed(float screenWidth, float scree
     if (RSMainThread::Instance()->GetWatermarkFlag()) {
 #ifndef USE_ROSEN_DRAWING
         sk_sp<SkImage> skImage = RSMainThread::Instance()->GetWatermarkImg();
-        SkPaint rectPaint;
-        auto skSrcRect = SkRect::MakeWH(skImage->width(), skImage->height());
-        auto skDstRect = SkRect::MakeWH(screenWidth, screenHeight);
 #ifdef NEW_SKIA
-        canvas_->drawImageRect(
-            skImage, skSrcRect, skDstRect, SkSamplingOptions(), &rectPaint, SkCanvas::kStrict_SrcRectConstraint);
+        sk_sp<SkShader> shader = skImage->makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat, SkSamplingOptions());
 #else
-        canvas_->drawImageRect(skImage, skSrcRect, skDstRect, &rectPaint);
+        sk_sp<SkShader> shader = skImage->makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat);
 #endif
 #else
         auto image = RSMainThread::Instance()->GetWatermarkImg();

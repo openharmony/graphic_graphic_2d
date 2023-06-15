@@ -18,7 +18,9 @@
 #include <ctime>
 
 #include "platform/common/rs_log.h"
+#ifndef NEW_RENDER_CONTEXT
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
+#endif
 #include "pipeline/rs_uni_render_util.h"
 #include "rs_trace.h"
 #include "string_utils.h"
