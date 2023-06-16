@@ -750,5 +750,10 @@ void RSComposerAdapter::OnPrepareComplete(sptr<Surface>& surface, const PrepareC
         fallbackCb_(surface, param.layers);
     }
 }
+
+void RSComposerAdapter::SetHdiBackendDevice(HdiDevice* device)
+{
+    hdiBackend_->SetHdiBackendDevice(device);
+}
 } // namespace Rosen
 } // namespace OHOS
