@@ -348,6 +348,7 @@ RSSurfaceCaptureVisitor::RSSurfaceCaptureVisitor(float scaleX, float scaleY, boo
     : scaleX_(scaleX), scaleY_(scaleY), isUniRender_(isUniRender)
 {
     renderEngine_ = RSMainThread::Instance()->GetRenderEngine();
+    isUIFirst_ = RSSystemProperties::GetUIFirstEnabled();
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -508,7 +509,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
 
     const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
-    if (isSelfDrawingSurface) {
+    if (!isUIFirst_ && isSelfDrawingSurface) {
         RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
     }
     canvas_->save();
@@ -526,6 +527,14 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         canvas_->restore(); // restore translate and concat
         return;
     }
+
+    if (isUIFirst_ && RSUniRenderUtil::HandleSubThreadNode(node, *canvas_)) {
+        RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: \
+            process RSSurfaceRenderNode [%s, %" PRIu64 "] use cache texture.",
+            node.GetName().c_str(), node.GetId());
+        return;
+    }
+
     if (isSelfDrawingSurface) {
         RSPropertiesPainter::DrawBackground(property, *canvas_);
         RSPropertiesPainter::DrawMask(property, *canvas_);
@@ -678,6 +687,13 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni: \
             process RSSurfaceRenderNode(id:[%" PRIu64 "]) paused since it is security layer.",
             node.GetId());
+        return;
+    }
+
+    if (isUIFirst_ && RSUniRenderUtil::HandleSubThreadNode(node, *canvas_)) {
+        RS_LOGD("RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni: \
+            process RSSurfaceRenderNode [%s, %" PRIu64 "] use cache texture.",
+            node.GetName().c_str(), node.GetId());
         return;
     }
     bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;

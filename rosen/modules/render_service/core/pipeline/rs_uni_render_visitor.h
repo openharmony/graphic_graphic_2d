@@ -95,6 +95,12 @@ public:
         subThreadNodes_ = subThreadNodes;
     }
 
+    void SetSubThreadConfig()
+    {
+        isSubThread_ = true;
+        isHardwareForcedDisabled_ = true;
+    }
+
     void DrawSurfaceLayer(RSDisplayRenderNode& node);
 
     bool GetAnimateState() const

@@ -250,7 +250,7 @@ void RSParallelSubThread::CalcCost()
 void RSParallelSubThread::StartRenderCache()
 {
     visitor_ = std::make_shared<RSUniRenderVisitor>();
-    visitor_->CopyPropertyForParallelVisitor(RSParallelRenderManager::Instance()->GetUniVisitor());
+    visitor_->SetSubThreadConfig();
     threadTask_ = nullptr;
     threadTask_ = std::move(cacheThreadTask_);
 }

@@ -451,23 +451,28 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
                 }
             }
         }
-        if (node->HasFilter() || node->HasHardwareNode() || node->HasAbilityComponent() ||
-            (!node->IsScale() && isFocusNode)) {
+        if ((node->GetCacheSurfaceProcessedStatus() != CacheProcessStatus::DOING) &&
+            (node->HasFilter() || node->HasHardwareNode() || node->HasAbilityComponent() ||
+            (!node->IsScale() && isFocusNode))) {
             AssignMainThreadNode(mainThreadNodes, node, subThreadNodes);
         } else {
             AssignSubThreadNode(subThreadNodes, node);
         }
     }
     if (entryViewNode) {
-        if (entryViewNeedReassign) {
-            AssignMainThreadNode(mainThreadNodes, entryViewNode, subThreadNodes);
+        if (entryViewNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
+            AssignSubThreadNode(subThreadNodes, entryViewNode);
         } else {
-            if (entryViewNode->HasFilter() || entryViewNode->HasHardwareNode() ||
-                entryViewNode->HasAbilityComponent() ||
-                (!entryViewNode->IsScale() && entryViewNode->GetId() == focusNodeId)) {
+            if (entryViewNeedReassign) {
                 AssignMainThreadNode(mainThreadNodes, entryViewNode, subThreadNodes);
             } else {
-                AssignSubThreadNode(subThreadNodes, entryViewNode);
+                if (entryViewNode->HasFilter() || entryViewNode->HasHardwareNode() ||
+                    entryViewNode->HasAbilityComponent() ||
+                    (!entryViewNode->IsScale() && entryViewNode->GetId() == focusNodeId)) {
+                    AssignMainThreadNode(mainThreadNodes, entryViewNode, subThreadNodes);
+                } else {
+                    AssignSubThreadNode(subThreadNodes, entryViewNode);
+                }
             }
         }
     } else {

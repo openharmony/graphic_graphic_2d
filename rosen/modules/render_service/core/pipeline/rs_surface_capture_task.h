@@ -96,6 +96,7 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         float scaleY_ = 1.0f;
         bool isUniRender_ = false;
         bool hasSecurityLayer_ = false;
+        bool isUIFirst_ = false;
 
         std::shared_ptr<RSBaseRenderEngine> renderEngine_;
 
