@@ -1803,5 +1803,73 @@ void RSPropertiesPainter::DrawColorFilter(const RSProperties& properties, RSPain
     SkCanvas::SaveLayerRec slr(nullptr, &paint, SkCanvas::kInitWithPrevious_SaveLayerFlag);
     canvas.saveLayer(slr);
 }
+
+void RSPropertiesPainter::DrawLightUpEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+#ifdef NEW_SKIA
+    SkSurface* skSurface = canvas.GetSurface();
+    if (skSurface == nullptr) {
+        ROSEN_LOGD("RSPropertiesPainter::DrawLightUpEffect skSurface is null");
+        return;
+    }
+    SkAutoCanvasRestore acr(&canvas, true);
+    if (properties.GetClipBounds() != nullptr) {
+        canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
+    } else {
+        canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
+    }
+
+    auto clipBounds = canvas.getDeviceClipBounds();
+    auto image = skSurface->makeImageSnapshot(clipBounds);
+    if (image == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawLightUpEffect image is null");
+        return;
+    }
+    auto imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+    auto shader = MakeLightUpEffectShader(properties.GetLightUpEffect(), imageShader);
+    SkPaint paint;
+    paint.setShader(shader);
+    canvas.resetMatrix();
+    canvas.translate(clipBounds.left(), clipBounds.top());
+    canvas.drawPaint(paint);
+#endif
+}
+
+#ifdef NEW_SKIA
+sk_sp<SkShader> RSPropertiesPainter::MakeLightUpEffectShader(float lightUpDeg, sk_sp<SkShader> imageShader)
+{
+    static constexpr char prog[] = R"(
+        uniform half lightUpDeg;
+        uniform shader imageShader;
+        vec3 rgb2hsv(in vec3 c)
+        {
+            vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+            vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+            vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+            float d = q.x - min(q.w, q.y);
+            float e = 1.0e-10;
+            return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+        }
+        vec3 hsv2rgb(in vec3 c)
+        {
+            vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+            return c.z * mix(vec3(1.0), rgb, c.y);
+        }
+        half4 main(float2 coord)
+        {
+            vec3 hsv = rgb2hsv(imageShader.eval(coord).rgb);
+            float satUpper = clamp(hsv.y * 1.2, 0.0, 1.0);
+            hsv.y = mix(satUpper, hsv.y, lightUpDeg);
+            hsv.z += lightUpDeg - 1.0;
+            return vec4(hsv2rgb(hsv), 1.0);
+        }
+    )";
+    auto [effect, err] = SkRuntimeEffect::MakeForShader(SkString(prog));
+    sk_sp<SkShader> children[] = {imageShader};
+    size_t childCount = 1;
+    return effect->makeShader(SkData::MakeWithCopy(
+        &lightUpDeg, sizeof(lightUpDeg)), children, childCount, nullptr, false);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS
