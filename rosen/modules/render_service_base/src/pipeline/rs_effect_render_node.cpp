@@ -56,24 +56,30 @@ void RSEffectRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     canvas.SaveEffectData();
-    auto boundsGeo = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
+    auto& properties = GetRenderProperties();
+    auto boundsGeo = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
     if (boundsGeo && !boundsGeo->IsEmpty()) {
         canvas.concat(boundsGeo->GetMatrix());
     }
-    auto alpha = GetRenderProperties().GetAlpha();
+    auto alpha = properties.GetAlpha();
     if (alpha < 1.f) {
-        if ((GetChildrenCount() == 0) || !(GetRenderProperties().GetAlphaOffscreen() || IsForcedDrawInGroup())) {
+        if ((GetChildrenCount() == 0) || !(properties.GetAlphaOffscreen() || IsForcedDrawInGroup())) {
             canvas.MultiplyAlpha(alpha);
         } else {
-            auto rect = RSPropertiesPainter::Rect2SkRect(GetRenderProperties().GetBoundsRect());
+            auto rect = RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect());
             canvas.saveLayerAlpha(&rect, std::clamp(alpha, 0.f, 1.f) * UINT8_MAX);
         }
     }
 
-    if (GetRenderProperties().GetBackgroundFilter() != nullptr) {
-        RectI childRec = GetChildrenRect();
-        RSPropertiesPainter::DrawBackgroundEffect(GetRenderProperties(), canvas,
-            { childRec.GetLeft(), childRec.GetTop(), childRec.GetRight(), childRec.GetBottom() });
+    if (effectRegion_.has_value() && !(effectRegion_.value().isEmpty())) {
+        if (properties.GetBackgroundFilter() != nullptr) {
+            SkPath& path = effectRegion_.value();
+            auto effectIRect = path.getBounds().roundOut();
+            RSPropertiesPainter::DrawBackgroundEffect(properties, canvas, effectIRect);
+        }
+        if (properties.GetColorFilter() != nullptr) {
+            canvas.SetChildrenPath(effectRegion_.value());
+        }
     }
 }
 

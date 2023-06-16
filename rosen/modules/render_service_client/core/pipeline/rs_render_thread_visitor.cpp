@@ -164,6 +164,7 @@ void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
             DirtyRegionType::UPDATE_DIRTY_REGION, node.GetOldDirty());
     }
     ResetAndPrepareChildrenNode(node, nodeParent);
+    node.UpdateEffectRegion(effectRegion_);
     dirtyFlag_ = dirtyFlag;
 }
 
@@ -198,6 +199,9 @@ void RSRenderThreadVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     if (!node.ShouldPaint()) {
         return;
     }
+    auto effectRegion = effectRegion_;
+
+    effectRegion_ = SkPath();
     bool dirtyFlag = dirtyFlag_;
     auto nodeParent = node.GetParent().lock();
     std::shared_ptr<RSRenderNode> rsParent = nullptr;
@@ -206,6 +210,9 @@ void RSRenderThreadVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     }
     dirtyFlag_ = node.Update(*curDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr, dirtyFlag_);
     ResetAndPrepareChildrenNode(node, nodeParent);
+    node.SetEffectRegion(effectRegion_);
+
+    effectRegion_ = effectRegion;
     dirtyFlag_ = dirtyFlag;
 }
 
