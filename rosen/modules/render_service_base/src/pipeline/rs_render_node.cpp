@@ -482,8 +482,9 @@ void RSRenderNode::InitCacheSurface(GrContext* grContext)
     cacheSurface_ = nullptr;
     auto cacheType = GetCacheType();
     float width = 0.0f, height = 0.0f;
-    boundsWidth_ = renderProperties_.GetBoundsRect().GetWidth();
-    boundsHeight_ = renderProperties_.GetBoundsRect().GetHeight();
+    Vector2f size = GetOptionalBufferSize();
+    boundsWidth_ = size.x_;
+    boundsHeight_ = size.y_;
     if (cacheType == CacheType::ANIMATE_PROPERTY &&
         renderProperties_.IsShadowValid() && !renderProperties_.IsSpherizeValid()) {
         const RectF boundsRect = renderProperties_.GetBoundsRect();
@@ -510,6 +511,18 @@ void RSRenderNode::InitCacheSurface(GrContext* grContext)
 #endif
 }
 
+Vector2f RSRenderNode::GetOptionalBufferSize() const
+{
+    const auto& modifier = boundsModifier_ ? boundsModifier_ : frameModifier_;
+    if (!modifier) {
+        return {0.0f, 0.0f};
+    }
+    auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(modifier->GetProperty());
+    auto vector4f = renderProperty->Get();
+    // bounds vector4f: x y z w -> left top width height
+    return { vector4f.z_, vector4f.w_ };
+}
+
 void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, bool isSubThreadNode) const
 {
     auto surface = GetCompletedCacheSurface();
@@ -518,17 +531,20 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, bool isSubThrea
     }
     auto cacheType = GetCacheType();
     canvas.save();
-    float scaleX = renderProperties_.GetBoundsRect().GetWidth() / boundsWidth_;
-    float scaleY = renderProperties_.GetBoundsRect().GetHeight() / boundsHeight_;
+    Vector2f size = GetOptionalBufferSize();
+    float scaleX = size.x_ / boundsWidth_;
+    float scaleY = size.y_ / boundsHeight_;
     canvas.scale(scaleX, scaleY);
     SkPaint paint;
 #ifdef NEW_SKIA
     if (isSubThreadNode) {
         if (cacheTexture_ == nullptr) {
             RS_LOGE("invalid cache texture");
+            canvas.restore();
             return;
         }
         canvas.drawImage(cacheTexture_, -shadowRectOffsetX_ * scaleX, -shadowRectOffsetY_ * scaleY);
+        canvas.restore();
         return;
     }
 #endif

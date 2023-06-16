@@ -2735,11 +2735,11 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (property.IsSpherizeValid()) {
         DrawSpherize(node);
     } else {
+        node.ProcessRenderBeforeChildren(*canvas_);
         if (isUIFirst_ && RSUniRenderUtil::HandleSubThreadNode(node, *canvas_)) {
+            node.ProcessRenderAfterChildren(*canvas_);
             return;
         }
-        node.ProcessRenderBeforeChildren(*canvas_);
-
         if (node.GetBuffer() != nullptr) {
             if (node.IsHardwareEnabledType()) {
                 // since node has buffer, hwc disabledState could be reset by filter or surface cached

@@ -508,7 +508,7 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
     subThreadNodes.emplace_back(node);
     node->SetIsMainThreadNode(false);
     node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
-    node->SetCacheType(CacheType::ANIMATE_PROPERTY);
+    node->SetCacheType(CacheType::CONTENT);
     node->SetNeedClearFlag(false);
 #ifdef RS_ENABLE_GL
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE && node->GetCacheSurface()) {

@@ -146,6 +146,8 @@ public:
     void InitCacheSurface(GrContext* grContext);
 #endif
 
+    Vector2f GetOptionalBufferSize() const;
+
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> GetCacheSurface() const
 #else
