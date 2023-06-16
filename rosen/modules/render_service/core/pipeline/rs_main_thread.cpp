@@ -328,6 +328,7 @@ void RSMainThread::Init()
 #ifdef SK_BUILD_TRACE_FOR_OHOS
     skiaTraceEnabled_ = RSSystemProperties::GetSkiaTraceEnabled();
     SkOHOSTraceUtil::setEnableTracing((skiaTraceEnabled_ != SkiaTraceType::DISABLED));
+    SkOHOSTraceUtil::setEnableHiLog((skiaTraceEnabled_ == SkiaTraceType::TRACE_AND_DETAILED_LOG));
 #endif
 }
 

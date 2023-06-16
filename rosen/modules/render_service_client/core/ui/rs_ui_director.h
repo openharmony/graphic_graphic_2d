@@ -87,7 +87,7 @@ private:
     std::string cacheDir_;
 
     // used for print control of trace
-    bool isSkiaTraceEnabled_ = false;
+    SkiaTraceType skiaTraceEnabled_ = SkiaTraceType::DISABLED;
 
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;

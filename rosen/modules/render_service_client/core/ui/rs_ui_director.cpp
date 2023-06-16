@@ -90,8 +90,9 @@ void RSUIDirector::Init(bool shouldCreateRenderThread)
     GoForeground();
 
 #ifdef SK_BUILD_TRACE_FOR_OHOS
-    isSkiaTraceEnabled_ = RSSystemProperties::GetSkiaTraceEnabled();
-    SkOHOSTraceUtil::setEnableTracing(isSkiaTraceEnabled_);
+    skiaTraceEnabled_ = RSSystemProperties::GetSkiaTraceEnabled();
+    SkOHOSTraceUtil::setEnableTracing((skiaTraceEnabled_ != SkiaTraceType::DISABLED));
+    SkOHOSTraceUtil::setEnableHiLog((skiaTraceEnabled_ == SkiaTraceType::TRACE_AND_DETAILED_LOG));
 #endif
 }
 
