@@ -42,16 +42,28 @@ namespace OHOS {
 namespace Rosen {
 RSParallelSubThread::RSParallelSubThread(int threadIndex)
     : threadIndex_(threadIndex), subThread_(nullptr), renderType_(ParallelRenderType::DRAW_IMAGE) {}
-
+#ifdef NEW_RENDER_CONTEXT
+RSParallelSubThread::RSParallelSubThread(std::shared_ptr<RenderContextBase> context,
+    ParallelRenderType renderType, int threadIndex) : threadIndex_(threadIndex), subThread_(nullptr),
+    renderContext_(context), renderType_(renderType) {}
+#else
 RSParallelSubThread::RSParallelSubThread(RenderContext *context, ParallelRenderType renderType, int threadIndex)
     : threadIndex_(threadIndex), subThread_(nullptr), renderContext_(context), renderType_(renderType) {}
-
+#endif
 RSParallelSubThread::~RSParallelSubThread()
 {
     if (renderContext_ != nullptr) {
+#ifdef NEW_RENDER_CONTEXT
+        auto frame = renderContext_->GetRSRenderSurfaceFrame();
+        EGLDisplay eglDisplay = frame->eglState->eglDisplay;
+        eglDestroyContext(eglDisplay, eglShareContext_);
+        eglShareContext_ = EGL_NO_CONTEXT;
+        eglMakeCurrent(eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+#else
         eglDestroyContext(renderContext_->GetEGLDisplay(), eglShareContext_);
         eglShareContext_ = EGL_NO_CONTEXT;
         eglMakeCurrent(renderContext_->GetEGLDisplay(), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+#endif
     }
     texture_ = nullptr;
     canvas_ = nullptr;
@@ -154,13 +166,23 @@ void RSParallelSubThread::CreateShareEglContext()
         RS_LOGE("renderContext_ is nullptr");
         return;
     }
+#ifdef NEW_RENDER_CONTEXT
+    eglShareContext_ = renderContext_->CreateContext(true);
+#else
     eglShareContext_ = renderContext_->CreateShareContext();
+#endif
     if (eglShareContext_ == EGL_NO_CONTEXT) {
         RS_LOGE("eglShareContext_ is EGL_NO_CONTEXT");
         return;
     }
     if (renderType_ == ParallelRenderType::DRAW_IMAGE) {
+#ifdef NEW_RENDER_CONTEXT
+        auto frame = renderContext_->GetRSRenderSurfaceFrame();
+        EGLDisplay eglDisplay = frame->eglState->eglDisplay;
+        if (!eglMakeCurrent(eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, eglShareContext_)) {
+#else
         if (!eglMakeCurrent(renderContext_->GetEGLDisplay(), EGL_NO_SURFACE, EGL_NO_SURFACE, eglShareContext_)) {
+#endif
             RS_LOGE("eglMakeCurrent failed");
             return;
         }
@@ -325,7 +347,13 @@ void RSParallelSubThread::RenderCache()
             RSParallelRenderManager::Instance()->NodeTaskNotify(node->GetId());
         }
     }
+#ifdef NEW_RENDER_CONTEXT
+    auto frame = renderContext_->GetRSRenderSurfaceFrame();
+    EGLDisplay eglDisplay = frame->eglState->eglDisplay;
+    eglSync_ = eglCreateSyncKHR(eglDisplay, EGL_SYNC_FENCE_KHR, nullptr);
+#else
     eglSync_ = eglCreateSyncKHR(renderContext_->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
+#endif
 #endif
 }
 
@@ -465,7 +493,13 @@ void RSParallelSubThread::Flush()
 #endif
         RS_TRACE_END();
         RS_TRACE_BEGIN("Create Fence");
+#ifdef NEW_RENDER_CONTEXT
+        auto frame = renderContext_->GetRSRenderSurfaceFrame();
+        EGLDisplay eglDisplay = frame->eglState->eglDisplay;
+        eglSync_ = eglCreateSyncKHR(eglDisplay, EGL_SYNC_FENCE_KHR, nullptr);
+#else
         eglSync_ = eglCreateSyncKHR(renderContext_->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
+#endif
         RS_TRACE_END();
         texture_ = skSurface_->makeImageSnapshot();
         skCanvas_->discard();
@@ -484,7 +518,17 @@ void RSParallelSubThread::Flush()
         RSParallelRenderManager::Instance()->UnlockFlushMutex();
         RS_TRACE_END();
         RS_TRACE_BEGIN("Create Fence");
+#ifdef NEW_RENDER_CONTEXT
+        if (renderContext_ == nullptr) {
+            RS_LOGE("renderContext_ is nullptr");
+            return;
+        }
+        auto frame = renderContext_->GetRSRenderSurfaceFrame();
+        EGLDisplay eglDisplay = frame->eglState->eglDisplay;
+        eglSync_ = eglCreateSyncKHR(eglDisplay, EGL_SYNC_FENCE_KHR, nullptr);
+#else
         eglSync_ = eglCreateSyncKHR(renderContext_->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
+#endif
         RS_TRACE_END();
         texture_ = surface_->GetImageSnapshot();
     }
@@ -502,7 +546,17 @@ void RSParallelSubThread::Flush()
 bool RSParallelSubThread::WaitReleaseFence()
 {
     if (eglSync_ != EGL_NO_SYNC_KHR) {
+#ifdef NEW_RENDER_CONTEXT
+        if (renderContext_ == nullptr) {
+            RS_LOGE("renderContext_ is nullptr");
+            return false;
+        }
+        auto frame = renderContext_->GetRSRenderSurfaceFrame();
+        EGLDisplay eglDisplay = frame->eglState->eglDisplay;
+        EGLint ret = eglWaitSyncKHR(eglDisplay, eglSync_, 0);
+#else
         EGLint ret = eglWaitSyncKHR(renderContext_->GetEGLDisplay(), eglSync_, 0);
+#endif
         if (ret == EGL_FALSE) {
             ROSEN_LOGE("eglClientWaitSyncKHR error 0x%{public}x", eglGetError());
             return false;
@@ -510,7 +564,11 @@ bool RSParallelSubThread::WaitReleaseFence()
             ROSEN_LOGE("create eglClientWaitSyncKHR timeout");
             return false;
         }
+#ifdef NEW_RENDER_CONTEXT
+        eglDestroySyncKHR(eglDisplay, eglSync_);
+#else
         eglDestroySyncKHR(renderContext_->GetEGLDisplay(), eglSync_);
+#endif
     }
     eglSync_ = EGL_NO_SYNC_KHR;
     return true;
