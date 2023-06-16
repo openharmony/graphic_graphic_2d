@@ -207,17 +207,6 @@ void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
         }
         node.ResetHasRemovedChild();
     }
-    // collect extensionAbility children nodeIds since they belong to another process, managing different view
-    auto surfaceNode = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-    if (surfaceNode != nullptr && surfaceNode->IsExtensionAbility() && curSurfaceNode_) {
-        std::string childInfo = "ExtensionAbility has " + std::to_string(children.size()) + " children:[";
-        // check child in GetSortedChildren considering disappearingChildren_
-        for (auto& child : children) {
-            curSurfaceNode_->UpdateAbilityNodeIds(child->GetId());
-            childInfo += std::to_string(child->GetId()) + ",";
-        }
-        RS_TRACE_NAME(childInfo + "]");
-    }
 
     // backup environment variables.
     auto parentNode = std::move(logicParentNode_);
