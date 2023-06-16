@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/arkui/ace_engine/ace_config.gni")
 
 ohos_unittest("frame_analyzer_test") {
   module_out_path = "graphic_standard/rosen/modules/frame_analyzer"
@@ -25,8 +26,13 @@ ohos_unittest("frame_analyzer_test") {
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/frame_analyzer:libframe_analyzer",
     "//foundation/graphic/graphic_2d/utils/test_header:test_header",
-    "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
+
+  if (defined(use_new_skia) && use_new_skia) {
+    deps += [ "//third_party/skia:skia_ohos" ]
+  } else {
+    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  }
 
   cflags = [
     "-Wall",

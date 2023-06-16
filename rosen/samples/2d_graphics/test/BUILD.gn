@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/arkui/ace_engine/ace_config.gni")
 
 ## Build drawing_sample {{{
 config("drawing_sample_config") {
@@ -61,9 +62,13 @@ ohos_executable("drawing_sample") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
-    "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
 
+  if (defined(use_new_skia) && use_new_skia) {
+    deps += [ "//third_party/skia:skia_ohos" ]
+  } else {
+    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  }
   external_deps = [
     "eventhandler:libeventhandler",
     "hilog_native:libhilog",

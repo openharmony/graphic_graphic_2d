@@ -68,7 +68,6 @@ ohos_shared_library("libskia_rs_framework") {
   public_deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "$graphic_2d_root/rosen/modules/texgine/texgine_drawing:libtexgine_drawing",
-    "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
 
   external_deps = [
