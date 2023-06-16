@@ -173,20 +173,13 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
     RSPropertiesPainter::DrawColorFilter(GetRenderProperties(), canvas);
 
     canvas.RestoreStatus(canvasNodeSaveCount_);
+    if (GetRenderProperties().IsLightUpEffectValid()) {
+        RSPropertiesPainter::DrawLightUpEffect(GetRenderProperties(), canvas);
+    }
 #ifndef USE_ROSEN_DRAWING
     auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetFilter());
-    if (GetRenderProperties().IsLightUpEffectValid()) {
-        std::shared_ptr<RSSkiaFilter> lightUpFilter =
-            std::make_shared<RSLightUpEffectFilter>(GetRenderProperties().GetLightUpEffect());
-        filter = filter && filter->IsValid() ? filter->Compose(lightUpFilter) : lightUpFilter;
-    }
 #else
     auto filter = std::static_pointer_cast<RSDrawingFilter>(GetRenderProperties().GetFilter());
-    if (GetRenderProperties().IsLightUpEffectValid()) {
-        std::shared_ptr<RSDrawingFilter> lightUpFilter =
-            std::make_shared<RSLightUpEffectFilter>(GetRenderProperties().GetLightUpEffect());
-        filter = filter ? filter->Compose(lightUpFilter) : lightUpFilter;
-    }
 #endif
     if (filter != nullptr) {
 #ifndef NEW_SKIA
