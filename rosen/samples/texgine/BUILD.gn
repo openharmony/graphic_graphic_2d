@@ -63,14 +63,14 @@ ohos_shared_library("libskia_rs_framework") {
 
   public_configs = [ ":libskia_rs_framework_public_config" ]
 
-  public_deps = [
+  deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "$graphic_2d_root/rosen/modules/texgine/texgine_drawing:libtexgine_drawing",
   ]
   if (defined(use_new_skia) && use_new_skia) {
-    public_deps += [ "//third_party/skia:skia_ohos" ]
+    deps += [ "//third_party/skia:skia_ohos" ]
   } else {
-    public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
   }
 
   external_deps = [
