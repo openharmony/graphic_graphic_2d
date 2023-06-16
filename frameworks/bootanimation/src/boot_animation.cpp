@@ -18,6 +18,10 @@
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_transaction.h"
+#ifdef NEW_RENDER_CONTEXT
+#include "render_context_factory.h"
+#include "rs_surface_factory.h"
+#endif
 
 using namespace OHOS;
 
@@ -65,12 +69,24 @@ void BootAnimation::Draw()
         return;
     }
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+#ifdef NEW_RENDER_CONTEXT
+    if (rsSurface_ == nullptr) {
+        LOGE("rsSurface is nullptr");
+        return;
+    }
+    auto canvas = rsSurface_->GetCanvas();
+    OnDraw(canvas, picCurNo_);
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::Draw FlushFrame");
+    rsSurface_->FlushFrame();
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+#else
     framePtr_ = std::move(frame);
     auto canvas = framePtr_->GetCanvas();
     OnDraw(canvas, picCurNo_);
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::Draw FlushFrame");
     rsSurface_->FlushFrame(framePtr_);
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+#endif
 }
 
 void BootAnimation::Init(int32_t width, int32_t height)
@@ -174,6 +190,19 @@ void BootAnimation::InitBootWindow()
 
 void BootAnimation::InitRsSurface()
 {
+#if defined(NEW_RENDER_CONTEXT)
+    renderContext_ = Rosen::RenderContextBaseFactory::CreateRenderContext();
+    if (renderContext_ == nullptr) {
+        LOGE("Create Render Context failed");
+        return;
+    }
+    renderContext_->Init();
+    std::shared_ptr<Rosen::DrawingContext> drawingContext = std::make_shared<Rosen::DrawingContext>(
+        renderContext_->GetRenderType());
+    sptr<Surface> surface = window_->GetSurfaceNode()->GetSurface();
+    rsSurface_ = Rosen::RSSurfaceFactory::CreateRSSurface(Rosen::PlatformName::OHOS, surface, drawingContext);
+    rsSurface_->SetRenderContext(renderContext_);
+#else
     rsSurface_ = OHOS::Rosen::RSSurfaceExtractor::ExtractRSSurface(window_->GetSurfaceNode());
     if (rsSurface_ == nullptr) {
         LOGE("rsSurface is nullptr");
@@ -193,6 +222,7 @@ void BootAnimation::InitRsSurface()
     if (rc_ == nullptr) {
         LOGI("rc is nullptr, use cpu");
     }
+#endif
 }
 
 BootAnimation::~BootAnimation()
