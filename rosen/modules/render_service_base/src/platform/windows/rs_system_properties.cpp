@@ -164,5 +164,10 @@ bool RSSystemProperties::GetAFBCEnabled()
 {
     return {};
 }
+
+bool RSSystemProperties::GetASTCEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

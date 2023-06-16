@@ -23,6 +23,7 @@
 #include "include/core/SkRRect.h"
 #endif
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_image_cache.h"
 #include "render/rs_pixel_map_util.h"
@@ -167,9 +168,16 @@ void RSImage::UploadGpu(SkCanvas& canvas)
 #ifdef NEW_SKIA
             // [planning] new skia remove enum kASTC_CompressionType
             // Need to confirm if kBC1_RGBA8_UNORM and kASTC_CompressionType are the same
-            auto image = SkImage::MakeTextureFromCompressed(GrAsDirectContext(canvas.recordingContext()), compressData_,
-                static_cast<int>(srcRect_.width_), static_cast<int>(srcRect_.height_),
-                SkImage::CompressionType::kBC1_RGBA8_UNORM);
+            sk_sp<SkImage> image;
+            if(RSSystemProperties::GetASTCEnabled()) {
+                image = SkImage::MakeTextureFromCompressed(GrAsDirectContext(canvas.recordingContext()), compressData_,
+                    static_cast<int>(srcRect_.width_), static_cast<int>(srcRect_.height_),
+                    SkImage::CompressionType::kASTC_RGBA8_UNORM);
+            } else {
+                image = SkImage::MakeTextureFromCompressed(GrAsDirectContext(canvas.recordingContext()), compressData_,
+                    static_cast<int>(srcRect_.width_), static_cast<int>(srcRect_.height_),
+                    SkImage::CompressionType::kBC1_RGBA8_UNORM);
+            }
 #else
             auto image = SkImage::MakeFromCompressed(canvas.getGrContext(), compressData_,
                 static_cast<int>(srcRect_.width_), static_cast<int>(srcRect_.height_), SkImage::kASTC_CompressionType);

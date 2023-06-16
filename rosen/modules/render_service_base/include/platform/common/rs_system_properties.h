@@ -124,6 +124,7 @@ public:
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetUIFirstEnabled();
     static bool GetCacheCmdEnabled();
+    static bool GetASTCEnabled();
 private:
     RSSystemProperties() = default;
 
