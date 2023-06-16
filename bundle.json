@@ -67,14 +67,14 @@
         ],
         "third_party": [
           "flutter",
-          "libuv",
-          "skia"
+          "libuv"
         ]
       },
       "build": {
         "group_type": {
           "base_group": [
             "//third_party/libpng:libpng",
+            "//third_party/skia:skia_ohos",
             "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
             "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
             "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
