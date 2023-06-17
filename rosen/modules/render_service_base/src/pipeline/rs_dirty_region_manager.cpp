@@ -287,8 +287,8 @@ RectI RSDirtyRegionManager::GetHistory(unsigned int i) const
     if (i >= HISTORY_QUEUE_MAX_SIZE) {
         i %= HISTORY_QUEUE_MAX_SIZE;
     }
-    if (historySize_ == HISTORY_QUEUE_MAX_SIZE) {
-        i = (i + historyHead_) % HISTORY_QUEUE_MAX_SIZE;
+    if (historySize_ > 0) {
+        i = (i + historyHead_) % historySize_;
     }
     return dirtyHistory_[i];
 }
