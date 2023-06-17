@@ -59,6 +59,14 @@ RosenError HdiOutput::Init()
     device_ = HdiDevice::GetInstance();
     CHECK_DEVICE_NULL(device_);
 
+    bufferCacheCountMax_ = fbSurface_->GetBufferQueueSize();
+    int32_t ret = device_->SetScreenClientBufferCacheCount(screenId_, bufferCacheCountMax_);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("Set screen client buffer cache count failed, ret is %{public}d", ret);
+        return ROSEN_ERROR_INVALID_OPERATING;
+    }
+    bufferCache_.resize(bufferCacheCountMax_);
+
     return ROSEN_ERROR_OK;
 }
 
@@ -302,11 +310,30 @@ int32_t HdiOutput::UpdateLayerCompType()
     return ret;
 }
 
+bool HdiOutput::CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index)
+{
+    for (uint32_t i = 0; i < bufferCacheCountMax_; i++) {
+        if (bufferCache_[i] == buffer) {
+            index = i;
+            return true;
+        }
+    }
+
+    if (bufferCacheIndex_ >= bufferCacheCountMax_) {
+        HLOGE("HdiOutput::FlushScreen: the length of buffer cache exceeds the limit!");
+        return false;
+    }
+    bufferCache_[bufferCacheIndex_] = buffer;
+    index = bufferCacheIndex_;
+    bufferCacheIndex_++;
+    return false;
+}
+
 int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
 {
     auto fbEntry = GetFramebuffer();
     if (fbEntry == nullptr) {
-        HLOGE("HdiBackend::FlushScreen: GetFramebuffer failed!");
+        HLOGE("HdiBackend flush screen failed : GetFramebuffer failed!");
         return -1;
     }
 
@@ -316,22 +343,37 @@ int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
     }
 
     currFrameBuffer_ = fbEntry->buffer;
-    if (fbEntry->buffer == nullptr) {
-        HLOGE("SetScreenClientBuffer failed: frame buffer is null");
+    if (currFrameBuffer_ == nullptr) {
+        HLOGE("HdiBackend flush screen failed : frame buffer is null");
         return -1;
     }
 
+    uint32_t index = INVALID_BUFFER_CACHE_INDEX;
+    bool bufferCached = false;
+    if (bufferCacheCountMax_ == 0) {
+        bufferCache_.clear();
+        bufferCacheIndex_ = INVALID_BUFFER_CACHE_INDEX;
+        HLOGE("The count of this client buffer cache is 0.");
+    } else {
+        bufferCached = CheckAndUpdateClientBufferCahce(currFrameBuffer_, index);
+    }
+
+    int32_t ret;
     CHECK_DEVICE_NULL(device_);
-    int ret = device_->SetScreenClientBuffer(screenId_, fbEntry->buffer->GetBufferHandle(), fbEntry->acquireFence);
+    if (bufferCached && index < bufferCacheCountMax_) {
+        ret = device_->SetScreenClientBuffer(screenId_, nullptr, index, fbAcquireFence);
+    } else {
+        ret = device_->SetScreenClientBuffer(screenId_, currFrameBuffer_->GetBufferHandle(), index, fbAcquireFence);
+    }
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        HLOGE("SetScreenClientBuffer failed, ret is %{public}d", ret);
+        HLOGE("Set screen client buffer failed, ret is %{public}d", ret);
         return ret;
     }
     CHECK_DEVICE_NULL(device_);
     ret = device_->SetScreenClientDamage(screenId_, outputDamages_);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         // SetScreenClientDamage is not supported in hdi, HLOGD here and no returen ret.
-        HLOGD("SetScreenClientDamage failed, ret is %{public}d", ret);
+        HLOGD("Set screen client damage failed, ret is %{public}d", ret);
     }
 
     return GRAPHIC_DISPLAY_SUCCESS;
