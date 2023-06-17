@@ -33,7 +33,10 @@ group("unittest") {
 ohos_unittest("hdibackend_unit_test") {
   module_out_path = module_out_path
 
-  sources = [ "hdibackend_test.cpp" ]
+  sources = [
+    "hdibackend_test.cpp",
+    "mock_hdi_device.cpp",
+  ]
 
   deps = [ ":hdibackend_test_common" ]
 

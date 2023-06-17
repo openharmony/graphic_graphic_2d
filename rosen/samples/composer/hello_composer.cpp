@@ -271,7 +271,7 @@ void HelloComposer::Draw()
         }
 
         backend_->Repaint(curOutput_);
-        auto layersReleaseFence = backend_->GetLayersReleaseFence(curOutput_);
+        auto layersReleaseFence = curOutput_->GetLayersReleaseFence();
         for (auto& layerContext : drawLayers) {
             auto preBuffer = layerContext->GetPreBuffer();
             int32_t releaseFence = -1;

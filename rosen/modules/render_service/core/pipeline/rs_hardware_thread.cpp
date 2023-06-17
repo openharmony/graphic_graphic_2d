@@ -103,7 +103,11 @@ void RSHardwareThread::ReleaseLayers(OutputPtr output, const std::unordered_map<
     }
 
     // set all layers' releaseFence.
-    const auto layersReleaseFence = hdiBackend_->GetLayersReleaseFence(output);
+    if (output == nullptr) {
+        RS_LOGE("RSHardwareThread::ReleaseLayers: output is nullptr");
+        return;
+    }
+    const auto layersReleaseFence = output->GetLayersReleaseFence();
     if (layersReleaseFence.size() == 0) {
         RS_LOGE("RSHardwareThread::ReleaseLayers: no layer needs to release");
     }

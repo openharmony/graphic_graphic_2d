@@ -86,55 +86,7 @@ RosenError HdiBackend::RegHwcDeadListener(OnHwcDeadCallback func, void* data)
     return ROSEN_ERROR_OK;
 }
 
-
-int32_t HdiBackend::PreProcessLayersComp(const OutputPtr &output, bool &needFlush)
-{
-    const std::unordered_map<uint32_t, LayerPtr> &layersMap = output->GetLayers();
-    if (layersMap.empty()) {
-        HLOGI("layer map is empty, drop this frame");
-        return GRAPHIC_DISPLAY_PARAM_ERR;
-    }
-
-    uint32_t layersNum = layersMap.size();
-    uint32_t layerCompCapacity = output->GetLayerCompCapacity();
-    uint32_t screenId = output->GetScreenId();
-
-    // If doClientCompositionDirectly is true then layer->SetHdiLayerInfo and UpdateLayerCompType is no need to run.
-    bool doClientCompositionDirectly = ((layerCompCapacity != LAYER_COMPOSITION_CAPACITY_INVALID) &&
-                                        (layersNum > layerCompCapacity));
-    bool isDirectClientCompositionEnabled = output->GetDirectClientCompEnableStatus();
-    if (!isDirectClientCompositionEnabled) {
-        doClientCompositionDirectly = false;
-    }
-    int32_t ret;
-    for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
-        const LayerPtr &layer = iter->second;
-        if (doClientCompositionDirectly) {
-            layer->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
-            continue;
-        }
-        ret = layer->SetHdiLayerInfo();
-        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-            HLOGE("Set hdi layer[id:%{public}d] info failed, ret %{public}d.", layer->GetLayerId(), ret);
-        }
-    }
-
-    ret = device_->PrepareScreenLayers(screenId, needFlush);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        HLOGE("PrepareScreenLayers failed, ret is %{public}d", ret);
-        return GRAPHIC_DISPLAY_FAILURE;
-    }
-
-    if (doClientCompositionDirectly) {
-        ScopedBytrace doClientCompositionDirectlyTag("DoClientCompositionDirectly");
-        HLOGD("Direct client composition is enabled.");
-        return GRAPHIC_DISPLAY_SUCCESS;
-    }
-
-    return UpdateLayerCompType(screenId, layersMap);
-}
-
-int32_t HdiBackend::PrepareCompleteIfNeed(const OutputPtr &output, bool needFlush, sptr<SurfaceBuffer> &buffer)
+int32_t HdiBackend::PrepareCompleteIfNeed(const OutputPtr &output, bool needFlush)
 {
     std::vector<LayerPtr> compClientLayers;
     std::vector<LayerInfoPtr> newLayerInfos;
@@ -156,34 +108,9 @@ int32_t HdiBackend::PrepareCompleteIfNeed(const OutputPtr &output, bool needFlus
 
     OnPrepareComplete(needFlush, output, newLayerInfos);
     if (needFlush) {
-        return FlushScreen(output, compClientLayers, buffer);
+        return output->FlushScreen(compClientLayers);
     }
     return GRAPHIC_DISPLAY_SUCCESS;
-}
-
-void HdiBackend::UpdateInfosAfterCommit(const OutputPtr &output, sptr<SyncFence> fbFence)
-{
-    output->UpdatePrevLayerInfo();
-    int64_t timestamp = lastPresentFence_->SyncFileReadTimestamp();
-    bool startSample = false;
-    if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
-        startSample = sampler_->AddPresentFenceTime(timestamp);
-        output->RecordCompositionTime(timestamp);
-        const std::unordered_map<uint32_t, LayerPtr> &layersMap = output->GetLayers();
-        for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
-            const LayerPtr &layer = iter->second;
-            layer->RecordPresentTime(timestamp);
-        }
-    }
-
-    bool alreadyStartSample = sampler_->GetHardwareVSyncStatus();
-    if (startSample && !alreadyStartSample) {
-        HLOGD("Enable Screen Vsync");
-        uint32_t screenId = output->GetScreenId();
-        device_->SetScreenVsyncEnabled(screenId, true);
-        sampler_->BeginSample();
-    }
-    lastPresentFence_ = fbFence;
 }
 
 void HdiBackend::Repaint(const OutputPtr &output)
@@ -191,39 +118,37 @@ void HdiBackend::Repaint(const OutputPtr &output)
     ScopedBytrace bytrace(__func__);
     HLOGD("%{public}s: start", __func__);
 
-    if (device_ == nullptr) {
-        HLOGE("device has not been initialized");
-        return;
-    }
-
-    if (sampler_ == nullptr) {
-        sampler_ = CreateVSyncSampler();
-    }
-
     if (output == nullptr) {
         HLOGE("output is nullptr.");
         return;
     }
 
     bool needFlush = false;
-    int32_t ret = PreProcessLayersComp(output, needFlush);
+    int32_t ret = output->PreProcessLayersComp(needFlush);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         return;
     }
-    sptr<SurfaceBuffer> frameBuffer = nullptr;
-    ret = PrepareCompleteIfNeed(output, needFlush, frameBuffer);
+
+    ret = PrepareCompleteIfNeed(output, needFlush);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         return;
     }
     sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
-    uint32_t screenId = output->GetScreenId();
-    ret = device_->Commit(screenId, fbFence);
+    ret = output->Commit(fbFence);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("commit failed, ret is %{public}d", ret);
         // return
     }
-    UpdateInfosAfterCommit(output, fbFence);
-    ReleaseFramebuffer(output, fbFence, frameBuffer);
+
+    ret = output->UpdateInfosAfterCommit(fbFence);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        return;
+    }
+
+    ret = output->ReleaseFramebuffer(fbFence);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        return;
+    }
     HLOGD("%{public}s: end", __func__);
 }
 
@@ -234,31 +159,6 @@ void HdiBackend::ResetDevice()
         device_ = nullptr;
     }
     outputs_.clear();
-}
-
-int32_t HdiBackend::UpdateLayerCompType(uint32_t screenId, const std::unordered_map<uint32_t, LayerPtr> &layersMap)
-{
-    std::vector<uint32_t> layersId;
-    std::vector<int32_t> types;
-    int32_t ret = device_->GetScreenCompChange(screenId, layersId, types);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS || layersId.size() != types.size()) {
-        HLOGE("GetScreenCompChange failed, ret is %{public}d", ret);
-        return ret;
-    }
-
-    size_t layerNum = layersId.size();
-    for (size_t i = 0; i < layerNum; i++) {
-        auto iter = layersMap.find(layersId[i]);
-        if (iter == layersMap.end()) {
-            HLOGE("Invalid hdi layer id[%{public}u]", layersId[i]);
-            continue;
-        }
-
-        const LayerPtr &layer = iter->second;
-        layer->UpdateCompositionType(static_cast<GraphicCompositionType>(types[i]));
-    }
-
-    return ret;
 }
 
 void HdiBackend::OnPrepareComplete(bool needFlush, const OutputPtr &output, std::vector<LayerInfoPtr> &newLayerInfos)
@@ -287,93 +187,6 @@ static inline bool Cmp(const LayerInfoPtr &layer1, const LayerInfoPtr &layer2)
 void HdiBackend::ReorderLayerInfo(std::vector<LayerInfoPtr> &newLayerInfos)
 {
     std::sort(newLayerInfos.begin(), newLayerInfos.end(), Cmp);
-}
-
-int32_t HdiBackend::FlushScreen(
-    const OutputPtr &output, std::vector<LayerPtr> &compClientLayers, sptr<SurfaceBuffer> &buffer)
-{
-    auto fbEntry = output->GetFramebuffer();
-    if (fbEntry == nullptr) {
-        HLOGE("HdiBackend::FlushScreen: GetFramebuffer failed!");
-        return -1;
-    }
-
-    const auto& fbAcquireFence = fbEntry->acquireFence;
-    for (auto &layer : compClientLayers) {
-        layer->MergeWithFramebufferFence(fbAcquireFence);
-    }
-
-    buffer = fbEntry->buffer;
-    return SetScreenClientInfo(*fbEntry, output);
-}
-
-void HdiBackend::ReleaseFramebuffer(
-    const OutputPtr &output, sptr<SyncFence> &presentFence, const sptr<SurfaceBuffer> &buffer)
-{
-    if (buffer == nullptr) {
-        return;
-    }
-    if (lastFrameBuffers_.find(output->GetScreenId()) != lastFrameBuffers_.end()) {
-        // wrong check
-        (void)output->ReleaseFramebuffer(lastFrameBuffers_[output->GetScreenId()], presentFence);
-    }
-    lastFrameBuffers_[output->GetScreenId()] = buffer;
-}
-
-int32_t HdiBackend::SetScreenClientInfo(const FrameBufferEntry &fbEntry, const OutputPtr &output)
-{
-    if (fbEntry.buffer == nullptr) {
-        HLOGE("SetScreenClientBuffer failed: frame buffer is null");
-        return -1;
-    }
-
-    int ret = device_->SetScreenClientBuffer(output->GetScreenId(),
-        fbEntry.buffer->GetBufferHandle(), fbEntry.acquireFence);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        HLOGE("SetScreenClientBuffer failed, ret is %{public}d", ret);
-        return ret;
-    }
-
-    const std::vector<GraphicIRect>& damageRects = output->GetOutputDamages();
-    ret = device_->SetScreenClientDamage(output->GetScreenId(), damageRects);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        // SetScreenClientDamage is not supported in hdi, HLOGD here and no returen ret.
-        HLOGD("SetScreenClientDamage failed, ret is %{public}d", ret);
-    }
-
-    return GRAPHIC_DISPLAY_SUCCESS;
-}
-
-std::map<LayerInfoPtr, sptr<SyncFence>> HdiBackend::GetLayersReleaseFence(const OutputPtr& output)
-{
-    if (output == nullptr || device_ == nullptr) {
-        return {};
-    }
-    uint32_t screenId = output->GetScreenId();
-    std::vector<uint32_t> layersId;
-    std::vector<sptr<SyncFence>> fences;
-    int32_t ret = device_->GetScreenReleaseFence(screenId, layersId, fences);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS || layersId.size() != fences.size()) {
-        HLOGE("GetScreenReleaseFence failed, ret is %{public}d, layerId size[%{public}d], fence size[%{public}d]",
-               ret, (int)layersId.size(), (int)fences.size());
-        return {};
-    }
-
-    std::map<LayerInfoPtr, sptr<SyncFence>> res;
-    auto layersMap = output->GetLayers();
-    size_t layerNum = layersId.size();
-    for (size_t i = 0; i < layerNum; i++) {
-        auto iter = layersMap.find(layersId[i]);
-        if (iter == layersMap.end()) {
-            HLOGE("Invalid hdi layer id [%{public}u]", layersId[i]);
-            continue;
-        }
-
-        const LayerPtr &layer = iter->second;
-        layer->MergeWithLayerFence(fences[i]);
-        res[layer->GetLayerInfo()] = layer->GetReleaseFence();
-    }
-    return res;
 }
 
 void HdiBackend::OnHdiBackendHotPlugEvent(uint32_t screenId, bool connected, void *data)
@@ -438,18 +251,19 @@ RosenError HdiBackend::InitDevice()
     return ROSEN_ERROR_OK;
 }
 
-void HdiBackend::SetHdiBackendDevice(HdiDevice* device)
+RosenError HdiBackend::SetHdiBackendDevice(HdiDevice* device)
 {
     if (device == nullptr) {
         HLOGE("Input HdiDevice is null");
-        return;
+        return ROSEN_ERROR_INVALID_ARGUMENTS;
     }
 
     if (device_ != nullptr) {
         HLOGW("HdiDevice has been changed");
-        return;
+        return ROSEN_ERROR_OK;
     }
     device_ = device;
+    return ROSEN_ERROR_OK;
 }
 
 } // namespace Rosen

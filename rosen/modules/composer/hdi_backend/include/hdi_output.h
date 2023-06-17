@@ -25,6 +25,7 @@
 #include "hdi_layer.h"
 #include "hdi_framebuffer_surface.h"
 #include "hdi_screen.h"
+#include "vsync_sampler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -59,18 +60,31 @@ public:
     const std::vector<GraphicIRect>& GetOutputDamages();
     sptr<Surface> GetFrameBufferSurface();
     std::unique_ptr<FrameBufferEntry> GetFramebuffer();
-    int32_t ReleaseFramebuffer(
-        sptr<SurfaceBuffer> &buffer, const sptr<SyncFence>& releaseFence);
-
     void Dump(std::string &result) const;
     void DumpFps(std::string &result, const std::string &arg) const;
     void ClearFpsDump(std::string &result, const std::string &arg);
-    void RecordCompositionTime(int64_t timeStamp);
     void SetDirectClientCompEnableStatus(bool enableStatus);
     bool GetDirectClientCompEnableStatus() const;
-    void UpdatePrevLayerInfo();
+
+    RosenError InitDevice();
+    /* only used for mock tests */
+    RosenError SetHdiOutputDevice(HdiDevice* device);
+    int32_t PreProcessLayersComp(bool &needFlush);
+    int32_t UpdateLayerCompType();
+    int32_t FlushScreen(std::vector<LayerPtr> &compClientLayers);
+    int32_t SetScreenClientInfo(const FrameBufferEntry &fbEntry);
+    int32_t Commit(sptr<SyncFence> &fbFence);
+    int32_t UpdateInfosAfterCommit(sptr<SyncFence> fbFence);
+    int32_t ReleaseFramebuffer(const sptr<SyncFence>& releaseFence);
+    std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFence();
 
 private:
+    HdiDevice *device_ = nullptr;
+    sptr<VSyncSampler> sampler_ = nullptr;
+    sptr<SyncFence> lastPresentFence_ = SyncFence::INVALID_FENCE;
+    sptr<SurfaceBuffer> currFrameBuffer_ = nullptr;
+    sptr<SurfaceBuffer> lastFrameBuffer_ = nullptr;
+
     std::array<int64_t, COMPOSITION_RECORDS_NUM> compositionTimeRecords_ = {};
     uint32_t compTimeRcdIndex_ = 0;
     sptr<HdiFramebufferSurface> fbSurface_ = nullptr;
@@ -87,7 +101,8 @@ private:
     void DeletePrevLayers();
     void ResetLayerStatus();
     void ReorderLayerInfo(std::vector<LayerDumpInfo> &dumpLayerInfos) const;
-
+    void UpdatePrevLayerInfo();
+    void RecordCompositionTime(int64_t timeStamp);
     inline bool CheckFbSurface();
 };
 } // namespace Rosen
