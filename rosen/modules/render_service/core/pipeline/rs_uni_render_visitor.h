@@ -95,10 +95,11 @@ public:
         subThreadNodes_ = subThreadNodes;
     }
 
-    void SetSubThreadConfig()
+    void SetSubThreadConfig(uint32_t threadIndex)
     {
         isSubThread_ = true;
         isHardwareForcedDisabled_ = true;
+        threadIndex_ = threadIndex;
     }
 
     void DrawSurfaceLayer(RSDisplayRenderNode& node);
@@ -325,6 +326,7 @@ private:
     std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes_;
     bool isSubThread_ = false;
     bool isUIFirst_ = false;
+    uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
 
     bool needColdStartThread_ = false; // flag used for cold start app window
 

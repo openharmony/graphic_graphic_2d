@@ -89,6 +89,8 @@ ohos_shared_library("librender_service") {
       "core/pipeline/parallel_render/rs_parallel_sub_thread.cpp",
       "core/pipeline/parallel_render/rs_parallel_task_manager.cpp",
       "core/pipeline/parallel_render/rs_render_task.cpp",
+      "core/pipeline/parallel_render/rs_sub_thread.cpp",
+      "core/pipeline/parallel_render/rs_sub_thread_manager.cpp",
     ]
   }
 
