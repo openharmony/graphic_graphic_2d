@@ -24,8 +24,13 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
+#ifdef NEW_RENDER_CONTEXT
+#include "rs_render_surface.h"
+#include "render_context_base.h"
+#else
 #include "platform/drawing/rs_surface.h"
 #include "render_context/render_context.h"
+#endif
 #include "sync_fence.h"
 
 namespace OHOS {
@@ -113,7 +118,11 @@ public:
 
     bool CreateSurface(sptr<IBufferConsumerListener> listener);
     bool IsSurfaceCreated() const;
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RSRenderSurface> GetRSSurface() const;
+#else
     std::shared_ptr<RSSurface> GetRSSurface() const;
+#endif
     sptr<IBufferConsumerListener> GetConsumerListener() const;
     BufferRequestConfig GetBufferRequestConfig() const;
     void ClearBufferCache();
@@ -144,8 +153,11 @@ public:
 private:
     float GetSurfaceWidth() const;
     float GetSurfaceHeight() const;
-
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RSRenderSurface> surface_;
+#else
     std::shared_ptr<RSSurface> surface_;
+#endif
     sptr<IBufferConsumerListener> consumerListener_;
     RSBaseRenderNode::SharedPtr drivenCanvasNode_ = nullptr;
 

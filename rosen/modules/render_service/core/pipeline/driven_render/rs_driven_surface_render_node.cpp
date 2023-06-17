@@ -100,8 +100,11 @@ bool RSDrivenSurfaceRenderNode::IsSurfaceCreated() const
 {
     return drivenExtInfo_.surfaceCreated_;
 }
-
+#ifdef NEW_RENDER_CONTEXT
+std::shared_ptr<RSRenderSurface> RSDrivenSurfaceRenderNode::GetRSSurface() const
+#else
 std::shared_ptr<RSSurface> RSDrivenSurfaceRenderNode::GetRSSurface() const
+#endif
 {
     return surface_;
 }

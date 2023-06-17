@@ -125,6 +125,11 @@ ohos_shared_library("librender_service") {
     public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
   }
 
+  if (defined(use_new_render_context) && use_new_render_context) {
+    include_dirs += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+    defines += [ "NEW_RENDER_CONTEXT" ]
+  }
+
   if (rs_enable_gpu) {
     if (graphic_standard_feature_enable_vulkan) {
       include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]

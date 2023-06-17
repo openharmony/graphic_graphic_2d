@@ -67,7 +67,9 @@
         ],
         "third_party": [
           "flutter",
-          "libuv"
+          "libuv",
+          "openssl",
+          "third_party_skia"
         ]
       },
       "build": {

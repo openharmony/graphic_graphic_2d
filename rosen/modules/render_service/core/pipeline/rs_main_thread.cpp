@@ -276,8 +276,13 @@ void RSMainThread::Init()
 #ifdef RS_ENABLE_GL
     int cacheLimitsTimes = 3;
 #ifndef USE_ROSEN_DRAWING
+#ifdef NEW_RENDER_CONTEXT
+    auto grContext = isUniRender_? uniRenderEngine_->GetDrawingContext()->GetDrawingContext() :
+        renderEngine_->GetDrawingContext()->GetDrawingContext();
+#else
     auto grContext = isUniRender_? uniRenderEngine_->GetRenderContext()->GetGrContext() :
         renderEngine_->GetRenderContext()->GetGrContext();
+#endif
     int maxResources = 0;
     size_t maxResourcesSize = 0;
     grContext->getResourceCacheLimits(&maxResources, &maxResourcesSize);
@@ -837,7 +842,11 @@ void RSMainThread::ReleaseAllNodesBuffer()
     if (NeedReleaseGpuResource(nodeMap)) {
         PostTask([this]() {
 #ifndef USE_ROSEN_DRAWING
+#ifdef NEW_RENDER_CONTEXT
+            MemoryManager::ReleaseUnlockGpuResource(GetRenderEngine()->GetDrawingContext()->GetDrawingContext());
+#else
             MemoryManager::ReleaseUnlockGpuResource(GetRenderEngine()->GetRenderContext()->GetGrContext());
+#endif
 #else
             MemoryManager::ReleaseUnlockGpuResource(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
 #endif
@@ -1649,7 +1658,11 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
 #ifdef RS_ENABLE_GL
         RS_LOGD("RSMainThread: clear cpu cache pid:%d", remotePid);
 #ifndef USE_ROSEN_DRAWING
+#ifdef NEW_RENDER_CONTEXT
+        auto grContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
+#else
         auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
+#endif
         grContext->flush();
         SkGraphics::PurgeAllCaches(); // clear cpu cache
         if (!IsResidentProcess(remotePid)) {
@@ -1718,7 +1731,11 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
         type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
     }
 #ifndef USE_ROSEN_DRAWING
+#ifdef NEW_RENDER_CONTEXT
+    auto grContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
+#else
     auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
+#endif
     if (type.empty()) {
         grContext->flush();
         SkGraphics::PurgeAllCaches();
@@ -1784,7 +1801,11 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
 #ifdef RS_ENABLE_GL
     DfxString log;
 #ifndef USE_ROSEN_DRAWING
+#ifdef NEW_RENDER_CONTEXT
+    auto grContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
+#else
     auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
+#endif
     if (pid != 0) {
         MemoryManager::DumpPidMemory(log, pid, grContext);
     } else {
@@ -1811,7 +1832,11 @@ void RSMainThread::CountMem(int pid, MemoryGraphic& mem)
 {
 #ifdef RS_ENABLE_GL
 #ifndef USE_ROSEN_DRAWING
+#ifdef NEW_RENDER_CONTEXT
+    mem = MemoryManager::CountPidMemory(pid, GetRenderEngine()->GetDrawingContext()->GetDrawingContext());
+#else
     mem = MemoryManager::CountPidMemory(pid, GetRenderEngine()->GetRenderContext()->GetGrContext());
+#endif
 #else
     mem = MemoryManager::CountPidMemory(pid, GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
 #endif
@@ -1834,7 +1859,11 @@ void RSMainThread::CountMem(std::vector<MemoryGraphic>& mems)
         }
     });
 #ifndef USE_ROSEN_DRAWING
+#ifdef NEW_RENDER_CONTEXT
+    MemoryManager::CountMemory(pids, GetRenderEngine()->GetDrawingContext()->GetDrawingContext(), mems);
+#else
     MemoryManager::CountMemory(pids, GetRenderEngine()->GetRenderContext()->GetGrContext(), mems);
+#endif
 #else
     MemoryManager::CountMemory(pids, GetRenderEngine()->GetRenderContext()->GetDrGPUContext(), mems);
 #endif
