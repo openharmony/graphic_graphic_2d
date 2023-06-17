@@ -51,6 +51,10 @@ void RsFrameReport::RenderStart()
 {
 }
 
+void RsFrameReport::RenderEnd()
+{
+}
+
 void RsFrameReport::SendCommandsStart()
 {
 }

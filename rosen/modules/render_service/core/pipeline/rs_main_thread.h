@@ -223,6 +223,7 @@ private:
     void PerfAfterAnim(bool needRequestNextVsync);
     void PerfForBlurIfNeeded();
     void PerfMultiWindow();
+    void RenderFrameStart();
     void ResetHardwareEnabledState();
 
     bool IsResidentProcess(pid_t pid);
