@@ -374,6 +374,7 @@ void RSBaseRenderNode::SetDirty()
 
 void RSBaseRenderNode::SetClean()
 {
+    isContentDirty_ = false;
     dirtyStatus_ = NodeDirty::CLEAN;
 }
 
