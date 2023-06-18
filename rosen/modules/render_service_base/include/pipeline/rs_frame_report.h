@@ -23,9 +23,11 @@
 namespace OHOS {
 namespace Rosen {
 using FrameGetEnableFunc = int (*)();
+using InitFunc = void (*)();
 using ProcessCommandsStartFunc = void(*)();
 using AnimateStartFunc = void(*)();
 using RenderStartFunc = void(*)();
+using RenderEndFunc = void(*)();
 using SendCommandsStartFunc = void(*)();
 
 class RSB_EXPORT RsFrameReport final {
@@ -37,6 +39,7 @@ public:
     void ProcessCommandsStart();
     void AnimateStart();
     void RenderStart();
+    void RenderEnd();
     void SendCommandsStart();
 
 private:
@@ -49,9 +52,11 @@ private:
     bool frameSchedSoLoaded_ = false;
 
     FrameGetEnableFunc frameGetEnableFunc_ = nullptr;
+    InitFunc initFunc_ = nullptr;
     ProcessCommandsStartFunc processCommandsStartFun_ = nullptr;
     AnimateStartFunc animateStartFunc_ = nullptr;
     RenderStartFunc renderStartFunc_ = nullptr;
+    RenderEndFunc renderEndFunc_ = nullptr;
     SendCommandsStartFunc sendCommandsStartFunc_ = nullptr;
 };
 } // namespace Rosen

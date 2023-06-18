@@ -52,6 +52,10 @@ void RsFrameReport::Init()
         return;
     }
     ROSEN_LOGD("RsFrameReport:[Init] dlopen libframe_ui_intf.so success!");
+    initFunc_ = (InitFunc)LoadSymbol("Init");
+    if (initFunc_ != nullptr) {
+        initFunc_();
+    }
 }
 
 bool RsFrameReport::LoadLibrary()
@@ -134,6 +138,16 @@ void RsFrameReport::RenderStart()
         renderStartFunc_();
     } else {
         ROSEN_LOGE("RsFrameReport:[RenderStart]load RenderStart function failed!");
+    }
+}
+
+void RsFrameReport::RenderEnd()
+{
+    renderEndFunc_ = (RenderEndFunc)LoadSymbol("RenderEnd");
+    if (renderEndFunc_ != nullptr) {
+        renderEndFunc_();
+    } else {
+        ROSEN_LOGE("RsFrameReport:[RenderEnd]load RenderEnd function failed!");
     }
 }
 
