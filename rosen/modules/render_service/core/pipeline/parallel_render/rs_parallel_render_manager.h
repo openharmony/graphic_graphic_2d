@@ -21,6 +21,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <vector>
 #include "EGL/egl.h"
 #include "rs_parallel_hardware_composer.h"
 #include "rs_parallel_sub_thread.h"
@@ -157,6 +158,19 @@ public:
     void NotifyUniRenderFinish();
     std::shared_ptr<RSDisplayRenderNode> GetParallelDisplayNode(uint32_t subMainThreadIdx);
     std::unique_ptr<RSRenderFrame> GetParallelFrame(uint32_t subMainThreadIdx);
+    void SetFilterSurfaceRenderNode(RSSurfaceRenderNode& node)
+    {
+        filterSurfaceRenderNodes_.push_back(node.ReinterpretCastTo<RSSurfaceRenderNode>());
+    }
+    void ClearFilterSurfaceRenderNode()
+    {
+        std::vector<std::shared_ptr<RSSurfaceRenderNode>>().swap(filterSurfaceRenderNodes_);
+    }
+    uint32_t GetFilterSurfaceRenderNodeCount()
+    {
+        return filterSurfaceRenderNodes_.size();
+    }
+    void ProcessFilterSurfaceRenderNode();
 
 private:
     RSParallelRenderManager();
@@ -222,6 +236,7 @@ private:
     std::vector<std::shared_ptr<RSDisplayRenderNode>> backParallelDisplayNodes_;
     std::vector<std::unique_ptr<RSRenderFrame>> parallelFrames_;
     int readyBufferNum_ = 0;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> filterSurfaceRenderNodes_;
 };
 } // namespace Rosen
 } // namespace OHOS

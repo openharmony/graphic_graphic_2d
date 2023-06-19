@@ -74,9 +74,14 @@ const RectI& RSDirtyRegionManager::GetDirtyRegion() const
 
 RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const
 {
-    RectI glRect = dirtyRegion_;
+    RectI glRect;
+    if (isDirtyRegionAlignedEnable_) {
+        glRect = GetPixelAlignedRect(dirtyRegion_);
+    } else {
+        glRect = dirtyRegion_;
+    }
     // left-top to left-bottom corner(in current surface)
-    glRect.top_ = surfaceRect_.height_ - dirtyRegion_.top_ - dirtyRegion_.height_;
+    glRect.top_ = surfaceRect_.height_ - glRect.top_ - glRect.height_;
     return glRect;
 }
 

@@ -834,5 +834,14 @@ std::unique_ptr<RSRenderFrame> RSParallelRenderManager::GetParallelFrame(
     return nullptr;
 #endif
 }
+
+void RSParallelRenderManager::ProcessFilterSurfaceRenderNode()
+{
+    if (GetParallelModeSafe()) {
+        for (auto& node : filterSurfaceRenderNodes_) {
+            node->Process(uniVisitor_->shared_from_this());
+        }
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

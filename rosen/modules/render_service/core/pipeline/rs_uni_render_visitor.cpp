@@ -1870,6 +1870,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             parallelRenderManager->LoadBalanceAndNotify(TaskType::PROCESS_TASK);
             parallelRenderManager->MergeRenderResult(*canvas_);
             parallelRenderManager->CommitSurfaceNum(node.GetChildrenCount());
+            parallelRenderManager->ProcessFilterSurfaceRenderNode();
         }
 #endif
         if (saveLayerCnt > 0) {
