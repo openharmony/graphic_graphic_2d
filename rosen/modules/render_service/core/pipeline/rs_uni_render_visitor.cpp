@@ -1555,6 +1555,10 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
         if (isPartialRenderEnabled_) {
             CalcDirtyDisplayRegion(displayNodePtr);
+            // Aligning displayRenderNode and surfaceRenderNode dirty region before merge dirty filter region
+            if (isDirtyRegionAlignedEnable_) {
+                AlignGlobalAndSurfaceDirtyRegions(displayNodePtr);
+            }
             CalcDirtyFilterRegion(displayNodePtr);
             displayNodePtr->ClearCurrentSurfacePos();
         } else {
@@ -2402,6 +2406,18 @@ void RSUniRenderVisitor::SetSurfaceGlobalAlignedDirtyRegion(std::shared_ptr<RSDi
         surfaceNode->SetDirtyRegionBelowCurrentLayer(curVisibleDirtyRegion);
         auto alignedVisibleDirtyRegion = surfaceNode->GetAlignedVisibleDirtyRegion();
         curVisibleDirtyRegion.OrSelf(alignedVisibleDirtyRegion);
+    }
+}
+
+void RSUniRenderVisitor::AlignGlobalAndSurfaceDirtyRegions(std::shared_ptr<RSDisplayRenderNode>& node)
+{
+    node->GetDirtyManager()->UpdateDirtyByAligned();
+    for (auto it = node->GetCurAllSurfaces().rbegin(); it != node->GetCurAllSurfaces().rend(); ++it) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
+            continue;
+        }
+        surfaceNode->GetDirtyManager()->UpdateDirtyByAligned();
     }
 }
 
