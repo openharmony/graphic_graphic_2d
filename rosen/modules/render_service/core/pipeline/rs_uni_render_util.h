@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CORE_PIPELINE_RS_UNI_RENDER_UTIL_H
 
 #include <list>
+#include <set>
 #include "surface.h"
 #include "sync_fence.h"
 #include "pipeline/rs_base_render_util.h"
@@ -64,8 +65,10 @@ public:
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     static void ClearSurfaceIfNeed(const RSRenderNodeMap& map, const std::shared_ptr<RSDisplayRenderNode>& displayNode,
-        std::set<std::shared_ptr<RSBaseRenderNode>>& oldChildren,
-        std::list<std::shared_ptr<RSSurfaceRenderNode>>& currentNodes);
+        std::set<std::shared_ptr<RSBaseRenderNode>>& oldChildren);
+    static void ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isUIFirst);
+    static void ClearNodeCacheSurface(sk_sp<SkSurface> cacheSurface, sk_sp<SkSurface> cacheCompletedSurface,
+        uint32_t threadIndex);
 
 private:
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,

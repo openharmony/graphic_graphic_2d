@@ -45,6 +45,10 @@ RSRenderNode::~RSRenderNode()
     if (fallbackAnimationOnDestroy_) {
         FallbackAnimationsToRoot();
     }
+    if (clearCacheSurfaceFunc_ && (cacheSurface_ || cacheCompletedSurface_)) {
+        clearCacheSurfaceFunc_(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
+    }
+    ClearCacheSurface();
 }
 
 void RSRenderNode::FallbackAnimationsToRoot()
@@ -475,12 +479,23 @@ float RSRenderNode::GetGlobalAlpha() const
 }
 
 #ifdef NEW_SKIA
-void RSRenderNode::InitCacheSurface(GrRecordingContext* grContext)
+void RSRenderNode::InitCacheSurface(GrRecordingContext* grContext, ClearCacheSurfaceFunc func, uint32_t threadIndex)
 #else
-void RSRenderNode::InitCacheSurface(GrContext* grContext)
+void RSRenderNode::InitCacheSurface(GrContext* grContext, ClearCacheSurfaceFunc func, uint32_t threadIndex)
 #endif
 {
-    cacheSurface_ = nullptr;
+    if (!func) {
+        RS_LOGE("InitCacheSurface failed: fuc is null");
+        return;
+    }
+    cacheSurfaceThreadIndex_ = threadIndex;
+    if (!clearCacheSurfaceFunc_) {
+        clearCacheSurfaceFunc_ = func;
+    }
+    if (cacheSurface_) {
+        func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
+        ClearCacheSurface();
+    }
     auto cacheType = GetCacheType();
     float width = 0.0f, height = 0.0f;
     Vector2f size = GetOptionalBufferSize();
@@ -502,7 +517,8 @@ void RSRenderNode::InitCacheSurface(GrContext* grContext)
     }
 #if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
     if (grContext == nullptr) {
-        cacheSurface_ = nullptr;
+        func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
+        ClearCacheSurface();
         return;
     }
     SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
@@ -524,12 +540,8 @@ Vector2f RSRenderNode::GetOptionalBufferSize() const
     return { vector4f.z_, vector4f.w_ };
 }
 
-void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, bool isSubThreadNode) const
+void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
 {
-    auto surface = GetCompletedCacheSurface();
-    if (surface == nullptr || (boundsWidth_ == 0 || boundsHeight_ == 0)) {
-        return;
-    }
     auto cacheType = GetCacheType();
     canvas.save();
     Vector2f size = GetOptionalBufferSize();
@@ -538,7 +550,7 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, bool isSubThrea
     canvas.scale(scaleX, scaleY);
     SkPaint paint;
 #ifdef NEW_SKIA
-    if (isSubThreadNode) {
+    if (isUIFirst) {
         if (cacheTexture_ == nullptr) {
             RS_LOGE("invalid cache texture");
             canvas.restore();
@@ -549,12 +561,35 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, bool isSubThrea
         return;
     }
 #endif
+    auto surface = GetCompletedCacheSurface(threadIndex, isUIFirst);
+    if (surface == nullptr || (boundsWidth_ == 0 || boundsHeight_ == 0)) {
+        RS_LOGE("invalid complete cache surface");
+        return;
+    }
     if (cacheType == CacheType::ANIMATE_PROPERTY && renderProperties_.IsShadowValid()) {
         surface->draw(&canvas, -shadowRectOffsetX_ * scaleX, -shadowRectOffsetY_ * scaleY, &paint);
     } else {
         surface->draw(&canvas, 0.0, 0.0, &paint);
     }
     canvas.restore();
+}
+
+#ifndef USE_ROSEN_DRAWING
+sk_sp<SkSurface> RSRenderNode::GetCompletedCacheSurface(uint32_t threadIndex, bool isUIFirst)
+#else
+std::shared_ptr<Drawing::Surface> RSRenderNode::GetCompletedCacheSurface(uint32_t threadIndex, bool isUIFirst)
+#endif
+{
+    if (isUIFirst || cacheSurfaceThreadIndex_ == threadIndex || !cacheCompletedSurface_) {
+        return cacheCompletedSurface_;
+    }
+
+    // freeze cache scene
+    if (clearCacheSurfaceFunc_) {
+        clearCacheSurfaceFunc_(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
+    }
+    ClearCacheSurface();
+    return nullptr;
 }
 
 void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
