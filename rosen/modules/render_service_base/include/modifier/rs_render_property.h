@@ -26,6 +26,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSRenderNode;
 
 class RSB_EXPORT RSRenderPropertyBase : public std::enable_shared_from_this<RSRenderPropertyBase> {
 public:
@@ -38,27 +39,22 @@ public:
         return id_;
     }
 
-    void Attach(std::weak_ptr<RSBaseRenderNode> node)
+    void Attach(std::weak_ptr<RSRenderNode> node)
     {
         node_ = node;
+        OnChange();
     }
 
     void SetModifierType(RSModifierType type)
     {
-        type_ = type;
+        modifierType_ = type;
     }
 
     static bool Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val);
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
 
 protected:
-    void OnChange() const
-    {
-        if (auto node = node_.lock()) {
-            node->SetDirty();
-            node->AddDirtyType(type_);
-        }
-    }
+    void OnChange() const;
 
     virtual const std::shared_ptr<RSRenderPropertyBase> Clone() const
     {
@@ -91,7 +87,7 @@ protected:
 
     PropertyId id_;
     std::weak_ptr<RSRenderNode> node_;
-    RSModifierType type_ { RSModifierType::INVALID };
+    RSModifierType modifierType_ { RSModifierType::INVALID };
 
 private:
     virtual std::shared_ptr<RSRenderPropertyBase> Add(const std::shared_ptr<const RSRenderPropertyBase>& value)

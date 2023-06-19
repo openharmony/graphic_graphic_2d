@@ -328,9 +328,13 @@ void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier> m
 
 void RSRenderNode::RemoveModifier(const PropertyId& id)
 {
-    bool success = modifiers_.erase(id);
     SetDirty();
-    if (success) {
+    auto it = modifiers_.find(id);
+    if (it != modifiers_.end()) {
+        if (it->second) {
+            AddDirtyType(it->second->GetType());
+        }
+        modifiers_.erase(it);
         return;
     }
     for (auto& [type, modifiers] : drawCmdModifiers_) {
@@ -342,14 +346,14 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
 
 void RSRenderNode::ApplyModifiers()
 {
-    if (!RSBaseRenderNode::IsDirty()) {
+    if (!RSBaseRenderNode::IsDirty() || dirtyTypes_.empty()) {
         return;
     }
     RSModifierContext context = { renderProperties_ };
     for (auto type : dirtyTypes_) {
         renderProperties_.ResetProperty(type);
     }
-    
+
     for (auto& [id, modifier] : modifiers_) {
         if (modifier && (dirtyTypes_.find(modifier->GetType()) != dirtyTypes_.end())) {
             modifier->Apply(context);
