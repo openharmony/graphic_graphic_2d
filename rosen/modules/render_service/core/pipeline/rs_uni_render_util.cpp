@@ -385,6 +385,23 @@ bool RSUniRenderUtil::HandleSubThreadNode(RSRenderNode& node, RSPaintFilterCanva
     return true;
 }
 
+bool RSUniRenderUtil::HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas& canvas)
+{
+    auto surfaceNodePtr = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+    if (surfaceNodePtr == nullptr) {
+        return false;
+    }
+    if (surfaceNodePtr->IsAppWindow()) {
+        auto rsParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNodePtr->GetParent().lock());
+        if (rsParent && rsParent->IsLeashWindow()) {
+            return HandleSubThreadNode(*rsParent, canvas);
+        } else {
+            return HandleSubThreadNode(node, canvas);
+        }
+    }
+    return false;
+}
+
 #ifndef USE_ROSEN_DRAWING
 int RSUniRenderUtil::GetRotationFromMatrix(SkMatrix matrix)
 {

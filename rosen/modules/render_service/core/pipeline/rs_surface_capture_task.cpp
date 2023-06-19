@@ -528,7 +528,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
 
     const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
-    if (!isUIFirst_ && isSelfDrawingSurface) {
+    if (isSelfDrawingSurface) {
         RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
     }
     canvas_->save();
@@ -544,13 +544,6 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         canvas_->clear(SK_ColorWHITE);
         canvas_->restore(); // restore clipRect
         canvas_->restore(); // restore translate and concat
-        return;
-    }
-
-    if (isUIFirst_ && RSUniRenderUtil::HandleSubThreadNode(node, *canvas_)) {
-        RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: \
-            process RSSurfaceRenderNode [%s, %" PRIu64 "] use cache texture.",
-            node.GetName().c_str(), node.GetId());
         return;
     }
 
@@ -592,6 +585,14 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
     if (isSelfDrawingSurface) {
         canvas_->restore();
     }
+
+    if (isUIFirst_ && RSUniRenderUtil::HandleCaptureNode(node, *canvas_)) {
+        RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: \
+            process RSSurfaceRenderNode [%s, %" PRIu64 "] use cache texture.",
+            node.GetName().c_str(), node.GetId());
+        return;
+    }
+
     if (node.IsAppWindow() && RSColdStartManager::Instance().IsColdStartThreadRunning(node.GetId()) &&
         node.GetCachedImage() != nullptr) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: DrawCachedImage.");
