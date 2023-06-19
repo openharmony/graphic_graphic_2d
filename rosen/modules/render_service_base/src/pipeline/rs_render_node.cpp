@@ -65,12 +65,13 @@ void RSRenderNode::FallbackAnimationsToRoot()
     }
     context->RegisterAnimatingRenderNode(target);
 
-    for (const auto& [animationId, animation] : animationManager_.animations_) {
+    for (auto& [unused, animation] : animationManager_.animations_) {
         animation->Detach();
         // avoid infinite loop for fallback animation
         animation->SetRepeatCount(1);
-        target->animationManager_.AddAnimation(animation);
+        target->animationManager_.AddAnimation(std::move(animation));
     }
+    animationManager_.animations_.clear();
 }
 
 std::pair<bool, bool> RSRenderNode::Animate(int64_t timestamp)

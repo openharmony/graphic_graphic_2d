@@ -231,12 +231,13 @@ void RSNode::FallbackAnimationsToRoot()
         ROSEN_LOGE("Failed to move animation to root, root node is null!");
         return;
     }
-    for (const auto& [animationId, animation] : animations_) {
+    for (auto& [unused, animation] : animations_) {
         if (animation && animation->GetRepeatCount() == -1) {
             continue;
         }
-        target->AddAnimationInner(animation);
+        target->AddAnimationInner(std::move(animation));
     }
+    animations_.clear();
 }
 
 void RSNode::AddAnimationInner(const std::shared_ptr<RSAnimation>& animation)
@@ -247,9 +248,12 @@ void RSNode::AddAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 
 void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 {
-    animatingPropertyNum_[animation->GetPropertyId()]--;
-    if (animatingPropertyNum_[animation->GetPropertyId()] == 0) {
-        animation->SetPropertyOnAllAnimationFinish();
+    if (auto it = animatingPropertyNum_.find(animation->GetPropertyId()); it != animatingPropertyNum_.end()) {
+        it->second--;
+        if (it->second == 0) {
+            animatingPropertyNum_.erase(it);
+            animation->SetPropertyOnAllAnimationFinish();
+        }
     }
     animations_.erase(animation->GetId());
 }

@@ -356,16 +356,10 @@ private:
 #else
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<Drawing::Matrix>>;
 #endif
-    using TransitionNodeList = std::vector<std::pair<NodeId, RenderParam>>;
-    TransitionNodeList unpairedTransitionNodes_;
+    std::unordered_map<NodeId, RenderParam> unpairedTransitionNodes_;
     // return true if we should prepare/process, false if we should skip.
     bool PrepareSharedTransitionNode(RSBaseRenderNode& node);
     bool ProcessSharedTransitionNode(RSBaseRenderNode& node);
-    // try to pair nodes, call func on paired ones, and move unpaired ones to outList
-    TransitionNodeList FindPairedSharedTransitionNodes(TransitionNodeList& existingNodes, TransitionNodeList& newNodes,
-        TransitionNodeList (RSUniRenderVisitor::*func)(const RenderParam&, const RenderParam&));
-    TransitionNodeList PreparePairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second);
-    TransitionNodeList ProcessPairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second);
 
     std::weak_ptr<RSBaseRenderNode> logicParentNode_;
 

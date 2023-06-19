@@ -243,7 +243,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
 {
 #ifdef RS_ENABLE_GL
     if (grContext_ && !IsOnTheTree() && IsLeashWindow()) {
-        RS_TRACE_NAME_FMT("purgeUnlockedResources this SurfaceNode isn't onthe tree Id:%" PRIu64 " Name:%s",
+        RS_TRACE_NAME_FMT("purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
             GetId(), GetName().c_str());
         grContext_->purgeUnlockedResources(true);
     }
@@ -792,7 +792,7 @@ Occlusion::Region RSSurfaceRenderNode::ResetOpaqueRegion(const RectI& absRect,
     }
 }
 
-void RSSurfaceRenderNode::ContarinerConfig::Update(bool hasContainer, float density)
+void RSSurfaceRenderNode::ContainerConfig::Update(bool hasContainer, float density)
 {
     this->hasContainerWindow_ = hasContainer;
     this->density = density;
@@ -886,7 +886,7 @@ Occlusion::Region RSSurfaceRenderNode::SetUnfocusedWindowOpaqueRegion(const Rect
     If a surfacenode with containerwindow is a focused window, then its containerWindow region
 should be set transparent, including: title, content padding area, border, and content corners.
 Note this region is not centrosymmetric, hence it should be differentiated under different
-screen rotation state as top/left/botton/right has changed when screen rotated.
+screen rotation state as top/left/bottom/right has changed when screen rotated.
 */
 Occlusion::Region RSSurfaceRenderNode::SetFocusedWindowOpaqueRegion(const RectI& absRect,
     const ScreenRotation screenRotation) const

@@ -130,15 +130,12 @@ bool RSObjAbsGeometryFuzzTest(const uint8_t* data, size_t size)
     float offsetX = GetData<float>();
     float offsetY = GetData<float>();
     RectF rect;
-    float x = GetData<float>();
-    float y = GetData<float>();
 
     // Test
     RSObjAbsGeometry rsobjabsgeometry;
     rsobjabsgeometry.ConcatMatrix(matrix);
     rsobjabsgeometry.UpdateMatrix(parent, SkPoint::Make(offsetX, offsetY), std::nullopt);
     (void)rsobjabsgeometry.MapAbsRect(rect);
-    rsobjabsgeometry.IsPointInHotZone(x, y);
 
     return true;
 }
