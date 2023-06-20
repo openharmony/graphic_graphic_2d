@@ -33,7 +33,12 @@
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#ifdef NEW_RENDER_CONTEXT
+#include "render_context_base.h"
+#include "include/gpu/gl/GrGLInterface.h"
+#else
 #include "render_context/render_context.h"
+#endif
 #include "pipeline/rs_base_render_engine.h"
 
 namespace OHOS {
@@ -45,7 +50,12 @@ enum class ParallelRenderType;
 class RSParallelSubThread {
 public:
     explicit RSParallelSubThread(int threadIndex);
+#ifdef NEW_RENDER_CONTEXT
+    RSParallelSubThread(std::shared_ptr<RenderContextBase> renderContext, ParallelRenderType renderType,
+        int threadIndex);
+#else
     RSParallelSubThread(RenderContext *context, ParallelRenderType renderType, int threadIndex);
+#endif
     ~RSParallelSubThread();
 
     void StartSubThread();
@@ -128,7 +138,11 @@ private:
     std::thread *subThread_;
     std::condition_variable cvFlush_;
     std::mutex flushMutex_;
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RenderContextBase> renderContext_ = nullptr;
+#else
     RenderContext *renderContext_ = nullptr;
+#endif
     std::unique_ptr<RSSuperRenderTask> threadTask_;
     std::unique_ptr<RSSuperRenderTask> cacheThreadTask_;
     std::unique_ptr<RSCompositionTask> compositionTask_ = nullptr;

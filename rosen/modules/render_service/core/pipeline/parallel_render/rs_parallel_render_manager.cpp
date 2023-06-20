@@ -26,7 +26,6 @@
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_listener.h"
 #include "pipeline/rs_uni_render_visitor.h"
-#include "render_context/render_context.h"
 #include "rs_parallel_render_ext.h"
 #include "rs_trace.h"
 
@@ -89,13 +88,21 @@ bool RSParallelRenderManager::GetParallelMode() const
     return (status == ParallelStatus::ON) || (status == ParallelStatus::FIRSTFLUSH);
 }
 
+#ifdef NEW_RENDER_CONTEXT
+void RSParallelRenderManager::StartSubRenderThread(uint32_t threadNum, std::shared_ptr<RenderContextBase> context,
+    std::shared_ptr<DrawingContext> drawingContext)
+#else
 void RSParallelRenderManager::StartSubRenderThread(uint32_t threadNum, RenderContext *context)
+#endif
 {
     if (GetParallelRenderingStatus() == ParallelStatus::OFF) {
         expectedSubThreadNum_ = threadNum;
         flipCoin_ = std::vector<uint8_t>(expectedSubThreadNum_, 0);
         firstFlush_ = true;
         renderContext_ = context;
+#ifdef NEW_RENDER_CONTEXT
+        drawingContext_ = drawingContext;
+#endif
 #ifdef RS_ENABLE_GL
         if (context) {
 #endif
@@ -321,7 +328,11 @@ void RSParallelRenderManager::SaveCacheTexture(RSRenderNode& node) const
         RS_LOGE("DrawCacheSurface render context is nullptr");
         return;
     }
+#ifdef NEW_RENDER_CONTEXT
+    auto mainGrContext = drawingContext_->GetDrawingContext();
+#else
     auto mainGrContext = renderContext_->GetGrContext();
+#endif
     if (mainGrContext == nullptr) {
         RS_LOGE("DrawCacheSurface GrDirectContext is nullptr");
         return;
@@ -363,7 +374,11 @@ void RSParallelRenderManager::DrawImageMergeFunc(RSPaintFilterCanvas& canvas)
                 RS_LOGE("RS main thread render context is nullptr");
                 continue;
             }
+#ifdef NEW_RENDER_CONTEXT
+            auto mainGrContext = drawingContext_->GetDrawingContext();
+#else
             auto mainGrContext = renderContext_->GetGrContext();
+#endif
             if (mainGrContext == nullptr) {
                 RS_LOGE("RS main thread GrDirectContext is nullptr");
                 continue;
@@ -404,12 +419,20 @@ void RSParallelRenderManager::DrawImageMergeFunc(RSPaintFilterCanvas& canvas)
 
 void RSParallelRenderManager::FlushOneBufferFunc()
 {
+#ifdef NEW_RENDER_CONTEXT
+    renderContext_->MakeCurrent(nullptr, EGL_NO_CONTEXT);
+#else
     renderContext_->ShareMakeCurrent(EGL_NO_CONTEXT);
+#endif
     for (unsigned int i = 0; i < threadList_.size(); ++i) {
         if (threadList_[i] == nullptr) {
             return;
         }
+#ifdef NEW_RENDER_CONTEXT
+        renderContext_->MakeCurrent(nullptr, threadList_[i]->GetSharedContext());
+#else
         renderContext_->ShareMakeCurrent(threadList_[i]->GetSharedContext());
+#endif
         RS_TRACE_BEGIN("Start Flush");
 #ifndef USE_ROSEN_DRAWING
         auto skSurface = threadList_[i]->GetSkSurface();
@@ -428,9 +451,17 @@ void RSParallelRenderManager::FlushOneBufferFunc()
         }
 #endif
         RS_TRACE_END();
+#ifdef NEW_RENDER_CONTEXT
+        renderContext_->MakeCurrent(nullptr, EGL_NO_CONTEXT);
+#else
         renderContext_->ShareMakeCurrent(EGL_NO_CONTEXT);
+#endif
     }
+#ifdef NEW_RENDER_CONTEXT
+    renderContext_->MakeCurrent();
+#else
     renderContext_->MakeSelfCurrent();
+#endif
 }
 
 void RSParallelRenderManager::MergeRenderResult(RSPaintFilterCanvas& canvas)
@@ -645,8 +676,13 @@ void RSParallelRenderManager::TryEnableParallelRendering()
         renderEngine->Init();
     }
     if (parallelMode_) {
+#ifdef NEW_RENDER_CONTEXT
+        StartSubRenderThread(PARALLEL_THREAD_NUM,
+            renderEngine->GetRenderContext(), renderEngine->GetDrawingContext());
+#else
         StartSubRenderThread(PARALLEL_THREAD_NUM,
             renderEngine->GetRenderContext().get());
+#endif
     } else {
         EndSubRenderThread();
     }
