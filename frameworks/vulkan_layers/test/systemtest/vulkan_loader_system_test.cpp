@@ -56,7 +56,7 @@ public:
     static inline PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
     static inline PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
     static inline PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
-    static inline PFN_vkCreateOHOSSurfaceOpenHarmony vkCreateOHOSSurfaceOpenHarmony;
+    static inline PFN_vkCreateSurfaceOHOS vkCreateSurfaceOHOS;
     static inline PFN_vkGetPhysicalDeviceSurfaceSupportKHR fpGetPhysicalDeviceSurfaceSupportKHR;
     static inline PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR fpGetPhysicalDeviceSurfaceCapabilitiesKHR;
     static inline PFN_vkGetPhysicalDeviceSurfaceFormatsKHR fpGetPhysicalDeviceSurfaceFormatsKHR;
@@ -102,7 +102,7 @@ void VulkanLoaderSystemTest::TrytoCreateVkInstance()
 
     std::vector<const char*> instanceExtensions = {
         VK_KHR_SURFACE_EXTENSION_NAME,
-        VK_OPENHARMONY_OHOS_SURFACE_EXTENSION_NAME
+        VK_OHOS_SURFACE_EXTENSION_NAME
     };
 
     VkInstanceCreateInfo instanceCreateInfo = {};
@@ -166,9 +166,9 @@ HWTEST_F(VulkanLoaderSystemTest, LoadInstanceFuncPtr, TestSize.Level1)
         vkCreateDevice = reinterpret_cast<PFN_vkCreateDevice>(
             vkGetInstanceProcAddr(instance_, "vkCreateDevice"));
         EXPECT_NE(vkCreateDevice, nullptr);
-        vkCreateOHOSSurfaceOpenHarmony = reinterpret_cast<PFN_vkCreateOHOSSurfaceOpenHarmony>(
-            vkGetInstanceProcAddr(instance_, "vkCreateOHOSSurfaceOpenHarmony"));
-        EXPECT_NE(vkCreateOHOSSurfaceOpenHarmony, nullptr);
+        vkCreateSurfaceOHOS = reinterpret_cast<PFN_vkCreateSurfaceOHOS>(
+            vkGetInstanceProcAddr(instance_, "vkCreateSurfaceOHOS"));
+        EXPECT_NE(vkCreateSurfaceOHOS, nullptr);
         vkDestroySurfaceKHR = reinterpret_cast<PFN_vkDestroySurfaceKHR>(
             vkGetInstanceProcAddr(instance_, "vkDestroySurfaceKHR"));
         EXPECT_NE(vkDestroySurfaceKHR, nullptr);
@@ -260,10 +260,10 @@ HWTEST_F(VulkanLoaderSystemTest, createSurface_Test, TestSize.Level1)
         OHOS::sptr<OHOS::Surface> surf = surfaceNode->GetSurface();
         OHNativeWindow* nativeWindow = CreateNativeWindowFromSurface(&surf);
         EXPECT_NE(nativeWindow, nullptr);
-        VkOHOSSurfaceCreateInfoOpenHarmony surfaceCreateInfo = {};
-        surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_OHOS_SURFACE_CREATE_INFO_OPENHARMONY;
+        VkSurfaceCreateInfoOHOS surfaceCreateInfo = {};
+        surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_SURFACE_CREATE_INFO_OHOS;
         surfaceCreateInfo.window = nativeWindow;
-        VkResult err = vkCreateOHOSSurfaceOpenHarmony(instance_, &surfaceCreateInfo, NULL, &surface_);
+        VkResult err = vkCreateSurfaceOHOS(instance_, &surfaceCreateInfo, NULL, &surface_);
         EXPECT_EQ(err, VK_SUCCESS);
         EXPECT_NE(surface_, VK_NULL_HANDLE);
     }

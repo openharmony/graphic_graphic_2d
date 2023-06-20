@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 ## Build libvulkan_swapchain.so {{{
 config("vulkan_config") {
   defines = [
-    "VK_USE_PLATFORM_OHOS_OPENHARMONY",
+    "VK_USE_PLATFORM_OHOS",
     "VK_NO_PROTOTYPES",
   ]
 
