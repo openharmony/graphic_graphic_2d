@@ -58,7 +58,7 @@
           "eventhandler",
           "config_policy",
           "init",
-          "hicollie_native",
+          "hicollie",
           "bounds_checking_function",
           "multimedia_image_framework",
           "cjson",
