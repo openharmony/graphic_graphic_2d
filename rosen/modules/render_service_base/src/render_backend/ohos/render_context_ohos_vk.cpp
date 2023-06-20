@@ -60,14 +60,14 @@ bool RenderContextOhosVk::CreateSurface(const std::shared_ptr<RSRenderSurfaceFra
     }
 
     std::shared_ptr<FrameConfig> frameConfig = frame->frameConfig;
-
     NativeWindowHandleOpt(surfaceConfig->nativeWindow, SET_FORMAT, frameConfig->pixelFormat);
 #ifdef RS_ENABLE_AFBC
     if (RSSystemProperties::GetAFBCEnabled()) {
         int32_t format = 0;
+        bool useAFBC = frameConfig->useAFBC;
         NativeWindowHandleOpt(surfaceConfig->nativeWindow, GET_FORMAT, &format);
-        if (format == PIXEL_FMT_RGBA_8888 && useAFBC) {
-            bufferUsage_ =
+        if (format == GRAPHIC_PIXEL_FMT_RGBA_8888 && useAFBC) {
+            frameConfig->bufferUsage =
                 (BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA);
         }
     }
@@ -104,6 +104,7 @@ void RenderContextOhosVk::SwapBuffers(const std::shared_ptr<RSRenderSurfaceFrame
 {
     if (IsContextReady()) {
         vulkanWindow_->SwapBuffers();
+        LOGD("SwapBuffers in vulkan successfully");
     } else {
         LOGE("Failed to swap buffers, vulkanWindow_ is nullptr");
     }

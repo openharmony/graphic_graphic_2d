@@ -41,6 +41,20 @@ void MemoryHandler::ConfigureContext(Drawing::GPUContextOptions* context, const 
 }
 #endif
 
+#if defined(NEW_SKIA)
+void MemoryHandler::ClearRedundantResources(GrDirectContext* grContext)
+#else
+void MemoryHandler::ClearRedundantResources(GrContext* grContext)
+#endif
+{
+    if (grContext != nullptr) {
+        LOGD("grContext clear redundant resources");
+        grContext->flush();
+        // GPU resources that haven't been used in the past 10 seconds
+        grContext->purgeResourcesNotUsedInMs(std::chrono::seconds(10));
+    }
+}
+
 std::string MemoryHandler::QuerryShader()
 {
     const auto& cache = ShaderCache::Instance();

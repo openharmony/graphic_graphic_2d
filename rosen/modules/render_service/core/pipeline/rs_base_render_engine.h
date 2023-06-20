@@ -46,8 +46,8 @@ class RSRenderFrame {
 public:
     // we guarantee when constructing this object, all parameters are valid.
 #ifdef NEW_RENDER_CONTEXT
-    RSRenderFrame(const std::shared_ptr<RSRenderSurfaceOhos>& target)
-        : targetSurface_(target) explicit
+    explicit RSRenderFrame(const std::shared_ptr<RSRenderSurfaceOhos>& target)
+        : targetSurface_(target)
     {
     }
 #else

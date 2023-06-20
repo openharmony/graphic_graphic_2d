@@ -77,8 +77,8 @@ private:
     std::unique_ptr<OHOS::Rosen::RSSurfaceFrame> framePtr_;
     std::shared_ptr<OHOS::Rosen::RSSurface> rsSurface_;
     OHOS::Rosen::RenderContext* rc_;
-    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> rsSurfaceNode_;
 #endif
+    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> rsSurfaceNode_;
     int32_t freq_ = 30;
     int32_t realHeight_ = 0;
     int32_t realWidth_ = 0;

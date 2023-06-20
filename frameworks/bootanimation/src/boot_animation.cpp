@@ -186,6 +186,7 @@ void BootAnimation::InitRsSurface()
     OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
 
     sptr<Surface> surface = rsSurfaceNode_->GetSurface();
+    drawingContext->SetUpDrawingContext();
     rsSurface_ = Rosen::RSSurfaceFactory::CreateRSSurface(Rosen::PlatformName::OHOS, surface, drawingContext);
     rsSurface_->SetRenderContext(renderContext_);
 

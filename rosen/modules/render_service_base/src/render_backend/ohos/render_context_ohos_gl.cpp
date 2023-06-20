@@ -17,6 +17,7 @@
 
 #include <EGL/egl.h>
 
+#include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
 #include "window.h"
 #include "utils/log.h"
@@ -159,6 +160,7 @@ void RenderContextOhosGl::Init()
         return;
     }
     SetEGLState();
+    LOGD("Init egl render context successfully, version %{public}d.%{public}d", major, minor);
 }
 
 bool RenderContextOhosGl::IsContextReady()
@@ -212,7 +214,6 @@ bool RenderContextOhosGl::CreateSurface(const std::shared_ptr<RSRenderSurfaceFra
         return false;
     }
 
-    std::shared_ptr<FrameConfig> frameConfig = frame->frameConfig;
     std::shared_ptr<SurfaceConfig> surfaceConfig = frame->surfaceConfig;
     if (surfaceConfig->nativeWindow == nullptr) {
         sptr<Surface> producer = surfaceConfig->producer;
@@ -236,13 +237,15 @@ bool RenderContextOhosGl::CreateSurface(const std::shared_ptr<RSRenderSurfaceFra
         eglState->eglSurface = surface;
     }
 
+    std::shared_ptr<FrameConfig> frameConfig = frame->frameConfig;
     NativeWindowHandleOpt(surfaceConfig->nativeWindow, SET_FORMAT, frameConfig->pixelFormat);
 #ifdef RS_ENABLE_AFBC
     if (RSSystemProperties::GetAFBCEnabled()) {
         int32_t format = 0;
+        bool useAFBC = frameConfig->useAFBC;
         NativeWindowHandleOpt(surfaceConfig->nativeWindow, GET_FORMAT, &format);
-        if (format == PIXEL_FMT_RGBA_8888 && useAFBC) {
-            bufferUsage_ =
+        if (format == GRAPHIC_PIXEL_FMT_RGBA_8888 && useAFBC) {
+            frameConfig->bufferUsage =
                 (BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA);
         }
     }
@@ -336,7 +339,7 @@ void RenderContextOhosGl::SwapBuffers(const std::shared_ptr<RSRenderSurfaceFrame
     if (!eglSwapBuffers(eglDisplay_, surface)) {
         LOGE("Failed to SwapBuffers on surface, error is %{public}x", eglGetError());
     } else {
-        LOGD("SwapBuffers successfully");
+        LOGD("SwapBuffers in egl successfully");
     }
 }
 
@@ -368,6 +371,7 @@ void RenderContextOhosGl::SetEGLState()
     }
     eglState->eglDisplay = eglDisplay_;
     eglState->eglContext = eglContext_;
+    LOGD("Set egl state successfully");
 }
 }
 }

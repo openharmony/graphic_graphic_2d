@@ -222,8 +222,13 @@ void RSDrivenRenderVisitor::RenderExpandedFrame(RSDrivenSurfaceRenderNode& node)
         return;
     }
     rsSurface->SetColorSpace(uniColorSpace_);
+#ifdef NEW_RENDER_CONTEXT
+    auto renderFrame = renderEngine_->RequestFrame(std::static_pointer_cast<RSRenderSurfaceOhos>(rsSurface),
+        node.GetBufferRequestConfig());
+#else
     auto renderFrame = renderEngine_->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
         node.GetBufferRequestConfig());
+#endif
     if (renderFrame == nullptr) {
         RS_LOGE("RSDrivenRenderVisitor Request Frame Failed");
         return;
