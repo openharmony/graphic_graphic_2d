@@ -86,9 +86,6 @@ private:
     int surfaceHeight_ = 0;
     std::string cacheDir_;
 
-    // used for print control of trace
-    SkiaTraceType skiaTraceEnabled_ = SkiaTraceType::DISABLED;
-
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;
     friend class RSImplicitAnimator;
