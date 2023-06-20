@@ -888,7 +888,6 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 #endif
     }
     if (filterType == FilterType::FOREGROUND_FILTER) {
-        // for online opacity, rendering result already applied opacity, so drawImage should not apply opacity again
         canvas.RestoreAlpha();
     }
     filter->PostProcess(canvas);
