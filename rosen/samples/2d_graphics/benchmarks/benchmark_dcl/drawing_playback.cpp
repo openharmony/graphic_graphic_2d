@@ -62,7 +62,7 @@ bool DrawingDCL::PlayBackByFrame(SkCanvas* skiaCanvas, bool isDumpPictures)
     auto start = std::chrono::system_clock::now();
     static int frame = beginFrame_;
     static int curLoop = 0;
-    std::string dclFile = inputFilePath_ + "frame" + std::to_string(frame) + ".txt";
+    std::string dclFile = inputFilePath_ + "frame" + std::to_string(frame) + ".drawing";
     std::cout << "PlayBackByFrame dclFile:" << dclFile << std::endl;
 
     if (LoadDrawCmdList(dclFile) < 0) {
@@ -85,7 +85,7 @@ bool DrawingDCL::PlayBackByOpItem(SkCanvas* skiaCanvas, bool isMoreOps)
     }
     auto start = std::chrono::system_clock::now();
     // read drawCmdList from file
-    std::string dclFile = inputFilePath_ + "frameByOpItem.txt";
+    std::string dclFile = inputFilePath_ + "frameByOpItem.drawing";
     std::cout << "PlayBackFrame dclFile:" << dclFile << std::endl;
 
     if (LoadDrawCmdList(dclFile) < 0) {
