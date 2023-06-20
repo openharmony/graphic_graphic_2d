@@ -39,17 +39,6 @@ std::string GetRealAndValidPath(const std::string& filePath)
     }
 }
 
-bool IsExistFile(const std::string& filePath)
-{
-    std::ifstream inFile(filePath.c_str());
-    if (!inFile.is_open()) {
-        return false;
-    }
-    inFile.clear();
-    inFile.close();
-    return true;
-}
-
 bool CreateFile(const std::string& filePath)
 {
     std::string realPath = GetRealAndValidPath(filePath);
@@ -81,8 +70,8 @@ bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath)
     }
     ssize_t nwrite = write(fd, reinterpret_cast<uint8_t *>(data), size);
     if (nwrite < 0) {
-        RS_LOGE("FileUtils: %s failed to persist data = %d, size = %d,  fd = %d",
-            __func__, data, size, fd);
+        RS_LOGE("FileUtils: %s failed to persist data, size = %d,  fd = %d",
+            __func__,  size, fd);
     }
     close(fd);
     return true;
