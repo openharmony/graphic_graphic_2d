@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -60,6 +60,10 @@ public:
         REMOVE_VIRTUAL_SCREEN,
         SET_SCREEN_CHANGE_CALLBACK,
         SET_SCREEN_ACTIVE_MODE,
+        SET_SCREEN_REFRESH_RATE,
+        SET_REFRESH_RATE_MODE,
+        GET_SCREEN_CURRENT_REFRESH_RATE,
+        GET_SCREEN_SUPPORTED_REFRESH_RATES,
         SET_SCREEN_POWER_STATUS,
         SET_SCREEN_BACK_LIGHT,
         TAKE_SURFACE_CAPTURE,
@@ -123,6 +127,14 @@ public:
     virtual int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) = 0;
 
     virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
+
+    virtual void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) = 0;
+
+    virtual void SetRefreshRateMode(int32_t refreshRateMode) = 0;
+
+    virtual uint32_t GetScreenCurrentRefreshRate(ScreenId id) = 0;
+
+    virtual std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id) = 0;
 
     virtual int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 
 #include "rs_screen_manager.h"
 
+#include "hgm_core.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_hardware_thread.h"
@@ -182,8 +183,10 @@ void RSScreenManager::ProcessScreenHotPlugEvents()
     for (auto &event : pendingHotPlugEvents_) {
         if (event.connected) {
             ProcessScreenConnectedLocked(event.output);
+            AddScreenToHgm(event.output);
         } else {
             ProcessScreenDisConnectedLocked(event.output);
+            RemoveScreenFromHgm(event.output);
         }
     }
     for (auto id : connectedIds_) {
@@ -194,6 +197,54 @@ void RSScreenManager::ProcessScreenHotPlugEvents()
     mipiCheckInFirstHotPlugEvent_ = true;
     pendingHotPlugEvents_.clear();
     connectedIds_.clear();
+}
+
+void RSScreenManager::AddScreenToHgm(std::shared_ptr<HdiOutput> &output)
+{
+    if (output == nullptr) {
+        RS_LOGE("RSScreenManager %s: output is nullptr.", __func__);
+        return;
+    }
+
+    RS_LOGI("RSScreenManager AddScreenToHgm");
+    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
+    ScreenId thisId = ToScreenId(output->GetScreenId());
+    if (screens_.find(thisId) == screens_.end()) {
+        RS_LOGE("RSScreenManager invalid screen id, screen not found : %" PRIu64 "", thisId);
+        return;
+    }
+
+    auto supportedModes = screens_[thisId]->GetSupportedModes();
+    int32_t initMode = 2;
+    if (hgmCore.AddScreen(thisId, initMode)) {
+        RS_LOGW("RSScreenManager failed to add screen : %" PRIu64 "", thisId);
+        return;
+    }
+
+    // for each supported mode, use the index as modeId to add the detailed mode to hgm
+    int32_t modeId = 0;
+    for (auto mode = supportedModes.begin(); mode != supportedModes.end(); ++mode) {
+        if (!hgmCore.AddScreenInfo(thisId, (*mode).width, (*mode).height,
+            (*mode).freshRate, modeId)) {
+            RS_LOGW("RSScreenManager failed to add a screen profile to the screen : %" PRIu64 "", thisId);
+        }
+        modeId++;
+    }
+}
+
+void RSScreenManager::RemoveScreenFromHgm(std::shared_ptr<HdiOutput> &output)
+{
+    if (output == nullptr) {
+        RS_LOGE("RSScreenManager %s: output is nullptr.", __func__);
+        return;
+    }
+
+    RS_LOGI("RSScreenManager RemoveScreenFromHgm");
+    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
+    ScreenId id = ToScreenId(output->GetScreenId());
+    if (hgmCore.RemoveScreen(id)) {
+        RS_LOGW("RSScreenManager failed to remove screen : %" PRIu64 "", id);
+    }
 }
 
 void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &output)

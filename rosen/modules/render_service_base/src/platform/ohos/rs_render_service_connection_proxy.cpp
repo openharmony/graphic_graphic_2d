@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -383,6 +383,99 @@ void RSRenderServiceConnectionProxy::SetScreenActiveMode(ScreenId id, uint32_t m
     if (err != NO_ERROR) {
         return;
     }
+}
+
+void RSRenderServiceConnectionProxy::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceProxy failed to get descriptor");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    data.WriteInt32(sceneId);
+    data.WriteInt32(rate);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::SET_SCREEN_REFRESH_RATE, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %d", err);
+    }
+}
+
+void RSRenderServiceConnectionProxy::SetRefreshRateMode(int32_t refreshRateMode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceProxy failed to get descriptor");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteInt32(refreshRateMode);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::SET_REFRESH_RATE_MODE, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %d", err);
+    }
+}
+
+uint32_t RSRenderServiceConnectionProxy::GetScreenCurrentRefreshRate(ScreenId id)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceProxy failed to get descriptor");
+        return SUCCESS;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_SCREEN_CURRENT_REFRESH_RATE,
+        data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %d", err);
+        return SUCCESS;
+    }
+    uint32_t rate = reply.ReadUint32();
+    return rate;
+}
+
+std::vector<uint32_t> RSRenderServiceConnectionProxy::GetScreenSupportedRefreshRates(ScreenId id)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::vector<uint32_t> screenSupportedRates;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceProxy failed to get descriptor");
+        return screenSupportedRates;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_SCREEN_SUPPORTED_REFRESH_RATES,
+        data, reply, option);
+    if (err != NO_ERROR) {
+        return screenSupportedRates;
+    }
+    uint64_t rateCount = reply.ReadUint64();
+    size_t readableSize = reply.GetReadableBytes();
+    size_t len = static_cast<size_t>(rateCount);
+    if (len > readableSize || len > screenSupportedRates.max_size()) {
+        RS_LOGE("RSRenderServiceConnectionProxy GetScreenSupportedRefreshRates "
+            "fail read vector, size : %zu, readableSize : %zu", len, readableSize);
+        return screenSupportedRates;
+    }
+    screenSupportedRates.resize(rateCount);
+    for (uint64_t rateIndex = 0; rateIndex < rateCount; rateIndex++) {
+        screenSupportedRates[rateIndex] = reply.ReadUint32();
+    }
+    return screenSupportedRates;
 }
 
 int32_t RSRenderServiceConnectionProxy::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)

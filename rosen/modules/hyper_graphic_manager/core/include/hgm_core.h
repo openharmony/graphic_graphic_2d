@@ -74,7 +74,7 @@ private:
     bool Init();
     int32_t InitXmlConfig();
     int32_t SetCustomRateMode(RefreshRateMode mode);
-    int32_t SetModeViaChosenSetting();
+    int32_t SetModeBySettingConfig();
 
     bool isEnabled_ = true;
     bool isInit_ = false;

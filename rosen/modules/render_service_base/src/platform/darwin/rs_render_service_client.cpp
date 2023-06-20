@@ -136,6 +136,24 @@ void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
 }
 
+void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
+{
+}
+
+void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
+{
+}
+
+uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
+{
+    return {};
+}
+
+std::vector<uint32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     return {};

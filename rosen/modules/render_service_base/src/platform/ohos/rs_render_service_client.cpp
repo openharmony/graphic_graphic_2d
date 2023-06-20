@@ -320,6 +320,50 @@ void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
     renderService->SetScreenActiveMode(id, modeId);
 }
 
+void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return;
+    }
+
+    renderService->SetScreenRefreshRate(id, sceneId, rate);
+}
+
+void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return;
+    }
+
+    renderService->SetRefreshRateMode(refreshRateMode);
+}
+
+uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+
+    return renderService->GetScreenCurrentRefreshRate(id);
+}
+
+std::vector<uint32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return {};
+    }
+
+    return renderService->GetScreenSupportedRefreshRates(id);
+}
+
 int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

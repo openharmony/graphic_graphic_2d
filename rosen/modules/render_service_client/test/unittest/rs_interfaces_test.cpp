@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,6 +39,9 @@ public:
     }
 
     static inline RSInterfaces* rsInterfaces = nullptr;
+
+private:
+    static constexpr uint32_t SET_REFRESHRATE_SLEEP_S = 1;  // wait for refreshrate change
 };
 
 /*
@@ -879,6 +882,123 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSurface_Test, Function | SmallTest | 
 
     int32_t ret = rsInterfaces->SetVirtualScreenSurface(123, psurface);
     ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: GetScreenCurrentRefreshRate001
+ * @tc.desc: Verify the function of getting the current refreshrate via rs interfaces
+ * @tc.type: FUNC
+ * @tc.require: I7EM2R
+ */
+HWTEST_F(RSInterfacesTest, GetScreenCurrentRefreshRate001, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    auto modeInfo = rsInterfaces->GetScreenActiveMode(screenId);
+    rsInterfaces->SetScreenRefreshRate(screenId, 0, modeInfo.GetScreenRefreshRate());
+    uint32_t currentRate = rsInterfaces-> GetScreenCurrentRefreshRate(screenId);
+    EXPECT_EQ(modeInfo.GetScreenRefreshRate(), currentRate);
+}
+
+/*
+ * @tc.name: SetScreenRefreshRate001
+ * @tc.desc: Verify the function of setting the refreshrate with 90hz
+ * @tc.type: FUNC
+ * @tc.require: I7EM2R
+ */
+HWTEST_F(RSInterfacesTest, SetScreenRefreshRate001, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    uint32_t rateToSet = 90;
+
+    rsInterfaces->SetScreenRefreshRate(screenId, 0, rateToSet);
+    sleep(SET_REFRESHRATE_SLEEP_S);
+    uint32_t currentRate = rsInterfaces->GetScreenCurrentRefreshRate(screenId);
+    auto supportedRates = rsInterfaces->GetScreenSupportedRefreshRates(screenId);
+
+    bool ifSupported = false;
+    for (auto rateIter : supportedRates) {
+        if (rateIter == rateToSet) {
+            ifSupported = true;
+        }
+    }
+    if (ifSupported) {
+        EXPECT_EQ(currentRate, rateToSet);
+    } else {
+        EXPECT_NE(currentRate, rateToSet);
+    }
+}
+
+/*
+ * @tc.name: SetScreenRefreshRate002
+ * @tc.desc: Verify the function of setting the refreshrate with a very high value
+ * @tc.type: FUNC
+ * @tc.require: I7EM2R
+ */
+HWTEST_F(RSInterfacesTest, SetScreenRefreshRate002, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    uint32_t rateToSet = 990;
+
+    rsInterfaces->SetScreenRefreshRate(screenId, 0, rateToSet);
+    sleep(SET_REFRESHRATE_SLEEP_S);
+    uint32_t currentRate = rsInterfaces->GetScreenCurrentRefreshRate(screenId);
+    EXPECT_NE(currentRate, rateToSet);
+}
+
+/*
+ * @tc.name: SetScreenRefreshRate003
+ * @tc.desc: Verify the function of setting the refreshrate with a normal value of 60hz
+ * @tc.type: FUNC
+ * @tc.require: I7EM2R
+ */
+HWTEST_F(RSInterfacesTest, SetScreenRefreshRate003, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    uint32_t rateToSet = 60;
+
+    rsInterfaces->SetScreenRefreshRate(screenId, 0, rateToSet);
+    sleep(SET_REFRESHRATE_SLEEP_S);
+    uint32_t currentRate = rsInterfaces->GetScreenCurrentRefreshRate(screenId);
+    EXPECT_EQ(currentRate, rateToSet);
+}
+
+/*
+ * @tc.name: SetRefreshRateMode001
+ * @tc.desc: Verify the function of setting the refreshrate mode
+ * @tc.type: FUNC
+ * @tc.require: I7EM2R
+ */
+HWTEST_F(RSInterfacesTest, SetRefreshRateMode001, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    int32_t rateModeToSet = 2;
+    uint32_t formerRate = 60;
+    uint32_t newRate = 90;
+
+    rsInterfaces->SetScreenRefreshRate(screenId, 0, formerRate);
+    sleep(SET_REFRESHRATE_SLEEP_S);
+    rsInterfaces->SetRefreshRateMode(rateModeToSet);
+    sleep(SET_REFRESHRATE_SLEEP_S);
+    uint32_t currentRate = rsInterfaces->GetScreenCurrentRefreshRate(screenId);
+    auto supportedRates = rsInterfaces->GetScreenSupportedRefreshRates(screenId);
+
+    bool ifSupported = false;
+    for (auto rateIter : supportedRates) {
+        if (rateIter == newRate) {
+            ifSupported = true;
+        }
+    }
+    if (ifSupported) {
+        EXPECT_EQ(currentRate, newRate);
+    } else {
+        EXPECT_EQ(currentRate, formerRate);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_hardware_thread.h"
 
+#include "hgm_core.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_main_thread.h"
@@ -131,6 +132,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     RSTaskMessage::RSTask task = [this, output = output, layers = layers]() {
         RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers");
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers start");
+        PerformSetActiveMode();
         output->SetLayerInfo(layers);
         hdiBackend_->Repaint(output);
         auto layerMap = output->GetLayers();
@@ -138,6 +140,37 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers end");
     };
     PostTask(task);
+}
+
+void RSHardwareThread::PerformSetActiveMode()
+{
+    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
+    auto screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        RS_LOGE("RSHardwareThread CreateOrGetScreenManager fail.");
+        return;
+    }
+    std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeMap(hgmCore.GetModesToApply());
+    if (modeMap == nullptr) {
+        return;
+    }
+
+    RS_TRACE_NAME("RSHardwareThread::PerformSetActiveMode setting active mode");
+    for (auto mapIter = modeMap->begin(); mapIter != modeMap->end(); ++mapIter) {
+        ScreenId id = mapIter->first;
+        int32_t modeId = mapIter->second;
+
+        auto supportedModes = screenManager->GetScreenSupportedModes(id);
+        for (auto mode : supportedModes) {
+            std::string temp = "RSHardwareThread check modes w: " + std::to_string(mode.GetScreenWidth()) +
+                ", h: " + std::to_string(mode.GetScreenHeight()) +
+                ", rate: " + std::to_string(mode.GetScreenRefreshRate()) +
+                ", id: " + std::to_string(mode.GetScreenModeId());
+            RS_LOGD(temp.c_str());
+        }
+
+        screenManager->SetScreenActiveMode(id, modeId);
+    }
 }
 
 void RSHardwareThread::OnPrepareComplete(sptr<Surface>& surface,
