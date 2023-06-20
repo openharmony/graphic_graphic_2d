@@ -15,7 +15,11 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_SURFACE_EXECTOR_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_SURFACE_EXECTOR_H
 
+#ifdef NEW_RENDER_CONTEXT
+#include "rs_render_surface.h"
+#else
 #include "platform/drawing/rs_surface.h"
+#endif
 #include "ui/rs_surface_node.h"
 
 namespace OHOS {
@@ -23,7 +27,11 @@ namespace Rosen {
 
 class RSC_EXPORT RSSurfaceExtractor {
 public:
+#ifdef NEW_RENDER_CONTEXT
+    static std::shared_ptr<RSRenderSurface> ExtractRSSurface(std::shared_ptr<RSSurfaceNode> node);
+#else
     static std::shared_ptr<RSSurface> ExtractRSSurface(std::shared_ptr<RSSurfaceNode> node);
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

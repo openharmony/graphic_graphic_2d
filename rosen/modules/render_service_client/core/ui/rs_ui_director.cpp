@@ -132,7 +132,11 @@ void RSUIDirector::GoBackground()
         // clean bufferQueue cache
         RSRenderThread::Instance().PostTask([surfaceNode]() {
             if (surfaceNode != nullptr) {
+#ifdef NEW_RENDER_CONTEXT
+                std::shared_ptr<RSRenderSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
+#else
                 std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
+#endif
                 rsSurface->ClearBuffer();
             }
         });
@@ -142,7 +146,8 @@ void RSUIDirector::GoBackground()
             if (renderContext != nullptr) {
 #ifndef ROSEN_CROSS_PLATFORM
 #if defined(NEW_RENDER_CONTEXT)
-                MemoryManager::ClearRedundantResources(renderContext->GetGrContext());
+                auto drawingContext = RSRenderThread::Instance().GetDrawingContext();
+                MemoryManager::ClearRedundantResources(drawingContext->GetDrawingContext());
 #else
                 renderContext->ClearRedundantResources();
 #endif

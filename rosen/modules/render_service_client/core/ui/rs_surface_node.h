@@ -26,7 +26,11 @@
 #include "surface_type.h"
 #endif
 
+#ifdef NEW_RENDER_CONTEXT
+#include "rs_render_surface.h"
+#else
 #include "platform/drawing/rs_surface.h"
+#endif
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
 
@@ -121,7 +125,11 @@ private:
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
     bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
     void OnBoundsSizeChanged() const override;
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RSRenderSurface> surface_;
+#else
     std::shared_ptr<RSSurface> surface_;
+#endif
     std::string name_;
     std::mutex mutex_;
     BufferAvailableCallback callback_;

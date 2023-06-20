@@ -25,11 +25,23 @@ RSUIShareContext& RSUIShareContext::GetInstance()
 
 EGLContext RSUIShareContext::GetRsRenderContext() const
 {
+#ifdef NEW_RENDER_CONTEXT
+    auto context = RSRenderThread::Instance().GetRenderContext();
+    if (!context) {
+        return EGL_NO_CONTEXT;
+    }
+    auto frame = context->GetRSRenderSurfaceFrame();
+    if (frame == nullptr || frame->eglState == nullptr) {
+        return EGL_NO_CONTEXT;
+    }
+    return frame->eglState->eglContext;
+#else
     auto context = RSRenderThread::Instance().GetRenderContext();
     if (!context) {
         return EGL_NO_CONTEXT;
     }
     return context->GetEGLContext();
+#endif
 }
 }
 }

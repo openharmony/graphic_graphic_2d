@@ -41,7 +41,11 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#ifdef NEW_RENDER_CONTEXT
+#include "rs_render_surface.h"
+#else
 #include "platform/drawing/rs_surface.h"
+#endif
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
@@ -338,13 +342,25 @@ void RSRenderThreadVisitor::DrawDirtyRegion()
     }
 }
 
+#ifdef NEW_RENDER_CONTEXT
+void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::shared_ptr<RSRenderSurface>& surface)
+#else
 void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSSurfaceFrame>& surfaceFrame)
+#endif
 {
     RS_TRACE_BEGIN("UpdateDirtyAndSetEGLDamageRegion");
 #ifdef RS_ENABLE_EGLQUERYSURFACE
     if (isEglSetDamageRegion_) {
         // get and update valid buffer age(>0) to merge history
+#if defined(NEW_RENDER_CONTEXT)
+        if (surface == nullptr) {
+            ROSEN_LOGE("Failed to UpdateDirtyAndSetEGLDamageRegion, surface is nullptr");
+            return;
+        }
+        int32_t bufferAge = surface->GetBufferAge();
+#else
         int32_t bufferAge = surfaceFrame->GetBufferAge();
+#endif
         if (!curDirtyManager_->SetBufferAge(bufferAge)) {
             ROSEN_LOGD("ProcessRootRenderNode SetBufferAge with invalid buffer age %d", bufferAge);
             curDirtyManager_->ResetDirtyAsSurfaceSize();
@@ -357,8 +373,14 @@ void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSS
             // get dirty rect coordinated from upper left to lower left corner in current surface
             RectI dirtyRectFlip = curDirtyManager_->GetRectFlipWithinSurface(curDirtyRegion_);
             // set dirty rect as eglSurfaceFrame's damage region
+#if defined(NEW_RENDER_CONTEXT)
+            std::vector<RectI> dirtyRects;
+            dirtyRects.push_back(dirtyRectFlip);
+            surface->SetDamageRegion(dirtyRects);
+#else
             surfaceFrame->SetDamageRegion(dirtyRectFlip.left_, dirtyRectFlip.top_, dirtyRectFlip.width_,
                 dirtyRectFlip.height_);
+#endif
             // flip aligned rect for op drops
             curDirtyRegion_ = curDirtyManager_->GetRectFlipWithinSurface(dirtyRectFlip);
             ROSEN_LOGD("GetPartialRenderEnabled buffer age %d, dirtyRectFlip = [%d, %d, %d, %d], "
@@ -404,7 +426,11 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #ifndef ROSEN_CROSS_PLATFORM
     auto surfaceNodeColorSpace = ptr->GetColorSpace();
 #endif
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RSRenderSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(ptr);
+#else
     std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(ptr);
+#endif
     if (rsSurface == nullptr) {
         ROSEN_LOGE("ProcessRoot %s: No RSSurface found", ptr->GetName().c_str());
         return;
@@ -420,8 +446,14 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     }
 #endif
 
-#ifdef ACE_ENABLE_GL
+#if defined(ACE_ENABLE_GL)
+#if defined(NEW_RENDER_CONTEXT)
+    std::shared_ptr<RenderContextBase> rc = RSRenderThread::Instance().GetRenderContext();
+    std::shared_ptr<DrawingContext> dc = RSRenderThread::Instance().GetDrawingContext();
+    rsSurface->SetDrawingContext(dc);
+#else
     RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
+#endif
     rsSurface->SetRenderContext(rc);
 #endif
     uiTimestamp_ = RSRenderThread::Instance().GetUITimestamp();
@@ -446,9 +478,12 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #endif
         return;
     }
-
 #ifndef USE_ROSEN_DRAWING
+#ifdef NEW_RENDER_CONTEXT
+    auto skSurface = rsSurface->GetSurface();
+#else
     auto skSurface = surfaceFrame->GetSurface();
+#endif
     if (skSurface == nullptr) {
         ROSEN_LOGE("skSurface null.");
         return;
@@ -539,7 +574,11 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #endif // USE_ROSEN_DRAWING
         curDirtyManager_->ResetDirtyAsSurfaceSize();
     }
+#ifdef NEW_RENDER_CONTEXT
+    UpdateDirtyAndSetEGLDamageRegion(rsSurface);
+#else
     UpdateDirtyAndSetEGLDamageRegion(surfaceFrame);
+#endif
 
 #ifndef USE_ROSEN_DRAWING
     canvas_->clipRect(SkRect::MakeWH(bufferWidth, bufferHeight));
@@ -600,7 +639,11 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     RS_TRACE_BEGIN(ptr->GetName() + " rsSurface->FlushFrame");
     ROSEN_LOGD("RSRenderThreadVisitor FlushFrame surfaceNodeId = %" PRIu64 ", uiTimestamp = %" PRIu64,
         node.GetRSSurfaceNodeId(), uiTimestamp_);
+#ifdef NEW_RENDER_CONTEXT
+    rsSurface->FlushFrame(uiTimestamp_);
+#else
     rsSurface->FlushFrame(surfaceFrame, uiTimestamp_);
+#endif
 #ifdef ROSEN_OHOS
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::FlushEnd);
 #endif
