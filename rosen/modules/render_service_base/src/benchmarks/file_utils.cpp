@@ -71,7 +71,7 @@ bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath)
     ssize_t nwrite = write(fd, reinterpret_cast<uint8_t *>(data), size);
     if (nwrite < 0) {
         RS_LOGE("FileUtils: %s failed to persist data, size = %d,  fd = %d",
-            __func__,  size, fd);
+            __func__, size, fd);
     }
     close(fd);
     return true;

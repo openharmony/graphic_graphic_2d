@@ -36,7 +36,7 @@ public:
         MULTI_FRAME,
         NONE,
     };
-    bool GetCaptureEnabled();
+    bool GetCaptureEnabled() const;
     void InitConfigsFromParam();
     bool SetupMultiFrame();
     SkCanvas*  BeginCapture(SkCanvas* canvas, int width, int height);

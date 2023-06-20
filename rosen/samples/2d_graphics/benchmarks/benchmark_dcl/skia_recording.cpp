@@ -20,7 +20,7 @@
 #include "parameters.h"
 
 namespace OHOS::Rosen {
-bool SkiaRecording::GetCaptureEnabled()
+bool SkiaRecording::GetCaptureEnabled() const
 {
     return captureEnabled_;
 }
@@ -72,6 +72,9 @@ bool SkiaRecording::SetupMultiFrame()
 
 SkCanvas* SkiaRecording::BeginCapture(SkCanvas* canvas, int width, int height)
 {
+    if (canvas == nullptr) {
+        return nullptr;
+    }
     static bool isFirstFrame = true;
     if (isFirstFrame && captureMode_ == SkiaCaptureMode::MULTI_FRAME) {
         isFirstFrame = false;
@@ -123,11 +126,12 @@ void SkiaRecording::EndCapture()
             // to a bare pointer because keeping it in a smart pointer makes the lambda
             // non-copyable. The lambda is only called once, so this is safe.
             SkFILEWStream* stream = openMultiPicStream_.release();
-            std::cout << "Finalizing multi frame SKP" << std::endl;
             multiPic_->close();
             delete stream;
             std::cout << "Multi frame SKP complete." << std::endl;
         }
+    } else if (!recorder_) {
+        std::cout << "recorder_ is nullptr" << std::endl;
     } else {
         sk_sp<SkPicture> picture = recorder_->finishRecordingAsPicture();
         if (picture->approximateOpCount() > 0) {
