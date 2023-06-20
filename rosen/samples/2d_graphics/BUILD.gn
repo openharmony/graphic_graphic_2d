@@ -117,9 +117,9 @@ ohos_executable("drawing_engine_sample") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog_native:libhilog",
+    "init:libbegetutil",
     "ipc:ipc_core",
     "multimedia_image_framework:image_native",
-    "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
