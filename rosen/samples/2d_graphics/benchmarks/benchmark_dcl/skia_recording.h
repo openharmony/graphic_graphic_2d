@@ -32,9 +32,9 @@ namespace Rosen {
 class SkiaRecording {
 public:
     enum class SkiaCaptureMode {
-        SingleFrame,
-        MultiFrame,
-        None,
+        SINGLE_FRAME,
+        MULTI_FRAME,
+        NONE,
     };
     bool GetCaptureEnabled();
     void InitConfigsFromParam();
@@ -47,7 +47,7 @@ private:
     bool captureEnabled_ = false;
     int captureFrameNum_ = 0;
     std::string captureFileName_ = "";
-    SkiaCaptureMode captureMode_ = SkiaCaptureMode::None;
+    SkiaCaptureMode captureMode_ = SkiaCaptureMode::NONE;
 
     // Should be decleared before other serializing member
     std::unique_ptr<SkSharingSerialContext> serialContext_;
