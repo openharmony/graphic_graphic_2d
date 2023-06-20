@@ -165,7 +165,7 @@ void RSRenderEngine::RSSurfaceNodeCommonPreProcess(RSSurfaceRenderNode& node, RS
     if (filter != nullptr) {
         auto skRectPtr = std::make_unique<SkRect>();
         skRectPtr->setXYWH(0, 0, params.srcRect.width(), params.srcRect.height());
-        RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr, canvas.GetSurface());
+        RSPropertiesPainter::DrawFilter(property, canvas, filter, FilterType::BACKGROUND_FILTER, skRectPtr);
     }
 #else
     RectF maskBounds(0, 0, params.dstRect.GetWidth(), params.dstRect.GetHeight());
@@ -176,7 +176,7 @@ void RSRenderEngine::RSSurfaceNodeCommonPreProcess(RSSurfaceRenderNode& node, RS
     auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetBackgroundFilter());
     if (filter != nullptr) {
         auto dRectPtr = std::make_unique<Drawing::Rect>(0, 0, params.srcRect.GetWidth(), params.srcRect.GetHeight());
-        RSPropertiesPainter::DrawFilter(property, canvas, filter, dRectPtr, canvas.GetSurface());
+        RSPropertiesPainter::DrawFilter(property, canvas, filter, FilterType::BACKGROUND_FILTER, dRectPtr);
     }
 #endif
 }
@@ -192,7 +192,7 @@ void RSRenderEngine::RSSurfaceNodeCommonPostProcess(RSSurfaceRenderNode& node, R
     if (filter != nullptr) {
         auto skRectPtr = std::make_unique<SkRect>();
         skRectPtr->setXYWH(0, 0, params.srcRect.width(), params.srcRect.height());
-        RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr, canvas.GetSurface());
+        RSPropertiesPainter::DrawFilter(property, canvas, filter, FilterType::FOREGROUND_FILTER, skRectPtr);
     }
     auto para = property.GetLinearGradientBlurPara();
     if (para != nullptr && para->blurRadius_ > 0) {
@@ -204,7 +204,7 @@ void RSRenderEngine::RSSurfaceNodeCommonPostProcess(RSSurfaceRenderNode& node, R
     auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetFilter());
     if (filter != nullptr) {
         auto dRectPtr = std::make_unique<Drawing::Rect>(0, 0, params.srcRect.GetWidth(), params.srcRect.GetHeight());
-        RSPropertiesPainter::DrawFilter(property, canvas, filter, dRectPtr, canvas.GetSurface());
+        RSPropertiesPainter::DrawFilter(property, canvas, filter, FilterType::FOREGROUND_FILTER, dRectPtr);
     }
     auto para = property.GetLinearGradientBlurPara();
     if (para != nullptr && para->blurRadius_ > 0) {

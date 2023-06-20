@@ -821,7 +821,7 @@ void RSPropertiesPainter::DrawLinearGradientBlurFilter(
 }
 
 void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
-    std::shared_ptr<RSSkiaFilter>& filter, const std::unique_ptr<SkRect>& rect, SkSurface* skSurface)
+    std::shared_ptr<RSSkiaFilter>& filter, const std::unique_ptr<SkRect>& rect, FilterType filterType)
 {
     if (!filter->IsValid()) {
         return;
@@ -837,6 +837,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
     }
     auto paint = filter->GetPaint();
+    auto skSurface = canvas.GetSurface();
     if (skSurface == nullptr) {
         ROSEN_LOGD("RSPropertiesPainter::DrawFilter skSurface null");
         SkCanvas::SaveLayerRec slr(nullptr, &paint, SkCanvas::kInitWithPrevious_SaveLayerFlag);
@@ -856,9 +857,13 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     filter->PreProcess(imageSnapshot);
     canvas.resetMatrix();
     auto visibleIRect = canvas.GetVisibleRect().round();
-    // for online opacity, rendering result already applied opacity, so drawImage should not apply opacity again
-    canvas.SaveAlpha();
-    canvas.SetAlpha(1.0);
+    if (filterType == FilterType::FOREGROUND_FILTER) {
+        // for foreground filter, when do online opacity, rendering result already applied opacity,
+        // so drawImage should not apply opacity again
+        canvas.SaveAlpha();
+        canvas.SetAlpha(1.0);
+    }
+
     if (visibleIRect.intersect(clipIBounds)) {
         canvas.clipRect(SkRect::Make(visibleIRect));
         auto visibleIPadding = visibleIRect.makeOutset(-1, -1);
@@ -882,7 +887,10 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
             SkRect::Make(clipIPadding), &paint);
 #endif
     }
-    canvas.RestoreAlpha();
+    if (filterType == FilterType::FOREGROUND_FILTER) {
+        // for online opacity, rendering result already applied opacity, so drawImage should not apply opacity again
+        canvas.RestoreAlpha();
+    }
     filter->PostProcess(canvas);
 }
 #else
