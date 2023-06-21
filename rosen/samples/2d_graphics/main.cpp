@@ -22,7 +22,7 @@
 #include "drawing_multithread.h"
 #include "drawing_singlethread.h"
 #include "drawing_api.h"
-#include "drawing_dcl.h"
+#include "drawing_playback.h"
 
 using namespace OHOS;
 using namespace OHOS::Rosen;

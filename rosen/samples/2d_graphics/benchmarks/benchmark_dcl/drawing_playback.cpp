@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "drawing_dcl.h"
+#include "drawing_playback.h"
 #include <sstream>
 #include <fcntl.h>
 #include <unique_fd.h>
@@ -23,6 +23,7 @@ DrawingDCL::DrawingDCL(int32_t argc, char* argv[])
 {
     DCLCommand dclCommand = DCLCommand(argc, argv);
     UpdateParametersFromDCLCommand(dclCommand);
+    skiaRecording.InitConfigsFromParam();
 }
 
 DrawingDCL::~DrawingDCL()
@@ -61,7 +62,7 @@ bool DrawingDCL::PlayBackByFrame(SkCanvas* skiaCanvas, bool isDumpPictures)
     auto start = std::chrono::system_clock::now();
     static int frame = beginFrame_;
     static int curLoop = 0;
-    std::string dclFile = inputFilePath_ + "frame" + std::to_string(frame) + ".txt";
+    std::string dclFile = inputFilePath_ + "frame" + std::to_string(frame) + ".drawing";
     std::cout << "PlayBackByFrame dclFile:" << dclFile << std::endl;
 
     if (LoadDrawCmdList(dclFile) < 0) {
@@ -84,7 +85,7 @@ bool DrawingDCL::PlayBackByOpItem(SkCanvas* skiaCanvas, bool isMoreOps)
     }
     auto start = std::chrono::system_clock::now();
     // read drawCmdList from file
-    std::string dclFile = inputFilePath_ + "frameByOpItem.txt";
+    std::string dclFile = inputFilePath_ + "frameByOpItem.drawing";
     std::cout << "PlayBackFrame dclFile:" << dclFile << std::endl;
 
     if (LoadDrawCmdList(dclFile) < 0) {
@@ -185,6 +186,9 @@ void DrawingDCL::UpdateParameters(bool notNeeded)
 void DrawingDCL::Test(SkCanvas* canvas, int width, int height)
 {
     std::cout << "DrawingDCL::Test+" << std::endl;
+    if (skiaRecording.GetCaptureEnabled()) {
+        canvas = skiaRecording.BeginCapture(canvas, width, height);
+    }
     auto start = std::chrono::system_clock::now();
     switch (iterateType) {
         case IterateType::ITERATE_FRAME:
@@ -214,6 +218,9 @@ void DrawingDCL::Test(SkCanvas* canvas, int width, int height)
             break;
     }
     PrintDurationTime("This frame draw time is: ", start);
+    if (skiaRecording.GetCaptureEnabled()) {
+        skiaRecording.EndCapture();
+    }
     std::cout << "DrawingDCL::Test-" << std::endl;
 }
 

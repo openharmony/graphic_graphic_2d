@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef DRAWING_DCL_H
-#define DRAWING_DCL_H
+#ifndef DRAWING_PLAYBACK_H
+#define DRAWING_PLAYBACK_H
 
 #include <chrono>
 #include <unistd.h>
@@ -25,7 +25,8 @@
 #include "pipeline/rs_draw_cmd_list.h"
 
 #include "benchmark.h"
-#include "dcl_command.h"
+#include "drawing_command.h"
+#include "skia_recording.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -61,6 +62,7 @@ private:
     double opItemStep_ = 1;
     std::string inputFilePath_ = "/data/lkx/";
     std::string outputFilePath_ = "/data/lkx/";
+    SkiaRecording skiaRecording;
 };
 }
 }

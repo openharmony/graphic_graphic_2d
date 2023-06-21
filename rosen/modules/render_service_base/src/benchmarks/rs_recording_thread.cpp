@@ -103,7 +103,7 @@ void RSRecordingThread::RecordingToFile(const std::shared_ptr<DrawCmdList> & dra
         RS_LOGD(line.c_str());
         RS_TRACE_NAME(line);
         // file name
-        std::string drawCmdListFile = fileDir_ + "/frame" + std::to_string(tmpCurDumpFrame) + ".txt";
+        std::string drawCmdListFile = fileDir_ + "/frame" + std::to_string(tmpCurDumpFrame) + ".drawing";
         std::string opsFile = fileDir_ + "/ops_frame" + std::to_string(tmpCurDumpFrame) + ".txt";
         // get data
         size_t sz = messageParcel->GetDataSize();
