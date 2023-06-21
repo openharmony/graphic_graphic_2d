@@ -125,13 +125,13 @@ template("render_service_client_source_set") {
       "$graphic_2d_root/rosen/modules/platform:ipc_core",
       "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     ]
-
+    public_deps = []
     if (enable_export_macro) {
       defines += [ "ENABLE_EXPORT_MACRO" ]
     }
 
     if (rosen_is_ohos) {
-      deps +=
+      public_deps +=
           [ "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer" ]
       external_deps = [
         "c_utils:utils",
@@ -160,9 +160,9 @@ template("render_service_client_source_set") {
     }
 
     if (is_static_lib) {
-      public_deps = [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_static" ]
+      public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_static" ]
     } else {
-      public_deps = [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
+      public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
       deps += [ "$rosen_root/modules/platform:eventhandler" ]
     }
 
