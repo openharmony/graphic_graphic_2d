@@ -125,6 +125,30 @@ void FreeLayerDataPtr(DispatchKey dataKey)
     g_layerDataMap.erase(it);
 }
 
+void DebugMessageToUserCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity, const char* message)
+{
+    VkDebugUtilsMessengerCallbackDataEXT callbackData = {};
+    callbackData.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CALLBACK_DATA_EXT;
+    callbackData.pMessageIdName = "SwapchainLayer";
+    callbackData.pMessage = message;
+
+    for (auto [key, layerData] : g_layerDataMap) {
+        if (layerData->debugCallbacks.empty()) {
+            continue;
+        }
+        for (auto& callback : layerData->debugCallbacks) {
+            if (!(severity & callback.second.messageSeverity)) {
+                continue;
+            }
+            if (!(VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT & callback.second.messageType)) {
+                continue;
+            }
+            callback.second.pfnUserCallback(severity, VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT,
+                                            &callbackData, callback.second.pUserData);
+        }
+    }
+}
+
 VkResult GetExtensionProperties(const uint32_t count, const VkExtensionProperties* layerExtensions,
                                 uint32_t* pCount, VkExtensionProperties* pProperties)
 {
@@ -349,7 +373,9 @@ void ReleaseSwapchainImage(VkDevice device, NativeWindow* window, int releaseFen
                            bool deferIfPending)
 {
     if (releaseFence != -1 && !image.requested) {
-        SWLOGE("%{public}s, can't provide a release fence for non-dequeued images", __func__);
+        SWLOGE("%{public}s, can't provide a release fence for non-requested images", __func__);
+        DebugMessageToUserCallback(VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+            "can't provide a release fence for non-requested images");
         return;
     }
 
@@ -420,6 +446,8 @@ GraphicPixelFormat GetPixelFormat(VkFormat format)
             break;
         default:
             SWLOGE("unsupported swapchain format %{public}d", format);
+            DebugMessageToUserCallback(VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+                ("unsupported swapchain format " + std::to_string(format)).c_str());
             break;
     }
     return nativeFormat;
@@ -527,7 +555,7 @@ VKAPI_ATTR VkResult CreateImages(int32_t &numImages, Swapchain* swapchain, const
         NativeWindowBuffer* buffer = nullptr;
         int err = NativeWindowRequestBuffer(window, &buffer, &img.requestFence);
         if (err != OHOS::GSERROR_OK) {
-            SWLOGE("dequeueBuffer[%{public}u] failed: (%{public}d)", i, err);
+            SWLOGE("RequestBuffer[%{public}u] failed: (%{public}d)", i, err);
             result = VK_ERROR_SURFACE_LOST_KHR;
             break;
         }
@@ -696,7 +724,9 @@ VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainK
     int fence = -1;
     int32_t ret = NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fence);
     if (ret != OHOS::GSERROR_OK) {
-        SWLOGE("dequeueBuffer failed: (%{public}d)", ret);
+        SWLOGE("RequestBuffer failed: (%{public}d)", ret);
+        DebugMessageToUserCallback(VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+            ("RequestBuffer failed: " + std::to_string(ret)).c_str());
         return VK_ERROR_SURFACE_LOST_KHR;
     }
 
@@ -711,7 +741,7 @@ VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainK
     }
 
     if (index == swapchain.numImages) {
-        SWLOGE("dequeueBuffer returned unrecognized buffer");
+        SWLOGE("RequestBuffer returned unrecognized buffer");
         if (NativeWindowCancelBuffer(nativeWindow, nativeWindowBuffer) != OHOS::GSERROR_OK) {
             SWLOGE("NativeWindowCancelBuffer failed: (%{public}d)", ret);
         }
@@ -835,7 +865,7 @@ VkResult FlushBuffer(const VkPresentRegionKHR* region, struct Region::Rect* rect
     int err = NativeWindowFlushBuffer(window, img.buffer, fence, localRegion);
     VkResult scResult = VK_SUCCESS;
     if (err != OHOS::GSERROR_OK) {
-        SWLOGE("queueBuffer failed: (%{public}d)", err);
+        SWLOGE("FlushBuffer failed: (%{public}d)", err);
         scResult = VK_ERROR_SURFACE_LOST_KHR;
     } else {
         if (img.requestFence >= 0) {
