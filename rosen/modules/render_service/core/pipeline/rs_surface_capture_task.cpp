@@ -554,7 +554,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         if (filter != nullptr) {
             auto skRectPtr = std::make_unique<SkRect>();
             skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-            RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
+            RSPropertiesPainter::DrawFilter(property, *canvas_, filter, FilterType::BACKGROUND_FILTER, skRectPtr);
         }
     } else {
         auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
@@ -572,7 +572,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         if (filter != nullptr) {
             auto skRectPtr = std::make_unique<SkRect>();
             skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-            RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
+            RSPropertiesPainter::DrawFilter(property, *canvas_, filter, FilterType::FOREGROUND_FILTER, skRectPtr);
         }
         auto para = property.GetLinearGradientBlurPara();
         if (para != nullptr && para->blurRadius_ > 0) {
@@ -666,7 +666,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetBackgroundFilter());
         if (filter != nullptr) {
             auto rectPtr = std::make_unique<Drawing::Rect>(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-            RSPropertiesPainter::DrawFilter(property, *canvas_, filter, rectPtr, canvas_->GetSurface());
+            RSPropertiesPainter::DrawFilter(property, *canvas_, filter, FilterType::BACKGROUND_FILTER, rectPtr);
         }
     } else {
         auto backgroundColor = static_cast<Drawing::ColorQuad>(property.GetBackgroundColor().AsArgbInt());
@@ -683,7 +683,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetFilter());
         if (filter != nullptr) {
             auto rectPtr = std::make_unique<Drawing::Rect>(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-            RSPropertiesPainter::DrawFilter(property, *canvas_, filter, rectPtr, canvas_->GetSurface());
+            RSPropertiesPainter::DrawFilter(property, *canvas_, filter, FilterType::FOREGROUND_FILTER, rectPtr);
         }
     }
 
@@ -749,7 +749,7 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
     if (filter != nullptr) {
         auto skRectPtr = std::make_unique<SkRect>();
         skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-        RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
+        RSPropertiesPainter::DrawFilter(property, *canvas_, filter, FilterType::BACKGROUND_FILTER, skRectPtr);
     }
     if (isSelfDrawingSurface) {
         canvas_->restore();
@@ -772,7 +772,7 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
     if (filter != nullptr) {
         auto skRectPtr = std::make_unique<SkRect>();
         skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-        RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
+        RSPropertiesPainter::DrawFilter(property, *canvas_, filter, FilterType::FOREGROUND_FILTER, skRectPtr);
     }
     auto para = property.GetLinearGradientBlurPara();
     if (para != nullptr && para->blurRadius_ > 0) {
@@ -832,7 +832,7 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
     auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetBackgroundFilter());
     if (filter != nullptr) {
         auto rectPtr = std::make_unique<Drawing::Rect>(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-        RSPropertiesPainter::DrawFilter(property, *canvas_, filter, rectPtr, canvas_->GetSurface());
+        RSPropertiesPainter::DrawFilter(property, *canvas_, filter, FilterType::BACKGROUND_FILTER, rectPtr);
     }
     if (isSelfDrawingSurface) {
         canvas_->Restore();
@@ -851,7 +851,7 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
     filter = std::static_pointer_cast<RSDrawingFilter>(property.GetFilter());
     if (filter != nullptr) {
         auto rectPtr = std::make_unique<Drawing::Rect>(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-        RSPropertiesPainter::DrawFilter(property, *canvas_, filter, rectPtr, canvas_->GetSurface());
+        RSPropertiesPainter::DrawFilter(property, *canvas_, filter, FilterType::FOREGROUND_FILTER, rectPtr);
     }
     DrawWatermarkIfNeed(property.GetBoundsWidth(), property.GetBoundsHeight());
 }

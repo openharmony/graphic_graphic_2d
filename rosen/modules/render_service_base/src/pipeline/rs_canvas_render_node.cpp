@@ -127,7 +127,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
 #ifndef NEW_SKIA
         RSTagTracker tagTracker(canvas.getGrContext(), GetId(), RSTagTracker::TAGTYPE::TAG_FILTER);
 #endif
-        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
+        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, FilterType::BACKGROUND_FILTER, nullptr);
     }
 
     ApplyDrawCmdModifier(context, RSModifierType::BACKGROUND_STYLE);
@@ -185,7 +185,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
 #ifndef NEW_SKIA
         RSTagTracker tagTracker(canvas.getGrContext(), GetId(), RSTagTracker::TAGTYPE::TAG_FILTER);
 #endif
-        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
+        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, FilterType::FOREGROUND_FILTER, nullptr);
     }
     auto para = GetRenderProperties().GetLinearGradientBlurPara();
     if (para != nullptr && para->blurRadius_ > 0) {
@@ -262,7 +262,7 @@ void RSCanvasRenderNode::ProcessDrivenBackgroundRender(RSPaintFilterCanvas& canv
 #ifndef NEW_SKIA
         RSTagTracker tagTracker(canvas.getGrContext(), GetId(), RSTagTracker::TAGTYPE::TAG_FILTER);
 #endif
-        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
+        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, FilterType::BACKGROUND_FILTER, nullptr);
     }
     ApplyDrawCmdModifier(context, RSModifierType::BACKGROUND_STYLE);
     RSRenderNode::ProcessRenderAfterChildren(canvas);

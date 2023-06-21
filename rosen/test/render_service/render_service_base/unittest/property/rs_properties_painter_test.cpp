@@ -314,7 +314,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter001, TestSize.Level1)
     auto filter = std::static_pointer_cast<RSSkiaFilter>(properties.GetBackgroundFilter());
     auto skRectPtr = std::make_unique<SkRect>();
     skRectPtr->setXYWH(0, 0, 1.f, 1.f);
-    RSPropertiesPainter::DrawFilter(properties, canvas, filter, skRectPtr, canvas.GetSurface());
+    RSPropertiesPainter::DrawFilter(properties, canvas, filter, FilterType::BACKGROUND_FILTER, skRectPtr);
 }
 
 /**
@@ -333,7 +333,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter002, TestSize.Level1)
     auto filter = std::static_pointer_cast<RSSkiaFilter>(properties.GetBackgroundFilter());
     std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
     properties.SetClipBounds(rsPath);
-    RSPropertiesPainter::DrawFilter(properties, canvas, filter, nullptr, canvas.GetSurface());
+    RSPropertiesPainter::DrawFilter(properties, canvas, filter, FilterType::BACKGROUND_FILTER, nullptr);
 }
 
 /**
