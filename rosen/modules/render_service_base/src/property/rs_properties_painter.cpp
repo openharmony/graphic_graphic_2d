@@ -676,16 +676,16 @@ sk_sp<SkShader> RSPropertiesPainter::MakeAlphaGradientShader(
         c.emplace_back(SkColorSetARGB(ColorMin, ColorMax, ColorMax, ColorMax));
         p.emplace_back(para->fractionStops_[0].second - 0.01);        
     }
-    if (para->fractionStops_[para->fractionStops_.size() - 1].second < 1 - 0.01) {
-        c.emplace_back(SkColorSetARGB(ColorMin, ColorMax, ColorMax, ColorMax));
-        p.emplace_back(para->fractionStops_[para->fractionStops_.size() - 1].second + 0.01);        
-    }    
     for (size_t i = 0; i < para->fractionStops_.size(); i++) {
         c.emplace_back(SkColorSetARGB(
             static_cast<uint8_t>(para->fractionStops_[i].first * ColorMax), ColorMax, ColorMax, ColorMax));
         p.emplace_back(para->fractionStops_[i].second);
     }
-    auto shader = SkGradientShader::MakeLinear(pts, &c[0], &p[0], para->fractionStops_.size(), SkTileMode::kClamp);
+    if (para->fractionStops_[para->fractionStops_.size() - 1].second < 1 - 0.01) {
+        c.emplace_back(SkColorSetARGB(ColorMin, ColorMax, ColorMax, ColorMax));
+        p.emplace_back(para->fractionStops_[para->fractionStops_.size() - 1].second + 0.01);        
+    }    
+    auto shader = SkGradientShader::MakeLinear(pts, &c[0], &p[0], p.size(), SkTileMode::kClamp);
     return shader;
 }
 
