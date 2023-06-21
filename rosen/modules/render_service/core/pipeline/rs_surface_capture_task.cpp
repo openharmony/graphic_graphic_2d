@@ -724,7 +724,7 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
     const auto& property = node.GetRenderProperties();
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
     if (geoPtr) {
-        canvas_->concat(geoPtr->GetMatrix());
+        canvas_->setMatrix(node.GetTotalMatrix());
     }
 
     if (isSelfDrawingSurface) {
