@@ -52,7 +52,7 @@ bool SkiaRecording::SetupMultiFrame()
         return false;
     }
     openMultiPicStream_ = std::move(stream);
-    serialContext_.reset(new SkSharingSerialContext());
+    serialContext  = std::make_unique<SkSharingSerialContext>();
     SkSerialProcs procs;
     procs.fImageProc = SkSharingSerialContext::serializeImage;
     procs.fImageCtx = serialContext_.get();
@@ -86,7 +86,7 @@ SkCanvas* SkiaRecording::BeginCapture(SkCanvas* canvas, int width, int height)
     SkCanvas* pictureCanvas = nullptr;
     switch (captureMode_) {
         case SkiaCaptureMode::SINGLE_FRAME:
-            recorder_.reset(new SkPictureRecorder());
+            recorder_ = std::make_unique<SkPictureRecorder>();
             pictureCanvas = recorder_->beginRecording(width, height);
             break;
         case SkiaCaptureMode::MULTI_FRAME:
@@ -116,6 +116,10 @@ void SkiaRecording::EndCapture()
     nwayCanvas_.reset();
 
     if (captureFrameNum_ > 0 && captureMode_ == SkiaCaptureMode::MULTI_FRAME) {
+        if (!multiPic_) {
+            std::cout << "multiPic_ is nullptr" << std::endl;
+            return;
+        }
         multiPic_->endPage();
         captureFrameNum_--;
         if (captureFrameNum_ == 0) {
@@ -155,8 +159,8 @@ void SkiaRecording::SavePicture(const sk_sp<SkData>& data, const std::string& fi
     if (stream.isValid()) {
         stream.write(data->data(), data->size());
         stream.flush();
-        std::cout << "SKP Captured Drawing Output (" << stream.bytesWritten() << " bytes) for frame. "
-            << filename << std::endl;
+        std::cout << "SKP Captured Drawing Output (" << stream.bytesWritten() << " bytes) for frame. " <<
+            filename << std::endl;
     } else {
         std::cout << "Save picture failed. " << filename << " is not valid for frame." << filename << std::endl;
     }
