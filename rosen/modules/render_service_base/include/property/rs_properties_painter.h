@@ -33,7 +33,7 @@ class RSSkiaFilter;
 class RSDrawingFilter;
 #endif
 class RSPaintFilterCanvas;
-enum FilterType{
+enum FilterType {
     BACKGROUND_FILTER,
     FOREGROUND_FILTER,
 };
