@@ -86,7 +86,7 @@ public:
                                      const std::vector<GraphicHDRMetaData> &graphicMetaData) = 0;
     virtual int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, GraphicHDRMetadataKey gkey,
                                         const std::vector<uint8_t> &metaData) = 0;
-    virtual int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, OHExtDataHandle *handle) = 0;
+    virtual int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle) = 0;
     virtual int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
                                                      GraphicPresentTimestampType &type) = 0;
     virtual int32_t GetPresentTimestamp(uint32_t screenId, uint32_t layerId, GraphicPresentTimestamp &timestamp) = 0;

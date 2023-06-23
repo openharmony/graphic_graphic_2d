@@ -19,7 +19,6 @@
 #include <cstdint>
 #include <string>
 #include <vector>
-#include "common_types.h"
 #include <graphic_common.h>
 #include <display_type.h>
 
@@ -393,6 +392,15 @@ using SceneType = enum {
     SURFACE_SCENE_TYPE_MEDIA,
     SURFACE_SCENE_TYPE_CAMERA,
     SURFACE_SCENE_TYPE_CPU,
+};
+
+using GraphicExtDataHandle = struct {
+    /**< Handle fd, -1 if not supported */
+    int32_t fd;
+    /**< the number of reserved integer value */
+    uint32_t reserveInts;
+    /**< the reserved data */
+    int32_t reserve[0];
 };
 } // namespace OHOS
 
