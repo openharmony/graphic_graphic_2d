@@ -80,7 +80,7 @@ public:
                              const std::vector<GraphicHDRMetaData> &metaData) override;
     int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, GraphicHDRMetadataKey key,
                                 const std::vector<uint8_t> &metaData) override;
-    int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, OHExtDataHandle *handle) override;
+    int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle) override;
     int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
                                              GraphicPresentTimestampType &type) override;
     int32_t GetPresentTimestamp(uint32_t screenId, uint32_t layerId, GraphicPresentTimestamp &timestamp) override;

@@ -354,7 +354,7 @@ int32_t NativeWindowSetTunnelHandle(OHNativeWindow *window, const OHExtDataHandl
         BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
-    return window->surface->SetTunnelHandle(handle);
+    return window->surface->SetTunnelHandle(reinterpret_cast<const OHOS::GraphicExtDataHandle*>(handle));
 }
 
 NativeWindow::NativeWindow() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW), surface(nullptr)
