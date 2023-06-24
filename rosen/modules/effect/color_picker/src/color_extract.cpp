@@ -50,6 +50,34 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap)
     GetNFeatureColors(specifiedFeatureColorNum_);
 }
 
+ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap, float* coordinates)
+{
+    if (pixmap == nullptr) {
+        return ;
+    }
+    pixelmap_ = pixmap;
+    uint32_t left = pixmap->GetWidth() * coordinates[0];
+    uint32_t top = pixmap->GetHeight() * coordinates[1];
+    uint32_t right = pixmap->GetWidth() * coordinates[2];
+    uint32_t bottom = pixmap->GetHeight() * coordinates[3];
+    colorValLen_ = static_cast<uint32_t>((right - left) * (bottom -top));
+    if (colorValLen_ == 0) {
+        return;
+    }
+    auto colorVal = new uint32_t[colorValLen_]();
+    std::shared_ptr<uint32_t> colorShared(colorVal, [](uint32_t *ptr) {
+        delete[] ptr;
+    });
+    colorVal_ = std::move(colorShared);
+    for (int i = top; i <= bottom; i++) {
+        for (int j = left; j <= right; j++) {
+            pixmap->GetARGB32Color(j, i, colorVal[i * (right - left + 1) + j]);
+        }
+    }
+    grayMsd_ = CalcGrayMsd();
+    contrastToWhite_ = CalcContrastToWhite();
+    GetNFeatureColors(specifiedFeatureColorNum_);
+}
 
 // Return red component of a quantized color
 uint32_t ColorExtract::QuantizedRed(uint32_t color)
@@ -174,6 +202,9 @@ uint8_t ColorExtract::Rgb2Gray(uint32_t color)
 
 uint32_t ColorExtract::CalcGrayMsd() const
 {
+    if (colorValLen_ == 0) {
+        return 0;
+    }
     uint32_t *colorVal = colorVal_.get();
     long long int graySum = 0;
     long long int grayVar = 0;
@@ -212,6 +243,9 @@ float ColorExtract::CalcRelativeLum(uint32_t color)
 
 float ColorExtract::CalcContrastToWhite() const
 {
+    if (colorValLen_ == 0) {
+        return 0;
+    }
     uint32_t *colorVal = colorVal_.get();
     float lightDegree = 0;
     float luminanceSum = 0;
@@ -226,6 +260,9 @@ float ColorExtract::CalcContrastToWhite() const
 
 void ColorExtract::GetNFeatureColors(int colorNum)
 {
+    if (colorValLen_ == 0) {
+        return;
+    }
     uint32_t *colorVal = colorVal_.get();
     uint32_t histLen = (1 << (QUANTIZE_WORD_WIDTH * 3));
     auto hist = new uint32_t[histLen]();
