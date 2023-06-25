@@ -522,6 +522,7 @@ void RSRenderNode::InitCacheSurface(GrContext* grContext, ClearCacheSurfaceFunc 
         return;
     }
     SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
+    std::scoped_lock<std::mutex> lock(surfaceMutex_);
     cacheSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kYes, info);
 #else
     cacheSurface_ = SkSurface::MakeRasterN32Premul(width, height);
