@@ -636,16 +636,22 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (isQuickSkipPreparationEnabled_ && CheckIfSurfaceRenderNodeStatic(node)) {
         return;
     }
+    node.CleanDstRectChanged();
+    node.ApplyModifiers();
+    bool dirtyFlag = dirtyFlag_;
     if (isUIFirst_) {
         auto skipNodeMap = RSMainThread::Instance()->GetCacheCmdSkippedNodes();
         if (skipNodeMap.count(node.GetId()) != 0) {
+            auto parentNode = node.GetParent().lock();
+            auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
+            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
+                dirtyFlag_, prepareClipRect_);
+            dirtyFlag_ = dirtyFlag;
             RS_TRACE_NAME(node.GetName() + " PreparedNodes cacheCmdSkiped");
             return;
         }
     }
-    node.CleanDstRectChanged();
-    node.ApplyModifiers();
-    bool dirtyFlag = dirtyFlag_;
+
     RectI prepareClipRect = prepareClipRect_;
     bool isQuickSkipPreparationEnabled = isQuickSkipPreparationEnabled_;
 
