@@ -160,19 +160,74 @@ bool RSPropertiesPainter::GetGravityMatrix(Gravity gravity, RectF rect, float w,
             return true;
         }
         case Gravity::RESIZE: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
             mat.preScale(rect.width_ / w, rect.height_ / h);
             return true;
         }
         case Gravity::RESIZE_ASPECT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
             float scale = std::min(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
             mat.preScale(scale, scale);
             mat.preTranslate((rect.width_ / scale - w) / PARAM_DOUBLE, (rect.height_ / scale - h) / PARAM_DOUBLE);
             return true;
         }
+        case Gravity::RESIZE_ASPECT_TOP_LEFT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::min(rect.width_ / w, rect.height_ / h);
+            mat.preScale(scale, scale);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_BOTTOM_RIGHT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::min(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
+            mat.preScale(scale, scale);
+            mat.preTranslate(rect.width_ / scale - w, rect.height_ / scale - h);
+            return true;
+        }
         case Gravity::RESIZE_ASPECT_FILL: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
             float scale = std::max(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
             mat.preScale(scale, scale);
             mat.preTranslate((rect.width_ / scale - w) / PARAM_DOUBLE, (rect.height_ / scale - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_FILL_TOP_LEFT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::max(rect.width_ / w, rect.height_ / h);
+            mat.preScale(scale, scale);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::max(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
+            mat.preScale(scale, scale);
+            mat.preTranslate(rect.width_ / scale - w, rect.height_ / scale - h);
             return true;
         }
         default: {
@@ -225,19 +280,74 @@ bool RSPropertiesPainter::GetGravityMatrix(Gravity gravity, RectF rect, float w,
             return true;
         }
         case Gravity::RESIZE: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
             mat.PreScale(rect.width_ / w, rect.height_ / h);
             return true;
         }
         case Gravity::RESIZE_ASPECT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
             float scale = std::min(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
             mat.PreScale(scale, scale);
             mat.PreTranslate((rect.width_ / scale - w) / PARAM_DOUBLE, (rect.height_ / scale - h) / PARAM_DOUBLE);
             return true;
         }
+        case Gravity::RESIZE_ASPECT_TOP_LEFT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::min(rect.width_ / w, rect.height_ / h);
+            mat.PreScale(scale, scale);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_BOTTOM_RIGHT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::min(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
+            mat.PreScale(scale, scale);
+            mat.PreTranslate(rect.width_ / scale - w, rect.height_ / scale - h);
+            return true;
+        }
         case Gravity::RESIZE_ASPECT_FILL: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
             float scale = std::max(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
             mat.PreScale(scale, scale);
             mat.PreTranslate((rect.width_ / scale - w) / PARAM_DOUBLE, (rect.height_ / scale - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_FILL_TOP_LEFT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::max(rect.width_ / w, rect.height_ / h);
+            mat.PreScale(scale, scale);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::max(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
+            mat.PreScale(scale, scale);
+            mat.PreTranslate(rect.width_ / scale - w, rect.height_ / scale - h);
             return true;
         }
         default: {
