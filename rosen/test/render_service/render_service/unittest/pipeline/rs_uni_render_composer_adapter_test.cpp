@@ -20,7 +20,7 @@
 using namespace testing;
 using namespace testing::ext;
 
-namespace{
+namespace {
     constexpr uint32_t DEFAULT_CANVAS_WIDTH = 800;
     constexpr uint32_t DEFAULT_CANVAS_HEIGHT = 600;
     constexpr uint32_t DEFAULT_CANVAS_WIDTH_1K = 1920;
@@ -424,7 +424,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform004, TestSize.Lev
  */
 HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer001, TestSize.Level1)
 {
-    
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     ASSERT_NE(surfaceNode, nullptr);
