@@ -411,12 +411,12 @@ inline bool RRectT<T>::operator==(const RRectT& other) const
 }
 
 template<typename T>
-inline bool RRectT<T>::IsNearEqual(const RRectT& other, T threshold) const
+inline bool RRectT<T>::IsNearEqual(const RRectT& rrectT, T threshold) const
 {
-    return (rect_.IsNearEqual(other.rect_, threshold)) && (radius_[0].IsNearEqual(other.radius_[0], threshold)) &&
-           (radius_[1].IsNearEqual(other.radius_[1], threshold)) &&
-           (radius_[2].IsNearEqual(other.radius_[2], threshold)) &&
-           (radius_[3].IsNearEqual(other.radius_[3], threshold));
+    return (rect_.IsNearEqual(rrectT.rect_, threshold)) && (radius_[0].IsNearEqual(rrectT.radius_[0], threshold)) &&
+           (radius_[1].IsNearEqual(rrectT.radius_[1], threshold)) &&
+           (radius_[2].IsNearEqual(rrectT.radius_[2], threshold)) &&
+           (radius_[3].IsNearEqual(rrectT.radius_[3], threshold));
 }
 
 template<typename T>

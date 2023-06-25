@@ -359,7 +359,6 @@ bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsNearEqual(
 
     auto filter = RSRenderProperty<std::shared_ptr<RSFilter>>::stagingValue_;
     auto otherFilter = animatableProperty->Get();
-
     if ((filter != nullptr) && (otherFilter != nullptr)) {
         return filter->IsNearEqual(otherFilter, zeroThreshold);
     } else if ((filter == nullptr) && (otherFilter == nullptr)) {
