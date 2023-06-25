@@ -141,6 +141,9 @@ class RSRenderProperty : public RSRenderPropertyBase {
 public:
     RSRenderProperty() : RSRenderPropertyBase(0) {}
     RSRenderProperty(const T& value, const PropertyId& id) : RSRenderPropertyBase(id), stagingValue_(value) {}
+    RSRenderProperty(const T& value, const PropertyId& id, const RSRenderPropertyType type)
+        : RSRenderPropertyBase(id), stagingValue_(value)
+    {}
     virtual ~RSRenderProperty() = default;
 
     void Set(const T& value)
@@ -169,6 +172,12 @@ public:
 protected:
     T stagingValue_;
     std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)> updateUIPropertyFunc_;
+    RSRenderPropertyType GetPropertyType() const
+    {
+        return RSRenderPropertyType::INVALID;
+    }
+
+    friend class RSMarshallingHelper;
 };
 
 template<typename T>

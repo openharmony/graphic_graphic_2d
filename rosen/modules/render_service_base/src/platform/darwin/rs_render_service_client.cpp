@@ -31,6 +31,8 @@ void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>
 {
 }
 
+void RSRenderServiceClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) {}
+
 MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
 {
     return {};

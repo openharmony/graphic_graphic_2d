@@ -69,6 +69,7 @@ template("render_service_client_source_set") {
       "core/modifier/rs_modifier_manager_map.cpp",
       "core/modifier/rs_property.cpp",
       "core/modifier/rs_property_modifier.cpp",
+      "core/modifier/rs_showing_properties_freezer.cpp",
 
       #jank_detector
       "core/jank_detector/rs_jank_detector.cpp",

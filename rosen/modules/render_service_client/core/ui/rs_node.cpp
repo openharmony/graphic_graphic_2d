@@ -62,13 +62,13 @@ bool IsPathAnimatableModifier(const RSModifierType& type)
 }
 
 RSNode::RSNode(bool isRenderServiceNode)
-    : RSBaseNode(isRenderServiceNode), stagingPropertiesExtractor_(GetId())
+    : RSBaseNode(isRenderServiceNode), stagingPropertiesExtractor_(GetId()), showingPropertiesFreezer_(GetId())
 {
     UpdateImplicitAnimator();
 }
 
 RSNode::RSNode(bool isRenderServiceNode, NodeId id)
-    : RSBaseNode(isRenderServiceNode, id), stagingPropertiesExtractor_(id)
+    : RSBaseNode(isRenderServiceNode, id), stagingPropertiesExtractor_(id), showingPropertiesFreezer_(GetId())
 {
     UpdateImplicitAnimator();
 }
@@ -267,9 +267,24 @@ void RSNode::FinishAnimationByProperty(const PropertyId& id)
     }
 }
 
+void RSNode::CancelAnimationByProperty(const PropertyId& id)
+{
+    animatingPropertyNum_.erase(id);
+    for (const auto& [animationId, animation] : animations_) {
+        if (animation && (animation->GetPropertyId() == id)) {
+            animations_.erase(animationId);
+        }
+    }
+}
+
 const RSModifierExtractor& RSNode::GetStagingProperties() const
 {
     return stagingPropertiesExtractor_;
+}
+
+const RSShowingPropertiesFreezer& RSNode::GetShowingProperties() const
+{
+    return showingPropertiesFreezer_;
 }
 
 void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation)

@@ -52,6 +52,15 @@ void RSAnimationManager::RemoveAnimation(AnimationId keyId)
     animations_.erase(animationItr);
 }
 
+void RSAnimationManager::CancelAnimationByPropertyId(PropertyId id)
+{
+    for (const auto& [animationId, animation] : animations_) {
+        if (animation && animation->GetPropertyId() == id) {
+            animations_.erase(animationId);
+        }
+    }
+}
+
 void RSAnimationManager::FilterAnimationByPid(pid_t pid)
 {
     ROSEN_LOGI("RSAnimationManager::FilterAnimationByPid removing all animations belong to pid %d", pid);

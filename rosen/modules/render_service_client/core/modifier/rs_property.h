@@ -22,6 +22,7 @@
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_motion_path_option.h"
+#include "command/rs_node_showing_command.h"
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
@@ -144,6 +145,11 @@ protected:
         return std::make_shared<RSRenderPropertyBase>(id_);
     }
 
+    virtual bool GetShowingValueAndCancelAnimation(bool isRenderServiceNode)
+    {
+        return false;
+    }
+
     PropertyId id_;
     RSModifierType type_ { RSModifierType::INVALID };
     std::weak_ptr<RSNode> target_;
@@ -204,6 +210,8 @@ private:
     friend class RSTransition;
     template<typename T1>
     friend class RSAnimatableProperty;
+    template<uint16_t commandType, uint16_t commandSubType>
+    friend class RSGetShowingValueAndCancelAnimationTask;
 };
 
 template<typename T>
@@ -358,6 +366,28 @@ public:
             return showingValue_;
         }
         return RSProperty<T>::stagingValue_;
+    }
+
+    bool GetShowingValueAndCancelAnimation(bool isRenderServiceNode) override
+    {
+        bool success = false;
+        auto node = RSProperty<T>::target_.lock();
+        if (node == nullptr) {
+            return success;
+        }
+        if (node->HasPropertyAnimation(RSProperty<T>::id_) && (!RSProperty<T>::GetIsCustom())) {
+            auto task =
+                std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(node->GetId(), GetRenderProperty());
+            RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, node->IsRenderServiceNode());
+            if (task && task->GetResult()) {
+                auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(task->GetProperty());
+                if (renderProperty) {
+                    RSProperty<T>::stagingValue_ = renderProperty->Get();
+                    success = true;
+                }
+            }
+        }
+        return success;
     }
 
     void SetUpdateCallback(const std::function<void(T)>& updateCallback)
