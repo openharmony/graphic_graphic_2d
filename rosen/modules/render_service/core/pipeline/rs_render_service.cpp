@@ -434,8 +434,8 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     if (auto iter = argSets.find(arg12) != argSets.end()) {
         argSets.erase(arg12);
         if (!argSets.empty()) {
-            NodeId id = std::atoll(std::wstring_convert<
-                std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(*argSets.begin()).c_str());
+            NodeId id = static_cast<NodeId>(std::atoll(std::wstring_convert<
+                std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(*argSets.begin()).c_str()));
             mainThread_->ScheduleTask(
                 [this, &dumpString, &id]() { return DumpSurfaceNode(dumpString, id); }).wait();
         }
