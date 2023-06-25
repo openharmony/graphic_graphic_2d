@@ -76,10 +76,8 @@ public:
     static MemoryGraphic CountPidMemory(int pid, const Drawing::GPUContext* gpuContext);
     static void CountMemory(std::vector<pid_t> pids,
         const Drawing::GPUContext* gpuContext, std::vector<MemoryGraphic>& mems);
-    // TODO Drawing static void ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, GrGpuResourceTag& tag);
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, NodeId surfaceNodeId);
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, pid_t pid);
-    // TODO Drawing static void ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, GrGpuResourceTag& tag);
     static void ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, pid_t pid);
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, bool scratchResourcesOnly = true);
 #endif
@@ -101,7 +99,6 @@ private:
 #endif
 #else
     static void DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUContext* grContext);
-    //static void DumpGpuCache(DfxString& log, const Drawing::GPUContext* grContext, GrGpuResourceTag* tag, std::string& name);
     static void DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* grContext);
 #endif
     //jemalloc info

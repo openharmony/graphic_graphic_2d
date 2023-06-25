@@ -106,7 +106,6 @@ void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, GrGpuResourceTag
 #endif
 }
 #else
-// TODO DRAWING for GrGpuResourceTag
 #endif
 
 #ifndef USE_ROSEN_DRAWING
@@ -124,7 +123,6 @@ void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, pid_t pid)
 #else
 void MemoryManager::ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, pid_t pid)
 {
-    // TODO DRAWING for GrGpuResourceTag
 }
 #endif
 
@@ -145,7 +143,6 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, GrGpuResource
 #endif
 }
 #else
-// TODO DRAWING for GrGpuResourceTag
 #endif
 
 #ifndef USE_ROSEN_DRAWING
@@ -163,7 +160,6 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, NodeId surfac
 #else
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, NodeId surfaceNodeId)
 {
-    // TODO DRAWING for GrGpuResourceTag
 }
 #endif
 
@@ -182,7 +178,6 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, pid_t pid)
 #else
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, pid_t pid)
 {
-    // TODO DRAWING for GrGpuResourceTag
 }
 #endif
 
@@ -209,7 +204,6 @@ void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, bo
         RS_LOGE("ReleaseGpuResByTag fail, gpuContext is nullptr");
     }
     RS_TRACE_NAME_FMT("ReleaseUnlockGpuResource scratchResourcesOnly:%d", scratchResourcesOnly);
-    // TODO Drawing grContext->purgeUnlockedResources(scratchResourcesOnly);
 #endif
 }
 #endif
@@ -237,7 +231,6 @@ void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* gp
         RS_LOGE("ReleaseUnlockAndSafeCacheGpuResource fail, gpuContext is nullptr");
     }
     RS_TRACE_NAME_FMT("ReleaseUnlockAndSafeCacheGpuResource");
-    // TODO Drawing grContext->purgeUnlockedResources(scratchResourcesOnly);
 #endif
 }
 #endif
@@ -322,9 +315,6 @@ MemoryGraphic MemoryManager::CountPidMemory(int pid, const Drawing::GPUContext* 
 
 #ifdef RS_ENABLE_GL
     // Count mem of Skia GPU
-    if (gpuContext) {
-        // TODO DRAWING for SkiaMemoryTracer
-    }
 #endif
 
     return totalMemGraphic;
@@ -445,7 +435,6 @@ void MemoryManager::DumpGpuCache(DfxString& log, const GrContext* grContext, GrG
 #endif
 }
 #else
-// TODO DRAWING for GrGpuResourceTag
 #endif
 
 #ifndef USE_ROSEN_DRAWING
@@ -478,7 +467,6 @@ void MemoryManager::DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* gp
 #ifdef RS_ENABLE_GL
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes([&log, &gpuContext](const std::shared_ptr<RSSurfaceRenderNode> node) {
-    // TODO DRAWING for GrGpuResourceTag
     });
 #endif
 }
@@ -533,7 +521,6 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const GrContext* grCont
 #else
 void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUContext* gpuContext)
 {
-    // TODO DRAWING for DumpDrawingGpuMemory
 }
 #endif
 
