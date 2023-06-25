@@ -391,10 +391,20 @@ bool RSUniRenderUtil::HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas&
     }
     if (surfaceNodePtr->IsAppWindow()) {
         auto rsParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNodePtr->GetParent().lock());
+        auto curNode = surfaceNodePtr;
         if (rsParent && rsParent->IsLeashWindow()) {
-            return HandleSubThreadNode(*rsParent, canvas);
+            curNode = rsParent;
+        }
+        if (!curNode->ShouldPaint()) {
+            return false;
+        }
+        if (curNode->IsOnTheTree()) {
+            return HandleSubThreadNode(*curNode, canvas);
         } else {
-            return HandleSubThreadNode(node, canvas);
+            if (curNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
+                RSSubThreadManager::Instance()->WaitNodeTask(curNode->GetId());
+            }
+            return false;
         }
     }
     return false;
@@ -459,22 +469,23 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
             ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes nullptr found in sortedChildren, this should not happen");
             continue;
         }
-        if (isScale) { // app start or close scene
-            if ((node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) ||
-                (!node->HasFilter() && !node->HasAbilityComponent() && !isRotation)) {
+        if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) { // node exceed one vsync
+            AssignSubThreadNode(subThreadNodes, node);
+        } else if (isScale) { // app start or close scene
+            if (!node->HasFilter() && !node->HasAbilityComponent() && !isRotation) {
                 AssignSubThreadNode(subThreadNodes, node);
             } else {
-                AssignMainThreadNode(mainThreadNodes, node, subThreadNodes);
+                AssignMainThreadNode(mainThreadNodes, node);
             }
-        } else {
-            AssignMainThreadNode(mainThreadNodes, node, subThreadNodes);
+        } else { // other scene
+            AssignMainThreadNode(mainThreadNodes, node);
         }
     }
     SortSubThreadNodes(subThreadNodes);
 }
 
 void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
-    const std::shared_ptr<RSSurfaceRenderNode>& node, std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
+    const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     if (node == nullptr) {
         ROSEN_LOGW("RSUniRenderUtil::AssignMainThreadNode node is nullptr");
@@ -627,11 +638,13 @@ void RSUniRenderUtil::ClearNodeCacheSurface(sk_sp<SkSurface> cacheSurface, sk_sp
             cacheCompletedSurface = nullptr;
         });
     } else {
+#ifdef RS_ENABLE_GL
         RSSubThreadManager::Instance()->PostTask([cacheSurface, cacheCompletedSurface]() mutable {
             RS_LOGD("clear node cache surface in sub thread");
             cacheSurface = nullptr;
             cacheCompletedSurface = nullptr;
         }, threadIndex);
+#endif
     }
 }
 } // namespace Rosen

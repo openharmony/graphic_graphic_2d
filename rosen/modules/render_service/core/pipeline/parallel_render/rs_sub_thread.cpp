@@ -141,8 +141,10 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
             RS_LOGE("skCanvas is nullptr, flush failed");
         }
 #else
-        RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
-        surfaceNodePtr->GetCacheSurface()->flushAndSubmit(false);
+        if (surfaceNodePtr && surfaceNodePtr->GetCacheSurface()) {
+            RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
+            surfaceNodePtr->GetCacheSurface()->flushAndSubmit(false);
+        }
 #endif
         surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DONE);
 

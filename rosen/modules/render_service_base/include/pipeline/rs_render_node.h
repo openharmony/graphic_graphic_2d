@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_NODE_H
 
 #include <memory>
+#include <mutex>
 #include <unordered_set>
 #include <stdint.h>
 #include <functional>
@@ -159,11 +160,13 @@ public:
     std::shared_ptr<Drawing::Surface> GetCacheSurface() const
 #endif
     {
+        std::scoped_lock<std::mutex> lock(surfaceMutex_);
         return cacheSurface_;
     }
 
     void UpdateCompletedCacheSurface()
     {
+        std::scoped_lock<std::mutex> lock(surfaceMutex_);
         std::swap(cacheSurface_, cacheCompletedSurface_);
     }
 
@@ -177,6 +180,7 @@ public:
 
     void ClearCacheSurface()
     {
+        std::scoped_lock<std::mutex> lock(surfaceMutex_);
         cacheSurface_ = nullptr;
         cacheCompletedSurface_ = nullptr;
     }
@@ -452,6 +456,7 @@ private:
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     bool isDrawingCacheChanged_ = false;
 
+    mutable std::mutex surfaceMutex_;
     sk_sp<SkImage> cacheTexture_ = nullptr;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
