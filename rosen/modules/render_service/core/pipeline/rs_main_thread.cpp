@@ -1002,8 +1002,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             const auto& nodeMap = context_->GetNodeMap();
             RSUniRenderUtil::ClearSurfaceIfNeed(nodeMap, displayNode, oldDisplayChildren_);
             uniVisitor->SetAssignedWindowNodes(mainThreadNodes, subThreadNodes);
-            subThreadNodes_.clear();
-            subThreadNodes_ = subThreadNodes;
+            RSUniRenderUtil::CacheSubThreadNodes(subThreadNodes_, subThreadNodes);
         }
         rootNode->Process(uniVisitor);
     }
@@ -1353,7 +1352,7 @@ void RSMainThread::Animate(uint64_t timestamp)
         }
         if (cacheCmdSkippedInfo_.count(ExtractPid(node->GetId())) > 0) {
             RS_LOGD("RSMainThread::Animate skip the cached node");
-            return true;
+            return false;
         }
         activeProcessPids_.emplace(ExtractPid(node->GetId()));
         auto [hasRunningAnimation, nodeNeedRequestNextVsync] = node->Animate(timestamp);

@@ -15,6 +15,7 @@
 
 #include "rs_uni_render_util.h"
 #include <cstdint>
+#include <unordered_set>
 
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_main_thread.h"
@@ -534,6 +535,24 @@ void RSUniRenderUtil::SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRend
         }
     });
 }
+
+void RSUniRenderUtil::CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& oldSubThreadNodes,
+    std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
+{
+    std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>> nodes(subThreadNodes.begin(), subThreadNodes.end());
+    for (auto node : oldSubThreadNodes) {
+        if (nodes.count(node) > 0) {
+            continue;
+        }
+        // The node being processed by sub thread may have been removed.
+        if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
+            subThreadNodes.emplace_back(node);
+        }
+    }
+    oldSubThreadNodes.clear();
+    oldSubThreadNodes = subThreadNodes;
+}
+
 void RSUniRenderUtil::HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     if (!node->HasHardwareNode()) {

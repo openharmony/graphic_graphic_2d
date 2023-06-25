@@ -63,7 +63,6 @@ public:
     void SetMainVisitor(RSUniRenderVisitor *mainVisitor);
     bool GetRenderFinish();
     void SetSuperTask(std::unique_ptr<RSSuperRenderTask> superRenderTask);
-    void AddSuperTask(std::unique_ptr<RSSuperRenderTask> superRenderTask);
     void SetCompositionTask(std::unique_ptr<RSCompositionTask> compositionTask);
     EGLContext GetSharedContext() const;
 #ifndef USE_ROSEN_DRAWING
@@ -89,8 +88,6 @@ private:
     void InitSubThread();
     void Render();
     void InitUniVisitor();
-    void StartRenderCache();
-    void RenderCache();
     void Flush();
     void CreateResource();
     void CreatePbufferSurface();
