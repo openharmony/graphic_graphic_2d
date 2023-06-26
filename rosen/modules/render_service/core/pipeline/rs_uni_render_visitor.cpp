@@ -14,6 +14,8 @@
  */
 
 #include "pipeline/rs_uni_render_visitor.h"
+#include <memory>
+#include "SkPictureRecorder.h"
 
 #ifdef RS_ENABLE_VK
 #include <vulkan_window.h>
@@ -954,6 +956,9 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     if (curSurfaceDirtyManager_ == nullptr) {
         RS_LOGE("RSUniRenderVisitor::PrepareCanvasRenderNode curSurfaceDirtyManager is nullptr");
         return;
+    }
+    if (node.IsContentDirty() && node.GetRecordedContents()) {
+        node.SetRecordedContents(nullptr);
     }
     dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
         dirtyFlag_, prepareClipRect_);
@@ -2571,10 +2576,31 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
     node.ProcessTransitionBeforeChildren(*canvas_);
     switch (cacheType) {
         case CacheType::NONE: {
-            node.ProcessAnimatePropertyBeforeChildren(*canvas_);
-            node.ProcessRenderContents(*canvas_);
-            ProcessBaseRenderNode(node);
-            node.ProcessAnimatePropertyAfterChildren(*canvas_);
+            if (node.GetSortedChildren().empty()) {
+                if (node.GetRecordedContents() == nullptr) { // record draw call to skPicture for leaf node
+                    SkPictureRecorder recorder;
+                    auto drawRegion = node.GetDrawRegion();
+                    SkRect bounds = drawRegion ? RSPropertiesPainter::Rect2SkRect(*drawRegion) :
+                        SkRect::MakeWH(node.GetRenderProperties().GetBoundsWidth(),
+                        node.GetRenderProperties().GetBoundsHeight());
+                    auto recordingCanvas = std::make_shared<RSPaintFilterCanvas>(recorder.beginRecording(bounds));
+                    swap(canvas_, recordingCanvas);
+                    node.ProcessAnimatePropertyBeforeChildren(*canvas_);
+                    node.ProcessRenderContents(*canvas_);
+                    ProcessBaseRenderNode(node);
+                    node.ProcessAnimatePropertyAfterChildren(*canvas_);
+                    swap(canvas_, recordingCanvas);
+                    node.SetRecordedContents(recorder.finishRecordingAsPicture());
+                }
+                if (auto recordedContents = node.GetRecordedContents()) {
+                    recordedContents->playback(canvas_.get());
+                }
+            } else {
+                node.ProcessAnimatePropertyBeforeChildren(*canvas_);
+                node.ProcessRenderContents(*canvas_);
+                ProcessBaseRenderNode(node);
+                node.ProcessAnimatePropertyAfterChildren(*canvas_);
+            }
             break;
         }
         case CacheType::CONTENT: {
