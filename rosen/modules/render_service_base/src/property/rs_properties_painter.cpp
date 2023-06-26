@@ -542,7 +542,7 @@ void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPain
 {
     skPath.offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
     Color spotColor = properties.GetShadowColor();
-    
+
     // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,
     // the function <compute_key_and_clip_bounds> in <skia/src/gpu/GrBlurUtil.cpp> for more details.
     RSAutoCanvasRestore rst(&canvas);
@@ -1268,10 +1268,10 @@ SkColor RSPropertiesPainter::CalcAverageColor(sk_sp<SkImage> imageSnapshot)
     return SkColor4f::FromBytes_RGBA(pixel[0]).toSkColor();
 }
 #else
-Drawing::Color RSPropertiesPainter::CalcAverageColor(std::shared_ptr<Drawing::Image> imageSnapshot)
+Drawing::ColorQuad RSPropertiesPainter::CalcAverageColor(std::shared_ptr<Drawing::Image> imageSnapshot)
 {
     // create a 1x1 SkPixmap
-    return Drawing::Color();
+    return Drawing::ColorQuad();
 }
 #endif
 
@@ -1402,7 +1402,6 @@ void RSPropertiesPainter::DrawFrame(
         canvas.ConcatMatrix(mat);
     }
     auto frameRect = Rect2DrawingRect(properties.GetFrameRect());
-    // Generate or clear cache on demand
     cmds->Playback(canvas, &frameRect);
 }
 #endif
@@ -1527,7 +1526,6 @@ void RSPropertiesPainter::DrawForegroundColor(const RSProperties& properties, Dr
 }
 #endif
 
-
 #ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::DrawMask(const RSProperties& properties, SkCanvas& canvas, SkRect maskBounds)
 {
@@ -1583,7 +1581,7 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
     if (mask == nullptr) {
         return;
     }
-    if (mask->IsSvgMask() && !mask->GetSvgDom() && !mask->GetSVGDrawCmdList()) {
+    if (mask->IsSvgMask() && !mask->GetSvgDom() && !mask->GetSvgPicture()) {
         ROSEN_LOGD("RSPropertiesPainter::DrawMask not has Svg Mask property");
         return;
     }
@@ -1596,9 +1594,7 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
     Drawing::Brush maskfilter;
     Drawing::Filter filter;
     filter.SetColorFilter(Drawing::ColorFilter::CreateComposeColorFilter(
-        *(Drawing::ColorFilter::CreateLumaColorFilter()),
-        *(Drawing::ColorFilter::CreateSrgbGammaToLinear())
-        ));
+        *(Drawing::ColorFilter::CreateLumaColorFilter()), *(Drawing::ColorFilter::CreateSrgbGammaToLinear())));
     maskfilter.SetFilter(filter);
     Drawing::SaveLayerOps slrMask(&maskBounds, &maskfilter);
     canvas.SaveLayer(slrMask);
@@ -1607,10 +1603,9 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
         canvas.Translate(maskBounds.GetLeft() + mask->GetSvgX(), maskBounds.GetTop() + mask->GetSvgY());
         canvas.Scale(mask->GetScaleX(), mask->GetScaleY());
         if (mask->GetSvgDom()) {
-            mask->GetSvgDom()->Render(canvas);
-        } else if (mask->GetSVGDrawCmdList()) {
-            auto svgDrawCmdList = mask->GetSVGDrawCmdList();
-            svgDrawCmdList->Playback(canvas);
+            canvas.DrawSVGDOM(mask->GetSvgDom());
+        } else if (mask->GetSvgPicture()) {
+            canvas.DrawPicture(*mask->GetSvgPicture());
         }
     } else if (mask->IsGradientMask()) {
         Drawing::AutoCanvasRestore maskSave(canvas, true);

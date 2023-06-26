@@ -44,7 +44,7 @@ namespace Rosen {
 #ifndef USE_ROSEN_DRAWING
 using DrawFunc = std::function<void(std::shared_ptr<SkCanvas>)>;
 #else
-using DrawFunc = std::function<void(std::shared_ptr<Drawing::RecordingCanvas>)>;
+using DrawFunc = std::function<void(std::shared_ptr<Drawing::Canvas>)>;
 #endif
 using PropertyCallback = std::function<void()>;
 class RSAnimation;

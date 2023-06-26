@@ -77,10 +77,18 @@ bool RSBlurFilter::IsValid() const
     return true;
 }
 
+#ifndef USE_ROSEN_DRAWING
 std::shared_ptr<RSSkiaFilter> RSBlurFilter::Compose(const std::shared_ptr<RSSkiaFilter>& inner)
+#else
+std::shared_ptr<RSDrawingFilter> RSBlurFilter::Compose(const std::shared_ptr<RSDrawingFilter>& inner)
+#endif
 {
     std::shared_ptr<RSBlurFilter> blur = std::make_shared<RSBlurFilter>(blurRadiusX_, blurRadiusY_);
+#ifndef USE_ROSEN_DRAWING
     blur->imageFilter_ = SkImageFilters::Compose(imageFilter_, inner->GetImageFilter());
+#else
+    blur->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, inner->GetImageFilter());
+#endif
     return blur;
 }
 

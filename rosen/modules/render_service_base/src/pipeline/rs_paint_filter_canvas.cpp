@@ -25,7 +25,16 @@ namespace Rosen {
 #ifdef USE_ROSEN_DRAWING
 using namespace Drawing;
 
-RSPaintFilterCanvasBase::RSPaintFilterCanvasBase(Drawing::Canvas* canvas) : canvas_(canvas) {}
+RSPaintFilterCanvasBase::RSPaintFilterCanvasBase(Drawing::Canvas* canvas)
+    : Canvas(canvas->GetWidth(), canvas->GetHeight()), canvas_(canvas)
+{
+    if (canvas_) {
+        auto rectI = canvas_->GetDeviceClipBounds();
+        this->ClipRect({ rectI.GetLeft(), rectI.GetTop(), rectI.GetRight(), rectI.GetBottom() },
+            Drawing::ClipOp::INTERSECT, false);
+        this->SetMatrix(canvas_->GetTotalMatrix());
+    }
+}
 
 void RSPaintFilterCanvasBase::DrawPoint(const Point& point)
 {
@@ -164,6 +173,7 @@ void RSPaintFilterCanvasBase::DrawPicture(const Picture& picture)
 
 void RSPaintFilterCanvasBase::ClipRect(const Drawing::Rect& rect, Drawing::ClipOp op, bool doAntiAlias)
 {
+    Canvas::ClipRect(rect, op, doAntiAlias);
     if (canvas_ != nullptr) {
         canvas_->ClipRect(rect, op, doAntiAlias);
     }
@@ -171,6 +181,7 @@ void RSPaintFilterCanvasBase::ClipRect(const Drawing::Rect& rect, Drawing::ClipO
 
 void RSPaintFilterCanvasBase::ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias)
 {
+    Canvas::ClipRoundRect(roundRect, op, doAntiAlias);
     if (canvas_ != nullptr) {
         canvas_->ClipRoundRect(roundRect, op, doAntiAlias);
     }
@@ -178,6 +189,7 @@ void RSPaintFilterCanvasBase::ClipRoundRect(const RoundRect& roundRect, ClipOp o
 
 void RSPaintFilterCanvasBase::ClipPath(const Path& path, ClipOp op, bool doAntiAlias)
 {
+    Canvas::ClipPath(path, op, doAntiAlias);
     if (canvas_ != nullptr) {
         canvas_->ClipPath(path, op, doAntiAlias);
     }
@@ -185,6 +197,7 @@ void RSPaintFilterCanvasBase::ClipPath(const Path& path, ClipOp op, bool doAntiA
 
 void RSPaintFilterCanvasBase::SetMatrix(const Matrix& matrix)
 {
+    Canvas::SetMatrix(matrix);
     if (canvas_ != nullptr) {
         canvas_->SetMatrix(matrix);
     }
@@ -192,6 +205,7 @@ void RSPaintFilterCanvasBase::SetMatrix(const Matrix& matrix)
 
 void RSPaintFilterCanvasBase::ResetMatrix()
 {
+    Canvas::ResetMatrix();
     if (canvas_ != nullptr) {
         canvas_->ResetMatrix();
     }
@@ -199,6 +213,7 @@ void RSPaintFilterCanvasBase::ResetMatrix()
 
 void RSPaintFilterCanvasBase::ConcatMatrix(const Matrix& matrix)
 {
+    Canvas::ConcatMatrix(matrix);
     if (canvas_ != nullptr) {
         canvas_->ConcatMatrix(matrix);
     }
@@ -206,6 +221,7 @@ void RSPaintFilterCanvasBase::ConcatMatrix(const Matrix& matrix)
 
 void RSPaintFilterCanvasBase::Translate(scalar dx, scalar dy)
 {
+    Canvas::Translate(dx, dy);
     if (canvas_ != nullptr) {
         canvas_->Translate(dx, dy);
     }
@@ -213,6 +229,7 @@ void RSPaintFilterCanvasBase::Translate(scalar dx, scalar dy)
 
 void RSPaintFilterCanvasBase::Scale(scalar sx, scalar sy)
 {
+    Canvas::Scale(sx, sy);
     if (canvas_ != nullptr) {
         canvas_->Scale(sx, sy);
     }
@@ -220,6 +237,7 @@ void RSPaintFilterCanvasBase::Scale(scalar sx, scalar sy)
 
 void RSPaintFilterCanvasBase::Rotate(scalar deg, scalar sx, scalar sy)
 {
+    Canvas::Rotate(deg, sx, sy);
     if (canvas_ != nullptr) {
         canvas_->Rotate(deg, sx, sy);
     }
@@ -227,6 +245,7 @@ void RSPaintFilterCanvasBase::Rotate(scalar deg, scalar sx, scalar sy)
 
 void RSPaintFilterCanvasBase::Shear(scalar sx, scalar sy)
 {
+    Canvas::Shear(sx, sy);
     if (canvas_ != nullptr) {
         canvas_->Shear(sx, sy);
     }
@@ -248,6 +267,7 @@ void RSPaintFilterCanvasBase::Clear(ColorQuad color)
 
 void RSPaintFilterCanvasBase::Save()
 {
+    Canvas::Save();
     if (canvas_ != nullptr) {
         canvas_->Save();
     }
@@ -255,6 +275,7 @@ void RSPaintFilterCanvasBase::Save()
 
 void RSPaintFilterCanvasBase::SaveLayer(const SaveLayerOps& saveLayerRec)
 {
+    Canvas::SaveLayer(saveLayerRec);
     if (canvas_ != nullptr) {
         canvas_->SaveLayer(saveLayerRec);
     }
@@ -262,6 +283,7 @@ void RSPaintFilterCanvasBase::SaveLayer(const SaveLayerOps& saveLayerRec)
 
 void RSPaintFilterCanvasBase::Restore()
 {
+    Canvas::Restore();
     if (canvas_ != nullptr) {
         canvas_->Restore();
     }

@@ -1526,9 +1526,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 }
                 Drawing::Brush brush;
                 brush.SetAntiAlias(true);
-                Drawing::SamplingOptions sampling =
-                    Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
-                canvas_->DrawImage(*cacheImgForCapture_, 0, 0, sampling);
+                canvas_->AttachBrush(brush);
+                canvas_->DrawImage(*cacheImgForCapture_, 0, 0, Drawing::SamplingOptions());
+                canvas_->DetachBrush();
                 canvas_->Restore();
                 DrawWatermarkIfNeed();
             } else {

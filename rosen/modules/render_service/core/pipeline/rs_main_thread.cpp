@@ -1617,6 +1617,11 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
             return;
         }
         gpuContext->Flush();
+        if (!IsResidentProcess(remotePid)) {
+            ReleaseExitSurfaceNodeAllGpuResource(gpuContext);
+        } else {
+            RS_LOGW("this pid:%d is resident process, no need release gpu resource", remotePid);
+        }
 #endif // USE_ROSEN_DRAWING
         lastCleanCacheTimestamp_ = timestamp_;
 #endif

@@ -15,11 +15,7 @@
 
 #include "render/rs_mask.h"
 
-#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkPictureRecorder.h"
-#else
-#include "recording/recording_canvas.h"
-#endif
 
 #include "platform/common/rs_log.h"
 
@@ -62,13 +58,8 @@ std::shared_ptr<RSMask> RSMask::CreatePathMask(const Drawing::Path& maskPath, co
     return mask;
 }
 
-#ifndef USE_ROSEN_DRAWING
 std::shared_ptr<RSMask> RSMask::CreateSVGMask(double x, double y, double scaleX, double scaleY,
     const sk_sp<SkSVGDOM>& svgDom)
-#else
-std::shared_ptr<RSMask> RSMask::CreateSVGMask(double x, double y, double scaleX, double scaleY,
-    const std::shared_ptr<Drawing::SVGDOM>& svgDom)
-#endif
 {
     auto mask = std::make_shared<RSMask>();
     if (mask) {
@@ -170,35 +161,24 @@ Drawing::Brush RSMask::GetMaskBrush() const
 }
 #endif
 
-#ifndef USE_ROSEN_DRAWING
 void RSMask::SetSvgDom(const sk_sp<SkSVGDOM>& svgDom)
-#else
-void RSMask::SetSvgDom(const std::shared_ptr<Drawing::SVGDOM>& svgDom)
-#endif
 {
     svgDom_ = svgDom;
 }
 
-#ifndef USE_ROSEN_DRAWING
 sk_sp<SkSVGDOM> RSMask::GetSvgDom() const
-#else
-std::shared_ptr<Drawing::SVGDOM> RSMask::GetSvgDom() const
-#endif
 {
     return svgDom_;
 }
 
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkPicture> RSMask::GetSvgPicture() const
+#else
+std::shared_ptr<Drawing::Picture> RSMask::GetSvgPicture() const
+#endif
 {
     return svgPicture_;
 }
-#else
-std::shared_ptr<Drawing::DrawCmdList> RSMask::GetSVGDrawCmdList() const
-{
-    return svgDrawCmdList_;
-}
-#endif
 
 void RSMask::SetMaskType(MaskType type)
 {
@@ -239,7 +219,6 @@ bool RSMask::Marshalling(Parcel& parcel) const
     }
     if (IsSvgMask()) {
         ROSEN_LOGD("SVG RSMask::Marshalling");
-#ifndef USE_ROSEN_DRAWING
         SkPictureRecorder recorder;
         SkCanvas* recordingCanvas = recorder.beginRecording(SkRect::MakeSize(svgDom_->containerSize()));
         svgDom_->render(recordingCanvas);
@@ -248,19 +227,6 @@ bool RSMask::Marshalling(Parcel& parcel) const
             ROSEN_LOGE("RSMask::Marshalling SkPicture failed!");
             return false;
         }
-#else
-        if (svgDom_ == nullptr) {
-            ROSEN_LOGE("RSMask::Marshalling svgDom_ is nullptr!");
-            return false;
-        }
-        auto size = svgDom_->ContainerSize();
-        auto recordingCanvas = std::make_shared<Drawing::RecordingCanvas>(size.Width(), size.Height());
-        svgDom_->Render(*recordingCanvas);
-        if (!RSMarshallingHelper::Marshalling(parcel, recordingCanvas->GetDrawCmdList())) {
-            ROSEN_LOGE("RSMask::Marshalling RecordingCanvas CmdList failed!");
-            return false;
-        }
-#endif
     }
     return true;
 }
@@ -284,17 +250,10 @@ RSMask* RSMask::Unmarshalling(Parcel& parcel)
     }
     if (rsMask->IsSvgMask()) {
         ROSEN_LOGD("SVG RSMask::Unmarshalling");
-#ifndef USE_ROSEN_DRAWING
         if (!RSMarshallingHelper::Unmarshalling(parcel, rsMask->svgPicture_)) {
             ROSEN_LOGE("RSMask::Unmarshalling SkPicture failed!");
             return nullptr;
         }
-#else
-        if (!RSMarshallingHelper::Unmarshalling(parcel, rsMask->svgDrawCmdList_)) {
-            ROSEN_LOGE("RSMask::Unmarshalling SkPicture failed!");
-            return nullptr;
-        }
-#endif
     }
     return rsMask.release();
 }

@@ -308,7 +308,7 @@ RSImageBase* RSImageBase::Unmarshalling(Parcel& parcel)
     std::shared_ptr<Drawing::Image> img = std::make_shared<Drawing::Image>();
     std::shared_ptr<Media::PixelMap> pixelMap;
     void* imagepixelAddr = nullptr;
-    if (!UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSkImage, img, imagepixelAddr, pixelMap)) {
+    if (!UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSkImage, img, pixelMap, imagepixelAddr)) {
         return nullptr;
     }
 #endif
