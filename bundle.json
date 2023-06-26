@@ -263,6 +263,26 @@
               ],
               "header_base": "//foundation/graphic/graphic_2d/utils/color_manager"
             }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/texgine:libtexgine",
+            "header": {
+              "header_files": [
+                "any_span.h",
+                "dynamic_file_font_provider.h",
+                "dynamic_font_provider.h",
+                "font_providers.h",
+                "ifont_provider.h",
+                "system_font_provider.h",
+                "text_style.h",
+                "typography_builder.h",
+                "typography_style.h",
+                "typography_types.h",
+                "typography.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/texgine/export/texgine"
+            }
           }
         ],
         "test": [
