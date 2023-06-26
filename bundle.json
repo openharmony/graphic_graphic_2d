@@ -260,7 +260,9 @@
             "name": "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
             "header": {
               "header_files": [
-                "export/color.h"
+                "export/color.h",
+                "export/color_space.h",
+                "export/color_space_convertor.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/utils/color_manager"
             }
