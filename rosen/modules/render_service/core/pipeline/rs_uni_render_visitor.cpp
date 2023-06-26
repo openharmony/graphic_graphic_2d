@@ -65,6 +65,7 @@ constexpr uint32_t PHONE_MAX_APP_WINDOW_NUM = 1;
 constexpr uint32_t CACHE_MAX_UPDATE_TIME = 5;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 static std::map<NodeId, uint32_t> cacheRenderNodeMap = {};
+static std::mutex generateNodeContentCacheMutex;
 
 bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 {
@@ -3012,6 +3013,7 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 
 bool RSUniRenderVisitor::GenerateNodeContentCache(RSRenderNode& node)
 {
+    std::lock_guard<std::mutex> lock(generateNodeContentCacheMutex);
     // Node cannot have cache.
     if (node.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
         if (cacheRenderNodeMap.count(node.GetId()) > 0) {
