@@ -50,6 +50,28 @@ namespace OHOS {
         return object;
     }
 
+    void HdiDeviceFuzzTest3()
+    {
+        // get data
+        uint32_t screenId = GetData<uint32_t>();
+        uint32_t layerId = GetData<uint32_t>();
+        GraphicHDRMetaData metaData = GetData<GraphicHDRMetaData>();
+        uint8_t metaData2 = GetData<uint8_t>();
+        GraphicHDRMetadataKey key = GetData<GraphicHDRMetadataKey>();
+        GraphicPresentTimestamp timestamp = GetData<GraphicPresentTimestamp>();
+        uint32_t maskInfo = GetData<uint32_t>();
+
+        // test
+        HdiDevice *device = HdiDevice::GetInstance();
+        std::vector<GraphicHDRMetaData> metaDatas = {metaData};
+        device->SetLayerMetaData(screenId, layerId, metaDatas);
+        std::vector<uint8_t> metaDatas2 = {metaData2};
+        device->SetLayerMetaDataSet(screenId, layerId, key, metaDatas2);
+        device->SetLayerTunnelHandle(screenId, layerId, nullptr);
+        device->GetPresentTimestamp(screenId, layerId, timestamp);
+        device->SetLayerMaskInfo(screenId, layerId, maskInfo);
+    }
+
     void HdiDeviceFuzzTest2()
     {
         // get data
@@ -75,11 +97,9 @@ namespace OHOS {
         float matrixElement = GetData<float>();
         std::vector<float> matrix = { matrixElement };
         GraphicColorDataSpace colorSpace = GetData<GraphicColorDataSpace>();
-        GraphicHDRMetaData metaData = GetData<GraphicHDRMetaData>();
-        GraphicHDRMetadataKey key = GetData<GraphicHDRMetadataKey>();
-        uint8_t metaData2 = GetData<uint8_t>();
-        GraphicPresentTimestamp timestamp = GetData<GraphicPresentTimestamp>();
-        uint32_t maskInfo = GetData<uint32_t>();
+        
+        uint32_t deletingIndex = GetData<uint32_t>();
+        std::vector<uint32_t> deletingList = { deletingIndex };
 
         // test
         HdiDevice *device = HdiDevice::GetInstance();
@@ -89,7 +109,8 @@ namespace OHOS {
         device->SetTransformMode(screenId, layerId, ttype);
         device->SetLayerVisibleRegion(screenId, layerId, visibles);
         device->SetLayerDirtyRegion(screenId, layerId, dirtyRegions);
-        device->SetLayerBuffer(screenId, layerId, nullptr, fence);
+        GraphicLayerBuffer layerBuffer = {nullptr, INVALID_BUFFER_CACHE_INDEX, fence, deletingList};
+        device->SetLayerBuffer(screenId, layerId, layerBuffer);
         device->SetLayerCompositionType(screenId, layerId, ctype);
         device->SetLayerBlendType(screenId, layerId, btype);
         device->SetLayerCrop(screenId, layerId, crop);
@@ -98,13 +119,8 @@ namespace OHOS {
         device->SetLayerColorTransform(screenId, layerId, matrix);
         device->SetLayerColorDataSpace(screenId, layerId, colorSpace);
         device->GetLayerColorDataSpace(screenId, layerId, colorSpace);
-        std::vector<GraphicHDRMetaData> metaDatas = {metaData};
-        device->SetLayerMetaData(screenId, layerId, metaDatas);
-        std::vector<uint8_t> metaDatas2 = {metaData2};
-        device->SetLayerMetaDataSet(screenId, layerId, key, metaDatas2);
-        device->SetLayerTunnelHandle(screenId, layerId, nullptr);
-        device->GetPresentTimestamp(screenId, layerId, timestamp);
-        device->SetLayerMaskInfo(screenId, layerId, maskInfo);
+
+        HdiDeviceFuzzTest3();
     }
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
@@ -127,6 +143,7 @@ namespace OHOS {
             fenceFd = DEFAULT_FENCE;
         }
         sptr<SyncFence> fence = new SyncFence(fenceFd);
+        uint32_t cacheIndex = GetData<uint32_t>();
         GraphicIRect damageRect = GetData<GraphicIRect>();
         std::vector<GraphicIRect> damageRects = { damageRect };
         GraphicGamutMap gamutMap = GetData<GraphicGamutMap>();
@@ -143,7 +160,7 @@ namespace OHOS {
         std::vector<uint32_t> layersId;
         std::vector<int32_t> types;
         device->GetScreenCompChange(screenId, layersId, types);
-        device->SetScreenClientBuffer(screenId, nullptr, fence);
+        device->SetScreenClientBuffer(screenId, nullptr, cacheIndex, fence);
         device->SetScreenClientDamage(screenId, damageRects);
         std::vector<uint32_t> layers;
         std::vector<sptr<SyncFence>> fences;

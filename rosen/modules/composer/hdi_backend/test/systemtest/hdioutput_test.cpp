@@ -220,7 +220,7 @@ HWTEST_F(HdiOutputSysTest, FlushScreen002, Function | MediumTest| Level1)
     };
     ASSERT_EQ(frameSurface->FlushBuffer(buffer, -1, flushConfig), GSERROR_OK); // frame buffer is not nullptr
 
-    EXPECT_CALL(*mockDevice_, SetScreenClientBuffer(_, _, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, SetScreenClientBuffer(_, _, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenClientDamage(_, _)).WillRepeatedly(testing::Return(0));
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->FlushScreen(compClientLayers), 0);
 }

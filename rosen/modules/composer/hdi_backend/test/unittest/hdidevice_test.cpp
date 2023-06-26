@@ -73,11 +73,15 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetScreenCompChange(screenId, layersId, types), GRAPHIC_DISPLAY_SUCCESS);
     BufferHandle *buffer = nullptr;
     sptr<SyncFence> fence = nullptr;
-    ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientBuffer(screenId, buffer, fence), GRAPHIC_DISPLAY_NULL_PTR);
+    uint32_t cacheIndex = 0;
+    ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientBuffer(screenId, buffer, cacheIndex, fence),
+              GRAPHIC_DISPLAY_NULL_PTR);
     buffer = new BufferHandle();
-    ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientBuffer(screenId, buffer, fence), GRAPHIC_DISPLAY_NULL_PTR);
+    ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientBuffer(screenId, buffer, cacheIndex, fence),
+              GRAPHIC_DISPLAY_NULL_PTR);
     fence = new SyncFence(-1);
-    ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientBuffer(screenId, buffer, fence), GRAPHIC_DISPLAY_SUCCESS);
+    ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientBuffer(screenId, buffer, cacheIndex, fence),
+              GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicIRect> damageRects = { {0, 0, 0, 0} };
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientDamage(screenId, damageRects), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<uint32_t> layers;
@@ -93,8 +97,6 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetScreenGamutMap(screenId, gamutMap), GRAPHIC_DISPLAY_NOT_SUPPORT);
     std::vector<float> matrix = { 0.0 };
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetScreenColorTransform(screenId, matrix), GRAPHIC_DISPLAY_NOT_SUPPORT);
-    GraphicHDRCapability info;
-    ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetHDRCapabilityInfos(screenId, info), GRAPHIC_DISPLAY_NOT_SUPPORT);
 }
 
 /*
@@ -108,6 +110,8 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
 HWTEST_F(HdiDeviceTest, DeviceFuncs002, Function | MediumTest| Level3)
 {
     uint32_t screenId = 1;
+    GraphicHDRCapability info;
+    ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetHDRCapabilityInfos(screenId, info), GRAPHIC_DISPLAY_NOT_SUPPORT);
     std::vector<GraphicHDRMetadataKey> keys;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedMetaDataKey(screenId, keys), GRAPHIC_DISPLAY_NOT_SUPPORT);
 }
@@ -136,8 +140,10 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
               GRAPHIC_DISPLAY_SUCCESS);
     BufferHandle *handle = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
-    ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, handle, acquireFence),
-              GRAPHIC_DISPLAY_NULL_PTR);
+    std::vector<uint32_t> deletingList = {};
+    uint32_t cacheIndex = 0;
+    GraphicLayerBuffer layerBuffer = {handle, cacheIndex, acquireFence, deletingList};
+    ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_NULL_PTR);
     GraphicCompositionType cmpType = GRAPHIC_COMPOSITION_CLIENT;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCompositionType(screenId, layerId, cmpType), GRAPHIC_DISPLAY_SUCCESS);
     GraphicBlendType blendType = GRAPHIC_BLEND_NONE;
@@ -186,7 +192,9 @@ HWTEST_F(HdiDeviceTest, LayerFuncs002, Function | MediumTest| Level3)
     uint32_t layerMask = 0;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMaskInfo(screenId, layerId, layerMask), GRAPHIC_DISPLAY_SUCCESS);
     GraphicLayerInfo layerInfo;
-    ASSERT_EQ(HdiDeviceTest::hdiDevice_->CreateLayer(screenId, layerInfo, layerId), GRAPHIC_DISPLAY_SUCCESS);
+    uint32_t cacheCount = 1;
+    ASSERT_EQ(HdiDeviceTest::hdiDevice_->CreateLayer(screenId, layerInfo, cacheCount, layerId),
+              GRAPHIC_DISPLAY_SUCCESS);
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->CloseLayer(screenId, layerId), GRAPHIC_DISPLAY_SUCCESS);
 }
 } // namespace

@@ -32,7 +32,7 @@ public:
 
 void HdiOutputTest::SetUpTestCase()
 {
-    uint32_t screenId = 1;
+    uint32_t screenId = 0;
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId);
 }
 
@@ -76,7 +76,7 @@ HWTEST_F(HdiOutputTest, GetFramebuffer001, Function | MediumTest| Level1)
 */
 HWTEST_F(HdiOutputTest, GetScreenId001, Function | MediumTest| Level1)
 {
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->GetScreenId(), 1u);
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->GetScreenId(), 0u);
 }
 
 /*

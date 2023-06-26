@@ -41,8 +41,9 @@ public:
     int32_t PrepareScreenLayers(uint32_t screenId, bool &needFlushFb) override;
     int32_t GetScreenCompChange(uint32_t screenId, std::vector<uint32_t> &layersId,
                                 std::vector<int32_t> &types) override;
-    int32_t SetScreenClientBuffer(uint32_t screenId, const BufferHandle *buffer,
+    int32_t SetScreenClientBuffer(uint32_t screenId, const BufferHandle *buffer, uint32_t cacheIndex,
                                   const sptr<SyncFence> &fence) override;
+    int32_t SetScreenClientBufferCacheCount(uint32_t screen, uint32_t count) override;
     int32_t SetScreenClientDamage(uint32_t screenId, const std::vector<GraphicIRect> &damageRect) override;
     int32_t SetScreenVsyncEnabled(uint32_t screenId, bool enabled) override;
     int32_t GetScreenReleaseFence(uint32_t screenId, std::vector<uint32_t> &layersId,
@@ -66,8 +67,7 @@ public:
                                   const std::vector<GraphicIRect> &visibles) override;
     int32_t SetLayerDirtyRegion(uint32_t screenId, uint32_t layerId,
                                 const std::vector<GraphicIRect> &dirtyRegions) override;
-    int32_t SetLayerBuffer(uint32_t screenId, uint32_t layerId, const BufferHandle *handle,
-                           const sptr<SyncFence> &acquireFence) override;
+    int32_t SetLayerBuffer(uint32_t screenId, uint32_t layerId, const GraphicLayerBuffer &layerBuffer) override;
     int32_t SetLayerCompositionType(uint32_t screenId, uint32_t layerId, GraphicCompositionType type) override;
     int32_t SetLayerBlendType(uint32_t screenId, uint32_t layerId, GraphicBlendType type) override;
     int32_t SetLayerCrop(uint32_t screenId, uint32_t layerId, const GraphicIRect &crop) override;
@@ -87,7 +87,8 @@ public:
     int32_t SetLayerMaskInfo(uint32_t screenId, uint32_t layerId, uint32_t maskInfo) override;
     /* set & get device layer info end */
 
-    int32_t CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t &layerId) override;
+    int32_t CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t cacheCount,
+                        uint32_t &layerId) override;
     int32_t CloseLayer(uint32_t screenId, uint32_t layerId) override;
     void Destroy() override;
 

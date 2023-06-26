@@ -23,6 +23,7 @@ extern "C" {
 #endif
 
 #define PROPERTY_NAME_LEN  50
+#define INVALID_BUFFER_CACHE_INDEX 0xFFFFFFFF
 
 /*
  * @brief Defines property object which contains name, property id and value.
@@ -117,6 +118,16 @@ typedef struct {
     float maxAverageLum;
     float minLum;
 } GraphicHDRCapability;
+
+/*
+ * @brief Defines the layer buffer info.
+ */
+typedef struct {
+    BufferHandle* handle;
+    uint32_t cacheIndex;
+    OHOS::sptr<OHOS::SyncFence> acquireFence;
+    std::vector<uint32_t> deletingList;
+} GraphicLayerBuffer;
 
 /*
  * @brief Called when a hot plug event occurs.
