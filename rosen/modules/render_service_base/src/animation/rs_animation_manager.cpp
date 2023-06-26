@@ -143,5 +143,27 @@ std::shared_ptr<RSRenderAnimation> RSAnimationManager::QuerySpringAnimation(Prop
     }
     return GetAnimation(it->second);
 }
+
+void RSAnimationManager::RegisterPathAnimation(PropertyId propertyId, AnimationId animId)
+{
+    pathAnimations_[propertyId] = animId;
+}
+
+void RSAnimationManager::UnregisterPathAnimation(PropertyId propertyId, AnimationId animId)
+{
+    auto it = pathAnimations_.find(propertyId);
+    if (it != pathAnimations_.end() && it->second == animId) {
+        pathAnimations_.erase(it);
+    }
+}
+
+std::shared_ptr<RSRenderAnimation> RSAnimationManager::QueryPathAnimation(PropertyId propertyId)
+{
+    auto it = pathAnimations_.find(propertyId);
+    if (it == pathAnimations_.end() || it->second == 0) {
+        return nullptr;
+    }
+    return GetAnimation(it->second);
+}
 } // namespace Rosen
 } // namespace OHOS
