@@ -526,6 +526,23 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         canvas_->save();
     }
 
+    if (node.IsAppWindow()) {
+        // When CaptureSingleSurfaceNodeWithUni, we should consider scale factor of canvas_ and
+        // child nodes (self-drawing surfaceNode) of AppWindow should use relative coordinates
+        // which is the node relative to the upper-left corner of the window.
+        // So we have to get the invert matrix of AppWindow here and apply it to canvas_
+        // when we calculate the position of self-drawing surfaceNode.
+        captureMatrix_.setScaleX(scaleX_);
+        captureMatrix_.setScaleY(scaleY_);
+        SkMatrix invertMatrix;
+        if (geoPtr->GetAbsMatrix().invert(&invertMatrix)) {
+            captureMatrix_.preConcat(invertMatrix);
+        }
+    } else if (!node.IsStartingWindow()) {
+        canvas_->setMatrix(captureMatrix_);
+        canvas_->concat(geoPtr->GetAbsMatrix());
+    }
+
     const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     if (!isUIFirst_ && isSelfDrawingSurface) {
@@ -632,7 +649,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         if (geoPtr->GetAbsMatrix().Invert(invertMatrix)) {
             captureMatrix_.PreConcat(invertMatrix);
         }
-    } else if (!node.IsStartingWindow() && !isSelfDrawingSurface) {
+    } else if (!node.IsStartingWindow()) {
         canvas_->SetMatrix(captureMatrix_);
         canvas_->ConcatMatrix(geoPtr->GetAbsMatrix());
     }
