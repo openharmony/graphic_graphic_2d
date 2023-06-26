@@ -49,8 +49,8 @@ void RSWindowAnimationController::OnStartApp(StartingAppType type,
 {
     WALOGD("Window animation controller on start app.");
     wptr<RSWindowAnimationController> controllerWptr = this;
-    auto complete = std::make_unique<AsyncTask::CompleteCallback> (
-        [controllerWptr, type, startingWindowTarget, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
+    auto execute = std::make_unique<AsyncTask::ExecuteCallback> (
+        [controllerWptr, type, startingWindowTarget, finishedCallback]() {
             auto controllerSptr = controllerWptr.promote();
             if (controllerSptr == nullptr) {
                 WALOGE("Controller is null!");
@@ -65,7 +65,7 @@ void RSWindowAnimationController::OnStartApp(StartingAppType type,
     );
 
     NativeReference* callback = nullptr;
-    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
+    std::unique_ptr<AsyncTask::CompleteCallback> complete = nullptr;
     AsyncTask::Schedule("RSWindowAnimationController::OnStartApp", engine_,
         std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
 }
@@ -76,8 +76,8 @@ void RSWindowAnimationController::OnAppTransition(const sptr<RSWindowAnimationTa
 {
     WALOGD("Window animation controller on app transition.");
     wptr<RSWindowAnimationController> controllerWptr = this;
-    auto complete = std::make_unique<AsyncTask::CompleteCallback> (
-        [controllerWptr, fromWindowTarget, toWindowTarget, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
+    auto execute = std::make_unique<AsyncTask::ExecuteCallback> (
+        [controllerWptr, fromWindowTarget, toWindowTarget, finishedCallback]() {
             auto controllerSptr = controllerWptr.promote();
             if (controllerSptr == nullptr) {
                 WALOGE("Controller is null!");
@@ -92,7 +92,7 @@ void RSWindowAnimationController::OnAppTransition(const sptr<RSWindowAnimationTa
     );
 
     NativeReference* callback = nullptr;
-    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
+    std::unique_ptr<AsyncTask::CompleteCallback> complete = nullptr;
     AsyncTask::Schedule("RSWindowAnimationController::OnAppTransition", engine_,
         std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
 }
@@ -103,8 +103,8 @@ void RSWindowAnimationController::OnAppBackTransition(const sptr<RSWindowAnimati
 {
     WALOGD("Window animation controller on app back transition.");
     wptr<RSWindowAnimationController> controllerWptr = this;
-    auto complete = std::make_unique<AsyncTask::CompleteCallback> (
-        [controllerWptr, fromWindowTarget, toWindowTarget, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
+    auto execute = std::make_unique<AsyncTask::ExecuteCallback> (
+        [controllerWptr, fromWindowTarget, toWindowTarget, finishedCallback]() {
             auto controllerSptr = controllerWptr.promote();
             if (controllerSptr == nullptr) {
                 WALOGE("Controller is null!");
@@ -116,7 +116,7 @@ void RSWindowAnimationController::OnAppBackTransition(const sptr<RSWindowAnimati
     );
 
     NativeReference* callback = nullptr;
-    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
+    std::unique_ptr<AsyncTask::CompleteCallback> complete = nullptr;
     AsyncTask::Schedule("RSWindowAnimationController::OnAppBackTransition", engine_,
         std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
 }
@@ -126,8 +126,8 @@ void RSWindowAnimationController::OnMinimizeWindow(const sptr<RSWindowAnimationT
 {
     WALOGD("Window animation controller on minimize window.");
     wptr<RSWindowAnimationController> controllerWptr = this;
-    auto complete = std::make_unique<AsyncTask::CompleteCallback> (
-        [controllerWptr, minimizingWindowTarget, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
+    auto execute = std::make_unique<AsyncTask::ExecuteCallback> (
+        [controllerWptr, minimizingWindowTarget, finishedCallback]() {
             auto controllerSptr = controllerWptr.promote();
             if (controllerSptr == nullptr) {
                 WALOGE("Controller is null!");
@@ -142,7 +142,7 @@ void RSWindowAnimationController::OnMinimizeWindow(const sptr<RSWindowAnimationT
     );
 
     NativeReference* callback = nullptr;
-    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
+    std::unique_ptr<AsyncTask::CompleteCallback> complete = nullptr;
     AsyncTask::Schedule("RSWindowAnimationController::OnMinimizeWindow", engine_,
         std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
 }
@@ -169,8 +169,8 @@ void RSWindowAnimationController::OnCloseWindow(const sptr<RSWindowAnimationTarg
 {
     WALOGD("Window animation controller on close window.");
     wptr<RSWindowAnimationController> controllerWptr = this;
-    auto complete = std::make_unique<AsyncTask::CompleteCallback> (
-        [controllerWptr, closingWindowTarget, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
+    auto execute = std::make_unique<AsyncTask::ExecuteCallback> (
+        [controllerWptr, closingWindowTarget, finishedCallback]() {
             auto controllerSptr = controllerWptr.promote();
             if (controllerSptr == nullptr) {
                 WALOGE("Controller is null!");
@@ -185,7 +185,7 @@ void RSWindowAnimationController::OnCloseWindow(const sptr<RSWindowAnimationTarg
     );
 
     NativeReference* callback = nullptr;
-    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
+    std::unique_ptr<AsyncTask::CompleteCallback> complete = nullptr;
     AsyncTask::Schedule("RSWindowAnimationController::OnCloseWindow", engine_,
         std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
 }
@@ -194,8 +194,8 @@ void RSWindowAnimationController::OnScreenUnlock(const sptr<RSIWindowAnimationFi
 {
     WALOGD("Window animation controller on screen unlock.");
     wptr<RSWindowAnimationController> controllerWptr = this;
-    auto complete = std::make_unique<AsyncTask::CompleteCallback> (
-        [controllerWptr, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
+    auto execute = std::make_unique<AsyncTask::ExecuteCallback> (
+        [controllerWptr, finishedCallback]() {
             auto controllerSptr = controllerWptr.promote();
             if (controllerSptr == nullptr) {
                 WALOGE("Controller is null!");
@@ -213,7 +213,7 @@ void RSWindowAnimationController::OnScreenUnlock(const sptr<RSIWindowAnimationFi
     OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(ACTION_TYPE_CPU_BOOST_CMDID, true, "");
 #endif
     NativeReference* callback = nullptr;
-    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
+    std::unique_ptr<AsyncTask::CompleteCallback> complete = nullptr;
     AsyncTask::Schedule("RSWindowAnimationController::OnScreenUnlock", engine_,
         std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
 }
@@ -224,8 +224,8 @@ void RSWindowAnimationController::OnWindowAnimationTargetsUpdate(
 {
     WALOGD("Window animation controller on window animation targets update.");
     wptr<RSWindowAnimationController> controllerWptr = this;
-    auto complete = std::make_unique<AsyncTask::CompleteCallback> (
-        [controllerWptr, fullScreenWindowTarget, floatingWindowTargets](NativeEngine&, AsyncTask&, int32_t) {
+    auto execute = std::make_unique<AsyncTask::ExecuteCallback> (
+        [controllerWptr, fullScreenWindowTarget, floatingWindowTargets]() {
             auto controllerSptr = controllerWptr.promote();
             if (controllerSptr == nullptr) {
                 WALOGE("Controller is null!");
@@ -240,7 +240,7 @@ void RSWindowAnimationController::OnWindowAnimationTargetsUpdate(
     );
 
     NativeReference* callback = nullptr;
-    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
+    std::unique_ptr<AsyncTask::CompleteCallback> complete = nullptr;
     AsyncTask::Schedule("RSWindowAnimationController::OnWindowAnimationTargetsUpdate", engine_,
         std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
 }
@@ -249,8 +249,8 @@ void RSWindowAnimationController::OnWallpaperUpdate(const sptr<RSWindowAnimation
 {
     WALOGD("Window animation controller on wallpaper update.");
     wptr<RSWindowAnimationController> controllerWptr = this;
-    auto complete = std::make_unique<AsyncTask::CompleteCallback> (
-        [controllerWptr, wallpaperTarget](NativeEngine&, AsyncTask&, int32_t) {
+    auto execute = std::make_unique<AsyncTask::ExecuteCallback> (
+        [controllerWptr, wallpaperTarget]() {
             auto controllerSptr = controllerWptr.promote();
             if (controllerSptr == nullptr) {
                 WALOGE("Controller is null!");
@@ -262,7 +262,7 @@ void RSWindowAnimationController::OnWallpaperUpdate(const sptr<RSWindowAnimation
     );
 
     NativeReference* callback = nullptr;
-    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
+    std::unique_ptr<AsyncTask::CompleteCallback> complete = nullptr;
     AsyncTask::Schedule("RSWindowAnimationController::OnWallpaperUpdate", engine_,
         std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
 }
