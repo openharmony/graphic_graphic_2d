@@ -52,8 +52,7 @@ struct ColorPickerAsyncContext {
     std::shared_ptr<Media::PixelMap> rPixelMap;
     ColorManager::Color color;
     bool regionFlag = false;
-    float* coordinatesBuffer;
-    size_t coordinatesSizeBufferSize;
+    double coordinatesBuffer[4];
 };
 
 static void BuildMsgOnError(napi_env env,
@@ -262,6 +261,52 @@ static void CreateColorPickerErrorComplete(napi_env env, napi_status status, voi
     CommonCallbackRoutine(env, context, result);
 }
 
+static bool IsArrayForNapiValue(napi_env env, napi_value param, uint32_t &arraySize)
+{
+    bool isArray = false;
+    arraySize = 0;
+    if ((napi_is_array(env, param, &isArray) != napi_ok) || (isArray == false)) {
+        return false;
+    }
+    if (napi_get_array_length(env, param, &arraySize) != napi_ok) {
+        return false;
+    }
+    return true;
+}
+
+static bool GetRegionCoordinates(napi_env env, napi_value param, std::unique_ptr<ColorPickerAsyncContext>& asyncContext)
+{
+    uint32_t arraySize = 0;
+    if (!IsArrayForNapiValue(env, param, arraySize)) {
+        EFFECT_LOG_E("GetRegionCoordinates get args fail, not array");
+        return false;
+    }
+    if (arraySize < NUM_4) {
+        EFFECT_LOG_E("GetRegionCoordinates coordinates num less than 4");
+        return false;
+    }
+    for (size_t i = 0; i < NUM_4; i++) {
+        napi_value jsValue;
+        if ((napi_get_element(env, param, i, &jsValue)) != napi_ok) {
+            EFFECT_LOG_E("GetRegionCoordinates get args fail");
+            return false;
+        }
+        double value = 0.0;
+        if (napi_get_value_double(env, param, &value) == napi_ok) {
+            asyncContext->coordinatesBuffer[i] = std::clamp<double>(value, 0.0, 1.0);
+        } else {
+            EFFECT_LOG_E("GetRegionCoordinates region coordinates not double");
+            return false;
+        }
+    }
+    if ((asyncContext->coordinatesBuffer[NUM_2] < asyncContext->coordinatesBuffer[NUM_0]) ||
+                (asyncContext->coordinatesBuffer[NUM_3] < asyncContext->coordinatesBuffer[NUM_1])) {
+        EFFECT_LOG_E("GetRegionCoordinates right must be greater than left, bottom must be greater than top");   
+        return false;            
+    }
+    return true;
+}
+
 napi_value ColorPickerNapi::CreateColorPicker(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
@@ -290,37 +335,13 @@ napi_value ColorPickerNapi::CreateColorPicker(napi_env env, napi_callback_info i
         if (Media::ImageNapiUtils::getType(env, argValue[argCount - 1]) == napi_function) {
             napi_create_reference(env, argValue[argCount - 1], refCount, &asyncContext->callbackRef);
         } else {
-            void * buffer;
-            status = napi_get_arraybuffer_info(env, argValue[NUM_1],
-                    &(buffer), &(asyncContext->coordinatesSizeBufferSize));
-            IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, EFFECT_LOG_E("fail to parse coordinates"));
-            IMG_NAPI_CHECK_RET_D(asyncContext->coordinatesSizeBufferSize >= NUM_4, nullptr,
-                EFFECT_LOG_E("coordinates should be more than 3"));
-            asyncContext->regionFlag = true;
-            asyncContext->coordinatesBuffer = static_cast<float*>(buffer);
-            for (size_t i = 0; i < NUM_4; i++) {
-                asyncContext->coordinatesBuffer[i] = std::clamp<float>(asyncContext->coordinatesBuffer[i], 0.0, 1.0);
-            }
-            IMG_NAPI_CHECK_RET_D(((asyncContext->coordinatesBuffer[NUM_2] > asyncContext->coordinatesBuffer[NUM_0]) &&
-                (asyncContext->coordinatesBuffer[NUM_3] > asyncContext->coordinatesBuffer[NUM_1])),
-                nullptr, EFFECT_LOG_E("fail to parse coordinates"));
+            IMG_NAPI_CHECK_RET_D(GetRegionCoordinates(env, argValue[NUM_1], asyncContext), nullptr, EFFECT_LOG_E("fail to parse coordinates"));
+            asyncContext->regionFlag = true;            
         }
     }
     if (argCount == NUM_3 && Media::ImageNapiUtils::getType(env, argValue[argCount - 2]) == napi_function) {
-        void * buffer;
-        status = napi_get_arraybuffer_info(env, argValue[NUM_2],
-                &(buffer), &(asyncContext->coordinatesSizeBufferSize));
-        IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, EFFECT_LOG_E("fail to parse coordinates"));
-        IMG_NAPI_CHECK_RET_D(asyncContext->coordinatesSizeBufferSize >= NUM_4, nullptr,
-            EFFECT_LOG_E("coordinates should be more than 3"));
+        IMG_NAPI_CHECK_RET_D(GetRegionCoordinates(env, argValue[NUM_1], asyncContext), nullptr, EFFECT_LOG_E("fail to parse coordinates"));
         asyncContext->regionFlag = true;
-        asyncContext->coordinatesBuffer = static_cast<float*>(buffer);
-        for (size_t i = 0; i < NUM_4; i++) {
-            asyncContext->coordinatesBuffer[i] = std::clamp<float>(asyncContext->coordinatesBuffer[i], 0.0, 1.0);
-        }
-        IMG_NAPI_CHECK_RET_D(((asyncContext->coordinatesBuffer[NUM_2] > asyncContext->coordinatesBuffer[NUM_0]) &&
-            (asyncContext->coordinatesBuffer[NUM_3] > asyncContext->coordinatesBuffer[NUM_1])),
-            nullptr, EFFECT_LOG_E("fail to parse coordinates"));
     }
 
     if (asyncContext->callbackRef == nullptr) {

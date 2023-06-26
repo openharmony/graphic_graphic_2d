@@ -50,17 +50,17 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap)
     GetNFeatureColors(specifiedFeatureColorNum_);
 }
 
-ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap, float* coordinates)
+ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap, double* coordinates)
 {
     if (pixmap == nullptr) {
         return ;
     }
     pixelmap_ = pixmap;
-    uint32_t left = pixmap->GetWidth() * coordinates[0];
-    uint32_t top = pixmap->GetHeight() * coordinates[1];
-    uint32_t right = pixmap->GetWidth() * coordinates[2];
-    uint32_t bottom = pixmap->GetHeight() * coordinates[3];
-    colorValLen_ = static_cast<uint32_t>((right - left) * (bottom -top));
+    uint32_t left = static_cast<uint32_t>(pixmap->GetWidth() * coordinates[0]);
+    uint32_t top = static_cast<uint32_t>(pixmap->GetHeight() * coordinates[1]);
+    uint32_t right = static_cast<uint32_t>(pixmap->GetWidth() * coordinates[2]);
+    uint32_t bottom = static_cast<uint32_t>(pixmap->GetHeight() * coordinates[3]);
+    colorValLen_ = (right - left) * (bottom -top);
     if (colorValLen_ == 0) {
         return;
     }
@@ -69,8 +69,8 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap, float* coord
         delete[] ptr;
     });
     colorVal_ = std::move(colorShared);
-    for (int i = top; i <= bottom; i++) {
-        for (int j = left; j <= right; j++) {
+    for (uint32_t i = top; i <= bottom; i++) {
+        for (uint32_t j = left; j <= right; j++) {
             pixmap->GetARGB32Color(j, i, colorVal[i * (right - left + 1) + j]);
         }
     }

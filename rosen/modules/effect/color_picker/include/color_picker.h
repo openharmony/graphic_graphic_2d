@@ -45,7 +45,7 @@ public:
     NATIVEEXPORT static std::shared_ptr<ColorPicker> CreateColorPicker(const std::shared_ptr<Media::PixelMap>& pixmap,
                                                                         uint32_t &errorCode);
     NATIVEEXPORT static std::shared_ptr<ColorPicker> CreateColorPicker(const std::shared_ptr<Media::PixelMap>& pixmap,
-                                                                        float* coordinates, uint32_t &errorCode);
+                                                                        double* coordinates, uint32_t &errorCode);
     NATIVEEXPORT std::shared_ptr<Media::PixelMap> GetScaledPixelMap();
     NATIVEEXPORT uint32_t GetMainColor(ColorManager::Color &color);
 
@@ -56,7 +56,7 @@ public:
 
 private:
     ColorPicker(std::shared_ptr<Media::PixelMap> pixmap);
-    ColorPicker(std::shared_ptr<Media::PixelMap> pixmap, float* coordinates);
+    ColorPicker(std::shared_ptr<Media::PixelMap> pixmap, double* coordinates);
     bool IsEquals(double val1, double val2) const;
     HSV RGB2HSV(uint32_t rgb) const;
     void AdjustHSVToDefinedIterval(HSV& hsv) const;
