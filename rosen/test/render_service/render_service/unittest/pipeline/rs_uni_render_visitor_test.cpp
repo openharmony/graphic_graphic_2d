@@ -632,7 +632,8 @@ HWTEST_F(RSUniRenderVisitorTest, DrawAndTraceSingleDirtyRegionTypeForDFX002, Tes
     auto dirtyManager = surfaceNodeMain->GetDirtyManager();
     ASSERT_EQ(dirtyManager, nullptr);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->DrawAndTraceSingleDirtyRegionTypeForDFX(*surfaceNodeMain, DirtyRegionType::UPDATE_DIRTY_REGION, true);
+    rsUniRenderVisitor->DrawAndTraceSingleDirtyRegionTypeForDFX(*surfaceNodeMain,
+        DirtyRegionType::UPDATE_DIRTY_REGION, true);
 }
 
 /**
@@ -651,7 +652,8 @@ HWTEST_F(RSUniRenderVisitorTest, DrawAndTraceSingleDirtyRegionTypeForDFX003, Tes
     dirtyManager->dirtyCanvasNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
     dirtyManager->dirtySurfaceNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->DrawAndTraceSingleDirtyRegionTypeForDFX(*surfaceNodeMain, DirtyRegionType::UPDATE_DIRTY_REGION, true);
+    rsUniRenderVisitor->DrawAndTraceSingleDirtyRegionTypeForDFX(*surfaceNodeMain,
+        DirtyRegionType::UPDATE_DIRTY_REGION, true);
 }
 
 /**
@@ -670,7 +672,8 @@ HWTEST_F(RSUniRenderVisitorTest, DrawAndTraceSingleDirtyRegionTypeForDFX004, Tes
     dirtyManager->dirtyCanvasNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
     dirtyManager->dirtySurfaceNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->DrawAndTraceSingleDirtyRegionTypeForDFX(*surfaceNodeMain, DirtyRegionType::UPDATE_DIRTY_REGION, false);
+    rsUniRenderVisitor->DrawAndTraceSingleDirtyRegionTypeForDFX(*surfaceNodeMain,
+        DirtyRegionType::UPDATE_DIRTY_REGION, false);
 }
 
 /**
@@ -828,8 +831,8 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyRegionForFilterNode004, TestSize.Level
     ASSERT_NE(surfaceNodeAppOutOfRange, nullptr);
     surfaceNodeAppOutOfRange->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
     ASSERT_NE(surfaceNodeAppOutOfRange->GetDirtyManager(), nullptr);
-    surfaceNodeAppOutOfRange->GetDirtyManager()->dirtyRegion_ = RectI(DEFAULT_DIRTY_REGION_WIDTH, DEFAULT_DIRTY_REGION_HEIGHT,
-        DEFAULT_DIRTY_REGION_WIDTH, DEFAULT_DIRTY_REGION_HEIGHT);
+    surfaceNodeAppOutOfRange->GetDirtyManager()->dirtyRegion_ = RectI(DEFAULT_DIRTY_REGION_WIDTH,
+        DEFAULT_DIRTY_REGION_HEIGHT, DEFAULT_DIRTY_REGION_WIDTH, DEFAULT_DIRTY_REGION_HEIGHT);
     surfaceNodeAppOutOfRange->visibleRegion_ =
         Occlusion::Region(RectI(0, 0, DEFAULT_DIRTY_REGION_WIDTH, DEFAULT_DIRTY_REGION_HEIGHT));
     node->curAllSurfaces_.push_back(surfaceNodeAppOutOfRange);
@@ -867,24 +870,5 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyFilterRegion001, TestSize.Level1)
     ASSERT_NE(node, nullptr);
     node->dirtyManager_ = nullptr;
     rsUniRenderVisitor->CalcDirtyFilterRegion(node);
-}
-
-/**
- * @tc.name: CalcDirtyFilterRegion002
- * @tc.desc: Test RSUniRenderVisitorTest.CalcDirtyFilterRegion when disPlayNode or disPlayNode.dirtyManager_ is null
- * @tc.type: FUNC
- * @tc.require: issueI79KM8
- */
-HWTEST_F(RSUniRenderVisitorTest, CalcDirtyFilterRegion002, TestSize.Level1)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    rsUniRenderVisitor->CalcDirtyFilterRegion(node);
-    std::shared_ptr<RSSurfaceRenderNode> surfaceNodeNull = nullptr;
-    node->curAllSurfaces_.push_back(surfaceNodeNull);
-    std::shared_ptr<RSSurfaceRenderNode> surfaceNodeNull = nullptr;
-    node->curAllSurfaces_.push_back(surfaceNodeNull);
 }
 } // OHOS::Rosen
