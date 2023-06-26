@@ -549,10 +549,6 @@ sk_sp<GrContext> RSParallelSubThread::CreateShareGrContext()
 std::shared_ptr<Drawing::GPUContext> RSParallelSubThread::CreateShareGPUContext()
 {
     auto drGPUContext = std::make_shared<Drawing::GPUContext>();
-    if (drGPUContext == nullptr) {
-        RS_LOGE("nullptr grContext is null");
-        return nullptr;
-    }
     Drawing::GPUContextOptions options;
     drGPUContext->BuildFromGL(options);
     return drGPUContext;
@@ -565,7 +561,7 @@ void RSParallelSubThread::AcquireSubSkSurface(int width, int height)
     if (grContext_ == nullptr) {
         grContext_ = CreateShareGrContext();
     }
-    
+
     if (grContext_ == nullptr) {
         RS_LOGE("Share GrContext is not ready!!!");
         return;
@@ -598,11 +594,11 @@ void RSParallelSubThread::AcquireSubDrawingSurface(int width, int height)
     image.BuildFromBitmap(*drContext_, bitmap);
 
     surface_ = std::make_shared<Drawing::Surface>();
-    if (surface_ == nullptr) {
-        RS_LOGE("skSurface is not ready!!!");
+    if (!surface_->Bind(image)) {
+        RS_LOGE("surface is not ready!!!");
+        surface_ = nullptr;
         return;
     }
-    surface_->Bind(image);
 }
 #endif
 
@@ -627,7 +623,7 @@ void RSParallelSubThread::Composition()
         RS_LOGE("compositionTask is nullptr or displayNodeId is 0");
         return;
     }
-    
+
     auto node = compositionTask_->GetNode();
     if (node == nullptr || compositionVisitor_ == nullptr) {
         RS_LOGE("displayNode or visitor is nullptr.");
