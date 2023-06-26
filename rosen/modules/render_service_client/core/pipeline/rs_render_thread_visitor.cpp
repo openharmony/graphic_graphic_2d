@@ -86,6 +86,7 @@ bool RSRenderThreadVisitor::IsValidRootRenderNode(RSRootRenderNode& node)
 
 void RSRenderThreadVisitor::SetPartialRenderStatus(PartialRenderType status, bool isRenderForced)
 {
+    RS_TRACE_FUNC();
     isRenderForced_ = isRenderForced;
     dfxDirtyType_ = RSSystemProperties::GetDirtyRegionDebugType();
     isEglSetDamageRegion_ = !isRenderForced_ && (status != PartialRenderType::DISABLED);
