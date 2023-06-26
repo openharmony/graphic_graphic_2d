@@ -487,7 +487,7 @@ HWTEST_F(RSUniRenderVisitorTest, MarkSubHardwareEnableNodeStateTest002, TestSize
 
 /**
  * @tc.name: DrawAllSurfaceOpaqueRegionForDFX002
- * @tc.desc: Test RSUniRenderVisitorTest.DrawAllSurfaceOpaqueRegionForDFX when nodetype is RSSurfaceNodeType::SELF_DRAWING_NODE
+ * @tc.desc: Test RSUniRenderVisitorTest.DrawAllSurfaceOpaqueRegionForDFX when nodetype is SELF_DRAWING_NODE
  * @tc.type: FUNC
  * @tc.require: issueI79KM8
  */
