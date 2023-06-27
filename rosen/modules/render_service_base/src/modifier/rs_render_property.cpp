@@ -25,6 +25,10 @@ void RSRenderPropertyBase::OnChange() const
     if (auto node = node_.lock()) {
         node->SetDirty();
         node->AddDirtyType(modifierType_);
+        if (modifierType_ == (RSModifierType::SHADOW_ALPHA) || modifierType_ == (RSModifierType::SHADOW_COLOR)) {
+            node->AddDirtyType(RSModifierType::SHADOW_ALPHA);
+            node->AddDirtyType(RSModifierType::SHADOW_COLOR);
+        }
     }
 }
 
