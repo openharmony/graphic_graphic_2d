@@ -303,7 +303,7 @@ private:
     std::shared_ptr<RectF> drawRegion_ = nullptr;
 
     float alpha_ = 1.f;
-    bool alphaOffscreen_ = true;
+    bool alphaOffscreen_ = false;
 
     std::shared_ptr<RSObjGeometry> boundsGeo_;
     std::shared_ptr<RSObjGeometry> frameGeo_;
