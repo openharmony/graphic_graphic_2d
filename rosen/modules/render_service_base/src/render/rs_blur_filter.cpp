@@ -43,9 +43,10 @@ RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(S
 }
 #endif
 #else
-RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY)
-    : RSDrawingFilter(Drawing::ImageFilter::CreateBlurImageFilter(blurRadiusX, blurRadiusY, Drawing::TileMode::CLAMP,
-    nullptr)), blurRadiusX_(blurRadiusX), blurRadiusY_(blurRadiusY)
+RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY) : RSDrawingFilter(
+    Drawing::ImageFilter::CreateBlurImageFilter(blurRadiusX, blurRadiusY, Drawing::TileMode::CLAMP, nullptr)),
+    blurRadiusX_(blurRadiusX),
+    blurRadiusY_(blurRadiusY)
 {
     type_ = FilterType::BLUR;
 }
