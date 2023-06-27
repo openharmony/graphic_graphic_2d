@@ -510,7 +510,7 @@ HWTEST_F(RSUniRenderVisitorTest, DrawAllSurfaceOpaqueRegionForDFX002, TestSize.L
 
 /**
  * @tc.name: DrawTargetSurfaceDirtyRegionForDFX002
- * @tc.desc: Test RSUniRenderVisitorTest.DrawTargetSurfaceDirtyRegionForDFX
+ * @tc.desc: Test RSUniRenderVisitorTest.DrawTargetSurfaceDirtyRegionForDFX in diffrent nodetype
  * @tc.type: FUNC
  * @tc.require: issueI79KM8
  */
@@ -548,7 +548,7 @@ HWTEST_F(RSUniRenderVisitorTest, DrawTargetSurfaceDirtyRegionForDFX002, TestSize
 
 /**
  * @tc.name: DrawTargetSurfaceDirtyRegionForDFX003
- * @tc.desc: Test RSUniRenderVisitorTest.DrawTargetSurfaceDirtyRegionForDFX
+ * @tc.desc: Test RSUniRenderVisitorTest.DrawTargetSurfaceDirtyRegionForDFX when dirtyRegionDebugType_ is DISABLED
  * @tc.type: FUNC
  * @tc.require: issueI79KM8
  */
@@ -572,7 +572,7 @@ HWTEST_F(RSUniRenderVisitorTest, DrawTargetSurfaceDirtyRegionForDFX003, TestSize
 
 /**
  * @tc.name: DrawTargetSurfaceDirtyRegionForDFX004
- * @tc.desc: Test RSUniRenderVisitorTest.DrawTargetSurfaceDirtyRegionForDFX
+ * @tc.desc: Test RSUniRenderVisitorTest.DrawTargetSurfaceDirtyRegionForDFX dirtyRegionDebugType is UPDATE_DIRTY
  * @tc.type: FUNC
  * @tc.require: issueI79KM8
  */
@@ -797,7 +797,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyRegionForFilterNode003, TestSize.Level
 
 /**
  * @tc.name: CalcDirtyRegionForFilterNode004
- * @tc.desc: Test RSUniRenderVisitorTest.CalcDirtyRegionForFilterNode
+ * @tc.desc: Test RSUniRenderVisitorTest.CalcDirtyRegionForFilterNode when child is null
  * @tc.type: FUNC
  * @tc.require: issueI79KM8
  */
