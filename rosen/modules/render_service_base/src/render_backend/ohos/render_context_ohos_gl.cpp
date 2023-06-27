@@ -214,7 +214,7 @@ bool RenderContextOhosGl::CreateSurface(const std::shared_ptr<RSRenderSurfaceFra
 
     std::shared_ptr<FrameConfig> frameConfig = frame->frameConfig;
     std::shared_ptr<SurfaceConfig> surfaceConfig = frame->surfaceConfig;
-    if (surfaceConfig->nativeWindow == nullptr) {    
+    if (surfaceConfig->nativeWindow == nullptr) {
         sptr<Surface> producer = surfaceConfig->producer;
         surfaceConfig->nativeWindow = CreateNativeWindowFromSurface(&producer);
 
