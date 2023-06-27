@@ -54,6 +54,11 @@ public:
     Path &operator=(const Path& p) noexcept;
     virtual ~Path();
 
+    virtual DrawingType GetDrawingType() const
+    {
+        return DrawingType::COMMON;
+    }
+
     /*
      * @brief       Parses the SVG format string that describes the drawing path, and sets the Path.
      * @param str   A string in SVG format that describes the drawing path.

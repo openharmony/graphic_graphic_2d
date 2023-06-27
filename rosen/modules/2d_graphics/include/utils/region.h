@@ -34,6 +34,11 @@ public:
     Region();
     virtual ~Region() = default;
 
+    virtual DrawingType GetDrawingType() const
+    {
+        return DrawingType::COMMON;
+    }
+
     /*
      * @brief        Constructs a rectangular Region matching the bounds of rect.
      * @param rectI  Bounds of constructed Region.

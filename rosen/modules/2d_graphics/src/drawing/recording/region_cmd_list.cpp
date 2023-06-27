@@ -31,6 +31,10 @@ std::shared_ptr<RegionCmdList> RegionCmdList::CreateFromData(const CmdListData& 
 
 std::shared_ptr<Region> RegionCmdList::Playback() const
 {
+    if (opAllocator_.GetSize() == 0) {
+        return nullptr;
+    }
+
     int32_t offset = 0;
     auto region = std::make_shared<Region>();
     do {
@@ -42,6 +46,8 @@ std::shared_ptr<Region> RegionCmdList::Playback() const
         }
 
         switch (curOpItemPtr->GetType()) {
+            case RegionOpItem::OPITEM_HEAD:
+                break;
             case RegionOpItem::SETRECT_OPITEM:
                 static_cast<SetRectOpItem*>(itemPtr)->Playback(*region);
                 break;

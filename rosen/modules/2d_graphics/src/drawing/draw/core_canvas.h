@@ -97,6 +97,11 @@ public:
     virtual ~CoreCanvas() {}
     void Bind(const Bitmap& bitmap);
 
+    virtual DrawingType GetDrawingType() const
+    {
+        return DrawingType::COMMON;
+    }
+
     /*
      * @brief  Gets the total matrix of Canvas to device.
      */

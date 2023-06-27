@@ -34,9 +34,9 @@ public:
 
     std::shared_ptr<DrawCmdList> GetDrawCmdList() const;
 
-    Type GetType() const override
+    DrawingType GetDrawingType() const override
     {
-        return Type::RECORDING;
+        return DrawingType::RECORDING;
     }
 
     void DrawPoint(const Point& point) override;

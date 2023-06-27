@@ -29,6 +29,10 @@ std::shared_ptr<MaskFilterCmdList> MaskFilterCmdList::CreateFromData(const CmdLi
 
 std::shared_ptr<MaskFilter> MaskFilterCmdList::Playback() const
 {
+    if (opAllocator_.GetSize() == 0) {
+        return nullptr;
+    }
+
     int32_t offset = 0;
     std::shared_ptr<MaskFilter> mf = nullptr;
     do {
@@ -39,6 +43,8 @@ std::shared_ptr<MaskFilter> MaskFilterCmdList::Playback() const
         }
 
         switch (itemPtr->GetType()) {
+            case MaskFilterOpItem::OPITEM_HEAD:
+                break;
             case MaskFilterOpItem::CREATE_BLUR:
                 mf = static_cast<CreateBlurMaskFilterOpItem*>(itemPtr)->Playback();
                 break;

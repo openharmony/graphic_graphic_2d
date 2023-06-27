@@ -53,6 +53,11 @@ public:
     virtual ~ColorFilter() = default;
     FilterType GetType() const;
 
+    virtual DrawingType GetDrawingType() const
+    {
+        return DrawingType::COMMON;
+    }
+
     /*
      * @brief         Combine with another ColorFilter, and set it to itself.
      * @param filter  Another ColorFilter to Combine.

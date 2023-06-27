@@ -29,6 +29,11 @@ public:
     RecordingMaskFilter() noexcept;
     ~RecordingMaskFilter() override = default;
 
+    DrawingType GetDrawingType() const override
+    {
+        return DrawingType::RECORDING;
+    }
+
     std::shared_ptr<MaskFilterCmdList> GetCmdList() const
     {
         return cmdList_;

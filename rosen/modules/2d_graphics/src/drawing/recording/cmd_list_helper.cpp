@@ -26,6 +26,8 @@
 #include "recording/shader_effect_cmd_list.h"
 #include "utils/log.h"
 
+#include "skia_adapter/skia_picture.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -104,7 +106,7 @@ std::shared_ptr<Bitmap> CmdListHelper::GetBitmapFromCmdList(const CmdList& cmdLi
 
 ImageHandle CmdListHelper::AddPictureToCmdList(CmdList& cmdList, const Picture& picture)
 {
-    auto data = picture.Serialize();
+    auto data = picture.GetImpl<SkiaPicture>()->Serialize();
     if (data == nullptr || data->GetSize() == 0) {
         LOGE("picture is valid!");
         return { 0 };
@@ -125,7 +127,7 @@ std::shared_ptr<Picture> CmdListHelper::GetPictureFromCmdList(const CmdList& cmd
     auto pictureData = std::make_shared<Data>();
     pictureData->BuildWithoutCopy(ptr, pictureHandle.size);
     auto picture = std::make_shared<Picture>();
-    if (picture->Deserialize(pictureData) == false) {
+    if (picture->GetImpl<SkiaPicture>()->Deserialize(pictureData) == false) {
         LOGE("picture deserialize failed!");
         return nullptr;
     }

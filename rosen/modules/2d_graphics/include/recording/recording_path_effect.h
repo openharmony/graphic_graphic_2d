@@ -66,6 +66,11 @@ public:
     RecordingPathEffect() noexcept;
     ~RecordingPathEffect() override = default;
 
+    DrawingType GetDrawingType() const override
+    {
+        return DrawingType::RECORDING;
+    }
+
     /*
      * @brief  Gets the pointer to the PathEffectCmdList.
      */
