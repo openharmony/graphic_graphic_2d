@@ -101,6 +101,9 @@ public:
     static bool Unmarshalling(Parcel& parcel, T& val)
     {
         if (const uint8_t* buff = parcel.ReadUnpadBuffer(sizeof(T))) {
+            if (buff == nullptr) {
+                return false;
+            }
             val = *(reinterpret_cast<const T*>(buff));
             return true;
         }

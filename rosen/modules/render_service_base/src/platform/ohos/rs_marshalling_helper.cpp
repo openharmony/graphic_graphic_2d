@@ -322,7 +322,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkPaint& val)
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkPaint& val)
 {
     sk_sp<SkData> data;
-    if (!Unmarshalling(parcel, data)) {
+    if (!Unmarshalling(parcel, data) || !data) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling SkPaint");
         return false;
     }
@@ -664,7 +664,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkRect& rect)
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkRect& rect)
 {
     sk_sp<SkData> data;
-    if (!Unmarshalling(parcel, data)) {
+    if (!Unmarshalling(parcel, data) || !data) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling SkRect");
         return false;
     }
@@ -686,7 +686,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkRegion& region)
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkRegion& region)
 {
     sk_sp<SkData> data;
-    if (!Unmarshalling(parcel, data)) {
+    if (!Unmarshalling(parcel, data) || !data) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling SkRegion");
         return false;
     }
@@ -708,7 +708,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkPath& val)
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkPath& val)
 {
     sk_sp<SkData> data;
-    if (!Unmarshalling(parcel, data)) {
+    if (!Unmarshalling(parcel, data) || !data) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling SKPath");
         return false;
     }
@@ -735,7 +735,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkFlattenable>& va
         return true;
     }
     sk_sp<SkData> data;
-    if (!Unmarshalling(parcel, data)) {
+    if (!Unmarshalling(parcel, data) || !data) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling SkFlattenable");
         return false;
     }
