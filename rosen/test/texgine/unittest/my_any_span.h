@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef ROSEN_TEST_TEXGINE_UNITTEST_MY_ANY_SPAN_H
+#define ROSEN_TEST_TEXGINE_UNITTEST_MY_ANY_SPAN_H
+
 #include "texgine/any_span.h"
 #include "texgine_canvas.h"
 #include "texgine_paint.h"
@@ -27,16 +30,14 @@ class MyAnySpan : public AnySpan {
 public:
     MyAnySpan(double width, double height,
               AnySpanAlignment align = AnySpanAlignment::ABOVE_BASELINE,
-              TextBaseline baseline = TextBaseline::ALPHABETIC,
-              double offset = 0.0,
-              uint32_t color = ColorGRAY)
+              TextBaseline baseline = TextBaseline::ALPHABETIC)
     {
         width_ = width;
         height_ = height;
         align_ = align;
         baseline_ = baseline;
-        offset_ = offset;
-        color_ = color;
+        offset_ = 0.0;      // Set default values for testing
+        color_ = ColorGRAY; // Set default values for testing
     }
 
     ~MyAnySpan() = default;
@@ -86,3 +87,4 @@ private:
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS
+#endif // ROSEN_TEST_TEXGINE_UNITTEST_MY_ANY_SPAN_H

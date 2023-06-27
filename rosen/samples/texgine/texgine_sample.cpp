@@ -37,7 +37,6 @@ SkColor colors[] = {
     SK_ColorBLUE,
     SK_ColorMAGENTA
 };
-} // namespace
 
 TexginePaint g_rainbowPaint;
 TexginePaint g_actualBorderPaint;
@@ -146,6 +145,7 @@ void OnDraw(SkCanvas &canvas)
     }
     canvas.restore();
 }
+} // namespace
 
 int main()
 {

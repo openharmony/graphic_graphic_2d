@@ -81,7 +81,7 @@ public:
 private:
     void GetStringFromNameId(NameId nameId, const std::string& nameString, FontDescriptor& fontDescriptor) const;
     void ProcessCmapTable(const struct CmapTables* cmapTable, FontDescriptor& fontDescriptor) const;
-    int ProcessNameTable(const struct NameTable* nameTableData, FontDescriptor& fontDescriptor) const;
+    int ProcessNameTable(const struct NameTable* nameTable, FontDescriptor& fontDescriptor) const;
     void ProcessPostTable(const struct PostTable* postTable, FontDescriptor& fontDescriptor) const;
     int ParseCmapTable(sk_sp<SkTypeface> typeface, FontDescriptor& fontDescriptor);
     int ParseNameTable(sk_sp<SkTypeface> typeface, FontDescriptor& fontDescriptor);

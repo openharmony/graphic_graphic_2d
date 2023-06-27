@@ -371,7 +371,7 @@ HWTEST_F(TextShaperTest, Shape6, TestSize.Level1)
 {
     InitTsMockVars({});
     EXPECT_CALL(*g_tsMockvars.retvalMeasurerCreate, Measure).Times(1).WillOnce(testing::Return(0));
-    g_tsMockvars.retvalTextBlobBuilderMake = std::shared_ptr<TexgineTextBlob>(new TexgineTextBlob());
+    g_tsMockvars.retvalTextBlobBuilderMake = std::make_shared<TexgineTextBlob>();
 
     EXPECT_NO_THROW({
         TextShaper shaper;

@@ -95,7 +95,7 @@ void LineBreaker::DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans, cons
         LOGEX_FUNC_LINE_DEBUG() << "[" << i << "]: is.preBreak: " << is.preBreak
             << ", prev.postBreak: " << scoredSpans[is.prev].postBreak;
         if (FLOATING_GT(is.preBreak - scoredSpans[is.prev].postBreak, widthLimit)) {
-            is.prev = i - 1;
+            is.prev = static_cast<int>(i - 1);
             LOGEX_FUNC_LINE_DEBUG() << "  -> [" << is.prev
                 << "]: prev.postBreak: " << scoredSpans[is.prev].postBreak;
         }
@@ -125,7 +125,7 @@ void LineBreaker::DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans, cons
 
             if (jscore < is.score) {
                 is.score = jscore;
-                is.prev = j;
+                is.prev = static_cast<int>(j);
             }
         }
         LOGEX_FUNC_LINE_DEBUG() << "[" << i << "] Any{" << is.prev << "<-" << " b(" << is.preBreak << ", "
@@ -139,7 +139,7 @@ std::vector<int32_t> LineBreaker::GenerateBreaks(std::vector<struct ScoredSpan> 
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "GenerateBreaks");
 
     std::vector<int32_t> lineBreaks;
-    for (int i = scoredSpans.size(); i > 0; i = scoredSpans[i - 1].prev) {
+    for (int i = static_cast<int>(scoredSpans.size()); i > 0; i = scoredSpans[i - 1].prev) {
         if (scoredSpans[i - 1].prev >= i) {
             throw TEXGINE_EXCEPTION(ERROR_STATUS);
         }
@@ -159,7 +159,7 @@ std::vector<LineMetrics> LineBreaker::GenerateLineMetrics(std::vector<VariantSpa
 
     std::vector<LineMetrics> lineMetrics;
     auto prev = 0;
-    if (!breaks.empty() && breaks.back() > spans.size()) {
+    if (!breaks.empty() && breaks.back() > static_cast<int>(spans.size())) {
         throw TEXGINE_EXCEPTION(OUT_OF_RANGE);
     }
 

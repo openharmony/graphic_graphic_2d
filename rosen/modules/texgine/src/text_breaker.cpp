@@ -15,7 +15,7 @@
 
 #include "text_breaker.h"
 
-#include <assert.h>
+#include <cassert>
 
 #include "measurer.h"
 #include "texgine/any_span.h"

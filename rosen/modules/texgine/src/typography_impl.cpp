@@ -142,7 +142,7 @@ void TypographyImpl::SetIndents(const std::vector<float> &indents)
 size_t TypographyImpl::FindGlyphTargetLine(double y) const
 {
     int targetLine = 0;
-    for (auto i = 0; i < lineMetrics_.size(); i++) {
+    for (auto i = 0; i < static_cast<int>(lineMetrics_.size()); i++) {
         if (y < baselines_[i] + lineMaxCoveredDescent_[i]) {
             break;
         }
@@ -191,7 +191,7 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
     }
 
     // find targetLine
-    int targetLine = FindGlyphTargetLine(y);
+    int targetLine = static_cast<int>(FindGlyphTargetLine(y));
     LOGEX_FUNC_LINE_DEBUG() << "targetLine: " << targetLine;
 
     // count glyph before targetLine
@@ -204,7 +204,7 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
     LOGEX_FUNC_LINE_DEBUG() << "count: " << count;
 
     // process y more than typography
-    if (targetLine == lineMetrics_.size()) {
+    if (targetLine == static_cast<int>(lineMetrics_.size())) {
         LOGEX_FUNC_LINE_DEBUG() << "special: y >= max";
         return {count - 1, Affinity::PREV};
     }
@@ -312,7 +312,7 @@ void TypographyImpl::Layout(double maxWidth)
 
         DoLayout();
         ApplyAlignment();
-    } catch (struct TexgineException e) {
+    } catch (struct TexgineException &e) {
         LOGEX_FUNC_LINE(ERROR) << "catch exception: " << e.message;
     }
 }
@@ -370,7 +370,8 @@ void TypographyImpl::ConsiderEllipsis()
     }
 
     // protected the first span and ellipsis
-    while (width > maxWidth_ - ellipsisWidth && lastline.lineSpans.size() > 1) {
+    while (static_cast<int>(width) > static_cast<int>(maxWidth_ - ellipsisWidth) &&
+        static_cast<int>(lastline.lineSpans.size()) > 1) {
         width -= lastline.lineSpans.back().GetWidth();
         lastline.lineSpans.pop_back();
     }
@@ -389,7 +390,7 @@ int TypographyImpl::UpdateMetrics()
     lineMaxCoveredDescent_ = {};
     height_ = 0.0;
 
-    for (auto i = 0; i < lineMetrics_.size(); i++) {
+    for (auto i = 0; i < static_cast<int>(lineMetrics_.size()); i++) {
         lineMaxAscent_.push_back(strut_.ascent);
         lineMaxCoveredAscent_.push_back(strut_.ascent + strut_.halfLeading);
         lineMaxCoveredDescent_.push_back(strut_.descent + strut_.halfLeading);
@@ -425,7 +426,7 @@ int TypographyImpl::UpdateMetrics()
 void TypographyImpl::DoLayout()
 {
     maxLineWidth_ = 0.0;
-    for (auto i = 0; i < lineMetrics_.size(); i++) {
+    for (auto i = 0; i < static_cast<int>(lineMetrics_.size()); i++) {
         double offsetX = 0;
         for (auto &vs : lineMetrics_[i].lineSpans) {
             vs.AdjustOffsetY(baselines_[i]);
@@ -611,7 +612,7 @@ std::vector<TextRect> TypographyImpl::GetTextRectsByBoundary(Boundary boundary, 
         return {};
     }
     std::vector<TextRect> totalBoxes;
-    for (auto i = 0; i < lineMetrics_.size(); i++) {
+    for (auto i = 0; i < static_cast<int>(lineMetrics_.size()); i++) {
         std::vector<TextRect> lineBoxes;
         auto baseline = baselines_[i];
         auto as = lineMaxAscent_[i];
@@ -619,7 +620,7 @@ std::vector<TextRect> TypographyImpl::GetTextRectsByBoundary(Boundary boundary, 
         auto cd = lineMaxCoveredDescent_[i];
         auto hl = ca - as;
         auto fl = i == 0 ? 1 : 0;
-        auto ll = i == lineMetrics_.size() - 1 ? 1 : 0;
+        auto ll = i == static_cast<int>(lineMetrics_.size()) - 1 ? 1 : 0;
         constexpr auto tgh = TextRectHeightStyle::TIGHT;
         constexpr auto ctb = TextRectHeightStyle::COVER_TOP_AND_BOTTOM;
         constexpr auto chf = TextRectHeightStyle::COVER_HALF_TOP_AND_BOTTOM;

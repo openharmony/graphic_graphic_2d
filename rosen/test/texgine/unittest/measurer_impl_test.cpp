@@ -240,6 +240,7 @@ HWTEST_F(MeasurerImplTest, Create, TestSize.Level1)
  */
 HWTEST_F(MeasurerImplTest, Measure1, TestSize.Level1)
 {
+    size_t ret = 0;
     InitMiMockVars({.retvalBufferCreate = nullptr}, {});
     uint16_t testText = 2;
     text_ = {testText};
@@ -250,7 +251,7 @@ HWTEST_F(MeasurerImplTest, Measure1, TestSize.Level1)
     mi.SetFontFeatures(emptyff_);
 
     EXPECT_EQ(mi.Measure(charGroups_), 1);
-    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, 0);
+    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
 }
 
 /**
@@ -260,6 +261,7 @@ HWTEST_F(MeasurerImplTest, Measure1, TestSize.Level1)
  */
 HWTEST_F(MeasurerImplTest, Measure2, TestSize.Level1)
 {
+    size_t ret = 1;
     InitMiMockVars({}, {});
     uint16_t testText = 2;
     text_ = {testText};
@@ -270,9 +272,9 @@ HWTEST_F(MeasurerImplTest, Measure2, TestSize.Level1)
     mi.SetFontFeatures(emptyff_);
 
     EXPECT_EQ(mi.Measure(charGroups_), 0);
-    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, 1);
+    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
     EXPECT_EQ(mi.Measure(charGroups_), 0);
-    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, 1);
+    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
 }
 
 /**
@@ -282,6 +284,7 @@ HWTEST_F(MeasurerImplTest, Measure2, TestSize.Level1)
  */
 HWTEST_F(MeasurerImplTest, Measure3, TestSize.Level1)
 {
+    size_t ret = 1;
     InitMiMockVars({}, {});
     text_ = {3};
     MeasurerImpl mi(text_, fontCollection_);
@@ -289,7 +292,7 @@ HWTEST_F(MeasurerImplTest, Measure3, TestSize.Level1)
     mi.SetFontFeatures(normalff_);
 
     EXPECT_EQ(mi.Measure(charGroups_), 0);
-    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, 1);
+    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
 }
 
 /**
@@ -445,12 +448,13 @@ HWTEST_F(MeasurerImplTest, SeekScript5, TestSize.Level1)
  */
 HWTEST_F(MeasurerImplTest, Shape1, TestSize.Level1)
 {
+    size_t ret = 0;
     InitMiMockVars({}, {});
     MeasurerImpl mi(text_, fontCollection_);
 
     std::list<struct MeasuringRun> runs;
     EXPECT_EQ(mi.Shape(charGroups_, runs, {}), 0);
-    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, 0);
+    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
 }
 
 /**
@@ -475,13 +479,14 @@ HWTEST_F(MeasurerImplTest, Shape2, TestSize.Level1)
  */
 HWTEST_F(MeasurerImplTest, Shape3, TestSize.Level1)
 {
+    size_t ret = 0;
     InitMiMockVars({}, {});
     MeasurerImpl mi(text_, fontCollection_);
 
     std::list<struct MeasuringRun> runs;
     runs.push_back({.start = 0, .end = 1, .typeface = nullptr});
     EXPECT_EQ(mi.Shape(charGroups_, runs, {}), 1);
-    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, 0);
+    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
 }
 
 /**
@@ -491,13 +496,14 @@ HWTEST_F(MeasurerImplTest, Shape3, TestSize.Level1)
  */
 HWTEST_F(MeasurerImplTest, Shape4, TestSize.Level1)
 {
+    size_t ret = 0;
     InitMiMockVars({.retvalBufferCreate = nullptr}, {});
     MeasurerImpl mi(text_, fontCollection_);
 
     std::list<struct MeasuringRun> runs;
     runs.push_back({.start = 0, .end = 1, .typeface = g_measurerMockvars.typeface});
     EXPECT_EQ(mi.Shape(charGroups_, runs, {}), 1);
-    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, 0);
+    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
 }
 
 /**
@@ -507,13 +513,14 @@ HWTEST_F(MeasurerImplTest, Shape4, TestSize.Level1)
  */
 HWTEST_F(MeasurerImplTest, Shape5, TestSize.Level1)
 {
+    size_t ret = 0;
     InitMiMockVars({.retvalFaceCreate = nullptr}, {});
     MeasurerImpl mi(text_, fontCollection_);
 
     std::list<struct MeasuringRun> runs;
     runs.push_back({.start = 0, .end = 1, .typeface = g_measurerMockvars.typeface});
     EXPECT_EQ(mi.Shape(charGroups_, runs, {}), 1);
-    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, 0);
+    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
 }
 
 /**
@@ -523,13 +530,14 @@ HWTEST_F(MeasurerImplTest, Shape5, TestSize.Level1)
  */
 HWTEST_F(MeasurerImplTest, Shape6, TestSize.Level1)
 {
+    size_t ret = 1;
     InitMiMockVars({.retvalFontCreate = nullptr}, {});
     MeasurerImpl mi(text_, fontCollection_);
 
     std::list<struct MeasuringRun> runs;
     runs.push_back({.start = 0, .end = 1, .typeface = g_measurerMockvars.typeface});
     EXPECT_EQ(mi.Shape(charGroups_, runs, {}), 1);
-    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, 1);
+    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
 }
 
 /**
@@ -539,6 +547,7 @@ HWTEST_F(MeasurerImplTest, Shape6, TestSize.Level1)
  */
 HWTEST_F(MeasurerImplTest, Shape7, TestSize.Level1)
 {
+    size_t ret = 1;
     InitMiMockVars({.retvalGetGlyphInfo = {}}, {});
     MeasurerImpl mi(text_, fontCollection_);
     mi.SetFontFeatures(normalff_);
@@ -546,7 +555,7 @@ HWTEST_F(MeasurerImplTest, Shape7, TestSize.Level1)
     std::list<struct MeasuringRun> runs;
     runs.push_back({.start = 0, .end = 1, .typeface = g_measurerMockvars.typeface});
     EXPECT_EQ(mi.Shape(charGroups_, runs, {}), 1);
-    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, 1);
+    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
 }
 
 /**
@@ -556,6 +565,7 @@ HWTEST_F(MeasurerImplTest, Shape7, TestSize.Level1)
  */
 HWTEST_F(MeasurerImplTest, Shape8, TestSize.Level1)
 {
+    size_t ret = 1;
     InitMiMockVars({.retvalGetGlyphPosition = {}}, {});
     MeasurerImpl mi(text_, fontCollection_);
     mi.SetFontFeatures(normalff_);
@@ -563,7 +573,7 @@ HWTEST_F(MeasurerImplTest, Shape8, TestSize.Level1)
     std::list<struct MeasuringRun> runs;
     runs.push_back({.start = 0, .end = 1, .typeface = g_measurerMockvars.typeface});
     EXPECT_EQ(mi.Shape(charGroups_, runs, {}), 1);
-    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, 1);
+    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
 }
 
 /**
@@ -573,6 +583,7 @@ HWTEST_F(MeasurerImplTest, Shape8, TestSize.Level1)
  */
 HWTEST_F(MeasurerImplTest, Shape9, TestSize.Level1)
 {
+    size_t ret = 1;
     InitMiMockVars({.retvalGetUnitsPerEm = 0}, {});
     MeasurerImpl mi(text_, fontCollection_);
     mi.SetFontFeatures(normalff_);
@@ -580,7 +591,7 @@ HWTEST_F(MeasurerImplTest, Shape9, TestSize.Level1)
     std::list<struct MeasuringRun> runs;
     runs.push_back({.start = 0, .end = 1, .typeface = g_measurerMockvars.typeface});
     EXPECT_EQ(mi.Shape(charGroups_, runs, {}), 1);
-    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, 1);
+    EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
 }
 
 /**

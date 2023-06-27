@@ -151,7 +151,7 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
             LOGEX_FUNC_LINE(ERROR) << "runsit->end overflow of text_";
             throw TEXGINE_EXCEPTION(ERROR_STATUS);
         }
-        size_t utf16Index = runsit->start;
+        size_t utf16Index = static_cast<size_t>(runsit->start);
         uint32_t cp = 0;
         std::shared_ptr<Typeface> lastTypeface = nullptr;
         while (utf16Index < runsit->end) {
@@ -232,7 +232,7 @@ void MeasurerImpl::DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode
             // 2 & 6 means output width，0 means fill with 0
             LOGEX_FUNC_LINE_DEBUG() << "[" << std::setw(2) << std::setfill('0') << index++ << ": 0x"
                 << std::setw(6) << std::setfill('0') << std::hex << std::uppercase << cp << "]" << " " << s;
-            if (script == HB_SCRIPT_INVALID) {
+            if (script == static_cast<size_t>(HB_SCRIPT_INVALID)) {
                 script = s;
             }
 
@@ -439,7 +439,7 @@ void MeasurerImpl::GenerateHBFeatures(std::vector<hb_feature_t> &fontFeatures, c
     for (auto &[ft, fv] : features) {
         hb_feature_t hf;
         if (hb_feature_from_string(ft.c_str(), ft.size(), &hf)) {
-            hf.value = fv;
+            hf.value = static_cast<size_t>(fv);
             fontFeatures.push_back(hf);
         }
 
