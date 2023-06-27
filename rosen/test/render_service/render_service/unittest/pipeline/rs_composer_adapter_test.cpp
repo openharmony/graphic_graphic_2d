@@ -124,7 +124,7 @@ HWTEST_F(RSComposerAdapterTest, CommitLayersTest002, Function | SmallTest | Leve
     std::vector<std::shared_ptr<HdiLayerInfo>> layers;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
     auto& consumer = surfaceNode1->GetConsumer();
-    OHExtDataHandle handle;
+    GraphicExtDataHandle handle;
     handle.fd = -1;
     handle.reserveInts = 1;
     consumer->SetTunnelHandle(&handle);

@@ -257,8 +257,14 @@ typedef struct {
  * @since 9
  * @deprecated(since = "9")
  */
-struct OHExtDataHandle;
-typedef struct OHExtDataHandle OHExtDataHandle;
+typedef struct OHExtDataHandle {
+    /**< Handle fd, -1 if not supported */
+    int32_t fd;
+    /**< the number of reserved integer value */
+    uint32_t reserveInts;
+    /**< the reserved data */
+    int32_t reserve[0];
+} OHExtDataHandle;
 
 /**
  * @brief Creates a <b>NativeWindow</b> instance. A new <b>NativeWindow</b> instance is created each time this function is called.

@@ -18,14 +18,14 @@
 #include "buffer_log.h"
 
 namespace OHOS {
-OHExtDataHandle *AllocExtDataHandle(uint32_t reserveInts)
+GraphicExtDataHandle *AllocExtDataHandle(uint32_t reserveInts)
 {
-    if ((size_t)reserveInts > (SIZE_MAX - sizeof(OHExtDataHandle)) / sizeof(int32_t)) {
+    if ((size_t)reserveInts > (SIZE_MAX - sizeof(GraphicExtDataHandle)) / sizeof(int32_t)) {
         BLOGE("AllocExtDataHandle failed, reserveInts: %u is too large", reserveInts);
         return nullptr;
     }
-    size_t handleSize = sizeof(OHExtDataHandle) + (sizeof(int32_t) * reserveInts);
-    OHExtDataHandle *handle = static_cast<OHExtDataHandle *>(malloc(handleSize));
+    size_t handleSize = sizeof(GraphicExtDataHandle) + (sizeof(int32_t) * reserveInts);
+    GraphicExtDataHandle *handle = static_cast<GraphicExtDataHandle *>(malloc(handleSize));
     if (handle == nullptr) {
         BLOGE("AllocExtDataHandle malloc %zu failed", handleSize);
         return nullptr;
@@ -44,7 +44,7 @@ OHExtDataHandle *AllocExtDataHandle(uint32_t reserveInts)
     return handle;
 }
 
-void FreeExtDataHandle(OHExtDataHandle *handle)
+void FreeExtDataHandle(GraphicExtDataHandle *handle)
 {
     if (handle == nullptr) {
         BLOGW("FreeExtDataHandle with nullptr handle");
@@ -69,7 +69,7 @@ SurfaceTunnelHandle::~SurfaceTunnelHandle()
     FreeExtDataHandle(tunnelHandle_);
 }
 
-GSError SurfaceTunnelHandle::SetHandle(const OHExtDataHandle *handle)
+GSError SurfaceTunnelHandle::SetHandle(const GraphicExtDataHandle *handle)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (tunnelHandle_ != nullptr) {
@@ -92,7 +92,7 @@ GSError SurfaceTunnelHandle::SetHandle(const OHExtDataHandle *handle)
     return GSERROR_OK;
 }
 
-OHExtDataHandle *SurfaceTunnelHandle::GetHandle()
+GraphicExtDataHandle *SurfaceTunnelHandle::GetHandle()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return tunnelHandle_;

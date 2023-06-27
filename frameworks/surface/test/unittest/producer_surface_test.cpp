@@ -658,8 +658,8 @@ HWTEST_F(ProducerSurfaceTest, metaDataSet003, Function | MediumTest | Level1)
  */
 HWTEST_F(ProducerSurfaceTest, tunnelHandle002, Function | MediumTest | Level2)
 {
-    OHExtDataHandle *handle = nullptr;
-    handle = static_cast<OHExtDataHandle *>(malloc(sizeof(OHExtDataHandle) + sizeof(int32_t) * 1));
+    GraphicExtDataHandle *handle = nullptr;
+    handle = static_cast<GraphicExtDataHandle *>(malloc(sizeof(GraphicExtDataHandle) + sizeof(int32_t) * 1));
     handle->fd = -1;
     handle->reserveInts = 1;
     handle->reserve[0] = 0;

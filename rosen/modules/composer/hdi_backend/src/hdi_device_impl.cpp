@@ -550,7 +550,7 @@ int32_t HdiDeviceImpl::SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, 
     return g_composer->SetLayerMetaDataSet(screenId, layerId, hdiKey, metaData);
 }
 
-int32_t HdiDeviceImpl::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, OHExtDataHandle *handle)
+int32_t HdiDeviceImpl::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle)
 {
     CHECK_FUNC(g_composer);
     return g_composer->SetLayerTunnelHandle(screenId, layerId, (*(reinterpret_cast<ExtDataHandle *>(handle))));
