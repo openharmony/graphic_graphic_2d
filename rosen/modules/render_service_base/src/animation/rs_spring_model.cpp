@@ -294,7 +294,7 @@ float RSSpringModel<float>::BinarySearchTime(float left, float right, float targ
     }
     if (std::fabs(midValue - target) < 1e-6) {
         return midTime;
-    } else if ((midValue < target) ^ isIncrease) {
+    } else if ((midValue < target) != isIncrease) {
         return BinarySearchTime(left, midTime, target, isIncrease);
     } else {
         return BinarySearchTime(midTime, right, target, isIncrease);
