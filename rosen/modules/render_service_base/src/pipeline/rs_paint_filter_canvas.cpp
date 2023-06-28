@@ -142,7 +142,8 @@ void RSPaintFilterCanvasBase::DrawBitmap(Media::PixelMap& pixelMap, const scalar
     }
 }
 
-void RSPaintFilterCanvasBase::DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling)
+void RSPaintFilterCanvasBase::DrawImage(
+    const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling)
 {
     if (canvas_ != nullptr && OnFilter()) {
         canvas_->DrawImage(image, px, py, sampling);
