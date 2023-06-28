@@ -112,9 +112,46 @@ bool RSRenderNode::Update(
         }
     }
     isDirtyRegionUpdated_ = false;
-    UpdateDirtyRegion(dirtyManager, dirty, clipRect);
     isLastVisible_ = ShouldPaint();
     renderProperties_.ResetDirty();
+
+#ifndef USE_ROSEN_DRAWING
+    if (RSSystemProperties::GetFilterCacheEnabled()) {
+        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
+        auto absRect = geoPtr->GetAbsRect();
+
+        // Note: cache manager will use dirty region to update cache validity, but:
+        // background filter cache manager should use 'dirty region of all the nodes drawn before this node', and
+        // foreground filter cache manager should use 'dirty region of all the nodes drawn before this node, this node,
+        // and the children of this node'
+
+        // background filter
+        if (auto& filter = renderProperties_.GetBackgroundFilter()) {
+            auto& manager = renderProperties_.backgroundFilterCacheManager_;
+            if (manager == nullptr) {
+                manager = std::make_unique<RSFilterCacheManager>();
+            }
+            // empty implementation, invalidate filter cache on every update
+            manager->UpdateCacheState({ 0, 0, INT_MAX, INT_MAX }, absRect, filter->Hash());
+        } else {
+            renderProperties_.backgroundFilterCacheManager_.reset();
+        }
+
+        // foreground filter
+        if (auto& filter = renderProperties_.GetFilter()) {
+            auto& manager = renderProperties_.filterCacheManager_;
+            if (manager == nullptr) {
+                manager = std::make_unique<RSFilterCacheManager>();
+            }
+            // empty implementation, invalidate filter cache on every update
+            manager->UpdateCacheState({ 0, 0, INT_MAX, INT_MAX }, absRect, filter->Hash());
+        } else {
+            renderProperties_.filterCacheManager_.reset();
+        }
+    }
+#endif
+
+    UpdateDirtyRegion(dirtyManager, dirty, clipRect);
     return dirty;
 }
 
@@ -188,43 +225,6 @@ void RSRenderNode::UpdateDirtyRegion(
     }
 
     SetClean();
-
-#ifndef USE_ROSEN_DRAWING
-    if (!RSSystemProperties::GetFilterCacheEnabled()) {
-        return;
-    }
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
-    auto absRect = geoPtr->GetAbsRect();
-
-    // Note: cache manager will use dirty region to update cache validity, but:
-    // background filter cache manager should use 'dirty region of all the nodes drawn before this node', and foreground
-    // filter cache manager should use 'dirty region of all the nodes drawn before this node, this node, and the
-    // children of this node'
-
-    // background filter
-    if (auto& filter = renderProperties_.GetBackgroundFilter()) {
-        auto& manager = renderProperties_.backgroundFilterCacheManager_;
-        if (manager == nullptr) {
-            manager = std::make_unique<RSFilterCacheManager>();
-        }
-        // empty implementation, invalidate filter cache on every update
-        manager->UpdateCacheState({ 0, 0, INT_MAX, INT_MAX }, absRect, filter->Hash());
-    } else {
-        renderProperties_.backgroundFilterCacheManager_.reset();
-    }
-
-    // foreground filter
-    if (auto& filter = renderProperties_.GetFilter()) {
-        auto& manager = renderProperties_.filterCacheManager_;
-        if (manager == nullptr) {
-            manager = std::make_unique<RSFilterCacheManager>();
-        }
-        // empty implementation, invalidate filter cache on every update
-        manager->UpdateCacheState({ 0, 0, INT_MAX, INT_MAX }, absRect, filter->Hash());
-    } else {
-        renderProperties_.filterCacheManager_.reset();
-    }
-#endif
 }
 
 bool RSRenderNode::IsDirty() const

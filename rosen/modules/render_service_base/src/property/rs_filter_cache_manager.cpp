@@ -31,20 +31,14 @@ bool RSFilterCacheManager::UpdateCacheState(const RectI& dirtyRegion, const Rect
     }
     // Note: if cacheType_ is not CACHE_TYPE_NONE, cachedImage_ and cachedImageRegion_ must not not empty, no need to check.
 
-    // use dirty region to determine if cache is valid. we will delay the cache invalidation for 2 frames.
-    auto SkDirtyRegion =
-        SkIRect::MakeLTRB(dirtyRegion.GetLeft(), dirtyRegion.GetTop(), dirtyRegion.GetRight(), dirtyRegion.GetBottom());
-    if (SkDirtyRegion.intersect(*cachedImageRegion_)) {
-        --cacheUpdateInterval_;
-        if (cacheUpdateInterval_ < 0) {
-            ROSEN_LOGD("RSFilterCacheManager::UpdateCacheState cache expired, REASON: dirty region intersect with "
-                       "cached region.");
-            InvalidateCache();
-            return false;
-        } else {
-            ROSEN_LOGD("RSFilterCacheManager::UpdateCacheState delay cache invalidate for %d frames.",
-                cacheUpdateInterval_ + 1);
-        }
+    // if we are caching blurred snapshot, we need to check filter hash match.
+    if (cacheType_ == CacheType::CACHE_TYPE_BLURRED_SNAPSHOT && filterHash != cachedFilterHash_) {
+        ROSEN_LOGD(
+            "RSFilterCacheManager::UpdateCacheState cache expired, REASON: cached blurred snapshot %X does not match "
+            "filter hash %X.",
+            cachedFilterHash_, filterHash);
+        InvalidateCache();
+        return false;
     }
 
     // use absRect to determine if cache is valid.
@@ -59,14 +53,20 @@ bool RSFilterCacheManager::UpdateCacheState(const RectI& dirtyRegion, const Rect
         return false;
     }
 
-    // if we are caching blurred snapshot, we need to check filter hash match.
-    if (cacheType_ == CacheType::CACHE_TYPE_BLURRED_SNAPSHOT && filterHash != cachedFilterHash_) {
-        ROSEN_LOGD(
-            "RSFilterCacheManager::UpdateCacheState cache expired, REASON: cached blurred snapshot %X does not match "
-            "filter hash %X.",
-            cachedFilterHash_, filterHash);
-        InvalidateCache();
-        return false;
+    // use dirty region to determine if cache is valid. we will delay the cache invalidation for given frames.
+    auto SkDirtyRegion =
+        SkIRect::MakeLTRB(dirtyRegion.GetLeft(), dirtyRegion.GetTop(), dirtyRegion.GetRight(), dirtyRegion.GetBottom());
+    if (SkDirtyRegion.intersect(*cachedImageRegion_)) {
+        --cacheUpdateInterval_;
+        if (cacheUpdateInterval_ < 0) {
+            ROSEN_LOGD("RSFilterCacheManager::UpdateCacheState cache expired, REASON: dirty region intersect with "
+                       "cached region.");
+            InvalidateCache();
+            return false;
+        } else {
+            ROSEN_LOGD("RSFilterCacheManager::UpdateCacheState delay cache invalidate for %d frames.",
+                cacheUpdateInterval_ + 1);
+        }
     }
 
     // all check passed, cache is valid.
@@ -97,7 +97,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
             ROSEN_LOGD("RSFilterCacheManager::DrawFilter filter hash %X not changed in last 3 frames, generate blurred "
                        "image cache.",
                 filterHash);
-            GenerateBlurredSnapshot(canvas.GetSurface(), filter);
+            GenerateBlurredSnapshot(canvas, filter);
         }
     }
 
@@ -108,11 +108,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
 
     SkAutoCanvasRestore autoRestore(&canvas, true);
     canvas.resetMatrix();
-    if (cacheType_ == CacheType::CACHE_TYPE_SNAPSHOT) {
-        DrawCachedSnapshot(canvas, filter);
-    } else if (cacheType_ == CacheType::CACHE_TYPE_BLURRED_SNAPSHOT) {
-        DrawCachedBlurredImage(canvas);
-    }
+    DrawCache(canvas, cacheType_ == CacheType::CACHE_TYPE_SNAPSHOT ? filter : nullptr);
 }
 
 CachedEffectData RSFilterCacheManager::GeneratedCacheEffectData(
@@ -131,7 +127,7 @@ CachedEffectData RSFilterCacheManager::GeneratedCacheEffectData(
     // GeneratedCacheEffectData always generate blurred image cache
     if (cacheType_ == CacheType::CACHE_TYPE_SNAPSHOT) {
         ROSEN_LOGD("RSFilterCacheManager::GeneratedCacheEffectData cache is snapshot, generate blurred image cache.");
-        GenerateBlurredSnapshot(canvas.GetSurface(), filter);
+        GenerateBlurredSnapshot(canvas, filter);
     }
     if (cachedImage_ == nullptr) {
         ROSEN_LOGE("RSFilterCacheManager::GeneratedCacheEffectData cachedImage_ is null.");
@@ -143,11 +139,12 @@ CachedEffectData RSFilterCacheManager::GeneratedCacheEffectData(
 
 void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter)
 {
-    RS_TRACE_FUNC();
     auto skSurface = canvas.GetSurface();
     if (skSurface == nullptr) {
         return;
     }
+    RS_TRACE_FUNC();
+    // PLANNING: make snapshot larger than device clip bounds, to avoid absRect change caused cache invalidation.
     auto clipIBounds = canvas.getDeviceClipBounds();
     auto clipIPadding = clipIBounds.makeOutset(-1, -1);
     cachedImage_ = skSurface->makeImageSnapshot(clipIPadding);
@@ -163,8 +160,9 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     cacheUpdateInterval_ = RSSystemProperties::GetFilterCacheUpdateInterval();
 }
 
-void RSFilterCacheManager::GenerateBlurredSnapshot(SkSurface* surface, const std::shared_ptr<RSSkiaFilter>& filter)
+void RSFilterCacheManager::GenerateBlurredSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter)
 {
+    auto surface = canvas.GetSurface();
     if (surface == nullptr) {
         // this should not happen, canvas should be gpu-backed
         return;
@@ -185,52 +183,34 @@ void RSFilterCacheManager::GenerateBlurredSnapshot(SkSurface* surface, const std
     cacheType_ = CacheType::CACHE_TYPE_BLURRED_SNAPSHOT;
 }
 
-void RSFilterCacheManager::DrawCachedSnapshot(
+void RSFilterCacheManager::DrawCache(
     RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter) const
 {
     RS_TRACE_FUNC();
     auto visibleIRect = canvas.GetVisibleRect().round();
-    SkRect dstRect;
+    SkIRect dstRect;
+    SkIRect srcRect;
+    // cache validation is already done in DrawFilter, so we can safely use cachedImageRegion_ and cachedImage_
     if (visibleIRect.intersect(*cachedImageRegion_)) {
-        canvas.clipRect(SkRect::Make(visibleIRect));
+        dstRect = visibleIRect;
+        canvas.clipIRect(dstRect);
         auto visibleIPadding = visibleIRect.makeOutset(-1, -1);
-        dstRect = SkRect::Make(visibleIPadding);
+        srcRect = visibleIPadding.makeOffset(-cachedImageRegion_->left(), -cachedImageRegion_->top());
     } else {
-        dstRect = SkRect::Make(*cachedImageRegion_);
+        dstRect = cachedImageRegion_->makeOutset(1, 1);
+        srcRect = cachedImageRegion_->makeOffset(-cachedImageRegion_->left(), -cachedImageRegion_->top());
     }
-    auto srcRect = dstRect.makeOffset(-cachedImageRegion_->left(), -cachedImageRegion_->top());
-    auto paint = filter->GetPaint();
 
+    auto paint = filter ? filter->GetPaint() : SkPaint();
 #ifdef NEW_SKIA
-    canvas.drawImageRect(
-        cachedImage_.get(), srcRect, dstRect, SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
+    canvas.drawImageRect(cachedImage_.get(), SkRect::Make(srcRect), SkRect::Make(dstRect), SkSamplingOptions(), &paint,
+        SkCanvas::kStrict_SrcRectConstraint);
 #else
     // not implemented
 #endif
-    filter->PostProcess(canvas);
-}
-
-void RSFilterCacheManager::DrawCachedBlurredImage(RSPaintFilterCanvas& canvas) const
-{
-    RS_TRACE_FUNC();
-    auto visibleIRect = canvas.GetVisibleRect().round();
-    SkRect dstRect;
-    if (visibleIRect.intersect(*cachedImageRegion_)) {
-        canvas.clipRect(SkRect::Make(visibleIRect));
-        auto visibleIPadding = visibleIRect.makeOutset(-1, -1);
-        dstRect = SkRect::Make(visibleIPadding);
-    } else {
-        dstRect = SkRect::Make(*cachedImageRegion_);
+    if (filter) {
+        filter->PostProcess(canvas);
     }
-    auto srcRect = dstRect.makeOffset(-cachedImageRegion_->left(), -cachedImageRegion_->top());
-
-    SkPaint paint;
-#ifdef NEW_SKIA
-    canvas.drawImageRect(
-        cachedImage_, srcRect, dstRect, SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
-#else
-    // not implemented
-#endif
 }
 
 void RSFilterCacheManager::InvalidateCache()

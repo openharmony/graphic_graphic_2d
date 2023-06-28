@@ -59,9 +59,10 @@ public:
 private:
     // UpdateSnapshot won't apply the filter, but we need to call filter::Preprocess()
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter);
-    void GenerateBlurredSnapshot(SkSurface* surface, const std::shared_ptr<RSSkiaFilter>& filter);
-    void DrawCachedSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter) const;
-    void DrawCachedBlurredImage(RSPaintFilterCanvas& canvas) const;
+    // Convert cached snapshot to blurred snapshot
+    void GenerateBlurredSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter);
+    // If filter is nullptr, we'll directly draw the cached image on canvas
+    void DrawCache(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter = nullptr) const;
 
     enum class CacheType : uint8_t {
         CACHE_TYPE_NONE = 0,

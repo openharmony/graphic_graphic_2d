@@ -952,8 +952,6 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 {
     auto& RSFilter =
         (filterType == FilterType::BACKGROUND_FILTER) ? properties.GetBackgroundFilter() : properties.GetFilter();
-    auto& cacheManager = (filterType == FilterType::BACKGROUND_FILTER) ? properties.backgroundFilterCacheManager_
-                                                                       : properties.filterCacheManager_;
     if (RSFilter == nullptr || !RSFilter->IsValid()) {
         return;
     }
@@ -968,9 +966,10 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
     }
     auto filter = std::static_pointer_cast<RSSkiaFilter>(RSFilter);
-    auto paint = filter->GetPaint();
-    if (canvas.GetSurface() == nullptr) {
+    auto skSurface = canvas.GetSurface();
+    if (skSurface == nullptr) {
         ROSEN_LOGD("RSPropertiesPainter::DrawFilter skSurface null");
+        auto paint = filter->GetPaint();
         SkCanvas::SaveLayerRec slr(nullptr, &paint, SkCanvas::kInitWithPrevious_SaveLayerFlag);
         canvas.saveLayer(slr);
         filter->PostProcess(canvas);
@@ -986,6 +985,8 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     }
 
     // Optional use cacheManager to draw filter
+    auto& cacheManager = (filterType == FilterType::BACKGROUND_FILTER) ? properties.backgroundFilterCacheManager_
+                                                                       : properties.filterCacheManager_;
     if (cacheManager != nullptr) {
         cacheManager->DrawFilter(canvas, filter);
         return;
@@ -993,47 +994,38 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 
     auto clipIBounds = canvas.getDeviceClipBounds();
     auto clipIPadding = clipIBounds.makeOutset(-1, -1);
-
-    auto imageSnapshot = canvas.GetSurface()->makeImageSnapshot(clipIPadding);
+    auto imageSnapshot = skSurface->makeImageSnapshot(clipIPadding);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");
         return;
     }
     filter->PreProcess(imageSnapshot);
-    canvas.resetMatrix();
-    auto visibleIRect = canvas.GetVisibleRect().round();
-    if (filterType == FilterType::FOREGROUND_FILTER) {
-        // for foreground filter, when do online opacity, rendering result already applied opacity,
-        // so drawImage should not apply opacity again
-        canvas.SaveAlpha();
-        canvas.SetAlpha(1.0);
-    }
 
+    canvas.resetMatrix();
+    auto paint = filter->GetPaint();
+    auto visibleIRect = canvas.GetVisibleRect().round();
     if (visibleIRect.intersect(clipIBounds)) {
         canvas.clipRect(SkRect::Make(visibleIRect));
         auto visibleIPadding = visibleIRect.makeOutset(-1, -1);
 #ifdef NEW_SKIA
         canvas.drawImageRect(imageSnapshot.get(),
             SkRect::Make(visibleIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())),
-            SkRect::Make(visibleIPadding), SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
+            SkRect::Make(visibleIRect), SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
 #else
         canvas.drawImageRect(imageSnapshot.get(),
             SkRect::Make(visibleIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())),
-            SkRect::Make(visibleIPadding), &paint);
+            SkRect::Make(visibleIRect), &paint);
 #endif
     } else {
 #ifdef NEW_SKIA
         canvas.drawImageRect(imageSnapshot.get(),
             SkRect::Make(clipIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())),
-            SkRect::Make(clipIPadding), SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
+            SkRect::Make(clipIBounds), SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
 #else
         canvas.drawImageRect(imageSnapshot.get(),
             SkRect::Make(clipIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())),
-            SkRect::Make(clipIPadding), &paint);
+            SkRect::Make(clipIBounds), &paint);
 #endif
-    }
-    if (filterType == FilterType::FOREGROUND_FILTER) {
-        canvas.RestoreAlpha();
     }
     filter->PostProcess(canvas);
 }
