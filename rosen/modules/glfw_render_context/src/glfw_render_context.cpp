@@ -69,6 +69,10 @@ void GlfwRenderContext::InitFrom(void *glfwWindow)
     glfwSetScrollCallback(window_, nullptr);
     glfwSetWindowRefreshCallback(window_, nullptr);
     glfwSetWindowUserPointer(window_, this);
+
+    glfwGetWindowSize(window_, &width_, &height_);
+    ::OHOS::HiviewDFX::HiLog::Info(LABEL, "glfwSetWindowSizeCallback %{public}d %{public}d", width_, height_);
+    glfwSetWindowSizeCallback(window_, GlfwRenderContext::OnSizeChanged);
 }
 
 void GlfwRenderContext::Terminate()
@@ -99,6 +103,11 @@ int GlfwRenderContext::CreateGlfwWindow(int32_t width, int32_t height, bool visi
     }
 
     glfwSetWindowUserPointer(window_, this);
+
+    width_ = width;
+    height_ = height;
+    ::OHOS::HiviewDFX::HiLog::Info(LABEL, "glfwSetWindowSizeCallback %{public}d %{public}d", width, height);
+    glfwSetWindowSizeCallback(window_, GlfwRenderContext::OnSizeChanged);
     return 0;
 }
 
@@ -135,6 +144,8 @@ void GlfwRenderContext::GetWindowSize(int32_t &width, int32_t &height)
 
 void GlfwRenderContext::SetWindowSize(int32_t width, int32_t height)
 {
+    width_ = width;
+    height_ = height;
     glfwSetWindowSize(window_, width, height);
 }
 
@@ -217,5 +228,15 @@ void GlfwRenderContext::OnChar(GLFWwindow *window, unsigned int codepoint)
     if (that->onChar_) {
         that->onChar_(codepoint);
     }
+}
+
+void GlfwRenderContext::OnSizeChanged(GLFWwindow *window, int32_t width, int32_t height)
+{
+    ::OHOS::HiviewDFX::HiLog::Info(LABEL, "OnSizeChanged %{public}d %{public}d", width, height);
+    const auto &that = reinterpret_cast<GlfwRenderContext *>(glfwGetWindowUserPointer(window));
+    if (that->width_ != width || that->height_ != height) {
+        glfwSetWindowSize(window, that->width_, that->height_);
+    }
+    ::OHOS::HiviewDFX::HiLog::Info(LABEL, "OnSizeChanged done %{public}d %{public}d", width, height);
 }
 } // namespace OHOS::Rosen
