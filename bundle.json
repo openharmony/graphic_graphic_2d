@@ -18,7 +18,7 @@
          graphic.EffectnSystemCapability.
          graphic.DrawingnSystemCapability.
          graphic.ComposernSystemCapability.
-         graphic.Backstore"
+         graphic.Backstore",
         "SystemCapability.Graphic.Vulkan"
       ],
       "adapted_system_type": [ "standard" ],
