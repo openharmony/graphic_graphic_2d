@@ -30,12 +30,9 @@ class MyAnySpan : public AnySpan {
 public:
     MyAnySpan(double width, double height,
               AnySpanAlignment align = AnySpanAlignment::ABOVE_BASELINE,
-              TextBaseline baseline = TextBaseline::ALPHABETIC)
+              TextBaseline baseline = TextBaseline::ALPHABETIC
+              ): width_(width), height_(height), align_(align), baseline_(baseline)
     {
-        width_ = width;
-        height_ = height;
-        align_ = align;
-        baseline_ = baseline;
         offset_ = 0.0;      // Set default values for testing
         color_ = ColorGRAY; // Set default values for testing
     }

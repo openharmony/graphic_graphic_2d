@@ -99,7 +99,7 @@ public:
         }
     }
 
-    std::function<void(const struct TypographyData &, TexgineCanvas &, double, double)> GetPaintFunc(
+    static std::function<void(const struct TypographyData &, TexgineCanvas &, double, double)> GetPaintFunc(
         const GlyphPosition &data)
     {
         auto onPaint = [data](const struct TypographyData &tyData, TexgineCanvas &canvas, double x, double y) {

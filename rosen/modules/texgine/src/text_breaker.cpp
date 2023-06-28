@@ -90,7 +90,7 @@ std::shared_ptr<FontCollection> TextBreaker::GenerateFontCollection(const Typogr
 }
 
 int TextBreaker::Measure(const TextStyle &xs, const std::vector<uint16_t> &u16vect,
-    FontCollection &fontCollection, CharGroups &cgs, std::vector<Boundary> &boundaries) noexcept(false)
+    const FontCollection &fontCollection, CharGroups &cgs, std::vector<Boundary> &boundaries) noexcept(false)
 {
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "TextBreaker::doMeasure");
     auto measurer = Measurer::Create(u16vect, fontCollection);

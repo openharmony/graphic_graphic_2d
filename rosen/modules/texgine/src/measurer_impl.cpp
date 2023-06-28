@@ -29,7 +29,7 @@ namespace TextEngine {
 
 namespace {
 void DumpCharGroup(int32_t index, const CharGroup &cg, double glyphEm,
-    hb_glyph_info_t &info, hb_glyph_position_t &position)
+    const hb_glyph_info_t &info, const hb_glyph_position_t &position)
 {
     auto uTF8Str = TextConverter::ToUTF8(cg.chars);
     // 0xffffff is the default char when the cg is null or invalid

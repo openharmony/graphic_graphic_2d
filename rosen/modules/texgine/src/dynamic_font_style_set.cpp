@@ -21,9 +21,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-DynamicFontStyleSet::DynamicFontStyleSet(std::unique_ptr<Typeface> typeface)
+DynamicFontStyleSet::DynamicFontStyleSet(std::unique_ptr<Typeface> typeface): typeface_(std::move(typeface))
 {
-    typeface_ = std::move(typeface);
 }
 
 int DynamicFontStyleSet::Count() const

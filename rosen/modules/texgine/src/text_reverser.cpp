@@ -50,8 +50,8 @@ void TextReverser::ReverseRTLText(std::vector<VariantSpan> &lineSpans)
 
         rtlSpansEndIt++;
         LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "reverse");
-        for (auto it = rtlSpansBeginIt; it != rtlSpansEndIt; it++) {
-            it->Dump();
+        for (auto i = rtlSpansBeginIt; i != rtlSpansEndIt; i++) {
+            i->Dump();
         }
         std::reverse(rtlSpansBeginIt, rtlSpansEndIt);
         rtlSpansBeginIt = endit;

@@ -33,7 +33,7 @@ void TexgineString::SetString(const std::string &s)
     *string_ = s.c_str();
 }
 
-std::string TexgineString::ToString()
+std::string TexgineString::ToString() const
 {
     if (string_ == nullptr) {
         return "";

@@ -75,7 +75,7 @@ public:
      * @return 0 is shape successed
      *         1 is shape failed
      */
-    int Shape(CharGroups &cgs, std::list<struct MeasuringRun> &runs, std::vector<Boundary> boundaries_);
+    int Shape(CharGroups &cgs, std::list<struct MeasuringRun> &runs, std::vector<Boundary> boundaries);
 
     /*
      * @brief Generate font features required for shaping.

@@ -39,7 +39,7 @@ struct PostTable {
 class PostTableParser {
 public:
     PostTableParser(const char* data, int32_t size) : data_(data), size_(size) {}
-    const struct PostTable* Parse(const char* data, int32_t size) const;
+    static const struct PostTable* Parse(const char* data, int32_t size);
     void Dump() const;
 
 private:

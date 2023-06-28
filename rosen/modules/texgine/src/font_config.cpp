@@ -40,7 +40,7 @@ FontConfig::FontConfig(const char* fname)
     }
 }
 
-char* FontConfig::GetFileData(const char* fname, int& size) const
+char* FontConfig::GetFileData(const char* fname, int& size)
 {
     FILE* fp = fopen(fname, "r");
     if (fp == nullptr) {
