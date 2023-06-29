@@ -102,6 +102,7 @@ void OH_NativeBuffer_GetConfig(OH_NativeBuffer *buffer, OH_NativeBuffer_Config* 
     config->height = sbuffer->GetHeight();
     config->format = sbuffer->GetFormat();
     config->usage = sbuffer->GetUsage();
+    config->stride = sbuffer->GetStride();
 }
 
 int32_t OH_NativeBuffer_Map(OH_NativeBuffer *buffer, void **virAddr)
@@ -159,6 +160,7 @@ void OH_NativeBuffer_GetNativeBufferConfig(const OH_NativeBuffer *buffer, OH_Nat
     config->height = sbuffer->GetHeight();
     config->format = sbuffer->GetFormat();
     config->usage = sbuffer->GetUsage();
+    config->stride = sbuffer->GetStride();
 }
 
 OH_NativeBuffer* OH_NativeBufferFromNativeWindowBuffer(OHNativeWindowBuffer* nativeWindowBuffer)
