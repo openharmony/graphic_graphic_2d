@@ -32,8 +32,9 @@ namespace TextEngine {
 
 #define HALF(a) ((a) / 2)
 
+// "weight" and "italic" will assigned value 0 and 1, -1 used to exclude unassigned
 FontParser::FontDescriptor::FontDescriptor(): path(""), postScriptName(""), fullName(""),
-    fontFamily(""), fontSubfamily(""), weight(0), italic(0), monoSpace(0), symbolic(0)
+    fontFamily(""), fontSubfamily(""), weight(-1), italic(-1), monoSpace(0), symbolic(0)
 {
 }
 
