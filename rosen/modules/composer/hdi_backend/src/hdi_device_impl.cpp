@@ -212,16 +212,25 @@ int32_t HdiDeviceImpl::GetScreenCompChange(uint32_t screenId, std::vector<uint32
     return ret;
 }
 
-int32_t HdiDeviceImpl::SetScreenClientBuffer(uint32_t screenId, const BufferHandle *buffer,
+int32_t HdiDeviceImpl::SetScreenClientBuffer(uint32_t screenId, const BufferHandle *buffer, uint32_t cacheIndex,
                                              const sptr<SyncFence> &fence)
 {
     CHECK_FUNC(g_composer);
-    if (buffer == nullptr || fence == nullptr) {
-        return GRAPHIC_DISPLAY_NULL_PTR;
+    if ((buffer == nullptr && cacheIndex == INVALID_BUFFER_CACHE_INDEX) || fence == nullptr) {
+        return GRAPHIC_DISPLAY_PARAM_ERR;
     }
 
     int32_t fenceFd = fence->Get();
-    return g_composer->SetDisplayClientBuffer(screenId, *buffer, fenceFd);
+    return g_composer->SetDisplayClientBuffer(screenId, buffer, cacheIndex, fenceFd);
+}
+
+int32_t HdiDeviceImpl::SetScreenClientBufferCacheCount(uint32_t screen, uint32_t count)
+{
+    CHECK_FUNC(g_composer);
+    if (count == 0 || count > SURFACE_MAX_QUEUE_SIZE) {
+        return GRAPHIC_DISPLAY_PARAM_ERR;
+    }
+    return g_composer->SetClientBufferCacheCount(screen, count);
 }
 
 int32_t HdiDeviceImpl::SetScreenClientDamage(uint32_t screenId, const std::vector<GraphicIRect> &damageRect)
@@ -443,15 +452,16 @@ int32_t HdiDeviceImpl::SetLayerDirtyRegion(uint32_t screenId, uint32_t layerId,
     return g_composer->SetLayerDirtyRegion(screenId, layerId, hdiDirtyRegions);
 }
 
-int32_t HdiDeviceImpl::SetLayerBuffer(uint32_t screenId, uint32_t layerId, const BufferHandle *handle,
-                                      const sptr<SyncFence> &acquireFence)
+int32_t HdiDeviceImpl::SetLayerBuffer(uint32_t screenId, uint32_t layerId, const GraphicLayerBuffer &layerBuffer)
 {
     CHECK_FUNC(g_composer);
-    if (handle == nullptr || acquireFence == nullptr) {
-        return GRAPHIC_DISPLAY_NULL_PTR;
+    if ((layerBuffer.handle == nullptr && layerBuffer.cacheIndex == INVALID_BUFFER_CACHE_INDEX) ||
+        layerBuffer.acquireFence == nullptr) {
+        return GRAPHIC_DISPLAY_PARAM_ERR;
     }
-    int32_t fenceFd = acquireFence->Get();
-    return g_composer->SetLayerBuffer(screenId, layerId, *handle, fenceFd);
+    int32_t fenceFd = (layerBuffer.acquireFence)->Get();
+    return g_composer->SetLayerBuffer(screenId, layerId, layerBuffer.handle, layerBuffer.cacheIndex,
+                                      fenceFd, layerBuffer.deletingList);
 }
 
 int32_t HdiDeviceImpl::SetLayerCompositionType(uint32_t screenId, uint32_t layerId, GraphicCompositionType type)
@@ -540,7 +550,7 @@ int32_t HdiDeviceImpl::SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, 
     return g_composer->SetLayerMetaDataSet(screenId, layerId, hdiKey, metaData);
 }
 
-int32_t HdiDeviceImpl::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, OHExtDataHandle *handle)
+int32_t HdiDeviceImpl::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle)
 {
     CHECK_FUNC(g_composer);
     return g_composer->SetLayerTunnelHandle(screenId, layerId, (*(reinterpret_cast<ExtDataHandle *>(handle))));
@@ -578,7 +588,8 @@ int32_t HdiDeviceImpl::SetLayerMaskInfo(uint32_t screenId, uint32_t layerId, uin
 }
 
 /* set & get device layer info end */
-int32_t HdiDeviceImpl::CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t &layerId)
+int32_t HdiDeviceImpl::CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t cacheCount,
+                                   uint32_t &layerId)
 {
     CHECK_FUNC(g_composer);
     LayerInfo hdiLayerInfo = {
@@ -587,7 +598,7 @@ int32_t HdiDeviceImpl::CreateLayer(uint32_t screenId, const GraphicLayerInfo &la
         .type = static_cast<LayerType>(layerInfo.type),
         .pixFormat = static_cast<PixelFormat>(layerInfo.pixFormat),
     };
-    return g_composer->CreateLayer(screenId, hdiLayerInfo, layerId);
+    return g_composer->CreateLayer(screenId, hdiLayerInfo, cacheCount, layerId);
 }
 
 int32_t HdiDeviceImpl::CloseLayer(uint32_t screenId, uint32_t layerId)

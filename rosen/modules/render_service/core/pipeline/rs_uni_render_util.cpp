@@ -401,9 +401,11 @@ bool RSUniRenderUtil::HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas&
         if (curNode->IsOnTheTree()) {
             return HandleSubThreadNode(*curNode, canvas);
         } else {
+#ifdef RS_ENABLE_GL
             if (curNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
                 RSSubThreadManager::Instance()->WaitNodeTask(curNode->GetId());
             }
+#endif
             return false;
         }
     }
@@ -500,7 +502,7 @@ void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRe
         RS_LOGD("RSUniRenderUtil::AssignMainThreadNode clear cache surface:[%s, %llu]",
             node->GetName().c_str(), node->GetId());
         node->SetCacheTexture(nullptr);
-        ClearCacheSurface(*node, UNI_MAIN_THREAD_INDEX, true);
+        ClearCacheSurface(node, UNI_MAIN_THREAD_INDEX);
     }
 }
 
@@ -604,11 +606,34 @@ void RSUniRenderUtil::ClearSurfaceIfNeed(const RSRenderNodeMap& map,
                 RS_LOGD("RSUniRenderUtil::ClearSurfaceIfNeed clear cache surface:[%s, %llu]",
                     surface->GetName().c_str(), surface->GetId());
                 surface->SetCacheTexture(nullptr);
-                ClearCacheSurface(*surface, UNI_MAIN_THREAD_INDEX, true);
+                ClearCacheSurface(surface, UNI_MAIN_THREAD_INDEX);
             }
         }
     }
     oldChildren.swap(tmpSet);
+}
+
+void RSUniRenderUtil::ClearCacheSurface(const std::shared_ptr<RSSurfaceRenderNode>& node, uint32_t threadIndex)
+{
+    RS_LOGD("ClearCacheSurface node in correct thread: [%llu]", node->GetId());
+    uint32_t cacheSurfaceThreadIndex = node->GetCacheSurfaceThreadIndex();
+    if (cacheSurfaceThreadIndex == threadIndex) {
+        node->ClearCacheSurface();
+        return;
+    }
+    if (cacheSurfaceThreadIndex == UNI_MAIN_THREAD_INDEX) {
+        RSMainThread::Instance()->PostTask([node]() {
+            RS_LOGD("clear node cache surface in main thread");
+            node->ClearCacheSurface();
+        });
+    } else {
+#ifdef RS_ENABLE_GL
+        RSSubThreadManager::Instance()->PostTask([node]() {
+            RS_LOGD("clear node cache surface in sub thread");
+            node->ClearCacheSurface();
+        }, cacheSurfaceThreadIndex);
+#endif
+    }
 }
 
 void RSUniRenderUtil::ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isUIFirst)

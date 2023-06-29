@@ -27,27 +27,27 @@ namespace Rosen {
 namespace TextEngine {
 TextAlign operator&(TextAlign a, TextAlign b)
 {
-    return static_cast<TextAlign>(static_cast<int>(a) & static_cast<int>(b));
+    return static_cast<TextAlign>(static_cast<size_t>(a) & static_cast<size_t>(b));
 }
 
 TextAlign operator|(TextAlign a, TextAlign b)
 {
-    return static_cast<TextAlign>(static_cast<int>(a) | static_cast<int>(b));
+    return static_cast<TextAlign>(static_cast<size_t>(a) | static_cast<size_t>(b));
 }
 
 TextAlign operator^(TextAlign a, TextAlign b)
 {
-    return static_cast<TextAlign>(static_cast<int>(a) ^ static_cast<int>(b));
+    return static_cast<TextAlign>(static_cast<size_t>(a) ^ static_cast<size_t>(b));
 }
 
 TextAlign operator~(TextAlign a)
 {
-    return static_cast<TextAlign>(~static_cast<int>(a));
+    return static_cast<TextAlign>(~static_cast<size_t>(a));
 }
 
 void operator&=(TextAlign &a, const TextAlign &b)
 {
-    a = static_cast<TextAlign>(static_cast<int>(a) & static_cast<int>(b));
+    a = static_cast<TextAlign>(static_cast<size_t>(a) & static_cast<size_t>(b));
 }
 
 void operator|=(TextAlign &a, const TextAlign &b)
@@ -57,7 +57,7 @@ void operator|=(TextAlign &a, const TextAlign &b)
 
 void operator^=(TextAlign &a, const TextAlign &b)
 {
-    a = static_cast<TextAlign>(static_cast<int>(a) ^ static_cast<int>(b));
+    a = static_cast<TextAlign>(static_cast<size_t>(a) ^ static_cast<size_t>(b));
 }
 
 TextDecoration operator&(const TextDecoration &a, const TextDecoration &b)
@@ -87,7 +87,7 @@ void operator&=(TextDecoration &a, const TextDecoration &b)
 
 void operator|=(TextDecoration &a, const TextDecoration &b)
 {
-    a = static_cast<enum TextDecoration>(static_cast<int32_t>(a) | static_cast<int32_t>(b));
+    a = static_cast<enum TextDecoration>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
 }
 
 void operator^=(TextDecoration &a, const TextDecoration &b)

@@ -216,7 +216,7 @@ HWTEST_F(RSBaseRenderNodeTest, RemoveCrossParentChild001, TestSize.Level1)
 
 /**
  * @tc.name: SetIsOnTheTree002
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -258,9 +258,9 @@ HWTEST_F(RSBaseRenderNodeTest, AddCrossParentChildTest001, TestSize.Level1)
 HWTEST_F(RSBaseRenderNodeTest, RemoveCrossParentChildTest001, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    std::shared_ptr<RSBaseRenderNode> child = nullptr;    
+    std::shared_ptr<RSBaseRenderNode> child = nullptr;
     std::weak_ptr<RSBaseRenderNode> newParent;
-    node->RemoveCrossParentChild(child, newParent); 
+    node->RemoveCrossParentChild(child, newParent);
 }
 
 /**

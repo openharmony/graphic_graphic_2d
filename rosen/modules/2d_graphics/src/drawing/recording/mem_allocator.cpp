@@ -138,7 +138,7 @@ int32_t MemAllocator::AddrToOffset(const void* addr) const
 
 void* MemAllocator::OffsetToAddr(size_t offset) const
 {
-    if (offset > size_) {
+    if (offset >= size_) {
         return nullptr;
     }
 

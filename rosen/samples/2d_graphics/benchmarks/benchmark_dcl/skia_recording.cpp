@@ -52,7 +52,7 @@ bool SkiaRecording::SetupMultiFrame()
         return false;
     }
     openMultiPicStream_ = std::move(stream);
-    serialContext  = std::make_unique<SkSharingSerialContext>();
+    serialContext_ = std::make_unique<SkSharingSerialContext>();
     SkSerialProcs procs;
     procs.fImageProc = SkSharingSerialContext::serializeImage;
     procs.fImageCtx = serialContext_.get();

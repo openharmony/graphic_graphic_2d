@@ -380,6 +380,10 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
             } else {
                 keyframeImplicitParam->AddKeyframe(keyframeIter->second, startValue, endValue);
             }
+            if (animation == nullptr) {
+                ROSEN_LOGE("Failed to create animation!");
+                return;
+            }
             if (repeatCallback != nullptr) {
                 animation->SetRepeatCallback(std::move(repeatCallback));
                 repeatCallback.reset();
@@ -407,6 +411,10 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         case ImplicitAnimationParamType::TRANSITION: {
             auto implicitTransitionParam = static_cast<RSImplicitTransitionParam*>(params.get());
             animation = implicitTransitionParam->CreateAnimation(property, startValue, endValue);
+            if (animation == nullptr) {
+                ROSEN_LOGE("Failed to create animation!");
+                return;
+            }
             if (repeatCallback != nullptr) {
                 animation->SetRepeatCallback(std::move(repeatCallback));
                 repeatCallback.reset();

@@ -30,9 +30,10 @@ namespace Rosen {
 namespace AdapterTextEngine {
 #define DEFINE_CONVERT_FUNC(from, to) to Convert(const from &)
 
+#define FONT_COLLECTION_RET std::shared_ptr<OHOS::Rosen::AdapterTextEngine::FontCollection>
 // from interface to adapter txt
-DEFINE_CONVERT_FUNC(std::shared_ptr<OHOS::Rosen::FontCollection>,
-                    std::shared_ptr<OHOS::Rosen::AdapterTextEngine::FontCollection>);
+DEFINE_CONVERT_FUNC(std::shared_ptr<OHOS::Rosen::FontCollection>, FONT_COLLECTION_RET);
+#undef FONT_COLLECTION_RET
 
 // from texgine to rosen_text
 DEFINE_CONVERT_FUNC(TextEngine::IndexAndAffinity, IndexAndAffinity);

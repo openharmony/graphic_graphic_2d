@@ -578,6 +578,9 @@ int32_t RSScreen::GetScreenColorGamut(ScreenColorGamut &mode) const
 
 int32_t RSScreen::SetScreenColorGamut(int32_t modeIdx)
 {
+    if (modeIdx < 0) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
     if (IsVirtual()) {
         if (modeIdx >= static_cast<int32_t>(supportedVirtualColorGamuts_.size())) {
             return StatusCode::INVALID_ARGUMENTS;

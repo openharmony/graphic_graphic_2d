@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -668,6 +668,39 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             ReportJankStats();
             break;
+        }
+        case EXECUTE_SYNCHRONOUS_TASK: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto type = data.ReadInt16();
+            auto subType = data.ReadInt16();
+            if (type != RS_NODE_SYNCHRONOUS_READ_PROPERTY) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto func = RSCommandFactory::Instance().GetUnmarshallingFunc(type, subType);
+            if (func == nullptr) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto command = static_cast<RSSyncTask*>((*func)(data));
+            if (command == nullptr) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            std::shared_ptr<RSSyncTask> task(command);
+            if (task == nullptr) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ExecuteSynchronousTask(task);
+            if (!task->Marshalling(reply)) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
         }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);

@@ -85,6 +85,10 @@ PathPlayer::PathPlayer(Path& path, const CmdList& cmdList) : path_(path), cmdLis
 
 bool PathPlayer::Playback(uint32_t type, const void* opItem)
 {
+    if (type == PathOpItem::OPITEM_HEAD) {
+        return true;
+    }
+
     auto it = opPlaybackFuncLUT_.find(type);
     if (it == opPlaybackFuncLUT_.end() || it->second == nullptr) {
         return false;

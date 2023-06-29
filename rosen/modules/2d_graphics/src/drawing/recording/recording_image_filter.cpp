@@ -28,8 +28,7 @@ std::shared_ptr<RecordingImageFilter> RecordingImageFilter::CreateBlurImageFilte
     scalar sigmaX, scalar sigmaY, TileMode mode, const std::shared_ptr<ImageFilter>& input)
 {
     auto imageFilter = std::make_shared<RecordingImageFilter>();
-    auto inputHandle = CmdListHelper::AddRecordedToCmdList(
-        *imageFilter->GetCmdList(), std::static_pointer_cast<RecordingImageFilter>(input));
+    auto inputHandle = CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(*imageFilter->GetCmdList(), input);
     imageFilter->GetCmdList()->AddOp<CreateBlurImageFilterOpItem>(sigmaX, sigmaY, mode, inputHandle);
     return imageFilter;
 }
@@ -39,11 +38,9 @@ std::shared_ptr<RecordingImageFilter> RecordingImageFilter::CreateColorFilterIma
 {
     auto imageFilter = std::make_shared<RecordingImageFilter>();
 
-    auto colorFilterHandle = CmdListHelper::AddRecordedToCmdList(
-        *imageFilter->GetCmdList(), static_cast<const RecordingColorFilter&>(cf));
+    auto colorFilterHandle = CmdListHelper::AddRecordedToCmdList<RecordingColorFilter>(*imageFilter->GetCmdList(), cf);
 
-    auto inputHandle = CmdListHelper::AddRecordedToCmdList(
-        *imageFilter->GetCmdList(), std::static_pointer_cast<RecordingImageFilter>(input));
+    auto inputHandle = CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(*imageFilter->GetCmdList(), input);
     imageFilter->GetCmdList()->AddOp<CreateColorFilterImageFilterOpItem>(colorFilterHandle, inputHandle);
     return imageFilter;
 }
@@ -52,8 +49,7 @@ std::shared_ptr<RecordingImageFilter> RecordingImageFilter::CreateOffsetImageFil
     scalar dx, scalar dy, const std::shared_ptr<ImageFilter>& input)
 {
     auto imageFilter = std::make_shared<RecordingImageFilter>();
-    auto inputHandle = CmdListHelper::AddRecordedToCmdList(
-        *imageFilter->GetCmdList(), std::static_pointer_cast<RecordingImageFilter>(input));
+    auto inputHandle = CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(*imageFilter->GetCmdList(), input);
     imageFilter->GetCmdList()->AddOp<CreateOffsetImageFilterOpItem>(dx, dy, inputHandle);
     return imageFilter;
 }
@@ -65,10 +61,10 @@ std::shared_ptr<RecordingImageFilter> RecordingImageFilter::CreateArithmeticImag
     auto imageFilter = std::make_shared<RecordingImageFilter>();
 
     auto coefficientsData = CmdListHelper::AddVectorToCmdList<scalar>(*imageFilter->GetCmdList(), coefficients);
-    auto backgroundHandle = CmdListHelper::AddRecordedToCmdList(
-        *imageFilter->GetCmdList(), std::static_pointer_cast<RecordingImageFilter>(background));
-    auto foregroundHandle = CmdListHelper::AddRecordedToCmdList(
-        *imageFilter->GetCmdList(), std::static_pointer_cast<RecordingImageFilter>(foreground));
+    auto backgroundHandle = CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(
+        *imageFilter->GetCmdList(), background);
+    auto foregroundHandle = CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(
+        *imageFilter->GetCmdList(), foreground);
 
     imageFilter->GetCmdList()->AddOp<CreateArithmeticImageFilterOpItem>(
         coefficientsData, enforcePMColor, backgroundHandle, foregroundHandle);
@@ -79,12 +75,8 @@ std::shared_ptr<RecordingImageFilter> RecordingImageFilter::CreateComposeImageFi
     const std::shared_ptr<ImageFilter>& f1, const std::shared_ptr<ImageFilter>& f2)
 {
     auto imageFilter = std::make_shared<RecordingImageFilter>();
-
-    auto imageFilterHandle1 = CmdListHelper::AddRecordedToCmdList(
-        *imageFilter->GetCmdList(), std::static_pointer_cast<RecordingImageFilter>(f1));
-
-    auto imageFilterHandle2 = CmdListHelper::AddRecordedToCmdList(
-        *imageFilter->GetCmdList(), std::static_pointer_cast<RecordingImageFilter>(f2));
+    auto imageFilterHandle1 = CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(*imageFilter->GetCmdList(), f1);
+    auto imageFilterHandle2 = CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(*imageFilter->GetCmdList(), f2);
 
     imageFilter->GetCmdList()->AddOp<CreateComposeImageFilterOpItem>(imageFilterHandle1, imageFilterHandle2);
     return imageFilter;

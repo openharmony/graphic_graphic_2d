@@ -273,7 +273,10 @@ public:
     class RSB_EXPORT RS##MODIFIER_NAME##RenderModifier : public RS##MODIFIER_TIER##RenderModifier { \
     public:                                                                                         \
         RS##MODIFIER_NAME##RenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)    \
-            : RS##MODIFIER_TIER##RenderModifier(property) {}                                        \
+            : RS##MODIFIER_TIER##RenderModifier(property)                                           \
+        {                                                                                           \
+            property->SetModifierType(RSModifierType::MODIFIER_TYPE);                               \
+        }                                                                                           \
         virtual ~RS##MODIFIER_NAME##RenderModifier() = default;                                     \
         void Apply(RSModifierContext& context) const override;                                      \
         void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;      \

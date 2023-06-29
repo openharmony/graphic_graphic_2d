@@ -47,7 +47,7 @@ public:
     /*
      * @brief Sets SkFontStyle to TexgineFontStyle
      */
-    void SetStyle(SkFontStyle &style);
+    void SetStyle(const SkFontStyle &style);
 
 private:
     std::shared_ptr<SkFontStyle> fontStyle_ = nullptr;

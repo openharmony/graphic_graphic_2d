@@ -20,9 +20,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-TexgineTypeface::TexgineTypeface()
+TexgineTypeface::TexgineTypeface(): typeface_(SkTypeface::MakeDefault())
 {
-    typeface_ = SkTypeface::MakeDefault();
 }
 
 TexgineTypeface::TexgineTypeface(SkTypeface *tf) : TexgineTypeface(sk_sp<SkTypeface>(tf))
@@ -32,9 +31,8 @@ TexgineTypeface::TexgineTypeface(SkTypeface *tf) : TexgineTypeface(sk_sp<SkTypef
     }
 }
 
-TexgineTypeface::TexgineTypeface(sk_sp<SkTypeface> typeface)
+TexgineTypeface::TexgineTypeface(sk_sp<SkTypeface> typeface): typeface_(typeface)
 {
-    typeface_ = typeface;
 }
 
 TexgineTypeface::TexgineTypeface(void *context)

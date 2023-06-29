@@ -63,13 +63,20 @@
           "multimedia_image_framework",
           "cjson",
           "ipc",
-          "player_framework"
+          "player_framework",
+          "resource_schedule_service",
+          "soc_perf",
+          "accessibility"
         ],
         "third_party": [
           "flutter",
           "libuv",
           "openssl",
-          "third_party_skia"
+          "third_party_skia",
+          "bounds_checking_function",
+          "icu",
+          "libpng",
+          "skia"
         ]
       },
       "build": {
@@ -224,6 +231,7 @@
                 "modifier/rs_modifier_extractor.h",
                 "modifier/rs_modifier_manager.h",
                 "modifier/rs_property.h",
+                "modifier/rs_showing_properties_freezer.h",
                 "modifier/rs_extended_modifier.h",
                 "modifier/rs_property_modifier.h",
                 "transaction/rs_interfaces.h"
@@ -259,9 +267,31 @@
             "name": "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
             "header": {
               "header_files": [
-                "export/color.h"
+                "export/color.h",
+                "export/color_space.h",
+                "export/color_space_convertor.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/utils/color_manager"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/texgine:libtexgine",
+            "header": {
+              "header_files": [
+                "any_span.h",
+                "dynamic_file_font_provider.h",
+                "dynamic_font_provider.h",
+                "font_providers.h",
+                "ifont_provider.h",
+                "system_font_provider.h",
+                "text_style.h",
+                "typography_builder.h",
+                "typography_style.h",
+                "typography_types.h",
+                "typography.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/texgine/export/texgine"
             }
           }
         ],

@@ -14,6 +14,8 @@
  */
 
 #include "pipeline/rs_uni_render_visitor.h"
+#include <memory>
+#include "SkPictureRecorder.h"
 
 #ifdef RS_ENABLE_VK
 #include <vulkan_window.h>
@@ -63,6 +65,7 @@ constexpr uint32_t PHONE_MAX_APP_WINDOW_NUM = 1;
 constexpr uint32_t CACHE_MAX_UPDATE_TIME = 5;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 static std::map<NodeId, uint32_t> cacheRenderNodeMap = {};
+static std::mutex generateNodeContentCacheMutex;
 
 bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 {
@@ -262,8 +265,8 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSBaseRenderNode& node, int ma
     }
     // Attention: currently not support filter and out of parent
     // Only enable lowest marked cached node
-    if (targetNode->ChildHasFilter() || targetNode->HasChildrenOutOfRect() ||
-        (markedCachedNodeCnt != markedCachedNodes_)) {
+    if ((cacheRenderNodeMap.find(node.GetId()) == cacheRenderNodeMap.end() || isDrawingCacheChanged_) &&
+        (targetNode->ChildHasFilter() || (markedCachedNodeCnt != markedCachedNodes_))) {
         targetNode->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
     RS_TRACE_NAME_FMT("RSUniRenderVisitor::SetNodeCacheChangeStatus: node %" PRIu64 " drawingtype %d, "
@@ -636,16 +639,22 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (isQuickSkipPreparationEnabled_ && CheckIfSurfaceRenderNodeStatic(node)) {
         return;
     }
+    node.CleanDstRectChanged();
+    node.ApplyModifiers();
+    bool dirtyFlag = dirtyFlag_;
     if (isUIFirst_) {
         auto skipNodeMap = RSMainThread::Instance()->GetCacheCmdSkippedNodes();
         if (skipNodeMap.count(node.GetId()) != 0) {
+            auto parentNode = node.GetParent().lock();
+            auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
+            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
+                dirtyFlag_, prepareClipRect_);
+            dirtyFlag_ = dirtyFlag;
             RS_TRACE_NAME(node.GetName() + " PreparedNodes cacheCmdSkiped");
             return;
         }
     }
-    node.CleanDstRectChanged();
-    node.ApplyModifiers();
-    bool dirtyFlag = dirtyFlag_;
+
     RectI prepareClipRect = prepareClipRect_;
     bool isQuickSkipPreparationEnabled = isQuickSkipPreparationEnabled_;
 
@@ -948,6 +957,9 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     if (curSurfaceDirtyManager_ == nullptr) {
         RS_LOGE("RSUniRenderVisitor::PrepareCanvasRenderNode curSurfaceDirtyManager is nullptr");
         return;
+    }
+    if (node.IsContentDirty() && node.GetRecordedContents()) {
+        node.SetRecordedContents(nullptr);
     }
     dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
         dirtyFlag_, prepareClipRect_);
@@ -1520,9 +1532,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 }
                 Drawing::Brush brush;
                 brush.SetAntiAlias(true);
-                Drawing::SamplingOptions sampling =
-                    Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
-                canvas_->DrawImage(*cacheImgForCapture_, 0, 0, sampling);
+                canvas_->AttachBrush(brush);
+                canvas_->DrawImage(*cacheImgForCapture_, 0, 0, Drawing::SamplingOptions());
+                canvas_->DetachBrush();
                 canvas_->Restore();
                 DrawWatermarkIfNeed();
             } else {
@@ -2565,10 +2577,31 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
     node.ProcessTransitionBeforeChildren(*canvas_);
     switch (cacheType) {
         case CacheType::NONE: {
-            node.ProcessAnimatePropertyBeforeChildren(*canvas_);
-            node.ProcessRenderContents(*canvas_);
-            ProcessBaseRenderNode(node);
-            node.ProcessAnimatePropertyAfterChildren(*canvas_);
+            if (node.GetSortedChildren().empty()) {
+                if (node.GetRecordedContents() == nullptr) { // record draw call to skPicture for leaf node
+                    SkPictureRecorder recorder;
+                    auto drawRegion = node.GetDrawRegion();
+                    SkRect bounds = drawRegion ? RSPropertiesPainter::Rect2SkRect(*drawRegion) :
+                        SkRect::MakeWH(node.GetRenderProperties().GetBoundsWidth(),
+                        node.GetRenderProperties().GetBoundsHeight());
+                    auto recordingCanvas = std::make_shared<RSPaintFilterCanvas>(recorder.beginRecording(bounds));
+                    swap(canvas_, recordingCanvas);
+                    node.ProcessAnimatePropertyBeforeChildren(*canvas_);
+                    node.ProcessRenderContents(*canvas_);
+                    ProcessBaseRenderNode(node);
+                    node.ProcessAnimatePropertyAfterChildren(*canvas_);
+                    swap(canvas_, recordingCanvas);
+                    node.SetRecordedContents(recorder.finishRecordingAsPicture());
+                }
+                if (auto recordedContents = node.GetRecordedContents()) {
+                    recordedContents->playback(canvas_.get());
+                }
+            } else {
+                node.ProcessAnimatePropertyBeforeChildren(*canvas_);
+                node.ProcessRenderContents(*canvas_);
+                ProcessBaseRenderNode(node);
+                node.ProcessAnimatePropertyAfterChildren(*canvas_);
+            }
             break;
         }
         case CacheType::CONTENT: {
@@ -2980,6 +3013,7 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 
 bool RSUniRenderVisitor::GenerateNodeContentCache(RSRenderNode& node)
 {
+    std::lock_guard<std::mutex> lock(generateNodeContentCacheMutex);
     // Node cannot have cache.
     if (node.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
         if (cacheRenderNodeMap.count(node.GetId()) > 0) {

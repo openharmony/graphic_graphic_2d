@@ -18,10 +18,11 @@
 #include <algorithm>
 #include <securec.h>
 
-#include "platform/common/rs_log.h"
-#include "render/rs_filter.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_vector4.h"
+#include "platform/common/rs_log.h"
+#include "render/rs_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -39,6 +40,69 @@ constexpr int32_t INDEX_14 = 14;
 constexpr int32_t INDEX_18 = 18;
 
 const Vector4f Vector4fZero { 0.f, 0.f, 0.f, 0.f };
+
+using ResetPropertyFunc = void (*)(RSProperties* prop);
+const std::unordered_map<RSModifierType, ResetPropertyFunc> g_funcLUT = {
+    { RSModifierType::BOUNDS, [](RSProperties* prop) { prop->SetBounds(Vector4f(-INFINITY)); } },
+    { RSModifierType::FRAME, [](RSProperties* prop) { prop->SetFrame(Vector4f(-INFINITY)); } },
+    { RSModifierType::SANDBOX, [](RSProperties* prop) { prop->SetSandBox(std::nullopt); } },
+    { RSModifierType::POSITION_Z, [](RSProperties* prop) { prop->SetPositionZ(0.f); } },
+    { RSModifierType::PIVOT, [](RSProperties* prop) { prop->SetPivot(Vector2f(0.5f, 0.5f)); } },
+    { RSModifierType::PIVOT_Z, [](RSProperties* prop) { prop->SetPivotZ(0.f); } },
+    { RSModifierType::QUATERNION, [](RSProperties* prop) { prop->SetQuaternion(Quaternion()); } },
+    { RSModifierType::ROTATION, [](RSProperties* prop) { prop->SetRotation(0.f); } },
+    { RSModifierType::ROTATION_X, [](RSProperties* prop) { prop->SetRotationX(0.f); } },
+    { RSModifierType::ROTATION_Y, [](RSProperties* prop) { prop->SetRotationY(0.f); } },
+    { RSModifierType::CAMERA_DISTANCE, [](RSProperties* prop) { prop->SetCameraDistance(0.f); } },
+    { RSModifierType::SCALE, [](RSProperties* prop) { prop->SetScale(Vector2f(1.f, 1.f)); } },
+    { RSModifierType::TRANSLATE, [](RSProperties* prop) { prop->SetTranslate(Vector2f(0.f, 0.f)); } },
+    { RSModifierType::TRANSLATE_Z, [](RSProperties* prop) { prop->SetTranslateZ(0.f); } },
+    { RSModifierType::CORNER_RADIUS, [](RSProperties* prop) { prop->SetCornerRadius(0.f); } },
+    { RSModifierType::ALPHA, [](RSProperties* prop) { prop->SetAlpha(1.f); } },
+    { RSModifierType::ALPHA_OFFSCREEN, [](RSProperties* prop) { prop->SetAlphaOffscreen(false); } },
+    { RSModifierType::FOREGROUND_COLOR, [](RSProperties* prop) { prop->SetForegroundColor(RSColor()); } },
+    { RSModifierType::BACKGROUND_COLOR, [](RSProperties* prop) { prop->SetBackgroundColor(RSColor()); } },
+    { RSModifierType::BACKGROUND_SHADER, [](RSProperties* prop) { prop->SetBackgroundShader(nullptr); } },
+    { RSModifierType::BG_IMAGE, [](RSProperties* prop) { prop->SetBgImage(nullptr); } },
+    { RSModifierType::BG_IMAGE_WIDTH, [](RSProperties* prop) { prop->SetBgImageWidth(0.f); } },
+    { RSModifierType::BG_IMAGE_HEIGHT, [](RSProperties* prop) { prop->SetBgImageHeight(0.f); } },
+    { RSModifierType::BG_IMAGE_POSITION_X, [](RSProperties* prop) { prop->SetBgImagePositionX(0.f); } },
+    { RSModifierType::BG_IMAGE_POSITION_Y, [](RSProperties* prop) { prop->SetBgImagePositionY(0.f); } },
+    { RSModifierType::BORDER_COLOR, [](RSProperties* prop) { prop->SetBorderColor(RSColor()); } },
+    { RSModifierType::BORDER_WIDTH, [](RSProperties* prop) { prop->SetBorderWidth(0.f); } },
+    { RSModifierType::BORDER_STYLE, [](RSProperties* prop) { prop->SetBorderStyle((uint32_t)BorderStyle::NONE); } },
+    { RSModifierType::FILTER, [](RSProperties* prop) { prop->SetFilter(nullptr); } },
+    { RSModifierType::BACKGROUND_FILTER, [](RSProperties* prop) { prop->SetBackgroundFilter(nullptr); } },
+    { RSModifierType::LINEAR_GRADIENT_BLUR_PARA, [](RSProperties* prop) { prop->SetLinearGradientBlurPara(nullptr); } },
+    { RSModifierType::FRAME_GRAVITY, [](RSProperties* prop) { prop->SetFrameGravity(Gravity::DEFAULT); } },
+    { RSModifierType::CLIP_RRECT, [](RSProperties* prop) { prop->SetClipRRect(RRect()); } },
+    { RSModifierType::CLIP_BOUNDS, [](RSProperties* prop) { prop->SetClipBounds(nullptr); } },
+    { RSModifierType::CLIP_TO_BOUNDS, [](RSProperties* prop) { prop->SetClipToBounds(false); } },
+    { RSModifierType::CLIP_TO_FRAME, [](RSProperties* prop) { prop->SetClipToFrame(false); } },
+    { RSModifierType::VISIBLE, [](RSProperties* prop) { prop->SetVisible(true); } },
+    { RSModifierType::SHADOW_COLOR, [](RSProperties* prop) { prop->SetShadowColor(RgbPalette::Transparent()); } },
+    { RSModifierType::SHADOW_OFFSET_X, [](RSProperties* prop) { prop->SetShadowOffsetX(0.f); } },
+    { RSModifierType::SHADOW_OFFSET_Y, [](RSProperties* prop) { prop->SetShadowOffsetY(0.f); } },
+    { RSModifierType::SHADOW_ALPHA, [](RSProperties* prop) { prop->SetShadowAlpha(0.f); } },
+    { RSModifierType::SHADOW_ELEVATION, [](RSProperties* prop) { prop->SetShadowElevation(0.f); } },
+    { RSModifierType::SHADOW_RADIUS, [](RSProperties* prop) { prop->SetShadowRadius(0.f); } },
+    { RSModifierType::SHADOW_PATH, [](RSProperties* prop) { prop->SetShadowPath(nullptr); } },
+    { RSModifierType::SHADOW_MASK, [](RSProperties* prop) { prop->SetShadowMask(false); } },
+    { RSModifierType::MASK, [](RSProperties* prop) { prop->SetMask(nullptr); } },
+    { RSModifierType::SPHERIZE, [](RSProperties* prop) { prop->SetSpherize(0.f); } },
+    { RSModifierType::LIGHT_UP_EFFECT, [](RSProperties* prop) { prop->SetLightUpEffect(1.f); } },
+    { RSModifierType::PIXEL_STRETCH, [](RSProperties* prop) { prop->SetPixelStretch(Vector4f()); } },
+    { RSModifierType::PIXEL_STRETCH_PERCENT, [](RSProperties* prop) { prop->SetPixelStretchPercent(Vector4f()); } },
+    { RSModifierType::GRAY_SCALE, [](RSProperties* prop) { prop->SetGrayScale(std::nullopt); } },
+    { RSModifierType::BRIGHTNESS, [](RSProperties* prop) { prop->SetBrightness(std::nullopt); } },
+    { RSModifierType::CONTRAST, [](RSProperties* prop) { prop->SetContrast(std::nullopt); } },
+    { RSModifierType::SATURATE, [](RSProperties* prop) { prop->SetSaturate(std::nullopt); } },
+    { RSModifierType::SEPIA, [](RSProperties* prop) { prop->SetSepia(std::nullopt); } },
+    { RSModifierType::INVERT, [](RSProperties* prop) { prop->SetInvert(std::nullopt); } },
+    { RSModifierType::HUE_ROTATE, [](RSProperties* prop) { prop->SetHueRotate(std::nullopt); } },
+    { RSModifierType::COLOR_BLEND, [](RSProperties* prop) { prop->SetColorBlend(std::nullopt); } },
+    { RSModifierType::USE_EFFECT, [](RSProperties* prop) { prop->SetUseEffect(false); } },
+};
 } // namespace
 
 RSProperties::RSProperties()
@@ -48,6 +112,14 @@ RSProperties::RSProperties()
 }
 
 RSProperties::~RSProperties() {}
+
+void RSProperties::ResetProperty(RSModifierType type)
+{
+    auto it = g_funcLUT.find(type);
+    if (it != g_funcLUT.end()) {
+        it->second(this);
+    }
+}
 
 void RSProperties::SetBounds(Vector4f bounds)
 {
@@ -141,6 +213,7 @@ void RSProperties::SetFrame(Vector4f frame)
 {
     frameGeo_->SetRect(frame.x_, frame.y_, frame.z_, frame.w_);
     geoDirty_ = true;
+    contentDirty_ = true;
     SetDirty();
 }
 
@@ -148,6 +221,7 @@ void RSProperties::SetFrameSize(Vector2f size)
 {
     frameGeo_->SetSize(size.x_, size.y_);
     geoDirty_ = true;
+    contentDirty_ = true;
     SetDirty();
 }
 
@@ -155,6 +229,7 @@ void RSProperties::SetFrameWidth(float width)
 {
     frameGeo_->SetWidth(width);
     geoDirty_ = true;
+    contentDirty_ = true;
     SetDirty();
 }
 
@@ -162,6 +237,7 @@ void RSProperties::SetFrameHeight(float height)
 {
     frameGeo_->SetHeight(height);
     geoDirty_ = true;
+    contentDirty_ = true;
     SetDirty();
 }
 

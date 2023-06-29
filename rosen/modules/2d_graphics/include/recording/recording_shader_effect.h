@@ -117,6 +117,11 @@ public:
     RecordingShaderEffect() noexcept;
     ~RecordingShaderEffect() override = default;
 
+    DrawingType GetDrawingType() const override
+    {
+        return DrawingType::RECORDING;
+    }
+
     /*
      * @brief  Gets the pionter to ShaderEffectCmdList.
      */

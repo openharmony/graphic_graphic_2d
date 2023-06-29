@@ -200,7 +200,7 @@ void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataPa
             continue;
         }
         flat_binder_object* flat = reinterpret_cast<flat_binder_object*>(data + object[i]);
-        if (flat->hdr.type == BINDER_TYPE_FD) {
+        if (flat->hdr.type == BINDER_TYPE_FD || flat->hdr.type == BINDER_TYPE_FDR) {
             int32_t val = ashmemParcel->ReadFileDescriptor();
             if (val < 0) {
                 ROSEN_LOGW("RSAshmemHelper::InjectFileDescriptor failed, fd:%d", val);

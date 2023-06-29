@@ -44,7 +44,7 @@ void TexgineFontManager::SetFontMgr(const sk_sp<SkFontMgr> mgr)
 }
 
 std::shared_ptr<TexgineTypeface> TexgineFontManager::MatchFamilyStyleCharacter(const std::string &familyName,
-    TexgineFontStyle &style, const char *bcp47[], int bcp47Count, int32_t character)
+    const TexgineFontStyle &style, const char* bcp47[], int bcp47Count, int32_t character)
 {
     if (fontMgr_ == nullptr || style.GetFontStyle() == nullptr) {
         return nullptr;

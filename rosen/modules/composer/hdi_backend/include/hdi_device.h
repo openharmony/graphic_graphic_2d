@@ -19,9 +19,7 @@
 #include <vector>
 #include <refbase.h>
 #include <unordered_map>
-
 #include <sync_fence.h>
-#include "surface_type.h"
 #include "hdi_log.h"
 #include "hdi_display_type.h"
 
@@ -47,8 +45,9 @@ public:
     virtual int32_t PrepareScreenLayers(uint32_t screenId, bool &needFlushFb) = 0;
     virtual int32_t GetScreenCompChange(uint32_t screenId, std::vector<uint32_t> &layersId,
                                         std::vector<int32_t> &types) = 0;
-    virtual int32_t SetScreenClientBuffer(uint32_t screenId, const BufferHandle *buffer,
+    virtual int32_t SetScreenClientBuffer(uint32_t screenId, const BufferHandle *buffer, uint32_t cacheIndex,
                                           const sptr<SyncFence> &fence) = 0;
+    virtual int32_t SetScreenClientBufferCacheCount(uint32_t screen, uint32_t count) = 0;
     virtual int32_t SetScreenClientDamage(uint32_t screenId, const std::vector<GraphicIRect> &damageRect) = 0;
     virtual int32_t SetScreenVsyncEnabled(uint32_t screenId, bool enabled) = 0;
     virtual int32_t GetScreenReleaseFence(uint32_t screenId, std::vector<uint32_t> &layersId,
@@ -72,8 +71,7 @@ public:
                                           const std::vector<GraphicIRect> &visibles) = 0;
     virtual int32_t SetLayerDirtyRegion(uint32_t screenId, uint32_t layerId,
                                         const std::vector<GraphicIRect> &dirtyRegions) = 0;
-    virtual int32_t SetLayerBuffer(uint32_t screenId, uint32_t layerId, const BufferHandle *handle,
-                                   const sptr<SyncFence> &acquireFence) = 0;
+    virtual int32_t SetLayerBuffer(uint32_t screenId, uint32_t layerId, const GraphicLayerBuffer &layerBuffer) = 0;
     virtual int32_t SetLayerCompositionType(uint32_t screenId, uint32_t layerId, GraphicCompositionType type) = 0;
     virtual int32_t SetLayerBlendType(uint32_t screenId, uint32_t layerId, GraphicBlendType type) = 0;
     virtual int32_t SetLayerCrop(uint32_t screenId, uint32_t layerId, const GraphicIRect &crop) = 0;
@@ -86,14 +84,15 @@ public:
                                      const std::vector<GraphicHDRMetaData> &graphicMetaData) = 0;
     virtual int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, GraphicHDRMetadataKey gkey,
                                         const std::vector<uint8_t> &metaData) = 0;
-    virtual int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, OHExtDataHandle *handle) = 0;
+    virtual int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle) = 0;
     virtual int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
                                                      GraphicPresentTimestampType &type) = 0;
     virtual int32_t GetPresentTimestamp(uint32_t screenId, uint32_t layerId, GraphicPresentTimestamp &timestamp) = 0;
     virtual int32_t SetLayerMaskInfo(uint32_t screenId, uint32_t layerId, uint32_t maskInfo) = 0;
     /* set & get device layer info end */
 
-    virtual int32_t CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t &layerId) = 0;
+    virtual int32_t CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t cacheCount,
+                                uint32_t &layerId) = 0;
     virtual int32_t CloseLayer(uint32_t screenId, uint32_t layerId) = 0;
     virtual void Destroy() = 0;
 

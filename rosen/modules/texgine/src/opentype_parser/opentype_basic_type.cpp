@@ -41,7 +41,7 @@ const std::string Tag::Get() const
 
 int16_t Int16::Get() const
 {
-    if (G_ENDIAN.big) {
+    if (G_ENDIAN.big != '\0') {
         return ((data & 0x0000ff00) >> 8) | ((data & 0x000000ff) << 8);     // 8 means offset
     } else {
         return data;
@@ -50,7 +50,7 @@ int16_t Int16::Get() const
 
 uint16_t Uint16::Get() const
 {
-    if (G_ENDIAN.big) {
+    if (G_ENDIAN.big != '\0') {
         return ((data & 0x0000ff00) >> 8) | ((data & 0x000000ff) << 8);     // 8 means offset
     } else {
         return data;
@@ -59,9 +59,11 @@ uint16_t Uint16::Get() const
 
 int32_t Int32::Get() const
 {
-    if (G_ENDIAN.big) {
-        return ((data & 0xff000000) >> 24) | ((data & 0x00ff0000) >> 8) |   // 8 & 24 means offset
-            ((data & 0x0000ff00) << 8) | ((data & 0x000000ff) << 24);
+    if (G_ENDIAN.big != '\0') {
+        return ((static_cast<uint32_t>(data) & 0xff000000) >> 24) |
+            ((static_cast<uint32_t>(data) & 0x00ff0000) >> 8) |         // 8 & 24 means offset
+            ((static_cast<uint32_t>(data) & 0x0000ff00) << 8) |
+            ((static_cast<uint32_t>(data) & 0x000000ff) << 24);
     } else {
         return data;
     }
@@ -69,7 +71,7 @@ int32_t Int32::Get() const
 
 uint32_t Uint32::Get() const
 {
-    if (G_ENDIAN.big) {
+    if (G_ENDIAN.big != '\0') {
         return ((data & 0xff000000) >> 24) | ((data & 0x00ff0000) >> 8) |   // 8 & 24 means offset
             ((data & 0x0000ff00) << 8) | ((data & 0x000000ff) << 24);
     } else {

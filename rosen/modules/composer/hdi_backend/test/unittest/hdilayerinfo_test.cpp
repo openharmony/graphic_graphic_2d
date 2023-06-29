@@ -345,7 +345,7 @@ HWTEST_F(HdiLayerInfoTest, TunnelHandle002, Function | MediumTest | Level1)
 
     sptr<SurfaceTunnelHandle> tunnelHandle = new SurfaceTunnelHandle;
 
-    OHExtDataHandle *handleSet = new OHExtDataHandle();
+    GraphicExtDataHandle *handleSet = new GraphicExtDataHandle();
     handleSet->fd = -1;
     handleSet->reserveInts = 1;
     handleSet->reserve[0] = 0;

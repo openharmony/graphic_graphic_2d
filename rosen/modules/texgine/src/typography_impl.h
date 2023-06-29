@@ -53,7 +53,7 @@ public:
     bool DidExceedMaxLines() const override;
     int GetLineCount() const override;
     void SetIndents(const std::vector<float> &indents) override;
-    void Layout(double widthLimit) override;
+    void Layout(double maxWidth) override;
     void Paint(TexgineCanvas &canvas, double offsetX, double offsetY) override;
     std::vector<TextRect> GetTextRectsByBoundary(Boundary boundary,
                                                  TextRectHeightStyle heightStyle,
@@ -70,8 +70,8 @@ private:
     int ComputeStrut();
     void DoLayout();
     int UpdateMetrics();
-    int UpdateSpanMetrics(VariantSpan &span, double &ascent);
-    int DoUpdateSpanMetrics(VariantSpan &span, const TexgineFontMetrics &metrics,
+    int UpdateSpanMetrics(VariantSpan &span, double &coveredAscent);
+    int DoUpdateSpanMetrics(const VariantSpan &span, const TexgineFontMetrics &metrics,
         const TextStyle &style, double &coveredAscent);
     void UpadateAnySpanMetrics(std::shared_ptr<AnySpan> &span, double &coveredAscent, double &coveredDescent);
     void ApplyAlignment();

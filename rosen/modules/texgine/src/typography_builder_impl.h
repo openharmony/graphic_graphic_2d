@@ -30,7 +30,7 @@ public:
     void PushStyle(const TextStyle &style) override;
     void PopStyle() override;
     void AppendSpan(const std::shared_ptr<AnySpan> &as) override;
-    void AppendSpan(const std::shared_ptr<TextSpan> &text);
+    void AppendSpan(const std::shared_ptr<TextSpan> &ts);
     void AppendSpan(const std::string &text) override;
     void AppendSpan(const std::u16string &text) override;
     void AppendSpan(const std::u32string &text) override;

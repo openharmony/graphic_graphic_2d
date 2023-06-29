@@ -123,25 +123,25 @@ void RecordingPath::AddRoundRect(const RoundRect& rrect, PathDirection dir)
 
 void RecordingPath::AddPath(const Path& src, scalar dx, scalar dy)
 {
-    auto pathHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(src));
+    auto pathHandle = CmdListHelper::AddRecordedToCmdList<RecordingPath>(*cmdList_, src);
     cmdList_->AddOp<AddPathOpItem>(pathHandle, dx, dy);
 }
 
 void RecordingPath::AddPath(const Path& src)
 {
-    auto pathHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(src));
+    auto pathHandle = CmdListHelper::AddRecordedToCmdList<RecordingPath>(*cmdList_, src);
     cmdList_->AddOp<AddPathOpItem>(pathHandle);
 }
 
 void RecordingPath::AddPath(const Path& src, const Matrix& matrix)
 {
-    auto pathHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(src));
+    auto pathHandle = CmdListHelper::AddRecordedToCmdList<RecordingPath>(*cmdList_, src);
     cmdList_->AddOp<AddPathWithMatrixOpItem>(pathHandle, matrix);
 }
 
 void RecordingPath::ReverseAddPath(const Path& src)
 {
-    auto pathHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(src));
+    auto pathHandle = CmdListHelper::AddRecordedToCmdList<RecordingPath>(*cmdList_, src);
     cmdList_->AddOp<ReverseAddPathOpItem>(pathHandle);
 }
 
@@ -152,8 +152,8 @@ void RecordingPath::SetFillStyle(PathFillType fillstyle)
 
 bool RecordingPath::BuildFromInterpolate(const Path& src, const Path& ending, scalar weight)
 {
-    auto srcHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(src));
-    auto endingHandle = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(ending));
+    auto srcHandle = CmdListHelper::AddRecordedToCmdList<RecordingPath>(*cmdList_, src);
+    auto endingHandle = CmdListHelper::AddRecordedToCmdList<RecordingPath>(*cmdList_, ending);
     cmdList_->AddOp<BuildFromInterpolateOpItem>(srcHandle, endingHandle, weight);
 
     return true;
@@ -171,8 +171,8 @@ void RecordingPath::Offset(scalar dx, scalar dy)
 
 bool RecordingPath::Op(const Path& path1, Path& path2, PathOp op)
 {
-    auto pathHandle1 = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(path1));
-    auto pathHandle2 = CmdListHelper::AddRecordedToCmdList(*cmdList_, static_cast<const RecordingPath&>(path2));
+    auto pathHandle1 = CmdListHelper::AddRecordedToCmdList<RecordingPath>(*cmdList_, path1);
+    auto pathHandle2 = CmdListHelper::AddRecordedToCmdList<RecordingPath>(*cmdList_, path2);
     cmdList_->AddOp<PathOpWithOpItem>(pathHandle1, pathHandle2, op);
 
     return true;

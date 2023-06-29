@@ -97,6 +97,10 @@ private:
     std::vector<GraphicIRect> outputDamages_;
     bool directClientCompositionEnabled_ = true;
 
+    std::vector<sptr<SurfaceBuffer> > bufferCache_;
+    uint32_t bufferCacheCountMax_ = 0;
+    uint32_t bufferCacheIndex_ = 0;
+
     int32_t CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayers();
     void ResetLayerStatus();
@@ -104,6 +108,7 @@ private:
     void UpdatePrevLayerInfo();
     void RecordCompositionTime(int64_t timeStamp);
     inline bool CheckFbSurface();
+    bool CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index);
 };
 } // namespace Rosen
 } // namespace OHOS

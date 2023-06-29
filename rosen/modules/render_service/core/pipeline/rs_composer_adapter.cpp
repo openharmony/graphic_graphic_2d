@@ -258,10 +258,10 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
 void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const
 {
     const auto& property = node.GetRenderProperties();
-    const float frameWidth = info.buffer->GetSurfaceBufferWidth();
-    const float frameHeight = info.buffer->GetSurfaceBufferHeight();
-    const float boundsWidth = property.GetBoundsWidth();
-    const float boundsHeight = property.GetBoundsHeight();
+    const auto frameWidth = info.buffer->GetSurfaceBufferWidth();
+    const auto frameHeight = info.buffer->GetSurfaceBufferHeight();
+    const int boundsWidth = static_cast<int>(property.GetBoundsWidth());
+    const int boundsHeight = static_cast<int>(property.GetBoundsHeight());
     const Gravity frameGravity = property.GetFrameGravity();
     // we do not need to do additional works for Gravity::RESIZE and if frameSize == boundsSize.
     if (frameGravity == Gravity::RESIZE || (frameWidth == boundsWidth && frameHeight == boundsHeight)) {
@@ -293,24 +293,17 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
     auto canvas = std::make_unique<Rosen::Drawing::Canvas>();
     canvas->Bind(bitmap);
     canvas->ConcatMatrix(translateMatrix);
-    canvas->ConcatMatrix(gravityMatrix);
     Drawing::Rect clipRect;
-    Drawing::Rect gRect(0, 0, frameWidth, frameHeight);
-    gravityMatrix.MapRect(clipRect, gRect);
-    Drawing::Rect dRect(0, 0, clipRect.GetWidth(), clipRect.GetHeight());
-    canvas->ClipRect(dRect, Drawing::ClipOp::INTERSECT, false);
+    Drawing::Rect srcRect(0, 0, frameWidth, frameHeight);
+    gravityMatrix.MapRect(clipRect, srcRect);
+    canvas->ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
+    canvas->ConcatMatrix(gravityMatrix);
     Drawing::RectI newDstRect = canvas->GetDeviceClipBounds();
     // we make the newDstRect as the intersection of new and old dstRect,
     // to deal with the situation that frameSize > boundsSize.
     // replace Intersect
-    Drawing::RectI temRect(
-        std::max(newDstRect.GetLeft(), info.dstRect.x),
-        std::max(newDstRect.GetTop(), info.dstRect.y),
-        std::max(newDstRect.GetRight(), info.dstRect.x + info.dstRect.w),
-        std::max(newDstRect.GetBottom(), info.dstRect.y + info.dstRect.h));
-    if (temRect.IsValid()) {
-        newDstRect = temRect;
-    }
+    newDstRect.Intersect(Drawing::RectI(info.dstRect.x, info.dstRect.y,
+        info.dstRect.w + info.dstRect.x, info.dstRect.h + info.dstRect.y));
     auto localRect = canvas->GetLocalClipBounds();
     int left = std::clamp<int>(localRect.GetLeft(), 0, frameWidth);
     int top = std::clamp<int>(localRect.GetTop(), 0, frameHeight);

@@ -239,7 +239,7 @@ void ReadExtDataHandle(MessageParcel &parcel, sptr<SurfaceTunnelHandle> &handle)
         BLOGE("Too much data obtained from parcel");
         return;
     }
-    OHExtDataHandle *tunnelHandle = AllocExtDataHandle(reserveInts);
+    GraphicExtDataHandle *tunnelHandle = AllocExtDataHandle(reserveInts);
     if (tunnelHandle == nullptr) {
         BLOGE("AllocExtDataHandle failed");
         return;
@@ -255,7 +255,7 @@ void ReadExtDataHandle(MessageParcel &parcel, sptr<SurfaceTunnelHandle> &handle)
     FreeExtDataHandle(tunnelHandle);
 }
 
-void WriteExtDataHandle(MessageParcel &parcel, const OHExtDataHandle *handle)
+void WriteExtDataHandle(MessageParcel &parcel, const GraphicExtDataHandle *handle)
 {
     if (handle == nullptr) {
         BLOGE("WriteExtDataHandle failed, handle is null");

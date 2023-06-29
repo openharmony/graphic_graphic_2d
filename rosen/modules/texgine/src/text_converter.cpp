@@ -36,7 +36,7 @@ UTF8String TextConverter::ToUTF8(const UTF16String &utf16Text)
             return utf8Text;
         }
 
-        for (int i = 0; i < utf8Index; i++) {
+        for (int i = 0; i < static_cast<int>(utf8Index); i++) {
             utf8Text.push_back(utf8Str[i]);
         }
     }

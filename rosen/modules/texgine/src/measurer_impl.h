@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef ROSEN_MODULES_TEXGINE_SRC_MEASURER_IMPL_H
+#define ROSEN_MODULES_TEXGINE_SRC_MEASURER_IMPL_H
+
 #include <iomanip>
 #include <list>
 #include <queue>
@@ -72,7 +75,7 @@ public:
      * @return 0 is shape successed
      *         1 is shape failed
      */
-    int Shape(CharGroups &cgs, std::list<struct MeasuringRun> &runs, std::vector<Boundary> boundaries_);
+    int Shape(CharGroups &cgs, std::list<struct MeasuringRun> &runs, std::vector<Boundary> boundaries);
 
     /*
      * @brief Generate font features required for shaping.
@@ -145,3 +148,5 @@ hb_blob_t *HbFaceReferenceTableTypeface(hb_face_t *face, hb_tag_t tag, void *con
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS
+
+#endif // ROSEN_MODULES_TEXGINE_SRC_MEASURER_IMPL_H

@@ -37,27 +37,46 @@ FramePainter::FramePainter(FrameCollector &collector) : collector_(collector)
 
 #ifndef USE_ROSEN_DRAWING
 void FramePainter::Draw(SkCanvas &canvas)
+#else
+void FramePainter::Draw(Drawing::Canvas &canvas)
+#endif
 {
     if (collector_.IsEnabled() == false) {
         return;
     }
 
+#ifndef USE_ROSEN_DRAWING
     auto width = canvas.imageInfo().width();
     auto height = canvas.imageInfo().height();
+#else
+    auto width = canvas.GetWidth();
+    auto height = canvas.GetHeight();
+#endif
     ::OHOS::HiviewDFX::HiLog::Debug(LABEL, "FramePainter::Draw %{public}dx%{public}d", width, height);
 
     constexpr auto normalFPS = 60;
     constexpr auto slowFPS = normalFPS / 2;
     auto bars = GenerateTimeBars(width, height, normalFPS);
+#ifndef USE_ROSEN_DRAWING
     SkPaint paint;
     paint.setStyle(paint.kFill_Style);
+#else
+    Drawing::Brush brush;
+#endif
     for (const auto &[isHeavy, color, x, y, w, h] : bars) {
         constexpr uint32_t heavyFrameAlpha = 0x7f;
         constexpr uint32_t lightFrameAlpha = 0x3f;
         auto alpha = isHeavy ? heavyFrameAlpha : lightFrameAlpha;
         constexpr uint32_t alphaOffset = 24; // ARGB
+#ifndef USE_ROSEN_DRAWING
         paint.setColor(color | (alpha << alphaOffset));
         canvas.drawRect(SkRect::MakeXYWH(x, y, w, h), paint);
+#else
+        brush.SetColor(color | (alpha << alphaOffset));
+        canvas.AttachBrush(brush);
+        canvas.DrawRect(Drawing::Rect(x, y, w + x, h + y));
+        canvas.DetachBrush();
+#endif
     }
 
     // normal fps line: alpha: 0xbf, green #00ff00
@@ -67,82 +86,45 @@ void FramePainter::Draw(SkCanvas &canvas)
     DrawFPSLine(canvas, slowFPS, height / frameTotalMs, 0xbfff0000);
 }
 
+#ifndef USE_ROSEN_DRAWING
 void FramePainter::DrawFPSLine(SkCanvas &canvas, uint32_t fps, double thickness, uint32_t color)
+#else
+void FramePainter::DrawFPSLine(Drawing::Canvas &canvas, uint32_t fps, double thickness, uint32_t color)
+#endif
 {
     if (fps == 0) {
         return;
     }
 
+#ifndef USE_ROSEN_DRAWING
     auto width = canvas.imageInfo().width();
     auto height = canvas.imageInfo().height();
+#else
+    auto width = canvas.GetWidth();
+    auto height = canvas.GetHeight();
+#endif
     auto heightPerMs = height / frameTotalMs;
 
     constexpr auto OneSecondInMs = 1000.0;
     auto bottom = OneSecondInMs / fps * heightPerMs;
     auto lineOffset = thickness / 0x2; // vertical align center
+#ifndef USE_ROSEN_DRAWING
     auto fpsLine = SkRect::MakeXYWH(0, height - (bottom - lineOffset), width, thickness);
 
     SkPaint paint;
     paint.setStyle(paint.kFill_Style);
     paint.setColor(color);
     canvas.drawRect(fpsLine, paint);
-}
 #else
-void FramePainter::Draw(Drawing::Canvas &canvas)
-{
-    if (collector_.IsEnabled() == false) {
-        return;
-    }
-
-    auto width = canvas.GetWidth();
-    auto height = canvas.GetHeight();
-    ::OHOS::HiviewDFX::HiLog::Debug(LABEL, "FramePainter::Draw %{public}dx%{public}d", width, height);
-
-    constexpr auto normalFPS = 60;
-    constexpr auto slowFPS = normalFPS / 2;
-    auto bars = GenerateTimeBars(width, height, normalFPS);
-    Drawing::Brush brush;
-    for (const auto &[isHeavy, color, x, y, w, h] : bars) {
-        constexpr uint32_t heavyFrameAlpha = 0x7f;
-        constexpr uint32_t lightFrameAlpha = 0x3f;
-        auto alpha = isHeavy ? heavyFrameAlpha : lightFrameAlpha;
-        constexpr uint32_t alphaOffset = 24; // ARGB
-        brush.SetColor(color | (alpha << alphaOffset));
-        canvas.AttachBrush(brush);
-        canvas.DrawRect(Drawing::Rect(x, y, w + x, h + y));
-        canvas.DetachBrush();
-    }
-
-    // normal fps line: alpha: 0xbf, green #00ff00
-    DrawFPSLine(canvas, normalFPS, height / FRAME_TOTAL_MS, 0xbf00ff00);
-
-    // slow fps line: alpha: 0xbf, red #ff0000
-    DrawFPSLine(canvas, slowFPS, height / FRAME_TOTAL_MS, 0xbfff0000);
-}
-
-void FramePainter::DrawFPSLine(Drawing::Canvas &canvas, uint32_t fps, double thickness, uint32_t color)
-{
-    if (fps == 0) {
-        return;
-    }
-
-    auto width = canvas.GetWidth();
-    auto height = canvas.GetHeight();
-    auto heightPerMs = height / FRAME_TOTAL_MS;
-
-    constexpr auto OneSecondInMs = 1000.0;
-    auto bottom = OneSecondInMs / fps * heightPerMs;
-    auto lineOffset = thickness / 0x2; // vertical align center
-    auto fpsLine = Drawing::Rect(0, height - (bottom - lineOffset), width,
-        thickness + height - (bottom - lineOffset));
+    auto fpsLine = Drawing::Rect(0, height - (bottom - lineOffset), width, thickness + height - (bottom - lineOffset));
 
     Drawing::Brush brush;
     brush.SetColor(color);
     canvas.AttachBrush(brush);
     canvas.DrawRect(fpsLine);
     canvas.DetachBrush();
-}
 #endif
+}
 
 std::vector<struct FramePainter::TimeBar> FramePainter::GenerateTimeBars(
     uint32_t width, uint32_t height, uint32_t fps)

@@ -102,11 +102,11 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
         }
         uint32_t minLoadThreadIndex = 0;
         auto minNodesNum = superRenderTaskList[0]->GetTaskSize();
-        for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
-            auto num = superRenderTaskList[i]->GetTaskSize();
+        for (uint32_t j = 0; j < SUB_THREAD_NUM; j++) {
+            auto num = superRenderTaskList[j]->GetTaskSize();
             if (num < minNodesNum) {
                 minNodesNum = num;
-                minLoadThreadIndex = i;
+                minLoadThreadIndex = j;
             }
         }
         minLoadThreadIndex_ = minLoadThreadIndex;

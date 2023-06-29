@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,7 +38,11 @@ enum class Gravity {
     BOTTOM_RIGHT,
     RESIZE,
     RESIZE_ASPECT,
+    RESIZE_ASPECT_TOP_LEFT,
+    RESIZE_ASPECT_BOTTOM_RIGHT,
     RESIZE_ASPECT_FILL,
+    RESIZE_ASPECT_FILL_TOP_LEFT,
+    RESIZE_ASPECT_FILL_BOTTOM_RIGHT,
 
     DEFAULT = TOP_LEFT
 };

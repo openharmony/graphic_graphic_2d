@@ -38,7 +38,7 @@ int TexgineFontStyleSet::Count() const
     return set_->count();
 }
 
-void TexgineFontStyleSet::GetStyle(int index, std::shared_ptr<TexgineFontStyle> style,
+void TexgineFontStyleSet::GetStyle(const int index, std::shared_ptr<TexgineFontStyle> style,
     std::shared_ptr<TexgineString> name) const
 {
     if (set_ == nullptr || style == nullptr || name == nullptr) {

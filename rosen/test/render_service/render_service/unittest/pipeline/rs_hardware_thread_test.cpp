@@ -17,9 +17,16 @@
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_uni_render_composer_adapter.h"
 #include "rs_test_util.h"
+#include "pipeline/rs_uni_render_engine.h"
+#include "mock/mock_hdi_device.h"
 
 using namespace testing;
 using namespace testing::ext;
+
+namespace {
+    const int DEFAULT_WIDTH = 2160;
+    const int DEFAULT_HEIGHT = 1080;
+};
 
 namespace OHOS::Rosen {
 class RSHardwareThreadTest : public testing::Test {
@@ -34,13 +41,13 @@ public:
         ScreenRotation rotation = ScreenRotation::ROTATION_0);
 public:
     std::unique_ptr<RSComposerAdapter> composerAdapter_;
-    sptr<RSScreenManager> screenManager_;
+    sptr<OHOS::Rosen::RSScreenManager> screenManager_;
 
     int32_t offsetX = 0; // screenOffset on x axis equals to 0
     int32_t offsetY = 0; // screenOffset on y axis equals to 0
     float mirrorAdaptiveCoefficient = 1.0f;
 
-    const uint32_t screenId_ = 0;
+    uint32_t screenId_ = 10;
 
     static inline BufferRequestConfig requestConfig = {
         .width = 0x100,
@@ -54,24 +61,41 @@ public:
     static inline BufferFlushConfig flushConfig = {
         .damage = { .w = 0x100, .h = 0x100, },
     };
+    static inline Mock::HdiDeviceMock* hdiDeviceMock_;
 };
 
-void RSHardwareThreadTest::SetUpTestCase() {}
+void RSHardwareThreadTest::SetUpTestCase()
+{
+    hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenReleaseFence(_, _, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*hdiDeviceMock_, PrepareScreenLayers(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, Commit(_, _)).WillRepeatedly(testing::Return(0));
+}
 void RSHardwareThreadTest::TearDownTestCase() {}
-void RSHardwareThreadTest::TearDown() {}
+void RSHardwareThreadTest::TearDown()
+{
+    screenManager_ = OHOS::Rosen::impl::RSScreenManager::GetInstance();
+    OHOS::Rosen::impl::RSScreenManager& screenManager =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager_);
+    screenManager.screens_.erase(screenId_);
+}
 void RSHardwareThreadTest::SetUp()
 {
-    screenManager_ = CreateOrGetScreenManager();
-    screenManager_->Init();
-    CreateComposerAdapterWithScreenInfo();
+    screenManager_ = OHOS::Rosen::impl::RSScreenManager::GetInstance();
+    std::unique_ptr<impl::RSScreen> rsScreen =
+        std::make_unique<impl::RSScreen>(screenId_, false, HdiOutput::CreateHdiOutput(screenId_), nullptr);
+    screenId_ = rsScreen->Id();
+    screenManager_->MockHdiScreenConnected(rsScreen);
+    CreateComposerAdapterWithScreenInfo(DEFAULT_WIDTH, DEFAULT_HEIGHT,
+        ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
 }
 
 void RSHardwareThreadTest::CreateComposerAdapterWithScreenInfo(uint32_t width, uint32_t height,
     ScreenColorGamut colorGamut, ScreenState state, ScreenRotation rotation)
 {
-    std::unique_ptr<impl::RSScreen> rsScreen =
-        std::make_unique<impl::RSScreen>(screenId_, false, HdiOutput::CreateHdiOutput(screenId_), nullptr);
-    screenManager_->MockHdiScreenConnected(rsScreen);
     auto info = screenManager_->QueryScreenInfo(screenId_);
     info.width = width;
     info.height = height;
@@ -80,6 +104,7 @@ void RSHardwareThreadTest::CreateComposerAdapterWithScreenInfo(uint32_t width, u
     info.rotation = rotation;
     composerAdapter_ = std::make_unique<RSComposerAdapter>();
     composerAdapter_->Init(info, offsetX, offsetY, mirrorAdaptiveCoefficient, nullptr);
+    composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
 }
 
 /**

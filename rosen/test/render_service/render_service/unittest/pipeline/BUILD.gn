@@ -34,6 +34,7 @@ group("unittest") {
     ":RSQosThreadTest",
     ":RSRenderEngineTest",
     ":RSRenderServiceListenerTest",
+    ":RSRenderServiceUnitTest",
     ":RSRenderServiceVisitorTest",
     ":RSSurfaceCaptureTaskTest",
     ":RSUniRenderComposerAdapterTest",
@@ -79,6 +80,15 @@ config("pipeline_test") {
 ohos_unittest("RSVirtualScreenProcessorTest") {
   module_out_path = module_output_path
   sources = [ "rs_virtual_screen_processor_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSRenderServiceUnitTest
+ohos_unittest("RSRenderServiceUnitTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_render_service_test.cpp" ]
   deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines
@@ -236,7 +246,10 @@ ohos_unittest("RSQosThreadTest") {
 ## Build RSHardwareThreadTest
 ohos_unittest("RSHardwareThreadTest") {
   module_out_path = module_output_path
-  sources = [ "rs_hardware_thread_test.cpp" ]
+  sources = [
+    "mock/mock_hdi_device.cpp",
+    "rs_hardware_thread_test.cpp",
+  ]
   deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines

@@ -18,9 +18,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-TexgineRect::TexgineRect()
+TexgineRect::TexgineRect(): rect_(std::make_shared<SkRect>())
 {
-    rect_ = std::make_shared<SkRect>();
     fBottom_ = &rect_->fBottom;
     fLeft_ = &rect_->fLeft;
     fTop_ = &rect_->fTop;

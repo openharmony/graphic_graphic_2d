@@ -27,8 +27,14 @@ using namespace testing;
 using namespace testing::ext;
 
 struct UBiDi {};
+
+namespace {
 std::unique_ptr<UBiDi> g_bidi = nullptr;
-U_STABLE UBiDi * U_EXPORT2
+std::vector<int> g_start;
+std::vector<int> g_length;
+} // namespace
+
+U_STABLE UBiDi *U_EXPORT2
 ubidi_open(void)
 {
     return g_bidi.get();
@@ -53,8 +59,6 @@ ubidi_countRuns(UBiDi *pBiDi, UErrorCode *pErrorCode)
     return g_size;
 }
 
-std::vector<int> g_start;
-std::vector<int> g_length;
 int g_count = 0;
 UBiDiDirection g_rtl = UBIDI_RTL;
 U_STABLE UBiDiDirection U_EXPORT2
@@ -77,6 +81,7 @@ struct Style {
     std::vector<int> length = {4};
 };
 
+namespace {
 void InitMyMockVars(Style style)
 {
     g_count = 0;
@@ -87,6 +92,7 @@ void InitMyMockVars(Style style)
     g_start = style.start;
     g_length = style.length;
 }
+} // namespace
 
 namespace OHOS {
 namespace Rosen {

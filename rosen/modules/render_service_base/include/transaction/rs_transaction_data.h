@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "command/rs_command.h"
+#include "command/rs_node_showing_command.h"
 #include "common/rs_macros.h"
 #include "pipeline/rs_context.h"
 

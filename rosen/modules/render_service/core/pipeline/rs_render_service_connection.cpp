@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -177,6 +177,22 @@ void RSRenderServiceConnection::RSApplicationRenderThreadDeathRecipient::OnRemot
 void RSRenderServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
     mainThread_->RecvRSTransactionData(transactionData);
+}
+
+void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
+{
+    std::mutex mutex;
+    std::unique_lock<std::mutex> lock(mutex);
+    auto cv = std::make_shared<std::condition_variable>();
+    auto& mainThread = mainThread_;
+    mainThread->PostTask([task, cv, &mainThread]() {
+        if (task == nullptr || cv == nullptr) {
+            return;
+        }
+        task->Process(mainThread->GetContext());
+        cv->notify_all();
+    });
+    cv->wait_for(lock, std::chrono::nanoseconds(task->GetTimeout()));
 }
 
 bool RSRenderServiceConnection::GetUniRenderEnabled()

@@ -36,7 +36,7 @@ public:
 
     void Layout()
     {
-        for (auto &dir : {TextDirection::LTR, TextDirection::RTL}) {
+        for (const auto &dir : {TextDirection::LTR, TextDirection::RTL}) {
             TypographyStyle tystyle = {
                 .direction = dir,
             };

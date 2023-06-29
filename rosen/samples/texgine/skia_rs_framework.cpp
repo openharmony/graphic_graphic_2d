@@ -114,7 +114,6 @@ bool PointerFilter::OnInputEvent(std::shared_ptr<OHOS::MMI::PointerEvent> pointe
 
 void PointerFilter::ProcessSinglePointerEvent(const std::shared_ptr<OHOS::MMI::PointerEvent> pointerEvent) const
 {
-    auto &rsdata = *reinterpret_cast<struct RSData *>(sf->data_);
     const auto &ids = pointerEvent->GetPointerIds();
     const auto &action = pointerEvent->GetPointerAction();
     MMI::PointerEvent::PointerItem firstPointer = {};
@@ -123,8 +122,9 @@ void PointerFilter::ProcessSinglePointerEvent(const std::shared_ptr<OHOS::MMI::P
     const auto &y = firstPointer.GetDisplayY();
 
     if (action == MMIPE::POINTER_ACTION_DOWN) {
-        // 400 * 1000 is the discriminant time for consecutive clicks
-        if (pointerEvent->GetActionTime() - rsdata.lastTime <= 400 * 1000) {
+        auto &rsdata = *reinterpret_cast<struct RSData*>(sf->data_);
+        // 400000 means 400 * 1000 is the discriminant time for consecutive clicks
+        if (pointerEvent->GetActionTime() - rsdata.lastTime <= 400000) {
             sf->right_ = false;
             sf->left_ = true;
         }
@@ -365,7 +365,7 @@ void SkiaFramework::PrepareVsyncFunc()
         constexpr uint32_t stride = 4;
         uint32_t addrSize = buffer->GetWidth() * buffer->GetHeight() * stride;
         void* bitmapAddr = bitmap.getPixels();
-        if (auto ret = memcpy_s(addr, addrSize, bitmapAddr, addrSize); ret != EOK) {
+        if (auto res = memcpy_s(addr, addrSize, bitmapAddr, addrSize); res != EOK) {
             LOGI("memcpy_s failed");
         }
 

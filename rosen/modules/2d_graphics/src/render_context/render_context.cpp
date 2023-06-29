@@ -493,6 +493,7 @@ void RenderContext::DamageFrame(int32_t left, int32_t top, int32_t width, int32_
         LOGE("eglDisplay or eglSurface is nullptr");
         return;
     }
+    RS_TRACE_FUNC();
 
     EGLint rect[4];
     rect[0] = left;
@@ -512,6 +513,7 @@ void RenderContext::DamageFrame(const std::vector<RectI> &rects)
         LOGE("eglDisplay or eglSurface is nullptr");
         return;
     }
+    RS_TRACE_FUNC();
 
     size_t size = rects.size();
     if (size == 0) {

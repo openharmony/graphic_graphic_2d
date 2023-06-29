@@ -30,10 +30,10 @@ public:
         const std::unique_ptr<FontProviders> &fontProviders);
 
     std::shared_ptr<FontCollection> GenerateFontCollection(const TypographyStyle &ys,
-       const TextStyle &xs, const std::unique_ptr<FontProviders> &fontProviders) noexcept(false);
+        const TextStyle &xs, const std::unique_ptr<FontProviders> &fontProviders) noexcept(false);
 
-    int Measure(const TextStyle &xs, const std::vector<uint16_t> &u16vect, FontCollection &fontCollection,
-        CharGroups &cgs, std::vector<Boundary> &boundaries) noexcept(false);
+    static int Measure(const TextStyle &xs, const std::vector<uint16_t> &u16vect,
+        const FontCollection &fontCollection, CharGroups &cgs, std::vector<Boundary> &boundaries) noexcept(false);
 
     void BreakWord(const CharGroups &wordcgs, const TypographyStyle &ys,
         const TextStyle &xs, std::vector<VariantSpan> &spans) noexcept(false);

@@ -390,7 +390,7 @@ private:
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> cacheImgForCapture_ = nullptr;
 #else
-    std::shared_ptr<<Drawing::Image> cacheImgForCapture_ = nullptr;
+    std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
 #endif
     bool resetRotate_ = false;
     bool needCacheImg_ = false;

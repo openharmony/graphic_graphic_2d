@@ -58,6 +58,10 @@ public:
     ~RSRenderNode() override;
     bool IsDirty() const override;
     bool IsContentDirty() const override;
+    void AddDirtyType(RSModifierType type)
+    {
+        dirtyTypes_.emplace(type);
+    }
 
     std::pair<bool, bool> Animate(int64_t timestamp) override;
     // PrepareCanvasRenderNode in UniRender
@@ -379,6 +383,11 @@ public:
         drawRegion_ = rect;
     }
 
+    std::shared_ptr<RectF> GetDrawRegion() const
+    {
+        return drawRegion_;
+    }
+
     void UpdateDrawRegion();
     void UpdateEffectRegion(std::optional<SkPath>& region) const;
 
@@ -409,6 +418,15 @@ public:
     void SetGlobalAlpha(float alpha);
     float GetGlobalAlpha() const;
     virtual void OnAlphaChanged() {}
+
+    sk_sp<SkPicture> GetRecordedContents() const
+    {
+        return recordedContents_;
+    }
+    void SetRecordedContents(sk_sp<SkPicture> recordedContents)
+    {
+        recordedContents_ = recordedContents;
+    }
 
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
@@ -486,6 +504,9 @@ private:
     // Only use in RSRenderNode::DrawCacheSurface to calculate scale factor
     float boundsWidth_ = 0.0f;
     float boundsHeight_ = 0.0f;
+    std::unordered_set<RSModifierType> dirtyTypes_;
+
+    sk_sp<SkPicture> recordedContents_ = nullptr;
 
     friend class RSRenderTransition;
     friend class RSRenderNodeMap;

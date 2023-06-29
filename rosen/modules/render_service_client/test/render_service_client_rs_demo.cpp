@@ -103,7 +103,11 @@ namespace pipelineTestUtils {
             return *this;
         }
 
+#ifndef USE_ROSEN_DRAWING
         inline ToDrawSurface& SetBufferSize(SkRect bufferSize)
+#else
+        inline ToDrawSurface& SetBufferSize(Drawing::Rect bufferSize)
+#endif
         {
             // bufferSize has no XY
             bufferSize_ = bufferSize;
@@ -138,7 +142,7 @@ namespace pipelineTestUtils {
             auto x = surfaceGeometry_.GetLeft();
             auto y = surfaceGeometry_.GetTop();
             auto width = surfaceGeometry_.GetWidth();
-            auto height = surfaceGeometry_.GeyHeight();
+            auto height = surfaceGeometry_.GetHeight();
 #endif
             surfaceNode_->SetBounds(x, y, width, height);
             std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode_);
@@ -374,7 +378,7 @@ public:
             .SetBufferSizeAuto()
             .SetDraw([&](Drawing::Canvas &canvas, Drawing::Brush &brush) -> void {
                 canvas.AttachBrush(brush);
-                canvas.drawRect(Drawing::Rect::MakeXYWH(0, 0, screenWidth_ * 0.4f, screenheight_ * 0.3f));
+                canvas.DrawRect(Drawing::Rect(0, 0, screenWidth_ * 0.4f, screenheight_ * 0.3f));
                 canvas.DetachBrush();
             })
             .Run();
@@ -402,7 +406,7 @@ public:
             .SetBufferSizeAuto()
             .SetDraw([&](Drawing::Canvas &canvas, Drawing::Brush &brush) -> void {
                 canvas.AttachBrush(brush);
-                canvas.drawRect(Drawing::Rect(0, 0, screenWidth_ * 0.4f, screenheight_ * 0.2f));
+                canvas.DrawRect(Drawing::Rect(0, 0, screenWidth_ * 0.4f, screenheight_ * 0.2f));
                 canvas.DetachBrush();
             })
             .Run();

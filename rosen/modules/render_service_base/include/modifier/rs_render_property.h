@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PROP_H
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PROP_H
 
+#include <memory>
 #include "animation/rs_value_estimator.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
@@ -26,6 +27,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSRenderNode;
 
 class RSB_EXPORT RSRenderPropertyBase : public std::enable_shared_from_this<RSRenderPropertyBase> {
 public:
@@ -38,21 +40,27 @@ public:
         return id_;
     }
 
-    void Attach(std::weak_ptr<RSBaseRenderNode> node)
+    void Attach(std::weak_ptr<RSRenderNode> node)
     {
         node_ = node;
+        OnChange();
+    }
+
+    void SetModifierType(RSModifierType type)
+    {
+        modifierType_ = type;
     }
 
     static bool Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val);
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
 
-protected:
-    void OnChange() const
+    std::shared_ptr<RSRenderNode> GetNode()
     {
-        if (auto node = node_.lock()) {
-            node->SetDirty();
-        }
+        return node_.lock();
     }
+
+protected:
+    void OnChange() const;
 
     virtual const std::shared_ptr<RSRenderPropertyBase> Clone() const
     {
@@ -84,7 +92,8 @@ protected:
     }
 
     PropertyId id_;
-    std::weak_ptr<RSBaseRenderNode> node_;
+    std::weak_ptr<RSRenderNode> node_;
+    RSModifierType modifierType_ { RSModifierType::INVALID };
 
 private:
     virtual std::shared_ptr<RSRenderPropertyBase> Add(const std::shared_ptr<const RSRenderPropertyBase>& value)
@@ -141,6 +150,9 @@ class RSRenderProperty : public RSRenderPropertyBase {
 public:
     RSRenderProperty() : RSRenderPropertyBase(0) {}
     RSRenderProperty(const T& value, const PropertyId& id) : RSRenderPropertyBase(id), stagingValue_(value) {}
+    RSRenderProperty(const T& value, const PropertyId& id, const RSRenderPropertyType type)
+        : RSRenderPropertyBase(id), stagingValue_(value)
+    {}
     virtual ~RSRenderProperty() = default;
 
     void Set(const T& value)
@@ -169,6 +181,12 @@ public:
 protected:
     T stagingValue_;
     std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)> updateUIPropertyFunc_;
+    RSRenderPropertyType GetPropertyType() const
+    {
+        return RSRenderPropertyType::INVALID;
+    }
+
+    friend class RSMarshallingHelper;
 };
 
 template<typename T>

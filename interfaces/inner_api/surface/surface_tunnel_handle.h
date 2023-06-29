@@ -20,14 +20,14 @@
 #include "surface_type.h"
 
 namespace OHOS {
-OHExtDataHandle *AllocExtDataHandle(uint32_t reserveInts);
-void FreeExtDataHandle(OHExtDataHandle *handle);
+GraphicExtDataHandle *AllocExtDataHandle(uint32_t reserveInts);
+void FreeExtDataHandle(GraphicExtDataHandle *handle);
 class SurfaceTunnelHandle : public RefBase {
 public:
     SurfaceTunnelHandle();
     virtual ~SurfaceTunnelHandle();
-    GSError SetHandle(const OHExtDataHandle *handle);
-    OHExtDataHandle *GetHandle();
+    GSError SetHandle(const GraphicExtDataHandle *handle);
+    GraphicExtDataHandle *GetHandle();
     bool Different(const sptr<SurfaceTunnelHandle> &handle);
 
 protected:
@@ -35,7 +35,7 @@ protected:
     SurfaceTunnelHandle& operator=(const SurfaceTunnelHandle&) = delete;
 
 private:
-    OHExtDataHandle *tunnelHandle_ = nullptr;
+    GraphicExtDataHandle *tunnelHandle_ = nullptr;
     mutable std::mutex mutex_;
 };
 } // namespace OHOS

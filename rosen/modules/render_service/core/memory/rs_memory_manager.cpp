@@ -16,7 +16,7 @@
 #include "memory/rs_memory_manager.h"
 
 #include <malloc.h>
-#include <SkGraphics.h>
+#include "include/core/SkGraphics.h"
 #include "rs_trace.h"
 
 #include "rs_skia_memory_tracer.h"
@@ -200,7 +200,7 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, bool scratchR
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, bool scratchResourcesOnly)
 {
 #ifdef RS_ENABLE_GL
-    if(!gpuContext) {
+    if (!gpuContext) {
         RS_LOGE("ReleaseGpuResByTag fail, gpuContext is nullptr");
     }
     RS_TRACE_NAME_FMT("ReleaseUnlockGpuResource scratchResourcesOnly:%d", scratchResourcesOnly);
@@ -227,7 +227,7 @@ void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(GrContext* grContext)
 void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* gpuContext)
 {
 #ifdef RS_ENABLE_GL
-    if(!gpuContext) {
+    if (!gpuContext) {
         RS_LOGE("ReleaseUnlockAndSafeCacheGpuResource fail, gpuContext is nullptr");
     }
     RS_TRACE_NAME_FMT("ReleaseUnlockAndSafeCacheGpuResource");
@@ -340,7 +340,7 @@ void MemoryManager::CountMemory(
     std::vector<pid_t> pids, const Drawing::GPUContext* gpuContext, std::vector<MemoryGraphic>& mems)
 {
     auto countMem = [&gpuContext, &mems] (pid_t pid) {
-       mems.emplace_back(CountPidMemory(pid, gpuContext));
+        mems.emplace_back(CountPidMemory(pid, gpuContext));
     };
     // Count mem of Skia GPU
     std::for_each(pids.begin(), pids.end(), countMem);

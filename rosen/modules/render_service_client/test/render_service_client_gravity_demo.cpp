@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,7 +46,11 @@ const char* GravityString(Gravity gravity)
         RS_GRAVITY_CASE_STR(Gravity::TOP);
         RS_GRAVITY_CASE_STR(Gravity::RESIZE);
         RS_GRAVITY_CASE_STR(Gravity::RESIZE_ASPECT);
+        RS_GRAVITY_CASE_STR(Gravity::RESIZE_ASPECT_TOP_LEFT);
+        RS_GRAVITY_CASE_STR(Gravity::RESIZE_ASPECT_BOTTOM_RIGHT);
         RS_GRAVITY_CASE_STR(Gravity::RESIZE_ASPECT_FILL);
+        RS_GRAVITY_CASE_STR(Gravity::RESIZE_ASPECT_FILL_TOP_LEFT);
+        RS_GRAVITY_CASE_STR(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT);
         default: return "Unknown";
     }
 }
@@ -81,9 +85,11 @@ public:
         }
 
         availableGravities_ = {
-            Gravity::RESIZE, Gravity::CENTER, Gravity::TOP, Gravity::BOTTOM, Gravity::LEFT, Gravity::RIGHT,
-            Gravity::TOP_LEFT, Gravity::TOP_RIGHT, Gravity::BOTTOM_LEFT, Gravity::BOTTOM_RIGHT,
-            Gravity::RESIZE_ASPECT, Gravity::RESIZE_ASPECT_FILL};
+            Gravity::CENTER, Gravity::TOP, Gravity::BOTTOM, Gravity::LEFT, Gravity::RIGHT, Gravity::TOP_LEFT,
+            Gravity::TOP_RIGHT, Gravity::BOTTOM_LEFT, Gravity::BOTTOM_RIGHT, Gravity::RESIZE, Gravity::RESIZE_ASPECT,
+            Gravity::RESIZE_ASPECT_TOP_LEFT, Gravity::RESIZE_ASPECT_BOTTOM_RIGHT, Gravity::RESIZE_ASPECT_FILL,
+            Gravity::RESIZE_ASPECT_FILL_TOP_LEFT, Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT, Gravity::DEFAULT
+        };
     }
 
     ~RsSurfaceNodeGravityTestDemo() noexcept

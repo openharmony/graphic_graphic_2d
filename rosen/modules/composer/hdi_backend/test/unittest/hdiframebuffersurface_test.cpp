@@ -59,6 +59,19 @@ HWTEST_F(HdiFramebufferSurfaceTest, ReleaseFramebuffer001, Function | MediumTest
     ASSERT_NE(hdiFramebufferSurface_->ReleaseFramebuffer(buffer, fence), 0);
 }
 
+/*
+* Function: GetBufferQueueSize001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetBufferQueueSize
+*                  2. check ret
+*/
+HWTEST_F(HdiFramebufferSurfaceTest, GetBufferQueueSize001, Function | MediumTest| Level3)
+{
+    ASSERT_EQ(hdiFramebufferSurface_->GetBufferQueueSize(), HdiFramebufferSurface::MAX_BUFFER_SIZE);
+}
+
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -23,6 +23,7 @@
 using namespace testing;
 using namespace testing::ext;
 
+namespace {
 struct MockVars {
     bool existsReturnValue = true;
     std::error_code errorCode;
@@ -37,6 +38,7 @@ void InitDffpMockVars(MockVars vars)
 {
     g_mockVars = vars;
 }
+} // namespace
 
 namespace OHOS {
 namespace Rosen {

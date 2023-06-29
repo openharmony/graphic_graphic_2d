@@ -31,6 +31,9 @@
 #include "command/rs_surface_node_command.h"
 // animation
 #include "command/rs_animation_command.h"
+// read showing property commands
+#include "command/rs_node_showing_command.h"
+
 #undef ROSEN_INSTANTIATE_COMMAND_TEMPLATE
 
 namespace OHOS {

@@ -15,7 +15,7 @@
 #include "pipeline/rs_main_thread.h"
 
 #include <list>
-#include <SkGraphics.h>
+#include "include/core/SkGraphics.h"
 #include <securec.h>
 #include <stdint.h>
 #include <string>
@@ -648,6 +648,7 @@ void RSMainThread::ProcessAllSyncTransactionData()
     }
     syncTransactionData_.clear();
     syncTransactionCount_ = 0;
+    RequestNextVSync();
 }
 
 void RSMainThread::ConsumeAndUpdateAllNodes()
@@ -1617,6 +1618,11 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
             return;
         }
         gpuContext->Flush();
+        if (!IsResidentProcess(remotePid)) {
+            ReleaseExitSurfaceNodeAllGpuResource(gpuContext);
+        } else {
+            RS_LOGW("this pid:%d is resident process, no need release gpu resource", remotePid);
+        }
 #endif // USE_ROSEN_DRAWING
         lastCleanCacheTimestamp_ = timestamp_;
 #endif
