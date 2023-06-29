@@ -827,5 +827,38 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNodeWithoutUni001, Functi
         visitor_->ProcessSurfaceRenderNodeWithoutUni(*surfaceNode);
     }
 }
+
+/*
+ * @tc.name: ProcessEffectRenderNode
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessEffectRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI7G9F0
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, ProcessEffectRenderNode, Function | SmallTest | Level2)
+{
+    ASSERT_NE(nullptr, visitor_);
+    NodeId id = 0;
+    RSEffectRenderNode node(id);
+    SkCanvas skCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    visitor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(&skCanvas);
+    visitor_->ProcessEffectRenderNode(node);
+}
+
+/*
+ * @tc.name: ProcessDisplayRenderNode
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessDisplayRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI7G9F0
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode, Function | SmallTest | Level2)
+{
+    ASSERT_NE(nullptr, visitor_);
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    (visitor_->hardwareEnabledNodes_).emplace_back(surfaceNode);
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNode node(id, config);
+    visitor_->ProcessDisplayRenderNode(node);
+}
 } // namespace Rosen
 } // namespace OHOS

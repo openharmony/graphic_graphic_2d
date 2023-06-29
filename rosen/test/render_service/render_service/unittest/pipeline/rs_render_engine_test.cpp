@@ -426,4 +426,46 @@ HWTEST_F(RSRenderEngineTest, ProcessSurfaceRenderNode008, Function | SmallTest |
         visitor_->ProcessSurfaceRenderNode(*surfaceNode);
     }
 }
+
+/*
+ * @tc.name: CaptureSingleSurfaceNodeWithUni001
+ * @tc.desc: Test RSRenderEngineTest.CaptureSingleSurfaceNodeWithUni when SecurityLayer is true
+ * @tc.type: FUNC
+ * @tc.require: issueI7G9F0
+ */
+HWTEST_F(RSRenderEngineTest, CaptureSingleSurfaceNodeWithUni001, Function | SmallTest | Level2)
+{
+    bool isUnirender = RSUniRenderJudgement::IsUniRender();
+    ASSERT_NE(nullptr, visitor_);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(nullptr, surfaceNode);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    surfaceNode->SetSecurityLayer(true);
+    if (isUnirender) {
+        visitor_->CaptureSingleSurfaceNodeWithUni(*surfaceNode);
+    }
+}
+
+/*
+ * @tc.name: CaptureSingleSurfaceNodeWithUni002
+ * @tc.desc: Test RSRenderEngineTest.CaptureSingleSurfaceNodeWithUni when SecurityLayer is false
+ * @tc.type: FUNC
+ * @tc.require: issueI7G9F0
+ */
+HWTEST_F(RSRenderEngineTest, CaptureSingleSurfaceNodeWithUni002, Function | SmallTest | Level2)
+{
+    bool isUnirender = RSUniRenderJudgement::IsUniRender();
+    ASSERT_NE(nullptr, visitor_);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(nullptr, surfaceNode);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    surfaceNode->SetSecurityLayer(false);
+    Vector4f cornerRadius(1.f, 2.f, 0.f, 0.f);
+    surfaceNode->GetMutableRenderProperties().SetCornerRadius(cornerRadius);
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(5.0f, 5.0f);
+    surfaceNode->GetMutableRenderProperties().SetFilter(filter);
+    if (isUnirender) {
+        visitor_->CaptureSingleSurfaceNodeWithUni(*surfaceNode);
+    }
+}
 }
