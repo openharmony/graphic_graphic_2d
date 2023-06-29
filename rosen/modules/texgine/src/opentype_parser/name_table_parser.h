@@ -43,7 +43,7 @@ struct NameTable {
 class NameTableParser {
 public:
     NameTableParser(const char* data, int32_t size) : data_(data), size_(size) {}
-    const struct NameTable* Parse(const char* data, int32_t size) const;
+    static const struct NameTable* Parse(const char* data, int32_t size);
     void Dump() const;
 
 private:

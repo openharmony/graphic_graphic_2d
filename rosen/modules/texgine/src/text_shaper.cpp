@@ -83,7 +83,7 @@ int TextShaper::Shape(const VariantSpan &span, const TypographyStyle &ys,
 }
 
 int TextShaper::DoShape(std::shared_ptr<TextSpan> &span, const TextStyle &xs,
-    const TypographyStyle &ys, const std::unique_ptr<FontProviders> &fontProviders) const
+    const TypographyStyle &ys, const std::unique_ptr<FontProviders> &fontProviders)
 {
     if (fontProviders == nullptr || span == nullptr) {
         LOGEX_FUNC_LINE(ERROR) << "providers or span is nullptr";

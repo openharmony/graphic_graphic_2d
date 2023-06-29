@@ -71,7 +71,7 @@ private:
     void DoLayout();
     int UpdateMetrics();
     int UpdateSpanMetrics(VariantSpan &span, double &coveredAscent);
-    int DoUpdateSpanMetrics(VariantSpan &span, const TexgineFontMetrics &metrics,
+    int DoUpdateSpanMetrics(const VariantSpan &span, const TexgineFontMetrics &metrics,
         const TextStyle &style, double &coveredAscent);
     void UpadateAnySpanMetrics(std::shared_ptr<AnySpan> &span, double &coveredAscent, double &coveredDescent);
     void ApplyAlignment();

@@ -31,10 +31,8 @@ std::unique_ptr<TypographyBuilder> TypographyBuilder::Create(const TypographySty
 }
 
 TypographyBuilderImpl::TypographyBuilderImpl(const TypographyStyle& ys,
-    std::unique_ptr<FontProviders> fontProviders)
+    std::unique_ptr<FontProviders> fontProviders): ys_(std::move(ys)), fontProviders_(std::move(fontProviders))
 {
-    ys_ = std::move(ys);
-    fontProviders_ = std::move(fontProviders);
 }
 
 void TypographyBuilderImpl::PushStyle(const TextStyle& style)

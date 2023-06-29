@@ -41,7 +41,7 @@ FontConfig::FontConfig(const char* fname)
     }
 }
 
-char* FontConfig::GetFileData(const char* fname, int& size) const
+char* FontConfig::GetFileData(const char* fname, int& size)
 {
     std::ifstream file(fname);
     if (file.good()) {

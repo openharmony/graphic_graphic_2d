@@ -116,8 +116,8 @@ void OnDraw(SkCanvas &canvas)
     SkPaint testBorderPaint = borderPaint;
     testBorderPaint.setColor(0xff000000);
 
-    TexginePaint g_rainbowPaint;
-    g_rainbowPaint.SetStyle(TexginePaint::Style::FILL);
+    TexginePaint rainbowPaint;
+    rainbowPaint.SetStyle(TexginePaint::Style::FILL);
 
     canvas.save();
     // move canvas to (50, 50)

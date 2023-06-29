@@ -194,11 +194,11 @@ CharGroups CharGroups::GetSubFromU16RangeAll(const int &u16start, const int &u16
     }
 
     size_t sum = 0;
-    int start = 0;
-    int end = 1e9;
+    int start_index = 0;
+    int end_index = 1e9;
     for (int i = -1; i <= static_cast<int>(pcgs_->size()); i++) {
         if (static_cast<int>(sum) <= u16start) {
-            start = std::max(start, i);
+            start_index = std::max(start_index, i);
         }
 
         if (0 <= i && i < static_cast<int>(pcgs_->size())) {
@@ -206,11 +206,11 @@ CharGroups CharGroups::GetSubFromU16RangeAll(const int &u16start, const int &u16
         }
 
         if (static_cast<int>(sum) >= u16end) {
-            end = std::min(end, i);
+            end_index = std::min(end_index, i);
         }
     }
 
-    return GetSubAll(start, end + 1);
+    return GetSubAll(start_index, end_index + 1);
 }
 
 CharGroups CharGroups::GetIntersect(const CharGroups &right) const

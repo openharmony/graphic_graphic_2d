@@ -32,18 +32,9 @@ namespace TextEngine {
 
 #define HALF(a) ((a) / 2)
 
-FontParser::FontDescriptor::FontDescriptor()
+FontParser::FontDescriptor::FontDescriptor(): path(""), postScriptName(""), fullName(""),
+    fontFamily(""), fontSubfamily(""), weight(0), italic(0), monoSpace(0), symbolic(0)
 {
-    path = "";
-    postScriptName = "";
-    fullName = "";
-    fontFamily = "";
-    fontSubfamily = "";
-    weight = 0;
-    width = 0;
-    italic = 0;
-    monoSpace = 0;
-    symbolic = 0;
 }
 
 FontParser::FontParser()
@@ -54,7 +45,7 @@ FontParser::FontParser()
     fontSet_ = fontConfig.GetFontSet();
 }
 
-void FontParser::ProcessCmapTable(const struct CmapTables* cmapTable, FontParser::FontDescriptor& fontDescriptor) const
+void FontParser::ProcessCmapTable(const struct CmapTables* cmapTable, FontParser::FontDescriptor& fontDescriptor)
 {
     for (auto i = 0; i < cmapTable->numTables.Get(); ++i) {
         const auto& record = cmapTable->encodingRecords[i];
@@ -68,7 +59,7 @@ void FontParser::ProcessCmapTable(const struct CmapTables* cmapTable, FontParser
 }
 
 void FontParser::GetStringFromNameId(FontParser::NameId nameId, const std::string& nameString,
-    FontParser::FontDescriptor& fontDescriptor) const
+    FontParser::FontDescriptor& fontDescriptor)
 {
     switch (nameId) {
         case FontParser::NameId::FONT_FAMILY: {
@@ -144,7 +135,7 @@ int FontParser::ProcessNameTable(const struct NameTable* nameTable, FontParser::
     return SUCCESSED;
 }
 
-void FontParser::ProcessPostTable(const struct PostTable* postTable, FontParser::FontDescriptor& fontDescriptor) const
+void FontParser::ProcessPostTable(const struct PostTable* postTable, FontParser::FontDescriptor& fontDescriptor)
 {
     if (postTable->italicAngle.Get() != 0) {
         fontDescriptor.italic = true;

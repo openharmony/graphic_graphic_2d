@@ -79,10 +79,10 @@ public:
     std::vector<FontDescriptor> GetVisibilityFonts();
 
 private:
-    void GetStringFromNameId(NameId nameId, const std::string& nameString, FontDescriptor& fontDescriptor) const;
-    void ProcessCmapTable(const struct CmapTables* cmapTable, FontDescriptor& fontDescriptor) const;
+    static void GetStringFromNameId(NameId nameId, const std::string& nameString, FontDescriptor& fontDescriptor);
+    static void ProcessCmapTable(const struct CmapTables* cmapTable, FontDescriptor& fontDescriptor);
     int ProcessNameTable(const struct NameTable* nameTable, FontDescriptor& fontDescriptor) const;
-    void ProcessPostTable(const struct PostTable* postTable, FontDescriptor& fontDescriptor) const;
+    static void ProcessPostTable(const struct PostTable* postTable, FontDescriptor& fontDescriptor);
     int ParseCmapTable(sk_sp<SkTypeface> typeface, FontDescriptor& fontDescriptor);
     int ParseNameTable(sk_sp<SkTypeface> typeface, FontDescriptor& fontDescriptor);
     int ParsePostTable(sk_sp<SkTypeface> typeface, FontDescriptor& fontDescriptor);

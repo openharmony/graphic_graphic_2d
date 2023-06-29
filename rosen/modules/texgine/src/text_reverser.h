@@ -25,11 +25,11 @@ namespace Rosen {
 namespace TextEngine {
 class TextReverser {
 public:
-    void ReverseRTLText(std::vector<VariantSpan> &lineSpans);
+    static void ReverseRTLText(std::vector<VariantSpan> &lineSpans);
     void ProcessTypoDirection(std::vector<VariantSpan> &lineSpans, const TextDirection dir);
 
 private:
-    void ReverseConDirectionText(std::vector<VariantSpan> &lineSpans, int begin, int end);
+    static void ReverseConDirectionText(std::vector<VariantSpan> &lineSpans, int begin, int end);
 };
 } // namespace TextEngine
 } // namespace Rosen

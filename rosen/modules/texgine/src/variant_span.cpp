@@ -22,24 +22,20 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-VariantSpan::VariantSpan(const std::shared_ptr<TextSpan> &ts) noexcept(true)
+VariantSpan::VariantSpan(const std::shared_ptr<TextSpan> &ts) noexcept(true): ts_(ts)
 {
-    ts_ = ts;
 }
 
-VariantSpan::VariantSpan(const std::shared_ptr<AnySpan> &as) noexcept(true)
+VariantSpan::VariantSpan(const std::shared_ptr<AnySpan> &as) noexcept(true): as_(as)
 {
-    as_ = as;
 }
 
-VariantSpan::VariantSpan(std::shared_ptr<TextSpan> &&ts) noexcept(true)
+VariantSpan::VariantSpan(std::shared_ptr<TextSpan> &&ts) noexcept(true): ts_(std::move(ts))
 {
-    ts_ = std::move(ts);
 }
 
-VariantSpan::VariantSpan(std::shared_ptr<AnySpan> &&as) noexcept(true)
+VariantSpan::VariantSpan(std::shared_ptr<AnySpan> &&as) noexcept(true): as_(std::move(as))
 {
-    as_ = std::move(as);
 }
 
 VariantSpan::VariantSpan(std::nullptr_t) noexcept(true)
@@ -238,23 +234,23 @@ void VariantSpan::AdjustOffsetY(double offset) noexcept(true)
     offsetY_ += offset;
 }
 
-void VariantSpan::Paint(TexgineCanvas &canvas, double offsetx, double offsety) noexcept(false)
+void VariantSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY) noexcept(false)
 {
     CheckPointer();
     if (as_) {
-        as_->Paint(canvas, offsetx, offsety);
+        as_->Paint(canvas, offsetX, offsetY);
     }
 
     if (ts_) {
-        ts_->Paint(canvas, offsetx, offsety, xs_);
+        ts_->Paint(canvas, offsetX, offsetY, xs_);
     }
 }
 
-void VariantSpan::PaintShadow(TexgineCanvas &canvas, double offsetx, double offsety) noexcept(false)
+void VariantSpan::PaintShadow(TexgineCanvas &canvas, double offsetX, double offsetY) noexcept(false)
 {
     CheckPointer();
     if (ts_) {
-        ts_->PaintShadow(canvas, offsetx, offsety, xs_.shadows);
+        ts_->PaintShadow(canvas, offsetX, offsetY, xs_.shadows);
     }
 }
 

@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-const struct CmapTables* CmapTableParser::Parse(const char* data, int32_t size) const
+const struct CmapTables* CmapTableParser::Parse(const char* data, int32_t size)
 {
     return reinterpret_cast<const struct CmapTables*>(data);
 }

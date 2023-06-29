@@ -37,7 +37,7 @@ std::vector<LineMetrics> LineBreaker::BreakLines(std::vector<VariantSpan> &spans
     return GenerateLineMetrics(spans, lineBreaks);
 }
 
-std::vector<struct ScoredSpan> LineBreaker::GenerateScoreSpans(std::vector<VariantSpan> &spans)
+std::vector<struct ScoredSpan> LineBreaker::GenerateScoreSpans(const std::vector<VariantSpan> &spans)
 {
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "GenerateScoreSpans");
     std::vector<struct ScoredSpan> scoredSpans = {{}};
@@ -85,7 +85,7 @@ std::vector<struct ScoredSpan> LineBreaker::GenerateScoreSpans(std::vector<Varia
 }
 
 void LineBreaker::DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans, const double widthLimit,
-    const TypographyStyle &ys)
+    const TypographyStyle &tstyle)
 {
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "UpadateLineBreaksData");
     scoredSpans.emplace(scoredSpans.cbegin());
@@ -100,7 +100,7 @@ void LineBreaker::DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans, cons
                 << "]: prev.postBreak: " << scoredSpans[is.prev].postBreak;
         }
 
-        if (ys.breakStrategy == BreakStrategy::GREEDY) {
+        if (tstyle.breakStrategy == BreakStrategy::GREEDY) {
             continue;
         }
 
@@ -112,7 +112,7 @@ void LineBreaker::DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans, cons
         ss << i;
         LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), ss.str());
         for (size_t j = 0; j < i; j++) {
-            auto &js = scoredSpans[j];
+            const auto &js = scoredSpans[j];
             double jdelta = widthLimit - (is.preBreak - js.postBreak);
             if (jdelta < 0) {
                 continue;
@@ -134,7 +134,7 @@ void LineBreaker::DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans, cons
     scoredSpans.erase(scoredSpans.begin());
 }
 
-std::vector<int32_t> LineBreaker::GenerateBreaks(std::vector<struct ScoredSpan> &scoredSpans)
+std::vector<int32_t> LineBreaker::GenerateBreaks(const std::vector<struct ScoredSpan> &scoredSpans)
 {
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "GenerateBreaks");
 
