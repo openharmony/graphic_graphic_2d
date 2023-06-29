@@ -245,4 +245,74 @@ HWTEST_F(RSUniRenderUtilTest, HandleSubThreadNode_002, Function | SmallTest | Le
     RSPaintFilterCanvas canvas(&skCanvas);
     ASSERT_FALSE(RSUniRenderUtil::HandleSubThreadNode(node, canvas));
 }
+
+/*
+ * @tc.name: AssignWindowNodes
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, AssignWindowNodes, Function | SmallTest | Level2)
+{
+    std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
+    std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
+    RSUniRenderUtil::AssignWindowNodes(nullptr, mainThreadNodes, subThreadNodes);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    RSUniRenderUtil::AssignWindowNodes(node, mainThreadNodes, subThreadNodes);
+}
+
+/*
+ * @tc.name: ClearSurfaceIfNeed
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, ClearSurfaceIfNeed, Function | SmallTest | Level2)
+{
+    RSRenderNodeMap map;
+    std::set<std::shared_ptr<RSBaseRenderNode>> oldChildren;
+    RSUniRenderUtil::ClearSurfaceIfNeed(map, nullptr, oldChildren);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    RSUniRenderUtil::ClearSurfaceIfNeed(map, node, oldChildren);
+}
+
+/*
+ * @tc.name: ClearCacheSurface
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, ClearCacheSurface, Function | SmallTest | Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
+    uint32_t threadIndex = 0;
+    bool isUIFirst = false;
+    RSUniRenderUtil::ClearCacheSurface(node, threadIndex, isUIFirst);
+}
+
+/*
+ * @tc.name: ClearNodeCacheSurface
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, ClearNodeCacheSurface, Function | SmallTest | Level2)
+{
+    uint32_t threadIndex = 1;
+    RSUniRenderUtil::ClearNodeCacheSurface(nullptr, nullptr, threadIndex);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    threadIndex = UNI_MAIN_THREAD_INDEX;
+    RSUniRenderUtil::ClearNodeCacheSurface(node->GetCacheSurface(),
+        node->GetCompletedCacheSurface(0, true), threadIndex);
+    threadIndex = 1;
+    RSUniRenderUtil::ClearNodeCacheSurface(node->GetCacheSurface(),
+        node->GetCompletedCacheSurface(0, true), threadIndex);
+}
 } // namespace OHOS::Rosen
