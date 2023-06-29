@@ -47,19 +47,24 @@ public:
 
 void RSUniRenderComposerAdapterTest::SetUpTestCase() {}
 void RSUniRenderComposerAdapterTest::TearDownTestCase() {}
-void RSUniRenderComposerAdapterTest::TearDown() {}
+void RSUniRenderComposerAdapterTest::TearDown()
+{
+    screenManager_ = OHOS::Rosen::impl::RSScreenManager::GetInstance();
+    OHOS::Rosen::impl::RSScreenManager& screenManager =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager_);
+    screenManager.screens_.erase(screenId_);
+}
 void RSUniRenderComposerAdapterTest::SetUp()
 {
     screenManager_ = CreateOrGetScreenManager();
     ASSERT_NE(screenManager_, nullptr);
-    screenManager_->Init();
     uint32_t width = 2560;
     uint32_t height = 1080;
     ScreenColorGamut colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;
     ScreenState state = ScreenState::UNKNOWN;
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
     std::unique_ptr<impl::RSScreen> rsScreen =
-        std::make_unique<impl::RSScreen>(screenId_, false, HdiOutput::CreateHdiOutput(screenId_), nullptr);
+        std::make_unique<impl::RSScreen>(screenId_, true, HdiOutput::CreateHdiOutput(screenId_), nullptr);
     ASSERT_NE(rsScreen, nullptr);
     screenManager_->MockHdiScreenConnected(rsScreen);
     auto info = screenManager_->QueryScreenInfo(screenId_);
