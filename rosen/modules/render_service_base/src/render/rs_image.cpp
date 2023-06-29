@@ -58,7 +58,7 @@ void RSImage::CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkPain
 #endif
 {
     UpdateNodeIdToPicture(nodeId_);
-    SkAutoCanvasRestore acr(&canvas, HasRadius());
+    canvas.save();
     frameRect_.SetAll(rect.left(), rect.top(), rect.width(), rect.height());
 #else
 void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect, bool isBackground)
@@ -76,6 +76,7 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
 #else
     DrawImageRepeatRect(paint, canvas);
 #endif
+    canvas.restore();
 #else
     DrawImageRepeatRect(canvas);
     canvas.Restore();
@@ -129,17 +130,9 @@ void RSImage::ApplyImageFit()
     dstRect_.SetAll((frameW - dstW) / 2, (frameH - dstH) / 2, dstW, dstH);
 }
 
-bool RSImage::HasRadius() const
-{
-    return hasRadius_;
-}
-
 #ifndef USE_ROSEN_DRAWING
 void RSImage::ApplyCanvasClip(SkCanvas& canvas)
 {
-    if (!HasRadius()) {
-        return;
-    }
     auto rect = (imageRepeat_ == ImageRepeat::NO_REPEAT) ? dstRect_.IntersectRect(frameRect_) : frameRect_;
     SkRRect rrect = SkRRect::MakeEmpty();
     rrect.setRectRadii(RSPropertiesPainter::Rect2SkRect(rect), radius_);
@@ -339,7 +332,6 @@ void RSImage::SetRadius(const std::vector<Drawing::Point>& radius)
 {
     for (auto i = 0; i < CORNER_SIZE; i++) {
         radius_[i] = radius[i];
-        hasRadius_ = hasRadius_ || !radius_[i].isZero();
     }
 }
 

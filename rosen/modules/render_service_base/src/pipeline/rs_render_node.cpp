@@ -310,9 +310,6 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier> modifier)
         modifiers_.emplace(modifier->GetPropertyId(), modifier);
     } else {
         drawCmdModifiers_[modifier->GetType()].emplace_back(modifier);
-        if (GetRecordedContents()) {
-            SetRecordedContents(nullptr);
-        }
     }
     modifier->GetProperty()->Attach(ReinterpretCastTo<RSRenderNode>());
     SetDirty();
@@ -347,14 +344,10 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         modifiers_.erase(it);
         return;
     }
-    size_t removedCount = 0;
     for (auto& [type, modifiers] : drawCmdModifiers_) {
-        removedCount += EraseIf(modifiers, [id](const auto& modifier) -> bool {
-            return !modifier || modifier->GetPropertyId() == id;
+        modifiers.remove_if([id](const auto& modifier) -> bool {
+            return modifier ? modifier->GetPropertyId() == id : true;
         });
-    }
-    if (removedCount > 0) {
-        SetRecordedContents(nullptr);
     }
 }
 

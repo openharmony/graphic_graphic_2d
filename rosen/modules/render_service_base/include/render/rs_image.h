@@ -131,7 +131,6 @@ public:
         desc += split + "}\n";
     }
 private:
-    bool HasRadius() const;
     void ApplyImageFit();
 #ifndef USE_ROSEN_DRAWING
     void ApplyCanvasClip(SkCanvas& canvas);
@@ -159,7 +158,6 @@ private:
 #else
     std::vector<Drawing::Point> radius_ = std::vector<Drawing::Point>(4);
 #endif
-    bool hasRadius_ = false;
     RectF frameRect_;
     double scale_ = 1.0;
     NodeId nodeId_ = 0;
