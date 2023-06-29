@@ -70,7 +70,7 @@ public:
         std::string fontSubfamily;
         int weight;
         int width;
-        bool italic;
+        int italic;
         bool monoSpace;
         bool symbolic;
     };
