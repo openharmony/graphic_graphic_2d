@@ -55,7 +55,7 @@ public:
 private:
     float blurRadiusX_;
     float blurRadiusY_;
-    bool useKawase = false;
+    bool useKawase = true;
     sk_sp<SkRuntimeEffect> fBlurEffect;
     sk_sp<SkRuntimeEffect> fMixEffect;
 };
