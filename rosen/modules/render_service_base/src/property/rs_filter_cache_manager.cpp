@@ -171,12 +171,8 @@ void RSFilterCacheManager::GenerateBlurredSnapshot(RSPaintFilterCanvas& canvas, 
     sk_sp<SkSurface> offscreenSurface = surface->makeSurface(cachedImage_->imageInfo());
     RSPaintFilterCanvas offscreenCanvas(offscreenSurface.get());
 
-    auto paint = filter->GetPaint();
-#ifdef NEW_SKIA
-    offscreenCanvas.drawImage(cachedImage_, 0, 0, SkSamplingOptions(), &paint);
-#else
-    // not implemented
-#endif
+    auto imageBounds = SkRect::Make(cachedImage_->bounds());
+    filter->DrawImageRect(offscreenCanvas, cachedImage_, imageBounds, imageBounds);
     filter->PostProcess(offscreenCanvas);
 
     cachedImage_ = offscreenSurface->makeImageSnapshot();
@@ -188,28 +184,29 @@ void RSFilterCacheManager::DrawCache(
 {
     RS_TRACE_FUNC();
     auto visibleIRect = canvas.GetVisibleRect().round();
-    SkIRect dstRect;
-    SkIRect srcRect;
+    SkRect dstRect;
+    SkRect srcRect;
     // cache validation is already done in DrawFilter, so we can safely use cachedImageRegion_ and cachedImage_
     if (visibleIRect.intersect(*cachedImageRegion_)) {
-        dstRect = visibleIRect;
-        canvas.clipIRect(dstRect);
+        dstRect = SkRect::Make(visibleIRect);
+        canvas.clipRect(dstRect);
         auto visibleIPadding = visibleIRect.makeOutset(-1, -1);
-        srcRect = visibleIPadding.makeOffset(-cachedImageRegion_->left(), -cachedImageRegion_->top());
+        srcRect = SkRect::Make(visibleIPadding.makeOffset(-cachedImageRegion_->left(), -cachedImageRegion_->top()));
     } else {
-        dstRect = cachedImageRegion_->makeOutset(1, 1);
-        srcRect = cachedImageRegion_->makeOffset(-cachedImageRegion_->left(), -cachedImageRegion_->top());
+        dstRect = SkRect::Make(cachedImageRegion_->makeOutset(1, 1));
+        srcRect = SkRect::Make(cachedImageRegion_->makeOffset(-cachedImageRegion_->left(), -cachedImageRegion_->top()));
     }
 
-    auto paint = filter ? filter->GetPaint() : SkPaint();
-#ifdef NEW_SKIA
-    canvas.drawImageRect(cachedImage_.get(), SkRect::Make(srcRect), SkRect::Make(dstRect), SkSamplingOptions(), &paint,
-        SkCanvas::kStrict_SrcRectConstraint);
-#else
-    // not implemented
-#endif
     if (filter) {
+        filter->DrawImageRect(canvas, cachedImage_, srcRect, dstRect);
         filter->PostProcess(canvas);
+    } else {
+#ifdef NEW_SKIA
+        canvas.drawImageRect(
+            cachedImage_.get(), srcRect, dstRect, SkSamplingOptions(), nullptr, SkCanvas::kStrict_SrcRectConstraint);
+#else
+        // not implemented
+#endif
     }
 }
 

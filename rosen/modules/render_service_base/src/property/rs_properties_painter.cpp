@@ -14,37 +14,8 @@
  */
 
 #include "property/rs_properties_painter.h"
-#ifdef USE_ROSEN_DRAWING
-#include <cstdint>
-#include "draw/clip.h"
-#include "drawing/draw/core_canvas.h"
-#include "utils/rect.h"
-#endif
 
 #include "rs_trace.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkCanvas.h"
-#include "include/core/SkColorFilter.h"
-#include "include/core/SkMaskFilter.h"
-#include "include/core/SkPaint.h"
-#include "include/core/SkPoint3.h"
-#include "include/core/SkRRect.h"
-#include "include/core/SkSurface.h"
-#include "include/effects/Sk1DPathEffect.h"
-#ifdef NEW_SKIA
-#include "include/effects/SkImageFilters.h"
-#include "include/effects/SkRuntimeEffect.h"
-#else
-#include "include/effects/SkBlurImageFilter.h"
-#endif
-
-#include "include/effects/SkDashPathEffect.h"
-#include "include/effects/SkGradientShader.h"
-#include "include/effects/SkLumaColorFilter.h"
-#include "include/utils/SkShadowUtils.h"
-#else
-#include "draw/canvas.h"
-#endif
 
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector2.h"
@@ -58,6 +29,34 @@
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "render/rs_skia_filter.h"
+
+#ifdef USE_ROSEN_DRAWING
+#include <cstdint>
+
+#include "draw/canvas.h"
+#include "draw/clip.h"
+#include "drawing/draw/core_canvas.h"
+#include "utils/rect.h"
+#else
+#include "include/core/SkCanvas.h"
+#include "include/core/SkColorFilter.h"
+#include "include/core/SkMaskFilter.h"
+#include "include/core/SkPaint.h"
+#include "include/core/SkPoint3.h"
+#include "include/core/SkRRect.h"
+#include "include/core/SkSurface.h"
+#include "include/effects/Sk1DPathEffect.h"
+#include "include/effects/SkDashPathEffect.h"
+#include "include/effects/SkGradientShader.h"
+#include "include/effects/SkLumaColorFilter.h"
+#include "include/utils/SkShadowUtils.h"
+#ifdef NEW_SKIA
+#include "include/effects/SkImageFilters.h"
+#include "include/effects/SkRuntimeEffect.h"
+#else
+#include "include/effects/SkBlurImageFilter.h"
+#endif
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -102,8 +101,8 @@ SkRRect RSPropertiesPainter::RRect2SkRRect(const RRect& rr)
 #else
 Drawing::RoundRect RSPropertiesPainter::RRect2DrawingRRect(const RRect& rr)
 {
-    Drawing::Rect rect = Drawing::Rect(rr.rect_.left_, rr.rect_.top_,
-        rr.rect_.left_ + rr.rect_.width_, rr.rect_.top_ + rr.rect_.height_);
+    Drawing::Rect rect = Drawing::Rect(
+        rr.rect_.left_, rr.rect_.top_, rr.rect_.left_ + rr.rect_.width_, rr.rect_.top_ + rr.rect_.height_);
 
     // set radius for all 4 corner of RRect
     constexpr uint32_t NUM_OF_CORNERS_IN_RECT = 4;
@@ -1000,32 +999,18 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         return;
     }
     filter->PreProcess(imageSnapshot);
-
     canvas.resetMatrix();
-    auto paint = filter->GetPaint();
     auto visibleIRect = canvas.GetVisibleRect().round();
     if (visibleIRect.intersect(clipIBounds)) {
         canvas.clipRect(SkRect::Make(visibleIRect));
         auto visibleIPadding = visibleIRect.makeOutset(-1, -1);
-#ifdef NEW_SKIA
-        canvas.drawImageRect(imageSnapshot.get(),
+        filter->DrawImageRect(canvas, imageSnapshot,
             SkRect::Make(visibleIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())),
-            SkRect::Make(visibleIRect), SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
-#else
-        canvas.drawImageRect(imageSnapshot.get(),
-            SkRect::Make(visibleIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())),
-            SkRect::Make(visibleIRect), &paint);
-#endif
+            SkRect::Make(visibleIRect));
     } else {
-#ifdef NEW_SKIA
-        canvas.drawImageRect(imageSnapshot.get(),
+        filter->DrawImageRect(canvas, imageSnapshot,
             SkRect::Make(clipIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())),
-            SkRect::Make(clipIBounds), SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
-#else
-        canvas.drawImageRect(imageSnapshot.get(),
-            SkRect::Make(clipIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())),
-            SkRect::Make(clipIBounds), &paint);
-#endif
+            SkRect::Make(clipIBounds));
     }
     filter->PostProcess(canvas);
 }
@@ -1119,7 +1104,7 @@ void RSPropertiesPainter::DrawBackgroundEffect(
     }
 
     filter->PreProcess(imageSnapshot);
-    // create a offscreen sksurface
+    // create a offscreen skSurface
     sk_sp<SkSurface> offscreenSurface = skSurface->makeSurface(imageSnapshot->imageInfo());
     if (offscreenSurface == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundEffect offscreenSurface null");
@@ -1127,13 +1112,7 @@ void RSPropertiesPainter::DrawBackgroundEffect(
     }
     RSPaintFilterCanvas offscreenCanvas(offscreenSurface.get());
     auto clipBounds = SkRect::MakeIWH(imageRect.width(), imageRect.height());
-
-    auto paint = filter->GetPaint();
-#ifdef NEW_SKIA
-    offscreenCanvas.drawImageRect(imageSnapshot, clipBounds, SkSamplingOptions(), &paint);
-#else
-    offscreenCanvas.drawImageRect(imageSnapshot, clipBounds, &paint);
-#endif
+    filter->DrawImageRect(offscreenCanvas, imageSnapshot, SkRect::Make(imageSnapshot->bounds()), clipBounds);
     filter->PostProcess(offscreenCanvas);
 
     auto imageCache = offscreenSurface->makeImageSnapshot();
@@ -1181,12 +1160,10 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
         clipIPadding = visibleIRect.makeOutset(-1, -1);
     }
 #ifdef NEW_SKIA
-    canvas.drawImageRect(bgImage.get(),
-        SkRect::Make(clipIPadding.makeOffset(-imageIRect.left(), -imageIRect.top())),
+    canvas.drawImageRect(bgImage.get(), SkRect::Make(clipIPadding.makeOffset(-imageIRect.left(), -imageIRect.top())),
         SkRect::Make(clipIPadding), SkSamplingOptions(), &defaultPaint, SkCanvas::kStrict_SrcRectConstraint);
 #else
-    canvas.drawImageRect(bgImage.get(),
-        SkRect::Make(clipIPadding.makeOffset(-imageIRect.left(), -imageIRect.top())),
+    canvas.drawImageRect(bgImage.get(), SkRect::Make(clipIPadding.makeOffset(-imageIRect.left(), -imageIRect.top())),
         SkRect::Make(clipIPadding), &defaultPaint);
 #endif
 }
