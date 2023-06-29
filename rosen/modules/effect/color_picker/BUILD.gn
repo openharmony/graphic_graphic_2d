@@ -59,8 +59,8 @@ ohos_shared_library("color_picker") {
   ]
 
   external_deps = [
-   "c_utils:utils",
-   "hilog_native:libhilog",
+    "c_utils:utils",
+    "hilog_native:libhilog",
   ]
 
   cflags_cc = [ "-std=c++17" ]

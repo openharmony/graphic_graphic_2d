@@ -70,7 +70,7 @@ ohos_shared_library("effectkit") {
     "//foundation/multimedia/image_framework/interfaces/kits/js/common:image",
   ]
 
-  external_deps = [ 
+  external_deps = [
     "c_utils:utils",
     "hilog_native:libhilog",
     "multimedia_image_framework:image_native",
