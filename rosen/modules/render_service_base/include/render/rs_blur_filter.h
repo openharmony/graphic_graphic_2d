@@ -15,8 +15,9 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_BLUR_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_BLUR_FILTER_H
 
-#include "render/rs_skia_filter.h"
+#include "include/effects/SkRuntimeEffect.h"
 #include "common/rs_macros.h"
+#include "render/rs_skia_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -48,9 +49,15 @@ public:
         const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const override;
     bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const override;
 
+    void DrawImageRect(
+        SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst) const override;
+
 private:
     float blurRadiusX_;
     float blurRadiusY_;
+    bool useKawase = false;
+    sk_sp<SkRuntimeEffect> fBlurEffect;
+    sk_sp<SkRuntimeEffect> fMixEffect;
 };
 } // namespace Rosen
 } // namespace OHOS
