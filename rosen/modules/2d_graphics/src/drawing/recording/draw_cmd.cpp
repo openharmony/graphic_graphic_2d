@@ -83,6 +83,10 @@ CanvasPlayer::CanvasPlayer(Canvas& canvas, const CmdList& cmdList)
 
 bool CanvasPlayer::Playback(uint32_t type, const void* opItem)
 {
+    if (type == DrawOpItem::OPITEM_HEAD) {
+        return true;
+    }
+
     auto it = opPlaybackFuncLUT_.find(type);
     if (it == opPlaybackFuncLUT_.end() || it->second == nullptr) {
         return false;
@@ -368,8 +372,8 @@ void DrawImageOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 }
 
 DrawImageRectOpItem::DrawImageRectOpItem(const ImageHandle& image, const Rect& src, const Rect& dst,
-    const SamplingOptions& sampling, SrcRectConstraint constraint)
-    : DrawOpItem(IMAGE_OPITEM), image_(image), src_(src), dst_(dst), sampling_(sampling), constraint_(constraint) {}
+    const SamplingOptions& sampling, SrcRectConstraint constraint) : DrawOpItem(IMAGE_RECT_OPITEM),
+    image_(image), src_(src), dst_(dst), sampling_(sampling), constraint_(constraint) {}
 
 void DrawImageRectOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {

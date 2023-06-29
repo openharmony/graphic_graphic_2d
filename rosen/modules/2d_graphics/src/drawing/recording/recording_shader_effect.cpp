@@ -35,10 +35,8 @@ std::shared_ptr<RecordingShaderEffect> RecordingShaderEffect::CreateBlendShader(
     const ShaderEffect& dst, const ShaderEffect& src, BlendMode mode)
 {
     auto shaderEffect = std::make_shared<RecordingShaderEffect>();
-    auto dstHandle = CmdListHelper::AddRecordedToCmdList(
-        *shaderEffect->GetCmdList(), static_cast<const RecordingShaderEffect&>(dst));
-    auto srcHandle = CmdListHelper::AddRecordedToCmdList(
-        *shaderEffect->GetCmdList(), static_cast<const RecordingShaderEffect&>(src));
+    auto dstHandle = CmdListHelper::AddRecordedToCmdList<RecordingShaderEffect>(*shaderEffect->GetCmdList(), dst);
+    auto srcHandle = CmdListHelper::AddRecordedToCmdList<RecordingShaderEffect>(*shaderEffect->GetCmdList(), src);
 
     shaderEffect->GetCmdList()->AddOp<CreateBlendShaderOpItem>(dstHandle, srcHandle, mode);
     return shaderEffect;

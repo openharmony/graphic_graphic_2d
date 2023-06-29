@@ -74,10 +74,18 @@ std::string RSLightUpEffectFilter::GetDescription()
     return "RSLightUpEffectFilter light up degree is " + std::to_string(lightUpDegree_);
 }
 
+#ifndef USE_ROSEN_DRAWING
 std::shared_ptr<RSSkiaFilter> RSLightUpEffectFilter::Compose(const std::shared_ptr<RSSkiaFilter>& inner)
+#else
+std::shared_ptr<RSDrawingFilter> RSLightUpEffectFilter::Compose(const std::shared_ptr<RSDrawingFilter>& inner)
+#endif
 {
     std::shared_ptr<RSLightUpEffectFilter> lightUp = std::make_shared<RSLightUpEffectFilter>(lightUpDegree_);
+#ifndef USE_ROSEN_DRAWING
     lightUp->imageFilter_ = SkImageFilters::Compose(imageFilter_, inner->GetImageFilter());
+#else
+    lightUp->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, inner->GetImageFilter());
+#endif
     return lightUp;
 }
 

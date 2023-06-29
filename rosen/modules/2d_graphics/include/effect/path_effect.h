@@ -48,7 +48,10 @@ public:
 
     virtual ~PathEffect() {}
     PathEffectType GetType() const;
-
+    virtual DrawingType GetDrawingType() const
+    {
+        return DrawingType::COMMON;
+    }
     PathEffect(PathEffectType t, const scalar intervals[], int count, scalar phase) noexcept;
     PathEffect(PathEffectType t, const Path& path, scalar advance, scalar phase, PathDashStyle style) noexcept;
     PathEffect(PathEffectType t, scalar radius) noexcept;

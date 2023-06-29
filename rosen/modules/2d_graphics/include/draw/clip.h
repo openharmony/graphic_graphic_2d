@@ -22,10 +22,6 @@ namespace Drawing {
 enum class ClipOp {
     DIFFERENCE,
     INTERSECT,
-    UNION,
-    XOR,
-    REVERSE_DIFFERENCE,
-    REPLACE,
 };
 } // namespace Drawing
 } // namespace Rosen

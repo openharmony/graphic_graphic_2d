@@ -23,6 +23,7 @@
 #include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
+#include "modifier/rs_modifier_type.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
@@ -272,6 +273,7 @@ public:
 
 private:
     void Reset();
+    void ResetProperty(RSModifierType type);
     void SetDirty();
     void ResetDirty();
     bool IsDirty() const;
@@ -301,7 +303,7 @@ private:
     std::shared_ptr<RectF> drawRegion_ = nullptr;
 
     float alpha_ = 1.f;
-    bool alphaOffscreen_ = true;
+    bool alphaOffscreen_ = false;
 
     std::shared_ptr<RSObjGeometry> boundsGeo_;
     std::shared_ptr<RSObjGeometry> frameGeo_;

@@ -98,6 +98,8 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         bool hasSecurityLayer_ = false;
         bool isUIFirst_ = false;
 
+        SkMatrix captureMatrix_ = SkMatrix::I();
+
         std::shared_ptr<RSBaseRenderEngine> renderEngine_;
 
         std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;

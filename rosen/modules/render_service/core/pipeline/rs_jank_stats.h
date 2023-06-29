@@ -39,9 +39,9 @@ private:
     constexpr static int JANK_STATS_SIZE = 8;
     bool isfirstSetStart_ = true;
     bool isNeedReport_ = false;
-    uint64_t startTime_ = 0;
-    uint64_t endTime_ = 0;
-    uint64_t lastReportTime_ = 0;
+    int64_t startTime_ = 0;
+    int64_t endTime_ = 0;
+    int64_t lastReportTime_ = 0;
     std::vector<uint16_t> rsJankStats_ = std::vector<uint16_t>(JANK_STATS_SIZE, 0);
 
     enum JankRangeType : int16_t {

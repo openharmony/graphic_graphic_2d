@@ -90,7 +90,6 @@ private:
     void CallJsFunction(const std::string& methodName, NativeValue* const* argv, size_t argc);
 
     NativeEngine& engine_;
-    std::unique_ptr<NativeReference> jsController_;
 };
 } // namespace Rosen
 } // namespace OHOS

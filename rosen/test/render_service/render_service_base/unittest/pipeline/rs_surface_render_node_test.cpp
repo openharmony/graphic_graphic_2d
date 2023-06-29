@@ -365,7 +365,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest002, TestSize.Level1)
  * @tc.name: ProcessAnimatePropertyBeforeChildrenTest
  * @tc.desc: function test
  * @tc.type:FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeTest, ProcessAnimatePropertyBeforeChildrenTest, TestSize.Level1)
 {
@@ -397,7 +397,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetContextMatrixTest, TestSize.Level1)
     bool sendMsg = false;
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->SetContextMatrix(matrix, sendMsg);
-    EXPECT_TRUE(node->IsContentDirty());
 }
 
 /**

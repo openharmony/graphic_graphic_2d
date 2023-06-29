@@ -66,6 +66,7 @@ private:
     static void OnCursorPos(GLFWwindow *window, double x, double y);
     static void OnKey(GLFWwindow *window, int key, int scancode, int action, int mods);
     static void OnChar(GLFWwindow *window, unsigned int codepoint);
+    static void OnSizeChanged(GLFWwindow *window, int32_t width, int32_t height);
 
     static inline std::shared_ptr<GlfwRenderContext> global_ = nullptr;
     bool external_ = false;
@@ -74,6 +75,9 @@ private:
     OnCursorPosFunc onCursorPos_ = nullptr;
     OnKeyFunc onKey_ = nullptr;
     OnCharFunc onChar_ = nullptr;
+
+    int32_t width_ = 0;
+    int32_t height_ = 0;
 };
 } // namespace OHOS::Rosen
 

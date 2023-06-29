@@ -27,6 +27,11 @@ public:
     RecordingPath() noexcept;
     ~RecordingPath() override = default;
 
+    DrawingType GetDrawingType() const override
+    {
+        return DrawingType::RECORDING;
+    }
+
     std::shared_ptr<PathCmdList> GetCmdList() const;
 
     bool BuildFromSVGString(const std::string& str) override;

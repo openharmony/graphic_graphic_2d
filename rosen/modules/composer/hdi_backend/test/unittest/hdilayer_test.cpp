@@ -67,7 +67,7 @@ void HdiLayerTest::SetUpTestCase()
     EXPECT_CALL(*hdiDeviceMock_, SetTransformMode(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, SetLayerVisibleRegion(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, SetLayerDirtyRegion(_, _, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*hdiDeviceMock_, SetLayerBuffer(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerBuffer(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, SetLayerCompositionType(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, SetLayerBlendType(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, SetLayerCrop(_, _, _)).WillRepeatedly(testing::Return(0));
@@ -116,9 +116,9 @@ HWTEST_F(HdiLayerTest, SetHdiDeviceMock001, Function | MediumTest| Level1)
 HWTEST_F(HdiLayerTest, Init001, Function | MediumTest| Level1)
 {
     ASSERT_EQ(HdiLayerTest::hdiLayer_->Init(nullptr), false);
-    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _)).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _, _)).WillRepeatedly(testing::Return(1));
     ASSERT_EQ(HdiLayerTest::hdiLayer_->Init(HdiLayerTest::layerInfo_), false);
-    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _, _)).WillRepeatedly(testing::Return(0));
     ASSERT_EQ(HdiLayerTest::hdiLayer_->Init(HdiLayerTest::layerInfo_), true);
 }
 
@@ -218,7 +218,7 @@ HWTEST_F(HdiLayerTest, GetLayerStatus001, Function | MediumTest| Level3)
 HWTEST_F(HdiLayerTest, CreateLayer001, Function | MediumTest| Level1)
 {
     uint32_t layerId = 1;
-    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, layerId)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _, layerId)).WillRepeatedly(testing::Return(0));
     ASSERT_EQ(HdiLayerTest::hdiLayer_->Init(HdiLayerTest::layerInfo_), true);
     EXPECT_CALL(*hdiDeviceMock_, CloseLayer(_, _)).WillRepeatedly(testing::Return(1));
     HdiLayerTest::hdiLayer_ = nullptr;

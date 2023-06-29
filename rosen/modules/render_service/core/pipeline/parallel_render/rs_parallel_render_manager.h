@@ -57,7 +57,6 @@ enum class ParallelStatus {
 enum class TaskType {
     PREPARE_TASK = 0,
     PROCESS_TASK,
-    CACHE_TASK,
     CALC_COST_TASK,
     COMPOSITION_TASK
 };
@@ -79,20 +78,14 @@ public:
     void CopyPrepareVisitorAndPackTask(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node);
     void CopyCalcCostVisitorAndPackTask(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node, bool isNeedCalc,
         bool doAnimate, bool isOpDropped);
-    void CopyCacheVisitor(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node);
     void PackRenderTask(RSSurfaceRenderNode &node, TaskType type = TaskType::PROCESS_TASK);
     void PackParallelCompositionTask(std::shared_ptr<RSNodeVisitor> visitor,
                                      const std::shared_ptr<RSBaseRenderNode> node);
     void LoadBalanceAndNotify(TaskType type = TaskType::PROCESS_TASK);
     void MergeRenderResult(RSPaintFilterCanvas& canvas);
-    void SaveCacheTexture(RSRenderNode& node) const;
-    void WaitNodeTask(uint64_t nodeId);
-    void NodeTaskNotify(uint64_t nodeId);
     void SetFrameSize(int width, int height);
     void GetFrameSize(int &width, int &height) const;
     void SubmitSuperTask(uint32_t taskIndex, std::unique_ptr<RSSuperRenderTask> superRenderTask);
-    void SubmitSubThreadTask(const std::shared_ptr<RSDisplayRenderNode>& node,
-        const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     void SubmitCompositionTask(uint32_t taskIndex, std::unique_ptr<RSCompositionTask> compositionTask);
     void SubMainThreadNotify(int threadIndex);
     void WaitSubMainThread(uint32_t threadIndex);
@@ -239,10 +232,6 @@ private:
 
     std::vector<timespec> startTime_;
     std::vector<timespec> stopTime_;
-
-    uint32_t minLoadThreadIndex_ = 0;
-
-    std::map<uint64_t, bool> nodeTaskState_;
 
     // Use for Vulkan
     std::vector<std::shared_ptr<RSDisplayRenderNode>> parallelDisplayNodes_;

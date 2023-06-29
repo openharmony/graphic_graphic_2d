@@ -123,7 +123,7 @@ HWTEST_F(DrawCmdListTest, PlayBackForRecord002, TestSize.Level1)
 #endif
     ASSERT_FALSE(list.GetOpsWithDesc().empty());
     int startOpId = 0;
-    int descStartOpId = 1;
+    int descStartOpId = 0;
     std::string str = list.PlayBackForRecord(canvas, startOpId, list.GetSize(), descStartOpId, &rect);
     ASSERT_FALSE(str.empty());
 }

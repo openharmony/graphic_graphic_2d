@@ -26,6 +26,7 @@ group("unittest") {
       ":texgine_unittest_part3",
       ":texgine_unittest_part4",
       ":texgine_unittest_part5",
+      ":texgine_unittest_part6",
     ]
   }
 }
@@ -35,6 +36,7 @@ config("texgine_test_config") {
     "$graphic_2d_root/rosen/modules/texgine/export/texgine",
     "$graphic_2d_root/rosen/modules/texgine/src",
     "$graphic_2d_root/rosen/modules/texgine/texgine_drawing",
+    "$graphic_2d_root/rosen/modules/texgine/texgine_drawing/src",
   ]
 }
 
@@ -134,7 +136,30 @@ ohos_unittest("texgine_unittest_part4") {
 ohos_unittest("texgine_unittest_part5") {
   module_out_path = module_output_path
 
-  sources = [ "measurer_impl_test.cpp" ]
+  sources = [
+    "measurer_impl_test.cpp",
+    "texgine_canvas_test.cpp",
+    "texgine_dash_path_effect_test.cpp",
+    "texgine_data_test.cpp",
+    "texgine_font_manager_test.cpp",
+    "texgine_font_metrics_test.cpp",
+    "texgine_font_style_set_test.cpp",
+    "typography_impl_test.cpp",
+  ]
+
+  public_configs = [ ":texgine_test_config" ]
+  public_deps = [ ":common_deps" ]
+
+  use_exceptions = true
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+ohos_unittest("texgine_unittest_part6") {
+  module_out_path = module_output_path
+
+  sources = [ "font_manager_test.cpp" ]
 
   public_configs = [ ":texgine_test_config" ]
   public_deps = [ ":common_deps" ]

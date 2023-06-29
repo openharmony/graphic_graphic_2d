@@ -23,7 +23,6 @@ namespace Rosen {
 namespace Benchmarks {
 bool IsValidFile(const std::string& realPathStr, const std::string& validPath = "/data/");
 std::string GetRealAndValidPath(const std::string& filePath);
-bool IsExistFile(const std::string& filePath);
 bool CreateFile(const std::string& filePath);
 bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath);
 bool WriteStringToFile(int fd, const std::string& str);

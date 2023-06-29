@@ -32,6 +32,10 @@ std::shared_ptr<ColorSpaceCmdList> ColorSpaceCmdList::CreateFromData(const CmdLi
 
 std::shared_ptr<ColorSpace> ColorSpaceCmdList::Playback() const
 {
+    if (opAllocator_.GetSize() == 0) {
+        return nullptr;
+    }
+
     int32_t offset = 0;
     std::shared_ptr<ColorSpace> cs = nullptr;
 
@@ -43,6 +47,8 @@ std::shared_ptr<ColorSpace> ColorSpaceCmdList::Playback() const
         }
 
         switch (itemPtr->GetType()) {
+            case ColorSpaceOpItem::OPITEM_HEAD:
+                break;
             case ColorSpaceOpItem::CREATE_SRGB:
                 cs = static_cast<CreateSRGBOpItem*>(itemPtr)->Playback();
                 break;

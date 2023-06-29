@@ -37,7 +37,6 @@ SkColor colors[] = {
     SK_ColorBLUE,
     SK_ColorMAGENTA
 };
-} // namespace
 
 TexginePaint g_rainbowPaint;
 TexginePaint g_actualBorderPaint;
@@ -117,8 +116,8 @@ void OnDraw(SkCanvas &canvas)
     SkPaint testBorderPaint = borderPaint;
     testBorderPaint.setColor(0xff000000);
 
-    TexginePaint g_rainbowPaint;
-    g_rainbowPaint.SetStyle(TexginePaint::Style::FILL);
+    TexginePaint rainbowPaint;
+    rainbowPaint.SetStyle(TexginePaint::Style::FILL);
 
     canvas.save();
     // move canvas to (50, 50)
@@ -146,6 +145,7 @@ void OnDraw(SkCanvas &canvas)
     }
     canvas.restore();
 }
+} // namespace
 
 int main()
 {

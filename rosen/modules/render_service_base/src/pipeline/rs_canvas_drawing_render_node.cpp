@@ -34,6 +34,11 @@ RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode() {}
 
 void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 {
+    if (GetRenderProperties().GetBoundsWidth() <= 0 || GetRenderProperties().GetBoundsHeight() <= 0) {
+        RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents: The width or height of the canvas is less than or "
+                "equal to 0");
+        return;
+    }
     if (!skSurface_ ||
         static_cast<int>(GetRenderProperties().GetBoundsWidth()) != static_cast<int>(skSurface_->width()) ||
         static_cast<int>(GetRenderProperties().GetBoundsHeight()) != static_cast<int>(skSurface_->height())) {

@@ -88,14 +88,23 @@ void RSRecordingThread::FinishRecordingOneFrame()
 
 #ifndef USE_ROSEN_DRAWING
 void RSRecordingThread::RecordingToFile(const std::shared_ptr<DrawCmdList> & drawCmdList)
+#else
+void RSRecordingThread::RecordingToFile(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList)
+#endif
 {
     if (curDumpFrame_ < 0) {
         return;
     }
     int tmpCurDumpFrame = curDumpFrame_;
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<MessageParcel> messageParcel = std::make_shared<MessageParcel>();
     messageParcel->SetMaxCapacity(RECORDING_PARCEL_MAX_CAPCITY);
     drawCmdList->Marshalling(*messageParcel);
+#else
+    auto cmdListData = drawCmdList->GetData();
+    auto messageParcel = std::make_shared<Drawing::Data>();
+    messageParcel->BuildWithCopy(cmdListData.first, cmdListData.second);
+#endif
     FinishRecordingOneFrame();
     RSTaskMessage::RSTask task = [this, tmpCurDumpFrame, drawCmdList, messageParcel]() {
         std::string line = "RSRecordingThread::RecordingToFile curDumpFrame = " + std::to_string(curDumpFrame_) +
@@ -103,17 +112,22 @@ void RSRecordingThread::RecordingToFile(const std::shared_ptr<DrawCmdList> & dra
         RS_LOGD(line.c_str());
         RS_TRACE_NAME(line);
         // file name
-        std::string drawCmdListFile = fileDir_ + "/frame" + std::to_string(tmpCurDumpFrame) + ".txt";
+        std::string drawCmdListFile = fileDir_ + "/frame" + std::to_string(tmpCurDumpFrame) + ".drawing";
         std::string opsFile = fileDir_ + "/ops_frame" + std::to_string(tmpCurDumpFrame) + ".txt";
         // get data
+#ifndef USE_ROSEN_DRAWING
         size_t sz = messageParcel->GetDataSize();
         uintptr_t buf = messageParcel->GetData();
         std::string opsDescription = drawCmdList->GetOpsWithDesc();
+#else
+        size_t sz = messageParcel->GetSize();
+        auto buf = reinterpret_cast<uintptr_t>(messageParcel->GetData());
+        std::string opsDescription = "drawing ops no description";
+#endif
 
         OHOS::Rosen::Benchmarks::WriteToFile(buf, sz, drawCmdListFile);
         OHOS::Rosen::Benchmarks::WriteStringToFile(opsDescription, opsFile);
     };
     PostTask(task);
 }
-#endif
 }

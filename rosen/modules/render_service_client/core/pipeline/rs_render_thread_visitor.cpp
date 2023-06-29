@@ -86,6 +86,7 @@ bool RSRenderThreadVisitor::IsValidRootRenderNode(RSRootRenderNode& node)
 
 void RSRenderThreadVisitor::SetPartialRenderStatus(PartialRenderType status, bool isRenderForced)
 {
+    RS_TRACE_FUNC();
     isRenderForced_ = isRenderForced;
     dfxDirtyType_ = RSSystemProperties::GetDirtyRegionDebugType();
     isEglSetDamageRegion_ = !isRenderForced_ && (status != PartialRenderType::DISABLED);
@@ -137,7 +138,7 @@ void RSRenderThreadVisitor::ResetAndPrepareChildrenNode(RSRenderNode& node,
     std::shared_ptr<RSBaseRenderNode> nodeParent)
 {
     // merge last childRect as dirty if any child has been removed
-    if (node.HasRemovedChild()) {
+    if (curDirtyManager_ && node.HasRemovedChild()) {
         curDirtyManager_->MergeDirtyRect(node.GetChildrenRect());
         node.ResetHasRemovedChild();
     }
@@ -152,7 +153,7 @@ void RSRenderThreadVisitor::ResetAndPrepareChildrenNode(RSRenderNode& node,
 void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
     node.ApplyModifiers();
-    if (!node.ShouldPaint()) {
+    if (!node.ShouldPaint() || curDirtyManager_ == nullptr) {
         return;
     }
     bool dirtyFlag = dirtyFlag_;
@@ -162,8 +163,7 @@ void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
         rsParent = nodeParent->ReinterpretCastTo<RSRenderNode>();
     }
     dirtyFlag_ = node.Update(*curDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr, dirtyFlag_);
-    if (node.IsDirtyRegionUpdated() && curDirtyManager_ != nullptr &&
-        curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
+    if (node.IsDirtyRegionUpdated() && curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
         curDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::CANVAS_NODE,
             DirtyRegionType::UPDATE_DIRTY_REGION, node.GetOldDirty());
     }
@@ -174,6 +174,9 @@ void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
 
 void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
+    if (curDirtyManager_ == nullptr) {
+        return;
+    }
     node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
     auto nodeParent = node.GetParent().lock();
@@ -188,8 +191,7 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         node.SetDirty();
     }
     dirtyFlag_ = node.Update(*curDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr, dirtyFlag_);
-    if (node.IsDirtyRegionUpdated() && curDirtyManager_ != nullptr &&
-        curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
+    if (node.IsDirtyRegionUpdated() && curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
         curDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::SURFACE_NODE,
             DirtyRegionType::UPDATE_DIRTY_REGION, node.GetOldDirty());
     }
@@ -200,7 +202,7 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 void RSRenderThreadVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 {
     node.ApplyModifiers();
-    if (!node.ShouldPaint()) {
+    if (!node.ShouldPaint() || curDirtyManager_ == nullptr) {
         return;
     }
     auto effectRegion = effectRegion_;

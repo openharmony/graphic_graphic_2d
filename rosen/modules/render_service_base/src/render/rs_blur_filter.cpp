@@ -43,9 +43,10 @@ RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(S
 }
 #endif
 #else
-RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY)
-    : RSDrawingFilter(Drawing::ImageFilter::CreateBlurImageFilter(blurRadiusX, blurRadiusY, Drawing::TileMode::CLAMP,
-    nullptr)), blurRadiusX_(blurRadiusX), blurRadiusY_(blurRadiusY)
+RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY) : RSDrawingFilter(
+    Drawing::ImageFilter::CreateBlurImageFilter(blurRadiusX, blurRadiusY, Drawing::TileMode::CLAMP, nullptr)),
+    blurRadiusX_(blurRadiusX),
+    blurRadiusY_(blurRadiusY)
 {
     type_ = FilterType::BLUR;
 }
@@ -77,10 +78,18 @@ bool RSBlurFilter::IsValid() const
     return true;
 }
 
+#ifndef USE_ROSEN_DRAWING
 std::shared_ptr<RSSkiaFilter> RSBlurFilter::Compose(const std::shared_ptr<RSSkiaFilter>& inner)
+#else
+std::shared_ptr<RSDrawingFilter> RSBlurFilter::Compose(const std::shared_ptr<RSDrawingFilter>& inner)
+#endif
 {
     std::shared_ptr<RSBlurFilter> blur = std::make_shared<RSBlurFilter>(blurRadiusX_, blurRadiusY_);
+#ifndef USE_ROSEN_DRAWING
     blur->imageFilter_ = SkImageFilters::Compose(imageFilter_, inner->GetImageFilter());
+#else
+    blur->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, inner->GetImageFilter());
+#endif
     return blur;
 }
 

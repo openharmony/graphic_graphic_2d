@@ -402,7 +402,7 @@ GSError BufferClientProducer::SetMetaDataSet(uint32_t sequence, GraphicHDRMetada
     return GSERROR_OK;
 }
 
-GSError BufferClientProducer::SetTunnelHandle(const OHExtDataHandle *handle)
+GSError BufferClientProducer::SetTunnelHandle(const GraphicExtDataHandle *handle)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
     if (handle == nullptr) {

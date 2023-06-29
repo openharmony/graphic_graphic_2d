@@ -44,7 +44,8 @@ public:
     MOCK_METHOD2(SetScreenBacklight, int32_t(uint32_t, uint32_t));
     MOCK_METHOD2(PrepareScreenLayers, int32_t(uint32_t, bool&));
     MOCK_METHOD3(GetScreenCompChange, int32_t(uint32_t, std::vector<uint32_t>&, std::vector<int32_t>&));
-    MOCK_METHOD3(SetScreenClientBuffer, int32_t(uint32_t, const BufferHandle*, const sptr<SyncFence>&));
+    MOCK_METHOD4(SetScreenClientBuffer, int32_t(uint32_t, const BufferHandle*, uint32_t, const sptr<SyncFence>&));
+    MOCK_METHOD2(SetScreenClientBufferCacheCount, int32_t(uint32_t, uint32_t));
     MOCK_METHOD2(SetScreenClientDamage, int32_t(uint32_t, const std::vector<GraphicIRect> &damageRect));
     MOCK_METHOD2(SetScreenVsyncEnabled, int32_t(uint32_t, bool));
     MOCK_METHOD3(GetScreenReleaseFence, int32_t(uint32_t, std::vector<uint32_t>&, std::vector<sptr<SyncFence>>&));
@@ -65,7 +66,7 @@ public:
     MOCK_METHOD3(SetTransformMode, int32_t(uint32_t, uint32_t, GraphicTransformType));
     MOCK_METHOD3(SetLayerVisibleRegion, int32_t(uint32_t, uint32_t, const std::vector<GraphicIRect> &));
     MOCK_METHOD3(SetLayerDirtyRegion, int32_t(uint32_t, uint32_t, const std::vector<GraphicIRect> &));
-    MOCK_METHOD4(SetLayerBuffer, int32_t(uint32_t, uint32_t, const BufferHandle*, const sptr<SyncFence>&));
+    MOCK_METHOD3(SetLayerBuffer, int32_t(uint32_t, uint32_t, const GraphicLayerBuffer &));
     MOCK_METHOD3(SetLayerCompositionType, int32_t(uint32_t, uint32_t, GraphicCompositionType));
     MOCK_METHOD3(SetLayerBlendType, int32_t(uint32_t, uint32_t, GraphicBlendType));
     MOCK_METHOD3(SetLayerCrop, int32_t(uint32_t, uint32_t, const GraphicIRect&));
@@ -76,14 +77,14 @@ public:
     MOCK_METHOD3(GetLayerColorDataSpace, int32_t(uint32_t, uint32_t, GraphicColorDataSpace&));
     MOCK_METHOD3(SetLayerMetaData, int32_t(uint32_t, uint32_t, const std::vector<GraphicHDRMetaData>&));
     MOCK_METHOD4(SetLayerMetaDataSet, int32_t(uint32_t, uint32_t, GraphicHDRMetadataKey, const std::vector<uint8_t>&));
-    MOCK_METHOD3(SetLayerTunnelHandle, int32_t(uint32_t, uint32_t, OHExtDataHandle *));
+    MOCK_METHOD3(SetLayerTunnelHandle, int32_t(uint32_t, uint32_t, GraphicExtDataHandle *));
     MOCK_METHOD3(GetSupportedPresentTimestampType, int32_t(uint32_t, uint32_t, GraphicPresentTimestampType&));
     MOCK_METHOD3(GetPresentTimestamp, int32_t(uint32_t, uint32_t, GraphicPresentTimestamp&));
     MOCK_METHOD3(SetLayerMaskInfo, int32_t(uint32_t, uint32_t, uint32_t));
 
     /* set & get device layer info end */
 
-    MOCK_METHOD3(CreateLayer, int32_t(uint32_t, const GraphicLayerInfo&, uint32_t&));
+    MOCK_METHOD4(CreateLayer, int32_t(uint32_t, const GraphicLayerInfo&, uint32_t, uint32_t&));
     MOCK_METHOD2(CloseLayer, int32_t(uint32_t, uint32_t));
     MOCK_METHOD0(Destroy, void());
 };

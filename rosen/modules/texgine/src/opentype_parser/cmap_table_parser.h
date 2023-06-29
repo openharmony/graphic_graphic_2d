@@ -39,7 +39,7 @@ struct CmapTables {
 class CmapTableParser {
 public:
     CmapTableParser(const char* data, int32_t size) : data_(data), size_(size) {}
-    const struct CmapTables* Parse(const char* data, int32_t size) const;
+    static const struct CmapTables* Parse(const char* data, int32_t size);
     void Dump() const;
 
 private:

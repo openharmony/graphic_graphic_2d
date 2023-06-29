@@ -37,12 +37,12 @@ public:
     /*
      * @brief Draws SkRect rect using clip, SkMatrix, and SkPaint paint.
      */
-    void DrawRect(TexgineRect &rect, const TexginePaint &paint) const;
+    void DrawRect(const TexgineRect &rect, const TexginePaint &paint) const;
 
     /*
      * @brief Draws SkTextBlob blob at (x, y), using clip, SkMatrix, and SkPaint paint.
      */
-    void DrawTextBlob(std::shared_ptr<TexgineTextBlob> &blob, float x, float y, const TexginePaint &paint);
+    void DrawTextBlob(const std::shared_ptr<TexgineTextBlob> &blob, float x, float y, const TexginePaint &paint);
 
     /*
      * @brief Fills clip with color color using SkBlendMode::kSrc.

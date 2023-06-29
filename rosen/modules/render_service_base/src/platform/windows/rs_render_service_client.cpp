@@ -31,6 +31,8 @@ void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>
 {
 }
 
+void RSRenderServiceClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) {}
+
 bool RSRenderServiceClient::GetUniRenderEnabled()
 {
     return {};

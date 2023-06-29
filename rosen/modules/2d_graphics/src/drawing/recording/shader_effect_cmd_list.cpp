@@ -31,12 +31,18 @@ std::shared_ptr<ShaderEffectCmdList> ShaderEffectCmdList::CreateFromData(const C
 
 std::shared_ptr<ShaderEffect> ShaderEffectCmdList::Playback() const
 {
+    if (opAllocator_.GetSize() == 0) {
+        return nullptr;
+    }
+
     int32_t offset = 0;
     std::shared_ptr<ShaderEffect> se = nullptr;
     do {
         OpItem* itemPtr = static_cast<OpItem*>(opAllocator_.OffsetToAddr(offset));
         if (itemPtr != nullptr) {
             switch (itemPtr->GetType()) {
+                case ShaderEffectOpItem::OPITEM_HEAD:
+                    break;
                 case ShaderEffectOpItem::CREATE_COLOR_SHADER:
                     se = static_cast<CreateColorShaderOpItem*>(itemPtr)->Playback();
                     break;

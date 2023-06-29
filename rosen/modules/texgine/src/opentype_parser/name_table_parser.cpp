@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-const struct NameTable* NameTableParser::Parse(const char* data, int32_t size) const
+const struct NameTable* NameTableParser::Parse(const char* data, int32_t size)
 {
     return reinterpret_cast<const struct NameTable*>(data);
 }

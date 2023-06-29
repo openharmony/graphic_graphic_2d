@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -68,6 +68,35 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
             ROSEN_LOGE("RSRenderServiceConnectionProxy::CommitTransaction SendRequest failed, err = %d", err);
             return;
         }
+    }
+}
+
+void RSRenderServiceConnectionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
+{
+    if (task == nullptr) {
+        return;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSRenderServiceConnectionProxy::GetDescriptor())) {
+        return;
+    }
+
+    if (!task->Marshalling(data)) {
+        return;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::EXECUTE_SYNCHRONOUS_TASK, data, reply, option);
+    if (err != NO_ERROR) {
+        return;
+    }
+
+    if (task->CheckHeader(reply)) {
+        task->ReadFromParcel(reply);
     }
 }
 

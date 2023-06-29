@@ -77,6 +77,15 @@ SurfaceError HdiFramebufferSurface::SetBufferQueueSize(uint32_t bufferSize)
     return SURFACE_ERROR_OK;
 }
 
+uint32_t HdiFramebufferSurface::GetBufferQueueSize()
+{
+    if (consumerSurface_ == nullptr) {
+        HLOGE("consumer surface is nullptr.");
+        return 0;
+    }
+    return consumerSurface_->GetQueueSize();
+}
+
 void HdiFramebufferSurface::OnBufferAvailable()
 {
     sptr<SurfaceBuffer> buffer;

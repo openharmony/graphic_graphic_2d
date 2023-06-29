@@ -225,6 +225,39 @@ void RSRenderPathAnimation::OnRemoveOnCompletion()
     RSRenderPropertyAnimation::OnRemoveOnCompletion();
 }
 
+void RSRenderPathAnimation::OnAttach()
+{
+    auto target = GetTarget();
+    if (target == nullptr) {
+        ROSEN_LOGE("RSRenderPathAnimation::OnAttach, target is nullptr");
+        return;
+    }
+    // check if any other path animation running on this property
+    auto propertyId = GetPropertyId();
+    auto prevAnimation = target->GetAnimationManager().QueryPathAnimation(propertyId);
+    target->GetAnimationManager().RegisterPathAnimation(propertyId, GetAnimationId());
+
+    // return if no other path animation(s) running
+    if (prevAnimation == nullptr) {
+        return;
+    }
+
+    // set previous path animation to FINISHED
+    prevAnimation->Finish();
+}
+
+void RSRenderPathAnimation::OnDetach()
+{
+    auto target = GetTarget();
+    if (target == nullptr) {
+        ROSEN_LOGE("RSRenderPathAnimation::OnDetach, target is nullptr");
+        return;
+    }
+    auto propertyId = GetPropertyId();
+    auto id = GetAnimationId();
+    target->GetAnimationManager().UnregisterPathAnimation(propertyId, id);
+}
+
 void RSRenderPathAnimation::SetPathValue(const Vector2f& value, float tangent)
 {
     SetRotationValue(tangent);

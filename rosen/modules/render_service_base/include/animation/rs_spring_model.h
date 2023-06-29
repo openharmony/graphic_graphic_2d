@@ -63,6 +63,18 @@ protected:
     }
 
 private:
+    float EstimateDurationForUnderDampingRatio() const
+    {
+        return 0.0f;
+    }
+    float EstimateDurationForCriticalDampingRatio() const
+    {
+        return 0.0f;
+    }
+    float EstimateDurationForOverDampingRatio() const
+    {
+        return 0.0f;
+    }
     // calculated intermediate coefficient
     float coeffDecay_ { 0.0f };
     RSAnimatableType coeffScale_ {};
@@ -77,6 +89,12 @@ template<>
 RSB_EXPORT float RSSpringModel<float>::BinarySearchTime(float left, float right, float target) const;
 template<>
 RSB_EXPORT float RSSpringModel<float>::BinarySearchTime(float left, float right, float target, bool& isIncrease) const;
+template<>
+RSB_EXPORT float RSSpringModel<float>::EstimateDurationForUnderDampingRatio() const;
+template<>
+RSB_EXPORT float RSSpringModel<float>::EstimateDurationForCriticalDampingRatio() const;
+template<>
+RSB_EXPORT float RSSpringModel<float>::EstimateDurationForOverDampingRatio() const;
 } // namespace Rosen
 } // namespace OHOS
 

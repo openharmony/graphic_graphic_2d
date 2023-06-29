@@ -175,6 +175,10 @@ HWTEST_F(RSRenderServiceTest, TestRenderService010, TestSize.Level1)
     const std::string rsCmd = defaultCmd_ + " -a 'surfacenode 0'";
     int ret = system(rsCmd.c_str());
     ASSERT_EQ(ret, 0);
+
+    const std::string rsCmd1 = defaultCmd_ + " -a 'surfacenode'";
+    ret = system(rsCmd1.c_str());
+    ASSERT_EQ(ret, 0);
 }
 
 /**

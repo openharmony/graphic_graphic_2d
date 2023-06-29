@@ -32,7 +32,7 @@ public:
     static UTF16String ToUTF16(const std::string &utf8Text);
     static UTF16String ToUTF16(const UTF8String &utf8Text);
     static UTF16String ToUTF16(const UTF32String &utf32Text);
-    static UTF32String ToUTF32(const UTF16String &utf32Text);
+    static UTF32String ToUTF32(const UTF16String &utf16Text);
 };
 } // namespace TextEngine
 } // namespace Rosen

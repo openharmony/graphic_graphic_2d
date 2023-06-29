@@ -100,6 +100,8 @@ bool RSRenderNode::Update(
 {
     // no need to update invisible nodes
     if (!ShouldPaint() && !isLastVisible_) {
+        SetClean();
+        renderProperties_.ResetDirty();
         return false;
     }
     // [planning] surfaceNode use frame instead
@@ -309,7 +311,7 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier> modifier)
     } else {
         drawCmdModifiers_[modifier->GetType()].emplace_back(modifier);
     }
-    modifier->GetProperty()->Attach(shared_from_this());
+    modifier->GetProperty()->Attach(ReinterpretCastTo<RSRenderNode>());
     SetDirty();
 }
 
@@ -333,9 +335,13 @@ void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier> m
 
 void RSRenderNode::RemoveModifier(const PropertyId& id)
 {
-    bool success = modifiers_.erase(id);
     SetDirty();
-    if (success) {
+    auto it = modifiers_.find(id);
+    if (it != modifiers_.end()) {
+        if (it->second) {
+            AddDirtyType(it->second->GetType());
+        }
+        modifiers_.erase(it);
         return;
     }
     for (auto& [type, modifiers] : drawCmdModifiers_) {
@@ -347,18 +353,22 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
 
 void RSRenderNode::ApplyModifiers()
 {
-    if (!RSBaseRenderNode::IsDirty()) {
+    if (!RSBaseRenderNode::IsDirty() || dirtyTypes_.empty()) {
         return;
     }
-    RSModifierContext context = { GetMutableRenderProperties() };
-    context.property_.Reset();
+    RSModifierContext context = { renderProperties_ };
+    for (auto type : dirtyTypes_) {
+        renderProperties_.ResetProperty(type);
+    }
+
     for (auto& [id, modifier] : modifiers_) {
-        if (modifier) {
+        if (modifier && (dirtyTypes_.find(modifier->GetType()) != dirtyTypes_.end())) {
             modifier->Apply(context);
         }
     }
     OnApplyModifiers();
     UpdateDrawRegion();
+    dirtyTypes_.clear();
 }
 
 void RSRenderNode::UpdateDrawRegion()
@@ -478,10 +488,14 @@ float RSRenderNode::GetGlobalAlpha() const
     return globalAlpha_;
 }
 
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
 void RSRenderNode::InitCacheSurface(GrRecordingContext* grContext, ClearCacheSurfaceFunc func, uint32_t threadIndex)
 #else
 void RSRenderNode::InitCacheSurface(GrContext* grContext, ClearCacheSurfaceFunc func, uint32_t threadIndex)
+#endif
+#else
+void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheSurfaceFunc func, uint32_t threadIndex)
 #endif
 {
     if (!func) {
@@ -515,6 +529,7 @@ void RSRenderNode::InitCacheSurface(GrContext* grContext, ClearCacheSurfaceFunc 
         width = boundsWidth_;
         height = boundsHeight_;
     }
+#ifndef USE_ROSEN_DRAWING
 #if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
     if (grContext == nullptr) {
         func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
@@ -522,10 +537,32 @@ void RSRenderNode::InitCacheSurface(GrContext* grContext, ClearCacheSurfaceFunc 
         return;
     }
     SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
+    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     cacheSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kYes, info);
 #else
     cacheSurface_ = SkSurface::MakeRasterN32Premul(width, height);
 #endif
+#else // USE_ROSEN_DRAWING
+    Drawing::BitmapFormat format = { Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::Bitmap bitmap;
+    bitmap.Build(width, height, format);
+#if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
+    if (gpuContext == nullptr) {
+        func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
+        ClearCacheSurface();
+        return;
+    }
+    Drawing::Image image;
+    image.BuildFromBitmap(*gpuContext, bitmap);
+    auto surface = std::make_shared<Drawing::Surface>();
+    surface->Bind(image);
+    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+    cacheSurface_ = surface;
+#else
+    cacheSurface_ = std::make_shared<Drawing::Surface>();
+    cacheSurface_->Bind(bitmap);
+#endif
+#endif // USE_ROSEN_DRAWING
 }
 
 Vector2f RSRenderNode::GetOptionalBufferSize() const
@@ -540,6 +577,7 @@ Vector2f RSRenderNode::GetOptionalBufferSize() const
     return { vector4f.z_, vector4f.w_ };
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
 {
     auto cacheType = GetCacheType();
@@ -573,6 +611,50 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
     }
     canvas.restore();
 }
+#else
+void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
+{
+    auto cacheType = GetCacheType();
+    canvas.Save();
+    Vector2f size = GetOptionalBufferSize();
+    float scaleX = size.x_ / boundsWidth_;
+    float scaleY = size.y_ / boundsHeight_;
+    canvas.Scale(scaleX, scaleY);
+    if (isUIFirst) {
+        if (cacheTexture_ == nullptr) {
+            RS_LOGE("invalid cache texture");
+            canvas.Restore();
+            return;
+        }
+        canvas.DrawImage(cacheTexture_, -shadowRectOffsetX_ * scaleX,
+            -shadowRectOffsetY_ * scaleY, Drawing::SamplingOptions());
+        canvas.Restore();
+        return;
+    }
+    auto surface = GetCompletedCacheSurface(threadIndex, isUIFirst);
+    if (surface == nullptr || (boundsWidth_ == 0 || boundsHeight_ == 0)) {
+        RS_LOGE("invalid complete cache surface");
+        canvas.Restore();
+        return;
+    }
+    auto image = surface->GetImageSnapshot();
+    if (image == nullptr) {
+        RS_LOGE("invalid complete cache image");
+        canvas.Restore();
+        return;
+    }
+    Drawing::Brush brush;
+    canvas.AttachBrush(brush);
+    if (cacheType == CacheType::ANIMATE_PROPERTY && renderProperties_.IsShadowValid()) {
+        canvas.DrawImage(*image, -shadowRectOffsetX_ * scaleX,
+            -shadowRectOffsetY_ * scaleY, Drawing::SamplingOptions());
+    } else {
+        canvas.DrawImage(*image, 0.0, 0.0, Drawing::SamplingOptions());
+    }
+    canvas.DetachBrush();
+    canvas.Restore();
+}
+#endif
 
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkSurface> RSRenderNode::GetCompletedCacheSurface(uint32_t threadIndex, bool isUIFirst)
@@ -580,8 +662,11 @@ sk_sp<SkSurface> RSRenderNode::GetCompletedCacheSurface(uint32_t threadIndex, bo
 std::shared_ptr<Drawing::Surface> RSRenderNode::GetCompletedCacheSurface(uint32_t threadIndex, bool isUIFirst)
 #endif
 {
-    if (isUIFirst || cacheSurfaceThreadIndex_ == threadIndex || !cacheCompletedSurface_) {
-        return cacheCompletedSurface_;
+    {
+        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+        if (isUIFirst || cacheSurfaceThreadIndex_ == threadIndex || !cacheCompletedSurface_) {
+            return cacheCompletedSurface_;
+        }
     }
 
     // freeze cache scene

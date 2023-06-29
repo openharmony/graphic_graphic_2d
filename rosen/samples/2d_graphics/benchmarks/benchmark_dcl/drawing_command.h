@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef DCL_COMMAND_H
-#define DCL_COMMAND_H
+#ifndef DRAWING_COMMAND_H
+#define DRAWING_COMMAND_H
 
 #include <iostream>
 #include <vector>
@@ -62,7 +62,7 @@ private:
 
     const std::string dclMsgErr_ = "error input!\n use command '--help' get more information\n";
     const std::string breakLine_ = std::string(80, '-');
-    const std::string dclMsg_ = "usage: /data/drawing_engine_sample dcl <option> <argument> \n" + breakLine_ +
+    const std::string dclMsg_ = "usage: /bin/drawing_engine_sample dcl <option> <argument> \n" + breakLine_ +
         "\nThere are common commands list:\n"
         " -t,--type                  set the type of playback, \n"
         "                            \t0: iterate by frame,\n"
@@ -76,7 +76,7 @@ private:
         " -i,--inputFilePath         set the input path for drawCmdList files, \n"
         " -o,--outputFilePath        set the output path for drawCmdList files, \n"
         " -h,--help                  get help, \n" + breakLine_ +
-        "\nExample: /data/drawing_ening_sample dcl -t 0 -b 1 -e 100 \n" + breakLine_ + "\n";
+        "\nExample: /bin/drawing_ening_sample dcl -t 0 -b 1 -e 100 \n" + breakLine_ + "\n";
 
     IterateType iterateType_ = IterateType::ITERATE_FRAME;
     uint32_t beginFrame_ = 0;

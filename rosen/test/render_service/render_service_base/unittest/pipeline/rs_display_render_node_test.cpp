@@ -78,7 +78,7 @@ HWTEST_F(RSDisplayRenderNodeTest, SetMirrorSourceTest, TestSize.Level1)
 
 /**
  * @tc.name: CreateSurfaceTest
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -86,7 +86,7 @@ HWTEST_F(RSDisplayRenderNodeTest, CreateSurfaceTest, TestSize.Level1)
 {
     sptr<IBufferConsumerListener> listener;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
-    node->CreateSurface(listener);  
+    node->CreateSurface(listener);
 }
 
 /**

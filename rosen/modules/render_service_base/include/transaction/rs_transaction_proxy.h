@@ -21,6 +21,7 @@
 #include <stack>
 
 #include "command/rs_command.h"
+#include "command/rs_node_showing_command.h"
 #include "common/rs_macros.h"
 #include "common/rs_singleton.h"
 #include "common/rs_macros.h"
@@ -43,7 +44,7 @@ public:
     void FlushImplicitTransaction(uint64_t timestamp = 0, const std::string& abilityName = "");
     void FlushImplicitTransactionFromRT(uint64_t timestamp);
 
-    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task);
+    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask = false);
 
     void Begin();
     void Commit(uint64_t timestamp = 0);

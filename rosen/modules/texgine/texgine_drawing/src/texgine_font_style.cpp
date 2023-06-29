@@ -18,14 +18,14 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-TexgineFontStyle::TexgineFontStyle()
+TexgineFontStyle::TexgineFontStyle(): fontStyle_(std::make_shared<SkFontStyle>())
 {
-    fontStyle_ = std::make_shared<SkFontStyle>();
 }
 
-TexgineFontStyle::TexgineFontStyle(int weight, int width, Slant slant)
+TexgineFontStyle::TexgineFontStyle(
+    int weight, int width, Slant slant): fontStyle_(
+        std::make_shared<SkFontStyle>(weight, width, static_cast<SkFontStyle::Slant>(slant)))
 {
-    fontStyle_ = std::make_shared<SkFontStyle>(weight, width, static_cast<SkFontStyle::Slant>(slant));
 }
 
 TexgineFontStyle::TexgineFontStyle(std::shared_ptr<SkFontStyle> style)
@@ -43,7 +43,7 @@ void TexgineFontStyle::SetFontStyle(const std::shared_ptr<SkFontStyle> fontStyle
     fontStyle_ = fontStyle;
 }
 
-void TexgineFontStyle::SetStyle(SkFontStyle &style)
+void TexgineFontStyle::SetStyle(const SkFontStyle &style)
 {
     if (fontStyle_ == nullptr) {
         return;

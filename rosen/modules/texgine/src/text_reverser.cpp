@@ -50,8 +50,8 @@ void TextReverser::ReverseRTLText(std::vector<VariantSpan> &lineSpans)
 
         rtlSpansEndIt++;
         LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "reverse");
-        for (auto it = rtlSpansBeginIt; it != rtlSpansEndIt; it++) {
-            it->Dump();
+        for (auto i = rtlSpansBeginIt; i != rtlSpansEndIt; i++) {
+            i->Dump();
         }
         std::reverse(rtlSpansBeginIt, rtlSpansEndIt);
         rtlSpansBeginIt = endit;
@@ -103,7 +103,7 @@ void TextReverser::ProcessTypoDirection(std::vector<VariantSpan> &lineSpans, con
     int index = 0;
     ReverseConDirectionText(lineSpans, 0, lineSpans.size() - 1);
 
-    for (auto i = 0; i < lineSpans.size() - 1; i++) {
+    for (auto i = 0; i < static_cast<int>(lineSpans.size()) - 1; i++) {
         if (lineSpans[i].GetVisibleWidth() == 0 || lineSpans[i + 1].GetVisibleWidth() == 0 ||
             lineSpans[i].IsRTL() == lineSpans[i + 1].IsRTL()) {
             isConDirection = true;

@@ -31,6 +31,10 @@ std::shared_ptr<PathEffectCmdList> PathEffectCmdList::CreateFromData(const CmdLi
 
 std::shared_ptr<PathEffect> PathEffectCmdList::Playback() const
 {
+    if (opAllocator_.GetSize() == 0) {
+        return nullptr;
+    }
+
     int32_t offset = 0;
     std::shared_ptr<PathEffect> pe = nullptr;
     do {
@@ -41,6 +45,8 @@ std::shared_ptr<PathEffect> PathEffectCmdList::Playback() const
         }
 
         switch (itemPtr->GetType()) {
+            case PathEffectOpItem::OPITEM_HEAD:
+                break;
             case PathEffectOpItem::CREATE_DASH:
                 pe = static_cast<CreateDashPathEffectOpItem*>(itemPtr)->Playback(*this);
                 break;

@@ -55,6 +55,7 @@ ohos_shared_library("libtexgine") {
       "src/dynamic_font_style_set.cpp",
       "src/font_collection.cpp",
       "src/font_config.cpp",
+      "src/font_manager.cpp",
       "src/font_parser.cpp",
       "src/font_providers.cpp",
       "src/font_styles.cpp",

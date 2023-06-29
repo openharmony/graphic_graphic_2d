@@ -16,6 +16,8 @@
 #ifndef CMD_LIST_H
 #define CMD_LIST_H
 
+#include <optional>
+
 #include "draw/color.h"
 #include "recording/op_item.h"
 #include "recording/mem_allocator.h"
@@ -79,11 +81,15 @@ public:
         if (op == nullptr) {
             return;
         }
-        if (lastOpItem_ != nullptr) {
-            int offset = opAllocator_.AddrToOffset(op);
-            lastOpItem_->SetNextOpItemOffset(offset);
+
+        int32_t offset = opAllocator_.AddrToOffset(op);
+        if (lastOpItemOffset_.has_value()) {
+            auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.value()));
+            if (lastOpItem != nullptr) {
+                lastOpItem->SetNextOpItemOffset(offset);
+            }
         }
-        lastOpItem_ = op;
+        lastOpItemOffset_.emplace(offset);
     }
 
     /*
@@ -91,7 +97,7 @@ public:
      * @param src   A contiguous buffers.
      * @return      Returns the offset of the contiguous buffers and CmdList head point.
      */
-    int AddCmdListData(const CmdListData& data);
+    int32_t AddCmdListData(const CmdListData& data);
 
     const void* GetCmdListData(uint32_t offset) const;
 
@@ -102,7 +108,7 @@ public:
 
     // using for recording, should to remove after using shared memory
     bool SetUpImageData(const void* data, size_t size);
-    int AddImageData(const void* data, size_t size);
+    int32_t AddImageData(const void* data, size_t size);
     const void* GetImageData(uint32_t offset) const;
     CmdListData GetAllImageData() const;
 
@@ -114,7 +120,7 @@ public:
 protected:
     MemAllocator opAllocator_;
     MemAllocator imageAllocator_;
-    OpItem* lastOpItem_ = nullptr;
+    std::optional<int32_t> lastOpItemOffset_ = std::nullopt;
     std::mutex mutex_;
 };
 } // namespace Drawing

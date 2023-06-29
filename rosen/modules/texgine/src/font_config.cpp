@@ -16,6 +16,7 @@
 #include "font_config.h"
 
 #include <dirent.h>
+#include <fstream>
 #include <libgen.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -40,23 +41,35 @@ FontConfig::FontConfig(const char* fname)
     }
 }
 
-char* FontConfig::GetFileData(const char* fname, int& size) const
+char* FontConfig::GetFileData(const char* fname, int& size)
 {
-    FILE* fp = fopen(fname, "r");
-    if (fp == nullptr) {
-        return nullptr;
-    }
-    fseek(fp, 0L, SEEK_END);
-    size = ftell(fp) + 1;
-    rewind(fp);
-    char* data = new char[size]();
-    if (data == nullptr) {
+    std::ifstream file(fname);
+    if (file.good()) {
+        FILE* fp = fopen(fname, "r");
+        if (fp == nullptr) {
+            return nullptr;
+        }
+        fseek(fp, 0L, SEEK_END);
+        size = ftell(fp) + 1;
+        rewind(fp);
+        char* data = static_cast<char*>(malloc(size));
+        if (data == nullptr) {
+            fclose(fp);
+            return nullptr;
+        }
+        if (memset_s(data, size, 0, size) != EOK) {
+            LOGSO_FUNC_LINE(ERROR) << "memset failed";
+            free(data);
+            data = nullptr;
+            fclose(fp);
+            return nullptr;
+        }
+        (void)fread(data, size, 1, fp);
         fclose(fp);
-        return nullptr;
+        return data;
     }
-    (void)fread(data, size, 1, fp);
-    fclose(fp);
-    return data;
+
+    return nullptr;
 }
 
 int FontConfig::CheckConfigFile(const char* fname, Json::Value& root) const
@@ -71,7 +84,7 @@ int FontConfig::CheckConfigFile(const char* fname, Json::Value& root) const
     Json::CharReaderBuilder charReaderBuilder;
     std::unique_ptr<Json::CharReader> jsonReader(charReaderBuilder.newCharReader());
     bool isJson = jsonReader->parse(data, data + size, &root, &errs);
-    delete[] data;
+    free(data);
     data = nullptr;
 
     if (!isJson || !errs.empty()) {
@@ -103,10 +116,10 @@ int FontConfig::ParseConfig(const char* fname)
         LOGSO_FUNC_LINE(ERROR) << "check config file failed";
         return err;
     }
-    const char* key = "font";
-    if (root.isMember(key)) {
-        if (root[key].isArray()) {
-            ParseFont(root[key]);
+    const char* tag = "font";
+    if (root.isMember(tag)) {
+        if (root[tag].isArray()) {
+            ParseFont(root[tag]);
         } else {
             LOGSO_FUNC_LINE(ERROR) << "not array";
             return FAILED;

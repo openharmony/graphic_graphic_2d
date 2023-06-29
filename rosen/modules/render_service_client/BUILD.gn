@@ -69,6 +69,7 @@ template("render_service_client_source_set") {
       "core/modifier/rs_modifier_manager_map.cpp",
       "core/modifier/rs_property.cpp",
       "core/modifier/rs_property_modifier.cpp",
+      "core/modifier/rs_showing_properties_freezer.cpp",
 
       #jank_detector
       "core/jank_detector/rs_jank_detector.cpp",
@@ -137,6 +138,7 @@ template("render_service_client_source_set") {
         "c_utils:utils",
         "hisysevent_native:libhisysevent",
         "hitrace_native:hitrace_meter",
+        "multimedia_image_framework:image_native",
       ]
 
       if (accessibility_enable) {
@@ -175,6 +177,9 @@ template("render_service_client_source_set") {
     }
 
     public_configs = [ ":render_service_client_config" ]
+
+    part_name = "graphic_standard"
+    subsystem_name = "graphic"
   }
 }
 

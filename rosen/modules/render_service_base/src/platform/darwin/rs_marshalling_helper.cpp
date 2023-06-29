@@ -407,25 +407,31 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
     return {};
 }
 
-#define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                    \
-    template<typename T>                                                                           \
-    bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<T>>& val) \
-    {                                                                                              \
-        return parcel.WriteUint64(val->GetId()) && Marshalling(parcel, val->Get());                \
-    }                                                                                              \
-    template<typename T>                                                                           \
-    bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<T>>& val)     \
-    {                                                                                              \
-        PropertyId id = 0;                                                                         \
-        if (!parcel.ReadUint64(id)) {                                                              \
-            return false;                                                                          \
-        }                                                                                          \
-        T value;                                                                                   \
-        if (!Unmarshalling(parcel, value)) {                                                       \
-            return false;                                                                          \
-        }                                                                                          \
-        val.reset(new TEMPLATE<T>(value, id));                                                     \
-        return val != nullptr;                                                                     \
+#define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                                       \
+    template<typename T>                                                                                              \
+    bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<T>>& val)                    \
+    {                                                                                                                 \
+        return parcel.WriteInt16(static_cast<int16_t>(val->GetPropertyType())) && parcel.WriteUint64(val->GetId()) && \
+               Marshalling(parcel, val->Get());                                                                       \
+    }                                                                                                                 \
+    template<typename T>                                                                                              \
+    bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<T>>& val)                        \
+    {                                                                                                                 \
+        PropertyId id = 0;                                                                                            \
+        int16_t typeId = 0;                                                                                           \
+        if (!parcel.ReadInt16(typeId)) {                                                                              \
+            return false;                                                                                             \
+        }                                                                                                             \
+        RSRenderPropertyType type = static_cast<RSRenderPropertyType>(typeId);                                        \
+        if (!parcel.ReadUint64(id)) {                                                                                 \
+            return false;                                                                                             \
+        }                                                                                                             \
+        T value;                                                                                                      \
+        if (!Unmarshalling(parcel, value)) {                                                                          \
+            return false;                                                                                             \
+        }                                                                                                             \
+        val.reset(new TEMPLATE<T>(value, id, type));                                                                  \
+        return val != nullptr;                                                                                        \
     }
 
 MARSHALLING_AND_UNMARSHALLING(RSRenderProperty)

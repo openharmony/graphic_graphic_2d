@@ -440,7 +440,7 @@ GSError ProducerSurface::GetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey
     return GSERROR_NOT_SUPPORT;
 }
 
-GSError ProducerSurface::SetTunnelHandle(const OHExtDataHandle *handle)
+GSError ProducerSurface::SetTunnelHandle(const GraphicExtDataHandle *handle)
 {
     return producer_->SetTunnelHandle(handle);
 }

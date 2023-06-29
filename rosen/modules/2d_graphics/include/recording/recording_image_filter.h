@@ -74,6 +74,11 @@ public:
     RecordingImageFilter() noexcept;
     ~RecordingImageFilter() override = default;
 
+    DrawingType GetDrawingType() const override
+    {
+        return DrawingType::RECORDING;
+    }
+
     /*
      * @brief  Gets the pointer to the ImageFilterCmdList.
      */

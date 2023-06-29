@@ -160,19 +160,74 @@ bool RSPropertiesPainter::GetGravityMatrix(Gravity gravity, RectF rect, float w,
             return true;
         }
         case Gravity::RESIZE: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
             mat.preScale(rect.width_ / w, rect.height_ / h);
             return true;
         }
         case Gravity::RESIZE_ASPECT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
             float scale = std::min(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
             mat.preScale(scale, scale);
             mat.preTranslate((rect.width_ / scale - w) / PARAM_DOUBLE, (rect.height_ / scale - h) / PARAM_DOUBLE);
             return true;
         }
+        case Gravity::RESIZE_ASPECT_TOP_LEFT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::min(rect.width_ / w, rect.height_ / h);
+            mat.preScale(scale, scale);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_BOTTOM_RIGHT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::min(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
+            mat.preScale(scale, scale);
+            mat.preTranslate(rect.width_ / scale - w, rect.height_ / scale - h);
+            return true;
+        }
         case Gravity::RESIZE_ASPECT_FILL: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
             float scale = std::max(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
             mat.preScale(scale, scale);
             mat.preTranslate((rect.width_ / scale - w) / PARAM_DOUBLE, (rect.height_ / scale - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_FILL_TOP_LEFT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::max(rect.width_ / w, rect.height_ / h);
+            mat.preScale(scale, scale);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::max(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
+            mat.preScale(scale, scale);
+            mat.preTranslate(rect.width_ / scale - w, rect.height_ / scale - h);
             return true;
         }
         default: {
@@ -225,19 +280,74 @@ bool RSPropertiesPainter::GetGravityMatrix(Gravity gravity, RectF rect, float w,
             return true;
         }
         case Gravity::RESIZE: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
             mat.PreScale(rect.width_ / w, rect.height_ / h);
             return true;
         }
         case Gravity::RESIZE_ASPECT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
             float scale = std::min(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
             mat.PreScale(scale, scale);
             mat.PreTranslate((rect.width_ / scale - w) / PARAM_DOUBLE, (rect.height_ / scale - h) / PARAM_DOUBLE);
             return true;
         }
+        case Gravity::RESIZE_ASPECT_TOP_LEFT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::min(rect.width_ / w, rect.height_ / h);
+            mat.PreScale(scale, scale);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_BOTTOM_RIGHT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::min(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
+            mat.PreScale(scale, scale);
+            mat.PreTranslate(rect.width_ / scale - w, rect.height_ / scale - h);
+            return true;
+        }
         case Gravity::RESIZE_ASPECT_FILL: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
             float scale = std::max(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
             mat.PreScale(scale, scale);
             mat.PreTranslate((rect.width_ / scale - w) / PARAM_DOUBLE, (rect.height_ / scale - h) / PARAM_DOUBLE);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_FILL_TOP_LEFT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::max(rect.width_ / w, rect.height_ / h);
+            mat.PreScale(scale, scale);
+            return true;
+        }
+        case Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT: {
+            if (ROSEN_EQ(w, 0.f) || ROSEN_EQ(h, 0.f)) {
+                return false;
+            }
+            float scale = std::max(rect.width_ / w, rect.height_ / h);
+            if (ROSEN_EQ(scale, 0.f)) {
+                return false;
+            }
+            mat.PreScale(scale, scale);
+            mat.PreTranslate(rect.width_ / scale - w, rect.height_ / scale - h);
             return true;
         }
         default: {
@@ -542,7 +652,7 @@ void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPain
 {
     skPath.offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
     Color spotColor = properties.GetShadowColor();
-    
+
     // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,
     // the function <compute_key_and_clip_bounds> in <skia/src/gpu/GrBlurUtil.cpp> for more details.
     RSAutoCanvasRestore rst(&canvas);
@@ -610,13 +720,10 @@ void RSPropertiesPainter::DrawShadowInner(
 
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
-sk_sp<SkShader> RSPropertiesPainter::MakeAlphaGradientShader(
-    const SkRect clipBounds, const std::shared_ptr<RSLinearGradientBlurPara> para)
+bool RSPropertiesPainter::GetGradientDirectionPoints(
+    SkPoint* pts, const SkRect& clipBounds, GradientDirection direction)
 {
-    std::vector<SkColor> c;
-    std::vector<SkScalar> p;
-    SkPoint pts[2];
-    switch (para->direction_) {
+    switch (direction) {
         case GradientDirection::BOTTOM: {
             pts[0].set(clipBounds.width() / 2, 0); // 2 represents middle of width;
             pts[1].set(clipBounds.width() / 2, clipBounds.height()); // 2 represents middle of width;
@@ -658,21 +765,45 @@ sk_sp<SkShader> RSPropertiesPainter::MakeAlphaGradientShader(
             break;
         }
         default: {
-            return nullptr;
+            return false;
         }
     }
+    return true;
+}
+
+sk_sp<SkShader> RSPropertiesPainter::MakeAlphaGradientShader(
+    const SkRect& clipBounds, const std::shared_ptr<RSLinearGradientBlurPara>& para)
+{
+    std::vector<SkColor> c;
+    std::vector<SkScalar> p;
+    SkPoint pts[2];
+    bool result = GetGradientDirectionPoints(pts, clipBounds, para->direction_);
+    if (!result) {
+        return nullptr;
+    }
     uint8_t ColorMax = 255;
+    uint8_t ColorMin = 0;
+    if (para->fractionStops_[0].second > 0.01) {  // 0.01 represents the fraction bias
+        c.emplace_back(SkColorSetARGB(ColorMin, ColorMax, ColorMax, ColorMax));
+        p.emplace_back(para->fractionStops_[0].second - 0.01); // 0.01 represents the fraction bias
+    }
     for (size_t i = 0; i < para->fractionStops_.size(); i++) {
         c.emplace_back(SkColorSetARGB(
             static_cast<uint8_t>(para->fractionStops_[i].first * ColorMax), ColorMax, ColorMax, ColorMax));
         p.emplace_back(para->fractionStops_[i].second);
     }
-    auto shader = SkGradientShader::MakeLinear(pts, &c[0], &p[0], para->fractionStops_.size(), SkTileMode::kClamp);
+    // 0.01 represents the fraction bias
+    if (para->fractionStops_[para->fractionStops_.size() - 1].second < (1 - 0.01)) {
+        c.emplace_back(SkColorSetARGB(ColorMin, ColorMax, ColorMax, ColorMax));
+        // 0.01 represents the fraction bias
+        p.emplace_back(para->fractionStops_[para->fractionStops_.size() - 1].second + 0.01);
+    }
+    auto shader = SkGradientShader::MakeLinear(pts, &c[0], &p[0], p.size(), SkTileMode::kClamp);
     return shader;
 }
 
 sk_sp<SkShader> RSPropertiesPainter::MakeHorizontalMeanBlurShader(
-    float radiusIn, sk_sp<SkShader> shader, sk_sp<SkShader>gradientShader)
+    float radiusIn, sk_sp<SkShader> shader, sk_sp<SkShader> gradientShader)
 {
     const char* prog = R"(
         uniform half r;
@@ -710,7 +841,7 @@ sk_sp<SkShader> RSPropertiesPainter::MakeHorizontalMeanBlurShader(
 }
 
 sk_sp<SkShader> RSPropertiesPainter::MakeVerticalMeanBlurShader(
-    float radiusIn, sk_sp<SkShader> shader, sk_sp<SkShader>gradientShader)
+    float radiusIn, sk_sp<SkShader> shader, sk_sp<SkShader> gradientShader)
 {
     const char* prog = R"(
         uniform half r;
@@ -746,6 +877,34 @@ sk_sp<SkShader> RSPropertiesPainter::MakeVerticalMeanBlurShader(
     return effect->makeShader(SkData::MakeWithCopy(
         &radiusIn, sizeof(radiusIn)), children, childCount, nullptr, false);
 }
+
+void RSPropertiesPainter::DrawHorizontalLinearGradientBlur(SkSurface* skSurface, RSPaintFilterCanvas& canvas,
+    float radius, sk_sp<SkShader> alphaGradientShader, const SkIRect& clipIPadding)
+{
+    auto image = skSurface->makeImageSnapshot(clipIPadding);
+    if (image == nullptr) {
+        return;
+    }
+    auto imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+    auto shader = MakeHorizontalMeanBlurShader(radius, imageShader, alphaGradientShader);
+    SkPaint paint;
+    paint.setShader(shader);
+    canvas.drawRect(SkRect::Make(clipIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())), paint);
+}
+
+void RSPropertiesPainter::DrawVerticalLinearGradientBlur(SkSurface* skSurface, RSPaintFilterCanvas& canvas,
+    float radius, sk_sp<SkShader> alphaGradientShader, const SkIRect& clipIPadding)
+{
+    auto image = skSurface->makeImageSnapshot(clipIPadding);
+    if (image == nullptr) {
+        return;
+    }
+    auto imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+    auto shader = MakeVerticalMeanBlurShader(radius, imageShader, alphaGradientShader);
+    SkPaint paint;
+    paint.setShader(shader);
+    canvas.drawRect(SkRect::Make(clipIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())), paint);
+}
 #endif
 
 void RSPropertiesPainter::DrawLinearGradientBlurFilter(
@@ -775,48 +934,13 @@ void RSPropertiesPainter::DrawLinearGradientBlurFilter(
         return;
     }
     float radius = para->blurRadius_ / 2;
-
-    auto image = skSurface->makeImageSnapshot(clipIPadding);
-    if (image == nullptr) {
-        return;
-    }
-    auto imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
-    auto shader = MakeHorizontalMeanBlurShader(radius, imageShader, alphaGradientShader);
-    SkPaint paint;
-    paint.setShader(shader);
     canvas.resetMatrix();
     canvas.translate(clipIPadding.left(), clipIPadding.top());
-    canvas.drawRect(SkRect::Make(clipIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())), paint);
 
-    image = skSurface->makeImageSnapshot(clipIPadding);
-    if (image == nullptr) {
-        return;
-    }
-    imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
-    shader = MakeVerticalMeanBlurShader(radius, imageShader, alphaGradientShader);
-    SkPaint paint2;
-    paint2.setShader(shader);
-    canvas.drawRect(SkRect::Make(clipIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())), paint2);
-
-    image = skSurface->makeImageSnapshot(clipIPadding);
-    if (image == nullptr) {
-        return;
-    }
-    imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
-    shader = MakeHorizontalMeanBlurShader(radius, imageShader, alphaGradientShader);
-    SkPaint paint3;
-    paint3.setShader(shader);
-    canvas.drawRect(SkRect::Make(clipIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())), paint3);
-
-    image = skSurface->makeImageSnapshot(clipIPadding);
-    if (image == nullptr) {
-        return;
-    }
-    imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
-    shader = MakeVerticalMeanBlurShader(radius, imageShader, alphaGradientShader);
-    SkPaint paint4;
-    paint4.setShader(shader);
-    canvas.drawRect(SkRect::Make(clipIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())), paint4);
+    DrawHorizontalLinearGradientBlur(skSurface, canvas, radius, alphaGradientShader, clipIPadding);
+    DrawVerticalLinearGradientBlur(skSurface, canvas, radius, alphaGradientShader, clipIPadding);
+    DrawHorizontalLinearGradientBlur(skSurface, canvas, radius, alphaGradientShader, clipIPadding);
+    DrawVerticalLinearGradientBlur(skSurface, canvas, radius, alphaGradientShader, clipIPadding);
 #endif
 }
 
@@ -1254,10 +1378,10 @@ SkColor RSPropertiesPainter::CalcAverageColor(sk_sp<SkImage> imageSnapshot)
     return SkColor4f::FromBytes_RGBA(pixel[0]).toSkColor();
 }
 #else
-Drawing::Color RSPropertiesPainter::CalcAverageColor(std::shared_ptr<Drawing::Image> imageSnapshot)
+Drawing::ColorQuad RSPropertiesPainter::CalcAverageColor(std::shared_ptr<Drawing::Image> imageSnapshot)
 {
     // create a 1x1 SkPixmap
-    return Drawing::Color();
+    return Drawing::ColorQuad();
 }
 #endif
 
@@ -1388,7 +1512,6 @@ void RSPropertiesPainter::DrawFrame(
         canvas.ConcatMatrix(mat);
     }
     auto frameRect = Rect2DrawingRect(properties.GetFrameRect());
-    // Generate or clear cache on demand
     cmds->Playback(canvas, &frameRect);
 }
 #endif
@@ -1513,7 +1636,6 @@ void RSPropertiesPainter::DrawForegroundColor(const RSProperties& properties, Dr
 }
 #endif
 
-
 #ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::DrawMask(const RSProperties& properties, SkCanvas& canvas, SkRect maskBounds)
 {
@@ -1569,7 +1691,7 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
     if (mask == nullptr) {
         return;
     }
-    if (mask->IsSvgMask() && !mask->GetSvgDom() && !mask->GetSVGDrawCmdList()) {
+    if (mask->IsSvgMask() && !mask->GetSvgDom() && !mask->GetSvgPicture()) {
         ROSEN_LOGD("RSPropertiesPainter::DrawMask not has Svg Mask property");
         return;
     }
@@ -1582,9 +1704,7 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
     Drawing::Brush maskfilter;
     Drawing::Filter filter;
     filter.SetColorFilter(Drawing::ColorFilter::CreateComposeColorFilter(
-        *(Drawing::ColorFilter::CreateLumaColorFilter()),
-        *(Drawing::ColorFilter::CreateSrgbGammaToLinear())
-        ));
+        *(Drawing::ColorFilter::CreateLumaColorFilter()), *(Drawing::ColorFilter::CreateSrgbGammaToLinear())));
     maskfilter.SetFilter(filter);
     Drawing::SaveLayerOps slrMask(&maskBounds, &maskfilter);
     canvas.SaveLayer(slrMask);
@@ -1593,10 +1713,9 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
         canvas.Translate(maskBounds.GetLeft() + mask->GetSvgX(), maskBounds.GetTop() + mask->GetSvgY());
         canvas.Scale(mask->GetScaleX(), mask->GetScaleY());
         if (mask->GetSvgDom()) {
-            mask->GetSvgDom()->Render(canvas);
-        } else if (mask->GetSVGDrawCmdList()) {
-            auto svgDrawCmdList = mask->GetSVGDrawCmdList();
-            svgDrawCmdList->Playback(canvas);
+            canvas.DrawSVGDOM(mask->GetSvgDom());
+        } else if (mask->GetSvgPicture()) {
+            canvas.DrawPicture(*mask->GetSvgPicture());
         }
     } else if (mask->IsGradientMask()) {
         Drawing::AutoCanvasRestore maskSave(canvas, true);

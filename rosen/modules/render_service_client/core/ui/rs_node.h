@@ -26,6 +26,7 @@
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier_extractor.h"
 #include "modifier/rs_modifier_type.h"
+#include "modifier/rs_showing_properties_freezer.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "property/rs_properties.h"
 #include "render/rs_mask.h"
@@ -43,7 +44,7 @@ namespace Rosen {
 #ifndef USE_ROSEN_DRAWING
 using DrawFunc = std::function<void(std::shared_ptr<SkCanvas>)>;
 #else
-using DrawFunc = std::function<void(std::shared_ptr<Drawing::RecordingCanvas>)>;
+using DrawFunc = std::function<void(std::shared_ptr<Drawing::Canvas>)>;
 #endif
 using PropertyCallback = std::function<void()>;
 class RSAnimation;
@@ -100,6 +101,7 @@ public:
     virtual void DrawOnNode(RSModifierType type, DrawFunc func) {} // [PLANNING]: support SurfaceNode
 
     const RSModifierExtractor& GetStagingProperties() const;
+    const RSShowingPropertiesFreezer& GetShowingProperties() const;
 
     template<typename ModifierName, typename PropertyName, typename T>
     void SetProperty(RSModifierType modifierType, T value);
@@ -276,6 +278,7 @@ private:
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void FinishAnimationByProperty(const PropertyId& id);
+    void CancelAnimationByProperty(const PropertyId& id);
     const std::shared_ptr<RSModifier> GetModifier(const PropertyId& propertyId);
     virtual void OnBoundsSizeChanged() const {};
     void UpdateModifierMotionPathOption();
@@ -294,6 +297,7 @@ private:
     bool isNodeGroup_ = false;
 
     RSModifierExtractor stagingPropertiesExtractor_;
+    RSShowingPropertiesFreezer showingPropertiesFreezer_;
     std::unordered_map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
     std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
     std::shared_ptr<RectF> drawRegion_;
@@ -323,6 +327,7 @@ private:
     friend class RSModifierExtractor;
     friend class RSModifier;
     friend class RSGeometryTransModifier;
+    friend class RSShowingPropertiesFreezer;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -61,6 +61,11 @@ public:
 
     virtual ~ColorSpace() = default;
     ColorSpaceType GetType() const;
+    virtual DrawingType GetDrawingType() const
+    {
+        return DrawingType::COMMON;
+    }
+
     template<typename T>
     const std::shared_ptr<T> GetImpl() const
     {

@@ -34,54 +34,54 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 namespace {
-void DumpLineMetrics(std::vector<LineMetrics> &lineMetrics)
+void DumpLineMetrics(const std::vector<LineMetrics> &lineMetrics)
 {
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "DumpLineMetrics");
-    for (auto &metric : lineMetrics) {
-        for (auto &span : metric.lineSpans) {
+    for (const auto &metric : lineMetrics) {
+        for (const auto &span : metric.lineSpans) {
             span.Dump();
         }
     }
 }
 } // namespace
 
-std::vector<LineMetrics> Shaper::DoShape(std::vector<VariantSpan> spans, const TypographyStyle &ys,
+std::vector<LineMetrics> Shaper::DoShape(std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
     const std::unique_ptr<FontProviders> &fontProviders, const double widthLimit)
 {
     ScopedTrace scope("Shaper::DoShape");
     TextBreaker tb;
-    auto ret = tb.WordBreak(spans, ys, fontProviders);
+    auto ret = tb.WordBreak(spans, tstyle, fontProviders);
     if (ret) {
         LOGEX_FUNC_LINE(ERROR) << "word break failed";
         return {};
     }
 
     BidiProcesser bp;
-    auto newSpans = bp.ProcessBidiText(spans, ys.direction);
+    auto newSpans = bp.ProcessBidiText(spans, tstyle.direction);
     if (newSpans.empty()) {
         LOGEX_FUNC_LINE(ERROR) << "Process BidiText failed";
         return {};
     }
 
     LineBreaker lb;
-    auto lineMetrics = lb.BreakLines(newSpans, ys, widthLimit);
+    auto lineMetrics = lb.BreakLines(newSpans, tstyle, widthLimit);
 
     TextMerger tm;
     for (auto &metric : lineMetrics) {
-        auto ret = tm.MergeSpans(metric.lineSpans);
-        std::swap(ret, metric.lineSpans);
+        auto res = tm.MergeSpans(metric.lineSpans);
+        std::swap(res, metric.lineSpans);
     }
 
     TextReverser tr;
     for (auto &metric : lineMetrics) {
         tr.ReverseRTLText(metric.lineSpans);
-        tr.ProcessTypoDirection(metric.lineSpans, ys.direction);
+        tr.ProcessTypoDirection(metric.lineSpans, tstyle.direction);
     }
 
     TextShaper textShaper;
     for (const auto &metric : lineMetrics) {
         for (const auto &span : metric.lineSpans) {
-            textShaper.Shape(span, ys, fontProviders);
+            textShaper.Shape(span, tstyle, fontProviders);
         }
     }
     DumpLineMetrics(lineMetrics);

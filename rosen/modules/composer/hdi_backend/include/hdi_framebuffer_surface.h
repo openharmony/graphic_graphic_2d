@@ -44,6 +44,7 @@ public:
     static sptr<HdiFramebufferSurface> CreateFramebufferSurface();
     sptr<OHOS::Surface> GetSurface();
     std::unique_ptr<FrameBufferEntry> GetFramebuffer();
+    uint32_t GetBufferQueueSize();
     int32_t ReleaseFramebuffer(
         sptr<SurfaceBuffer> &buffer, const sptr<SyncFence> &releaseFence);
 

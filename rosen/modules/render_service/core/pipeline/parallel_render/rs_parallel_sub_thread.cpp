@@ -22,9 +22,9 @@
 #include <sys/resource.h>
 #include <sys/ioctl.h>
 #include "GLES3/gl3.h"
-#include "SkCanvas.h"
-#include "SkColor.h"
-#include "SkRect.h"
+#include "include/core/SkCanvas.h"
+#include "include/core/SkColor.h"
+#include "include/core/SkRect.h"
 #include "EGL/egl.h"
 #include "rs_trace.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -120,16 +120,6 @@ void RSParallelSubThread::MainLoop()
                 StartComposition();
                 Composition();
                 RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
-                break;
-            }
-            case TaskType::CACHE_TASK: {
-                RS_TRACE_BEGIN("SubThreadCacheProcess[" + std::to_string(threadIndex_) + "]");
-                StartRenderCache();
-                RenderCache();
-                if (threadTask_ == nullptr || RSMainThread::Instance()->GetFrameCount() == threadTask_->GetFrameCount()) {
-                    RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
-                }
-                RS_TRACE_END();
                 break;
             }
             default: {
@@ -267,99 +257,6 @@ void RSParallelSubThread::CalcCost()
         RSParallelRenderManager::Instance()->StopTimingAndSetRenderTaskCost(
             threadIndex_, task->GetIdx(), TaskType::CALC_COST_TASK);
     }
-}
-
-void RSParallelSubThread::StartRenderCache()
-{
-    visitor_ = std::make_shared<RSUniRenderVisitor>();
-    visitor_->SetSubThreadConfig(threadIndex_);
-    threadTask_ = nullptr;
-    threadTask_ = std::move(cacheThreadTask_);
-}
-
-void RSParallelSubThread::RenderCache()
-{
-    if (threadTask_ == nullptr) {
-        return;
-    }
-#ifdef RS_ENABLE_GL
-    while (threadTask_->GetTaskSize() > 0) {
-        auto task = threadTask_->GetNextRenderTask();
-        if (!task || (task->GetIdx() == 0)) {
-            RS_LOGE("renderTask is nullptr");
-            continue;
-        }
-        auto node = task->GetNode();
-        if (!node) {
-            RS_LOGE("surfaceNode is nullptr");
-            continue;
-        }
-        auto surfaceNodePtr = node->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (!surfaceNodePtr) {
-            RS_LOGE("RenderCache ReinterpretCastTo fail");
-            continue;
-        }
-        // flag CacheSurfaceProcessed is used for cacheCmdskippedNodes collection in rs_mainThread
-        surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
-        if (surfaceNodePtr->NeedClear()) {
-            surfaceNodePtr->SetNeedClearFlag(false);
-            surfaceNodePtr->ClearCacheSurface();
-            surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DONE);
-            RSParallelRenderManager::Instance()->NodeTaskNotify(node->GetId());
-            continue;
-        }
-
-        if (RSMainThread::Instance()->GetFrameCount() != threadTask_->GetFrameCount()) {
-            surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
-            continue;
-        }
-
-        RS_TRACE_NAME_FMT("draw cache render node: [%s, %llu]", surfaceNodePtr->GetName().c_str(),
-            surfaceNodePtr->GetId());
-        if (surfaceNodePtr->GetCacheSurface() == nullptr) {
-            if (grContext_ == nullptr) {
-                grContext_ = CreateShareGrContext();
-            }
-            if (grContext_ == nullptr) {
-                RS_LOGE("Share GrContext is not ready!!!");
-                return;
-            }
-            surfaceNodePtr->InitCacheSurface(grContext_.get());
-        }
-
-        bool needNotify = !surfaceNodePtr->HasCachedTexture();
-        node->Process(visitor_);
-#ifndef NEW_SKIA
-        auto skCanvas = surfaceNodePtr->GetCacheSurface() ? surfaceNodePtr->GetCacheSurface()->getCanvas() : nullptr;
-        if (skCanvas) {
-            RS_TRACE_NAME_FMT("render cache flush, %s", surfaceNodePtr->GetName().c_str());
-            skCanvas->flush();
-        } else {
-            RS_LOGE("skCanvas is nullptr, flush failed");
-        }
-#else
-        RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
-        surfaceNodePtr->GetCacheSurface()->flushAndSubmit(false);
-#endif
-        surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DONE);
-
-        if (needNotify) {
-            RSParallelRenderManager::Instance()->NodeTaskNotify(node->GetId());
-        }
-    }
-#ifdef NEW_RENDER_CONTEXT
-    auto frame = renderContext_->GetRSRenderSurfaceFrame();
-    EGLDisplay eglDisplay = frame->eglState->eglDisplay;
-    eglSync_ = eglCreateSyncKHR(eglDisplay, EGL_SYNC_FENCE_KHR, nullptr);
-#else
-    eglSync_ = eglCreateSyncKHR(renderContext_->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
-#endif
-#endif
-}
-
-void RSParallelSubThread::AddSuperTask(std::unique_ptr<RSSuperRenderTask> superRenderTask)
-{
-    cacheThreadTask_ = std::move(superRenderTask);
 }
 
 void RSParallelSubThread::StartRender()
@@ -652,10 +549,6 @@ sk_sp<GrContext> RSParallelSubThread::CreateShareGrContext()
 std::shared_ptr<Drawing::GPUContext> RSParallelSubThread::CreateShareGPUContext()
 {
     auto drGPUContext = std::make_shared<Drawing::GPUContext>();
-    if (drGPUContext == nullptr) {
-        RS_LOGE("nullptr grContext is null");
-        return nullptr;
-    }
     Drawing::GPUContextOptions options;
     drGPUContext->BuildFromGL(options);
     return drGPUContext;
@@ -668,7 +561,7 @@ void RSParallelSubThread::AcquireSubSkSurface(int width, int height)
     if (grContext_ == nullptr) {
         grContext_ = CreateShareGrContext();
     }
-    
+
     if (grContext_ == nullptr) {
         RS_LOGE("Share GrContext is not ready!!!");
         return;
@@ -701,11 +594,11 @@ void RSParallelSubThread::AcquireSubDrawingSurface(int width, int height)
     image.BuildFromBitmap(*drContext_, bitmap);
 
     surface_ = std::make_shared<Drawing::Surface>();
-    if (surface_ == nullptr) {
-        RS_LOGE("skSurface is not ready!!!");
+    if (!surface_->Bind(image)) {
+        RS_LOGE("surface is not ready!!!");
+        surface_ = nullptr;
         return;
     }
-    surface_->Bind(image);
 }
 #endif
 
@@ -730,7 +623,7 @@ void RSParallelSubThread::Composition()
         RS_LOGE("compositionTask is nullptr or displayNodeId is 0");
         return;
     }
-    
+
     auto node = compositionTask_->GetNode();
     if (node == nullptr || compositionVisitor_ == nullptr) {
         RS_LOGE("displayNode or visitor is nullptr.");

@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#include <SkString.h>
-#include <SkTraceMemoryDump.h>
 #include <unordered_map>
 #include <vector>
 
+#include "include/core/SkString.h"
+#include "include/core/SkTraceMemoryDump.h"
 #include "memory/rs_dfx_string.h"
 
 namespace OHOS::Rosen {

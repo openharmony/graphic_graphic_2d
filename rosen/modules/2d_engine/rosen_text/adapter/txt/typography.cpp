@@ -46,9 +46,8 @@ bool Boundary::operator ==(const Boundary& rhs) const
 }
 
 namespace AdapterTxt {
-Typography::Typography(std::unique_ptr<txt::Paragraph> paragraph)
+Typography::Typography(std::unique_ptr<txt::Paragraph> paragraph): paragraph_(std::move(paragraph))
 {
-    paragraph_ = std::move(paragraph);
 }
 
 double Typography::GetMaxWidth() const

@@ -70,15 +70,16 @@ public:
     static void ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isUIFirst);
     static void ClearNodeCacheSurface(sk_sp<SkSurface> cacheSurface, sk_sp<SkSurface> cacheCompletedSurface,
         uint32_t threadIndex);
-
+    static void CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& oldSubThreadNodes,
+        std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
 private:
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
-        const std::shared_ptr<RSSurfaceRenderNode>& node,
-        std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
+        const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
         const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     static void HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node);
+    static void ClearCacheSurface(const std::shared_ptr<RSSurfaceRenderNode>& node, uint32_t threadIndex);
 };
 }
 }

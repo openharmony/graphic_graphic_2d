@@ -69,10 +69,10 @@ private:
 
 class RSSuperRenderTask : public RSRenderTaskBase {
 public:
-    explicit RSSuperRenderTask(RSDisplayRenderNode &node) :
-        RSRenderTaskBase(node.shared_from_this()) {}
-    explicit RSSuperRenderTask(std::shared_ptr<RSBaseRenderNode> node, uint64_t frameCount = 0) :
-        RSRenderTaskBase(node), frameCount_(frameCount) {}
+    explicit RSSuperRenderTask(RSDisplayRenderNode &node)
+        : RSRenderTaskBase(node.shared_from_this()) {}
+    explicit RSSuperRenderTask(std::shared_ptr<RSBaseRenderNode> node, uint64_t frameCount = 0)
+        : RSRenderTaskBase(node), frameCount_(frameCount) {}
     ~RSSuperRenderTask() override;
 
     void AddTask(std::unique_ptr<RSRenderTask> &&task);

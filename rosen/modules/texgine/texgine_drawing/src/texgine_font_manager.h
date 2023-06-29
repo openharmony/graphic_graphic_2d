@@ -52,7 +52,7 @@ public:
      * @return Will return nullptr if no family can be found
      */
     std::shared_ptr<TexgineTypeface> MatchFamilyStyleCharacter(const std::string &familyName,
-        TexgineFontStyle& style, const char* bcp47[], int bcp47Count, int32_t character);
+        const TexgineFontStyle &style, const char* bcp47[], int bcp47Count, int32_t character);
 
     /*
      * @brief Get the font style set

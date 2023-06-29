@@ -31,6 +31,10 @@ std::shared_ptr<ColorFilterCmdList> ColorFilterCmdList::CreateFromData(const Cmd
 
 std::shared_ptr<ColorFilter> ColorFilterCmdList::Playback() const
 {
+    if (opAllocator_.GetSize() == 0) {
+        return nullptr;
+    }
+
     int32_t offset = 0;
     std::shared_ptr<ColorFilter> cf = nullptr;
     do {
@@ -41,6 +45,8 @@ std::shared_ptr<ColorFilter> ColorFilterCmdList::Playback() const
         }
 
         switch (itemPtr->GetType()) {
+            case ColorFilterOpItem::OPITEM_HEAD:
+                break;
             case ColorFilterOpItem::CREATE_BLEND_MODE:
                 cf = static_cast<CreateBlendModeOpItem*>(itemPtr)->Playback();
                 break;

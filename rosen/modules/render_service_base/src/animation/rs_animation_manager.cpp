@@ -52,6 +52,11 @@ void RSAnimationManager::RemoveAnimation(AnimationId keyId)
     animations_.erase(animationItr);
 }
 
+void RSAnimationManager::CancelAnimationByPropertyId(PropertyId id)
+{
+    EraseIf(animations_, [id](const auto& pair) { return (pair.second && (pair.second->GetPropertyId() == id)); });
+}
+
 void RSAnimationManager::FilterAnimationByPid(pid_t pid)
 {
     ROSEN_LOGI("RSAnimationManager::FilterAnimationByPid removing all animations belong to pid %d", pid);
@@ -130,6 +135,28 @@ std::shared_ptr<RSRenderAnimation> RSAnimationManager::QuerySpringAnimation(Prop
 {
     auto it = springAnimations_.find(propertyId);
     if (it == springAnimations_.end() || it->second == 0) {
+        return nullptr;
+    }
+    return GetAnimation(it->second);
+}
+
+void RSAnimationManager::RegisterPathAnimation(PropertyId propertyId, AnimationId animId)
+{
+    pathAnimations_[propertyId] = animId;
+}
+
+void RSAnimationManager::UnregisterPathAnimation(PropertyId propertyId, AnimationId animId)
+{
+    auto it = pathAnimations_.find(propertyId);
+    if (it != pathAnimations_.end() && it->second == animId) {
+        pathAnimations_.erase(it);
+    }
+}
+
+std::shared_ptr<RSRenderAnimation> RSAnimationManager::QueryPathAnimation(PropertyId propertyId)
+{
+    auto it = pathAnimations_.find(propertyId);
+    if (it == pathAnimations_.end() || it->second == 0) {
         return nullptr;
     }
     return GetAnimation(it->second);

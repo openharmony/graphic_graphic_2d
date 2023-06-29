@@ -48,6 +48,9 @@ const uint32_t STUB_PIXEL_FMT_RGBA_16161616 = 0X7fff0001;
 const uint32_t STUB_PIXEL_FMT_RGBA_1010102 = 0X7fff0002;
 constexpr uint32_t MATRIX_SIZE = 20; // colorMatrix size
 constexpr int BITMAP_DEPTH = 8;
+#ifdef USE_ROSEN_DRAWING
+constexpr int BYTES_PER_PIXEL = 4;
+#endif
 
 inline constexpr float PassThrough(float v)
 {
@@ -1598,6 +1601,19 @@ bool RSBaseRenderUtil::WriteCacheRenderNodeToPng(const RSRenderNode& node)
     param.stride = static_cast<uint32_t>(bitmap.rowBytes());
     param.bitDepth = Detail::BITMAP_DEPTH;
 #else
+    auto image = surface->GetImageSnapshot();
+    if (!image) {
+        return false;
+    }
+    Drawing::BitmapFormat format = { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::Bitmap bitmap;
+    bitmap.Build(image->GetWidth(), image->GetHeight(), format);
+    image->ReadPixels(bitmap, 0, 0);
+    param.width = static_cast<uint32_t>(image->GetWidth());
+    param.height = static_cast<uint32_t>(image->GetHeight());
+    param.data = static_cast<uint8_t *>(bitmap.GetPixels());
+    param.stride = static_cast<uint32_t>(image->GetWidth() * Detail::BYTES_PER_PIXEL);
+    param.bitDepth = Detail::BITMAP_DEPTH;
 #endif
 
     return WriteToPng(filename, param);
@@ -1752,7 +1768,7 @@ GraphicTransformType RSBaseRenderUtil::RotateEnumToInt(int angle, GraphicTransfo
     static const std::map<int, GraphicTransformType> intToEnumMap = {
         {0, GraphicTransformType::GRAPHIC_ROTATE_NONE}, {90, GraphicTransformType::GRAPHIC_ROTATE_270},
         {180, GraphicTransformType::GRAPHIC_ROTATE_180}, {270, GraphicTransformType::GRAPHIC_ROTATE_90}};
-     static const std::map<std::pair<int, GraphicTransformType>, GraphicTransformType> pairToEnumMap = {
+    static const std::map<std::pair<int, GraphicTransformType>, GraphicTransformType> pairToEnumMap = {
         {{0, GraphicTransformType::GRAPHIC_FLIP_H}, GraphicTransformType::GRAPHIC_FLIP_H},
         {{0, GraphicTransformType::GRAPHIC_FLIP_V}, GraphicTransformType::GRAPHIC_FLIP_V},
         {{90, GraphicTransformType::GRAPHIC_FLIP_H}, GraphicTransformType::GRAPHIC_FLIP_V_ROT90},
