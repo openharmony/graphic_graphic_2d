@@ -29,12 +29,14 @@ class RSB_EXPORT RSLightUpEffectFilter : public RSDrawingFilter {
 #endif
 public:
     RSLightUpEffectFilter(float lightUpDegree);
+    RSLightUpEffectFilter(const RSLightUpEffectFilter&) = delete;
+    RSLightUpEffectFilter operator=(const RSLightUpEffectFilter&) = delete;
     ~RSLightUpEffectFilter() override;
     float GetLightUpDegree();
 #ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& inner) override;
+    std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& other) const override;
 #else
-    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& inner) override;
+    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const override;
 #endif
     std::string GetDescription() override;
 

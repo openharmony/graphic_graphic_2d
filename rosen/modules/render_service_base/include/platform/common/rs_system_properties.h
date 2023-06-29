@@ -110,6 +110,8 @@ public:
     static bool GetColdStartThreadEnabled();
     static float GetAnimationScale();
     static bool GetProxyNodeDebugEnabled();
+    static bool GetFilterCacheEnabled();
+    static int GetFilterCacheUpdateInterval();
     static bool GetSkipForAlphaZeroEnabled();
 
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);

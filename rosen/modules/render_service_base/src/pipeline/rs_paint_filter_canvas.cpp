@@ -329,7 +329,7 @@ RSPaintFilterCanvas::RSPaintFilterCanvas(SkCanvas* canvas, float alpha)
       alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
       // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
       envStack_({ Env({ Color(0xFF000000) }) }), // construct stack with default foreground color
-      effectStack_({ CacheEffectData {} })
+      effectStack_({ CachedEffectData {} })
 {}
 
 RSPaintFilterCanvas::RSPaintFilterCanvas(SkSurface* skSurface, float alpha)
@@ -337,7 +337,7 @@ RSPaintFilterCanvas::RSPaintFilterCanvas(SkSurface* skSurface, float alpha)
       alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
       // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
       envStack_({ Env({ Color(0xFF000000) }) }), // construct stack with default foreground color
-      effectStack_({ CacheEffectData {} })
+      effectStack_({ CachedEffectData {} })
 {}
 
 SkSurface* RSPaintFilterCanvas::GetSurface() const
@@ -799,7 +799,7 @@ SkCanvas::SaveLayerStrategy RSPaintFilterCanvas::getSaveLayerStrategy(const Save
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-void RSPaintFilterCanvas::SetEffectData(const CacheEffectData& effectData)
+void RSPaintFilterCanvas::SetEffectData(const CachedEffectData& effectData)
 {
     effectStack_.top() = effectData;
 }
@@ -809,7 +809,7 @@ void RSPaintFilterCanvas::SetChildrenPath(const SkPath& childrenPath)
     effectStack_.top().childrenPath_ = childrenPath;
 }
 
-const CacheEffectData& RSPaintFilterCanvas::GetEffectData() const
+const CachedEffectData& RSPaintFilterCanvas::GetEffectData() const
 {
     return effectStack_.top();
 }

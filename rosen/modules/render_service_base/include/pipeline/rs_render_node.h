@@ -64,11 +64,10 @@ public:
     }
 
     std::pair<bool, bool> Animate(int64_t timestamp) override;
-    // PrepareCanvasRenderNode in UniRender
-    bool Update(
-        RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty, RectI clipRect);
-    // Other situation
-    bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty);
+
+    // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
+    bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty,
+        std::optional<RectI> clipRect = std::nullopt);
 #ifndef USE_ROSEN_DRAWING
     virtual std::optional<SkRect> GetContextClipRegion() const { return std::nullopt; }
 #else
@@ -432,12 +431,7 @@ private:
     void FallbackAnimationsToRoot();
     void FilterModifiersByPid(pid_t pid);
 
-    // clipRect only used in UniRener when calling PrepareCanvasRenderNode
-    // PrepareCanvasRenderNode in UniRender: needClip = true and clipRect is meaningful
-    // Other situation: needClip = false and clipRect is meaningless
-    bool Update(RSDirtyRegionManager& dirtyManager,
-        const RSProperties* parent, bool parentDirty, bool needClip, RectI clipRect);
-    void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, bool needClip, RectI clipRect);
+    void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect);
 
     bool isDirtyRegionUpdated_ = false;
     bool isLastVisible_ = false;

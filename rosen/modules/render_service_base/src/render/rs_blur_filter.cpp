@@ -13,8 +13,11 @@
  * limitations under the License.
  */
 
-#include "common/rs_common_def.h"
 #include "render/rs_blur_filter.h"
+
+#include "src/core/SkOpts.h"
+
+#include "common/rs_common_def.h"
 
 #ifndef USE_ROSEN_DRAWING
 #if defined(NEW_SKIA)
@@ -24,6 +27,7 @@
 #include "include/effects/SkBlurImageFilter.h"
 #endif
 #endif
+
 namespace OHOS {
 namespace Rosen {
 #ifndef USE_ROSEN_DRAWING
@@ -33,6 +37,10 @@ RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(S
     blurRadiusY_(blurRadiusY)
 {
     type_ = FilterType::BLUR;
+
+    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
+    hash_ = SkOpts::hash(&blurRadiusX, sizeof(blurRadiusX), hash_);
+    hash_ = SkOpts::hash(&blurRadiusY, sizeof(blurRadiusY), hash_);
 }
 #else
 RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(SkBlurImageFilter::Make(blurRadiusX,
@@ -40,6 +48,10 @@ RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(S
     blurRadiusY_(blurRadiusY)
 {
     type_ = FilterType::BLUR;
+
+    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
+    hash_ = SkOpts::hash(&blurRadiusX, sizeof(blurRadiusX), hash_);
+    hash_ = SkOpts::hash(&blurRadiusY, sizeof(blurRadiusY), hash_);
 }
 #endif
 #else
@@ -49,10 +61,14 @@ RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY) : RSDrawingFilt
     blurRadiusY_(blurRadiusY)
 {
     type_ = FilterType::BLUR;
+
+    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
+    hash_ = SkOpts::hash(&blurRadiusX, sizeof(blurRadiusX), hash_);
+    hash_ = SkOpts::hash(&blurRadiusY, sizeof(blurRadiusY), hash_);
 }
 #endif
 
-RSBlurFilter::~RSBlurFilter() {}
+RSBlurFilter::~RSBlurFilter() = default;
 
 float RSBlurFilter::GetBlurRadiusX()
 {
@@ -79,18 +95,20 @@ bool RSBlurFilter::IsValid() const
 }
 
 #ifndef USE_ROSEN_DRAWING
-std::shared_ptr<RSSkiaFilter> RSBlurFilter::Compose(const std::shared_ptr<RSSkiaFilter>& inner)
+std::shared_ptr<RSSkiaFilter> RSBlurFilter::Compose(const std::shared_ptr<RSSkiaFilter>& other) const
 #else
-std::shared_ptr<RSDrawingFilter> RSBlurFilter::Compose(const std::shared_ptr<RSDrawingFilter>& inner)
+std::shared_ptr<RSDrawingFilter> RSBlurFilter::Compose(const std::shared_ptr<RSDrawingFilter>& other) const
 #endif
 {
-    std::shared_ptr<RSBlurFilter> blur = std::make_shared<RSBlurFilter>(blurRadiusX_, blurRadiusY_);
+    std::shared_ptr<RSBlurFilter> result = std::make_shared<RSBlurFilter>(blurRadiusX_, blurRadiusY_);
 #ifndef USE_ROSEN_DRAWING
-    blur->imageFilter_ = SkImageFilters::Compose(imageFilter_, inner->GetImageFilter());
+    result->imageFilter_ = SkImageFilters::Compose(imageFilter_, other->GetImageFilter());
 #else
-    blur->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, inner->GetImageFilter());
+    result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other->GetImageFilter());
 #endif
-    return blur;
+    auto otherHash = other->Hash();
+    result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
+    return result;
 }
 
 std::shared_ptr<RSFilter> RSBlurFilter::Add(const std::shared_ptr<RSFilter>& rhs)

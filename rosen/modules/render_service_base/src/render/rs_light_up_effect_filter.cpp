@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #include "render/rs_light_up_effect_filter.h"
+
+#include "src/core/SkOpts.h"
 #ifdef USE_ROSEN_DRAWING
 #include "effect/color_matrix.h"
 #endif
@@ -27,7 +29,10 @@ RSLightUpEffectFilter::RSLightUpEffectFilter(float lightUpDegree)
 #endif
       lightUpDegree_(lightUpDegree)
 {
-    type_ = FilterType::LIGHTUPEFFECT;
+    type_ = FilterType::LIGHT_UP_EFFECT;
+
+    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
+    hash_ = SkOpts::hash(&lightUpDegree_, sizeof(lightUpDegree_), hash_);
 }
 
 RSLightUpEffectFilter::~RSLightUpEffectFilter() = default;
@@ -75,23 +80,25 @@ std::string RSLightUpEffectFilter::GetDescription()
 }
 
 #ifndef USE_ROSEN_DRAWING
-std::shared_ptr<RSSkiaFilter> RSLightUpEffectFilter::Compose(const std::shared_ptr<RSSkiaFilter>& inner)
+std::shared_ptr<RSSkiaFilter> RSLightUpEffectFilter::Compose(const std::shared_ptr<RSSkiaFilter>& other) const
 #else
-std::shared_ptr<RSDrawingFilter> RSLightUpEffectFilter::Compose(const std::shared_ptr<RSDrawingFilter>& inner)
+std::shared_ptr<RSDrawingFilter> RSLightUpEffectFilter::Compose(const std::shared_ptr<RSDrawingFilter>& other) const
 #endif
 {
-    std::shared_ptr<RSLightUpEffectFilter> lightUp = std::make_shared<RSLightUpEffectFilter>(lightUpDegree_);
+    std::shared_ptr<RSLightUpEffectFilter> result = std::make_shared<RSLightUpEffectFilter>(lightUpDegree_);
 #ifndef USE_ROSEN_DRAWING
-    lightUp->imageFilter_ = SkImageFilters::Compose(imageFilter_, inner->GetImageFilter());
+    result->imageFilter_ = SkImageFilters::Compose(imageFilter_, other->GetImageFilter());
 #else
-    lightUp->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, inner->GetImageFilter());
+    result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other->GetImageFilter());
 #endif
-    return lightUp;
+    auto otherHash = other->Hash();
+    result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
+    return result;
 }
 
 std::shared_ptr<RSFilter> RSLightUpEffectFilter::Add(const std::shared_ptr<RSFilter>& rhs)
 {
-    if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::LIGHTUPEFFECT)) {
+    if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::LIGHT_UP_EFFECT)) {
         return shared_from_this();
     }
     auto lightUpFilter = std::static_pointer_cast<RSLightUpEffectFilter>(rhs);
@@ -100,7 +107,7 @@ std::shared_ptr<RSFilter> RSLightUpEffectFilter::Add(const std::shared_ptr<RSFil
 
 std::shared_ptr<RSFilter> RSLightUpEffectFilter::Sub(const std::shared_ptr<RSFilter>& rhs)
 {
-    if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::LIGHTUPEFFECT)) {
+    if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::LIGHT_UP_EFFECT)) {
         return shared_from_this();
     }
     auto lightUpFilter = std::static_pointer_cast<RSLightUpEffectFilter>(rhs);

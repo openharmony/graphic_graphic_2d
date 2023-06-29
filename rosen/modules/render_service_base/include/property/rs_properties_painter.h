@@ -27,9 +27,7 @@
 
 namespace OHOS {
 namespace Rosen {
-#ifndef USE_ROSEN_DRAWING
-class RSSkiaFilter;
-#else
+#ifdef USE_ROSEN_DRAWING
 class RSDrawingFilter;
 #endif
 class RSPaintFilterCanvas;
@@ -49,10 +47,10 @@ public:
     static void GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties,
         const RRect* rrect = nullptr, bool isAbsCoordinate = true);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
-    static void DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
-        std::shared_ptr<RSSkiaFilter>& filter, FilterType filterType, const std::unique_ptr<SkRect>& rect = nullptr);
-    static void DrawLinearGradientBlurFilter(const RSProperties& properties,
-                                RSPaintFilterCanvas& canvas, const std::unique_ptr<SkRect>& rect);
+    static void DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas, FilterType filterType,
+        const std::optional<SkRect>& rect = std::nullopt);
+    static void DrawLinearGradientBlurFilter(
+        const RSProperties& properties, RSPaintFilterCanvas& canvas, const std::optional<SkRect>& rect = std::nullopt);
     static void DrawForegroundColor(const RSProperties& properties, SkCanvas& canvas);
     static void DrawMask(const RSProperties& properties, SkCanvas& canvas);
     static void DrawMask(const RSProperties& properties, SkCanvas& canvas, SkRect maskBounds);

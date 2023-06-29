@@ -123,6 +123,7 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_surface_render_node.cpp",
 
     #property
+    "src/property/rs_filter_cache_manager.cpp",
     "src/property/rs_properties.cpp",
     "src/property/rs_properties_painter.cpp",
     "src/property/rs_property_trace.cpp",

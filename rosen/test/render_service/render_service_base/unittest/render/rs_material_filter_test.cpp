@@ -51,8 +51,8 @@ HWTEST_F(RSMaterialFilterTest, CreateMaterialStyle001, TestSize.Level1)
     EXPECT_EQ(rsMaterialFilter.GetImageFilter(), nullptr);
 
     style = MATERIAL_BLUR_STYLE::STYLE_CARD_DARK;
-    rsMaterialFilter = RSMaterialFilter(style, dipScale, mode, ratio);
-    EXPECT_NE(rsMaterialFilter.GetImageFilter(), nullptr);
+    auto rsMaterialFilter2 = RSMaterialFilter(style, dipScale, mode, ratio);
+    EXPECT_NE(rsMaterialFilter2.GetImageFilter(), nullptr);
 }
 
 /**

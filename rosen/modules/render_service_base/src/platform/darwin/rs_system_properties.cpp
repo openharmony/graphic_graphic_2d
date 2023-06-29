@@ -150,6 +150,16 @@ bool RSSystemProperties::GetProxyNodeDebugEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetFilterCacheEnabled()
+{
+    return false;
+}
+
+int RSSystemProperties::GetFilterCacheUpdateInterval()
+{
+    return 0;
+}
+
 bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
 {
     return {};

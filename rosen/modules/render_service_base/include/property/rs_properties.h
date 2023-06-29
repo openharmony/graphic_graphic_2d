@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "include/effects/SkColorMatrix.h"
+
 #include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
@@ -33,6 +34,10 @@
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "render/rs_shadow.h"
+
+#ifndef USE_ROSEN_DRAWING
+#include "property/rs_filter_cache_manager.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -155,15 +160,15 @@ public:
     Vector4<Color> GetBorderColor() const;
     Vector4f GetBorderWidth() const;
     Vector4<uint32_t> GetBorderStyle() const;
-    std::shared_ptr<RSBorder> GetBorder() const;
+    const std::shared_ptr<RSBorder>& GetBorder() const;
 
     // filter properties
     void SetBackgroundFilter(std::shared_ptr<RSFilter> backgroundFilter);
     void SetLinearGradientBlurPara(std::shared_ptr<RSLinearGradientBlurPara> para);
     void SetFilter(std::shared_ptr<RSFilter> filter);
-    std::shared_ptr<RSFilter> GetBackgroundFilter() const;
-    std::shared_ptr<RSLinearGradientBlurPara> GetLinearGradientBlurPara() const;
-    std::shared_ptr<RSFilter> GetFilter() const;
+    const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
+    const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
+    const std::shared_ptr<RSFilter>& GetFilter() const;
     bool NeedFilter() const;
 
     // shadow properties
@@ -337,6 +342,11 @@ private:
     std::optional<float> hueRotate_;
     std::optional<Color> colorBlend_;
     sk_sp<SkColorFilter> colorFilter_ = nullptr;
+
+#ifndef USE_ROSEN_DRAWING
+    std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
+    std::unique_ptr<RSFilterCacheManager> filterCacheManager_;
+#endif
 
     friend class RSCanvasRenderNode;
     friend class RSPropertiesPainter;

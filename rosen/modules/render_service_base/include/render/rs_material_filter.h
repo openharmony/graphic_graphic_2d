@@ -66,8 +66,10 @@ class RSB_EXPORT RSMaterialFilter : public RSDrawingFilter {
 public:
     RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio);
     RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE mode);
+    RSMaterialFilter(const RSMaterialFilter&) = delete;
+    RSMaterialFilter operator=(const RSMaterialFilter&) = delete;
     ~RSMaterialFilter() override;
-    std::shared_ptr<RSFilter> TransformFilter(float fraction);
+    std::shared_ptr<RSFilter> TransformFilter(float fraction) const;
     bool IsValid() const override;
 #ifndef USE_ROSEN_DRAWING
     void PreProcess(sk_sp<SkImage> image) override;
@@ -76,9 +78,9 @@ public:
 #endif
     void PostProcess(RSPaintFilterCanvas& canvas) override;
 #ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& inner) override;
+    std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& other) const override;
 #else
-    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& inner) override;
+    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const override;
 #endif
     std::string GetDescription() override;
 
