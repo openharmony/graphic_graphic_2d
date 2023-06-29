@@ -369,12 +369,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
         RSPropertiesPainter::DrawBackground(property, *canvas_);
         RSPropertiesPainter::DrawMask(property, *canvas_);
 #ifndef USE_ROSEN_DRAWING
-        auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
-        if (filter != nullptr) {
-            auto skRectPtr = std::make_unique<SkRect>();
-            skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-            RSPropertiesPainter::DrawFilter(property, *canvas_, filter, FilterType::BACKGROUND_FILTER, skRectPtr);
-        }
+        RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::BACKGROUND_FILTER);
     } else {
         auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
         if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
@@ -403,18 +398,8 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
     }
 #ifndef USE_ROSEN_DRAWING
     if (isSelfDrawingSurface) {
-        auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetFilter());
-        if (filter != nullptr) {
-            auto skRectPtr = std::make_unique<SkRect>();
-            skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-            RSPropertiesPainter::DrawFilter(property, *canvas_, filter, FilterType::FOREGROUND_FILTER, skRectPtr);
-        }
-        auto para = property.GetLinearGradientBlurPara();
-        if (para != nullptr && para->blurRadius_ > 0) {
-            auto skRectPtr = std::make_unique<SkRect>();
-            skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-            RSPropertiesPainter::DrawLinearGradientBlurFilter(property, *canvas_, skRectPtr);
-        }
+        RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::FOREGROUND_FILTER);
+        RSPropertiesPainter::DrawLinearGradientBlurFilter(property, *canvas_);
     }
     canvas_->restore();
 #else

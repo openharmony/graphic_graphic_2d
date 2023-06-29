@@ -1090,7 +1090,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSFi
                       parcel.WriteInt32(material->colorMode_);
             break;
         }
-        case RSFilter::LIGHTUPEFFECT: {
+        case RSFilter::LIGHT_UP_EFFECT: {
             auto lightUp = std::static_pointer_cast<RSLightUpEffectFilter>(val);
             success = success && parcel.WriteFloat(lightUp->lightUpDegree_);
             break;
@@ -1126,7 +1126,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter
             }
             break;
         }
-        case RSFilter::LIGHTUPEFFECT: {
+        case RSFilter::LIGHT_UP_EFFECT: {
             float lightUpDegree;
             success = success && parcel.ReadFloat(lightUpDegree);
             if (success) {

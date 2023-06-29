@@ -16,16 +16,18 @@
 
 #include <unordered_map>
 
+#include "src/core/SkOpts.h"
+
+#include "common/rs_common_def.h"
+#include "pipeline/rs_paint_filter_canvas.h"
+#include "property/rs_properties_painter.h"
+
 #if defined(NEW_SKIA)
 #include "include/effects/SkImageFilters.h"
 #include "include/core/SkTileMode.h"
 #else
 #include "include/effects/SkBlurImageFilter.h"
 #endif
-
-#include "common/rs_common_def.h"
-#include "pipeline/rs_paint_filter_canvas.h"
-#include "property/rs_properties_painter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -61,6 +63,11 @@ RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mo
 {
     imageFilter_ = RSMaterialFilter::CreateMaterialStyle(static_cast<MATERIAL_BLUR_STYLE>(style), dipScale, ratio);
     type_ = FilterType::MATERIAL;
+
+    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
+    hash_ = SkOpts::hash(&style, sizeof(style), hash_);
+    hash_ = SkOpts::hash(&colorMode_, sizeof(colorMode_), hash_);
+    hash_ = SkOpts::hash(&ratio, sizeof(ratio), hash_);
 }
 
 RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE mode)
@@ -74,6 +81,10 @@ RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE 
     imageFilter_ = RSMaterialFilter::CreateMaterialFilter(
         materialParam.radius, materialParam.saturation, materialParam.brightness);
     type_ = FilterType::MATERIAL;
+
+    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
+    hash_ = SkOpts::hash(&materialParam, sizeof(materialParam), hash_);
+    hash_ = SkOpts::hash(&colorMode_, sizeof(colorMode_), hash_);
 }
 
 RSMaterialFilter::~RSMaterialFilter() = default;
@@ -94,22 +105,24 @@ std::string RSMaterialFilter::GetDescription()
 }
 
 #ifndef USE_ROSEN_DRAWING
-std::shared_ptr<RSSkiaFilter> RSMaterialFilter::Compose(const std::shared_ptr<RSSkiaFilter>& inner)
+std::shared_ptr<RSSkiaFilter> RSMaterialFilter::Compose(const std::shared_ptr<RSSkiaFilter>& other) const
 #else
-std::shared_ptr<RSDrawingFilter> RSMaterialFilter::Compose(const std::shared_ptr<RSDrawingFilter>& inner)
+std::shared_ptr<RSDrawingFilter> RSMaterialFilter::Compose(const std::shared_ptr<RSDrawingFilter>& inner) const
 #endif
 {
-    if (inner == nullptr) {
+    if (other == nullptr) {
         return nullptr;
     }
     MaterialParam materialParam = {radius_, saturation_, brightness_, maskColor_};
-    std::shared_ptr<RSMaterialFilter> material = std::make_shared<RSMaterialFilter>(materialParam, colorMode_);
+    std::shared_ptr<RSMaterialFilter> result = std::make_shared<RSMaterialFilter>(materialParam, colorMode_);
 #ifndef USE_ROSEN_DRAWING
-    material->imageFilter_ = SkImageFilters::Compose(imageFilter_, inner->GetImageFilter());
+    result->imageFilter_ = SkImageFilters::Compose(imageFilter_, other->GetImageFilter());
 #else
-    material->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, inner->GetImageFilter());
+    result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other->GetImageFilter());
 #endif
-    return material;
+    auto otherHash = other->Hash();
+    result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
+    return result;
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -218,7 +231,7 @@ void RSMaterialFilter::PostProcess(RSPaintFilterCanvas& canvas)
 #endif
 }
 
-std::shared_ptr<RSFilter> RSMaterialFilter::TransformFilter(float fraction)
+std::shared_ptr<RSFilter> RSMaterialFilter::TransformFilter(float fraction) const
 {
     MaterialParam materialParam;
     materialParam.radius = radius_ * fraction;

@@ -161,12 +161,8 @@ void RSRenderEngine::RSSurfaceNodeCommonPreProcess(RSSurfaceRenderNode& node, RS
         node.GetRenderProperties(), canvas, RSPropertiesPainter::Rect2SkRect(maskBounds));
 
     // draw background filter (should execute this filter before drawing buffer/image).
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
-    if (filter != nullptr) {
-        auto skRectPtr = std::make_unique<SkRect>();
-        skRectPtr->setXYWH(0, 0, params.srcRect.width(), params.srcRect.height());
-        RSPropertiesPainter::DrawFilter(property, canvas, filter, FilterType::BACKGROUND_FILTER, skRectPtr);
-    }
+    RSPropertiesPainter::DrawFilter(
+        property, canvas, FilterType::BACKGROUND_FILTER, SkRect::MakeWH(params.srcRect.width(), params.srcRect.height()));
 #else
     RectF maskBounds(0, 0, params.dstRect.GetWidth(), params.dstRect.GetHeight());
     RSPropertiesPainter::DrawMask(
@@ -188,18 +184,10 @@ void RSRenderEngine::RSSurfaceNodeCommonPostProcess(RSSurfaceRenderNode& node, R
 
     // draw preprocess filter (should execute this filter after drawing buffer/image).
 #ifndef USE_ROSEN_DRAWING
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetFilter());
-    if (filter != nullptr) {
-        auto skRectPtr = std::make_unique<SkRect>();
-        skRectPtr->setXYWH(0, 0, params.srcRect.width(), params.srcRect.height());
-        RSPropertiesPainter::DrawFilter(property, canvas, filter, FilterType::FOREGROUND_FILTER, skRectPtr);
-    }
-    auto para = property.GetLinearGradientBlurPara();
-    if (para != nullptr && para->blurRadius_ > 0) {
-        auto skRectPtr = std::make_unique<SkRect>();
-        skRectPtr->setXYWH(0, 0, params.srcRect.width(), params.srcRect.height());
-        RSPropertiesPainter::DrawLinearGradientBlurFilter(property, canvas, skRectPtr);
-    }
+    RSPropertiesPainter::DrawFilter(
+        property, canvas, FilterType::FOREGROUND_FILTER, SkRect::MakeWH(params.srcRect.width(), params.srcRect.height()));
+    RSPropertiesPainter::DrawLinearGradientBlurFilter(
+        property, canvas, SkRect::MakeWH(params.srcRect.width(), params.srcRect.height()));
 #else
     auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetFilter());
     if (filter != nullptr) {

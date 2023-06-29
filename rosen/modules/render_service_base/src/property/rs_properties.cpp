@@ -111,7 +111,7 @@ RSProperties::RSProperties()
     frameGeo_ = std::make_shared<RSObjGeometry>();
 }
 
-RSProperties::~RSProperties() {}
+RSProperties::~RSProperties() = default;
 
 void RSProperties::ResetProperty(RSModifierType type)
 {
@@ -765,7 +765,7 @@ Vector4<uint32_t> RSProperties::GetBorderStyle() const
     return border_ ? border_->GetStyleFour() : Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE));
 }
 
-std::shared_ptr<RSBorder> RSProperties::GetBorder() const
+const std::shared_ptr<RSBorder>& RSProperties::GetBorder() const
 {
     return border_;
 }
@@ -790,17 +790,17 @@ void RSProperties::SetFilter(std::shared_ptr<RSFilter> filter)
     contentDirty_ = true;
 }
 
-std::shared_ptr<RSFilter> RSProperties::GetBackgroundFilter() const
+const std::shared_ptr<RSFilter>& RSProperties::GetBackgroundFilter() const
 {
     return backgroundFilter_;
 }
 
-std::shared_ptr<RSLinearGradientBlurPara> RSProperties::GetLinearGradientBlurPara() const
+const std::shared_ptr<RSLinearGradientBlurPara>& RSProperties::GetLinearGradientBlurPara() const
 {
     return linearGradientBlurPara_;
 }
 
-std::shared_ptr<RSFilter> RSProperties::GetFilter() const
+const std::shared_ptr<RSFilter>& RSProperties::GetFilter() const
 {
     return filter_;
 }

@@ -235,10 +235,24 @@ float RSSystemProperties::GetAnimationScale()
     return std::atof((system::GetParameter("persist.sys.graphic.animationscale", "1.0")).c_str());
 }
 
+bool RSSystemProperties::GetFilterCacheEnabled()
+{
+    static bool filterCacheEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheEnable", "0")).c_str()) != 0;
+    return filterCacheEnabled;
+}
+
+int RSSystemProperties::GetFilterCacheUpdateInterval()
+{
+    static int filterCacheUpdateInterval =
+        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheUpdateInterval", "1")).c_str());
+    return filterCacheUpdateInterval;
+}
+
 bool RSSystemProperties::GetProxyNodeDebugEnabled()
 {
-    static bool flag = system::GetParameter("rosen.proxyNode.debug.enabled", "0") != "0";
-    return flag;
+    static bool proxyNodeDebugEnabled = system::GetParameter("persist.sys.graphic.proxyNodeDebugEnabled", "0") != "0";
+    return proxyNodeDebugEnabled;
 }
 
 bool RSSystemProperties::GetUIFirstEnabled()

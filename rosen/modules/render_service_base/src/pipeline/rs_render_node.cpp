@@ -22,11 +22,11 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
-#include "property/rs_property_trace.h"
-#include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
+#include "property/rs_property_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -84,19 +84,7 @@ std::pair<bool, bool> RSRenderNode::Animate(int64_t timestamp)
 }
 
 bool RSRenderNode::Update(
-    RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty, RectI clipRect)
-{
-    return Update(dirtyManager, parent, parentDirty, true, clipRect);
-}
-
-bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty)
-{
-    RectI clipRect{0, 0, 0, 0};
-    return Update(dirtyManager, parent, parentDirty, false, clipRect);
-}
-
-bool RSRenderNode::Update(
-    RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty, bool needClip, RectI clipRect)
+    RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty, std::optional<RectI> clipRect)
 {
     // no need to update invisible nodes
     if (!ShouldPaint() && !isLastVisible_) {
@@ -124,9 +112,46 @@ bool RSRenderNode::Update(
         }
     }
     isDirtyRegionUpdated_ = false;
-    UpdateDirtyRegion(dirtyManager, dirty, needClip, clipRect);
     isLastVisible_ = ShouldPaint();
     renderProperties_.ResetDirty();
+
+#ifndef USE_ROSEN_DRAWING
+    if (RSSystemProperties::GetFilterCacheEnabled()) {
+        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
+        auto absRect = geoPtr->GetAbsRect();
+
+        // Note: cache manager will use dirty region to update cache validity, but:
+        // background filter cache manager should use 'dirty region of all the nodes drawn before this node', and
+        // foreground filter cache manager should use 'dirty region of all the nodes drawn before this node, this node,
+        // and the children of this node'
+
+        // background filter
+        if (auto& filter = renderProperties_.GetBackgroundFilter()) {
+            auto& manager = renderProperties_.backgroundFilterCacheManager_;
+            if (manager == nullptr) {
+                manager = std::make_unique<RSFilterCacheManager>();
+            }
+            // empty implementation, invalidate filter cache on every update
+            manager->UpdateCacheState({ 0, 0, INT_MAX, INT_MAX }, absRect, filter->Hash());
+        } else {
+            renderProperties_.backgroundFilterCacheManager_.reset();
+        }
+
+        // foreground filter
+        if (auto& filter = renderProperties_.GetFilter()) {
+            auto& manager = renderProperties_.filterCacheManager_;
+            if (manager == nullptr) {
+                manager = std::make_unique<RSFilterCacheManager>();
+            }
+            // empty implementation, invalidate filter cache on every update
+            manager->UpdateCacheState({ 0, 0, INT_MAX, INT_MAX }, absRect, filter->Hash());
+        } else {
+            renderProperties_.filterCacheManager_.reset();
+        }
+    }
+#endif
+
+    UpdateDirtyRegion(dirtyManager, dirty, clipRect);
     return dirty;
 }
 
@@ -141,7 +166,7 @@ const RSProperties& RSRenderNode::GetRenderProperties() const
 }
 
 void RSRenderNode::UpdateDirtyRegion(
-    RSDirtyRegionManager& dirtyManager, bool geoDirty, bool needClip, RectI clipRect)
+    RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect)
 {
     if (!IsDirty() && !geoDirty) {
         return;
@@ -175,8 +200,8 @@ void RSRenderNode::UpdateDirtyRegion(
             dirtyRect = dirtyRect.JoinRect(stretchDirtyRect);
         }
 
-        if (needClip) {
-            dirtyRect = dirtyRect.IntersectRect(clipRect);
+        if (clipRect.has_value()) {
+            dirtyRect = dirtyRect.IntersectRect(*clipRect);
         }
         oldDirty_ = dirtyRect;
         oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
@@ -194,10 +219,11 @@ void RSRenderNode::UpdateDirtyRegion(
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
                     GetId(), GetType(), DirtyRegionType::SHADOW_RECT, shadowRect);
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
-                    GetId(), GetType(), DirtyRegionType::PREPARE_CLIP_RECT, clipRect);
+                    GetId(), GetType(), DirtyRegionType::PREPARE_CLIP_RECT, clipRect.value_or(RectI()));
             }
         }
     }
+
     SetClean();
 }
 
