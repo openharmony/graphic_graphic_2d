@@ -490,7 +490,7 @@ HWTEST_F(RSUniRenderVisitorTest, MarkSubHardwareEnableNodeStateTest002, TestSize
 
 /**
  * @tc.name: DrawAllSurfaceOpaqueRegionForDFX002
- * @tc.desc: Test RSUniRenderVisitorTest.DrawAllSurfaceOpaqueRegionForDFX when nodetype is RSSurfaceNodeType::SELF_DRAWING_NODE
+ * @tc.desc: Test RSUniRenderVisitorTest.DrawAllSurfaceOpaqueRegionForDFX when nodetype is SELF_DRAWING_NODE
  * @tc.type: FUNC
  * @tc.require: issueI79KM8
  */
@@ -635,7 +635,8 @@ HWTEST_F(RSUniRenderVisitorTest, DrawAndTraceSingleDirtyRegionTypeForDFX002, Tes
     auto dirtyManager = surfaceNodeMain->GetDirtyManager();
     ASSERT_EQ(dirtyManager, nullptr);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->DrawAndTraceSingleDirtyRegionTypeForDFX(*surfaceNodeMain, DirtyRegionType::UPDATE_DIRTY_REGION, true);
+    rsUniRenderVisitor->DrawAndTraceSingleDirtyRegionTypeForDFX(*surfaceNodeMain,
+        DirtyRegionType::UPDATE_DIRTY_REGION, true);
 }
 
 /**
@@ -654,7 +655,8 @@ HWTEST_F(RSUniRenderVisitorTest, DrawAndTraceSingleDirtyRegionTypeForDFX003, Tes
     dirtyManager->dirtyCanvasNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
     dirtyManager->dirtySurfaceNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->DrawAndTraceSingleDirtyRegionTypeForDFX(*surfaceNodeMain, DirtyRegionType::UPDATE_DIRTY_REGION, true);
+    rsUniRenderVisitor->DrawAndTraceSingleDirtyRegionTypeForDFX(*surfaceNodeMain,
+        DirtyRegionType::UPDATE_DIRTY_REGION, true);
 }
 
 /**
@@ -673,7 +675,8 @@ HWTEST_F(RSUniRenderVisitorTest, DrawAndTraceSingleDirtyRegionTypeForDFX004, Tes
     dirtyManager->dirtyCanvasNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
     dirtyManager->dirtySurfaceNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->DrawAndTraceSingleDirtyRegionTypeForDFX(*surfaceNodeMain, DirtyRegionType::UPDATE_DIRTY_REGION, false);
+    rsUniRenderVisitor->DrawAndTraceSingleDirtyRegionTypeForDFX(*surfaceNodeMain,
+        DirtyRegionType::UPDATE_DIRTY_REGION, false);
 }
 
 /**
@@ -831,8 +834,8 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyRegionForFilterNode004, TestSize.Level
     ASSERT_NE(surfaceNodeAppOutOfRange, nullptr);
     surfaceNodeAppOutOfRange->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
     ASSERT_NE(surfaceNodeAppOutOfRange->GetDirtyManager(), nullptr);
-    surfaceNodeAppOutOfRange->GetDirtyManager()->dirtyRegion_ = RectI(DEFAULT_DIRTY_REGION_WIDTH, DEFAULT_DIRTY_REGION_HEIGHT,
-        DEFAULT_DIRTY_REGION_WIDTH, DEFAULT_DIRTY_REGION_HEIGHT);
+    surfaceNodeAppOutOfRange->GetDirtyManager()->dirtyRegion_ = RectI(DEFAULT_DIRTY_REGION_WIDTH,
+        DEFAULT_DIRTY_REGION_HEIGHT, DEFAULT_DIRTY_REGION_WIDTH, DEFAULT_DIRTY_REGION_HEIGHT);
     surfaceNodeAppOutOfRange->visibleRegion_ =
         Occlusion::Region(RectI(0, 0, DEFAULT_DIRTY_REGION_WIDTH, DEFAULT_DIRTY_REGION_HEIGHT));
     node->curAllSurfaces_.push_back(surfaceNodeAppOutOfRange);
@@ -901,7 +904,8 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyFilterRegion002, TestSize.Level1)
     surfaceNodeMain->AddChildHardwareEnabledNode(surfaceNodeDirtyNull);
     auto surfaceNodeChildLastFrame = RSTestUtil::CreateSurfaceNodeWithBuffer();
     surfaceNodeChildLastFrame->isLastFrameHardwareEnabled_ = true;
-    surfaceNodeChildLastFrame->oldDirtyInSurface_ = RectI(0, 0, DEFAULT_DIRTY_REGION_WIDTH, DEFAULT_DIRTY_REGION_HEIGHT);
+    surfaceNodeChildLastFrame->oldDirtyInSurface_ = RectI(0, 0,
+        DEFAULT_DIRTY_REGION_WIDTH, DEFAULT_DIRTY_REGION_HEIGHT);
     surfaceNodeMain->AddChildHardwareEnabledNode(surfaceNodeChildLastFrame);
     node->curAllSurfaces_.push_back(surfaceNodeMain);
     rsUniRenderVisitor->CalcDirtyFilterRegion(node);
@@ -1047,7 +1051,6 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level1)
  */
 HWTEST_F(RSUniRenderVisitorTest, GenerateNodeContentCache001, TestSize.Level1)
 {
-    
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->renderEngine_ = std::make_shared<RSUniRenderEngine>();
