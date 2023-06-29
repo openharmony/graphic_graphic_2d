@@ -238,6 +238,9 @@ void RSUniRenderVisitor::UpdateCacheChangeStatus(RSBaseRenderNode& node)
         return;
     }
     targetNode->CheckDrawingCacheType();
+    if (!targetNode->ShouldPaint()) {
+        targetNode->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    }
     // drawing group root node
     if (targetNode->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
         markedCachedNodes_++;
@@ -263,8 +266,8 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSBaseRenderNode& node, int ma
         targetNode->GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
         return;
     }
-    // Attention: currently not support filter and out of parent
-    // Only enable lowest marked cached node
+    // Attention: currently not support filter. Only enable lowest marked cached node
+    // [planning] check if outofparent causes edge problem
     if ((cacheRenderNodeMap.find(node.GetId()) == cacheRenderNodeMap.end() || isDrawingCacheChanged_) &&
         (targetNode->ChildHasFilter() || (markedCachedNodeCnt != markedCachedNodes_))) {
         targetNode->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
