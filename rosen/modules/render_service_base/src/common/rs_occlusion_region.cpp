@@ -61,8 +61,13 @@ void Node::Update(int updateStart, int updateEnd, Event::Type type)
         if (right_ == nullptr) {
             right_ = new Node { mid_, end_ };
         }
-        left_->Update(updateStart, mid_ < updateEnd ? mid_ : updateEnd, type);
-        right_->Update(mid_ > updateStart ? mid_ : updateStart, updateEnd, type);
+        // In case the heap memory allocation fails
+        if (left_ != nullptr) {
+            left_->Update(updateStart, mid_ < updateEnd ? mid_ : updateEnd, type);
+        }
+        if (right_ != nullptr) {
+            right_->Update(mid_ > updateStart ? mid_ : updateStart, updateEnd, type);
+        }
     }
 }
 
