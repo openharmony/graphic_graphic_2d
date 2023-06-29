@@ -648,6 +648,7 @@ void RSMainThread::ProcessAllSyncTransactionData()
     }
     syncTransactionData_.clear();
     syncTransactionCount_ = 0;
+    RequestNextVSync();
 }
 
 void RSMainThread::ConsumeAndUpdateAllNodes()
