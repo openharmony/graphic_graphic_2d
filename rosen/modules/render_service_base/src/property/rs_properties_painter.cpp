@@ -68,6 +68,8 @@ constexpr float MAX_TRANS_RATIO = 0.95f;
 constexpr float MIN_SPOT_RATIO = 1.0f;
 constexpr float MAX_SPOT_RATIO = 1.95f;
 constexpr float MAX_AMBIENT_RADIUS = 150.0f;
+constexpr static float FLOAT_ZERO_THRESHOLD = 0.001f;
+constexpr static uint8_t DIRECTION_NUM = 4;
 } // namespace
 
 #ifndef USE_ROSEN_DRAWING
@@ -769,14 +771,47 @@ bool RSPropertiesPainter::GetGradientDirectionPoints(
     }
     return true;
 }
+void RSPropertiesPainter::TransformGradientBlurDirection(uint8_t& direction, const uint8_t directionBias)
+{
+    if (direction == static_cast<uint8_t>(GradientDirection::LEFT_BOTTOM)) {
+        direction += 2; // 2 is used to transtorm diagnal direction.
+    } else if (direction == static_cast<uint8_t>(GradientDirection::RIGHT_TOP) ||
+                    direction == static_cast<uint8_t>(GradientDirection::RIGHT_BOTTOM)) {
+        direction -= 1; // 1 is used to transtorm diagnal direction.
+    }
+    if (direction <= static_cast<uint8_t>(GradientDirection::BOTTOM)) {
+        if (direction < directionBias) {
+            direction += DIRECTION_NUM;
+        }
+        direction -= directionBias;
+    } else {
+        direction -= DIRECTION_NUM;
+        if (direction < directionBias) {
+            direction += DIRECTION_NUM;
+        }
+        direction -= directionBias;
+        direction += DIRECTION_NUM;
+    }
+    if (direction == static_cast<uint8_t>(GradientDirection::RIGHT_BOTTOM)) {
+        direction -= 2; // 2 is used to restore diagnal direction.
+    } else if (direction == static_cast<uint8_t>(GradientDirection::LEFT_BOTTOM) ||
+                        direction == static_cast<uint8_t>(GradientDirection::RIGHT_TOP)) {
+        direction += 1; // 1 is used to restore diagnal direction.
+    }
+}
 
 sk_sp<SkShader> RSPropertiesPainter::MakeAlphaGradientShader(
-    const SkRect& clipBounds, const std::shared_ptr<RSLinearGradientBlurPara>& para)
+    const SkRect& clipBounds, const std::shared_ptr<RSLinearGradientBlurPara>& para, uint8_t directionBias)
 {
     std::vector<SkColor> c;
     std::vector<SkScalar> p;
     SkPoint pts[2];
-    bool result = GetGradientDirectionPoints(pts, clipBounds, para->direction_);
+    uint8_t direction = static_cast<uint8_t>(para->direction_);
+    if (directionBias != 0) {
+        TransformGradientBlurDirection(direction, directionBias);
+    }
+    bool result = GetGradientDirectionPoints(
+                        pts, clipBounds, static_cast<GradientDirection>(direction));
     if (!result) {
         return nullptr;
     }
@@ -904,6 +939,21 @@ void RSPropertiesPainter::DrawVerticalLinearGradientBlur(SkSurface* skSurface, R
     paint.setShader(shader);
     canvas.drawRect(SkRect::Make(clipIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())), paint);
 }
+
+uint8_t RSPropertiesPainter::CalcDirectionBias(const SkMatrix& mat) {
+    uint8_t directionBias = 0;
+    // 1 and 3 represents rotate matrix's index
+    if ((mat.get(1) > FLOAT_ZERO_THRESHOLD) && (mat.get(3) < (0 - FLOAT_ZERO_THRESHOLD))) {
+        directionBias = 1; // 1 represents rotate 90 degree
+    // 0 and 4 represents rotate matrix's index
+    } else if ((mat.get(0) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.get(4) < (0 - FLOAT_ZERO_THRESHOLD))) {
+        directionBias = 2; // 2 represents rotate 180 degree
+    // 1 and 3 represents rotate matrix's index
+    } else if ((mat.get(1) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.get(3) > FLOAT_ZERO_THRESHOLD)) {
+        directionBias = 3; // 3 represents rotate 270 degree
+    }
+    return directionBias;
+}
 #endif
 
 void RSPropertiesPainter::DrawLinearGradientBlurFilter(
@@ -929,8 +979,10 @@ void RSPropertiesPainter::DrawLinearGradientBlurFilter(
 
     auto clipBounds = canvas.getDeviceClipBounds();
     auto clipIPadding = clipBounds.makeOutset(-1, -1);
+    SkMatrix mat = canvas.getTotalMatrix();
+    uint8_t directionBias = CalcDirectionBias(mat);
 
-    auto alphaGradientShader = MakeAlphaGradientShader(SkRect::Make(clipIPadding), para);
+    auto alphaGradientShader = MakeAlphaGradientShader(SkRect::Make(clipIPadding), para, directionBias);
     if (alphaGradientShader == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawLinearGradientBlurFilter alphaGradientShader null");
         return;

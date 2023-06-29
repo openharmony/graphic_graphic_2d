@@ -82,9 +82,11 @@ private:
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
 #ifdef NEW_SKIA
-    static bool GetGradientDirectionPoints(SkPoint* pts, const SkRect& clipBounds, GradientDirection direction);
+    static bool GetGradientDirectionPoints(SkPoint* pts,
+                                const SkRect& clipBounds, GradientDirection direction);
+    static void TransformGradientBlurDirection(uint8_t& direction, const uint8_t directionBias);
     static sk_sp<SkShader> MakeAlphaGradientShader(const SkRect& clipBounds,
-                                            const std::shared_ptr<RSLinearGradientBlurPara>& para);
+                                const std::shared_ptr<RSLinearGradientBlurPara>& para, uint8_t directionBias);
     static sk_sp<SkShader> MakeHorizontalMeanBlurShader(float radiusIn,
                                             sk_sp<SkShader> shader, sk_sp<SkShader> gradientShader);
     static sk_sp<SkShader> MakeVerticalMeanBlurShader(float radiusIn,
@@ -94,6 +96,7 @@ private:
         float radius, sk_sp<SkShader> alphaGradientShader, const SkIRect& clipIPadding);
     static void DrawVerticalLinearGradientBlur(SkSurface* skSurface, RSPaintFilterCanvas& canvas,
         float radius, sk_sp<SkShader> alphaGradientShader, const SkIRect& clipIPadding);
+    static uint8_t CalcDirectionBias(const SkMatrix& mat);
 #endif
 #else
     static void Clip(Drawing::Canvas& canvas, RectF rect);
