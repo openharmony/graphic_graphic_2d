@@ -157,7 +157,7 @@ void RSImage::ApplyCanvasClip(Drawing::Canvas& canvas)
 #ifndef USE_ROSEN_DRAWING
 void RSImage::UploadGpu(SkCanvas& canvas)
 {
-    if (RSSystemProperties::GetASTCEnabled()) {
+    if (!RSSystemProperties::GetASTCEnabled()) {
         return;
     }
 #ifdef RS_ENABLE_GL
