@@ -2143,6 +2143,23 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
                 surfaceNode->SetShadowValidLastFrame(false);
             }
         }
+
+        if (surfaceNode->IsAppWindow() && !surfaceNode->HasContainerWindow()) {
+            auto transparentRegion = surfaceNode->GetTransparentRegion();
+            Occlusion::Rect tmpRect = Occlusion::Rect { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
+                surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() };
+            Occlusion::Region surfaceDirtyRegion { tmpRect };
+            Occlusion::Region transparentDirtyRegion = transparentRegion.And(surfaceDirtyRegion);
+            if (!transparentDirtyRegion.IsEmpty()) {
+                RS_LOGD("CalcDirtyDisplayRegion merge TransparentDirtyRegion %s region %s",
+                    surfaceNode->GetName().c_str(), transparentDirtyRegion.GetRegionInfo().c_str());
+                std::vector<Occlusion::Rect> rects = transparentDirtyRegion.GetRegionRects();
+                for (const auto& rect : rects) {
+                    displayDirtyManager->MergeDirtyRect(RectI
+                        { rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
+                }
+            }
+        }
     }
     std::vector<RectI> surfaceChangedRects = node->GetSurfaceChangedRects();
     for (auto& surfaceChangedRect : surfaceChangedRects) {
