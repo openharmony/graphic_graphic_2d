@@ -69,5 +69,20 @@ VsyncError VSyncConnectionProxy::SetVSyncRate(int32_t rate)
     }
     return VSYNC_ERROR_OK;
 }
+
+VsyncError VSyncConnectionProxy::GetVSyncPeriod(int64_t &period)
+{
+    MessageOption opt;
+    MessageParcel arg;
+    MessageParcel ret;
+
+    arg.WriteInterfaceToken(GetDescriptor());
+    int res = Remote()->SendRequest(IVSYNC_CONNECTION_GET_PERIOD, arg, ret, opt);
+    if (res != NO_ERROR) {
+        return VSYNC_ERROR_BINDER_ERROR;
+    }
+    period = ret.ReadInt64();
+    return VSYNC_ERROR_OK;
+}
 } // namespace Vsync
 } // namespace OHOS
