@@ -5,12 +5,12 @@
     "license": "Apache License 2.0",
     "publishAs": "code-segment",
     "segment": {
-      "destPath": "foundation/graphic/graphic_2d"
+      "destPath": "foundation/graphic/graphic_standard"
     },
     "dirs": {},
     "scripts": {},
     "component": {
-      "name": "graphic_2d",
+      "name": "graphic_standard",
       "subsystem": "graphic",
       "syscap": [
         "SystemCapability.Graphic.Graphic2D.ColorManager.Core",
