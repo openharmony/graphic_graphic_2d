@@ -679,6 +679,11 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     // Update node properties, including position (dstrect), OldDirty()
     auto parentNode = node.GetParent().lock();
     auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
+    auto rsSurfaceParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parentNode);
+    if (node.IsAppWindow() && rsSurfaceParent && rsSurfaceParent->IsLeashWindow()
+        && rsSurfaceParent->GetDstRect().IsEmpty()) {
+            prepareClipRect_ = RectI {0, 0, 0, 0};
+    }
     dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
         dirtyFlag_, prepareClipRect_);
 
