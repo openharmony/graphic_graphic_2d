@@ -138,6 +138,7 @@ template("render_service_client_source_set") {
         "c_utils:utils",
         "hisysevent_native:libhisysevent",
         "hitrace_native:hitrace_meter",
+        "multimedia_image_framework:image_native",
       ]
 
       if (accessibility_enable) {
@@ -176,6 +177,9 @@ template("render_service_client_source_set") {
     }
 
     public_configs = [ ":render_service_client_config" ]
+
+    part_name = "graphic_standard"
+    subsystem_name = "graphic"
   }
 }
 

@@ -18,7 +18,7 @@
 
 #include <string>
 #include "GLES3/gl3.h"
-#include "SkCanvas.h"
+#include "include/core/SkCanvas.h"
 #include "rs_trace.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_main_thread.h"

@@ -289,9 +289,10 @@ ohos_executable("surface_capture_demo") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
     "//third_party/zlib:libz",
   ]
+
+  external_deps = [ "multimedia_image_framework:image_native" ]
 
   public_deps = [ "$public_deps_skia" ]
 
@@ -388,6 +389,8 @@ ohos_executable("rs_uni_render_pixelmap_demo") {
     "//foundation/window/window_manager/wmserver:libwms",
     "//third_party/zlib:libz",
   ]
+
+  external_deps = [ "multimedia_image_framework:image_native" ]
 
   public_deps = [ "$public_deps_skia" ]
 

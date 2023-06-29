@@ -16,7 +16,7 @@
 #include "memory/rs_memory_manager.h"
 
 #include <malloc.h>
-#include <SkGraphics.h>
+#include "include/core/SkGraphics.h"
 #include "rs_trace.h"
 
 #include "rs_skia_memory_tracer.h"

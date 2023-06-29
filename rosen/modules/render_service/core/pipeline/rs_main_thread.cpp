@@ -15,7 +15,7 @@
 #include "pipeline/rs_main_thread.h"
 
 #include <list>
-#include <SkGraphics.h>
+#include "include/core/SkGraphics.h"
 #include <securec.h>
 #include <stdint.h>
 #include <string>

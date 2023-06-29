@@ -22,9 +22,9 @@
 #include <sys/resource.h>
 #include <sys/ioctl.h>
 #include "GLES3/gl3.h"
-#include "SkCanvas.h"
-#include "SkColor.h"
-#include "SkRect.h"
+#include "include/core/SkCanvas.h"
+#include "include/core/SkColor.h"
+#include "include/core/SkRect.h"
 #include "EGL/egl.h"
 #include "rs_trace.h"
 #include "pipeline/rs_canvas_render_node.h"
