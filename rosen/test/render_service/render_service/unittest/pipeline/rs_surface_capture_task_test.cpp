@@ -711,128 +711,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, AdjustZOrderAndDrawSurfaceNode001, Function |
 }
 
 /*
- * @tc.name: CaptureSurfaceInDisplayWithUni006
- * @tc.desc: Test RSSurfaceCaptureTaskTest.CaptureSurfaceInDisplayWithUni
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, CaptureSurfaceInDisplayWithUni006, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
-    surfaceNode->SetSecurityLayer(true);
-    if (isUnirender) {
-        visitor_->CaptureSurfaceInDisplayWithUni(*surfaceNode);
-    }
-}
-
-/*
- * @tc.name: CaptureSurfaceInDisplayWithUni004
- * @tc.desc: Test RSSurfaceCaptureTaskTest.CaptureSurfaceInDisplayWithUni
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, CaptureSurfaceInDisplayWithUni004, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceNode->SetSecurityLayer(false);
-    if (isUnirender) {
-        visitor_->CaptureSurfaceInDisplayWithUni(*surfaceNode);
-    }
-}
-
-/*
- * @tc.name: CaptureSurfaceInDisplayWithUni001
- * @tc.desc: Test RSSurfaceCaptureTaskTest.CaptureSurfaceInDisplayWithUni
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, CaptureSurfaceInDisplayWithUni001, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceNode->SetSecurityLayer(true);
-    if (isUnirender) {
-        visitor_->CaptureSurfaceInDisplayWithUni(*surfaceNode);
-    }
-}
-
-/*
- * @tc.name: CaptureSurfaceInDisplayWithUni002
- * @tc.desc: Test RSSurfaceCaptureTaskTest.CaptureSurfaceInDisplayWithUni
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, CaptureSurfaceInDisplayWithUni002, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
-    surfaceNode->SetSecurityLayer(false);
-    if (isUnirender) {
-        visitor_->CaptureSurfaceInDisplayWithUni(*surfaceNode);
-    }
-}
-
-/*
- * @tc.name: ProcessSurfaceRenderNodeWithUni001
- * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessSurfaceRenderNodeWithUni
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNodeWithUni001, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->renderProperties_.SetBackgroundFilter(nullptr);
-    if (isUnirender) {
-        visitor_->CaptureSurfaceInDisplayWithUni(*surfaceNode);
-    }
-}
-
-/*
- * @tc.name: ProcessSurfaceRenderNodeWithUni002
- * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessSurfaceRenderNodeWithUni
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNodeWithUni002, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    visitor_->isDisplayNode_ = true;
-    if (isUnirender) {
-        visitor_->CaptureSurfaceInDisplayWithUni(*surfaceNode);
-    }
-}
-
-/*
- * @tc.name: ProcessSurfaceRenderNodeWithUni003
- * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessSurfaceRenderNodeWithUni
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNodeWithUni003, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    visitor_->isDisplayNode_ = false;
-    if (isUnirender) {
-        visitor_->CaptureSurfaceInDisplayWithUni(*surfaceNode);
-    }
-}
-/*
  * @tc.name: ProcessRootRenderNode002
  * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessRootRenderNode
  * @tc.type: FUNC
@@ -882,40 +760,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessRootRenderNode004, Function | SmallTes
 }
 
 /*
- * @tc.name: CaptureSingleSurfaceNodeWithoutUni001
- * @tc.desc: Test RSSurfaceCaptureTaskTest.CaptureSingleSurfaceNodeWithoutUni
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, CaptureSingleSurfaceNodeWithoutUni001, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->SetSecurityLayer(true);
-    if (isUnirender) {
-        visitor_->CaptureSingleSurfaceNodeWithoutUni(*surfaceNode);
-    }
-}
-
-/*
- * @tc.name: CaptureSingleSurfaceNodeWithoutUni002
- * @tc.desc: Test RSSurfaceCaptureTaskTest.CaptureSingleSurfaceNodeWithoutUni
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, CaptureSingleSurfaceNodeWithoutUni002, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->SetSecurityLayer(false);
-    if (isUnirender) {
-        visitor_->CaptureSingleSurfaceNodeWithoutUni(*surfaceNode);
-    }
-}
-
-/*
  * @tc.name: CaptureSingleSurfaceNodeWithoutUni003
  * @tc.desc: Test RSSurfaceCaptureTaskTest.CaptureSingleSurfaceNodeWithoutUni
  * @tc.type: FUNC
@@ -926,23 +770,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CaptureSingleSurfaceNodeWithoutUni003, Functi
     bool isUnirender = RSUniRenderJudgement::IsUniRender();
     ASSERT_NE(nullptr, visitor_);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
-    surfaceNode->SetSecurityLayer(false);
-    if (!isUnirender) {
-        visitor_->CaptureSingleSurfaceNodeWithoutUni(*surfaceNode);
-    }
-}
-
-/*
- * @tc.name: CaptureSurfaceInDisplayWithoutUni001
- * @tc.desc: Test RSSurfaceCaptureTaskTest.CaptureSurfaceInDisplayWithoutUni
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, CaptureSurfaceInDisplayWithoutUni001, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     surfaceNode->SetSecurityLayer(false);
     if (!isUnirender) {
         visitor_->CaptureSingleSurfaceNodeWithoutUni(*surfaceNode);
@@ -998,59 +825,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNodeWithoutUni001, Functi
     visitor_->isDisplayNode_ = true;
     if (!isUnirender) {
         visitor_->ProcessSurfaceRenderNodeWithoutUni(*surfaceNode);
-    }
-}
-
-/*
- * @tc.name: ProcessSurfaceRenderNode006
- * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessSurfaceRenderNode
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode006, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->renderProperties_.SetVisible(true);
-    surfaceNode->renderProperties_.SetAlpha(DEFAULT_BOUNDS_WIDTH);
-    if (!isUnirender) {
-        visitor_->ProcessSurfaceRenderNodeWithoutUni(*surfaceNode);
-    }
-}
-
-/*
- * @tc.name: ProcessSurfaceRenderNode007
- * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessSurfaceRenderNode
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode007, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->renderProperties_.SetVisible(true);
-    surfaceNode->renderProperties_.SetAlpha(.0f);
-    if (isUnirender) {
-        visitor_->ProcessSurfaceRenderNode(*surfaceNode);
-    }
-}
-
-/*
- * @tc.name: ProcessSurfaceRenderNode008
- * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessSurfaceRenderNode
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode008, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    visitor_->canvas_ = nullptr;
-    if (isUnirender) {
-        visitor_->ProcessSurfaceRenderNode(*surfaceNode);
     }
 }
 } // namespace Rosen

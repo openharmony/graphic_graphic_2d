@@ -36,7 +36,7 @@ public:
     void TearDown() override;
 
 public:
-    const uint32_t screenId_ = 0;
+    const uint32_t screenId_ = 10;
     const int32_t offsetX = 0; // screenOffset on x axis equals to 0
     const int32_t offsetY = 0; // screenOffset on y axis equals to 0
     const float mirrorAdaptiveCoefficient = 1.0f;
