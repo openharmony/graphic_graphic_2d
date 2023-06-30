@@ -22,6 +22,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_divided_render_util.h"
 #include "pipeline/rs_main_thread.h"
@@ -263,10 +264,18 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
         canvas_->SetMatrix(relativeMatrix);
 #endif
     }
-    node.ProcessRenderBeforeChildren(*canvas_);
-    node.ProcessRenderContents(*canvas_);
-    ProcessBaseRenderNode(node);
-    node.ProcessRenderAfterChildren(*canvas_);
+    if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
+        SkBitmap bitmap;
+        canvasDrawingNode->GetBitmap(bitmap);
+        canvas_->drawImage(bitmap.asImage(), 0, 0);
+        ProcessBaseRenderNode(*canvasDrawingNode);
+    } else {
+        node.ProcessRenderBeforeChildren(*canvas_);
+        node.ProcessRenderContents(*canvas_);
+        ProcessBaseRenderNode(node);
+        node.ProcessRenderAfterChildren(*canvas_);
+    }
 }
 
 void RSUniUICapture::RSUniUICaptureVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
