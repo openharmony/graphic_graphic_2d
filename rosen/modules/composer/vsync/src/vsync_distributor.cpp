@@ -97,6 +97,15 @@ VsyncError VSyncConnection::SetVSyncRate(int32_t rate)
     return distributor->SetVSyncRate(rate, this);
 }
 
+VsyncError VSyncConnection::GetVSyncPeriod(int64_t &period)
+{
+    const sptr<VSyncDistributor> distributor = distributor_.promote();
+    if (distributor == nullptr) {
+        return VSYNC_ERROR_NULLPTR;
+    }
+    return distributor->GetVSyncPeriod(period);
+}
+
 VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string name)
     : controller_(controller), mutex_(), con_(), connections_(),
     event_(), vsyncEnabled_(false), name_(name)
@@ -387,6 +396,13 @@ VsyncError VSyncDistributor::GetQosVSyncRateInfos(std::vector<std::pair<uint32_t
         int32_t tmpRate = connection->highPriorityState_ ? connection->highPriorityRate_ : connection->rate_;
         vsyncRateInfos.push_back(std::make_pair(tmpPid, tmpRate));
     }
+    return VSYNC_ERROR_OK;
+}
+
+VsyncError VSyncDistributor::GetVSyncPeriod(int64_t &period)
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    period = event_.period;
     return VSYNC_ERROR_OK;
 }
 }
