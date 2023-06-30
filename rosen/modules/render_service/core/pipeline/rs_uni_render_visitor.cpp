@@ -2498,6 +2498,11 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
         node.InitCacheSurface(canvas_ ? canvas_->getGrContext() : nullptr, func, threadIndex_);
 #endif
     }
+
+    if (node.GetCacheSurface() == nullptr) {
+        RS_LOGE("Get CacheSurface failed");
+        return false;
+    }
     auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
     if (!cacheCanvas) {
         return false;
