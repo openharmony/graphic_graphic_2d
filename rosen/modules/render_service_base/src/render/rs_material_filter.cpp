@@ -437,7 +437,7 @@ void RSMaterialFilter::DrawImageRect(
     // start by downscaling and doing the first blur pass
     SkSamplingOptions linear(SkFilterMode::kLinear, SkMipmapMode::kNone);
     SkRuntimeShaderBuilder blurBuilder(fBlurEffect);
-    blurBuilder.child("imgInput") = image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, linear, blurMatrix);
+    blurBuilder.child("imageInput") = image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, linear, blurMatrix);
     blurBuilder.uniform("in_blurOffset") = SkV2{stepX * kBlurScale, stepY * kBlurScale};
     blurBuilder.uniform("in_maxSizeXY") = SkV2{dst.width() * kBlurScale, dst.height() * kBlurScale};
 
@@ -446,7 +446,7 @@ void RSMaterialFilter::DrawImageRect(
     // And now we'll build our chain of scaled blur stages
     for (auto i = 1; i < numberOfPasses; i++) {
         const float stepScale = (float)i * kBlurScale;
-        blurBuilder.child("imgInput") = tmpBlur->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, linear);
+        blurBuilder.child("imageInput") = tmpBlur->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, linear);
         blurBuilder.uniform("in_blurOffset") = SkV2{stepX * stepScale, stepY * stepScale};
         blurBuilder.uniform("in_maxSizeXY") = SkV2{dst.width() * kBlurScale, dst.height() * kBlurScale};
         tmpBlur = blurBuilder.makeImage(canvas.recordingContext(), nullptr, scaledInfo, false);
