@@ -37,7 +37,6 @@ SkPaint RSSkiaFilter::GetPaint() const
 {
     SkPaint paint;
     paint.setAntiAlias(true);
-    paint.setBlendMode(SkBlendMode::kSrcOver);
     paint.setImageFilter(imageFilter_);
     return paint;
 }

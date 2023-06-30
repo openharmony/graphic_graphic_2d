@@ -51,7 +51,7 @@ public:
 
     // Similar to DrawFilter(), but not draw anything on canvas, just return the cache data.
     // for effect component adaption in RSPropertiesPainter::DrawBackgroundEffect
-    CachedEffectData GeneratedCacheEffectData(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter);
+    CachedEffectData GeneratedCachedEffectData(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter);
 
     // Clear the cache, next time DrawFilter() will regenerate the cache.
     void InvalidateCache();
@@ -61,23 +61,28 @@ private:
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter);
     // Convert cached snapshot to blurred snapshot
     void GenerateBlurredSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter);
-    // If filter is nullptr, we'll directly draw the cached image on canvas
-    void DrawCache(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter = nullptr) const;
+    void DrawCachedSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter) const;
+    void DrawCachedBlurredSnapshot(RSPaintFilterCanvas& canvas) const;
 
     enum class CacheType : uint8_t {
-        CACHE_TYPE_NONE = 0,
-        CACHE_TYPE_SNAPSHOT = 1,
+        CACHE_TYPE_NONE             = 0,
+        CACHE_TYPE_SNAPSHOT         = 1,
         CACHE_TYPE_BLURRED_SNAPSHOT = 2,
     };
 
     CacheType cacheType_ = CacheType::CACHE_TYPE_NONE;
-    std::optional<SkIRect> cachedImageRegion_ = std::nullopt; // Note: this should always be in device coordinate space
     sk_sp<SkImage> cachedImage_ = nullptr ;
+
     // for automatically converting cached snapshot to blurred snapshot if the filter is persistent
     uint32_t cachedFilterHash_ = 0;
-    int frameSinceFilterChange_ = 0;
+    int frameSinceLastBlurChange_ = 0;
+
     // for lowering snapshot frequency even if the snapshot is changed
     int cacheUpdateInterval_ = 0;
+
+    // Note: all rects should be in device coordinate space
+    std::optional<SkIRect> cachedImageRegion_ = std::nullopt; // coordinate of cached image
+    std::optional<SkIRect> blurRegion_ = std::nullopt;        // coordinate of previous blurred region
 };
 
 } // namespace Rosen
