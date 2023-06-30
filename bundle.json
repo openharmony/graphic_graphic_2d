@@ -79,7 +79,8 @@
           "icu",
           "libpng",
           "zilb",
-          "skia"
+          "skia",
+          "cjson"
         ]
       },
       "build": {
