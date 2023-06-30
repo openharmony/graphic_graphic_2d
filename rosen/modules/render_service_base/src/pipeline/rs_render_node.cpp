@@ -708,6 +708,10 @@ void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
     if (id <= 0) {
         return;
     }
+    auto context = GetContext().lock();
+    if (!context || !context->GetNodeMap().IsResidentProcessNode(GetId())) {
+        return;
+    }
     auto target = modifiers_.find(id);
     if (target == modifiers_.end() || !target->second || !GROUPABLE_ANIMATION_TYPE.count(target->second->GetType())) {
         return;

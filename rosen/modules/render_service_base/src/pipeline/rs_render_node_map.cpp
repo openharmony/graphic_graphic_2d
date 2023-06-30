@@ -79,6 +79,17 @@ static bool IsResidentProcess(const std::shared_ptr<RSSurfaceRenderNode> surface
            surfaceNode->GetName() == SCREENLOCK_WINDOW || surfaceNode->GetName() == WALLPAPER_VIEW;
 }
 
+bool RSRenderNodeMap::IsResidentProcessNode(NodeId id) const
+{
+    auto nodePid = ExtractPid(id);
+    for (auto& [residentId, _] : residentSurfaceNodeMap_) {
+        if (ExtractPid(residentId) == nodePid) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr)
 {
     NodeId id = nodePtr->GetId();
