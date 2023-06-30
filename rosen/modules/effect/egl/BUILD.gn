@@ -41,7 +41,9 @@ ohos_shared_library("libegl_effect") {
 
   sources = []
 
-  deps = [ "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog" ]
+  deps = []
+
+  external_deps = [ "hilog:libhilog" ]
 
   if (effect_enable_gpu) {
     sources += [ "src/egl_manager.cpp" ]

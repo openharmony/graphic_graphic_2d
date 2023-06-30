@@ -44,11 +44,8 @@ ohos_shared_library("skeffectchain") {
   public_deps = [
     "$graphic_2d_root:libsurface",
     "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//commonlibrary/c_utils/base:utils",
-    "//foundation/arkui/napi:ace_napi",
     "//foundation/multimedia/image_framework/frameworks/innerkitsimpl/pixelconverter:pixelconvertadapter",
-    "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
     "//foundation/multimedia/image_framework/interfaces/kits/js/common:image",
   ]
 
@@ -64,9 +61,12 @@ ohos_shared_library("skeffectchain") {
   }
 
   external_deps = [
+    "hilog_native:libhilog",
     "hitrace_native:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "multimedia_image_framework:image_native",
+    "napi:ace_napi",
     "samgr:samgr_proxy",
   ]
 
