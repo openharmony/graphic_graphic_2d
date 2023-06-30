@@ -63,16 +63,14 @@ ohos_shared_library("libvsync") {
   deps = [
     "$graphic_2d_root/utils:sandbox_utils",
     "$graphic_2d_root/utils:socketpair",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
   ]
 
-  public_deps = [
-    "$graphic_2d_root/utils:scoped_bytrace",
-    "//commonlibrary/c_utils/base:utils",
-  ]
+  public_deps = [ "$graphic_2d_root/utils:scoped_bytrace" ]
   external_deps = [
+    "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog_native:libhilog",
+    "ipc:ipc_core",
   ]
 
   if (defined(graphic_2d_ext_configs.vendor_root)) {

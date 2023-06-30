@@ -50,6 +50,7 @@ ohos_unittest("vsync_controller_test") {
   sources = [ "vsync_controller_test.cpp" ]
 
   deps = [ ":vsync_test_common" ]
+  external_deps = [ "c_utils:utils" ]
 }
 
 ## UnitTest vsync_controller_test }}}
@@ -75,6 +76,7 @@ ohos_unittest("vsync_generator_test") {
   sources = [ "vsync_generator_test.cpp" ]
 
   deps = [ ":vsync_test_common" ]
+  external_deps = [ "c_utils:utils" ]
 }
 
 ## UnitTest vsync_generator_test }}}
@@ -101,6 +103,7 @@ ohos_unittest("vsync_sampler_test") {
   sources = [ "vsync_sampler_test.cpp" ]
 
   deps = [ ":vsync_test_common" ]
+  external_deps = [ "c_utils:utils" ]
 }
 
 ## UnitTest vsync_sampler_test }}}
