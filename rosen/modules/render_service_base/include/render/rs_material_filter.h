@@ -15,9 +15,10 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_MATERIAL_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_MATERIAL_FILTER_H
 
+#include "include/effects/SkRuntimeEffect.h"
+#include "common/rs_color.h"
 #include "render/rs_skia_filter.h"
 
-#include "common/rs_color.h"
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkColorFilter.h"
 #include "include/core/SkColor.h"
@@ -92,6 +93,9 @@ public:
         const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const override;
     bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const override;
 
+    void DrawImageRect(
+        SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst) const override;
+
 private:
     BLUR_COLOR_MODE colorMode_;
     float radius_ {};
@@ -107,6 +111,10 @@ private:
     std::shared_ptr<Drawing::ImageFilter> CreateMaterialFilter(float radius, float sat, float brightness);
 #endif
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
+
+    bool useKawase = true;
+    sk_sp<SkRuntimeEffect> fBlurEffect;
+    sk_sp<SkRuntimeEffect> fMixEffect;
 
     friend class RSMarshallingHelper;
 };

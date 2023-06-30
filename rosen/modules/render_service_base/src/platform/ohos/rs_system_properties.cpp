@@ -249,6 +249,13 @@ int RSSystemProperties::GetFilterCacheUpdateInterval()
     return filterCacheUpdateInterval;
 }
 
+bool RSSystemProperties::GetKawaseEnabled()
+{
+    static bool kawaseBlurEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.kawaseEnable", "1")).c_str()) != 0;
+    return kawaseBlurEnabled;
+}
+
 bool RSSystemProperties::GetProxyNodeDebugEnabled()
 {
     static bool proxyNodeDebugEnabled = system::GetParameter("persist.sys.graphic.proxyNodeDebugEnabled", "0") != "0";
