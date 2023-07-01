@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,21 @@ void RSSurfaceOhosRasterTest::SetUpTestCase() {}
 void RSSurfaceOhosRasterTest::TearDownTestCase() {}
 void RSSurfaceOhosRasterTest::SetUp() {}
 void RSSurfaceOhosRasterTest::TearDown() {}
+
+/**
+ * @tc.name: SetSurfaceBufferUsage001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceOhosRasterTest, SetSurfaceBufferUsage001, TestSize.Level1)
+{
+    sptr<Surface> pSurface = nullptr;
+    RSSurfaceOhosRaster raster(pSurface);
+    uint64_t usage = 0;
+    EXPECT_FALSE(raster.IsValid());
+    raster.SetSurfaceBufferUsage(usage);
+}
 
 /**
  * @tc.name: RequestFrame001
@@ -94,11 +109,25 @@ HWTEST_F(RSSurfaceOhosRasterTest, FlushFrame001, TestSize.Level1)
     raster.SetUiTimeStamp(frame, uiTimestamp);
     EXPECT_FALSE(raster.FlushFrame(frame, uiTimestamp));
 
-    int32_t width = 10;
-    int32_t height = 10;
+    int32_t width = 1;
+    int32_t height = 1;
     frame = std::make_unique<RSSurfaceFrameOhosRaster>(width, height);
     raster.SetUiTimeStamp(frame, uiTimestamp);
     EXPECT_FALSE(raster.FlushFrame(frame, uiTimestamp));
+}
+
+/**
+ * @tc.name: ResetBufferAge001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceOhosRasterTest, ResetBufferAge001, TestSize.Level1)
+{
+    sptr<Surface> pSurface = nullptr;
+    RSSurfaceOhosRaster raster(pSurface);
+    EXPECT_FALSE(raster.IsValid());
+    raster.ResetBufferAge();
 }
 } // namespace Rosen
 } // namespace OHOS
