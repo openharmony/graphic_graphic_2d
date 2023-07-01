@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -133,6 +133,75 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: FlushImplicitTransaction003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction003, TestSize.Level1)
+{
+    uint64_t timestamp = 1;
+    RSTransactionProxy::GetInstance()->Begin();
+    RSTransactionProxy::GetInstance()->StartSyncTransaction();
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction(timestamp);
+}
+
+/**
+ * @tc.name: FlushImplicitTransaction004
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction004, TestSize.Level1)
+{
+    uint64_t timestamp = 1;
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction(timestamp);
+}
+
+/**
+ * @tc.name: FlushImplicitTransaction005
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction005, TestSize.Level1)
+{
+    uint64_t timestamp = 1;
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+    RSTransactionProxy::GetInstance()->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction(timestamp);
+}
+
+/**
+ * @tc.name: FlushImplicitTransaction006
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction006, TestSize.Level1)
+{
+    uint64_t timestamp = 1;
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    renderServiceClient.reset();
+    ASSERT_EQ(renderServiceClient, nullptr);
+    RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
+    RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+    RSTransactionProxy::GetInstance()->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction(timestamp);
+}
+
+/**
  * @tc.name: FlushImplicitTransactionFromRT001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -145,7 +214,7 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransactionFromRT001, TestSize.Lev
 }
 
 /**
- * @tc.name: FlushImplicitTransactionFromRT001
+ * @tc.name: FlushImplicitTransactionFromRT002
  * @tc.desc: test
  * @tc.type:FUNC
  * @tc.require:
@@ -157,6 +226,24 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransactionFromRT002, TestSize.Lev
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransactionFromRT(timestamp);
+}
+
+/**
+ * @tc.name: FlushImplicitTransactionFromRT003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, FlushImplicitTransactionFromRT003, TestSize.Level1)
+{
+    uint64_t timestamp = 1;
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(renderServiceClient, nullptr);
+    RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+    RSTransactionProxy::GetInstance()->AddCommandFromRT(command, 1, FollowType::FOLLOW_TO_PARENT);
     RSTransactionProxy::GetInstance()->FlushImplicitTransactionFromRT(timestamp);
 }
 
@@ -201,6 +288,23 @@ HWTEST_F(RSTransactionProxyTest, Commit003, TestSize.Level1)
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
+    RSTransactionProxy::GetInstance()->Commit(timestamp);
+}
+
+/**
+ * @tc.name: Commit004
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, Commit004, TestSize.Level1)
+{
+    uint64_t timestamp = 1;
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    renderServiceClient.reset();
+    ASSERT_EQ(renderServiceClient, nullptr);
+    RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
+    RSTransactionProxy::GetInstance()->Begin();
     RSTransactionProxy::GetInstance()->Commit(timestamp);
 }
 
@@ -252,6 +356,54 @@ HWTEST_F(RSTransactionProxyTest, CommitSyncTransaction003, TestSize.Level1)
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     RSTransactionProxy::GetInstance()->Begin();
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+    RSTransactionProxy::GetInstance()->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
+    RSTransactionProxy::GetInstance()->CommitSyncTransaction(timestamp, "abilityName");
+}
+
+/**
+ * @tc.name: CommitSyncTransaction004
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, CommitSyncTransaction004, TestSize.Level1)
+{
+    uint64_t timestamp = 1;
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(renderServiceClient, nullptr);
+    RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
+    RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
+    RSTransactionProxy::GetInstance()->Begin();
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+    RSTransactionProxy::GetInstance()->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, 1);
+    RSTransactionProxy::GetInstance()->CommitSyncTransaction(timestamp, "abilityName");
+}
+
+/**
+ * @tc.name: CommitSyncTransaction005
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, CommitSyncTransaction005, TestSize.Level1)
+{
+    uint64_t timestamp = 1;
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    renderServiceClient.reset();
+    ASSERT_EQ(renderServiceClient, nullptr);
+    RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
+    RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
+    RSTransactionProxy::GetInstance()->Begin();
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+    RSTransactionProxy::GetInstance()->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, 1);
     RSTransactionProxy::GetInstance()->CommitSyncTransaction(timestamp, "abilityName");
 }
 
@@ -522,6 +674,89 @@ HWTEST_F(RSTransactionProxyTest, ExecuteSynchronousTask002, TestSize.Level1)
     ASSERT_EQ(renderThreadClient, nullptr);
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(nullptr);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTask003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, ExecuteSynchronousTask003, TestSize.Level1)
+{
+    auto renderThreadClient = CreateRenderThreadClient();
+    renderThreadClient.reset();
+    ASSERT_EQ(renderThreadClient, nullptr);
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    renderServiceClient.reset();
+    ASSERT_EQ(renderServiceClient, nullptr);
+    auto task = std::make_shared<RSGetRenderPropertyAndCancelAnimationTask<0, 0>>(0, nullptr);
+    ASSERT_NE(task, nullptr);
+    RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
+    RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
+    RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTask004
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, ExecuteSynchronousTask004, TestSize.Level1)
+{
+    auto renderThreadClient = CreateRenderThreadClient();
+    renderThreadClient.reset();
+    ASSERT_EQ(renderThreadClient, nullptr);
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(renderServiceClient, nullptr);
+    auto task = std::make_shared<RSGetRenderPropertyAndCancelAnimationTask<0, 0>>(0, nullptr);
+    ASSERT_NE(task, nullptr);
+    RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
+    RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
+    RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, false);
+    RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, true);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTask005
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, ExecuteSynchronousTask005, TestSize.Level1)
+{
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    renderServiceClient.reset();
+    ASSERT_EQ(renderServiceClient, nullptr);
+    auto task = std::make_shared<RSGetRenderPropertyAndCancelAnimationTask<0, 0>>(0, nullptr);
+    ASSERT_NE(task, nullptr);
+    RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
+    RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
+    RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, false);
+    RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, true);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTask006
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, ExecuteSynchronousTask006, TestSize.Level1)
+{
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(renderServiceClient, nullptr);
+    auto task = std::make_shared<RSGetRenderPropertyAndCancelAnimationTask<0, 0>>(0, nullptr);
+    ASSERT_NE(task, nullptr);
+    RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
+    RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
+    RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, false);
+    RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, true);
 }
 } // namespace Rosen
 } // namespace OHOS

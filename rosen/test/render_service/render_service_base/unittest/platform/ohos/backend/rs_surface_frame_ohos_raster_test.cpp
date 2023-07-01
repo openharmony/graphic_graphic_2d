@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,8 @@
  */
 
 #include <gtest/gtest.h>
+
+#include "render_context/render_context.h"
 
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 
@@ -34,6 +36,22 @@ void RSSurfaceFrameOhosRasterTest::SetUpTestCase() {}
 void RSSurfaceFrameOhosRasterTest::TearDownTestCase() {}
 void RSSurfaceFrameOhosRasterTest::SetUp() {}
 void RSSurfaceFrameOhosRasterTest::TearDown() {}
+
+/**
+ * @tc.name: SetDamageRegion001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceFrameOhosRasterTest, SetDamageRegion001, TestSize.Level1)
+{
+    int32_t width = 1;
+    int32_t height = 1;
+    RSSurfaceFrameOhosRaster raster(width, height);
+    std::unique_ptr<RenderContext> renderContext = std::make_unique<RenderContext>();
+    raster.SetRenderContext(renderContext.get());
+    raster.SetDamageRegion(0, 0, 1, 1);
+}
 
 /**
  * @tc.name: GetCanvas001
@@ -61,6 +79,35 @@ HWTEST_F(RSSurfaceFrameOhosRasterTest, GetSurface001, TestSize.Level1)
     int32_t height = 1;
     RSSurfaceFrameOhosRaster raster(width, height);
     raster.GetSurface();
+}
+
+/**
+ * @tc.name: GetReleaseFence001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceFrameOhosRasterTest, GetReleaseFence001, TestSize.Level1)
+{
+    int32_t width = 1;
+    int32_t height = 1;
+    RSSurfaceFrameOhosRaster raster(width, height);
+    raster.GetReleaseFence();
+}
+
+/**
+ * @tc.name: SetReleaseFence001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceFrameOhosRasterTest, SetReleaseFence001, TestSize.Level1)
+{
+    int32_t width = 1;
+    int32_t height = 1;
+    int32_t fence = 1;
+    RSSurfaceFrameOhosRaster raster(width, height);
+    raster.SetReleaseFence(fence);
 }
 } // namespace Rosen
 } // namespace OHOS
