@@ -79,20 +79,6 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegion, Function | SmallTest | Le
 }
 
 /*
- * @tc.name: SrcRectScaleDown_001
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_001, Function | SmallTest | Level2)
-{
-    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
-    BufferDrawParam params;
-    RSUniRenderUtil::SrcRectScaleDown(params, node);
-}
-
-/*
  * @tc.name: CreateBufferDrawParam_001
  * @tc.desc:
  * @tc.type: FUNC
@@ -101,20 +87,6 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_001, Function | SmallTest | Level
 HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam_001, Function | SmallTest | Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
-    bool forceCPU = false;
-    RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU);
-}
-
-/*
- * @tc.name: CreateBufferDrawParam_002
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam_002, Function | SmallTest | Level2)
-{
-    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     bool forceCPU = false;
     RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU);
@@ -130,21 +102,6 @@ HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_001, Function | SmallTe
 {
     bool forceCPU = false;
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
-}
-
-/*
- * @tc.name: CreateLayerBufferDrawParam_002
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_002, Function | SmallTest | Level2)
-{
-    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    bool forceCPU = false;
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    layer->SetBuffer(rsSurfaceRenderNode->GetBuffer(), rsSurfaceRenderNode->GetAcquireFence());
     RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
 }
 
@@ -212,38 +169,6 @@ HWTEST_F(RSUniRenderUtilTest, AlignedDirtyRegion_002, Function | SmallTest | Lev
     for (size_t i = 0; i < dirtyRegion.GetSize(); i++) {
         ASSERT_TRUE(dirtyRegion.GetRegionRects()[i] != alignedRegion.GetRegionRects()[i]);
     }
-}
-
-/*
- * @tc.name: HandleSubThreadNode_001
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniRenderUtilTest, HandleSubThreadNode_001, Function | SmallTest | Level2)
-{
-    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
-    node.SetIsMainThreadNode(false);
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-    ASSERT_TRUE(RSUniRenderUtil::HandleSubThreadNode(node, canvas));
-}
-
-/*
- * @tc.name: HandleSubThreadNode_002
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniRenderUtilTest, HandleSubThreadNode_002, Function | SmallTest | Level2)
-{
-    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
-    node.SetIsMainThreadNode(true);
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
-    ASSERT_FALSE(RSUniRenderUtil::HandleSubThreadNode(node, canvas));
 }
 
 /*

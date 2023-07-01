@@ -280,7 +280,7 @@ HWTEST_F(RSBaseRenderNodeTest, RemoveFromTreeTest, TestSize.Level1)
 
 /**
  * @tc.name: PrepareTest
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
