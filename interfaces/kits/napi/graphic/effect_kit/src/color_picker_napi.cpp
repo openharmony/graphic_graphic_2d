@@ -337,7 +337,7 @@ napi_value ColorPickerNapi::CreateColorPicker(napi_env env, napi_callback_info i
         } else {
             IMG_NAPI_CHECK_RET_D(GetRegionCoordinates(
                 env, argValue[NUM_1], asyncContext), nullptr, EFFECT_LOG_E("fail to parse coordinates"));
-            asyncContext->regionFlag = true;  
+            asyncContext->regionFlag = true;
         }
     }
     if (argCount == NUM_3 && Media::ImageNapiUtils::getType(env, argValue[argCount - NUM_2]) == napi_function) {
@@ -355,9 +355,8 @@ napi_value ColorPickerNapi::CreateColorPicker(napi_env env, napi_callback_info i
     } else if (imgType == ImageType::TYPE_PIXEL_MAP) {
         IMG_CREATE_CREATE_ASYNC_WORK(env, status, "CreateColorPickerFromPixelMap", CreateColorPickerFromPixelmapExecute,
                                         CreateColorPickerFromPixelmapComplete, asyncContext, asyncContext->work);
-    } else {
-        EFFECT_LOG_E("Create error");
     }
+    
     IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, EFFECT_LOG_E("fail to create async work"));
     return result;
 }

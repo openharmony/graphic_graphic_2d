@@ -113,7 +113,8 @@ uint32_t ColorPicker::GetMainColor(ColorManager::Color &color)
 }
 
 ColorPicker::ColorPicker(std::shared_ptr<Media::PixelMap> pixmap):ColorExtract(pixmap) {}
-ColorPicker::ColorPicker(std::shared_ptr<Media::PixelMap> pixmap, double* coordinates):ColorExtract(pixmap, coordinates) {}
+ColorPicker::ColorPicker(
+    std::shared_ptr<Media::PixelMap> pixmap, double* coordinates):ColorExtract(pixmap, coordinates) {}
 
 uint32_t ColorPicker::GetLargestProportionColor(ColorManager::Color &color) const
 {
