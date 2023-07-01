@@ -110,6 +110,11 @@ public:
         return name_;
     }
 
+    const std::string GetBundleName() const
+    {
+        return bundleName_;
+    }
+
     void ResetContextAlpha() const;
 
     void SetContainerWindow(bool hasContainerWindow, float density);
@@ -130,12 +135,14 @@ private:
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
     bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
     void OnBoundsSizeChanged() const override;
+    std::pair<std::string, std::string> SplitSurfaceNodeName(std::string surfaceNodeName);
 #ifdef NEW_RENDER_CONTEXT
     std::shared_ptr<RSRenderSurface> surface_;
 #else
     std::shared_ptr<RSSurface> surface_;
 #endif
     std::string name_;
+    std::string bundleName_;
     std::mutex mutex_;
     BufferAvailableCallback callback_;
 #ifndef ROSEN_CROSS_PLATFORM

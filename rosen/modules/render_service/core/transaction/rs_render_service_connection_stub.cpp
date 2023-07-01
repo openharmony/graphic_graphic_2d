@@ -144,7 +144,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case CREATE_NODE: {
             auto nodeId = data.ReadUint64();
             auto surfaceName = data.ReadString();
-            RSSurfaceRenderNodeConfig config = {.id = nodeId, .name = surfaceName};
+            auto bundleName = data.ReadString();
+            RSSurfaceRenderNodeConfig config = {.id = nodeId, .name = surfaceName, .bundleName = bundleName};
             reply.WriteBool(CreateNode(config));
             break;
         }
@@ -152,7 +153,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             auto nodeId = data.ReadUint64();
             auto surfaceName = data.ReadString();
             auto type = static_cast<RSSurfaceNodeType>(data.ReadUint8());
-            RSSurfaceRenderNodeConfig config = {.id = nodeId, .name = surfaceName, .nodeType = type };
+            auto bundleName = data.ReadString();
+            RSSurfaceRenderNodeConfig config = {
+                .id = nodeId, .name = surfaceName, .nodeType = type, .bundleName = bundleName};
             sptr<Surface> surface = CreateNodeAndSurface(config);
             auto producer = surface->GetProducer();
             reply.WriteRemoteObject(producer->AsObject());

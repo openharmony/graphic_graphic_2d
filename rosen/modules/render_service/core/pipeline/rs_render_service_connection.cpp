@@ -229,8 +229,10 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
         return nullptr;
     }
     const std::string& surfaceName = surface->GetName();
-    RS_LOGI("RsDebug RSRenderService::CreateNodeAndSurface node id:%" PRIu64 " name:%s surface id:%" PRIu64 " name:%s",
-        node->GetId(), node->GetName().c_str(), surface->GetUniqueId(), surfaceName.c_str());
+    RS_LOGI("RsDebug RSRenderService::CreateNodeAndSurface node" \
+        "id:%" PRIu64 " name:%s bundleName:%s surface id:%" PRIu64 " name:%s",
+        node->GetId(), node->GetName().c_str(), node->GetBundleName().c_str(),
+        surface->GetUniqueId(), surfaceName.c_str());
     node->SetConsumer(surface);
     std::function<void()> registerNode = [node, this]() -> void {
         this->mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
