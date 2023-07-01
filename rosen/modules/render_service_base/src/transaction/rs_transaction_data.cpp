@@ -105,11 +105,13 @@ void RSTransactionData::Clear()
 
 void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
 {
+    std::unique_lock<std::mutex> lock(commandMutex_);
     payload_.emplace_back(nodeId, followType, std::move(command));
 }
 
 void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType)
 {
+    std::unique_lock<std::mutex> lock(commandMutex_);
     payload_.emplace_back(nodeId, followType, std::move(command));
 }
 
