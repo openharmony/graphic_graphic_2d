@@ -275,7 +275,7 @@ bool RSSystemProperties::GetCacheCmdEnabled()
 
 bool RSSystemProperties::GetASTCEnabled()
 {
-    static bool isASTCEnabled = std::atoi((system::GetParameter("rosen.astc.enabled", "0")).c_str()) != 0;
+    static bool isASTCEnabled = std::atoi((system::GetParameter("persist.rosen.astc.enabled", "0")).c_str()) != 0;
     return isASTCEnabled;
 }
 
