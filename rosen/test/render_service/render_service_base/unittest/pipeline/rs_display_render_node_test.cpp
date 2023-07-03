@@ -65,7 +65,7 @@ HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest, TestSize.Level1)
 }
 /**
  * @tc.name: SetMirrorSourceTest
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
