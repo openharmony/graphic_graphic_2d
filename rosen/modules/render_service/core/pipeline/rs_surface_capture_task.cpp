@@ -162,8 +162,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
     if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
         if (visitor_->IsUniRender() && !visitor_->GetHasingSecurityLayer()) {
             auto rotation = displayNode->GetRotation();
-            if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
+            if (rotation == ScreenRotation::ROTATION_90) {
                 pixelmap->rotate(static_cast<int32_t>(90)); // 90 degrees
+            }
+            if (rotation == ScreenRotation::ROTATION_270) {
+                pixelmap->rotate(static_cast<int32_t>(270)); // 270 degrees
             }
             RS_LOGD("RSSurfaceCaptureTask::Run: PixelmapRotation: %d", static_cast<int32_t>(rotation));
         }
