@@ -1177,19 +1177,15 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
 {
     RS_TRACE_NAME("ApplyBackgroundEffect");
     SkAutoCanvasRestore acr(&canvas, true);
-    auto visibleIRect = canvas.GetVisibleRect().round();
-    if (!visibleIRect.isEmpty()) {
-        canvas.clipIRect(visibleIRect);
-    }
     if (properties.GetClipBounds() != nullptr) {
         canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
     } else { // we always do clip for ApplyBackgroundEffect, even if ClipToBounds is false
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
     }
-    auto clipIBounds = canvas.getDeviceClipBounds();
-    if (clipIBounds.isEmpty()) {
-        // clipIBounds is empty, no need to draw filter
-        return;
+    canvas.resetMatrix();
+    auto visibleIRect = canvas.GetVisibleRect().round();
+    if (!visibleIRect.isEmpty()) {
+        canvas.clipIRect(visibleIRect);
     }
 
     const auto& [bgImage, imageIRect, unused] = canvas.GetEffectData();
@@ -1197,14 +1193,16 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
         ROSEN_LOGE("RSPropertiesPainter::ApplyBackgroundEffect bgImage null");
         return;
     }
-
     SkPaint defaultPaint;
+    // dstRect: canvas clip region
+    auto dstRect = SkRect::Make(canvas.getDeviceClipBounds());
+    // srcRect: map dstRect onto cache coordinate
+    auto srcRect = dstRect.makeOffset(-imageIRect.left(), -imageIRect.top());
 #ifdef NEW_SKIA
-    canvas.drawImageRect(bgImage.get(), SkRect::Make(clipIBounds.makeOffset(-imageIRect.left(), -imageIRect.top())),
-        SkRect::Make(clipIBounds), SkSamplingOptions(), &defaultPaint, SkCanvas::kStrict_SrcRectConstraint);
+    canvas.drawImageRect(
+        bgImage, srcRect, dstRect, SkSamplingOptions(), &defaultPaint, SkCanvas::kStrict_SrcRectConstraint);
 #else
-    canvas.drawImageRect(bgImage.get(), SkRect::Make(clipIBounds.makeOffset(-imageIRect.left(), -imageIRect.top())),
-        SkRect::Make(clipIBounds), SkSamplingOptions(), &defaultPaint);
+    canvas.drawImageRect(bgImage, imageRect, clipBounds, &defaultPaint);
 #endif
 }
 

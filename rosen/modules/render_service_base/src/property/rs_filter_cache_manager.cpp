@@ -29,8 +29,6 @@ bool RSFilterCacheManager::UpdateCacheState(const RectI& dirtyRegion, const Rect
     if (cacheType_ == CacheType::CACHE_TYPE_NONE) {
         return false;
     }
-    // Note: if cacheType_ is not CACHE_TYPE_NONE, cachedImage_ and cachedImageRegion_ must not not empty, no need to
-    // check.
 
     // if we are caching blurred snapshot, we need to check filter hash match.
     if (cacheType_ == CacheType::CACHE_TYPE_BLURRED_SNAPSHOT && filterHash != cachedFilterHash_) {
@@ -197,9 +195,9 @@ void RSFilterCacheManager::GenerateBlurredSnapshot(
     sk_sp<SkSurface> offscreenSurface = surface->makeSurface(blurRegion_.width(), blurRegion_.height());
     RSPaintFilterCanvas offscreenCanvas(offscreenSurface.get());
 
-    // align canvas coordinate system to blurRegion_
-    canvas.translate(-SkIntToScalar(blurRegion_.x()), -SkIntToScalar(blurRegion_.y()));
-    DrawCachedSnapshot(canvas, filter);
+    // align offscreenCanvas coordinate system to blurRegion_
+    offscreenCanvas.translate(-SkIntToScalar(blurRegion_.x()), -SkIntToScalar(blurRegion_.y()));
+    DrawCachedSnapshot(offscreenCanvas, filter);
 
     cacheType_ = CacheType::CACHE_TYPE_BLURRED_SNAPSHOT;
     cachedImage_ = offscreenSurface->makeImageSnapshot();
@@ -215,9 +213,9 @@ void RSFilterCacheManager::DrawCachedSnapshot(
     RS_TRACE_FUNC();
     // cacheType validated, blurRegion_ / cachedImage_ / cachedImageRegion_ should be valid, no need to check again
     auto dstRect = SkRect::Make(blurRegion_);
-    // shrink the srcRect by 1px to avoid edge artifacts
-    auto srcRect = dstRect.makeOffset(-SkIntToScalar(cachedImageRegion_.x()), -SkIntToScalar(cachedImageRegion_.y()))
-                       .makeOutset(-1.0f, -1.0f);
+    // shrink the srcRect by 1px to avoid edge artifacts, and align to cachedImage_ coordinate system
+    auto srcRect = dstRect.makeOutset(-1.0f, -1.0f)
+        .makeOffset(-SkIntToScalar(cachedImageRegion_.x()), -SkIntToScalar(cachedImageRegion_.y())) ;
 
     filter->DrawImageRect(canvas, cachedImage_, srcRect, dstRect);
     filter->PostProcess(canvas);
@@ -245,10 +243,12 @@ void RSFilterCacheManager::InvalidateCache()
     cacheUpdateInterval_ = 0;
     frameSinceLastBlurChange_ = 0;
 }
+
 void RSFilterCacheManager::ClipVisibleRect(RSPaintFilterCanvas& canvas) const
 {
     auto visibleIRect = canvas.GetVisibleRect().round();
-    if (!visibleIRect.isEmpty()) {
+    auto deviceClipRect = canvas.getDeviceClipBounds();
+    if (!visibleIRect.isEmpty() && deviceClipRect.intersect(visibleIRect)) {
         canvas.clipIRect(visibleIRect);
     }
 }
