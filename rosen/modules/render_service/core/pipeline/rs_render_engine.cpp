@@ -161,8 +161,8 @@ void RSRenderEngine::RSSurfaceNodeCommonPreProcess(RSSurfaceRenderNode& node, RS
         node.GetRenderProperties(), canvas, RSPropertiesPainter::Rect2SkRect(maskBounds));
 
     // draw background filter (should execute this filter before drawing buffer/image).
-    RSPropertiesPainter::DrawFilter(
-        property, canvas, FilterType::BACKGROUND_FILTER, SkRect::MakeWH(params.srcRect.width(), params.srcRect.height()));
+    RSPropertiesPainter::DrawFilter(property, canvas, FilterType::BACKGROUND_FILTER,
+        SkRect::MakeWH(params.srcRect.width(), params.srcRect.height()));
 #else
     RectF maskBounds(0, 0, params.dstRect.GetWidth(), params.dstRect.GetHeight());
     RSPropertiesPainter::DrawMask(
@@ -184,8 +184,8 @@ void RSRenderEngine::RSSurfaceNodeCommonPostProcess(RSSurfaceRenderNode& node, R
 
     // draw preprocess filter (should execute this filter after drawing buffer/image).
 #ifndef USE_ROSEN_DRAWING
-    RSPropertiesPainter::DrawFilter(
-        property, canvas, FilterType::FOREGROUND_FILTER, SkRect::MakeWH(params.srcRect.width(), params.srcRect.height()));
+    RSPropertiesPainter::DrawFilter(property, canvas, FilterType::FOREGROUND_FILTER,
+        SkRect::MakeWH(params.srcRect.width(), params.srcRect.height()));
     RSPropertiesPainter::DrawLinearGradientBlurFilter(
         property, canvas, SkRect::MakeWH(params.srcRect.width(), params.srcRect.height()));
 #else

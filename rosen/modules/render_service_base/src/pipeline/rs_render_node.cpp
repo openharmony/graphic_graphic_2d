@@ -117,38 +117,24 @@ bool RSRenderNode::Update(
     renderProperties_.ResetDirty();
 
 #ifndef USE_ROSEN_DRAWING
-    if (RSSystemProperties::GetFilterCacheEnabled()) {
-        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
-        auto absRect = geoPtr->GetAbsRect();
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
+    auto& absRect = geoPtr->GetAbsRect();
 
-        // Note: cache manager will use dirty region to update cache validity, but:
-        // background filter cache manager should use 'dirty region of all the nodes drawn before this node', and
-        // foreground filter cache manager should use 'dirty region of all the nodes drawn before this node, this node,
-        // and the children of this node'
+    // Note:
+    // 1. cache manager will use dirty region to update cache validity, background filter cache manager should use
+    // 'dirty region of all the nodes drawn before this node', and foreground filter cache manager should use 'dirty
+    // region of all the nodes drawn before this node, this node, and the children of this node'
+    // 2. Filter must be valid when filter cache manager is valid, we make sure that in RSRenderNode::ApplyModifiers().
 
-        // background filter
-        if (auto& filter = renderProperties_.GetBackgroundFilter()) {
-            auto& manager = renderProperties_.backgroundFilterCacheManager_;
-            if (manager == nullptr) {
-                manager = std::make_unique<RSFilterCacheManager>();
-            }
-            // empty implementation, invalidate filter cache on every update
-            manager->UpdateCacheState({ 0, 0, INT_MAX, INT_MAX }, absRect, filter->Hash());
-        } else {
-            renderProperties_.backgroundFilterCacheManager_.reset();
-        }
-
-        // foreground filter
-        if (auto& filter = renderProperties_.GetFilter()) {
-            auto& manager = renderProperties_.filterCacheManager_;
-            if (manager == nullptr) {
-                manager = std::make_unique<RSFilterCacheManager>();
-            }
-            // empty implementation, invalidate filter cache on every update
-            manager->UpdateCacheState({ 0, 0, INT_MAX, INT_MAX }, absRect, filter->Hash());
-        } else {
-            renderProperties_.filterCacheManager_.reset();
-        }
+    // background filter
+    if (auto& manager = renderProperties_.backgroundFilterCacheManager_) {
+        // empty implementation, invalidate filter cache on every update
+        manager->UpdateCacheState({ 0, 0, INT_MAX, INT_MAX }, absRect, renderProperties_.GetBackgroundFilter()->Hash());
+    }
+    // foreground filter
+    if (auto& manager = renderProperties_.filterCacheManager_) {
+        // empty implementation, invalidate filter cache on every update
+        manager->UpdateCacheState({ 0, 0, INT_MAX, INT_MAX }, absRect, renderProperties_.GetFilter()->Hash());
     }
 #endif
 
@@ -396,6 +382,26 @@ void RSRenderNode::ApplyModifiers()
     OnApplyModifiers();
     UpdateDrawRegion();
     dirtyTypes_.clear();
+
+#ifndef USE_ROSEN_DRAWING
+    if (!RSSystemProperties::GetFilterCacheEnabled()) {
+        return;
+    }
+    // make sure filter cache manager is created when filter is not null, and vice versa
+    if (renderProperties_.GetBackgroundFilter() != nullptr &&
+        renderProperties_.backgroundFilterCacheManager_ == nullptr) {
+        renderProperties_.backgroundFilterCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    } else if (renderProperties_.GetBackgroundFilter() == nullptr &&
+        renderProperties_.backgroundFilterCacheManager_ != nullptr) {
+        renderProperties_.backgroundFilterCacheManager_.reset();
+    }
+
+    if (renderProperties_.GetFilter() != nullptr && renderProperties_.filterCacheManager_ == nullptr) {
+        renderProperties_.filterCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    } else if (renderProperties_.GetFilter() == nullptr && renderProperties_.filterCacheManager_ != nullptr) {
+        renderProperties_.filterCacheManager_.reset();
+    }
+#endif
 }
 
 void RSRenderNode::UpdateDrawRegion()
