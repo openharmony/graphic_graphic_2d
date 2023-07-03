@@ -814,7 +814,7 @@ sk_sp<SkShader> RSPropertiesPainter::MakeAlphaGradientShader(
         TransformGradientBlurDirection(direction, directionBias);
     }
     bool result = GetGradientDirectionPoints(
-                        pts, clipBounds, static_cast<GradientDirection>(direction));
+        pts, clipBounds, static_cast<GradientDirection>(direction));
     if (!result) {
         return nullptr;
     }
@@ -943,7 +943,8 @@ void RSPropertiesPainter::DrawVerticalLinearGradientBlur(SkSurface* skSurface, R
     canvas.drawRect(SkRect::Make(clipIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())), paint);
 }
 
-uint8_t RSPropertiesPainter::CalcDirectionBias(const SkMatrix& mat) {
+uint8_t RSPropertiesPainter::CalcDirectionBias(const SkMatrix& mat)
+{
     uint8_t directionBias = 0;
     // 1 and 3 represents rotate matrix's index
     if ((mat.get(1) > FLOAT_ZERO_THRESHOLD) && (mat.get(3) < (0 - FLOAT_ZERO_THRESHOLD))) {
