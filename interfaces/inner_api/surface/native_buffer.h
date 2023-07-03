@@ -78,7 +78,7 @@ OH_NativeBuffer* OH_NativeBuffer_Alloc(const OH_NativeBuffer_Config* config);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
  * @param buffer Indicates the pointer to a <b>OH_NativeBuffer</b> instance.
- * @return Returns an error code defined in <b>GSError</b>.
+ * @return Returns an error code, 0 is success, otherwise, failed.
  * @since 9
  * @version 1.0
  */
@@ -90,7 +90,7 @@ int32_t OH_NativeBuffer_Reference(OH_NativeBuffer *buffer);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
  * @param buffer Indicates the pointer to a <b>OH_NativeBuffer</b> instance.
- * @return Returns an error code defined in <b>GSError</b>.
+ * @return Returns an error code, 0 is success, otherwise, failed.
  * @since 9
  * @version 1.0
  */
@@ -102,8 +102,7 @@ int32_t OH_NativeBuffer_Unreference(OH_NativeBuffer *buffer);
  * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
  * @param buffer Indicates the pointer to a <b>OH_NativeBuffer</b> instance.
  * @param config Indicates the pointer to the <b>NativeBufferConfig</b> of the buffer.
- * @return Returns the pointer to the <b>BufferRequestConfig</b> instance if the operation is successful, \n
- * returns <b>NULL</b> otherwise.
+ * @return <b>void</b>
  * @since 9
  * @version 1.0
  */
@@ -115,7 +114,7 @@ void OH_NativeBuffer_GetConfig(OH_NativeBuffer *buffer, OH_NativeBuffer_Config* 
  * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
  * @param buffer Indicates the pointer to a <b>OH_NativeBuffer</b> instance.
  * @param virAddr Indicates the address of the <b>OH_NativeBuffer</b> in virtual memory.
- * @return Returns an error code defined in <b>GSError</b>.
+ * @return Returns an error code, 0 is success, otherwise, failed.
  * @since 9
  * @version 1.0
  */
@@ -127,7 +126,7 @@ int32_t OH_NativeBuffer_Map(OH_NativeBuffer *buffer, void **virAddr);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
  * @param buffer Indicates the pointer to a <b>OH_NativeBuffer</b> instance.
- * @return Returns an error code defined in <b>GSError</b>.
+ * @return Returns an error code, 0 is success, otherwise, failed.
  * @since 9
  * @version 1.0
  */
