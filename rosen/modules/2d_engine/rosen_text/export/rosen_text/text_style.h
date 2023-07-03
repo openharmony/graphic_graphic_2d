@@ -17,6 +17,7 @@
 #define ROSEN_TEXT_EXPORT_ROSEN_TEXT_TEXT_STYLE_H
 
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 

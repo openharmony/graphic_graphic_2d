@@ -74,9 +74,6 @@ txt::ParagraphStyle Convert(const TypographyStyle &style)
         .ellipsis = style.ellipsis,
         .locale = style.locale,
         .break_strategy = static_cast<minikin::BreakStrategy>(style.breakStrategy),
-#if !defined(USE_CANVASKIT0310_SKIA) && !defined(NEW_SKIA)
-         .word_break_type = static_cast<minikin::WordBreakType>(style.wordBreakType),
-#endif
     };
 }
 

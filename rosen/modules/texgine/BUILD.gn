@@ -99,6 +99,8 @@ ohos_shared_library("libtexgine") {
       "//build/config/compiler:exceptions",
     ]
 
+  cflags_cc = ["-Wno-c++17-extensions"]
+  cflags = ["-Wno-c++17-extensions"]
     public_configs = [ ":libtexgine_public_config" ]
 
     platform = current_os
@@ -107,7 +109,8 @@ ohos_shared_library("libtexgine") {
     }
 
     public_deps = [
-      "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
+      #"$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
+      "//third_party/flutter/build/icu:ace_libicu_$platform",
       "$hilog_root/interfaces/native/innerkits:libhilog",
       "texgine_drawing:libtexgine_drawing",
       "//third_party/jsoncpp:jsoncpp",

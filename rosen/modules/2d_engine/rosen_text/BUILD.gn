@@ -24,14 +24,23 @@ config("rosen_text_public_config") {
 }
 
 ohos_shared_library("rosen_text") {
+  include_dirs = [ "$graphic_2d_root/rosen/modules/2d_graphics/include" ]
   public_deps = [ ":rosen_text_inner" ]
+  public_configs =
+      [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_config" ]
 
   platform = current_os
   if (platform == "mingw") {
     platform = "windows"
   }
 
-  deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+#  deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_drawing" ]
+  if (platform == "ohos") {
+    deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  } else {
+    #deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_source_$platform" ]
+    deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_new" ]
+  }
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -46,6 +55,9 @@ ohos_source_set("rosen_text_inner") {
 
 ohos_source_set("rosen_text_texgine") {
   public_configs = [ ":rosen_text_public_config" ]
+
+  cflags_cc = [ "-Wno-c++17-extensions" ]
+  cflags = [ "-Wno-c++17-extensions" ]
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
@@ -78,6 +90,13 @@ ohos_source_set("rosen_text_txt") {
     "$flutter_root/engine",
   ]
 
+  cflags_cc = [
+    "-Wno-c++17-extensions",
+    "-std=c++17",
+  ]
+  defines = [ "WINDOWS_PLATFORM" ]
+
+  cflags = [ "-Wno-c++17-extensions" ]
   if (defined(use_new_skia) && use_new_skia) {
     include_dirs += [ "$flutter_root/txt/src" ]
   } else {
@@ -98,17 +117,9 @@ ohos_source_set("rosen_text_txt") {
     platform = "windows"
   }
 
-  deps = [
-    "$ace_flutter_engine_root:flutter_engine_fml_$platform",
-    "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
-    "//third_party/flutter/build/skia:ace_skia_$platform",
-  ]
-  if (platform == "ohos") {
-    deps += [ "$graphic_2d_root/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$platform" ]
-  } else {
-    deps +=
-        [ "//third_party/flutter/build/libtxt:thirdparty_lib_txt_$platform" ]
-  }
+  deps = [ "$skia_root_new:skia_$platform" ]
+
+  deps += [ "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

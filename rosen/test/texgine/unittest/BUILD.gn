@@ -44,6 +44,7 @@ group("common_deps") {
   testonly = true
   public_deps = [
     "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_ohos",
+#    "$ace_flutter_engine_root/icu:ace_libicu_$platform",
     "$graphic_2d_root/rosen/modules/texgine:libtexgine",
     "$graphic_2d_root/rosen/modules/texgine/texgine_drawing:libtexgine_drawing",
     "$graphic_2d_root/utils/test_header:test_header",

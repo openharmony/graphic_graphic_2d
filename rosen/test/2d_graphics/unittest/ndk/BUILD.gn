@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic_standard/rosen/modules/2d_graphics/ndk/"
 
@@ -30,9 +31,9 @@ ohos_unittest("2d_graphics_ndk_test") {
   ]
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/export",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "//third_party/googletest/googletest/include",
     "//third_party/skia",
   ]
