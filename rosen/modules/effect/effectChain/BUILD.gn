@@ -48,8 +48,8 @@ ohos_shared_library("libeffectchain") {
 
   external_deps = [
     "c_utils:utils",
-    "hilog_native:libhilog",
-    "hitrace_native:hitrace_meter",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "multimedia_image_framework:image_native",
   ]
 
@@ -73,7 +73,7 @@ ohos_shared_library("libeffectchain") {
       "src/vertical_blur_filter.cpp",
     ]
 
-    deps += [ "$graphic_2d_root:libgl" ]
+    deps = [ "$graphic_2d_root:libgl" ]
   }
 
   configs = [ ":effect_config" ]

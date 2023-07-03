@@ -78,7 +78,7 @@
           "bounds_checking_function",
           "icu",
           "libpng",
-          "zilb",
+          "zlib",
           "skia",
           "cjson"
         ]
