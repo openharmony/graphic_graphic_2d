@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -56,6 +56,7 @@ RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(S
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&blurRadiusX, sizeof(blurRadiusX), hash_);
     hash_ = SkOpts::hash(&blurRadiusY, sizeof(blurRadiusY), hash_);
+
     useKawase = RSSystemProperties::GetKawaseEnabled();
 }
 #endif
@@ -146,22 +147,6 @@ std::shared_ptr<RSFilter> RSBlurFilter::Negate()
     return std::make_shared<RSBlurFilter>(-blurRadiusX_, -blurRadiusY_);
 }
 
-bool RSBlurFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, float threshold) const
-{
-    auto otherBlurFilter = std::static_pointer_cast<RSBlurFilter>(other);
-    if (otherBlurFilter == nullptr) {
-        return true;
-    }
-    return ROSEN_EQ(blurRadiusX_, otherBlurFilter->GetBlurRadiusX(), threshold) &&
-           ROSEN_EQ(blurRadiusY_, otherBlurFilter->GetBlurRadiusY(), threshold);
-}
-
-bool RSBlurFilter::IsNearZero(float threshold) const
-{
-    return ROSEN_EQ(blurRadiusX_, 0.0f, threshold) && ROSEN_EQ(blurRadiusY_, 0.0f, threshold);
-}
-
-
 void RSBlurFilter::DrawImageRect(
     SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst) const
 {
@@ -175,7 +160,7 @@ void RSBlurFilter::DrawImageRect(
         return;
     }
     KawaseBlur kawase;
-    kawase.ApplyKawaseBlur(canvas, image, src, dst);
+    kawase.ApplyKawaseBlur(canvas, image, src, dst, static_cast<int>(blurRadiusX_));
 }
 } // namespace Rosen
 } // namespace OHOS

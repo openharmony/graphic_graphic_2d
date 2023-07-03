@@ -95,9 +95,9 @@ public:
     }
 
     void ApplyKawaseBlur(
-        SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst) const
+        SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst, int radius) const
     {
-        int blurRadius = 347;;
+        float blurRadius = radius * 3; // 3 : radio between gauss to kawase
         uint32_t maxPasses = supporteLargeRadius ? kMaxPassesLargeRadius : kMaxPasses;
         float dilatedConvolutionFactor = supporteLargeRadius ? kDilatedConvolutionLargeRadius : kDilatedConvolution;
         float tmpRadius = static_cast<float>(blurRadius) / dilatedConvolutionFactor;

@@ -338,7 +338,7 @@ void RSMaterialFilter::DrawImageRect(
         return;
     }
     KawaseBlur kawase;
-    kawase.ApplyKawaseBlur(canvas, image, src, dst);
+    kawase.ApplyKawaseBlur(canvas, image, src, dst, static_cast<int>(radius_));
 }
 } // namespace Rosen
 } // namespace OHOS
