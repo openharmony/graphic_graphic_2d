@@ -1599,7 +1599,7 @@ const sk_sp<SkColorFilter> RSProperties::GetColorFilter() const
         }
         // complete color invert when dstRGB = 1 - srcRGB
         // map (0, 1) to (1, -1)
-        matrix[0] = matrix[INDEX_6] = matrix[INDEX_12] = 1.0 - 2.0 * invert;
+        matrix[0] = matrix[INDEX_6] = matrix[INDEX_12] = 1.0 - 2.0 * invert; // 2.0: invert
         matrix[INDEX_18] = 1.0f;
         // invert = 0.5 -> RGB = (0.5, 0.5, 0.5) -> image completely gray
         matrix[INDEX_4] = matrix[INDEX_9] = matrix[INDEX_14] = invert;
@@ -1608,7 +1608,7 @@ const sk_sp<SkColorFilter> RSProperties::GetColorFilter() const
     }
     if (hueRotate_.has_value() && GreatNotEqual(*hueRotate_, 0.0)) {
         auto hueRotate = hueRotate_.value();
-        while (hueRotate >= 360) { // 360 : degree
+        while (GreatOrEqual(hueRotate, 360)) { // 360 : degree
             hueRotate -= 360; // 360 : degree
         }
         float matrix[20] = { 0.0f }; // 20 : matrix size
