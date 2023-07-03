@@ -477,7 +477,7 @@ void RSMainThread::CheckParallelSubThreadNodesStatus()
 void RSMainThread::ProcessCommandForUniRender()
 {
     ResetHardwareEnabledState();
-    TransactionDataMap transactionDataEffective;
+    std::shared_ptr<TransactionDataMap> transactionDataEffective = std::make_shared<TransactionDataMap>();
     std::string transactionFlags;
     if (RSSystemProperties::GetUIFirstEnabled() && RSSystemProperties::GetCacheCmdEnabled()) {
         CheckParallelSubThreadNodesStatus();
@@ -522,17 +522,17 @@ void RSMainThread::ProcessCommandForUniRender()
                 }
             }
             if (iter != transactionVec.begin()) {
-                transactionDataEffective[pid].insert(transactionDataEffective[pid].end(),
+                (*transactionDataEffective)[pid].insert((*transactionDataEffective)[pid].end(),
                     std::make_move_iterator(transactionVec.begin()), std::make_move_iterator(iter));
                 transactionVec.erase(transactionVec.begin(), iter);
             }
         }
     }
-    if (!transactionDataEffective.empty()) {
+    if (!transactionDataEffective->empty()) {
         doDirectComposition_ = false;
     }
     RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
-    for (auto& rsTransactionElem: transactionDataEffective) {
+    for (auto& rsTransactionElem: *transactionDataEffective) {
         for (auto& rsTransaction: rsTransactionElem.second) {
             if (rsTransaction) {
                 if (rsTransaction->IsNeedSync() || syncTransactionData_.count(rsTransactionElem.first) > 0) {
@@ -543,6 +543,10 @@ void RSMainThread::ProcessCommandForUniRender()
             }
         }
     }
+    RSUnmarshalThread::Instance().PostTask([ transactionDataEffective ] () {
+        RS_TRACE_NAME("RSMainThread::ProcessCommandForUniRender transactionDataEffective clear");
+        transactionDataEffective->clear();
+    });
 }
 
 void RSMainThread::ProcessCommandForDividedRender()
