@@ -27,13 +27,14 @@
 
 namespace OHOS {
 namespace Rosen {
-#ifndef USE_ROSEN_DRAWING
-class RSSkiaFilter;
-#else
+#ifdef USE_ROSEN_DRAWING
 class RSDrawingFilter;
 #endif
 class RSPaintFilterCanvas;
-
+enum FilterType {
+    BACKGROUND_FILTER,
+    FOREGROUND_FILTER,
+};
 class RSB_EXPORT RSPropertiesPainter {
 public:
 #ifndef USE_ROSEN_DRAWING
@@ -43,11 +44,13 @@ public:
     static void DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas, bool isAntiAlias = true);
     static void DrawBorder(const RSProperties& properties, SkCanvas& canvas);
     static void DrawFrame(const RSProperties& properties, RSPaintFilterCanvas& canvas, DrawCmdListPtr& drawCmdList);
-    static void GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties, const RRect* rrect = nullptr);
+    static void GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties,
+        const RRect* rrect = nullptr, bool isAbsCoordinate = true);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
-    static void DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
-        std::shared_ptr<RSSkiaFilter>& filter, const std::unique_ptr<SkRect>& rect = nullptr,
-        SkSurface* sKSurface = nullptr);
+    static void DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas, FilterType filterType,
+        const std::optional<SkRect>& rect = std::nullopt);
+    static void DrawLinearGradientBlurFilter(
+        const RSProperties& properties, RSPaintFilterCanvas& canvas, const std::optional<SkRect>& rect = std::nullopt);
     static void DrawForegroundColor(const RSProperties& properties, SkCanvas& canvas);
     static void DrawMask(const RSProperties& properties, SkCanvas& canvas);
     static void DrawMask(const RSProperties& properties, SkCanvas& canvas, SkRect maskBounds);
@@ -64,10 +67,37 @@ public:
     // functions that are dedicated to driven render [end]
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const sk_sp<SkSurface>& spherizeSurface);
+
+    // EffectView and useEffect
+    static void DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkIRect& rect);
+    static void DrawForegroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+    static void ApplyBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+
+    // Foreground Color filter
+    static void DrawColorFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+
+    static void DrawLightUpEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 private:
     inline static int g_blurCnt = 0;
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
+#ifdef NEW_SKIA
+    static bool GetGradientDirectionPoints(SkPoint* pts,
+                                const SkRect& clipBounds, GradientDirection direction);
+    static void TransformGradientBlurDirection(uint8_t& direction, const uint8_t directionBias);
+    static sk_sp<SkShader> MakeAlphaGradientShader(const SkRect& clipBounds,
+                                const std::shared_ptr<RSLinearGradientBlurPara>& para, uint8_t directionBias);
+    static sk_sp<SkShader> MakeHorizontalMeanBlurShader(float radiusIn,
+                                            sk_sp<SkShader> shader, sk_sp<SkShader> gradientShader);
+    static sk_sp<SkShader> MakeVerticalMeanBlurShader(float radiusIn,
+                                            sk_sp<SkShader> shader, sk_sp<SkShader> gradientShader);
+    static sk_sp<SkShader> MakeLightUpEffectShader(float lightUpDeg, sk_sp<SkShader> imageShader);
+    static void DrawHorizontalLinearGradientBlur(SkSurface* skSurface, RSPaintFilterCanvas& canvas,
+        float radius, sk_sp<SkShader> alphaGradientShader, const SkIRect& clipIPadding);
+    static void DrawVerticalLinearGradientBlur(SkSurface* skSurface, RSPaintFilterCanvas& canvas,
+        float radius, sk_sp<SkShader> alphaGradientShader, const SkIRect& clipIPadding);
+    static uint8_t CalcDirectionBias(const SkMatrix& mat);
+#endif
 #else
     static void Clip(Drawing::Canvas& canvas, RectF rect);
     static void SetBgAntiAlias(bool forceBgAntiAlias);
@@ -79,8 +109,8 @@ private:
     static void GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties, const RRect* rrect = nullptr);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static void DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
-        std::shared_ptr<RSDrawingFilter>& filter, const std::unique_ptr<Drawing::Rect>& rect = nullptr,
-        Drawing::Surface* surface = nullptr);
+        std::shared_ptr<RSDrawingFilter>& filter, FilterType filterType,
+        const std::unique_ptr<Drawing::Rect>& rect = nullptr);
     static void DrawForegroundColor(const RSProperties& properties, Drawing::Canvas& canvas);
     static void DrawMask(const RSProperties& properties, Drawing::Canvas& canvas);
     static void DrawMask(const RSProperties& properties, Drawing::Canvas& canvas, Drawing::Rect maskBounds);

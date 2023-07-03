@@ -31,7 +31,7 @@ namespace OHOS {
         PFN_vkCreateInstance vkCreateInstance = nullptr;
         PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = nullptr;
         PFN_vkDestroyInstance vkDestroyInstance = nullptr;
-        PFN_vkCreateOHOSSurfaceOpenHarmony vkCreateOHOSSurfaceOpenHarmony = nullptr;
+        PFN_vkCreateSurfaceOHOS vkCreateSurfaceOHOS = nullptr;
         PFN_vkDestroySurfaceKHR vkDestroySurfaceKHR = nullptr;
         bool g_isSupportedVulkan = false;
         const uint8_t* g_data = nullptr;
@@ -94,7 +94,7 @@ namespace OHOS {
 
             std::vector<const char*> instanceExtensions = {
                 VK_KHR_SURFACE_EXTENSION_NAME,
-                VK_OPENHARMONY_OHOS_SURFACE_EXTENSION_NAME
+                VK_OHOS_SURFACE_EXTENSION_NAME
             };
 
             VkInstanceCreateInfo instanceCreateInfo = {};
@@ -112,8 +112,8 @@ namespace OHOS {
                 g_isSupportedVulkan = true;
                 vkDestroyInstance = reinterpret_cast<PFN_vkDestroyInstance>(
                     vkGetInstanceProcAddr(instance, "vkDestroyInstance"));
-                vkCreateOHOSSurfaceOpenHarmony = reinterpret_cast<PFN_vkCreateOHOSSurfaceOpenHarmony>(
-                    vkGetInstanceProcAddr(instance, "vkCreateOHOSSurfaceOpenHarmony"));
+                vkCreateSurfaceOHOS = reinterpret_cast<PFN_vkCreateSurfaceOHOS>(
+                    vkGetInstanceProcAddr(instance, "vkCreateSurfaceOHOS"));
                 vkDestroySurfaceKHR = reinterpret_cast<PFN_vkDestroySurfaceKHR>(
                     vkGetInstanceProcAddr(instance, "vkDestroySurfaceKHR"));
             }
@@ -138,11 +138,11 @@ namespace OHOS {
             CreateVkInstance();
         }
         if (g_isSupportedVulkan) {
-            VkOHOSSurfaceCreateInfoOpenHarmony surfaceCreateInfo = {};
+            VkSurfaceCreateInfoOHOS surfaceCreateInfo = {};
             surfaceCreateInfo.sType = GetData<VkStructureType>();
-            surfaceCreateInfo.flags = GetData<VkOHOSSurfaceCreateFlagsOpenHarmony>();
+            surfaceCreateInfo.flags = GetData<VkSurfaceCreateFlagsOHOS>();
             VkSurfaceKHR surface;
-            vkCreateOHOSSurfaceOpenHarmony(instance, &surfaceCreateInfo, NULL, &surface);
+            vkCreateSurfaceOHOS(instance, &surfaceCreateInfo, NULL, &surface);
             vkDestroySurfaceKHR(instance, surface, nullptr);
         }
 

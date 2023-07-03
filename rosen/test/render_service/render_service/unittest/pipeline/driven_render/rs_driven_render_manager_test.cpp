@@ -235,7 +235,7 @@ HWTEST_F(RSDrivenRenderManagerTest, DoProcessRenderTask, TestSize.Level1)
     prepareInfo = { dirtyInfo, drivenBackgroundNode, drivenContentNode, screenRect, false, true };
     RSDrivenRenderManager::GetInstance().DoPrepareRenderTask(prepareInfo);
     auto uniGlobalZOrder = RSDrivenRenderManager::GetInstance().GetUniRenderGlobalZOrder();
-    processInfo = { processor, ColorGamut::COLOR_GAMUT_SRGB, uniGlobalZOrder };
+    processInfo = { processor, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, uniGlobalZOrder };
     RSDrivenRenderManager::GetInstance().DoProcessRenderTask(processInfo);
 
     // second frame: itemNode1 frame rect(0, -5, 100, 80), itemNode2 frame rect(0, 75, 100, 80)
@@ -243,7 +243,7 @@ HWTEST_F(RSDrivenRenderManagerTest, DoProcessRenderTask, TestSize.Level1)
     secondItemNode->GetMutableRenderProperties().SetFrame({0, 75, 100, 80});
     RSDrivenRenderManager::GetInstance().DoPrepareRenderTask(prepareInfo);
     uniGlobalZOrder = RSDrivenRenderManager::GetInstance().GetUniRenderGlobalZOrder();
-    processInfo = { processor, ColorGamut::COLOR_GAMUT_SRGB, uniGlobalZOrder };
+    processInfo = { processor, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, uniGlobalZOrder };
     RSDrivenRenderManager::GetInstance().DoProcessRenderTask(processInfo);
 
     // third frame: itemNode1 frame rect(0, -10, 100, 80), itemNode2 frame rect(0, 70, 100, 80)
@@ -252,7 +252,7 @@ HWTEST_F(RSDrivenRenderManagerTest, DoProcessRenderTask, TestSize.Level1)
     RSDrivenRenderManager::GetInstance().DoPrepareRenderTask(prepareInfo);
     uniGlobalZOrder = RSDrivenRenderManager::GetInstance().GetUniRenderGlobalZOrder();
     auto currProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
-    processInfo = { currProcessor, ColorGamut::COLOR_GAMUT_SRGB, uniGlobalZOrder };
+    processInfo = { currProcessor, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, uniGlobalZOrder };
     RSDrivenRenderManager::GetInstance().DoProcessRenderTask(processInfo);
 
     // fourth frame: itemNode1 frame rect(0, -15, 100, 80), itemNode2 frame rect(0, 65, 100, 80)
@@ -262,7 +262,7 @@ HWTEST_F(RSDrivenRenderManagerTest, DoProcessRenderTask, TestSize.Level1)
     prepareInfo = { dirtyInfo, drivenBackgroundNode, drivenContentNode, screenRect, false, true };
     RSDrivenRenderManager::GetInstance().DoPrepareRenderTask(prepareInfo);
     uniGlobalZOrder = RSDrivenRenderManager::GetInstance().GetUniRenderGlobalZOrder();
-    processInfo = { processor, ColorGamut::COLOR_GAMUT_SRGB, uniGlobalZOrder };
+    processInfo = { processor, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, uniGlobalZOrder };
     RSDrivenRenderManager::GetInstance().DoProcessRenderTask(processInfo);
 
     // fifth frame: itemNode1 frame rect(0, -15, 100, 80), itemNode2 frame rect(0, 65, 100, 80)
@@ -272,7 +272,7 @@ HWTEST_F(RSDrivenRenderManagerTest, DoProcessRenderTask, TestSize.Level1)
     prepareInfo = { dirtyInfo, drivenBackgroundNode, drivenContentNode, screenRect, false, true };
     RSDrivenRenderManager::GetInstance().DoPrepareRenderTask(prepareInfo);
     uniGlobalZOrder = RSDrivenRenderManager::GetInstance().GetUniRenderGlobalZOrder();
-    processInfo = { processor, ColorGamut::COLOR_GAMUT_SRGB, uniGlobalZOrder };
+    processInfo = { processor, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, uniGlobalZOrder };
     RSDrivenRenderManager::GetInstance().DoProcessRenderTask(processInfo);
 
     // sixth frame: itemNode1 frame rect(0, -20, 100, 80), itemNode2 frame rect(0, 60, 100, 80)
@@ -282,7 +282,7 @@ HWTEST_F(RSDrivenRenderManagerTest, DoProcessRenderTask, TestSize.Level1)
     prepareInfo = { dirtyInfo, drivenBackgroundNode, drivenContentNode, screenRect, false, true };
     RSDrivenRenderManager::GetInstance().DoPrepareRenderTask(prepareInfo);
     uniGlobalZOrder = RSDrivenRenderManager::GetInstance().GetUniRenderGlobalZOrder();
-    processInfo = { processor, ColorGamut::COLOR_GAMUT_SRGB, uniGlobalZOrder };
+    processInfo = { processor, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, uniGlobalZOrder };
     RSDrivenRenderManager::GetInstance().DoProcessRenderTask(processInfo);
 }
 

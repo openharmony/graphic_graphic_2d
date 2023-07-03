@@ -308,7 +308,7 @@ void RSImplicitAnimator::CreateImplicitTransition(RSNode& target)
         ROSEN_LOGE("Failed to create implicit transition, need to open implicit transition firstly!");
         return;
     }
-    auto params = implicitAnimationParams_.top();
+    auto& params = implicitAnimationParams_.top();
     if (params->GetType() != ImplicitAnimationParamType::TRANSITION) {
         ROSEN_LOGE("Failed to create transition, unknow type!");
         return;
@@ -331,8 +331,10 @@ void RSImplicitAnimator::CreateEmptyAnimation()
     }
     std::shared_ptr<RSAnimatableProperty<float>> property = std::make_shared<RSAnimatableProperty<float>>(0.f);
     property->id_ = 0;
+    // The spring animation will stop when the oscillation amplitude is less than 1/256. Setting this end value is to
+    // make the spring animation stop at an appropriate time and call the callback function.
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(100.0); // 100: for spring animation stop timing
     auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.f);
-    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.f);
     CreateImplicitAnimation(target, property, startValue, endValue);
     return;
 }
@@ -378,6 +380,10 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
             } else {
                 keyframeImplicitParam->AddKeyframe(keyframeIter->second, startValue, endValue);
             }
+            if (animation == nullptr) {
+                ROSEN_LOGE("Failed to create animation!");
+                return;
+            }
             if (repeatCallback != nullptr) {
                 animation->SetRepeatCallback(std::move(repeatCallback));
                 repeatCallback.reset();
@@ -405,6 +411,10 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         case ImplicitAnimationParamType::TRANSITION: {
             auto implicitTransitionParam = static_cast<RSImplicitTransitionParam*>(params.get());
             animation = implicitTransitionParam->CreateAnimation(property, startValue, endValue);
+            if (animation == nullptr) {
+                ROSEN_LOGE("Failed to create animation!");
+                return;
+            }
             if (repeatCallback != nullptr) {
                 animation->SetRepeatCallback(std::move(repeatCallback));
                 repeatCallback.reset();

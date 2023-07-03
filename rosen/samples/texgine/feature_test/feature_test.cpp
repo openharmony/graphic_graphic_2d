@@ -75,7 +75,7 @@ public:
 
             TextStyle style;
             style.fontFamilies = {info.fontFamily};
-            style.fontSize = 64;
+            style.fontSize = 64;    // 64 means the font size
             for (const auto &[feature, value] : info.features) {
                 style.fontFeature.SetFeature(feature, value);
             }

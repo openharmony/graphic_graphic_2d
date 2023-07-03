@@ -150,6 +150,21 @@ bool RSSystemProperties::GetProxyNodeDebugEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetFilterCacheEnabled()
+{
+    return false;
+}
+
+int RSSystemProperties::GetFilterCacheUpdateInterval()
+{
+    return 0;
+}
+
+bool RSSystemProperties::GetKawaseEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
 {
     return {};
@@ -163,6 +178,11 @@ int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyCh
 bool RSSystemProperties::GetAFBCEnabled()
 {
     return {};
+}
+
+bool RSSystemProperties::GetASTCEnabled()
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

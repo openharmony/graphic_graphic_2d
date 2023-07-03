@@ -69,8 +69,6 @@ public:
     const Drawing::Matrix& GetAbsMatrix() const;
 #endif
 
-    bool IsPointInHotZone(const float x, const float y) const;
-
     bool IsNeedClientCompose() const;
 
 #ifndef USE_ROSEN_DRAWING
@@ -83,29 +81,18 @@ private:
     void UpdateAbsMatrix2D();
     void UpdateAbsMatrix3D();
     void SetAbsRect();
-#ifndef USE_ROSEN_DRAWING
-    float GetCross(const SkPoint& p1, const SkPoint& p2, const SkPoint& p) const;
-#else
-    float GetCross(const Drawing::Point& p1, const Drawing::Point& p2, const Drawing::Point& p) const;
-#endif
+
     Vector2f GetDataRange(float d0, float d1, float d2, float d3) const;
-#ifndef USE_ROSEN_DRAWING
-    bool IsPointInLine(const SkPoint& p1, const SkPoint& p2, const SkPoint& p, const float crossRes) const;
-#else
-    bool IsPointInLine(const Drawing::Point& p1, const Drawing::Point& p2, const Drawing::Point& p,
-        const float crossRes) const;
-#endif
+
     RectI absRect_;
 #ifndef USE_ROSEN_DRAWING
     SkMatrix matrix_;
     std::optional<SkMatrix> absMatrix_;
     std::optional<SkMatrix> contextMatrix_;
-    SkPoint vertices_[4];
 #else
     Drawing::Matrix matrix_;
     std::optional<Drawing::Matrix> absMatrix_;
     std::optional<Drawing::Matrix> contextMatrix_;
-    Drawing::Point vertices_[4];
 #endif
 };
 } // namespace Rosen

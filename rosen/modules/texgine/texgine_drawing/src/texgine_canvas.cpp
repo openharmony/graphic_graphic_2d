@@ -27,7 +27,7 @@ void TexgineCanvas::DrawLine(double x0, double y0, double x1, double y1, const T
     canvas_->drawLine(x0, y0, x1, y1, paint.GetPaint());
 }
 
-void TexgineCanvas::DrawRect(TexgineRect &rect, const TexginePaint &paint) const
+void TexgineCanvas::DrawRect(const TexgineRect &rect, const TexginePaint &paint) const
 {
     if (canvas_ == nullptr || rect.GetRect() == nullptr) {
         return;
@@ -35,7 +35,8 @@ void TexgineCanvas::DrawRect(TexgineRect &rect, const TexginePaint &paint) const
     canvas_->drawRect(*rect.GetRect(), paint.GetPaint());
 }
 
-void TexgineCanvas::DrawTextBlob(std::shared_ptr<TexgineTextBlob> &blob, float x, float y, const TexginePaint &paint)
+void TexgineCanvas::DrawTextBlob(
+    const std::shared_ptr<TexgineTextBlob> &blob, float x, float y, const TexginePaint &paint)
 {
     if (canvas_ == nullptr || blob == nullptr) {
         return;
@@ -86,7 +87,7 @@ void TexgineCanvas::Restore() const
     canvas_->restore();
 }
 
-void TexgineCanvas::SetCanvas(const SkCanvas *canvas)
+void TexgineCanvas::SetCanvas(SkCanvas *canvas)
 {
     canvas_ = canvas;
 }

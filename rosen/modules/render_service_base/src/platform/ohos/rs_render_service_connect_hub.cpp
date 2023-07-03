@@ -92,6 +92,7 @@ sptr<RSIRenderServiceConnection> RSRenderServiceConnectHub::GetRenderServiceConn
 
 bool RSRenderServiceConnectHub::Connect()
 {
+    RS_LOGI("RSRenderServiceConnectHub::Connect");
     int tryCnt = 0;
     sptr<RSIRenderService> renderService = nullptr;
     do {

@@ -37,10 +37,8 @@ std::shared_ptr<RecordingColorFilter> RecordingColorFilter::CreateComposeColorFi
 {
     auto colorFilter = std::make_shared<RecordingColorFilter>();
 
-    auto colorFilterHandle1 = CmdListHelper::AddRecordedToCmdList(
-        *colorFilter->GetCmdList(), static_cast<const RecordingColorFilter&>(f1));
-    auto colorFilterHandle2 = CmdListHelper::AddRecordedToCmdList(
-        *colorFilter->GetCmdList(), static_cast<const RecordingColorFilter&>(f2));
+    auto colorFilterHandle1 = CmdListHelper::AddRecordedToCmdList<RecordingColorFilter>(*colorFilter->GetCmdList(), f1);
+    auto colorFilterHandle2 = CmdListHelper::AddRecordedToCmdList<RecordingColorFilter>(*colorFilter->GetCmdList(), f2);
     colorFilter->GetCmdList()->AddOp<CreateComposeOpItem>(colorFilterHandle1, colorFilterHandle2);
     return colorFilter;
 }
@@ -75,8 +73,7 @@ std::shared_ptr<RecordingColorFilter> RecordingColorFilter::CreateLumaColorFilte
 
 void RecordingColorFilter::Compose(const ColorFilter& filter)
 {
-    auto colorFilterHandle = CmdListHelper::AddRecordedToCmdList(
-        *cmdList_, static_cast<const RecordingColorFilter&>(filter));
+    auto colorFilterHandle = CmdListHelper::AddRecordedToCmdList<RecordingColorFilter>(*cmdList_, filter);
     cmdList_->AddOp<ColorFilterComposeOpItem>(colorFilterHandle);
 }
 } // namespace Drawing

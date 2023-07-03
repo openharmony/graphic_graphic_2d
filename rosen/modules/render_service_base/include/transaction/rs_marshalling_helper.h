@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_TRANSACTION_RS_MARSHALLING_HELPER_H
 
 #include <memory>
+#include <optional>
 #include "common/rs_macros.h"
 #ifdef USE_ROSEN_DRAWING
 #include "image/image.h"
@@ -42,6 +43,7 @@ class SkRegion;
 class SkTextBlob;
 class SkVertices;
 class SkTypeface;
+class SkBitmap;
 
 #ifdef NEW_SKIA
 struct SkSamplingOptions;
@@ -68,6 +70,7 @@ class RSImage;
 class RSImageBase;
 class RSMask;
 class RSPath;
+class RSLinearGradientBlurPara;
 class RSRenderCurveAnimation;
 class RSRenderInterpolatingSpringAnimation;
 class RSRenderKeyframeAnimation;
@@ -99,6 +102,9 @@ public:
     static bool Unmarshalling(Parcel& parcel, T& val)
     {
         if (const uint8_t* buff = parcel.ReadUnpadBuffer(sizeof(T))) {
+            if (buff == nullptr) {
+                return false;
+            }
             val = *(reinterpret_cast<const T*>(buff));
             return true;
         }
@@ -117,9 +123,12 @@ public:
     static bool UnmarshallingArray(Parcel& parcel, T*& val, int count)
     {
         if (count <= 0) {
-            return true;
+            return false;
         }
         if (const uint8_t* buff = parcel.ReadUnpadBuffer(count * sizeof(T))) {
+            if (buff == nullptr) {
+                return false;
+            }
             val = reinterpret_cast<const T*>(buff);
             return true;
         }
@@ -159,6 +168,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(SkPaint)
     DECLARE_FUNCTION_OVERLOAD(SkRect)
     DECLARE_FUNCTION_OVERLOAD(SkRegion)
+    DECLARE_FUNCTION_OVERLOAD(SkBitmap)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkFlattenable>)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkTextBlob>)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkPicture>)
@@ -174,6 +184,7 @@ public:
     // RS types
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSShader>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSPath>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSLinearGradientBlurPara>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSFilter>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)

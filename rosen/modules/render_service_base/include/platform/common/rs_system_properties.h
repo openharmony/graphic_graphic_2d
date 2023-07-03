@@ -51,9 +51,9 @@ enum class PartialRenderType {
 };
 
 enum class ReleaseGpuResourceType {
-    DISABLED = 0,                               // 0, disable releaseGpuResource
-    WINDOW_HIDDEN,                              // 1, release window GpuResource when it Exit or GoBackGround
-    WINDOW_HIDDEN_AND_LAUCHER,                  // 2, release window and launcher GpuResource when it Exit or GoBackGround
+    DISABLED = 0,                            // 0, disable releaseGpuResource
+    WINDOW_HIDDEN,                           // 1, release window GpuResource when it Exit or GoBackGround
+    WINDOW_HIDDEN_AND_LAUCHER,               // 2, release window and launcher GpuResource when it Exit or GoBackGround
 };
 
 enum class DumpSurfaceType {
@@ -110,11 +110,16 @@ public:
     static bool GetColdStartThreadEnabled();
     static float GetAnimationScale();
     static bool GetProxyNodeDebugEnabled();
+    static bool GetFilterCacheEnabled();
+    static int GetFilterCacheUpdateInterval();
+    static bool GetKawaseEnabled();
     static bool GetSkipForAlphaZeroEnabled();
 
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetUIFirstEnabled();
+    static bool GetCacheCmdEnabled();
+    static bool GetASTCEnabled();
 private:
     RSSystemProperties() = default;
 

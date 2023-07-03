@@ -28,7 +28,11 @@
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
+#ifdef NEW_RENDER_CONTEXT
+#include "rs_render_surface.h"
+#else
 #include "platform/drawing/rs_surface.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -118,12 +122,17 @@ public:
     {
         return false;
     }
-
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RSRenderSurface> GetRSSurface() const
+    {
+        return surface_;
+    }
+#else
     std::shared_ptr<RSSurface> GetRSSurface() const
     {
         return surface_;
     }
-
+#endif
     // Use in vulkan parallel rendering
     void SetIsParallelDisplayNode(bool isParallelDisplayNode)
     {
@@ -242,8 +251,11 @@ private:
     Drawing::Matrix initMatrix_;
 #endif
     bool isFirstTimeToProcessor_ = true;
-
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RSRenderSurface> surface_;
+#else
     std::shared_ptr<RSSurface> surface_;
+#endif
     bool surfaceCreated_ { false };
     bool hasFingerprint_ = false;
 #ifndef ROSEN_CROSS_PLATFORM

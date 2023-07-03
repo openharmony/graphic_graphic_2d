@@ -17,6 +17,7 @@
 
 #include "common/rs_vector4.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_display_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -75,7 +76,7 @@ void SurfaceNodeCommandHelper::SetFingerprint(RSContext& context, NodeId id, boo
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
-void SurfaceNodeCommandHelper::SetColorSpace(RSContext& context, NodeId id, ColorGamut colorSpace)
+void SurfaceNodeCommandHelper::SetColorSpace(RSContext& context, NodeId id, GraphicColorGamut colorSpace)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         node->SetColorSpace(colorSpace);
@@ -156,6 +157,32 @@ void SurfaceNodeCommandHelper::SetAnimationFinished(RSContext& context, NodeId n
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetStartAnimationFinished();
     }
+}
+
+void SurfaceNodeCommandHelper::AttachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId)
+{
+    const auto& nodeMap = context.GetNodeMap();
+    auto surfaceRenderNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    nodeMap.TraverseDisplayNodes(
+        [&surfaceRenderNode, &screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
+            if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId) {
+                return;
+            }
+            displayRenderNode->AddChild(surfaceRenderNode);
+        });
+}
+
+void SurfaceNodeCommandHelper::DetachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId)
+{
+    const auto& nodeMap = context.GetNodeMap();
+    auto surfaceRenderNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    nodeMap.TraverseDisplayNodes(
+        [&surfaceRenderNode, &screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
+            if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId) {
+                return;
+            }
+            displayRenderNode->RemoveChild(surfaceRenderNode);
+        });
 }
 } // namespace Rosen
 } // namespace OHOS

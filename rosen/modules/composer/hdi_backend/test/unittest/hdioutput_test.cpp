@@ -41,7 +41,7 @@ void HdiOutputTest::TearDownTestCase() {}
 namespace {
 
 /*
-* Function: GetFrameBufferSurface
+* Function: GetFrameBufferSurface001
 * Type: Function
 * Rank: Important(1)
 * EnvConditions: N/A
@@ -54,7 +54,7 @@ HWTEST_F(HdiOutputTest, GetFrameBufferSurface001, Function | MediumTest| Level1)
 }
 
 /*
-* Function: GetFramebuffer
+* Function: GetFramebuffer001
 * Type: Function
 * Rank: Important(1)
 * EnvConditions: N/A
@@ -67,22 +67,7 @@ HWTEST_F(HdiOutputTest, GetFramebuffer001, Function | MediumTest| Level1)
 }
 
 /*
-* Function: ReleaseFramebuffer
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call ReleaseFramebuffer()
-*                  2. check ret
-*/
-HWTEST_F(HdiOutputTest, ReleaseFramebuffer001, Function | MediumTest| Level1)
-{
-    sptr<SurfaceBuffer> buffer;
-    sptr<SyncFence> releaseFence;
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->ReleaseFramebuffer(buffer, releaseFence), -1);
-}
-
-/*
-* Function: GetScreenId
+* Function: GetScreenId001
 * Type: Function
 * Rank: Important(1)
 * EnvConditions: N/A
@@ -95,7 +80,21 @@ HWTEST_F(HdiOutputTest, GetScreenId001, Function | MediumTest| Level1)
 }
 
 /*
-* Function: Init
+* Function: Commit001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call Commit()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputTest, Commit001, Function | MediumTest| Level1)
+{
+    sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->Commit(fbFence), ROSEN_ERROR_NOT_INIT);
+}
+
+/*
+* Function: Init001
 * Type: Function
 * Rank: Important(1)
 * EnvConditions: N/A
@@ -110,22 +109,33 @@ HWTEST_F(HdiOutputTest, Init001, Function | MediumTest| Level1)
 }
 
 /*
-* Function: ReleaseFramebuffer
+* Function: GetFrameBufferSurface002
 * Type: Function
-* Rank: Important(1)
+* Rank: Important(3)
 * EnvConditions: N/A
-* CaseDescription: 1. call ReleaseFramebuffer()
+* CaseDescription: 1. call GetFrameBufferSurface
 *                  2. check ret
 */
-HWTEST_F(HdiOutputTest, ReleaseFramebuffer002, Function | MediumTest| Level1)
+HWTEST_F(HdiOutputTest, GetFrameBufferSurface002, Function | MediumTest| Level3)
 {
-    sptr<SurfaceBuffer> buffer;
-    sptr<SyncFence> releaseFence;
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->ReleaseFramebuffer(buffer, releaseFence), 0);
+    ASSERT_NE(HdiOutputTest::hdiOutput_->GetFrameBufferSurface(), nullptr);
 }
 
 /*
-* Function: Init
+* Function: GetFramebuffer002
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetFramebuffer
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputTest, GetFramebuffer002, Function | MediumTest| Level3)
+{
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->GetFramebuffer(), nullptr);
+}
+
+/*
+* Function: GetOutputDamage001
 * Type: Function
 * Rank: Important(3)
 * EnvConditions: N/A
@@ -169,33 +179,7 @@ HWTEST_F(HdiOutputTest, GetLayerCompCapacity001, Function | MediumTest| Level3)
 }
 
 /*
-* Function: GetFrameBufferSurface
-* Type: Function
-* Rank: Important(3)
-* EnvConditions: N/A
-* CaseDescription: 1. call GetFrameBufferSurface
-*                  2. check ret
-*/
-HWTEST_F(HdiOutputTest, GetFrameBufferSurface002, Function | MediumTest| Level3)
-{
-    ASSERT_NE(HdiOutputTest::hdiOutput_->GetFrameBufferSurface(), nullptr);
-}
-
-/*
-* Function: GetFramebuffer
-* Type: Function
-* Rank: Important(3)
-* EnvConditions: N/A
-* CaseDescription: 1. call GetFramebuffer
-*                  2. check ret
-*/
-HWTEST_F(HdiOutputTest, GetFramebuffer002, Function | MediumTest| Level3)
-{
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->GetFramebuffer(), nullptr);
-}
-
-/*
-* Function: GetDirectClientCompEnableStatus
+* Function: GetDirectClientCompEnableStatus001
 * Type: Function
 * Rank: Important(1)
 * EnvConditions: N/A
@@ -211,7 +195,7 @@ HWTEST_F(HdiOutputTest, GetDirectClientCompEnableStatus001, Function | MediumTes
 }
 
 /*
-* Function: GetDirectClientCompEnableStatus
+* Function: GetDirectClientCompEnableStatus002
 * Type: Function
 * Rank: Important(1)
 * EnvConditions: N/A
@@ -225,6 +209,21 @@ HWTEST_F(HdiOutputTest, GetDirectClientCompEnableStatus002, Function | MediumTes
     HdiOutputTest::hdiOutput_->SetDirectClientCompEnableStatus(enablStatus);
     ASSERT_EQ(HdiOutputTest::hdiOutput_->GetDirectClientCompEnableStatus(), true);
 }
+
+/*
+* Function: Commit002
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call Commit()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputTest, Commit002, Function | MediumTest| Level1)
+{
+    sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->Commit(fbFence), GRAPHIC_DISPLAY_SUCCESS);
+}
+
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

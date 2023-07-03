@@ -26,11 +26,17 @@
 #include "surface_type.h"
 #endif
 
+#ifdef NEW_RENDER_CONTEXT
+#include "rs_render_surface.h"
+#else
 #include "platform/drawing/rs_surface.h"
+#endif
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
 
+#ifndef USE_ROSEN_DRAWING
 class SkCanvas;
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -43,6 +49,8 @@ struct RSSurfaceNodeConfig {
 
 class RSC_EXPORT RSSurfaceNode : public RSNode {
 public:
+    static constexpr float POINTER_WINDOW_POSITION_Z = 9999;
+
     using WeakPtr = std::weak_ptr<RSSurfaceNode>;
     using SharedPtr = std::shared_ptr<RSSurfaceNode>;
     static inline constexpr RSUINodeType Type = RSUINodeType::SURFACE_NODE;
@@ -84,12 +92,15 @@ public:
     static RSNode::SharedPtr UnmarshallingAsProxyNode(Parcel& parcel);
 
     FollowType GetFollowType() const override;
+    
+    void AttachToDisplay(uint64_t screenId);
+    void DetachToDisplay(uint64_t screenId);
 
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<OHOS::Surface> GetSurface() const;
 
-    void SetColorSpace(ColorGamut colorSpace);
-    ColorGamut GetColorSpace()
+    void SetColorSpace(GraphicColorGamut colorSpace);
+    GraphicColorGamut GetColorSpace()
     {
         return colorSpace_;
     }
@@ -119,18 +130,22 @@ private:
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
     bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
     void OnBoundsSizeChanged() const override;
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RSRenderSurface> surface_;
+#else
     std::shared_ptr<RSSurface> surface_;
+#endif
     std::string name_;
     std::mutex mutex_;
     BufferAvailableCallback callback_;
 #ifndef ROSEN_CROSS_PLATFORM
-    ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #endif
     bool isSecurityLayer_ = false;
     bool hasFingerprint_ = false;
     bool isChildOperationDisallowed_ { false };
 
-    uint32_t windowId_;
+    uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceDelegate> surfaceDelegate_;
     sptr<SurfaceDelegate::ISurfaceCallback> surfaceCallback_;

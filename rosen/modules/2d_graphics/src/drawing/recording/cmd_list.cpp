@@ -27,11 +27,16 @@ CmdList::CmdList(const CmdListData& cmdListData)
     opAllocator_.BuildFromData(cmdListData.first, cmdListData.second);
 }
 
-int CmdList::AddCmdListData(const CmdListData& data)
+int32_t CmdList::AddCmdListData(const CmdListData& data)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (lastOpItem_ == nullptr) {
-        lastOpItem_ = opAllocator_.Allocate<OpItem>(OPITEM_HEAD);
+    if (!lastOpItemOffset_.has_value()) {
+        void* op = opAllocator_.Allocate<OpItem>(OPITEM_HEAD);
+        if (op == nullptr) {
+            LOGE("add OpItem head failed!");
+            return 0;
+        }
+        lastOpItemOffset_.emplace(opAllocator_.AddrToOffset(op));
     }
     void* addr = opAllocator_.Add(data.first, data.second);
     if (addr == nullptr) {
@@ -56,7 +61,7 @@ bool CmdList::SetUpImageData(const void* data, size_t size)
     return imageAllocator_.BuildFromData(data, size);
 }
 
-int CmdList::AddImageData(const void* data, size_t size)
+int32_t CmdList::AddImageData(const void* data, size_t size)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     void* addr = imageAllocator_.Add(data, size);
@@ -74,7 +79,7 @@ const void* CmdList::GetImageData(uint32_t offset) const
 
 CmdListData CmdList::GetAllImageData() const
 {
-    return std::make_pair(opAllocator_.GetData(), opAllocator_.GetSize());
+    return std::make_pair(imageAllocator_.GetData(), imageAllocator_.GetSize());
 }
 } // namespace Drawing
 } // namespace Rosen

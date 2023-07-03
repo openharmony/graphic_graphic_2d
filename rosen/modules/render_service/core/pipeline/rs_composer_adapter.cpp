@@ -27,6 +27,10 @@
 #include "rs_trace.h"
 #include "string_utils.h"
 
+#ifdef USE_ROSEN_DRAWING
+#include "draw/canvas.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 bool RSComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY,
@@ -104,7 +108,7 @@ void RSComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& layers)
     }
 
     // set all layers' releaseFence.
-    const auto layersReleaseFence = hdiBackend_->GetLayersReleaseFence(output_);
+    const auto layersReleaseFence = output_->GetLayersReleaseFence();
     for (const auto& [layer, fence] : layersReleaseFence) {
         if (layer == nullptr) {
             continue;
@@ -186,6 +190,7 @@ bool RSComposerAdapter::IsOutOfScreenRegion(const ComposeInfo& info) const
     return false;
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const
 {
     const auto& property = node.GetRenderProperties();
@@ -249,6 +254,75 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
     info.dstRect = {newDstRect.left(), newDstRect.top(), newDstRect.width(), newDstRect.height()};
     info.srcRect = newSrcRect;
 }
+#else
+void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const
+{
+    const auto& property = node.GetRenderProperties();
+    const auto frameWidth = info.buffer->GetSurfaceBufferWidth();
+    const auto frameHeight = info.buffer->GetSurfaceBufferHeight();
+    const int boundsWidth = static_cast<int>(property.GetBoundsWidth());
+    const int boundsHeight = static_cast<int>(property.GetBoundsHeight());
+    const Gravity frameGravity = property.GetFrameGravity();
+    // we do not need to do additional works for Gravity::RESIZE and if frameSize == boundsSize.
+    if (frameGravity == Gravity::RESIZE || (frameWidth == boundsWidth && frameHeight == boundsHeight)) {
+        return;
+    }
+
+    auto traceInfo = node.GetName() + " DealWithNodeGravity " + std::to_string(static_cast<int>(frameGravity));
+    RS_TRACE_NAME(traceInfo.c_str());
+
+    // get current node's translate matrix and calculate gravity matrix.
+    Drawing::Matrix translateMatrix;
+    translateMatrix.Translate(
+        std::ceil(node.GetTotalMatrix().Get(Drawing::Matrix::Index::TRANS_X)),
+        std::ceil(node.GetTotalMatrix().Get(Drawing::Matrix::Index::TRANS_Y)));
+    Drawing::Matrix gravityMatrix;
+    (void)RSPropertiesPainter::GetGravityMatrix(frameGravity,
+        RectF {0.0f, 0.0f, boundsWidth, boundsHeight}, frameWidth, frameHeight, gravityMatrix);
+
+    // create a canvas to calculate new dstRect and new srcRect
+    int32_t screenWidth = screenInfo_.width;
+    int32_t screenHeight = screenInfo_.height;
+    const auto screenRotation = screenInfo_.rotation;
+    if (screenRotation == ScreenRotation::ROTATION_90 || screenRotation == ScreenRotation::ROTATION_270) {
+        std::swap(screenWidth, screenHeight);
+    }
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
+    bitmap.Build(screenWidth, screenHeight, format);
+    auto canvas = std::make_unique<Rosen::Drawing::Canvas>();
+    canvas->Bind(bitmap);
+    canvas->ConcatMatrix(translateMatrix);
+    Drawing::Rect clipRect;
+    Drawing::Rect srcRect(0, 0, frameWidth, frameHeight);
+    gravityMatrix.MapRect(clipRect, srcRect);
+    canvas->ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
+    canvas->ConcatMatrix(gravityMatrix);
+    Drawing::RectI newDstRect = canvas->GetDeviceClipBounds();
+    // we make the newDstRect as the intersection of new and old dstRect,
+    // to deal with the situation that frameSize > boundsSize.
+    // replace Intersect
+    newDstRect.Intersect(Drawing::RectI(info.dstRect.x, info.dstRect.y,
+        info.dstRect.w + info.dstRect.x, info.dstRect.h + info.dstRect.y));
+    auto localRect = canvas->GetLocalClipBounds();
+    int left = std::clamp<int>(localRect.GetLeft(), 0, frameWidth);
+    int top = std::clamp<int>(localRect.GetTop(), 0, frameHeight);
+    int width = std::clamp<int>(localRect.GetWidth(), 0, frameWidth - left);
+    int height = std::clamp<int>(localRect.GetHeight(), 0, frameHeight - top);
+    GraphicIRect newSrcRect = {left, top, width, height};
+
+    // log and apply new dstRect and srcRect
+    RS_LOGD("RsDebug DealWithNodeGravity: name[%s], gravity[%d], oldDstRect[%d %d %d %d], newDstRect[%d %d %d %d],"\
+        " oldSrcRect[%d %d %d %d], newSrcRect[%d %d %d %d].",
+        node.GetName().c_str(), static_cast<int>(frameGravity),
+        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
+        newDstRect.GetLeft(), newDstRect.GetTop(), newDstRect.GetWidth(), newDstRect.GetHeight(),
+        info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h,
+        newSrcRect.x, newSrcRect.y, newSrcRect.w, newSrcRect.h);
+    info.dstRect = {newDstRect.GetLeft(), newDstRect.GetTop(), newDstRect.GetWidth(), newDstRect.GetHeight()};
+    info.srcRect = newSrcRect;
+}
+#endif
 
 void RSComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node)
 {
@@ -504,7 +578,7 @@ LayerInfoPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node) con
     return layer;
 }
 
-LayerInfoPtr RSComposerAdapter::CreateLayer(RSSurfaceRenderNode& node)
+LayerInfoPtr RSComposerAdapter::CreateLayer(RSSurfaceRenderNode& node) const
 {
     auto& consumer = node.GetConsumer();
     if (consumer == nullptr) {
@@ -519,7 +593,7 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSSurfaceRenderNode& node)
     }
 }
 
-LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
+LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node) const
 {
     if (output_ == nullptr) {
         RS_LOGE("RSComposerAdapter::CreateLayer: output is nullptr");
@@ -561,10 +635,18 @@ static int GetSurfaceNodeRotation(RSBaseRenderNode& node)
 
     auto& surfaceNode = static_cast<RSSurfaceRenderNode&>(node);
     auto matrix = surfaceNode.GetTotalMatrix();
+#ifndef USE_ROSEN_DRAWING
     float value[9];
     matrix.get9(value);
 
     int rAngle = static_cast<int>(-round(atan2(value[SkMatrix::kMSkewX], value[SkMatrix::kMScaleX]) * (180 / PI)));
+#else
+    Drawing::Matrix::Buffer value;
+    matrix.GetAll(value);
+
+    int rAngle = static_cast<int>(
+        -round(atan2(value[Drawing::Matrix::SKEW_X], value[Drawing::Matrix::SCALE_X]) * (180 / PI)));
+#endif
     // transfer the result to anti-clockwise degrees
     // only rotation with 90°, 180°, 270° are composed through hardware,
     // in which situation the transformation of the layer needs to be set.
@@ -749,6 +831,11 @@ void RSComposerAdapter::OnPrepareComplete(sptr<Surface>& surface, const PrepareC
     if (fallbackCb_ != nullptr) {
         fallbackCb_(surface, param.layers);
     }
+}
+
+void RSComposerAdapter::SetHdiBackendDevice(HdiDevice* device)
+{
+    hdiBackend_->SetHdiBackendDevice(device);
 }
 } // namespace Rosen
 } // namespace OHOS

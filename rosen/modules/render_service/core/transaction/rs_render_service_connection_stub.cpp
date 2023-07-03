@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -279,6 +279,53 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             ScreenId id = data.ReadUint64();
             uint32_t modeId = data.ReadUint32();
             SetScreenActiveMode(id, modeId);
+            break;
+        }
+        case SET_SCREEN_REFRESH_RATE: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            int32_t sceneId = data.ReadInt32();
+            int32_t rate = data.ReadInt32();
+            SetScreenRefreshRate(id, sceneId, rate);
+            break;
+        }
+        case SET_REFRESH_RATE_MODE: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            int32_t mode = data.ReadInt32();
+            SetRefreshRateMode(mode);
+            break;
+        }
+        case GET_SCREEN_CURRENT_REFRESH_RATE: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            uint32_t refreshRate = GetScreenCurrentRefreshRate(id);
+            reply.WriteUint32(refreshRate);
+            break;
+        }
+        case GET_SCREEN_SUPPORTED_REFRESH_RATES: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            std::vector<uint32_t> rates = GetScreenSupportedRefreshRates(id);
+            reply.WriteUint64(static_cast<uint64_t>(rates.size()));
+            for (auto ratesIter : rates) {
+                reply.WriteUint32(ratesIter);
+            }
             break;
         }
         case SET_VIRTUAL_SCREEN_RESOLUTION: {
@@ -593,6 +640,21 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteUint32(type);
             break;
         }
+        case GET_BITMAP: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            NodeId id = data.ReadUint64();
+            SkBitmap bm;
+            bool result = GetBitmap(id, bm);
+            reply.WriteBool(result);
+            if (result) {
+                RSMarshallingHelper::Marshalling(reply, bm);
+            }
+            break;
+        }
         case SET_SCREEN_SKIP_FRAME_INTERVAL: {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
@@ -644,6 +706,44 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             bool isShow = data.ReadBool();
             ShowWatermark(watermarkImg, isShow);
             break;
+        }
+        case REPORT_JANK_STATS: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ReportJankStats();
+            break;
+        }
+        case EXECUTE_SYNCHRONOUS_TASK: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto type = data.ReadInt16();
+            auto subType = data.ReadInt16();
+            if (type != RS_NODE_SYNCHRONOUS_READ_PROPERTY) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto func = RSCommandFactory::Instance().GetUnmarshallingFunc(type, subType);
+            if (func == nullptr) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto command = static_cast<RSSyncTask*>((*func)(data));
+            if (command == nullptr) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            std::shared_ptr<RSSyncTask> task(command);
+            ExecuteSynchronousTask(task);
+            if (!task->Marshalling(reply)) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
         }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);

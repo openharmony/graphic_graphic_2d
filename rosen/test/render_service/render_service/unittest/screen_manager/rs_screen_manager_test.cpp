@@ -507,4 +507,176 @@ HWTEST_F(RSScreenManagerTest, ScreenGamutMap_001, TestSize.Level1)
     int32_t getStatusCode = screenManager->GetScreenGamutMap(virtualScreenId, mode);
     ASSERT_EQ(getStatusCode, StatusCode::SUCCESS);
 }
+
+/*
+ * @tc.name: SetScreenMirror_002
+ * @tc.desc: Test SetScreenMirror
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenMirror_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    auto virtualScreenId = screenManager->CreateVirtualScreen("virtualScreen01", 480, 320, nullptr);
+    ScreenId mirrorId = static_cast<uint64_t>(100);
+    screenManager->SetScreenMirror(virtualScreenId, mirrorId);
+}
+
+/*
+ * @tc.name: GetScreenCapabilityLocked_001
+ * @tc.desc: Test GetScreenCapabilityLocked
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenCapabilityLocked_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    auto virtualScreenId = screenManager->CreateVirtualScreen("virtualScreen01", 480, 320, nullptr);
+    RSScreenCapability screenCapability;
+    screenCapability = screenManager->GetScreenCapability(virtualScreenId);
+    ASSERT_EQ(screenCapability.GetName(), "virtualScreen01");
+}
+
+/*
+ * @tc.name: SetVirtualScreenSurface_002
+ * @tc.desc: Test SetVirtualScreenSurface
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenSurface_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId screenId = INVALID_SCREEN_ID;
+    auto csurface = IConsumerSurface::Create();
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_EQ(screenManager->SetVirtualScreenSurface(screenId, psurface), SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: RemoveVirtualScreen_001
+ * @tc.desc: Test RemoveVirtualScreen
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, RemoveVirtualScreen_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId screenId = INVALID_SCREEN_ID;
+    screenManager->RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: SetVirtualScreenResolution_002
+ * @tc.desc: Test SetVirtualScreenResolution
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenResolution_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId screenId = INVALID_SCREEN_ID;
+    uint32_t width = static_cast<uint32_t>(100);
+    uint32_t height = static_cast<uint32_t>(100);
+    auto result = screenManager->SetVirtualScreenResolution(screenId, width, height);
+    ASSERT_EQ(result, SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: SetScreenPowerStatus_001
+ * @tc.desc: Test SetScreenPowerStatus
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenPowerStatus_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId screenId = INVALID_SCREEN_ID;
+    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_ON);
+    ASSERT_EQ(screenManager->GetScreenPowerStatus(screenId), INVALID_POWER_STATUS);
+}
+
+/*
+ * @tc.name: GetScreenData_002
+ * @tc.desc: Test GetScreenData
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenData_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId screenId = INVALID_SCREEN_ID;
+    screenManager->GetScreenData(screenId);
+}
+
+/*
+ * @tc.name: GetScreenBacklight_002
+ * @tc.desc: Test GetScreenBacklight
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenBacklight_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId screenId = INVALID_SCREEN_ID;
+    auto result = screenManager->GetScreenBacklight(screenId);
+    ASSERT_EQ(result, INVALID_BACKLIGHT_VALUE);
+}
+
+/*
+ * @tc.name: SetScreenBacklight_001
+ * @tc.desc: Test SetScreenBacklight
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenBacklight_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId screenId = INVALID_SCREEN_ID;
+    uint32_t level = static_cast<uint32_t>(1);
+    screenManager->SetScreenBacklight(screenId, level);
+}
+
+/*
+ * @tc.name: GetProducerSurface_002
+ * @tc.desc: Test GetProducerSurface
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, GetProducerSurface_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId screenId = INVALID_SCREEN_ID;
+    auto result = screenManager->GetProducerSurface(screenId);
+    ASSERT_EQ(result, nullptr);
+}
+
+/*
+ * @tc.name: GetOutput_001
+ * @tc.desc: Test GetOutput
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, GetOutput_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId screenId = INVALID_SCREEN_ID;
+    auto result = screenManager->GetOutput(screenId);
+    ASSERT_EQ(result, nullptr);
+}
+
+/*
+ * @tc.name: SetScreenSkipFrameInterval_001
+ * @tc.desc: Test SetScreenSkipFrameInterval
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenSkipFrameInterval_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId screenId = INVALID_SCREEN_ID;
+    uint32_t interval = static_cast<uint32_t>(1);
+    auto result = screenManager->SetScreenSkipFrameInterval(screenId, interval);
+    ASSERT_EQ(result, StatusCode::SCREEN_NOT_FOUND);
+}
 } // namespace OHOS::Rosen

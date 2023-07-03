@@ -13,7 +13,16 @@
  * limitations under the License.
  */
 
+#include <scoped_bytrace.h>
 #include "hdi_output.h"
+
+#define CHECK_DEVICE_NULL(device)                                   \
+    do {                                                            \
+        if ((device) == nullptr) {                                  \
+            HLOGD("[%{public}s]HdiDevice is nullptr.", __func__);   \
+            return ROSEN_ERROR_NOT_INIT;                            \
+        }                                                           \
+    } while (0)
 
 namespace OHOS {
 namespace Rosen {
@@ -43,6 +52,36 @@ RosenError HdiOutput::Init()
         return ROSEN_ERROR_NOT_INIT;
     }
 
+    if (device_ != nullptr) {
+        return ROSEN_ERROR_OK;
+    }
+
+    device_ = HdiDevice::GetInstance();
+    CHECK_DEVICE_NULL(device_);
+
+    bufferCacheCountMax_ = fbSurface_->GetBufferQueueSize();
+    int32_t ret = device_->SetScreenClientBufferCacheCount(screenId_, bufferCacheCountMax_);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("Set screen client buffer cache count failed, ret is %{public}d", ret);
+        return ROSEN_ERROR_INVALID_OPERATING;
+    }
+    bufferCache_.resize(bufferCacheCountMax_);
+
+    return ROSEN_ERROR_OK;
+}
+
+RosenError HdiOutput::SetHdiOutputDevice(HdiDevice* device)
+{
+    if (device == nullptr) {
+        HLOGE("Input HdiDevice is null");
+        return ROSEN_ERROR_INVALID_ARGUMENTS;
+    }
+
+    if (device_ != nullptr) {
+        HLOGW("HdiDevice has been changed");
+        return ROSEN_ERROR_OK;
+    }
+    device_ = device;
     return ROSEN_ERROR_OK;
 }
 
@@ -53,6 +92,7 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
             HLOGE("current layerInfo or layerInfo's cSurface is null");
             continue;
         }
+
         uint64_t surfaceId = layerInfo->GetSurface()->GetUniqueId();
         auto iter = surfaceIdMap_.find(surfaceId);
         if (iter != surfaceIdMap_.end()) {
@@ -173,17 +213,6 @@ std::unique_ptr<FrameBufferEntry> HdiOutput::GetFramebuffer()
     return fbSurface_->GetFramebuffer();
 }
 
-int32_t HdiOutput::ReleaseFramebuffer(
-    sptr<SurfaceBuffer> &buffer,
-    const sptr<SyncFence>& releaseFence)
-{
-    if (!CheckFbSurface()) {
-        return -1;
-    }
-
-    return fbSurface_->ReleaseFramebuffer(buffer, releaseFence);
-}
-
 bool HdiOutput::CheckFbSurface()
 {
     if (fbSurface_ == nullptr) {
@@ -208,6 +237,237 @@ void HdiOutput::SetDirectClientCompEnableStatus(bool enableStatus)
 bool HdiOutput::GetDirectClientCompEnableStatus() const
 {
     return directClientCompositionEnabled_;
+}
+
+int32_t HdiOutput::PreProcessLayersComp(bool &needFlush)
+{
+    if (layerIdMap_.empty()) {
+        HLOGI("layer map is empty, drop this frame");
+        return GRAPHIC_DISPLAY_PARAM_ERR;
+    }
+
+    uint32_t layersNum = layerIdMap_.size();
+    // If doClientCompositionDirectly is true then layer->SetHdiLayerInfo and UpdateLayerCompType is no need to run.
+    bool doClientCompositionDirectly = ((layerCompCapacity_ != LAYER_COMPOSITION_CAPACITY_INVALID) &&
+                                        (layersNum > layerCompCapacity_));
+    if (!directClientCompositionEnabled_) {
+        doClientCompositionDirectly = false;
+    }
+
+    int32_t ret;
+    for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
+        const LayerPtr &layer = iter->second;
+        if (doClientCompositionDirectly) {
+            layer->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+            continue;
+        }
+        ret = layer->SetHdiLayerInfo();
+        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+            HLOGE("Set hdi layer[id:%{public}d] info failed, ret %{public}d.", layer->GetLayerId(), ret);
+            return GRAPHIC_DISPLAY_FAILURE;
+        }
+    }
+
+    CHECK_DEVICE_NULL(device_);
+    ret = device_->PrepareScreenLayers(screenId_, needFlush);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("PrepareScreenLayers failed, ret is %{public}d", ret);
+        return GRAPHIC_DISPLAY_FAILURE;
+    }
+
+    if (doClientCompositionDirectly) {
+        ScopedBytrace doClientCompositionDirectlyTag("DoClientCompositionDirectly");
+        HLOGD("Direct client composition is enabled.");
+        return GRAPHIC_DISPLAY_SUCCESS;
+    }
+
+    return UpdateLayerCompType();
+}
+
+int32_t HdiOutput::UpdateLayerCompType()
+{
+    CHECK_DEVICE_NULL(device_);
+    std::vector<uint32_t> layersId;
+    std::vector<int32_t> types;
+    int32_t ret = device_->GetScreenCompChange(screenId_, layersId, types);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS || layersId.size() != types.size()) {
+        HLOGE("GetScreenCompChange failed, ret is %{public}d", ret);
+        return ret;
+    }
+
+    size_t layerNum = layersId.size();
+    for (size_t i = 0; i < layerNum; i++) {
+        auto iter = layerIdMap_.find(layersId[i]);
+        if (iter == layerIdMap_.end()) {
+            HLOGE("Invalid hdi layer id[%{public}u]", layersId[i]);
+            continue;
+        }
+
+        const LayerPtr &layer = iter->second;
+        layer->UpdateCompositionType(static_cast<GraphicCompositionType>(types[i]));
+    }
+
+    return ret;
+}
+
+bool HdiOutput::CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index)
+{
+    for (uint32_t i = 0; i < bufferCacheCountMax_; i++) {
+        if (bufferCache_[i] == buffer) {
+            index = i;
+            return true;
+        }
+    }
+
+    if (bufferCacheIndex_ >= bufferCacheCountMax_) {
+        HLOGE("HdiOutput::FlushScreen: the length of buffer cache exceeds the limit!");
+        return false;
+    }
+    bufferCache_[bufferCacheIndex_] = buffer;
+    index = bufferCacheIndex_;
+    bufferCacheIndex_++;
+    return false;
+}
+
+int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
+{
+    auto fbEntry = GetFramebuffer();
+    if (fbEntry == nullptr) {
+        HLOGE("HdiBackend flush screen failed : GetFramebuffer failed!");
+        return -1;
+    }
+
+    const auto& fbAcquireFence = fbEntry->acquireFence;
+    for (auto &layer : compClientLayers) {
+        layer->MergeWithFramebufferFence(fbAcquireFence);
+    }
+
+    currFrameBuffer_ = fbEntry->buffer;
+    if (currFrameBuffer_ == nullptr) {
+        HLOGE("HdiBackend flush screen failed : frame buffer is null");
+        return -1;
+    }
+
+    uint32_t index = INVALID_BUFFER_CACHE_INDEX;
+    bool bufferCached = false;
+    if (bufferCacheCountMax_ == 0) {
+        bufferCache_.clear();
+        bufferCacheIndex_ = INVALID_BUFFER_CACHE_INDEX;
+        HLOGE("The count of this client buffer cache is 0.");
+    } else {
+        bufferCached = CheckAndUpdateClientBufferCahce(currFrameBuffer_, index);
+    }
+
+    int32_t ret;
+    CHECK_DEVICE_NULL(device_);
+    if (bufferCached && index < bufferCacheCountMax_) {
+        ret = device_->SetScreenClientBuffer(screenId_, nullptr, index, fbAcquireFence);
+    } else {
+        ret = device_->SetScreenClientBuffer(screenId_, currFrameBuffer_->GetBufferHandle(), index, fbAcquireFence);
+    }
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("Set screen client buffer failed, ret is %{public}d", ret);
+        return ret;
+    }
+    CHECK_DEVICE_NULL(device_);
+    ret = device_->SetScreenClientDamage(screenId_, outputDamages_);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        // SetScreenClientDamage is not supported in hdi, HLOGD here and no returen ret.
+        HLOGD("Set screen client damage failed, ret is %{public}d", ret);
+    }
+
+    return GRAPHIC_DISPLAY_SUCCESS;
+}
+
+int32_t HdiOutput::Commit(sptr<SyncFence> &fbFence)
+{
+    CHECK_DEVICE_NULL(device_);
+    return device_->Commit(screenId_, fbFence);
+}
+
+int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
+{
+    UpdatePrevLayerInfo();
+
+    if (sampler_ == nullptr) {
+        sampler_ = CreateVSyncSampler();
+    }
+    int64_t timestamp = lastPresentFence_->SyncFileReadTimestamp();
+    bool startSample = false;
+    if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
+        startSample = sampler_->AddPresentFenceTime(timestamp);
+        RecordCompositionTime(timestamp);
+        for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
+            const LayerPtr &layer = iter->second;
+            layer->RecordPresentTime(timestamp);
+        }
+    }
+
+    int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
+    bool alreadyStartSample = sampler_->GetHardwareVSyncStatus();
+    if (startSample && !alreadyStartSample) {
+        HLOGD("Enable Screen Vsync");
+        CHECK_DEVICE_NULL(device_);
+        ret = device_->SetScreenVsyncEnabled(screenId_, true);
+        if (ret == GRAPHIC_DISPLAY_SUCCESS) {
+            sampler_->BeginSample();
+        } else {
+            HLOGE("Enable Screen Vsync failed");
+        }
+    }
+    lastPresentFence_ = fbFence;
+    return ret;
+}
+
+int32_t HdiOutput::ReleaseFramebuffer(const sptr<SyncFence>& releaseFence)
+{
+    if (currFrameBuffer_ == nullptr) {
+        HLOGE("Current frame buffer is nullptr.");
+        return GRAPHIC_DISPLAY_NULL_PTR;
+    }
+
+    int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
+    if (lastFrameBuffer_ != nullptr) {
+        if (!CheckFbSurface()) { // wrong check
+            ret = GRAPHIC_DISPLAY_NULL_PTR;
+        } else {
+            ret = fbSurface_->ReleaseFramebuffer(lastFrameBuffer_, releaseFence);
+        }
+    }
+
+    lastFrameBuffer_ = currFrameBuffer_;
+    currFrameBuffer_ = nullptr;
+    return ret;
+}
+
+std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFence()
+{
+    if (device_ == nullptr) {
+        return {};
+    }
+    std::vector<uint32_t> layersId;
+    std::vector<sptr<SyncFence>> fences;
+    int32_t ret = device_->GetScreenReleaseFence(screenId_, layersId, fences);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS || layersId.size() != fences.size()) {
+        HLOGE("GetScreenReleaseFence failed, ret is %{public}d, layerId size[%{public}d], fence size[%{public}d]",
+              ret, (int)layersId.size(), (int)fences.size());
+        return {};
+    }
+
+    std::map<LayerInfoPtr, sptr<SyncFence>> res;
+    size_t layerNum = layersId.size();
+    for (size_t i = 0; i < layerNum; i++) {
+        auto iter = layerIdMap_.find(layersId[i]);
+        if (iter == layerIdMap_.end()) {
+            HLOGE("Invalid hdi layer id [%{public}u]", layersId[i]);
+            continue;
+        }
+
+        const LayerPtr &layer = iter->second;
+        layer->MergeWithLayerFence(fences[i]);
+        res[layer->GetLayerInfo()] = layer->GetReleaseFence();
+    }
+    return res;
 }
 
 void HdiOutput::Dump(std::string &result) const

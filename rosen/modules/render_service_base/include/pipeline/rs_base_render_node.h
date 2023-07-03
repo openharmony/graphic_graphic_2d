@@ -215,6 +215,7 @@ private:
 
     const std::weak_ptr<RSContext> context_;
     NodeDirty dirtyStatus_ = NodeDirty::DIRTY;
+    bool isContentDirty_ = false;
     friend class RSRenderPropertyBase;
     friend class RSRenderTransition;
     std::atomic<bool> isTunnelHandleChange_ = false;

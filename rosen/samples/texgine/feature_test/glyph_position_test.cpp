@@ -62,7 +62,7 @@ public:
     {
         TextStyle xs;
         xs.fontFamilies = {"Segoe UI Emoji"};
-        xs.fontSize = 14;
+        xs.fontSize = 14;   // 14 means the font size
 
         for (auto &data : g_datas) {
             auto dfProvider = DynamicFileFontProvider::Create();
@@ -99,7 +99,7 @@ public:
         }
     }
 
-    std::function<void(const struct TypographyData &, TexgineCanvas &, double, double)> GetPaintFunc(
+    static std::function<void(const struct TypographyData &, TexgineCanvas &, double, double)> GetPaintFunc(
         const GlyphPosition &data)
     {
         auto onPaint = [data](const struct TypographyData &tyData, TexgineCanvas &canvas, double x, double y) {

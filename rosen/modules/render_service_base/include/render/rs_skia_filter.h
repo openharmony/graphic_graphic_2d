@@ -35,10 +35,13 @@ class RSPaintFilterCanvas;
 class RSSkiaFilter : public RSFilter {
 public:
     RSSkiaFilter(sk_sp<SkImageFilter> imagefilter);
+    RSSkiaFilter(const RSSkiaFilter&) = delete;
     ~RSSkiaFilter() override;
     SkPaint GetPaint() const;
+    virtual void DrawImageRect(
+        SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst) const;
     sk_sp<SkImageFilter> GetImageFilter() const;
-    virtual std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& inner) = 0;
+    virtual std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& other) const = 0;
     virtual void PreProcess(sk_sp<SkImage> image) {};
     virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
 
@@ -52,7 +55,7 @@ public:
     ~RSDrawingFilter() override;
     Drawing::Brush GetBrush() const;
     std::shared_ptr<Drawing::ImageFilter> GetImageFilter() const;
-    virtual std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& inner) = 0;
+    virtual std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const = 0;
     virtual void PreProcess(std::shared_ptr<Drawing::Image> image) {};
     virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
 

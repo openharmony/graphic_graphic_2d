@@ -35,10 +35,13 @@ class RSRenderNode;
 class RSB_EXPORT RSAnimationManager {
 public:
     RSAnimationManager() = default;
+    RSAnimationManager(const RSAnimationManager&) = delete;
+    RSAnimationManager& operator=(const RSAnimationManager&) = delete;
     ~RSAnimationManager() = default;
 
     void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
     void RemoveAnimation(AnimationId keyId);
+    void CancelAnimationByPropertyId(PropertyId id);
     const std::shared_ptr<RSRenderAnimation> GetAnimation(AnimationId id) const;
     void FilterAnimationByPid(pid_t pid);
 
@@ -48,16 +51,17 @@ public:
     void RegisterSpringAnimation(PropertyId propertyId, AnimationId animId);
     void UnregisterSpringAnimation(PropertyId propertyId, AnimationId animId);
     std::shared_ptr<RSRenderAnimation> QuerySpringAnimation(PropertyId propertyId);
+    // path animation related
+    void RegisterPathAnimation(PropertyId propertyId, AnimationId animId);
+    void UnregisterPathAnimation(PropertyId propertyId, AnimationId animId);
+    std::shared_ptr<RSRenderAnimation> QueryPathAnimation(PropertyId propertyId);
 
 private:
-    void OnAnimationRemove(const std::shared_ptr<RSRenderAnimation>& animation);
-    void OnAnimationAdd(const std::shared_ptr<RSRenderAnimation>& animation);
     void OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation);
 
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderAnimation>> animations_;
-    std::unordered_map<PropertyId, int> animationNum_;
     std::unordered_map<PropertyId, AnimationId> springAnimations_;
-
+    std::unordered_map<PropertyId, AnimationId> pathAnimations_;
     friend class RSRenderNode;
 };
 } // namespace Rosen

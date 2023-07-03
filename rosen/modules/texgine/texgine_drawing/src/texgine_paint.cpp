@@ -18,9 +18,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-TexginePaint::TexginePaint()
+TexginePaint::TexginePaint(): paint_(std::make_shared<SkPaint>())
 {
-    paint_ = std::make_shared<SkPaint>();
 }
 
 SkPaint TexginePaint::GetPaint() const

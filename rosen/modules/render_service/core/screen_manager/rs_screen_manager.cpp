@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 
 #include "rs_screen_manager.h"
 
+#include "hgm_core.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_hardware_thread.h"
@@ -53,8 +54,13 @@ bool RSScreenManager::Init() noexcept
         return false;
     }
 
-    if (composer_->RegScreenHotplug(&RSScreenManager::OnHotPlug, this) == -1) {
+    if (composer_->RegScreenHotplug(&RSScreenManager::OnHotPlug, this) != 0) {
         RS_LOGE("RSScreenManager %s: Failed to register OnHotPlug Func to composer.", __func__);
+        return false;
+    }
+
+    if (composer_->RegHwcDeadListener(&RSScreenManager::OnHwcDead, this) != 0) {
+        RS_LOGE("RSScreenManager %s: Failed to register OnHwcDead Func to composer.", __func__);
         return false;
     }
 
@@ -106,14 +112,81 @@ void RSScreenManager::OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool co
     mainThread->RequestNextVSync();
 }
 
+void RSScreenManager::OnHwcDead(void *data)
+{
+    RS_LOGD("RSScreenManager %s: The composer_host is already dead.", __func__);
+    RSScreenManager *screenManager = static_cast<RSScreenManager *>(RSScreenManager::GetInstance().GetRefPtr());
+    if (screenManager == nullptr) {
+        RS_LOGE("RSScreenManager %s: Failed to find RSScreenManager instance.", __func__);
+        return;
+    }
+
+    screenManager->OnHwcDeadEvent();
+
+    // Automatically recover when composer host dies.
+    screenManager->Reinit();
+}
+
+void RSScreenManager::OnHwcDeadEvent()
+{
+    for (const auto &[id, screen] : screens_) {
+        if (screen) {
+            for (auto &cb : screenChangeCallbacks_) {
+                cb->OnScreenChanged(id, ScreenEvent::DISCONNECTED);
+                RS_LOGD("RSScreenManager %s: The screen callback has been invoked.", __func__);
+            }
+            if (screenPowerStatus_.count(id) != 0) {
+                screenPowerStatus_.erase(id);
+            }
+        }
+        screens_.erase(id);
+    }
+    defaultScreenId_ = INVALID_SCREEN_ID;
+}
+
+void RSScreenManager::Reinit()
+{
+    RSScreenManager *screenManager = static_cast<RSScreenManager *>(RSScreenManager::GetInstance().GetRefPtr());
+    if (screenManager == nullptr) {
+        RS_LOGE("RSScreenManager %s: Failed to find RSScreenManager instance.", __func__);
+        return;
+    }
+
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        auto mainThread = RSMainThread::Instance();
+        if (mainThread == nullptr) {
+            RS_LOGE("RSScreenManager %s: Reinit failed, get RSMainThread failed.", __func__);
+            return;
+        }
+        mainThread->PostTask([screenManager, this]() {
+            composer_->ResetDevice();
+            if (!screenManager->Init()) {
+                RS_LOGE("RSScreenManager %s: Reinit failed, screenManager init failed in mainThread.", __func__);
+                return;
+            }
+        });
+    } else {
+        RSHardwareThread::Instance().PostTask([screenManager, this]() {
+            composer_->ResetDevice();
+            if (!screenManager->Init()) {
+                RS_LOGE("RSScreenManager %s: Reinit failed, screenManager init failed in HardwareThread.", __func__);
+                return;
+            }
+        });
+    }
+}
+
 void RSScreenManager::ProcessScreenHotPlugEvents()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto &event : pendingHotPlugEvents_) {
         if (event.connected) {
             ProcessScreenConnectedLocked(event.output);
+            AddScreenToHgm(event.output);
         } else {
             ProcessScreenDisConnectedLocked(event.output);
+            RemoveScreenFromHgm(event.output);
         }
     }
     for (auto id : connectedIds_) {
@@ -124,6 +197,54 @@ void RSScreenManager::ProcessScreenHotPlugEvents()
     mipiCheckInFirstHotPlugEvent_ = true;
     pendingHotPlugEvents_.clear();
     connectedIds_.clear();
+}
+
+void RSScreenManager::AddScreenToHgm(std::shared_ptr<HdiOutput> &output)
+{
+    if (output == nullptr) {
+        RS_LOGE("RSScreenManager %s: output is nullptr.", __func__);
+        return;
+    }
+
+    RS_LOGI("RSScreenManager AddScreenToHgm");
+    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
+    ScreenId thisId = ToScreenId(output->GetScreenId());
+    if (screens_.find(thisId) == screens_.end()) {
+        RS_LOGE("RSScreenManager invalid screen id, screen not found : %" PRIu64 "", thisId);
+        return;
+    }
+
+    auto supportedModes = screens_[thisId]->GetSupportedModes();
+    int32_t initMode = 2;
+    if (hgmCore.AddScreen(thisId, initMode)) {
+        RS_LOGW("RSScreenManager failed to add screen : %" PRIu64 "", thisId);
+        return;
+    }
+
+    // for each supported mode, use the index as modeId to add the detailed mode to hgm
+    int32_t modeId = 0;
+    for (auto mode = supportedModes.begin(); mode != supportedModes.end(); ++mode) {
+        if (!hgmCore.AddScreenInfo(thisId, (*mode).width, (*mode).height,
+            (*mode).freshRate, modeId)) {
+            RS_LOGW("RSScreenManager failed to add a screen profile to the screen : %" PRIu64 "", thisId);
+        }
+        modeId++;
+    }
+}
+
+void RSScreenManager::RemoveScreenFromHgm(std::shared_ptr<HdiOutput> &output)
+{
+    if (output == nullptr) {
+        RS_LOGE("RSScreenManager %s: output is nullptr.", __func__);
+        return;
+    }
+
+    RS_LOGI("RSScreenManager RemoveScreenFromHgm");
+    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
+    ScreenId id = ToScreenId(output->GetScreenId());
+    if (hgmCore.RemoveScreen(id)) {
+        RS_LOGW("RSScreenManager failed to remove screen : %" PRIu64 "", id);
+    }
 }
 
 void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &output)
@@ -423,8 +544,7 @@ ScreenPowerStatus RSScreenManager::GetScreenPowerStatusLocked(ScreenId id) const
 std::vector<ScreenId> RSScreenManager::GetAllScreenIds()
 {
     std::vector<ScreenId> ids;
-    for (std::unordered_map<ScreenId, std::unique_ptr<OHOS::Rosen::RSScreen>>::iterator iter = screens_.begin();
-        iter != screens_.end(); ++iter) {
+    for (auto iter = screens_.begin(); iter != screens_.end(); ++iter) {
         ids.emplace_back(iter->first);
     }
     return ids;
@@ -478,6 +598,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
 
 int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (screens_.find(id) == screens_.end()) {
         return SCREEN_NOT_FOUND;
     }

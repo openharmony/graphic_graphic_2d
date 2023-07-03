@@ -38,7 +38,7 @@ public:
     bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient);
 
     LayerInfoPtr CreateLayer(RSDisplayRenderNode& node);
-    LayerInfoPtr CreateLayer(RSSurfaceRenderNode& node);
+    LayerInfoPtr CreateLayer(RSSurfaceRenderNode& node) const;
     LayerInfoPtr CreateLayer(RSDrivenSurfaceRenderNode& node);
     void CommitLayers(const std::vector<LayerInfoPtr>& layers);
 

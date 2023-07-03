@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECTION_PROXY_H
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECTION_PROXY_H
 
+#include "command/rs_node_showing_command.h"
 #include <iremote_proxy.h>
 #include <platform/ohos/rs_irender_service_connection.h>
 #include "sandbox_utils.h"
@@ -28,6 +29,7 @@ public:
     virtual ~RSRenderServiceConnectionProxy() noexcept = default;
 
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
+    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
     MemoryGraphic GetMemoryGraphic(int pid) override;
     std::vector<MemoryGraphic> GetMemoryGraphics() override;
@@ -62,6 +64,14 @@ public:
     int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) override;
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
+
+    void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) override;
+
+    void SetRefreshRateMode(int32_t refreshRateMode) override;
+
+    uint32_t GetScreenCurrentRefreshRate(ScreenId id) override;
+
+    std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id) override;
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
@@ -106,6 +116,8 @@ public:
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType) override;
 
+    bool GetBitmap(NodeId id, SkBitmap& bitmap) override;
+
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
 
     int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
@@ -113,6 +125,8 @@ public:
     void SetAppWindowNum(uint32_t num) override;
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
+
+    void ReportJankStats() override;
 
 private:
     bool FillParcelWithTransactionData(

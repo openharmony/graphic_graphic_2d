@@ -19,6 +19,10 @@
 #include "render/rs_skia_filter.h"
 #include "rs_trace.h"
 
+#ifdef USE_ROSEN_DRAWING
+#include "image/image.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 void RSRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
@@ -72,13 +76,21 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
             continue;
         }
 
+#ifndef USE_ROSEN_DRAWING
         auto saveCount = canvas.getSaveCount();
+#else
+        auto saveCount = canvas.GetSaveCount();
+#endif
         if (nodePtr->IsInstanceOf<RSSurfaceRenderNode>()) {
             RSSurfaceRenderNode& node = *(static_cast<RSSurfaceRenderNode*>(nodePtr));
             if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT_CLEAR ||
                 layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_TUNNEL) {
                 ClipHoleForLayer(canvas, node);
+#ifndef USE_ROSEN_DRAWING
                 canvas.restoreToCount(saveCount);
+#else
+                canvas.RestoreToCount(saveCount);
+#endif
                 continue;
             }
             RS_LOGD("RSRenderEngine::DrawLayers dstRect[%d %d %d %d]", layer->GetLayerSize().x,
@@ -93,7 +105,11 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
             RS_LOGE("RSRenderEngine::DrawLayers: unexpected node type!");
             continue;
         }
+#ifndef USE_ROSEN_DRAWING
         canvas.restoreToCount(saveCount);
+#else
+        canvas.RestoreToCount(saveCount);
+#endif
     }
 }
 
@@ -104,7 +120,11 @@ void RSRenderEngine::DrawWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam
         SetColorFilterModeToPaint(params.paint);
     }
 
+#ifndef USE_ROSEN_DRAWING
     canvas.save();
+#else
+    canvas.Save();
+#endif
 
     RSBaseRenderUtil::SetPropertiesForCanvas(canvas, params);
 
@@ -122,7 +142,11 @@ void RSRenderEngine::DrawWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam
         postProcess(canvas, params);
     }
 
+#ifndef USE_ROSEN_DRAWING
     canvas.restore();
+#else
+    canvas.Restore();
+#endif
 }
 
 void RSRenderEngine::RSSurfaceNodeCommonPreProcess(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas,
@@ -131,17 +155,26 @@ void RSRenderEngine::RSSurfaceNodeCommonPreProcess(RSSurfaceRenderNode& node, RS
     const auto& property = node.GetRenderProperties();
 
     // draw mask.
+#ifndef USE_ROSEN_DRAWING
     RectF maskBounds(0, 0, params.dstRect.width(), params.dstRect.height());
     RSPropertiesPainter::DrawMask(
         node.GetRenderProperties(), canvas, RSPropertiesPainter::Rect2SkRect(maskBounds));
 
     // draw background filter (should execute this filter before drawing buffer/image).
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
+    RSPropertiesPainter::DrawFilter(
+        property, canvas, FilterType::BACKGROUND_FILTER, SkRect::MakeWH(params.srcRect.width(), params.srcRect.height()));
+#else
+    RectF maskBounds(0, 0, params.dstRect.GetWidth(), params.dstRect.GetHeight());
+    RSPropertiesPainter::DrawMask(
+        node.GetRenderProperties(), canvas, RSPropertiesPainter::Rect2DrawingRect(maskBounds));
+
+    // draw background filter (should execute this filter before drawing buffer/image).
+    auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetBackgroundFilter());
     if (filter != nullptr) {
-        auto skRectPtr = std::make_unique<SkRect>();
-        skRectPtr->setXYWH(0, 0, params.srcRect.width(), params.srcRect.height());
-        RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr, canvas.GetSurface());
+        auto dRectPtr = std::make_unique<Drawing::Rect>(0, 0, params.srcRect.GetWidth(), params.srcRect.GetHeight());
+        RSPropertiesPainter::DrawFilter(property, canvas, filter, FilterType::BACKGROUND_FILTER, dRectPtr);
     }
+#endif
 }
 
 void RSRenderEngine::RSSurfaceNodeCommonPostProcess(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas,
@@ -150,12 +183,23 @@ void RSRenderEngine::RSSurfaceNodeCommonPostProcess(RSSurfaceRenderNode& node, R
     const auto& property = node.GetRenderProperties();
 
     // draw preprocess filter (should execute this filter after drawing buffer/image).
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetFilter());
+#ifndef USE_ROSEN_DRAWING
+    RSPropertiesPainter::DrawFilter(
+        property, canvas, FilterType::FOREGROUND_FILTER, SkRect::MakeWH(params.srcRect.width(), params.srcRect.height()));
+    RSPropertiesPainter::DrawLinearGradientBlurFilter(
+        property, canvas, SkRect::MakeWH(params.srcRect.width(), params.srcRect.height()));
+#else
+    auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetFilter());
     if (filter != nullptr) {
-        auto skRectPtr = std::make_unique<SkRect>();
-        skRectPtr->setXYWH(0, 0, params.srcRect.width(), params.srcRect.height());
-        RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr, canvas.GetSurface());
+        auto dRectPtr = std::make_unique<Drawing::Rect>(0, 0, params.srcRect.GetWidth(), params.srcRect.GetHeight());
+        RSPropertiesPainter::DrawFilter(property, canvas, filter, FilterType::FOREGROUND_FILTER, dRectPtr);
     }
+    auto para = property.GetLinearGradientBlurPara();
+    if (para != nullptr && para->blurRadius_ > 0) {
+        auto dRectPtr = std::make_unique<Drawing::Rect>(0, 0, params.srcRect.GetWidth(), params.srcRect.GetHeight());
+        RSPropertiesPainter::DrawLinearGradientBlurFilter(property, canvas, dRectPtr);
+    }
+#endif
 }
 
 void RSRenderEngine::DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
@@ -163,6 +207,7 @@ void RSRenderEngine::DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRende
 {
     // prepare BufferDrawParam
     auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, forceCPU); // in display's coordinate.
+#ifndef USE_ROSEN_DRAWING
     const float adaptiveDstWidth = params.dstRect.width() * mirrorAdaptiveCoefficient;
     const float adaptiveDstHeight = params.dstRect.height() * mirrorAdaptiveCoefficient;
     params.dstRect.setWH(adaptiveDstWidth, adaptiveDstHeight);
@@ -174,6 +219,21 @@ void RSRenderEngine::DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRende
     params.clipRect = SkRect::MakeXYWH(
         clipRect.left() * mirrorAdaptiveCoefficient, clipRect.top() * mirrorAdaptiveCoefficient,
         clipRect.width() * mirrorAdaptiveCoefficient, clipRect.height() * mirrorAdaptiveCoefficient);
+#else
+    const float adaptiveDstWidth = params.dstRect.GetWidth() * mirrorAdaptiveCoefficient;
+    const float adaptiveDstHeight = params.dstRect.GetHeight() * mirrorAdaptiveCoefficient;
+    params.dstRect = Drawing::Rect(0, 0, adaptiveDstWidth, adaptiveDstHeight);
+    const float translateX = params.matrix.Get(Drawing::Matrix::Index::TRANS_X) * mirrorAdaptiveCoefficient;
+    const float translateY = params.matrix.Get(Drawing::Matrix::Index::TRANS_Y) * mirrorAdaptiveCoefficient;
+    params.matrix.Set(Drawing::Matrix::Index::TRANS_X, translateX);
+    params.matrix.Set(Drawing::Matrix::Index::TRANS_Y, translateY);
+    const auto& clipRect = params.clipRect;
+    auto clipLeft = clipRect.GetLeft() * mirrorAdaptiveCoefficient;
+    auto clipTop = clipRect.GetTop() * mirrorAdaptiveCoefficient;
+    params.clipRect = Drawing::Rect(
+        clipLeft, clipTop, clipLeft + clipRect.GetWidth() * mirrorAdaptiveCoefficient,
+        clipTop + clipRect.GetHeight() * mirrorAdaptiveCoefficient);
+#endif
 
     DrawSurfaceNodeWithParams(canvas, node, params, nullptr, nullptr);
 }
@@ -183,6 +243,7 @@ void RSRenderEngine::ClipHoleForLayer(RSPaintFilterCanvas& canvas, RSSurfaceRend
     BufferDrawParam params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, true);
 
     std::string traceInfo;
+#ifndef USE_ROSEN_DRAWING
     AppendFormat(traceInfo, "Node name:%s ClipHole[%d %d %d %d]", node.GetName().c_str(),
         params.clipRect.x(), params.clipRect.y(), params.clipRect.width(), params.clipRect.height());
     RS_LOGD("RSRenderEngine::Redraw layer composition ClipHoleForLayer, %s.", traceInfo.c_str());
@@ -192,10 +253,25 @@ void RSRenderEngine::ClipHoleForLayer(RSPaintFilterCanvas& canvas, RSSurfaceRend
     canvas.clipRect(params.clipRect);
     canvas.clear(SK_ColorTRANSPARENT);
     canvas.restore();
+#else
+    AppendFormat(traceInfo, "Node name:%s ClipHole[%d %d %d %d]", node.GetName().c_str(),
+        params.clipRect.GetLeft(), params.clipRect.GetTop(), params.clipRect.GetWidth(), params.clipRect.GetHeight());
+    RS_LOGD("RSRenderEngine::Redraw layer composition ClipHoleForLayer, %s.", traceInfo.c_str());
+    RS_TRACE_NAME(traceInfo);
+
+    canvas.Save();
+    canvas.ClipRect(params.clipRect, Drawing::ClipOp::INTERSECT, false);
+    canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
+    canvas.Restore();
+#endif
     return;
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSRenderEngine::SetColorFilterModeToPaint(SkPaint& paint)
+#else
+void RSRenderEngine::SetColorFilterModeToPaint(Drawing::Brush& paint)
+#endif
 {
     // for test automation
     if (colorFilterMode_ != ColorFilterMode::COLOR_FILTER_END) {

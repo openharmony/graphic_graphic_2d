@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,9 +15,10 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_MATERIAL_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_MATERIAL_FILTER_H
 
+#include "include/effects/SkRuntimeEffect.h"
+#include "common/rs_color.h"
 #include "render/rs_skia_filter.h"
 
-#include "common/rs_color.h"
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkColorFilter.h"
 #include "include/core/SkColor.h"
@@ -66,7 +67,11 @@ class RSB_EXPORT RSMaterialFilter : public RSDrawingFilter {
 public:
     RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio);
     RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE mode);
+    RSMaterialFilter(const RSMaterialFilter&) = delete;
+    RSMaterialFilter operator=(const RSMaterialFilter&) = delete;
     ~RSMaterialFilter() override;
+    std::shared_ptr<RSFilter> TransformFilter(float fraction) const;
+    bool IsValid() const override;
 #ifndef USE_ROSEN_DRAWING
     void PreProcess(sk_sp<SkImage> image) override;
 #else
@@ -74,9 +79,9 @@ public:
 #endif
     void PostProcess(RSPaintFilterCanvas& canvas) override;
 #ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& inner) override;
+    std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& other) const override;
 #else
-    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& inner) override;
+    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const override;
 #endif
     std::string GetDescription() override;
 
@@ -84,6 +89,13 @@ public:
     std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) override;
     std::shared_ptr<RSFilter> Multiply(float rhs) override;
     std::shared_ptr<RSFilter> Negate() override;
+    bool IsNearEqual(
+        const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const override;
+    bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const override;
+
+    void DrawImageRect(
+        SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst) const override;
+
 private:
     BLUR_COLOR_MODE colorMode_;
     float radius_ {};
@@ -99,6 +111,10 @@ private:
     std::shared_ptr<Drawing::ImageFilter> CreateMaterialFilter(float radius, float sat, float brightness);
 #endif
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
+
+    bool useKawase = true;
+    sk_sp<SkRuntimeEffect> fBlurEffect;
+    sk_sp<SkRuntimeEffect> fMixEffect;
 
     friend class RSMarshallingHelper;
 };

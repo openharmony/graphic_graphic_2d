@@ -100,7 +100,10 @@ ohos_shared_library("surface") {
     "ipc:ipc_single",
   ]
 
-  symlink_target_name = [ "libnative_window.so" ]
+  symlink_target_name = [
+    "libnative_buffer.so",
+    "libnative_window.so",
+  ]
 
   if (defined(graphic_2d_ext_configs.vendor_root)) {
     sources += graphic_2d_ext_configs.libsurface_ext_sources
@@ -111,6 +114,10 @@ ohos_shared_library("surface") {
     public_deps -= [ "//drivers/peripheral/display/hdi_service/gralloc/client:hdi_gralloc_client" ]
   }
 
+  innerapi_tags = [
+    "chipsetsdk",
+    "platformsdk",
+  ]
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }

@@ -114,14 +114,16 @@ void WriteFlushConfig(MessageParcel &parcel, BufferFlushConfigWithDamages const 
     parcel.WriteInt64(config.timestamp);
 }
 
-void ReadSurfaceBufferImpl(MessageParcel &parcel,
-                           uint32_t &sequence, sptr<SurfaceBuffer>& buffer)
+GSError ReadSurfaceBufferImpl(MessageParcel &parcel,
+                              uint32_t &sequence, sptr<SurfaceBuffer>& buffer)
 {
+    GSError ret = GSERROR_OK;
     sequence = parcel.ReadUint32();
     if (parcel.ReadBool()) {
         buffer = new SurfaceBufferImpl(sequence);
-        buffer->ReadFromMessageParcel(parcel);
+        ret = buffer->ReadFromMessageParcel(parcel);
     }
+    return ret;
 }
 
 void WriteSurfaceBufferImpl(MessageParcel &parcel,
@@ -237,7 +239,7 @@ void ReadExtDataHandle(MessageParcel &parcel, sptr<SurfaceTunnelHandle> &handle)
         BLOGE("Too much data obtained from parcel");
         return;
     }
-    OHExtDataHandle *tunnelHandle = AllocExtDataHandle(reserveInts);
+    GraphicExtDataHandle *tunnelHandle = AllocExtDataHandle(reserveInts);
     if (tunnelHandle == nullptr) {
         BLOGE("AllocExtDataHandle failed");
         return;
@@ -253,7 +255,7 @@ void ReadExtDataHandle(MessageParcel &parcel, sptr<SurfaceTunnelHandle> &handle)
     FreeExtDataHandle(tunnelHandle);
 }
 
-void WriteExtDataHandle(MessageParcel &parcel, const OHExtDataHandle *handle)
+void WriteExtDataHandle(MessageParcel &parcel, const GraphicExtDataHandle *handle)
 {
     if (handle == nullptr) {
         BLOGE("WriteExtDataHandle failed, handle is null");

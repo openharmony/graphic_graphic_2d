@@ -18,6 +18,34 @@
 namespace OHOS {
 namespace Rosen {
 
+template<typename T>
+bool Compare(const T& lhs, const T& rhs)
+{
+    return lhs == rhs;
+}
+
+template<>
+bool Compare(const GraphicIRect& rect1, const GraphicIRect& rect2)
+{
+    return rect1.x == rect2.x && rect1.y == rect2.y && rect1.w == rect2.w && rect1.h == rect2.h;
+}
+
+template<typename T>
+bool IsNeedSetInfoToDevice(const std::vector<T>& lhs, const std::vector<T>& rhs)
+{
+    if (lhs.size() != rhs.size()) {
+        return true;
+    }
+
+    for (decltype(lhs.size()) i = 0; i < lhs.size(); i++) {
+        if (!Compare(lhs[i], rhs[i])) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 /* rs create layer and set layer info begin */
 std::shared_ptr<HdiLayer> HdiLayer::CreateHdiLayer(uint32_t screenId)
 {
@@ -92,13 +120,20 @@ int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
         return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
+    sptr<IConsumerSurface> surface = layerInfo->GetSurface();
+    if (surface == nullptr) {
+        HLOGE("Create layer failed because the consumer surface is nullptr.");
+        return GRAPHIC_DISPLAY_NULL_PTR;
+    }
+    bufferCacheCountMax_ = surface->GetQueueSize();
     uint32_t layerId = INT_MAX;
-    int32_t ret = device_->CreateLayer(screenId_, hdiLayerInfo, layerId);
+    int32_t ret = device_->CreateLayer(screenId_, hdiLayerInfo, bufferCacheCountMax_, layerId);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("Create hwc layer failed, ret is %{public}d", ret);
         return ret;
     }
 
+    bufferCache_.resize(bufferCacheCountMax_);
     layerId_ = layerId;
 
     HLOGD("Create hwc layer succeed, layerId is %{public}u", layerId_);
@@ -146,14 +181,9 @@ int32_t HdiLayer::SetLayerAlpha()
     return ret;
 }
 
-bool HdiLayer::IsSameRect(const GraphicIRect& rect1, const GraphicIRect& rect2)
-{
-    return rect1.x == rect2.x && rect1.y == rect2.y && rect1.w == rect2.w && rect1.h == rect2.h;
-}
-
 int32_t HdiLayer::SetLayerSize()
 {
-    if (doLayerInfoCompare_ && IsSameRect(layerInfo_->GetLayerSize(), prevLayerInfo_->GetLayerSize())) {
+    if (doLayerInfoCompare_ && Compare(layerInfo_->GetLayerSize(), prevLayerInfo_->GetLayerSize())) {
         return GRAPHIC_DISPLAY_SUCCESS;
     }
 
@@ -176,54 +206,98 @@ int32_t HdiLayer::SetTransformMode()
 int32_t HdiLayer::SetLayerVisibleRegion()
 {
     const std::vector<GraphicIRect>& curVisibles = layerInfo_->GetVisibleRegions();
+    bool isNeedSetInfoToDevice = true;
     if (doLayerInfoCompare_) {
         const std::vector<GraphicIRect>& prevVisibles = prevLayerInfo_->GetVisibleRegions();
-        bool isSameVisble = (curVisibles.size() == prevVisibles.size());
-        if (isSameVisble) {
-            for (decltype(curVisibles.size()) i = 0; i < curVisibles.size(); i++) {
-                isSameVisble &= IsSameRect(curVisibles[i], prevVisibles[i]);
-            }
-        }
-        if (isSameVisble) {
-            return GRAPHIC_DISPLAY_SUCCESS;
+        if (!IsNeedSetInfoToDevice(curVisibles, prevVisibles)) {
+            isNeedSetInfoToDevice = false;
         }
     }
 
-    int32_t ret = device_->SetLayerVisibleRegion(screenId_, layerId_, curVisibles);
-    return ret;
+    if (isNeedSetInfoToDevice) {
+        return device_->SetLayerVisibleRegion(screenId_, layerId_, curVisibles);
+    }
+
+    return GRAPHIC_DISPLAY_SUCCESS;
 }
 
 int32_t HdiLayer::SetLayerDirtyRegion()
 {
     const std::vector<GraphicIRect>& curDirtyRegions = layerInfo_->GetDirtyRegions();
+    bool isNeedSetInfoToDevice = true;
     if (doLayerInfoCompare_) {
         const std::vector<GraphicIRect>& prevDirtyRegions = prevLayerInfo_->GetDirtyRegions();
-        bool isSameDirtyRegions = (curDirtyRegions.size() == prevDirtyRegions.size());
-        if (isSameDirtyRegions) {
-            for (decltype(curDirtyRegions.size()) i = 0; i < curDirtyRegions.size(); i++) {
-                isSameDirtyRegions &= IsSameRect(curDirtyRegions[i], prevDirtyRegions[i]);
-            }
-        }
-        if (isSameDirtyRegions) {
-            return GRAPHIC_DISPLAY_SUCCESS;
+        if (!IsNeedSetInfoToDevice(curDirtyRegions, prevDirtyRegions)) {
+            isNeedSetInfoToDevice = false;
         }
     }
 
-    int32_t ret = device_->SetLayerDirtyRegion(screenId_, layerId_, curDirtyRegions);
-    return ret;
+    if (isNeedSetInfoToDevice) {
+        return device_->SetLayerDirtyRegion(screenId_, layerId_, curDirtyRegions);
+    }
+
+    return GRAPHIC_DISPLAY_SUCCESS;
+}
+
+bool HdiLayer::CheckAndUpdateLayerBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index,
+                                              std::vector<uint32_t>& deletingList)
+{
+    for (uint32_t i = 0; i < bufferCacheCountMax_; i++) {
+        if (bufferCache_[i] == buffer) {
+            index = i;
+            return true;
+        }
+    }
+
+    if (bufferCacheIndex_ >= bufferCacheCountMax_) {
+        for (uint32_t i = 0; i < bufferCacheCountMax_; i++) {
+            bufferCache_[i] = nullptr;
+            deletingList.push_back(i);
+        }
+        bufferCacheIndex_ = 0;
+    }
+    bufferCache_[bufferCacheIndex_] = buffer;
+    index = bufferCacheIndex_;
+    bufferCacheIndex_++;
+    return false;
 }
 
 int32_t HdiLayer::SetLayerBuffer()
 {
-    if (layerInfo_->GetBuffer() == nullptr || (doLayerInfoCompare_ &&
-        layerInfo_->GetBuffer() == prevLayerInfo_->GetBuffer() &&
-        layerInfo_->GetAcquireFence() == prevLayerInfo_->GetAcquireFence())) {
+    sptr<SurfaceBuffer> currBuffer = layerInfo_->GetBuffer();
+    sptr<SyncFence> currAcquireFence = layerInfo_->GetAcquireFence();
+    if (currBuffer == nullptr) {
         return GRAPHIC_DISPLAY_SUCCESS;
     }
+    if (doLayerInfoCompare_) {
+        sptr<SurfaceBuffer> prevBuffer = prevLayerInfo_->GetBuffer();
+        sptr<SyncFence> prevAcquireFence = prevLayerInfo_->GetAcquireFence();
+        if (currBuffer == prevBuffer && currAcquireFence == prevAcquireFence) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
 
-    int32_t ret = device_->SetLayerBuffer(screenId_, layerId_, layerInfo_->GetBuffer()->GetBufferHandle(),
-                                          layerInfo_->GetAcquireFence());
-    return ret;
+    uint32_t index = INVALID_BUFFER_CACHE_INDEX;
+    std::vector<uint32_t> deletingList = {};
+    bool bufferCached = false;
+    if (bufferCacheCountMax_ == 0) {
+        bufferCache_.clear();
+        bufferCacheIndex_ = INVALID_BUFFER_CACHE_INDEX;
+        HLOGE("The count of this layer buffer cache is 0.");
+    } else {
+        bufferCached = CheckAndUpdateLayerBufferCahce(currBuffer, index, deletingList);
+    }
+
+    GraphicLayerBuffer layerBuffer;
+    layerBuffer.cacheIndex = index;
+    layerBuffer.acquireFence = currAcquireFence;
+    layerBuffer.deletingList = deletingList;
+    if (bufferCached && index < bufferCacheCountMax_) {
+        layerBuffer.handle = nullptr;
+    } else {
+        layerBuffer.handle = currBuffer->GetBufferHandle();
+    }
+    return device_->SetLayerBuffer(screenId_, layerId_, layerBuffer);
 }
 
 int32_t HdiLayer::SetLayerCompositionType()
@@ -248,7 +322,7 @@ int32_t HdiLayer::SetLayerBlendType()
 
 int32_t HdiLayer::SetLayerCrop()
 {
-    if (doLayerInfoCompare_ && IsSameRect(layerInfo_->GetCropRect(), prevLayerInfo_->GetCropRect())) {
+    if (doLayerInfoCompare_ && Compare(layerInfo_->GetCropRect(), prevLayerInfo_->GetCropRect())) {
         return GRAPHIC_DISPLAY_SUCCESS;
     }
 
@@ -279,20 +353,18 @@ int32_t HdiLayer::SetLayerPreMulti()
 int32_t HdiLayer::SetLayerColorTransform()
 {
     const std::vector<float>& curMatrix = layerInfo_->GetColorTransform();
+    bool isNeedSetInfoToDevice = true;
     if (doLayerInfoCompare_) {
         const std::vector<float>& prevMatrix = prevLayerInfo_->GetColorTransform();
-        bool isSameMatrix = (curMatrix.size() == prevMatrix.size());
-        if (isSameMatrix) {
-            for (decltype(curMatrix.size()) i = 0; i < curMatrix.size(); i++) {
-                isSameMatrix &= (curMatrix[i] == prevMatrix[i]);
-            }
-        }
-        if (isSameMatrix) {
-            return GRAPHIC_DISPLAY_SUCCESS;
+        if (!IsNeedSetInfoToDevice(curMatrix, prevMatrix)) {
+            isNeedSetInfoToDevice = false;
         }
     }
+    if (isNeedSetInfoToDevice) {
+        // This method may not be supported, the return value is not check here
+        device_->SetLayerColorTransform(screenId_, layerId_, curMatrix);
+    }
 
-    device_->SetLayerColorTransform(screenId_, layerId_, curMatrix);
     return GRAPHIC_DISPLAY_SUCCESS;
 }
 
@@ -451,7 +523,8 @@ int32_t HdiLayer::SetHdiLayerInfo()
     CheckRet(ret, "SetLayerZorder");
     ret = SetLayerPreMulti();
     CheckRet(ret, "SetLayerPreMulti");
-    ret = SetLayerColorTransform();
+    // This method may not be supported, the return value is not check here
+    (void)SetLayerColorTransform();
     ret = SetLayerColorDataSpace();
     CheckRet(ret, "SetLayerColorDataSpace");
     ret = SetLayerMetaData();

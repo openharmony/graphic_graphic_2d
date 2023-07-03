@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#ifndef USE_ROSEN_DRAWING
+
 #include "pipeline/rs_draw_cmd.h"
 #ifdef ROSEN_OHOS
 #include "buffer_utils.h"
@@ -881,6 +883,18 @@ void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
         return;
     }
 
+    // save
+    GLuint originTexture;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, reinterpret_cast<GLint *>(&originTexture));
+    GLint minFilter;
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &minFilter);
+    GLint magFilter;
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &magFilter);
+    GLint wrapS;
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &wrapS);
+    GLint wrapT;
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &wrapT);
+
     // Create texture object
     texId_ = 0;
     glGenTextures(1, &texId_);
@@ -890,7 +904,13 @@ void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, static_cast<GLeglImageOES>(eglImage_));
-    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // restore
+    glBindTexture(GL_TEXTURE_2D, originTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
 
     GrGLTextureInfo textureInfo = { GL_TEXTURE_2D, texId_, GL_RGBA8_OES };
 
@@ -2007,3 +2027,5 @@ void ImageWithParmOpItem::SetNodeId(NodeId id)
 }
 } // namespace Rosen
 } // namespace OHOS
+
+#endif // USE_ROSEN_DRAWING

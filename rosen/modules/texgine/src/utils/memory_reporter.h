@@ -173,11 +173,11 @@ void ReportMemoryUsage(const std::string &member, const std::map<K, V> &that, bo
         MEMORY_USAGE_SCOPE("m<" + nameK + ", " + nameV + ">", that);
         // in std::map, the size of key, if more than 8, it`s base memory footprint is 8 + 40
         // else base memory footprint is 40
-        int memoryDelta = 8;
-        int baseMemory = 40;
-        int sizeLimit = 8;
-        DoReportMemoryUsage("*external", that.size() *
-            ((sizeof(K) < sizeLimit ? 0 : memoryDelta) + baseMemory + sizeof(K) + sizeof(V)));
+        unsigned long memoryDelta = 8;
+        unsigned long baseMemory = 40;
+        unsigned long sizeLimit = 8;
+        DoReportMemoryUsage("*external", static_cast<int>(
+            that.size() * ((sizeof(K) < sizeLimit ? 0 : memoryDelta) + baseMemory + sizeof(K) + sizeof(V))));
     }
 }
 } // namespace TextEngine

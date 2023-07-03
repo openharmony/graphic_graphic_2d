@@ -54,7 +54,11 @@ void RSProxyRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->ProcessProxyRenderNode(*this);
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSProxyRenderNode::SetContextMatrix(const std::optional<SkMatrix>& matrix)
+#else
+void RSProxyRenderNode::SetContextMatrix(const std::optional<Drawing::Matrix>& matrix)
+#endif
 {
     if (contextMatrix_ == matrix) {
         return;
@@ -84,7 +88,11 @@ void RSProxyRenderNode::SetContextAlpha(float alpha)
     SendCommandFromRT(command, GetId());
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSProxyRenderNode::SetContextClipRegion(const std::optional<SkRect>& clipRegion)
+#else
+void RSProxyRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect>& clipRegion)
+#endif
 {
     if (contextClipRect_ == clipRegion) {
         return;
@@ -111,7 +119,7 @@ void RSProxyRenderNode::OnTreeStateChanged()
 {
     if (IsOnTheTree()) {
         // new added to tree
-        SetDirty();
+        SetContentDirty();
     } else {
         // removed from tree, clean up context variables
         CleanUp(false);

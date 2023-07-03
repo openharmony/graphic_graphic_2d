@@ -29,10 +29,18 @@ public:
     void TearDown() override;
     static inline NodeId id;
     static inline std::weak_ptr<RSContext> context = {};
+    static inline RSPaintFilterCanvas* canvas_;
+    static inline SkCanvas skCanvas_;
 };
 
-void RSCanvasRenderNodeTest::SetUpTestCase() {}
-void RSCanvasRenderNodeTest::TearDownTestCase() {}
+void RSCanvasRenderNodeTest::SetUpTestCase()
+{
+    canvas_ = new RSPaintFilterCanvas(&skCanvas_);
+}
+void RSCanvasRenderNodeTest::TearDownTestCase()
+{
+    delete canvas_;
+}
 void RSCanvasRenderNodeTest::SetUp() {}
 void RSCanvasRenderNodeTest::TearDown() {}
 
@@ -61,6 +69,65 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateRecording002, TestSize.Level1)
     auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(id + 1);
     auto drawCmds = std::make_shared<DrawCmdList>(w, h);
     canvasRenderNode->UpdateRecording(drawCmds, RSModifierType::INVALID);
+}
+
+/**
+ * @tc.name: PrepareTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, PrepareTest, TestSize.Level1)
+{
+    std::shared_ptr<RSNodeVisitor> visitor = nullptr;
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    rsCanvasRenderNode.Prepare(visitor);
+}
+
+/**
+ * @tc.name: ProcessTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, ProcessTest, TestSize.Level1)
+{
+    std::shared_ptr<RSNodeVisitor> visitor = nullptr;
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    rsCanvasRenderNode.Process(visitor);
+}
+
+/**
+ * @tc.name: ProcessAnimatePropertyAfterChildrenTest001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, ProcessAnimatePropertyAfterChildrenTest001, TestSize.Level1)
+{
+    auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(id, context);
+    canvasRenderNode->ProcessRenderAfterChildren(*canvas_);
+}
+
+/**
+ * @tc.name: ProcessDrivenBackgroundRenderTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, ProcessDrivenBackgroundRenderTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    rsCanvasRenderNode.ProcessDrivenBackgroundRender(*canvas_);
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+    EXPECT_EQ(rsCanvasRenderNode.GetChildrenCount(), 0);
+#endif
 }
 
 } // namespace OHOS::Rosen

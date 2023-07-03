@@ -40,7 +40,7 @@ namespace Rosen {
 class RSPaintFilterCanvas;
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
-    using SurfaceDirtyMgrPair = std::pair<std::weak_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSDirtyRegionManager>>;
+    using SurfaceDirtyMgrPair = std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>;
     RSUniRenderVisitor();
     RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas, uint32_t surfaceIndex);
     explicit RSUniRenderVisitor(const RSUniRenderVisitor& visitor);
@@ -52,6 +52,7 @@ public:
     void PrepareProxyRenderNode(RSProxyRenderNode& node) override;
     void PrepareRootRenderNode(RSRootRenderNode& node) override;
     void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+    void PrepareEffectRenderNode(RSEffectRenderNode& node) override;
 
     void ProcessBaseRenderNode(RSBaseRenderNode& node) override;
     void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
@@ -59,9 +60,13 @@ public:
     void ProcessProxyRenderNode(RSProxyRenderNode& node) override;
     void ProcessRootRenderNode(RSRootRenderNode& node) override;
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+    void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
 
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool ParallelComposition(const std::shared_ptr<RSBaseRenderNode> rootNode);
+    void UpdateCacheRenderNodeMap(RSRenderNode& node);
+    bool GenerateNodeContentCache(RSRenderNode& node);
+    bool InitNodeCache(RSRenderNode& node);
     void CopyVisitorInfos(std::shared_ptr<RSUniRenderVisitor> visitor);
     void SetProcessorRenderEngine(std::shared_ptr<RSBaseRenderEngine> renderEngine)
     {
@@ -90,8 +95,14 @@ public:
         subThreadNodes_ = subThreadNodes;
     }
 
+    void SetSubThreadConfig(uint32_t threadIndex)
+    {
+        isSubThread_ = true;
+        isHardwareForcedDisabled_ = true;
+        threadIndex_ = threadIndex;
+    }
+
     void DrawSurfaceLayer(RSDisplayRenderNode& node);
-    void DrawCacheRenderNode(RSRenderNode& node);
 
     bool GetAnimateState() const
     {
@@ -128,7 +139,7 @@ public:
         return isOpDropped_;
     }
     // Use in vulkan parallel rendering
-    ColorGamut GetColorGamut() const
+    GraphicColorGamut GetColorGamut() const
     {
         return newColorSpace_;
     }
@@ -145,8 +156,17 @@ public:
     void SetAppWindowNum(uint32_t num);
 private:
     void DrawWatermarkIfNeed();
+#ifndef USE_ROSEN_DRAWING
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
         const SkPaint::Style fillType, float alpha, int edgeWidth);
+#else
+    enum class RSPaintStyle {
+        FILL,
+        STROKE
+    };
+    void DrawDirtyRectForDFX(const RectI& dirtyRect, const Drawing::Color color,
+        const RSPaintStyle fillType, float alpha, int edgeWidth);
+#endif
     void DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects);
     void DrawAllSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node, const Occlusion::Region& region);
     void DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node);
@@ -178,20 +198,21 @@ private:
      * Save rest validNodes in prevHwcEnabledNodes
      * [planning] Update hwc surface dirty status at the same time
      */
-    void UpdateHardwardNodeStatusBasedOnFilter(std::shared_ptr<RSSurfaceRenderNode>& node,
+    void UpdateHardwareNodeStatusBasedOnFilter(std::shared_ptr<RSSurfaceRenderNode>& node,
         std::vector<SurfaceDirtyMgrPair>& prevHwcEnabledNodes,
-        std::shared_ptr<RSDirtyRegionManager>& displayDirtyManager) const;
+        std::shared_ptr<RSDirtyRegionManager>& displayDirtyManager);
     /* Disable hwc surface intersect with filter rects and merge dirty filter region
      * [planning] If invisible filterRects could be removed
      */
-    RectI UpdateHardwardEnableList(std::vector<RectI>& filterRects,
-        std::vector<SurfaceDirtyMgrPair>& validHwcNodes) const;
+    RectI UpdateHardwareEnableList(std::vector<RectI>& filterRects,
+        std::vector<SurfaceDirtyMgrPair>& validHwcNodes);
     void AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDisplayRenderNode>& node) const;
 
     // set global dirty region to each surface node
     void SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node);
     void SetSurfaceGlobalAlignedDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node,
         const Occlusion::Region alignedDirtyRegion);
+    void AlignGlobalAndSurfaceDirtyRegions(std::shared_ptr<RSDisplayRenderNode>& node);
 
     void CheckAndSetNodeCacheType(RSRenderNode& node);
     bool UpdateCacheSurface(RSRenderNode& node);
@@ -234,7 +255,11 @@ private:
     // close partialrender when perform window animation
     void ClosePartialRenderWhenAnimatingWindows(std::shared_ptr<RSDisplayRenderNode>& node);
 
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
+#else
+    std::shared_ptr<Drawing::Surface> offscreenSurface_;                 // temporary holds offscreen surface
+#endif
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen render
 
     // Use in vulkan parallel rendering
@@ -248,15 +273,23 @@ private:
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
+#ifndef USE_ROSEN_DRAWING
     SkRect boundsRect_ {};
+#else
+    Drawing::Rect boundsRect_ {};
+#endif
     Gravity frameGravity_ = Gravity::DEFAULT;
 
     int32_t offsetX_ { 0 };
     int32_t offsetY_ { 0 };
     std::shared_ptr<RSProcessor> processor_;
+#ifndef USE_ROSEN_DRAWING
     SkMatrix parentSurfaceNodeMatrix_;
+#else
+    Drawing::Matrix parentSurfaceNodeMatrix_;
+#endif
 
-    ScreenId currentVisitDisplay_;
+    ScreenId currentVisitDisplay_ = INVALID_SCREEN_ID;
     std::map<ScreenId, int> displayHasSecSurface_;
     std::set<ScreenId> mirroredDisplays_;
     bool isSecurityDisplay_ = false;
@@ -286,7 +319,7 @@ private:
     int markedCachedNodes_ = 0;
 
     bool needFilter_ = false;
-    ColorGamut newColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
+    GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     std::vector<ScreenColorGamut> colorGamutModes_;
     pid_t currentFocusedPid_ = -1;
 
@@ -294,6 +327,7 @@ private:
     std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes_;
     bool isSubThread_ = false;
     bool isUIFirst_ = false;
+    uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
 
     bool needColdStartThread_ = false; // flag used for cold start app window
 
@@ -320,23 +354,25 @@ private:
     // driven render
     std::unique_ptr<DrivenInfo> drivenInfo_ = nullptr;
 
+#ifndef USE_ROSEN_DRAWING
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<SkMatrix>>;
-    using TransitionNodeList = std::vector<std::pair<NodeId, RenderParam>>;
-    TransitionNodeList unpairedTransitionNodes_;
+#else
+    using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<Drawing::Matrix>>;
+#endif
+    std::unordered_map<NodeId, RenderParam> unpairedTransitionNodes_;
     // return true if we should prepare/process, false if we should skip.
     bool PrepareSharedTransitionNode(RSBaseRenderNode& node);
     bool ProcessSharedTransitionNode(RSBaseRenderNode& node);
-    // try to pair nodes, call func on paired ones, and move unpaired ones to outList
-    TransitionNodeList FindPairedSharedTransitionNodes(TransitionNodeList& existingNodes, TransitionNodeList& newNodes,
-        TransitionNodeList (RSUniRenderVisitor::*func)(const RenderParam&, const RenderParam&));
-    TransitionNodeList PreparePairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second);
-    TransitionNodeList ProcessPairedSharedTransitionNodes(const RenderParam& first, const RenderParam& second);
 
     std::weak_ptr<RSBaseRenderNode> logicParentNode_;
 
     bool isCalcCostEnable_ = false;
 
+#ifndef USE_ROSEN_DRAWING
     std::optional<SkMatrix> rootMatrix_ = std::nullopt;
+#else
+    std::optional<Drawing::Matrix> rootMatrix_ = std::nullopt;
+#endif
 
     uint32_t appWindowNum_ = 0;
 
@@ -345,12 +381,21 @@ private:
     bool doParallelRender_ = false;
     // displayNodeMatrix only used in offScreen render case to ensure correct composer layer info when with rotation,
     // displayNodeMatrix indicates display node's matrix info
+#ifndef USE_ROSEN_DRAWING
     std::optional<SkMatrix> displayNodeMatrix_;
+#else
+    std::optional<Drawing::Matrix> displayNodeMatrix_;
+#endif
     mutable std::mutex copyVisitorInfosMutex_;
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> cacheImgForCapture_ = nullptr;
+#else
+    std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
+#endif
     bool resetRotate_ = false;
     bool needCacheImg_ = false;
     uint32_t captureWindowZorder_ = 0;
+    std::optional<SkPath> effectRegion_ = std::nullopt;
 };
 } // namespace Rosen
 } // namespace OHOS

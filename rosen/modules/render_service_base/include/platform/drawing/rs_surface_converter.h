@@ -15,7 +15,11 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_SURFACE_CONVERTER_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_SURFACE_CONVERTER_H
 
+#ifdef NEW_RENDER_CONTEXT
+#include "render_backend/rs_render_surface.h"
+#else
 #include "platform/drawing/rs_surface.h"
+#endif
 #include "surface.h"
 
 namespace OHOS {
@@ -23,7 +27,11 @@ namespace Rosen {
 
 class RSB_EXPORT RSSurfaceConverter {
 public:
+#ifdef NEW_RENDER_CONTEXT
+    static RSB_EXPORT sptr<Surface> ConvertToOhosSurface(std::shared_ptr<RSRenderSurface> surface);
+#else
     static RSB_EXPORT sptr<Surface> ConvertToOhosSurface(std::shared_ptr<RSSurface> surface);
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -16,6 +16,7 @@
 #include "font_config.h"
 
 #include <dirent.h>
+#include <fstream>
 #include <libgen.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -36,27 +37,39 @@ FontConfig::FontConfig(const char* fname)
 {
     int err = ParseConfig(fname);
     if (err != 0) {
-        LOG2EX(ERROR) << "parse config err";
+        LOGSO_FUNC_LINE(ERROR) << "parse config err";
     }
 }
 
-char* FontConfig::GetFileData(const char* fname, int& size) const
+char* FontConfig::GetFileData(const char* fname, int& size)
 {
-    FILE* fp = fopen(fname, "r");
-    if (fp == nullptr) {
-        return nullptr;
-    }
-    fseek(fp, 0L, SEEK_END);
-    size = ftell(fp) + 1;
-    rewind(fp);
-    char* data = new char[size]();
-    if (data == nullptr) {
+    std::ifstream file(fname);
+    if (file.good()) {
+        FILE* fp = fopen(fname, "r");
+        if (fp == nullptr) {
+            return nullptr;
+        }
+        fseek(fp, 0L, SEEK_END);
+        size = ftell(fp) + 1;
+        rewind(fp);
+        char* data = static_cast<char*>(malloc(size));
+        if (data == nullptr) {
+            fclose(fp);
+            return nullptr;
+        }
+        if (memset_s(data, size, 0, size) != EOK) {
+            LOGSO_FUNC_LINE(ERROR) << "memset failed";
+            free(data);
+            data = nullptr;
+            fclose(fp);
+            return nullptr;
+        }
+        (void)fread(data, size, 1, fp);
         fclose(fp);
-        return nullptr;
+        return data;
     }
-    (void)fread(data, size, 1, fp);
-    fclose(fp);
-    return data;
+
+    return nullptr;
 }
 
 int FontConfig::CheckConfigFile(const char* fname, Json::Value& root) const
@@ -64,18 +77,18 @@ int FontConfig::CheckConfigFile(const char* fname, Json::Value& root) const
     int size = 0;
     char* data = GetFileData(fname, size);
     if (data == nullptr) {
-        LOG2EX(ERROR) << "data is null";
+        LOGSO_FUNC_LINE(ERROR) << "data is null";
         return FAILED;
     }
     JSONCPP_STRING errs;
     Json::CharReaderBuilder charReaderBuilder;
     std::unique_ptr<Json::CharReader> jsonReader(charReaderBuilder.newCharReader());
     bool isJson = jsonReader->parse(data, data + size, &root, &errs);
-    delete[] data;
+    free(data);
     data = nullptr;
 
     if (!isJson || !errs.empty()) {
-        LOG2EX(ERROR) << "not json or errs no empty";
+        LOGSO_FUNC_LINE(ERROR) << "not json or errs no empty";
         return FAILED;
     }
     return SUCCESSED;
@@ -94,25 +107,25 @@ int FontConfig::ParseFont(const Json::Value& root)
 int FontConfig::ParseConfig(const char* fname)
 {
     if (fname == nullptr) {
-        LOG2EX(ERROR) << "fname is null";
+        LOGSO_FUNC_LINE(ERROR) << "fname is null";
         return FAILED;
     }
     Json::Value root;
     int err = CheckConfigFile(fname, root);
     if (err != 0) {
-        LOG2EX(ERROR) << "check config file failed";
+        LOGSO_FUNC_LINE(ERROR) << "check config file failed";
         return err;
     }
-    const char* key = "font";
-    if (root.isMember(key)) {
-        if (root[key].isArray()) {
-            ParseFont(root[key]);
+    const char* tag = "font";
+    if (root.isMember(tag)) {
+        if (root[tag].isArray()) {
+            ParseFont(root[tag]);
         } else {
-            LOG2EX(ERROR) << "not array";
+            LOGSO_FUNC_LINE(ERROR) << "not array";
             return FAILED;
         }
     } else {
-        LOG2EX(ERROR) << "not member";
+        LOGSO_FUNC_LINE(ERROR) << "not member";
         return FAILED;
     }
 
@@ -122,7 +135,7 @@ int FontConfig::ParseConfig(const char* fname)
 void FontConfig::Dump() const
 {
     for (auto it : fontSet_) {
-        LOG2SO(INFO) << "fname:" << it;
+        LOGSO_FUNC_LINE(INFO) << "fname:" << it;
     }
 }
 

@@ -57,6 +57,8 @@ public:
     std::string PlayBackForRecord(RSPaintFilterCanvas& canvas, int startOpId, int endOpId,
         int descStartOpId, const SkRect* rect = nullptr);
 
+    void SetWidth(int width);
+    void SetHeight(int height);
     std::string GetOpsWithDesc() const;
     size_t GetSize() const;
     int GetWidth() const;

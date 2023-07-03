@@ -39,13 +39,13 @@ public:
         builder->PushStyle({});
         builder->PopStyle();
         builder->AppendSpan("世界, ");
-        builder->AppendSpan(std::make_shared<MyAnySpan>(50, 50));
+        builder->AppendSpan(std::make_shared<MyAnySpan>(50, 50));   // 50 means span's width and height
         builder->AppendSpan("He");
         builder->PushStyle({});
         builder->PopStyle();
         builder->AppendSpan("llo World.");
         auto typography = builder->Build();
-        typography->Layout(200);
+        typography->Layout(200);    // 200 means layout width
 
         for (const auto &index : g_positions) {
             auto onPaint = [index](const struct TypographyData &tyData, TexgineCanvas &canvas, double x, double y) {

@@ -29,12 +29,13 @@ namespace TextEngine {
 
 namespace {
 void DumpCharGroup(int32_t index, const CharGroup &cg, double glyphEm,
-    hb_glyph_info_t &info, hb_glyph_position_t &position)
+    const hb_glyph_info_t &info, const hb_glyph_position_t &position)
 {
     auto uTF8Str = TextConverter::ToUTF8(cg.chars);
     // 0xffffff is the default char when the cg is null or invalid
     auto ch = (cg.chars.size() > 0) ? cg.chars[0] : 0xffffff;
     // the follow numbers is to align log
+    // 2 & 4 means output width，0 means fill with 0
     LOGEX_FUNC_LINE_DEBUG() << std::setw(2) << std::setfill('0') << index <<
         std::hex << std::uppercase <<
         ": " << std::right << std::setw(4) << std::setfill(' ') << "\033[40m" << "'" <<
@@ -150,11 +151,12 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
             LOGEX_FUNC_LINE(ERROR) << "runsit->end overflow of text_";
             throw TEXGINE_EXCEPTION(ERROR_STATUS);
         }
-        size_t utf16Index = runsit->start;
+        size_t utf16Index = static_cast<size_t>(runsit->start);
         uint32_t cp = 0;
         std::shared_ptr<Typeface> lastTypeface = nullptr;
         while (utf16Index < runsit->end) {
             U16_NEXT(text_.data(), utf16Index, runsit->end, cp);
+            // 2 & 6 means output width，0 means fill with 0
             LOGEX_FUNC_LINE_DEBUG(Logger::SetToNoReturn) << "[" << std::setw(2) << std::setfill('0') << index++
                 << ": 0x" << std::setw(6) << std::setfill('0') << std::hex << std::uppercase << cp << "]";
             if (lastTypeface && lastTypeface->Has(cp)) {
@@ -227,9 +229,10 @@ void MeasurerImpl::DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode
 
             U16_NEXT(text_.data(), utf16Index, it->end, cp);
             auto s = hb_unicode_script(icuGetUnicodeFuncs, cp);
+            // 2 & 6 means output width，0 means fill with 0
             LOGEX_FUNC_LINE_DEBUG() << "[" << std::setw(2) << std::setfill('0') << index++ << ": 0x"
                 << std::setw(6) << std::setfill('0') << std::hex << std::uppercase << cp << "]" << " " << s;
-            if (script == HB_SCRIPT_INVALID) {
+            if (script == static_cast<size_t>(HB_SCRIPT_INVALID)) {
                 script = s;
             }
 
@@ -436,7 +439,7 @@ void MeasurerImpl::GenerateHBFeatures(std::vector<hb_feature_t> &fontFeatures, c
     for (auto &[ft, fv] : features) {
         hb_feature_t hf;
         if (hb_feature_from_string(ft.c_str(), ft.size(), &hf)) {
-            hf.value = fv;
+            hf.value = static_cast<size_t>(fv);
             fontFeatures.push_back(hf);
         }
 

@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-const struct PostTable* PostTableParser::Parse(const char* data, int32_t size) const
+const struct PostTable* PostTableParser::Parse(const char* data, int32_t size)
 {
     return reinterpret_cast<const struct PostTable*>(data);
 }
@@ -28,8 +28,8 @@ const struct PostTable* PostTableParser::Parse(const char* data, int32_t size) c
 void PostTableParser::Dump() const
 {
     const auto& table = *reinterpret_cast<const struct PostTable*>(data_);
-    LOG2SO(INFO) << "postTable size: " << size_ << "version: " << table.version.Get()
-                 << "italicAngle: " << table.italicAngle.Get() << "isFixedPitch: " << table.isFixedPitch.Get();
+    LOGSO_FUNC_LINE(INFO) << "postTable size: " << size_ << "version: " << table.version.Get()
+        << "italicAngle: " << table.italicAngle.Get() << "isFixedPitch: " << table.isFixedPitch.Get();
 }
 } // namespace TextEngine
 } // namespace Rosen

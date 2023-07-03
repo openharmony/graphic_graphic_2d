@@ -301,7 +301,7 @@ void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
     const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(id);
     if (node == nullptr) {
-        dumpString +=  std::to_string(id) + "is invalid ID\n";
+        dumpString +=  std::to_string(id) + " is invalid ID\n";
         return;
     }
     dumpString += "ID: " + std::to_string(node->GetId()) + "\n";
@@ -321,8 +321,13 @@ void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
     dumpString += "Bounds: [" + std::to_string(node->GetRenderProperties().GetBoundsWidth()) + "," +
         std::to_string(node->GetRenderProperties().GetBoundsHeight()) + "]\n";
     if (auto& contextClipRegion = node->contextClipRect_) {
+#ifndef USE_ROSEN_DRAWING
         dumpString += "ContextClipRegion: [" + std::to_string(contextClipRegion->width()) + "," +
                       std::to_string(contextClipRegion->height()) + "]\n";
+#else
+        dumpString += "ContextClipRegion: [" + std::to_string(contextClipRegion->GetWidth()) + "," +
+                      std::to_string(contextClipRegion->GetHeight()) + "]\n";
+#endif
     } else {
         dumpString += "ContextClipRegion: [ empty ]\n";
     }
@@ -429,8 +434,8 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     if (auto iter = argSets.find(arg12) != argSets.end()) {
         argSets.erase(arg12);
         if (!argSets.empty()) {
-            NodeId id = std::stoull(
-                std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(*argSets.begin()));
+            NodeId id = static_cast<NodeId>(std::atoll(std::wstring_convert<
+                std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(*argSets.begin()).c_str()));
             mainThread_->ScheduleTask(
                 [this, &dumpString, &id]() { return DumpSurfaceNode(dumpString, id); }).wait();
         }

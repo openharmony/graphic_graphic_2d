@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,12 +54,17 @@ HWTEST_F(RSPropertiesPainterTest, GetGravityMatrix001, TestSize.Level1)
     RSPropertiesPainter::GetGravityMatrix(Gravity::BOTTOM, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::LEFT, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::RIGHT, rect, w, h, mat);
+    RSPropertiesPainter::GetGravityMatrix(Gravity::TOP_LEFT, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::TOP_RIGHT, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::BOTTOM_LEFT, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::BOTTOM_RIGHT, rect, w, h, mat);
-    RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT, rect, w, h, mat);
-    RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE, rect, w, h, mat);
+    RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT, rect, w, h, mat);
+    RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_TOP_LEFT, rect, w, h, mat);
+    RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_BOTTOM_RIGHT, rect, w, h, mat);
+    RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL, rect, w, h, mat);
+    RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_TOP_LEFT, rect, w, h, mat);
+    RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::DEFAULT, rect, w, h, mat);
     Gravity gravity = static_cast<Gravity>(100);
     EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(gravity, rect, w, h, mat));
@@ -311,10 +316,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter001, TestSize.Level1)
     std::shared_ptr<RSFilter> rsFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
     RSProperties properties;
     properties.SetBackgroundFilter(rsFilter);
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(properties.GetBackgroundFilter());
-    auto skRectPtr = std::make_unique<SkRect>();
-    skRectPtr->setXYWH(0, 0, 1.f, 1.f);
-    RSPropertiesPainter::DrawFilter(properties, canvas, filter, skRectPtr, canvas.GetSurface());
+    RSPropertiesPainter::DrawFilter(
+        properties, canvas, FilterType::BACKGROUND_FILTER, SkRect::MakeXYWH(0.f, 0.f, 1.f, 1.f));
 }
 
 /**
@@ -330,10 +333,9 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter002, TestSize.Level1)
     std::shared_ptr<RSFilter> rsFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
     RSProperties properties;
     properties.SetBackgroundFilter(rsFilter);
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(properties.GetBackgroundFilter());
     std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
     properties.SetClipBounds(rsPath);
-    RSPropertiesPainter::DrawFilter(properties, canvas, filter, nullptr, canvas.GetSurface());
+    RSPropertiesPainter::DrawFilter(properties, canvas, FilterType::BACKGROUND_FILTER);
 }
 
 /**

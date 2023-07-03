@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#ifndef USE_ROSEN_DRAWING
 #include "pipeline/rs_recording_canvas.h"
 
 #include "pipeline/rs_draw_cmd.h"
@@ -601,3 +602,4 @@ bool RSRecordingCanvas::IsCustomTextType() const
 }
 } // namespace Rosen
 } // namespace OHOS
+#endif // USE_ROSEN_DRAWING

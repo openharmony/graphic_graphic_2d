@@ -42,7 +42,7 @@ std::shared_ptr<TexgineFontManager> TexgineFontManager::RefDefault()
 }
 
 std::shared_ptr<TexgineTypeface> TexgineFontManager::MatchFamilyStyleCharacter(const std::string &familyName,
-    TexgineFontStyle &style, const char *bcp47[], int bcp47Count, int32_t character)
+    const TexgineFontStyle &style, const char *bcp47[], int bcp47Count, int32_t character)
 {
     g_fcMockVars.catchedSize = bcp47Count;
     return g_fcMockVars.SCRetvalTypeface;

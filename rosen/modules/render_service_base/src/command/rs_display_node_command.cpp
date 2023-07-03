@@ -23,10 +23,10 @@ namespace Rosen {
 
 void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
 {
-    std::shared_ptr<RSBaseRenderNode> node =
+    std::shared_ptr<RSDisplayRenderNode> node =
         std::make_shared<RSDisplayRenderNode>(id, config, context.weak_from_this());
     auto& nodeMap = context.GetMutableNodeMap();
-    nodeMap.RegisterRenderNode(node);
+    nodeMap.RegisterDisplayRenderNode(node);
     context.GetGlobalRootRenderNode()->AddChild(node);
     if (config.isMirrored) {
         auto mirrorSourceNode = nodeMap.GetRenderNode<RSDisplayRenderNode>(config.mirrorNodeId);

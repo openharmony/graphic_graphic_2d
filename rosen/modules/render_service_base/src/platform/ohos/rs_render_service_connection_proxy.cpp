@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "transaction/rs_ashmem_helper.h"
+#include "transaction/rs_marshalling_helper.h"
 #include "rs_trace.h"
 
 namespace OHOS {
@@ -67,6 +68,35 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
             ROSEN_LOGE("RSRenderServiceConnectionProxy::CommitTransaction SendRequest failed, err = %d", err);
             return;
         }
+    }
+}
+
+void RSRenderServiceConnectionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
+{
+    if (task == nullptr) {
+        return;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSRenderServiceConnectionProxy::GetDescriptor())) {
+        return;
+    }
+
+    if (!task->Marshalling(data)) {
+        return;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::EXECUTE_SYNCHRONOUS_TASK, data, reply, option);
+    if (err != NO_ERROR) {
+        return;
+    }
+
+    if (task->CheckHeader(reply)) {
+        task->ReadFromParcel(reply);
     }
 }
 
@@ -383,6 +413,99 @@ void RSRenderServiceConnectionProxy::SetScreenActiveMode(ScreenId id, uint32_t m
     if (err != NO_ERROR) {
         return;
     }
+}
+
+void RSRenderServiceConnectionProxy::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceProxy failed to get descriptor");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    data.WriteInt32(sceneId);
+    data.WriteInt32(rate);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::SET_SCREEN_REFRESH_RATE, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %d", err);
+    }
+}
+
+void RSRenderServiceConnectionProxy::SetRefreshRateMode(int32_t refreshRateMode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceProxy failed to get descriptor");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteInt32(refreshRateMode);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::SET_REFRESH_RATE_MODE, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %d", err);
+    }
+}
+
+uint32_t RSRenderServiceConnectionProxy::GetScreenCurrentRefreshRate(ScreenId id)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceProxy failed to get descriptor");
+        return SUCCESS;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_SCREEN_CURRENT_REFRESH_RATE,
+        data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %d", err);
+        return SUCCESS;
+    }
+    uint32_t rate = reply.ReadUint32();
+    return rate;
+}
+
+std::vector<uint32_t> RSRenderServiceConnectionProxy::GetScreenSupportedRefreshRates(ScreenId id)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::vector<uint32_t> screenSupportedRates;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceProxy failed to get descriptor");
+        return screenSupportedRates;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_SCREEN_SUPPORTED_REFRESH_RATES,
+        data, reply, option);
+    if (err != NO_ERROR) {
+        return screenSupportedRates;
+    }
+    uint64_t rateCount = reply.ReadUint64();
+    size_t readableSize = reply.GetReadableBytes();
+    size_t len = static_cast<size_t>(rateCount);
+    if (len > readableSize || len > screenSupportedRates.max_size()) {
+        RS_LOGE("RSRenderServiceConnectionProxy GetScreenSupportedRefreshRates "
+            "fail read vector, size : %zu, readableSize : %zu", len, readableSize);
+        return screenSupportedRates;
+    }
+    screenSupportedRates.resize(rateCount);
+    for (uint64_t rateIndex = 0; rateIndex < rateCount; rateIndex++) {
+        screenSupportedRates[rateIndex] = reply.ReadUint32();
+    }
+    return screenSupportedRates;
 }
 
 int32_t RSRenderServiceConnectionProxy::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -926,6 +1049,28 @@ int32_t RSRenderServiceConnectionProxy::GetScreenType(ScreenId id, RSScreenType&
     return result;
 }
 
+bool RSRenderServiceConnectionProxy::GetBitmap(NodeId id, SkBitmap& bitmap)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_BITMAP, data, reply, option);
+    if (err != NO_ERROR) {
+        return false;
+    }
+    bool result = reply.ReadBool();
+    if (!result || !RSMarshallingHelper::Unmarshalling(reply, bitmap)) {
+        RS_LOGE("RSRenderServiceConnectionProxy::GetBitmap: Unmarshalling failed");
+        return false;
+    }
+    return true;
+}
+
 int32_t RSRenderServiceConnectionProxy::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
 {
     MessageParcel data;
@@ -997,6 +1142,21 @@ void RSRenderServiceConnectionProxy::ShowWatermark(const std::shared_ptr<Media::
         RSIRenderServiceConnection::SHOW_WATERMARK, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::ShowWatermark: Send Request err.");
+    }
+}
+
+void RSRenderServiceConnectionProxy::ReportJankStats()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::REPORT_JANK_STATS, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportJankStats: Send Request err.");
     }
 }
 } // namespace Rosen

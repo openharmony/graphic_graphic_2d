@@ -75,6 +75,12 @@ public:
             ROSEN_EQ<T>(width_, rect.width_) && ROSEN_EQ<T>(height_, rect.height_);
     }
 
+    inline bool IsNearEqual(const RectT<T>& rect, T threshold = std::numeric_limits<T>::epsilon()) const
+    {
+        return ROSEN_EQ<T>(left_, rect.left_, threshold) && ROSEN_EQ<T>(top_, rect.top_, threshold) &&
+               ROSEN_EQ<T>(width_, rect.width_, threshold) && ROSEN_EQ<T>(height_, rect.height_, threshold);
+    }
+
     inline bool operator!=(const RectT<T>& rect) const
     {
         return !operator==(rect);
@@ -297,6 +303,7 @@ public:
     RRectT& operator=(const RRectT<T>& other);
     bool operator==(const RRectT& other) const;
     bool operator!=(const RRectT& other) const;
+    bool IsNearEqual(const RRectT& other, T threshold = std::numeric_limits<T>::epsilon()) const;
 };
 
 typedef RRectT<float> RRect;
@@ -401,6 +408,15 @@ inline bool RRectT<T>::operator==(const RRectT& other) const
     return (rect_ == other.rect_) && (radius_[0] == other.radius_[0]) &&
         (radius_[1] == other.radius_[1]) && (radius_[2] == other.radius_[2]) &&
         (radius_[3] == other.radius_[3]);
+}
+
+template<typename T>
+inline bool RRectT<T>::IsNearEqual(const RRectT& rrectT, T threshold) const
+{
+    return (rect_.IsNearEqual(rrectT.rect_, threshold)) && (radius_[0].IsNearEqual(rrectT.radius_[0], threshold)) &&
+           (radius_[1].IsNearEqual(rrectT.radius_[1], threshold)) &&
+           (radius_[2].IsNearEqual(rrectT.radius_[2], threshold)) &&
+           (radius_[3].IsNearEqual(rrectT.radius_[3], threshold));
 }
 
 template<typename T>

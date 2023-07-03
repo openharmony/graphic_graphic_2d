@@ -22,14 +22,19 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "platform/drawing/rs_surface_frame.h"
-#include "platform/ohos/rs_surface_ohos.h"
 #include "rs_base_render_util.h"
 
+#ifdef NEW_RENDER_CONTEXT
+#include "render_backend/rs_render_surface_frame.h"
+#include "ohos/rs_render_surface_ohos.h"
+#include "render_context_base.h"
+#else
+#include "platform/drawing/rs_surface_frame.h"
+#include "platform/ohos/rs_surface_ohos.h"
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
 #include "render_context/render_context.h"
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
-
+#endif
 #ifdef RS_ENABLE_EGLIMAGE
 #include "rs_egl_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
@@ -40,10 +45,17 @@ namespace Rosen {
 class RSRenderFrame {
 public:
     // we guarantee when constructing this object, all parameters are valid.
+#ifdef NEW_RENDER_CONTEXT
+    RSRenderFrame(const std::shared_ptr<RSRenderSurfaceOhos>& target)
+        : targetSurface_(target)
+    {
+    }
+#else
     RSRenderFrame(const std::shared_ptr<RSSurfaceOhos>& target, std::unique_ptr<RSSurfaceFrame>&& frame)
         : targetSurface_(target), surfaceFrame_(std::move(frame))
     {
     }
+#endif
     ~RSRenderFrame() noexcept
     {
         Flush();
@@ -52,7 +64,15 @@ public:
     // noncopyable
     RSRenderFrame(const RSRenderFrame&) = delete;
     void operator=(const RSRenderFrame&) = delete;
-
+#ifdef NEW_RENDER_CONTEXT
+    void Flush() noexcept
+    {
+        if (targetSurface_ != nullptr) {
+            targetSurface_->FlushFrame();
+            targetSurface_ = nullptr;
+        }
+    }
+#else
     void Flush() noexcept
     {
         if (targetSurface_ != nullptr && surfaceFrame_ != nullptr) {
@@ -61,36 +81,58 @@ public:
             surfaceFrame_ = nullptr;
         }
     }
-
+#endif
+#ifdef NEW_RENDER_CONTEXT
+    const std::shared_ptr<RSRenderSurfaceOhos>& GetSurface() const
+#else
     const std::shared_ptr<RSSurfaceOhos>& GetSurface() const
+#endif
     {
         return targetSurface_;
     }
-
+#ifndef NEW_RENDER_CONTEXT
     const std::unique_ptr<RSSurfaceFrame>& GetFrame() const
     {
         return surfaceFrame_;
     }
-
+#endif
     std::unique_ptr<RSPaintFilterCanvas> GetCanvas()
     {
+#ifdef NEW_RENDER_CONTEXT
+        return std::make_unique<RSPaintFilterCanvas>(targetSurface_->GetSurface().get());
+#else
         return std::make_unique<RSPaintFilterCanvas>(surfaceFrame_->GetSurface().get());
+#endif
     }
 
     int32_t GetBufferAge()
     {
+#ifdef NEW_RENDER_CONTEXT
+        return targetSurface_ != nullptr ? targetSurface_->GetBufferAge() : 0;
+#else
         return surfaceFrame_ != nullptr ? surfaceFrame_->GetBufferAge() : 0;
+#endif
     }
 
     void SetDamageRegion(const std::vector<RectI> &rects)
     {
+#ifdef NEW_RENDER_CONTEXT
+        if (targetSurface_ != nullptr) {
+            targetSurface_ ->SetDamageRegion(rects);
+        }
+#else
         if (surfaceFrame_ != nullptr) {
             surfaceFrame_->SetDamageRegion(rects);
         }
+#endif
     }
 private:
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RSRenderSurfaceOhos> targetSurface_;
+#else
     std::shared_ptr<RSSurfaceOhos> targetSurface_;
     std::unique_ptr<RSSurfaceFrame> surfaceFrame_;
+#endif
 };
 
 // function that will be called before drawing Buffer / Image.
@@ -113,12 +155,17 @@ public:
 
     // There would only one user(thread) to renderFrame(request frame) at one time.
     // for framebuffer surface
-    std::unique_ptr<RSRenderFrame> RequestFrame(const sptr<Surface>& rsSurface,
-        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true);
-    // There would only one user(thread) to renderFrame(request frame) at one time.
-    std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
+    std::unique_ptr<RSRenderFrame> RequestFrame(const sptr<Surface>& targetSurface,
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true);
 
+    // There would only one user(thread) to renderFrame(request frame) at one time.
+#ifdef NEW_RENDER_CONTEXT
+    std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSRenderSurfaceOhos>& rsSurface,
+        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true);
+#else
+    std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
+        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true);
+#endif
     void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame, const uint64_t surfaceId);
 
     virtual void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
@@ -146,13 +193,23 @@ public:
     {
         return isHighContrastEnabled_;
     }
+#if defined(NEW_RENDER_CONTEXT)
+    const std::shared_ptr<RenderContextBase>& GetRenderContext()
+    {
+        return renderContext_;
+    }
+    const std::shared_ptr<DrawingContext>& GetDrawingContext()
+    {
+        return drawingContext_;
+    }
+#else
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     const std::shared_ptr<RenderContext>& GetRenderContext()
     {
         return renderContext_;
     }
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
-
+#endif
 #ifdef RS_ENABLE_EGLIMAGE
     const std::shared_ptr<RSEglImageManager>& GetEglImageManager()
     {
@@ -161,20 +218,29 @@ public:
 #endif // RS_ENABLE_EGLIMAGE
 protected:
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
+    void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
 
 private:
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence);
+#else
+    std::shared_ptr<Drawing::Image> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
+        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence);
+#endif
 
     static inline std::atomic_bool isHighContrastEnabled_ = false;
-
+#if defined(NEW_RENDER_CONTEXT)
+    std::shared_ptr<RenderContextBase> renderContext_ = nullptr;
+    std::shared_ptr<DrawingContext> drawingContext_ = nullptr;
+#else
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
-
+#endif
 #ifdef RS_ENABLE_EGLIMAGE
     std::shared_ptr<RSEglImageManager> eglImageManager_ = nullptr;
 #endif // RS_ENABLE_EGLIMAGE
@@ -182,7 +248,11 @@ private:
     // RSSurfaces for framebuffer surfaces.
     static constexpr size_t MAX_RS_SURFACE_SIZE = 32; // used for rsSurfaces_.
     using SurfaceId = uint64_t;
+#ifdef NEW_RENDER_CONTEXT
+    std::unordered_map<SurfaceId, std::shared_ptr<RSRenderSurfaceOhos>> rsSurfaces_;
+#else
     std::unordered_map<SurfaceId, std::shared_ptr<RSSurfaceOhos>> rsSurfaces_;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

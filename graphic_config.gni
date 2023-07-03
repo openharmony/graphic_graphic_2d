@@ -22,6 +22,11 @@ declare_args() {
   graphic_standard_feature_freemem_enable = false
   graphic_standard_feature_parallel_render_enable = true
   graphic_standard_feature_enable_vulkan = false
+  if (defined(build_cross_platform_version) && build_cross_platform_version) {
+    use_new_render_context = false
+  } else {
+    use_new_render_context = false
+  }
 }
 
 gpu_defines = []
@@ -65,8 +70,8 @@ if (graphic_standard_feature_ace_enable_gpu) {
   libvulkan = []
 }
 
-if (graphic_standard_feature_rs_enable_eglimage &&
-    !graphic_standard_feature_enable_vulkan) {
+if ((graphic_standard_feature_rs_enable_eglimage &&
+     !graphic_standard_feature_enable_vulkan) || current_os == "android") {
   gpu_defines += [
     "RS_ENABLE_EGLIMAGE",
     "RS_ENABLE_EGLQUERYSURFACE",
@@ -96,6 +101,10 @@ if (graphic_standard_feature_parallel_render_enable) {
   rs_enable_parallel_render = true
   gpu_defines += [ "RS_ENABLE_PARALLEL_RENDER" ]
 }
+if (defined(use_new_render_context) && use_new_render_context) {
+  rs_enable_parallel_render = false
+  gpu_defines -= [ "RS_ENABLE_PARALLEL_RENDER" ]
+}
 graphic_2d_ext_configs = {
 }
 check_graphic_ext_file_script = "//build/ohos/file_exists.py"
@@ -113,6 +122,8 @@ if (exec_script(check_graphic_ext_file_script,
 
 graphic_2d_root = "//foundation/graphic/graphic_2d"
 hilog_root = "//base/hiviewdfx/hilog"
+window_base_path = "//foundation/window/window_manager"
+safwk_base = "//foundation/systemabilitymgr/safwk"
 
 accessibility_enable = false
 if (defined(global_parts_info) &&

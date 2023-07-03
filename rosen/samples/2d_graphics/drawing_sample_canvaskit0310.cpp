@@ -70,7 +70,8 @@ public:
     void DoPrepareCompleted(sptr<Surface>& surface, const struct PrepareCompleteParam &param);
     void OnBufferAvailable() override;
     SurfaceError ProduceBuffer(sptr<Surface> &produceSurface, uint32_t width, uint32_t height, uint32_t index, bool baseLayer);
-    bool FillBaseLayer(std::shared_ptr<HdiLayerInfo> &showLayer, uint32_t index,  uint32_t zorder, GraphicIRect &dstRect);
+    bool FillBaseLayer(std::shared_ptr<HdiLayerInfo> &showLayer, uint32_t index, uint32_t zorder,
+                       GraphicIRect &dstRect);
     bool DrawBaseLayer(std::vector<LayerInfoPtr> &layerVec);
     void CreateBaseSurface(uint32_t index);
     void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);

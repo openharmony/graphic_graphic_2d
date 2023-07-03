@@ -17,9 +17,11 @@
 #define ROSEN_RENDER_SERVICE_BASE_RS_TRANSACTION_DATA_H
 
 #include <memory>
+#include <mutex>
 #include <vector>
 
 #include "command/rs_command.h"
+#include "command/rs_node_showing_command.h"
 #include "common/rs_macros.h"
 #include "pipeline/rs_context.h"
 
@@ -34,7 +36,7 @@ public:
         : payload_(std::move(other.payload_)), timestamp_(std::move(other.timestamp_)),
           abilityName_(std::move(other.abilityName_)), pid_(other.pid_), index_(other.index_)
     {}
-    ~RSTransactionData() noexcept = default;
+    ~RSTransactionData() noexcept;
 
     [[nodiscard]] static RSTransactionData* Unmarshalling(Parcel& parcel);
     bool Marshalling(Parcel& parcel) const override;
@@ -93,7 +95,7 @@ public:
         return marshallingIndex_;
     }
 
-    std::list<std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>>& GetPayload()
+    std::vector<std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>>& GetPayload()
     {
         return payload_;
     }
@@ -143,7 +145,7 @@ private:
     void AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType);
 
     bool UnmarshallingCommand(Parcel& parcel);
-    std::list<std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>> payload_;
+    std::vector<std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>> payload_ = {};
     uint64_t timestamp_ = 0;
     std::string abilityName_;
     pid_t pid_ = 0;
@@ -153,6 +155,7 @@ private:
     bool needCloseSync_ { false };
     int32_t syncTransactionCount_ { 0 };
     uint64_t syncId_ { 0 };
+    std::mutex commandMutex_;
 
     friend class RSTransactionProxy;
     friend class RSMessageProcessor;

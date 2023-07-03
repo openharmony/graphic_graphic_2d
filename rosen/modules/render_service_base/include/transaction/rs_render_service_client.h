@@ -30,7 +30,11 @@
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "memory/rs_memory_graphic.h"
+#ifdef NEW_RENDER_CONTEXT
+#include "render_backend/rs_render_surface.h"
+#else
 #include "platform/drawing/rs_surface.h"
+#endif
 #include "rs_irender_client.h"
 #include "screen_manager/rs_screen_capability.h"
 #include "screen_manager/rs_screen_data.h"
@@ -64,12 +68,16 @@ public:
     void operator=(const RSRenderServiceClient&) = delete;
 
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
+    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
     bool GetUniRenderEnabled();
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RSRenderSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
+#else
     std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
-
+#endif
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr);
@@ -84,8 +92,11 @@ public:
     std::vector<ScreenId> GetAllScreenIds();
 
 #ifndef ROSEN_CROSS_PLATFORM
+#if defined(NEW_RENDER_CONTEXT)
+    std::shared_ptr<RSRenderSurface> CreateRSSurface(const sptr<Surface> &surface);
+#else
     std::shared_ptr<RSSurface> CreateRSSurface(const sptr<Surface> &surface);
-
+#endif
     ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
         ScreenId mirrorId, int32_t flags);
 
@@ -97,6 +108,14 @@ public:
     int32_t SetScreenChangeCallback(const ScreenChangeCallback& callback);
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId);
+
+    void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
+
+    void SetRefreshRateMode(int32_t refreshRateMode);
+
+    uint32_t GetScreenCurrentRefreshRate(ScreenId id);
+
+    std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id);
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
@@ -141,6 +160,8 @@ public:
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
 
+    bool GetBitmap(NodeId id, SkBitmap& bitmap);
+
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
 
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
@@ -148,6 +169,8 @@ public:
     void SetAppWindowNum(uint32_t num);
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
+
+    void ReportJankStats();
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
     std::mutex mutex_;

@@ -31,6 +31,10 @@ std::shared_ptr<ImageFilterCmdList> ImageFilterCmdList::CreateFromData(const Cmd
 
 std::shared_ptr<ImageFilter> ImageFilterCmdList::Playback() const
 {
+    if (opAllocator_.GetSize() == 0) {
+        return nullptr;
+    }
+
     int32_t offset = 0;
     std::shared_ptr<ImageFilter> imageFilter = nullptr;
 
@@ -42,6 +46,8 @@ std::shared_ptr<ImageFilter> ImageFilterCmdList::Playback() const
         }
 
         switch (itemPtr->GetType()) {
+            case ImageFilterOpItem::OPITEM_HEAD:
+                break;
             case ImageFilterOpItem::CREATE_BLUR:
                 imageFilter = static_cast<CreateBlurImageFilterOpItem*>(itemPtr)->Playback(*this);
                 break;

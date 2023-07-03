@@ -36,23 +36,10 @@ constexpr unsigned RIGHT_BOTTOM_POINT = 2;
 constexpr unsigned LEFT_BOTTOM_POINT = 3;
 constexpr float INCH_TO_PIXEL = 72;
 constexpr float EPSILON = 1e-4f;
+constexpr float DEGREE_TO_RADIAN = M_PI / 180;
 
-RSObjAbsGeometry::RSObjAbsGeometry() : RSObjGeometry()
-{
-#ifndef USE_ROSEN_DRAWING
-    vertices_[LEFT_TOP_POINT].set(0, 0);
-    vertices_[RIGHT_TOP_POINT].set(0, 0);
-    vertices_[RIGHT_BOTTOM_POINT].set(0, 0);
-    vertices_[LEFT_BOTTOM_POINT].set(0, 0);
-#else
-    vertices_[LEFT_TOP_POINT] = Drawing::Point(0, 0);
-    vertices_[RIGHT_TOP_POINT] = Drawing::Point(0, 0);
-    vertices_[RIGHT_BOTTOM_POINT] = Drawing::Point(0, 0);
-    vertices_[LEFT_BOTTOM_POINT] = Drawing::Point(0, 0);
-#endif
-}
-
-RSObjAbsGeometry::~RSObjAbsGeometry() {}
+RSObjAbsGeometry::RSObjAbsGeometry() = default;
+RSObjAbsGeometry::~RSObjAbsGeometry() = default;
 
 #ifndef USE_ROSEN_DRAWING
 void RSObjAbsGeometry::ConcatMatrix(const SkMatrix& matrix)
@@ -307,18 +294,15 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
 #else
         SkMatrix44 matrix3D;
 #endif
-
         // Translate
         matrix3D.setTranslate(trans_->pivotX_ * width_ + x_ + trans_->translateX_,
             trans_->pivotY_ * height_ + y_ + trans_->translateY_, z_ + trans_->translateZ_);
 #else // USE_ROSEN_DRAWING
         Drawing::Matrix44 matrix3D;
-
         // Translate
         matrix3D.Translate(trans_->pivotX_ * width_ + x_ + trans_->translateX_,
             trans_->pivotY_ * height_ + y_ + trans_->translateY_, z_ + trans_->translateZ_);
 #endif
-
         // Rotate
         float x = trans_->quaternion_[0];
         float y = trans_->quaternion_[1];
@@ -350,7 +334,6 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         matrix4.SetMatrix44(buffer);
 #endif
         matrix3D = matrix3D * matrix4;
-
         // Scale
         if (!ROSEN_EQ(trans_->scaleX_, 1.f) || !ROSEN_EQ(trans_->scaleY_, 1.f)) {
 #ifndef USE_ROSEN_DRAWING
@@ -361,7 +344,6 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
             matrix3D = matrix3D * matrix44;
 #endif
         }
-
         // Translate
 #ifndef USE_ROSEN_DRAWING
         matrix3D.preTranslate(-trans_->pivotX_ * width_, -trans_->pivotY_ * height_, 0);
@@ -385,7 +367,6 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
 
         // Z Position
         camera.translate(0, 0, z_ + trans_->translateZ_);
-
         // Set camera distance
         if (trans_->cameraDistance_ == 0) {
             float zOffSet = sqrt(width_ * width_ + height_ * height_) / 2;
@@ -395,6 +376,12 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         }
 
         // Rotate
+        if (trans_->pivotZ_ != 0.f) {
+            camera.translate(sin(trans_->rotationY_ * DEGREE_TO_RADIAN) * trans_->pivotZ_,
+                sin(trans_->rotationX_ * DEGREE_TO_RADIAN) * trans_->pivotZ_,
+                (cos(trans_->rotationX_ * DEGREE_TO_RADIAN) + cos(trans_->rotationY_ * DEGREE_TO_RADIAN)) *
+                    trans_->pivotZ_);
+        }
         camera.rotateX(-trans_->rotationX_);
         camera.rotateY(-trans_->rotationY_);
         camera.rotateZ(-trans_->rotation_);
@@ -412,14 +399,12 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         } else {
             camera.SetCameraPos(0, 0, trans_->cameraDistance_);
         }
-
         // Rotate
         camera.RotateXDegrees(trans_->rotationX_);
         camera.RotateYDegrees(trans_->rotationY_);
         camera.RotateZDegrees(trans_->rotation_);
         camera.ApplyToMatrix(matrix3D);
 #endif
-
         // Scale
         if (!ROSEN_EQ(trans_->scaleX_, 1.f) || !ROSEN_EQ(trans_->scaleY_, 1.f)) {
 #ifndef USE_ROSEN_DRAWING
@@ -428,7 +413,6 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
             matrix3D.PreScale(trans_->scaleX_, trans_->scaleY_);
 #endif
         }
-
         // Translate
 #ifndef USE_ROSEN_DRAWING
         matrix3D.preTranslate(-trans_->pivotX_ * width_, -trans_->pivotY_ * height_);
@@ -446,7 +430,6 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         matrix.Translate(
             trans_->pivotX_ * width_ + x_ + trans_->translateX_, trans_->pivotY_ * height_ + y_ + trans_->translateY_);
         matrix3D = matrix * matrix3D;
-
         matrix_ = matrix_ * matrix3D;
 #endif
     }
@@ -555,79 +538,6 @@ Vector2f RSObjAbsGeometry::GetDataRange(float d0, float d1, float d2, float d3) 
     }
     return Vector2f(min, max);
 }
-
-/**
- * calculate | p1 p2 | X | p1 p |
- * @param p1 a point on a line
- * @param p2 a point on a line
- * @param p a point on a line
- * @return the result of two cross multiplications
- */
-#ifndef USE_ROSEN_DRAWING
-float RSObjAbsGeometry::GetCross(const SkPoint& p1, const SkPoint& p2, const SkPoint& p) const
-{
-    return (p2.x() - p1.x()) * (p.y() - p1.y()) - (p.x() - p1.x()) * (p2.y() - p1.y());
-}
-#else
-float RSObjAbsGeometry::GetCross(const Drawing::Point& p1, const Drawing::Point& p2, const Drawing::Point& p) const
-{
-    return (p2.GetX() - p1.GetX()) * (p.GetY() - p1.GetY()) - (p.GetX() - p1.GetX()) * (p2.GetY() - p1.GetY());
-}
-#endif
-
-/**
- * Determine whether a point is within a rectangle.
- *
- * Determine whether a point is between two line segments by the sign of cross multiplication.
- * For example (AB X AE ) * (CD X CE)  >= 0 This indicates that E is between AD and BC.
- * Two judgments can prove whether the point is in the rectangle.
- *
- * @param x x-coordinate of the point to be judged
- * @param y y-coordinate of the point to be judged
- * @return true if the point is in the rectangle, false otherwise
- */
-bool RSObjAbsGeometry::IsPointInHotZone(const float x, const float y) const
-{
-#ifndef USE_ROSEN_DRAWING
-    SkPoint p = SkPoint::Make(x, y);
-#else
-    Drawing::Point p = Drawing::Point(x, y);
-#endif
-    float crossResult1 = GetCross(vertices_[LEFT_TOP_POINT], vertices_[RIGHT_TOP_POINT], p);
-    float crossResult2 = GetCross(vertices_[RIGHT_BOTTOM_POINT], vertices_[LEFT_BOTTOM_POINT], p);
-    float crossResult3 = GetCross(vertices_[RIGHT_TOP_POINT], vertices_[RIGHT_BOTTOM_POINT], p);
-    float crossResult4 = GetCross(vertices_[LEFT_BOTTOM_POINT], vertices_[LEFT_TOP_POINT], p);
-    return IsPointInLine(vertices_[LEFT_TOP_POINT], vertices_[RIGHT_TOP_POINT], p, crossResult1) ||
-           IsPointInLine(vertices_[RIGHT_BOTTOM_POINT], vertices_[LEFT_BOTTOM_POINT], p, crossResult2) ||
-           IsPointInLine(vertices_[RIGHT_TOP_POINT], vertices_[RIGHT_BOTTOM_POINT], p, crossResult3) ||
-           IsPointInLine(vertices_[LEFT_BOTTOM_POINT], vertices_[LEFT_TOP_POINT], p, crossResult4) ||
-           (crossResult1 * crossResult2 > 0 && crossResult3 * crossResult4 > 0);
-}
-
-/**
- * Determine whether a point is on a line.
- *
- * @param p1 a point on the line
- * @param p2 a point on the line
- * @param p the point to be judged
- * @param crossRes the result of two cross multiplications
- * @return true if the point is on the line, false otherwise
- */
-#ifndef USE_ROSEN_DRAWING
-bool RSObjAbsGeometry::IsPointInLine(const SkPoint& p1, const SkPoint& p2, const SkPoint& p, const float crossRes) const
-{
-    return ROSEN_EQ(crossRes, 0.0f) && std::min(p1.x(), p2.x()) <= p.x() && p.x() <= std::max(p1.x(), p2.x()) &&
-           std::min(p1.y(), p2.y()) <= p.y() && p.y() <= std::max(p1.y(), p2.y());
-}
-#else
-bool RSObjAbsGeometry::IsPointInLine(
-    const Drawing::Point& p1, const Drawing::Point& p2, const Drawing::Point& p, const float crossRes) const
-{
-    return ROSEN_EQ(crossRes, 0.0f) && std::min(p1.GetX(), p2.GetX()) <= p.GetX() &&
-        p.GetX() <= std::max(p1.GetX(), p2.GetX()) && std::min(p1.GetY(), p2.GetY()) <= p.GetY() &&
-        p.GetY() <= std::max(p1.GetY(), p2.GetY());
-}
-#endif
 
 #ifndef USE_ROSEN_DRAWING
 void RSObjAbsGeometry::SetContextMatrix(const std::optional<SkMatrix>& matrix)

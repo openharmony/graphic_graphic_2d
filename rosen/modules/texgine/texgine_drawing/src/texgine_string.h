@@ -44,7 +44,7 @@ public:
     /*
      * @brief Covert SkString to String
      */
-    std::string ToString();
+    std::string ToString() const;
 
 private:
     std::shared_ptr<SkString> string_ = std::make_shared<SkString>();

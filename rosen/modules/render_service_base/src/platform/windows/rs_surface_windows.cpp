@@ -29,6 +29,16 @@ RSSurfaceWindows::RSSurfaceWindows(OnRenderFunc onRender)
 {
 }
 
+RSSurfaceWindows::~RSSurfaceWindows()
+{
+#if defined(NEW_SKIA)
+    if (grContext_) {
+        grContext_->releaseResourcesAndAbandonContext();
+    }
+#endif
+    grContext_ = nullptr;
+}
+
 bool RSSurfaceWindows::IsValid() const
 {
     return onRender_ != nullptr;

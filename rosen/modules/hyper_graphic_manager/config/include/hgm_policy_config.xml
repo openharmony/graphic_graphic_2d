@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Copyright (c) 2023 Huawei Device Co., Ltd.
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<HgmConfig version="1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <!-- enable or disable hgm -->
+    <Param name="general_config_enable" value="1"/>
+
+    <!-- stategies to be applied for scenario -->
+    <Params name="detailed_strategies">
+        <Strat name="1" isDynamic="0" min="120" max="120"/>
+        <Strat name="2" isDynamic="0" min="90" max="90"/>
+        <Strat name="3" isDynamic="0" min="60" max="60"/>
+        <Strat name="5" isDynamic="1" min="1" max="120"/>
+        <Strat name="6" isDynamic="1" min="1" max="90"/>
+        <Strat name="7" isDynamic="1" min="1" max="60"/>
+        <Strat name="21" isDynamic="1" min="90" max="120"/>
+        <Strat name="31" isDynamic="1" min="60" max="120"/>
+        <Strat name="32" isDynamic="1" min="60" max="90"/>
+    </Params>
+
+    <!-- stategies for setting application-->
+    <Params name="customer_setting_config">
+        <Setting name="-1" value="5"/><!-- auto refreshrate -->
+        <Setting name="1" value="7"/><!-- low refreshrate -->
+        <Setting name="2" value="32"/><!-- mid refreshrate -->
+        <Setting name="3" value="21"/><!-- high refreshrate -->
+    </Params>
+    
+    <!-- stategies for animation, need to review later -->
+    <Params name="animation_dynamic_settings">
+        <Setting name="animation_zoom" value="21"/>
+        <Setting name="animation_trans" value="21"/>
+        <Setting name="animation_ui" value="21"/>
+        <Setting name="animation_others" value="21"/>
+    </Params>
+</HgmConfig>

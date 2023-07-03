@@ -540,8 +540,8 @@ GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBuffer> &buffer, const sptr<SyncF
             BLOGND("Succ delete Buffer seq id: %{public}d Queue id: %{public}" PRIu64 " in cache", sequence, uniqueId_);
         } else {
             freeList_.push_back(sequence);
-            BLOGND("Succ push Buffer seq id: %{public}d Qid: %{public}" PRIu64 " to free list, releaseFence: %{public}d",
-                sequence, uniqueId_, fence->Get());
+            BLOGND("Succ push Buffer seq id: %{public}d Qid: %{public}" PRIu64 " to free list,"
+                " releaseFence: %{public}d", sequence, uniqueId_, fence->Get());
         }
         waitReqCon_.notify_all();
     }

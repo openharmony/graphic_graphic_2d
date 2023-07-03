@@ -18,7 +18,11 @@
 
 #include <memory>
 
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkCanvas.h"
+#else
+#include "draw/canvas.h"
+#endif
 #include "rs_base_render_engine.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_processor.h"
@@ -38,6 +42,7 @@ public:
     void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
     void PrepareRootRenderNode(RSRootRenderNode& node) override {}
     void PrepareSurfaceRenderNode(RSSurfaceRenderNode &node) override;
+    void PrepareEffectRenderNode(RSEffectRenderNode& node) override {}
 
     void ProcessBaseRenderNode(RSBaseRenderNode &node) override;
     void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override {}
@@ -45,6 +50,7 @@ public:
     void ProcessProxyRenderNode(RSProxyRenderNode& node) override {}
     void ProcessRootRenderNode(RSRootRenderNode& node) override {}
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode &node) override;
+    void ProcessEffectRenderNode(RSEffectRenderNode& node) override {}
 
     void SetAnimateState(bool doAnimate)
     {
@@ -57,7 +63,11 @@ public:
     }
 
 private:
+#ifndef USE_ROSEN_DRAWING
     std::unique_ptr<SkCanvas> skCanvas_;
+#else
+    std::unique_ptr<Drawing::Canvas> drawingCanvas_;
+#endif
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     float globalZOrder_ = 0.0f;
     int32_t offsetX_ = 0;

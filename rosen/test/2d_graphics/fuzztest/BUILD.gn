@@ -21,6 +21,7 @@ group("fuzztest") {
     "draw:fuzztest",
     "effect:fuzztest",
     "image:fuzztest",
+    "ndk:fuzztest",
     "utils:fuzztest",
   ]
 }

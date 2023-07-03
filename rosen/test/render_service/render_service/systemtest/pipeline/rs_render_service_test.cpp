@@ -163,4 +163,82 @@ HWTEST_F(RSRenderServiceTest, TestRenderService009, TestSize.Level1)
     int ret = system(rsCmd.c_str());
     ASSERT_EQ(ret, 0);
 }
+
+/**
+ * @tc.name: TestRenderService010
+ * @tc.desc: surfacenode test.
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSRenderServiceTest, TestRenderService010, TestSize.Level1)
+{
+    const std::string rsCmd = defaultCmd_ + " -a 'surfacenode 0'";
+    int ret = system(rsCmd.c_str());
+    ASSERT_EQ(ret, 0);
+
+    const std::string rsCmd1 = defaultCmd_ + " -a 'surfacenode'";
+    ret = system(rsCmd1.c_str());
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: TestRenderService011
+ * @tc.desc: DisplayNode fps test.
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSRenderServiceTest, TestRenderService011, TestSize.Level1)
+{
+    const std::string rsCmd = defaultCmd_ + " -a 'DisplayNode fps'";
+    int ret = system(rsCmd.c_str());
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: TestRenderService012
+ * @tc.desc: DisplayNode fpsClear test.
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSRenderServiceTest, TestRenderService012, TestSize.Level1)
+{
+    const std::string rsCmd = defaultCmd_ + " -a 'DisplayNode fpsClear'";
+    int ret = system(rsCmd.c_str());
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: TestRenderService013
+ * @tc.desc: dumpMem test.
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSRenderServiceTest, TestRenderService013, TestSize.Level1)
+{
+    const std::string rsCmd = defaultCmd_ + " -a 'dumpMem'";
+    int ret = system(rsCmd.c_str());
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: TestRenderService014
+ * @tc.desc: trimMem test.
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSRenderServiceTest, TestRenderService014, TestSize.Level1)
+{
+    std::string rsCmd = defaultCmd_ + " -a 'trimMem cpu'";
+    int ret = system(rsCmd.c_str());
+    ASSERT_EQ(ret, 0);
+    rsCmd = defaultCmd_ + " -a 'trimMem gpu'";
+    ret = system(rsCmd.c_str());
+    ASSERT_EQ(ret, 0);
+    rsCmd = defaultCmd_ + " -a 'trimMem shader'";
+    ret = system(rsCmd.c_str());
+    ASSERT_EQ(ret, 0);
+    rsCmd = defaultCmd_ + " -a 'trimMem uihidden'";
+    ret = system(rsCmd.c_str());
+    ASSERT_EQ(ret, 0);
+}
 } // namespace OHOS::Rosen

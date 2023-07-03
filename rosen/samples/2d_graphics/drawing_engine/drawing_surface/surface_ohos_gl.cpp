@@ -42,7 +42,7 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosGl::RequestFrame(int32_t width, int32_t
     }
 
     frame_ = std::make_unique<SurfaceFrameOhosGl>(width, height);
-    frame_->SetColorSpace(ColorGamut::COLOR_GAMUT_SRGB);
+    frame_->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     frame_->SetSurface(static_cast<EGLSurface>(drawingProxy_->CreateSurface((EGLNativeWindowType)nativeWindow)));
     NativeWindowHandleOpt(nativeWindow, SET_BUFFER_GEOMETRY, frame_->GetWidth(), frame_->GetHeight());
     NativeWindowHandleOpt(nativeWindow, SET_COLOR_GAMUT, frame_->GetColorSpace());

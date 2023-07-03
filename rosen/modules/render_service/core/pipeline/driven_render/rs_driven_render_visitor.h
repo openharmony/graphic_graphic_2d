@@ -35,6 +35,7 @@ public:
     void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
     void PrepareRootRenderNode(RSRootRenderNode& node) override {}
     void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
+    void PrepareEffectRenderNode(RSEffectRenderNode& node) override {}
 
     void ProcessBaseRenderNode(RSBaseRenderNode& node) override;
     void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
@@ -42,6 +43,7 @@ public:
     void ProcessProxyRenderNode(RSProxyRenderNode& node) override {}
     void ProcessRootRenderNode(RSRootRenderNode& node) override {}
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
+    void ProcessEffectRenderNode(RSEffectRenderNode& node) override {}
 
     void PrepareDrivenSurfaceRenderNode(RSDrivenSurfaceRenderNode& node);
     void ProcessDrivenSurfaceRenderNode(RSDrivenSurfaceRenderNode& node);
@@ -50,7 +52,7 @@ public:
     void SetScreenRect(const RectI& rect);
 
     void SetUniProcessor(std::shared_ptr<RSProcessor> processor);
-    void SetUniColorSpace(ColorGamut colorSpace);
+    void SetUniColorSpace(GraphicColorGamut colorSpace);
     void SetUniGlobalZOrder(float globalZOrder);
 
 private:
@@ -68,7 +70,7 @@ private:
     RectI screenRect_;
 
     std::shared_ptr<RSProcessor> uniProcessor_ = nullptr;
-    ColorGamut uniColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
+    GraphicColorGamut uniColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     float uniGlobalZOrder_ = 0.0f;
 
     bool hasTraverseDrivenNode_ = false;

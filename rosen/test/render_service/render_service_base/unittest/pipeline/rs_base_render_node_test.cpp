@@ -213,4 +213,82 @@ HWTEST_F(RSBaseRenderNodeTest, RemoveCrossParentChild001, TestSize.Level1)
      */
     node->RemoveCrossParentChild(childone, newParent);
 }
+
+/**
+ * @tc.name: SetIsOnTheTree002
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, SetIsOnTheTree002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    auto childone = nullptr;
+    int index = -1;
+    node->SetIsOnTheTree(true);
+    node->AddChild(childone, index);
+    bool skipTransition = false;
+    node->RemoveChild(childone, skipTransition);
+    EXPECT_EQ(node->GetChildrenCount(), 0);
+}
+
+/**
+ * @tc.name: AddCrossParentChildTest001
+ * @tc.desc: 
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, AddCrossParentChildTest001, TestSize.Level1)
+{
+    int32_t index = 1;
+    int32_t index_ = 0;
+    std::shared_ptr<RSBaseRenderNode> child = nullptr;
+    std::shared_ptr<RSBaseRenderNode> child_;
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->AddCrossParentChild(child, index);
+    node->AddCrossParentChild(child_, index_);
+}
+
+/**
+ * @tc.name: RemoveCrossParentChildTest001
+ * @tc.desc: 
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, RemoveCrossParentChildTest001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    std::shared_ptr<RSBaseRenderNode> child = nullptr;
+    std::weak_ptr<RSBaseRenderNode> newParent;
+    node->RemoveCrossParentChild(child, newParent);
+}
+
+/**
+ * @tc.name: RemoveFromTreeTest
+ * @tc.desc: 
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, RemoveFromTreeTest, TestSize.Level1)
+{
+    bool skipTransition = false;
+    bool skipTransition_ = true;
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->RemoveFromTree(skipTransition);
+    node->RemoveFromTree(skipTransition_);
+}
+
+/**
+ * @tc.name: PrepareTest
+ * @tc.desc: 
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, PrepareTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    std::shared_ptr<RSNodeVisitor> visitor = nullptr;
+    node->Prepare(visitor);
+}
+
 } // namespace OHOS::Rosen

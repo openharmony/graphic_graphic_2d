@@ -31,6 +31,7 @@ using namespace AbilityRuntime;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
+thread_local std::unique_ptr<NativeReference> jsController_ = nullptr;
 
 RSWindowAnimationController::RSWindowAnimationController(NativeEngine& engine)
     : engine_(engine)

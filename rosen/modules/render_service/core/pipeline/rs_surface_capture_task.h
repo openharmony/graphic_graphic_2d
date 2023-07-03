@@ -17,10 +17,17 @@
 #define RS_SURFACE_CAPTURE_TASK
 
 #include "common/rs_common_def.h"
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkCanvas.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkSurface.h"
+#else
+#include "draw/canvas.h"
+#include "draw/surface.h"
+#include "utils/matrix.h"
+#endif
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pixel_map.h"
 #include "rs_base_render_engine.h"
@@ -38,6 +45,7 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
         void PrepareRootRenderNode(RSRootRenderNode& node) override {}
         void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
+        void PrepareEffectRenderNode(RSEffectRenderNode& node) override {}
 
         void ProcessBaseRenderNode(RSBaseRenderNode& node) override;
         void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
@@ -45,8 +53,13 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         void ProcessProxyRenderNode(RSProxyRenderNode& node) override {}
         void ProcessRootRenderNode(RSRootRenderNode& node) override;
         void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+        void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
 
+#ifndef USE_ROSEN_DRAWING
         void SetSurface(SkSurface* surface);
+#else
+        void SetSurface(Drawing::Surface* surface);
+#endif
         void IsDisplayNode(bool isDisplayNode)
         {
             isDisplayNode_ = isDisplayNode;
@@ -83,11 +96,15 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         float scaleY_ = 1.0f;
         bool isUniRender_ = false;
         bool hasSecurityLayer_ = false;
+        bool isUIFirst_ = false;
+
+        SkMatrix captureMatrix_ = SkMatrix::I();
 
         std::shared_ptr<RSBaseRenderEngine> renderEngine_;
 
         std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
 };
+
 class RSSurfaceCaptureTask {
 public:
     explicit RSSurfaceCaptureTask(NodeId nodeId, float scaleX, float scaleY)
@@ -99,7 +116,12 @@ public:
 private:
     std::shared_ptr<RSSurfaceCaptureVisitor> visitor_ = nullptr;
 
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
+    bool CopyDataToPixelMap(sk_sp<SkImage> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
+#else
+    std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
+#endif
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapBySurfaceNode(std::shared_ptr<RSSurfaceRenderNode> node,
         bool isUniRender = false);

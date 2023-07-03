@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#ifndef USE_ROSEN_DRAWING
 #include "pipeline/rs_draw_cmd_list.h"
 
 #include <fstream>
@@ -175,6 +176,16 @@ std::string DrawCmdList::PlayBackForRecord(RSPaintFilterCanvas& canvas, int star
     return str;
 }
 
+void DrawCmdList::SetWidth(int width)
+{
+    width_ = width;
+}
+
+void DrawCmdList::SetHeight(int height)
+{
+    height_ = height;
+}
+
 std::string DrawCmdList::GetOpsWithDesc() const
 {
     std::string desc;
@@ -227,7 +238,6 @@ void DrawCmdList::FindIndexOfImage() const
             imageIndexs_.emplace_back(index);
         }
     }
-
 }
 
 bool DrawCmdList::Marshalling(Parcel& parcel) const
@@ -359,3 +369,4 @@ void DrawCmdList::RestoreOriginCmdsForDriven()
 #endif
 } // namespace Rosen
 } // namespace OHOS
+#endif // USE_ROSEN_DRAWING

@@ -55,14 +55,17 @@ ohos_shared_library("color_picker") {
 
   deps = [
     "$graphic_2d_root/utils/color_manager:color_manager",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
   ]
 
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog_native:libhilog",
+  ]
 
   cflags_cc = [ "-std=c++17" ]
 
+  innerapi_tags = [ "platformsdk" ]
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }

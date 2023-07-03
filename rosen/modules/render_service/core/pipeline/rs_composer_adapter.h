@@ -61,9 +61,11 @@ public:
     bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient,
         const FallbackCallback& cb);
 
-    LayerInfoPtr CreateLayer(RSSurfaceRenderNode& node);
-    LayerInfoPtr CreateLayer(RSDisplayRenderNode& node);
+    LayerInfoPtr CreateLayer(RSSurfaceRenderNode& node) const;
+    LayerInfoPtr CreateLayer(RSDisplayRenderNode& node) const;
     void CommitLayers(const std::vector<LayerInfoPtr>& layers);
+    /* only used for mock tests */
+    void SetHdiBackendDevice(HdiDevice* device);
 
 private:
     // check if the node is out of the screen region.

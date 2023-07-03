@@ -29,12 +29,14 @@ class RSB_EXPORT RSLightUpEffectFilter : public RSDrawingFilter {
 #endif
 public:
     RSLightUpEffectFilter(float lightUpDegree);
+    RSLightUpEffectFilter(const RSLightUpEffectFilter&) = delete;
+    RSLightUpEffectFilter operator=(const RSLightUpEffectFilter&) = delete;
     ~RSLightUpEffectFilter() override;
     float GetLightUpDegree();
 #ifndef USE_ROSEN_DRAWING
-    std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& inner) override;
+    std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& other) const override;
 #else
-    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& inner) override;
+    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const override;
 #endif
     std::string GetDescription() override;
 
@@ -42,6 +44,10 @@ public:
     std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) override;
     std::shared_ptr<RSFilter> Multiply(float rhs) override;
     std::shared_ptr<RSFilter> Negate() override;
+    bool IsNearEqual(
+        const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const override;
+    bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const override;
+
 private:
     float lightUpDegree_ = 0.f;
 #ifndef USE_ROSEN_DRAWING

@@ -15,10 +15,14 @@
 
 #include "render/rs_border.h"
 
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkCanvas.h"
 #include "include/core/SkPaint.h"
 #include "include/effects/Sk1DPathEffect.h"
 #include "include/effects/SkDashPathEffect.h"
+#else
+#include "draw/path.h"
+#endif
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -142,18 +146,32 @@ Vector4<uint32_t> RSBorder::GetStyleFour() const
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
 void SetBorderEffect(SkPaint& paint, BorderStyle style, float width, float spaceBetweenDot, float borderLength)
+#else
+void SetBorderEffect(Drawing::Pen& pen, BorderStyle style, float width, float spaceBetweenDot, float borderLength)
+#endif
 {
     if (ROSEN_EQ(width, 0.f)) {
         return;
     }
     if (style == BorderStyle::DOTTED) {
+#ifndef USE_ROSEN_DRAWING
         SkPath dotPath;
+#else
+        Drawing::Path dotPath;
+#endif
         if (ROSEN_EQ(spaceBetweenDot, 0.f)) {
             spaceBetweenDot = width * PARAM_DOUBLE;
         }
+#ifndef USE_ROSEN_DRAWING
         dotPath.addCircle(0.0f, 0.0f, width / PARAM_DOUBLE);
         paint.setPathEffect(SkPath1DPathEffect::Make(dotPath, spaceBetweenDot, 0.0, SkPath1DPathEffect::kRotate_Style));
+#else
+        dotPath.AddCircle(0.0f, 0.0f, width / PARAM_DOUBLE);
+        pen.SetPathEffect(Drawing::PathEffect::CreatePathDashEffect(dotPath, spaceBetweenDot, 0.0,
+            Drawing::PathDashStyle::ROTATE));
+#endif
     } else if (style == BorderStyle::DASHED) {
         double addLen = 0.0; // When left < 2 * gap, splits left to gaps.
         double delLen = 0.0; // When left > 2 * gap, add one dash and shortening them.
@@ -168,13 +186,23 @@ void SetBorderEffect(SkPaint& paint, BorderStyle style, float width, float space
             }
         }
         const float intervals[] = { width * DASHED_LINE_LENGTH - delLen, width + addLen };
+#ifndef USE_ROSEN_DRAWING
         paint.setPathEffect(SkDashPathEffect::Make(intervals, SK_ARRAY_COUNT(intervals), 0.0));
     } else {
         paint.setPathEffect(nullptr);
+#else
+        pen.SetPathEffect(Drawing::PathEffect::CreateDashPathEffect(intervals, sizeof(intervals)/sizeof(float), 0.0));
+    } else {
+        pen.SetPathEffect(nullptr);
+#endif
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
 bool RSBorder::ApplyFillStyle(SkPaint& paint) const
+#else
+bool RSBorder::ApplyFillStyle(Drawing::Brush& brush) const
+#endif
 {
     if (colors_.size() != 1) {
         return false;
@@ -182,33 +210,57 @@ bool RSBorder::ApplyFillStyle(SkPaint& paint) const
     if (styles_.size() != 1 || GetStyle() != BorderStyle::SOLID) {
         return false;
     }
+#ifndef USE_ROSEN_DRAWING
     paint.setStyle(SkPaint::Style::kFill_Style);
     paint.setColor(GetColor().AsArgbInt());
+#else
+    brush.SetColor(GetColor().AsArgbInt());
+#endif
     return true;
 }
 
+#ifndef USE_ROSEN_DRAWING
 bool RSBorder::ApplyPathStyle(SkPaint& paint) const
+#else
+bool RSBorder::ApplyPathStyle(Drawing::Pen& pen) const
+#endif
 {
     if (colors_.size() != 1 || widths_.size() != 1 || styles_.size() != 1) {
         return false;
     }
+#ifndef USE_ROSEN_DRAWING
     paint.setStrokeWidth(widths_.front());
     paint.setStyle(SkPaint::Style::kStroke_Style);
     paint.setColor(colors_.front().AsArgbInt());
     SetBorderEffect(paint, GetStyle(), widths_.front(), 0.f, 0.f);
+#else
+    pen.SetWidth(widths_.front());
+    pen.SetColor(colors_.front().AsArgbInt());
+    SetBorderEffect(pen, GetStyle(), widths_.front(), 0.f, 0.f);
+#endif
     return true;
 }
 
+#ifndef USE_ROSEN_DRAWING
 bool RSBorder::ApplyFourLine(SkPaint& paint) const
+#else
+bool RSBorder::ApplyFourLine(Drawing::Pen& pen) const
+#endif
 {
     if (colors_.size() != 1 || styles_.size() != 1) {
         return false;
     }
+#ifndef USE_ROSEN_DRAWING
     paint.setStyle(SkPaint::Style::kStroke_Style);
+#endif
     return true;
 }
 
+#ifndef USE_ROSEN_DRAWING
 bool RSBorder::ApplyLineStyle(SkPaint& paint, int borderIdx, float length) const
+#else
+bool RSBorder::ApplyLineStyle(Drawing::Pen& pen, int borderIdx, float length) const
+#endif
 {
     if (GetWidth(borderIdx) <= 0.0f) {
         return false;
@@ -221,19 +273,31 @@ bool RSBorder::ApplyLineStyle(SkPaint& paint, int borderIdx, float length) const
         return false;
     }
 
+#ifndef USE_ROSEN_DRAWING
     paint.setStrokeWidth(GetWidth(borderIdx));
     Color color = GetColor(borderIdx);
     paint.setColor(color.AsArgbInt());
     SetBorderEffect(paint, GetStyle(borderIdx), borderWidth, borderLength / rawNumber, borderLength);
+#else
+    pen.SetWidth(GetWidth(borderIdx));
+    Color color = GetColor(borderIdx);
+    pen.SetColor(color.AsArgbInt());
+    SetBorderEffect(pen, GetStyle(borderIdx), borderWidth, borderLength / rawNumber, borderLength);
+#endif
     return true;
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSBorder::PaintFourLine(SkCanvas& canvas, SkPaint& paint, RectF rect) const
+#else
+void RSBorder::PaintFourLine(Drawing::Canvas& canvas, Drawing::Pen& pen, RectF rect) const
+#endif
 {
     float borderLeftWidth = GetWidth(RSBorder::LEFT);
     float borderRightWidth = GetWidth(RSBorder::RIGHT);
     float borderTopWidth = GetWidth(RSBorder::TOP);
     float borderBottomWidth = GetWidth(RSBorder::BOTTOM);
+#ifndef USE_ROSEN_DRAWING
     if (ApplyLineStyle(paint, RSBorder::LEFT, rect.height_)) {
         float addLen = (GetStyle(RSBorder::LEFT) != BorderStyle::DOTTED) ? 0.0f : 0.5f;
         canvas.drawLine(
@@ -258,13 +322,58 @@ void RSBorder::PaintFourLine(SkCanvas& canvas, SkPaint& paint, RectF rect) const
             rect.left_ + addLen * borderLeftWidth, rect.GetBottom() - borderBottomWidth / PARAM_DOUBLE,
             rect.GetRight() - borderRightWidth, rect.GetBottom() - borderBottomWidth / PARAM_DOUBLE, paint);
     }
+#else
+    if (ApplyLineStyle(pen, RSBorder::LEFT, rect.height_)) {
+        float addLen = (GetStyle(RSBorder::LEFT) != BorderStyle::DOTTED) ? 0.0f : 0.5f;
+        canvas.AttachPen(pen);
+        canvas.DrawLine(
+            Drawing::Point(rect.left_ + borderLeftWidth / PARAM_DOUBLE, rect.top_ + addLen * borderTopWidth),
+            Drawing::Point(rect.left_ + borderLeftWidth / PARAM_DOUBLE, rect.GetBottom() - borderBottomWidth));
+        canvas.DetachPen();
+    }
+    if (ApplyLineStyle(pen, RSBorder::RIGHT, rect.height_)) {
+        float addLen = (GetStyle(RSBorder::RIGHT) != BorderStyle::DOTTED) ? 0.0f : 0.5f;
+        canvas.AttachPen(pen);
+        canvas.DrawLine(
+            Drawing::Point(rect.GetRight() - borderRightWidth / PARAM_DOUBLE,
+                rect.GetBottom() - addLen * borderBottomWidth),
+            Drawing::Point(rect.GetRight() - borderRightWidth / PARAM_DOUBLE, rect.top_ + borderTopWidth));
+        canvas.DetachPen();
+    }
+    if (ApplyLineStyle(pen, RSBorder::TOP, rect.width_)) {
+        float addLen = (GetStyle(RSBorder::TOP) != BorderStyle::DOTTED) ? 0.0f : 0.5f;
+        canvas.AttachPen(pen);
+        canvas.DrawLine(
+            Drawing::Point(rect.GetRight() - addLen * borderRightWidth, rect.top_ + borderTopWidth / PARAM_DOUBLE),
+            Drawing::Point(rect.left_ + borderLeftWidth, rect.top_ + borderTopWidth / PARAM_DOUBLE));
+        canvas.DetachPen();
+    }
+    if (ApplyLineStyle(pen, RSBorder::BOTTOM, rect.width_)) {
+        float addLen = (GetStyle(RSBorder::BOTTOM) != BorderStyle::DOTTED) ? 0.0f : 0.5f;
+        canvas.AttachPen(pen);
+        canvas.DrawLine(
+            Drawing::Point(rect.left_ + addLen * borderLeftWidth, rect.GetBottom() - borderBottomWidth / PARAM_DOUBLE),
+            Drawing::Point(rect.GetRight() - borderRightWidth, rect.GetBottom() - borderBottomWidth / PARAM_DOUBLE));
+        canvas.DetachPen();
+    }
+#endif
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSBorder::PaintTopPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const
+#else
+void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const
+#endif
 {
+#ifndef USE_ROSEN_DRAWING
     float offsetX = rrect.rect().x();
     float offsetY = rrect.rect().y();
     float width = rrect.rect().width();
+#else
+    float offsetX = rrect.GetRect().GetLeft();
+    float offsetY = rrect.GetRect().GetTop();
+    float width = rrect.GetRect().GetWidth();
+#endif
     float leftW = GetWidth(RSBorder::LEFT);
     float topW = GetWidth(RSBorder::TOP);
     float rightW = GetWidth(RSBorder::RIGHT);
@@ -272,18 +381,37 @@ void RSBorder::PaintTopPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) co
     float x = offsetX + leftW / 2.0f;
     float y = offsetY + topW / 2.0f;
     float w = std::max(0.0f, width - (leftW + rightW) / 2.0f);
+#ifndef USE_ROSEN_DRAWING
     float tlX = std::max(0.0f, rrect.radii(SkRRect::kUpperLeft_Corner).x() - (topW + leftW) / 4.0f);
     float tlY = std::max(0.0f, rrect.radii(SkRRect::kUpperLeft_Corner).y() - (topW + leftW) / 4.0f);
     float trX = std::max(0.0f, rrect.radii(SkRRect::kUpperRight_Corner).x() - (topW + rightW) / 4.0f);
     float trY = std::max(0.0f, rrect.radii(SkRRect::kUpperRight_Corner).y() - (topW + rightW) / 4.0f);
+#else
+    float tlX = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_LEFT_POS).GetX() - (topW + leftW) / 4.0f);
+    float tlY = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_LEFT_POS).GetY() - (topW + leftW) / 4.0f);
+    float trX =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_RIGHT_POS).GetX() - (topW + rightW) / 4.0f);
+    float trY =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_RIGHT_POS).GetY() - (topW + rightW) / 4.0f);
+#endif
     if (topW > 0.f) {
+#ifndef USE_ROSEN_DRAWING
         ApplyLineStyle(paint, RSBorder::TOP, width);
         auto rectStart = SkRect::MakeXYWH(x, y, tlX * 2.0f, tlY * 2.0f);
         auto rectEnd = SkRect::MakeXYWH(x + w - trX * 2.0f, y, trX * 2.0f, trY * 2.0f);
         SkPath topBorder;
         paint.setStrokeWidth(std::max(std::max(leftW, topW), std::max(rightW, bottomW)));
         SkAutoCanvasRestore acr(&canvas, true);
+#else
+        ApplyLineStyle(pen, RSBorder::TOP, width);
+        auto rectStart = Drawing::Rect(x, y, x + tlX * 2.0f, y + tlY * 2.0f);
+        auto rectEnd = Drawing::Rect(x + w - trX * 2.0f, y, x + w, y + trY * 2.0f);
+        Drawing::Path topBorder;
+        pen.SetWidth(std::max(std::max(leftW, topW), std::max(rightW, bottomW)));
+        Drawing::AutoCanvasRestore acr(canvas, true);
+#endif
         if (ROSEN_EQ(tlX, 0.f) && !ROSEN_EQ(leftW, 0.f)) {
+#ifndef USE_ROSEN_DRAWING
             topBorder.moveTo(offsetX, y);
             topBorder.lineTo(x, y);
             SkPath topClipPath;
@@ -292,10 +420,28 @@ void RSBorder::PaintTopPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) co
             topClipPath.lineTo(offsetX, offsetY + topW * EXTEND);
             topClipPath.close();
             canvas.clipPath(topClipPath, SkClipOp::kDifference, true);
+#else
+            topBorder.MoveTo(offsetX, y);
+            topBorder.LineTo(x, y);
+            Drawing::Path topClipPath;
+            topClipPath.MoveTo(offsetX - leftW, offsetY - topW);
+            topClipPath.LineTo(offsetX + leftW * EXTEND, offsetY + topW * EXTEND);
+            topClipPath.LineTo(offsetX, offsetY + topW * EXTEND);
+            topClipPath.Close();
+            canvas.ClipPath(topClipPath, Drawing::ClipOp::DIFFERENCE, true);
+#endif
         }
+#ifndef USE_ROSEN_DRAWING
         topBorder.arcTo(rectStart, TOP_START, SWEEP_ANGLE, false);
         topBorder.arcTo(rectEnd, TOP_END, SWEEP_ANGLE + 0.5f, false);
+#else
+        topBorder.ArcTo(rectStart.GetLeft(), rectStart.GetTop(), rectStart.GetRight(), rectStart.GetBottom(),
+            TOP_START, SWEEP_ANGLE);
+        topBorder.ArcTo(rectEnd.GetLeft(), rectEnd.GetTop(), rectEnd.GetRight(), rectEnd.GetBottom(),
+            TOP_END, SWEEP_ANGLE + 0.5f);
+#endif
         if (ROSEN_EQ(trX, 0.f) && !ROSEN_EQ(rightW, 0.f)) {
+#ifndef USE_ROSEN_DRAWING
             topBorder.lineTo(offsetX + width, y);
             SkPath topClipPath;
             topClipPath.moveTo(offsetX + width + rightW, offsetY - topW);
@@ -303,17 +449,41 @@ void RSBorder::PaintTopPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) co
             topClipPath.lineTo(offsetX + width, offsetY + topW * EXTEND);
             topClipPath.close();
             canvas.clipPath(topClipPath, SkClipOp::kDifference, true);
+#else
+            topBorder.LineTo(offsetX + width, y);
+            Drawing::Path topClipPath;
+            topClipPath.MoveTo(offsetX + width + rightW, offsetY - topW);
+            topClipPath.LineTo(offsetX + width - rightW * EXTEND, offsetY + topW * EXTEND);
+            topClipPath.LineTo(offsetX + width, offsetY + topW * EXTEND);
+            topClipPath.Close();
+            canvas.ClipPath(topClipPath, Drawing::ClipOp::DIFFERENCE, true);
+#endif
         }
+#ifndef USE_ROSEN_DRAWING
         canvas.drawPath(topBorder, paint);
+#else
+        canvas.AttachPen(pen);
+        canvas.DrawPath(topBorder);
+        canvas.DetachPen();
+#endif
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSBorder::PaintRightPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const
 {
     float offsetX = rrect.rect().x();
     float offsetY = rrect.rect().y();
     float width = rrect.rect().width();
     float height = rrect.rect().height();
+#else
+void RSBorder::PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const
+{
+    float offsetX = rrect.GetRect().GetLeft();
+    float offsetY = rrect.GetRect().GetTop();
+    float width = rrect.GetRect().GetWidth();
+    float height = rrect.GetRect().GetHeight();
+#endif
     float leftW = GetWidth(RSBorder::LEFT);
     float topW = GetWidth(RSBorder::TOP);
     float rightW = GetWidth(RSBorder::RIGHT);
@@ -322,18 +492,39 @@ void RSBorder::PaintRightPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) 
     float y = offsetY + topW / 2.0f;
     float w = std::max(0.0f, width - (leftW + rightW) / 2.0f);
     float h = std::max(0.0f, height - (topW + bottomW) / 2.0f);
+#ifndef USE_ROSEN_DRAWING
     float trX = std::max(0.0f, rrect.radii(SkRRect::kUpperRight_Corner).x() - (topW + rightW) / 4.0f);
     float trY = std::max(0.0f, rrect.radii(SkRRect::kUpperRight_Corner).y() - (topW + rightW) / 4.0f);
     float brX = std::max(0.0f, rrect.radii(SkRRect::kLowerRight_Corner).x() - (bottomW + rightW) / 4.0f);
     float brY = std::max(0.0f, rrect.radii(SkRRect::kLowerRight_Corner).y() - (bottomW + rightW) / 4.0f);
+#else
+    float trX =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_RIGHT_POS).GetX() - (topW + rightW) / 4.0f);
+    float trY =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_RIGHT_POS).GetY() - (topW + rightW) / 4.0f);
+    float brX =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_RIGHT_POS).GetX() - (bottomW + rightW) / 4.0f);
+    float brY =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_RIGHT_POS).GetY() - (bottomW + rightW) / 4.0f);
+#endif
     if (rightW > 0.f) {
+#ifndef USE_ROSEN_DRAWING
         ApplyLineStyle(paint, RSBorder::RIGHT, height);
         auto rectStart = SkRect::MakeXYWH(x + w - trX * 2.0f, y, trX * 2.0f, trY * 2.0f);
         auto rectEnd = SkRect::MakeXYWH(x + w - brX * 2.0f, y + h - brY * 2.0f, brX * 2.0f, brY * 2.0f);
         SkPath rightBorder;
         paint.setStrokeWidth(std::max(std::max(leftW, topW), std::max(rightW, bottomW)));
         SkAutoCanvasRestore acr(&canvas, true);
+#else
+        ApplyLineStyle(pen, RSBorder::RIGHT, height);
+        auto rectStart = Drawing::Rect(x + w - trX * 2.0f, y, x + w, y + trY * 2.0f);
+        auto rectEnd = Drawing::Rect(x + w - brX * 2.0f, y + h - brY * 2.0f, x + w, y + h);
+        Drawing::Path rightBorder;
+        pen.SetWidth(std::max(std::max(leftW, topW), std::max(rightW, bottomW)));
+        Drawing::AutoCanvasRestore acr(canvas, true);
+#endif
         if (ROSEN_EQ(trX, 0.f) && !ROSEN_EQ(topW, 0.f)) {
+#ifndef USE_ROSEN_DRAWING
             rightBorder.moveTo(offsetX + width - rightW / 2.0f, offsetY);
             rightBorder.lineTo(x + w - trX * 2.0f, y);
             SkPath rightClipPath;
@@ -342,10 +533,28 @@ void RSBorder::PaintRightPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) 
             rightClipPath.lineTo(offsetX + width - rightW * EXTEND, offsetY);
             rightClipPath.close();
             canvas.clipPath(rightClipPath, SkClipOp::kDifference, true);
+#else
+            rightBorder.MoveTo(offsetX + width - rightW / 2.0f, offsetY);
+            rightBorder.LineTo(x + w - trX * 2.0f, y);
+            Drawing::Path rightClipPath;
+            rightClipPath.MoveTo(offsetX + width + rightW, offsetY - topW);
+            rightClipPath.LineTo(offsetX + width - rightW * EXTEND, offsetY + topW * EXTEND);
+            rightClipPath.LineTo(offsetX + width - rightW * EXTEND, offsetY);
+            rightClipPath.Close();
+            canvas.ClipPath(rightClipPath, Drawing::ClipOp::DIFFERENCE, true);
+#endif
         }
+#ifndef USE_ROSEN_DRAWING
         rightBorder.arcTo(rectStart, RIGHT_START, SWEEP_ANGLE, false);
         rightBorder.arcTo(rectEnd, RIGHT_END, SWEEP_ANGLE + 0.5f, false);
+#else
+        rightBorder.ArcTo(rectStart.GetLeft(), rectStart.GetTop(), rectStart.GetRight(), rectStart.GetBottom(),
+            RIGHT_START, SWEEP_ANGLE);
+        rightBorder.ArcTo(rectEnd.GetLeft(), rectEnd.GetTop(), rectEnd.GetRight(), rectEnd.GetBottom(),
+            RIGHT_END, SWEEP_ANGLE + 0.5f);
+#endif
         if (ROSEN_EQ(brX, 0.f) && !ROSEN_EQ(bottomW, 0.f)) {
+#ifndef USE_ROSEN_DRAWING
             rightBorder.lineTo(offsetX + width - rightW / 2.0f, offsetY + height);
             SkPath rightClipPath;
             rightClipPath.moveTo(offsetX + width + rightW, offsetY + height + bottomW);
@@ -353,17 +562,41 @@ void RSBorder::PaintRightPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) 
             rightClipPath.lineTo(offsetX + width - rightW * EXTEND, offsetY + height);
             rightClipPath.close();
             canvas.clipPath(rightClipPath, SkClipOp::kDifference, true);
+#else
+            rightBorder.LineTo(offsetX + width - rightW / 2.0f, offsetY + height);
+            Drawing::Path rightClipPath;
+            rightClipPath.MoveTo(offsetX + width + rightW, offsetY + height + bottomW);
+            rightClipPath.LineTo(offsetX + width - rightW * EXTEND, offsetY + height - bottomW * EXTEND);
+            rightClipPath.LineTo(offsetX + width - rightW * EXTEND, offsetY + height);
+            rightClipPath.Close();
+            canvas.ClipPath(rightClipPath, Drawing::ClipOp::DIFFERENCE, true);
+#endif
         }
+#ifndef USE_ROSEN_DRAWING
         canvas.drawPath(rightBorder, paint);
+#else
+        canvas.AttachPen(pen);
+        canvas.DrawPath(rightBorder);
+        canvas.DetachPen();
+#endif
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSBorder::PaintBottomPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const
 {
     float offsetX = rrect.rect().x();
     float offsetY = rrect.rect().y();
     float width = rrect.rect().width();
     float height = rrect.rect().height();
+#else
+void RSBorder::PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const
+{
+    float offsetX = rrect.GetRect().GetLeft();
+    float offsetY = rrect.GetRect().GetTop();
+    float width = rrect.GetRect().GetWidth();
+    float height = rrect.GetRect().GetHeight();
+#endif
     float leftW = GetWidth(RSBorder::LEFT);
     float topW = GetWidth(RSBorder::TOP);
     float rightW = GetWidth(RSBorder::RIGHT);
@@ -372,11 +605,23 @@ void RSBorder::PaintBottomPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect)
     float y = offsetY + topW / 2.0f;
     float w = std::max(0.0f, width - (leftW + rightW) / 2.0f);
     float h = std::max(0.0f, height - (topW + bottomW) / 2.0f);
+#ifndef USE_ROSEN_DRAWING
     float brX = std::max(0.0f, rrect.radii(SkRRect::kLowerRight_Corner).x() - (bottomW + rightW) / 4.0f);
     float brY = std::max(0.0f, rrect.radii(SkRRect::kLowerRight_Corner).y() - (bottomW + rightW) / 4.0f);
     float blX = std::max(0.0f, rrect.radii(SkRRect::kLowerLeft_Corner).x() - (bottomW + leftW) / 4.0f);
     float blY = std::max(0.0f, rrect.radii(SkRRect::kLowerLeft_Corner).y() - (bottomW + leftW) / 4.0f);
+#else
+    float brX =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_RIGHT_POS).GetX() - (bottomW + rightW) / 4.0f);
+    float brY =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_RIGHT_POS).GetY() - (bottomW + rightW) / 4.0f);
+    float blX =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_LEFT_POS).GetX() - (bottomW + leftW) / 4.0f);
+    float blY =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_LEFT_POS).GetY() - (bottomW + leftW) / 4.0f);
+#endif
     if (bottomW > 0.f) {
+#ifndef USE_ROSEN_DRAWING
         ApplyLineStyle(paint, RSBorder::BOTTOM, width);
         auto rectStart = SkRect::MakeXYWH(x + w - brX * 2.0f, y + h - brY * 2.0f, brX * 2.0f, brY * 2.0f);
         auto rectEnd = SkRect::MakeXYWH(x, y + h - blY * 2.0f, blX * 2.0f, blY * 2.0f);
@@ -385,7 +630,18 @@ void RSBorder::PaintBottomPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect)
             paint.setStrokeWidth(std::max(std::max(leftW, topW), std::max(rightW, bottomW)));
         }
         SkAutoCanvasRestore acr(&canvas, true);
+#else
+        ApplyLineStyle(pen, RSBorder::BOTTOM, width);
+        auto rectStart = Drawing::Rect(x + w - brX * 2.0f, y + h - brY * 2.0f, x + w, y + h);
+        auto rectEnd = Drawing::Rect(x, y + h - blY * 2.0f, x + blX * 2.0f, y + h);
+        Drawing::Path bottomBorder;
+        if (GetStyle(RSBorder::BOTTOM) != BorderStyle::DOTTED) {
+            pen.SetWidth(std::max(std::max(leftW, topW), std::max(rightW, bottomW)));
+        }
+        Drawing::AutoCanvasRestore acr(canvas, true);
+#endif
         if (ROSEN_EQ(brX, 0.f) && !ROSEN_EQ(rightW, 0.f)) {
+#ifndef USE_ROSEN_DRAWING
             bottomBorder.moveTo(offsetX + width, offsetY + height - bottomW / 2.0f);
             bottomBorder.lineTo(x + w - brX * 2.0f, y + h - brY * 2.0f);
             SkPath bottomClipPath;
@@ -394,10 +650,28 @@ void RSBorder::PaintBottomPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect)
             bottomClipPath.lineTo(offsetX + width, offsetY + height - bottomW * EXTEND);
             bottomClipPath.close();
             canvas.clipPath(bottomClipPath, SkClipOp::kDifference, true);
+#else
+            bottomBorder.MoveTo(offsetX + width, offsetY + height - bottomW / 2.0f);
+            bottomBorder.LineTo(x + w - brX * 2.0f, y + h - brY * 2.0f);
+            Drawing::Path bottomClipPath;
+            bottomClipPath.MoveTo(offsetX + width + rightW, offsetY + height + bottomW);
+            bottomClipPath.LineTo(offsetX + width - rightW * EXTEND, offsetY + height - bottomW * EXTEND);
+            bottomClipPath.LineTo(offsetX + width, offsetY + height - bottomW * EXTEND);
+            bottomClipPath.Close();
+            canvas.ClipPath(bottomClipPath, Drawing::ClipOp::DIFFERENCE, true);
+#endif
         }
+#ifndef USE_ROSEN_DRAWING
         bottomBorder.arcTo(rectStart, BOTTOM_START, SWEEP_ANGLE, false);
         bottomBorder.arcTo(rectEnd, BOTTOM_END, SWEEP_ANGLE + 0.5f, false);
+#else
+        bottomBorder.ArcTo(rectStart.GetLeft(), rectStart.GetTop(), rectStart.GetRight(), rectStart.GetBottom(),
+            BOTTOM_START, SWEEP_ANGLE);
+        bottomBorder.ArcTo(rectEnd.GetLeft(), rectEnd.GetTop(), rectEnd.GetRight(), rectEnd.GetBottom(),
+            BOTTOM_END, SWEEP_ANGLE + 0.5f);
+#endif
         if (ROSEN_EQ(blX, 0.f) && !ROSEN_EQ(leftW, 0.f)) {
+#ifndef USE_ROSEN_DRAWING
             bottomBorder.lineTo(offsetX, offsetY + height - bottomW / 2.0f);
             SkPath bottomClipPath;
             bottomClipPath.moveTo(offsetX - leftW, offsetY + height + bottomW);
@@ -405,16 +679,39 @@ void RSBorder::PaintBottomPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect)
             bottomClipPath.lineTo(offsetX, offsetY + height - bottomW * EXTEND);
             bottomClipPath.close();
             canvas.clipPath(bottomClipPath, SkClipOp::kDifference, true);
+#else
+            bottomBorder.LineTo(offsetX, offsetY + height - bottomW / 2.0f);
+            Drawing::Path bottomClipPath;
+            bottomClipPath.MoveTo(offsetX - leftW, offsetY + height + bottomW);
+            bottomClipPath.LineTo(offsetX + leftW * EXTEND, offsetY + height - bottomW * EXTEND);
+            bottomClipPath.LineTo(offsetX, offsetY + height - bottomW * EXTEND);
+            bottomClipPath.Close();
+            canvas.ClipPath(bottomClipPath, Drawing::ClipOp::DIFFERENCE, true);
+#endif
         }
+#ifndef USE_ROSEN_DRAWING
         canvas.drawPath(bottomBorder, paint);
+#else
+        canvas.AttachPen(pen);
+        canvas.DrawPath(bottomBorder);
+        canvas.DetachPen();
+#endif
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSBorder::PaintLeftPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const
 {
     float offsetX = rrect.rect().x();
     float offsetY = rrect.rect().y();
     float height = rrect.rect().height();
+#else
+void RSBorder::PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const
+{
+    float offsetX = rrect.GetRect().GetLeft();
+    float offsetY = rrect.GetRect().GetTop();
+    float height = rrect.GetRect().GetHeight();
+#endif
     float leftW = GetWidth(RSBorder::LEFT);
     float topW = GetWidth(RSBorder::TOP);
     float rightW = GetWidth(RSBorder::RIGHT);
@@ -422,11 +719,21 @@ void RSBorder::PaintLeftPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) c
     float x = offsetX + leftW / 2.0f;
     float y = offsetY + topW / 2.0f;
     float h = std::max(0.0f, height - (topW + bottomW) / 2.0f);
+#ifndef USE_ROSEN_DRAWING
     float tlX = std::max(0.0f, rrect.radii(SkRRect::kUpperLeft_Corner).x() - (topW + leftW) / 4.0f);
     float tlY = std::max(0.0f, rrect.radii(SkRRect::kUpperLeft_Corner).y() - (topW + leftW) / 4.0f);
     float blX = std::max(0.0f, rrect.radii(SkRRect::kLowerLeft_Corner).x() - (bottomW + leftW) / 4.0f);
     float blY = std::max(0.0f, rrect.radii(SkRRect::kLowerLeft_Corner).y() - (bottomW + leftW) / 4.0f);
+#else
+    float tlX = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_LEFT_POS).GetX() - (topW + leftW) / 4.0f);
+    float tlY = std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::TOP_LEFT_POS).GetY() - (topW + leftW) / 4.0f);
+    float blX =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_LEFT_POS).GetX() - (bottomW + leftW) / 4.0f);
+    float blY =
+        std::max(0.0f, rrect.GetCornerRadius(Drawing::RoundRect::BOTTOM_LEFT_POS).GetY() - (bottomW + leftW) / 4.0f);
+#endif
     if (leftW > 0.f) {
+#ifndef USE_ROSEN_DRAWING
         ApplyLineStyle(paint, RSBorder::LEFT, height);
         auto rectStart = SkRect::MakeXYWH(x, y + h - blY * 2.0f, blX * 2.0f, blY * 2.0f);
         auto rectEnd = SkRect::MakeXYWH(x, y, tlX * 2.0f, tlY * 2.0f);
@@ -435,7 +742,18 @@ void RSBorder::PaintLeftPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) c
             paint.setStrokeWidth(std::max(std::max(leftW, topW), std::max(rightW, bottomW)));
         }
         SkAutoCanvasRestore acr(&canvas, true);
+#else
+        ApplyLineStyle(pen, RSBorder::LEFT, height);
+        auto rectStart = Drawing::Rect(x, y + h - blY * 2.0f, x + blX * 2.0f, y + h);
+        auto rectEnd = Drawing::Rect(x, y, x + tlX * 2.0f, y + tlY * 2.0f);
+        Drawing::Path leftBorder;
+        if (GetStyle(RSBorder::LEFT) != BorderStyle::DOTTED) {
+            pen.SetWidth(std::max(std::max(leftW, topW), std::max(rightW, bottomW)));
+        }
+        Drawing::AutoCanvasRestore acr(canvas, true);
+#endif
         if (ROSEN_EQ(blX, 0.f) && !ROSEN_EQ(bottomW, 0.f)) {
+#ifndef USE_ROSEN_DRAWING
             leftBorder.moveTo(offsetX + leftW / 2.0f, offsetY + height);
             leftBorder.lineTo(x, y + h - blY * 2.0f);
             SkPath leftClipPath;
@@ -444,10 +762,29 @@ void RSBorder::PaintLeftPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) c
             leftClipPath.lineTo(offsetX + leftW * EXTEND, offsetY + height);
             leftClipPath.close();
             canvas.clipPath(leftClipPath, SkClipOp::kDifference, true);
+#else
+            leftBorder.MoveTo(offsetX + leftW / 2.0f, offsetY + height);
+            leftBorder.LineTo(x, y + h - blY * 2.0f);
+            Drawing::Path leftClipPath;
+            leftClipPath.MoveTo(offsetX - leftW, offsetY + height + bottomW);
+            leftClipPath.LineTo(offsetX + leftW * EXTEND, offsetY + height - bottomW * EXTEND);
+            leftClipPath.LineTo(offsetX + leftW * EXTEND, offsetY + height);
+            leftClipPath.Close();
+            canvas.ClipPath(leftClipPath, Drawing::ClipOp::DIFFERENCE, true);
+#endif
         }
+#ifndef USE_ROSEN_DRAWING
         leftBorder.arcTo(rectStart, LEFT_START, SWEEP_ANGLE, false);
         leftBorder.arcTo(rectEnd, LEFT_END, SWEEP_ANGLE + 0.5f, false);
+#else
+
+        leftBorder.ArcTo(rectStart.GetLeft(), rectStart.GetTop(), rectStart.GetRight(), rectStart.GetBottom(),
+            LEFT_START, SWEEP_ANGLE);
+        leftBorder.ArcTo(rectEnd.GetLeft(), rectEnd.GetTop(), rectEnd.GetRight(), rectEnd.GetBottom(),
+            LEFT_END, SWEEP_ANGLE + 0.5f);
+#endif
         if (ROSEN_EQ(tlX, 0.f) && !ROSEN_EQ(topW, 0.f)) {
+#ifndef USE_ROSEN_DRAWING
             leftBorder.lineTo(offsetX + leftW / 2.0f, offsetY);
             SkPath topClipPath;
             topClipPath.moveTo(offsetX - leftW, offsetY - topW);
@@ -455,8 +792,23 @@ void RSBorder::PaintLeftPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) c
             topClipPath.lineTo(offsetX + leftW * EXTEND, offsetY);
             topClipPath.close();
             canvas.clipPath(topClipPath, SkClipOp::kDifference, true);
+#else
+            leftBorder.LineTo(offsetX + leftW / 2.0f, offsetY);
+            Drawing::Path topClipPath;
+            topClipPath.MoveTo(offsetX - leftW, offsetY - topW);
+            topClipPath.LineTo(offsetX + leftW * EXTEND, offsetY + topW * EXTEND);
+            topClipPath.LineTo(offsetX + leftW * EXTEND, offsetY);
+            topClipPath.Close();
+            canvas.ClipPath(topClipPath, Drawing::ClipOp::DIFFERENCE, true);
+#endif
         }
+#ifndef USE_ROSEN_DRAWING
         canvas.drawPath(leftBorder, paint);
+#else
+        canvas.AttachPen(pen);
+        canvas.DrawPath(leftBorder);
+        canvas.DetachPen();
+#endif
     }
 }
 

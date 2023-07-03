@@ -25,8 +25,8 @@ class TextShaper {
 public:
     int Shape(const VariantSpan &span,
         const TypographyStyle &ys, const std::unique_ptr<FontProviders> &fontProviders) const;
-    int DoShape(std::shared_ptr<TextSpan> &span, const TextStyle &xs, const TypographyStyle &ys,
-        const std::unique_ptr<FontProviders> &fontProviders) const;
+    static int DoShape(std::shared_ptr<TextSpan> &span, const TextStyle &xs, const TypographyStyle &ys,
+        const std::unique_ptr<FontProviders> &fontProviders);
     std::shared_ptr<TexgineTextBlob> GenerateTextBlob(const TexgineFont &font, const CharGroups &cgs,
         double &spanWidth, std::vector<double> &glyphWidths) const;
 };

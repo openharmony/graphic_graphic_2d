@@ -24,6 +24,8 @@
 #include <vector>
 
 #ifndef USE_ROSEN_DRAWING
+#include "include/core/SkColorFilter.h"
+#include "include/core/SkPath.h"
 #include "include/core/SkSurface.h"
 #else
 #include "draw/canvas.h"
@@ -35,6 +37,14 @@
 
 namespace OHOS {
 namespace Rosen {
+
+#ifndef USE_ROSEN_DRAWING
+struct CachedEffectData {
+    sk_sp<SkImage> cachedImage_ = nullptr;
+    SkIRect cachedRect_ = SkIRect::MakeEmpty();
+    SkPath childrenPath_;
+};
+#endif
 
 #ifdef USE_ROSEN_DRAWING
 class RSB_EXPORT RSPaintFilterCanvasBase : public Drawing::Canvas {
@@ -132,15 +142,15 @@ public:
     void RestoreEnvToCount(int count);
 
     // save/restore utils
-    using SaveStatus = struct {
-        int canvasSaveCount;
-        int alphaSaveCount;
-        int envSaveCount;
+    struct SaveStatus {
+        int canvasSaveCount = -1;
+        int alphaSaveCount = -1;
+        int envSaveCount = -1;
     };
 #ifndef USE_ROSEN_DRAWING
     SaveStatus Save();
 #else
-    SaveStatus DrSave();
+    SaveStatus SaveAllStatus();
 #endif
     SaveStatus GetSaveStatus() const;
     void RestoreStatus(const SaveStatus& status);
@@ -182,6 +192,24 @@ public:
     CoreCanvas& AttachPen(const Drawing::Pen& pen) override;
     CoreCanvas& AttachBrush(const Drawing::Brush& brush) override;
 #endif
+    void SetIsParallelCanvas(bool isParallel) {
+        isParallelCanvas_ = isParallel;
+    }
+
+    bool GetIsParallelCanvas() const
+    {
+        return isParallelCanvas_;
+    }
+
+#ifndef USE_ROSEN_DRAWING
+    // effect cache data related
+    void SetEffectData(const CachedEffectData& effectData);
+    void SetChildrenPath(const SkPath& childrenPath);
+    const CachedEffectData& GetEffectData() const;
+
+    void SaveEffectData();
+    void RestoreEffectData();
+#endif
 
 protected:
 #ifndef USE_ROSEN_DRAWING
@@ -215,6 +243,11 @@ private:
     SkRect visibleRect_ = SkRect::MakeEmpty();
 #else
     Drawing::Rect visibleRect_ = Drawing::Rect();
+#endif
+
+    bool isParallelCanvas_ = false;
+#ifndef USE_ROSEN_DRAWING
+    std::stack<CachedEffectData> effectStack_;
 #endif
 };
 
@@ -288,7 +321,7 @@ public:
     }
 
 private:
-    RSPaintFilterCanvas* canvas_;
+    RSPaintFilterCanvas* canvas_ = nullptr;
     std::optional<RSPaintFilterCanvas::SaveStatus> saveCount_;
 
     RSAutoCanvasRestore(RSAutoCanvasRestore&&) = delete;

@@ -14,17 +14,30 @@
  */
 #include "render/rs_light_up_effect_filter.h"
 
+#include "src/core/SkOpts.h"
+#ifdef USE_ROSEN_DRAWING
+#include "effect/color_matrix.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 RSLightUpEffectFilter::RSLightUpEffectFilter(float lightUpDegree)
+#ifndef USE_ROSEN_DRAWING
     : RSSkiaFilter(RSLightUpEffectFilter::CreateLightUpEffectFilter(lightUpDegree)),
+#else
+    : RSDrawingFilter(RSLightUpEffectFilter::CreateLightUpEffectFilter(lightUpDegree)),
+#endif
       lightUpDegree_(lightUpDegree)
 {
-    type_ = FilterType::LIGHTUPEFFECT;
+    type_ = FilterType::LIGHT_UP_EFFECT;
+
+    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
+    hash_ = SkOpts::hash(&lightUpDegree_, sizeof(lightUpDegree_), hash_);
 }
 
 RSLightUpEffectFilter::~RSLightUpEffectFilter() = default;
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkImageFilter> RSLightUpEffectFilter::CreateLightUpEffectFilter(float lightUpDegree)
 {
     float normalizedDegree = lightUpDegree - 1.0;
@@ -38,6 +51,23 @@ sk_sp<SkImageFilter> RSLightUpEffectFilter::CreateLightUpEffectFilter(float ligh
 
     return SkImageFilters::ColorFilter(lightUpFilter, nullptr);
 }
+#else
+std::shared_ptr<Drawing::ImageFilter> RSLightUpEffectFilter::CreateLightUpEffectFilter(float lightUpDegree)
+{
+    float normalizedDegree = lightUpDegree - 1.0;
+    const Drawing::scalar lightUp[] = {
+        1.000000f, 0.000000f, 0.000000f, 0.000000f, normalizedDegree,
+        0.000000f, 1.000000f, 0.000000f, 0.000000f, normalizedDegree,
+        0.000000f, 0.000000f, 1.000000f, 0.000000f, normalizedDegree,
+        0.000000f, 0.000000f, 0.000000f, 1.000000f, 0.000000f,
+    };
+    Drawing::ColorMatrix cm;
+    cm.SetArray(lightUp);
+    std::shared_ptr<Drawing::ColorFilter> lightUpFilter = Drawing::ColorFilter::CreateMatrixColorFilter(cm);
+
+    return Drawing::ImageFilter::CreateColorFilterImageFilter(*lightUpFilter, nullptr);
+}
+#endif
 
 float RSLightUpEffectFilter::GetLightUpDegree()
 {
@@ -49,16 +79,26 @@ std::string RSLightUpEffectFilter::GetDescription()
     return "RSLightUpEffectFilter light up degree is " + std::to_string(lightUpDegree_);
 }
 
-std::shared_ptr<RSSkiaFilter> RSLightUpEffectFilter::Compose(const std::shared_ptr<RSSkiaFilter>& inner)
+#ifndef USE_ROSEN_DRAWING
+std::shared_ptr<RSSkiaFilter> RSLightUpEffectFilter::Compose(const std::shared_ptr<RSSkiaFilter>& other) const
+#else
+std::shared_ptr<RSDrawingFilter> RSLightUpEffectFilter::Compose(const std::shared_ptr<RSDrawingFilter>& other) const
+#endif
 {
-    std::shared_ptr<RSLightUpEffectFilter> lightUp = std::make_shared<RSLightUpEffectFilter>(lightUpDegree_);
-    lightUp->imageFilter_ = SkImageFilters::Compose(imageFilter_, inner->GetImageFilter());
-    return lightUp;
+    std::shared_ptr<RSLightUpEffectFilter> result = std::make_shared<RSLightUpEffectFilter>(lightUpDegree_);
+#ifndef USE_ROSEN_DRAWING
+    result->imageFilter_ = SkImageFilters::Compose(imageFilter_, other->GetImageFilter());
+#else
+    result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other->GetImageFilter());
+#endif
+    auto otherHash = other->Hash();
+    result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
+    return result;
 }
 
 std::shared_ptr<RSFilter> RSLightUpEffectFilter::Add(const std::shared_ptr<RSFilter>& rhs)
 {
-    if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::LIGHTUPEFFECT)) {
+    if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::LIGHT_UP_EFFECT)) {
         return shared_from_this();
     }
     auto lightUpFilter = std::static_pointer_cast<RSLightUpEffectFilter>(rhs);
@@ -67,7 +107,7 @@ std::shared_ptr<RSFilter> RSLightUpEffectFilter::Add(const std::shared_ptr<RSFil
 
 std::shared_ptr<RSFilter> RSLightUpEffectFilter::Sub(const std::shared_ptr<RSFilter>& rhs)
 {
-    if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::LIGHTUPEFFECT)) {
+    if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::LIGHT_UP_EFFECT)) {
         return shared_from_this();
     }
     auto lightUpFilter = std::static_pointer_cast<RSLightUpEffectFilter>(rhs);
@@ -82,6 +122,21 @@ std::shared_ptr<RSFilter> RSLightUpEffectFilter::Multiply(float rhs)
 std::shared_ptr<RSFilter> RSLightUpEffectFilter::Negate()
 {
     return std::make_shared<RSLightUpEffectFilter>(-lightUpDegree_);
+}
+
+bool RSLightUpEffectFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, float threshold) const
+{
+    auto otherLightUpFilter = std::static_pointer_cast<RSLightUpEffectFilter>(other);
+    if (otherLightUpFilter == nullptr) {
+        return true;
+    }
+    float otherLightUpDegree = otherLightUpFilter->GetLightUpDegree();
+    return ROSEN_EQ(lightUpDegree_, otherLightUpDegree, threshold);
+}
+
+bool RSLightUpEffectFilter::IsNearZero(float threshold) const
+{
+    return ROSEN_EQ(lightUpDegree_, 0.0f, threshold);
 }
 } // namespace Rosen
 } // namespace OHOS

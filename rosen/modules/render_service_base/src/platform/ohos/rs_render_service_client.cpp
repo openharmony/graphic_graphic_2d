@@ -22,11 +22,15 @@
 #endif
 
 #include "command/rs_command.h"
+#include "command/rs_node_showing_command.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "platform/common/rs_log.h"
+#ifdef NEW_RENDER_CONTEXT
+#include "render_backend/rs_surface_factory.h"
+#endif
 #include "rs_render_service_connect_hub.h"
 #include "rs_surface_ohos.h"
 
@@ -43,6 +47,18 @@ void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->CommitTransaction(transactionData);
+    }
+}
+
+void RSRenderServiceClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
+{
+    if (task == nullptr) {
+        return;
+    }
+
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->ExecuteSynchronousTask(task);
     }
 }
 
@@ -82,7 +98,11 @@ bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
     return renderService->CreateNode(config);
 }
 
+#ifdef NEW_RENDER_CONTEXT
+std::shared_ptr<RSRenderSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
+#else
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
+#endif
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -92,6 +112,13 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSS
     return CreateRSSurface(surface);
 }
 
+#if defined(NEW_RENDER_CONTEXT)
+std::shared_ptr<RSRenderSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Surface> &surface)
+{
+    std::shared_ptr<RSRenderSurface> producer = RSSurfaceFactory::CreateRSSurface(PlatformName::OHOS, surface);
+    return producer;
+}
+#else
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Surface> &surface)
 {
 #if defined(ACE_ENABLE_VK)
@@ -106,6 +133,7 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Sur
 #endif
     return producer;
 }
+#endif
 
 std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     const std::string& name,
@@ -303,6 +331,50 @@ void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
     }
 
     renderService->SetScreenActiveMode(id, modeId);
+}
+
+void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return;
+    }
+
+    renderService->SetScreenRefreshRate(id, sceneId, rate);
+}
+
+void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return;
+    }
+
+    renderService->SetRefreshRateMode(refreshRateMode);
+}
+
+uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+
+    return renderService->GetScreenCurrentRefreshRate(id);
+}
+
+std::vector<uint32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return {};
+    }
+
+    return renderService->GetScreenSupportedRefreshRates(id);
 }
 
 int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -548,6 +620,16 @@ int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenTy
     return renderService->GetScreenType(id, screenType);
 }
 
+bool RSRenderServiceClient::GetBitmap(NodeId id, SkBitmap& bitmap)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::GetBitmap renderService == nullptr!");
+        return false;
+    }
+    return renderService->GetBitmap(id, bitmap);
+}
+
 int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -598,6 +680,14 @@ void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap>
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->ShowWatermark(watermarkImg, isShow);
+    }
+}
+
+void RSRenderServiceClient::ReportJankStats()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->ReportJankStats();
     }
 }
 } // namespace Rosen

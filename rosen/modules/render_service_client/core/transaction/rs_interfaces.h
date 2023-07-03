@@ -91,6 +91,14 @@ public:
 
     RSScreenModeInfo GetScreenActiveMode(ScreenId id);
 
+    void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
+
+    void SetRefreshRateMode(int32_t refreshRateMode);
+
+    uint32_t GetScreenCurrentRefreshRate(ScreenId id);
+
+    std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id);
+
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id);
 
     RSScreenCapability GetScreenCapability(ScreenId id);
@@ -133,6 +141,8 @@ public:
     void SetAppWindowNum(uint32_t num);
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
+
+    void ReportJankStats();
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

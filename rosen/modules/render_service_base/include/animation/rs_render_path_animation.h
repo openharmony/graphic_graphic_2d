@@ -70,6 +70,9 @@ protected:
 
     void InitValueEstimator() override;
 
+    void OnAttach() override;
+    void OnDetach() override;
+
 private:
     bool ParseParam(Parcel& parcel) override;
     void SetPathValue(const Vector2f& value, float tangent);

@@ -28,12 +28,11 @@ ohos_static_library("buffer_handle") {
 
   public_configs = [ ":buffer_handle_public_config" ]
 
-  deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_single",
   ]
-
-  public_deps = [ "//commonlibrary/c_utils/base:utils" ]
   subsystem_name = "graphic"
   part_name = "graphic_standard"
 }

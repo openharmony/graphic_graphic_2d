@@ -18,14 +18,12 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-TexgineMemoryStream::TexgineMemoryStream()
+TexgineMemoryStream::TexgineMemoryStream(): memoryStream_(std::make_unique<SkMemoryStream>())
 {
-    memoryStream_ = std::make_unique<SkMemoryStream>();
 }
 
-TexgineMemoryStream::TexgineMemoryStream(std::unique_ptr<SkMemoryStream> stream)
+TexgineMemoryStream::TexgineMemoryStream(std::unique_ptr<SkMemoryStream> stream): memoryStream_(std::move(stream))
 {
-    memoryStream_ = std::move(stream);
 }
 
 std::unique_ptr<SkMemoryStream> TexgineMemoryStream::GetStream()

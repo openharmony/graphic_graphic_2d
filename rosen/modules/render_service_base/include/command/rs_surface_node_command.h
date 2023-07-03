@@ -51,7 +51,9 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_SURFACE_NODE_TYPE,
     SURFACE_NODE_SET_CONTAINER_WINDOW,
     SURFACE_NODE_SET_ANIMATION_FINISHED,
-    SURFACE_NODE_MARK_UIHIDDEN
+    SURFACE_NODE_MARK_UIHIDDEN,
+    SURFACE_NODE_ATTACH_TO_DISPLAY,
+    SURFACE_NODE_DETACH_TO_DISPLAY,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -71,7 +73,7 @@ public:
     static void SetSecurityLayer(RSContext& context, NodeId nodeId, bool isSecurityLayer);
     static void SetFingerprint(RSContext& context, NodeId nodeId, bool hasFingerprint);
 #ifndef ROSEN_CROSS_PLATFORM
-    static void SetColorSpace(RSContext& context, NodeId nodeId, ColorGamut colorSpace);
+    static void SetColorSpace(RSContext& context, NodeId nodeId, GraphicColorGamut colorSpace);
 #endif
     static void UpdateSurfaceDefaultSize(RSContext& context, NodeId nodeId, float width, float height);
     static void ConnectToNodeInRenderService(RSContext& context, NodeId id);
@@ -83,6 +85,8 @@ public:
     static void SetSurfaceNodeType(RSContext& context, NodeId nodeId, uint8_t surfaceNodeType);
     static void SetContainerWindow(RSContext& context, NodeId nodeId, bool hasContainerWindow, float density);
     static void SetAnimationFinished(RSContext& context, NodeId nodeId);
+    static void AttachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
+    static void DetachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate, ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId))
@@ -132,10 +136,14 @@ ADD_COMMAND(RSSurfaceNodeSetContainerWindow,
     NodeId, bool, float))
 ADD_COMMAND(RSSurfaceNodeSetAnimationFinished,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_ANIMATION_FINISHED, SurfaceNodeCommandHelper::SetAnimationFinished, NodeId))
+ADD_COMMAND(RSSurfaceNodeAttachToDisplay,
+    ARG(SURFACE_NODE, SURFACE_NODE_ATTACH_TO_DISPLAY, SurfaceNodeCommandHelper::AttachToDisplay, NodeId, uint64_t))
+ADD_COMMAND(RSSurfaceNodeDetachToDisplay,
+    ARG(SURFACE_NODE, SURFACE_NODE_DETACH_TO_DISPLAY, SurfaceNodeCommandHelper::DetachToDisplay, NodeId, uint64_t))
 
 #ifndef ROSEN_CROSS_PLATFORM
 ADD_COMMAND(RSSurfaceNodeSetColorSpace,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_COLOR_SPACE, SurfaceNodeCommandHelper::SetColorSpace, NodeId, ColorGamut))
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_COLOR_SPACE, SurfaceNodeCommandHelper::SetColorSpace, NodeId, GraphicColorGamut))
 #endif
 } // namespace Rosen
 } // namespace OHOS

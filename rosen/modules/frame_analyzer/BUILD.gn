@@ -74,6 +74,7 @@ ohos_shared_library("libframe_analyzer") {
   public_configs = [ ":libframe_analyzer_public_config" ]
 
   subsystem_name = "graphic"
+  innerapi_tags = [ "platformsdk_indirect" ]
   part_name = "graphic_standard"
 }
 ## Build libframe_analyzer.so }}}

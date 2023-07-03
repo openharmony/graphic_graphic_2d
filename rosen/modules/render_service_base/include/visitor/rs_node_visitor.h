@@ -27,6 +27,7 @@ class RSDisplayRenderNode;
 class RSProxyRenderNode;
 class RSRootRenderNode;
 class RSSurfaceRenderNode;
+class RSEffectRenderNode;
 
 class RSNodeVisitor : public std::enable_shared_from_this<RSNodeVisitor> {
 public:
@@ -39,6 +40,7 @@ public:
     virtual void PrepareProxyRenderNode(RSProxyRenderNode& node) = 0;
     virtual void PrepareRootRenderNode(RSRootRenderNode& node) = 0;
     virtual void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) = 0;
+    virtual void PrepareEffectRenderNode(RSEffectRenderNode& node) = 0;
 
     virtual void ProcessBaseRenderNode(RSBaseRenderNode& node) = 0;
     virtual void ProcessCanvasRenderNode(RSCanvasRenderNode& node) = 0;
@@ -46,6 +48,7 @@ public:
     virtual void ProcessProxyRenderNode(RSProxyRenderNode& node) = 0;
     virtual void ProcessRootRenderNode(RSRootRenderNode& node) = 0;
     virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) = 0;
+    virtual void ProcessEffectRenderNode(RSEffectRenderNode& node) = 0;
 };
 
 } // namespace Rosen

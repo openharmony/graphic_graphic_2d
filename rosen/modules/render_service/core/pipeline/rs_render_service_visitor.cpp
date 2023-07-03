@@ -15,9 +15,11 @@
 
 #include "pipeline/rs_render_service_visitor.h"
 
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkCanvas.h"
 #include "include/core/SkPoint.h"
 #include "include/core/SkRect.h"
+#endif
 #include "rs_divided_render_util.h"
 #include "rs_trace.h"
 
@@ -30,7 +32,11 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_innovation.h"
+#ifdef NEW_RENDER_CONTEXT
+#include "rs_render_surface.h"
+#else
 #include "platform/drawing/rs_surface.h"
+#endif
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
 
@@ -106,17 +112,39 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
             return;
         }
         if (mParallelEnable) {
+#ifndef USE_ROSEN_DRAWING
             skCanvas_ = std::make_unique<SkCanvas>(logicalScreenWidth, logicalScreenHeight);
             canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_.get());
             canvas_->clipRect(SkRect::MakeWH(logicalScreenWidth, logicalScreenHeight));
+#else
+            Drawing::Bitmap bitmapTmp;
+            Drawing::BitmapFormat formatTmp { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+            bitmapTmp.Build(logicalScreenWidth, logicalScreenHeight, formatTmp);
+            drawingCanvas_ = std::make_unique<Drawing::Canvas>();
+            drawingCanvas_->Bind(bitmapTmp);
+            canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
+            Drawing::Rect tmpRect(0, 0, logicalScreenWidth, logicalScreenHeight);
+            canvas_->ClipRect(tmpRect, Drawing::ClipOp::INTERSECT, false);
+#endif
         }
         PrepareBaseRenderNode(*existingSource);
     } else {
         auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
         RSBaseRenderUtil::SetNeedClient(boundsGeoPtr && boundsGeoPtr->IsNeedClientCompose());
+#ifndef USE_ROSEN_DRAWING
         skCanvas_ = std::make_unique<SkCanvas>(logicalScreenWidth, logicalScreenHeight);
         canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_.get());
         canvas_->clipRect(SkRect::MakeWH(logicalScreenWidth, logicalScreenHeight));
+#else
+        Drawing::Bitmap bitmap;
+        Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+        bitmap.Build(logicalScreenWidth, logicalScreenHeight, format);
+        drawingCanvas_ = std::make_unique<Drawing::Canvas>();
+        drawingCanvas_->Bind(bitmap);
+        canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
+        Drawing::Rect tmpRect(0, 0, logicalScreenWidth, logicalScreenHeight);
+        canvas_->ClipRect(tmpRect, Drawing::ClipOp::INTERSECT, false);
+#endif
         PrepareBaseRenderNode(node);
     }
 

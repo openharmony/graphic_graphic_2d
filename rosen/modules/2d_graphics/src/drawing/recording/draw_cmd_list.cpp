@@ -16,6 +16,7 @@
 #include "recording/draw_cmd_list.h"
 
 #include "recording/draw_cmd.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,6 +45,11 @@ std::shared_ptr<DrawCmdList> DrawCmdList::CreateFromData(const CmdListData& data
     return cmdList;
 }
 
+int32_t DrawCmdList::GetWidth() const
+{
+    return width_;
+}
+
 int32_t DrawCmdList::GetHeight() const
 {
     return height_;
@@ -61,11 +67,10 @@ void DrawCmdList::SetHeight(int32_t height)
 
 void DrawCmdList::Playback(Canvas& canvas, const Rect* rect) const
 {
-    if (width_ <= 0 || height_ <= 0) {
+    int32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the width and height
+    if (width_ <= 0 || height_ <= 0 || opAllocator_.GetSize() <= offset) {
         return;
     }
-
-    int32_t offset = 2 * sizeof(int32_t);   // 2 is width and height. Offset of first OpItem is behind them
 
     CanvasPlayer player = { canvas, *this };
     do {

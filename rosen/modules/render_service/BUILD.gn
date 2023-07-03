@@ -13,6 +13,7 @@
 
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
 
 ## Build librender_service.so
 ohos_shared_library("librender_service") {
@@ -36,6 +37,7 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_composer_adapter.cpp",
     "core/pipeline/rs_divided_render_util.cpp",
     "core/pipeline/rs_hardware_thread.cpp",
+    "core/pipeline/rs_jank_stats.cpp",
     "core/pipeline/rs_main_thread.cpp",
     "core/pipeline/rs_physical_screen_processor.cpp",
     "core/pipeline/rs_processor.cpp",
@@ -88,6 +90,8 @@ ohos_shared_library("librender_service") {
       "core/pipeline/parallel_render/rs_parallel_sub_thread.cpp",
       "core/pipeline/parallel_render/rs_parallel_task_manager.cpp",
       "core/pipeline/parallel_render/rs_render_task.cpp",
+      "core/pipeline/parallel_render/rs_sub_thread.cpp",
+      "core/pipeline/parallel_render/rs_sub_thread_manager.cpp",
     ]
   }
 
@@ -103,14 +107,18 @@ ohos_shared_library("librender_service") {
     "//utils/system/safwk/native/include",
     "$graphic_2d_root/utils/log",
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/include",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/utils/include",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/config/include",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/interface/include",
   ]
 
   deps = [
     "$graphic_2d_root:libsurface",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk:system_ability_fwk",
   ]
 
   public_deps = [ "//third_party/libpng:libpng" ]
@@ -119,6 +127,11 @@ ohos_shared_library("librender_service") {
     public_deps += [ "//third_party/skia:skia_ohos" ]
   } else {
     public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  }
+
+  if (defined(use_new_render_context) && use_new_render_context) {
+    include_dirs += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+    defines += [ "NEW_RENDER_CONTEXT" ]
   }
 
   if (rs_enable_gpu) {
@@ -132,13 +145,18 @@ ohos_shared_library("librender_service") {
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
-    "hicollie_native:libhicollie",
+    "hicollie:libhicollie",
     "hisysevent_native:libhisysevent",
     "hitrace_native:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  if (rosen_is_ohos) {
+    external_deps += [ "multimedia_image_framework:image_native" ]
+  }
 
   if (defined(global_parts_info) &&
       defined(global_parts_info.resourceschedule_soc_perf)) {
@@ -173,6 +191,7 @@ ohos_executable("render_service") {
   deps = [
     ":librender_service",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
 

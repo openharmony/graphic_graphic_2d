@@ -24,6 +24,12 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
 
+#ifdef USE_ROSEN_DRAWING
+#include "draw/brush.h"
+#include "draw/color.h"
+#include "draw/pen.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 class RSDirtyRegionManager;
@@ -41,6 +47,7 @@ public:
     void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
     void PrepareRootRenderNode(RSRootRenderNode& node) override;
     void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+    void PrepareEffectRenderNode(RSEffectRenderNode& node) override;
 
     void ProcessBaseRenderNode(RSBaseRenderNode& node) override;
     void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
@@ -48,15 +55,29 @@ public:
     void ProcessProxyRenderNode(RSProxyRenderNode& node) override;
     void ProcessRootRenderNode(RSRootRenderNode& node) override;
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+    void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
 
     // Partial render status and renderForce flag should be updated by rt thread
     void SetPartialRenderStatus(PartialRenderType status, bool isRenderForced);
 private:
+#ifndef USE_ROSEN_DRAWING
     void DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color, const SkPaint::Style fillType, float alpha,
         int strokeWidth = 6);
+#else
+    enum class RSPaintStyle {
+        FILL,
+        STROKE
+    };
+    void DrawRectOnCanvas(const RectI& dirtyRect, const Drawing::ColorQuad color, RSPaintStyle fillType, float alpha,
+        int strokeWidth = 6);
+#endif // USE_ROSEN_DRAWING
     void DrawDirtyRegion();
     // Update damageRegion based on buffer age, and then set it through egl api
+#ifdef NEW_RENDER_CONTEXT
+    void UpdateDirtyAndSetEGLDamageRegion(std::shared_ptr<RSRenderSurface>& surface);
+#else
     void UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSSurfaceFrame>& surfaceFrame);
+#endif
     // Reset and update children node's info like outOfParent and isRemoveChild
     void ResetAndPrepareChildrenNode(RSRenderNode& node, std::shared_ptr<RSBaseRenderNode> nodeParent);
 
@@ -78,7 +99,12 @@ private:
     void ClipHoleForSurfaceNode(RSSurfaceRenderNode& node);
 
     std::vector<NodeId> childSurfaceNodeIds_;
+#ifndef USE_ROSEN_DRAWING
     SkMatrix parentSurfaceNodeMatrix_;
+#else
+    Drawing::Matrix parentSurfaceNodeMatrix_;
+#endif // USE_ROSEN_DRAWING
+    std::optional<SkPath> effectRegion_ = std::nullopt;
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     static bool IsValidRootRenderNode(RSRootRenderNode& node);

@@ -62,13 +62,13 @@ bool IsPathAnimatableModifier(const RSModifierType& type)
 }
 
 RSNode::RSNode(bool isRenderServiceNode)
-    : RSBaseNode(isRenderServiceNode), stagingPropertiesExtractor_(GetId())
+    : RSBaseNode(isRenderServiceNode), stagingPropertiesExtractor_(GetId()), showingPropertiesFreezer_(GetId())
 {
     UpdateImplicitAnimator();
 }
 
 RSNode::RSNode(bool isRenderServiceNode, NodeId id)
-    : RSBaseNode(isRenderServiceNode, id), stagingPropertiesExtractor_(id)
+    : RSBaseNode(isRenderServiceNode, id), stagingPropertiesExtractor_(id), showingPropertiesFreezer_(GetId())
 {
     UpdateImplicitAnimator();
 }
@@ -231,12 +231,13 @@ void RSNode::FallbackAnimationsToRoot()
         ROSEN_LOGE("Failed to move animation to root, root node is null!");
         return;
     }
-    for (const auto& [animationId, animation] : animations_) {
+    for (auto& [unused, animation] : animations_) {
         if (animation && animation->GetRepeatCount() == -1) {
             continue;
         }
-        target->AddAnimationInner(animation);
+        target->AddAnimationInner(std::move(animation));
     }
+    animations_.clear();
 }
 
 void RSNode::AddAnimationInner(const std::shared_ptr<RSAnimation>& animation)
@@ -247,9 +248,12 @@ void RSNode::AddAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 
 void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 {
-    animatingPropertyNum_[animation->GetPropertyId()]--;
-    if (animatingPropertyNum_[animation->GetPropertyId()] == 0) {
-        animation->SetPropertyOnAllAnimationFinish();
+    if (auto it = animatingPropertyNum_.find(animation->GetPropertyId()); it != animatingPropertyNum_.end()) {
+        it->second--;
+        if (it->second == 0) {
+            animatingPropertyNum_.erase(it);
+            animation->SetPropertyOnAllAnimationFinish();
+        }
     }
     animations_.erase(animation->GetId());
 }
@@ -263,9 +267,20 @@ void RSNode::FinishAnimationByProperty(const PropertyId& id)
     }
 }
 
+void RSNode::CancelAnimationByProperty(const PropertyId& id)
+{
+    animatingPropertyNum_.erase(id);
+    EraseIf(animations_, [id](const auto& pair) { return (pair.second && (pair.second->GetPropertyId() == id)); });
+}
+
 const RSModifierExtractor& RSNode::GetStagingProperties() const
 {
     return stagingPropertiesExtractor_;
+}
+
+const RSShowingPropertiesFreezer& RSNode::GetShowingProperties() const
+{
+    return showingPropertiesFreezer_;
 }
 
 void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation)
@@ -511,6 +526,11 @@ void RSNode::SetPivotY(float pivotY)
     auto pivot = property->Get();
     pivot.y_ = pivotY;
     property->Set(pivot);
+}
+
+void RSNode::SetPivotZ(const float pivotZ)
+{
+    SetProperty<RSPivotZModifier, RSAnimatableProperty<float>>(RSModifierType::PIVOT_Z, pivotZ);
 }
 
 void RSNode::SetCornerRadius(float cornerRadius)
@@ -791,6 +811,12 @@ void RSNode::SetFilter(const std::shared_ptr<RSFilter>& filter)
     SetProperty<RSFilterModifier, RSAnimatableProperty<std::shared_ptr<RSFilter>>>(RSModifierType::FILTER, filter);
 }
 
+void RSNode::SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para)
+{
+    SetProperty<RSLinearGradientBlurParaModifier, RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>>
+                                                                    (RSModifierType::LINEAR_GRADIENT_BLUR_PARA, para);
+}
+
 void RSNode::SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter) {}
 
 void RSNode::SetShadowColor(uint32_t colorValue)
@@ -879,6 +905,11 @@ void RSNode::SetVisible(bool visible)
 void RSNode::SetMask(const std::shared_ptr<RSMask>& mask)
 {
     SetProperty<RSMaskModifier, RSProperty<std::shared_ptr<RSMask>>>(RSModifierType::MASK, mask);
+}
+
+void RSNode::SetUseEffect(bool useEffect)
+{
+    SetProperty<RSUseEffectModifier, RSProperty<bool>>(RSModifierType::USE_EFFECT, useEffect);
 }
 
 void RSNode::SetPixelStretch(const Vector4f& stretchSize)
@@ -1206,6 +1237,48 @@ void RSNode::MarkNodeGroup(bool isNodeGroup)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
     }
+}
+
+
+void RSNode::SetGrayScale(float grayScale)
+{
+    SetProperty<RSGrayScaleModifier, RSAnimatableProperty<float>>(RSModifierType::GRAY_SCALE, grayScale);
+}
+
+void RSNode::SetBrightness(float brightness)
+{
+    SetProperty<RSBrightnessModifier, RSAnimatableProperty<float>>(RSModifierType::BRIGHTNESS, brightness);
+}
+
+void RSNode::SetContrast(float contrast)
+{
+    SetProperty<RSContrastModifier, RSAnimatableProperty<float>>(RSModifierType::CONTRAST, contrast);
+}
+
+void RSNode::SetSaturate(float saturate)
+{
+    SetProperty<RSSaturateModifier, RSAnimatableProperty<float>>(RSModifierType::SATURATE, saturate);
+}
+
+void RSNode::SetSepia(float sepia)
+{
+    SetProperty<RSSepiaModifier, RSAnimatableProperty<float>>(RSModifierType::SEPIA, sepia);
+}
+
+void RSNode::SetInvert(float invert)
+{
+    SetProperty<RSInvertModifier, RSAnimatableProperty<float>>(RSModifierType::INVERT, invert);
+}
+
+void RSNode::SetHueRotate(float hueRotate)
+{
+    SetProperty<RSHueRotateModifier, RSAnimatableProperty<float>>(RSModifierType::HUE_ROTATE, hueRotate);
+}
+
+void RSNode::SetColorBlend(uint32_t colorValue)
+{
+    auto colorBlend = Color::FromArgbInt(colorValue);
+    SetProperty<RSColorBlendModifier, RSAnimatableProperty<Color>>(RSModifierType::COLOR_BLEND, colorBlend);
 }
 } // namespace Rosen
 } // namespace OHOS

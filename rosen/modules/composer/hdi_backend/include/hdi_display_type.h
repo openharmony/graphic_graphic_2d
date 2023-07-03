@@ -23,6 +23,7 @@ extern "C" {
 #endif
 
 #define PROPERTY_NAME_LEN  50
+#define INVALID_BUFFER_CACHE_INDEX 0xFFFFFFFF
 
 /*
  * @brief Defines property object which contains name, property id and value.
@@ -119,6 +120,16 @@ typedef struct {
 } GraphicHDRCapability;
 
 /*
+ * @brief Defines the layer buffer info.
+ */
+typedef struct {
+    BufferHandle* handle;
+    uint32_t cacheIndex;
+    OHOS::sptr<OHOS::SyncFence> acquireFence;
+    std::vector<uint32_t> deletingList;
+} GraphicLayerBuffer;
+
+/*
  * @brief Called when a hot plug event occurs.
  *
  * This callback must be registered by calling <b>RegHotPlugCallback</b>.
@@ -140,6 +151,16 @@ typedef void (*HotPlugCallback)(uint32_t devId, bool connected, void *data);
  * @param data Indicates the pointer to the private data carried by the graphics service.
  */
 typedef void (*VBlankCallback)(unsigned int sequence, uint64_t ns, void *data);
+
+
+/*
+ * @brief Called when composer host process died.
+ *
+ * This callback must be registered by calling <b>RegComposerDeathCallback</b>.
+ *
+ * @param data Indicates the pointer to the private data carried by the graphics service.
+ */
+typedef void (*OnHwcDeadCallback)(void *data);
 
 #ifdef __cplusplus
 }

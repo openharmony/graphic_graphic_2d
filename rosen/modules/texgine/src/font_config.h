@@ -35,7 +35,7 @@ private:
     int ParseConfig(const char* fname);
     int ParseFont(const Json::Value& root);
     int CheckConfigFile(const char* fname, Json::Value& root) const;
-    char* GetFileData(const char* fname, int& size) const;
+    static char* GetFileData(const char* fname, int& size);
     std::vector<std::string> fontSet_;
 };
 } // namespace TextEngine

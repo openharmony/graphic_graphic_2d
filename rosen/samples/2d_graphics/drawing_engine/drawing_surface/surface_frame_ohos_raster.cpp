@@ -40,12 +40,12 @@ void SurfaceFrameOhosRaster::SetDamageRegion(int32_t left, int32_t top, int32_t 
     flushConfig_.damage.h = height;
 }
 
-void SurfaceFrameOhosRaster::SetColorSpace(ColorGamut colorSpace)
+void SurfaceFrameOhosRaster::SetColorSpace(GraphicColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
 }
 
-ColorGamut SurfaceFrameOhosRaster::GetColorSpace() const
+GraphicColorGamut SurfaceFrameOhosRaster::GetColorSpace() const
 {
     return colorSpace_;
 }

@@ -61,6 +61,7 @@ bool RSRenderInterpolatingSpringAnimation::Marshalling(Parcel& parcel) const
             RSMarshallingHelper::Marshalling(parcel, dampingRatio_) &&
             RSMarshallingHelper::Marshalling(parcel, normalizedInitialVelocity_) &&
             RSMarshallingHelper::Marshalling(parcel, minimumAmplitudeRatio_))) {
+        ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::Marshalling, invalid parametter failed");
         return false;
     }
 
@@ -109,6 +110,10 @@ void RSRenderInterpolatingSpringAnimation::OnSetFraction(float fraction)
 
 void RSRenderInterpolatingSpringAnimation::OnAnimate(float fraction)
 {
+    if (valueEstimator_ == nullptr) {
+        ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::OnAnimate, valueEstimator_ is nullptr.");
+        return;
+    }
     if (GetPropertyId() == 0) {
         return;
     } else if (ROSEN_EQ(fraction, 1.0f)) {
@@ -117,9 +122,6 @@ void RSRenderInterpolatingSpringAnimation::OnAnimate(float fraction)
     }
     auto mappedTime = fraction * GetDuration() * MILLISECOND_TO_SECOND;
     float displacement = 1.0f + CalculateDisplacement(mappedTime);
-    if (valueEstimator_ == nullptr) {
-        return;
-    }
     valueEstimator_->UpdateAnimationValue(displacement, GetAdditive());
 }
 

@@ -16,9 +16,9 @@
 #ifndef ROSEN_MODULES_TEXGINE_SRC_FLOATING_H
 #define ROSEN_MODULES_TEXGINE_SRC_FLOATING_H
 
-#include <math.h>
+#include <cmath>
 
-static inline double FloatingAbs(double floating)
+double FloatingAbs(double floating)
 {
     return fabs(floating);
 }

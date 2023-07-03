@@ -54,6 +54,17 @@ using namespace OHOS::HDI::Display::Buffer::V1_0;
 using IDisplayBufferSptr = std::shared_ptr<IDisplayBuffer>;
 static IDisplayBufferSptr g_displayBuffer;
 static std::mutex g_DisplayBufferMutex;
+class DisplayBufferDiedRecipient : public OHOS::IRemoteObject::DeathRecipient {
+public:
+    DisplayBufferDiedRecipient() = default;
+    virtual ~DisplayBufferDiedRecipient() = default;
+    void OnRemoteDied(const OHOS::wptr<OHOS::IRemoteObject>& remote) override
+    {
+        std::lock_guard<std::mutex> lock(g_DisplayBufferMutex);
+        g_displayBuffer = nullptr;
+        BLOGD("IDisplayBuffer died and g_displayBuffer is nullptr");
+    };
+};
 IDisplayBufferSptr GetDisplayBuffer()
 {
     std::lock_guard<std::mutex> lock(g_DisplayBufferMutex);
@@ -66,6 +77,8 @@ IDisplayBufferSptr GetDisplayBuffer()
         BLOGE("IDisplayBuffer::Get return nullptr.");
         return nullptr;
     }
+    sptr<IRemoteObject::DeathRecipient> recipient = new DisplayBufferDiedRecipient();
+    g_displayBuffer->AddDeathRecipient(recipient);
     return g_displayBuffer;
 }
 

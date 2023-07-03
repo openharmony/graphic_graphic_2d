@@ -57,7 +57,7 @@ struct DrivenPrepareInfo {
 
 struct DrivenProcessInfo {
     std::shared_ptr<RSProcessor> uniProcessor = nullptr;
-    ColorGamut uniColorSpace = ColorGamut::COLOR_GAMUT_SRGB;
+    GraphicColorGamut uniColorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     float uniGlobalZOrder = 0.0f;
 };
 

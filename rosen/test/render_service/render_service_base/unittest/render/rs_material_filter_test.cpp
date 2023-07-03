@@ -51,7 +51,43 @@ HWTEST_F(RSMaterialFilterTest, CreateMaterialStyle001, TestSize.Level1)
     EXPECT_EQ(rsMaterialFilter.GetImageFilter(), nullptr);
 
     style = MATERIAL_BLUR_STYLE::STYLE_CARD_DARK;
-    rsMaterialFilter = RSMaterialFilter(style, dipScale, mode, ratio);
+    auto rsMaterialFilter2 = RSMaterialFilter(style, dipScale, mode, ratio);
+    EXPECT_NE(rsMaterialFilter2.GetImageFilter(), nullptr);
+}
+
+/**
+ * @tc.name: CreateMaterialStyle002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, CreateMaterialStyle002, TestSize.Level1)
+{
+    float dipScale = 1.0f;
+    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
+    float ratio = 1.0f;
+    MATERIAL_BLUR_STYLE style = MATERIAL_BLUR_STYLE::STYLE_CARD_DARK;
+
+    RSMaterialFilter rsMaterialFilter = RSMaterialFilter(style, dipScale, mode, ratio);
     EXPECT_NE(rsMaterialFilter.GetImageFilter(), nullptr);
+
+    rsMaterialFilter.GetDescription();
+    rsMaterialFilter.PreProcess(nullptr);
+
+    auto rsMaterialFilter2 = std::make_shared<RSMaterialFilter>(style, dipScale, mode, ratio);
+    EXPECT_NE(rsMaterialFilter2->GetImageFilter(), nullptr);
+    auto filter = rsMaterialFilter.Add(rsMaterialFilter2);
+    EXPECT_TRUE(filter != nullptr);
+
+    filter = rsMaterialFilter.Sub(rsMaterialFilter2);
+    EXPECT_TRUE(filter != nullptr);
+
+    filter = rsMaterialFilter.Multiply(1.0f);
+    EXPECT_TRUE(filter != nullptr);
+
+    filter = rsMaterialFilter.Negate();
+    EXPECT_TRUE(filter != nullptr);
+
+    auto result = rsMaterialFilter.Compose(rsMaterialFilter2);
+    EXPECT_TRUE(result != nullptr);
 }
 } // namespace OHOS::Rosen

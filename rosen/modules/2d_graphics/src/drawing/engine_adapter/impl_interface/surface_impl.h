@@ -24,9 +24,9 @@ namespace Rosen {
 namespace Drawing {
 class Bitmap;
 class Canvas;
+class Image;
 #ifdef ACE_ENABLE_GPU
 struct FrameBuffer;
-class Image;
 #endif
 
 class SurfaceImpl : public BaseImpl {

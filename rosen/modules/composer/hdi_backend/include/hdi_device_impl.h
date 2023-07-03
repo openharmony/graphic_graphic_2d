@@ -29,6 +29,7 @@ public:
     /* set & get device screen info begin */
     int32_t RegHotPlugCallback(HotPlugCallback callback, void *data) override;
     int32_t RegScreenVBlankCallback(uint32_t screenId, VBlankCallback callback, void *data) override;
+    bool RegHwcDeadCallback(OnHwcDeadCallback callback, void *data) override;
     int32_t GetScreenCapability(uint32_t screenId, GraphicDisplayCapability &info) override;
     int32_t GetScreenSupportedModes(uint32_t screenId, std::vector<GraphicDisplayModeInfo> &modes) override;
     int32_t GetScreenMode(uint32_t screenId, uint32_t &modeId) override;
@@ -40,8 +41,9 @@ public:
     int32_t PrepareScreenLayers(uint32_t screenId, bool &needFlushFb) override;
     int32_t GetScreenCompChange(uint32_t screenId, std::vector<uint32_t> &layersId,
                                 std::vector<int32_t> &types) override;
-    int32_t SetScreenClientBuffer(uint32_t screenId, const BufferHandle *buffer,
+    int32_t SetScreenClientBuffer(uint32_t screenId, const BufferHandle *buffer, uint32_t cacheIndex,
                                   const sptr<SyncFence> &fence) override;
+    int32_t SetScreenClientBufferCacheCount(uint32_t screen, uint32_t count) override;
     int32_t SetScreenClientDamage(uint32_t screenId, const std::vector<GraphicIRect> &damageRect) override;
     int32_t SetScreenVsyncEnabled(uint32_t screenId, bool enabled) override;
     int32_t GetScreenReleaseFence(uint32_t screenId, std::vector<uint32_t> &layersId,
@@ -58,44 +60,43 @@ public:
     /* set & get device screen info end */
 
     /* set & get device layer info begin */
-    int32_t SetLayerAlpha(uint32_t screenId, uint32_t layerId, GraphicLayerAlpha &alpha) override;
-    int32_t SetLayerSize(uint32_t screenId, uint32_t layerId, GraphicIRect &layerRect) override;
+    int32_t SetLayerAlpha(uint32_t screenId, uint32_t layerId, const GraphicLayerAlpha &alpha) override;
+    int32_t SetLayerSize(uint32_t screenId, uint32_t layerId, const GraphicIRect &layerRect) override;
     int32_t SetTransformMode(uint32_t screenId, uint32_t layerId, GraphicTransformType type) override;
     int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId,
                                   const std::vector<GraphicIRect> &visibles) override;
     int32_t SetLayerDirtyRegion(uint32_t screenId, uint32_t layerId,
                                 const std::vector<GraphicIRect> &dirtyRegions) override;
-    int32_t SetLayerBuffer(uint32_t screenId, uint32_t layerId, const BufferHandle *handle,
-                           const sptr<SyncFence> &acquireFence) override;
+    int32_t SetLayerBuffer(uint32_t screenId, uint32_t layerId, const GraphicLayerBuffer &layerBuffer) override;
     int32_t SetLayerCompositionType(uint32_t screenId, uint32_t layerId, GraphicCompositionType type) override;
     int32_t SetLayerBlendType(uint32_t screenId, uint32_t layerId, GraphicBlendType type) override;
-    int32_t SetLayerCrop(uint32_t screenId, uint32_t layerId, GraphicIRect &crop) override;
+    int32_t SetLayerCrop(uint32_t screenId, uint32_t layerId, const GraphicIRect &crop) override;
     int32_t SetLayerZorder(uint32_t screenId, uint32_t layerId, uint32_t zorder) override;
     int32_t SetLayerPreMulti(uint32_t screenId, uint32_t layerId, bool isPreMulti) override;
-    int32_t SetLayerColorTransform(uint32_t screenId, uint32_t layerId, const std::vector<float>& matrix) override;
+    int32_t SetLayerColorTransform(uint32_t screenId, uint32_t layerId, const std::vector<float> &matrix) override;
     int32_t SetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, GraphicColorDataSpace colorSpace) override;
     int32_t GetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, GraphicColorDataSpace &colorSpace) override;
     int32_t SetLayerMetaData(uint32_t screenId, uint32_t layerId,
                              const std::vector<GraphicHDRMetaData> &metaData) override;
     int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, GraphicHDRMetadataKey key,
                                 const std::vector<uint8_t> &metaData) override;
-    int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, OHExtDataHandle *handle) override;
+    int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle) override;
     int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
                                              GraphicPresentTimestampType &type) override;
     int32_t GetPresentTimestamp(uint32_t screenId, uint32_t layerId, GraphicPresentTimestamp &timestamp) override;
     int32_t SetLayerMaskInfo(uint32_t screenId, uint32_t layerId, uint32_t maskInfo) override;
     /* set & get device layer info end */
 
-    int32_t CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t &layerId) override;
+    int32_t CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t cacheCount,
+                        uint32_t &layerId) override;
     int32_t CloseLayer(uint32_t screenId, uint32_t layerId) override;
+    void Destroy() override;
 
 private:
     HdiDeviceImpl(const HdiDeviceImpl& rhs) = delete;
     HdiDeviceImpl& operator=(const HdiDeviceImpl& rhs) = delete;
     HdiDeviceImpl(HdiDeviceImpl&& rhs) = delete;
     HdiDeviceImpl& operator=(HdiDeviceImpl&& rhs) = delete;
-
-    void Destroy();
 };
 
 } // namespace Rosen

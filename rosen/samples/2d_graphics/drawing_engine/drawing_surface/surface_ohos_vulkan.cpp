@@ -59,7 +59,7 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::RequestFrame(int32_t width, int
     sk_sp<SkSurface> skSurface = mVulkanWIndow_->AcquireSurface();
 
     frame_ = std::make_unique<SurfaceFrameOhosVulkan>(skSurface, width, height);
-    frame_->SetColorSpace(ColorGamut::COLOR_GAMUT_SRGB);
+    frame_->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
     NativeWindowHandleOpt(mNativeWindow_, SET_BUFFER_GEOMETRY, width, height);
     NativeWindowHandleOpt(mNativeWindow_, SET_COLOR_GAMUT, frame_->GetColorSpace());

@@ -215,6 +215,7 @@ if (!is_cross_platform_build) {
     symlink_target_name = [ "libnative_drawing.so" ]
     deps = [ ":2d_graphics_source_ohos" ]
     public_configs = [ ":export_config" ]
+    innerapi_tags = [ "platformsdk_indirect" ]
     part_name = "graphic_standard"
     subsystem_name = "graphic"
   }

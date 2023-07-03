@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_surface_render_node.h"
 
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkMatrix.h"
 #include "include/core/SkRect.h"
 #include "rs_trace.h"
@@ -22,6 +23,7 @@
 #include "include/gpu/GrDirectContext.h"
 #else
 #include "include/gpu/GrContext.h"
+#endif
 #endif
 
 #include "command/rs_surface_node_command.h"
@@ -67,6 +69,7 @@ void RSSurfaceRenderNode::SetConsumer(const sptr<IConsumerSurface>& consumer)
 }
 #endif
 
+#ifndef USE_ROSEN_DRAWING
 void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const SkIRect& dstRect)
 {
     auto localClipRect = RSPaintFilterCanvas::GetLocalClipBounds(canvas, &dstRect).value_or(SkRect::MakeEmpty());
@@ -78,6 +81,19 @@ void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const
     RectI srcRect = {left, top, width, height};
     SetSrcRect(srcRect);
 }
+#else
+void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect)
+{
+    auto localClipRect = RSPaintFilterCanvas::GetLocalClipBounds(canvas, &dstRect).value_or(Drawing::Rect());
+    const RSProperties& properties = GetRenderProperties();
+    int left = std::clamp<int>(localClipRect.GetLeft(), 0, properties.GetBoundsWidth());
+    int top = std::clamp<int>(localClipRect.GetTop(), 0, properties.GetBoundsHeight());
+    int width = std::clamp<int>(localClipRect.GetWidth(), 0, properties.GetBoundsWidth() - left);
+    int height = std::clamp<int>(localClipRect.GetHeight(), 0, properties.GetBoundsHeight() - top);
+    RectI srcRect = {left, top, width, height};
+    SetSrcRect(srcRect);
+}
+#endif
 
 bool RSSurfaceRenderNode::ShouldPrepareSubnodes()
 {
@@ -107,7 +123,11 @@ std::string RSSurfaceRenderNode::DirtyRegionDump() const
 void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     // Save the current state of the canvas before modifying it.
+#ifndef USE_ROSEN_DRAWING
     renderNodeSaveCount_ = canvas.Save();
+#else
+    renderNodeSaveCount_ = canvas.SaveAllStatus();
+#endif
 
     // Apply alpha to canvas
     const RSProperties& properties = GetRenderProperties();
@@ -118,12 +138,19 @@ void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canva
     if (currentGeoPtr != nullptr) {
         currentGeoPtr->UpdateByMatrixFromSelf();
         auto matrix = currentGeoPtr->GetMatrix();
+#ifndef USE_ROSEN_DRAWING
         matrix.setTranslateX(std::ceil(matrix.getTranslateX()));
         matrix.setTranslateY(std::ceil(matrix.getTranslateY()));
         canvas.concat(matrix);
+#else
+        matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
+        matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
+        canvas.ConcatMatrix(matrix);
+#endif
     }
 
     // Clip by bounds
+#ifndef USE_ROSEN_DRAWING
     canvas.clipRect(SkRect::MakeWH(std::floor(properties.GetBoundsWidth()), std::floor(properties.GetBoundsHeight())));
 
     // Extract srcDest and dstRect from SkCanvas, localCLipBounds as SrcRect, deviceClipBounds as DstRect
@@ -134,6 +161,20 @@ void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canva
 
     // Save TotalMatrix and GlobalAlpha for compositor
     SetTotalMatrix(canvas.getTotalMatrix());
+#else
+    canvas.ClipRect(Drawing::Rect(0, 0, std::floor(properties.GetBoundsWidth()),
+        std::floor(properties.GetBoundsHeight())), Drawing::ClipOp::INTERSECT, false);
+
+    // Extract srcDest and dstRect from Drawing::Canvas, localCLipBounds as SrcRect, deviceClipBounds as DstRect
+    auto deviceClipRect = canvas.GetDeviceClipBounds();
+    UpdateSrcRect(canvas, deviceClipRect);
+    RectI dstRect = {
+        deviceClipRect.GetLeft(), deviceClipRect.GetTop(), deviceClipRect.GetWidth(), deviceClipRect.GetHeight() };
+    SetDstRect(dstRect);
+
+    // Save TotalMatrix and GlobalAlpha for compositor
+    SetTotalMatrix(canvas.GetTotalMatrix());
+#endif
     SetGlobalAlpha(canvas.GetAlpha());
 }
 
@@ -200,14 +241,13 @@ void RSSurfaceRenderNode::ClearChildrenCache(const std::shared_ptr<RSBaseRenderN
 
 void RSSurfaceRenderNode::OnTreeStateChanged()
 {
-    if (!RSSystemProperties::GetUniRenderEnabled()) {
-        return;
-    }
+#ifdef RS_ENABLE_GL
     if (grContext_ && !IsOnTheTree() && IsLeashWindow()) {
-        RS_TRACE_NAME_FMT("purgeUnlockedResources this SurfaceNode isn't onthe tree Id:%" PRIu64 " Name:%s",
+        RS_TRACE_NAME_FMT("purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
             GetId(), GetName().c_str());
         grContext_->purgeUnlockedResources(true);
     }
+#endif
 }
 
 void RSSurfaceRenderNode::ResetParent()
@@ -265,21 +305,36 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanv
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     RSPropertiesPainter::DrawShadow(property, canvas, &absClipRRect);
 
+#ifndef USE_ROSEN_DRAWING
     if (!property.GetCornerRadius().IsZero()) {
         canvas.clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
     } else {
         canvas.clipRect(SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight()));
     }
+#else
+    if (!property.GetCornerRadius().IsZero()) {
+        canvas.ClipRoundRect(
+            RSPropertiesPainter::RRect2DrawingRRect(absClipRRect), Drawing::ClipOp::INTERSECT, true);
+    } else {
+        canvas.ClipRect(Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()),
+            Drawing::ClipOp::INTERSECT, false);
+    }
+#endif
 
     RSPropertiesPainter::DrawBackground(property, canvas);
     RSPropertiesPainter::DrawMask(property, canvas);
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
-    if (filter != nullptr) {
-        auto skRectPtr = std::make_unique<SkRect>();
-        skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-        RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr, canvas.GetSurface());
-    }
+#ifndef USE_ROSEN_DRAWING
+    RSPropertiesPainter::DrawFilter(property, canvas, FilterType::BACKGROUND_FILTER);
     SetTotalMatrix(canvas.getTotalMatrix());
+#else
+    auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetBackgroundFilter());
+    if (filter != nullptr) {
+        auto rectPtr =
+            std::make_unique<Drawing::Rect>(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
+        RSPropertiesPainter::DrawFilter(property, canvas, filter, FilterType::BACKGROUND_FILTER, rectPtr);
+    }
+    SetTotalMatrix(canvas.GetTotalMatrix());
+#endif
 }
 
 void RSSurfaceRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
@@ -295,12 +350,9 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanva
         return;
     }
     const auto& property = GetRenderProperties();
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetFilter());
-    if (filter != nullptr) {
-        auto skRectPtr = std::make_unique<SkRect>();
-        skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-        RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr, canvas.GetSurface());
-    }
+#ifndef USE_ROSEN_DRAWING
+    RSPropertiesPainter::DrawFilter(property, canvas, FilterType::FOREGROUND_FILTER);
+    RSPropertiesPainter::DrawLinearGradientBlurFilter(property, canvas);
     canvas.save();
     if (GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {
         auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
@@ -308,6 +360,20 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanva
     }
     RSPropertiesPainter::DrawBorder(property, canvas);
     canvas.restore();
+#else
+    auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetFilter());
+    if (filter != nullptr) {
+        auto rectPtr = std::make_unique<Drawing::Rect>(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
+        RSPropertiesPainter::DrawFilter(property, canvas, filter, FilterType::FOREGROUND_FILTER, rectPtr);
+    }
+    canvas.Save();
+    if (GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {
+        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+        canvas.ConcatMatrix(geoPtr->GetMatrix());
+    }
+    RSPropertiesPainter::DrawBorder(property, canvas);
+    canvas.Restore();
+#endif
 }
 
 void RSSurfaceRenderNode::SetContextBounds(const Vector4f bounds)
@@ -336,13 +402,19 @@ bool RSSurfaceRenderNode::IsUIHidden() const
     return isUIHidden_;
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSSurfaceRenderNode::SetContextMatrix(const std::optional<SkMatrix>& matrix, bool sendMsg)
+#else
+void RSSurfaceRenderNode::SetContextMatrix(const std::optional<Drawing::Matrix>& matrix, bool sendMsg)
+#endif
 {
     if (contextMatrix_ == matrix) {
         return;
     }
     contextMatrix_ = matrix;
-    SetDirty();
+    SetContentDirty();
+    AddDirtyType(RSModifierType::SCALE);
+    AddDirtyType(RSModifierType::TRANSLATE);
     if (!sendMsg) {
         return;
     }
@@ -357,7 +429,8 @@ void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)
         return;
     }
     contextAlpha_ = alpha;
-    SetDirty();
+    SetContentDirty();
+    AddDirtyType(RSModifierType::ALPHA);
     if (!sendMsg) {
         return;
     }
@@ -366,13 +439,18 @@ void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)
     SendCommandFromRT(command, GetId());
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<SkRect>& clipRegion, bool sendMsg)
+#else
+void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect>& clipRegion, bool sendMsg)
+#endif
 {
     if (contextClipRect_ == clipRegion) {
         return;
     }
     contextClipRect_ = clipRegion;
-    SetDirty();
+    SetContentDirty();
+    AddDirtyType(RSModifierType::BOUNDS);
     if (!sendMsg) {
         return;
     }
@@ -402,12 +480,12 @@ bool RSSurfaceRenderNode::GetFingerprint() const
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
-void RSSurfaceRenderNode::SetColorSpace(ColorGamut colorSpace)
+void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
 }
 
-ColorGamut RSSurfaceRenderNode::GetColorSpace() const
+GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
 {
     return colorSpace_;
 }
@@ -562,21 +640,6 @@ bool RSSurfaceRenderNode::UpdateDirtyIfFrameBufferConsumed()
     return false;
 }
 
-bool RSSurfaceRenderNode::IsDirty() const
-{
-    return RSRenderNode::IsDirty();
-}
-
-bool RSSurfaceRenderNode::IsContentDirty() const
-{
-    return RSRenderNode::IsContentDirty();
-}
-
-void RSSurfaceRenderNode::SetClean()
-{
-    RSRenderNode::SetClean();
-}
-
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
                                                     VisibleData& visibleVec,
                                                     std::map<uint32_t, bool>& pidVisMap)
@@ -718,7 +781,7 @@ Occlusion::Region RSSurfaceRenderNode::ResetOpaqueRegion(const RectI& absRect,
     }
 }
 
-void RSSurfaceRenderNode::ContarinerConfig::Update(bool hasContainer, float density)
+void RSSurfaceRenderNode::ContainerConfig::Update(bool hasContainer, float density)
 {
     this->hasContainerWindow_ = hasContainer;
     this->density = density;
@@ -812,7 +875,7 @@ Occlusion::Region RSSurfaceRenderNode::SetUnfocusedWindowOpaqueRegion(const Rect
     If a surfacenode with containerwindow is a focused window, then its containerWindow region
 should be set transparent, including: title, content padding area, border, and content corners.
 Note this region is not centrosymmetric, hence it should be differentiated under different
-screen rotation state as top/left/botton/right has changed when screen rotated.
+screen rotation state as top/left/bottom/right has changed when screen rotated.
 */
 Occlusion::Region RSSurfaceRenderNode::SetFocusedWindowOpaqueRegion(const RectI& absRect,
     const ScreenRotation screenRotation) const
@@ -1040,12 +1103,19 @@ void RSSurfaceRenderNode::OnApplyModifiers()
     geoPtr->SetContextMatrix(contextMatrix_);
 }
 
+#ifndef USE_ROSEN_DRAWING
 std::optional<SkRect> RSSurfaceRenderNode::GetContextClipRegion() const
 {
     return contextClipRect_;
 }
+#else
+std::optional<Drawing::Rect> RSSurfaceRenderNode::GetContextClipRegion() const
+{
+    return contextClipRect_;
+}
+#endif
 
-bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded()
+bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded(std::shared_ptr<RSSurfaceRenderNode>& appNode)
 {
     if (!IsLeashWindow()) {
         return false;
@@ -1054,6 +1124,7 @@ bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded()
         auto childNode = child.lock();
         const auto& childNodeSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(childNode);
         if (childNodeSurface->GetVisibleRegion().IsEmpty()) {
+            appNode = childNodeSurface;
             return true;
         }
     }
@@ -1065,7 +1136,7 @@ std::shared_ptr<RSSurfaceRenderNode> RSSurfaceRenderNode::GetLeashWindowNestedAp
     if (!IsLeashWindow()) {
         return nullptr;
     }
-    for(auto& child : GetChildren()) {
+    for (auto& child : GetChildren()) {
         auto childNode = child.lock();
         if (childNode) {
             auto childNodeSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(childNode);
@@ -1079,7 +1150,7 @@ std::shared_ptr<RSSurfaceRenderNode> RSSurfaceRenderNode::GetLeashWindowNestedAp
 
 bool RSSurfaceRenderNode::IsCurrentFrameStatic()
 {
-    if (dirtyManager_ == nullptr || !dirtyManager_->GetLastestHistory().IsEmpty()) {
+    if (dirtyManager_ == nullptr || !dirtyManager_->GetLatestDirtyRegion().IsEmpty()) {
         return false;
     }
     if (IsMainWindowType()) {
@@ -1100,7 +1171,7 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
         return;
     }
     cacheSurfaceDirtyManager_->Clear();
-    cacheSurfaceDirtyManager_->MergeDirtyRect(dirtyManager_->GetLastestHistory());
+    cacheSurfaceDirtyManager_->MergeDirtyRect(dirtyManager_->GetLatestDirtyRegion());
     cacheSurfaceDirtyManager_->SetBufferAge(bufferAge);
     cacheSurfaceDirtyManager_->UpdateDirty(false);
     // for leashwindow type, nested app surfacenode's cacheSurfaceDirtyManager update is required

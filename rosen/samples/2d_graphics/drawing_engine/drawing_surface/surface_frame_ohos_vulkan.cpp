@@ -18,7 +18,7 @@
 namespace OHOS {
 namespace Rosen {
 SurfaceFrameOhosVulkan::SurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int32_t width, int32_t height)
-    : SurfaceFrameOhos(width, height), surface_(surface), colorSpace_(ColorGamut::COLOR_GAMUT_SRGB)
+    : SurfaceFrameOhos(width, height), surface_(surface), colorSpace_(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB)
 {
 }
 
@@ -26,12 +26,12 @@ SurfaceFrameOhosVulkan::~SurfaceFrameOhosVulkan()
 {
 }
 
-void SurfaceFrameOhosVulkan::SetColorSpace(ColorGamut colorSpace)
+void SurfaceFrameOhosVulkan::SetColorSpace(GraphicColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
 }
 
-ColorGamut SurfaceFrameOhosVulkan::GetColorSpace() const
+GraphicColorGamut SurfaceFrameOhosVulkan::GetColorSpace() const
 {
     return colorSpace_;
 }

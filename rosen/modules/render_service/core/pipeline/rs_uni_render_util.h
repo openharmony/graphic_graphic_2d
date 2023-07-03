@@ -17,13 +17,19 @@
 #define RENDER_SERVICE_CORE_PIPELINE_RS_UNI_RENDER_UTIL_H
 
 #include <list>
+#include <set>
 #include "surface.h"
 #include "sync_fence.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_render_node_map.h"
 #include "common/rs_obj_abs_geometry.h"
+
+#ifdef USE_ROSEN_DRAWING
+#include "utils/matrix.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -40,17 +46,40 @@ public:
      */
     static Occlusion::Region MergeVisibleDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node,
         bool useAlignedDirtyRegion = false);
-    static bool HandleCachedNode(const RSRenderNode& node, RSPaintFilterCanvas& canvas);
+    static bool HandleSubThreadNode(RSRenderNode& node, RSPaintFilterCanvas& canvas);
+    static bool HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas& canvas);
     static void SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceRenderNode& node);
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU);
+#ifndef USE_ROSEN_DRAWING
     static void DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, sk_sp<SkImage> image);
     static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
     static int GetRotationFromMatrix(SkMatrix matrix);
-    static void AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& node, uint64_t focusNodeId,
+#else
+    static void DrawCachedImage(
+        RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image);
+    static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
+    static int GetRotationFromMatrix(Drawing::Matrix matrix);
+#endif
+    static void AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
+    static void ClearSurfaceIfNeed(const RSRenderNodeMap& map, const std::shared_ptr<RSDisplayRenderNode>& displayNode,
+        std::set<std::shared_ptr<RSBaseRenderNode>>& oldChildren);
+    static void ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isUIFirst);
+    static void ClearNodeCacheSurface(sk_sp<SkSurface> cacheSurface, sk_sp<SkSurface> cacheCompletedSurface,
+        uint32_t threadIndex);
+    static void CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& oldSubThreadNodes,
+        std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
+private:
+    static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
+        const std::shared_ptr<RSSurfaceRenderNode>& node);
+    static void AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
+        const std::shared_ptr<RSSurfaceRenderNode>& node);
+    static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
+    static void HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node);
+    static void ClearCacheSurface(const std::shared_ptr<RSSurfaceRenderNode>& node, uint32_t threadIndex);
 };
 }
 }

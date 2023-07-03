@@ -111,7 +111,7 @@ MemoryGraphic MemoryTrack::CountRSMemory(const pid_t pid)
         for (auto it = memPicRecord_.begin(); it != memPicRecord_.end(); it++) {
             pid_t picPid = it->second.pid;
             if (pid == picPid) {
-                totalMemSize += it->second.size;
+                totalMemSize += static_cast<int>(it->second.size);
             }
         }
         memoryGraphic.SetPid(pid);
@@ -137,7 +137,7 @@ void MemoryTrack::DumpMemoryNodeStatistics(DfxString& log)
     //calculate by byte
     for (auto& [nodeId, info] : memNodeMap_) {
         //total of all
-        totalSize += info.size;
+        totalSize += static_cast<int>(info.size);
         count++;
     }
     log.AppendFormat("Total Node Size = %d KB (%d entries)\n", totalSize / BYTE_CONVERT, count);
@@ -214,7 +214,7 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
     int count = 0;
     //calculate by byte
     for (auto& [addr, info] : memPicRecord_) {
-        int size = info.size / BYTE_CONVERT; // k
+        int size = static_cast<int>(info.size / BYTE_CONVERT); // k
         //total of type
         arrTotal[info.type] += size;
         arrCount[info.type]++;
@@ -226,7 +226,7 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
         log.AppendFormat("%s\n", GenerateDetail(info, windowId, windowName, nodeFrameRect).c_str());
     }
 
-    for (int i = MEM_PIXELMAP; i < MEM_MAX_SIZE; i++) {
+    for (uint32_t i = MEM_PIXELMAP; i < MEM_MAX_SIZE; i++) {
         MEMORY_TYPE type = static_cast<MEMORY_TYPE>(i);
         log.AppendFormat("  %s:Size = %d KB (%d entries)\n", MemoryType2String(type), arrTotal[i], arrCount[i]);
     }

@@ -18,12 +18,21 @@
 namespace OHOS {
 namespace Rosen {
 namespace MockSys {
+class SurfaceListener : public IBufferConsumerListener {
+public:
+    void OnBufferAvailable() override
+    {
+    }
+};
+
 HdiLayerContext::HdiLayerContext(GraphicIRect dstRect, GraphicIRect srcRect, uint32_t zOrder)
     : srcRect_(srcRect), dstRect_(dstRect), zOrder_(zOrder)
 {
     cSurface_ = IConsumerSurface::Create();
     cSurface_->SetDefaultWidthAndHeight(srcRect_.w, srcRect_.h);
     cSurface_->SetDefaultUsage(BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
+    sptr<IBufferConsumerListener> listener = new SurfaceListener();
+    cSurface_->RegisterConsumerListener(listener);
     sptr<IBufferProducer> producer = cSurface_->GetProducer();
     pSurface_ = Surface::CreateSurfaceAsProducer(producer);
     hdiLayer_ = HdiLayerInfo::CreateHdiLayerInfo();

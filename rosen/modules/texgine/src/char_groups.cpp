@@ -51,7 +51,7 @@ size_t CharGroups::GetNumberOfGlyph() const
     }
 
     size_t sum = 0;
-    for (size_t i = range_.start; i < range_.end; i++) {
+    for (size_t i = range_.start; static_cast<int>(i) < range_.end; i++) {
         sum += pcgs_->at(i).glyphs.size();
     }
     return sum;
@@ -100,7 +100,7 @@ bool CharGroups::IsValid() const
     }
 
     if (range_.start > range_.end || range_.start < 0 ||  range_.end < 0 ||
-        range_.end > pcgs_->size() || range_.start > pcgs_->size()) {
+        range_.end > static_cast<int>(pcgs_->size()) || range_.start > static_cast<int>(pcgs_->size())) {
         throw TEXGINE_EXCEPTION(ERROR_STATUS);
     }
 
@@ -174,7 +174,7 @@ CharGroups CharGroups::GetSubAll(const int &start, const int &end) const
         throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
-    if (!(0 <= start && start <= end && end <= GetSize())) {
+    if (!(0 <= start && start <= end && end <= static_cast<int>(GetSize()))) {
         throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
@@ -194,23 +194,23 @@ CharGroups CharGroups::GetSubFromU16RangeAll(const int &u16start, const int &u16
     }
 
     size_t sum = 0;
-    int start = 0;
-    int end = 1e9;
+    int startIndex = 0;
+    int endIndex = 1e9;
     for (int i = -1; i <= static_cast<int>(pcgs_->size()); i++) {
-        if (sum <= u16start) {
-            start = std::max(start, i);
+        if (static_cast<int>(sum) <= u16start) {
+            startIndex = std::max(startIndex, i);
         }
 
-        if (0 <= i && i < pcgs_->size()) {
+        if (0 <= i && i < static_cast<int>(pcgs_->size())) {
             sum += pcgs_->at(i).chars.size();
         }
 
-        if (sum >= u16end) {
-            end = std::min(end, i);
+        if (static_cast<int>(sum) >= u16end) {
+            endIndex = std::min(endIndex, i);
         }
     }
 
-    return GetSubAll(start, end + 1);
+    return GetSubAll(startIndex, endIndex + 1);
 }
 
 CharGroups CharGroups::GetIntersect(const CharGroups &right) const
@@ -252,7 +252,7 @@ struct CharGroup &CharGroups::GetAll(const int32_t &index) const
         throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
-    if (!(0 <= index && index < GetSize())) {
+    if (!(0 <= index && index < static_cast<int>(GetSize()))) {
         throw TEXGINE_EXCEPTION(OUT_OF_RANGE);
     }
 
@@ -344,7 +344,7 @@ void CharGroups::PushBack(const struct CharGroup &cg)
         throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
-    if (!(0 == range_.start && range_.end == pcgs_->size())) {
+    if (!(range_.start == 0 && range_.end == static_cast<int>(pcgs_->size()))) {
         throw CustomException("incomplete CharGroups cannot revert");
     }
 
@@ -358,7 +358,7 @@ void CharGroups::ReverseAll()
         throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
     }
 
-    if (!(0 == range_.start && range_.end == pcgs_->size())) {
+    if (!(range_.start == 0 && range_.end == static_cast<int>(pcgs_->size()))) {
         throw CustomException("incomplete CharGroups cannot revert");
     }
 

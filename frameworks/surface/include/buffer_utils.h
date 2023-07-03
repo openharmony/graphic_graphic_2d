@@ -33,7 +33,7 @@ void WriteRequestConfig(MessageParcel &parcel, const BufferRequestConfig  &confi
 void ReadFlushConfig(MessageParcel &parcel, BufferFlushConfigWithDamages &config);
 void WriteFlushConfig(MessageParcel &parcel, const BufferFlushConfigWithDamages &config);
 
-void ReadSurfaceBufferImpl(MessageParcel &parcel, uint32_t &sequence, sptr<SurfaceBuffer> &buffer);
+GSError ReadSurfaceBufferImpl(MessageParcel &parcel, uint32_t &sequence, sptr<SurfaceBuffer> &buffer);
 void WriteSurfaceBufferImpl(MessageParcel &parcel, uint32_t sequence, const sptr<SurfaceBuffer> &buffer);
 
 void ReadVerifyAllocInfo(MessageParcel &parcel, std::vector<BufferVerifyAllocInfo> &infos);
@@ -46,7 +46,7 @@ void ReadHDRMetaDataSet(MessageParcel &parcel, std::vector<uint8_t> &metaData);
 void WriteHDRMetaDataSet(MessageParcel &parcel, const std::vector<uint8_t> &metaData);
 
 void ReadExtDataHandle(MessageParcel &parcel, sptr<SurfaceTunnelHandle> &handle);
-void WriteExtDataHandle(MessageParcel &parcel, const OHExtDataHandle *handle);
+void WriteExtDataHandle(MessageParcel &parcel, const GraphicExtDataHandle *handle);
 } // namespace OHOS
 
 #endif // FRAMEWORKS_SURFACE_INCLUDE_BUFFER_UTILS_H

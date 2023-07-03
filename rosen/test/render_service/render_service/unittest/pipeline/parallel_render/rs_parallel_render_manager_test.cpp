@@ -435,7 +435,7 @@ HWTEST_F(RSParallelRenderManagerTest, GetCostTest2, TestSize.Level1)
     rsRenderNode.renderProperties_.SetAlpha(1.0f);
     rsRenderNode.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
     auto cost = instance->GetCost(rsRenderNode);
-    ASSERT_EQ(cost, 3);
+    ASSERT_EQ(cost, 2);
 }
 
 /**
@@ -450,10 +450,10 @@ HWTEST_F(RSParallelRenderManagerTest, GetCostTest, TestSize.Level1)
     auto instance = std::make_shared<RSParallelRenderManager>();
     rsRenderNode.renderProperties_.SetAlpha(1.0f);
     rsRenderNode.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
-    rsRenderNode.renderProperties_.decoration_ = std::make_unique<Decoration>();
+    rsRenderNode.renderProperties_.decoration_ = std::make_optional<Decoration>();
     rsRenderNode.renderProperties_.decoration_->bgImage_ = std::make_shared<RSImage>();
     auto cost = instance->GetCost(rsRenderNode);
-    ASSERT_EQ(cost, 3);
+    ASSERT_EQ(cost, 2);
 }
 
 /**

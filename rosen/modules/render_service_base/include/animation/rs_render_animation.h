@@ -34,6 +34,11 @@ enum class AnimationState {
     FINISHED,
 };
 
+enum class AnimationTimingMode {
+    BY_FRACTION,
+    BY_TIME,
+};
+
 class RSB_EXPORT RSRenderAnimation : public Parcelable {
 public:
     virtual ~RSRenderAnimation() = default;
@@ -44,7 +49,7 @@ public:
     void Resume();
     void SetFraction(float fraction);
     void SetReversed(bool isReversed);
-    virtual bool Marshalling(Parcel& parcel) const override;
+    bool Marshalling(Parcel& parcel) const override;
     bool Animate(int64_t time);
 
     bool IsStarted() const;
@@ -153,16 +158,35 @@ protected:
 
     virtual void OnAnimate(float fraction) {}
 
+    // return <isFinished, isRepeatFinished> as tuple, and the time unit is millisecond
+    virtual std::tuple<bool, bool> OnAnimateByTime(float time)
+    {
+        return { true, true };
+    }
+
     virtual void OnRemoveOnCompletion() {}
 
     void FinishOnCurrentPosition();
+
+    virtual AnimationTimingMode GetAnimationTimingMode() const
+    {
+        return AnimationTimingMode::BY_FRACTION;
+    }
+
+    virtual void ProcessFillModeOnFinishByTime(float endTime = 0) {}
 
     RSAnimationFraction animationFraction_;
 
 private:
     void ProcessFillModeOnStart(float startFraction);
 
+    void ProcessFillModeOnStartByFraction(float startFraction);
+
+    void ProcessFillModeOnStartByTime(float startTime = 0) const;
+
     void ProcessFillModeOnFinish(float endFraction);
+
+    void ProcessFillModeOnFinishByFraction(float endFraction);
 
     void ProcessOnRepeatFinish();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_hardware_thread.h"
 
+#include "hgm_core.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_main_thread.h"
@@ -44,15 +45,16 @@ void RSHardwareThread::Start()
     redrawCb_ = std::bind(&RSHardwareThread::Redraw, this,std::placeholders::_1, std::placeholders::_2,
         std::placeholders::_3);
     if (handler_) {
-        ScheduleTask([this]() {
-            auto screenManager = CreateOrGetScreenManager();
-            if (screenManager == nullptr || !screenManager->Init()) {
-                RS_LOGE("RSHardwareThread CreateOrGetScreenManager or init fail.");
-                return;
-            }
-            uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-            uniRenderEngine_->Init();
-        }).wait();
+        ScheduleTask(
+            [this]() {
+                auto screenManager = CreateOrGetScreenManager();
+                if (screenManager == nullptr || !screenManager->Init()) {
+                    RS_LOGE("RSHardwareThread CreateOrGetScreenManager or init fail.");
+                    return;
+                }
+                uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+                uniRenderEngine_->Init();
+            }).wait();
     }
     auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {
         OnPrepareComplete(surface, param, data);
@@ -102,7 +104,11 @@ void RSHardwareThread::ReleaseLayers(OutputPtr output, const std::unordered_map<
     }
 
     // set all layers' releaseFence.
-    const auto layersReleaseFence = hdiBackend_->GetLayersReleaseFence(output);
+    if (output == nullptr) {
+        RS_LOGE("RSHardwareThread::ReleaseLayers: output is nullptr");
+        return;
+    }
+    const auto layersReleaseFence = output->GetLayersReleaseFence();
     if (layersReleaseFence.size() == 0) {
         RS_LOGE("RSHardwareThread::ReleaseLayers: no layer needs to release");
     }
@@ -126,6 +132,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     RSTaskMessage::RSTask task = [this, output = output, layers = layers]() {
         RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers");
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers start");
+        PerformSetActiveMode();
         output->SetLayerInfo(layers);
         hdiBackend_->Repaint(output);
         auto layerMap = output->GetLayers();
@@ -133,6 +140,37 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers end");
     };
     PostTask(task);
+}
+
+void RSHardwareThread::PerformSetActiveMode()
+{
+    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
+    auto screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        RS_LOGE("RSHardwareThread CreateOrGetScreenManager fail.");
+        return;
+    }
+    std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeMap(hgmCore.GetModesToApply());
+    if (modeMap == nullptr) {
+        return;
+    }
+
+    RS_TRACE_NAME("RSHardwareThread::PerformSetActiveMode setting active mode");
+    for (auto mapIter = modeMap->begin(); mapIter != modeMap->end(); ++mapIter) {
+        ScreenId id = mapIter->first;
+        int32_t modeId = mapIter->second;
+
+        auto supportedModes = screenManager->GetScreenSupportedModes(id);
+        for (auto mode : supportedModes) {
+            std::string temp = "RSHardwareThread check modes w: " + std::to_string(mode.GetScreenWidth()) +
+                ", h: " + std::to_string(mode.GetScreenHeight()) +
+                ", rate: " + std::to_string(mode.GetScreenRefreshRate()) +
+                ", id: " + std::to_string(mode.GetScreenModeId());
+            RS_LOGD(temp.c_str());
+        }
+
+        screenManager->SetScreenActiveMode(id, modeId);
+    }
 }
 
 void RSHardwareThread::OnPrepareComplete(sptr<Surface>& surface,
@@ -185,6 +223,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR) {
             continue;
         }
+#ifndef USE_ROSEN_DRAWING
         auto saveCount = canvas->getSaveCount();
 
         canvas->save();
@@ -196,6 +235,20 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         // prepare BufferDrawParam
         auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
         canvas->concat(params.matrix);
+#else
+        auto saveCount = canvas->GetSaveCount();
+
+        canvas->Save();
+        auto dstRect = layer->GetLayerSize();
+        Drawing::Rect clipRect = Drawing::Rect(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
+            static_cast<float>(dstRect.w) + static_cast<float>(dstRect.x),
+            static_cast<float>(dstRect.h) + static_cast<float>(dstRect.y));
+        canvas->ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
+
+        // prepare BufferDrawParam
+        auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
+        canvas->ConcatMatrix(params.matrix);
+#endif
 #ifndef RS_ENABLE_EGLIMAGE
         uniRenderEngine_->DrawBuffer(*canvas, params);
 #else
@@ -251,8 +304,13 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             uniRenderEngine_->DrawBuffer(*canvas, params);
         }
 #endif
+#ifndef USE_ROSEN_DRAWING
         canvas->restore();
         canvas->restoreToCount(saveCount);
+#else
+        canvas->Restore();
+        canvas->RestoreToCount(saveCount);
+#endif
     }
     renderFrame->Flush();
 #ifdef RS_ENABLE_EGLIMAGE

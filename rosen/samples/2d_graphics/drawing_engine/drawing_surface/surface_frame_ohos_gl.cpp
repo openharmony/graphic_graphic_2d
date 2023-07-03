@@ -18,7 +18,8 @@
 namespace OHOS {
 namespace Rosen {
 SurfaceFrameOhosGl::SurfaceFrameOhosGl(int32_t width, int32_t height)
-    : SurfaceFrameOhos(width, height), eglSurface_(EGL_NO_SURFACE), colorSpace_(ColorGamut::COLOR_GAMUT_SRGB)
+    : SurfaceFrameOhos(width, height), eglSurface_(EGL_NO_SURFACE),
+    colorSpace_(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB)
 {
 }
 
@@ -26,12 +27,12 @@ SurfaceFrameOhosGl::~SurfaceFrameOhosGl()
 {
 }
 
-void SurfaceFrameOhosGl::SetColorSpace(ColorGamut colorSpace)
+void SurfaceFrameOhosGl::SetColorSpace(GraphicColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
 }
 
-ColorGamut SurfaceFrameOhosGl::GetColorSpace() const
+GraphicColorGamut SurfaceFrameOhosGl::GetColorSpace() const
 {
     return colorSpace_;
 }

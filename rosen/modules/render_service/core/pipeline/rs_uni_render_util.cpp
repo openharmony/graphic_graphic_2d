@@ -15,10 +15,11 @@
 
 #include "rs_uni_render_util.h"
 #include <cstdint>
+#include <unordered_set>
 
-#include "pipeline/parallel_render/rs_parallel_render_manager.h"
-#include "pipeline/rs_base_render_util.h"
+#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_base_render_util.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_path.h"
 #include "rs_trace.h"
@@ -85,8 +86,13 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceR
     if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK &&
         scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         const RSProperties& property = node.GetRenderProperties();
+#ifndef USE_ROSEN_DRAWING
         uint32_t newWidth = static_cast<uint32_t>(params.srcRect.width());
         uint32_t newHeight = static_cast<uint32_t>(params.srcRect.height());
+#else
+        uint32_t newWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
+        uint32_t newHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
+#endif
         // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
         uint32_t boundsWidth = static_cast<uint32_t>(property.GetBoundsWidth());
         uint32_t boundsHeight = static_cast<uint32_t>(property.GetBoundsHeight());
@@ -108,28 +114,53 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceR
             return;
         }
 
+#ifndef USE_ROSEN_DRAWING
         uint32_t currentWidth = static_cast<uint32_t>(params.srcRect.width());
         uint32_t currentHeight = static_cast<uint32_t>(params.srcRect.height());
+#else
+        uint32_t currentWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
+        uint32_t currentHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
+#endif
         if (newWidth < currentWidth) {
             // the crop is too wide
             uint32_t dw = currentWidth - newWidth;
             auto halfdw = dw / 2;
+#ifndef USE_ROSEN_DRAWING
             params.srcRect = SkRect::MakeXYWH(params.srcRect.left() + static_cast<int32_t>(halfdw),
                                               params.srcRect.top(),
                                               static_cast<int32_t>(newWidth),
                                               params.srcRect.height());
+#else
+            params.srcRect =
+                Drawing::Rect(params.srcRect.GetLeft() + static_cast<int32_t>(halfdw), params.srcRect.GetTop(),
+                    params.srcRect.GetLeft() + static_cast<int32_t>(halfdw) + static_cast<int32_t>(newWidth),
+                    params.srcRect.GetTop() + params.srcRect.GetHeight());
+#endif
         } else {
             // thr crop is too tall
             uint32_t dh = currentHeight - newHeight;
             auto halfdh = dh / 2;
+#ifndef USE_ROSEN_DRAWING
             params.srcRect = SkRect::MakeXYWH(params.srcRect.left(),
                                               params.srcRect.top() + static_cast<int32_t>(halfdh),
                                               params.srcRect.width(),
                                               static_cast<int32_t>(newHeight));
+#else
+            params.srcRect =
+                Drawing::Rect(params.srcRect.GetLeft(), params.srcRect.GetTop() + static_cast<int32_t>(halfdh),
+                    params.srcRect.GetLeft() + params.srcRect.GetWidth(),
+                    params.srcRect.GetTop() + static_cast<int32_t>(halfdh) + static_cast<int32_t>(newHeight));
+#endif
         }
+#ifndef USE_ROSEN_DRAWING
         RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown surfaceNode id:%" PRIu64 ", srcRect [%f %f %f %f]",
             node.GetId(), params.srcRect.left(), params.srcRect.top(),
             params.srcRect.width(), params.srcRect.height());
+#else
+        RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown surfaceNode id:%" PRIu64 ", srcRect [%f %f %f %f]",
+            node.GetId(), params.srcRect.GetLeft(), params.srcRect.GetTop(),
+            params.srcRect.GetWidth(), params.srcRect.GetHeight());
+#endif
     }
 }
 
@@ -141,6 +172,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
 #else // RS_ENABLE_EGLIMAGE
     params.useCPU = true;
 #endif // RS_ENABLE_EGLIMAGE
+#ifndef USE_ROSEN_DRAWING
     params.paint.setAntiAlias(true);
 #ifndef NEW_SKIA
     params.paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
@@ -148,14 +180,30 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
 
     const RSProperties& property = node.GetRenderProperties();
     params.dstRect = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
+#else
+    params.paint.SetAntiAlias(true);
+    Drawing::Filter filter;
+    filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
+    params.paint.SetFilter(filter);
+
+    const RSProperties& property = node.GetRenderProperties();
+    params.dstRect = Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
+#endif
 
     const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
+    if (buffer == nullptr) {
+        return params;
+    }
     params.buffer = buffer;
     params.acquireFence = node.GetAcquireFence();
+#ifndef USE_ROSEN_DRAWING
     params.srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+#else
+    params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+#endif
 
     auto& consumer = node.GetConsumer();
-    if (consumer == nullptr || buffer == nullptr) {
+    if (consumer == nullptr) {
         return params;
     }
     auto transform = consumer->GetTransform();
@@ -174,6 +222,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode
 #else // RS_ENABLE_EGLIMAGE
     params.useCPU = true;
 #endif // RS_ENABLE_EGLIMAGE
+#ifndef USE_ROSEN_DRAWING
     params.paint.setAntiAlias(true);
 #ifndef NEW_SKIA
     params.paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
@@ -184,6 +233,18 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode
     params.acquireFence = node.GetAcquireFence();
     params.srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     params.dstRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+#else
+    params.paint.SetAntiAlias(true);
+    Drawing::Filter filter;
+    filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
+    params.paint.SetFilter(filter);
+
+    const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
+    params.buffer = buffer;
+    params.acquireFence = node.GetAcquireFence();
+    params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    params.dstRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+#endif
     return params;
 }
 
@@ -195,11 +256,19 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
 #else // RS_ENABLE_EGLIMAGE
     params.useCPU = true;
 #endif // RS_ENABLE_EGLIMAGE
+#ifndef USE_ROSEN_DRAWING
     params.paint.setAntiAlias(true);
 #ifndef NEW_SKIA
     params.paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
 #endif
     params.paint.setAlphaf(layer->GetAlpha().gAlpha);
+#else
+    params.paint.SetAntiAlias(true);
+    Drawing::Filter filter;
+    filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
+    params.paint.SetFilter(filter);
+    params.paint.SetAlphaF(layer->GetAlpha().gAlpha);
+#endif
 
     sptr<SurfaceBuffer> buffer = layer->GetBuffer();
     if (buffer == nullptr) {
@@ -207,6 +276,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     }
     params.acquireFence = layer->GetAcquireFence();
     params.buffer = buffer;
+#ifndef USE_ROSEN_DRAWING
     params.srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     auto boundRect = layer->GetBoundSize();
     params.dstRect = SkRect::MakeWH(boundRect.w, boundRect.h);
@@ -215,7 +285,16 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     params.matrix = SkMatrix::MakeAll(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX,
                                       layerMatrix.skewY, layerMatrix.scaleY, layerMatrix.transY,
                                       layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
+#else
+    params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    auto boundRect = layer->GetBoundSize();
+    params.dstRect = Drawing::Rect(0, 0, boundRect.w, boundRect.h);
 
+    auto layerMatrix = layer->GetMatrix();
+    params.matrix = Drawing::Matrix();
+    params.matrix.SetMatrix(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX, layerMatrix.skewY,
+        layerMatrix.scaleY, layerMatrix.transY, layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
+#endif
     int nodeRotation = RSUniRenderUtil::GetRotationFromMatrix(params.matrix); // rotation degree anti-clockwise
     auto layerTransform = layer->GetTransformType();
     // calculate clockwise rotation degree excluded rotation in total matrix
@@ -231,6 +310,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     return params;
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSUniRenderUtil::DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, sk_sp<SkImage> image)
 {
     if (image == nullptr) {
@@ -247,6 +327,25 @@ void RSUniRenderUtil::DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCa
 #endif
     canvas.restore();
 }
+#else
+void RSUniRenderUtil::DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas,
+    std::shared_ptr<Drawing::Image> image)
+{
+    if (image == nullptr) {
+        return;
+    }
+    canvas.Save();
+    canvas.Scale(node.GetRenderProperties().GetBoundsWidth() / image->GetWidth(),
+        node.GetRenderProperties().GetBoundsHeight() / image->GetHeight());
+    Drawing::Brush brush;
+    canvas.AttachBrush(brush);
+    Drawing::SamplingOptions sampling =
+        Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+    canvas.DrawImage(*image.get(), 0.0, 0.0, sampling);
+    canvas.DetachBrush();
+    canvas.Restore();
+}
+#endif
 
 Occlusion::Region RSUniRenderUtil::AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits)
 {
@@ -266,20 +365,54 @@ Occlusion::Region RSUniRenderUtil::AlignedDirtyRegion(const Occlusion::Region& d
     return alignedRegion;
 }
 
-bool RSUniRenderUtil::HandleCachedNode(const RSRenderNode& node, RSPaintFilterCanvas& canvas)
+bool RSUniRenderUtil::HandleSubThreadNode(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
     if (node.IsMainThreadNode()) {
         return false;
     }
-    RS_TRACE_NAME_FMT("Handle Cached Node %llu", node.GetId());
-#ifdef NEW_SKIA
-    node.DrawCacheTexture(canvas);
-#else
-    node.DrawCacheSurface(canvas);
+    if (!node.HasCachedTexture()) {
+        RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", node.GetId());
+#if defined(RS_ENABLE_GL)
+        RSSubThreadManager::Instance()->WaitNodeTask(node.GetId());
+        node.UpdateCompletedCacheSurface();
+        RSSubThreadManager::Instance()->SaveCacheTexture(node);
 #endif
+    }
+    RS_TRACE_NAME_FMT("RSUniRenderUtil::HandleSubThreadNode %" PRIu64 "", node.GetId());
+    node.DrawCacheSurface(canvas, UNI_MAIN_THREAD_INDEX, true);
     return true;
 }
 
+bool RSUniRenderUtil::HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas& canvas)
+{
+    auto surfaceNodePtr = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+    if (surfaceNodePtr == nullptr) {
+        return false;
+    }
+    if (surfaceNodePtr->IsAppWindow()) {
+        auto rsParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNodePtr->GetParent().lock());
+        auto curNode = surfaceNodePtr;
+        if (rsParent && rsParent->IsLeashWindow()) {
+            curNode = rsParent;
+        }
+        if (!curNode->ShouldPaint()) {
+            return false;
+        }
+        if (curNode->IsOnTheTree()) {
+            return HandleSubThreadNode(*curNode, canvas);
+        } else {
+#ifdef RS_ENABLE_GL
+            if (curNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
+                RSSubThreadManager::Instance()->WaitNodeTask(curNode->GetId());
+            }
+#endif
+            return false;
+        }
+    }
+    return false;
+}
+
+#ifndef USE_ROSEN_DRAWING
 int RSUniRenderUtil::GetRotationFromMatrix(SkMatrix matrix)
 {
     float value[9];
@@ -289,67 +422,128 @@ int RSUniRenderUtil::GetRotationFromMatrix(SkMatrix matrix)
     // transfer the result to anti-clockwise degrees
     // only rotation with 90°, 180°, 270° are composed through hardware,
     // in which situation the transformation of the layer needs to be set.
+    static const std::map<int, int> supportedDegrees = {{90, 270}, {180, 180}, {-90, 90}, {-180, 180}};
+    auto iter = supportedDegrees.find(rAngle);
+    return iter != supportedDegrees.end() ? iter->second : 0;
+}
+#else
+int RSUniRenderUtil::GetRotationFromMatrix(Drawing::Matrix matrix)
+{
+    Drawing::Matrix::Buffer value;
+    matrix.GetAll(value);
+
+    int rAngle = static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::SKEW_X],
+        value[Drawing::Matrix::Index::SKEW_Y]) * (180 / PI)));
+    // transfer the result to anti-clockwise degrees
+    // only rotation with 90°, 180°, 270° are composed through hardware,
+    // in which situation the transformation of the layer needs to be set.
     static const std::map<int, int> supportedDegrees = {{90, 270}, {180, 180}, {-90, 90}};
     auto iter = supportedDegrees.find(rAngle);
     return iter != supportedDegrees.end() ? iter->second : 0;
 }
+#endif
 
-void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& node, uint64_t focusNodeId,
+void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
     std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
     std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
 {
-    if (node == nullptr) {
+    if (displayNode == nullptr) {
         ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes display node is null");
         return;
     }
     RS_TRACE_NAME("AssignWindowNodes");
-    bool focusedNodeFound = false;
-    for (auto iter = node->GetSortedChildren().begin(); iter != node->GetSortedChildren().end(); iter++) {
+    bool isRotation = displayNode->IsRotationChanged();
+    bool isScale = false;
+    uint32_t leashWindowCount = 0;
+    for (auto iter = displayNode->GetSortedChildren().begin(); iter != displayNode->GetSortedChildren().end(); iter++) {
         auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*iter);
         if (node == nullptr) {
-            ROSEN_LOGE(
-                "RSUniRenderUtil::AssignWindowNodes nullptr found in sortedChildren, this should not happen");
+            ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes nullptr found in sortedChildren, this should not happen");
             continue;
         }
-        if (node->GetId() == focusNodeId) {
-            focusedNodeFound = true;
+        if (node->IsLeashWindow()) {
+            leashWindowCount++;
         }
-        if (!focusedNodeFound && node->IsLeashWindow()) {
-            for (auto& child : node->GetSortedChildren()) {
-                if (child && child->GetId() == focusNodeId) {
-                    focusedNodeFound = true;
-                    break;
-                }
-            }
-        }
-        if (focusedNodeFound || node->HasFilter()) { // assign focus, above focus and has filter node to main thread
-            mainThreadNodes.emplace_back(node);
-            node->SetIsMainThreadNode(true);
-        } else if (node->IsCurrentFrameStatic() && node->HasCachedTexture()) {
-            node->SetIsMainThreadNode(false);
-        } else {
-            subThreadNodes.emplace_back(node);
-            node->UpdateCacheSurfaceDirtyManager(2);
-            node->SetIsMainThreadNode(false);
-            if (node->GetCacheSurface()) {
-                node->UpdateCompletedCacheSurface();
-                RSParallelRenderManager::Instance()->SaveCacheTexture(*node);
-            }
-            if (node->HasCachedTexture()) {
-                node->SetPriority(NodePriorityType::SUB_LOW_PRIORITY);
-            } else {
-                node->SetPriority(NodePriorityType::SUB_HIGH_PRIORITY);
-            }
+        if (node->IsLeashWindow() && node->IsScale()) {
+            isScale = true;
         }
     }
+    for (auto iter = displayNode->GetSortedChildren().begin(); iter != displayNode->GetSortedChildren().end(); iter++) {
+        auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*iter);
+        if (node == nullptr) {
+            ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes nullptr found in sortedChildren, this should not happen");
+            continue;
+        }
+        if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) { // node exceed one vsync
+            AssignSubThreadNode(subThreadNodes, node);
+        } else if (leashWindowCount > 1) { // start app from another app
+            AssignMainThreadNode(mainThreadNodes, node);
+        } else if (isScale) { // app start or close scene
+            if (!node->HasFilter() && !node->HasAbilityComponent() && !isRotation) {
+                AssignSubThreadNode(subThreadNodes, node);
+            } else {
+                AssignMainThreadNode(mainThreadNodes, node);
+            }
+        } else { // other scene
+            AssignMainThreadNode(mainThreadNodes, node);
+        }
+    }
+    SortSubThreadNodes(subThreadNodes);
+}
 
+void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
+    const std::shared_ptr<RSSurfaceRenderNode>& node)
+{
+    if (node == nullptr) {
+        ROSEN_LOGW("RSUniRenderUtil::AssignMainThreadNode node is nullptr");
+        return;
+    }
+    mainThreadNodes.emplace_back(node);
+    bool changeThread = !node->IsMainThreadNode();
+    node->SetIsMainThreadNode(true);
+    node->SetCacheType(CacheType::NONE);
+    HandleHardwareNode(node);
+    if (changeThread) {
+        RS_LOGD("RSUniRenderUtil::AssignMainThreadNode clear cache surface:[%s, %llu]",
+            node->GetName().c_str(), node->GetId());
+        node->SetCacheTexture(nullptr);
+        ClearCacheSurface(node, UNI_MAIN_THREAD_INDEX);
+    }
+}
+
+void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
+    const std::shared_ptr<RSSurfaceRenderNode>& node)
+{
+    if (node == nullptr) {
+        ROSEN_LOGW("RSUniRenderUtil::AssignSubThreadNode node is nullptr");
+        return;
+    }
+    subThreadNodes.emplace_back(node);
+    node->SetIsMainThreadNode(false);
+    node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
+    node->SetCacheType(CacheType::CONTENT);
+#if defined(RS_ENABLE_GL)
+    if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE && node->GetCacheSurface()) {
+        node->UpdateCompletedCacheSurface();
+        RSSubThreadManager::Instance()->SaveCacheTexture(*node);
+    }
+#endif
+    if (node->HasCachedTexture()) {
+        node->SetPriority(NodePriorityType::SUB_LOW_PRIORITY);
+    } else {
+        node->SetPriority(NodePriorityType::SUB_HIGH_PRIORITY);
+    }
+}
+
+void RSUniRenderUtil::SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
+{
     // sort subThreadNodes by priority and z-order
     subThreadNodes.sort([](const auto& first, const auto& second) -> bool {
         auto node1 = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(first);
         auto node2 = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(second);
         if (node1 == nullptr || node2 == nullptr) {
             ROSEN_LOGE(
-                "RSUniRenderUtil::AssignWindowNodes sort nullptr found in subThreadNodes, this should not happen");
+                "RSUniRenderUtil::SortSubThreadNodes sort nullptr found in subThreadNodes, this should not happen");
             return false;
         }
         if (node1->GetPriority() == node2->GetPriority()) {
@@ -358,6 +552,130 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
             return node1->GetPriority() < node2->GetPriority();
         }
     });
+}
+
+void RSUniRenderUtil::CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& oldSubThreadNodes,
+    std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
+{
+    std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>> nodes(subThreadNodes.begin(), subThreadNodes.end());
+    for (auto node : oldSubThreadNodes) {
+        if (nodes.count(node) > 0) {
+            continue;
+        }
+        // The node being processed by sub thread may have been removed.
+        if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
+            subThreadNodes.emplace_back(node);
+        }
+    }
+    oldSubThreadNodes.clear();
+    oldSubThreadNodes = subThreadNodes;
+}
+
+void RSUniRenderUtil::HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node)
+{
+    if (!node->HasHardwareNode()) {
+        return;
+    }
+    auto appWindow = node;
+    if (node->IsLeashWindow()) {
+        for (auto& child : node->GetSortedChildren()) {
+            auto surfaceNodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+            if (surfaceNodePtr && surfaceNodePtr->IsAppWindow()) {
+                appWindow = surfaceNodePtr;
+                break;
+            }
+        }
+    }
+    auto hardwareEnabledNodes = appWindow->GetChildHardwareEnabledNodes();
+    for (auto& hardwareEnabledNode : hardwareEnabledNodes) {
+        auto hardwareEnabledNodePtr = hardwareEnabledNode.lock();
+        if (hardwareEnabledNodePtr) {
+            hardwareEnabledNodePtr->SetHardwareDisabledByCache(false);
+        }
+    }
+}
+
+void RSUniRenderUtil::ClearSurfaceIfNeed(const RSRenderNodeMap& map,
+    const std::shared_ptr<RSDisplayRenderNode>& displayNode,
+    std::set<std::shared_ptr<RSBaseRenderNode>>& oldChildren)
+{
+    if (displayNode == nullptr) {
+        return;
+    }
+    auto sortedChildren = displayNode->GetSortedChildren();
+    std::set<std::shared_ptr<RSBaseRenderNode>> tmpSet(sortedChildren.begin(), sortedChildren.end());
+    for (auto& child : oldChildren) {
+        auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+        if (tmpSet.count(surface) == 0) {
+            if (surface && map.GetRenderNode(surface->GetId()) != nullptr) {
+                RS_LOGD("RSUniRenderUtil::ClearSurfaceIfNeed clear cache surface:[%s, %llu]",
+                    surface->GetName().c_str(), surface->GetId());
+                surface->SetCacheTexture(nullptr);
+                ClearCacheSurface(surface, UNI_MAIN_THREAD_INDEX);
+            }
+        }
+    }
+    oldChildren.swap(tmpSet);
+}
+
+void RSUniRenderUtil::ClearCacheSurface(const std::shared_ptr<RSSurfaceRenderNode>& node, uint32_t threadIndex)
+{
+    RS_LOGD("ClearCacheSurface node in correct thread: [%llu]", node->GetId());
+    uint32_t cacheSurfaceThreadIndex = node->GetCacheSurfaceThreadIndex();
+    if (cacheSurfaceThreadIndex == threadIndex) {
+        node->ClearCacheSurface();
+        return;
+    }
+    if (cacheSurfaceThreadIndex == UNI_MAIN_THREAD_INDEX) {
+        RSMainThread::Instance()->PostTask([node]() {
+            RS_LOGD("clear node cache surface in main thread");
+            node->ClearCacheSurface();
+        });
+    } else {
+#ifdef RS_ENABLE_GL
+        RSSubThreadManager::Instance()->PostTask([node]() {
+            RS_LOGD("clear node cache surface in sub thread");
+            node->ClearCacheSurface();
+        }, cacheSurfaceThreadIndex);
+#endif
+    }
+}
+
+void RSUniRenderUtil::ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isUIFirst)
+{
+    RS_LOGD("ClearCacheSurface node: [%llu]", node.GetId());
+    uint32_t cacheSurfaceThreadIndex = node.GetCacheSurfaceThreadIndex();
+    if (cacheSurfaceThreadIndex == threadIndex) {
+        node.ClearCacheSurface();
+        return;
+    }
+    auto cacheSurface = node.GetCacheSurface();
+    auto cacheCompletedSurface = node.GetCompletedCacheSurface(threadIndex, isUIFirst);
+    node.ClearCacheSurface();
+    ClearNodeCacheSurface(cacheSurface, cacheCompletedSurface, cacheSurfaceThreadIndex);
+}
+
+void RSUniRenderUtil::ClearNodeCacheSurface(sk_sp<SkSurface> cacheSurface, sk_sp<SkSurface> cacheCompletedSurface,
+    uint32_t threadIndex)
+{
+    if (cacheSurface == nullptr && cacheCompletedSurface == nullptr) {
+        return;
+    }
+    if (threadIndex == UNI_MAIN_THREAD_INDEX) {
+        RSMainThread::Instance()->PostTask([cacheSurface, cacheCompletedSurface]() mutable {
+            RS_LOGD("clear node cache surface in main thread");
+            cacheSurface = nullptr;
+            cacheCompletedSurface = nullptr;
+        });
+    } else {
+#ifdef RS_ENABLE_GL
+        RSSubThreadManager::Instance()->PostTask([cacheSurface, cacheCompletedSurface]() mutable {
+            RS_LOGD("clear node cache surface in sub thread");
+            cacheSurface = nullptr;
+            cacheCompletedSurface = nullptr;
+        }, threadIndex);
+#endif
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

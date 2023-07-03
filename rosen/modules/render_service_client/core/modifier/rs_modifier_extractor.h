@@ -33,6 +33,7 @@ public:
     float GetPositionZ() const;
 
     Vector2f GetPivot() const;
+    float GetPivotZ() const;
     Quaternion GetQuaternion() const;
     float GetRotation() const;
     float GetRotationX() const;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 #include <surface.h>
 
 #include "command/rs_command.h"
+#include "command/rs_node_showing_command.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/screen_change_callback.h"
@@ -60,6 +61,10 @@ public:
         REMOVE_VIRTUAL_SCREEN,
         SET_SCREEN_CHANGE_CALLBACK,
         SET_SCREEN_ACTIVE_MODE,
+        SET_SCREEN_REFRESH_RATE,
+        SET_REFRESH_RATE_MODE,
+        GET_SCREEN_CURRENT_REFRESH_RATE,
+        GET_SCREEN_SUPPORTED_REFRESH_RATES,
         SET_SCREEN_POWER_STATUS,
         SET_SCREEN_BACK_LIGHT,
         TAKE_SURFACE_CAPTURE,
@@ -87,9 +92,13 @@ public:
         SHOW_WATERMARK,
         GET_MEMORY_GRAPHIC,
         GET_MEMORY_GRAPHICS,
+        REPORT_JANK_STATS,
+        GET_BITMAP,
+        EXECUTE_SYNCHRONOUS_TASK,
     };
 
     virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
+    virtual void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
 
     virtual bool GetUniRenderEnabled() = 0;
 
@@ -122,6 +131,14 @@ public:
     virtual int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) = 0;
 
     virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
+
+    virtual void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) = 0;
+
+    virtual void SetRefreshRateMode(int32_t refreshRateMode) = 0;
+
+    virtual uint32_t GetScreenCurrentRefreshRate(ScreenId id) = 0;
+
+    virtual std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id) = 0;
 
     virtual int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 
@@ -171,6 +188,8 @@ public:
 
     virtual int32_t GetScreenType(ScreenId id, RSScreenType& screenType) = 0;
 
+    virtual bool GetBitmap(NodeId id, SkBitmap& bitmap) = 0;
+
     virtual int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) = 0;
 
     virtual int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) = 0;
@@ -178,6 +197,8 @@ public:
     virtual void SetAppWindowNum(uint32_t num) = 0;
 
     virtual void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) = 0;
+
+    virtual void ReportJankStats() = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

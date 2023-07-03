@@ -33,9 +33,8 @@ std::shared_ptr<FontCollection> FontCollection::From(std::shared_ptr<txt::FontCo
 
 namespace AdapterTxt {
 FontCollection::FontCollection(std::shared_ptr<txt::FontCollection> fontCollection)
-    : fontCollection_(fontCollection)
+    : fontCollection_(fontCollection), dfmanager_(sk_make_sp<txt::DynamicFontManager>())
 {
-    dfmanager_ = sk_make_sp<txt::DynamicFontManager>();
     if (fontCollection_ == nullptr) {
         fontCollection_ = std::make_shared<txt::FontCollection>();
     }

@@ -102,7 +102,7 @@ bool PointerFilter::OnInputEvent(std::shared_ptr<OHOS::MMI::PointerEvent> pointe
         ProcessSinglePointerEvent(pointerEvent);
     }
 
-    if (ids.size() >= 2) {
+    if (ids.size() >= 2) {  // 2 means not single pointer event
         ProcessPointerEvents(pointerEvent);
     }
 
@@ -114,7 +114,6 @@ bool PointerFilter::OnInputEvent(std::shared_ptr<OHOS::MMI::PointerEvent> pointe
 
 void PointerFilter::ProcessSinglePointerEvent(const std::shared_ptr<OHOS::MMI::PointerEvent> pointerEvent) const
 {
-    auto &rsdata = *reinterpret_cast<struct RSData *>(sf->data_);
     const auto &ids = pointerEvent->GetPointerIds();
     const auto &action = pointerEvent->GetPointerAction();
     MMI::PointerEvent::PointerItem firstPointer = {};
@@ -123,8 +122,9 @@ void PointerFilter::ProcessSinglePointerEvent(const std::shared_ptr<OHOS::MMI::P
     const auto &y = firstPointer.GetDisplayY();
 
     if (action == MMIPE::POINTER_ACTION_DOWN) {
-        // 400 * 1000 is the discriminant time for consecutive clicks
-        if (pointerEvent->GetActionTime() - rsdata.lastTime <= 400 * 1000) {
+        auto &rsdata = *reinterpret_cast<struct RSData*>(sf->data_);
+        // 400000 means 400 * 1000 is the discriminant time for consecutive clicks
+        if (pointerEvent->GetActionTime() - rsdata.lastTime <= 400000) {
             sf->right_ = false;
             sf->left_ = true;
         }
@@ -164,17 +164,17 @@ void PointerFilter::ProcessSingleAction(const uint32_t action, int x, int y) con
         sf->x_ = x;
         sf->y_ = y;
 
-        sf->mat_ = SkMatrix::MakeTrans(-sf->diffx_, -sf->diffy_).preConcat(sf->mat_);
+        sf->mat_ = SkMatrix::Translate(-sf->diffx_, -sf->diffy_).preConcat(sf->mat_);
         sf->diffx_ = sf->x_ - sf->downRX_;
         sf->diffy_ = sf->y_ - sf->downRY_;
-        sf->mat_ = SkMatrix::MakeTrans(sf->diffx_, sf->diffy_).preConcat(sf->mat_);
+        sf->mat_ = SkMatrix::Translate(sf->diffx_, sf->diffy_).preConcat(sf->mat_);
         sf->UpdateInvertMatrix();
     }
     if (sf->right_ && action == MMIPE::POINTER_ACTION_UP) {
         sf->dirty_ = true;
         sf->right_ = false;
-        sf->mat_ = SkMatrix::MakeTrans(-sf->diffx_, -sf->diffy_).preConcat(sf->mat_);
-        sf->mat_ = SkMatrix::MakeTrans(x - sf->downRX_, y - sf->downRY_).preConcat(sf->mat_);
+        sf->mat_ = SkMatrix::Translate(-sf->diffx_, -sf->diffy_).preConcat(sf->mat_);
+        sf->mat_ = SkMatrix::Translate(x - sf->downRX_, y - sf->downRY_).preConcat(sf->mat_);
         sf->UpdateInvertMatrix();
         sf->diffx_ = sf->diffy_ = 0;
     }
@@ -199,7 +199,7 @@ void PointerFilter::ProcessPointerEvents(const std::shared_ptr<OHOS::MMI::Pointe
     if (action == MMIPE::POINTER_ACTION_DOWN) {
         // 2 is to compute the middle position
         sf->scalex_ = (x1 + x2) / 2;
-        sf->scaley_ = (y1 + y2) / 2;
+        sf->scaley_ = (y1 + y2) / 2;    // 2 means divisor, get the middle position of Y axle
         sf->scalediff_ = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
         sf->scaleMat_ = sf->mat_;
     }
@@ -208,9 +208,11 @@ void PointerFilter::ProcessPointerEvents(const std::shared_ptr<OHOS::MMI::Pointe
         auto scalediff = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
         auto point = sf->invmat_.mapXY(sf->scalex_, sf->scaley_);
         sf->mat_ = sf->scaleMat_;
-        sf->mat_ = sf->mat_.preConcat(SkMatrix::MakeTrans(+point.x(), +point.y()));
-        sf->mat_ = sf->mat_.preConcat(SkMatrix::MakeScale(scalediff / sf->scalediff_.load()));
-        sf->mat_ = sf->mat_.preConcat(SkMatrix::MakeTrans(-point.x(), -point.y()));
+        sf->mat_ = sf->mat_.preConcat(SkMatrix::Translate(+point.x(), +point.y()));
+        auto scale = (scalediff / sf->scalediff_.load()) == 0 ?
+            1 : scalediff / sf->scalediff_.load();
+        sf->mat_ = sf->mat_.preConcat(SkMatrix::Scale(scale, scale));
+        sf->mat_ = sf->mat_.preConcat(SkMatrix::Translate(-point.x(), -point.y()));
         sf->UpdateInvertMatrix();
     }
 }
@@ -318,7 +320,7 @@ void SkiaFramework::Run()
     }
 
     PrepareVsyncFunc();
-    mat_ = mat_.preConcat(SkMatrix::MakeScale(windowScale_, windowScale_));
+    mat_ = mat_.preConcat(SkMatrix::Scale(windowScale_, windowScale_));
     rsdata.RequestVsync();
     TRACE_END();
     rsdata.runner->Run();
@@ -363,7 +365,7 @@ void SkiaFramework::PrepareVsyncFunc()
         constexpr uint32_t stride = 4;
         uint32_t addrSize = buffer->GetWidth() * buffer->GetHeight() * stride;
         void* bitmapAddr = bitmap.getPixels();
-        if (auto ret = memcpy_s(addr, addrSize, bitmapAddr, addrSize); ret != EOK) {
+        if (auto res = memcpy_s(addr, addrSize, bitmapAddr, addrSize); res != EOK) {
             LOGI("memcpy_s failed");
         }
 
@@ -421,7 +423,7 @@ SkPoint3 SkiaFramework::MeasureString(const std::string &str)
 {
     SkFont font;
     font.setTypeface(SkTypeface::MakeFromFile("/system/fonts/HarmonyOS_Sans_SC_Black.ttf"));
-    font.setSize(16);
+    font.setSize(16);   // font size is 16
     auto width = font.measureText(str.data(), str.length(), SkTextEncoding::kUTF8);
     SkFontMetrics metrics;
     font.getMetrics(&metrics);
@@ -446,7 +448,7 @@ void SkiaFramework::DrawBefore(SkCanvas &canvas)
 
     SkFont font;
     font.setTypeface(SkTypeface::MakeFromFile("/system/fonts/HarmonyOS_Sans_SC_Black.ttf"));
-    font.setSize(16);
+    font.setSize(16);   // font size is 16
     DrawPathAndString(canvas, font, paint, textPaint);
 }
 
@@ -467,14 +469,14 @@ void SkiaFramework::DrawPathAndString(SkCanvas &canvas, SkFont &font, SkPaint &p
         path.lineTo(i, 1e9);
     }
 
-    for (int i = top; i <= bottom; i += 20) {
+    for (int i = top; i <= bottom; i += 20) {   // 20 means draw 20 * 20 grids
         path.moveTo(-1e9, i);
         path.lineTo(1e9, i);
     }
     canvas.drawPath(path, paint1);
 
     SkPath path2;
-    for (int i = left; i <= right; i += 100) {
+    for (int i = left; i <= right; i += 100) {  // 100 means draw 100 * 100 grids
         path2.moveTo(i, -1e9);
         path2.lineTo(i, 1e9);
 
@@ -483,7 +485,7 @@ void SkiaFramework::DrawPathAndString(SkCanvas &canvas, SkFont &font, SkPaint &p
         canvas.drawString(ss.str().c_str(), i, font.getSize() + 0, font, paint2);
     }
 
-    for (int i = top; i <= bottom; i += 100) {
+    for (int i = top; i <= bottom; i += 100) {  // 100 means draw 100 * 100 grids
         path2.moveTo(-1e9, i);
         path2.lineTo(1e9, i);
 
@@ -504,7 +506,7 @@ void SkiaFramework::DrawColorPicker(SkCanvas &canvas, SkBitmap &bitmap)
     std::lock_guard<std::mutex> lock(propsMutex_);
     SkFont font;
     font.setTypeface(SkTypeface::MakeFromFile("/system/fonts/HarmonyOS_Sans_SC_Black.ttf"));
-    font.setSize(24);
+    font.setSize(24);   // font size is 24
 
     SkPaint paint;
     paint.setAntiAlias(true);
@@ -545,7 +547,7 @@ void SkiaFramework::DrawAfter(SkCanvas &canvas)
 
     SkFont font;
     font.setTypeface(SkTypeface::MakeFromFile("/system/fonts/HarmonyOS_Sans_SC_Black.ttf"));
-    font.setSize(16);
+    font.setSize(16);   // font size is 16
 
     SkPath path;
     path.moveTo(x_, 0);
@@ -558,8 +560,8 @@ void SkiaFramework::DrawAfter(SkCanvas &canvas)
     ss << "(" << point.x() << ", " << point.y() << ")";
     // 10 is the offset to to start drawing strings
     canvas.drawString(ss.str().c_str(),
-                      x_ + 10,
-                      font.getSize() + y_ + 10,
+                      x_ + 10,  // 10 is the offset to to start drawing strings
+                      font.getSize() + y_ + 10, // 10 is the offset to to start drawing strings
                       font, textPaint);
 
     canvas.drawPath(path, paint);

@@ -39,6 +39,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_IMAGE_PTR,
     UPDATE_MODIFIER_MASK_PTR,
     UPDATE_MODIFIER_PATH_PTR,
+    UPDATE_MODIFIER_GRADIENT_BLUR_PTR,
     UPDATE_MODIFIER_SHADER_PTR,
     UPDATE_MODIFIER_VECTOR2F,
     UPDATE_MODIFIER_VECTOR4_BORDER_STYLE,
@@ -136,6 +137,10 @@ ADD_COMMAND(RSUpdatePropertyMask,
 ADD_COMMAND(RSUpdatePropertyPath,
     ARG(RS_NODE, UPDATE_MODIFIER_PATH_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSPath>>,
         NodeId, std::shared_ptr<RSPath>, PropertyId, bool))
+ADD_COMMAND(RSUpdatePropertyLinearGradientBlurPara,
+    ARG(RS_NODE, UPDATE_MODIFIER_GRADIENT_BLUR_PTR,
+        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSLinearGradientBlurPara>>,
+        NodeId, std::shared_ptr<RSLinearGradientBlurPara>, PropertyId, bool))
 ADD_COMMAND(RSUpdatePropertyShader,
     ARG(RS_NODE, UPDATE_MODIFIER_SHADER_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSShader>>,
         NodeId, std::shared_ptr<RSShader>, PropertyId, bool))

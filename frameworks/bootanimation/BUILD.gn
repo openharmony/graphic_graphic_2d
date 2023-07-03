@@ -56,13 +56,9 @@ ohos_executable("bootanimation") {
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-    "//base/customization/config_policy/frameworks/config_policy:configpolicy_util",
     "//base/global/resource_management/frameworks/resmgr:global_resmgr",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
-    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//foundation/window/window_manager/dm:libdm",
-    "//foundation/window/window_manager/wm:libwm",
     "//third_party/cJSON:cjson_static",
     "//third_party/zlib:libz",
   ]
@@ -73,9 +69,17 @@ ohos_executable("bootanimation") {
     deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
   }
 
+  if (defined(use_new_render_context) && use_new_render_context) {
+    deps += [ "$graphic_2d_root/rosen/modules/render_service_base/src/render_backend:librender_backend" ]
+  }
+
   external_deps = [
+    "config_policy:configpolicy_util",
+    "hilog_native:libhilog",
     "hitrace_native:hitrace_meter",
     "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "window_manager:libwm",
   ]
 
   if (is_standard_system) {

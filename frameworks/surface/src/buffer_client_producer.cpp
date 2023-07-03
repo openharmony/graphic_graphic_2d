@@ -76,8 +76,17 @@ GSError BufferClientProducer::RequestBuffer(const BufferRequestConfig &config, s
     SEND_REQUEST(BUFFER_PRODUCER_REQUEST_BUFFER, arguments, reply, option);
     CHECK_RETVAL_WITH_SEQ(reply, retval.sequence);
 
-    ReadSurfaceBufferImpl(reply, retval.sequence, retval.buffer);
-    bedata->ReadFromParcel(reply);
+    GSError ret = ReadSurfaceBufferImpl(reply, retval.sequence, retval.buffer);
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Read surface buffer impl failed, return %{public}d", ret);
+        return ret;
+    }
+
+    ret = bedata->ReadFromParcel(reply);
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Read extra data from parcel failed, return %{public}d", ret);
+        return ret;
+    }
     retval.fence = SyncFence::ReadFromMessageParcel(reply);
     reply.ReadInt32Vector(&retval.deletingBuffers);
 
@@ -393,7 +402,7 @@ GSError BufferClientProducer::SetMetaDataSet(uint32_t sequence, GraphicHDRMetada
     return GSERROR_OK;
 }
 
-GSError BufferClientProducer::SetTunnelHandle(const OHExtDataHandle *handle)
+GSError BufferClientProducer::SetTunnelHandle(const GraphicExtDataHandle *handle)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
     if (handle == nullptr) {

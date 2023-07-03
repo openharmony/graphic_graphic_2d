@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic_standard/rosen/test/texgine/unittest"
-is_ok = false
+is_ok = true
 
 group("unittest") {
   testonly = true
@@ -26,21 +26,23 @@ group("unittest") {
       ":texgine_unittest_part3",
       ":texgine_unittest_part4",
       ":texgine_unittest_part5",
+      ":texgine_unittest_part6",
     ]
   }
 }
 
 config("texgine_test_config") {
-  visibility = [ ":*" ]
   include_dirs = [
-    "$graphic_2d_root/rosen/modules/texgine/exports/texgine",
+    "$graphic_2d_root/rosen/modules/texgine/export/texgine",
     "$graphic_2d_root/rosen/modules/texgine/src",
     "$graphic_2d_root/rosen/modules/texgine/texgine_drawing",
+    "$graphic_2d_root/rosen/modules/texgine/texgine_drawing/src",
   ]
 }
 
 group("common_deps") {
-  deps = [
+  testonly = true
+  public_deps = [
     "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_ohos",
     "$graphic_2d_root/rosen/modules/texgine:libtexgine",
     "$graphic_2d_root/rosen/modules/texgine/texgine_drawing:libtexgine_drawing",
@@ -66,9 +68,9 @@ ohos_unittest("texgine_unittest_part1") {
     "variant_span_test.cpp",
   ]
 
-  configs = [ ":texgine_test_config" ]
+  public_configs = [ ":texgine_test_config" ]
 
-  deps = [ ":common_deps" ]
+  public_deps = [ ":common_deps" ]
 
   use_exceptions = true
 
@@ -84,11 +86,10 @@ ohos_unittest("texgine_unittest_part2") {
     "system_font_provider_test.cpp",
     "text_shaper_test.cpp",
     "typeface_test.cpp",
-    "word_breaker_test.cpp",
   ]
 
-  configs = [ ":texgine_test_config" ]
-  deps = [ ":common_deps" ]
+  public_configs = [ ":texgine_test_config" ]
+  public_deps = [ ":common_deps" ]
 
   use_exceptions = true
 
@@ -101,12 +102,13 @@ ohos_unittest("texgine_unittest_part3") {
 
   sources = [
     "font_collection_test.cpp",
+    "font_parser_test.cpp",
     "line_breaker_test.cpp",
     "text_breaker_test.cpp",
   ]
 
-  configs = [ ":texgine_test_config" ]
-  deps = [ ":common_deps" ]
+  public_configs = [ ":texgine_test_config" ]
+  public_deps = [ ":common_deps" ]
 
   use_exceptions = true
 
@@ -122,8 +124,8 @@ ohos_unittest("texgine_unittest_part4") {
     "measurer_test.cpp",
   ]
 
-  configs = [ ":texgine_test_config" ]
-  deps = [ ":common_deps" ]
+  public_configs = [ ":texgine_test_config" ]
+  public_deps = [ ":common_deps" ]
 
   use_exceptions = true
 
@@ -134,10 +136,33 @@ ohos_unittest("texgine_unittest_part4") {
 ohos_unittest("texgine_unittest_part5") {
   module_out_path = module_output_path
 
-  sources = [ "measurer_impl_test.cpp" ]
+  sources = [
+    "measurer_impl_test.cpp",
+    "texgine_canvas_test.cpp",
+    "texgine_dash_path_effect_test.cpp",
+    "texgine_data_test.cpp",
+    "texgine_font_manager_test.cpp",
+    "texgine_font_metrics_test.cpp",
+    "texgine_font_style_set_test.cpp",
+    "typography_impl_test.cpp",
+  ]
 
-  configs = [ ":texgine_test_config" ]
-  deps = [ ":common_deps" ]
+  public_configs = [ ":texgine_test_config" ]
+  public_deps = [ ":common_deps" ]
+
+  use_exceptions = true
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+ohos_unittest("texgine_unittest_part6") {
+  module_out_path = module_output_path
+
+  sources = [ "font_manager_test.cpp" ]
+
+  public_configs = [ ":texgine_test_config" ]
+  public_deps = [ ":common_deps" ]
 
   use_exceptions = true
 

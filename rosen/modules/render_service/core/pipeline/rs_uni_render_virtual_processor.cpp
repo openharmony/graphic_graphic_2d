@@ -18,7 +18,9 @@
 #include <ctime>
 
 #include "platform/common/rs_log.h"
+#ifndef NEW_RENDER_CONTEXT
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
+#endif
 #include "pipeline/rs_uni_render_util.h"
 #include "rs_trace.h"
 #include "string_utils.h"
@@ -65,11 +67,23 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
             node.SetInitMatrix(boundsGeoPtr->GetMatrix());
         }
     }
+#ifndef USE_ROSEN_DRAWING
     SkMatrix invertMatrix;
     if (node.GetInitMatrix().invert(&invertMatrix)) {
         screenTransformMatrix_.postConcat(invertMatrix);
     }
     canvas_->concat(screenTransformMatrix_);
+#else
+    Drawing::Matrix invertMatrix;
+    if (node.GetInitMatrix().Invert(invertMatrix)) {
+        if (invertMatrix.Get(Drawing::Matrix::Index::SCALE_X) == 1 &&
+            invertMatrix.Get(Drawing::Matrix::Index::SCALE_Y) == 1 &&
+            invertMatrix.Get(Drawing::Matrix::Index::PERSP_2) == 1) {
+            screenTransformMatrix_* invertMatrix;
+        }
+    }
+    canvas_->ConcatMatrix(screenTransformMatrix_);
+#endif
     return true;
 }
 
@@ -101,10 +115,17 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
             RS_LOGE("RSUniRenderVirtualProcessor::ProcessDisplaySurface: Canvas or buffer is null!");
             return;
         }
+#ifndef USE_ROSEN_DRAWING
         SkMatrix invertMatrix;
         if (screenTransformMatrix_.invert(&invertMatrix)) {
             canvas_->concat(invertMatrix);
         }
+#else
+        Drawing::Matrix invertMatrix;
+        if (screenTransformMatrix_.Invert(invertMatrix)) {
+            canvas_->ConcatMatrix(invertMatrix);
+        }
+#endif
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU_);
         renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
     }

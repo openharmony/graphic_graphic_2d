@@ -31,7 +31,7 @@ public:
     void CreateTransactionFinished() override;
 
 private:
-    void SetTransactionFinishedCallback(TransactionFinishedCallback& callback);
+    void SetTransactionFinishedCallback(const TransactionFinishedCallback& callback);
 
     TransactionFinishedCallback callback_;
 

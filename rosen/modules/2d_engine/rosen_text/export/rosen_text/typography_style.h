@@ -51,7 +51,7 @@ struct TypographyStyle {
     std::string locale_;
 
     BreakStrategy breakStrategy_ = BreakStrategy::GREEDY;
-    WordBreakType wordBreakType_ = WordBreakType::BREAKWORD;
+    WordBreakType wordBreakType_ = WordBreakType::BREAK_WORD;
 
     TextStyle GetTextStyle() const;
     TextAlign GetEffectiveAlign() const;

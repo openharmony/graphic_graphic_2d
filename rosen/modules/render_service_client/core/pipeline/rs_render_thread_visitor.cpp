@@ -16,11 +16,16 @@
 #include "pipeline/rs_render_thread_visitor.h"
 
 #include <cmath>
+#ifndef USE_ROSEN_DRAWING
 #include <include/core/SkColor.h>
 #include <include/core/SkFont.h>
 #include <include/core/SkMatrix.h>
 #include <include/core/SkPaint.h>
 #include <include/core/SkRect.h>
+#else
+#include "draw/color.h"
+#include "drawing/engine_adapter/impl_interface/matrix_impl.h"
+#endif
 
 #include "rs_trace.h"
 
@@ -29,13 +34,18 @@
 #include "common/rs_vector4.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
+#include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_render_thread.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#ifdef NEW_RENDER_CONTEXT
+#include "rs_render_surface.h"
+#else
 #include "platform/drawing/rs_surface.h"
+#endif
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
@@ -76,6 +86,7 @@ bool RSRenderThreadVisitor::IsValidRootRenderNode(RSRootRenderNode& node)
 
 void RSRenderThreadVisitor::SetPartialRenderStatus(PartialRenderType status, bool isRenderForced)
 {
+    RS_TRACE_FUNC();
     isRenderForced_ = isRenderForced;
     dfxDirtyType_ = RSSystemProperties::GetDirtyRegionDebugType();
     isEglSetDamageRegion_ = !isRenderForced_ && (status != PartialRenderType::DISABLED);
@@ -127,7 +138,7 @@ void RSRenderThreadVisitor::ResetAndPrepareChildrenNode(RSRenderNode& node,
     std::shared_ptr<RSBaseRenderNode> nodeParent)
 {
     // merge last childRect as dirty if any child has been removed
-    if (node.HasRemovedChild()) {
+    if (curDirtyManager_ && node.HasRemovedChild()) {
         curDirtyManager_->MergeDirtyRect(node.GetChildrenRect());
         node.ResetHasRemovedChild();
     }
@@ -142,7 +153,7 @@ void RSRenderThreadVisitor::ResetAndPrepareChildrenNode(RSRenderNode& node,
 void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
     node.ApplyModifiers();
-    if (!node.ShouldPaint()) {
+    if (!node.ShouldPaint() || curDirtyManager_ == nullptr) {
         return;
     }
     bool dirtyFlag = dirtyFlag_;
@@ -152,17 +163,20 @@ void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
         rsParent = nodeParent->ReinterpretCastTo<RSRenderNode>();
     }
     dirtyFlag_ = node.Update(*curDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr, dirtyFlag_);
-    if (node.IsDirtyRegionUpdated() && curDirtyManager_ != nullptr &&
-        curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
+    if (node.IsDirtyRegionUpdated() && curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
         curDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::CANVAS_NODE,
             DirtyRegionType::UPDATE_DIRTY_REGION, node.GetOldDirty());
     }
     ResetAndPrepareChildrenNode(node, nodeParent);
+    node.UpdateEffectRegion(effectRegion_);
     dirtyFlag_ = dirtyFlag;
 }
 
 void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
+    if (curDirtyManager_ == nullptr) {
+        return;
+    }
     node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
     auto nodeParent = node.GetParent().lock();
@@ -177,8 +191,7 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         node.SetDirty();
     }
     dirtyFlag_ = node.Update(*curDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr, dirtyFlag_);
-    if (node.IsDirtyRegionUpdated() && curDirtyManager_ != nullptr &&
-        curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
+    if (node.IsDirtyRegionUpdated() && curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
         curDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::SURFACE_NODE,
             DirtyRegionType::UPDATE_DIRTY_REGION, node.GetOldDirty());
     }
@@ -186,13 +199,42 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     dirtyFlag_ = dirtyFlag;
 }
 
+void RSRenderThreadVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
+{
+    node.ApplyModifiers();
+    if (!node.ShouldPaint() || curDirtyManager_ == nullptr) {
+        return;
+    }
+    auto effectRegion = effectRegion_;
+
+    effectRegion_ = SkPath();
+    bool dirtyFlag = dirtyFlag_;
+    auto nodeParent = node.GetParent().lock();
+    std::shared_ptr<RSRenderNode> rsParent = nullptr;
+    if (nodeParent != nullptr) {
+        rsParent = nodeParent->ReinterpretCastTo<RSRenderNode>();
+    }
+    dirtyFlag_ = node.Update(*curDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr, dirtyFlag_);
+    ResetAndPrepareChildrenNode(node, nodeParent);
+    node.SetEffectRegion(effectRegion_);
+
+    effectRegion_ = effectRegion;
+    dirtyFlag_ = dirtyFlag;
+}
+
+#ifndef USE_ROSEN_DRAWING
 void RSRenderThreadVisitor::DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color,
     const SkPaint::Style fillType, float alpha, int strokeWidth)
+#else
+void RSRenderThreadVisitor::DrawRectOnCanvas(const RectI& dirtyRect, const Drawing::ColorQuad color,
+    RSPaintStyle fillType, float alpha, int strokeWidth)
+#endif // USE_ROSEN_DRAWING
 {
     if (dirtyRect.IsEmpty()) {
         ROSEN_LOGD("DrawRectOnCanvas dirty rect is invalid.");
         return;
     }
+#ifndef USE_ROSEN_DRAWING
     auto skRect = SkRect::MakeXYWH(dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
     SkPaint rectPaint;
     rectPaint.setColor(color);
@@ -204,6 +246,28 @@ void RSRenderThreadVisitor::DrawRectOnCanvas(const RectI& dirtyRect, const SkCol
         rectPaint.setStrokeJoin(SkPaint::kRound_Join);
     }
     canvas_->drawRect(skRect, rectPaint);
+#else
+    auto drawingRect = Drawing::Rect(dirtyRect.left_, dirtyRect.top_,
+        dirtyRect.width_ + dirtyRect.left_, dirtyRect.height_ + dirtyRect.top_);
+    Drawing::Pen pen;
+    Drawing::Brush brush;
+    if (fillType == RSPaintStyle::STROKE) {
+        pen.SetColor(color);
+        pen.SetAntiAlias(true);
+        pen.SetAlphaF(alpha);
+        pen.SetWidth(strokeWidth);
+        pen.SetJoinStyle(Drawing::Pen::JoinStyle::ROUND_JOIN);
+        canvas_->AttachPen(pen);
+    } else if (fillType == RSPaintStyle::FILL) {
+        brush.SetColor(color);
+        brush.SetAntiAlias(true);
+        brush.SetAlphaF(alpha);
+        canvas_->AttachBrush(brush);
+    }
+    canvas_->DrawRect(drawingRect);
+    canvas_->DetachPen();
+    canvas_->DetachBrush();
+#endif // USE_ROSEN_DRAWING
 }
 
 void RSRenderThreadVisitor::DrawDirtyRegion()
@@ -219,8 +283,13 @@ void RSRenderThreadVisitor::DrawDirtyRegion()
         } else {
             ROSEN_LOGD("DrawDirtyRegion his dirty rect. dirtyRect = %s", dirtyRect.ToString().c_str());
             // green
+#ifndef USE_ROSEN_DRAWING
             DrawRectOnCanvas(dirtyRect, 0x442FDD2F, SkPaint::kFill_Style, fillAlpha);
             DrawRectOnCanvas(dirtyRect, 0xFF2FDD2F, SkPaint::kStroke_Style, edgeAlpha);
+#else
+            DrawRectOnCanvas(dirtyRect, 0x442FDD2F, RSPaintStyle::FILL, fillAlpha);
+            DrawRectOnCanvas(dirtyRect, 0xFF2FDD2F, RSPaintStyle::STROKE, edgeAlpha);
+#endif // USE_ROSEN_DRAWING
         }
     }
 
@@ -232,8 +301,13 @@ void RSRenderThreadVisitor::DrawDirtyRegion()
         } else {
             ROSEN_LOGD("DrawDirtyRegion cur dirty rect. dirtyRect = %s", dirtyRect.ToString().c_str());
             // yellow
+#ifndef USE_ROSEN_DRAWING
             DrawRectOnCanvas(dirtyRect, 0x88FFFF00, SkPaint::kFill_Style, fillAlpha);
             DrawRectOnCanvas(dirtyRect, 0xFFFFFF00, SkPaint::kStroke_Style, edgeAlpha);
+#else
+            DrawRectOnCanvas(dirtyRect, 0x88FFFF00, RSPaintStyle::FILL, fillAlpha);
+            DrawRectOnCanvas(dirtyRect, 0xFFFFFF00, RSPaintStyle::STROKE, edgeAlpha);
+#endif // USE_ROSEN_DRAWING
         }
     }
 
@@ -247,9 +321,13 @@ void RSRenderThreadVisitor::DrawDirtyRegion()
         for (const auto& [nid, subRect] : dirtyRegionRects_) {
             ROSEN_LOGD("DrawDirtyRegion canvas node id %" PRIu64 " is dirty. dirtyRect = %s",
                 nid, subRect.ToString().c_str());
+#ifndef USE_ROSEN_DRAWING
             DrawRectOnCanvas(subRect, 0x88FF0000, SkPaint::kStroke_Style, edgeAlpha, strokeWidth);
+#else
+            DrawRectOnCanvas(subRect, 0x88FF0000, RSPaintStyle::STROKE, edgeAlpha, strokeWidth);
+#endif // USE_ROSEN_DRAWING
         }
-        
+
         curDirtyManager_->GetDirtyRegionInfo(dirtyRegionRects_, RSRenderNodeType::SURFACE_NODE,
             DirtyRegionType::UPDATE_DIRTY_REGION);
         ROSEN_LOGD("DrawDirtyRegion surface dirtyRegionRects_ size %zu", dirtyRegionRects_.size());
@@ -257,18 +335,34 @@ void RSRenderThreadVisitor::DrawDirtyRegion()
         for (const auto& [nid, subRect] : dirtyRegionRects_) {
             ROSEN_LOGD("DrawDirtyRegion surface node id %" PRIu64 " is dirty. dirtyRect = %s",
                 nid, subRect.ToString().c_str());
+#ifndef USE_ROSEN_DRAWING
             DrawRectOnCanvas(subRect, 0xFFD864D8, SkPaint::kStroke_Style, edgeAlpha, strokeWidth);
+#else
+            DrawRectOnCanvas(subRect, 0xFFD864D8, RSPaintStyle::STROKE, edgeAlpha, strokeWidth);
+#endif // USE_ROSEN_DRAWING
         }
     }
 }
 
+#ifdef NEW_RENDER_CONTEXT
+void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::shared_ptr<RSRenderSurface>& surface)
+#else
 void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSSurfaceFrame>& surfaceFrame)
+#endif
 {
     RS_TRACE_BEGIN("UpdateDirtyAndSetEGLDamageRegion");
 #ifdef RS_ENABLE_EGLQUERYSURFACE
     if (isEglSetDamageRegion_) {
         // get and update valid buffer age(>0) to merge history
+#if defined(NEW_RENDER_CONTEXT)
+        if (surface == nullptr) {
+            ROSEN_LOGE("Failed to UpdateDirtyAndSetEGLDamageRegion, surface is nullptr");
+            return;
+        }
+        int32_t bufferAge = surface->GetBufferAge();
+#else
         int32_t bufferAge = surfaceFrame->GetBufferAge();
+#endif
         if (!curDirtyManager_->SetBufferAge(bufferAge)) {
             ROSEN_LOGD("ProcessRootRenderNode SetBufferAge with invalid buffer age %d", bufferAge);
             curDirtyManager_->ResetDirtyAsSurfaceSize();
@@ -281,8 +375,14 @@ void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSS
             // get dirty rect coordinated from upper left to lower left corner in current surface
             RectI dirtyRectFlip = curDirtyManager_->GetRectFlipWithinSurface(curDirtyRegion_);
             // set dirty rect as eglSurfaceFrame's damage region
+#if defined(NEW_RENDER_CONTEXT)
+            std::vector<RectI> dirtyRects;
+            dirtyRects.push_back(dirtyRectFlip);
+            surface->SetDamageRegion(dirtyRects);
+#else
             surfaceFrame->SetDamageRegion(dirtyRectFlip.left_, dirtyRectFlip.top_, dirtyRectFlip.width_,
                 dirtyRectFlip.height_);
+#endif
             // flip aligned rect for op drops
             curDirtyRegion_ = curDirtyManager_->GetRectFlipWithinSurface(dirtyRectFlip);
             ROSEN_LOGD("GetPartialRenderEnabled buffer age %d, dirtyRectFlip = [%d, %d, %d, %d], "
@@ -328,7 +428,11 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #ifndef ROSEN_CROSS_PLATFORM
     auto surfaceNodeColorSpace = ptr->GetColorSpace();
 #endif
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RSRenderSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(ptr);
+#else
     std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(ptr);
+#endif
     if (rsSurface == nullptr) {
         ROSEN_LOGE("ProcessRoot %s: No RSSurface found", ptr->GetName().c_str());
         return;
@@ -344,8 +448,14 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     }
 #endif
 
-#ifdef ACE_ENABLE_GL
+#if defined(ACE_ENABLE_GL)
+#if defined(NEW_RENDER_CONTEXT)
+    std::shared_ptr<RenderContextBase> rc = RSRenderThread::Instance().GetRenderContext();
+    std::shared_ptr<DrawingContext> dc = RSRenderThread::Instance().GetDrawingContext();
+    rsSurface->SetDrawingContext(dc);
+#else
     RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
+#endif
     rsSurface->SetRenderContext(rc);
 #endif
     uiTimestamp_ = RSRenderThread::Instance().GetUITimestamp();
@@ -370,8 +480,12 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #endif
         return;
     }
-
+#ifndef USE_ROSEN_DRAWING
+#ifdef NEW_RENDER_CONTEXT
+    auto skSurface = rsSurface->GetSurface();
+#else
     auto skSurface = surfaceFrame->GetSurface();
+#endif
     if (skSurface == nullptr) {
         ROSEN_LOGE("skSurface null.");
         return;
@@ -380,6 +494,17 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         ROSEN_LOGE("skSurface.getCanvas is null.");
         return;
     }
+#else
+    auto surface = surfaceFrame->GetSurface();
+    if (surface == nullptr) {
+        ROSEN_LOGE("surface null.");
+        return;
+    }
+    if (surface->GetCanvas() == nullptr) {
+        ROSEN_LOGE("surface.GetCanvas is null.");
+        return;
+    }
+#endif
 
 #ifdef ROSEN_OHOS
     // if listenedCanvas is nullptr, that means disabled or listen failed
@@ -388,10 +513,14 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 
     if (RSOverdrawController::GetInstance().IsEnabled()) {
         auto &oc = RSOverdrawController::GetInstance();
+#ifndef USE_ROSEN_DRAWING
         listenedCanvas = std::make_shared<RSListenedCanvas>(skSurface.get());
-        overdrawListener = oc.CreateListener<RSGPUOverdrawCanvasListener>(listenedCanvas.get());
+#else
+        listenedCanvas = std::make_shared<RSListenedCanvas>(*surface);
+#endif
+        overdrawListener = oc.CreateListener<RSCPUOverdrawCanvasListener>(listenedCanvas.get());
         if (overdrawListener == nullptr) {
-            overdrawListener = oc.CreateListener<RSCPUOverdrawCanvasListener>(listenedCanvas.get());
+            overdrawListener = oc.CreateListener<RSGPUOverdrawCanvasListener>(listenedCanvas.get());
         }
 
         if (overdrawListener != nullptr) {
@@ -405,10 +534,18 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     if (listenedCanvas != nullptr) {
         canvas_ = listenedCanvas;
     } else {
+#ifndef USE_ROSEN_DRAWING
         canvas_ = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
+#else
+        canvas_ = std::make_shared<RSPaintFilterCanvas>(surface.get());
+#endif // USE_ROSEN_DRAWING
     }
 #else
+#ifndef USE_ROSEN_DRAWING
     canvas_ = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
+#else
+    canvas_ = std::make_shared<RSPaintFilterCanvas>(surface.get());
+#endif // USE_ROSEN_DRAWING
 #endif
 
     canvas_->SetHighContrast(RSRenderThread::Instance().isHighContrastEnabled());
@@ -421,26 +558,47 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     // reset matrix
     const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
     const float rootHeight = property.GetFrameHeight() * property.GetScaleY();
+#ifndef USE_ROSEN_DRAWING
     SkMatrix gravityMatrix;
+#else
+    Drawing::Matrix gravityMatrix;
+#endif // USE_ROSEN_DRAWING
     (void)RSPropertiesPainter::GetGravityMatrix(
         Gravity::RESIZE, RectF { 0.0f, 0.0f, bufferWidth, bufferHeight }, rootWidth, rootHeight, gravityMatrix);
 
     if (isRenderForced_ ||
-        curDirtyManager_->GetDirtyRegion().GetWidth() == 0 ||
-        curDirtyManager_->GetDirtyRegion().GetHeight() == 0 ||
+        curDirtyManager_->GetCurrentFrameDirtyRegion().GetWidth() == 0 ||
+        curDirtyManager_->GetCurrentFrameDirtyRegion().GetHeight() == 0 ||
+#ifndef USE_ROSEN_DRAWING
         !gravityMatrix.isIdentity()) {
+#else
+        !(gravityMatrix == Drawing::Matrix())) {
+#endif // USE_ROSEN_DRAWING
         curDirtyManager_->ResetDirtyAsSurfaceSize();
     }
+#ifdef NEW_RENDER_CONTEXT
+    UpdateDirtyAndSetEGLDamageRegion(rsSurface);
+#else
     UpdateDirtyAndSetEGLDamageRegion(surfaceFrame);
+#endif
 
+#ifndef USE_ROSEN_DRAWING
     canvas_->clipRect(SkRect::MakeWH(bufferWidth, bufferHeight));
     canvas_->clear(SK_ColorTRANSPARENT);
+#else
+    canvas_->ClipRect(Drawing::Rect(0, 0, bufferWidth, bufferHeight), Drawing::ClipOp::INTERSECT, false);
+    canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+#endif // USE_ROSEN_DRAWING
     isIdle_ = false;
 
     // clear current children before traversal, we will re-add them again during traversal
     childSurfaceNodeIds_.clear();
 
+#ifndef USE_ROSEN_DRAWING
     canvas_->concat(gravityMatrix);
+#else
+    canvas_->ConcatMatrix(gravityMatrix);
+#endif // USE_ROSEN_DRAWING
     parentSurfaceNodeMatrix_ = gravityMatrix;
 
     RS_TRACE_BEGIN("ProcessRenderNodes");
@@ -483,7 +641,11 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     RS_TRACE_BEGIN(ptr->GetName() + " rsSurface->FlushFrame");
     ROSEN_LOGD("RSRenderThreadVisitor FlushFrame surfaceNodeId = %" PRIu64 ", uiTimestamp = %" PRIu64,
         node.GetRSSurfaceNodeId(), uiTimestamp_);
+#ifdef NEW_RENDER_CONTEXT
+    rsSurface->FlushFrame(uiTimestamp_);
+#else
     rsSurface->FlushFrame(surfaceFrame, uiTimestamp_);
+#endif
 #ifdef ROSEN_OHOS
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::FlushEnd);
 #endif
@@ -513,7 +675,6 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         if (node.GetCacheType() != CacheType::ANIMATE_PROPERTY) {
             node.SetCacheType(CacheType::ANIMATE_PROPERTY);
             node.ClearCacheSurface();
-            node.InitCacheSurface(*canvas_);
         }
         if (!node.GetCompletedCacheSurface() && UpdateAnimatePropertyCacheSurface(node)) {
             node.UpdateCompletedCacheSurface();
@@ -537,11 +698,12 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 
 bool RSRenderThreadVisitor::UpdateAnimatePropertyCacheSurface(RSRenderNode& node)
 {
-    if (node.GetCompletedCacheSurface()) {
-        return true;
-    }
     if (!node.GetCacheSurface()) {
-        return false;
+#ifdef NEW_SKIA
+        node.InitCacheSurface(canvas_ ? canvas_->recordingContext() : nullptr);
+#else
+        node.InitCacheSurface(canvas_ ? canvas_->getGrContext() : nullptr);
+#endif
     }
     auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
     if (!cacheCanvas) {
@@ -567,6 +729,21 @@ bool RSRenderThreadVisitor::UpdateAnimatePropertyCacheSurface(RSRenderNode& node
     return true;
 }
 
+void RSRenderThreadVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
+{
+    if (!node.ShouldPaint()) {
+        RS_LOGD("RSRenderThreadVisitor::ProcessEffectRenderNode, no need process");
+        return;
+    }
+    if (!canvas_) {
+        RS_LOGE("RSRenderThreadVisitor::ProcessEffectRenderNode, canvas is nullptr");
+        return;
+    }
+    node.ProcessRenderBeforeChildren(*canvas_);
+    ProcessBaseRenderNode(node);
+    node.ProcessRenderAfterChildren(*canvas_);
+}
+
 void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     if (!canvas_) {
@@ -580,11 +757,19 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     // RSSurfaceRenderNode in RSRenderThreadVisitor do not have information of property.
     // We only get parent's matrix and send it to RenderService
+#ifndef USE_ROSEN_DRAWING
     SkMatrix invertMatrix;
     SkMatrix contextMatrix = canvas_->getTotalMatrix();
 
     if (parentSurfaceNodeMatrix_.invert(&invertMatrix)) {
         contextMatrix.preConcat(invertMatrix);
+#else
+    Drawing::Matrix invertMatrix;
+    Drawing::Matrix contextMatrix = canvas_->GetTotalMatrix();
+
+    if (parentSurfaceNodeMatrix_.Invert(invertMatrix)) {
+        contextMatrix.PreConcat(invertMatrix);
+#endif // USE_ROSEN_DRAWING
     } else {
         ROSEN_LOGE("RSRenderThreadVisitor::ProcessSurfaceRenderNode, invertMatrix failed");
     }
@@ -596,9 +781,15 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetContextBounds(node.GetRenderProperties().GetBounds());
 
     auto clipRect = RSPaintFilterCanvas::GetLocalClipBounds(*canvas_);
+#ifndef USE_ROSEN_DRAWING
     if (!clipRect.has_value() ||
         clipRect->width() < std::numeric_limits<float>::epsilon() ||
         clipRect->height() < std::numeric_limits<float>::epsilon()) {
+#else
+    if (!clipRect.has_value() ||
+        clipRect->GetWidth() < std::numeric_limits<float>::epsilon() ||
+        clipRect->GetHeight() < std::numeric_limits<float>::epsilon()) {
+#endif
         // if clipRect is empty, this node will be removed from parent's children list.
         node.SetContextClipRegion(std::nullopt);
         return;
@@ -615,7 +806,11 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     std::vector<NodeId> siblingSurfaceNodeIds(std::move(childSurfaceNodeIds_));
     childSurfaceNodeIds_.clear();
     auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
+#ifndef USE_ROSEN_DRAWING
     parentSurfaceNodeMatrix_ = canvas_->getTotalMatrix();
+#else
+    parentSurfaceNodeMatrix_ = canvas_->GetTotalMatrix();
+#endif // USE_ROSEN_DRAWING
 
     // 3. traversal children, child surface node will be added to childSurfaceNodeIds_
     // note: apply current node properties onto canvas if there is any child node
@@ -638,11 +833,19 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
 
     // 6.draw border
+#ifndef USE_ROSEN_DRAWING
     canvas_->save();
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     canvas_->concat(geoPtr->GetMatrix());
     RSPropertiesPainter::DrawBorder(node.GetRenderProperties(), *canvas_);
     canvas_->restore();
+#else
+    canvas_->Save();
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+    canvas_->ConcatMatrix(geoPtr->GetMatrix());
+    RSPropertiesPainter::DrawBorder(node.GetRenderProperties(), *canvas_);
+    canvas_->Restore();
+#endif
 }
 
 void RSRenderThreadVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)
@@ -654,6 +857,7 @@ void RSRenderThreadVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)
     // RSProxyRenderNode in RSRenderThreadVisitor do not have information of property.
     // We only get parent's matrix and send it to RenderService
 #ifdef ROSEN_OHOS
+#ifndef USE_ROSEN_DRAWING
     SkMatrix invertMatrix;
     SkMatrix contextMatrix = canvas_->getTotalMatrix();
     if (parentSurfaceNodeMatrix_.invert(&invertMatrix)) {
@@ -661,6 +865,16 @@ void RSRenderThreadVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)
     } else {
         ROSEN_LOGE("RSRenderThreadVisitor::ProcessProxyRenderNode, invertMatrix failed");
     }
+#else
+    Drawing::Matrix invertMatrix;
+    Drawing::Matrix contextMatrix = canvas_->GetTotalMatrix();
+
+    if (parentSurfaceNodeMatrix_.Invert(invertMatrix)) {
+        contextMatrix.PreConcat(invertMatrix);
+    } else {
+        ROSEN_LOGE("RSRenderThreadVisitor::ProcessProxyRenderNode, invertMatrix failed");
+    }
+#endif // USE_ROSEN_DRAWING
     node.SetContextMatrix(contextMatrix);
     node.SetContextAlpha(canvas_->GetAlpha());
 
@@ -684,6 +898,7 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
     auto y = std::ceil(node.GetRenderProperties().GetBoundsPositionY() + pixel); // y increase 1 pixel
     auto width = std::floor(node.GetRenderProperties().GetBoundsWidth() - (2 * pixel)); // width decrease 2 pixels
     auto height = std::floor(node.GetRenderProperties().GetBoundsHeight() - (2 * pixel)); // height decrease 2 pixels
+#ifndef USE_ROSEN_DRAWING
     canvas_->save();
     SkRect originRect = SkRect::MakeXYWH(x, y, width, height);
     canvas_->clipRect(originRect);
@@ -700,6 +915,24 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
         }
     }
     canvas_->restore();
+#else
+    canvas_->Save();
+    Drawing::Rect originRect = Drawing::Rect(x, y, width + x, height + y);
+    canvas_->ClipRect(originRect, Drawing::ClipOp::INTERSECT, false);
+    if (node.IsNotifyRTBufferAvailable() == true) {
+        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %" PRIu64 ", clip [%f, %f, %f, %f]",
+            node.GetId(), x, y, width, height);
+        canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    } else {
+        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %" PRIu64 ", not clip [%f, %f, %f, %f]",
+            node.GetId(), x, y, width, height);
+        auto backgroundColor = node.GetRenderProperties().GetBackgroundColor();
+        if (backgroundColor != RgbPalette::Transparent()) {
+            canvas_->Clear(backgroundColor.AsArgbInt());
+        }
+    }
+    canvas_->Restore();
+#endif // USE_ROSEN_DRAWING
 }
 
 void RSRenderThreadVisitor::SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)

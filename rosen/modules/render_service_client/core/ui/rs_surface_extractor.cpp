@@ -19,8 +19,11 @@
 
 namespace OHOS {
 namespace Rosen {
-
+#ifdef NEW_RENDER_CONTEXT
+std::shared_ptr<RSRenderSurface> RSSurfaceExtractor::ExtractRSSurface(std::shared_ptr<RSSurfaceNode> node)
+#else
 std::shared_ptr<RSSurface> RSSurfaceExtractor::ExtractRSSurface(std::shared_ptr<RSSurfaceNode> node)
+#endif
 {
     if (node == nullptr) {
         ROSEN_LOGE("RSSurfaceExtractor::ExtractRSSurface, node is nullptr");

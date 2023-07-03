@@ -39,6 +39,12 @@
 #include <mutex>
 #endif
 
+#ifdef _WIN32
+#define RS_EXPORT __attribute__((dllexport))
+#else
+#define RS_EXPORT __attribute__((visibility("default")))
+#endif
+
 namespace OHOS {
 /**
  * @ingroup SmartPointer
@@ -376,7 +382,7 @@ private:
  * @note All classes which intend to be managed by smart pointers should be 
  * derived from RefBase.
  */
-class RefBase {
+class RS_EXPORT RefBase {
 public:
     RefBase();
 

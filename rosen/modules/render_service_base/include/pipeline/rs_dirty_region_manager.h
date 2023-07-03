@@ -58,23 +58,37 @@ public:
     static constexpr int32_t ALIGNED_BITS = 32;
     RSDirtyRegionManager();
     ~RSDirtyRegionManager() = default;
+    // update/expand current frame dirtyregion
     void MergeDirtyRect(const RectI& rect);
+    // update/expand dirtyregion after merge history
+    void MergeDirtyRectAfterMergeHistory(const RectI& rect);
+    // clip dirtyregion in current frame
     void IntersectDirtyRect(const RectI& rect);
-    // Clip dirtyRegion intersected with surfaceRect
+    // Clip currentframe dirtyRegion intersected with surfaceRect
     void ClipDirtyRectWithinSurface();
+    // clear allinfo except dirtyregion history
     void Clear();
+    // return current frame dirtyregion, can be changed in prepare and process (displaynode) stage
+    const RectI& GetCurrentFrameDirtyRegion();
     // return merged historical region
     const RectI& GetDirtyRegion() const;
-    // return merged historical region upsize down in surface
+    /*  return merged historical region upside down in left-bottom origin coordinate
+        reason: when use OpenGL SetDamageRegion, coordinate system conversion exists.
+    */
     RectI GetDirtyRegionFlipWithinSurface() const;
-    // return current frame's region
+    // return current frame's region from dirtyregion history
     const RectI& GetLatestDirtyRegion() const;
-    // return merged historical region upsize down in surface
+    // return merged historical region upside down in left-bottom origin coordinate
     RectI GetRectFlipWithinSurface(const RectI& rect) const;
-    // Get aligned rect as times of alignedBits
+    // get aligned rect as times of alignedBits
     static RectI GetPixelAlignedRect(const RectI& rect, int32_t alignedBits = ALIGNED_BITS);
+    // return true if current frame dirtyregion is not empty
+    bool IsCurrentFrameDirty() const;
+    // return true if dirtyregion after merge history is not empty
     bool IsDirty() const;
+    // push currentframe dirtyregion into history, and merge history according to bufferage
     void UpdateDirty(bool enableAligned = false);
+    // align current frame dirtyregion before merge history
     void UpdateDirtyByAligned(int32_t alignedBits = ALIGNED_BITS);
     bool SetBufferAge(const int age);
     bool SetSurfaceSize(const int32_t width, const int32_t height);
@@ -83,7 +97,7 @@ public:
         return surfaceRect_;
     }
     void MergeSurfaceRect();
-
+    // Reset current frame dirtyregion to surfacerect to realize full refreshing
     void ResetDirtyAsSurfaceSize();
 
     void UpdateDebugRegionTypeEnable(DirtyRegionDebugType dirtyDebugType);
@@ -112,7 +126,6 @@ public:
         return isDfxTarget_;
     }
 
-    RectI GetLastestHistory() const; // Get lastest dirtyregion history
     bool HasOffset();
     void SetOffset(int offsetX, int offsetY);
     RectI GetOffsetedDirtyRegion() const;
@@ -124,8 +137,10 @@ private:
     RectI GetHistory(unsigned int i) const;
     void AlignHistory();
 
-    RectI surfaceRect_;
-    RectI dirtyRegion_;
+    RectI surfaceRect_;             // dirtyregion clipbounds
+    RectI dirtyRegion_;             // dirtyregion after merge history
+    RectI currentFrameDirtyRegion_; // dirtyRegion in current frame
+
     // added for dfx
     std::vector<std::map<NodeId, RectI>> dirtyCanvasNodeInfo_;
     std::vector<std::map<NodeId, RectI>> dirtySurfaceNodeInfo_;

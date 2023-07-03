@@ -1,0 +1,108 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("$graphic_2d_root/graphic_config.gni")
+import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
+
+config("export_config") {
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include/render_backend",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
+  defines = [ "NEW_RENDER_CONTEXT" ]
+}
+
+ohos_static_library("librender_backend") {
+  public_configs = [ ":export_config" ]
+
+  include_dirs = [
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  defines = []
+  defines += gpu_defines
+  defines += rs_common_define
+
+  sources = [
+    "drawing_context.cpp",
+    "ohos/render_context_ohos_raster.cpp",
+    "ohos/rs_render_surface_ohos.cpp",
+    "render_backend_utils.cpp",
+    "render_context_factory.cpp",
+    "rs_surface_factory.cpp",
+  ]
+
+  public_deps = [
+    "$graphic_2d_root:libsurface",
+    "$graphic_2d_root/utils:sync_fence",
+  ]
+
+  if (rs_enable_gpu) {
+    include_dirs += [
+      "//third_party/openssl/include",
+      "$graphic_2d_root/frameworks/surface/include",
+      "$graphic_2d_root/interfaces/inner_api/common",
+    ]
+
+    sources += [
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/cache_data.cpp",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/memory_handler.cpp",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/shader_cache.cpp",
+      "ohos/render_context_ohos_gl.cpp",
+    ]
+
+    if (defined(use_new_skia) && use_new_skia) {
+      include_dirs += [ "//third_party/skia" ]
+    } else {
+      include_dirs += [ "//third_party/flutter/skia" ]
+    }
+
+    if (graphic_standard_feature_enable_vulkan) {
+      include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]
+      sources += [ "ohos/render_context_ohos_vk.cpp" ]
+    }
+
+    public_deps += [
+      "$graphic_2d_root:libgl",
+      "$graphic_2d_root:libvulkan",
+      "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+      "//third_party/openssl:libcrypto_shared",
+    ]
+  }
+
+  if (defined(use_new_skia) && use_new_skia) {
+    public_deps += [ "//third_party/skia:skia_ohos" ]
+  } else {
+    public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hisysevent_native:libhisysevent",
+    "hitrace_native:hitrace_meter",
+    "hiviewdfx_hilog_native:libhilog",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}

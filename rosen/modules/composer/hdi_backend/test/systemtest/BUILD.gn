@@ -94,6 +94,7 @@ ohos_systemtest("hdioutput_sys_test") {
   sources = [
     "hdilayer_context_systest.cpp",
     "hdioutput_test.cpp",
+    "mock_hdi_device_systest.cpp",
   ]
 
   include_dirs = [
@@ -113,6 +114,7 @@ ohos_systemtest("hdioutput_sys_test") {
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic_2d/utils:socketpair",
+    "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
 }

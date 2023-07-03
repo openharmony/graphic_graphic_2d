@@ -47,11 +47,11 @@ typedef struct OH_NativeImage OH_NativeImage;
 typedef struct NativeWindow OHNativeWindow;
 
 /**
- * @brief Create a <b>OH_NativeImage</b> related to an OPENGL ES texture and target. \n
+ * @brief Create a <b>OH_NativeImage</b> related to an Opengl ES texture and target. \n
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
- * @param textureId Indicates the id of the OPENGL ES texture which the native image attached to.
- * @param textureTarget Indicates the OPENGL ES target.
+ * @param textureId Indicates the id of the Opengl ES texture which the native image attached to.
+ * @param textureTarget Indicates the Opengl ES target.
  * @return Returns the pointer to the <b>OH_NativeImage</b> instance created if the operation is successful, \n
  * returns <b>NULL</b> otherwise.
  * @since 9
@@ -72,24 +72,24 @@ OH_NativeImage* OH_NativeImage_Create(uint32_t textureId, uint32_t textureTarget
 OHNativeWindow* OH_NativeImage_AcquireNativeWindow(OH_NativeImage* image);
 
 /**
- * @brief Attach the OH_NativeImage to OPENGL ES context, and the OPENGL ES texture is bound to the \n
+ * @brief Attach the OH_NativeImage to Opengl ES context, and the Opengl ES texture is bound to the \n
  * GL_TEXTURE_EXTERNAL_OES, which will update by the OH_NativeImage.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
- * @param textureId Indicates the id of the OPENGL ES texture which the native image attached to.
- * @return Returns an error code defined in <b>SurfaceError</b>.
+ * @param textureId Indicates the id of the Opengl ES texture which the native image attached to.
+ * @return Returns an error code, 0 is success, otherwise, failed.
  * @since 9
  * @version 1.0
  */
 int32_t OH_NativeImage_AttachContext(OH_NativeImage* image, uint32_t textureId);
 
 /**
- * @brief Detach the OH_NativeImage from the OPENGL ES context.
+ * @brief Detach the OH_NativeImage from the Opengl ES context.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
- * @return Returns an error code defined in <b>SurfaceError</b>.
+ * @return Returns an error code, 0 is success, otherwise, failed.
  * @since 9
  * @version 1.0
  */
@@ -97,11 +97,11 @@ int32_t OH_NativeImage_AttachContext(OH_NativeImage* image, uint32_t textureId);
 int32_t OH_NativeImage_DetachContext(OH_NativeImage* image);
 
 /**
- * @brief Update the related OPENGL ES texture with the OH_NativeImage acquired buffer.
+ * @brief Update the related Opengl ES texture with the OH_NativeImage acquired buffer.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
- * @return Returns an error code defined in <b>SurfaceError</b>.
+ * @return Returns an error code, 0 is success, otherwise, failed.
  * @since 9
  * @version 1.0
  */
@@ -125,7 +125,7 @@ int64_t OH_NativeImage_GetTimestamp(OH_NativeImage* image);
  * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
  * @param matrix Indicates the retrieved 4*4 transform matrix .
- * @return Returns an error code defined in <b>SurfaceError</b>.
+ * @return Returns an error code, 0 is success, otherwise, failed.
  * @since 9
  * @version 1.0
  */

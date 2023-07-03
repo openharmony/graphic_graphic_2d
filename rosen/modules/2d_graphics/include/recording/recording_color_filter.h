@@ -62,6 +62,11 @@ public:
     RecordingColorFilter() noexcept;
     ~RecordingColorFilter() override = default;
 
+    DrawingType GetDrawingType() const override
+    {
+        return DrawingType::RECORDING;
+    }
+
     void Compose(const ColorFilter& filter) override;
 
     /*

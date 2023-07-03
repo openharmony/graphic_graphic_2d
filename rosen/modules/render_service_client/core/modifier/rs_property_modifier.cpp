@@ -50,20 +50,30 @@ std::shared_ptr<RSRenderModifier> RSEnvForegroundColorStrategyModifier::CreateRe
     return renderModifier;
 }
 
+#define DECLARE_ANIMATABLE_MODIFIER_CREATE(MODIFIER_NAME)                                          \
+    std::shared_ptr<RSRenderModifier> RS##MODIFIER_NAME##Modifier::CreateRenderModifier() const    \
+    {                                                                                              \
+        auto renderProperty = GetRenderProperty();                                                 \
+        auto renderModifier = std::make_shared<RS##MODIFIER_NAME##RenderModifier>(renderProperty); \
+        return renderModifier;                                                                     \
+    }
 
-#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER)                    \
-    RS##MODIFIER_NAME##Modifier::RS##MODIFIER_NAME##Modifier(const std::shared_ptr<RSPropertyBase>& property)       \
-        : RS##MODIFIER_TIER##Modifier(property, RSModifierType::MODIFIER_TYPE)                                      \
-    {}                                                                                                              \
-    RSModifierType RS##MODIFIER_NAME##Modifier::GetModifierType() const                                             \
-    {                                                                                                               \
-        return RSModifierType::MODIFIER_TYPE;                                                                       \
-    }                                                                                                               \
-    std::shared_ptr<RSRenderModifier> RS##MODIFIER_NAME##Modifier::CreateRenderModifier() const                     \
-    {                                                                                                               \
-        auto renderProperty = GetRenderProperty();                                                                  \
-        auto renderModifier = std::make_shared<RS##MODIFIER_NAME##RenderModifier>(renderProperty);                  \
-        return renderModifier;                                                                                      \
+#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER)              \
+    RS##MODIFIER_NAME##Modifier::RS##MODIFIER_NAME##Modifier(const std::shared_ptr<RSPropertyBase>& property) \
+        : RS##MODIFIER_TIER##Modifier(property, RSModifierType::MODIFIER_TYPE)                                \
+    {}                                                                                                        \
+    RSModifierType RS##MODIFIER_NAME##Modifier::GetModifierType() const                                       \
+    {                                                                                                         \
+        return RSModifierType::MODIFIER_TYPE;                                                                 \
+    }                                                                                                         \
+    DECLARE_ANIMATABLE_MODIFIER_CREATE(MODIFIER_NAME)
+
+#define DECLARE_NOANIMATABLE_MODIFIER_CREATE(MODIFIER_NAME)                                        \
+    std::shared_ptr<RSRenderModifier> RS##MODIFIER_NAME##Modifier::CreateRenderModifier() const    \
+    {                                                                                              \
+        auto renderProperty = GetRenderProperty();                                                 \
+        auto renderModifier = std::make_shared<RS##MODIFIER_NAME##RenderModifier>(renderProperty); \
+        return renderModifier;                                                                     \
     }
 
 #define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, MODIFIER_TIER)                            \
@@ -74,12 +84,7 @@ std::shared_ptr<RSRenderModifier> RSEnvForegroundColorStrategyModifier::CreateRe
     {                                                                                                               \
         return RSModifierType::MODIFIER_TYPE;                                                                       \
     }                                                                                                               \
-    std::shared_ptr<RSRenderModifier> RS##MODIFIER_NAME##Modifier::CreateRenderModifier() const                     \
-    {                                                                                                               \
-        auto renderProperty = GetRenderProperty();                                                                  \
-        auto renderModifier = std::make_shared<RS##MODIFIER_NAME##RenderModifier>(renderProperty);                  \
-        return renderModifier;                                                                                      \
-    }
+    DECLARE_NOANIMATABLE_MODIFIER_CREATE(MODIFIER_NAME)
 
 #include "modifier/rs_modifiers_def.in"
 

@@ -235,15 +235,48 @@ float RSSystemProperties::GetAnimationScale()
     return std::atof((system::GetParameter("persist.sys.graphic.animationscale", "1.0")).c_str());
 }
 
+bool RSSystemProperties::GetFilterCacheEnabled()
+{
+    static bool filterCacheEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheEnable", "0")).c_str()) != 0;
+    return filterCacheEnabled;
+}
+
+int RSSystemProperties::GetFilterCacheUpdateInterval()
+{
+    static int filterCacheUpdateInterval =
+        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheUpdateInterval", "1")).c_str());
+    return filterCacheUpdateInterval;
+}
+
+bool RSSystemProperties::GetKawaseEnabled()
+{
+    static bool kawaseBlurEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.kawaseEnable", "1")).c_str()) != 0;
+    return kawaseBlurEnabled;
+}
+
 bool RSSystemProperties::GetProxyNodeDebugEnabled()
 {
-    static bool flag = system::GetParameter("rosen.proxyNode.debug.enabled", "0") != "0";
-    return flag;
+    static bool proxyNodeDebugEnabled = system::GetParameter("persist.sys.graphic.proxyNodeDebugEnabled", "0") != "0";
+    return proxyNodeDebugEnabled;
 }
 
 bool RSSystemProperties::GetUIFirstEnabled()
 {
-    return std::atoi((system::GetParameter("rosen.ui.first.enabled", "0")).c_str()) != 0;
+    static bool isPhone = system::GetParameter("const.product.devicetype", "pc") == "phone";
+    return (std::atoi((system::GetParameter("rosen.ui.first.enabled", "1")).c_str()) != 0) && isPhone;
+}
+
+bool RSSystemProperties::GetCacheCmdEnabled()
+{
+    return std::atoi((system::GetParameter("rosen.cacheCmd.enabled", "1")).c_str()) != 0;
+}
+
+bool RSSystemProperties::GetASTCEnabled()
+{
+    static bool isASTCEnabled = std::atoi((system::GetParameter("rosen.astc.enabled", "0")).c_str()) != 0;
+    return isASTCEnabled;
 }
 
 bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)

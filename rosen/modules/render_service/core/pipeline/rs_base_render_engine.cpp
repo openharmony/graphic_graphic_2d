@@ -14,6 +14,7 @@
  */
 
 #include "rs_base_render_engine.h"
+#include <memory>
 
 #include "rs_divided_render_util.h"
 #include "rs_trace.h"
@@ -21,10 +22,16 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#if defined(NEW_RENDER_CONTEXT)
+#include "render_context_factory.h"
+#include "rs_surface_factory.h"
+#include "ohos/rs_render_surface_ohos.h"
+#else
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
+#endif
 #endif
 #include "render/rs_skia_filter.h"
 
@@ -40,6 +47,20 @@ RSBaseRenderEngine::~RSBaseRenderEngine() noexcept
 
 void RSBaseRenderEngine::Init()
 {
+#if defined(NEW_RENDER_CONTEXT)
+    RenderType renderType = RenderType::GLES;
+#if defined(RS_ENABLE_GL)
+    renderType = RenderType::GLES;
+#elif defined(RS_ENABLE_VK)
+    renderType = RenderType::VULKAN;
+#else
+    renderType = RenderType::RASTER;
+#endif
+    renderContext_ = RenderContextBaseFactory::CreateRenderContext(renderType);
+    renderContext_->Init();
+    drawingContext_ = std::make_shared<Rosen::DrawingContext>(renderContext_->GetRenderType());
+    drawingContext_->SetUpDrawingContext();
+#else
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     renderContext_ = std::make_shared<RenderContext>();
     renderContext_->InitializeEglContext();
@@ -47,11 +68,20 @@ void RSBaseRenderEngine::Init()
         RS_LOGI("RSRenderEngine::RSRenderEngine set new cacheDir");
         renderContext_->SetUniRenderMode(true);
     }
+#ifndef USE_ROSEN_DRAWING
     renderContext_->SetUpGrContext();
+#else
+    renderContext_->SetUpGpuContext();
+#endif // USE_ROSEN_DRAWING
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
-
-#ifdef RS_ENABLE_EGLIMAGE
+#endif
+#if defined(RS_ENABLE_EGLIMAGE)
+#if defined(NEW_RENDER_CONTEXT)
+    std::shared_ptr<RSRenderSurfaceFrame> frame = renderContext_->GetRSRenderSurfaceFrame();
+    eglImageManager_ = std::make_shared<RSEglImageManager>(frame->eglState->eglDisplay);
+#else
     eglImageManager_ = std::make_shared<RSEglImageManager>(renderContext_->GetEGLDisplay());
+#endif
 #endif // RS_ENABLE_EGLIMAGE
 }
 
@@ -76,8 +106,8 @@ bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
         }
 #endif
 
-        ColorGamut srcGamut = static_cast<ColorGamut>(buffer->GetSurfaceBufferColorGamut());
-        ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_SRGB;
+        GraphicColorGamut srcGamut = static_cast<GraphicColorGamut>(buffer->GetSurfaceBufferColorGamut());
+        GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
         if (srcGamut != dstGamut) {
             forceCPU = true;
             break;
@@ -87,18 +117,27 @@ bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
     return forceCPU;
 }
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> RSBaseRenderEngine::CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
     const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence)
+#else
+std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
+    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence)
+#endif
 {
 #ifdef RS_ENABLE_EGLIMAGE
     if (!RSBaseRenderUtil::IsBufferValid(buffer)) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer invalid param!");
         return nullptr;
     }
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     if (canvas.recordingContext() == nullptr) {
 #else
     if (canvas.getGrContext() == nullptr) {
+#endif
+#else
+    if (canvas.GetGpuContext() == nullptr) {
 #endif
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
         return nullptr;
@@ -113,6 +152,7 @@ sk_sp<SkImage> RSBaseRenderEngine::CreateEglImageFromBuffer(RSPaintFilterCanvas&
     GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8 };
     GrBackendTexture backendTexture(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(),
         GrMipMapped::kNo, grExternalTextureInfo);
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     return SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture,
         kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
@@ -121,19 +161,29 @@ sk_sp<SkImage> RSBaseRenderEngine::CreateEglImageFromBuffer(RSPaintFilterCanvas&
         kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
 #endif
 #else
+    Drawing image;
+    image.BuildFromTexture();
+    return image;
+#endif
+#else
     return nullptr;
 #endif // RS_ENABLE_EGLIMAGE
 }
 
+#ifdef NEW_RENDER_CONTEXT
+std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
+    const std::shared_ptr<RSRenderSurfaceOhos>& rsSurface,
+    const BufferRequestConfig& config, bool forceCPU, bool useAFBC)
+#else
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
     const BufferRequestConfig& config, bool forceCPU, bool useAFBC)
+#endif
 {
     RS_TRACE_NAME("RSBaseRenderEngine::RequestFrame(RSSurface)");
     if (rsSurface == nullptr) {
         RS_LOGE("RSBaseRenderEngine::RequestFrame: surface is null!");
         return nullptr;
     }
-
     rsSurface->SetSurfacePixelFormat(config.format);
 
     auto bufferUsage = config.usage;
@@ -147,19 +197,43 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
     rsSurface->SetSurfaceBufferUsage(bufferUsage);
 
     // check if we can use GPU context
+#if defined(NEW_RENDER_CONTEXT)
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    if (forceCPU) {
+        std::shared_ptr<RenderContextBase> renderContextRaster = RenderContextBaseFactory::CreateRenderContext(
+            RenderType::RASTER);
+        renderContextRaster->Init();
+        std::shared_ptr<DrawingContext> drawingContextRaster = std::make_shared<DrawingContext>(RenderType::RASTER);
+        rsSurface->SetRenderContext(renderContextRaster);
+        rsSurface->SetDrawingContext(drawingContextRaster);
+        RS_LOGD("RSBaseRenderEngine::RequestFrame force CPU");
+    } else {
+        if (renderContext_ != nullptr) {
+            rsSurface->SetRenderContext(renderContext_);
+        }
+        if (drawingContext_ != nullptr) {
+            rsSurface->SetDrawingContext(drawingContext_);
+        }
+    }
+#endif
+#else
 #ifdef RS_ENABLE_GL
     if (renderContext_ != nullptr) {
         rsSurface->SetRenderContext(renderContext_.get());
     }
 #endif
-
+#endif
     auto surfaceFrame = rsSurface->RequestFrame(config.width, config.height, 0, useAFBC);
     if (surfaceFrame == nullptr) {
         RS_LOGE("RSBaseRenderEngine::RequestFrame: request SurfaceFrame failed!");
         return nullptr;
     }
 
+#ifdef NEW_RENDER_CONTEXT
+    return std::make_unique<RSRenderFrame>(rsSurface);
+#else
     return std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+#endif
 }
 
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surface>& targetSurface,
@@ -173,6 +247,11 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
 
     auto surfaceId = targetSurface->GetUniqueId();
     if (rsSurfaces_.count(surfaceId) == 0) {
+#if defined(NEW_RENDER_CONTEXT)
+        std::shared_ptr<RSRenderSurface> renderSurface = RSSurfaceFactory::CreateRSSurface(PlatformName::OHOS,
+            targetSurface);
+        rsSurfaces_[surfaceId] = std::static_pointer_cast<RSRenderSurfaceOhos>(renderSurface);
+#else
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
         if (forceCPU) {
             rsSurfaces_[surfaceId] = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
@@ -184,6 +263,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
 #else
         rsSurfaces_[surfaceId] = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
 #endif // (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#endif
     }
 
     return RequestFrame(rsSurfaces_.at(surfaceId), config, forceCPU, useAFBC);
@@ -191,7 +271,11 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
 
 void RSBaseRenderEngine::SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame, const uint64_t surfaceId)
 {
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RSRenderSurfaceOhos> surfaceOhos = nullptr;
+#else
     std::shared_ptr<RSSurfaceOhos> surfaceOhos = nullptr;
+#endif
     for (auto it = rsSurfaces_.begin(); it != rsSurfaces_.end(); ++it) {
         if (it->first == surfaceId) {
             surfaceOhos = it->second;
@@ -209,8 +293,12 @@ void RSBaseRenderEngine::SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& re
         return;
     }
 
+#ifdef NEW_RENDER_CONTEXT
+    surfaceOhos->SetUiTimeStamp();
+#else
     auto& frame = renderFrame->GetFrame();
     surfaceOhos->SetUiTimeStamp(frame);
+#endif
 }
 
 void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSDisplayRenderNode& node,
@@ -281,18 +369,24 @@ void RSBaseRenderEngine::SetColorFilterMode(ColorFilterMode mode)
 void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
     RS_TRACE_NAME("RSBaseRenderEngine::DrawBuffer(CPU)");
+#ifndef USE_ROSEN_DRAWING
     SkBitmap bitmap;
+#else
+    Drawing::Bitmap bitmap;
+#endif
     std::vector<uint8_t> newBuffer;
     if (!RSBaseRenderUtil::ConvertBufferToBitmap(params.buffer, newBuffer, params.targetColorGamut, bitmap,
         params.metaDatas)) {
         RS_LOGE("RSDividedRenderUtil::DrawBuffer: create bitmap failed.");
         return;
     }
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     canvas.drawImageRect(bitmap.asImage(), params.srcRect, params.dstRect,
         SkSamplingOptions(), &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
 #else
     canvas.drawBitmapRect(bitmap, params.srcRect, params.dstRect, &(params.paint));
+#endif
 #endif
 }
 
@@ -304,11 +398,18 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         RS_LOGE("RSDividedRenderUtil::DrawImage: image is nullptr!");
         return;
     }
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     canvas.drawImageRect(image, params.srcRect, params.dstRect,
         SkSamplingOptions(), &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
 #else
     canvas.drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
+#endif
+#else
+    canvas.AttachBrush(params.paint);
+    canvas.DrawImageRect(*image.get(), params.srcRect, params.dstRect,
+        Drawing::SamplingOptions(), Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    canvas.DetachBrush();
 #endif
 }
 
@@ -326,6 +427,16 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
         (consumer->RegisterDeleteBufferListener(regUnMapEglImageFunc, isForUniRedraw) != GSERROR_OK)) {
         RS_LOGE("RSBaseRenderEngine::RegisterDeleteBufferListener: failed to register UnMapEglImage callback.");
     }
+#endif // #ifdef RS_ENABLE_EGLIMAGE
+}
+
+void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
+{
+#ifdef RS_ENABLE_EGLIMAGE
+    auto regUnMapEglImageFunc = [this](int32_t bufferId) {
+        eglImageManager_->UnMapEglImageFromSurfaceBuffer(bufferId);
+    };
+    handler.RegisterDeleteBufferListener(regUnMapEglImageFunc);
 #endif // #ifdef RS_ENABLE_EGLIMAGE
 }
 

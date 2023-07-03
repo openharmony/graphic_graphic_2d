@@ -21,7 +21,11 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <vector>
 #include "EGL/egl.h"
+#ifdef NEW_RENDER_CONTEXT
+#include "render_context_base.h"
+#endif
 #include "rs_parallel_hardware_composer.h"
 #include "rs_parallel_sub_thread.h"
 #include "rs_parallel_pack_visitor.h"
@@ -53,7 +57,6 @@ enum class ParallelStatus {
 enum class TaskType {
     PREPARE_TASK = 0,
     PROCESS_TASK,
-    CACHE_TASK,
     CALC_COST_TASK,
     COMPOSITION_TASK
 };
@@ -64,24 +67,25 @@ public:
     void SetParallelMode(bool parallelMode);
     bool GetParallelMode() const;
     bool GetParallelModeSafe() const;
+#ifdef NEW_RENDER_CONTEXT
+    void StartSubRenderThread(uint32_t threadNum, std::shared_ptr<RenderContextBase> context,
+        std::shared_ptr<DrawingContext> drawingContext);
+#else
     void StartSubRenderThread(uint32_t threadNum, RenderContext *context);
+#endif
     void EndSubRenderThread();
     void CopyVisitorAndPackTask(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node);
     void CopyPrepareVisitorAndPackTask(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node);
     void CopyCalcCostVisitorAndPackTask(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node, bool isNeedCalc,
         bool doAnimate, bool isOpDropped);
-    void CopyCacheVisitor(RSUniRenderVisitor &visitor, RSDisplayRenderNode &node);
     void PackRenderTask(RSSurfaceRenderNode &node, TaskType type = TaskType::PROCESS_TASK);
     void PackParallelCompositionTask(std::shared_ptr<RSNodeVisitor> visitor,
                                      const std::shared_ptr<RSBaseRenderNode> node);
     void LoadBalanceAndNotify(TaskType type = TaskType::PROCESS_TASK);
     void MergeRenderResult(RSPaintFilterCanvas& canvas);
-    void SaveCacheTexture(RSRenderNode& node) const;
     void SetFrameSize(int width, int height);
     void GetFrameSize(int &width, int &height) const;
     void SubmitSuperTask(uint32_t taskIndex, std::unique_ptr<RSSuperRenderTask> superRenderTask);
-    void SubmitSubThreadTask(const std::shared_ptr<RSDisplayRenderNode>& node,
-        const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     void SubmitCompositionTask(uint32_t taskIndex, std::unique_ptr<RSCompositionTask> compositionTask);
     void SubMainThreadNotify(int threadIndex);
     void WaitSubMainThread(uint32_t threadIndex);
@@ -155,6 +159,19 @@ public:
     void NotifyUniRenderFinish();
     std::shared_ptr<RSDisplayRenderNode> GetParallelDisplayNode(uint32_t subMainThreadIdx);
     std::unique_ptr<RSRenderFrame> GetParallelFrame(uint32_t subMainThreadIdx);
+    void SetFilterSurfaceRenderNode(RSSurfaceRenderNode& node)
+    {
+        filterSurfaceRenderNodes_.push_back(node.ReinterpretCastTo<RSSurfaceRenderNode>());
+    }
+    void ClearFilterSurfaceRenderNode()
+    {
+        std::vector<std::shared_ptr<RSSurfaceRenderNode>>().swap(filterSurfaceRenderNodes_);
+    }
+    uint32_t GetFilterSurfaceRenderNodeCount()
+    {
+        return filterSurfaceRenderNodes_.size();
+    }
+    void ProcessFilterSurfaceRenderNode();
 
 private:
     RSParallelRenderManager();
@@ -183,7 +200,12 @@ private:
     std::mutex cvParallelRenderMutex_;
     std::mutex flushMutex_;
     std::condition_variable cvParallelRender_;
-    RenderContext *renderContext_ = nullptr;
+#ifdef NEW_RENDER_CONTEXT
+    std::shared_ptr<RenderContextBase> renderContext_ = nullptr;
+    std::shared_ptr<DrawingContext> drawingContext_ = nullptr;
+#else
+    RenderContext* renderContext_ = nullptr;
+#endif
     ParallelRenderType renderType_ = ParallelRenderType::DRAW_IMAGE;
     std::shared_ptr<RSBaseRenderNode> displayNode_ = nullptr;
     std::shared_ptr<RSDisplayRenderNode> mainDisplayNode_ = nullptr;
@@ -211,13 +233,12 @@ private:
     std::vector<timespec> startTime_;
     std::vector<timespec> stopTime_;
 
-    uint32_t minLoadThreadIndex_ = 0;
-
     // Use for Vulkan
     std::vector<std::shared_ptr<RSDisplayRenderNode>> parallelDisplayNodes_;
     std::vector<std::shared_ptr<RSDisplayRenderNode>> backParallelDisplayNodes_;
     std::vector<std::unique_ptr<RSRenderFrame>> parallelFrames_;
     int readyBufferNum_ = 0;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> filterSurfaceRenderNodes_;
 };
 } // namespace Rosen
 } // namespace OHOS

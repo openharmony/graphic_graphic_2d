@@ -135,12 +135,12 @@ DECLARE_RMU(std::string)
      * If the capacity of string >= 16 and < 24, it`s memory usage is 32
      * else it`s memory usage is 32 + (capacity - 24) / 16 * 16
      */
-    int fisrtCapacity = 16;
-    int secondCapacity = 24;
-    int baseMemory = 16;
-    int fisrtMemory = 32;
-    int secondMemory = 64;
-    int thirdMemory = 80;
+    unsigned long fisrtCapacity = 16;
+    unsigned long secondCapacity = 24;
+    unsigned long baseMemory = 16;
+    unsigned long fisrtMemory = 32;
+    unsigned long secondMemory = 64;
+    unsigned long thirdMemory = 80;
 
     if (needThis) {
         if (that.capacity() < fisrtCapacity) {

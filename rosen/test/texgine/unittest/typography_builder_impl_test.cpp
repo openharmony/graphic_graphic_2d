@@ -116,13 +116,12 @@ HWTEST_F(TypographyBuilderImplTest, PushPopStyle, TestSize.Level1)
 }
 
 /**
- * @tc.name: AppendSpan
+ * @tc.name: AppendSpan1
  * @tc.desc: Verify the AppendSpan
  * @tc.type:FUNC
  */
-HWTEST_F(TypographyBuilderImplTest, AppendSpan, TestSize.Level1)
+HWTEST_F(TypographyBuilderImplTest, AppendSpan1, TestSize.Level1)
 {
-    TextStyle xs = {};
     std::shared_ptr<AnySpan> nullptrAnySpan = nullptr;
     std::shared_ptr<TextSpan> nullptrTextSpan = nullptr;
 
@@ -164,6 +163,16 @@ HWTEST_F(TypographyBuilderImplTest, AppendSpan, TestSize.Level1)
     EXPECT_EQ(g_tbMockvars.catchedSpans.size(), 2u);
     EXPECT_EQ(g_tbMockvars.catchedSpans[0], as2);
     EXPECT_EQ(g_tbMockvars.catchedSpans[1], as3);
+}
+
+/**
+ * @tc.name: AppendSpan2
+ * @tc.desc: Verify the AppendSpan
+ * @tc.type:FUNC
+ */
+HWTEST_F(TypographyBuilderImplTest, AppendSpan2, TestSize.Level1)
+{
+    TextStyle xs = {};
 
     auto ts2 = TextSpan::MakeEmpty();
     auto ts3 = TextSpan::MakeEmpty();

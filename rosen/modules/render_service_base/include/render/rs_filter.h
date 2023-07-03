@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 
 namespace OHOS {
@@ -31,6 +32,8 @@ enum BLUR_COLOR_MODE : int {
 class RSB_EXPORT RSFilter : public std::enable_shared_from_this<RSFilter> {
 public:
     virtual ~RSFilter();
+    RSFilter(const RSFilter&) = delete;
+    RSFilter operator=(const RSFilter&) = delete;
     virtual std::string GetDescription();
     static std::shared_ptr<RSFilter> CreateBlurFilter(float blurRadiusX, float blurRadiusY);
     static std::shared_ptr<RSFilter> CreateMaterialFilter(
@@ -41,19 +44,36 @@ public:
         NONE = 0,
         BLUR,
         MATERIAL,
-        LIGHTUPEFFECT,
+        LIGHT_UP_EFFECT,
     };
     FilterType GetFilterType() const
     {
         return type_;
     }
-    bool IsValid() const
+    virtual bool IsValid() const
     {
         return type_ != FilterType::NONE;
     }
 
+    virtual bool IsNearEqual(
+        const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const
+    {
+        return true;
+    }
+
+    virtual bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const
+    {
+        return true;
+    }
+
+    uint32_t Hash() const
+    {
+        return hash_;
+    }
+
 protected:
     FilterType type_;
+    uint32_t hash_ = 0;
     RSFilter();
     virtual std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) { return nullptr; }
     virtual std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) { return nullptr; }

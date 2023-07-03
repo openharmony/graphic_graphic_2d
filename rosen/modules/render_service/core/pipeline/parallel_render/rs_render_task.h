@@ -69,8 +69,10 @@ private:
 
 class RSSuperRenderTask : public RSRenderTaskBase {
 public:
-    explicit RSSuperRenderTask(RSDisplayRenderNode &node) : RSRenderTaskBase(node.shared_from_this()) {}
-    explicit RSSuperRenderTask(std::shared_ptr<RSBaseRenderNode> node) : RSRenderTaskBase(node) {}
+    explicit RSSuperRenderTask(RSDisplayRenderNode &node)
+        : RSRenderTaskBase(node.shared_from_this()) {}
+    explicit RSSuperRenderTask(std::shared_ptr<RSBaseRenderNode> node, uint64_t frameCount = 0)
+        : RSRenderTaskBase(node), frameCount_(frameCount) {}
     ~RSSuperRenderTask() override;
 
     void AddTask(std::unique_ptr<RSRenderTask> &&task);
@@ -80,11 +82,17 @@ public:
         return tasks_.size();
     }
 
+    uint64_t GetFrameCount() const
+    {
+        return frameCount_;
+    }
+
     std::shared_ptr<RSBaseRenderNode> GetSurfaceNode();
     std::unique_ptr<RSRenderTask> GetNextRenderTask();
 
 private:
     std::queue<std::unique_ptr<RSRenderTask>> tasks_;
+    uint64_t frameCount_ = 0;
 };
 
 class RSCompositionTask : public RSRenderTaskBase {

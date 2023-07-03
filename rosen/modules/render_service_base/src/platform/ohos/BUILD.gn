@@ -28,6 +28,9 @@ config("export_config") {
     "$graphic_2d_root/frameworks/surface/src",
     "//foundation/multimedia/image_framework/interfaces/innerkits/include",
   ]
+  if (defined(use_new_render_context) && use_new_render_context) {
+    include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_base/include/render_backend" ]
+  }
 }
 
 ohos_source_set("rosen_ohos_sources") {
@@ -38,8 +41,6 @@ ohos_source_set("rosen_ohos_sources") {
 
   sources = [
     #backend
-    "backend/rs_surface_frame_ohos_raster.cpp",
-    "backend/rs_surface_ohos_raster.cpp",
     "rs_ashmem_helper.cpp",
 
     #overdraw
@@ -57,8 +58,6 @@ ohos_source_set("rosen_ohos_sources") {
     "rs_render_service_connect_hub.cpp",
     "rs_render_service_connection_proxy.cpp",
     "rs_render_service_proxy.cpp",
-    "rs_surface_frame_ohos.cpp",
-    "rs_surface_ohos.cpp",
     "rs_surface_ohos_converter.cpp",
     "rs_system_properties.cpp",
     "rs_vsync_client_ohos.cpp",
@@ -68,25 +67,34 @@ ohos_source_set("rosen_ohos_sources") {
     sources += [ "rs_accessibility.cpp" ]
   }
 
-  if (ace_enable_gpu) {
+  if (!defined(use_new_render_context) || !use_new_render_context) {
     sources += [
-      "backend/rs_surface_frame_ohos_gl.cpp",
-      "backend/rs_surface_ohos_gl.cpp",
+      "backend/rs_surface_frame_ohos_raster.cpp",
+      "backend/rs_surface_ohos_raster.cpp",
+      "rs_surface_frame_ohos.cpp",
+      "rs_surface_ohos.cpp",
     ]
 
-    if (graphic_standard_feature_enable_vulkan) {
+    if (ace_enable_gpu) {
       sources += [
-        "backend/rs_surface_frame_ohos_vulkan.cpp",
-        "backend/rs_surface_ohos_vulkan.cpp",
+        "backend/rs_surface_frame_ohos_gl.cpp",
+        "backend/rs_surface_ohos_gl.cpp",
+      ]
+
+      if (graphic_standard_feature_enable_vulkan) {
+        sources += [
+          "backend/rs_surface_frame_ohos_vulkan.cpp",
+          "backend/rs_surface_ohos_vulkan.cpp",
+        ]
+      }
+
+      sources += [
+        "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/cache_data.cpp",
+        "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/memory_handler.cpp",
+        "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/render_context.cpp",
+        "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/shader_cache.cpp",
       ]
     }
-
-    sources += [
-      "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/cache_data.cpp",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/memory_handler.cpp",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/render_context.cpp",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/shader_cache.cpp",
-    ]
   }
 
   include_dirs = [
@@ -105,13 +113,15 @@ ohos_source_set("rosen_ohos_sources") {
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/utils:sync_fence",
-    "//commonlibrary/c_utils/base:utils",
-    "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
   ]
   if (defined(use_new_skia) && use_new_skia) {
     public_deps += [ "//third_party/skia:skia_ohos" ]
   } else {
     public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  }
+
+  if (defined(use_new_render_context) && use_new_render_context) {
+    defines += [ "NEW_RENDER_CONTEXT" ]
   }
 
   if (rs_enable_gpu) {
@@ -137,6 +147,7 @@ ohos_source_set("rosen_ohos_sources") {
   }
 
   external_deps = [
+    "c_utils:utils",
     "eventhandler:libeventhandler",
     "hisysevent_native:libhisysevent",
     "hitrace_native:hitrace_meter",
@@ -144,6 +155,7 @@ ohos_source_set("rosen_ohos_sources") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "multimedia_image_framework:image_native",
     "samgr:samgr_proxy",
   ]
 
@@ -177,4 +189,7 @@ ohos_source_set("rosen_ohos_sources") {
     external_deps += [ "resource_schedule_service:ressched_client" ]
     defines += [ "RES_SCHED_ENABLE" ]
   }
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
 }

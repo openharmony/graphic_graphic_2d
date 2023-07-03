@@ -30,7 +30,7 @@ std::shared_ptr<TexgineTextBlobBuilder::RunBuffer> TexgineTextBlobBuilder::Alloc
         return nullptr;
     }
 
-    auto &runBuffer = textBlobBuilder_->allocRunPos(*font.GetFont(), count);
+    const auto &runBuffer = textBlobBuilder_->allocRunPos(*font.GetFont(), count);
     buffer_->glyphs = runBuffer.glyphs;
     buffer_->pos = runBuffer.pos;
     buffer_->utf8Text = runBuffer.utf8text;

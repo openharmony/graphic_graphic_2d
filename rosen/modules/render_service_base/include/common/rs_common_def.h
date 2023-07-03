@@ -32,17 +32,20 @@ namespace Rosen {
 using AnimationId = uint64_t;
 using NodeId = uint64_t;
 using PropertyId = uint64_t;
+constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
 
 // types in the same layer should be 0/1/2/4/8
 // types for UINode
 enum class RSUINodeType : uint32_t {
-    BASE_NODE    = 0x00010u,
-    RS_NODE      = 0x00110u,   // formerly RSPropertyNode
-    DISPLAY_NODE = 0x01110u,
-    SURFACE_NODE = 0x02110u,
-    PROXY_NODE   = 0x04110u,
-    CANVAS_NODE  = 0x08110u,   // formerly RSNode
-    ROOT_NODE    = 0x18110u,
+    BASE_NODE    = 0x000010u,
+    RS_NODE      = 0x000110u,   // formerly RSPropertyNode
+    DISPLAY_NODE = 0x001110u,
+    SURFACE_NODE = 0x002110u,
+    PROXY_NODE   = 0x004110u,
+    CANVAS_NODE  = 0x008110u,   // formerly RSNode
+    EFFECT_NODE  = 0x010110u,
+    ROOT_NODE    = 0x108110u,
+    CANVAS_DRAWING_NODE = 0x208110u,
 };
 
 enum class FollowType : uint8_t {
@@ -52,24 +55,28 @@ enum class FollowType : uint8_t {
 };
 
 static inline const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
-    {RSUINodeType::BASE_NODE,    "BaseNode"},
-    {RSUINodeType::DISPLAY_NODE, "DisplayNode"},
-    {RSUINodeType::RS_NODE,      "RsNode"},
-    {RSUINodeType::SURFACE_NODE, "SurfaceNode"},
-    {RSUINodeType::PROXY_NODE,   "ProxyNode"},
-    {RSUINodeType::CANVAS_NODE,  "CanvasNode"},
-    {RSUINodeType::ROOT_NODE,    "RootNode"},
+    {RSUINodeType::BASE_NODE,           "BaseNode"},
+    {RSUINodeType::DISPLAY_NODE,        "DisplayNode"},
+    {RSUINodeType::RS_NODE,             "RsNode"},
+    {RSUINodeType::SURFACE_NODE,        "SurfaceNode"},
+    {RSUINodeType::PROXY_NODE,          "ProxyNode"},
+    {RSUINodeType::CANVAS_NODE,         "CanvasNode"},
+    {RSUINodeType::ROOT_NODE,           "RootNode"},
+    {RSUINodeType::EFFECT_NODE,         "EffectNode"},
+    {RSUINodeType::CANVAS_DRAWING_NODE, "CanvasDrawingNode"},
 };
 
 // types for RenderNode
 enum class RSRenderNodeType : uint32_t {
-    BASE_NODE    = 0x00011u,
-    RS_NODE      = 0x00111u,   // formerly RSPropertyRenderNode
-    DISPLAY_NODE = 0x01111u,
-    SURFACE_NODE = 0x02111u,
-    PROXY_NODE   = 0x04111u,
-    CANVAS_NODE  = 0x08111u,   // formerly RSRenderNode
-    ROOT_NODE    = 0x18111u,
+    BASE_NODE    = 0x000011u,
+    RS_NODE      = 0x000111u,   // formerly RSPropertyRenderNode
+    DISPLAY_NODE = 0x001111u,
+    SURFACE_NODE = 0x002111u,
+    PROXY_NODE   = 0x004111u,
+    CANVAS_NODE  = 0x008111u,   // formerly RSRenderNode
+    EFFECT_NODE  = 0x010111u,
+    ROOT_NODE    = 0x108111u,
+    CANVAS_DRAWING_NODE = 0x208111u,
 };
 
 enum class CacheType : uint8_t {
@@ -91,6 +98,13 @@ enum class NodePriorityType : uint32_t {
     SUB_LOW_PRIORITY, // node render in sub thread with low priority
 };
 
+// status for sub thread node
+enum class CacheProcessStatus : uint32_t {
+    WAITING = 0, // waiting for process
+    DOING, // processing
+    DONE, // processed
+};
+
 // types for RSSurfaceRenderNode
 enum class RSSurfaceNodeType : uint8_t {
     DEFAULT,
@@ -100,7 +114,6 @@ enum class RSSurfaceNodeType : uint8_t {
     STARTING_WINDOW_NODE,     // starting window, surfacenode created by wms
     LEASH_WINDOW_NODE,        // leashwindow
     SELF_DRAWING_WINDOW_NODE, // create by wms, such as pointer window and bootanimation
-    EXTENSION_ABILITY_NODE,   // create by arkui to manage extension views
 };
 
 struct RSSurfaceRenderNodeConfig {
@@ -142,6 +155,18 @@ template<typename T>
 inline bool ROSEN_EQ(const std::weak_ptr<T>& x, const std::weak_ptr<T>& y)
 {
     return !(x.owner_before(y) || y.owner_before(x));
+}
+
+inline bool ROSEN_LNE(float left, float right) //less not equal
+{
+    constexpr float epsilon = -0.001f;
+    return (left - right) < epsilon;
+}
+
+inline bool ROSEN_GE(float left, float right) //great or equal
+{
+    constexpr float epsilon = -0.001f;
+    return (left - right) > epsilon;
 }
 
 class MemObject {

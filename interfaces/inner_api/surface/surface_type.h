@@ -19,7 +19,6 @@
 #include <cstdint>
 #include <string>
 #include <vector>
-#include "common_types.h"
 #include <graphic_common.h>
 #include <display_type.h>
 
@@ -254,6 +253,7 @@ using SurfaceBufferUsage = enum {
     BUFFER_USAGE_CAMERA_WRITE = (1ULL << 13),   /**< For camera write case */
     BUFFER_USAGE_VIDEO_ENCODER = (1ULL << 14),  /**< For encode case */
     BUFFER_USAGE_VIDEO_DECODER = (1ULL << 15),  /**< For decode case */
+    BUFFER_USAGE_CPU_READ_OFTEN = (1ULL << 16), /**< CPU read often buffer */
     BUFFER_USAGE_VENDOR_PRI0 = (1ULL << 44),    /**< Reserverd for vendor */
     BUFFER_USAGE_VENDOR_PRI1 = (1ULL << 45),    /**< Reserverd for vendor */
     BUFFER_USAGE_VENDOR_PRI2 = (1ULL << 46),    /**< Reserverd for vendor */
@@ -393,6 +393,15 @@ using SceneType = enum {
     SURFACE_SCENE_TYPE_MEDIA,
     SURFACE_SCENE_TYPE_CAMERA,
     SURFACE_SCENE_TYPE_CPU,
+};
+
+using GraphicExtDataHandle = struct {
+    /**< Handle fd, -1 if not supported */
+    int32_t fd;
+    /**< the number of reserved integer value */
+    uint32_t reserveInts;
+    /**< the reserved data */
+    int32_t reserve[0];
 };
 } // namespace OHOS
 

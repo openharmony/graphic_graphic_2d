@@ -130,7 +130,7 @@ HWTEST_F(RSDirtyRegionManagerTest, MergeDirtyRectInvalid, Function | SmallTest |
     // invalid rect with empty width
     invalidRects.push_back(RectI(0, 0, 360, 0));
     RectI joinedRect = RectI();
-    RectI curDirtyRect = rsDirtyManager->GetDirtyRegion();
+    RectI curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
     EXPECT_EQ(curDirtyRect, defaultRect);
 
     for (auto invalidRect : invalidRects) {
@@ -138,7 +138,7 @@ HWTEST_F(RSDirtyRegionManagerTest, MergeDirtyRectInvalid, Function | SmallTest |
         if (!invalidRect.IsEmpty()) {
             joinedRect = joinedRect.JoinRect(invalidRect);
         }
-        curDirtyRect = rsDirtyManager->GetDirtyRegion();
+        curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
         HiviewDFX::HiLog::Info(LOG_LABEL, "MergeDirtyRectInvalid curDirtyRect %s invalidRect %s",
             curDirtyRect.ToString().c_str(), invalidRect.ToString().c_str());
         EXPECT_EQ(curDirtyRect, joinedRect);
@@ -158,13 +158,13 @@ HWTEST_F(RSDirtyRegionManagerTest, MergeDirtyRectValid, Function | SmallTest | L
     validRects.push_back(RectI(-100, 10, 30, 540));
     validRects.push_back(RectI(20, -50, 180, 360));
     RectI joinedRect = RectI();
-    RectI curDirtyRect = rsDirtyManager->GetDirtyRegion();
+    RectI curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
     EXPECT_EQ(curDirtyRect, defaultRect);
 
     for (auto validRect : validRects) {
         rsDirtyManager->MergeDirtyRect(validRect);
         joinedRect = joinedRect.JoinRect(validRect);
-        curDirtyRect = rsDirtyManager->GetDirtyRegion();
+        curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
         HiviewDFX::HiLog::Info(LOG_LABEL, "MergeDirtyRectValid curDirtyRect %s validRect %s",
             curDirtyRect.ToString().c_str(), validRect.ToString().c_str());
         EXPECT_EQ(curDirtyRect, joinedRect);
@@ -181,7 +181,9 @@ HWTEST_F(RSDirtyRegionManagerTest, ClearDirtyRegion, Function | SmallTest | Leve
 {
     rsDirtyManager->Clear();
     RectI dirtyRect = rsDirtyManager->GetDirtyRegion();
+    RectI currFrameDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
     EXPECT_EQ(dirtyRect, defaultRect);
+    EXPECT_EQ(currFrameDirtyRect, defaultRect);
 }
 
 /*

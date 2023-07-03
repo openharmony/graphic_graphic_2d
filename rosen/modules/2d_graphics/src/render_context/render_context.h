@@ -28,6 +28,7 @@
 #include "GLES3/gl32.h"
 #endif
 
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkCanvas.h"
 #include "include/core/SkColorSpace.h"
 #include "include/core/SkImageInfo.h"
@@ -39,6 +40,10 @@
 #include "include/gpu/GrContext.h"
 #endif
 #include "include/gpu/gl/GrGLInterface.h"
+#else
+#include "draw/surface.h"
+#include "image/gpu_context.h"
+#endif
 #include "memory_handler.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_type.h"
@@ -52,9 +57,14 @@ public:
     RenderContext();
     virtual ~RenderContext();
     void CreateCanvas(int width, int height);
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> AcquireSurface(int width, int height);
+#else
+    std::shared_ptr<Drawing::Surface> AcquireSurface(int width, int height);
+#endif
 
     void InitializeEglContext();
+#ifndef USE_ROSEN_DRAWING
 #if defined(NEW_SKIA)
     GrDirectContext* GetGrContext() const
     {
@@ -72,6 +82,18 @@ public:
     }
 
     bool SetUpGrContext();
+#else
+    Drawing::GPUContext* GetDrGPUContext() const
+    {
+        return drGPUContext_.get();
+    }
+
+    std::shared_ptr<Drawing::Surface> GetSurface() const
+    {
+        return surface_;
+    }
+    bool SetUpGpuContext();
+#endif
 
     EGLSurface CreateEGLSurface(EGLNativeWindowType eglNativeWindow);
     void DestroyEGLSurface(EGLSurface surface);
@@ -102,8 +124,8 @@ public:
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
-    void SetColorSpace(ColorGamut colorSpace);
-    ColorGamut GetColorSpace() const
+    void SetColorSpace(GraphicColorGamut colorSpace);
+    GraphicColorGamut GetColorSpace() const
     {
         return colorSpace_;
     }
@@ -142,12 +164,17 @@ public:
 #endif    
 
 private:
+#ifndef USE_ROSEN_DRAWING
 #if defined(NEW_SKIA)
     sk_sp<GrDirectContext> grContext_;
 #else
     sk_sp<GrContext> grContext_;
 #endif
     sk_sp<SkSurface> skSurface_;
+#else
+    std::shared_ptr<Drawing::GPUContext> drGPUContext_ = nullptr;
+    std::shared_ptr<Drawing::Surface> surface_ = nullptr;
+#endif
 
     EGLNativeWindowType nativeWindow_;
 
@@ -167,7 +194,7 @@ private:
 #endif   
     EGLConfig config_;
 #ifndef ROSEN_CROSS_PLATFORM
-    ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #endif
 
     bool isUniRenderMode_ = false;

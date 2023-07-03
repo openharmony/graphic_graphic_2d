@@ -21,24 +21,22 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-VariantFontStyleSet::VariantFontStyleSet(const std::shared_ptr<TexgineFontStyleSet> &tfss) noexcept(true)
+VariantFontStyleSet::VariantFontStyleSet(const std::shared_ptr<TexgineFontStyleSet> &tfss) noexcept(true): tfss_(tfss)
 {
-    tfss_ = tfss;
 }
 
-VariantFontStyleSet::VariantFontStyleSet(const std::shared_ptr<DynamicFontStyleSet> &dfss) noexcept(true)
+VariantFontStyleSet::VariantFontStyleSet(const std::shared_ptr<DynamicFontStyleSet> &dfss) noexcept(true): dfss_(dfss)
 {
-    dfss_ = dfss;
 }
 
-VariantFontStyleSet::VariantFontStyleSet(std::shared_ptr<TexgineFontStyleSet> &tfss) noexcept(true)
+VariantFontStyleSet::VariantFontStyleSet(
+    std::shared_ptr<TexgineFontStyleSet> &tfss) noexcept(true): tfss_(std::move(tfss))
 {
-    tfss_ = std::move(tfss);
 }
 
-VariantFontStyleSet::VariantFontStyleSet(std::shared_ptr<DynamicFontStyleSet> &dfss) noexcept(true)
+VariantFontStyleSet::VariantFontStyleSet(
+    std::shared_ptr<DynamicFontStyleSet> &dfss) noexcept(true): dfss_(std::move(dfss))
 {
-    dfss_ = std::move(dfss);
 }
 
 VariantFontStyleSet::VariantFontStyleSet(std::nullptr_t) noexcept(true)

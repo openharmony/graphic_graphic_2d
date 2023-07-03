@@ -93,7 +93,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand005, TestSize.Level1)
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(-1);
-    ColorGamut colorSpace = ColorGamut::COLOR_GAMUT_INVALID;
+    GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_INVALID;
     SurfaceNodeCommandHelper::SetColorSpace(context, id, colorSpace);
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();

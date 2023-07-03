@@ -30,10 +30,18 @@ public:
     void TearDown() override;
     static inline NodeId id;
     static inline std::weak_ptr<RSContext> context = {};
+    static inline RSPaintFilterCanvas* canvas_;
+    static inline SkCanvas skCanvas_;
 };
 
-void RSSurfaceRenderNodeTest::SetUpTestCase() {}
-void RSSurfaceRenderNodeTest::TearDownTestCase() {}
+void RSSurfaceRenderNodeTest::SetUpTestCase()
+{
+    canvas_ = new RSPaintFilterCanvas(&skCanvas_);
+}
+void RSSurfaceRenderNodeTest::TearDownTestCase()
+{
+    delete canvas_;
+}
 void RSSurfaceRenderNodeTest::SetUp() {}
 void RSSurfaceRenderNodeTest::TearDown() {}
 
@@ -304,6 +312,105 @@ HWTEST_F(RSSurfaceRenderNodeTest, FingerprintTest, TestSize.Level1)
     surfaceRenderNode.SetFingerprint(false);
     result = surfaceRenderNode.GetFingerprint();
     ASSERT_EQ(false, result);
+}
+
+/**
+ * @tc.name: ShouldPrepareSubnodesTest
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ShouldPrepareSubnodesTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->ShouldPrepareSubnodes();
+    ASSERT_TRUE(node->ShouldPrepareSubnodes());
+}
+
+/**
+ * @tc.name: CollectSurfaceTest001
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    std::shared_ptr<RSBaseRenderNode> rsBaseRenderNode;
+    std::vector<RSBaseRenderNode::SharedPtr> vec;
+    bool isUniRender = true;
+    node->IsStartingWindow();
+    node->CollectSurface(rsBaseRenderNode, vec, isUniRender);
+    ASSERT_FALSE(vec.empty());
+}
+
+/**
+ * @tc.name: CollectSurfaceTest
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    std::shared_ptr<RSBaseRenderNode> rsBaseRenderNode;
+    std::vector<RSBaseRenderNode::SharedPtr> vec;
+    bool isUniRender = true;
+    node->IsLeashWindow();
+    node->CollectSurface(rsBaseRenderNode, vec, isUniRender);
+    ASSERT_FALSE(vec.empty());
+}
+
+/**
+ * @tc.name: ProcessAnimatePropertyBeforeChildrenTest
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ProcessAnimatePropertyBeforeChildrenTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->ProcessAnimatePropertyBeforeChildren(*canvas_);
+}
+
+/**
+ * @tc.name: ProcessAnimatePropertyAfterChildrenTest
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ProcessAnimatePropertyAfterChildrenTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->ProcessAnimatePropertyAfterChildren(*canvas_);
+}
+
+/**
+ * @tc.name: SetContextMatrixTest
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetContextMatrixTest, TestSize.Level1)
+{
+    std::optional<SkMatrix> matrix;
+    bool sendMsg = false;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->SetContextMatrix(matrix, sendMsg);
+}
+
+/**
+ * @tc.name: RegisterBufferAvailableListenerTest
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, RegisterBufferAvailableListenerTest, TestSize.Level1)
+{
+    sptr<RSIBufferAvailableCallback> callback;
+    bool isFromRenderThread = true;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->RegisterBufferAvailableListener(callback, isFromRenderThread);
 }
 
 } // namespace Rosen

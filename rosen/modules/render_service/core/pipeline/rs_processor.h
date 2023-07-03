@@ -18,7 +18,11 @@
 
 #include <memory>
 
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkMatrix.h"
+#else
+#include "utils/matrix.h"
+#endif
 
 #include "rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
@@ -42,7 +46,11 @@ public:
     virtual void ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node) = 0;
     virtual void PostProcess() = 0;
 
+#ifndef USE_ROSEN_DRAWING
     const SkMatrix& GetScreenTransformMatrix() const
+#else
+    const Drawing::Matrix& GetScreenTransformMatrix() const
+#endif
     {
         return screenTransformMatrix_;
     }
@@ -65,7 +73,11 @@ protected:
     ScreenId mirroredId_ = INVALID_SCREEN_ID;
     float mirrorAdaptiveCoefficient_ = 1.0f;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
+#ifndef USE_ROSEN_DRAWING
     SkMatrix screenTransformMatrix_;
+#else
+    Drawing::Matrix screenTransformMatrix_;
+#endif
     BufferRequestConfig renderFrameConfig_ {};
 };
 } // namespace Rosen

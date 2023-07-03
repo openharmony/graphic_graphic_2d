@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-const struct CmapTables* CmapTableParser::Parse(const char* data, int32_t size) const
+const struct CmapTables* CmapTableParser::Parse(const char* data, int32_t size)
 {
     return reinterpret_cast<const struct CmapTables*>(data);
 }
@@ -28,10 +28,11 @@ const struct CmapTables* CmapTableParser::Parse(const char* data, int32_t size) 
 void CmapTableParser::Dump() const
 {
     auto cmapTable = reinterpret_cast<const struct CmapTables*>(data_);
-    LOG2SO(INFO) << "cmapTable size: " << size_;
+    LOGSO_FUNC_LINE(INFO) << "cmapTable size: " << size_;
     for (auto i = 0; i < cmapTable->numTables.Get(); ++i) {
         const auto& record = cmapTable->encodingRecords[i];
-        LOG2SO(INFO) << "platformID: " << record.platformID.Get() << ", encodingID: " << record.encodingID.Get();
+        LOGSO_FUNC_LINE(INFO) << "platformID: " << record.platformID.Get()
+            << ", encodingID: " << record.encodingID.Get();
     }
 }
 } // namespace TextEngine

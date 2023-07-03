@@ -26,6 +26,8 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSRenderNode;
+
 class RSB_EXPORT RSRenderPropertyBase : public std::enable_shared_from_this<RSRenderPropertyBase> {
 public:
     RSRenderPropertyBase() = default;
@@ -37,21 +39,22 @@ public:
         return id_;
     }
 
-    void Attach(std::weak_ptr<RSBaseRenderNode> node)
+    void Attach(std::weak_ptr<RSRenderNode> node)
     {
         node_ = node;
+        OnChange();
+    }
+
+    void SetModifierType(RSModifierType type)
+    {
+        modifierType_ = type;
     }
 
     static bool Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val);
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
 
 protected:
-    void OnChange() const
-    {
-        if (auto node = node_.lock()) {
-            node->SetDirty();
-        }
-    }
+    void OnChange() const;
 
     virtual const std::shared_ptr<RSRenderPropertyBase> Clone() const
     {
@@ -77,8 +80,14 @@ protected:
         return nullptr;
     }
 
+    virtual bool IsNearEqual(const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
+    {
+        return true;
+    }
+
     PropertyId id_;
-    std::weak_ptr<RSBaseRenderNode> node_;
+    std::weak_ptr<RSRenderNode> node_;
+    RSModifierType modifierType_ { RSModifierType::INVALID };
 
 private:
     virtual std::shared_ptr<RSRenderPropertyBase> Add(const std::shared_ptr<const RSRenderPropertyBase>& value)
@@ -135,6 +144,9 @@ class RSRenderProperty : public RSRenderPropertyBase {
 public:
     RSRenderProperty() : RSRenderPropertyBase(0) {}
     RSRenderProperty(const T& value, const PropertyId& id) : RSRenderPropertyBase(id), stagingValue_(value) {}
+    RSRenderProperty(const T& value, const PropertyId& id, const RSRenderPropertyType type)
+        : RSRenderPropertyBase(id), stagingValue_(value)
+    {}
     virtual ~RSRenderProperty() = default;
 
     void Set(const T& value)
@@ -163,6 +175,12 @@ public:
 protected:
     T stagingValue_;
     std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)> updateUIPropertyFunc_;
+    RSRenderPropertyType GetPropertyType() const
+    {
+        return RSRenderPropertyType::INVALID;
+    }
+
+    friend class RSMarshallingHelper;
 };
 
 template<typename T>
@@ -174,6 +192,7 @@ public:
     RSRenderAnimatableProperty(const T& value, const PropertyId& id, const RSRenderPropertyType type)
         : RSRenderProperty<T>(value, id), type_(type)
     {}
+
     virtual ~RSRenderAnimatableProperty() = default;
 
 protected:
@@ -204,6 +223,11 @@ protected:
     float ToFloat() const override
     {
         return 1.f;
+    }
+
+    bool IsNearEqual(const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const override
+    {
+        return IsEqual(value);
     }
 
     std::shared_ptr<RSValueEstimator> CreateRSValueEstimator(const RSValueEstimatorType type) override
@@ -271,11 +295,44 @@ RSB_EXPORT float RSRenderAnimatableProperty<Quaternion>::ToFloat() const;
 template<>
 RSB_EXPORT float RSRenderAnimatableProperty<Vector2f>::ToFloat() const;
 
+template<>
+RSB_EXPORT bool RSRenderAnimatableProperty<float>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
+template<>
+RSB_EXPORT bool RSRenderAnimatableProperty<Vector4f>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
+template<>
+RSB_EXPORT bool RSRenderAnimatableProperty<Quaternion>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
+template<>
+RSB_EXPORT bool RSRenderAnimatableProperty<Vector2f>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
+template<>
+RSB_EXPORT bool RSRenderAnimatableProperty<Matrix3f>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
+template<>
+RSB_EXPORT bool RSRenderAnimatableProperty<Color>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
+template<>
+RSB_EXPORT bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
+template<>
+RSB_EXPORT bool RSRenderAnimatableProperty<Vector4<Color>>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
+template<>
+RSB_EXPORT bool RSRenderAnimatableProperty<RRect>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
+
 #if defined(_WIN32)
 extern template class RSRenderAnimatableProperty<float>;
 extern template class RSRenderAnimatableProperty<Vector4f>;
 extern template class RSRenderAnimatableProperty<Quaternion>;
 extern template class RSRenderAnimatableProperty<Vector2f>;
+extern template class RSRenderAnimatableProperty<Matrix3f>;
+extern template class RSRenderAnimatableProperty<Color>;
+extern template class RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>;
+extern template class RSRenderAnimatableProperty<Vector4<Color>>;
+extern template class RSRenderAnimatableProperty<RRect>;
 #endif
 } // namespace Rosen
 } // namespace OHOS

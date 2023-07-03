@@ -15,6 +15,7 @@
 
 #include "hdi_output.h"
 #include "hdilayer_context_systest.h"
+#include "mock_hdi_device_systest.h"
 #include <gtest/gtest.h>
 
 using namespace testing;
@@ -28,33 +29,220 @@ public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     static inline std::shared_ptr<HdiOutput> hdiOutput_;
+    static inline MockSys::HdiDeviceMock* mockDevice_ = nullptr;
+    static inline std::vector<LayerInfoPtr> layerInfos_;
+    static inline std::shared_ptr<HdiLayerContext> hdiLayerTemp_;
 };
 
 void HdiOutputSysTest::SetUpTestCase()
 {
     uint32_t screenId = 0;
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId);
-    std::vector<LayerInfoPtr> layerInfos;
+
     int32_t width = 50;
     int32_t height = 50;
     GraphicIRect srcRect = {0, 0, width, height};
     GraphicIRect dstRect = {0, 0, width, height};
     uint32_t zOrder = 0;
-    std::shared_ptr<HdiLayerContext> hdiLayerTemp = std::make_unique<HdiLayerContext>(dstRect, srcRect, zOrder);
-    hdiLayerTemp->DrawBufferColor();
-    hdiLayerTemp->FillHdiLayer();
-    layerInfos.emplace_back(hdiLayerTemp->GetHdiLayer());
+    std::shared_ptr<HdiLayerContext> hdiLayerTemp_ = std::make_unique<HdiLayerContext>(dstRect, srcRect, zOrder);
+    hdiLayerTemp_->DrawBufferColor();
+    hdiLayerTemp_->FillHdiLayer();
+    hdiLayerTemp_->GetHdiLayer()->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    layerInfos_.emplace_back(hdiLayerTemp_->GetHdiLayer());
+
     zOrder = 1;
-    hdiLayerTemp = std::make_unique<HdiLayerContext>(dstRect, srcRect, zOrder);
-    hdiLayerTemp->DrawBufferColor();
-    hdiLayerTemp->FillHdiLayer();
-    layerInfos.emplace_back(hdiLayerTemp->GetHdiLayer());
-    HdiOutputSysTest::hdiOutput_->SetLayerInfo(layerInfos);
+    hdiLayerTemp_ = std::make_unique<HdiLayerContext>(dstRect, srcRect, zOrder);
+    hdiLayerTemp_->DrawBufferColor();
+    hdiLayerTemp_->FillHdiLayer();
+    hdiLayerTemp_->GetHdiLayer()->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    layerInfos_.emplace_back(hdiLayerTemp_->GetHdiLayer());
+
+    mockDevice_ = MockSys::HdiDeviceMock::GetInstance();
+    hdiOutput_->SetHdiOutputDevice(mockDevice_);
 }
 
 void HdiOutputSysTest::TearDownTestCase() {}
 
 namespace {
+/*
+* Function: PreProcessLayersComp001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call PreProcessLayersComp()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputSysTest, PreProcessLayersComp001, Function | MediumTest| Level1)
+{
+    bool needFlush = false;
+    // layerIdMap is null in hdiouput
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->PreProcessLayersComp(needFlush), GRAPHIC_DISPLAY_PARAM_ERR);
+
+    // layerIdMap is not nullptr in hdiouput
+    HdiOutputSysTest::hdiOutput_->SetLayerInfo(layerInfos_);
+    EXPECT_CALL(*mockDevice_, PrepareScreenLayers(_, _)).WillRepeatedly(testing::Return(1));
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->PreProcessLayersComp(needFlush), GRAPHIC_DISPLAY_FAILURE);
+
+    EXPECT_CALL(*mockDevice_, PrepareScreenLayers(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(1));
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->PreProcessLayersComp(needFlush), 1);
+
+    HdiOutputSysTest::hdiOutput_->SetLayerCompCapacity(1);
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->PreProcessLayersComp(needFlush), GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
+* Function: UpdateLayerCompType001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call UpdateLayerCompType()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputSysTest, UpdateLayerCompType001, Function | MediumTest| Level1)
+{
+    EXPECT_CALL(*mockDevice_, GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(0));
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->UpdateLayerCompType(), 0);
+}
+
+/*
+* Function: UpdateInfosAfterCommit001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call UpdateInfosAfterCommit()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputSysTest, UpdateInfosAfterCommit001, Function | MediumTest| Level1)
+{
+    sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
+    EXPECT_CALL(*mockDevice_, SetScreenVsyncEnabled(_, _)).WillRepeatedly(testing::Return(0));
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->UpdateInfosAfterCommit(fbFence), 0);
+}
+
+/*
+* Function: GetLayersReleaseFence001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetLayersReleaseFence
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputSysTest, GetLayersReleaseFence001, Function | MediumTest| Level3)
+{
+    std::map<LayerInfoPtr, sptr<SyncFence>> res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
+    ASSERT_EQ(res.size(), 0);
+}
+
+/*
+* Function: FlushScreen001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call FlushScreen()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputSysTest, FlushScreen001, Function | MediumTest| Level1)
+{
+    std::vector<LayerPtr> compClientLayers = {};
+    // frame buffer is nullptr
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->FlushScreen(compClientLayers), -1);
+}
+
+/*
+* Function: ReleaseFramebuffer001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call ReleaseFramebuffer()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputSysTest, ReleaseFramebuffer001, Function | MediumTest| Level1)
+{
+    sptr<SyncFence> releaseFence;
+    // currentr frame buffer_ is nullptr
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->ReleaseFramebuffer(releaseFence), GRAPHIC_DISPLAY_NULL_PTR);
+}
+
+/*
+* Function: SetHdiOutputDevice001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetHdiOutputDevice
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputSysTest, SetHdiOutputDevice001, Function | MediumTest| Level3)
+{
+    // mockDevice_ is nullptr
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->SetHdiOutputDevice(nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
+    // the device_ in hdiBackend_ is not nullptr alredy
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->SetHdiOutputDevice(mockDevice_), ROSEN_ERROR_OK);
+    // Init the hdiouput
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->Init(), ROSEN_ERROR_OK);
+}
+
+/*
+* Function: FlushScreen002
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call FlushScreen()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputSysTest, FlushScreen002, Function | MediumTest| Level1)
+{
+    std::vector<LayerPtr> compClientLayers;
+    const std::unordered_map<uint32_t, LayerPtr> &layersMap = HdiOutputSysTest::hdiOutput_->GetLayers();
+    for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
+        const LayerPtr &layer = iter->second;
+        compClientLayers.emplace_back(layer);
+    }
+    // frame buffer is nullptr
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->FlushScreen(compClientLayers), -1);
+
+    sptr<Surface> frameSurface = HdiOutputSysTest::hdiOutput_->GetFrameBufferSurface();
+    sptr<SurfaceBuffer> buffer;
+    int32_t releaseFence = -1;
+    BufferRequestConfig config = {
+        .width = 50,
+        .height = 50,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = (BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA),
+    };
+    ASSERT_EQ(frameSurface->RequestBuffer(buffer, releaseFence, config), GSERROR_OK);
+    BufferFlushConfig flushConfig = {
+        .damage = {
+        .w = 50,
+        .h = 50,
+        },
+    };
+    ASSERT_EQ(frameSurface->FlushBuffer(buffer, -1, flushConfig), GSERROR_OK); // frame buffer is not nullptr
+
+    EXPECT_CALL(*mockDevice_, SetScreenClientBuffer(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, SetScreenClientDamage(_, _)).WillRepeatedly(testing::Return(0));
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->FlushScreen(compClientLayers), 0);
+}
+
+/*
+* Function: ReleaseFramebuffer002
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call ReleaseFramebuffer()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputSysTest, ReleaseFramebuffer002, Function | MediumTest| Level1)
+{
+    // last frame buffer is nullptr
+    sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;;
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->ReleaseFramebuffer(releaseFence), 0);
+
+    // last frame buffer is not nullptr
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->ReleaseFramebuffer(releaseFence), 0);
+}
+
 /*
 * Function: TestHdiOutput001
 * Type: Function
@@ -66,22 +254,6 @@ namespace {
 HWTEST_F(HdiOutputSysTest, TestHdiOutput001, Function | MediumTest| Level3)
 {
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->GetScreenId(), 0u);
-    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->Init(), ROSEN_ERROR_OK);
-    GraphicIRect iRect = {
-        .x = 0,
-        .y = 0,
-        .w = 800,
-        .h = 600,
-    };
-    std::vector<GraphicIRect> inDamages;
-    inDamages.emplace_back(iRect);
-    HdiOutputSysTest::hdiOutput_->SetOutputDamages(inDamages);
-    const std::vector<GraphicIRect>& outDamages = HdiOutputSysTest::hdiOutput_->GetOutputDamages();
-    ASSERT_EQ(outDamages.size(), 1);
-    ASSERT_EQ(outDamages[0].x, iRect.x);
-    ASSERT_EQ(outDamages[0].y, iRect.y);
-    ASSERT_EQ(outDamages[0].w, iRect.w);
-    ASSERT_EQ(outDamages[0].h, iRect.h);
 
     std::string dumpStr = "";
     HdiOutputSysTest::hdiOutput_->Dump(dumpStr);
@@ -101,6 +273,25 @@ HWTEST_F(HdiOutputSysTest, TestHdiOutput001, Function | MediumTest| Level3)
 
     ASSERT_NE(HdiOutputSysTest::hdiOutput_->GetFrameBufferSurface(), nullptr);
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->GetFramebuffer(), nullptr);
+}
+
+/*
+* Function: GetLayersReleaseFence002
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetLayersReleaseFence
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputSysTest, GetLayersReleaseFence002, Function | MediumTest| Level3)
+{
+    EXPECT_CALL(*mockDevice_, GetScreenReleaseFence(_, _, _)).WillRepeatedly(testing::Return(1));
+    std::map<LayerInfoPtr, sptr<SyncFence>> res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
+    ASSERT_EQ(res.size(), 0);
+
+    EXPECT_CALL(*mockDevice_, GetScreenReleaseFence(_, _, _)).WillRepeatedly(testing::Return(0));
+    res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
+    ASSERT_EQ(res.size(), 0);
 }
 } // namespace
 } // namespace Rosen

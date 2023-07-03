@@ -28,6 +28,18 @@ void RSDirtyRegionManager::MergeDirtyRect(const RectI& rect)
     if (rect.IsEmpty()) {
         return;
     }
+    if (currentFrameDirtyRegion_.IsEmpty()) {
+        currentFrameDirtyRegion_ = rect;
+    } else {
+        currentFrameDirtyRegion_ = currentFrameDirtyRegion_.JoinRect(rect);
+    }
+}
+
+void RSDirtyRegionManager::MergeDirtyRectAfterMergeHistory(const RectI& rect)
+{
+    if (rect.IsEmpty()) {
+        return;
+    }
     if (dirtyRegion_.IsEmpty()) {
         dirtyRegion_ = rect;
     } else {
@@ -37,17 +49,22 @@ void RSDirtyRegionManager::MergeDirtyRect(const RectI& rect)
 
 void RSDirtyRegionManager::IntersectDirtyRect(const RectI& rect)
 {
-    dirtyRegion_ = dirtyRegion_.IntersectRect(rect);
+    currentFrameDirtyRegion_ = currentFrameDirtyRegion_.IntersectRect(rect);
 }
 
 void RSDirtyRegionManager::ClipDirtyRectWithinSurface()
 {
-    int left = std::max(std::max(dirtyRegion_.left_, 0), surfaceRect_.left_);
-    int top = std::max(std::max(dirtyRegion_.top_, 0), surfaceRect_.top_);
-    int width = std::min(dirtyRegion_.GetRight(), surfaceRect_.GetRight()) - left;
-    int height = std::min(dirtyRegion_.GetBottom(), surfaceRect_.GetBottom()) - top;
-    // If new region is invalid, dirtyRegion would be reset as [0, 0, 0, 0]
-    dirtyRegion_ = ((width <= 0) || (height <= 0)) ? RectI() : RectI(left, top, width, height);
+    int left = std::max(std::max(currentFrameDirtyRegion_.left_, 0), surfaceRect_.left_);
+    int top = std::max(std::max(currentFrameDirtyRegion_.top_, 0), surfaceRect_.top_);
+    int width = std::min(currentFrameDirtyRegion_.GetRight(), surfaceRect_.GetRight()) - left;
+    int height = std::min(currentFrameDirtyRegion_.GetBottom(), surfaceRect_.GetBottom()) - top;
+    // If new region is invalid, currentFrameDirtyRegion_ would be reset as [0, 0, 0, 0]
+    currentFrameDirtyRegion_ = ((width <= 0) || (height <= 0)) ? RectI() : RectI(left, top, width, height);
+}
+
+const RectI& RSDirtyRegionManager::GetCurrentFrameDirtyRegion()
+{
+    return currentFrameDirtyRegion_;
 }
 
 const RectI& RSDirtyRegionManager::GetDirtyRegion() const
@@ -57,9 +74,14 @@ const RectI& RSDirtyRegionManager::GetDirtyRegion() const
 
 RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const
 {
-    RectI glRect = dirtyRegion_;
+    RectI glRect;
+    if (isDirtyRegionAlignedEnable_) {
+        glRect = GetPixelAlignedRect(dirtyRegion_);
+    } else {
+        glRect = dirtyRegion_;
+    }
     // left-top to left-bottom corner(in current surface)
-    glRect.top_ = surfaceRect_.height_ - dirtyRegion_.top_ - dirtyRegion_.height_;
+    glRect.top_ = surfaceRect_.height_ - glRect.top_ - glRect.height_;
     return glRect;
 }
 
@@ -95,6 +117,7 @@ RectI RSDirtyRegionManager::GetPixelAlignedRect(const RectI& rect, int32_t align
 void RSDirtyRegionManager::Clear()
 {
     dirtyRegion_.Clear();
+    currentFrameDirtyRegion_.Clear();
     dirtyCanvasNodeInfo_.clear();
     dirtyCanvasNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
     dirtySurfaceNodeInfo_.clear();
@@ -102,9 +125,14 @@ void RSDirtyRegionManager::Clear()
     isDfxTarget_ = false;
 }
 
+bool RSDirtyRegionManager::IsCurrentFrameDirty() const
+{
+    return !currentFrameDirtyRegion_.IsEmpty();
+}
+
 bool RSDirtyRegionManager::IsDirty() const
 {
-    return (dirtyRegion_.width_ > 0) && (dirtyRegion_.height_ > 0);
+    return !dirtyRegion_.IsEmpty();
 }
 
 void RSDirtyRegionManager::UpdateDirty(bool enableAligned)
@@ -117,13 +145,13 @@ void RSDirtyRegionManager::UpdateDirty(bool enableAligned)
         AlignHistory();
     }
     isDirtyRegionAlignedEnable_ = enableAligned;
-    PushHistory(dirtyRegion_);
-    dirtyRegion_ = MergeHistory(bufferAge_, dirtyRegion_);
+    PushHistory(currentFrameDirtyRegion_);
+    dirtyRegion_ = MergeHistory(bufferAge_, currentFrameDirtyRegion_);
 }
 
 void RSDirtyRegionManager::UpdateDirtyByAligned(int32_t alignedBits)
 {
-    dirtyRegion_ = GetPixelAlignedRect(dirtyRegion_, alignedBits);
+    currentFrameDirtyRegion_ = GetPixelAlignedRect(currentFrameDirtyRegion_, alignedBits);
 }
 
 void RSDirtyRegionManager::UpdateDirtyRegionInfoForDfx(NodeId id, RSRenderNodeType nodeType,
@@ -151,11 +179,6 @@ void RSDirtyRegionManager::GetDirtyRegionInfo(std::map<NodeId, RectI>& target,
     } else if (nodeType == RSRenderNodeType::SURFACE_NODE) {
         target = dirtySurfaceNodeInfo_[dirtyType];
     }
-}
-
-RectI RSDirtyRegionManager::GetLastestHistory() const
-{
-    return GetHistory(historyHead_);
 }
 
 bool RSDirtyRegionManager::HasOffset()
@@ -269,8 +292,8 @@ RectI RSDirtyRegionManager::GetHistory(unsigned int i) const
     if (i >= HISTORY_QUEUE_MAX_SIZE) {
         i %= HISTORY_QUEUE_MAX_SIZE;
     }
-    if (historySize_ == HISTORY_QUEUE_MAX_SIZE) {
-        i = (i + historyHead_) % HISTORY_QUEUE_MAX_SIZE;
+    if (historySize_ > 0) {
+        i = (i + historyHead_) % historySize_;
     }
     return dirtyHistory_[i];
 }

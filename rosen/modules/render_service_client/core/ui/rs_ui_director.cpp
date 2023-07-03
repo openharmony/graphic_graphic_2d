@@ -31,6 +31,9 @@
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
+#ifdef NEW_RENDER_CONTEXT
+#include "memory/rs_memory_manager.h"
+#endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -120,7 +123,11 @@ void RSUIDirector::GoBackground()
         // clean bufferQueue cache
         RSRenderThread::Instance().PostTask([surfaceNode]() {
             if (surfaceNode != nullptr) {
+#ifdef NEW_RENDER_CONTEXT
+                std::shared_ptr<RSRenderSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
+#else
                 std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
+#endif
                 rsSurface->ClearBuffer();
             }
         });
@@ -129,7 +136,12 @@ void RSUIDirector::GoBackground()
             auto renderContext = RSRenderThread::Instance().GetRenderContext();
             if (renderContext != nullptr) {
 #ifndef ROSEN_CROSS_PLATFORM
+#if defined(NEW_RENDER_CONTEXT)
+                auto drawingContext = RSRenderThread::Instance().GetDrawingContext();
+                MemoryManager::ClearRedundantResources(drawingContext->GetDrawingContext());
+#else
                 renderContext->ClearRedundantResources();
+#endif
 #endif
             }
         });
@@ -262,6 +274,8 @@ void RSUIDirector::RecvMessages()
     if (!RSMessageProcessor::Instance().HasTransaction(pid)) {
         return;
     }
+    static std::mutex recvMessagesMutex;
+    std::unique_lock<std::mutex> lock(recvMessagesMutex);
     auto transactionDataPtr = std::make_shared<RSTransactionData>(RSMessageProcessor::Instance().GetTransaction(pid));
     RecvMessages(transactionDataPtr);
 }

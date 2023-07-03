@@ -62,6 +62,25 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
     return std::shared_ptr<ColorPicker>(colorPicker);
 }
 
+std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_ptr<Media::PixelMap>& pixmap,
+    double* coordinates, uint32_t &errorCode)
+{
+    if (pixmap == nullptr) {
+        HiLog::Info(LABEL, "[ColorPicker]failed to create ColorPicker with null pixmap.");
+        errorCode = ERR_EFFECT_INVALID_VALUE;
+        return nullptr;
+    }
+    ColorPicker *colorPicker = new (std::nothrow) ColorPicker(pixmap, coordinates);
+    if (colorPicker == nullptr) {
+        HiLog::Info(LABEL, "[ColorPicker]failed to create ColorPicker with pixmap.");
+        errorCode = ERR_EFFECT_INVALID_VALUE;
+        return nullptr;
+    }
+
+    errorCode = SUCCESS;
+    return std::shared_ptr<ColorPicker>(colorPicker);
+}
+
 std::shared_ptr<Media::PixelMap> ColorPicker::GetScaledPixelMap()
 {
     // Create scaled pixelmap
@@ -94,6 +113,8 @@ uint32_t ColorPicker::GetMainColor(ColorManager::Color &color)
 }
 
 ColorPicker::ColorPicker(std::shared_ptr<Media::PixelMap> pixmap):ColorExtract(pixmap) {}
+ColorPicker::ColorPicker(
+    std::shared_ptr<Media::PixelMap> pixmap, double* coordinates):ColorExtract(pixmap, coordinates) {}
 
 uint32_t ColorPicker::GetLargestProportionColor(ColorManager::Color &color) const
 {

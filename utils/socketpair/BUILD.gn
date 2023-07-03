@@ -52,6 +52,7 @@ ohos_shared_library("socketpair") {
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
   ]
 
+  innerapi_tags = [ "platformsdk_indirect" ]
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }

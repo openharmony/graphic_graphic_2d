@@ -27,6 +27,11 @@ public:
     RecordingRegion();
     ~RecordingRegion() override = default;
 
+    DrawingType GetDrawingType() const override
+    {
+        return DrawingType::RECORDING;
+    }
+
     std::shared_ptr<RegionCmdList> GetCmdList() const;
 
     bool SetRect(const RectI& rectI) override;

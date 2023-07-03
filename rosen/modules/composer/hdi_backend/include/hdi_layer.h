@@ -83,6 +83,10 @@ private:
     HdiDevice *device_ = nullptr;
     bool doLayerInfoCompare_ = false;
 
+    std::vector<sptr<SurfaceBuffer> > bufferCache_;
+    uint32_t bufferCacheCountMax_ = 0;
+    uint32_t bufferCacheIndex_ = 0;
+
     int32_t CreateLayer(const LayerInfoPtr &layerInfo);
     void CloseLayer();
     int32_t SetLayerAlpha();
@@ -104,11 +108,12 @@ private:
     int32_t SetLayerTunnelHandle();
     int32_t SetLayerPresentTimestamp();
     int32_t InitDevice();
-    bool IsSameRect(const GraphicIRect& rect1, const GraphicIRect& rect2);
     bool IsSameLayerMetaData();
     bool IsSameLayerMetaDataSet();
     inline void CheckRet(int32_t ret, const char* func);
     int32_t SetLayerMaskInfo();
+    bool CheckAndUpdateLayerBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index,
+                                        std::vector<uint32_t>& deletingList);
 };
 } // namespace Rosen
 } // namespace OHOS
