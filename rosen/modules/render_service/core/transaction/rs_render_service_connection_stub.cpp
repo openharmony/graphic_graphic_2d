@@ -692,10 +692,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             std::shared_ptr<RSSyncTask> task(command);
-            if (task == nullptr) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             ExecuteSynchronousTask(task);
             if (!task->Marshalling(reply)) {
                 ret = ERR_INVALID_STATE;

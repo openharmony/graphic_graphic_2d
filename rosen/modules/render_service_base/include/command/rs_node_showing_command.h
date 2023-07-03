@@ -147,14 +147,14 @@ private:
 #ifdef ROSEN_INSTANTIATE_COMMAND_TEMPLATE
 #define ADD_SHOWING_COMMAND(ALIAS, TYPE)                           \
     using ALIAS = RSGetRenderPropertyAndCancelAnimationTask<TYPE>; \
-    template class RSGetRenderPropertyAndCancelAnimationTask<TYPE>;
+    template class RSGetRenderPropertyAndCancelAnimationTask<TYPE>
 #else
 
-#define ADD_SHOWING_COMMAND(ALIAS, TYPE) using ALIAS = RSGetRenderPropertyAndCancelAnimationTask<TYPE>;
+#define ADD_SHOWING_COMMAND(ALIAS, TYPE) using ALIAS = RSGetRenderPropertyAndCancelAnimationTask<TYPE>
 #endif
 
 ADD_SHOWING_COMMAND(
-    RSNodeGetShowingPropertyAndCancelAnimation, ARG(RS_NODE_SYNCHRONOUS_READ_PROPERTY, GET_RENDER_PROPERTY))
+    RSNodeGetShowingPropertyAndCancelAnimation, ARG(RS_NODE_SYNCHRONOUS_READ_PROPERTY, GET_RENDER_PROPERTY));
 } // namespace Rosen
 } // namespace OHOS
 
