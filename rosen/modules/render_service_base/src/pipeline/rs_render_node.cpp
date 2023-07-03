@@ -16,6 +16,7 @@
 #include "pipeline/rs_render_node.h"
 
 #include <algorithm>
+#include <mutex>
 #include <set>
 
 #include "animation/rs_render_animation.h"
@@ -613,14 +614,21 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
     float scaleY = size.y_ / boundsHeight_;
     canvas.scale(scaleX, scaleY);
     SkPaint paint;
-#ifdef NEW_SKIA
+#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     if (isUIFirst) {
-        if (cacheTexture_ == nullptr) {
-            RS_LOGE("invalid cache texture");
+        if (!grBackendTexture_.isValid()) {
+            RS_LOGE("invalid grBackendTexture_");
             canvas.restore();
             return;
         }
-        canvas.drawImage(cacheTexture_, -shadowRectOffsetX_ * scaleX, -shadowRectOffsetY_ * scaleY);
+        auto image = SkImage::MakeFromTexture(canvas.recordingContext(), grBackendTexture_,
+            kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+        if (image == nullptr) {
+            RS_LOGE("make Image failed");
+            canvas.restore();
+            return;
+        }
+        canvas.drawImage(image, -shadowRectOffsetX_ * scaleX, -shadowRectOffsetY_ * scaleY);
         canvas.restore();
         return;
     }
@@ -679,6 +687,18 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
     }
     canvas.DetachBrush();
     canvas.Restore();
+}
+#endif
+
+#ifdef RS_ENABLE_GL
+void RSRenderNode::UpdateBackendTexture()
+{
+    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+    if (cacheSurface_ == nullptr) {
+        return;
+    }
+    grBackendTexture_
+        = cacheSurface_->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
 }
 #endif
 

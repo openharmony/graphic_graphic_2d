@@ -146,6 +146,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
             surfaceNodePtr->GetCacheSurface()->flushAndSubmit(false);
         }
 #endif
+        surfaceNodePtr->UpdateBackendTexture();
         surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DONE);
 
         if (needNotify) {

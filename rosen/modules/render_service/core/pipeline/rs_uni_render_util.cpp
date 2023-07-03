@@ -375,7 +375,6 @@ bool RSUniRenderUtil::HandleSubThreadNode(RSRenderNode& node, RSPaintFilterCanva
 #if defined(RS_ENABLE_GL)
         RSSubThreadManager::Instance()->WaitNodeTask(node.GetId());
         node.UpdateCompletedCacheSurface();
-        RSSubThreadManager::Instance()->SaveCacheTexture(node);
 #endif
     }
     RS_TRACE_NAME_FMT("RSUniRenderUtil::HandleSubThreadNode %" PRIu64 "", node.GetId());
@@ -506,7 +505,6 @@ void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRe
     if (changeThread) {
         RS_LOGD("RSUniRenderUtil::AssignMainThreadNode clear cache surface:[%s, %llu]",
             node->GetName().c_str(), node->GetId());
-        node->SetCacheTexture(nullptr);
         ClearCacheSurface(node, UNI_MAIN_THREAD_INDEX);
     }
 }
@@ -525,7 +523,6 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
 #if defined(RS_ENABLE_GL)
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE && node->GetCacheSurface()) {
         node->UpdateCompletedCacheSurface();
-        RSSubThreadManager::Instance()->SaveCacheTexture(*node);
     }
 #endif
     if (node->HasCachedTexture()) {
@@ -610,7 +607,6 @@ void RSUniRenderUtil::ClearSurfaceIfNeed(const RSRenderNodeMap& map,
             if (surface && map.GetRenderNode(surface->GetId()) != nullptr) {
                 RS_LOGD("RSUniRenderUtil::ClearSurfaceIfNeed clear cache surface:[%s, %llu]",
                     surface->GetName().c_str(), surface->GetId());
-                surface->SetCacheTexture(nullptr);
                 ClearCacheSurface(surface, UNI_MAIN_THREAD_INDEX);
             }
         }

@@ -83,19 +83,4 @@ HWTEST_F(RsSubThreadManagerTest, SubmitSubThreadTaskTest, TestSize.Level1)
     auto rsSubThreadManager = RSSubThreadManager::Instance();
     rsSubThreadManager->SubmitSubThreadTask(nullptr, list);
 }
-
-/**
- * @tc.name: SaveCacheTextureTest
- * @tc.desc: Test RsSubThreadManagerTest.SaveCacheTextureTest
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RsSubThreadManagerTest, SaveCacheTextureTest, TestSize.Level1)
-{
-    NodeId id = 1;
-    std::weak_ptr<RSContext> context = {};
-    RSRenderNode node(id, context);
-    auto rsSubThreadManager = RSSubThreadManager::Instance();
-    rsSubThreadManager->SaveCacheTexture(node);
-}
 } // namespace OHOS::Rosen

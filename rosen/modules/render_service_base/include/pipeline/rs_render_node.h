@@ -25,6 +25,7 @@
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkRefCnt.h"
 #include "include/core/SkSurface.h"
+#include "include/gpu/GrBackendSurface.h"
 #else
 #include "draw/surface.h"
 #endif
@@ -187,6 +188,10 @@ public:
         cacheSurface_ = nullptr;
         cacheCompletedSurface_ = nullptr;
     }
+
+#ifdef RS_ENABLE_GL
+    void UpdateBackendTexture();
+#endif
 
     void DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
         bool isUIFirst = false);
@@ -359,17 +364,12 @@ public:
 
     bool HasCachedTexture() const
     {
-        return cacheTexture_ != nullptr;
-    }
-
-    void SetCacheTexture(sk_sp<SkImage> texture)
-    {
-        cacheTexture_ = texture;
-    }
-
-    sk_sp<SkImage> GetCacheTexture() const
-    {
-        return cacheTexture_;
+#ifdef RS_ENABLE_GL
+        return grBackendTexture_.isValid();
+#else
+        return true;
+#endif
+    
     }
 
     void SetNeedClearFlag(bool needClear)
@@ -453,6 +453,9 @@ private:
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
 #endif
+#ifdef RS_ENABLE_GL
+    GrBackendTexture grBackendTexture_;
+#endif
     std::atomic<bool> isStaticCached_ = false;
     CacheType cacheType_ = CacheType::NONE;
     // drawing group cache
@@ -460,7 +463,6 @@ private:
     bool isDrawingCacheChanged_ = false;
 
     mutable std::recursive_mutex surfaceMutex_;
-    sk_sp<SkImage> cacheTexture_ = nullptr;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     bool isMainThreadNode_ = true;

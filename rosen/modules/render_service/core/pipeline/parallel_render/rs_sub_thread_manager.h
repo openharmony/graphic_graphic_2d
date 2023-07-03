@@ -37,7 +37,6 @@ public:
     void NodeTaskNotify(uint64_t nodeId);
     void SubmitSubThreadTask(const std::shared_ptr<RSDisplayRenderNode>& node,
         const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
-    void SaveCacheTexture(RSRenderNode& node) const;
 
 private:
     RSSubThreadManager() = default;

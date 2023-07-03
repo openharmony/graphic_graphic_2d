@@ -136,38 +136,4 @@ void RSSubThreadManager::NodeTaskNotify(uint64_t nodeId)
     }
     cvParallelRender_.notify_one();
 }
-
-void RSSubThreadManager::SaveCacheTexture(RSRenderNode& node) const
-{
-    std::scoped_lock<std::recursive_mutex> lock(node.GetSurfaceMutex());
-#ifdef NEW_SKIA
-    auto surface = node.GetCompletedCacheSurface(UNI_MAIN_THREAD_INDEX, true);
-    if (surface == nullptr || (surface->width() == 0 || surface->height() == 0)) {
-        RS_LOGE("invalid cache surface");
-        return;
-    }
-    if (renderContext_ == nullptr) {
-        RS_LOGE("SaveCacheTexture render context is nullptr");
-        return;
-    }
-    auto mainGrContext = renderContext_->GetGrContext();
-    if (mainGrContext == nullptr) {
-        RS_LOGE("SaveCacheTexture GrDirectContext is nullptr");
-        return;
-    }
-    auto sharedBackendTexture =
-        surface->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
-    if (!sharedBackendTexture.isValid()) {
-        RS_LOGE("SaveCacheTexture does not has GPU backend, %llu", node.GetId());
-        return;
-    }
-    auto sharedTexture = SkImage::MakeFromTexture(mainGrContext, sharedBackendTexture,
-        kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
-    if (sharedTexture == nullptr) {
-        RS_LOGE("SaveCacheTexture shared texture is nullptr, %llu", node.GetId());
-        return;
-    }
-    node.SetCacheTexture(sharedTexture);
-#endif
-}
 }
