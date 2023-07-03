@@ -705,7 +705,7 @@ std::shared_ptr<Drawing::Surface> RSRenderNode::GetCompletedCacheSurface(uint32_
 
 void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
 {
-    if (id <= 0) {
+    if (id <= 0 || GetType() != RSRenderNodeType::CANVAS_NODE) {
         return;
     }
     auto context = GetContext().lock();
