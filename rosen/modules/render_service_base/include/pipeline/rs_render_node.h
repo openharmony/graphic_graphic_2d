@@ -369,7 +369,6 @@ public:
 #else
         return true;
 #endif
-    
     }
 
     void SetNeedClearFlag(bool needClear)

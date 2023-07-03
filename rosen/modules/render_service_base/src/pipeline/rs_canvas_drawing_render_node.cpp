@@ -16,6 +16,7 @@
 #include "pipeline/rs_canvas_drawing_render_node.h"
 
 #include "include/core/SkCanvas.h"
+#include "include/core/SkDeferredDisplayListRecorder.h"
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -75,14 +76,30 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     RSModifierContext context = { GetMutableRenderProperties(), canvas_.get() };
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
 
-    auto image = skSurface_->makeImageSnapshot();
-    auto srcRect = SkRect::MakeXYWH(0, 0, image->width(), image->height());
+#if (defined NEW_SKIA) && (defined RS_ENABLE_GL)
+    auto sharedBackendTexture = skSurface_->getBackendTexture(SkSurface::kFlushWrite_BackendHandleAccess);
+    if (!sharedBackendTexture.isValid()) {
+        RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents sharedBackendTexture is nullptr");
+        return;
+    }
+    auto sharedTexture = SkImage::MakeFromTexture(canvas.recordingContext(), sharedBackendTexture,
+        kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+    if (sharedTexture == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents sharedTexture is nullptr");
+        return;
+    }
+    auto srcRect = SkRect::MakeXYWH(0, 0, sharedTexture->width(), sharedTexture->height());
     auto dstRect =
         SkRect::MakeXYWH(0, 0, GetRenderProperties().GetFrameWidth(), GetRenderProperties().GetFrameHeight());
-#ifdef NEW_SKIA
-    canvas.drawImageRect(image, srcRect, dstRect, SkSamplingOptions(), nullptr, SkCanvas::kFast_SrcRectConstraint);
+    canvas.drawImageRect(
+        sharedTexture, srcRect, dstRect, SkSamplingOptions(), nullptr, SkCanvas::kFast_SrcRectConstraint);
 #else
-    canvas.drawImageRect(image, srcRect, dstRect, nullptr, SkCanvas::kFast_SrcRectConstraint);
+    if (auto image = skSurface_->makeImageSnapshot()) {
+        auto srcRect = SkRect::MakeXYWH(0, 0, image->width(), image->height());
+        auto dstRect =
+            SkRect::MakeXYWH(0, 0, GetRenderProperties().GetFrameWidth(), GetRenderProperties().GetFrameHeight());
+        canvas.drawImageRect(image, srcRect, dstRect, nullptr, SkCanvas::kFast_SrcRectConstraint);
+    }
 #endif
 }
 
