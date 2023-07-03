@@ -112,10 +112,7 @@ private:
 #endif
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
 
-    bool useKawase = true;
-    sk_sp<SkRuntimeEffect> fBlurEffect;
-    sk_sp<SkRuntimeEffect> fMixEffect;
-
+    bool useKawase = false;
     friend class RSMarshallingHelper;
 };
 } // namespace Rosen
