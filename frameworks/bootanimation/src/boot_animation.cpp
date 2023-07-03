@@ -22,8 +22,11 @@
 #include "render_context_factory.h"
 #include "rs_surface_factory.h"
 #endif
+#include <display_manager.h>
 
 using namespace OHOS;
+
+constexpr float MAX_ZORDER = 100000.0f;
 
 void BootAnimation::OnDraw(SkCanvas* canvas, int32_t curNo)
 {
@@ -89,14 +92,15 @@ void BootAnimation::Draw()
 #endif
 }
 
-void BootAnimation::Init(int32_t width, int32_t height)
+void BootAnimation::Init(Rosen::ScreenId defaultId, int32_t width, int32_t height)
 {
+    defaultId_ = defaultId;
     windowWidth_ = width;
     windowHeight_ = height;
     LOGI("Init enter, width: %{public}d, height: %{public}d", width, height);
 
     InitPicCoordinates();
-    InitBootWindow();
+    InitRsSurface();
     if (animationConfig_.IsBootVideoEnabled()) {
         LOGI("Init end");
         return;
@@ -112,8 +116,6 @@ void BootAnimation::Init(int32_t width, int32_t height)
         PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
         return;
     }
-
-    InitRsSurface();
 
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::preload");
     if (animationConfig_.ReadPicZipFile(imageVector_, freq_)) {
@@ -139,53 +141,20 @@ void BootAnimation::Init(int32_t width, int32_t height)
     }
 }
 
-void BootAnimation::Run(std::vector<sptr<OHOS::Rosen::Display>>& displays)
+void BootAnimation::Run(Rosen::ScreenId id, int screenWidth, int screenHeight)
 {
     LOGI("Run enter");
     animationConfig_.ParserCustomCfgFile();
 
     runner_ = AppExecFwk::EventRunner::Create(false);
     mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-    mainHandler_->PostTask(std::bind(&BootAnimation::Init, this, displays[0]->GetWidth(), displays[0]->GetHeight()));
+    mainHandler_->PostTask(std::bind(&BootAnimation::Init, this, id, screenWidth, screenHeight));
     if (animationConfig_.IsBootVideoEnabled()) {
         mainHandler_->PostTask(std::bind(&BootAnimation::PlayVideo, this));
     } else {
         mainHandler_->PostTask(std::bind(&BootAnimation::PlaySound, this));
     }
     runner_->Run();
-}
-
-void BootAnimation::InitBootWindow()
-{
-    sptr<OHOS::Rosen::WindowOption> option = new OHOS::Rosen::WindowOption();
-    option->SetWindowType(OHOS::Rosen::WindowType::WINDOW_TYPE_BOOT_ANIMATION);
-    option->RemoveWindowFlag(OHOS::Rosen::WindowFlag::WINDOW_FLAG_NEED_AVOID);
-    option->SetTouchable(false);
-    if (animationConfig_.IsBootVideoEnabled()) {
-        option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
-    }
-    option->SetWindowRect({0, 0, windowWidth_, windowHeight_} );
-    int displayId = 0;
-    sptr<OHOS::Rosen::IWindowLifeCycle> listener = nullptr;
-    LOGI("Create window scene.");
-    scene_ = new OHOS::Rosen::WindowScene();
-    LOGI("Init window scene.");
-    scene_->Init(displayId, nullptr, listener, option);
-    window_ = scene_->GetMainWindow();
-    while (window_ == nullptr) {
-        LOGI("window is nullptr, continue to init window");
-        scene_->Init(displayId, nullptr, listener, option);
-        window_ = scene_->GetMainWindow();
-        usleep(SLEEP_TIME_US);
-    }
-    LOGI("Init window scene end.");
-    if (animationConfig_.IsBootVideoEnabled()) {
-        auto surfaceNode = window_->GetSurfaceNode();
-        surfaceNode->SetBackgroundColor(0xFF000000);
-        surfaceNode->SetFrameGravity(Rosen::Gravity::RESIZE_ASPECT);
-        OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
-    }
-    scene_->GoForeground();
 }
 
 void BootAnimation::InitRsSurface()
@@ -199,11 +168,45 @@ void BootAnimation::InitRsSurface()
     renderContext_->Init();
     std::shared_ptr<Rosen::DrawingContext> drawingContext = std::make_shared<Rosen::DrawingContext>(
         renderContext_->GetRenderType());
-    sptr<Surface> surface = window_->GetSurfaceNode()->GetSurface();
+
+    struct  Rosen::RSSurfaceNodeConfig rsSurfaceNodeConfig;
+    Rosen::RSSurfaceNodeType rsSurfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+
+    rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(rsSurfaceNodeConfig, rsSurfaceNodeType);
+    if (!rsSurfaceNode_) {
+         LOGE("rsSurfaceNode_ is nullptr");
+         return;
+    }
+    rsSurfaceNode_->SetPositionZ(MAX_ZORDER);
+    rsSurfaceNode_->SetBounds({0, 0, windowWidth_, windowHeight_});
+    rsSurfaceNode_->SetBackgroundColor(0xFF000000);
+    rsSurfaceNode_->SetFrameGravity(Rosen::Gravity::RESIZE_ASPECT);
+
+    rsSurfaceNode_->AttachToDisplay(defaultId_);
+    OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
+
+    sptr<Surface> surface = rsSurfaceNode_->GetSurface();
     rsSurface_ = Rosen::RSSurfaceFactory::CreateRSSurface(Rosen::PlatformName::OHOS, surface, drawingContext);
     rsSurface_->SetRenderContext(renderContext_);
+
 #else
-    rsSurface_ = OHOS::Rosen::RSSurfaceExtractor::ExtractRSSurface(window_->GetSurfaceNode());
+    struct Rosen::RSSurfaceNodeConfig rsSurfaceNodeConfig;
+    Rosen::RSSurfaceNodeType rsSurfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+
+    rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(rsSurfaceNodeConfig, rsSurfaceNodeType);
+    if (!rsSurfaceNode_) {
+         LOGE("rsSurfaceNode_ is nullptr");
+         return;
+    }
+    rsSurfaceNode_->SetPositionZ(MAX_ZORDER);
+    rsSurfaceNode_->SetBounds({0, 0, windowWidth_, windowHeight_});
+    rsSurfaceNode_->SetBackgroundColor(0xFF000000);
+    rsSurfaceNode_->SetFrameGravity(Rosen::Gravity::RESIZE_ASPECT);
+
+    rsSurfaceNode_->AttachToDisplay(defaultId_);
+    OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
+
+    rsSurface_ = OHOS::Rosen::RSSurfaceExtractor::ExtractRSSurface(rsSurfaceNode_);
     if (rsSurface_ == nullptr) {
         LOGE("rsSurface is nullptr");
         return;
@@ -222,12 +225,14 @@ void BootAnimation::InitRsSurface()
     if (rc_ == nullptr) {
         LOGI("rc is nullptr, use cpu");
     }
+
 #endif
 }
 
 BootAnimation::~BootAnimation()
 {
-    window_->Destroy();
+    rsSurfaceNode_->DetachToDisplay(defaultId_);
+    OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
 }
 
 void BootAnimation::InitPicCoordinates()
@@ -294,7 +299,7 @@ void BootAnimation::PlayVideo()
     };
     bootVideoPlayer_ = std::make_shared<BootVideoPlayer>();
     bootVideoPlayer_->SetVideoPath(animationConfig_.GetBootVideoPath());
-    bootVideoPlayer_->SetPlayerWindow(window_);
+    bootVideoPlayer_->SetPlayerSurface(rsSurfaceNode_ ? rsSurfaceNode_->GetSurface() : nullptr);
     bootVideoPlayer_->SetCallback(&fcb_);
     if (!bootVideoPlayer_->PlayVideo()) {
         LOGE("Play video failed.");

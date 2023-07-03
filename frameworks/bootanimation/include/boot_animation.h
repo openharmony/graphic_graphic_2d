@@ -52,22 +52,22 @@
 namespace OHOS {
 class BootAnimation {
 public:
-    void Init(int32_t width, int32_t height);
+    void Init(Rosen::ScreenId defaultId, int32_t width, int32_t height);
     void Draw();
     bool CheckExitAnimation();
     void PlaySound();
     void PlayVideo();
-    void Run(std::vector<sptr<OHOS::Rosen::Display>>& displays);
+    void Run(Rosen::ScreenId id, int screenWidth, int screenHeight);
     ~BootAnimation();
     void CloseVideoPlayer();
 private:
     void OnVsync();
     void OnDraw(SkCanvas* canvas, int32_t curNo);
-    void InitBootWindow();
     void InitRsSurface();
     void InitPicCoordinates();
     int32_t windowWidth_;
     int32_t windowHeight_;
+    Rosen::ScreenId defaultId_;
     sptr<OHOS::Rosen::Window> window_;
     sptr<OHOS::Rosen::WindowScene> scene_;
 #ifdef NEW_RENDER_CONTEXT
@@ -77,6 +77,7 @@ private:
     std::unique_ptr<OHOS::Rosen::RSSurfaceFrame> framePtr_;
     std::shared_ptr<OHOS::Rosen::RSSurface> rsSurface_;
     OHOS::Rosen::RenderContext* rc_;
+    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> rsSurfaceNode_;
 #endif
     int32_t freq_ = 30;
     int32_t realHeight_ = 0;

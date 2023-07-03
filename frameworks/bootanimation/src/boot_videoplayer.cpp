@@ -37,6 +37,15 @@ void BootVideoPlayer::SetPlayerWindow(const OHOS::sptr<OHOS::Rosen::Window>& win
     window_ = window;
 }
 
+void BootVideoPlayer::SetPlayerSurface(const sptr<Surface>& surface)
+{
+    if (surface == nullptr) {
+        LOGE("SetPlayerSurface surface is nullptr");
+        return;
+    }
+    surface_ = surface;
+}
+
 bool BootVideoPlayer::PlayVideo()
 {
     LOGI("PlayVideo begin");
@@ -56,12 +65,11 @@ bool BootVideoPlayer::PlayVideo()
         LOGE("PlayVideo SetSource fail, uri:%{public}s, errorCode:%{public}d", uri.c_str(), ret);
         return false;
     }
-    auto surface = window_->GetSurfaceNode()->GetSurface();
-    if (surface == nullptr) {
+    if (surface_ == nullptr) {
         LOGE("PlayVideo surface is null");
         return false;
     }
-    ret = mediaPlayer_->SetVideoSurface(surface);
+    ret = mediaPlayer_->SetVideoSurface(surface_);
     if (ret != 0) {
         LOGE("PlayVideo SetVideoSurface fail, errorCode:%{public}d", ret);
         return false;

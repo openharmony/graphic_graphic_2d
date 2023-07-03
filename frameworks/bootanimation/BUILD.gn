@@ -21,6 +21,7 @@ config("bootanimation_config") {
   include_dirs = [
     "include",
     "$graphic_2d_root/utils/log",
+    "${graphic_2d_root}/rosen/modules/render_service_client",
     "//third_party/cJSON",
     "//foundation/multimedia/player_framework/interfaces/inner_api/native",
   ]
