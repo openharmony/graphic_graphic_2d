@@ -428,9 +428,7 @@ int32_t HdiOutput::ReleaseFramebuffer(const sptr<SyncFence>& releaseFence)
 
     int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
     if (lastFrameBuffer_ != nullptr) {
-        // wrong check
-        if (!CheckFbSurface()) {
-            HLOGE("Current frame buffer is nullptr.");
+        if (!CheckFbSurface()) { // wrong check
             ret = GRAPHIC_DISPLAY_NULL_PTR;
         } else {
             ret = fbSurface_->ReleaseFramebuffer(lastFrameBuffer_, releaseFence);
@@ -438,6 +436,7 @@ int32_t HdiOutput::ReleaseFramebuffer(const sptr<SyncFence>& releaseFence)
     }
 
     lastFrameBuffer_ = currFrameBuffer_;
+    currFrameBuffer_ = nullptr;
     return ret;
 }
 
