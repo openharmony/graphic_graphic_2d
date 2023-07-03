@@ -167,7 +167,7 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
     std::vector<uint8_t> metaDatas;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
-    OHExtDataHandle *extDataHandle = nullptr;
+    GraphicExtDataHandle *extDataHandle = nullptr;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerTunnelHandle(screenId, layerId, extDataHandle),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicPresentTimestampType presentTimesType = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
