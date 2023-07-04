@@ -620,18 +620,21 @@ void RSUniRenderUtil::ClearCacheSurface(const std::shared_ptr<RSSurfaceRenderNod
     uint32_t cacheSurfaceThreadIndex = node->GetCacheSurfaceThreadIndex();
     if (cacheSurfaceThreadIndex == threadIndex) {
         node->ClearCacheSurface();
+        node->SetIsMainThreadNode(true);
         return;
     }
     if (cacheSurfaceThreadIndex == UNI_MAIN_THREAD_INDEX) {
         RSMainThread::Instance()->PostTask([node]() {
             RS_LOGD("clear node cache surface in main thread");
             node->ClearCacheSurface();
+            node->SetIsMainThreadNode(true);
         });
     } else {
 #ifdef RS_ENABLE_GL
         RSSubThreadManager::Instance()->PostTask([node]() {
             RS_LOGD("clear node cache surface in sub thread");
             node->ClearCacheSurface();
+            node->SetIsMainThreadNode(true);
         }, cacheSurfaceThreadIndex);
 #endif
     }
