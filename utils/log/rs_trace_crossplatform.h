@@ -34,9 +34,9 @@ void RosenTraceBegin(std::string name);
 void RosenTraceEnd();
 class ScopedTrace {
     public:
-      ScopedTrace(const char *name);
+      explicit ScopedTrace(const char *name);
 
-      ScopedTrace(std::string name);
+      explicit ScopedTrace(std::string name);
 
       ~ScopedTrace();
 };
