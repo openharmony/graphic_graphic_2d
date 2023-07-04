@@ -16,6 +16,9 @@
 #include "pipeline/rs_canvas_drawing_render_node.h"
 
 #include "include/core/SkCanvas.h"
+#ifdef NEW_SKIA
+#include "include/gpu/GrBackendSurface.h"
+#endif
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -30,7 +33,12 @@ RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(NodeId id, std::weak_ptr<RS
     : RSCanvasRenderNode(id, context)
 {}
 
-RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode() {}
+RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
+{
+    if (preThreadInfo_.second && skSurface_) {
+        preThreadInfo_.second(std::move(skSurface_));
+    }
+}
 
 void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 {
@@ -53,23 +61,44 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     }
 
     if (!skSurface_ || width != skSurface_->width() || height != skSurface_->height()) {
-        SkImageInfo info = SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-
-#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
-#ifdef NEW_SKIA
-        auto grContext = canvas.recordingContext();
-#else
-        auto grContext = canvas.getGrContext();
-#endif
-        if (grContext == nullptr) {
-            RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents: GrContext is nullptr");
+        if (preThreadInfo_.second && skSurface_) {
+            preThreadInfo_.second(std::move(skSurface_));
+        }
+        if (!ResetSurface(width, height, canvas)) {
             return;
         }
-        skSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kNo, info);
+        preThreadInfo_ = curThreadInfo_;
+    } else if (preThreadInfo_.first != curThreadInfo_.first) {
+        auto preSurface = skSurface_;
+        if (!ResetSurface(width, height, canvas)) {
+            return;
+        }
+#if (defined NEW_SKIA) && (defined RS_ENABLE_GL)
+        auto image = preSurface->makeImageSnapshot();
+        if (!image) {
+            return;
+        }
+        auto sharedBackendTexture = image->getBackendTexture(false);
+        if (!sharedBackendTexture.isValid()) {
+            RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents sharedBackendTexture is nullptr");
+            return;
+        }
+        auto sharedTexture = SkImage::MakeFromTexture(canvas.recordingContext(), sharedBackendTexture,
+            kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+        if (sharedTexture == nullptr) {
+            RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents sharedTexture is nullptr");
+            return;
+        }
+        canvas_->drawImage(sharedTexture, 0.f, 0.f);
 #else
-        skSurface_ = SkSurface::MakeRaster(info);
+        if (auto image = preSurface->makeImageSnapshot()) {
+            canvas_->drawImage(image, 0.f, 0.f);
+        }
 #endif
-        canvas_ = std::make_unique<RSPaintFilterCanvas>(skSurface_.get());
+        if (preThreadInfo_.second && preSurface) {
+            preThreadInfo_.second(std::move(preSurface));
+        }
+        preThreadInfo_ = curThreadInfo_;
     }
 
     RSModifierContext context = { GetMutableRenderProperties(), canvas_.get() };
@@ -84,6 +113,28 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 #else
     canvas.drawImageRect(image, srcRect, dstRect, nullptr, SkCanvas::kFast_SrcRectConstraint);
 #endif
+}
+
+bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilterCanvas& canvas)
+{
+    SkImageInfo info = SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+
+#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#ifdef NEW_SKIA
+    auto grContext = canvas.recordingContext();
+#else
+    auto grContext = canvas.getGrContext();
+#endif
+    if (grContext == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents: GrContext is nullptr");
+        return false;
+    }
+    skSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kNo, info);
+#else
+    skSurface_ = SkSurface::MakeRaster(info);
+#endif
+    canvas_ = std::make_unique<RSPaintFilterCanvas>(skSurface_.get());
+    return skSurface_ != nullptr;
 }
 
 void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type) const

@@ -32,6 +32,7 @@
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
+#include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_cold_start_thread.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
@@ -3145,6 +3146,12 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     if (property.IsSpherizeValid()) {
         DrawSpherize(node);
         return;
+    }
+    if (auto drawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>()) {
+        auto clearFunc = [id = threadIndex_](sk_sp<SkSurface> surface) {
+            RSUniRenderUtil::ClearNodeCacheSurface(surface, nullptr, id);
+        };
+        drawingNode->SetSurfaceClearFunc({ threadIndex_, clearFunc });
     }
     CheckAndSetNodeCacheType(node);
     DrawChildRenderNode(node);
