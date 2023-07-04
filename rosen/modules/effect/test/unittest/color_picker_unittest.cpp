@@ -127,6 +127,64 @@ HWTEST_F(ColorPickerUnittest, CreateColorPickerFromPixelmapTest003, TestSize.Lev
 }
 
 /**
+ * @tc.name: CreateColorPickerFromPixelmapTest004
+ * @tc.desc: Ensure the ability of creating color picker from pixelmap.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, CreateColorPickerFromPixelmapTest004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ColorPickerUnittest CreateColorPickerFromPixelmapTest004 start";
+    /**
+     * @tc.steps: step1. Create a pixelmap
+     */
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = true;
+    std::unique_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+
+    /**
+     * @tc.steps: step2. Call create From pixelMap
+     */
+    uint32_t errorCode = SUCCESS;
+    double region[4] = {0, 0, 0.5, 0.5};
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), region, errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    EXPECT_NE(pColorPicker, nullptr);
+}
+
+/**
+ * @tc.name: CreateColorPickerFromPixelmapTest005
+ * @tc.desc: Ensure the ability of creating color picker from pixelmap.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, CreateColorPickerFromPixelmapTest005, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ColorPickerUnittest CreateColorPickerFromPixelmapTest005 start";
+    /**
+     * @tc.steps: step1. Create a pixelmap
+     */
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = true;
+    std::unique_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+
+    /**
+     * @tc.steps: step2. Call create From pixelMap
+     */
+    uint32_t errorCode = SUCCESS;
+    double region[4] = {0, 0.5, 0.5, 0.5};
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), region, errorCode);
+    ASSERT_EQ(pColorPicker->colorValLen_, 0);
+    EXPECT_NE(pColorPicker, nullptr);
+}
+
+/**
  * @tc.name: GetMainColorTest001
  * @tc.desc: Ensure the ability of creating effect chain from config file.
  * @tc.type: FUNC
