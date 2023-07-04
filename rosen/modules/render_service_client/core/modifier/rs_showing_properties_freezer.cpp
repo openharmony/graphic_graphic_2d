@@ -26,198 +26,197 @@ namespace OHOS {
 namespace Rosen {
 RSShowingPropertiesFreezer::RSShowingPropertiesFreezer(NodeId id) : id_(id) {}
 
-#define SHOWING_PROPERTIES_FREEZER(T, propertyType, defaultValue)                                       \
+#define SHOWING_PROPERTIES_FREEZER(T, propertyType)                                                     \
     do {                                                                                                \
         auto node = RSNodeMap::Instance().GetNode<RSNode>(id_);                                         \
         if (node == nullptr) {                                                                          \
-            return { defaultValue, false };                                                             \
+            return { std::nullopt };                                                                    \
         }                                                                                               \
         auto iter = node->propertyModifiers_.find(RSModifierType::propertyType);                        \
         if (iter == node->propertyModifiers_.end()) {                                                   \
-            return { defaultValue, false };                                                             \
+            return { std::nullopt };                                                                    \
         }                                                                                               \
         auto property = std::static_pointer_cast<RSAnimatableProperty<T>>(iter->second->GetProperty()); \
         if (property == nullptr) {                                                                      \
             ROSEN_LOGE("RSShowingPropertiesFreezer::Get" #propertyType " failed, property is null!");   \
-            return { defaultValue, false };                                                             \
+            return { std::nullopt };                                                                    \
         }                                                                                               \
-        bool success = property->GetShowingValueAndCancelAnimation(node->IsRenderServiceNode());        \
+        bool success = property->GetShowingValueAndCancelAnimation();                                   \
         if (!success) {                                                                                 \
             ROSEN_LOGE("RSShowingPropertiesFreezer::Get" #propertyType " failed!");                     \
-            return { defaultValue, false };                                                             \
+            return { std::nullopt };                                                                    \
         }                                                                                               \
-        node->CancelAnimationByProperty(property->GetId());                                             \
-        return { property->Get(), true };                                                               \
+        return property->Get();                                                                         \
     } while (0)
 
-std::tuple<Vector4f, bool> RSShowingPropertiesFreezer::GetBounds() const
+std::optional<Vector4f> RSShowingPropertiesFreezer::GetBounds() const
 {
-    SHOWING_PROPERTIES_FREEZER(Vector4f, BOUNDS, Vector4f(0.0f));
+    SHOWING_PROPERTIES_FREEZER(Vector4f, BOUNDS);
 }
 
-std::tuple<Vector4f, bool> RSShowingPropertiesFreezer::GetFrame() const
+std::optional<Vector4f> RSShowingPropertiesFreezer::GetFrame() const
 {
-    SHOWING_PROPERTIES_FREEZER(Vector4f, FRAME, Vector4f(0.0f));
+    SHOWING_PROPERTIES_FREEZER(Vector4f, FRAME);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetPositionZ() const
+std::optional<float> RSShowingPropertiesFreezer::GetPositionZ() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, POSITION_Z, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, POSITION_Z);
 }
 
-std::tuple<Vector2f, bool> RSShowingPropertiesFreezer::GetPivot() const
+std::optional<Vector2f> RSShowingPropertiesFreezer::GetPivot() const
 {
-    SHOWING_PROPERTIES_FREEZER(Vector2f, PIVOT, Vector2f(0.5f, 0.5f));
+    SHOWING_PROPERTIES_FREEZER(Vector2f, PIVOT);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetPivotZ() const
+std::optional<float> RSShowingPropertiesFreezer::GetPivotZ() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, PIVOT_Z, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, PIVOT_Z);
 }
 
-std::tuple<Quaternion, bool> RSShowingPropertiesFreezer::GetQuaternion() const
+std::optional<Quaternion> RSShowingPropertiesFreezer::GetQuaternion() const
 {
-    SHOWING_PROPERTIES_FREEZER(Quaternion, QUATERNION, Quaternion());
+    SHOWING_PROPERTIES_FREEZER(Quaternion, QUATERNION);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetRotation() const
+std::optional<float> RSShowingPropertiesFreezer::GetRotation() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, ROTATION, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, ROTATION);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetRotationX() const
+std::optional<float> RSShowingPropertiesFreezer::GetRotationX() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, ROTATION_X, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, ROTATION_X);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetRotationY() const
+std::optional<float> RSShowingPropertiesFreezer::GetRotationY() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, ROTATION_Y, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, ROTATION_Y);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetCameraDistance() const
+std::optional<float> RSShowingPropertiesFreezer::GetCameraDistance() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, CAMERA_DISTANCE, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, CAMERA_DISTANCE);
 }
 
-std::tuple<Vector2f, bool> RSShowingPropertiesFreezer::GetTranslate() const
+std::optional<Vector2f> RSShowingPropertiesFreezer::GetTranslate() const
 {
-    SHOWING_PROPERTIES_FREEZER(Vector2f, TRANSLATE, Vector2f(0.0f, 0.0f));
+    SHOWING_PROPERTIES_FREEZER(Vector2f, TRANSLATE);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetTranslateZ() const
+std::optional<float> RSShowingPropertiesFreezer::GetTranslateZ() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, TRANSLATE_Z, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, TRANSLATE_Z);
 }
 
-std::tuple<Vector2f, bool> RSShowingPropertiesFreezer::GetScale() const
+std::optional<Vector2f> RSShowingPropertiesFreezer::GetScale() const
 {
-    SHOWING_PROPERTIES_FREEZER(Vector2f, SCALE, Vector2f(1.0f, 1.0f));
+    SHOWING_PROPERTIES_FREEZER(Vector2f, SCALE);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetAlpha() const
+std::optional<float> RSShowingPropertiesFreezer::GetAlpha() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, ALPHA, 1.0f);
+    SHOWING_PROPERTIES_FREEZER(float, ALPHA);
 }
 
-std::tuple<Vector4f, bool> RSShowingPropertiesFreezer::GetCornerRadius() const
+std::optional<Vector4f> RSShowingPropertiesFreezer::GetCornerRadius() const
 {
-    SHOWING_PROPERTIES_FREEZER(Vector4f, CORNER_RADIUS, Vector4f(0.0f));
+    SHOWING_PROPERTIES_FREEZER(Vector4f, CORNER_RADIUS);
 }
 
-std::tuple<Color, bool> RSShowingPropertiesFreezer::GetForegroundColor() const
+std::optional<Color> RSShowingPropertiesFreezer::GetForegroundColor() const
 {
-    SHOWING_PROPERTIES_FREEZER(Color, FOREGROUND_COLOR, RgbPalette::Transparent());
+    SHOWING_PROPERTIES_FREEZER(Color, FOREGROUND_COLOR);
 }
 
-std::tuple<Color, bool> RSShowingPropertiesFreezer::GetBackgroundColor() const
+std::optional<Color> RSShowingPropertiesFreezer::GetBackgroundColor() const
 {
-    SHOWING_PROPERTIES_FREEZER(Color, BACKGROUND_COLOR, RgbPalette::Transparent());
+    SHOWING_PROPERTIES_FREEZER(Color, BACKGROUND_COLOR);
 }
 
-std::tuple<Color, bool> RSShowingPropertiesFreezer::GetSurfaceBgColor() const
+std::optional<Color> RSShowingPropertiesFreezer::GetSurfaceBgColor() const
 {
-    SHOWING_PROPERTIES_FREEZER(Color, SURFACE_BG_COLOR, RgbPalette::Transparent());
+    SHOWING_PROPERTIES_FREEZER(Color, SURFACE_BG_COLOR);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetBgImageWidth() const
+std::optional<float> RSShowingPropertiesFreezer::GetBgImageWidth() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, BG_IMAGE_WIDTH, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, BG_IMAGE_WIDTH);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetBgImageHeight() const
+std::optional<float> RSShowingPropertiesFreezer::GetBgImageHeight() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, BG_IMAGE_HEIGHT, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, BG_IMAGE_HEIGHT);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetBgImagePositionX() const
+std::optional<float> RSShowingPropertiesFreezer::GetBgImagePositionX() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, BG_IMAGE_POSITION_X, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, BG_IMAGE_POSITION_X);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetBgImagePositionY() const
+std::optional<float> RSShowingPropertiesFreezer::GetBgImagePositionY() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, BG_IMAGE_POSITION_Y, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, BG_IMAGE_POSITION_Y);
 }
 
-std::tuple<Vector4<Color>, bool> RSShowingPropertiesFreezer::GetBorderColor() const
+std::optional<Vector4<Color>> RSShowingPropertiesFreezer::GetBorderColor() const
 {
-    SHOWING_PROPERTIES_FREEZER(Vector4<Color>, BORDER_COLOR, Vector4<Color>(RgbPalette::Transparent()));
+    SHOWING_PROPERTIES_FREEZER(Vector4<Color>, BORDER_COLOR);
 }
 
-std::tuple<Vector4f, bool> RSShowingPropertiesFreezer::GetBorderWidth() const
+std::optional<Vector4f> RSShowingPropertiesFreezer::GetBorderWidth() const
 {
-    SHOWING_PROPERTIES_FREEZER(Vector4f, BORDER_WIDTH, Vector4f(0.0f));
+    SHOWING_PROPERTIES_FREEZER(Vector4f, BORDER_WIDTH);
 }
 
-std::tuple<std::shared_ptr<RSFilter>, bool> RSShowingPropertiesFreezer::GetBackgroundFilter() const
+std::optional<std::shared_ptr<RSFilter>> RSShowingPropertiesFreezer::GetBackgroundFilter() const
 {
-    SHOWING_PROPERTIES_FREEZER(std::shared_ptr<RSFilter>, BACKGROUND_FILTER, nullptr);
+    SHOWING_PROPERTIES_FREEZER(std::shared_ptr<RSFilter>, BACKGROUND_FILTER);
 }
 
-std::tuple<std::shared_ptr<RSFilter>, bool> RSShowingPropertiesFreezer::GetFilter() const
+std::optional<std::shared_ptr<RSFilter>> RSShowingPropertiesFreezer::GetFilter() const
 {
-    SHOWING_PROPERTIES_FREEZER(std::shared_ptr<RSFilter>, FILTER, nullptr);
+    SHOWING_PROPERTIES_FREEZER(std::shared_ptr<RSFilter>, FILTER);
 }
 
-std::tuple<Color, bool> RSShowingPropertiesFreezer::GetShadowColor() const
+std::optional<Color> RSShowingPropertiesFreezer::GetShadowColor() const
 {
-    SHOWING_PROPERTIES_FREEZER(Color, SHADOW_COLOR, Color::FromArgbInt(DEFAULT_SPOT_COLOR));
+    SHOWING_PROPERTIES_FREEZER(Color, SHADOW_COLOR);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetShadowOffsetX() const
+std::optional<float> RSShowingPropertiesFreezer::GetShadowOffsetX() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, SHADOW_OFFSET_X, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, SHADOW_OFFSET_X);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetShadowOffsetY() const
+std::optional<float> RSShowingPropertiesFreezer::GetShadowOffsetY() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, SHADOW_OFFSET_Y, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, SHADOW_OFFSET_Y);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetShadowAlpha() const
+std::optional<float> RSShowingPropertiesFreezer::GetShadowAlpha() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, SHADOW_ALPHA, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, SHADOW_ALPHA);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetShadowElevation() const
+std::optional<float> RSShowingPropertiesFreezer::GetShadowElevation() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, SHADOW_ELEVATION, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, SHADOW_ELEVATION);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetShadowRadius() const
+std::optional<float> RSShowingPropertiesFreezer::GetShadowRadius() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, SHADOW_RADIUS, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, SHADOW_RADIUS);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetSpherizeDegree() const
+std::optional<float> RSShowingPropertiesFreezer::GetSpherizeDegree() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, SPHERIZE, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, SPHERIZE);
 }
 
-std::tuple<float, bool> RSShowingPropertiesFreezer::GetLightUpEffectDegree() const
+std::optional<float> RSShowingPropertiesFreezer::GetLightUpEffectDegree() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, LIGHT_UP_EFFECT, 0.0f);
+    SHOWING_PROPERTIES_FREEZER(float, LIGHT_UP_EFFECT);
 }
 } // namespace Rosen
 } // namespace OHOS

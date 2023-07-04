@@ -28,47 +28,47 @@ public:
     RSShowingPropertiesFreezer(NodeId id);
     virtual ~RSShowingPropertiesFreezer() = default;
 
-    std::tuple<Vector4f, bool> GetBounds() const;
-    std::tuple<Vector4f, bool> GetFrame() const;
-    std::tuple<float, bool> GetPositionZ() const;
+    std::optional<Vector4f> GetBounds() const;
+    std::optional<Vector4f> GetFrame() const;
+    std::optional<float> GetPositionZ() const;
 
-    std::tuple<Vector2f, bool> GetPivot() const;
-    std::tuple<float, bool> GetPivotZ() const;
-    std::tuple<Quaternion, bool> GetQuaternion() const;
-    std::tuple<float, bool> GetRotation() const;
-    std::tuple<float, bool> GetRotationX() const;
-    std::tuple<float, bool> GetRotationY() const;
-    std::tuple<float, bool> GetCameraDistance() const;
-    std::tuple<Vector2f, bool> GetTranslate() const;
-    std::tuple<float, bool> GetTranslateZ() const;
-    std::tuple<Vector2f, bool> GetScale() const;
+    std::optional<Vector2f> GetPivot() const;
+    std::optional<float> GetPivotZ() const;
+    std::optional<Quaternion> GetQuaternion() const;
+    std::optional<float> GetRotation() const;
+    std::optional<float> GetRotationX() const;
+    std::optional<float> GetRotationY() const;
+    std::optional<float> GetCameraDistance() const;
+    std::optional<Vector2f> GetTranslate() const;
+    std::optional<float> GetTranslateZ() const;
+    std::optional<Vector2f> GetScale() const;
 
-    std::tuple<float, bool> GetAlpha() const;
-    std::tuple<Vector4f, bool> GetCornerRadius() const;
+    std::optional<float> GetAlpha() const;
+    std::optional<Vector4f> GetCornerRadius() const;
 
-    std::tuple<Color, bool> GetForegroundColor() const;
-    std::tuple<Color, bool> GetBackgroundColor() const;
-    std::tuple<Color, bool> GetSurfaceBgColor() const;
-    std::tuple<float, bool> GetBgImageWidth() const;
-    std::tuple<float, bool> GetBgImageHeight() const;
-    std::tuple<float, bool> GetBgImagePositionX() const;
-    std::tuple<float, bool> GetBgImagePositionY() const;
+    std::optional<Color> GetForegroundColor() const;
+    std::optional<Color> GetBackgroundColor() const;
+    std::optional<Color> GetSurfaceBgColor() const;
+    std::optional<float> GetBgImageWidth() const;
+    std::optional<float> GetBgImageHeight() const;
+    std::optional<float> GetBgImagePositionX() const;
+    std::optional<float> GetBgImagePositionY() const;
 
-    std::tuple<Vector4<Color>, bool> GetBorderColor() const;
-    std::tuple<Vector4f, bool> GetBorderWidth() const;
+    std::optional<Vector4<Color>> GetBorderColor() const;
+    std::optional<Vector4f> GetBorderWidth() const;
 
-    std::tuple<std::shared_ptr<RSFilter>, bool> GetBackgroundFilter() const;
-    std::tuple<std::shared_ptr<RSFilter>, bool> GetFilter() const;
+    std::optional<std::shared_ptr<RSFilter>> GetBackgroundFilter() const;
+    std::optional<std::shared_ptr<RSFilter>> GetFilter() const;
 
-    std::tuple<Color, bool> GetShadowColor() const;
-    std::tuple<float, bool> GetShadowOffsetX() const;
-    std::tuple<float, bool> GetShadowOffsetY() const;
-    std::tuple<float, bool> GetShadowAlpha() const;
-    std::tuple<float, bool> GetShadowElevation() const;
-    std::tuple<float, bool> GetShadowRadius() const;
+    std::optional<Color> GetShadowColor() const;
+    std::optional<float> GetShadowOffsetX() const;
+    std::optional<float> GetShadowOffsetY() const;
+    std::optional<float> GetShadowAlpha() const;
+    std::optional<float> GetShadowElevation() const;
+    std::optional<float> GetShadowRadius() const;
 
-    std::tuple<float, bool> GetSpherizeDegree() const;
-    std::tuple<float, bool> GetLightUpEffectDegree() const;
+    std::optional<float> GetSpherizeDegree() const;
+    std::optional<float> GetLightUpEffectDegree() const;
 
 private:
     NodeId id_;

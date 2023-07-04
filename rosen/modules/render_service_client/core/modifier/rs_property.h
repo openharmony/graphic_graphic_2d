@@ -145,7 +145,7 @@ protected:
         return std::make_shared<RSRenderPropertyBase>(id_);
     }
 
-    virtual bool GetShowingValueAndCancelAnimation(bool isRenderServiceNode)
+    virtual bool GetShowingValueAndCancelAnimation()
     {
         return false;
     }
@@ -368,13 +368,13 @@ public:
         return RSProperty<T>::stagingValue_;
     }
 
-    bool GetShowingValueAndCancelAnimation(bool isRenderServiceNode) override
+    bool GetShowingValueAndCancelAnimation() override
     {
         auto node = RSProperty<T>::target_.lock();
         if (node == nullptr) {
             return false;
         }
-        if (!node->HasPropertyAnimation(RSProperty<T>::id_) || RSProperty<T>::GetIsCustom()) {
+        if (!node->HasPropertyAnimation(this->id_) || this->GetIsCustom()) {
             return true;
         }
         auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(node->GetId(), GetRenderProperty());
@@ -386,6 +386,7 @@ public:
         if (!renderProperty) {
             return false;
         }
+        node->CancelAnimationByProperty(this->id_);
         RSProperty<T>::stagingValue_ = renderProperty->Get();
         return true;
     }
