@@ -51,9 +51,9 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetBoundsTest, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetBoundsTest start";
     auto canvasNode = RSCanvasNode::Create();
     canvasNode->SetBounds(Vector4f(SHOWING_FLOAT_NUM, 0.f, 0.f, 0.f));
-    auto [value, success] = canvasNode->GetShowingProperties().GetBounds();
-    EXPECT_TRUE(success == true);
-    EXPECT_TRUE(value.x_ == SHOWING_FLOAT_NUM);
+    auto result = canvasNode->GetShowingProperties().GetBounds();
+    EXPECT_TRUE(result.has_value());
+    EXPECT_TRUE(result->x_ == SHOWING_FLOAT_NUM);
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetBoundsTest end";
 }
 
@@ -67,9 +67,9 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetFrameTest, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetFrameTest start";
     auto canvasNode = RSCanvasNode::Create();
     canvasNode->SetFrame(Vector4f(SHOWING_FLOAT_NUM, 0.f, 0.f, 0.f));
-    auto [value, success] = canvasNode->GetShowingProperties().GetFrame();
-    EXPECT_TRUE(success == true);
-    EXPECT_TRUE(value.x_ == SHOWING_FLOAT_NUM);
+    auto result = canvasNode->GetShowingProperties().GetFrame();
+    EXPECT_TRUE(result.has_value());
+    EXPECT_TRUE(result->x_ == SHOWING_FLOAT_NUM);
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetFrameTest end";
 }
 
@@ -83,9 +83,9 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetPositionZTest, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetPositionZTest start";
     auto canvasNode = RSCanvasNode::Create();
     canvasNode->SetPositionZ(SHOWING_FLOAT_NUM);
-    auto [value, success] = canvasNode->GetShowingProperties().GetPositionZ();
-    EXPECT_TRUE(success == true);
-    EXPECT_TRUE(value == SHOWING_FLOAT_NUM);
+    auto result = canvasNode->GetShowingProperties().GetPositionZ();
+    EXPECT_TRUE(result.has_value());
+    EXPECT_TRUE(result.value() == SHOWING_FLOAT_NUM);
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetPositionZTest end";
 }
 
@@ -99,14 +99,14 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetPivotTest, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetPivotTest start";
     auto canvasNode = RSCanvasNode::Create();
     canvasNode->SetPivot(Vector2f(SHOWING_FLOAT_NUM, 0.f));
-    auto [value1, success1] = canvasNode->GetShowingProperties().GetPivot();
-    EXPECT_TRUE(success1 == true);
-    EXPECT_TRUE(value1.x_ == SHOWING_FLOAT_NUM);
+    auto result1 = canvasNode->GetShowingProperties().GetPivot();
+    EXPECT_TRUE(result1.has_value());
+    EXPECT_TRUE(result1->x_ == SHOWING_FLOAT_NUM);
 
     canvasNode->SetPivotZ(SHOWING_FLOAT_NUM);
-    auto [value2, success2] = canvasNode->GetShowingProperties().GetPivotZ();
-    EXPECT_TRUE(success2 == true);
-    EXPECT_TRUE(value2 == SHOWING_FLOAT_NUM);
+    auto result2 = canvasNode->GetShowingProperties().GetPivotZ();
+    EXPECT_TRUE(result2.has_value());
+    EXPECT_TRUE(result2.value() == SHOWING_FLOAT_NUM);
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetPivotTest end";
 }
 
@@ -121,24 +121,24 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetRotationTest, TestSize.Level1)
     auto canvasNode = RSCanvasNode::Create();
 
     canvasNode->SetRotation(Quaternion(SHOWING_FLOAT_NUM, 0.f, 0.f, 0.f));
-    auto [value1, success1] = canvasNode->GetShowingProperties().GetQuaternion();
-    EXPECT_TRUE(success1 == true);
-    EXPECT_TRUE(value1.x_ == SHOWING_FLOAT_NUM);
+    auto result1 = canvasNode->GetShowingProperties().GetQuaternion();
+    EXPECT_TRUE(result1.has_value());
+    EXPECT_TRUE(result1->x_ == SHOWING_FLOAT_NUM);
 
     canvasNode->SetRotation(SHOWING_FLOAT_NUM);
-    auto [value2, success2] = canvasNode->GetShowingProperties().GetRotation();
-    EXPECT_TRUE(success2 == true);
-    EXPECT_TRUE(value2 == SHOWING_FLOAT_NUM);
+    auto result2 = canvasNode->GetShowingProperties().GetRotation();
+    EXPECT_TRUE(result2.has_value());
+    EXPECT_TRUE(result2.value() == SHOWING_FLOAT_NUM);
 
     canvasNode->SetRotationX(SHOWING_FLOAT_NUM);
-    auto [value3, success3] = canvasNode->GetShowingProperties().GetRotationX();
-    EXPECT_TRUE(success3 == true);
-    EXPECT_TRUE(value3 == SHOWING_FLOAT_NUM);
+    auto result3 = canvasNode->GetShowingProperties().GetRotationX();
+    EXPECT_TRUE(result3.has_value());
+    EXPECT_TRUE(result3.value() == SHOWING_FLOAT_NUM);
 
     canvasNode->SetRotationY(SHOWING_FLOAT_NUM);
-    auto [value4, success4] = canvasNode->GetShowingProperties().GetRotationY();
-    EXPECT_TRUE(success4 == true);
-    EXPECT_TRUE(value4 == SHOWING_FLOAT_NUM);
+    auto result4 = canvasNode->GetShowingProperties().GetRotationY();
+    EXPECT_TRUE(result4.has_value());
+    EXPECT_TRUE(result4.value() == SHOWING_FLOAT_NUM);
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetRotationTest end";
 }
 
@@ -152,9 +152,9 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetCameraDistanceTest, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetCameraDistanceTest start";
     auto canvasNode = RSCanvasNode::Create();
     canvasNode->SetCameraDistance(SHOWING_FLOAT_NUM);
-    auto [value, success] = canvasNode->GetShowingProperties().GetCameraDistance();
-    EXPECT_TRUE(success == true);
-    EXPECT_TRUE(value == SHOWING_FLOAT_NUM);
+    auto result = canvasNode->GetShowingProperties().GetCameraDistance();
+    EXPECT_TRUE(result.has_value());
+    EXPECT_TRUE(result.value() == SHOWING_FLOAT_NUM);
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetCameraDistanceTest end";
 }
 
@@ -168,14 +168,14 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetTranslateTest, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetTranslateTest start";
     auto canvasNode = RSCanvasNode::Create();
     canvasNode->SetTranslate(Vector2f(SHOWING_FLOAT_NUM, 0.f));
-    auto [value1, success1] = canvasNode->GetShowingProperties().GetTranslate();
-    EXPECT_TRUE(success1 == true);
-    EXPECT_TRUE(value1.x_ == SHOWING_FLOAT_NUM);
+    auto result1 = canvasNode->GetShowingProperties().GetTranslate();
+    EXPECT_TRUE(result1.has_value());
+    EXPECT_TRUE(result1->x_ == SHOWING_FLOAT_NUM);
 
     canvasNode->SetTranslateZ(SHOWING_FLOAT_NUM);
-    auto [value2, success2] = canvasNode->GetShowingProperties().GetTranslateZ();
-    EXPECT_TRUE(success2 == true);
-    EXPECT_TRUE(value2 == SHOWING_FLOAT_NUM);
+    auto result2 = canvasNode->GetShowingProperties().GetTranslateZ();
+    EXPECT_TRUE(result2.has_value());
+    EXPECT_TRUE(result2.value() == SHOWING_FLOAT_NUM);
 
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetTranslateTest end";
 }
@@ -190,9 +190,9 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetScaleTest, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetScaleTest start";
     auto canvasNode = RSCanvasNode::Create();
     canvasNode->SetScale(Vector2f(SHOWING_FLOAT_NUM, 0.f));
-    auto [value, success] = canvasNode->GetShowingProperties().GetScale();
-    EXPECT_TRUE(success == true);
-    EXPECT_TRUE(value.x_ == SHOWING_FLOAT_NUM);
+    auto result = canvasNode->GetShowingProperties().GetScale();
+    EXPECT_TRUE(result.has_value());
+    EXPECT_TRUE(result->x_ == SHOWING_FLOAT_NUM);
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetScaleTest end";
 }
 
@@ -206,9 +206,9 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetAlphaTest, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetAlphaTest start";
     auto canvasNode = RSCanvasNode::Create();
     canvasNode->SetAlpha(SHOWING_FLOAT_NUM);
-    auto [value, success] = canvasNode->GetShowingProperties().GetAlpha();
-    EXPECT_TRUE(success == true);
-    EXPECT_TRUE(value == SHOWING_FLOAT_NUM);
+    auto result = canvasNode->GetShowingProperties().GetAlpha();
+    EXPECT_TRUE(result.has_value());
+    EXPECT_TRUE(result.value() == SHOWING_FLOAT_NUM);
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetAlphaTest end";
 }
 
@@ -222,9 +222,9 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetCornerRadiusTest, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetCornerRadiusTest start";
     auto canvasNode = RSCanvasNode::Create();
     canvasNode->SetCornerRadius(Vector4f(SHOWING_FLOAT_NUM, 0.f, 0.f, 0.f));
-    auto [value, success] = canvasNode->GetShowingProperties().GetCornerRadius();
-    EXPECT_TRUE(success == true);
-    EXPECT_TRUE(value.x_ == SHOWING_FLOAT_NUM);
+    auto result = canvasNode->GetShowingProperties().GetCornerRadius();
+    EXPECT_TRUE(result.has_value());
+    EXPECT_TRUE(result->x_ == SHOWING_FLOAT_NUM);
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetCornerRadiusTest end";
 }
 
@@ -238,17 +238,17 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetColorTest, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetColorTest start";
     auto canvasNode = RSCanvasNode::Create();
     canvasNode->SetForegroundColor(SK_ColorRED);
-    auto [value1, success1] = canvasNode->GetShowingProperties().GetForegroundColor();
-    EXPECT_TRUE(success1 == true);
-    EXPECT_TRUE(value1.GetRed() == SHOWING_COLOR_NUM);
+    auto result1 = canvasNode->GetShowingProperties().GetForegroundColor();
+    EXPECT_TRUE(result1.has_value());
+    EXPECT_TRUE(result1->GetRed() == SHOWING_COLOR_NUM);
 
     canvasNode->SetBackgroundColor(SK_ColorRED);
-    auto [value2, success2] = canvasNode->GetShowingProperties().GetBackgroundColor();
-    EXPECT_TRUE(success2 == true);
-    EXPECT_TRUE(value2.GetRed() == SHOWING_COLOR_NUM);
+    auto result2 = canvasNode->GetShowingProperties().GetBackgroundColor();
+    EXPECT_TRUE(result2.has_value());
+    EXPECT_TRUE(result2->GetRed() == SHOWING_COLOR_NUM);
 
-    auto [value3, success3] = canvasNode->GetShowingProperties().GetSurfaceBgColor();
-    EXPECT_TRUE(success3 == false);
+    auto result3 = canvasNode->GetShowingProperties().GetSurfaceBgColor();
+    EXPECT_TRUE(!result3.has_value());
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetColorTest end";
 }
 
@@ -263,24 +263,24 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetBgImageTest, TestSize.Level1)
     auto canvasNode = RSCanvasNode::Create();
 
     canvasNode->SetBgImageWidth(SHOWING_FLOAT_NUM);
-    auto [value1, success1] = canvasNode->GetShowingProperties().GetBgImageWidth();
-    EXPECT_TRUE(success1 == true);
-    EXPECT_TRUE(value1 == SHOWING_FLOAT_NUM);
+    auto result1 = canvasNode->GetShowingProperties().GetBgImageWidth();
+    EXPECT_TRUE(result1.has_value());
+    EXPECT_TRUE(result1.value() == SHOWING_FLOAT_NUM);
 
     canvasNode->SetBgImageHeight(SHOWING_FLOAT_NUM);
-    auto [value2, success2] = canvasNode->GetShowingProperties().GetBgImageHeight();
-    EXPECT_TRUE(success2 == true);
-    EXPECT_TRUE(value2 == SHOWING_FLOAT_NUM);
+    auto result2 = canvasNode->GetShowingProperties().GetBgImageHeight();
+    EXPECT_TRUE(result2.has_value());
+    EXPECT_TRUE(result2.value() == SHOWING_FLOAT_NUM);
 
     canvasNode->SetBgImagePositionX(SHOWING_FLOAT_NUM);
-    auto [value3, success3] = canvasNode->GetShowingProperties().GetBgImagePositionX();
-    EXPECT_TRUE(success3 == true);
-    EXPECT_TRUE(value3 == SHOWING_FLOAT_NUM);
+    auto result3 = canvasNode->GetShowingProperties().GetBgImagePositionX();
+    EXPECT_TRUE(result3.has_value());
+    EXPECT_TRUE(result3.value() == SHOWING_FLOAT_NUM);
 
     canvasNode->SetBgImagePositionY(SHOWING_FLOAT_NUM);
-    auto [value4, success4] = canvasNode->GetShowingProperties().GetBgImagePositionY();
-    EXPECT_TRUE(success4 == true);
-    EXPECT_TRUE(value4 == SHOWING_FLOAT_NUM);
+    auto result4 = canvasNode->GetShowingProperties().GetBgImagePositionY();
+    EXPECT_TRUE(result4.has_value());
+    EXPECT_TRUE(result4.value() == SHOWING_FLOAT_NUM);
 
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetBgImageTest end";
 }
@@ -295,14 +295,14 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetBorderTest, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetBorderTest start";
     auto canvasNode = RSCanvasNode::Create();
     canvasNode->SetBorderColor(SK_ColorRED);
-    auto [value1, success1] = canvasNode->GetShowingProperties().GetBorderColor();
-    EXPECT_TRUE(success1 == true);
-    EXPECT_TRUE(value1[0].GetRed() == SHOWING_COLOR_NUM);
+    auto result1 = canvasNode->GetShowingProperties().GetBorderColor();
+    EXPECT_TRUE(result1.has_value());
+    EXPECT_TRUE(result1.value()[0].GetRed() == SHOWING_COLOR_NUM);
 
     canvasNode->SetBorderWidth(Vector4f(SHOWING_FLOAT_NUM, 0.f, 0.f, 0.f));
-    auto [value2, success2] = canvasNode->GetShowingProperties().GetBorderWidth();
-    EXPECT_TRUE(success2 == true);
-    EXPECT_TRUE(value2.x_ == SHOWING_FLOAT_NUM);
+    auto result2 = canvasNode->GetShowingProperties().GetBorderWidth();
+    EXPECT_TRUE(result2.has_value());
+    EXPECT_TRUE(result2->x_ == SHOWING_FLOAT_NUM);
 
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetBorderTest end";
 }
@@ -319,12 +319,12 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetFilterTest, TestSize.Level1)
     auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
     auto canvasNode = RSCanvasNode::Create();
     canvasNode->SetBackgroundFilter(filter);
-    auto [value1, success1] = canvasNode->GetShowingProperties().GetBackgroundFilter();
-    EXPECT_TRUE(success1 == true);
+    auto result1 = canvasNode->GetShowingProperties().GetBackgroundFilter();
+    EXPECT_TRUE(result1.has_value());
 
     canvasNode->SetFilter(filter);
-    auto [value2, success2] = canvasNode->GetShowingProperties().GetFilter();
-    EXPECT_TRUE(success2 == true);
+    auto result2 = canvasNode->GetShowingProperties().GetFilter();
+    EXPECT_TRUE(result2.has_value());
 
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetFilterTest end";
 }
@@ -339,34 +339,34 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetShadowTest, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetShadowTest start";
     auto canvasNode = RSCanvasNode::Create();
     canvasNode->SetShadowColor(SK_ColorRED);
-    auto [value1, success1] = canvasNode->GetShowingProperties().GetShadowColor();
-    EXPECT_TRUE(success1 == true);
-    EXPECT_TRUE(value1.GetRed() == SHOWING_COLOR_NUM);
+    auto result1 = canvasNode->GetShowingProperties().GetShadowColor();
+    EXPECT_TRUE(result1.has_value());
+    EXPECT_TRUE(result1->GetRed() == SHOWING_COLOR_NUM);
 
     canvasNode->SetShadowOffsetX(SHOWING_FLOAT_NUM);
-    auto [value2, success2] = canvasNode->GetShowingProperties().GetShadowOffsetX();
-    EXPECT_TRUE(success2 == true);
-    EXPECT_TRUE(value2 == SHOWING_FLOAT_NUM);
+    auto result2 = canvasNode->GetShowingProperties().GetShadowOffsetX();
+    EXPECT_TRUE(result2.has_value());
+    EXPECT_TRUE(result2.value() == SHOWING_FLOAT_NUM);
 
     canvasNode->SetShadowOffsetY(SHOWING_FLOAT_NUM);
-    auto [value3, success3] = canvasNode->GetShowingProperties().GetShadowOffsetY();
-    EXPECT_TRUE(success3 == true);
-    EXPECT_TRUE(value3 == SHOWING_FLOAT_NUM);
+    auto result3 = canvasNode->GetShowingProperties().GetShadowOffsetY();
+    EXPECT_TRUE(result3.has_value());
+    EXPECT_TRUE(result3.value() == SHOWING_FLOAT_NUM);
 
     canvasNode->SetShadowAlpha(SHOWING_FLOAT_NUM);
-    auto [value4, success4] = canvasNode->GetShowingProperties().GetShadowAlpha();
-    EXPECT_TRUE(success4 == true);
-    EXPECT_TRUE(value4 == SHOWING_FLOAT_NUM);
+    auto result4 = canvasNode->GetShowingProperties().GetShadowAlpha();
+    EXPECT_TRUE(result4.has_value());
+    EXPECT_TRUE(result4.value() == SHOWING_FLOAT_NUM);
 
     canvasNode->SetShadowElevation(SHOWING_FLOAT_NUM);
-    auto [value5, success5] = canvasNode->GetShowingProperties().GetShadowElevation();
-    EXPECT_TRUE(success5 == true);
-    EXPECT_TRUE(value5 == SHOWING_FLOAT_NUM);
+    auto result5 = canvasNode->GetShowingProperties().GetShadowElevation();
+    EXPECT_TRUE(result5.has_value());
+    EXPECT_TRUE(result5.value() == SHOWING_FLOAT_NUM);
 
     canvasNode->SetShadowRadius(SHOWING_FLOAT_NUM);
-    auto [value6, success6] = canvasNode->GetShowingProperties().GetShadowRadius();
-    EXPECT_TRUE(success6 == true);
-    EXPECT_TRUE(value6 == SHOWING_FLOAT_NUM);
+    auto result6 = canvasNode->GetShowingProperties().GetShadowRadius();
+    EXPECT_TRUE(result6.has_value());
+    EXPECT_TRUE(result6.value() == SHOWING_FLOAT_NUM);
 
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetShadowTest end";
 }
@@ -381,14 +381,14 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetDegreeTest, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetDegreeTest start";
     auto canvasNode = RSCanvasNode::Create();
     canvasNode->SetSpherizeDegree(SHOWING_FLOAT_NUM);
-    auto [value1, success1] = canvasNode->GetShowingProperties().GetSpherizeDegree();
-    EXPECT_TRUE(success1 == true);
-    EXPECT_TRUE(value1 == SHOWING_FLOAT_NUM);
+    auto result1 = canvasNode->GetShowingProperties().GetSpherizeDegree();
+    EXPECT_TRUE(result1.has_value());
+    EXPECT_TRUE(result1.value() == SHOWING_FLOAT_NUM);
 
     canvasNode->SetLightUpEffectDegree(SHOWING_FLOAT_NUM);
-    auto [value2, success2] = canvasNode->GetShowingProperties().GetLightUpEffectDegree();
-    EXPECT_TRUE(success2 == true);
-    EXPECT_TRUE(value2 == SHOWING_FLOAT_NUM);
+    auto result2 = canvasNode->GetShowingProperties().GetLightUpEffectDegree();
+    EXPECT_TRUE(result2.has_value());
+    EXPECT_TRUE(result2.value() == SHOWING_FLOAT_NUM);
 
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetDegreeTest end";
 }
