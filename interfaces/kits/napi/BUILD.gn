@@ -16,6 +16,7 @@ group("napi_packages") {
     "graphic/animation/window_animation_manager:windowanimationmanager_napi",
     "graphic/color_manager:colorspacemanager_napi",
     "graphic/effect_kit:effectkit",
+    "graphic/hyper_graphic_manager:libhgmnapi",
     "graphic/webgl:libwebglnapi",
   ]
 }
