@@ -26,7 +26,7 @@ namespace TextEngine {
 class TextReverser {
 public:
     static void ReverseRTLText(std::vector<VariantSpan> &lineSpans);
-    void ProcessTypoDirection(std::vector<VariantSpan> &lineSpans, const TextDirection dir);
+    static void ProcessTypoDirection(std::vector<VariantSpan> &lineSpans, const TextDirection dir);
 
 private:
     static void ReverseConDirectionText(std::vector<VariantSpan> &lineSpans, int begin, int end);
