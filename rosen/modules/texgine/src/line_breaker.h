@@ -34,7 +34,7 @@ struct ScoredSpan {
 
 class LineBreaker {
 public:
-    std::vector<LineMetrics> BreakLines(std::vector<VariantSpan> &spans,
+    static std::vector<LineMetrics> BreakLines(std::vector<VariantSpan> &spans,
         const TypographyStyle &tstyle, const double widthLimit) noexcept(false);
     static std::vector<struct ScoredSpan> GenerateScoreSpans(const std::vector<VariantSpan> &spans) noexcept(false);
     static void DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans, const double widthLimit,
