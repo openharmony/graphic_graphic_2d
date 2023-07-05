@@ -52,7 +52,7 @@ ohos_shared_library("vulkan_swapchain_layer") {
 
   external_deps = [
     "c_utils:utils",
-    "hilog_native:libhilog",
+    "hilog:libhilog",
   ]
 
   output_name = "vulkan_swapchain"

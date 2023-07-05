@@ -34,7 +34,7 @@ ohos_unittest("RSSystemParametersTest") {
   ]
   defines = []
   external_deps = [
-    "hilog_native:libhilog",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
   defines += gpu_defines

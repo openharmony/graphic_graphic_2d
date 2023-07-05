@@ -63,7 +63,7 @@ ohos_executable("render_service_client_screen_mode_demo") {
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [ "hilog:libhilog" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -220,7 +220,7 @@ ohos_executable("render_service_client_ui_capture_demo") {
   ]
 
   external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "init:libbegetutil",
     "window_manager:libwm",
   ]
@@ -329,7 +329,7 @@ ohos_executable("render_service_client_surface_node_demo") {
 
   public_deps = [ "$public_deps_skia" ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [ "hilog:libhilog" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -351,7 +351,7 @@ ohos_executable("render_service_client_uni_render_demo") {
 
   public_deps = [ "$public_deps_skia" ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [ "hilog:libhilog" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

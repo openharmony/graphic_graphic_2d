@@ -62,7 +62,7 @@ ohos_shared_library("libnative_image") {
 
   external_deps = [
     "c_utils:utils",
-    "hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
   ]
 

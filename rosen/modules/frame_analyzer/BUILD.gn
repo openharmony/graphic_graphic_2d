@@ -58,7 +58,7 @@ ohos_shared_library("libframe_analyzer") {
 
     external_deps = [
       "c_utils:utils",
-      "hitrace_native:hitrace_meter",
+      "hitrace:hitrace_meter",
       "init:libbeget_proxy",
       "init:libbegetutil",
     ]

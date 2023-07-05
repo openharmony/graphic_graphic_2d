@@ -30,7 +30,7 @@ ohos_static_library("buffer_handle") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
   ]
   subsystem_name = "graphic"

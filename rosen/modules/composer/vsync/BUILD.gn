@@ -69,7 +69,7 @@ ohos_shared_library("libvsync") {
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
-    "hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_core",
   ]
 

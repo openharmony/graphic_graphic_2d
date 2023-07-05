@@ -33,7 +33,7 @@ ohos_executable("drawing_text_sample") {
   ]
 
   external_deps = [
-    "hilog_native:libhilog",
+    "hilog:libhilog",
     "multimedia_image_framework:image_native",
   ]
 

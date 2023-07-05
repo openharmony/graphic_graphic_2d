@@ -95,8 +95,8 @@ ohos_shared_library("surface") {
   external_deps = [
     "drivers_interface_display:display_buffer_idl_headers",
     "drivers_interface_display:libdisplay_buffer_hdi_impl",
-    "hitrace_native:hitrace_meter",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "ipc:ipc_single",
   ]
 

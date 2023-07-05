@@ -35,7 +35,7 @@ ohos_shared_library("window_animation") {
 
   external_deps = [
     "eventhandler:libeventhandler",
-    "hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_core",
   ]
 

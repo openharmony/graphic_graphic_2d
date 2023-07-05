@@ -50,7 +50,7 @@ ohos_shared_library("libnative_vsync") {
 
   deps = [ "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client" ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [ "hilog:libhilog" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

@@ -76,8 +76,8 @@ ohos_executable("bootanimation") {
 
   external_deps = [
     "config_policy:configpolicy_util",
-    "hilog_native:libhilog",
-    "hitrace_native:hitrace_meter",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
     "window_manager:libwm",

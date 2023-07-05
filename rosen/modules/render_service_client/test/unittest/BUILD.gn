@@ -39,7 +39,7 @@ ohos_unittest("RSJankDetectorTest") {
     "rs_jank_detector_test.cpp",
   ]
   deps = [ ":rs_client_test_common" ]
-  external_deps = [ "hisysevent_native:libhisysevent" ]
+  external_deps = [ "hisysevent:libhisysevent" ]
 }
 
 ## Build RSInterfacesTest

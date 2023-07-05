@@ -52,8 +52,8 @@ ohos_shared_library("libeffectchain") {
 
   external_deps = [
     "c_utils:utils",
-    "hilog_native:libhilog",
-    "hitrace_native:hitrace_meter",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
   ]
 
   if (effect_enable_gpu) {

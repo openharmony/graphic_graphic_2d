@@ -136,8 +136,8 @@ template("render_service_client_source_set") {
           [ "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer" ]
       external_deps = [
         "c_utils:utils",
-        "hisysevent_native:libhisysevent",
-        "hitrace_native:hitrace_meter",
+        "hisysevent:libhisysevent",
+        "hitrace:hitrace_meter",
         "multimedia_image_framework:image_native",
       ]
 

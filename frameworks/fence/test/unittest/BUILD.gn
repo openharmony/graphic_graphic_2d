@@ -29,7 +29,7 @@ ohos_unittest("fence_fd_test") {
 
   deps = [ ":fence_test_common" ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [ "hilog:libhilog" ]
 }
 
 ## UnitTest fence_test }}}

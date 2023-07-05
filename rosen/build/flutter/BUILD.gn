@@ -186,7 +186,7 @@ template("flutter_engine_fml") {
           "$flutter_root/engine/flutter/fml/platform/linux/message_loop_linux.cc",
           "$flutter_root/engine/flutter/fml/platform/linux/paths_linux.cc",
         ]
-        external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+        external_deps = [ "hilog:libhilog" ]
       } else {
         sources += [
           "$flutter_root/engine/flutter/fml/platform/android/jni_util.cc",
