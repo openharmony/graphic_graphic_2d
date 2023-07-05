@@ -65,7 +65,6 @@
           "player_framework",
           "resource_schedule_service",
           "soc_perf",
-          "hilog",
           "accessibility"
         ],
         "third_party": [
