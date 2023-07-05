@@ -47,7 +47,7 @@ public:
     // we guarantee when constructing this object, all parameters are valid.
 #ifdef NEW_RENDER_CONTEXT
     RSRenderFrame(const std::shared_ptr<RSRenderSurfaceOhos>& target)
-        : targetSurface_(target)
+        : targetSurface_(target) explicit
     {
     }
 #else
@@ -194,11 +194,11 @@ public:
         return isHighContrastEnabled_;
     }
 #if defined(NEW_RENDER_CONTEXT)
-    const std::shared_ptr<RenderContextBase>& GetRenderContext()
+    const std::shared_ptr<RenderContextBase>& GetRenderContext() const
     {
         return renderContext_;
     }
-    const std::shared_ptr<DrawingContext>& GetDrawingContext()
+    const std::shared_ptr<DrawingContext>& GetDrawingContext() const
     {
         return drawingContext_;
     }

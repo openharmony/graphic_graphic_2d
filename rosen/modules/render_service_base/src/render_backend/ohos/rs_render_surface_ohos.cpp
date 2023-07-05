@@ -50,7 +50,6 @@ RSRenderSurfaceOhos::~RSRenderSurfaceOhos()
         return;
     }
     std::shared_ptr<SurfaceConfig> surfaceConfig = frame_->surfaceConfig;
-    std::shared_ptr<EGLState> eglState = frame_->eglState;
     if (surfaceConfig->nativeWindow != nullptr) {
         DestoryNativeWindow(surfaceConfig->nativeWindow);
         surfaceConfig->nativeWindow = nullptr;
@@ -206,7 +205,6 @@ void RSRenderSurfaceOhos::ClearBuffer()
         return;
     }
     std::shared_ptr<SurfaceConfig> surfaceConfig = frame_->surfaceConfig;
-    std::shared_ptr<EGLState> eglState = frame_->eglState;
     DestoryNativeWindow(surfaceConfig->nativeWindow);
     surfaceConfig->nativeWindow = nullptr;
     renderContext_->MakeCurrent();
