@@ -51,6 +51,9 @@ void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>& 
         return;
     }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
+#ifdef ROSEN_CROSS_PLATFORM
+    ROSEN_LOGD("RSMessageProcessor::AddUIMessage %lu %p", transactionMap_[pid].GetCommandCount(), command.get());
+#endif
     transactionMap_[pid].AddCommand(command, 0, FollowType::NONE);
 }
 
@@ -60,6 +63,9 @@ void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>&&
         return;
     }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
+#ifdef ROSEN_CROSS_PLATFORM
+    ROSEN_LOGD("RSMessageProcessor::AddUIMessage %lu %p", transactionMap_[pid].GetCommandCount(), command.get());
+#endif
     transactionMap_[pid].AddCommand(command, 0, FollowType::NONE);
 }
 
