@@ -25,8 +25,18 @@
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_visitor.h"
 #include "pipeline/rs_surface_render_node.h"
+#ifdef RES_SCHED_ENABLE
+#include "res_type.h"
+#include "res_sched_client.h"
+#endif
 
 namespace OHOS::Rosen {
+namespace {
+#ifdef RES_SCHED_ENABLE
+    const uint32_t RS_SUB_QOS_LEVEL = 7;
+    constexpr const char* RS_BUNDLE_NAME = "render_service";
+#endif
+}
 RSSubThread::~RSSubThread()
 {
     RS_LOGI("~RSSubThread():%d", threadIndex_);
@@ -42,6 +52,19 @@ void RSSubThread::Start()
     runner_ = AppExecFwk::EventRunner::Create(name);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     PostTask([this]() {
+#ifdef RES_SCHED_ENABLE
+        std::string strBundleName = RS_BUNDLE_NAME;
+        std::string strPid = std::to_string(getpid());
+        std::string strTid = std::to_string(gettid());
+        std::string strQos = std::to_string(RS_SUB_QOS_LEVEL);
+        std::unordered_map<std::string, std::string> mapPayload;
+        mapPayload["pid"] = strPid;
+        mapPayload[strTid] = strQos;
+        mapPayload["bundleName"] = strBundleName;
+        uint32_t type = OHOS::ResourceSchedule::ResType::RES_TYPE_THREAD_QOS_CHANGE;
+        int64_t value = 0;
+        OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
+#endif
         CreateShareEglContext();
     });
 }
