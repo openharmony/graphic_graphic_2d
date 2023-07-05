@@ -433,16 +433,6 @@ uint64_t SurfaceBufferImpl::GetPhyAddr() const
     return handle_->phyAddr;
 }
 
-int32_t SurfaceBufferImpl::GetKey() const
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (handle_ == nullptr) {
-        BLOGE("handle is nullptr");
-        return -1;
-    }
-    return handle_->key;
-}
-
 void *SurfaceBufferImpl::GetVirAddr()
 {
     GSError ret = this->Map();
