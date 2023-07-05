@@ -300,8 +300,8 @@ static bool GetRegionCoordinates(napi_env env, napi_value param, std::unique_ptr
             return false;
         }
     }
-    if ((asyncContext->coordinatesBuffer[NUM_2] < asyncContext->coordinatesBuffer[NUM_0]) ||
-                (asyncContext->coordinatesBuffer[NUM_3] < asyncContext->coordinatesBuffer[NUM_1])) {
+    if ((asyncContext->coordinatesBuffer[NUM_2] <= asyncContext->coordinatesBuffer[NUM_0]) ||
+                (asyncContext->coordinatesBuffer[NUM_3] <= asyncContext->coordinatesBuffer[NUM_1])) {
         EFFECT_LOG_E("GetRegionCoordinates right must be greater than left, bottom must be greater than top");
         return false;
     };
@@ -351,10 +351,10 @@ napi_value ColorPickerNapi::CreateColorPicker(napi_env env, napi_callback_info i
     }
     if (asyncContext->errorMsg != nullptr) {
         IMG_CREATE_CREATE_ASYNC_WORK(env, status, "CreateColorPickerError", [](napi_env env, void* data) {},
-                                        CreateColorPickerErrorComplete, asyncContext, asyncContext->work);
+            CreateColorPickerErrorComplete, asyncContext, asyncContext->work);
     } else if (imgType == ImageType::TYPE_PIXEL_MAP) {
         IMG_CREATE_CREATE_ASYNC_WORK(env, status, "CreateColorPickerFromPixelMap", CreateColorPickerFromPixelmapExecute,
-                                        CreateColorPickerFromPixelmapComplete, asyncContext, asyncContext->work);
+            CreateColorPickerFromPixelmapComplete, asyncContext, asyncContext->work);
     }
     
     IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, EFFECT_LOG_E("fail to create async work"));

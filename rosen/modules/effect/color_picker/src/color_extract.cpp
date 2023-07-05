@@ -61,7 +61,7 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap, double* coor
     uint32_t right = static_cast<uint32_t>(pixmap->GetWidth() * coordinates[2]); // 2 is index of right
     uint32_t bottom = static_cast<uint32_t>(pixmap->GetHeight() * coordinates[3]); // 3 is index of bottom
     colorValLen_ = (right - left) * (bottom -top);
-    if (colorValLen_ == 0) {
+    if (colorValLen_ <= 0) {
         return;
     }
     auto colorVal = new uint32_t[colorValLen_]();
