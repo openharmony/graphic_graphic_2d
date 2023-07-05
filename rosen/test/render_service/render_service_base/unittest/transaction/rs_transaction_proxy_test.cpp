@@ -690,7 +690,7 @@ HWTEST_F(RSTransactionProxyTest, ExecuteSynchronousTask003, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
-    auto task = std::make_shared<RSGetRenderPropertyAndCancelAnimationTask<0, 0>>(0, nullptr);
+    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(0, nullptr);
     ASSERT_NE(task, nullptr);
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
@@ -710,7 +710,7 @@ HWTEST_F(RSTransactionProxyTest, ExecuteSynchronousTask004, TestSize.Level1)
     ASSERT_EQ(renderThreadClient, nullptr);
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
-    auto task = std::make_shared<RSGetRenderPropertyAndCancelAnimationTask<0, 0>>(0, nullptr);
+    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(0, nullptr);
     ASSERT_NE(task, nullptr);
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
@@ -731,7 +731,7 @@ HWTEST_F(RSTransactionProxyTest, ExecuteSynchronousTask005, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
-    auto task = std::make_shared<RSGetRenderPropertyAndCancelAnimationTask<0, 0>>(0, nullptr);
+    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(0, nullptr);
     ASSERT_NE(task, nullptr);
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
@@ -751,7 +751,7 @@ HWTEST_F(RSTransactionProxyTest, ExecuteSynchronousTask006, TestSize.Level1)
     ASSERT_NE(renderThreadClient, nullptr);
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
-    auto task = std::make_shared<RSGetRenderPropertyAndCancelAnimationTask<0, 0>>(0, nullptr);
+    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(0, nullptr);
     ASSERT_NE(task, nullptr);
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
