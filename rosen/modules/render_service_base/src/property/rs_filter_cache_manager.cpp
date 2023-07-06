@@ -232,7 +232,9 @@ void RSFilterCacheManager::DrawCachedBlurredSnapshot(RSPaintFilterCanvas& canvas
 
     SkPaint paint;
     paint.setAntiAlias(true);
+#ifdef NEW_SKIA
     canvas.drawImageRect(cachedImage_, dstRect, SkSamplingOptions(), &paint);
+ #endif   
 }
 
 void RSFilterCacheManager::InvalidateCache()
@@ -249,7 +251,9 @@ void RSFilterCacheManager::ClipVisibleRect(RSPaintFilterCanvas& canvas) const
     auto visibleIRect = canvas.GetVisibleRect().round();
     auto deviceClipRect = canvas.getDeviceClipBounds();
     if (!visibleIRect.isEmpty() && deviceClipRect.intersect(visibleIRect)) {
+#ifdef NEW_SKIA
         canvas.clipIRect(visibleIRect);
+#endif 
     }
 }
 } // namespace Rosen

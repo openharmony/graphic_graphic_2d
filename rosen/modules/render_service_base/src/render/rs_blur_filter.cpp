@@ -175,7 +175,9 @@ void RSBlurFilter::DrawImageRect(
         return;
     }
     KawaseBlur kawase;
+#if defined(NEW_SKIA)
     kawase.ApplyKawaseBlur(canvas, image, src, dst, static_cast<int>(blurRadiusX_));
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

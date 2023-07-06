@@ -1010,6 +1010,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     if (RSFilter == nullptr || !RSFilter->IsValid()) {
         return;
     }
+#ifdef NEW_SKIA
     RS_TRACE_NAME("DrawFilter " + RSFilter->GetDescription());
     g_blurCnt++;
     SkAutoCanvasRestore acr(&canvas, true);
@@ -1063,6 +1064,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     filter->DrawImageRect(
         canvas, imageSnapshot, SkRect::Make(imageSnapshot->bounds().makeOutset(-1, -1)), SkRect::Make(clipIBounds));
     filter->PostProcess(canvas);
+#endif
 }
 #else
 void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
@@ -1139,7 +1141,9 @@ void RSPropertiesPainter::DrawBackgroundEffect(
         // the input rect is in global coordinate, so we need to save/reset matrix before clip
         SkAutoCanvasRestore acr(&canvas, true);
         canvas.resetMatrix();
+#ifdef NEW_SKIA
         canvas.clipIRect(rect);
+#endif
         auto data = cacheManager->GeneratedCachedEffectData(canvas, filter);
         canvas.SetEffectData(data);
         return;
@@ -1185,9 +1189,11 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
     }
     canvas.resetMatrix();
     auto visibleIRect = canvas.GetVisibleRect().round();
+    #ifdef NEW_SKIA
     if (!visibleIRect.isEmpty()) {
         canvas.clipIRect(visibleIRect);
     }
+    #endif
 
     const auto& [bgImage, imageIRect, unused] = canvas.GetEffectData();
     if (bgImage == nullptr) {
@@ -1203,7 +1209,10 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
     canvas.drawImageRect(
         bgImage, srcRect, dstRect, SkSamplingOptions(), &defaultPaint, SkCanvas::kStrict_SrcRectConstraint);
 #else
-    canvas.drawImageRect(bgImage, imageRect, clipBounds, &defaultPaint);
+    auto clipIBounds = canvas.getDeviceClipBounds();
+    auto clipIPadding = clipIBounds.makeOutset(-1, -1);
+    canvas.drawImageRect(bgImage, SkRect::Make(clipIPadding.makeOffset(-imageIRect.left(), -imageIRect.top())),
+        SkRect::Make(clipIPadding), &defaultPaint);
 #endif
 }
 

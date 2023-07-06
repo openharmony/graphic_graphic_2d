@@ -14,8 +14,10 @@
  */
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_BLUR_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_BLUR_FILTER_H
-
+#ifdef NEW_SKIA
 #include "include/effects/SkRuntimeEffect.h"
+#endif
+
 #include "common/rs_macros.h"
 #include "render/rs_skia_filter.h"
 

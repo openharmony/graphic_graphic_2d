@@ -21,7 +21,9 @@
 #include "include/core/SkSize.h"
 #include "include/core/SkString.h"
 #include "include/core/SkSurface.h"
+#ifdef NEW_SKIA
 #include "include/effects/SkRuntimeEffect.h"
+#endif
 #include "tools/Resources.h"
 #include "platform/common/rs_log.h"
 
@@ -70,6 +72,7 @@ public:
             }
         )");
 
+        #ifdef NEW_SKIA
         auto [blurEffect, error] = SkRuntimeEffect::MakeForShader(blurString);
         if (!blurEffect) {
             ROSEN_LOGE("KawaseBlurFilter::RuntimeShader error: %s\n", error.c_str());
@@ -81,8 +84,9 @@ public:
             ROSEN_LOGE("KawaseBlurFilter::RuntimeShader error: %s\n", error2.c_str());
         }
         fMixEffect = std::move(mixEffect);
+        #endif
     }
-
+#ifdef NEW_SKIA
     static SkMatrix getShaderTransform(const SkCanvas* canvas, const SkRect& blurRect, float scale)
     {
         auto matrix = SkMatrix::Scale(scale, scale);
@@ -147,10 +151,12 @@ public:
         paint.setShader(mixBuilder.makeShader(nullptr, true));
         canvas.drawRect(dst, paint);
     }
-
+#endif
 private:
+#ifdef NEW_SKIA
     sk_sp<SkRuntimeEffect> fBlurEffect;
     sk_sp<SkRuntimeEffect> fMixEffect;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

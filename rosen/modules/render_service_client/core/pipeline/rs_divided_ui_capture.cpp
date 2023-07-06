@@ -230,7 +230,11 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCa
         auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
         SkBitmap bitmap;
         canvasDrawingNode->GetBitmap(bitmap);
+#ifndef NEW_SKIA
+        canvas_->drawBitmap(bitmap, 0, 0);
+#else
         canvas_->drawImage(bitmap.asImage(), 0, 0);
+#endif
         ProcessBaseRenderNode(*canvasDrawingNode);
     } else {
         node.ProcessRenderBeforeChildren(*canvas_);
