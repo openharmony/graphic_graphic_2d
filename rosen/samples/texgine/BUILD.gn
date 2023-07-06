@@ -72,8 +72,8 @@ ohos_shared_library("libskia_rs_framework") {
 
   external_deps = [
     "eventhandler:libeventhandler",
-    "hilog_native:libhilog",
-    "hitrace_native:hitrace_meter",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "input:libmmi-client",
   ]
 
@@ -92,7 +92,7 @@ ohos_source_set("texgine_sample") {
     "$graphic_2d_root/rosen/modules/texgine:libtexgine",
   ]
 
-  external_deps = [ "hitrace_native:hitrace_meter" ]
+  external_deps = [ "hitrace:hitrace_meter" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

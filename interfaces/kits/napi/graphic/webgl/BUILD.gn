@@ -35,7 +35,7 @@ ohos_source_set("webgl_src") {
   ]
 
   external_deps = [
-    "hilog_native:libhilog",
+    "hilog:libhilog",
     "napi:ace_napi",
   ]
 

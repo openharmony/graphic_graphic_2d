@@ -40,7 +40,7 @@ ohos_unittest("RSWindowAnimationTest") {
     "access_token:libtoken_setproc",
     "c_utils:utils",
     "eventhandler:libeventhandler",
-    "hisysevent_native:libhisysevent",
+    "hisysevent:libhisysevent",
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",

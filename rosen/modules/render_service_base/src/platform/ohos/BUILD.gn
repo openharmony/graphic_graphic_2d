@@ -149,9 +149,9 @@ ohos_source_set("rosen_ohos_sources") {
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
-    "hisysevent_native:libhisysevent",
-    "hitrace_native:hitrace_meter",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",

@@ -45,7 +45,7 @@ ohos_shared_library("libhyper_graphic_manager") {
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
-    "hitrace_native:hitrace_meter",
+    "hitrace:hitrace_meter",
     "init:libbeget_proxy",
     "init:libbegetutil",
   ]
@@ -54,7 +54,7 @@ ohos_shared_library("libhyper_graphic_manager") {
   subsystem_name = "graphic"
 
   if (is_standard_system) {
-    external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
+    external_deps += [ "hilog:libhilog" ]
   } else {
     external_deps += [ "hilog:libhilog" ]
   }

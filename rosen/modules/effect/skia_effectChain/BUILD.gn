@@ -61,8 +61,8 @@ ohos_shared_library("skeffectchain") {
   }
 
   external_deps = [
-    "hilog_native:libhilog",
-    "hitrace_native:hitrace_meter",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
     "multimedia_image_framework:image_native",
