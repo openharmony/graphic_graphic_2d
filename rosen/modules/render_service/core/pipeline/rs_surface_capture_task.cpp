@@ -1061,10 +1061,15 @@ void RSSurfaceCaptureVisitor::DrawWatermarkIfNeed(float screenWidth, float scree
     if (RSMainThread::Instance()->GetWatermarkFlag()) {
 #ifndef USE_ROSEN_DRAWING
         sk_sp<SkImage> skImage = RSMainThread::Instance()->GetWatermarkImg();
+        SkPaint rectPaint;
+        auto skSrcRect = SkRect::MakeWH(skImage->width(), skImage->height());
+        auto skDstRect = SkRect::MakeWH(screenWidth, screenHeight);
 #ifdef NEW_SKIA
-        sk_sp<SkShader> shader = skImage->makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat, SkSamplingOptions());
+        canvas_->drawImageRect(
+            skImage, skSrcRect, skDstRect, SkSamplingOptions(), 
+            &rectPaint, SkCanvas::kStrict_SrcRectConstraint);
 #else
-        sk_sp<SkShader> shader = skImage->makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat);
+        canvas_->drawImageRect(skImage, skSrcRect, skDstRect, &rectPaint);
 #endif
 #else
         auto image = RSMainThread::Instance()->GetWatermarkImg();
