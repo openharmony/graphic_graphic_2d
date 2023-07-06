@@ -67,6 +67,7 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
     auto cacheSkippedNodeMap = RSMainThread::Instance()->GetCacheCmdSkippedNodes();
     for (const auto& child : subThreadNodes) {
         if (!child->ShouldPaint()) {
+            RS_TRACE_NAME_FMT("SubmitTask skip node: [%s, %llu]", child->GetName().c_str(), child->GetId());
             continue;
         }
         if (cacheSkippedNodeMap.count(child->GetId()) != 0 && child->HasCachedTexture()) {
@@ -84,8 +85,8 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
             RSMainThread::Instance()->GetFrameCount()));
     }
 
-    for (size_t i = 0; i < renderTaskList.size(); i++) {
-        auto renderNode = renderTaskList[i]->GetNode();
+    for (auto& renderTask : renderTaskList) {
+        auto renderNode = renderTask->GetNode();
         auto surfaceNode = renderNode->ReinterpretCastTo<RSSurfaceRenderNode>();
         if (surfaceNode == nullptr) {
             ROSEN_LOGE("RSSubThreadManager::SubmitSubThreadTask surfaceNode is null");
@@ -93,20 +94,24 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
         }
         auto threadIndex = surfaceNode->GetSubmittedSubThreadIndex();
         if (threadIndex != INT_MAX && superRenderTaskList[threadIndex]) {
-            superRenderTaskList[threadIndex]->AddTask(std::move(renderTaskList[i]));
+            RS_TRACE_NAME("node:[ " + surfaceNode->GetName() + ", " + std::to_string(surfaceNode->GetId()) +
+                ", " + std::to_string(threadIndex) + " ]; ");
+            superRenderTaskList[threadIndex]->AddTask(std::move(renderTask));
         } else {
             if (superRenderTaskList[minLoadThreadIndex_]) {
-                superRenderTaskList[minLoadThreadIndex_]->AddTask(std::move(renderTaskList[i]));
+                RS_TRACE_NAME("node:[ " + surfaceNode->GetName() + ", " + std::to_string(surfaceNode->GetId()) +
+                    ", " + std::to_string(minLoadThreadIndex_) + " ]; ");
+                superRenderTaskList[minLoadThreadIndex_]->AddTask(std::move(renderTask));
                 surfaceNode->SetSubmittedSubThreadIndex(minLoadThreadIndex_);
             }
         }
         uint32_t minLoadThreadIndex = 0;
         auto minNodesNum = superRenderTaskList[0]->GetTaskSize();
-        for (uint32_t j = 0; j < SUB_THREAD_NUM; j++) {
-            auto num = superRenderTaskList[j]->GetTaskSize();
+        for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
+            auto num = superRenderTaskList[i]->GetTaskSize();
             if (num < minNodesNum) {
                 minNodesNum = num;
-                minLoadThreadIndex = j;
+                minLoadThreadIndex = i;
             }
         }
         minLoadThreadIndex_ = minLoadThreadIndex;

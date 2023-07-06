@@ -467,12 +467,20 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
             isScale = true;
         }
     }
+    // trace info for assign window nodes
+    std::string traceInfo = "{ isScale: " + std::to_string(isScale) + ", " +
+        "leashWindowCount: " + std::to_string(leashWindowCount) + ", " +
+        "isRotation: " + std::to_string(isRotation) + " }; ";
     for (auto iter = displayNode->GetSortedChildren().begin(); iter != displayNode->GetSortedChildren().end(); iter++) {
         auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*iter);
         if (node == nullptr) {
             ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes nullptr found in sortedChildren, this should not happen");
             continue;
         }
+        // trace info for assign window nodes
+        traceInfo += "node:[ " + node->GetName() + ", " + std::to_string(node->GetId()) + " ]" +
+            "( " + std::to_string(static_cast<uint32_t>(node->GetCacheSurfaceProcessedStatus())) + ", " +
+            std::to_string(node->HasFilter()) + ", " + std::to_string(node->HasAbilityComponent()) + " ); ";
         if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) { // node exceed one vsync
             AssignSubThreadNode(subThreadNodes, node);
         } else if (leashWindowCount > 1) { // start app from another app
@@ -488,6 +496,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         }
     }
     SortSubThreadNodes(subThreadNodes);
+    RS_TRACE_NAME_FMT("AssignWindowNodes Infos: %s", traceInfo.c_str());
 }
 
 void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
