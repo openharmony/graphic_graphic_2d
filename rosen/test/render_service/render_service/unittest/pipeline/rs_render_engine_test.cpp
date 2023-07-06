@@ -468,4 +468,31 @@ HWTEST_F(RSRenderEngineTest, CaptureSingleSurfaceNodeWithUni002, Function | Smal
         visitor_->CaptureSingleSurfaceNodeWithUni(*surfaceNode);
     }
 }
+
+/*
+ * @tc.name: DrawSurfaceNode
+ * @tc.desc: Test DrawSurfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSRenderEngineTest, DrawSurfaceNode, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+    ASSERT_NE(canvas, nullptr);
+    std::vector<LayerInfoPtr> layers;
+    layers.emplace_back(nullptr);
+    LayerInfoPtr layer1 = HdiLayerInfo::CreateHdiLayerInfo();
+    layer1->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    layers.emplace_back(layer1);
+    LayerInfoPtr layer2 = HdiLayerInfo::CreateHdiLayerInfo();
+    layer2->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR);
+    layers.emplace_back(layer2);
+    LayerInfoPtr layer3 = HdiLayerInfo::CreateHdiLayerInfo();
+    layer3->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    layers.emplace_back(layer3);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    renderEngine->DrawSurfaceNode(*canvas, *surfaceNode, 0.0f, false);
+}
 }

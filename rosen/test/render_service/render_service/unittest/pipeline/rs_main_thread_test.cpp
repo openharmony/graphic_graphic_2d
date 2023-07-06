@@ -14,11 +14,12 @@
  */
 #include <parameter.h>
 #include <parameters.h>
-
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_qos_thread.h"
+#include "pipeline/rs_render_engine.h"
+#include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_test_util.h"
 #if defined(ACCESSIBILITY_ENABLE)
@@ -36,12 +37,18 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    static void* CreateParallelSyncSignal(uint32_t count);
 };
 
 void RSMainThreadTest::SetUpTestCase() {}
 void RSMainThreadTest::TearDownTestCase() {}
 void RSMainThreadTest::SetUp() {}
 void RSMainThreadTest::TearDown() {}
+void* RSMainThreadTest::CreateParallelSyncSignal(uint32_t count)
+{
+    (void)(count);
+    return nullptr;
+}
 
 /**
  * @tc.name: Start001
@@ -674,8 +681,8 @@ HWTEST_F(RSMainThreadTest, ObserverConfigChangeColorFilter, TestSize.Level1)
     ASSERT_NE(observer, nullptr);
 
     CONFIG_ID id = CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER;
-    std::vector<DALTONIZATION_TYPE> dalTypes = {DALTONIZATION_TYPE::Normal, DALTONIZATION_TYPE::Protanomaly,
-        DALTONIZATION_TYPE::Deuteranomaly, DALTONIZATION_TYPE::Tritanomaly};
+    std::vector<DALTONIZATION_TYPE> dalTypes = { DALTONIZATION_TYPE::Normal, DALTONIZATION_TYPE::Protanomaly,
+        DALTONIZATION_TYPE::Deuteranomaly, DALTONIZATION_TYPE::Tritanomaly };
     ConfigValue value;
     for (auto dalType : dalTypes) {
         value.daltonizationColorFilter = dalType;
@@ -683,4 +690,39 @@ HWTEST_F(RSMainThreadTest, ObserverConfigChangeColorFilter, TestSize.Level1)
     }
 }
 #endif
+
+/**
+ * @tc.name: GetWatermarkImg
+ * @tc.desc: GetWatermarkImg test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, GetWatermarkImg, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->GetWatermarkImg();
+}
+
+/**
+ * @tc.name: DoParallelComposition
+ * @tc.desc: DoParallelComposition test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, DoParallelComposition, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    std::weak_ptr<RSContext> context = {};
+    auto node = std::make_shared<RSBaseRenderNode>(nodeId, context);
+    auto childNode = std::make_shared<RSBaseRenderNode>(nodeId + 1, context);
+    int index = 0;
+    node->SetIsOnTheTree(true);
+    node->AddChild(childNode, index);
+    ASSERT_EQ(static_cast<int>(node->GetChildrenCount()), 1);
+    ASSERT_TRUE(childNode->IsOnTheTree());
+
+    auto mainThread = RSMainThread::Instance();
+    RSInnovation::_s_createParallelSyncSignal = (void*)RSMainThreadTest::CreateParallelSyncSignal;
+    mainThread->DoParallelComposition(node);
+}
 } // namespace OHOS::Rosen

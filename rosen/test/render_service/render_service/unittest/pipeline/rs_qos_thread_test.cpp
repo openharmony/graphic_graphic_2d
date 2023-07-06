@@ -120,4 +120,27 @@ HWTEST_F(RSQosThreadTest, QosFakeSo, TestSize.Level1)
     RSQosThread::GetInstance()->OnRSVisibilityChangeCB(pidVisMap);
 }
 
+/**
+ * @tc.name: GetQosVSyncRateInfos
+ * @tc.desc: GetQosVSyncRateInfos test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSQosThreadTest, GetQosVSyncRateInfos, TestSize.Level1)
+{
+    RSInnovation::OpenInnovationSo();
+
+    FakeSo();
+    ASSERT_EQ(RSInnovation::_s_qosVsyncFuncLoaded, true);
+
+    RSQosThread::GetInstance();
+
+    RSQosThread::ThreadStart();
+    RSQosThread::ThreadStop();
+
+    std::vector<std::pair<uint32_t, int32_t>> appsRateVec;
+    RSQosThread::GetInstance()->SetQosVSyncRate(0, 0);
+    RSQosThread::GetInstance()->GetQosVSyncRateInfos(appsRateVec);
+    RSQosThread::GetInstance()->ResetQosPid();
+}
 } // OHOS::Rosen

@@ -21,6 +21,7 @@
 #include "transaction/rs_interfaces.h"
 #include "pipeline/rs_hardware_thread.h"
 #include "mock/mock_hdi_device.h"
+#include "surface_buffer_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -398,4 +399,63 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest009, Function | SmallTest | Leve
     composerAdapter_ = nullptr;
 }
 
+/**
+ * @tc.name: CreateLayer
+ * @tc.desc: RSComposerAdapter.CreateLayer test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSComposerAdapterTest, CreateLayer, Function | SmallTest | Level2)
+{
+    CreateComposerAdapterWithScreenInfo(
+        2160, 1080, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
+    RSDisplayNodeConfig config;
+    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
+    RSDisplayRenderNode node(nodeId, config);
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    node.SetConsumer(consumer);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    int64_t timestamp = 0;
+    Rect damage;
+    sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    node.SetBuffer(buffer, acquireFence, damage, timestamp);
+    composerAdapter_->CreateLayer(node);
+}
+
+/**
+ * @tc.name: LayerPresentTimestamp
+ * @tc.desc: RSComposerAdapter.LayerPresentTimestamp test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp, Function | SmallTest | Level2)
+{
+    CreateComposerAdapterWithScreenInfo(
+        2160, 1080, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto buffer = surfaceNode->GetBuffer();
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    layer->SetBuffer(buffer, surfaceNode->GetAcquireFence());
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    composerAdapter_->LayerPresentTimestamp(layer, consumer);
+}
+
+/**
+ * @tc.name: OnPrepareComplete
+ * @tc.desc: RSComposerAdapter.OnPrepareComplete test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSComposerAdapterTest, OnPrepareComplete, Function | SmallTest | Level2)
+{
+    CreateComposerAdapterWithScreenInfo(
+        2160, 1080, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
+    PrepareCompleteParam para;
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
+    composerAdapter_->OnPrepareComplete(sProducer, para, nullptr);
+}
 } // namespace OHOS::Rosen

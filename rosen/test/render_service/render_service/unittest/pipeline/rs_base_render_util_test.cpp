@@ -17,6 +17,7 @@
 #include "limit_number.h"
 #include "pipeline/rs_base_render_util.h"
 #include "rs_test_util.h"
+#include "surface_buffer_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -994,5 +995,32 @@ HWTEST_F(RSBaseRenderUtilTest, RotateEnumToInt_001, TestSize.Level2)
     int angle = 0;
     GraphicTransformType flip = GraphicTransformType::GRAPHIC_FLIP_H;
     ASSERT_EQ(flip, RSBaseRenderUtil::RotateEnumToInt(angle, flip));
+}
+
+/*
+ * @tc.name: ConvertBufferToBitmapTest
+ * @tc.desc: Test ConvertBufferToBitmap when dstGamut is different from srcGamut
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmapTest, TestSize.Level2)
+{
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    ASSERT_EQ(buffer->GetBufferHandle(), nullptr);
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    std::vector<uint8_t> newBuffer;
+    GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3;
+    SkBitmap bitmap;
+    ASSERT_EQ(true, RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap));
 }
 } // namespace OHOS::Rosen
