@@ -52,6 +52,7 @@ public:
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type) const override;
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
+    bool GetSizeFromDrawCmdModifiers(int& width, int& height);
 
     sk_sp<SkSurface> skSurface_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;

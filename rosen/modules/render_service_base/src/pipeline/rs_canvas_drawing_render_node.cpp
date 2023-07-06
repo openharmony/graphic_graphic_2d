@@ -44,19 +44,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 {
     int width = 0;
     int height = 0;
-    auto it = drawCmdModifiers_.find(RSModifierType::CONTENT_STYLE);
-    if (it != drawCmdModifiers_.end() && !it->second.empty()) {
-        for (const auto& modifier : it->second) {
-            auto prop = modifier->GetProperty();
-            if (auto cmd = std::static_pointer_cast<RSRenderProperty<DrawCmdListPtr>>(prop)->Get()) {
-                width = std::max(width, cmd->GetWidth());
-                height = std::max(height, cmd->GetHeight());
-            }
-        }
-    }
-    if (width <= 0 || height <= 0) {
-        RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents: The width or height of the canvas is less than or "
-                "equal to 0");
+    if (!GetSizeFromDrawCmdModifiers(width, height)) {
         return;
     }
 
@@ -104,14 +92,16 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     RSModifierContext context = { GetMutableRenderProperties(), canvas_.get() };
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
 
+    SkMatrix mat;
+    if (RSPropertiesPainter::GetGravityMatrix(
+        GetRenderProperties().GetFrameGravity(), GetRenderProperties().GetFrameRect(), width, height, mat)) {
+        canvas.concat(mat);
+    }
     auto image = skSurface_->makeImageSnapshot();
-    auto srcRect = SkRect::MakeXYWH(0, 0, image->width(), image->height());
-    auto dstRect =
-        SkRect::MakeXYWH(0, 0, GetRenderProperties().GetFrameWidth(), GetRenderProperties().GetFrameHeight());
 #ifdef NEW_SKIA
-    canvas.drawImageRect(image, srcRect, dstRect, SkSamplingOptions(), nullptr, SkCanvas::kFast_SrcRectConstraint);
+    canvas.drawImage(image, 0.f, 0.f, SkSamplingOptions(), nullptr);
 #else
-    canvas.drawImageRect(image, srcRect, dstRect, nullptr, SkCanvas::kFast_SrcRectConstraint);
+    canvas.drawImage(image, 0.f, 0.f, nullptr);
 #endif
 }
 
@@ -133,6 +123,10 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
 #else
     skSurface_ = SkSurface::MakeRaster(info);
 #endif
+    if (!skSurface_) {
+        RS_LOGE("RSCanvasDrawingRenderNode::ResetSurface SkSurface is nullptr");
+        return false;
+    }
     canvas_ = std::make_unique<RSPaintFilterCanvas>(skSurface_.get());
     return skSurface_ != nullptr;
 }
@@ -144,9 +138,9 @@ void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context,
         return;
     }
     for (const auto& modifier : it->second) {
-        modifier->Apply(context);
         auto prop = modifier->GetProperty();
         auto cmd = std::static_pointer_cast<RSRenderProperty<DrawCmdListPtr>>(prop)->Get();
+        cmd->Playback(*context.canvas_);
         cmd->ClearOp();
     }
 }
@@ -164,6 +158,27 @@ bool RSCanvasDrawingRenderNode::GetBitmap(SkBitmap& bitmap)
     }
     if (!image->asLegacyBitmap(&bitmap)) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: asLegacyBitmap failed");
+        return false;
+    }
+    return true;
+}
+
+bool RSCanvasDrawingRenderNode::GetSizeFromDrawCmdModifiers(int& width, int& height)
+{
+    auto it = drawCmdModifiers_.find(RSModifierType::CONTENT_STYLE);
+    if (it == drawCmdModifiers_.end() || it->second.empty()) {
+        return false;
+    }
+    for (const auto& modifier : it->second) {
+        auto prop = modifier->GetProperty();
+        if (auto cmd = std::static_pointer_cast<RSRenderProperty<DrawCmdListPtr>>(prop)->Get()) {
+            width = std::max(width, cmd->GetWidth());
+            height = std::max(height, cmd->GetHeight());
+        }
+    }
+    if (width <= 0 || height <= 0) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetSizeFromDrawCmdModifiers: The width or height of the canvas is less "
+                "than or equal to 0");
         return false;
     }
     return true;

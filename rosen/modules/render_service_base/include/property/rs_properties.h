@@ -363,6 +363,7 @@ private:
     friend class RSCanvasRenderNode;
     friend class RSPropertiesPainter;
     friend class RSRenderNode;
+    friend class RSCanvasDrawingRenderNode;
 };
 } // namespace Rosen
 } // namespace OHOS
