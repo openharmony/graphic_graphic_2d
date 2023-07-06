@@ -35,6 +35,8 @@ public:
 
     ~RSDisplayNode() override;
 
+    void ClearChildren() override;
+
     static SharedPtr Create(const RSDisplayNodeConfig& displayNodeConfig);
 
     void SetScreenId(uint64_t screenId);
