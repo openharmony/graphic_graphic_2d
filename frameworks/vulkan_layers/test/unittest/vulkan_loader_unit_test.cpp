@@ -20,6 +20,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <sstream>
 
 #include "refbase.h"
 #include "surface.h"
@@ -43,12 +44,20 @@ public:
     uint32_t GetQueueFamilyIndex(VkQueueFlagBits queueFlags);
     OHNativeWindow* CreateNativeWindow(std::string name);
     VkSwapchainCreateInfoKHR GetSwapchainCreateInfo(VkFormat imageFormat, VkColorSpaceKHR imageColorSpace);
+    static VkBool32 UserCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+        VkDebugUtilsMessageTypeFlagsEXT messageType,
+        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+        void* pUserData);
 
     static inline void DLOpenLibVulkan();
     static inline void TrytoCreateVkInstance();
 
     static inline PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties;
+    static inline PFN_vkEnumerateDeviceExtensionProperties vkEnumerateDeviceExtensionProperties;
     static inline PFN_vkEnumerateInstanceLayerProperties vkEnumerateInstanceLayerProperties;
+    static inline PFN_vkEnumerateDeviceLayerProperties vkEnumerateDeviceLayerProperties;
+    static inline PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
+    static inline PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
     static inline PFN_vkCreateInstance vkCreateInstance;
     static inline PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
     static inline PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
@@ -86,6 +95,8 @@ public:
     static inline bool isSupportedVulkan_ = false;
     static inline std::vector<VkQueueFamilyProperties> queueProps_;
     static inline uint32_t queueCount_;
+    static inline VkDebugUtilsMessengerEXT debugUtilsMessenger = VK_NULL_HANDLE;
+    static inline std::stringstream debugMessage_;
 };
 
 void VulkanLoaderUnitTest::DLOpenLibVulkan()
@@ -114,7 +125,8 @@ void VulkanLoaderUnitTest::TrytoCreateVkInstance()
 
     std::vector<const char*> instanceExtensions = {
         VK_KHR_SURFACE_EXTENSION_NAME,
-        VK_OHOS_SURFACE_EXTENSION_NAME
+        VK_OHOS_SURFACE_EXTENSION_NAME,
+        VK_EXT_DEBUG_UTILS_EXTENSION_NAME
     };
 
     VkInstanceCreateInfo instanceCreateInfo = {};
@@ -199,6 +211,27 @@ uint32_t VulkanLoaderUnitTest::GetQueueFamilyIndex(VkQueueFlagBits queueFlags)
     return -1;
 }
 
+VkBool32 VulkanLoaderUnitTest::UserCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    void* pUserData)
+{
+    std::string prefix("");
+    if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+        prefix = "ERROR: ";
+    } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+        prefix = "WARN: ";
+    } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
+        prefix = "INFO: ";
+    } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
+        prefix = "DEBUG: ";
+    }
+    debugMessage_ << prefix << "[" << pCallbackData->messageIdNumber << "]["
+        << pCallbackData->pMessageIdName << "] : " << pCallbackData->pMessage;
+    return VK_FALSE;
+}
+
 void VulkanLoaderUnitTest::TearDownTestCase()
 {
     if (device_ != nullptr) {
@@ -234,6 +267,12 @@ HWTEST_F(VulkanLoaderUnitTest, LoadBaseFuncPtr, TestSize.Level1)
         vkEnumerateInstanceLayerProperties = reinterpret_cast<PFN_vkEnumerateInstanceLayerProperties>(
             dlsym(libVulkan_, "vkEnumerateInstanceLayerProperties"));
         EXPECT_NE(vkEnumerateInstanceLayerProperties, nullptr);
+        vkEnumerateDeviceExtensionProperties = reinterpret_cast<PFN_vkEnumerateDeviceExtensionProperties>(
+            dlsym(libVulkan_, "vkEnumerateDeviceExtensionProperties"));
+        EXPECT_NE(vkEnumerateDeviceExtensionProperties, nullptr);
+        vkEnumerateDeviceLayerProperties = reinterpret_cast<PFN_vkEnumerateDeviceLayerProperties>(
+            dlsym(libVulkan_, "vkEnumerateDeviceLayerProperties"));
+        EXPECT_NE(vkEnumerateDeviceLayerProperties, nullptr);
         vkCreateInstance = reinterpret_cast<PFN_vkCreateInstance>(dlsym(libVulkan_, "vkCreateInstance"));
         EXPECT_NE(vkCreateInstance, nullptr);
         vkGetInstanceProcAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(dlsym(libVulkan_, "vkGetInstanceProcAddr"));
@@ -258,7 +297,27 @@ HWTEST_F(VulkanLoaderUnitTest, vkEnumerateInstanceExtensionProperties_Test, Test
         EXPECT_EQ(err, VK_SUCCESS);
         if (extCount > 0) {
             std::vector<VkExtensionProperties> extensions(extCount);
-            err = vkEnumerateInstanceExtensionProperties(nullptr, &extCount, &extensions.front());
+            err = vkEnumerateInstanceExtensionProperties(nullptr, &extCount, extensions.data());
+            EXPECT_EQ(err, VK_SUCCESS);
+        }
+    }
+}
+
+/**
+ * @tc.name: test vkEnumerateInstanceLayerProperties
+ * @tc.desc: test vkEnumerateInstanceLayerProperties
+ * @tc.type: FUNC
+ * @tc.require: issueI6SKRO
+ */
+HWTEST_F(VulkanLoaderUnitTest, vkEnumerateInstanceLayerProperties_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        uint32_t propertyCount = 0;
+        VkResult err = vkEnumerateInstanceLayerProperties(&propertyCount, nullptr);
+        EXPECT_EQ(err, VK_SUCCESS);
+        if (propertyCount > 0) {
+            std::vector<VkLayerProperties> properties(propertyCount);
+            err = vkEnumerateInstanceLayerProperties(&propertyCount, properties.data());
             EXPECT_EQ(err, VK_SUCCESS);
         }
     }
@@ -273,8 +332,6 @@ HWTEST_F(VulkanLoaderUnitTest, vkEnumerateInstanceExtensionProperties_Test, Test
 HWTEST_F(VulkanLoaderUnitTest, LoadInstanceFuncPtr, TestSize.Level1)
 {
     if (isSupportedVulkan_) {
-        EXPECT_NE(instance_, nullptr);
-
         vkDestroyInstance = reinterpret_cast<PFN_vkDestroyInstance>(
             vkGetInstanceProcAddr(instance_, "vkDestroyInstance"));
         EXPECT_NE(vkDestroyInstance, nullptr);
@@ -317,6 +374,12 @@ HWTEST_F(VulkanLoaderUnitTest, LoadInstanceFuncPtr, TestSize.Level1)
         vkGetPhysicalDeviceSurfaceSupportKHR = reinterpret_cast<PFN_vkGetPhysicalDeviceSurfaceSupportKHR>(
             vkGetInstanceProcAddr(instance_, "vkGetPhysicalDeviceSurfaceSupportKHR"));
         EXPECT_NE(vkGetPhysicalDeviceSurfaceSupportKHR, nullptr);
+        vkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
+            vkGetInstanceProcAddr(instance_, "vkCreateDebugUtilsMessengerEXT"));
+        EXPECT_NE(vkCreateDebugUtilsMessengerEXT, nullptr);
+        vkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
+            vkGetInstanceProcAddr(instance_, "vkDestroyDebugUtilsMessengerEXT"));
+        EXPECT_NE(vkDestroyDebugUtilsMessengerEXT, nullptr);
     }
 }
 
@@ -347,6 +410,46 @@ HWTEST_F(VulkanLoaderUnitTest, vkEnumeratePhysicalDevices_Test, TestSize.Level1)
         vkGetPhysicalDeviceProperties(physicalDevice_, &deviceProperties);
         vkGetPhysicalDeviceFeatures(physicalDevice_, &deviceFeatures);
         vkGetPhysicalDeviceMemoryProperties(physicalDevice_, &deviceMemoryProperties);
+    }
+}
+
+/**
+ * @tc.name: test vkEnumerateDeviceExtensionProperties
+ * @tc.desc: test vkEnumerateDeviceExtensionProperties
+ * @tc.type: FUNC
+ * @tc.require: issueI6SKRO
+ */
+HWTEST_F(VulkanLoaderUnitTest, vkEnumerateDeviceExtensionProperties_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        uint32_t extCount = 0;
+        VkResult err = vkEnumerateDeviceExtensionProperties(physicalDevice_, nullptr, &extCount, nullptr);
+        EXPECT_EQ(err, VK_SUCCESS);
+        if (extCount > 0) {
+            std::vector<VkExtensionProperties> extensions(extCount);
+            err = vkEnumerateDeviceExtensionProperties(physicalDevice_, nullptr, &extCount, extensions.data());
+            EXPECT_EQ(err, VK_SUCCESS);
+        }
+    }
+}
+
+/**
+ * @tc.name: test vkEnumerateDeviceLayerProperties
+ * @tc.desc: test vkEnumerateDeviceLayerProperties
+ * @tc.type: FUNC
+ * @tc.require: issueI6SKRO
+ */
+HWTEST_F(VulkanLoaderUnitTest, vkEnumerateDeviceLayerProperties_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        uint32_t propertyCount = 0;
+        VkResult err = vkEnumerateDeviceLayerProperties(physicalDevice_, &propertyCount, nullptr);
+        EXPECT_EQ(err, VK_SUCCESS);
+        if (propertyCount > 0) {
+            std::vector<VkLayerProperties> properties(propertyCount);
+            err = vkEnumerateDeviceLayerProperties(physicalDevice_, &propertyCount, properties.data());
+            EXPECT_EQ(err, VK_SUCCESS);
+        }
     }
 }
 
@@ -704,6 +807,70 @@ HWTEST_F(VulkanLoaderUnitTest, fpCreateSwapchainKHR_Fail_Test, TestSize.Level1)
             fpDestroySwapchainKHR(device_, swapChainFail, nullptr);
             fpDestroySwapchainKHR(device_, swapChainFail2, nullptr);
         }
+    }
+}
+
+/**
+ * @tc.name: test vkCreateDebugUtilsMessengerEXT
+ * @tc.desc: test vkCreateDebugUtilsMessengerEXT
+ * @tc.type: FUNC
+ * @tc.require: issueI6SKRO
+ */
+HWTEST_F(VulkanLoaderUnitTest, vkCreateDebugUtilsMessengerEXT_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(vkCreateDebugUtilsMessengerEXT, nullptr);
+        EXPECT_NE(fpCreateSwapchainKHR, nullptr);
+        EXPECT_NE(instance_, nullptr);
+        EXPECT_NE(device_, nullptr);
+
+        VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                                     VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                                 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
+        createInfo.pfnUserCallback = UserCallback;
+        VkResult result = vkCreateDebugUtilsMessengerEXT(instance_, &createInfo, nullptr, &debugUtilsMessenger);
+        EXPECT_EQ(result, VK_SUCCESS);
+
+        debugMessage_.str("");
+        VkSwapchainCreateInfoKHR swapchainCI = GetSwapchainCreateInfo(VK_FORMAT_MAX_ENUM, surfaceFormat_.colorSpace);
+        VkSwapchainKHR swapChain = VK_NULL_HANDLE;
+        result = fpCreateSwapchainKHR(device_, &swapchainCI, nullptr, &swapChain);
+        EXPECT_EQ(result, VK_SUCCESS);
+        EXPECT_NE(swapChain, VK_NULL_HANDLE);
+        fpDestroySwapchainKHR(device_, swapChain, nullptr);
+
+        EXPECT_EQ((debugMessage_.str().find("unsupported swapchain format") != -1), true);
+    }
+}
+
+/**
+ * @tc.name: test vkDestroyDebugUtilsMessengerEXT
+ * @tc.desc: test vkDestroyDebugUtilsMessengerEXT
+ * @tc.type: FUNC
+ * @tc.require: issueI6SKRO
+ */
+HWTEST_F(VulkanLoaderUnitTest, vkDestroyDebugUtilsMessengerEXT_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(vkDestroyDebugUtilsMessengerEXT, nullptr);
+        EXPECT_NE(instance_, nullptr);
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(debugUtilsMessenger, VK_NULL_HANDLE);
+
+        vkDestroyDebugUtilsMessengerEXT(instance_, debugUtilsMessenger, nullptr);
+
+        debugMessage_.str("");
+        VkSwapchainCreateInfoKHR swapchainCI = GetSwapchainCreateInfo(VK_FORMAT_MAX_ENUM, surfaceFormat_.colorSpace);
+        VkSwapchainKHR swapChain = VK_NULL_HANDLE;
+        VkResult result = fpCreateSwapchainKHR(device_, &swapchainCI, nullptr, &swapChain);
+        EXPECT_EQ(result, VK_SUCCESS);
+        EXPECT_NE(swapChain, VK_NULL_HANDLE);
+        fpDestroySwapchainKHR(device_, swapChain, nullptr);
+
+        EXPECT_EQ((debugMessage_.str() == ""), true);
     }
 }
 
