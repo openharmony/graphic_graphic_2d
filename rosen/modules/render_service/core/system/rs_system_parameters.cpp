@@ -29,7 +29,7 @@ bool RSSystemParameters::GetCalcCostEnabled()
 
 bool RSSystemParameters::GetDrawingCacheEnabled()
 {
-    return std::atoi((system::GetParameter("rosen.drawingCache.enabled", "0")).c_str()) != 0;
+    return std::atoi((system::GetParameter("rosen.drawingCache.enabled", "1")).c_str()) != 0;
 }
 } // namespace Rosen
 } // namespace OHOS
