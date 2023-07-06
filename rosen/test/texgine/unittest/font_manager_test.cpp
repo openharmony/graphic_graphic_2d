@@ -33,11 +33,11 @@ class FontManagerTest : public testing::Test {};
 void ShowVisibilityFonts(std::vector<FontParser::FontDescriptor>& visibilityFonts)
 {
     for (auto& it : visibilityFonts) {
-        LOGSO_FUNC_LINE(INFO) << "\n fontFamily: " << it.fontFamily << "\n fontSubfamily: " << it.fontSubfamily
-                              << "\n fullName: " << it.fullName << "\n italic: " << it.italic
-                              << "\n monoSpace: " << it.monoSpace << "\n path: " << it.path
-                              << "\n postScriptName: " << it.postScriptName << "\n symbolic: " << it.symbolic
-                              << "\n weight: " << it.weight << "\n width: " << it.width;
+        LOGSO_FUNC_LINE(INFO) << "\n fontFamily: " << it.fontFamily << "\n fontSubfamily: " << it.fontSubfamily <<
+            "\n fullName: " << it.fullName << "\n italic: " << it.italic <<
+            "\n monoSpace: " << it.monoSpace << "\n path: " << it.path <<
+            "\n postScriptName: " << it.postScriptName << "\n symbolic: " << it.symbolic <<
+            "\n weight: " << it.weight << "\n width: " << it.width;
     }
 }
 
@@ -50,14 +50,14 @@ void FindFontPsn(std::vector<FontParser::FontDescriptor>& visibilityFonts)
     ASSERT_NE(fontFindPn, nullptr);
 
     if (fontFindPn != nullptr) {
-        LOGSO_FUNC_LINE(INFO) << "\n postScriptName = [ postScriptName: " << fontDescriptorPn.postScriptName << " ]"
-                              << "\n [ FontDescriptor: path: " << fontFindPn->path
-                              << "\n postScriptName: " << fontFindPn->postScriptName
-                              << "\n fullName: " << fontFindPn->fullName << "\n fontFamily: " << fontFindPn->fontFamily
-                              << "\n fontSubfamily: " << fontFindPn->fontSubfamily
-                              << "\n weight: " << fontFindPn->weight << "\n width: " << fontFindPn->width
-                              << "\n italic: " << fontFindPn->italic << "\n monoSpace: " << fontFindPn->monoSpace
-                              << "\n symbolic: " << fontFindPn->symbolic << " ]";
+        LOGSO_FUNC_LINE(INFO) << "\n postScriptName = [ postScriptName: " << fontDescriptorPn.postScriptName << " ]" <<
+            "\n [ FontDescriptor: path: " << fontFindPn->path <<
+            "\n postScriptName: " << fontFindPn->postScriptName <<
+            "\n fullName: " << fontFindPn->fullName << "\n fontFamily: " << fontFindPn->fontFamily <<
+            "\n fontSubfamily: " << fontFindPn->fontSubfamily <<
+            "\n weight: " << fontFindPn->weight << "\n width: " << fontFindPn->width <<
+            "\n italic: " << fontFindPn->italic << "\n monoSpace: " << fontFindPn->monoSpace <<
+            "\n symbolic: " << fontFindPn->symbolic << " ]";
     }
 }
 
@@ -70,14 +70,14 @@ void FindFontFn(std::vector<FontParser::FontDescriptor>& visibilityFonts)
     ASSERT_NE(fontFindFn, nullptr);
 
     if (fontFindFn != nullptr) {
-        LOGSO_FUNC_LINE(INFO) << "\n fullName = [ fullName: " << fontDescriptorFn.fullName << " ]"
-                              << "\n [ FontDescriptor: path: " << fontFindFn->path
-                              << "\n postScriptName: " << fontFindFn->postScriptName
-                              << "\n fullName: " << fontFindFn->fullName << "\n fontFamily: " << fontFindFn->fontFamily
-                              << "\n fontSubfamily: " << fontFindFn->fontSubfamily
-                              << "\n weight: " << fontFindFn->weight << "\n width: " << fontFindFn->width
-                              << "\n italic: " << fontFindFn->italic << "\n monoSpace: " << fontFindFn->monoSpace
-                              << "\n symbolic: " << fontFindFn->symbolic << " ]";
+        LOGSO_FUNC_LINE(INFO) << "\n fullName = [ fullName: " << fontDescriptorFn.fullName << " ]" <<
+            "\n [ FontDescriptor: path: " << fontFindFn->path <<
+            "\n postScriptName: " << fontFindFn->postScriptName <<
+            "\n fullName: " << fontFindFn->fullName << "\n fontFamily: " << fontFindFn->fontFamily <<
+            "\n fontSubfamily: " << fontFindFn->fontSubfamily <<
+            "\n weight: " << fontFindFn->weight << "\n width: " << fontFindFn->width <<
+            "\n italic: " << fontFindFn->italic << "\n monoSpace: " << fontFindFn->monoSpace <<
+            "\n symbolic: " << fontFindFn->symbolic << " ]";
     }
 }
 
@@ -91,16 +91,16 @@ void FindFontFsy(std::vector<FontParser::FontDescriptor>& visibilityFonts)
     ASSERT_NE(fontFindFsy, nullptr);
 
     if (fontFindFsy != nullptr) {
-        LOGSO_FUNC_LINE(INFO) << "\n fontFamily + fontSubfamily = [ fontFamily: " << fontDescriptorFsy.fontFamily
-                              << "\n fontSubfamily: " << fontDescriptorFsy.fontSubfamily << " ]"
-                              << "\n [ FontDescriptor: path: " << fontFindFsy->path
-                              << "\n postScriptName: " << fontFindFsy->postScriptName
-                              << "\n fullName: " << fontFindFsy->fullName
-                              << "\n fontFamily: " << fontFindFsy->fontFamily
-                              << "\n fontSubfamily: " << fontFindFsy->fontSubfamily
-                              << "\n weight: " << fontFindFsy->weight << "\n width: " << fontFindFsy->width
-                              << "\n italic: " << fontFindFsy->italic << "\n monoSpace: " << fontFindFsy->monoSpace
-                              << "\n symbolic: " << fontFindFsy->symbolic << " ]";
+        LOGSO_FUNC_LINE(INFO) << "\n fontFamily + fontSubfamily = [ fontFamily: " << fontDescriptorFsy.fontFamily <<
+            "\n fontSubfamily: " << fontDescriptorFsy.fontSubfamily << " ]" <<
+            "\n [ FontDescriptor: path: " << fontFindFsy->path <<
+            "\n postScriptName: " << fontFindFsy->postScriptName <<
+            "\n fullName: " << fontFindFsy->fullName <<
+            "\n fontFamily: " << fontFindFsy->fontFamily <<
+            "\n fontSubfamily: " << fontFindFsy->fontSubfamily <<
+            "\n weight: " << fontFindFsy->weight << "\n width: " << fontFindFsy->width <<
+            "\n italic: " << fontFindFsy->italic << "\n monoSpace: " << fontFindFsy->monoSpace <<
+            "\n symbolic: " << fontFindFsy->symbolic << " ]";
     }
 }
 
@@ -114,16 +114,16 @@ void FindFontFni(std::vector<FontParser::FontDescriptor>& visibilityFonts)
     ASSERT_NE(fontFindFni, nullptr);
 
     if (fontFindFni != nullptr) {
-        LOGSO_FUNC_LINE(INFO) << "\n fontFamily + italic = [ fontFamily: " << fontDescriptorFni.fontFamily
-                              << "\n italic: " << fontDescriptorFni.italic << " ]"
-                              << "\n [ FontDescriptor: path: " << fontFindFni->path
-                              << "\n postScriptName: " << fontFindFni->postScriptName
-                              << "\n fullName: " << fontFindFni->fullName
-                              << "\n fontFamily: " << fontFindFni->fontFamily
-                              << "\n fontSubfamily: " << fontFindFni->fontSubfamily
-                              << "\n weight: " << fontFindFni->weight << "\n width: " << fontFindFni->width
-                              << "\n italic: " << fontFindFni->italic << "\n monoSpace: " << fontFindFni->monoSpace
-                              << "\n symbolic: " << fontFindFni->symbolic << " ]";
+        LOGSO_FUNC_LINE(INFO) << "\n fontFamily + italic = [ fontFamily: " << fontDescriptorFni.fontFamily <<
+            "\n italic: " << fontDescriptorFni.italic << " ]" <<
+            "\n [ FontDescriptor: path: " << fontFindFni->path <<
+            "\n postScriptName: " << fontFindFni->postScriptName <<
+            "\n fullName: " << fontFindFni->fullName <<
+            "\n fontFamily: " << fontFindFni->fontFamily <<
+            "\n fontSubfamily: " << fontFindFni->fontSubfamily <<
+            "\n weight: " << fontFindFni->weight << "\n width: " << fontFindFni->width <<
+            "\n italic: " << fontFindFni->italic << "\n monoSpace: " << fontFindFni->monoSpace <<
+            "\n symbolic: " << fontFindFni->symbolic << " ]";
     }
 }
 
@@ -137,16 +137,16 @@ void FindFontFnw(std::vector<FontParser::FontDescriptor>& visibilityFonts)
     ASSERT_NE(fontFindFnw, nullptr);
 
     if (fontFindFnw != nullptr) {
-        LOGSO_FUNC_LINE(INFO) << "\n fontFamily + weight = [ fontFamily: " << fontDescriptorFnw.fontFamily
-                              << "\n weight: " << fontDescriptorFnw.weight << " ]"
-                              << "\n [ FontDescriptor: path: " << fontFindFnw->path
-                              << "\n postScriptName: " << fontFindFnw->postScriptName
-                              << "\n fullName: " << fontFindFnw->fullName
-                              << "\n fontFamily: " << fontFindFnw->fontFamily
-                              << "\n fontSubfamily: " << fontFindFnw->fontSubfamily
-                              << "\n weight: " << fontFindFnw->weight << "\n width: " << fontFindFnw->width
-                              << "\n italic: " << fontFindFnw->italic << "\n monoSpace: " << fontFindFnw->monoSpace
-                              << "\n symbolic: " << fontFindFnw->symbolic << " ]";
+        LOGSO_FUNC_LINE(INFO) << "\n fontFamily + weight = [ fontFamily: " << fontDescriptorFnw.fontFamily <<
+            "\n weight: " << fontDescriptorFnw.weight << " ]" <<
+            "\n [ FontDescriptor: path: " << fontFindFnw->path <<
+            "\n postScriptName: " << fontFindFnw->postScriptName <<
+            "\n fullName: " << fontFindFnw->fullName <<
+            "\n fontFamily: " << fontFindFnw->fontFamily <<
+            "\n fontSubfamily: " << fontFindFnw->fontSubfamily <<
+            "\n weight: " << fontFindFnw->weight << "\n width: " << fontFindFnw->width <<
+            "\n italic: " << fontFindFnw->italic << "\n monoSpace: " << fontFindFnw->monoSpace <<
+            "\n symbolic: " << fontFindFnw->symbolic << " ]";
     }
 }
 
@@ -161,17 +161,17 @@ void FindFontFfw(std::vector<FontParser::FontDescriptor>& visibilityFonts)
     ASSERT_NE(fontFindFfw, nullptr);
 
     if (fontFindFfw != nullptr) {
-        LOGSO_FUNC_LINE(INFO) << "\n fontFamily + fontSubfamily + weight = [ fontFamily: "
-                              << fontDescriptorFfw.fontFamily << "\n fontSubfamily: " << fontDescriptorFfw.fontSubfamily
-                              << "\n weight: " << fontDescriptorFfw.weight << " ]"
-                              << "\n [ FontDescriptor: path: " << fontFindFfw->path
-                              << "\n postScriptName: " << fontFindFfw->postScriptName
-                              << "\n fullName: " << fontFindFfw->fullName
-                              << "\n fontFamily: " << fontFindFfw->fontFamily
-                              << "\n fontSubfamily: " << fontFindFfw->fontSubfamily
-                              << "\n weight: " << fontFindFfw->weight << "\n width: " << fontFindFfw->width
-                              << "\n italic: " << fontFindFfw->italic << "\n monoSpace: " << fontFindFfw->monoSpace
-                              << "\n symbolic: " << fontFindFfw->symbolic << " ]";
+        LOGSO_FUNC_LINE(INFO) << "\n fontFamily + fontSubfamily + weight = [ fontFamily: " <<
+            fontDescriptorFfw.fontFamily << "\n fontSubfamily: " << fontDescriptorFfw.fontSubfamily <<
+            "\n weight: " << fontDescriptorFfw.weight << " ]" <<
+            "\n [ FontDescriptor: path: " << fontFindFfw->path <<
+            "\n postScriptName: " << fontFindFfw->postScriptName <<
+            "\n fullName: " << fontFindFfw->fullName <<
+            "\n fontFamily: " << fontFindFfw->fontFamily <<
+            "\n fontSubfamily: " << fontFindFfw->fontSubfamily <<
+            "\n weight: " << fontFindFfw->weight << "\n width: " << fontFindFfw->width <<
+            "\n italic: " << fontFindFfw->italic << "\n monoSpace: " << fontFindFfw->monoSpace <<
+            "\n symbolic: " << fontFindFfw->symbolic << " ]";
     }
 }
 
@@ -186,18 +186,18 @@ void FindFontFfwc(std::vector<FontParser::FontDescriptor>& visibilityFonts)
     ASSERT_NE(fontFindFfwc, nullptr);
 
     if (fontFindFfwc != nullptr) {
-        LOGSO_FUNC_LINE(INFO) << "\n fontFamily + fontSubfamily + weight = [ fontFamily: "
-                              << fontDescriptorFfwc.fontFamily
-                              << "\n fontSubfamily: " << fontDescriptorFfwc.fontSubfamily
-                              << "\n weight: " << fontDescriptorFfwc.weight << " ]"
-                              << "\n [ FontDescriptor: path: " << fontFindFfwc->path
-                              << "\n postScriptName: " << fontFindFfwc->postScriptName
-                              << "\n fullName: " << fontFindFfwc->fullName
-                              << "\n fontFamily: " << fontFindFfwc->fontFamily
-                              << "\n fontSubfamily: " << fontFindFfwc->fontSubfamily
-                              << "\n weight: " << fontFindFfwc->weight << "\n width: " << fontFindFfwc->width
-                              << "\n italic: " << fontFindFfwc->italic << "\n monoSpace: " << fontFindFfwc->monoSpace
-                              << "\n symbolic: " << fontFindFfwc->symbolic << " ]";
+        LOGSO_FUNC_LINE(INFO) << "\n fontFamily + fontSubfamily + weight = [ fontFamily: " <<
+            fontDescriptorFfwc.fontFamily <<
+            "\n fontSubfamily: " << fontDescriptorFfwc.fontSubfamily <<
+            "\n weight: " << fontDescriptorFfwc.weight << " ]" <<
+            "\n [ FontDescriptor: path: " << fontFindFfwc->path <<
+            "\n postScriptName: " << fontFindFfwc->postScriptName <<
+            "\n fullName: " << fontFindFfwc->fullName <<
+            "\n fontFamily: " << fontFindFfwc->fontFamily <<
+            "\n fontSubfamily: " << fontFindFfwc->fontSubfamily <<
+            "\n weight: " << fontFindFfwc->weight << "\n width: " << fontFindFfwc->width <<
+            "\n italic: " << fontFindFfwc->italic << "\n monoSpace: " << fontFindFfwc->monoSpace <<
+            "\n symbolic: " << fontFindFfwc->symbolic << " ]";
     }
 }
 
@@ -213,19 +213,19 @@ void FindFontFfiw(std::vector<FontParser::FontDescriptor>& visibilityFonts)
     ASSERT_NE(fontFindFfiw, nullptr);
 
     if (fontFindFfiw != nullptr) {
-        LOGSO_FUNC_LINE(INFO) << "\n fontFamily + fontSubfamily + italic + weight = [ fontFamily: "
-                              << fontDescriptorFfiw.fontFamily
-                              << "\n fontSubfamily: " << fontDescriptorFfiw.fontSubfamily
-                              << "\n italic: " << fontDescriptorFfiw.italic
-                              << "\n weight: " << fontDescriptorFfiw.weight << " ]"
-                              << "\n [ FontDescriptor: path: " << fontFindFfiw->path
-                              << "\n postScriptName: " << fontFindFfiw->postScriptName
-                              << "\n fullName: " << fontFindFfiw->fullName
-                              << "\n fontFamily: " << fontFindFfiw->fontFamily
-                              << "\n fontSubfamily: " << fontFindFfiw->fontSubfamily
-                              << "\n weight: " << fontFindFfiw->weight << "\n width: " << fontFindFfiw->width
-                              << "\n italic: " << fontFindFfiw->italic << "\n monoSpace: " << fontFindFfiw->monoSpace
-                              << "\n symbolic: " << fontFindFfiw->symbolic << " ]";
+        LOGSO_FUNC_LINE(INFO) << "\n fontFamily + fontSubfamily + italic + weight = [ fontFamily: " <<
+            fontDescriptorFfiw.fontFamily <<
+            "\n fontSubfamily: " << fontDescriptorFfiw.fontSubfamily <<
+            "\n italic: " << fontDescriptorFfiw.italic <<
+            "\n weight: " << fontDescriptorFfiw.weight << " ]" <<
+            "\n [ FontDescriptor: path: " << fontFindFfiw->path <<
+            "\n postScriptName: " << fontFindFfiw->postScriptName <<
+            "\n fullName: " << fontFindFfiw->fullName <<
+            "\n fontFamily: " << fontFindFfiw->fontFamily <<
+            "\n fontSubfamily: " << fontFindFfiw->fontSubfamily <<
+            "\n weight: " << fontFindFfiw->weight << "\n width: " << fontFindFfiw->width <<
+            "\n italic: " << fontFindFfiw->italic << "\n monoSpace: " << fontFindFfiw->monoSpace <<
+            "\n symbolic: " << fontFindFfiw->symbolic << " ]";
     }
 }
 
