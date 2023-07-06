@@ -200,6 +200,8 @@ private:
      */
     RectI UpdateHardwareEnableList(std::vector<RectI>& filterRects,
         std::vector<SurfaceDirtyMgrPair>& validHwcNodes);
+    void MergeDirtyRectIfNeed(std::shared_ptr<RSSurfaceRenderNode> appNode,
+        std::shared_ptr<RSSurfaceRenderNode> hwcNode);
     void AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDisplayRenderNode>& node) const;
 
     // set global dirty region to each surface node

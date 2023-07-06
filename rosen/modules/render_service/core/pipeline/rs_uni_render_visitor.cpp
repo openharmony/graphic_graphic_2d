@@ -2164,6 +2164,16 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
     }
 }
 
+void RSUniRenderVisitor::MergeDirtyRectIfNeed(std::shared_ptr<RSSurfaceRenderNode> appNode,
+    std::shared_ptr<RSSurfaceRenderNode> hwcNode)
+{
+    if ((hwcNode->IsLastFrameHardwareEnabled() || hwcNode->IsCurrentFrameBufferConsumed()) &&
+        appNode && appNode->GetDirtyManager()) {
+        appNode->GetDirtyManager()->MergeDirtyRect(hwcNode->GetDstRect());
+        dirtySurfaceNodeMap_.emplace(appNode->GetId(), appNode);
+    }
+}
+
 RectI RSUniRenderVisitor::UpdateHardwareEnableList(std::vector<RectI>& filterRects,
     std::vector<SurfaceDirtyMgrPair>& validHwcNodes)
 {
@@ -2187,11 +2197,7 @@ RectI RSUniRenderVisitor::UpdateHardwareEnableList(std::vector<RectI>& filterRec
         if (isIntersected) {
             childNode->SetHardwareForcedDisabledStateByFilter(true);
             auto node = iter->second;
-            if ((childNode->IsLastFrameHardwareEnabled() || childNode->IsCurrentFrameBufferConsumed()) &&
-                node && node->GetDirtyManager()) {
-                node->GetDirtyManager()->MergeDirtyRect(childDirtyRect);
-                dirtySurfaceNodeMap_.emplace(node->GetId(), node);
-            }
+            MergeDirtyRectIfNeed(iter->second, childNode);
             iter = validHwcNodes.erase(iter);
             iter--;
         }
@@ -2236,6 +2242,20 @@ void RSUniRenderVisitor::UpdateHardwareNodeStatusBasedOnFilter(std::shared_ptr<R
         RectI globalTransDirty = UpdateHardwareEnableList(filterRects, prevHwcEnabledNodes);
         displayDirtyManager->MergeDirtyRect(globalTransDirty);
         dirtyManager->MergeDirtyRect(globalTransDirty);
+    }
+    // erase from curHwcEnabledNodes if app node has no container window and its hwc node intersects with hwc below
+    if (!node->HasContainerWindow() && !curHwcEnabledNodes.empty() && !prevHwcEnabledNodes.empty()) {
+        for (auto iter = curHwcEnabledNodes.begin(); iter != curHwcEnabledNodes.end(); ++iter) {
+            for (auto& prevNode : prevHwcEnabledNodes) {
+                if (!iter->first->GetDstRect().IntersectRect(prevNode.first->GetDstRect()).IsEmpty()) {
+                    iter->first->SetHardwareForcedDisabledStateByFilter(true);
+                    MergeDirtyRectIfNeed(iter->second, iter->first);
+                    iter = curHwcEnabledNodes.erase(iter);
+                    iter--;
+                    break;
+                }
+            }
+        }
     }
     if (!curHwcEnabledNodes.empty()) {
         prevHwcEnabledNodes.insert(prevHwcEnabledNodes.end(), curHwcEnabledNodes.begin(), curHwcEnabledNodes.end());
