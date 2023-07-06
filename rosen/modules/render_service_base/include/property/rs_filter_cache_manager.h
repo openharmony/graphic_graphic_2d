@@ -33,8 +33,11 @@ class RSSkiaFilter;
 class RSFilterCacheManager {
 public:
     RSFilterCacheManager() = default;
-    ~RSFilterCacheManager() = default;
     RSFilterCacheManager(const RSFilterCacheManager&) = delete;
+    RSFilterCacheManager(const RSFilterCacheManager&&) = delete;
+    RSFilterCacheManager& operator=(const RSFilterCacheManager&) = delete;
+    RSFilterCacheManager& operator=(const RSFilterCacheManager&&) = delete;
+    ~RSFilterCacheManager() = default;
 
     bool IsCacheValid() const
     {

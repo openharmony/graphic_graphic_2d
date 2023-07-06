@@ -36,7 +36,9 @@ class RSB_EXPORT RSAnimationManager {
 public:
     RSAnimationManager() = default;
     RSAnimationManager(const RSAnimationManager&) = delete;
+    RSAnimationManager(const RSAnimationManager&&) = delete;
     RSAnimationManager& operator=(const RSAnimationManager&) = delete;
+    RSAnimationManager& operator=(const RSAnimationManager&&) = delete;
     ~RSAnimationManager() = default;
 
     void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);

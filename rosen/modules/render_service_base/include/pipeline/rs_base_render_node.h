@@ -41,6 +41,10 @@ public:
     explicit RSBaseRenderNode(NodeId id, std::weak_ptr<RSContext> context = {}) : id_(id), context_(context) {};
     explicit RSBaseRenderNode(NodeId id, bool isOnTheTree = false, std::weak_ptr<RSContext> context = {}) : id_(id),
         isOnTheTree_(isOnTheTree), context_(context) {};
+    RSBaseRenderNode(const RSBaseRenderNode&) = delete;
+    RSBaseRenderNode(const RSBaseRenderNode&&) = delete;
+    RSBaseRenderNode& operator=(const RSBaseRenderNode&) = delete;
+    RSBaseRenderNode& operator=(const RSBaseRenderNode&&) = delete;
     virtual ~RSBaseRenderNode() = default;
 
     void AddChild(SharedPtr child, int index = -1);

@@ -33,7 +33,9 @@ class RSB_EXPORT RSFilter : public std::enable_shared_from_this<RSFilter> {
 public:
     virtual ~RSFilter();
     RSFilter(const RSFilter&) = delete;
-    RSFilter operator=(const RSFilter&) = delete;
+    RSFilter(const RSFilter&&) = delete;
+    RSFilter& operator=(const RSFilter&) = delete;
+    RSFilter& operator=(const RSFilter&&) = delete;
     virtual std::string GetDescription();
     static std::shared_ptr<RSFilter> CreateBlurFilter(float blurRadiusX, float blurRadiusY);
     static std::shared_ptr<RSFilter> CreateMaterialFilter(

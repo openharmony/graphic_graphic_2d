@@ -32,6 +32,10 @@ class RSB_EXPORT RSRenderPropertyBase : public std::enable_shared_from_this<RSRe
 public:
     RSRenderPropertyBase() = default;
     RSRenderPropertyBase(const PropertyId& id) : id_(id) {}
+    RSRenderPropertyBase(const RSRenderPropertyBase&) = delete;
+    RSRenderPropertyBase(const RSRenderPropertyBase&&) = delete;
+    RSRenderPropertyBase& operator=(const RSRenderPropertyBase&) = delete;
+    RSRenderPropertyBase& operator=(const RSRenderPropertyBase&&) = delete;
     virtual ~RSRenderPropertyBase() = default;
 
     PropertyId GetId() const

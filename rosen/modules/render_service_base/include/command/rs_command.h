@@ -49,7 +49,13 @@ enum RSCommandType : uint16_t {
 // Especially, don't use enum class type directly, convert it to int
 class RSCommand : public Parcelable {
 public:
-    virtual ~RSCommand() noexcept = default;
+    RSCommand() = default;
+    RSCommand(const RSCommand&) = delete;
+    RSCommand(const RSCommand&&) = delete;
+    RSCommand& operator=(const RSCommand&) = delete;
+    RSCommand& operator=(const RSCommand&&) = delete;
+    ~RSCommand() noexcept override = default;
+
     virtual void Process(RSContext& context) = 0;
 
     virtual uint16_t GetType() const

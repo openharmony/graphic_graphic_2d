@@ -46,6 +46,10 @@ class RSRenderNode;
 class RSB_EXPORT RSProperties final {
 public:
     RSProperties();
+    RSProperties(const RSProperties&) = delete;
+    RSProperties(const RSProperties&&) = delete;
+    RSProperties& operator=(const RSProperties&) = delete;
+    RSProperties& operator=(const RSProperties&&) = delete;
     virtual ~RSProperties();
 
     // geometry properties

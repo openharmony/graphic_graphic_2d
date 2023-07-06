@@ -54,6 +54,10 @@ struct RSModifierContext {
 class RSB_EXPORT RSRenderModifier {
 public:
     RSRenderModifier() = default;
+    RSRenderModifier(const RSRenderModifier&) = delete;
+    RSRenderModifier(const RSRenderModifier&&) = delete;
+    RSRenderModifier& operator=(const RSRenderModifier&) = delete;
+    RSRenderModifier& operator=(const RSRenderModifier&&) = delete;
     virtual ~RSRenderModifier() = default;
 
     virtual void Apply(RSModifierContext& context) const = 0;

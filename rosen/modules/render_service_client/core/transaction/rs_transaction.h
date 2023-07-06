@@ -30,7 +30,11 @@ namespace Rosen {
 class RSC_EXPORT RSTransaction : public Parcelable {
 public:
     RSTransaction() = default;
-    ~RSTransaction() = default;
+    RSTransaction(const RSTransaction&) = delete;
+    RSTransaction(const RSTransaction&&) = delete;
+    RSTransaction& operator=(const RSTransaction&) = delete;
+    RSTransaction& operator=(const RSTransaction&&) = delete;
+    ~RSTransaction() override = default;
 
     static RSTransaction* Unmarshalling(Parcel& parcel);
     bool Marshalling(Parcel& parcel) const override;
