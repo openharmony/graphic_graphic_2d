@@ -225,10 +225,13 @@ private:
      */
     bool CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& node);
     void PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRenderNode& node);
+    void PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRenderNode& node);
     // judge if node's cache changes
     void UpdateCacheChangeStatus(RSBaseRenderNode& node);
     // set node cacheable animation after checking whold child tree
     void SetNodeCacheChangeStatus(RSBaseRenderNode& node, int markedCachedNodeCnt);
+    // update rendernode's cache status and collect valid cache rect
+    void UpdateForegroundFilterCacheWithDirty(RSRenderNode& node);
 
     bool IsHardwareComposerEnabled();
 
@@ -313,6 +316,7 @@ private:
     bool isDrawingCacheEnabled_ = false;
     bool isDrawingCacheChanged_ = false;
     int markedCachedNodes_ = 0;
+    std::vector<RectI> accumulatedDirtyRegions_ = {};
 
     bool needFilter_ = false;
     GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;

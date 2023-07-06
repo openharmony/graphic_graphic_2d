@@ -47,6 +47,45 @@ void RSDirtyRegionManager::MergeDirtyRectAfterMergeHistory(const RectI& rect)
     }
 }
 
+void RSDirtyRegionManager::UpdateVisitedDirtyRects(const std::vector<RectI>& rects)
+{
+    if (rects.empty()) {
+        visitedDirtyRegions_.clear();
+        return;
+    }
+    visitedDirtyRegions_ = rects;
+}
+
+RectI RSDirtyRegionManager::GetIntersectedVisitedDirtyRect(const RectI& absRect) const
+{
+    RectI belowDirty = currentFrameDirtyRegion_;
+    for (auto subDirty : visitedDirtyRegions_) {
+        if (absRect.IsInsideOf(belowDirty)) {
+            return belowDirty;
+        }
+        belowDirty = belowDirty.JoinRect(subDirty.IntersectRect(absRect));
+    }
+    return belowDirty;
+}
+
+void RSDirtyRegionManager::UpdateCacheableFilterRect(const RectI& rect)
+{
+    if (rect.IsEmpty()) {
+        return;
+    }
+    cacheableFilterRects_.emplace_back(rect);
+}
+
+bool RSDirtyRegionManager::IfCacheableFilterRectFullyCover(const RectI& targetRect)
+{
+    for (auto rect : cacheableFilterRects_) {
+        if (targetRect.IsInsideOf(rect)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void RSDirtyRegionManager::IntersectDirtyRect(const RectI& rect)
 {
     currentFrameDirtyRegion_ = currentFrameDirtyRegion_.IntersectRect(rect);
@@ -118,6 +157,8 @@ void RSDirtyRegionManager::Clear()
 {
     dirtyRegion_.Clear();
     currentFrameDirtyRegion_.Clear();
+    visitedDirtyRegions_.clear();
+    cacheableFilterRects_.clear();
     dirtyCanvasNodeInfo_.clear();
     dirtyCanvasNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
     dirtySurfaceNodeInfo_.clear();

@@ -754,6 +754,40 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();
 }
 
+void RSSurfaceRenderNode::UpdateFilterNodes(const std::shared_ptr<RSRenderNode>& nodePtr)
+{
+    if (nodePtr == nullptr) {
+        return;
+    }
+    filterNodes_.emplace_back(nodePtr);
+}
+
+void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic()
+{
+    if (!dirtyManager_) {
+        return;
+    }
+#ifndef USE_ROSEN_DRAWING
+    // traversal filternodes including app window
+    for (auto node : filterNodes_) {
+        if (!node) {
+            continue;
+        }
+        node->UpdateFilterCacheWithDirty(*dirtyManager_, false);
+        node->UpdateFilterCacheWithDirty(*dirtyManager_, true);
+        node->UpdateFilterCacheManagerWithCacheRegion();
+        // collect valid filternodes for occlusion optimization
+        if (node->IsFilterCacheValid()) {
+            dirtyManager_->UpdateCacheableFilterRect(node->GetOldDirtyInSurface());
+        }
+    }
+    if (IsTransparent() && dirtyManager_->IfCacheableFilterRectFullyCover(GetOldDirtyInSurface())) {
+        SetFilterCacheFullyCovered(true);
+        RS_LOGD("UpdateFilterCacheStatusIfNodeStatic surfacenode %" PRIu64 " [%s]", GetId(), GetName().c_str());
+    }
+#endif
+}
+
 Vector4f RSSurfaceRenderNode::GetWindowCornerRadius()
 {
     if (!GetRenderProperties().GetCornerRadius().IsZero()) {

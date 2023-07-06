@@ -68,6 +68,13 @@ public:
     void ClipDirtyRectWithinSurface();
     // clear allinfo except dirtyregion history
     void Clear();
+    
+    // update current frame's visited dirtyregion
+    void UpdateVisitedDirtyRects(const std::vector<RectI>& rects);
+    RectI GetIntersectedVisitedDirtyRect(const RectI& absRect) const;
+    void UpdateCacheableFilterRect(const RectI& rect);
+    bool IfCacheableFilterRectFullyCover(const RectI& targetRect);
+
     // return current frame dirtyregion, can be changed in prepare and process (displaynode) stage
     const RectI& GetCurrentFrameDirtyRegion();
     // return merged historical region
@@ -140,6 +147,8 @@ private:
     RectI surfaceRect_;             // dirtyregion clipbounds
     RectI dirtyRegion_;             // dirtyregion after merge history
     RectI currentFrameDirtyRegion_; // dirtyRegion in current frame
+    std::vector<RectI> visitedDirtyRegions_ = {};  // visited app's dirtyRegion
+    std::vector<RectI> cacheableFilterRects_ = {};  // node's region if filter cachable
 
     // added for dfx
     std::vector<std::map<NodeId, RectI>> dirtyCanvasNodeInfo_;

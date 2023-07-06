@@ -670,6 +670,24 @@ public:
         return cacheProcessStatus_;
     }
 
+    bool GetFilterCacheFullyCovered() const
+    {
+        return isFilterCacheFullyCovered_;
+    }
+
+    void SetFilterCacheFullyCovered(bool val)
+    {
+        isFilterCacheFullyCovered_ = val;
+    }
+
+    void ResetFilterNodes()
+    {
+        filterNodes_.clear();
+    }
+    void UpdateFilterNodes(const std::shared_ptr<RSRenderNode>& nodePtr);
+    // update static node's back&front-ground filter cache status
+    void UpdateFilterCacheStatusIfNodeStatic();
+
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
     bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;
@@ -762,6 +780,8 @@ private:
     Occlusion::Region transparentRegion_;
 
     Occlusion::Region containerRegion_;
+    bool isFilterCacheFullyCovered_ = false;
+    std::vector<std::shared_ptr<RSRenderNode>> filterNodes_ = {};  // valid filter nodes within, including itself
 
     /*
         ContainerWindow configs acquired from arkui, including container window state, screen density, container border

@@ -463,6 +463,8 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
     curSurfaceDirtyManager_ = node.GetDirtyManager();
     if (curSurfaceDirtyManager_) {
         curSurfaceDirtyManager_->Clear();
+        curSurfaceDirtyManager_->UpdateVisitedDirtyRects(accumulatedDirtyRegions_);
+        node.UpdateFilterCacheStatusIfNodeStatic();
     }
     // static surface keeps same position
     curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), curDisplayNode_->GetLastFrameSurfacePos(node.GetId()));
@@ -579,6 +581,8 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRe
     // reset leash window's dirtyManager pointer to avoid curSurfaceDirtyManager mis-pointing
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+        node.SetFilterCacheFullyCovered(false);
+        node.ResetFilterNodes();
         curSurfaceDirtyManager_ = node.GetDirtyManager();
         if (curSurfaceDirtyManager_ == nullptr) {
             RS_LOGE("RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate %s has no SurfaceDirtyManager",
@@ -586,6 +590,7 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRe
             return;
         }
         curSurfaceDirtyManager_->Clear();
+        curSurfaceDirtyManager_->UpdateVisitedDirtyRects(accumulatedDirtyRegions_);
         curSurfaceDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
         if (isTargetDirtyRegionDfxEnabled_ && CheckIfSurfaceTargetedForDFX(node.GetName())) {
             curSurfaceDirtyManager_->MarkAsTargetForDfx();
@@ -612,6 +617,63 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRe
             node.SetContentDirty();
         }
     }
+}
+
+void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRenderNode& node)
+{
+    if (!curSurfaceDirtyManager_) {
+        return;
+    }
+    const auto& properties = node.GetRenderProperties();
+    if (properties.NeedFilter()) {
+        UpdateForegroundFilterCacheWithDirty(node);
+        if (auto parentNode = node.GetParent().lock()) {
+            parentNode->SetChildHasFilter(true);
+        }
+        if (curSurfaceNode_) {
+            curSurfaceNode_->UpdateFilterNodes(node.ReinterpretCastTo<RSRenderNode>());
+        }
+    }
+    if (node.IsAppWindow()) {
+        bool hasFilter = node.IsTransparent()
+            && (properties.NeedFilter() || !node.GetChildrenNeedFilterRects().empty());
+        bool hasHardwareNode = !node.GetChildHardwareEnabledNodes().empty();
+        bool hasAbilityComponent = !node.GetAbilityNodeIds().empty();
+        auto rsParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());
+        if (rsParent && rsParent->IsLeashWindow()) {
+            rsParent->SetHasFilter(hasFilter);
+            rsParent->SetHasHardwareNode(hasHardwareNode);
+            rsParent->SetHasAbilityComponent(hasAbilityComponent);
+        } else {
+            node.SetHasFilter(hasFilter);
+            node.SetHasHardwareNode(hasHardwareNode);
+            node.SetHasAbilityComponent(hasAbilityComponent);
+        }
+#ifndef USE_ROSEN_DRAWING
+        if (hasFilter && curSurfaceDirtyManager_->IfCacheableFilterRectFullyCover(node.GetOldDirtyInSurface())) {
+            node.SetFilterCacheFullyCovered(true);
+            RS_LOGD("SetFilterCacheFullyCovered surfacenode %" PRIu64 " [%s]", node.GetId(), node.GetName().c_str());
+        }
+#endif
+        RS_TRACE_NAME(node.GetName() + " PreparedNodes: " + std::to_string(preparedCanvasNodeInCurrentSurface_));
+        preparedCanvasNodeInCurrentSurface_ = 0;
+    }
+    // accumulate all visited dirty rects including leash window's shadow dirty
+    if ((node.IsMainWindowType() || node.IsLeashWindow()) && curSurfaceDirtyManager_->IsCurrentFrameDirty()) {
+        accumulatedDirtyRegions_.emplace_back(curSurfaceDirtyManager_->GetCurrentFrameDirtyRegion());
+    }
+}
+
+void RSUniRenderVisitor::UpdateForegroundFilterCacheWithDirty(RSRenderNode& node)
+{
+#ifndef USE_ROSEN_DRAWING
+    node.UpdateFilterCacheWithDirty(*curSurfaceDirtyManager_, true);
+    node.UpdateFilterCacheManagerWithCacheRegion();
+    // record node's rect if it has valid filter cache
+    if (node.IsFilterCacheValid()) {
+        curSurfaceDirtyManager_->UpdateCacheableFilterRect(node.GetOldDirtyInSurface());
+    }
+#endif
 }
 
 void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
@@ -789,34 +851,10 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     dirtyFlag_ = dirtyFlag;
     isQuickSkipPreparationEnabled_ = isQuickSkipPreparationEnabled;
     prepareClipRect_ = prepareClipRect;
+
+    PrepareTypesOfSurfaceRenderNodeAfterUpdate(node);
     if (node.GetDstRectChanged() || (node.GetDirtyManager() && node.GetDirtyManager()->IsCurrentFrameDirty())) {
         dirtySurfaceNodeMap_.emplace(node.GetId(), node.ReinterpretCastTo<RSSurfaceRenderNode>());
-    }
-    if (node.IsAppWindow()) {
-        bool hasFilter = node.IsTransparent()
-            && (node.GetRenderProperties().NeedFilter() || !node.GetChildrenNeedFilterRects().empty());
-        bool hasHardwareNode = !node.GetChildHardwareEnabledNodes().empty();
-        bool hasAbilityComponent = !node.GetAbilityNodeIds().empty();
-        auto rsParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());
-        if (rsParent && rsParent->IsLeashWindow()) {
-            rsParent->SetHasFilter(hasFilter);
-            rsParent->SetHasHardwareNode(hasHardwareNode);
-            rsParent->SetHasAbilityComponent(hasAbilityComponent);
-        } else {
-            node.SetHasFilter(hasFilter);
-            node.SetHasHardwareNode(hasHardwareNode);
-            node.SetHasAbilityComponent(hasAbilityComponent);
-        }
-        RS_TRACE_NAME(node.GetName() + " PreparedNodes: " + std::to_string(preparedCanvasNodeInCurrentSurface_));
-        preparedCanvasNodeInCurrentSurface_ = 0;
-#ifndef USE_ROSEN_DRAWING
-        if (hasFilter) {
-            node.UpdateFilterCacheManagerWithCacheRegion();
-        }
-#endif
-    }
-    if (parentNode != nullptr && node.GetRenderProperties().NeedFilter()) {
-        parentNode->SetChildHasFilter(true);
     }
     if (isUIFirst_ && node.IsLeashWindow()) {
         auto matrix = geoPtr->GetAbsMatrix();
@@ -1067,16 +1105,15 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         if (auto directParent = node.GetParent().lock()) {
             directParent->SetChildHasFilter(true);
         }
-        if (curSurfaceDirtyManager_ && curSurfaceDirtyManager_->IsTargetForDfx()) {
+        if (curSurfaceDirtyManager_->IsTargetForDfx()) {
             curSurfaceDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::CANVAS_NODE,
                 DirtyRegionType::FILTER_RECT, node.GetOldDirtyInSurface());
         }
         if (curSurfaceNode_) {
             curSurfaceNode_->UpdateChildrenFilterRects(node.GetOldDirtyInSurface());
+            curSurfaceNode_->UpdateFilterNodes(node.ReinterpretCastTo<RSRenderNode>());
         }
-#ifndef USE_ROSEN_DRAWING
-        node.UpdateFilterCacheManagerWithCacheRegion();
-#endif
+        UpdateForegroundFilterCacheWithDirty(node);
     }
     curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
@@ -1115,10 +1152,8 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     PrepareBaseRenderNode(node);
     node.UpdateParentChildrenRect(logicParentNode_.lock());
     node.SetEffectRegion(effectRegion_);
+    UpdateForegroundFilterCacheWithDirty(node);
 
-#ifndef USE_ROSEN_DRAWING
-    node.UpdateFilterCacheManagerWithCacheRegion();
-#endif
     effectRegion_ = effectRegion;
     curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;

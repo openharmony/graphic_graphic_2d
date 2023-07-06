@@ -125,17 +125,7 @@ bool RSRenderNode::Update(
     // 'dirty region of all the nodes drawn before this node', and foreground filter cache manager should use 'dirty
     // region of all the nodes drawn before this node, this node, and the children of this node'
     // 2. Filter must be valid when filter cache manager is valid, we make sure that in RSRenderNode::ApplyModifiers().
-
-    // background filter
-    if (auto& manager = renderProperties_.GetFilterCacheManager(false)) {
-        // empty implementation, invalidate filter cache on every update
-        manager->UpdateCacheStateWithDirtyRegion({ 0, 0, INT_MAX, INT_MAX });
-    }
-    // foreground filter
-    if (auto& manager = renderProperties_.GetFilterCacheManager(true)) {
-        // empty implementation, invalidate filter cache on every update
-        manager->UpdateCacheStateWithDirtyRegion({ 0, 0, INT_MAX, INT_MAX });
-    }
+    UpdateFilterCacheWithDirty(dirtyManager, false);
 #endif
 
     UpdateDirtyRegion(dirtyManager, dirty, clipRect);
@@ -252,6 +242,34 @@ void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSBaseRenderNode> pa
             renderParent->UpdateChildrenOutOfRectFlag(true);
         }
     }
+}
+
+bool RSRenderNode::IsFilterCacheValid() const
+{
+#ifndef USE_ROSEN_DRAWING
+    // background filter
+    auto& bgManager = renderProperties_.GetFilterCacheManager(false);
+    // foreground filter
+    auto& frManager = renderProperties_.GetFilterCacheManager(true);
+    if ((bgManager && bgManager->IsCacheValid()) || (frManager && frManager->IsCacheValid())) {
+        return true;
+    }
+#endif
+    return false;
+}
+
+void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) const
+{
+    auto& properties = GetRenderProperties();
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
+    if (!geoPtr) {
+        return;
+    }
+#ifndef USE_ROSEN_DRAWING
+    if (auto& manager = renderProperties_.GetFilterCacheManager(isForeground)) {
+        manager->UpdateCacheStateWithDirtyRegion(dirtyManager.GetIntersectedVisitedDirtyRect(geoPtr->GetAbsRect()));
+    }
+#endif
 }
 
 void RSRenderNode::RenderTraceDebug() const
@@ -439,6 +457,9 @@ void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::Path>& region) cons
     }
     auto& effectPath = region.value();
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+    if (!geoPtr) {
+        return;
+    }
 
 #ifndef USE_ROSEN_DRAWING
     SkPath clipPath;
@@ -799,6 +820,9 @@ RectI RSRenderNode::GetFilterRect() const
 {
     auto& properties = GetRenderProperties();
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
+    if (!geoPtr) {
+        return RectI();
+    }
     if (properties.GetClipBounds() != nullptr) {
 #ifndef USE_ROSEN_DRAWING
         auto filterRect = properties.GetClipBounds()->GetSkiaPath().getBounds();

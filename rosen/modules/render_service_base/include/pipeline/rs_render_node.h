@@ -414,6 +414,9 @@ public:
 #else
     void UpdateEffectRegion(std::optional<Drawing::Path>& region) const;
 #endif
+    // check node's rect if it has valid filter cache
+    bool IsFilterCacheValid() const;
+    void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground=true) const;
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
     bool IsForcedDrawInGroup() const;
