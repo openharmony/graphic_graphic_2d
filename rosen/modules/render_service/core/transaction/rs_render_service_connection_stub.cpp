@@ -221,12 +221,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
 
             ScreenId mirrorId = data.ReadUint64();
             int32_t flags = data.ReadInt32();
-
-            if (surface == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                break;
-            }
-
             ScreenId id = CreateVirtualScreen(name, width, height, surface, mirrorId, flags);
             reply.WriteUint64(id);
             break;
