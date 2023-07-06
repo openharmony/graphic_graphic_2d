@@ -114,6 +114,12 @@ BufferHandle *CloneBufferHandle(const BufferHandle *handle)
             return nullptr;
         }
     }
+
+    if (handle->reserveInts == 0) {
+        UTILS_LOGD("There is no reserved integer value in old handle, no need to copy");
+        return newHandle;
+    }
+
     if (memcpy_s(&newHandle->reserve[newHandle->reserveFds], sizeof(int32_t) * newHandle->reserveInts,
         &handle->reserve[handle->reserveFds], sizeof(int32_t) * handle->reserveInts) != EOK) {
         UTILS_LOGE("CloneBufferHandle memcpy_s failed");

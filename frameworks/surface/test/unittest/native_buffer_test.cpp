@@ -240,6 +240,8 @@ HWTEST_F(NativeBufferTest, OHNativeBufferGetBufferHandle001, Function | MediumTe
     BufferHandle* cloneHandle = CloneBufferHandle(nullptr);
     ASSERT_EQ(cloneHandle, nullptr);
     cloneHandle = CloneBufferHandle(handle);
+    ASSERT_NE(cloneHandle, nullptr);
+    ASSERT_NE(handle, nullptr);
     ASSERT_EQ(cloneHandle->width, handle->width);
 }
 

@@ -240,7 +240,7 @@ HWTEST_F(HdiOutputSysTest, ReleaseFramebuffer002, Function | MediumTest| Level1)
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->ReleaseFramebuffer(releaseFence), 0);
 
     // last frame buffer is not nullptr
-    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->ReleaseFramebuffer(releaseFence), 0);
+    ASSERT_EQ(HdiOutputSysTest::hdiOutput_->ReleaseFramebuffer(releaseFence), GRAPHIC_DISPLAY_NULL_PTR);
 }
 
 /*
