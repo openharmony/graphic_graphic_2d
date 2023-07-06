@@ -240,4 +240,19 @@ HWTEST_F(RSUniRenderUtilTest, ClearNodeCacheSurface, Function | SmallTest | Leve
     RSUniRenderUtil::ClearNodeCacheSurface(node->GetCacheSurface(),
         node->GetCompletedCacheSurface(0, true), threadIndex);
 }
+
+/*
+ * @tc.name: HandleCaptureNode
+ * @tc.desc: Test RSUniRenderUtil::HandleCaptureNode api
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, HandleCaptureNode, Function | SmallTest | Level2)
+{
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    RSUniRenderUtil::HandleCaptureNode(*surfaceNode, canvas);
+}
 } // namespace OHOS::Rosen

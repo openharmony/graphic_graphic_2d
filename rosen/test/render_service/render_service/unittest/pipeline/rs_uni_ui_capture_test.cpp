@@ -120,4 +120,20 @@ HWTEST_F(RSUniUiCaptureTest, ProcessSurfaceRenderNodeTest, TestSize.Level1)
     RSSurfaceRenderNode node(nodeId, context);
     rsUniUICaptureVisitor.ProcessSurfaceRenderNode(node);
 }
+
+/**
+ * @tc.name: ProcessEffectRenderNode001
+ * @tc.desc: Test RSUniUiCapture.ProcessEffectRenderNode api
+ * @tc.type:
+ * @tc.require:
+ */
+HWTEST_F(RSUniUiCaptureTest, ProcessEffectRenderNode001, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSEffectRenderNode node(id);
+    float scaleX = 0.0;
+    float scaleY = 0.0;
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(id, scaleX, scaleY);
+    rsUniUICaptureVisitor.ProcessEffectRenderNode(node);
+}
 } // namespace OHOS::Rosen

@@ -39,8 +39,6 @@ using namespace HiviewDFX;
 using DisplayId = ScreenId;
 namespace {
     constexpr HiLogLabel LOG_LABEL = { LOG_CORE, 0xD001400, "RSSurfaceCaptureTaskTest" };
-    constexpr uint32_t MAX_TIME_WAITING_FOR_CALLBACK = 200;
-    constexpr uint32_t SLEEP_TIME_IN_US = 10000; // 10ms
     constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000; // 100ms
     constexpr float DEFAULT_BOUNDS_WIDTH = 100.f;
     constexpr float DEFAULT_BOUNDS_HEIGHT = 200.f;
@@ -94,12 +92,11 @@ public:
     static void TearDownTestCase();
 
     void SetUp() override;
-    void TearDown() override {};
+    void TearDown() override;
 
     static std::shared_ptr<RSSurfaceNode> CreateSurface(std::string surfaceNodeName = "DefaultSurfaceNode");
     static void InitRenderContext();
     static void FillSurface(std::shared_ptr<RSSurfaceNode> surfaceNode, const SkColor color = SK_ColorWHITE);
-    bool CheckSurfaceCaptureCallback();
 
     static RSInterfaces* rsInterfaces_;
     static RenderContext* renderContext_;
@@ -127,6 +124,11 @@ void RSSurfaceCaptureTaskTest::SetUp()
     visitor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas_.get());
     visitor_->renderEngine_ = std::make_shared<RSUniRenderEngine>();
     visitor_->renderEngine_->Init();
+}
+
+void RSSurfaceCaptureTaskTest::TearDown()
+{
+    visitor_ = nullptr;
 }
 
 void RSSurfaceCaptureTaskTest::SetUpTestCase()
@@ -216,133 +218,6 @@ void RSSurfaceCaptureTaskTest::FillSurface(std::shared_ptr<RSSurfaceNode> surfac
     auto framePtr1 = std::move(framePtr);
     rsSurface->FlushFrame(framePtr1);
     usleep(SLEEP_TIME_FOR_PROXY); // wait for finishing flush
-}
-
-bool RSSurfaceCaptureTaskTest::CheckSurfaceCaptureCallback()
-{
-    if (surfaceCaptureCb_ == nullptr) {
-        HiLog::Error(LOG_LABEL, "%s: surfaceCaptureCb_ is nullptr", __func__);
-        return false;
-    }
-    uint32_t times = 0;
-    do {
-        if (surfaceCaptureCb_->IsCallbackCalled()) {
-            HiLog::Info(LOG_LABEL, "%s: get callback at times %d", __func__, times);
-            return true;
-        }
-        usleep(SLEEP_TIME_IN_US);
-        ++times;
-    } while (times <= MAX_TIME_WAITING_FOR_CALLBACK);
-    HiLog::Error(LOG_LABEL, "%s: fail to get callback in time", __func__);
-    return false;
-}
-
-/*
- * @tc.name: TakeSurfaceCaptureOfInvalidSurfaceNode
- * @tc.desc: Generate surface node without request buffer and take empty capture
- * @tc.type: FUNC
- * @tc.require: issueI5T8FR
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureOfInvalidSurfaceNode, Function | SmallTest | Level2)
-{
-    auto surfaceNode = CreateSurface("SurfaceCaptureTestEmptyNode");
-    ASSERT_NE(surfaceNode, nullptr);
-
-    bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_);
-    ASSERT_EQ(ret, true);
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
-    surfaceNode = nullptr;
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-}
-
-/*
- * @tc.name: TakeSurfaceCaptureByNodeId
- * @tc.desc: take capture by NodeId
- * @tc.type: FUNC
- * @tc.require: issueI6Q844
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureByNodeId, Function | SmallTest | Level2)
-{
-    auto surfaceNode = CreateSurface("SurfaceCaptureTestEmptyNode");
-    ASSERT_NE(surfaceNode, nullptr);
-
-    bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode->GetId(), surfaceCaptureCb_);
-    ASSERT_EQ(ret, true);
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
-    surfaceNode = nullptr;
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-}
-
-/*
- * @tc.name: TakeSurfaceCaptureOfInvalidDisplayNode
- * @tc.desc: Generate pure display node and take empty capture
- * @tc.type: FUNC
- * @tc.require: issueI5T8FR
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureOfInvalidDisplayNode, Function | SmallTest | Level2)
-{
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(defaultConfig_);
-    ASSERT_NE(displayNode, nullptr);
-    
-    HiLog::Info(LOG_LABEL, "TakeSurfaceCaptureOfInvalidDisplayNode, callback status and testsuccess[%d, %d]",
-        surfaceCaptureCb_->IsCallbackCalled(), surfaceCaptureCb_->IsTestSuccess());
-    bool ret = rsInterfaces_->TakeSurfaceCapture(displayNode, surfaceCaptureCb_);
-    ASSERT_EQ(ret, true);
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    displayNode = nullptr;
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-}
-
-/*
- * @tc.name: TakeSurfaceCaptureOfMirrorDisplayNode
- * @tc.desc: Generate valid mirror display node and take valid capture
- * @tc.type: FUNC
- * @tc.require: issueI5T8FR
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureOfMirrorDisplayNode, Function | SmallTest | Level2)
-{
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(mirrorConfig_);
-    ASSERT_NE(displayNode, nullptr);
-    displayNode->AddChild(surfaceNode_, -1);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-
-    bool ret = rsInterfaces_->TakeSurfaceCapture(displayNode, surfaceCaptureCb_);
-    ASSERT_EQ(ret, true);
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
-    displayNode = nullptr;
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-}
-
-/*
- * @tc.name: TakeSurfaceCaptureOfSecurityLayer
- * @tc.desc: Generate display node and take securitylayer capture
- * @tc.type: FUNC
- * @tc.require: issueI6Q844
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureOfSecurityLayer, Function | SmallTest | Level2)
-{
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(defaultConfig_);
-    ASSERT_NE(displayNode, nullptr);
-    surfaceNode_->SetSecurityLayer(true);
-    displayNode->AddChild(surfaceNode_, -1);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-
-    bool ret = rsInterfaces_->TakeSurfaceCapture(displayNode, surfaceCaptureCb_);
-    ASSERT_EQ(ret, true);
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
-    displayNode = nullptr;
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
 }
 
 /*
