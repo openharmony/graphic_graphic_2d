@@ -71,7 +71,7 @@ RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mo
     hash_ = SkOpts::hash(&colorMode_, sizeof(colorMode_), hash_);
     hash_ = SkOpts::hash(&ratio, sizeof(ratio), hash_);
 #ifndef USE_ROSEN_DRAWING
-    useKawase = RSSystemProperties::GetKawaseEnabled();
+    useKawase_ = RSSystemProperties::GetKawaseEnabled();
 #endif
 }
 
@@ -91,7 +91,7 @@ RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE 
     hash_ = SkOpts::hash(&materialParam, sizeof(materialParam), hash_);
     hash_ = SkOpts::hash(&colorMode_, sizeof(colorMode_), hash_);
 #ifndef USE_ROSEN_DRAWING
-    useKawase = RSSystemProperties::GetKawaseEnabled();
+    useKawase_ = RSSystemProperties::GetKawaseEnabled();
 #endif
 }
 
@@ -328,17 +328,18 @@ bool RSMaterialFilter::IsNearZero(float threshold) const
 void RSMaterialFilter::DrawImageRect(
     SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst) const
 {
-    if (!useKawase) {
-        auto paint = GetPaint();
+    auto paint = GetPaint();
 #ifdef NEW_SKIA
+    int radius = static_cast<int>(radius_);
+    if (useKawase_ && radius != 0) {
+        KawaseBlur kawase;
+        kawase.ApplyKawaseBlur(canvas, image, src, dst, radius);
+    } else {
         canvas.drawImageRect(image.get(), src, dst, SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
-#else
-        canvas.drawImageRect(image.get(), src, dst, &paint);
-#endif
-        return;
     }
-    KawaseBlur kawase;
-    kawase.ApplyKawaseBlur(canvas, image, src, dst, static_cast<int>(radius_));
+#else
+    canvas.drawImageRect(image.get(), src, dst, &paint);
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

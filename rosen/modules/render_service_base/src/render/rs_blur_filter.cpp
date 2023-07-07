@@ -44,7 +44,7 @@ RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(S
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&blurRadiusX, sizeof(blurRadiusX), hash_);
     hash_ = SkOpts::hash(&blurRadiusY, sizeof(blurRadiusY), hash_);
-    useKawase = RSSystemProperties::GetKawaseEnabled();
+    useKawase_ = RSSystemProperties::GetKawaseEnabled();
 }
 #else
 RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(SkBlurImageFilter::Make(blurRadiusX,
@@ -56,8 +56,6 @@ RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(S
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&blurRadiusX, sizeof(blurRadiusX), hash_);
     hash_ = SkOpts::hash(&blurRadiusY, sizeof(blurRadiusY), hash_);
-
-    useKawase = RSSystemProperties::GetKawaseEnabled();
 }
 #endif
 #else
@@ -165,17 +163,18 @@ bool RSBlurFilter::IsNearZero(float threshold) const
 void RSBlurFilter::DrawImageRect(
     SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst) const
 {
-    if (!useKawase) {
-        auto paint = GetPaint();
+    auto paint = GetPaint();
 #ifdef NEW_SKIA
+    int radius = static_cast<int>(blurRadiusX_);
+    if (useKawase_ && radius != 0) {
+        KawaseBlur kawase;
+        kawase.ApplyKawaseBlur(canvas, image, src, dst, radius);
+    } else {
         canvas.drawImageRect(image.get(), src, dst, SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
-#else
-        canvas.drawImageRect(image.get(), src, dst, &paint);
-#endif
-        return;
     }
-    KawaseBlur kawase;
-    kawase.ApplyKawaseBlur(canvas, image, src, dst, static_cast<int>(blurRadiusX_));
+#else
+    canvas.drawImageRect(image.get(), src, dst, &paint);
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

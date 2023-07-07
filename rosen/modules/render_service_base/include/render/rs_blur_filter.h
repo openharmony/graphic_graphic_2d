@@ -55,7 +55,7 @@ public:
 private:
     float blurRadiusX_;
     float blurRadiusY_;
-    bool useKawase = false;
+    bool useKawase_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

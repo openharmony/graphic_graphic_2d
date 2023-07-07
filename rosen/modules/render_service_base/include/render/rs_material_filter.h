@@ -112,7 +112,7 @@ private:
 #endif
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
 
-    bool useKawase = false;
+    bool useKawase_ = false;
     friend class RSMarshallingHelper;
 };
 } // namespace Rosen
