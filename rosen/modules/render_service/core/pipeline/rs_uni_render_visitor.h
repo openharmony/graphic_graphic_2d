@@ -396,6 +396,7 @@ private:
     bool needCacheImg_ = false;
     uint32_t captureWindowZorder_ = 0;
     std::optional<SkPath> effectRegion_ = std::nullopt;
+    bool curDirty_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -220,6 +220,7 @@ void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 
     for (auto& child : children) {
         if (PrepareSharedTransitionNode(*child)) {
+            curDirty_ = child->IsDirty();
             child->Prepare(shared_from_this());
         }
     }
@@ -250,7 +251,7 @@ void RSUniRenderVisitor::UpdateCacheChangeStatus(RSBaseRenderNode& node)
             static_cast<int>(isDrawingCacheChanged_));
     } else {
         // Any child node dirty causes cache change
-        isDrawingCacheChanged_ = isDrawingCacheChanged_ || targetNode->IsDirty();
+        isDrawingCacheChanged_ = isDrawingCacheChanged_ || curDirty_;
     }
 }
 
