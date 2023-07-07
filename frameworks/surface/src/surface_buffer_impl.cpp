@@ -123,6 +123,12 @@ static const std::map<uint64_t, uint64_t> bufferUsageConvertMap = {
     {BUFFER_USAGE_VENDOR_PRI19,                HBM_USE_VENDOR_PRI19},
 };
 
+sptr<SurfaceBuffer> SurfaceBuffer::Create()
+{
+    sptr<SurfaceBuffer> surfaceBufferImpl = new SurfaceBufferImpl();
+    return surfaceBufferImpl;
+}
+
 void SurfaceBufferImpl::DisplayBufferDeathCallback(void* data)
 {
     std::lock_guard<std::mutex> lock(g_DisplayBufferMutex);

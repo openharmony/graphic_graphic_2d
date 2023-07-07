@@ -89,6 +89,8 @@ public:
 
     virtual OH_NativeBuffer* SurfaceBufferToNativeBuffer() = 0;
 
+    static sptr<SurfaceBuffer> Create();
+
 protected:
     SurfaceBuffer(){}
     SurfaceBuffer(const SurfaceBuffer&) = delete;
