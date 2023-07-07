@@ -25,6 +25,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "property/rs_property_trace.h"
@@ -38,6 +39,8 @@ const std::set<RSModifierType> GROUPABLE_ANIMATION_TYPE = {
     RSModifierType::SCALE,
 };
 }
+
+bool RSRenderNode::isUniRender_ = RSUniRenderJudgement::IsUniRender();
 
 RSRenderNode::RSRenderNode(NodeId id, std::weak_ptr<RSContext> context) : RSBaseRenderNode(id, context) {}
 
@@ -383,7 +386,7 @@ void RSRenderNode::ApplyModifiers()
     dirtyTypes_.clear();
 
 #ifndef USE_ROSEN_DRAWING
-    if (!RSSystemProperties::GetFilterCacheEnabled()) {
+    if (!isUniRender_ || !RSSystemProperties::GetFilterCacheEnabled()) {
         return;
     }
     if (auto& filter = renderProperties_.GetBackgroundFilter()) {
