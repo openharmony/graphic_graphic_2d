@@ -386,9 +386,11 @@ void RSRenderNode::ApplyModifiers()
     dirtyTypes_.clear();
 
 #ifndef USE_ROSEN_DRAWING
+    // Disable filter cache if either uni-render is disabled or filter cache is disabled by property.
     if (!isUniRender_ || !RSSystemProperties::GetFilterCacheEnabled()) {
         return;
     }
+    // Create or release filter cache manager on demand, update cache state with filter hash.
     if (auto& filter = renderProperties_.GetBackgroundFilter()) {
         auto& cacheManager = renderProperties_.backgroundFilterCacheManager_;
         if (cacheManager == nullptr) {
@@ -398,7 +400,6 @@ void RSRenderNode::ApplyModifiers()
     } else {
         renderProperties_.backgroundFilterCacheManager_.reset();
     }
-
     if (auto& filter = renderProperties_.GetFilter()) {
         auto& cacheManager = renderProperties_.filterCacheManager_;
         if (cacheManager == nullptr) {
@@ -809,6 +810,7 @@ RectI RSRenderNode::GetFilterRect() const
 
 void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion() const
 {
+#ifndef USE_ROSEN_DRAWING
     // background filter
     if (auto& manager = renderProperties_.backgroundFilterCacheManager_) {
         manager->UpdateCacheStateWithFilterRegion(GetFilterRect());
@@ -817,6 +819,16 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion() const
     if (auto& manager = renderProperties_.filterCacheManager_) {
         manager->UpdateCacheStateWithFilterRegion(GetFilterRect());
     }
+#endif
+}
+
+void RSRenderNode::OnTreeStateChanged()
+{
+#ifndef USE_ROSEN_DRAWING
+    // clear filter cache on tree state changed
+    renderProperties_.backgroundFilterCacheManager_.reset();
+    renderProperties_.filterCacheManager_.reset();
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

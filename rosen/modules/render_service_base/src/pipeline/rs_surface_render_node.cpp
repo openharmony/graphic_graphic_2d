@@ -243,6 +243,7 @@ void RSSurfaceRenderNode::ClearChildrenCache(const std::shared_ptr<RSBaseRenderN
 void RSSurfaceRenderNode::OnTreeStateChanged()
 {
 #ifdef RS_ENABLE_GL
+    RSRenderNode::OnTreeStateChanged();
     if (grContext_ && !IsOnTheTree() && IsLeashWindow()) {
         RS_TRACE_NAME_FMT("purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
             GetId(), GetName().c_str());

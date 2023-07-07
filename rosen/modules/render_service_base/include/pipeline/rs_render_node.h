@@ -429,6 +429,7 @@ protected:
     bool isShadowValidLastFrame_ = false;
 
     virtual RectI GetFilterRect() const;
+    void OnTreeStateChanged() override;
 
 private:
     void FallbackAnimationsToRoot();

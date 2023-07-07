@@ -117,6 +117,7 @@ void RSProxyRenderNode::ResetContextVariableCache()
 
 void RSProxyRenderNode::OnTreeStateChanged()
 {
+    RSRenderNode::OnTreeStateChanged();
     if (IsOnTheTree()) {
         // new added to tree
         SetContentDirty();

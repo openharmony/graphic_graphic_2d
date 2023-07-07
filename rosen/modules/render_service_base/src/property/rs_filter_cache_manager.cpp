@@ -68,21 +68,22 @@ void RSFilterCacheManager::UpdateCacheStateWithDirtyRegion(const RectI& dirtyReg
     // Use the dirty region to determine if the cache is valid.
     auto SkDirtyRegion =
         SkIRect::MakeLTRB(dirtyRegion.GetLeft(), dirtyRegion.GetTop(), dirtyRegion.GetRight(), dirtyRegion.GetBottom());
-    if (!SkDirtyRegion.intersect(blurRegion_)) {
-        // The underlying image is not affected by the dirty region, cache is valid.
+    // The underlying image is not affected by the dirty region, cache is valid.
+    if (SkDirtyRegion.isEmpty() || !SkDirtyRegion.intersect(blurRegion_)) {
         return;
     }
 
-    // Update the cache age, and determine if the cache should be invalidated.
-    --cacheUpdateInterval_;
+    // The underlying image is affected by the dirty region, determine if the cache should be invalidated by cache  age.
+    // [PLANNING]: also take into account the filter radius / cache size / percentage of intersected area.
     if (cacheUpdateInterval_ >= 0) {
         ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Delaying cache invalidation for %d frames.",
-            cacheUpdateInterval_ + 1);
-        return;
+            cacheUpdateInterval_);
+    } else {
+        ROSEN_LOGD(
+            "RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Cache expired. Reason: Dirty region intersects "
+            "with cached region.");
+        InvalidateCache();
     }
-    ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Cache expired. Reason: Dirty region intersects "
-               "with cached region.");
-    InvalidateCache();
 }
 
 void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter)
@@ -107,6 +108,11 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
         return;
     }
 
+    // Update the cache age, this will ensure that an old cache will be invalidated immediately when intersecting with
+    // dirty region.
+    if (cacheUpdateInterval_ >= 0) {
+        --cacheUpdateInterval_;
+    }
     if (cacheType_ == CacheType::CACHE_TYPE_BLURRED_SNAPSHOT) {
         // We are caching a blurred snapshot, draw the cached blurred image directly.
         ClipVisibleRect(canvas);
@@ -202,8 +208,15 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     blurRegion_ = clipIBounds;
     cachedFilterHash_ = filter->Hash();
     cachedImageRegion_ = clipIPadding;
-    cacheUpdateInterval_ = RSSystemProperties::GetFilterCacheUpdateInterval();
     frameSinceLastBlurChange_ = 0;
+
+    // If the cached image is larger than threshold, we will increase the cache update interval, which is configurable
+    // by `hdc shell param set persist.sys.graphic.filterCacheUpdateInterval <value>`, the default value is 1.
+    // [PLANNING]: dynamically adjust the cache update interval according to the cache size / cache size percentage /
+    // frame rate / filter radius.
+    cacheUpdateInterval_ = (cachedImageRegion_.width() > 100 && cachedImageRegion_.height() > 100) // 100: size threshold
+        ? RSSystemProperties::GetFilterCacheUpdateInterval()
+        : 0;
 }
 
 void RSFilterCacheManager::GenerateBlurredSnapshot(
@@ -217,8 +230,8 @@ void RSFilterCacheManager::GenerateBlurredSnapshot(
     // them again.
     RS_TRACE_FUNC();
 
-    // Create an offscreen surface with the same size as the blur region.
-    sk_sp<SkSurface> offscreenSurface = surface->makeSurface(blurRegion_.width(), blurRegion_.height());
+    // Create an offscreen canvas with the same size as the blur region.
+    auto offscreenSurface = surface->makeSurface(blurRegion_.width(), blurRegion_.height());
     RSPaintFilterCanvas offscreenCanvas(offscreenSurface.get());
 
     // Align the offscreen canvas coordinate system to the blur region.

@@ -45,7 +45,7 @@ public:
     RSRenderAnimation(const RSRenderAnimation&&) = delete;
     RSRenderAnimation& operator=(const RSRenderAnimation&) = delete;
     RSRenderAnimation& operator=(const RSRenderAnimation&&) = delete;
-     ~RSRenderAnimation() override = default;
+    ~RSRenderAnimation() override = default;
     AnimationId GetAnimationId() const;
     void Start();
     void Finish();
