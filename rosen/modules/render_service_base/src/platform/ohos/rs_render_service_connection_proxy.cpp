@@ -155,6 +155,9 @@ bool RSRenderServiceConnectionProxy::CreateNode(const RSSurfaceRenderNodeConfig&
     if (!data.WriteString(config.name)) {
         return false;
     }
+    if (!data.WriteString(config.bundleName)) {
+        return false;
+    }
     option.SetFlags(MessageOption::TF_SYNC);
     int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::CREATE_NODE, data, reply, option);
     if (err != NO_ERROR) {
@@ -177,6 +180,9 @@ sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfa
         return nullptr;
     }
     if (!data.WriteUint8(static_cast<uint8_t>(config.nodeType))) {
+        return nullptr;
+    }
+    if (!data.WriteString(config.bundleName)) {
         return nullptr;
     }
     option.SetFlags(MessageOption::TF_SYNC);

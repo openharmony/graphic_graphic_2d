@@ -59,6 +59,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     RSSurfaceRenderNodeConfig config = {
         .id = node->GetId(),
         .name = node->name_,
+        .bundleName = node->bundleName_,
         .additionalData = surfaceNodeConfig.additionalData,
     };
     if (!isWindow) {
@@ -67,7 +68,8 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         config.nodeType = type;
     }
 
-    RS_LOGD("RSSurfaceNode::Create %s type %d", config.name.c_str(), config.nodeType);
+    RS_LOGD("RSSurfaceNode::Create name:%s bundleName: %s type: %d",
+        config.name.c_str(), config.bundleName.c_str(), config.nodeType);
 
     if (!node->CreateNodeAndSurface(config)) {
         ROSEN_LOGE("RSSurfaceNode::Create, create node and surface failed");
@@ -417,13 +419,29 @@ void RSSurfaceNode::SetFreeze(bool isFreeze)
     }
 }
 
+std::pair<std::string, std::string> RSSurfaceNode::SplitSurfaceNodeName(std::string surfaceNodeName)
+{
+    if (auto position = surfaceNodeName.find("#");  position != std::string::npos) {
+        return std::make_pair(surfaceNodeName.substr(0, position), surfaceNodeName.substr(position + 1));
+    }
+    return std::make_pair("", surfaceNodeName);
+}
+
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode)
-    : RSNode(isRenderServiceNode), name_(config.SurfaceNodeName)
-{}
+    : RSNode(isRenderServiceNode)
+{
+    auto result = SplitSurfaceNodeName(config.SurfaceNodeName);
+    bundleName_ = result.first;
+    name_ = result.second;
+}
 
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode, NodeId id)
-    : RSNode(isRenderServiceNode, id), name_(config.SurfaceNodeName)
-{}
+    : RSNode(isRenderServiceNode, id)
+{
+    auto result = SplitSurfaceNodeName(config.SurfaceNodeName);
+    bundleName_ = result.first;
+    name_ = result.second;
+}
 
 RSSurfaceNode::~RSSurfaceNode()
 {

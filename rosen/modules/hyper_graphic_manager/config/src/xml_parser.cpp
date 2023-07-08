@@ -155,6 +155,13 @@ int32_t XMLParser::ParseParams(xmlNode &node)
         }
         return EXEC_SUCCESS;
     }
+
+    if (paraName == "app_whitelist") {
+        if (ParseSetting(node, mParsedData_->app_whitelist_) != EXEC_SUCCESS) {
+            HGM_LOGD("XMLParser failed to parse app_whitelist");
+        }
+        return EXEC_SUCCESS;
+    }
     HGM_LOGD("XMLParser parsing params finish");
     return XML_PARSE_INTERNAL_FAIL;
 }

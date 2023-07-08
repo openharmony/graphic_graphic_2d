@@ -1279,6 +1279,8 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::OnVsync");
     RSJankStats::GetInstance().SetStartTime();
     timestamp_ = timestamp;
+    curTime_ = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
     requestNextVsyncNum_ = 0;
     frameCount_++;
     if (isUniRender_) {
@@ -1868,6 +1870,11 @@ void RSMainThread::ForceRefreshForUni()
         PostTask([=]() {
             MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
             RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
+            auto now = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count();
+            timestamp_ = timestamp_ + (now - curTime_);
+            curTime_ = now;
+            RS_TRACE_NAME("RSMainThread::ForceRefreshForUni timestamp:" + std::to_string(timestamp_));
             mainLoop_();
         });
         auto screenManager_ = CreateOrGetScreenManager();

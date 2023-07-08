@@ -21,7 +21,9 @@
 #include "include/core/SkSize.h"
 #include "include/core/SkString.h"
 #include "include/core/SkSurface.h"
+#ifdef NEW_SKIA
 #include "include/effects/SkRuntimeEffect.h"
+#endif
 #include "tools/Resources.h"
 
 namespace OHOS {
