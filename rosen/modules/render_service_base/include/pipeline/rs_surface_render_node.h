@@ -188,6 +188,11 @@ public:
         return name_;
     }
 
+    std::string GetBundleName() const
+    {
+        return bundleName_;
+    }
+
     void SetOffSetX(int32_t offset)
     {
         offsetX_ = offset;
@@ -697,6 +702,7 @@ private:
     bool qosPidCal_ = false;
 
     std::string name_;
+    std::string bundleName_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
