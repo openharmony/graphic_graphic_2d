@@ -257,6 +257,7 @@ private:
     TransactionDataIndexMap effectiveTransactionDataIndexMap_;
     std::unordered_map<pid_t, uint64_t> transactionDataLastWaitTime_;
 
+    uint64_t curTime_ = 0;
     uint64_t timestamp_ = 0;
     uint64_t lastAnimateTimestamp_ = 0;
     uint64_t prePerfTimestamp_ = 0;
