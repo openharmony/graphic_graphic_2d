@@ -222,33 +222,13 @@ void RSRenderAnimation::OnSetFraction(float fraction)
 
 void RSRenderAnimation::ProcessFillModeOnStart(float startFraction)
 {
-    if (GetAnimationTimingMode() == AnimationTimingMode::BY_FRACTION) {
-        ProcessFillModeOnStartByFraction(startFraction);
-    } else {
-        ProcessFillModeOnStartByTime();
-    }
-}
-
-void RSRenderAnimation::ProcessFillModeOnStartByFraction(float startFraction)
-{
     auto fillMode = GetFillMode();
     if (fillMode == FillMode::BACKWARDS || fillMode == FillMode::BOTH) {
         OnAnimate(startFraction);
     }
 }
 
-void RSRenderAnimation::ProcessFillModeOnStartByTime(float startTime) const {}
-
 void RSRenderAnimation::ProcessFillModeOnFinish(float endFraction)
-{
-    if (GetAnimationTimingMode() == AnimationTimingMode::BY_FRACTION) {
-        ProcessFillModeOnFinishByFraction(endFraction);
-    } else {
-        ProcessFillModeOnFinishByTime();
-    }
-}
-
-void RSRenderAnimation::ProcessFillModeOnFinishByFraction(float endFraction)
 {
     auto fillMode = GetFillMode();
     if (fillMode == FillMode::FORWARDS || fillMode == FillMode::BOTH) {
@@ -288,36 +268,20 @@ bool RSRenderAnimation::Animate(int64_t time)
         OnInitialize(time);
     }
 
-    float currentProgress = 0.0f;
-    bool isInStartDelay = false;
-    bool isFinished = false;
-    bool isRepeatFinished = false;
-
-    // convert time to fraction or real play time in current round of animation
-    if (GetAnimationTimingMode() == AnimationTimingMode::BY_FRACTION) {
-        std::tie(currentProgress, isInStartDelay, isFinished, isRepeatFinished) =
-            animationFraction_.GetAnimationFraction(time);
-    } else {
-        std::tie(currentProgress, isInStartDelay) = animationFraction_.GetAnimationPlayTime(time);
-    }
-
+    // convert time to fraction
+    auto [fraction, isInStartDelay, isFinished, isRepeatFinished] = animationFraction_.GetAnimationFraction(time);
     if (isInStartDelay) {
-        ProcessFillModeOnStart(currentProgress);
+        ProcessFillModeOnStart(fraction);
         ROSEN_LOGD("RSRenderAnimation::Animate, isInStartDelay is true");
         return false;
     }
 
-    if (GetAnimationTimingMode() == AnimationTimingMode::BY_FRACTION) {
-        OnAnimate(currentProgress);
-    } else {
-        std::tie(isFinished, isRepeatFinished) = OnAnimateByTime(currentProgress);
-    }
-
+    OnAnimate(fraction);
     if (isRepeatFinished) {
         ProcessOnRepeatFinish();
     }
     if (isFinished) {
-        ProcessFillModeOnFinish(currentProgress);
+        ProcessFillModeOnFinish(fraction);
         ROSEN_LOGD("RSRenderAnimation::Animate, isFinished is true");
         return true;
     }

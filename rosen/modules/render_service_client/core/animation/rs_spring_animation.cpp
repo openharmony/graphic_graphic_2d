@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,11 +55,6 @@ const RSAnimationTimingCurve& RSSpringAnimation::GetTimingCurve() const
     return timingCurve_;
 }
 
-void RSSpringAnimation::SetZeroThreshold(const float zeroThreshold)
-{
-    zeroThreshold_ = zeroThreshold;
-}
-
 void RSSpringAnimation::OnStart()
 {
     RSPropertyAnimation::OnStart();
@@ -69,7 +64,6 @@ void RSSpringAnimation::OnStart()
     SetDuration(300);
     UpdateParamToRenderAnimation(animation);
     animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_, timingCurve_.blendDuration_);
-    animation->SetZeroThreshold(zeroThreshold_);
     animation->SetAdditive(GetAdditive());
     if (isCustom_) {
         animation->AttachRenderProperty(property_->GetRenderProperty());

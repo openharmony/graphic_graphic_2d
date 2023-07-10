@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -42,12 +42,6 @@ RSColor::RSColor(int16_t red, int16_t green, int16_t blue, int16_t alpha) noexce
 bool RSColor::operator==(const RSColor& rhs) const
 {
     return red_ == rhs.red_ && green_ == rhs.green_ && blue_ == rhs.blue_ && alpha_ == rhs.alpha_;
-}
-
-bool RSColor::IsNearEqual(const RSColor& other, int16_t threshold) const
-{
-    return (std::abs(red_ - other.red_) <= threshold) && (std::abs(green_ - other.green_) <= threshold) &&
-           (std::abs(blue_ - other.blue_) <= threshold) && (std::abs(alpha_ - other.alpha_) <= threshold);
 }
 
 RSColor RSColor::operator+(const RSColor& rhs) const

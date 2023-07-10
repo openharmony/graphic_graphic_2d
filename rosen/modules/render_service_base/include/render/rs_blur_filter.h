@@ -47,10 +47,6 @@ public:
     std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) override;
     std::shared_ptr<RSFilter> Multiply(float rhs) override;
     std::shared_ptr<RSFilter> Negate() override;
-    bool IsNearEqual(
-        const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const override;
-    bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const override;
-
     void DrawImageRect(
         SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst) const override;
 

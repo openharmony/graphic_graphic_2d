@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -306,23 +306,6 @@ std::shared_ptr<RSFilter> RSMaterialFilter::Negate()
     materialParam.brightness = -brightness_;
     materialParam.maskColor = RSColor(0x00000000) - maskColor_;
     return std::make_shared<RSMaterialFilter>(materialParam, colorMode_);
-}
-
-bool RSMaterialFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, float threshold) const
-{
-    auto otherMaterialFilter = std::static_pointer_cast<RSMaterialFilter>(other);
-    if (otherMaterialFilter == nullptr) {
-        return true;
-    }
-    return ROSEN_EQ(radius_, otherMaterialFilter->radius_, 1.0f) &&
-           ROSEN_EQ(saturation_, otherMaterialFilter->saturation_, threshold) &&
-           ROSEN_EQ(brightness_, otherMaterialFilter->brightness_, threshold) &&
-           maskColor_.IsNearEqual(otherMaterialFilter->maskColor_, 1);
-}
-
-bool RSMaterialFilter::IsNearZero(float threshold) const
-{
-    return ROSEN_EQ(radius_, 0.0f, threshold);
 }
 
 void RSMaterialFilter::DrawImageRect(

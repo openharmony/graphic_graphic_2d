@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,6 +51,8 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     nodes[0]->SetBounds(10, 10, 100, 100);
     nodes[0]->SetFrame(10, 10, 100, 100);
     nodes[0]->SetBackgroundColor(SK_ColorBLUE);
+
+    rootNode->AddChild(nodes[0], -1);
 
     rootNode->AddChild(nodes[0], -1);
     rsUiDirector->SetRoot(rootNode->GetId());
@@ -138,7 +140,7 @@ int main()
 
     // simulate sliding trajecity
     int pointsNum = 30;
-    std::vector<Vector2f> handPoint(pointsNum);
+    vector<Vector2f> handPoint(pointsNum);
     for (int i = 0; i < handPoint.size(); i++) {
         handPoint[i].data_[0] = 0.0f;
         handPoint[i].data_[1] = 0.5f * i * i;
@@ -163,14 +165,7 @@ int main()
     nodes[0]->AddModifier(nodeModifier);
 
     // init property
-    nodeModifier->SetTranslate(handPoint[pointsNum - 1]);
-
-    // set callback for each frame
-    if (nodeModifier->SetTranslateCallBack()) {
-        std::cout << "set translate callback successfully" << std::endl;
-    } else {
-        std::cout << "set translate callback failed" << std::endl;
-    }
+    nodes[0]->SetTranslate(handPoint[pointsNum - 1]);
 
     RSAnimationTimingProtocol protocol;
     // duration is not effective when the curve is interpolatingSpring
@@ -189,7 +184,7 @@ int main()
         []() { std::cout << "sliding animation finish callback" << std::endl; });
 
     int64_t startNum = 80825861106;
-    int64_t interruptNum = 80825861106 + 10000000 * 10;
+    int64_t interruptNum = 80825861106 * 15;
 
     bool hasRunningAnimation = true;
     bool stopSignal = true;
@@ -220,8 +215,8 @@ int main()
 
             stopSignal = false;
         }
-        startNum += 10000000;
-        usleep(10000);
+        startNum += 100000000;
+        usleep(100000);
     }
 
     // dump property via modifiers
