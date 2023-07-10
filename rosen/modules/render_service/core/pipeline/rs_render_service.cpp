@@ -33,7 +33,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 10000000;
+    constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000;
 }
 RSRenderService::RSRenderService() {}
 

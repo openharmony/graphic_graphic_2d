@@ -75,6 +75,10 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
     // 1, 2: index of array data.
     data[1] = now + period;
     data[2] = vsyncCount;
+    if (info_.name_ == "rs") {
+        // 5000000 is the vsync offset.
+        data[1] += period - 5000000;
+    }
     int32_t ret = socketPair_->SendData(data, sizeof(data));
     if (ret > -1) {
         ScopedBytrace successful("successful");
