@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,6 +49,40 @@ HWTEST_F(RSThreadLooperImplTest, CreateThreadInstance001, TestSize.Level1)
      * @tc.steps: step1. create CreateThreadInstance
      */
     auto threadlooperimpl = threadlooperimpl_->CreateThreadInstance();
+    ASSERT_TRUE(threadlooperimpl != nullptr);
+}
+
+/**
+ * @tc.name: CreateThreadInstance002
+ * @tc.desc: test results of CreateThreadInstance
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSThreadLooperImplTest, CreateThreadInstance002, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. create CreateThreadInstance
+     */
+    auto threadlooperimpl = threadlooperimpl_->CreateThreadInstance();
+    ASSERT_TRUE(threadlooperimpl != nullptr);
+    threadlooperimpl = threadlooperimpl_->CreateThreadInstance();
+    ASSERT_TRUE(threadlooperimpl != nullptr);
+}
+
+/**
+ * @tc.name: GetThreadInstance001
+ * @tc.desc: test results of GetThreadInstance
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSThreadLooperImplTest, GetThreadInstance001, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. create GetThreadInstance
+     */
+    auto threadlooperimpl = threadlooperimpl_->CreateThreadInstance();
+    ASSERT_TRUE(threadlooperimpl != nullptr);
+    threadlooperimpl = threadlooperimpl_->GetThreadInstance();
     ASSERT_TRUE(threadlooperimpl != nullptr);
 }
 } // namespace OHOS::Rosen

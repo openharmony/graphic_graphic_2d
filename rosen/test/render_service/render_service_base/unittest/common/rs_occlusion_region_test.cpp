@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,9 @@
  */
 
 #include "gtest/gtest.h"
+
+#include "platform/common/rs_innovation.h"
+
 #include "common/rs_occlusion_region.h"
 
 using namespace testing;
@@ -37,6 +40,37 @@ void RSOcclusionRegionTest::SetUp()
     testnode = std::make_shared<Node>(s, e);
 }
 void RSOcclusionRegionTest::TearDown() {}
+
+/**
+ * @tc.name: OstreamOperator001
+ * @tc.desc: test results of operator<<
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOcclusionRegionTest, OstreamOperator001, Function | MediumTest | Level2)
+{
+    /**
+     * @tc.steps: step1. operator<<
+     */
+    Rect rect;
+    std::cout << rect;
+}
+
+/**
+ * @tc.name: OstreamOperator002
+ * @tc.desc: test results of operator<<
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOcclusionRegionTest, OstreamOperator002, Function | MediumTest | Level2)
+{
+    /**
+     * @tc.steps: step1. operator<<
+     */
+    Rect rect;
+    Region region(rect);
+    std::cout << region;
+}
 
 /**
  * @tc.name: EventSortBy001
@@ -169,5 +203,118 @@ HWTEST_F(RSOcclusionRegionTest, GetSubRange001, Function | MediumTest | Level2)
     testnode->GetSubRange(res, true, false);
     ASSERT_EQ(res.size(), 3);
     ASSERT_TRUE(res[2] == Range(0, 1));
+}
+
+/**
+ * @tc.name: InitDynamicLibraryFunction001
+ * @tc.desc: test results of InitDynamicLibraryFunction
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOcclusionRegionTest, InitDynamicLibraryFunction001, Function | MediumTest | Level2)
+{
+    /**
+     * @tc.steps: step1. InitDynamicLibraryFunction
+     */
+    RSInnovation::OpenInnovationSo();
+    Region::InitDynamicLibraryFunction();
+}
+
+/**
+ * @tc.name: RegionOp001
+ * @tc.desc: test results of RegionOp
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOcclusionRegionTest, RegionOp001, Function | MediumTest | Level2)
+{
+    /**
+     * @tc.steps: step1. RegionOp
+     */
+    Region region;
+    Region region1;
+    Region region2;
+    Region res;
+    Region::OP op = Region::OP::SUB;
+    region.RegionOp(region1, region2, res, op);
+}
+
+/**
+ * @tc.name: RegionOp002
+ * @tc.desc: test results of RegionOp
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOcclusionRegionTest, RegionOp002, Function | MediumTest | Level2)
+{
+    /**
+     * @tc.steps: step1. RegionOp
+     */
+    RSInnovation::OpenInnovationSo();
+    RSInnovation::UpdateOcclusionCullingSoEnabled();
+    Occlusion::Region::InitDynamicLibraryFunction();
+    Rect rect;
+    Region region;
+    Region region1(rect);
+    Region region2(rect);
+    Region res;
+    Region::OP op = Region::OP::AND;
+    region.RegionOp(region1, region2, res, op);
+}
+
+/**
+ * @tc.name: RegionOpLocal001
+ * @tc.desc: test results of RegionOpLocal
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOcclusionRegionTest, RegionOpLocal001, Function | MediumTest | Level2)
+{
+    /**
+     * @tc.steps: step1. RegionOpLocal
+     */
+    Region region;
+    Region region1;
+    Region region2;
+    Region res;
+    Region::OP op = Region::OP::AND;
+    region.RegionOpLocal(region1, region2, res, op);
+}
+
+/**
+ * @tc.name: RegionOpLocal002
+ * @tc.desc: test results of RegionOpLocal
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOcclusionRegionTest, RegionOpLocal002, Function | MediumTest | Level2)
+{
+    /**
+     * @tc.steps: step1. RegionOpLocal
+     */
+    Rect rect;
+    Region region;
+    Region region1(rect);
+    Region region2(rect);
+    Region res;
+    Region::OP op = static_cast<Region::OP>(0);
+    region.RegionOpLocal(region1, region2, res, op);
+}
+
+/**
+ * @tc.name: XOrSelf001
+ * @tc.desc: test results of XOrSelf
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSOcclusionRegionTest, XOrSelf001, Function | MediumTest | Level2)
+{
+    /**
+     * @tc.steps: step1. XOrSelf
+     */
+    Rect rect;
+    Region region1(rect);
+    Region region2(rect);
+    region1.XOrSelf(region2);
 }
 } // namespace OHOS::Rosen
