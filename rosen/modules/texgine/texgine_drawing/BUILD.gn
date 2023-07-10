@@ -17,6 +17,12 @@ is_ok = true
 
 config("texgine_drawing_public_config") {
   include_dirs = [ "./src" ]
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-std=c++17",
+  ]
 }
 
 ohos_shared_library("libtexgine_drawing") {

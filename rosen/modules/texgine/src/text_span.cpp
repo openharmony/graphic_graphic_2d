@@ -30,7 +30,9 @@
 #include "texgine_path.h"
 #include "texgine_path_1d_path_effect.h"
 #include "texgine/utils/exlog.h"
+#ifdef LOGGER_ENABLE_SCOPE
 #include "texgine/utils/trace.h"
+#endif
 #include "text_converter.h"
 #include "word_breaker.h"
 
@@ -159,7 +161,7 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
 {
     TexginePaint paint;
     paint.SetAntiAlias(true);
-    paint.SetARGB(MAXRGB, MAXRGB, 0, 0);
+    paint.SetAlpha(255);
     paint.SetColor(xs.color);
     paint.SetStyle(TexginePaint::FILL);
     if (xs.background.has_value()) {
@@ -169,8 +171,11 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
     }
 
     if (xs.foreground.has_value()) {
-        paint = xs.foreground.value();
+        auto rect = TexgineRect::MakeXYWH(offsetX, offsetY + *tmetrics_.fAscent_, width_,
+            *tmetrics_.fDescent_ - *tmetrics_.fAscent_);
+        canvas.DrawRect(rect, xs.foreground.value());
     }
+
     canvas.DrawTextBlob(textBlob_, offsetX, offsetY, paint);
     PaintDecoration(canvas, offsetX, offsetY, xs);
 }

@@ -18,11 +18,11 @@
 #include "typography.h"
 #include "typography_create.h"
 
-using namespace rosen;
+using namespace OHOS::Rosen;
 using namespace testing;
 using namespace testing::ext;
-using RectHeightStyle = rosen::TypographyProperties::RectHeightStyle;
-using RectWidthStyle = rosen::TypographyProperties::RectWidthStyle;
+using RectHeightStyle = OHOS::Rosen::TextRectHeightStyle;
+using RectWidthStyle = OHOS::Rosen::TextRectWidthStyle;
 
 namespace OHOS {
 class OH_Drawing_UI_TypographyTest : public testing::Test {
@@ -36,26 +36,26 @@ class OH_Drawing_UI_TypographyTest : public testing::Test {
 HWTEST_F(OH_Drawing_UI_TypographyTest, OH_Drawing_UI_TypographyTest001, TestSize.Level1)
 {
     TypographyStyle typoStype;
-    std::unique_ptr<TypographyCreate> builder = TypographyCreate::CreateRosenBuilder(
-        typoStype, FontCollection::GetInstance());
-    std::unique_ptr<rosen::Typography> typography = builder->Build();
-    auto result = typography->GetRectsForRange(0, 0, RectHeightStyle::TIGHT, RectWidthStyle::TIGHT);
+    std::unique_ptr<TypographyCreate> builder = TypographyCreate::Create(
+        typoStype, FontCollection::Create());
+    std::unique_ptr<Rosen::Typography> typography = builder->CreateTypography();
+    auto result = typography->GetTextRectsByBoundary(0, 0, RectHeightStyle::TIGHT, RectWidthStyle::TIGHT);
     EXPECT_EQ(result.empty(), true);
-    result = typography->GetRectsForRange(0, 0, RectHeightStyle::MAX, RectWidthStyle::MAX);
+    result = typography->GetTextRectsByBoundary(0, 0, RectHeightStyle::COVER_TOP_AND_BOTTOM, RectWidthStyle::MAX);
     EXPECT_EQ(result.empty(), true);
-    result = typography->GetRectsForRange(0, 0, RectHeightStyle::INCLUDELINESPACEMIDDLE,
+    result = typography->GetTextRectsByBoundary(0, 0, RectHeightStyle::COVER_HALF_TOP_AND_BOTTOM,
         RectWidthStyle::TIGHT);
     EXPECT_EQ(result.empty(), true);
-    result = typography->GetRectsForRange(0, 0, RectHeightStyle::INCLUDELINESPACETOP,
+    result = typography->GetTextRectsByBoundary(0, 0, RectHeightStyle::COVER_TOP,
         RectWidthStyle::TIGHT);
     EXPECT_EQ(result.empty(), true);
-    result = typography->GetRectsForRange(0, 0, RectHeightStyle::INCLUDELINESPACEBOTTOM,
+    result = typography->GetTextRectsByBoundary(0, 0, RectHeightStyle::COVER_BOTTOM,
         RectWidthStyle::MAX);
     EXPECT_EQ(result.empty(), true);
-    result = typography->GetRectsForRange(0, 0, RectHeightStyle::STRUCT,
+    result = typography->GetTextRectsByBoundary(0, 0, RectHeightStyle::FOLLOW_BY_STRUT,
         RectWidthStyle::MAX);
     EXPECT_EQ(result.empty(), true);
-    result = typography->GetRectsForPlaceholders();
+    result = typography->GetTextRectsOfPlaceholders();
     EXPECT_EQ(result.empty(), true);
 }
 }

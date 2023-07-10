@@ -14,11 +14,10 @@
  */
 
 #include "gtest/gtest.h"
-#include "placeholder_run.h"
-#include "rosen_converter_txt.h"
-#include "text_style.h"
+#include "txt/convert.h"
+#include "rosen_text/text_style.h"
 
-using namespace rosen;
+using namespace OHOS::Rosen;
 using namespace testing;
 using namespace testing::ext;
 
@@ -35,41 +34,41 @@ class OH_Drawing_RosenConverterTest : public testing::Test {
 HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest001, TestSize.Level1)
 {
     TextStyle style;
-    style.fontWeight_ = FontWeight::W100;
+    style.fontWeight = FontWeight::W100;
     txt::TextStyle txtStyle;
-    RosenConvertTxtStyle(style, txtStyle);
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.font_weight, txt::FontWeight::w100);
 
-    style.fontWeight_ = FontWeight::W200;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.fontWeight = FontWeight::W200;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.font_weight, txt::FontWeight::w200);
 
-    style.fontWeight_ = FontWeight::W300;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.fontWeight = FontWeight::W300;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.font_weight, txt::FontWeight::w300);
 
-    style.fontWeight_ = FontWeight::W400;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.fontWeight = FontWeight::W400;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.font_weight, txt::FontWeight::w400);
 
-    style.fontWeight_ = FontWeight::W500;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.fontWeight = FontWeight::W500;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.font_weight, txt::FontWeight::w500);
 
-    style.fontWeight_ = FontWeight::W600;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.fontWeight = FontWeight::W600;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.font_weight, txt::FontWeight::w600);
 
-    style.fontWeight_ = FontWeight::W700;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.fontWeight = FontWeight::W700;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.font_weight, txt::FontWeight::w700);
 
-    style.fontWeight_ = FontWeight::W800;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.fontWeight = FontWeight::W800;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.font_weight, txt::FontWeight::w800);
 
-    style.fontWeight_ = FontWeight::W900;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.fontWeight = FontWeight::W900;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.font_weight, txt::FontWeight::w900);
 }
 
@@ -82,13 +81,13 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest001, TestSi
 HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest002, TestSize.Level1)
 {
     TextStyle style;
-    style.fontStyle_ = FontStyle::NORMAL;
+    style.fontStyle = FontStyle::NORMAL;
     txt::TextStyle txtStyle;
-    RosenConvertTxtStyle(style, txtStyle);
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.font_style, txt::FontStyle::normal);
 
-    style.fontStyle_ = FontStyle::ITALIC;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.fontStyle = FontStyle::ITALIC;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.font_style, txt::FontStyle::italic);
 }
 
@@ -101,13 +100,13 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest002, TestSi
 HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest003, TestSize.Level1)
 {
     TextStyle style;
-    style.textBaseline_ = TextBaseline::ALPHABETIC;
+    style.baseline = TextBaseline::ALPHABETIC;
     txt::TextStyle txtStyle;
-    RosenConvertTxtStyle(style, txtStyle);
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.text_baseline, txt::TextBaseline::kAlphabetic);
 
-    style.textBaseline_ = TextBaseline::IDEOGRAPHIC;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.baseline = TextBaseline::IDEOGRAPHIC;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.text_baseline, txt::TextBaseline::kIdeographic);
 }
 
@@ -120,21 +119,21 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest003, TestSi
 HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest004, TestSize.Level1)
 {
     TextStyle style;
-    style.decoration_ = TextDecoration::NONE;
+    style.decoration = TextDecoration::NONE;
     txt::TextStyle txtStyle;
-    RosenConvertTxtStyle(style, txtStyle);
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.decoration, txt::TextDecoration::kNone);
 
-    style.decoration_ = TextDecoration::UNDERLINE;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.decoration = TextDecoration::UNDERLINE;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.decoration, txt::TextDecoration::kUnderline);
 
-    style.decoration_ = TextDecoration::OVERLINE;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.decoration = TextDecoration::OVERLINE;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.decoration, txt::TextDecoration::kOverline);
 
-    style.decoration_ = TextDecoration::LINETHROUGH;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.decoration = TextDecoration::LINE_THROUGH;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.decoration, txt::TextDecoration::kLineThrough);
 }
 
@@ -147,25 +146,25 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest004, TestSi
 HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest005, TestSize.Level1)
 {
     TextStyle style;
-    style.decorationStyle_ = TextDecorationStyle::SOLID;
+    style.decorationStyle = TextDecorationStyle::SOLID;
     txt::TextStyle txtStyle;
-    RosenConvertTxtStyle(style, txtStyle);
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.decoration_style, txt::TextDecorationStyle::kSolid);
 
-    style.decorationStyle_ = TextDecorationStyle::DOUBLE;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.decorationStyle = TextDecorationStyle::DOUBLE;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.decoration_style, txt::TextDecorationStyle::kDouble);
 
-    style.decorationStyle_ = TextDecorationStyle::DOTTED;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.decorationStyle = TextDecorationStyle::DOTTED;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.decoration_style, txt::TextDecorationStyle::kDotted);
 
-    style.decorationStyle_ = TextDecorationStyle::DASHED;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.decorationStyle = TextDecorationStyle::DASHED;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.decoration_style, txt::TextDecorationStyle::kDashed);
 
-    style.decorationStyle_ = TextDecorationStyle::WAVY;
-    RosenConvertTxtStyle(style, txtStyle);
+    style.decorationStyle = TextDecorationStyle::WAVY;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.decoration_style, txt::TextDecorationStyle::kWavy);
 }
 
@@ -178,17 +177,17 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest005, TestSi
 HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest006, TestSize.Level1)
 {
     TypographyStyle style;
-    style.breakStrategy_ = BreakStrategy::BreakStrategyGreedy;
+    style.breakStrategy = BreakStrategy::GREEDY;
     txt::ParagraphStyle txtStyle;
-    RosenConvertTypographyStyle(style, txtStyle);
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.break_strategy, minikin::BreakStrategy::kBreakStrategy_Greedy);
 
-    style.breakStrategy_ = BreakStrategy::BreakStrategyHighQuality;
-    RosenConvertTypographyStyle(style, txtStyle);
+    style.breakStrategy = BreakStrategy::HIGH_QUALITY;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.break_strategy, minikin::BreakStrategy::kBreakStrategy_HighQuality);
 
-    style.breakStrategy_ = BreakStrategy::BreakStrategyBalanced;
-    RosenConvertTypographyStyle(style, txtStyle);
+    style.breakStrategy = BreakStrategy::BALANCED;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.break_strategy, minikin::BreakStrategy::kBreakStrategy_Balanced);
 }
 
@@ -201,17 +200,17 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest006, TestSi
 HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest007, TestSize.Level1)
 {
     TypographyStyle style;
-    style.wordBreakType_ = WordBreakType::WordBreakTypeNormal;
+    style.wordBreakType = WordBreakType::BREAK_WORD;
     txt::ParagraphStyle txtStyle;
-    RosenConvertTypographyStyle(style, txtStyle);
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.word_break_type, minikin::WordBreakType::kWordBreakType_Normal);
 
-    style.wordBreakType_ = WordBreakType::WordBreakTypeBreakAll;
-    RosenConvertTypographyStyle(style, txtStyle);
+    style.wordBreakType = WordBreakType::BREAK_ALL;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.word_break_type, minikin::WordBreakType::kWordBreakType_BreakAll);
 
-    style.wordBreakType_ = WordBreakType::WordBreakTypeBreakWord;
-    RosenConvertTypographyStyle(style, txtStyle);
+    style.wordBreakType = WordBreakType::BREAK_WORD;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.word_break_type, minikin::WordBreakType::kWordBreakType_BreakWord);
 }
 #endif
@@ -224,16 +223,14 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest007, TestSi
 HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest008, TestSize.Level1)
 {
     TypographyStyle style;
-    style.textDirection_ = TextDirection::RTL;
+    style.textDirection = TextDirection::RTL;
     txt::ParagraphStyle txtStyle;
-    RosenConvertTypographyStyle(style, txtStyle);
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.text_direction, txt::TextDirection::rtl);
-    EXPECT_EQ(TxtConvertRosenTextDirection(txtStyle.text_direction), style.textDirection_);
 
-    style.textDirection_ = TextDirection::LTR;
-    RosenConvertTypographyStyle(style, txtStyle);
+    style.textDirection = TextDirection::LTR;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.text_direction, txt::TextDirection::ltr);
-    EXPECT_EQ(TxtConvertRosenTextDirection(txtStyle.text_direction), style.textDirection_);
 }
 
 /*
@@ -245,29 +242,29 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest008, TestSi
 HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest009, TestSize.Level1)
 {
     TypographyStyle style;
-    style.textAlign_ = TextAlign::LEFT;
+    style.textAlign = TextAlign::LEFT;
     txt::ParagraphStyle txtStyle;
-    RosenConvertTypographyStyle(style, txtStyle);
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.text_align, txt::TextAlign::left);
 
-    style.textAlign_ = TextAlign::RIGHT;
-    RosenConvertTypographyStyle(style, txtStyle);
+    style.textAlign = TextAlign::RIGHT;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.text_align, txt::TextAlign::right);
 
-    style.textAlign_ = TextAlign::CENTER;
-    RosenConvertTypographyStyle(style, txtStyle);
+    style.textAlign = TextAlign::CENTER;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.text_align, txt::TextAlign::center);
 
-    style.textAlign_ = TextAlign::JUSTIFY;
-    RosenConvertTypographyStyle(style, txtStyle);
+    style.textAlign = TextAlign::JUSTIFY;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.text_align, txt::TextAlign::justify);
 
-    style.textAlign_ = TextAlign::START;
-    RosenConvertTypographyStyle(style, txtStyle);
+    style.textAlign = TextAlign::START;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.text_align, txt::TextAlign::start);
 
-    style.textAlign_ = TextAlign::END;
-    RosenConvertTypographyStyle(style, txtStyle);
+    style.textAlign = TextAlign::END;
+    txtStyle = Rosen::AdapterTxt::Convert(style);
     EXPECT_EQ(txtStyle.text_align, txt::TextAlign::end);
 }
 
@@ -282,10 +279,10 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest010, TestSi
     OHOS::Rosen::Drawing::Point offset;
     TextShadow textShadow(Rosen::Drawing::Color::COLOR_BLACK, offset, 0.0);
     TextStyle style;
-    style.textShadows_.push_back(textShadow);
+    style.shadows.push_back(textShadow);
     txt::TextStyle txtStyle;
-    RosenConvertTxtStyle(style, txtStyle);
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
+    txtStyle = Rosen::AdapterTxt::Convert(style);
+#ifdef USE_CANVASKIT0310_SKIA
     EXPECT_EQ(txtStyle.text_shadows[0].blur_sigma, 0.0);
 #else
     EXPECT_EQ(txtStyle.text_shadows[0].blur_radius, 0.0);

@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#include "text_style.h"
+#include "rosen_text/text_style.h"
 #include "gtest/gtest.h"
 
 
-using namespace rosen;
+using namespace OHOS::Rosen;
 using namespace testing;
 using namespace testing::ext;
 
@@ -37,12 +37,12 @@ HWTEST_F(OH_Drawing_TextShadowTest, OH_Drawing_TextShadowTest001, TestSize.Level
     TextShadow textShadow(Rosen::Drawing::Color::COLOR_BLACK, offset, 0.0);
     TextShadow textShadow2(Rosen::Drawing::Color::COLOR_BLACK, offset, 0.0);
     EXPECT_EQ(textShadow == textShadow2, true);
-    textShadow2.blurRadius_ = 1.0;
+    textShadow2.blurRadius = 1.0;
     EXPECT_EQ(textShadow == textShadow2, false);
     EXPECT_EQ(textShadow != textShadow2, true);
-    textShadow2.offset_.SetX(3.0f);
+    textShadow2.offset.SetX(3.0f);
     EXPECT_EQ(textShadow == textShadow2, false);
-    textShadow2.color_ = Rosen::Drawing::Color::COLOR_RED;
+    textShadow2.color = Rosen::Drawing::Color::COLOR_RED;
     EXPECT_EQ(textShadow == textShadow2, false);
 }
 
@@ -50,13 +50,13 @@ HWTEST_F(OH_Drawing_TextShadowTest, OH_Drawing_TextShadowTest002, TestSize.Level
 {
     OHOS::Rosen::Drawing::Point offset;
     TextShadow textShadow(Rosen::Drawing::Color::COLOR_BLACK, offset, 0.0);
-    EXPECT_EQ(textShadow.hasShadow(), false);
-    textShadow.blurRadius_ = 1.0f;
-    EXPECT_EQ(textShadow.hasShadow(), true);
-    textShadow.offset_.SetY(1.0f);
-    EXPECT_EQ(textShadow.hasShadow(), true);
-    textShadow.offset_.SetX(1.0f);
-    EXPECT_EQ(textShadow.hasShadow(), true);
+    EXPECT_EQ(textShadow.HasShadow(), false);
+    textShadow.blurRadius = 1.0f;
+    EXPECT_EQ(textShadow.HasShadow(), true);
+    textShadow.offset.SetY(1.0f);
+    EXPECT_EQ(textShadow.HasShadow(), true);
+    textShadow.offset.SetX(1.0f);
+    EXPECT_EQ(textShadow.HasShadow(), true);
 }
 
 
@@ -72,7 +72,7 @@ HWTEST_F(OH_Drawing_TextStyleTest, OH_Drawing_TextStyleTest001, TestSize.Level1)
 {
     TextStyle textStyle;
     TextStyle textStyle2;
-    EXPECT_EQ(textStyle.equals(textStyle2), true);
+    EXPECT_EQ(textStyle, textStyle2);
 }
 
 /*
@@ -83,7 +83,7 @@ HWTEST_F(OH_Drawing_TextStyleTest, OH_Drawing_TextStyleTest001, TestSize.Level1)
 HWTEST_F(OH_Drawing_TextStyleTest, OH_Drawing_TextStyleTest002, TestSize.Level1)
 {
     TextStyle textStyle;
-    std::string features = textStyle.fontFeatures_.GetFeatureSettings();
+    std::string features = textStyle.fontFeatures.GetFeatureSettings();
     EXPECT_EQ(features.empty(), true);
 }
 }

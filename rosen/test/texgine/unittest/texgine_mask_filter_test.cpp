@@ -13,33 +13,32 @@
  * limitations under the License.
  */
 
-#ifdef LOGGER_ENABLE_SCOPE
-#include "texgine/utils/trace.h"
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
-#include <hitrace_meter.h>
+#include "texgine_mask_filter.h"
+
+using namespace testing;
+using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-void Trace::Start(const std::string &proc)
-{
-    StartTrace(HITRACE_TAG_GRAPHIC_AGP, proc);
-}
+class TexgineMaskFilterTest : public testing::Test {
+};
 
-void Trace::Finish()
+/**
+ * @tc.name:MakeBlur
+ * @tc.desc: Verify the MakeBlur
+ * @tc.type:FUNC
+ */
+HWTEST_F(TexgineMaskFilterTest, MakeBlur, TestSize.Level1)
 {
-    FinishTrace(HITRACE_TAG_GRAPHIC_AGP);
-}
-
-void Trace::Count(const std::string &key, int val)
-{
-    CountTrace(HITRACE_TAG_GRAPHIC_AGP, key, val);
-}
-
-void Trace::Disable()
-{
+    EXPECT_NO_THROW({
+        std::shared_ptr<TexgineMaskFilter> tmf = TexgineMaskFilter::MakeBlur(
+            TexgineMaskFilter::TexgineBlurStyle::K_NORMAL_SK_BLUR_STYLE, 1.0, true);
+    });
 }
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS
-#endif

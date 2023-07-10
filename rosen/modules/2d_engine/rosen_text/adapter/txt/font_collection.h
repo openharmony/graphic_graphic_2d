@@ -19,6 +19,7 @@
 #include "rosen_text/font_collection.h"
 
 #include "txt/font_collection.h"
+#include "txt/asset_font_manager.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -13,33 +13,34 @@
  * limitations under the License.
  */
 
-#ifdef LOGGER_ENABLE_SCOPE
-#include "texgine/utils/trace.h"
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
-#include <hitrace_meter.h>
+#include "texgine_path_effect.h"
+
+using namespace testing;
+using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-void Trace::Start(const std::string &proc)
-{
-    StartTrace(HITRACE_TAG_GRAPHIC_AGP, proc);
-}
+class TexginePathEffectTest : public testing::Test {
+};
 
-void Trace::Finish()
+/**
+ * @tc.name:SetAndGet
+ * @tc.desc: Verify the SetAndGet
+ * @tc.type:FUNC
+ */
+HWTEST_F(TexginePathEffectTest, SetAndGet, TestSize.Level1)
 {
-    FinishTrace(HITRACE_TAG_GRAPHIC_AGP);
-}
-
-void Trace::Count(const std::string &key, int val)
-{
-    CountTrace(HITRACE_TAG_GRAPHIC_AGP, key, val);
-}
-
-void Trace::Disable()
-{
+    std::shared_ptr<TexginePathEffect> tpe = std::make_shared<TexginePathEffect>();
+    sk_sp<SkPathEffect> spe = nullptr;
+    EXPECT_NO_THROW({
+        tpe->SetPathEffect(spe);
+        EXPECT_EQ(tpe->GetPathEffect(), spe);
+    });
 }
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS
-#endif
