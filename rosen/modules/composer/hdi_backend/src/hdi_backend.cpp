@@ -44,7 +44,7 @@ RosenError HdiBackend::RegScreenHotplug(OnScreenHotplugFunc func, void* data)
     }
 
     int32_t ret = device_->RegHotPlugCallback(HdiBackend::OnHdiBackendHotPlugEvent, this);
-    if (ret != DISPLAY_SUCCESS) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("RegHotPlugCallback failed, ret is %{public}d", ret);
         return ROSEN_ERROR_API_FAILED;
     }

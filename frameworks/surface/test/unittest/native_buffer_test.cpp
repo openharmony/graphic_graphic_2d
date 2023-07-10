@@ -360,7 +360,7 @@ HWTEST_F(NativeBufferTest, NativeBufferFromNativeWindowBuffer002, Function | Med
         .width = 0x100,  // small
         .height = 0x100, // small
         .strideAlignment = 0x8,
-        .format = PIXEL_FMT_RGBA_8888,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
     };

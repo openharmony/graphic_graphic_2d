@@ -269,7 +269,7 @@ void DrawingSample::DoPrepareCompleted(sptr<Surface> surface, const struct Prepa
         .width = displayWidth,   // need display width
         .height = displayHeight, // need display height
         .strideAlignment = 0x8,
-        .format = PIXEL_FMT_BGRA_8888,
+        .format = GRAPHIC_PIXEL_FMT_BGRA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
     };

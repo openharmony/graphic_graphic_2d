@@ -568,19 +568,19 @@ SimpleColorSpace &GetHdrPqColorSpace(const std::vector<GraphicHDRMetaData> &meta
 
 bool IsSupportedFormatForGamutConversion(int32_t pixelFormat)
 {
-    static std::unordered_set<PixelFormat> supportedFormats = {
-        PixelFormat::PIXEL_FMT_RGBX_8888,
-        PixelFormat::PIXEL_FMT_RGBA_8888,
-        PixelFormat::PIXEL_FMT_RGB_888,
-        PixelFormat::PIXEL_FMT_BGRX_8888,
-        PixelFormat::PIXEL_FMT_BGRA_8888
+    static std::unordered_set<GraphicPixelFormat> supportedFormats = {
+        GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBX_8888,
+        GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888,
+        GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGB_888,
+        GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BGRX_8888,
+        GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BGRA_8888
     };
 
-    // Because PixelFormat has no enumeration for RBG_16,
+    // Because GraphicPixelFormat has no enumeration for RBG_16,
     // we use a temporary stub here for testing
-    // The final version should use a PixelFormat::PIXEL_FMT_RGBA_XXXX
+    // The final version should use a GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_XXXX
     return pixelFormat == STUB_PIXEL_FMT_RGBA_16161616 ||
-        supportedFormats.count(static_cast<PixelFormat>(pixelFormat)) > 0;
+        supportedFormats.count(static_cast<GraphicPixelFormat>(pixelFormat)) > 0;
 }
 
 bool IsSupportedColorGamut(GraphicColorGamut colorGamut)
@@ -677,9 +677,9 @@ Offset RGBUintToFloat(uint8_t* dst, uint8_t* src, int32_t pixelFormat, Vector3f 
         dst[alphaPos] = static_cast<uint8_t>(((*src32) >> rbgBitsNum) & alphaBitMask);
         return std::make_pair(4, 4); // 4 bytes per pixel and HDR pictures are always redrawn as sRGB
     }
-    switch (static_cast<PixelFormat>(pixelFormat)) {
-        case PixelFormat::PIXEL_FMT_RGBX_8888:
-        case PixelFormat::PIXEL_FMT_RGBA_8888: {
+    switch (static_cast<GraphicPixelFormat>(pixelFormat)) {
+        case GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBX_8888:
+        case GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888: {
             // R: src[0], G: src[1], B: src[2]
             srcColor = {RGBUint8ToFloat(src[0]), RGBUint8ToFloat(src[1]), RGBUint8ToFloat(src[2])};
             // R: dst + 0, G: dst + 1, B: dst + 2
@@ -688,15 +688,15 @@ Offset RGBUintToFloat(uint8_t* dst, uint8_t* src, int32_t pixelFormat, Vector3f 
             dst[3] = src[3];
             return std::make_pair(4, 4); // 4 bytes per pixel.
         }
-        case PixelFormat::PIXEL_FMT_RGB_888: {
+        case GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGB_888: {
             // R: src[0], G: src[1], B: src[2]
             srcColor = {RGBUint8ToFloat(src[0]), RGBUint8ToFloat(src[1]), RGBUint8ToFloat(src[2])};
             // R: dst + 0, G: dst + 1, B: dst + 2
             colorDst = {dst + 0, dst + 1, dst + 2};
             return std::make_pair(3, 3); // 3 bytes per pixel.
         }
-        case PixelFormat::PIXEL_FMT_BGRX_8888:
-        case PixelFormat::PIXEL_FMT_BGRA_8888: {
+        case GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BGRX_8888:
+        case GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BGRA_8888: {
             // R: src[2], G: src[1], B: src[0]
             srcColor = {RGBUint8ToFloat(src[2]), RGBUint8ToFloat(src[1]), RGBUint8ToFloat(src[0])};
             // R: dst + 2, G: dst + 1, B: dst + 0
@@ -768,7 +768,7 @@ bool ConvertBufferColorGamut(std::vector<uint8_t>& dstBuf, const sptr<OHOS::Surf
 #ifndef USE_ROSEN_DRAWING
 SkImageInfo GenerateSkImageInfo(const sptr<OHOS::SurfaceBuffer>& buffer)
 {
-    SkColorType colorType = (buffer->GetFormat() == PIXEL_FMT_BGRA_8888) ?
+    SkColorType colorType = (buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
         kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
     return SkImageInfo::Make(buffer->GetWidth(), buffer->GetHeight(),
         colorType, kPremul_SkAlphaType);
@@ -776,7 +776,7 @@ SkImageInfo GenerateSkImageInfo(const sptr<OHOS::SurfaceBuffer>& buffer)
 #else
 Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer)
 {
-    Drawing::ColorType colorType = (buffer->GetFormat() == PIXEL_FMT_BGRA_8888) ?
+    Drawing::ColorType colorType = (buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
         Drawing::ColorType::COLORTYPE_BGRA_8888 : Drawing::ColorType::COLORTYPE_RGBA_8888;
     Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL;
     Drawing::BitmapFormat format { colorType, alphaType };
@@ -858,7 +858,7 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
     }
 #ifdef PADDING_HEIGHT_32
     // temporally only update buffer len for video stream
-    if (srcBuf->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
+    if (srcBuf->GetFormat() == GRAPHIC_PIXEL_FMT_YCBCR_420_SP) {
         int32_t paddingBase = 32;
         bufferHeight = ((bufferHeight - 1) / paddingBase + 1) * paddingBase;
     }
@@ -885,7 +885,7 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
             int Y = static_cast<int>(ybase[i * bufferStride + j]);
             int U = static_cast<int>(ubase[i / 2 * bufferStride + (j / 2) * 2 + 1]);
             int V = static_cast<int>(ubase[i / 2 * bufferStride + (j / 2) * 2]);
-            if (srcBuf->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
+            if (srcBuf->GetFormat() == GRAPHIC_PIXEL_FMT_YCBCR_420_SP) {
                 std::swap(U, V);
             }
             rdif = Table_fv1[V];
@@ -987,7 +987,7 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(
     config.width = static_cast<int32_t>(width);
     config.height = static_cast<int32_t>(height);
     config.strideAlignment = 0x8; // default stride is 8 Bytes.
-    config.format = PIXEL_FMT_RGBA_8888;
+    config.format = GRAPHIC_PIXEL_FMT_RGBA_8888;
     config.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB;
     config.timeout = 0;
     return config;
@@ -1416,7 +1416,8 @@ bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::ve
     GraphicColorGamut srcGamut = static_cast<GraphicColorGamut>(buffer->GetSurfaceBufferColorGamut());
     // [PLANNING]: We will not use this tmp newBuffer if we use GPU to do the color conversions.
     // Attention: make sure newBuffer's lifecycle is longer than the moment call drawBitmap
-    if (buffer->GetFormat() == PIXEL_FMT_YCRCB_420_SP || buffer->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
+    if (buffer->GetFormat() == GRAPHIC_PIXEL_FMT_YCRCB_420_SP ||
+        buffer->GetFormat() == GRAPHIC_PIXEL_FMT_YCBCR_420_SP) {
         bitmapCreated = CreateYuvToRGBABitMap(buffer, newBuffer, bitmap);
     } else if (buffer->GetFormat() == Detail::STUB_PIXEL_FMT_RGBA_16161616) {
         bitmapCreated = CreateNewColorGamutBitmap(buffer, newBuffer, bitmap, srcGamut, dstGamut, metaDatas);

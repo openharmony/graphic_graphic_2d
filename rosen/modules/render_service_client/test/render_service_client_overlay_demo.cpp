@@ -59,7 +59,7 @@ int main()
         .width = 700, // width
         .height = 500, // height
         .strideAlignment = 0x8,
-        .format = PIXEL_FMT_YCBCR_422_P,
+        .format = GRAPHIC_PIXEL_FMT_YCBCR_422_P,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
     };
 

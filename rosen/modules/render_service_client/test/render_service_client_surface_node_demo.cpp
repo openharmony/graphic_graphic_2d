@@ -164,7 +164,7 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     if (producerSurface != nullptr) {
         producerSurface->SetQueueSize(SURFACE_QUEUE_SIZE);
         producerSurface->SetUserData("SURFACE_STRIDE_ALIGNMENT", SURFACE_STRIDE_ALIGNMENT);
-        producerSurface->SetUserData("SURFACE_FORMAT", std::to_string(PIXEL_FMT_RGBA_8888));
+        producerSurface->SetUserData("SURFACE_FORMAT", std::to_string(GRAPHIC_PIXEL_FMT_RGBA_8888));
         media_ret = player->SetVideoSurface(producerSurface);
         if (media_ret != 0) {
             cout << "SetVideoSurface fail" << endl;
