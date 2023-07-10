@@ -90,6 +90,7 @@ private:
     void CallJsFunction(const std::string& methodName, NativeValue* const* argv, size_t argc);
 
     NativeEngine& engine_;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
 } // namespace Rosen
 } // namespace OHOS
