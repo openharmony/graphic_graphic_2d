@@ -71,7 +71,7 @@
           "flutter",
           "libuv",
           "openssl",
-          "third_party_skia",
+          "skia",
           "libxml2",
           "bounds_checking_function",
           "icu",
