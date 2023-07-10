@@ -31,6 +31,7 @@
 #endif
 
 #include "animation/rs_animation_manager.h"
+#include "animation/rs_frame_rate_range.h"
 #include "common/rs_macros.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_base_render_node.h"
@@ -418,6 +419,28 @@ public:
     float GetGlobalAlpha() const;
     virtual void OnAlphaChanged() {}
 
+    void SetFrameRateRangeToRS(FrameRateRange range)
+    {
+        rsRange_ = range;
+    }
+
+    FrameRateRange GetFrameRateRangeFromRS() const
+    {
+        return rsRange_;
+    }
+
+    FrameRateRange GetFrameRateRangeFromRSAnimations();
+
+    void SetFrameRateRangeToUI(FrameRateRange range)
+    {
+        uiRange_ = range;
+    }
+
+    FrameRateRange GetFrameRateRangeFromUI() const
+    {
+        return uiRange_;
+    }
+
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier> modifier);
@@ -492,6 +515,9 @@ private:
     float boundsWidth_ = 0.0f;
     float boundsHeight_ = 0.0f;
     std::unordered_set<RSModifierType> dirtyTypes_;
+
+    FrameRateRange rsRange_ = {0, 0, 0};
+    FrameRateRange uiRange_ = {0, 0, 0};
 
     friend class RSRenderTransition;
     friend class RSRenderNodeMap;

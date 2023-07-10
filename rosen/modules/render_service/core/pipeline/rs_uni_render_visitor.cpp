@@ -332,14 +332,42 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
     prepareClipRect_.SetAll(0, 0, screenInfo_.width, screenInfo_.height);
     screenManager->GetScreenSupportedColorGamuts(node.GetScreenId(), colorGamutModes_);
+
+    FrameRateRange rsRange;
+    FrameRateRange uiRange;
     for (auto& child : node.GetSortedChildren()) {
         auto surfaceNodePtr = child->ReinterpretCastTo<RSSurfaceRenderNode>();
         if (!surfaceNodePtr) {
             RS_LOGE("RSUniRenderVisitor::PrepareDisplayRenderNode ReinterpretCastTo fail");
             continue;
         }
+
+        auto currRSRange = surfaceNodePtr->GetFrameRateRangeFromRS();
+        if (currRSRange.IsValidAndNotBlank()) {
+            rsRange.MixNewRange(currRSRange);
+        }
+
+        auto currUIRange = surfaceNodePtr->GetFrameRateRangeFromUI();
+        if (currUIRange.IsValidAndNotBlank()) {
+            uiRange.MixNewRange(currUIRange);
+        }
+
         CheckColorSpace(*surfaceNodePtr);
     }
+
+    if (rsRange.IsValidAndNotBlank()) {
+        node.SetFrameRateRangeToRS(rsRange);
+        ROSEN_LOGI("RSUniRenderVisitor::PrepareDisplayRenderNode current \
+            FrameRateRange(RS) is [%d, %d, %d]", rsRange.min_, rsRange.max_,
+            rsRange.preferred_);
+    }
+    if (uiRange.IsValidAndNotBlank()) {
+        node.SetFrameRateRangeToUI(uiRange);
+        ROSEN_LOGI("RSUniRenderVisitor::PrepareDisplayRenderNode current \
+            FrameRateRange(UI) is [%d, %d, %d]", uiRange.min_, uiRange.max_,
+            uiRange.preferred_);
+    }
+
 #ifndef USE_ROSEN_DRAWING
     parentSurfaceNodeMatrix_ = SkMatrix::I();
 #else
@@ -766,6 +794,28 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     node.UpdateChildrenOutOfRectFlag(false);
     if (node.ShouldPrepareSubnodes()) {
+
+        FrameRateRange rsRange;
+        FrameRateRange uiRange;
+        for (auto& child : node.GetChildren()) {
+            if (auto renderChild = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(child.lock())) {
+                auto currRSRange = renderChild->GetFrameRateRangeFromRS();
+                if (currRSRange.IsValidAndNotBlank()) {
+                    rsRange.MixNewRange(currRSRange);
+                }
+
+                auto currUIRange = renderChild->GetFrameRateRangeFromUI();
+                if (currUIRange.IsValidAndNotBlank()) {
+                    uiRange.MixNewRange(currUIRange);
+                }
+            }
+        }
+        if (rsRange.IsValidAndNotBlank()) {
+            node.SetFrameRateRangeToRS(rsRange);
+        }
+        if (uiRange.IsValidAndNotBlank()) {
+            node.SetFrameRateRangeToUI(uiRange);
+        }
         PrepareBaseRenderNode(node);
     }
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
@@ -1033,6 +1083,29 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     curAlpha_ *= property.GetAlpha();
     node.SetGlobalAlpha(curAlpha_);
     node.UpdateChildrenOutOfRectFlag(false);
+
+    FrameRateRange rsRange;
+    FrameRateRange uiRange;
+    for (auto& child : node.GetChildren()) {
+        if (auto renderChild = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(child.lock())) {
+            auto currRSRange = renderChild->GetFrameRateRangeFromRS();
+            if (currRSRange.IsValidAndNotBlank()) {
+                rsRange.MixNewRange(currRSRange);
+            }
+
+            auto currUIRange = renderChild->GetFrameRateRangeFromUI();
+            if (currUIRange.IsValidAndNotBlank()) {
+                uiRange.MixNewRange(currUIRange);
+            }
+        }
+    }
+    if (rsRange.IsValidAndNotBlank()) {
+        node.SetFrameRateRangeToRS(rsRange);
+    }
+    if (uiRange.IsValidAndNotBlank()) {
+        node.SetFrameRateRangeToUI(uiRange);
+    }
+
     PrepareBaseRenderNode(node);
     // attention: accumulate direct parent's childrenRect
     node.UpdateParentChildrenRect(logicParentNode_.lock());

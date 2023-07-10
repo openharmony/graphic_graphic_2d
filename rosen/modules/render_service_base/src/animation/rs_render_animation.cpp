@@ -38,7 +38,10 @@ bool RSRenderAnimation::Marshalling(Parcel& parcel) const
         parcel.WriteBool(animationFraction_.GetAutoReverse()) &&
         parcel.WriteBool(animationFraction_.GetDirection()) &&
         parcel.WriteInt32(static_cast<std::underlying_type<FillMode>::type>(animationFraction_.GetFillMode())) &&
-        parcel.WriteBool(animationFraction_.GetRepeatCallbackEnable()))) {
+        parcel.WriteBool(animationFraction_.GetRepeatCallbackEnable()) &&
+        parcel.WriteInt32(animationFraction_.GetFrameRateRange().min_) &&
+        parcel.WriteInt32(animationFraction_.GetFrameRateRange().max_) &&
+        parcel.WriteInt32(animationFraction_.GetFrameRateRange().preferred_))) {
         ROSEN_LOGE("RSRenderAnimation::Marshalling, write param failed");
         return false;
     }
@@ -55,9 +58,13 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
     bool autoReverse = false;
     bool direction = false;
     bool isRepeatCallbackEnable = false;
+    int fpsMin = 0;
+    int fpsMax = 0;
+    int fpsPreferred = 0;
     if (!(parcel.ReadUint64(id_) && parcel.ReadInt32(duration) && parcel.ReadInt32(startDelay) &&
             parcel.ReadFloat(speed) && parcel.ReadInt32(repeatCount) && parcel.ReadBool(autoReverse) &&
-            parcel.ReadBool(direction) && parcel.ReadInt32(fillMode) && parcel.ReadBool(isRepeatCallbackEnable))) {
+            parcel.ReadBool(direction) && parcel.ReadInt32(fillMode) && parcel.ReadBool(isRepeatCallbackEnable) &&
+            parcel.ReadInt32(fpsMin) && parcel.ReadInt32(fpsMax) && parcel.ReadInt32(fpsPreferred))) {
         ROSEN_LOGE("RSRenderAnimation::ParseParam, read param failed");
         return false;
     }

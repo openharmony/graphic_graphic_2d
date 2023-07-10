@@ -250,6 +250,10 @@ public:
 
     void SetColorBlend(uint32_t colorValue);
 
+    void UpdateFrameRateRange(FrameRateRange range);
+
+    FrameRateRange GetFrameRateRange() { return nodeRange_; }
+
 protected:
     explicit RSNode(bool isRenderServiceNode);
     explicit RSNode(bool isRenderServiceNode, NodeId id);
@@ -307,6 +311,8 @@ private:
     std::shared_ptr<RSMotionPathOption> motionPathOption_;
     std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
+
+    FrameRateRange nodeRange_ = {0, 0, 0};
 
     friend class RSAnimation;
     friend class RSCurveAnimation;

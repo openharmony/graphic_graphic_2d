@@ -84,6 +84,11 @@ std::pair<bool, bool> RSRenderNode::Animate(int64_t timestamp)
     return animationManager_.Animate(timestamp, IsOnTheTree());
 }
 
+FrameRateRange RSRenderNode::GetFrameRateRangeFromRSAnimations()
+{
+    return animationManager_.GetFrameRateRangeFromRSAnimations();
+}
+
 bool RSRenderNode::Update(
     RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty, std::optional<RectI> clipRect)
 {
