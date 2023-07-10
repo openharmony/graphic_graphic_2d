@@ -189,6 +189,9 @@ void RSUniRenderVisitor::CopyPropertyForParallelVisitor(RSUniRenderVisitor *main
 
 void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 {
+    if (curSurfaceNode_) {
+        node.SetRootSurfaceNodeId(curSurfaceNode_->GetId());
+    }
     node.ResetSortedChildren();
     for (auto& child : node.GetChildren()) {
         if (auto renderChild = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(child.lock())) {
@@ -574,6 +577,7 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRe
     // if current surfacenode is a main window type, reset the curSurfaceDirtyManager
     // reset leash window's dirtyManager pointer to avoid curSurfaceDirtyManager mis-pointing
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
+        curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
         curSurfaceDirtyManager_ = node.GetDirtyManager();
         if (curSurfaceDirtyManager_ == nullptr) {
             RS_LOGE("RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate %s has no SurfaceDirtyManager",
@@ -714,7 +718,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirty());
 
         if (node.IsAppWindow()) {
-            curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
             // if update appwindow, its children should not skip
             localZOrder_ = 0.0f;
             isQuickSkipPreparationEnabled_ = false;
