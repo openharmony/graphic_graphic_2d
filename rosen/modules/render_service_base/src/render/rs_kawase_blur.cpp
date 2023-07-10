@@ -154,8 +154,8 @@ int KawaseBlurFilter::GetDecelerateRadius(int radius)
 
 void KawaseBlurFilter::AdjustRadiusAndScale()
 {
-    int step1 = 170; // 170 : radius step
-    int step2 = 260; // 260 : radius step
+    int step1 = 170; // 170 : radius step1
+    int step2 = 260; // 260 : radius step2
     int smoothScope = 20; // 20 : smooth radius change
     int radius = blurRadius_;
     float scale = 0.25f; // base downSample radio
