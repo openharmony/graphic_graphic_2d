@@ -44,9 +44,6 @@ ohos_shared_library("skeffectchain") {
   public_deps = [
     "$graphic_2d_root:libsurface",
     "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect",
-    "//commonlibrary/c_utils/base:utils",
-    "//foundation/multimedia/image_framework/frameworks/innerkitsimpl/pixelconverter:pixelconvertadapter",
-    "//foundation/multimedia/image_framework/interfaces/kits/js/common:image",
   ]
 
   if (ace_enable_gpu) {
@@ -61,11 +58,14 @@ ohos_shared_library("skeffectchain") {
   }
 
   external_deps = [
+    "c_utils:utils",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "multimedia_image_framework:image",
     "multimedia_image_framework:image_native",
+    "multimedia_image_framework:pixelconvertadapter",
     "napi:ace_napi",
     "samgr:samgr_proxy",
   ]

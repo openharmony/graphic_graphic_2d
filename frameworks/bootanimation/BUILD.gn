@@ -57,9 +57,6 @@ ohos_executable("bootanimation") {
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-    "//base/global/resource_management/frameworks/resmgr:global_resmgr",
-    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
-    "//foundation/window/window_manager/dm:libdm",
     "//third_party/cJSON:cjson_static",
     "//third_party/zlib:libz",
   ]
@@ -79,7 +76,10 @@ ohos_executable("bootanimation") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "player_framework:media_client",
+    "resource_management:global_resmgr",
     "samgr:samgr_proxy",
+    "window_manager:libdm",
     "window_manager:libwm",
   ]
 
