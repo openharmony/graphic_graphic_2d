@@ -503,6 +503,9 @@ void RSMainThread::ProcessCommandForUniRender()
                 }
                 auto curIndex = (*iter)->GetIndex();
                 if (curIndex == lastIndex + 1) {
+                    if ((*iter)->GetTimestamp() >= timestamp_) {
+                        break;
+                    }
                     ++lastIndex;
                     transactionFlags += " [" + std::to_string(pid) + "," + std::to_string(curIndex) + "]";
                 } else {
