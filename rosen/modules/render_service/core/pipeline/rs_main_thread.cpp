@@ -34,6 +34,7 @@
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_memory_track.h"
 #include "common/rs_common_def.h"
+#include "hgm_core.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
@@ -110,6 +111,7 @@ constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
+constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 #ifdef RES_SCHED_ENABLE
 constexpr uint64_t PERF_PERIOD                  = 250000000;
 constexpr uint32_t RES_TYPE_CLICK_ANIMATION     = 35;
@@ -228,6 +230,7 @@ void RSMainThread::Init()
 #endif
         CheckColdStartMap();
         Render();
+        InformHgmNodeInfo();
         ReleaseAllNodesBuffer();
         SendCommands();
         activeProcessPids_.clear();
@@ -427,6 +430,30 @@ void RSMainThread::CacheCommands()
             transactionVec.clear();
             RS_LOGD("RSMainThread::CacheCommands effectiveCmd pid:%d cached", pid);
         }
+    }
+}
+
+void RSMainThread::CheckIfNodeIsBundle(std::shared_ptr<RSSurfaceRenderNode> node)
+{
+    currentBundleName_ = node->GetBundleName();
+    if (node->GetName() == WALLPAPER_VIEW) {
+        noBundle_ = true;
+    }
+}
+
+void RSMainThread::InformHgmNodeInfo()
+{
+    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
+    int32_t informResult = EXEC_SUCCESS;
+    if (currentBundleName_ != "") {
+        informResult = hgmCore.RefreshBundleName(currentBundleName_);
+    } else if (noBundle_) {
+        currentBundleName_ = "";
+        informResult = hgmCore.RefreshBundleName(currentBundleName_);
+        noBundle_ = false;
+    }
+    if (informResult != EXEC_SUCCESS) {
+        RS_LOGE("RSMainThread::InformHgmNodeInfo failed to refresh bundle name in hgm");
     }
 }
 
@@ -1074,6 +1101,10 @@ bool RSMainThread::CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces,
                 }
             }
         }
+    }
+
+    if (needProcess) {
+        CheckIfNodeIsBundle(curSurface);
     }
     return needProcess;
 }

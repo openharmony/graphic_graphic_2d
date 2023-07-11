@@ -149,6 +149,20 @@ int32_t XMLParser::ParseParams(xmlNode &node)
         return EXEC_SUCCESS;
     }
 
+    if (paraName == "bundle_name_black_list") {
+        if (ParseSetting(node, mParsedData_->bundle_black_list_) != EXEC_SUCCESS) {
+            HGM_LOGD("XMLParser failed to parse bundle_black_list_");
+        }
+        return EXEC_SUCCESS;
+    }
+
+    if (paraName == "bundle_name_white_list") {
+        if (ParseSetting(node, mParsedData_->bundle_white_list_) != EXEC_SUCCESS) {
+            HGM_LOGD("XMLParser failed to parse bundle_white_list_");
+        }
+        return EXEC_SUCCESS;
+    }
+
     if (paraName == "animation_dynamic_settings") {
         if (ParseSetting(node, mParsedData_->animationDynamicStrats_) != EXEC_SUCCESS) {
             HGM_LOGD("XMLParser failed to parse animation_dynamic_settings");
@@ -156,12 +170,6 @@ int32_t XMLParser::ParseParams(xmlNode &node)
         return EXEC_SUCCESS;
     }
 
-    if (paraName == "app_whitelist") {
-        if (ParseSetting(node, mParsedData_->app_whitelist_) != EXEC_SUCCESS) {
-            HGM_LOGD("XMLParser failed to parse app_whitelist");
-        }
-        return EXEC_SUCCESS;
-    }
     HGM_LOGD("XMLParser parsing params finish");
     return XML_PARSE_INTERNAL_FAIL;
 }

@@ -29,12 +29,24 @@
         <Strat name="32" isDynamic="1" min="60" max="90"/>
     </Params>
 
-    <!-- stategies for setting application-->
+    <!-- stategies for setting application -->
     <Params name="customer_setting_config">
-        <Setting name="-1" value="5"/><!-- auto refreshrate -->
-        <Setting name="1" value="7"/><!-- low refreshrate -->
-        <Setting name="2" value="32"/><!-- mid refreshrate -->
-        <Setting name="3" value="21"/><!-- high refreshrate -->
+        <Setting name="-1" value="5"/><!-- auto refreshrate, range from 1hz to 120hz -->
+        <Setting name="1" value="3"/><!-- low refreshrate 60hz locked -->
+        <Setting name="2" value="2"/><!-- mid refreshrate 90hz locked -->
+        <Setting name="3" value="1"/><!-- high refreshrate 120hz locked -->
+    </Params>
+
+    <!-- bundle name black_list to be applied on mode 2 -->
+    <Params name="bundle_name_black_list" value="2">
+        <Setting name="blackBundle2"/>
+        <Setting name="blackBundle2"/>
+    </Params>
+
+    <!-- bundle name white_list to be applied on mode 3 -->
+    <Params name="bundle_name_white_list" value="3">
+        <Setting name="whiteBundle1">
+        <Setting name="whiteBundle2">
     </Params>
     
     <!-- stategies for animation, need to review later -->

@@ -130,6 +130,7 @@ int32_t HgmCore::SetModeBySettingConfig()
         return HGM_ERROR;
     }
 
+    rateToSwitch = RequestBundlePermission(rateToSwitch);
     for (auto &screen : screenList_) {
         int32_t setThisScreen = SetScreenRefreshRate(screen->GetId(), 0, rateToSwitch);
         if (setThisScreen) {
@@ -139,6 +140,33 @@ int32_t HgmCore::SetModeBySettingConfig()
     }
 
     return EXEC_SUCCESS;
+}
+
+int32_t HgmCore::RequestBundlePermission(int32_t rate)
+{
+    if (rate <= OLED_60_HZ) {
+        return rate;
+    }
+
+    // black_list conatrol at 90hz, return 60 if in the list
+    if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_MEDIUM) {
+        auto bundle = mParsedConfigData_->bundle_black_list_.find(currentBundleName_);
+        if (bundle != mParsedConfigData_->bundle_black_list_.end()) {
+            return OLED_60_HZ;
+        }
+        return rate;
+    }
+
+    // white_list control at 120hz, return 60 if not in the list
+    if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_HIGH) {
+        auto bundle = mParsedConfigData_->bundle_white_list_.find(currentBundleName_);
+        if (bundle == mParsedConfigData_->bundle_white_list_.end()) {
+            return OLED_60_HZ;
+        }
+        return rate;
+    }
+
+    return rate;
 }
 
 int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
@@ -182,7 +210,7 @@ int32_t HgmCore::SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate
 
 int32_t HgmCore::SetRefreshRateMode(RefreshRateMode refreshRateMode)
 {
-    HGM_LOGI("HgmCore set refreshrate mode to : %{public}d", refreshRateMode);
+    HGM_LOGD("HgmCore set refreshrate mode to : %{public}d", refreshRateMode);
     // change refreshrate mode by setting application
     if (SetCustomRateMode(refreshRateMode) != EXEC_SUCCESS) {
         return HGM_ERROR;
@@ -260,6 +288,21 @@ int32_t HgmCore::AddScreenInfo(ScreenId id, int32_t width, int32_t height, uint3
 
     HGM_LOGW("HgmCore failed to add screen mode info of screen : " PUBU64 "", id);
     return HGM_SCREEN_PARAM_ERROR;
+}
+
+int32_t HgmCore::RefreshBundleName(std::string name)
+{
+    if (name == currentBundleName_) {
+        return EXEC_SUCCESS;
+    }
+
+    currentBundleName_ = name;
+    int resetResult = SetRefreshRateMode(customFrameRateMode_);
+    if (resetResult == EXEC_SUCCESS) {
+        HGM_LOGI("HgmCore reset current refreshrate mode: %{public}d due to bundlename: %{public}s",
+            customFrameRateMode_, currentBundleName_.c_str());
+    }
+    return EXEC_SUCCESS;
 }
 
 uint32_t HgmCore::GetScreenCurrentRefreshRate(ScreenId id)
