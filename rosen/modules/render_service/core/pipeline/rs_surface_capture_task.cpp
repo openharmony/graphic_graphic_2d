@@ -160,7 +160,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
 #endif // USE_ROSEN_DRAWING
 #endif
     if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
-        if (visitor_->IsUniRender() && !visitor_->GetHasingSecurityLayer()) {
+        if (visitor_->IsUniRender()) {
             auto rotation = displayNode->GetRotation();
             if (rotation == ScreenRotation::ROTATION_90) {
                 pixelmap->rotate(static_cast<int32_t>(90)); // 90 degrees
@@ -213,7 +213,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNo
     auto screenInfo = screenManager->QueryScreenInfo(screenId);
     uint32_t pixmapWidth = screenInfo.width;
     uint32_t pixmapHeight = screenInfo.height;
-    if (!isUniRender || hasSecurityLayer) {
+    if (!isUniRender) {
         auto rotation = node->GetRotation();
         if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
             std::swap(pixmapWidth, pixmapHeight);
