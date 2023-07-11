@@ -16,7 +16,7 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 import(
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/render_service_client.gni")
-module_output_path = "graphic_standard/render_service_client"
+module_output_path = "graphic_2d/render_service_client"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("RSAnimationFuzzTest") {

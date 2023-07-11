@@ -25,7 +25,7 @@ group("systemtest") {
     ":RSDropFrameProcessorSystemTest",
     ":RSRenderServiceTest",
   ]
-  if (graphic_standard_feature_rs_enable_uni_render) {
+  if (graphic_2d_feature_rs_enable_uni_render) {
     deps += [ ":RSUniRenderTest" ]
   }
 }
@@ -62,7 +62,7 @@ ohos_systemtest("RSRenderServiceTest") {
   defines += gpu_defines
 }
 
-if (graphic_standard_feature_rs_enable_uni_render) {
+if (graphic_2d_feature_rs_enable_uni_render) {
   ## Build RSUniRenderTest
   ohos_systemtest("RSUniRenderTest") {
     module_out_path = module_output_path
@@ -120,5 +120,5 @@ ohos_static_library("rs_test_common") {
   ]
 
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
 }

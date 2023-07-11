@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 
-module_out_path = "graphic_standard/render_service_client"
+module_out_path = "graphic_2d/render_service_client"
 
 group("systemtest") {
   testonly = true
@@ -77,6 +77,6 @@ ohos_static_library("rs_client_test_common") {
   external_deps = [ "multimedia_image_framework:image_native" ]
 
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
 }
 ## Build rs_client_test_common.a }}}

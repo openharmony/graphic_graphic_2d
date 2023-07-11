@@ -15,8 +15,7 @@ import("//build/test.gni")
 import(
     "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/config.gni")
 
-module_output_path =
-    "graphic_standard/rosen/modules/2d_engine/rosen_text/properties"
+module_output_path = "graphic_2d/rosen/modules/2d_engine/rosen_text/properties"
 
 ohos_unittest("2d_engine_rosen_text_prop_test") {
   module_out_path = module_output_path
@@ -62,7 +61,7 @@ ohos_unittest("2d_engine_rosen_text_prop_test") {
   public_deps =
       [ "//third_party/flutter/build/libtxt:thirdparty_lib_txt_$current_os" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 

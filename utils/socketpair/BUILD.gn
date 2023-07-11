@@ -53,7 +53,7 @@ ohos_shared_library("socketpair") {
   ]
 
   innerapi_tags = [ "platformsdk_indirect" ]
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 

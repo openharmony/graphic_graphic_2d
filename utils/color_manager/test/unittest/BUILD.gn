@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 
-module_out_path = "graphic_standard/utils/color_manager"
+module_out_path = "graphic_2d/utils/color_manager"
 
 group("unittest") {
   testonly = true
@@ -53,5 +53,5 @@ ohos_static_library("color_manager_test_common") {
     public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
   }
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
 }

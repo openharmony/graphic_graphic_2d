@@ -86,6 +86,6 @@ ohos_shared_library("skeffectchain") {
 
   install_enable = true
   innerapi_tags = [ "platformsdk" ]
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

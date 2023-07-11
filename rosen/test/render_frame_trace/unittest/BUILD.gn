@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_unittest("render_frame_trace_test") {
-  module_out_path = "graphic_standard/rosen/modules/render_frame_trace"
+  module_out_path = "graphic_2d/rosen/modules/render_frame_trace"
 
   include_dirs = [ "$graphic_2d_root/rosen/modules/render_frame_trace/include" ]
 
@@ -32,7 +32,7 @@ ohos_unittest("render_frame_trace_test") {
   deps =
       [ "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 

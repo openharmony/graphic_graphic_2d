@@ -22,5 +22,5 @@ ohos_static_library("sandbox_utils") {
   public_configs = [ ":sandbox_utils_config" ]
 
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
 }

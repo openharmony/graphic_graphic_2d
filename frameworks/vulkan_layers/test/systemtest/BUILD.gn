@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 
-module_out_path = "graphic_standard/vulkan_layers"
+module_out_path = "graphic_2d/vulkan_layers"
 
 group("systemtest") {
   testonly = true
@@ -62,5 +62,5 @@ ohos_static_library("vulkan_loader_test_common") {
   ]
 
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
 }

@@ -40,7 +40,7 @@ ohos_shared_library("libfence") {
     "hilog:libhilog",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 

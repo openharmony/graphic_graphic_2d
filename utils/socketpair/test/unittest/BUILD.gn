@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 
-module_out_path = "graphic_standard/utils/socketpair"
+module_out_path = "graphic_2d/utils/socketpair"
 
 group("unittest") {
   testonly = true
@@ -48,5 +48,5 @@ ohos_static_library("socketpair_test_common") {
     "//third_party/googletest:gtest_main",
   ]
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
 }

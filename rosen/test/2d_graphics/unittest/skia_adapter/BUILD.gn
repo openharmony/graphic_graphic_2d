@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path =
-    "graphic_standard/rosen/modules/2d_graphics/engine_adapter/skia_adapter"
+    "graphic_2d/rosen/modules/2d_graphics/engine_adapter/skia_adapter"
 
 ohos_unittest("2d_graphics_skia_canvas_test") {
   module_out_path = module_output_path
@@ -62,7 +62,7 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
     defines = [ "ACE_ENABLE_GPU" ]
   }
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 

@@ -106,7 +106,7 @@ ohos_shared_library("libgraphic_utils") {
     "test_header:test_header",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 ## Build libgraphic_utils.so }}}

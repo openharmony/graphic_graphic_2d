@@ -34,6 +34,6 @@ ohos_static_library("buffer_handle") {
     "ipc:ipc_single",
   ]
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
 }
 ## buffer_handle.a }}}

@@ -240,7 +240,7 @@ ohos_source_set("render_service_base_src") {
     sources += graphic_2d_ext_configs.librender_service_base_ext_sources
   }
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -262,7 +262,7 @@ ohos_shared_library("librender_service_base") {
   }
 
   innerapi_tags = [ "platformsdk_indirect" ]
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -278,6 +278,6 @@ ohos_source_set("librender_service_base_static") {
     public_deps += [ "src/render_backend:librender_backend" ]
   }
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

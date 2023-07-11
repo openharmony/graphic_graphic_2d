@@ -43,7 +43,7 @@ ohos_executable("hello_native_window") {
 
   deps = [ "//foundation/graphic/graphic_2d/frameworks/surface:surface" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 ## Build hello_native_window }}}

@@ -56,7 +56,7 @@ ohos_executable("hello_native_image") {
     "$graphic_2d_root/frameworks/surfaceimage:libnative_image",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 

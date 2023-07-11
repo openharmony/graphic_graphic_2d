@@ -72,7 +72,7 @@ ohos_static_library("librender_backend") {
       include_dirs += [ "//third_party/flutter/skia" ]
     }
 
-    if (graphic_standard_feature_enable_vulkan) {
+    if (graphic_2d_feature_enable_vulkan) {
       include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]
       sources += [ "ohos/render_context_ohos_vk.cpp" ]
     }
@@ -103,6 +103,6 @@ ohos_static_library("librender_backend") {
     "samgr:samgr_proxy",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

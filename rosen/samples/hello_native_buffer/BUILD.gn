@@ -45,7 +45,7 @@ ohos_executable("hello_native_buffer") {
 
   external_deps = [ "hilog:libhilog" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 

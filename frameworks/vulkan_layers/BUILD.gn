@@ -58,7 +58,7 @@ ohos_shared_library("vulkan_swapchain_layer") {
   output_name = "vulkan_swapchain"
   output_extension = "so"
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -67,7 +67,7 @@ ohos_shared_library("vulkan_swapchain_layer") {
 ## Build VkLayer_swapchain.json {{{
 ohos_prebuilt_etc("vulkan_swapchain_layer_json") {
   source = "swapchain_layer/VkLayer_swapchain.json"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
   module_install_dir = "etc/vulkan/implicit_layer.d"
 }
