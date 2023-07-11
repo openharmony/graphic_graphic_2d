@@ -96,7 +96,10 @@ ohos_shared_library("surface") {
     "ipc:ipc_core",
   ]
 
-  symlink_target_name = [ "libnative_window.so" ]
+  symlink_target_name = [
+    "libnative_buffer.so",
+    "libnative_window.so",
+  ]
 
   if (defined(graphic_2d_ext_configs.vendor_root)) {
     sources += graphic_2d_ext_configs.libsurface_ext_sources
