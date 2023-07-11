@@ -772,8 +772,12 @@ void RSMainThread::CallbackToWMS(VisibleData& curVisVec)
         }
     }
     if (visibleChanged) {
-        for (auto& listener : occlusionListeners_) {
-            listener->OnOcclusionVisibleChanged(std::make_shared<RSOcclusionData>(curVisVec));
+        std::lock_guard<std::mutex> lock(occlusionMutex_);
+        for (auto it = occlusionListeners_.begin(); it != occlusionListeners_.end(); it++) {
+            if (it->second) {
+                RS_LOGD("RSMainThread::CallbackToWMS curVisVec size:%u", curVisVec.size());
+                it->second->OnOcclusionVisibleChanged(std::make_shared<RSOcclusionData>(curVisVec));
+            }
         }
     }
     lastVisVec_.clear();
@@ -989,22 +993,16 @@ bool RSMainThread::QueryIfUseUniVisitor() const
     return useUniVisitor_;
 }
 
-void RSMainThread::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
+void RSMainThread::RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback)
 {
-    occlusionListeners_.emplace_back(callback);
+    std::lock_guard<std::mutex> lock(occlusionMutex_);
+    occlusionListeners_[pid] = callback;
 }
 
-void RSMainThread::UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
+void RSMainThread::UnRegisterOcclusionChangeCallback(pid_t pid)
 {
-    auto iter = std::find(occlusionListeners_.begin(), occlusionListeners_.end(), callback);
-    if (iter != occlusionListeners_.end()) {
-        occlusionListeners_.erase(iter);
-    }
-}
-
-void RSMainThread::CleanOcclusionListener()
-{
-    occlusionListeners_.clear();
+    std::lock_guard<std::mutex> lock(occlusionMutex_);
+    occlusionListeners_.erase(pid);
 }
 
 void RSMainThread::SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback)

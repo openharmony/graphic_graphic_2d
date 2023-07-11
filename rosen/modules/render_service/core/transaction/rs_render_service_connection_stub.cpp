@@ -648,23 +648,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteInt32(status);
             break;
         }
-        case UNREGISTER_OCCLUSION_CHANGE_CALLBACK: {
-            auto token = data.ReadInterfaceToken();
-            if (token != RSIRenderServiceConnection::GetDescriptor()) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
 
-            auto remoteObject = data.ReadRemoteObject();
-            if (remoteObject == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                break;
-            }
-            sptr<RSIOcclusionChangeCallback> callback = iface_cast<RSIOcclusionChangeCallback>(remoteObject);
-            int32_t status = UnRegisterOcclusionChangeCallback(callback);
-            reply.WriteInt32(status);
-            break;
-        }
         case SET_APP_WINDOW_NUM: {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {

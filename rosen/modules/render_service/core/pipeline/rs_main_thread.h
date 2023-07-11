@@ -106,9 +106,8 @@ public:
     void NotifyRenderModeChanged(bool useUniVisitor);
     bool QueryIfUseUniVisitor() const;
 
-    void RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback);
-    void UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback);
-    void CleanOcclusionListener();
+    void RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback);
+    void UnRegisterOcclusionChangeCallback(pid_t pid);
 
     void WaitUtilUniRenderFinished();
     void NotifyUniRenderFinish();
@@ -199,7 +198,8 @@ private:
     std::shared_ptr<RSContext> context_;
     std::thread::id mainThreadId_;
     std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
-    std::vector<sptr<RSIOcclusionChangeCallback>> occlusionListeners_;
+    std::map<pid_t, sptr<RSIOcclusionChangeCallback>> occlusionListeners_;
+    std::mutex occlusionMutex_;
 
     bool waitingBufferAvailable_ = false; // uni->non-uni mode, wait for RT buffer, only used in main thread
     bool waitingUpdateSurfaceNode_ = false; // non-uni->uni mode, wait for update surfaceView, only used in main thread

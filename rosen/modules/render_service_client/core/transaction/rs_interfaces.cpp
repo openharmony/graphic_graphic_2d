@@ -202,11 +202,6 @@ int32_t RSInterfaces::RegisterOcclusionChangeCallback(const OcclusionChangeCallb
     return renderServiceClient_->RegisterOcclusionChangeCallback(callback);
 }
 
-int32_t RSInterfaces::UnRegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
-{
-    return renderServiceClient_->UnRegisterOcclusionChangeCallback(callback);
-}
-
 int32_t RSInterfaces::SetRenderModeChangeCallback(const RenderModeChangeCallback& callback)
 {
     return renderServiceClient_->SetRenderModeChangeCallback(callback);

@@ -117,8 +117,6 @@ public:
 
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
-    int32_t UnRegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
-
     int32_t SetRenderModeChangeCallback(const RenderModeChangeCallback& callback);
 
     void UpdateRenderMode(bool isUniRender);

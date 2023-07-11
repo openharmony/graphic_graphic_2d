@@ -88,7 +88,6 @@ public:
         GET_SCREEN_TYPE,
         SET_SCREEN_SKIP_FRAME_INTERVAL,
         REGISTER_OCCLUSION_CHANGE_CALLBACK,
-        UNREGISTER_OCCLUSION_CHANGE_CALLBACK,
         SET_APP_WINDOW_NUM,
     };
 
@@ -176,8 +175,6 @@ public:
     virtual int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) = 0;
 
     virtual int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) = 0;
-
-    virtual int32_t UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) = 0;
 
     virtual void SetAppWindowNum(uint32_t num) = 0;
 };

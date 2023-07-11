@@ -188,9 +188,6 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub004
     res = connectionStub_->OnRemoteRequest(
         RSRenderServiceConnectionStub::REGISTER_OCCLUSION_CHANGE_CALLBACK, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::UNREGISTER_OCCLUSION_CHANGE_CALLBACK, data, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_STATE);
 }
 
 /**
@@ -222,12 +219,6 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub005
     res = connectionStub_->OnRemoteRequest(
         RSRenderServiceConnectionStub::EXECUTE_SYNCHRONOUS_TASK, data3, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-
-    MessageParcel data4;
-    data4.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::UNREGISTER_OCCLUSION_CHANGE_CALLBACK, data4, reply, option);
-    ASSERT_EQ(res, ERR_NULL_OBJECT);
 }
 
 /**
