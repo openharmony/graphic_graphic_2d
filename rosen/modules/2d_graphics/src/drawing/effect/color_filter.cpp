@@ -28,7 +28,7 @@ ColorFilter::ColorFilter(FilterType t, ColorQuad c, BlendMode mode) noexcept : C
     impl_->InitWithBlendMode(c, mode);
 }
 
-ColorFilter::ColorFilter(FilterType t, ColorMatrix& m) noexcept : ColorFilter()
+ColorFilter::ColorFilter(FilterType t, const ColorMatrix& m) noexcept : ColorFilter()
 {
     type_ = t;
     impl_->InitWithColorMatrix(m);
@@ -85,7 +85,7 @@ std::shared_ptr<ColorFilter> ColorFilter::CreateComposeColorFilter(ColorFilter& 
     return std::make_shared<ColorFilter>(ColorFilter::FilterType::COMPOSE, f1, f2);
 }
 
-std::shared_ptr<ColorFilter> ColorFilter::CreateMatrixColorFilter(ColorMatrix& m)
+std::shared_ptr<ColorFilter> ColorFilter::CreateMatrixColorFilter(const ColorMatrix& m)
 {
     return std::make_shared<ColorFilter>(ColorFilter::FilterType::MATRIX, m);
 }

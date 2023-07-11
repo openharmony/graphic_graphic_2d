@@ -107,12 +107,10 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
         frameBuffer.width, frameBuffer.height, FB_SAMPLE_COUNT, STENCIL_BITS, framebufferInfo);
 
     SkColorType colorType = kRGBA_8888_SkColorType;
-
-    if (frameBuffer.colorSpace == nullptr) {
-        LOGE("SkiaSurface bind FBO failed: colorSpaceImpl is invalid");
-        return false;
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    if (frameBuffer.colorSpace != nullptr) {
+        skColorSpace = frameBuffer.colorSpace->GetImpl<SkiaColorSpace>()->GetColorSpace();
     }
-    auto skiaColorSpace = frameBuffer.colorSpace->GetImpl<SkiaColorSpace>();
 
 #ifdef NEW_SKIA
     SkSurfaceProps surfaceProps(SURFACE_PROPS_FLAGS, kRGB_H_SkPixelGeometry);
@@ -120,10 +118,8 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
 #endif
 
-    skSurface_ = SkSurface::MakeFromBackendRenderTarget(
-        skiaContext->GetGrContext().get(), backendRenderTarget,
-        kBottomLeft_GrSurfaceOrigin, colorType,
-        skiaColorSpace->GetColorSpace(), &surfaceProps);
+    skSurface_ = SkSurface::MakeFromBackendRenderTarget(skiaContext->GetGrContext().get(),
+        backendRenderTarget, kBottomLeft_GrSurfaceOrigin, colorType, skColorSpace, &surfaceProps);
     if (skSurface_ == nullptr) {
         LOGE("SkiaSurface bind FBO failed: skSurface is nullptr");
         return false;

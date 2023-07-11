@@ -164,6 +164,9 @@ public:
     virtual void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling);
     virtual void DrawPicture(const Picture& picture);
 
+    // temporary interface. Support drawing of SkSVGDOM
+    virtual void DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom);
+
     // clip
     /*
      * @brief              Replace the clipping area with the intersection or difference between the

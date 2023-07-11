@@ -57,6 +57,8 @@ public:
 #endif
     virtual int GetWidth() const = 0;
     virtual int GetHeight() const = 0;
+    virtual ColorType GetColorType() const = 0;
+    virtual AlphaType GetAlphaType() const = 0;
     virtual uint32_t GetUniqueID() const = 0;
     virtual bool ReadPixels(Bitmap& bitmap, int x, int y) = 0;
     virtual bool IsTextureBacked() const = 0;

@@ -29,6 +29,7 @@ Bitmap::~Bitmap() {}
 
 void Bitmap::Build(const int width, const int height, const BitmapFormat& format)
 {
+    format_ = format;
     bmpImplPtr->Build(width, height, format);
 }
 

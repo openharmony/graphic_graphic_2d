@@ -15,6 +15,12 @@
 
 #include "skia_canvas.h"
 
+#if defined(NEW_SKIA)
+#include "modules/svg/include/SkSVGDOM.h"
+#else
+#include "experimental/svg/model/SkSVGDOM.h"
+#endif
+
 #ifdef SUPPORT_OHOS_PIXMAP
 #include "pixel_map.h"
 #endif
@@ -596,6 +602,21 @@ void SkiaCanvas::DrawPicture(const Picture& picture)
         skCanvas_->drawPicture(p.get());
     }
     LOGD("------- DrawPicture");
+}
+
+void SkiaCanvas::DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom)
+{
+    if (!skCanvas_) {
+        LOGE("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    if (!svgDom) {
+        LOGE("svgDom is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    LOGD("+++++++ DrawSVGDOM");
+    svgDom->render(skCanvas_);
+    LOGD("------- DrawSVGDOM");
 }
 
 void SkiaCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)

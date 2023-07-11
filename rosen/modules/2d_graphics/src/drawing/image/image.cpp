@@ -65,6 +65,16 @@ int Image::GetHeight() const
     return imageImplPtr->GetHeight();
 }
 
+ColorType Image::GetColorType() const
+{
+    return imageImplPtr->GetColorType();
+}
+
+AlphaType Image::GetAlphaType() const
+{
+    return imageImplPtr->GetAlphaType();
+}
+
 uint32_t Image::GetUniqueID() const
 {
     return imageImplPtr->GetUniqueID();

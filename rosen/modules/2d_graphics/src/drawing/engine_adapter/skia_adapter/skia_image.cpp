@@ -191,6 +191,52 @@ int SkiaImage::GetHeight() const
     return (skiaImage_ == nullptr) ? 0 : skiaImage_->height();
 }
 
+static ColorType ConvertToColorType(const SkColorType& format)
+{
+    switch (format) {
+        case kUnknown_SkColorType:
+            return COLORTYPE_UNKNOWN;
+        case kAlpha_8_SkColorType:
+            return COLORTYPE_ALPHA_8;
+        case kRGB_565_SkColorType:
+            return COLORTYPE_RGB_565;
+        case kARGB_4444_SkColorType:
+            return COLORTYPE_ARGB_4444;
+        case kRGBA_8888_SkColorType:
+            return COLORTYPE_RGBA_8888;
+        case kBGRA_8888_SkColorType:
+            return COLORTYPE_BGRA_8888;
+        default:
+            return COLORTYPE_UNKNOWN;
+    }
+}
+
+static AlphaType ConvertToAlphaType(const SkAlphaType& format)
+{
+    switch (format) {
+        case kUnknown_SkAlphaType:
+            return ALPHATYPE_UNKNOWN;
+        case kOpaque_SkAlphaType:
+            return ALPHATYPE_OPAQUE;
+        case kPremul_SkAlphaType:
+            return ALPHATYPE_PREMUL;
+        case kUnpremul_SkAlphaType:
+            return ALPHATYPE_UNPREMUL;
+        default:
+            return ALPHATYPE_UNKNOWN;
+    }
+}
+
+ColorType SkiaImage::GetColorType() const
+{
+    return (skiaImage_ == nullptr) ? ColorType::COLORTYPE_UNKNOWN : ConvertToColorType(skiaImage_->colorType());
+}
+
+AlphaType SkiaImage::GetAlphaType() const
+{
+    return (skiaImage_ == nullptr) ? AlphaType::ALPHATYPE_UNKNOWN : ConvertToAlphaType(skiaImage_->alphaType());
+}
+
 uint32_t SkiaImage::GetUniqueID() const
 {
     return (skiaImage_ == nullptr) ? 0 : skiaImage_->uniqueID();
