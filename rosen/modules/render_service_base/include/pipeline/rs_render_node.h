@@ -173,6 +173,18 @@ public:
     {
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
         std::swap(cacheSurface_, cacheCompletedSurface_);
+#ifdef RS_ENABLE_GL
+        std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
+        SetTextureValidFlag(true);
+#endif
+    }
+
+    void SetTextureValidFlag(bool isValid)
+    {
+#ifdef RS_ENABLE_GL
+        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+        isTextureValid_ = isValid;
+#endif
     }
 
 #ifndef USE_ROSEN_DRAWING
@@ -365,22 +377,13 @@ public:
 
     bool HasCachedTexture() const
     {
+        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
 #ifdef RS_ENABLE_GL
-        return grBackendTexture_.isValid();
+        return isTextureValid_;
 #else
         return true;
 #endif
     
-    }
-
-    void SetNeedClearFlag(bool needClear)
-    {
-        needClear_ = needClear;
-    }
-
-    bool NeedClear() const
-    {
-        return needClear_;
     }
 
     void SetDrawRegion(std::shared_ptr<RectF> rect)
@@ -458,7 +461,9 @@ private:
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
 #endif
 #ifdef RS_ENABLE_GL
-    GrBackendTexture grBackendTexture_;
+    GrBackendTexture cacheBackendTexture_;
+    GrBackendTexture cacheCompletedBackendTexture_;
+    bool isTextureValid_ = false;
 #endif
     std::atomic<bool> isStaticCached_ = false;
     CacheType cacheType_ = CacheType::NONE;
@@ -474,7 +479,6 @@ private:
     bool hasFilter_ = false;
     bool hasHardwareNode_ = false;
     bool hasAbilityComponent_ = false;
-    bool needClear_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 
     // driven render

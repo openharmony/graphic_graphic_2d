@@ -613,12 +613,13 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
     SkPaint paint;
 #if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     if (isUIFirst) {
-        if (!grBackendTexture_.isValid()) {
+        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+        if (!cacheCompletedBackendTexture_.isValid()) {
             RS_LOGE("invalid grBackendTexture_");
             canvas.restore();
             return;
         }
-        auto image = SkImage::MakeFromTexture(canvas.recordingContext(), grBackendTexture_,
+        auto image = SkImage::MakeFromTexture(canvas.recordingContext(), cacheCompletedBackendTexture_,
             kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
         if (image == nullptr) {
             RS_LOGE("make Image failed");
@@ -694,7 +695,7 @@ void RSRenderNode::UpdateBackendTexture()
     if (cacheSurface_ == nullptr) {
         return;
     }
-    grBackendTexture_
+    cacheBackendTexture_
         = cacheSurface_->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
 }
 #endif

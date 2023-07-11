@@ -61,6 +61,10 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
     }
     if (subThreadNodes.empty()) {
         ROSEN_LOGD("RSSubThreadManager::SubmitSubThreadTask subThread does not have any nodes");
+        if (needResetContext_) {
+            ResetSubThreadGrContext();
+        }
+        needResetContext_ = false;
         return;
     }
     std::vector<std::unique_ptr<RSRenderTask>> renderTaskList;
@@ -123,6 +127,7 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
             subThread->RenderCache(superRenderTaskList[i]);
         });
     }
+    needResetContext_ = true;
 }
 
 void RSSubThreadManager::WaitNodeTask(uint64_t nodeId)
@@ -140,5 +145,18 @@ void RSSubThreadManager::NodeTaskNotify(uint64_t nodeId)
         nodeTaskState_[nodeId] = 0;
     }
     cvParallelRender_.notify_one();
+}
+
+void RSSubThreadManager::ResetSubThreadGrContext()
+{
+    if (threadList_.empty()) {
+        return;
+    }
+    for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
+        auto subThread = threadList_[i];
+        subThread->PostTask([subThread]() {
+            subThread->ResetGrContext();
+        });
+    }
 }
 }
