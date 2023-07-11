@@ -16,8 +16,7 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_CANVAS_DRAWING_NODE_COMMAND_H
 #define ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_CANVAS_DRAWING_NODE_COMMAND_H
 
-#include "rs_command_templates.h"
-
+#include "command/rs_command_templates.h"
 #include "common/rs_macros.h"
 
 namespace OHOS {

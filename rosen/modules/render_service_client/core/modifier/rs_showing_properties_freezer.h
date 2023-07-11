@@ -72,6 +72,8 @@ public:
 
 private:
     NodeId id_;
+    template<typename T, RSModifierType Type>
+    std::optional<T> GetPropertyImpl() const;
 };
 } // namespace Rosen
 } // namespace OHOS
