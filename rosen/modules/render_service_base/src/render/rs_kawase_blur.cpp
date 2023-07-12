@@ -73,10 +73,6 @@ SkMatrix KawaseBlurFilter::GetShaderTransform(const SkCanvas* canvas, const SkRe
 {
     auto matrix = SkMatrix::Scale(scale, scale);
     matrix.postConcat(SkMatrix::Translate(blurRect.fLeft, blurRect.fTop));
-    SkMatrix drawInverse;
-    if (canvas != nullptr && canvas->getTotalMatrix().invert(&drawInverse)) {
-        matrix.postConcat(drawInverse);
-    }
     return matrix;
 }
 
