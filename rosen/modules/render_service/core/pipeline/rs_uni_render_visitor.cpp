@@ -245,7 +245,7 @@ void RSUniRenderVisitor::UpdateCacheChangeStatus(RSBaseRenderNode& node)
     if (targetNode->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
         markedCachedNodes_++;
         // For rootnode, init drawing changes only if there is any content dirty
-        isDrawingCacheChanged_ = targetNode->IsContentDirty();
+        isDrawingCacheChanged_ = curContentDirty_;
         RS_TRACE_NAME_FMT("RSUniRenderVisitor::UpdateCacheChangeStatus: cachable node %" PRIu64 " markedNum: %d, "
             "contentDirty(cacheChanged): %d", targetNode->GetId(), static_cast<int>(markedCachedNodes_),
             static_cast<int>(isDrawingCacheChanged_));
@@ -953,6 +953,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 {
     preparedCanvasNodeInCurrentSurface_++;
     node.ApplyModifiers();
+    curContentDirty_ = node.IsContentDirty();
     bool dirtyFlag = dirtyFlag_;
     RectI prepareClipRect = prepareClipRect_;
 

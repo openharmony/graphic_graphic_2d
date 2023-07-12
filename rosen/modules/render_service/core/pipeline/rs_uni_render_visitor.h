@@ -389,6 +389,7 @@ private:
     uint32_t captureWindowZorder_ = 0;
     std::optional<SkPath> effectRegion_ = std::nullopt;
     bool curDirty_ = false;
+    bool curContentDirty_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
