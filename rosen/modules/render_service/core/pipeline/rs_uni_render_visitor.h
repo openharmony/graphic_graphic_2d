@@ -392,6 +392,8 @@ private:
 
     FrameRateRange currSurfaceNodeRSRange_ = {0, 0, 0};
     FrameRateRange currSurfaceNodeUIRange_ = {0, 0, 0};
+    FrameRateRange currDisplayNodeRSRange_ = {0, 0, 0};
+    FrameRateRange currDisplayNodeUIRange_ = {0, 0, 0};
 };
 } // namespace Rosen
 } // namespace OHOS

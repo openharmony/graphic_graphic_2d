@@ -342,30 +342,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
             continue;
         }
 
-        auto currRSRange = surfaceNodePtr->GetFrameRateRangeFromRS();
-        if (currRSRange.IsValidAndNotBlank()) {
-            rsRange.MixNewRange(currRSRange);
-        }
-
-        auto currUIRange = surfaceNodePtr->GetFrameRateRangeFromUI();
-        if (currUIRange.IsValidAndNotBlank()) {
-            uiRange.MixNewRange(currUIRange);
-        }
-
         CheckColorSpace(*surfaceNodePtr);
-    }
-
-    if (rsRange.IsValidAndNotBlank()) {
-        node.SetFrameRateRangeToRS(rsRange);
-        ROSEN_LOGI("RSUniRenderVisitor::PrepareDisplayRenderNode current \
-            FrameRateRange(RS) is [%d, %d, %d]", rsRange.min_, rsRange.max_,
-            rsRange.preferred_);
-    }
-    if (uiRange.IsValidAndNotBlank()) {
-        node.SetFrameRateRangeToUI(uiRange);
-        ROSEN_LOGI("RSUniRenderVisitor::PrepareDisplayRenderNode current \
-            FrameRateRange(UI) is [%d, %d, %d]", uiRange.min_, uiRange.max_,
-            uiRange.preferred_);
     }
 
 #ifndef USE_ROSEN_DRAWING
@@ -437,6 +414,21 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         }
         unpairedTransitionNodes_.clear();
     }
+
+    if (currDisplayNodeRSRange_.IsValidAndNotBlank()) {
+        node.SetFrameRateRangeToRS(currDisplayNodeRSRange_);
+        ROSEN_LOGI("RSUniRenderVisitor::PrepareDisplayRenderNode current \
+            FrameRateRange(RS) is [%d, %d, %d]", currDisplayNodeRSRange_.min_,
+            currDisplayNodeRSRange_.max_, currDisplayNodeRSRange_.preferred_);
+    }
+    if (currDisplayNodeUIRange_.IsValidAndNotBlank()) {
+        node.SetFrameRateRangeToUI(currDisplayNodeUIRange_);
+        ROSEN_LOGI("RSUniRenderVisitor::PrepareDisplayRenderNode current \
+            FrameRateRange(UI) is [%d, %d, %d]", currDisplayNodeUIRange_.min_,
+            currDisplayNodeUIRange_.max_, currDisplayNodeUIRange_.preferred_);
+    }
+    currDisplayNodeRSRange_.Reset();
+    currDisplayNodeUIRange_.Reset();
 }
 
 void RSUniRenderVisitor::ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRenderNode& node)
@@ -851,6 +843,8 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
     node.SetFrameRateRangeToRS(currSurfaceNodeRSRange_);
     node.SetFrameRateRangeToUI(currSurfaceNodeUIRange_);
+    currDisplayNodeRSRange_.MixNewRange(currSurfaceNodeRSRange_);
+    currDisplayNodeUIRange_.MixNewRange(currSurfaceNodeUIRange_);
     currSurfaceNodeRSRange_.Reset();
     currSurfaceNodeUIRange_.Reset();
 }
