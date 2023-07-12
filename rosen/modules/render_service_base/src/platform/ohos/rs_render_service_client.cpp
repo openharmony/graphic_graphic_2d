@@ -690,5 +690,37 @@ void RSRenderServiceClient::ReportJankStats()
         renderService->ReportJankStats();
     }
 }
+
+void RSRenderServiceClient::ReportEventResponse(DataBaseRs info)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->ReportEventResponse(info);
+    }
+}
+
+void RSRenderServiceClient::ReportEventComplete(DataBaseRs info)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->ReportEventComplete(info);
+    }
+}
+
+void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->ReportEventJankFrame(info);
+    }
+}
+
+void RSRenderServiceClient::ReportEventFirstFrame(DataBaseRs info)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->ReportEventFirstFrame(info);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

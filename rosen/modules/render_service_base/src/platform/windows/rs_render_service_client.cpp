@@ -281,5 +281,21 @@ void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap>
 void RSRenderServiceClient::ReportJankStats()
 {
 }
+
+void RSRenderServiceClient::ReportEventResponse(DataBaseRs info)
+{
+}
+
+void RSRenderServiceClient::ReportEventComplete(DataBaseRs info)
+{
+}
+
+void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
+{
+}
+
+void RSRenderServiceClient::ReportEventFirstFrame(DataBaseRs info)
+{
+}
 } // namespace Rosen
 } // namespace OHOS

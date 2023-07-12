@@ -143,6 +143,14 @@ public:
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
 
     void ReportJankStats();
+
+    void ReportEventResponse(DataBaseRs info);
+
+    void ReportEventComplete(DataBaseRs info);
+
+    void ReportEventJankFrame(DataBaseRs info);
+
+    void ReportEventFirstFrame(DataBaseRs info);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

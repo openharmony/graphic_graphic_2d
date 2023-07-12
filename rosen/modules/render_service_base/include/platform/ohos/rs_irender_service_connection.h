@@ -34,6 +34,7 @@
 #include "screen_manager/screen_types.h"
 #include "screen_manager/rs_virtual_screen_resolution.h"
 #include "transaction/rs_transaction_data.h"
+#include "transaction/rs_render_service_client.h"
 #include "ivsync_connection.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 
@@ -95,6 +96,10 @@ public:
         REPORT_JANK_STATS,
         GET_BITMAP,
         EXECUTE_SYNCHRONOUS_TASK,
+        REPORT_EVENT_RESPONSE,
+        REPORT_EVENT_COMPLETE,
+        REPORT_EVENT_JANK_FRAME,
+        REPORT_EVENT_FIRST_FRAME,
     };
 
     virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
@@ -199,6 +204,14 @@ public:
     virtual void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) = 0;
 
     virtual void ReportJankStats() = 0;
+
+    virtual void ReportEventResponse(DataBaseRs info) = 0;
+
+    virtual void ReportEventComplete(DataBaseRs info) = 0;
+
+    virtual void ReportEventJankFrame(DataBaseRs info) = 0;
+
+    virtual void ReportEventFirstFrame(DataBaseRs info) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

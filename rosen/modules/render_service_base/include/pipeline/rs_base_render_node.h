@@ -82,7 +82,7 @@ public:
         return id_;
     }
 
-    void SetIsOnTheTree(bool flag);
+    virtual void SetIsOnTheTree(bool flag);
     bool IsOnTheTree() const
     {
         return isOnTheTree_;

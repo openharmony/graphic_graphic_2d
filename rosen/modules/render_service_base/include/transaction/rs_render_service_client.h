@@ -52,6 +52,23 @@ namespace Rosen {
 using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent)>;
 using BufferAvailableCallback = std::function<void()>;
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
+
+struct DataBaseRs {
+    int32_t appPid = -1;
+    int32_t eventType = -1;
+    int64_t uniqueId = 0;
+    int64_t inputTime = 0;
+    int64_t beginVsyncTime = 0;
+    int64_t endVsyncTime = 0;
+    std::string sceneId;
+    std::string versionCode;
+    std::string versionName;
+    std::string bundleName;
+    std::string processName;
+    std::string abilityName;
+    std::string pageUrl;
+};
+
 class SurfaceCaptureCallback {
 public:
     SurfaceCaptureCallback() {}
@@ -171,6 +188,15 @@ public:
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
 
     void ReportJankStats();
+
+    void ReportEventResponse(DataBaseRs info);
+
+    void ReportEventComplete(DataBaseRs info);
+
+    void ReportEventJankFrame(DataBaseRs info);
+
+    void ReportEventFirstFrame(DataBaseRs info);
+
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
     std::mutex mutex_;

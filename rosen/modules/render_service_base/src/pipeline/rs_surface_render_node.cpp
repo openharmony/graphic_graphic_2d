@@ -27,6 +27,7 @@
 #endif
 
 #include "command/rs_surface_node_command.h"
+#include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_rect.h"
 #include "common/rs_vector2.h"
@@ -34,6 +35,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
+#include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_skia_filter.h"
 #include "transaction/rs_render_service_client.h"
@@ -1183,5 +1185,19 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
     }
 }
 
+#ifdef OHOS_PLATFORM
+void RSSurfaceRenderNode::SetIsOnTheTree(bool flag)
+{
+    RSBaseRenderNode::SetIsOnTheTree(flag);
+    if (flag == isReportFirstFrame_ || !IsAppWindow()) {
+        return;
+    }
+    if (flag) {
+        RSJankStats::GetInstance().SetFirstFrame();
+        RSJankStats::GetInstance().SetPid(ExtractPid(GetId()));
+    }
+    isReportFirstFrame_ = flag;
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

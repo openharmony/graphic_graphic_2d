@@ -222,6 +222,14 @@ public:
 
     void ReportJankStats() override {}
 
+    void ReportEventResponse(DataBaseRs info) override {}
+
+    void ReportEventComplete(DataBaseRs info) override {}
+
+    void ReportEventJankFrame(DataBaseRs info) override {}
+
+    void ReportEventFirstFrame(DataBaseRs info) override {}
+
     bool GetBitmap(NodeId id, SkBitmap& bitmap) override
     {
         return 0;

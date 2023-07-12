@@ -66,6 +66,9 @@ public:
     void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
     void ResetParent() override;
 
+#ifdef OHOS_PLATFORM
+    void SetIsOnTheTree(bool flag) override;
+#endif
     bool IsAppWindow() const
     {
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
@@ -689,6 +692,7 @@ private:
 
     bool isSecurityLayer_ = false;
     bool hasFingerprint_ = false;
+    bool isReportFirstFrame_ = false;
     RectI srcRect_;
 #ifndef USE_ROSEN_DRAWING
     SkMatrix totalMatrix_;
