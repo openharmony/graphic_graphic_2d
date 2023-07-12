@@ -1084,26 +1084,22 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     node.SetGlobalAlpha(curAlpha_);
     node.UpdateChildrenOutOfRectFlag(false);
 
-    FrameRateRange rsRange;
-    FrameRateRange uiRange;
-    for (auto& child : node.GetChildren()) {
-        if (auto renderChild = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(child.lock())) {
-            auto currRSRange = renderChild->GetFrameRateRangeFromRS();
-            if (currRSRange.IsValidAndNotBlank()) {
-                rsRange.MixNewRange(currRSRange);
-            }
-
-            auto currUIRange = renderChild->GetFrameRateRangeFromUI();
-            if (currUIRange.IsValidAndNotBlank()) {
-                uiRange.MixNewRange(currUIRange);
-            }
+    auto currRSRange = node.GetFrameRateRangeFromRSAnimations();
+    if (!currRSRange.IsValidAndNotBlank()) {
+        auto range = rsParent->GetFrameRateRangeFromRS();
+        currRSRange.MixNewRange(range);
+        if (range != currRSRange) {
+            rsParent->SetFrameRateRangeToRS(currRSRange);
         }
     }
-    if (rsRange.IsValidAndNotBlank()) {
-        node.SetFrameRateRangeToRS(rsRange);
-    }
-    if (uiRange.IsValidAndNotBlank()) {
-        node.SetFrameRateRangeToUI(uiRange);
+
+    auto currUIRange = node.GetFrameRateRangeFromUI();
+    if (currUIRange.IsValidAndNotBlank()) {
+        auto range = rsParent->GetFrameRateRangeFromUI();
+        currUIRange.MixNewRange(range);
+        if (range != currUIRange) {
+            rsParent->SetFrameRateRangeToUI(currUIRange);
+        }
     }
 
     PrepareBaseRenderNode(node);
