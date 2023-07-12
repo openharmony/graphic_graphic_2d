@@ -66,7 +66,7 @@ ohos_shared_library("libnative_image") {
     "ipc:ipc_single",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 ## Build libnative_image.so }}}

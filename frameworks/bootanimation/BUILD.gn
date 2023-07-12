@@ -89,7 +89,7 @@ ohos_executable("bootanimation") {
     external_deps += [ "startup:syspara" ]
   }
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -99,21 +99,21 @@ ohos_executable("bootanimation") {
 ohos_prebuilt_etc("bootanimation_pics") {
   source = "data/bootpic.zip"
   relative_install_dir = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
 ohos_prebuilt_etc("bootanimation_sounds") {
   source = "data/bootsound.wav"
   relative_install_dir = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
 ohos_prebuilt_etc("bootanimation_video") {
   source = "data/bootvideo.mp4"
   relative_install_dir = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 ## Install boot animation resource to /system/etc/graphic/ }}}

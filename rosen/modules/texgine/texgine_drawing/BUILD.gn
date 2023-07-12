@@ -66,6 +66,6 @@ ohos_shared_library("libtexgine_drawing") {
 
   deps = []
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

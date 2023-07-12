@@ -87,7 +87,7 @@ ohos_source_set("webgl_src") {
 
   configs = [ ":render_config" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -99,6 +99,6 @@ ohos_shared_library("libwebglnapi") {
   } else {
     install_enable = false
   }
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

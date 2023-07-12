@@ -30,6 +30,6 @@ ohos_source_set("render_frame_trace") {
     }
   }
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

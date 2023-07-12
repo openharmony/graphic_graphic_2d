@@ -157,7 +157,7 @@ template("graphics2d_source_set") {
     }
     deps += [ "$rosen_root/modules/2d_engine/rosen_text:rosen_text_inner" ]
 
-    part_name = "graphic_standard"
+    part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
 }
@@ -194,7 +194,7 @@ if (!is_cross_platform_build) {
     deps = [ ":2d_graphics_source_ohos" ]
     public_configs = [ ":2d_graphics_config" ]
     innerapi_tags = [ "platformsdk_indirect" ]
-    part_name = "graphic_standard"
+    part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
 }
@@ -207,7 +207,7 @@ ohos_shared_library("2d_graphics_new") {
   deps = [ ":2d_graphics_source_$platform" ]
   public_configs = [ ":2d_graphics_config" ]
   innerapi_tags = [ "platformsdk_indirect" ]
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -268,7 +268,7 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
 
   external_deps = [ "hilog:libhilog" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -307,6 +307,6 @@ ohos_shared_library("2d_graphics_drawing") {
   }
   deps = [ "$rosen_root/modules/2d_engine/rosen_text:rosen_text_inner" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

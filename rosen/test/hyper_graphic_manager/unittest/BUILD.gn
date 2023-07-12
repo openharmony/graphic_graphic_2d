@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_unittest("hyper_graphic_manager_test") {
-  module_out_path = "graphic_standard/rosen/modules/hyper_graphic_manager"
+  module_out_path = "graphic_2d/rosen/modules/hyper_graphic_manager"
 
   sources = [ "hyper_graphic_manager_test.cpp" ]
 
@@ -32,12 +32,12 @@ ohos_unittest("hyper_graphic_manager_test") {
     "init:libbegetutil",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
 ohos_unittest("hgm_xml_parser_test") {
-  module_out_path = "graphic_standard/rosen/modules/hyper_graphic_manager"
+  module_out_path = "graphic_2d/rosen/modules/hyper_graphic_manager"
 
   sources = [ "hgm_xml_parser_test.cpp" ]
 
@@ -54,7 +54,7 @@ ohos_unittest("hgm_xml_parser_test") {
     "init:libbegetutil",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 

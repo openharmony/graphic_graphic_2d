@@ -41,7 +41,7 @@ ohos_static_library("raw_parser") {
   ]
 
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   external_deps = [ "c_utils:utils" ]
 }
 ## Build raw_parser.a }}}

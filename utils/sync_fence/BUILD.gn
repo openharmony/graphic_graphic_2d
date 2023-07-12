@@ -62,7 +62,7 @@ ohos_shared_library("sync_fence") {
     "chipsetsdk_indirect",
     "platformsdk_indirect",
   ]
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 

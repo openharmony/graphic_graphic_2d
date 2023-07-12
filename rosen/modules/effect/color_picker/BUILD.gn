@@ -64,7 +64,7 @@ ohos_shared_library("color_picker") {
   cflags_cc = [ "-std=c++17" ]
 
   innerapi_tags = [ "platformsdk" ]
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 ## Build color_picker.so

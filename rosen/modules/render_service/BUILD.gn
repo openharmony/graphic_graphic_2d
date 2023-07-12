@@ -18,7 +18,7 @@ import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
 ## Build librender_service.so
 ohos_shared_library("librender_service") {
   defines = []
-  if (graphic_standard_feature_color_gamut_enable) {
+  if (graphic_2d_feature_color_gamut_enable) {
     defines += [ "PADDING_HEIGHT_32" ]
   } else {
     defines += []
@@ -134,7 +134,7 @@ ohos_shared_library("librender_service") {
   }
 
   if (rs_enable_gpu) {
-    if (graphic_standard_feature_enable_vulkan) {
+    if (graphic_2d_feature_enable_vulkan) {
       include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]
     }
 
@@ -174,7 +174,7 @@ ohos_shared_library("librender_service") {
     defines += accessibility_defines
   }
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -194,6 +194,6 @@ ohos_executable("render_service") {
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

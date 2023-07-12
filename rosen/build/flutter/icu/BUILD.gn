@@ -116,7 +116,7 @@ template("rosen_libicu") {
   forward_variables_from(invoker, "*")
 
   ohos_source_set(target_name) {
-    part_name = "graphic_standard"
+    part_name = "graphic_2d"
     subsystem_name = "graphic"
     public_configs = [ ":icu_config_$platform" ]
     configs = [ ":icu_compile_flags" ]

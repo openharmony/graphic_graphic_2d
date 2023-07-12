@@ -49,7 +49,7 @@ ohos_executable("hello_rosen") {
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 ## Build so }}}

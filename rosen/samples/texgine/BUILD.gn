@@ -77,7 +77,7 @@ ohos_shared_library("libskia_rs_framework") {
     "input:libmmi-client",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -94,7 +94,7 @@ ohos_source_set("texgine_sample") {
 
   external_deps = [ "hitrace:hitrace_meter" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -102,7 +102,7 @@ ohos_executable("texgine_sample_align") {
   install_enable = true
   sources = [ "feature_test/align_test.cpp" ]
   deps = [ ":texgine_sample" ]
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -113,7 +113,7 @@ ohos_executable("texgine_sample_alignment") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -124,7 +124,7 @@ ohos_executable("texgine_sample_calibrate") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -135,7 +135,7 @@ ohos_executable("texgine_sample_decoration") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -147,7 +147,7 @@ ohos_executable("texgine_sample_direction") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -158,7 +158,7 @@ ohos_executable("texgine_sample_mix") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -169,7 +169,7 @@ ohos_executable("texgine_sample_shadow") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -183,7 +183,7 @@ ohos_executable("texgine_sample_bug") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -195,7 +195,7 @@ ohos_executable("texgine_sample_dynamic_font") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -207,7 +207,7 @@ ohos_executable("texgine_sample_emoji") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -218,7 +218,7 @@ ohos_executable("texgine_sample_font_style") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -229,7 +229,7 @@ ohos_executable("texgine_sample_feature") {
   defines = [ "RESOURCE_PATH_PREFIX=\"/system/etc/test_resources/\"" ]
 
   deps = [ ":texgine_sample" ]
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -240,7 +240,7 @@ ohos_executable("texgine_sample_glyph_position") {
   defines = [ "RESOURCE_PATH_PREFIX=\"/system/etc/test_resources/\"" ]
 
   deps = [ ":texgine_sample" ]
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -250,7 +250,7 @@ ohos_executable("texgine_sample_intrinsic_width") {
   sources = [ "feature_test/intrinsic_width_test.cpp" ]
 
   deps = [ ":texgine_sample" ]
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -261,7 +261,7 @@ ohos_executable("texgine_sample_spacing") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -271,7 +271,7 @@ ohos_executable("texgine_sample_strut") {
   sources = [ "feature_test/strut_test.cpp" ]
 
   deps = [ ":texgine_sample" ]
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -281,7 +281,7 @@ ohos_executable("texgine_sample_text_color") {
   sources = [ "feature_test/text_color_test.cpp" ]
 
   deps = [ ":texgine_sample" ]
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -292,7 +292,7 @@ ohos_executable("texgine_sample_weight_style") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -303,7 +303,7 @@ ohos_executable("texgine_sample_word_boundary") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -314,7 +314,7 @@ ohos_executable("texgine_sample_ellipsis") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -325,7 +325,7 @@ ohos_executable("texgine_sample_layout") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -337,7 +337,7 @@ ohos_executable("texgine_sample_dynamic_otf_font") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -348,7 +348,7 @@ ohos_executable("texgine_sample_text_height") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -359,6 +359,6 @@ ohos_executable("texgine_sample_typography_height") {
 
   deps = [ ":texgine_sample" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

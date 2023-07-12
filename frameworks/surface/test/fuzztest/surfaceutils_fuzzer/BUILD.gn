@@ -14,7 +14,7 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
-module_output_path = "graphic_standard/surface"
+module_output_path = "graphic_2d/surface"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("SurfaceUtilsFuzzTest") {

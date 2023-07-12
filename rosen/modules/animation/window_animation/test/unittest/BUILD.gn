@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
-module_output_path = "graphic_standard/rosen/modules/animation/window_animation"
+module_output_path = "graphic_2d/rosen/modules/animation/window_animation"
 
 ohos_unittest("RSWindowAnimationTest") {
   module_out_path = module_output_path

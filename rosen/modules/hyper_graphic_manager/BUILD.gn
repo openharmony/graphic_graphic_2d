@@ -50,7 +50,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "init:libbegetutil",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 
   if (is_standard_system) {
@@ -63,6 +63,6 @@ ohos_shared_library("libhyper_graphic_manager") {
 ohos_prebuilt_etc("hgm_policy_config.xml") {
   source = "config/include/hgm_policy_config.xml"
   relative_install_dir = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
