@@ -31,6 +31,7 @@
 namespace OHOS {
 namespace Rosen {
 const int STENCIL_BUFFER_SIZE = 8;
+const std::string UNIRENDER_CACHE_DIR = "/data/service/el0/render_service";
 sk_sp<SkSurface> DrawingContext::AcquireSurface(const std::shared_ptr<RSRenderSurfaceFrame>& frame)
 {
     if (frame == nullptr) {
@@ -71,6 +72,7 @@ bool DrawingContext::SetUpDrawingContext()
     auto &cache = ShaderCache::Instance();
 #if defined(RS_ENABLE_UNI_RENDER)
     isUni = true;
+    cache.SetFilePath(UNIRENDER_CACHE_DIR);
 #endif
     cache.InitShaderCache(glesVersion, size, isUni);
     options.fPersistentCache = &cache;
@@ -140,6 +142,7 @@ sk_sp<SkSurface> DrawingContext::AcquireSurfaceInGLES(const std::shared_ptr<RSRe
         LOGE("Failed to acquire surface in gles, skSurface is nullptr");
         return nullptr;
     }
+    LOGD("Acquire Surface In GLES Successfully!");
     return skSurface;
 }
 
@@ -164,6 +167,7 @@ sk_sp<SkSurface> DrawingContext::AcquireSurfaceInRaster(const std::shared_ptr<RS
     SkImageInfo info =
         SkImageInfo::Make(buffer->GetWidth(), buffer->GetHeight(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
     sk_sp<SkSurface> skSurface = SkSurface::MakeRasterDirect(info, addr, buffer->GetStride());
+    LOGD("Acquire Surface In Raster Successfully!");
     return skSurface;
 }
 
@@ -180,6 +184,7 @@ sk_sp<SkSurface> DrawingContext::AcquireSurfaceInVulkan(const std::shared_ptr<RS
         LOGE("Failed to acquire surface in vulkan, vulkanWindow is nullptr");
         return nullptr;
     }
+    LOGD("Acquire Surface In Vulkan Successfully!");
     return vulkanWindow->AcquireSurface();
 #else
     return nullptr;

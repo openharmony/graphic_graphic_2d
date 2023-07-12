@@ -32,7 +32,7 @@
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
 #ifdef NEW_RENDER_CONTEXT
-#include "memory/rs_memory_manager.h"
+#include "render_context/memory_handler.h"
 #endif
 
 #ifdef _WIN32
@@ -138,7 +138,7 @@ void RSUIDirector::GoBackground()
 #ifndef ROSEN_CROSS_PLATFORM
 #if defined(NEW_RENDER_CONTEXT)
                 auto drawingContext = RSRenderThread::Instance().GetDrawingContext();
-                MemoryManager::ClearRedundantResources(drawingContext->GetDrawingContext());
+                MemoryHandler::ClearRedundantResources(drawingContext->GetDrawingContext());
 #else
                 renderContext->ClearRedundantResources();
 #endif

@@ -105,6 +105,9 @@ std::shared_ptr<RSRenderSurfaceFrame> RSRenderSurfaceOhos::RequestFrame(
     frameConfig->width = width;
     frameConfig->height = height;
     frameConfig->uiTimestamp = uiTimestamp;
+    frameConfig->useAFBC = useAFBC;
+    frameConfig->skSurface = nullptr;
+
     std::shared_ptr<SurfaceConfig> surfaceConfig = frame_->surfaceConfig;
     if (surfaceConfig->producer == nullptr) {
         LOGE("Failed to request frame, surfaceConfig->producer is invalid");
@@ -131,6 +134,7 @@ bool RSRenderSurfaceOhos::FlushFrame(uint64_t uiTimestamp)
         RenderFrame();
     }
     renderContext_->SwapBuffers(frame_);
+    LOGD("FlushFrame successfully");
     return true;
 }
 
@@ -214,6 +218,7 @@ void RSRenderSurfaceOhos::ClearBuffer()
         return;
     }
     surfaceConfig->producer->GoBackground();
+    LOGD("Clear buffer successfully");
 }
 
 SkCanvas* RSRenderSurfaceOhos::GetCanvas()
@@ -317,6 +322,7 @@ void RSRenderSurfaceOhos::RenderFrame()
     }
     RS_TRACE_FUNC();
     if (frameConfig->skSurface->getCanvas() != nullptr) {
+        LOGD("Render frame successfully");
         frameConfig->skSurface->getCanvas()->flush();
     } else {
         LOGE("Failed to render frame, canvas is nullptr");
