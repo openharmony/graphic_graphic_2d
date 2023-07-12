@@ -333,18 +333,14 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     prepareClipRect_.SetAll(0, 0, screenInfo_.width, screenInfo_.height);
     screenManager->GetScreenSupportedColorGamuts(node.GetScreenId(), colorGamutModes_);
 
-    FrameRateRange rsRange;
-    FrameRateRange uiRange;
     for (auto& child : node.GetSortedChildren()) {
         auto surfaceNodePtr = child->ReinterpretCastTo<RSSurfaceRenderNode>();
         if (!surfaceNodePtr) {
             RS_LOGE("RSUniRenderVisitor::PrepareDisplayRenderNode ReinterpretCastTo fail");
             continue;
         }
-
         CheckColorSpace(*surfaceNodePtr);
     }
-
 #ifndef USE_ROSEN_DRAWING
     parentSurfaceNodeMatrix_ = SkMatrix::I();
 #else
