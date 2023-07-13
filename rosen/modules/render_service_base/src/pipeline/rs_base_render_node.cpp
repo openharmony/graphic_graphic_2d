@@ -268,6 +268,8 @@ void RSBaseRenderNode::DumpTree(int32_t depth, std::string& out) const
     out += "| ";
     DumpNodeType(out);
     out += "[" + std::to_string(GetId()) + "]";
+    out += ", rootSurfaceNodeId";
+    out += "[" + std::to_string(GetRootSurfaceNodeId()) + "]";
     if (IsInstanceOf<RSRenderNode>()) {
         auto node = (static_cast<const RSRenderNode*>(this));
         if (node->IsSuggestedDrawInGroup()) {

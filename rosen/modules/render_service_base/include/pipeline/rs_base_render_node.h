@@ -185,6 +185,16 @@ public:
         childHasFilter_ = childHasFilter;
     }
 
+    void SetRootSurfaceNodeId(NodeId id)
+    {
+        rootSurfaceNodeId_ = id;
+    }
+
+    NodeId GetRootSurfaceNodeId() const
+    {
+        return rootSurfaceNodeId_;
+    }
+
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
     void SetDirty();
@@ -206,6 +216,7 @@ protected:
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
 private:
     NodeId id_;
+    NodeId rootSurfaceNodeId_ = INVALID_NODEID;
 
     WeakPtr parent_;
     void SetParent(WeakPtr parent);
