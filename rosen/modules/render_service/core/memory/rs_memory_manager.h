@@ -77,6 +77,7 @@ public:
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, pid_t pid);
     static void ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, pid_t pid);
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, bool scratchResourcesOnly = true);
+    static void ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* grContext);
 #endif
 
 private:

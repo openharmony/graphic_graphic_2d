@@ -68,8 +68,13 @@ public:
     static void ClearSurfaceIfNeed(const RSRenderNodeMap& map, const std::shared_ptr<RSDisplayRenderNode>& displayNode,
         std::set<std::shared_ptr<RSBaseRenderNode>>& oldChildren);
     static void ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isUIFirst);
+#ifndef USE_ROSEN_DRAWING
     static void ClearNodeCacheSurface(sk_sp<SkSurface> cacheSurface, sk_sp<SkSurface> cacheCompletedSurface,
         uint32_t threadIndex);
+#else
+    static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface> cacheSurface,
+        std::shared_ptr<Drawing::Surface> cacheCompletedSurface, uint32_t threadIndex);
+#endif
     static void CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& oldSubThreadNodes,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
 private:

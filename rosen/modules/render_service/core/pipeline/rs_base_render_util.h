@@ -174,8 +174,8 @@ private:
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         Drawing::Bitmap& bitmap);
     static bool CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-                                          Drawing::Bitmap& bitmap, ColorGamut srcGamut, ColorGamut dstGamut,
-                                          const std::vector<GraphicHDRMetaData>& metaDatas = {});
+        Drawing::Bitmap& bitmap, GraphicColorGamut srcGamut, GraphicColorGamut dstGamut,
+        const std::vector<GraphicHDRMetaData>& metaDatas = {});
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::Bitmap& bitmap);
 #endif
     static bool WriteToPng(const std::string &filename, const WriteToPngParam &param);

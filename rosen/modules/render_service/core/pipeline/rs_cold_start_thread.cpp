@@ -106,7 +106,7 @@ void RSColdStartThread::Stop()
 #else
 #ifdef RS_ENABLE_GL
         if (gpuContext_ != nullptr) {
-            gpuContext_->releaseResourcesAndAbandonContext();
+            RS_LOGE("[%s:%d] Drawing is not supported", __func__, __LINE__);
             gpuContext_ = nullptr;
         }
 #endif

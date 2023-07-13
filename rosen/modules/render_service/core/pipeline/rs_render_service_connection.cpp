@@ -744,7 +744,11 @@ int32_t RSRenderServiceConnection::GetScreenType(ScreenId id, RSScreenType& scre
     return screenManager_->GetScreenType(id, screenType);
 }
 
+#ifndef USE_ROSEN_DRAWING
 bool RSRenderServiceConnection::GetBitmap(NodeId id, SkBitmap& bitmap)
+#else
+bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
+#endif
 {
     auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(id);
     if (node == nullptr) {
@@ -757,7 +761,11 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, SkBitmap& bitmap)
     }
     auto getBitmapTask = [&node, &bitmap]() -> bool { return node->GetBitmap(bitmap); };
     mainThread_->PostSyncTask(getBitmapTask);
+#ifndef USE_ROSEN_DRAWING
     return !bitmap.empty();
+#else
+    return bitmap.IsValid();
+#endif
 }
 
 int32_t RSRenderServiceConnection::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)

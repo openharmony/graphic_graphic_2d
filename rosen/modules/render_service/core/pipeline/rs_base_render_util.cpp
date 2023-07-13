@@ -33,6 +33,7 @@
 #include "draw/clip.h"
 #include "effect/color_filter.h"
 #include "effect/color_matrix.h"
+#include "utils/camera3d.h"
 #endif
 
 namespace OHOS {
@@ -1363,9 +1364,9 @@ void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawPara
     Drawing::Matrix flip;
     camera3D.ApplyToMatrix(flip);
     const float half = 0.5f;
-    flip.PreTranslate(-half * params.dstRect.width(), -half * params.dstRect.height());
+    flip.PreTranslate(-half * params.dstRect.GetWidth(), -half * params.dstRect.GetHeight());
     Drawing::Matrix tmpMatrix;
-    tmpMatrix.Translate(half * params.dstRect.width(), half * params.dstRect.height());
+    tmpMatrix.Translate(half * params.dstRect.GetWidth(), half * params.dstRect.GetHeight());
     flip = tmpMatrix * flip;
     params.matrix = params.matrix * flip;
 #endif
@@ -1494,7 +1495,8 @@ bool RSBaseRenderUtil::CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::B
 }
 
 bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-    Drawing::Bitmap& bitmap, ColorGamut srcGamut, ColorGamut dstGamut, const std::vector<GraphicHDRMetaData>& metaDatas)
+    Drawing::Bitmap& bitmap, GraphicColorGamut srcGamut, GraphicColorGamut dstGamut,
+    const std::vector<GraphicHDRMetaData>& metaDatas)
 {
     bool convertRes = Detail::ConvertBufferColorGamut(newBuffer, buffer, srcGamut, dstGamut, metaDatas);
     if (convertRes) {

@@ -266,9 +266,15 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
     }
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
+#ifndef USE_ROSEN_DRAWING
         SkBitmap bitmap;
         canvasDrawingNode->GetBitmap(bitmap);
         canvas_->drawImage(bitmap.asImage(), 0, 0);
+#else
+        Drawing::Bitmap bitmap;
+        canvasDrawingNode->GetBitmap(bitmap);
+        canvas_->DrawBitmap(bitmap, 0, 0);
+#endif
         ProcessBaseRenderNode(*canvasDrawingNode);
     } else {
         node.ProcessRenderBeforeChildren(*canvas_);
@@ -377,9 +383,9 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
     if (isSelfDrawingSurface) {
         RSPropertiesPainter::DrawBackground(property, *canvas_);
         RSPropertiesPainter::DrawMask(property, *canvas_);
-#ifndef USE_ROSEN_DRAWING
         RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::BACKGROUND_FILTER);
     } else {
+#ifndef USE_ROSEN_DRAWING
         auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
         if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
             canvas_->drawColor(backgroundColor);
@@ -387,13 +393,6 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
     }
     canvas_->restore();
 #else
-        auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetBackgroundFilter());
-        if (filter != nullptr) {
-            auto drawingRectPtr =
-                std::make_unique<Drawing::Rect>(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-            RSPropertiesPainter::DrawFilter(property, *canvas_, filter, FilterType::BACKGROUND_FILTER, drawingRectPtr);
-        }
-    } else {
         auto backgroundColor = static_cast<Drawing::ColorQuad>(property.GetBackgroundColor().AsArgbInt());
         if (Drawing::Color::ColorQuadGetA(backgroundColor) != Drawing::Color::COLOR_TRANSPARENT) {
             canvas_->Clear(backgroundColor);
@@ -405,21 +404,13 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, true);
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
     }
-#ifndef USE_ROSEN_DRAWING
     if (isSelfDrawingSurface) {
         RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::FOREGROUND_FILTER);
         RSPropertiesPainter::DrawLinearGradientBlurFilter(property, *canvas_);
     }
+#ifndef USE_ROSEN_DRAWING
     canvas_->restore();
 #else
-    if (isSelfDrawingSurface) {
-        auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetFilter());
-        if (filter != nullptr) {
-            auto drawingRectPtr =
-                std::make_unique<Drawing::Rect>(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-            RSPropertiesPainter::DrawFilter(property, *canvas_, filter, FilterType::FOREGROUND_FILTER, drawingRectPtr);
-        }
-    }
     canvas_->Restore();
 #endif
     ProcessBaseRenderNode(node);

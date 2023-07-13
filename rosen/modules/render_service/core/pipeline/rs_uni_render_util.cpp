@@ -679,8 +679,13 @@ void RSUniRenderUtil::ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex
     ClearNodeCacheSurface(cacheSurface, cacheCompletedSurface, cacheSurfaceThreadIndex);
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSUniRenderUtil::ClearNodeCacheSurface(sk_sp<SkSurface> cacheSurface, sk_sp<SkSurface> cacheCompletedSurface,
     uint32_t threadIndex)
+#else
+void RSUniRenderUtil::ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface> cacheSurface,
+    std::shared_ptr<Drawing::Surface> cacheCompletedSurface, uint32_t threadIndex)
+#endif
 {
     if (cacheSurface == nullptr && cacheCompletedSurface == nullptr) {
         return;

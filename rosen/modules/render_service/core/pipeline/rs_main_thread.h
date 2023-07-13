@@ -21,6 +21,7 @@
 #include <mutex>
 #include <queue>
 #include <thread>
+#include <set>
 
 #include "refbase.h"
 #include "rs_base_render_engine.h"
@@ -202,7 +203,7 @@ private:
     void ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext);
 #endif
 #else
-    void ReleaseExitSurfaceNodeAllGpuResource(Drawing::GPUContext* grContext, pid_t pid);
+    void ReleaseExitSurfaceNodeAllGpuResource(Drawing::GPUContext* grContext);
 #endif
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);

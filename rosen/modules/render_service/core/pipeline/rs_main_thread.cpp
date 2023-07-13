@@ -1688,7 +1688,7 @@ void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrDirectContext* grConte
 void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext)
 #endif
 #else
-void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(Drawing::GPUContext* gpuContext, pid_t pid)
+void RSMainThread::ReleaseExitSurfaceNodeAllGpuResource(Drawing::GPUContext* gpuContext)
 #endif
 {
     switch (RSSystemProperties::GetReleaseGpuResourceEnabled()) {

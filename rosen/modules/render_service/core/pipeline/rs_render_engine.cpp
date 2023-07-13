@@ -169,11 +169,8 @@ void RSRenderEngine::RSSurfaceNodeCommonPreProcess(RSSurfaceRenderNode& node, RS
         node.GetRenderProperties(), canvas, RSPropertiesPainter::Rect2DrawingRect(maskBounds));
 
     // draw background filter (should execute this filter before drawing buffer/image).
-    auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetBackgroundFilter());
-    if (filter != nullptr) {
-        auto dRectPtr = std::make_unique<Drawing::Rect>(0, 0, params.srcRect.GetWidth(), params.srcRect.GetHeight());
-        RSPropertiesPainter::DrawFilter(property, canvas, filter, FilterType::BACKGROUND_FILTER, dRectPtr);
-    }
+    RSPropertiesPainter::DrawFilter(property, canvas, FilterType::BACKGROUND_FILTER,
+        Drawing::Rect(0, 0, params.srcRect.GetWidth(), params.srcRect.GetHeight()));
 #endif
 }
 
@@ -189,16 +186,10 @@ void RSRenderEngine::RSSurfaceNodeCommonPostProcess(RSSurfaceRenderNode& node, R
     RSPropertiesPainter::DrawLinearGradientBlurFilter(
         property, canvas, SkRect::MakeWH(params.srcRect.width(), params.srcRect.height()));
 #else
-    auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetFilter());
-    if (filter != nullptr) {
-        auto dRectPtr = std::make_unique<Drawing::Rect>(0, 0, params.srcRect.GetWidth(), params.srcRect.GetHeight());
-        RSPropertiesPainter::DrawFilter(property, canvas, filter, FilterType::FOREGROUND_FILTER, dRectPtr);
-    }
-    auto para = property.GetLinearGradientBlurPara();
-    if (para != nullptr && para->blurRadius_ > 0) {
-        auto dRectPtr = std::make_unique<Drawing::Rect>(0, 0, params.srcRect.GetWidth(), params.srcRect.GetHeight());
-        RSPropertiesPainter::DrawLinearGradientBlurFilter(property, canvas, dRectPtr);
-    }
+    RSPropertiesPainter::DrawFilter(property, canvas, FilterType::FOREGROUND_FILTER,
+        Drawing::Rect(0, 0, params.srcRect.GetWidth(), params.srcRect.GetHeight()));
+    RSPropertiesPainter::DrawLinearGradientBlurFilter(
+        property, canvas, Drawing::Rect(0, 0, params.srcRect.GetWidth(), params.srcRect.GetHeight()));
 #endif
 }
 

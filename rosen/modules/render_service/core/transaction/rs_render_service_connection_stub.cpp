@@ -676,7 +676,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             NodeId id = data.ReadUint64();
+#ifndef USE_ROSEN_DRAWING
             SkBitmap bm;
+#else
+            Drawing::Bitmap bm;
+#endif
             bool result = GetBitmap(id, bm);
             reply.WriteBool(result);
             if (result) {

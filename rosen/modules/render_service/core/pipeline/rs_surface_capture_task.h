@@ -98,7 +98,11 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         bool hasSecurityLayer_ = false;
         bool isUIFirst_ = false;
 
+#ifndef USE_ROSEN_DRAWING
         SkMatrix captureMatrix_ = SkMatrix::I();
+#else
+        Drawing::Matrix captureMatrix_ = Drawing::Matrix();
+#endif
 
         std::shared_ptr<RSBaseRenderEngine> renderEngine_;
 

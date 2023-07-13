@@ -143,7 +143,11 @@ private:
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType) override;
 
+#ifndef USE_ROSEN_DRAWING
     bool GetBitmap(NodeId id, SkBitmap& bitmap) override;
+#else
+    bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap) override;
+#endif
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
 

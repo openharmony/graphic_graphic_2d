@@ -616,12 +616,12 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
             node.GetId());
         return;
     }
-
-    bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (canvas_ == nullptr) {
         RS_LOGE("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: canvas_ is nullptr.");
         return;
     }
+
+    bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (isSelfDrawingSurface) {
         canvas_->Save();
     }
@@ -665,14 +665,11 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         canvas_->Restore(); // restore translate and concat
         return;
     }
+
     if (isSelfDrawingSurface) {
         RSPropertiesPainter::DrawBackground(property, *canvas_);
         RSPropertiesPainter::DrawMask(property, *canvas_);
-        auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetBackgroundFilter());
-        if (filter != nullptr) {
-            auto rectPtr = std::make_unique<Drawing::Rect>(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-            RSPropertiesPainter::DrawFilter(property, *canvas_, filter, FilterType::BACKGROUND_FILTER, rectPtr);
-        }
+        RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::BACKGROUND_FILTER);
     } else {
         auto backgroundColor = static_cast<Drawing::ColorQuad>(property.GetBackgroundColor().AsArgbInt());
         if (Drawing::Color::ColorQuadGetA(backgroundColor) != Drawing::Color::COLOR_TRANSPARENT) {
@@ -685,16 +682,21 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
     }
     if (isSelfDrawingSurface) {
-        auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetFilter());
-        if (filter != nullptr) {
-            auto rectPtr = std::make_unique<Drawing::Rect>(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-            RSPropertiesPainter::DrawFilter(property, *canvas_, filter, FilterType::FOREGROUND_FILTER, rectPtr);
-        }
+        RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::FOREGROUND_FILTER);
+        RSPropertiesPainter::DrawLinearGradientBlurFilter(property, *canvas_);
     }
 
     if (isSelfDrawingSurface) {
         canvas_->Restore();
     }
+
+    if (isUIFirst_ && RSUniRenderUtil::HandleCaptureNode(node, *canvas_)) {
+        RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: \
+            process RSSurfaceRenderNode [%s, %" PRIu64 "] use cache texture.",
+            node.GetName().c_str(), node.GetId());
+        return;
+    }
+
     if (node.IsAppWindow() && RSColdStartManager::Instance().IsColdStartThreadRunning(node.GetId()) &&
         node.GetCachedImage() != nullptr) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: DrawCachedImage.");
@@ -781,14 +783,14 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
             node.GetId());
         return;
     }
-    bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
-    if (!isSelfDrawingSurface) {
-        auto contextClipRect = node.GetContextClipRegion();
-        if (!contextClipRect->IsValid()) {
-            canvas_->ClipRect(*contextClipRect, Drawing::ClipOp::INTERSECT, false);
-        }
-    }
 
+    if (isUIFirst_ && RSUniRenderUtil::HandleSubThreadNode(node, *canvas_)) {
+        RS_LOGD("RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni: \
+            process RSSurfaceRenderNode [%s, %" PRIu64 "] use cache texture.",
+            node.GetName().c_str(), node.GetId());
+        return;
+    }
+    bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (isSelfDrawingSurface) {
         canvas_->Save();
     }
@@ -819,18 +821,17 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
     }
     RSPropertiesPainter::DrawMask(property, *canvas_);
 
-    auto filter = std::static_pointer_cast<RSDrawingFilter>(property.GetBackgroundFilter());
-    if (filter != nullptr) {
-        auto rectPtr = std::make_unique<Drawing::Rect>(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-        RSPropertiesPainter::DrawFilter(property, *canvas_, filter, FilterType::BACKGROUND_FILTER, rectPtr);
-    }
+    RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::BACKGROUND_FILTER);
     if (isSelfDrawingSurface) {
         canvas_->Restore();
     }
 
     if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
+        canvas_->Save();
+        canvas_->SetMatrix(node.GetTotalMatrix());
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+        canvas_->Restore();
     }
 
     if (isSelfDrawingSurface) {
@@ -838,11 +839,8 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
     }
 
     ProcessBaseRenderNode(node);
-    filter = std::static_pointer_cast<RSDrawingFilter>(property.GetFilter());
-    if (filter != nullptr) {
-        auto rectPtr = std::make_unique<Drawing::Rect>(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-        RSPropertiesPainter::DrawFilter(property, *canvas_, filter, FilterType::FOREGROUND_FILTER, rectPtr);
-    }
+    RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::FOREGROUND_FILTER);
+    RSPropertiesPainter::DrawLinearGradientBlurFilter(property, *canvas_);
     DrawWatermarkIfNeed(property.GetBoundsWidth(), property.GetBoundsHeight());
 }
 #endif
@@ -1081,7 +1079,8 @@ void RSSurfaceCaptureVisitor::DrawWatermarkIfNeed(float screenWidth, float scree
         auto dstRect = Drawing::Rect(0, 0, screenWidth, screenHeight);
         Drawing::Brush rectBrush;
         canvas_->AttachBrush(rectBrush);
-        canvas_->DrawImageRect(*image, srcRect, dstRect, Drawing::SamplingOptions())
+        canvas_->DrawImageRect(*image, srcRect, dstRect, Drawing::SamplingOptions(),
+            Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
         canvas_->DetachBrush();
 #endif
     }

@@ -173,6 +173,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
         bool needNotify = !surfaceNodePtr->HasCachedTexture();
         node->Process(visitor);
         nodeProcessTracker.SetTagEnd();
+#ifndef USE_ROSEN_DRAWING
 #ifndef NEW_SKIA
         auto skCanvas = surfaceNodePtr->GetCacheSurface() ? surfaceNodePtr->GetCacheSurface()->getCanvas() : nullptr;
         if (skCanvas) {
@@ -190,6 +191,15 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
             nodeFlushTracker.SetTagEnd();
         }
 #endif
+#else
+        auto canvas = surfaceNodePtr->GetCacheSurface() ? surfaceNodePtr->GetCacheSurface()->GetCanvas() : nullptr;
+        if (canvas) {
+            RS_TRACE_NAME_FMT("render cache flush, %s", surfaceNodePtr->GetName().c_str());
+            canvas->Flush();
+        } else {
+            RS_LOGE("skCanvas is nullptr, flush failed");
+        }
+#endif
         surfaceNodePtr->UpdateBackendTexture();
         surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DONE);
 
@@ -201,6 +211,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
 #endif
 }
 
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
 sk_sp<GrDirectContext> RSSubThread::CreateShareGrContext()
 #else
@@ -238,6 +249,13 @@ sk_sp<GrContext> RSSubThread::CreateShareGrContext()
     }
     return grContext;
 }
+#else
+std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
+{
+    ROSEN_LOGE("[%s:%d] Drawing is not supported", __func__, __LINE__);
+    return nullptr;
+}
+#endif
 
 void RSSubThread::ResetGrContext()
 {
@@ -245,6 +263,8 @@ void RSSubThread::ResetGrContext()
     if (grContext_ == nullptr) {
         return;
     }
+#ifndef USE_ROSEN_DRAWING
     grContext_->purgeUnlockedResources(false);
+#endif
 }
 }
