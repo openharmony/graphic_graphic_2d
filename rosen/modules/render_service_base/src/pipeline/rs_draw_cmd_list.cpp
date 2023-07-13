@@ -349,7 +349,7 @@ void DrawCmdList::ReplaceDrivenCmds()
         auto& op = ops_[index];
         if (op != nullptr && op->GetType() == CLIP_RECT_OPITEM) {
             // backup the original op and position, replace the original op with nullptr
-            opReplacedByDrivenRender_.emplace(index, op.release());
+            opReplacedByDrivenRender_.emplace_back(index, op.release());
             break;
         }
     }
@@ -361,8 +361,8 @@ void DrawCmdList::RestoreOriginCmdsForDriven()
     std::lock_guard<std::mutex> lock(mutex_);
 
     // restore the original op
-    for (auto& it : opReplacedByDrivenRender_) {
-        ops_[it.first] = std::move(it.second);
+    for (auto& [index, op] : opReplacedByDrivenRender_) {
+        ops_[index].reset(op.release());
     }
     opReplacedByDrivenRender_.clear();
 }
