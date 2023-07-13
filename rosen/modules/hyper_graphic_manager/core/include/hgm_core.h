@@ -58,6 +58,7 @@ public:
     int32_t AddScreen(ScreenId id, int32_t defaultMode);
     int32_t RemoveScreen(ScreenId id);
     int32_t AddScreenInfo(ScreenId id, int32_t width, int32_t height, uint32_t rate, int32_t mode);
+    int32_t RefreshBundleName(std::string name);
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
     sptr<HgmScreen> GetScreen(ScreenId id) const;
     std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id);
@@ -75,19 +76,22 @@ private:
     int32_t InitXmlConfig();
     int32_t SetCustomRateMode(RefreshRateMode mode);
     int32_t SetModeBySettingConfig();
+    int32_t RequestBundlePermission(int32_t rate);
 
     bool isEnabled_ = true;
     bool isInit_ = false;
     std::unique_ptr<XMLParser> mParser_;
     std::unique_ptr<ParsedConfigData> mParsedConfigData_ = nullptr;
 
-    RefreshRateMode customFrameRateMode_;
+    RefreshRateMode customFrameRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
     std::vector<ScreenId> screenIds_;
     std::vector<sptr<HgmScreen>> screenList_;
     mutable std::mutex listMutex_;
 
     mutable std::mutex modeListMutex_;
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeListToApply_ = nullptr;
+
+    std::string currentBundleName_;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H

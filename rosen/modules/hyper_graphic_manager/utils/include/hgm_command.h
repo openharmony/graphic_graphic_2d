@@ -88,7 +88,8 @@ public:
     std::unordered_map<std::string, std::string> customerSettingConfig_;
     std::unordered_map<std::string, detailedStrat> detailedStrategies_;
     std::unordered_map<std::string, std::string> animationDynamicStrats_;
-    std::unordered_map<std::string, std::string> app_whitelist_;
+    std::unordered_map<std::string, std::string> bundle_black_list_;
+    std::unordered_map<std::string, std::string> bundle_white_list_;
 };
 } // namespace OHOS
 #endif // HGM_COMMAND_H
