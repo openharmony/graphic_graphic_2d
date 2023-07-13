@@ -189,9 +189,16 @@ foreach(item, ace_platforms) {
 if (!is_cross_platform_build) {
   ## Build 2d_graphics.so
   ohos_shared_library("2d_graphics") {
-    version_script = "2d_graphics.versionscript"
+    if (current_os == "mingw") {
+      platform = "windows"
+    } else {
+      platform = current_os
+    }
+    if (platform == "ohos") {
+      version_script = "2d_graphics.versionscript"
+    }
     symlink_target_name = [ "libnative_drawing.so" ]
-    deps = [ ":2d_graphics_source_ohos" ]
+    deps = [ ":2d_graphics_source_$platform" ]
     public_configs = [ ":2d_graphics_config" ]
     innerapi_tags = [ "platformsdk_indirect" ]
     part_name = "graphic_standard"
