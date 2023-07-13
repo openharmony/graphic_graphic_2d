@@ -45,6 +45,29 @@ ohos_shared_library("rosen_text") {
   subsystem_name = "graphic"
 }
 
+ohos_source_set("rosen_text_static") {
+  include_dirs = [ "$graphic_2d_root/rosen/modules/2d_graphics/include" ]
+  public_deps = [ ":rosen_text_inner" ]
+  public_configs =
+      [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_config" ]
+
+  platform = current_os
+  if (platform == "mingw") {
+    platform = "windows"
+  }
+
+  if (platform == "ohos") {
+    deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  } else {
+    deps = [
+      "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_source_$platform",
+    ]
+  }
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
 ohos_source_set("rosen_text_inner") {
   public_deps = [ ":rosen_text_txt" ]
 
@@ -90,7 +113,11 @@ ohos_source_set("rosen_text_txt") {
   if (defined(use_new_skia) && use_new_skia) {
     include_dirs += [ "$flutter_root/txt/src" ]
   } else {
-    include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
+    include_dirs += [
+      "$flutter_root/engine/flutter/third_party/txt/src",
+      "//third_party/icu/icu4c/source/common",
+      "//third_party/bounds_checking_function/include",
+    ]
   }
 
   sources = [
@@ -107,7 +134,11 @@ ohos_source_set("rosen_text_txt") {
     platform = "windows"
   }
 
-  deps = [ "$skia_root_new:skia_$platform" ]
+  if (defined(use_new_skia) && use_new_skia) {
+    deps = [ "$skia_root_new:skia_$platform" ]
+  } else {
+    deps = [ "$ace_flutter_engine_root/skia:ace_skia_$platform" ]
+  }
 
   deps += [ "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform" ]
 

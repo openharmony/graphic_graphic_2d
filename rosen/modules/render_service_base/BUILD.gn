@@ -215,6 +215,7 @@ ohos_source_set("render_service_base_src") {
     include_dirs += [ "//third_party/skia/src" ]
   } else {
     include_dirs += [ "//third_party/flutter/skia/src" ]
+    sources -= [ "src/render/rs_kawase_blur.cpp" ]
   }
   deps = [
     "$graphic_2d_root/utils/sandbox:sandbox_utils",

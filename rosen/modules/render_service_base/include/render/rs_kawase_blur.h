@@ -21,7 +21,9 @@
 #include "include/core/SkSize.h"
 #include "include/core/SkString.h"
 #include "include/core/SkSurface.h"
+#ifdef NEW_SKIA
 #include "include/effects/SkRuntimeEffect.h"
+#endif
 #include "tools/Resources.h"
 
 namespace OHOS {
@@ -53,9 +55,10 @@ private:
     static constexpr int kMaxGaussRadius = 120;
     static constexpr int kMaxKawaseRadius = 300;
     static constexpr bool supporteLargeRadius = true;
-
+#ifdef NEW_SKIA
     sk_sp<SkRuntimeEffect> blurEffect_;
     sk_sp<SkRuntimeEffect> mixEffect_;
+#endif
     SkPaint finalPaint_;
     float blurRadius_;
     float blurScale_;
