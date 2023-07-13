@@ -60,6 +60,8 @@ public:
 #endif
     int GetWidth() const override;
     int GetHeight() const override;
+    ColorType GetColorType() const override;
+    AlphaType GetAlphaType() const override;
     uint32_t GetUniqueID() const override;
     bool ReadPixels(Bitmap& bitmap, int x, int y) override;
     bool IsTextureBacked() const override;

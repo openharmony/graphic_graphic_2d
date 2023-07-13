@@ -26,6 +26,14 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr const char* ENTRY_VIEW = "EntryView";
+constexpr const char* WALLPAPER_VIEW = "WallpaperView";
+constexpr const char* SCREENLOCK_WINDOW = "ScreenLockWindow";
+constexpr const char* SYSUI_DROPDOWN = "SysUI_Dropdown";
+constexpr const char* SYSUI_STATUS_BAR = "SysUI_StatusBar";
+constexpr const char* PRIVACY_INDICATOR = "PrivacyIndicator";
+};
 void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge,
     bool useAlignedDirtyRegion)
 {
@@ -481,6 +489,12 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         traceInfo += "node:[ " + node->GetName() + ", " + std::to_string(node->GetId()) + " ]" +
             "( " + std::to_string(static_cast<uint32_t>(node->GetCacheSurfaceProcessedStatus())) + ", " +
             std::to_string(node->HasFilter()) + ", " + std::to_string(node->HasAbilityComponent()) + " ); ";
+        std::string surfaceName = node->GetName();
+        if (surfaceName == ENTRY_VIEW || surfaceName == WALLPAPER_VIEW || surfaceName == SYSUI_STATUS_BAR ||
+            surfaceName == SCREENLOCK_WINDOW ||surfaceName == SYSUI_DROPDOWN || surfaceName == PRIVACY_INDICATOR) {
+            AssignMainThreadNode(mainThreadNodes, node);
+            continue;
+        }
         if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) { // node exceed one vsync
             AssignSubThreadNode(subThreadNodes, node);
         } else if (leashWindowCount > 1) { // start app from another app
@@ -515,6 +529,7 @@ void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRe
         RS_LOGD("RSUniRenderUtil::AssignMainThreadNode clear cache surface:[%s, %llu]",
             node->GetName().c_str(), node->GetId());
         ClearCacheSurface(node, UNI_MAIN_THREAD_INDEX);
+        node->SetTextureValidFlag(false);
     }
 }
 
@@ -617,6 +632,7 @@ void RSUniRenderUtil::ClearSurfaceIfNeed(const RSRenderNodeMap& map,
                 RS_LOGD("RSUniRenderUtil::ClearSurfaceIfNeed clear cache surface:[%s, %llu]",
                     surface->GetName().c_str(), surface->GetId());
                 ClearCacheSurface(surface, UNI_MAIN_THREAD_INDEX);
+                surface->SetTextureValidFlag(false);
             }
         }
     }

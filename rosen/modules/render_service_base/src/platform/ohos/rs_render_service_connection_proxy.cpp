@@ -1165,5 +1165,84 @@ void RSRenderServiceConnectionProxy::ReportJankStats()
         ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportJankStats: Send Request err.");
     }
 }
+
+void RSRenderServiceConnectionProxy::ReportEventResponse(DataBaseRs info)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    ReportDataBaseRs(data, reply, option, info);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::REPORT_EVENT_RESPONSE, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportEventResponse: Send Request err.");
+    }
+}
+
+void RSRenderServiceConnectionProxy::ReportEventComplete(DataBaseRs info)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    ReportDataBaseRs(data, reply, option, info);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::REPORT_EVENT_COMPLETE, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportEventComplete: Send Request err.");
+    }
+}
+
+void RSRenderServiceConnectionProxy::ReportEventJankFrame(DataBaseRs info)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    ReportDataBaseRs(data, reply, option, info);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::REPORT_EVENT_JANK_FRAME, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportEventJankFrame: Send Request err.");
+    }
+}
+
+void RSRenderServiceConnectionProxy::ReportEventFirstFrame(DataBaseRs info)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    ReportDataBaseRs(data, reply, option, info);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::REPORT_EVENT_FIRST_FRAME, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportEventFirstFrame: Send Request err.");
+    }
+}
+
+void RSRenderServiceConnectionProxy::ReportDataBaseRs(
+    MessageParcel& data, MessageParcel& reply, MessageOption& option, DataBaseRs info)
+{
+    data.WriteInt32(info.appPid);
+    data.WriteInt32(info.eventType);
+    data.WriteInt64(info.uniqueId);
+    data.WriteInt64(info.inputTime);
+    data.WriteInt64(info.beginVsyncTime);
+    data.WriteInt64(info.endVsyncTime);
+    data.WriteString(info.sceneId);
+    data.WriteString(info.versionCode);
+    data.WriteString(info.versionName);
+    data.WriteString(info.bundleName);
+    data.WriteString(info.processName);
+    data.WriteString(info.abilityName);
+    data.WriteString(info.pageUrl);
+    option.SetFlags(MessageOption::TF_ASYNC);
+}
 } // namespace Rosen
 } // namespace OHOS

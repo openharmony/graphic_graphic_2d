@@ -20,7 +20,9 @@
 #include "texgine/any_span.h"
 #include "texgine_exception.h"
 #include "texgine/utils/exlog.h"
+#ifdef LOGGER_ENABLE_SCOPE
 #include "texgine/utils/trace.h"
+#endif
 #include "text_merger.h"
 #include "text_span.h"
 

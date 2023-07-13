@@ -30,6 +30,9 @@ public:
     ~RSRenderServiceConnectionStub() noexcept = default;
 
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
+
+private:
+    void ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -238,7 +238,7 @@ float RSSystemProperties::GetAnimationScale()
 bool RSSystemProperties::GetFilterCacheEnabled()
 {
     static bool filterCacheEnabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheEnable", "0")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheEnabled", "1")).c_str()) != 0;
     return filterCacheEnabled;
 }
 
@@ -252,7 +252,7 @@ int RSSystemProperties::GetFilterCacheUpdateInterval()
 bool RSSystemProperties::GetKawaseEnabled()
 {
     static bool kawaseBlurEnabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.kawaseEnable", "0")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.sys.graphic.kawaseEnable", "1")).c_str()) != 0;
     return kawaseBlurEnabled;
 }
 

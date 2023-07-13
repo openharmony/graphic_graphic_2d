@@ -128,9 +128,19 @@ public:
 
     void ReportJankStats() override;
 
+    void ReportEventResponse(DataBaseRs info) override;
+
+    void ReportEventComplete(DataBaseRs info) override;
+
+    void ReportEventJankFrame(DataBaseRs info) override;
+
+    void ReportEventFirstFrame(DataBaseRs info) override;
+
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
+
+    void ReportDataBaseRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, DataBaseRs info);
 
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 

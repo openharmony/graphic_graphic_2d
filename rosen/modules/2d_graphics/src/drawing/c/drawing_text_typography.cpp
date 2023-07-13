@@ -15,16 +15,28 @@
 
 #include "c/drawing_text_typography.h"
 
-#include "rosen_text/ui/font_collection.h"
-#include "rosen_text/ui/typography.h"
-#include "rosen_text/ui/typography_create.h"
+#include "rosen_text/font_collection.h"
+#include "rosen_text/typography.h"
+#include "rosen_text/typography_create.h"
+#include "unicode/putil.h"
 
 #include <codecvt>
 #include <locale>
 #include <vector>
 #include <string>
 
-using namespace rosen;
+using namespace OHOS::Rosen;
+
+namespace {
+__attribute__((constructor)) void init()
+{
+#ifndef _WIN32
+    u_setDataDirectory("/system/usr/ohos_icu");
+#else
+    u_setDataDirectory(".");
+#endif
+}
+} // namespace
 
 template<typename T1, typename T2>
 inline T1* ConvertToOriginalText(T2* ptr)
@@ -65,7 +77,7 @@ void OH_Drawing_SetTypographyTextDirection(OH_Drawing_TypographyStyle* style, in
             break;
         }
     }
-    ConvertToOriginalText<TypographyStyle>(style)->textDirection_ = textDirection;
+    ConvertToOriginalText<TypographyStyle>(style)->textDirection = textDirection;
 }
 
 void OH_Drawing_SetTypographyTextAlign(OH_Drawing_TypographyStyle* style, int align)
@@ -100,12 +112,12 @@ void OH_Drawing_SetTypographyTextAlign(OH_Drawing_TypographyStyle* style, int al
             textAlign = TextAlign::LEFT;
         }
     }
-    ConvertToOriginalText<TypographyStyle>(style)->textAlign_ = textAlign;
+    ConvertToOriginalText<TypographyStyle>(style)->textAlign = textAlign;
 }
 
 void OH_Drawing_SetTypographyTextMaxLines(OH_Drawing_TypographyStyle* style, int lineNumber)
 {
-    ConvertToOriginalText<TypographyStyle>(style)->maxLines_ = static_cast<size_t>(lineNumber);
+    ConvertToOriginalText<TypographyStyle>(style)->maxLines = static_cast<size_t>(lineNumber);
 }
 
 OH_Drawing_TextStyle* OH_Drawing_CreateTextStyle(void)
@@ -120,12 +132,12 @@ void OH_Drawing_DestroyTextStyle(OH_Drawing_TextStyle* style)
 
 void OH_Drawing_SetTextStyleColor(OH_Drawing_TextStyle* style, uint32_t color)
 {
-    ConvertToOriginalText<TextStyle>(style)->color_.SetColorQuad(color);
+    ConvertToOriginalText<TextStyle>(style)->color.SetColorQuad(color);
 }
 
 void OH_Drawing_SetTextStyleFontSize(OH_Drawing_TextStyle* style, double fontSize)
 {
-    ConvertToOriginalText<TextStyle>(style)->fontSize_ = fontSize;
+    ConvertToOriginalText<TextStyle>(style)->fontSize = fontSize;
 }
 
 void OH_Drawing_SetTextStyleFontWeight(OH_Drawing_TextStyle* style, int fontWeight)
@@ -172,7 +184,7 @@ void OH_Drawing_SetTextStyleFontWeight(OH_Drawing_TextStyle* style, int fontWeig
             rosenFontWeight = FontWeight::W400;
         }
     }
-    ConvertToOriginalText<TextStyle>(style)->fontWeight_ = rosenFontWeight;
+    ConvertToOriginalText<TextStyle>(style)->fontWeight = rosenFontWeight;
 }
 
 void OH_Drawing_SetTextStyleBaseLine(OH_Drawing_TextStyle* style, int baseline)
@@ -191,7 +203,7 @@ void OH_Drawing_SetTextStyleBaseLine(OH_Drawing_TextStyle* style, int baseline)
             rosenBaseLine = TextBaseline::ALPHABETIC;
         }
     }
-    ConvertToOriginalText<TextStyle>(style)->textBaseline_ = rosenBaseLine;
+    ConvertToOriginalText<TextStyle>(style)->baseline = rosenBaseLine;
 }
 
 void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decoration)
@@ -211,24 +223,24 @@ void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decorati
             break;
         }
         case TEXT_DECORATION_LINE_THROUGH: {
-            rosenDecoration = TextDecoration::LINETHROUGH;
+            rosenDecoration = TextDecoration::LINE_THROUGH;
             break;
         }
         default: {
             rosenDecoration = TextDecoration::NONE;
         }
     }
-    ConvertToOriginalText<TextStyle>(style)->decoration_ = rosenDecoration;
+    ConvertToOriginalText<TextStyle>(style)->decoration = rosenDecoration;
 }
 
 void OH_Drawing_SetTextStyleDecorationColor(OH_Drawing_TextStyle* style, uint32_t color)
 {
-    ConvertToOriginalText<TextStyle>(style)->decorationColor_.SetColorQuad(color);
+    ConvertToOriginalText<TextStyle>(style)->decorationColor.SetColorQuad(color);
 }
 
 void OH_Drawing_SetTextStyleFontHeight(OH_Drawing_TextStyle* style, double fontHeight)
 {
-    ConvertToOriginalText<TextStyle>(style)->height_ = fontHeight;
+    ConvertToOriginalText<TextStyle>(style)->heightScale = fontHeight;
 }
 
 void OH_Drawing_SetTextStyleFontFamilies(OH_Drawing_TextStyle* style,
@@ -238,7 +250,7 @@ void OH_Drawing_SetTextStyleFontFamilies(OH_Drawing_TextStyle* style,
     for (int i = 0; i < fontFamiliesNumber; i++) {
         rosenFontFamilies.emplace_back(fontFamilies[i]);
     }
-    ConvertToOriginalText<TextStyle>(style)->fontFamilies_ = rosenFontFamilies;
+    ConvertToOriginalText<TextStyle>(style)->fontFamilies = rosenFontFamilies;
 }
 
 void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle)
@@ -257,19 +269,22 @@ void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle
             rosenFontStyle = FontStyle::NORMAL;
         }
     }
-    ConvertToOriginalText<TextStyle>(style)->fontStyle_ = rosenFontStyle;
+    ConvertToOriginalText<TextStyle>(style)->fontStyle = rosenFontStyle;
 }
 
 void OH_Drawing_SetTextStyleLocale(OH_Drawing_TextStyle* style, const char* locale)
 {
-    ConvertToOriginalText<TextStyle>(style)->locale_ = locale;
+    ConvertToOriginalText<TextStyle>(style)->locale = locale;
 }
 
 OH_Drawing_TypographyCreate* OH_Drawing_CreateTypographyHandler(OH_Drawing_TypographyStyle* style,
     OH_Drawing_FontCollection* fontCollection)
 {
-    const TypographyStyle* typoStyle = ConvertToOriginalText<TypographyStyle>(style);
-    std::unique_ptr<TypographyCreate> handler = TypographyCreate::CreateRosenBuilder(*typoStyle,
+    const TypographyStyle *typoStyle = ConvertToOriginalText<TypographyStyle>(style);
+    if (!typoStyle) {
+        return nullptr;
+    }
+    std::unique_ptr<TypographyCreate> handler = TypographyCreate::Create(*typoStyle,
         std::shared_ptr<FontCollection>(ConvertToOriginalText<FontCollection>(fontCollection)));
     return ConvertToNDKText<OH_Drawing_TypographyCreate>(handler.release());
 }
@@ -289,18 +304,18 @@ void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate* handler, c
 {
     const std::u16string wideText =
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(text);
-    ConvertToOriginalText<TypographyCreate>(handler)->AddText(wideText);
+    ConvertToOriginalText<TypographyCreate>(handler)->AppendText(wideText);
 }
 
 void OH_Drawing_TypographyHandlerPopTextStyle(OH_Drawing_TypographyCreate* handler)
 {
-    ConvertToOriginalText<TypographyCreate>(handler)->Pop();
+    ConvertToOriginalText<TypographyCreate>(handler)->PopStyle();
 }
 
 OH_Drawing_Typography* OH_Drawing_CreateTypography(OH_Drawing_TypographyCreate* handler)
 {
     TypographyCreate* rosenHandler = ConvertToOriginalText<TypographyCreate>(handler);
-    std::unique_ptr<Typography> typography = rosenHandler->Build();
+    std::unique_ptr<Typography> typography = rosenHandler->CreateTypography();
     return ConvertToNDKText<OH_Drawing_Typography>(typography.release());
 }
 
@@ -333,7 +348,7 @@ double OH_Drawing_TypographyGetHeight(OH_Drawing_Typography* typography)
 
 double OH_Drawing_TypographyGetLongestLine(OH_Drawing_Typography* typography)
 {
-    return ConvertToOriginalText<Typography>(typography)->GetLongestLine();
+    return ConvertToOriginalText<Typography>(typography)->GetActualWidth();
 }
 
 double OH_Drawing_TypographyGetMinIntrinsicWidth(OH_Drawing_Typography* typography)

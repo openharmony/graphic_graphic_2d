@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_out_path = "graphic_standard/composer"
+module_out_path = "graphic_2d/composer"
 
 group("unittest") {
   testonly = true

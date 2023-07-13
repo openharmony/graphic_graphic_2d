@@ -52,6 +52,7 @@ ohos_source_set("rosen_ohos_sources") {
     "rs_event_manager.cpp",
     "rs_frame_report.cpp",
     "rs_innovation.cpp",
+    "rs_jank_stats.cpp",
     "rs_log.cpp",
     "rs_marshalling_helper.cpp",
     "rs_render_service_client.cpp",
@@ -81,7 +82,7 @@ ohos_source_set("rosen_ohos_sources") {
         "backend/rs_surface_ohos_gl.cpp",
       ]
 
-      if (graphic_standard_feature_enable_vulkan) {
+      if (graphic_2d_feature_enable_vulkan) {
         sources += [
           "backend/rs_surface_frame_ohos_vulkan.cpp",
           "backend/rs_surface_ohos_vulkan.cpp",
@@ -136,7 +137,7 @@ ohos_source_set("rosen_ohos_sources") {
       include_dirs += [ "//third_party/flutter/skia" ]
     }
 
-    if (graphic_standard_feature_enable_vulkan) {
+    if (graphic_2d_feature_enable_vulkan) {
       include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]
     }
     public_deps += [
@@ -190,6 +191,6 @@ ohos_source_set("rosen_ohos_sources") {
     defines += [ "RES_SCHED_ENABLE" ]
   }
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

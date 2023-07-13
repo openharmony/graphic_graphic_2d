@@ -65,7 +65,7 @@ void RSSubThread::Start()
         int64_t value = 0;
         OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
 #endif
-        CreateShareEglContext();
+        grContext_ = CreateShareGrContext();
     });
 }
 
@@ -108,11 +108,18 @@ void RSSubThread::DestroyShareEglContext()
 
 void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTask)
 {
-    auto visitor = std::make_shared<RSUniRenderVisitor>();
-    visitor->SetSubThreadConfig(threadIndex_);
     if (threadTask == nullptr) {
         return;
     }
+    if (grContext_ == nullptr) {
+        grContext_ = CreateShareGrContext();
+        if (grContext_ == nullptr) {
+            RS_LOGI("grContext is null");
+            return;
+        }
+    }
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    visitor->SetSubThreadConfig(threadIndex_);
 #ifdef RS_ENABLE_GL
     while (threadTask->GetTaskSize() > 0) {
         auto task = threadTask->GetNextRenderTask();
@@ -141,13 +148,6 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
         RS_TRACE_NAME_FMT("draw cache render node: [%s, %llu]", surfaceNodePtr->GetName().c_str(),
             surfaceNodePtr->GetId());
         if (surfaceNodePtr->GetCacheSurface() == nullptr) {
-            if (grContext_ == nullptr) {
-                grContext_ = CreateShareGrContext();
-            }
-            if (grContext_ == nullptr) {
-                RS_LOGE("Share GrContext is not ready!!!");
-                return;
-            }
             RSRenderNode::ClearCacheSurfaceFunc func = std::bind(&RSUniRenderUtil::ClearNodeCacheSurface,
                 std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
             surfaceNodePtr->InitCacheSurface(grContext_.get(), func, threadIndex_);
@@ -166,7 +166,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
 #else
         if (surfaceNodePtr && surfaceNodePtr->GetCacheSurface()) {
             RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
-            surfaceNodePtr->GetCacheSurface()->flushAndSubmit(false);
+            surfaceNodePtr->GetCacheSurface()->flushAndSubmit(true);
         }
 #endif
         surfaceNodePtr->UpdateBackendTexture();
@@ -186,6 +186,8 @@ sk_sp<GrDirectContext> RSSubThread::CreateShareGrContext()
 sk_sp<GrContext> RSSubThread::CreateShareGrContext()
 #endif
 {
+    RS_TRACE_NAME("CreateShareGrContext");
+    CreateShareEglContext();
     const GrGLInterface *grGlInterface = GrGLCreateNativeInterface();
     sk_sp<const GrGLInterface> glInterface(grGlInterface);
     if (glInterface.get() == nullptr) {
@@ -197,6 +199,13 @@ sk_sp<GrContext> RSSubThread::CreateShareGrContext()
     options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableDistanceFieldPaths = true;
+
+    auto handler = std::make_shared<MemoryHandler>();
+    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    auto size = glesVersion ? strlen(glesVersion) : 0;
+    /* /data/service/el0/render_service is shader cache dir*/
+    handler->ConfigureContext(&options, glesVersion, size, "/data/service/el0/render_service", true);
+
 #ifdef NEW_SKIA
     sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
 #else
@@ -207,5 +216,14 @@ sk_sp<GrContext> RSSubThread::CreateShareGrContext()
         return nullptr;
     }
     return grContext;
+}
+
+void RSSubThread::ResetGrContext()
+{
+    RS_TRACE_NAME("ResetGrContext release resource");
+    if (grContext_ == nullptr) {
+        return;
+    }
+    grContext_->purgeUnlockedResources(false);
 }
 }

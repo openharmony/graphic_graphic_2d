@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "common/rs_macros.h"
+
 namespace OHOS {
 namespace Rosen {
 class RSBaseRenderNode;
@@ -26,7 +28,7 @@ enum class UniRenderEnabledType {
     UNI_RENDER_ENABLED_FOR_ALL,
 };
 // Judge the unified rendering strategy of RenderService.
-class RSUniRenderJudgement final {
+class RSB_EXPORT RSUniRenderJudgement final {
 public:
     ~RSUniRenderJudgement() = default;
 

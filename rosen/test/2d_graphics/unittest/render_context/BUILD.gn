@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_standard/rosen/modules/2d_graphics/render_context"
+module_output_path = "graphic_2d/rosen/modules/2d_graphics/render_context"
 
 group("unittest") {
   testonly = true
@@ -57,7 +57,7 @@ ohos_static_library("render_context") {
     "//third_party/googletest:gtest_main",
   ]
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
 }
 
 ## Build render_context.a }}}
@@ -92,6 +92,6 @@ ohos_unittest("2d_graphics_shader_cache_test") {
   defines = []
   defines += gpu_defines
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

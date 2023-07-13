@@ -1042,9 +1042,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     }
 
     // Optional use cacheManager to draw filter
-    auto& cacheManager = (filterType == FilterType::BACKGROUND_FILTER) ? properties.backgroundFilterCacheManager_
-                                                                       : properties.filterCacheManager_;
-    if (cacheManager != nullptr) {
+    if (auto& cacheManager = properties.GetFilterCacheManager(filterType == FilterType::FOREGROUND_FILTER)) {
         cacheManager->DrawFilter(canvas, filter);
         return;
     }
@@ -1137,7 +1135,7 @@ void RSPropertiesPainter::DrawBackgroundEffect(
     g_blurCnt++;
 
     // Optional use cacheManager to draw filter
-    if (auto& cacheManager = properties.backgroundFilterCacheManager_) {
+    if (auto& cacheManager = properties.GetFilterCacheManager(false)) {
         // the input rect is in global coordinate, so we need to save/reset matrix before clip
         SkAutoCanvasRestore acr(&canvas, true);
         canvas.resetMatrix();

@@ -25,6 +25,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "property/rs_property_trace.h"
@@ -38,6 +39,8 @@ const std::set<RSModifierType> GROUPABLE_ANIMATION_TYPE = {
     RSModifierType::SCALE,
 };
 }
+
+bool RSRenderNode::isUniRender_ = RSUniRenderJudgement::IsUniRender();
 
 RSRenderNode::RSRenderNode(NodeId id, std::weak_ptr<RSContext> context) : RSBaseRenderNode(id, context) {}
 
@@ -122,9 +125,6 @@ bool RSRenderNode::Update(
     renderProperties_.ResetDirty();
 
 #ifndef USE_ROSEN_DRAWING
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
-    auto& absRect = geoPtr->GetAbsRect();
-
     // Note:
     // 1. cache manager will use dirty region to update cache validity, background filter cache manager should use
     // 'dirty region of all the nodes drawn before this node', and foreground filter cache manager should use 'dirty
@@ -132,14 +132,14 @@ bool RSRenderNode::Update(
     // 2. Filter must be valid when filter cache manager is valid, we make sure that in RSRenderNode::ApplyModifiers().
 
     // background filter
-    if (auto& manager = renderProperties_.backgroundFilterCacheManager_) {
+    if (auto& manager = renderProperties_.GetFilterCacheManager(false)) {
         // empty implementation, invalidate filter cache on every update
-        manager->UpdateCacheState({ 0, 0, INT_MAX, INT_MAX }, absRect, renderProperties_.GetBackgroundFilter()->Hash());
+        manager->UpdateCacheStateWithDirtyRegion({ 0, 0, INT_MAX, INT_MAX });
     }
     // foreground filter
-    if (auto& manager = renderProperties_.filterCacheManager_) {
+    if (auto& manager = renderProperties_.GetFilterCacheManager(true)) {
         // empty implementation, invalidate filter cache on every update
-        manager->UpdateCacheState({ 0, 0, INT_MAX, INT_MAX }, absRect, renderProperties_.GetFilter()->Hash());
+        manager->UpdateCacheStateWithDirtyRegion({ 0, 0, INT_MAX, INT_MAX });
     }
 #endif
 
@@ -391,23 +391,12 @@ void RSRenderNode::ApplyModifiers()
     dirtyTypes_.clear();
 
 #ifndef USE_ROSEN_DRAWING
-    if (!RSSystemProperties::GetFilterCacheEnabled()) {
+    // Disable filter cache if either uni-render is disabled or filter cache is disabled by property.
+    if (!isUniRender_ || !RSSystemProperties::GetFilterCacheEnabled()) {
         return;
     }
-    // make sure filter cache manager is created when filter is not null, and vice versa
-    if (renderProperties_.GetBackgroundFilter() != nullptr &&
-        renderProperties_.backgroundFilterCacheManager_ == nullptr) {
-        renderProperties_.backgroundFilterCacheManager_ = std::make_unique<RSFilterCacheManager>();
-    } else if (renderProperties_.GetBackgroundFilter() == nullptr &&
-        renderProperties_.backgroundFilterCacheManager_ != nullptr) {
-        renderProperties_.backgroundFilterCacheManager_.reset();
-    }
-
-    if (renderProperties_.GetFilter() != nullptr && renderProperties_.filterCacheManager_ == nullptr) {
-        renderProperties_.filterCacheManager_ = std::make_unique<RSFilterCacheManager>();
-    } else if (renderProperties_.GetFilter() == nullptr && renderProperties_.filterCacheManager_ != nullptr) {
-        renderProperties_.filterCacheManager_.reset();
-    }
+    // Create or release filter cache manager on demand, update cache state with filter hash.
+    renderProperties_.CreateFilterCacheManagerIfNeed();
 #endif
 }
 
@@ -629,12 +618,13 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
     SkPaint paint;
 #if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     if (isUIFirst) {
-        if (!grBackendTexture_.isValid()) {
+        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+        if (!cacheCompletedBackendTexture_.isValid()) {
             RS_LOGE("invalid grBackendTexture_");
             canvas.restore();
             return;
         }
-        auto image = SkImage::MakeFromTexture(canvas.recordingContext(), grBackendTexture_,
+        auto image = SkImage::MakeFromTexture(canvas.recordingContext(), cacheCompletedBackendTexture_,
             kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
         if (image == nullptr) {
             RS_LOGE("make Image failed");
@@ -710,7 +700,7 @@ void RSRenderNode::UpdateBackendTexture()
     if (cacheSurface_ == nullptr) {
         return;
     }
-    grBackendTexture_
+    cacheBackendTexture_
         = cacheSurface_->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
 }
 #endif
@@ -792,6 +782,44 @@ void RSRenderNode::CheckDrawingCacheType()
     } else {
         SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
     }
+}
+
+RectI RSRenderNode::GetFilterRect() const
+{
+    auto& properties = GetRenderProperties();
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
+    if (properties.GetClipBounds() != nullptr) {
+        auto filterRect = properties.GetClipBounds()->GetSkiaPath().getBounds();
+        auto absRect = geoPtr->GetAbsMatrix().mapRect(filterRect);
+        return {absRect.x(), absRect.y(), absRect.width(), absRect.height()};
+    } else {
+        return geoPtr->GetAbsRect();
+    }
+}
+
+void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion() const
+{
+#ifndef USE_ROSEN_DRAWING
+    // background filter
+    if (auto& manager = GetRenderProperties().GetFilterCacheManager(false)) {
+        manager->UpdateCacheStateWithFilterRegion(GetFilterRect());
+    }
+    // foreground filter
+    if (auto& manager = GetRenderProperties().GetFilterCacheManager(true)) {
+        manager->UpdateCacheStateWithFilterRegion(GetFilterRect());
+    }
+#endif
+}
+
+void RSRenderNode::OnTreeStateChanged()
+{
+#ifndef USE_ROSEN_DRAWING
+    if (IsOnTheTree()) {
+        GetMutableRenderProperties().CreateFilterCacheManagerIfNeed();
+    } else {
+        GetMutableRenderProperties().ResetFilterCacheManager();
+    }
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

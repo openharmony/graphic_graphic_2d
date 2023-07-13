@@ -14,13 +14,25 @@
  */
 
 #include "c/drawing_font_collection.h"
-#include "rosen_text/ui/font_collection.h"
+
+#include <map>
+
+#include "rosen_text/font_collection.h"
+
+namespace {
+std::map<OHOS::Rosen::FontCollection *, std::shared_ptr<OHOS::Rosen::FontCollection>> g_fontCollectionRefMap;
+} // namespace
 
 OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void)
 {
-    return (OH_Drawing_FontCollection*)new rosen::FontCollection;
+    auto fc = OHOS::Rosen::FontCollection::Create();
+    g_fontCollectionRefMap[fc.get()] = fc;
+    return (OH_Drawing_FontCollection*)fc.get();
 }
 
 void OH_Drawing_DestroyFontCollection(OH_Drawing_FontCollection* fontCollection)
 {
+    if (fontCollection) {
+        g_fontCollectionRefMap.erase(reinterpret_cast<OHOS::Rosen::FontCollection *>(fontCollection));
+    }
 }

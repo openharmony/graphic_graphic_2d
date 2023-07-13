@@ -34,8 +34,6 @@ public:
 
     ~RSRenderSpringAnimation() override = default;
 
-    void SetZeroThreshold(float zeroThreshold);
-
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSRenderSpringAnimation* Unmarshalling(Parcel& parcel);
@@ -43,13 +41,10 @@ public:
 protected:
     void OnSetFraction(float fraction) override;
     void OnAnimate(float fraction) override;
-    std::tuple<bool, bool> OnAnimateByTime(float time) override;
 
     void OnAttach() override;
     void OnDetach() override;
     void OnInitialize(int64_t time) override;
-    void ProcessFillModeOnFinishByTime(float endTime = 0) override;
-    AnimationTimingMode GetAnimationTimingMode() const override;
 
 private:
 #ifdef ROSEN_OHOS
@@ -59,11 +54,9 @@ private:
 
     // status inherited related
     float prevMappedTime_ = 0.0f;
-    // return current <value, velocity, remainingDelayTime> as a tuple
-    std::tuple<std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSRenderPropertyBase>, int64_t>
-        GetSpringStatus() const;
+    // return current <value, velocity> as a tuple
+    std::tuple<std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSRenderPropertyBase>> GetSpringStatus() const;
     void InheritSpringStatus(const RSRenderSpringAnimation* from);
-    std::shared_ptr<RSRenderPropertyBase> CalculateVelocity(float time) const;
 
     // blend related
     uint64_t blendDuration_ = 0;
@@ -71,11 +64,6 @@ private:
 
     std::shared_ptr<RSRenderPropertyBase> startValue_;
     std::shared_ptr<RSRenderPropertyBase> endValue_;
-    // save the origin startValue_, as startValue_ will change when inherit happened
-    std::shared_ptr<RSRenderPropertyBase> originStartValue_;
-
-    // used to determine the end of animation
-    float zeroThreshold_ = 1.0f / 256.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

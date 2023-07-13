@@ -39,7 +39,7 @@ public:
         duration_ = duration;
     }
 
-    virtual void SetStartDelay(int startDelay)
+    void SetStartDelay(int startDelay)
     {
         startDelay_ = startDelay;
     }

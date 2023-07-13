@@ -41,6 +41,10 @@ public:
     explicit RSBaseRenderNode(NodeId id, std::weak_ptr<RSContext> context = {}) : id_(id), context_(context) {};
     explicit RSBaseRenderNode(NodeId id, bool isOnTheTree = false, std::weak_ptr<RSContext> context = {}) : id_(id),
         isOnTheTree_(isOnTheTree), context_(context) {};
+    RSBaseRenderNode(const RSBaseRenderNode&) = delete;
+    RSBaseRenderNode(const RSBaseRenderNode&&) = delete;
+    RSBaseRenderNode& operator=(const RSBaseRenderNode&) = delete;
+    RSBaseRenderNode& operator=(const RSBaseRenderNode&&) = delete;
     virtual ~RSBaseRenderNode() = default;
 
     void AddChild(SharedPtr child, int index = -1);
@@ -78,7 +82,7 @@ public:
         return id_;
     }
 
-    void SetIsOnTheTree(bool flag);
+    virtual void SetIsOnTheTree(bool flag);
     bool IsOnTheTree() const
     {
         return isOnTheTree_;
@@ -181,6 +185,16 @@ public:
         childHasFilter_ = childHasFilter;
     }
 
+    void SetRootSurfaceNodeId(NodeId id)
+    {
+        rootSurfaceNodeId_ = id;
+    }
+
+    NodeId GetRootSurfaceNodeId() const
+    {
+        return rootSurfaceNodeId_;
+    }
+
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
     void SetDirty();
@@ -202,6 +216,7 @@ protected:
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
 private:
     NodeId id_;
+    NodeId rootSurfaceNodeId_ = INVALID_NODEID;
 
     WeakPtr parent_;
     void SetParent(WeakPtr parent);

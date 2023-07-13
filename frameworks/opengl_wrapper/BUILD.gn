@@ -75,7 +75,7 @@ if (current_os != "ohos") {
     output_extension = "so"
 
     innerapi_tags = [ "platformsdk" ]
-    part_name = "graphic_standard"
+    part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
 }
@@ -116,7 +116,7 @@ ohos_shared_library("GLESv1") {
   output_name = "GLESv1"
   output_extension = "so"
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -156,7 +156,7 @@ ohos_shared_library("GLESv2") {
   output_name = "GLESv2"
   output_extension = "so"
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -209,7 +209,7 @@ if (current_os != "ohos") {
     output_extension = "so"
 
     innerapi_tags = [ "platformsdk" ]
-    part_name = "graphic_standard"
+    part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
 }
@@ -239,7 +239,7 @@ ohos_executable("opengl_wrapper_native_test") {
     "hilog:libhilog",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -274,7 +274,7 @@ ohos_shared_library("debug_layer_test1") {
 
   symlink_target_name = [ "libdebug_layer_test1.so" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -290,7 +290,7 @@ ohos_shared_library("debug_layer_test2") {
 
   symlink_target_name = [ "libdebug_layer_test2.so" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 ## Build libdebug_layer_test.so }}}

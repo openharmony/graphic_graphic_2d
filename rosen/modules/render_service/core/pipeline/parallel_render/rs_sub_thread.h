@@ -38,7 +38,7 @@ public:
     void Start();
     void PostTask(const std::function<void()>& task);
     void RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTask);
-
+    void ResetGrContext();
 private:
     void CreateShareEglContext();
     void DestroyShareEglContext();
@@ -47,7 +47,6 @@ private:
 #else
     sk_sp<GrContext> CreateShareGrContext();
 #endif
-
     uint32_t threadIndex_;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

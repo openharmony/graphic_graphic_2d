@@ -86,6 +86,8 @@ public:
     void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling) override;
     void DrawPicture(const Picture& picture) override;
 
+    void DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom) override;
+
     // clip
     void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias) override;
     void ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias) override;

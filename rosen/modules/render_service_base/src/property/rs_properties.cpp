@@ -126,6 +126,7 @@ void RSProperties::SetBounds(Vector4f bounds)
     boundsGeo_->SetRect(bounds.x_, bounds.y_, bounds.z_, bounds.w_);
     hasBounds_ = true;
     geoDirty_ = true;
+    contentDirty_ = true;
     SetDirty();
 }
 
@@ -134,6 +135,7 @@ void RSProperties::SetBoundsSize(Vector2f size)
     boundsGeo_->SetSize(size.x_, size.y_);
     hasBounds_ = true;
     geoDirty_ = true;
+    contentDirty_ = true;
     SetDirty();
 }
 
@@ -142,6 +144,7 @@ void RSProperties::SetBoundsWidth(float width)
     boundsGeo_->SetWidth(width);
     hasBounds_ = true;
     geoDirty_ = true;
+    contentDirty_ = true;
     SetDirty();
 }
 
@@ -150,6 +153,7 @@ void RSProperties::SetBoundsHeight(float height)
     boundsGeo_->SetHeight(height);
     hasBounds_ = true;
     geoDirty_ = true;
+    contentDirty_ = true;
     SetDirty();
 }
 
@@ -213,6 +217,7 @@ void RSProperties::SetFrame(Vector4f frame)
 {
     frameGeo_->SetRect(frame.x_, frame.y_, frame.z_, frame.w_);
     geoDirty_ = true;
+    contentDirty_ = true;
     SetDirty();
 }
 
@@ -220,6 +225,7 @@ void RSProperties::SetFrameSize(Vector2f size)
 {
     frameGeo_->SetSize(size.x_, size.y_);
     geoDirty_ = true;
+    contentDirty_ = true;
     SetDirty();
 }
 
@@ -227,6 +233,7 @@ void RSProperties::SetFrameWidth(float width)
 {
     frameGeo_->SetWidth(width);
     geoDirty_ = true;
+    contentDirty_ = true;
     SetDirty();
 }
 
@@ -234,6 +241,7 @@ void RSProperties::SetFrameHeight(float height)
 {
     frameGeo_->SetHeight(height);
     geoDirty_ = true;
+    contentDirty_ = true;
     SetDirty();
 }
 
@@ -1989,5 +1997,39 @@ std::string RSProperties::Dump() const
 
     return dumpInfo;
 }
+
+#ifndef USE_ROSEN_DRAWING
+void RSProperties::CreateFilterCacheManagerIfNeed() {
+    if (auto& filter = GetBackgroundFilter()) {
+        auto& cacheManager = backgroundFilterCacheManager_;
+        if (cacheManager == nullptr) {
+            cacheManager = std::make_unique<RSFilterCacheManager>();
+        }
+        cacheManager->UpdateCacheStateWithFilterHash(filter->Hash());
+    } else {
+        backgroundFilterCacheManager_.reset();
+    }
+    if (auto& filter = GetFilter()) {
+        auto& cacheManager = foregroundFilterCacheManager_;
+        if (cacheManager == nullptr) {
+            cacheManager = std::make_unique<RSFilterCacheManager>();
+        }
+        cacheManager->UpdateCacheStateWithFilterHash(filter->Hash());
+    } else {
+        foregroundFilterCacheManager_.reset();
+    }
+}
+
+void RSProperties::ResetFilterCacheManager()
+{
+    backgroundFilterCacheManager_.reset();
+    foregroundFilterCacheManager_.reset();
+}
+
+const std::unique_ptr<RSFilterCacheManager>& RSProperties::GetFilterCacheManager(bool isForeground) const
+{
+    return isForeground ? foregroundFilterCacheManager_ : backgroundFilterCacheManager_;
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

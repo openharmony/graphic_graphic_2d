@@ -343,8 +343,13 @@ void SkiaFramework::PrepareVsyncFunc()
 
         sptr<SurfaceBuffer> buffer;
         int32_t releaseFence;
-        BufferRequestConfig config = { .width = windowWidth_, .height = windowHeight_, .strideAlignment = 0x8,
-            .format = PIXEL_FMT_RGBA_8888, .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA, };
+        BufferRequestConfig config = {
+            .width = windowWidth_,
+            .height = windowHeight_,
+            .strideAlignment = 0x8,
+            .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+            .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        };
 
         SurfaceError ret = surface->RequestBuffer(buffer, releaseFence, config);
         LOGI("request buffer ret is: %{public}s", SurfaceErrorStr(ret).c_str());

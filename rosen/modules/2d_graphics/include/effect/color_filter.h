@@ -41,7 +41,7 @@ public:
 
     static std::shared_ptr<ColorFilter> CreateBlendModeColorFilter(ColorQuad c, BlendMode mode);
     static std::shared_ptr<ColorFilter> CreateComposeColorFilter(ColorFilter& f1, ColorFilter& f2);
-    static std::shared_ptr<ColorFilter> CreateMatrixColorFilter(ColorMatrix& m);
+    static std::shared_ptr<ColorFilter> CreateMatrixColorFilter(const ColorMatrix& m);
     static std::shared_ptr<ColorFilter> CreateLinearToSrgbGamma();
     static std::shared_ptr<ColorFilter> CreateSrgbGammaToLinear();
     /*
@@ -70,7 +70,7 @@ public:
     }
 
     ColorFilter(FilterType t, ColorQuad c, BlendMode mode) noexcept;
-    ColorFilter(FilterType t, ColorMatrix& m) noexcept;
+    ColorFilter(FilterType t, const ColorMatrix& m) noexcept;
     ColorFilter(FilterType t, ColorFilter& f1, ColorFilter& f2) noexcept;
     ColorFilter(FilterType t) noexcept;
 

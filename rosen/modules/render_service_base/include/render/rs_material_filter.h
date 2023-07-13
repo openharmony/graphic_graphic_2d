@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 
 #include "common/rs_color.h"
 #include "render/rs_skia_filter.h"
+#include "render/rs_kawase_blur.h"
 
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkColorFilter.h"
@@ -92,9 +93,6 @@ public:
     std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) override;
     std::shared_ptr<RSFilter> Multiply(float rhs) override;
     std::shared_ptr<RSFilter> Negate() override;
-    bool IsNearEqual(
-        const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const override;
-    bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const override;
 
     void DrawImageRect(
         SkCanvas& canvas, const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst) const override;
@@ -107,6 +105,7 @@ private:
     RSColor maskColor_ = RSColor();
 
 #ifndef USE_ROSEN_DRAWING
+    sk_sp<SkColorFilter> GetColorFilter(float sat, float brightness);
     sk_sp<SkImageFilter> CreateMaterialStyle(MATERIAL_BLUR_STYLE style, float dipScale, float ratio);
     sk_sp<SkImageFilter> CreateMaterialFilter(float radius, float sat, float brightness);
 #else
@@ -115,7 +114,8 @@ private:
 #endif
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
 
-    bool useKawase = false;
+    std::shared_ptr<KawaseBlurFilter> kawaseFunc_;
+    bool useKawase_ = false;
     friend class RSMarshallingHelper;
 };
 } // namespace Rosen

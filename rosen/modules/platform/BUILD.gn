@@ -59,7 +59,7 @@ ohos_source_set("impl_eventhandler") {
     ":utils",
     "//third_party/libuv:uv",
   ]
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -95,7 +95,7 @@ ohos_source_set("mock_image_native") {
   public_configs = [ ":image_native_config" ]
   sources = [ "image_native/pixel_map.cpp" ]
   deps = [ ":utils" ]
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -125,7 +125,7 @@ ohos_source_set("mock_ipc_core") {
     "ipc_core/peer_holder.cpp",
   ]
   deps = [ ":utils" ]
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -166,7 +166,7 @@ ohos_source_set("mock_utils") {
     ]
     public_deps = [ "//third_party/bounds_checking_function:libsec_shared" ]
   }
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 # utils }}}

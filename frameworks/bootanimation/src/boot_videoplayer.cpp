@@ -52,6 +52,10 @@ bool BootVideoPlayer::PlayVideo()
     if (mediaPlayer_ == nullptr) {
         mediaPlayer_ = Media::PlayerFactory::CreatePlayer();
     }
+    if (mediaPlayer_ == nullptr) {
+        LOGE("PlayVideo SetPlayerCallback fail, mediaPlayer_ is nullptr");
+        return false;
+    }
     std::shared_ptr<VideoPlayerCallback> cb = std::make_shared<VideoPlayerCallback>(shared_from_this());
     int32_t ret = mediaPlayer_->SetPlayerCallback(cb);
     if (ret != 0) {

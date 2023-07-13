@@ -160,6 +160,11 @@ void CoreCanvas::DrawPicture(const Picture& picture)
     impl_->DrawPicture(picture);
 }
 
+void CoreCanvas::DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom)
+{
+    impl_->DrawSVGDOM(svgDom);
+}
+
 void CoreCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)
 {
     impl_->ClipRect(rect, op, doAntiAlias);

@@ -12,16 +12,16 @@
 # limitations under the License.
 
 declare_args() {
-  graphic_standard_feature_bootanimation_enable = true
-  graphic_standard_feature_ace_enable_gpu = true
-  graphic_standard_feature_color_gamut_enable = false
-  graphic_standard_feature_rs_enable_eglimage = false
-  graphic_standard_feature_rs_enable_uni_render = false
-  graphic_standard_feature_wuji_enable = false
-  graphic_standard_feature_enable_afbc = false
-  graphic_standard_feature_freemem_enable = false
-  graphic_standard_feature_parallel_render_enable = true
-  graphic_standard_feature_enable_vulkan = false
+  graphic_2d_feature_bootanimation_enable = true
+  graphic_2d_feature_ace_enable_gpu = true
+  graphic_2d_feature_color_gamut_enable = false
+  graphic_2d_feature_rs_enable_eglimage = false
+  graphic_2d_feature_rs_enable_uni_render = false
+  graphic_2d_feature_wuji_enable = false
+  graphic_2d_feature_enable_afbc = false
+  graphic_2d_feature_freemem_enable = false
+  graphic_2d_feature_parallel_render_enable = true
+  graphic_2d_feature_enable_vulkan = false
   if (defined(build_cross_platform_version) && build_cross_platform_version) {
     use_new_render_context = false
   } else {
@@ -31,8 +31,8 @@ declare_args() {
 
 gpu_defines = []
 accessibility_defines = []
-if (graphic_standard_feature_ace_enable_gpu) {
-  if (graphic_standard_feature_enable_vulkan) {
+if (graphic_2d_feature_ace_enable_gpu) {
+  if (graphic_2d_feature_enable_vulkan) {
     gpu_defines += [
       "ACE_ENABLE_VK",
       "RS_ENABLE_VK",
@@ -55,7 +55,7 @@ if (graphic_standard_feature_ace_enable_gpu) {
   ]
 
   libvulkan = []
-  if (graphic_standard_feature_enable_vulkan) {
+  if (graphic_2d_feature_enable_vulkan) {
     libvulkan += [
       "//third_party/flutter/engine/flutter/vulkan:vulkan_flutter",
       "//third_party/vulkan-loader/openharmony:vulkan_loader",
@@ -70,8 +70,8 @@ if (graphic_standard_feature_ace_enable_gpu) {
   libvulkan = []
 }
 
-if ((graphic_standard_feature_rs_enable_eglimage &&
-     !graphic_standard_feature_enable_vulkan) || current_os == "android") {
+if ((graphic_2d_feature_rs_enable_eglimage &&
+     !graphic_2d_feature_enable_vulkan) || current_os == "android") {
   gpu_defines += [
     "RS_ENABLE_EGLIMAGE",
     "RS_ENABLE_EGLQUERYSURFACE",
@@ -82,7 +82,7 @@ if ((graphic_standard_feature_rs_enable_eglimage &&
   rs_enable_eglimage = false
 }
 
-if (graphic_standard_feature_rs_enable_uni_render) {
+if (graphic_2d_feature_rs_enable_uni_render) {
   rs_enable_driven_render = true
   gpu_defines += [
     "RS_ENABLE_DRIVEN_RENDER",
@@ -92,12 +92,11 @@ if (graphic_standard_feature_rs_enable_uni_render) {
   rs_enable_driven_render = false
 }
 
-if (graphic_standard_feature_enable_afbc &&
-    !graphic_standard_feature_enable_vulkan) {
+if (graphic_2d_feature_enable_afbc && !graphic_2d_feature_enable_vulkan) {
   gpu_defines += [ "RS_ENABLE_AFBC" ]
 }
 
-if (graphic_standard_feature_parallel_render_enable) {
+if (graphic_2d_feature_parallel_render_enable) {
   rs_enable_parallel_render = true
   gpu_defines += [ "RS_ENABLE_PARALLEL_RENDER" ]
 }
@@ -120,10 +119,13 @@ if (exec_script(check_graphic_ext_file_script,
   }
 }
 
+flutter_root = "//third_party/flutter"
+ace_flutter_engine_root = "$flutter_root/build"
 graphic_2d_root = "//foundation/graphic/graphic_2d"
 hilog_root = "//base/hiviewdfx/hilog"
 window_base_path = "//foundation/window/window_manager"
 safwk_base = "//foundation/systemabilitymgr/safwk"
+skia_root_new = "//third_party/skia"
 
 accessibility_enable = false
 if (defined(global_parts_info) &&

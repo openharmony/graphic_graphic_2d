@@ -22,6 +22,11 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+// Hue RGB constant
+constexpr static float HUE_R = 0.213f;
+constexpr static float HUE_G = 0.715f;
+constexpr static float HUE_B = 0.072f;
+
 ColorMatrix::ColorMatrix() noexcept
 {
     SetIdentity();
@@ -102,6 +107,34 @@ void ColorMatrix::SetScale(scalar sr, scalar sg, scalar sb, scalar sa)
     array_[6] = sg;  // green vector scale
     array_[12] = sb; // blue vector scale
     array_[18] = sa; // alpha vetor scale
+}
+
+void ColorMatrix::SetSaturation(scalar sat)
+{
+    auto ret = memset_s(array_, sizeof(array_), 0, sizeof(array_));
+    if (ret != EOK) {
+        LOGE("Drawing: ColorMatrix memset_s failed");
+        return;
+    }
+
+    const float R = HUE_R * (1 - sat);
+    const float G = HUE_G * (1 - sat);
+    const float B = HUE_B * (1 - sat);
+
+    // red channel
+    array_[SCALE_FACTOR_FOR_R] = R + sat;
+    array_[G_FACTOR_FOR_R] = G;
+    array_[B_FACTOR_FOR_R] = B;
+    // green channel
+    array_[R_FACTOR_FOR_G] = R;
+    array_[SCALE_FACTOR_FOR_G] = G + sat;
+    array_[B_FACTOR_FOR_G] = B;
+    // blue channel
+    array_[R_FACTOR_FOR_B] = R;
+    array_[G_FACTOR_FOR_B] = G;
+    array_[SCALE_FACTOR_FOR_B] = B + sat;
+    // alpha vetor scale
+    array_[SCALE_FACTOR_FOR_A] = 1;
 }
 } // namespace Drawing
 } // namespace Rosen

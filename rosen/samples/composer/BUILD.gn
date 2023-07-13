@@ -57,7 +57,7 @@ ohos_executable("hello_composer") {
 
   external_deps = [ "eventhandler:libeventhandler" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 

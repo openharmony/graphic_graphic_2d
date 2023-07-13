@@ -19,6 +19,8 @@
 #include "base_impl.h"
 #include "securec.h"
 
+#include "include/core/SkRefCnt.h"
+
 #include "draw/brush.h"
 #include "draw/clip.h"
 #include "draw/path.h"
@@ -40,6 +42,8 @@
 #include "utils/round_rect.h"
 #include "utils/sampling_options.h"
 #include "utils/scalar.h"
+
+class SkSVGDOM;
 
 namespace OHOS {
 namespace Media {
@@ -95,6 +99,9 @@ public:
         SrcRectConstraint constraint) = 0;
     virtual void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling) = 0;
     virtual void DrawPicture(const Picture& picture) = 0;
+
+    // temporary interface. Support drawing of SkSVGDOM
+    virtual void DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom) = 0;
 
     // clip
     virtual void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias = false) = 0;

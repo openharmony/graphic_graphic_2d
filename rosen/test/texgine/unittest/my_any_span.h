@@ -24,17 +24,15 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-#define ColorGRAY 4287137928U
+#define COLOR_GRAY 4287137928U
 
 class MyAnySpan : public AnySpan {
 public:
     MyAnySpan(double width, double height,
               AnySpanAlignment align = AnySpanAlignment::ABOVE_BASELINE,
               TextBaseline baseline = TextBaseline::ALPHABETIC
-              ): width_(width), height_(height), align_(align), baseline_(baseline)
+              ): width_(width), height_(height), align_(align), baseline_(baseline), offset_(0.0), color_(COLOR_GRAY)
     {
-        offset_ = 0.0;      // Set default values for testing
-        color_ = ColorGRAY; // Set default values for testing
     }
 
     ~MyAnySpan() = default;
@@ -79,7 +77,7 @@ private:
     AnySpanAlignment align_ = AnySpanAlignment::ABOVE_BASELINE;
     TextBaseline baseline_ = TextBaseline::ALPHABETIC;
     double offset_ = 0.0;
-    uint32_t color_ = ColorGRAY;
+    uint32_t color_ = COLOR_GRAY;
 };
 } // namespace TextEngine
 } // namespace Rosen

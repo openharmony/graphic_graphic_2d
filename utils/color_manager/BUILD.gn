@@ -54,7 +54,7 @@ ohos_shared_library("color_manager") {
 
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
 }
 
 group("test") {

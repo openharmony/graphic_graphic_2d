@@ -14,8 +14,9 @@
  */
 
 #include "gtest/gtest.h"
-
 #include "include/command/rs_node_showing_command.h"
+
+#include "pipeline/rs_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -45,12 +46,12 @@ HWTEST_F(RSShowingNodeCommandTest, RSShowingNodeCommandTest001, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
 
-    auto task = std::make_shared<RSGetRenderPropertyAndCancelAnimationTask<0, 0>>(id, property);
+    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(id, property);
     EXPECT_TRUE(task != nullptr);
     Parcel parcel;
     task->Marshalling(parcel);
 
-    auto copy = RSGetRenderPropertyAndCancelAnimationTask<0, 0>::Unmarshalling(parcel);
+    auto copy = RSNodeGetShowingPropertyAndCancelAnimation::Unmarshalling(parcel);
     EXPECT_TRUE(copy == nullptr);
     GTEST_LOG_(INFO) << "RSShowingNodeCommandTest RSShowingNodeCommandTest001 end";
 
@@ -73,7 +74,7 @@ HWTEST_F(RSShowingNodeCommandTest, RSShowingNodeCommandTest002, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
 
-    auto task = std::make_shared<RSGetRenderPropertyAndCancelAnimationTask<0, 0>>(id, property);
+    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(id, property);
     EXPECT_TRUE(task != nullptr);
     RSContext context;
     task->Process(context);

@@ -37,7 +37,7 @@ public:
     void NodeTaskNotify(uint64_t nodeId);
     void SubmitSubThreadTask(const std::shared_ptr<RSDisplayRenderNode>& node,
         const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
-
+    void ResetSubThreadGrContext();
 private:
     RSSubThreadManager() = default;
     ~RSSubThreadManager() = default;
@@ -52,6 +52,7 @@ private:
     std::condition_variable cvParallelRender_;
     std::map<uint64_t, uint8_t> nodeTaskState_;
     std::vector<std::shared_ptr<RSSubThread>> threadList_;
+    bool needResetContext_ = false;
 };
 }
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_SUB_THREAD_MANAGER_H

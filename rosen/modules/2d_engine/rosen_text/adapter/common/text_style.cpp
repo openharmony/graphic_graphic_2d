@@ -54,16 +54,16 @@ TextShadow::TextShadow()
 {
 }
 
-TextShadow::TextShadow(Drawing::Color color, Drawing::Point offset, double blurRadius)
+TextShadow::TextShadow(Drawing::Color shadowColor, Drawing::Point shadowOffset, double shadowBlurRadius)
 {
-    color_ = color;
-    offset_ = offset;
-    blurRadius_ = blurRadius;
+    color = shadowColor;
+    offset = shadowOffset;
+    blurRadius = shadowBlurRadius;
 }
 
 bool TextShadow::operator ==(const TextShadow& rhs) const
 {
-    return color_ == rhs.color_ && offset_ == rhs.offset_ && blurRadius_ == rhs.blurRadius_;
+    return color == rhs.color && offset == rhs.offset && blurRadius == rhs.blurRadius;
 }
 
 bool TextShadow::operator !=(const TextShadow& rhs) const
@@ -73,30 +73,30 @@ bool TextShadow::operator !=(const TextShadow& rhs) const
 
 bool TextShadow::HasShadow() const
 {
-    return offset_.GetX() != 0 || offset_.GetY() != 0 || blurRadius_ != 0.0;
+    return offset.GetX() != 0 || offset.GetY() != 0 || fabs(blurRadius) >= DBL_EPSILON;
 }
 
 bool TextStyle::operator ==(const TextStyle& rhs) const
 {
-    return color_ == rhs.color_ &&
-           decoration_ == rhs.decoration_ &&
-           decorationColor_ == rhs.decorationColor_ &&
-           decorationStyle_ == rhs.decorationStyle_ &&
-           decorationThicknessScale_ == rhs.decorationThicknessScale_ &&
-           fontWeight_ == rhs.fontWeight_ &&
-           fontStyle_ == rhs.fontStyle_ &&
-           baseline_ == rhs.baseline_ &&
-           fontFamilies_ == rhs.fontFamilies_ &&
-           fontSize_ == rhs.fontSize_ &&
-           letterSpacing_ == rhs.letterSpacing_ &&
-           wordSpacing_ == rhs.wordSpacing_ &&
-           heightScale_ == rhs.heightScale_ &&
-           heightOnly_ == rhs.heightOnly_ &&
-           locale_ == rhs.locale_ &&
-           background_ == rhs.background_ &&
-           foreground_ == rhs.foreground_ &&
-           shadows_ == rhs.shadows_ &&
-           fontFeatures_ == rhs.fontFeatures_;
+    return color == rhs.color &&
+        decoration == rhs.decoration &&
+        decorationColor == rhs.decorationColor &&
+        decorationStyle == rhs.decorationStyle &&
+        decorationThicknessScale == rhs.decorationThicknessScale &&
+        fontWeight == rhs.fontWeight &&
+        fontStyle == rhs.fontStyle &&
+        baseline == rhs.baseline &&
+        fontFamilies == rhs.fontFamilies &&
+        fontSize == rhs.fontSize &&
+        letterSpacing == rhs.letterSpacing &&
+        wordSpacing == rhs.wordSpacing &&
+        heightScale == rhs.heightScale &&
+        heightOnly == rhs.heightOnly &&
+        locale == rhs.locale &&
+        background == rhs.background &&
+        foreground == rhs.foreground &&
+        shadows == rhs.shadows &&
+        fontFeatures == rhs.fontFeatures;
 }
 } // namespace Rosen
 } // namespace OHOS

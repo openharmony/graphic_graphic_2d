@@ -65,7 +65,7 @@ public:
     /*
      * @brief   Gets Canvas that draws into Surface.
      */
-    std::shared_ptr<Canvas> GetCanvas() const;
+    std::shared_ptr<Canvas> GetCanvas();
 
     /*
      * @brief   Gets Image capturing Surface contents.
@@ -84,6 +84,7 @@ public:
 
 private:
     std::shared_ptr<SurfaceImpl> impl_;
+    std::shared_ptr<Canvas> cachedCanvas_;
 };
 } // namespace Drawing
 } // namespace Rosen

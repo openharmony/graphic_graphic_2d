@@ -749,6 +749,50 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             ReportJankStats();
             break;
         }
+        case REPORT_EVENT_RESPONSE: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            DataBaseRs info;
+            ReadDataBaseRs(info, data);
+            ReportEventResponse(info);
+            break;
+        }
+        case REPORT_EVENT_COMPLETE: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            DataBaseRs info;
+            ReadDataBaseRs(info, data);
+            ReportEventComplete(info);
+            break;
+        }
+        case REPORT_EVENT_JANK_FRAME: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            DataBaseRs info;
+            ReadDataBaseRs(info, data);
+            ReportEventJankFrame(info);
+            break;
+        }
+        case REPORT_EVENT_FIRST_FRAME: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            DataBaseRs info;
+            ReadDataBaseRs(info, data);
+            ReportEventFirstFrame(info);
+            break;
+        }
         case EXECUTE_SYNCHRONOUS_TASK: {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
@@ -784,6 +828,22 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
     }
 
     return ret;
+}
+
+void RSRenderServiceConnectionStub::ReadDataBaseRs(DataBaseRs& info, MessageParcel& data)
+{
+    info.appPid = data.ReadInt32();
+    info.eventType =  data.ReadInt32();
+    info.uniqueId = data.ReadInt64();
+    info.inputTime = data.ReadInt64();
+    info.beginVsyncTime = data.ReadInt64();
+    info.endVsyncTime = data.ReadInt64();
+    info.versionCode = data.ReadString();
+    info.versionName = data.ReadString();
+    info.bundleName = data.ReadString();
+    info.processName = data.ReadString();
+    info.abilityName = data.ReadString();
+    info.pageUrl = data.ReadString();
 }
 } // namespace Rosen
 } // namespace OHOS

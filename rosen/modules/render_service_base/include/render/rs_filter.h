@@ -18,7 +18,6 @@
 
 #include <memory>
 
-#include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 
 namespace OHOS {
@@ -33,7 +32,9 @@ class RSB_EXPORT RSFilter : public std::enable_shared_from_this<RSFilter> {
 public:
     virtual ~RSFilter();
     RSFilter(const RSFilter&) = delete;
-    RSFilter operator=(const RSFilter&) = delete;
+    RSFilter(const RSFilter&&) = delete;
+    RSFilter& operator=(const RSFilter&) = delete;
+    RSFilter& operator=(const RSFilter&&) = delete;
     virtual std::string GetDescription();
     static std::shared_ptr<RSFilter> CreateBlurFilter(float blurRadiusX, float blurRadiusY);
     static std::shared_ptr<RSFilter> CreateMaterialFilter(
@@ -53,17 +54,6 @@ public:
     virtual bool IsValid() const
     {
         return type_ != FilterType::NONE;
-    }
-
-    virtual bool IsNearEqual(
-        const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const
-    {
-        return true;
-    }
-
-    virtual bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const
-    {
-        return true;
     }
 
     uint32_t Hash() const

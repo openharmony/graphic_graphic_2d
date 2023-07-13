@@ -46,14 +46,11 @@ config("effect_public_config") {
 ohos_shared_library("libeffectchain") {
   sources = [ "//third_party/cJSON/cJSON.c" ]
 
-  deps = [
-    "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
-  ]
-
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
+    "multimedia_image_framework:image_native",
   ]
 
   if (effect_enable_gpu) {
@@ -76,7 +73,7 @@ ohos_shared_library("libeffectchain") {
       "src/vertical_blur_filter.cpp",
     ]
 
-    deps += [ "$graphic_2d_root:libgl" ]
+    deps = [ "$graphic_2d_root:libgl" ]
   }
 
   configs = [ ":effect_config" ]
@@ -94,6 +91,6 @@ ohos_shared_library("libeffectchain") {
     install_enable = false
   }
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

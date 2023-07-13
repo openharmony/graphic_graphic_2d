@@ -205,6 +205,16 @@ public:
     int GetHeight() const;
 
     /*
+     * @brief  Gets the color type of Image.
+     */
+    ColorType GetColorType() const;
+
+    /*
+     * @brief  Gets the alpha type of Image.
+     */
+    AlphaType GetAlphaType() const;
+
+    /*
      * @brief  Gets the unique Id of Image.
      */
     uint32_t GetUniqueID() const;

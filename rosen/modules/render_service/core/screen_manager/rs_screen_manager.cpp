@@ -129,6 +129,7 @@ void RSScreenManager::OnHwcDead(void *data)
 
 void RSScreenManager::OnHwcDeadEvent()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     for (const auto &[id, screen] : screens_) {
         if (screen) {
             for (auto &cb : screenChangeCallbacks_) {

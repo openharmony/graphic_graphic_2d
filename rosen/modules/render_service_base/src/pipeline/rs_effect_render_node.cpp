@@ -89,5 +89,19 @@ void RSEffectRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
     canvas.RestoreEffectData();
 }
 
+RectI RSEffectRenderNode::GetFilterRect() const
+{
+    if (effectRegion_.has_value()) {
+        auto bounds = effectRegion_->getBounds();
+        return {bounds.x(), bounds.y(), bounds.width(), bounds.height()};
+    } else {
+        return {};
+    }
+}
+
+void RSEffectRenderNode::SetEffectRegion(const std::optional<SkPath>& region)
+{
+    effectRegion_ = region;
+}
 } // namespace Rosen
 } // namespace OHOS

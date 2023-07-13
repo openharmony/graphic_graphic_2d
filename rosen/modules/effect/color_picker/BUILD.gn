@@ -53,20 +53,18 @@ ohos_shared_library("color_picker") {
     "src/color_picker.cpp",
   ]
 
-  deps = [
-    "$graphic_2d_root/utils/color_manager:color_manager",
-    "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
-  ]
+  deps = [ "$graphic_2d_root/utils/color_manager:color_manager" ]
 
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "multimedia_image_framework:image_native",
   ]
 
   cflags_cc = [ "-std=c++17" ]
 
   innerapi_tags = [ "platformsdk" ]
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 ## Build color_picker.so

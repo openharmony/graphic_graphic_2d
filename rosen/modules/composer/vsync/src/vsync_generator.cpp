@@ -83,10 +83,12 @@ void VSyncGenerator::ThreadLoop()
 
     int64_t occurTimestamp = 0;
     int64_t nextTimeStamp = 0;
+    int64_t occurRefrenceTime = 0;
     while (vsyncThreadRunning_ == true) {
         std::vector<Listener> listeners;
         {
             std::unique_lock<std::mutex> locker(mutex_);
+            occurRefrenceTime = refrenceTime_;
             if (period_ == 0) {
                 if (vsyncThreadRunning_ == true) {
                     con_.wait(locker);
@@ -94,7 +96,7 @@ void VSyncGenerator::ThreadLoop()
                 continue;
             }
             occurTimestamp = GetSysTimeNs();
-            nextTimeStamp = ComputeNextVSyncTimeStamp(occurTimestamp);
+            nextTimeStamp = ComputeNextVSyncTimeStamp(occurTimestamp, occurRefrenceTime);
             if (nextTimeStamp == INT64_MAX) {
                 if (vsyncThreadRunning_ == true) {
                     con_.wait(locker);
@@ -122,20 +124,20 @@ void VSyncGenerator::ThreadLoop()
                 wakeupDelay_ = ((wakeupDelay_ * 63) + (occurTimestamp - nextTimeStamp)) / 64;
                 wakeupDelay_ = wakeupDelay_ > maxWaleupDelay ? maxWaleupDelay : wakeupDelay_;
             }
-            listeners = GetListenerTimeouted(occurTimestamp);
+            listeners = GetListenerTimeouted(occurTimestamp, occurRefrenceTime);
         }
-        ScopedBytrace func("GenerateVsyncCount:" + std::to_string(listeners.size()));
+        ScopedBytrace func("GenerateVsyncCount:" + std::to_string(listeners.size()) + ", period:" + std::to_string(period_));
         for (uint32_t i = 0; i < listeners.size(); i++) {
             listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, period_);
         }
     }
 }
 
-int64_t VSyncGenerator::ComputeNextVSyncTimeStamp(int64_t now)
+int64_t VSyncGenerator::ComputeNextVSyncTimeStamp(int64_t now, int64_t refrenceTime)
 {
     int64_t nextVSyncTime = INT64_MAX;
     for (uint32_t i = 0; i < listeners_.size(); i++) {
-        int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], now);
+        int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], now, refrenceTime);
         if (t < nextVSyncTime) {
             nextVSyncTime = t;
         }
@@ -144,14 +146,14 @@ int64_t VSyncGenerator::ComputeNextVSyncTimeStamp(int64_t now)
     return nextVSyncTime;
 }
 
-int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listener, int64_t now)
+int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listener, int64_t now, int64_t refrenceTime)
 {
     int64_t lastVSyncTime = listener.lastTime_ + wakeupDelay_;
     if (now < lastVSyncTime) {
         now = lastVSyncTime;
     }
 
-    now -= refrenceTime_;
+    now -= refrenceTime;
     int64_t phase = phase_ + listener.phase_;
     now -= phase;
     if (now < 0) {
@@ -159,7 +161,7 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
     }
     int64_t numPeriod = now / period_;
     int64_t nextTime = (numPeriod + 1) * period_ + phase;
-    nextTime += refrenceTime_;
+    nextTime += refrenceTime;
 
     // 3 / 5 just empirical value
     if (nextTime - listener.lastTime_ < (3 * period_ / 5)) {
@@ -170,13 +172,13 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
     return nextTime;
 }
 
-std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeouted(int64_t now)
+std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeouted(int64_t now, int64_t refrenceTime)
 {
     std::vector<VSyncGenerator::Listener> ret;
     int64_t onePeriodAgo = now - period_;
 
     for (uint32_t i = 0; i < listeners_.size(); i++) {
-        int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], onePeriodAgo);
+        int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], onePeriodAgo, refrenceTime);
         if (t < now || (t - now < errorThreshold)) {
             listeners_[i].lastTime_ = t;
             ret.push_back(listeners_[i]);

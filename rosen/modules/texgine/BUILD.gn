@@ -26,11 +26,6 @@ config("libtexgine_config") {
     "-g3",
   ]
 
-  defines = [
-    "LOGGER_ENABLE_SCOPE",
-    "TEXGINE_ENABLE_DEBUGLOG",
-  ]
-
   include_dirs = [
     "src",
     "export",
@@ -99,6 +94,8 @@ ohos_shared_library("libtexgine") {
       "//build/config/compiler:exceptions",
     ]
 
+    cflags_cc = [ "-Wno-c++17-extensions" ]
+    cflags = [ "-Wno-c++17-extensions" ]
     public_configs = [ ":libtexgine_public_config" ]
 
     platform = current_os
@@ -107,19 +104,33 @@ ohos_shared_library("libtexgine") {
     }
 
     public_deps = [
-      "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
-      "$hilog_root/interfaces/native/innerkits:libhilog",
       "texgine_drawing:libtexgine_drawing",
       "//third_party/jsoncpp:jsoncpp",
     ]
 
-    external_deps = [
-      "c_utils:utils",
-      "hitrace:hitrace_meter",
-    ]
+    if (platform == "ohos") {
+      defines = [
+        "BUILD_NON_SDK_VER",
+        "LOGGER_ENABLE_SCOPE",
+        "TEXGINE_ENABLE_DEBUGLOG",
+      ]
+
+      external_deps = [
+        "c_utils:utils",
+        "hitrace:hitrace_meter",
+      ]
+
+      public_deps += [
+        "$hilog_root/interfaces/native/innerkits:libhilog",
+        "//third_party/flutter/build/icu:ace_libicu_$platform",
+      ]
+    } else {
+      sources -= [ "src/utils/trace_ohos.cpp" ]
+      public_deps += [ "//third_party/skia/third_party/icu" ]
+    }
   }
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 ## Build libtexgine.so }}}

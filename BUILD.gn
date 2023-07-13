@@ -21,7 +21,7 @@ group("default") {
     "rosen/modules/hyper_graphic_manager:hgm_policy_config.xml",
   ]
 
-  if (graphic_standard_feature_bootanimation_enable) {
+  if (graphic_2d_feature_bootanimation_enable) {
     public_deps += [ "frameworks/bootanimation:bootanimation" ]
     public_deps += [ "frameworks/bootanimation:bootanimation_pics" ]
     public_deps += [ "frameworks/bootanimation:bootanimation_sounds" ]
@@ -53,7 +53,7 @@ group("graphic_2d_test") {
 ohos_prebuilt_etc("graphic.rc") {
   source = "graphic.cfg"
   relative_install_dir = "init"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 

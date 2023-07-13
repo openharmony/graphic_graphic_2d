@@ -27,103 +27,99 @@ std::shared_ptr<OHOS::Rosen::AdapterTextEngine::FontCollection> Convert(
 TextEngine::TypographyStyle Convert(const TypographyStyle &style)
 {
     TextEngine::TypographyStyle ys = {
-        .fontWeight_ = Convert(style.fontWeight_),
-        .fontStyle_ = Convert(style.fontStyle_),
-        .fontFamilies_ = { style.fontFamily_ },
-        .fontSize_ = style.fontSize_,
-        .heightScale_ = style.heightScale_,
-        .heightOnly_ = style.heightOnly_,
-        .locale_ = style.locale_,
-        .maxLines_ = style.maxLines_,
-        .ellipsis_ = style.ellipsis_,
-        .breakStrategy_ = Convert(style.breakStrategy_),
-        .wordBreakType_ = Convert(style.wordBreakType_),
-        .align_ = Convert(style.textAlign_),
-        .direction_ = Convert(style.textDirection_),
-        .useLineStyle_ = style.useLineStyle_,
-        .lineStyle_ = {
-            .only_ = style.lineStyleOnly_,
-            .fontWeight_ = Convert(style.lineStyleFontWeight_),
-            .fontStyle_ = Convert(style.lineStyleFontStyle_),
-            .fontFamilies_ = style.lineStyleFontFamilies_,
-            .heightOnly_ = style.lineStyleHeightOnly_,
-            .fontSize_ = style.lineStyleFontSize_,
-            .heightScale_ = style.lineStyleHeightScale_,
+        .fontWeight = Convert(style.fontWeight),
+        .fontStyle = Convert(style.fontStyle),
+        .fontFamilies = { style.fontFamily },
+        .fontSize = style.fontSize,
+        .heightScale = style.heightScale,
+        .heightOnly = style.heightOnly,
+        .locale = style.locale,
+        .maxLines = style.maxLines,
+        .ellipsis = style.ellipsis,
+        .breakStrategy = Convert(style.breakStrategy),
+        .wordBreakType = Convert(style.wordBreakType),
+        .align = Convert(style.textAlign),
+        .direction = Convert(style.textDirection),
+        .useLineStyle = style.useLineStyle,
+        .lineStyle = {
+            .only = style.lineStyleOnly,
+            .fontWeight = Convert(style.lineStyleFontWeight),
+            .fontStyle = Convert(style.lineStyleFontStyle),
+            .fontFamilies = style.lineStyleFontFamilies,
+            .heightOnly = style.lineStyleHeightOnly,
+            .fontSize = style.lineStyleFontSize,
+            .heightScale = style.lineStyleHeightScale,
         },
     };
-    if (style.lineStyleSpacingScale_ >= 0) {
-        ys.lineStyle_.spacingScale_ = style.lineStyleSpacingScale_;
+    if (style.lineStyleSpacingScale >= 0) {
+        ys.lineStyle.spacingScale = style.lineStyleSpacingScale;
     }
     return ys;
 }
 
 TextEngine::TextStyle Convert(const TextStyle &style)
 {
-    auto color = SkColorSetARGB(style.color_.GetAlpha(),
-                                style.color_.GetRed(),
-                                style.color_.GetGreen(),
-                                style.color_.GetBlue());
-    auto decorationColor = SkColorSetARGB(style.decorationColor_.GetAlpha(),
-                                          style.decorationColor_.GetRed(),
-                                          style.decorationColor_.GetGreen(),
-                                          style.decorationColor_.GetBlue());
+    auto color = SkColorSetARGB(
+        style.color.GetAlpha(), style.color.GetRed(), style.color.GetGreen(), style.color.GetBlue());
+    auto decorationColor = SkColorSetARGB(style.decorationColor.GetAlpha(),
+        style.decorationColor.GetRed(), style.decorationColor.GetGreen(), style.decorationColor.GetBlue());
     auto foreground = std::make_shared<TextEngine::TexginePaint>();
-    foreground->SetPaint(*style.foreground_);
+    foreground->SetPaint(*style.foreground);
     auto background = std::make_shared<TextEngine::TexginePaint>();
-    background->SetPaint(*style.background_);
+    background->SetPaint(*style.background);
     TextEngine::TextStyle xs = {
-        .fontWeight_ = Convert(style.fontWeight_),
-        .fontStyle_ = Convert(style.fontStyle_),
-        .fontFamilies_ = style.fontFamilies_,
-        .fontSize_ = style.fontSize_,
-        .decoration_ = Convert(style.decoration_),
-        .decorationColor_ = decorationColor,
-        .decorationStyle_ = Convert(style.decorationStyle_),
-        .decorationThicknessScale_ = style.decorationThicknessScale_,
-        .color_ = color,
-        .baseline_ = Convert(style.baseline_),
-        .locale_ = style.locale_,
-        .heightOnly_ = style.heightOnly_,
-        .heightScale_ = style.heightScale_,
-        .letterSpacing_ = style.letterSpacing_,
-        .wordSpacing_ = style.wordSpacing_,
-        .foreground_ = *foreground,
-        .background_ = *background,
+        .fontWeight = Convert(style.fontWeight),
+        .fontStyle = Convert(style.fontStyle),
+        .fontFamilies = style.fontFamilies,
+        .fontSize = style.fontSize,
+        .decoration = Convert(style.decoration),
+        .decorationColor = decorationColor,
+        .decorationStyle = Convert(style.decorationStyle),
+        .decorationThicknessScale = style.decorationThicknessScale,
+        .color = color,
+        .baseline = Convert(style.baseline),
+        .locale = style.locale,
+        .heightOnly = style.heightOnly,
+        .heightScale = style.heightScale,
+        .letterSpacing = style.letterSpacing,
+        .wordSpacing = style.wordSpacing,
+        .foreground = *foreground,
+        .background = *background,
     };
 
-    for (const auto &[tag, value] : style.fontFeatures_.GetFontFeatures()) {
-        xs.fontFeature_.SetFeature(tag, value);
+    for (const auto &[tag, value] : style.fontFeatures.GetFontFeatures()) {
+        xs.fontFeature.SetFeature(tag, value);
     }
 
-    for (const auto &[color, offset, radius] : style.shadows_) {
+    for (const auto &[color, offset, radius] : style.shadows) {
         // 24, 16, 8, 0: How many bits are moved to the right
         auto shadowColor = (color.GetAlpha() << 24) | (color.GetRed() << 16) |
             (color.GetGreen() << 8) | (color.GetBlue() << 0);
         TextEngine::TextShadow shadow = {
-            .offsetX_ = offset.GetX(),
-            .offsetY_ = offset.GetY(),
-            .color_ = shadowColor,
-            .blurLeave_ = radius,
+            .offsetX = offset.GetX(),
+            .offsetY = offset.GetY(),
+            .color = shadowColor,
+            .blurLeave = radius,
         };
-        xs.shadows_.emplace_back(shadow);
+        xs.shadows.emplace_back(shadow);
     }
     return xs;
 }
 
 IndexAndAffinity Convert(const TextEngine::IndexAndAffinity &pos)
 {
-    return { pos.index_, Convert(pos.affinity_) };
+    return { pos.index, Convert(pos.affinity) };
 }
 
 Boundary Convert(const TextEngine::Boundary &range)
 {
-    return { range.leftIndex_, range.rightIndex_ };
+    return { range.leftIndex, range.rightIndex };
 }
 
 TextRect Convert(const TextEngine::TextRect &box)
 {
-    Drawing::RectF rect(*box.rect_.fLeft_, *box.rect_.fTop_, *box.rect_.fRight_, *box.rect_.fBottom_);
-    return { rect, Convert(box.direction_) };
+    Drawing::RectF rect(*box.rect.fLeft_, *box.rect.fTop_, *box.rect.fRight_, *box.rect.fBottom_);
+    return { rect, Convert(box.direction) };
 }
 
 Affinity Convert(const TextEngine::Affinity &affinity)

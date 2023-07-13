@@ -41,6 +41,11 @@ public:
         const std::string& cacheFilePath, bool isUni);
 #endif
     MemoryHandler() = default;
+#if defined(NEW_SKIA)
+    static void ClearRedundantResources(GrDirectContext* grContext);
+#else
+    static void ClearRedundantResources(GrContext* grContext);
+#endif
     static std::string QuerryShader();
     static std::string ClearShader();
 };

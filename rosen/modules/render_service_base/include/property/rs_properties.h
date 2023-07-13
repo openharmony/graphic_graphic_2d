@@ -46,6 +46,10 @@ class RSRenderNode;
 class RSB_EXPORT RSProperties final {
 public:
     RSProperties();
+    RSProperties(const RSProperties&) = delete;
+    RSProperties(const RSProperties&&) = delete;
+    RSProperties& operator=(const RSProperties&) = delete;
+    RSProperties& operator=(const RSProperties&&) = delete;
     virtual ~RSProperties();
 
     // geometry properties
@@ -288,6 +292,12 @@ public:
         contentDirty_ = std::get<2>(status);
     }
 
+#ifndef USE_ROSEN_DRAWING
+    void CreateFilterCacheManagerIfNeed();
+    void ResetFilterCacheManager();
+    const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
+#endif
+
 private:
     void Reset();
     void ResetProperty(RSModifierType type);
@@ -357,13 +367,13 @@ private:
 
 #ifndef USE_ROSEN_DRAWING
     std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
-    std::unique_ptr<RSFilterCacheManager> filterCacheManager_;
+    std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
 #endif
 
+    friend class RSCanvasDrawingRenderNode;
     friend class RSCanvasRenderNode;
     friend class RSPropertiesPainter;
     friend class RSRenderNode;
-    friend class RSCanvasDrawingRenderNode;
 };
 } // namespace Rosen
 } // namespace OHOS

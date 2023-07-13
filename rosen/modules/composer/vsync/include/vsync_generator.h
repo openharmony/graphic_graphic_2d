@@ -70,9 +70,9 @@ private:
     VSyncGenerator();
     ~VSyncGenerator() noexcept override;
 
-    int64_t ComputeNextVSyncTimeStamp(int64_t now);
-    std::vector<Listener> GetListenerTimeouted(int64_t now);
-    int64_t ComputeListenerNextVSyncTimeStamp(const Listener &listen, int64_t now);
+    int64_t ComputeNextVSyncTimeStamp(int64_t now, int64_t refrenceTime);
+    std::vector<Listener> GetListenerTimeouted(int64_t now, int64_t refrenceTime);
+    int64_t ComputeListenerNextVSyncTimeStamp(const Listener &listen, int64_t now, int64_t refrenceTime);
     void ThreadLoop();
 
     int64_t period_;

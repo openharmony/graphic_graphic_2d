@@ -16,13 +16,10 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_CANVAS_NODE_COMMAND_H
 #define ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_CANVAS_NODE_COMMAND_H
 
+
+#include "command/rs_command_templates.h"
 #include "common/rs_macros.h"
 #include "modifier/rs_modifier_type.h"
-#include "rs_command_templates.h"
-
-#ifdef USE_ROSEN_DRAWING
-#include "recording/draw_cmd_list.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -35,6 +32,8 @@ enum RSCanvasNodeCommandType : uint16_t {
 
 #ifndef USE_ROSEN_DRAWING
 class DrawCmdList;
+#else
+Drawing::DrawCmdList
 #endif
 
 class RSB_EXPORT RSCanvasNodeCommandHelper {

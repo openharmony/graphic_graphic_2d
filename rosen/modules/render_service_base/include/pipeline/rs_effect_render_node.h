@@ -39,7 +39,10 @@ public:
 
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
-    void SetEffectRegion(const std::optional<SkPath>& region) { effectRegion_ = region; }
+    void SetEffectRegion(const std::optional<SkPath>& region);
+
+protected:
+    RectI GetFilterRect() const override;
 
 private:
     std::optional<SkPath> effectRegion_ = std::nullopt;

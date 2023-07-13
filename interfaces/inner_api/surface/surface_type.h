@@ -20,7 +20,6 @@
 #include <string>
 #include <vector>
 #include <graphic_common.h>
-#include <display_type.h>
 
 namespace OHOS {
 #define SURFACE_MAX_USER_DATA_COUNT 1000

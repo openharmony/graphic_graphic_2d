@@ -155,6 +155,14 @@ private:
 
     void ReportJankStats() override;
 
+    void ReportEventResponse(DataBaseRs info) override;
+
+    void ReportEventComplete(DataBaseRs info) override;
+
+    void ReportEventJankFrame(DataBaseRs info) override;
+
+    void ReportEventFirstFrame(DataBaseRs info) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;

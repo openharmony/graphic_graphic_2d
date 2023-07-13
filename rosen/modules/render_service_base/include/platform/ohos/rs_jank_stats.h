@@ -17,7 +17,10 @@
 #define ROSEN_JANK_STATS_H
 
 #include <cstdint>
+#include <string>
 #include <vector>
+
+#include "transaction/rs_render_service_client.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -27,7 +30,18 @@ public:
     void SetStartTime();
     void SetEndTime();
     void SetRSJankStats(int times);
+    void UpdateJankFrame(int64_t duration);
     void ReportJankStats();
+    void SetReportEventResponse(DataBaseRs info);
+    void SetReportEventComplete(DataBaseRs info);
+    void SetReportEventJankFrame(DataBaseRs info);
+    void SetReportEventFirstFrame(DataBaseRs info);
+    void ReportEventResponse();
+    void ReportEventComplete();
+    void ReportEventJankFrame();
+    void ReportEventFirstFrame();
+    void SetFirstFrame();
+    void SetPid(uint32_t pid);
 
 private:
     RSJankStats() {};
@@ -42,6 +56,21 @@ private:
     int64_t startTime_ = 0;
     int64_t endTime_ = 0;
     int64_t lastReportTime_ = 0;
+    bool isSetReportEventResponse_ = false;
+    bool isSetReportEventComplete_ = false;
+    bool isReportEventResponse_ = false;
+    bool isReportEventComplete_ = false;
+    bool isSetReportEventJankFrame_ = false;
+    bool isSetReportEventFirstFrame_ = false;
+    bool isFirstFrame_ = false;
+    bool isUpdateJankFrame_ = false;
+    int32_t totalFrames_ = 0;
+    int32_t totalMissedFrames_ = 0;
+    int64_t maxFrameTime_ = 0;
+    int32_t maxSeqMissedFrames_ = 0;
+    int32_t appPid_ = 0;
+
+    DataBaseRs info_;
     std::vector<uint16_t> rsJankStats_ = std::vector<uint16_t>(JANK_STATS_SIZE, 0);
 
     enum JankRangeType : int16_t {

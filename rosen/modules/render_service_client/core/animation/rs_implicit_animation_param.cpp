@@ -139,7 +139,6 @@ std::shared_ptr<RSAnimation> RSImplicitSpringAnimationParam::CreateAnimation(std
 {
     auto springAnimation = std::make_shared<RSSpringAnimation>(property, startValue, endValue);
     springAnimation->SetTimingCurve(timingCurve_);
-    springAnimation->SetZeroThreshold(property->GetZeroThresholdByModifierType());
     springAnimation->SetIsCustom(property->GetIsCustom());
     ApplyTimingProtocol(springAnimation);
     return springAnimation;

@@ -78,7 +78,6 @@ bool RSCanvasNode::IsRecording() const
 void RSCanvasNode::FinishRecording()
 {
     if (!IsRecording()) {
-        ROSEN_LOGW("RSCanvasNode::FinishRecording, IsRecording = false");
         return;
     }
 #ifndef USE_ROSEN_DRAWING

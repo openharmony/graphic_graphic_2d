@@ -14,7 +14,7 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
-module_output_path = "graphic_standard/utils/color_manager"
+module_output_path = "graphic_2d/utils/color_manager"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("ColorManagerFuzzTest") {

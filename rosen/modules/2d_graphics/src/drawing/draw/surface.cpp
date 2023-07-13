@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-Surface::Surface() : impl_(ImplFactory::CreateSurfaceImpl()) {}
+Surface::Surface() : impl_(ImplFactory::CreateSurfaceImpl()), cachedCanvas_(nullptr) {}
 
 bool Surface::Bind(const Bitmap& bitmap)
 {
@@ -39,9 +39,12 @@ bool Surface::Bind(const FrameBuffer& frameBuffer)
 }
 #endif
 
-std::shared_ptr<Canvas> Surface::GetCanvas() const
+std::shared_ptr<Canvas> Surface::GetCanvas()
 {
-    return impl_->GetCanvas();
+    if (cachedCanvas_ == nullptr) {
+        cachedCanvas_ = impl_->GetCanvas();
+    }
+    return cachedCanvas_;
 }
 
 std::shared_ptr<Image> Surface::GetImageSnapshot() const

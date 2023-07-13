@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-#include "text_style.h"
-#include "typography_style.h"
+#include "rosen_text/text_style.h"
+#include "rosen_text/typography_style.h"
 
 #include "gtest/gtest.h"
 #include <climits>
 #include <vector>
 #include <string>
 
-using namespace rosen;
+using namespace OHOS::Rosen;
 using namespace testing;
 using namespace testing::ext;
 
@@ -38,12 +38,12 @@ HWTEST_F(OH_Drawing_TypographyStyleTest, OH_Drawing_TypographyStyleTest001, Test
 {
     TypographyStyle typoStyle;
     TextStyle textstyle = typoStyle.GetTextStyle();
-    EXPECT_EQ(typoStyle.fontWeight_, textstyle.fontWeight_);
-    EXPECT_EQ(typoStyle.fontStyle_, textstyle.fontStyle_);
-    EXPECT_EQ(typoStyle.fontSize_, textstyle.fontSize_);
-    EXPECT_EQ(typoStyle.locale_, textstyle.locale_);
-    EXPECT_EQ(typoStyle.height_, textstyle.height_);
-    EXPECT_EQ(typoStyle.hasHeightOverride_, textstyle.hasHeightOverride_);
+    EXPECT_EQ(typoStyle.fontWeight, textstyle.fontWeight);
+    EXPECT_EQ(typoStyle.fontStyle, textstyle.fontStyle);
+    EXPECT_EQ(typoStyle.fontSize, textstyle.fontSize);
+    EXPECT_EQ(typoStyle.locale, textstyle.locale);
+    EXPECT_EQ(typoStyle.heightScale, textstyle.heightScale);
+    EXPECT_EQ(typoStyle.heightOnly, textstyle.heightOnly);
 }
 
 /*
@@ -54,16 +54,16 @@ HWTEST_F(OH_Drawing_TypographyStyleTest, OH_Drawing_TypographyStyleTest001, Test
 HWTEST_F(OH_Drawing_TypographyStyleTest, OH_Drawing_TypographyStyleTest002, TestSize.Level1)
 {
     TypographyStyle typoStyle;
-    typoStyle.textAlign_ = TextAlign::START;
-    TextAlign textAlign = typoStyle.EffectiveAlign();
+    typoStyle.textAlign = TextAlign::START;
+    TextAlign textAlign = typoStyle.GetEffectiveAlign();
     EXPECT_EQ(textAlign, TextAlign::LEFT);
 
-    typoStyle.textAlign_ = TextAlign::END;
-    textAlign = typoStyle.EffectiveAlign();
+    typoStyle.textAlign = TextAlign::END;
+    textAlign = typoStyle.GetEffectiveAlign();
     EXPECT_EQ(textAlign, TextAlign::RIGHT);
 
-    typoStyle.textAlign_ = TextAlign::CENTER;
-    textAlign = typoStyle.EffectiveAlign();
+    typoStyle.textAlign = TextAlign::CENTER;
+    textAlign = typoStyle.GetEffectiveAlign();
     EXPECT_EQ(textAlign, TextAlign::CENTER);
 }
 }

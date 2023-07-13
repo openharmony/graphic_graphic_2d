@@ -15,6 +15,6 @@ import("//build/ohos.gni")
 
 ohos_prebuilt_etc("ohos.para.dac") {
   source = "//foundation/graphic/graphic_2d/etc/graphic.para.dac"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   module_install_dir = "etc/param"
 }

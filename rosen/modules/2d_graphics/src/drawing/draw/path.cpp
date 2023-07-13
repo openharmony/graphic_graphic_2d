@@ -165,6 +165,11 @@ bool Path::Interpolate(const Path& ending, scalar weight, Path& out)
     return impl_->Interpolate(ending, weight, out);
 }
 
+bool Path::BuildFromInterpolate(const Path& src, const Path& ending, scalar weight)
+{
+    return impl_->InitWithInterpolate(src, ending, weight);
+}
+
 void Path::Transform(const Matrix& matrix)
 {
     impl_->Transform(matrix);

@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
 
 ohos_unittest("frame_analyzer_test") {
-  module_out_path = "graphic_standard/rosen/modules/frame_analyzer"
+  module_out_path = "graphic_2d/rosen/modules/frame_analyzer"
 
   sources = [
     "frame_collector_test.cpp",
@@ -42,7 +42,7 @@ ohos_unittest("frame_analyzer_test") {
     "-Dprotected=public",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 

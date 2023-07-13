@@ -1,4 +1,4 @@
-# graphic_standard
+# graphic_2d
 
 -   [简介](#简介)
 -   [目录](#目录)

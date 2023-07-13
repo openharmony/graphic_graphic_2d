@@ -277,6 +277,15 @@ static bool IsArrayForNapiValue(napi_env env, napi_value param, uint32_t &arrayS
 
 static bool GetRegionCoordinates(napi_env env, napi_value param, std::unique_ptr<ColorPickerAsyncContext>& asyncContext)
 {
+    napi_valuetype valueType = napi_undefined;
+    valueType = Media::ImageNapiUtils::getType(env, param);
+    if (valueType == napi_undefined) {
+        asyncContext->coordinatesBuffer[NUM_0] = 0.0;
+        asyncContext->coordinatesBuffer[NUM_1] = 0.0;
+        asyncContext->coordinatesBuffer[NUM_2] = 1.0;
+        asyncContext->coordinatesBuffer[NUM_3] = 1.0;
+        return true;
+    }
     uint32_t arraySize = 0;
     if (!IsArrayForNapiValue(env, param, arraySize)) {
         EFFECT_LOG_E("GetRegionCoordinates get args fail, not array");

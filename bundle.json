@@ -1,6 +1,6 @@
 {
-    "name": "@ohos/graphic_standard",
-    "description": "graphic_standard",
+    "name": "@ohos/graphic_2d",
+    "description": "graphic_2d",
     "version": "3.1",
     "license": "Apache License 2.0",
     "publishAs": "code-segment",
@@ -10,7 +10,7 @@
     "dirs": {},
     "scripts": {},
     "component": {
-      "name": "graphic_standard",
+      "name": "graphic_2d",
       "subsystem": "graphic",
       "syscap": [
         "SystemCapability.Graphic.Graphic2D.ColorManager.Core",
@@ -24,15 +24,15 @@
       ],
       "adapted_system_type": [ "standard" ],
       "features": [
-        "graphic_standard_feature_bootanimation_enable",
-        "graphic_standard_feature_ace_enable_gpu",
-        "graphic_standard_feature_rs_enable_eglimage",
-        "graphic_standard_feature_color_gamut_enable",
-        "graphic_standard_feature_rs_enable_uni_render",
-        "graphic_standard_feature_wuji_enable",
-        "graphic_standard_feature_enable_afbc",
-        "graphic_standard_feature_freemem_enable",
-        "graphic_standard_feature_parallel_render_enable"
+        "graphic_2d_feature_bootanimation_enable",
+        "graphic_2d_feature_ace_enable_gpu",
+        "graphic_2d_feature_rs_enable_eglimage",
+        "graphic_2d_feature_color_gamut_enable",
+        "graphic_2d_feature_rs_enable_uni_render",
+        "graphic_2d_feature_wuji_enable",
+        "graphic_2d_feature_enable_afbc",
+        "graphic_2d_feature_freemem_enable",
+        "graphic_2d_feature_parallel_render_enable"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
@@ -72,13 +72,14 @@
           "flutter",
           "libuv",
           "openssl",
-          "third_party_skia",
+          "skia",
           "libxml2",
           "bounds_checking_function",
           "icu",
           "libpng",
-          "zilb",
-          "skia"
+          "zlib",
+          "skia",
+          "cjson"
         ]
       },
       "build": {
@@ -294,6 +295,21 @@
                 "typography.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/texgine/export/texgine"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text:rosen_text",
+            "header": {
+              "header_files": [
+                "font_collection.h",
+                "typography_create.h",
+                "typography_style.h",
+                "text_style.h",
+                "typography.h",
+                "typography_types.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/export/rosen_text"
             }
           }
         ],

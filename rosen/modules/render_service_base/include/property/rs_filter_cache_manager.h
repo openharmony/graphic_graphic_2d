@@ -33,16 +33,21 @@ class RSSkiaFilter;
 class RSFilterCacheManager {
 public:
     RSFilterCacheManager() = default;
-    ~RSFilterCacheManager() = default;
     RSFilterCacheManager(const RSFilterCacheManager&) = delete;
+    RSFilterCacheManager(const RSFilterCacheManager&&) = delete;
+    RSFilterCacheManager& operator=(const RSFilterCacheManager&) = delete;
+    RSFilterCacheManager& operator=(const RSFilterCacheManager&&) = delete;
+    ~RSFilterCacheManager() = default;
 
     bool IsCacheValid() const
     {
-        return cacheType_ != CacheType::CACHE_TYPE_NONE && cachedImage_;
+        return cacheType_ != CacheType::CACHE_TYPE_NONE;
     }
 
-    // Call in prepare phase, use intermediate dirty region to determine the cache validity.
-    bool UpdateCacheState(const RectI& dirtyRegion, const RectI& absRect, uint32_t filterHash);
+    // Call in prepare phase, validate the cache state with filter hash / filterRegion / dirtyRegion.
+    void UpdateCacheStateWithFilterHash(uint32_t filterHash);
+    void UpdateCacheStateWithFilterRegion(const RectI& filterRegion);
+    void UpdateCacheStateWithDirtyRegion(const RectI& dirtyRegion);
 
     // Call in process phase, apply filter, will regenerate cache or reuse cache depends on the cache state.
     // Note: The caller should clip the canvas before calling this method, we'll use the DeviceClipRect as the blurred

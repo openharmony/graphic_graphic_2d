@@ -59,14 +59,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-constexpr float DEFAULT_NEAR_ZERO_THRESHOLD = 1.0f / 256.0f;
-constexpr float FLOAT_NEAR_ZERO_COARSE_THRESHOLD = 0.5f;
-constexpr float FLOAT_NEAR_ZERO_MEDIUM_THRESHOLD = 1.0f / 256.0f;
-constexpr float FLOAT_NEAR_ZERO_FINE_THRESHOLD = 1.0f / 3072.0f;
-constexpr float INT16T_NEAR_ZERO_THRESHOLD = 1.0f;
-} //namespace
-
 template<class...>
 struct make_void { using type = void; };
 template<class... T>
@@ -120,8 +112,6 @@ protected:
     {
         return RSRenderPropertyType::INVALID;
     }
-
-    float GetZeroThresholdByModifierType() const;
 
     virtual void UpdateOnAllAnimationFinish() {}
 

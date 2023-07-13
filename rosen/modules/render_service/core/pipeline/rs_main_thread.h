@@ -238,6 +238,10 @@ private:
     void CheckParallelSubThreadNodesStatus();
     void CacheCommands();
 
+    // used for informing hgm the bundle name of SurfaceRenderNodes
+    void InformHgmNodeInfo();
+    void CheckIfNodeIsBundle(std::shared_ptr<RSSurfaceRenderNode> node);
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
@@ -346,6 +350,10 @@ private:
     std::unordered_map<pid_t, std::pair<std::vector<NodeId>, bool>> cacheCmdSkippedInfo_;
     std::atomic<uint64_t> frameCount_ = 0;
     std::set<std::shared_ptr<RSBaseRenderNode>> oldDisplayChildren_;
+
+    // used for informing hgm the bundle name of SurfaceRenderNodes
+    bool noBundle_ = false;
+    std::string currentBundleName_ = "";
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

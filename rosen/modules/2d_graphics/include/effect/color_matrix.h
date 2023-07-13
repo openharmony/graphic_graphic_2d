@@ -23,6 +23,32 @@ namespace Rosen {
 namespace Drawing {
 class ColorMatrix {
 public:
+    enum Index {
+        SCALE_FACTOR_FOR_R = 0,
+        G_FACTOR_FOR_R = 1,
+        B_FACTOR_FOR_R = 2,
+        A_FACTOR_FOR_R = 3,
+        TRANS_FOR_R = 4,
+
+        R_FACTOR_FOR_G = 5,
+        SCALE_FACTOR_FOR_G = 6,
+        B_FACTOR_FOR_G = 7,
+        A_FACTOR_FOR_G = 8,
+        TRANS_FOR_G = 9,
+
+        R_FACTOR_FOR_B = 10,
+        G_FACTOR_FOR_B = 11,
+        SCALE_FACTOR_FOR_B = 12,
+        A_FACTOR_FOR_B = 13,
+        TRANS_FOR_B = 14,
+
+        R_FACTOR_FOR_A = 15,
+        G_FACTOR_FOR_A = 16,
+        B_FACTOR_FOR_A = 17,
+        SCALE_FACTOR_FOR_A = 18,
+        TRANS_FOR_A = 19,
+    };
+
     // Color matrix is a 4x5 float type matrix.
     constexpr static int MATRIX_SIZE = 20;
     ColorMatrix() noexcept;
@@ -35,6 +61,12 @@ public:
     void PreConcat(const ColorMatrix& m);
     void PostConcat(const ColorMatrix& m);
     void SetScale(scalar sr, scalar sg, scalar sb, scalar sa);
+
+    /*
+     * @brief      Set the ColorMatrix to a saturation matrix.
+     * @param sat  Saturation value, 0 maps to gray-scale, 1 is identity
+     */
+    void SetSaturation(scalar sat);
 
 private:
     scalar array_[MATRIX_SIZE] = { 0 };

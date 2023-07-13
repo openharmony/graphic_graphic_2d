@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#ifdef LOGGER_ENABLE_SCOPE
 #include "texgine/utils/trace.h"
 
 #include <hitrace_meter.h>
@@ -41,3 +42,4 @@ void Trace::Disable()
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS
+#endif

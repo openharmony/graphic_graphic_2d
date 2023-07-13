@@ -35,7 +35,7 @@ ohos_unittest("overdraw_test") {
   } else {
     deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
   }
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 

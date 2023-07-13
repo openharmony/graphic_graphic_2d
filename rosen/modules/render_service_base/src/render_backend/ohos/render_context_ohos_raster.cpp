@@ -123,6 +123,7 @@ void RenderContextOhosRaster::SwapBuffers(const std::shared_ptr<RSRenderSurfaceF
         LOGE("Failed to swap buffers, error is : %s", SurfaceErrorStr(err).c_str());
         return;
     }
+    LOGD("SwapBuffers in raster successfully");
 }
 }
 }

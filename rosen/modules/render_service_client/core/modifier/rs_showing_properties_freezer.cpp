@@ -26,197 +26,202 @@ namespace OHOS {
 namespace Rosen {
 RSShowingPropertiesFreezer::RSShowingPropertiesFreezer(NodeId id) : id_(id) {}
 
-#define SHOWING_PROPERTIES_FREEZER(T, propertyType)                                                     \
-    do {                                                                                                \
-        auto node = RSNodeMap::Instance().GetNode<RSNode>(id_);                                         \
-        if (node == nullptr) {                                                                          \
-            return { std::nullopt };                                                                    \
-        }                                                                                               \
-        auto iter = node->propertyModifiers_.find(RSModifierType::propertyType);                        \
-        if (iter == node->propertyModifiers_.end()) {                                                   \
-            return { std::nullopt };                                                                    \
-        }                                                                                               \
-        auto property = std::static_pointer_cast<RSAnimatableProperty<T>>(iter->second->GetProperty()); \
-        if (property == nullptr) {                                                                      \
-            ROSEN_LOGE("RSShowingPropertiesFreezer::Get" #propertyType " failed, property is null!");   \
-            return { std::nullopt };                                                                    \
-        }                                                                                               \
-        bool success = property->GetShowingValueAndCancelAnimation();                                   \
-        if (!success) {                                                                                 \
-            ROSEN_LOGE("RSShowingPropertiesFreezer::Get" #propertyType " failed!");                     \
-            return { std::nullopt };                                                                    \
-        }                                                                                               \
-        return property->Get();                                                                         \
-    } while (0)
+template<typename T, RSModifierType Type>
+std::optional<T> RSShowingPropertiesFreezer::GetPropertyImpl() const
+{
+    auto node = RSNodeMap::Instance().GetNode<RSNode>(id_);
+    if (node == nullptr) {
+        return std::nullopt;
+    }
+    auto iter = node->propertyModifiers_.find(Type);
+    if (iter == node->propertyModifiers_.end()) {
+        ROSEN_LOGE(
+            "RSShowingPropertiesFreezer::GetPropertyImpl Type %d failed, no such property!", static_cast<int>(Type));
+        return std::nullopt;
+    }
+    auto property = std::static_pointer_cast<RSAnimatableProperty<T>>(iter->second->GetProperty());
+    if (property == nullptr) {
+        ROSEN_LOGE(
+            "RSShowingPropertiesFreezer::GetPropertyImpl Type %d failed, property is null!", static_cast<int>(Type));
+        return std::nullopt;
+    }
+    bool success = property->GetShowingValueAndCancelAnimation();
+    if (!success) {
+        ROSEN_LOGE("RSShowingPropertiesFreezer::GetPropertyImpl Type %d failed, cancel animation failed!",
+            static_cast<int>(Type));
+        return std::nullopt;
+    }
+    return property->Get();
+}
 
 std::optional<Vector4f> RSShowingPropertiesFreezer::GetBounds() const
 {
-    SHOWING_PROPERTIES_FREEZER(Vector4f, BOUNDS);
+    return GetPropertyImpl<Vector4f, RSModifierType::BOUNDS>();
 }
 
 std::optional<Vector4f> RSShowingPropertiesFreezer::GetFrame() const
 {
-    SHOWING_PROPERTIES_FREEZER(Vector4f, FRAME);
+    return GetPropertyImpl<Vector4f, RSModifierType::FRAME>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetPositionZ() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, POSITION_Z);
+    return GetPropertyImpl<float, RSModifierType::POSITION_Z>();
 }
 
 std::optional<Vector2f> RSShowingPropertiesFreezer::GetPivot() const
 {
-    SHOWING_PROPERTIES_FREEZER(Vector2f, PIVOT);
+    return GetPropertyImpl<Vector2f, RSModifierType::PIVOT>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetPivotZ() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, PIVOT_Z);
+    return GetPropertyImpl<float, RSModifierType::PIVOT_Z>();
 }
 
 std::optional<Quaternion> RSShowingPropertiesFreezer::GetQuaternion() const
 {
-    SHOWING_PROPERTIES_FREEZER(Quaternion, QUATERNION);
+    return GetPropertyImpl<Quaternion, RSModifierType::QUATERNION>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetRotation() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, ROTATION);
+    return GetPropertyImpl<float, RSModifierType::ROTATION>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetRotationX() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, ROTATION_X);
+    return GetPropertyImpl<float, RSModifierType::ROTATION_X>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetRotationY() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, ROTATION_Y);
+    return GetPropertyImpl<float, RSModifierType::ROTATION_Y>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetCameraDistance() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, CAMERA_DISTANCE);
+    return GetPropertyImpl<float, RSModifierType::CAMERA_DISTANCE>();
 }
 
 std::optional<Vector2f> RSShowingPropertiesFreezer::GetTranslate() const
 {
-    SHOWING_PROPERTIES_FREEZER(Vector2f, TRANSLATE);
+    return GetPropertyImpl<Vector2f, RSModifierType::TRANSLATE>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetTranslateZ() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, TRANSLATE_Z);
+    return GetPropertyImpl<float, RSModifierType::TRANSLATE_Z>();
 }
 
 std::optional<Vector2f> RSShowingPropertiesFreezer::GetScale() const
 {
-    SHOWING_PROPERTIES_FREEZER(Vector2f, SCALE);
+    return GetPropertyImpl<Vector2f, RSModifierType::SCALE>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetAlpha() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, ALPHA);
+    return GetPropertyImpl<float, RSModifierType::ALPHA>();
 }
 
 std::optional<Vector4f> RSShowingPropertiesFreezer::GetCornerRadius() const
 {
-    SHOWING_PROPERTIES_FREEZER(Vector4f, CORNER_RADIUS);
+    return GetPropertyImpl<Vector4f, RSModifierType::CORNER_RADIUS>();
 }
 
 std::optional<Color> RSShowingPropertiesFreezer::GetForegroundColor() const
 {
-    SHOWING_PROPERTIES_FREEZER(Color, FOREGROUND_COLOR);
+    return GetPropertyImpl<Color, RSModifierType::FOREGROUND_COLOR>();
 }
 
 std::optional<Color> RSShowingPropertiesFreezer::GetBackgroundColor() const
 {
-    SHOWING_PROPERTIES_FREEZER(Color, BACKGROUND_COLOR);
+    return GetPropertyImpl<Color, RSModifierType::BACKGROUND_COLOR>();
 }
 
 std::optional<Color> RSShowingPropertiesFreezer::GetSurfaceBgColor() const
 {
-    SHOWING_PROPERTIES_FREEZER(Color, SURFACE_BG_COLOR);
+    return GetPropertyImpl<Color, RSModifierType::SURFACE_BG_COLOR>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetBgImageWidth() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, BG_IMAGE_WIDTH);
+    return GetPropertyImpl<float, RSModifierType::BG_IMAGE_WIDTH>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetBgImageHeight() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, BG_IMAGE_HEIGHT);
+    return GetPropertyImpl<float, RSModifierType::BG_IMAGE_HEIGHT>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetBgImagePositionX() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, BG_IMAGE_POSITION_X);
+    return GetPropertyImpl<float, RSModifierType::BG_IMAGE_POSITION_X>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetBgImagePositionY() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, BG_IMAGE_POSITION_Y);
+    return GetPropertyImpl<float, RSModifierType::BG_IMAGE_POSITION_Y>();
 }
 
 std::optional<Vector4<Color>> RSShowingPropertiesFreezer::GetBorderColor() const
 {
-    SHOWING_PROPERTIES_FREEZER(Vector4<Color>, BORDER_COLOR);
+    return GetPropertyImpl<Vector4<Color>, RSModifierType::BORDER_COLOR>();
 }
 
 std::optional<Vector4f> RSShowingPropertiesFreezer::GetBorderWidth() const
 {
-    SHOWING_PROPERTIES_FREEZER(Vector4f, BORDER_WIDTH);
+    return GetPropertyImpl<Vector4f, RSModifierType::BORDER_WIDTH>();
 }
 
 std::optional<std::shared_ptr<RSFilter>> RSShowingPropertiesFreezer::GetBackgroundFilter() const
 {
-    SHOWING_PROPERTIES_FREEZER(std::shared_ptr<RSFilter>, BACKGROUND_FILTER);
+    return GetPropertyImpl<std::shared_ptr<RSFilter>, RSModifierType::BACKGROUND_FILTER>();
 }
 
 std::optional<std::shared_ptr<RSFilter>> RSShowingPropertiesFreezer::GetFilter() const
 {
-    SHOWING_PROPERTIES_FREEZER(std::shared_ptr<RSFilter>, FILTER);
+    return GetPropertyImpl<std::shared_ptr<RSFilter>, RSModifierType::FILTER>();
 }
 
 std::optional<Color> RSShowingPropertiesFreezer::GetShadowColor() const
 {
-    SHOWING_PROPERTIES_FREEZER(Color, SHADOW_COLOR);
+    return GetPropertyImpl<Color, RSModifierType::SHADOW_COLOR>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetShadowOffsetX() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, SHADOW_OFFSET_X);
+    return GetPropertyImpl<float, RSModifierType::SHADOW_OFFSET_X>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetShadowOffsetY() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, SHADOW_OFFSET_Y);
+    return GetPropertyImpl<float, RSModifierType::SHADOW_OFFSET_Y>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetShadowAlpha() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, SHADOW_ALPHA);
+    return GetPropertyImpl<float, RSModifierType::SHADOW_ALPHA>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetShadowElevation() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, SHADOW_ELEVATION);
+    return GetPropertyImpl<float, RSModifierType::SHADOW_ELEVATION>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetShadowRadius() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, SHADOW_RADIUS);
+    return GetPropertyImpl<float, RSModifierType::SHADOW_RADIUS>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetSpherizeDegree() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, SPHERIZE);
+    return GetPropertyImpl<float, RSModifierType::SPHERIZE>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetLightUpEffectDegree() const
 {
-    SHOWING_PROPERTIES_FREEZER(float, LIGHT_UP_EFFECT);
+    return GetPropertyImpl<float, RSModifierType::LIGHT_UP_EFFECT>();
 }
 } // namespace Rosen
 } // namespace OHOS

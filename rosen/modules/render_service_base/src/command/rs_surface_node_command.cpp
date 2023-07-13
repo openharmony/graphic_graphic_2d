@@ -18,6 +18,9 @@
 #include "common/rs_vector4.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_display_render_node.h"
+#ifndef ROSEN_CROSS_PLATFORM
+#include "surface_type.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {

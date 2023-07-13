@@ -74,7 +74,7 @@ ohos_executable("drawing_sample") {
     "hilog:libhilog",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 ## Build drawing_sample }}}

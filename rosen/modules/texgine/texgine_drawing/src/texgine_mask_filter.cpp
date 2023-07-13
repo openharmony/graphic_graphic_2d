@@ -27,7 +27,6 @@ void TexgineMaskFilter::SetMaskFilter(const sk_sp<SkMaskFilter> filter)
 {
     filter_ = filter;
 }
-
 std::shared_ptr<TexgineMaskFilter> TexgineMaskFilter::MakeBlur(TexgineBlurStyle style,
     float sigma, bool respectCTM)
 {

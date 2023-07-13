@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef GRAPHIC_STANDARD_COMPOSER_LAYER_CONTEXT_MOCK_H
-#define GRAPHIC_STANDARD_COMPOSER_LAYER_CONTEXT_MOCK_H
+#ifndef graphic_2d_COMPOSER_LAYER_CONTEXT_MOCK_H
+#define graphic_2d_COMPOSER_LAYER_CONTEXT_MOCK_H
 
 #include "hdi_layer.h"
 
@@ -40,4 +40,4 @@ private:
 } // namespace MockSys
 } // namespace Rosen
 } // namespace OHOS
-#endif // GRAPHIC_STANDARD_COMPOSER_LAYER_CONTEXT_MOCK_H
+#endif // graphic_2d_COMPOSER_LAYER_CONTEXT_MOCK_H

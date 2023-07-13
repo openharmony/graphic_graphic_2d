@@ -51,7 +51,7 @@ ohos_executable("render_service_client_rs_demo") {
 
   public_deps = [ "$public_deps_skia" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -65,7 +65,7 @@ ohos_executable("render_service_client_screen_mode_demo") {
 
   external_deps = [ "hilog:libhilog" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -87,7 +87,7 @@ ohos_executable("render_service_client_app_demo") {
 
   public_deps = [ "$public_deps_skia" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -109,7 +109,7 @@ ohos_executable("render_service_client_node_demo") {
 
   public_deps = [ "$public_deps_skia" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -133,7 +133,7 @@ ohos_executable("render_service_client_modifier_demo") {
 
   external_deps = [ "eventhandler:libeventhandler" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -155,7 +155,7 @@ ohos_executable("render_service_client_transition_demo") {
 
   public_deps = [ "$public_deps_skia" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -180,7 +180,7 @@ ohos_executable("render_service_client_gesture_interrupt_animation_demo") {
 
   external_deps = [ "eventhandler:libeventhandler" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -202,7 +202,7 @@ ohos_executable("render_service_client_gravity_demo") {
 
   public_deps = [ "$public_deps_skia" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -231,7 +231,7 @@ ohos_executable("render_service_client_ui_capture_demo") {
     "//third_party/zlib:libz",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -253,7 +253,7 @@ ohos_executable("render_service_client_scale_demo") {
 
   public_deps = [ "$public_deps_skia" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -277,7 +277,7 @@ ohos_executable("render_service_client_rs_animation_demo") {
 
   external_deps = [ "eventhandler:libeventhandler" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -296,7 +296,7 @@ ohos_executable("surface_capture_demo") {
 
   public_deps = [ "$public_deps_skia" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -309,7 +309,7 @@ ohos_executable("security_layer_demo") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -331,7 +331,7 @@ ohos_executable("render_service_client_surface_node_demo") {
 
   external_deps = [ "hilog:libhilog" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -353,7 +353,7 @@ ohos_executable("render_service_client_uni_render_demo") {
 
   external_deps = [ "hilog:libhilog" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -371,7 +371,7 @@ ohos_executable("render_service_client_watermark_demo") {
     public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
   }
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -394,7 +394,7 @@ ohos_executable("rs_uni_render_pixelmap_demo") {
 
   public_deps = [ "$public_deps_skia" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -419,7 +419,7 @@ ohos_executable("render_service_display_mode_demo") {
 
   public_deps = [ "$public_deps_skia" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 ohos_executable("render_service_client_tunnel_handle_demo") {
@@ -444,7 +444,7 @@ ohos_executable("render_service_client_tunnel_handle_demo") {
     "//third_party/zlib:libz",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -470,7 +470,7 @@ ohos_executable("render_service_client_overlay_demo") {
     "//third_party/zlib:libz",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -492,7 +492,7 @@ ohos_executable("snapshot_surface") {
 
   public_deps = [ "//third_party/libpng:libpng" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -512,7 +512,7 @@ ohos_executable("screen_info_demo") {
     "./../../../modules/render_service_client:librender_service_client",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -533,6 +533,24 @@ ohos_executable("render_service_client_pointer_window_demo") {
     "window_manager:libdm",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_executable("render_service_client_fingerprint_demo") {
+  sources = [ "render_service_client_fingerprint_demo.cpp" ]
+
+  include_dirs = [ "$window_base_path/interfaces/innerkits" ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  public_deps = [ "$public_deps_skia" ]
+
+  external_deps = [ "window_manager:libdm" ]
+
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

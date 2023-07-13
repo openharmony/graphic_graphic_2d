@@ -19,13 +19,15 @@ import(
 
 drawing_src_dir = "$rosen_root/modules/2d_graphics/src/drawing"
 src_dir = "$rosen_root/modules/2d_graphics/src"
+platform_dir = "$rosen_root/modules/platform"
 
-config("export_config") {
+config("2d_graphics_config") {
   include_dirs = [
+    "$drawing_src_dir/engine_adapter",
     "include",
     "$src_dir",
     "$drawing_src_dir",
-    "$drawing_src_dir/engine_adapter",
+    "$platform_dir/image_native",
   ]
 }
 
@@ -89,19 +91,6 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/utils/region.cpp",
     ]
 
-    sources += [
-      "$rosen_text_root/properties/font_collection_txt.cpp",
-      "$rosen_text_root/properties/placeholder_run.cpp",
-      "$rosen_text_root/properties/rosen_converter_txt.cpp",
-      "$rosen_text_root/properties/text_style.cpp",
-      "$rosen_text_root/properties/typography_create_txt.cpp",
-      "$rosen_text_root/properties/typography_style.cpp",
-      "$rosen_text_root/properties/typography_txt.cpp",
-      "$rosen_text_root/ui/font_collection.cpp",
-      "$rosen_text_root/ui/typography.cpp",
-      "$rosen_text_root/ui/typography_create.cpp",
-    ]
-
     if (ace_enable_gpu) {
       sources += [
         "$drawing_src_dir/engine_adapter/skia_adapter/skia_gpu_context.cpp",
@@ -116,22 +105,24 @@ template("graphics2d_source_set") {
       "$src_dir",
       "$drawing_src_dir",
       "$drawing_src_dir/engine_adapter",
-      "$rosen_2d_engine_root",
-      "//foundation/arkui/ace_engine/frameworks",
       "//third_party/bounds_checking_function/include",
+      "$rosen_root/modules/2d_engine/rosen_text/export",
+      "//third_party/bounds_checking_function/include",
+      "$platform_dir/image_native",
     ]
 
-    defines += [ "USE_ACE_SKIA" ]
+    if (defined(use_new_skia) && use_new_skia) {
+      defines += [ "NEW_SKIA" ]
+    }
 
+    defines += [ "USE_ACE_SKIA" ]
     if (platform == "ohos") {
       external_deps = [
         "hilog:libhilog",
         "multimedia_image_framework:image_native",
       ]
       deps = [
-        "$ace_flutter_engine_root:flutter_engine_fml_$platform",
-        "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
-        "$graphic_2d_root/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$platform",
+        "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform",
         "//third_party/bounds_checking_function:libsec_static",
       ]
       include_dirs += [ "$flutter_root/engine" ]
@@ -145,7 +136,6 @@ template("graphics2d_source_set") {
         include_dirs += [
           "$flutter_root/txt/src",
           "//third_party/skia/third_party/externals/harfbuzz/src",
-          "//",
           root_gen_dir,
         ]
       } else {
@@ -153,33 +143,25 @@ template("graphics2d_source_set") {
       }
     } else {
       cflags = [ "-Wno-c++17-extensions" ]
+      configs = [ "$ace_flutter_engine_root/icu:icu_config_$platform" ]
 
-      deps = [
-        "$ace_flutter_engine_root:flutter_engine_fml_$platform",
-        "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform",
-      ]
-      include_dirs += [ "$flutter_root/engine" ]
+      deps = [ "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform" ]
 
       if (defined(use_new_skia) && use_new_skia) {
-        deps += [ "//third_party/skia:skia_$platform" ]
-        include_dirs += [
-          "$flutter_root/txt/src",
-          "//third_party/skia/third_party/externals/harfbuzz/src",
-        ]
+        include_dirs += [ "$flutter_root/txt/src" ]
+        deps += [ "$skia_root_new:skia_$platform" ]
       } else {
-        deps += [
-          "$ace_flutter_engine_root/icu:ace_libicu_$platform",
-          "$ace_flutter_engine_root/skia:ace_skia_$platform",
-        ]
         include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
+        deps += [ "$ace_flutter_engine_root/skia:ace_skia_$platform" ]
       }
 
       if (!is_cross_platform_build) {
         deps += [ "//base/hiviewdfx/hilog/frameworks/libhilog:libhilog_source_$platform" ]
       }
     }
+    deps += [ "$rosen_root/modules/2d_engine/rosen_text:rosen_text_inner" ]
 
-    part_name = "graphic_standard"
+    part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
 }
@@ -214,11 +196,23 @@ if (!is_cross_platform_build) {
     version_script = "2d_graphics.versionscript"
     symlink_target_name = [ "libnative_drawing.so" ]
     deps = [ ":2d_graphics_source_ohos" ]
-    public_configs = [ ":export_config" ]
+    public_configs = [ ":2d_graphics_config" ]
     innerapi_tags = [ "platformsdk_indirect" ]
-    part_name = "graphic_standard"
+    part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
+}
+
+ohos_shared_library("2d_graphics_new") {
+  platform = current_os
+  if (platform == "mingw") {
+    platform = "windows"
+  }
+  deps = [ ":2d_graphics_source_$platform" ]
+  public_configs = [ ":2d_graphics_config" ]
+  innerapi_tags = [ "platformsdk_indirect" ]
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
 }
 
 ## Build 2d_graphics.so
@@ -276,12 +270,47 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
     ]
   }
 
-  external_deps = [
-    "hilog:libhilog",
-    "multimedia_image_framework:image_native",
-  ]
+  external_deps = [ "hilog:libhilog" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
+
 ## Build 2d_graphics.so
+
+ohos_shared_library("2d_graphics_drawing") {
+  include_dirs = [
+    "include",
+    "$src_dir",
+    "$drawing_src_dir",
+    "$drawing_src_dir/engine_adapter",
+    "//third_party/bounds_checking_function/include",
+    "$rosen_root/modules/2d_engine/rosen_text/export",
+    "//third_party/bounds_checking_function/include",
+  ]
+
+  sources = [
+    "$drawing_src_dir/c/drawing_bitmap.cpp",
+    "$drawing_src_dir/c/drawing_brush.cpp",
+    "$drawing_src_dir/c/drawing_canvas.cpp",
+    "$drawing_src_dir/c/drawing_color.cpp",
+    "$drawing_src_dir/c/drawing_font_collection.cpp",
+    "$drawing_src_dir/c/drawing_path.cpp",
+    "$drawing_src_dir/c/drawing_pen.cpp",
+    "$drawing_src_dir/c/drawing_text_typography.cpp",
+  ]
+
+  if (defined(use_new_skia) && use_new_skia) {
+    include_dirs += [ "$flutter_root/txt/src" ]
+  } else {
+    include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
+  }
+  platform = current_os
+  if (platform == "mingw") {
+    platform = "windows"
+  }
+  deps = [ "$rosen_root/modules/2d_engine/rosen_text:rosen_text_inner" ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}

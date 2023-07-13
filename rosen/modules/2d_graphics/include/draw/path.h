@@ -63,30 +63,32 @@ public:
      * @brief       Parses the SVG format string that describes the drawing path, and sets the Path.
      * @param str   A string in SVG format that describes the drawing path.
      */
-    bool BuildFromSVGString(const std::string& str);
+    virtual bool BuildFromSVGString(const std::string& str);
 
     /*
      * @brief   Parses into a string in SVG format that describes the Path.
      */
     std::string ConvertToSVGString() const;
-    void MoveTo(scalar x, scalar y);
-    void LineTo(scalar x, scalar y);
-    void ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar startAngle, scalar sweepAngle);
-    void ArcTo(const Point& pt1, const Point& pt2, scalar startAngle, scalar sweepAngle);
-    void ArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar endX, scalar endY);
-    void CubicTo(scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY);
-    void CubicTo(const Point& ctrlPt1, const Point& ctrlPt2, const Point& endPt);
-    void QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY);
-    void QuadTo(const Point& ctrlPt, const Point endPt);
+    virtual void MoveTo(scalar x, scalar y);
+    virtual void LineTo(scalar x, scalar y);
+    virtual void ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar startAngle, scalar sweepAngle);
+    virtual void ArcTo(const Point& pt1, const Point& pt2, scalar startAngle, scalar sweepAngle);
+    virtual void ArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar endX, scalar endY);
+    virtual void CubicTo(
+        scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY);
+    virtual void CubicTo(const Point& ctrlPt1, const Point& ctrlPt2, const Point& endPt);
+    virtual void QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY);
+    virtual void QuadTo(const Point& ctrlPt, const Point endPt);
 
-    void AddRect(const Rect& rect, PathDirection dir = PathDirection::CW_DIRECTION);
-    void AddRect(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir = PathDirection::CW_DIRECTION);
+    virtual void AddRect(const Rect& rect, PathDirection dir = PathDirection::CW_DIRECTION);
+    virtual void AddRect(
+        scalar left, scalar top, scalar right, scalar bottom, PathDirection dir = PathDirection::CW_DIRECTION);
 
-    void AddOval(const Rect& oval, PathDirection dir = PathDirection::CW_DIRECTION);
-    void AddArc(const Rect& oval, scalar startAngle, scalar sweepAngle);
-    void AddPoly(const std::vector<Point>& points, int count, bool close);
-    void AddCircle(scalar x, scalar y, scalar radius, PathDirection dir = PathDirection::CW_DIRECTION);
-    void AddRoundRect(
+    virtual void AddOval(const Rect& oval, PathDirection dir = PathDirection::CW_DIRECTION);
+    virtual void AddArc(const Rect& oval, scalar startAngle, scalar sweepAngle);
+    virtual void AddPoly(const std::vector<Point>& points, int count, bool close);
+    virtual void AddCircle(scalar x, scalar y, scalar radius, PathDirection dir = PathDirection::CW_DIRECTION);
+    virtual void AddRoundRect(
         const Rect& rect, scalar xRadius, scalar yRadius, PathDirection dir = PathDirection::CW_DIRECTION);
 
     /*
@@ -94,20 +96,20 @@ public:
      * @param roundRect   The boundary and radius of a roundRect.
      * @param dir         Direction of rotation.
      */
-    void AddRoundRect(const RoundRect& roundRect, PathDirection dir = PathDirection::CW_DIRECTION);
+    virtual void AddRoundRect(const RoundRect& roundRect, PathDirection dir = PathDirection::CW_DIRECTION);
 
-    void AddPath(const Path& src, scalar dx, scalar dy);
-    void AddPath(const Path& src);
-    void AddPath(const Path& src, const Matrix& matrix);
+    virtual void AddPath(const Path& src, scalar dx, scalar dy);
+    virtual void AddPath(const Path& src);
+    virtual void AddPath(const Path& src, const Matrix& matrix);
 
     /*
      * @brief       Adds the src from back forward to the Path.
      * @param src   To add Path.
      */
-    void ReverseAddPath(const Path& src);
+    virtual void ReverseAddPath(const Path& src);
 
     Rect GetBounds() const;
-    void SetFillStyle(PathFillType fillstyle);
+    virtual void SetFillStyle(PathFillType fillstyle);
 
     bool Interpolate(const Path& ending, scalar weight, Path& out);
 
@@ -117,18 +119,18 @@ public:
      * @param ending  The number of point sets of the ending Path.
      * @param weight  The weight value is between 0 and 1.
      */
-    bool BuildFromInterpolate(const Path& src, const Path& ending, scalar weight);
-    void Transform(const Matrix& matrix);
-    void Offset(scalar dx, scalar dy);
-    bool Op(const Path& path1, Path& path2, PathOp op);
+    virtual bool BuildFromInterpolate(const Path& src, const Path& ending, scalar weight);
+    virtual void Transform(const Matrix& matrix);
+    virtual void Offset(scalar dx, scalar dy);
+    virtual bool Op(const Path& path1, Path& path2, PathOp op);
 
     /*
      * @brief   Checks whether the Path is valid.
      */
     bool IsValid() const;
-    void Reset();
+    virtual void Reset();
 
-    void Close();
+    virtual void Close();
 
     /*
      * @brief               Gets the length of the current path object.

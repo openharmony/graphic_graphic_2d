@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_out_path = "graphic_standard/surface"
+module_out_path = "graphic_2d/surface"
 
 group("unittest") {
   testonly = true
@@ -233,6 +233,6 @@ ohos_static_library("surface_test_common") {
     "//third_party/googletest:gtest_main",
   ]
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_2d"
 }
 ## Build surface_test_common.a }}}
