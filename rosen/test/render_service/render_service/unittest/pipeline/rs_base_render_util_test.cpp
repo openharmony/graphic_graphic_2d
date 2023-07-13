@@ -37,7 +37,7 @@ private:
         .width = 0x100,
         .height = 0x100,
         .strideAlignment = 0x8,
-        .format = PIXEL_FMT_YCRCB_420_SP,
+        .format = GRAPHIC_PIXEL_FMT_YCRCB_420_SP,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
     };
@@ -347,7 +347,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_003, TestSize.Level2)
     psurf->SetQueueSize(1);
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
-    requestConfig.format = PIXEL_FMT_RGBA_8888;
+    requestConfig.format = GRAPHIC_PIXEL_FMT_RGBA_8888;
     [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
     sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
     ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);

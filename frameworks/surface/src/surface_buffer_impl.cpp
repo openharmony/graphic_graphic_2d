@@ -84,45 +84,6 @@ IDisplayBufferSptr GetDisplayBuffer()
 
 }
 
-static const std::map<uint64_t, uint64_t> bufferUsageConvertMap = {
-    {BUFFER_USAGE_CPU_READ,                    HBM_USE_CPU_READ},
-    {BUFFER_USAGE_CPU_WRITE,                   HBM_USE_CPU_WRITE},
-    {BUFFER_USAGE_MEM_MMZ,                     HBM_USE_MEM_MMZ},
-    {BUFFER_USAGE_MEM_DMA,                     HBM_USE_MEM_DMA},
-    {BUFFER_USAGE_MEM_SHARE,                   HBM_USE_MEM_SHARE},
-    {BUFFER_USAGE_MEM_MMZ_CACHE,               HBM_USE_MEM_MMZ_CACHE},
-    {BUFFER_USAGE_MEM_FB,                      HBM_USE_MEM_FB},
-    {BUFFER_USAGE_ASSIGN_SIZE,                 HBM_USE_ASSIGN_SIZE},
-    {BUFFER_USAGE_HW_RENDER,                   HBM_USE_HW_RENDER},
-    {BUFFER_USAGE_HW_TEXTURE,                  HBM_USE_HW_TEXTURE},
-    {BUFFER_USAGE_HW_COMPOSER,                 HBM_USE_HW_COMPOSER},
-    {BUFFER_USAGE_PROTECTED,                   HBM_USE_PROTECTED},
-    {BUFFER_USAGE_CAMERA_READ,                 HBM_USE_CAMERA_READ},
-    {BUFFER_USAGE_CAMERA_WRITE,                HBM_USE_CAMERA_WRITE},
-    {BUFFER_USAGE_VIDEO_ENCODER,               HBM_USE_VIDEO_ENCODER},
-    {BUFFER_USAGE_VIDEO_DECODER,               HBM_USE_VIDEO_DECODER},
-    {BUFFER_USAGE_VENDOR_PRI0,                 HBM_USE_VENDOR_PRI0},
-    {BUFFER_USAGE_VENDOR_PRI1,                 HBM_USE_VENDOR_PRI1},
-    {BUFFER_USAGE_VENDOR_PRI2,                 HBM_USE_VENDOR_PRI2},
-    {BUFFER_USAGE_VENDOR_PRI3,                 HBM_USE_VENDOR_PRI3},
-    {BUFFER_USAGE_VENDOR_PRI4,                 HBM_USE_VENDOR_PRI4},
-    {BUFFER_USAGE_VENDOR_PRI5,                 HBM_USE_VENDOR_PRI5},
-    {BUFFER_USAGE_VENDOR_PRI6,                 HBM_USE_VENDOR_PRI6},
-    {BUFFER_USAGE_VENDOR_PRI7,                 HBM_USE_VENDOR_PRI7},
-    {BUFFER_USAGE_VENDOR_PRI8,                 HBM_USE_VENDOR_PRI8},
-    {BUFFER_USAGE_VENDOR_PRI9,                 HBM_USE_VENDOR_PRI9},
-    {BUFFER_USAGE_VENDOR_PRI10,                HBM_USE_VENDOR_PRI10},
-    {BUFFER_USAGE_VENDOR_PRI11,                HBM_USE_VENDOR_PRI11},
-    {BUFFER_USAGE_VENDOR_PRI12,                HBM_USE_VENDOR_PRI12},
-    {BUFFER_USAGE_VENDOR_PRI13,                HBM_USE_VENDOR_PRI13},
-    {BUFFER_USAGE_VENDOR_PRI14,                HBM_USE_VENDOR_PRI14},
-    {BUFFER_USAGE_VENDOR_PRI15,                HBM_USE_VENDOR_PRI15},
-    {BUFFER_USAGE_VENDOR_PRI16,                HBM_USE_VENDOR_PRI16},
-    {BUFFER_USAGE_VENDOR_PRI17,                HBM_USE_VENDOR_PRI17},
-    {BUFFER_USAGE_VENDOR_PRI18,                HBM_USE_VENDOR_PRI18},
-    {BUFFER_USAGE_VENDOR_PRI19,                HBM_USE_VENDOR_PRI19},
-};
-
 sptr<SurfaceBuffer> SurfaceBuffer::Create()
 {
     sptr<SurfaceBuffer> surfaceBufferImpl = new SurfaceBufferImpl();
@@ -189,8 +150,7 @@ GSError SurfaceBufferImpl::Alloc(const BufferRequestConfig &config)
     }
 
     BufferHandle *handle = nullptr;
-    uint64_t usage = BufferUsageToGrallocUsage(config.usage);
-    AllocInfo info = {config.width, config.height, usage, config.format};
+    AllocInfo info = {config.width, config.height, config.usage, config.format};
     auto dret = g_displayBuffer->AllocMem(info, handle);
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -554,17 +514,6 @@ GSError SurfaceBufferImpl::CheckBufferConfig(int32_t width, int32_t height,
     }
 
     return GSERROR_OK;
-}
-
-uint64_t SurfaceBufferImpl::BufferUsageToGrallocUsage(uint64_t bufferUsage)
-{
-    uint64_t grallocUsage = 0;
-    for (auto iter = bufferUsageConvertMap.begin(); iter != bufferUsageConvertMap.end(); iter++) {
-        if (bufferUsage & iter->first) {
-            grallocUsage |= iter->second;
-        }
-    }
-    return grallocUsage;
 }
 
 BufferWrapper SurfaceBufferImpl::GetBufferWrapper()

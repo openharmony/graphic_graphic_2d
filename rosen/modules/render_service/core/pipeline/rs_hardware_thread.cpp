@@ -278,7 +278,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             }
             auto bufferId = params.buffer->GetSeqNum();
             imageCacheSeqs[bufferId] = std::move(eglImageCache);
-            SkColorType colorType = (params.buffer->GetFormat() == PIXEL_FMT_BGRA_8888) ?
+            SkColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
                 kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
             GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8 };
             GrBackendTexture backendTexture(params.buffer->GetSurfaceBufferWidth(),
