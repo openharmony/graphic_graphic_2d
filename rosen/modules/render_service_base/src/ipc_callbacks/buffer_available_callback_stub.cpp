@@ -29,7 +29,7 @@ int RSBufferAvailableCallbackStub::OnRemoteRequest(
 
     int ret = ERR_NONE;
     switch (code) {
-        case ON_BUFFER_AVAILABLE: {
+        case static_cast<uint32_t>(RSIBufferAvailableCallbackInterfaceCode::ON_BUFFER_AVAILABLE): {
             OnBufferAvailable();
             break;
         }

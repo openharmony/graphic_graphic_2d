@@ -18,6 +18,7 @@
 
 #include <iremote_proxy.h>
 #include <platform/ohos/rs_irender_service.h>
+#include <platform/ohos/rs_irender_service_ipc_interface_code.h>
 
 namespace OHOS {
 namespace Rosen {

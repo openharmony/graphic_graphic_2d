@@ -25,10 +25,6 @@ class RSISyncTransactionController : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RSISyncTransactionController");
 
-    enum {
-        CREATE_TRANSACTION_FINISHED,
-    };
-
     virtual void CreateTransactionFinished() = 0;
 
 };

@@ -17,9 +17,9 @@
 #define ROSEN_RENDER_SERVICE_BASE_ISCREEN_CHANGE_CALLBACK_STUB_H
 
 #include <iremote_stub.h>
-
-#include "ipc_callbacks/screen_change_callback.h"
 #include "common/rs_macros.h"
+#include "ipc_callbacks/screen_change_callback.h"
+#include "ipc_callbacks/screen_change_callback_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {

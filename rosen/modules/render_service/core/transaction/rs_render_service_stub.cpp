@@ -33,7 +33,7 @@ int RSRenderServiceStub::OnRemoteRequest(uint32_t code, MessageParcel& data, Mes
 {
     int ret = ERR_NONE;
     switch (code) {
-        case CREATE_CONNECTION: {
+        case static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION): {
             auto interfaceToken = data.ReadInterfaceToken();
             if (interfaceToken != RSIRenderService::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;

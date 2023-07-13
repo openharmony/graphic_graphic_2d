@@ -41,7 +41,8 @@ sptr<RSIRenderServiceConnection> RSRenderServiceProxy::CreateConnection(const sp
     }
 
     data.WriteRemoteObject(token->AsObject());
-    int32_t err = Remote()->SendRequest(RSIRenderService::CREATE_CONNECTION, data, reply, option);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): SendRequest failed, err is %d.", err);
         return nullptr;

@@ -19,6 +19,7 @@
 #include <iremote_proxy.h>
 
 #include "ipc_callbacks/iapplication_agent.h"
+#include "ipc_callbacks/iapplication_agent_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {

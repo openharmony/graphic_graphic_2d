@@ -43,7 +43,8 @@ void RSApplicationAgentProxy::OnTransaction(std::shared_ptr<RSTransactionData> t
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    int32_t err = Remote()->SendRequest(IApplicationAgent::COMMIT_TRANSACTION, data, reply, option);
+    uint32_t code = static_cast<uint32_t>(IApplicationAgentInterfaceCode::COMMIT_TRANSACTION);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         // [PLANNING]: Error log
     }

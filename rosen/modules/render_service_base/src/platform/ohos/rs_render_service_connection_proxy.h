@@ -19,6 +19,7 @@
 #include "command/rs_node_showing_command.h"
 #include <iremote_proxy.h>
 #include <platform/ohos/rs_irender_service_connection.h>
+#include <platform/ohos/rs_irender_service_connection_ipc_interface_code.h>
 #include "sandbox_utils.h"
 
 namespace OHOS {

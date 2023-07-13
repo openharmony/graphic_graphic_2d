@@ -19,6 +19,7 @@
 #include <iremote_proxy.h>
 
 #include "ipc_callbacks/surface_capture_callback.h"
+#include "ipc_callbacks/surface_capture_callback_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {

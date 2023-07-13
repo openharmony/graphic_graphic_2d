@@ -29,10 +29,6 @@ public:
     RSIBufferAvailableCallback() = default;
     virtual ~RSIBufferAvailableCallback() noexcept = default;
 
-    enum {
-        ON_BUFFER_AVAILABLE,
-    };
-
     virtual void OnBufferAvailable() = 0;
 };
 } // namespace Rosen

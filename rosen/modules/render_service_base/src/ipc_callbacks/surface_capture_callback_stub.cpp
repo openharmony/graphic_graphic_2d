@@ -28,14 +28,14 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
     }
     int ret = ERR_NONE;
     switch (code) {
-        case ON_SURFACE_CAPTURE: {
+        case static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE): {
             NodeId id = data.ReadUint64();
             auto pixelmap = data.ReadParcelable<OHOS::Media::PixelMap>();
             OnSurfaceCapture(id, pixelmap);
             break;
         }
         default: {
-            ret = ERR_UNKNOWN_TRANSACTION;
+            ret = IPCObjectStub::OnRemoteRequest(code, data, reply, option);
             break;
         }
     }
