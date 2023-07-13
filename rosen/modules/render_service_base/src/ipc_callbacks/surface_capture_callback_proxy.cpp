@@ -37,7 +37,8 @@ void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, Media::PixelMap*
     data.WriteUint64(id);
     data.WriteParcelable(pixelmap);
     option.SetFlags(MessageOption::TF_ASYNC);
-    int32_t err = Remote()->SendRequest(RSISurfaceCaptureCallback::ON_SURFACE_CAPTURE, data, reply, option);
+    uint32_t code = static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("SurfaceCaptureCallbackProxy: Remote()->SendRequest() error");
     }

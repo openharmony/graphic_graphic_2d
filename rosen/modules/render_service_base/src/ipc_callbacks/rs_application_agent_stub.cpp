@@ -30,7 +30,7 @@ int RSApplicationAgentStub::OnRemoteRequest(
 
     int ret = ERR_NONE;
     switch (code) {
-        case COMMIT_TRANSACTION: {
+        case static_cast<uint32_t>(IApplicationAgentInterfaceCode::COMMIT_TRANSACTION): {
             std::shared_ptr<RSTransactionData> transactionData(data.ReadParcelable<RSTransactionData>());
             OnTransaction(transactionData);
             break;

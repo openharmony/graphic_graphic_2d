@@ -50,7 +50,8 @@ void RSSyncTransactionControllerProxy::CreateTransactionFinished()
         return;
     }
 
-    auto ret = remote->SendRequest(RSSyncTransactionControllerProxy::CREATE_TRANSACTION_FINISHED, data, reply, option);
+    uint32_t code = static_cast<uint32_t>(RSISyncTransactionControllerInterfaceCode::CREATE_TRANSACTION_FINISHED);
+    auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
         ROSEN_LOGE("Failed to send sync transaction controller request, error code:%d", ret);
     }

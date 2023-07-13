@@ -65,8 +65,8 @@ HWTEST_F(RSSyncTransactionControllerStubTest, OnRemoteRequest001, TestSize.Level
     MessageParcel reply;
     MessageOption option;
 
-    int res = stub_->OnRemoteRequest(
-        RSISyncTransactionController::CREATE_TRANSACTION_FINISHED, data, reply, option);
+    uint32_t code = static_cast<uint32_t>(RSISyncTransactionControllerInterfaceCode::CREATE_TRANSACTION_FINISHED);
+    int res = stub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
     GTEST_LOG_(INFO) << "RSSyncTransactionControllerStubTest OnRemoteRequest001 end";
 }

@@ -17,9 +17,9 @@
 #define ROSEN_RENDER_SERVICE_BASE_ISURFACE_CAPTURE_CALLBACK_STUB_H
 
 #include <iremote_stub.h>
-
-#include "ipc_callbacks/surface_capture_callback.h"
 #include "common/rs_macros.h"
+#include "ipc_callbacks/surface_capture_callback.h"
+#include "ipc_callbacks/surface_capture_callback_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {

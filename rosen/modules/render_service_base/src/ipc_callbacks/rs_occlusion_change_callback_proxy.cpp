@@ -39,7 +39,8 @@ void RSOcclusionChangeCallbackProxy::OnOcclusionVisibleChanged(std::shared_ptr<R
 
     option.SetFlags(MessageOption::TF_ASYNC);
     data.WriteParcelable(occlusionData.get());
-    int32_t err = Remote()->SendRequest(RSIOcclusionChangeCallback::ON_OCCLUSION_VISIBLE_CHANGED, data, reply, option);
+    uint32_t code = static_cast<uint32_t>(RSIOcclusionChangeCallbackInterfaceCode::ON_OCCLUSION_VISIBLE_CHANGED);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderOcclusionChangeCallbackProxy::OnOcclusionVisibleChanged error = %d", err);
     }

@@ -63,7 +63,8 @@ HWTEST_F(RSRenderServiceStubTest, TestRSRenderServiceStub001, TestSize.Level1)
     MessageParcel reply;
     MessageOption option;
 
-    int res = stub_->OnRemoteRequest(RSRenderServiceStub::CREATE_CONNECTION, data, reply, option);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION);
+    int res = stub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
 }
 
@@ -80,7 +81,8 @@ HWTEST_F(RSRenderServiceStubTest, TestRSRenderServiceStub002, TestSize.Level1)
     MessageOption option;
 
     data.WriteInterfaceToken(RSIRenderService::GetDescriptor());
-    int res = stub_->OnRemoteRequest(RSRenderServiceStub::CREATE_CONNECTION, data, reply, option);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION);
+    int res = stub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NULL_OBJECT);
 }
 

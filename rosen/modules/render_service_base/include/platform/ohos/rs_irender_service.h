@@ -35,10 +35,6 @@ public:
     RSIRenderService() = default;
     virtual ~RSIRenderService() noexcept = default;
 
-    enum {
-        CREATE_CONNECTION,
-    };
-
     virtual sptr<RSIRenderServiceConnection> CreateConnection(const sptr<RSIConnectionToken>& token) = 0;
 };
 } // namespace Rosen

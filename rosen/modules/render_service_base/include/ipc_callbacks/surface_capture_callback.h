@@ -30,10 +30,6 @@ public:
     RSISurfaceCaptureCallback() = default;
     virtual ~RSISurfaceCaptureCallback() noexcept = default;
 
-    enum {
-        ON_SURFACE_CAPTURE,
-    };
-
     virtual void OnSurfaceCapture(NodeId id, Media::PixelMap* pixelmap) = 0;
 };
 } // namespace Rosen

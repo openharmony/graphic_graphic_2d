@@ -21,6 +21,7 @@
 #include <message_parcel.h>
 
 #include "platform/ohos/rs_irender_service_connection.h"
+#include "platform/ohos/rs_irender_service_connection_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {

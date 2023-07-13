@@ -26,10 +26,6 @@ public:
     RSIOcclusionChangeCallback() = default;
     virtual ~RSIOcclusionChangeCallback() noexcept = default;
     virtual void OnOcclusionVisibleChanged(std::shared_ptr<RSOcclusionData> occlusionData) = 0;
-
-    enum {
-        ON_OCCLUSION_VISIBLE_CHANGED,
-    };
 };
 }
 }

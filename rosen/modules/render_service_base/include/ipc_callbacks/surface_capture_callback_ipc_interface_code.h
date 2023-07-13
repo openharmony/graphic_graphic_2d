@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,24 +13,15 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_ISCREEN_CHANGE_CALLBACK_H
-#define ROSEN_RENDER_SERVICE_BASE_ISCREEN_CHANGE_CALLBACK_H
-
-#include <iremote_broker.h>
-#include <screen_manager/screen_types.h>
+#ifndef ROSEN_RENDER_SERVICE_BASE_ISURFACE_CAPTURE_CALLBACK_INTERFACE_CODE_H
+#define ROSEN_RENDER_SERVICE_BASE_ISURFACE_CAPTURE_CALLBACK_INTERFACE_CODE_H
 
 namespace OHOS {
 namespace Rosen {
-class RSIScreenChangeCallback : public IRemoteBroker {
-public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.ScreenChangeListener");
-
-    RSIScreenChangeCallback() = default;
-    virtual ~RSIScreenChangeCallback() noexcept = default;
-
-    virtual void OnScreenChanged(ScreenId id, ScreenEvent event) = 0;
+enum class RSISurfaceCaptureCallbackInterfaceCode {
+    ON_SURFACE_CAPTURE,
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_RENDER_SERVICE_BASE_ISCREEN_CHANGE_CALLBACK_H
+#endif // ROSEN_RENDER_SERVICE_BASE_ISURFACE_CAPTURE_CALLBACK_INTERFACE_CODE_H

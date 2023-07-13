@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,26 +13,15 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_IAPPLICATION_AGENT_H
-#define ROSEN_RENDER_SERVICE_BASE_IAPPLICATION_AGENT_H
-
-#include <iremote_broker.h>
-
-#include "common/rs_common_def.h"
+#ifndef ROSEN_RENDER_SERVICE_BASE_IBUFFER_AVAILABLE_CALLBACK_INTERFACE_CODE_H
+#define ROSEN_RENDER_SERVICE_BASE_IBUFFER_AVAILABLE_CALLBACK_INTERFACE_CODE_H
 
 namespace OHOS {
 namespace Rosen {
-class RSTransactionData;
-class IApplicationAgent : public IRemoteBroker {
-public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RSIApplicationAgent");
-
-    IApplicationAgent() = default;
-    virtual ~IApplicationAgent() noexcept = default;
-
-    virtual void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) = 0;
+enum class RSIBufferAvailableCallbackInterfaceCode {
+    ON_BUFFER_AVAILABLE,
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_RENDER_SERVICE_BASE_IAPPLICATION_AGENT_H
+#endif // ROSEN_RENDER_SERVICE_BASE_IBUFFER_AVAILABLE_CALLBACK_INTERFACE_CODE_H

@@ -29,13 +29,13 @@ int RSOcclusionChangeCallbackStub::OnRemoteRequest(
 
     int ret = ERR_NONE;
     switch (code) {
-        case ON_OCCLUSION_VISIBLE_CHANGED: {
+        case static_cast<uint32_t>(RSIOcclusionChangeCallbackInterfaceCode::ON_OCCLUSION_VISIBLE_CHANGED): {
             std::shared_ptr<RSOcclusionData> occlusionData(data.ReadParcelable<RSOcclusionData>());
             OnOcclusionVisibleChanged(occlusionData);
             break;
         }
         default: {
-            ret = ERR_UNKNOWN_REASON;
+            ret = IPCObjectStub::OnRemoteRequest(code, data, reply, option);
             break;
         }
     }

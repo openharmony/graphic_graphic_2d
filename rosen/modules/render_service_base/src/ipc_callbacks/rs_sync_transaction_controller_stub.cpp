@@ -30,7 +30,7 @@ int RSSyncTransactionControllerStub::OnRemoteRequest(uint32_t code,MessageParcel
     }
 
     switch (code) {
-        case RSISyncTransactionController::CREATE_TRANSACTION_FINISHED: {
+        case static_cast<uint32_t>(RSISyncTransactionControllerInterfaceCode::CREATE_TRANSACTION_FINISHED): {
             CreateTransactionFinished();
             break;
         }

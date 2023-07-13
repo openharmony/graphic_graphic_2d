@@ -21,6 +21,7 @@
 
 #include "common/rs_macros.h"
 #include "ipc_callbacks/rs_isync_transaction_controller.h"
+#include "ipc_callbacks/rs_isync_transaction_controller_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -66,43 +66,46 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub002
     MessageOption option;
 
     int res;
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::GET_DEFAULT_SCREEN_ID, data, reply, option);
+    uint32_t code;
+
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::GET_ALL_SCREEN_IDS, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ALL_SCREEN_IDS);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::CREATE_VIRTUAL_SCREEN, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_SURFACE, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::REMOVE_VIRTUAL_SCREEN, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::SET_SCREEN_CHANGE_CALLBACK, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::SET_SCREEN_ACTIVE_MODE, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_RESOLUTION, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::SET_SCREEN_POWER_STATUS, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(RSRenderServiceConnectionStub::TAKE_SURFACE_CAPTURE, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NULL_OBJECT);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::REGISTER_APPLICATION_AGENT, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NULL_OBJECT);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::GET_VIRTUAL_SCREEN_RESOLUTION, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_RESOLUTION);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::GET_SCREEN_ACTIVE_MODE, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_ACTIVE_MODE);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
 }
 
@@ -118,32 +121,32 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub003
     MessageParcel reply;
     MessageOption option;
 
-    int res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::GET_SCREEN_SUPPORTED_MODES, data, reply, option);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_MODES);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::GET_SCREEN_CAPABILITY, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CAPABILITY);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::GET_SCREEN_POWER_STATUS, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_POWER_STATUS);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::GET_SCREEN_DATA, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_DATA);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::GET_SCREEN_BACK_LIGHT, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_BACK_LIGHT);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::SET_SCREEN_BACK_LIGHT, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::SET_BUFFER_AVAILABLE_LISTENER, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::GET_SCREEN_SUPPORTED_GAMUTS, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_GAMUTS);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::GET_SCREEN_SUPPORTED_METADATAKEYS, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_METADATAKEYS);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
 }
 
@@ -159,29 +162,29 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub004
     MessageParcel reply;
     MessageOption option;
 
-    int res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::GET_SCREEN_GAMUT, data, reply, option);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::SET_SCREEN_GAMUT, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::SET_SCREEN_GAMUT_MAP, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::GET_SCREEN_GAMUT_MAP, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::GET_SCREEN_HDR_CAPABILITY, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_CAPABILITY);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::GET_SCREEN_TYPE, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_TYPE);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::SET_SCREEN_SKIP_FRAME_INTERVAL, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
-    res = connectionStub_->OnRemoteRequest(
-        RSRenderServiceConnectionStub::REGISTER_OCCLUSION_CHANGE_CALLBACK, data, reply, option);
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
 }
 

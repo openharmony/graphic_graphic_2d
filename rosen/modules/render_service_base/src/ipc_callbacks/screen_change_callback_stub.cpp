@@ -27,14 +27,14 @@ int RSScreenChangeCallbackStub::OnRemoteRequest(
 
     int ret = ERR_NONE;
     switch (code) {
-        case ON_SCREEN_CHANGED: {
+        case static_cast<uint32_t>(RSIScreenChangeCallbackInterfaceCode::ON_SCREEN_CHANGED): {
             ScreenId id = data.ReadUint64();
             ScreenEvent event = static_cast<ScreenEvent>(data.ReadUint8());
             OnScreenChanged(id, event);
             break;
         }
         default: {
-            ret = ERR_UNKNOWN_TRANSACTION;
+            ret = IPCObjectStub::OnRemoteRequest(code, data, reply, option);
             break;
         }
     }
