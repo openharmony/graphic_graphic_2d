@@ -424,7 +424,11 @@ void RSRenderNode::UpdateDrawRegion()
     context.property_.SetDrawRegion(std::make_shared<RectF>(joinRect));
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSRenderNode::UpdateEffectRegion(std::optional<SkPath>& region) const
+#else
+void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::Path>& region) const
+#endif
 {
     if (!region.has_value()) {
         return;
@@ -436,6 +440,7 @@ void RSRenderNode::UpdateEffectRegion(std::optional<SkPath>& region) const
     auto& effectPath = region.value();
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
 
+#ifndef USE_ROSEN_DRAWING
     SkPath clipPath;
     if (property.GetClipBounds() != nullptr) {
         clipPath = property.GetClipBounds()->GetSkiaPath();
@@ -446,6 +451,18 @@ void RSRenderNode::UpdateEffectRegion(std::optional<SkPath>& region) const
 
     // accumulate children clip path, with matrix
     effectPath.addPath(clipPath, geoPtr->GetAbsMatrix());
+#else
+    Drawing::Path clipPath;
+    if (property.GetClipBounds() != nullptr) {
+        clipPath = property.GetClipBounds()->GetDrawingPath();
+    } else {
+        auto rrect = RSPropertiesPainter::RRect2DrawingRRect(property.GetRRect());
+        clipPath.AddRoundRect(rrect);
+    }
+
+    // accumulate children clip path, with matrix
+    effectPath.AddPath(clipPath, geoPtr->GetAbsMatrix());
+#endif
 }
 
 std::shared_ptr<RSRenderModifier> RSRenderNode::GetModifier(const PropertyId& id)
@@ -652,17 +669,12 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
     float scaleX = size.x_ / boundsWidth_;
     float scaleY = size.y_ / boundsHeight_;
     canvas.Scale(scaleX, scaleY);
+#if defined(RS_ENABLE_GL)
     if (isUIFirst) {
-        if (cacheTexture_ == nullptr) {
-            RS_LOGE("invalid cache texture");
-            canvas.Restore();
-            return;
-        }
-        canvas.DrawImage(cacheTexture_, -shadowRectOffsetX_ * scaleX,
-            -shadowRectOffsetY_ * scaleY, Drawing::SamplingOptions());
-        canvas.Restore();
+        RS_LOGE("[%s:%d] Drawing is not supported", __func__, __LINE__);
         return;
     }
+#endif
     auto surface = GetCompletedCacheSurface(threadIndex, isUIFirst);
     if (surface == nullptr || (boundsWidth_ == 0 || boundsHeight_ == 0)) {
         RS_LOGE("invalid complete cache surface");
@@ -691,12 +703,16 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
 #ifdef RS_ENABLE_GL
 void RSRenderNode::UpdateBackendTexture()
 {
+#ifndef USE_ROSEN_DRAWING
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     if (cacheSurface_ == nullptr) {
         return;
     }
     cacheBackendTexture_
         = cacheSurface_->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
+#else
+    RS_LOGE("[%s:%d] Drawing is not supported", __func__, __LINE__);
+#endif
 }
 #endif
 
@@ -784,9 +800,16 @@ RectI RSRenderNode::GetFilterRect() const
     auto& properties = GetRenderProperties();
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
     if (properties.GetClipBounds() != nullptr) {
+#ifndef USE_ROSEN_DRAWING
         auto filterRect = properties.GetClipBounds()->GetSkiaPath().getBounds();
         auto absRect = geoPtr->GetAbsMatrix().mapRect(filterRect);
         return {absRect.x(), absRect.y(), absRect.width(), absRect.height()};
+#else
+        auto filterRect = properties.GetClipBounds()->GetDrawingPath().GetBounds();
+        Drawing::Rect absRect;
+        geoPtr->GetAbsMatrix().MapRect(absRect, filterRect);
+        return {absRect.GetLeft(), absRect.GetTop(), absRect.GetWidth(), absRect.GetHeight()};
+#endif
     } else {
         return geoPtr->GetAbsRect();
     }

@@ -39,13 +39,21 @@ public:
 
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
+#ifndef USE_ROSEN_DRAWING
     void SetEffectRegion(const std::optional<SkPath>& region);
+#else
+    void SetEffectRegion(const std::optional<Drawing::Path>& region);
+#endif
 
 protected:
     RectI GetFilterRect() const override;
 
 private:
+#ifndef USE_ROSEN_DRAWING
     std::optional<SkPath> effectRegion_ = std::nullopt;
+#else
+    std::optional<Drawing::Path> effectRegion_ = std::nullopt;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

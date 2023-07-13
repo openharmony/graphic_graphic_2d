@@ -186,8 +186,6 @@ public:
 
     static std::optional<Drawing::Rect> GetLocalClipBounds(const Drawing::Canvas& canvas,
         const Drawing::RectI* clipBounds = nullptr);
-    std::stack<float> GetAlphaStack();
-    std::stack<Env> GetEnvStack();
 
     CoreCanvas& AttachPen(const Drawing::Pen& pen) override;
     CoreCanvas& AttachBrush(const Drawing::Brush& brush) override;
@@ -220,6 +218,8 @@ protected:
     using Env = struct {
         Color envForegroundColor;
     };
+    std::stack<float> GetAlphaStack();
+    std::stack<Env> GetEnvStack();
     bool OnFilter() const override;
 #endif
 

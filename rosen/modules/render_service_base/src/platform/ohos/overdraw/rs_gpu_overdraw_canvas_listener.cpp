@@ -428,7 +428,7 @@ void RSGPUOverdrawCanvasListener::Clear(Drawing::ColorQuad color)
     // need know canvas rect region
 }
 
-static constexpr scalar overdrawColorMatix[Drawing::ColorMatrix::MATRIX_SIZE] = {
+static constexpr Drawing::scalar overdrawColorMatix[Drawing::ColorMatrix::MATRIX_SIZE] = {
     0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
     0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
     0.0f, 0.0f, 0.0f, 0.0f, 0.0f,

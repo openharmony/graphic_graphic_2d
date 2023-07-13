@@ -35,13 +35,20 @@ RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(NodeId id, std::weak_ptr<RS
 
 RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
 {
+#ifndef USE_ROSEN_DRAWING
     if (preThreadInfo_.second && skSurface_) {
         preThreadInfo_.second(std::move(skSurface_));
     }
+#else
+    if (preThreadInfo_.second && surface_) {
+        preThreadInfo_.second(std::move(surface_));
+    }
+#endif
 }
 
 void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 {
+#ifndef USE_ROSEN_DRAWING
     int width = 0;
     int height = 0;
     if (!GetSizeFromDrawCmdModifiers(width, height)) {
@@ -103,8 +110,10 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 #else
     canvas.drawImage(image, 0.f, 0.f, nullptr);
 #endif
+#endif
 }
 
+#ifndef USE_ROSEN_DRAWING
 bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilterCanvas& canvas)
 {
     SkImageInfo info = SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
@@ -130,6 +139,34 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
     canvas_ = std::make_unique<RSPaintFilterCanvas>(skSurface_.get());
     return skSurface_ != nullptr;
 }
+#else
+bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilterCanvas& canvas)
+{
+    Drawing::BitmapFormat info = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    Drawing::Bitmap drBitmap;
+    drBitmap.Build(width, height, info);
+
+#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+    auto gpuContext = canvas.GetGPUContext();
+    if (gpuContext == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents: GpuContext is nullptr");
+        return false;
+    }
+    Drawing::Image image;
+    image.BuildFromBitmap(*gpuContext, bitmap);
+    surface_ = std::make_shared<Drawing::Surface>();
+    if (!surface->Bind(image)) {
+#else
+    surface_ = std::make_shared<Drawing::Surface>();
+    if (!surface_->Bind(drBitmap)) {
+#endif
+        RS_LOGE("RSCanvasDrawingRenderNode::ResetSurface Drawing::Surface is nullptr");
+        return false;
+    }
+    canvas_ = std::make_unique<RSPaintFilterCanvas>(surface_.get());
+    return true;
+}
+#endif
 
 void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type) const
 {
@@ -139,12 +176,18 @@ void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context,
     }
     for (const auto& modifier : it->second) {
         auto prop = modifier->GetProperty();
+#ifndef USE_ROSEN_DRAWING
         auto cmd = std::static_pointer_cast<RSRenderProperty<DrawCmdListPtr>>(prop)->Get();
         cmd->Playback(*context.canvas_);
         cmd->ClearOp();
+#else
+        auto cmd = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop)->Get();
+        cmd->Playback(*context.canvas_);
+#endif
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
 bool RSCanvasDrawingRenderNode::GetBitmap(SkBitmap& bitmap)
 {
     if (skSurface_ == nullptr) {
@@ -162,6 +205,22 @@ bool RSCanvasDrawingRenderNode::GetBitmap(SkBitmap& bitmap)
     }
     return true;
 }
+#else
+bool RSCanvasDrawingRenderNode::GetBitmap(Drawing::Bitmap& bitmap)
+{
+    if (surface_ == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: Drawing::Surface is nullptr");
+        return false;
+    }
+    std::shared_ptr<Drawing::Image> image = surface_->GetImageSnapshot();
+    if (image == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: Drawing::Image is nullptr");
+        return false;
+    }
+    RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: Drawing asLegacyBitmap failed");
+    return false;
+}
+#endif
 
 bool RSCanvasDrawingRenderNode::GetSizeFromDrawCmdModifiers(int& width, int& height)
 {
@@ -171,7 +230,11 @@ bool RSCanvasDrawingRenderNode::GetSizeFromDrawCmdModifiers(int& width, int& hei
     }
     for (const auto& modifier : it->second) {
         auto prop = modifier->GetProperty();
+#ifndef USE_ROSEN_DRAWING
         if (auto cmd = std::static_pointer_cast<RSRenderProperty<DrawCmdListPtr>>(prop)->Get()) {
+#else
+        if (auto cmd = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop)->Get()) {
+#endif
             width = std::max(width, cmd->GetWidth());
             height = std::max(height, cmd->GetHeight());
         }

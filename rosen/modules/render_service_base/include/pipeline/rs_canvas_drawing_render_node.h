@@ -24,7 +24,11 @@
 namespace OHOS {
 namespace Rosen {
 struct RSModifierContext;
+#ifndef USE_ROSEN_DRAWING
 using ThreadInfo = std::pair<uint64_t, std::function<void(sk_sp<SkSurface>)>>;
+#else
+using ThreadInfo = std::pair<uint64_t, std::function<void(std::shared_ptr<Drawing::Surface>)>>;
+#endif
 
 class RSB_EXPORT RSCanvasDrawingRenderNode : public RSCanvasRenderNode {
 public:
@@ -42,7 +46,11 @@ public:
         return Type;
     }
 
+#ifndef USE_ROSEN_DRAWING
     bool GetBitmap(SkBitmap& bitmap);
+#else
+    bool GetBitmap(Drawing::Bitmap& bitmap);
+#endif
 
     void SetSurfaceClearFunc(ThreadInfo threadInfo)
     {
@@ -54,7 +62,11 @@ private:
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
 
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> skSurface_;
+#else
+    std::shared_ptr<Drawing::Surface> surface_;
+#endif
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     ThreadInfo curThreadInfo_ = {};
     ThreadInfo preThreadInfo_ = {};

@@ -635,10 +635,14 @@ public:
 
     void OnTreeStateChanged() override;
 
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     void SetGrContext(GrDirectContext* grContext)
 #else
     void SetGrContext(GrContext* grContext)
+#endif
+#else
+    void SetDrawingGPUContext(Drawing::GPUContext* grContext)
 #endif
     {
         grContext_ = grContext;
@@ -651,7 +655,7 @@ public:
 
     uint32_t GetSubmittedSubThreadIndex() const
     {
-        return submittedSubThreadIndex_;        
+        return submittedSubThreadIndex_;
     }
 
     void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus)
@@ -674,10 +678,14 @@ private:
     std::mutex mutexRT_;
     std::mutex mutexUI_;
     std::mutex mutex_;
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     GrDirectContext* grContext_ = nullptr;
 #else
     GrContext* grContext_ = nullptr;
+#endif
+#else
+    Drawing::GPUContext* grContext_ = nullptr;
 #endif
     std::mutex parallelVisitMutex_;
 

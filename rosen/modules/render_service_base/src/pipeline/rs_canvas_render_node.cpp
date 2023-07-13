@@ -118,12 +118,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
     if (GetRenderProperties().GetUseEffect()) {
         RSPropertiesPainter::ApplyBackgroundEffect(GetRenderProperties(), canvas);
     }
-#ifndef USE_ROSEN_DRAWING
     RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, FilterType::BACKGROUND_FILTER);
-#else
-    auto filter = std::static_pointer_cast<RSDrawingFilter>(GetRenderProperties().GetBackgroundFilter());
-    RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, FilterType::BACKGROUND_FILTER, nullptr);
-#endif
 
     ApplyDrawCmdModifier(context, RSModifierType::BACKGROUND_STYLE);
 
@@ -171,12 +166,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
     if (GetRenderProperties().IsLightUpEffectValid()) {
         RSPropertiesPainter::DrawLightUpEffect(GetRenderProperties(), canvas);
     }
-#ifndef USE_ROSEN_DRAWING
     RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, FilterType::FOREGROUND_FILTER);
-#else
-    auto filter = std::static_pointer_cast<RSDrawingFilter>(GetRenderProperties().GetFilter());
-    RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, FilterType::FOREGROUND_FILTER, nullptr);
-#endif
     auto para = GetRenderProperties().GetLinearGradientBlurPara();
     RSPropertiesPainter::DrawLinearGradientBlurFilter(GetRenderProperties(), canvas);
 
