@@ -1083,7 +1083,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     node.UpdateChildrenOutOfRectFlag(false);
 
     auto currRSRange = node.GetRSFrameRateRange();
-    if (!currRSRange.IsValid()) {
+    if (currRSRange.IsValid()) {
         currSurfaceRSRange_.Merge(currRSRange);
         node.ResetRSFrameRateRange();
     }
