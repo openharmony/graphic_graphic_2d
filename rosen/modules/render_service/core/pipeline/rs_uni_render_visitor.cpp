@@ -413,20 +413,28 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         unpairedTransitionNodes_.clear();
     }
 
-    if (currDisplayNodeRSRange_.IsValid()) {
-        node.SetFrameRateRangeToRS(currDisplayNodeRSRange_);
+    FrameRateRange finalRange;
+    if (currDisplayRSRange_.IsValid()) {
+        finalRange.Merge(currDisplayRSRange_);
+        rsFrameRateRangeMap_[node.GetId()] = currDisplayRSRange_;
         ROSEN_LOGI("RSUniRenderVisitor::PrepareDisplayRenderNode current \
-            FrameRateRange(RS) is [%d, %d, %d]", currDisplayNodeRSRange_.min_,
-            currDisplayNodeRSRange_.max_, currDisplayNodeRSRange_.preferred_);
+            FrameRateRange(RS) is [%d, %d, %d]", currDisplayRSRange_.min_,
+            currDisplayRSRange_.max_, currDisplayRSRange_.preferred_);
     }
-    if (currDisplayNodeUIRange_.IsValid()) {
-        node.SetFrameRateRangeToUI(currDisplayNodeUIRange_);
+    if (currDisplayUIRange_.IsValid()) {
+        finalRange.Merge(currDisplayUIRange_);
         ROSEN_LOGI("RSUniRenderVisitor::PrepareDisplayRenderNode current \
-            FrameRateRange(UI) is [%d, %d, %d]", currDisplayNodeUIRange_.min_,
-            currDisplayNodeUIRange_.max_, currDisplayNodeUIRange_.preferred_);
+            FrameRateRange(UI) is [%d, %d, %d]", currDisplayUIRange_.min_,
+            currDisplayUIRange_.max_, currDisplayUIRange_.preferred_);
     }
-    currDisplayNodeRSRange_.Reset();
-    currDisplayNodeUIRange_.Reset();
+    if (finalRange.IsValid()) {
+        finalFrameRateRangeMap_[node.GetId()] = finalRange;
+        ROSEN_LOGI("RSUniRenderVisitor::PrepareDisplayRenderNode final \
+            FrameRateRange is [%d, %d, %d]", finalRange.min_,
+            finalRange.max_, finalRange.preferred_);
+    }
+    currDisplayRSRange_.Reset();
+    currDisplayUIRange_.Reset();
 }
 
 void RSUniRenderVisitor::ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRenderNode& node)
@@ -845,16 +853,20 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 #endif
 
-    currSurfaceNodeRSRange_.Merge(node.GetFrameRateRangeFromRSAnimations());
-    node.SetFrameRateRangeToRS(currSurfaceNodeRSRange_);
-    node.SetFrameRateRangeToUI(currSurfaceNodeUIRange_);
-    currDisplayNodeRSRange_.Merge(currSurfaceNodeRSRange_);
-    currDisplayNodeUIRange_.Merge(currSurfaceNodeUIRange_);
+    auto rsRange = node.GetRSFrameRateRange();
+    auto uiRange = node.GetFrameRateRangeFromUI();
+    currSurfaceRSRange_.Merge(rsRange);
+    currSurfaceUIRange_.Merge(uiRange);
+    currDisplayRSRange_.Merge(currSurfaceRSRange_);
+    currDisplayUIRange_.Merge(currSurfaceUIRange_);
 
     auto nodeParent = node.GetParent().lock();
     if (nodeParent && nodeParent->ReinterpretCastTo<RSDisplayRenderNode>()) {
-        currSurfaceNodeRSRange_.Reset();
-        currSurfaceNodeUIRange_.Reset();
+        if (currSurfaceNodeUIRange_.IsValid()) {
+            uiFrameRateRangeMap_[node.GetId()] = currSurfaceNodeUIRange_;
+        }
+        currSurfaceRSRange_.Reset();
+        currSurfaceUIRange_.Reset();
     }
 }
 
@@ -1070,14 +1082,16 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     node.SetGlobalAlpha(curAlpha_);
     node.UpdateChildrenOutOfRectFlag(false);
 
-    auto currRSRange = node.GetFrameRateRangeFromRSAnimations();
+    auto currRSRange = node.GetRSFrameRateRange();
     if (!currRSRange.IsValid()) {
-        currSurfaceNodeRSRange_.Merge(currRSRange);
+        currSurfaceRSRange_.Merge(currRSRange);
+        node.ResetRSFrameRateRange();
     }
 
     auto currUIRange = node.GetFrameRateRangeFromUI();
     if (currUIRange.IsValid()) {
-        currSurfaceNodeUIRange_.Merge(currUIRange);
+        currSurfaceUIRange_.Merge(currUIRange);
+        node.ResetUIFrameRateRange();
     }
 
     PrepareBaseRenderNode(node);
@@ -3610,6 +3624,13 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
 
     // skip processing the current node and all its children.
     return false;
+}
+
+void RSUniRenderVisitor::ResetFrameRateRangeMaps()
+{
+    rsFrameRateRangeMap_.clear();
+    uiFrameRateRangeMap_.clear();
+    finalFrameRateRangeMap_.clear();
 }
 } // namespace Rosen
 } // namespace OHOS

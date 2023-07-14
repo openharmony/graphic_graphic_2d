@@ -428,12 +428,7 @@ public:
         rsRange_ = range;
     }
 
-    FrameRateRange GetFrameRateRangeFromRS() const
-    {
-        return rsRange_;
-    }
-
-    FrameRateRange GetFrameRateRangeFromRSAnimations();
+    FrameRateRange GetRSFrameRateRange();
 
     void SetFrameRateRangeToUI(FrameRateRange range)
     {

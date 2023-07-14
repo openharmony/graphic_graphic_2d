@@ -982,6 +982,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     uniVisitor->SetDrivenRenderFlag(hasDrivenNodeOnUniTree_, hasDrivenNodeMarkRender_);
 #endif
+    uniVisitor->ResetFrameRateRangeMaps();
+
     uniVisitor->SetHardwareEnabledNodes(hardwareEnabledNodes_);
     uniVisitor->SetAppWindowNum(appWindowNum_);
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());

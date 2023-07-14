@@ -148,6 +148,9 @@ public:
         renderFrame_ = std::move(renderFrame);
     }
     void SetAppWindowNum(uint32_t num);
+
+    void ResetFrameRateRangeMaps();
+
 private:
     void DrawWatermarkIfNeed();
 #ifndef USE_ROSEN_DRAWING
@@ -391,10 +394,13 @@ private:
     bool curDirty_ = false;
 
     // calculate preferred fps
-    FrameRateRange currSurfaceNodeRSRange_ = {0, 0, 0};
-    FrameRateRange currSurfaceNodeUIRange_ = {0, 0, 0};
-    FrameRateRange currDisplayNodeRSRange_ = {0, 0, 0};
-    FrameRateRange currDisplayNodeUIRange_ = {0, 0, 0};
+    FrameRateRange currSurfaceRSRange_ = {0, 0, 0};
+    FrameRateRange currSurfaceUIRange_ = {0, 0, 0};
+    FrameRateRange currDisplayRSRange_ = {0, 0, 0};
+    FrameRateRange currDisplayUIRange_ = {0, 0, 0};
+    std::unordered_map<NodeId, FrameRateRange> rsFrameRateRangeMap_; // display node id
+    std::unordered_map<NodeId, FrameRateRange> uiFrameRateRangeMap_; // surface node id
+    std::unordered_map<NodeId, FrameRateRange> finalFrameRateRangeMap_; // display node id
 
     bool curContentDirty_ = false;
 };
