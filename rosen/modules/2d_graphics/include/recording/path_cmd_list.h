@@ -38,7 +38,7 @@ public:
      * @brief       Creates a PathCmdList with contiguous buffers.
      * @param data  A contiguous buffers.
      */
-    static std::shared_ptr<PathCmdList> CreateFromData(const CmdListData& data);
+    static std::shared_ptr<PathCmdList> CreateFromData(const CmdListData& data, bool isCopy = false);
 
     /*
      * @brief  Calls the corresponding operations of all opitems in PathCmdList to the path.
@@ -244,13 +244,13 @@ private:
 
 class AddRoundRectOpItem : public PathOpItem {
 public:
-    AddRoundRectOpItem(const Rect& rect, const scalar xRadius, const scalar yRadius, PathDirection dir);
-    AddRoundRectOpItem(const RoundRect& rrect, PathDirection dir);
+    AddRoundRectOpItem(std::pair<int32_t, size_t> radiusXYData, const Rect& rect, PathDirection dir);
     ~AddRoundRectOpItem() = default;
     static void Playback(PathPlayer& player, const void* opItem);
-    void Playback(Path& path) const;
+    void Playback(Path& path, const CmdList& cmdList) const;
 private:
-    RoundRect rrect_;
+    std::pair<int32_t, size_t> radiusXYData_;
+    Rect rect_;
     PathDirection dir_;
 };
 

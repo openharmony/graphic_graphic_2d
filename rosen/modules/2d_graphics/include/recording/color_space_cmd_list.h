@@ -36,7 +36,7 @@ public:
      * @brief       Creates a ColorSpaceCmdList with contiguous buffers.
      * @param data  A contiguous buffers.
      */
-    static std::shared_ptr<ColorSpaceCmdList> CreateFromData(const CmdListData& data);
+    static std::shared_ptr<ColorSpaceCmdList> CreateFromData(const CmdListData& data, bool isCopy = false);
 
     /*
      * @brief  Creates a ColorSpace by the ColorSpaceCmdList playback operation.

@@ -36,7 +36,7 @@ public:
      * @brief       Creates a RegionCmdList with contiguous buffers.
      * @param data  A contiguous buffers.
      */
-    static std::shared_ptr<RegionCmdList> CreateFromData(const CmdListData& data);
+    static std::shared_ptr<RegionCmdList> CreateFromData(const CmdListData& data, bool isCopy = false);
 
     /*
      * @brief  Calls the corresponding operations of all opitems in RegionCmdList to the region.

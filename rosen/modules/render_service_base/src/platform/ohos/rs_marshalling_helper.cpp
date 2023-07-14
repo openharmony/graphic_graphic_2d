@@ -518,7 +518,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Drawing::Image");
         return false;
     }
-    auto val = std::make_shared<Drawing::Image>();
+    val = std::make_shared<Drawing::Image>();
     if (!val->Deserialize(data)) {
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Drawing::Image deserialize");
         val = nullptr;
@@ -936,6 +936,35 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader
     val = RSShader::CreateRSShader(shaderEffect);
     return val != nullptr;
 }
+
+// Drawing::Matrix
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const Drawing::Matrix& val)
+{
+    Drawing::Matrix::Buffer buffer;
+    val.GetAll(buffer);
+    int32_t size = buffer.size() * sizeof(Drawing::scalar);
+    bool ret = parcel.WriteInt32(size);
+    ret &= RSMarshallingHelper::WriteToParcel(parcel, buffer.data(), size);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::Matrix");
+    }
+    return ret;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::Matrix& val)
+{
+    int32_t size = parcel.ReadInt32();
+    auto data = static_cast<const Drawing::scalar*>(RSMarshallingHelper::ReadFromParcel(parcel, size));
+    if (data == nullptr) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::Matrix");
+        return false;
+    }
+
+    val.SetMatrix(data[Drawing::Matrix::SCALE_X], data[Drawing::Matrix::SKEW_X], data[Drawing::Matrix::TRANS_X],
+        data[Drawing::Matrix::SKEW_Y], data[Drawing::Matrix::SCALE_Y], data[Drawing::Matrix::TRANS_Y],
+        data[Drawing::Matrix::PERSP_0], data[Drawing::Matrix::PERSP_1], data[Drawing::Matrix::PERSP_2]);
+    return true;
+}
 #endif
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSLinearGradientBlurPara>& val)
@@ -1318,12 +1347,39 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         ROSEN_LOGW("unirender: RSMarshallingHelper::Marshalling Drawing::DrawCmdList, size is 0");
         return ret;
     }
-
     ret &= RSMarshallingHelper::WriteToParcel(parcel, cmdListData.first, cmdListData.second);
     if (!ret) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList");
+        return ret;
     }
 
+    auto imageData = val->GetAllImageData();
+    ret &= parcel.WriteInt32(imageData.second);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList image size");
+        return ret;
+    }
+    if (imageData.second > 0) {
+        ret &= RSMarshallingHelper::WriteToParcel(parcel, imageData.first, imageData.second);
+        if (!ret) {
+            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList image");
+            return ret;
+        }
+    }
+
+    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVec;
+    uint32_t pixelMapSize = val->GetAllPixelMap(pixelMapVec);
+    ret &= parcel.WriteUint32(pixelMapSize);
+    if (pixelMapSize == 0) {
+        return ret;
+    }
+    for (const auto &pixelMap : pixelMapVec) {
+        ret &= RSMarshallingHelper::Marshalling(parcel, pixelMap);
+        if (!ret) {
+            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList pixelMap");
+            return ret;
+        }
+    }
     return ret;
 }
 
@@ -1348,12 +1404,39 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         return false;
     }
     val = Drawing::DrawCmdList::CreateFromData({ data, size });
-    if (val != nullptr) {
-        val->SetWidth(width);
-        val->SetHeight(height);
+    if (val == nullptr) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::DrawCmdList is nullptr");
+        return false;
+    }
+    val->SetWidth(width);
+    val->SetHeight(height);
+    int32_t imageSize = parcel.ReadInt32();
+    if (imageSize > 0) {
+        const void* imageData = RSMarshallingHelper::ReadFromParcel(parcel, imageSize);
+        if (imageData == nullptr) {
+            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::DrawCmdList image is nullptr");
+            return false;
+        }
+        val->SetUpImageData(imageData, imageSize);
     }
 
-    return val != nullptr;
+    uint32_t pixelMapSize = parcel.ReadUint32();
+    if (pixelMapSize == 0) {
+        return true;
+    }
+    bool ret = true;
+    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVec;
+    for (uint32_t i = 0; i < pixelMapSize; i++) {
+        std::shared_ptr<Media::PixelMap> pixelMap = std::make_shared<Media::PixelMap>();
+        ret &= RSMarshallingHelper::Unmarshalling(parcel, pixelMap);
+        if (!ret) {
+            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList pixelMap: %d", i);
+            return ret;
+        }
+        pixelMapVec.emplace_back(pixelMap);
+    }
+    val->SetupPixelMap(pixelMapVec);
+    return ret;
 }
 #endif
 

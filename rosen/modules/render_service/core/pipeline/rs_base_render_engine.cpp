@@ -387,6 +387,11 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
 #else
     canvas.drawBitmapRect(bitmap, params.srcRect, params.dstRect, &(params.paint));
 #endif
+#else
+    Drawing::Image drImage;
+    drImage.BuildFromBitmap(bitmap);
+    canvas.DrawImageRect(drImage, params.srcRect, params.dstRect, Drawing::SamplingOptions(),
+        Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
 #endif
 }
 

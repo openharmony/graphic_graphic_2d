@@ -28,10 +28,15 @@ DrawCmdList::DrawCmdList(int32_t width, int32_t height) : width_(width), height_
     opAllocator_.Add(&height_, sizeof(int32_t));
 }
 
-std::shared_ptr<DrawCmdList> DrawCmdList::CreateFromData(const CmdListData& data)
+std::shared_ptr<DrawCmdList> DrawCmdList::CreateFromData(const CmdListData& data, bool isCopy)
 {
     auto cmdList = std::make_shared<DrawCmdList>();
-    cmdList->opAllocator_.BuildFromData(data.first, data.second);
+    if (isCopy) {
+        cmdList->opAllocator_.BuildFromDataWithCopy(data.first, data.second);
+    }
+    else {
+        cmdList->opAllocator_.BuildFromData(data.first, data.second);
+    }
 
     int32_t* width = static_cast<int32_t*>(cmdList->opAllocator_.OffsetToAddr(0));
     int32_t* height = static_cast<int32_t*>(cmdList->opAllocator_.OffsetToAddr(sizeof(int32_t)));

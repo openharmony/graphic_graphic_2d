@@ -36,7 +36,7 @@ public:
      * @brief       Creates a PathEffectCmdList with contiguous buffers.
      * @param data  A contiguous buffsers.
      */
-    static std::shared_ptr<PathEffectCmdList> CreateFromData(const CmdListData& data);
+    static std::shared_ptr<PathEffectCmdList> CreateFromData(const CmdListData& data, bool isCopy = false);
 
     /*
      * @brief  Creates a PathEffect by the ShaderEffectCmdList playback operation.

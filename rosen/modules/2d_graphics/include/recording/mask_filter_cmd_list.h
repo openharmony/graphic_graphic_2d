@@ -36,7 +36,7 @@ public:
      * @brief       Creates a MaskFilterCmdList with contiguous buffers.
      * @param data  A contiguous buffers.
      */
-    static std::shared_ptr<MaskFilterCmdList> CreateFromData(const CmdListData& data);
+    static std::shared_ptr<MaskFilterCmdList> CreateFromData(const CmdListData& data, bool isCopy = false);
 
     /*
      * @brief  Creates a MaskFilter by the MaskFilterCmdList playback operation.

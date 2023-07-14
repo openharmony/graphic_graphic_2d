@@ -36,7 +36,7 @@ public:
      * @brief       Creates a ColorFilterCmdList with contiguous buffers.
      * @param data  A contiguous buffers.
      */
-    static std::shared_ptr<ColorFilterCmdList> CreateFromData(const CmdListData& data);
+    static std::shared_ptr<ColorFilterCmdList> CreateFromData(const CmdListData& data, bool isCopy = false);
 
     /*
      * @brief  Creates a ColorFilter by the ColorFilterCmdList playback operation.

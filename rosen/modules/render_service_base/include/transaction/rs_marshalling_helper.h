@@ -178,6 +178,7 @@ public:
     static bool SkipSkData(Parcel& parcel);
     static bool SkipSkImage(Parcel& parcel);
 #else
+    DECLARE_FUNCTION_OVERLOAD(Drawing::Matrix)
     static bool SkipData(Parcel& parcel);
     static bool SkipImage(Parcel& parcel);
 #endif
