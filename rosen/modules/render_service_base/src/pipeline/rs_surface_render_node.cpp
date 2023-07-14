@@ -1118,7 +1118,7 @@ bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded(std::shared_ptr<RS
     for (auto& child : GetChildren()) {
         auto childNode = child.lock();
         const auto& childNodeSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(childNode);
-        if (childNodeSurface->GetVisibleRegion().IsEmpty()) {
+        if (childNodeSurface && childNodeSurface->GetVisibleRegion().IsEmpty()) {
             appNode = childNodeSurface;
             return true;
         }
