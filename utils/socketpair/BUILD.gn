@@ -29,6 +29,7 @@ config("socketpair_public_config") {
     "//commonlibrary/c_utils/base/include",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include/message_parcel.h",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits",
+    "//third_party/bounds_checking_function/include",
   ]
 }
 
@@ -51,7 +52,6 @@ ohos_shared_library("socketpair") {
     "hilog:libhilog",
     "ipc:ipc_core",
   ]
-
   innerapi_tags = [ "platformsdk_indirect" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
