@@ -74,6 +74,7 @@ private:
     std::vector<Listener> GetListenerTimeouted(int64_t now, int64_t refrenceTime);
     int64_t ComputeListenerNextVSyncTimeStamp(const Listener &listen, int64_t now, int64_t refrenceTime);
     void ThreadLoop();
+    void UpdateWakeupDelay(int64_t occurTimestamp, int64_t nextTimeStamp);
 
     int64_t period_;
     int64_t phase_;

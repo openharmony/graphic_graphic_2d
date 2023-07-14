@@ -28,11 +28,20 @@ static int64_t GetSysTimeNs()
     auto now = std::chrono::steady_clock::now().time_since_epoch();
     return std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
 }
+
 // 1.5ms
 constexpr int64_t maxWaleupDelay = 1500000;
 constexpr int32_t THREAD_PRIORTY = -6;
 constexpr int32_t SCHED_PRIORITY = 2;
 constexpr int64_t errorThreshold = 500000;
+
+static void SetThreadHighPriority()
+{
+    setpriority(PRIO_PROCESS, 0, THREAD_PRIORTY);
+    struct sched_param param = {0};
+    param.sched_priority = SCHED_PRIORITY;
+    sched_setscheduler(0, SCHED_FIFO, &param);
+}
 }
 
 std::once_flag VSyncGenerator::createFlag_;
@@ -76,10 +85,7 @@ VSyncGenerator::~VSyncGenerator()
 void VSyncGenerator::ThreadLoop()
 {
     // set thread priorty
-    setpriority(PRIO_PROCESS, 0, THREAD_PRIORTY);
-    struct sched_param param = {0};
-    param.sched_priority = SCHED_PRIORITY;
-    sched_setscheduler(0, SCHED_FIFO, &param);
+    SetThreadHighPriority();
 
     int64_t occurTimestamp = 0;
     int64_t nextTimeStamp = 0;
@@ -120,17 +126,23 @@ void VSyncGenerator::ThreadLoop()
             std::unique_lock<std::mutex> locker(mutex_);
             occurTimestamp = GetSysTimeNs();
             if (isWakeup) {
-                // 63, 1 / 64
-                wakeupDelay_ = ((wakeupDelay_ * 63) + (occurTimestamp - nextTimeStamp)) / 64;
-                wakeupDelay_ = wakeupDelay_ > maxWaleupDelay ? maxWaleupDelay : wakeupDelay_;
+                UpdateWakeupDelay(occurTimestamp, nextTimeStamp);
             }
             listeners = GetListenerTimeouted(occurTimestamp, occurRefrenceTime);
         }
-        ScopedBytrace func("GenerateVsyncCount:" + std::to_string(listeners.size()) + ", period:" + std::to_string(period_));
+        ScopedBytrace func(
+            "GenerateVsyncCount:" + std::to_string(listeners.size()) + ", period:" + std::to_string(period_));
         for (uint32_t i = 0; i < listeners.size(); i++) {
             listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, period_);
         }
     }
+}
+
+void VSyncGenerator::UpdateWakeupDelay(int64_t occurTimestamp, int64_t nextTimeStamp)
+{
+    // 63, 1 / 64
+    wakeupDelay_ = ((wakeupDelay_ * 63) + (occurTimestamp - nextTimeStamp)) / 64;
+    wakeupDelay_ = wakeupDelay_ > maxWaleupDelay ? maxWaleupDelay : wakeupDelay_;
 }
 
 int64_t VSyncGenerator::ComputeNextVSyncTimeStamp(int64_t now, int64_t refrenceTime)
