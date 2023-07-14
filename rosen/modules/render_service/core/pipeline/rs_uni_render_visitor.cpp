@@ -854,7 +854,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
 
     auto rsRange = node.GetRSFrameRateRange();
-    auto uiRange = node.GetFrameRateRangeFromUI();
+    auto uiRange = node.GetUIFrameRateRange();
     currSurfaceRSRange_.Merge(rsRange);
     currSurfaceUIRange_.Merge(uiRange);
     currDisplayRSRange_.Merge(currSurfaceRSRange_);
@@ -1088,7 +1088,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         node.ResetRSFrameRateRange();
     }
 
-    auto currUIRange = node.GetFrameRateRangeFromUI();
+    auto currUIRange = node.GetUIFrameRateRange();
     if (currUIRange.IsValid()) {
         currSurfaceUIRange_.Merge(currUIRange);
         node.ResetUIFrameRateRange();

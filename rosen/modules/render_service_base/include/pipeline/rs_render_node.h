@@ -423,19 +423,19 @@ public:
     float GetGlobalAlpha() const;
     virtual void OnAlphaChanged() {}
 
-    void SetFrameRateRangeToRS(FrameRateRange range)
+    void SetRSFrameRateRange(FrameRateRange range)
     {
         rsRange_ = range;
     }
 
     FrameRateRange GetRSFrameRateRange();
 
-    void SetFrameRateRangeToUI(FrameRateRange range)
+    void SetUIFrameRateRange(FrameRateRange range)
     {
         uiRange_ = range;
     }
 
-    FrameRateRange GetFrameRateRangeFromUI() const
+    FrameRateRange GetUIFrameRateRange() const
     {
         return uiRange_;
     }
