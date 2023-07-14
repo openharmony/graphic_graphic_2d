@@ -15,6 +15,11 @@
 
 #include "recording/cmd_list.h"
 
+#include <algorithm>
+
+#ifdef SUPPORT_OHOS_PIXMAP
+#include "pixel_map.h"
+#endif
 #include "utils/log.h"
 
 namespace OHOS {
@@ -24,7 +29,14 @@ static constexpr uint32_t OPITEM_HEAD = 0;
 
 CmdList::CmdList(const CmdListData& cmdListData)
 {
-    opAllocator_.BuildFromData(cmdListData.first, cmdListData.second);
+    opAllocator_.BuildFromDataWithCopy(cmdListData.first, cmdListData.second);
+}
+
+CmdList::~CmdList()
+{
+#ifdef SUPPORT_OHOS_PIXMAP
+    pixelMapVec_.clear();
+#endif
 }
 
 int32_t CmdList::AddCmdListData(const CmdListData& data)
@@ -58,7 +70,7 @@ CmdListData CmdList::GetData() const
 
 bool CmdList::SetUpImageData(const void* data, size_t size)
 {
-    return imageAllocator_.BuildFromData(data, size);
+    return imageAllocator_.BuildFromDataWithCopy(data, size);
 }
 
 int32_t CmdList::AddImageData(const void* data, size_t size)
@@ -80,6 +92,56 @@ const void* CmdList::GetImageData(uint32_t offset) const
 CmdListData CmdList::GetAllImageData() const
 {
     return std::make_pair(imageAllocator_.GetData(), imageAllocator_.GetSize());
+}
+
+int32_t CmdList::AddPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+#ifdef SUPPORT_OHOS_PIXMAP
+    std::lock_guard<std::mutex> lock(pixelMapMutex_);
+    pixelMapVec_.emplace_back(pixelMap);
+    return static_cast<int32_t>(pixelMapVec_.size()) - 1;
+#else
+    return 0;
+#endif
+}
+
+std::shared_ptr<Media::PixelMap> CmdList::GetPixelMap(int32_t id)
+{
+#ifdef SUPPORT_OHOS_PIXMAP
+    std::lock_guard<std::mutex> lock(pixelMapMutex_);
+    if (id < 0 || id >= pixelMapVec_.size()) {
+        return nullptr;
+    }
+    return pixelMapVec_[id];
+#else
+    return nullptr;
+#endif
+}
+
+uint32_t CmdList::GetAllPixelMap(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapList)
+{
+#ifdef SUPPORT_OHOS_PIXMAP
+    std::lock_guard<std::mutex> lock(pixelMapMutex_);
+    for (const auto &pixelMap : pixelMapVec_) {
+        pixelMapList.emplace_back(pixelMap);
+    }
+    return pixelMapList.size();
+#else
+    return 0;
+#endif
+}
+
+uint32_t CmdList::SetupPixelMap(const std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapList)
+{
+#ifdef SUPPORT_OHOS_PIXMAP
+    std::lock_guard<std::mutex> lock(pixelMapMutex_);
+    for (const auto &pixelMap : pixelMapList) {
+        pixelMapVec_.emplace_back(pixelMap);
+    }
+    return pixelMapVec_.size();
+#else
+    return 0;
+#endif
 }
 } // namespace Drawing
 } // namespace Rosen

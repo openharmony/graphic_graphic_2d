@@ -24,6 +24,9 @@
 #include "utils/log.h"
 
 namespace OHOS {
+namespace Media {
+class PixelMap;
+}
 namespace Rosen {
 namespace Drawing {
 class CmdListHelper {
@@ -32,11 +35,17 @@ public:
     ~CmdListHelper() = default;
 
     static ImageHandle AddImageToCmdList(CmdList& cmdList, const Image& image);
+    static ImageHandle AddImageToCmdList(CmdList& cmdList, const std::shared_ptr<Image>& image);
     static std::shared_ptr<Image> GetImageFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle);
     static ImageHandle AddBitmapToCmdList(CmdList& cmdList, const Bitmap& bitmap);
     static std::shared_ptr<Bitmap> GetBitmapFromCmdList(const CmdList& cmdList, const ImageHandle& bitmapHandle);
+    static ImageHandle AddPixelMapToCmdList(CmdList& cmdList, const std::shared_ptr<Media::PixelMap>& pixelMap);
+    static std::shared_ptr<Media::PixelMap> GetPixelMapFromCmdList(
+        const CmdList& cmdList, const ImageHandle& pixelMapHandle);
     static ImageHandle AddPictureToCmdList(CmdList& cmdList, const Picture& picture);
     static std::shared_ptr<Picture> GetPictureFromCmdList(const CmdList& cmdList, const ImageHandle& pictureHandle);
+    static ImageHandle AddCompressDataToCmdList(CmdList& cmdList, const std::shared_ptr<Data>& data);
+    static std::shared_ptr<Data> GetCompressDataFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle);
 
     template<typename RecordingType, typename CommonType>
     static CmdListHandle AddRecordedToCmdList(CmdList& cmdList, const CommonType& recorded)

@@ -17,12 +17,16 @@
 #define CMD_LIST_H
 
 #include <optional>
+#include <vector>
 
 #include "draw/color.h"
 #include "recording/op_item.h"
 #include "recording/mem_allocator.h"
 
 namespace OHOS {
+namespace Media {
+class PixelMap;
+}
 namespace Rosen {
 namespace Drawing {
 struct ImageHandle {
@@ -61,7 +65,7 @@ public:
 
     CmdList() = default;
     explicit CmdList(const CmdListData& cmdListData);
-    virtual ~CmdList() = default;
+    virtual ~CmdList();
 
     virtual uint32_t GetType() const
     {
@@ -112,6 +116,26 @@ public:
     const void* GetImageData(uint32_t offset) const;
     CmdListData GetAllImageData() const;
 
+    /*
+     * @brief  return pixelmap index, negative is error.
+     */
+    int32_t AddPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap);
+
+    /*
+     * @brief  get pixelmap by index.
+     */
+    std::shared_ptr<Media::PixelMap> GetPixelMap(int32_t id);
+
+    /*
+     * @brief  return pixelmaplist size, 0 is no pixelmap.
+     */
+    uint32_t GetAllPixelMap(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapList);
+
+    /*
+     * @brief  return real setup pixelmap size.
+     */
+    uint32_t SetupPixelMap(const std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapList);
+
     CmdList(CmdList&&) = delete;
     CmdList(const CmdList&) = delete;
     CmdList& operator=(CmdList&&) = delete;
@@ -122,6 +146,10 @@ protected:
     MemAllocator imageAllocator_;
     std::optional<int32_t> lastOpItemOffset_ = std::nullopt;
     std::mutex mutex_;
+#ifdef SUPPORT_OHOS_PIXMAP
+    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVec_;
+    std::mutex pixelMapMutex_;
+#endif
 };
 } // namespace Drawing
 } // namespace Rosen

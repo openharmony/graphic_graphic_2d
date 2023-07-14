@@ -15,6 +15,9 @@
 
 #include "recording/cmd_list_helper.h"
 
+#ifdef SUPPORT_OHOS_PIXMAP
+#include "pixel_map.h"
+#endif
 #include "recording/color_filter_cmd_list.h"
 #include "recording/color_space_cmd_list.h"
 #include "recording/draw_cmd_list.h"
@@ -62,10 +65,19 @@ ImageHandle CmdListHelper::AddImageToCmdList(CmdList& cmdList, const Image& imag
     return { offset, data->GetSize() };
 }
 
+ImageHandle CmdListHelper::AddImageToCmdList(CmdList& cmdList, const std::shared_ptr<Image>& image)
+{
+    if (image == nullptr) {
+        LOGE("image is nullptr!");
+        return { 0 };
+    }
+    return CmdListHelper::AddImageToCmdList(cmdList, *image);
+}
+
 std::shared_ptr<Image> CmdListHelper::GetImageFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle)
 {
     const void* ptr = cmdList.GetImageData(imageHandle.offset);
-    if (ptr == nullptr) {
+    if (imageHandle.size == 0 || ptr == nullptr) {
         LOGE("get image data failed!");
         return nullptr;
     }
@@ -96,12 +108,40 @@ ImageHandle CmdListHelper::AddBitmapToCmdList(CmdList& cmdList, const Bitmap& bi
 
 std::shared_ptr<Bitmap> CmdListHelper::GetBitmapFromCmdList(const CmdList& cmdList, const ImageHandle& bitmapHandle)
 {
+    const void* ptr = cmdList.GetImageData(bitmapHandle.offset);
+    if (bitmapHandle.size == 0 || ptr == nullptr) {
+        LOGE("get bitmap data failed!");
+        return nullptr;
+    }
+
     BitmapFormat format = { bitmapHandle.colorType, bitmapHandle.alphaType };
     auto bitmap = std::make_shared<Bitmap>();
     bitmap->Build(bitmapHandle.width, bitmapHandle.height, format);
     bitmap->SetPixels(const_cast<void*>(cmdList.GetImageData(bitmapHandle.offset)));
 
     return bitmap;
+}
+
+ImageHandle CmdListHelper::AddPixelMapToCmdList(CmdList& cmdList, const std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+#ifdef SUPPORT_OHOS_PIXMAP
+    int32_t index = cmdList.AddPixelMap(pixelMap);
+    return { index };
+#else
+    LOGE("Not support drawing Media::PixelMap");
+    return { 0 };
+#endif
+}
+
+std::shared_ptr<Media::PixelMap> CmdListHelper::GetPixelMapFromCmdList(
+        const CmdList& cmdList, const ImageHandle& pixelMapHandle)
+{
+#ifdef SUPPORT_OHOS_PIXMAP
+        return (const_cast<CmdList&>(cmdList)).GetPixelMap(pixelMapHandle.offset);
+#else
+    LOGE("Not support drawing Media::PixelMap");
+    return nullptr;
+#endif
 }
 
 ImageHandle CmdListHelper::AddPictureToCmdList(CmdList& cmdList, const Picture& picture)
@@ -132,6 +172,30 @@ std::shared_ptr<Picture> CmdListHelper::GetPictureFromCmdList(const CmdList& cmd
         return nullptr;
     }
     return picture;
+}
+
+ImageHandle CmdListHelper::AddCompressDataToCmdList(CmdList& cmdList, const std::shared_ptr<Data>& data)
+{
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("data is valid!");
+        return { 0 };
+    }
+
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize() };
+}
+
+std::shared_ptr<Data> CmdListHelper::GetCompressDataFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle)
+{
+    const void* ptr = cmdList.GetImageData(imageHandle.offset);
+    if (imageHandle.size == 0 || ptr == nullptr) {
+        LOGE("get image data failed!");
+        return nullptr;
+    }
+
+    auto imageData = std::make_shared<Data>();
+    imageData->BuildWithoutCopy(ptr, imageHandle.size);
+    return imageData;
 }
 
 CmdListHandle CmdListHelper::AddChildToCmdList(CmdList& cmdList, const std::shared_ptr<CmdList>& child)
