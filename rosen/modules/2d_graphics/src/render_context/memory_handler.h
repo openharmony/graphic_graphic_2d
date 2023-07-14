@@ -41,10 +41,14 @@ public:
         const std::string& cacheFilePath, bool isUni);
 #endif
     MemoryHandler() = default;
+#ifndef USE_ROSEN_DRAWING
 #if defined(NEW_SKIA)
     static void ClearRedundantResources(GrDirectContext* grContext);
 #else
     static void ClearRedundantResources(GrContext* grContext);
+#endif
+#else
+    static void ClearRedundantResources(Drawing::GPUContext* gpuContext);
 #endif
     static std::string QuerryShader();
     static std::string ClearShader();

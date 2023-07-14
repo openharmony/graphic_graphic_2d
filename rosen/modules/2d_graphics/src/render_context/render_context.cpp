@@ -416,15 +416,15 @@ std::shared_ptr<Drawing::Surface> RenderContext::AcquireSurface(int width, int h
     switch (colorSpace_) {
         // [planning] in order to stay consistant with the colorspace used before, we disabled
         // COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
-        case COLOR_GAMUT_DISPLAY_P3:
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
             colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
                 Drawing::CMSMatrixType::DCIP3);
             break;
-        case COLOR_GAMUT_ADOBE_RGB:
+        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
             colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
                 Drawing::CMSMatrixType::ADOBE_RGB);
             break;
-        case COLOR_GAMUT_BT2020:
+        case GRAPHIC_COLOR_GAMUT_BT2020:
             colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
                 Drawing::CMSMatrixType::REC2020);
             break;

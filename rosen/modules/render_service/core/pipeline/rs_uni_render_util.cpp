@@ -440,11 +440,11 @@ int RSUniRenderUtil::GetRotationFromMatrix(Drawing::Matrix matrix)
     matrix.GetAll(value);
 
     int rAngle = static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::SKEW_X],
-        value[Drawing::Matrix::Index::SKEW_Y]) * (180 / PI)));
+        value[Drawing::Matrix::Index::SCALE_X]) * (180 / PI)));
     // transfer the result to anti-clockwise degrees
     // only rotation with 90°, 180°, 270° are composed through hardware,
     // in which situation the transformation of the layer needs to be set.
-    static const std::map<int, int> supportedDegrees = {{90, 270}, {180, 180}, {-90, 90}};
+    static const std::map<int, int> supportedDegrees = {{90, 270}, {180, 180}, {-90, 90}, {-180, 180}};
     auto iter = supportedDegrees.find(rAngle);
     return iter != supportedDegrees.end() ? iter->second : 0;
 }

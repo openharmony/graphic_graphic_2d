@@ -37,7 +37,7 @@ public:
      * @brief       Creates a DrawCmdList with contiguous buffers.
      * @param data  A contiguous buffers.
      */
-    static std::shared_ptr<DrawCmdList> CreateFromData(const CmdListData& data);
+    static std::shared_ptr<DrawCmdList> CreateFromData(const CmdListData& data, bool isCopy = false);
 
     /*
      * @brief         Calls the corresponding operations of all opitems in DrawCmdList to the canvas.

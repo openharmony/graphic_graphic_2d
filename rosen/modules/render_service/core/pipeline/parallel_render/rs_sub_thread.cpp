@@ -168,12 +168,14 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
                 std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
             surfaceNodePtr->InitCacheSurface(grContext_.get(), func, threadIndex_);
         }
+#ifndef USE_ROSEN_DRAWING
         RSTagTracker nodeProcessTracker(grContext_.get(), surfaceNodePtr->GetId(),
             RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
+#endif
         bool needNotify = !surfaceNodePtr->HasCachedTexture();
         node->Process(visitor);
-        nodeProcessTracker.SetTagEnd();
 #ifndef USE_ROSEN_DRAWING
+        nodeProcessTracker.SetTagEnd();
 #ifndef NEW_SKIA
         auto skCanvas = surfaceNodePtr->GetCacheSurface() ? surfaceNodePtr->GetCacheSurface()->getCanvas() : nullptr;
         if (skCanvas) {

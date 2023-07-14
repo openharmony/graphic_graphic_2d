@@ -41,6 +41,7 @@ void MemoryHandler::ConfigureContext(Drawing::GPUContextOptions* context, const 
 }
 #endif
 
+#ifndef USE_ROSEN_DRAWING
 #if defined(NEW_SKIA)
 void MemoryHandler::ClearRedundantResources(GrDirectContext* grContext)
 #else
@@ -54,6 +55,15 @@ void MemoryHandler::ClearRedundantResources(GrContext* grContext)
         grContext->purgeResourcesNotUsedInMs(std::chrono::seconds(10));
     }
 }
+#else
+void MemoryHandler::ClearRedundantResources(Drawing::GPUContext* gpuContext)
+{
+    if (gpuContext != nullptr) {
+        LOGD("Drawing is not supported");
+        gpuContext->Flush();
+    }
+}
+#endif
 
 std::string MemoryHandler::QuerryShader()
 {

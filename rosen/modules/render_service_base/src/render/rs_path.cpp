@@ -21,6 +21,7 @@
 #include "include/core/SkPathMeasure.h"
 #include "include/utils/SkParsePath.h"
 #else
+#include "recording/recording_path.h"
 #include "draw/path.h"
 #include "utils/matrix.h"
 #include "utils/scalar.h"
@@ -58,7 +59,7 @@ std::shared_ptr<RSPath> RSPath::CreateRSPath(const std::string& path)
     SkParsePath::FromSVGString(path.c_str(), &skAnimationPath);
     return RSPath::CreateRSPath(skAnimationPath);
 #else
-    Drawing::Path drAnimationPath;
+    Drawing::RecordingPath drAnimationPath;
     drAnimationPath.BuildFromSVGString(path);
     return RSPath::CreateRSPath(drAnimationPath);
 #endif
@@ -110,7 +111,8 @@ void RSPath::SetDrawingPath(const Drawing::Path& path)
     if (drPath_) {
         delete drPath_;
     }
-    drPath_ = new Drawing::Path(path);
+    drPath_ = new Drawing::RecordingPath();
+    drPath_->AddPath(path);
 }
 #endif
 

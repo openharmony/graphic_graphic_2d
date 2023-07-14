@@ -22,10 +22,15 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-std::shared_ptr<ColorFilterCmdList> ColorFilterCmdList::CreateFromData(const CmdListData& data)
+std::shared_ptr<ColorFilterCmdList> ColorFilterCmdList::CreateFromData(const CmdListData& data, bool isCopy)
 {
     auto cmdList = std::make_shared<ColorFilterCmdList>();
-    cmdList->opAllocator_.BuildFromData(data.first, data.second);
+    if (isCopy) {
+        cmdList->opAllocator_.BuildFromDataWithCopy(data.first, data.second);
+    }
+    else {
+        cmdList->opAllocator_.BuildFromData(data.first, data.second);
+    }
     return cmdList;
 }
 

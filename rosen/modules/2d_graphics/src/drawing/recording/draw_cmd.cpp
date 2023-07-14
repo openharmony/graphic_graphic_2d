@@ -145,35 +145,46 @@ void DrawRectOpItem::Playback(Canvas& canvas) const
     canvas.DrawRect(rect_);
 }
 
-DrawRoundRectOpItem::DrawRoundRectOpItem(const RoundRect& rrect) : DrawOpItem(ROUND_RECT_OPITEM), rrect_(rrect) {}
+DrawRoundRectOpItem::DrawRoundRectOpItem(std::pair<int32_t, size_t> radiusXYData, const Rect& rect)
+    : DrawOpItem(ROUND_RECT_OPITEM), radiusXYData_(radiusXYData), rect_(rect) {}
 
 void DrawRoundRectOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const DrawRoundRectOpItem*>(opItem);
-        op->Playback(player.canvas_);
+        op->Playback(player.canvas_, player.cmdList_);
     }
 }
 
-void DrawRoundRectOpItem::Playback(Canvas& canvas) const
+void DrawRoundRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 {
-    canvas.DrawRoundRect(rrect_);
+    auto radiusXYData = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, radiusXYData_);
+    RoundRect roundRect(rect_, radiusXYData);
+
+    canvas.DrawRoundRect(roundRect);
 }
 
-DrawNestedRoundRectOpItem::DrawNestedRoundRectOpItem(const RoundRect& outer, const RoundRect& inner)
-    : DrawOpItem(NESTED_ROUND_RECT_OPITEM), outer_(outer), inner_(inner) {}
+DrawNestedRoundRectOpItem::DrawNestedRoundRectOpItem(const std::pair<int32_t, size_t> outerRadiusXYData,
+    const Rect& outerRect, const std::pair<int32_t, size_t> innerRadiusXYData, const Rect& innerRect)
+    : DrawOpItem(NESTED_ROUND_RECT_OPITEM), outerRadiusXYData_(outerRadiusXYData), innerRadiusXYData_(innerRadiusXYData)
+    , outerRect_(outerRect), innerRect_(innerRect) {}
 
 void DrawNestedRoundRectOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const DrawNestedRoundRectOpItem*>(opItem);
-        op->Playback(player.canvas_);
+        op->Playback(player.canvas_, player.cmdList_);
     }
 }
 
-void DrawNestedRoundRectOpItem::Playback(Canvas& canvas) const
+void DrawNestedRoundRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 {
-    canvas.DrawNestedRoundRect(outer_, inner_);
+    auto outerRadiusXYData = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, outerRadiusXYData_);
+    RoundRect outerRect(outerRect_, outerRadiusXYData);
+    auto innerRadiusXYData = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, innerRadiusXYData_);
+    RoundRect innerRect(innerRect_, innerRadiusXYData);
+
+    canvas.DrawNestedRoundRect(outerRect, innerRect);
 }
 
 DrawArcOpItem::DrawArcOpItem(const Rect& rect, scalar startAngle, scalar sweepAngle)
@@ -429,20 +440,24 @@ void ClipRectOpItem::Playback(Canvas& canvas) const
     canvas.ClipRect(rect_, clipOp_, doAntiAlias_);
 }
 
-ClipRoundRectOpItem::ClipRoundRectOpItem(const RoundRect& roundRect, ClipOp op, bool doAntiAlias)
-    : DrawOpItem(CLIP_ROUND_RECT_OPITEM), roundRect_(roundRect), clipOp_(op), doAntiAlias_(doAntiAlias) {}
+ClipRoundRectOpItem::ClipRoundRectOpItem(std::pair<int32_t, size_t> radiusXYData, const Rect& rect, ClipOp op,
+    bool doAntiAlias) : DrawOpItem(CLIP_ROUND_RECT_OPITEM), radiusXYData_(radiusXYData), rect_(rect), clipOp_(op),
+    doAntiAlias_(doAntiAlias) {}
 
 void ClipRoundRectOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const ClipRoundRectOpItem*>(opItem);
-        op->Playback(player.canvas_);
+        op->Playback(player.canvas_, player.cmdList_);
     }
 }
 
-void ClipRoundRectOpItem::Playback(Canvas& canvas) const
+void ClipRoundRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 {
-    canvas.ClipRoundRect(roundRect_, clipOp_, doAntiAlias_);
+    auto radiusXYData = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, radiusXYData_);
+    RoundRect roundRect(rect_, radiusXYData);
+
+    canvas.ClipRoundRect(roundRect, clipOp_, doAntiAlias_);
 }
 
 ClipPathOpItem::ClipPathOpItem(const CmdListHandle& path, ClipOp clipOp, bool doAntiAlias)

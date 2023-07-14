@@ -113,12 +113,20 @@ void RecordingPath::AddCircle(scalar x, scalar y, scalar radius, PathDirection d
 
 void RecordingPath::AddRoundRect(const Rect& rect, scalar xRadius, scalar yRadius, PathDirection dir)
 {
-    cmdList_->AddOp<AddRoundRectOpItem>(rect, xRadius, yRadius, dir);
+    RoundRect roundRect(rect, xRadius, yRadius);
+    AddRoundRect(roundRect, dir);
 }
 
 void RecordingPath::AddRoundRect(const RoundRect& rrect, PathDirection dir)
 {
-    cmdList_->AddOp<AddRoundRectOpItem>(rrect, dir);
+    std::vector<Point> radiusXY;
+    radiusXY.push_back(rrect.GetCornerRadius(RoundRect::CornerPos::TOP_LEFT_POS));
+    radiusXY.push_back(rrect.GetCornerRadius(RoundRect::CornerPos::TOP_RIGHT_POS));
+    radiusXY.push_back(rrect.GetCornerRadius(RoundRect::CornerPos::BOTTOM_RIGHT_POS));
+    radiusXY.push_back(rrect.GetCornerRadius(RoundRect::CornerPos::BOTTOM_LEFT_POS));
+    auto radiusXYData = CmdListHelper::AddVectorToCmdList<Point>(*cmdList_, radiusXY);
+    
+    cmdList_->AddOp<AddRoundRectOpItem>(radiusXYData, rrect.GetRect(), dir);
 }
 
 void RecordingPath::AddPath(const Path& src, scalar dx, scalar dy)

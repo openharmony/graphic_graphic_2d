@@ -141,27 +141,31 @@ private:
 
 class DrawRoundRectOpItem : public DrawOpItem {
 public:
-    explicit DrawRoundRectOpItem(const RoundRect& rrect);
+    explicit DrawRoundRectOpItem(const std::pair<int32_t, size_t> radiusXYData, const Rect& rect);
     ~DrawRoundRectOpItem()  = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
-    void Playback(Canvas& canvas) const;
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
 
 private:
-    RoundRect rrect_;
+    std::pair<int32_t, size_t> radiusXYData_;
+    Rect rect_;
 };
 
 class DrawNestedRoundRectOpItem : public DrawOpItem {
 public:
-    DrawNestedRoundRectOpItem(const RoundRect& outer, const RoundRect& inner);
+    DrawNestedRoundRectOpItem(const std::pair<int32_t, size_t> outerRadiusXYData, const Rect& outerRect,
+        const std::pair<int32_t, size_t> innerRadiusXYData, const Rect& innerRect);
     ~DrawNestedRoundRectOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
-    void Playback(Canvas& canvas) const;
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
 
 private:
-    RoundRect outer_;
-    RoundRect inner_;
+    std::pair<int32_t, size_t> outerRadiusXYData_;
+    std::pair<int32_t, size_t> innerRadiusXYData_;
+    Rect outerRect_;
+    Rect innerRect_;
 };
 
 class DrawArcOpItem : public DrawOpItem {
@@ -339,14 +343,15 @@ private:
 
 class ClipRoundRectOpItem : public DrawOpItem {
 public:
-    ClipRoundRectOpItem(const RoundRect& roundRect, ClipOp op, bool doAntiAlias);
+    ClipRoundRectOpItem(const std::pair<int32_t, size_t> radiusXYData, const Rect& rect, ClipOp op, bool doAntiAlias);
     ~ClipRoundRectOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
-    void Playback(Canvas& canvas) const;
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
 
 private:
-    RoundRect roundRect_;
+    std::pair<int32_t, size_t> radiusXYData_;
+    Rect rect_;
     ClipOp clipOp_;
     bool doAntiAlias_;
 };

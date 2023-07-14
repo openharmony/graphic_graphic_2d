@@ -36,7 +36,7 @@ public:
      * @brief       Creates a ShaderEffectCmdList with contiguous buffers.
      * @param data  A contiguous buffers.
      */
-    static std::shared_ptr<ShaderEffectCmdList> CreateFromData(const CmdListData& data);
+    static std::shared_ptr<ShaderEffectCmdList> CreateFromData(const CmdListData& data, bool isCopy = false);
 
     /*
      * @brief   Create a ShaderEffect by the ShaderEffectCmdList playback operation.
