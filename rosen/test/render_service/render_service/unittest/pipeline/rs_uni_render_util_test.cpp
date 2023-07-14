@@ -255,4 +255,36 @@ HWTEST_F(RSUniRenderUtilTest, HandleCaptureNode, Function | SmallTest | Level2)
     ASSERT_NE(surfaceNode, nullptr);
     RSUniRenderUtil::HandleCaptureNode(*surfaceNode, canvas);
 }
+
+/*
+ * @tc.name: AssignMainThreadNode
+ * @tc.desc:Test RSUniRenderUtilTest.AssignMainThreadNode
+ * @tc.type: FUNC
+ * @tc.require:issueI7KK3I
+ */
+HWTEST_F(RSUniRenderUtilTest, AssignMainThreadNode, Function | SmallTest | Level2)
+{
+    std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
+    RSUniRenderUtil::AssignMainThreadNode(mainThreadNodes, nullptr);
+    ASSERT_EQ(0, mainThreadNodes.size());
+    auto node = RSTestUtil::CreateSurfaceNode();
+    RSUniRenderUtil::AssignMainThreadNode(mainThreadNodes, node);
+    ASSERT_EQ(1, mainThreadNodes.size());
+}
+
+/*
+ * @tc.name: AssignSubThreadNode
+ * @tc.desc:Test RSUniRenderUtilTest.AssignSubThreadNode
+ * @tc.type: FUNC
+ * @tc.require:issueI7KK3I
+ */
+HWTEST_F(RSUniRenderUtilTest, AssignSubThreadNode, Function | SmallTest | Level2)
+{
+    std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
+    RSUniRenderUtil::AssignSubThreadNode(subThreadNodes, nullptr);
+    ASSERT_EQ(0, subThreadNodes.size());
+    auto node = RSTestUtil::CreateSurfaceNode();
+    RSUniRenderUtil::AssignSubThreadNode(subThreadNodes, node);
+    ASSERT_EQ(1, subThreadNodes.size());
+}
 } // namespace OHOS::Rosen
