@@ -33,7 +33,9 @@ enum RSCanvasNodeCommandType : uint16_t {
 #ifndef USE_ROSEN_DRAWING
 class DrawCmdList;
 #else
-Drawing::DrawCmdList
+namespace Drawing {
+class DrawCmdList;
+}
 #endif
 
 class RSB_EXPORT RSCanvasNodeCommandHelper {

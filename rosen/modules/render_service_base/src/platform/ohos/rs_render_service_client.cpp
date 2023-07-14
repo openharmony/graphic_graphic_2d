@@ -620,7 +620,11 @@ int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenTy
     return renderService->GetScreenType(id, screenType);
 }
 
+#ifndef USE_ROSEN_DRAWING
 bool RSRenderServiceClient::GetBitmap(NodeId id, SkBitmap& bitmap)
+#else
+bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
+#endif
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {

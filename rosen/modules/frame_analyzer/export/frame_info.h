@@ -131,11 +131,7 @@ struct FrameInfo {
 };
 
 static constexpr int32_t frameQueueMaxSize = 60;
-#ifndef USE_ROSEN_DRAWING
 static constexpr double frameTotalMs = 160;
-#else
-static constexpr double FRAME_TOTAL_MS = 160;
-#endif
 static constexpr const char *switchRenderingText = "debug.graphic.frame";
 static constexpr const char *switchRenderingPaintText = "paint";
 static constexpr const char *switchRenderingSaverText = "saver";

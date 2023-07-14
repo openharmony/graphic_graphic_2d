@@ -47,7 +47,12 @@ class DrawCmdList;
 
 class RSB_EXPORT RSRenderNode : public RSBaseRenderNode {
 public:
+#ifndef USE_ROSEN_DRAWING
     using ClearCacheSurfaceFunc = std::function<void(sk_sp<SkSurface>, sk_sp<SkSurface>, uint32_t)>;
+#else
+    using ClearCacheSurfaceFunc =
+        std::function<void(std::shared_ptr<Drawing::Surface>, std::shared_ptr<Drawing::Surface>, uint32_t)>;
+#endif
     using WeakPtr = std::weak_ptr<RSRenderNode>;
     using SharedPtr = std::shared_ptr<RSRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::RS_NODE;
@@ -149,11 +154,16 @@ public:
         return isStaticCached_;
     }
 
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     void InitCacheSurface(GrRecordingContext* grContext, ClearCacheSurfaceFunc func = nullptr,
         uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
 #else
     void InitCacheSurface(GrContext* grContext, ClearCacheSurfaceFunc func = nullptr,
+        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
+#endif
+#else
+    void InitCacheSurface(Drawing::GPUContext* grContext, ClearCacheSurfaceFunc func = nullptr,
         uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
 #endif
 
@@ -173,17 +183,21 @@ public:
     {
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
         std::swap(cacheSurface_, cacheCompletedSurface_);
+#ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_GL
         std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
         SetTextureValidFlag(true);
+#endif
 #endif
     }
 
     void SetTextureValidFlag(bool isValid)
     {
+#ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_GL
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
         isTextureValid_ = isValid;
+#endif
 #endif
     }
 
@@ -378,12 +392,15 @@ public:
     bool HasCachedTexture() const
     {
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+#ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_GL
         return isTextureValid_;
 #else
         return true;
 #endif
-    
+#else
+        return false;
+#endif
     }
 
     void SetDrawRegion(std::shared_ptr<RectF> rect)
@@ -392,7 +409,11 @@ public:
     }
 
     void UpdateDrawRegion();
+#ifndef USE_ROSEN_DRAWING
     void UpdateEffectRegion(std::optional<SkPath>& region) const;
+#else
+    void UpdateEffectRegion(std::optional<Drawing::Path>& region) const;
+#endif
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
     bool IsForcedDrawInGroup() const;
@@ -460,10 +481,12 @@ private:
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
 #endif
+#ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_GL
     GrBackendTexture cacheBackendTexture_;
     GrBackendTexture cacheCompletedBackendTexture_;
     bool isTextureValid_ = false;
+#endif
 #endif
     std::atomic<bool> isStaticCached_ = false;
     CacheType cacheType_ = CacheType::NONE;

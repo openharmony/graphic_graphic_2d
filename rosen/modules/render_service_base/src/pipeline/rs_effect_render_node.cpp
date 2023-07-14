@@ -55,6 +55,7 @@ void RSEffectRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 
 void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
+#ifndef USE_ROSEN_DRAWING
     canvas.SaveEffectData();
     auto& properties = GetRenderProperties();
     auto boundsGeo = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
@@ -81,25 +82,37 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
             canvas.SetChildrenPath(effectRegion_.value());
         }
     }
+#endif
 }
 
 void RSEffectRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
+#ifndef USE_ROSEN_DRAWING
     RSPropertiesPainter::DrawForegroundEffect(GetRenderProperties(), canvas);
     canvas.RestoreEffectData();
+#endif
 }
 
 RectI RSEffectRenderNode::GetFilterRect() const
 {
     if (effectRegion_.has_value()) {
+#ifndef USE_ROSEN_DRAWING
         auto bounds = effectRegion_->getBounds();
         return {bounds.x(), bounds.y(), bounds.width(), bounds.height()};
+#else
+        auto bounds = effectRegion_->GetBounds();
+        return {bounds.GetLeft(), bounds.GetTop(), bounds.GetWidth(), bounds.GetHeight()};
+#endif
     } else {
         return {};
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSEffectRenderNode::SetEffectRegion(const std::optional<SkPath>& region)
+#else
+void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::Path>& region)
+#endif
 {
     effectRegion_ = region;
 }
