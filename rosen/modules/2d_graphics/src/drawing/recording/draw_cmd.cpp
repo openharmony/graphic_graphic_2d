@@ -76,10 +76,13 @@ std::unordered_map<uint32_t, CanvasPlayer::PlaybackFunc> CanvasPlayer::opPlaybac
     { DrawOpItem::ATTACH_BRUSH_OPITEM,      AttachBrushOpItem::Playback },
     { DrawOpItem::DETACH_PEN_OPITEM,        DetachPenOpItem::Playback },
     { DrawOpItem::DETACH_BRUSH_OPITEM,      DetachBrushOpItem::Playback },
+    { DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM, ClipAdaptiveRoundRectOpItem::Playback},
+    { DrawOpItem::ADAPTIVE_IMAGE_OPITEM,    DrawAdaptiveImageOpItem::Playback},
+    { DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM, DrawAdaptivePixelMapOpItem::Playback},
 };
 
-CanvasPlayer::CanvasPlayer(Canvas& canvas, const CmdList& cmdList)
-    : canvas_(canvas), cmdList_(cmdList) {}
+CanvasPlayer::CanvasPlayer(Canvas& canvas, const CmdList& cmdList, const Rect& rect)
+    : canvas_(canvas), cmdList_(cmdList), rect_(rect) {}
 
 bool CanvasPlayer::Playback(uint32_t type, const void* opItem)
 {
@@ -844,6 +847,77 @@ void DetachBrushOpItem::Playback(CanvasPlayer& player, const void* opItem)
 void DetachBrushOpItem::Playback(Canvas& canvas) const
 {
     canvas.DetachBrush();
+}
+
+ClipAdaptiveRoundRectOpItem::ClipAdaptiveRoundRectOpItem(const std::pair<int32_t, size_t>& radiusData)
+    : DrawOpItem(CLIP_ADAPTIVE_ROUND_RECT_OPITEM) , radiusData_(radiusData) {}
+
+void ClipAdaptiveRoundRectOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const ClipAdaptiveRoundRectOpItem*>(opItem);
+        op->Playback(player.canvas_, player.cmdList_, player.rect_);
+    }
+}
+
+void ClipAdaptiveRoundRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect) const
+{
+    auto radius = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, radiusData_);
+    auto roundRect = RoundRect(rect, radius);
+    canvas.ClipRoundRect(roundRect, ClipOp::INTERSECT, true);
+}
+
+DrawAdaptiveImageOpItem::DrawAdaptiveImageOpItem(const ImageHandle& image, const AdaptiveImageInfo& rsImageInfo,
+    const SamplingOptions& sampling, const bool isImage) : DrawOpItem(ADAPTIVE_IMAGE_OPITEM),
+    image_(image), rsImageInfo_(rsImageInfo), sampling_(sampling), isImage_(isImage) {}
+
+void DrawAdaptiveImageOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const DrawAdaptiveImageOpItem*>(opItem);
+        op->Playback(player.canvas_, player.cmdList_, player.rect_);
+    }
+}
+
+void DrawAdaptiveImageOpItem::Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect) const
+{
+    if (isImage_) {
+        auto image = CmdListHelper::GetImageFromCmdList(cmdList, image_);
+        if (image == nullptr) {
+        LOGE("image is nullptr!");
+            return;
+        }
+        AdaptiveImageHelper::DrawImage(canvas, rect, image, rsImageInfo_, sampling_);
+        return;
+    }
+    auto data = CmdListHelper::GetCompressDataFromCmdList(cmdList, image_);
+    if (data == nullptr) {
+        LOGE("compress data is nullptr!");
+        return;
+    }
+    AdaptiveImageHelper::DrawImage(canvas, rect, data, rsImageInfo_, sampling_);
+}
+
+DrawAdaptivePixelMapOpItem::DrawAdaptivePixelMapOpItem(const ImageHandle& pixelMap, const AdaptiveImageInfo& imageInfo,
+    const SamplingOptions& smapling) : DrawOpItem(ADAPTIVE_PIXELMAP_OPITEM), pixelMap_(pixelMap),
+    imageInfo_(imageInfo), smapling_(smapling) {}
+
+void DrawAdaptivePixelMapOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const DrawAdaptivePixelMapOpItem*>(opItem);
+        op->Playback(player.canvas_, player.cmdList_, player.rect_);
+    }
+}
+
+void DrawAdaptivePixelMapOpItem::Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect) const
+{
+    auto pixelMap = CmdListHelper::GetPixelMapFromCmdList(cmdList, pixelMap_);
+    if (pixelMap == nullptr) {
+        LOGE("pixelMap is nullptr!");
+        return;
+    }
+    AdaptiveImageHelper::DrawPixelMap(canvas, rect, pixelMap, imageInfo_, smapling_);
 }
 } // namespace Drawing
 } // namespace Rosen

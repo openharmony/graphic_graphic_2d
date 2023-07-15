@@ -30,7 +30,15 @@ std::shared_ptr<PathCmdList> RecordingPath::GetCmdList() const
 
 bool RecordingPath::BuildFromSVGString(const std::string& str)
 {
-    cmdList_->AddOp<BuildFromSVGOpItem>(str);
+    uint32_t offset = 0;
+    size_t length = str.length();
+    if (str.length() != 0) {
+        const void* data = static_cast<const void*>(str.data());
+        size_t size = length + (8 - length % 8);
+        offset = cmdList_->AddCmdListData({ data, size });
+    }
+
+    cmdList_->AddOp<BuildFromSVGOpItem>(offset, length);
     return true;
 }
 

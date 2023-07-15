@@ -105,19 +105,21 @@ bool PathPlayer::Playback(uint32_t type, const void* opItem)
     return true;
 }
 
-BuildFromSVGOpItem::BuildFromSVGOpItem(const std::string& str) : PathOpItem(BUILDFROMSVG_OPITEM), str_(str) {}
+BuildFromSVGOpItem::BuildFromSVGOpItem(const uint32_t offset, const size_t size)
+    : PathOpItem(BUILDFROMSVG_OPITEM), offset_(offset), size_(size) {}
 
 void BuildFromSVGOpItem::Playback(PathPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const BuildFromSVGOpItem*>(opItem);
-        op->Playback(player.path_);
+        op->Playback(player.path_, player.cmdList_);
     }
 }
 
-void BuildFromSVGOpItem::Playback(Path& path) const
+void BuildFromSVGOpItem::Playback(Path& path, const CmdList& cmdList) const
 {
-    path.BuildFromSVGString(str_);
+    std::string str(static_cast<const char*>(cmdList.GetCmdListData(offset_)), size_);
+    path.BuildFromSVGString(str);
 }
 
 MoveToOpItem::MoveToOpItem(const scalar x, const scalar y) : PathOpItem(MOVETO_OPITEM), x_(x), y_(y) {}

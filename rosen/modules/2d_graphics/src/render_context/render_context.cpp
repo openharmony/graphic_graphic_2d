@@ -440,7 +440,6 @@ std::shared_ptr<Drawing::Surface> RenderContext::AcquireSurface(int width, int h
     bufferInfo.gpuContext = drGPUContext_;
     bufferInfo.colorSpace = colorSpace;
 
-    RSTagTracker tagTracker(GetDrGPUContext(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
     surface_ = std::make_shared<Drawing::Surface>();
     if (!surface_->Bind(bufferInfo)) {
         LOGW("surface_ is nullptr");
@@ -463,7 +462,7 @@ void RenderContext::RenderFrame()
         RSTagTracker tagTracker(GetGrContext(), RSTagTracker::TAGTYPE::TAG_RENDER_FRAME);
         skSurface_->getCanvas()->flush();
 #else
-    if (surface != nullptr && surface_->GetCanvas() != nullptr) {
+    if (surface_ != nullptr && surface_->GetCanvas() != nullptr) {
         LOGD("RenderFrame: Canvas");
         surface_->GetCanvas()->Flush();
 #endif

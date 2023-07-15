@@ -17,6 +17,7 @@
 #define RECORDING_CANVAS_H
 
 #include "draw/canvas.h"
+#include "recording/adaptive_image_helper.h"
 #include "recording/draw_cmd_list.h"
 
 namespace OHOS {
@@ -77,6 +78,12 @@ public:
     void Save() override;
     void SaveLayer(const SaveLayerOps& saveLayerOps) override;
     void Restore() override;
+
+    void ClipAdaptiveRoundRect(const std::vector<Point>& radius);
+    void DrawImage(const std::shared_ptr<Image>& image, const std::shared_ptr<Data>& data,
+        const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& smapling);
+    void DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap,
+        const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& smapling);
 
     CoreCanvas& AttachPen(const Pen& pen) override;
     CoreCanvas& AttachBrush(const Brush& brush) override;

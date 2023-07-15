@@ -292,6 +292,34 @@ void RecordingCanvas::Restore()
     }
 }
 
+void RecordingCanvas::ClipAdaptiveRoundRect(const std::vector<Point>& radius)
+{
+    auto radiusData = CmdListHelper::AddVectorToCmdList<Point>(*cmdList_, radius);
+    cmdList_->AddOp<ClipAdaptiveRoundRectOpItem>(radiusData);
+}
+
+void RecordingCanvas::DrawImage(const std::shared_ptr<Image>& image, const std::shared_ptr<Data>& data,
+    const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& smapling)
+{
+    ImageHandle imageHandle;
+    if (data != nullptr) {
+        imageHandle = CmdListHelper::AddCompressDataToCmdList(*cmdList_, data);
+        cmdList_->AddOp<DrawAdaptiveImageOpItem>(imageHandle, rsImageInfo, smapling, false);
+        return;
+    }
+    if (image != nullptr) {
+        imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, image);
+        cmdList_->AddOp<DrawAdaptiveImageOpItem>(imageHandle, rsImageInfo, smapling, true);
+    }
+}
+
+void RecordingCanvas::DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap,
+    const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& smapling)
+{
+    auto pixelmapHandle = CmdListHelper::AddPixelMapToCmdList(*cmdList_, pixelMap);
+    cmdList_->AddOp<DrawAdaptivePixelMapOpItem>(pixelmapHandle, rsImageInfo, smapling);
+}
+
 CoreCanvas& RecordingCanvas::AttachPen(const Pen& pen)
 {
     Filter filter = pen.GetFilter();

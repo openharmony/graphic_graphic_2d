@@ -104,7 +104,7 @@ public:
 
 class BuildFromSVGOpItem : public PathOpItem {
 public:
-    explicit BuildFromSVGOpItem(const std::string& str);
+    explicit BuildFromSVGOpItem(const uint32_t offset, const size_t size);
     ~BuildFromSVGOpItem() = default;
 
     /*
@@ -116,9 +116,10 @@ public:
     /*
      * @brief  Plays OpItem back into path.
      */
-    void Playback(Path& path) const;
+    void Playback(Path& path, const CmdList& cmdList) const;
 private:
-    std::string str_;
+    uint32_t offset_;
+    size_t size_;
 };
 
 class MoveToOpItem : public PathOpItem {
