@@ -147,6 +147,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(
     }
     if (!((node->GetType() == RSUINodeType::ROOT_NODE) ||
           (node->GetType() == RSUINodeType::CANVAS_NODE) ||
+          (node->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
           (node->GetType() == RSUINodeType::SURFACE_NODE))) {
         ROSEN_LOGE("RSInterfaces::TakeSurfaceCaptureForUI unsupported node type return");
         return false;
