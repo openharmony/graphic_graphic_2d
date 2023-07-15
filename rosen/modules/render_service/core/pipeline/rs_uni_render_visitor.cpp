@@ -112,7 +112,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     }
 #endif
     surfaceNodePrepareMutex_ = std::make_shared<std::mutex>();
-    parallelRenderType_ = RSSystemProperties::GetParallelRenderingEnabled();
+    parallelRenderType_ = ParallelRenderingType::DISABLE;
 #if defined(RS_ENABLE_PARALLEL_RENDER)
     isCalcCostEnable_ = RSSystemParameters::GetCalcCostEnabled();
 #endif
