@@ -64,6 +64,7 @@ constexpr uint32_t PHONE_MAX_APP_WINDOW_NUM = 1;
 constexpr uint32_t CACHE_MAX_UPDATE_TIME = 5;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 static std::map<NodeId, uint32_t> cacheRenderNodeMap = {};
+static uint32_t cacheReuseTimes = 0;
 static std::mutex generateNodeContentCacheMutex;
 
 bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
@@ -1216,6 +1217,18 @@ void RSUniRenderVisitor::DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects)
     }
 }
 
+void RSUniRenderVisitor::DrawCacheRegionForDFX(std::vector<RectI> cacheRects)
+{
+    const float fillAlpha = 0.2;
+    for (const auto& subRect : cacheRects) {
+#ifndef USE_ROSEN_DRAWING
+        DrawDirtyRectForDFX(subRect, SK_ColorBLUE, SkPaint::kFill_Style, fillAlpha);
+#else
+        DrawDirtyRectForDFX(subRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::FILL, fillAlpha);
+#endif
+    }
+}
+
 void RSUniRenderVisitor::DrawAllSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node, const Occlusion::Region& region)
 {
     const auto& visibleDirtyRects = region.GetRegionRects();
@@ -1921,6 +1934,10 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             if (isOpaqueRegionDfxEnabled_) {
                 DrawAllSurfaceOpaqueRegionForDFX(node);
             }
+        }
+
+        if (isDrawingCacheEnabled_ && RSSystemParameters::GetDrawingCacheEnabledDfx()) {
+            DrawCacheRegionForDFX(cacheRenderNodeMapRects_);
         }
 #ifdef RS_ENABLE_RECORDING
         if (recordingEnabled) {
@@ -2660,6 +2677,7 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
             node.ProcessAnimatePropertyBeforeChildren(*canvas_);
             node.DrawCacheSurface(*canvas_, threadIndex_, false);
             node.ProcessAnimatePropertyAfterChildren(*canvas_);
+            cacheRenderNodeMapRects_.push_back(node.GetOldDirtyInSurface());
             break;
         }
         case CacheType::ANIMATE_PROPERTY: {
@@ -3103,6 +3121,7 @@ bool RSUniRenderVisitor::InitNodeCache(RSRenderNode& node)
             if (UpdateCacheSurface(node)) {
                 node.UpdateCompletedCacheSurface();
                 cacheRenderNodeMap[node.GetId()] = 0;
+                cacheReuseTimes = 0;
             }
             return true;
         }
@@ -3125,6 +3144,7 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
             if (UpdateCacheSurface(node)) {
                 node.UpdateCompletedCacheSurface();
                 cacheRenderNodeMap[node.GetId()] = updateTimes;
+                cacheReuseTimes = 0;
             }
             return;
         }
@@ -3138,19 +3158,22 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
                 node.SetCacheType(CacheType::NONE);
                 RSUniRenderUtil::ClearCacheSurface(node, threadIndex_, false);
                 cacheRenderNodeMap[node.GetId()] = updateTimes;
+                cacheReuseTimes = 0;
                 return;
             }
             node.SetCacheType(CacheType::CONTENT);
             UpdateCacheSurface(node);
             node.UpdateCompletedCacheSurface();
             cacheRenderNodeMap[node.GetId()] = updateTimes;
+            cacheReuseTimes = 0;
             return;
         }
     }
     // The cache is not refreshed continuously.
     cacheRenderNodeMap[node.GetId()] = 0;
+    cacheReuseTimes++;
     RS_TRACE_NAME("RSUniRenderVisitor::UpdateCacheRenderNodeMap ,NodeId: " + std::to_string(node.GetId()) +
-        " ,CacheRenderNodeMapCnt: " + std::to_string(cacheRenderNodeMap[node.GetId()]));
+        " ,CacheRenderNodeMapCnt: " + std::to_string(cacheReuseTimes));
 }
 
 void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)

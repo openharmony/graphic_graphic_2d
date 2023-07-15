@@ -162,6 +162,7 @@ private:
         const RSPaintStyle fillType, float alpha, int edgeWidth);
 #endif
     void DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects);
+    void DrawCacheRegionForDFX(std::vector<RectI> cacheRects);
     void DrawAllSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node, const Occlusion::Region& region);
     void DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node);
     void DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& node);
@@ -267,6 +268,7 @@ private:
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
+    std::vector<RectI> cacheRenderNodeMapRects_;
 #ifndef USE_ROSEN_DRAWING
     SkRect boundsRect_ {};
 #else

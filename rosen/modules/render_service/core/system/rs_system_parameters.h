@@ -29,6 +29,7 @@ public:
     ~RSSystemParameters() = default;
     static bool GetCalcCostEnabled();
     static bool GetDrawingCacheEnabled();
+    static bool GetDrawingCacheEnabledDfx();
 };
 
 } // namespace Rosen
