@@ -264,8 +264,10 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
         canvas_->SetMatrix(relativeMatrix);
 #endif
     }
+    node.ProcessRenderBeforeChildren(*canvas_);
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
+        canvasDrawingNode->ProcessRenderContents(*canvas_);
 #ifndef USE_ROSEN_DRAWING
         SkBitmap bitmap;
         canvasDrawingNode->GetBitmap(bitmap);
@@ -275,13 +277,11 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
         canvasDrawingNode->GetBitmap(bitmap);
         canvas_->DrawBitmap(bitmap, 0, 0);
 #endif
-        ProcessBaseRenderNode(*canvasDrawingNode);
     } else {
-        node.ProcessRenderBeforeChildren(*canvas_);
         node.ProcessRenderContents(*canvas_);
-        ProcessBaseRenderNode(node);
-        node.ProcessRenderAfterChildren(*canvas_);
     }
+    ProcessBaseRenderNode(node);
+    node.ProcessRenderAfterChildren(*canvas_);
 }
 
 void RSUniUICapture::RSUniUICaptureVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
