@@ -271,7 +271,7 @@ void RecordingCanvas::ClipAdaptiveRoundRect(const std::vector<Point>& radius)
 }
 
 void RecordingCanvas::DrawImage(const std::shared_ptr<Image>& image, const std::shared_ptr<Data>& data,
-        const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& smapling)
+    const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& smapling)
 {
     ImageHandle imageHandle;
     if (data != nullptr) {
@@ -286,7 +286,7 @@ void RecordingCanvas::DrawImage(const std::shared_ptr<Image>& image, const std::
 }
 
 void RecordingCanvas::DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap,
-        const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& smapling)
+    const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& smapling)
 {
     auto pixelmapHandle = CmdListHelper::AddPixelMapToCmdList(*cmdList_, pixelMap);
     cmdList_->AddOp<DrawAdaptivePixelMapOpItem>(pixelmapHandle, rsImageInfo, smapling);
