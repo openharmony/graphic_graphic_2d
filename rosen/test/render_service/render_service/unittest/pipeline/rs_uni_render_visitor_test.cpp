@@ -1390,5 +1390,111 @@ HWTEST_F(RSUniRenderVisitorTest, ClosePartialRenderWhenAnimatingWindows001, Test
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->ClosePartialRenderWhenAnimatingWindows(node);
 }
-} // OHOS::Rosen
 
+/**
+ * @tc.name: CheckColorSpace001
+ * @tc.desc: Test RSUniRenderVisitorTest.CheckColorSpace while
+ *           app Window node's color space is not equal to GRAPHIC_COLOR_GAMUT_SRGB
+ * @tc.type: FUNC
+ * @tc.require: issueI7O6WO
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckColorSpace001, TestSize.Level2)
+{
+    auto appWindowNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(appWindowNode, nullptr);
+    appWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appWindowNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
+    
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->colorGamutModes_.push_back(
+        static_cast<ScreenColorGamut>(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB));
+    rsUniRenderVisitor->CheckColorSpace(*appWindowNode);
+    ASSERT_EQ(rsUniRenderVisitor->newColorSpace_, appWindowNode->GetColorSpace());
+}
+
+/**
+ * @tc.name: DoDirectComposition001
+ * @tc.desc: Test RSUniRenderVisitorTest.DoDirectComposition while the render visitor is hardware disabled
+ * @tc.type: FUNC
+ * @tc.require: issueI7O6WO
+ */
+HWTEST_F(RSUniRenderVisitorTest, DoDirectComposition001, TestSize.Level2)
+{
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
+    ASSERT_NE(rootNode, nullptr);
+    
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isHardwareComposerEnabled_ = false;
+    ASSERT_EQ(rsUniRenderVisitor->DoDirectComposition(rootNode), false);
+}
+
+/**
+ * @tc.name: DoDirectComposition002
+ * @tc.desc: Test RSUniRenderVisitorTest.DoDirectComposition while the root node doesn't have child
+ * @tc.type: FUNC
+ * @tc.require: issueI7O6WO
+ */
+HWTEST_F(RSUniRenderVisitorTest, DoDirectComposition002, TestSize.Level2)
+{
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
+    ASSERT_NE(rootNode, nullptr);
+    
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isHardwareComposerEnabled_ = true;
+    ASSERT_EQ(rsUniRenderVisitor->DoDirectComposition(rootNode), false);
+}
+
+/**
+ * @tc.name: DoDirectComposition003
+ * @tc.desc: Test RSUniRenderVisitorTest.DoDirectComposition while the root node has child
+ * @tc.type: FUNC
+ * @tc.require: issueI7O6WO
+ */
+HWTEST_F(RSUniRenderVisitorTest, DoDirectComposition003, TestSize.Level2)
+{
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
+    NodeId id = 1;
+    RSDisplayNodeConfig config;
+    auto childDisplayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(rootNode, nullptr);
+    ASSERT_NE(childDisplayNode, nullptr);
+    rootNode->AddChild(childDisplayNode, 0);
+    childDisplayNode->SetCompositeType(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isHardwareComposerEnabled_ = true;
+    ASSERT_EQ(rsUniRenderVisitor->DoDirectComposition(rootNode), false);
+}
+
+/**
+ * @tc.name: DoDirectComposition004
+ * @tc.desc: Test RSUniRenderVisitorTest.DoDirectComposition while
+ *           the display node's composite type is UNI_RENDER_COMPOSITE
+ * @tc.type: FUNC
+ * @tc.require: issueI7O6WO
+ */
+HWTEST_F(RSUniRenderVisitorTest, DoDirectComposition004, TestSize.Level2)
+{
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
+    NodeId id = 1;
+    RSDisplayNodeConfig config;
+    auto childDisplayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(rootNode, nullptr);
+    ASSERT_NE(childDisplayNode, nullptr);
+    rootNode->AddChild(childDisplayNode, 0);
+    childDisplayNode->SetCompositeType(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isHardwareComposerEnabled_ = true;
+    ASSERT_EQ(rsUniRenderVisitor->DoDirectComposition(rootNode), false);
+}
+} // OHOS::Rosen
