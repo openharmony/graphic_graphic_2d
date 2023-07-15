@@ -228,6 +228,7 @@ void AdaptiveImageHelper::DrawImageRepeatRect(Canvas& canvas, const Rect& rect, 
 void AdaptiveImageHelper::DrawImageRepeatRect(Canvas& canvas, const Rect& rect, const std::shared_ptr<Data>& data,
     const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& smapling)
 {
+#ifdef ACE_ENABLE_GPU
     Rect dstRect = GetDstRect(rsImageInfo, static_cast<float>(rsImageInfo.width),
         static_cast<float>(rsImageInfo.height), rect.GetWidth(), rect.GetHeight());
     if (!dstRect.IsValid()) {
@@ -267,6 +268,7 @@ void AdaptiveImageHelper::DrawImageRepeatRect(Canvas& canvas, const Rect& rect, 
             canvas.DrawImageRect(*image, src, dst, smapling, SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
         }
     }
+#endif
 }
 
 #ifdef SUPPORT_OHOS_PIXMAP
