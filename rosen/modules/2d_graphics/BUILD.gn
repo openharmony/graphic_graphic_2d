@@ -140,7 +140,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir",
       "$drawing_src_dir/engine_adapter",
       "$rosen_2d_engine_root",
-      "//foundation/arkui/ace_engine/frameworks",
+      "$ace_root/frameworks",
       "//third_party/bounds_checking_function/include",
     ]
 

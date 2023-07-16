@@ -13,8 +13,7 @@
 
 import("//build/ohos.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
-import(
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/config.gni")
+import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
 config("rosen_text_config") {
   cflags_cc = [
@@ -58,6 +57,8 @@ template("rosen_text_properties") {
 
     public_deps =
         [ "//third_party/flutter/build/libtxt:thirdparty_lib_txt_$current_os" ]
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
   }
 }
 

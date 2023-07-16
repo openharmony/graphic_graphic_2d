@@ -12,8 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import(
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/config.gni")
+import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
 ## Build librosen_text.so
 config("rosen_text_config") {
