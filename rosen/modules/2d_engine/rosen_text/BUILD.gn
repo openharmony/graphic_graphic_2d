@@ -18,8 +18,6 @@ config("rosen_text_public_config") {
   include_dirs = [
     "export",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
-    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
-    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
   ]
 }
@@ -81,6 +79,11 @@ ohos_source_set("rosen_text_texgine") {
   cflags_cc = [ "-Wno-c++17-extensions" ]
   cflags = [ "-Wno-c++17-extensions" ]
 
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+  ]
+
   sources = [
     "adapter/common/text_style.cpp",
     "adapter/common/typography_style.cpp",
@@ -101,7 +104,11 @@ ohos_source_set("rosen_text_texgine") {
 
 ohos_source_set("rosen_text_txt") {
   public_configs = [ ":rosen_text_public_config" ]
-  include_dirs = [ "$flutter_root/engine" ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+    "$flutter_root/engine",
+  ]
 
   cflags_cc = [
     "-Wno-c++17-extensions",
