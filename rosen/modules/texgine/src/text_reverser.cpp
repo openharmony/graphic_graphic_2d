@@ -16,18 +16,14 @@
 #include "text_reverser.h"
 
 #include "texgine/utils/exlog.h"
-#ifdef LOGGER_ENABLE_SCOPE
 #include "texgine/utils/trace.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 void TextReverser::ReverseRTLText(std::vector<VariantSpan> &lineSpans)
 {
-#ifdef LOGGER_ENABLE_SCOPE
     ScopedTrace scope("Shaper::ReverseRTLText");
-#endif
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "ReverseRTLText");
     const auto &endit = lineSpans.end();
     auto rtlSpansBeginIt = endit;
@@ -97,9 +93,7 @@ void TextReverser::ReverseConDirectionText(std::vector<VariantSpan> &lineSpans, 
 
 void TextReverser::ProcessTypoDirection(std::vector<VariantSpan> &lineSpans, const TextDirection dir)
 {
-#ifdef LOGGER_ENABLE_SCOPE
     ScopedTrace scope("ProcessTypoDirection");
-#endif
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "ProcessTypoDirection");
     if (dir == TextDirection::LTR) {
         return;

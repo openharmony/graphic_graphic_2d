@@ -31,11 +31,10 @@ ohos_unittest("2d_graphics_ndk_test") {
   ]
 
   include_dirs = [
-    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",
+    "$graphic_2d_root/rosen/modules/2d_engine",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "//third_party/googletest/googletest/include",
-    "//third_party/skia",
   ]
 
   deps = [

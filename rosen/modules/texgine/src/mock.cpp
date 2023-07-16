@@ -15,9 +15,7 @@
 
 #include "mock.h"
 
-#ifdef BUILD_NON_SDK_VER
 #include <filesystem>
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -55,18 +53,10 @@ void MockIFStream::StdFilestystemClose()
     std::ifstream::close();
 }
 
-#ifdef BUILD_NON_SDK_VER
 bool StdFilesystemExists(const std::string &p, std::error_code &ec)
 {
     return std::filesystem::exists(p, ec);
 }
-#else
-bool StdFilesystemExists(const std::string &p)
-{
-    std::ifstream f(p.c_str());
-    return f.good();
-}
-#endif
 
 } // namespace TextEngine
 } // namespace Rosen

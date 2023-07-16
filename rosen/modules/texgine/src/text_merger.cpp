@@ -19,9 +19,7 @@
 
 #include "texgine_exception.h"
 #include "texgine/utils/exlog.h"
-#ifdef LOGGER_ENABLE_SCOPE
 #include "texgine/utils/trace.h"
-#endif
 #include "text_span.h"
 
 namespace OHOS {
@@ -50,9 +48,7 @@ std::ostream &operator <<(std::ostream &os, const MergeResult &result)
 
 std::vector<VariantSpan> TextMerger::MergeSpans(const std::vector<VariantSpan> &spans)
 {
-#ifdef LOGGER_ENABLE_SCOPE
     ScopedTrace scope("TextMerger::MergeSpans");
-#endif
     std::vector<VariantSpan> vss;
     auto it = spans.begin();
     while (it != spans.end()) {

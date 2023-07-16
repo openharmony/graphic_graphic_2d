@@ -27,31 +27,31 @@ namespace Rosen {
 struct TypographyStyle {
     const static inline std::u16string ELLIPSIS = u"\u2026";
 
-    FontWeight fontWeight = FontWeight::W400;
-    FontStyle fontStyle = FontStyle::NORMAL;
-    std::string fontFamily = "";
-    double fontSize = 14.0; // default is libtxt text style fonst size
-    double heightScale = 1.0;
-    bool heightOnly = false;
-    bool useLineStyle = false;
+    FontWeight fontWeight_ = FontWeight::W400;
+    FontStyle fontStyle_ = FontStyle::NORMAL;
+    std::string fontFamily_ = "";
+    double fontSize_ = 14.0; // default is libtxt text style fonst size
+    double heightScale_ = 1.0;
+    bool heightOnly_ = false;
+    bool useLineStyle_ = false;
 
-    FontWeight lineStyleFontWeight = FontWeight::W400;
-    FontStyle lineStyleFontStyle = FontStyle::NORMAL;
-    std::vector<std::string> lineStyleFontFamilies;
-    double lineStyleFontSize = 14.0; // default is libtxt text style font size
-    double lineStyleHeightScale = 1.0;
-    bool lineStyleHeightOnly = false;
-    double lineStyleSpacingScale = -1.0;
-    bool lineStyleOnly = false;
+    FontWeight lineStyleFontWeight_ = FontWeight::W400;
+    FontStyle lineStyleFontStyle_ = FontStyle::NORMAL;
+    std::vector<std::string> lineStyleFontFamilies_;
+    double lineStyleFontSize_ = 14.0; // default is libtxt text style font size
+    double lineStyleHeightScale_ = 1.0;
+    bool lineStyleHeightOnly_ = false;
+    double lineStyleSpacingScale_ = -1.0;
+    bool lineStyleOnly_ = false;
 
-    TextAlign textAlign = TextAlign::START;
-    TextDirection textDirection = TextDirection::LTR;
-    size_t maxLines = 1e9;
-    std::u16string ellipsis;
-    std::string locale;
+    TextAlign textAlign_ = TextAlign::START;
+    TextDirection textDirection_ = TextDirection::LTR;
+    size_t maxLines_ = 1e9;
+    std::u16string ellipsis_;
+    std::string locale_;
 
-    BreakStrategy breakStrategy = BreakStrategy::GREEDY;
-    WordBreakType wordBreakType = WordBreakType::BREAK_WORD;
+    BreakStrategy breakStrategy_ = BreakStrategy::GREEDY;
+    WordBreakType wordBreakType_ = WordBreakType::BREAK_WORD;
 
     TextStyle GetTextStyle() const;
     TextAlign GetEffectiveAlign() const;

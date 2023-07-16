@@ -18,14 +18,10 @@
 
 #include "rosen_text/font_collection.h"
 
-namespace OHOS {
-namespace Rosen {
 namespace TextEngine {
 class FontProviders;
 class DynamicFontProvider;
 } // namespace TextEngine
-} // namespace Rosen
-} // namespace OHOS
 
 namespace OHOS {
 namespace Rosen {

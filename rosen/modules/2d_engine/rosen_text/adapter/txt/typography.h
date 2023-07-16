@@ -17,7 +17,12 @@
 #define ROSEN_TEXT_ADAPTER_TXT_TYPOGRAPHY_H
 
 #include "rosen_text/typography.h"
-#include "txt/paragraph.h"
+
+#ifdef NEW_SKIA
+#include "third_party/flutter/txt/src/txt/paragraph.h"
+#else
+#include "third_party/flutter/engine/flutter/third_party/txt/src/txt/paragraph.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {

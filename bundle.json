@@ -296,21 +296,6 @@
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/texgine/export/texgine"
             }
-          },
-          {
-            "type": "so",
-            "name": "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text:rosen_text",
-            "header": {
-              "header_files": [
-                "font_collection.h",
-                "typography_create.h",
-                "typography_style.h",
-                "text_style.h",
-                "typography.h",
-                "typography_types.h"
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/export/rosen_text"
-            }
           }
         ],
         "test": [

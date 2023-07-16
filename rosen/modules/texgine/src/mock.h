@@ -40,11 +40,7 @@ public:
     void StdFilestystemClose();
 };
 
-#ifdef BUILD_NON_SDK_VER
 bool StdFilesystemExists(const std::string &p, std::error_code &ec);
-#else
-bool StdFilesystemExists(const std::string &p);
-#endif
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

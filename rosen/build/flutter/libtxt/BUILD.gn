@@ -35,7 +35,7 @@ template("thirdparty_lib_txt_rosen") {
   ohos_source_set(target_name) {
     defines += invoker.defines
     cflags_cc += invoker.cflags_cc
-
+    public_configs = [ "$ace_flutter_engine_root/icu:icu_config_$platform" ]
     configs = [
       "$ace_flutter_engine_root:flutter_config",
       ":thirdparty_lib_txt_rosen_config",

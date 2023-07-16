@@ -28,9 +28,7 @@
 #include "text_span.h"
 #include "texgine/typography_types.h"
 #include "texgine/utils/exlog.h"
-#ifdef LOGGER_ENABLE_SCOPE
 #include "texgine/utils/trace.h"
-#endif
 #include "word_breaker.h"
 
 namespace OHOS {
@@ -284,9 +282,7 @@ void TypographyImpl::Layout(double maxWidth)
 {
     boundariesCache_ = {};
     try {
-#ifdef LOGGER_ENABLE_SCOPE
         ScopedTrace scope("TypographyImpl::Layout");
-#endif
         LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "TypographyImpl::Layout");
         LOGEX_FUNC_LINE(INFO) << "Layout maxWidth: " << maxWidth << ", spans.size(): " << spans_.size();
         maxWidth_ = maxWidth;

@@ -24,9 +24,7 @@
 #include "texgine/any_span.h"
 #include "texgine_exception.h"
 #include "texgine/utils/exlog.h"
-#ifdef LOGGER_ENABLE_SCOPE
 #include "texgine/utils/trace.h"
-#endif
 #include "text_breaker.h"
 #include "text_merger.h"
 #include "text_reverser.h"
@@ -50,9 +48,7 @@ void DumpLineMetrics(const std::vector<LineMetrics> &lineMetrics)
 std::vector<LineMetrics> Shaper::DoShape(std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
     const std::unique_ptr<FontProviders> &fontProviders, const double widthLimit)
 {
-#ifdef LOGGER_ENABLE_SCOPE
     ScopedTrace scope("Shaper::DoShape");
-#endif
     TextBreaker tb;
     auto ret = tb.WordBreak(spans, tstyle, fontProviders);
     if (ret) {

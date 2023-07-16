@@ -22,31 +22,31 @@
 
 namespace OHOS {
 namespace Rosen {
-TextRect::TextRect(Drawing::RectF rec, TextDirection dir)
+TextRect::TextRect(Drawing::RectF rect, TextDirection direction)
 {
-    rect = rec;
-    direction = dir;
+    rect_ = rect;
+    direction_ = direction;
 }
 
-IndexAndAffinity::IndexAndAffinity(size_t charIndex, Affinity charAffinity)
+IndexAndAffinity::IndexAndAffinity(size_t index, Affinity affinity)
 {
-    index = charIndex;
-    affinity = charAffinity;
+    index_ = index;
+    affinity_ = affinity;
 }
 
 Boundary::Boundary(size_t left, size_t right)
 {
-    leftIndex = left;
-    rightIndex = right;
+    leftIndex_ = left;
+    rightIndex_ = right;
 }
 
 bool Boundary::operator ==(const Boundary& rhs) const
 {
-    return leftIndex == rhs.leftIndex && rightIndex == rhs.rightIndex;
+    return leftIndex_ == rhs.leftIndex_ && rightIndex_ == rhs.rightIndex_;
 }
 
 namespace AdapterTextEngine {
-Typography::Typography(std::shared_ptr<TextEngine::Typography> typography)
+Typography::Typography(std::shared_ptr<Texgine::Typography> typography)
 {
     typography_ = std::move(typography);
 }

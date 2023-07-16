@@ -22,9 +22,7 @@
 #include "texgine_exception.h"
 #include "text_span.h"
 #include "texgine/utils/exlog.h"
-#ifdef LOGGER_ENABLE_SCOPE
 #include "texgine/utils/trace.h"
-#endif
 #include "text_converter.h"
 #include "word_breaker.h"
 
@@ -34,9 +32,7 @@ namespace TextEngine {
 int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyle &ys,
     const std::unique_ptr<FontProviders> &fontProviders)
 {
-#ifdef LOGGER_ENABLE_SCOPE
     ScopedTrace scope("TextBreaker::WordBreak");
-#endif
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "WordBreak");
     std::vector<VariantSpan> visitingSpans;
     std::swap(visitingSpans, spans);

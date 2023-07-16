@@ -119,13 +119,10 @@ if (exec_script(check_graphic_ext_file_script,
   }
 }
 
-flutter_root = "//third_party/flutter"
-ace_flutter_engine_root = "$flutter_root/build"
 graphic_2d_root = "//foundation/graphic/graphic_2d"
 hilog_root = "//base/hiviewdfx/hilog"
 window_base_path = "//foundation/window/window_manager"
 safwk_base = "//foundation/systemabilitymgr/safwk"
-skia_root_new = "//third_party/skia"
 
 accessibility_enable = false
 if (defined(global_parts_info) &&

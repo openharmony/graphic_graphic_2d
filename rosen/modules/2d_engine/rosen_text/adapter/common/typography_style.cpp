@@ -20,16 +20,16 @@ namespace Rosen {
 TextStyle TypographyStyle::GetTextStyle() const
 {
     TextStyle style = {
-        .fontWeight = fontWeight,
-        .fontStyle = fontStyle,
-        .fontFamilies = { fontFamily },
-        .fontSize = fontSize,
-        .heightScale = heightScale,
-        .heightOnly = heightOnly,
-        .locale = locale,
+        .fontWeight_ = fontWeight_,
+        .fontStyle_ = fontStyle_,
+        .fontFamilies_ = { fontFamily_ },
+        .fontSize_ = fontSize_,
+        .heightScale_ = heightScale_,
+        .heightOnly_ = heightOnly_,
+        .locale_ = locale_,
     };
-    if (fontSize >= 0) {
-        style.fontSize = fontSize;
+    if (fontSize_ >= 0) {
+        style.fontSize_ = fontSize_;
     }
 
     return style;
@@ -37,23 +37,23 @@ TextStyle TypographyStyle::GetTextStyle() const
 
 TextAlign TypographyStyle::GetEffectiveAlign() const
 {
-    if (textAlign == TextAlign::START) {
-        return (textDirection == TextDirection::LTR) ? TextAlign::LEFT : TextAlign::RIGHT;
-    } else if (textAlign == TextAlign::END) {
-        return (textDirection == TextDirection::RTL) ? TextAlign::LEFT : TextAlign::RIGHT;
+    if (textAlign_ == TextAlign::START) {
+        return (textDirection_ == TextDirection::LTR) ? TextAlign::LEFT : TextAlign::RIGHT;
+    } else if (textAlign_ == TextAlign::END) {
+        return (textDirection_ == TextDirection::RTL) ? TextAlign::LEFT : TextAlign::RIGHT;
     } else {
-        return textAlign;
+        return textAlign_;
     }
 }
 
 bool TypographyStyle::IsUnlimitedLines() const
 {
-    return maxLines == 1e9;     // maximum number of lines
+    return maxLines_ == 1e9;
 }
 
 bool TypographyStyle::IsEllipsized() const
 {
-    return !ellipsis.empty();
+    return !ellipsis_.empty();
 }
 } // namespace Rosen
 } // namespace OHOS

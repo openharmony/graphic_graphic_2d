@@ -22,27 +22,27 @@
 
 namespace OHOS {
 namespace Rosen {
-TextRect::TextRect(Drawing::RectF rec, TextDirection dir)
+TextRect::TextRect(Drawing::RectF rect, TextDirection direction)
 {
-    rect = rec;
-    direction = dir;
+    rect_ = rect;
+    direction_ = direction;
 }
 
-IndexAndAffinity::IndexAndAffinity(size_t charIndex, Affinity charAffinity)
+IndexAndAffinity::IndexAndAffinity(size_t index, Affinity affinity)
 {
-    index = charIndex;
-    affinity = charAffinity;
+    index_ = index;
+    affinity_ = affinity;
 }
 
 Boundary::Boundary(size_t left, size_t right)
 {
-    leftIndex = left;
-    rightIndex = right;
+    leftIndex_ = left;
+    rightIndex_ = right;
 }
 
 bool Boundary::operator ==(const Boundary& rhs) const
 {
-    return leftIndex == rhs.leftIndex && rightIndex == rhs.rightIndex;
+    return leftIndex_ == rhs.leftIndex_ && rightIndex_ == rhs.rightIndex_;
 }
 
 namespace AdapterTxt {
@@ -124,6 +124,7 @@ void Typography::Paint(Drawing::Canvas *drawCanvas, double x, double y)
     auto canvas = drawingCanvas->ExportSkCanvas();
     paragraph_->Paint(canvas, x, y);
 }
+
 std::vector<TextRect> Typography::GetTextRectsByBoundary(size_t left, size_t right,
     TextRectHeightStyle heightStyle, TextRectWidthStyle widthStyle)
 {
