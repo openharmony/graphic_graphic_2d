@@ -35,7 +35,11 @@ ohos_shared_library("rosen_text") {
     platform = "windows"
   }
 
-  deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  if (platform == "ohos") {
+    deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  } else {
+    deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_new" ]
+  }
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
