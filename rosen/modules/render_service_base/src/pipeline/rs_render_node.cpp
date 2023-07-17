@@ -27,6 +27,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
 #include "property/rs_property_trace.h"
 
@@ -38,9 +39,9 @@ const std::set<RSModifierType> GROUPABLE_ANIMATION_TYPE = {
     RSModifierType::ROTATION,
     RSModifierType::SCALE,
 };
+// Only enable filter cache when uni-render is enabled and filter cache is enabled
+const bool FILTER_CACHE_ENABLED = RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender();
 }
-
-bool RSRenderNode::isUniRender_ = RSUniRenderJudgement::IsUniRender();
 
 RSRenderNode::RSRenderNode(NodeId id, std::weak_ptr<RSContext> context) : RSBaseRenderNode(id, context) {}
 
@@ -404,8 +405,7 @@ void RSRenderNode::ApplyModifiers()
     dirtyTypes_.clear();
 
 #ifndef USE_ROSEN_DRAWING
-    // Disable filter cache if either uni-render is disabled or filter cache is disabled by property.
-    if (!isUniRender_ || !RSSystemProperties::GetFilterCacheEnabled()) {
+    if (!FILTER_CACHE_ENABLED) {
         return;
     }
     // Create or release filter cache manager on demand, update cache state with filter hash.
@@ -825,7 +825,7 @@ RectI RSRenderNode::GetFilterRect() const
     auto& properties = GetRenderProperties();
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
     if (!geoPtr) {
-        return RectI();
+        return {};
     }
     if (properties.GetClipBounds() != nullptr) {
 #ifndef USE_ROSEN_DRAWING
@@ -846,6 +846,9 @@ RectI RSRenderNode::GetFilterRect() const
 void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<RectI>& clipRect) const
 {
 #ifndef USE_ROSEN_DRAWING
+    if (!FILTER_CACHE_ENABLED) {
+        return;
+    }
     auto& renderProperties = GetRenderProperties();
     if (!renderProperties.NeedFilter()) {
         return;
@@ -868,6 +871,9 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
 void RSRenderNode::OnTreeStateChanged()
 {
 #ifndef USE_ROSEN_DRAWING
+    if (!FILTER_CACHE_ENABLED) {
+        return;
+    }
     if (IsOnTheTree()) {
         GetMutableRenderProperties().CreateFilterCacheManagerIfNeed();
     } else {

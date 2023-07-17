@@ -526,7 +526,6 @@ private:
     float boundsWidth_ = 0.0f;
     float boundsHeight_ = 0.0f;
     std::unordered_set<RSModifierType> dirtyTypes_;
-    static bool isUniRender_;
 
     friend class RSRenderTransition;
     friend class RSRenderNodeMap;

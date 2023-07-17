@@ -267,10 +267,10 @@ int RSSystemProperties::GetFilterCacheUpdateInterval()
 
 int RSSystemProperties::GetFilterCacheSizeThreshold()
 {
-    // Set the minimum size for enabling skip-frame in the filter cache. By default, this value is 100, which means that
-    // skip-frame is only enabled for regions where both the width and height are greater than 100.
+    // Set the minimum size for enabling skip-frame in the filter cache. By default, this value is 400, which means that
+    // skip-frame is only enabled for regions where both the width and height are greater than 400.
     static int filterCacheSizeThreshold =
-        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheSizeThreshold", "100")).c_str());
+        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheSizeThreshold", "400")).c_str());
     return filterCacheSizeThreshold;
 }
 
