@@ -86,7 +86,7 @@ bool KawaseBlurFilter::ApplyKawaseBlur(SkCanvas& canvas, const sk_sp<SkImage>& i
     auto dst = param.dst;
     int maxPasses = supporteLargeRadius ? kMaxPassesLargeRadius : kMaxPasses;
     float dilatedConvolutionFactor = supporteLargeRadius ? kDilatedConvolutionLargeRadius : kDilatedConvolution;
-    float tmpRadius = blurRadius_ / dilatedConvolutionFactor;
+    float tmpRadius = static_cast<float>(blurRadius_) / dilatedConvolutionFactor;
     int numberOfPasses = std::min(maxPasses, std::max(static_cast<int>(ceil(tmpRadius)), 1)); // 1 : min pass num
     float radiusByPasses = tmpRadius / numberOfPasses;
     SkImageInfo scaledInfo = image->imageInfo().makeWH(std::ceil(dst.width() * blurScale_),
@@ -101,7 +101,7 @@ bool KawaseBlurFilter::ApplyKawaseBlur(SkCanvas& canvas, const sk_sp<SkImage>& i
     sk_sp<SkImage> tmpBlur(blurBuilder.makeImage(canvas.recordingContext(), nullptr, scaledInfo, false));
     // And now we'll build our chain of scaled blur stages
     for (auto i = 1; i < numberOfPasses; i++) {
-        const float stepScale = i * blurScale_;
+        const float stepScale = static_cast<float>(i) * blurScale_;
         blurBuilder.child("imageInput") = tmpBlur->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, linear);
         blurBuilder.uniform("in_blurOffset") = SkV2{radiusByPasses * stepScale, radiusByPasses * stepScale};
         blurBuilder.uniform("in_maxSizeXY") = SkV2{dst.width() * blurScale_, dst.height() * blurScale_};
@@ -115,7 +115,7 @@ bool KawaseBlurFilter::ApplyBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, 
 {
     auto src = param.src;
     auto dst = param.dst;
-    float invBlurScale = 1 / blurScale_;
+    float invBlurScale = 1.0f / blurScale_;
     SkSamplingOptions linear(SkFilterMode::kLinear, SkMipmapMode::kNone);
     SkImageInfo scaledInfo = image->imageInfo().makeWH(std::ceil(dst.width() * blurScale_),
         std::ceil(dst.height() * blurScale_));
@@ -132,7 +132,7 @@ bool KawaseBlurFilter::ApplyBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, 
         mixBuilder.child("blurredInput") = blurShader;
         mixBuilder.child("originalInput") = image->makeShader(
             SkTileMode::kClamp, SkTileMode::kClamp, linear, inputMatrix);
-        mixBuilder.uniform("mixFactor") = std::min(1.0f, blurRadius_ / kMaxCrossFadeRadius);
+        mixBuilder.uniform("mixFactor") = std::min(1.0f, blurRadius_ * 1.f / kMaxCrossFadeRadius);
         paint.setShader(mixBuilder.makeShader(nullptr, true));
     } else {
         paint.setShader(blurShader);
