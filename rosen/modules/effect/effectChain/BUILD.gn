@@ -50,7 +50,7 @@ ohos_shared_library("libeffectchain") {
     "c_utils:utils",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
-    "multimedia_image_framework:image_native",
+    "image_framework:image_native",
   ]
 
   if (effect_enable_gpu) {

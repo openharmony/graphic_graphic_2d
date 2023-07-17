@@ -292,7 +292,7 @@ ohos_executable("surface_capture_demo") {
     "//third_party/zlib:libz",
   ]
 
-  external_deps = [ "multimedia_image_framework:image_native" ]
+  external_deps = [ "image_framework:image_native" ]
 
   public_deps = [ "$public_deps_skia" ]
 
@@ -390,7 +390,7 @@ ohos_executable("rs_uni_render_pixelmap_demo") {
     "//third_party/zlib:libz",
   ]
 
-  external_deps = [ "multimedia_image_framework:image_native" ]
+  external_deps = [ "image_framework:image_native" ]
 
   public_deps = [ "$public_deps_skia" ]
 
@@ -529,7 +529,7 @@ ohos_executable("render_service_client_pointer_window_demo") {
   public_deps = [ "$public_deps_skia" ]
 
   external_deps = [
-    "multimedia_image_framework:image_native",
+    "image_framework:image_native",
     "window_manager:libdm",
   ]
 
