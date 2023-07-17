@@ -93,7 +93,9 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
             continue;
         }
         nodeTaskState_[child->GetId()] = 1;
-        child->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
+        if (child->GetCacheSurfaceProcessedStatus() != CacheProcessStatus::DOING) {
+            child->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
+        }
         renderTaskList.push_back(std::make_unique<RSRenderTask>(*child, RSRenderTask::RenderNodeStage::CACHE));
     }
 
