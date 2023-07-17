@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,10 +52,12 @@ bool BootVideoPlayer::PlayVideo()
     if (mediaPlayer_ == nullptr) {
         mediaPlayer_ = Media::PlayerFactory::CreatePlayer();
     }
-    if (mediaPlayer_ == nullptr) {
-        LOGE("PlayVideo SetPlayerCallback fail, mediaPlayer_ is nullptr");
-        return false;
+    while (mediaPlayer_ == nullptr) {
+        LOGE("CreatePlayer fail, mediaPlayer_ is nullptr");
+        mediaPlayer_ = Media::PlayerFactory::CreatePlayer();
+        usleep(SLEEP_TIME_US);
     }
+
     std::shared_ptr<VideoPlayerCallback> cb = std::make_shared<VideoPlayerCallback>(shared_from_this());
     int32_t ret = mediaPlayer_->SetPlayerCallback(cb);
     if (ret != 0) {

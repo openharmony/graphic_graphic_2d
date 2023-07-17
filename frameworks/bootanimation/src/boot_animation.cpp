@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -100,7 +100,7 @@ void BootAnimation::Init(Rosen::ScreenId defaultId, int32_t width, int32_t heigh
     LOGI("Init enter, width: %{public}d, height: %{public}d", width, height);
 
     InitPicCoordinates();
-    InitRsSurface();
+    InitRsSurfaceNode();
     if (animationConfig_.IsBootVideoEnabled()) {
         LOGI("Init end");
         return;
@@ -116,7 +116,7 @@ void BootAnimation::Init(Rosen::ScreenId defaultId, int32_t width, int32_t heigh
         PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
         return;
     }
-
+    InitRsSurface();
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::preload");
     if (animationConfig_.ReadPicZipFile(imageVector_, freq_)) {
         imgVecSize_ = imageVector_.size();
@@ -157,6 +157,23 @@ void BootAnimation::Run(Rosen::ScreenId id, int screenWidth, int screenHeight)
     runner_->Run();
 }
 
+void BootAnimation::InitRsSurfaceNode()
+{
+    struct Rosen::RSSurfaceNodeConfig rsSurfaceNodeConfig;
+    Rosen::RSSurfaceNodeType rsSurfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(rsSurfaceNodeConfig, rsSurfaceNodeType);
+    if (!rsSurfaceNode_) {
+        LOGE("rsSurfaceNode_ is nullptr");
+        return;
+    }
+    rsSurfaceNode_->SetPositionZ(MAX_ZORDER);
+    rsSurfaceNode_->SetBounds({0, 0, windowWidth_, windowHeight_});
+    rsSurfaceNode_->SetBackgroundColor(0xFF000000);
+    rsSurfaceNode_->SetFrameGravity(Rosen::Gravity::RESIZE_ASPECT);
+    rsSurfaceNode_->AttachToDisplay(defaultId_);
+    OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
+}
+
 void BootAnimation::InitRsSurface()
 {
 #if defined(NEW_RENDER_CONTEXT)
@@ -168,45 +185,11 @@ void BootAnimation::InitRsSurface()
     renderContext_->Init();
     std::shared_ptr<Rosen::DrawingContext> drawingContext = std::make_shared<Rosen::DrawingContext>(
         renderContext_->GetRenderType());
-
-    struct  Rosen::RSSurfaceNodeConfig rsSurfaceNodeConfig;
-    Rosen::RSSurfaceNodeType rsSurfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
-
-    rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(rsSurfaceNodeConfig, rsSurfaceNodeType);
-    if (!rsSurfaceNode_) {
-         LOGE("rsSurfaceNode_ is nullptr");
-         return;
-    }
-    rsSurfaceNode_->SetPositionZ(MAX_ZORDER);
-    rsSurfaceNode_->SetBounds({0, 0, windowWidth_, windowHeight_});
-    rsSurfaceNode_->SetBackgroundColor(0xFF000000);
-    rsSurfaceNode_->SetFrameGravity(Rosen::Gravity::RESIZE_ASPECT);
-
-    rsSurfaceNode_->AttachToDisplay(defaultId_);
-    OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
-
     sptr<Surface> surface = rsSurfaceNode_->GetSurface();
     drawingContext->SetUpDrawingContext();
     rsSurface_ = Rosen::RSSurfaceFactory::CreateRSSurface(Rosen::PlatformName::OHOS, surface, drawingContext);
     rsSurface_->SetRenderContext(renderContext_);
-
 #else
-    struct Rosen::RSSurfaceNodeConfig rsSurfaceNodeConfig;
-    Rosen::RSSurfaceNodeType rsSurfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
-
-    rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(rsSurfaceNodeConfig, rsSurfaceNodeType);
-    if (!rsSurfaceNode_) {
-         LOGE("rsSurfaceNode_ is nullptr");
-         return;
-    }
-    rsSurfaceNode_->SetPositionZ(MAX_ZORDER);
-    rsSurfaceNode_->SetBounds({0, 0, windowWidth_, windowHeight_});
-    rsSurfaceNode_->SetBackgroundColor(0xFF000000);
-    rsSurfaceNode_->SetFrameGravity(Rosen::Gravity::RESIZE_ASPECT);
-
-    rsSurfaceNode_->AttachToDisplay(defaultId_);
-    OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
-
     rsSurface_ = OHOS::Rosen::RSSurfaceExtractor::ExtractRSSurface(rsSurfaceNode_);
     if (rsSurface_ == nullptr) {
         LOGE("rsSurface is nullptr");
@@ -226,7 +209,6 @@ void BootAnimation::InitRsSurface()
     if (rc_ == nullptr) {
         LOGI("rc is nullptr, use cpu");
     }
-
 #endif
 }
 

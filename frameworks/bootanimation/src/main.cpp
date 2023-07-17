@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,7 +27,7 @@ int main(int argc, const char *argv[])
     LOGI("main enter");
     WaitRenderServiceInit();
 
-    auto& dms= OHOS::Rosen::DisplayManager::GetInstance();
+    auto& dms = OHOS::Rosen::DisplayManager::GetInstance();
     auto displayIds = dms.GetAllDisplayIds();
 
     while (displayIds.empty()) {
@@ -35,7 +35,6 @@ int main(int argc, const char *argv[])
         displayIds = dms.GetAllDisplayIds();
         usleep(SLEEP_TIME_US);
     }
-
 
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
     Rosen::ScreenId defaultId = interface.GetDefaultScreenId();
@@ -47,7 +46,6 @@ int main(int argc, const char *argv[])
     Rosen::RSScreenModeInfo modeinfo = interface.GetScreenActiveMode(defaultId);
     int screenWidth = modeinfo.GetScreenWidth();
     int screenHeight = modeinfo.GetScreenHeight();
-
 
     BootAnimation bootAnimation;
     bootAnimation.Run(defaultId, screenWidth, screenHeight);
