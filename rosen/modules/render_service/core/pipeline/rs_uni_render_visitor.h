@@ -399,9 +399,9 @@ private:
     FrameRateRange currSurfaceUIRange_ = {0, 0, 0};
     FrameRateRange currDisplayRSRange_ = {0, 0, 0};
     FrameRateRange currDisplayUIRange_ = {0, 0, 0};
-    std::unordered_map<NodeId, FrameRateRange> rsFrameRateRangeMap_; // display node id
-    std::unordered_map<NodeId, FrameRateRange> uiFrameRateRangeMap_; // surface node id
-    std::unordered_map<NodeId, FrameRateRange> finalFrameRateRangeMap_; // display node id
+    std::unordered_map<NodeId, FrameRateRange> rsFrameRateRangeMap_; // RSDisplayRenderNode id
+    std::unordered_map<NodeId, FrameRateRange> uiFrameRateRangeMap_; // RSSurfaceRenderNode id
+    std::unordered_map<NodeId, FrameRateRange> finalFrameRateRangeMap_; // RSDisplayRenderNode id
 };
 } // namespace Rosen
 } // namespace OHOS
