@@ -539,17 +539,17 @@ void RSRenderNode::InitCacheSurface(GrContext* grContext, ClearCacheSurfaceFunc 
 void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheSurfaceFunc func, uint32_t threadIndex)
 #endif
 {
-    if (!func) {
-        RS_LOGE("InitCacheSurface failed: fuc is null");
-        return;
-    }
-    cacheSurfaceThreadIndex_ = threadIndex;
-    if (!clearCacheSurfaceFunc_) {
-        clearCacheSurfaceFunc_ = func;
-    }
-    if (cacheSurface_) {
-        func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
-        ClearCacheSurface();
+    if (func) {
+        cacheSurfaceThreadIndex_ = threadIndex;
+        if (!clearCacheSurfaceFunc_) {
+            clearCacheSurfaceFunc_ = func;
+        }
+        if (cacheSurface_) {
+            func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
+            ClearCacheSurface();
+        }
+    } else {
+        cacheSurface_ = nullptr;
     }
     auto cacheType = GetCacheType();
     float width = 0.0f, height = 0.0f;
@@ -573,8 +573,10 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
 #ifndef USE_ROSEN_DRAWING
 #if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
     if (grContext == nullptr) {
-        func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
-        ClearCacheSurface();
+        if (func) {
+            func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
+            ClearCacheSurface();
+        }
         return;
     }
     SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
@@ -589,8 +591,10 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
     bitmap.Build(width, height, format);
 #if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
     if (gpuContext == nullptr) {
-        func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
-        ClearCacheSurface();
+        if (func) {
+            func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
+            ClearCacheSurface();
+        }
         return;
     }
     Drawing::Image image;

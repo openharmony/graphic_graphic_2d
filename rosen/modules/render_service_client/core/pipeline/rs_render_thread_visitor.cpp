@@ -713,6 +713,9 @@ bool RSRenderThreadVisitor::UpdateAnimatePropertyCacheSurface(RSRenderNode& node
         node.InitCacheSurface(canvas_ ? canvas_->GetGPUContext().get() : nullptr);
 #endif
     }
+    if (!node.GetCacheSurface()) {
+        return false;
+    }
     auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
     if (!cacheCanvas) {
         return false;
