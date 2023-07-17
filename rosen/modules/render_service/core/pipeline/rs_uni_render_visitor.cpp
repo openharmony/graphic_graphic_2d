@@ -2759,7 +2759,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #ifdef NEW_RENDER_CONTEXT
     auto grContext = renderEngine_->GetDrawingContext()->GetDrawingContext();
 #else
-    auto grContext = renderEngine_->GetRenderContext()->GetGrContext();
+    auto grContext = static_cast<GrDirectContext*>(canvas_->recordingContext());
 #endif
     RSTagTracker tagTracker(grContext, node.GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
     node.SetGrContext(grContext);
