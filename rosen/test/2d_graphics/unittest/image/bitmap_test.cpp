@@ -341,8 +341,8 @@ HWTEST_F(BitmapTest, BitmapGetFormatTest001, TestSize.Level1)
     ASSERT_TRUE(bitmap != nullptr);
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
     bitmap->Build(111, 450, bitmapFormat);
-    ASSERT_EQ(ColorType::COLORTYPE_UNKNOWN, bitmap->GetFormat().colorType);
-    ASSERT_EQ(AlphaType::ALPHATYPE_UNKNOWN, bitmap->GetFormat().alphaType);
+    ASSERT_EQ(ColorType::COLORTYPE_ALPHA_8, bitmap->GetFormat().colorType);
+    ASSERT_EQ(AlphaType::ALPHATYPE_OPAQUE, bitmap->GetFormat().alphaType);
     bitmap->Free();
 }
 
@@ -359,8 +359,8 @@ HWTEST_F(BitmapTest, BitmapGetFormatTest002, TestSize.Level1)
     ASSERT_TRUE(bitmap != nullptr);
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
     bitmap->Build(151, 150, bitmapFormat);
-    ASSERT_EQ(ColorType::COLORTYPE_UNKNOWN, bitmap->GetFormat().colorType);
-    ASSERT_EQ(AlphaType::ALPHATYPE_UNKNOWN, bitmap->GetFormat().alphaType);
+    ASSERT_EQ(ColorType::COLORTYPE_ALPHA_8, bitmap->GetFormat().colorType);
+    ASSERT_EQ(AlphaType::ALPHATYPE_OPAQUE, bitmap->GetFormat().alphaType);
     bitmap->Free();
 }
 } // namespace Drawing
