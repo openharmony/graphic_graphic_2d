@@ -170,6 +170,11 @@ int RSSystemProperties::GetFilterCacheUpdateInterval()
     return 0;
 }
 
+int RSSystemProperties::GetFilterCacheSizeThreshold()
+{
+    return 0;
+}
+
 bool RSSystemProperties::GetKawaseEnabled()
 {
     return false;

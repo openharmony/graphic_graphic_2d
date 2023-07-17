@@ -23,21 +23,18 @@ namespace OHOS {
 namespace Rosen {
 
 RSCommandRegister<RSNodeGetShowingPropertyAndCancelAnimation::commandType,
-    RSNodeGetShowingPropertyAndCancelAnimation::commandSubType, RSNodeGetShowingPropertyAndCancelAnimation::Unmarshalling>
+    RSNodeGetShowingPropertyAndCancelAnimation::commandSubType,
+    RSNodeGetShowingPropertyAndCancelAnimation::Unmarshalling>
     RSNodeGetShowingPropertyAndCancelAnimation::registry;
 
 bool RSNodeGetShowingPropertyAndCancelAnimation::Marshalling(Parcel& parcel) const
 {
-    auto success = RSMarshallingHelper::Marshalling(parcel, commandType);
-    success &= RSMarshallingHelper::Marshalling(parcel, commandSubType);
-    success &= RSMarshallingHelper::Marshalling(parcel, targetId_);
-    success &= RSMarshallingHelper::Marshalling(parcel, timeoutNS_);
-    success &= RSMarshallingHelper::Marshalling(parcel, result_);
-    if (property_ != nullptr) {
-        success &= RSRenderPropertyBase::Marshalling(parcel, property_);
-    }
-
-    return success;
+    return RSMarshallingHelper::Marshalling(parcel, commandType) &&
+           RSMarshallingHelper::Marshalling(parcel, commandSubType) &&
+           RSMarshallingHelper::Marshalling(parcel, targetId_) &&
+           RSMarshallingHelper::Marshalling(parcel, timeoutNS_) &&
+           RSMarshallingHelper::Marshalling(parcel, result_) &&
+           (property_ == nullptr || RSRenderPropertyBase::Marshalling(parcel, property_));
 }
 
 RSCommand* RSNodeGetShowingPropertyAndCancelAnimation::Unmarshalling(Parcel& parcel)
@@ -71,10 +68,8 @@ bool RSNodeGetShowingPropertyAndCancelAnimation::CheckHeader(Parcel& parcel) con
 
 bool RSNodeGetShowingPropertyAndCancelAnimation::ReadFromParcel(Parcel& parcel)
 {
-    auto success = RSMarshallingHelper::Unmarshalling(parcel, result_);
-    success &= RSRenderPropertyBase::Unmarshalling(parcel, property_);
-
-    return success;
+    return RSMarshallingHelper::Unmarshalling(parcel, result_) &&
+           RSRenderPropertyBase::Unmarshalling(parcel, property_);
 }
 
 void RSNodeGetShowingPropertyAndCancelAnimation::Process(RSContext& context)

@@ -249,6 +249,8 @@ float RSSystemProperties::GetAnimationScale()
 
 bool RSSystemProperties::GetFilterCacheEnabled()
 {
+    // Determine whether the filter cache should be enabled. The default value is 1, which means that it is enabled.
+    // If dirty-region is not properly implemented, the filter cache will act as a skip-frame strategy for filters.
     static bool filterCacheEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.filterCacheEnabled", "1")).c_str()) != 0;
     return filterCacheEnabled;
@@ -256,9 +258,20 @@ bool RSSystemProperties::GetFilterCacheEnabled()
 
 int RSSystemProperties::GetFilterCacheUpdateInterval()
 {
+    // Configure whether to enable skip-frame for the filter cache. The default value is 1, which means that the cached
+    // image is updated with a delay of 1 frame.
     static int filterCacheUpdateInterval =
         std::atoi((system::GetParameter("persist.sys.graphic.filterCacheUpdateInterval", "1")).c_str());
     return filterCacheUpdateInterval;
+}
+
+int RSSystemProperties::GetFilterCacheSizeThreshold()
+{
+    // Set the minimum size for enabling skip-frame in the filter cache. By default, this value is 100, which means that
+    // skip-frame is only enabled for regions where both the width and height are greater than 100.
+    static int filterCacheSizeThreshold =
+        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheSizeThreshold", "100")).c_str());
+    return filterCacheSizeThreshold;
 }
 
 bool RSSystemProperties::GetKawaseEnabled()

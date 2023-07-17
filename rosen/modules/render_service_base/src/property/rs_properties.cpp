@@ -2088,8 +2088,9 @@ std::string RSProperties::Dump() const
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSProperties::CreateFilterCacheManagerIfNeed() {
-    if (auto& filter = GetBackgroundFilter()) {
+void RSProperties::CreateFilterCacheManagerIfNeed()
+{
+    if (auto& filter = GetBackgroundFilter(); filter != nullptr && filter->IsValid()) {
         auto& cacheManager = backgroundFilterCacheManager_;
         if (cacheManager == nullptr) {
             cacheManager = std::make_unique<RSFilterCacheManager>();
@@ -2098,7 +2099,7 @@ void RSProperties::CreateFilterCacheManagerIfNeed() {
     } else {
         backgroundFilterCacheManager_.reset();
     }
-    if (auto& filter = GetFilter()) {
+    if (auto& filter = GetFilter(); filter != nullptr && filter->IsValid()) {
         auto& cacheManager = foregroundFilterCacheManager_;
         if (cacheManager == nullptr) {
             cacheManager = std::make_unique<RSFilterCacheManager>();

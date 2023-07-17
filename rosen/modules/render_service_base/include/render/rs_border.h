@@ -72,11 +72,7 @@ public:
     Vector4f GetWidthFour() const;
     Vector4<uint32_t> GetStyleFour() const;
 
-    bool HasBorder() const
-    {
-        return !colors_.empty() && !widths_.empty() && !styles_.empty() &&
-            (*max_element(widths_.begin(), widths_.end()) > 0.f);
-    }
+    bool HasBorder() const;
 
     std::string ToString() const;
 

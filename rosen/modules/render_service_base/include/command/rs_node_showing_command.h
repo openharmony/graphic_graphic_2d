@@ -39,7 +39,7 @@ public:
     RSNodeGetShowingPropertyAndCancelAnimation(const RSNodeGetShowingPropertyAndCancelAnimation&) = delete;
     RSNodeGetShowingPropertyAndCancelAnimation& operator=(const RSNodeGetShowingPropertyAndCancelAnimation&) = delete;
     RSNodeGetShowingPropertyAndCancelAnimation(RSNodeGetShowingPropertyAndCancelAnimation&&) = delete;
-    virtual ~RSNodeGetShowingPropertyAndCancelAnimation() = default;
+    ~RSNodeGetShowingPropertyAndCancelAnimation() override = default;
 
     bool Marshalling(Parcel& parcel) const override;
     static RSCommand* Unmarshalling(Parcel& parcel);

@@ -215,9 +215,9 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     // by `hdc shell param set persist.sys.graphic.filterCacheUpdateInterval <value>`, the default value is 1.
     // [PLANNING]: dynamically adjust the cache update interval according to the cache size / cache size percentage /
     // frame rate / filter radius.
-    cacheUpdateInterval_ = (cachedImageRegion_.width() > 100 && cachedImageRegion_.height() > 100) // 100: size threshold
-        ? RSSystemProperties::GetFilterCacheUpdateInterval()
-        : 0;
+    static auto threshold = RSSystemProperties::GetFilterCacheSizeThreshold();
+    cacheUpdateInterval_ = (cachedImageRegion_.width() > threshold && cachedImageRegion_.height() > threshold)
+        ? RSSystemProperties::GetFilterCacheUpdateInterval() : 0;
 }
 
 void RSFilterCacheManager::GenerateBlurredSnapshot(
@@ -282,7 +282,7 @@ void RSFilterCacheManager::DrawCachedBlurredSnapshot(RSPaintFilterCanvas& canvas
     paint.setAntiAlias(true);
 #ifdef NEW_SKIA
     canvas.drawImageRect(cachedImage_, dstRect, SkSamplingOptions(), &paint);
- #endif   
+#endif
 }
 
 void RSFilterCacheManager::InvalidateCache()
@@ -301,7 +301,7 @@ void RSFilterCacheManager::ClipVisibleRect(RSPaintFilterCanvas& canvas) const
     if (!visibleIRect.isEmpty() && deviceClipRect.intersect(visibleIRect)) {
 #ifdef NEW_SKIA
         canvas.clipIRect(visibleIRect);
-#endif 
+#endif
     }
 }
 } // namespace Rosen
