@@ -440,6 +440,9 @@ public:
         return uiRange_;
     }
 
+    void ResetRSFrameRateRange();
+    void ResetUIFrameRateRange();
+
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier> modifier);

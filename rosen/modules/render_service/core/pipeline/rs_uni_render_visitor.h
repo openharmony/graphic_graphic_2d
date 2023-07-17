@@ -392,6 +392,7 @@ private:
     uint32_t captureWindowZorder_ = 0;
     std::optional<SkPath> effectRegion_ = std::nullopt;
     bool curDirty_ = false;
+    bool curContentDirty_ = false;
 
     // calculate preferred fps
     FrameRateRange currSurfaceRSRange_ = {0, 0, 0};
@@ -401,8 +402,6 @@ private:
     std::unordered_map<NodeId, FrameRateRange> rsFrameRateRangeMap_; // display node id
     std::unordered_map<NodeId, FrameRateRange> uiFrameRateRangeMap_; // surface node id
     std::unordered_map<NodeId, FrameRateRange> finalFrameRateRangeMap_; // display node id
-
-    bool curContentDirty_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
