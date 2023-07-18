@@ -150,6 +150,7 @@ public:
     void SetAppWindowNum(uint32_t num);
 
     void ResetFrameRateRangeMaps();
+    void UpdateSurfaceFrameRateRange(RSRenderNode& node);
 
 private:
     void DrawWatermarkIfNeed();

@@ -979,7 +979,18 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
         parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
     }
     node.UpdateChildrenOutOfRectFlag(false);
+    UpdateSurfaceFrameRateRange(node);
+    PrepareBaseRenderNode(node);
+    node.UpdateParentChildrenRect(logicParentNode_.lock());
 
+    parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
+    curAlpha_ = alpha;
+    dirtyFlag_ = dirtyFlag;
+    prepareClipRect_ = prepareClipRect;
+}
+
+void RSUniRenderVisitor::UpdateSurfaceFrameRateRange(RSRenderNode& node)
+{
     auto currRSRange = node.GetRSFrameRateRange();
     if (currRSRange.IsValid()) {
         currSurfaceRSRange_.Merge(currRSRange);
@@ -991,14 +1002,6 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
         currSurfaceUIRange_.Merge(currUIRange);
         node.ResetUIFrameRateRange();
     }
-
-    PrepareBaseRenderNode(node);
-    node.UpdateParentChildrenRect(logicParentNode_.lock());
-
-    parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
-    curAlpha_ = alpha;
-    dirtyFlag_ = dirtyFlag;
-    prepareClipRect_ = prepareClipRect;
 }
 
 void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
@@ -1092,17 +1095,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     node.SetGlobalAlpha(curAlpha_);
     node.UpdateChildrenOutOfRectFlag(false);
 
-    auto currRSRange = node.GetRSFrameRateRange();
-    if (currRSRange.IsValid()) {
-        currSurfaceRSRange_.Merge(currRSRange);
-        node.ResetRSFrameRateRange();
-    }
-
-    auto currUIRange = node.GetUIFrameRateRange();
-    if (currUIRange.IsValid()) {
-        currSurfaceUIRange_.Merge(currUIRange);
-        node.ResetUIFrameRateRange();
-    }
+    UpdateSurfaceFrameRateRange(node);
 
     PrepareBaseRenderNode(node);
     // attention: accumulate direct parent's childrenRect
