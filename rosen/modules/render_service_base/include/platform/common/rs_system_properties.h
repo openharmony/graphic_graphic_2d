@@ -128,6 +128,7 @@ public:
     static bool GetProxyNodeDebugEnabled();
     static bool GetFilterCacheEnabled();
     static int GetFilterCacheUpdateInterval();
+    static int GetFilterCacheSizeThreshold();
     static bool GetKawaseEnabled();
     static bool GetSkipForAlphaZeroEnabled();
 

@@ -142,7 +142,7 @@ public:
 
     // update parent's children rect including childRect and itself
     void UpdateParentChildrenRect(std::shared_ptr<RSBaseRenderNode> parentNode) const;
-    void UpdateFilterCacheManagerWithCacheRegion() const;
+    void UpdateFilterCacheManagerWithCacheRegion(const std::optional<RectI>& clipRect = std::nullopt) const;
 
     void SetStaticCached(bool isStaticCached)
     {
@@ -526,7 +526,6 @@ private:
     float boundsWidth_ = 0.0f;
     float boundsHeight_ = 0.0f;
     std::unordered_set<RSModifierType> dirtyTypes_;
-    static bool isUniRender_;
 
     friend class RSRenderTransition;
     friend class RSRenderNodeMap;

@@ -813,28 +813,37 @@ void RSBorder::PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing
 }
 
 std::string RSBorder::ToString() const
-    {
-        std::stringstream ss;
-        if (colors_.size() > 0) {
-            ss << "colors: ";
-        }
-        for (auto color : colors_) {
-            ss << color.AsArgbInt() << ", ";
-        }
-        if (widths_.size() > 0) {
-            ss << "widths: ";
-        }
-        for (auto width : widths_) {
-            ss << width << ", ";
-        }
-        if (styles_.size() > 0) {
-            ss << "styles: ";
-        }
-        for (auto style : styles_) {
-            ss << static_cast<uint32_t>(style) << ", ";
-        }
-        std::string output = ss.str();
-        return output;
+{
+    std::stringstream ss;
+    if (colors_.size() > 0) {
+        ss << "colors: ";
     }
+    for (auto color : colors_) {
+        ss << color.AsArgbInt() << ", ";
+    }
+    if (widths_.size() > 0) {
+        ss << "widths: ";
+    }
+    for (auto width : widths_) {
+        ss << width << ", ";
+    }
+    if (styles_.size() > 0) {
+        ss << "styles: ";
+    }
+    for (auto style : styles_) {
+        ss << static_cast<uint32_t>(style) << ", ";
+    }
+    std::string output = ss.str();
+    return output;
+}
+
+bool RSBorder::HasBorder() const
+{
+    return !colors_.empty() && !widths_.empty() && !styles_.empty() &&
+        !std::all_of(colors_.begin(), colors_.end(), [](const Color& color) { return color.GetAlpha() == 0; }) &&
+        !std::all_of(widths_.begin(), widths_.end(), [](const float& width) { return width <= 0.f; }) &&
+        !std::all_of(
+            styles_.begin(), styles_.end(), [](const BorderStyle& style) { return style == BorderStyle::NONE; });
+}
 } // namespace Rosen
 } // namespace OHOS

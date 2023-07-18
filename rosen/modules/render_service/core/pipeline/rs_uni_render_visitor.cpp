@@ -477,7 +477,7 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
     if (curSurfaceDirtyManager_) {
         curSurfaceDirtyManager_->Clear();
         curSurfaceDirtyManager_->UpdateVisitedDirtyRects(accumulatedDirtyRegions_);
-        node.UpdateFilterCacheStatusIfNodeStatic();
+        node.UpdateFilterCacheStatusIfNodeStatic(prepareClipRect_);
     }
     // static surface keeps same position
     curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), curDisplayNode_->GetLastFrameSurfacePos(node.GetId()));
@@ -681,7 +681,7 @@ void RSUniRenderVisitor::UpdateForegroundFilterCacheWithDirty(RSRenderNode& node
 {
 #ifndef USE_ROSEN_DRAWING
     node.UpdateFilterCacheWithDirty(*curSurfaceDirtyManager_, true);
-    node.UpdateFilterCacheManagerWithCacheRegion();
+    node.UpdateFilterCacheManagerWithCacheRegion(prepareClipRect_);
     // record node's rect if it has valid filter cache
     if (node.IsFilterCacheValid()) {
         curSurfaceDirtyManager_->UpdateCacheableFilterRect(node.GetOldDirtyInSurface());

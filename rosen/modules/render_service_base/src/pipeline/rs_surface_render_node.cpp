@@ -762,7 +762,7 @@ void RSSurfaceRenderNode::UpdateFilterNodes(const std::shared_ptr<RSRenderNode>&
     filterNodes_.emplace_back(nodePtr);
 }
 
-void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic()
+void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect)
 {
     if (!dirtyManager_) {
         return;
@@ -775,8 +775,8 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic()
         }
         node->UpdateFilterCacheWithDirty(*dirtyManager_, false);
         node->UpdateFilterCacheWithDirty(*dirtyManager_, true);
-        node->UpdateFilterCacheManagerWithCacheRegion();
-        // collect valid filternodes for occlusion optimization
+        node->UpdateFilterCacheManagerWithCacheRegion(clipRect);
+        // collect valid filter nodes for occlusion optimization
         if (node->IsFilterCacheValid()) {
             dirtyManager_->UpdateCacheableFilterRect(node->GetOldDirtyInSurface());
         }

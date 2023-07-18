@@ -686,7 +686,7 @@ public:
     }
     void UpdateFilterNodes(const std::shared_ptr<RSRenderNode>& nodePtr);
     // update static node's back&front-ground filter cache status
-    void UpdateFilterCacheStatusIfNodeStatic();
+    void UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect);
 
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
