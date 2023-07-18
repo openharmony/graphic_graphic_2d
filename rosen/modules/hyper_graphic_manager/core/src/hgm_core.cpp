@@ -228,6 +228,18 @@ int32_t HgmCore::SetRefreshRateMode(RefreshRateMode refreshRateMode)
     return EXEC_SUCCESS;
 }
 
+int32_t HgmCore::SetDefaultRefreshRateMode()
+{
+    if (!mParsedConfigData_) {
+        HGM_LOGW("HgmCore no parsed xml configuration found, failed to apply refreshrate mode");
+        return HGM_ERROR;
+    }
+    int32_t mode = std::stoi(mParsedConfigData_->defaultRefreshRateMode_);
+    HGM_LOGD("HgmCore set default refreshrate mode to : %{public}d", mode);
+
+    return SetRefreshRateMode(static_cast<RefreshRateMode>(mode));
+}
+
 int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode)
 {
     // add a physical screen to hgm during hotplug event

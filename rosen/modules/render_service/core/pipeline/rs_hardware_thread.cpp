@@ -145,7 +145,6 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
 
 void RSHardwareThread::PerformSetActiveMode()
 {
-    RS_TRACE_NAME("RSHardwareThread::PerformSetActiveMode setting active mode");
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
@@ -169,6 +168,12 @@ void RSHardwareThread::PerformSetActiveMode()
         return;
     }
 
+    if (lockRefreshRateOnce_ == false) {
+        hgmCore.SetDefaultRefreshRateMode();
+        lockRefreshRateOnce_ = true;
+    }
+
+    RS_TRACE_NAME("RSHardwareThread::PerformSetActiveMode setting active mode");
     for (auto mapIter = modeMap->begin(); mapIter != modeMap->end(); ++mapIter) {
         ScreenId id = mapIter->first;
         int32_t modeId = mapIter->second;
