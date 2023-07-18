@@ -240,7 +240,7 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
 }
 #endif
 
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
 static sk_sp<SkImage> GetSkImageFromSurfaceBuffer(SkCanvas& canvas, sptr<SurfaceBuffer> surfaceBuffer)
 {
     if (surfaceBuffer == nullptr) {
@@ -307,7 +307,7 @@ static sk_sp<SkImage> GetSkImageFromSurfaceBuffer(SkCanvas& canvas, sptr<Surface
 #endif
     return skImage;
 }
-#endif
+#endif // ROSEN_OHOS & RS_ENABLE_GL
 
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
@@ -347,26 +347,26 @@ void RSImage::DrawImageRepeatRect(Drawing::Canvas& canvas)
     }
     // draw repeat rect
 #ifndef USE_ROSEN_DRAWING
-#ifdef ROSEN_OHOS
+#if !defined(ROSEN_OHOS) || !defined(RS_ENABLE_GL)
+    ConvertPixelMapToSkImage();
+#else
     if (pixelMap_ && pixelMap_->GetFd() && pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
         sptr<SurfaceBuffer> surfaceBuffer(reinterpret_cast<SurfaceBuffer*> (pixelMap_->GetFd()));
         image_ = GetSkImageFromSurfaceBuffer(canvas, surfaceBuffer);
     } else {
         ConvertPixelMapToSkImage();
     }
-#else
-    ConvertPixelMapToSkImage();
 #endif
 #else
-#ifdef ROSEN_OHOS
+#if !defined(ROSEN_OHOS) || !defined(RS_ENABLE_GL)
+    ConvertPixelMapToDrawingImage();
+#else
     if (pixelMap_ && pixelMap_->GetFd() && pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
         sptr<SurfaceBuffer> surfaceBuffer(reinterpret_cast<SurfaceBuffer*> (pixelMap_->GetFd()));
         image_ = GetSkImageFromSurfaceBuffer(canvas, surfaceBuffer);
     } else {
         ConvertPixelMapToDrawingImage();
     }
-#else
-    ConvertPixelMapToDrawingImage();
 #endif
 #endif
     UploadGpu(canvas);
