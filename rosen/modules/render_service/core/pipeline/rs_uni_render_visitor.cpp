@@ -67,18 +67,31 @@ static std::map<NodeId, uint32_t> cacheRenderNodeMap = {};
 static uint32_t cacheReuseTimes = 0;
 static std::mutex generateNodeContentCacheMutex;
 
-bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
+bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 {
-    for (auto& child : node.GetSortedChildren()) {
-        if (child != nullptr && child->IsInstanceOf<RSRootRenderNode>()) {
-            auto rootNode = child->ReinterpretCastTo<RSRootRenderNode>();
-            const auto& property = rootNode->GetRenderProperties();
-            if (property.GetFrameWidth() > 0 && property.GetFrameHeight() > 0 && rootNode->GetEnableRender()) {
-                return true;
-            }
+    if (child != nullptr && child->IsInstanceOf<RSRootRenderNode>()) {
+        auto rootNode = child->ReinterpretCastTo<RSRootRenderNode>();
+        const auto& property = rootNode->GetRenderProperties();
+        if (property.GetFrameWidth() > 0 && property.GetFrameHeight() > 0 && rootNode->GetEnableRender()) {
+            return true;
         }
     }
     return false;
+}
+
+bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
+{
+    bool result = false;
+    for (auto& child : node.GetSortedChildren()) {
+        result = CheckRootNodeReadyToDraw(child);
+        // when appWindow has abilityComponent node
+        if (child != nullptr && child->IsInstanceOf<RSSurfaceRenderNode>()) {
+            for (auto& surfaceNodeChild : child->GetSortedChildren()) {
+                result = CheckRootNodeReadyToDraw(surfaceNodeChild);
+            }
+        }
+    }
+    return result;
 }
 }
 
