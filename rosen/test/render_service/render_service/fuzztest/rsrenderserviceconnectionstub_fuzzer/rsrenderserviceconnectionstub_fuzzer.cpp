@@ -228,8 +228,6 @@ public:
 
     void ReportEventJankFrame(DataBaseRs info) override {}
 
-    void ReportEventFirstFrame(DataBaseRs info) override {}
-
     bool GetBitmap(NodeId id, SkBitmap& bitmap) override
     {
         return 0;

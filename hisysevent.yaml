@@ -77,15 +77,16 @@ JANK_STATS_RS:
 
 INTERACTION_RESPONSE_LATENCY:
   __BASE: {type: STATISTIC, level: MINOR, tag: performance, desc: interaction response statistics}
+  APP_PID: {type: INT32, desc: app process id}
   BUNDLE_NAME: {type: STRING, desc: package name}
   ABILITY_NAME: {type: STRING, desc: ability name}
   PROCESS_NAME: {type: STRING, desc: process name}
   PAGE_URL: {type: STRING, desc: page url}
   SCENE_ID: {type: STRING, desc: interation scene id}
-  INPUT_TIME: {type: INT64, desc: input time when multimodel receive from kernel}
-  ANIMATION_START_TIME: {type: INT64, desc: animation start time of the scene}
-  RENDER_TIME: {type: INT64, desc: render time of the scene}
-  RESPONSE_LATENCY: {type: INT64, desc: render time minus input time}
+  INPUT_TIME: {type: UINT64, desc: input time when multimodel receive from kernel}
+  ANIMATION_START_TIME: {type: UINT64, desc: animation start time of the scene}
+  RENDER_TIME: {type: UINT64, desc: render time of the scene}
+  RESPONSE_LATENCY: {type: UINT64, desc: render time minus input time}
 
 INTERACTION_COMPLETED_LATENCY:
   __BASE: {type: STATISTIC, level: MINOR, tag: performance, desc: interaction response statistics}
@@ -95,10 +96,10 @@ INTERACTION_COMPLETED_LATENCY:
   PROCESS_NAME: {type: STRING, desc: process name}
   PAGE_URL: {type: STRING, desc: page url}
   SCENE_ID: {type: STRING, desc: interation scene id}
-  INPUT_TIME: {type: INT64, desc: input time when multimodel receive from kernel}
-  ANIMATION_START_LATENCY: {type: INT64, desc: animation start time minus input time}
-  ANIMATION_END_LATENCY: {type: INT64, desc: end time of the scene}
-  E2E_LATENCY: {type: INT64, desc: end to end time}
+  INPUT_TIME: {type: UINT64, desc: input time when multimodel receive from kernel}
+  ANIMATION_START_LATENCY: {type: UINT64, desc: animation start time minus input time}
+  ANIMATION_END_LATENCY: {type: UINT64, desc: end time of the scene}
+  E2E_LATENCY: {type: UINT64, desc: end to end time}
 
 INTERACTION_RENDER_JANK:
   __BASE: {type: STATISTIC, level: MINOR, tag: performance, desc: interaction jank statistics}
@@ -110,16 +111,11 @@ INTERACTION_RENDER_JANK:
   PAGE_URL: {type: STRING, desc: page url}
   TOTAL_FRAMES: {type: INT32, desc: total frames}
   TOTAL_MISSED_FRAMES: {type: INT32, desc: total missed frames during the scene}
-  MAX_FRAMETIME: {type: INT64, desc: max single frame time during the scene}
+  MAX_FRAMETIME: {type: UINT64, desc: max single frame time during the scene}
+  AVERAGE_FRAMETIME: {type: FLOAT, desc: average frame time during the scene}
   MAX_SEQ_MISSED_FRAMES: {type: INT32, desc: max successive missed frames during the scene}
   IS_FOLD_DISP: {type: BOOL, desc: default false, set true if fold screen in expand state}
 
 FIRST_FRAME_DRAWN:
-  __BASE: {type: STATISTIC, level: MINOR, tag: performance, desc: interaction jank statistics}
+  __BASE: {type: BEHAVIOR, level: MINOR, tag: performance, desc: interaction jank statistics}
   APP_PID: {type: INT32, desc: app process id}
-  VERSION_CODE: {type: STRING, desc: version code}
-  VERSION_NAME: {type: STRING, desc: version name}
-  PROCESS_NAME: {type: STRING, desc: process name}
-  BUNDLE_NAME: {type: STRING, desc: package name}
-  ABILITY_NAME: {type: STRING, desc: ability name}
-  PAGE_URL: {type: STRING, desc: page url}

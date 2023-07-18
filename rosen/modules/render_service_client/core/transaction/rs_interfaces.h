@@ -149,8 +149,6 @@ public:
     void ReportEventComplete(DataBaseRs info);
 
     void ReportEventJankFrame(DataBaseRs info);
-
-    void ReportEventFirstFrame(DataBaseRs info);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

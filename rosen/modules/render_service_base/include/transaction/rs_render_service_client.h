@@ -199,8 +199,6 @@ public:
 
     void ReportEventJankFrame(DataBaseRs info);
 
-    void ReportEventFirstFrame(DataBaseRs info);
-
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
     std::mutex mutex_;
