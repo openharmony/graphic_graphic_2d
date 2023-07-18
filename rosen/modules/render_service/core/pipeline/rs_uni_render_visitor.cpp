@@ -417,19 +417,19 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     if (currDisplayRSRange_.IsValid()) {
         finalRange.Merge(currDisplayRSRange_);
         rsFrameRateRangeMap_[node.GetId()] = currDisplayRSRange_;
-        ROSEN_LOGI("RSUniRenderVisitor::PrepareDisplayRenderNode current \
+        ROSEN_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode current \
             FrameRateRange(RS) is [%d, %d, %d]", currDisplayRSRange_.min_,
             currDisplayRSRange_.max_, currDisplayRSRange_.preferred_);
     }
     if (currDisplayUIRange_.IsValid()) {
         finalRange.Merge(currDisplayUIRange_);
-        ROSEN_LOGI("RSUniRenderVisitor::PrepareDisplayRenderNode current \
+        ROSEN_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode current \
             FrameRateRange(UI) is [%d, %d, %d]", currDisplayUIRange_.min_,
             currDisplayUIRange_.max_, currDisplayUIRange_.preferred_);
     }
     if (finalRange.IsValid()) {
         finalFrameRateRangeMap_[node.GetId()] = finalRange;
-        ROSEN_LOGI("RSUniRenderVisitor::PrepareDisplayRenderNode final \
+        ROSEN_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode final \
             FrameRateRange is [%d, %d, %d]", finalRange.min_,
             finalRange.max_, finalRange.preferred_);
     }
