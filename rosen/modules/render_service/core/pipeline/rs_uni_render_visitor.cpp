@@ -52,7 +52,6 @@
 #include "render/rs_skia_filter.h"
 #include "pipeline/parallel_render/rs_parallel_render_manager.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
-#include "system/rs_system_parameters.h"
 #ifdef RS_ENABLE_RECORDING
 #include "benchmarks/rs_recording_thread.h"
 #endif
@@ -105,6 +104,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     auto mainThread = RSMainThread::Instance();
     renderEngine_ = mainThread->GetRenderEngine();
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
+    quickSkipPrepareType_ = RSSystemParameters::GetQuickSkipPrepareType();
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     auto screenNum = screenManager->GetAllScreenIds().size();
     isPartialRenderEnabled_ = (screenNum <= 1) && (partialRenderType_ != PartialRenderType::DISABLED);
@@ -116,7 +116,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isOcclusionEnabled_ = RSSystemProperties::GetOcclusionEnabled();
     isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE)
         && (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_ && !isOpaqueRegionDfxEnabled_);
-    isQuickSkipPreparationEnabled_ = RSSystemProperties::GetQuickSkipPrepareEnabled();
+    isQuickSkipPreparationEnabled_ = (quickSkipPrepareType_ != QuickSkipPrepareType::DISABLED);
     isHardwareComposerEnabled_ = RSSystemProperties::GetHardwareComposerEnabled();
     isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
     RSTagTracker::UpdateReleaseGpuResourceEnable(RSSystemProperties::GetReleaseGpuResourceEnabled());
@@ -476,15 +476,20 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
         return false;
     }
     // if node has to be prepared, it's not static
-    if (RSMainThread::Instance()->CheckNodeHasToBePreparedByPid(node.GetId())) {
+    bool isClassifyByRootNode = (quickSkipPrepareType_ == QuickSkipPrepareType::STATIC_WIDGET);
+    NodeId rootId = node.GetRootSurfaceNodeId();
+    if (RSMainThread::Instance()->CheckNodeHasToBePreparedByPid(node.GetId(), rootId, isClassifyByRootNode)) {
         return false;
     }
     if (node.IsAppWindow()) {
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-        // [Attention] node's ability pid could be different
+        // [Attention] node's ability pid could be different but should have same rootId
         auto abilityNodeIds = node.GetAbilityNodeIds();
-        if (std::any_of(abilityNodeIds.begin(), abilityNodeIds.end(),
-                [&](uint64_t nodeId) { return RSMainThread::Instance()->CheckNodeHasToBePreparedByPid(nodeId); })) {
+        auto iter = std::any_of(abilityNodeIds.begin(), abilityNodeIds.end(),
+            [&](uint64_t nodeId) {
+                return RSMainThread::Instance()->CheckNodeHasToBePreparedByPid(nodeId, rootId, isClassifyByRootNode);
+            });
+        if (iter) {
             return false;
         }
     }

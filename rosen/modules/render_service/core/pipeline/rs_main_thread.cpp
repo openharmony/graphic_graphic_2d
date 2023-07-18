@@ -238,7 +238,8 @@ void RSMainThread::Init()
         InformHgmNodeInfo();
         ReleaseAllNodesBuffer();
         SendCommands();
-        activeProcessPids_.clear();
+        activeAppsInProcess_.clear();
+        activeProcessNodeIds_.clear();
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         SetRSEventDetectorLoopFinishTag();
         rsEventManager_.UpdateParam();
@@ -630,7 +631,11 @@ void RSMainThread::ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& 
 {
     context_->transactionTimestamp_ = rsTransactionData->GetTimestamp();
     rsTransactionData->Process(*context_);
-    activeProcessPids_.emplace(pid);
+    for (auto& [nodeId, followType, command] : rsTransactionData->GetPayload()) {
+        if (command != nullptr) {
+            AddActiveNodeId(pid, command->GetNodeId());
+        }
+    }
 }
 
 void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid)
@@ -707,7 +712,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             this->bufferTimestamps_[surfaceNode->GetId()] = static_cast<uint64_t>(surfaceNode->GetTimestamp());
             if (surfaceNode->IsCurrentFrameBufferConsumed()) {
                 // collect surface view's pid to prevent wrong skip
-                activeProcessPids_.emplace(ExtractPid(surfaceNode->GetId()));
+                AddActiveNodeId(ExtractPid(surfaceNode->GetId()), surfaceNode->GetId());
             }
         }
 
@@ -763,7 +768,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
         for (auto& surfaceNode : hardwareEnabledNodes_) {
             if (surfaceNode->IsLastFrameHardwareEnabled()) {
                 surfaceNode->SetContentDirty();
-                activeProcessPids_.emplace(ExtractPid(surfaceNode->GetId()));
+                AddActiveNodeId(ExtractPid(surfaceNode->GetId()), surfaceNode->GetId());
             }
         }
     }
@@ -1402,7 +1407,7 @@ void RSMainThread::Animate(uint64_t timestamp)
             RS_LOGD("RSMainThread::Animate skip the cached node");
             return false;
         }
-        activeProcessPids_.emplace(ExtractPid(node->GetId()));
+        AddActiveNodeId(ExtractPid(node->GetId()), node->GetId());
         auto [hasRunningAnimation, nodeNeedRequestNextVsync] = node->Animate(timestamp);
         if (!hasRunningAnimation) {
             RS_LOGD("RSMainThread::Animate removing finished animating node %" PRIu64, node->GetId());
@@ -1993,9 +1998,19 @@ void RSMainThread::SetAppWindowNum(uint32_t num)
     appWindowNum_ = num;
 }
 
-void RSMainThread::AddActivePid(pid_t pid)
+void RSMainThread::AddActiveNodeId(pid_t pid, NodeId id)
 {
-    activeProcessPids_.emplace(pid);
+    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
+    if (node == nullptr) {
+        RS_LOGE("AddActiveNodeId: node is nullptr");
+        return;
+    }
+    if (id == 0) {
+        activeAppsInProcess_[pid].emplace(id);
+    } else {
+        activeAppsInProcess_[pid].emplace(node->GetRootSurfaceNodeId());
+        activeProcessNodeIds_[node->GetRootSurfaceNodeId()].emplace(id);
+    }
 }
 
 void RSMainThread::ResetHardwareEnabledState()

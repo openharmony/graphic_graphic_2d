@@ -393,7 +393,6 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData001, TestSize.Level1)
     rsTransactionData->MarkNeedSync();
     rsTransactionData->SetSyncId(0);
     mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
-    ASSERT_EQ(mainThread->activeProcessPids_.empty(), false);
 
     // when syncTransactionData_ is not empty and SyncId is equal or smaller
     rsTransactionData->SetSyncTransactionNum(1);
@@ -563,19 +562,20 @@ HWTEST_F(RSMainThreadTest, ResetSortedChildren, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddActivePid
- * @tc.desc: Test AddActivePid, add pid, check if success
+ * @tc.name: AddActiveNodeId
+ * @tc.desc: Test AddActiveNodeId, add fake nodeid info, check if fails
  * @tc.type: FUNC
  * @tc.require: issueI6Q9A2
  */
-HWTEST_F(RSMainThreadTest, AddActivePid, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, AddActiveNodeId, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    mainThread->activeProcessPids_.clear();
+    mainThread->activeAppsInProcess_.clear();
+    mainThread->activeProcessNodeIds_.clear();
     pid_t pid = 1;
-    mainThread->AddActivePid(pid);
-    ASSERT_EQ(static_cast<int>(mainThread->activeProcessPids_.size()), 1);
-    ASSERT_EQ(*(mainThread->activeProcessPids_.begin()), pid);
+    NodeId id = ((NodeId)pid << 32) + 1;
+    mainThread->AddActiveNodeId(pid, id);
+    ASSERT_EQ(static_cast<int>(mainThread->activeAppsInProcess_[pid].size()), 0);
 }
 
 /**
