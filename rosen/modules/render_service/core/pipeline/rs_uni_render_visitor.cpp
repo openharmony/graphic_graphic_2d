@@ -417,21 +417,18 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     if (currDisplayRSRange_.IsValid()) {
         finalRange.Merge(currDisplayRSRange_);
         rsFrameRateRangeMap_[node.GetId()] = currDisplayRSRange_;
-        ROSEN_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode current \
-            FrameRateRange(RS) is [%d, %d, %d]", currDisplayRSRange_.min_,
-            currDisplayRSRange_.max_, currDisplayRSRange_.preferred_);
+        ROSEN_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode curr FrameRateRange(RS) is [%d, %d, %d]",
+            currDisplayRSRange_.min_, currDisplayRSRange_.max_, currDisplayRSRange_.preferred_);
     }
     if (currDisplayUIRange_.IsValid()) {
         finalRange.Merge(currDisplayUIRange_);
-        ROSEN_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode current \
-            FrameRateRange(UI) is [%d, %d, %d]", currDisplayUIRange_.min_,
-            currDisplayUIRange_.max_, currDisplayUIRange_.preferred_);
+        ROSEN_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode curr FrameRateRange(UI) is [%d, %d, %d]",
+            currDisplayUIRange_.min_, currDisplayUIRange_.max_, currDisplayUIRange_.preferred_);
     }
     if (finalRange.IsValid()) {
         finalFrameRateRangeMap_[node.GetId()] = finalRange;
-        ROSEN_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode final \
-            FrameRateRange is [%d, %d, %d]", finalRange.min_,
-            finalRange.max_, finalRange.preferred_);
+        ROSEN_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode final FrameRateRange is [%d, %d, %d]",
+            finalRange.min_, finalRange.max_, finalRange.preferred_);
     }
     currDisplayRSRange_.Reset();
     currDisplayUIRange_.Reset();
@@ -982,6 +979,19 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
         parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
     }
     node.UpdateChildrenOutOfRectFlag(false);
+
+    auto currRSRange = node.GetRSFrameRateRange();
+    if (currRSRange.IsValid()) {
+        currSurfaceRSRange_.Merge(currRSRange);
+        node.ResetRSFrameRateRange();
+    }
+
+    auto currUIRange = node.GetUIFrameRateRange();
+    if (currUIRange.IsValid()) {
+        currSurfaceUIRange_.Merge(currUIRange);
+        node.ResetUIFrameRateRange();
+    }
+
     PrepareBaseRenderNode(node);
     node.UpdateParentChildrenRect(logicParentNode_.lock());
 
