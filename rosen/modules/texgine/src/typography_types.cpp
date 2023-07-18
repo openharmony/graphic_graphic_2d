@@ -52,7 +52,7 @@ void operator&=(TextAlign &a, const TextAlign &b)
 
 void operator|=(TextAlign &a, const TextAlign &b)
 {
-    a = static_cast<TextAlign>(static_cast<int>(a) | static_cast<int>(b));
+    a = static_cast<TextAlign>(static_cast<unsigned int>(a) | static_cast<unsigned int>(b));
 }
 
 void operator^=(TextAlign &a, const TextAlign &b)
@@ -62,17 +62,17 @@ void operator^=(TextAlign &a, const TextAlign &b)
 
 TextDecoration operator&(const TextDecoration &a, const TextDecoration &b)
 {
-    return static_cast<enum TextDecoration>(static_cast<int32_t>(a) & static_cast<int32_t>(b));
+    return static_cast<enum TextDecoration>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
 }
 
 TextDecoration operator|(const TextDecoration &a, const TextDecoration &b)
 {
-    return static_cast<enum TextDecoration>(static_cast<int32_t>(a) | static_cast<int32_t>(b));
+    return static_cast<enum TextDecoration>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
 }
 
 TextDecoration operator^(const TextDecoration &a, const TextDecoration &b)
 {
-    return static_cast<enum TextDecoration>(static_cast<int32_t>(a) ^ static_cast<int32_t>(b));
+    return static_cast<enum TextDecoration>(static_cast<uint32_t>(a) ^ static_cast<uint32_t>(b));
 }
 
 TextDecoration operator+(const TextDecoration &a, const TextDecoration &b)
@@ -82,7 +82,7 @@ TextDecoration operator+(const TextDecoration &a, const TextDecoration &b)
 
 void operator&=(TextDecoration &a, const TextDecoration &b)
 {
-    a = static_cast<enum TextDecoration>(static_cast<int32_t>(a) & static_cast<int32_t>(b));
+    a = static_cast<enum TextDecoration>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
 }
 
 void operator|=(TextDecoration &a, const TextDecoration &b)
@@ -92,7 +92,7 @@ void operator|=(TextDecoration &a, const TextDecoration &b)
 
 void operator^=(TextDecoration &a, const TextDecoration &b)
 {
-    a = static_cast<enum TextDecoration>(static_cast<int32_t>(a) ^ static_cast<int32_t>(b));
+    a = static_cast<enum TextDecoration>(static_cast<uint32_t>(a) ^ static_cast<uint32_t>(b));
 }
 
 void operator+=(TextDecoration &a, const TextDecoration &b)
