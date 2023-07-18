@@ -18,6 +18,8 @@
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
 #include <include/gpu/GrDirectContext.h>
+#else
+#include <include/gpu/GrContext.h>
 #endif
 #include "include/core/SkPaint.h"
 #include "include/core/SkRRect.h"
@@ -29,6 +31,17 @@
 #include "render/rs_pixel_map_util.h"
 #include "rs_trace.h"
 #include "sandbox_utils.h"
+
+#ifdef ROSEN_OHOS
+#include "EGL/egl.h"
+#include "EGL/eglext.h"
+#include "GLES2/gl2.h"
+#include "GLES2/gl2ext.h"
+
+#include "external_window.h"
+#include "surface_buffer.h"
+#include "window.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -227,6 +240,75 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
 }
 #endif
 
+#ifdef ROSEN_OHOS
+static sk_sp<SkImage> GetSkImageFromSurfaceBuffer(SkCanvas& canvas, sptr<SurfaceBuffer> surfaceBuffer)
+{
+    if (surfaceBuffer == nullptr) {
+        RS_LOGE("GetSkImageFromSurfaceBuffer surfaceBuffer is nullptr");
+        return nullptr;
+    }
+    OHNativeWindowBuffer* nativeWindowBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuffer);
+    if (!nativeWindowBuffer) {
+        RS_LOGE("GetSkImageFromSurfaceBuffer create native window buffer fail");
+        return nullptr;
+    }
+    EGLint attrs[] = {
+        EGL_IMAGE_PRESERVED,
+        EGL_TRUE,
+        EGL_NONE,
+    };
+
+    auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    EGLImageKHR eglImage = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer, attrs);
+    if (eglImage == EGL_NO_IMAGE_KHR) {
+        RS_LOGE("%s create egl image fail %d", __func__, eglGetError());
+        return nullptr;
+    }
+
+    // save
+    GLuint originTexture;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, reinterpret_cast<GLint *>(&originTexture));
+    GLint minFilter;
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &minFilter);
+    GLint magFilter;
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &magFilter);
+    GLint wrapS;
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &wrapS);
+    GLint wrapT;
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &wrapT);
+
+    // Create texture object
+    GLuint texId = 0;
+    glGenTextures(1, &texId);
+    glBindTexture(GL_TEXTURE_2D, texId);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, static_cast<GLeglImageOES>(eglImage));
+
+    // restore
+    glBindTexture(GL_TEXTURE_2D, originTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+
+    GrGLTextureInfo textureInfo = { GL_TEXTURE_2D, texId, GL_RGBA8_OES };
+
+    GrBackendTexture backendTexture(
+        surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), GrMipMapped::kNo, textureInfo);
+#ifdef NEW_SKIA
+    auto skImage = SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
+        kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
+#else
+    auto skImage = SkImage::MakeFromTexture(canvas.getGrContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
+        kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
+#endif
+    return skImage;
+}
+#endif
+
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
 void RSImage::DrawImageRepeatRect(const SkSamplingOptions& samplingOptions, const SkPaint& paint, SkCanvas& canvas)
@@ -265,9 +347,27 @@ void RSImage::DrawImageRepeatRect(Drawing::Canvas& canvas)
     }
     // draw repeat rect
 #ifndef USE_ROSEN_DRAWING
+#ifdef ROSEN_OHOS
+    if (pixelMap_ && pixelMap_->GetFd() && pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+        sptr<SurfaceBuffer> surfaceBuffer(reinterpret_cast<SurfaceBuffer*> (pixelMap_->GetFd()));
+        image_ = GetSkImageFromSurfaceBuffer(canvas, surfaceBuffer);
+    } else {
+        ConvertPixelMapToSkImage();
+    }
+#else
     ConvertPixelMapToSkImage();
+#endif
+#else
+#ifdef ROSEN_OHOS
+    if (pixelMap_ && pixelMap_->GetFd() && pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+        sptr<SurfaceBuffer> surfaceBuffer(reinterpret_cast<SurfaceBuffer*> (pixelMap_->GetFd()));
+        image_ = GetSkImageFromSurfaceBuffer(canvas, surfaceBuffer);
+    } else {
+        ConvertPixelMapToDrawingImage();
+    }
 #else
     ConvertPixelMapToDrawingImage();
+#endif
 #endif
     UploadGpu(canvas);
 #ifndef USE_ROSEN_DRAWING
