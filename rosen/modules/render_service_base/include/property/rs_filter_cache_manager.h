@@ -50,6 +50,11 @@ public:
     void UpdateCacheStateWithFilterRegion(const RectI& filterRegion);
     void UpdateCacheStateWithDirtyRegion(const RectI& dirtyRegion);
 
+    // Instead of passing a dirty region, we can directly pass the intersected result of dirty region and filter region
+    void UpdateCacheStateWithDirtyState(bool isIntersectedWithDirtyRegion);
+    // Extract the blur region from previous frame, used with UpdateCacheStateWithDirtyState()
+    const SkIRect GetBlurRegionInPreviousFrame() const;
+
     // Call in process phase, apply filter, will regenerate cache or reuse cache depends on the cache state.
     // Note: The caller should clip the canvas before calling this method, we'll use the DeviceClipRect as the blurred
     // and cached region.

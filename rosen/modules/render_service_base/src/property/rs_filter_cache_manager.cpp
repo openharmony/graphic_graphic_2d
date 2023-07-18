@@ -87,6 +87,26 @@ void RSFilterCacheManager::UpdateCacheStateWithDirtyRegion(const RectI& dirtyReg
     }
 }
 
+void RSFilterCacheManager::UpdateCacheStateWithDirtyState(bool isIntersectedWithDirtyRegion)
+{
+    if (cacheType_ == CacheType::CACHE_TYPE_NONE || isIntersectedWithDirtyRegion == false) {
+        return;
+    }
+    RS_TRACE_FUNC();
+
+    // The underlying image is affected by the dirty region, determine if the cache should be invalidated by cache  age.
+    // [PLANNING]: also take into account the filter radius / cache size / percentage of intersected area.
+    if (cacheUpdateInterval_ > 0) {
+        ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyState Delaying cache invalidation for %d frames.",
+            cacheUpdateInterval_);
+    } else {
+        ROSEN_LOGD(
+            "RSFilterCacheManager::UpdateCacheStateWithDirtyState Cache expired. Reason: Dirty region intersects "
+            "with cached region.");
+        InvalidateCache();
+    }
+}
+
 void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter)
 {
     // Filter validation is not needed, since it's already done in RSPropertiesPainter::DrawFilter.
@@ -303,6 +323,11 @@ void RSFilterCacheManager::ClipVisibleRect(RSPaintFilterCanvas& canvas) const
         canvas.clipIRect(visibleIRect);
 #endif
     }
+}
+
+const SkIRect RSFilterCacheManager::GetBlurRegionInPreviousFrame() const
+{
+    return blurRegion_;
 }
 } // namespace Rosen
 } // namespace OHOS
