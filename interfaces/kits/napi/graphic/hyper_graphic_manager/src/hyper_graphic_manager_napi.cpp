@@ -141,7 +141,11 @@ static napi_value GetScreenSupportedRefreshRates(napi_env env, napi_callback_inf
 
     napi_value returnRates = nullptr;
     NAPI_CALL(env, napi_create_array(env, &returnRates));
-    int numSupportedRates = currentRates.size();
+    if (currentRates.size() > static_cast<size_t>(OLED_MAX_HZ)) {
+        HGM_LOGE("Napi GetScreenCurrentRefreshRate got a vector too large");
+        napi_throw_error(env, NULL, "Napi GetScreenCurrentRefreshRate got a vector too large");
+    }
+    int numSupportedRates = static_cast<int>(currentRates.size());
     std::vector<napi_value> napiVector(numSupportedRates, nullptr);
     for (int index = 0; index < numSupportedRates; ++index) {
         if (currentRates[index] > static_cast<uint32_t>(OLED_MAX_HZ)) {

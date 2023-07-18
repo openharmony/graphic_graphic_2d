@@ -112,8 +112,8 @@ private:
         int32_t modeId_ = -1;
     };
 
-    ScreenId id_;
-    int32_t activeModeId_;
+    ScreenId id_ = 0;
+    int32_t activeModeId_ = 0;
     int32_t customFrameRateMode_ = -1;
     std::unordered_set<uint32_t> supportedRefreshRates_;
     std::unordered_set<int32_t> supportedModeIds_;

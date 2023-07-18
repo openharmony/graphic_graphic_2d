@@ -16,6 +16,9 @@
     <!-- enable or disable hgm -->
     <Param name="general_config_enable" value="1"/>
 
+    <!-- perform set refreshrate mode once -->
+    <Param name="default_refreshrate_mode" value="2"/>
+
     <!-- stategies to be applied for scenario -->
     <Params name="detailed_strategies">
         <Strat name="1" isDynamic="0" min="120" max="120"/>
