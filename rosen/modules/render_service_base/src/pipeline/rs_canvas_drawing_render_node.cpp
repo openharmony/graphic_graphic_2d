@@ -54,8 +54,8 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     if (!GetSizeFromDrawCmdModifiers(width, height)) {
         return;
     }
-
-    if (!skSurface_ || width != skSurface_->width() || height != skSurface_->height()) {
+    
+    if (IsNeedResetSurface(width, height)) {
         if (preThreadInfo_.second && skSurface_) {
             preThreadInfo_.second(std::move(skSurface_));
         }
@@ -245,6 +245,21 @@ bool RSCanvasDrawingRenderNode::GetSizeFromDrawCmdModifiers(int& width, int& hei
         return false;
     }
     return true;
+}
+
+bool RSCanvasDrawingRenderNode::IsNeedResetSurface(const int& width, const int& height) const
+{
+    if (!skSurface_) {
+        return true;
+    } else {
+        // There is no need to reapply the buffer during the animation, only if the size of the DrawCmdList set by ArkUI
+        // changes. When the component sets the margin and padding properties, ArkUI does not set the DrawCmdList size,
+        // in which case the size of the SkSurface should be the same as the size of Render Properties Bounds. In other
+        // cases, ArkUI sets the DrawCmdList to the same size as the Render Properties Bounds.
+        return (skSurface_->width() != width || skSurface_->height() != height) &&
+               (GetRenderProperties().GetBoundsWidth() != skSurface_->width() ||
+                   GetRenderProperties().GetBoundsHeight() != skSurface_->height());
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

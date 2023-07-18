@@ -1318,8 +1318,9 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::OnVsync");
     RSJankStats::GetInstance().SetStartTime();
     timestamp_ = timestamp;
-    curTime_ = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count();
+    curTime_ = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
     requestNextVsyncNum_ = 0;
     frameCount_++;
     if (isUniRender_) {
