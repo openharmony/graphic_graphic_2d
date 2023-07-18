@@ -61,6 +61,7 @@ private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type) const override;
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
+    bool IsNeedResetSurface(const int& width, const int& height) const;
 
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> skSurface_;
