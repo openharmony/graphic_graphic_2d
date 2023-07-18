@@ -752,6 +752,7 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     transparentRegion_.AndSelf(screenRegion);
     opaqueRegion_.AndSelf(screenRegion);
     opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();
+    ResetSurfaceContainerRegion(screeninfo, absRect, screenRotation);
 }
 
 Vector4f RSSurfaceRenderNode::GetWindowCornerRadius()
@@ -1025,6 +1026,26 @@ void RSSurfaceRenderNode::ResetSurfaceContainerRegion(const RectI& screeninfo, c
     }
     Occlusion::Region innerRectRegion{innerRect};
     containerRegion_ = absRegion.Sub(innerRectRegion);
+}
+
+bool RSSurfaceRenderNode::CheckOpaqueRegionBaseInfo(
+    const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow)
+{
+    // 0:screenRect, 1:absRect, 2:screenRotation, 3:isFocusWindow
+    return std::get<0>(OpaqueRegionBaseInfo_) == screeninfo &&
+        std::get<1>(OpaqueRegionBaseInfo_) == absRect &&
+        std::get<2>(OpaqueRegionBaseInfo_) == screenRotation &&
+        std::get<3>(OpaqueRegionBaseInfo_) == isFocusWindow;
+}
+
+void RSSurfaceRenderNode::SetOpaqueRegionBaseInfo(
+    const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow)
+{
+    // 0:screenRect, 1:absRect, 2:screenRotation, 3:isFocusWindow
+    std::get<0>(OpaqueRegionBaseInfo_) = screeninfo;
+    std::get<1>(OpaqueRegionBaseInfo_) = absRect;
+    std::get<2>(OpaqueRegionBaseInfo_) = screenRotation;
+    std::get<3>(OpaqueRegionBaseInfo_) = isFocusWindow;
 }
 
 // [planning] Remove this after skia is upgraded, the clipRegion is supported

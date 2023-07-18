@@ -342,8 +342,9 @@ public:
 
     void SetAbilityBGAlpha(uint8_t alpha)
     {
+        alphaChanged_ = (alpha == 255 && abilityBgAlpha_ != 255) ||
+            (alpha != 255 && abilityBgAlpha_ == 255);
         abilityBgAlpha_ = alpha;
-        alphaChanged_ = true;
     }
 
     uint8_t GetAbilityBgAlpha() const
@@ -569,6 +570,10 @@ public:
     Occlusion::Region SetCornerRadiusOpaqueRegion(const RectI& absRect, float radius) const;
     void ResetSurfaceContainerRegion(const RectI& screeninfo, const RectI& absRect,
         const ScreenRotation screenRotation);
+    bool CheckOpaqueRegionBaseInfo(
+        const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow);
+    void SetOpaqueRegionBaseInfo(
+        const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow);
 
     bool IsStartAnimationFinished() const;
     void SetStartAnimationFinished();
@@ -762,6 +767,9 @@ private:
     Occlusion::Region transparentRegion_;
 
     Occlusion::Region containerRegion_;
+
+    //<screenRect, absRect, screenRotation, isFocusWindow>
+    std::tuple<RectI, RectI, ScreenRotation, bool> OpaqueRegionBaseInfo_;
 
     /*
         ContainerWindow configs acquired from arkui, including container window state, screen density, container border

@@ -520,8 +520,11 @@ void RSRenderNode::SetGlobalAlpha(float alpha)
     if (globalAlpha_ == alpha) {
         return;
     }
+    if ((ROSEN_EQ(globalAlpha_, 1.0f) && alpha != 1.0f) ||
+        (ROSEN_EQ(alpha, 1.0f) && globalAlpha_ != 1.0f)) {
+        OnAlphaChanged();
+    }
     globalAlpha_ = alpha;
-    OnAlphaChanged();
 }
 
 float RSRenderNode::GetGlobalAlpha() const

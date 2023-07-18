@@ -389,6 +389,16 @@ public:
         return priority_;
     }
 
+    bool IsAncestorDirty() const
+    {
+        return isAncestorDirty_;
+    }
+
+    void SetIsAncestorDirty(bool isAncestorDirty)
+    {
+        isAncestorDirty_ = isAncestorDirty;
+    }
+
     bool HasCachedTexture() const
     {
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
@@ -502,6 +512,7 @@ private:
     bool hasFilter_ = false;
     bool hasHardwareNode_ = false;
     bool hasAbilityComponent_ = false;
+    bool isAncestorDirty_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 
     // driven render
