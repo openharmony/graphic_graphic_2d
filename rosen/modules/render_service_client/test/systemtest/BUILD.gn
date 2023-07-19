@@ -74,7 +74,7 @@ ohos_static_library("rs_client_test_common") {
     "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [ "multimedia_image_framework:image_native" ]
+  external_deps = [ "image_framework:image_native" ]
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"

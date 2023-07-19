@@ -60,7 +60,7 @@
           "init",
           "hicollie",
           "bounds_checking_function",
-          "multimedia_image_framework",
+          "image_framework",
           "cjson",
           "ipc",
           "player_framework",

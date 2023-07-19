@@ -153,10 +153,10 @@ ohos_source_set("rosen_ohos_sources") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
+    "image_framework:image_native",
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "multimedia_image_framework:image_native",
     "samgr:samgr_proxy",
   ]
 

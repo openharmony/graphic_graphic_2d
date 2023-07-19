@@ -138,7 +138,7 @@ template("render_service_client_source_set") {
         "c_utils:utils",
         "hisysevent:libhisysevent",
         "hitrace:hitrace_meter",
-        "multimedia_image_framework:image_native",
+        "image_framework:image_native",
       ]
 
       if (accessibility_enable) {
