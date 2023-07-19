@@ -76,6 +76,8 @@ std::pair<bool, bool> RSAnimationManager::Animate(int64_t time, bool nodeIsOnThe
     // process animation
     bool hasRunningAnimation = false;
     bool needRequestNextVsync = false;
+
+    rsRange_.Reset();
     // iterate and execute all animations, remove finished animations
     EraseIf(animations_, [this, &hasRunningAnimation, time,
         &needRequestNextVsync, nodeIsOnTheTree](auto& iter) -> bool {
@@ -90,11 +92,21 @@ std::pair<bool, bool> RSAnimationManager::Animate(int64_t time, bool nodeIsOnThe
         } else {
             hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
             needRequestNextVsync = animation->IsRunning() || needRequestNextVsync;
+
+            auto range = animation->GetFrameRateRange();
+            if (range.IsValid()) {
+                rsRange_.Merge(range);
+            }
         }
         return isFinished;
     });
 
     return { hasRunningAnimation, needRequestNextVsync };
+}
+
+FrameRateRange RSAnimationManager::GetFrameRateRangeFromRSAnimations()
+{
+    return rsRange_;
 }
 
 const std::shared_ptr<RSRenderAnimation> RSAnimationManager::GetAnimation(AnimationId id) const

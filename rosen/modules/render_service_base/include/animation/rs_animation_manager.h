@@ -23,6 +23,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "modifier/rs_modifier_type.h"
+#include "rs_frame_rate_range.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -58,6 +59,8 @@ public:
     void UnregisterPathAnimation(PropertyId propertyId, AnimationId animId);
     std::shared_ptr<RSRenderAnimation> QueryPathAnimation(PropertyId propertyId);
 
+    FrameRateRange GetFrameRateRangeFromRSAnimations();
+
 private:
     void OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation);
 
@@ -65,6 +68,8 @@ private:
     std::unordered_map<PropertyId, AnimationId> springAnimations_;
     std::unordered_map<PropertyId, AnimationId> pathAnimations_;
     friend class RSRenderNode;
+
+    FrameRateRange rsRange_ = {0, 0, 0};
 };
 } // namespace Rosen
 } // namespace OHOS

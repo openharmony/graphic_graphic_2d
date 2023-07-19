@@ -126,6 +126,16 @@ public:
         return animationFraction_.GetDirection();
     }
 
+    void SetFrameRateRange(FrameRateRange range)
+    {
+        animationFraction_.SetFrameRateRange(range);
+    }
+
+    FrameRateRange GetFrameRateRange() const
+    {
+        return animationFraction_.GetFrameRateRange();
+    }
+
     void Attach(RSRenderNode* renderNode);
     void Detach();
     RSRenderNode* GetTarget() const;

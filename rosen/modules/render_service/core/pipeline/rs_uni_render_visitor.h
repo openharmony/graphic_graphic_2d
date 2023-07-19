@@ -148,6 +148,10 @@ public:
         renderFrame_ = std::move(renderFrame);
     }
     void SetAppWindowNum(uint32_t num);
+
+    void ResetFrameRateRangeMaps();
+    void UpdateSurfaceFrameRateRange(RSRenderNode& node);
+
 private:
     void DrawWatermarkIfNeed();
 #ifndef USE_ROSEN_DRAWING
@@ -400,6 +404,15 @@ private:
 #endif
     bool curDirty_ = false;
     bool curContentDirty_ = false;
+
+    // calculate preferred fps
+    FrameRateRange currSurfaceRSRange_ = {0, 0, 0};
+    FrameRateRange currSurfaceUIRange_ = {0, 0, 0};
+    FrameRateRange currDisplayRSRange_ = {0, 0, 0};
+    FrameRateRange currDisplayUIRange_ = {0, 0, 0};
+    std::unordered_map<NodeId, FrameRateRange> rsFrameRateRangeMap_; // RSDisplayRenderNode id
+    std::unordered_map<NodeId, FrameRateRange> uiFrameRateRangeMap_; // RSSurfaceRenderNode id
+    std::unordered_map<NodeId, FrameRateRange> finalFrameRateRangeMap_; // RSDisplayRenderNode id
 };
 } // namespace Rosen
 } // namespace OHOS

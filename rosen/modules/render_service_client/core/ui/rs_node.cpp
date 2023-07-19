@@ -1280,5 +1280,19 @@ void RSNode::SetColorBlend(uint32_t colorValue)
     auto colorBlend = Color::FromArgbInt(colorValue);
     SetProperty<RSColorBlendModifier, RSAnimatableProperty<Color>>(RSModifierType::COLOR_BLEND, colorBlend);
 }
+
+void RSNode::UpdateFrameRateRange(FrameRateRange range)
+{
+    if (!range.IsValid()) {
+        return;
+    }
+    nodeRange_ = range;
+
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetUIFrameRateRange>(GetId(), range);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -130,5 +130,13 @@ void RSNodeCommandHelper::UnregisterGeometryTransitionPair(RSContext& context, N
         outNode->SetSharedTransitionParam(std::nullopt);
     }
 }
+
+void RSNodeCommandHelper::SetUIFrameRateRange(RSContext& context, NodeId nodeId, FrameRateRange range)
+{
+    auto& nodeMap = context.GetNodeMap();
+    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+        node->SetUIFrameRateRange(range);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

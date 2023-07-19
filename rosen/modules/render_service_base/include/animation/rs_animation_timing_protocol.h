@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_ANIMATION_TIMING_PROTOCOL_H
 
 #include "common/rs_common_def.h"
+#include "rs_frame_rate_range.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -68,6 +69,11 @@ public:
         isForward_ = isForward;
     }
 
+    void SetFrameRateRange(FrameRateRange range)
+    {
+        range_ = range;
+    }
+
     int GetDuration() const
     {
         return duration_;
@@ -103,6 +109,11 @@ public:
         return isForward_;
     }
 
+    FrameRateRange GetFrameRateRange() const
+    {
+        return range_;
+    }
+
     static const RSAnimationTimingProtocol DEFAULT;
     static const RSAnimationTimingProtocol IMMEDIATE;
 
@@ -114,6 +125,7 @@ protected:
     bool autoReverse_ { false };
     FillMode fillMode_ { FillMode::FORWARDS };
     bool isForward_ { true };
+    FrameRateRange range_ = {0, 0, 0};
 };
 } // namespace Rosen
 } // namespace OHOS
