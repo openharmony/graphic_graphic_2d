@@ -131,6 +131,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isCalcCostEnable_ = RSSystemParameters::GetCalcCostEnabled();
 #endif
     isUIFirst_ = RSSystemProperties::GetUIFirstEnabled();
+    frameRateMgr_ = std::make_unique<RSUniRenderFrameRateManager>();
 }
 
 RSUniRenderVisitor::RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas, uint32_t surfaceIndex)
@@ -443,6 +444,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         finalFrameRateRangeMap_[node.GetId()] = finalRange;
         ROSEN_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode final FrameRateRange is [%d, %d, %d]",
             finalRange.min_, finalRange.max_, finalRange.preferred_);
+        frameRateMgr_->UpdateFrameRateRange(node.GetScreenId(), finalRange);
     }
     currDisplayRSRange_.Reset();
     currDisplayUIRange_.Reset();
@@ -3761,6 +3763,12 @@ void RSUniRenderVisitor::ResetFrameRateRangeMaps()
     rsFrameRateRangeMap_.clear();
     uiFrameRateRangeMap_.clear();
     finalFrameRateRangeMap_.clear();
+    frameRateMgr_->ResetFrameRateRangeMap();
+}
+
+void RSUniRenderVisitor::FindAndSendRefreshRate()
+{
+    frameRateMgr_->FindAndSendRefreshRate();
 }
 } // namespace Rosen
 } // namespace OHOS

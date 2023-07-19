@@ -28,6 +28,7 @@
 #include "pipeline/driven_render/rs_driven_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
+#include "pipeline/rs_uni_render_frame_rate_manager.h"
 #include "platform/ohos/overdraw/rs_cpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_gpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
@@ -151,6 +152,7 @@ public:
 
     void ResetFrameRateRangeMaps();
     void UpdateSurfaceFrameRateRange(RSRenderNode& node);
+    void FindAndSendRefreshRate();
 
 private:
     void DrawWatermarkIfNeed();
@@ -413,6 +415,8 @@ private:
     std::unordered_map<NodeId, FrameRateRange> rsFrameRateRangeMap_; // RSDisplayRenderNode id
     std::unordered_map<NodeId, FrameRateRange> uiFrameRateRangeMap_; // RSSurfaceRenderNode id
     std::unordered_map<NodeId, FrameRateRange> finalFrameRateRangeMap_; // RSDisplayRenderNode id
+
+    std::unique_ptr<RSUniRenderFrameRateManager> frameRateMgr_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -1047,6 +1047,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RSUniRenderUtil::CacheSubThreadNodes(subThreadNodes_, subThreadNodes);
         }
         rootNode->Process(uniVisitor);
+        uniVisitor->FindAndSendRefreshRate();
     }
     isDirty_ = false;
     uniRenderEngine_->ShrinkCachesIfNeeded();
