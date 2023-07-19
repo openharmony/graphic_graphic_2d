@@ -28,17 +28,21 @@
 #define RS_ASYNC_TRACE_END(name, value) FinishAsyncTrace(HITRACE_TAG_GRAPHIC_AGP, name, value)
 #define RS_TRACE_INT(name, value) CountTrace(HITRACE_TAG_GRAPHIC_AGP, name, value)
 #define RS_TRACE_FUNC() RS_TRACE_NAME(__func__)
+
+#elif defined ROSEN_ANDROID
+#include "rs_trace_crossplatform.h"
 #else
+
 #define ROSEN_TRACE_BEGIN(tag, name)
 #define RS_TRACE_BEGIN(name)
 #define ROSEN_TRACE_END(tag)
 #define RS_TRACE_END()
-#define RS_TRACE_NAME(name)
 #define RS_TRACE_NAME_FMT(fmt, ...)
 #define RS_ASYNC_TRACE_BEGIN(name, value)
 #define RS_ASYNC_TRACE_END(name, value)
 #define RS_TRACE_INT(name, value)
+#define RS_TRACE_NAME(name)
 #define RS_TRACE_FUNC()
-#endif
+#endif //ROSEN_TRACE_DISABLE
 
 #endif // GRAPHIC_RS_TRACE_H
