@@ -48,6 +48,30 @@ void SimplifyPaint(uint32_t color, SkPaint* paint)
 }
 } // namespace
 
+OpItemTasks& OpItemTasks::Instance()
+{
+    static OpItemTasks instance;
+    return instance;
+}
+
+void OpItemTasks::AddTask(std::function<void()> task)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    tasks_.push_back(task);
+}
+
+void OpItemTasks::ProcessTask()
+{
+    std::vector<std::function<void()>> tasks = {};
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        std::swap(tasks, tasks_);
+    }
+    for (auto& task : tasks) {
+        task();
+    }
+}
+
 std::unique_ptr<OpItem> OpItemWithPaint::GenerateCachedOpItem(
     const RSPaintFilterCanvas* canvas, const SkRect* rect) const
 {
@@ -87,8 +111,6 @@ std::unique_ptr<OpItem> OpItemWithPaint::GenerateCachedOpItem(
 
     // draw on the bitmap.
     Draw(*offscreenCanvas, rect);
-    // flush to make sure all drawing commands are executed, maybe unnecessary
-    offscreenCanvas->flush();
 
     // generate BitmapOpItem with correct offset
     SkPaint paint;

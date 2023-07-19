@@ -27,6 +27,7 @@
 #endif
 #include "rs_trace.h"
 
+#include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "memory/rs_tag_tracker.h"
@@ -35,6 +36,7 @@
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_cold_start_thread.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -66,6 +68,8 @@ static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 static std::map<NodeId, uint32_t> cacheRenderNodeMap = {};
 static uint32_t cacheReuseTimes = 0;
 static std::mutex generateNodeContentCacheMutex;
+static std::unordered_map<NodeId, std::pair<RSUniRenderVisitor::RenderParam,
+    std::unordered_map<NodeId, RSUniRenderVisitor::RenderParam>>> groupedTransitionNodes = {};
 
 bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 {
@@ -2056,6 +2060,10 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_TRACE_END();
         }
 #endif
+        RSBackgroundThread::Instance().PostTask([]() {
+            RS_TRACE_NAME("RSUniRender:OpItemTasks ProcessTask");
+            OpItemTasks::Instance().ProcessTask();
+        });
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
         RS_TRACE_END();
@@ -2770,10 +2778,17 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
     node.ProcessTransitionBeforeChildren(*canvas_);
     switch (cacheType) {
         case CacheType::NONE: {
+            auto preCache = canvas_->GetCacheType();
+            if (node.HasCacheableAnim() && isDrawingCacheEnabled_) {
+                canvas_->SetCacheType(RSPaintFilterCanvas::CacheType::ENABLED);
+            }
             node.ProcessAnimatePropertyBeforeChildren(*canvas_);
             node.ProcessRenderContents(*canvas_);
             ProcessBaseRenderNode(node);
             node.ProcessAnimatePropertyAfterChildren(*canvas_);
+            if (node.HasCacheableAnim() && isDrawingCacheEnabled_) {
+                canvas_->SetCacheType(preCache);
+            }
             break;
         }
         case CacheType::CONTENT: {
@@ -3200,6 +3215,7 @@ bool RSUniRenderVisitor::GenerateNodeContentCache(RSRenderNode& node)
             node.SetCacheType(CacheType::NONE);
             RSUniRenderUtil::ClearCacheSurface(node, threadIndex_, false);
             cacheRenderNodeMap.erase(node.GetId());
+            groupedTransitionNodes.erase(node.GetId());
         }
         return false;
     }
@@ -3209,6 +3225,7 @@ bool RSUniRenderVisitor::GenerateNodeContentCache(RSRenderNode& node)
         node.SetCacheType(CacheType::NONE);
         RSUniRenderUtil::ClearCacheSurface(node, threadIndex_, false);
         cacheRenderNodeMap.erase(node.GetId());
+        groupedTransitionNodes.erase(node.GetId());
         return false;
     }
     return true;
@@ -3219,6 +3236,13 @@ bool RSUniRenderVisitor::InitNodeCache(RSRenderNode& node)
     if (node.GetDrawingCacheType() == RSDrawingCacheType::FORCED_CACHE ||
         node.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
         if (cacheRenderNodeMap.count(node.GetId()) == 0) {
+#ifndef USE_ROSEN_DRAWING
+            RenderParam val { node.ReinterpretCastTo<RSRenderNode>(), canvas_->GetAlpha(), canvas_->getTotalMatrix() };
+#else
+            RenderParam val { node.ReinterpretCastTo<RSRenderNode>(), canvas_->GetAlpha(), canvas_->GetTotalMatrix() };
+#endif
+            curGroupedNodes_.push(val);
+            groupedTransitionNodes[node.GetId()] = { val, {} };
             node.SetCacheType(CacheType::CONTENT);
             RSUniRenderUtil::ClearCacheSurface(node, threadIndex_, false);
             if (UpdateCacheSurface(node)) {
@@ -3226,6 +3250,7 @@ bool RSUniRenderVisitor::InitNodeCache(RSRenderNode& node)
                 cacheRenderNodeMap[node.GetId()] = 0;
                 cacheReuseTimes = 0;
             }
+            curGroupedNodes_.pop();
             return true;
         }
     }
@@ -3242,6 +3267,13 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
     if (node.GetDrawingCacheType() == RSDrawingCacheType::FORCED_CACHE) {
         // Regardless of the number of consecutive refreshes, the current cache is forced to be updated.
         if (node.GetDrawingCacheChanged()) {
+#ifndef USE_ROSEN_DRAWING
+            RenderParam val { node.ReinterpretCastTo<RSRenderNode>(), canvas_->GetAlpha(), canvas_->getTotalMatrix() };
+#else
+            RenderParam val { node.ReinterpretCastTo<RSRenderNode>(), canvas_->GetAlpha(), canvas_->GetTotalMatrix() };
+#endif
+            curGroupedNodes_.push(val);
+            groupedTransitionNodes[node.GetId()] = { val, {} };
             updateTimes = cacheRenderNodeMap[node.GetId()] + 1;
             node.SetCacheType(CacheType::CONTENT);
             if (UpdateCacheSurface(node)) {
@@ -3249,6 +3281,7 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
                 cacheRenderNodeMap[node.GetId()] = updateTimes;
                 cacheReuseTimes = 0;
             }
+            curGroupedNodes_.pop();
             return;
         }
     }
@@ -3264,11 +3297,19 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
                 cacheReuseTimes = 0;
                 return;
             }
+#ifndef USE_ROSEN_DRAWING
+            RenderParam val { node.ReinterpretCastTo<RSRenderNode>(), canvas_->GetAlpha(), canvas_->getTotalMatrix() };
+#else
+            RenderParam val { node.ReinterpretCastTo<RSRenderNode>(), canvas_->GetAlpha(), canvas_->GetTotalMatrix() };
+#endif
+            curGroupedNodes_.push(val);
+            groupedTransitionNodes[node.GetId()] = { val, {} };
             node.SetCacheType(CacheType::CONTENT);
             UpdateCacheSurface(node);
             node.UpdateCompletedCacheSurface();
             cacheRenderNodeMap[node.GetId()] = updateTimes;
             cacheReuseTimes = 0;
+            curGroupedNodes_.pop();
             return;
         }
     }
@@ -3738,10 +3779,42 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
         return true;
     }
 
+    for (auto& [_, pair] : groupedTransitionNodes) {
+        if (auto existingNodeIter = pair.second.find(key); existingNodeIter != pair.second.end()) {
+            RSAutoCanvasRestore acr(canvas_);
+            // restore render context and process the paired node.
+            auto& [_, preAlpha, preMatrix] = pair.first;
+            auto& [child, alpha, matrix] = existingNodeIter->second;
+            canvas_->SetAlpha(alpha * preAlpha);
+    #ifndef USE_ROSEN_DRAWING
+            canvas_->setMatrix(SkMatrix::Concat(preMatrix.value(), matrix.value()));
+    #else
+            canvas_->SetMatrix(matrix.value());
+    #endif
+            child->Process(shared_from_this());
+            return true;
+        }
+    }
+
     auto pairedNode = transitionParam->second.lock();
     if (pairedNode->GetGlobalAlpha() <= 0.0f) {
         // visitor may never visit the paired node, ignore the transition logic and process directly.
         return true;
+    }
+
+    if(!curGroupedNodes_.empty()) {
+        // if in node group cache, add this node and render params (alpha and matrix) into groupedTransitionNodes.
+        auto& [child, alpha, matrix] = curGroupedNodes_.top();
+#ifndef USE_ROSEN_DRAWING
+        RenderParam value { std::move(renderChild), canvas_->GetAlpha() / alpha, canvas_->getTotalMatrix() };
+        if (!matrix->invert(&std::get<2>(value).value())) {
+            RS_LOGE("RSUniRenderVisitor::ProcessSharedTransitionNode invert failed");
+        }
+#else
+        RenderParam value { std::move(renderChild), canvas_->GetAlpha(), canvas_->GetTotalMatrix() };
+#endif
+        groupedTransitionNodes[child->GetId()].second.emplace(key, std::move(value));
+        return false;
     }
 
     // all sanity checks passed, add this node and render params (alpha and matrix) into unpairedTransitionNodes_.

@@ -423,6 +423,7 @@ public:
     bool IsForcedDrawInGroup() const;
     bool IsSuggestedDrawInGroup() const;
     void CheckDrawingCacheType();
+    bool HasCacheableAnim() const { return hasCacheableAnim_; }
 
     enum NodeGroupType {
         NONE = 0,
@@ -547,6 +548,7 @@ private:
     float boundsWidth_ = 0.0f;
     float boundsHeight_ = 0.0f;
     std::unordered_set<RSModifierType> dirtyTypes_;
+    bool hasCacheableAnim_ = false;
 
     FrameRateRange rsRange_ = {0, 0, 0};
     FrameRateRange uiRange_ = {0, 0, 0};

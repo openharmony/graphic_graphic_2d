@@ -158,6 +158,24 @@ namespace {
     }
 #undef GETOPTYPESTRING
 }
+
+class RSB_EXPORT OpItemTasks {
+public:
+    static OpItemTasks& Instance();
+    void AddTask(std::function<void()> task);
+    void ProcessTask();
+private:
+    OpItemTasks() = default;
+    ~OpItemTasks() = default;
+    OpItemTasks(const OpItemTasks&);
+    OpItemTasks(const OpItemTasks&&);
+    OpItemTasks& operator=(const OpItemTasks&);
+    OpItemTasks& operator=(const OpItemTasks&&);
+
+    std::mutex mutex_;
+    std::vector<std::function<void()>> tasks_ = {};
+};
+
 class OpItem : public MemObject, public Parcelable {
 public:
     explicit OpItem(size_t size) : MemObject(size) {}

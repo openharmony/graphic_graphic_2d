@@ -39,6 +39,12 @@ const std::set<RSModifierType> GROUPABLE_ANIMATION_TYPE = {
     RSModifierType::ROTATION,
     RSModifierType::SCALE,
 };
+const std::set<RSModifierType> CACHEABLE_ANIMATION_TYPE = {
+    RSModifierType::ALPHA,
+    RSModifierType::ROTATION,
+    RSModifierType::BOUNDS,
+    RSModifierType::FRAME,
+};
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
 const bool FILTER_CACHE_ENABLED = RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender();
 }
@@ -791,23 +797,31 @@ void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
         return;
     }
     auto target = modifiers_.find(id);
-    if (target == modifiers_.end() || !target->second || !GROUPABLE_ANIMATION_TYPE.count(target->second->GetType())) {
+    if (target == modifiers_.end() || !target->second) {
         return;
     }
     if (isAnimAdd) {
-        MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, true);
+        if (GROUPABLE_ANIMATION_TYPE.count(target->second->GetType())) {
+            MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, true);
+        } else if (CACHEABLE_ANIMATION_TYPE.count(target->second->GetType())) {
+            hasCacheableAnim_ = true;
+        }
         return;
     }
+    bool hasGroupableAnim = false;
+    hasCacheableAnim_ = false;
     for (auto& [_, animation] : animationManager_.animations_) {
         if (!animation || id == animation->GetPropertyId()) {
             continue;
         }
         auto itr = modifiers_.find(animation->GetPropertyId());
-        if (itr != modifiers_.end() && itr->second && GROUPABLE_ANIMATION_TYPE.count(itr->second->GetType())) {
-            return;
+        if (itr == modifiers_.end() || !itr->second) {
+            continue;
         }
+        hasGroupableAnim = (hasGroupableAnim | GROUPABLE_ANIMATION_TYPE.count(itr->second->GetType()));
+        hasCacheableAnim_ = (hasCacheableAnim_ | CACHEABLE_ANIMATION_TYPE.count(itr->second->GetType()));
     }
-    MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, false);
+    MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, hasGroupableAnim);
 }
 
 bool RSRenderNode::IsForcedDrawInGroup() const

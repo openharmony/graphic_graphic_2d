@@ -152,6 +152,11 @@ public:
     void ResetFrameRateRangeMaps();
     void UpdateSurfaceFrameRateRange(RSRenderNode& node);
 
+#ifndef USE_ROSEN_DRAWING
+    using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<SkMatrix>>;
+#else
+    using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<Drawing::Matrix>>;
+#endif
 private:
     void DrawWatermarkIfNeed();
 #ifndef USE_ROSEN_DRAWING
@@ -356,12 +361,8 @@ private:
     // driven render
     std::unique_ptr<DrivenInfo> drivenInfo_ = nullptr;
 
-#ifndef USE_ROSEN_DRAWING
-    using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<SkMatrix>>;
-#else
-    using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<Drawing::Matrix>>;
-#endif
     std::unordered_map<NodeId, RenderParam> unpairedTransitionNodes_;
+    std::stack<RenderParam> curGroupedNodes_;
     // return true if we should prepare/process, false if we should skip.
     bool PrepareSharedTransitionNode(RSBaseRenderNode& node);
     bool ProcessSharedTransitionNode(RSBaseRenderNode& node);
