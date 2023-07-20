@@ -42,18 +42,19 @@ void HgmFrameRateManager::FindAndSendRefreshRate()
         }
         auto& refreshRates = refreshRateMap[id];
 
-        // Find current refreshRate by FrameRateRange. For example, 
-        // 1. FrameRateRange[min, max, preferred] = [24, 48, 48], supported refreshRates
-        // of current screen are {30, 60, 90}. The good refreshRate should be 30, not 60.
-        // 2. FrameRateRange[150, 150, 150], supported refreshRates are {30, 60, 90}, the
-        // result is 90.
-        int currRefreshRate = 0;
+        // Find current refreshRate by FrameRateRange. For example:
+        // 1. FrameRateRange[min, max, preferred] is [24, 48, 48], supported refreshRates
+        // of current screen are {30, 60, 90}, the result should be 30, not 60.
+        // 2. FrameRateRange[min, max, preferred] is [150, 150, 150], supported refreshRates
+        // of current screen are {30, 60, 90}, the result will be 90.
+        uint32_t currRefreshRate = 0;
         FrameRateRange range = screenIdToFrameRateRange_[id];
         auto iter = std::lower_bound(refreshRates.begin(), refreshRates.end(), range.preferred_);
-        uint pos = iter - refreshRates.begin();
+        uint32_t pos = iter - refreshRates.begin();
         if (pos < refreshRates.size()) {
-            if (refreshRates[pos] > range.max_ && pos > 0 && refreshRates[pos - 1] >= range.min_ &&
-                refreshRates[pos - 1] <= range.max_) {
+            if (refreshRates[pos] > static_cast<uint32_t>(range.max_) && pos > 0 &&
+                refreshRates[pos - 1] >= static_cast<uint32_t>(range.min_) &&
+                refreshRates[pos - 1] <= static_cast<uint32_t>(range.max_)) {
                 currRefreshRate = refreshRates[pos - 1];
             } else {
                 currRefreshRate = refreshRates[pos];
@@ -63,14 +64,13 @@ void HgmFrameRateManager::FindAndSendRefreshRate()
         }
 
         // Send RefreshRate
-        int screenRefreshRate = static_cast<int>(instance.GetScreenCurrentRefreshRate(id));
-        if (currRefreshRate != screenRefreshRate) {
+        if (currRefreshRate != instance.GetScreenCurrentRefreshRate(id)) {
             HGM_LOGD("HgmFrameRateManager::FindAndSendRefreshRate current refreshRate is %d",
                 currRefreshRate);
             int status = instance.SetScreenRefreshRate(id, 0, currRefreshRate);
             if (status != EXEC_SUCCESS) {
-                HGM_LOGE("HgmFrameRateManager::FindAndSendRefreshRate failed to set refreshRate %d, screenId %llu",
-                    currRefreshRate, id);
+                HGM_LOGE("HgmFrameRateManager::FindAndSendRefreshRate failed to set refreshRate %d, screenId %d",
+                    currRefreshRate, static_cast<int>(id));
             }
         }
     }
