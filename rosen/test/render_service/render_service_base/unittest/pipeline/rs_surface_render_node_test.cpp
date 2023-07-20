@@ -403,7 +403,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetContextMatrixTest, TestSize.Level1)
  * @tc.name: RegisterBufferAvailableListenerTest
  * @tc.desc: function test
  * @tc.type:FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeTest, RegisterBufferAvailableListenerTest, TestSize.Level1)
 {

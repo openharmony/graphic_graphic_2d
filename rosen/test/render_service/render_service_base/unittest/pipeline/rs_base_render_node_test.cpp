@@ -265,7 +265,7 @@ HWTEST_F(RSBaseRenderNodeTest, RemoveCrossParentChildTest001, TestSize.Level1)
 
 /**
  * @tc.name: RemoveFromTreeTest
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */

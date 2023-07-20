@@ -52,7 +52,7 @@ HWTEST_F(RSDisplayRenderNodeTest, PrepareTest, TestSize.Level1)
 
 /**
  * @tc.name: SkipFrameTest
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */

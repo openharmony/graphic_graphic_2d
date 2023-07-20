@@ -38,7 +38,7 @@ void RSRenderNodeMapTest::TearDown() {}
 
 /**
  * @tc.name: ObtainScreenLockWindowNodeIdTest
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
