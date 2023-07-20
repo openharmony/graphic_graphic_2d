@@ -289,6 +289,7 @@ void RSBaseRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", Visible: " + std::to_string(surfaceNode->GetRenderProperties().GetVisible());
         out += ", " + surfaceNode->GetVisibleRegion().GetRegionInfo();
         out += ", OcclusionBg: " + std::to_string(surfaceNode->GetAbilityBgAlpha());
+        out += ", Properties: " + surfaceNode->GetRenderProperties().Dump();
     }
     if (GetType() == RSRenderNodeType::ROOT_NODE) {
         auto rootNode = static_cast<const RSRootRenderNode*>(this);
@@ -296,6 +297,11 @@ void RSBaseRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", Size: [" + std::to_string(rootNode->GetRenderProperties().GetFrameWidth()) + ", " +
             std::to_string(rootNode->GetRenderProperties().GetFrameHeight()) + "]";
         out += ", EnableRender: " + std::to_string(rootNode->GetEnableRender());
+        out += ", Properties: " + rootNode->GetRenderProperties().Dump();
+    }
+    if (GetType() == RSRenderNodeType::CANVAS_NODE) {
+        auto canvasNode = static_cast<const RSCanvasRenderNode*>(this);
+        out += ", Properties: " + canvasNode->GetRenderProperties().Dump();
     }
     out += "\n";
 
