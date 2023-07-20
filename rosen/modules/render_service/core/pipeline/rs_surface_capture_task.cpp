@@ -508,6 +508,11 @@ void RSSurfaceCaptureVisitor::AdjustZOrderAndDrawSurfaceNode()
     // draw hardwareEnabledNodes
     for (auto& surfaceNode : hardwareEnabledNodes_) {
         if (surfaceNode->IsLastFrameHardwareEnabled() && surfaceNode->GetBuffer() != nullptr) {
+#ifndef USE_ROSEN_DRAWING
+            RSAutoCanvasRestore acr(canvas_);
+#else
+            Drawing::AutoCanvasRestore acr(*canvas_, true);
+#endif
             CaptureSurfaceInDisplayWithUni(*surfaceNode);
         }
     }
@@ -724,14 +729,11 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
         return;
     }
     bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
-    if (isSelfDrawingSurface) {
-        canvas_->save();
-    }
 
     const auto& property = node.GetRenderProperties();
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
     if (geoPtr) {
-        canvas_->setMatrix(node.GetTotalMatrix());
+        canvas_->setMatrix(geoPtr->GetAbsMatrix());
     }
 
     if (isSelfDrawingSurface) {
@@ -758,15 +760,8 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
     }
 
     if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
-        canvas_->save();
-        canvas_->setMatrix(node.GetTotalMatrix());
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
-        canvas_->restore();
-    }
-
-    if (isSelfDrawingSurface) {
-        canvas_->restore();
     }
 
     ProcessBaseRenderNode(node);
@@ -791,14 +786,11 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
         return;
     }
     bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
-    if (isSelfDrawingSurface) {
-        canvas_->Save();
-    }
 
     const auto& property = node.GetRenderProperties();
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
     if (geoPtr) {
-        canvas_->ConcatMatrix(geoPtr->GetMatrix());
+        canvas_->setMatrix(geoPtr->GetAbsMatrix());
     }
 
     if (isSelfDrawingSurface) {
@@ -831,10 +823,6 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
         canvas_->SetMatrix(node.GetTotalMatrix());
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
-        canvas_->Restore();
-    }
-
-    if (isSelfDrawingSurface) {
         canvas_->Restore();
     }
 
