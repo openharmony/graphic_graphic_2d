@@ -354,16 +354,6 @@ void RSRenderThread::ProcessCommands()
     uint64_t uiEndTimeStamp = jankDetector_->GetSysTimeNs();
     for (auto& cmdData : cmds) {
         std::string str = "ProcessCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(cmdData.get()));
-#ifdef ROSEN_CROSS_PLATFORM
-        if (cmdData->GetTimestamp() >= timestamp_) {
-            str += " SKIP!!!";
-            ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
-            cmds_.emplace_back(std::move(cmdData));
-            RequestNextVSync();
-            ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-            continue;
-        }
-#endif
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
         // only set transactionTimestamp_ in UniRender mode
         context_->transactionTimestamp_ = RSSystemProperties::GetUniRenderEnabled() ? cmdData->GetTimestamp() : 0;
