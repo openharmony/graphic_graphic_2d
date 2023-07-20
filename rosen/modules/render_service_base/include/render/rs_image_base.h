@@ -50,6 +50,7 @@ public:
     void SetDstRect(const RectF& dstRect);
     void SetImagePixelAddr(void* addr);
     void UpdateNodeIdToPicture(NodeId nodeId);
+    void MarkRenderServiceImage();
 #ifdef ROSEN_OHOS
     virtual bool Marshalling(Parcel& parcel) const;
     [[nodiscard]] static RSImageBase* Unmarshalling(Parcel& parcel);
@@ -84,6 +85,7 @@ protected:
     RectF srcRect_;
     RectF dstRect_;
     uint64_t uniqueId_ = 0;
+    bool renderServiceImage_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

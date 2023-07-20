@@ -20,6 +20,7 @@
 #else
 #include "image/image.h"
 #endif
+#include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
@@ -35,7 +36,14 @@ RSImageBase::~RSImageBase()
     if (pixelMap_) {
         pixelMap_ = nullptr;
         if (uniqueId_ > 0) {
-            RSImageCache::Instance().ReleasePixelMapCache(uniqueId_);
+            if (renderServiceImage_) {
+                auto task = [uniqueId = uniqueId_]() {
+                    RSImageCache::Instance().ReleasePixelMapCache(uniqueId);
+                };
+                RSBackgroundThread::Instance().PostTask(task);
+            } else {
+                RSImageCache::Instance().ReleasePixelMapCache(uniqueId_);
+            }
         }
     } else { // if pixelMap_ not nullptr, do not release skImage cache
         if (image_) {
@@ -136,6 +144,11 @@ void RSImageBase::UpdateNodeIdToPicture(NodeId nodeId)
     if (image_ || imagePixelAddr_) {
         MemoryTrack::Instance().UpdatePictureInfo(imagePixelAddr_, nodeId, ExtractPid(nodeId));
     }
+}
+
+void RSImageBase::MarkRenderServiceImage()
+{
+    renderServiceImage_ = true;
 }
 
 #ifdef ROSEN_OHOS
@@ -320,7 +333,7 @@ RSImageBase* RSImageBase::Unmarshalling(Parcel& parcel)
     rsImage->SetSrcRect(srcRect);
     rsImage->SetDstRect(dstRect);
     rsImage->uniqueId_ = uniqueId;
-
+    rsImage->MarkRenderServiceImage();
     IncreaseCacheRefCount(uniqueId, useSkImage, pixelMap);
     return rsImage;
 }

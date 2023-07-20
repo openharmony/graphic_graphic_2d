@@ -34,6 +34,7 @@
 
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_message_processor.h"
+#include "common/rs_background_thread.h"
 #include "delegate/rs_functional_delegate.h"
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_memory_track.h"
@@ -578,7 +579,7 @@ void RSMainThread::ProcessCommandForUniRender()
             }
         }
     }
-    RSUnmarshalThread::Instance().PostTask([ transactionDataEffective ] () {
+    RSBackgroundThread::Instance().PostTask([ transactionDataEffective ] () {
         RS_TRACE_NAME("RSMainThread::ProcessCommandForUniRender transactionDataEffective clear");
         transactionDataEffective->clear();
     });

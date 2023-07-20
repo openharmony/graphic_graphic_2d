@@ -632,7 +632,7 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     rsImage->SetScale(scale);
     rsImage->SetNodeId(nodeId);
     rsImage->uniqueId_ = uniqueId;
-
+    rsImage->MarkRenderServiceImage();
     RSImageBase::IncreaseCacheRefCount(uniqueId, useSkImage, pixelMap);
     return rsImage;
 }
