@@ -23,9 +23,9 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSUniRenderFrameRateManager {
+class HgmFrameRateManager {
 public:
-    RSUniRenderFrameRateManager() {}
+    HgmFrameRateManager() {}
 
     void UpdateFrameRateRange(ScreenId id, FrameRateRange range);
     void FindAndSendRefreshRate();

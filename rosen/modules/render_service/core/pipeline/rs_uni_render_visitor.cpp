@@ -131,7 +131,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isCalcCostEnable_ = RSSystemParameters::GetCalcCostEnabled();
 #endif
     isUIFirst_ = RSSystemProperties::GetUIFirstEnabled();
-    frameRateMgr_ = std::make_unique<RSUniRenderFrameRateManager>();
+    frameRateMgr_ = std::make_unique<HgmFrameRateManager>();
 }
 
 RSUniRenderVisitor::RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas, uint32_t surfaceIndex)

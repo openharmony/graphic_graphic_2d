@@ -50,7 +50,6 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_surface_capture_task.cpp",
     "core/pipeline/rs_uni_render_composer_adapter.cpp",
     "core/pipeline/rs_uni_render_engine.cpp",
-    "core/pipeline/rs_uni_render_frame_rate_manager.cpp",
     "core/pipeline/rs_uni_render_listener.cpp",
     "core/pipeline/rs_uni_render_processor.cpp",
     "core/pipeline/rs_uni_render_util.cpp",
@@ -110,6 +109,7 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/utils/include",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/config/include",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/interface/include",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_manager",
   ]
 
   deps = [

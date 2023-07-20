@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-#include "rs_uni_render_frame_rate_manager.h"
+#include "hgm_frame_rate_manager.h"
 
 #include "hgm_core.h"
-#include "platform/common/rs_log.h"
+#include "hgm_log.h"
 
 namespace OHOS {
 namespace Rosen {
-void RSUniRenderFrameRateManager::UpdateFrameRateRange(ScreenId id, FrameRateRange range)
+void HgmFrameRateManager::UpdateFrameRateRange(ScreenId id, FrameRateRange range)
 {
     if (!range.IsValid()) {
         return;
@@ -28,7 +28,7 @@ void RSUniRenderFrameRateManager::UpdateFrameRateRange(ScreenId id, FrameRateRan
     screenIdToFrameRateRange_[id] = range;
 }
 
-void RSUniRenderFrameRateManager::FindAndSendRefreshRate()
+void HgmFrameRateManager::FindAndSendRefreshRate()
 {
     for (auto idToRange : screenIdToFrameRateRange_) {
         ScreenId id = idToRange.first;
@@ -50,7 +50,7 @@ void RSUniRenderFrameRateManager::FindAndSendRefreshRate()
         int currRefreshRate = 0;
         FrameRateRange range = screenIdToFrameRateRange_[id];
         auto iter = std::lower_bound(refreshRates.begin(), refreshRates.end(), range.preferred_);
-        int pos = iter - refreshRates.begin();
+        uint pos = iter - refreshRates.begin();
         if (pos < refreshRates.size()) {
             if (refreshRates[pos] > range.max_ && pos > 0 && refreshRates[pos - 1] >= range.min_ &&
                 refreshRates[pos - 1] <= range.max_) {
@@ -65,18 +65,18 @@ void RSUniRenderFrameRateManager::FindAndSendRefreshRate()
         // Send RefreshRate
         int screenRefreshRate = static_cast<int>(instance.GetScreenCurrentRefreshRate(id));
         if (currRefreshRate != screenRefreshRate) {
-            ROSEN_LOGD("RSUniRenderFrameRateManager::FindAndSendRefreshRate current refreshRate is %d",
+            HGM_LOGD("HgmFrameRateManager::FindAndSendRefreshRate current refreshRate is %d",
                 currRefreshRate);
             int status = instance.SetScreenRefreshRate(id, 0, currRefreshRate);
             if (status != EXEC_SUCCESS) {
-                ROSEN_LOGE("RSUniRenderFrameRateManager::FindAndSendRefreshRate failed to set refreshRate %d, \
-                    screenId " PRIu64 "", currRefreshRate, id);
+                HGM_LOGE("HgmFrameRateManager::FindAndSendRefreshRate failed to set refreshRate %d, screenId %llu",
+                    currRefreshRate, id);
             }
         }
     }
 }
 
-void RSUniRenderFrameRateManager::ResetFrameRateRangeMap()
+void HgmFrameRateManager::ResetFrameRateRangeMap()
 {
     screenIdToFrameRateRange_.clear();
 }

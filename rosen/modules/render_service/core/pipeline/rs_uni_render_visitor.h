@@ -25,10 +25,10 @@
 
 #include "rs_base_render_engine.h"
 
+#include "hgm_frame_rate_manager.h"
 #include "pipeline/driven_render/rs_driven_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
-#include "pipeline/rs_uni_render_frame_rate_manager.h"
 #include "platform/ohos/overdraw/rs_cpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_gpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
