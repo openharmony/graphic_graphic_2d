@@ -2513,8 +2513,8 @@ void RSUniRenderVisitor::AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDispla
                     surfaceNode->GetName().c_str(), containerDirtyRegion.GetRegionInfo().c_str());
                 // plan: we can use surfacenode's absrect as containerRegion's bound
                 const auto& rect = containerRegion.GetBoundRef();
-                displayDirtyManager->MergeDirtyRect(RectI{
-                        rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
+                displayDirtyManager->MergeDirtyRect(
+                    RectI{ rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
             }
         } else {
             // warning: if a surfacenode has transparent region and opaque region, and its dirty pattern appears in
@@ -2531,8 +2531,8 @@ void RSUniRenderVisitor::AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDispla
                     surfaceNode->GetName().c_str(), transparentDirtyRegion.GetRegionInfo().c_str());
                 const std::vector<Occlusion::Rect>& rects = transparentDirtyRegion.GetRegionRects();
                 for (const auto& rect : rects) {
-                    displayDirtyManager->MergeDirtyRect(RectI
-                        { rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
+                    displayDirtyManager->MergeDirtyRect(
+                        RectI{ rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
                 }
             }
         }

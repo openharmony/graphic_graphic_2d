@@ -540,10 +540,18 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
         ROSEN_LOGW("RSUniRenderUtil::AssignSubThreadNode node is nullptr");
         return;
     }
-    subThreadNodes.emplace_back(node);
-    node->SetIsMainThreadNode(false);
-    node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
     node->SetCacheType(CacheType::CONTENT);
+    node->SetIsMainThreadNode(false);
+
+    // skip complete static window, DO NOT assign it to subthread.
+    if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
+        node->IsCurrentFrameStatic() && node->HasCachedTexture()) {
+        RS_TRACE_NAME_FMT("subThreadNodes : static skip %s", node->GetName().c_str());
+        return;
+    }
+
+    subThreadNodes.emplace_back(node);
+    node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
 #if defined(RS_ENABLE_GL)
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE && node->GetCacheSurface()) {
         node->UpdateCompletedCacheSurface();

@@ -166,7 +166,6 @@ public:
                nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     }
 
-    std::shared_ptr<RSSurfaceRenderNode> GetLeashWindowNestedAppSurface();
     // used to determine whether the layer-1 surfacenodes can be skipped in the subthread of focus-first framework
     bool IsCurrentFrameStatic();
     void UpdateCacheSurfaceDirtyManager(int bufferAge = 2);
@@ -692,6 +691,7 @@ private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
     bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;
     Vector4f GetWindowCornerRadius();
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> GetLeashWindowNestedSurfaces();
 
     std::mutex mutexRT_;
     std::mutex mutexUI_;
