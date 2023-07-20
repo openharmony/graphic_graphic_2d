@@ -700,8 +700,8 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
 void RSUniRenderVisitor::UpdateForegroundFilterCacheWithDirty(RSRenderNode& node)
 {
 #ifndef USE_ROSEN_DRAWING
-    node.UpdateFilterCacheWithDirty(*curSurfaceDirtyManager_, true);
     node.UpdateFilterCacheManagerWithCacheRegion(prepareClipRect_);
+    node.UpdateFilterCacheWithDirty(*curSurfaceDirtyManager_, true);
     // record node's rect if it has valid filter cache
     if (node.IsFilterCacheValid()) {
         curSurfaceDirtyManager_->UpdateCacheableFilterRect(node.GetOldDirtyInSurface());

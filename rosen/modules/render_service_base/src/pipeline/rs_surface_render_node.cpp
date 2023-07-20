@@ -768,14 +768,13 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
         return;
     }
 #ifndef USE_ROSEN_DRAWING
-    // traversal filternodes including app window
+    // traversal filter nodes including app window
     for (auto node : filterNodes_) {
         if (!node) {
             continue;
         }
         node->UpdateFilterCacheWithDirty(*dirtyManager_, false);
         node->UpdateFilterCacheWithDirty(*dirtyManager_, true);
-        node->UpdateFilterCacheManagerWithCacheRegion(clipRect);
         // collect valid filter nodes for occlusion optimization
         if (node->IsFilterCacheValid()) {
             dirtyManager_->UpdateCacheableFilterRect(node->GetOldDirtyInSurface());
