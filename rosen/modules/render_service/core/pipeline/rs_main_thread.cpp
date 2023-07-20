@@ -248,6 +248,7 @@ void RSMainThread::Init()
 #ifdef RS_ENABLE_RECORDING
     RSRecordingThread::Instance().Start();
 #endif
+    GetProcessInfo();
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     RsFrameReport::GetInstance().Init();
     if (isUniRender_) {
@@ -380,6 +381,12 @@ void RSMainThread::SetRSEventDetectorLoopFinishTag()
                 -1, -1, defaultFocusAppInfo, defaultFocusAppInfo);
         }
     }
+}
+
+void RSMainThread::GetProcessInfo()
+{
+    payload_["uid"] = std::to_string(getuid());
+    payload_["pid"] = std::to_string(GetRealPid());
 }
 
 void RSMainThread::SetFocusAppInfo(
@@ -1348,11 +1355,8 @@ void RSMainThread::ResSchedDataStartReport(bool needRequestNextVsync)
 #ifdef RES_SCHED_ENABLE
     RS_TRACE_FUNC();
     if (needRequestNextVsync && requestResschedReport_) {
-        std::unordered_map<std::string, std::string> payload;
-        payload["uid"] = std::to_string(getuid());
-        payload["pid"] = std::to_string(GetRealPid());
         OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(RES_TYPE_CLICK_ANIMATION,
-            CLICK_ANIMATION_START, payload);
+            CLICK_ANIMATION_START, payload_);
         RS_LOGD("Animate :: animation start event to soc perf.");
         requestResschedReport_ = false;
     }
@@ -1364,11 +1368,8 @@ void RSMainThread::ResSchedDataCompleteReport(bool needRequestNextVsync)
 #ifdef RES_SCHED_ENABLE
     RS_TRACE_FUNC();
     if (!requestResschedReport_ && !needRequestNextVsync) {
-        std::unordered_map<std::string, std::string> payload;
-        payload["uid"] = std::to_string(getuid());
-        payload["pid"] = std::to_string(GetRealPid());
         OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(RES_TYPE_CLICK_ANIMATION,
-            CLICK_ANIMATION_COMPLETE, payload);
+            CLICK_ANIMATION_COMPLETE, payload_);
         requestResschedReport_ = true;
     }
 #endif
@@ -1377,7 +1378,6 @@ void RSMainThread::ResSchedDataCompleteReport(bool needRequestNextVsync)
 void RSMainThread::Animate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
-
     lastAnimateTimestamp_ = timestamp;
 
     if (context_->animatingNodeList_.empty()) {
@@ -1898,18 +1898,15 @@ void RSMainThread::PerfAfterAnim(bool needRequestNextVsync)
     }
 #ifdef RES_SCHED_ENABLE
     RS_TRACE_FUNC();
-    std::unordered_map<std::string, std::string> payload;
-    payload["uid"] = std::to_string(getuid());
-    payload["pid"] = std::to_string(GetRealPid());
     if (needRequestNextVsync && timestamp_ - prePerfTimestamp_ > PERF_PERIOD) {
         RS_LOGD("RSMainThread:: soc perf to render_service_animation");
         OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(RES_TYPE_CONTINUE_ANIMATION,
-            ANIMATION_START, payload);
+            ANIMATION_START, payload_);
         prePerfTimestamp_ = timestamp_;
     } else if (!needRequestNextVsync && prePerfTimestamp_) {
         RS_LOGD("RSMainThread:: soc perf off render_service_animation");
         OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(RES_TYPE_CONTINUE_ANIMATION,
-            ANIMATION_COMPLETE, payload);
+            ANIMATION_COMPLETE, payload_);
         prePerfTimestamp_ = 0;
     }
 #endif
