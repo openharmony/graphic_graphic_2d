@@ -266,6 +266,9 @@ void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSBaseRenderNode> pa
 
 bool RSRenderNode::IsFilterCacheValid() const
 {
+    if (!FILTER_CACHE_ENABLED) {
+        return false;
+    }
 #ifndef USE_ROSEN_DRAWING
     // background filter
     auto& bgManager = renderProperties_.GetFilterCacheManager(false);
@@ -280,15 +283,25 @@ bool RSRenderNode::IsFilterCacheValid() const
 
 void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) const
 {
-    auto& properties = GetRenderProperties();
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
-    if (!geoPtr) {
+#ifndef USE_ROSEN_DRAWING
+    if (!FILTER_CACHE_ENABLED) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
-    if (auto& manager = renderProperties_.GetFilterCacheManager(isForeground)) {
-        manager->UpdateCacheStateWithDirtyRegion(dirtyManager.GetIntersectedVisitedDirtyRect(geoPtr->GetAbsRect()));
+    auto& properties = GetRenderProperties();
+    auto& manager = properties.GetFilterCacheManager(isForeground);
+    if (manager == nullptr) {
+        return;
     }
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
+    if (geoPtr == nullptr) {
+        return;
+    }
+    auto& cachedImageRegion = manager->GetCachedImageRegion();
+    RectI cachedImageRect = RectI(cachedImageRegion.x(), cachedImageRegion.y(), cachedImageRegion.width(),
+        cachedImageRegion.height());
+    auto isCachedImageRegionIntersectedWithDirtyRegion =
+        cachedImageRect.IntersectRect(dirtyManager.GetIntersectedVisitedDirtyRect(geoPtr->GetAbsRect()));
+    manager->UpdateCacheStateWithDirtyRegion(isCachedImageRegionIntersectedWithDirtyRegion);
 #endif
 }
 
