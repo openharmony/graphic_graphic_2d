@@ -38,6 +38,10 @@ void SkiaRecording::InitConfigsFromParam()
             captureMode_ = SkiaCaptureMode::MULTI_FRAME;
         }
         captureFileName_ = system::GetParameter("debug.graphic.skpcapture.path", "");
+        std::string fileExtension = ".skp";
+        if (captureFileName_.rfind(fileExtension) == (captureFileName_.size() - fileExtension.size())) {
+            captureMode_ = SkiaCaptureMode::SINGLE_FRAME;
+        }
     }
 }
 
@@ -63,10 +67,14 @@ bool SkiaRecording::SetupMultiFrame()
     // we need to keep it until after multiPic_.close()
     // procs is passed as a pointer, but just as a method of having an optional default.
     // procs doesn't need to outlive this Make call.
+#ifdef NEW_SKIA
     multiPic_ = SkMakeMultiPictureDocument(openMultiPicStream_.get(), &procs,
         [sharingCtx = serialContext_.get()](const SkPicture* pic) {
-                SkSharingSerialContext::collectNonTextureImagesFromPicture(pic, sharingCtx);
-        });
+        SkSharingSerialContext::collectNonTextureImagesFromPicture(pic, sharingCtx);
+    });
+#else
+    multiPic_ = SkMakeMultiPictureDocument(openMultiPicStream_.get(), &procs);
+#endif
     return true;
 }
 
@@ -145,9 +153,18 @@ void SkiaRecording::EndCapture()
                 return tf->serialize(SkTypeface::SerializeBehavior::kDoIncludeData);
             };
             auto data = picture->serialize(&procs);
-            SavePicture(data, captureFileName_);
-            captureFrameNum_ = 0;
-            captureMode_ = SkiaCaptureMode::NONE;
+            static int tmpId = 0;
+            std::string fileName = captureFileName_;
+            std::string fileExtension = ".skp";
+            if (captureFileName_.rfind(fileExtension) == (captureFileName_.size() - fileExtension.size())) {
+                fileName.insert(fileName.size() - fileExtension.size(), "_" + std::to_string(tmpId++));
+            } else {
+                fileName = fileName + "_" + std::to_string(tmpId++) + fileExtension;
+            }
+            SavePicture(data, fileName);
+            if (--captureFrameNum_ == 0) {
+                captureMode_ = SkiaCaptureMode::NONE;
+            }
         }
         recorder_.reset();
     }
