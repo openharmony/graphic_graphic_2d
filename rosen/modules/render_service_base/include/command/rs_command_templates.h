@@ -57,6 +57,15 @@ public:
         return commandSubType;
     }
 
+    NodeId GetNodeId() const override
+    {
+        using idType = typename std::tuple_element<0, decltype(params_)>::type;
+        if (std::is_same<NodeId, idType>::value) {
+            return std::get<0>(params_);
+        }
+        return 0; // invalidId
+    }
+
     void Process(RSContext& context) override
     {
         // expand the tuple to function parameters

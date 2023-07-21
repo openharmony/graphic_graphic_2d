@@ -24,12 +24,20 @@
 
 namespace OHOS {
 namespace Rosen {
+
+enum class QuickSkipPrepareType {
+    DISABLED = 0,                      // 0, disable quick skip preparation
+    STATIC_WINDOW,                     // 1, skip no-command window's preparation
+    STATIC_WIDGET,                     // 2, in case of dirty window, skip static widget's preparation
+};
+
 class RSB_EXPORT RSSystemParameters final {
 public:
     ~RSSystemParameters() = default;
     static bool GetCalcCostEnabled();
     static bool GetDrawingCacheEnabled();
     static bool GetDrawingCacheEnabledDfx();
+    static QuickSkipPrepareType GetQuickSkipPrepareType();
 };
 
 } // namespace Rosen

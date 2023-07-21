@@ -28,6 +28,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "rs_test_util.h"
+#include "system/rs_system_parameters.h"
 #include "draw/color.h"
 
 using namespace testing;
@@ -177,12 +178,12 @@ HWTEST_F(RSUniRenderVisitorTest, RSDisplayRenderNode001, TestSize.Level1)
 */
 HWTEST_F(RSUniRenderVisitorTest, CheckQuickSkipPrepareParamSetAndGetValid001, TestSize.Level1)
 {
-    int defaultParam = (int)RSSystemProperties::GetQuickSkipPrepareEnabled();
+    int defaultParam = (int)RSSystemParameters::GetQuickSkipPrepareType();
     (void)system::SetParameter("rosen.quickskipprepare.enabled", "0");
-    int param = (int)RSSystemProperties::GetQuickSkipPrepareEnabled();
+    int param = (int)RSSystemParameters::GetQuickSkipPrepareType();
     ASSERT_EQ(param, 0);
     (void)system::SetParameter("rosen.quickskipprepare.enabled", "1");
-    param = (int)RSSystemProperties::GetQuickSkipPrepareEnabled();
+    param = (int)RSSystemParameters::GetQuickSkipPrepareType();
     ASSERT_EQ(param, 1);
 
     NodeId testId = 10;
@@ -204,7 +205,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckQuickSkipPrepareParamSetAndGetValid001, Te
 */
 HWTEST_F(RSUniRenderVisitorTest, CheckSurfaceRenderNodeNotStatic001, TestSize.Level1)
 {
-    int defaultParam = (int)RSSystemProperties::GetQuickSkipPrepareEnabled();
+    int defaultParam = (int)RSSystemParameters::GetQuickSkipPrepareType();
     (void)system::SetParameter("rosen.quickskipprepare.enabled", "1");
 
     auto rsContext = std::make_shared<RSContext>();
@@ -240,7 +241,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckSurfaceRenderNodeNotStatic001, TestSize.Le
 */
 HWTEST_F(RSUniRenderVisitorTest, CheckSurfaceRenderNodeStatic001, TestSize.Level1)
 {
-    int defaultParam = (int)RSSystemProperties::GetQuickSkipPrepareEnabled();
+    int defaultParam = (int)RSSystemParameters::GetQuickSkipPrepareType();
     (void)system::SetParameter("rosen.quickskipprepare.enabled", "1");
 
     auto rsContext = std::make_shared<RSContext>();

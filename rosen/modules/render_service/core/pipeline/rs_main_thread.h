@@ -107,16 +107,26 @@ public:
         return mainThreadId_;
     }
 
-    /* Judge if node has to be prepared based on it corresponding process is active
+    /* Judge if rootnode has to be prepared based on it corresponding process is active
      * If its pid is in activeProcessPids_ set, return true
      */
-    inline bool CheckNodeHasToBePreparedByPid(NodeId nodeId) const
+    bool CheckNodeHasToBePreparedByPid(NodeId nodeId, NodeId rootNodeId, bool isClassifyByRoot)
     {
-        if (activeProcessPids_.empty()) {
+        if (activeAppsInProcess_.empty()) {
             return false;
         }
         pid_t pid = ExtractPid(nodeId);
-        return (activeProcessPids_.find(pid) != activeProcessPids_.end());
+        if (activeAppsInProcess_.find(pid) != activeAppsInProcess_.end()) {
+            if (!isClassifyByRoot) {
+                return true;
+            }
+            auto& activeAppsInProcess = activeAppsInProcess_[pid];
+            if (activeAppsInProcess.find(0) != activeAppsInProcess.end()) {
+                return true;
+            }
+            return (activeProcessNodeIds_.find(rootNodeId) != activeProcessNodeIds_.end());
+        }
+        return false;
     }
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
@@ -159,11 +169,11 @@ public:
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
 #endif
     bool GetWatermarkFlag();
-    void AddActivePid(pid_t pid);
     uint64_t GetFrameCount() const
     {
         return frameCount_;
     }
+    void AddActiveNodeId(pid_t pid, NodeId id);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -254,7 +264,8 @@ private:
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> effectiveCommands_;
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
     // Collect pids of surfaceview's update(ConsumeAndUpdateAllNodes), effective commands(processCommand) and Animate
-    std::unordered_set<pid_t> activeProcessPids_;
+    std::unordered_map<pid_t, std::set<NodeId>> activeAppsInProcess_;
+    std::unordered_map<NodeId, std::set<NodeId>> activeProcessNodeIds_;
     std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> syncTransactionData_;
     int32_t syncTransactionCount_ { 0 };
 

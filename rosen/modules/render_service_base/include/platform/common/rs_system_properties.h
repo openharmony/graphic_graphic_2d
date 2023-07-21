@@ -111,7 +111,6 @@ public:
     static bool GetTargetDirtyRegionDfxEnabled(std::vector<std::string>& dfxTargetSurfaceNames_);
     static bool GetOpaqueRegionDfxEnabled();
     static bool GetDumpLayersEnabled();
-    static bool GetQuickSkipPrepareEnabled();
     static bool GetHardwareComposerEnabled();
     static bool GetAFBCEnabled();
     static ReleaseGpuResourceType GetReleaseGpuResourceEnabled();

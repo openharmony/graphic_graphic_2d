@@ -32,6 +32,7 @@
 #include "platform/ohos/overdraw/rs_gpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "system/rs_system_parameters.h"
 #include "visitor/rs_node_visitor.h"
 
 class SkPicture;
@@ -314,6 +315,7 @@ private:
     bool isOcclusionEnabled_ = false;
     std::vector<std::string> dfxTargetSurfaceNames_;
     PartialRenderType partialRenderType_;
+    QuickSkipPrepareType quickSkipPrepareType_;
     DirtyRegionDebugType dirtyRegionDebugType_;
     bool isDirty_ = false;
     // added for judge if drawing cache changes
