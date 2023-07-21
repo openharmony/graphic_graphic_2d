@@ -79,7 +79,9 @@
           "libpng",
           "zlib",
           "skia",
-          "cjson"
+          "cjson",
+          "egl",
+          "opengles"
         ]
       },
       "build": {
