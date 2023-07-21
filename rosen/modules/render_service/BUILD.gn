@@ -109,6 +109,7 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/utils/include",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/config/include",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/interface/include",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_manager",
   ]
 
   deps = [

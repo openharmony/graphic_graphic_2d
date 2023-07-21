@@ -25,6 +25,7 @@
 
 #include "rs_base_render_engine.h"
 
+#include "hgm_frame_rate_manager.h"
 #include "pipeline/driven_render/rs_driven_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
@@ -152,6 +153,7 @@ public:
 
     void ResetFrameRateRangeMaps();
     void UpdateSurfaceFrameRateRange(RSRenderNode& node);
+    void FindAndSendRefreshRate();
 
 private:
     void DrawWatermarkIfNeed();
@@ -415,6 +417,8 @@ private:
     std::unordered_map<NodeId, FrameRateRange> rsFrameRateRangeMap_; // RSDisplayRenderNode id
     std::unordered_map<NodeId, FrameRateRange> uiFrameRateRangeMap_; // RSSurfaceRenderNode id
     std::unordered_map<NodeId, FrameRateRange> finalFrameRateRangeMap_; // RSDisplayRenderNode id
+
+    std::unique_ptr<HgmFrameRateManager> frameRateMgr_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -38,6 +38,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "config/src/xml_parser.cpp",
     "core/src/hgm_core.cpp",
     "core/src/hgm_screen.cpp",
+    "frame_rate_manager/hgm_frame_rate_manager.cpp",
   ]
 
   deps = [ "//third_party/libxml2:xml2" ]

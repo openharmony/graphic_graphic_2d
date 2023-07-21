@@ -379,8 +379,7 @@ void RSAnimation::UpdateParamToRenderAnimation(const std::shared_ptr<RSRenderAni
     animation->SetFillMode(GetFillMode());
     animation->SetRepeatCallbackEnable(repeatCallback_ != nullptr);
     auto range = GetFrameRateRange();
-    if (range.IsValid())
-    {
+    if (range.IsValid()) {
         animation->SetFrameRateRange(range);
     }
 }
