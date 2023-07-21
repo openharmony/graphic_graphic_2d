@@ -35,10 +35,9 @@ constexpr size_t ARGC_THREE = 3;
 thread_local std::unique_ptr<NativeReference> jsController_ = nullptr;
 
 RSWindowAnimationController::RSWindowAnimationController(NativeEngine& engine)
-    : engine_(engine)
-{
-    handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
-}
+    : engine_(engine),
+    handler_(std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner()))
+{}
 
 void RSWindowAnimationController::SetJsController(NativeValue* jsController)
 {
