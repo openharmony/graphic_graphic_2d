@@ -40,7 +40,7 @@ bool RSSystemParameters::GetDrawingCacheEnabledDfx()
 QuickSkipPrepareType RSSystemParameters::GetQuickSkipPrepareType()
 {
     return static_cast<QuickSkipPrepareType>(
-        std::atoi((system::GetParameter("rosen.quickskipprepare.enabled", "1")).c_str()));
+        std::atoi((system::GetParameter("rosen.quickskipprepare.enabled", "2")).c_str()));
 }
 } // namespace Rosen
 } // namespace OHOS
