@@ -319,7 +319,6 @@ void RSMainThread::Init()
 #endif
 #endif
     RSInnovation::OpenInnovationSo();
-    Occlusion::Region::InitDynamicLibraryFunction();
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     RSDrivenRenderManager::InitInstance();
 #endif
@@ -1200,7 +1199,6 @@ void RSMainThread::CalcOcclusion()
         RS_LOGE("RSMainThread::CalcOcclusion GetGlobalRootRenderNode fail");
         return;
     }
-    RSInnovation::UpdateOcclusionCullingSoEnabled();
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     if (node->GetSortedChildren().size() == 1) {
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(

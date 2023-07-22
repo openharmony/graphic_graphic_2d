@@ -26,8 +26,6 @@ namespace Rosen {
 namespace Occlusion {
 static Rect _s_empty_rect_ { 0, 0, 0, 0 };
 static Rect _s_invalid_rect_ { 0, 0, -1, -1 };
-bool Region::_s_so_loaded_ = false;
-void (*Region::regionOpFromSO)(Region& r1, Region& r2, Region& res, Region::OP op) = nullptr;
 
 
 std::ostream& operator<<(std::ostream& os, const Rect& r)
@@ -212,15 +210,6 @@ void Region::MakeBound()
             bound_.bottom_ = std::max(r.bottom_, bound_.bottom_);
         }
     }
-}
-
-void Region::InitDynamicLibraryFunction()
-{
-    if (RSInnovation::_s_regionOpFromSo != nullptr) {
-        regionOpFromSO = reinterpret_cast<void (*)(Region & r1, Region & r2, Region & res, Region::OP op)>
-            (RSInnovation::_s_regionOpFromSo);
-    }
-    return;
 }
 
 void Region::RegionOp(Region& r1, Region& r2, Region& res, Region::OP op)

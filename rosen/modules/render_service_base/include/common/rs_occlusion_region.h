@@ -294,10 +294,6 @@ public:
     Region Xor(Region& r);
     // return region belongs to Region(lhs) but not Region(rhs)
     Region Sub(Region& r);
-    
-public:
-    static void (*regionOpFromSO)(Region& r1, Region& r2, Region& res, Region::OP op);
-    static void InitDynamicLibraryFunction();
 
 private:
     class Rects {

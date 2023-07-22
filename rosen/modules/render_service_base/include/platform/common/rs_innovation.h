@@ -36,12 +36,6 @@ public:
     static inline void* _s_removeStoppedThreads = nullptr;
     static inline void* _s_checkForSerialForced = nullptr;
 
-    // occlusion culling
-    static void UpdateOcclusionCullingSoEnabled();
-    static inline bool _s_occlusionCullingFuncLoaded = false;
-    static inline bool _s_occlusionCullingSoEnabled = false;
-    static inline void* _s_regionOpFromSo = nullptr;
-
     // qos vsync
     static bool UpdateQosVsyncEnabled();
     static inline bool _s_qosVsyncFuncLoaded = false;
@@ -58,8 +52,6 @@ private:
 
     static void GetParallelCompositionFunc();
     static void ResetParallelCompositionFunc();
-    static void GetOcclusionCullingFunc();
-    static void ResetOcclusionCullingFunc();
     static void GetQosVSyncFunc();
     static void ResetQosVsyncFunc();
 };
