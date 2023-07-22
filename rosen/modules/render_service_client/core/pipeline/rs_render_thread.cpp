@@ -177,7 +177,27 @@ void RSRenderThread::RecvTransactionData(std::unique_ptr<RSTransactionData>& tra
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     }
     // [PLANNING]: process in next vsync (temporarily)
+#ifdef ROSEN_CROSS_PLATFORM
+    uint64_t currentTimestamp =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch())
+            .count();
+    auto uiDuration = currentTimestamp - commandTimestamp_;
+    if (uiDuration > REFRESH_PERIOD) {
+        if (handler_) {
+            handler_->PostTask(
+                [this, uiDuration, currentTimestamp] {
+                    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "FlushImmediately:" + std::to_string(uiDuration));
+                    this->OnVsync(currentTimestamp);
+                    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+                },
+                AppExecFwk::EventHandler::Priority::HIGH);
+        }
+    } else {
+        RSRenderThread::Instance().RequestNextVSync();
+    }
+#else
     RSRenderThread::Instance().RequestNextVSync();
+#endif
 }
 
 void RSRenderThread::RequestNextVSync()
