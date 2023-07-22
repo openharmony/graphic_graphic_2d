@@ -293,10 +293,10 @@ void Region::RegionOpAccelate(Region& r1, Region& r2, Region& res, Region::OP op
     do {
         InnerLooper inner(outer);
         RectType relationship = outer.NextScanline(current.top_, current.bottom_);
-        if (op == Region::OP::AND && relationship != LHS_RHS_BOTH) {
+        if (op == Region::OP::AND && relationship != RectType::LHS_RHS_BOTH) {
             continue;
         }
-        if (op == Region::OP::SUB && relationship == RHS_ONLY) {
+        if (op == Region::OP::SUB && relationship == RectType::RHS_ONLY) {
             continue;
         }
         inner.Init(relationship);

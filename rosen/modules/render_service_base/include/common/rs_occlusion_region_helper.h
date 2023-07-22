@@ -82,7 +82,7 @@ public:
     }
     ~OuterLooper() {}
     RectType NextScanline(int &curTop, int &curBottom);
-    inline void MoveScanline(bool morelhs, bool morerhs);
+    inline void MoveScanline(bool moreLhs, bool moreRhs);
     void MoveScanline(RectsPtr &r, int &top, int &bottom);
     inline bool isDone() const
     {

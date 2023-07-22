@@ -21,9 +21,9 @@ namespace Occlusion {
 void Assembler::Insert(const Rect&r)
 {
     if (rectsRow_.size() > 0) {
-        if (cur_->top_ != r.top_) {
-            FlushVerticalSpan();
-        } else if (cur_->right_ == r.right_) {
+        if (cur_->top_ != r.top_) {                 // current rect r is not in same row of current span
+            FlushVerticalSpan();                    // current span will be cleared
+        } else if (cur_->right_ == r.left_) {      // merge rect in horizon (X) direction
             cur_->right_ = r.right_;
             return;
         }
@@ -102,7 +102,7 @@ inline RectType Looper::GetEdgeRelation(int &head, int &tail,
     if (lhsStart_ < rhsStart_) {
         relationship = RectType::LHS_ONLY;
         head = lhsStart_;
-        if (lhsEnd_ < rhsStart_) {
+        if (lhsEnd_ <= rhsStart_) {
             tail = lhsEnd_;
             moreLhs = true;
         } else {
