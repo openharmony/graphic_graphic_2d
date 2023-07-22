@@ -274,6 +274,7 @@ public:
     */
     void RegionOp(Region& r1, Region& r2, Region& res, Region::OP op);
     void RegionOpLocal(Region& r1, Region& r2, Region& res, Region::OP op);
+    void RegionOpAccelate(Region& r1, Region& r2, Region& res, Region::OP op);
 
     Region& OperationSelf(Region& r, Region::OP op);
     // replace region with and result

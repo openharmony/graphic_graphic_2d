@@ -14,6 +14,7 @@
  */
 
 #include "common/rs_occlusion_region.h"
+#include "common/rs_occlusion_region_helper.h"
 
 #include <map>
 #include <set>
@@ -240,11 +241,7 @@ void Region::RegionOp(Region& r1, Region& r2, Region& res, Region::OP op)
         }
         return;
     }
-    if (RSInnovation::_s_occlusionCullingFuncLoaded && RSInnovation::_s_occlusionCullingSoEnabled) {
-        regionOpFromSO(r1, r2, res, op);
-    } else {
-        RegionOpLocal(r1, r2, res, op);
-    }
+    RegionOpAccelate(r1, r2, res, op);
 }
 
 void Region::RegionOpLocal(Region& r1, Region& r2, Region& res, Region::OP op)
@@ -295,6 +292,34 @@ void Region::RegionOpLocal(Region& r1, Region& r2, Region& res, Region::OP op)
     }
     copy(r.preRects.begin(), r.preRects.end(), back_inserter(res.GetRegionRects()));
     res.MakeBound();
+}
+
+void Region::RegionOpAccelate(Region& r1, Region& r2, Region& res, Region::OP op)
+{
+    RectsPtr lhs(r1.CBegin(), r1.Size());
+    RectsPtr rhs(r2.CBegin(), r2.Size());
+    Assembler assembler(res);
+    OuterLooper outer(lhs, rhs);
+    Rect current(0, 0, 0, 0); // init value is irrelevant
+    do {
+        InnerLooper inner(outer);
+        RectType relationship = outer.NextScanline(current.top_, current.bottom_);
+        if (op == Region::OP::AND && relationship != LHS_RHS_BOTH) {
+            continue;
+        }
+        if (op == Region::OP::SUB && relationship == RHS_ONLY) {
+            continue;
+        }
+        inner.Init(relationship);
+        do {
+            RectType rectType = inner.NextRect(current.left_, current.right_);
+            if (((static_cast<uint32_t>(op) & static_cast<uint32_t>(rectType)) != 0) && !current.IsEmpty()) {
+                assembler.Insert(current);
+            }
+        } while (!inner.IsDone());
+    } while (!outer.isDone());
+    assembler.FlushVerticalSpan();
+    return;
 }
 
 Region& Region::OperationSelf(Region& r, Region::OP op)
