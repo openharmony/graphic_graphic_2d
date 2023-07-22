@@ -837,12 +837,5 @@ void RSRenderServiceConnection::ReportEventJankFrame(DataBaseRs info)
     mainThread_->PostTask(task);
 }
 
-void RSRenderServiceConnection::ReportEventFirstFrame(DataBaseRs info)
-{
-    auto task = [this, info]() -> void {
-        RSJankStats::GetInstance().SetReportEventFirstFrame(info);
-    };
-    mainThread_->PostTask(task);
-}
 } // namespace Rosen
 } // namespace OHOS

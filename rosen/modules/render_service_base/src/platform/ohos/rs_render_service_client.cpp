@@ -719,12 +719,5 @@ void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
     }
 }
 
-void RSRenderServiceClient::ReportEventFirstFrame(DataBaseRs info)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        renderService->ReportEventFirstFrame(info);
-    }
-}
 } // namespace Rosen
 } // namespace OHOS

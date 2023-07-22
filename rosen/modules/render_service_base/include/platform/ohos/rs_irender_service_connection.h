@@ -160,8 +160,6 @@ public:
     virtual void ReportEventComplete(DataBaseRs info) = 0;
 
     virtual void ReportEventJankFrame(DataBaseRs info) = 0;
-
-    virtual void ReportEventFirstFrame(DataBaseRs info) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

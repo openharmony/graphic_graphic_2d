@@ -1256,22 +1256,6 @@ void RSRenderServiceConnectionProxy::ReportEventJankFrame(DataBaseRs info)
     }
 }
 
-void RSRenderServiceConnectionProxy::ReportEventFirstFrame(DataBaseRs info)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return;
-    }
-    ReportDataBaseRs(data, reply, option, info);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_FIRST_FRAME);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportEventFirstFrame: Send Request err.");
-    }
-}
-
 void RSRenderServiceConnectionProxy::ReportDataBaseRs(
     MessageParcel& data, MessageParcel& reply, MessageOption& option, DataBaseRs info)
 {

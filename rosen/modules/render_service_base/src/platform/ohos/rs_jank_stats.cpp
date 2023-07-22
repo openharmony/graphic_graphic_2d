@@ -17,16 +17,22 @@
 
 #include <algorithm>
 #include <chrono>
+#include <sys/time.h>
 #include <unistd.h>
 
 #include "hisysevent.h"
+#include "rs_trace.h"
 
+#include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr float VSYNC_PERIOD = 16.6;        // ms
+constexpr float VSYNC_PERIOD = 16.6;                  // 16.6ms
+constexpr uint32_t JANK_TIMEOUT = 10000;              // 10s
+constexpr uint32_t MS_TO_NS = 1000000;                // ms to ns
+constexpr uint32_t S_TO_NS = 1000000000;              // ms to ns
 }
 
 RSJankStats& RSJankStats::GetInstance()
@@ -37,10 +43,11 @@ RSJankStats& RSJankStats::GetInstance()
 
 void RSJankStats::SetStartTime()
 {
-    isReportEventResponse_ = isSetReportEventResponse_;
-    isReportEventComplete_ = isSetReportEventComplete_;
-    auto start = std::chrono::system_clock::now().time_since_epoch();
-    startTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(start).count();
+    for (auto &[uniqueId, jankFrames] : animateJankFrames_) {
+        jankFrames.isReportEventResponse_ = jankFrames.isSetReportEventResponse_;
+        jankFrames.isReportEventComplete_ = jankFrames.isSetReportEventComplete_;
+    }
+    startTime_ = GetCurrentSystimeMs();
     if (isfirstSetStart_) {
         lastReportTime_ = startTime_;
         isfirstSetStart_ = false;
@@ -49,26 +56,27 @@ void RSJankStats::SetStartTime()
 
 void RSJankStats::SetEndTime()
 {
-    auto end = std::chrono::system_clock::now().time_since_epoch();
-    endTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(end).count();
+    endTime_ = GetCurrentSystimeMs();
     auto duration = endTime_ - startTime_;
     if (duration >= VSYNC_PERIOD) {
         SetRSJankStats(static_cast<int>(duration / VSYNC_PERIOD));
     }
-    if (isReportEventResponse_) {
-        ReportEventResponse();
-        isUpdateJankFrame_ = true;
+    for (auto &[uniqueId, jankFrames] : animateJankFrames_) {
+        if (jankFrames.isReportEventResponse_) {
+            ReportEventResponse(jankFrames);
+            jankFrames.isUpdateJankFrame_ = true;
+        }
+        if (jankFrames.isUpdateJankFrame_) {
+            UpdateJankFrame(duration, jankFrames);
+        }
+        if (jankFrames.isReportEventComplete_) {
+            ReportEventComplete(jankFrames);
+        }
+        if (jankFrames.isSetReportEventJankFrame_) {
+            ReportEventJankFrame(jankFrames);
+        }
     }
-    if (isUpdateJankFrame_) {
-        UpdateJankFrame(duration);
-    }
-    if (isReportEventComplete_) {
-        ReportEventComplete();
-    }
-    if (isSetReportEventJankFrame_) {
-        ReportEventJankFrame();
-    }
-    if (isSetReportEventFirstFrame_ && isFirstFrame_) {
+    if (isFirstFrame_) {
         ReportEventFirstFrame();
     }
 }
@@ -102,24 +110,30 @@ void RSJankStats::SetRSJankStats(int times)
     isNeedReport_ = true;
 }
 
-void RSJankStats::UpdateJankFrame(int64_t duration)
+void RSJankStats::UpdateJankFrame(uint64_t duration, JankFrames& jankFrames)
 {
-    totalFrames_++;
-    maxFrameTime_ = std::max(maxFrameTime_, duration);
+    jankFrames.totalFrames_++;
+    jankFrames.totalFrameTime_ += duration;
+    jankFrames.maxFrameTime_ = std::max(jankFrames.maxFrameTime_, duration);
     if (duration >= VSYNC_PERIOD) {
-        totalMissedFrames_++;
-        maxSeqMissedFrames_ = std::max(maxSeqMissedFrames_, static_cast<int>(duration / VSYNC_PERIOD));
+        auto missedFramed = static_cast<int>(duration / VSYNC_PERIOD);
+        jankFrames.totalMissedFrames_ += missedFramed;
+        jankFrames.SeqMissedFrames =
+            jankFrames.SeqMissedFrames ? (jankFrames.SeqMissedFrames + missedFramed) : missedFramed;
+        jankFrames.maxSeqMissedFrames_ =
+            std::max(jankFrames.maxSeqMissedFrames_, jankFrames.SeqMissedFrames);
+    } else {
+        jankFrames.SeqMissedFrames = 0;
     }
 }
 
 void RSJankStats::ReportJankStats()
 {
     if (!isNeedReport_) {
-        ROSEN_LOGW("RSInterfaces::ReportJankStats Nothing need to report");
+        ROSEN_LOGW("RSJankStats::ReportJankStats Nothing need to report");
         return;
     }
-    auto report = std::chrono::system_clock::now().time_since_epoch();
-    auto reportTime = std::chrono::duration_cast<std::chrono::milliseconds>(report).count();
+    auto reportTime = GetCurrentSystimeMs();
     auto reportDuration = reportTime - lastReportTime_;
     auto reportName = "JANK_STATS_RS";
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
@@ -132,26 +146,46 @@ void RSJankStats::ReportJankStats()
 
 void RSJankStats::SetReportEventResponse(DataBaseRs info)
 {
-    info_ = info;
-    isSetReportEventResponse_ = true;
+    auto setTime = GetCurrentSystimeMs();
+    EraseIf(animateJankFrames_, [setTime](const auto& pair) -> bool {
+        return setTime - pair.second.setTime_ > JANK_TIMEOUT;
+    });
+    if (animateJankFrames_.find(info.uniqueId) == animateJankFrames_.end()) {
+        JankFrames jankFrames;
+        jankFrames.info_ = info;
+        jankFrames.isSetReportEventResponse_ = true;
+        jankFrames.setTime_ = setTime;
+        animateJankFrames_.emplace(info.uniqueId, jankFrames);
+    } else {
+        animateJankFrames_[info.uniqueId].info_ = info;
+        animateJankFrames_[info.uniqueId].isSetReportEventResponse_ = true;
+    }
 }
 
 void RSJankStats::SetReportEventComplete(DataBaseRs info)
 {
-    info_ = info;
-    isSetReportEventComplete_ = true;
+    auto setTime = GetCurrentSystimeMs();
+    if (animateJankFrames_.find(info.uniqueId) == animateJankFrames_.end()) {
+        ROSEN_LOGW("RSJankStats::SetReportEventComplete Not find exited uniqueId");
+        JankFrames jankFrames;
+        jankFrames.info_ = info;
+        jankFrames.isSetReportEventResponse_ = true;
+        jankFrames.setTime_ = setTime;
+        animateJankFrames_.emplace(info.uniqueId, jankFrames);
+    } else {
+        animateJankFrames_[info.uniqueId].info_ = info;
+        animateJankFrames_[info.uniqueId].isSetReportEventComplete_ = true;
+    }
 }
 
 void RSJankStats::SetReportEventJankFrame(DataBaseRs info)
 {
-    info_ = info;
-    isSetReportEventJankFrame_ = true;
-}
-
-void RSJankStats::SetReportEventFirstFrame(DataBaseRs info)
-{
-    info_ = info;
-    isSetReportEventFirstFrame_ = true;
+    if (animateJankFrames_.find(info.uniqueId) == animateJankFrames_.end()) {
+        ROSEN_LOGW("RSJankStats::SetReportEventJankFrame Not find exited uniqueId");
+    } else {
+        animateJankFrames_[info.uniqueId].info_ = info;
+        animateJankFrames_[info.uniqueId].isSetReportEventJankFrame_ = true;
+    }
 }
 
 void RSJankStats::SetFirstFrame()
@@ -159,62 +193,91 @@ void RSJankStats::SetFirstFrame()
     isFirstFrame_ = true;
 }
 
-void RSJankStats::SetPid(uint32_t pid)
+void RSJankStats::SetPid(pid_t pid)
 {
     appPid_ = pid;
 }
 
-void RSJankStats::ReportEventResponse()
+void RSJankStats::ReportEventResponse(JankFrames& jankFrames)
 {
     auto reportName = "INTERACTION_RESPONSE_LATENCY";
-    auto responseLatency = endTime_ - info_.inputTime;
+    auto info = jankFrames.info_;
+    auto inputTime = ConvertTimeToSystime(info.inputTime);
+    auto beginVsyncTime = ConvertTimeToSystime(info.beginVsyncTime);
+    auto responseLatency = endTime_ - inputTime;
+    RS_TRACE_NAME_FMT("RSJankStats::ReportEventResponse pkgname: %s, pageurl: %s, sceneid: %s, inputTime:% " PRId64 ".",
+        info.bundleName.c_str(), info.pageUrl.c_str(), info.pageUrl.c_str(), info.inputTime);
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "BUNDLE_NAME", info_.bundleName, "ABILITY_NAME",
-        info_.abilityName, "PROCESS_NAME", info_.processName, "PAGE_URL", info_.pageUrl, "SCENE_ID", info_.sceneId,
-        "INPUT_TIME", info_.inputTime, "ANIMATION_START_TIME", info_.beginVsyncTime, "RENDER_TIME", endTime_,
+        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "APP_PID", info.appPid, "BUNDLE_NAME", info.bundleName,
+        "ABILITY_NAME", info.abilityName, "PROCESS_NAME", info.processName, "PAGE_URL", info.pageUrl, "SCENE_ID",
+        info.sceneId, "INPUT_TIME", inputTime, "ANIMATION_START_TIME", beginVsyncTime, "RENDER_TIME", endTime_,
         "RESPONSE_LATENCY", responseLatency);
-    isSetReportEventResponse_ = false;
+    jankFrames.isSetReportEventResponse_ = false;
 }
 
-void RSJankStats::ReportEventComplete()
+void RSJankStats::ReportEventComplete(JankFrames& jankFrames)
 {
     auto reportName = "INTERACTION_COMPLETED_LATENCY";
-    auto animationStartLatency = info_.beginVsyncTime - info_.inputTime;
-    auto animationEndLatency = info_.endVsyncTime - info_.beginVsyncTime;
-    auto completedLatency = endTime_ - info_.inputTime;
+    auto info = jankFrames.info_;
+    auto inputTime = ConvertTimeToSystime(info.inputTime);
+    auto beginVsyncTime = ConvertTimeToSystime(info.beginVsyncTime);
+    auto endVsyncTime = ConvertTimeToSystime(info.endVsyncTime);
+    auto animationStartLatency = beginVsyncTime - inputTime;
+    auto animationEndLatency = endVsyncTime - beginVsyncTime;
+    auto completedLatency = endTime_ - inputTime;
+    RS_TRACE_NAME_FMT("RSJankStats::ReportEventComplete pkgname: %s, pageurl: %s, sceneid: %s, inputTime:% " PRId64 ".",
+        info.bundleName.c_str(), info.pageUrl.c_str(), info.pageUrl.c_str(), inputTime);
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "APP_PID", info_.appPid, "BUNDLE_NAME", info_.bundleName,
-        "ABILITY_NAME", info_.abilityName, "PROCESS_NAME", info_.processName, "PAGE_URL", info_.pageUrl, "SCENE_ID",
-        info_.sceneId, "INPUT_TIME", info_.inputTime, "ANIMATION_START_LATENCY", animationStartLatency,
+        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "APP_PID", info.appPid, "BUNDLE_NAME", info.bundleName,
+        "ABILITY_NAME", info.abilityName, "PROCESS_NAME", info.processName, "PAGE_URL", info.pageUrl, "SCENE_ID",
+        info.sceneId, "INPUT_TIME", inputTime, "ANIMATION_START_LATENCY", animationStartLatency,
         "ANIMATION_END_LATENCY", animationEndLatency, "E2E_LATENCY", completedLatency);
-    isSetReportEventComplete_ = false;
+    jankFrames.isSetReportEventComplete_ = false;
 }
 
-void RSJankStats::ReportEventJankFrame()
+void RSJankStats::ReportEventJankFrame(JankFrames& jankFrames)
 {
     auto reportName = "INTERACTION_RENDER_JANK";
+    float aveFrameTime = jankFrames.totalFrameTime_ / (float)jankFrames.totalFrames_;
+    auto info = jankFrames.info_;
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "UNIQUE_ID", info_.uniqueId, "SCENE_ID", info_.sceneId,
-        "PROCESS_NAME", info_.processName, "MODULE_NAME", info_.bundleName, "ABILITY_NAME",
-        info_.abilityName, "PAGE_URL", info_.pageUrl, "TOTAL_FRAMES", totalFrames_, "TOTAL_MISSED_FRAMES",
-        totalMissedFrames_, "MAX_FRAMETIME", maxFrameTime_, "MAX_SEQ_MISSED_FRAMES", maxSeqMissedFrames_,
-        "IS_FOLD_DISP", 0);
-    isSetReportEventJankFrame_ = false;
-    isUpdateJankFrame_ = false;
-    totalFrames_ = 0;
-    totalMissedFrames_ = 0;
-    maxFrameTime_ = 0;
-    maxSeqMissedFrames_ = 0;
+        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "UNIQUE_ID", info.uniqueId, "SCENE_ID", info.sceneId,
+        "PROCESS_NAME", info.processName, "MODULE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName, "PAGE_URL",
+        info.pageUrl, "TOTAL_FRAMES", jankFrames.totalFrames_, "TOTAL_MISSED_FRAMES", jankFrames.totalMissedFrames_,
+        "MAX_FRAMETIME", jankFrames.maxFrameTime_, "AVERAGE_FRAMETIME", aveFrameTime, "MAX_SEQ_MISSED_FRAMES",
+        jankFrames.maxSeqMissedFrames_, "IS_FOLD_DISP", 0);
+    jankFrames.isSetReportEventJankFrame_ = false;
 }
 
 void RSJankStats::ReportEventFirstFrame()
 {
     auto reportName = "FIRST_FRAME_DRAWN";
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "APP_PID", appPid_, "VERSION_CODE", info_.versionCode,
-        "VERSION_NAME", info_.versionName, "PROCESS_NAME", info_.processName, "BUNDLE_NAME", info_.bundleName,
-        "ABILITY_NAME", info_.abilityName, "PAGE_URL", info_.pageUrl);
-    isSetReportEventFirstFrame_ = false;
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "APP_PID", appPid_);
+    isFirstFrame_ = false;
+}
+
+uint64_t RSJankStats::ConvertTimeToSystime(uint64_t time)
+{
+    if (time == 0) {
+        ROSEN_LOGW("RSJankStats::ConvertTimeToSystime, time is error");
+        return 0;
+    }
+    struct timespec ts = { 0, 0 };
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
+        return 0;
+    }
+    uint64_t nowTime = ts.tv_sec * S_TO_NS + ts.tv_nsec;
+    uint64_t curSysTime = GetCurrentSystimeMs();
+    auto sysTime = curSysTime - (nowTime - time) / MS_TO_NS;
+    return sysTime;
+}
+
+uint64_t RSJankStats::GetCurrentSystimeMs()
+{
+    auto curTime = std::chrono::system_clock::now().time_since_epoch();
+    auto curSysTime = std::chrono::duration_cast<std::chrono::milliseconds>(curTime).count();
+    return curSysTime;
 }
 
 } // namespace Rosen

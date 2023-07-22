@@ -786,17 +786,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             ReportEventJankFrame(info);
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_FIRST_FRAME): {
-            auto token = data.ReadInterfaceToken();
-            if (token != RSIRenderServiceConnection::GetDescriptor()) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
-            DataBaseRs info;
-            ReadDataBaseRs(info, data);
-            ReportEventFirstFrame(info);
-            break;
-        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK): {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
@@ -842,6 +831,7 @@ void RSRenderServiceConnectionStub::ReadDataBaseRs(DataBaseRs& info, MessageParc
     info.inputTime = data.ReadInt64();
     info.beginVsyncTime = data.ReadInt64();
     info.endVsyncTime = data.ReadInt64();
+    info.sceneId = data.ReadString();
     info.versionCode = data.ReadString();
     info.versionName = data.ReadString();
     info.bundleName = data.ReadString();
