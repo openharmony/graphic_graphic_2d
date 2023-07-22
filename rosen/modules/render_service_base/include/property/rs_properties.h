@@ -86,7 +86,9 @@ public:
     float GetFrameOffsetY() const;
 
     void SetSandBox(const std::optional<Vector2f>& parentPosition);
-    const std::optional<Vector2f>& GetSandBox() const;
+    std::optional<Vector2f> GetSandBox() const;
+    void UpdateSandBoxMatrix(const std::optional<SkMatrix>& rootMatrix);
+    std::optional<SkMatrix> GetSandBoxMatrix() const;
 
     void SetPositionZ(float positionZ);
     float GetPositionZ() const;
@@ -354,7 +356,6 @@ private:
 
     std::weak_ptr<RSRenderNode> backref_;
 
-    std::optional<Vector2f> sandboxPosition_;
     std::optional<Vector4f> pixelStretch_;
     std::optional<Vector4f> pixelStretchPercent_;
     std::optional<RRect> clipRRect_;
@@ -377,6 +378,8 @@ private:
     std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
 #endif
+
+    std::unique_ptr<Sandbox> sandbox_ = nullptr;
 
     friend class RSCanvasDrawingRenderNode;
     friend class RSCanvasRenderNode;

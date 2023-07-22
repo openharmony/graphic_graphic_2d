@@ -1111,6 +1111,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         RS_LOGE("RSUniRenderVisitor::PrepareCanvasRenderNode curSurfaceDirtyManager is nullptr");
         return;
     }
+    node.GetMutableRenderProperties().UpdateSandBoxMatrix(parentSurfaceNodeMatrix_);
     if (!isSubNodeOfSurfaceInPrepare_) {
         // if canvasNode is not sub node of surfaceNode, merge the dirtyRegion to curDisplayDirtyManager_
         dirtyFlag_ = node.Update(*curDisplayDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
@@ -3209,16 +3210,8 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     } else {
         saveCount = canvas_->save();
     }
-
-    bool saveRootMatrix = node.GetChildrenCount() > 0 && !rootMatrix_.has_value();
-    if (saveRootMatrix) {
-        rootMatrix_ = canvas_->getTotalMatrix();
-    }
     ProcessCanvasRenderNode(node);
     canvas_->restoreToCount(saveCount);
-    if (saveRootMatrix) {
-        rootMatrix_.reset();
-    }
 #else
         Drawing::Brush brush;
         RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush);
@@ -3229,16 +3222,8 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         saveCount = canvas_->GetSaveCount();
         canvas_->Save();
     }
-
-    bool saveRootMatrix = node.GetChildrenCount() > 0 && !rootMatrix_.has_value();
-    if (saveRootMatrix) {
-        rootMatrix_ = canvas_->GetTotalMatrix();
-    }
     ProcessCanvasRenderNode(node);
     canvas_->RestoreToCount(saveCount);
-    if (saveRootMatrix) {
-        rootMatrix_.reset();
-    }
 #endif
 }
 
@@ -3391,18 +3376,12 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 #endif
     // in case preparation'update is skipped
     node.GetMutableRenderProperties().CheckEmptyBounds();
+    canvas_->save();
     // draw self and children in sandbox which will not be affected by parent's transition
-    if (const auto& sandboxPos = node.GetRenderProperties().GetSandBox();
-        sandboxPos.has_value() && rootMatrix_.has_value()) {
-#ifndef USE_ROSEN_DRAWING
-        canvas_->setMatrix(*rootMatrix_);
-        canvas_->translate(sandboxPos->x_, sandboxPos->y_);
-#else
-        canvas_->SetMatrix(rootMatrix_.value());
-        canvas_->Translate(sandboxPos->x_, sandboxPos->y_);
-#endif
+    const auto& sandboxMatrix = node.GetRenderProperties().GetSandBoxMatrix();
+    if (sandboxMatrix) {
+        canvas_->setMatrix(*sandboxMatrix);
     }
-
     const auto& property = node.GetRenderProperties();
     if (property.IsSpherizeValid()) {
         DrawSpherize(node);
@@ -3422,6 +3401,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
     CheckAndSetNodeCacheType(node);
     DrawChildRenderNode(node);
+    canvas_->restore();
 }
 
 void RSUniRenderVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
@@ -3760,15 +3740,6 @@ bool RSUniRenderVisitor::PrepareSharedTransitionNode(RSBaseRenderNode& node)
     if (!pairedParam.has_value() || pairedParam->first != transitionParam->first) {
         // if 1. paired node is not a transition node or 2. paired node is not paired with this node, then clear
         // transition param and prepare directly
-        renderChild->SetSharedTransitionParam(std::nullopt);
-        return true;
-    }
-
-    if (const auto& transitionInNode = (node.GetId() == transitionParam->first) ? renderChild : pairedNode;
-        !transitionInNode->HasAnimation() || !pairedNode->IsOnTheTree()) {
-        // if no animation on transition in node, or paired node is detached from tree, clear transition param on both
-        // node and prepare directly
-        pairedNode->SetSharedTransitionParam(std::nullopt);
         renderChild->SetSharedTransitionParam(std::nullopt);
         return true;
     }

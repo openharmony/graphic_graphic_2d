@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PROPERTY_RS_PROPERTIES_DEF_H
 #define RENDER_SERVICE_CLIENT_CORE_PROPERTY_RS_PROPERTIES_DEF_H
 
+#include "include/core/SkMatrix.h"
+
 #include "common/rs_color_palette.h"
 #include "common/rs_rect.h"
 #include "common/rs_vector4.h"
@@ -61,6 +63,14 @@ public:
     RectF bgImageRect_ = RectF();
     Color backgroundColor_ = RgbPalette::Transparent();
     Color foregroundColor_ = RgbPalette::Transparent();
+};
+
+class Sandbox final {
+public:
+    Sandbox() {}
+    ~Sandbox() {}
+    std::optional<Vector2f> position_;
+    std::optional<SkMatrix> matrix_;
 };
 } // namespace Rosen
 } // namespace OHOS
