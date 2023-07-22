@@ -423,20 +423,13 @@ void RSMainThread::ProcessCommand()
 void RSMainThread::CacheCommands()
 {
     RS_TRACE_FUNC();
-    for (auto& [pid, _] : cacheCmdSkippedInfo_) {
-        if (effectiveTransactionDataIndexMap_.count(pid)) {
-            RS_TRACE_NAME("cacheCmd pid: " + std::to_string(pid));
-            cacheCmdSkippedInfo_[pid].second = true;
-            auto nodeIdVec = cacheCmdSkippedInfo_[pid].first;
-            for (auto nodeId : nodeIdVec) {
-                cacheCmdSkippedNodes_[nodeId] = true;
-            }
-            auto& transactionVec = effectiveTransactionDataIndexMap_[pid].second;
-            cachedTransactionDataMap_[pid].insert(cachedTransactionDataMap_[pid].begin(),
-                std::make_move_iterator(transactionVec.begin()), std::make_move_iterator(transactionVec.end()));
-            transactionVec.clear();
-            RS_LOGD("RSMainThread::CacheCommands effectiveCmd pid:%d cached", pid);
-        }
+    for (auto& skipTransactionData : cachedSkipTransactionDataMap_) {
+        pid_t pid = skipTransactionData.first;
+        RS_TRACE_NAME("cacheCmd pid: " + std::to_string(pid));
+        auto& skipTransactionDataVec = skipTransactionData.second;
+        cachedTransactionDataMap_[pid].insert(cachedTransactionDataMap_[pid].begin(),
+            std::make_move_iterator(skipTransactionDataVec.begin()),
+            std::make_move_iterator(skipTransactionDataVec.end()));
     }
 }
 
@@ -508,6 +501,110 @@ void RSMainThread::CheckParallelSubThreadNodesStatus()
     }
 }
 
+bool RSMainThread::IsNeedSkip(NodeId rootSurfaceNodeId, pid_t pid)
+{
+    for (auto& cacheCmdSkipNodeId: cacheCmdSkippedInfo_[pid].first) {
+        if (cacheCmdSkipNodeId == rootSurfaceNodeId) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void RSMainThread::SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid)
+{
+    RS_TRACE_FUNC();
+    if (RSSystemProperties::GetCacheCmdEnabled() &&
+        cacheCmdSkippedInfo_.find(pid) != cacheCmdSkippedInfo_.end()) {
+        return;
+    }
+    std::vector<std::unique_ptr<RSTransactionData>> skipTransactionVec;
+    const auto& nodeMap = context_->GetNodeMap();
+    for (auto& transactionData: transactionVec) {
+        std::vector<std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>> skipPayload;
+        std::vector<size_t> skipPayloadIndexVec;
+        auto& processPayload = transactionData->GetPayload();
+        for (size_t index = 0; index < processPayload.size(); ++index) {
+            auto& elem = processPayload[index];
+            if (std::get<2>(elem) == nullptr) { // check elem is valid
+                continue;
+            }
+            NodeId nodeId = std::get<2>(elem)->GetNodeId();
+            auto node = nodeMap.GetRenderNode(nodeId);
+            if (node == nullptr) {
+                continue;
+            }
+            NodeId rootSurfaceNodeId = node->GetRootSurfaceNodeId();
+            if (IsNeedSkip(rootSurfaceNodeId, pid)) {
+                skipPayload.emplace_back(std::move(elem));
+                skipPayloadIndexVec.push_back(index);
+            }
+        }
+        if (!skipPayload.empty()) {
+            std::unique_ptr<RSTransactionData> skipTransactionData = std::make_unique<RSTransactionData>();
+            skipTransactionData->SetTimestamp(transactionData->GetTimestamp());
+            std::string ablityName = transactionData->GetAbilityName();
+            skipTransactionData->SetAbilityName(ablityName);
+            skipTransactionData->SetSendingPid(transactionData->GetSendingPid());
+            skipTransactionData->SetIndex(transactionData->GetIndex());
+            skipTransactionData->GetPayload() = std::move(skipPayload);
+            skipTransactionData->SetIsCached(true);
+            skipTransactionVec.emplace_back(std::move(skipTransactionData));
+        }
+        for (auto iter = skipPayloadIndexVec.rbegin(); iter != skipPayloadIndexVec.rend(); ++iter) {
+            processPayload.erase(processPayload.begin() + *iter);
+        }
+    }
+    if (!skipTransactionVec.empty()) {
+        cachedSkipTransactionDataMap_[pid] = std::move(skipTransactionVec);
+    }
+}
+
+void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDataMap>& transactionDataEffective,
+    std::string& transactionFlags)
+{
+    for (auto& rsTransactionElem: effectiveTransactionDataIndexMap_) {
+        auto pid = rsTransactionElem.first;
+        auto& lastIndex = rsTransactionElem.second.first;
+        auto& transactionVec = rsTransactionElem.second.second;
+        auto iter = transactionVec.begin();
+        for (; iter != transactionVec.end(); ++iter) {
+            if ((*iter) == nullptr) {
+                continue;
+            }
+            auto curIndex = (*iter)->GetIndex();
+            if ((*iter)->GetIsCached()) {
+                continue;
+            }
+            if (curIndex == lastIndex + 1) {
+                if ((*iter)->GetTimestamp() >= timestamp_) {
+                    break;
+                }
+                ++lastIndex;
+                transactionFlags += " [" + std::to_string(pid) + "," + std::to_string(curIndex) + "]";
+            } else {
+                RS_LOGE("%s wait curIndex:%llu, lastIndex:%llu, pid:%d", __FUNCTION__, curIndex, lastIndex, pid);
+                if (transactionDataLastWaitTime_[pid] == 0) {
+                    transactionDataLastWaitTime_[pid] = timestamp_;
+                }
+                if ((timestamp_ - transactionDataLastWaitTime_[pid]) / REFRESH_PERIOD > SKIP_COMMAND_FREQ_LIMIT) {
+                    transactionDataLastWaitTime_[pid] = 0;
+                    lastIndex = curIndex;
+                    transactionFlags += " skip to[" + std::to_string(pid) + "," + std::to_string(curIndex) + "]";
+                    RS_LOGE("%s skip to index:%llu, pid:%d", __FUNCTION__, curIndex, pid);
+                    continue;
+                }
+                break;
+            }
+        }
+        if (iter != transactionVec.begin()) {
+            (*transactionDataEffective)[pid].insert((*transactionDataEffective)[pid].end(),
+                std::make_move_iterator(transactionVec.begin()), std::make_move_iterator(iter));
+            transactionVec.erase(transactionVec.begin(), iter);
+        }
+    }
+}
+
 void RSMainThread::ProcessCommandForUniRender()
 {
     ResetHardwareEnabledState();
@@ -518,52 +615,17 @@ void RSMainThread::ProcessCommandForUniRender()
     }
     {
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
+        cachedSkipTransactionDataMap_.clear();
+        for (auto& rsTransactionElem: effectiveTransactionDataIndexMap_) {
+            auto pid = rsTransactionElem.first;
+            auto& transactionVec = rsTransactionElem.second.second;
+            SkipCommandByNodeId(transactionVec, pid);
+            std::sort(transactionVec.begin(), transactionVec.end(), Compare);
+        }
         if (RSSystemProperties::GetUIFirstEnabled() && RSSystemProperties::GetCacheCmdEnabled()) {
             CacheCommands();
         }
-        for (auto& elem: effectiveTransactionDataIndexMap_) {
-            auto& transactionVec = elem.second.second;
-            std::sort(transactionVec.begin(), transactionVec.end(), Compare);
-        }
-
-        for (auto& rsTransactionElem: effectiveTransactionDataIndexMap_) {
-            auto pid = rsTransactionElem.first;
-            auto& lastIndex = rsTransactionElem.second.first;
-            auto& transactionVec = rsTransactionElem.second.second;
-            auto iter = transactionVec.begin();
-            for (; iter != transactionVec.end(); ++iter) {
-                if ((*iter) == nullptr) {
-                    continue;
-                }
-                auto curIndex = (*iter)->GetIndex();
-                if (curIndex == lastIndex + 1) {
-                    if ((*iter)->GetTimestamp() >= timestamp_) {
-                        break;
-                    }
-                    ++lastIndex;
-                    transactionFlags += " [" + std::to_string(pid) + "," + std::to_string(curIndex) + "]";
-                } else {
-                    RS_LOGE("RSMainThread::ProcessCommandForUniRender wait curIndex:%llu, lastIndex:%llu, pid:%d",
-                        curIndex, lastIndex, pid);
-                    if (transactionDataLastWaitTime_[pid] == 0) {
-                        transactionDataLastWaitTime_[pid] = timestamp_;
-                    }
-                    if ((timestamp_ - transactionDataLastWaitTime_[pid]) / REFRESH_PERIOD > SKIP_COMMAND_FREQ_LIMIT) {
-                        transactionDataLastWaitTime_[pid] = 0;
-                        lastIndex = curIndex;
-                        transactionFlags += " skip to[" + std::to_string(pid) + "," + std::to_string(curIndex) + "]";
-                        RS_LOGE("RSMainThread::ProcessCommandForUniRender skip to index:%llu, pid:%d", curIndex, pid);
-                        continue;
-                    }
-                    break;
-                }
-            }
-            if (iter != transactionVec.begin()) {
-                (*transactionDataEffective)[pid].insert((*transactionDataEffective)[pid].end(),
-                    std::make_move_iterator(transactionVec.begin()), std::make_move_iterator(iter));
-                transactionVec.erase(transactionVec.begin(), iter);
-            }
-        }
+        CheckAndUpdateTransactionIndex(transactionDataEffective, transactionFlags);
     }
     if (!transactionDataEffective->empty()) {
         doDirectComposition_ = false;

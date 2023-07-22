@@ -206,6 +206,7 @@ private:
     void RemoveRSEventDetector();
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
+    void SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid);
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     void ReleaseExitSurfaceNodeAllGpuResource(GrDirectContext* grContext);
@@ -235,8 +236,11 @@ private:
     void PerfMultiWindow();
     void RenderFrameStart();
     void ResetHardwareEnabledState();
+    void CheckAndUpdateTransactionIndex(
+        std::shared_ptr<TransactionDataMap>& transactionDataEffective, std::string& transactionFlags);
 
     bool IsResidentProcess(pid_t pid);
+    bool IsNeedSkip(NodeId rootSurfaceNodeId, pid_t pid);
 
     // Click animation, report the start event to RS
     void ResSchedDataStartReport(bool needRequestNextVsync);
@@ -271,6 +275,7 @@ private:
 
     TransactionDataMap cachedTransactionDataMap_;
     TransactionDataIndexMap effectiveTransactionDataIndexMap_;
+    std::map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> cachedSkipTransactionDataMap_;
     std::unordered_map<pid_t, uint64_t> transactionDataLastWaitTime_;
 
     uint64_t curTime_ = 0;
