@@ -68,8 +68,8 @@ private:
 
     sk_sp<SkRuntimeEffect> blurEffect_;
     sk_sp<SkRuntimeEffect> mixEffect_;
-    float blurRadius_;
-    float blurScale_;
+    float blurRadius_ = 0.f;
+    float blurScale_ = 0.25f;
 };
 #endif
 } // namespace Rosen
