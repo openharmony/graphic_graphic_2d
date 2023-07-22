@@ -17,7 +17,6 @@
 #include <iservice_registry.h>
 #include <native_window.h>
 #include <securec.h>
-#include "surface_type.h"
 #include "buffer_log.h"
 #include "external_window.h"
 

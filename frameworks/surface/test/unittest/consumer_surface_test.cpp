@@ -290,6 +290,14 @@ HWTEST_F(ConsumerSurfaceTest, RegisterConsumerListener001, Function | MediumTest
             cs->ReleaseBuffer(buffer, -1);
         }
     };
+
+    class TestConsumerListenerClazz : public IBufferConsumerListenerClazz {
+    public:
+        void OnBufferAvailable() override
+        {
+        }
+    };
+
     sptr<IBufferConsumerListener> listener = new TestConsumerListener();
     GSError ret = cs->RegisterConsumerListener(listener);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
@@ -309,6 +317,13 @@ HWTEST_F(ConsumerSurfaceTest, RegisterConsumerListener001, Function | MediumTest
 
     ret = ps->FlushBuffer(buffer, -1, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    listener->OnTunnelHandleChange();
+    listener->OnGoBackground();
+    listener->OnCleanCache();
+    TestConsumerListenerClazz* listenerClazz = new TestConsumerListenerClazz();
+    listenerClazz->OnTunnelHandleChange();
+    listenerClazz->OnGoBackground();
+    listenerClazz->OnCleanCache();
 }
 
 /*

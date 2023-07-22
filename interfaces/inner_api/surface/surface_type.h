@@ -354,7 +354,7 @@ using GraphicTransformType = enum {
 using BufferRequestConfig = struct BufferRequestConfig {
     int32_t width;
     int32_t height;
-    int32_t strideAlignment;
+    int32_t strideAlignment; // output parameter, system components can ignore it
     int32_t format; // GraphicPixelFormat
     uint64_t usage;
     int32_t timeout;
