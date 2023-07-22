@@ -803,6 +803,27 @@ std::shared_ptr<Drawing::Surface> RSRenderNode::GetCompletedCacheSurface(uint32_
     return nullptr;
 }
 
+#ifndef USE_ROSEN_DRAWING
+    sk_sp<SkSurface> RSRenderNode::GetCacheSurface(uint32_t threadIndex, bool needCheckThread)
+#else
+    std::shared_ptr<Drawing::Surface> RSRenderNode::GetCacheSurface(uint32_t threadIndex, bool needCheckThread)
+#endif
+{
+    {
+        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+        if (!needCheckThread || cacheSurfaceThreadIndex_ == threadIndex || !cacheSurface_) {
+            return cacheSurface_;
+        }
+    }
+
+    // freeze cache scene
+    if (clearCacheSurfaceFunc_) {
+        clearCacheSurfaceFunc_(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
+    }
+    ClearCacheSurface();
+    return nullptr;
+}
+
 void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
 {
     if (id <= 0 || GetType() != RSRenderNodeType::CANVAS_NODE) {

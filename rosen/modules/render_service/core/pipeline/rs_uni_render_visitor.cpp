@@ -2697,7 +2697,7 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
         return false;
     }
 
-    if (!node.GetCacheSurface()) {
+    if (!node.GetCacheSurface(threadIndex_, true)) {
         RSRenderNode::ClearCacheSurfaceFunc func = std::bind(&RSUniRenderUtil::ClearNodeCacheSurface,
             std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 #ifndef USE_ROSEN_DRAWING
@@ -2711,11 +2711,11 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
 #endif
     }
 
-    if (node.GetCacheSurface() == nullptr) {
+    if (node.GetCacheSurface(threadIndex_, true) == nullptr) {
         RS_LOGE("Get CacheSurface failed");
         return false;
     }
-    auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
+    auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface(threadIndex_, true).get());
     if (!cacheCanvas) {
         return false;
     }

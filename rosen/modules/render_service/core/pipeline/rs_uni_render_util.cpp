@@ -553,7 +553,8 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
     subThreadNodes.emplace_back(node);
     node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
 #if defined(RS_ENABLE_GL)
-    if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE && node->GetCacheSurface()) {
+    if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
+        node->GetCacheSurface(UNI_MAIN_THREAD_INDEX, false)) {
         node->UpdateCompletedCacheSurface();
     }
 #endif
@@ -681,7 +682,7 @@ void RSUniRenderUtil::ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex
         node.ClearCacheSurface();
         return;
     }
-    auto cacheSurface = node.GetCacheSurface();
+    auto cacheSurface = node.GetCacheSurface(threadIndex, true);
     auto cacheCompletedSurface = node.GetCompletedCacheSurface(threadIndex, isUIFirst);
     node.ClearCacheSurface();
     ClearNodeCacheSurface(cacheSurface, cacheCompletedSurface, cacheSurfaceThreadIndex);

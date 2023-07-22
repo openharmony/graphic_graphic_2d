@@ -180,6 +180,13 @@ public:
         return cacheSurface_;
     }
 
+// use for uni render visitor
+#ifndef USE_ROSEN_DRAWING
+    sk_sp<SkSurface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread);
+#else
+    std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread);
+#endif
+
     void UpdateCompletedCacheSurface()
     {
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);

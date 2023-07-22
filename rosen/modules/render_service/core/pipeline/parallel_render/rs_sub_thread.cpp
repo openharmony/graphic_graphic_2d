@@ -163,7 +163,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
 
         RS_TRACE_NAME_FMT("draw cache render node: [%s, %llu]", surfaceNodePtr->GetName().c_str(),
             surfaceNodePtr->GetId());
-        if (surfaceNodePtr->GetCacheSurface() == nullptr) {
+        if (surfaceNodePtr->GetCacheSurface(threadIndex_, true) == nullptr) {
             RSRenderNode::ClearCacheSurfaceFunc func = std::bind(&RSUniRenderUtil::ClearNodeCacheSurface,
                 std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
             surfaceNodePtr->InitCacheSurface(grContext_.get(), func, threadIndex_);
@@ -177,7 +177,8 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
 #ifndef USE_ROSEN_DRAWING
         nodeProcessTracker.SetTagEnd();
 #ifndef NEW_SKIA
-        auto skCanvas = surfaceNodePtr->GetCacheSurface() ? surfaceNodePtr->GetCacheSurface()->getCanvas() : nullptr;
+        auto skCanvas = surfaceNodePtr->GetCacheSurface(threadIndex_, true) ?
+            surfaceNodePtr->GetCacheSurface(threadIndex_, true)->getCanvas() : nullptr;
         if (skCanvas) {
             RS_TRACE_NAME_FMT("render cache flush, %s", surfaceNodePtr->GetName().c_str());
             skCanvas->flush();
@@ -185,16 +186,17 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
             RS_LOGE("skCanvas is nullptr, flush failed");
         }
 #else
-        if (surfaceNodePtr && surfaceNodePtr->GetCacheSurface()) {
+        if (surfaceNodePtr && surfaceNodePtr->GetCacheSurface(threadIndex_, true)) {
             RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
             RSTagTracker nodeFlushTracker(grContext_.get(), surfaceNodePtr->GetId(),
                 RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
-            surfaceNodePtr->GetCacheSurface()->flushAndSubmit(true);
+            surfaceNodePtr->GetCacheSurface(threadIndex_, true)->flushAndSubmit(true);
             nodeFlushTracker.SetTagEnd();
         }
 #endif
 #else
-        auto canvas = surfaceNodePtr->GetCacheSurface() ? surfaceNodePtr->GetCacheSurface()->GetCanvas() : nullptr;
+        auto canvas = surfaceNodePtr->GetCacheSurface(threadIndex_, true) ?
+            surfaceNodePtr->GetCacheSurface(threadIndex_, true)->GetCanvas() : nullptr;
         if (canvas) {
             RS_TRACE_NAME_FMT("render cache flush, %s", surfaceNodePtr->GetName().c_str());
             canvas->Flush();
