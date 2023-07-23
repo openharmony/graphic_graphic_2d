@@ -269,11 +269,13 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
 #ifndef USE_ROSEN_DRAWING
         SkBitmap bitmap;
         canvasDrawingNode->GetBitmap(bitmap);
-        canvas_->drawImage(bitmap.asImage(), 0, 0);
+        canvas_->drawImage(bitmap.asImage(), node.GetRenderProperties().GetBoundsPositionX(),
+            node.GetRenderProperties().GetBoundsPositionY());
 #else
         Drawing::Bitmap bitmap;
         canvasDrawingNode->GetBitmap(bitmap);
-        canvas_->DrawBitmap(bitmap, 0, 0);
+        canvas_->drawImage(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
+            node.GetRenderProperties().GetBoundsPositionY());
 #endif
         ProcessBaseRenderNode(*canvasDrawingNode);
     } else {
