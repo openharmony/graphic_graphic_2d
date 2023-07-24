@@ -221,10 +221,16 @@ HgmRefreshRates RSSystemProperties::GetHgmRefreshRatesEnabled()
         std::atoi((system::GetParameter("rosen.sethgmrefreshrate.enabled", "0")).c_str()));
 }
 
+void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
+{
+    system::SetParameter("persist.rosen.sethgmrefreshratemode.enabled", param);
+    RS_LOGD("RSSystemProperties::SetHgmRefreshRateModesEnabled set to %{public}s", param.c_str());
+}
+
 HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
 {
     return static_cast<HgmRefreshRateModes>(
-        std::atoi((system::GetParameter("rosen.sethgmrefreshratemode.enabled", "0")).c_str()));
+        std::atoi((system::GetParameter("persist.rosen.sethgmrefreshratemode.enabled", "0")).c_str()));
 }
 
 bool RSSystemProperties::GetColdStartThreadEnabled()

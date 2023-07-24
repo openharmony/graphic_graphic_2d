@@ -26,6 +26,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_ui_capture.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "rs_main_thread.h"
 #include "rs_trace.h"
@@ -379,6 +380,8 @@ void RSRenderServiceConnection::SetRefreshRateMode(int32_t refreshRateMode)
             if (setResult != 0) {
                 RS_LOGW("SetRefreshRateMode mode %d is not supported", refreshRateMode);
                 return;
+            } else {
+                RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(refreshRateMode));
             }
         }).wait();
     } else {
@@ -388,6 +391,8 @@ void RSRenderServiceConnection::SetRefreshRateMode(int32_t refreshRateMode)
             if (setResult != 0) {
                 RS_LOGW("SetRefreshRateMode mode %d is not supported", refreshRateMode);
                 return;
+            } else {
+                RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(refreshRateMode));
             }
         }).wait();
     }

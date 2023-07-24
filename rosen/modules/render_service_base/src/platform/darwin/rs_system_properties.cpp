@@ -135,6 +135,11 @@ HgmRefreshRates RSSystemProperties::GetHgmRefreshRatesEnabled()
     return {};
 }
 
+void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
+{
+    return;
+}
+
 HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
 {
     return {};
