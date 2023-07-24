@@ -72,6 +72,21 @@ public:
         return abilityName_;
     }
 
+    void SetAbilityName(const std::string& abilityName)
+    {
+        abilityName_ = abilityName;
+    }
+
+    void SetIsCached(bool isCached)
+    {
+        isCached_ = isCached;
+    }
+
+    bool GetIsCached()
+    {
+        return isCached_;
+    }
+
     void SetSendingPid(pid_t pid)
     {
         pid_ = pid;
@@ -155,6 +170,7 @@ private:
     mutable size_t marshallingIndex_ = 0;
     bool needSync_ { false };
     bool needCloseSync_ { false };
+    bool isCached_ { false };
     int32_t syncTransactionCount_ { 0 };
     uint64_t syncId_ { 0 };
     std::mutex commandMutex_;
