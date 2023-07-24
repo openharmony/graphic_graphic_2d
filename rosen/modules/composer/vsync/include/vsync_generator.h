@@ -39,6 +39,7 @@ public:
     virtual VsyncError AddListener(int64_t phase, const sptr<Callback>& cb) = 0;
     virtual VsyncError RemoveListener(const sptr<Callback>& cb) = 0;
     virtual VsyncError ChangePhaseOffset(const sptr<Callback>& cb, int64_t offset) = 0;
+    virtual bool IsEnable() = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -57,6 +58,7 @@ public:
     VsyncError AddListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     VsyncError RemoveListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     VsyncError ChangePhaseOffset(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb, int64_t offset) override;
+    bool IsEnable() override;
 
 private:
     friend class OHOS::Rosen::VSyncGenerator;

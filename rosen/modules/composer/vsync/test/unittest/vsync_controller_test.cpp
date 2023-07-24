@@ -56,7 +56,8 @@ void VSyncControllerCallback::OnVSyncEvent(int64_t now, int64_t period) {}
  */
 HWTEST_F(VSyncControllerTest, SetEnable001, Function | MediumTest | Level2)
 {
-    ASSERT_EQ(VSyncControllerTest::vsyncController_->SetEnable(true), VSYNC_ERROR_OK);
+    bool isGeneratorEnable = false;
+    ASSERT_EQ(VSyncControllerTest::vsyncController_->SetEnable(true, isGeneratorEnable), VSYNC_ERROR_OK);
 }
 
 /*
