@@ -274,6 +274,7 @@ public:
     */
     void RegionOp(Region& r1, Region& r2, Region& res, Region::OP op);
     void RegionOpLocal(Region& r1, Region& r2, Region& res, Region::OP op);
+    void RegionOpAccelate(Region& r1, Region& r2, Region& res, Region::OP op);
 
     Region& OperationSelf(Region& r, Region::OP op);
     // replace region with and result
@@ -293,10 +294,6 @@ public:
     Region Xor(Region& r);
     // return region belongs to Region(lhs) but not Region(rhs)
     Region Sub(Region& r);
-    
-public:
-    static void (*regionOpFromSO)(Region& r1, Region& r2, Region& res, Region::OP op);
-    static void InitDynamicLibraryFunction();
 
 private:
     class Rects {
