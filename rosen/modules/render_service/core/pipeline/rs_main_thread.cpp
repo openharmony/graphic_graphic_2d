@@ -252,6 +252,7 @@ void RSMainThread::Init()
     RSRecordingThread::Instance().Start();
 #endif
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
+    SetDeviceType();
     RsFrameReport::GetInstance().Init();
     if (isUniRender_) {
         unmarshalBarrierTask_ = [this]() {
@@ -360,6 +361,20 @@ void RSMainThread::InitRSEventDetector()
     if (rsCompositionTimeoutDetector_ != nullptr) {
         rsEventManager_.AddEvent(rsCompositionTimeoutDetector_, 60000); // report Internal 1min:60s：60000ms
         RS_LOGD("InitRSEventDetector finish");
+    }
+}
+
+void RSMainThread::SetDeviceType()
+{
+    auto deviceTypeStr = system::GetParameter("const.product.devicetype", "pc");
+    if (deviceTypeStr == "pc") {
+        deviceType_ = DeviceType::PC;
+    } else if (deviceTypeStr == "tablet") {
+        deviceType_ = DeviceType::TABLET;
+    } else if (deviceTypeStr == "phone") {
+        deviceType_ = DeviceType::PHONE;
+    } else {
+        deviceType_ = DeviceType::OTHERS;
     }
 }
 
@@ -1109,7 +1124,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                 rootNode->GetSortedChildren().front());
             std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
             std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
-            RSUniRenderUtil::AssignWindowNodes(displayNode, mainThreadNodes, subThreadNodes);
+            RSUniRenderUtil::AssignWindowNodes(displayNode, mainThreadNodes, subThreadNodes, focusNodeId_, deviceType_);
             const auto& nodeMap = context_->GetNodeMap();
             RSUniRenderUtil::ClearSurfaceIfNeed(nodeMap, displayNode, oldDisplayChildren_);
             uniVisitor->DrawSurfaceLayer(displayNode, subThreadNodes);

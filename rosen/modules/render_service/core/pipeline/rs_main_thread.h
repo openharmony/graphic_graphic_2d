@@ -194,6 +194,7 @@ private:
     void CollectInfoForDrivenRender();
     void ReleaseAllNodesBuffer();
     void Render();
+    void SetDeviceType();
     void UniRender(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
     void CalcOcclusionImplementation(std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
@@ -367,6 +368,7 @@ private:
     std::unordered_map<pid_t, std::pair<std::vector<NodeId>, bool>> cacheCmdSkippedInfo_;
     std::atomic<uint64_t> frameCount_ = 0;
     std::set<std::shared_ptr<RSBaseRenderNode>> oldDisplayChildren_;
+    DeviceType deviceType_ = DeviceType::PHONE;
 
     // used for informing hgm the bundle name of SurfaceRenderNodes
     bool noBundle_ = false;

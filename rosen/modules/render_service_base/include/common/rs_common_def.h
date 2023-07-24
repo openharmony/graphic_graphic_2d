@@ -106,6 +106,13 @@ enum class CacheProcessStatus : uint32_t {
     DONE, // processed
 };
 
+enum class DeviceType : uint8_t {
+    PHONE,
+    PC,
+    TABLET,
+    OTHERS,
+};
+
 // types for RSSurfaceRenderNode
 enum class RSSurfaceNodeType : uint8_t {
     DEFAULT,

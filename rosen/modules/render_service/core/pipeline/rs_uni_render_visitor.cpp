@@ -131,7 +131,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     }
 #endif
     surfaceNodePrepareMutex_ = std::make_shared<std::mutex>();
-    parallelRenderType_ = RSSystemProperties::GetParallelRenderingEnabled();
+    parallelRenderType_ = ParallelRenderingType::DISABLE;
 #if defined(RS_ENABLE_PARALLEL_RENDER)
     isCalcCostEnable_ = RSSystemParameters::GetCalcCostEnabled();
 #endif
@@ -761,18 +761,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.CleanDstRectChanged();
     node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
-    if (isUIFirst_) {
-        auto skipNodeMap = RSMainThread::Instance()->GetCacheCmdSkippedNodes();
-        if (skipNodeMap.count(node.GetId()) != 0) {
-            auto parentNode = node.GetParent().lock();
-            auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
-            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
-                dirtyFlag_, prepareClipRect_);
-            dirtyFlag_ = dirtyFlag;
-            RS_TRACE_NAME(node.GetName() + " PreparedNodes cacheCmdSkiped");
-            return;
-        }
-    }
+    
 
     RectI prepareClipRect = prepareClipRect_;
     bool isQuickSkipPreparationEnabled = isQuickSkipPreparationEnabled_;
@@ -794,6 +783,18 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::PrepareSurfaceRenderNode %s curSurfaceDirtyManager is nullptr",
             node.GetName().c_str());
         return;
+    }
+    if (isUIFirst_) {
+        auto skipNodeMap = RSMainThread::Instance()->GetCacheCmdSkippedNodes();
+        if (skipNodeMap.count(node.GetId()) != 0) {
+            auto parentNode = node.GetParent().lock();
+            auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
+            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
+                dirtyFlag_, prepareClipRect_);
+            dirtyFlag_ = dirtyFlag;
+            RS_TRACE_NAME(node.GetName() + " PreparedNodes cacheCmdSkiped");
+            return;
+        }
     }
     // Update node properties, including position (dstrect), OldDirty()
     auto parentNode = node.GetParent().lock();
@@ -3031,6 +3032,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (property.IsSpherizeValid()) {
         DrawSpherize(node);
     } else {
+        if (isUIFirst_ && node.GetCacheType() == CacheType::ANIMATE_PROPERTY) {
+            RSUniRenderUtil::HandleSubThreadNode(node, *canvas_);
+            return;
+        }
         node.ProcessRenderBeforeChildren(*canvas_);
         if (isUIFirst_ && RSUniRenderUtil::HandleSubThreadNode(node, *canvas_)) {
             node.ProcessRenderAfterChildren(*canvas_);
