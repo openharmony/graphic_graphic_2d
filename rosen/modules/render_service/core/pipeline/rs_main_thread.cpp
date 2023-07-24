@@ -1028,6 +1028,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         isAccessibilityConfigChanged_ = false;
         uniVisitor->SetFocusedWindowPid(focusAppPid_);
         rootNode->Prepare(uniVisitor);
+        uniVisitor->FindAndSendRefreshRate();
         CalcOcclusion();
         bool doParallelComposition = RSInnovation::GetParallelCompositionEnabled(isUniRender_);
         if (doParallelComposition && rootNode->GetChildrenCount() > 1) {
@@ -1053,8 +1054,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RSUniRenderUtil::CacheSubThreadNodes(subThreadNodes_, subThreadNodes);
         }
         rootNode->Process(uniVisitor);
-        uniVisitor->FindAndSendRefreshRate();
-        uniVisitor->DecideSurfaceDrawingFrameRate();
     }
     isDirty_ = false;
     uniRenderEngine_->ShrinkCachesIfNeeded();
