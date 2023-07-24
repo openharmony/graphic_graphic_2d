@@ -33,8 +33,8 @@ public:
     void UpdateFrameRateRange(ScreenId id, FrameRateRange range);
     void FindAndSendRefreshRate();
     void ResetFrameRateRangeMap();
-    void DecideSurfaceDrawingFrameRate(NodeId displayNodeId,
-        NodeId surfaceNodeId, FrameRateRange range);
+    void DecideSurfaceDrawingFrameRate(NodeId surfaceNodeId,
+        ScreenId screenId, FrameRateRange range);
 
 private:
     std::unordered_map<ScreenId, FrameRateRange> screenIdToFrameRateRange_;

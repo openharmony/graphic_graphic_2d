@@ -94,14 +94,14 @@ void HgmFrameRateManager::ResetFrameRateRangeMap()
     drawingFrameRateMap_.clear();
 }
 
-void HgmFrameRateManager::DecideSurfaceDrawingFrameRate(NodeId displayNodeId,
-    NodeId surfaceNodeId, FrameRateRange range)
+void HgmFrameRateManager::DecideSurfaceDrawingFrameRate(NodeId surfaceNodeId,
+    ScreenId screenId, FrameRateRange range)
 {
     if (!range.IsValid()) {
         return;
     }
 
-    int refreshRate = static_cast<int>(screenIdToLCDRefreshRates_[displayNodeId]);
+    int refreshRate = static_cast<int>(screenIdToLCDRefreshRates_[screenId]);
     int drawingFps = refreshRate;
     if (range.preferred_ == refreshRate) {
         drawingFrameRateMap_[surfaceNodeId] = range.preferred_;
