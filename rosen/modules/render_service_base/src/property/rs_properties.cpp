@@ -336,10 +336,10 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
     CheckEmptyBounds();
     auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(boundsGeo_);
 
-    if (dirtyFlag || geoDirty_) {
-        auto parentGeo = parent == nullptr ? nullptr : std::static_pointer_cast<RSObjAbsGeometry>(parent->boundsGeo_);
-        boundsGeoPtr->UpdateMatrix(parentGeo, offset, clipRect);
-        if (RSSystemProperties::GetSkipUnGeodirtyEnabled()) {
+    if (RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
+        if (dirtyFlag || geoDirty_) {
+            auto parentGeo = parent == nullptr ? nullptr : std::static_pointer_cast<RSObjAbsGeometry>(parent->boundsGeo_);
+            boundsGeoPtr->UpdateMatrix(parentGeo, offset, clipRect);
             auto rect = boundsGeoPtr->GetAbsRect();
             if (!lastRect_.has_value()) {
                 lastRect_ = rect;
@@ -348,11 +348,16 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
             dirtyFlag = dirtyFlag || rect != lastRect_.value();
             lastRect_ = rect;
             return dirtyFlag;
-        } else {
+        }
+        return false;
+    } else {
+        if (dirtyFlag || geoDirty_) {
+            auto parentGeo = parent == nullptr ? nullptr : std::static_pointer_cast<RSObjAbsGeometry>(parent->boundsGeo_);
+            boundsGeoPtr->UpdateMatrix(parentGeo, offset, clipRect);
             return true;
         }
+        return false;
     }
-    return false;
 }
 
 void RSProperties::SetSandBox(const std::optional<Vector2f>& parentPosition)

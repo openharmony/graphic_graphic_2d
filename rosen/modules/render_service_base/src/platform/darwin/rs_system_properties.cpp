@@ -150,7 +150,7 @@ bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
     return {};
 }
 
-bool RSSystemProperties::GetSkipUnGeodirtyEnabled()
+bool RSSystemProperties::GetSkipGeometryNotChangeEnabled()
 {
     return {};
 }

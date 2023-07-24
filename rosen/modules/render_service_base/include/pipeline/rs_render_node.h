@@ -478,9 +478,9 @@ public:
     void ResetRSFrameRateRange();
     void ResetUIFrameRateRange();
 
-    void MarkUnGeoDirty()
+    void MarkNonGeometryChanged()
     {
-        unGeoDirty_ = true;
+        geometryChangeNotPerceived_ = true;
     }
 
 protected:
@@ -565,7 +565,7 @@ private:
     float boundsHeight_ = 0.0f;
     std::unordered_set<RSModifierType> dirtyTypes_;
     bool hasCacheableAnim_ = false;
-    bool unGeoDirty_ = false;
+    bool geometryChangeNotPerceived_ = false;
 
     FrameRateRange rsRange_ = {0, 0, 0};
     FrameRateRange uiRange_ = {0, 0, 0};

@@ -27,7 +27,7 @@ void RSRenderPropertyBase::OnChange() const
         node->AddDirtyType(modifierType_);
         if (modifierType_ < RSModifierType::BOUNDS || modifierType_ > RSModifierType::TRANSLATE_Z ||
             modifierType_ == RSModifierType::POSITION_Z) {
-            node->MarkUnGeoDirty();
+            node->MarkNonGeometryChanged();
         }
     }
 }
