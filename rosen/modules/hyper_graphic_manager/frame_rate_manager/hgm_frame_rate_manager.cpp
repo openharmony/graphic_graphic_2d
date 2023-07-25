@@ -123,7 +123,7 @@ void HgmFrameRateManager::CalcSurfaceDrawingFrameRate(NodeId surfaceNodeId,
         // 60, the drawing fps of the surfaceNode should be 30.
         float ratio = 1.0f;
         int divisor = 1;
-        int dividedFps = refreshRate;
+        float dividedFps = static_cast<float>(refreshRate);
         while (dividedFps > MIN_DRAWING_FPS - MARGIN) {
             if (dividedFps < range.min_) {
                 break;
