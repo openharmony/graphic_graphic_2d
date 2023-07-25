@@ -39,7 +39,11 @@ public:
     virtual ~RSImageBase();
 
 #ifndef USE_ROSEN_DRAWING
+#ifdef NEW_SKIA
+    virtual void DrawImage(SkCanvas& canvas, const SkSamplingOptions& samplingOptions, const SkPaint& paint);
+#else
     virtual void DrawImage(SkCanvas& canvas, const SkPaint& paint);
+#endif
     void SetImage(const sk_sp<SkImage> image);
 #else
     virtual void DrawImage(Drawing::Canvas& canvas, const Drawing::Brush& brush);
