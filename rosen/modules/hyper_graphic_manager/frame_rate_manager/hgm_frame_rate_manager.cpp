@@ -75,14 +75,15 @@ void HgmFrameRateManager::FindAndSendRefreshRate()
             HGM_LOGD("HgmFrameRateManager: refreshRateSwitch is off, currRefreshRate is %{public}d", currRefreshRate);
             return;
         }
-        int lcdRefreshRate = static_cast<int>(instance.GetScreenCurrentRefreshRate(id));
+        uint32_t lcdRefreshRate = instance.GetScreenCurrentRefreshRate(id);
         if (currRefreshRate != lcdRefreshRate) {
-            HGM_LOGD("HgmFrameRateManager: current refreshRate is %{public}d", currRefreshRate);
+            HGM_LOGD("HgmFrameRateManager: current refreshRate is %{public}d",
+                static_cast<int>(currRefreshRate));
             int status = instance.SetScreenRefreshRate(id, 0, currRefreshRate);
             if (status != EXEC_SUCCESS) {
                 screenIdToLCDRefreshRates_[id] = lcdRefreshRate;
                 HGM_LOGE("HgmFrameRateManager: failed to set refreshRate %{public}d, screenId %{public}d",
-                    currRefreshRate, static_cast<int>(id));
+                    static_cast<int>(currRefreshRate), static_cast<int>(id));
             }
         }
     }
@@ -91,6 +92,7 @@ void HgmFrameRateManager::FindAndSendRefreshRate()
 void HgmFrameRateManager::ResetFrameRateRangeMap()
 {
     screenIdToFrameRateRange_.clear();
+    screenIdToLCDRefreshRates_.clear();
     drawingFrameRateMap_.clear();
 }
 
@@ -100,30 +102,36 @@ void HgmFrameRateManager::CalcSurfaceDrawingFrameRate(NodeId surfaceNodeId,
     if (!range.IsValid()) {
         return;
     }
+    auto& refreshRatesMap = screenIdToLCDRefreshRates_;
+    if (refreshRatesMap.find(screenId) == refreshRatesMap.end()) {
+        HGM_LOGE("HgmFrameRateManager:: Failed to find ScreenId - %{public}d",
+            static_cast<int>(screenId));
+        return;
+    }
 
-    int refreshRate = static_cast<int>(screenIdToLCDRefreshRates_[screenId]);
-    int drawingFps = refreshRate;
+    int refreshRate = static_cast<int>(refreshRatesMap[screenId]);
+    float drawingFps = static_cast<float>(refreshRate);
     if (range.preferred_ == refreshRate || refreshRate % range.preferred_ == 0) {
-        drawingFps = range.preferred_;
+        drawingFps = static_cast<float>(range.preferred_);
     } else if (!range.IsDynamic()) {
         // if the FrameRateRange of a surfaceNode is [50, 50, 50], the refreshRate is
         // 90, the drawing fps of the surfaceNode should be 45.
         int divisor = refreshRate / range.preferred_;
-        drawingFps = refreshRate / divisor;
+        drawingFps = static_cast<float>(refreshRate) / static_cast<float>(divisor);
     } else {
         // if the FrameRateRange of a surfaceNode is [24, 48, 48], the refreshRate is
         // 60, the drawing fps of the surfaceNode should be 30.
         float ratio = 1.0f;
         int divisor = 1;
         int dividedFps = refreshRate;
-        while (dividedFps >= MIN_DRAWING_FPS) {
+        while (dividedFps > MIN_DRAWING_FPS - MARGIN) {
             if (dividedFps < range.min_) {
                 break;
             }
             if (dividedFps > range.max_) {
                 divisor++;
-                int preDividedFps = dividedFps;
-                dividedFps = refreshRate / divisor;
+                float preDividedFps = dividedFps;
+                dividedFps = static_cast<float>(refreshRate) / static_cast<float>(divisor);
                 // FrameRateRange is [50, 80, 80], refreshrate is
                 // 90, the drawing frame rate is 90.
                 // FrameRateRange is [40, 80, 80], refreshrate is
@@ -142,10 +150,10 @@ void HgmFrameRateManager::CalcSurfaceDrawingFrameRate(NodeId surfaceNodeId,
             // drawing fps is 60, we lack the least(the ratio is 2/60).
             // Preferred fps is 34, refreshRate is 60. When the
             // drawing fps is 34, we lack the least(the ratio is 4/30).
-            int remainder = std::min(range.preferred_ % dividedFps,
-                std::abs(DUPLATION * dividedFps - range.preferred_) %  dividedFps);
-            float currRatio = static_cast<float>(remainder) /
-                static_cast<float>(dividedFps);
+            int remainder = std::min(range.preferred_ % static_cast<int>(dividedFps),
+                std::abs(static_cast<int>(DUPLATION * dividedFps) - range.preferred_) %
+                static_cast<int>(dividedFps));
+            float currRatio = static_cast<float>(remainder) / dividedFps;
             // dividedFps is the perfect result, currRatio is almost zero.
             if (currRatio < MARGIN) {
                 ratio = currRatio;
@@ -158,11 +166,11 @@ void HgmFrameRateManager::CalcSurfaceDrawingFrameRate(NodeId surfaceNodeId,
                 drawingFps = dividedFps;
             }
             divisor++;
-            dividedFps = refreshRate / divisor;
+            dividedFps = static_cast<float>(refreshRate) / static_cast<float>(divisor);
         }
     }
     drawingFrameRateMap_[surfaceNodeId] = drawingFps;
-    HGM_LOGD("HgmFrameRateManager:: surfaceNodeId - %{public}d, Drawing FrameRate %{public}d",
+    HGM_LOGD("HgmFrameRateManager:: surfaceNodeId - %{public}d, Drawing FrameRate %{public}.1f",
         static_cast<int>(surfaceNodeId), drawingFps);
 }
 } // namespace Rosen

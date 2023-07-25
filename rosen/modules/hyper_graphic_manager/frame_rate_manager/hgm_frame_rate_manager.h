@@ -40,7 +40,7 @@ private:
     std::unordered_map<ScreenId, FrameRateRange> screenIdToFrameRateRange_;
     std::unordered_map<ScreenId, std::vector<uint32_t>> screenIdToSupportedRefreshRates_;
     std::unordered_map<ScreenId, uint32_t> screenIdToLCDRefreshRates_;
-    std::unordered_map<NodeId, int> drawingFrameRateMap_; // RSSurfaceRenderNode id - frameRate
+    std::unordered_map<NodeId, float> drawingFrameRateMap_; // RSSurfaceRenderNode id - frameRate
 };
 } // namespace Rosen
 } // namespace OHOS
