@@ -29,7 +29,10 @@ public:
     explicit FontCollectionTxt(bool createWithICU = true);
 
     ~FontCollectionTxt() override;
+
     std::shared_ptr<txt::FontCollection> GetFontCollection() const;
+
+    sk_sp<txt::DynamicFontManager> GetDynamicFontManager() const;
 
     void RegisterTestFonts() override;
 
