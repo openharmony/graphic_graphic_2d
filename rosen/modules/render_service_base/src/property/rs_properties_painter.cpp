@@ -728,7 +728,7 @@ void RSPropertiesPainter::DrawShadowInner(
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
 bool RSPropertiesPainter::GetGradientDirectionPoints(
-    SkPoint* pts, const SkRect& clipBounds, GradientDirection direction)
+    SkPoint (&pts)[2], const SkRect& clipBounds, GradientDirection direction)
 {
     switch (direction) {
         case GradientDirection::BOTTOM: {
