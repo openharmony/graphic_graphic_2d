@@ -202,6 +202,7 @@ private:
     bool CheckQosVisChanged(std::map<uint32_t, bool>& pidVisMap);
     void CallbackToQOS(std::map<uint32_t, bool>& pidVisMap);
     void CallbackToWMS(VisibleData& curVisVec);
+    void GetProcessInfo();
     void SendCommands();
     void InitRSEventDetector();
     void RemoveRSEventDetector();
@@ -361,6 +362,9 @@ private:
 
     // used for control start and end of the click animation
     bool requestResschedReport_ = true;
+
+    // used for record process information
+    std::unordered_map<std::string, std::string> payload_;
 
     // UIFirst
     std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes_;
