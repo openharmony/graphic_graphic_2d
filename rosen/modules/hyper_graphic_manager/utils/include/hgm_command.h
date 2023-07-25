@@ -80,8 +80,8 @@ public:
     ParsedConfigData() = default;
     ~ParsedConfigData() = default;
 
-    std::string isDynamicFrameRateEnable_;
-    std::string defaultRefreshRateMode_;
+    std::string isDynamicFrameRateEnable_ = "0";
+    std::string defaultRefreshRateMode_ = "-1";
     struct detailedStrat {
         std::string name;
         std::string isDynamic;

@@ -93,15 +93,6 @@ int32_t HgmScreen::AddScreenModeInfo(int32_t width, int32_t height, uint32_t rat
     return EXEC_SUCCESS;
 }
 
-void HgmScreen::VerifySupportedProfiles() const
-{
-    for (auto modePtr : screenModeInfos_) {
-        HGM_LOGI("HgmScreen verify modes w : %{public}d, h : %{public}d, "
-            "rate : %{public}u, modeId : %{public}d, currentMode : %{public}d",
-            modePtr->GetWidth(), modePtr->GetHeight(), modePtr->GetRate(), modePtr->GetModeId(), activeModeId_);
-    }
-}
-
 void HgmScreen::SetActiveModeId(int32_t modeId)
 {
     HGM_LOGI("HgmScreen setting activeModeId to %{public}d", modeId);
