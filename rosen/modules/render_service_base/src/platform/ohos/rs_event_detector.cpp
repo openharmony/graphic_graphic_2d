@@ -13,26 +13,10 @@
  * limitations under the License.
  */
 
-#include "sandbox_utils.h"
 #include "platform/common/rs_event_manager.h"
-
-#ifdef RES_SCHED_ENABLE
-#include "res_sched_client.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-#ifdef RES_SCHED_ENABLE
-constexpr uint32_t FRAME_RATE_NUM           = 60;
-constexpr uint32_t RES_TYPE_CLICK_ANIMATION = 35;
-constexpr int32_t CLICK_ANIMATION_NORMAL    = 1;
-constexpr int32_t CLICK_ANIMATION_SOON      = 2;
-constexpr int32_t CLICK_ANIMATION_BOOST     = 3;
-constexpr int32_t THRESHOLD_PARA_2          = 2;
-constexpr int32_t THRESHOLD_PARA_3          = 3;
-#endif
-}
 uint64_t RSEventTimer::GetSysTimeMs()
 {
     auto now = std::chrono::steady_clock::now().time_since_epoch();
@@ -75,34 +59,6 @@ void RSTimeOutDetector::SetLoopStartTag()
     startTimeStampMs_ = RSEventTimer::GetSysTimeMs();
 }
 
-void RSTimeOutDetector::ResSchedDataReport(uint64_t costTimeMs)
-{
-#ifdef RES_SCHED_ENABLE
-    static int32_t lastStatus = 0;
-    uint32_t frameRate = FRAME_RATE_NUM;
-    uint32_t refreshTimeMs = ceil((float)(1 * 1000) / (float)frameRate); // 1s->1000Ms
-    uint32_t thresholdSoonValueMs =
-        refreshTimeMs * THRESHOLD_PARA_2 / THRESHOLD_PARA_3; // two-thirds of each refresh time
-    std::unordered_map<std::string, std::string> payload;
-    payload["uid"] = std::to_string(getuid());
-    payload["pid"] = std::to_string(GetRealPid());
-    if (costTimeMs <= thresholdSoonValueMs && lastStatus != CLICK_ANIMATION_NORMAL) {
-        OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(RES_TYPE_CLICK_ANIMATION,
-            CLICK_ANIMATION_NORMAL, payload);
-        lastStatus = CLICK_ANIMATION_NORMAL;
-    } else if (costTimeMs > thresholdSoonValueMs && costTimeMs <= refreshTimeMs &&
-        lastStatus != CLICK_ANIMATION_SOON) {
-        OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(RES_TYPE_CLICK_ANIMATION,
-            CLICK_ANIMATION_SOON, payload);
-        lastStatus = CLICK_ANIMATION_SOON;
-    } else if (costTimeMs > refreshTimeMs && lastStatus != CLICK_ANIMATION_BOOST) {
-        OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(RES_TYPE_CLICK_ANIMATION,
-            CLICK_ANIMATION_BOOST, payload);
-        lastStatus = CLICK_ANIMATION_BOOST;
-    }
-#endif
-}
-
 void RSTimeOutDetector::SetLoopFinishTag(
     int32_t focusAppPid, int32_t focusAppUid, std::string& focusAppBundleName, std::string& focusAppAbilityName)
 {
@@ -117,9 +73,6 @@ void RSTimeOutDetector::SetLoopFinishTag(
             focusAppAbilityName_ = focusAppAbilityName;
             EventReport(durationStampMs);
         }
-#ifdef RES_SCHED_ENABLE
-        ResSchedDataReport(durationStampMs);
-#endif
     }
 }
 
