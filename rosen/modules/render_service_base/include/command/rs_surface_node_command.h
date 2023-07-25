@@ -77,7 +77,7 @@ public:
 #endif
     static void UpdateSurfaceDefaultSize(RSContext& context, NodeId nodeId, float width, float height);
     static void ConnectToNodeInRenderService(RSContext& context, NodeId id);
-    static void SetCallbackForRenderThreadRefresh(RSContext& context, NodeId id, std::function<void(void)> callback);
+    static void SetCallbackForRenderThreadRefresh(RSContext& context, NodeId id, bool isRefresh);
     static void SetContextBounds(RSContext& context, NodeId id, Vector4f bounds);
     static void SetAbilityBGAlpha(RSContext& context, NodeId id, uint8_t alpha);
     static void SetIsNotifyUIBufferAvailable(RSContext& context, NodeId nodeId, bool available);
@@ -118,7 +118,7 @@ ADD_COMMAND(RSSurfaceNodeConnectToNodeInRenderService,
     SurfaceNodeCommandHelper::ConnectToNodeInRenderService, NodeId))
 ADD_COMMAND(RSSurfaceNodeSetCallbackForRenderThreadRefresh,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_CALLBACK_FOR_RENDER_THREAD,
-    SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh, NodeId, std::function<void(void)>))
+    SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetBounds,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_BOUNDS, SurfaceNodeCommandHelper::SetContextBounds, NodeId, Vector4f))
 ADD_COMMAND(RSSurfaceNodeSetAbilityBGAlpha,

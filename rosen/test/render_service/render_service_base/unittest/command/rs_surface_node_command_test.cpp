@@ -144,12 +144,11 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand008, TestSize.Level1)
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(-1);
-    std::function<void(void)> callback;
-    SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh(context, id, callback);
+    SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh(context, id, true);
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
-    SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh(*context2, id2, callback);
+    SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh(*context2, id2, false);
 }
 
 /**

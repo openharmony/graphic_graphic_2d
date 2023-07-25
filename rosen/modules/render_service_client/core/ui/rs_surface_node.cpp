@@ -22,6 +22,7 @@
 #include "command/rs_base_node_command.h"
 #include "command/rs_node_command.h"
 #include "command/rs_surface_node_command.h"
+#include "ipc_callbacks/rs_rt_refresh_callback.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
@@ -84,9 +85,9 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
         command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(node->GetId());
         transactionProxy->AddCommand(command, isWindow);
-
-        command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(
-            node->GetId(), [] { RSRenderThread::Instance().RequestNextVSync(); });
+        
+        RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
+        command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(node->GetId(), true);
         transactionProxy->AddCommand(command, isWindow);
         node->SetFrameGravity(Gravity::RESIZE);
     }
@@ -128,8 +129,8 @@ void RSSurfaceNode::CreateNodeInRenderThread()
         command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId());
         transactionProxy->AddCommand(command, false);
 
-        command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(
-            GetId(), [] { RSRenderThread::Instance().RequestNextVSync(); });
+        RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
+        command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
         transactionProxy->AddCommand(command, false);
     }
 }

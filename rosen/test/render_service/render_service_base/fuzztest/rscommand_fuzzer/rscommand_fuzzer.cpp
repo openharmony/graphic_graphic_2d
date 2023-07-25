@@ -72,6 +72,7 @@ bool RSSurfaceNodeCommandFuzzTest(const uint8_t* data, size_t size)
     float height = GetData<float>();
     uint8_t alpha = GetData<uint8_t>();
     bool available = GetData<bool>();
+    bool isRefresh = GetData<bool>();
     RSSurfaceNodeType type = GetData<RSSurfaceNodeType>();
     bool hasContainerWindow = GetData<bool>();
     float density = GetData<float>();
@@ -84,8 +85,7 @@ bool RSSurfaceNodeCommandFuzzTest(const uint8_t* data, size_t size)
     SurfaceNodeCommandHelper::SetColorSpace(context, static_cast<NodeId>(id), colorSpace);
     SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize(context, static_cast<NodeId>(id), width, height);
     SurfaceNodeCommandHelper::ConnectToNodeInRenderService(context, static_cast<NodeId>(id));
-    std::function<void(void)> callback;
-    SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh(context, static_cast<NodeId>(id), callback);
+    SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh(context, static_cast<NodeId>(id), isRefresh);
     Vector4f bounds = {GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>()};
     SurfaceNodeCommandHelper::SetContextBounds(context, static_cast<NodeId>(id), bounds);
     SurfaceNodeCommandHelper::SetAbilityBGAlpha(context, static_cast<NodeId>(id), alpha);

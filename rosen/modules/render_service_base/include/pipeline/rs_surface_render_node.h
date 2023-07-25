@@ -472,7 +472,7 @@ public:
     // for "clip" is executed in RenderThreadVisitor::ProcessSurfaceRenderNode.
     // To fix this bug, we set callback which would call RSRenderThread::RequestNextVSync() to forcedly "refresh"
     // RenderThread when SurfaceNode in RenderService has available buffer and execute RSIBufferAvailableCallback.
-    void SetCallbackForRenderThreadRefresh(std::function<void(void)> callback);
+    void SetCallbackForRenderThreadRefresh(bool isRefresh);
     bool NeedSetCallbackForRenderThreadRefresh();
 
     void ParallelVisitLock()
@@ -749,7 +749,7 @@ private:
     std::atomic_bool isBufferAvailable_ = false;
     sptr<RSIBufferAvailableCallback> callbackFromRT_;
     sptr<RSIBufferAvailableCallback> callbackFromUI_;
-    std::function<void(void)> callbackForRenderThreadRefresh_ = nullptr;
+    bool isRefresh_ = false;
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;
     RectI clipRegionFromParent_;

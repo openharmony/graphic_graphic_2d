@@ -32,6 +32,7 @@
 #include "common/rs_rect.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
+#include "ipc_callbacks/rs_rt_refresh_callback.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
@@ -550,9 +551,9 @@ void RSSurfaceRenderNode::NotifyRTBufferAvailable()
     }
     isNotifyRTBufferAvailable_ = true;
 
-    if (callbackForRenderThreadRefresh_) {
+    if (isRefresh_) {
         ROSEN_LOGI("RSSurfaceRenderNode::NotifyRTBufferAvailable nodeId = %" PRIu64 " RenderThread", GetId());
-        callbackForRenderThreadRefresh_();
+        RSRTRefreshCallback::Instance().ExcuteRefresh();
     }
 
     {
@@ -561,7 +562,7 @@ void RSSurfaceRenderNode::NotifyRTBufferAvailable()
             ROSEN_LOGI("RSSurfaceRenderNode::NotifyRTBufferAvailable nodeId = %" PRIu64 " RenderService", GetId());
             callbackFromRT_->OnBufferAvailable();
         }
-        if (!callbackForRenderThreadRefresh_ && !callbackFromRT_) {
+        if (!isRefresh_ && !callbackFromRT_) {
             isNotifyRTBufferAvailable_ = false;
         }
     }
@@ -605,14 +606,14 @@ bool RSSurfaceRenderNode::IsNotifyUIBufferAvailable() const
     return isNotifyUIBufferAvailable_;
 }
 
-void RSSurfaceRenderNode::SetCallbackForRenderThreadRefresh(std::function<void(void)> callback)
+void RSSurfaceRenderNode::SetCallbackForRenderThreadRefresh(bool isRefresh)
 {
-    callbackForRenderThreadRefresh_ = callback;
+    isRefresh_ = isRefresh;
 }
 
 bool RSSurfaceRenderNode::NeedSetCallbackForRenderThreadRefresh()
 {
-    return (callbackForRenderThreadRefresh_ == nullptr);
+    return !isRefresh_;
 }
 
 bool RSSurfaceRenderNode::IsStartAnimationFinished() const
