@@ -67,6 +67,11 @@ std::shared_ptr<txt::FontCollection> FontCollectionTxt::GetFontCollection() cons
     return txtCollection;
 }
 
+sk_sp<txt::DynamicFontManager> FontCollectionTxt::GetDynamicFontManager() const
+{
+    return dynamicFontManager;
+}
+
 void FontCollectionTxt::LoadSystemFont()
 {
 #if !defined(USE_CANVASKIT0310_SKIA) && !defined(NEW_SKIA)
