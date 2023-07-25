@@ -205,7 +205,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCa
     if (node.GetId() == nodeId_) {
         // When drawing nodes, canvas will offset the bounds value, so we will move in reverse here first
         const auto& property = node.GetRenderProperties();
-        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+        auto geoPtr = (property.GetBoundsGeometry());
 #ifndef USE_ROSEN_DRAWING
         SkMatrix relativeMatrix = SkMatrix::I();
         relativeMatrix.setScaleY(scaleX_);

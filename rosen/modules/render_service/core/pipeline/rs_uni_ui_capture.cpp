@@ -141,7 +141,7 @@ RSUniUICapture::RSUniUICaptureVisitor::RSUniUICaptureVisitor(NodeId nodeId, floa
         return;
     }
     const auto& targetNodeProperty = node->GetRenderProperties();
-    auto targetNodeGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(targetNodeProperty.GetBoundsGeometry());
+    auto targetNodeGeoPtr = (targetNodeProperty.GetBoundsGeometry());
 #ifndef USE_ROSEN_DRAWING
     captureMatrix_.setScaleX(scaleX_);
     captureMatrix_.setScaleY(scaleY_);
@@ -243,7 +243,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
     if (node.GetId() == nodeId_) {
         // When drawing nodes, canvas will offset the bounds value, so we will move in reverse here first
         const auto& property = node.GetRenderProperties();
-        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+        auto geoPtr = (property.GetBoundsGeometry());
 #ifndef USE_ROSEN_DRAWING
         SkMatrix relativeMatrix = SkMatrix::I();
         relativeMatrix.setScaleX(scaleX_);
@@ -321,7 +321,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceRenderNode(RSSurfaceRe
 
 void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode& node)
 {
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+    auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
         RS_LOGI(
             "RSUniUICaptureVisitor::ProcessSurfaceRenderNode node:%" PRIu64 ", get geoPtr failed", node.GetId());
@@ -345,7 +345,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
 #endif
 
     const auto& property = node.GetRenderProperties();
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+    auto geoPtr = (property.GetBoundsGeometry());
     if (!geoPtr) {
         RS_LOGE("RSUniUICaptureVisitor::ProcessSurfaceViewWithUni node:%" PRIu64 ", get geoPtr failed",
             node.GetId());

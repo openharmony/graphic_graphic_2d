@@ -312,7 +312,7 @@ float RSProperties::GetFrameOffsetY() const
     return std::isinf(frameGeo_->GetY()) ? 0 : (frameGeo_->GetY() - boundsGeo_->GetY());
 }
 
-const std::shared_ptr<RSObjGeometry>& RSProperties::GetBoundsGeometry() const
+const std::shared_ptr<RSObjAbsGeometry>& RSProperties::GetBoundsGeometry() const
 {
     return boundsGeo_;
 }
@@ -334,11 +334,11 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
         return false;
     }
     CheckEmptyBounds();
-    auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(boundsGeo_);
+    auto boundsGeoPtr = (boundsGeo_);
 
     if (RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
         if (dirtyFlag || geoDirty_) {
-            auto parentGeo = parent == nullptr ? nullptr : std::static_pointer_cast<RSObjAbsGeometry>(parent->boundsGeo_);
+            auto parentGeo = parent == nullptr ? nullptr : (parent->boundsGeo_);
             if (parentGeo != nullptr && GetSandBoxMatrix()) {
                 parentGeo = std::make_shared<RSObjAbsGeometry>();
                 parentGeo->ConcatMatrix(*GetSandBoxMatrix());
@@ -356,7 +356,7 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
         return false;
     } else {
         if (dirtyFlag || geoDirty_) {
-            auto parentGeo = parent == nullptr ? nullptr : std::static_pointer_cast<RSObjAbsGeometry>(parent->boundsGeo_);
+            auto parentGeo = parent == nullptr ? nullptr : (parent->boundsGeo_);
             if (parentGeo != nullptr && GetSandBoxMatrix()) {
                 parentGeo = std::make_shared<RSObjAbsGeometry>();
                 parentGeo->ConcatMatrix(*GetSandBoxMatrix());
@@ -1222,7 +1222,7 @@ bool RSProperties::IsContentDirty() const
 RectI RSProperties::GetDirtyRect() const
 {
     RectI dirtyRect;
-    auto boundsGeometry = std::static_pointer_cast<RSObjAbsGeometry>(boundsGeo_);
+    auto boundsGeometry = (boundsGeo_);
     if (clipToBounds_ || std::isinf(GetFrameWidth()) || std::isinf(GetFrameHeight())) {
         dirtyRect = boundsGeometry->GetAbsRect();
     } else {
@@ -1246,7 +1246,7 @@ RectI RSProperties::GetDirtyRect() const
 RectI RSProperties::GetDirtyRect(RectI& drawRegion) const
 {
     RectI dirtyRect;
-    auto boundsGeometry = std::static_pointer_cast<RSObjAbsGeometry>(boundsGeo_);
+    auto boundsGeometry = (boundsGeo_);
     if (clipToBounds_ || std::isinf(GetFrameWidth()) || std::isinf(GetFrameHeight())) {
         dirtyRect = boundsGeometry->GetAbsRect();
     } else {

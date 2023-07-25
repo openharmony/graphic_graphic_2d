@@ -305,7 +305,7 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
     if (manager == nullptr) {
         return;
     }
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
+    auto geoPtr = (properties.GetBoundsGeometry());
     if (geoPtr == nullptr) {
         return;
     }
@@ -332,7 +332,7 @@ void RSRenderNode::ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas)
 #else
     renderNodeSaveCount_ = canvas.SaveAllStatus();
 #endif
-    auto boundsGeo = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
+    auto boundsGeo = (GetRenderProperties().GetBoundsGeometry());
     if (boundsGeo && !boundsGeo->IsEmpty()) {
 #ifndef USE_ROSEN_DRAWING
         canvas.concat(boundsGeo->GetMatrix());
@@ -501,7 +501,7 @@ void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::Path>& region) cons
         return;
     }
     auto& effectPath = region.value();
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+    auto geoPtr = (property.GetBoundsGeometry());
     if (!geoPtr) {
         return;
     }
@@ -900,7 +900,7 @@ void RSRenderNode::CheckDrawingCacheType()
 RectI RSRenderNode::GetFilterRect() const
 {
     auto& properties = GetRenderProperties();
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
+    auto geoPtr = (properties.GetBoundsGeometry());
     if (!geoPtr) {
         return {};
     }

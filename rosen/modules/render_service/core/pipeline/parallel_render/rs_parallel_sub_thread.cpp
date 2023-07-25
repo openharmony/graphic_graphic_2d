@@ -271,7 +271,7 @@ void RSParallelSubThread::Render()
         return;
     }
     auto physicalDisplayNode = std::static_pointer_cast<RSDisplayRenderNode>(threadTask_->GetNode());
-    auto physicalGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(
+    auto physicalGeoPtr = (
         physicalDisplayNode->GetRenderProperties().GetBoundsGeometry());
 #ifdef RS_ENABLE_GL
     if (canvas_ == nullptr) {
@@ -338,7 +338,7 @@ void RSParallelSubThread::Render()
     displayNode_->SetDisplayOffset(
         physicalDisplayNode->GetDisplayOffsetX(), physicalDisplayNode->GetDisplayOffsetY());
     displayNode_->SetForceSoftComposite(physicalDisplayNode->IsForceSoftComposite());
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(
+    auto geoPtr = (
         displayNode_->GetRenderProperties().GetBoundsGeometry());
     if (physicalGeoPtr && geoPtr) {
         *geoPtr = *physicalGeoPtr;

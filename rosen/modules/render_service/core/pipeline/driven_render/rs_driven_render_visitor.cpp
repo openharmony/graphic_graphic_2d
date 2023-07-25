@@ -71,7 +71,7 @@ void RSDrivenRenderVisitor::PrepareDrivenSurfaceRenderNode(RSDrivenSurfaceRender
         PrepareCanvasRenderNode(*canvasNode);
     }
 
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+    auto geoPtr = (property.GetBoundsGeometry());
     RectF surfaceBounds = RectF(0, 0, screenRect_.GetWidth(), screenRect_.GetHeight());
     RectF viewPort = RectF(0, 0, screenRect_.GetWidth(), screenRect_.GetHeight());
     RectI dstRect = screenRect_;
@@ -267,7 +267,7 @@ void RSDrivenRenderVisitor::RenderExpandedFrame(RSDrivenSurfaceRenderNode& node)
         if (rsDrivenParent == nullptr) {
             return;
         }
-        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(
+        auto geoPtr = (
             rsDrivenParent->GetRenderProperties().GetBoundsGeometry());
         canvas_->concat(geoPtr->GetAbsMatrix());
     } else {

@@ -44,7 +44,7 @@ RSPropertyTrace RSPropertyTrace::instance_;
 void RSPropertyTrace::PropertiesDisplayByTrace(const NodeId& id, const RSProperties& properties)
 {
     if (IsNeedPropertyTrace(id)) {
-        auto rectI = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry())->GetAbsRect();
+        auto rectI = (properties.GetBoundsGeometry())->GetAbsRect();
         std::string str = std::to_string(id) + " Geometry Rect: " + rectI.ToString();
         for (auto property : propertySet_) {
             if (property == CORNER_PROPERTY_TAG) {

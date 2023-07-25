@@ -129,7 +129,7 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         }
         PrepareBaseRenderNode(*existingSource);
     } else {
-        auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+        auto boundsGeoPtr = (node.GetRenderProperties().GetBoundsGeometry());
         RSBaseRenderUtil::SetNeedClient(boundsGeoPtr && boundsGeoPtr->IsNeedClientCompose());
 #ifndef USE_ROSEN_DRAWING
         skCanvas_ = std::make_unique<SkCanvas>(logicalScreenWidth, logicalScreenHeight);

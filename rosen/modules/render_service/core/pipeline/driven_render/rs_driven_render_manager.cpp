@@ -268,7 +268,7 @@ RectI RSDrivenRenderManager::CalcUniRenderSurfaceClipHoleRect()
         if (clipHoleRect.IsZero()) {
             clipHoleRect = property.GetFrame();
         }
-        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+        auto geoPtr = (property.GetBoundsGeometry());
         rect = geoPtr->MapAbsRect(RectF(clipHoleRect.x_, clipHoleRect.y_, clipHoleRect.z_, clipHoleRect.w_));
     }
     return rect;

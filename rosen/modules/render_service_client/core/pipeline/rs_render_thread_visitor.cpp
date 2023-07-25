@@ -846,13 +846,13 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     // 6.draw border
 #ifndef USE_ROSEN_DRAWING
     canvas_->save();
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+    auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     canvas_->concat(geoPtr->GetMatrix());
     RSPropertiesPainter::DrawBorder(node.GetRenderProperties(), *canvas_);
     canvas_->restore();
 #else
     canvas_->Save();
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+    auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     canvas_->ConcatMatrix(geoPtr->GetMatrix());
     RSPropertiesPainter::DrawBorder(node.GetRenderProperties(), *canvas_);
     canvas_->Restore();

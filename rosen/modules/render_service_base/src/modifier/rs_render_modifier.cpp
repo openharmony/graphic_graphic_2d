@@ -314,7 +314,7 @@ void RSEnvForegroundColorStrategyRenderModifier::Update(const std::shared_ptr<RS
 
 void RSGeometryTransRenderModifier::Apply(RSModifierContext& context) const
 {
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(context.property_.GetBoundsGeometry());
+    auto geoPtr = (context.property_.GetBoundsGeometry());
     auto property = property_->Get();
     geoPtr->ConcatMatrix(property);
 }

@@ -60,7 +60,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     }
     auto mirrorNode = node.GetMirrorSource().lock();
     if (mirrorNode && node.IsFirstTimeToProcessor()) {
-        auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(
+        auto boundsGeoPtr = (
             mirrorNode->GetRenderProperties().GetBoundsGeometry());
         if (boundsGeoPtr != nullptr) {
             boundsGeoPtr->UpdateByMatrixFromSelf();

@@ -340,7 +340,7 @@ static std::tuple<uint64_t, std::string, RectI> FindGeoById(uint64_t nodeId)
         return { windowId, windowName, nodeFrameRect };
     }
     nodeFrameRect =
-        std::static_pointer_cast<RSObjAbsGeometry>(node->GetRenderProperties().GetBoundsGeometry())->GetAbsRect();
+        (node->GetRenderProperties().GetBoundsGeometry())->GetAbsRect();
     // Obtain the window according to childId
     auto parent = node->GetParent().lock();
     while (parent) {
