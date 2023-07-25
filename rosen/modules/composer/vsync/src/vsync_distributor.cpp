@@ -228,17 +228,15 @@ void VSyncDistributor::ThreadMain()
 void VSyncDistributor::EnableVSync()
 {
     if (controller_ != nullptr && vsyncEnabled_ == false) {
-        vsyncEnabled_ = true;
         controller_->SetCallback(this);
-        controller_->SetEnable(true);
+        controller_->SetEnable(true, vsyncEnabled_);
     }
 }
 
 void VSyncDistributor::DisableVSync()
 {
     if (controller_ != nullptr && vsyncEnabled_ == true) {
-        vsyncEnabled_ = false;
-        controller_->SetEnable(false);
+        controller_->SetEnable(false, vsyncEnabled_);
     }
 }
 

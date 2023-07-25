@@ -194,6 +194,7 @@ private:
     void CollectInfoForDrivenRender();
     void ReleaseAllNodesBuffer();
     void Render();
+    void SetDeviceType();
     void UniRender(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
     void CalcOcclusionImplementation(std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
@@ -201,11 +202,13 @@ private:
     bool CheckQosVisChanged(std::map<uint32_t, bool>& pidVisMap);
     void CallbackToQOS(std::map<uint32_t, bool>& pidVisMap);
     void CallbackToWMS(VisibleData& curVisVec);
+    void GetProcessInfo();
     void SendCommands();
     void InitRSEventDetector();
     void RemoveRSEventDetector();
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
+    void SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid);
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     void ReleaseExitSurfaceNodeAllGpuResource(GrDirectContext* grContext);
@@ -235,8 +238,11 @@ private:
     void PerfMultiWindow();
     void RenderFrameStart();
     void ResetHardwareEnabledState();
+    void CheckAndUpdateTransactionIndex(
+        std::shared_ptr<TransactionDataMap>& transactionDataEffective, std::string& transactionFlags);
 
     bool IsResidentProcess(pid_t pid);
+    bool IsNeedSkip(NodeId rootSurfaceNodeId, pid_t pid);
 
     // Click animation, report the start event to RS
     void ResSchedDataStartReport(bool needRequestNextVsync);
@@ -271,6 +277,7 @@ private:
 
     TransactionDataMap cachedTransactionDataMap_;
     TransactionDataIndexMap effectiveTransactionDataIndexMap_;
+    std::map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> cachedSkipTransactionDataMap_;
     std::unordered_map<pid_t, uint64_t> transactionDataLastWaitTime_;
 
     uint64_t curTime_ = 0;
@@ -356,12 +363,16 @@ private:
     // used for control start and end of the click animation
     bool requestResschedReport_ = true;
 
+    // used for record process information
+    std::unordered_map<std::string, std::string> payload_;
+
     // UIFirst
     std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes_;
     std::unordered_map<NodeId, bool> cacheCmdSkippedNodes_;
     std::unordered_map<pid_t, std::pair<std::vector<NodeId>, bool>> cacheCmdSkippedInfo_;
     std::atomic<uint64_t> frameCount_ = 0;
     std::set<std::shared_ptr<RSBaseRenderNode>> oldDisplayChildren_;
+    DeviceType deviceType_ = DeviceType::PHONE;
 
     // used for informing hgm the bundle name of SurfaceRenderNodes
     bool noBundle_ = false;

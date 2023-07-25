@@ -70,7 +70,8 @@ enum class ParallelRenderingType {
 };
 
 enum class HgmRefreshRates {
-    SET_RATE_AUTO = 0,
+    SET_RATE_NULL = 0,
+    SET_RATE_30 = 30,
     SET_RATE_60 = 60,
     SET_RATE_90 = 90,
     SET_RATE_120 = 120
@@ -78,6 +79,7 @@ enum class HgmRefreshRates {
 
 enum class HgmRefreshRateModes {
     SET_RATE_MODE_AUTO = -1,
+    SET_RATE_MODE_NULL = 0,
     SET_RATE_MODE_LOW = 1,
     SET_RATE_MODE_MEDIUN = 2,
     SET_RATE_MODE_HIGH = 3
@@ -120,6 +122,7 @@ public:
     static ParallelRenderingType GetPrepareParallelRenderingEnabled();
     static ParallelRenderingType GetParallelRenderingEnabled();
     static HgmRefreshRates GetHgmRefreshRatesEnabled();
+    static void SetHgmRefreshRateModesEnabled(std::string param);
     static HgmRefreshRateModes GetHgmRefreshRateModesEnabled();
 
     static bool GetColdStartThreadEnabled();
@@ -130,10 +133,12 @@ public:
     static int GetFilterCacheSizeThreshold();
     static bool GetKawaseEnabled();
     static bool GetSkipForAlphaZeroEnabled();
+    static bool GetSkipGeometryNotChangeEnabled();
 
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetUIFirstEnabled();
+    static bool GetDebugTraceEnabled();
     static bool GetCacheCmdEnabled();
     static bool GetASTCEnabled();
 private:

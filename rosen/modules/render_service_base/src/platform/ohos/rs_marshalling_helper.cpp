@@ -991,8 +991,14 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSLinear
         float first = 0.0;
         float second = 0.0;
         success = success && Unmarshalling(parcel, first);
+        if (!success) {
+            return false;
+        }
         fractionStop.first = first;
         success = success && Unmarshalling(parcel, second);
+        if (!success) {
+            return false;
+        }
         fractionStop.second = second;
         fractionStops.push_back(fractionStop);
     }

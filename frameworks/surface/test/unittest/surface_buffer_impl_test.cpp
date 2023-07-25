@@ -139,4 +139,18 @@ HWTEST_F(SurfaceBufferImplTest, Parcel001, Function | MediumTest | Level2)
     ReadSurfaceBufferImpl(parcel, seq, buffer);
     ASSERT_NE(buffer, nullptr);
 }
+
+/*
+* Function: Create
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Call SurfaceBuffer::Create()
+*                  2. check ret
+ */
+HWTEST_F(SurfaceBufferImplTest, Create001, Function | MediumTest | Level2)
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+}
 }

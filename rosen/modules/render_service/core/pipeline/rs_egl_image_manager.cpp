@@ -278,7 +278,7 @@ GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceB
     WaitAcquireFence(acquireFence);
     std::lock_guard<std::mutex> lock(opMutex_);
     auto bufferId = buffer->GetSeqNum();
-    if (imageCacheSeqs_.count(bufferId) == 0) {
+    if (imageCacheSeqs_.count(bufferId) == 0 || imageCacheSeqs_[bufferId] == nullptr) {
         // cache not found, create it.
         return CreateImageCacheFromBuffer(buffer);
     } else {

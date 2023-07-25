@@ -14,8 +14,8 @@
  */
 
 #include "hdi_output.h"
-
 #include <gtest/gtest.h>
+#include "mock_hdi_device.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -28,12 +28,15 @@ public:
     static void TearDownTestCase();
 
     static inline std::shared_ptr<HdiOutput> hdiOutput_;
+    static inline Mock::HdiDeviceMock* hdiDeviceMock_;
 };
 
 void HdiOutputTest::SetUpTestCase()
 {
     uint32_t screenId = 0;
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId);
+    hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
+    hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
 }
 
 void HdiOutputTest::TearDownTestCase() {}
@@ -90,7 +93,7 @@ HWTEST_F(HdiOutputTest, GetScreenId001, Function | MediumTest| Level1)
 HWTEST_F(HdiOutputTest, Commit001, Function | MediumTest| Level1)
 {
     sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->Commit(fbFence), ROSEN_ERROR_NOT_INIT);
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->Commit(fbFence), ROSEN_ERROR_OK);
 }
 
 /*

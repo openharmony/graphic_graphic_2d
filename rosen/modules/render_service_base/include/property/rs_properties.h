@@ -368,6 +368,7 @@ private:
     std::optional<float> invert_;
     std::optional<float> hueRotate_;
     std::optional<Color> colorBlend_;
+    std::optional<RectI> lastRect_;
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkColorFilter> colorFilter_ = nullptr;
 #else

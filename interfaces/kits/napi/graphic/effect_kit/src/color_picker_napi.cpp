@@ -340,19 +340,15 @@ napi_value ColorPickerNapi::CreateColorPicker(napi_env env, napi_callback_info i
         }
     }
     IMG_NAPI_CHECK_RET_D(asyncContext->errorMsg == nullptr, nullptr, EFFECT_LOG_E("image type mismatch."));
-    if (argCount == NUM_2) {
+    if (argCount >= NUM_2) {
         if (Media::ImageNapiUtils::getType(env, argValue[argCount - 1]) == napi_function) {
             napi_create_reference(env, argValue[argCount - 1], refCount, &asyncContext->callbackRef);
-        } else {
+        }
+        if (Media::ImageNapiUtils::getType(env, argValue[NUM_1]) != napi_function) {
             IMG_NAPI_CHECK_RET_D(GetRegionCoordinates(
                 env, argValue[NUM_1], asyncContext), nullptr, EFFECT_LOG_E("fail to parse coordinates"));
             asyncContext->regionFlag = true;
         }
-    }
-    if (argCount == NUM_3 && Media::ImageNapiUtils::getType(env, argValue[argCount - NUM_2]) == napi_function) {
-        IMG_NAPI_CHECK_RET_D(GetRegionCoordinates(
-            env, argValue[NUM_1], asyncContext), nullptr, EFFECT_LOG_E("fail to parse coordinates"));
-        asyncContext->regionFlag = true;
     }
 
     if (asyncContext->callbackRef == nullptr) {

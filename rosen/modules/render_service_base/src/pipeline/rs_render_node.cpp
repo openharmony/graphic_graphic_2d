@@ -174,6 +174,13 @@ void RSRenderNode::UpdateDirtyRegion(
     if (!IsDirty() && !geoDirty) {
         return;
     }
+    if (RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
+        // while node absRect not change and other content not change, return directly for not generate dirty region
+        if (!geometryChangeNotPerceived_ && !geoDirty) {
+            return;
+        }
+        geometryChangeNotPerceived_ = false;
+    }
     if (!oldDirty_.IsEmpty()) {
         dirtyManager.MergeDirtyRect(oldDirty_);
     }
@@ -792,6 +799,27 @@ std::shared_ptr<Drawing::Surface> RSRenderNode::GetCompletedCacheSurface(uint32_
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
         if (isUIFirst || cacheSurfaceThreadIndex_ == threadIndex || !cacheCompletedSurface_) {
             return cacheCompletedSurface_;
+        }
+    }
+
+    // freeze cache scene
+    if (clearCacheSurfaceFunc_) {
+        clearCacheSurfaceFunc_(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
+    }
+    ClearCacheSurface();
+    return nullptr;
+}
+
+#ifndef USE_ROSEN_DRAWING
+    sk_sp<SkSurface> RSRenderNode::GetCacheSurface(uint32_t threadIndex, bool needCheckThread)
+#else
+    std::shared_ptr<Drawing::Surface> RSRenderNode::GetCacheSurface(uint32_t threadIndex, bool needCheckThread)
+#endif
+{
+    {
+        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+        if (!needCheckThread || cacheSurfaceThreadIndex_ == threadIndex || !cacheSurface_) {
+            return cacheSurface_;
         }
     }
 

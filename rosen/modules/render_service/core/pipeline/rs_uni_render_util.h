@@ -64,7 +64,8 @@ public:
 #endif
     static void AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
-        std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
+        std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes, uint64_t focusNodeId = 0,
+        DeviceType deviceType = DeviceType::PHONE);
     static void ClearSurfaceIfNeed(const RSRenderNodeMap& map, const std::shared_ptr<RSDisplayRenderNode>& displayNode,
         std::set<std::shared_ptr<RSBaseRenderNode>>& oldChildren);
     static void ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isUIFirst);
@@ -81,7 +82,7 @@ private:
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
         const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
-        const std::shared_ptr<RSSurfaceRenderNode>& node);
+        const std::shared_ptr<RSSurfaceRenderNode>& node, DeviceType deviceType = DeviceType::PHONE);
     static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     static void HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void ClearCacheSurface(const std::shared_ptr<RSSurfaceRenderNode>& node, uint32_t threadIndex);

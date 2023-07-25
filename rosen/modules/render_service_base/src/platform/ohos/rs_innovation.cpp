@@ -24,7 +24,6 @@ void RSInnovation::OpenInnovationSo()
 {
     innovationHandle = dlopen("libgraphic_innovation.z.so", RTLD_NOW);
     GetParallelCompositionFunc();
-    GetOcclusionCullingFunc();
     GetQosVSyncFunc();
 }
 
@@ -32,7 +31,6 @@ void RSInnovation::CloseInnovationSo()
 {
     if (innovationHandle) {
         ResetParallelCompositionFunc();
-        ResetOcclusionCullingFunc();
         ResetQosVsyncFunc();
         dlclose(innovationHandle);
     }
@@ -46,13 +44,6 @@ bool RSInnovation::GetParallelCompositionEnabled(bool isUniRender)
     }
     return _s_parallelCompositionLoaded &&
         std::atoi((system::GetParameter("rosen.parallelcomposition.enabled", "0")).c_str()) != 0;
-}
-
-// occlusion culling
-void RSInnovation::UpdateOcclusionCullingSoEnabled()
-{
-    _s_occlusionCullingSoEnabled =
-        std::atoi((system::GetParameter("rosen.occlusion.so.enabled", "0")).c_str()) != 0;
 }
 
 bool RSInnovation::UpdateQosVsyncEnabled()
@@ -90,21 +81,6 @@ void RSInnovation::ResetParallelCompositionFunc()
         _s_assignTask = nullptr;
         _s_removeStoppedThreads = nullptr;
         _s_checkForSerialForced = nullptr;
-    }
-}
-
-void RSInnovation::GetOcclusionCullingFunc()
-{
-    if (innovationHandle) {
-        _s_regionOpFromSo = dlsym(innovationHandle, "RegionOpFromSO");
-        _s_occlusionCullingFuncLoaded = (_s_regionOpFromSo != nullptr);
-    }
-}
-
-void RSInnovation::ResetOcclusionCullingFunc()
-{
-    if (_s_occlusionCullingFuncLoaded) {
-        _s_regionOpFromSo = nullptr;
     }
 }
 

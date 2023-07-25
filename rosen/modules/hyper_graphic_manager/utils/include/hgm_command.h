@@ -24,6 +24,7 @@
 namespace OHOS::Rosen {
 
 enum OledRefreshRate {
+    OLED_NULL_HZ = 0,
     OLED_1_HZ = 1,
     OLED_10_HZ = 10,
     OLED_20_HZ = 20,
@@ -68,6 +69,7 @@ enum Animation {
 
 enum RefreshRateMode {
     HGM_REFRESHRATE_MODE_AUTO = -1,
+    HGM_REFRESHRATE_MODE_NULL = 0,
     HGM_REFRESHRATE_MODE_LOW = 1,
     HGM_REFRESHRATE_MODE_MEDIUM,
     HGM_REFRESHRATE_MODE_HIGH,

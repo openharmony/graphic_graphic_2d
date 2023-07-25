@@ -25,6 +25,10 @@ void RSRenderPropertyBase::OnChange() const
     if (auto node = node_.lock()) {
         node->SetDirty();
         node->AddDirtyType(modifierType_);
+        if (modifierType_ < RSModifierType::BOUNDS || modifierType_ > RSModifierType::TRANSLATE_Z ||
+            modifierType_ == RSModifierType::POSITION_Z) {
+            node->MarkNonGeometryChanged();
+        }
     }
 }
 
@@ -219,6 +223,29 @@ float RSRenderAnimatableProperty<Vector2f>::ToFloat() const
 {
     return RSRenderProperty<Vector2f>::stagingValue_.GetLength();
 }
+
+template<>
+bool RSRenderProperty<float>::IsNeedUpdate(const float& value) const
+{
+    switch (modifierType_) {
+        case RSModifierType::ALPHA:
+        case RSModifierType::SHADOW_ALPHA: {
+            return std::abs(value - stagingValue_) >= float(1 / 256);
+        }
+        case RSModifierType::BG_IMAGE_WIDTH:
+        case RSModifierType::BG_IMAGE_HEIGHT:
+        case RSModifierType::BG_IMAGE_POSITION_X:
+        case RSModifierType::BG_IMAGE_POSITION_Y:
+        case RSModifierType::SHADOW_RADIUS: {
+            return std::abs(value - stagingValue_) >= 0.1f;
+        }
+        default: {
+            return true;
+        }
+    }
+}
+
+template class RSRenderProperty<float>;
 
 std::shared_ptr<RSRenderPropertyBase> operator+=(
     const std::shared_ptr<RSRenderPropertyBase>& a, const std::shared_ptr<const RSRenderPropertyBase>& b)

@@ -117,7 +117,7 @@ bool RSBaseRenderNodeFuzzTest(const uint8_t* data, size_t size)
     node->RemoveChild(child, skipTransition);
     node->RemoveFromTree(skipTransition);
     node->AddCrossParentChild(child, index);
-    node->CollectSurface(child, vec, isUniRender);
+    node->CollectSurface(child, vec, isUniRender, false);
     node->SetIsOnTheTree(flag);
     node->Animate(timestamp);
     node->SetIsOnTheTree(flag);
@@ -258,7 +258,7 @@ bool RSDisplayRenderNodeFuzzTest(const uint8_t* data, size_t size)
 
     displayNode.SetScreenId(screenId);
     displayNode.SetDisplayOffset(offsetX, offsetY);
-    displayNode.CollectSurface(node, vec, isUniRender);
+    displayNode.CollectSurface(node, vec, isUniRender, false);
     displayNode.SetCompositeType(type);
     displayNode.SetForceSoftComposite(flag);
     displayNode.SetMirrorSource(displayPtrNode);

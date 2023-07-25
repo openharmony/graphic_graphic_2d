@@ -294,8 +294,5 @@ void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
 {
 }
 
-void RSRenderServiceClient::ReportEventFirstFrame(DataBaseRs info)
-{
-}
 } // namespace Rosen
 } // namespace OHOS

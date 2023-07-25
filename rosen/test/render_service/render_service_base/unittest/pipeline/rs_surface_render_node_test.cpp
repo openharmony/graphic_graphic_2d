@@ -340,7 +340,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest001, TestSize.Level1)
     std::vector<RSBaseRenderNode::SharedPtr> vec;
     bool isUniRender = true;
     node->IsStartingWindow();
-    node->CollectSurface(rsBaseRenderNode, vec, isUniRender);
+    node->CollectSurface(rsBaseRenderNode, vec, isUniRender, false);
     ASSERT_FALSE(vec.empty());
 }
 
@@ -357,7 +357,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest002, TestSize.Level1)
     std::vector<RSBaseRenderNode::SharedPtr> vec;
     bool isUniRender = true;
     node->IsLeashWindow();
-    node->CollectSurface(rsBaseRenderNode, vec, isUniRender);
+    node->CollectSurface(rsBaseRenderNode, vec, isUniRender, false);
     ASSERT_FALSE(vec.empty());
 }
 

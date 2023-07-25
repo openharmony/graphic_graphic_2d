@@ -59,7 +59,8 @@ public:
 
     virtual void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node,
                                 std::vector<RSBaseRenderNode::SharedPtr>& vec,
-                                bool isUniRender);
+                                bool isUniRender,
+                                bool onlyFirstLevel);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual bool IsDirty() const;

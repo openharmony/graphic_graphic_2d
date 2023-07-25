@@ -206,21 +206,6 @@ HWTEST_F(RSOcclusionRegionTest, GetSubRange001, Function | MediumTest | Level2)
 }
 
 /**
- * @tc.name: InitDynamicLibraryFunction001
- * @tc.desc: test results of InitDynamicLibraryFunction
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSOcclusionRegionTest, InitDynamicLibraryFunction001, Function | MediumTest | Level2)
-{
-    /**
-     * @tc.steps: step1. InitDynamicLibraryFunction
-     */
-    RSInnovation::OpenInnovationSo();
-    Region::InitDynamicLibraryFunction();
-}
-
-/**
  * @tc.name: RegionOp001
  * @tc.desc: test results of RegionOp
  * @tc.type:FUNC
@@ -236,29 +221,6 @@ HWTEST_F(RSOcclusionRegionTest, RegionOp001, Function | MediumTest | Level2)
     Region region2;
     Region res;
     Region::OP op = Region::OP::SUB;
-    region.RegionOp(region1, region2, res, op);
-}
-
-/**
- * @tc.name: RegionOp002
- * @tc.desc: test results of RegionOp
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSOcclusionRegionTest, RegionOp002, Function | MediumTest | Level2)
-{
-    /**
-     * @tc.steps: step1. RegionOp
-     */
-    RSInnovation::OpenInnovationSo();
-    RSInnovation::UpdateOcclusionCullingSoEnabled();
-    Occlusion::Region::InitDynamicLibraryFunction();
-    Rect rect;
-    Region region;
-    Region region1(rect);
-    Region region2(rect);
-    Region res;
-    Region::OP op = Region::OP::AND;
     region.RegionOp(region1, region2, res, op);
 }
 

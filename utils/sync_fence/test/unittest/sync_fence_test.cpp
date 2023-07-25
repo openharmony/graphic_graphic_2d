@@ -276,4 +276,32 @@ HWTEST_F(SyncFenceTest, MultiTimeLineMerge001, Function | MediumTest | Level2)
         ASSERT_EQ(valid, false);
     }
 }
+
+/*
+* Function: IsValid, Dup, Get
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GenerateFence, IsValid, Dup, Get
+*                  2. check ret
+*/
+HWTEST_F(SyncFenceTest, IsValidGetDup001, Function | MediumTest | Level2)
+{
+    sptr<SyncTimeline> syncTimeline = new SyncTimeline();
+    bool valid = syncTimeline->IsValid();
+    if (valid) {
+        ASSERT_EQ(valid, true);
+        int32_t fd = syncTimeline->GenerateFence("test sw_sync_fence", 1);
+        SyncFence syncFence(fd);
+        ASSERT_GE(fd, 0);
+        bool fenceValid = syncFence.IsValid();
+        ASSERT_EQ(fenceValid, true);
+        int32_t getFd = syncFence.Get();
+        ASSERT_EQ(getFd, fd);
+        int32_t dupFenceFd = syncFence.Dup();
+        ASSERT_GE(dupFenceFd, 0);
+    } else {
+        ASSERT_EQ(valid, false);
+    }
+}
 } // namespace OHOS

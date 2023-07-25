@@ -221,10 +221,16 @@ HgmRefreshRates RSSystemProperties::GetHgmRefreshRatesEnabled()
         std::atoi((system::GetParameter("rosen.sethgmrefreshrate.enabled", "0")).c_str()));
 }
 
+void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
+{
+    system::SetParameter("persist.rosen.sethgmrefreshratemode.enabled", param);
+    RS_LOGD("RSSystemProperties::SetHgmRefreshRateModesEnabled set to %{public}s", param.c_str());
+}
+
 HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
 {
     return static_cast<HgmRefreshRateModes>(
-        std::atoi((system::GetParameter("rosen.sethgmrefreshratemode.enabled", "0")).c_str()));
+        std::atoi((system::GetParameter("persist.rosen.sethgmrefreshratemode.enabled", "0")).c_str()));
 }
 
 bool RSSystemProperties::GetColdStartThreadEnabled()
@@ -235,6 +241,13 @@ bool RSSystemProperties::GetColdStartThreadEnabled()
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
 {
     return std::atoi((system::GetParameter("persist.skipForAlphaZero.enabled", "1")).c_str()) != 0;
+}
+
+bool RSSystemProperties::GetSkipGeometryNotChangeEnabled()
+{
+    static bool skipGeoNotChangeEnabled =
+        std::atoi((system::GetParameter("persist.skipGeometryNotChange.enabled", "0")).c_str()) != 0;
+    return skipGeoNotChangeEnabled;
 }
 
 float RSSystemProperties::GetAnimationScale()
@@ -284,8 +297,14 @@ bool RSSystemProperties::GetProxyNodeDebugEnabled()
 
 bool RSSystemProperties::GetUIFirstEnabled()
 {
-    static bool isPhone = system::GetParameter("const.product.devicetype", "pc") == "phone";
-    return (std::atoi((system::GetParameter("rosen.ui.first.enabled", "1")).c_str()) != 0) && isPhone;
+    return std::atoi((system::GetParameter("rosen.ui.first.enabled", "1")).c_str()) != 0;
+}
+
+bool RSSystemProperties::GetDebugTraceEnabled()
+{
+    static bool openDebugTrace =
+        std::atoi((system::GetParameter("persist.sys.graphic.openDebugTrace", "0")).c_str()) != 0;
+    return openDebugTrace;
 }
 
 bool RSSystemProperties::GetCacheCmdEnabled()

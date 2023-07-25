@@ -180,6 +180,13 @@ public:
         return cacheSurface_;
     }
 
+// use for uni render visitor
+#ifndef USE_ROSEN_DRAWING
+    sk_sp<SkSurface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread);
+#else
+    std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread);
+#endif
+
     void UpdateCompletedCacheSurface()
     {
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
@@ -478,6 +485,11 @@ public:
     void ResetRSFrameRateRange();
     void ResetUIFrameRateRange();
 
+    void MarkNonGeometryChanged()
+    {
+        geometryChangeNotPerceived_ = true;
+    }
+
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier> modifier);
@@ -560,6 +572,7 @@ private:
     float boundsHeight_ = 0.0f;
     std::unordered_set<RSModifierType> dirtyTypes_;
     bool hasCacheableAnim_ = false;
+    bool geometryChangeNotPerceived_ = false;
 
     FrameRateRange rsRange_ = {0, 0, 0};
     FrameRateRange uiRange_ = {0, 0, 0};

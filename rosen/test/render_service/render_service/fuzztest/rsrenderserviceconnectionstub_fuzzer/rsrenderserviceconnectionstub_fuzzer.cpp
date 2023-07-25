@@ -22,6 +22,9 @@
 #include <cstdlib>
 #include <fcntl.h>
 
+#include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_render_service_connection.h"
+#include "platform/ohos/rs_irender_service.h"
 #include "transaction/rs_render_service_connection_stub.h"
 #include "message_parcel.h"
 #include "securec.h"
@@ -31,227 +34,6 @@ namespace Rosen {
 constexpr size_t MAX_SIZE = 4;
 constexpr size_t MAX_DATA = 41;
 const std::u16string RENDERSERVICECONNECTION_INTERFACE_TOKEN = u"ohos.rosen.RenderServiceConnection";
-
-class RSRenderServiceConnectionStubFuzzTest : public RSRenderServiceConnectionStub {
-public:
-    RSRenderServiceConnectionStubFuzzTest() = default;
-    virtual ~RSRenderServiceConnectionStubFuzzTest() = default;
-
-    void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override {}
-
-    bool GetUniRenderEnabled() override
-    {
-        return 0;
-    }
-
-    bool CreateNode(const RSSurfaceRenderNodeConfig& config) override
-    {
-        return 0;
-    }
-    
-    sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) override
-    {
-        return nullptr;
-    }
-
-    sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name) override
-    {
-        return nullptr;
-    }
-
-    int32_t SetFocusAppInfo(int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
-        uint64_t focusNodeId) override
-    {
-        return 0;
-    }
-
-    ScreenId GetDefaultScreenId() override
-    {
-        return 0;
-    }
-
-    std::vector<ScreenId> GetAllScreenIds() override
-    {
-        return {};
-    }
-
-    ScreenId CreateVirtualScreen(
-        const std::string &name,
-        uint32_t width,
-        uint32_t height,
-        sptr<Surface> surface,
-        ScreenId mirrorId = 0,
-        int32_t flags = 0) override
-    {
-        return 0;
-    }
-
-    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override
-    {
-        return 0;
-    }
-
-    void RemoveVirtualScreen(ScreenId id) override {}
-
-    int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) override
-    {
-        return 0;
-    }
-
-    void SetScreenActiveMode(ScreenId id, uint32_t modeId) override {}
-
-    int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override
-    {
-        return 0;
-    }
-
-    void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override {}
-
-    void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY) override {}
-
-    void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override {}
-
-    RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override
-    {
-        RSVirtualScreenResolution rsVirtualScreenResolution;
-        return rsVirtualScreenResolution;
-    }
-
-    RSScreenModeInfo GetScreenActiveMode(ScreenId id) override
-    {
-        RSScreenModeInfo rsScreenModeInfo;
-        return rsScreenModeInfo;
-    }
-
-    std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id) override
-    {
-        return {};
-    }
-
-    RSScreenCapability GetScreenCapability(ScreenId id) override
-    {
-        RSScreenCapability rsScreenCapability;
-        return rsScreenCapability;
-    }
-
-    ScreenPowerStatus GetScreenPowerStatus(ScreenId id) override
-    {
-        return ScreenPowerStatus::POWER_STATUS_ON;
-    }
-
-    RSScreenData GetScreenData(ScreenId id) override
-    {
-        RSScreenData rsScreenData;
-        return rsScreenData;
-    }
-
-    MemoryGraphic GetMemoryGraphic(int pid) override
-    {
-        MemoryGraphic memoryGraphic;
-        return memoryGraphic;
-    }
-
-    std::vector<MemoryGraphic> GetMemoryGraphics() override
-    {
-        return {};
-    }
-
-    int32_t GetScreenBacklight(ScreenId id) override
-    {
-        return 0;
-    }
-
-    void SetScreenBacklight(ScreenId id, uint32_t level) override {}
-
-    void RegisterBufferAvailableListener(
-        NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) override {}
-
-    int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) override
-    {
-        return 0;
-    }
-
-    int32_t GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) override
-    {
-        return 0;
-    }
-
-    int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode) override
-    {
-        return 0;
-    }
-
-    int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override
-    {
-        return 0;
-    }
-
-    int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override
-    {
-        return 0;
-    }
-
-    int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) override
-    {
-        return 0;
-    }
-
-    int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override
-    {
-        return 0;
-    }
-
-    int32_t GetScreenType(ScreenId id, RSScreenType& screenType) override
-    {
-        return 0;
-    }
-
-    int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override
-    {
-        return 0;
-    }
-
-    int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override
-    {
-        return 0;
-    }
-
-    void SetAppWindowNum(uint32_t num) override {}
-
-    void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override {}
-
-    void ReportJankStats() override {}
-
-    void ReportEventResponse(DataBaseRs info) override {}
-
-    void ReportEventComplete(DataBaseRs info) override {}
-
-    void ReportEventJankFrame(DataBaseRs info) override {}
-
-    void ReportEventFirstFrame(DataBaseRs info) override {}
-
-    bool GetBitmap(NodeId id, SkBitmap& bitmap) override
-    {
-        return 0;
-    }
-
-    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override {}
-
-    std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id) override
-    {
-        std::vector<uint32_t> screenSupportedRefreshRates;
-        return screenSupportedRefreshRates;
-    }
-
-    uint32_t GetScreenCurrentRefreshRate(ScreenId id) override
-    {
-        return 0;
-    }
-
-    void SetRefreshRateMode(int32_t refreshRateMode) override {}
-
-    void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) override {}
-};
 
 namespace {
 const uint8_t* data_ = nullptr;
@@ -301,9 +83,10 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     datas.RewindRead(0);
     MessageParcel reply;
     MessageOption option;
-    std::shared_ptr<RSRenderServiceConnectionStub> rsRenderServiceConnectionStub =
-        std::make_shared<RSRenderServiceConnectionStubFuzzTest>();
-    rsRenderServiceConnectionStub->OnRemoteRequest(code, datas, reply, option);
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub =
+        new RSRenderServiceConnection(0, nullptr, RSMainThread::Instance(), nullptr, token->AsObject(), nullptr);
+    connectionStub->OnRemoteRequest(code, datas, reply, option);
     return true;
 }
 } // ROSEN

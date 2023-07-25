@@ -475,7 +475,7 @@ GSError BufferQueue::DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData
         bufferQueueCache_[sequence].timestamp = config.timestamp;
     }
 
-    DumpToFile(sequence);
+    // if you need dump SurfaceBuffer to file, you should call DumpToFile(sequence) here
     return GSERROR_OK;
 }
 

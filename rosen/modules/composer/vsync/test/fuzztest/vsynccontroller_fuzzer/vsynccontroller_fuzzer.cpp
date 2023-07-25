@@ -64,7 +64,7 @@ namespace OHOS {
         // test
         sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
         sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, offset);
-        vsyncController->SetEnable(enable);
+        vsyncController->SetEnable(enable, enable);
         vsyncController->SetPhaseOffset(offset);
 
         return true;

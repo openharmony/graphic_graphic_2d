@@ -135,6 +135,11 @@ HgmRefreshRates RSSystemProperties::GetHgmRefreshRatesEnabled()
     return {};
 }
 
+void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
+{
+    return;
+}
+
 HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
 {
     return {};
@@ -146,6 +151,11 @@ bool RSSystemProperties::GetColdStartThreadEnabled()
 }
 
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetSkipGeometryNotChangeEnabled()
 {
     return {};
 }

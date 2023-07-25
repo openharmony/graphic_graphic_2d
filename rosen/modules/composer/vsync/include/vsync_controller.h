@@ -39,7 +39,7 @@ public:
     VSyncController(const VSyncController &) = delete;
     VSyncController &operator=(const VSyncController &) = delete;
 
-    VsyncError SetEnable(bool enable = false);
+    VsyncError SetEnable(bool enable, bool& isGeneratorEnable);
     VsyncError SetCallback(Callback* cb);
     VsyncError SetPhaseOffset(int64_t offset);
 

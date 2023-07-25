@@ -127,7 +127,7 @@ VsyncError VSyncReceiver::RequestNextVSync(FrameCallback callback)
         return VSYNC_ERROR_API_FAILED;
     }
     listener_->SetCallback(callback);
-    ScopedBytrace func("VSyncReceiver::RequestNextVSync_pid:" + std::to_string(GetRealPid()) + "_name:" + name_);
+    ScopedBytrace func("VSyncReceiver::_name:" + name_);
     return connection_->RequestNextVSync();
 }
 
