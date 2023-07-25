@@ -3847,12 +3847,12 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
         return true;
     }
 
-    if(!curGroupedNodes_.empty()) {
+    if (!curGroupedNodes_.empty()) {
         // if in node group cache, add this node and render params (alpha and matrix) into groupedTransitionNodes.
         auto& [child, alpha, matrix] = curGroupedNodes_.top();
 #ifndef USE_ROSEN_DRAWING
         RenderParam value { std::move(renderChild), canvas_->GetAlpha() / alpha, canvas_->getTotalMatrix() };
-        if (!matrix->invert(&std::get<2>(value).value())) {
+        if (!matrix->invert(&std::get<2>(value).value())) { // 2 means to get the second element from the tuple
             RS_LOGE("RSUniRenderVisitor::ProcessSharedTransitionNode invert failed");
         }
 #else
