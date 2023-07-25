@@ -33,7 +33,7 @@ public:
     void UpdateFrameRateRange(ScreenId id, FrameRateRange range);
     void FindAndSendRefreshRate();
     void ResetFrameRateRangeMap();
-    void DecideSurfaceDrawingFrameRate(NodeId surfaceNodeId,
+    void CalcSurfaceDrawingFrameRate(NodeId surfaceNodeId,
         ScreenId screenId, FrameRateRange range);
 
 private:

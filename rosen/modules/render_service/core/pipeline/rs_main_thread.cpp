@@ -1029,7 +1029,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SetFocusedWindowPid(focusAppPid_);
         rootNode->Prepare(uniVisitor);
         uniVisitor->FindAndSendRefreshRate();
-        uniVisitor->DecideSurfaceDrawingFrameRate();
+        uniVisitor->CalcSurfaceDrawingFrameRate();
         CalcOcclusion();
         bool doParallelComposition = RSInnovation::GetParallelCompositionEnabled(isUniRender_);
         if (doParallelComposition && rootNode->GetChildrenCount() > 1) {

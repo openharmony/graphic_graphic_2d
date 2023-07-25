@@ -19,7 +19,7 @@
 #include "hgm_log.h"
 namespace {
     constexpr float MARGIN = 0.00001;
-    constexpr int MIN_DRAWING_FPS = 10;
+    constexpr int MIN_DRAWING_FPS = 1;
     constexpr int DUPLATION = 2;
 }
 
@@ -94,7 +94,7 @@ void HgmFrameRateManager::ResetFrameRateRangeMap()
     drawingFrameRateMap_.clear();
 }
 
-void HgmFrameRateManager::DecideSurfaceDrawingFrameRate(NodeId surfaceNodeId,
+void HgmFrameRateManager::CalcSurfaceDrawingFrameRate(NodeId surfaceNodeId,
     ScreenId screenId, FrameRateRange range)
 {
     if (!range.IsValid()) {
@@ -103,14 +103,13 @@ void HgmFrameRateManager::DecideSurfaceDrawingFrameRate(NodeId surfaceNodeId,
 
     int refreshRate = static_cast<int>(screenIdToLCDRefreshRates_[screenId]);
     int drawingFps = refreshRate;
-    if (range.preferred_ == refreshRate) {
-        drawingFrameRateMap_[surfaceNodeId] = range.preferred_;
+    if (range.preferred_ == refreshRate || refreshRate % range.preferred_ == 0) {
+        drawingFps = range.preferred_;
     } else if (!range.IsDynamic()) {
         // if the FrameRateRange of a surface is [50, 50, 50], the refreshRate is
         // 90, the drawing fps of the surface should be 45.
         int divisor = refreshRate / range.preferred_;
         drawingFps = refreshRate / divisor;
-        drawingFrameRateMap_[surfaceNodeId] = drawingFps;
     } else {
         // if the FrameRateRange of a surface is [24, 48, 48], the refreshRate is
         // 60, the drawing fps of the surface should be 30.
@@ -151,7 +150,6 @@ void HgmFrameRateManager::DecideSurfaceDrawingFrameRate(NodeId surfaceNodeId,
             if (currRatio < MARGIN) {
                 ratio = currRatio;
                 drawingFps = dividedFps;
-                drawingFrameRateMap_[surfaceNodeId] = drawingFps;
                 break;
             }
             // dividedFps is better than previous result
@@ -162,8 +160,8 @@ void HgmFrameRateManager::DecideSurfaceDrawingFrameRate(NodeId surfaceNodeId,
             divisor++;
             dividedFps = refreshRate / divisor;
         }
-        drawingFrameRateMap_[surfaceNodeId] = drawingFps;
     }
+    drawingFrameRateMap_[surfaceNodeId] = drawingFps;
     HGM_LOGD("HgmFrameRateManager:: Surface - %{public}d, Drawing FrameRate %{public}d",
         static_cast<int>(surfaceNodeId), drawingFps);
 }

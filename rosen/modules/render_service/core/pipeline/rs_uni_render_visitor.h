@@ -154,7 +154,7 @@ public:
     void ResetFrameRateRangeMaps();
     void UpdateSurfaceFrameRateRange(RSRenderNode& node);
     void FindAndSendRefreshRate();
-    void DecideSurfaceDrawingFrameRate();
+    void CalcSurfaceDrawingFrameRate();
 
 private:
     void DrawWatermarkIfNeed();

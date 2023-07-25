@@ -3777,10 +3777,10 @@ void RSUniRenderVisitor::FindAndSendRefreshRate()
     frameRateMgr_->FindAndSendRefreshRate();
 }
 
-void RSUniRenderVisitor::DecideSurfaceDrawingFrameRate()
+void RSUniRenderVisitor::CalcSurfaceDrawingFrameRate()
 {
     for (auto idToPair : uiFrameRateRangeMap_) {
-        frameRateMgr_->DecideSurfaceDrawingFrameRate(idToPair.first,
+        frameRateMgr_->CalcSurfaceDrawingFrameRate(idToPair.first,
             idToPair.second.first, idToPair.second.second);
     }
 }
