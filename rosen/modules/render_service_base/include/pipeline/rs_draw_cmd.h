@@ -202,12 +202,24 @@ protected:
 
 class OpItemWithRSImage : public OpItemWithPaint {
 public:
+#ifdef NEW_SKIA
+    OpItemWithRSImage(std::shared_ptr<RSImageBase> rsImage, const SkSamplingOptions& samplingOptions,
+        const SkPaint& paint, size_t size)
+        : OpItemWithPaint(size), rsImage_(rsImage), samplingOptions_(samplingOptions)
+    {
+        paint_ = paint;
+    }
+    explicit OpItemWithRSImage(const SkSamplingOptions& samplingOptions, size_t size)
+        : OpItemWithPaint(size), samplingOptions_(samplingOptions)
+    {}
+#else
     OpItemWithRSImage(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint, size_t size)
         : OpItemWithPaint(size), rsImage_(rsImage)
     {
         paint_ = paint;
     }
     explicit OpItemWithRSImage(size_t size) : OpItemWithPaint(size) {}
+#endif
     ~OpItemWithRSImage() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
     void SetNodeId(NodeId id) override;
@@ -217,6 +229,10 @@ public:
     }
 protected:
     std::shared_ptr<RSImageBase> rsImage_;
+#ifdef NEW_SKIA
+private:
+    SkSamplingOptions samplingOptions_;
+#endif
 };
 
 class RectOpItem : public OpItemWithPaint {
