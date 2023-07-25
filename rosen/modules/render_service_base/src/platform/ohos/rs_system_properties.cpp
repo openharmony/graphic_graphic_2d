@@ -300,6 +300,13 @@ bool RSSystemProperties::GetUIFirstEnabled()
     return std::atoi((system::GetParameter("rosen.ui.first.enabled", "1")).c_str()) != 0;
 }
 
+bool RSSystemProperties::GetDebugTraceEnabled()
+{
+    static bool openDebugTrace =
+        std::atoi((system::GetParameter("persist.sys.graphic.openDebugTrace", "0")).c_str()) != 0;
+    return openDebugTrace;
+}
+
 bool RSSystemProperties::GetCacheCmdEnabled()
 {
     return std::atoi((system::GetParameter("rosen.cacheCmd.enabled", "1")).c_str()) != 0;
