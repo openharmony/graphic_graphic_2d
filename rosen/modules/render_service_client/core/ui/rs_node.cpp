@@ -20,10 +20,13 @@
 #include <sstream>
 #include <string>
 
+#include "sandbox_utils.h"
+
 #include "animation/rs_animation.h"
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animator_map.h"
+#include "command/rs_base_node_command.h"
 #include "command/rs_node_command.h"
 #include "common/rs_color.h"
 #include "common/rs_obj_geometry.h"
@@ -33,6 +36,13 @@
 #include "platform/common/rs_log.h"
 #include "render/rs_path.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "ui/rs_canvas_drawing_node.h"
+#include "ui/rs_canvas_node.h"
+#include "ui/rs_display_node.h"
+#include "ui/rs_node.h"
+#include "ui/rs_proxy_node.h"
+#include "ui/rs_root_node.h"
+#include "ui/rs_surface_node.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -52,6 +62,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+static bool gIsUniRenderEnabled = false;
 bool IsPathAnimatableModifier(const RSModifierType& type)
 {
     if (type == RSModifierType::BOUNDS || type == RSModifierType::FRAME || type == RSModifierType::TRANSLATE) {
@@ -61,22 +72,36 @@ bool IsPathAnimatableModifier(const RSModifierType& type)
 }
 }
 
-RSNode::RSNode(bool isRenderServiceNode)
-    : RSBaseNode(isRenderServiceNode), stagingPropertiesExtractor_(GetId()), showingPropertiesFreezer_(GetId())
+RSNode::RSNode(bool isRenderServiceNode, NodeId id)
+    : isRenderServiceNode_(isRenderServiceNode), id_(id), stagingPropertiesExtractor_(id), showingPropertiesFreezer_(id)
 {
+    InitUniRenderEnabled();
     UpdateImplicitAnimator();
 }
 
-RSNode::RSNode(bool isRenderServiceNode, NodeId id)
-    : RSBaseNode(isRenderServiceNode, id), stagingPropertiesExtractor_(id), showingPropertiesFreezer_(GetId())
-{
-    UpdateImplicitAnimator();
-}
+RSNode::RSNode(bool isRenderServiceNode) : RSNode(isRenderServiceNode, GenerateId())
+{}
 
 RSNode::~RSNode()
 {
     FallbackAnimationsToRoot();
     ClearAllModifiers();
+
+    // break current (ui) parent-child relationship.
+    // render nodes will check if its child is expired and remove it, no need to manually remove it here.
+    if (auto parentPtr = RSNodeMap::Instance().GetNode(parent_)) {
+        parentPtr->RemoveChildById(id_);
+    }
+    // unregister node from node map
+    RSNodeMap::MutableInstance().UnregisterNode(id_);
+
+    // tell RT/RS to destroy related render node
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr || skipDestroyCommandInDestructor_) {
+        return;
+    }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeDestroy>(id_);
+    transactionProxy->AddCommand(command, IsRenderServiceNode());
 }
 
 void RSNode::OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
@@ -1139,16 +1164,7 @@ void RSNode::UpdateModifierMotionPathOption()
     }
 }
 
-std::string RSNode::DumpNode(int depth) const
-{
-    std::stringstream ss;
-    ss << RSBaseNode::DumpNode(depth);
-    if (!animations_.empty()) {
-        ss << " animation:" << std::to_string(animations_.size());
-    }
-    ss << " " << GetStagingProperties().Dump();
-    return ss.str();
-}
+
 
 void RSNode::UpdateImplicitAnimator()
 {
@@ -1294,5 +1310,288 @@ void RSNode::UpdateFrameRateRange(FrameRateRange range)
         transactionProxy->AddCommand(command, IsRenderServiceNode());
     }
 }
+
+NodeId RSNode::GenerateId()
+{
+    static pid_t pid_ = GetRealPid();
+    static std::atomic<uint32_t> currentId_ = 1; // surfaceNode is seted correctly during boot when currentId is 1
+
+    auto currentId = currentId_.fetch_add(1, std::memory_order_relaxed);
+    if (currentId == UINT32_MAX) {
+        // [PLANNING]:process the overflow situations
+        ROSEN_LOGE("Node Id overflow");
+    }
+
+    // concat two 32-bit numbers to one 64-bit number
+    return ((NodeId)pid_ << 32) | currentId;
+}
+
+void RSNode::InitUniRenderEnabled()
+{
+    static bool inited = false;
+    if (!inited) {
+        inited = true;
+        gIsUniRenderEnabled = RSSystemProperties::GetUniRenderEnabled();
+        ROSEN_LOGD("RSNode::InitUniRenderEnabled:%d", gIsUniRenderEnabled);
+    }
+}
+
+
+// RSNode::~RSNode()
+// {
+
+// }
+
+bool RSNode::IsUniRenderEnabled() const
+{
+    return gIsUniRenderEnabled;
+}
+
+bool RSNode::IsRenderServiceNode() const
+{
+    return gIsUniRenderEnabled || isRenderServiceNode_;
+}
+
+void RSNode::AddChild(SharedPtr child, int index)
+{
+    if (child == nullptr) {
+        ROSEN_LOGE("RSNode::AddChild, child is nullptr");
+        return;
+    }
+    if (child->parent_ == id_) {
+        ROSEN_LOGI("RSNode::AddChild, child already exist");
+        return;
+    }
+    if (child->GetType() == RSUINodeType::DISPLAY_NODE) {
+        // Disallow to add display node as child.
+        return;
+    }
+    NodeId childId = child->GetId();
+    if (child->parent_ != 0) {
+        child->RemoveFromTree();
+    }
+
+    if (index < 0 || index >= static_cast<int>(children_.size())) {
+        children_.push_back(childId);
+    } else {
+        children_.insert(children_.begin() + index, childId);
+    }
+    child->SetParent(id_);
+    child->OnAddChildren();
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        return;
+    }
+    // construct command using child's GetHierarchyCommandNodeId(), not GetId()
+    childId = child->GetHierarchyCommandNodeId();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
+    transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
+}
+
+void RSNode::MoveChild(SharedPtr child, int index)
+{
+    if (child == nullptr || child->parent_ != id_) {
+        ROSEN_LOGD("RSNode::MoveChild, not valid child");
+        return;
+    }
+    NodeId childId = child->GetId();
+    auto itr = std::find(children_.begin(), children_.end(), childId);
+    if (itr == children_.end()) {
+        ROSEN_LOGD("RSNode::MoveChild, not child");
+        return;
+    }
+    children_.erase(itr);
+    if (index < 0 || index >= static_cast<int>(children_.size())) {
+        children_.push_back(childId);
+    } else {
+        children_.insert(children_.begin() + index, childId);
+    }
+
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        return;
+    }
+    // construct command using child's GetHierarchyCommandNodeId(), not GetId()
+    childId = child->GetHierarchyCommandNodeId();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeMoveChild>(id_, childId, index);
+    transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
+}
+
+void RSNode::RemoveChild(SharedPtr child)
+{
+    if (child == nullptr || child->parent_ != id_) {
+        ROSEN_LOGI("RSNode::RemoveChild, child is nullptr");
+        return;
+    }
+    NodeId childId = child->GetId();
+    RemoveChildById(childId);
+    child->OnRemoveChildren();
+    child->SetParent(0);
+
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        return;
+    }
+    // construct command using child's GetHierarchyCommandNodeId(), not GetId()
+    childId = child->GetHierarchyCommandNodeId();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeRemoveChild>(id_, childId);
+    transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
+}
+
+void RSNode::AddCrossParentChild(SharedPtr child, int index)
+{
+    // AddCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
+    // so this child will not remove from the old parent.
+    if (child == nullptr) {
+        ROSEN_LOGE("RSNode::AddCrossScreenChild, child is nullptr");
+        return;
+    }
+    if (!this->IsInstanceOf<RSDisplayNode>()) {
+        ROSEN_LOGE("RSNode::AddCrossScreenChild, only displayNode support AddCrossScreenChild");
+        return;
+    }
+    NodeId childId = child->GetId();
+
+    if (index < 0 || index >= static_cast<int>(children_.size())) {
+        children_.push_back(childId);
+    } else {
+        children_.insert(children_.begin() + index, childId);
+    }
+    child->SetParent(id_);
+    child->OnAddChildren();
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        return;
+    }
+    // construct command using child's GetHierarchyCommandNodeId(), not GetId()
+    childId = child->GetHierarchyCommandNodeId();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddCrossParentChild>(id_, childId, index);
+    transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
+}
+
+void RSNode::RemoveCrossParentChild(SharedPtr child, NodeId newParentId)
+{
+    // RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
+    // set the newParentId to rebuild the parent-child relationship.
+    if (child == nullptr) {
+        ROSEN_LOGI("RSNode::RemoveCrossScreenChild, child is nullptr");
+        return;
+    }
+    if (!this->IsInstanceOf<RSDisplayNode>()) {
+        ROSEN_LOGE("RSNode::RemoveCrossScreenChild, only displayNode support RemoveCrossScreenChild");
+        return;
+    }
+    NodeId childId = child->GetId();
+    RemoveChildById(childId);
+    child->OnRemoveChildren();
+    child->SetParent(newParentId);
+
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        return;
+    }
+    // construct command using child's GetHierarchyCommandNodeId(), not GetId()
+    childId = child->GetHierarchyCommandNodeId();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeRemoveCrossParentChild>(id_, childId, newParentId);
+    transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
+}
+
+void RSNode::RemoveChildById(NodeId childId)
+{
+    auto itr = std::find(children_.begin(), children_.end(), childId);
+    if (itr != children_.end()) {
+        children_.erase(itr);
+    }
+}
+
+void RSNode::RemoveFromTree()
+{
+    if (auto parentPtr = RSNodeMap::Instance().GetNode(parent_)) {
+        parentPtr->RemoveChildById(GetId());
+        OnRemoveChildren();
+        SetParent(0);
+    }
+    // always send Remove-From-Tree command
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        return;
+    }
+    // construct command using own GetHierarchyCommandNodeId(), not GetId()
+    auto nodeId = GetHierarchyCommandNodeId();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeRemoveFromTree>(nodeId);
+    transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), nodeId);
+}
+
+void RSNode::ClearChildren()
+{
+    for (auto child : children_) {
+        if (auto childPtr = RSNodeMap::Instance().GetNode(child)) {
+            childPtr->SetParent(0);
+        }
+    }
+    children_.clear();
+
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        return;
+    }
+    // construct command using own GetHierarchyCommandNodeId(), not GetId()
+    auto nodeId = GetHierarchyCommandNodeId();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(nodeId);
+    transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), nodeId);
+}
+
+void RSNode::SetParent(NodeId parentId)
+{
+    parent_ = parentId;
+}
+
+RSNode::SharedPtr RSNode::GetParent()
+{
+    return RSNodeMap::Instance().GetNode(parent_);
+}
+
+std::string RSNode::DumpNode(int depth) const
+{
+    std::stringstream ss;
+    auto it = RSUINodeTypeStrs.find(GetType());
+    if (it == RSUINodeTypeStrs.end()) {
+        return "";
+    }
+    ss << it->second << "[" << std::to_string(id_) << "] child[";
+    for (auto child : children_) {
+        ss << std::to_string(child) << " ";
+    }
+    ss << "]";
+
+    if (!animations_.empty()) {
+        ss << " animation:" << std::to_string(animations_.size());
+    }
+    ss << " " << GetStagingProperties().Dump();
+    return ss.str();
+}
+
+bool RSNode::IsInstanceOf(RSUINodeType type) const
+{
+    auto targetType = static_cast<uint32_t>(type);
+    auto instanceType = static_cast<uint32_t>(GetType());
+    // use bitmask to check whether the instance is a subclass of the target type
+    return (instanceType & targetType) == targetType;
+}
+
+template<typename T>
+bool RSNode::IsInstanceOf() const
+{
+    return IsInstanceOf(T::Type);
+}
+
+// explicit instantiation with all render node types
+template bool RSNode::IsInstanceOf<RSDisplayNode>() const;
+template bool RSNode::IsInstanceOf<RSSurfaceNode>() const;
+template bool RSNode::IsInstanceOf<RSProxyNode>() const;
+template bool RSNode::IsInstanceOf<RSCanvasNode>() const;
+template bool RSNode::IsInstanceOf<RSRootNode>() const;
+template bool RSNode::IsInstanceOf<RSCanvasDrawingNode>() const;
+
 } // namespace Rosen
 } // namespace OHOS

@@ -17,11 +17,11 @@
 
 #include <unordered_map>
 
-#include "command/rs_animation_command.h"
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_motion_path_option.h"
 #include "animation/rs_transition_effect.h"
+#include "command/rs_animation_command.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier_extractor.h"
@@ -31,7 +31,6 @@
 #include "property/rs_properties.h"
 #include "render/rs_mask.h"
 #include "render/rs_path.h"
-#include "ui/rs_base_node.h"
 
 #ifndef USE_ROSEN_DRAWING
 class SkCanvas;
@@ -53,18 +52,77 @@ class RSImplicitAnimParam;
 class RSImplicitAnimator;
 class RSModifier;
 
-class RSC_EXPORT RSNode : public RSBaseNode {
+class RSC_EXPORT RSNode : public std::enable_shared_from_this<RSNode> {
 public:
     using WeakPtr = std::weak_ptr<RSNode>;
     using SharedPtr = std::shared_ptr<RSNode>;
     static inline constexpr RSUINodeType Type = RSUINodeType::RS_NODE;
-    RSUINodeType GetType() const override
+    virtual RSUINodeType GetType() const
     {
         return Type;
     }
 
-    ~RSNode() override;
-    std::string DumpNode(int depth) const override;
+    RSNode(const RSNode&) = delete;
+    RSNode(const RSNode&&) = delete;
+    RSNode& operator=(const RSNode&) = delete;
+    RSNode& operator=(const RSNode&&) = delete;
+    virtual ~RSNode();
+
+    // this id is ONLY used in hierarchy operation commands, this may differ from id_ when the node is a proxy node.
+    virtual NodeId GetHierarchyCommandNodeId() const
+    {
+        return id_;
+    }
+
+    virtual void AddChild(SharedPtr child, int index = -1);
+    void MoveChild(SharedPtr child, int index);
+    virtual void RemoveChild(SharedPtr child);
+    void RemoveFromTree();
+    virtual void ClearChildren();
+    const std::vector<NodeId>& GetChildren() const
+    {
+        return children_;
+    }
+
+    // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
+    void AddCrossParentChild(SharedPtr child, int index);
+    void RemoveCrossParentChild(SharedPtr child, NodeId newParentId);
+
+    NodeId GetId() const
+    {
+        return id_;
+    }
+
+    virtual FollowType GetFollowType() const
+    {
+        return FollowType::NONE;
+    }
+
+    bool IsInstanceOf(RSUINodeType type) const;
+    template<typename T>
+    RSC_EXPORT bool IsInstanceOf() const;
+
+    // type-safe reinterpret_cast
+    template<typename T>
+    static std::shared_ptr<T> ReinterpretCast(const std::shared_ptr<RSNode>& node)
+    {
+        return node ? node->ReinterpretCastTo<T>() : nullptr;
+    }
+    template<typename T>
+    std::shared_ptr<T> ReinterpretCastTo()
+    {
+        return (IsInstanceOf<T>()) ? std::static_pointer_cast<T>(shared_from_this()) : nullptr;
+    }
+    virtual std::string DumpNode(int depth) const;
+    SharedPtr GetParent();
+
+    void SetId(const NodeId& id)
+    {
+        id_ = id;
+    }
+
+    bool IsUniRenderEnabled() const;
+    bool IsRenderServiceNode() const;
 
     static std::vector<std::shared_ptr<RSAnimation>> Animate(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback,
@@ -153,7 +211,6 @@ public:
 
     void SetAlpha(float alpha);
     void SetAlphaOffscreen(bool alphaOffscreen);
-
 
     void SetEnvForegroundColor(uint32_t colorValue);
     void SetEnvForegroundColorStrategy(ForegroundColorStrategyType colorType);
@@ -252,20 +309,22 @@ public:
 
     void UpdateFrameRateRange(FrameRateRange range);
 
-    FrameRateRange GetFrameRateRange() { return nodeRange_; }
+    FrameRateRange GetFrameRateRange()
+    {
+        return nodeRange_;
+    }
 
 protected:
     explicit RSNode(bool isRenderServiceNode);
     explicit RSNode(bool isRenderServiceNode, NodeId id);
-    RSNode(const RSNode&) = delete;
-    RSNode(const RSNode&&) = delete;
-    RSNode& operator=(const RSNode&) = delete;
-    RSNode& operator=(const RSNode&&) = delete;
+
+    bool isRenderServiceNode_;
+    bool skipDestroyCommandInDestructor_ = false;
 
     bool drawContentLast_ = false;
 
-    void OnAddChildren() override;
-    void OnRemoveChildren() override;
+    virtual void OnAddChildren();
+    virtual void OnRemoveChildren();
 
     virtual bool NeedForcedSendToRemote() const
     {
@@ -276,6 +335,14 @@ protected:
     bool isCustomTextType_ = false;
 
 private:
+    static NodeId GenerateId();
+    static void InitUniRenderEnabled();
+    NodeId id_;
+    NodeId parent_ = 0;
+    std::vector<NodeId> children_;
+    void SetParent(NodeId parent);
+    void RemoveChildById(NodeId childId);
+
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
     void FallbackAnimationsToRoot();
@@ -312,29 +379,31 @@ private:
     std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
 
-    FrameRateRange nodeRange_ = {0, 0, 0};
+    FrameRateRange nodeRange_ = { 0, 0, 0 };
 
     friend class RSAnimation;
     friend class RSCurveAnimation;
+    friend class RSExtendedModifier;
+    friend class RSGeometryTransModifier;
+    friend class RSImplicitAnimator;
     friend class RSInterpolatingSpringAnimation;
     friend class RSKeyframeAnimation;
+    friend class RSModifier;
+    friend class RSModifierExtractor;
+    friend class RSPathAnimation;
     friend class RSPropertyAnimation;
-    friend class RSSpringAnimation;
     friend class RSPropertyBase;
+    friend class RSShowingPropertiesFreezer;
+    friend class RSSpringAnimation;
+    friend class RSTransition;
+    friend class RSUIDirector;
     template<typename T>
     friend class RSProperty;
     template<typename T>
     friend class RSAnimatableProperty;
-    friend class RSPathAnimation;
-    friend class RSExtendedModifier;
-    friend class RSTransition;
-    friend class RSUIDirector;
-    friend class RSImplicitAnimator;
-    friend class RSModifierExtractor;
-    friend class RSModifier;
-    friend class RSGeometryTransModifier;
-    friend class RSShowingPropertiesFreezer;
 };
+// backward compatibility
+using RSBaseNode = RSNode;
 } // namespace Rosen
 } // namespace OHOS
 

@@ -89,7 +89,6 @@ template("render_service_client_source_set") {
       "core/transaction/rs_transaction.cpp",
 
       #ui
-      "core/ui/rs_base_node.cpp",
       "core/ui/rs_canvas_drawing_node.cpp",
       "core/ui/rs_canvas_node.cpp",
       "core/ui/rs_display_node.cpp",
