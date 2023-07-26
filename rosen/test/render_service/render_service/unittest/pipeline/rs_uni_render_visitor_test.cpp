@@ -63,17 +63,17 @@ void RSUniRenderVisitorTest::TearDown()
 }
 
 /*
- * @tc.name: PrepareBaseRenderNode001
- * @tc.desc: PrepareBaseRenderNode Test
+ * @tc.name: PrepareChildren001
+ * @tc.desc: PrepareChildren Test
  * @tc.type: FUNC
  * @tc.require: issueI79U8E
  */
-HWTEST_F(RSUniRenderVisitorTest, PrepareBaseRenderNode001, TestSize.Level1)
+HWTEST_F(RSUniRenderVisitorTest, PrepareChildren001, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     auto rsBaseRenderNode = std::make_shared<RSBaseRenderNode>(10, rsContext->weak_from_this());
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->PrepareBaseRenderNode(*rsBaseRenderNode);
+    rsUniRenderVisitor->PrepareChildren(*rsBaseRenderNode);
 }
 
 /*

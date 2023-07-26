@@ -39,7 +39,7 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:
         RSSurfaceCaptureVisitor(float scaleX, float scaleY, bool isUniRender);
         ~RSSurfaceCaptureVisitor() noexcept override = default;
-        void PrepareBaseRenderNode(RSBaseRenderNode& node) override {}
+        void PrepareChildren(RSRenderNode& node) override {}
         void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override {}
         void PrepareDisplayRenderNode(RSDisplayRenderNode& node) override {}
         void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
@@ -47,7 +47,7 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
         void PrepareEffectRenderNode(RSEffectRenderNode& node) override {}
 
-        void ProcessBaseRenderNode(RSBaseRenderNode& node) override;
+        void ProcessChildren(RSRenderNode& node) override;
         void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
         void ProcessDisplayRenderNode(RSDisplayRenderNode& node) override;
         void ProcessProxyRenderNode(RSProxyRenderNode& node) override {}

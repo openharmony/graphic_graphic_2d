@@ -21,6 +21,19 @@
 #include <memory>
 #include <tuple>
 
+#include "memory/rs_memory_track.h"
+
+#include "common/rs_macros.h"
+#include "common/rs_occlusion_region.h"
+#include "common/rs_vector4.h"
+#include "ipc_callbacks/buffer_available_callback.h"
+#include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_handler.h"
+#include "property/rs_properties_painter.h"
+#include "screen_manager/screen_types.h"
+#include "transaction/rs_occlusion_data.h"
+
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkRect.h"
 #include "include/core/SkRefCnt.h"
@@ -31,18 +44,6 @@
 #include "refbase.h"
 #endif
 #endif
-
-#include "common/rs_macros.h"
-#include "common/rs_occlusion_region.h"
-#include "common/rs_vector4.h"
-#include "ipc_callbacks/buffer_available_callback.h"
-#include "memory/rs_memory_track.h"
-#include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_render_node.h"
-#include "pipeline/rs_surface_handler.h"
-#include "property/rs_properties_painter.h"
-#include "screen_manager/screen_types.h"
-#include "transaction/rs_occlusion_data.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -852,7 +853,7 @@ private:
     CacheProcessStatus cacheProcessStatus_ = CacheProcessStatus::WAITING;
 
     friend class RSUniRenderVisitor;
-    friend class RSBaseRenderNode;
+    friend class RSRenderNode;
     friend class RSRenderService;
 };
 } // namespace Rosen

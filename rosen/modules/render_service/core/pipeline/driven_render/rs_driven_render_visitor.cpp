@@ -35,7 +35,7 @@ RSDrivenRenderVisitor::RSDrivenRenderVisitor()
     renderEngine_ = mainThread->GetRenderEngine();
 }
 
-void RSDrivenRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
+void RSDrivenRenderVisitor::PrepareChildren(RSRenderNode& node)
 {
     for (auto& child : node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
@@ -51,7 +51,7 @@ void RSDrivenRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
         currDrivenSurfaceNode_->PushFramePaintItem(paintItem, itemIndex);
         return;
     }
-    PrepareBaseRenderNode(node);
+    PrepareChildren(node);
 }
 
 void RSDrivenRenderVisitor::PrepareDrivenSurfaceRenderNode(RSDrivenSurfaceRenderNode& node)
@@ -98,7 +98,7 @@ void RSDrivenRenderVisitor::PrepareDrivenSurfaceRenderNode(RSDrivenSurfaceRender
         node.GetDstRect().ToString().c_str(), node.GetSrcRect().ToString().c_str());
 }
 
-void RSDrivenRenderVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
+void RSDrivenRenderVisitor::ProcessChildren(RSRenderNode& node)
 {
     if (hasTraverseDrivenNode_ && currDrivenSurfaceNode_->IsBackgroundSurface()) {
         return;
@@ -131,7 +131,7 @@ void RSDrivenRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     node.GetMutableRenderProperties().CheckEmptyBounds();
     node.ProcessRenderBeforeChildren(*canvas_);
     node.ProcessRenderContents(*canvas_);
-    ProcessBaseRenderNode(node);
+    ProcessChildren(node);
     node.ProcessRenderAfterChildren(*canvas_);
 }
 
@@ -155,7 +155,7 @@ void RSDrivenRenderVisitor::ProcessDrivenCanvasRenderNode(RSCanvasRenderNode& no
         node.ProcessDrivenBackgroundRender(*canvas_);
     } else {
         node.ProcessDrivenContentRender(*canvas_);
-        ProcessBaseRenderNode(node);
+        ProcessChildren(node);
         node.ProcessDrivenContentRenderAfterChildren(*canvas_);
     }
 }

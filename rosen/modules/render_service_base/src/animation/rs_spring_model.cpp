@@ -18,8 +18,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "common/rs_vector2.h"
-#include "common/rs_vector4.h"
+#include "common/rs_rect.h"
 #include "modifier/rs_render_property.h"
 #include "platform/common/rs_log.h"
 

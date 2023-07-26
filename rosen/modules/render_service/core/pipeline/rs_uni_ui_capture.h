@@ -52,7 +52,7 @@ private:
     public:
         RSUniUICaptureVisitor(NodeId nodeId, float scaleX, float scaleY);
         ~RSUniUICaptureVisitor() noexcept override = default;
-        void PrepareBaseRenderNode(RSBaseRenderNode& node) override;
+        void PrepareChildren(RSRenderNode& node) override;
         void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override;
         void PrepareDisplayRenderNode(RSDisplayRenderNode& node) override {};
         void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
@@ -60,7 +60,7 @@ private:
         void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
         void PrepareEffectRenderNode(RSEffectRenderNode& node) override;
 
-        void ProcessBaseRenderNode(RSBaseRenderNode& node) override;
+        void ProcessChildren(RSRenderNode& node) override;
         void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
         void ProcessDisplayRenderNode(RSDisplayRenderNode& node) override {};
         void ProcessProxyRenderNode(RSProxyRenderNode& node) override {}

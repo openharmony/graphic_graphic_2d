@@ -100,7 +100,7 @@ void RSRenderThreadVisitor::SetPartialRenderStatus(PartialRenderType status, boo
     partialRenderStatus_ = status;
 }
 
-void RSRenderThreadVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
+void RSRenderThreadVisitor::PrepareChildren(RSRenderNode& node)
 {
     node.ResetSortedChildren();
     for (auto& child : node.GetChildren()) {
@@ -145,7 +145,7 @@ void RSRenderThreadVisitor::ResetAndPrepareChildrenNode(RSRenderNode& node,
     // reset childRect before prepare children
     node.ResetChildrenRect();
     node.UpdateChildrenOutOfRectFlag(false);
-    PrepareBaseRenderNode(node);
+    PrepareChildren(node);
     // accumulate direct parent's childrenRect
     node.UpdateParentChildrenRect(nodeParent);
 }
@@ -407,7 +407,7 @@ void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSS
     RS_TRACE_END();
 }
 
-void RSRenderThreadVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
+void RSRenderThreadVisitor::ProcessChildren(RSRenderNode& node)
 {
     for (auto& child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
@@ -696,7 +696,7 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
     node.ProcessRenderBeforeChildren(*canvas_);
     node.ProcessRenderContents(*canvas_);
-    ProcessBaseRenderNode(node);
+    ProcessChildren(node);
     node.ProcessRenderAfterChildren(*canvas_);
 }
 
@@ -732,7 +732,7 @@ bool RSRenderThreadVisitor::UpdateAnimatePropertyCacheSurface(RSRenderNode& node
     swap(cacheCanvas, canvas_);
     node.ProcessAnimatePropertyBeforeChildren(*canvas_);
     node.ProcessRenderContents(*canvas_);
-    ProcessBaseRenderNode(node);
+    ProcessChildren(node);
     node.ProcessAnimatePropertyAfterChildren(*canvas_);
     swap(cacheCanvas, canvas_);
 
@@ -751,7 +751,7 @@ void RSRenderThreadVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
         return;
     }
     node.ProcessRenderBeforeChildren(*canvas_);
-    ProcessBaseRenderNode(node);
+    ProcessChildren(node);
     node.ProcessRenderAfterChildren(*canvas_);
 }
 
@@ -825,7 +825,7 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     // 3. traversal children, child surface node will be added to childSurfaceNodeIds_
     // note: apply current node properties onto canvas if there is any child node
-    ProcessBaseRenderNode(node);
+    ProcessChildren(node);
 
     // 4. if children changed, sync children to RenderService
     if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_) {

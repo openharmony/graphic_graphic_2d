@@ -47,14 +47,14 @@ RSRenderServiceVisitor::RSRenderServiceVisitor(bool parallel) : mParallelEnable(
 
 RSRenderServiceVisitor::~RSRenderServiceVisitor() {}
 
-void RSRenderServiceVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
+void RSRenderServiceVisitor::PrepareChildren(RSRenderNode& node)
 {
     for (auto& child : node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
     }
 }
 
-void RSRenderServiceVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
+void RSRenderServiceVisitor::ProcessChildren(RSRenderNode& node)
 {
     for (auto& child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
@@ -127,7 +127,7 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
             canvas_->ClipRect(tmpRect, Drawing::ClipOp::INTERSECT, false);
 #endif
         }
-        PrepareBaseRenderNode(*existingSource);
+        PrepareChildren(*existingSource);
     } else {
         auto boundsGeoPtr = (node.GetRenderProperties().GetBoundsGeometry());
         RSBaseRenderUtil::SetNeedClient(boundsGeoPtr && boundsGeoPtr->IsNeedClientCompose());
@@ -145,7 +145,7 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         Drawing::Rect tmpRect(0, 0, logicalScreenWidth, logicalScreenHeight);
         canvas_->ClipRect(tmpRect, Drawing::ClipOp::INTERSECT, false);
 #endif
-        PrepareBaseRenderNode(node);
+        PrepareChildren(node);
     }
 
     node.GetCurAllSurfaces().clear();
@@ -195,9 +195,9 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGI("RSRenderServiceVisitor::ProcessDisplayRenderNode mirrorSource haven't existed");
             return;
         }
-        ProcessBaseRenderNode(*existingSource);
+        ProcessChildren(*existingSource);
     } else {
-        ProcessBaseRenderNode(node);
+        ProcessChildren(node);
     }
     processor_->PostProcess();
 }
@@ -229,7 +229,7 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     node.SetOffset(offsetX_, offsetY_);
     node.PrepareRenderBeforeChildren(*canvas_);
-    PrepareBaseRenderNode(node);
+    PrepareChildren(node);
     node.PrepareRenderAfterChildren(*canvas_);
 }
 
@@ -255,7 +255,7 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (mParallelEnable) {
         node.ParallelVisitLock();
     }
-    ProcessBaseRenderNode(node);
+    ProcessChildren(node);
     node.SetGlobalZOrder(globalZOrder_);
     globalZOrder_ = globalZOrder_ + 1;
     processor_->ProcessSurface(node);

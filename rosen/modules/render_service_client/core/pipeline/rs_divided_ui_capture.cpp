@@ -160,7 +160,7 @@ void RSDividedUICapture::PostTaskToRTRecord(std::shared_ptr<Drawing::RecordingCa
     RSRenderThread::Instance().PostSyncTask(recordingDrawCall);
 }
 
-void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
+void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessChildren(RSRenderNode& node)
 {
     for (auto& child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
@@ -248,7 +248,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCa
     } else {
         node.ProcessRenderContents(*canvas_);
     }
-    ProcessBaseRenderNode(node);
+    ProcessChildren(node);
     node.ProcessRenderAfterChildren(*canvas_);
 }
 
@@ -263,7 +263,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessEffectRenderNode(RSEf
         return;
     }
     node.ProcessRenderBeforeChildren(*canvas_);
-    ProcessBaseRenderNode(node);
+    ProcessChildren(node);
     node.ProcessRenderAfterChildren(*canvas_);
 }
 
@@ -327,10 +327,10 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
     canvas_->DrawImage(*image, node.GetRenderProperties().GetBoundsPositionX(),
         node.GetRenderProperties().GetBoundsPositionY(), Drawing::SamplingOptions());
 #endif
-    ProcessBaseRenderNode(node);
+    ProcessChildren(node);
 }
 
-void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
+void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareChildren(RSRenderNode& node)
 {
     for (auto& child : node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
@@ -342,7 +342,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareCanvasRenderNode(RSCa
     node.ApplyModifiers();
     auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
     node.Update(*dirtyManager, nullptr, false);
-    PrepareBaseRenderNode(node);
+    PrepareChildren(node);
 }
 
 void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
@@ -350,7 +350,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareSurfaceRenderNode(RSS
     node.ApplyModifiers();
     auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
     node.Update(*dirtyManager, nullptr, false);
-    PrepareBaseRenderNode(node);
+    PrepareChildren(node);
 }
 
 void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
@@ -364,7 +364,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareEffectRenderNode(RSEf
     node.ApplyModifiers();
     auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
     node.Update(*dirtyManager, nullptr, false);
-    PrepareBaseRenderNode(node);
+    PrepareChildren(node);
 }
 
 } // namespace Rosen

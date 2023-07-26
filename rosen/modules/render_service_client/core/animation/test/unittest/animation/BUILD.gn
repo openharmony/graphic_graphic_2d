@@ -73,7 +73,6 @@ ohos_unittest("RSAnimationTest") {
     "$rosen_root/modules/render_service_base/src/ipc_callbacks/screen_change_callback_stub.cpp",
 
     #pipeline
-    "$rosen_root/modules/render_service_base/src/pipeline/rs_base_render_node.cpp",
     "$rosen_root/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "$rosen_root/modules/render_service_base/src/pipeline/rs_context.cpp",
     "$rosen_root/modules/render_service_base/src/pipeline/rs_dirty_region_manager.cpp",

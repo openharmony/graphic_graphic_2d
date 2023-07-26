@@ -76,7 +76,7 @@ HWTEST_F(RSRenderThreadTest, Detach002, TestSize.Level1)
 HWTEST_F(RSRenderThreadTest, RecvTransactionData001, TestSize.Level1)
 {
     /**
-     * @tc.steps: step1. PrepareBaseRenderNode
+     * @tc.steps: step1. PrepareChildren
      */
     std::unique_ptr<RSTransactionData> data = std::make_unique<RSTransactionData>();
     RSRenderThread::Instance().RecvTransactionData(data);
@@ -91,7 +91,7 @@ HWTEST_F(RSRenderThreadTest, RecvTransactionData001, TestSize.Level1)
 HWTEST_F(RSRenderThreadTest, PostPreTask001, TestSize.Level1)
 {
     /**
-     * @tc.steps: step1. PrepareBaseRenderNode
+     * @tc.steps: step1. PrepareChildren
      */
     RSRenderThread::Instance().PostPreTask();
 }

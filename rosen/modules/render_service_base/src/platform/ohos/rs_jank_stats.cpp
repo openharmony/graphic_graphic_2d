@@ -31,7 +31,6 @@ namespace Rosen {
 namespace {
 constexpr float VSYNC_PERIOD = 16.6;                  // 16.6ms
 constexpr uint32_t JANK_TIMEOUT = 10000;              // 10s
-constexpr uint32_t MS_TO_NS = 1000000;                // ms to ns
 constexpr uint32_t S_TO_NS = 1000000000;              // ms to ns
 }
 

@@ -20,8 +20,7 @@
 
 namespace OHOS {
 namespace Rosen {
-
-class RSBaseRenderNode;
+class RSRenderNode;
 class RSCanvasRenderNode;
 class RSDisplayRenderNode;
 class RSProxyRenderNode;
@@ -38,7 +37,7 @@ public:
     RSNodeVisitor& operator=(const RSNodeVisitor&&) = delete;
     virtual ~RSNodeVisitor() = default;
 
-    virtual void PrepareBaseRenderNode(RSBaseRenderNode& node) = 0;
+    virtual void PrepareChildren(RSRenderNode& node) = 0;
     virtual void PrepareCanvasRenderNode(RSCanvasRenderNode& node) = 0;
     virtual void PrepareDisplayRenderNode(RSDisplayRenderNode& node) = 0;
     virtual void PrepareProxyRenderNode(RSProxyRenderNode& node) = 0;
@@ -46,7 +45,7 @@ public:
     virtual void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) = 0;
     virtual void PrepareEffectRenderNode(RSEffectRenderNode& node) = 0;
 
-    virtual void ProcessBaseRenderNode(RSBaseRenderNode& node) = 0;
+    virtual void ProcessChildren(RSRenderNode& node) = 0;
     virtual void ProcessCanvasRenderNode(RSCanvasRenderNode& node) = 0;
     virtual void ProcessDisplayRenderNode(RSDisplayRenderNode& node) = 0;
     virtual void ProcessProxyRenderNode(RSProxyRenderNode& node) = 0;

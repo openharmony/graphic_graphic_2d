@@ -395,7 +395,7 @@ void RSSurfaceCaptureVisitor::SetSurface(Drawing::Surface* surface)
 }
 #endif
 
-void RSSurfaceCaptureVisitor::ProcessBaseRenderNode(RSBaseRenderNode &node)
+void RSSurfaceCaptureVisitor::ProcessChildren(RSRenderNode &node)
 {
     for (auto& child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
@@ -428,7 +428,7 @@ void RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node
         if (hasSecurityLayer_) {
             RS_LOGD("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: \
                 process RSDisplayRenderNode(id:[%" PRIu64 "]) Not using UniRender buffer.", node.GetId());
-            ProcessBaseRenderNode(node);
+            ProcessChildren(node);
         } else {
             if (node.GetBuffer() == nullptr) {
                 RS_LOGE("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: buffer is null!");
@@ -456,7 +456,7 @@ void RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node
             renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
         }
     } else {
-        ProcessBaseRenderNode(node);
+        ProcessChildren(node);
     }
 }
 
@@ -474,7 +474,7 @@ void RSSurfaceCaptureVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
         return;
     }
     node.ProcessRenderBeforeChildren(*canvas_);
-    ProcessBaseRenderNode(node);
+    ProcessChildren(node);
     node.ProcessRenderAfterChildren(*canvas_);
 }
 
@@ -608,7 +608,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: DrawCachedImage.");
         RSUniRenderUtil::DrawCachedImage(node, *canvas_, node.GetCachedImage());
     } else {
-        ProcessBaseRenderNode(node);
+        ProcessChildren(node);
     }
 }
 #else
@@ -707,7 +707,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: DrawCachedImage.");
         RSUniRenderUtil::DrawCachedImage(node, *canvas_, node.GetCachedImage());
     } else {
-        ProcessBaseRenderNode(node);
+        ProcessChildren(node);
     }
 }
 #endif
@@ -764,7 +764,7 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
     }
 
-    ProcessBaseRenderNode(node);
+    ProcessChildren(node);
     RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::FOREGROUND_FILTER);
     RSPropertiesPainter::DrawLinearGradientBlurFilter(property, *canvas_);
     DrawWatermarkIfNeed(property.GetBoundsWidth(), property.GetBoundsHeight());
@@ -826,7 +826,7 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
         canvas_->Restore();
     }
 
-    ProcessBaseRenderNode(node);
+    ProcessChildren(node);
     RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::FOREGROUND_FILTER);
     RSPropertiesPainter::DrawLinearGradientBlurFilter(property, *canvas_);
     DrawWatermarkIfNeed(property.GetBoundsWidth(), property.GetBoundsHeight());
@@ -893,7 +893,7 @@ void RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     node.GetMutableRenderProperties().CheckEmptyBounds();
     node.ProcessRenderBeforeChildren(*canvas_);
     node.ProcessRenderContents(*canvas_);
-    ProcessBaseRenderNode(node);
+    ProcessChildren(node);
     node.ProcessRenderAfterChildren(*canvas_);
 }
 
@@ -925,7 +925,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRender
     if (node.GetChildrenCount() > 0) {
         canvas_->concat(translateMatrix);
         const auto saveCnt = canvas_->save();
-        ProcessBaseRenderNode(node);
+        ProcessChildren(node);
         canvas_->restoreToCount(saveCnt);
         if (node.GetBuffer() != nullptr) {
             // in node's local coordinate.
@@ -975,7 +975,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRender
         canvas_->ConcatMatrix(translateMatrix);
         const auto saveCnt = canvas_->GetSaveCount();
         canvas_->Save();
-        ProcessBaseRenderNode(node);
+        ProcessChildren(node);
         canvas_->RestoreToCount(saveCnt);
         if (node.GetBuffer() != nullptr) {
             // in node's local coordinate.
@@ -1003,7 +1003,7 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithoutUni(RSSurfaceRenderN
             node.GetId());
         return;
     }
-    ProcessBaseRenderNode(node);
+    ProcessChildren(node);
     if (node.GetBuffer() != nullptr) {
         // in display's coordinate.
         auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, false, false);

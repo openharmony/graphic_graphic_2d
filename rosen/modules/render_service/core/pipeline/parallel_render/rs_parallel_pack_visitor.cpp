@@ -32,7 +32,7 @@ RSParallelPackVisitor::RSParallelPackVisitor(RSUniRenderVisitor &visitor)
     doAnimate_ = visitor.GetAnimateState();
 }
 
-void RSParallelPackVisitor::PrepareBaseRenderNode(RSBaseRenderNode &node)
+void RSParallelPackVisitor::PrepareChildren(RSRenderNode &node)
 {
     node.ResetSortedChildren();
     for (auto& child : node.GetSortedChildren()) {
@@ -43,7 +43,7 @@ void RSParallelPackVisitor::PrepareBaseRenderNode(RSBaseRenderNode &node)
 void RSParallelPackVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode &node)
 {
     isFirstSurfaceNode_ = true;
-    PrepareBaseRenderNode(node);
+    PrepareChildren(node);
 }
 
 void RSParallelPackVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode &node)
@@ -56,7 +56,7 @@ void RSParallelPackVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode &node)
     }
 }
 
-void RSParallelPackVisitor::ProcessBaseRenderNode(RSBaseRenderNode &node)
+void RSParallelPackVisitor::ProcessChildren(RSRenderNode &node)
 {
     for (auto &child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
@@ -69,7 +69,7 @@ void RSParallelPackVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node)
 {
     RSParallelRenderManager::Instance()->ClearFilterSurfaceRenderNode();
     isSecurityDisplay_ = node.GetSecurityDisplay();
-    ProcessBaseRenderNode(node);
+    ProcessChildren(node);
 }
 
 void RSParallelPackVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode &node)

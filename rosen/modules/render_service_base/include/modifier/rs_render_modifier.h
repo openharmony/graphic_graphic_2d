@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_MODIFIER_H
 
 #include <memory>
+
 #include "parcel.h"
 
 #include "common/rs_color.h"
@@ -26,6 +27,13 @@
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_render_property.h"
+#include "render/rs_border.h"
+#include "render/rs_filter.h"
+#include "render/rs_image.h"
+#include "render/rs_mask.h"
+#include "render/rs_path.h"
+#include "render/rs_shader.h"
+
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkMatrix.h"
 #include "pipeline/rs_draw_cmd_list.h"
@@ -33,12 +41,6 @@
 #include "recording/draw_cmd_list.h"
 #include "utils/matrix.h"
 #endif
-#include "render/rs_border.h"
-#include "render/rs_filter.h"
-#include "render/rs_image.h"
-#include "render/rs_mask.h"
-#include "render/rs_path.h"
-#include "render/rs_shader.h"
 
 namespace OHOS {
 namespace Rosen {

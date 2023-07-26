@@ -40,12 +40,12 @@ void RSDrivenRenderVisitorTest::SetUp() {}
 void RSDrivenRenderVisitorTest::TearDown() {}
 
 /**
- * @tc.name: ProcessBaseRenderNode
- * @tc.desc: Test RSDrivenRenderVisitorTest.ProcessBaseRenderNode
+ * @tc.name: ProcessChildren
+ * @tc.desc: Test RSDrivenRenderVisitorTest.ProcessChildren
  * @tc.type: FUNC
  * @tc.require: issueI6J4IL
  */
-HWTEST_F(RSDrivenRenderVisitorTest, ProcessBaseRenderNode, TestSize.Level1)
+HWTEST_F(RSDrivenRenderVisitorTest, ProcessChildren, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     auto rsDrivenRenderVisitor = std::make_shared<RSDrivenRenderVisitor>();
@@ -72,7 +72,7 @@ HWTEST_F(RSDrivenRenderVisitorTest, ProcessBaseRenderNode, TestSize.Level1)
     secondItemNode->SetItemIndex(1);
     drivenContentNode->AddChild(secondItemNode, -1);
     drivenBackgroundNode->AddChild(drivenContentNode, -1);
-    rsDrivenRenderVisitor->ProcessBaseRenderNode(*drivenBackgroundNode);
+    rsDrivenRenderVisitor->ProcessChildren(*drivenBackgroundNode);
     rsDrivenRenderVisitor->ProcessCanvasRenderNode(*drivenBackgroundNode);
 }
 
