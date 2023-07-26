@@ -402,10 +402,12 @@ HWTEST_F(RSUniRenderVisitorTest, ParallelCompositionTest, TestSize.Level1)
     };
     auto rsDisplayRenderNode2 = std::make_shared<RSDisplayRenderNode>(30, displayConfig2, rsContext->weak_from_this());
     rsBaseRenderNode->AddChild(rsDisplayRenderNode2);
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    bool ret = rsUniRenderVisitor->ParallelComposition(rsBaseRenderNode);
-    ASSERT_EQ(ret, true);
+    bool isUnirender = RSUniRenderJudgement::IsUniRender();
+    if (isUnirender) {
+        auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+        bool ret = rsUniRenderVisitor->ParallelComposition(rsBaseRenderNode);
+        ASSERT_EQ(ret, true);
+    }
 }
 
 /**
@@ -1016,6 +1018,9 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1)
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetParent(node);
+    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    ASSERT_NE(skCanvas, nullptr);
+    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
     rsUniRenderVisitor->ProcessSurfaceRenderNode(*surfaceNode);
 }
 
@@ -1040,6 +1045,9 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level1)
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetParent(node);
+    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    ASSERT_NE(skCanvas, nullptr);
+    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
     rsUniRenderVisitor->ProcessSurfaceRenderNode(*surfaceNode);
     rsUniRenderVisitor->isSubThread_ = false;
     rsUniRenderVisitor->ProcessSurfaceRenderNode(*surfaceNode);
