@@ -267,6 +267,10 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
     node.ProcessRenderBeforeChildren(*canvas_);
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
+        auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](sk_sp<SkSurface> surface) {
+            RSUniRenderUtil::ClearNodeCacheSurface(surface, nullptr, id);
+        };
+        canvasDrawingNode->SetSurfaceClearFunc({ UNI_MAIN_THREAD_INDEX, clearFunc });
         canvasDrawingNode->ProcessRenderContents(*canvas_);
 #ifndef USE_ROSEN_DRAWING
         SkBitmap bitmap;
