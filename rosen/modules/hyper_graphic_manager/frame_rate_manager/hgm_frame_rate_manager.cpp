@@ -55,7 +55,7 @@ void HgmFrameRateManager::FindAndSendRefreshRate()
         uint32_t currRefreshRate = 0;
         FrameRateRange range = screenIdToFrameRateRange_[id];
         auto iter = std::lower_bound(refreshRates.begin(), refreshRates.end(), range.preferred_);
-        uint32_t pos = iter - refreshRates.begin();
+        uint32_t pos = static_cast<uint32_t>(iter - refreshRates.begin());
         if (pos < refreshRates.size()) {
             if (refreshRates[pos] > static_cast<uint32_t>(range.max_) && pos > 0 &&
                 refreshRates[pos - 1] >= static_cast<uint32_t>(range.min_) &&
