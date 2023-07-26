@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "pixel_map.h"
 #include "recording/recording_canvas.h"
 #include "recording/recording_path.h"
 
@@ -319,6 +320,65 @@ HWTEST_F(RecordingCanvasTest, DrawImage001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawImage002
+ * @tc.desc: Test the playback of the DrawImage function.
+ * @tc.type: FUNC
+ * @tc.require: I7OAIR
+ */
+HWTEST_F(RecordingCanvasTest, DrawImage002, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 20);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    auto image = std::make_shared<Image>();
+    AdaptiveImageInfo rsImageInfo;
+    SamplingOptions smapling;
+    recordingCanvas->DrawImage(image, nullptr, rsImageInfo, smapling);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList != nullptr);
+    Canvas canvas;
+    drawCmdList->Playback(canvas);
+}
+
+/**
+ * @tc.name: DrawImage003
+ * @tc.desc: Test the playback of the DrawImage function.
+ * @tc.type: FUNC
+ * @tc.require: I7OAIR
+ */
+HWTEST_F(RecordingCanvasTest, DrawImage003, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 20);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    auto data = std::make_shared<Data>();
+    AdaptiveImageInfo rsImageInfo;
+    SamplingOptions smapling;
+    recordingCanvas->DrawImage(nullptr, data, rsImageInfo, smapling);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList != nullptr);
+    Canvas canvas;
+    drawCmdList->Playback(canvas);
+}
+
+/**
+ * @tc.name: DrawImage004
+ * @tc.desc: Test the playback of the DrawImage function.
+ * @tc.type: FUNC
+ * @tc.require: I7OAIR
+ */
+HWTEST_F(RecordingCanvasTest, DrawImage004, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 20);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    AdaptiveImageInfo rsImageInfo;
+    SamplingOptions smapling;
+    recordingCanvas->DrawImage(nullptr, nullptr, rsImageInfo, smapling);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList != nullptr);
+    Canvas canvas;
+    drawCmdList->Playback(canvas);
+}
+
+/**
  * @tc.name: DrawImageRect001
  * @tc.desc: Test the playback of the DrawImageRect function.
  * @tc.type: FUNC
@@ -607,6 +667,25 @@ HWTEST_F(RecordingCanvasTest, SaveLayer001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SaveLayer002
+ * @tc.desc: Test the playback of the SaveLayer function.
+ * @tc.type: FUNC
+ * @tc.require: I7OAIR
+ */
+HWTEST_F(RecordingCanvasTest, SaveLayer002, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 20);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    uint32_t saveLayerFlags = 0;
+    SaveLayerOps saveLayerRec(nullptr, nullptr, saveLayerFlags);
+    recordingCanvas->SaveLayer(saveLayerRec);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList != nullptr);
+    Canvas canvas;
+    drawCmdList->Playback(canvas);
+}
+
+/**
  * @tc.name: Restore001
  * @tc.desc: Test the playback of the Restore function.
  * @tc.type: FUNC
@@ -617,6 +696,63 @@ HWTEST_F(RecordingCanvasTest, Restore001, TestSize.Level1)
     auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 20);
     EXPECT_TRUE(recordingCanvas != nullptr);
     recordingCanvas->Restore();
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList != nullptr);
+    Canvas canvas;
+    drawCmdList->Playback(canvas);
+}
+
+/**
+ * @tc.name: Restore002
+ * @tc.desc: Test the playback of the Restore function.
+ * @tc.type: FUNC
+ * @tc.require: I7OAIR
+ */
+HWTEST_F(RecordingCanvasTest, Restore002, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 20);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    recordingCanvas->Save();
+    recordingCanvas->Restore();
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList != nullptr);
+    Canvas canvas;
+    drawCmdList->Playback(canvas);
+}
+
+/**
+ * @tc.name: ClipAdaptiveRoundRect001
+ * @tc.desc: Test the playback of the ClipAdaptiveRoundRect function.
+ * @tc.type: FUNC
+ * @tc.require: I7OAIR
+ */
+HWTEST_F(RecordingCanvasTest, ClipAdaptiveRoundRect001, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 20);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    std::vector<Point> radiusXY = { { 1, 3 } };
+    recordingCanvas->ClipAdaptiveRoundRect(radiusXY);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList != nullptr);
+    Canvas canvas;
+    drawCmdList->Playback(canvas);
+}
+
+/**
+ * @tc.name: DrawPixelMap001
+ * @tc.desc: Test the playback of the DrawPixelMap function.
+ * @tc.type: FUNC
+ * @tc.require: I7OAIR
+ */
+HWTEST_F(RecordingCanvasTest, DrawPixelMap001, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 20);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    Media::InitializationOptions opts;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    AdaptiveImageInfo rsImageInfo;
+    SamplingOptions smapling;
+    recordingCanvas->DrawPixelMap(pixelMap, rsImageInfo, smapling);
     auto drawCmdList = recordingCanvas->GetDrawCmdList();
     EXPECT_TRUE(drawCmdList != nullptr);
     Canvas canvas;

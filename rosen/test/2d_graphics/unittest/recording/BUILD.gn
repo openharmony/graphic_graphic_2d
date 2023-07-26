@@ -19,6 +19,9 @@ ohos_unittest("2d_graphics_recording_test") {
   module_out_path = module_output_path
 
   sources = [
+    "draw_cmd_test.cpp",
+    "path_cmd_test.cpp",
+    "recording_canvas_test.cpp",
     "recording_color_filter_test.cpp",
     "recording_color_space_test.cpp",
     "recording_image_filter_test.cpp",
@@ -29,12 +32,14 @@ ohos_unittest("2d_graphics_recording_test") {
     "recording_shader_effect_test.cpp",
   ]
 
+  defines = [ "SUPPORT_OHOS_PIXMAP" ]
   deps = [ "//third_party/googletest:gtest_main" ]
 
   external_deps = [
     "c_utils:utils",
     "graphic_2d:2d_graphics",
     "hilog:libhilog",
+    "image_framework:image_native",
   ]
 
   part_name = "graphic_2d"
