@@ -125,7 +125,7 @@ int32_t HgmCore::SetModeBySettingConfig()
     int32_t rateToSwitch = std::stoi(mParsedConfigData_->detailedStrategies_[strat].max);
     int32_t rateFloor = std::stoi(mParsedConfigData_->detailedStrategies_[strat].min);
 
-    HGM_LOGW("HgmCore switching to rate: %d via refreshrate mode, range min: %d, max: %d",
+    HGM_LOGW("HgmCore switching to rate: %{public}d via refreshrate mode, range min: %{public}d, max: %{public}d",
         rateToSwitch, rateFloor, rateToSwitch);
     if (rateToSwitch <= 0 || rateFloor <= 0) {
         HGM_LOGW("HgmCore get an illegal rate via parsed config data : %{public}d", rateToSwitch);

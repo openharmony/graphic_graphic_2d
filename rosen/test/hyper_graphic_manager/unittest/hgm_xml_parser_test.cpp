@@ -34,7 +34,7 @@ public:
 void HyperGraphicManagerTest::SetUpTestCase() {}
 void HyperGraphicManagerTest::TearDownTestCase() {}
 void HyperGraphicManagerTest::SetUp() {}
-void HyperGraphicManagerTest::SetUp() {}
+void HyperGraphicManagerTest::TearDown() {}
 
 /**
  * @tc.name: LoadConfiguration

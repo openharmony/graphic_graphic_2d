@@ -120,7 +120,6 @@ private:
     std::vector<std::shared_ptr<ScreenProfile>> screenModeInfos_;
     std::mutex baseMutex_;
 
-    void VerifySupportedProfiles() const;
     void SetActiveModeId(int32_t modeId);
     std::shared_ptr<ScreenProfile> GetModeViaId(int32_t id) const;
     bool IfSwitchToRate(int32_t screenId, uint32_t rate) const;
