@@ -297,7 +297,8 @@ bool RSSystemProperties::GetProxyNodeDebugEnabled()
 
 bool RSSystemProperties::GetUIFirstEnabled()
 {
-    return std::atoi((system::GetParameter("rosen.ui.first.enabled", "1")).c_str()) != 0;
+    static bool isPhone = system::GetParameter("const.product.devicetype", "pc") == "phone";
+    return (std::atoi((system::GetParameter("rosen.ui.first.enabled", "1")).c_str()) != 0) && isPhone;
 }
 
 bool RSSystemProperties::GetDebugTraceEnabled()

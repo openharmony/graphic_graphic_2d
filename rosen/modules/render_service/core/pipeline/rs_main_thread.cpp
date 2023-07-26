@@ -538,9 +538,7 @@ bool RSMainThread::IsNeedSkip(NodeId rootSurfaceNodeId, pid_t pid)
 
 void RSMainThread::SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid)
 {
-    RS_TRACE_FUNC();
-    if (RSSystemProperties::GetCacheCmdEnabled() &&
-        cacheCmdSkippedInfo_.find(pid) != cacheCmdSkippedInfo_.end()) {
+    if (cacheCmdSkippedInfo_.find(pid) == cacheCmdSkippedInfo_.end()) {
         return;
     }
     std::vector<std::unique_ptr<RSTransactionData>> skipTransactionVec;
@@ -597,10 +595,10 @@ void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDat
             if ((*iter) == nullptr) {
                 continue;
             }
-            auto curIndex = (*iter)->GetIndex();
             if ((*iter)->GetIsCached()) {
                 continue;
             }
+            auto curIndex = (*iter)->GetIndex();
             if (curIndex == lastIndex + 1) {
                 if ((*iter)->GetTimestamp() >= timestamp_) {
                     break;
@@ -644,7 +642,9 @@ void RSMainThread::ProcessCommandForUniRender()
         for (auto& rsTransactionElem: effectiveTransactionDataIndexMap_) {
             auto pid = rsTransactionElem.first;
             auto& transactionVec = rsTransactionElem.second.second;
-            SkipCommandByNodeId(transactionVec, pid);
+            if (RSSystemProperties::GetUIFirstEnabled() && RSSystemProperties::GetCacheCmdEnabled()) {
+                SkipCommandByNodeId(transactionVec, pid);
+            }
             std::sort(transactionVec.begin(), transactionVec.end(), Compare);
         }
         if (RSSystemProperties::GetUIFirstEnabled() && RSSystemProperties::GetCacheCmdEnabled()) {
