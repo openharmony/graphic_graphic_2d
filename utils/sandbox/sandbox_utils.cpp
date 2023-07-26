@@ -23,7 +23,9 @@
 
 namespace OHOS {
 #if !defined(OHOS_LITE) && !defined(_WIN32) && !defined(__APPLE__) && !defined(__gnu_linux__)
-const int PID_STR_SIZE = 4;
+static pid_t g_appSandboxPid_ = -1;
+
+const int PID_STR_SIZE = 5;
 const int STATUS_LINE_SIZE = 1024;
 
 static int FindAndConvertPid(char *buf)
@@ -46,15 +48,9 @@ static int FindAndConvertPid(char *buf)
     }
     return atoi(pidBuf);
 }
-#endif
 
-pid_t GetRealPid(void)
+static pid_t ParseRealPid(void)
 {
-#ifdef _WIN32
-    return GetCurrentProcessId();
-#elif defined(OHOS_LITE) || defined(__APPLE__) || defined(__gnu_linux__)
-    return getpid();
-#else
     const char *path = "/proc/self/status";
     char buf[STATUS_LINE_SIZE] = {0};
     FILE *fp = fopen(path, "r");
@@ -67,13 +63,27 @@ pid_t GetRealPid(void)
             fclose(fp);
             return -1;
         }
-        if (strncmp(buf, "Pid:", PID_STR_SIZE) == 0) {
+        if (strncmp(buf, "Tgid:", PID_STR_SIZE) == 0) {
             break;
         }
     }
     (void)fclose(fp);
 
     return static_cast<pid_t>(FindAndConvertPid(buf));
+}
+#endif
+
+pid_t GetRealPid(void)
+{
+#ifdef _WIN32
+    return GetCurrentProcessId();
+#elif defined(OHOS_LITE) || defined(__APPLE__) || defined(__gnu_linux__)
+    return getpid();
+#else
+    if (g_appSandboxPid_ < 0) {
+        g_appSandboxPid_ = ParseRealPid();
+    }
+    return g_appSandboxPid_;
 #endif
 }
 } // namespace OHOS
