@@ -64,6 +64,7 @@ public:
     using FrameCallback = VSyncCallBackListener::FrameCallback;
 
     VSyncReceiver(const sptr<IVSyncConnection>& conn,
+        const sptr<IRemoteObject>& token = nullptr,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler>& looper = nullptr,
         const std::string& name = "Uninitialized");
     ~VSyncReceiver();
@@ -78,6 +79,7 @@ public:
 
 private:
     sptr<IVSyncConnection> connection_;
+    sptr<IRemoteObject> token_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> looper_;
     std::shared_ptr<VSyncCallBackListener> listener_;
 

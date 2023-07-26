@@ -37,11 +37,12 @@ constexpr int32_t ERRNO_OTHER = -2;
 LocalSocketPair::LocalSocketPair()
     : sendFd_(INVALID_FD), receiveFd_(INVALID_FD)
 {
-    HiLog::Debug(LABEL, "%{public}s sendFd: %{public}d", __func__, sendFd_);
 }
 
 LocalSocketPair::~LocalSocketPair()
 {
+    HiLog::Debug(LABEL, "%{public}s close socketpair, sendFd : %{public}d, receiveFd : %{public}d",
+                 __func__, sendFd_, receiveFd_);
     CloseFd(sendFd_);
     CloseFd(receiveFd_);
 }

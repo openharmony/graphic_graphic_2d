@@ -254,9 +254,10 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
 }
 
 
-sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const std::string& name)
+sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const std::string& name,
+                                                                        const sptr<VSyncIConnectionToken>& token)
 {
-    sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name);
+    sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject());
     appVSyncDistributor_->AddConnection(conn);
     {
         std::lock_guard<std::mutex> lock(mutex_);
