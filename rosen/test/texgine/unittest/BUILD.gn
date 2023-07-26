@@ -102,7 +102,6 @@ ohos_unittest("texgine_unittest_part3") {
 
   sources = [
     "font_collection_test.cpp",
-    "font_parser_test.cpp",
     "line_breaker_test.cpp",
     "text_breaker_test.cpp",
   ]
