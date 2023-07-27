@@ -54,7 +54,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     if (!GetSizeFromDrawCmdModifiers(width, height)) {
         return;
     }
-    
+
     if (IsNeedResetSurface(width, height)) {
         if (preThreadInfo_.second && skSurface_) {
             preThreadInfo_.second(std::move(skSurface_));
@@ -98,6 +98,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 
     RSModifierContext context = { GetMutableRenderProperties(), canvas_.get() };
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
+    ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);
 
     SkMatrix mat;
     if (RSPropertiesPainter::GetGravityMatrix(
@@ -129,6 +130,9 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
         return false;
     }
     skSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kNo, info);
+    if (!skSurface_ && width > 0 && height > 0) {
+        skSurface_ = SkSurface::MakeRaster(info);
+    }
 #else
     skSurface_ = SkSurface::MakeRaster(info);
 #endif
