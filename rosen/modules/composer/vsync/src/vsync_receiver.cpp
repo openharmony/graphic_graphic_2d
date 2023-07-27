@@ -70,9 +70,10 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
 }
 
 VSyncReceiver::VSyncReceiver(const sptr<IVSyncConnection>& conn,
+    const sptr<IRemoteObject>& token,
     const std::shared_ptr<OHOS::AppExecFwk::EventHandler>& looper,
     const std::string& name)
-    : connection_(conn), looper_(looper),
+    : connection_(conn), token_(token), looper_(looper),
     listener_(std::make_shared<VSyncCallBackListener>()),
     init_(false),
     fd_(INVALID_FD),

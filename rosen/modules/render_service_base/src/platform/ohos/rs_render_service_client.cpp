@@ -33,6 +33,7 @@
 #endif
 #include "rs_render_service_connect_hub.h"
 #include "rs_surface_ohos.h"
+#include "vsync_iconnection_token.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -143,8 +144,9 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     if (renderService == nullptr) {
         return nullptr;
     }
-    sptr<IVSyncConnection> conn = renderService->CreateVSyncConnection(name);
-    return std::make_shared<VSyncReceiver>(conn, looper, name);
+    sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
+    sptr<IVSyncConnection> conn = renderService->CreateVSyncConnection(name, token);
+    return std::make_shared<VSyncReceiver>(conn, token->AsObject(), looper, name);
 }
 
 void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap)

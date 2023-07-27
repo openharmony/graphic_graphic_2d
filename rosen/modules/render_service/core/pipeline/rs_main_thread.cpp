@@ -94,6 +94,8 @@
 #include "benchmarks/rs_recording_thread.h"
 #endif
 
+#include "vsync_iconnection_token.h"
+
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
 
@@ -269,9 +271,10 @@ void RSMainThread::Init()
         RS_LOGW("Add watchdog thread failed");
     }
     InitRSEventDetector();
-    sptr<VSyncConnection> conn = new VSyncConnection(rsVSyncDistributor_, "rs");
+    sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
+    sptr<VSyncConnection> conn = new VSyncConnection(rsVSyncDistributor_, "rs", token->AsObject());
     rsVSyncDistributor_->AddConnection(conn);
-    receiver_ = std::make_shared<VSyncReceiver>(conn, handler_);
+    receiver_ = std::make_shared<VSyncReceiver>(conn, token->AsObject(), handler_);
     receiver_->Init();
     if (isUniRender_) {
         uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();

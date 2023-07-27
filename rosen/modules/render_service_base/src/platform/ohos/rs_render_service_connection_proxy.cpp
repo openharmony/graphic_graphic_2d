@@ -201,13 +201,15 @@ sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfa
     return surface;
 }
 
-sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(const std::string& name)
+sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(const std::string& name,
+                                                                             const sptr<VSyncIConnectionToken>& token)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
 
     data.WriteString(name);
+    data.WriteRemoteObject(token->AsObject());
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
     int32_t err = Remote()->SendRequest(code, data, reply, option);

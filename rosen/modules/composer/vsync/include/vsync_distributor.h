@@ -43,13 +43,15 @@ struct ConnectionInfo {
 class VSyncConnection : public VSyncConnectionStub {
 public:
 
-    VSyncConnection(const sptr<VSyncDistributor>& distributor, std::string name);
+    VSyncConnection(const sptr<VSyncDistributor>& distributor, std::string name,
+                    const sptr<IRemoteObject>& token = nullptr);
     ~VSyncConnection();
 
     virtual VsyncError RequestNextVSync() override;
     virtual VsyncError GetReceiveFd(int32_t &fd) override;
     virtual VsyncError SetVSyncRate(int32_t rate) override;
     virtual VsyncError GetVSyncPeriod(int64_t &period) override;
+    VsyncError OnVSyncRemoteDied();
 
     int32_t PostEvent(int64_t now, int64_t period, int64_t vsyncCount);
 
@@ -58,9 +60,23 @@ public:
     bool highPriorityState_ = false;
     ConnectionInfo info_;
 private:
+    class VSyncConnectionDeathRecipient : public IRemoteObject::DeathRecipient {
+    public:
+        explicit VSyncConnectionDeathRecipient(wptr<VSyncConnection> conn);
+        virtual ~VSyncConnectionDeathRecipient() = default;
+
+        void OnRemoteDied(const wptr<IRemoteObject>& token) override;
+
+    private:
+        wptr<VSyncConnection> conn_;
+    };
+    sptr<VSyncConnectionDeathRecipient> vsyncConnDeathRecipient_ = nullptr;
+    sptr<IRemoteObject> token_ = nullptr;
     // Circular reference， need check
     wptr<VSyncDistributor> distributor_;
     sptr<LocalSocketPair> socketPair_;
+    bool isRemoteDead_;
+    std::mutex mutex_;
 };
 
 class VSyncDistributor : public RefBase, public VSyncController::Callback {
