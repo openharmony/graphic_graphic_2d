@@ -188,10 +188,18 @@ void AdaptiveImageHelper::GetRectCropMultiple(
             ++maxY;
         }
     }
-    boundaryRect.minX = minX;
-    boundaryRect.minY = minY;
-    boundaryRect.maxX = maxX;
-    boundaryRect.minX = minX;
+    if (minX > 0 || maxX < 0 || minX > maxX || minY > 0 || maxY < 0 || minY > maxY) {
+        LOGE("AdaptiveImageHelper::GetRectCropMultiple, data is invalid.");
+        boundaryRect.minX = 0;
+        boundaryRect.minY = 0;
+        boundaryRect.maxX = 0;
+        boundaryRect.maxY = 0;
+    } else {
+        boundaryRect.minX = minX;
+        boundaryRect.minY = minY;
+        boundaryRect.maxX = maxX;
+        boundaryRect.maxY = maxY;
+    }
 }
 
 void AdaptiveImageHelper::DrawImageRepeatRect(Canvas& canvas, const Rect& rect, const std::shared_ptr<Image>& image,
@@ -209,11 +217,6 @@ void AdaptiveImageHelper::DrawImageRepeatRect(Canvas& canvas, const Rect& rect, 
     int32_t minY = boundaryRect.minY;
     int32_t maxX = boundaryRect.maxX;
     int32_t maxY = boundaryRect.maxY;
-    if (minX > 0 || maxX < 0 || minX > maxX ||
-        minY > 0 || maxY < 0 || minY > maxY) {
-        LOGE("AdaptiveImageHelper::DrawImageRepeatRect, data is invalid.");
-        return;
-    }
 
     auto src = Rect(0.0, 0.0, image->GetWidth(), image->GetHeight());
     for (int32_t i = minX; i <= maxX; ++i) {
@@ -242,11 +245,6 @@ void AdaptiveImageHelper::DrawImageRepeatRect(Canvas& canvas, const Rect& rect, 
     int32_t minY = boundaryRect.minY;
     int32_t maxX = boundaryRect.maxX;
     int32_t maxY = boundaryRect.maxY;
-    if (minX > 0 || maxX < 0 || minX > maxX ||
-        minY > 0 || maxY < 0 || minY > maxY) {
-        LOGE("AdaptiveImageHelper::DrawImageRepeatRect, data is invalid.");
-        return;
-    }
 
     // make compress image
     if (canvas.GetGPUContext() == nullptr) {
@@ -336,11 +334,6 @@ void AdaptiveImageHelper::DrawPixelMapRepeatRect(Canvas& canvas, const Rect& rec
     int32_t minY = boundaryRect.minY;
     int32_t maxX = boundaryRect.maxX;
     int32_t maxY = boundaryRect.maxY;
-    if (minX > 0 || maxX < 0 || minX > maxX ||
-        minY > 0 || maxY < 0 || minY > maxY) {
-        LOGE("AdaptiveImageHelper::DrawPixelMapRepeatRect, data is invalid.");
-        return;
-    }
 
     // convert pixelMap to drawing image
     if (pixelMap == nullptr) {
