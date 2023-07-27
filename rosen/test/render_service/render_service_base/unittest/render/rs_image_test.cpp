@@ -281,7 +281,12 @@ HWTEST_F(RSImageTest, RSImageBase001, TestSize.Level1)
     imageBase.SetDstRect(rect);
     SkCanvas canvas;
     SkPaint paint;
+#ifdef NEW_SKIA
+    SkSamplingOptions samplingOptions = SkSamplingOptions();
+    imageBase.DrawImage(canvas, samplingOptions, paint);
+#else
     imageBase.DrawImage(canvas, paint);
+#endif
 }
 
 /**
