@@ -234,7 +234,7 @@ HWTEST_F(RSBaseRenderNodeTest, SetIsOnTheTree002, TestSize.Level1)
 
 /**
  * @tc.name: AddCrossParentChildTest001
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -251,7 +251,7 @@ HWTEST_F(RSBaseRenderNodeTest, AddCrossParentChildTest001, TestSize.Level1)
 
 /**
  * @tc.name: RemoveCrossParentChildTest001
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */

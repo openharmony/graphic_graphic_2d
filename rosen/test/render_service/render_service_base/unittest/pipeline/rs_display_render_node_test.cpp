@@ -38,7 +38,7 @@ void RSDisplayRenderNodeTest::TearDown() {}
 
 /**
  * @tc.name: PrepareTest
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */

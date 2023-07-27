@@ -331,7 +331,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ShouldPrepareSubnodesTest, TestSize.Level1)
  * @tc.name: CollectSurfaceTest001
  * @tc.desc: function test
  * @tc.type:FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest001, TestSize.Level1)
 {
@@ -348,7 +348,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest001, TestSize.Level1)
  * @tc.name: CollectSurfaceTest
  * @tc.desc: function test
  * @tc.type:FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest002, TestSize.Level1)
 {
@@ -377,7 +377,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ProcessAnimatePropertyBeforeChildrenTest, Test
  * @tc.name: ProcessAnimatePropertyAfterChildrenTest
  * @tc.desc: function test
  * @tc.type:FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeTest, ProcessAnimatePropertyAfterChildrenTest, TestSize.Level1)
 {
@@ -389,7 +389,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ProcessAnimatePropertyAfterChildrenTest, TestS
  * @tc.name: SetContextMatrixTest
  * @tc.desc: function test
  * @tc.type:FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeTest, SetContextMatrixTest, TestSize.Level1)
 {
