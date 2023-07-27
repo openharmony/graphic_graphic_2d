@@ -34,6 +34,9 @@ public:
 
 private:
     void ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
+#if defined (ENABLE_DDGR_OPTIMIZE)
+    int transDataIndex_ = 0;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

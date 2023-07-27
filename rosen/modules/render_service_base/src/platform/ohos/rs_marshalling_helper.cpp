@@ -80,6 +80,14 @@
 #ifdef RS_ENABLE_RECORDING
 #include "benchmarks/rs_recording_thread.h"
 #endif
+#if defined (ENABLE_DDGR_OPTIMIZE)
+#include <sys/mman.h>
+#include "securec.h"
+#include "platform/common/rs_system_properties.h"
+#include "ipc_file_descriptor.h"
+#include "src/core/SkTextBlobPriv.h"
+#include "ddgr_renderer.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -279,6 +287,47 @@ sk_sp<SkTypeface> RSMarshallingHelper::DeserializeTypeface(const void* data, siz
     return SkTypeface::MakeDeserialize(&stream);
 }
 
+#if defined (ENABLE_DDGR_OPTIMIZE)
+int RSMarshallingHelper::IntegrateReadDescriptor(Parcel& parcel)
+{
+    sptr<IPCFileDescriptor> descriptor = parcel.ReadObject<IPCFileDescriptor>();
+    if (descriptor == nullptr) {
+        return -1;
+    }
+    return descriptor->GetFd();
+}
+
+bool RSMarshallingHelper::IntegrateWriteDescriptor(Parcel& parcel, int fId)
+{
+    sptr<IPCFileDescriptor> descriptor = new (std::nothrow) IPCFileDescriptor(fId);
+    if (descriptor == nullptr) {
+        return -1;
+    }
+    return parcel.WriteObject<IPCFileDescriptor>(descriptor);
+}
+
+sk_sp<SkData> RSMarshallingHelper::SerializeInternal(const sk_sp<SkTextBlob>& val, cosnt SkSerialProcs& procs, int& fd)
+{
+    SkBinaryWriteBuffer buffer;
+    buffer.setSerialProcs(procs);
+    SkTextBlobPriv::Flatten(*val, buffer);
+    size_t total = buffer.bytesWritten();
+
+    sk_sp<SkData> datal
+    void* dataPtr = DDGRRenderer::GetInstance().IntegrateMemAlloc(fd, total);
+    if (dataPtr != nullptr) {
+        data = SkData::MakeUninitialized(1);
+        buffer.writeToMemory(dataPtr);
+        int fId = ::dup(fd);
+        val->TextBlobSetShareParas(fId, total, dataPtr);
+    } else {
+        data = SkData::MakeUninitialized(total);
+        buffer.writeToMemory(data->writable_data());
+    }
+    return data;
+}
+#endif
+
 // SkTextBlob
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkTextBlob>& val)
 {
@@ -289,6 +338,16 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkTextBlob>& v
     }
     SkSerialProcs serialProcs;
     serialProcs.fTypefaceProc = &RSMarshallingHelper::SerializeTypeface;
+#if defined (ENABLE_DDGR_OPTIMIZE)
+    if (RSSystemProperties::GetDDGRIntegrateEnable()) {
+        ROSEN_LOGD("Marshalling text Integrate");
+        int fd = -1;
+        data = SerializeInternal(val, serialProcs, fd);
+        bool ret = Marshalling(parcel, data);
+        IntegrateWriteDescriptor(parcel, fd);
+        return ret;
+    }
+#endif
     data = val->serialize(serialProcs);
     return Marshalling(parcel, data);
 }
@@ -305,6 +364,20 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkTextBlob>& val)
     }
     SkDeserialProcs deserialProcs;
     deserialProcs.fTypefaceProc = &RSMarshallingHelper::DeserializeTypeface;
+#if defined (ENABLE_DDGR_OPTIMIZE)
+    if (RSSystemProperties::GetDDGRIntegrateEnable()) {
+        int sizePtr = 0;
+        int fId = IntegrateReadDescriptor(parcel);
+        fId = ::dup(fId);
+        void* dataPtr = DDGRRenderer::GetInstance().IntegrateGetHandle(fId, sizePtr);
+        ROSEN_LOGD("Unmarshalling text size: %d", sizePtr);
+        if (dataPtr != nullptr && sizePtr > 0) {
+            val = SkTextBlob::Deserialize(dataPtr, sizePtr, deserialProcs);
+            val->TextBlobSetShareParas(fId, sizePtr, dataPtr);
+            return val != nullptr;
+        }
+    }
+#endif
     val = SkTextBlob::Deserialize(data->data(), data->size(), deserialProcs);
     return val != nullptr;
 }

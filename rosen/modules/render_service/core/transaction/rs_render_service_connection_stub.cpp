@@ -27,6 +27,10 @@
 #include "transaction/rs_ashmem_helper.h"
 #include "rs_trace.h"
 
+#if defined (ENABLE_DDGR_OPTIMIZE)
+#include "ddgr_renderer.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -102,6 +106,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
     switch (code) {
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION): {
             RS_TRACE_NAME_FMT("Recv Parcel Size:%zu, fdCnt:%zu", data.GetDataSize(), data.GetOffsetsSize());
+#if defined (ENABLE_DDGR_OPTIMIZE)
+            DDGRRenderer::GetInstance().IntegrateSetIndex(++transDataIndex_);
+#endif
             static bool isUniRender = RSUniRenderJudgement::IsUniRender();
             std::shared_ptr<MessageParcel> parsedParcel;
             if (data.ReadInt32() == 0) { // indicate normal parcel

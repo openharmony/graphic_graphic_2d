@@ -116,6 +116,9 @@ public:
     static bool GetHardwareComposerEnabled();
     static bool GetAFBCEnabled();
     static ReleaseGpuResourceType GetReleaseGpuResourceEnabled();
+#if defined (ENABLE_DDGR_OPTIMIZE)
+    static bool GetLocalProcessEnable();
+#endif
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
@@ -141,6 +144,9 @@ public:
     static bool GetDebugTraceEnabled();
     static bool GetCacheCmdEnabled();
     static bool GetASTCEnabled();
+#if defined (ENABLE_DDGR_OPTIMIZE)
+    static bool GetDDGRIntegrateEnable();
+#endif
 private:
     RSSystemProperties() = default;
 

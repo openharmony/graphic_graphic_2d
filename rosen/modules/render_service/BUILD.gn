@@ -159,6 +159,13 @@ ohos_shared_library("librender_service") {
     "window_manager:libwsutils",
   ]
 
+  if (defined(graphic_2d_ext_configs.paint_libs)) {
+    libs = graphic_2d_ext_configs.paint_libs
+    defines += paint_defines
+    sources += libgraphic_ext_adaptor_sources
+    include_dirs += libgraphic_ext_adaptor_include_dirs
+  }
+
   if (rosen_is_ohos) {
     external_deps += [ "image_framework:image_native" ]
   }

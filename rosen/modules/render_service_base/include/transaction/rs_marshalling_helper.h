@@ -50,6 +50,10 @@ struct SkSamplingOptions;
 #endif
 #endif
 
+#if defined (ENABLE_DDGR_OPTIMIZE)
+struct SkSerialProcs;
+#endif
+
 namespace OHOS {
 namespace Media {
 class PixelMap;
@@ -317,6 +321,13 @@ public:
     static bool Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Data> val);
     static bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Data>& val);
     static bool UnmarshallingWithCopy(Parcel& parcel, std::shared_ptr<Drawing::Data>& val);
+#endif
+
+#if defined (ENABLE_DDGR_OPTIMIZE)
+    static int IntegrateReadDescriptor(OHOS::Parcel& pacel);
+    static bool IntegrateWriteDescriptor(OHOS::Parcel& parcel, int fId);
+    static sk_sp<SkData> SerializeInternal(const sk_sp<SkTextBlob>& val,
+        const SkSerialProcs& procs, int& fd);
 #endif
 
 private:

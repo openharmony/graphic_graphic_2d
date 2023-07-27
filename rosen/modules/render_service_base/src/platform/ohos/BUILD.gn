@@ -169,6 +169,13 @@ ohos_source_set("rosen_ohos_sources") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
 
+  if (defined(graphic_2d_ext_configs.paint_libs)) {
+    libs = graphic_2d_ext_configs.paint_libs
+    defines += paint_defines
+    sources += libgraphic_ext_adaptor_sources
+    include_dirs += libgraphic_ext_adaptor_include_dirs
+  }
+
   if (defined(graphic_2d_ext_configs.vendor_root)) {
     sources -= [
       "backend/rs_surface_ohos_gl.cpp",
