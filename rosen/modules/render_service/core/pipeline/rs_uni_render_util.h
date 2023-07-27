@@ -78,6 +78,8 @@ public:
 #endif
     static void CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& oldSubThreadNodes,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
+    // use floor value of translateX and translateY in matrix of canvas to avoid jittering
+    static void FloorTransXYInCanvasMatrix(RSPaintFilterCanvas& canvas);
 private:
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
         const std::shared_ptr<RSSurfaceRenderNode>& node);

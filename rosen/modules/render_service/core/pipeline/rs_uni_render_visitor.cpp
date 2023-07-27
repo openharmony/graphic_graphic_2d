@@ -3053,6 +3053,9 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (property.IsSpherizeValid()) {
         DrawSpherize(node);
     } else {
+        if (isSelfDrawingSurface) {
+            RSUniRenderUtil::FloorTransXYInCanvasMatrix(*canvas_);
+        }
         if (isUIFirst_ && node.GetCacheType() == CacheType::ANIMATE_PROPERTY) {
             RSUniRenderUtil::HandleSubThreadNode(node, *canvas_);
             if (node.IsMainWindowType() || node.IsLeashWindow()) {
@@ -3389,7 +3392,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         // Otherwise, its childrenRect_ should be considered.
         RectI dirtyRect = node.HasChildrenOutOfRect() ?
             node.GetOldDirtyInSurface().JoinRect(node.GetChildrenRect()) : node.GetOldDirtyInSurface();
-        if (isSubNodeOfSurfaceInProcess_ && !node.IsAncestorDirty() &&
+        if (isSubNodeOfSurfaceInProcess_ && !dirtyRect.IsEmpty() && !node.IsAncestorDirty() &&
             !curSurfaceNode_->SubNodeNeedDraw(dirtyRect, partialRenderType_)) {
             auto parent = node.GetParent().lock();
             bool isParentLeashWindow = parent && parent->ReinterpretCastTo<RSSurfaceRenderNode>() &&
@@ -3417,6 +3420,9 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     // in case preparation'update is skipped
     node.GetMutableRenderProperties().CheckEmptyBounds();
     canvas_->save();
+    if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        RSUniRenderUtil::FloorTransXYInCanvasMatrix(*canvas_);
+    }
     // draw self and children in sandbox which will not be affected by parent's transition
     const auto& sandboxMatrix = node.GetRenderProperties().GetSandBoxMatrix();
     if (sandboxMatrix) {
