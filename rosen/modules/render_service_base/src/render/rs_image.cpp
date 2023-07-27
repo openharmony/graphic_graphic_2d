@@ -241,6 +241,7 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
 #endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#ifndef USE_ROSEN_DRAWING
 static sk_sp<SkImage> GetSkImageFromSurfaceBuffer(SkCanvas& canvas, sptr<SurfaceBuffer> surfaceBuffer)
 {
     if (surfaceBuffer == nullptr) {
@@ -307,6 +308,14 @@ static sk_sp<SkImage> GetSkImageFromSurfaceBuffer(SkCanvas& canvas, sptr<Surface
 #endif
     return skImage;
 }
+#else
+static std::shared_ptr<Drawing::Image> GetDrawingImageFromSurfaceBuffer(
+    Drawing::Canvas& canvas, sptr<SurfaceBuffer> surfaceBuffer)
+{
+    RS_LOGD("[%s:%d] Drawing is not supported", __func__, __LINE__);
+    return nullptr;
+}
+#endif
 #endif // ROSEN_OHOS & RS_ENABLE_GL
 
 #ifndef USE_ROSEN_DRAWING
@@ -352,7 +361,11 @@ void RSImage::DrawImageRepeatRect(Drawing::Canvas& canvas)
 #else
     if (pixelMap_ && pixelMap_->GetFd() && pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
         sptr<SurfaceBuffer> surfaceBuffer(reinterpret_cast<SurfaceBuffer*> (pixelMap_->GetFd()));
+#ifndef USE_ROSEN_DRAWING
         image_ = GetSkImageFromSurfaceBuffer(canvas, surfaceBuffer);
+#else
+        image_ = GetDrawingImageFromSurfaceBuffer(canvas, surfaceBuffer);
+#endif
     } else {
         ConvertPixelMapToSkImage();
     }
@@ -363,7 +376,11 @@ void RSImage::DrawImageRepeatRect(Drawing::Canvas& canvas)
 #else
     if (pixelMap_ && pixelMap_->GetFd() && pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
         sptr<SurfaceBuffer> surfaceBuffer(reinterpret_cast<SurfaceBuffer*> (pixelMap_->GetFd()));
+#ifndef USE_ROSEN_DRAWING
         image_ = GetSkImageFromSurfaceBuffer(canvas, surfaceBuffer);
+#else
+        image_ = GetDrawingImageFromSurfaceBuffer(canvas, surfaceBuffer);
+#endif
     } else {
         ConvertPixelMapToDrawingImage();
     }

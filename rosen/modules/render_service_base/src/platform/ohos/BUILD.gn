@@ -165,6 +165,10 @@ ohos_source_set("rosen_ohos_sources") {
     defines += accessibility_defines
   }
 
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+
   if (defined(graphic_2d_ext_configs.vendor_root)) {
     sources -= [
       "backend/rs_surface_ohos_gl.cpp",

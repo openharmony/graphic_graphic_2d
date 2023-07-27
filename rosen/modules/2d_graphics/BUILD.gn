@@ -233,14 +233,34 @@ foreach(item, ace_platforms) {
 
 if (!is_cross_platform_build) {
   ## Build 2d_graphics.so
-  ohos_shared_library("2d_graphics") {
-    version_script = "2d_graphics.versionscript"
-    symlink_target_name = [ "libnative_drawing.so" ]
-    deps = [ ":2d_graphics_source_ohos" ]
-    public_configs = [ ":export_config" ]
-    innerapi_tags = [ "platformsdk_indirect" ]
-    part_name = "graphic_2d"
-    subsystem_name = "graphic"
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    ohos_shared_library("2d_graphics") {
+      platform = current_os
+      if (platform == "mingw") {
+        platform = "windows"
+      }
+      deps = [ ":2d_graphics_source_$platform" ]
+      public_configs = [ ":export_config" ]
+
+      if (platform == "ohos") {
+        version_script = "2d_graphics.versionscript"
+        symlink_target_name = [ "libnative_drawing.so" ]
+        innerapi_tags = [ "platformsdk_indirect" ]
+      }
+
+      part_name = "graphic_2d"
+      subsystem_name = "graphic"
+    }
+  } else {
+    ohos_shared_library("2d_graphics") {
+      version_script = "2d_graphics.versionscript"
+      symlink_target_name = [ "libnative_drawing.so" ]
+      deps = [ ":2d_graphics_source_ohos" ]
+      public_configs = [ ":export_config" ]
+      innerapi_tags = [ "platformsdk_indirect" ]
+      part_name = "graphic_2d"
+      subsystem_name = "graphic"
+    }
   }
 }
 

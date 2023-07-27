@@ -56,4 +56,9 @@ ohos_source_set("windows") {
     "$rosen_root/modules/platform:utils",
     "//third_party/EGL:libEGL",
   ]
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+    public_deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
+  }
 }

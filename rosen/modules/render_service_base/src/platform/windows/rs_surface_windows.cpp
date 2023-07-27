@@ -61,12 +61,15 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceWindows::RequestFrame(
         return frame;
     }
 
+#ifndef USE_ROSEN_DRAWING
     constexpr auto colorType = kRGBA_8888_SkColorType;
+#endif
 #if defined(NEW_SKIA)
     SkSurfaceProps surfaceProps(0, kRGB_H_SkPixelGeometry);
 #else
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
 #endif
+#ifndef USE_ROSEN_DRAWING
     constexpr uint32_t format = 0x8058; // GL_RGBA8
     GrBackendRenderTarget backendRenderTarget(
         frame->width_, frame->height_, 0, 8, {.fFBOID = 0, .fFormat = format});
@@ -83,7 +86,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceWindows::RequestFrame(
         }
     }
 #endif
-
+#endif
     return frame;
 }
 
@@ -105,6 +108,7 @@ bool RSSurfaceWindows::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64
         addr = frameWindows->addr_.get();
     }
 
+#ifndef USE_ROSEN_DRAWING
     constexpr auto colorType = kRGBA_8888_SkColorType;
     SkBitmap bitmap;
     bitmap.setInfo(SkImageInfo::Make(frameWindows->width_,
@@ -125,6 +129,7 @@ bool RSSurfaceWindows::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64
     int32_t height = frameWindows->height_;
     int32_t size = width * height * 0x4;
     onRender_(addr, size, width, height);
+#endif
 
 #ifdef USE_GLFW_WINDOW
     GlfwRenderContext::GetGlobal()->SwapBuffers();
