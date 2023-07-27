@@ -510,6 +510,7 @@ ohos_static_library("rs_test_common") {
   external_deps = [
     "c_utils:utils",
     "init:libbegetutil",
+    "ipc:ipc_core",
   ]
 
   subsystem_name = "graphic"

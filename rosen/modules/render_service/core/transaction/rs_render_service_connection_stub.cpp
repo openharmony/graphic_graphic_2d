@@ -629,7 +629,21 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION): {
             std::string name = data.ReadString();
-            sptr<IVSyncConnection> conn = CreateVSyncConnection(name);
+            auto remoteObj = data.ReadRemoteObject();
+            if (remoteObj == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            if (!remoteObj->IsProxyObject()) {
+                ret = ERR_UNKNOWN_OBJECT;
+                break;
+            }
+            auto token = iface_cast<VSyncIConnectionToken>(remoteObj);
+            if (token == nullptr) {
+                ret = ERR_UNKNOWN_OBJECT;
+                break;
+            }
+            sptr<IVSyncConnection> conn = CreateVSyncConnection(name, token);
             if (conn == nullptr) {
                 ret = ERR_NULL_OBJECT;
                 break;

@@ -32,22 +32,67 @@ constexpr int32_t THREAD_PRIORTY = -6;
 constexpr int32_t SCHED_PRIORITY = 2;
 constexpr uint32_t SOCKET_CHANNEL_SIZE = 1024;
 }
-VSyncConnection::VSyncConnection(const sptr<VSyncDistributor>& distributor, std::string name)
-    : rate_(-1), info_(name), distributor_(distributor)
+
+VSyncConnection::VSyncConnectionDeathRecipient::VSyncConnectionDeathRecipient(
+    wptr<VSyncConnection> conn) : conn_(conn)
+{
+}
+
+void VSyncConnection::VSyncConnectionDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& token)
+{
+    auto tokenSptr = token.promote();
+    if (tokenSptr == nullptr) {
+        VLOGW("%{public}s: can't promote remote object.", __func__);
+        return;
+    }
+    auto vsyncConn = conn_.promote();
+    if (vsyncConn == nullptr) {
+        VLOGW("%{public}s: VSyncConnection was dead, do nothing.", __func__);
+        return;
+    }
+    if (vsyncConn->token_ != tokenSptr) {
+        VLOGI("%{public}s: token doesn't match, ignore it.", __func__);
+        return;
+    }
+    VLOGW("%{public}s: clear socketPair, conn name:%{public}s.", __func__, vsyncConn->info_.name_.c_str());
+    vsyncConn->OnVSyncRemoteDied();
+}
+
+VSyncConnection::VSyncConnection(
+    const sptr<VSyncDistributor>& distributor,
+    std::string name,
+    const sptr<IRemoteObject>& token)
+    : rate_(-1),
+      info_(name),
+      vsyncConnDeathRecipient_(new VSyncConnectionDeathRecipient(this)),
+      token_(token),
+      distributor_(distributor)
 {
     socketPair_ = new LocalSocketPair();
     int32_t err = socketPair_->CreateChannel(SOCKET_CHANNEL_SIZE, SOCKET_CHANNEL_SIZE);
     if (err != 0) {
         ScopedBytrace func("Create socket channel failed, errno = " + std::to_string(errno));
     }
+    if (token_ != nullptr) {
+        token_->AddDeathRecipient(vsyncConnDeathRecipient_);
+    }
+    isRemoteDead_ = false;
 }
 
 VSyncConnection::~VSyncConnection()
 {
+    if ((token_ != nullptr) && (vsyncConnDeathRecipient_ != nullptr)) {
+        token_->RemoveDeathRecipient(vsyncConnDeathRecipient_);
+    }
 }
 
 VsyncError VSyncConnection::RequestNextVSync()
 {
+    std::unique_lock<std::mutex> locker(mutex_);
+    if (isRemoteDead_) {
+        VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
+        return VSYNC_ERROR_API_FAILED;
+    }
     if (distributor_ == nullptr) {
         return VSYNC_ERROR_NULLPTR;
     }
@@ -61,12 +106,22 @@ VsyncError VSyncConnection::RequestNextVSync()
 
 VsyncError VSyncConnection::GetReceiveFd(int32_t &fd)
 {
+    std::unique_lock<std::mutex> locker(mutex_);
+    if (isRemoteDead_) {
+        VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
+        return VSYNC_ERROR_API_FAILED;
+    }
     fd = socketPair_->GetReceiveDataFd();
     return VSYNC_ERROR_OK;
 }
 
 int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCount)
 {
+    std::unique_lock<std::mutex> locker(mutex_);
+    if (isRemoteDead_) {
+        VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
+        return ERRNO_OTHER;
+    }
     ScopedBytrace func("SendVsyncTo conn: " + info_.name_ + ", now:" + std::to_string(now)
         + ", postVSyncCount_:" + std::to_string(vsyncCount));
     // 3 is array size.
@@ -91,6 +146,11 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
 
 VsyncError VSyncConnection::SetVSyncRate(int32_t rate)
 {
+    std::unique_lock<std::mutex> locker(mutex_);
+    if (isRemoteDead_) {
+        VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
+        return VSYNC_ERROR_API_FAILED;
+    }
     if (distributor_ == nullptr) {
         return VSYNC_ERROR_NULLPTR;
     }
@@ -103,11 +163,25 @@ VsyncError VSyncConnection::SetVSyncRate(int32_t rate)
 
 VsyncError VSyncConnection::GetVSyncPeriod(int64_t &period)
 {
+    std::unique_lock<std::mutex> locker(mutex_);
+    if (isRemoteDead_) {
+        VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
+        return VSYNC_ERROR_API_FAILED;
+    }
     const sptr<VSyncDistributor> distributor = distributor_.promote();
     if (distributor == nullptr) {
         return VSYNC_ERROR_NULLPTR;
     }
     return distributor->GetVSyncPeriod(period);
+}
+
+VsyncError VSyncConnection::OnVSyncRemoteDied()
+{
+    std::unique_lock<std::mutex> locker(mutex_);
+    socketPair_ = nullptr;
+    distributor_->RemoveConnection(this);
+    isRemoteDead_ = true;
+    return VSYNC_ERROR_OK;
 }
 
 VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string name)

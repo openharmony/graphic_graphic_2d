@@ -37,6 +37,7 @@
 #include "transaction/rs_render_service_client.h"
 #include "ivsync_connection.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "vsync_iconnection_token.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -56,7 +57,8 @@ public:
     virtual bool CreateNode(const RSSurfaceRenderNodeConfig& config) = 0;
     virtual sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) = 0;
 
-    virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name) = 0;
+    virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
+                                                         const sptr<VSyncIConnectionToken>& token = nullptr) = 0;
 
     virtual int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,

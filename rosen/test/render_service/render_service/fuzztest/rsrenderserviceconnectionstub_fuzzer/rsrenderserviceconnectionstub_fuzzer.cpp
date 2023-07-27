@@ -54,7 +54,8 @@ public:
         return nullptr;
     }
 
-    sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name) override
+    sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
+                                                 const sptr<VSyncIConnectionToken>& token) override
     {
         return nullptr;
     }
