@@ -286,6 +286,8 @@ public:
 
     void SetIsCustomTextType(bool isCustomTextType);
 
+    bool GetIsCustomTextType();
+
     void SetDrawRegion(std::shared_ptr<RectF> rect);
 
     // Mark preferentially draw node and childrens
