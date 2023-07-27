@@ -17,7 +17,7 @@ import("//build/ohos/ndk/ndk.gni")
 ohos_ndk_headers("native_window_header") {
   dest_dir = "$ndk_headers_out_dir/native_window"
   sources = [
-    "//drivers/peripheral/base/buffer_handle.h",
+    "//foundation/graphic/graphic_2d/frameworks/surface/include/buffer_handle.h",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface/external_window.h",
   ]
 }
