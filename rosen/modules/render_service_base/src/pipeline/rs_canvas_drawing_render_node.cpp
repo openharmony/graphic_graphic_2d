@@ -64,6 +64,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         }
         preThreadInfo_ = curThreadInfo_;
     } else if (preThreadInfo_.first != curThreadInfo_.first) {
+        auto preMatrix = canvas_->getTotalMatrix();
         auto preSurface = skSurface_;
         if (!ResetSurface(width, height, canvas)) {
             return;
@@ -73,13 +74,14 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         if (!image) {
             return;
         }
-        auto sharedBackendTexture = image->getBackendTexture(false);
+        GrSurfaceOrigin origin = kBottomLeft_GrSurfaceOrigin;
+        auto sharedBackendTexture = image->getBackendTexture(false, &origin);
         if (!sharedBackendTexture.isValid()) {
             RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents sharedBackendTexture is nullptr");
             return;
         }
-        auto sharedTexture = SkImage::MakeFromTexture(canvas.recordingContext(), sharedBackendTexture,
-            kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+        auto sharedTexture = SkImage::MakeFromTexture(
+            canvas.recordingContext(), sharedBackendTexture, origin, image->colorType(), image->alphaType(), nullptr);
         if (sharedTexture == nullptr) {
             RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents sharedTexture is nullptr");
             return;
@@ -94,6 +96,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
             preThreadInfo_.second(std::move(preSurface));
         }
         preThreadInfo_ = curThreadInfo_;
+        canvas_->setMatrix(preMatrix);
     }
 
     RSModifierContext context = { GetMutableRenderProperties(), canvas_.get() };
