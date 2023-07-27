@@ -275,8 +275,13 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
 #ifndef USE_ROSEN_DRAWING
         SkBitmap bitmap;
         canvasDrawingNode->GetBitmap(bitmap);
+#ifndef NEW_SKIA
+        canvas_->drawBitmap(
+            bitmap, node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY());
+#else
         canvas_->drawImage(bitmap.asImage(), node.GetRenderProperties().GetBoundsPositionX(),
             node.GetRenderProperties().GetBoundsPositionY());
+#endif
 #else
         Drawing::Bitmap bitmap;
         canvasDrawingNode->GetBitmap(bitmap);
