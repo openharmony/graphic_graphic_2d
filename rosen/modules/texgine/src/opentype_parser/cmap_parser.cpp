@@ -186,7 +186,7 @@ int CmapParser::ParseFormat4(const CmapSubtable &subtable, const std::size_t siz
 
 void CmapParser::ParseFormat4NoOffset(int32_t delta, uint32_t start, uint32_t end)
 {
-    if ((static_cast<uint32_t>((end + delta)) & 0xffff) > end - start) {
+    if (((static_cast<uint32_t>(delta) + end) & 0xffff) > end - start) {
         ranges_.AddRange({start, end + 1, delta});
     } else {
         for (uint32_t j = start; j <= end; j++) {

@@ -51,7 +51,7 @@ size_t CharGroups::GetNumberOfGlyph() const
     }
 
     size_t sum = 0;
-    for (size_t i = range_.start; static_cast<int>(i) < range_.end; i++) {
+    for (auto i = range_.start; i < range_.end; i++) {
         sum += pcgs_->at(i).glyphs.size();
     }
     return sum;
