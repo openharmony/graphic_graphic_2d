@@ -1407,6 +1407,22 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     canvas.Restore();
 
     Vector4f stretchSize = GetStretchSize(properties);
+    /*  Calculates the relative coordinates of the clipbounds
+        with respect to the origin of the current canvas coordinates */
+    Drawing::Matrix worldToLocalMat;
+    if (!canvas.GetTotalMatrix().Invert(worldToLocalMat)) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch get invert matrix failed.");
+    }
+    Drawing::Rect localClipBounds;
+    Drawing::Rect fClipBounds(clipBounds.GetLeft(), clipBounds.GetTop(), clipBounds.GetWidth(),
+        clipBounds.GetBottom());
+    if (!worldToLocalMat.MapRect(localClipBounds, fClipBounds)) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch map rect failed.");
+    }
+
+    if (!bounds.Intersect(localClipBounds)) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch intersect clipbounds failed");
+    }
 
     auto scaledBounds = Drawing::Rect(bounds.GetLeft() - stretchSize.x_, bounds.GetTop() - stretchSize.y_,
         bounds.GetRight() + stretchSize.z_, bounds.GetBottom() + stretchSize.w_);
@@ -1415,8 +1431,8 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
         return;
     }
 
-    Drawing::RectI rectI(static_cast<int>(clipBounds.GetLeft()), static_cast<int>(clipBounds.GetRight()),
-        static_cast<int>(clipBounds.GetTop()), static_cast<int>(clipBounds.GetBottom()));
+    Drawing::RectI rectI(static_cast<int>(fClipBounds.GetLeft()), static_cast<int>(fClipBounds.GetTop()),
+        static_cast<int>(fClipBounds.GetRight()), static_cast<int>(fClipBounds.GetBottom()));
     auto image = surface->GetImageSnapshot(rectI);
     if (image == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch image null");
@@ -1434,6 +1450,8 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
         scaleMat.Set(Drawing::Matrix::SCALE_Y, inverseMat.Get(Drawing::Matrix::SCALE_Y));
     }
 
+    canvas.Save();
+    canvas.Translate(bounds.GetLeft(), bounds.GetTop());
     Drawing::SamplingOptions samplingOptions;
     if (properties.IsPixelStretchExpanded()) {
         brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
@@ -1448,14 +1466,13 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
         brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
             *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, scaleMat));
 
-        canvas.Save();
         canvas.Translate(-stretchSize.x_, -stretchSize.y_);
         canvas.AttachBrush(brush);
         canvas.DrawRect(Drawing::Rect(
             stretchSize.x_, stretchSize.y_, stretchSize.x_ + bounds.GetWidth(), stretchSize.y_ + bounds.GetHeight()));
         canvas.DetachBrush();
-        canvas.Restore();
     }
+    canvas.Restore();
 }
 #endif
 
@@ -1545,11 +1562,12 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
         canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, antiAlias);
     } else if (properties.GetClipToBounds()) {
         canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
+    } else if (properties.GetClipToRRect()) {
+        canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetClipRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
     }
     // paint backgroundColor
     Drawing::Brush brush;
     brush.SetAntiAlias(antiAlias);
-    canvas.Save();
     auto bgColor = properties.GetBackgroundColor();
     if (bgColor != RgbPalette::Transparent()) {
         brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
@@ -1558,19 +1576,22 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
         canvas.DetachBrush();
     }
     if (const auto& bgShader = properties.GetBackgroundShader()) {
+        canvas.Save();
         canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
         brush.SetShaderEffect(bgShader->GetDrawingShader());
         canvas.DrawBackground(brush);
+        canvas.Restore();
     }
     if (const auto& bgImage = properties.GetBgImage()) {
+        canvas.Save();
         canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
         auto boundsRect = Rect2DrawingRect(properties.GetBoundsRect());
         bgImage->SetDstRect(properties.GetBgImageRect());
         canvas.AttachBrush(brush);
         bgImage->CanvasDrawImage(canvas, boundsRect, true);
         canvas.DetachBrush();
+        canvas.Restore();
     }
-    canvas.Restore();
 #endif
 }
 

@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("../render_service_base/config.gni")
 
 ## Build libframe_analyzer.so {{{
 config("libframe_analyzer_config") {
@@ -67,6 +68,11 @@ ohos_shared_library("libframe_analyzer") {
       "src/mingw/frame_collector.cpp",
       "src/mingw/frame_painter.cpp",
     ]
+  }
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+    deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
   }
 
   configs = [ ":libframe_analyzer_config" ]

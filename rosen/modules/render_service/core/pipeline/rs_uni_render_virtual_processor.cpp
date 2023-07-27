@@ -76,11 +76,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
 #else
     Drawing::Matrix invertMatrix;
     if (node.GetInitMatrix().Invert(invertMatrix)) {
-        if (invertMatrix.Get(Drawing::Matrix::Index::SCALE_X) == 1 &&
-            invertMatrix.Get(Drawing::Matrix::Index::SCALE_Y) == 1 &&
-            invertMatrix.Get(Drawing::Matrix::Index::PERSP_2) == 1) {
-            screenTransformMatrix_* invertMatrix;
-        }
+        screenTransformMatrix_ = screenTransformMatrix_ * invertMatrix;
     }
     canvas_->ConcatMatrix(screenTransformMatrix_);
 #endif

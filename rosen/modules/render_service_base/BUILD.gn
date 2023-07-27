@@ -226,6 +226,15 @@ ohos_source_set("render_service_base_src") {
   ]
   external_deps = [ "window_manager:libwsutils" ]
 
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+    if (ace_enable_gpu) {
+      defines += [ "ACE_ENABLE_GPU" ]
+    }
+
+    deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
+  }
+
   if (rosen_cross_platform) {
     public_configs += [
       "$rosen_root/modules/platform:eventhandler_config",

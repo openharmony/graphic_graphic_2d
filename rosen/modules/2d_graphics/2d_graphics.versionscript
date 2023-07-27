@@ -17,7 +17,6 @@
     local:
         extern "C++" {
             OHOS::Rosen::Drawing::Impl*;
-            OHOS::Rosen::Drawing::SkiaBitmap*;
             OHOS::Rosen::Drawing::SkiaCamera*;
             OHOS::Rosen::Drawing::SkiaPicture*;
             OHOS::Rosen::Drawing::SkiaMask*;

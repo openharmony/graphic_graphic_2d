@@ -15,6 +15,8 @@
 
 #include "pipeline/rs_paint_filter_canvas.h"
 
+#include <algorithm>
+
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkColorFilter.h"
 #endif

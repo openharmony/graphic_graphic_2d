@@ -791,7 +791,7 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
     const auto& property = node.GetRenderProperties();
     auto geoPtr = (property.GetBoundsGeometry());
     if (geoPtr) {
-        canvas_->setMatrix(geoPtr->GetAbsMatrix());
+        canvas_->SetMatrix(geoPtr->GetAbsMatrix());
     }
 
     if (isSelfDrawingSurface) {
@@ -1059,7 +1059,7 @@ void RSSurfaceCaptureVisitor::DrawWatermarkIfNeed(float screenWidth, float scree
         auto skDstRect = SkRect::MakeWH(screenWidth, screenHeight);
 #ifdef NEW_SKIA
         canvas_->drawImageRect(
-            skImage, skSrcRect, skDstRect, SkSamplingOptions(), 
+            skImage, skSrcRect, skDstRect, SkSamplingOptions(),
             &rectPaint, SkCanvas::kStrict_SrcRectConstraint);
 #else
         canvas_->drawImageRect(skImage, skSrcRect, skDstRect, &rectPaint);
