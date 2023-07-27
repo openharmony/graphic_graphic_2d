@@ -491,6 +491,7 @@ void RSMainThread::CheckParallelSubThreadNodesStatus()
                     }
                 }
             }
+            cacheCmdSkippedNodes_[node->GetId()] = false;
             if (pid == 0) {
                 continue;
             }
@@ -501,7 +502,6 @@ void RSMainThread::CheckParallelSubThreadNodesStatus()
             } else {
                 cacheCmdSkippedInfo_[pid].first.push_back(node->GetId());
             }
-            cacheCmdSkippedNodes_[node->GetId()] = false;
         }
     }
 }
