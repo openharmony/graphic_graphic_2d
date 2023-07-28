@@ -53,9 +53,11 @@ void RSVsyncClientWindows::SetVsyncCallback(VsyncCallback callback)
 
 void RSVsyncClientWindows::VsyncThreadMain()
 {
+    /* the coefficient of converting seconds to nanoseconds */
     constexpr int64_t SEC_TO_NANOSEC = 1000000000;
     while (running_) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(32));
+        /* The number of frames previewed is 30,33 =1000/30 */
+        std::this_thread::sleep_for(std::chrono::milliseconds(33));
         struct timespec ts;
         clock_gettime(CLOCK_MONOTONIC, &ts);
         int64_t now = ts.tv_sec * SEC_TO_NANOSEC + ts.tv_nsec;
