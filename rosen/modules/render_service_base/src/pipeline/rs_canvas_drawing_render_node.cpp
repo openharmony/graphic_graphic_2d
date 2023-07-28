@@ -150,8 +150,8 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
 bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilterCanvas& canvas)
 {
     Drawing::BitmapFormat info = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-    Drawing::Bitmap drBitmap;
-    drBitmap.Build(width, height, info);
+    auto bitmap = std::make_shared<Drawing::Bitmap>();
+    bitmap->Build(width, height, info);
 
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     auto gpuContext = canvas.GetGPUContext();
@@ -159,17 +159,28 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
         RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents: GpuContext is nullptr");
         return false;
     }
-    Drawing::Image image;
-    image.BuildFromBitmap(*gpuContext, bitmap);
-    surface_ = std::make_shared<Drawing::Surface>();
-    if (!surface->Bind(image)) {
+    auto image = std::make_shared<Drawing::Image>();
+    if (image->BuildFromBitmap(*gpuContext, *bitmap)) {
+        RS_LOGE("RSCanvasDrawingRenderNode::ResetSurface Drawing::Image is nullptr");
+        return false;
+    }
+    auto surface = std::make_shared<Drawing::Surface>();
+    if (!surface->Bind(*image)) {
+        if (!surface->Bind(*bitmap)) {
+            RS_LOGE("RSCanvasDrawingRenderNode::ResetSurface Drawing::Surface is nullptr");
+            return false;
+        }
+        bitmap_ = bitmap;
+    }
 #else
-    surface_ = std::make_shared<Drawing::Surface>();
-    if (!surface_->Bind(drBitmap)) {
-#endif
+    auto surface = std::make_shared<Drawing::Surface>();
+    if (!surface->Bind(*bitmap)) {
         RS_LOGE("RSCanvasDrawingRenderNode::ResetSurface Drawing::Surface is nullptr");
         return false;
     }
+    bitmap_ = bitmap;
+#endif
+    surface_ = surface;
     canvas_ = std::make_unique<RSPaintFilterCanvas>(surface_.get());
     return true;
 }
