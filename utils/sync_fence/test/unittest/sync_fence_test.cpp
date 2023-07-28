@@ -76,6 +76,10 @@ HWTEST_F(SyncFenceTest, GenerateFence001, Function | MediumTest | Level2)
         ASSERT_GE(fd, 0);
     } else {
         ASSERT_EQ(valid, false);
+        int32_t fd = syncTimeline_->GenerateFence("test sw_sync_fence", 1);
+        ASSERT_EQ(fd, -1);
+        int32_t ret = syncTimeline_->IncreaseSyncPoint(1);
+        ASSERT_EQ(ret, -1);
     }
 }
 

@@ -55,13 +55,9 @@ public:
     bool IsValid();
     int32_t IncreaseSyncPoint(uint32_t step = 1);
     int32_t GenerateFence(std::string name, uint32_t point);
-    int32_t Dup() const;
-    /* this is dangerous, when you use it, do not operator the fd */
-    int32_t Get() const;
 
 private:
     int32_t timeLineFd_ = -1;
-    int32_t timeLineNextPoint = 0;
     bool isValid_ = false;
 };
 

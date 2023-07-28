@@ -358,7 +358,13 @@ int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
         bufferCached = CheckAndUpdateClientBufferCahce(currFrameBuffer_, index);
     }
 
-    int32_t ret;
+    CHECK_DEVICE_NULL(device_);
+    int32_t ret = device_->SetScreenClientDamage(screenId_, outputDamages_);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("Set screen client damage failed, ret is %{public}d", ret);
+        return ret;
+    }
+
     CHECK_DEVICE_NULL(device_);
     if (bufferCached && index < bufferCacheCountMax_) {
         ret = device_->SetScreenClientBuffer(screenId_, nullptr, index, fbAcquireFence);
@@ -368,12 +374,6 @@ int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("Set screen client buffer failed, ret is %{public}d", ret);
         return ret;
-    }
-    CHECK_DEVICE_NULL(device_);
-    ret = device_->SetScreenClientDamage(screenId_, outputDamages_);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        // SetScreenClientDamage is not supported in hdi, HLOGD here and no returen ret.
-        HLOGD("Set screen client damage failed, ret is %{public}d", ret);
     }
 
     return GRAPHIC_DISPLAY_SUCCESS;
