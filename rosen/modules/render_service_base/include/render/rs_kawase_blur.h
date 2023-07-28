@@ -52,19 +52,14 @@ private:
     void AdjustRadiusAndScale();
     std::string GetDescription() const;
 
-    static constexpr float baseBlurScale = 0.25f; // base downSample radio
+    static constexpr float baseBlurScale = 0.5f; // base downSample radio
     static constexpr uint32_t kMaxPasses = 4; // Maximum number of render passes
     static constexpr uint32_t kMaxPassesLargeRadius = 7;
     static constexpr float kDilatedConvolution = 2.0f;
-    static constexpr float kDilatedConvolutionLargeRadius = 4.0f;
+    static constexpr float kDilatedConvolutionLargeRadius = 4.6f;
     // To avoid downscaling artifacts, interpolate the blurred fbo with the full composited image, up to this radius
     static constexpr float kMaxCrossFadeRadius = 10.0f;
     static constexpr bool supporteLargeRadius = true;
-    static constexpr int kMaxGaussRadius = 120; // 120 ： gauss max radius
-    static constexpr int kMaxKawaseRadius = 300; // 300 : kawase max radius
-    static constexpr int radiusStep1 = 170; // 170 : radius step1
-    static constexpr int radiusStep2 = 260; // 260 : radius step2
-    static constexpr int smoothScope = 20; // 20 : smooth radius change
 
     sk_sp<SkRuntimeEffect> blurEffect_;
     sk_sp<SkRuntimeEffect> mixEffect_;
