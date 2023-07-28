@@ -170,8 +170,8 @@ public:
     // filter properties
     void SetBackgroundFilter(std::shared_ptr<RSFilter> backgroundFilter);
     void SetLinearGradientBlurPara(std::shared_ptr<RSLinearGradientBlurPara> para);
-    void SetDynamicLightUpRate(float rate);
-    void SetDynamicLightUpDegree(float lightUpDegree);
+    void SetDynamicLightUpRate(const std::optional<float>& rate);
+    void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
     void SetFilter(std::shared_ptr<RSFilter> filter);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
@@ -193,8 +193,8 @@ public:
     float GetShadowAlpha() const;
     float GetShadowElevation() const;
     float GetShadowRadius() const;
-    float GetDynamicLightUpRate() const;
-    float GetDynamicLightUpDegree() const;
+    const std::optional<float>& GetDynamicLightUpRate() const;
+    const std::optional<float>& GetDynamicLightUpDegree() const;
     std::shared_ptr<RSPath> GetShadowPath() const;
     bool GetShadowMask() const;
     bool IsShadowValid() const;
@@ -261,6 +261,7 @@ public:
     void SetLightUpEffect(float lightUpEffectDegree);
     float GetLightUpEffect() const;
     bool IsLightUpEffectValid() const;
+    bool IsDynamicLightUpValid() const;
 
     // Image effect properties
     void SetGrayScale(const std::optional<float>& grayScale);

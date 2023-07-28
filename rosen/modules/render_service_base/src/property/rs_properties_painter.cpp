@@ -2082,5 +2082,72 @@ sk_sp<SkShader> RSPropertiesPainter::MakeLightUpEffectShader(float lightUpDeg, s
 }
 #endif
 #endif
+
+void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+#ifndef USE_ROSEN_DRAWING
+#ifdef NEW_SKIA
+    SkSurface* skSurface = canvas.GetSurface();
+    if (skSurface == nullptr) {
+        ROSEN_LOGD("RSPropertiesPainter::DrawDynamicLightUp skSurface is null");
+        return;
+    }
+    SkAutoCanvasRestore acr(&canvas, true);
+    if (properties.GetClipBounds() != nullptr) {
+        canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
+    } else {
+        canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
+    }
+
+    auto clipBounds = canvas.getDeviceClipBounds();
+    auto image = skSurface->makeImageSnapshot(clipBounds);
+    if (image == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawDynamicLightUp image is null");
+        return;
+    }
+    auto imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+    auto shader = MakeDynamicLightUpShader(
+        properties.GetDynamicLightUpRate().value(), properties.GetDynamicLightUpDegree().value(), imageShader);
+    SkPaint paint;
+    paint.setShader(shader);
+    canvas.resetMatrix();
+    canvas.translate(clipBounds.left(), clipBounds.top());
+    canvas.drawPaint(paint);
+#endif
+#endif
+}
+
+#ifndef USE_ROSEN_DRAWING
+#ifdef NEW_SKIA
+sk_sp<SkShader> RSPropertiesPainter::MakeDynamicLightUpShader(float dynamicLightUpRate, float dynamicLightUpDeg, sk_sp<SkShader> imageShader)
+{
+    static constexpr char prog[] = R"(
+        uniform half dynamicLightUpRate;
+        uniform half dynamicLightUpDeg;
+        uniform shader imageShader;
+
+        half4 main(float2 coord) {
+            vec3 c = vec3(imageShader.eval(coord).r * 255, imageShader.eval(coord).g * 255, imageShader.eval(coord).b * 255);
+            float x = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
+            float y = (0 - dynamicLightUpRate) * x + dynamicLightUpDeg * 255;
+            float R = clamp((c.r + y) / 255, 0.0, 1.0);
+            float G = clamp((c.g + y) / 255, 0.0, 1.0);
+            float B = clamp((c.b + y) / 255, 0.0, 1.0);
+            return vec4(R, G, B, 1.0);
+        }
+    )";
+    auto [effect, err] = SkRuntimeEffect::MakeForShader(SkString(prog));
+    if (!effect) {
+        ROSEN_LOGE("MakeDynamicLightUpShader::RuntimeShader effect error: %s\n", error.c_str());
+        return;
+    }
+    SkRuntimeShaderBuilder builder(effect);
+    builder.child("imageShader") = imageShader;
+    builder.uniform("dynamicLightUpRate") = dynamicLightUpRate;
+    builder.uniform("dynamicLightUpDeg") = dynamicLightUpDeg;
+    return builder.makeShader(nullptr, false);
+}
+#endif
+#endif
 } // namespace Rosen
 } // namespace OHOS

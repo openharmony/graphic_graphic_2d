@@ -123,6 +123,10 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
 
     ApplyDrawCmdModifier(context, RSModifierType::BACKGROUND_STYLE);
 
+    if (GetRenderProperties().IsDynamicLightUpValid()) {
+        RSPropertiesPainter::DrawDynamicLightUp(GetRenderProperties(), canvas);
+    }
+    
 #ifndef USE_ROSEN_DRAWING
     canvasNodeSaveCount_ = canvas.Save();
 #else

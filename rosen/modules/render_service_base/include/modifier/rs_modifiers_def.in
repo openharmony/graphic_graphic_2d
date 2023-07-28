@@ -138,6 +138,6 @@ DECLARE_ANIMATABLE_MODIFIER(ColorBlend, Color, COLOR_BLEND, Add, Foreground)
 
 DECLARE_NOANIMATABLE_MODIFIER(UseEffect, bool, USE_EFFECT, Background)
 
-DECLARE_ANIMATABLE_MODIFIER(DynamicLightUpRate, float, DYNAMIC_LIGHT_UP_RATE, Replace, Background)
+DECLARE_ANIMATABLE_MODIFIER(DynamicLightUpRate, float, DYNAMIC_LIGHT_UP_RATE, Replace, Foreground)
 
-DECLARE_ANIMATABLE_MODIFIER(DynamicLightUpDegree, float, DYNAMIC_LIGHT_UP_DEGREE, Replace, Background)
+DECLARE_ANIMATABLE_MODIFIER(DynamicLightUpDegree, float, DYNAMIC_LIGHT_UP_DEGREE, Replace, Foreground)
