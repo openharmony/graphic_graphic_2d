@@ -256,16 +256,27 @@ bool RSCanvasDrawingRenderNode::GetSizeFromDrawCmdModifiers(int& width, int& hei
 
 bool RSCanvasDrawingRenderNode::IsNeedResetSurface(const int& width, const int& height) const
 {
+#ifndef USE_ROSEN_DRAWING
     if (!skSurface_) {
+#else
+    if (!surface_ || !surface_->GetCanvas()) {
+#endif
         return true;
     } else {
         // There is no need to reapply the buffer during the animation, only if the size of the DrawCmdList set by ArkUI
         // changes. When the component sets the margin and padding properties, ArkUI does not set the DrawCmdList size,
         // in which case the size of the SkSurface should be the same as the size of Render Properties Bounds. In other
         // cases, ArkUI sets the DrawCmdList to the same size as the Render Properties Bounds.
+#ifndef USE_ROSEN_DRAWING
         return (skSurface_->width() != width || skSurface_->height() != height) &&
                (static_cast<int>(GetRenderProperties().GetBoundsWidth()) != skSurface_->width() ||
                    static_cast<int>(GetRenderProperties().GetBoundsHeight()) != skSurface_->height());
+#else
+        auto canvas = surface_->GetCanvas();
+        return (canvas->GetWidth() != width || canvas->GetHeight() != height) &&
+            (static_cast<int>(GetRenderProperties().GetBoundsWidth()) != canvas->GetWidth() ||
+            static_cast<int>(GetRenderProperties().GetBoundsHeight()) != canvas->GetHeight());
+#endif
     }
 }
 } // namespace Rosen

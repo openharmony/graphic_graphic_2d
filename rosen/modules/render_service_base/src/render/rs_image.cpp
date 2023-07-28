@@ -361,11 +361,7 @@ void RSImage::DrawImageRepeatRect(Drawing::Canvas& canvas)
 #else
     if (pixelMap_ && pixelMap_->GetFd() && pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
         sptr<SurfaceBuffer> surfaceBuffer(reinterpret_cast<SurfaceBuffer*> (pixelMap_->GetFd()));
-#ifndef USE_ROSEN_DRAWING
         image_ = GetSkImageFromSurfaceBuffer(canvas, surfaceBuffer);
-#else
-        image_ = GetDrawingImageFromSurfaceBuffer(canvas, surfaceBuffer);
-#endif
     } else {
         ConvertPixelMapToSkImage();
     }
@@ -376,11 +372,7 @@ void RSImage::DrawImageRepeatRect(Drawing::Canvas& canvas)
 #else
     if (pixelMap_ && pixelMap_->GetFd() && pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
         sptr<SurfaceBuffer> surfaceBuffer(reinterpret_cast<SurfaceBuffer*> (pixelMap_->GetFd()));
-#ifndef USE_ROSEN_DRAWING
-        image_ = GetSkImageFromSurfaceBuffer(canvas, surfaceBuffer);
-#else
         image_ = GetDrawingImageFromSurfaceBuffer(canvas, surfaceBuffer);
-#endif
     } else {
         ConvertPixelMapToDrawingImage();
     }
@@ -390,6 +382,10 @@ void RSImage::DrawImageRepeatRect(Drawing::Canvas& canvas)
 #ifndef USE_ROSEN_DRAWING
     auto src = RSPropertiesPainter::Rect2SkRect(srcRect_);
 #else
+    if (image_ == nullptr) {
+        RS_LOGE("RSImage::DrawImageRepeatRect failed, image is nullptr");
+        return;
+    }
     auto src = RSPropertiesPainter::Rect2DrawingRect(srcRect_);
 #endif
     for (int i = minX; i <= maxX; ++i) {
@@ -589,13 +585,13 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     }
 #else
     bool useSkImage;
-    std::shared_ptr<Drawing::Image> img = std::make_shared<Drawing::Image>();
+    std::shared_ptr<Drawing::Image> img;
     std::shared_ptr<Media::PixelMap> pixelMap;
     void* imagepixelAddr = nullptr;
     if (!UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSkImage, img, pixelMap, imagepixelAddr)) {
         return nullptr;
     }
-    std::shared_ptr<Drawing::Data> compressData = std::make_shared<Drawing::Data>();
+    std::shared_ptr<Drawing::Data> compressData;
     bool skipData = img != nullptr || !useSkImage;
     if (!UnmarshallingCompressData(parcel, skipData, compressData)) {
         return nullptr;
@@ -624,11 +620,9 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     }
 #else
     std::vector<Drawing::Point> radius(CORNER_SIZE);
-    for (auto i = 0; i < CORNER_SIZE; i++) {
-        if (!RSMarshallingHelper::Unmarshalling(parcel, radius[i])) {
-            RS_LOGE("RSImage::Unmarshalling radius fail");
-            return nullptr;
-        }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, radius)) {
+        RS_LOGE("RSImage::Unmarshalling radius fail");
+        return nullptr;
     }
 #endif
 

@@ -69,10 +69,10 @@ static inline SkImageInfo MakeSkImageInfo(const int width, const int height, con
     return imageInfo;
 }
 
-void SkiaBitmap::Build(const int width, const int height, const BitmapFormat& format)
+void SkiaBitmap::Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride)
 {
     auto imageInfo = MakeSkImageInfo(width, height, format);
-    skiaBitmap_.setInfo(imageInfo);
+    skiaBitmap_.setInfo(imageInfo, stride);
     skiaBitmap_.allocPixels();
 }
 

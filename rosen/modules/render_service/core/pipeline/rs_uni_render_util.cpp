@@ -780,10 +780,17 @@ void RSUniRenderUtil::ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface> ca
 
 void RSUniRenderUtil::FloorTransXYInCanvasMatrix(RSPaintFilterCanvas& canvas)
 {
+#ifndef USE_ROSEN_DRAWING
     auto matrix = canvas.getTotalMatrix();
     matrix.setTranslateX(std::floor(matrix.getTranslateX()));
     matrix.setTranslateY(std::floor(matrix.getTranslateY()));
     canvas.setMatrix(matrix);
+#else
+    auto matrix = canvas.GetTotalMatrix();
+    matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
+    matrix.Set(Drawing::Matrix::TRANS_Y, std::floor(matrix.Get(Drawing::Matrix::TRANS_Y)));
+    canvas.SetMatrix(matrix);
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

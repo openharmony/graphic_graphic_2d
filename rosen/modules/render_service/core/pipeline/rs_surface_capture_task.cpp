@@ -892,7 +892,11 @@ void RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
     if (auto drawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>()) {
+#ifndef USE_ROSEN_DRAWING
         auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](sk_sp<SkSurface> surface) {
+#else
+        auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](std::shared_ptr<Drawing::Surface> surface) {
+#endif
             RSUniRenderUtil::ClearNodeCacheSurface(surface, nullptr, id);
         };
         drawingNode->SetSurfaceClearFunc({ UNI_MAIN_THREAD_INDEX, clearFunc });

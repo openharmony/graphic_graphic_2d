@@ -1489,7 +1489,7 @@ bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffe
 bool RSBaseRenderUtil::CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::Bitmap& bitmap)
 {
     Drawing::BitmapFormat format = Detail::GenerateDrawingBitmapFormat(buffer);
-    bitmap.Build(buffer->GetWidth(), buffer->GetHeight(), format);
+    bitmap.Build(buffer->GetWidth(), buffer->GetHeight(), format, buffer->GetStride());
     bitmap.SetPixels(buffer->GetVirAddr());
     return true;
 }
@@ -1502,7 +1502,7 @@ bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffe
     if (convertRes) {
         RS_LOGW("CreateNewColorGamutBitmap: convert color gamut succeed, use new buffer to create bitmap.");
         Drawing::BitmapFormat format = Detail::GenerateDrawingBitmapFormat(buffer);
-        bitmap.Build(buffer->GetWidth(), buffer->GetHeight(), format);
+        bitmap.Build(buffer->GetWidth(), buffer->GetHeight(), format, buffer->GetStride());
         bitmap.SetPixels(newBuffer.data());
         return true;
     } else {

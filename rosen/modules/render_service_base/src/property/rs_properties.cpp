@@ -383,16 +383,33 @@ std::optional<Vector2f> RSProperties::GetSandBox() const
     return sandbox_ ? sandbox_->position_ : std::nullopt;
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSProperties::UpdateSandBoxMatrix(const std::optional<SkMatrix>& rootMatrix)
+#else
+void RSProperties::UpdateSandBoxMatrix(const std::optional<Drawing::Matrix>& rootMatrix)
+#endif
 {
     if (!sandbox_ || !rootMatrix || !sandbox_->position_) {
         return;
     }
+#ifndef USE_ROSEN_DRAWING
     auto matrix = rootMatrix.value();
     sandbox_->matrix_ = matrix.preTranslate(sandbox_->position_->x_, sandbox_->position_->y_);
+#else
+    auto matrix = Drawing::Matrix();
+    for (int i = 0; i < Drawing::Matrix::MATRIX_SIZE; i++) {
+        matrix.Set(static_cast<Drawing::Matrix::Index>(i), rootMatrix.value().Get(i));
+    }
+    matrix.PreTranslate(sandbox_->position_->x_, sandbox_->position_->y_);
+    sandbox_->matrix_ = matrix;
+#endif
 }
 
+#ifndef USE_ROSEN_DRAWING
 std::optional<SkMatrix> RSProperties::GetSandBoxMatrix() const
+#else
+std::optional<Drawing::Matrix> RSProperties::GetSandBoxMatrix() const
+#endif
 {
     return sandbox_ ? sandbox_->matrix_ : std::nullopt;
 }

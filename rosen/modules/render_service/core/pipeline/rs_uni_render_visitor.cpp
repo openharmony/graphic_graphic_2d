@@ -763,7 +763,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.CleanDstRectChanged();
     node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
-    
 
     RectI prepareClipRect = prepareClipRect_;
     bool isQuickSkipPreparationEnabled = isQuickSkipPreparationEnabled_;
@@ -2093,8 +2092,10 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
 #endif
         RSBackgroundThread::Instance().PostTask([]() {
+#ifndef USE_ROSEN_DRAWING
             RS_TRACE_NAME("RSUniRender:OpItemTasks ProcessTask");
             OpItemTasks::Instance().ProcessTask();
+#endif
         });
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
@@ -3419,14 +3420,22 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 #endif
     // in case preparation'update is skipped
     node.GetMutableRenderProperties().CheckEmptyBounds();
+#ifndef USE_ROSEN_DRAWING
     canvas_->save();
+#else
+    canvas_->Save();
+#endif
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(*canvas_);
     }
     // draw self and children in sandbox which will not be affected by parent's transition
     const auto& sandboxMatrix = node.GetRenderProperties().GetSandBoxMatrix();
     if (sandboxMatrix) {
+#ifndef USE_ROSEN_DRAWING
         canvas_->setMatrix(*sandboxMatrix);
+#else
+        canvas_->SetMatrix(*sandboxMatrix);
+#endif
     }
     const auto& property = node.GetRenderProperties();
     if (property.IsSpherizeValid()) {
@@ -3447,7 +3456,11 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
     CheckAndSetNodeCacheType(node);
     DrawChildRenderNode(node);
+#ifndef USE_ROSEN_DRAWING
     canvas_->restore();
+#else
+    canvas_->Restore();
+#endif
 }
 
 void RSUniRenderVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)

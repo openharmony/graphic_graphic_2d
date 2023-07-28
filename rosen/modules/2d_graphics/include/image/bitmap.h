@@ -30,7 +30,7 @@ class Bitmap {
 public:
     Bitmap();
     virtual ~Bitmap();
-    void Build(const int width, const int height, const BitmapFormat& format);
+    void Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride = 0);
 
     /*
      * @brief  Gets the width of Bitmap.

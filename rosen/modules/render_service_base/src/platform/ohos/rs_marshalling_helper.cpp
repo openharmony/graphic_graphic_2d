@@ -889,8 +889,12 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader
 #else
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSShader>& val)
 {
-    if (!val) {
+    if (!val || !val->GetDrawingShader()) {
         ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling RSShader is nullptr");
+        return parcel.WriteInt32(-1);
+    }
+    if (val->GetDrawingShader()->GetDrawingType() != Drawing::DrawingType::RECORDING) {
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling Drawing::ShaderEffect is invalid");
         return parcel.WriteInt32(-1);
     }
     auto recordingShaderEffect = static_cast<Drawing::RecordingShaderEffect*>(val->GetDrawingShader().get());
@@ -1039,6 +1043,10 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSPa
 {
     if (!val) {
         ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling RSPath is nullptr");
+        return parcel.WriteInt32(-1);
+    }
+    if (val->GetDrawingPath().GetDrawingType() != Drawing::DrawingType::RECORDING) {
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling Drawing::Path is invalid");
         return parcel.WriteInt32(-1);
     }
     auto recordingPath = static_cast<const Drawing::RecordingPath&>(val->GetDrawingPath());

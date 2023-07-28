@@ -36,6 +36,8 @@
 #include "draw/canvas.h"
 #include "draw/clip.h"
 #include "drawing/draw/core_canvas.h"
+#include "recording/recording_path.h"
+#include "recording/recording_shader_effect.h"
 #include "utils/rect.h"
 #else
 #include "include/core/SkCanvas.h"
@@ -1559,9 +1561,19 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
     }
 #else
     if (properties.GetClipBounds() != nullptr) {
-        canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, antiAlias);
+        auto& path = properties.GetClipBounds()->GetDrawingPath();
+        if (path.GetDrawingType() == Drawing::DrawingType::RECORDING) {
+            auto clipPath = static_cast<const Drawing::RecordingPath&>(path).GetCmdList()->Playback();
+            canvas.ClipPath(*clipPath, Drawing::ClipOp::INTERSECT, antiAlias);
+        } else {
+            canvas.ClipPath(path, Drawing::ClipOp::INTERSECT, antiAlias);
+        }
     } else if (properties.GetClipToBounds()) {
-        canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
+        if (properties.GetCornerRadius().IsZero()) {
+            canvas.ClipRect(Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, isAntiAlias);
+        } else {
+            canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
+        }
     } else if (properties.GetClipToRRect()) {
         canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetClipRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
     }
@@ -1578,7 +1590,14 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
     if (const auto& bgShader = properties.GetBackgroundShader()) {
         canvas.Save();
         canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
-        brush.SetShaderEffect(bgShader->GetDrawingShader());
+        auto shaderEffect = bgShader->GetDrawingShader();
+        if (shaderEffect && shaderEffect->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+            auto shader =
+                std::static_pointer_cast<Drawing::RecordingShaderEffect>(shaderEffect)->GetCmdList()->Playback();
+            brush.SetShaderEffect(shader);
+        } else {
+            brush.SetShaderEffect(shaderEffect);
+        }
         canvas.DrawBackground(brush);
         canvas.Restore();
     }
