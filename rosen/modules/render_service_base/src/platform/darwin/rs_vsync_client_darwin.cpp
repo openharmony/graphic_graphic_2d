@@ -16,7 +16,7 @@
 #include "rs_vsync_client_darwin.h"
 
 #include <chrono>
-
+#include <sys/time.h>
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -53,10 +53,12 @@ void RSVsyncClientDarwin::SetVsyncCallback(VsyncCallback callback)
 
 void RSVsyncClientDarwin::VsyncThreadMain()
 {
+    constexpr int64_t SEC_TO_NANOSEC = 1000000000;
     while (running_) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        int64_t now = std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count();
+        std::this_thread::sleep_for(std::chrono::milliseconds(32));
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        int64_t now = ts.tv_sec * SEC_TO_NANOSEC + ts.tv_nsec;
         if (having_.load()) {
             having_ = false;
             VsyncCallback vsyncCallbackTmp = nullptr;
