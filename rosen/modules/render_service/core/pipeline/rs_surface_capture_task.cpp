@@ -314,7 +314,6 @@ bool RSSurfaceCaptureTask::CopyDataToPixelMap(sk_sp<SkImage> img, const std::uni
 #endif
     return true;
 }
-
 #else
 std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap)
 {
@@ -339,7 +338,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(const std:
         RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
         return nullptr;
     }
-    renderContext->SetUpGrContext();
+    renderContext->SetUpGpuContext();
 #endif
     Drawing::Bitmap bitmap;
     bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format);

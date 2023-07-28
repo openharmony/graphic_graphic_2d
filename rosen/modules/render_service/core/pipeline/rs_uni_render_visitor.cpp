@@ -1929,9 +1929,10 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                     region.op(SkIRect::MakeXYWH(r.left_, disH - r.GetBottom(), r.width_, r.height_),
                         SkRegion::kUnion_Op);
 #else
-                    region.Op(Drawing::Rect(r.left_, disH - r.GetBottom(),
-                        r.left_ + r.width_, disH - r.GetBottom() + r.height_),
-                        Drawing::Region::RegionOp::UNION);
+                    Drawing::Region tmpRegion;
+                    tmpRegion.SetRect(Drawing::RectI(r.left_, disH - r.GetBottom(),
+                        r.left_ + r.width_, disH - r.GetBottom() + r.height_));
+                    region.Op(tmpRegion, Drawing::RegionOp::UNION);
 #endif
                     RS_LOGD("SetDamageRegion %s", r.ToString().c_str());
                 }
@@ -1942,6 +1943,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
         }
         if (isOpDropped_ && !isDirtyRegionAlignedEnable_) {
+#ifndef USE_ROSEN_DRAWING
             if (region.isEmpty()) {
                 // [planning] Remove this after frame buffer can cancel
                 canvas_->clipRect(SkRect::MakeEmpty());
@@ -1954,6 +1956,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 region.getBoundaryPath(&dirtyPath);
                 canvas_->clipPath(dirtyPath, true);
             }
+#else
+            RS_LOGD("[%s:%d] Drawing is not supported, canvas clipRegion", __func__, __LINE__);
+#endif
         }
 #endif
         RSPropertiesPainter::SetBgAntiAlias(true);
@@ -2975,8 +2980,13 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (isOpDropped_ && node.IsAppWindow()) {
         const auto& visibleRegions = node.GetVisibleRegion().GetRegionRects();
         if (visibleRegions.size() == 1) {
+#ifndef USE_ROSEN_DRAWING
             canvas_->SetVisibleRect(SkRect::MakeLTRB(
                 visibleRegions[0].left_, visibleRegions[0].top_, visibleRegions[0].right_, visibleRegions[0].bottom_));
+#else
+            canvas_->SetVisibleRect(Drawing::Rect(
+                visibleRegions[0].left_, visibleRegions[0].top_, visibleRegions[0].right_, visibleRegions[0].bottom_));
+#endif
         }
     }
 #endif
