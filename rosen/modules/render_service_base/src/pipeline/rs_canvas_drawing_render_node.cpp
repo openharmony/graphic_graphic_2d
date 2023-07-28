@@ -261,8 +261,8 @@ bool RSCanvasDrawingRenderNode::IsNeedResetSurface(const int& width, const int& 
         // in which case the size of the SkSurface should be the same as the size of Render Properties Bounds. In other
         // cases, ArkUI sets the DrawCmdList to the same size as the Render Properties Bounds.
         return (skSurface_->width() != width || skSurface_->height() != height) &&
-               (GetRenderProperties().GetBoundsWidth() != skSurface_->width() ||
-                   GetRenderProperties().GetBoundsHeight() != skSurface_->height());
+               (static_cast<int>(GetRenderProperties().GetBoundsWidth()) != skSurface_->width() ||
+                   static_cast<int>(GetRenderProperties().GetBoundsHeight()) != skSurface_->height());
     }
 }
 } // namespace Rosen
