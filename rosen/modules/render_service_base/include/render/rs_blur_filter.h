@@ -56,6 +56,8 @@ public:
         const Drawing::Rect& src, const Drawing::Rect& dst) const override;
 #endif
 
+    bool CanSkipFrame() const override;
+
 private:
     float blurRadiusX_;
     float blurRadiusY_;

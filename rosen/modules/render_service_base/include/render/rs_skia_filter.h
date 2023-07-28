@@ -44,6 +44,7 @@ public:
     virtual std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& other) const = 0;
     virtual void PreProcess(sk_sp<SkImage> image) {};
     virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
+    virtual bool CanSkipFrame() const { return false; };
 
 protected:
     sk_sp<SkImageFilter> imageFilter_ = nullptr;

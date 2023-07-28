@@ -102,6 +102,8 @@ public:
         const Drawing::Rect& src, const Drawing::Rect& dst) const override;
 #endif
 
+    bool CanSkipFrame() const override;
+
 private:
     BLUR_COLOR_MODE colorMode_;
     float radius_ {};

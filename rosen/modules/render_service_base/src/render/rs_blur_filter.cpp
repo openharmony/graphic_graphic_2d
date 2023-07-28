@@ -176,5 +176,11 @@ void RSBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<
     canvas.DetachBrush();
 #endif
 }
+
+bool RSBlurFilter::CanSkipFrame() const
+{
+    constexpr float HEAVY_BLUR_THRESHOLD = 25.0f;
+    return blurRadiusX_ > HEAVY_BLUR_THRESHOLD && blurRadiusY_ > HEAVY_BLUR_THRESHOLD;
+};
 } // namespace Rosen
 } // namespace OHOS

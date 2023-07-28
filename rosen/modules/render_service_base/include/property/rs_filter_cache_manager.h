@@ -81,6 +81,8 @@ private:
     void DrawCachedSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter) const;
     void DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas) const;
     void ClipVisibleRect(RSPaintFilterCanvas& canvas) const;
+    // Attempt to reattach cached image to recording context if needed, if failed, we'll invalidate the cache.
+    void ReattachCachedImage(RSPaintFilterCanvas& canvas);
 
     enum class CacheType : uint8_t {
         CACHE_TYPE_NONE,

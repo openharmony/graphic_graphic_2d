@@ -16,6 +16,7 @@
 #include "property/rs_filter_cache_manager.h"
 
 #ifndef USE_ROSEN_DRAWING
+#include "include/gpu/GrBackendSurface.h"
 #include "rs_trace.h"
 
 #include "platform/common/rs_log.h"
@@ -143,6 +144,8 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     SkAutoCanvasRestore autoRestore(&canvas, true);
     canvas.resetMatrix();
 
+    ReattachCachedImage(canvas);
+
     if (cacheType_ == CacheType::CACHE_TYPE_NONE) {
         // The cache is expired, take a snapshot again.
         ROSEN_LOGD("RSFilterCacheManager::DrawFilter Cache expired, taking snapshot.");
@@ -201,6 +204,8 @@ CachedEffectData RSFilterCacheManager::GeneratedCachedEffectData(
     // it directly returns the cached image and region. Filter validation is not needed, since it's already done in
     // RSPropertiesPainter::GenerateCachedEffectData.
     RS_TRACE_FUNC();
+
+    ReattachCachedImage(canvas);
 
     if (cacheType_ == CacheType::CACHE_TYPE_NONE) {
         // The cache is expired, so take an image snapshot again and cache it.
@@ -262,8 +267,10 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
 
     // If the cached image is larger than threshold, we will increase the cache update interval, which is configurable
     // by `hdc shell param set persist.sys.graphic.filterCacheUpdateInterval <interval>`, the default value is 1.
+    // Update: we also considered the filter parameters, only enable skip-frame if the blur radius is large enough.
     // Note: the cache will be invalidated immediately if the cached region cannot fully cover the filter region.
-    cacheUpdateInterval_ = isLargeArea ? RSSystemProperties::GetFilterCacheUpdateInterval() : 0;
+    cacheUpdateInterval_ =
+        isLargeArea && filter->CanSkipFrame() ? RSSystemProperties::GetFilterCacheUpdateInterval() : 0;
 }
 
 void RSFilterCacheManager::GenerateFilteredSnapshot(
@@ -354,6 +361,30 @@ void RSFilterCacheManager::ClipVisibleRect(RSPaintFilterCanvas& canvas) const
 const SkIRect& RSFilterCacheManager::GetCachedImageRegion() const
 {
     return cachedImageRegion_;
+}
+
+void RSFilterCacheManager::ReattachCachedImage(RSPaintFilterCanvas& canvas)
+{
+    if (cacheType_ == CacheType::CACHE_TYPE_NONE || cachedImage_->isValid(canvas.recordingContext())) {
+        return;
+    }
+    RS_TRACE_FUNC();
+
+    auto sharedBackendTexture = cachedImage_->getBackendTexture(false);
+    if (!sharedBackendTexture.isValid()) {
+        ROSEN_LOGE("RSFilterCacheManager::ReattachCachedImage failed to get backend texture.");
+        InvalidateCache();
+        return;
+    }
+
+    auto reattachedCachedImage = SkImage::MakeFromTexture(canvas.recordingContext(), sharedBackendTexture,
+        kBottomLeft_GrSurfaceOrigin, cachedImage_->colorType(), cachedImage_->alphaType(), nullptr);
+    if (reattachedCachedImage == nullptr || !reattachedCachedImage->isValid(canvas.recordingContext())) {
+        ROSEN_LOGE("RSFilterCacheManager::ReattachCachedImage failed to create SkImage from backend texture.");
+        InvalidateCache();
+        return;
+    }
+    cachedImage_ = reattachedCachedImage;
 }
 } // namespace Rosen
 } // namespace OHOS
