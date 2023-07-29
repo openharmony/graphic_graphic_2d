@@ -209,5 +209,10 @@ bool RSSystemProperties::GetASTCEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

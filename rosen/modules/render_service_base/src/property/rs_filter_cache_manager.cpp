@@ -22,6 +22,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_skia_filter.h"
+#include "src/image/SkImage_Base.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -255,6 +256,11 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     if (cachedImage_ == nullptr) {
         ROSEN_LOGE("RSFilterCacheManager::TakeSnapshot failed to make an image snapshot.");
         return;
+    }
+    if (RSSystemProperties::GetImageGpuResourceCacheEnable(cachedImage_->width(), cachedImage_->height())) {
+        ROSEN_LOGD("TakeSnapshot cache image resource(width:%d, height:%d).",
+            cachedImage_->width(), cachedImage_->height());
+        as_IB(cachedImage_)->hintCacheGpuResource();
     }
     filter->PreProcess(cachedImage_);
 

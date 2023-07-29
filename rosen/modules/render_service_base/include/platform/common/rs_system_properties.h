@@ -141,6 +141,7 @@ public:
     static bool GetDebugTraceEnabled();
     static bool GetCacheCmdEnabled();
     static bool GetASTCEnabled();
+    static bool GetImageGpuResourceCacheEnable(int width, int height);
 private:
     RSSystemProperties() = default;
 

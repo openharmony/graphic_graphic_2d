@@ -319,6 +319,25 @@ bool RSSystemProperties::GetASTCEnabled()
     return isASTCEnabled;
 }
 
+bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
+{
+    static bool cacheEnable =
+        std::atoi((system::GetParameter("persist.sys.graphic.gpuResourceCacheEnable", "1")).c_str()) != 0;
+    if (!cacheEnable) {
+        return false;
+    }
+
+    // default cache full screen image gpu resource.
+    static int widthConfig =
+        std::atoi((system::GetParameter("persist.sys.graphic.gpuResourceCacheWidth", "1344")).c_str());
+    static int heightConfig =
+        std::atoi((system::GetParameter("persist.sys.graphic.gpuResourceCacheHeight", "2772")).c_str());
+    if (width >= widthConfig && height >= heightConfig) {
+        return true;
+    }
+    return false;
+}
+
 bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
 {
     return std::atoi((system::GetParameter(name, defaultValue ? "1" : "0")).c_str()) != 0;
