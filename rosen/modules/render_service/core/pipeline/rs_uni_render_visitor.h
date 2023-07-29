@@ -66,6 +66,7 @@ public:
 
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool ParallelComposition(const std::shared_ptr<RSBaseRenderNode> rootNode);
+    void ChangeCacheRenderNodeMap(RSRenderNode& node, const uint32_t count = 0);
     void UpdateCacheRenderNodeMap(RSRenderNode& node);
     bool GenerateNodeContentCache(RSRenderNode& node);
     bool InitNodeCache(RSRenderNode& node);
