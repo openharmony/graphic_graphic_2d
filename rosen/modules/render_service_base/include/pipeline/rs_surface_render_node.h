@@ -792,7 +792,8 @@ private:
 
     Occlusion::Region containerRegion_;
     bool isFilterCacheFullyCovered_ = false;
-    std::vector<std::shared_ptr<RSRenderNode>> filterNodes_ = {};  // valid filter nodes within, including itself
+    std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>
+        filterNodes_; // valid filter nodes within, including itself
 
     //<screenRect, absRect, screenRotation, isFocusWindow>
     std::tuple<RectI, RectI, ScreenRotation, bool> OpaqueRegionBaseInfo_;

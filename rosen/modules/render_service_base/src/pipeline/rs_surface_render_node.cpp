@@ -765,7 +765,7 @@ void RSSurfaceRenderNode::UpdateFilterNodes(const std::shared_ptr<RSRenderNode>&
     if (nodePtr == nullptr) {
         return;
     }
-    filterNodes_.emplace_back(nodePtr);
+    filterNodes_.emplace(nodePtr->GetId(), nodePtr);
 }
 
 void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect)
@@ -775,8 +775,8 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
     }
 #ifndef USE_ROSEN_DRAWING
     // traversal filter nodes including app window
-    for (auto node : filterNodes_) {
-        if (!node) {
+    for (auto& [id, node] : filterNodes_) {
+        if (node == nullptr) {
             continue;
         }
         node->UpdateFilterCacheWithDirty(*dirtyManager_, false);
