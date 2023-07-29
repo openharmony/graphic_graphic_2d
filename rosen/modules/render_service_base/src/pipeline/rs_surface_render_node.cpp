@@ -775,9 +775,10 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
     }
 #ifndef USE_ROSEN_DRAWING
     // traversal filter nodes including app window
-    for (auto& [id, node] : filterNodes_) {
-        if (node == nullptr) {
-            continue;
+    EraseIf(filterNodes_, [this](const auto& pair) { 
+        auto& node = pair.second;
+        if (node == nullptr || !node->IsOnTheTree() || !node->GetRenderProperties().NeedFilter()) {
+            return true;
         }
         node->UpdateFilterCacheWithDirty(*dirtyManager_, false);
         node->UpdateFilterCacheWithDirty(*dirtyManager_, true);
@@ -785,7 +786,8 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
         if (node->IsFilterCacheValid()) {
             dirtyManager_->UpdateCacheableFilterRect(node->GetOldDirtyInSurface());
         }
-    }
+        return false;
+    });
     if (IsTransparent() && dirtyManager_->IfCacheableFilterRectFullyCover(GetOldDirtyInSurface())) {
         SetFilterCacheFullyCovered(true);
         RS_LOGD("UpdateFilterCacheStatusIfNodeStatic surfacenode %" PRIu64 " [%s]", GetId(), GetName().c_str());
