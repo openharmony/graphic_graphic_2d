@@ -16,12 +16,15 @@
 #include "property/rs_filter_cache_manager.h"
 
 #ifndef USE_ROSEN_DRAWING
-#include "include/gpu/GrBackendSurface.h"
 #include "rs_trace.h"
 
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_skia_filter.h"
+
+#ifdef RS_ENABLE_GL
+#include "include/gpu/GrBackendSurface.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -370,6 +373,7 @@ void RSFilterCacheManager::ReattachCachedImage(RSPaintFilterCanvas& canvas)
     }
     RS_TRACE_FUNC();
 
+#ifdef RS_ENABLE_GL
     auto sharedBackendTexture = cachedImage_->getBackendTexture(false);
     if (!sharedBackendTexture.isValid()) {
         ROSEN_LOGE("RSFilterCacheManager::ReattachCachedImage failed to get backend texture.");
@@ -385,6 +389,9 @@ void RSFilterCacheManager::ReattachCachedImage(RSPaintFilterCanvas& canvas)
         return;
     }
     cachedImage_ = reattachedCachedImage;
+#else
+    invalidateCache();
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS
