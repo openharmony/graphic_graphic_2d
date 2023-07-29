@@ -107,7 +107,8 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     }
     auto image = skSurface_->makeImageSnapshot();
 #ifdef NEW_SKIA
-    canvas.drawImage(image, 0.f, 0.f, SkSamplingOptions(), nullptr);
+    auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+    canvas.drawImage(image, 0.f, 0.f, samplingOptions, nullptr);
 #else
     canvas.drawImage(image, 0.f, 0.f, nullptr);
 #endif
