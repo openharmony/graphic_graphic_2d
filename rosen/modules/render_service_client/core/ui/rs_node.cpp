@@ -824,7 +824,8 @@ void RSNode::SetDynamicLightUpRate(const float rate)
 
 void RSNode::SetDynamicLightUpDegree(const float lightUpDegree)
 {
-    SetProperty<RSDynamicLightUpDegreeModifier, RSAnimatableProperty<float>>(RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, lightUpDegree);
+    SetProperty<RSDynamicLightUpDegreeModifier,
+        RSAnimatableProperty<float>>(RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, lightUpDegree);
 }
 
 void RSNode::SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter) {}
