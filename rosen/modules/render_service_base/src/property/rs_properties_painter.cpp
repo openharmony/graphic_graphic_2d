@@ -2119,7 +2119,8 @@ void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSP
 
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
-sk_sp<SkShader> RSPropertiesPainter::MakeDynamicLightUpShader(float dynamicLightUpRate, float dynamicLightUpDeg, sk_sp<SkShader> imageShader)
+sk_sp<SkShader> RSPropertiesPainter::MakeDynamicLightUpShader(
+    float dynamicLightUpRate, float dynamicLightUpDeg, sk_sp<SkShader> imageShader)
 {
     static constexpr char prog[] = R"(
         uniform half dynamicLightUpRate;
@@ -2127,7 +2128,8 @@ sk_sp<SkShader> RSPropertiesPainter::MakeDynamicLightUpShader(float dynamicLight
         uniform shader imageShader;
 
         half4 main(float2 coord) {
-            vec3 c = vec3(imageShader.eval(coord).r * 255, imageShader.eval(coord).g * 255, imageShader.eval(coord).b * 255);
+            vec3 c = vec3(imageShader.eval(coord).r * 255,
+                imageShader.eval(coord).g * 255, imageShader.eval(coord).b * 255);
             float x = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
             float y = (0 - dynamicLightUpRate) * x + dynamicLightUpDeg * 255;
             float R = clamp((c.r + y) / 255, 0.0, 1.0);
@@ -2138,8 +2140,8 @@ sk_sp<SkShader> RSPropertiesPainter::MakeDynamicLightUpShader(float dynamicLight
     )";
     auto [effect, err] = SkRuntimeEffect::MakeForShader(SkString(prog));
     if (!effect) {
-        ROSEN_LOGE("MakeDynamicLightUpShader::RuntimeShader effect error: %s\n", error.c_str());
-        return;
+        ROSEN_LOGE("MakeDynamicLightUpShader::RuntimeShader effect error: %s\n", err.c_str());
+        return nullptr;
     }
     SkRuntimeShaderBuilder builder(effect);
     builder.child("imageShader") = imageShader;
