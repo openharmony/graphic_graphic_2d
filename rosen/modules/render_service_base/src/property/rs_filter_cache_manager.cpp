@@ -303,6 +303,11 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
     // Update the cache state with the filtered snapshot.
     cacheType_ = CacheType::CACHE_TYPE_FILTERED_SNAPSHOT;
     cachedImage_ = offscreenSurface->makeImageSnapshot();
+    if (RSSystemProperties::GetImageGpuResourceCacheEnable(cachedImage_->width(), cachedImage_->height())) {
+        ROSEN_LOGD("GenerateFilteredSnapshot cache image resource(width:%d, height:%d).",
+            cachedImage_->width(), cachedImage_->height());
+        as_IB(cachedImage_)->hintCacheGpuResource();
+    }
     cachedImageRegion_ = filterRegion_;
 }
 

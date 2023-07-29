@@ -24,6 +24,9 @@
 namespace OHOS {
 namespace Rosen {
 
+constexpr int DEFAULT_CACHE_WIDTH = 1344;
+constexpr int DEFAULT_CACHE_HEIGHT = 2772;
+
 static void ParseDfxSurfaceNamesString(const std::string& paramsStr,
     std::vector<std::string>& splitStrs, const std::string& seperator)
 {
@@ -329,10 +332,12 @@ bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
 
     // default cache full screen image gpu resource.
     static int widthConfig =
-        std::atoi((system::GetParameter("persist.sys.graphic.gpuResourceCacheWidth", "1344")).c_str());
+        std::atoi((system::GetParameter("persist.sys.graphic.gpuResourceCacheWidth", "0")).c_str());
     static int heightConfig =
-        std::atoi((system::GetParameter("persist.sys.graphic.gpuResourceCacheHeight", "2772")).c_str());
-    if (width >= widthConfig && height >= heightConfig) {
+        std::atoi((system::GetParameter("persist.sys.graphic.gpuResourceCacheHeight", "0")).c_str());
+    int cacheWidth = widthConfig == 0 ? DEFAULT_CACHE_WIDTH : widthConfig;
+    int cacheHeight = heightConfig == 0 ? DEFAULT_CACHE_HEIGHT : heightConfig;
+    if (width >= cacheWidth && height >= cacheHeight) {
         return true;
     }
     return false;
