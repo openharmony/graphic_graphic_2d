@@ -159,7 +159,7 @@ sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialFilter(float radius, float 
 #if defined(NEW_SKIA)
     useKawase_ = RSSystemProperties::GetKawaseEnabled();
     int gaussRadius = static_cast<int>(radius);
-    if (gaussRadius == 0) {
+    if (gaussRadius <= 0) {
         useKawase_ = false;
     }
     sk_sp<SkImageFilter> blurFilter = SkImageFilters::Blur(radius, radius, SkTileMode::kClamp, nullptr); // blur

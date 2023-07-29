@@ -46,7 +46,7 @@ RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(S
     hash_ = SkOpts::hash(&blurRadiusY, sizeof(blurRadiusY), hash_);
     useKawase_ = RSSystemProperties::GetKawaseEnabled();
     int gaussRadius = static_cast<int>(blurRadiusX);
-    if (gaussRadius == 0) {
+    if (gaussRadius <= 0) {
         useKawase_ = false;
     }
 }
