@@ -325,7 +325,7 @@ public:
         const std::shared_ptr<Media::PixelMap>& pixelmap, const RsImageInfo& rsimageInfo, const SkPaint& paint);
     ImageWithParmOpItem(const std::shared_ptr<RSImage>& rsImage, const SkPaint& paint);
 #endif
-    ~ImageWithParmOpItem() override {}
+    ~ImageWithParmOpItem() override;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -353,9 +353,20 @@ public:
 
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
-
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#ifndef USE_ROSEN_DRAWING
+    sk_sp<SkImage> GetSkImageFromSurfaceBuffer(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const;
+#endif
+#endif
 private:
     std::shared_ptr<RSImage> rsImage_;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#ifndef USE_ROSEN_DRAWING
+    mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
+    mutable GLuint texId_ = 0;
+    mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
+#endif
+#endif
 #ifdef NEW_SKIA
     SkSamplingOptions samplingOptions_;
 #endif
