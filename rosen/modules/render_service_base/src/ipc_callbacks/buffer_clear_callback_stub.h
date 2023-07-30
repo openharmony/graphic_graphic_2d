@@ -13,16 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_IBUFFER_AVAILABLE_CALLBACK_INTERFACE_CODE_H
-#define ROSEN_RENDER_SERVICE_BASE_IBUFFER_AVAILABLE_CALLBACK_INTERFACE_CODE_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_IBUFFER_CLEAR_CALLBACK_STUB_H
+#define ROSEN_RENDER_SERVICE_BASE_IBUFFER_CLEAR_CALLBACK_STUB_H
+
+#include <iremote_stub.h>
+#include "common/rs_macros.h"
+#include "ipc_callbacks/buffer_clear_callback.h"
+#include "ipc_callbacks/buffer_available_callback_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {
-enum class RSIBufferAvailableCallbackInterfaceCode {
-    ON_BUFFER_AVAILABLE,
-    ON_BUFFER_CLEAR,
+class RSB_EXPORT RSBufferClearCallbackStub : public IRemoteStub<RSIBufferClearCallback> {
+public:
+    RSBufferClearCallbackStub() = default;
+    ~RSBufferClearCallbackStub() = default;
+
+    int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_RENDER_SERVICE_BASE_IBUFFER_AVAILABLE_CALLBACK_INTERFACE_CODE_H
+#endif // ROSEN_RENDER_SERVICE_BASE_IBUFFER_CLEAR_CALLBACK_STUB_H

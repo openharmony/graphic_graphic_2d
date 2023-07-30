@@ -102,6 +102,9 @@ public:
     void RegisterBufferAvailableListener(
         NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) override;
 
+    void RegisterBufferClearListener(
+        NodeId id, sptr<RSIBufferClearCallback> callback) override;
+
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) override;
 
     int32_t GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) override;

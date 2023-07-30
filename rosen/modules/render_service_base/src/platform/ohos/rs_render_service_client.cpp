@@ -26,6 +26,7 @@
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
+#include "ipc_callbacks/buffer_clear_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "platform/common/rs_log.h"
 #ifdef NEW_RENDER_CONTEXT
@@ -497,6 +498,23 @@ private:
     BufferAvailableCallback cb_;
 };
 
+class CustomBufferClearCallback : public RSBufferClearCallbackStub
+{
+public:
+    explicit CustomBufferClearCallback(const BufferClearCallback &callback) : cb_(callback) {}
+    ~CustomBufferClearCallback() override {};
+
+    void OnBufferClear() override
+    {
+        if (cb_ != nullptr) {
+            cb_();
+        }
+    }
+
+private:
+    BufferClearCallback cb_;
+};
+
 bool RSRenderServiceClient::RegisterBufferAvailableListener(
     NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
 {
@@ -523,6 +541,18 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(
     } else {
         bufferAvailableCbUIMap_.emplace(id, bufferAvailableCb);
     }
+    return true;
+}
+
+bool RSRenderServiceClient::RegisterBufferClearListener(
+        NodeId id, const BufferClearCallback& callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return false;
+    }
+    sptr<RSIBufferClearCallback> bufferClearCb = new CustomBufferClearCallback(callback);
+    renderService->RegisterBufferClearListener(id, bufferClearCb);
     return true;
 }
 
