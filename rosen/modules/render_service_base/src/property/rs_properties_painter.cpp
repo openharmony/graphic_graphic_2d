@@ -52,6 +52,7 @@
 #include "include/effects/SkGradientShader.h"
 #include "include/effects/SkLumaColorFilter.h"
 #include "include/utils/SkShadowUtils.h"
+#include "src/image/SkImage_Base.h"
 #ifdef NEW_SKIA
 #include "include/effects/SkImageFilters.h"
 #include "include/effects/SkRuntimeEffect.h"
@@ -1081,6 +1082,12 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");
         return;
     }
+    if (RSSystemProperties::GetImageGpuResourceCacheEnable(imageSnapshot->width(), imageSnapshot->height())) {
+        ROSEN_LOGD("DrawFilter cache image resource(width:%d, height:%d).",
+            imageSnapshot->width(), imageSnapshot->height());
+        as_IB(imageSnapshot)->hintCacheGpuResource();
+    }
+
     filter->PreProcess(imageSnapshot);
     canvas.resetMatrix();
     auto visibleIRect = canvas.GetVisibleRect().round();
