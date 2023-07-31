@@ -34,9 +34,10 @@ struct KawaseParameter {
     SkRect dst;
     int radius;
     sk_sp<SkColorFilter> colorFilter;
+    float alpha;
 
-    KawaseParameter(const SkRect& s, const SkRect& d, int r, sk_sp<SkColorFilter> color = nullptr)
-        : src(s), dst(d), radius(r), colorFilter(color) {}
+    KawaseParameter(const SkRect& s, const SkRect& d, int r, sk_sp<SkColorFilter> color = nullptr, float a = 0.f)
+        : src(s), dst(d), radius(r), colorFilter(color), alpha(a) {}
 };
 class KawaseBlurFilter {
 public:
