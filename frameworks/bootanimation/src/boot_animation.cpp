@@ -160,7 +160,7 @@ void BootAnimation::Run(Rosen::ScreenId id, int screenWidth, int screenHeight)
 void BootAnimation::InitRsSurfaceNode()
 {
     struct Rosen::RSSurfaceNodeConfig rsSurfaceNodeConfig;
-    Rosen::RSSurfaceNodeType rsSurfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    Rosen::RSSurfaceNodeType rsSurfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE;
     rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(rsSurfaceNodeConfig, rsSurfaceNodeType);
     if (!rsSurfaceNode_) {
         LOGE("rsSurfaceNode_ is nullptr");
