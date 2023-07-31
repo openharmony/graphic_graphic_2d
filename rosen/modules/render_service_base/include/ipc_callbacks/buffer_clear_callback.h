@@ -13,16 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_IBUFFER_AVAILABLE_CALLBACK_INTERFACE_CODE_H
-#define ROSEN_RENDER_SERVICE_BASE_IBUFFER_AVAILABLE_CALLBACK_INTERFACE_CODE_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_IBUFFER_CLEAR_CALLBACK_H
+#define ROSEN_RENDER_SERVICE_BASE_IBUFFER_CLEAR_CALLBACK_H
+
+#include <iremote_broker.h>
+
+#include "common/rs_common_def.h"
+#include "pixel_map.h"
 
 namespace OHOS {
 namespace Rosen {
-enum class RSIBufferAvailableCallbackInterfaceCode {
-    ON_BUFFER_AVAILABLE,
-    ON_BUFFER_CLEAR,
+class RSIBufferClearCallback : public IRemoteBroker {
+public:
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RSIBufferClearListener");
+
+    RSIBufferClearCallback() = default;
+    virtual ~RSIBufferClearCallback() noexcept = default;
+
+    virtual void OnBufferClear() = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_RENDER_SERVICE_BASE_IBUFFER_AVAILABLE_CALLBACK_INTERFACE_CODE_H
+#endif // ROSEN_RENDER_SERVICE_BASE_IBUFFER_CLEAR_CALLBACK_H

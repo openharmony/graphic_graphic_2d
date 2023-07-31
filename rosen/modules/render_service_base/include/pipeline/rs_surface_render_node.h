@@ -27,6 +27,7 @@
 #include "common/rs_occlusion_region.h"
 #include "common/rs_vector4.h"
 #include "ipc_callbacks/buffer_available_callback.h"
+#include "ipc_callbacks/buffer_clear_callback.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
@@ -460,6 +461,8 @@ public:
     // to save callback method sent by RT or UI which depends on the value of "isFromRenderThread".
     void RegisterBufferAvailableListener(sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread);
 
+    void RegisterBufferClearListener(sptr<RSIBufferClearCallback> callback);
+
     // Only SurfaceNode in RT calls "ConnectToNodeInRenderService" to send callback method to RS
     void ConnectToNodeInRenderService();
 
@@ -698,6 +701,8 @@ public:
     // update static node's back&front-ground filter cache status
     void UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect);
 
+    void SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvailable);
+
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
     bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;
@@ -706,6 +711,7 @@ private:
 
     std::mutex mutexRT_;
     std::mutex mutexUI_;
+    std::mutex mutexClear_;
     std::mutex mutex_;
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
@@ -755,6 +761,7 @@ private:
     std::atomic_bool isBufferAvailable_ = false;
     sptr<RSIBufferAvailableCallback> callbackFromRT_;
     sptr<RSIBufferAvailableCallback> callbackFromUI_;
+    sptr<RSIBufferClearCallback> clearBufferCallback_;
     bool isRefresh_ = false;
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;

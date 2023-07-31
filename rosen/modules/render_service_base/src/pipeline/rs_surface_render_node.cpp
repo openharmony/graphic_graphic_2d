@@ -527,6 +527,22 @@ void RSSurfaceRenderNode::RegisterBufferAvailableListener(
     }
 }
 
+void RSSurfaceRenderNode::RegisterBufferClearListener(
+    sptr<RSIBufferClearCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(mutexClear_);
+    clearBufferCallback_ = callback;
+}
+
+void RSSurfaceRenderNode::SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvailable)
+{
+    isNotifyRTBufferAvailable_ = isNotifyRTBufferAvailable;
+    std::lock_guard<std::mutex> lock(mutexClear_);
+    if (clearBufferCallback_) {
+        clearBufferCallback_->OnBufferClear();
+    }
+}
+
 void RSSurfaceRenderNode::ConnectToNodeInRenderService()
 {
     ROSEN_LOGI("RSSurfaceRenderNode::ConnectToNodeInRenderService nodeId = %" PRIu64, GetId());
@@ -541,6 +557,14 @@ void RSSurfaceRenderNode::ConnectToNodeInRenderService()
                 }
                 node->NotifyRTBufferAvailable();
             }, true);
+        renderServiceClient->RegisterBufferClearListener(
+            GetId(), [weakThis = weak_from_this()]() {
+                auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(weakThis.lock());
+                if (node == nullptr) {
+                    return;
+                }
+                node->SetNotifyRTBufferAvailable(false);
+            });
     }
 }
 

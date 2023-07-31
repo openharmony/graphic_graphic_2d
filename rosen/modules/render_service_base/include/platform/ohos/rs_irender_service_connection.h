@@ -23,6 +23,7 @@
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
 #include "ipc_callbacks/buffer_available_callback.h"
+#include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
@@ -124,6 +125,9 @@ public:
 
     virtual void RegisterBufferAvailableListener(
         NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) = 0;
+    
+    virtual void RegisterBufferClearListener(
+        NodeId id, sptr<RSIBufferClearCallback> callback) = 0;
 
     virtual int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) = 0;
 

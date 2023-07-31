@@ -89,6 +89,8 @@ ohos_source_set("render_service_base_src") {
     #ipc_callbacks
     "src/ipc_callbacks/buffer_available_callback_proxy.cpp",
     "src/ipc_callbacks/buffer_available_callback_stub.cpp",
+    "src/ipc_callbacks/buffer_clear_callback_proxy.cpp",
+    "src/ipc_callbacks/buffer_clear_callback_stub.cpp",
     "src/ipc_callbacks/rs_application_agent_proxy.cpp",
     "src/ipc_callbacks/rs_application_agent_stub.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",

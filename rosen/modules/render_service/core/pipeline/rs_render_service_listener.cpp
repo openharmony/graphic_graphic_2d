@@ -89,6 +89,7 @@ void RSRenderServiceListener::OnGoBackground()
         RS_LOGD("RsDebug RSRenderServiceListener::OnGoBackground node id:%" PRIu64, node->GetId());
         node->ResetBufferAvailableCount();
         node->CleanCache();
+        node->SetNotifyRTBufferAvailable(false);
         if (node->IsLastFrameHardwareEnabled()) {
             node->SetContentDirty();
             RSMainThread::Instance()->AddActiveNodeId(ExtractPid(node->GetId()), node->GetId());

@@ -51,6 +51,7 @@ namespace Rosen {
 // normal callback functor for client users.
 using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent)>;
 using BufferAvailableCallback = std::function<void()>;
+using BufferClearCallback = std::function<void()>;
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
 
 struct DataBaseRs {
@@ -159,6 +160,10 @@ public:
 
     bool RegisterBufferAvailableListener(
         NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread = false);
+    
+    bool RegisterBufferClearListener(
+        NodeId id, const BufferClearCallback &callback);
+
     bool UnregisterBufferAvailableListener(NodeId id);
 
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode);
