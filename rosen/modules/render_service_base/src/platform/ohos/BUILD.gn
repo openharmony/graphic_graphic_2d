@@ -52,6 +52,8 @@ ohos_source_set("rosen_ohos_sources") {
     "rs_event_manager.cpp",
     "rs_frame_report.cpp",
     "rs_innovation.cpp",
+    "rs_irender_service_connection_ipc_interface_code_access_verifier.cpp",
+    "rs_irender_service_ipc_interface_code_access_verifier.cpp",
     "rs_jank_stats.cpp",
     "rs_log.cpp",
     "rs_marshalling_helper.cpp",
