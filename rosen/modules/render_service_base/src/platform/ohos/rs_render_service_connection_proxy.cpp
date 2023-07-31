@@ -893,7 +893,6 @@ void RSRenderServiceConnectionProxy::RegisterBufferClearListener(
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return;
     }
-    ROSEN_LOGE("ccc: proxy");
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
     data.WriteRemoteObject(callback->AsObject());
