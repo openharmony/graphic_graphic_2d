@@ -55,6 +55,7 @@ public:
     void SetImagePixelAddr(void* addr);
     void UpdateNodeIdToPicture(NodeId nodeId);
     void MarkRenderServiceImage();
+    std::shared_ptr<Media::PixelMap> GetPixelMap() const;
 #ifdef ROSEN_OHOS
     virtual bool Marshalling(Parcel& parcel) const;
     [[nodiscard]] static RSImageBase* Unmarshalling(Parcel& parcel);

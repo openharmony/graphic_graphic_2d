@@ -380,4 +380,9 @@ void RSImageBase::GenUniqueId(uint32_t id)
     static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
     uniqueId_ = shiftedPid | id;
 }
+
+std::shared_ptr<Media::PixelMap> RSImageBase::GetPixelMap() const
+{
+    return pixelMap_;
+}
 }

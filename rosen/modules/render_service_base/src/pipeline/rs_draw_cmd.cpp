@@ -694,19 +694,109 @@ ImageWithParmOpItem::ImageWithParmOpItem(const std::shared_ptr<RSImage>& rsImage
 {
     paint_ = paint;
 }
-
+ImageWithParmOpItem::~ImageWithParmOpItem()
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#ifndef USE_ROSEN_DRAWING
+    if (texId_ != 0U) {
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDeleteTextures(1, &texId_);
+        texId_ = 0U;
+    }
+    if (nativeWindowBuffer_ != nullptr) {
+        DestroyNativeWindowBuffer(nativeWindowBuffer_);
+        nativeWindowBuffer_ = nullptr;
+    }
+    if (eglImage_ != EGL_NO_IMAGE_KHR) {
+        auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+        eglDestroyImageKHR(disp, eglImage_);
+        eglImage_ = EGL_NO_IMAGE_KHR;
+    }
+#endif
+#endif
+}
 void ImageWithParmOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const
 {
     if (!rect) {
         ROSEN_LOGE("ImageWithParmOpItem: no rect");
         return;
     }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#ifndef USE_ROSEN_DRAWING
+    std::shared_ptr<Media::PixelMap> pixelmap = rsImage_->GetPixelMap();
+    if (pixelmap != nullptr && pixelmap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+        sk_sp<SkImage> dmaImage = GetSkImageFromSurfaceBuffer(canvas,
+            reinterpret_cast<SurfaceBuffer*> (pixelmap->GetFd()));
+        rsImage_->SetImage(dmaImage);
+    }
+#endif
+#endif
+
 #ifdef NEW_SKIA
     rsImage_->CanvasDrawImage(canvas, *rect, samplingOptions_, paint_);
 #else
     rsImage_->CanvasDrawImage(canvas, *rect, paint_);
 #endif
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#ifndef USE_ROSEN_DRAWING
+sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const
+{
+    if (surfaceBuffer == nullptr) {
+        RS_LOGE("GetSkImageFromSurfaceBuffer surfaceBuffer is nullptr");
+        return nullptr;
+    }
+    if (nativeWindowBuffer_ == nullptr) {
+        sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
+        nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&sfBuffer);
+        if (!nativeWindowBuffer_) {
+            RS_LOGE("GetSkImageFromSurfaceBuffer create native window buffer fail");
+            return nullptr;
+        }
+    }
+    EGLint attrs[] = {
+        EGL_IMAGE_PRESERVED,
+        EGL_TRUE,
+        EGL_NONE,
+    };
+
+    auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (eglImage_ == EGL_NO_IMAGE_KHR) {
+        eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
+        if (eglImage_ == EGL_NO_IMAGE_KHR) {
+            RS_LOGE("%s create egl image fail %d", __func__, eglGetError());
+            return nullptr;
+        }
+    }
+
+    // Create texture object
+    if (texId_ == 0U) {
+        glGenTextures(1, &texId_);
+        glBindTexture(GL_TEXTURE_2D, texId_);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, static_cast<GLeglImageOES>(eglImage_));
+    }
+
+    GrGLTextureInfo textureInfo = { GL_TEXTURE_2D, texId_, GL_RGBA8_OES };
+
+    GrBackendTexture backendTexture(
+        surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), GrMipMapped::kNo, textureInfo);
+#ifdef NEW_SKIA
+    auto skImage = SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
+        kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
+#else
+    auto skImage = SkImage::MakeFromTexture(canvas.getGrContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
+        kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
+#endif
+    return skImage;
+}
+#endif // USE_ROSEN_DRAWING
+#endif // ROSEN_OHOS & RS_ENABLE_GL
 
 #ifdef NEW_SKIA
 ConcatOpItem::ConcatOpItem(const SkM44& matrix) : OpItem(sizeof(ConcatOpItem)), matrix_(matrix) {}
