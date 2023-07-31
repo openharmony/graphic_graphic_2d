@@ -77,13 +77,27 @@ SkMatrix KawaseBlurFilter::GetShaderTransform(const SkCanvas* canvas, const SkRe
 
 bool KawaseBlurFilter::ApplyKawaseBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, const KawaseParameter& param)
 {
+    auto src = param.src;
+    auto dst = param.dst;
+    int inputRadius = param.radius;
+    if (inputRadius <= 0) {
+        SkPaint paint;
+        if (param.colorFilter) {
+            paint.setColorFilter(param.colorFilter);
+        }
+        SkMatrix inputMatrix = SkMatrix::Translate(-src.fLeft, -src.fTop);
+        inputMatrix.postConcat(SkMatrix::Translate(dst.fLeft, dst.fTop));
+        SkSamplingOptions linear(SkFilterMode::kLinear, SkMipmapMode::kNone);
+        const auto inputShader = image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, linear, &inputMatrix);
+        paint.setShader(inputShader);
+        canvas.drawRect(dst, paint);
+        return true;
+    }
     if (!blurEffect_ || !mixEffect_) {
         return false;
     }
     ComputeRadiusAndScale(param.radius);
     RS_TRACE_NAME("ApplyKawaseBlur " + GetDescription());
-    auto src = param.src;
-    auto dst = param.dst;
     int maxPasses = supportLargeRadius ? kMaxPassesLargeRadius : kMaxPasses;
     float dilatedConvolutionFactor = supportLargeRadius ? kDilatedConvolutionLargeRadius : kDilatedConvolution;
     float tmpRadius = static_cast<float>(blurRadius_) / dilatedConvolutionFactor;
