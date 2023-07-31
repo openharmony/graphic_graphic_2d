@@ -2028,16 +2028,17 @@ void RSMainThread::SetAppWindowNum(uint32_t num)
 
 void RSMainThread::AddActiveNodeId(pid_t pid, NodeId id)
 {
-    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
-    if (node == nullptr) {
-        RS_LOGE("AddActiveNodeId: node is nullptr");
-        return;
-    }
     if (id == 0) {
-        activeAppsInProcess_[pid].emplace(id);
+        activeAppsInProcess_[pid].emplace(INVALID_NODEID);
     } else {
-        activeAppsInProcess_[pid].emplace(node->GetRootSurfaceNodeId());
-        activeProcessNodeIds_[node->GetRootSurfaceNodeId()].emplace(id);
+        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
+        auto rootNodeId = INVALID_NODEID;
+        // if node is just set on tree, it cannot be found yet
+        if (node != nullptr) {
+            rootNodeId = node->GetRootSurfaceNodeId();
+        }
+        activeAppsInProcess_[pid].emplace(rootNodeId);
+        activeProcessNodeIds_[rootNodeId].emplace(id);
     }
 }
 

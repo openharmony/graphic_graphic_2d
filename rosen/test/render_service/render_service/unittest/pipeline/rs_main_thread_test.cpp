@@ -575,7 +575,10 @@ HWTEST_F(RSMainThreadTest, AddActiveNodeId, TestSize.Level1)
     pid_t pid = 1;
     NodeId id = ((NodeId)pid << 32) + 1;
     mainThread->AddActiveNodeId(pid, id);
-    ASSERT_EQ(static_cast<int>(mainThread->activeAppsInProcess_[pid].size()), 0);
+    ASSERT_NE(static_cast<int>(mainThread->activeAppsInProcess_[pid].size()), 0);
+    for (auto iter : mainThread->activeAppsInProcess_[pid]) {
+        ASSERT_EQ(iter, INVALID_NODEID);
+    }
 }
 
 /**

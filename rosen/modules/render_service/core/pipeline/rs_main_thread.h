@@ -116,17 +116,17 @@ public:
             return false;
         }
         pid_t pid = ExtractPid(nodeId);
-        if (activeAppsInProcess_.find(pid) != activeAppsInProcess_.end()) {
-            if (!isClassifyByRoot) {
-                return true;
-            }
-            auto& activeAppsInProcess = activeAppsInProcess_[pid];
-            if (activeAppsInProcess.find(0) != activeAppsInProcess.end()) {
-                return true;
-            }
-            return (activeProcessNodeIds_.find(rootNodeId) != activeProcessNodeIds_.end());
+        if (activeAppsInProcess_.find(pid) == activeAppsInProcess_.end()) {
+            return false;
         }
-        return false;
+        if (!isClassifyByRoot) {
+            return true;
+        }
+        auto& activeApps = activeAppsInProcess_[pid];
+        if (activeApps.find(INVALID_NODEID) != activeApps.end()) {
+            return true;
+        }
+        return (activeProcessNodeIds_.find(rootNodeId) != activeProcessNodeIds_.end());
     }
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
