@@ -42,7 +42,7 @@ namespace TextEngine {
 
 namespace {
 std::vector<LineMetrics> CreateEllipsisSpan(const TypographyStyle &ys,
-    const std::unique_ptr<FontProviders> &fontProviders)
+    const std::shared_ptr<FontProviders> &fontProviders)
 {
     if (ys.ellipsis.empty()) {
         return {};
@@ -74,8 +74,8 @@ Boundary::Boundary(size_t left, size_t right)
 }
 
 TypographyImpl::TypographyImpl(TypographyStyle &ys, std::vector<VariantSpan> &spans,
-    std::unique_ptr<FontProviders> providers
-    ): typographyStyle_(std::move(ys)), spans_(std::move(spans)), fontProviders_(std::move(providers))
+    std::shared_ptr<FontProviders> providers
+    ): typographyStyle_(std::move(ys)), spans_(std::move(spans)), fontProviders_(providers)
 {
 }
 

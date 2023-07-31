@@ -25,13 +25,13 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 std::unique_ptr<TypographyBuilder> TypographyBuilder::Create(const TypographyStyle& ys,
-    std::unique_ptr<FontProviders> fontProviders)
+    std::shared_ptr<FontProviders> fontProviders)
 {
-    return std::make_unique<TypographyBuilderImpl>(ys, std::move(fontProviders));
+    return std::make_unique<TypographyBuilderImpl>(ys, fontProviders);
 }
 
 TypographyBuilderImpl::TypographyBuilderImpl(const TypographyStyle& ys,
-    std::unique_ptr<FontProviders> fontProviders): ys_(std::move(ys)), fontProviders_(std::move(fontProviders))
+    std::shared_ptr<FontProviders> fontProviders): ys_(std::move(ys)), fontProviders_(fontProviders)
 {
 }
 
@@ -113,7 +113,7 @@ void TypographyBuilderImpl::AppendSpan(const std::vector<uint32_t>& text)
 
 std::shared_ptr<Typography> TypographyBuilderImpl::Build()
 {
-    return std::make_shared<TypographyImpl>(ys_, spans_, std::move(fontProviders_));
+    return std::make_shared<TypographyImpl>(ys_, spans_, fontProviders_);
 }
 } // namespace TextEngine
 } // namespace Rosen

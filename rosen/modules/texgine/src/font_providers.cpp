@@ -20,12 +20,12 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-std::unique_ptr<FontProviders> FontProviders::Create() noexcept(true)
+std::shared_ptr<FontProviders> FontProviders::Create() noexcept(true)
 {
-    return std::unique_ptr<FontProviders>(new FontProviders());
+    return std::make_shared<FontProviders>();
 }
 
-std::unique_ptr<FontProviders> FontProviders::SystemFontOnly() noexcept(true)
+std::shared_ptr<FontProviders> FontProviders::SystemFontOnly() noexcept(true)
 {
     auto fps = FontProviders::Create();
     fps->AppendFontProvider(SystemFontProvider::GetInstance());

@@ -26,7 +26,7 @@ namespace Rosen {
 namespace TextEngine {
 class TypographyBuilderImpl : public TypographyBuilder {
 public:
-    TypographyBuilderImpl(const TypographyStyle& ys, std::unique_ptr<FontProviders> fontProviders);
+    TypographyBuilderImpl(const TypographyStyle& ys, std::shared_ptr<FontProviders> fontProviders);
     void PushStyle(const TextStyle &style) override;
     void PopStyle() override;
     void AppendSpan(const std::shared_ptr<AnySpan> &as) override;
@@ -40,7 +40,7 @@ public:
 
 private:
     TypographyStyle ys_;
-    std::unique_ptr<FontProviders> fontProviders_ = nullptr;
+    std::shared_ptr<FontProviders> fontProviders_ = nullptr;
     std::stack<TextStyle> styleStack_;
     std::vector<VariantSpan> spans_;
     std::shared_ptr<TextSpan> lastTextSpan_ = nullptr;

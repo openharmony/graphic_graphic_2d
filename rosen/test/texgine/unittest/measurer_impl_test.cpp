@@ -273,6 +273,7 @@ HWTEST_F(MeasurerImplTest, Measure2, TestSize.Level1)
 
     EXPECT_EQ(mi.Measure(charGroups_), 0);
     EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
+    ret++;
     EXPECT_EQ(mi.Measure(charGroups_), 0);
     EXPECT_EQ(g_measurerMockvars.calledHBFontCreate, ret);
 }

@@ -29,14 +29,14 @@ namespace AdapterTextEngine {
 class FontCollection : public ::OHOS::Rosen::FontCollection {
 public:
     FontCollection();
-    std::unique_ptr<TextEngine::FontProviders> Get();
+    std::shared_ptr<TextEngine::FontProviders> Get();
 
     void DisableFallback() override;
     void DisableSystemFont() override;
     void LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
 
 private:
-    std::unique_ptr<TextEngine::FontProviders> fontProviders_ = nullptr;
+    std::shared_ptr<TextEngine::FontProviders> fontProviders_ = nullptr;
     std::shared_ptr<TextEngine::DynamicFontProvider> dfprovider_ = nullptr;
     bool disableSystemFont_ = false;
 };

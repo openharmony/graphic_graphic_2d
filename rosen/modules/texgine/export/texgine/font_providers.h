@@ -38,17 +38,18 @@ class FontCollection;
  */
 class FontProviders {
 public:
+    FontProviders() = default;
     /*
      * @brief Allocates an empty FontProviders.
      */
-    static std::unique_ptr<FontProviders> Create() noexcept(true);
+    static std::shared_ptr<FontProviders> Create() noexcept(true);
 
     /*
      * @brief Allocates a FontProviders that have only one FontProvider which is SystemFontProvider.
      *        The first FontProvider in the allocated FontProviders is SystemFontProvider,
      *        add additional FontProvider can be appended if necessary.
      */
-    static std::unique_ptr<FontProviders> SystemFontOnly() noexcept(true);
+    static std::shared_ptr<FontProviders> SystemFontOnly() noexcept(true);
 
     /*
      * @brief Append FontProvider into FontProviders.
@@ -71,10 +72,14 @@ public:
     std::shared_ptr<FontCollection> GenerateFontCollection(
         const std::vector<std::string>& families) const noexcept(true);
 
+    void Clear()
+    {
+        fontStyleSetCache_.clear();
+    }
+
 private:
     friend void ReportMemoryUsage(const std::string& member, const FontProviders& that, const bool needThis);
 
-    FontProviders() = default;
     FontProviders(const FontProviders&) = delete;
     FontProviders(FontProviders&&) = delete;
     FontProviders& operator=(const FontProviders&) = delete;

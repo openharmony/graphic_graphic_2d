@@ -34,7 +34,7 @@ TypographyCreate::TypographyCreate(const TypographyStyle& style,
 {
     auto paragraphStyle = Convert(style);
     auto fontProviders = Convert(collection)->Get();
-    builder_ = TextEngine::TypographyBuilder::Create(paragraphStyle, std::move(fontProviders));
+    builder_ = TextEngine::TypographyBuilder::Create(paragraphStyle, fontProviders);
 }
 
 void TypographyCreate::PushStyle(const TextStyle& style)

@@ -30,7 +30,7 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyle &ys,
-    const std::unique_ptr<FontProviders> &fontProviders)
+    const std::shared_ptr<FontProviders> &fontProviders)
 {
     ScopedTrace scope("TextBreaker::WordBreak");
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "WordBreak");
@@ -73,7 +73,7 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
 }
 
 std::shared_ptr<FontCollection> TextBreaker::GenerateFontCollection(const TypographyStyle &ys,
-    const TextStyle &xs, const std::unique_ptr<FontProviders> &fontProviders) noexcept(false)
+    const TextStyle &xs, const std::shared_ptr<FontProviders> &fontProviders) noexcept(false)
 {
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "TextBreaker::GenerateFontCollection");
     auto families = xs.fontFamilies;

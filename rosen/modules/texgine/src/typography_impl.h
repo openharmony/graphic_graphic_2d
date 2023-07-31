@@ -41,7 +41,7 @@ struct CalcResult {
 class TypographyImpl : public Typography {
 public:
     TypographyImpl(TypographyStyle &ys, std::vector<VariantSpan> &spans,
-        std::unique_ptr<FontProviders> providers);
+        std::shared_ptr<FontProviders> providers);
 
     double GetMaxWidth() const override;
     double GetHeight() const override;
@@ -84,7 +84,7 @@ private:
 
     TypographyStyle typographyStyle_;
     std::vector<VariantSpan> spans_;
-    std::unique_ptr<FontProviders> fontProviders_;
+    std::shared_ptr<FontProviders> fontProviders_;
 
     std::vector<LineMetrics> lineMetrics_;
     mutable std::vector<Boundary> boundariesCache_;

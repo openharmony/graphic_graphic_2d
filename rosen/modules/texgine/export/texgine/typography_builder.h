@@ -39,7 +39,7 @@ public:
      * @return TypographyBuilder
      */
     static std::unique_ptr<TypographyBuilder> Create(const TypographyStyle& ys = {},
-        std::unique_ptr<FontProviders> fontProviders = FontProviders::SystemFontOnly());
+        std::shared_ptr<FontProviders> fontProviders = FontProviders::SystemFontOnly());
 
     virtual ~TypographyBuilder() = default;
 
