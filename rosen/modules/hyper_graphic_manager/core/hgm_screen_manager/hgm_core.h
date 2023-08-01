@@ -17,7 +17,7 @@
 #define HGM_CORE_H
 
 #include <functional>
-#include <inttypes.h>
+#include <cinttypes>
 #include <thread>
 #include <unordered_map>
 #include <vector>

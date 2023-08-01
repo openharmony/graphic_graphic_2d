@@ -415,7 +415,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
     instance.AddScreen(screenId2, 1);
     instance.AddScreenInfo(screenId2, width, height, rate, mode);
     instance.AddScreenInfo(screenId2, width, height, rate2, mode2);
-    
+
     PART("HgmCore") {
         STEP("1. set active mode") {
             int32_t setResult = instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_HIGH);

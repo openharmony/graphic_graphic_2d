@@ -18,11 +18,10 @@ config("libhyper_graphic_manager_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
-    "core/include",
-    "utils/include",
-    "config/include",
-    "interface/include",
-    "frame_rate_manager",
+    "core/config",
+    "core/frame_rate_manager",
+    "core/hgm_screen_manager",
+    "core/utils",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
     "$graphic_2d_root/rosen/modules/render_service/core",
@@ -37,11 +36,11 @@ ohos_shared_library("libhyper_graphic_manager") {
   public_configs = [ ":libhyper_graphic_manager_config" ]
 
   sources = [
-    "config/src/xml_parser.cpp",
-    "core/src/hgm_core.cpp",
-    "core/src/hgm_screen.cpp",
-    "frame_rate_manager/hgm_frame_rate_manager.cpp",
-    "frame_rate_manager/hgm_frame_rate_tool.cpp",
+    "core/config/xml_parser.cpp",
+    "core/frame_rate_manager/hgm_frame_rate_manager.cpp",
+    "core/frame_rate_manager/hgm_frame_rate_tool.cpp",
+    "core/hgm_screen_manager/hgm_core.cpp",
+    "core/hgm_screen_manager/hgm_screen.cpp",
   ]
 
   deps = [ "//third_party/libxml2:xml2" ]
@@ -65,7 +64,7 @@ ohos_shared_library("libhyper_graphic_manager") {
 }
 
 ohos_prebuilt_etc("hgm_policy_config.xml") {
-  source = "config/include/hgm_policy_config.xml"
+  source = "core/config/hgm_policy_config.xml"
   relative_install_dir = "graphic"
   part_name = "graphic_2d"
   subsystem_name = "graphic"
