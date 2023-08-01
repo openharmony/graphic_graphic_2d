@@ -136,7 +136,7 @@ bool KawaseBlurFilter::ApplyBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, 
     const auto blurMatrix = GetShaderTransform(&canvas, dst, invBlurScale);
     const auto blurShader = blurImage->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, linear, &blurMatrix);
     SkPaint paint;
-    paint.setAlpha(param.alpha);
+    paint.setAlphaf(param.alpha);
     if (param.colorFilter) {
         paint.setColorFilter(param.colorFilter);
     }
