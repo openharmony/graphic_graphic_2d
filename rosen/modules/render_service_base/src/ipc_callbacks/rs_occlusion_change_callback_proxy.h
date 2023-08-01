@@ -19,7 +19,7 @@
 #include <iremote_proxy.h>
 
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
-#include "ipc_callbacks/rs_iocclusion_change_callback_ipc_interface_code.h"
+#include "ipc_security/rs_ipc_interface_code_security_manager_registry.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -29,7 +29,12 @@ public:
     virtual ~RSOcclusionChangeCallbackProxy() noexcept = default;
 
     void OnOcclusionVisibleChanged(std::shared_ptr<RSOcclusionData> occlusionData) override;
+
 private:
+    static inline const std::string callerPrefix_{"RSOcclusionChangeCallbackProxy::"};
+
+    static const RSInterfaceCodeSecurityManager<RSIOcclusionChangeCallbackInterfaceCode> securityManager_;
+
     static inline BrokerDelegator<RSOcclusionChangeCallbackProxy> delegator_;
 };
 } // namespace Rosen

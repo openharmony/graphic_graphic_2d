@@ -37,6 +37,11 @@ RSRenderServiceConnectionProxy::RSRenderServiceConnectionProxy(const sptr<IRemot
 
 void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     if (!transactionData) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CommitTransaction transactionData nullptr!");
         return;
@@ -63,7 +68,7 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
     option.SetFlags(MessageOption::TF_ASYNC);
     for (const auto& parcel : parcelVector) {
         MessageParcel reply;
-        uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION);
+        uint32_t code = static_cast<uint32_t>(interfaceCode);
         int32_t err = Remote()->SendRequest(code, *parcel, reply, option);
         if (err != NO_ERROR) {
             ROSEN_LOGE("RSRenderServiceConnectionProxy::CommitTransaction SendRequest failed, err = %d", err);
@@ -74,6 +79,11 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
 
 void RSRenderServiceConnectionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     if (task == nullptr) {
         return;
     }
@@ -91,7 +101,7 @@ void RSRenderServiceConnectionProxy::ExecuteSynchronousTask(const std::shared_pt
     }
 
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return;
@@ -133,12 +143,17 @@ bool RSRenderServiceConnectionProxy::FillParcelWithTransactionData(
 
 bool RSRenderServiceConnectionProxy::GetUniRenderEnabled()
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_UNI_RENDER_ENABLED;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return false;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
 
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_UNI_RENDER_ENABLED);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return false;
@@ -148,6 +163,11 @@ bool RSRenderServiceConnectionProxy::GetUniRenderEnabled()
 
 bool RSRenderServiceConnectionProxy::CreateNode(const RSSurfaceRenderNodeConfig& config)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::CREATE_NODE;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return false;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -162,7 +182,7 @@ bool RSRenderServiceConnectionProxy::CreateNode(const RSSurfaceRenderNodeConfig&
         return false;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return false;
@@ -173,6 +193,11 @@ bool RSRenderServiceConnectionProxy::CreateNode(const RSSurfaceRenderNodeConfig&
 
 sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return nullptr;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -190,7 +215,7 @@ sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfa
         return nullptr;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return nullptr;
@@ -204,6 +229,11 @@ sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfa
 sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(const std::string& name,
                                                                              const sptr<VSyncIConnectionToken>& token)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return nullptr;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -211,7 +241,7 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
     data.WriteString(name);
     data.WriteRemoteObject(token->AsObject());
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return nullptr;
@@ -225,12 +255,17 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
 int32_t RSRenderServiceConnectionProxy::SetFocusAppInfo(
     int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_FOCUS_APP_INFO;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return StatusCode::INTERFACE_CODE_INACCESSIBLE; // next: check new api
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return WRITE_PARCEL_ERR;
+        return StatusCode::WRITE_PARCEL_ERR;
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
@@ -239,11 +274,11 @@ int32_t RSRenderServiceConnectionProxy::SetFocusAppInfo(
     data.WriteString(bundleName);
     data.WriteString(abilityName);
     data.WriteUint64(focusNodeId);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FOCUS_APP_INFO);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetFocusAppInfo: Send Request err.");
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     int32_t result = reply.ReadInt32();
     return result;
@@ -251,6 +286,11 @@ int32_t RSRenderServiceConnectionProxy::SetFocusAppInfo(
 
 ScreenId RSRenderServiceConnectionProxy::GetDefaultScreenId()
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return INVALID_SCREEN_ID;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -260,7 +300,7 @@ ScreenId RSRenderServiceConnectionProxy::GetDefaultScreenId()
     }
 
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return INVALID_SCREEN_ID;
@@ -272,6 +312,11 @@ ScreenId RSRenderServiceConnectionProxy::GetDefaultScreenId()
 
 std::vector<ScreenId> RSRenderServiceConnectionProxy::GetAllScreenIds()
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_ALL_SCREEN_IDS;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return std::vector<ScreenId>();
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -282,7 +327,7 @@ std::vector<ScreenId> RSRenderServiceConnectionProxy::GetAllScreenIds()
     }
 
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ALL_SCREEN_IDS);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return std::vector<ScreenId>();
@@ -311,6 +356,11 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     ScreenId mirrorId,
     int32_t flags)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return INVALID_SCREEN_ID;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -333,7 +383,7 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
 
     data.WriteUint64(mirrorId);
     data.WriteInt32(flags);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return INVALID_SCREEN_ID;
@@ -345,9 +395,14 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
 
 int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return StatusCode::INTERFACE_CODE_INACCESSIBLE; // next: check new api
+    }
+
     if (surface == nullptr) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenSurface: Send surface is nullptr!");
-        return INVALID_ARGUMENTS;
+        return StatusCode::INVALID_ARGUMENTS;
     }
 
     MessageParcel data;
@@ -355,14 +410,14 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSurface(ScreenId id, spt
     MessageOption option;
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return WRITE_PARCEL_ERR;
+        return StatusCode::WRITE_PARCEL_ERR;
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
     data.WriteUint64(id);
     auto producer = surface->GetProducer();
     data.WriteRemoteObject(producer->AsObject());
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenSurface: Send Request err.");
@@ -374,6 +429,11 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSurface(ScreenId id, spt
 
 void RSRenderServiceConnectionProxy::RemoveVirtualScreen(ScreenId id)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -384,7 +444,7 @@ void RSRenderServiceConnectionProxy::RemoveVirtualScreen(ScreenId id)
 
     option.SetFlags(MessageOption::TF_ASYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RemoveVirtualScreen: Send Request err.");
@@ -393,9 +453,14 @@ void RSRenderServiceConnectionProxy::RemoveVirtualScreen(ScreenId id)
 
 int32_t RSRenderServiceConnectionProxy::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return StatusCode::INTERFACE_CODE_INACCESSIBLE; // next: check new api
+    }
+
     if (callback == nullptr) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenChangeCallback: callback is nullptr.");
-        return INVALID_ARGUMENTS;
+        return StatusCode::INVALID_ARGUMENTS;
     }
 
     MessageParcel data;
@@ -403,16 +468,16 @@ int32_t RSRenderServiceConnectionProxy::SetScreenChangeCallback(sptr<RSIScreenCh
     MessageOption option;
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return WRITE_PARCEL_ERR;
+        return StatusCode::WRITE_PARCEL_ERR;
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
     data.WriteRemoteObject(callback->AsObject());
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenChangeCallback: Send Request err.");
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     int32_t result = reply.ReadInt32();
     return result;
@@ -420,6 +485,11 @@ int32_t RSRenderServiceConnectionProxy::SetScreenChangeCallback(sptr<RSIScreenCh
 
 void RSRenderServiceConnectionProxy::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -430,7 +500,7 @@ void RSRenderServiceConnectionProxy::SetScreenActiveMode(ScreenId id, uint32_t m
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
     data.WriteUint32(modeId);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return;
@@ -439,6 +509,11 @@ void RSRenderServiceConnectionProxy::SetScreenActiveMode(ScreenId id, uint32_t m
 
 void RSRenderServiceConnectionProxy::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -451,7 +526,7 @@ void RSRenderServiceConnectionProxy::SetScreenRefreshRate(ScreenId id, int32_t s
     data.WriteUint64(id);
     data.WriteInt32(sceneId);
     data.WriteInt32(rate);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %d", err);
@@ -460,6 +535,11 @@ void RSRenderServiceConnectionProxy::SetScreenRefreshRate(ScreenId id, int32_t s
 
 void RSRenderServiceConnectionProxy::SetRefreshRateMode(int32_t refreshRateMode)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -470,7 +550,7 @@ void RSRenderServiceConnectionProxy::SetRefreshRateMode(int32_t refreshRateMode)
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteInt32(refreshRateMode);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %d", err);
@@ -479,6 +559,11 @@ void RSRenderServiceConnectionProxy::SetRefreshRateMode(int32_t refreshRateMode)
 
 uint32_t RSRenderServiceConnectionProxy::GetScreenCurrentRefreshRate(ScreenId id)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return SUCCESS;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -489,7 +574,7 @@ uint32_t RSRenderServiceConnectionProxy::GetScreenCurrentRefreshRate(ScreenId id
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %d", err);
@@ -501,10 +586,16 @@ uint32_t RSRenderServiceConnectionProxy::GetScreenCurrentRefreshRate(ScreenId id
 
 std::vector<uint32_t> RSRenderServiceConnectionProxy::GetScreenSupportedRefreshRates(ScreenId id)
 {
+    std::vector<uint32_t> screenSupportedRates;
+
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return screenSupportedRates;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    std::vector<uint32_t> screenSupportedRates;
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("RSRenderServiceProxy failed to get descriptor");
@@ -512,7 +603,7 @@ std::vector<uint32_t> RSRenderServiceConnectionProxy::GetScreenSupportedRefreshR
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return screenSupportedRates;
@@ -534,23 +625,28 @@ std::vector<uint32_t> RSRenderServiceConnectionProxy::GetScreenSupportedRefreshR
 
 int32_t RSRenderServiceConnectionProxy::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return StatusCode::INTERFACE_CODE_INACCESSIBLE; // next: check new api
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenResolution: WriteInterfaceToken err.");
-        return WRITE_PARCEL_ERR;
+        return StatusCode::WRITE_PARCEL_ERR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
     data.WriteUint32(width);
     data.WriteUint32(height);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenResolution: Send Request err.");
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     int32_t status = reply.ReadInt32();
     return status;
@@ -558,6 +654,11 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenResolution(ScreenId id, 
 
 void RSRenderServiceConnectionProxy::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -568,7 +669,7 @@ void RSRenderServiceConnectionProxy::SetScreenPowerStatus(ScreenId id, ScreenPow
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
     data.WriteUint32(static_cast<uint32_t>(status));
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return;
@@ -577,6 +678,11 @@ void RSRenderServiceConnectionProxy::SetScreenPowerStatus(ScreenId id, ScreenPow
 
 void RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     if (app == nullptr) {
         ROSEN_LOGE("RSRenderServiceProxy: callback == nullptr\n");
         return;
@@ -588,7 +694,7 @@ void RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr
     option.SetFlags(MessageOption::TF_ASYNC);
     data.WriteUint32(pid);
     data.WriteRemoteObject(app->AsObject());
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceProxy: Remote()->SendRequest() error.\n");
@@ -599,6 +705,11 @@ void RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr
 void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     float scaleX, float scaleY)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     if (callback == nullptr) {
         ROSEN_LOGE("RSRenderServiceProxy: callback == nullptr\n");
         return;
@@ -612,7 +723,7 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     data.WriteRemoteObject(callback->AsObject());
     data.WriteFloat(scaleX);
     data.WriteFloat(scaleY);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceProxy: Remote()->SendRequest() error.\n");
@@ -622,17 +733,23 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
 
 RSVirtualScreenResolution RSRenderServiceConnectionProxy::GetVirtualScreenResolution(ScreenId id)
 {
+    RSVirtualScreenResolution virtualScreenResolution;
+
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_RESOLUTION;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return virtualScreenResolution;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    RSVirtualScreenResolution virtualScreenResolution;
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return virtualScreenResolution;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_RESOLUTION);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return virtualScreenResolution;
@@ -648,17 +765,23 @@ RSVirtualScreenResolution RSRenderServiceConnectionProxy::GetVirtualScreenResolu
 
 RSScreenModeInfo RSRenderServiceConnectionProxy::GetScreenActiveMode(ScreenId id)
 {
+    RSScreenModeInfo screenModeInfo;
+
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_ACTIVE_MODE;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return screenModeInfo;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    RSScreenModeInfo screenModeInfo;
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return screenModeInfo;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_ACTIVE_MODE);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return screenModeInfo;
@@ -674,10 +797,16 @@ RSScreenModeInfo RSRenderServiceConnectionProxy::GetScreenActiveMode(ScreenId id
 
 std::vector<RSScreenModeInfo> RSRenderServiceConnectionProxy::GetScreenSupportedModes(ScreenId id)
 {
+    std::vector<RSScreenModeInfo> screenSupportedModes;
+
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_MODES;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return screenSupportedModes;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    std::vector<RSScreenModeInfo> screenSupportedModes;
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return screenSupportedModes;
@@ -685,7 +814,7 @@ std::vector<RSScreenModeInfo> RSRenderServiceConnectionProxy::GetScreenSupported
 
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_MODES);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return screenSupportedModes;
@@ -713,17 +842,23 @@ std::vector<RSScreenModeInfo> RSRenderServiceConnectionProxy::GetScreenSupported
 
 std::vector<MemoryGraphic> RSRenderServiceConnectionProxy::GetMemoryGraphics()
 {
+    std::vector<MemoryGraphic> memoryGraphics;
+
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return memoryGraphics;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    std::vector<MemoryGraphic> memoryGraphics;
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return memoryGraphics;
     }
 
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return memoryGraphics;
@@ -751,17 +886,24 @@ std::vector<MemoryGraphic> RSRenderServiceConnectionProxy::GetMemoryGraphics()
 
 MemoryGraphic RSRenderServiceConnectionProxy::GetMemoryGraphic(int pid)
 {
+    MemoryGraphic memoryGraphic;
+
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return memoryGraphic;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    MemoryGraphic memoryGraphic;
+
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return memoryGraphic;
     }
 
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteInt32(pid);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return memoryGraphic;
@@ -776,16 +918,23 @@ MemoryGraphic RSRenderServiceConnectionProxy::GetMemoryGraphic(int pid)
 
 RSScreenCapability RSRenderServiceConnectionProxy::GetScreenCapability(ScreenId id)
 {
+    RSScreenCapability screenCapability;
+
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CAPABILITY;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return screenCapability;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    RSScreenCapability screenCapability;
+
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return screenCapability;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CAPABILITY);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return screenCapability;
@@ -801,34 +950,46 @@ RSScreenCapability RSRenderServiceConnectionProxy::GetScreenCapability(ScreenId 
 
 ScreenPowerStatus RSRenderServiceConnectionProxy::GetScreenPowerStatus(ScreenId id)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_POWER_STATUS;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return ScreenPowerStatus::INVALID_POWER_STATUS;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return INVALID_POWER_STATUS;
+        return ScreenPowerStatus::INVALID_POWER_STATUS;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_POWER_STATUS);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return INVALID_POWER_STATUS;
+        return ScreenPowerStatus::INVALID_POWER_STATUS;
     }
     return static_cast<ScreenPowerStatus>(reply.ReadUint32());
 }
 
 RSScreenData RSRenderServiceConnectionProxy::GetScreenData(ScreenId id)
 {
+    RSScreenData screenData;
+
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_DATA;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return screenData;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    RSScreenData screenData;
+
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return screenData;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_DATA);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return screenData;
@@ -843,6 +1004,11 @@ RSScreenData RSRenderServiceConnectionProxy::GetScreenData(ScreenId id)
 
 int32_t RSRenderServiceConnectionProxy::GetScreenBacklight(ScreenId id)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_BACK_LIGHT;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return INVALID_BACKLIGHT_VALUE;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -851,7 +1017,7 @@ int32_t RSRenderServiceConnectionProxy::GetScreenBacklight(ScreenId id)
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_BACK_LIGHT);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return INVALID_BACKLIGHT_VALUE;
@@ -862,6 +1028,11 @@ int32_t RSRenderServiceConnectionProxy::GetScreenBacklight(ScreenId id)
 
 void RSRenderServiceConnectionProxy::SetScreenBacklight(ScreenId id, uint32_t level)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -871,7 +1042,7 @@ void RSRenderServiceConnectionProxy::SetScreenBacklight(ScreenId id, uint32_t le
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
     data.WriteUint32(level);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return;
@@ -906,6 +1077,11 @@ void RSRenderServiceConnectionProxy::RegisterBufferClearListener(
 void RSRenderServiceConnectionProxy::RegisterBufferAvailableListener(
     NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     if (callback == nullptr) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterBufferAvailableListener: callback is nullptr.");
         return;
@@ -923,7 +1099,7 @@ void RSRenderServiceConnectionProxy::RegisterBufferAvailableListener(
     data.WriteUint64(id);
     data.WriteRemoteObject(callback->AsObject());
     data.WriteBool(isFromRenderThread);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterBufferAvailableListener: Send Request err.");
@@ -932,18 +1108,23 @@ void RSRenderServiceConnectionProxy::RegisterBufferAvailableListener(
 
 int32_t RSRenderServiceConnectionProxy::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_GAMUTS;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return StatusCode::INTERFACE_CODE_INACCESSIBLE; // next: check new api
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_GAMUTS);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     int32_t result = reply.ReadInt32();
     if (result == SUCCESS) {
@@ -960,18 +1141,23 @@ int32_t RSRenderServiceConnectionProxy::GetScreenSupportedColorGamuts(ScreenId i
 int32_t RSRenderServiceConnectionProxy::GetScreenSupportedMetaDataKeys(
     ScreenId id, std::vector<ScreenHDRMetadataKey>& keys)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_METADATAKEYS;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return StatusCode::INTERFACE_CODE_INACCESSIBLE; // next: check new api
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_METADATAKEYS);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     int32_t result = reply.ReadInt32();
     if (result == SUCCESS) {
@@ -987,18 +1173,23 @@ int32_t RSRenderServiceConnectionProxy::GetScreenSupportedMetaDataKeys(
 
 int32_t RSRenderServiceConnectionProxy::GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return StatusCode::INTERFACE_CODE_INACCESSIBLE; // next: check new api
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     int32_t result = reply.ReadInt32();
     if (result == SUCCESS) {
@@ -1009,19 +1200,24 @@ int32_t RSRenderServiceConnectionProxy::GetScreenColorGamut(ScreenId id, ScreenC
 
 int32_t RSRenderServiceConnectionProxy::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return StatusCode::INTERFACE_CODE_INACCESSIBLE; // next: check new api
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
     data.WriteInt32(modeIdx);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     int32_t result = reply.ReadInt32();
     return result;
@@ -1029,19 +1225,24 @@ int32_t RSRenderServiceConnectionProxy::SetScreenColorGamut(ScreenId id, int32_t
 
 int32_t RSRenderServiceConnectionProxy::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return StatusCode::INTERFACE_CODE_INACCESSIBLE; // next: check new api
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
     data.WriteUint32(mode);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     int32_t result = reply.ReadInt32();
     return result;
@@ -1049,18 +1250,23 @@ int32_t RSRenderServiceConnectionProxy::SetScreenGamutMap(ScreenId id, ScreenGam
 
 int32_t RSRenderServiceConnectionProxy::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return StatusCode::INTERFACE_CODE_INACCESSIBLE; // next: check new api
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     int32_t result = reply.ReadInt32();
     if (result == SUCCESS) {
@@ -1071,18 +1277,23 @@ int32_t RSRenderServiceConnectionProxy::GetScreenGamutMap(ScreenId id, ScreenGam
 
 int32_t RSRenderServiceConnectionProxy::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_CAPABILITY;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return StatusCode::INTERFACE_CODE_INACCESSIBLE; // next: check new api
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_CAPABILITY);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     int32_t result = reply.ReadInt32();
     if (result != SUCCESS) {
@@ -1090,7 +1301,7 @@ int32_t RSRenderServiceConnectionProxy::GetScreenHDRCapability(ScreenId id, RSSc
     }
     sptr<RSScreenHDRCapability> pScreenCapability = reply.ReadParcelable<RSScreenHDRCapability>();
     if (pScreenCapability == nullptr) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     screenHdrCapability = *pScreenCapability;
     return SUCCESS;
@@ -1098,18 +1309,23 @@ int32_t RSRenderServiceConnectionProxy::GetScreenHDRCapability(ScreenId id, RSSc
 
 int32_t RSRenderServiceConnectionProxy::GetScreenType(ScreenId id, RSScreenType& screenType)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_TYPE;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return StatusCode::INTERFACE_CODE_INACCESSIBLE; // next: check new api
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_TYPE);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     int32_t result = reply.ReadInt32();
     if (result == SUCCESS) {
@@ -1124,6 +1340,11 @@ bool RSRenderServiceConnectionProxy::GetBitmap(NodeId id, SkBitmap& bitmap)
 bool RSRenderServiceConnectionProxy::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
 #endif
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_BITMAP;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return false;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1132,7 +1353,7 @@ bool RSRenderServiceConnectionProxy::GetBitmap(NodeId id, Drawing::Bitmap& bitma
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BITMAP);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return false;
@@ -1147,19 +1368,24 @@ bool RSRenderServiceConnectionProxy::GetBitmap(NodeId id, Drawing::Bitmap& bitma
 
 int32_t RSRenderServiceConnectionProxy::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return StatusCode::INTERFACE_CODE_INACCESSIBLE; // next: check new api
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
     data.WriteUint32(skipFrameInterval);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     int32_t result = reply.ReadInt32();
     return result;
@@ -1167,18 +1393,23 @@ int32_t RSRenderServiceConnectionProxy::SetScreenSkipFrameInterval(ScreenId id, 
 
 int32_t RSRenderServiceConnectionProxy::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return StatusCode::INTERFACE_CODE_INACCESSIBLE; // next: check new api
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteRemoteObject(callback->AsObject());
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
+        return StatusCode::RS_CONNECTION_ERROR;
     }
     int32_t result = reply.ReadInt32();
     return result;
@@ -1186,6 +1417,11 @@ int32_t RSRenderServiceConnectionProxy::RegisterOcclusionChangeCallback(sptr<RSI
 
 void RSRenderServiceConnectionProxy::SetAppWindowNum(uint32_t num)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1194,7 +1430,7 @@ void RSRenderServiceConnectionProxy::SetAppWindowNum(uint32_t num)
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     data.WriteUint32(num);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetAppWindowNum: Send Request err.");
@@ -1203,6 +1439,11 @@ void RSRenderServiceConnectionProxy::SetAppWindowNum(uint32_t num)
 
 void RSRenderServiceConnectionProxy::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1212,7 +1453,7 @@ void RSRenderServiceConnectionProxy::ShowWatermark(const std::shared_ptr<Media::
     option.SetFlags(MessageOption::TF_ASYNC);
     data.WriteParcelable(watermarkImg.get());
     data.WriteBool(isShow);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::ShowWatermark: Send Request err.");
@@ -1221,6 +1462,11 @@ void RSRenderServiceConnectionProxy::ShowWatermark(const std::shared_ptr<Media::
 
 void RSRenderServiceConnectionProxy::ReportJankStats()
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::REPORT_JANK_STATS;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1228,7 +1474,7 @@ void RSRenderServiceConnectionProxy::ReportJankStats()
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_JANK_STATS);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportJankStats: Send Request err.");
@@ -1237,6 +1483,11 @@ void RSRenderServiceConnectionProxy::ReportJankStats()
 
 void RSRenderServiceConnectionProxy::ReportEventResponse(DataBaseRs info)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_RESPONSE;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1244,7 +1495,7 @@ void RSRenderServiceConnectionProxy::ReportEventResponse(DataBaseRs info)
         return;
     }
     ReportDataBaseRs(data, reply, option, info);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_RESPONSE);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportEventResponse: Send Request err.");
@@ -1253,6 +1504,11 @@ void RSRenderServiceConnectionProxy::ReportEventResponse(DataBaseRs info)
 
 void RSRenderServiceConnectionProxy::ReportEventComplete(DataBaseRs info)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_COMPLETE;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1260,7 +1516,7 @@ void RSRenderServiceConnectionProxy::ReportEventComplete(DataBaseRs info)
         return;
     }
     ReportDataBaseRs(data, reply, option, info);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_COMPLETE);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportEventComplete: Send Request err.");
@@ -1269,6 +1525,11 @@ void RSRenderServiceConnectionProxy::ReportEventComplete(DataBaseRs info)
 
 void RSRenderServiceConnectionProxy::ReportEventJankFrame(DataBaseRs info)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1276,7 +1537,7 @@ void RSRenderServiceConnectionProxy::ReportEventJankFrame(DataBaseRs info)
         return;
     }
     ReportDataBaseRs(data, reply, option, info);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportEventJankFrame: Send Request err.");
@@ -1304,6 +1565,11 @@ void RSRenderServiceConnectionProxy::ReportDataBaseRs(
 
 void RSRenderServiceConnectionProxy::SetHardwareEnabled(NodeId id, bool isEnabled)
 {
+    constexpr auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1317,11 +1583,14 @@ void RSRenderServiceConnectionProxy::SetHardwareEnabled(NodeId id, bool isEnable
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetHardwareEnabled: Send Request err.");
     }
 }
+
+const RSInterfaceCodeSecurityManager<RSIRenderServiceConnectionInterfaceCode> \
+    RSRenderServiceConnectionProxy::securityManager_ = CreateRSIRenderServiceConnectionInterfaceCodeSecurityManager();
 } // namespace Rosen
 } // namespace OHOS

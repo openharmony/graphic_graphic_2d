@@ -26,6 +26,11 @@ RSRenderServiceProxy::RSRenderServiceProxy(const sptr<IRemoteObject>& impl) : IR
 
 sptr<RSIRenderServiceConnection> RSRenderServiceProxy::CreateConnection(const sptr<RSIConnectionToken>& token)
 {
+    constexpr auto interfaceCode = RSIRenderServiceInterfaceCode::CREATE_CONNECTION;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return nullptr;
+    }
+
     if (token == nullptr) {
         ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): token is null.");
         return nullptr;
@@ -41,7 +46,7 @@ sptr<RSIRenderServiceConnection> RSRenderServiceProxy::CreateConnection(const sp
     }
 
     data.WriteRemoteObject(token->AsObject());
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): SendRequest failed, err is %d.", err);
@@ -56,5 +61,8 @@ sptr<RSIRenderServiceConnection> RSRenderServiceProxy::CreateConnection(const sp
 
     return iface_cast<RSIRenderServiceConnection>(remoteObj);
 }
+
+const RSInterfaceCodeSecurityManager<RSIRenderServiceInterfaceCode> \
+    RSRenderServiceProxy::securityManager_ = CreateRSIRenderServiceInterfaceCodeSecurityManager();
 } // namespace Rosen
 } // namespace OHOS

@@ -17,11 +17,9 @@
 #define ROSEN_RENDER_SERVICE_BASE_RS_SYNC_TRANSACTION_CONTROLLER_PROXY_H
 
 #include <iremote_proxy.h>
-#include <string>
 
-#include "common/rs_macros.h"
 #include "ipc_callbacks/rs_isync_transaction_controller.h"
-#include "ipc_callbacks/rs_isync_transaction_controller_ipc_interface_code.h"
+#include "ipc_security/rs_ipc_interface_code_security_manager_registry.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,6 +31,10 @@ public:
     void CreateTransactionFinished() override;
 
 private:
+    static inline const std::string callerPrefix_{"RSSyncTransactionControllerProxy::"};
+
+    static const RSInterfaceCodeSecurityManager<RSISyncTransactionControllerInterfaceCode> securityManager_;
+
     bool WriteInterfaceToken(MessageParcel& data);
     static inline BrokerDelegator<RSSyncTransactionControllerProxy> delegator_;
 };
