@@ -19,7 +19,7 @@
 #include <iremote_stub.h>
 #include "common/rs_macros.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
-#include "ipc_callbacks/buffer_available_callback_ipc_interface_code.h"
+#include "ipc_callbacks/buffer_clear_callback_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {

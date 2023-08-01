@@ -29,7 +29,7 @@ int RSBufferClearCallbackStub::OnRemoteRequest(
 
     int ret = ERR_NONE;
     switch (code) {
-        case static_cast<uint32_t>(RSIBufferAvailableCallbackInterfaceCode::ON_BUFFER_CLEAR): {
+        case static_cast<uint32_t>(RSIBufferClearCallbackInterfaceCode::ON_BUFFER_CLEAR): {
             OnBufferClear();
             break;
         }
