@@ -29,13 +29,9 @@ ohos_unittest("2d_engine_rosen_text_ui_test") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
   ]
 
-  deps = [
-    "$rosen_root/modules/2d_graphics:2d_graphics"
-  ]
+  deps = [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
 
-  external_deps = [
-    "hilog:libhilog"
-  ]
+  external_deps = [ "hilog:libhilog" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

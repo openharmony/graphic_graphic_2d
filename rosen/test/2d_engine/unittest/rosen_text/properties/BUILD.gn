@@ -49,13 +49,9 @@ ohos_unittest("2d_engine_rosen_text_prop_test") {
     ]
   }
 
-  deps = [
-    "$rosen_root/modules/2d_graphics:2d_graphics"
-  ]
+  deps = [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
 
-  external_deps = [
-    "hilog:libhilog"
-  ]
+  external_deps = [ "hilog:libhilog" ]
 
   public_deps =
       [ "//third_party/flutter/build/libtxt:thirdparty_lib_txt_$current_os" ]
