@@ -1112,7 +1112,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                 return;
             }
         }
-        if (RSSystemProperties::GetUIFirstEnabled() && IsSingleDisplay()) {
+        if (IsUIFirstOn()) {
             auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
                 rootNode->GetSortedChildren().front());
             std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
@@ -2089,6 +2089,25 @@ bool RSMainThread::IsSingleDisplay()
         return false;
     }
     return rootNode->GetChildrenCount() == 1;
+}
+
+const uint32_t UIFIRST_MINIMUM_NODE_NUMBER = 20;
+bool RSMainThread::IsUIFirstOn()
+{
+    if (deviceType_ == DeviceType::PHONE) {
+        return (RSSystemProperties::GetUIFirstEnabled() && IsSingleDisplay());
+    }
+    bool isUiFirstOn = false;
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
+    if (rootNode && IsSingleDisplay()) {
+        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
+            rootNode->GetSortedChildren().front());
+        if (displayNode) {
+            isUiFirstOn = RSSystemProperties::GetUIFirstEnabled() &&
+                (displayNode->GetChildrenCount() >= UIFIRST_MINIMUM_NODE_NUMBER);
+        }
+    }
+    return isUiFirstOn;
 }
 } // namespace Rosen
 } // namespace OHOS
