@@ -779,7 +779,7 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
         RS_LOGE("RSRenderServiceConnection::GetBitmap RenderNodeType != RSRenderNodeType::CANVAS_DRAWING_NODE");
         return false;
     }
-    auto getBitmapTask = [&node, &bitmap]() -> bool { return node->GetBitmap(bitmap); };
+    auto getBitmapTask = [&node, &bitmap]() { bitmap = node->GetBitmap(); };
     mainThread_->PostSyncTask(getBitmapTask);
 #ifndef USE_ROSEN_DRAWING
     return !bitmap.empty();

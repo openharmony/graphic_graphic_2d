@@ -207,22 +207,22 @@ void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context,
 }
 
 #ifndef USE_ROSEN_DRAWING
-bool RSCanvasDrawingRenderNode::GetBitmap(SkBitmap& bitmap)
+SkBitmap RSCanvasDrawingRenderNode::GetBitmap()
 {
+    SkBitmap bitmap;
     if (skSurface_ == nullptr) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: SkSurface is nullptr");
-        return false;
+        return bitmap;
     }
     sk_sp<SkImage> image = skSurface_->makeImageSnapshot();
     if (image == nullptr) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: SkImage is nullptr");
-        return false;
+        return bitmap;
     }
     if (!image->asLegacyBitmap(&bitmap)) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: asLegacyBitmap failed");
-        return false;
     }
-    return true;
+    return bitmap;
 }
 #else
 bool RSCanvasDrawingRenderNode::GetBitmap(Drawing::Bitmap& bitmap)
