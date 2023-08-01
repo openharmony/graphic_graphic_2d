@@ -264,7 +264,7 @@ int RSSystemProperties::GetFilterCacheUpdateInterval()
 bool RSSystemProperties::GetKawaseEnabled()
 {
     static bool kawaseBlurEnabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.kawaseEnable", "1")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.sys.graphic.kawaseEnable", "0")).c_str()) != 0;
     return kawaseBlurEnabled;
 }
 
