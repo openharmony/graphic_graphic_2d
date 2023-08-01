@@ -103,6 +103,9 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/surface_capture_callback_proxy.cpp",
     "src/ipc_callbacks/surface_capture_callback_stub.cpp",
 
+    #ipc_security
+    "src/ipc_security/rs_ipc_interface_code_access_verifier_base.cpp",
+
     #memory
     "src/memory/rs_memory_graphic.cpp",
     "src/memory/rs_memory_track.cpp",
@@ -227,6 +230,19 @@ ohos_source_set("render_service_base_src") {
     "$rosen_root/modules/platform:ipc_core",
   ]
   external_deps = [ "window_manager:libwsutils" ]
+
+  if (enable_ipc_security) {
+    defines += [ "ENABLE_IPC_SECURITY" ]
+    include_dirs += [
+      "$access_token_root/interfaces/innerkits/accesstoken/include",
+      "$ipc_root/interfaces/innerkits/ipc_core/include",
+    ]
+    external_deps += [
+      "access_token:libaccesstoken_sdk",
+      "access_token:libtokenid_sdk",
+      "ipc:ipc_core",
+    ]
+  }
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]

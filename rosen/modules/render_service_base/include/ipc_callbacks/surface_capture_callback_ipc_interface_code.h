@@ -16,9 +16,11 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_ISURFACE_CAPTURE_CALLBACK_INTERFACE_CODE_H
 #define ROSEN_RENDER_SERVICE_BASE_ISURFACE_CAPTURE_CALLBACK_INTERFACE_CODE_H
 
+#include "ipc_security/rs_ipc_interface_code_underlying_type.h"
+
 namespace OHOS {
 namespace Rosen {
-enum class RSISurfaceCaptureCallbackInterfaceCode {
+enum class RSISurfaceCaptureCallbackInterfaceCode : CodeUnderlyingType {
     ON_SURFACE_CAPTURE,
 };
 } // namespace Rosen

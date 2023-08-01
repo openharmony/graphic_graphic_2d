@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_IAPPLICATION_AGENT_INTERFACE_CODE_H
-#define ROSEN_RENDER_SERVICE_BASE_IAPPLICATION_AGENT_INTERFACE_CODE_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_IBUFFER_CLEAR_CALLBACK_INTERFACE_CODE_H
+#define ROSEN_RENDER_SERVICE_BASE_IBUFFER_CLEAR_CALLBACK_INTERFACE_CODE_H
 
 #include "ipc_security/rs_ipc_interface_code_underlying_type.h"
 
 namespace OHOS {
 namespace Rosen {
-enum class IApplicationAgentInterfaceCode : CodeUnderlyingType {
-    COMMIT_TRANSACTION,
+enum class RSIBufferClearCallbackInterfaceCode : CodeUnderlyingType {
+    ON_BUFFER_CLEAR,
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_RENDER_SERVICE_BASE_IAPPLICATION_AGENT_INTERFACE_CODE_H
+#endif // ROSEN_RENDER_SERVICE_BASE_IBUFFER_CLEAR_CALLBACK_INTERFACE_CODE_H

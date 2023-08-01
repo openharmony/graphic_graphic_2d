@@ -16,9 +16,11 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_SERVICE_INTERFACE_CODE_H
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_SERVICE_INTERFACE_CODE_H
 
+#include "ipc_security/rs_ipc_interface_code_underlying_type.h"
+
 namespace OHOS {
 namespace Rosen {
-enum class RSIRenderServiceInterfaceCode {
+enum class RSIRenderServiceInterfaceCode : CodeUnderlyingType {
     CREATE_CONNECTION,
 };
 } // namespace Rosen

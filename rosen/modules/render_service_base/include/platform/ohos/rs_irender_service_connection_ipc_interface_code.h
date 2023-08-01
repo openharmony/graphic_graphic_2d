@@ -16,9 +16,11 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_SERVICE_CONNECTION_INTERFACE_CODE_H
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_SERVICE_CONNECTION_INTERFACE_CODE_H
 
+#include "ipc_security/rs_ipc_interface_code_underlying_type.h"
+
 namespace OHOS {
 namespace Rosen {
-enum class RSIRenderServiceConnectionInterfaceCode {
+enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     COMMIT_TRANSACTION,
     GET_UNI_RENDER_ENABLED,
     CREATE_NODE,
@@ -70,7 +72,6 @@ enum class RSIRenderServiceConnectionInterfaceCode {
     REPORT_EVENT_RESPONSE,
     REPORT_EVENT_COMPLETE,
     REPORT_EVENT_JANK_FRAME,
-    REPORT_EVENT_FIRST_FRAME,
     SET_HARDWARE_ENABLED,
 };
 } // namespace Rosen
