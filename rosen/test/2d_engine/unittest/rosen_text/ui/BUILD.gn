@@ -30,11 +30,11 @@ ohos_unittest("2d_engine_rosen_text_ui_test") {
   ]
 
   deps = [
-    "$rosen_root/modules/2d_graphics:2d_graphics",
+    "$rosen_root/modules/2d_graphics:2d_graphics"
   ]
 
   external_deps = [
-    "hilog:libhilog",
+    "hilog:libhilog"
   ]
 
   part_name = "graphic_2d"
