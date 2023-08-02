@@ -564,9 +564,13 @@ MemoryGraphic RSRenderServiceConnection::GetMemoryGraphic(int pid)
     if (!RSMainThread::Instance()->GetContext().GetNodeMap().ContainPid(pid)) {
         return memoryGraphic;
     }
-    mainThread_->ScheduleTask(
-        [this, &pid, &memoryGraphic]() { return mainThread_->CountMem(pid, memoryGraphic); }).wait();
-    return memoryGraphic;
+    if (GetUniRenderEnabled()) {
+        mainThread_->ScheduleTask([this, &pid, &memoryGraphic]() { return mainThread_->CountMem(pid, memoryGraphic); })
+            .wait();
+        return memoryGraphic;
+    } else {
+        return memoryGraphic;
+    }
 }
 
 std::vector<MemoryGraphic> RSRenderServiceConnection::GetMemoryGraphics()
