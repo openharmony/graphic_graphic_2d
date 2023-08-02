@@ -144,6 +144,10 @@ VsyncError VSyncReceiver::SetVSyncRate(FrameCallback callback, int32_t rate)
 
 VsyncError VSyncReceiver::GetVSyncPeriod(int64_t &period)
 {
+    std::lock_guard<std::mutex> locker(initMutex_);
+    if (!init_) {
+        return VSYNC_ERROR_API_FAILED;
+    }
     VsyncError ret = connection_->GetVSyncPeriod(period);
     if (ret != VSYNC_ERROR_OK) {
         VLOGE("%{public}s get vsync period failed", __func__);
