@@ -27,6 +27,9 @@
 #include "transaction/rs_ashmem_helper.h"
 #include "rs_trace.h"
 
+#include "accesstoken_kit.h"
+#include "ipc_skeleton.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -92,6 +95,12 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old)
         return nullptr;
     }
     return parcelCopied;
+}
+
+inline bool IsSystemServiceCalling()
+{
+    return Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE ==
+        Security::AccessToken::AccessTokenKit::GetTokenType(IPCSkeleton::GetCallingTokenID());
 }
 }
 
@@ -205,6 +214,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN): {
+            if (!IsSystemServiceCalling()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -229,6 +242,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE): {
+            if (!IsSystemServiceCalling()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -253,6 +270,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN): {
+            if (!IsSystemServiceCalling()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -342,6 +363,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION): {
+            if (!IsSystemServiceCalling()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -398,6 +423,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_RESOLUTION): {
+            if (!IsSystemServiceCalling()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
