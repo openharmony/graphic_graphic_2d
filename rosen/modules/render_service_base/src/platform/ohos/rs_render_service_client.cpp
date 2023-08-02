@@ -147,6 +147,10 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     }
     sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
     sptr<IVSyncConnection> conn = renderService->CreateVSyncConnection(name, token);
+    if (conn == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::CreateVSyncReceiver Failed");
+        return nullptr;
+    }
     return std::make_shared<VSyncReceiver>(conn, token->AsObject(), looper, name);
 }
 
