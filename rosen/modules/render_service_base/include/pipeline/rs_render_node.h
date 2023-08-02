@@ -217,7 +217,7 @@ public:
     bool IsStaticCached() const;
 
 #ifndef USE_ROSEN_DRAWING
-    using ClearCacheSurfaceFunc = std::function<void(sk_sp<SkSurface>, sk_sp<SkSurface>, uint32_t)>;
+    using ClearCacheSurfaceFunc = std::function<void(sk_sp<SkSurface>, sk_sp<SkSurface>, uint32_t, uint32_t)>;
 #ifdef NEW_SKIA
     void InitCacheSurface(GrRecordingContext* grContext, ClearCacheSurfaceFunc func = nullptr,
         uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
@@ -227,7 +227,7 @@ public:
 #endif
 #else
     using ClearCacheSurfaceFunc =
-        std::function<void(std::shared_ptr<Drawing::Surface>, std::shared_ptr<Drawing::Surface>, uint32_t)>;
+        std::function<void(std::shared_ptr<Drawing::Surface>, std::shared_ptr<Drawing::Surface>, uint32_t, uint32_t)>;
     void InitCacheSurface(Drawing::GPUContext* grContext, ClearCacheSurfaceFunc func = nullptr,
         uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
 #endif
@@ -255,10 +255,10 @@ public:
     void SetTextureValidFlag(bool isValid);
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> GetCompletedCacheSurface(uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
-        bool isUIFirst = false);
+        bool needCheckThread = true);
 #else
     std::shared_ptr<Drawing::Surface> GetCompletedCacheSurface(uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
-        bool isUIFirst = false);
+        bool needCheckThread = true);
 #endif
     void ClearCacheSurface();
 
@@ -310,6 +310,8 @@ public:
     void SetHasAbilityComponent(bool hasAbilityComponent);
 
     uint32_t GetCacheSurfaceThreadIndex() const;
+
+    uint32_t GetCompletedSurfaceThreadIndex() const;
 
     bool IsMainThreadNode() const;
     void SetIsMainThreadNode(bool isMainThreadNode);
@@ -377,6 +379,7 @@ public:
 
 protected:
     bool ApplyModifiers();
+    void ResetSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex);
     virtual void OnApplyModifiers() {}
 
     enum class NodeDirty {
@@ -481,6 +484,7 @@ private:
     mutable std::recursive_mutex surfaceMutex_;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
+    uint32_t completedSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     bool isMainThreadNode_ = true;
     bool isScale_ = false;
     bool hasFilter_ = false;

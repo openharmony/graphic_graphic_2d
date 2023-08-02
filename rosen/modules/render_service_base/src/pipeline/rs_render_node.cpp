@@ -470,7 +470,8 @@ RSRenderNode::~RSRenderNode()
         FallbackAnimationsToRoot();
     }
     if (clearCacheSurfaceFunc_ && (cacheSurface_ || cacheCompletedSurface_)) {
-        clearCacheSurfaceFunc_(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
+        clearCacheSurfaceFunc_(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_,
+            completedSurfaceThreadIndex_);
     }
     ClearCacheSurface();
 }
@@ -1096,7 +1097,7 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
             clearCacheSurfaceFunc_ = func;
         }
         if (cacheSurface_) {
-            func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
+            func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
             ClearCacheSurface();
         }
     } else {
@@ -1125,7 +1126,7 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
 #if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
     if (grContext == nullptr) {
         if (func) {
-            func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
+            func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
             ClearCacheSurface();
         }
         return;
@@ -1143,7 +1144,7 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
 #if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
     if (gpuContext == nullptr) {
         if (func) {
-            func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
+            func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
             ClearCacheSurface();
         }
         return;
@@ -1204,7 +1205,7 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
         auto image = SkImage::MakeFromTexture(canvas.recordingContext(), cacheCompletedBackendTexture_,
             kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
         if (image == nullptr) {
-            RS_LOGE("make Image failed");
+            RS_LOGE("DrawCacheSurface make Image failed");
             canvas.restore();
             return;
         }
@@ -1213,11 +1214,14 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
         return;
     }
 #endif
-    auto surface = GetCompletedCacheSurface(threadIndex, isUIFirst);
-    if (surface == nullptr || (boundsWidth_ == 0 || boundsHeight_ == 0)) {
-        RS_LOGE("invalid complete cache surface");
+    if (!cacheCompletedSurface_) {
+        RS_LOGE("DrawCacheSurface invalid cacheCompletedSurface");
         return;
     }
+    if (threadIndex != completedSurfaceThreadIndex_) {
+        ResetSurface(canvas, threadIndex);
+    }
+    auto surface = GetCompletedCacheSurface(threadIndex, true);
     if (cacheType == CacheType::ANIMATE_PROPERTY && renderProperties_.IsShadowValid()) {
         surface->draw(&canvas, -shadowRectOffsetX_ * scaleX, -shadowRectOffsetY_ * scaleY, &paint);
     } else {
@@ -1240,7 +1244,7 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
         return;
     }
 #endif
-    auto surface = GetCompletedCacheSurface(threadIndex, isUIFirst);
+    auto surface = GetCompletedCacheSurface(threadIndex, true);
     if (surface == nullptr || (boundsWidth_ == 0 || boundsHeight_ == 0)) {
         RS_LOGE("invalid complete cache surface");
         canvas.Restore();
@@ -1265,6 +1269,46 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
 }
 #endif
 
+void RSRenderNode::ResetSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex)
+{
+    auto cacheCompletedSurface = cacheCompletedSurface_;
+    InitCacheSurface(canvas.recordingContext(), clearCacheSurfaceFunc_, threadIndex);
+    if (cacheSurface_ == nullptr || (boundsWidth_ == 0 || boundsHeight_ == 0)) {
+        RS_LOGE("invalid cacheSurface_ cache surface");
+        return;
+    }
+    auto image = cacheCompletedSurface->makeImageSnapshot();
+    if (!image) {
+        RS_LOGE("Get image failed");
+        return;
+    }
+#if (defined NEW_SKIA) && (defined RS_ENABLE_GL)
+    GrSurfaceOrigin origin = kBottomLeft_GrSurfaceOrigin;
+    auto texture = image->getBackendTexture(false, &origin);
+    if (!texture.isValid()) {
+        RS_LOGE("DrawCacheSurface invalid texture");
+        return;
+    }
+    auto sharedTexture = SkImage::MakeFromTexture(
+        canvas.recordingContext(), texture, origin, image->colorType(), image->alphaType(), nullptr);
+    if (sharedTexture == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents sharedTexture is nullptr");
+        return;
+    }
+    auto canvasTmp = std::make_unique<RSPaintFilterCanvas>(cacheSurface_.get());
+    canvasTmp->drawImage(sharedTexture, 0.f, 0.f);
+#else
+    auto canvasTmp = std::make_unique<RSPaintFilterCanvas>(cacheSurface_.get());
+    canvasTmp->drawImage(texture, 0.f, 0.f);
+#endif
+    cacheCompletedSurface_ = nullptr;
+    if (clearCacheSurfaceFunc_) {
+        clearCacheSurfaceFunc_(nullptr, cacheCompletedSurface, 0,
+            completedSurfaceThreadIndex_);
+    }
+    UpdateCompletedCacheSurface();
+}
+
 #ifdef RS_ENABLE_GL
 void RSRenderNode::UpdateBackendTexture()
 {
@@ -1282,21 +1326,22 @@ void RSRenderNode::UpdateBackendTexture()
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-sk_sp<SkSurface> RSRenderNode::GetCompletedCacheSurface(uint32_t threadIndex, bool isUIFirst)
+sk_sp<SkSurface> RSRenderNode::GetCompletedCacheSurface(uint32_t threadIndex, bool needCheckThread)
 #else
-std::shared_ptr<Drawing::Surface> RSRenderNode::GetCompletedCacheSurface(uint32_t threadIndex, bool isUIFirst)
+std::shared_ptr<Drawing::Surface> RSRenderNode::GetCompletedCacheSurface(uint32_t threadIndex, bool needCheckThread)
 #endif
 {
     {
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-        if (isUIFirst || cacheSurfaceThreadIndex_ == threadIndex || !cacheCompletedSurface_) {
+        if (!needCheckThread || completedSurfaceThreadIndex_ == threadIndex || !cacheCompletedSurface_) {
             return cacheCompletedSurface_;
         }
     }
 
     // freeze cache scene
     if (clearCacheSurfaceFunc_) {
-        clearCacheSurfaceFunc_(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
+        clearCacheSurfaceFunc_(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_,
+            completedSurfaceThreadIndex_);
     }
     ClearCacheSurface();
     return nullptr;
@@ -1317,7 +1362,8 @@ std::shared_ptr<Drawing::Surface> RSRenderNode::GetCompletedCacheSurface(uint32_
 
     // freeze cache scene
     if (clearCacheSurfaceFunc_) {
-        clearCacheSurfaceFunc_(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_);
+        clearCacheSurfaceFunc_(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_,
+            completedSurfaceThreadIndex_);
     }
     ClearCacheSurface();
     return nullptr;
@@ -1658,6 +1704,7 @@ void RSRenderNode::UpdateCompletedCacheSurface()
 {
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     std::swap(cacheSurface_, cacheCompletedSurface_);
+    std::swap(cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
 #ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_GL
     std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
@@ -1788,6 +1835,12 @@ uint32_t RSRenderNode::GetCacheSurfaceThreadIndex() const
 {
     return cacheSurfaceThreadIndex_;
 }
+
+uint32_t RSRenderNode::GetCompletedSurfaceThreadIndex() const
+{
+    return completedSurfaceThreadIndex_;
+}
+
 bool RSRenderNode::IsMainThreadNode() const
 {
     return isMainThreadNode_;
