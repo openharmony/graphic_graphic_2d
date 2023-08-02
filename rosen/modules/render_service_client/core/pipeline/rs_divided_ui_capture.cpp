@@ -227,7 +227,9 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCa
     node.ProcessRenderBeforeChildren(*canvas_);
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
-        canvasDrawingNode->ProcessRenderContents(*canvas_);
+        if (!node.IsOnTheTree()) {
+            canvasDrawingNode->ProcessRenderContents(*canvas_);
+        }
 #ifndef USE_ROSEN_DRAWING
         SkBitmap bitmap;
         canvasDrawingNode->GetBitmap(bitmap);
