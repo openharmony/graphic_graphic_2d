@@ -19,8 +19,6 @@
 #include <mutex>
 #include <set>
 
-#include "scene_board_judgement.h"
-
 #include "animation/rs_render_animation.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "modifier/rs_modifier_type.h"

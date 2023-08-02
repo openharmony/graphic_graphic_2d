@@ -133,6 +133,10 @@ public:
         return isDfxTarget_;
     }
 
+    void MarkIfSceneBoard(bool isSceneBoard) {
+        isSceneBoard_ = isSceneBoard;
+    }
+
     bool HasOffset();
     void SetOffset(int offsetX, int offsetY);
     RectI GetOffsetedDirtyRegion() const;
@@ -155,6 +159,7 @@ private:
     std::vector<std::map<NodeId, RectI>> dirtySurfaceNodeInfo_;
     std::vector<bool> debugRegionEnabled_;
     bool isDfxTarget_ = false;
+    bool isSceneBoard_ = false;
     std::vector<RectI> dirtyHistory_;
     int historyHead_ = -1;
     unsigned int historySize_ = 0;
