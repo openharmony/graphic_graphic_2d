@@ -114,7 +114,7 @@ INTERACTION_RENDER_JANK:
   MAX_FRAMETIME: {type: UINT64, desc: max single frame time during the scene}
   AVERAGE_FRAMETIME: {type: FLOAT, desc: average frame time during the scene}
   MAX_SEQ_MISSED_FRAMES: {type: INT32, desc: max successive missed frames during the scene}
-  IS_FOLD_DISP: {type: BOOL, desc: default false, set true if fold screen in expand state}
+  IS_FOLD_DISP: {type: BOOL, desc: 'default false, set true if fold screen in expand state'}
 
 FIRST_FRAME_DRAWN:
   __BASE: {type: BEHAVIOR, level: MINOR, tag: performance, desc: interaction jank statistics}
