@@ -872,6 +872,12 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     dirtyFlag_ = dirtyFlag_ || node.GetDstRectChanged();
     parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
+    if (!(parentSurfaceNodeMatrix_.getSkewX() < std::numeric_limits<float>::epsilon() &&
+        parentSurfaceNodeMatrix_.getSkewY() < std::numeric_limits<float>::epsilon())) {
+        isSurfaceRotationChanged_ = true;
+        doAnimate_ = doAnimate_ || isSurfaceRotationChanged_;
+        node.SetAnimateState();
+    }
     auto screenRotation = curDisplayNode_->GetRotation();
     auto screenRect = RectI(0, 0, screenInfo_.width, screenInfo_.height);
     if (!node.CheckOpaqueRegionBaseInfo(
@@ -1773,6 +1779,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     } else {
 #ifdef RS_ENABLE_EGLQUERYSURFACE
         curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
+        if (isSurfaceRotationChanged_) {
+            curDisplayDirtyManager_->MergeSurfaceRect();
+            isOpDropped_ = false;
+            isSurfaceRotationChanged_ = false;
+        }
         if (isPartialRenderEnabled_) {
             CalcDirtyDisplayRegion(displayNodePtr);
             AddContainerDirtyToGlobalDirty(displayNodePtr);

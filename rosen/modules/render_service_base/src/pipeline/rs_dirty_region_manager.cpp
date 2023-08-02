@@ -14,6 +14,7 @@
  */
 
 #include "pipeline/rs_dirty_region_manager.h"
+#include "scene_board_judgement.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -58,6 +59,9 @@ void RSDirtyRegionManager::UpdateVisitedDirtyRects(const std::vector<RectI>& rec
 
 RectI RSDirtyRegionManager::GetIntersectedVisitedDirtyRect(const RectI& absRect) const
 {
+    if (SceneBoardJudgement::IsSceneBoardEnabled()) {
+        return surfaceRect_;
+    }
     RectI belowDirty = currentFrameDirtyRegion_;
     for (auto subDirty : visitedDirtyRegions_) {
         if (absRect.IsInsideOf(belowDirty)) {

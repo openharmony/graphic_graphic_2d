@@ -317,6 +317,7 @@ private:
     std::shared_ptr<RSDirtyRegionManager> curDisplayDirtyManager_;
     std::shared_ptr<RSDisplayRenderNode> curDisplayNode_;
     bool doAnimate_ = false;
+    bool isSurfaceRotationChanged_ = false;
     bool isPartialRenderEnabled_ = false;
     bool isOpDropped_ = false;
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization

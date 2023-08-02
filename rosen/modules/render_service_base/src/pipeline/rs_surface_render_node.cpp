@@ -668,6 +668,7 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
 {
     if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE || IsAbilityComponent()) {
         SetOcclusionVisible(true);
+        visibleVec.emplace_back(GetId());
         return;
     }
     visibleRegion_ = region;
