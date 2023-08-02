@@ -58,6 +58,9 @@ void RSDirtyRegionManager::UpdateVisitedDirtyRects(const std::vector<RectI>& rec
 
 RectI RSDirtyRegionManager::GetIntersectedVisitedDirtyRect(const RectI& absRect) const
 {
+    if (isSceneBoard_) {
+        return surfaceRect_;
+    }
     RectI belowDirty = currentFrameDirtyRegion_;
     for (auto subDirty : visitedDirtyRegions_) {
         if (absRect.IsInsideOf(belowDirty)) {
@@ -164,6 +167,7 @@ void RSDirtyRegionManager::Clear()
     dirtySurfaceNodeInfo_.clear();
     dirtySurfaceNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
     isDfxTarget_ = false;
+    isSceneBoard_ = false;
 }
 
 bool RSDirtyRegionManager::IsCurrentFrameDirty() const

@@ -141,6 +141,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
 #endif
     isUIFirst_ = RSSystemProperties::GetUIFirstEnabled();
     frameRateMgr_ = std::make_unique<HgmFrameRateManager>();
+    isSceneBoard_ = SceneBoardJudgement::IsSceneBoardEnabled();
 }
 
 RSUniRenderVisitor::RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas, uint32_t surfaceIndex)
@@ -375,6 +376,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     RS_TRACE_NAME("RSUniRender:PrepareDisplay " + std::to_string(currentVisitDisplay_));
     curDisplayDirtyManager_ = node.GetDirtyManager();
     curDisplayDirtyManager_->Clear();
+    curDisplayDirtyManager_->MarkIfSceneBoard(isSceneBoard_);
     curDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSDisplayRenderNode>();
 
     dirtyFlag_ = isDirty_;
@@ -542,6 +544,7 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
     curSurfaceDirtyManager_ = node.GetDirtyManager();
     if (curSurfaceDirtyManager_) {
         curSurfaceDirtyManager_->Clear();
+        curSurfaceDirtyManager_->MarkIfSceneBoard(isSceneBoard_);
         curSurfaceDirtyManager_->UpdateVisitedDirtyRects(accumulatedDirtyRegions_);
         node.UpdateFilterCacheStatusIfNodeStatic(prepareClipRect_);
     }
@@ -669,6 +672,7 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRe
             return;
         }
         curSurfaceDirtyManager_->Clear();
+        curSurfaceDirtyManager_->MarkIfSceneBoard(isSceneBoard_);
         curSurfaceDirtyManager_->UpdateVisitedDirtyRects(accumulatedDirtyRegions_);
         curSurfaceDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
         if (isTargetDirtyRegionDfxEnabled_ && CheckIfSurfaceTargetedForDFX(node.GetName())) {
@@ -883,6 +887,12 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     dirtyFlag_ = dirtyFlag_ || node.GetDstRectChanged();
     parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
+    if (!(parentSurfaceNodeMatrix_.getSkewX() < std::numeric_limits<float>::epsilon() &&
+        parentSurfaceNodeMatrix_.getSkewY() < std::numeric_limits<float>::epsilon())) {
+        isSurfaceRotationChanged_ = true;
+        doAnimate_ = doAnimate_ || isSurfaceRotationChanged_;
+        node.SetAnimateState();
+    }
     auto screenRotation = curDisplayNode_->GetRotation();
     auto screenRect = RectI(0, 0, screenInfo_.width, screenInfo_.height);
     if (!node.CheckOpaqueRegionBaseInfo(
@@ -1797,6 +1807,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     } else {
 #ifdef RS_ENABLE_EGLQUERYSURFACE
         curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
+        if (isSurfaceRotationChanged_) {
+            curDisplayDirtyManager_->MergeSurfaceRect();
+            isOpDropped_ = false;
+            isSurfaceRotationChanged_ = false;
+        }
         if (isPartialRenderEnabled_) {
             CalcDirtyDisplayRegion(displayNodePtr);
             AddContainerDirtyToGlobalDirty(displayNodePtr);

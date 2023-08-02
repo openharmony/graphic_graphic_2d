@@ -19,8 +19,6 @@
 #include <mutex>
 #include <set>
 
-#include "scene_board_judgement.h"
-
 #include "animation/rs_render_animation.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "modifier/rs_modifier_type.h"
@@ -53,7 +51,7 @@ const std::set<RSModifierType> CACHEABLE_ANIMATION_TYPE = {
 };
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
 const bool FILTER_CACHE_ENABLED = RSSystemProperties::GetFilterCacheEnabled() &&
-    RSUniRenderJudgement::IsUniRender() && !SceneBoardJudgement::IsSceneBoardEnabled();
+    RSUniRenderJudgement::IsUniRender();
 
 const std::unordered_set<RSModifierType> ANIMATION_MODIFIER_TYPE  = {
     RSModifierType::TRANSLATE,
