@@ -30,6 +30,10 @@
 #include "include/effects/SkBlurImageFilter.h"
 #endif
 
+#ifdef RS_ENABLE_FILTER_CACHE
+#include "render/rs_filter_cache.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -279,7 +283,12 @@ std::shared_ptr<RSFilter> RSMaterialFilter::Add(const std::shared_ptr<RSFilter>&
     materialParam.saturation = saturation_ + materialR->saturation_;
     materialParam.brightness = brightness_ + materialR->brightness_;
     materialParam.maskColor = maskColor_ + materialR->maskColor_;
+
+#ifdef RS_ENABLE_FILTER_CACHE
+    return RSFilterCache::Instance().GetMaterialFilterFromCache(materialParam, materialR->colorMode_);
+#else
     return std::make_shared<RSMaterialFilter>(materialParam, materialR->colorMode_);
+#endif
 }
 
 std::shared_ptr<RSFilter> RSMaterialFilter::Sub(const std::shared_ptr<RSFilter>& rhs)
@@ -293,7 +302,11 @@ std::shared_ptr<RSFilter> RSMaterialFilter::Sub(const std::shared_ptr<RSFilter>&
     materialParam.saturation = saturation_ - materialR->saturation_;
     materialParam.brightness = brightness_ - materialR->brightness_;
     materialParam.maskColor = maskColor_ - materialR->maskColor_;
+#ifdef RS_ENABLE_FILTER_CACHE
+    return RSFilterCache::Instance().GetMaterialFilterFromCache(materialParam, materialR->colorMode_);
+#else
     return std::make_shared<RSMaterialFilter>(materialParam, materialR->colorMode_);
+#endif
 }
 
 std::shared_ptr<RSFilter> RSMaterialFilter::Multiply(float rhs)
@@ -303,7 +316,11 @@ std::shared_ptr<RSFilter> RSMaterialFilter::Multiply(float rhs)
     materialParam.saturation = saturation_ * rhs;
     materialParam.brightness = brightness_ * rhs;
     materialParam.maskColor = maskColor_ * rhs;
+#ifdef RS_ENABLE_FILTER_CACHE
+    return RSFilterCache::Instance().GetMaterialFilterFromCache(materialParam, colorMode_);
+#else
     return std::make_shared<RSMaterialFilter>(materialParam, colorMode_);
+#endif
 }
 
 std::shared_ptr<RSFilter> RSMaterialFilter::Negate()
@@ -313,7 +330,11 @@ std::shared_ptr<RSFilter> RSMaterialFilter::Negate()
     materialParam.saturation = -saturation_;
     materialParam.brightness = -brightness_;
     materialParam.maskColor = RSColor(0x00000000) - maskColor_;
+#ifdef RS_ENABLE_FILTER_CACHE
+    return RSFilterCache::Instance().GetMaterialFilterFromCache(materialParam, colorMode_);
+#else
     return std::make_shared<RSMaterialFilter>(materialParam, colorMode_);
+#endif
 }
 
 #ifndef USE_ROSEN_DRAWING
