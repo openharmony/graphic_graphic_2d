@@ -274,9 +274,6 @@ void RSUniRenderVisitor::UpdateCacheChangeStatus(RSBaseRenderNode& node)
         markedCachedNodes_++;
         // For rootnode, init drawing changes only if there is any content dirty
         isDrawingCacheChanged_ = curContentDirty_;
-        RS_TRACE_NAME_FMT("RSUniRenderVisitor::UpdateCacheChangeStatus: cachable node %" PRIu64 " markedNum: %d, "
-            "contentDirty(cacheChanged): %d", targetNode->GetId(), static_cast<int>(markedCachedNodes_),
-            static_cast<int>(isDrawingCacheChanged_));
     } else {
         // Any child node dirty causes cache change
         isDrawingCacheChanged_ = isDrawingCacheChanged_ || curDirty_;

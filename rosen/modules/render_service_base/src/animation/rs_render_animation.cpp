@@ -259,7 +259,6 @@ void RSRenderAnimation::ProcessOnRepeatFinish()
 bool RSRenderAnimation::Animate(int64_t time)
 {
     if (!IsRunning()) {
-        ROSEN_LOGI("RSRenderAnimation::Animate, IsRunning is false!");
         return state_ == AnimationState::FINISHED;
     }
 

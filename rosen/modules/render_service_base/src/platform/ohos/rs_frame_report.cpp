@@ -113,7 +113,9 @@ int RsFrameReport::GetEnable()
 
 void RsFrameReport::ProcessCommandsStart()
 {
-    processCommandsStartFun_ = (ProcessCommandsStartFunc)LoadSymbol("ProcessCommandsStart");
+    if (processCommandsStartFun_ == nullptr) {
+        processCommandsStartFun_ = (ProcessCommandsStartFunc)LoadSymbol("ProcessCommandsStart");
+    }
     if (processCommandsStartFun_ != nullptr) {
         processCommandsStartFun_();
     } else {
@@ -123,7 +125,9 @@ void RsFrameReport::ProcessCommandsStart()
 
 void RsFrameReport::AnimateStart()
 {
-    animateStartFunc_ = (AnimateStartFunc)LoadSymbol("AnimateStart");
+    if (animateStartFunc_ == nullptr) {
+        animateStartFunc_ = (AnimateStartFunc)LoadSymbol("AnimateStart");
+    }
     if (animateStartFunc_ != nullptr) {
         animateStartFunc_();
     } else {
@@ -133,7 +137,10 @@ void RsFrameReport::AnimateStart()
 
 void RsFrameReport::RenderStart()
 {
-    renderStartFunc_ = (RenderStartFunc)LoadSymbol("RenderStart");
+    if (renderStartFunc_ == nullptr) {
+        renderStartFunc_ = (RenderStartFunc)LoadSymbol("RenderStart");
+    }
+
     if (renderStartFunc_ != nullptr) {
         renderStartFunc_();
     } else {
@@ -143,7 +150,10 @@ void RsFrameReport::RenderStart()
 
 void RsFrameReport::RenderEnd()
 {
-    renderEndFunc_ = (RenderEndFunc)LoadSymbol("RenderEnd");
+    if (renderEndFunc_ == nullptr) {
+        renderEndFunc_ = (RenderEndFunc)LoadSymbol("RenderEnd");
+    }
+    
     if (renderEndFunc_ != nullptr) {
         renderEndFunc_();
     } else {
@@ -153,7 +163,10 @@ void RsFrameReport::RenderEnd()
 
 void RsFrameReport::SendCommandsStart()
 {
-    sendCommandsStartFunc_ = (SendCommandsStartFunc)LoadSymbol("SendCommandsStart");
+    if (sendCommandsStartFunc_ == nullptr) {
+        sendCommandsStartFunc_ = (SendCommandsStartFunc)LoadSymbol("SendCommandsStart");
+    }
+    
     if (sendCommandsStartFunc_ != nullptr) {
         sendCommandsStartFunc_();
     } else {

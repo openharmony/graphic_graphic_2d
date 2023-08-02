@@ -150,7 +150,6 @@ void RSRenderServiceConnection::RSConnectionDeathRecipient::OnRemoteDied(const w
         return;
     }
 
-    RS_LOGI("RSConnectionDeathRecipient::OnRemoteDied: do the clean work.");
     rsConn->CleanAll(true);
 }
 

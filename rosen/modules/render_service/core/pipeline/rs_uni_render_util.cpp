@@ -469,7 +469,6 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes display node is null");
         return;
     }
-    RS_TRACE_NAME("AssignWindowNodes");
     bool isRotation = displayNode->IsRotationChanged();
     bool isScale = false;
     uint32_t leashWindowCount = 0;
