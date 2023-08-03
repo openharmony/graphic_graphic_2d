@@ -108,7 +108,6 @@ ohos_shared_library("libtexgine") {
 
     public_deps = [
       "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
-      "$hilog_root/interfaces/native/innerkits:libhilog",
       "texgine_drawing:libtexgine_drawing",
       "//third_party/jsoncpp:jsoncpp",
     ]
@@ -116,6 +115,7 @@ ohos_shared_library("libtexgine") {
     external_deps = [
       "c_utils:utils",
       "hitrace:hitrace_meter",
+      "hilog:libhilog",
     ]
   }
 
