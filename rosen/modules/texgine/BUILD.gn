@@ -114,8 +114,8 @@ ohos_shared_library("libtexgine") {
 
     external_deps = [
       "c_utils:utils",
+      "hilog:libhilog",
       "hitrace:hitrace_meter",
-      "hilog:libhilog"
     ]
   }
 
