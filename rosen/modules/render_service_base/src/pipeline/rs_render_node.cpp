@@ -914,13 +914,13 @@ bool RSRenderNode::ApplyModifiers()
     for (auto type : dirtyTypes_) {
         renderProperties_.ResetProperty(type);
     }
-    auto dirtyStatus = renderProperties_.GetDirtyStatus();
-    renderProperties_.Reset();
     std::vector<std::shared_ptr<RSRenderModifier>> animationModifiers;
     for (auto& [id, modifier] : modifiers_) {
-        modifier->Apply(context);
-        if (ANIMATION_MODIFIER_TYPE.count(modifier->GetType())) {
-            animationModifiers.push_back(modifier);
+        if (modifier && (dirtyTypes_.find(modifier->GetType()) != dirtyTypes_.end())) {
+            modifier->Apply(context);
+            if (ANIMATION_MODIFIER_TYPE.count(modifier->GetType())) {
+                animationModifiers.push_back(modifier);
+            }
         }
     }
 
@@ -928,8 +928,6 @@ bool RSRenderNode::ApplyModifiers()
         AddModifierProfile(modifier, context.property_.GetBoundsWidth(), context.property_.GetBoundsHeight());
     }
     lastApplyTimestamp_ = lastTimestamp_;
-
-    renderProperties_.SetDirtyStatus(dirtyStatus);
     OnApplyModifiers();
     UpdateDrawRegion();
     dirtyTypes_.clear();
