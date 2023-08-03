@@ -52,7 +52,8 @@
 
 namespace OHOS {
 namespace Rosen {
-static TaskRunner g_uiTaskRunner;
+static std::unordered_map<RSUIDirector*, TaskRunner> g_uiTaskRunners;
+static std::mutex g_uiTaskRunnersVisitorMutex;
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create()
 {
@@ -160,6 +161,8 @@ void RSUIDirector::Destroy()
         root_ = 0;
     }
     GoBackground();
+    std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
+    g_uiTaskRunners.erase(this);
 }
 
 void RSUIDirector::SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
@@ -252,7 +255,8 @@ bool RSUIDirector::RunningCustomAnimation(uint64_t timeStamp)
 
 void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner)
 {
-    g_uiTaskRunner = uiTaskRunner;
+    std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
+    g_uiTaskRunners[this] = uiTaskRunner;
 }
 
 void RSUIDirector::SendMessages()
@@ -321,12 +325,16 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
 
 void RSUIDirector::PostTask(const std::function<void()>& task)
 {
-    if (g_uiTaskRunner == nullptr) {
-        ROSEN_LOGE("RSUIDirector::PostTask, uiTaskRunner is null");
+    std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
+    for (auto [_, taskRunner] : g_uiTaskRunners) {
+        if (taskRunner == nullptr) {
+            ROSEN_LOGE("RSUIDirector::PostTask, uiTaskRunner is null");
+            continue;
+        }
+        ROSEN_LOGD("RSUIDirector::PostTask success");
+        taskRunner(task);
         return;
     }
-    ROSEN_LOGD("RSUIDirector::PostTask success");
-    g_uiTaskRunner(task);
 }
 } // namespace Rosen
 } // namespace OHOS
