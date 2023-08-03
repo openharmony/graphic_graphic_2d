@@ -474,5 +474,10 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
         (void)rsSurfaces_.erase(it);
     }
 }
+
+void RSBaseRenderEngine::UnMapRsSurface(uint64_t id)
+{
+    rsSurfaces_.erase(id);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -216,6 +216,7 @@ public:
         return eglImageManager_;
     }
 #endif // RS_ENABLE_EGLIMAGE
+    void UnMapRsSurface(uint64_t id);
 protected:
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
     void RegisterDeleteBufferListener(RSSurfaceHandler& handler);

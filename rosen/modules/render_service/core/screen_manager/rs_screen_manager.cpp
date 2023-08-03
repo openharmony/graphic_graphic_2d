@@ -139,6 +139,13 @@ void RSScreenManager::OnHwcDeadEvent()
             if (screenPowerStatus_.count(id) != 0) {
                 screenPowerStatus_.erase(id);
             }
+            if (screen->IsVirtual()) {
+                continue;
+            } else {
+                auto surfaceId = screen->GetOutput()->GetFrameBufferSurface()->GetUniqueId();
+                screen->GetOutput()->GetFrameBufferSurface()->CleanCache();
+                RSHardwareThread::Instance().CleanRenderFrame(surfaceId);
+            }
         }
     }
     screens_.clear();
