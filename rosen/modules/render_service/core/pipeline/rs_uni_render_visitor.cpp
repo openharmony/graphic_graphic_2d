@@ -139,7 +139,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
 #if defined(RS_ENABLE_PARALLEL_RENDER)
     isCalcCostEnable_ = RSSystemParameters::GetCalcCostEnabled();
 #endif
-    isUIFirst_ = RSSystemProperties::GetUIFirstEnabled();
+    isUIFirst_ = RSMainThread::Instance()->IsUIFirstOn();
     frameRateMgr_ = std::make_unique<HgmFrameRateManager>();
 }
 

@@ -370,7 +370,7 @@ RSSurfaceCaptureVisitor::RSSurfaceCaptureVisitor(float scaleX, float scaleY, boo
     : scaleX_(scaleX), scaleY_(scaleY), isUniRender_(isUniRender)
 {
     renderEngine_ = RSMainThread::Instance()->GetRenderEngine();
-    isUIFirst_ = RSSystemProperties::GetUIFirstEnabled();
+    isUIFirst_ = RSMainThread::Instance()->IsUIFirstOn();
 }
 
 #ifndef USE_ROSEN_DRAWING
