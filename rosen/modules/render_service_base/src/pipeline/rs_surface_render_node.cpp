@@ -1282,5 +1282,20 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool flag)
     isReportFirstFrame_ = flag;
 }
 #endif
+
+CacheProcessStatus RSSurfaceRenderNode::GetCacheSurfaceProcessedStatus() const
+{
+    return cacheProcessStatus_.load();
+}
+
+void RSSurfaceRenderNode::SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus)
+{
+    cacheProcessStatus_.store(cacheProcessStatus);
+}
+
+bool RSSurfaceRenderNode::NodeIsUsedBySubThread() const
+{
+    return GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING;
+}
 } // namespace Rosen
 } // namespace OHOS

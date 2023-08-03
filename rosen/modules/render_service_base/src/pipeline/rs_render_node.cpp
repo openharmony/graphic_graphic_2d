@@ -250,6 +250,7 @@ void RSRenderNode::RemoveFromTree(bool skipTransition)
     }
     // force remove child from disappearingChildren_ and clean sortChildren_ cache
     parentPtr->disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
+    parentPtr->InvalidateChildrenList();
     child->ResetParent();
 }
 
@@ -905,10 +906,10 @@ void RSRenderNode::SetRSFrameRateRangeByPreferred(int32_t preferred)
 
 bool RSRenderNode::ApplyModifiers()
 {
-    hgmModifierProfileList_.clear();
     if (!RSRenderNode::IsDirty() || dirtyTypes_.empty()) {
         return false;
     }
+    hgmModifierProfileList_.clear();
     const auto prevPositionZ = renderProperties_.GetPositionZ();
     RSModifierContext context = { renderProperties_ };
     for (auto type : dirtyTypes_) {
@@ -1487,6 +1488,10 @@ void RSRenderNode::GenerateFullChildrenList()
     if (isFullChildrenListValid_) {
         return;
     }
+    // Node is currently used by sub thread, delay the operation
+    if (NodeIsUsedBySubThread()) {
+        return;
+    }
     // maybe unnecessary, but just in case
     fullChildrenList_.clear();
     // both children_ and disappearingChildren_ are empty, no need to generate fullChildrenList_
@@ -1535,6 +1540,10 @@ void RSRenderNode::SortChildren()
     if (isChildrenSorted_) {
         return;
     }
+    // Node is currently used by sub thread, delay the operation
+    if (NodeIsUsedBySubThread()) {
+        return;
+    }
     // sort all children by z-order (note: std::list::sort is stable) if needed
     fullChildrenList_.sort([](const auto& first, const auto& second) -> bool {
         return first->GetRenderProperties().GetPositionZ() < second->GetRenderProperties().GetPositionZ();
@@ -1562,7 +1571,6 @@ void RSRenderNode::InvalidateChildrenList() {
     if (!isFullChildrenListValid_) {
         return;
     }
-    fullChildrenList_.clear();
     isFullChildrenListValid_ = false;
 }
 

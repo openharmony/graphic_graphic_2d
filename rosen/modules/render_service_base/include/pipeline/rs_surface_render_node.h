@@ -670,17 +670,9 @@ public:
         return submittedSubThreadIndex_;
     }
 
-    void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus)
-    {
-        std::lock_guard<std::mutex> lock(cacheSurfaceProcessedMutex_);
-        cacheProcessStatus_ = cacheProcessStatus;
-    }
-
-    CacheProcessStatus GetCacheSurfaceProcessedStatus() const
-    {
-        std::lock_guard<std::mutex> lock(cacheSurfaceProcessedMutex_);
-        return cacheProcessStatus_;
-    }
+    void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus);
+    CacheProcessStatus GetCacheSurfaceProcessedStatus() const;
+    bool NodeIsUsedBySubThread() const override;
 
     bool GetFilterCacheFullyCovered() const
     {
@@ -863,8 +855,7 @@ private:
 
     // UIFirst
     uint32_t submittedSubThreadIndex_ = INT_MAX;
-    mutable std::mutex cacheSurfaceProcessedMutex_;
-    CacheProcessStatus cacheProcessStatus_ = CacheProcessStatus::WAITING;
+    std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;
