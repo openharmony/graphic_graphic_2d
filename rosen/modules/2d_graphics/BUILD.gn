@@ -198,7 +198,7 @@ template("graphics2d_source_set") {
       }
 
       if (!is_cross_platform_build) {
-        deps += [ "//base/hiviewdfx/hilog/frameworks/libhilog:libhilog_source_$platform" ]
+        deps += [ "$rosen_root/modules/platform:hilog" ]
       }
     }
 
