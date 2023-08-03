@@ -27,7 +27,6 @@ ohos_unittest("RSWindowAnimationTest") {
   configs = [ ":rs_window_animation_test_config" ]
 
   deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation:window_animation",
     "//foundation/window/window_manager/wm:libwm",
@@ -40,6 +39,7 @@ ohos_unittest("RSWindowAnimationTest") {
     "access_token:libtoken_setproc",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "hisysevent:libhisysevent",
     "init:libbeget_proxy",
     "init:libbegetutil",

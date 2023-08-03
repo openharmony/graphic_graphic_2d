@@ -39,7 +39,6 @@ ohos_unittest("RSAnimationTest") {
   configs = [ ":rs_animation_test_config" ]
 
   deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/window/window_manager/wm:libwm",
     "//third_party/googletest:gtest_main",
@@ -48,7 +47,10 @@ ohos_unittest("RSAnimationTest") {
   public_deps =
       [ "$rosen_root/modules/render_service_client:render_service_client_src" ]
 
-  external_deps = [ "eventhandler:libeventhandler" ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+  ]
 
   subsystem_name = "graphic"
 }
