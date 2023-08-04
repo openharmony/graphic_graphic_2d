@@ -159,6 +159,7 @@ void BootAnimation::Run(Rosen::ScreenId id, int screenWidth, int screenHeight)
 
 void BootAnimation::InitRsSurfaceNode()
 {
+    LOGI("Init RsSurfaceNode enter");
     struct Rosen::RSSurfaceNodeConfig rsSurfaceNodeConfig;
     Rosen::RSSurfaceNodeType rsSurfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE;
     rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(rsSurfaceNodeConfig, rsSurfaceNodeType);
@@ -172,6 +173,8 @@ void BootAnimation::InitRsSurfaceNode()
     rsSurfaceNode_->SetFrameGravity(Rosen::Gravity::RESIZE_ASPECT);
     rsSurfaceNode_->AttachToDisplay(defaultId_);
     OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
+    system::SetParameter("bootevent.bootanimation.started", "true");
+    LOGI("Set bootevent.bootanimation.started true");
 }
 
 void BootAnimation::InitRsSurface()
@@ -238,15 +241,14 @@ void BootAnimation::OnVsync()
 
 bool BootAnimation::CheckExitAnimation()
 {
-    if (!setBootEvent_) {
-        LOGI("CheckExitAnimation set bootevent parameter");
-        system::SetParameter("bootevent.bootanimation.started", "true");
-        setBootEvent_ = true;
+    if (!isAnimationEnd_) {
+        LOGI("Boot animation is end");
+        isAnimationEnd_ = true;
     }
-    std::string windowInit = system::GetParameter("bootevent.boot.completed", "false");
-    if (windowInit == "true") {
+    std::string bootEventCompleted = system::GetParameter("bootevent.boot.completed", "false");
+    if (bootEventCompleted == "true") {
         mainHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
-        LOGI("CheckExitAnimation read windowInit is true");
+        LOGI("Read bootevent.boot.completed is true");
         return true;
     }
     return false;
