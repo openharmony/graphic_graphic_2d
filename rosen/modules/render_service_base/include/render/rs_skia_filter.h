@@ -61,6 +61,7 @@ public:
     virtual std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const = 0;
     virtual void PreProcess(std::shared_ptr<Drawing::Image> image) {};
     virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
+    virtual bool CanSkipFrame() const { return false; };
 
 protected:
     std::shared_ptr<Drawing::ImageFilter> imageFilter_ = nullptr;

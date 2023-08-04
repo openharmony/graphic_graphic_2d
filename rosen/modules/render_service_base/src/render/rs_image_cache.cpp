@@ -157,10 +157,17 @@ void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
 #endif
         }
     }
+#ifndef USE_ROSEN_DRAWING
     auto itr = pixelMapIdRelatedSkiaImageCache_.find(uniqueId);
     if (itr != pixelMapIdRelatedSkiaImageCache_.end()) {
         pixelMapIdRelatedSkiaImageCache_.erase(itr);
     }
+#else
+    auto itr = pixelMapIdRelatedDrawingImageCache_.find(uniqueId);
+    if (itr != pixelMapIdRelatedDrawingImageCache_.end()) {
+        pixelMapIdRelatedDrawingImageCache_.erase(itr);
+    }
+#endif
 }
 
 #ifndef USE_ROSEN_DRAWING
