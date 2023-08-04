@@ -117,9 +117,9 @@ public:
     }
 
     template<typename Type>
-    static std::pair<int32_t, size_t> AddVectorToCmdList(CmdList& cmdList, const std::vector<Type>& vec)
+    static std::pair<uint32_t, size_t> AddVectorToCmdList(CmdList& cmdList, const std::vector<Type>& vec)
     {
-        std::pair<int32_t, size_t> ret(0, 0);
+        std::pair<uint32_t, size_t> ret(0, 0);
         if (!vec.empty()) {
             const void* data = static_cast<const void*>(vec.data());
             size_t size = vec.size() * sizeof(Type);
@@ -131,7 +131,7 @@ public:
     }
 
     template<typename Type>
-    static std::vector<Type> GetVectorFromCmdList(const CmdList& cmdList, std::pair<int32_t, size_t> info)
+    static std::vector<Type> GetVectorFromCmdList(const CmdList& cmdList, std::pair<uint32_t, size_t> info)
     {
         std::vector<Type> ret;
         const auto* values = static_cast<const Type*>(cmdList.GetCmdListData(info.first));

@@ -35,8 +35,7 @@ std::shared_ptr<DrawCmdList> DrawCmdList::CreateFromData(const CmdListData& data
     auto cmdList = std::make_shared<DrawCmdList>();
     if (isCopy) {
         cmdList->opAllocator_.BuildFromDataWithCopy(data.first, data.second);
-    }
-    else {
+    } else {
         cmdList->opAllocator_.BuildFromData(data.first, data.second);
     }
 
@@ -74,7 +73,7 @@ void DrawCmdList::SetHeight(int32_t height)
 
 void DrawCmdList::Playback(Canvas& canvas, const Rect* rect) const
 {
-    int32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the width and height
+    uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
     if (width_ <= 0 || height_ <= 0 || opAllocator_.GetSize() <= offset) {
         return;
     }

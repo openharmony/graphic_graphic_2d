@@ -62,7 +62,7 @@ public:
 
 class CreateDashPathEffectOpItem : public PathEffectOpItem {
 public:
-    CreateDashPathEffectOpItem(const std::pair<int32_t, size_t>& intervals, scalar phase);
+    CreateDashPathEffectOpItem(const std::pair<uint32_t, size_t>& intervals, scalar phase);
     ~CreateDashPathEffectOpItem() = default;
 
     /*
@@ -71,7 +71,7 @@ public:
      */
     std::shared_ptr<PathEffect> Playback(const CmdList& cmdList) const;
 private:
-    std::pair<int32_t, size_t> intervals_;
+    std::pair<uint32_t, size_t> intervals_;
     scalar phase_;
 };
 

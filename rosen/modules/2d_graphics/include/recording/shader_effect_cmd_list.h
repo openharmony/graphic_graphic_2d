@@ -122,36 +122,36 @@ private:
 class CreateLinearGradientOpItem : public ShaderEffectOpItem {
 public:
     CreateLinearGradientOpItem(const Point& startPt, const Point& endPt,
-        const std::pair<int32_t, size_t>& colors, const std::pair<int32_t, size_t>& pos, TileMode mode);
+        const std::pair<uint32_t, size_t>& colors, const std::pair<uint32_t, size_t>& pos, TileMode mode);
     ~CreateLinearGradientOpItem() = default;
 
     std::shared_ptr<ShaderEffect> Playback(const CmdList& cmdList) const;
 private:
     Point startPt_;
     Point endPt_;
-    std::pair<int32_t, size_t> colors_;
-    std::pair<int32_t, size_t> pos_;
+    std::pair<uint32_t, size_t> colors_;
+    std::pair<uint32_t, size_t> pos_;
     TileMode mode_;
 };
 class CreateRadialGradientOpItem : public ShaderEffectOpItem {
 public:
     CreateRadialGradientOpItem(const Point& centerPt, scalar radius,
-        const std::pair<int32_t, size_t>& colors, const std::pair<int32_t, size_t>& pos, TileMode mode);
+        const std::pair<uint32_t, size_t>& colors, const std::pair<uint32_t, size_t>& pos, TileMode mode);
     ~CreateRadialGradientOpItem() = default;
 
     std::shared_ptr<ShaderEffect> Playback(const CmdList& cmdList) const;
 private:
     Point centerPt_;
     scalar radius_;
-    std::pair<int32_t, size_t> colors_;
-    std::pair<int32_t, size_t> pos_;
+    std::pair<uint32_t, size_t> colors_;
+    std::pair<uint32_t, size_t> pos_;
     TileMode mode_;
 };
 
 class CreateTwoPointConicalOpItem : public ShaderEffectOpItem {
 public:
     CreateTwoPointConicalOpItem(const Point& startPt, scalar startRadius, const Point& endPt, scalar endRadius,
-        const std::pair<int32_t, size_t>& colors, const std::pair<int32_t, size_t>& pos, TileMode mode);
+        const std::pair<uint32_t, size_t>& colors, const std::pair<uint32_t, size_t>& pos, TileMode mode);
     ~CreateTwoPointConicalOpItem() = default;
 
     std::shared_ptr<ShaderEffect> Playback(const CmdList& cmdList) const;
@@ -160,22 +160,22 @@ private:
     scalar startRadius_;
     Point endPt_;
     scalar endRadius_;
-    std::pair<int32_t, size_t> colors_;
-    std::pair<int32_t, size_t> pos_;
+    std::pair<uint32_t, size_t> colors_;
+    std::pair<uint32_t, size_t> pos_;
     TileMode mode_;
 };
 
 class CreateSweepGradientOpItem : public ShaderEffectOpItem {
 public:
-    CreateSweepGradientOpItem(const Point& centerPt, const std::pair<int32_t, size_t>& colors,
-        const std::pair<int32_t, size_t>& pos, TileMode mode, scalar startAngle, scalar endAngle);
+    CreateSweepGradientOpItem(const Point& centerPt, const std::pair<uint32_t, size_t>& colors,
+        const std::pair<uint32_t, size_t>& pos, TileMode mode, scalar startAngle, scalar endAngle);
     ~CreateSweepGradientOpItem() = default;
 
     std::shared_ptr<ShaderEffect> Playback(const CmdList& cmdList) const;
 private:
     Point centerPt_;
-    std::pair<int32_t, size_t> colors_;
-    std::pair<int32_t, size_t> pos_;
+    std::pair<uint32_t, size_t> colors_;
+    std::pair<uint32_t, size_t> pos_;
     TileMode mode_;
     scalar startAngle_;
     scalar endAngle_;

@@ -27,8 +27,7 @@ std::shared_ptr<RegionCmdList> RegionCmdList::CreateFromData(const CmdListData& 
     auto cmdList = std::make_shared<RegionCmdList>();
     if (isCopy) {
         cmdList->opAllocator_.BuildFromDataWithCopy(data.first, data.second);
-    }
-    else {
+    } else {
         cmdList->opAllocator_.BuildFromData(data.first, data.second);
     }
     return cmdList;
@@ -40,7 +39,7 @@ std::shared_ptr<Region> RegionCmdList::Playback() const
         return nullptr;
     }
 
-    int32_t offset = 0;
+    uint32_t offset = 0;
     auto region = std::make_shared<Region>();
     do {
         void* itemPtr = opAllocator_.OffsetToAddr(offset);

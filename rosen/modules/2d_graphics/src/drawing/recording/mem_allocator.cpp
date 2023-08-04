@@ -123,15 +123,15 @@ const void* MemAllocator::GetData() const
     return startPtr_;
 }
 
-int32_t MemAllocator::AddrToOffset(const void* addr) const
+uint32_t MemAllocator::AddrToOffset(const void* addr) const
 {
     if (!addr) {
-        return -1;
+        return 0;
     }
 
-    int32_t offset = static_cast<int32_t>(static_cast<const char*>(addr) - startPtr_);
-    if (offset < 0 || offset > size_) {
-        return -1;
+    auto offset = static_cast<uint32_t>(static_cast<const char*>(addr) - startPtr_);
+    if (offset > size_) {
+        return 0;
     }
     return offset;
 }

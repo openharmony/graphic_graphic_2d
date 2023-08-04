@@ -669,6 +669,5 @@ std::shared_ptr<Drawing::Image> RSParallelSubThread::GetTexture() const
 {
     return texture_;
 }
-
 } // namespace Rosen
 } // namespace OHOS

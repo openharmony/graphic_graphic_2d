@@ -29,8 +29,7 @@ std::shared_ptr<PathCmdList> PathCmdList::CreateFromData(const CmdListData& data
     auto cmdList = std::make_shared<PathCmdList>();
     if (isCopy) {
         cmdList->opAllocator_.BuildFromDataWithCopy(data.first, data.second);
-    }
-    else {
+    } else {
         cmdList->opAllocator_.BuildFromData(data.first, data.second);
     }
     return cmdList;
@@ -38,7 +37,7 @@ std::shared_ptr<PathCmdList> PathCmdList::CreateFromData(const CmdListData& data
 
 std::shared_ptr<Path> PathCmdList::Playback() const
 {
-    int32_t offset = 0;
+    uint32_t offset = 0;
     auto path = std::make_shared<Path>();
     PathPlayer player(*path, *this);
     do {
@@ -154,11 +153,11 @@ void LineToOpItem::Playback(Path& path) const
 
 ArcToOpItem::ArcToOpItem(const Point& pt1, const Point& pt2, const scalar startAngle, const scalar sweepAngle)
     : PathOpItem(ARCTO_OPITEM), pt1_(pt1), pt2_(pt2), startAngle_(startAngle), sweepAngle_(sweepAngle),
-    methodIndex_(FUNCTION_OVERLOADING_1) {}
+    direction_(PathDirection::CW_DIRECTION), methodIndex_(FUNCTION_OVERLOADING_1) {}
 
 ArcToOpItem::ArcToOpItem(const scalar rx, const scalar ry, const scalar angle, const PathDirection direction,
     const scalar endX, const scalar endY) : PathOpItem(ARCTO_OPITEM), pt1_(rx, ry), pt2_(endX, endY),
-    startAngle_(angle), direction_(direction), methodIndex_(FUNCTION_OVERLOADING_2) {}
+    startAngle_(angle), sweepAngle_(0), direction_(direction), methodIndex_(FUNCTION_OVERLOADING_2) {}
 
 void ArcToOpItem::Playback(PathPlayer& player, const void* opItem)
 {
@@ -257,7 +256,7 @@ void AddArcOpItem::Playback(Path& path) const
     path.AddArc(rect_, startAngle_, sweepAngle_);
 }
 
-AddPolyOpItem::AddPolyOpItem(const std::pair<int32_t, size_t>& points, int32_t count, bool close)
+AddPolyOpItem::AddPolyOpItem(const std::pair<uint32_t, size_t>& points, int32_t count, bool close)
     : PathOpItem(ADDPOLY_OPITEM), points_(points), count_(count), close_(close) {}
 
 void AddPolyOpItem::Playback(PathPlayer& player, const void* opItem)
@@ -290,8 +289,8 @@ void AddCircleOpItem::Playback(Path& path) const
     path.AddCircle(x_, y_, radius_, dir_);
 }
 
-AddRoundRectOpItem::AddRoundRectOpItem(std::pair<int32_t, size_t> radiusXYData, const Rect& rect, PathDirection dir)
-    : PathOpItem(ADDRRECT_OPITEM), radiusXYData_(radiusXYData), rect_(rect), dir_(dir) {}
+AddRoundRectOpItem::AddRoundRectOpItem(const std::pair<uint32_t, size_t>& radiusXYData, const Rect& rect,
+    PathDirection dir) : PathOpItem(ADDRRECT_OPITEM), radiusXYData_(radiusXYData), rect_(rect), dir_(dir) {}
 
 void AddRoundRectOpItem::Playback(PathPlayer& player, const void* opItem)
 {

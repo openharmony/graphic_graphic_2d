@@ -220,12 +220,12 @@ private:
 
 class AddPolyOpItem : public PathOpItem {
 public:
-    AddPolyOpItem(const std::pair<int32_t, size_t>& points, int32_t count, bool close);
+    AddPolyOpItem(const std::pair<uint32_t, size_t>& points, int32_t count, bool close);
     ~AddPolyOpItem() = default;
     static void Playback(PathPlayer& player, const void* opItem);
     void Playback(Path& path, const CmdList& menAllocator) const;
 private:
-    std::pair<int32_t, size_t> points_;
+    std::pair<uint32_t, size_t> points_;
     int32_t count_;
     bool close_;
 };
@@ -245,12 +245,12 @@ private:
 
 class AddRoundRectOpItem : public PathOpItem {
 public:
-    AddRoundRectOpItem(std::pair<int32_t, size_t> radiusXYData, const Rect& rect, PathDirection dir);
+    AddRoundRectOpItem(const std::pair<uint32_t, size_t>& radiusXYData, const Rect& rect, PathDirection dir);
     ~AddRoundRectOpItem() = default;
     static void Playback(PathPlayer& player, const void* opItem);
     void Playback(Path& path, const CmdList& cmdList) const;
 private:
-    std::pair<int32_t, size_t> radiusXYData_;
+    std::pair<uint32_t, size_t> radiusXYData_;
     Rect rect_;
     PathDirection dir_;
 };

@@ -28,8 +28,7 @@ std::shared_ptr<ColorSpaceCmdList> ColorSpaceCmdList::CreateFromData(const CmdLi
     auto cmdList = std::make_shared<ColorSpaceCmdList>();
     if (isCopy) {
         cmdList->opAllocator_.BuildFromDataWithCopy(data.first, data.second);
-    }
-    else {
+    } else {
         cmdList->opAllocator_.BuildFromData(data.first, data.second);
     }
     return cmdList;
@@ -41,7 +40,7 @@ std::shared_ptr<ColorSpace> ColorSpaceCmdList::Playback() const
         return nullptr;
     }
 
-    int32_t offset = 0;
+    uint32_t offset = 0;
     std::shared_ptr<ColorSpace> cs = nullptr;
 
     do {

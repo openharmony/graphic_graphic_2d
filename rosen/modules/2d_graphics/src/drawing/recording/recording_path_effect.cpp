@@ -28,14 +28,7 @@ std::shared_ptr<RecordingPathEffect> RecordingPathEffect::CreateDashPathEffect(
     const std::vector<scalar>& intervals, scalar phase)
 {
     auto pathEffect = std::make_shared<RecordingPathEffect>();
-    std::pair<int, size_t> intervalsData(0, 0);
-    if (!intervals.empty()) {
-        const void* data = static_cast<const void*>(intervals.data());
-        size_t size = intervals.size() * sizeof(scalar);
-        auto offset = pathEffect->GetCmdList()->AddCmdListData({ data, size });
-        intervalsData.first = offset;
-        intervalsData.second = size;
-    }
+    auto intervalsData = CmdListHelper::AddVectorToCmdList<scalar>(*pathEffect->GetCmdList(), intervals);
 
     pathEffect->GetCmdList()->AddOp<CreateDashPathEffectOpItem>(intervalsData, phase);
     return pathEffect;
