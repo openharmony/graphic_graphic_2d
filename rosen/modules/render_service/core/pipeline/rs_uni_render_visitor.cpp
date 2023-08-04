@@ -293,7 +293,7 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSBaseRenderNode& node, int ma
     }
     // Attention: currently not support filter. Only enable lowest marked cached node
     // [planning] check if outofparent causes edge problem
-    
+
     uint32_t cacheRenderNodeMapCnt = CACHE_RENDER_NODE_MAP_COUNT;
     {
         std::lock_guard<std::mutex> lock(cacheRenderNodeMapMutex);
@@ -869,8 +869,13 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     dirtyFlag_ = dirtyFlag_ || node.GetDstRectChanged();
     parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
+#ifndef USE_ROSEN_DRAWING
     if (!(parentSurfaceNodeMatrix_.getSkewX() < std::numeric_limits<float>::epsilon() &&
         parentSurfaceNodeMatrix_.getSkewY() < std::numeric_limits<float>::epsilon())) {
+#else
+    if (!(parentSurfaceNodeMatrix_.Get(Drawing::Matrix::SKEW_X) < std::numeric_limits<float>::epsilon() &&
+        parentSurfaceNodeMatrix_.Get(Drawing::Matrix::SKEW_Y) < std::numeric_limits<float>::epsilon())) {
+#endif
         isSurfaceRotationChanged_ = true;
         doAnimate_ = doAnimate_ || isSurfaceRotationChanged_;
         node.SetAnimateState();
@@ -952,8 +957,13 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             || (matrix.Get(Drawing::Matrix::SCALE_Y) > 0 && matrix.Get(Drawing::Matrix::SCALE_Y) != 1.0f);
 #endif
         if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+#ifndef USE_ROSEN_DRAWING
             isScale = isScale && matrix.getSkewX() < std::numeric_limits<float>::epsilon() &&
                 matrix.getSkewX() < std::numeric_limits<float>::epsilon();
+#else
+            isScale = isScale && matrix.Get(Drawing::Matrix::SKEW_X) < std::numeric_limits<float>::epsilon() &&
+                matrix.Get(Drawing::Matrix::SKEW_X) < std::numeric_limits<float>::epsilon();
+#endif
         }
         node.SetIsScale(isScale);
     }
