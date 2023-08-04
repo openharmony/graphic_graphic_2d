@@ -402,6 +402,7 @@ protected:
     bool isShadowValidLastFrame_ = false;
 
     virtual RectI GetFilterRect() const;
+    virtual bool NodeIsUsedBySubThread() const { return false; }
 
 private:
     NodeId id_;
