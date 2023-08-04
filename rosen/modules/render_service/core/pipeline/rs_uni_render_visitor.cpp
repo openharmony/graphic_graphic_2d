@@ -213,8 +213,8 @@ void RSUniRenderVisitor::CopyPropertyForParallelVisitor(RSUniRenderVisitor *main
 
 void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
 {
-    if (curSurfaceNode_) {
-        node.SetRootSurfaceNodeId(curSurfaceNode_->GetId());
+    if (curRootNode_) {
+        node.SetRootSurfaceNodeId(curRootNode_->GetId());
     }
     node.ApplyChildrenModifiers();
     const auto& children = node.GetSortedChildren();
@@ -246,11 +246,13 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
 
     for (auto& child : children) {
         auto nodePreferred = GetNodePreferred(child->GetHgmModifierProfileList());
+        auto curRootNode = curRootNode_;
         child->SetRSFrameRateRangeByPreferred(nodePreferred);
         if (PrepareSharedTransitionNode(*child)) {
             curDirty_ = child->IsDirty();
             child->Prepare(shared_from_this());
         }
+        curRootNode_ = curRootNode;
     }
 
     SetNodeCacheChangeStatus(node, markedCachedNodeCnt);
@@ -368,6 +370,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     curDisplayDirtyManager_ = node.GetDirtyManager();
     curDisplayDirtyManager_->Clear();
     curDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSDisplayRenderNode>();
+    curRootNode_ = node.ReinterpretCastTo<RSRenderNode>();
 
     dirtyFlag_ = isDirty_;
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
@@ -511,8 +514,9 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
     if (RSMainThread::Instance()->CheckNodeHasToBePreparedByPid(node.GetId(), rootId, isClassifyByRootNode)) {
         return false;
     }
-    if (node.IsAppWindow()) {
+    if (node.IsMainWindowType()) {
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+        curRootNode_ = node.ReinterpretCastTo<RSRenderNode>();
         // [Attention] node's ability pid could be different but should have same rootId
         auto abilityNodeIds = node.GetAbilityNodeIds();
         auto iter = std::any_of(abilityNodeIds.begin(), abilityNodeIds.end(),
@@ -648,15 +652,16 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRe
     // if current surfacenode is a main window type, reset the curSurfaceDirtyManager
     // reset leash window's dirtyManager pointer to avoid curSurfaceDirtyManager mis-pointing
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
-        curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
         node.SetFilterCacheFullyCovered(false);
         node.ResetFilterNodes();
+        curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
         curSurfaceDirtyManager_ = node.GetDirtyManager();
         if (curSurfaceDirtyManager_ == nullptr) {
             RS_LOGE("RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate %s has no SurfaceDirtyManager",
                 node.GetName().c_str());
             return;
         }
+        curRootNode_ = node.ReinterpretCastTo<RSRenderNode>();
         curSurfaceDirtyManager_->Clear();
         curSurfaceDirtyManager_->UpdateVisitedDirtyRects(accumulatedDirtyRegions_);
         curSurfaceDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);

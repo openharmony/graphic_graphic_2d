@@ -282,6 +282,7 @@ private:
 
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
+    std::shared_ptr<RSRenderNode> curRootNode_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
     float curAlpha_ = 1.f;
     bool dirtyFlag_ { false };
