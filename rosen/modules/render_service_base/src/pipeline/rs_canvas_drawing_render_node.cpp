@@ -161,7 +161,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
         return false;
     }
     auto image = std::make_shared<Drawing::Image>();
-    if (image->BuildFromBitmap(*gpuContext, *bitmap)) {
+    if (!image->BuildFromBitmap(*gpuContext, *bitmap)) {
         RS_LOGE("RSCanvasDrawingRenderNode::ResetSurface Drawing::Image is nullptr");
         return false;
     }
