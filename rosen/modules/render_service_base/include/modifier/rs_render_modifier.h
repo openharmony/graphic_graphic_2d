@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "parcel.h"
+#include "rs_modifier_type.h"
 
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
@@ -186,7 +187,7 @@ public:
     
     RSModifierType GetType() override
     {
-        return RSModifierType::INVALID;
+        return RSModifierType::PARTICLE;
     }
     std::shared_ptr<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>> property_;
 };

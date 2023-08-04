@@ -635,10 +635,11 @@ float RSProperties::GetTranslateZ() const
 }
 
 
-void RSProperties::SetParticles(const std::vector<std::shared_ptr<RSRenderParticle>> particles)
+void RSProperties::SetParticles(const std::vector<std::shared_ptr<RSRenderParticle>>& particles)
 {
     particles_ = particles;
     SetDirty();
+    contentDirty_ = true;
 }
 
 std::vector<std::shared_ptr<RSRenderParticle>> RSProperties::GetParticles() const

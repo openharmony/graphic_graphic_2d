@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PARTICLE_EMITTER_H
 
 #include <memory>
+
 #include "rs_render_particle_effector.h"
 namespace OHOS {
 namespace Rosen {
@@ -26,54 +27,14 @@ public:
     RSRenderParticleEmitter(std::shared_ptr<ParticleRenderParams> particleParams);
 
     void EmitParticle(int64_t deltaTime);
-    void UpdateParticle(int64_t deltaTime);
-    // Setters
-    void SetLiveTime(int liveTime);
-    void SetEmitRate(int emitRate);
-    void SetEmitShape(ShapeType emitShape);
-    void SetPosition(const Vector2f& position);
-    void SetEmitSize(const Vector2f& emitSize);
-    void SetParticleType(ParticleType type);
-    void SetRadius(float radius);
-    // void SetImage(const RSImage& image);
-    // void SetSize(const Size& size);
-    // void SetImageFit(ImageFit imageFit);
-
-    // Getters
-    int GetMaxParticle() const;
-    int GetActiveParticle() const;
-    static std::vector<std::shared_ptr<RSRenderParticle>> GetRenderParticles();
+    static void UpdateParticle(int64_t deltaTime);
+    std::vector<std::shared_ptr<RSRenderParticle>> GetParticles();
     static std::vector<std::shared_ptr<RSRenderParticle>> GetActiveParticles();
-    int GetLiveTime() const;
-    bool IsEmitting() const;
-    int GetEmitRate() const;
-    ShapeType GetEmitShape() const;
-    const Vector2f& GetPosition() const;
-    const Vector2f& GetEmitSize() const;
-    ParticleType GetParticleType() const;
-    float GetRadius() const;
-    // const RSImage& GetImage() const;
-    // const Size& GetSize() const;
-    // ImageFit GetImageFit() const;
 
 private:
-    int maxParticle_;
-    int activeParticle_;
-    static std::vector<std::shared_ptr<RSRenderParticle>> particles_;
+    std::vector<std::shared_ptr<RSRenderParticle>> particles_;
     static std::vector<std::shared_ptr<RSRenderParticle>> activeParticles_;
-    int liveTime_;
-    bool isEmitting_;
-    int emitRate_;
-    ShapeType emitShape_;   //发射区域的形状
-    Vector2f position_;     //发射区域的位置
-    Vector2f emitSize_;         //发射区域大小
-    ParticleType type_;
-    float radius_;
-    // RSImage image_;
-    // Size size_;
-    // ImageFit imageFit_;
     std::shared_ptr<ParticleRenderParams> particleParams_;
-    int64_t m_accumulatedTime;
 };
 
 } // namespace Rosen

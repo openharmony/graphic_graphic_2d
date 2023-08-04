@@ -148,7 +148,7 @@ public:
     const std::optional<Matrix3f>& GetSublayerTransform() const;
 
     // particle properties
-    void SetParticles(std::vector<std::shared_ptr<RSRenderParticle>> particles);
+    void SetParticles(const std::vector<std::shared_ptr<RSRenderParticle>>& particles);
     std::vector<std::shared_ptr<RSRenderParticle>> GetParticles() const;
 
     // foreground properties

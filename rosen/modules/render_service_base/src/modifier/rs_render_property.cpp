@@ -102,13 +102,6 @@ bool RSRenderPropertyBase::Marshalling(Parcel& parcel, const std::shared_ptr<RSR
             }
             return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
         }
-        // case RSRenderPropertyType::PROPERTY_PARTICLE: {
-        //     auto property = std::static_pointer_cast<RSRenderAnimatableProperty<std::vector<RSRenderParticle>>>(val);
-        //     if (property == nullptr) {
-        //         return false;
-        //     }
-        //     return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
-        // }
         default: {
             return false;
         }
@@ -200,14 +193,6 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
             val.reset(new RSRenderAnimatableProperty<RRect>(value, id, type));
             break;
         }
-        // case RSRenderPropertyType::PROPERTY_PARTICLE: {
-        //     RSRenderParticle value;
-        //     if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
-        //         return false;
-        //     }
-        //     val.reset(new RSRenderAnimatableProperty<std::vector<RSRenderParticle>>(value, id, type));
-        //     break;
-        // }
         default: {
             return false;
         }
@@ -345,6 +330,6 @@ template class RSRenderAnimatableProperty<float>;
 template class RSRenderAnimatableProperty<Vector4f>;
 template class RSRenderAnimatableProperty<Quaternion>;
 template class RSRenderAnimatableProperty<Vector2f>;
-// template class RSRenderAnimatableProperty<RSRenderParticle>;
+
 } // namespace Rosen
 } // namespace OHOS

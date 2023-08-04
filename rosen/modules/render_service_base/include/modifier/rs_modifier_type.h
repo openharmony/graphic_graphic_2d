@@ -98,7 +98,7 @@ enum class RSModifierType : int16_t {
     INVERT,
     HUE_ROTATE,
     COLOR_BLEND,
-    // PARTICLE,
+    PARTICLE,
 
     CUSTOM,
     EXTENDED,
@@ -125,7 +125,6 @@ enum class RSRenderPropertyType : int16_t {
     PROPERTY_VECTOR4_COLOR,
     PROPERTY_SKMATRIX,
     PROPERTY_RRECT,
-    // PROPERTY_PARTICLE,
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,14 +24,14 @@ class RSRenderParticleEffector {
 public:
     RSRenderParticleEffector(const std::shared_ptr<ParticleRenderParams> particleParams);
 
-    void UpdateProperty(RSRenderParticle& particle, int64_t deltaTime, int64_t activeTime);
-    void UpdateAccelerate(RSRenderParticle& particle, int64_t deltaTime, int64_t activeTime);
-    void UpdateColor(RSRenderParticle& particle, int64_t deltaTime, int64_t activeTime);
-    void UpdateOpacity(RSRenderParticle& particle, int64_t deltaTime, int64_t activeTime);
-    void UpdateScale(RSRenderParticle& particle, int64_t deltaTime, int64_t activeTime);
-    void UpdateSpin(RSRenderParticle& particle, int64_t deltaTime, int64_t activeTime);
+    void UpdateProperty(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime, int64_t activeTime);
+    void UpdateAccelerate(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime, int64_t activeTime);
+    void UpdateColor(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime, int64_t activeTime);
+    void UpdateOpacity(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime, int64_t activeTime);
+    void UpdateScale(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime, int64_t activeTime);
+    void UpdateSpin(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime, int64_t activeTime);
     // Apply effector to particle
-    void ApplyEffectorToParticle(RSRenderParticle& particle, int64_t deltaTime);
+    void ApplyEffectorToParticle(const std::shared_ptr<RSRenderParticle>& particle, int64_t deltaTime);
 
     template<typename T>
     T GenerateValue(T startValue, T endValue, int startTime, int endTime, int currentTime,

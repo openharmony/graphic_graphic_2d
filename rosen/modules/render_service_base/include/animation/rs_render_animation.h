@@ -56,6 +56,11 @@ public:
     bool IsPaused() const;
     bool IsFinished() const;
 
+    void SetAnimationId(AnimationId id)
+    {
+        id_ = id;
+    }
+
     void SetDuration(int value)
     {
         animationFraction_.SetDuration(value);

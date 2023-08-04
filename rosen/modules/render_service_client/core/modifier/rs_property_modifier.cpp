@@ -50,21 +50,6 @@ std::shared_ptr<RSRenderModifier> RSEnvForegroundColorStrategyModifier::CreateRe
     return renderModifier;
 }
 
-// RSParticleModifier::RSParticleModifier(
-//     const std::shared_ptr<RSPropertyBase>& property)
-//     : RSForegroundModifier(property, RSModifierType::PARTICLE)
-// {}
-// RSModifierType RSParticleModifier::GetModifierType() const
-// {
-//     return RSModifierType::PARTICLE;
-// }
-// std::shared_ptr<RSRenderModifier> RSParticleModifier::CreateRenderModifier() const
-// {
-//     auto renderProperty = GetRenderProperty();
-//     auto renderModifier = std::make_shared<RSParticleRenderModifier>(renderProperty);
-//     return renderModifier;
-// }
-
 #define DECLARE_ANIMATABLE_MODIFIER_CREATE(MODIFIER_NAME)                                          \
     std::shared_ptr<RSRenderModifier> RS##MODIFIER_NAME##Modifier::CreateRenderModifier() const    \
     {                                                                                              \

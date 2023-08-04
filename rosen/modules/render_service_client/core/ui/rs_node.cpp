@@ -385,9 +385,6 @@ void RSNode::SetProperty(RSModifierType modifierType, T value)
     auto property = std::make_shared<PropertyName>(value);
     auto propertyModifier = std::make_shared<ModifierName>(property);
     propertyModifiers_.emplace(modifierType, propertyModifier);
-    // if (modifierType == RSModifierType::PARTICLE) {
-    //     property->Set(value);
-    // }//set 不进来
     AddModifier(propertyModifier);
 }
 
@@ -719,16 +716,14 @@ void RSNode::SetEnvForegroundColorStrategy(ForegroundColorStrategyType strategyT
 // Set ParticleParams 
 void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams)
 {
-    std::vector<std::shared_ptr<ParticleRenderParams>> particleRenderParams;
+    std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
     for (size_t i = 0; i < particleParams.size(); i++) {
-        particleRenderParams.push_back(particleParams[i].SetParamsToRenderParticle());
+        particlesRenderParams.push_back(particleParams[i].SetParamsToRenderParticle());
     }
-    // auto rSRenderParticle = std::make_shared<RSRenderParticle>();
-    // rSRenderParticle->particleRenderParams_ = particleRenderParams;
 
     auto animationId = RSAnimation::GenerateId();
     auto animation =
-        std::make_shared<RSRenderParticleAnimation>(animationId, particleRenderParams);
+        std::make_shared<RSRenderParticleAnimation>(animationId, particlesRenderParams);
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
     auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -1092,7 +1087,7 @@ void RSNode::MarkDrivenRender(bool flag)
         }
         drivenFlag_ = flag;
     }
-} 
+}
 
 void RSNode::MarkDrivenRenderItemIndex(int index)
 {

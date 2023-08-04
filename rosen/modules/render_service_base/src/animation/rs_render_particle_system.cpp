@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,26 +14,37 @@
  */
 
 #include "animation/rs_render_particle_system.h"
+
 #include <cstddef>
 namespace OHOS {
 namespace Rosen {
-RSRenderParticleSystem::RSRenderParticleSystem(const std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams)
+RSRenderParticleSystem::RSRenderParticleSystem(
+    const std::vector<std::shared_ptr<ParticleRenderParams>>& particlesRenderParams)
     : particlesRenderParams_(particlesRenderParams)
-{}
+{
+    CreateEmitter();
+}
 
-//有几个发射器就发射几次
-void RSRenderParticleSystem::Emit(int64_t deltaTime) {
-    for (std::size_t iter = 0; iter < particlesRenderParams_.size(); iter++) { 
+void RSRenderParticleSystem::CreateEmitter()
+{
+    for (size_t iter = 0; iter < particlesRenderParams_.size(); iter++) {
         auto particleRenderParams = particlesRenderParams_[iter];
-        //创建发射器
-        auto emitter = std::make_shared<RSRenderParticleEmitter>(particleRenderParams);
-        emitter->EmitParticle(deltaTime);
-        // emitter->updateParticle(deltaTime);
+        emitters_.push_back(std::make_shared<RSRenderParticleEmitter>(particleRenderParams));
     }
 }
-std::vector<std::shared_ptr<RSRenderParticle>> RSRenderParticleSystem::Simulation(int64_t deltaTime) {
+
+void RSRenderParticleSystem::Emit(int64_t deltaTime)
+{
+    for (size_t iter = 0; iter < emitters_.size(); iter++) {
+        emitters_[iter]->EmitParticle(deltaTime);
+    }
+}
+
+std::vector<std::shared_ptr<RSRenderParticle>> RSRenderParticleSystem::Simulation(int64_t deltaTime)
+{
     Emit(deltaTime);
-    return RSRenderParticleEmitter::GetRenderParticles();
+    RSRenderParticleEmitter::UpdateParticle(deltaTime);
+    return RSRenderParticleEmitter::GetActiveParticles();
 }
 } // namespace Rosen
 } // namespace OHOS

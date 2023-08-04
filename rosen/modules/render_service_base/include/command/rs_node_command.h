@@ -45,7 +45,6 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_VECTOR2F,
     UPDATE_MODIFIER_VECTOR4_BORDER_STYLE,
     UPDATE_MODIFIER_VECTOR4_COLOR,
-    // UPDATE_MODIFIER_PARTICLE,
     UPDATE_MODIFIER_VECTOR4F,
     UPDATE_MODIFIER_RRECT,
     UPDATE_MODIFIER_DRAW_CMD_LIST,
@@ -157,12 +156,6 @@ ADD_COMMAND(RSUpdatePropertyBorderStyle,
 ADD_COMMAND(RSUpdatePropertyVector4Color,
     ARG(RS_NODE, UPDATE_MODIFIER_VECTOR4_COLOR, RSNodeCommandHelper::UpdateModifier<Vector4<Color>>,
         NodeId, Vector4<Color>, PropertyId, bool))
-// // ADD_COMMAND(RSUpdatePropertyParticle,
-// //     ARG(RS_NODE, UPDATE_MODIFIER_PARTICLE, RSNodeCommandHelper::UpdateModifier<std::vector<ParticleParams>>,
-// //         NodeId, std::vector<ParticleParams>, PropertyId, bool))
-// ADD_COMMAND(RSUpdatePropertyParticle,
-//     ARG(RS_NODE, UPDATE_MODIFIER_PARTICLE, RSNodeCommandHelper::UpdateModifier<std::vector<RSRenderParticle>>,
-//         NodeId, std::vector<RSRenderParticle>, PropertyId, bool))
 ADD_COMMAND(RSUpdatePropertyVector4f,
     ARG(RS_NODE, UPDATE_MODIFIER_VECTOR4F, RSNodeCommandHelper::UpdateModifier<Vector4f>,
         NodeId, Vector4f, PropertyId, bool))

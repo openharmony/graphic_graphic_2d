@@ -76,7 +76,6 @@ private:
     std::function<float(float)> customCurveFunc_;
 
     friend class RSCurveAnimation;
-    // friend class RSParticleAnimation;
     friend class RSInterpolatingSpringAnimation;
     friend class RSKeyframeAnimation;
     friend class RSSpringAnimation;

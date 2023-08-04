@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,23 +25,22 @@
 
 namespace OHOS {
 namespace Rosen {
-RSRenderParticleAnimation::RSRenderParticleAnimation(AnimationId id, 
-    const std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams)
-:RSRenderPropertyAnimation(id) 
-{ 
+RSRenderParticleAnimation::RSRenderParticleAnimation(
+    AnimationId id, const std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams)
+    : RSRenderPropertyAnimation(id)
+{
     particlesRenderParams_ = particlesRenderParams;
     particleSystem_ = RSRenderParticleSystem(particlesRenderParams_);
 }
 
 bool RSRenderParticleAnimation::Animate(int64_t time)
 {
-    // time 就是当前的时间，GetLastFrameTime获取上一帧的时间，
     int64_t deltaTime = time - animationFraction_.GetLastFrameTime();
-    //auto particleSystem = RSRenderParticleSystem(particlesRenderParams_);
-
+    animationFraction_.SetLastFrameTime(time);
     renderParticle_ = particleSystem_.Simulation(deltaTime);
 
-    auto property = std::static_pointer_cast<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>>(property_);
+    auto property =
+        std::static_pointer_cast<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>>(property_);
     if (property) {
         property->Set(renderParticle_);
     }
@@ -51,33 +50,19 @@ bool RSRenderParticleAnimation::Animate(int64_t time)
             target->RemoveModifier(property_->GetId());
             return true;
         }
-    } 
+    }
     return false;
 }
 
-// void RSRenderParticleAnimation::AttachRenderProperty(const std::shared_ptr<RSRenderPropertyBase>& renderProperty)
-// {
-//     auto particleRenderProperty = std::make_shared<RSRenderProperty<std::vector<RSRenderParticle>>>(particles, GetPropertyId());
-//     auto particleRenderModifier = std::make_shared<RSParticleRenderModifier>(particleRenderProperty);
-//     auto target = GetTarget();
-//     if (target) {
-//         target->AddModifier(particleRenderModifier);
-//     }
-//     // 上述流程已经在animate方法中做了
-//     // 动画结束的时候将modifier清掉
-//     // node->RemoveModifier(PROPERTYid);
-// }
-
-bool RSRenderParticleAnimation::Marshalling(Parcel& parcel) const 
+bool RSRenderParticleAnimation::Marshalling(Parcel& parcel) const
 {
-    // animationId, targetId
-
-    if (!RSRenderAnimation::Marshalling(parcel)) {
-        ROSEN_LOGE("RSRenderPropertyAnimation::Marshalling, RenderAnimation failed");
+    auto id = GetAnimationId();
+    if (!(parcel.WriteUint64(id))) {
+        ROSEN_LOGE("RSRenderParticleAnimation::Marshalling, write id failed");
         return false;
     }
     if (!RSMarshallingHelper::Marshalling(parcel, particlesRenderParams_)) {
-        ROSEN_LOGE("RSRenderPropertyAnimation::Marshalling, write value failed");
+        ROSEN_LOGE("RSRenderParticleAnimation::Marshalling, write particlesRenderParams failed");
         return false;
     }
     return true;
@@ -96,16 +81,14 @@ RSRenderParticleAnimation* RSRenderParticleAnimation::Unmarshalling(Parcel& parc
 
 bool RSRenderParticleAnimation::ParseParam(Parcel& parcel)
 {
-    //  if (!parcel.ReadUint64(id_)) {
-    //     ROSEN_LOGE("RSRenderPropertyAnimation::ParseParam, Unmarshalling failed");
-    //     return false;
-    // }
-    if (!RSRenderAnimation::ParseParam(parcel)) {
-        ROSEN_LOGE("RSRenderPropertyAnimation::ParseParam, RenderAnimation failed");
+    AnimationId id = 0;
+    if (!parcel.ReadUint64(id)) {
+        ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling failed");
         return false;
     }
-
+    SetAnimationId(id);
     if (!RSMarshallingHelper::Unmarshalling(parcel, particlesRenderParams_)) {
+        ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling failed");
         return false;
     }
     return true;
