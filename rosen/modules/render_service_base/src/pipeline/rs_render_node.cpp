@@ -1080,6 +1080,29 @@ float RSRenderNode::GetGlobalAlpha() const
     return globalAlpha_;
 }
 
+bool RSRenderNode::NeedInitCacheSurface() const
+{
+    if (cacheSurface_ == nullptr) {
+        return true;
+    }
+    auto cacheType = GetCacheType();
+    float width = 0.0f, height = 0.0f;
+    if (cacheType == CacheType::ANIMATE_PROPERTY &&
+        renderProperties_.IsShadowValid() && !renderProperties_.IsSpherizeValid()) {
+        const RectF boundsRect = renderProperties_.GetBoundsRect();
+        RRect rrect = RRect(boundsRect, {0, 0, 0, 0});
+        RectI shadowRect;
+        RSPropertiesPainter::GetShadowDirtyRect(shadowRect, renderProperties_, &rrect, false);
+        width = shadowRect.GetWidth();
+        height = shadowRect.GetHeight();
+    } else {
+        Vector2f size = GetOptionalBufferSize();
+        width =  size.x_;
+        height = size.y_;
+    }
+    return cacheSurface_->width() != width || cacheSurface_->height() !=height;
+}
+
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
 void RSRenderNode::InitCacheSurface(GrRecordingContext* grContext, ClearCacheSurfaceFunc func, uint32_t threadIndex)
