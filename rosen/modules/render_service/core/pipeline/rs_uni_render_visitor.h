@@ -198,7 +198,7 @@ private:
      * when process canvas culling, canvas intersect with surface's visibledirty region or
      * global dirty region will be skipped
      */
-    void CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node) const;
+    void CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node);
     void CalcDirtyRegionForFilterNode(const RectI filterRect,
         std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
         std::shared_ptr<RSDisplayRenderNode>& displayNode);

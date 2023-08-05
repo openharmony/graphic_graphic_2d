@@ -274,6 +274,16 @@ public:
     void SetCacheType(CacheType cacheType);
     CacheType GetCacheType() const;
 
+    void SetCacheSurfaceNeedUpdated(bool isCacheSurfaceNeedUpdate)
+    {
+        isCacheSurfaceNeedUpdate_ = isCacheSurfaceNeedUpdate;
+    }
+
+    bool GetCacheSurfaceNeedUpdated() const
+    {
+        return isCacheSurfaceNeedUpdate_;
+    }
+
     int GetShadowRectOffsetX() const;
     int GetShadowRectOffsetY() const;
 
@@ -474,6 +484,7 @@ private:
     bool isTextureValid_ = false;
 #endif
 #endif
+    std::atomic<bool> isCacheSurfaceNeedUpdate_ = false;
     std::atomic<bool> isStaticCached_ = false;
     CacheType cacheType_ = CacheType::NONE;
     // drawing group cache

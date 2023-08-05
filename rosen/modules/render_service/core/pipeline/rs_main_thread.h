@@ -164,6 +164,7 @@ public:
     void CountMem(std::vector<MemoryGraphic>& mems);
     void SetAppWindowNum(uint32_t num);
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
+    void SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated);
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> GetWatermarkImg();
 #else
@@ -361,6 +362,7 @@ private:
     std::atomic<uint64_t> frameCount_ = 0;
     std::set<std::shared_ptr<RSBaseRenderNode>> oldDisplayChildren_;
     DeviceType deviceType_ = DeviceType::PHONE;
+    bool isCachedSurfaceUpdated_ = false;
 
     // used for informing hgm the bundle name of SurfaceRenderNodes
     bool noBundle_ = false;

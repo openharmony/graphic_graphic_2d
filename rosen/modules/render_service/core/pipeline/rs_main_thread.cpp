@@ -369,6 +369,11 @@ void RSMainThread::SetDeviceType()
     }
 }
 
+void RSMainThread::SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated)
+{
+    isCachedSurfaceUpdated_ = isCachedSurfaceUpdated;
+}
+
 void RSMainThread::SetRSEventDetectorLoopStartTag()
 {
     if (rsCompositionTimeoutDetector_ != nullptr) {
@@ -1078,7 +1083,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
     bool needTraverseNodeTree = true;
     doDirectComposition_ = false;
-    if (doDirectComposition_ && !isDirty_ && !isAccessibilityConfigChanged_) {
+    if (doDirectComposition_ && !isDirty_ && !isAccessibilityConfigChanged_ && !isCachedSurfaceUpdated_) {
         if (isHardwareEnabledBufferUpdated_) {
             needTraverseNodeTree = !uniVisitor->DoDirectComposition(rootNode);
         } else {
@@ -1091,6 +1096,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             return;
         }
     }
+    isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
         uniVisitor->SetAnimateState(doWindowAnimate_);
         uniVisitor->SetDirtyFlag(isDirty_ || isAccessibilityConfigChanged_);
@@ -1126,7 +1132,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         rootNode->Process(uniVisitor);
     }
     isDirty_ = false;
-    uniRenderEngine_->ShrinkCachesIfNeeded();
 }
 
 void RSMainThread::Render()

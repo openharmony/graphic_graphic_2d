@@ -2327,7 +2327,7 @@ void RSUniRenderVisitor::AddOverDrawListener(std::unique_ptr<RSRenderFrame>& ren
     }
 }
 
-void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node) const
+void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node)
 {
     RS_TRACE_FUNC();
     auto displayDirtyManager = node->GetDirtyManager();
@@ -2337,6 +2337,9 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
             continue;
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
+        if (isUIFirst_ && surfaceDirtyManager->IsCurrentFrameDirty()) {
+            dirtySurfaceNodeMap_.emplace(surfaceNode->GetId(), surfaceNode->ReinterpretCastTo<RSSurfaceRenderNode>());
+        }
         RectI surfaceDirtyRect = surfaceDirtyManager->GetCurrentFrameDirtyRegion();
         if (surfaceNode->IsTransparent()) {
             // Handles the case of transparent surface, merge transparent dirty rect
@@ -2903,6 +2906,9 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
 
 bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode& node)
 {
+    if (isSubThread_) {
+        return true;
+    }
     if (isSecurityDisplay_ && node.GetSecurityLayer()) {
         RS_TRACE_NAME(node.GetName() + " SecurityLayer Skip");
         return false;

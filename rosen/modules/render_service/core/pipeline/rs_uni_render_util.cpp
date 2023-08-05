@@ -510,7 +510,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         }
     }
     // trace info for assign window nodes
-    std::string traceInfo = "{ isScale: " + std::to_string(isScale) + ", " +
+    std::string LogInfo = "{ isScale: " + std::to_string(isScale) + ", " +
         "leashWindowCount: " + std::to_string(leashWindowCount) + ", " +
         "isRotation: " + std::to_string(isRotation) + " }; ";
     for (auto iter = curAllSurfaces.begin(); iter != curAllSurfaces.end(); iter++) {
@@ -520,7 +520,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
             continue;
         }
         // trace info for assign window nodes
-        traceInfo += "node:[ " + node->GetName() + ", " + std::to_string(node->GetId()) + " ]" +
+        LogInfo += "node:[ " + node->GetName() + ", " + std::to_string(node->GetId()) + " ]" +
             "( " + std::to_string(static_cast<uint32_t>(node->GetCacheSurfaceProcessedStatus())) + ", " +
             std::to_string(node->HasFilter()) + ", " + std::to_string(node->HasAbilityComponent()) + " ); ";
         std::string surfaceName = node->GetName();
@@ -551,8 +551,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
                 AssignMainThreadNode(mainThreadNodes, node);
             }
         } else { // PC or TABLET
-            if (!node->HasFilter() && !node->HasAbilityComponent() &&
-                !isRotation && realFocusNodeId != node->GetId()) {
+            if (!node->HasFilter() && !node->HasAbilityComponent() && !isRotation) {
                 AssignSubThreadNode(subThreadNodes, node);
             } else {
                 AssignMainThreadNode(mainThreadNodes, node);
@@ -560,7 +559,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         }
     }
     SortSubThreadNodes(subThreadNodes);
-    RS_TRACE_NAME_FMT("AssignWindowNodes Infos: %s", traceInfo.c_str());
+    ROSEN_LOGD("RSUniRenderUtil::AssignWindowNodes: %s", LogInfo.c_str());
 }
 
 void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
@@ -601,15 +600,22 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
         node->IsCurrentFrameStatic() && node->HasCachedTexture()) {
         RS_TRACE_NAME_FMT("subThreadNodes : static skip %s", node->GetName().c_str());
-        return;
+    } else {
+        subThreadNodes.emplace_back(node);
+        node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
     }
 
-    subThreadNodes.emplace_back(node);
-    node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
 #if defined(RS_ENABLE_GL)
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
-        node->GetCacheSurface(UNI_MAIN_THREAD_INDEX, false)) {
+        node->GetCacheSurface(UNI_MAIN_THREAD_INDEX, false) && node->GetCacheSurfaceNeedUpdated()) {
         node->UpdateCompletedCacheSurface();
+        for (auto& child : node->GetSortedChildren()) {
+            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+            if (surfaceNode && surfaceNode->IsAppWindow()) {
+                surfaceNode->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetOldDirty());
+            }
+        }
+        node->SetCacheSurfaceNeedUpdated(false);
     }
 #endif
     if (node->HasCachedTexture()) {
