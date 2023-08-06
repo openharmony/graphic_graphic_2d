@@ -2743,7 +2743,8 @@ void RSUniRenderVisitor::CheckAndSetNodeCacheType(RSRenderNode& node)
             node.SetCacheType(CacheType::CONTENT);
             RSUniRenderUtil::ClearCacheSurface(node, threadIndex_, false);
         }
-        if (!node.GetCompletedCacheSurface(threadIndex_, false) && UpdateCacheSurface(node)) {
+
+        if (!node.GetCompletedCacheSurface(threadIndex_, true) && UpdateCacheSurface(node)) {
             node.UpdateCompletedCacheSurface();
         }
     } else if (isDrawingCacheEnabled_ && GenerateNodeContentCache(node)) {
@@ -2766,7 +2767,7 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
 
     if (!node.GetCacheSurface(threadIndex_, true)) {
         RSRenderNode::ClearCacheSurfaceFunc func = std::bind(&RSUniRenderUtil::ClearNodeCacheSurface,
-            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
         node.InitCacheSurface(canvas_ ? canvas_->recordingContext() : nullptr, func, threadIndex_);
@@ -2859,12 +2860,12 @@ void RSUniRenderVisitor::DrawSpherize(RSRenderNode& node)
         node.SetCacheType(CacheType::ANIMATE_PROPERTY);
         RSUniRenderUtil::ClearCacheSurface(node, threadIndex_, false);
     }
-    if (!node.GetCompletedCacheSurface(threadIndex_, false) && UpdateCacheSurface(node)) {
+    if (!node.GetCompletedCacheSurface(threadIndex_, true) && UpdateCacheSurface(node)) {
         node.UpdateCompletedCacheSurface();
     }
     node.ProcessTransitionBeforeChildren(*canvas_);
     RSPropertiesPainter::DrawSpherize(
-        node.GetRenderProperties(), *canvas_, node.GetCompletedCacheSurface(threadIndex_, false));
+        node.GetRenderProperties(), *canvas_, node.GetCompletedCacheSurface(threadIndex_, true));
     node.ProcessTransitionAfterChildren(*canvas_);
 }
 
@@ -3512,11 +3513,13 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     if (auto drawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>()) {
 #ifndef USE_ROSEN_DRAWING
         auto clearFunc = [id = threadIndex_](sk_sp<SkSurface> surface) {
-            RSUniRenderUtil::ClearNodeCacheSurface(surface, nullptr, id);
+            // The second param is null, 0 is an invalid value.
+            RSUniRenderUtil::ClearNodeCacheSurface(surface, nullptr, id, 0);
         };
 #else
         auto clearFunc = [id = threadIndex_](std::shared_ptr<Drawing::Surface> surface) {
-            RSUniRenderUtil::ClearNodeCacheSurface(surface, nullptr, id);
+            // The second param is null, 0 is an invalid value.
+            RSUniRenderUtil::ClearNodeCacheSurface(surface, nullptr, id, 0);
         };
 #endif
         drawingNode->SetSurfaceClearFunc({ threadIndex_, clearFunc });
