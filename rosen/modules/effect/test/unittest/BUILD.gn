@@ -72,7 +72,10 @@ ohos_unittest("EffectTest") {
     ":effect_test_config",
     "$graphic_2d_root/utils/color_manager:color_manager_public_config",
   ]
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 config("effect_test_config") {

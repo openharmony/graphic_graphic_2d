@@ -40,12 +40,13 @@ ohos_systemtest("opengl_wrapper_api_test") {
   ]
 
   deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
     "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
     "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
     "//third_party/googletest:gtest_main",
   ]
+
+  external_deps = [ "hilog:libhilog" ]
 }
 ## SystemTest opengl_wrapper_api_test }}}
