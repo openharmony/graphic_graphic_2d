@@ -391,7 +391,6 @@ public:
 
 protected:
     bool ApplyModifiers();
-    void ResetSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex);
     virtual void OnApplyModifiers() {}
 
     enum class NodeDirty {
@@ -473,6 +472,7 @@ private:
     std::shared_ptr<RSRenderModifier> frameModifier_;
 
 #ifndef USE_ROSEN_DRAWING
+    sk_sp<SkImage> GetCompletedImage(RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst);
     sk_sp<SkSurface> cacheSurface_ = nullptr;
     sk_sp<SkSurface> cacheCompletedSurface_ = nullptr;
 #else
