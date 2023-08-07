@@ -1305,14 +1305,13 @@ void RSRenderNode::ResetSurface(RSPaintFilterCanvas& canvas, uint32_t threadInde
         RS_LOGE("Get image failed");
         return;
     }
-
+#if (defined NEW_SKIA) && (defined RS_ENABLE_GL)
     GrSurfaceOrigin origin = kBottomLeft_GrSurfaceOrigin;
     auto texture = image->getBackendTexture(false, &origin);
     if (!texture.isValid()) {
         RS_LOGE("DrawCacheSurface invalid texture");
         return;
     }
-#if (defined NEW_SKIA) && (defined RS_ENABLE_GL)
     auto sharedTexture = SkImage::MakeFromTexture(
         canvas.recordingContext(), texture, origin, image->colorType(), image->alphaType(), nullptr);
     if (sharedTexture == nullptr) {
@@ -1323,7 +1322,7 @@ void RSRenderNode::ResetSurface(RSPaintFilterCanvas& canvas, uint32_t threadInde
     canvasTmp->drawImage(sharedTexture, 0.f, 0.f);
 #else
     auto canvasTmp = std::make_unique<RSPaintFilterCanvas>(cacheSurface_.get());
-    canvasTmp->drawImage(texture, 0.f, 0.f);
+    canvasTmp->drawImage(image, 0.f, 0.f);
 #endif
     cacheCompletedSurface_ = nullptr;
     if (clearCacheSurfaceFunc_) {
