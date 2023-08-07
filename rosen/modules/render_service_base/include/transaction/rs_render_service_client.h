@@ -57,17 +57,19 @@ using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionDa
 struct DataBaseRs {
     int32_t appPid = -1;
     int32_t eventType = -1;
+    int32_t versionCode = -1;
     int64_t uniqueId = 0;
     int64_t inputTime = 0;
     int64_t beginVsyncTime = 0;
     int64_t endVsyncTime = 0;
     std::string sceneId;
-    std::string versionCode;
     std::string versionName;
     std::string bundleName;
     std::string processName;
     std::string abilityName;
     std::string pageUrl;
+    std::string sourceType;
+    std::string note;
 };
 
 class SurfaceCaptureCallback {

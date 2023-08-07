@@ -78,11 +78,15 @@ JANK_STATS_RS:
 INTERACTION_RESPONSE_LATENCY:
   __BASE: {type: STATISTIC, level: MINOR, tag: performance, desc: interaction response statistics}
   APP_PID: {type: INT32, desc: app process id}
+  VERSION_CODE: {type: INT32, desc: version code}
+  VERSION_NAME: {type: STRING, desc: version name}
   BUNDLE_NAME: {type: STRING, desc: package name}
   ABILITY_NAME: {type: STRING, desc: ability name}
   PROCESS_NAME: {type: STRING, desc: process name}
   PAGE_URL: {type: STRING, desc: page url}
   SCENE_ID: {type: STRING, desc: interation scene id}
+  SOURCE_TYPE: {type: STRING, desc: input source type}
+  NOTE: {type: STRING, desc: extra information}
   INPUT_TIME: {type: UINT64, desc: input time when multimodel receive from kernel}
   ANIMATION_START_TIME: {type: UINT64, desc: animation start time of the scene}
   RENDER_TIME: {type: UINT64, desc: render time of the scene}
@@ -91,11 +95,15 @@ INTERACTION_RESPONSE_LATENCY:
 INTERACTION_COMPLETED_LATENCY:
   __BASE: {type: STATISTIC, level: MINOR, tag: performance, desc: interaction response statistics}
   APP_PID: {type: INT32, desc: app process id}
+  VERSION_CODE: {type: INT32, desc: version code}
+  VERSION_NAME: {type: STRING, desc: version name}
   BUNDLE_NAME: {type: STRING, desc: package name}
   ABILITY_NAME: {type: STRING, desc: ability name}
   PROCESS_NAME: {type: STRING, desc: process name}
   PAGE_URL: {type: STRING, desc: page url}
   SCENE_ID: {type: STRING, desc: interation scene id}
+  SOURCE_TYPE: {type: STRING, desc: input source type}
+  NOTE: {type: STRING, desc: extra information}
   INPUT_TIME: {type: UINT64, desc: input time when multimodel receive from kernel}
   ANIMATION_START_LATENCY: {type: UINT64, desc: animation start time minus input time}
   ANIMATION_END_LATENCY: {type: UINT64, desc: end time of the scene}

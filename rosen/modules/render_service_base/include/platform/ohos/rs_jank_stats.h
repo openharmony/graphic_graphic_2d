@@ -17,6 +17,7 @@
 #define ROSEN_JANK_STATS_H
 
 #include <cstdint>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -26,21 +27,26 @@ namespace OHOS {
 
 namespace {
 using UniqueId = int64_t;
+using TraceId = int32_t;
 struct JankFrames {
     bool isSetReportEventResponse_ = false;
     bool isSetReportEventComplete_ = false;
+    bool isSetReportEventJankFrame_ = false;
     bool isReportEventResponse_ = false;
     bool isReportEventComplete_ = false;
-    bool isSetReportEventJankFrame_ = false;
-    bool isUpdateJankFrame_ = false;
-    uint64_t setTime_ = 0;
-    int32_t SeqMissedFrames = 0;
+    bool isReportEventJankFrame_ = false;
+    int64_t setTime_ = 0;
+    int32_t seqMissedFrames_ = 0;
     int32_t totalFrames_ = 0;
     int32_t totalMissedFrames_ = 0;
-    uint64_t maxFrameTime_ = 0;
+    int64_t maxFrameTime_ = 0;
     int32_t maxSeqMissedFrames_ = 0;
-    uint64_t totalFrameTime_ = 0;
+    int64_t totalFrameTime_ = 0;
     Rosen::DataBaseRs info_;
+};
+struct TraceStats {
+    std::string traceName_;
+    int64_t createTime_ = 0;
 };
 } // namespace
 
@@ -50,16 +56,10 @@ public:
     static RSJankStats& GetInstance();
     void SetStartTime();
     void SetEndTime();
-    void SetRSJankStats(int times);
-    void UpdateJankFrame(uint64_t duration, JankFrames& jankFrames);
     void ReportJankStats();
     void SetReportEventResponse(DataBaseRs info);
     void SetReportEventComplete(DataBaseRs info);
     void SetReportEventJankFrame(DataBaseRs info);
-    void ReportEventResponse(JankFrames& jankFrames);
-    void ReportEventComplete(JankFrames& jankFrames);
-    void ReportEventJankFrame(JankFrames& jankFrames);
-    void ReportEventFirstFrame();
     void SetFirstFrame();
     void SetPid(pid_t pid);
 
@@ -70,21 +70,32 @@ private:
     RSJankStats(const RSJankStats&&) = delete;
     void operator=(const RSJankStats&) = delete;
     void operator=(const RSJankStats&&) = delete;
-    uint64_t ConvertTimeToSystime(uint64_t time);
-    uint64_t GetCurrentSystimeMs();
 
-    constexpr static int JANK_STATS_SIZE = 8;
+    void SetRSJankStats(int32_t times);
+    void UpdateJankFrame(int64_t duration, JankFrames& jankFrames);
+    void ReportEventResponse(const JankFrames& jankFrames, const TraceId traceId);
+    void ReportEventComplete(const JankFrames& jankFrames, const TraceId traceId);
+    void ReportEventJankFrame(const JankFrames& jankFrames) const;
+    void ReportEventFirstFrame();
+    int64_t ConvertTimeToSystime(int64_t time) const;
+    int64_t GetCurrentSystimeMs() const;
+
+    constexpr static size_t JANK_STATS_SIZE = 8;
+    constexpr static uint16_t TRACE_CHECK_FREQ = 20;
     bool isfirstSetStart_ = true;
     bool isNeedReport_ = false;
-    uint64_t startTime_ = 0;
-    uint64_t endTime_ = 0;
-    uint64_t lastReportTime_ = 0;
     bool isFirstFrame_ = false;
+    int64_t startTime_ = 0;
+    int64_t endTime_ = 0;
+    int64_t lastReportTime_ = 0;
     int32_t appPid_ = 0;
+    uint16_t traceCheckCnt_ = 0;
     std::vector<uint16_t> rsJankStats_ = std::vector<uint16_t>(JANK_STATS_SIZE, 0);
+    std::map<TraceId, TraceStats> aSyncTraces_;
     std::map<UniqueId, JankFrames> animateJankFrames_;
+    std::mutex animateJankFramesMutex_;
 
-    enum JankRangeType : int16_t {
+    enum JankRangeType : size_t {
         JANK_FRAME_6_FREQ = 0,
         JANK_FRAME_15_FREQ,
         JANK_FRAME_20_FREQ,

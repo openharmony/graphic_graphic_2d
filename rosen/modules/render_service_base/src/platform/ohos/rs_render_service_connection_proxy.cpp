@@ -1549,17 +1549,19 @@ void RSRenderServiceConnectionProxy::ReportDataBaseRs(
 {
     data.WriteInt32(info.appPid);
     data.WriteInt32(info.eventType);
+    data.WriteInt32(info.versionCode);
     data.WriteInt64(info.uniqueId);
     data.WriteInt64(info.inputTime);
     data.WriteInt64(info.beginVsyncTime);
     data.WriteInt64(info.endVsyncTime);
     data.WriteString(info.sceneId);
-    data.WriteString(info.versionCode);
     data.WriteString(info.versionName);
     data.WriteString(info.bundleName);
     data.WriteString(info.processName);
     data.WriteString(info.abilityName);
     data.WriteString(info.pageUrl);
+    data.WriteString(info.sourceType);
+    data.WriteString(info.note);
     option.SetFlags(MessageOption::TF_ASYNC);
 }
 

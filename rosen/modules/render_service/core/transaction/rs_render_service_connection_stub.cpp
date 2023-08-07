@@ -901,17 +901,19 @@ void RSRenderServiceConnectionStub::ReadDataBaseRs(DataBaseRs& info, MessageParc
 {
     info.appPid = data.ReadInt32();
     info.eventType =  data.ReadInt32();
+    info.versionCode = data.ReadInt32();
     info.uniqueId = data.ReadInt64();
     info.inputTime = data.ReadInt64();
     info.beginVsyncTime = data.ReadInt64();
     info.endVsyncTime = data.ReadInt64();
     info.sceneId = data.ReadString();
-    info.versionCode = data.ReadString();
     info.versionName = data.ReadString();
     info.bundleName = data.ReadString();
     info.processName = data.ReadString();
     info.abilityName = data.ReadString();
     info.pageUrl = data.ReadString();
+    info.sourceType = data.ReadString();
+    info.note = data.ReadString();
 }
 } // namespace Rosen
 } // namespace OHOS
