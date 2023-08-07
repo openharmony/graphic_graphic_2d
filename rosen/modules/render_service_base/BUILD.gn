@@ -38,6 +38,11 @@ ohos_source_set("render_service_base_src") {
     "src/animation/rs_render_curve_animation.cpp",
     "src/animation/rs_render_interpolating_spring_animation.cpp",
     "src/animation/rs_render_keyframe_animation.cpp",
+    "src/animation/rs_render_particle.cpp",
+    "src/animation/rs_render_particle_animation.cpp",
+    "src/animation/rs_render_particle_effector.cpp",
+    "src/animation/rs_render_particle_emitter.cpp",
+    "src/animation/rs_render_particle_system.cpp",
     "src/animation/rs_render_path_animation.cpp",
     "src/animation/rs_render_property_animation.cpp",
     "src/animation/rs_render_spring_animation.cpp",
@@ -224,6 +229,7 @@ ohos_source_set("render_service_base_src") {
   include_dirs = [
     "$graphic_2d_root/frameworks/surface/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/utils/log",
   ]
   if (defined(use_new_skia) && use_new_skia) {

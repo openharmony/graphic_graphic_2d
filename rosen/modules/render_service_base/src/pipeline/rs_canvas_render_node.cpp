@@ -178,6 +178,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
     RSPropertiesPainter::DrawBorder(GetRenderProperties(), canvas);
     ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);
     RSPropertiesPainter::DrawForegroundColor(GetRenderProperties(), canvas);
+    RSPropertiesPainter::DrawParticle(GetRenderProperties(), canvas);
 }
 
 void RSCanvasRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)

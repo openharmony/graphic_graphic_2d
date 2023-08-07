@@ -79,6 +79,7 @@ public:
 
     static void DrawLightUpEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void DrawDynamicLightUp(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+    static void DrawParticle(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 private:
     inline static int g_blurCnt = 0;
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);

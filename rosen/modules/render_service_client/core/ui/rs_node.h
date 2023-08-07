@@ -20,6 +20,7 @@
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_motion_path_option.h"
+#include "animation/rs_particle_params.h"
 #include "animation/rs_transition_effect.h"
 #include "command/rs_animation_command.h"
 #include "common/rs_vector2.h"
@@ -214,6 +215,7 @@ public:
 
     void SetEnvForegroundColor(uint32_t colorValue);
     void SetEnvForegroundColorStrategy(ForegroundColorStrategyType colorType);
+    void SetParticleParams(std::vector<ParticleParams>& particleParams);
     void SetForegroundColor(uint32_t colorValue);
     void SetBackgroundColor(uint32_t colorValue);
     void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);

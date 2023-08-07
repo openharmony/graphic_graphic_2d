@@ -71,7 +71,14 @@ class RSImageBase;
 class RSMask;
 class RSPath;
 class RSLinearGradientBlurPara;
+template<typename T>
+class RenderParticleParaType;
+class EmitterConfig;
+class ParticleVelocity;
+class RenderParticleColorParaType;
+class ParticleRenderParams;
 class RSRenderCurveAnimation;
+class RSRenderParticleAnimation;
 class RSRenderInterpolatingSpringAnimation;
 class RSRenderKeyframeAnimation;
 class RSRenderPathAnimation;
@@ -190,6 +197,12 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImageBase>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<EmitterConfig>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleVelocity>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleRenderParams>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<std::vector<ParticleRenderParams>>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RenderParticleParaType<float>>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RenderParticleColorParaType>)
 #ifndef USE_ROSEN_DRAWING
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<DrawCmdList>)
 #else
@@ -218,6 +231,7 @@ public:
     static bool Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE>& val);
 
     DECLARE_ANIMATION_OVERLOAD(RSRenderCurveAnimation)
+    DECLARE_ANIMATION_OVERLOAD(RSRenderParticleAnimation)
     DECLARE_ANIMATION_OVERLOAD(RSRenderInterpolatingSpringAnimation)
     DECLARE_ANIMATION_OVERLOAD(RSRenderKeyframeAnimation)
     DECLARE_ANIMATION_OVERLOAD(RSRenderSpringAnimation)

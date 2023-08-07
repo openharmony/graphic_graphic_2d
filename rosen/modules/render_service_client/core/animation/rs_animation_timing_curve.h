@@ -81,6 +81,9 @@ private:
     friend class RSSpringAnimation;
     friend class RSPathAnimation;
     friend class RSTransition;
+    friend class ParticleParams;
+    template<typename T>
+    friend class Change;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -211,7 +211,6 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
-
 class RSC_EXPORT RSForegroundColorModifier : public RSForegroundModifier {
 public:
     explicit RSForegroundColorModifier(const std::shared_ptr<RSPropertyBase>& property);

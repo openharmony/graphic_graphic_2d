@@ -98,6 +98,7 @@ enum class RSModifierType : int16_t {
     INVERT,
     HUE_ROTATE,
     COLOR_BLEND,
+    PARTICLE,
 
     CUSTOM,
     EXTENDED,

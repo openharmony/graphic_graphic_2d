@@ -15,6 +15,7 @@
 
 #include "transaction/rs_marshalling_helper.h"
 
+#include <cstdint>
 #include <memory>
 #include <message_parcel.h>
 #include <sys/mman.h>
@@ -47,13 +48,15 @@
 #include "src/core/SkWriteBuffer.h"
 #include "src/image/SkImage_Base.h"
 #else
-#include "recording/recording_shader_effect.h"
 #include "recording/recording_path.h"
+#include "recording/recording_shader_effect.h"
 #endif
 
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interpolating_spring_animation.h"
 #include "animation/rs_render_keyframe_animation.h"
+#include "animation/rs_render_particle.h"
+#include "animation/rs_render_particle_animation.h"
 #include "animation/rs_render_path_animation.h"
 #include "animation/rs_render_spring_animation.h"
 #include "animation/rs_render_transition.h"
@@ -182,7 +185,7 @@ bool RSMarshallingHelper::UnmarshallingWithCopy(Parcel& parcel, sk_sp<SkData>& v
     if (success) {
 #ifdef RS_ENABLE_RECORDING
         if (val && (val->size() < MIN_DATA_SIZE ||
-            parcel.GetMaxCapacity() == RSRecordingThread::RECORDING_PARCEL_MAX_CAPCITY)) {
+                       parcel.GetMaxCapacity() == RSRecordingThread::RECORDING_PARCEL_MAX_CAPCITY)) {
 #else
         if (val && val->size() < MIN_DATA_SIZE) {
 #endif
@@ -472,18 +475,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, voi
         // use this proc to follow release step
         SkImageInfo imageInfo = SkImageInfo::Make(width, height, colorType, alphaType, colorSpace);
 #ifdef RS_ENABLE_RECORDING
-        auto skData = (pixmapSize < MIN_DATA_SIZE ||
-            parcel.GetMaxCapacity() == RSRecordingThread::RECORDING_PARCEL_MAX_CAPCITY)
+        auto skData =
+            (pixmapSize < MIN_DATA_SIZE || parcel.GetMaxCapacity() == RSRecordingThread::RECORDING_PARCEL_MAX_CAPCITY)
                 ? SkData::MakeWithCopy(addr, pixmapSize)
 #else
         auto skData = pixmapSize < MIN_DATA_SIZE ? SkData::MakeWithCopy(addr, pixmapSize)
 #endif
-                                                : SkData::MakeWithProc(addr, pixmapSize, sk_free_releaseproc, nullptr);
+                : SkData::MakeWithProc(addr, pixmapSize, sk_free_releaseproc, nullptr);
         val = SkImage::MakeRasterData(imageInfo, skData, rb);
         // add to MemoryTrack for memoryManager
 #ifdef RS_ENABLE_RECORDING
-        if (pixmapSize >= MIN_DATA_SIZE &&
-            parcel.GetMaxCapacity() != RSRecordingThread::RECORDING_PARCEL_MAX_CAPCITY) {
+        if (pixmapSize >= MIN_DATA_SIZE && parcel.GetMaxCapacity() != RSRecordingThread::RECORDING_PARCEL_MAX_CAPCITY) {
 #else
         if (pixmapSize >= MIN_DATA_SIZE) {
 #endif
@@ -931,7 +933,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling RSShader");
         return false;
     }
-    auto shaderEffectCmdList = Drawing::ShaderEffectCmdList::CreateFromData({data, size}, true);
+    auto shaderEffectCmdList = Drawing::ShaderEffectCmdList::CreateFromData({ data, size }, true);
     if (shaderEffectCmdList == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling RSShader shader effect cmdlist is nullptr");
         return false;
@@ -1009,6 +1011,253 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSLinear
     success = success && Unmarshalling(parcel, direction);
     if (success) {
         val = std::make_shared<RSLinearGradientBlurPara>(blurRadius, fractionStops, direction);
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<EmitterConfig>& val)
+{
+    bool success = Marshalling(parcel, val->emitRate_);
+    success = success && Marshalling(parcel, val->emitShape_);
+    success = success && Marshalling(parcel, val->position_.x_);
+    success = success && Marshalling(parcel, val->position_.y_);
+    success = success && Marshalling(parcel, val->emitSize_.x_);
+    success = success && Marshalling(parcel, val->emitSize_.y_);
+    success = success && Marshalling(parcel, val->particleCount_);
+    success = success && Marshalling(parcel, val->lifeTime_);
+    success = success && Marshalling(parcel, val->type_);
+    success = success && Marshalling(parcel, val->radius_);
+    success = success && Marshalling(parcel, val->image_);
+
+    return success;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<EmitterConfig>& val)
+{
+    int emitRate = 0;
+    ShapeType emitShape = ShapeType::RECT;
+    float positionX = 0.f;
+    float positionY = 0.f;
+    float emitSizeWidth = 0.f;
+    float emitSizeHeight = 0.f;
+    int particleCount = 0;
+    int lifeTime = 0;
+    ParticleType particleType = ParticleType::POINTS;
+    float radius = 0.f;
+    std::shared_ptr<RSImage> image = nullptr;
+
+    bool success = Unmarshalling(parcel, emitRate);
+    success = success && Unmarshalling(parcel, emitShape);
+    success = success && Unmarshalling(parcel, positionX);
+    success = success && Unmarshalling(parcel, positionY);
+    Vector2f position(positionX, positionY);
+    success = success && Unmarshalling(parcel, emitSizeWidth);
+    success = success && Unmarshalling(parcel, emitSizeHeight);
+    Vector2f emitSize(emitSizeWidth, emitSizeHeight);
+    success = success && Unmarshalling(parcel, particleCount);
+    success = success && Unmarshalling(parcel, lifeTime);
+    success = success && Unmarshalling(parcel, particleType);
+    success = success && Unmarshalling(parcel, radius);
+    success = success && Unmarshalling(parcel, image);
+    if (success) {
+        val = std::make_shared<EmitterConfig>(
+            emitRate, emitShape, position, emitSize, particleCount, lifeTime, particleType, radius, image);
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleVelocity>& val)
+{
+    return Marshalling(parcel, val->velocityValue_.start_) && Marshalling(parcel, val->velocityValue_.end_) &&
+           Marshalling(parcel, val->velocityAngle_.start_) && Marshalling(parcel, val->velocityAngle_.end_);
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleVelocity>& val)
+{
+    float valueStart;
+    float valueEnd;
+    float angleStart;
+    float angleEnd;
+    bool success = Unmarshalling(parcel, valueStart) && Unmarshalling(parcel, valueEnd);
+    Unmarshalling(parcel, angleStart) && Unmarshalling(parcel, angleEnd);
+    if (success) {
+        Range<float> velocityValue = Range(valueStart, valueEnd);
+        Range<float> velocityAngle = Range(angleStart, angleEnd);
+        val = std::make_shared<ParticleVelocity>(velocityValue, velocityAngle);
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RenderParticleParaType<float>>& val)
+{
+    bool success = Marshalling(parcel, val->val_.start_) && Marshalling(parcel, val->val_.end_) &&
+                   Marshalling(parcel, val->updator_);
+    if (val->updator_ == ParticleUpdator::RANDOM) {
+        success = success && Marshalling(parcel, val->random_.start_) && Marshalling(parcel, val->random_.end_);
+    } else if (val->updator_ == ParticleUpdator::CURVE) {
+        success = success && parcel.WriteUint32(static_cast<uint32_t>(val->valChangeOverLife_.size()));
+        for (size_t i = 0; i < val->valChangeOverLife_.size(); i++) {
+            success = success && Marshalling(parcel, val->valChangeOverLife_[i]->fromValue_);
+            success = success && Marshalling(parcel, val->valChangeOverLife_[i]->toValue_);
+            success = success && Marshalling(parcel, val->valChangeOverLife_[i]->startMillis_);
+            success = success && Marshalling(parcel, val->valChangeOverLife_[i]->endMillis_);
+            success = success && val->valChangeOverLife_[i]->interpolator_->Marshalling(parcel);
+        }
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RenderParticleParaType<float>>& val)
+{
+    float valueStart = 0.f;
+    float valueEnd = 0.f;
+    ParticleUpdator updator = ParticleUpdator::NONE;
+    float randomStart = 0.f;
+    float randomEnd = 0.f;
+    std::vector<std::shared_ptr<ChangeInOverLife<float>>> valChangeOverLife;
+    bool success =
+        Unmarshalling(parcel, valueStart) && Unmarshalling(parcel, valueEnd) && Unmarshalling(parcel, updator);
+    if (updator == ParticleUpdator::RANDOM) {
+        success = success && Unmarshalling(parcel, randomStart) && Unmarshalling(parcel, randomEnd);
+    } else if (updator == ParticleUpdator::CURVE) {
+        uint32_t valChangeOverLifeSize = parcel.ReadUint32();
+        for (size_t i = 0; i < valChangeOverLifeSize; i++) {
+            float fromValue = 0.f;
+            float toValue = 0.f;
+            int startMillis = 0;
+            int endMillis = 0;
+            success = success && Unmarshalling(parcel, fromValue);
+            success = success && Unmarshalling(parcel, toValue);
+            success = success && Unmarshalling(parcel, startMillis);
+            success = success && Unmarshalling(parcel, endMillis);
+            std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
+            auto change = std::make_shared<ChangeInOverLife<float>>(
+                fromValue, toValue, startMillis, endMillis, interpolator); // 需不需要加make_shared
+            valChangeOverLife.push_back(change);
+        }
+    }
+    if (success) {
+        Range<float> value = Range(valueStart, valueEnd);
+        Range<float> random = Range(randomStart, randomEnd);
+        val = std::make_shared<RenderParticleParaType<float>>(value, updator, random, valChangeOverLife);
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RenderParticleColorParaType>& val)
+{
+    bool success = Marshalling(parcel, val->colorVal_.start_) && Marshalling(parcel, val->colorVal_.end_) &&
+                   Marshalling(parcel, val->updator_);
+    if (val->updator_ == ParticleUpdator::RANDOM) {
+        success = success && Marshalling(parcel, val->redRandom_.start_) && Marshalling(parcel, val->redRandom_.end_);
+        success =
+            success && Marshalling(parcel, val->greenRandom_.start_) && Marshalling(parcel, val->greenRandom_.end_);
+        success = success && Marshalling(parcel, val->blueRandom_.start_) && Marshalling(parcel, val->blueRandom_.end_);
+    } else if (val->updator_ == ParticleUpdator::CURVE) {
+        success = success && parcel.WriteUint32(static_cast<uint32_t>(val->valChangeOverLife_.size()));
+        for (size_t i = 0; i < val->valChangeOverLife_.size(); i++) {
+            success = success && Marshalling(parcel, val->valChangeOverLife_[i]->fromValue_);
+            success = success && Marshalling(parcel, val->valChangeOverLife_[i]->toValue_);
+            success = success && Marshalling(parcel, val->valChangeOverLife_[i]->startMillis_);
+            success = success && Marshalling(parcel, val->valChangeOverLife_[i]->endMillis_);
+            success = success && val->valChangeOverLife_[i]->interpolator_->Marshalling(parcel);
+        }
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RenderParticleColorParaType>& val)
+{
+    Range<Color> colorVal;
+    ParticleUpdator updator = ParticleUpdator::NONE;
+    Range<float> redRandom;
+    Range<float> greenRandom;
+    Range<float> blueRandom;
+    std::vector<std::shared_ptr<ChangeInOverLife<Color>>> valChangeOverLife;
+    bool success = Unmarshalling(parcel, colorVal.start_) && Unmarshalling(parcel, colorVal.end_) &&
+                   Unmarshalling(parcel, updator);
+    if (updator == ParticleUpdator::RANDOM) {
+        success = success && Unmarshalling(parcel, redRandom.start_) && Unmarshalling(parcel, redRandom.end_) &&
+                  Unmarshalling(parcel, greenRandom.start_) && Unmarshalling(parcel, greenRandom.end_) &&
+                  Unmarshalling(parcel, blueRandom.start_) && Unmarshalling(parcel, blueRandom.end_);
+    } else if (updator == ParticleUpdator::CURVE) {
+        uint32_t valChangeOverLifeSize = parcel.ReadUint32();
+        for (size_t i = 0; i < valChangeOverLifeSize; i++) {
+            Color fromValue;
+            Color toValue;
+            int startMillis;
+            int endMillis;
+            success = success && Unmarshalling(parcel, fromValue);
+            success = success && Unmarshalling(parcel, toValue);
+            success = success && Unmarshalling(parcel, startMillis);
+            success = success && Unmarshalling(parcel, endMillis);
+            std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
+            auto change =
+                std::make_shared<ChangeInOverLife<Color>>(fromValue, toValue, startMillis, endMillis, interpolator);
+            valChangeOverLife.push_back(change);
+        }
+    }
+    if (success) {
+        val = std::make_shared<RenderParticleColorParaType>(
+            colorVal, updator, redRandom, greenRandom, blueRandom, valChangeOverLife);
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleRenderParams>& val)
+{
+    bool success = Marshalling(parcel, val->emitterConfig_);
+    success = success && Marshalling(parcel, val->velocity_);
+    success = success && Marshalling(parcel, val->acceleration_.accelerationValue_);
+    success = success && Marshalling(parcel, val->acceleration_.accelerationAngle_);
+    success = success && Marshalling(parcel, val->color_);
+    success = success && Marshalling(parcel, val->opacity_);
+    success = success && Marshalling(parcel, val->scale_);
+    success = success && Marshalling(parcel, val->spin_);
+    return success;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleRenderParams>& val)
+{
+    EmitterConfig emitterConfig;
+    ParticleVelocity velocity;
+    RenderParticleParaType<float> accelerationValue;
+    RenderParticleParaType<float> accelerationAngle;
+    RenderParticleColorParaType color;
+    RenderParticleParaType<float> opacity;
+    RenderParticleParaType<float> scale;
+    RenderParticleParaType<float> spin;
+    bool success = Unmarshalling(parcel, emitterConfig);
+    success = success && Unmarshalling(parcel, velocity);
+    success = success && Unmarshalling(parcel, accelerationValue);
+    success = success && Unmarshalling(parcel, accelerationAngle);
+    RenderParticleAcceleration acceleration = RenderParticleAcceleration(accelerationValue, accelerationAngle);
+    success = success && Unmarshalling(parcel, color);
+    success = success && Unmarshalling(parcel, opacity);
+    success = success && Unmarshalling(parcel, scale);
+    success = success && Unmarshalling(parcel, spin);
+    if (success) {
+        val = std::make_shared<ParticleRenderParams>(
+            emitterConfig, velocity, acceleration, color, opacity, scale, spin);
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<std::vector<ParticleRenderParams>>& val)
+{
+    bool success = parcel.WriteUint32(static_cast<uint32_t>(val->size())); // 数组大小
+    for (size_t i = 0; i < val->size(); i++) {
+        success = success && Marshalling(parcel, (*val.get())[i]);
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<std::vector<ParticleRenderParams>>& val)
+{
+    uint32_t size = parcel.ReadUint32(); // 数组大小
+    bool success = true;
+    for (size_t i = 0; i < size; i++) {
+        success = success && Unmarshalling(parcel, (*val.get())[i]);
     }
     return success;
 }
@@ -1256,7 +1505,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Media::PixelMap");
         return false;
     }
-    MemoryInfo info = {val->GetByteCount(), 0, 0, MEMORY_TYPE::MEM_PIXELMAP}; // pid is set to 0 temporarily.
+    MemoryInfo info = { val->GetByteCount(), 0, 0, MEMORY_TYPE::MEM_PIXELMAP }; // pid is set to 0 temporarily.
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
     val->SetFreePixelMapProc(CustomFreePixelMap);
     return true;
@@ -1289,18 +1538,18 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RectT<fl
     return val != nullptr;
 }
 
-//RRect
+// RRect
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RRectT<float>& val)
 {
     return Marshalling(parcel, val.rect_) && Marshalling(parcel, val.radius_[0]) &&
-        Marshalling(parcel, val.radius_[1]) && Marshalling(parcel, val.radius_[2]) &&
-        Marshalling(parcel, val.radius_[3]);
+           Marshalling(parcel, val.radius_[1]) && Marshalling(parcel, val.radius_[2]) &&
+           Marshalling(parcel, val.radius_[3]);
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RRectT<float>& val)
 {
     return Unmarshalling(parcel, val.rect_) && Unmarshalling(parcel, val.radius_[0]) &&
-        Unmarshalling(parcel, val.radius_[1]) && Unmarshalling(parcel, val.radius_[2]) &&
-        Unmarshalling(parcel, val.radius_[3]);
+           Unmarshalling(parcel, val.radius_[1]) && Unmarshalling(parcel, val.radius_[2]) &&
+           Unmarshalling(parcel, val.radius_[3]);
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -1308,9 +1557,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RRectT<float>& val)
 // SkPaint
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkSamplingOptions& val)
 {
-    bool success = parcel.WriteBool(val.useCubic) &&
-                   parcel.WriteFloat(val.cubic.B) &&
-                   parcel.WriteFloat(val.cubic.C) &&
+    bool success = parcel.WriteBool(val.useCubic) && parcel.WriteFloat(val.cubic.B) && parcel.WriteFloat(val.cubic.C) &&
                    parcel.WriteInt32(static_cast<int32_t>(val.filter)) &&
                    parcel.WriteInt32(static_cast<int32_t>(val.mipmap));
     return success;
@@ -1322,11 +1569,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkSamplingOptions& val)
     float c = 0;
     int32_t filter = 0;
     int32_t mipmap = 0;
-    bool success = parcel.ReadBool(useCubic) &&
-                   parcel.ReadFloat(b) &&
-                   parcel.ReadFloat(c) &&
-                   parcel.ReadInt32(filter) &&
-                   parcel.ReadInt32(mipmap);
+    bool success = parcel.ReadBool(useCubic) && parcel.ReadFloat(b) && parcel.ReadFloat(c) &&
+                   parcel.ReadInt32(filter) && parcel.ReadInt32(mipmap);
     if (!success) {
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling SkSamplingOptions");
         return false;
@@ -1387,7 +1631,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
     if (pixelMapSize == 0) {
         return ret;
     }
-    for (const auto &pixelMap : pixelMapVec) {
+    for (const auto& pixelMap : pixelMapVec) {
         ret &= RSMarshallingHelper::Marshalling(parcel, pixelMap);
         if (!ret) {
             ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList pixelMap");
@@ -1484,6 +1728,7 @@ MARSHALLING_AND_UNMARSHALLING(DrawCmdList)
     }
 
 MARSHALLING_AND_UNMARSHALLING(RSRenderCurveAnimation)
+MARSHALLING_AND_UNMARSHALLING(RSRenderParticleAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderInterpolatingSpringAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderKeyframeAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderSpringAnimation)
@@ -1537,76 +1782,98 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
 
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
-#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                         \
-    EXPLICIT_INSTANTIATION(TEMPLATE, float)                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, int)                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                   \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)               \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<DrawCmdList>) \
-    EXPLICIT_INSTANTIATION(TEMPLATE, SkMatrix)                     \
+#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, float)                                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, int)                                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)                              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                    \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ShapeType>)                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleType>)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<EmitterConfig>)                 \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleVelocity>)              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RenderParticleParaType<float>>) \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RenderParticleColorParaType>)   \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRenderParams>)          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                 \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<DrawCmdList>)                   \
+    EXPLICIT_INSTANTIATION(TEMPLATE, SkMatrix)                                       \
     EXPLICIT_INSTANTIATION(TEMPLATE, SkM44)
 #else
-#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                         \
-    EXPLICIT_INSTANTIATION(TEMPLATE, float)                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, int)                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                   \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)               \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)                \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<DrawCmdList>) \
+#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, float)                                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, int)                                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)                              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                    \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                 \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ShapeType>)                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleType>)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<EmitterConfig>)                 \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleVelocity>)              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RenderParticleParaType<float>>) \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RenderParticleColorParaType>)   \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRenderParams>)          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<ParticleRenderParams>)              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)                                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<DrawCmdList>)                   \
     EXPLICIT_INSTANTIATION(TEMPLATE, SkMatrix)
 #endif
 #else
-#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                         \
-    EXPLICIT_INSTANTIATION(TEMPLATE, float)                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, int)                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                   \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)    \
+#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                                         \
+    EXPLICIT_INSTANTIATION(TEMPLATE, float)                                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, int)                                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                   \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)                    \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                    \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ShapeType>)                   \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleType>)                \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<EmitterConfig>)               \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleVelocity>)            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RenderParticleParaType>)      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RenderParticleColorParaType>) \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRenderParams>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)               \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>) \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                               \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, Drawing::Matrix)
 #endif
 

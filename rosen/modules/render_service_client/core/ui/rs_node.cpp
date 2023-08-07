@@ -26,6 +26,7 @@
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animator_map.h"
+#include "animation/rs_render_particle_animation.h"
 #include "command/rs_base_node_command.h"
 #include "command/rs_node_command.h"
 #include "common/rs_color.h"
@@ -710,6 +711,30 @@ void RSNode::SetEnvForegroundColorStrategy(ForegroundColorStrategyType strategyT
 {
     SetProperty<RSEnvForegroundColorStrategyModifier,
         RSProperty<ForegroundColorStrategyType>>(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, strategyType);
+}
+
+// Set ParticleParams 
+void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams)
+{
+    std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
+    for (size_t i = 0; i < particleParams.size(); i++) {
+        particlesRenderParams.push_back(particleParams[i].SetParamsToRenderParticle());
+    }
+
+    auto animationId = RSAnimation::GenerateId();
+    auto animation =
+        std::make_shared<RSRenderParticleAnimation>(animationId, particlesRenderParams);
+
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+        if (NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> cmdForRemote =
+                std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
+            transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
+        }
+    }
 }
 
 // foreground

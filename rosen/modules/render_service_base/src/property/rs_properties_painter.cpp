@@ -29,6 +29,7 @@
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "render/rs_skia_filter.h"
+#include "animation/rs_render_particle.h"
 
 #ifdef USE_ROSEN_DRAWING
 #include <cstdint>
@@ -2211,5 +2212,44 @@ sk_sp<SkShader> RSPropertiesPainter::MakeDynamicLightUpShader(
 }
 #endif
 #endif
+
+void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+    auto particles = properties.GetParticles();
+    for (size_t i = 0; i < particles.size(); i++) {
+        if (particles[i]->IsAlive()) {
+            // Get particle properties
+            auto position = particles[i]->GetPosition();
+            float opacity = particles[i]->GetOpacity();
+            auto particleType = particles[i]->GetParticleType();
+            SkPaint paint;
+            paint.setAntiAlias(true);
+            paint.setAlphaf(opacity);
+
+            if (particleType == ParticleType::POINTS) {
+                auto radius = particles[i]->GetRadius();
+                Color color = particles[i]->GetColor();
+                auto alpha = color.GetAlpha();
+                color.SetAlpha(alpha * opacity);
+                paint.setColor(color.AsArgbInt());
+                canvas.drawCircle(position.x_, position.y_, radius, paint);
+            } else {
+                auto image = particles[i]->GetImage();
+                canvas.rotate(particles[i]->GetSpin());
+                float fLeft = 0.0f;
+                float ftop = 0.0f;
+                float fRight = 1.0f;
+                float fBottom = 1.0f;
+                SkRect rect { fLeft, ftop, fRight, fBottom };
+#ifdef NEW_SKIA
+                image->CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, false);
+#else
+                image->CanvasDrawImage(canvas, rect, paint, false);
+#endif
+            }
+        }
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS
