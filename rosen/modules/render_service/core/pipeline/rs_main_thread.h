@@ -83,7 +83,7 @@ public:
     void QosStateDump(std::string& dumpString);
     void RenderServiceTreeDump(std::string& dumpString);
     void RsEventParamDump(std::string& dumpString);
-    bool IsUIFirstOn();
+    bool IsUIFirstOn() const;
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -209,6 +209,7 @@ private:
     void RemoveRSEventDetector();
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
+    void UpdateUIFirstSwitch();
     void SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid);
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
@@ -363,6 +364,7 @@ private:
     std::set<std::shared_ptr<RSBaseRenderNode>> oldDisplayChildren_;
     DeviceType deviceType_ = DeviceType::PHONE;
     bool isCachedSurfaceUpdated_ = false;
+    bool isUiFirstOn_ = false;
 
     // used for informing hgm the bundle name of SurfaceRenderNodes
     bool noBundle_ = false;

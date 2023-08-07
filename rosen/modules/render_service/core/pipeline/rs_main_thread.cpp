@@ -1063,6 +1063,7 @@ void RSMainThread::NotifyDrivenRenderFinish()
 
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
+    UpdateUIFirstSwitch();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     uniVisitor->SetDrivenRenderFlag(hasDrivenNodeOnUniTree_, hasDrivenNodeMarkRender_);
@@ -2088,22 +2089,35 @@ bool RSMainThread::IsSingleDisplay()
 }
 
 const uint32_t UIFIRST_MINIMUM_NODE_NUMBER = 20;
-bool RSMainThread::IsUIFirstOn()
+void RSMainThread::UpdateUIFirstSwitch()
 {
     if (deviceType_ == DeviceType::PHONE) {
-        return (RSSystemProperties::GetUIFirstEnabled() && IsSingleDisplay());
+        isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && IsSingleDisplay());
+        return;
     }
-    bool isUiFirstOn = false;
+    isUiFirstOn_ = false;
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (rootNode && IsSingleDisplay()) {
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
             rootNode->GetSortedChildren().front());
         if (displayNode) {
-            isUiFirstOn = RSSystemProperties::GetUIFirstEnabled() &&
-                (displayNode->GetChildrenCount() >= UIFIRST_MINIMUM_NODE_NUMBER);
+            int childrenCount = 0;
+            if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+                std::vector<RSBaseRenderNode::SharedPtr> curAllSurfacesVec;
+                displayNode->CollectSurface(displayNode, curAllSurfacesVec, true, true);
+                childrenCount = curAllSurfacesVec.size();
+            } else {
+                childrenCount = displayNode->GetChildrenCount();
+            }
+            isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() &&
+                (childrenCount >= UIFIRST_MINIMUM_NODE_NUMBER);
         }
     }
-    return isUiFirstOn;
+}
+
+bool RSMainThread::IsUIFirstOn() const
+{
+    return isUiFirstOn_;
 }
 } // namespace Rosen
 } // namespace OHOS
