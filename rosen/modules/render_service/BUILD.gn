@@ -105,11 +105,10 @@ ohos_shared_library("librender_service") {
     "//utils/system/safwk/native/include",
     "$graphic_2d_root/utils/log",
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
-    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/include",
-    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/utils/include",
-    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/config/include",
-    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/interface/include",
-    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
   ]
 
   deps = [
@@ -147,6 +146,7 @@ ohos_shared_library("librender_service") {
   }
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hicollie:libhicollie",
@@ -159,11 +159,11 @@ ohos_shared_library("librender_service") {
     "window_manager:libwsutils",
   ]
 
-  if (defined(graphic_2d_ext_configs.paint_libs)) {
-    libs = graphic_2d_ext_configs.paint_libs
-    defines += paint_defines
-    sources += libgraphic_ext_adaptor_sources
-    include_dirs += libgraphic_ext_adaptor_include_dirs
+  if (defined(ddgr_ext_configs)) {
+    libs = ddgr_ext_configs.ddgr_libs
+    defines += ddgr_ext_configs.ddgr_defines
+    sources += ddgr_ext_configs.libddgr_ext_adaptor_sources
+    include_dirs += ddgr_ext_configs.libddgr_ext_adaptor_include_dirs
   }
 
   if (rosen_is_ohos) {

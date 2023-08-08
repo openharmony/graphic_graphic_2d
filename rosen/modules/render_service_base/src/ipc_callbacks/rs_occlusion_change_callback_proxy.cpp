@@ -29,6 +29,11 @@ RSOcclusionChangeCallbackProxy::RSOcclusionChangeCallbackProxy(const sptr<IRemot
 
 void RSOcclusionChangeCallbackProxy::OnOcclusionVisibleChanged(std::shared_ptr<RSOcclusionData> occlusionData)
 {
+    constexpr auto interfaceCode = RSIOcclusionChangeCallbackInterfaceCode::ON_OCCLUSION_VISIBLE_CHANGED;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -39,11 +44,14 @@ void RSOcclusionChangeCallbackProxy::OnOcclusionVisibleChanged(std::shared_ptr<R
 
     option.SetFlags(MessageOption::TF_ASYNC);
     data.WriteParcelable(occlusionData.get());
-    uint32_t code = static_cast<uint32_t>(RSIOcclusionChangeCallbackInterfaceCode::ON_OCCLUSION_VISIBLE_CHANGED);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderOcclusionChangeCallbackProxy::OnOcclusionVisibleChanged error = %d", err);
     }
 }
+
+const RSInterfaceCodeSecurityManager<RSIOcclusionChangeCallbackInterfaceCode> \
+    RSOcclusionChangeCallbackProxy::securityManager_ = CreateRSIOcclusionChangeCallbackInterfaceCodeSecurityManager();
 } // namespace Rosen
 } // namespace OHOS

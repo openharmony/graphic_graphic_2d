@@ -136,7 +136,9 @@ int MeasurerImpl::Measure(CharGroups &cgs)
     }
 
     if (fontFeatures_ == nullptr || fontFeatures_->GetFeatures().size() == 0) {
-        cache_[key] = {cgs.Clone(), boundaries_};
+        if (cgs.CheckCodePoint()) {
+            cache_[key] = {cgs.Clone(), boundaries_};
+        }
     }
     return SUCCESSED;
 }

@@ -66,23 +66,8 @@ std::shared_ptr<RecordingShaderEffect> RecordingShaderEffect::CreateLinearGradie
     const Point& endPt, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode)
 {
     auto shaderEffect = std::make_shared<RecordingShaderEffect>();
-    std::pair<int, size_t> colorsData(0, 0);
-    if (!colors.empty()) {
-        const void* data = static_cast<const void*>(colors.data());
-        size_t size = colors.size() * sizeof(ColorQuad);
-        auto offset = shaderEffect->GetCmdList()->AddCmdListData({ data, size });
-        colorsData.first = offset;
-        colorsData.second = size;
-    }
-
-    std::pair<int, size_t> posData(0, 0);
-    if (!pos.empty()) {
-        const void* data = static_cast<const void*>(pos.data());
-        size_t size = pos.size() * sizeof(scalar);
-        auto offset = shaderEffect->GetCmdList()->AddCmdListData({ data, size });
-        posData.first = offset;
-        posData.second = size;
-    }
+    auto colorsData = CmdListHelper::AddVectorToCmdList<ColorQuad>(*shaderEffect->GetCmdList(), colors);
+    auto posData = CmdListHelper::AddVectorToCmdList<scalar>(*shaderEffect->GetCmdList(), pos);
 
     shaderEffect->GetCmdList()->AddOp<CreateLinearGradientOpItem>(startPt, endPt, colorsData, posData, mode);
     return shaderEffect;
@@ -92,23 +77,8 @@ std::shared_ptr<RecordingShaderEffect> RecordingShaderEffect::CreateRadialGradie
     scalar radius, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode)
 {
     auto shaderEffect = std::make_shared<RecordingShaderEffect>();
-    std::pair<int, size_t> colorsData(0, 0);
-    if (!colors.empty()) {
-        const void* data = static_cast<const void*>(colors.data());
-        size_t size = colors.size() * sizeof(ColorQuad);
-        auto offset = shaderEffect->GetCmdList()->AddCmdListData({ data, size });
-        colorsData.first = offset;
-        colorsData.second = size;
-    }
-
-    std::pair<int, size_t> posData(0, 0);
-    if (!pos.empty()) {
-        const void* data = static_cast<const void*>(pos.data());
-        size_t size = pos.size() * sizeof(scalar);
-        auto offset = shaderEffect->GetCmdList()->AddCmdListData({ data, size });
-        posData.first = offset;
-        posData.second = size;
-    }
+    auto colorsData = CmdListHelper::AddVectorToCmdList<ColorQuad>(*shaderEffect->GetCmdList(), colors);
+    auto posData = CmdListHelper::AddVectorToCmdList<scalar>(*shaderEffect->GetCmdList(), pos);
 
     shaderEffect->GetCmdList()->AddOp<CreateRadialGradientOpItem>(centerPt, radius, colorsData, posData, mode);
     return shaderEffect;
@@ -119,23 +89,8 @@ std::shared_ptr<RecordingShaderEffect> RecordingShaderEffect::CreateTwoPointConi
     const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode)
 {
     auto shaderEffect = std::make_shared<RecordingShaderEffect>();
-    std::pair<int, size_t> colorsData(0, 0);
-    if (!colors.empty()) {
-        const void* data = static_cast<const void*>(colors.data());
-        size_t size = colors.size() * sizeof(ColorQuad);
-        auto offset = shaderEffect->GetCmdList()->AddCmdListData({ data, size });
-        colorsData.first = offset;
-        colorsData.second = size;
-    }
-
-    std::pair<int, size_t> posData(0, 0);
-    if (!pos.empty()) {
-        const void* data = static_cast<const void*>(pos.data());
-        size_t size = pos.size() * sizeof(scalar);
-        auto offset = shaderEffect->GetCmdList()->AddCmdListData({ data, size });
-        posData.first = offset;
-        posData.second = size;
-    }
+    auto colorsData = CmdListHelper::AddVectorToCmdList<ColorQuad>(*shaderEffect->GetCmdList(), colors);
+    auto posData = CmdListHelper::AddVectorToCmdList<scalar>(*shaderEffect->GetCmdList(), pos);
 
     shaderEffect->GetCmdList()->AddOp<CreateTwoPointConicalOpItem>(
         startPt, startRadius, endPt, endRadius, colorsData, posData, mode);
@@ -147,23 +102,8 @@ std::shared_ptr<RecordingShaderEffect> RecordingShaderEffect::CreateSweepGradien
     TileMode mode, scalar startAngle, scalar endAngle)
 {
     auto shaderEffect = std::make_shared<RecordingShaderEffect>();
-    std::pair<int, size_t> colorsData(0, 0);
-    if (!colors.empty()) {
-        const void* data = static_cast<const void*>(colors.data());
-        size_t size = colors.size() * sizeof(ColorQuad);
-        auto offset = shaderEffect->GetCmdList()->AddCmdListData({ data, size });
-        colorsData.first = offset;
-        colorsData.second = size;
-    }
-
-    std::pair<int, size_t> posData(0, 0);
-    if (!pos.empty()) {
-        const void* data = static_cast<const void*>(pos.data());
-        size_t size = pos.size() * sizeof(scalar);
-        auto offset = shaderEffect->GetCmdList()->AddCmdListData({ data, size });
-        posData.first = offset;
-        posData.second = size;
-    }
+    auto colorsData = CmdListHelper::AddVectorToCmdList<ColorQuad>(*shaderEffect->GetCmdList(), colors);
+    auto posData = CmdListHelper::AddVectorToCmdList<scalar>(*shaderEffect->GetCmdList(), pos);
 
     shaderEffect->GetCmdList()->AddOp<CreateSweepGradientOpItem>(
         centerPt, colorsData, posData, mode, startAngle, endAngle);

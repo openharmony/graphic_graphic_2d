@@ -39,7 +39,7 @@ CmdList::~CmdList()
 #endif
 }
 
-int32_t CmdList::AddCmdListData(const CmdListData& data)
+uint32_t CmdList::AddCmdListData(const CmdListData& data)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!lastOpItemOffset_.has_value()) {
@@ -73,7 +73,7 @@ bool CmdList::SetUpImageData(const void* data, size_t size)
     return imageAllocator_.BuildFromDataWithCopy(data, size);
 }
 
-int32_t CmdList::AddImageData(const void* data, size_t size)
+uint32_t CmdList::AddImageData(const void* data, size_t size)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     void* addr = imageAllocator_.Add(data, size);
@@ -94,22 +94,22 @@ CmdListData CmdList::GetAllImageData() const
     return std::make_pair(imageAllocator_.GetData(), imageAllocator_.GetSize());
 }
 
-int32_t CmdList::AddPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap)
+uint32_t CmdList::AddPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap)
 {
 #ifdef SUPPORT_OHOS_PIXMAP
     std::lock_guard<std::mutex> lock(pixelMapMutex_);
     pixelMapVec_.emplace_back(pixelMap);
-    return static_cast<int32_t>(pixelMapVec_.size()) - 1;
+    return static_cast<uint32_t>(pixelMapVec_.size()) - 1;
 #else
     return 0;
 #endif
 }
 
-std::shared_ptr<Media::PixelMap> CmdList::GetPixelMap(int32_t id)
+std::shared_ptr<Media::PixelMap> CmdList::GetPixelMap(uint32_t id)
 {
 #ifdef SUPPORT_OHOS_PIXMAP
     std::lock_guard<std::mutex> lock(pixelMapMutex_);
-    if (id < 0 || id >= pixelMapVec_.size()) {
+    if (id >= pixelMapVec_.size()) {
         return nullptr;
     }
     return pixelMapVec_[id];

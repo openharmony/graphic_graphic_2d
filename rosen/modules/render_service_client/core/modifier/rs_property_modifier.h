@@ -211,7 +211,6 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
-
 class RSC_EXPORT RSForegroundColorModifier : public RSForegroundModifier {
 public:
     explicit RSForegroundColorModifier(const std::shared_ptr<RSPropertyBase>& property);
@@ -324,6 +323,24 @@ class RSC_EXPORT RSLightUpEffectModifier : public RSForegroundModifier {
 public:
     explicit RSLightUpEffectModifier(const std::shared_ptr<RSPropertyBase>& property);
     virtual ~RSLightUpEffectModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSDynamicLightUpRateModifier : public RSForegroundModifier {
+public:
+    explicit RSDynamicLightUpRateModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSDynamicLightUpRateModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSDynamicLightUpDegreeModifier : public RSForegroundModifier {
+public:
+    explicit RSDynamicLightUpDegreeModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSDynamicLightUpDegreeModifier() = default;
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;

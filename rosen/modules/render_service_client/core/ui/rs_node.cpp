@@ -26,6 +26,7 @@
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animator_map.h"
+#include "animation/rs_render_particle_animation.h"
 #include "command/rs_base_node_command.h"
 #include "command/rs_node_command.h"
 #include "common/rs_color.h"
@@ -712,6 +713,30 @@ void RSNode::SetEnvForegroundColorStrategy(ForegroundColorStrategyType strategyT
         RSProperty<ForegroundColorStrategyType>>(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, strategyType);
 }
 
+// Set ParticleParams 
+void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams)
+{
+    std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
+    for (size_t i = 0; i < particleParams.size(); i++) {
+        particlesRenderParams.push_back(particleParams[i].SetParamsToRenderParticle());
+    }
+
+    auto animationId = RSAnimation::GenerateId();
+    auto animation =
+        std::make_shared<RSRenderParticleAnimation>(animationId, particlesRenderParams);
+
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+        if (NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> cmdForRemote =
+                std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
+            transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
+        }
+    }
+}
+
 // foreground
 void RSNode::SetForegroundColor(uint32_t colorValue)
 {
@@ -840,6 +865,17 @@ void RSNode::SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlu
 {
     SetProperty<RSLinearGradientBlurParaModifier, RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>>
                                                                     (RSModifierType::LINEAR_GRADIENT_BLUR_PARA, para);
+}
+
+void RSNode::SetDynamicLightUpRate(const float rate)
+{
+    SetProperty<RSDynamicLightUpRateModifier, RSAnimatableProperty<float>>(RSModifierType::DYNAMIC_LIGHT_UP_RATE, rate);
+}
+
+void RSNode::SetDynamicLightUpDegree(const float lightUpDegree)
+{
+    SetProperty<RSDynamicLightUpDegreeModifier,
+        RSAnimatableProperty<float>>(RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, lightUpDegree);
 }
 
 void RSNode::SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter) {}
@@ -1206,6 +1242,11 @@ void RSNode::ResetExtendModifierDirty()
 void RSNode::SetIsCustomTextType(bool isCustomTextType)
 {
     isCustomTextType_ = isCustomTextType;
+}
+
+bool RSNode::GetIsCustomTextType()
+{
+    return isCustomTextType_;
 }
 
 void RSNode::SetDrawRegion(std::shared_ptr<RectF> rect)

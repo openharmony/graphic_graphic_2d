@@ -210,6 +210,12 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(
     return {};
 }
 
+bool RSRenderServiceClient::RegisterBufferClearListener(
+        NodeId id, const BufferClearCallback& callback)
+{
+    return {};
+}
+
 bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
 {
     return {};
@@ -294,5 +300,8 @@ void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
 {
 }
 
+void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled)
+{
+}
 } // namespace Rosen
 } // namespace OHOS

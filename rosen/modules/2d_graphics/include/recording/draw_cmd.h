@@ -27,6 +27,10 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 struct BrushHandle {
+    Color color;
+    BlendMode mode;
+    bool isAntiAlias;
+    Filter::FilterQuality filterQuality;
     CmdListHandle colorSpaceHandle;
     CmdListHandle shaderEffectHandle;
     CmdListHandle colorFilterHandle;
@@ -35,6 +39,14 @@ struct BrushHandle {
 };
 
 struct PenHandle {
+    Color color;
+    scalar width;
+    scalar miterLimit;
+    Pen::CapStyle capStyle;
+    Pen::JoinStyle joinStyle;
+    BlendMode mode;
+    bool isAntiAlias;
+    Filter::FilterQuality filterQuality;
     CmdListHandle pathEffectHandle;
     CmdListHandle colorSpaceHandle;
     CmdListHandle shaderEffectHandle;
@@ -146,29 +158,29 @@ private:
 
 class DrawRoundRectOpItem : public DrawOpItem {
 public:
-    explicit DrawRoundRectOpItem(const std::pair<int32_t, size_t> radiusXYData, const Rect& rect);
+    explicit DrawRoundRectOpItem(const std::pair<uint32_t, size_t> radiusXYData, const Rect& rect);
     ~DrawRoundRectOpItem()  = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList) const;
 
 private:
-    std::pair<int32_t, size_t> radiusXYData_;
+    std::pair<uint32_t, size_t> radiusXYData_;
     Rect rect_;
 };
 
 class DrawNestedRoundRectOpItem : public DrawOpItem {
 public:
-    DrawNestedRoundRectOpItem(const std::pair<int32_t, size_t> outerRadiusXYData, const Rect& outerRect,
-        const std::pair<int32_t, size_t> innerRadiusXYData, const Rect& innerRect);
+    DrawNestedRoundRectOpItem(const std::pair<uint32_t, size_t> outerRadiusXYData, const Rect& outerRect,
+        const std::pair<uint32_t, size_t> innerRadiusXYData, const Rect& innerRect);
     ~DrawNestedRoundRectOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList) const;
 
 private:
-    std::pair<int32_t, size_t> outerRadiusXYData_;
-    std::pair<int32_t, size_t> innerRadiusXYData_;
+    std::pair<uint32_t, size_t> outerRadiusXYData_;
+    std::pair<uint32_t, size_t> innerRadiusXYData_;
     Rect outerRect_;
     Rect innerRect_;
 };
@@ -240,18 +252,13 @@ private:
 
 class DrawBackgroundOpItem : public DrawOpItem {
 public:
-    DrawBackgroundOpItem(const Color& color, const BlendMode mode, const bool isAntiAlias,
-        const Filter::FilterQuality filterQuality, const BrushHandle brushHandle);
+    DrawBackgroundOpItem(const BrushHandle& brushHandle);
     ~DrawBackgroundOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList) const;
 
 private:
-    Color color_;
-    BlendMode mode_;
-    bool isAntiAlias_;
-    Filter::FilterQuality filterQuality_;
     BrushHandle brushHandle_;
 };
 
@@ -348,14 +355,14 @@ private:
 
 class ClipRoundRectOpItem : public DrawOpItem {
 public:
-    ClipRoundRectOpItem(const std::pair<int32_t, size_t> radiusXYData, const Rect& rect, ClipOp op, bool doAntiAlias);
+    ClipRoundRectOpItem(const std::pair<uint32_t, size_t> radiusXYData, const Rect& rect, ClipOp op, bool doAntiAlias);
     ~ClipRoundRectOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList) const;
 
 private:
-    std::pair<int32_t, size_t> radiusXYData_;
+    std::pair<uint32_t, size_t> radiusXYData_;
     Rect rect_;
     ClipOp clipOp_;
     bool doAntiAlias_;
@@ -493,8 +500,7 @@ public:
 
 class SaveLayerOpItem : public DrawOpItem {
 public:
-    SaveLayerOpItem(const Rect& rect, bool hasBrush, const Color& color, BlendMode mode, bool isAntiAlias,
-        Filter::FilterQuality filterQuality, const BrushHandle brushHandle, const CmdListHandle& imageFilter,
+    SaveLayerOpItem(const Rect& rect, bool hasBrush, const BrushHandle& brushHandle, const CmdListHandle& imageFilter,
         uint32_t saveLayerFlags);
     ~SaveLayerOpItem() = default;
 
@@ -504,10 +510,6 @@ public:
 private:
     Rect rect_;
     bool hasBrush_;
-    Color color_;
-    BlendMode mode_;
-    bool isAntiAlias_;
-    Filter::FilterQuality filterQuality_;
     BrushHandle brushHandle_;
     CmdListHandle imageFilter_;
     uint32_t saveLayerFlags_;
@@ -524,40 +526,25 @@ public:
 
 class AttachPenOpItem : public DrawOpItem {
 public:
-    AttachPenOpItem(const Color& color, const scalar width, const scalar miterLimit, const Pen::CapStyle capStyle,
-        const Pen::JoinStyle joinStyle, const BlendMode mode, bool isAntiAlias,
-        const Filter::FilterQuality filterQuality, const PenHandle penHandle);
+    AttachPenOpItem(const PenHandle& penHandle);
     ~AttachPenOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList) const;
 
 private:
-    Color color_;
-    scalar width_;
-    scalar miterLimit_;
-    Pen::CapStyle capStyle_;
-    Pen::JoinStyle joinStyle_;
-    BlendMode mode_;
-    bool isAntiAlias_;
-    Filter::FilterQuality filterQuality_;
     PenHandle penHandle_;
 };
 
 class AttachBrushOpItem : public DrawOpItem {
 public:
-    AttachBrushOpItem(const Color& color, const BlendMode mode, const bool isAntiAlias,
-        const Filter::FilterQuality filterQuality, const BrushHandle brushHandle);
+    AttachBrushOpItem(const BrushHandle& brushHandle);
     ~AttachBrushOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList) const;
 
 private:
-    Color color_;
-    BlendMode mode_;
-    bool isAntiAlias_;
-    Filter::FilterQuality filterQuality_;
     BrushHandle brushHandle_;
 };
 
@@ -581,14 +568,14 @@ public:
 
 class ClipAdaptiveRoundRectOpItem : public DrawOpItem {
 public:
-    ClipAdaptiveRoundRectOpItem(const std::pair<int32_t, size_t>& radiusData);
+    ClipAdaptiveRoundRectOpItem(const std::pair<uint32_t, size_t>& radiusData);
     ~ClipAdaptiveRoundRectOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect) const;
 
 private:
-    std::pair<int32_t, size_t> radiusData_;
+    std::pair<uint32_t, size_t> radiusData_;
 };
 
 class DrawAdaptiveImageOpItem : public DrawOpItem {

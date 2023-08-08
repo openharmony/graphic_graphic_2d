@@ -40,7 +40,7 @@ FontCollection::FontCollection()
     dfprovider_ = TextEngine::DynamicFontProvider::Create();
 }
 
-std::unique_ptr<TextEngine::FontProviders> FontCollection::Get()
+std::shared_ptr<TextEngine::FontProviders> FontCollection::Get()
 {
     if (fontProviders_ == nullptr) {
         fontProviders_ = TextEngine::FontProviders::Create();
@@ -50,7 +50,7 @@ std::unique_ptr<TextEngine::FontProviders> FontCollection::Get()
     if (!disableSystemFont_) {
         fontProviders_->AppendFontProvider(TextEngine::SystemFontProvider::GetInstance());
     }
-    return std::move(fontProviders_);
+    return fontProviders_;
 }
 
 void FontCollection::DisableFallback()
@@ -66,6 +66,7 @@ void FontCollection::DisableSystemFont()
 void FontCollection::LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen)
 {
     dfprovider_->LoadFont(familyName, data, datalen);
+    fontProviders_->Clear();
 }
 } // namespace AdapterTextEngine
 } // namespace Rosen

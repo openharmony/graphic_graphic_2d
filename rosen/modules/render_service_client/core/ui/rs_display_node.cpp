@@ -44,7 +44,6 @@ void RSDisplayNode::ClearChildren()
             RemoveChild(childPtr);
         }
     }
-    children.clear();
 }
 
 void RSDisplayNode::SetScreenId(uint64_t screenId)

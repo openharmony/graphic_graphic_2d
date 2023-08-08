@@ -71,7 +71,7 @@ bool RSCanvasDrawingNode::GetBitmap(SkBitmap& bitmap, std::shared_ptr<DrawCmdLis
             RS_LOGE("RSCanvasDrawingNode::GetBitmap RenderNodeType != RSRenderNodeType::CANVAS_DRAWING_NODE");
             return false;
         }
-        auto getBitmapTask = [&]() { node->GetBitmap(bitmap); };
+        auto getBitmapTask = [&node, &bitmap]() { bitmap = node->GetBitmap(); };
         RSRenderThread::Instance().PostSyncTask(getBitmapTask);
         if (bitmap.empty()) {
             return false;

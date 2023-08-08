@@ -185,8 +185,10 @@ public:
         } else {
             RSBaseRenderEngine::SetHighContrast(value.highContrastText);
         }
-        RSMainThread::Instance()->PostTask(
-            []() { RSMainThread::Instance()->SetAccessibilityConfigChanged(); });
+        RSMainThread::Instance()->PostTask([]() {
+            RSMainThread::Instance()->SetAccessibilityConfigChanged();
+            RSMainThread::Instance()->RequestNextVSync();
+        });
     }
 };
 #endif
@@ -365,6 +367,11 @@ void RSMainThread::SetDeviceType()
     } else {
         deviceType_ = DeviceType::OTHERS;
     }
+}
+
+void RSMainThread::SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated)
+{
+    isCachedSurfaceUpdated_ = isCachedSurfaceUpdated;
 }
 
 void RSMainThread::SetRSEventDetectorLoopStartTag()
@@ -1056,6 +1063,7 @@ void RSMainThread::NotifyDrivenRenderFinish()
 
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
+    UpdateUIFirstSwitch();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     uniVisitor->SetDrivenRenderFlag(hasDrivenNodeOnUniTree_, hasDrivenNodeMarkRender_);
@@ -1076,7 +1084,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
     bool needTraverseNodeTree = true;
     doDirectComposition_ = false;
-    if (doDirectComposition_ && !isDirty_ && !isAccessibilityConfigChanged_) {
+    if (doDirectComposition_ && !isDirty_ && !isAccessibilityConfigChanged_ && !isCachedSurfaceUpdated_) {
         if (isHardwareEnabledBufferUpdated_) {
             needTraverseNodeTree = !uniVisitor->DoDirectComposition(rootNode);
         } else {
@@ -1089,6 +1097,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             return;
         }
     }
+    isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
         uniVisitor->SetAnimateState(doWindowAnimate_);
         uniVisitor->SetDirtyFlag(isDirty_ || isAccessibilityConfigChanged_);
@@ -1110,7 +1119,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                 return;
             }
         }
-        if (RSSystemProperties::GetUIFirstEnabled() && IsSingleDisplay()) {
+        if (IsUIFirstOn()) {
             auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
                 rootNode->GetSortedChildren().front());
             std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
@@ -1124,7 +1133,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         rootNode->Process(uniVisitor);
     }
     isDirty_ = false;
-    uniRenderEngine_->ShrinkCachesIfNeeded();
 }
 
 void RSMainThread::Render()
@@ -1270,7 +1278,7 @@ void RSMainThread::CalcOcclusion()
         return;
     }
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    if (node->GetSortedChildren().size() == 1) {
+    if (node->GetChildrenCount()== 1) {
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
             node->GetSortedChildren().front());
         if (displayNode) {
@@ -1652,16 +1660,7 @@ bool RSMainThread::DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootN
         }
     }
     (*SignalAwait)(syncSignal);
-    ResetSortedChildren(rootNode);
     return true;
-}
-
-void RSMainThread::ResetSortedChildren(std::shared_ptr<RSBaseRenderNode> node)
-{
-    for (auto& child : node->GetSortedChildren()) {
-        ResetSortedChildren(child);
-    }
-    node->ResetSortedChildren();
 }
 
 void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
@@ -2026,16 +2025,17 @@ void RSMainThread::SetAppWindowNum(uint32_t num)
 
 void RSMainThread::AddActiveNodeId(pid_t pid, NodeId id)
 {
-    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
-    if (node == nullptr) {
-        RS_LOGE("AddActiveNodeId: node is nullptr");
-        return;
-    }
     if (id == 0) {
-        activeAppsInProcess_[pid].emplace(id);
+        activeAppsInProcess_[pid].emplace(INVALID_NODEID);
     } else {
-        activeAppsInProcess_[pid].emplace(node->GetRootSurfaceNodeId());
-        activeProcessNodeIds_[node->GetRootSurfaceNodeId()].emplace(id);
+        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
+        auto rootNodeId = INVALID_NODEID;
+        // if node is just set on tree, it cannot be found yet
+        if (node != nullptr) {
+            rootNodeId = node->GetRootSurfaceNodeId();
+        }
+        activeAppsInProcess_[pid].emplace(rootNodeId);
+        activeProcessNodeIds_[rootNodeId].emplace(id);
     }
 }
 
@@ -2086,6 +2086,38 @@ bool RSMainThread::IsSingleDisplay()
         return false;
     }
     return rootNode->GetChildrenCount() == 1;
+}
+
+const uint32_t UIFIRST_MINIMUM_NODE_NUMBER = 20;
+void RSMainThread::UpdateUIFirstSwitch()
+{
+    if (deviceType_ == DeviceType::PHONE) {
+        isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && IsSingleDisplay());
+        return;
+    }
+    isUiFirstOn_ = false;
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
+    if (rootNode && IsSingleDisplay()) {
+        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
+            rootNode->GetSortedChildren().front());
+        if (displayNode) {
+            int childrenCount = 0;
+            if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+                std::vector<RSBaseRenderNode::SharedPtr> curAllSurfacesVec;
+                displayNode->CollectSurface(displayNode, curAllSurfacesVec, true, true);
+                childrenCount = curAllSurfacesVec.size();
+            } else {
+                childrenCount = displayNode->GetChildrenCount();
+            }
+            isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() &&
+                (childrenCount >= UIFIRST_MINIMUM_NODE_NUMBER);
+        }
+    }
+}
+
+bool RSMainThread::IsUIFirstOn() const
+{
+    return isUiFirstOn_;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -27,10 +27,10 @@ Bitmap::Bitmap()
 
 Bitmap::~Bitmap() {}
 
-void Bitmap::Build(const int width, const int height, const BitmapFormat& format)
+void Bitmap::Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride)
 {
     format_ = format;
-    bmpImplPtr->Build(width, height, format);
+    bmpImplPtr->Build(width, height, format, stride);
 }
 
 int Bitmap::GetWidth() const

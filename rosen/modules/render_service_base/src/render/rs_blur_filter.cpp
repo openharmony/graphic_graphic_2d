@@ -45,10 +45,6 @@ RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(S
     hash_ = SkOpts::hash(&blurRadiusX, sizeof(blurRadiusX), hash_);
     hash_ = SkOpts::hash(&blurRadiusY, sizeof(blurRadiusY), hash_);
     useKawase_ = RSSystemProperties::GetKawaseEnabled();
-    int gaussRadius = static_cast<int>(blurRadiusX);
-    if (gaussRadius == 0) {
-        useKawase_ = false;
-    }
 }
 #else
 RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(SkBlurImageFilter::Make(blurRadiusX,
@@ -161,7 +157,7 @@ void RSBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<
     auto paint = GetPaint();
 #ifdef NEW_SKIA
     // if kawase blur failed, use gauss blur
-    KawaseParameter param = KawaseParameter(src, dst, blurRadiusX_);
+    KawaseParameter param = KawaseParameter(src, dst, blurRadiusX_, nullptr, paint.getAlphaf());
     if (useKawase_ && kawaseFunc_->ApplyKawaseBlur(canvas, image, param)) {
         return;
     }
@@ -176,5 +172,11 @@ void RSBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<
     canvas.DetachBrush();
 #endif
 }
+
+bool RSBlurFilter::CanSkipFrame() const
+{
+    constexpr float HEAVY_BLUR_THRESHOLD = 25.0f;
+    return blurRadiusX_ > HEAVY_BLUR_THRESHOLD && blurRadiusY_ > HEAVY_BLUR_THRESHOLD;
+};
 } // namespace Rosen
 } // namespace OHOS

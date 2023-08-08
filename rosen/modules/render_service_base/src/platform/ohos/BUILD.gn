@@ -52,6 +52,8 @@ ohos_source_set("rosen_ohos_sources") {
     "rs_event_manager.cpp",
     "rs_frame_report.cpp",
     "rs_innovation.cpp",
+    "rs_irender_service_connection_ipc_interface_code_access_verifier.cpp",
+    "rs_irender_service_ipc_interface_code_access_verifier.cpp",
     "rs_jank_stats.cpp",
     "rs_log.cpp",
     "rs_marshalling_helper.cpp",
@@ -158,6 +160,7 @@ ohos_source_set("rosen_ohos_sources") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "window_manager:libwsutils",
   ]
 
   if (accessibility_enable) {
@@ -169,11 +172,10 @@ ohos_source_set("rosen_ohos_sources") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
 
-  if (defined(graphic_2d_ext_configs.paint_libs)) {
-    libs = graphic_2d_ext_configs.paint_libs
-    defines += paint_defines
-    sources += libgraphic_ext_adaptor_sources
-    include_dirs += libgraphic_ext_adaptor_include_dirs
+  if (defined(ddgr_ext_configs)) {
+    libs = ddgr_ext_configs.ddgr_libs
+    defines += ddgr_ext_configs.ddgr_defines
+    include_dirs += ddgr_ext_configs.libddgr_ext_adaptor_include_dirs
   }
 
   if (defined(graphic_2d_ext_configs.vendor_root)) {

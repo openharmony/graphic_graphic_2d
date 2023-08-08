@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "xml_parser.h"
+#include <algorithm>
 
 namespace OHOS::Rosen {
 int32_t XMLParser::LoadConfiguration()
@@ -176,6 +176,13 @@ int32_t XMLParser::ParseParams(xmlNode &node)
         return EXEC_SUCCESS;
     }
 
+    if (paraName == "property_animation_dynamic_settings") {
+        if (ParserAnimationDynamicSetting(node) != EXEC_SUCCESS) {
+            HGM_LOGD("XMLParser failed to parse property_animation_dynamic_settings");
+        }
+        return EXEC_SUCCESS;
+    }
+
     HGM_LOGD("XMLParser parsing params finish");
     return XML_PARSE_INTERNAL_FAIL;
 }
@@ -237,6 +244,40 @@ int32_t XMLParser::ParseSetting(xmlNode &node, std::unordered_map<std::string, s
     return EXEC_SUCCESS;
 }
 
+int32_t XMLParser::ParserAnimationDynamicSetting(xmlNode &node)
+{
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        return HGM_ERROR;
+    }
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        auto dynamicSettingType = ExtractPropertyValue("name", *currNode);
+        if (mParsedData_->dynamicSetting_.find(dynamicSettingType) == mParsedData_->dynamicSetting_.end()) {
+            continue;
+        }
+        for (xmlNode *thresholdNode = currNode->xmlChildrenNode; thresholdNode; thresholdNode = thresholdNode->next) {
+            if (thresholdNode->type != XML_ELEMENT_NODE) {
+                continue;
+            }
+            auto name = ExtractPropertyValue("name", *thresholdNode);
+            auto min = ExtractPropertyValue("min", *thresholdNode);
+            auto max = ExtractPropertyValue("max", *thresholdNode);
+            auto preferred_fps = ExtractPropertyValue("preferred_fps", *thresholdNode);
+            if (!IsNumber(min) || !IsNumber(max) || !IsNumber(preferred_fps)) {
+                mParsedData_->dynamicSetting_[dynamicSettingType].clear();
+                break;
+            }
+            ParsedConfigData::AnimationDynamicSetting animationDynamicSetting;
+            animationDynamicSetting.min = std::stoi(ExtractPropertyValue("min", *thresholdNode));
+            animationDynamicSetting.max = std::stoi(ExtractPropertyValue("max", *thresholdNode));
+            animationDynamicSetting.preferred_fps = std::stoi(ExtractPropertyValue("preferred_fps", *thresholdNode));
+            mParsedData_->dynamicSetting_[dynamicSettingType][name] = animationDynamicSetting;
+        }
+    }
+    return EXEC_SUCCESS;
+}
+
 std::string XMLParser::ExtractPropertyValue(const std::string &propName, xmlNode &node)
 {
     HGM_LOGD("XMLParser extracting value : %{public}s", propName.c_str());
@@ -256,4 +297,16 @@ std::string XMLParser::ExtractPropertyValue(const std::string &propName, xmlNode
 
     return propValue;
 }
+
+bool XMLParser::IsNumber(const std::string &str)
+{
+    if (str.length() == 0) {
+        return false;
+    }
+    auto number = static_cast<uint32_t>(std::count_if(str.begin(), str.end(), [](unsigned char c) {
+        return std::isdigit(c);
+    }));
+    return number == str.length() || (str.compare(0, 1, "-") == 0 && number == str.length() - 1);
+}
+
 } // namespace OHOS::Rosen

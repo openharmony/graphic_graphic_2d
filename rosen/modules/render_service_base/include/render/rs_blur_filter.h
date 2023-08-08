@@ -14,6 +14,8 @@
  */
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_BLUR_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_BLUR_FILTER_H
+
+#include "include/core/SkColorFilter.h"
 #ifdef NEW_SKIA
 #include "include/effects/SkRuntimeEffect.h"
 #endif
@@ -55,6 +57,8 @@ public:
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst) const override;
 #endif
+
+    bool CanSkipFrame() const override;
 
 private:
     float blurRadiusX_;

@@ -16,9 +16,11 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_RS_ISYNC_TRANSACTION_CONTROLLER_INTERFACE_CODE_H
 #define ROSEN_RENDER_SERVICE_BASE_RS_ISYNC_TRANSACTION_CONTROLLER_INTERFACE_CODE_H
 
+#include "ipc_security/rs_ipc_interface_code_underlying_type.h"
+
 namespace OHOS {
 namespace Rosen {
-enum class RSISyncTransactionControllerInterfaceCode {
+enum class RSISyncTransactionControllerInterfaceCode : CodeUnderlyingType {
     CREATE_TRANSACTION_FINISHED,
 };
 } // namespace Rosen

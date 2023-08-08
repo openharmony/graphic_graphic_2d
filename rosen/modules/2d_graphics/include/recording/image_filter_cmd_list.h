@@ -98,13 +98,13 @@ private:
 
 class CreateArithmeticImageFilterOpItem : public ImageFilterOpItem {
 public:
-    CreateArithmeticImageFilterOpItem(std::pair<int32_t, size_t> coefficients,
+    CreateArithmeticImageFilterOpItem(const std::pair<uint32_t, size_t>& coefficients,
         bool enforcePMColor, const CmdListHandle& background, const CmdListHandle& foreground);
     ~CreateArithmeticImageFilterOpItem() = default;
 
     std::shared_ptr<ImageFilter> Playback(const CmdList& cmdList) const;
 private:
-    std::pair<int32_t, size_t> coefficients_;
+    std::pair<uint32_t, size_t> coefficients_;
     bool enforcePMColor_;
     CmdListHandle background_;
     CmdListHandle foreground_;

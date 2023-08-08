@@ -139,6 +139,13 @@ void RSScreenManager::OnHwcDeadEvent()
             if (screenPowerStatus_.count(id) != 0) {
                 screenPowerStatus_.erase(id);
             }
+            if (screen->IsVirtual()) {
+                continue;
+            } else {
+                auto surfaceId = screen->GetOutput()->GetFrameBufferSurface()->GetUniqueId();
+                screen->GetOutput()->GetFrameBufferSurface()->CleanCache();
+                RSHardwareThread::Instance().CleanRenderFrame(surfaceId);
+            }
         }
     }
     screens_.clear();
@@ -236,6 +243,9 @@ void RSScreenManager::AddScreenToHgm(std::shared_ptr<HdiOutput> &output)
         }
         modeId++;
     }
+    const auto &screen = screens_.at(thisId);
+    const auto &capability = screens_.at(thisId)->GetCapability();
+    hgmCore.AddScreenProfile(thisId, screen->Width(), screen->Height(), capability.phyWidth, capability.phyHeight);
 }
 
 void RSScreenManager::RemoveScreenFromHgm(std::shared_ptr<HdiOutput> &output)
@@ -251,6 +261,7 @@ void RSScreenManager::RemoveScreenFromHgm(std::shared_ptr<HdiOutput> &output)
     if (hgmCore.RemoveScreen(id)) {
         RS_LOGW("RSScreenManager failed to remove screen : %" PRIu64 "", id);
     }
+    hgmCore.RemoveScreenProfile(id);
 }
 
 void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &output)

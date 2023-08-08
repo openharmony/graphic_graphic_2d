@@ -111,8 +111,12 @@ void RSPath::SetDrawingPath(const Drawing::Path& path)
     if (drPath_) {
         delete drPath_;
     }
-    drPath_ = new Drawing::RecordingPath();
-    drPath_->AddPath(path);
+    if (path.GetDrawingType() == Drawing::DrawingType::RECORDING) {
+        drPath_ = new Drawing::RecordingPath();
+        drPath_->AddPath(path);
+    } else {
+        drPath_ = new Drawing::Path(path);
+    }
 }
 #endif
 

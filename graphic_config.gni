@@ -22,6 +22,7 @@ declare_args() {
   graphic_2d_feature_freemem_enable = false
   graphic_2d_feature_parallel_render_enable = true
   graphic_2d_feature_enable_vulkan = false
+  graphic_2d_feature_enable_filter_cache = true
   if (defined(build_cross_platform_version) && build_cross_platform_version) {
     use_new_render_context = false
   } else {
@@ -104,12 +105,25 @@ if (defined(use_new_render_context) && use_new_render_context) {
   rs_enable_parallel_render = false
   gpu_defines -= [ "RS_ENABLE_PARALLEL_RENDER" ]
 }
+
+if (graphic_2d_feature_enable_filter_cache) {
+  rs_enable_filter_cache = true
+  gpu_defines += [ "RS_ENABLE_FILTER_CACHE" ]
+} else {
+  rs_enable_filter_cache = false
+  gpu_defines -= [ "RS_ENABLE_FILTER_CACHE" ]
+}
+
 graphic_2d_ext_configs = {
 }
 check_graphic_ext_file_script = "//build/ohos/file_exists.py"
 check_graphic_ext_file_args = [
   "--filename",
   rebase_path("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni"),
+]
+check_ddgr_ext_file_args = [
+  "--filename",
+  rebase_path("//foundation/graphic/graphic_2d_ext/ddgr/ddgr_config.gni"),
 ]
 if (exec_script(check_graphic_ext_file_script,
                 check_graphic_ext_file_args,
@@ -118,7 +132,13 @@ if (exec_script(check_graphic_ext_file_script,
     import("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni")
   }
 }
-
+if (exec_script(check_graphic_ext_file_script,
+                check_ddgr_ext_file_args,
+                "string") == "True") {
+  ddgr_ext_configs = {
+    import("//foundation/graphic/graphic_2d_ext/ddgr/ddgr_config.gni")
+  }
+}
 graphic_2d_root = "//foundation/graphic/graphic_2d"
 hilog_root = "//base/hiviewdfx/hilog"
 window_base_path = "//foundation/window/window_manager"

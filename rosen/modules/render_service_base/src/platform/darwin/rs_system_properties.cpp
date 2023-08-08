@@ -29,6 +29,11 @@ bool RSSystemProperties::GetRecordingEnabled()
     return false;
 }
 
+bool RSSystemProperties::IsSceneBoardEnabled()
+{
+    return false;
+}
+
 void RSSystemProperties::SetRecordingDisenabled()
 {
     return;
@@ -206,6 +211,11 @@ bool RSSystemProperties::GetAFBCEnabled()
 }
 
 bool RSSystemProperties::GetASTCEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
 {
     return false;
 }

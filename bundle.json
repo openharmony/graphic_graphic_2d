@@ -66,7 +66,8 @@
           "player_framework",
           "resource_schedule_service",
           "soc_perf",
-          "accessibility"
+          "accessibility",
+          "frame_aware_sched"
         ],
         "third_party": [
           "flutter",

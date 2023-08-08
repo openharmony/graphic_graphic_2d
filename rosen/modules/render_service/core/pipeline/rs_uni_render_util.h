@@ -71,13 +71,16 @@ public:
     static void ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isUIFirst);
 #ifndef USE_ROSEN_DRAWING
     static void ClearNodeCacheSurface(sk_sp<SkSurface> cacheSurface, sk_sp<SkSurface> cacheCompletedSurface,
-        uint32_t threadIndex);
+        uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
 #else
     static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface> cacheSurface,
-        std::shared_ptr<Drawing::Surface> cacheCompletedSurface, uint32_t threadIndex);
+        std::shared_ptr<Drawing::Surface> cacheCompletedSurface,
+        uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
 #endif
     static void CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& oldSubThreadNodes,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
+    // use floor value of translateX and translateY in matrix of canvas to avoid jittering
+    static void FloorTransXYInCanvasMatrix(RSPaintFilterCanvas& canvas);
 private:
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
         const std::shared_ptr<RSSurfaceRenderNode>& node);
@@ -86,6 +89,7 @@ private:
     static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     static void HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void ClearCacheSurface(const std::shared_ptr<RSSurfaceRenderNode>& node, uint32_t threadIndex);
+    static void PostReleaseSurfaceTask(sk_sp<SkSurface> surface, uint32_t threadIndex);
 };
 }
 }

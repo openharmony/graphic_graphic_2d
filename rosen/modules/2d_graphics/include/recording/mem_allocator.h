@@ -91,7 +91,7 @@ public:
                     held by the MemAllocator based on the addr.
      * @param addr  To get the offset from the header pointer.
      */
-    int32_t AddrToOffset(const void* addr) const;
+    uint32_t AddrToOffset(const void* addr) const;
 
     /*
      * @brief         Gets the address of the contiguous memory buffer held by the memory allocator from the offset.

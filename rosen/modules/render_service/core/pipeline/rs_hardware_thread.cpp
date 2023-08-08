@@ -276,10 +276,14 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 RS_LOGE("RSHardwareThread::Redraw CreateEglImageFromBuffer invalid param!");
                 continue;
             }
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
             if (canvas->recordingContext() == nullptr) {
 #else
             if (canvas->getGrContext() == nullptr) {
+#endif
+#else
+            if (canvas->GetGPUContext() == nullptr) {
 #endif
                 RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
                 continue;
@@ -296,6 +300,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             }
             auto bufferId = params.buffer->GetSeqNum();
             imageCacheSeqs[bufferId] = std::move(eglImageCache);
+#ifndef USE_ROSEN_DRAWING
             SkColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
                 kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
             GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8 };
@@ -318,6 +323,30 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #else
             canvas->drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
 #endif
+#else // USE_ROSEN_DRAWING
+            Drawing::ColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
+                Drawing::ColorType::COLORTYPE_BGRA_8888 : Drawing::ColorType::COLORTYPE_RGBA_8888;
+            Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
+
+            Drawing::TextureInfo externalTextureInfo;
+            externalTextureInfo.SetWidth(params.buffer->GetSurfaceBufferWidth());
+            externalTextureInfo.SetHeight(params.buffer->GetSurfaceBufferHeight());
+            externalTextureInfo.SetIsMipMapped(false);
+            externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
+            externalTextureInfo.SetID(eglTextureId);
+            externalTextureInfo.SetFormat(GL_RGBA8);
+
+            auto image = std::make_shared<Drawing::Image>();
+            if (!image->BuildFromTexture(*canvas->GetGPUContext(), externalTextureInfo,
+                Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr)) {
+                RS_LOGE("RSDividedRenderUtil::DrawImage: image BuildFromTexture failed");
+                return;
+            }
+            canvas->AttachBrush(params.paint);
+            canvas->DrawImageRect(*image, params.srcRect, params.dstRect,
+                Drawing::SamplingOptions(), Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+            canvas->DetachBrush();
+#endif // USE_ROSEN_DRAWING
         } else {
             uniRenderEngine_->DrawBuffer(*canvas, params);
         }
@@ -350,5 +379,13 @@ void RSHardwareThread::LayerPresentTimestamp(const LayerInfoPtr& layer, const sp
     if (surface->SetPresentTimestamp(buffer->GetSeqNum(), layer->GetPresentTimestamp()) != GSERROR_OK) {
         RS_LOGD("RsDebug RSUniRenderComposerAdapter::LayerPresentTimestamp: SetPresentTimestamp failed");
     }
+}
+
+void RSHardwareThread::CleanRenderFrame(uint64_t id)
+{
+    ScheduleTask(
+        [this, id]() {
+        uniRenderEngine_->UnMapRsSurface(id);
+    }).wait();
 }
 }

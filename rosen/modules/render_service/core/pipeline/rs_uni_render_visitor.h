@@ -66,6 +66,7 @@ public:
 
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool ParallelComposition(const std::shared_ptr<RSBaseRenderNode> rootNode);
+    void ChangeCacheRenderNodeMap(RSRenderNode& node, const uint32_t count = 0);
     void UpdateCacheRenderNodeMap(RSRenderNode& node);
     bool GenerateNodeContentCache(RSRenderNode& node);
     bool InitNodeCache(RSRenderNode& node);
@@ -197,7 +198,7 @@ private:
      * when process canvas culling, canvas intersect with surface's visibledirty region or
      * global dirty region will be skipped
      */
-    void CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node) const;
+    void CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node);
     void CalcDirtyRegionForFilterNode(const RectI filterRect,
         std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
         std::shared_ptr<RSDisplayRenderNode>& displayNode);
@@ -267,6 +268,7 @@ private:
     void ParallelRenderEnableHardwareComposer(RSSurfaceRenderNode& node);
     // close partialrender when perform window animation
     void ClosePartialRenderWhenAnimatingWindows(std::shared_ptr<RSDisplayRenderNode>& node);
+    int32_t GetNodePreferred(std::vector<HgmModifierProfile> hgmModifierProfileList) const;
 
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
@@ -280,6 +282,7 @@ private:
 
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
+    std::shared_ptr<RSRenderNode> curRootNode_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
     float curAlpha_ = 1.f;
     bool dirtyFlag_ { false };
@@ -315,6 +318,7 @@ private:
     std::shared_ptr<RSDirtyRegionManager> curDisplayDirtyManager_;
     std::shared_ptr<RSDisplayRenderNode> curDisplayNode_;
     bool doAnimate_ = false;
+    bool isSurfaceRotationChanged_ = false;
     bool isPartialRenderEnabled_ = false;
     bool isOpDropped_ = false;
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization

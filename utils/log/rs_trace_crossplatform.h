@@ -15,16 +15,17 @@
  
 #include <string>
 
-#define ROSEN_TRACE_BEGIN(tag, name) OHOS::Rosen::RosenTraceBegin(name)
-#define RS_TRACE_BEGIN(name) OHOS::Rosen::RosenTraceBegin(name)
-#define ROSEN_TRACE_END(tag) OHOS::Rosen::RosenTraceEnd()
-#define RS_TRACE_END() OHOS::Rosen::RosenTraceEnd()
-#define RS_TRACE_NAME(name) OHOS::Rosen::ScopedTrace ___tracer(name)
+
+#define ROSEN_TRACE_BEGIN(tag, name)
+#define RS_TRACE_BEGIN(name)
+#define ROSEN_TRACE_END(tag)
+#define RS_TRACE_END()
 #define RS_TRACE_NAME_FMT(fmt, ...)
 #define RS_ASYNC_TRACE_BEGIN(name, value)
 #define RS_ASYNC_TRACE_END(name, value)
 #define RS_TRACE_INT(name, value)
-#define RS_TRACE_FUNC() RS_TRACE_NAME(__FUNCTION__)
+#define RS_TRACE_NAME(name)
+#define RS_TRACE_FUNC()
 
 namespace OHOS {
 namespace Rosen {

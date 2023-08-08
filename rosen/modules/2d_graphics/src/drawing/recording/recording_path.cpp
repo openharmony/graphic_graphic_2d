@@ -133,7 +133,7 @@ void RecordingPath::AddRoundRect(const RoundRect& rrect, PathDirection dir)
     radiusXY.push_back(rrect.GetCornerRadius(RoundRect::CornerPos::BOTTOM_RIGHT_POS));
     radiusXY.push_back(rrect.GetCornerRadius(RoundRect::CornerPos::BOTTOM_LEFT_POS));
     auto radiusXYData = CmdListHelper::AddVectorToCmdList<Point>(*cmdList_, radiusXY);
-    
+
     cmdList_->AddOp<AddRoundRectOpItem>(radiusXYData, rrect.GetRect(), dir);
 }
 

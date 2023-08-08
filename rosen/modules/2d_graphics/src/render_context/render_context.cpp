@@ -516,7 +516,7 @@ void RenderContext::DamageFrame(const std::vector<RectI> &rects)
 
     size_t size = rects.size();
     if (size == 0) {
-        LOGE("invalid rects size");
+        LOGD("invalid rects size");
         return;
     }
 

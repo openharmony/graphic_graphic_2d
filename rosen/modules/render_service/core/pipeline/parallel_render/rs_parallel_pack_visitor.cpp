@@ -34,7 +34,7 @@ RSParallelPackVisitor::RSParallelPackVisitor(RSUniRenderVisitor &visitor)
 
 void RSParallelPackVisitor::PrepareChildren(RSRenderNode &node)
 {
-    node.ResetSortedChildren();
+    node.ApplyChildrenModifiers();
     for (auto& child : node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
     }
@@ -61,8 +61,6 @@ void RSParallelPackVisitor::ProcessChildren(RSRenderNode &node)
     for (auto &child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
     }
-    // clear SortedChildren, it will be generated again in next frame
-    node.ResetSortedChildren();
 }
 
 void RSParallelPackVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node)
@@ -129,7 +127,7 @@ void RSParallelPackVisitor::CalcSurfaceRenderNodeCost(RSSurfaceRenderNode& node)
 
 void RSParallelPackVisitor::CalcDisplayRenderNodeCost(RSDisplayRenderNode& node) const
 {
-    for (auto& child : node.GetSortedChildren()) {
+    for (auto& child : node.GetChildren()) {
         auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
         if (surface != nullptr) {
             CalcSurfaceRenderNodeCost(*surface);

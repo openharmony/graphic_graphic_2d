@@ -20,6 +20,7 @@
 #include <string>
 
 #include "screen_manager/screen_types.h"
+#include "animation/rs_frame_rate_range.h"
 
 namespace OHOS::Rosen {
 
@@ -75,6 +76,11 @@ enum RefreshRateMode {
     HGM_REFRESHRATE_MODE_HIGH,
 };
 
+enum class SpeedTransType {
+    TRANS_PIXEL_TO_MM,
+    TRANS_MM_TO_PIXEL,
+};
+
 class ParsedConfigData {
 public:
     ParsedConfigData() = default;
@@ -88,11 +94,31 @@ public:
         std::string min;
         std::string max;
     };
+    struct AnimationDynamicSetting {
+        int32_t min;
+        int32_t max;
+        int32_t preferred_fps;
+    };
     std::unordered_map<std::string, std::string> customerSettingConfig_;
     std::unordered_map<std::string, detailedStrat> detailedStrategies_;
     std::unordered_map<std::string, std::string> animationDynamicStrats_;
     std::unordered_map<std::string, std::string> bundle_black_list_;
     std::unordered_map<std::string, std::string> bundle_white_list_;
+    std::unordered_map<std::string, std::unordered_map<std::string, AnimationDynamicSetting>> dynamicSetting_ = {
+        {"translate", {}}, {"scale", {}}, {"rotation", {}}};
+
+    std::unordered_map<std::string, AnimationDynamicSetting> GetAnimationDynamicSettingMap(
+        HgmModifierType hgmModifierType) const
+    {
+        switch (hgmModifierType) {
+            case HgmModifierType::TRANSLATE:
+                return dynamicSetting_.find("translate")->second;
+            case HgmModifierType::SCALE:
+                return dynamicSetting_.find("scale")->second;
+            case HgmModifierType::ROTATION:
+                return dynamicSetting_.find("rotation")->second;
+        }
+    }
 };
 } // namespace OHOS
 #endif // HGM_COMMAND_H

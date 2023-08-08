@@ -16,10 +16,11 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECTION_PROXY_H
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECTION_PROXY_H
 
-#include "command/rs_node_showing_command.h"
 #include <iremote_proxy.h>
-#include <platform/ohos/rs_irender_service_connection.h>
-#include <platform/ohos/rs_irender_service_connection_ipc_interface_code.h>
+
+#include "command/rs_node_showing_command.h"
+#include "ipc_security/rs_ipc_interface_code_security_manager_registry.h"
+#include "platform/ohos/rs_irender_service_connection.h"
 #include "sandbox_utils.h"
 
 namespace OHOS {
@@ -102,6 +103,9 @@ public:
     void RegisterBufferAvailableListener(
         NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) override;
 
+    void RegisterBufferClearListener(
+        NodeId id, sptr<RSIBufferClearCallback> callback) override;
+
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) override;
 
     int32_t GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) override;
@@ -140,11 +144,16 @@ public:
 
     void ReportEventJankFrame(DataBaseRs info) override;
 
+    void SetHardwareEnabled(NodeId id, bool isEnabled) override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
 
     void ReportDataBaseRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, DataBaseRs info);
+
+    static inline const std::string callerPrefix_{"RSRenderServiceConnectionProxy::"};
+
+    static const RSInterfaceCodeSecurityManager<RSIRenderServiceConnectionInterfaceCode> securityManager_;
 
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 

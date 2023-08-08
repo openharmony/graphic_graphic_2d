@@ -81,13 +81,17 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
 {
     // Initialize the absolute matrix with the absolute matrix of the parent view if the parent view exists
     if (parent == nullptr) {
-#ifndef USE_ROSEN_DRAWING
         absMatrix_.reset();
+    } else {
+#ifndef USE_ROSEN_DRAWING
+        absMatrix_ = parent->GetAbsMatrix();
 #else
         absMatrix_ = Drawing::Matrix();
+        for (int i = 0; i < Drawing::Matrix::MATRIX_SIZE; i++) {
+            auto& matrix = parent->GetAbsMatrix();
+            absMatrix_->Set(static_cast<Drawing::Matrix::Index>(i), matrix.Get(i));
+        }
 #endif
-    } else {
-        absMatrix_ = parent->GetAbsMatrix();
     }
 #ifndef USE_ROSEN_DRAWING
     if (absMatrix_.has_value() && offset.has_value() && !offset.value().isZero()) {
@@ -482,7 +486,7 @@ RectI RSObjAbsGeometry::MapAbsRect(const RectF& rect) const
         p[RIGHT_TOP_POINT] = {rect.left_ + rect.width_, rect.top_};
         p[RIGHT_BOTTOM_POINT] = {rect.left_ + rect.width_, rect.top_ + rect.height_};
         p[LEFT_BOTTOM_POINT] = {rect.left_, rect.top_ + rect.height_};
-        absMatrix_->MapPoints(p, p, RECT_POINT_NUM);
+        matrix.MapPoints(p, p, RECT_POINT_NUM);
 
         Vector2f xRange = GetDataRange(p[LEFT_TOP_POINT].GetX(), p[RIGHT_TOP_POINT].GetX(),
             p[RIGHT_BOTTOM_POINT].GetX(), p[LEFT_BOTTOM_POINT].GetX());

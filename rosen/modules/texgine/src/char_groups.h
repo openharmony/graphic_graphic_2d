@@ -54,6 +54,19 @@ struct CharGroup {
         }
         return maxAdvanceY;
     }
+
+    bool CheckCodePoint()
+    {
+        if (!glyphs.size()) {
+            return false;
+        }
+        for (const auto& glyph : glyphs) {
+            if (!glyph.codepoint) {
+                return false;
+            }
+        }
+        return true;
+    };
 };
 
 struct IndexRange {
@@ -110,6 +123,7 @@ public:
         return IsSameCharGroups(cgs) && range_ == cgs.range_;
     }
 
+    bool CheckCodePoint();
 private:
     friend void ReportMemoryUsage(const std::string &member, const CharGroups &that, bool needThis);
 

@@ -492,5 +492,14 @@ void RSSurfaceNode::DetachToDisplay(uint64_t screenId)
         transactionProxy->AddCommand(command, IsRenderServiceNode());
     }
 }
+
+void RSSurfaceNode::SetHardwareEnabled(bool isEnabled)
+{
+    auto renderServiceClient =
+        std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+    if (renderServiceClient != nullptr) {
+        renderServiceClient->SetHardwareEnabled(GetId(), isEnabled);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

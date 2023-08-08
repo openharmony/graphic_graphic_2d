@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "common/rs_macros.h"
 #include "drawing/engine_adapter/impl_interface/mask_filter_impl.h"
 #include "utils/scalar.h"
 
@@ -31,7 +32,7 @@ enum class BlurType {
     INNER,
 };
 
-class MaskFilter {
+class RS_EXPORT MaskFilter {
 public:
     enum class FilterType {
         NO_TYPE,

@@ -117,7 +117,9 @@ void RSRenderAnimation::Attach(RSRenderNode* renderNode)
     target_ = renderNode;
     if (target_ != nullptr) {
         targetId_ = target_->GetId();
-        target_->CheckGroupableAnimation(GetPropertyId(), true);
+        if (!RSSystemProperties::IsSceneBoardEnabled()) {
+            target_->CheckGroupableAnimation(GetPropertyId(), true);
+        }
     }
     OnAttach();
     Start();
@@ -127,7 +129,7 @@ void RSRenderAnimation::Attach(RSRenderNode* renderNode)
 void RSRenderAnimation::Detach()
 {
     OnDetach();
-    if (target_ != nullptr) {
+    if (target_ != nullptr && (!RSSystemProperties::IsSceneBoardEnabled())) {
         target_->CheckGroupableAnimation(GetPropertyId(), false);
     }
     target_ = nullptr;
@@ -256,7 +258,6 @@ void RSRenderAnimation::ProcessOnRepeatFinish()
 bool RSRenderAnimation::Animate(int64_t time)
 {
     if (!IsRunning()) {
-        ROSEN_LOGI("RSRenderAnimation::Animate, IsRunning is false!");
         return state_ == AnimationState::FINISHED;
     }
 

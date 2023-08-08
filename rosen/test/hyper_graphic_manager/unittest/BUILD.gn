@@ -61,5 +61,8 @@ ohos_unittest("hgm_xml_parser_test") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":hyper_graphic_manager_test" ]
+  deps = [
+    ":hgm_xml_parser_test",
+    ":hyper_graphic_manager_test",
+  ]
 }

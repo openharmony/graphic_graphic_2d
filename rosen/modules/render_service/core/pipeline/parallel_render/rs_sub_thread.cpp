@@ -163,9 +163,9 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
 
         RS_TRACE_NAME_FMT("draw cache render node: [%s, %llu]", surfaceNodePtr->GetName().c_str(),
             surfaceNodePtr->GetId());
-        if (surfaceNodePtr->GetCacheSurface(threadIndex_, true) == nullptr) {
+        if (surfaceNodePtr->NeedInitCacheSurface() || surfaceNodePtr->GetCacheSurface(threadIndex_, true) == nullptr) {
             RSRenderNode::ClearCacheSurfaceFunc func = std::bind(&RSUniRenderUtil::ClearNodeCacheSurface,
-                std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+                std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
             surfaceNodePtr->InitCacheSurface(grContext_.get(), func, threadIndex_);
         }
 #ifndef USE_ROSEN_DRAWING
@@ -206,6 +206,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
 #endif
         surfaceNodePtr->UpdateBackendTexture();
         surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DONE);
+        surfaceNodePtr->SetCacheSurfaceNeedUpdated(true);
 
         if (needNotify) {
             RSSubThreadManager::Instance()->NodeTaskNotify(node->GetId());

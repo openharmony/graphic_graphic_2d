@@ -229,16 +229,16 @@ HWTEST_F(RSUniRenderUtilTest, ClearCacheSurface, Function | SmallTest | Level2)
 HWTEST_F(RSUniRenderUtilTest, ClearNodeCacheSurface, Function | SmallTest | Level2)
 {
     uint32_t threadIndex = 1;
-    RSUniRenderUtil::ClearNodeCacheSurface(nullptr, nullptr, threadIndex);
+    RSUniRenderUtil::ClearNodeCacheSurface(nullptr, nullptr, threadIndex, 0);
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
     threadIndex = UNI_MAIN_THREAD_INDEX;
     RSUniRenderUtil::ClearNodeCacheSurface(node->GetCacheSurface(),
-        node->GetCompletedCacheSurface(0, true), threadIndex);
+        node->GetCompletedCacheSurface(0, true), threadIndex, 0);
     threadIndex = 1;
     RSUniRenderUtil::ClearNodeCacheSurface(node->GetCacheSurface(),
-        node->GetCompletedCacheSurface(0, true), threadIndex);
+        node->GetCompletedCacheSurface(0, true), threadIndex, 0);
 }
 
 /*

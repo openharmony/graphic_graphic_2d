@@ -37,7 +37,6 @@ ohos_unittest("2d_graphics_image_test") {
 
   deps = [
     "$graphic_2d_root:libgl",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//third_party/googletest:gtest_main",
   ]
@@ -48,7 +47,10 @@ ohos_unittest("2d_graphics_image_test") {
   }
 
   subsystem_name = "graphic"
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 group("unittest") {

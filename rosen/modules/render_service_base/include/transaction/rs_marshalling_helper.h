@@ -52,6 +52,7 @@ struct SkSamplingOptions;
 
 #if defined (ENABLE_DDGR_OPTIMIZE)
 struct SkSerialProcs;
+struct SkDeserialProcs;
 #endif
 
 namespace OHOS {
@@ -75,7 +76,14 @@ class RSImageBase;
 class RSMask;
 class RSPath;
 class RSLinearGradientBlurPara;
+template<typename T>
+class RenderParticleParaType;
+class EmitterConfig;
+class ParticleVelocity;
+class RenderParticleColorParaType;
+class ParticleRenderParams;
 class RSRenderCurveAnimation;
+class RSRenderParticleAnimation;
 class RSRenderInterpolatingSpringAnimation;
 class RSRenderKeyframeAnimation;
 class RSRenderPathAnimation;
@@ -194,6 +202,12 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImageBase>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<EmitterConfig>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleVelocity>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleRenderParams>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<std::vector<ParticleRenderParams>>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RenderParticleParaType<float>>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RenderParticleColorParaType>)
 #ifndef USE_ROSEN_DRAWING
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<DrawCmdList>)
 #else
@@ -222,6 +236,7 @@ public:
     static bool Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE>& val);
 
     DECLARE_ANIMATION_OVERLOAD(RSRenderCurveAnimation)
+    DECLARE_ANIMATION_OVERLOAD(RSRenderParticleAnimation)
     DECLARE_ANIMATION_OVERLOAD(RSRenderInterpolatingSpringAnimation)
     DECLARE_ANIMATION_OVERLOAD(RSRenderKeyframeAnimation)
     DECLARE_ANIMATION_OVERLOAD(RSRenderSpringAnimation)
@@ -324,10 +339,12 @@ public:
 #endif
 
 #if defined (ENABLE_DDGR_OPTIMIZE)
-    static int IntegrateReadDescriptor(OHOS::Parcel& pacel);
-    static bool IntegrateWriteDescriptor(OHOS::Parcel& parcel, int fId);
-    static sk_sp<SkData> SerializeInternal(const sk_sp<SkTextBlob>& val,
-        const SkSerialProcs& procs, int& fd);
+    static int IntegrateReadDescriptor(Parcel& pacel);
+    static bool IntegrateWriteDescriptor(Parcel& parcel, int fId);
+    static sk_sp<SkData> SerializeInternal(Parcel& parcel, const sk_sp<SkTextBlob>& val,
+        const SkSerialProcs& procs);
+    static sk_sp<SkData> DserializeInternal(Parcel& parcel, sk_sp<SkTextBlob>& val,
+        const SkDeserialProcs& procs, sk_sp<SkData>& data);
 #endif
 
 private:

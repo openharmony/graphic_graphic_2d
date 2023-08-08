@@ -198,6 +198,7 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
     Drawing::BitmapFormat format = MakeDrawingBitmapFormat(imageInfo);
     Drawing::Bitmap bitmap;
     bitmap.Build(imageInfo.size.width, imageInfo.size.height, format);
+    bitmap.SetPixels((void*)pixelMap->GetPixels());
 
     auto image = std::make_shared<Drawing::Image>();
     image->BuildFromBitmap(bitmap);

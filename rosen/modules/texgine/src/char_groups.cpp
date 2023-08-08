@@ -364,6 +364,19 @@ void CharGroups::ReverseAll()
 
     std::reverse(pcgs_->begin(), pcgs_->end());
 }
+
+bool CharGroups::CheckCodePoint()
+{
+    if (!GetSize()) {
+        return false;
+    }
+    for (auto &charGroup : *pcgs_) {
+        if (!charGroup.CheckCodePoint()) {
+            return false;
+        }
+    }
+    return true;
+};
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

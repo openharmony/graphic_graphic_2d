@@ -349,11 +349,12 @@ GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, sp
 
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        if (connectedPid_ != 0 && connectedPid_ != GetCallingPid()) {
+        auto callingPid = GetCallingPid();
+        if (connectedPid_ != 0 && connectedPid_ != callingPid) {
             BLOGNW("this BufferQueue has been connected by :%{public}d", connectedPid_);
             return GSERROR_INVALID_OPERATING;
         }
-        connectedPid_ = GetCallingPid();
+        connectedPid_ = callingPid;
     }
 
     return bufferQueue_->RequestBuffer(config, bedata, retval);

@@ -61,6 +61,8 @@ enum class RSModifierType : int16_t {
     FILTER,
     BACKGROUND_FILTER,
     LINEAR_GRADIENT_BLUR_PARA,
+    DYNAMIC_LIGHT_UP_RATE,
+    DYNAMIC_LIGHT_UP_DEGREE,
 
     FRAME_GRAVITY,
 
@@ -96,6 +98,7 @@ enum class RSModifierType : int16_t {
     INVERT,
     HUE_ROTATE,
     COLOR_BLEND,
+    PARTICLE,
 
     CUSTOM,
     EXTENDED,

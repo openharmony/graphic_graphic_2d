@@ -27,8 +27,7 @@ std::shared_ptr<ImageFilterCmdList> ImageFilterCmdList::CreateFromData(const Cmd
     auto cmdList = std::make_shared<ImageFilterCmdList>();
     if (isCopy) {
         cmdList->opAllocator_.BuildFromDataWithCopy(data.first, data.second);
-    }
-    else {
+    } else {
         cmdList->opAllocator_.BuildFromData(data.first, data.second);
     }
     return cmdList;
@@ -40,7 +39,7 @@ std::shared_ptr<ImageFilter> ImageFilterCmdList::Playback() const
         return nullptr;
     }
 
-    int32_t offset = 0;
+    uint32_t offset = 0;
     std::shared_ptr<ImageFilter> imageFilter = nullptr;
 
     do {
@@ -113,7 +112,7 @@ std::shared_ptr<ImageFilter> CreateOffsetImageFilterOpItem::Playback(const CmdLi
     return ImageFilter::CreateOffsetImageFilter(dx_, dy_, input);
 }
 
-CreateArithmeticImageFilterOpItem::CreateArithmeticImageFilterOpItem(std::pair<int32_t, size_t> coefficients,
+CreateArithmeticImageFilterOpItem::CreateArithmeticImageFilterOpItem(const std::pair<uint32_t, size_t>& coefficients,
     bool enforcePMColor, const CmdListHandle& background, const CmdListHandle& foreground)
     : ImageFilterOpItem(CREATE_ARITHMETIC), coefficients_(coefficients),
     enforcePMColor_(enforcePMColor), background_(background), foreground_(foreground) {}

@@ -92,7 +92,7 @@ private:
     ImageStructVec imageVector_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainHandler_;
     std::shared_ptr<AppExecFwk::EventRunner> runner_;
-    bool setBootEvent_ = false;
+    bool isAnimationEnd_ = false;
     std::shared_ptr<BootVideoPlayer> bootVideoPlayer_;
     BootAnimationConfig animationConfig_;
     OHOS::FrameCallback fcb_;

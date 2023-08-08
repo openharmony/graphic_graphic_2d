@@ -165,8 +165,6 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessChildren(RSRenderNode
     for (auto& child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
     }
-    // clear SortedChildren, it will be generated again in next frame
-    node.ResetSortedChildren();
 }
 
 void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
@@ -229,12 +227,14 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCa
     node.ProcessRenderBeforeChildren(*canvas_);
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
-        canvasDrawingNode->ProcessRenderContents(*canvas_);
+        if (!node.IsOnTheTree()) {
+            canvasDrawingNode->ProcessRenderContents(*canvas_);
+        }
 #ifndef USE_ROSEN_DRAWING
         SkBitmap bitmap;
-        canvasDrawingNode->GetBitmap(bitmap);
+        bitmap = canvasDrawingNode->GetBitmap();
 #ifndef NEW_SKIA
-        canvas_->drawImage(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
+        canvas_->drawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
             node.GetRenderProperties().GetBoundsPositionY());
 #else
         canvas_->drawImage(bitmap.asImage(), node.GetRenderProperties().GetBoundsPositionX(),
@@ -332,6 +332,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
 
 void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareChildren(RSRenderNode& node)
 {
+    node.ApplyChildrenModifiers();
     for (auto& child : node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
     }
@@ -339,7 +340,6 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareChildren(RSRenderNode
 
 void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
-    node.ApplyModifiers();
     auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
     node.Update(*dirtyManager, nullptr, false);
     PrepareChildren(node);
@@ -347,7 +347,6 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareCanvasRenderNode(RSCa
 
 void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
-    node.ApplyModifiers();
     auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
     node.Update(*dirtyManager, nullptr, false);
     PrepareChildren(node);
@@ -355,13 +354,11 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareSurfaceRenderNode(RSS
 
 void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 {
-    node.ApplyModifiers();
     PrepareCanvasRenderNode(node);
 }
 
 void RSDividedUICapture::RSDividedUICaptureVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 {
-    node.ApplyModifiers();
     auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
     node.Update(*dirtyManager, nullptr, false);
     PrepareChildren(node);

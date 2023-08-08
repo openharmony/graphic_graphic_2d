@@ -47,7 +47,7 @@ public:
     }
 
 #ifndef USE_ROSEN_DRAWING
-    bool GetBitmap(SkBitmap& bitmap);
+    SkBitmap GetBitmap();
 #else
     bool GetBitmap(Drawing::Bitmap& bitmap);
 #endif
@@ -66,6 +66,7 @@ private:
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> skSurface_;
 #else
+    std::shared_ptr<Drawing::Bitmap> bitmap_;
     std::shared_ptr<Drawing::Surface> surface_;
 #endif
     std::unique_ptr<RSPaintFilterCanvas> canvas_;

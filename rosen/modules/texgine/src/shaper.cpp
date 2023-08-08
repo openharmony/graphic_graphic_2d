@@ -46,7 +46,7 @@ void DumpLineMetrics(const std::vector<LineMetrics> &lineMetrics)
 } // namespace
 
 std::vector<LineMetrics> Shaper::DoShape(std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
-    const std::unique_ptr<FontProviders> &fontProviders, const double widthLimit)
+    const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit)
 {
     ScopedTrace scope("Shaper::DoShape");
     TextBreaker tb;

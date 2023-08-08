@@ -41,12 +41,14 @@ ohos_unittest("RSRenderAnimationTest") {
 
   deps = [
     "../../../../render_service_base:render_service_base_src",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/window/window_manager/wm:libwm",
     "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [ "eventhandler:libeventhandler" ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+  ]
 
   subsystem_name = "graphic"
 }

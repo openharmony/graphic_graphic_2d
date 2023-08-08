@@ -93,6 +93,7 @@ public:
 
     // used by clients
     static std::string GetRecordingFile();
+    static bool IsSceneBoardEnabled();
     static int GetDumpFrameNum();
     static void SetRecordingDisenabled();
     static bool GetRecordingEnabled();
@@ -116,9 +117,6 @@ public:
     static bool GetHardwareComposerEnabled();
     static bool GetAFBCEnabled();
     static ReleaseGpuResourceType GetReleaseGpuResourceEnabled();
-#if defined (ENABLE_DDGR_OPTIMIZE)
-    static bool GetLocalProcessEnable();
-#endif
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
@@ -144,6 +142,7 @@ public:
     static bool GetDebugTraceEnabled();
     static bool GetCacheCmdEnabled();
     static bool GetASTCEnabled();
+    static bool GetImageGpuResourceCacheEnable(int width, int height);
 #if defined (ENABLE_DDGR_OPTIMIZE)
     static bool GetDDGRIntegrateEnable();
 #endif

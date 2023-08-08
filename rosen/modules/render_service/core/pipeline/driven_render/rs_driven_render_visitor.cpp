@@ -37,6 +37,7 @@ RSDrivenRenderVisitor::RSDrivenRenderVisitor()
 
 void RSDrivenRenderVisitor::PrepareChildren(RSRenderNode& node)
 {
+    node.ApplyChildrenModifiers();
     for (auto& child : node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
     }
@@ -106,8 +107,6 @@ void RSDrivenRenderVisitor::ProcessChildren(RSRenderNode& node)
     for (auto& child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
     }
-    // clear SortedChildren, it will be generated again in next frame
-    node.ResetSortedChildren();
 }
 
 void RSDrivenRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)

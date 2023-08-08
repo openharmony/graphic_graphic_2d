@@ -27,8 +27,7 @@ std::shared_ptr<ColorFilterCmdList> ColorFilterCmdList::CreateFromData(const Cmd
     auto cmdList = std::make_shared<ColorFilterCmdList>();
     if (isCopy) {
         cmdList->opAllocator_.BuildFromDataWithCopy(data.first, data.second);
-    }
-    else {
+    } else {
         cmdList->opAllocator_.BuildFromData(data.first, data.second);
     }
     return cmdList;
@@ -40,7 +39,7 @@ std::shared_ptr<ColorFilter> ColorFilterCmdList::Playback() const
         return nullptr;
     }
 
-    int32_t offset = 0;
+    uint32_t offset = 0;
     std::shared_ptr<ColorFilter> cf = nullptr;
     do {
         OpItem* itemPtr = static_cast<OpItem*>(opAllocator_.OffsetToAddr(offset));

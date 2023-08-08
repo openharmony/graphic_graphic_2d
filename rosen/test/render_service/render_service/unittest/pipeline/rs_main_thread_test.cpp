@@ -533,35 +533,6 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData004, TestSize.Level1)
 }
 
 /**
- * @tc.name: ResetSortedChildren
- * @tc.desc: Test ResetSortedChildren, clear sortedChildren_ when it is not empty
- * @tc.type: FUNC
- * @tc.require: issueI6Q9A2
- */
-HWTEST_F(RSMainThreadTest, ResetSortedChildren, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    NodeId nodeId = 0;
-    std::weak_ptr<RSContext> context = {};
-    auto node = std::make_shared<RSBaseRenderNode>(nodeId, context);
-    auto childNode = std::make_shared<RSBaseRenderNode>(nodeId + 1, context);
-    int index = -1;
-    node->SetIsOnTheTree(true);
-    node->AddChild(node, index);
-    ASSERT_EQ(static_cast<int>(node->GetChildrenCount()), 0);
-
-    node->AddChild(childNode, index);
-    ASSERT_EQ(static_cast<int>(node->GetChildrenCount()), 1);
-    ASSERT_TRUE(childNode->IsOnTheTree());
-
-    node->GetSortedChildren();
-    ASSERT_EQ(static_cast<int>(node->sortedChildren_.size()), 1);
-
-    mainThread->ResetSortedChildren(node);
-    ASSERT_EQ(static_cast<int>(node->sortedChildren_.size()), 0);
-}
-
-/**
  * @tc.name: AddActiveNodeId
  * @tc.desc: Test AddActiveNodeId, add fake nodeid info, check if fails
  * @tc.type: FUNC
@@ -575,7 +546,10 @@ HWTEST_F(RSMainThreadTest, AddActiveNodeId, TestSize.Level1)
     pid_t pid = 1;
     NodeId id = ((NodeId)pid << 32) + 1;
     mainThread->AddActiveNodeId(pid, id);
-    ASSERT_EQ(static_cast<int>(mainThread->activeAppsInProcess_[pid].size()), 0);
+    ASSERT_NE(static_cast<int>(mainThread->activeAppsInProcess_[pid].size()), 0);
+    for (auto iter : mainThread->activeAppsInProcess_[pid]) {
+        ASSERT_EQ(iter, INVALID_NODEID);
+    }
 }
 
 /**

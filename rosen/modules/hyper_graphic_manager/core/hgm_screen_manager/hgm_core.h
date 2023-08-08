@@ -17,7 +17,7 @@
 #define HGM_CORE_H
 
 #include <functional>
-#include <inttypes.h>
+#include <cinttypes>
 #include <thread>
 #include <unordered_map>
 #include <vector>
@@ -25,6 +25,7 @@
 #include <event_handler.h>
 
 #include "hgm_screen.h"
+#include "hgm_frame_rate_tool.h"
 #include "xml_parser.h"
 
 namespace OHOS::Rosen {
@@ -52,6 +53,11 @@ public:
         return screenList_.size();
     }
 
+    ScreenId GetActiveScreenId() const
+    {
+        return activeScreenId_;
+    }
+
     int32_t SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
     int32_t SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate, int32_t width, int32_t height);
     int32_t SetRefreshRateMode(RefreshRateMode refreshRateMode);
@@ -64,6 +70,10 @@ public:
     sptr<HgmScreen> GetScreen(ScreenId id) const;
     std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id);
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> GetModesToApply();
+    int32_t AddScreenProfile(ScreenId id, int32_t width, int32_t height, int32_t phyWidth, int32_t phyHeight);
+    int32_t RemoveScreenProfile(ScreenId id);
+    int32_t CalModifierPreferred(HgmModifierProfile &hgmModifierProfile) const;
+    void SetActiveScreenId(ScreenId id);
 
 private:
     HgmCore();
@@ -82,7 +92,7 @@ private:
     bool isEnabled_ = true;
     bool isInit_ = false;
     std::unique_ptr<XMLParser> mParser_;
-    std::unique_ptr<ParsedConfigData> mParsedConfigData_ = nullptr;
+    std::shared_ptr<ParsedConfigData> mParsedConfigData_ = nullptr;
 
     RefreshRateMode customFrameRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
     std::vector<ScreenId> screenIds_;
@@ -93,6 +103,8 @@ private:
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeListToApply_ = nullptr;
 
     std::string currentBundleName_;
+    std::shared_ptr<HgmFrameRateTool> hgmFrameRateTool_ = nullptr;
+    ScreenId activeScreenId_;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H

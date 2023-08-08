@@ -28,7 +28,7 @@ namespace TextEngine {
 struct MockVars {
     std::shared_ptr<TypographyStyle> typographyStyle_;
     std::vector<VariantSpan> variantSpan_;
-    std::unique_ptr<FontProviders> providers_ = FontProviders::Create();
+    std::shared_ptr<FontProviders> providers_ = FontProviders::Create();
     std::vector<LineMetrics> lineMetrics_;
     std::shared_ptr<Boundary> boundary_;
 } g_tiMockvars;
@@ -39,7 +39,7 @@ void InitTiMockVars(struct MockVars &&vars)
 }
 
 std::vector<LineMetrics> Shaper::DoShape(std::vector<VariantSpan> spans, const TypographyStyle &ys,
-    const std::unique_ptr<FontProviders> &fontProviders, const double widthLimit)
+    const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit)
 {
     return g_tiMockvars.lineMetrics_;
 }
@@ -64,7 +64,7 @@ HWTEST_F(TypographyImplTest, Layout, TestSize.Level1)
 {
     InitTiMockVars({});
     std::shared_ptr<TypographyImpl> ti = std::make_shared<TypographyImpl>(*g_tiMockvars.typographyStyle_,
-        g_tiMockvars.variantSpan_, std::move(g_tiMockvars.providers_));
+        g_tiMockvars.variantSpan_, g_tiMockvars.providers_);
     EXPECT_NO_THROW({
         InitTiMockVars({});
         ti->Layout(0.0);
@@ -86,7 +86,7 @@ HWTEST_F(TypographyImplTest, Paint, TestSize.Level1)
 {
     InitTiMockVars({});
     std::shared_ptr<TypographyImpl> ti = std::make_shared<TypographyImpl>(*g_tiMockvars.typographyStyle_,
-        g_tiMockvars.variantSpan_, std::move(g_tiMockvars.providers_));
+        g_tiMockvars.variantSpan_, g_tiMockvars.providers_);
     EXPECT_NO_THROW({
         std::shared_ptr<VariantSpan> vs = std::make_shared<VariantSpan>(TextSpan::MakeEmpty());
         std::vector<VariantSpan> variantSpan;
@@ -110,7 +110,7 @@ HWTEST_F(TypographyImplTest, GetTextRectsByBoundary, TestSize.Level1)
 {
     InitTiMockVars({});
     std::shared_ptr<TypographyImpl> ti = std::make_shared<TypographyImpl>(*g_tiMockvars.typographyStyle_,
-        g_tiMockvars.variantSpan_, std::move(g_tiMockvars.providers_));
+        g_tiMockvars.variantSpan_, g_tiMockvars.providers_);
     EXPECT_NO_THROW({
         std::shared_ptr<VariantSpan> vs = std::make_shared<VariantSpan>(TextSpan::MakeEmpty());
         std::vector<VariantSpan> variantSpan;
@@ -150,7 +150,7 @@ HWTEST_F(TypographyImplTest, GetGlyphIndexByCoordinate, TestSize.Level1)
 {
     InitTiMockVars({});
     std::shared_ptr<TypographyImpl> ti = std::make_shared<TypographyImpl>(*g_tiMockvars.typographyStyle_,
-        g_tiMockvars.variantSpan_, std::move(g_tiMockvars.providers_));
+        g_tiMockvars.variantSpan_, g_tiMockvars.providers_);
     EXPECT_NO_THROW({
         ti->Layout(0.0);
         ti->GetGlyphIndexByCoordinate(0.0, 0.0);
@@ -169,7 +169,7 @@ HWTEST_F(TypographyImplTest, GetWordBoundaryByIndex, TestSize.Level1)
 {
     InitTiMockVars({});
     std::shared_ptr<TypographyImpl> ti = std::make_shared<TypographyImpl>(*g_tiMockvars.typographyStyle_,
-        g_tiMockvars.variantSpan_, std::move(g_tiMockvars.providers_));
+        g_tiMockvars.variantSpan_, g_tiMockvars.providers_);
     EXPECT_NO_THROW({
         ti->GetWordBoundaryByIndex(0);
         ti->GetWordBoundaryByIndex(1);
@@ -185,7 +185,7 @@ HWTEST_F(TypographyImplTest, GetFunctions, TestSize.Level1)
 {
     InitTiMockVars({});
     std::shared_ptr<TypographyImpl> ti = std::make_shared<TypographyImpl>(*g_tiMockvars.typographyStyle_,
-        g_tiMockvars.variantSpan_, std::move(g_tiMockvars.providers_));
+        g_tiMockvars.variantSpan_, g_tiMockvars.providers_);
     EXPECT_NO_THROW({
         ti->GetMaxWidth();
         ti->GetHeight();

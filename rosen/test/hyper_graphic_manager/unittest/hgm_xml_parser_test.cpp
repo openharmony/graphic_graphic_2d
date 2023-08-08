@@ -69,6 +69,9 @@ HWTEST_F(HgmXmlParserTest, Parse, Function | SmallTest | Level1)
     int32_t load = parser->LoadConfiguration();
     int32_t parse = parser->Parse();
     auto parsedData = parser->GetParsedData();
+    auto translateDynamicSetting = parsedData->dynamicSetting_.find("translate")->second;
+    auto scaleDynamicSetting = parsedData->dynamicSetting_.find("scale")->second;
+    auto rotationDynamicSetting = parsedData->dynamicSetting_.find("rotation")->second;
 
     PART("CaseDescription") {
         STEP("1. get an xml parser") {
@@ -76,11 +79,13 @@ HWTEST_F(HgmXmlParserTest, Parse, Function | SmallTest | Level1)
             STEP_ASSERT_EQ(parse, 0);
         }
         STEP("2. check the parsing result ") {
-            STEP_ASSERT_
-            (parsedData->isDynamicFrameRateEnable_, "1");
+            STEP_ASSERT_EQ(parsedData->isDynamicFrameRateEnable_, "1");
             STEP_ASSERT_NE(parsedData->customerSettingConfig_.size(), 0);
             STEP_ASSERT_NE(parsedData->detailedStrategies_.size(), 0);
             STEP_ASSERT_NE(parsedData->animationDynamicStrats_.size(), 0);
+            STEP_ASSERT_NE(translateDynamicSetting.size(), 0);
+            STEP_ASSERT_NE(scaleDynamicSetting.size(), 0);
+            STEP_ASSERT_NE(rotationDynamicSetting.size(), 0);
         }
     }
 }

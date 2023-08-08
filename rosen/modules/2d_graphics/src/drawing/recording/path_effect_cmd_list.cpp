@@ -27,8 +27,7 @@ std::shared_ptr<PathEffectCmdList> PathEffectCmdList::CreateFromData(const CmdLi
     auto cmdList = std::make_shared<PathEffectCmdList>();
     if (isCopy) {
         cmdList->opAllocator_.BuildFromDataWithCopy(data.first, data.second);
-    }
-    else {
+    } else {
         cmdList->opAllocator_.BuildFromData(data.first, data.second);
     }
     return cmdList;
@@ -40,7 +39,7 @@ std::shared_ptr<PathEffect> PathEffectCmdList::Playback() const
         return nullptr;
     }
 
-    int32_t offset = 0;
+    uint32_t offset = 0;
     std::shared_ptr<PathEffect> pe = nullptr;
     do {
         OpItem* itemPtr = static_cast<OpItem*>(opAllocator_.OffsetToAddr(offset));
@@ -78,7 +77,7 @@ std::shared_ptr<PathEffect> PathEffectCmdList::Playback() const
 }
 
 /* OpItem */
-CreateDashPathEffectOpItem::CreateDashPathEffectOpItem(const std::pair<int32_t, size_t>& intervals, scalar phase)
+CreateDashPathEffectOpItem::CreateDashPathEffectOpItem(const std::pair<uint32_t, size_t>& intervals, scalar phase)
     : PathEffectOpItem(CREATE_DASH), intervals_(intervals), phase_(phase) {}
 
 std::shared_ptr<PathEffect> CreateDashPathEffectOpItem::Playback(const CmdList& cmdList) const

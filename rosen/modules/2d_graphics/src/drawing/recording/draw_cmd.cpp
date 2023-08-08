@@ -148,7 +148,7 @@ void DrawRectOpItem::Playback(Canvas& canvas) const
     canvas.DrawRect(rect_);
 }
 
-DrawRoundRectOpItem::DrawRoundRectOpItem(std::pair<int32_t, size_t> radiusXYData, const Rect& rect)
+DrawRoundRectOpItem::DrawRoundRectOpItem(std::pair<uint32_t, size_t> radiusXYData, const Rect& rect)
     : DrawOpItem(ROUND_RECT_OPITEM), radiusXYData_(radiusXYData), rect_(rect) {}
 
 void DrawRoundRectOpItem::Playback(CanvasPlayer& player, const void* opItem)
@@ -167,8 +167,8 @@ void DrawRoundRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
     canvas.DrawRoundRect(roundRect);
 }
 
-DrawNestedRoundRectOpItem::DrawNestedRoundRectOpItem(const std::pair<int32_t, size_t> outerRadiusXYData,
-    const Rect& outerRect, const std::pair<int32_t, size_t> innerRadiusXYData, const Rect& innerRect)
+DrawNestedRoundRectOpItem::DrawNestedRoundRectOpItem(const std::pair<uint32_t, size_t> outerRadiusXYData,
+    const Rect& outerRect, const std::pair<uint32_t, size_t> innerRadiusXYData, const Rect& innerRect)
     : DrawOpItem(NESTED_ROUND_RECT_OPITEM), outerRadiusXYData_(outerRadiusXYData),
     innerRadiusXYData_(innerRadiusXYData), outerRect_(outerRect), innerRect_(innerRect) {}
 
@@ -274,10 +274,8 @@ void DrawPathOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
     canvas.DrawPath(*path);
 }
 
-DrawBackgroundOpItem::DrawBackgroundOpItem(const Color& color, const BlendMode mode, const bool isAntiAlias,
-    const Filter::FilterQuality filterQuality, const BrushHandle brushHandle)
-    : DrawOpItem(BACKGROUND_OPITEM), color_(color), mode_(mode), isAntiAlias_(isAntiAlias),
-    filterQuality_(filterQuality), brushHandle_(brushHandle) {}
+DrawBackgroundOpItem::DrawBackgroundOpItem(const BrushHandle& brushHandle)
+    : DrawOpItem(BACKGROUND_OPITEM), brushHandle_(brushHandle) {}
 
 void DrawBackgroundOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
@@ -304,15 +302,16 @@ void DrawBackgroundOpItem::Playback(Canvas& canvas, const CmdList& cmdList) cons
     filter.SetColorFilter(colorFilter);
     filter.SetImageFilter(imageFilter);
     filter.SetMaskFilter(maskFilter);
-    filter.SetFilterQuality(filterQuality_);
+    filter.SetFilterQuality(brushHandle_.filterQuality);
 
-    const Color4f color4f = { color_.GetRedF(), color_.GetGreenF(), color_.GetBlueF(), color_.GetAlphaF() };
+    const Color4f color4f = { brushHandle_.color.GetRedF(), brushHandle_.color.GetGreenF(),
+        brushHandle_.color.GetBlueF(), brushHandle_.color.GetAlphaF() };
 
     Brush brush;
     brush.SetColor(color4f, colorSpace);
     brush.SetShaderEffect(shaderEffect);
-    brush.SetBlendMode(mode_);
-    brush.SetAntiAlias(isAntiAlias_);
+    brush.SetBlendMode(brushHandle_.mode);
+    brush.SetAntiAlias(brushHandle_.isAntiAlias);
     brush.SetFilter(filter);
 
     canvas.DrawBackground(brush);
@@ -443,7 +442,7 @@ void ClipRectOpItem::Playback(Canvas& canvas) const
     canvas.ClipRect(rect_, clipOp_, doAntiAlias_);
 }
 
-ClipRoundRectOpItem::ClipRoundRectOpItem(std::pair<int32_t, size_t> radiusXYData, const Rect& rect, ClipOp op,
+ClipRoundRectOpItem::ClipRoundRectOpItem(std::pair<uint32_t, size_t> radiusXYData, const Rect& rect, ClipOp op,
     bool doAntiAlias) : DrawOpItem(CLIP_ROUND_RECT_OPITEM), radiusXYData_(radiusXYData), rect_(rect), clipOp_(op),
     doAntiAlias_(doAntiAlias) {}
 
@@ -651,11 +650,9 @@ void SaveOpItem::Playback(Canvas& canvas) const
     canvas.Save();
 }
 
-SaveLayerOpItem::SaveLayerOpItem(const Rect& rect, bool hasBrush, const Color& color, BlendMode mode, bool isAntiAlias,
-    Filter::FilterQuality filterQuality, const BrushHandle brushHandle, const CmdListHandle& imageFilter,
-    uint32_t saveLayerFlags)
-    : DrawOpItem(SAVE_LAYER_OPITEM), rect_(rect), color_(color), mode_(mode), isAntiAlias_(isAntiAlias),
-    filterQuality_(filterQuality), brushHandle_(brushHandle), imageFilter_(imageFilter),
+SaveLayerOpItem::SaveLayerOpItem(const Rect& rect, bool hasBrush, const BrushHandle& brushHandle,
+    const CmdListHandle& imageFilter, uint32_t saveLayerFlags) : DrawOpItem(SAVE_LAYER_OPITEM),
+    rect_(rect), hasBrush_(hasBrush), brushHandle_(brushHandle), imageFilter_(imageFilter),
     saveLayerFlags_(saveLayerFlags) {}
 
 void SaveLayerOpItem::Playback(CanvasPlayer& player, const void* opItem)
@@ -690,16 +687,16 @@ void SaveLayerOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
         filter.SetColorFilter(colorFilter);
         filter.SetImageFilter(imageFilter);
         filter.SetMaskFilter(maskFilter);
-        filter.SetFilterQuality(filterQuality_);
-        filter.SetFilterQuality(filterQuality_);
+        filter.SetFilterQuality(brushHandle_.filterQuality);
 
-        const Color4f color4f = { color_.GetRedF(), color_.GetGreenF(), color_.GetBlueF(), color_.GetAlphaF() };
+        const Color4f color4f = { brushHandle_.color.GetRedF(), brushHandle_.color.GetGreenF(),
+            brushHandle_.color.GetBlueF(), brushHandle_.color.GetAlphaF() };
 
         brush = std::make_shared<Brush>();
         brush->SetColor(color4f, colorSpace);
         brush->SetShaderEffect(shaderEffect);
-        brush->SetBlendMode(mode_);
-        brush->SetAntiAlias(isAntiAlias_);
+        brush->SetBlendMode(brushHandle_.mode);
+        brush->SetAntiAlias(brushHandle_.isAntiAlias);
         brush->SetFilter(filter);
     }
 
@@ -724,11 +721,7 @@ void RestoreOpItem::Playback(Canvas& canvas) const
     canvas.Restore();
 }
 
-AttachPenOpItem::AttachPenOpItem(const Color& color, const scalar width, const scalar miterLimit,
-    const Pen::CapStyle capStyle, const Pen::JoinStyle joinStyle, const BlendMode mode, bool isAntiAlias,
-    const Filter::FilterQuality filterQuality, const PenHandle penHandle)
-    : DrawOpItem(ATTACH_PEN_OPITEM), color_(color), width_(width), miterLimit_(miterLimit), capStyle_(capStyle),
-    joinStyle_(joinStyle), mode_(mode), filterQuality_(filterQuality), penHandle_(penHandle) {}
+AttachPenOpItem::AttachPenOpItem(const PenHandle& penHandle) : DrawOpItem(ATTACH_PEN_OPITEM), penHandle_(penHandle) {}
 
 void AttachPenOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
@@ -757,29 +750,28 @@ void AttachPenOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
     filter.SetColorFilter(colorFilter);
     filter.SetImageFilter(imageFilter);
     filter.SetMaskFilter(maskFilter);
-    filter.SetFilterQuality(filterQuality_);
+    filter.SetFilterQuality(penHandle_.filterQuality);
 
-    const Color4f color4f = { color_.GetRedF(), color_.GetGreenF(), color_.GetBlueF(), color_.GetAlphaF() };
+    const Color4f color4f = { penHandle_.color.GetRedF(), penHandle_.color.GetGreenF(),
+        penHandle_.color.GetBlueF(), penHandle_.color.GetAlphaF() };
     Pen pen;
     pen.SetPathEffect(pathEffect);
     pen.SetColor(color4f, colorSpace);
     pen.SetShaderEffect(shaderEffect);
-    pen.SetWidth(width_);
-    pen.SetMiterLimit(miterLimit_);
-    pen.SetCapStyle(capStyle_);
-    pen.SetJoinStyle(joinStyle_);
-    pen.SetColor(color_);
-    pen.SetBlendMode(mode_);
-    pen.SetAntiAlias(isAntiAlias_);
+    pen.SetWidth(penHandle_.width);
+    pen.SetMiterLimit(penHandle_.miterLimit);
+    pen.SetCapStyle(penHandle_.capStyle);
+    pen.SetJoinStyle(penHandle_.joinStyle);
+    pen.SetColor(penHandle_.color);
+    pen.SetBlendMode(penHandle_.mode);
+    pen.SetAntiAlias(penHandle_.isAntiAlias);
     pen.SetFilter(filter);
 
     canvas.AttachPen(pen);
 }
 
-AttachBrushOpItem::AttachBrushOpItem(const Color& color, const BlendMode mode, const bool isAntiAlias,
-    const Filter::FilterQuality filterQuality, const BrushHandle brushHandle)
-    : DrawOpItem(ATTACH_BRUSH_OPITEM), color_(color), mode_(mode), isAntiAlias_(isAntiAlias),
-    filterQuality_(filterQuality), brushHandle_(brushHandle) {}
+AttachBrushOpItem::AttachBrushOpItem(const BrushHandle& brushHandle)
+    : DrawOpItem(ATTACH_BRUSH_OPITEM), brushHandle_(brushHandle) {}
 
 void AttachBrushOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
@@ -806,14 +798,15 @@ void AttachBrushOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
     filter.SetColorFilter(colorFilter);
     filter.SetImageFilter(imageFilter);
     filter.SetMaskFilter(maskFilter);
-    filter.SetFilterQuality(filterQuality_);
+    filter.SetFilterQuality(brushHandle_.filterQuality);
 
-    const Color4f color4f = { color_.GetRedF(), color_.GetGreenF(), color_.GetBlueF(), color_.GetAlphaF() };
+    const Color4f color4f = { brushHandle_.color.GetRedF(), brushHandle_.color.GetGreenF(),
+        brushHandle_.color.GetBlueF(), brushHandle_.color.GetAlphaF() };
     Brush brush;
     brush.SetColor(color4f, colorSpace);
     brush.SetShaderEffect(shaderEffect);
-    brush.SetBlendMode(mode_);
-    brush.SetAntiAlias(isAntiAlias_);
+    brush.SetBlendMode(brushHandle_.mode);
+    brush.SetAntiAlias(brushHandle_.isAntiAlias);
     brush.SetFilter(filter);
 
     canvas.AttachBrush(brush);
@@ -849,7 +842,7 @@ void DetachBrushOpItem::Playback(Canvas& canvas) const
     canvas.DetachBrush();
 }
 
-ClipAdaptiveRoundRectOpItem::ClipAdaptiveRoundRectOpItem(const std::pair<int32_t, size_t>& radiusData)
+ClipAdaptiveRoundRectOpItem::ClipAdaptiveRoundRectOpItem(const std::pair<uint32_t, size_t>& radiusData)
     : DrawOpItem(CLIP_ADAPTIVE_ROUND_RECT_OPITEM), radiusData_(radiusData) {}
 
 void ClipAdaptiveRoundRectOpItem::Playback(CanvasPlayer& player, const void* opItem)

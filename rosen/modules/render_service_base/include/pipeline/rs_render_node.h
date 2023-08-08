@@ -22,6 +22,9 @@
 #include <memory>
 #include <mutex>
 #include <unordered_set>
+#include <unordered_map>
+#include <variant>
+#include <vector>
 
 #include "animation/rs_animation_manager.h"
 #include "animation/rs_frame_rate_range.h"
@@ -95,49 +98,27 @@ public:
     virtual void SetContentDirty();
 
     WeakPtr GetParent() const;
-    virtual void ResetParent();
 
-    NodeId GetId() const
+    inline NodeId GetId() const
     {
         return id_;
     }
 
     virtual void SetIsOnTheTree(bool flag);
-    bool IsOnTheTree() const
-    {
-        return isOnTheTree_;
-    }
+    bool IsOnTheTree() const;
 
+    // return children and disappeared children, not guaranteed to be sorted by z-index
+    const std::list<SharedPtr>& GetChildren();
+    // return children and disappeared children, sorted by z-index
     const std::list<SharedPtr>& GetSortedChildren();
-
-    void ResetSortedChildren()
-    {
-        sortedChildren_.clear();
-    }
-
-    const std::list<WeakPtr>& GetChildren()
-    {
-        return children_;
-    }
-
-    uint32_t GetChildrenCount() const
-    {
-        return children_.size();
-    }
+    uint32_t GetChildrenCount() const;
 
     void DumpTree(int32_t depth, std::string& ou) const;
 
     virtual bool HasDisappearingTransition(bool recursive = true) const;
 
-    void SetTunnelHandleChange(bool change)
-    {
-        isTunnelHandleChange_ = change;
-    }
-
-    bool GetTunnelHandleChange() const
-    {
-        return isTunnelHandleChange_;
-    }
+    void SetTunnelHandleChange(bool change);
+    bool GetTunnelHandleChange() const;
 
     // type-safe reinterpret_cast
     template<typename T>
@@ -157,55 +138,19 @@ public:
         return (IsInstanceOf<T>()) ? std::static_pointer_cast<T>(shared_from_this()) : nullptr;
     }
 
-    bool HasChildrenOutOfRect() const
-    {
-        return hasChildrenOutOfRect_;
-    }
+    bool HasChildrenOutOfRect() const;
+    void UpdateChildrenOutOfRectFlag(bool flag);
 
-    void UpdateChildrenOutOfRectFlag(bool flag)
-    {
-        hasChildrenOutOfRect_ = flag;
-    }
+    void ResetHasRemovedChild();
+    bool HasRemovedChild() const;
+    void ResetChildrenRect();
+    RectI GetChildrenRect() const;
 
-    inline void ResetHasRemovedChild()
-    {
-        hasRemovedChild_ = false;
-    }
+    bool ChildHasFilter() const;
+    void SetChildHasFilter(bool childHasFilter);
 
-    inline bool HasRemovedChild() const
-    {
-        return hasRemovedChild_;
-    }
-
-    inline void ResetChildrenRect()
-    {
-        childrenRect_ = RectI();
-    }
-
-    inline RectI GetChildrenRect() const
-    {
-        return childrenRect_;
-    }
-
-    bool ChildHasFilter() const
-    {
-        return childHasFilter_;
-    }
-
-    void SetChildHasFilter(bool childHasFilter)
-    {
-        childHasFilter_ = childHasFilter;
-    }
-
-    void SetRootSurfaceNodeId(NodeId id)
-    {
-        rootSurfaceNodeId_ = id;
-    }
-
-    NodeId GetRootSurfaceNodeId() const
-    {
-        return rootSurfaceNodeId_;
-    }
+    void SetRootSurfaceNodeId(NodeId id);
+    NodeId GetRootSurfaceNodeId() const;
 
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
@@ -230,16 +175,10 @@ public:
     RSProperties& GetMutableRenderProperties();
     const RSProperties& GetRenderProperties() const;
     void UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled);
-    inline bool IsRenderUpdateIgnored() const
-    {
-        return isRenderUpdateIgnored_;
-    }
+    bool IsRenderUpdateIgnored() const;
 
     // used for animation test
-    RSAnimationManager& GetAnimationManager()
-    {
-        return animationManager_;
-    }
+    RSAnimationManager& GetAnimationManager();
 
     virtual void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas);
     virtual void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas) {}
@@ -254,30 +193,17 @@ public:
     void RenderTraceDebug() const;
     bool ShouldPaint() const;
 
-    inline RectI GetOldDirty() const
-    {
-        return oldDirty_;
-    }
-    inline RectI GetOldDirtyInSurface() const
-    {
-        return oldDirtyInSurface_;
-    }
+    RectI GetOldDirty() const;
+    RectI GetOldDirtyInSurface() const;
+    bool IsDirtyRegionUpdated() const;
 
-    inline bool IsDirtyRegionUpdated() const
-    {
-        return isDirtyRegionUpdated_;
-    }
     void AddModifier(const std::shared_ptr<RSRenderModifier> modifier);
     void RemoveModifier(const PropertyId& id);
-
-    void ApplyModifiers();
-    virtual void OnApplyModifiers() {}
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
 
-    bool IsShadowValidLastFrame() const
-    {
-        return isShadowValidLastFrame_;
-    }
+    void ApplyChildrenModifiers();
+
+    bool IsShadowValidLastFrame() const;
     void SetShadowValidLastFrame(bool isShadowValidLastFrame)
     {
         isShadowValidLastFrame_ = isShadowValidLastFrame;
@@ -287,18 +213,13 @@ public:
     void UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const;
     void UpdateFilterCacheManagerWithCacheRegion(const std::optional<RectI>& clipRect = std::nullopt) const;
 
-    void SetStaticCached(bool isStaticCached)
-    {
-        isStaticCached_ = isStaticCached;
-    }
+    void SetStaticCached(bool isStaticCached);
+    bool IsStaticCached() const;
 
-    bool IsStaticCached() const
-    {
-        return isStaticCached_;
-    }
+    bool NeedInitCacheSurface() const;
 
 #ifndef USE_ROSEN_DRAWING
-    using ClearCacheSurfaceFunc = std::function<void(sk_sp<SkSurface>, sk_sp<SkSurface>, uint32_t)>;
+    using ClearCacheSurfaceFunc = std::function<void(sk_sp<SkSurface>, sk_sp<SkSurface>, uint32_t, uint32_t)>;
 #ifdef NEW_SKIA
     void InitCacheSurface(GrRecordingContext* grContext, ClearCacheSurfaceFunc func = nullptr,
         uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
@@ -308,7 +229,7 @@ public:
 #endif
 #else
     using ClearCacheSurfaceFunc =
-        std::function<void(std::shared_ptr<Drawing::Surface>, std::shared_ptr<Drawing::Surface>, uint32_t)>;
+        std::function<void(std::shared_ptr<Drawing::Surface>, std::shared_ptr<Drawing::Surface>, uint32_t, uint32_t)>;
     void InitCacheSurface(Drawing::GPUContext* grContext, ClearCacheSurfaceFunc func = nullptr,
         uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
 #endif
@@ -332,42 +253,16 @@ public:
     std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread);
 #endif
 
-    void UpdateCompletedCacheSurface()
-    {
-        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-        std::swap(cacheSurface_, cacheCompletedSurface_);
-#ifndef USE_ROSEN_DRAWING
-#ifdef RS_ENABLE_GL
-        std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
-        SetTextureValidFlag(true);
-#endif
-#endif
-    }
-
-    void SetTextureValidFlag(bool isValid)
-    {
-#ifndef USE_ROSEN_DRAWING
-#ifdef RS_ENABLE_GL
-        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-        isTextureValid_ = isValid;
-#endif
-#endif
-    }
-
+    void UpdateCompletedCacheSurface();
+    void SetTextureValidFlag(bool isValid);
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> GetCompletedCacheSurface(uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
-        bool isUIFirst = false);
+        bool needCheckThread = true);
 #else
     std::shared_ptr<Drawing::Surface> GetCompletedCacheSurface(uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
-        bool isUIFirst = false);
+        bool needCheckThread = true);
 #endif
-
-    void ClearCacheSurface()
-    {
-        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-        cacheSurface_ = nullptr;
-        cacheCompletedSurface_ = nullptr;
-    }
+    void ClearCacheSurface();
 
 #ifdef RS_ENABLE_GL
     void UpdateBackendTexture();
@@ -376,200 +271,75 @@ public:
     void DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
         bool isUIFirst = false);
 
-    void SetCacheType(CacheType cacheType)
+    void SetCacheType(CacheType cacheType);
+    CacheType GetCacheType() const;
+
+    void SetCacheSurfaceNeedUpdated(bool isCacheSurfaceNeedUpdate)
     {
-        cacheType_ = cacheType;
+        isCacheSurfaceNeedUpdate_ = isCacheSurfaceNeedUpdate;
     }
 
-    CacheType GetCacheType() const
+    bool GetCacheSurfaceNeedUpdated() const
     {
-        return cacheType_;
+        return isCacheSurfaceNeedUpdate_;
     }
 
-    int GetShadowRectOffsetX() const
-    {
-        return shadowRectOffsetX_;
-    }
+    int GetShadowRectOffsetX() const;
+    int GetShadowRectOffsetY() const;
 
-    int GetShadowRectOffsetY() const
-    {
-        return shadowRectOffsetY_;
-    }
+    void SetDrawingCacheType(RSDrawingCacheType cacheType);
+    RSDrawingCacheType GetDrawingCacheType() const;
 
-    void SetDrawingCacheType(RSDrawingCacheType cacheType)
-    {
-        drawingCacheType_ = cacheType;
-    }
-
-    RSDrawingCacheType GetDrawingCacheType() const
-    {
-        return drawingCacheType_;
-    }
-
-    void SetDrawingCacheChanged(bool cacheChanged)
-    {
-        isDrawingCacheChanged_ = cacheChanged;
-    }
-
-    bool GetDrawingCacheChanged() const
-    {
-        return isDrawingCacheChanged_;
-    }
+    void SetDrawingCacheChanged(bool cacheChanged);
+    bool GetDrawingCacheChanged() const;
 
     // driven render ///////////////////////////////////
-    void SetIsMarkDriven(bool isMarkDriven)
-    {
-        isMarkDriven_ = isMarkDriven;
-    }
+    void SetIsMarkDriven(bool isMarkDriven);
+    bool IsMarkDriven() const;
+    void SetIsMarkDrivenRender(bool isMarkDrivenRender);
+    bool IsMarkDrivenRender() const;
 
-    bool IsMarkDriven() const
-    {
-        return isMarkDriven_;
-    }
+    void SetItemIndex(int index);
+    int GetItemIndex() const;
 
-    void SetIsMarkDrivenRender(bool isMarkDrivenRender)
-    {
-        isMarkDrivenRender_ = isMarkDrivenRender;
-    }
+    void SetPaintState(bool paintState);
+    bool GetPaintState() const;
 
-    bool IsMarkDrivenRender() const
-    {
-        return isMarkDrivenRender_;
-    }
+    void SetIsContentChanged(bool isChanged);
+    bool IsContentChanged() const;
 
-    void SetItemIndex(int index)
-    {
-        itemIndex_ = index;
-    }
+    bool HasAnimation() const;
 
-    int GetItemIndex() const
-    {
-        return itemIndex_;
-    }
+    bool HasFilter() const;
+    void SetHasFilter(bool hasFilter);
 
-    void SetPaintState(bool paintState)
-    {
-        paintState_ = paintState;
-    }
+    std::recursive_mutex& GetSurfaceMutex() const;
 
-    bool GetPaintState() const
-    {
-        return paintState_;
-    }
+    bool HasHardwareNode() const;
+    void SetHasHardwareNode(bool hasHardwareNode);
 
-    void SetIsContentChanged(bool isChanged)
-    {
-        isContentChanged_ = isChanged;
-    }
+    bool HasAbilityComponent() const;
+    void SetHasAbilityComponent(bool hasAbilityComponent);
 
-    bool IsContentChanged() const
-    {
-        return isContentChanged_ || HasAnimation();
-    }
+    uint32_t GetCacheSurfaceThreadIndex() const;
 
-    bool HasAnimation() const
-    {
-        return !animationManager_.animations_.empty();
-    }
+    uint32_t GetCompletedSurfaceThreadIndex() const;
 
-    bool HasFilter() const
-    {
-        return hasFilter_;
-    }
+    bool IsMainThreadNode() const;
+    void SetIsMainThreadNode(bool isMainThreadNode);
 
-    void SetHasFilter(bool hasFilter)
-    {
-        hasFilter_ = hasFilter;
-    }
+    bool IsScale() const;
+    void SetIsScale(bool isScale);
 
-    std::recursive_mutex& GetSurfaceMutex() const
-    {
-        return surfaceMutex_;
-    }
+    void SetPriority(NodePriorityType priority);
+    NodePriorityType GetPriority();
 
-    bool HasHardwareNode() const
-    {
-        return hasHardwareNode_;
-    }
+    bool IsAncestorDirty() const;
+    void SetIsAncestorDirty(bool isAncestorDirty);
 
-    void SetHasHardwareNode(bool hasHardwareNode)
-    {
-        hasHardwareNode_ = hasHardwareNode;
-    }
+    bool HasCachedTexture() const;
 
-    bool HasAbilityComponent() const
-    {
-        return hasAbilityComponent_;
-    }
-
-    void SetHasAbilityComponent(bool hasAbilityComponent)
-    {
-        hasAbilityComponent_ = hasAbilityComponent;
-    }
-
-    uint32_t GetCacheSurfaceThreadIndex() const
-    {
-        return cacheSurfaceThreadIndex_;
-    }
-
-    bool IsMainThreadNode() const
-    {
-        return isMainThreadNode_;
-    }
-
-    void SetIsMainThreadNode(bool isMainThreadNode)
-    {
-        isMainThreadNode_ = isMainThreadNode;
-    }
-
-    bool IsScale() const
-    {
-        return isScale_;
-    }
-
-    void SetIsScale(bool isScale)
-    {
-        isScale_ = isScale;
-    }
-
-    void SetPriority(NodePriorityType priority)
-    {
-        priority_ = priority;
-    }
-
-    NodePriorityType GetPriority()
-    {
-        return priority_;
-    }
-
-    bool IsAncestorDirty() const
-    {
-        return isAncestorDirty_;
-    }
-
-    void SetIsAncestorDirty(bool isAncestorDirty)
-    {
-        isAncestorDirty_ = isAncestorDirty;
-    }
-
-    bool HasCachedTexture() const
-    {
-#ifndef USE_ROSEN_DRAWING
-#ifdef RS_ENABLE_GL
-        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-        return isTextureValid_;
-#else
-        return true;
-#endif
-#else
-        return false;
-#endif
-    }
-
-    void SetDrawRegion(std::shared_ptr<RectF> rect)
-    {
-        drawRegion_ = rect;
-    }
+    void SetDrawRegion(std::shared_ptr<RectF> rect);
 
     void UpdateDrawRegion();
 #ifndef USE_ROSEN_DRAWING
@@ -594,10 +364,7 @@ public:
         GROUPED_BY_USER,
     };
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup);
-    NodeGroupType GetNodeGroupType()
-    {
-        return nodeGroupType_;
-    }
+    NodeGroupType GetNodeGroupType();
 
     /////////////////////////////////////////////
 
@@ -610,32 +377,22 @@ public:
     float GetGlobalAlpha() const;
     virtual void OnAlphaChanged() {}
 
-    void SetRSFrameRateRange(FrameRateRange range)
-    {
-        rsRange_ = range;
-    }
-
+    void SetRSFrameRateRange(FrameRateRange range);
     FrameRateRange GetRSFrameRateRange();
-
-    void SetUIFrameRateRange(FrameRateRange range)
-    {
-        uiRange_ = range;
-    }
-
-    FrameRateRange GetUIFrameRateRange() const
-    {
-        return uiRange_;
-    }
+    void SetUIFrameRateRange(FrameRateRange range);
+    FrameRateRange GetUIFrameRateRange() const;
 
     void ResetRSFrameRateRange();
     void ResetUIFrameRateRange();
 
-    void MarkNonGeometryChanged()
-    {
-        geometryChangeNotPerceived_ = true;
-    }
+    void MarkNonGeometryChanged();
+    std::vector<HgmModifierProfile> GetHgmModifierProfileList() const;
+    void SetRSFrameRateRangeByPreferred(int32_t preferred);
 
 protected:
+    bool ApplyModifiers();
+    virtual void OnApplyModifiers() {}
+
     enum class NodeDirty {
         CLEAN = 0,
         DIRTY,
@@ -659,6 +416,7 @@ protected:
     bool isShadowValidLastFrame_ = false;
 
     virtual RectI GetFilterRect() const;
+    virtual bool NodeIsUsedBySubThread() const { return false; }
 
 private:
     NodeId id_;
@@ -666,13 +424,20 @@ private:
 
     WeakPtr parent_;
     void SetParent(WeakPtr parent);
+    void ResetParent();
+    virtual void OnResetParent() {}
     bool isOnTheTree_ = false;
 
     std::list<WeakPtr> children_;
     std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
 
-    std::list<SharedPtr> sortedChildren_;
+    std::list<SharedPtr> fullChildrenList_;
+    bool isFullChildrenListValid_ = false;
+    bool isChildrenSorted_ = false;
+    void GenerateFullChildrenList();
     void GenerateSortedChildren();
+    void InvalidateChildrenList();
+    void SortChildren();
 
     const std::weak_ptr<RSContext> context_;
     NodeDirty dirtyStatus_ = NodeDirty::DIRTY;
@@ -691,6 +456,7 @@ private:
     void FilterModifiersByPid(pid_t pid);
 
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect);
+    void AddModifierProfile(std::shared_ptr<RSRenderModifier> modifier, float width, float height);
 
     bool isDirtyRegionUpdated_ = false;
     bool isLastVisible_ = false;
@@ -706,9 +472,11 @@ private:
     std::shared_ptr<RSRenderModifier> frameModifier_;
 
 #ifndef USE_ROSEN_DRAWING
+    sk_sp<SkImage> GetCompletedImage(RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst);
     sk_sp<SkSurface> cacheSurface_ = nullptr;
     sk_sp<SkSurface> cacheCompletedSurface_ = nullptr;
 #else
+    std::shared_ptr<Drawing::Bitmap> cacheBitmap_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
 #endif
@@ -719,6 +487,7 @@ private:
     bool isTextureValid_ = false;
 #endif
 #endif
+    std::atomic<bool> isCacheSurfaceNeedUpdate_ = false;
     std::atomic<bool> isStaticCached_ = false;
     CacheType cacheType_ = CacheType::NONE;
     // drawing group cache
@@ -728,6 +497,7 @@ private:
     mutable std::recursive_mutex surfaceMutex_;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
+    uint32_t completedSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     bool isMainThreadNode_ = true;
     bool isScale_ = false;
     bool hasFilter_ = false;
@@ -760,6 +530,12 @@ private:
 
     FrameRateRange rsRange_ = {0, 0, 0};
     FrameRateRange uiRange_ = {0, 0, 0};
+
+    int64_t lastTimestamp_ = -1;
+    int64_t lastApplyTimestamp_ = -1;
+    float timeDelta_ = -1;
+    std::unordered_map<PropertyId, std::variant<float, Vector2f>> propertyValueMap_;
+    std::vector<HgmModifierProfile> hgmModifierProfileList_;
 
     friend class RSRenderTransition;
     friend class RSRenderNodeMap;

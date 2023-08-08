@@ -34,7 +34,7 @@ public:
     {
         return AdapterType::BASE_INTERFACE;
     }
-    virtual void Build(const int width, const int height, const BitmapFormat& format) = 0;
+    virtual void Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride = 0) = 0;
     virtual int GetWidth() const = 0;
     virtual int GetHeight() const = 0;
     virtual void* GetPixels() const = 0;

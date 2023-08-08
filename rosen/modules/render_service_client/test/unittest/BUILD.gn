@@ -120,7 +120,6 @@ ohos_static_library("rs_client_test_common") {
   public_configs = [ ":rs_client_test_common_public_config" ]
 
   public_deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//commonlibrary/c_utils/base:utils",
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
@@ -128,6 +127,9 @@ ohos_static_library("rs_client_test_common") {
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gtest_main",
   ]
+
+  external_deps = [ "hilog:libhilog" ]
+
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }

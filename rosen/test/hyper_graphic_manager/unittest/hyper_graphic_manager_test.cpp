@@ -415,7 +415,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
     instance.AddScreen(screenId2, 1);
     instance.AddScreenInfo(screenId2, width, height, rate, mode);
     instance.AddScreenInfo(screenId2, width, height, rate2, mode2);
-    
+
     PART("HgmCore") {
         STEP("1. set active mode") {
             int32_t setResult = instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_HIGH);
@@ -448,6 +448,58 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
             STEP_ASSERT_EQ(getResult, 0);
             std::vector<uint32_t> getVResult = instance.GetScreenSupportedRefreshRates(screenId3);
             STEP_ASSERT_EQ(getVResult.size(), 0);
+        }
+    }
+}
+
+/**
+ * @tc.name: HgmFrameRateToolTest
+ * @tc.desc: Verify the result of HgmFrameRateToolTest
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HyperGraphicManagerTest, HgmFrameRateToolTest, Function | SmallTest | Level2)
+{
+    auto &hgm_core = HgmCore::Instance();
+    ScreenId id = 1;
+    int32_t phyWidth = 685; // 685 means dayu200 phyWidth
+    int32_t phyHeight = 1218; // 1218 means dayu200 phyHeight
+    int32_t width = 720; // 720 means dayu200 weight
+    int32_t height = 1080; // 1080 means dayu200 height
+
+    PART("CaseDescription") {
+        STEP("1. call GetInstance twice") {
+            auto instance1 = HgmFrameRateTool::GetInstance();
+            auto instance2 = HgmFrameRateTool::GetInstance();
+            STEP_ASSERT_EQ(instance1, instance2);
+        }
+
+        STEP("2. add screenProfile ") {
+            auto res = hgm_core.AddScreenProfile(id, width, height, phyWidth, phyHeight);
+            STEP_ASSERT_EQ(res, 0);
+        }
+
+        STEP("3. set activeScreenProfile") {
+            hgm_core.SetActiveScreenId(id);
+            STEP_ASSERT_EQ(hgm_core.GetActiveScreenId(), id);
+        }
+
+        STEP("4. cal translate modifier preferred") {
+            HgmModifierProfile hgmModifierProfile = {0, 0, HgmModifierType::TRANSLATE};
+            auto preferred = hgm_core.CalModifierPreferred(hgmModifierProfile);
+            STEP_ASSERT_GT(preferred, 0);
+        }
+
+        STEP("5. cal scale modifier preferred") {
+            HgmModifierProfile hgmModifierProfile = {0, 0, HgmModifierType::SCALE};
+            auto preferred = hgm_core.CalModifierPreferred(hgmModifierProfile);
+            STEP_ASSERT_GT(preferred, 0);
+        }
+
+        STEP("6. cal rotation modifier preferred") {
+            HgmModifierProfile hgmModifierProfile = {0, 0, HgmModifierType::TRANSLATE};
+            auto preferred = hgm_core.CalModifierPreferred(hgmModifierProfile);
+            STEP_ASSERT_GT(preferred, 0);
         }
     }
 }

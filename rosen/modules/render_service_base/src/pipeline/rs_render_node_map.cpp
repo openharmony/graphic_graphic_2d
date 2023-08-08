@@ -24,10 +24,10 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr const char* ENTRY_VIEW = "SCBDesktop2";
-constexpr const char* WALLPAPER_VIEW = "SCBWallpaper1";
-constexpr const char* SCREENLOCK_WINDOW = "SCBScreenLock10";
-constexpr const char* SYSUI_DROPDOWN = "SCBVolumePanel8";
+constexpr const char* ENTRY_VIEW = "EntryView";
+constexpr const char* WALLPAPER_VIEW = "WallpaperView";
+constexpr const char* SCREENLOCK_WINDOW = "ScreenLockWindow";
+constexpr const char* SYSUI_DROPDOWN = "SysUI_Dropdown";
 };
 RSRenderNodeMap::RSRenderNodeMap()
 {
@@ -148,7 +148,7 @@ void RSRenderNodeMap::RemoveDrivenRenderNode(NodeId id)
 
 void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
 {
-    ROSEN_LOGI("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %d", pid);
+    ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %d", pid);
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
     EraseIf(renderNodeMap_, [pid](const auto& pair) -> bool {
         if (ExtractPid(pair.first) != pid) {

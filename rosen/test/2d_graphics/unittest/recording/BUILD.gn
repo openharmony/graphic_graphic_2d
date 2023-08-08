@@ -33,7 +33,10 @@ ohos_unittest("2d_graphics_recording_test") {
     "recording_shader_effect_test.cpp",
   ]
 
-  defines = [ "SUPPORT_OHOS_PIXMAP" ]
+  defines = [
+    "ACE_ENABLE_GPU",
+    "SUPPORT_OHOS_PIXMAP",
+  ]
   deps = [ "//third_party/googletest:gtest_main" ]
 
   external_deps = [

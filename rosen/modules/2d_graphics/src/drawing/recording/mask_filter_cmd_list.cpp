@@ -25,8 +25,7 @@ std::shared_ptr<MaskFilterCmdList> MaskFilterCmdList::CreateFromData(const CmdLi
     auto cmdList = std::make_shared<MaskFilterCmdList>();
     if (isCopy) {
         cmdList->opAllocator_.BuildFromDataWithCopy(data.first, data.second);
-    }
-    else {
+    } else {
         cmdList->opAllocator_.BuildFromData(data.first, data.second);
     }
     return cmdList;
@@ -38,7 +37,7 @@ std::shared_ptr<MaskFilter> MaskFilterCmdList::Playback() const
         return nullptr;
     }
 
-    int32_t offset = 0;
+    uint32_t offset = 0;
     std::shared_ptr<MaskFilter> mf = nullptr;
     do {
         OpItem* itemPtr = static_cast<OpItem*>(opAllocator_.OffsetToAddr(offset));

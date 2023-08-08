@@ -150,7 +150,6 @@ void RSRenderServiceConnection::RSConnectionDeathRecipient::OnRemoteDied(const w
         return;
     }
 
-    RS_LOGI("RSConnectionDeathRecipient::OnRemoteDied: do the clean work.");
     rsConn->CleanAll(true);
 }
 
@@ -564,9 +563,13 @@ MemoryGraphic RSRenderServiceConnection::GetMemoryGraphic(int pid)
     if (!RSMainThread::Instance()->GetContext().GetNodeMap().ContainPid(pid)) {
         return memoryGraphic;
     }
-    mainThread_->ScheduleTask(
-        [this, &pid, &memoryGraphic]() { return mainThread_->CountMem(pid, memoryGraphic); }).wait();
-    return memoryGraphic;
+    if (GetUniRenderEnabled()) {
+        mainThread_->ScheduleTask([this, &pid, &memoryGraphic]() { return mainThread_->CountMem(pid, memoryGraphic); })
+            .wait();
+        return memoryGraphic;
+    } else {
+        return memoryGraphic;
+    }
 }
 
 std::vector<MemoryGraphic> RSRenderServiceConnection::GetMemoryGraphics()
@@ -647,6 +650,21 @@ void RSRenderServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
     } else {
         mainThread_->ScheduleTask(
             [=]() { screenManager_->SetScreenBacklight(id, level); }).wait();
+    }
+}
+
+void RSRenderServiceConnection::RegisterBufferClearListener(
+    NodeId id, sptr<RSIBufferClearCallback> callback)
+{
+    auto registerBufferClearListener = [id, callback, this]() -> bool {
+        if (auto node = this->mainThread_->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+            node->RegisterBufferClearListener(callback);
+            return true;
+        }
+        return false;
+    };
+    if (!registerBufferClearListener()) {
+        mainThread_->PostTask(registerBufferClearListener);
     }
 }
 
@@ -765,7 +783,7 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
         RS_LOGE("RSRenderServiceConnection::GetBitmap RenderNodeType != RSRenderNodeType::CANVAS_DRAWING_NODE");
         return false;
     }
-    auto getBitmapTask = [&node, &bitmap]() -> bool { return node->GetBitmap(bitmap); };
+    auto getBitmapTask = [&node, &bitmap]() { bitmap = node->GetBitmap(); };
     mainThread_->PostSyncTask(getBitmapTask);
 #ifndef USE_ROSEN_DRAWING
     return !bitmap.empty();
@@ -843,5 +861,16 @@ void RSRenderServiceConnection::ReportEventJankFrame(DataBaseRs info)
     mainThread_->PostTask(task);
 }
 
+void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled)
+{
+    auto task = [this, id, isEnabled]() -> void {
+        auto& context = mainThread_->GetContext();
+        auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
+        if (node) {
+            node->SetHardwareEnabled(isEnabled);
+        }
+    };
+    mainThread_->PostTask(task);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -123,6 +123,10 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
 
     ApplyDrawCmdModifier(context, RSModifierType::BACKGROUND_STYLE);
 
+    if (GetRenderProperties().IsDynamicLightUpValid()) {
+        RSPropertiesPainter::DrawDynamicLightUp(GetRenderProperties(), canvas);
+    }
+    
 #ifndef USE_ROSEN_DRAWING
     canvasNodeSaveCount_ = canvas.Save();
 #else
@@ -174,6 +178,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
     RSPropertiesPainter::DrawBorder(GetRenderProperties(), canvas);
     ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);
     RSPropertiesPainter::DrawForegroundColor(GetRenderProperties(), canvas);
+    RSPropertiesPainter::DrawParticle(GetRenderProperties(), canvas);
 }
 
 void RSCanvasRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)

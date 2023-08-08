@@ -39,10 +39,14 @@ VsyncError VSyncController::SetEnable(bool enbale, bool& isGeneratorEnable)
     std::lock_guard<std::mutex> locker(offsetMutex_);
     VsyncError ret = VSYNC_ERROR_OK;
     if (enbale) {
-        ret = generator->AddListener(phaseOffset_, this);
         // If the sampler does not complete the sampling work, the generator does not work
         // We need to tell the distributor to use the software vsync
         isGeneratorEnable = generator->IsEnable();
+        if (isGeneratorEnable) {
+            ret = generator->AddListener(phaseOffset_, this);
+        } else {
+            ret = VSYNC_ERROR_API_FAILED;
+        }
     } else {
         ret = generator->RemoveListener(this);
         isGeneratorEnable = enbale;

@@ -24,6 +24,7 @@
 
 #include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
+#include "animation/rs_render_particle.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier_type.h"
 #include "property/rs_properties_def.h"
@@ -88,8 +89,13 @@ public:
 
     void SetSandBox(const std::optional<Vector2f>& parentPosition);
     std::optional<Vector2f> GetSandBox() const;
+#ifndef USE_ROSEN_DRAWING
     void UpdateSandBoxMatrix(const std::optional<SkMatrix>& rootMatrix);
     std::optional<SkMatrix> GetSandBoxMatrix() const;
+#else
+    void UpdateSandBoxMatrix(const std::optional<Drawing::Matrix>& rootMatrix);
+    std::optional<Drawing::Matrix> GetSandBoxMatrix() const;
+#endif
 
     void SetPositionZ(float positionZ);
     float GetPositionZ() const;
@@ -141,6 +147,10 @@ public:
     void SetSublayerTransform(const std::optional<Matrix3f>& sublayerTransform);
     const std::optional<Matrix3f>& GetSublayerTransform() const;
 
+    // particle properties
+    void SetParticles(const std::vector<std::shared_ptr<RSRenderParticle>>& particles);
+    std::vector<std::shared_ptr<RSRenderParticle>> GetParticles() const;
+
     // foreground properties
     void SetForegroundColor(Color color);
     Color GetForegroundColor() const;
@@ -173,6 +183,8 @@ public:
     // filter properties
     void SetBackgroundFilter(std::shared_ptr<RSFilter> backgroundFilter);
     void SetLinearGradientBlurPara(std::shared_ptr<RSLinearGradientBlurPara> para);
+    void SetDynamicLightUpRate(const std::optional<float>& rate);
+    void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
     void SetFilter(std::shared_ptr<RSFilter> filter);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
@@ -194,6 +206,8 @@ public:
     float GetShadowAlpha() const;
     float GetShadowElevation() const;
     float GetShadowRadius() const;
+    const std::optional<float>& GetDynamicLightUpRate() const;
+    const std::optional<float>& GetDynamicLightUpDegree() const;
     std::shared_ptr<RSPath> GetShadowPath() const;
     bool GetShadowMask() const;
     bool IsShadowValid() const;
@@ -260,6 +274,7 @@ public:
     void SetLightUpEffect(float lightUpEffectDegree);
     float GetLightUpEffect() const;
     bool IsLightUpEffectValid() const;
+    bool IsDynamicLightUpValid() const;
 
     // Image effect properties
     void SetGrayScale(const std::optional<float>& grayScale);
@@ -368,9 +383,12 @@ private:
     std::optional<float> sepia_;
     std::optional<float> invert_;
     std::optional<float> hueRotate_;
+    std::optional<float> dynamicLightUpRate_;
+    std::optional<float> dynamicLightUpDegree_;
     std::optional<Color> colorBlend_;
     std::optional<RectI> lastRect_;
 #ifndef USE_ROSEN_DRAWING
+    std::vector<std::shared_ptr<RSRenderParticle>> particles_;
     sk_sp<SkColorFilter> colorFilter_ = nullptr;
 #else
     std::shared_ptr<Drawing::ColorFilter> colorFilter_ = nullptr;

@@ -58,7 +58,7 @@ bool MemoryTrack::RemoveNodeFromMap(const NodeId id, pid_t& pid, size_t& size)
 {
     auto itr = memNodeMap_.find(id);
     if (itr == memNodeMap_.end()) {
-        RS_LOGW("MemoryTrack::RemoveNodeFromMap no this nodeId = %" PRIu64, id);
+        RS_LOGD("MemoryTrack::RemoveNodeFromMap no this nodeId = %" PRIu64, id);
         return false;
     }
     pid = memNodeMap_[id].pid;

@@ -203,8 +203,6 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessChildren(RSRenderNode& node)
     for (auto& child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
     }
-    // clear SortedChildren, it will be generated again in next frame
-    node.ResetSortedChildren();
 }
 
 void RSUniUICapture::RSUniUICaptureVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
@@ -267,20 +265,23 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
     node.ProcessRenderBeforeChildren(*canvas_);
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
-        auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](sk_sp<SkSurface> surface) {
-            RSUniRenderUtil::ClearNodeCacheSurface(surface, nullptr, id);
-        };
-        canvasDrawingNode->SetSurfaceClearFunc({ UNI_MAIN_THREAD_INDEX, clearFunc });
-        canvasDrawingNode->ProcessRenderContents(*canvas_);
+        if (!node.IsOnTheTree()) {
+            canvasDrawingNode->ProcessRenderContents(*canvas_);
+        }
 #ifndef USE_ROSEN_DRAWING
         SkBitmap bitmap;
-        canvasDrawingNode->GetBitmap(bitmap);
+        bitmap = canvasDrawingNode->GetBitmap();
+#ifndef NEW_SKIA
+        canvas_->drawBitmap(
+            bitmap, node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY());
+#else
         canvas_->drawImage(bitmap.asImage(), node.GetRenderProperties().GetBoundsPositionX(),
             node.GetRenderProperties().GetBoundsPositionY());
+#endif
 #else
         Drawing::Bitmap bitmap;
         canvasDrawingNode->GetBitmap(bitmap);
-        canvas_->drawImage(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
+        canvas_->DrawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
             node.GetRenderProperties().GetBoundsPositionY());
 #endif
     } else {
@@ -504,6 +505,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithoutUni(RSSurfa
 
 void RSUniUICapture::RSUniUICaptureVisitor::PrepareChildren(RSRenderNode& node)
 {
+    node.ApplyChildrenModifiers();
     for (auto& child : node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
     }
@@ -511,7 +513,6 @@ void RSUniUICapture::RSUniUICaptureVisitor::PrepareChildren(RSRenderNode& node)
 
 void RSUniUICapture::RSUniUICaptureVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
-    node.ApplyModifiers();
     auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
     node.Update(*dirtyManager, nullptr, false);
     PrepareChildren(node);
@@ -519,7 +520,6 @@ void RSUniUICapture::RSUniUICaptureVisitor::PrepareCanvasRenderNode(RSCanvasRend
 
 void RSUniUICapture::RSUniUICaptureVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
-    node.ApplyModifiers();
     auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
     node.Update(*dirtyManager, nullptr, false);
     PrepareChildren(node);
@@ -527,13 +527,11 @@ void RSUniUICapture::RSUniUICaptureVisitor::PrepareSurfaceRenderNode(RSSurfaceRe
 
 void RSUniUICapture::RSUniUICaptureVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 {
-    node.ApplyModifiers();
     PrepareCanvasRenderNode(node);
 }
 
 void RSUniUICapture::RSUniUICaptureVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 {
-    node.ApplyModifiers();
     auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
     node.Update(*dirtyManager, nullptr, false);
     PrepareChildren(node);

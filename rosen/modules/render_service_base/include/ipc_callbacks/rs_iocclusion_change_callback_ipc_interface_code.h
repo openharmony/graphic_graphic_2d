@@ -16,9 +16,11 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_OCCLUSION_CHANGE_CALLBACK_INTERFACE_CODE_H
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_OCCLUSION_CHANGE_CALLBACK_INTERFACE_CODE_H
 
+#include "ipc_security/rs_ipc_interface_code_underlying_type.h"
+
 namespace OHOS {
 namespace Rosen {
-enum class RSIOcclusionChangeCallbackInterfaceCode {
+enum class RSIOcclusionChangeCallbackInterfaceCode : CodeUnderlyingType {
     ON_OCCLUSION_VISIBLE_CHANGED,
 };
 } // namespace Rosen

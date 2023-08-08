@@ -77,15 +77,29 @@ SkMatrix KawaseBlurFilter::GetShaderTransform(const SkCanvas* canvas, const SkRe
 
 bool KawaseBlurFilter::ApplyKawaseBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, const KawaseParameter& param)
 {
+    auto src = param.src;
+    auto dst = param.dst;
+    int inputRadius = param.radius;
+    if (inputRadius <= 0) {
+        SkPaint paint;
+        if (param.colorFilter) {
+            paint.setColorFilter(param.colorFilter);
+        }
+        SkMatrix inputMatrix = SkMatrix::Translate(-src.fLeft, -src.fTop);
+        inputMatrix.postConcat(SkMatrix::Translate(dst.fLeft, dst.fTop));
+        SkSamplingOptions linear(SkFilterMode::kLinear, SkMipmapMode::kNone);
+        const auto inputShader = image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, linear, &inputMatrix);
+        paint.setShader(inputShader);
+        canvas.drawRect(dst, paint);
+        return true;
+    }
     if (!blurEffect_ || !mixEffect_) {
         return false;
     }
-    RS_TRACE_NAME("ApplyKawaseBlur " + GetDescription());
     ComputeRadiusAndScale(param.radius);
-    auto src = param.src;
-    auto dst = param.dst;
-    int maxPasses = supporteLargeRadius ? kMaxPassesLargeRadius : kMaxPasses;
-    float dilatedConvolutionFactor = supporteLargeRadius ? kDilatedConvolutionLargeRadius : kDilatedConvolution;
+    RS_TRACE_NAME("ApplyKawaseBlur " + GetDescription());
+    int maxPasses = supportLargeRadius ? kMaxPassesLargeRadius : kMaxPasses;
+    float dilatedConvolutionFactor = supportLargeRadius ? kDilatedConvolutionLargeRadius : kDilatedConvolution;
     float tmpRadius = static_cast<float>(blurRadius_) / dilatedConvolutionFactor;
     int numberOfPasses = std::min(maxPasses, std::max(static_cast<int>(ceil(tmpRadius)), 1)); // 1 : min pass num
     float radiusByPasses = tmpRadius / numberOfPasses;
@@ -122,6 +136,7 @@ bool KawaseBlurFilter::ApplyBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, 
     const auto blurMatrix = GetShaderTransform(&canvas, dst, invBlurScale);
     const auto blurShader = blurImage->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, linear, &blurMatrix);
     SkPaint paint;
+    paint.setAlphaf(param.alpha);
     if (param.colorFilter) {
         paint.setColorFilter(param.colorFilter);
     }
@@ -143,24 +158,27 @@ bool KawaseBlurFilter::ApplyBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, 
 
 void KawaseBlurFilter::ComputeRadiusAndScale(int radius)
 {
-    float factor = std::min(1.0f, static_cast<float>(radius) / kMaxGaussRadius);
-    float optimizedFactor = 1.0f - (1.0f - factor) * (1.0f - factor);
-    blurRadius_ = kMaxKawaseRadius * optimizedFactor;
+    static constexpr int noiseFactor = 3; // 3 : smooth the radius change
+    blurRadius_ = radius * 4 / noiseFactor * noiseFactor; // 4 : scale between gauss radius and kawase
     AdjustRadiusAndScale();
 }
 
 void KawaseBlurFilter::AdjustRadiusAndScale()
 {
-    int radius = blurRadius_;
+    static constexpr int radiusStep1 = 50; // 50 : radius step1
+    static constexpr int radiusStep2 = 150; // 150 : radius step2
+    static constexpr int radiusStep3 = 480; // 480 : radius step3
+    static constexpr float scaleFactor1 = 0.25f; // 0.25 : downSample scale for step1
+    static constexpr float scaleFactor2 = 0.125f; // 0.125 : downSample scale for step2
+    static constexpr float scaleFactor3 = 0.03f; // 0.03 : downSample scale for step3
     float scale = baseBlurScale;
-    if (radius > radiusStep1) {
-        scale = 0.1f; // 0.1 : downSample radio step
-        radius -= smoothScope / (radius - radiusStep1);
-    } else if (radius > radiusStep2) {
-        scale = 0.03f; // 0.03 : downSample radio step
-        radius -= smoothScope / (radius - radiusStep2);
+    if (blurRadius_ > radiusStep3) {
+        scale = scaleFactor3;
+    } else if (blurRadius_ > radiusStep2) {
+        scale = scaleFactor2;
+    } else if (blurRadius_ > radiusStep1) {
+        scale = scaleFactor1;
     }
-    blurRadius_ = radius;
     blurScale_ = scale;
 }
 

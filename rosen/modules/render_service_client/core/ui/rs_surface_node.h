@@ -95,6 +95,7 @@ public:
     
     void AttachToDisplay(uint64_t screenId);
     void DetachToDisplay(uint64_t screenId);
+    void SetHardwareEnabled(bool isEnabled);
 
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<OHOS::Surface> GetSurface() const;

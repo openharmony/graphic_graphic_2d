@@ -233,7 +233,7 @@ void RSSurfaceRenderNode::CollectSurface(
 
 void RSSurfaceRenderNode::ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node)
 {
-    for (auto& child : node->GetSortedChildren()) {
+    for (auto& child : node->GetChildren()) {
         auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();
         if (surfaceNode == nullptr) {
             continue;
@@ -261,10 +261,8 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
 #endif
 }
 
-void RSSurfaceRenderNode::ResetParent()
+void RSSurfaceRenderNode::OnResetParent()
 {
-    RSBaseRenderNode::ResetParent();
-
     if (nodeType_ == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
         ClearChildrenCache(shared_from_this());
     } else {
@@ -527,6 +525,22 @@ void RSSurfaceRenderNode::RegisterBufferAvailableListener(
     }
 }
 
+void RSSurfaceRenderNode::RegisterBufferClearListener(
+    sptr<RSIBufferClearCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(mutexClear_);
+    clearBufferCallback_ = callback;
+}
+
+void RSSurfaceRenderNode::SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvailable)
+{
+    isNotifyRTBufferAvailable_ = isNotifyRTBufferAvailable;
+    std::lock_guard<std::mutex> lock(mutexClear_);
+    if (clearBufferCallback_) {
+        clearBufferCallback_->OnBufferClear();
+    }
+}
+
 void RSSurfaceRenderNode::ConnectToNodeInRenderService()
 {
     ROSEN_LOGI("RSSurfaceRenderNode::ConnectToNodeInRenderService nodeId = %" PRIu64, GetId());
@@ -541,6 +555,14 @@ void RSSurfaceRenderNode::ConnectToNodeInRenderService()
                 }
                 node->NotifyRTBufferAvailable();
             }, true);
+        renderServiceClient->RegisterBufferClearListener(
+            GetId(), [weakThis = weak_from_this()]() {
+                auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(weakThis.lock());
+                if (node == nullptr) {
+                    return;
+                }
+                node->SetNotifyRTBufferAvailable(false);
+            });
     }
 }
 
@@ -646,6 +668,7 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
 {
     if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE || IsAbilityComponent()) {
         SetOcclusionVisible(true);
+        visibleVec.emplace_back(GetId());
         return;
     }
     visibleRegion_ = region;
@@ -665,7 +688,7 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
     }
 
     SetOcclusionVisible(vis);
-    for (auto& child : GetSortedChildren()) {
+    for (auto& child : GetChildren()) {
         if (auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child)) {
             surface->SetVisibleRegionRecursive(region, visibleVec, pidVisMap);
         }
@@ -765,7 +788,7 @@ void RSSurfaceRenderNode::UpdateFilterNodes(const std::shared_ptr<RSRenderNode>&
     if (nodePtr == nullptr) {
         return;
     }
-    filterNodes_.emplace_back(nodePtr);
+    filterNodes_.emplace(nodePtr->GetId(), nodePtr);
 }
 
 void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect)
@@ -775,9 +798,10 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
     }
 #ifndef USE_ROSEN_DRAWING
     // traversal filter nodes including app window
-    for (auto node : filterNodes_) {
-        if (!node) {
-            continue;
+    EraseIf(filterNodes_, [this](const auto& pair) {
+        auto& node = pair.second;
+        if (node == nullptr || !node->IsOnTheTree() || !node->GetRenderProperties().NeedFilter()) {
+            return true;
         }
         node->UpdateFilterCacheWithDirty(*dirtyManager_, false);
         node->UpdateFilterCacheWithDirty(*dirtyManager_, true);
@@ -785,7 +809,8 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
         if (node->IsFilterCacheValid()) {
             dirtyManager_->UpdateCacheableFilterRect(node->GetOldDirtyInSurface());
         }
-    }
+        return false;
+    });
     if (IsTransparent() && dirtyManager_->IfCacheableFilterRectFullyCover(GetOldDirtyInSurface())) {
         SetFilterCacheFullyCovered(true);
         RS_LOGD("UpdateFilterCacheStatusIfNodeStatic surfacenode %" PRIu64 " [%s]", GetId(), GetName().c_str());
@@ -1174,8 +1199,7 @@ bool RSSurfaceRenderNode::LeashWindowRelatedAppWindowOccluded(std::shared_ptr<RS
     if (!IsLeashWindow()) {
         return false;
     }
-    for (auto& child : GetChildren()) {
-        auto childNode = child.lock();
+    for (auto& childNode : GetChildren()) {
         const auto& childNodeSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(childNode);
         if (childNodeSurface && childNodeSurface->GetVisibleRegion().IsEmpty()) {
             appNode = childNodeSurface;
@@ -1191,8 +1215,7 @@ std::vector<std::shared_ptr<RSSurfaceRenderNode>> RSSurfaceRenderNode::GetLeashW
     if (!IsLeashWindow()) {
         return res;
     }
-    for (auto& child : GetChildren()) {
-        auto childNode = child.lock();
+    for (auto& childNode : GetChildren()) {
         if (childNode) {
             auto childNodeSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(childNode);
             if (childNodeSurface) {
@@ -1205,7 +1228,7 @@ std::vector<std::shared_ptr<RSSurfaceRenderNode>> RSSurfaceRenderNode::GetLeashW
 
 bool RSSurfaceRenderNode::IsCurrentFrameStatic()
 {
-    if (dirtyManager_ == nullptr || !dirtyManager_->GetLatestDirtyRegion().IsEmpty()) {
+    if (dirtyManager_ == nullptr || !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
         return false;
     }
     if (IsMainWindowType()) {
@@ -1259,5 +1282,20 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool flag)
     isReportFirstFrame_ = flag;
 }
 #endif
+
+CacheProcessStatus RSSurfaceRenderNode::GetCacheSurfaceProcessedStatus() const
+{
+    return cacheProcessStatus_.load();
+}
+
+void RSSurfaceRenderNode::SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus)
+{
+    cacheProcessStatus_.store(cacheProcessStatus);
+}
+
+bool RSSurfaceRenderNode::NodeIsUsedBySubThread() const
+{
+    return GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING;
+}
 } // namespace Rosen
 } // namespace OHOS

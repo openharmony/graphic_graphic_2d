@@ -83,6 +83,7 @@ public:
     void QosStateDump(std::string& dumpString);
     void RenderServiceTreeDump(std::string& dumpString);
     void RsEventParamDump(std::string& dumpString);
+    bool IsUIFirstOn() const;
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -116,17 +117,17 @@ public:
             return false;
         }
         pid_t pid = ExtractPid(nodeId);
-        if (activeAppsInProcess_.find(pid) != activeAppsInProcess_.end()) {
-            if (!isClassifyByRoot) {
-                return true;
-            }
-            auto& activeAppsInProcess = activeAppsInProcess_[pid];
-            if (activeAppsInProcess.find(0) != activeAppsInProcess.end()) {
-                return true;
-            }
-            return (activeProcessNodeIds_.find(rootNodeId) != activeProcessNodeIds_.end());
+        if (activeAppsInProcess_.find(pid) == activeAppsInProcess_.end()) {
+            return false;
         }
-        return false;
+        if (!isClassifyByRoot) {
+            return true;
+        }
+        auto& activeApps = activeAppsInProcess_[pid];
+        if (activeApps.find(INVALID_NODEID) != activeApps.end()) {
+            return true;
+        }
+        return (activeProcessNodeIds_.find(rootNodeId) != activeProcessNodeIds_.end());
     }
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
@@ -163,6 +164,7 @@ public:
     void CountMem(std::vector<MemoryGraphic>& mems);
     void SetAppWindowNum(uint32_t num);
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
+    void SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated);
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> GetWatermarkImg();
 #else
@@ -207,6 +209,7 @@ private:
     void RemoveRSEventDetector();
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
+    void UpdateUIFirstSwitch();
     void SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid);
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
@@ -219,7 +222,6 @@ private:
 #endif
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
-    void ResetSortedChildren(std::shared_ptr<RSBaseRenderNode> node);
 
     void ClassifyRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid);
@@ -361,6 +363,8 @@ private:
     std::atomic<uint64_t> frameCount_ = 0;
     std::set<std::shared_ptr<RSBaseRenderNode>> oldDisplayChildren_;
     DeviceType deviceType_ = DeviceType::PHONE;
+    bool isCachedSurfaceUpdated_ = false;
+    bool isUiFirstOn_ = false;
 
     // used for informing hgm the bundle name of SurfaceRenderNodes
     bool noBundle_ = false;

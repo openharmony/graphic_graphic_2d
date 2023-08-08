@@ -88,22 +88,22 @@ void RSProcessor::RequestPerf(uint32_t layerLevel, bool onOffTag)
     switch (layerLevel) {
         case PERF_LEVEL_0: {
             // do nothing
-            RS_LOGI("RsDebug RSProcessor::Perf: do nothing");
+            RS_LOGD("RsDebug RSProcessor::Perf: do nothing");
             break;
         }
         case PERF_LEVEL_1: {
             PerfRequest(PERF_LEVEL_1_REQUESTED_CODE, onOffTag);
-            RS_LOGI("RsDebug RSProcessor::Perf: level1 %d", onOffTag);
+            RS_LOGD("RsDebug RSProcessor::Perf: level1 %d", onOffTag);
             break;
         }
         case PERF_LEVEL_2: {
             PerfRequest(PERF_LEVEL_2_REQUESTED_CODE, onOffTag);
-            RS_LOGI("RsDebug RSProcessor::Perf: level2 %d", onOffTag);
+            RS_LOGD("RsDebug RSProcessor::Perf: level2 %d", onOffTag);
             break;
         }
         default: {
             PerfRequest(PERF_LEVEL_3_REQUESTED_CODE, onOffTag);
-            RS_LOGI("RsDebug RSProcessor::Perf: level3 %d", onOffTag);
+            RS_LOGD("RsDebug RSProcessor::Perf: level3 %d", onOffTag);
             break;
         }
     }

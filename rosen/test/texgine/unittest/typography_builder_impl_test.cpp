@@ -41,7 +41,7 @@ void InitMockVars(struct MockVars &&vars)
 }
 
 TypographyImpl::TypographyImpl(TypographyStyle &ys, std::vector<VariantSpan> &spans,
-    std::unique_ptr<FontProviders> providers)
+    std::shared_ptr<FontProviders> providers)
 {
     g_tbMockvars.catchedSpans = spans;
 }

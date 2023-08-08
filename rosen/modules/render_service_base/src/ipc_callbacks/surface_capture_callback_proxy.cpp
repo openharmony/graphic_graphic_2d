@@ -27,6 +27,11 @@ RSSurfaceCaptureCallbackProxy::RSSurfaceCaptureCallbackProxy(const sptr<IRemoteO
 
 void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, Media::PixelMap* pixelmap)
 {
+    constexpr auto interfaceCode = RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE;
+    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -37,11 +42,14 @@ void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, Media::PixelMap*
     data.WriteUint64(id);
     data.WriteParcelable(pixelmap);
     option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE);
+    uint32_t code = static_cast<uint32_t>(interfaceCode);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("SurfaceCaptureCallbackProxy: Remote()->SendRequest() error");
     }
 }
+
+const RSInterfaceCodeSecurityManager<RSISurfaceCaptureCallbackInterfaceCode> \
+    RSSurfaceCaptureCallbackProxy::securityManager_ = CreateRSISurfaceCaptureCallbackInterfaceCodeSecurityManager();
 } // namespace Rosen
 } // namespace OHOS

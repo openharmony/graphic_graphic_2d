@@ -21,6 +21,7 @@
 #include "command/rs_message_processor.h"
 #include "modifier/rs_property_modifier.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,7 +36,9 @@ void RSModifierManager::Draw()
         return;
     }
 
+    RS_TRACE_NAME("RSModifierManager Draw num:[" + std::to_string(modifiers_.size()) + "]");
     for (auto modifier : modifiers_) {
+        RS_TRACE_NAME("RSModifier::Draw");
         modifier->UpdateToRender();
         modifier->SetDirty(false);
         modifier->ResetRSNodeExtendModifierDirty();
@@ -65,6 +68,7 @@ void RSModifierManager::RemoveAnimation(AnimationId keyId)
 
 bool RSModifierManager::Animate(int64_t time)
 {
+    RS_TRACE_NAME("RunningCustomAnimation num:[" + std::to_string(animations_.size()) + "]");
     // process animation
     bool hasRunningAnimation = false;
 

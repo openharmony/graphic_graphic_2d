@@ -64,11 +64,13 @@ if (rosen_is_win) {
 if (rosen_is_linux) {
   rs_common_define += [ "ROSEN_LINUX" ]
 }
-enable_export_macro = true
 
-rosen_root = "//foundation/graphic/graphic_2d/rosen"
+enable_export_macro = true
+enable_ipc_security = false
 
 accessibility_root = "//foundation/barrierfree/accessibility"
-resourceschedule_root = "//foundation/resourceschedule/frame_aware_sched"
-
+access_token_root = "//base/security/access_token"
 appframework_root = "//foundation/appframework"
+ipc_root = "//foundation/communication/ipc"
+resourceschedule_root = "//foundation/resourceschedule/frame_aware_sched"
+rosen_root = "//foundation/graphic/graphic_2d/rosen"

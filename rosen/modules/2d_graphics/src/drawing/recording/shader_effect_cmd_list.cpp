@@ -27,8 +27,7 @@ std::shared_ptr<ShaderEffectCmdList> ShaderEffectCmdList::CreateFromData(const C
     auto cmdList = std::make_shared<ShaderEffectCmdList>();
     if (isCopy) {
         cmdList->opAllocator_.BuildFromDataWithCopy(data.first, data.second);
-    }
-    else {
+    } else {
         cmdList->opAllocator_.BuildFromData(data.first, data.second);
     }
     return cmdList;
@@ -40,7 +39,7 @@ std::shared_ptr<ShaderEffect> ShaderEffectCmdList::Playback() const
         return nullptr;
     }
 
-    int32_t offset = 0;
+    uint32_t offset = 0;
     std::shared_ptr<ShaderEffect> se = nullptr;
     do {
         OpItem* itemPtr = static_cast<OpItem*>(opAllocator_.OffsetToAddr(offset));
@@ -139,7 +138,7 @@ std::shared_ptr<ShaderEffect> CreatePictureShaderOpItem::Playback(const CmdList&
 }
 
 CreateLinearGradientOpItem::CreateLinearGradientOpItem(const Point& startPt, const Point& endPt,
-    const std::pair<int32_t, size_t>& colors, const std::pair<int32_t, size_t>& pos, TileMode mode)
+    const std::pair<uint32_t, size_t>& colors, const std::pair<uint32_t, size_t>& pos, TileMode mode)
     : ShaderEffectOpItem(CREATE_LINEAR_GRADIENT), startPt_(startPt), endPt_(endPt),
     colors_(colors), pos_(pos), mode_(mode) {}
 
@@ -152,7 +151,7 @@ std::shared_ptr<ShaderEffect> CreateLinearGradientOpItem::Playback(const CmdList
 }
 
 CreateRadialGradientOpItem::CreateRadialGradientOpItem(const Point& centerPt, scalar radius,
-    const std::pair<int32_t, size_t>& colors, const std::pair<int32_t, size_t>& pos, TileMode mode)
+    const std::pair<uint32_t, size_t>& colors, const std::pair<uint32_t, size_t>& pos, TileMode mode)
     : ShaderEffectOpItem(CREATE_RADIAL_GRADIENT), centerPt_(centerPt), radius_(radius),
     colors_(colors), pos_(pos), mode_(mode) {}
 
@@ -165,7 +164,7 @@ std::shared_ptr<ShaderEffect> CreateRadialGradientOpItem::Playback(const CmdList
 }
 
 CreateTwoPointConicalOpItem::CreateTwoPointConicalOpItem(const Point& startPt, scalar startRadius, const Point& endPt,
-    scalar endRadius, const std::pair<int32_t, size_t>& colors, const std::pair<int32_t, size_t>& pos, TileMode mode)
+    scalar endRadius, const std::pair<uint32_t, size_t>& colors, const std::pair<uint32_t, size_t>& pos, TileMode mode)
     : ShaderEffectOpItem(CREATE_TWO_POINT_CONICAL), startPt_(startPt), startRadius_(startRadius), endPt_(endPt),
     endRadius_(endRadius), colors_(colors), pos_(pos), mode_(mode) {}
 
@@ -177,8 +176,8 @@ std::shared_ptr<ShaderEffect> CreateTwoPointConicalOpItem::Playback(const CmdLis
     return ShaderEffect::CreateTwoPointConical(startPt_, startRadius_, endPt_, endRadius_, colors, pos, mode_);
 }
 
-CreateSweepGradientOpItem::CreateSweepGradientOpItem(const Point& centerPt, const std::pair<int32_t, size_t>& colors,
-    const std::pair<int32_t, size_t>& pos, TileMode mode, scalar startAngle, scalar endAngle)
+CreateSweepGradientOpItem::CreateSweepGradientOpItem(const Point& centerPt, const std::pair<uint32_t, size_t>& colors,
+    const std::pair<uint32_t, size_t>& pos, TileMode mode, scalar startAngle, scalar endAngle)
     : ShaderEffectOpItem(CREATE_SWEEP_GRADIENT), centerPt_(centerPt), colors_(colors),
     pos_(pos), mode_(mode), startAngle_(startAngle), endAngle_(endAngle) {}
 

@@ -19,6 +19,7 @@
 #include <memory>
 #include <vector>
 
+#include "common/rs_macros.h"
 #include "drawing/engine_adapter/impl_interface/path_impl.h"
 #include "utils/matrix.h"
 #include "utils/point.h"
@@ -58,7 +59,7 @@ enum class PathOp {
     REVERSE_DIFFERENCE,
 };
 
-class Path {
+class RS_EXPORT Path {
 public:
     Path() noexcept;
     Path(const Path& p) noexcept;

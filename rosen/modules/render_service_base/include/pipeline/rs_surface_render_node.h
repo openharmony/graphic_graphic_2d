@@ -27,6 +27,7 @@
 #include "common/rs_occlusion_region.h"
 #include "common/rs_vector4.h"
 #include "ipc_callbacks/buffer_available_callback.h"
+#include "ipc_callbacks/buffer_clear_callback.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
@@ -65,7 +66,6 @@ public:
 
     void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
     void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
-    void ResetParent() override;
 
 #ifdef OHOS_PLATFORM
     void SetIsOnTheTree(bool flag) override;
@@ -93,8 +93,12 @@ public:
     // indicate if this node type can enable hardware composer
     bool IsHardwareEnabledType() const
     {
-        // [PLANNING] enable hardware composer for all self-drawing node
-        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && name_ != "RosenWeb" && name_ != "RosenRenderWeb";
+        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_;
+    }
+
+    void SetHardwareEnabled(bool isEnabled)
+    {
+        isHardwareEnabledNode_ = isEnabled;
     }
 
     bool IsLastFrameHardwareEnabled() const
@@ -456,6 +460,8 @@ public:
     // to save callback method sent by RT or UI which depends on the value of "isFromRenderThread".
     void RegisterBufferAvailableListener(sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread);
 
+    void RegisterBufferClearListener(sptr<RSIBufferClearCallback> callback);
+
     // Only SurfaceNode in RT calls "ConnectToNodeInRenderService" to send callback method to RS
     void ConnectToNodeInRenderService();
 
@@ -496,7 +502,8 @@ public:
     inline bool IsTransparent() const
     {
         const uint8_t opacity = 255;
-        return !(GetAbilityBgAlpha() == opacity && ROSEN_EQ(GetGlobalAlpha(), 1.0f));
+        return !(GetAbilityBgAlpha() == opacity && ROSEN_EQ(GetGlobalAlpha(), 1.0f)) ||
+            (IsAppWindow() && GetChildrenCount() == 0);
     }
 
     inline bool IsCurrentNodeInTransparentRegion(const Occlusion::Rect& nodeRect) const
@@ -663,17 +670,9 @@ public:
         return submittedSubThreadIndex_;
     }
 
-    void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus)
-    {
-        std::lock_guard<std::mutex> lock(cacheSurfaceProcessedMutex_);
-        cacheProcessStatus_ = cacheProcessStatus;
-    }
-
-    CacheProcessStatus GetCacheSurfaceProcessedStatus() const
-    {
-        std::lock_guard<std::mutex> lock(cacheSurfaceProcessedMutex_);
-        return cacheProcessStatus_;
-    }
+    void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus);
+    CacheProcessStatus GetCacheSurfaceProcessedStatus() const;
+    bool NodeIsUsedBySubThread() const override;
 
     bool GetFilterCacheFullyCovered() const
     {
@@ -693,7 +692,10 @@ public:
     // update static node's back&front-ground filter cache status
     void UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect);
 
+    void SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvailable);
+
 private:
+    void OnResetParent() override;
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
     bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;
     Vector4f GetWindowCornerRadius();
@@ -701,6 +703,7 @@ private:
 
     std::mutex mutexRT_;
     std::mutex mutexUI_;
+    std::mutex mutexClear_;
     std::mutex mutex_;
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
@@ -750,6 +753,7 @@ private:
     std::atomic_bool isBufferAvailable_ = false;
     sptr<RSIBufferAvailableCallback> callbackFromRT_;
     sptr<RSIBufferAvailableCallback> callbackFromUI_;
+    sptr<RSIBufferClearCallback> clearBufferCallback_;
     bool isRefresh_ = false;
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;
@@ -787,7 +791,8 @@ private:
 
     Occlusion::Region containerRegion_;
     bool isFilterCacheFullyCovered_ = false;
-    std::vector<std::shared_ptr<RSRenderNode>> filterNodes_ = {};  // valid filter nodes within, including itself
+    std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>
+        filterNodes_; // valid filter nodes within, including itself
 
     //<screenRect, absRect, screenRotation, isFocusWindow>
     std::tuple<RectI, RectI, ScreenRotation, bool> OpaqueRegionBaseInfo_;
@@ -832,6 +837,7 @@ private:
 #endif
 
     // used for hardware enabled nodes
+    bool isHardwareEnabledNode_ = false;
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
     // mark if this self-drawing node is forced not to use hardware composer
@@ -849,8 +855,7 @@ private:
 
     // UIFirst
     uint32_t submittedSubThreadIndex_ = INT_MAX;
-    mutable std::mutex cacheSurfaceProcessedMutex_;
-    CacheProcessStatus cacheProcessStatus_ = CacheProcessStatus::WAITING;
+    std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;

@@ -204,8 +204,8 @@ void RSJankStats::ReportEventResponse(JankFrames& jankFrames)
     auto inputTime = ConvertTimeToSystime(info.inputTime);
     auto beginVsyncTime = ConvertTimeToSystime(info.beginVsyncTime);
     auto responseLatency = endTime_ - inputTime;
-    RS_TRACE_NAME_FMT("RSJankStats::ReportEventResponse pkgname: %s, pageurl: %s, sceneid: %s, inputTime:% " PRId64 ".",
-        info.bundleName.c_str(), info.pageUrl.c_str(), info.pageUrl.c_str(), info.inputTime);
+    RS_TRACE_NAME_FMT("RSJankStats::ReportEventResponse pkgname: %s, pageurl: %s, sceneid: %s, inputTime: %llu",
+        info.bundleName.c_str(), info.pageUrl.c_str(), info.sceneId.c_str(), info.inputTime);
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
         OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "APP_PID", info.appPid, "BUNDLE_NAME", info.bundleName,
         "ABILITY_NAME", info.abilityName, "PROCESS_NAME", info.processName, "PAGE_URL", info.pageUrl, "SCENE_ID",
@@ -266,7 +266,7 @@ uint64_t RSJankStats::ConvertTimeToSystime(uint64_t time)
     if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
         return 0;
     }
-    uint64_t nowTime = ts.tv_sec * S_TO_NS + ts.tv_nsec;
+    auto nowTime = static_cast<uint32_t>(ts.tv_sec) * S_TO_NS + static_cast<uint32_t>(ts.tv_nsec);
     uint64_t curSysTime = GetCurrentSystimeMs();
     auto sysTime = curSysTime - (nowTime - time) / MS_TO_NS;
     return sysTime;

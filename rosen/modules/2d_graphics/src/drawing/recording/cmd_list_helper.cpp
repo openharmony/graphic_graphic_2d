@@ -125,7 +125,7 @@ std::shared_ptr<Bitmap> CmdListHelper::GetBitmapFromCmdList(const CmdList& cmdLi
 ImageHandle CmdListHelper::AddPixelMapToCmdList(CmdList& cmdList, const std::shared_ptr<Media::PixelMap>& pixelMap)
 {
 #ifdef SUPPORT_OHOS_PIXMAP
-    int32_t index = cmdList.AddPixelMap(pixelMap);
+    auto index = cmdList.AddPixelMap(pixelMap);
     return { index };
 #else
     LOGE("Not support drawing Media::PixelMap");

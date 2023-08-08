@@ -354,11 +354,13 @@ void RSRenderThread::ProcessCommands()
     uint64_t uiEndTimeStamp = jankDetector_->GetSysTimeNs();
     for (auto& cmdData : cmds) {
         std::string str = "ProcessCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(cmdData.get()));
-#ifdef ROSEN_CROSS_PLATFORM
+#if defined (ROSEN_CROSS_PLATFORM)  && !defined(ROSEN_PREVIEW)
         if (cmdData->GetTimestamp() >= timestamp_) {
             str += " SKIP!!!";
             ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
+            std::unique_lock<std::mutex> cmdLock(cmdMutex_);
             cmds_.emplace_back(std::move(cmdData));
+            cmdLock.unlock();
             RequestNextVSync();
             ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
             continue;

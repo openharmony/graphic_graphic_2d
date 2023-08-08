@@ -29,6 +29,7 @@
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "render/rs_skia_filter.h"
+#include "animation/rs_render_particle.h"
 
 #ifdef USE_ROSEN_DRAWING
 #include <cstdint>
@@ -36,6 +37,8 @@
 #include "draw/canvas.h"
 #include "draw/clip.h"
 #include "drawing/draw/core_canvas.h"
+#include "recording/recording_path.h"
+#include "recording/recording_shader_effect.h"
 #include "utils/rect.h"
 #else
 #include "include/core/SkCanvas.h"
@@ -50,6 +53,7 @@
 #include "include/effects/SkGradientShader.h"
 #include "include/effects/SkLumaColorFilter.h"
 #include "include/utils/SkShadowUtils.h"
+#include "src/image/SkImage_Base.h"
 #ifdef NEW_SKIA
 #include "include/effects/SkImageFilters.h"
 #include "include/effects/SkRuntimeEffect.h"
@@ -1079,6 +1083,12 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");
         return;
     }
+    if (RSSystemProperties::GetImageGpuResourceCacheEnable(imageSnapshot->width(), imageSnapshot->height())) {
+        ROSEN_LOGD("DrawFilter cache image resource(width:%d, height:%d).",
+            imageSnapshot->width(), imageSnapshot->height());
+        as_IB(imageSnapshot)->hintCacheGpuResource();
+    }
+
     filter->PreProcess(imageSnapshot);
     canvas.resetMatrix();
     auto visibleIRect = canvas.GetVisibleRect().round();
@@ -1559,9 +1569,19 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
     }
 #else
     if (properties.GetClipBounds() != nullptr) {
-        canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, antiAlias);
+        auto& path = properties.GetClipBounds()->GetDrawingPath();
+        if (path.GetDrawingType() == Drawing::DrawingType::RECORDING) {
+            auto clipPath = static_cast<const Drawing::RecordingPath&>(path).GetCmdList()->Playback();
+            canvas.ClipPath(*clipPath, Drawing::ClipOp::INTERSECT, antiAlias);
+        } else {
+            canvas.ClipPath(path, Drawing::ClipOp::INTERSECT, antiAlias);
+        }
     } else if (properties.GetClipToBounds()) {
-        canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
+        if (properties.GetCornerRadius().IsZero()) {
+            canvas.ClipRect(Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, isAntiAlias);
+        } else {
+            canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
+        }
     } else if (properties.GetClipToRRect()) {
         canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetClipRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
     }
@@ -1578,7 +1598,14 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
     if (const auto& bgShader = properties.GetBackgroundShader()) {
         canvas.Save();
         canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
-        brush.SetShaderEffect(bgShader->GetDrawingShader());
+        auto shaderEffect = bgShader->GetDrawingShader();
+        if (shaderEffect && shaderEffect->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+            auto shader =
+                std::static_pointer_cast<Drawing::RecordingShaderEffect>(shaderEffect)->GetCmdList()->Playback();
+            brush.SetShaderEffect(shader);
+        } else {
+            brush.SetShaderEffect(shaderEffect);
+        }
         canvas.DrawBackground(brush);
         canvas.Restore();
     }
@@ -2116,5 +2143,113 @@ sk_sp<SkShader> RSPropertiesPainter::MakeLightUpEffectShader(float lightUpDeg, s
 }
 #endif
 #endif
+
+void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+#ifndef USE_ROSEN_DRAWING
+#ifdef NEW_SKIA
+    SkSurface* skSurface = canvas.GetSurface();
+    if (skSurface == nullptr) {
+        ROSEN_LOGD("RSPropertiesPainter::DrawDynamicLightUp skSurface is null");
+        return;
+    }
+    SkAutoCanvasRestore acr(&canvas, true);
+    if (properties.GetClipBounds() != nullptr) {
+        canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
+    } else {
+        canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
+    }
+
+    auto clipBounds = canvas.getDeviceClipBounds();
+    auto image = skSurface->makeImageSnapshot(clipBounds);
+    if (image == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawDynamicLightUp image is null");
+        return;
+    }
+    auto imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+    auto shader = MakeDynamicLightUpShader(
+        properties.GetDynamicLightUpRate().value(), properties.GetDynamicLightUpDegree().value(), imageShader);
+    SkPaint paint;
+    paint.setShader(shader);
+    canvas.resetMatrix();
+    canvas.translate(clipBounds.left(), clipBounds.top());
+    canvas.drawPaint(paint);
+#endif
+#endif
+}
+
+#ifndef USE_ROSEN_DRAWING
+#ifdef NEW_SKIA
+sk_sp<SkShader> RSPropertiesPainter::MakeDynamicLightUpShader(
+    float dynamicLightUpRate, float dynamicLightUpDeg, sk_sp<SkShader> imageShader)
+{
+    static constexpr char prog[] = R"(
+        uniform half dynamicLightUpRate;
+        uniform half dynamicLightUpDeg;
+        uniform shader imageShader;
+
+        half4 main(float2 coord) {
+            vec3 c = vec3(imageShader.eval(coord).r * 255,
+                imageShader.eval(coord).g * 255, imageShader.eval(coord).b * 255);
+            float x = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
+            float y = (0 - dynamicLightUpRate) * x + dynamicLightUpDeg * 255;
+            float R = clamp((c.r + y) / 255, 0.0, 1.0);
+            float G = clamp((c.g + y) / 255, 0.0, 1.0);
+            float B = clamp((c.b + y) / 255, 0.0, 1.0);
+            return vec4(R, G, B, 1.0);
+        }
+    )";
+    auto [effect, err] = SkRuntimeEffect::MakeForShader(SkString(prog));
+    if (!effect) {
+        ROSEN_LOGE("MakeDynamicLightUpShader::RuntimeShader effect error: %s\n", err.c_str());
+        return nullptr;
+    }
+    SkRuntimeShaderBuilder builder(effect);
+    builder.child("imageShader") = imageShader;
+    builder.uniform("dynamicLightUpRate") = dynamicLightUpRate;
+    builder.uniform("dynamicLightUpDeg") = dynamicLightUpDeg;
+    return builder.makeShader(nullptr, false);
+}
+#endif
+#endif
+
+void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+    auto particles = properties.GetParticles();
+    for (size_t i = 0; i < particles.size(); i++) {
+        if (particles[i]->IsAlive()) {
+            // Get particle properties
+            auto position = particles[i]->GetPosition();
+            float opacity = particles[i]->GetOpacity();
+            auto particleType = particles[i]->GetParticleType();
+            SkPaint paint;
+            paint.setAntiAlias(true);
+            paint.setAlphaf(opacity);
+
+            if (particleType == ParticleType::POINTS) {
+                auto radius = particles[i]->GetRadius();
+                Color color = particles[i]->GetColor();
+                auto alpha = color.GetAlpha();
+                color.SetAlpha(alpha * opacity);
+                paint.setColor(color.AsArgbInt());
+                canvas.drawCircle(position.x_, position.y_, radius, paint);
+            } else {
+                auto image = particles[i]->GetImage();
+                canvas.rotate(particles[i]->GetSpin());
+                float fLeft = 0.0f;
+                float ftop = 0.0f;
+                float fRight = 1.0f;
+                float fBottom = 1.0f;
+                SkRect rect { fLeft, ftop, fRight, fBottom };
+#ifdef NEW_SKIA
+                image->CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, false);
+#else
+                image->CanvasDrawImage(canvas, rect, paint, false);
+#endif
+            }
+        }
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

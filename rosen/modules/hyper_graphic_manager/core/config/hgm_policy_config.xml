@@ -51,12 +51,28 @@
         <Setting name="whiteBundle1"/>
         <Setting name="whiteBundle2"/>
     </Params>
-    
+
     <!-- stategies for animation, need to review later -->
     <Params name="animation_dynamic_settings">
         <Setting name="animation_zoom" value="21"/>
         <Setting name="animation_trans" value="21"/>
         <Setting name="animation_ui" value="21"/>
         <Setting name="animation_others" value="21"/>
+    </Params>
+
+    <Params name="property_animation_dynamic_settings">
+        <DynamicSettings name="translate">
+            <SpeedThresholds name="1" min="75" max="-1" preferred_fps="120"/>
+            <SpeedThresholds name="2" min="25" max="75" preferred_fps="90"/>
+            <SpeedThresholds name="3" min="0" max="25" preferred_fps="60"/>
+        </DynamicSettings>
+        <DynamicSettings name="scale">
+            <SpeedThresholds name="1" min="150" max="-1" preferred_fps="120"/>
+            <SpeedThresholds name="2" min="50" max="150" preferred_fps="90"/>
+            <SpeedThresholds name="3" min="0" max="50" preferred_fps="60"/>
+        </DynamicSettings>
+        <DynamicSettings name="rotation">
+            <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
+        </DynamicSettings>
     </Params>
 </HgmConfig>

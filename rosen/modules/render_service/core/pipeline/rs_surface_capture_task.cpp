@@ -314,7 +314,6 @@ bool RSSurfaceCaptureTask::CopyDataToPixelMap(sk_sp<SkImage> img, const std::uni
 #endif
     return true;
 }
-
 #else
 std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap)
 {
@@ -328,6 +327,9 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(const std:
         return nullptr;
     }
     Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    auto bitmap = std::make_shared<Drawing::Bitmap>();
+    bitmap->Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format);
+    bitmap->SetPixels(address);
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     auto renderEngine = RSMainThread::Instance()->GetRenderEngine();
     if (renderEngine == nullptr) {
@@ -339,14 +341,33 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(const std:
         RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
         return nullptr;
     }
-    renderContext->SetUpGrContext();
-#endif
-    Drawing::Bitmap bitmap;
-    bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format);
-    bitmap.SetPixels(address);
+    renderContext->SetUpGpuContext();
+    auto gpuContext = renderContext->GetDrGPUContext();
+    if (gpuContext == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: Drawing::GPUContext is nullptr");
+        return nullptr;
+    }
+    auto image = std::make_shared<Drawing::Image>();
+    if (!image->BuildFromBitmap(*gpuContext, *bitmap)) {
+        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: Drawing::Image is nullptr");
+        return nullptr;
+    }
     auto surface = std::make_shared<Drawing::Surface>();
-    surface->Bind(bitmap);
+    if (!surface->Bind(*image)) {
+        if (!surface->Bind(*bitmap)) {
+            RS_LOGE("RSSurfaceCaptureTask::CreateSurface: Drawing::Surface is nullptr");
+            return nullptr;
+        }
+    }
     return surface;
+#else
+    auto surface = std::make_shared<Drawing::Surface>();
+    if (!surface->Bind(*bitmap)) {
+        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: Drawing::Surface is nullptr");
+        return nullptr;
+    }
+    return surface;
+#endif
 }
 #endif
 
@@ -371,7 +392,7 @@ RSSurfaceCaptureVisitor::RSSurfaceCaptureVisitor(float scaleX, float scaleY, boo
     : scaleX_(scaleX), scaleY_(scaleY), isUniRender_(isUniRender)
 {
     renderEngine_ = RSMainThread::Instance()->GetRenderEngine();
-    isUIFirst_ = RSSystemProperties::GetUIFirstEnabled();
+    isUIFirst_ = RSMainThread::Instance()->IsUIFirstOn();
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -401,8 +422,6 @@ void RSSurfaceCaptureVisitor::ProcessChildren(RSRenderNode &node)
     for (auto& child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
     }
-    // clear SortedChildren, it will be generated again in next frame
-    node.ResetSortedChildren();
 }
 
 void RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node)
@@ -892,8 +911,13 @@ void RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
     if (auto drawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>()) {
+#ifndef USE_ROSEN_DRAWING
         auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](sk_sp<SkSurface> surface) {
-            RSUniRenderUtil::ClearNodeCacheSurface(surface, nullptr, id);
+#else
+        auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](std::shared_ptr<Drawing::Surface> surface) {
+#endif
+            // The second param is null, 0 is an invalid value.
+            RSUniRenderUtil::ClearNodeCacheSurface(surface, nullptr, id, 0);
         };
         drawingNode->SetSurfaceClearFunc({ UNI_MAIN_THREAD_INDEX, clearFunc });
     }

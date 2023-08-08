@@ -30,7 +30,7 @@ class PixelMap;
 namespace Rosen {
 namespace Drawing {
 struct ImageHandle {
-    int32_t offset;
+    uint32_t offset;
     size_t size;
     int32_t width;
     int32_t height;
@@ -86,7 +86,7 @@ public:
             return;
         }
 
-        int32_t offset = opAllocator_.AddrToOffset(op);
+        uint32_t offset = opAllocator_.AddrToOffset(op);
         if (lastOpItemOffset_.has_value()) {
             auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.value()));
             if (lastOpItem != nullptr) {
@@ -101,7 +101,7 @@ public:
      * @param src   A contiguous buffers.
      * @return      Returns the offset of the contiguous buffers and CmdList head point.
      */
-    int32_t AddCmdListData(const CmdListData& data);
+    uint32_t AddCmdListData(const CmdListData& data);
 
     const void* GetCmdListData(uint32_t offset) const;
 
@@ -112,19 +112,19 @@ public:
 
     // using for recording, should to remove after using shared memory
     bool SetUpImageData(const void* data, size_t size);
-    int32_t AddImageData(const void* data, size_t size);
+    uint32_t AddImageData(const void* data, size_t size);
     const void* GetImageData(uint32_t offset) const;
     CmdListData GetAllImageData() const;
 
     /*
      * @brief  return pixelmap index, negative is error.
      */
-    int32_t AddPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap);
+    uint32_t AddPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap);
 
     /*
      * @brief  get pixelmap by index.
      */
-    std::shared_ptr<Media::PixelMap> GetPixelMap(int32_t id);
+    std::shared_ptr<Media::PixelMap> GetPixelMap(uint32_t id);
 
     /*
      * @brief  return pixelmaplist size, 0 is no pixelmap.
@@ -144,7 +144,7 @@ public:
 protected:
     MemAllocator opAllocator_;
     MemAllocator imageAllocator_;
-    std::optional<int32_t> lastOpItemOffset_ = std::nullopt;
+    std::optional<uint32_t> lastOpItemOffset_ = std::nullopt;
     std::mutex mutex_;
 #ifdef SUPPORT_OHOS_PIXMAP
     std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVec_;

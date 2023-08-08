@@ -69,6 +69,7 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
     const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
 {
     RS_TRACE_NAME("RSSubThreadManager::SubmitSubThreadTask");
+    bool ifNeedRequestNextVsync = false;
     if (node == nullptr) {
         ROSEN_LOGE("RSSubThreadManager::SubmitSubThreadTask display node is null");
         return;
@@ -97,6 +98,9 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
             child->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
         }
         renderTaskList.push_back(std::make_unique<RSRenderTask>(*child, RSRenderTask::RenderNodeStage::CACHE));
+    }
+    if (renderTaskList.size()) {
+        ifNeedRequestNextVsync = true;
     }
 
     std::vector<std::shared_ptr<RSSuperRenderTask>> superRenderTaskList;
@@ -144,6 +148,10 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
         });
     }
     needResetContext_ = true;
+    if (ifNeedRequestNextVsync) {
+        RSMainThread::Instance()->SetIsCachedSurfaceUpdated(true);
+        RSMainThread::Instance()->RequestNextVSync();
+    }
 }
 
 void RSSubThreadManager::WaitNodeTask(uint64_t nodeId)

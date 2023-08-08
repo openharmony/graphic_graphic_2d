@@ -78,6 +78,8 @@ public:
     static void DrawColorFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 
     static void DrawLightUpEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+    static void DrawDynamicLightUp(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+    static void DrawParticle(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 private:
     inline static int g_blurCnt = 0;
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
@@ -93,6 +95,8 @@ private:
     static sk_sp<SkShader> MakeVerticalMeanBlurShader(float radiusIn,
                                             sk_sp<SkShader> shader, sk_sp<SkShader> gradientShader);
     static sk_sp<SkShader> MakeLightUpEffectShader(float lightUpDeg, sk_sp<SkShader> imageShader);
+    static sk_sp<SkShader> MakeDynamicLightUpShader(
+        float dynamicLightUpRate, float dynamicLightUpDeg, sk_sp<SkShader> imageShader);
     static void DrawHorizontalLinearGradientBlur(SkSurface* skSurface, RSPaintFilterCanvas& canvas,
         float radius, sk_sp<SkShader> alphaGradientShader, const SkIRect& clipIPadding);
     static void DrawVerticalLinearGradientBlur(SkSurface* skSurface, RSPaintFilterCanvas& canvas,
@@ -143,6 +147,7 @@ private:
     static void DrawColorFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 
     static void DrawLightUpEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+    static void DrawDynamicLightUp(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 private:
     inline static int g_blurCnt = 0;
     static void DrawColorfulShadowInner(

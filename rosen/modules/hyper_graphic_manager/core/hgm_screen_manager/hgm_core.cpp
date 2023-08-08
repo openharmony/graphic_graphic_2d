@@ -69,6 +69,7 @@ bool HgmCore::Init()
         HGM_LOGE("HgmCore falied to parse");
         return false;
     }
+    hgmFrameRateTool_ = HgmFrameRateTool::GetInstance();
 
     isInit_ = true;
     HGM_LOGI("HgmCore initialization success!!!");
@@ -372,4 +373,25 @@ std::unique_ptr<std::unordered_map<ScreenId, int32_t>> HgmCore::GetModesToApply(
     std::lock_guard<std::mutex> lock(modeListMutex_);
     return std::move(modeListToApply_);
 }
+
+int32_t HgmCore::AddScreenProfile(ScreenId id, int32_t width, int32_t height, int32_t phyWidth, int32_t phyHeight)
+{
+    return hgmFrameRateTool_->AddScreenProfile(id, width, height, phyWidth, phyHeight);
+}
+
+int32_t HgmCore::RemoveScreenProfile(ScreenId id)
+{
+    return hgmFrameRateTool_->RemoveScreenProfile(id);
+}
+
+int32_t HgmCore::CalModifierPreferred(HgmModifierProfile &hgmModifierProfile) const
+{
+    return hgmFrameRateTool_->CalModifierPreferred(activeScreenId_, hgmModifierProfile, mParsedConfigData_);
+}
+
+void HgmCore::SetActiveScreenId(ScreenId id)
+{
+    activeScreenId_ = id;
+}
+
 } // namespace OHOS::Rosen

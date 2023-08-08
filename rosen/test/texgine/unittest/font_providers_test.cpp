@@ -53,7 +53,7 @@ std::shared_ptr<VariantFontStyleSet> SystemFontProvider::MatchFamily(const std::
 
 class FontProvidersTest : public testing::Test {
 public:
-    std::unique_ptr<FontProviders> fontProviders_ = FontProviders::Create();
+    std::shared_ptr<FontProviders> fontProviders_ = FontProviders::Create();
     std::shared_ptr<MockFontProvider> msfp1_ = std::make_shared<MockFontProvider>();
     std::shared_ptr<MockFontProvider> msfp2_ = std::make_shared<MockFontProvider>();
     std::shared_ptr<VariantFontStyleSet> fontStyleSet1_ = std::make_shared<VariantFontStyleSet>(nullptr);
