@@ -2136,12 +2136,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_TRACE_END();
         }
 #endif
-        RSBackgroundThread::Instance().PostTask([]() {
-#ifndef USE_ROSEN_DRAWING
-            RS_TRACE_NAME("RSUniRender:OpItemTasks ProcessTask");
-            OpItemTasks::Instance().ProcessTask();
-#endif
-        });
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
         RS_TRACE_END();
