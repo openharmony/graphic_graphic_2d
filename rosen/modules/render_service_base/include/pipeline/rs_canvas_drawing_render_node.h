@@ -47,7 +47,7 @@ public:
     }
 
 #ifndef USE_ROSEN_DRAWING
-    bool GetBitmap(SkBitmap& bitmap);
+    SkBitmap GetBitmap();
 #else
     bool GetBitmap(Drawing::Bitmap& bitmap);
 #endif
