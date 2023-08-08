@@ -181,6 +181,7 @@ public:
     // used for animation test
     RSAnimationManager& GetAnimationManager();
 
+    void ApplyBoundsGeometry(RSPaintFilterCanvas& canvas);
     virtual void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas);
     virtual void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas) {}
     virtual void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas);
@@ -218,6 +219,10 @@ public:
     bool IsStaticCached() const;
 
     bool NeedInitCacheSurface() const;
+    inline bool IsPureContainer() const
+    {
+        return (drawCmdModifiers_.empty() && !renderProperties_.isDrawn_);
+    }
 
 #ifndef USE_ROSEN_DRAWING
     using ClearCacheSurfaceFunc = std::function<void(sk_sp<SkSurface>&, sk_sp<SkSurface>&, uint32_t, uint32_t)>;

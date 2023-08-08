@@ -344,6 +344,7 @@ private:
     bool isDirty_ = false;
     bool geoDirty_ = false;
     bool contentDirty_ = false;
+    bool isDrawn_ = false;
 
     bool hasBounds_ = false;
     bool useEffect_ = false;

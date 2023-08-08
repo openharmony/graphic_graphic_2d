@@ -229,6 +229,7 @@ private:
     bool UpdateCacheSurface(RSRenderNode& node);
     void DrawSpherize(RSRenderNode& node);
     void DrawChildRenderNode(RSRenderNode& node);
+    void DrawChildCanvasRenderNode(RSRenderNode& node);
 
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void AddOverDrawListener(std::unique_ptr<RSRenderFrame>& renderFrame,
@@ -361,6 +362,7 @@ private:
     // unirender visitor resets every frame, no overflow risk here
     unsigned int preparedCanvasNodeInCurrentSurface_ = 0;
     unsigned int processedCanvasNodeInCurrentSurface_ = 0;
+    unsigned int processedPureContainerNode_ = 0;
 
     float globalZOrder_ = 0.0f;
     bool isUpdateCachedSurface_ = false;

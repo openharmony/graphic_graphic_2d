@@ -2874,6 +2874,18 @@ void RSUniRenderVisitor::DrawSpherize(RSRenderNode& node)
     node.ProcessTransitionAfterChildren(*canvas_);
 }
 
+void RSUniRenderVisitor::DrawChildCanvasRenderNode(RSRenderNode& node)
+{
+    if (node.IsPureContainer() && node.GetCacheType() == CacheType::NONE) {
+        processedPureContainerNode_++;
+        node.ApplyBoundsGeometry(*canvas_);
+        ProcessChildren(node);
+        node.RSRenderNode::ProcessTransitionAfterChildren(*canvas_);
+        return;
+    }
+    DrawChildRenderNode(node);
+}
+
 void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
 {
     CacheType cacheType = node.GetCacheType();
@@ -3241,9 +3253,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
 
         // count processed canvas node
-        RS_OPTIONAL_TRACE_NAME(node.GetName() + " ProcessedNodes: " +
-            std::to_string(processedCanvasNodeInCurrentSurface_));
+        RS_OPTIONAL_TRACE_NAME_FMT("%s PureContainerNode/ProcessedNodes: %u/%u", node.GetName().c_str(),
+            processedPureContainerNode_, processedCanvasNodeInCurrentSurface_);
         processedCanvasNodeInCurrentSurface_ = 0; // reset
+        processedPureContainerNode_ = 0;
     }
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         isSubNodeOfSurfaceInProcess_ = isSubNodeOfSurfaceInProcess;
@@ -3532,7 +3545,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         drawingNode->SetSurfaceClearFunc({ threadIndex_, clearFunc });
     }
     CheckAndSetNodeCacheType(node);
-    DrawChildRenderNode(node);
+    DrawChildCanvasRenderNode(node);
 #ifndef USE_ROSEN_DRAWING
     canvas_->restore();
 #else
