@@ -358,6 +358,11 @@ public:
         return RSProperty<T>::stagingValue_;
     }
 
+    T GetStagingValue() const
+    {
+        return RSProperty<T>::stagingValue_;
+    }
+
     bool GetShowingValueAndCancelAnimation() override
     {
         auto node = RSProperty<T>::target_.lock();
