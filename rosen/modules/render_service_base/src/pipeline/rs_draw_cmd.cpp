@@ -301,7 +301,7 @@ void TextBlobOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
         ROSEN_LOGD("TextBlobOpItem::Draw highContrastEnabled");
         uint32_t color = paint_.getColor();
         uint32_t channelSum = SkColorGetR(color) + SkColorGetG(color) + SkColorGetB(color);
-        bool flag = channelSum < 384; // 384 is empirical value
+        bool flag = channelSum < 594; // 594 is empirical value
 
         SkPaint outlinePaint(paint_);
         SimplifyPaint(flag ? SK_ColorWHITE : SK_ColorBLACK, &outlinePaint);
@@ -309,7 +309,7 @@ void TextBlobOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
         canvas.drawTextBlob(textBlob_, x_, y_, outlinePaint);
 
         SkPaint innerPaint(paint_);
-        SimplifyPaint(SK_ColorBLACK, &innerPaint);
+        SimplifyPaint(flag ? SK_ColorBLACK : SK_ColorWHITE, &innerPaint);
         innerPaint.setStyle(SkPaint::kFill_Style);
         canvas.drawTextBlob(textBlob_, x_, y_, innerPaint);
     } else {
