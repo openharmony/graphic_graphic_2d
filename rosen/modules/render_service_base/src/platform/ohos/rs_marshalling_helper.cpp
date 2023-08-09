@@ -313,7 +313,7 @@ bool RSMarshallingHelper::SerializeInternal(Parcel& parcel, const sk_sp<SkTextBl
 {
     SkBinaryWriteBuffer buffer;
     buffer.setSerialProcs(procs);
-    SkTextBlobPriv::Flatten(*val, buffer);
+    val->TextBlobFlatten(buffer);
     size_t total = buffer.bytesWritten();
     int fId = -1;
     sk_sp<SkData> data;
@@ -333,7 +333,7 @@ bool RSMarshallingHelper::SerializeInternal(Parcel& parcel, const sk_sp<SkTextBl
     return ret;
 }
 
-bool RSMarshallingHelper::DserializeInternal(Parcel& parcel, const sk_sp<SkTextBlob>& val,
+bool RSMarshallingHelper::DserializeInternal(Parcel& parcel, sk_sp<SkTextBlob>& val,
     const SkDeserialProcs& procs, sk_sp<SkData>& data)
 {
     int sizePtr = 0;
