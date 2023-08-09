@@ -27,6 +27,7 @@ ohos_unittest("frame_analyzer_test") {
     "//foundation/graphic/graphic_2d/rosen/modules/frame_analyzer:libframe_analyzer",
     "//foundation/graphic/graphic_2d/utils/test_header:test_header",
   ]
+  external_deps = [ "hilog:libhilog" ]
 
   if (defined(use_new_skia) && use_new_skia) {
     deps += [ "//third_party/skia:skia_ohos" ]

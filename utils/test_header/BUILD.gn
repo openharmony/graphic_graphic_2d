@@ -17,8 +17,12 @@ config("test_header_config") {
   include_dirs = [ "export" ]
 }
 
-group("test_header") {
+ohos_static_library("test_header") {
+  sources = [ "export/test_header.h" ]
+
   public_configs = [ ":test_header_config" ]
-  public_deps =
-      [ "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog" ]
+
+  external_deps = [ "hilog:libhilog" ]
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
 }

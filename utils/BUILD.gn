@@ -105,7 +105,6 @@ ohos_shared_library("libgraphic_utils") {
     "semaphore:semaphore",
     "test_header:test_header",
   ]
-
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
