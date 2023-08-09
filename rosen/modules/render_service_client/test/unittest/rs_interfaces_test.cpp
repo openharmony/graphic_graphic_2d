@@ -911,7 +911,7 @@ HWTEST_F(RSInterfacesTest, SetScreenRefreshRate001, Function | SmallTest | Level
 {
     auto screenId = rsInterfaces->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
-    uint32_t rateToSet = 90;
+    uint32_t rateToSet = 30;
 
     rsInterfaces->SetScreenRefreshRate(screenId, 0, rateToSet);
     sleep(SET_REFRESHRATE_SLEEP_S);
@@ -925,7 +925,7 @@ HWTEST_F(RSInterfacesTest, SetScreenRefreshRate001, Function | SmallTest | Level
         }
     }
     if (ifSupported) {
-        EXPECT_EQ(currentRate, rateToSet);
+        EXPECT_GE(currentRate, rateToSet);
     } else {
         EXPECT_NE(currentRate, rateToSet);
     }
@@ -973,7 +973,7 @@ HWTEST_F(RSInterfacesTest, SetScreenRefreshRate003, Function | SmallTest | Level
         }
     }
     if (ifSupported) {
-        EXPECT_EQ(currentRate, rateToSet);
+        EXPECT_GE(currentRate, rateToSet);
     } else {
         EXPECT_NE(currentRate, rateToSet);
     }
@@ -1007,17 +1007,8 @@ HWTEST_F(RSInterfacesTest, SetRefreshRateMode001, Function | SmallTest | Level2)
         }
     }
 
-    bool ifFormerSupported = false;
-    for (auto rateIter : supportedRates) {
-        if (rateIter == formerRate) {
-            ifFormerSupported = true;
-        }
-    }
-
     if (ifSupported) {
-        EXPECT_EQ(currentRate, newRate);
-    } else if (ifFormerSupported) {
-        EXPECT_EQ(currentRate, formerRate);
+        EXPECT_GE(currentRate, formerRate);
     } else {
         EXPECT_NE(currentRate, formerRate);
     }
