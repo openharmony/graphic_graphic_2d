@@ -150,9 +150,17 @@ float ParticleRenderParams::GetBlueRandomStart() const
 {
     return color_.blueRandom_.start_;
 }
-float ParticleRenderParams::GetBlurRandomEnd() const
+float ParticleRenderParams::GetBlueRandomEnd() const
 {
     return color_.blueRandom_.end_;
+}
+float ParticleRenderParams::GetAlphaRandomStart() const
+{
+    return color_.alphaRandom_.start_;
+}
+float ParticleRenderParams::GetAlphaRandomEnd() const
+{
+    return color_.alphaRandom_.end_;
 }
 
 float ParticleRenderParams::GetOpacityStartValue()

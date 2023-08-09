@@ -38,7 +38,9 @@ void RSRenderParticleEffector::UpdateColor(
         float greenSpeed = RSRenderParticle::GetRandomValue(
             particleParams_->GetGreenRandomStart(), particleParams_->GetGreenRandomEnd());
         float blueSpeed = RSRenderParticle::GetRandomValue(
-            particleParams_->GetBlueRandomStart(), particleParams_->GetBlurRandomEnd());
+            particleParams_->GetBlueRandomStart(), particleParams_->GetBlueRandomEnd());
+        float alphaSpeed = RSRenderParticle::GetRandomValue(
+            particleParams_->GetAlphaRandomStart(), particleParams_->GetAlphaRandomEnd());
         Color color = particle->GetColor();
         int16_t red = color.GetRed() + redSpeed * deltaTime;
         red = std::clamp<int16_t>(red, 0, UINT8_MAX);
@@ -46,9 +48,12 @@ void RSRenderParticleEffector::UpdateColor(
         green = std::clamp<int16_t>(green, 0, UINT8_MAX);
         int16_t blue = color.GetBlue() + blueSpeed * deltaTime;
         blue = std::clamp<int16_t>(blue, 0, UINT8_MAX);
+        int16_t alpha = color.GetAlpha() + alphaSpeed * deltaTime;
+        alpha = std::clamp<int16_t>(alpha, 0, UINT8_MAX);
         color.SetRed(red);
         color.SetGreen(green);
         color.SetBlue(blue);
+        color.SetAlpha(alpha);
         particle->SetColor(color);
     } else if (colorUpdator == ParticleUpdator::CURVE) {
         auto valChangeOverLife = particleParams_->color_.valChangeOverLife_;
@@ -64,9 +69,11 @@ void RSRenderParticleEffector::UpdateColor(
                 int16_t red = std::clamp<int16_t>(color.GetRed(), 0, UINT8_MAX);
                 int16_t green = std::clamp<int16_t>(color.GetGreen(), 0, UINT8_MAX);
                 int16_t blue = std::clamp<int16_t>(color.GetBlue(), 0, UINT8_MAX);
+                int16_t alpha = std::clamp<int16_t>(color.GetAlpha(), 0, UINT8_MAX);
                 color.SetRed(red);
                 color.SetGreen(green);
                 color.SetBlue(blue);
+                color.SetAlpha(alpha);
                 particle->SetColor(color);
             }
         }
@@ -163,7 +170,7 @@ void RSRenderParticleEffector::UpdateAccelerate(
     float acceValueChange = 0.f;
     float acceAngleChange = 0.f;
     float value = 0.f;
-    float Angle = 0.f;
+    float angle = 0.f;
     activeTime /= NS_PER_MS;
     if (acceValueUpdator == ParticleUpdator::RANDOM) {
         float acceValueSpeed = RSRenderParticle::GetRandomValue(
@@ -195,7 +202,7 @@ void RSRenderParticleEffector::UpdateAccelerate(
             int endTime = valChangeOverLife[i]->endMillis_;
             auto interpolator = valChangeOverLife[i]->interpolator_;
             if (activeTime >= startTime && activeTime < endTime) {
-                Angle = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
+                angle = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
             }
         }
     }
@@ -205,11 +212,7 @@ void RSRenderParticleEffector::UpdateAccelerate(
         acceleration.y_ += acceValueChange * sin(acceAngleChange);
         particle->SetAcceleration(acceleration);
     } else if (acceValueUpdator == ParticleUpdator::CURVE && acceAngleUpdator == ParticleUpdator::CURVE) {
-        particle->SetAcceleration({ value * cos(Angle), value * sin(Angle) });
-    } else if (acceValueUpdator == ParticleUpdator::RANDOM && acceAngleUpdator == ParticleUpdator::CURVE) {
-        // to do
-    } else if (acceValueUpdator == ParticleUpdator::CURVE && acceAngleUpdator == ParticleUpdator::RANDOM) {
-        // to do
+        particle->SetAcceleration({ value * cos(angle), value * sin(angle) });
     }
 }
 

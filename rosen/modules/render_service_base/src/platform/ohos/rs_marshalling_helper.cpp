@@ -1153,6 +1153,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Rend
         success =
             success && Marshalling(parcel, val->greenRandom_.start_) && Marshalling(parcel, val->greenRandom_.end_);
         success = success && Marshalling(parcel, val->blueRandom_.start_) && Marshalling(parcel, val->blueRandom_.end_);
+        success = success && Marshalling(parcel, val->alphaRandom_.start_) && Marshalling(parcel, val->alphaRandom_.end_);
     } else if (val->updator_ == ParticleUpdator::CURVE) {
         success = success && parcel.WriteUint32(static_cast<uint32_t>(val->valChangeOverLife_.size()));
         for (size_t i = 0; i < val->valChangeOverLife_.size(); i++) {
@@ -1173,13 +1174,15 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RenderPa
     Range<float> redRandom;
     Range<float> greenRandom;
     Range<float> blueRandom;
+    Range<float> alphaRandom;
     std::vector<std::shared_ptr<ChangeInOverLife<Color>>> valChangeOverLife;
     bool success = Unmarshalling(parcel, colorVal.start_) && Unmarshalling(parcel, colorVal.end_) &&
                    Unmarshalling(parcel, updator);
     if (updator == ParticleUpdator::RANDOM) {
         success = success && Unmarshalling(parcel, redRandom.start_) && Unmarshalling(parcel, redRandom.end_) &&
                   Unmarshalling(parcel, greenRandom.start_) && Unmarshalling(parcel, greenRandom.end_) &&
-                  Unmarshalling(parcel, blueRandom.start_) && Unmarshalling(parcel, blueRandom.end_);
+                  Unmarshalling(parcel, blueRandom.start_) && Unmarshalling(parcel, blueRandom.end_) &&
+                  Unmarshalling(parcel, alphaRandom.start_) && Unmarshalling(parcel, alphaRandom.end_);
     } else if (updator == ParticleUpdator::CURVE) {
         uint32_t valChangeOverLifeSize = parcel.ReadUint32();
         for (size_t i = 0; i < valChangeOverLifeSize; i++) {
@@ -1199,7 +1202,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RenderPa
     }
     if (success) {
         val = std::make_shared<RenderParticleColorParaType>(
-            colorVal, updator, redRandom, greenRandom, blueRandom, valChangeOverLife);
+            colorVal, updator, redRandom, greenRandom, blueRandom, alphaRandom, valChangeOverLife);
     }
     return success;
 }
