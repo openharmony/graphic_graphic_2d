@@ -336,6 +336,10 @@ public:
 
     bool IsAncestorDirty() const;
     void SetIsAncestorDirty(bool isAncestorDirty);
+    bool IsClipBoundDirty() const;
+    void SetIsClipBoundDirty(bool isClipBoundDirty);
+    bool IsAncestorClipBoundDirty() const;
+    void SetIsAncestorClipBoundDirty(bool isAncestorClipBoundDirty);
 
     bool HasCachedTexture() const;
 
@@ -504,6 +508,9 @@ private:
     bool hasHardwareNode_ = false;
     bool hasAbilityComponent_ = false;
     bool isAncestorDirty_ = false;
+    // current node is dirty and clipped, which means its subnodes' dirtyregion collection can be skipped
+    bool isClipBoundDirty_ = false;
+    bool isAncestorClipBoundDirty_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 
     // driven render

@@ -1151,6 +1151,12 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     }
 
     node.SetIsAncestorDirty(rsParent->IsDirty() || rsParent->IsAncestorDirty());
+    node.SetIsAncestorClipBoundDirty(rsParent->IsAncestorClipBoundDirty() || rsParent->IsClipBoundDirty());
+    if (!node.IsAncestorClipBoundDirty() &&
+        (node.GetRenderProperties().GetClipBounds() || node.GetRenderProperties().GetClipToFrame()) &&
+        node.IsDirty()) {
+        node.SetIsClipBoundDirty(true);
+    }
     if (curSurfaceDirtyManager_ == nullptr) {
         RS_LOGE("RSUniRenderVisitor::PrepareCanvasRenderNode curSurfaceDirtyManager is nullptr");
         return;
@@ -1240,6 +1246,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     UpdateSurfaceFrameRateRange(node);
 
     PrepareChildren(node);
+    node.SetIsClipBoundDirty(false);
     // attention: accumulate direct parent's childrenRect
     node.UpdateParentChildrenRect(logicParentNode_.lock());
     node.UpdateEffectRegion(effectRegion_);
