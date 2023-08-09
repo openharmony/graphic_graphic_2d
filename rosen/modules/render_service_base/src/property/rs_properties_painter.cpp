@@ -1672,11 +1672,11 @@ void RSPropertiesPainter::DrawBorder(const RSProperties& properties, SkCanvas& c
     }
     SkPaint paint;
     paint.setAntiAlias(true);
-    if (properties.GetCornerRadius().IsZero() && border->ApplyFourLine(paint)) {
+    if (border->ApplyFillStyle(paint)) {
+        canvas.drawDRRect(RRect2SkRRect(properties.GetRRect()), RRect2SkRRect(properties.GetInnerRRect()), paint);
+    } else if (properties.GetCornerRadius().IsZero() && border->ApplyFourLine(paint)) {
         RectF rect = properties.GetBoundsRect();
         border->PaintFourLine(canvas, paint, rect);
-    } else if (border->ApplyFillStyle(paint)) {
-        canvas.drawDRRect(RRect2SkRRect(properties.GetRRect()), RRect2SkRRect(properties.GetInnerRRect()), paint);
     } else if (border->ApplyPathStyle(paint)) {
         auto borderWidth = border->GetWidth();
         RRect rrect = properties.GetRRect();
