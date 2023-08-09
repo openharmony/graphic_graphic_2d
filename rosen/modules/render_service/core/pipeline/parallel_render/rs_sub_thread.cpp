@@ -257,8 +257,21 @@ sk_sp<GrContext> RSSubThread::CreateShareGrContext()
 #else
 std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
 {
-    ROSEN_LOGE("[%s:%d] Drawing is not supported", __func__, __LINE__);
-    return nullptr;
+    RS_TRACE_NAME("CreateShareGrContext");
+    CreateShareEglContext();
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    Drawing::GPUContextOptions options;
+    auto handler = std::make_shared<MemoryHandler>();
+    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    auto size = glesVersion ? strlen(glesVersion) : 0;
+    /* /data/service/el0/render_service is shader cache dir*/
+    handler->ConfigureContext(&options, glesVersion, size, "/data/service/el0/render_service", true);
+
+    if (!gpuContext->BuildFromGL(options)) {
+        RS_LOGE("nullptr gpuContext is null");
+        return nullptr;
+    }
+    return gpuContext;
 }
 #endif
 
