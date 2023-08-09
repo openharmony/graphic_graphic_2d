@@ -3177,7 +3177,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     node.GetName().c_str(), node.GetId());
             } else {
                 node.SetGlobalAlpha(1.0f);
-                auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
+                auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false, threadIndex_);
                 renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
             }
         }

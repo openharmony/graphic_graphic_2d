@@ -227,10 +227,12 @@ protected:
 private:
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
-        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence);
+        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
+        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
 #else
     std::shared_ptr<Drawing::Image> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
-        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence);
+        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
+        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
 #endif
 
     static inline std::atomic_bool isHighContrastEnabled_ = false;

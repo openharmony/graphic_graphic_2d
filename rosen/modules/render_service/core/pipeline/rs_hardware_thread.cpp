@@ -271,7 +271,6 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         uniRenderEngine_->DrawBuffer(*canvas, params);
 #else
         if (!params.useCPU) {
-            RS_TRACE_NAME("RSHardwareThread::Redraw DrawImage(GPU)");
             if (!RSBaseRenderUtil::IsBufferValid(params.buffer)) {
                 RS_LOGE("RSHardwareThread::Redraw CreateEglImageFromBuffer invalid param!");
                 continue;
@@ -318,9 +317,11 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 return;
             }
 #ifdef NEW_SKIA
+            RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
             canvas->drawImageRect(image, params.srcRect, params.dstRect, SkSamplingOptions(),
                 &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
 #else
+            RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
             canvas->drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
 #endif
 #else // USE_ROSEN_DRAWING
@@ -343,6 +344,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 return;
             }
             canvas->AttachBrush(params.paint);
+            RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
             canvas->DrawImageRect(*image, params.srcRect, params.dstRect,
                 Drawing::SamplingOptions(), Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
             canvas->DetachBrush();

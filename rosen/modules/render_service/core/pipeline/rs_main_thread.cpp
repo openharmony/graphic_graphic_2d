@@ -1121,7 +1121,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             if (doParallelComposition) {
                 RS_LOGD("RSMainThread::Render multi-threads parallel composition end.");
                 isDirty_ = false;
-                uniRenderEngine_->ShrinkCachesIfNeeded();
                 PerfForBlurIfNeeded();
                 return;
             }
