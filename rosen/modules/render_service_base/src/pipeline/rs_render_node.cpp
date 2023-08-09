@@ -1424,8 +1424,8 @@ void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
         if (itr == modifiers_.end() || !itr->second) {
             continue;
         }
-        hasGroupableAnim = (hasGroupableAnim | (GROUPABLE_ANIMATION_TYPE.count(itr->second->GetType()) != 0));
-        hasCacheableAnim_ = (hasCacheableAnim_ | (CACHEABLE_ANIMATION_TYPE.count(itr->second->GetType()) != 0));
+        hasGroupableAnim = (hasGroupableAnim || (GROUPABLE_ANIMATION_TYPE.count(itr->second->GetType()) != 0));
+        hasCacheableAnim_ = (hasCacheableAnim_ || (CACHEABLE_ANIMATION_TYPE.count(itr->second->GetType()) != 0));
     }
     MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, hasGroupableAnim);
 }
