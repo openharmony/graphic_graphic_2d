@@ -554,6 +554,9 @@ bool RSRenderNode::Update(
         Drawing::Point offset(parent->GetFrameOffsetX(), parent->GetFrameOffsetY());
     }
 #endif
+    // in some case geodirty_ is not marked in drawCmdModifiers_, we should update node geometry
+    parentDirty |= (dirtyStatus_ != NodeDirty::CLEAN);
+
     bool dirty = renderProperties_.UpdateGeometry(parent, parentDirty, offset, GetContextClipRegion());
     if ((IsDirty() || dirty) && drawCmdModifiers_.count(RSModifierType::GEOMETRYTRANS)) {
         RSModifierContext context = { GetMutableRenderProperties() };
@@ -930,7 +933,6 @@ bool RSRenderNode::ApplyModifiers()
     }
     lastApplyTimestamp_ = lastTimestamp_;
     OnApplyModifiers();
-    UpdateDrawRegion();
     dirtyTypes_.clear();
 
 #ifndef USE_ROSEN_DRAWING
@@ -940,35 +942,6 @@ bool RSRenderNode::ApplyModifiers()
     }
 #endif
     return renderProperties_.GetPositionZ() != prevPositionZ;
-}
-
-void RSRenderNode::UpdateDrawRegion()
-{
-    RSModifierContext context = { GetMutableRenderProperties() };
-    RectF joinRect = RectF();
-    if (drawRegion_) {
-        joinRect = joinRect.JoinRect(*(drawRegion_));
-    }
-    for (auto& iterator : drawCmdModifiers_) {
-        if (iterator.first > RSModifierType::NODE_MODIFIER) {
-            continue;
-        }
-        for (auto& modifier : iterator.second) {
-            auto drawCmdModifier = std::static_pointer_cast<RSDrawCmdListRenderModifier>(modifier);
-            if (!drawCmdModifier) {
-                continue;
-            }
-#ifndef USE_ROSEN_DRAWING
-            auto recording = std::static_pointer_cast<RSRenderProperty<DrawCmdListPtr>>(
-#else
-            auto recording = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(
-#endif
-                    drawCmdModifier->GetProperty())->Get();
-            auto recordingRect = RectF(0, 0, recording->GetWidth(), recording->GetHeight());
-            joinRect = recordingRect.IsEmpty() ? joinRect : joinRect.JoinRect(recordingRect);
-        }
-    }
-    context.property_.SetDrawRegion(std::make_shared<RectF>(joinRect));
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -1907,6 +1880,11 @@ bool RSRenderNode::HasCachedTexture() const
 void RSRenderNode::SetDrawRegion(std::shared_ptr<RectF> rect)
 {
     drawRegion_ = rect;
+    renderProperties_.SetDrawRegion(rect);
+}
+std::shared_ptr<RectF> RSRenderNode::GetDrawRegion() const
+{
+    return drawRegion_;
 }
 RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType()
 {

@@ -1226,7 +1226,6 @@ void RSProperties::Reset()
     alphaOffscreen_ = false;
     isDirty_ = true;
     hasBounds_ = false;
-    isDirty_ = true;
     visible_ = true;
     clipToBounds_ = false;
     clipToFrame_ = false;

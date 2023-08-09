@@ -344,8 +344,8 @@ public:
     bool HasCachedTexture() const;
 
     void SetDrawRegion(std::shared_ptr<RectF> rect);
+    std::shared_ptr<RectF> GetDrawRegion() const;
 
-    void UpdateDrawRegion();
 #ifndef USE_ROSEN_DRAWING
     void UpdateEffectRegion(std::optional<SkPath>& region) const;
 #else
