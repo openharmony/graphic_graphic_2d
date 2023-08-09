@@ -333,7 +333,7 @@ bool RSMarshallingHelper::SerializeInternal(Parcel& parcel, const sk_sp<SkTextBl
     return ret;
 }
 
-bool RSMarshallingHelper::DserializeInternal(Parcel& parcel, const sk_sp<SkTextBlob>& val,
+bool RSMarshallingHelper::DserializeInternal(Parcel& parcel, sk_sp<SkTextBlob>& val,
     const SkDeserialProcs& procs, sk_sp<SkData>& data)
 {
     int sizePtr = 0;

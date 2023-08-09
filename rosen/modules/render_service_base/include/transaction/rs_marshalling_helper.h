@@ -341,9 +341,9 @@ public:
 #if defined (ENABLE_DDGR_OPTIMIZE)
     static int IntegrateReadDescriptor(Parcel& pacel);
     static bool IntegrateWriteDescriptor(Parcel& parcel, int fId);
-    static sk_sp<SkData> SerializeInternal(Parcel& parcel, const sk_sp<SkTextBlob>& val,
+    static bool SerializeInternal(Parcel& parcel, const sk_sp<SkTextBlob>& val,
         const SkSerialProcs& procs);
-    static sk_sp<SkData> DserializeInternal(Parcel& parcel, sk_sp<SkTextBlob>& val,
+    static bool DserializeInternal(Parcel& parcel, sk_sp<SkTextBlob>& val,
         const SkDeserialProcs& procs, sk_sp<SkData>& data);
 #endif
 
