@@ -28,7 +28,9 @@
 #include "rs_trace.h"
 
 #include "accesstoken_kit.h"
+#include "access_token.h"
 #include "ipc_skeleton.h"
+#include "tokenid_kit.h"
 
 #if defined (ENABLE_DDGR_OPTIMIZE)
 #include "ddgr_renderer.h"
@@ -105,6 +107,19 @@ inline bool IsSystemServiceCalling()
 {
     return Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE ==
         Security::AccessToken::AccessTokenKit::GetTokenType(IPCSkeleton::GetCallingTokenID());
+}
+
+inline bool IsSystemAppCalling()
+{
+    return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(IPCSkeleton::GetCallingFullTokenID());
+}
+
+inline bool IsSystemCalling()
+{
+    if (IsSystemServiceCalling()) {
+        return true;
+    }
+    return IsSystemAppCalling();
 }
 }
 
@@ -221,7 +236,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN): {
-            if (!IsSystemServiceCalling()) {
+            if (!IsSystemCalling()) {
                 ret = ERR_INVALID_STATE;
                 break;
             }
@@ -249,7 +264,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE): {
-            if (!IsSystemServiceCalling()) {
+            if (!IsSystemCalling()) {
                 ret = ERR_INVALID_STATE;
                 break;
             }
@@ -277,7 +292,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN): {
-            if (!IsSystemServiceCalling()) {
+            if (!IsSystemCalling()) {
                 ret = ERR_INVALID_STATE;
                 break;
             }
@@ -370,7 +385,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION): {
-            if (!IsSystemServiceCalling()) {
+            if (!IsSystemCalling()) {
                 ret = ERR_INVALID_STATE;
                 break;
             }
@@ -430,7 +445,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_RESOLUTION): {
-            if (!IsSystemServiceCalling()) {
+            if (!IsSystemCalling()) {
                 ret = ERR_INVALID_STATE;
                 break;
             }
