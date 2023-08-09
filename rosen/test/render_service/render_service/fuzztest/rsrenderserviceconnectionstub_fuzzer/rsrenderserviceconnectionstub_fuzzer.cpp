@@ -76,7 +76,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     size_ = size;
     pos = 0;
 
-    uint32_t code = GetData<uint32_t>() % MAX_DATA;
     MessageParcel datas;
     datas.WriteInterfaceToken(RENDERSERVICECONNECTION_INTERFACE_TOKEN);
     datas.WriteBuffer(data, size);
@@ -86,7 +85,9 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub =
         new RSRenderServiceConnection(0, nullptr, RSMainThread::Instance(), nullptr, token->AsObject(), nullptr);
-    connectionStub->OnRemoteRequest(code, datas, reply, option);
+    for (uint32_t code = 0; code < MAX_DATA; ++code) {
+        connectionStub->OnRemoteRequest(code, datas, reply, option);
+    }
     return true;
 }
 } // ROSEN
