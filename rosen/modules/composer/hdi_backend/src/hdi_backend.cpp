@@ -14,6 +14,7 @@
  */
 
 #include "hdi_backend.h"
+#include "hdi_log.h"
 
 #include <scoped_bytrace.h>
 #include "surface_buffer.h"

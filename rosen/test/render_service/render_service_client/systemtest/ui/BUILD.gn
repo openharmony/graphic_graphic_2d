@@ -39,6 +39,7 @@ ohos_systemtest("RSRenderServiceClientUISystemTest") {
 
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 

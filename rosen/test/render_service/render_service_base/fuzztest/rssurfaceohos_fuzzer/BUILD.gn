@@ -33,6 +33,11 @@ ohos_fuzztest("RSSurfaceOhosFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [ "rssurfaceohos_fuzzer.cpp" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ###############################################################################

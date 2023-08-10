@@ -47,6 +47,11 @@ ohos_fuzztest("RSListenedCanvasFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [ "rslistenedcanvas_fuzzer.cpp" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ###############################################################################

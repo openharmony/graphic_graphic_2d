@@ -44,10 +44,12 @@ ohos_fuzztest("RSRenderServiceConnectionStubFuzzTest") {
     "c_utils:utils",
     "common_event_service:cesfwk_core",
     "common_event_service:cesfwk_innerkits",
+    "hilog:libhilog",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
   cflags = [
     "-g",
     "-O0",

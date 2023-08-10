@@ -47,6 +47,9 @@ ohos_systemtest("opengl_wrapper_api_test") {
     "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 ## SystemTest opengl_wrapper_api_test }}}

@@ -69,6 +69,7 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
   }
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 

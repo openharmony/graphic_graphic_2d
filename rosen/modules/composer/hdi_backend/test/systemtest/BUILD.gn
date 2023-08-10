@@ -55,6 +55,11 @@ ohos_systemtest("hdibackend_sys_test") {
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## SystemTest hdibackend_sys_test }}}
@@ -83,6 +88,11 @@ ohos_systemtest("hdilayer_sys_test") {
     "//foundation/graphic/graphic_2d/utils:socketpair",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
   ]
 }
 
@@ -117,6 +127,11 @@ ohos_systemtest("hdioutput_sys_test") {
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## SystemTest hdioutput_sys_test }}}
@@ -148,6 +163,11 @@ ohos_systemtest("hdiscreen_sys_test") {
     "//foundation/graphic/graphic_2d/utils:socketpair",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
   ]
 }
 ## SystemTest hdiscreen_sys_test }}}

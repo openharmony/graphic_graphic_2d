@@ -47,13 +47,10 @@ ohos_shared_library("sync_fence") {
 
   public_configs = [ ":sync_fence_public_config" ]
 
-  public_deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//commonlibrary/c_utils/base:utils",
-  ]
-
   external_deps = [
+    "c_utils:utils",
     "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_single",
   ]

@@ -36,6 +36,10 @@ ohos_fuzztest("SurfaceFuzzTest") {
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
   ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ###############################################################################

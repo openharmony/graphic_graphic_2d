@@ -149,7 +149,10 @@ ohos_executable("drawing_sample_rs") {
     "//third_party/zlib:libz",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

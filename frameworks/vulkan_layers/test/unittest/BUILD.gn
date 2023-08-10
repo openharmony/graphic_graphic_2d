@@ -60,6 +60,10 @@ ohos_static_library("vulkan_loader_test_common") {
     "//third_party/vulkan-headers:vulkan_headers",
     "//third_party/zlib:libz",
   ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }
