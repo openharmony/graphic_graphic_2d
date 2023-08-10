@@ -44,6 +44,11 @@ ohos_unittest("buffer_client_producer_remote_test") {
   sources = [ "buffer_client_producer_remote_test.cpp" ]
 
   deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## UnitTest buffer_client_producer_remote_test }}}
@@ -55,6 +60,11 @@ ohos_unittest("buffer_manager_test") {
   sources = [ "buffer_manager_test.cpp" ]
 
   deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## UnitTest buffer_manager_test }}}
@@ -66,6 +76,11 @@ ohos_unittest("buffer_queue_consumer_test") {
   sources = [ "buffer_queue_consumer_test.cpp" ]
 
   deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## UnitTest buffer_queue_consumer_test }}}
@@ -77,6 +92,11 @@ ohos_unittest("buffer_queue_producer_remote_test") {
   sources = [ "buffer_queue_producer_remote_test.cpp" ]
 
   deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## UnitTest buffer_queue_producer_remote_test }}}
@@ -88,6 +108,11 @@ ohos_unittest("buffer_queue_producer_test") {
   sources = [ "buffer_queue_producer_test.cpp" ]
 
   deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## UnitTest buffer_queue_producer_test }}}
@@ -99,6 +124,11 @@ ohos_unittest("buffer_queue_test") {
   sources = [ "buffer_queue_test.cpp" ]
 
   deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## UnitTest buffer_queue_test }}}
@@ -110,6 +140,11 @@ ohos_unittest("buffer_shared_test") {
   sources = [ "buffer_shared_test.cpp" ]
 
   deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## UnitTest buffer_shared_test }}}
@@ -121,6 +156,11 @@ ohos_unittest("consumer_surface_test") {
   sources = [ "consumer_surface_test.cpp" ]
 
   deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## UnitTest consumer_surface_test }}}
@@ -132,6 +172,11 @@ ohos_unittest("producer_surface_test") {
   sources = [ "producer_surface_test.cpp" ]
 
   deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## UnitTest producer_surface_test }}}
@@ -143,6 +188,11 @@ ohos_unittest("surface_buffer_impl_test") {
   sources = [ "surface_buffer_impl_test.cpp" ]
 
   deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## UnitTest surface_buffer_impl_test }}}
@@ -154,6 +204,11 @@ ohos_unittest("surface_utils_test") {
   sources = [ "surface_utils_test.cpp" ]
 
   deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## UnitTest surface_utils_test }}}
@@ -165,6 +220,11 @@ ohos_unittest("native_window_test") {
   sources = [ "native_window_test.cpp" ]
 
   deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## UnitTest native_window_test }}}
@@ -176,6 +236,11 @@ ohos_unittest("native_buffer_test") {
   sources = [ "native_buffer_test.cpp" ]
 
   deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## UnitTest native_buffer_test }}}
@@ -190,6 +255,11 @@ ohos_unittest("native_image_test") {
   }
 
   deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## UnitTest native_image_test }}}
@@ -225,7 +295,6 @@ ohos_static_library("surface_test_common") {
     "$graphic_2d_root/utils:buffer_handle",
     "$graphic_2d_root/utils:libgraphic_utils",
     "$graphic_2d_root/utils:sync_fence",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//base/security/access_token/interfaces/innerkits/accesstoken:libaccesstoken_sdk",
     "//base/security/access_token/interfaces/innerkits/nativetoken:libnativetoken",
     "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",

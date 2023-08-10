@@ -46,7 +46,6 @@ ohos_systemtest("native_window_buffer_test") {
   ]
 
   deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//base/security/access_token/interfaces/innerkits/accesstoken:libaccesstoken_sdk",
     "//base/security/access_token/interfaces/innerkits/nativetoken:libnativetoken",
     "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
@@ -56,7 +55,11 @@ ohos_systemtest("native_window_buffer_test") {
     "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [ "ipc:ipc_core" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+  ]
 }
 
 ## SystemTest native_window_buffer_test }}}
@@ -89,6 +92,10 @@ ohos_systemtest("surface_ipc_test") {
     "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [ "ipc:ipc_core" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+  ]
 }
 ## SystemTest surface_ipc_test }}}

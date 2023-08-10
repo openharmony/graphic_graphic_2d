@@ -55,7 +55,10 @@ ohos_executable("hello_composer") {
     "//foundation/graphic/graphic_2d/utils:sync_fence",
   ]
 
-  external_deps = [ "eventhandler:libeventhandler" ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
