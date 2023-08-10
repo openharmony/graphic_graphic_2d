@@ -2067,8 +2067,19 @@ void RSPropertiesPainter::DrawColorFilter(const RSProperties& properties, RSPain
     SkPaint paint;
     paint.setAntiAlias(true);
     paint.setColorFilter(colorFilter);
-    SkCanvas::SaveLayerRec slr(nullptr, &paint, SkCanvas::kInitWithPrevious_SaveLayerFlag);
-    canvas.saveLayer(slr);
+    auto skSurface = canvas.GetSurface();
+    if (skSurface == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawColorFilter skSurface is null");
+        return;
+    }
+    auto clipBounds = canvas.getDeviceClipBounds();
+    auto imageSnapshot = skSurface->makeImageSnapshot(clipBounds);
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawColorFilter image is null");
+        return;
+    }
+    SkSamplingOptions options;
+    canvas.drawImageRect(imageSnapshot, Rect2SkRect(properties.GetBoundsRect()), options, &paint);
 #endif
 }
 
