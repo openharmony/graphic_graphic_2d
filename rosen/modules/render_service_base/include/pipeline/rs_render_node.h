@@ -163,9 +163,10 @@ public:
 
     virtual std::pair<bool, bool> Animate(int64_t timestamp);
 
+    bool IsClipBound() const;
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
     bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty,
-        std::optional<RectI> clipRect = std::nullopt);
+        bool isClipBoundDirty = false, std::optional<RectI> clipRect = std::nullopt);
 #ifndef USE_ROSEN_DRAWING
     virtual std::optional<SkRect> GetContextClipRegion() const { return std::nullopt; }
 #else
@@ -340,8 +341,8 @@ public:
     bool HasCachedTexture() const;
 
     void SetDrawRegion(std::shared_ptr<RectF> rect);
+    std::shared_ptr<RectF> GetDrawRegion() const;
 
-    void UpdateDrawRegion();
 #ifndef USE_ROSEN_DRAWING
     void UpdateEffectRegion(std::optional<SkPath>& region) const;
 #else
