@@ -86,9 +86,9 @@ public:
         isDirty_ = isDirty;
     }
 
-    void SetFocusedWindowPid(pid_t pid)
+    void SetFocusedNodeId(uint64_t nodeId)
     {
-        currentFocusedPid_ = pid;
+        currentFocusedNodeId_ = nodeId;
     }
 
     void SetSubThreadConfig(uint32_t threadIndex)
@@ -341,7 +341,7 @@ private:
     bool needFilter_ = false;
     GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     std::vector<ScreenColorGamut> colorGamutModes_;
-    pid_t currentFocusedPid_ = -1;
+    uint64_t currentFocusedNodeId_ = 0;
 
     bool isSubThread_ = false;
     bool isUIFirst_ = false;

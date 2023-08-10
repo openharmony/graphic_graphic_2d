@@ -320,11 +320,11 @@ private:
     uint32_t lastSurfaceCnt_ = 0;
     int32_t focusAppPid_ = -1;
     int32_t focusAppUid_ = -1;
-    int32_t lastFocusAppPid_ = -1;
     const uint8_t opacity_ = 255;
     std::string focusAppBundleName_ = "";
     std::string focusAppAbilityName_ = "";
     uint64_t focusNodeId_ = 0;
+    uint64_t lastFocusNodeId_ = 0;
     uint32_t appWindowNum_ = 0;
     uint32_t requestNextVsyncNum_ = 0;
     bool lastFrameHasFilter_ = false;

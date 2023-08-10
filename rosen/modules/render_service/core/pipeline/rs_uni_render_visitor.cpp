@@ -163,7 +163,7 @@ RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUn
     curAlpha_ = visitor.curAlpha_;
     dirtyFlag_ = visitor.dirtyFlag_;
     curDisplayNode_ = visitor.curDisplayNode_;
-    currentFocusedPid_ = visitor.currentFocusedPid_;
+    currentFocusedNodeId_ = visitor.currentFocusedNodeId_;
     surfaceNodePrepareMutex_ = visitor.surfaceNodePrepareMutex_;
     prepareClipRect_ = visitor.prepareClipRect_;
     isOpDropped_ = visitor.isOpDropped_;
@@ -185,7 +185,7 @@ void RSUniRenderVisitor::CopyVisitorInfos(std::shared_ptr<RSUniRenderVisitor> vi
     curAlpha_ = visitor->curAlpha_;
     dirtyFlag_ = visitor->dirtyFlag_;
     curDisplayNode_ = visitor->curDisplayNode_;
-    currentFocusedPid_ = visitor->currentFocusedPid_;
+    currentFocusedNodeId_ = visitor->currentFocusedNodeId_;
     surfaceNodePrepareMutex_ = visitor->surfaceNodePrepareMutex_;
     prepareClipRect_ = visitor->prepareClipRect_;
     isOpDropped_ = visitor->isOpDropped_;
@@ -888,12 +888,13 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     auto screenRotation = curDisplayNode_->GetRotation();
     auto screenRect = RectI(0, 0, screenInfo_.width, screenInfo_.height);
     if (!node.CheckOpaqueRegionBaseInfo(
-        screenRect, geoPtr->GetAbsRect(), screenRotation, node.IsFocusedWindow(currentFocusedPid_))) {
+        screenRect, geoPtr->GetAbsRect(), screenRotation, node.IsFocusedNode(currentFocusedNodeId_))
+        && node.GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE) {
         node.ResetSurfaceOpaqueRegion(screenRect, geoPtr->GetAbsRect(),
-            screenRotation, node.IsFocusedWindow(currentFocusedPid_));
+            screenRotation, node.IsFocusedNode(currentFocusedNodeId_));
     }
     node.SetOpaqueRegionBaseInfo(
-        screenRect, geoPtr->GetAbsRect(), screenRotation, node.IsFocusedWindow(currentFocusedPid_));
+        screenRect, geoPtr->GetAbsRect(), screenRotation, node.IsFocusedNode(currentFocusedNodeId_));
 
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     bool isLeashWindowNode = false;

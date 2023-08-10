@@ -1094,21 +1094,23 @@ void RSSurfaceRenderNode::ResetSurfaceContainerRegion(const RectI& screeninfo, c
 bool RSSurfaceRenderNode::CheckOpaqueRegionBaseInfo(
     const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow)
 {
-    // 0:screenRect, 1:absRect, 2:screenRotation, 3:isFocusWindow
-    return std::get<0>(OpaqueRegionBaseInfo_) == screeninfo &&
-        std::get<1>(OpaqueRegionBaseInfo_) == absRect &&
-        std::get<2>(OpaqueRegionBaseInfo_) == screenRotation &&
-        std::get<3>(OpaqueRegionBaseInfo_) == isFocusWindow;
+    return opaqueRegionBaseInfo_.screenRect_ == screeninfo &&
+        opaqueRegionBaseInfo_.absRect_ == absRect &&
+        opaqueRegionBaseInfo_.screenRotation_ == screenRotation &&
+        opaqueRegionBaseInfo_.isFocusWindow_ == isFocusWindow &&
+        opaqueRegionBaseInfo_.isTransparent_ == IsTransparent() &&
+        opaqueRegionBaseInfo_.hasContainerWindow_ == HasContainerWindow();
 }
 
 void RSSurfaceRenderNode::SetOpaqueRegionBaseInfo(
     const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow)
 {
-    // 0:screenRect, 1:absRect, 2:screenRotation, 3:isFocusWindow
-    std::get<0>(OpaqueRegionBaseInfo_) = screeninfo;
-    std::get<1>(OpaqueRegionBaseInfo_) = absRect;
-    std::get<2>(OpaqueRegionBaseInfo_) = screenRotation;
-    std::get<3>(OpaqueRegionBaseInfo_) = isFocusWindow;
+    opaqueRegionBaseInfo_.screenRect_ = screeninfo;
+    opaqueRegionBaseInfo_.absRect_ = absRect;
+    opaqueRegionBaseInfo_.screenRotation_ = screenRotation;
+    opaqueRegionBaseInfo_.isFocusWindow_ = isFocusWindow;
+    opaqueRegionBaseInfo_.isTransparent_ = IsTransparent();
+    opaqueRegionBaseInfo_.hasContainerWindow_ = HasContainerWindow();
 }
 
 // [planning] Remove this after skia is upgraded, the clipRegion is supported

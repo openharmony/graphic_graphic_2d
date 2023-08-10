@@ -1102,7 +1102,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SetAnimateState(doWindowAnimate_);
         uniVisitor->SetDirtyFlag(isDirty_ || isAccessibilityConfigChanged_);
         isAccessibilityConfigChanged_ = false;
-        uniVisitor->SetFocusedWindowPid(focusAppPid_);
+        uniVisitor->SetFocusedNodeId(focusNodeId_);
         rootNode->Prepare(uniVisitor);
         uniVisitor->FindAndSendRefreshRate();
         uniVisitor->CalcSurfaceDrawingFrameRate();
@@ -1174,7 +1174,7 @@ bool RSMainThread::CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces,
     std::shared_ptr<RSSurfaceRenderNode> curSurface)
 {
     bool needProcess = false;
-    if (curSurface->IsFocusedWindow(focusAppPid_)) {
+    if (curSurface->IsFocusedNode(focusNodeId_)) {
         needProcess = true;
         if (!curSurface->HasContainerWindow() && !curSurface->IsTransparent() &&
             curSurface->GetName().find("hisearch") == std::string::npos) {
@@ -1290,9 +1290,9 @@ void RSMainThread::CalcOcclusion()
     // Judge whether it is dirty
     // Surface cnt changed or surface DstRectChanged or surface ZorderChanged
     bool winDirty = (lastSurfaceCnt_ != curAllSurfaces.size() || isDirty_ ||
-        lastFocusAppPid_ != focusAppPid_);
+        lastFocusNodeId_ != focusNodeId_);
     lastSurfaceCnt_ = curAllSurfaces.size();
-    lastFocusAppPid_ = focusAppPid_;
+    lastFocusNodeId_ = focusNodeId_;
     if (!winDirty) {
         for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
             auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
