@@ -18,6 +18,10 @@
 #include <cmath>
 #include <iostream>
 #include <random>
+#ifdef ENABLE_RUST
+#include "cxx.h"
+#include "lib.rs.h"
+#endif
 
 #include "animation/rs_value_estimator.h"
 namespace OHOS {
@@ -101,7 +105,11 @@ void RSRenderParticleEffector::UpdateOpacity(
             int endTime = valChangeOverLife[i]->endMillis_;
             auto interpolator = valChangeOverLife[i]->interpolator_;
             if (activeTime >= startTime && activeTime < endTime) {
-                float value = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
+                float value = 0.f;
+                if (!interpolator) {
+                    value = GenerateValue(startValue, endValue, startTime, endTime, activeTime);
+                }
+                value = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
                 value = std::clamp<float>(value, 0.f, 1.f);
                 particle->SetOpacity(value);
             }
@@ -129,7 +137,11 @@ void RSRenderParticleEffector::UpdateScale(
             int endTime = valChangeOverLife[i]->endMillis_;
             auto interpolator = valChangeOverLife[i]->interpolator_;
             if (activeTime >= startTime && activeTime < endTime) {
-                float value = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
+                float value = 0.f;
+                if (!interpolator) {
+                    value = GenerateValue(startValue, endValue, startTime, endTime, activeTime);
+                }
+                value = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
                 particle->SetScale(value);
             }
         }
@@ -155,7 +167,11 @@ void RSRenderParticleEffector::UpdateSpin(
             int endTime = valChangeOverLife[i]->endMillis_;
             auto interpolator = valChangeOverLife[i]->interpolator_;
             if (activeTime >= startTime && activeTime < endTime) {
-                float value = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
+                float value = 0.f;
+                if (!interpolator) {
+                    value = GenerateValue(startValue, endValue, startTime, endTime, activeTime);
+                }
+                value = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
                 particle->SetSpin(value);
             }
         }
@@ -185,6 +201,9 @@ void RSRenderParticleEffector::UpdateAccelerate(
             int endTime = valChangeOverLife[i]->endMillis_;
             auto interpolator = valChangeOverLife[i]->interpolator_;
             if (activeTime >= startTime && activeTime < endTime) {
+                if (!interpolator) {
+                    value = GenerateValue(startValue, endValue, startTime, endTime, activeTime);
+                }
                 value = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
             }
         }
@@ -202,6 +221,9 @@ void RSRenderParticleEffector::UpdateAccelerate(
             int endTime = valChangeOverLife[i]->endMillis_;
             auto interpolator = valChangeOverLife[i]->interpolator_;
             if (activeTime >= startTime && activeTime < endTime) {
+                if (!interpolator) {
+                    angle = GenerateValue(startValue, endValue, startTime, endTime, activeTime);
+                }
                 angle = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
             }
         }
@@ -262,6 +284,18 @@ T RSRenderParticleEffector::GenerateValue(
     float fraction = interpolator->Interpolate(t);
     auto interpolationValue = startValue * (1.0f - fraction) + endValue * fraction;
     return interpolationValue;
+}
+
+float RSRenderParticleEffector::GenerateValue(
+    float startValue, float endValue, int startTime, int endTime, int currentTime)
+{
+#ifdef ENABLE_RUST
+    return generate_value(startValue, endValue, startTime, endTime, currentTime);
+#else
+    float t = static_cast<float>(currentTime - startTime) / static_cast<float>(endTime - startTime);
+    auto interpolationValue = startValue * (1.0f - t) + endValue * t;
+    return interpolationValue;
+#endif
 }
 
 } // namespace Rosen

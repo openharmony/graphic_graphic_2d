@@ -2222,7 +2222,6 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
             // Get particle properties
             auto position = particles[i]->GetPosition();
             if (!(bounds.Intersect(position.x_, position.y_))) {
-                ROSEN_LOGE("RSPropertiesPainter::DrawParticle particle position out of bounds.");
                 continue;
             }
             float opacity = particles[i]->GetOpacity();
