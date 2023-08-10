@@ -87,7 +87,7 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
         child->SetIsOnTheTree(true);
     }
     SetContentDirty();
-    InvalidateChildrenList();
+    isFullChildrenListValid_ = false;
 }
 
 void RSRenderNode::MoveChild(SharedPtr child, int index)
@@ -109,7 +109,7 @@ void RSRenderNode::MoveChild(SharedPtr child, int index)
     }
     children_.erase(it);
     SetContentDirty();
-    InvalidateChildrenList();
+    isFullChildrenListValid_ = false;
 }
 
 void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
@@ -137,7 +137,7 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     }
     children_.erase(it);
     SetContentDirty();
-    InvalidateChildrenList();
+    isFullChildrenListValid_ = false;
 }
 
 void RSRenderNode::SetIsOnTheTree(bool flag)
@@ -200,7 +200,7 @@ void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
         child->SetIsOnTheTree(true);
     }
     SetContentDirty();
-    InvalidateChildrenList();
+    isFullChildrenListValid_ = false;
 }
 
 void RSRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr& newParent)
@@ -232,7 +232,7 @@ void RSRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr&
     }
     children_.erase(it);
     SetContentDirty();
-    InvalidateChildrenList();
+    isFullChildrenListValid_ = false;
 }
 
 void RSRenderNode::RemoveFromTree(bool skipTransition)
@@ -248,7 +248,7 @@ void RSRenderNode::RemoveFromTree(bool skipTransition)
     }
     // force remove child from disappearingChildren_ and clean sortChildren_ cache
     parentPtr->disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
-    parentPtr->InvalidateChildrenList();
+    parentPtr->isFullChildrenListValid_ = false;
     child->ResetParent();
 }
 
@@ -278,7 +278,7 @@ void RSRenderNode::ClearChildren()
     }
     children_.clear();
     SetContentDirty();
-    InvalidateChildrenList();
+    isFullChildrenListValid_ = false;
 }
 
 void RSRenderNode::SetParent(WeakPtr parent)
@@ -460,7 +460,7 @@ void RSRenderNode::InternalRemoveSelfFromDisappearingChildren()
         return;
     }
     parent->disappearingChildren_.erase(it);
-    parent->InvalidateChildrenList();
+    parent->isFullChildrenListValid_ = false;
     ResetParent();
 }
 
@@ -539,7 +539,7 @@ bool RSRenderNode::IsClipBound() const
 }
 
 bool RSRenderNode::Update(
-    RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty,
+    RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
     bool isClipBoundDirty, std::optional<RectI> clipRect)
 {
     // no need to update invisible nodes
@@ -552,7 +552,8 @@ bool RSRenderNode::Update(
 #ifndef USE_ROSEN_DRAWING
     std::optional<SkPoint> offset;
     if (parent != nullptr && !IsInstanceOf<RSSurfaceRenderNode>()) {
-        offset = SkPoint { parent->GetFrameOffsetX(), parent->GetFrameOffsetY() };
+        auto& properties = parent->GetRenderProperties();
+        offset = SkPoint { properties.GetFrameOffsetX(), properties.GetFrameOffsetY() };
     }
 #else
     std::optional<Drawing::Point> offset;
@@ -562,8 +563,9 @@ bool RSRenderNode::Update(
 #endif
     // in some case geodirty_ is not marked in drawCmdModifiers_, we should update node geometry
     parentDirty |= (dirtyStatus_ != NodeDirty::CLEAN);
+    auto parentProperties = parent ? &parent->GetRenderProperties() : nullptr;
+    bool dirty = renderProperties_.UpdateGeometry(parentProperties, parentDirty, offset, GetContextClipRegion());
 
-    bool dirty = renderProperties_.UpdateGeometry(parent, parentDirty, offset, GetContextClipRegion());
     if ((IsDirty() || dirty) && drawCmdModifiers_.count(RSModifierType::GEOMETRYTRANS)) {
         RSModifierContext context = { GetMutableRenderProperties() };
         for (auto& modifier : drawCmdModifiers_[RSModifierType::GEOMETRYTRANS]) {
@@ -1589,13 +1591,6 @@ void RSRenderNode::ApplyChildrenModifiers()
 uint32_t RSRenderNode::GetChildrenCount() const
 {
     return children_.size();
-}
-
-void RSRenderNode::InvalidateChildrenList() {
-    if (!isFullChildrenListValid_) {
-        return;
-    }
-    isFullChildrenListValid_ = false;
 }
 
 bool RSRenderNode::IsOnTheTree() const

@@ -343,35 +343,26 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
     CheckEmptyBounds();
     auto boundsGeoPtr = (boundsGeo_);
 
-    if (RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
-        if (dirtyFlag || geoDirty_) {
-            auto parentGeo = parent == nullptr ? nullptr : (parent->boundsGeo_);
-            if (parentGeo != nullptr && GetSandBoxMatrix()) {
-                parentGeo = std::make_shared<RSObjAbsGeometry>();
-                parentGeo->ConcatMatrix(*GetSandBoxMatrix());
-            }
-            boundsGeoPtr->UpdateMatrix(parentGeo, offset, clipRect);
-            auto rect = boundsGeoPtr->GetAbsRect();
-            if (!lastRect_.has_value()) {
-                lastRect_ = rect;
-                return true;
-            }
-            dirtyFlag = dirtyFlag || rect != lastRect_.value();
-            lastRect_ = rect;
-            return dirtyFlag;
-        }
+    if (!dirtyFlag && !geoDirty_) {
         return false;
-    } else {
-        if (dirtyFlag || geoDirty_) {
-            auto parentGeo = parent == nullptr ? nullptr : (parent->boundsGeo_);
-            if (parentGeo != nullptr && GetSandBoxMatrix()) {
-                parentGeo = std::make_shared<RSObjAbsGeometry>();
-                parentGeo->ConcatMatrix(*GetSandBoxMatrix());
-            }
-            boundsGeoPtr->UpdateMatrix(parentGeo, offset, clipRect);
+    }
+    auto parentGeo = parent == nullptr ? nullptr : (parent->boundsGeo_);
+    if (parentGeo != nullptr && GetSandBoxMatrix()) {
+        parentGeo = std::make_shared<RSObjAbsGeometry>();
+        parentGeo->ConcatMatrix(*GetSandBoxMatrix());
+    }
+    boundsGeoPtr->UpdateMatrix(parentGeo, offset, clipRect);
+    if (RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
+        auto rect = boundsGeoPtr->GetAbsRect();
+        if (!lastRect_.has_value()) {
+            lastRect_ = rect;
             return true;
         }
-        return false;
+        dirtyFlag = dirtyFlag || rect != lastRect_.value();
+        lastRect_ = rect;
+        return dirtyFlag;
+    } else {
+        return true;
     }
 }
 

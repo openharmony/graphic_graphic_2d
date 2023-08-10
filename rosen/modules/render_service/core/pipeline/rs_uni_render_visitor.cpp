@@ -810,8 +810,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         if (skipNodeMap.count(node.GetId()) != 0) {
             auto parentNode = node.GetParent().lock();
             auto rsParent = (parentNode);
-            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
-                dirtyFlag_, false, prepareClipRect_);
+            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent, dirtyFlag_, false, prepareClipRect_);
             dirtyFlag_ = dirtyFlag;
             isClipBoundDirty_ = isClipBoundDirty;
             RS_TRACE_NAME(node.GetName() + " PreparedNodes cacheCmdSkiped");
@@ -826,8 +825,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         && rsSurfaceParent->GetDstRect().IsEmpty()) {
             prepareClipRect_ = RectI {0, 0, 0, 0};
     }
-    dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
-        dirtyFlag_, isClipBoundDirty_, prepareClipRect_);
+    dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent, dirtyFlag_, isClipBoundDirty_, prepareClipRect_);
     isClipBoundDirty_ |= (dirtyFlag_ && node.IsClipBound());
 
     if (curDisplayNode_ == nullptr) {
@@ -1071,8 +1069,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::PrepareRootRenderNode curSurfaceDirtyManager is nullptr");
         return;
     }
-    dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
-        dirtyFlag_, isClipBoundDirty_);
+    dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent, dirtyFlag_, isClipBoundDirty_);
     isClipBoundDirty_ |= (dirtyFlag_ && node.IsClipBound());
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     if (drivenInfo_) {
@@ -1159,11 +1156,9 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     node.GetMutableRenderProperties().UpdateSandBoxMatrix(parentSurfaceNodeMatrix_);
     if (!isSubNodeOfSurfaceInPrepare_) {
         // if canvasNode is not sub node of surfaceNode, merge the dirtyRegion to curDisplayDirtyManager_
-        dirtyFlag_ = node.Update(*curDisplayDirtyManager_, nodeParent ? &(nodeParent->GetRenderProperties()) : nullptr,
-            dirtyFlag_, isClipBoundDirty_, prepareClipRect_);
+        dirtyFlag_ = node.Update(*curDisplayDirtyManager_, nodeParent, dirtyFlag_, isClipBoundDirty_, prepareClipRect_);
     } else {
-        dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nodeParent ? &(nodeParent->GetRenderProperties()) : nullptr,
-            dirtyFlag_, isClipBoundDirty_, prepareClipRect_);
+        dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nodeParent, dirtyFlag_, isClipBoundDirty_, prepareClipRect_);
     }
     isClipBoundDirty_ |= (dirtyFlag_ && node.IsClipBound());
 
@@ -1294,8 +1289,7 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 
     auto parentNode = node.GetParent().lock();
     auto rsParent = (parentNode);
-    dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
-        dirtyFlag_, isClipBoundDirty_, prepareClipRect_);
+    dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent, dirtyFlag_, isClipBoundDirty_, prepareClipRect_);
     isClipBoundDirty_ |= (dirtyFlag_ && node.IsClipBound());
 
     node.UpdateChildrenOutOfRectFlag(false);
