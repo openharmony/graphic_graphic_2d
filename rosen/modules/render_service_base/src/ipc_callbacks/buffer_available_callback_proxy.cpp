@@ -29,11 +29,6 @@ RSBufferAvailableCallbackProxy::RSBufferAvailableCallbackProxy(const sptr<IRemot
 
 void RSBufferAvailableCallbackProxy::OnBufferAvailable()
 {
-    constexpr auto interfaceCode = RSIBufferAvailableCallbackInterfaceCode::ON_BUFFER_AVAILABLE;
-    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
-        return;
-    }
-
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -43,14 +38,11 @@ void RSBufferAvailableCallbackProxy::OnBufferAvailable()
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(interfaceCode);
+    uint32_t code = static_cast<uint32_t>(RSIBufferAvailableCallbackInterfaceCode::ON_BUFFER_AVAILABLE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSBufferAvailableCallbackProxy::OnBufferAvailable error = %d", err);
     }
 }
-
-const RSInterfaceCodeSecurityManager<RSIBufferAvailableCallbackInterfaceCode> \
-    RSBufferAvailableCallbackProxy::securityManager_ = CreateRSIBufferAvailableCallbackInterfaceCodeSecurityManager();
 } // namespace Rosen
 } // namespace OHOS

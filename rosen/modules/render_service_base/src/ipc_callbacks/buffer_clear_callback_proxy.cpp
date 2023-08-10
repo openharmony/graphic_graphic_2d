@@ -29,11 +29,6 @@ RSBufferClearCallbackProxy::RSBufferClearCallbackProxy(const sptr<IRemoteObject>
 
 void RSBufferClearCallbackProxy::OnBufferClear()
 {
-    constexpr auto interfaceCode = RSIBufferClearCallbackInterfaceCode::ON_BUFFER_CLEAR;
-    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
-        return;
-    }
-
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -43,14 +38,11 @@ void RSBufferClearCallbackProxy::OnBufferClear()
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(interfaceCode);
+    uint32_t code = static_cast<uint32_t>(RSIBufferClearCallbackInterfaceCode::ON_BUFFER_CLEAR);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSBufferClearCallbackProxy::OnBufferClear error = %d", err);
     }
 }
-
-const RSInterfaceCodeSecurityManager<RSIBufferClearCallbackInterfaceCode> \
-    RSBufferClearCallbackProxy::securityManager_ = CreateRSIBufferClearCallbackInterfaceCodeSecurityManager();
 } // namespace Rosen
 } // namespace OHOS

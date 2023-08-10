@@ -30,11 +30,6 @@ RSApplicationAgentProxy::RSApplicationAgentProxy(const sptr<IRemoteObject>& impl
 
 void RSApplicationAgentProxy::OnTransaction(std::shared_ptr<RSTransactionData> transactionData)
 {
-    constexpr auto interfaceCode = IApplicationAgentInterfaceCode::COMMIT_TRANSACTION;
-    if (!securityManager_.IsInterfaceCodeAccessible(interfaceCode, callerPrefix_ + __func__)) {
-        return;
-    }
-
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -48,14 +43,11 @@ void RSApplicationAgentProxy::OnTransaction(std::shared_ptr<RSTransactionData> t
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(interfaceCode);
+    uint32_t code = static_cast<uint32_t>(IApplicationAgentInterfaceCode::COMMIT_TRANSACTION);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         // [PLANNING]: Error log
     }
 }
-
-const RSInterfaceCodeSecurityManager<IApplicationAgentInterfaceCode> \
-    RSApplicationAgentProxy::securityManager_ = CreateIApplicationAgentInterfaceCodeSecurityManager();
 } // namespace Rosen
 } // namespace OHOS
