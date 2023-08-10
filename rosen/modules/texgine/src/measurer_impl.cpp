@@ -82,7 +82,7 @@ hb_blob_t *HbFaceReferenceTableTypeface(hb_face_t *face, hb_tag_t tag, void *con
                           tableSize, HB_MEMORY_MODE_WRITABLE, buffer, free);
 }
 
-void InsertMeasuringRun(struct MeasuringRun &runsit, std::list<struct MeasuringRun> &runs,
+void InsertMeasuringRun(std::list<struct MeasuringRun>::iterater &runsit, std::list<struct MeasuringRun> &runs,
     size_t utf16Index, uint32_t cp)
 {
     auto next = runsit;
