@@ -533,8 +533,14 @@ void RSRenderNode::ResetUIFrameRateRange()
     uiRange_.Reset();
 }
 
+bool RSRenderNode::IsClipBound() const
+{
+    return renderProperties_.GetClipBounds() || renderProperties_.GetClipToFrame();
+}
+
 bool RSRenderNode::Update(
-    RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty, std::optional<RectI> clipRect)
+    RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty,
+    bool isClipBoundDirty, std::optional<RectI> clipRect)
 {
     // no need to update invisible nodes
     if (!ShouldPaint() && !isLastVisible_) {
@@ -576,7 +582,7 @@ bool RSRenderNode::Update(
     // 2. Filter must be valid when filter cache manager is valid, we make sure that in RSRenderNode::ApplyModifiers().
     UpdateFilterCacheWithDirty(dirtyManager, false);
 #endif
-    if (!IsAncestorClipBoundDirty()) {
+    if (!isClipBoundDirty) {
         UpdateDirtyRegion(dirtyManager, dirty, clipRect);
     }
     return dirty;
@@ -1847,22 +1853,6 @@ bool RSRenderNode::IsAncestorDirty() const
 void RSRenderNode::SetIsAncestorDirty(bool isAncestorDirty)
 {
     isAncestorDirty_ = isAncestorDirty;
-}
-bool RSRenderNode::IsClipBoundDirty() const
-{
-    return isClipBoundDirty_;
-}
-void RSRenderNode::SetIsClipBoundDirty(bool isClipBoundDirty)
-{
-    isClipBoundDirty_ = isClipBoundDirty;
-}
-bool RSRenderNode::IsAncestorClipBoundDirty() const
-{
-    return isAncestorClipBoundDirty_;
-}
-void RSRenderNode::SetIsAncestorClipBoundDirty(bool isAncestorClipBoundDirty)
-{
-    isAncestorClipBoundDirty_ = isAncestorClipBoundDirty;
 }
 bool RSRenderNode::HasCachedTexture() const
 {

@@ -163,9 +163,10 @@ public:
 
     virtual std::pair<bool, bool> Animate(int64_t timestamp);
 
+    bool IsClipBound() const;
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
     bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty,
-        std::optional<RectI> clipRect = std::nullopt);
+        bool isClipBoundDirty = false, std::optional<RectI> clipRect = std::nullopt);
 #ifndef USE_ROSEN_DRAWING
     virtual std::optional<SkRect> GetContextClipRegion() const { return std::nullopt; }
 #else
@@ -336,10 +337,6 @@ public:
 
     bool IsAncestorDirty() const;
     void SetIsAncestorDirty(bool isAncestorDirty);
-    bool IsClipBoundDirty() const;
-    void SetIsClipBoundDirty(bool isClipBoundDirty);
-    bool IsAncestorClipBoundDirty() const;
-    void SetIsAncestorClipBoundDirty(bool isAncestorClipBoundDirty);
 
     bool HasCachedTexture() const;
 
@@ -508,9 +505,6 @@ private:
     bool hasHardwareNode_ = false;
     bool hasAbilityComponent_ = false;
     bool isAncestorDirty_ = false;
-    // current node is dirty and clipped, which means its subnodes' dirtyregion collection can be skipped
-    bool isClipBoundDirty_ = false;
-    bool isAncestorClipBoundDirty_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 
     // driven render

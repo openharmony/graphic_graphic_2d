@@ -355,6 +355,7 @@ private:
     ParallelRenderingType parallelRenderType_;
 
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
+    bool isClipBoundDirty_ = false; // if node is clipbound dirty, its dirtyregion merge can be skipped
 
     // count prepared and processed canvasnode numbers per app
     // unirender visitor resets every frame, no overflow risk here
