@@ -46,6 +46,22 @@ protected:
     float minimumAmplitudeRatio_ { 0.001f };
 
 private:
+    float EstimateDurationForUnderDampedModel() const
+    {
+        return 0.0f;
+    }
+    float EstimateDurationForCriticalDampedModel() const
+    {
+        return 0.0f;
+    }
+    float EstimateDurationForOverDampedModel() const
+    {
+        return 0.0f;
+    }
+    float BinarySearchTime(float left, float right, RSAnimatableType target) const
+    {
+        return 0.0f;
+    }
     // calculated intermediate coefficient
     float coeffDecay_ { 0.0f };
     RSAnimatableType coeffScale_ {};
@@ -53,6 +69,18 @@ private:
     RSAnimatableType coeffScaleAlt_ {};
     float coeffDecayAlt_ { 0.0f };
 };
+
+// only used in interpolatingSpring animation
+template<>
+RSB_EXPORT float RSSpringModel<float>::EstimateDuration() const;
+template<>
+RSB_EXPORT float RSSpringModel<float>::BinarySearchTime(float left, float right, float target) const;
+template<>
+RSB_EXPORT float RSSpringModel<float>::EstimateDurationForUnderDampedModel() const;
+template<>
+RSB_EXPORT float RSSpringModel<float>::EstimateDurationForCriticalDampedModel() const;
+template<>
+RSB_EXPORT float RSSpringModel<float>::EstimateDurationForOverDampedModel() const;
 } // namespace Rosen
 } // namespace OHOS
 
