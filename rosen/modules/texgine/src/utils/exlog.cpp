@@ -27,6 +27,9 @@ void ExTime(Logger &algnlogger, enum Logger::LOG_PHASE phase)
     if (phase == Logger::LOG_PHASE::BEGIN) {
         auto timer = time(nullptr);
         auto now = localtime(&timer);
+        if (now == nullptr) {
+            return;
+        }
         int64_t nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count() + (8 * 1000LL * 60 * 60);
         int year = static_cast<int>(now->tm_year) + 1900;

@@ -43,6 +43,11 @@ FontConfig::FontConfig(const char* fname)
 
 char* FontConfig::GetFileData(const char* fname, int& size)
 {
+    char realPath[PATH_MAX] = {0};
+    if (fname == nullptr || realpath(fname, realPath) == NULL) {
+        LOGSO_FUNC_LINE(ERROR) << "path or realPath is NULL";
+        return nullptr;
+    }
     std::ifstream file(fname);
     if (file.good()) {
         FILE* fp = fopen(fname, "r");

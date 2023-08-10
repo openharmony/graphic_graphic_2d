@@ -82,6 +82,21 @@ hb_blob_t *HbFaceReferenceTableTypeface(hb_face_t *face, hb_tag_t tag, void *con
                           tableSize, HB_MEMORY_MODE_WRITABLE, buffer, free);
 }
 
+void InsertMeasuringRun(std::list<struct MeasuringRun>::iterator &runsit, std::list<struct MeasuringRun> &runs,
+    size_t utf16Index, uint32_t cp)
+{
+    auto next = runsit;
+    auto iter = ++next;
+    if (iter != runs.end()) {
+        runs.insert(iter, {
+            .start = utf16Index - U16_LENGTH(cp),
+            .end = runsit->end,
+            .script = runsit->script,
+        });
+        runsit->end = utf16Index - U16_LENGTH(cp);
+    }
+}
+
 std::unique_ptr<Measurer> Measurer::Create(const std::vector<uint16_t> &text, const FontCollection &fontCollection)
 {
     return std::make_unique<MeasurerImpl>(text, fontCollection);
@@ -168,13 +183,7 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
             if (runsit->typeface) {
                 index--;
                 LOGCEX_DEBUG() << " new";
-                auto next = runsit;
-                runs.insert(++next, {
-                    .start = utf16Index - U16_LENGTH(cp),
-                    .end = runsit->end,
-                    .script = runsit->script,
-                });
-                runsit->end = utf16Index - U16_LENGTH(cp);
+                InsertMeasuringRun(runsit, runs, utf16Index, cp);
                 break;
             }
 
@@ -248,9 +257,7 @@ void MeasurerImpl::DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode
                 continue;
             } else {
                 index--;
-                auto next = it;
-                runs.insert(++next, { .start = utf16Index - U16_LENGTH(cp), .end = it->end });
-                it->end = utf16Index - U16_LENGTH(cp);
+                InsertMeasuringRun(it, runs, utf16Index, cp);
                 break;
             }
         }

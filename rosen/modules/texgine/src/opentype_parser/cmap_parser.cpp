@@ -190,7 +190,7 @@ void CmapParser::ParseFormat4NoOffset(int32_t delta, uint32_t start, uint32_t en
         ranges_.AddRange({start, end + 1, delta});
     } else {
         for (uint32_t j = start; j <= end; j++) {
-            if (static_cast<uint32_t>((j + delta)) & 0xffff) {
+            if ((j + static_cast<uint32_t>(delta)) & 0xffff) {
                 ranges_.AddRange({j, j + 1, delta});
             }
         }

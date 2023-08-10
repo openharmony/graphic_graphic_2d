@@ -112,7 +112,7 @@ int FontParser::ProcessNameTable(const struct NameTable* nameTable, FontParser::
             std::string nameString(data, len);
             GetStringFromNameId(nameId, nameString, fontDescriptor);
         } else if (platformId == FontParser::PlatformId::WINDOWS) {
-            char* buffer = new char[len]();
+            char* buffer = new (std::nothrow) char[len]();
             if (buffer == nullptr) {
                 return FAILED;
             }
