@@ -103,24 +103,26 @@ public:
     Range<float> redRandom_;
     Range<float> greenRandom_;
     Range<float> blueRandom_;
-    // Range<float> alphaRandom_;
+    Range<float> alphaRandom_;
 
     std::vector<Change<Color>> valChangeOverLife_;
     ParticleColorParaType(const Range<Color>& colorVal, const ParticleUpdator& updator, const Range<float>& redRandom,
-        const Range<float>& greenRandom, const Range<float>& blueRandom, std::vector<Change<Color>>& valChangeOverLife)
+        const Range<float>& greenRandom, const Range<float>& blueRandom, const Range<float>& alphaRandom,
+        std::vector<Change<Color>>& valChangeOverLife)
     {
         colorVal_ = colorVal;
         updator_ = updator;
         redRandom_ = redRandom;
         greenRandom_ = greenRandom;
         blueRandom_ = blueRandom;
+        alphaRandom_ = alphaRandom;
         for (size_t i = 0; i < valChangeOverLife.size(); i++) {
             auto change = valChangeOverLife[i];
             valChangeOverLife_.push_back(change);
         }
     }
     ParticleColorParaType()
-        : colorVal_(), updator_(ParticleUpdator::NONE), redRandom_(), greenRandom_(), blueRandom_(),
+        : colorVal_(), updator_(ParticleUpdator::NONE), redRandom_(), greenRandom_(), blueRandom_(), alphaRandom_(),
           valChangeOverLife_(0)
     {}
     ParticleColorParaType(const ParticleColorParaType& velocity) = default;
@@ -192,6 +194,7 @@ public:
             color.redRandom_ = val.redRandom_;
             color.greenRandom_ = val.greenRandom_;
             color.blueRandom_ = val.blueRandom_;
+            color.alphaRandom_ = val.alphaRandom_;
         } else if (color.updator_ == ParticleUpdator::CURVE) {
             uint32_t size = val.valChangeOverLife_.size();
             for (uint32_t i = 0; i < size; i++) {

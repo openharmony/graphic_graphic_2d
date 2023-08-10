@@ -36,7 +36,8 @@ public:
     template<typename T>
     T GenerateValue(T startValue, T endValue, int startTime, int endTime, int currentTime,
         std::shared_ptr<RSInterpolator> interpolator);
-
+    float GenerateValue(
+        float startValue, float endValue, int startTime, int endTime, int currentTime);
 private:
     std::shared_ptr<ParticleRenderParams> particleParams_;
 };

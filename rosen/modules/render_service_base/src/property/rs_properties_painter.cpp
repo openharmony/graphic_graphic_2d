@@ -2227,10 +2227,14 @@ sk_sp<SkShader> RSPropertiesPainter::MakeDynamicLightUpShader(
 void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
     auto particles = properties.GetParticles();
+    auto bounds = properties.GetBoundsRect();
     for (size_t i = 0; i < particles.size(); i++) {
         if (particles[i]->IsAlive()) {
             // Get particle properties
             auto position = particles[i]->GetPosition();
+            if (!(bounds.Intersect(position.x_, position.y_))) {
+                continue;
+            }
             float opacity = particles[i]->GetOpacity();
             auto particleType = particles[i]->GetParticleType();
             SkPaint paint;

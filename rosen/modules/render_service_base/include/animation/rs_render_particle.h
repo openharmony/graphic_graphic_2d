@@ -170,24 +170,26 @@ public:
     Range<float> redRandom_;
     Range<float> greenRandom_;
     Range<float> blueRandom_;
+    Range<float> alphaRandom_;
 
     std::vector<std::shared_ptr<ChangeInOverLife<Color>>> valChangeOverLife_;
     RenderParticleColorParaType(const Range<Color>& colorVal, const ParticleUpdator& updator,
         const Range<float>& redRandom, const Range<float>& greenRandom, const Range<float>& blueRandom,
-        std::vector<std::shared_ptr<ChangeInOverLife<Color>>>& valChangeOverLife)
+        const Range<float>& alphaRandom, std::vector<std::shared_ptr<ChangeInOverLife<Color>>>& valChangeOverLife)
     {
         colorVal_ = colorVal;
         updator_ = updator;
         redRandom_ = redRandom;
         greenRandom_ = greenRandom;
         blueRandom_ = blueRandom;
+        alphaRandom_ = alphaRandom;
         for (size_t i = 0; i < valChangeOverLife.size(); i++) {
             auto change = valChangeOverLife[i];
             valChangeOverLife_.push_back(change);
         }
     }
     RenderParticleColorParaType()
-        : colorVal_(), updator_(ParticleUpdator::NONE), redRandom_(), greenRandom_(), blueRandom_()
+        : colorVal_(), updator_(ParticleUpdator::NONE), redRandom_(), greenRandom_(), blueRandom_(), alphaRandom_()
     {}
     RenderParticleColorParaType(const RenderParticleColorParaType& velocity) = default;
     RenderParticleColorParaType& operator=(const RenderParticleColorParaType& velocity) = default;
@@ -254,7 +256,9 @@ public:
     float GetGreenRandomStart() const;
     float GetGreenRandomEnd() const;
     float GetBlueRandomStart() const;
-    float GetBlurRandomEnd() const;
+    float GetBlueRandomEnd() const;
+    float GetAlphaRandomStart() const;
+    float GetAlphaRandomEnd() const;
 
     float GetOpacityStartValue();
     float GetOpacityEndValue();
