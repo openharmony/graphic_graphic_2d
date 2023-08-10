@@ -19,7 +19,7 @@
 #include <iremote_proxy.h>
 
 #include "ipc_callbacks/iapplication_agent.h"
-#include "ipc_security/rs_ipc_interface_code_security_manager_registry.h"
+#include "ipc_callbacks/iapplication_agent_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,10 +31,6 @@ public:
     void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override;
 
 private:
-    static inline const std::string callerPrefix_{"RSApplicationAgentProxy::"};
-
-    static const RSInterfaceCodeSecurityManager<IApplicationAgentInterfaceCode> securityManager_;
-
     static inline BrokerDelegator<RSApplicationAgentProxy> delegator_;
 };
 } // namespace Rosen
