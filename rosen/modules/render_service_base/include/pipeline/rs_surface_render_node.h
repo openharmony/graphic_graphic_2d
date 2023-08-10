@@ -561,7 +561,7 @@ public:
     // manage appWindowNode's child hardware enabled nodes info
     void ResetChildHardwareEnabledNodes();
     void AddChildHardwareEnabledNode(WeakPtr childNode);
-    std::vector<WeakPtr> GetChildHardwareEnabledNodes() const;
+    const std::vector<WeakPtr>& GetChildHardwareEnabledNodes() const;
 
     bool IsFocusedNode(uint64_t focusedNodeId)
     {

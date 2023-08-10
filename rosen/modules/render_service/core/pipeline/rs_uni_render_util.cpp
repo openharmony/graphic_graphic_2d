@@ -510,9 +510,10 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         }
     }
     // trace info for assign window nodes
-    std::string LogInfo = "{ isScale: " + std::to_string(isScale) + ", " +
+    std::string logInfo = "{ isScale: " + std::to_string(isScale) + ", " +
         "leashWindowCount: " + std::to_string(leashWindowCount) + ", " +
-        "isRotation: " + std::to_string(isRotation) + " }; ";
+        "isRotation: " + std::to_string(isRotation) + " }; " +
+        "realFocusNodeId: " + std::to_string(realFocusNodeId) + " ]";
     for (auto iter = curAllSurfaces.begin(); iter != curAllSurfaces.end(); iter++) {
         auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*iter);
         if (node == nullptr) {
@@ -520,7 +521,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
             continue;
         }
         // trace info for assign window nodes
-        LogInfo += "node:[ " + node->GetName() + ", " + std::to_string(node->GetId()) + " ]" +
+        logInfo += "node:[ " + node->GetName() + ", " + std::to_string(node->GetId()) + " ]" +
             "( " + std::to_string(static_cast<uint32_t>(node->GetCacheSurfaceProcessedStatus())) + ", " +
             std::to_string(node->HasFilter()) + ", " + std::to_string(node->HasAbilityComponent()) + " ); ";
         std::string surfaceName = node->GetName();
@@ -549,7 +550,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
                 AssignMainThreadNode(mainThreadNodes, node);
             }
         } else { // PC or TABLET
-            if (!node->HasFilter() && !node->HasAbilityComponent() && !isRotation) {
+            if (node->QuerySubAssignable(isRotation)) {
                 AssignSubThreadNode(subThreadNodes, node);
             } else {
                 AssignMainThreadNode(mainThreadNodes, node);
@@ -557,7 +558,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         }
     }
     SortSubThreadNodes(subThreadNodes);
-    ROSEN_LOGD("RSUniRenderUtil::AssignWindowNodes: %s", LogInfo.c_str());
+    ROSEN_LOGD("RSUniRenderUtil::AssignWindowNodes: %s", logInfo.c_str());
 }
 
 void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,

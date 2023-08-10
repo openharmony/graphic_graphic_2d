@@ -2101,7 +2101,7 @@ void RSMainThread::UpdateUIFirstSwitch()
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
             rootNode->GetSortedChildren().front());
         if (displayNode) {
-            int childrenCount = 0;
+            uint32_t childrenCount = 0;
             if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
                 std::vector<RSBaseRenderNode::SharedPtr> curAllSurfacesVec;
                 displayNode->CollectSurface(displayNode, curAllSurfacesVec, true, true);
