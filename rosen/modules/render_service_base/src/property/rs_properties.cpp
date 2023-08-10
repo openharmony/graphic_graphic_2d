@@ -46,7 +46,7 @@ using ResetPropertyFunc = void (*)(RSProperties* prop);
 const std::unordered_map<RSModifierType, ResetPropertyFunc> g_funcLUT = {
     { RSModifierType::BOUNDS, [](RSProperties* prop) {} },
     { RSModifierType::FRAME, [](RSProperties* prop) {} },
-    { RSModifierType::SANDBOX, [](RSProperties* prop) { prop->SetSandBox(std::nullopt); } },
+    { RSModifierType::SANDBOX, [](RSProperties* prop) { prop->ResetSandBox(); } },
     { RSModifierType::POSITION_Z, [](RSProperties* prop) { prop->SetPositionZ(0.f); } },
     { RSModifierType::PIVOT, [](RSProperties* prop) { prop->SetPivot(Vector2f(0.5f, 0.5f)); } },
     { RSModifierType::PIVOT_Z, [](RSProperties* prop) { prop->SetPivotZ(0.f); } },
@@ -388,6 +388,11 @@ void RSProperties::SetSandBox(const std::optional<Vector2f>& parentPosition)
 std::optional<Vector2f> RSProperties::GetSandBox() const
 {
     return sandbox_ ? sandbox_->position_ : std::nullopt;
+}
+
+void RSProperties::ResetSandBox()
+{
+    sandbox_ = nullptr;
 }
 
 #ifndef USE_ROSEN_DRAWING

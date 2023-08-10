@@ -89,6 +89,7 @@ public:
 
     void SetSandBox(const std::optional<Vector2f>& parentPosition);
     std::optional<Vector2f> GetSandBox() const;
+    void ResetSandBox();
 #ifndef USE_ROSEN_DRAWING
     void UpdateSandBoxMatrix(const std::optional<SkMatrix>& rootMatrix);
     std::optional<SkMatrix> GetSandBoxMatrix() const;
