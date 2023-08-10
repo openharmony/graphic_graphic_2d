@@ -917,7 +917,8 @@ void RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](std::shared_ptr<Drawing::Surface> surface) {
 #endif
             // The second param is null, 0 is an invalid value.
-            RSUniRenderUtil::ClearNodeCacheSurface(surface, nullptr, id, 0);
+            sk_sp<SkSurface> tmpSurface = nullptr;
+            RSUniRenderUtil::ClearNodeCacheSurface(surface, tmpSurface, id, 0);
         };
         drawingNode->SetSurfaceClearFunc({ UNI_MAIN_THREAD_INDEX, clearFunc });
     }

@@ -2740,7 +2740,7 @@ void RSUniRenderVisitor::CheckAndSetNodeCacheType(RSRenderNode& node)
     if (node.IsStaticCached()) {
         if (node.GetCacheType() != CacheType::CONTENT) {
             node.SetCacheType(CacheType::CONTENT);
-            RSUniRenderUtil::ClearCacheSurface(node, threadIndex_, false);
+            RSUniRenderUtil::ClearCacheSurface(node, threadIndex_);
         }
 
         if (!node.GetCompletedCacheSurface(threadIndex_, true) && UpdateCacheSurface(node)) {
@@ -2751,7 +2751,7 @@ void RSUniRenderVisitor::CheckAndSetNodeCacheType(RSRenderNode& node)
     } else {
         node.SetCacheType(CacheType::NONE);
         if (node.GetCompletedCacheSurface(threadIndex_, false)) {
-            RSUniRenderUtil::ClearCacheSurface(node, threadIndex_, false);
+            RSUniRenderUtil::ClearCacheSurface(node, threadIndex_);
         }
     }
 }
@@ -2857,7 +2857,7 @@ void RSUniRenderVisitor::DrawSpherize(RSRenderNode& node)
 {
     if (node.GetCacheType() != CacheType::ANIMATE_PROPERTY) {
         node.SetCacheType(CacheType::ANIMATE_PROPERTY);
-        RSUniRenderUtil::ClearCacheSurface(node, threadIndex_, false);
+        RSUniRenderUtil::ClearCacheSurface(node, threadIndex_);
     }
     if (!node.GetCompletedCacheSurface(threadIndex_, true) && UpdateCacheSurface(node)) {
         node.UpdateCompletedCacheSurface();
@@ -3322,7 +3322,7 @@ bool RSUniRenderVisitor::GenerateNodeContentCache(RSRenderNode& node)
     if (node.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
         if (cacheRenderNodeMap.count(node.GetId()) > 0) {
             node.SetCacheType(CacheType::NONE);
-            RSUniRenderUtil::ClearCacheSurface(node, threadIndex_, false);
+            RSUniRenderUtil::ClearCacheSurface(node, threadIndex_);
             cacheRenderNodeMap.erase(node.GetId());
             groupedTransitionNodes.erase(node.GetId());
         }
@@ -3332,7 +3332,7 @@ bool RSUniRenderVisitor::GenerateNodeContentCache(RSRenderNode& node)
     // The node goes down the tree to clear the cache.
     if (!node.IsOnTheTree() && cacheRenderNodeMap.count(node.GetId()) > 0) {
         node.SetCacheType(CacheType::NONE);
-        RSUniRenderUtil::ClearCacheSurface(node, threadIndex_, false);
+        RSUniRenderUtil::ClearCacheSurface(node, threadIndex_);
         cacheRenderNodeMap.erase(node.GetId());
         groupedTransitionNodes.erase(node.GetId());
         return false;
@@ -3358,7 +3358,7 @@ bool RSUniRenderVisitor::InitNodeCache(RSRenderNode& node)
             curGroupedNodes_.push(val);
             groupedTransitionNodes[node.GetId()] = { val, {} };
             node.SetCacheType(CacheType::CONTENT);
-            RSUniRenderUtil::ClearCacheSurface(node, threadIndex_, false);
+            RSUniRenderUtil::ClearCacheSurface(node, threadIndex_);
             if (UpdateCacheSurface(node)) {
                 node.UpdateCompletedCacheSurface();
                 ChangeCacheRenderNodeMap(node);
@@ -3417,7 +3417,7 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
             }
             if (updateTimes >= CACHE_MAX_UPDATE_TIME) {
                 node.SetCacheType(CacheType::NONE);
-                RSUniRenderUtil::ClearCacheSurface(node, threadIndex_, false);
+                RSUniRenderUtil::ClearCacheSurface(node, threadIndex_);
                 ChangeCacheRenderNodeMap(node, updateTimes);
                 cacheReuseTimes = 0;
                 return;
@@ -3511,12 +3511,14 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 #ifndef USE_ROSEN_DRAWING
         auto clearFunc = [id = threadIndex_](sk_sp<SkSurface> surface) {
             // The second param is null, 0 is an invalid value.
-            RSUniRenderUtil::ClearNodeCacheSurface(surface, nullptr, id, 0);
+            sk_sp<SkSurface> tmpSurface = nullptr;
+            RSUniRenderUtil::ClearNodeCacheSurface(surface, tmpSurface, id, 0);
         };
 #else
         auto clearFunc = [id = threadIndex_](std::shared_ptr<Drawing::Surface> surface) {
             // The second param is null, 0 is an invalid value.
-            RSUniRenderUtil::ClearNodeCacheSurface(surface, nullptr, id, 0);
+            sk_sp<SkSurface> tmpSurface = nullptr;
+            RSUniRenderUtil::ClearNodeCacheSurface(surface, tmpSurface, id, 0);
         };
 #endif
         drawingNode->SetSurfaceClearFunc({ threadIndex_, clearFunc });

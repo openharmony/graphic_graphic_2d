@@ -219,7 +219,7 @@ public:
     bool NeedInitCacheSurface() const;
 
 #ifndef USE_ROSEN_DRAWING
-    using ClearCacheSurfaceFunc = std::function<void(sk_sp<SkSurface>, sk_sp<SkSurface>, uint32_t, uint32_t)>;
+    using ClearCacheSurfaceFunc = std::function<void(sk_sp<SkSurface>&, sk_sp<SkSurface>&, uint32_t, uint32_t)>;
 #ifdef NEW_SKIA
     void InitCacheSurface(GrRecordingContext* grContext, ClearCacheSurfaceFunc func = nullptr,
         uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
@@ -229,7 +229,7 @@ public:
 #endif
 #else
     using ClearCacheSurfaceFunc =
-        std::function<void(std::shared_ptr<Drawing::Surface>, std::shared_ptr<Drawing::Surface>, uint32_t, uint32_t)>;
+        std::function<void(std::shared_ptr<Drawing::Surface>&, std::shared_ptr<Drawing::Surface>&, uint32_t, uint32_t)>;
     void InitCacheSurface(Drawing::GPUContext* grContext, ClearCacheSurfaceFunc func = nullptr,
         uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
 #endif

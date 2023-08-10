@@ -68,13 +68,13 @@ public:
         DeviceType deviceType = DeviceType::PHONE);
     static void ClearSurfaceIfNeed(const RSRenderNodeMap& map, const std::shared_ptr<RSDisplayRenderNode>& displayNode,
         std::set<std::shared_ptr<RSBaseRenderNode>>& oldChildren);
-    static void ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isUIFirst);
+    static void ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex);
 #ifndef USE_ROSEN_DRAWING
-    static void ClearNodeCacheSurface(sk_sp<SkSurface> cacheSurface, sk_sp<SkSurface> cacheCompletedSurface,
+    static void ClearNodeCacheSurface(sk_sp<SkSurface>& cacheSurface, sk_sp<SkSurface>& cacheCompletedSurface,
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
 #else
-    static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface> cacheSurface,
-        std::shared_ptr<Drawing::Surface> cacheCompletedSurface,
+    static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>& cacheSurface,
+        std::shared_ptr<Drawing::Surface>& cacheCompletedSurface,
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
 #endif
     static void CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& oldSubThreadNodes,
@@ -89,7 +89,7 @@ private:
     static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     static void HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void ClearCacheSurface(const std::shared_ptr<RSSurfaceRenderNode>& node, uint32_t threadIndex);
-    static void PostReleaseSurfaceTask(sk_sp<SkSurface> surface, uint32_t threadIndex);
+    static void PostReleaseSurfaceTask(sk_sp<SkSurface>& surface, uint32_t threadIndex);
 };
 }
 }

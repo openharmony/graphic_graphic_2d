@@ -742,7 +742,7 @@ void RSUniRenderUtil::ClearCacheSurface(const std::shared_ptr<RSSurfaceRenderNod
     }
 }
 
-void RSUniRenderUtil::ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isUIFirst)
+void RSUniRenderUtil::ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex)
 {
     RS_LOGD("ClearCacheSurface node: [%llu]", node.GetId());
     uint32_t cacheSurfaceThreadIndex = node.GetCacheSurfaceThreadIndex();
@@ -758,11 +758,11 @@ void RSUniRenderUtil::ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSUniRenderUtil::ClearNodeCacheSurface(sk_sp<SkSurface> cacheSurface, sk_sp<SkSurface> cacheCompletedSurface,
+void RSUniRenderUtil::ClearNodeCacheSurface(sk_sp<SkSurface>& cacheSurface, sk_sp<SkSurface>& cacheCompletedSurface,
     uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex)
 #else
-void RSUniRenderUtil::ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface> cacheSurface,
-    std::shared_ptr<Drawing::Surface> cacheCompletedSurface,
+void RSUniRenderUtil::ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>& cacheSurface,
+    std::shared_ptr<Drawing::Surface>& cacheCompletedSurface,
     uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex)
 #endif
 {
@@ -771,25 +771,25 @@ void RSUniRenderUtil::ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface> ca
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSUniRenderUtil::PostReleaseSurfaceTask(sk_sp<SkSurface> surface, uint32_t threadIndex)
+void RSUniRenderUtil::PostReleaseSurfaceTask(sk_sp<SkSurface>& surface, uint32_t threadIndex)
 #else
-void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface> surface, uint32_t threadId)
+void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>& surface, uint32_t threadId)
 #endif
 {
     if (surface == nullptr) {
         return;
     }
+
+    auto task = [tmpSurface = surface]() mutable {
+        RS_LOGD("clear node cache surface in main thread");
+        tmpSurface = nullptr;
+    };
+    surface = nullptr;
     if (threadIndex == UNI_MAIN_THREAD_INDEX) {
-        RSMainThread::Instance()->PostTask([surface]() mutable {
-            RS_LOGD("clear node cache surface in main thread");
-            surface = nullptr;
-        });
+        RSMainThread::Instance()->PostTask(task);
     } else {
 #ifdef RS_ENABLE_GL
-        RSSubThreadManager::Instance()->PostTask([surface]() mutable {
-            RS_LOGD("clear node cache surface in sub thread");
-            surface = nullptr;
-        }, threadIndex);
+        RSSubThreadManager::Instance()->PostTask(task, threadIndex);
 #endif
     }
 }

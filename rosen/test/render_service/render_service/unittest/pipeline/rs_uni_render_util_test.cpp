@@ -216,8 +216,7 @@ HWTEST_F(RSUniRenderUtilTest, ClearCacheSurface, Function | SmallTest | Level2)
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     uint32_t threadIndex = 0;
-    bool isUIFirst = false;
-    RSUniRenderUtil::ClearCacheSurface(node, threadIndex, isUIFirst);
+    RSUniRenderUtil::ClearCacheSurface(node, threadIndex);
 }
 
 /*
@@ -229,16 +228,19 @@ HWTEST_F(RSUniRenderUtilTest, ClearCacheSurface, Function | SmallTest | Level2)
 HWTEST_F(RSUniRenderUtilTest, ClearNodeCacheSurface, Function | SmallTest | Level2)
 {
     uint32_t threadIndex = 1;
-    RSUniRenderUtil::ClearNodeCacheSurface(nullptr, nullptr, threadIndex, 0);
+    sk_sp<SkSurface> tmpSurface = nullptr;
+    RSUniRenderUtil::ClearNodeCacheSurface(tmpSurface, tmpSurface, threadIndex, 0);
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
     threadIndex = UNI_MAIN_THREAD_INDEX;
-    RSUniRenderUtil::ClearNodeCacheSurface(node->GetCacheSurface(),
-        node->GetCompletedCacheSurface(0, true), threadIndex, 0);
+    auto cacheSurface = node->GetCacheSurface(threadIndex, false);
+    auto completedSurface= node->GetCompletedCacheSurface(0, true);
+    RSUniRenderUtil::ClearNodeCacheSurface(cacheSurface, completedSurface, threadIndex, 0);
     threadIndex = 1;
-    RSUniRenderUtil::ClearNodeCacheSurface(node->GetCacheSurface(),
-        node->GetCompletedCacheSurface(0, true), threadIndex, 0);
+    auto cacheSurface1 = node->GetCacheSurface(threadIndex, false);
+    auto completedSurface1= node->GetCompletedCacheSurface(0, true);
+    RSUniRenderUtil::ClearNodeCacheSurface(cacheSurface1, completedSurface1, threadIndex, 0);
 }
 
 /*
