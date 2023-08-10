@@ -539,9 +539,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
             continue;
         }
         if (deviceType == DeviceType::PHONE) {
-            if (leashWindowCount > 1) { // start app from another app
-                AssignMainThreadNode(mainThreadNodes, node);
-            } else if (isScale) { // app start or close scene
+            if (isScale) { // app start or close scene
                 if (!node->HasFilter() && !node->HasAbilityComponent() && !isRotation) {
                     AssignSubThreadNode(subThreadNodes, node);
                 } else {
