@@ -151,11 +151,8 @@ void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
     }
     bool dirtyFlag = dirtyFlag_;
     auto nodeParent = node.GetParent().lock();
-    std::shared_ptr<RSRenderNode> rsParent = nullptr;
-    if (nodeParent != nullptr) {
-        rsParent = nodeParent->ReinterpretCastTo<RSRenderNode>();
-    }
-    dirtyFlag_ = node.Update(*curDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr, dirtyFlag_);
+    dirtyFlag_ =
+        node.Update(*curDirtyManager_, nodeParent ? &(nodeParent->GetRenderProperties()) : nullptr, dirtyFlag_);
     if (node.IsDirtyRegionUpdated() && curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
         curDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::CANVAS_NODE,
             DirtyRegionType::UPDATE_DIRTY_REGION, node.GetOldDirty());
@@ -172,17 +169,14 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     bool dirtyFlag = dirtyFlag_;
     auto nodeParent = node.GetParent().lock();
-    std::shared_ptr<RSRenderNode> rsParent = nullptr;
-    if (nodeParent != nullptr) {
-        rsParent = nodeParent->ReinterpretCastTo<RSRenderNode>();
-    }
     // If rt buffer switches to be available
     // set its SurfaceRenderNode's render dirty
     if (!node.IsNotifyRTBufferAvailablePre() && node.IsNotifyRTBufferAvailable()) {
         ROSEN_LOGD("NotifyRTBufferAvailable and set it dirty");
         node.SetDirty();
     }
-    dirtyFlag_ = node.Update(*curDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr, dirtyFlag_);
+    dirtyFlag_ =
+        node.Update(*curDirtyManager_, nodeParent ? &(nodeParent->GetRenderProperties()) : nullptr, dirtyFlag_);
     if (node.IsDirtyRegionUpdated() && curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
         curDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::SURFACE_NODE,
             DirtyRegionType::UPDATE_DIRTY_REGION, node.GetOldDirty());
@@ -205,11 +199,8 @@ void RSRenderThreadVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 #endif
     bool dirtyFlag = dirtyFlag_;
     auto nodeParent = node.GetParent().lock();
-    std::shared_ptr<RSRenderNode> rsParent = nullptr;
-    if (nodeParent != nullptr) {
-        rsParent = nodeParent->ReinterpretCastTo<RSRenderNode>();
-    }
-    dirtyFlag_ = node.Update(*curDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr, dirtyFlag_);
+    dirtyFlag_ =
+        node.Update(*curDirtyManager_, nodeParent ? &(nodeParent->GetRenderProperties()) : nullptr, dirtyFlag_);
     ResetAndPrepareChildrenNode(node, nodeParent);
     node.SetEffectRegion(effectRegion_);
 
