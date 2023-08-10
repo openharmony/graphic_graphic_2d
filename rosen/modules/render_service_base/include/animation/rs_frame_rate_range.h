@@ -49,7 +49,8 @@ public:
             this->min_ >= 0 && this->max_ <= RANGE_MAX_REFRESHRATE;
     }
 
-    bool IsDynamic() {
+    bool IsDynamic()
+    {
         return IsValid() && this->min_ != this->max_;
     }
 

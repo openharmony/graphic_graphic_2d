@@ -104,7 +104,7 @@ private:
 
     std::string currentBundleName_;
     std::shared_ptr<HgmFrameRateTool> hgmFrameRateTool_ = nullptr;
-    ScreenId activeScreenId_;
+    ScreenId activeScreenId_ = 0;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H

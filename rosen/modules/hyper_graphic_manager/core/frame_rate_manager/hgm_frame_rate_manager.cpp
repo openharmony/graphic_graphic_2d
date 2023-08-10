@@ -180,7 +180,6 @@ float HgmFrameRateManager::GetDrawingFps(float refreshRate, FrameRateRange range
         currRatio = remainder / dividedFps;
         // When currRatio is almost zero, dividedFps is the perfect result
         if (currRatio < MARGIN) {
-            ratio = currRatio;
             drawingFps = dividedFps;
             break;
         }

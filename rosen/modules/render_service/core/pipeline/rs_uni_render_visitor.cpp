@@ -245,9 +245,7 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     int markedCachedNodeCnt = markedCachedNodes_;
 
     for (auto& child : children) {
-        auto nodePreferred = GetNodePreferred(child->GetHgmModifierProfileList());
         auto curRootNode = curRootNode_;
-        child->SetRSFrameRateRangeByPreferred(nodePreferred);
         if (PrepareSharedTransitionNode(*child)) {
             curDirty_ = child->IsDirty();
             child->Prepare(shared_from_this());
@@ -988,8 +986,8 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     auto nodeParent = node.GetParent().lock();
     if (nodeParent && nodeParent->ReinterpretCastTo<RSDisplayRenderNode>()) {
         if (currSurfaceUIRange_.IsValid()) {
-            uiFrameRateRangeMap_[node.GetId()] =
-                {nodeParent->ReinterpretCastTo<RSDisplayRenderNode>()->GetScreenId(), currSurfaceUIRange_};
+            uiFrameRateRangeMap_[node.GetId()] = {
+                nodeParent->ReinterpretCastTo<RSDisplayRenderNode>()->GetScreenId(), currSurfaceUIRange_};
         }
         currSurfaceRSRange_.Reset();
         currSurfaceUIRange_.Reset();
