@@ -327,7 +327,7 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation)
     }
 
     AddAnimationInner(animation);
-    animation->StartInner(std::static_pointer_cast<RSNode>(shared_from_this()));
+    animation->StartInner(shared_from_this());
 }
 
 void RSNode::RemoveAllAnimations()

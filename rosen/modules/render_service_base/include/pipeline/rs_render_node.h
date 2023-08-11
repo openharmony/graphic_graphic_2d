@@ -165,7 +165,7 @@ public:
 
     bool IsClipBound() const;
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
-    bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty,
+    bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
         bool isClipBoundDirty = false, std::optional<RectI> clipRect = std::nullopt);
 #ifndef USE_ROSEN_DRAWING
     virtual std::optional<SkRect> GetContextClipRegion() const { return std::nullopt; }
@@ -438,7 +438,6 @@ private:
     bool isChildrenSorted_ = false;
     void GenerateFullChildrenList();
     void GenerateSortedChildren();
-    void InvalidateChildrenList();
     void SortChildren();
 
     const std::weak_ptr<RSContext> context_;

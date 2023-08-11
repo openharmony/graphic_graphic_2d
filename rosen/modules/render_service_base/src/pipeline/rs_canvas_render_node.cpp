@@ -229,7 +229,7 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas)
 
 void RSCanvasRenderNode::OnApplyModifiers()
 {
-    GetMutableRenderProperties().backref_ = ReinterpretCastTo<RSRenderNode>();
+    GetMutableRenderProperties().backref_ = weak_from_this();
 }
 
 void RSCanvasRenderNode::ProcessDrivenBackgroundRender(RSPaintFilterCanvas& canvas)
