@@ -91,7 +91,7 @@ HWTEST_F(RSDisplayRenderNodeTest, CreateSurfaceTest, TestSize.Level1)
 
 /**
  * @tc.name: GetRotationTest
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -104,7 +104,7 @@ HWTEST_F(RSDisplayRenderNodeTest, GetRotationTest, TestSize.Level1)
 
 /**
  * @tc.name: IsRotationChangedTest
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
