@@ -68,7 +68,7 @@ public:
     void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
 #ifdef OHOS_PLATFORM
-    void SetIsOnTheTree(bool flag) override;
+    void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID) override;
 #endif
     bool IsAppWindow() const
     {

@@ -516,10 +516,10 @@ void RSMainThread::CheckParallelSubThreadNodesStatus()
     RS_OPTIONAL_TRACE_FUNC_END();
 }
 
-bool RSMainThread::IsNeedSkip(NodeId rootSurfaceNodeId, pid_t pid)
+bool RSMainThread::IsNeedSkip(NodeId instanceRootNodeId, pid_t pid)
 {
     for (auto& cacheCmdSkipNodeId: cacheCmdSkippedInfo_[pid].first) {
-        if (cacheCmdSkipNodeId == rootSurfaceNodeId) {
+        if (cacheCmdSkipNodeId == instanceRootNodeId) {
             return true;
         }
     }
@@ -547,8 +547,8 @@ void RSMainThread::SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransaction
             if (node == nullptr) {
                 continue;
             }
-            NodeId rootSurfaceNodeId = node->GetRootSurfaceNodeId();
-            if (IsNeedSkip(rootSurfaceNodeId, pid)) {
+            NodeId instanceRootNodeId = node->GetInstanceRootNodeId();
+            if (IsNeedSkip(instanceRootNodeId, pid)) {
                 skipPayload.emplace_back(std::move(elem));
                 skipPayloadIndexVec.push_back(index);
             }
@@ -2050,7 +2050,7 @@ void RSMainThread::AddActiveNodeId(pid_t pid, NodeId id)
         return;
     }
     if (auto parentPtr = node->GetParent().lock()) {
-        auto rootNodeId = node->GetRootSurfaceNodeId();
+        auto rootNodeId = node->GetInstanceRootNodeId();
         activeAppsInProcess_[pid].emplace(rootNodeId);
         activeProcessNodeIds_[rootNodeId].emplace(id);
     }

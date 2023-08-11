@@ -213,9 +213,6 @@ void RSUniRenderVisitor::CopyPropertyForParallelVisitor(RSUniRenderVisitor *main
 
 void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
 {
-    if (curRootNode_) {
-        node.SetRootSurfaceNodeId(curRootNode_->GetId());
-    }
     node.ApplyChildrenModifiers();
     const auto& children = node.GetSortedChildren();
 
@@ -508,7 +505,7 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
     }
     // if node has to be prepared, it's not static
     bool isClassifyByRootNode = (quickSkipPrepareType_ == QuickSkipPrepareType::STATIC_WIDGET);
-    NodeId rootId = node.GetRootSurfaceNodeId();
+    NodeId rootId = node.GetInstanceRootNodeId();
     if (RSMainThread::Instance()->CheckNodeHasToBePreparedByPid(node.GetId(), rootId, isClassifyByRootNode)) {
         return false;
     }

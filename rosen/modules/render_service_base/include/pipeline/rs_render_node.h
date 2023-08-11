@@ -104,7 +104,7 @@ public:
         return id_;
     }
 
-    virtual void SetIsOnTheTree(bool flag);
+    virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID);
     bool IsOnTheTree() const;
 
     // return children and disappeared children, not guaranteed to be sorted by z-index
@@ -149,8 +149,7 @@ public:
     bool ChildHasFilter() const;
     void SetChildHasFilter(bool childHasFilter);
 
-    void SetRootSurfaceNodeId(NodeId id);
-    NodeId GetRootSurfaceNodeId() const;
+    NodeId GetInstanceRootNodeId() const;
 
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
@@ -422,7 +421,7 @@ protected:
 
 private:
     NodeId id_;
-    NodeId rootSurfaceNodeId_ = INVALID_NODEID;
+    NodeId instanceRootNodeId_ = INVALID_NODEID;
 
     WeakPtr parent_;
     void SetParent(WeakPtr parent);

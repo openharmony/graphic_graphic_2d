@@ -244,7 +244,7 @@ private:
         std::shared_ptr<TransactionDataMap>& transactionDataEffective, std::string& transactionFlags);
 
     bool IsResidentProcess(pid_t pid);
-    bool IsNeedSkip(NodeId rootSurfaceNodeId, pid_t pid);
+    bool IsNeedSkip(NodeId instanceRootNodeId, pid_t pid);
 
     bool NeedReleaseGpuResource(const RSRenderNodeMap& nodeMap);
 

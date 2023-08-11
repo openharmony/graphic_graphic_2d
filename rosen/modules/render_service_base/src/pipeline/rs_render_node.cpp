@@ -84,7 +84,7 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
     // A child is not on the tree until its parent is on the tree
     if (isOnTheTree_) {
-        child->SetIsOnTheTree(true);
+        child->SetIsOnTheTree(true, instanceRootNodeId_);
     }
     SetContentDirty();
     isFullChildrenListValid_ = false;
@@ -140,12 +140,13 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     isFullChildrenListValid_ = false;
 }
 
-void RSRenderNode::SetIsOnTheTree(bool flag)
+void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId)
 {
     // We do not need to label a child when the child is removed from a parent that is not on the tree
     if (flag == isOnTheTree_) {
         return;
     }
+    instanceRootNodeId_ = instanceRootNodeId;
     isOnTheTree_ = flag;
     OnTreeStateChanged();
 
@@ -154,7 +155,7 @@ void RSRenderNode::SetIsOnTheTree(bool flag)
         if (child == nullptr) {
             continue;
         }
-        child->SetIsOnTheTree(flag);
+        child->SetIsOnTheTree(flag, instanceRootNodeId);
     }
 
     for (auto& childPtr : disappearingChildren_) {
@@ -162,7 +163,7 @@ void RSRenderNode::SetIsOnTheTree(bool flag)
         if (child == nullptr) {
             continue;
         }
-        child->SetIsOnTheTree(flag);
+        child->SetIsOnTheTree(flag, instanceRootNodeId);
     }
 }
 
@@ -197,7 +198,7 @@ void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
     // A child is not on the tree until its parent is on the tree
     if (isOnTheTree_) {
-        child->SetIsOnTheTree(true);
+        child->SetIsOnTheTree(true, instanceRootNodeId_);
     }
     SetContentDirty();
     isFullChildrenListValid_ = false;
@@ -309,7 +310,8 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     }
     out += "| ";
     DumpNodeType(out);
-    out += "[" + std::to_string(GetId()) + "], rootSurfaceNodeId" + "[" + std::to_string(GetRootSurfaceNodeId()) + "]";
+    out += "[" + std::to_string(GetId()) + "], instanceRootNodeId" + "[" +
+        std::to_string(GetInstanceRootNodeId()) + "]";
     if (IsSuggestedDrawInGroup()) {
         out += ", [node group]";
     }
@@ -1627,13 +1629,9 @@ void RSRenderNode::SetChildHasFilter(bool childHasFilter)
 {
     childHasFilter_ = childHasFilter;
 }
-void RSRenderNode::SetRootSurfaceNodeId(NodeId id)
+NodeId RSRenderNode::GetInstanceRootNodeId() const
 {
-    rootSurfaceNodeId_ = id;
-}
-NodeId RSRenderNode::GetRootSurfaceNodeId() const
-{
-    return rootSurfaceNodeId_;
+    return instanceRootNodeId_;
 }
 bool RSRenderNode::IsRenderUpdateIgnored() const
 {
