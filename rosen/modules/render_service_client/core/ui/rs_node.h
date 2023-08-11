@@ -313,7 +313,7 @@ public:
 
     void SetColorBlend(uint32_t colorValue);
 
-    void UpdateFrameRateRange(FrameRateRange range);
+    void AddFRCSceneInfo(const std::string& scene, float speed);
 
     FrameRateRange GetFrameRateRange()
     {

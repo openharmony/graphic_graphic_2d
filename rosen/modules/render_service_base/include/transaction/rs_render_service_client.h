@@ -44,6 +44,7 @@
 #include "screen_manager/rs_virtual_screen_resolution.h"
 #include "vsync_receiver.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "rs_hgm_config_data.h"
 #include "rs_occlusion_data.h"
 
 namespace OHOS {
@@ -53,6 +54,7 @@ using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent)>;
 using BufferAvailableCallback = std::function<void()>;
 using BufferClearCallback = std::function<void()>;
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
+using HgmConfigChangeCallback = std::function<void(std::shared_ptr<RSHgmConfigData>)>;
 
 struct DataBaseRs {
     int32_t appPid = -1;
@@ -193,6 +195,8 @@ public:
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
 
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
+
+    int32_t RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback);
 
     void SetAppWindowNum(uint32_t num);
 

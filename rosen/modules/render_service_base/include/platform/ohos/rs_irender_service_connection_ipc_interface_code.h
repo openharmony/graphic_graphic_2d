@@ -73,6 +73,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     REPORT_EVENT_COMPLETE,
     REPORT_EVENT_JANK_FRAME,
     SET_HARDWARE_ENABLED,
+    REGISTER_HGM_CFG_CALLBACK,
 };
 } // namespace Rosen
 } // namespace OHOS

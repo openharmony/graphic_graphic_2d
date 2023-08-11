@@ -40,6 +40,7 @@
 #include "ui/rs_canvas_drawing_node.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
+#include "ui/rs_frame_rate_policy.h"
 #include "ui/rs_node.h"
 #include "ui/rs_proxy_node.h"
 #include "ui/rs_root_node.h"
@@ -1336,8 +1337,10 @@ void RSNode::SetColorBlend(uint32_t colorValue)
     SetProperty<RSColorBlendModifier, RSAnimatableProperty<Color>>(RSModifierType::COLOR_BLEND, colorBlend);
 }
 
-void RSNode::UpdateFrameRateRange(FrameRateRange range)
+void RSNode::AddFRCSceneInfo(const std::string& scene, float speed)
 {
+    int preferredFps = RSFrameRatePolicy::GetInstance()->GetPreferredFps(scene, speed);
+    FrameRateRange range = {0, RANGE_MAX_REFRESHRATE, preferredFps};
     if (!range.IsValid()) {
         return;
     }

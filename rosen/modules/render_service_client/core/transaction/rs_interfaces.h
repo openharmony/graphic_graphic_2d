@@ -138,6 +138,8 @@ public:
 
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
+    int32_t RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback);
+
     void SetAppWindowNum(uint32_t num);
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);

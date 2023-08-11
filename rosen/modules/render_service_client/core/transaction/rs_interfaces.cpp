@@ -21,6 +21,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/rs_divided_ui_capture.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
+#include "ui/rs_frame_rate_policy.h"
 #include "ui/rs_proxy_node.h"
 
 namespace OHOS {
@@ -293,6 +294,11 @@ int32_t RSInterfaces::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrame
 int32_t RSInterfaces::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
     return renderServiceClient_->RegisterOcclusionChangeCallback(callback);
+}
+
+int32_t RSInterfaces::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)
+{
+    return renderServiceClient_->RegisterHgmConfigChangeCallback(callback);
 }
 
 void RSInterfaces::SetAppWindowNum(uint32_t num)

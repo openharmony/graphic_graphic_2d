@@ -123,6 +123,8 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/buffer_clear_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/buffer_clear_callback_proxy.cpp",
     "src/ipc_callbacks/buffer_clear_callback_stub.cpp",
+    "src/ipc_callbacks/hgm_config_change_callback_proxy.cpp",
+    "src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
     "src/ipc_callbacks/iapplication_agent_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/rs_application_agent_proxy.cpp",
     "src/ipc_callbacks/rs_application_agent_stub.cpp",
@@ -193,6 +195,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_skia_filter.cpp",
 
     #transaction
+    "src/transaction/rs_hgm_config_data.cpp",
     "src/transaction/rs_occlusion_data.cpp",
     "src/transaction/rs_transaction_data.cpp",
     "src/transaction/rs_transaction_proxy.cpp",

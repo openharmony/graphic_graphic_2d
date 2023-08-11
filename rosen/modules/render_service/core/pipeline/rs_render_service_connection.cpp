@@ -815,6 +815,22 @@ int32_t RSRenderServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclu
     return StatusCode::SUCCESS;
 }
 
+int32_t RSRenderServiceConnection::RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!callback) {
+        RS_LOGD("RSRenderServiceConnection::RegisterHgmConfigChangeCallback: callback is nullptr");
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+
+    if (hgmConfigChangeCallback_ != nullptr) {
+        hgmConfigCallbackManager_->UnRegisterHgmConfigChangeCallback(callback);
+    }
+
+    hgmConfigCallbackManager_->RegisterHgmConfigChangeCallback(callback);
+    return StatusCode::SUCCESS;
+}
+
 void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
 {
     auto task = [this, num]() -> void {

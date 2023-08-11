@@ -37,6 +37,7 @@
 #include "transaction/rs_transaction_data.h"
 #include "transaction/rs_render_service_client.h"
 #include "ivsync_connection.h"
+#include "ipc_callbacks/rs_ihgm_config_change_callback.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "vsync_iconnection_token.h"
 
@@ -154,6 +155,8 @@ public:
     virtual int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) = 0;
 
     virtual int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) = 0;
+
+    virtual int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 
     virtual void SetAppWindowNum(uint32_t num) = 0;
 

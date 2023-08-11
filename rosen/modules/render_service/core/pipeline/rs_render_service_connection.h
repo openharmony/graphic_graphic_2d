@@ -19,6 +19,7 @@
 #include <mutex>
 #include <unordered_set>
 
+#include "hgm_config_callback_manager.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "pipeline/rs_render_service.h"
@@ -158,6 +159,8 @@ private:
 
     int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
 
+    int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
+
     void SetAppWindowNum(uint32_t num) override;
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
@@ -177,6 +180,8 @@ private:
     RSMainThread* mainThread_ = nullptr;
     sptr<RSScreenManager> screenManager_;
     sptr<IRemoteObject> token_;
+
+    sptr<HgmConfigCallbackManager> hgmConfigCallbackManager_;
 
     class RSConnectionDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
@@ -215,6 +220,8 @@ private:
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<VSyncDistributor> appVSyncDistributor_;
     std::vector<sptr<VSyncConnection>> vsyncConnections_;
+
+    sptr<RSIHgmConfigChangeCallback> hgmConfigChangeCallback_;
 };
 } // namespace Rosen
 } // namespace OHOS

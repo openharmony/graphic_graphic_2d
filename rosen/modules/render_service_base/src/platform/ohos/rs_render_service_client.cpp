@@ -27,6 +27,7 @@
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
+#include "ipc_callbacks/hgm_config_change_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "platform/common/rs_log.h"
 #ifdef NEW_RENDER_CONTEXT
@@ -706,6 +707,34 @@ int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionCh
     }
     sptr<CustomOcclusionChangeCallback> cb = new CustomOcclusionChangeCallback(callback);
     return renderService->RegisterOcclusionChangeCallback(cb);
+}
+
+class CustomHgmConfigChangeCallback : public RSHgmConfigChangeCallbackStub
+{
+public:
+    explicit CustomHgmConfigChangeCallback(const HgmConfigChangeCallback &callback) : cb_(callback) {}
+    ~CustomHgmConfigChangeCallback() override {};
+
+    void OnHgmConfigChanged(std::shared_ptr<RSHgmConfigData> configData) override
+    {
+        if (cb_ != nullptr) {
+            cb_(configData);
+        }
+    }
+
+private:
+    HgmConfigChangeCallback cb_;
+};
+
+int32_t RSRenderServiceClient::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterHgmConfigChangeCallback renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    sptr<CustomHgmConfigChangeCallback> cb = new CustomHgmConfigChangeCallback(callback);
+    return renderService->RegisterHgmConfigChangeCallback(cb);
 }
 
 void RSRenderServiceClient::SetAppWindowNum(uint32_t num)

@@ -1080,6 +1080,26 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetHardwareEnabled(id, isEnabled);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK) : {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            sptr<RSIHgmConfigChangeCallback> callback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
+            if (callback == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            int32_t status = RegisterHgmConfigChangeCallback(callback);
+            reply.WriteInt32(status);
+            break;
+        }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }

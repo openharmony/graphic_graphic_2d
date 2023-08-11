@@ -280,6 +280,11 @@ int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionCh
     return {};
 }
 
+int32_t RSRenderServiceClient::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)
+{
+    return {};
+}
+
 void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
 {
 }
