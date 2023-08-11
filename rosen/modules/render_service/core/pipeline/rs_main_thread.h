@@ -175,6 +175,7 @@ public:
     {
         return frameCount_;
     }
+    // add node info after cmd data process
     void AddActiveNodeId(pid_t pid, NodeId id);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,

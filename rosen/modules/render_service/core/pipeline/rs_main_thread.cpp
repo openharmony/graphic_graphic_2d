@@ -1453,7 +1453,9 @@ void RSMainThread::Animate(uint64_t timestamp)
             RS_LOGD("RSMainThread::Animate skip the cached node");
             return false;
         }
-        AddActiveNodeId(ExtractPid(node->GetId()), node->GetId());
+        if (node->IsOnTheTree()) {
+            AddActiveNodeId(ExtractPid(node->GetId()), node->GetId());
+        }
         auto [hasRunningAnimation, nodeNeedRequestNextVsync] = node->Animate(timestamp);
         if (!hasRunningAnimation) {
             RS_LOGD("RSMainThread::Animate removing finished animating node %" PRIu64, node->GetId());
@@ -2027,13 +2029,18 @@ void RSMainThread::AddActiveNodeId(pid_t pid, NodeId id)
 {
     if (id == 0) {
         activeAppsInProcess_[pid].emplace(INVALID_NODEID);
-    } else {
-        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
-        auto rootNodeId = INVALID_NODEID;
-        // if node is just set on tree, it cannot be found yet
-        if (node != nullptr) {
-            rootNodeId = node->GetRootSurfaceNodeId();
-        }
+        return;
+    }
+    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
+    if (node == nullptr) {
+        return;
+    }
+    // root nodeid should be updated before check
+    if (!node->IsOnTheTree()) {
+        return;
+    }
+    if (auto parentPtr = node->GetParent().lock()) {
+        auto rootNodeId = node->GetRootSurfaceNodeId();
         activeAppsInProcess_[pid].emplace(rootNodeId);
         activeProcessNodeIds_[rootNodeId].emplace(id);
     }
