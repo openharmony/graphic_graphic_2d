@@ -109,5 +109,18 @@ HWTEST_F(RSSurfaceFrameOhosRasterTest, SetReleaseFence001, TestSize.Level1)
     RSSurfaceFrameOhosRaster raster(width, height);
     raster.SetReleaseFence(fence);
 }
+/**
+ * @tc.name: GetSurfaceTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceFrameOhosRasterTest, GetSurfaceTest, TestSize.Level1)
+{
+    int32_t width = 0;
+    int32_t height = 0;
+    RSSurfaceFrameOhosRaster raster(width, height);
+    raster.GetSurface();
+}
 } // namespace Rosen
 } // namespace OHOS

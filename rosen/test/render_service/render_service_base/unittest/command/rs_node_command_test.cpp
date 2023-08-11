@@ -70,4 +70,70 @@ HWTEST_F(RSNodeCommandTest, TestRSBaseNodeCommand003, TestSize.Level1)
     NodeId nodeId = static_cast<NodeId>(-1);
     RSNodeCommandHelper::SetFreeze(context, nodeId, true);
 }
+
+/**
+ * @tc.name: MarkNodeGroupTest
+ * @tc.desc: MarkNodeGroup test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, MarkNodeGroupTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(-1);
+    bool isNodeGroup = false;
+    RSNodeCommandHelper::MarkNodeGroup(context, nodeId, isNodeGroup);
+}
+
+
+/**
+ * @tc.name: MarkDrivenRenderTest
+ * @tc.desc: MarkDrivenRender test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, MarkDrivenRenderTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(1);
+    bool flag = false;
+    RSNodeCommandHelper::MarkDrivenRender(context, nodeId, flag);
+}
+
+/**
+ * @tc.name: MarkContentChangedTest
+ * @tc.desc: MarkContentChanged test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, MarkContentChangedTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(1);
+    bool isChanged = false;
+    RSNodeCommandHelper::MarkContentChanged(context, nodeId, isChanged);
+}
+
+/**
+ * @tc.name: SetDrawRegionTest
+ * @tc.desc: SetDrawRegion test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, SetDrawRegionTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(1);
+    std::shared_ptr<RectF> rect = nullptr;
+    RSNodeCommandHelper::SetDrawRegion(context, nodeId, rect);
+}
+
+/**
+ * @tc.name: RegisterGeometryTransitionPairTest
+ * @tc.desc: RegisterGeometryTransitionPair test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPairTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId inNodeId = static_cast<NodeId>(1);
+    NodeId outNodeId = static_cast<NodeId>(1);
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);    
+}
 } // namespace OHOS::Rosen

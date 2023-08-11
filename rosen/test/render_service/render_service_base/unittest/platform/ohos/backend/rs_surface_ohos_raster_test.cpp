@@ -129,5 +129,21 @@ HWTEST_F(RSSurfaceOhosRasterTest, ResetBufferAge001, TestSize.Level1)
     EXPECT_FALSE(raster.IsValid());
     raster.ResetBufferAge();
 }
+
+/**
+ * @tc.name: ResetBufferAge001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceOhosRasterTest, ClearBuffer001, TestSize.Level1)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosRaster raster(pSurface);
+    raster.ClearBuffer();
+    ASSERT_TRUE(raster.IsValid());
+}
 } // namespace Rosen
 } // namespace OHOS
