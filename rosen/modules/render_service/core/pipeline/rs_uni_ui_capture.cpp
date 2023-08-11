@@ -264,29 +264,34 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
         canvas_->SetMatrix(relativeMatrix);
 #endif
     }
-    node.ProcessRenderBeforeChildren(*canvas_);
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
         if (!node.IsOnTheTree()) {
+            auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](sk_sp<SkSurface> surface) {
+                sk_sp<SkSurface> tmpSurface = nullptr;
+                RSUniRenderUtil::ClearNodeCacheSurface(surface, tmpSurface, id, 0);
+            };
+            canvasDrawingNode->SetSurfaceClearFunc({ UNI_MAIN_THREAD_INDEX, clearFunc });
+            canvasDrawingNode->ProcessRenderBeforeChildren(*canvas_);
             canvasDrawingNode->ProcessRenderContents(*canvas_);
-        }
+        } else {
 #ifndef USE_ROSEN_DRAWING
-        SkBitmap bitmap;
-        bitmap = canvasDrawingNode->GetBitmap();
+            SkBitmap bitmap = canvasDrawingNode->GetBitmap();
 #ifndef NEW_SKIA
-        canvas_->drawBitmap(
-            bitmap, node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY());
+            canvas_->drawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
+                node.GetRenderProperties().GetBoundsPositionY());
 #else
-        canvas_->drawImage(bitmap.asImage(), node.GetRenderProperties().GetBoundsPositionX(),
-            node.GetRenderProperties().GetBoundsPositionY());
+            canvas_->drawImage(bitmap.asImage(), node.GetRenderProperties().GetBoundsPositionX(),
+                node.GetRenderProperties().GetBoundsPositionY());
 #endif
 #else
-        Drawing::Bitmap bitmap;
-        bitmap = canvasDrawingNode->GetBitmap();
-        canvas_->DrawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
-            node.GetRenderProperties().GetBoundsPositionY());
+            Drawing::Bitmap bitmap = canvasDrawingNode->GetBitmap();
+            canvas_->DrawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
+                node.GetRenderProperties().GetBoundsPositionY());
 #endif
+        }
     } else {
+        node.ProcessRenderBeforeChildren(*canvas_);
         node.ProcessRenderContents(*canvas_);
     }
     ProcessChildren(node);
