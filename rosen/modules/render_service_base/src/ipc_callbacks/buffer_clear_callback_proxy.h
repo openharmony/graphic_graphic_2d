@@ -19,7 +19,7 @@
 #include <iremote_proxy.h>
 
 #include "ipc_callbacks/buffer_clear_callback.h"
-#include "ipc_callbacks/buffer_clear_callback_ipc_interface_code.h"
+#include "ipc_security/rs_ipc_interface_code_security_manager_registry.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,6 +31,10 @@ public:
     void OnBufferClear() override;
 
 private:
+    static inline const std::string callerPrefix_{"RSBufferClearCallbackProxy::"};
+
+    static const RSInterfaceCodeSecurityManager<RSIBufferClearCallbackInterfaceCode> securityManager_;
+
     static inline BrokerDelegator<RSBufferClearCallbackProxy> delegator_;
 };
 } // namespace Rosen

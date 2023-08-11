@@ -114,13 +114,12 @@ inline bool IsSystemAppCalling()
     return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(IPCSkeleton::GetCallingFullTokenID());
 }
 
-inline bool IsSystemCalling(const std::string &caller = "RSRenderServiceConnectionStub::OnRemoteRequest")
+inline bool IsSystemCalling()
 {
-    bool isSystemCalling = IsSystemServiceCalling() || IsSystemAppCalling();
-    if (!isSystemCalling) {
-        RS_LOGE("%s access denied: not system calling", caller.c_str());
+    if (IsSystemServiceCalling()) {
+        return true;
     }
-    return isSystemCalling;
+    return IsSystemAppCalling();
 }
 }
 
@@ -130,10 +129,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
     int ret = ERR_NONE;
     switch (code) {
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::COMMIT_TRANSACTION")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             RS_TRACE_NAME_FMT("Recv Parcel Size:%zu, fdCnt:%zu", data.GetDataSize(), data.GetOffsetsSize());
 #if defined (ENABLE_DDGR_OPTIMIZE)
             DDGRRenderer::GetInstance().IntegrateSetIndex(++transDataIndex_);
@@ -160,7 +155,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 parsedParcel = RSAshmemHelper::ParseFromAshmemParcel(&data);
             }
             if (parsedParcel == nullptr) {
-                RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION failed: parsed parcel is nullptr");
+                RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION failed");
                 return ERR_INVALID_DATA;
             }
             if (isUniRender) {
@@ -174,18 +169,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_UNI_RENDER_ENABLED): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_UNI_RENDER_ENABLED")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             reply.WriteBool(GetUniRenderEnabled());
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::CREATE_NODE")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto nodeId = data.ReadUint64();
             auto surfaceName = data.ReadString();
             auto bundleName = data.ReadString();
@@ -194,10 +181,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::CREATE_NODE_AND_SURFACE")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto nodeId = data.ReadUint64();
             auto surfaceName = data.ReadString();
             auto type = static_cast<RSSurfaceNodeType>(data.ReadUint8());
@@ -214,10 +197,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FOCUS_APP_INFO): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::SET_FOCUS_APP_INFO")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -234,10 +213,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_DEFAULT_SCREEN_ID")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -248,10 +223,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ALL_SCREEN_IDS): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_ALL_SCREEN_IDS")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -265,7 +236,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::CREATE_VIRTUAL_SCREEN")) {
+            if (!IsSystemCalling()) {
                 ret = ERR_INVALID_STATE;
                 break;
             }
@@ -293,7 +264,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_SURFACE")) {
+            if (!IsSystemCalling()) {
                 ret = ERR_INVALID_STATE;
                 break;
             }
@@ -321,7 +292,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::REMOVE_VIRTUAL_SCREEN")) {
+            if (!IsSystemCalling()) {
                 ret = ERR_INVALID_STATE;
                 break;
             }
@@ -335,10 +306,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::SET_SCREEN_CHANGE_CALLBACK")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -360,10 +327,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::SET_SCREEN_ACTIVE_MODE")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -422,7 +385,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_RESOLUTION")) {
+            if (!IsSystemCalling()) {
                 ret = ERR_INVALID_STATE;
                 break;
             }
@@ -439,10 +402,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::SET_SCREEN_POWER_STATUS")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -454,10 +413,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::TAKE_SURFACE_CAPTURE")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             NodeId id = data.ReadUint64();
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
@@ -475,10 +430,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::REGISTER_APPLICATION_AGENT")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             uint32_t pid = data.ReadUint32();
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
@@ -494,7 +445,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_RESOLUTION): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_VIRTUAL_SCREEN_RESOLUTION")) {
+            if (!IsSystemCalling()) {
                 ret = ERR_INVALID_STATE;
                 break;
             }
@@ -509,10 +460,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_ACTIVE_MODE): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_SCREEN_ACTIVE_MODE")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -524,10 +471,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_MODES): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_SCREEN_SUPPORTED_MODES")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -542,10 +485,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_MEMORY_GRAPHIC")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -557,10 +496,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_MEMORY_GRAPHICS")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -574,10 +509,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CAPABILITY): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_SCREEN_CAPABILITY")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -589,10 +520,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_POWER_STATUS): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_SCREEN_POWER_STATUS")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -604,10 +531,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_DATA): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_SCREEN_DATA")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -619,10 +542,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_BACK_LIGHT): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_SCREEN_BACK_LIGHT")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -634,10 +553,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::SET_SCREEN_BACK_LIGHT")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -649,10 +564,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::SET_BUFFER_AVAILABLE_LISTENER")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -674,10 +585,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::SET_BUFFER_CLEAR_LISTENER")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -698,10 +605,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_GAMUTS): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_SCREEN_SUPPORTED_GAMUTS")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -720,10 +623,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_METADATAKEYS): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_SCREEN_SUPPORTED_METADATAKEYS")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -744,10 +643,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_SCREEN_GAMUT")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -764,10 +659,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::SET_SCREEN_GAMUT")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -780,10 +671,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::SET_SCREEN_GAMUT_MAP")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -796,10 +683,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_SCREEN_GAMUT_MAP")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -816,10 +699,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::CREATE_VSYNC_CONNECTION")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             std::string name = data.ReadString();
             auto remoteObj = data.ReadRemoteObject();
             if (remoteObj == nullptr) {
@@ -844,10 +723,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_CAPABILITY): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_SCREEN_HDR_CAPABILITY")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -864,10 +739,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_TYPE): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_SCREEN_TYPE")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -884,10 +755,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BITMAP): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::GET_BITMAP")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -919,10 +786,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::REGISTER_OCCLUSION_CHANGE_CALLBACK")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -945,10 +808,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
 
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::SET_APP_WINDOW_NUM")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -959,10 +818,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::SHOW_WATERMARK")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -975,10 +830,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_JANK_STATS): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::REPORT_JANK_STATS")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -988,10 +839,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_RESPONSE): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::REPORT_EVENT_RESPONSE")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -1003,10 +850,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_COMPLETE): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::REPORT_EVENT_COMPLETE")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -1018,10 +861,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::REPORT_EVENT_JANK_FRAME")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -1033,10 +872,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK): {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::EXECUTE_SYNCHRONOUS_TASK")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -1066,10 +901,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED) : {
-            if (!IsSystemCalling("RSRenderServiceConnectionStub::SET_HARDWARE_ENABLED")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;

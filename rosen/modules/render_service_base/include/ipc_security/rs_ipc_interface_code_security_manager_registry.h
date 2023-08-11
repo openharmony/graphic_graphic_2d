@@ -30,6 +30,7 @@
 
 namespace OHOS {
 namespace Rosen {
+/* Called by RSBufferAvailableCallbackProxy */
 template<typename... AccessVerifierConstructorArgs>
 inline auto CreateRSIBufferAvailableCallbackInterfaceCodeSecurityManager(
     AccessVerifierConstructorArgs&&... constructorArgs)
@@ -38,6 +39,7 @@ inline auto CreateRSIBufferAvailableCallbackInterfaceCodeSecurityManager(
         std::forward<AccessVerifierConstructorArgs>(constructorArgs)...);
 }
 
+/* Called by RSBufferClearCallbackProxy */
 template<typename... AccessVerifierConstructorArgs>
 inline auto CreateRSIBufferClearCallbackInterfaceCodeSecurityManager(
     AccessVerifierConstructorArgs&&... constructorArgs)
@@ -46,6 +48,7 @@ inline auto CreateRSIBufferClearCallbackInterfaceCodeSecurityManager(
         std::forward<AccessVerifierConstructorArgs>(constructorArgs)...);
 }
 
+/* Called by RSApplicationAgentProxy */
 template<typename... AccessVerifierConstructorArgs>
 inline auto CreateIApplicationAgentInterfaceCodeSecurityManager(
     AccessVerifierConstructorArgs&&... constructorArgs)
@@ -54,6 +57,7 @@ inline auto CreateIApplicationAgentInterfaceCodeSecurityManager(
         std::forward<AccessVerifierConstructorArgs>(constructorArgs)...);
 }
 
+/* Called by RSOcclusionChangeCallbackProxy */
 template<typename... AccessVerifierConstructorArgs>
 inline auto CreateRSIOcclusionChangeCallbackInterfaceCodeSecurityManager(
     AccessVerifierConstructorArgs&&... constructorArgs)
@@ -62,6 +66,7 @@ inline auto CreateRSIOcclusionChangeCallbackInterfaceCodeSecurityManager(
         std::forward<AccessVerifierConstructorArgs>(constructorArgs)...);
 }
 
+/* Called by RSSyncTransactionControllerProxy */
 template<typename... AccessVerifierConstructorArgs>
 inline auto CreateRSISyncTransactionControllerInterfaceCodeSecurityManager(
     AccessVerifierConstructorArgs&&... constructorArgs)
@@ -70,6 +75,7 @@ inline auto CreateRSISyncTransactionControllerInterfaceCodeSecurityManager(
         std::forward<AccessVerifierConstructorArgs>(constructorArgs)...);
 }
 
+/* Called by RSScreenChangeCallbackProxy */
 template<typename... AccessVerifierConstructorArgs>
 inline auto CreateRSIScreenChangeCallbackInterfaceCodeSecurityManager(
     AccessVerifierConstructorArgs&&... constructorArgs)
@@ -78,6 +84,7 @@ inline auto CreateRSIScreenChangeCallbackInterfaceCodeSecurityManager(
         std::forward<AccessVerifierConstructorArgs>(constructorArgs)...);
 }
 
+/* Called by RSSurfaceCaptureCallbackProxy */
 template<typename... AccessVerifierConstructorArgs>
 inline auto CreateRSISurfaceCaptureCallbackInterfaceCodeSecurityManager(
     AccessVerifierConstructorArgs&&... constructorArgs)
@@ -86,6 +93,7 @@ inline auto CreateRSISurfaceCaptureCallbackInterfaceCodeSecurityManager(
         std::forward<AccessVerifierConstructorArgs>(constructorArgs)...);
 }
 
+/* Called by RSRenderServiceConnectionProxy */
 template<typename... AccessVerifierConstructorArgs>
 inline auto CreateRSIRenderServiceConnectionInterfaceCodeSecurityManager(
     AccessVerifierConstructorArgs&&... constructorArgs)
@@ -94,6 +102,7 @@ inline auto CreateRSIRenderServiceConnectionInterfaceCodeSecurityManager(
         std::forward<AccessVerifierConstructorArgs>(constructorArgs)...);
 }
 
+/* Called by RSRenderServiceProxy */
 template<typename... AccessVerifierConstructorArgs>
 inline auto CreateRSIRenderServiceInterfaceCodeSecurityManager(
     AccessVerifierConstructorArgs&&... constructorArgs)
