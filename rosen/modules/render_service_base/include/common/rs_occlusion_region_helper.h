@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef RENDER_SERVICE_BASE_CORE_COMMON_RS_OCCLUSION_REGION_HELPER_H
+#define RENDER_SERVICE_BASE_CORE_COMMON_RS_OCCLUSION_REGION_HELPER_H
 
 #include <limits.h>
 #include "common/rs_occlusion_region.h"
@@ -109,3 +111,4 @@ public:
 }
 }
 }
+#endif //RENDER_SERVICE_BASE_CORE_COMMON_RS_OCCLUSION_REGION_HELPER_H
