@@ -954,7 +954,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.GetDstRectChanged() || (node.GetDirtyManager() && node.GetDirtyManager()->IsCurrentFrameDirty())) {
         dirtySurfaceNodeMap_.emplace(node.GetId(), node.ReinterpretCastTo<RSSurfaceRenderNode>());
     }
-    if (isUIFirst_ && node.IsLeashWindow()) {
+    if (node.IsLeashWindow()) {
         auto matrix = geoPtr->GetAbsMatrix();
         // 1.0f means node does not have scale
 #ifndef USE_ROSEN_DRAWING

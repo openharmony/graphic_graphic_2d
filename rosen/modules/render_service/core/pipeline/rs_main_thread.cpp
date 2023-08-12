@@ -1248,6 +1248,13 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
                 if (curSurface->GetName().find("hisearch") == std::string::npos) {
                     // When a surfacenode is in animation (i.e. 3d animation), its dstrect cannot be trusted, we treated
                     // it as a full transparent layer.
+                    if (parentPtr != nullptr && parentPtr->IsInstanceOf<RSSurfaceRenderNode>()) {
+                        auto surfaceParentPtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parentPtr);
+                        // leashwindow scaling is also means animation
+                        if (surfaceParentPtr->IsLeashWindow() && surfaceParentPtr->IsScale()) {
+                            curSurface->SetAnimateState();
+                        }
+                    }
                     if (!(curSurface->GetAnimateState())) {
                         accumulatedRegion.OrSelf(curSurface->GetOpaqueRegion());
                     } else {
