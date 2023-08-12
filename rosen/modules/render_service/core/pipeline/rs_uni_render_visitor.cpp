@@ -66,7 +66,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr uint32_t PHONE_MAX_APP_WINDOW_NUM = 1;
-constexpr uint32_t CACHE_MAX_UPDATE_TIME = 5;
+constexpr uint32_t CACHE_MAX_UPDATE_TIME = 2;
 constexpr uint32_t CACHE_RENDER_NODE_MAP_COUNT = 2;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 static std::map<NodeId, uint32_t> cacheRenderNodeMap = {};
