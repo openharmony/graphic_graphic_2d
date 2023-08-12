@@ -117,10 +117,10 @@ bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
 
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> RSBaseRenderEngine::CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
-    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence)
+    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const uint32_t threadIndex)
 #else
 std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
-    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence)
+    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const uint32_t threadIndex)
 #endif
 {
 #ifdef RS_ENABLE_EGLIMAGE
@@ -140,7 +140,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
         return nullptr;
     }
-    auto eglTextureId = eglImageManager_->MapEglImageFromSurfaceBuffer(buffer, acquireFence);
+    auto eglTextureId = eglImageManager_->MapEglImageFromSurfaceBuffer(buffer, acquireFence, threadIndex);
     if (eglTextureId == 0) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer MapEglImageFromSurfaceBuffer return invalid texture ID");
         return nullptr;
@@ -416,9 +416,9 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::DrawImage(GPU)");
-    auto image = CreateEglImageFromBuffer(canvas, params.buffer, params.acquireFence);
+    auto image = CreateEglImageFromBuffer(canvas, params.buffer, params.acquireFence, params.threadIndex);
     if (image == nullptr) {
-        RS_LOGE("RSDividedRenderUtil::DrawImage: image is nullptr!");
+        RS_LOGE("RSBaseRenderEngine::DrawImage: image is nullptr!");
         RS_OPTIONAL_TRACE_END();
         return;
     }

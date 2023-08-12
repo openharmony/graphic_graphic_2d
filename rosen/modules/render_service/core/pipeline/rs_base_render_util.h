@@ -78,6 +78,7 @@ struct BufferDrawParam {
     bool setColorFilter = true;
     std::vector<GraphicHDRMetaData> metaDatas = {}; // static meta datas for HDR10
     GraphicHDRMetaDataSet metaDataSet; // dynamic meta datas for HDR10+, HDR VIVID
+    uint32_t threadIndex = UNI_MAIN_THREAD_INDEX; // use to decide eglimage unmap thread index
 };
 
 using WriteToPngParam = struct {

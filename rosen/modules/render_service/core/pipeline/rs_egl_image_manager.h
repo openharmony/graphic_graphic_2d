@@ -50,6 +50,15 @@ public:
         return textureId_;
     }
 
+    uint32_t GetThreadIndex() const
+    {
+        return threadIndex_;
+    }
+
+    void SetThreadIndex(const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX)
+    {
+        threadIndex_ = threadIndex;
+    }
 private:
     // generate a texture and bind eglImage to it.
     bool BindToTexture();
@@ -58,6 +67,7 @@ private:
     EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
     EGLClientBuffer eglClientBuffer_ = nullptr;
     GLuint textureId_ = 0;
+    uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
 };
 
 class RSEglImageManager {
@@ -66,15 +76,16 @@ public:
     ~RSEglImageManager() noexcept = default;
 
     GLuint MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence);
+        const sptr<SyncFence>& acquireFence, uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
     void UnMapEglImageFromSurfaceBuffer(int32_t seqNum);
     void UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNum);
-    void ShrinkCachesIfNeeded(bool isForUniRedraw = false);
+    void ShrinkCachesIfNeeded(bool isForUniRedraw = false); // only used for divided_render
     std::unique_ptr<ImageCacheSeq> CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
         const sptr<SyncFence>& acquireFence);
 private:
     void WaitAcquireFence(const sptr<SyncFence>& acquireFence);
-    GLuint CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer);
+    GLuint CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
+        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
 
     mutable std::mutex opMutex_;
     static constexpr size_t MAX_CACHE_SIZE = 16;

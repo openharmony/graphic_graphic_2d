@@ -182,9 +182,11 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceR
     }
 }
 
-BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode& node, bool forceCPU)
+BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode& node,
+    bool forceCPU, uint32_t threadIndex)
 {
     BufferDrawParam params;
+    params.threadIndex = threadIndex;
 #ifdef RS_ENABLE_EGLIMAGE
     params.useCPU = forceCPU;
 #else // RS_ENABLE_EGLIMAGE
