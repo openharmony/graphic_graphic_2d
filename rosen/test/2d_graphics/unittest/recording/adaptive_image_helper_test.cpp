@@ -87,6 +87,12 @@ HWTEST_F(AdaptiveImageHelperTest, GetDstRect001, TestSize.Level1)
     rsImageInfo.fitNum = static_cast<int32_t>(ImageFit::SCALE_DOWN);
     dstRect = AdaptiveImageHelper::GetDstRect(rsImageInfo, 4.0, 2.0, 1.0, 1.0);
     EXPECT_FALSE(IsEqualToOriginRect(dstRect));
+    dstRect = AdaptiveImageHelper::GetDstRect(rsImageInfo, 4.0, 2.0, 10.0, 10.0);
+    EXPECT_FALSE(IsEqualToOriginRect(dstRect));
+    dstRect = AdaptiveImageHelper::GetDstRect(rsImageInfo, 14.0, 2.0, 10.0, 10.0);
+    EXPECT_FALSE(IsEqualToOriginRect(dstRect));
+    dstRect = AdaptiveImageHelper::GetDstRect(rsImageInfo, 4.0, 12.0, 10.0, 10.0);
+    EXPECT_FALSE(IsEqualToOriginRect(dstRect));
 
     rsImageInfo.fitNum = static_cast<int32_t>(ImageFit::TOP_LEFT);
     dstRect = AdaptiveImageHelper::GetDstRect(rsImageInfo, 4.0, 2.0, 1.0, 1.0);
@@ -141,7 +147,7 @@ HWTEST_F(AdaptiveImageHelperTest, ApplyCanvasClip001, TestSize.Level1)
     AdaptiveImageInfo rsImageInfo = {};
     Canvas canvas;
     Rect rect;
-    rsImageInfo.repeatNum = static_cast<int32_t>(ImageRepeat::NO_REPEAT);
+    rsImageInfo.repeatNum = static_cast<int32_t>(ImageRepeat::REPEAT);
     AdaptiveImageHelper::ApplyCanvasClip(canvas, rect, rsImageInfo, 1.0, 1.0);
 }
 
@@ -154,12 +160,18 @@ HWTEST_F(AdaptiveImageHelperTest, ApplyCanvasClip001, TestSize.Level1)
 HWTEST_F(AdaptiveImageHelperTest, ApplyCanvasClip002, TestSize.Level1)
 {
     Canvas canvas;
-    Rect rect(2.0, 2.0, 2.0, 2.0);
+    Rect rect(10.0, 10.0, 50.0, 50.0);
     AdaptiveImageInfo rsImageInfo = {};
-    rsImageInfo.scale = 1.0;
     rsImageInfo.fitNum = static_cast<int32_t>(ImageFit::FILL);
-    rsImageInfo.repeatNum = static_cast<int32_t>(ImageRepeat::REPEAT);
-    AdaptiveImageHelper::ApplyCanvasClip(canvas, rect, rsImageInfo, 4.0, 2.0);
+    rsImageInfo.scale = 1.0;
+    rsImageInfo.repeatNum = static_cast<int32_t>(ImageRepeat::NO_REPEAT);
+    AdaptiveImageHelper::ApplyCanvasClip(canvas, rect, rsImageInfo, 0.0, 0.0);
+    AdaptiveImageHelper::ApplyCanvasClip(canvas, rect, rsImageInfo, 20.0, 20.0);
+
+    rsImageInfo.fitNum = static_cast<int32_t>(ImageFit::TOP_LEFT);
+    AdaptiveImageHelper::ApplyCanvasClip(canvas, rect, rsImageInfo, 10, 10);
+    AdaptiveImageHelper::ApplyCanvasClip(canvas, rect, rsImageInfo, 10, 20);
+    AdaptiveImageHelper::ApplyCanvasClip(canvas, rect, rsImageInfo, 20, 10);
 }
 
 /**
@@ -175,6 +187,9 @@ HWTEST_F(AdaptiveImageHelperTest, DrawImage001, TestSize.Level1)
     std::shared_ptr<Image> image = nullptr;
     AdaptiveImageInfo rsImageInfo = {};
     SamplingOptions smapling;
+    AdaptiveImageHelper::DrawImage(canvas, rect, image, rsImageInfo, smapling);
+
+    image = std::make_shared<Image>();
     AdaptiveImageHelper::DrawImage(canvas, rect, image, rsImageInfo, smapling);
 }
 
@@ -192,6 +207,9 @@ HWTEST_F(AdaptiveImageHelperTest, DrawImage002, TestSize.Level1)
     AdaptiveImageInfo rsImageInfo = {};
     SamplingOptions smapling;
     AdaptiveImageHelper::DrawImage(canvas, rect, data, rsImageInfo, smapling);
+
+    data = std::make_shared<Data>();
+    AdaptiveImageHelper::DrawImage(canvas, rect, data, rsImageInfo, smapling);
 }
 
 /**
@@ -207,6 +225,9 @@ HWTEST_F(AdaptiveImageHelperTest, DrawPixelMap001, TestSize.Level1)
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
     AdaptiveImageInfo rsImageInfo = {};
     SamplingOptions smapling;
+    AdaptiveImageHelper::DrawPixelMap(canvas, rect, pixelMap, rsImageInfo, smapling);
+
+    pixelMap = std::make_shared<Media::PixelMap>();
     AdaptiveImageHelper::DrawPixelMap(canvas, rect, pixelMap, rsImageInfo, smapling);
 }
 
@@ -267,19 +288,18 @@ HWTEST_F(AdaptiveImageHelperTest, GetRectCropMultiple003, TestSize.Level1)
 HWTEST_F(AdaptiveImageHelperTest, DrawImageRepeatRect001, TestSize.Level1)
 {
     Canvas canvas;
-    Rect rect(4.0, 4.0, 2.0, 2.0);
+    Rect rect(4.0, 4.0, 20.0, 20.0);
     Bitmap bmp;
     BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
     bmp.Build(10, 10, format);
-    Image image;
-    image.BuildFromBitmap(bmp);
-    auto image1 = std::make_shared<Image>(image);
+    auto image = std::make_shared<Image>();
+    image->BuildFromBitmap(bmp);
     AdaptiveImageInfo rsImageInfo = {};
     SamplingOptions smapling;
     rsImageInfo.scale = 1.0;
     rsImageInfo.fitNum = static_cast<int32_t>(ImageFit::FILL);
     rsImageInfo.repeatNum = static_cast<int32_t>(ImageRepeat::REPEAT);
-    AdaptiveImageHelper::DrawImageRepeatRect(canvas, rect, image1, rsImageInfo, smapling);
+    AdaptiveImageHelper::DrawImageRepeatRect(canvas, rect, image, rsImageInfo, smapling);
 }
 
 /**
@@ -313,7 +333,7 @@ HWTEST_F(AdaptiveImageHelperTest, DrawImageRepeatRect002, TestSize.Level1)
 HWTEST_F(AdaptiveImageHelperTest, DrawImageRepeatRect003, TestSize.Level1)
 {
     Canvas canvas;
-    Rect rect(4.0, 4.0, 2.0, 2.0);
+    Rect rect(4.0, 4.0, 20.0, 20.0);
     std::shared_ptr<Data> data = nullptr;
     AdaptiveImageInfo rsImageInfo = {};
     SamplingOptions smapling;
@@ -350,17 +370,37 @@ HWTEST_F(AdaptiveImageHelperTest, DrawImageRepeatRect004, TestSize.Level1)
 HWTEST_F(AdaptiveImageHelperTest, DrawPixelMapRepeatRect001, TestSize.Level1)
 {
     Canvas canvas;
-    Rect rect(4.0, 4.0, 2.0, 2.0);
-    Media::InitializationOptions opts;
-    opts.size.width = 200;
-    opts.size.height = 150;
-    opts.editable = true;
-    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    Rect rect(4.0, 4.0, 200.0, 200.0);
     AdaptiveImageInfo rsImageInfo = {};
     SamplingOptions smapling;
     rsImageInfo.scale = 1.0;
     rsImageInfo.fitNum = static_cast<int32_t>(ImageFit::FILL);
     rsImageInfo.repeatNum = static_cast<int32_t>(ImageRepeat::REPEAT);
+
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    AdaptiveImageHelper::DrawPixelMapRepeatRect(canvas, rect, pixelMap, rsImageInfo, smapling);
+
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    pixelMap = Media::PixelMap::Create(opts);
+    AdaptiveImageHelper::DrawPixelMapRepeatRect(canvas, rect, pixelMap, rsImageInfo, smapling);
+
+    opts.pixelFormat = Media::PixelFormat::BGRA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL;
+    pixelMap = Media::PixelMap::Create(opts);
+    AdaptiveImageHelper::DrawPixelMapRepeatRect(canvas, rect, pixelMap, rsImageInfo, smapling);
+
+    opts.pixelFormat = Media::PixelFormat::ALPHA_8;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_UNPREMUL;
+    pixelMap = Media::PixelMap::Create(opts);
+    AdaptiveImageHelper::DrawPixelMapRepeatRect(canvas, rect, pixelMap, rsImageInfo, smapling);
+
+    opts.pixelFormat = Media::PixelFormat::RGB_565;
+    pixelMap = Media::PixelMap::Create(opts);
     AdaptiveImageHelper::DrawPixelMapRepeatRect(canvas, rect, pixelMap, rsImageInfo, smapling);
 }
 

@@ -51,6 +51,16 @@ HWTEST_F(RecordingColorSpaceTest, CreateSRGB001, TestSize.Level1)
     EXPECT_TRUE(colorSpaceCmdList != nullptr);
     auto colorSpace = colorSpaceCmdList->Playback();
     EXPECT_TRUE(colorSpace != nullptr);
+
+    auto newCmdList = ColorSpaceCmdList::CreateFromData(colorSpaceCmdList->GetData(), true);
+    EXPECT_TRUE(newCmdList != nullptr);
+    colorSpace = newCmdList->Playback();
+    EXPECT_TRUE(colorSpace != nullptr);
+
+    newCmdList = ColorSpaceCmdList::CreateFromData(colorSpaceCmdList->GetData(), false);
+    EXPECT_TRUE(newCmdList != nullptr);
+    colorSpace = newCmdList->Playback();
+    EXPECT_TRUE(colorSpace != nullptr);
 }
 
 /**

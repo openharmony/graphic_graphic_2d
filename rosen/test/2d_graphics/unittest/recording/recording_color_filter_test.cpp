@@ -51,6 +51,11 @@ HWTEST_F(RecordingColorFilterTest, CreateBlendModeColorFilter001, TestSize.Level
     EXPECT_TRUE(colorFilterCmdList != nullptr);
     auto colorFilter = colorFilterCmdList->Playback();
     EXPECT_TRUE(colorFilter != nullptr);
+
+    auto newCmdList = ColorFilterCmdList::CreateFromData(colorFilterCmdList->GetData(), true);
+    EXPECT_TRUE(newCmdList != nullptr);
+    colorFilter = newCmdList->Playback();
+    EXPECT_TRUE(colorFilter != nullptr);
 }
 
 /**
