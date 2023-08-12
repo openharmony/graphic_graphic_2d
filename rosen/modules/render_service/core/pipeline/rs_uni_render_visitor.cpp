@@ -3378,7 +3378,8 @@ bool RSUniRenderVisitor::InitNodeCache(RSRenderNode& node)
     return false;
 }
 
-void RSUniRenderVisitor::ChangeCacheRenderNodeMap(RSRenderNode& node, const uint32_t count) {
+void RSUniRenderVisitor::ChangeCacheRenderNodeMap(RSRenderNode& node, const uint32_t count)
+{
     std::lock_guard<std::mutex> lock(cacheRenderNodeMapMutex);
     cacheRenderNodeMap[node.GetId()] = count;
 }
