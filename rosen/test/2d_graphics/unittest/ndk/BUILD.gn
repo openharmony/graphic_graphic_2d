@@ -31,14 +31,22 @@ ohos_unittest("2d_graphics_ndk_test") {
   ]
 
   include_dirs = [
-    "$graphic_2d_root/rosen/modules/2d_engine",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "//third_party/googletest/googletest/include",
   ]
+  if (enable_text_gine) {
+    include_dirs += [
+      "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",
+      "//third_party/skia",
+    ]
+    defines = [ "USE_GRAPHIC_TEXT_GINE" ]
+  } else {
+    include_dirs += [ "$graphic_2d_root/rosen/modules/2d_engine" ]
+  }
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "//third_party/googletest:gtest_main",
   ]
 

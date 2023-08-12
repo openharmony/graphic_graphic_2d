@@ -153,6 +153,22 @@ ohos_unittest("texgine_unittest_part5") {
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
+  if (enable_text_gine) {
+    sources -= [
+      "texgine_canvas_test.cpp",
+      "texgine_font_manager_test.cpp",
+      "typography_impl_test.cpp",
+    ]
+    sources += [
+      "texgine_font_style_test.cpp",
+      "texgine_font_test.cpp",
+      "texgine_mask_filter_test.cpp",
+      "texgine_paint_test.cpp",
+      "texgine_path_1d_path_effect_test.cpp",
+      "texgine_path_effect_test.cpp",
+      "texgine_path_test.cpp",
+    ]
+  }
 }
 
 ohos_unittest("texgine_unittest_part6") {

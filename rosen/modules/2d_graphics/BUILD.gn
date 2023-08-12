@@ -14,11 +14,21 @@
 import("//build/ohos.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-import(
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/config.gni")
+import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
 drawing_src_dir = "$rosen_root/modules/2d_graphics/src/drawing"
 src_dir = "$rosen_root/modules/2d_graphics/src"
+platform_dir = "$rosen_root/modules/platform"
+
+config("2d_graphics_config") {
+  include_dirs = [
+    "include",
+    "$src_dir",
+    "$drawing_src_dir",
+    "$drawing_src_dir/engine_adapter",
+    "$platform_dir/image_native",
+  ]
+}
 
 config("export_config") {
   include_dirs = [
@@ -27,6 +37,10 @@ config("export_config") {
     "$drawing_src_dir",
     "$drawing_src_dir/engine_adapter",
   ]
+}
+
+if (enable_text_gine) {
+  defines = [ "USE_GRAPHIC_TEXT_GINE" ]
 }
 
 template("graphics2d_source_set") {
@@ -112,19 +126,6 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/utils/region.cpp",
     ]
 
-    sources += [
-      "$rosen_text_root/properties/font_collection_txt.cpp",
-      "$rosen_text_root/properties/placeholder_run.cpp",
-      "$rosen_text_root/properties/rosen_converter_txt.cpp",
-      "$rosen_text_root/properties/text_style.cpp",
-      "$rosen_text_root/properties/typography_create_txt.cpp",
-      "$rosen_text_root/properties/typography_style.cpp",
-      "$rosen_text_root/properties/typography_txt.cpp",
-      "$rosen_text_root/ui/font_collection.cpp",
-      "$rosen_text_root/ui/typography.cpp",
-      "$rosen_text_root/ui/typography_create.cpp",
-    ]
-
     if (ace_enable_gpu) {
       sources += [
         "$drawing_src_dir/engine_adapter/skia_adapter/skia_gpu_context.cpp",
@@ -139,7 +140,6 @@ template("graphics2d_source_set") {
       "$src_dir",
       "$drawing_src_dir",
       "$drawing_src_dir/engine_adapter",
-      "$rosen_2d_engine_root",
       "$ace_root/frameworks",
       "//third_party/bounds_checking_function/include",
       "$rosen_root/modules/render_service_base/include",
@@ -147,17 +147,52 @@ template("graphics2d_source_set") {
 
     defines += [ "USE_ACE_SKIA" ]
 
+    if (enable_text_gine) {
+      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+      include_dirs += [
+        "$rosen_root/modules/2d_engine/rosen_text/export",
+        "//third_party/bounds_checking_function/include",
+        "$platform_dir/image_native",
+      ]
+      if (defined(use_new_skia) && use_new_skia) {
+        defines += [ "NEW_SKIA" ]
+      }
+    } else {
+      sources += [
+        "$rosen_text_root/properties/font_collection_txt.cpp",
+        "$rosen_text_root/properties/placeholder_run.cpp",
+        "$rosen_text_root/properties/rosen_converter_txt.cpp",
+        "$rosen_text_root/properties/text_style.cpp",
+        "$rosen_text_root/properties/typography_create_txt.cpp",
+        "$rosen_text_root/properties/typography_style.cpp",
+        "$rosen_text_root/properties/typography_txt.cpp",
+        "$rosen_text_root/ui/font_collection.cpp",
+        "$rosen_text_root/ui/typography.cpp",
+        "$rosen_text_root/ui/typography_create.cpp",
+      ]
+      include_dirs += [
+        "$ace_napi_frameworks/frameworks",
+        "$rosen_2d_engine_root",
+      ]
+    }
+
     if (platform == "ohos") {
       external_deps = [
         "hilog:libhilog",
         "image_framework:image_native",
       ]
-      deps = [
-        "$ace_flutter_engine_root:flutter_engine_fml_$platform",
-        "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
-        "$graphic_2d_root/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$platform",
-        "//third_party/bounds_checking_function:libsec_static",
-      ]
+      deps = [ "//third_party/bounds_checking_function:libsec_static" ]
+      if (enable_text_gine) {
+        deps +=
+            [ "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform" ]
+        defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+      } else {
+        deps += [
+          "$ace_flutter_engine_root:flutter_engine_fml_$platform",
+          "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
+          "$graphic_2d_root/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$platform",
+        ]
+      }
       include_dirs += [ "$flutter_root/engine" ]
       defines += [
         "SUPPORT_OHOS_PIXMAP",
@@ -178,25 +213,7 @@ template("graphics2d_source_set") {
     } else {
       cflags = [ "-Wno-c++17-extensions" ]
 
-      deps = [
-        "$ace_flutter_engine_root:flutter_engine_fml_$platform",
-        "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform",
-      ]
-      include_dirs += [ "$flutter_root/engine" ]
-
-      if (defined(use_new_skia) && use_new_skia) {
-        deps += [ "//third_party/skia:skia_$platform" ]
-        include_dirs += [
-          "$flutter_root/txt/src",
-          "//third_party/skia/third_party/externals/harfbuzz/src",
-        ]
-      } else {
-        deps += [
-          "$ace_flutter_engine_root/icu:ace_libicu_$platform",
-          "$ace_flutter_engine_root/skia:ace_skia_$platform",
-        ]
-        include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
-      }
+      deps = [ "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform" ]
 
       if (!is_cross_platform_build) {
         deps += [ "$rosen_root/modules/platform:hilog" ]
@@ -205,8 +222,34 @@ template("graphics2d_source_set") {
       if (defined(use_rosen_drawing) && use_rosen_drawing) {
         deps += [ "//third_party/bounds_checking_function:libsec_static" ]
       }
-
       defines += [ "MODULE_DRAWING" ]
+
+      if (enable_text_gine) {
+        configs = [ "$ace_flutter_engine_root/icu:icu_config_$platform" ]
+        deps += [ "//third_party/skia:skia_$platform" ]
+        defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+        include_dirs += [ "$flutter_root/txt/src" ]
+      } else {
+        deps += [ "$ace_flutter_engine_root:flutter_engine_fml_$platform" ]
+        include_dirs += [ "$flutter_root/engine" ]
+        if (defined(use_new_skia) && use_new_skia) {
+          deps += [ "//third_party/skia:skia_$platform" ]
+          include_dirs += [
+            "$flutter_root/txt/src",
+            "//third_party/skia/third_party/externals/harfbuzz/src",
+          ]
+        } else {
+          deps += [
+            "$ace_flutter_engine_root/icu:ace_libicu_$platform",
+            "$ace_flutter_engine_root/skia:ace_skia_$platform",
+          ]
+          include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
+        }
+      }
+    }
+    if (enable_text_gine) {
+      deps += [ "$rosen_root/modules/2d_engine/rosen_text:rosen_text_inner" ]
+      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     }
 
     part_name = "graphic_2d"
@@ -271,6 +314,21 @@ if (!is_cross_platform_build) {
   }
 }
 
+if (enable_text_gine) {
+  ohos_shared_library("2d_graphics_new") {
+    platform = current_os
+    if (platform == "mingw") {
+      platform = "windows"
+    }
+    deps = [ ":2d_graphics_source_$platform" ]
+    defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+    public_configs = [ ":2d_graphics_config" ]
+    innerapi_tags = [ "platformsdk_indirect" ]
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+}
+
 ## Build 2d_graphics.so
 ohos_shared_library("2d_graphics_canvaskit0310") {
   sources = [
@@ -310,7 +368,11 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
     "$drawing_src_dir/utils/matrix.cpp",
   ]
 
-  defines = [ "USE_CANVASKIT0310_SKIA" ]
+  if (enable_text_gine) {
+    defines += [ "USE_CANVASKIT0310_SKIA" ]
+  } else {
+    defines = [ "USE_CANVASKIT0310_SKIA" ]
+  }
 
   include_dirs = [
     "include",
@@ -331,7 +393,51 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
     "image_framework:image_native",
   ]
 
-  part_name = "graphic_standard"
+  if (enable_text_gine) {
+    external_deps -= [ "image_framework:image_native" ]
+    defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+  }
+
+  part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
+
 ## Build 2d_graphics.so
+if (enable_text_gine) {
+  defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+  ohos_shared_library("2d_graphics_drawing") {
+    include_dirs = [
+      "include",
+      "$src_dir",
+      "$drawing_src_dir",
+      "$drawing_src_dir/engine_adapter",
+      "$rosen_root/modules/2d_engine/rosen_text/export",
+      "//third_party/bounds_checking_function/include",
+    ]
+
+    sources = [
+      "$drawing_src_dir/c/drawing_bitmap.cpp",
+      "$drawing_src_dir/c/drawing_brush.cpp",
+      "$drawing_src_dir/c/drawing_canvas.cpp",
+      "$drawing_src_dir/c/drawing_color.cpp",
+      "$drawing_src_dir/c/drawing_font_collection.cpp",
+      "$drawing_src_dir/c/drawing_path.cpp",
+      "$drawing_src_dir/c/drawing_pen.cpp",
+      "$drawing_src_dir/c/drawing_text_typography.cpp",
+    ]
+
+    if (defined(use_new_skia) && use_new_skia) {
+      include_dirs += [ "$flutter_root/txt/src" ]
+    } else {
+      include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
+    }
+    platform = current_os
+    if (platform == "mingw") {
+      platform = "windows"
+    }
+    deps = [ "$rosen_root/modules/2d_engine/rosen_text:rosen_text_inner" ]
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+}

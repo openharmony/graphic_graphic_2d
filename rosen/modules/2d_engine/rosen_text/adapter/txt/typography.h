@@ -18,10 +18,14 @@
 
 #include "rosen_text/typography.h"
 
+#ifndef USE_GRAPHIC_TEXT_GINE
 #ifdef NEW_SKIA
 #include "third_party/flutter/txt/src/txt/paragraph.h"
 #else
 #include "third_party/flutter/engine/flutter/third_party/txt/src/txt/paragraph.h"
+#endif
+#else
+#include "txt/paragraph.h"
 #endif
 
 namespace OHOS {

@@ -12,8 +12,8 @@
 # limitations under the License.
 
 import("//build/test.gni")
-import(
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
 module_output_path = "graphic_2d/rosen/modules/2d_engine/rosen_text/ui"
 
@@ -23,16 +23,24 @@ ohos_unittest("2d_engine_rosen_text_ui_test") {
 
   include_dirs = [
     "//third_party/googletest/googletest/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$rosen_2d_engine_root",
     "$rosen_2d_engine_root/rosen_text/ui",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
   ]
 
   deps = [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
 
   external_deps = [ "hilog:libhilog" ]
 
+  if (enable_text_gine) {
+    defines = [ "USE_GRAPHIC_TEXT_GINE" ]
+    include_dirs -= [ "$rosen_2d_engine_root/rosen_text/ui" ]
+    include_dirs += [
+      "$rosen_2d_engine_root/rosen_text/export/rosen_text",
+      "//third_party/skia",
+    ]
+  }
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

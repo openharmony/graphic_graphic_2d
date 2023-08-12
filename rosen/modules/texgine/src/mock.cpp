@@ -15,7 +15,13 @@
 
 #include "mock.h"
 
+#ifndef USE_GRAPHIC_TEXT_GINE
 #include <filesystem>
+#else
+#ifdef BUILD_NON_SDK_VER
+#include <filesystem>
+#endif
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -53,10 +59,25 @@ void MockIFStream::StdFilestystemClose()
     std::ifstream::close();
 }
 
+#ifndef USE_GRAPHIC_TEXT_GINE
 bool StdFilesystemExists(const std::string &p, std::error_code &ec)
 {
     return std::filesystem::exists(p, ec);
 }
+#else
+#ifdef BUILD_NON_SDK_VER
+bool StdFilesystemExists(const std::string &p, std::error_code &ec)
+{
+    return std::filesystem::exists(p, ec);
+}
+#else
+bool StdFilesystemExists(const std::string &p)
+{
+    std::ifstream f(p.c_str());
+    return f.good();
+}
+#endif
+#endif
 
 } // namespace TextEngine
 } // namespace Rosen

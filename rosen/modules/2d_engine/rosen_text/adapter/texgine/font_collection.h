@@ -18,10 +18,18 @@
 
 #include "rosen_text/font_collection.h"
 
+#ifdef USE_GRAPHIC_TEXT_GINE
+namespace OHOS {
+namespace Rosen {
+#endif
 namespace TextEngine {
 class FontProviders;
 class DynamicFontProvider;
 } // namespace TextEngine
+#ifdef USE_GRAPHIC_TEXT_GINE
+} // namespace Rosen
+} // namespace OHOS
+#endif
 
 namespace OHOS {
 namespace Rosen {

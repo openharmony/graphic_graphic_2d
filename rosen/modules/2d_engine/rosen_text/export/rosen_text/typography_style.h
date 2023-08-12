@@ -27,6 +27,7 @@ namespace Rosen {
 struct TypographyStyle {
     const static inline std::u16string ELLIPSIS = u"\u2026";
 
+#ifndef USE_GRAPHIC_TEXT_GINE
     FontWeight fontWeight_ = FontWeight::W400;
     FontStyle fontStyle_ = FontStyle::NORMAL;
     std::string fontFamily_ = "";
@@ -52,6 +53,33 @@ struct TypographyStyle {
 
     BreakStrategy breakStrategy_ = BreakStrategy::GREEDY;
     WordBreakType wordBreakType_ = WordBreakType::BREAK_WORD;
+#else
+    FontWeight fontWeight = FontWeight::W400;
+    FontStyle fontStyle = FontStyle::NORMAL;
+    std::string fontFamily = "";
+    double fontSize = 14.0; // default is libtxt text style fonst size
+    double heightScale = 1.0;
+    bool heightOnly = false;
+    bool useLineStyle = false;
+
+    FontWeight lineStyleFontWeight = FontWeight::W400;
+    FontStyle lineStyleFontStyle = FontStyle::NORMAL;
+    std::vector<std::string> lineStyleFontFamilies;
+    double lineStyleFontSize = 14.0; // default is libtxt text style font size
+    double lineStyleHeightScale = 1.0;
+    bool lineStyleHeightOnly = false;
+    double lineStyleSpacingScale = -1.0;
+    bool lineStyleOnly = false;
+
+    TextAlign textAlign = TextAlign::START;
+    TextDirection textDirection = TextDirection::LTR;
+    size_t maxLines = 1e9;
+    std::u16string ellipsis;
+    std::string locale;
+
+    BreakStrategy breakStrategy = BreakStrategy::GREEDY;
+    WordBreakType wordBreakType = WordBreakType::BREAK_WORD;
+#endif
 
     TextStyle GetTextStyle() const;
     TextAlign GetEffectiveAlign() const;

@@ -24,7 +24,13 @@
 #include "texgine/any_span.h"
 #include "texgine_exception.h"
 #include "texgine/utils/exlog.h"
+#ifndef USE_GRAPHIC_TEXT_GINE
 #include "texgine/utils/trace.h"
+#else
+#ifdef LOGGER_ENABLE_SCOPE
+#include "texgine/utils/trace.h"
+#endif
+#endif
 #include "text_breaker.h"
 #include "text_merger.h"
 #include "text_reverser.h"
@@ -48,7 +54,13 @@ void DumpLineMetrics(const std::vector<LineMetrics> &lineMetrics)
 std::vector<LineMetrics> Shaper::DoShape(std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
     const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit)
 {
+#ifndef USE_GRAPHIC_TEXT_GINE
     ScopedTrace scope("Shaper::DoShape");
+#else
+#ifdef LOGGER_ENABLE_SCOPE
+    ScopedTrace scope("Shaper::DoShape");
+#endif
+#endif
     TextBreaker tb;
     auto ret = tb.WordBreak(spans, tstyle, fontProviders);
     if (ret) {

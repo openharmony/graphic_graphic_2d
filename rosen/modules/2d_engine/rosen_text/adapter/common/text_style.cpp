@@ -54,16 +54,30 @@ TextShadow::TextShadow()
 {
 }
 
+#ifndef USE_GRAPHIC_TEXT_GINE
 TextShadow::TextShadow(Drawing::Color color, Drawing::Point offset, double blurRadius)
+#else
+TextShadow::TextShadow(Drawing::Color shadowColor, Drawing::Point shadowOffset, double shadowBlurRadius)
+#endif
 {
+#ifndef USE_GRAPHIC_TEXT_GINE
     color_ = color;
     offset_ = offset;
     blurRadius_ = blurRadius;
+#else
+    color = shadowColor;
+    offset = shadowOffset;
+    blurRadius = shadowBlurRadius;
+#endif
 }
 
 bool TextShadow::operator ==(const TextShadow& rhs) const
 {
+#ifndef USE_GRAPHIC_TEXT_GINE
     return color_ == rhs.color_ && offset_ == rhs.offset_ && blurRadius_ == rhs.blurRadius_;
+#else
+    return color == rhs.color && offset == rhs.offset && blurRadius == rhs.blurRadius;
+#endif
 }
 
 bool TextShadow::operator !=(const TextShadow& rhs) const
@@ -73,11 +87,16 @@ bool TextShadow::operator !=(const TextShadow& rhs) const
 
 bool TextShadow::HasShadow() const
 {
+#ifndef USE_GRAPHIC_TEXT_GINE
     return offset_.GetX() != 0 || offset_.GetY() != 0 || blurRadius_ != 0.0;
+#else
+    return offset.GetX() != 0 || offset.GetY() != 0 || fabs(blurRadius) >= DBL_EPSILON;
+#endif
 }
 
 bool TextStyle::operator ==(const TextStyle& rhs) const
 {
+#ifndef USE_GRAPHIC_TEXT_GINE
     return color_ == rhs.color_ &&
            decoration_ == rhs.decoration_ &&
            decorationColor_ == rhs.decorationColor_ &&
@@ -97,6 +116,27 @@ bool TextStyle::operator ==(const TextStyle& rhs) const
            foreground_ == rhs.foreground_ &&
            shadows_ == rhs.shadows_ &&
            fontFeatures_ == rhs.fontFeatures_;
+#else
+    return color == rhs.color &&
+        decoration == rhs.decoration &&
+        decorationColor == rhs.decorationColor &&
+        decorationStyle == rhs.decorationStyle &&
+        decorationThicknessScale == rhs.decorationThicknessScale &&
+        fontWeight == rhs.fontWeight &&
+        fontStyle == rhs.fontStyle &&
+        baseline == rhs.baseline &&
+        fontFamilies == rhs.fontFamilies &&
+        fontSize == rhs.fontSize &&
+        letterSpacing == rhs.letterSpacing &&
+        wordSpacing == rhs.wordSpacing &&
+        heightScale == rhs.heightScale &&
+        heightOnly == rhs.heightOnly &&
+        locale == rhs.locale &&
+        background == rhs.background &&
+        foreground == rhs.foreground &&
+        shadows == rhs.shadows &&
+        fontFeatures == rhs.fontFeatures;
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

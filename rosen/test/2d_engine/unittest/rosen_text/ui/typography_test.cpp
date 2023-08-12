@@ -18,11 +18,20 @@
 #include "typography.h"
 #include "typography_create.h"
 
+#ifndef USE_GRAPHIC_TEXT_GINE
 using namespace rosen;
+#else
+using namespace OHOS::Rosen;
+#endif
 using namespace testing;
 using namespace testing::ext;
+#ifndef USE_GRAPHIC_TEXT_GINE
 using RectHeightStyle = rosen::TypographyProperties::RectHeightStyle;
 using RectWidthStyle = rosen::TypographyProperties::RectWidthStyle;
+#else
+using RectHeightStyle = OHOS::Rosen::TextRectHeightStyle;
+using RectWidthStyle = OHOS::Rosen::TextRectWidthStyle;
+#endif
 
 namespace OHOS {
 class OH_Drawing_UI_TypographyTest : public testing::Test {
@@ -36,26 +45,57 @@ class OH_Drawing_UI_TypographyTest : public testing::Test {
 HWTEST_F(OH_Drawing_UI_TypographyTest, OH_Drawing_UI_TypographyTest001, TestSize.Level1)
 {
     TypographyStyle typoStype;
+#ifndef USE_GRAPHIC_TEXT_GINE
     std::unique_ptr<TypographyCreate> builder = TypographyCreate::CreateRosenBuilder(
         typoStype, FontCollection::GetInstance());
     std::unique_ptr<rosen::Typography> typography = builder->Build();
     auto result = typography->GetRectsForRange(0, 0, RectHeightStyle::TIGHT, RectWidthStyle::TIGHT);
+#else
+    std::unique_ptr<TypographyCreate> builder = TypographyCreate::Create(
+        typoStype, FontCollection::Create());
+    std::unique_ptr<Rosen::Typography> typography = builder->CreateTypography();
+    auto result = typography->GetTextRectsByBoundary(0, 0, RectHeightStyle::TIGHT, RectWidthStyle::TIGHT);
+#endif
     EXPECT_EQ(result.empty(), true);
+#ifndef USE_GRAPHIC_TEXT_GINE
     result = typography->GetRectsForRange(0, 0, RectHeightStyle::MAX, RectWidthStyle::MAX);
+#else
+    result = typography->GetTextRectsByBoundary(0, 0, RectHeightStyle::COVER_TOP_AND_BOTTOM, RectWidthStyle::MAX);
+#endif
     EXPECT_EQ(result.empty(), true);
+#ifndef USE_GRAPHIC_TEXT_GINE
     result = typography->GetRectsForRange(0, 0, RectHeightStyle::INCLUDELINESPACEMIDDLE,
+#else
+    result = typography->GetTextRectsByBoundary(0, 0, RectHeightStyle::COVER_HALF_TOP_AND_BOTTOM,
+#endif
         RectWidthStyle::TIGHT);
     EXPECT_EQ(result.empty(), true);
+#ifndef USE_GRAPHIC_TEXT_GINE
     result = typography->GetRectsForRange(0, 0, RectHeightStyle::INCLUDELINESPACETOP,
+#else
+    result = typography->GetTextRectsByBoundary(0, 0, RectHeightStyle::COVER_TOP,
+#endif
         RectWidthStyle::TIGHT);
     EXPECT_EQ(result.empty(), true);
+#ifndef USE_GRAPHIC_TEXT_GINE
     result = typography->GetRectsForRange(0, 0, RectHeightStyle::INCLUDELINESPACEBOTTOM,
+#else
+    result = typography->GetTextRectsByBoundary(0, 0, RectHeightStyle::COVER_BOTTOM,
+#endif
         RectWidthStyle::MAX);
     EXPECT_EQ(result.empty(), true);
+#ifndef USE_GRAPHIC_TEXT_GINE
     result = typography->GetRectsForRange(0, 0, RectHeightStyle::STRUCT,
+#else
+    result = typography->GetTextRectsByBoundary(0, 0, RectHeightStyle::FOLLOW_BY_STRUT,
+#endif
         RectWidthStyle::MAX);
     EXPECT_EQ(result.empty(), true);
+#ifndef USE_GRAPHIC_TEXT_GINE
     result = typography->GetRectsForPlaceholders();
+#else
+    result = typography->GetTextRectsOfPlaceholders();
+#endif
     EXPECT_EQ(result.empty(), true);
 }
 }

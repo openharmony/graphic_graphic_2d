@@ -42,9 +42,15 @@ enum class TextRectHeightStyle {
 };
 
 struct TextRect {
+#ifndef USE_GRAPHIC_TEXT_GINE
     Drawing::RectF rect_;
     TextDirection direction_;
     TextRect(Drawing::RectF rect, TextDirection direction);
+#else
+    Drawing::RectF rect;
+    TextDirection direction;
+    TextRect(Drawing::RectF rec, TextDirection dir);
+#endif
 };
 
 enum class Affinity {
@@ -53,14 +59,25 @@ enum class Affinity {
 };
 
 struct IndexAndAffinity {
+#ifndef USE_GRAPHIC_TEXT_GINE
     size_t index_;
     Affinity affinity_;
     IndexAndAffinity(size_t index, Affinity affinity);
+#else
+    size_t index;
+    Affinity affinity;
+    IndexAndAffinity(size_t charIndex, Affinity charAffinity);
+#endif
 };
 
 struct Boundary {
+#ifndef USE_GRAPHIC_TEXT_GINE
     size_t leftIndex_; // include leftIndex_
     size_t rightIndex_; // not include rightIndex_
+#else
+    size_t leftIndex = 0; // include leftIndex_
+    size_t rightIndex = 0; // not include rightIndex_
+#endif
 
     Boundary(size_t left, size_t right);
     bool operator ==(const Boundary& rhs) const;

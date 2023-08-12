@@ -13,6 +13,7 @@
 
 import("//build/ohos.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 if (defined(use_new_skia) && use_new_skia) {
   skia_root = "//third_party/skia"
@@ -116,6 +117,11 @@ template("rosen_libicu") {
   forward_variables_from(invoker, "*")
 
   ohos_source_set(target_name) {
+    if (enable_text_gine) {
+      part_name = "graphic_2d"
+      subsystem_name = "graphic"
+      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+    }
     public_configs = [ ":icu_config_$platform" ]
     configs = [ ":icu_compile_flags" ]
     defines += invoker.defines
@@ -559,6 +565,71 @@ template("rosen_libicu") {
         "$skia_root/third_party/externals/icu/source/i18n/zrule.cpp",
         "$skia_root/third_party/externals/icu/source/i18n/ztrans.cpp",
       ]
+      if (enable_text_gine) {
+        defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+        sources += [
+          "$skia_root/third_party/externals/icu/source/common/localebuilder.cpp",
+          "$skia_root/third_party/externals/icu/source/common/localematcher.cpp",
+          "$skia_root/third_party/externals/icu/source/common/localeprioritylist.cpp",
+          "$skia_root/third_party/externals/icu/source/common/locdistance.cpp",
+          "$skia_root/third_party/externals/icu/source/common/loclikelysubtags.cpp",
+          "$skia_root/third_party/externals/icu/source/common/lsr.cpp",
+          "$skia_root/third_party/externals/icu/source/common/restrace.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/double-conversion-double-to-string.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/double-conversion-string-to-double.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/formatted_string_builder.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/formattedval_iterimpl.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/formattedval_sbimpl.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/formattedvalue.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/measunit_extra.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/number_output.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/number_symbolswrapper.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/number_usageprefs.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/numrange_capi.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/pluralranges.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/string_segment.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/units_complexconverter.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/units_converter.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/units_data.cpp",
+          "$skia_root/third_party/externals/icu/source/i18n/units_router.cpp",
+        ]
+        if (defined(use_new_skia) && use_new_skia) {
+          sources -= [
+            "$skia_root/third_party/externals/icu/source/i18n/double-conversion-diy-fp.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/double-conversion.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/nounit.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/number_stringbuilder.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/numparse_stringsegment.cpp",
+          ]
+        } else {
+          sources -= [
+            "$skia_root/third_party/externals/icu/source/common/localebuilder.cpp",
+            "$skia_root/third_party/externals/icu/source/common/localematcher.cpp",
+            "$skia_root/third_party/externals/icu/source/common/localeprioritylist.cpp",
+            "$skia_root/third_party/externals/icu/source/common/locdistance.cpp",
+            "$skia_root/third_party/externals/icu/source/common/loclikelysubtags.cpp",
+            "$skia_root/third_party/externals/icu/source/common/lsr.cpp",
+            "$skia_root/third_party/externals/icu/source/common/restrace.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/double-conversion-double-to-string.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/double-conversion-string-to-double.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/formatted_string_builder.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/formattedval_iterimpl.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/formattedval_sbimpl.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/formattedvalue.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/measunit_extra.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/number_output.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/number_symbolswrapper.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/number_usageprefs.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/numrange_capi.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/pluralranges.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/string_segment.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/units_complexconverter.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/units_converter.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/units_data.cpp",
+            "$skia_root/third_party/externals/icu/source/i18n/units_router.cpp",
+          ]
+        }
+      }
 
       deps = [
         "$ace_flutter_engine_root/icu:ace_icu_make_data_assembly_$platform",
