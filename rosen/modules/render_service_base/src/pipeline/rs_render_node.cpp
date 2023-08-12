@@ -23,6 +23,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_base_render_node.h"
+#include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
@@ -375,6 +376,10 @@ void RSRenderNode::DumpNodeType(std::string& out) const
         }
         case RSRenderNodeType::PROXY_NODE: {
             out += "PROXY_NODE";
+            break;
+        }
+        case RSRenderNodeType::CANVAS_DRAWING_NODE: {
+            out += "CANVAS_DRAWING_NODE";
             break;
         }
         default: {
