@@ -3144,7 +3144,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
                     if (displayNodeMatrix_.has_value()) {
                         auto& displayNodeMatrix = displayNodeMatrix_.value();
-                        canvas_->setMatrix(displayNodeMatrix.preConcat(canvas_->getTotalMatrix()));
+                        canvas_->concat(displayNodeMatrix);
                     }
                     node.SetTotalMatrix(canvas_->getTotalMatrix());
 
