@@ -63,6 +63,7 @@ if (enable_text_gine) {
     include_dirs = [
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+      "$rosen_root/modules/render_service_base/include",
     ]
 
     sources = [
@@ -86,9 +87,10 @@ if (enable_text_gine) {
   ohos_source_set("rosen_text_txt") {
     public_configs = [ ":rosen_text_public_config" ]
     include_dirs = [
+      "$flutter_root/engine",
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
-      "$flutter_root/engine",
+      "$rosen_root/modules/render_service_base/include",
     ]
 
     defines += [ "USE_GRAPHIC_TEXT_GINE" ]

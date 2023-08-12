@@ -27,6 +27,7 @@ config("2d_graphics_config") {
     "$drawing_src_dir",
     "$drawing_src_dir/engine_adapter",
     "$platform_dir/image_native",
+    "$rosen_root/modules/render_service_base/include",
   ]
 }
 
@@ -321,6 +322,7 @@ if (enable_text_gine) {
       platform = "windows"
     }
     deps = [ ":2d_graphics_source_$platform" ]
+    public_deps = [ "//third_party/bounds_checking_function:libsec_static" ]
     defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     public_configs = [ ":2d_graphics_config" ]
     innerapi_tags = [ "platformsdk_indirect" ]

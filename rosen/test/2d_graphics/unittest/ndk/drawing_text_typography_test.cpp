@@ -70,24 +70,24 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest001, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest002, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-#ifndef USE_GRAPHIC_TEXT_GINE
     OH_Drawing_SetTypographyTextDirection(typoStyle, TEXT_DIRECTION_LTR);
+#ifndef USE_GRAPHIC_TEXT_GINE
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textDirection_, TextDirection::LTR);
 #else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textDirection, TextDirection::LTR);
 #endif
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textDirection_, TextDirection::LTR);
-#ifndef USE_GRAPHIC_TEXT_GINE
     OH_Drawing_SetTypographyTextDirection(typoStyle, TEXT_DIRECTION_RTL);
+#ifndef USE_GRAPHIC_TEXT_GINE
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textDirection_, TextDirection::RTL);
 #else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textDirection, TextDirection::RTL);
 #endif
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textDirection_, TextDirection::RTL);
-#ifndef USE_GRAPHIC_TEXT_GINE
     OH_Drawing_SetTypographyTextDirection(typoStyle, -1);
+#ifndef USE_GRAPHIC_TEXT_GINE
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textDirection_, TextDirection::LTR);
 #else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textDirection, TextDirection::LTR);
 #endif
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textDirection_, TextDirection::LTR);
 }
 
 /*

@@ -34,19 +34,6 @@ ohos_unittest("2d_engine_rosen_text_prop_test") {
     "$rosen_root/modules/2d_graphics/src",
   ]
 
-  if (enable_text_gine) {
-    sources -= [ "place_holder_test.cpp" ]
-    include_dirs -= [ "$rosen_2d_engine_root/rosen_text/properties" ]
-    include_dirs += [
-      "$rosen_2d_engine_root/rosen_text/adapter",
-      "$rosen_2d_engine_root/rosen_text/export",
-      "//third_party/flutter/engine/flutter/third_party/txt/src",
-      "//third_party/flutter/skia/third_party/externals/harfbuzz/src",
-      "//third_party/flutter/skia",
-      "//third_party/flutter/engine",
-    ]
-  }
-
   if (defined(use_new_skia) && use_new_skia) {
     include_dirs += [
       "//third_party/skia/third_party/externals/harfbuzz/src",
@@ -60,6 +47,20 @@ ohos_unittest("2d_engine_rosen_text_prop_test") {
       "//third_party/flutter/skia",
       "//third_party/flutter/engine/flutter/third_party/txt/src",
     ]
+  }
+
+  if (enable_text_gine) {
+    sources -= [ "place_holder_test.cpp" ]
+    include_dirs -= [ "$rosen_2d_engine_root/rosen_text/properties" ]
+    include_dirs += [
+      "$rosen_2d_engine_root/rosen_text/adapter",
+      "$rosen_2d_engine_root/rosen_text/export",
+      "//third_party/flutter/engine/flutter/third_party/txt/src",
+      "//third_party/flutter/skia/third_party/externals/harfbuzz/src",
+      "//third_party/flutter/skia",
+      "//third_party/flutter/engine",
+    ]
+    defines += [ "USE_GRAPHIC_TEXT_GINE" ]
   }
 
   deps = [ "$rosen_root/modules/2d_graphics:2d_graphics" ]

@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <vector>
 
+#include "common/rs_macros.h"
 #include "draw/canvas.h"
 #include "include/core/SkCanvas.h" // SKIA
 #include "utils/rect.h"
@@ -41,7 +42,7 @@ enum class TextRectHeightStyle {
     FOLLOW_BY_STRUT,
 };
 
-struct TextRect {
+struct RS_EXPORT TextRect {
 #ifndef USE_GRAPHIC_TEXT_GINE
     Drawing::RectF rect_;
     TextDirection direction_;

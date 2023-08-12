@@ -101,7 +101,11 @@ HWTEST_F(OH_Drawing_TextStyleTest, OH_Drawing_TextStyleTest001, TestSize.Level1)
 {
     TextStyle textStyle;
     TextStyle textStyle2;
+#ifndef USE_GRAPHIC_TEXT_GINE
     EXPECT_EQ(textStyle.equals(textStyle2), true);
+#else
+    EXPECT_EQ(textStyle, textStyle2);
+#endif
 }
 
 /*
@@ -112,7 +116,11 @@ HWTEST_F(OH_Drawing_TextStyleTest, OH_Drawing_TextStyleTest001, TestSize.Level1)
 HWTEST_F(OH_Drawing_TextStyleTest, OH_Drawing_TextStyleTest002, TestSize.Level1)
 {
     TextStyle textStyle;
+#ifndef USE_GRAPHIC_TEXT_GINE
     std::string features = textStyle.fontFeatures_.GetFeatureSettings();
+#else
+    std::string features = textStyle.fontFeatures.GetFeatureSettings();
+#endif
     EXPECT_EQ(features.empty(), true);
 }
 }

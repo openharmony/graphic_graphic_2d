@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include "common/rs_macros.h"
 #include "draw/color.h"
 #include "draw/pen.h"
 #include "include/core/SkPaint.h" // SKIA
@@ -32,7 +33,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class FontFeatures {
+class RS_EXPORT FontFeatures {
 public:
     void SetFeature(std::string tag, int value);
     std::string GetFeatureSettings() const;
@@ -43,7 +44,7 @@ private:
     std::map<std::string, int> featureMap_;
 };
 
-struct TextShadow {
+struct RS_EXPORT TextShadow {
 #ifndef USE_GRAPHIC_TEXT_GINE
     Drawing::Color color_ = Drawing::Color::COLOR_BLACK;
     Drawing::PointF offset_;

@@ -112,6 +112,7 @@ ohos_shared_library("libtexgine") {
 
     public_deps = [
       "texgine_drawing:libtexgine_drawing",
+      "//third_party/bounds_checking_function:libsec_static",
       "//third_party/jsoncpp:jsoncpp",
     ]
 
@@ -127,25 +128,23 @@ ohos_shared_library("libtexgine") {
 
         external_deps = [
           "c_utils:utils",
+          "hilog:libhilog",
           "hitrace:hitrace_meter",
         ]
 
-        public_deps += [
-          "$hilog_root/interfaces/native/innerkits:libhilog",
-          "//third_party/flutter/build/icu:ace_libicu_$platform",
-        ]
+        public_deps +=
+            [ "//third_party/flutter/build/icu:ace_libicu_$platform" ]
       } else {
         sources -= [ "src/utils/trace_ohos.cpp" ]
         public_deps += [ "//third_party/skia/third_party/icu" ]
       }
     } else {
-      public_deps += [
-        "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
-        "$hilog_root/interfaces/native/innerkits:libhilog",
-      ]
+      public_deps +=
+          [ "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform" ]
 
       external_deps = [
         "c_utils:utils",
+        "hilog:libhilog",
         "hitrace:hitrace_meter",
       ]
     }
