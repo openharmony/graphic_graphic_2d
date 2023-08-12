@@ -44,8 +44,6 @@ const std::set<RSModifierType> GROUPABLE_ANIMATION_TYPE = {
     RSModifierType::SCALE,
 };
 const std::set<RSModifierType> CACHEABLE_ANIMATION_TYPE = {
-    RSModifierType::ALPHA,
-    RSModifierType::ROTATION,
     RSModifierType::BOUNDS,
     RSModifierType::FRAME,
 };
