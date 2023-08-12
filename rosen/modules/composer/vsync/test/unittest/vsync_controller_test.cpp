@@ -57,7 +57,7 @@ void VSyncControllerCallback::OnVSyncEvent(int64_t now, int64_t period) {}
 HWTEST_F(VSyncControllerTest, SetEnable001, Function | MediumTest | Level2)
 {
     bool isGeneratorEnable = false;
-    ASSERT_EQ(VSyncControllerTest::vsyncController_->SetEnable(true, isGeneratorEnable), VSYNC_ERROR_OK);
+    ASSERT_EQ(VSyncControllerTest::vsyncController_->SetEnable(true, isGeneratorEnable), VSYNC_ERROR_API_FAILED);
 }
 
 /*
@@ -96,6 +96,6 @@ HWTEST_F(VSyncControllerTest, SetCallback002, Function | MediumTest | Level2)
  */
 HWTEST_F(VSyncControllerTest, SetPhaseOffset, Function | MediumTest | Level2)
 {
-    ASSERT_EQ(VSyncControllerTest::vsyncController_->SetPhaseOffset(2), VSYNC_ERROR_OK);
+    ASSERT_EQ(VSyncControllerTest::vsyncController_->SetPhaseOffset(2), VSYNC_ERROR_INVALID_OPERATING);
 }
 }

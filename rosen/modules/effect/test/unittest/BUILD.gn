@@ -20,10 +20,7 @@ module_output_path = "graphic_2d/rosen/modules/effect"
 ohos_unittest("EffectTest") {
   module_out_path = module_output_path
 
-  deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//third_party/googletest:gtest_main",
-  ]
+  deps = [ "//third_party/googletest:gtest_main" ]
 
   sources = [
     "color_picker_unittest.cpp",
