@@ -271,6 +271,9 @@ private:
     void ClosePartialRenderWhenAnimatingWindows(std::shared_ptr<RSDisplayRenderNode>& node);
     int32_t GetNodePreferred(std::vector<HgmModifierProfile> hgmModifierProfileList) const;
 
+    bool DrawBlurInCache(RSRenderNode& node);
+    void UpdateCacheRenderNodeMapWithBlur(RSRenderNode& node);
+
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
 #else
@@ -428,6 +431,8 @@ private:
     std::unordered_map<NodeId, FrameRateRange> finalFrameRateRangeMap_; // RSDisplayRenderNode id
 
     std::unique_ptr<HgmFrameRateManager> frameRateMgr_;
+    std::unordered_map<NodeId, std::unordered_map<NodeId, RectI>> allCacheFilterRects_ = {};
+    std::stack<std::unordered_map<NodeId, RectI>> curCacheFilterRects_ = {};
 };
 } // namespace Rosen
 } // namespace OHOS

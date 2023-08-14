@@ -613,7 +613,7 @@ void RSPaintFilterCanvas::CopyConfiguration(const RSPaintFilterCanvas& other)
         SetCacheType(RSPaintFilterCanvas::CacheType::DISABLED);
     } else {
         // planning: maybe we should copy source cache status
-        SetCacheType(RSPaintFilterCanvas::CacheType::UNDEFINED);
+        SetCacheType(other.GetCacheType());
     }
 }
 
