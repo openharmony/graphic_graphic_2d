@@ -370,6 +370,11 @@ void RSMainThread::SetDeviceType()
     }
 }
 
+DeviceType RSMainThread::GetDeviceType() const
+{
+    return deviceType_;
+}
+
 void RSMainThread::SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated)
 {
     isCachedSurfaceUpdated_ = isCachedSurfaceUpdated;
