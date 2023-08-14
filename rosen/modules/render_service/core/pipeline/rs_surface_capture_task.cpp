@@ -922,7 +922,6 @@ void RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         };
         drawingNode->SetSurfaceClearFunc({ UNI_MAIN_THREAD_INDEX, clearFunc });
     }
-    node.GetMutableRenderProperties().CheckEmptyBounds();
     node.ProcessRenderBeforeChildren(*canvas_);
     node.ProcessRenderContents(*canvas_);
     ProcessChildren(node);

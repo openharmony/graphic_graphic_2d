@@ -21,6 +21,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_filter.h"
@@ -44,7 +45,7 @@ const Vector4f Vector4fZero { 0.f, 0.f, 0.f, 0.f };
 
 using ResetPropertyFunc = void (*)(RSProperties* prop);
 const std::unordered_map<RSModifierType, ResetPropertyFunc> g_funcLUT = {
-    { RSModifierType::BOUNDS, [](RSProperties* prop) {} },
+    { RSModifierType::BOUNDS, [](RSProperties* prop) { prop->ResetBounds(); } },
     { RSModifierType::FRAME, [](RSProperties* prop) {} },
     { RSModifierType::SANDBOX, [](RSProperties* prop) { prop->ResetSandBox(); } },
     { RSModifierType::POSITION_Z, [](RSProperties* prop) { prop->SetPositionZ(0.f); } },
@@ -95,8 +96,8 @@ const std::unordered_map<RSModifierType, ResetPropertyFunc> g_funcLUT = {
     { RSModifierType::MASK, [](RSProperties* prop) { prop->SetMask(nullptr); } },
     { RSModifierType::SPHERIZE, [](RSProperties* prop) { prop->SetSpherize(0.f); } },
     { RSModifierType::LIGHT_UP_EFFECT, [](RSProperties* prop) { prop->SetLightUpEffect(1.f); } },
-    { RSModifierType::PIXEL_STRETCH, [](RSProperties* prop) { prop->SetPixelStretch(Vector4f()); } },
-    { RSModifierType::PIXEL_STRETCH_PERCENT, [](RSProperties* prop) { prop->SetPixelStretchPercent(Vector4f()); } },
+    { RSModifierType::PIXEL_STRETCH, [](RSProperties* prop) { prop->SetPixelStretch(std::nullopt); } },
+    { RSModifierType::PIXEL_STRETCH_PERCENT, [](RSProperties* prop) { prop->SetPixelStretchPercent(std::nullopt); } },
     { RSModifierType::GRAY_SCALE, [](RSProperties* prop) { prop->SetGrayScale(std::nullopt); } },
     { RSModifierType::BRIGHTNESS, [](RSProperties* prop) { prop->SetBrightness(std::nullopt); } },
     { RSModifierType::CONTRAST, [](RSProperties* prop) { prop->SetContrast(std::nullopt); } },
@@ -109,6 +110,9 @@ const std::unordered_map<RSModifierType, ResetPropertyFunc> g_funcLUT = {
 };
 } // namespace
 
+// Only enable filter cache when uni-render is enabled and filter cache is enabled
+const bool RSProperties::FilterCacheEnabled =
+    RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender();
 RSProperties::RSProperties()
 {
     boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
@@ -117,11 +121,13 @@ RSProperties::RSProperties()
 
 RSProperties::~RSProperties() = default;
 
-void RSProperties::ResetProperty(RSModifierType type)
+void RSProperties::ResetProperty(const std::unordered_set<RSModifierType>& dirtyTypes)
 {
-    auto it = g_funcLUT.find(type);
-    if (it != g_funcLUT.end()) {
-        it->second(this);
+    for (const auto& type : dirtyTypes) {
+        auto it = g_funcLUT.find(type);
+        if (it != g_funcLUT.end()) {
+            it->second(this);
+        }
     }
 }
 
@@ -225,10 +231,6 @@ void RSProperties::SetFrame(Vector4f frame)
         contentDirty_ = true;
     }
     frameGeo_->SetRect(frame.x_, frame.y_, frame.z_, frame.w_);
-    // ProcessAnimate would translate frame offset
-    if (GetFrameOffsetX() != 0. || GetFrameOffsetY() != 0.) {
-        isDrawn_ = true;
-    }
     geoDirty_ = true;
     SetDirty();
 }
@@ -236,10 +238,6 @@ void RSProperties::SetFrame(Vector4f frame)
 void RSProperties::SetFrameSize(Vector2f size)
 {
     frameGeo_->SetSize(size.x_, size.y_);
-    // ProcessAnimate would translate frame offset
-    if (GetFrameOffsetX() != 0. || GetFrameOffsetY() != 0.) {
-        isDrawn_ = true;
-    }
     geoDirty_ = true;
     contentDirty_ = true;
     SetDirty();
@@ -264,10 +262,6 @@ void RSProperties::SetFrameHeight(float height)
 void RSProperties::SetFramePosition(Vector2f position)
 {
     frameGeo_->SetPosition(position.x_, position.y_);
-    // ProcessAnimate would translate frame offset
-    if (GetFrameOffsetX() != 0. || GetFrameOffsetY() != 0.) {
-        isDrawn_ = true;
-    }
     geoDirty_ = true;
     SetDirty();
 }
@@ -275,10 +269,6 @@ void RSProperties::SetFramePosition(Vector2f position)
 void RSProperties::SetFramePositionX(float positionX)
 {
     frameGeo_->SetX(positionX);
-    // ProcessAnimate would translate frame offset
-    if (GetFrameOffsetX() != 0.) {
-        isDrawn_ = true;
-    }
     geoDirty_ = true;
     SetDirty();
 }
@@ -286,10 +276,6 @@ void RSProperties::SetFramePositionX(float positionX)
 void RSProperties::SetFramePositionY(float positionY)
 {
     frameGeo_->SetY(positionY);
-    // ProcessAnimate would translate frame offset
-    if (GetFrameOffsetY() != 0.) {
-        isDrawn_ = true;
-    }
     geoDirty_ = true;
     SetDirty();
 }
@@ -331,12 +317,12 @@ Vector2f RSProperties::GetFramePosition() const
 
 float RSProperties::GetFrameOffsetX() const
 {
-    return std::isinf(frameGeo_->GetX()) ? 0 : (frameGeo_->GetX() - boundsGeo_->GetX());
+    return frameOffsetX_;
 }
 
 float RSProperties::GetFrameOffsetY() const
 {
-    return std::isinf(frameGeo_->GetY()) ? 0 : (frameGeo_->GetY() - boundsGeo_->GetY());
+    return frameOffsetY_;
 }
 
 const std::shared_ptr<RSObjAbsGeometry>& RSProperties::GetBoundsGeometry() const
@@ -360,7 +346,6 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
     if (boundsGeo_ == nullptr) {
         return false;
     }
-    CheckEmptyBounds();
     auto boundsGeoPtr = (boundsGeo_);
 
     if (!dirtyFlag && !geoDirty_) {
@@ -901,6 +886,7 @@ void RSProperties::SetBackgroundFilter(std::shared_ptr<RSFilter> backgroundFilte
         isDrawn_ = true;
     }
     SetDirty();
+    filterManagerNeedUpdate_ = true;
     contentDirty_ = true;
 }
 
@@ -917,7 +903,9 @@ void RSProperties::SetLinearGradientBlurPara(std::shared_ptr<RSLinearGradientBlu
 void RSProperties::SetDynamicLightUpRate(const std::optional<float>& rate)
 {
     dynamicLightUpRate_ = rate;
-    isDrawn_ = true;
+    if (rate.has_value()) {
+        isDrawn_ = true;
+    }
     SetDirty();
     contentDirty_ = true;
 }
@@ -925,7 +913,9 @@ void RSProperties::SetDynamicLightUpRate(const std::optional<float>& rate)
 void RSProperties::SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree)
 {
     dynamicLightUpDegree_ = lightUpDegree;
-    isDrawn_ = true;
+    if (lightUpDegree.has_value()) {
+        isDrawn_ = true;
+    }
     SetDirty();
     contentDirty_ = true;
 }
@@ -937,6 +927,7 @@ void RSProperties::SetFilter(std::shared_ptr<RSFilter> filter)
         isDrawn_ = true;
     }
     SetDirty();
+    filterManagerNeedUpdate_ = true;
     contentDirty_ = true;
 }
 
@@ -967,12 +958,9 @@ const std::shared_ptr<RSFilter>& RSProperties::GetFilter() const
 
 bool RSProperties::IsDynamicLightUpValid() const
 {
-    if (GetDynamicLightUpRate().has_value() && GetDynamicLightUpDegree().has_value()) {
-        return ROSEN_GNE(GetDynamicLightUpRate().value(), 0.0)
-            && ROSEN_GE(GetDynamicLightUpDegree().value(), 0.0) && ROSEN_LE(GetDynamicLightUpDegree().value(), 1.0);
-    } else {
-        return false;
-    }
+    return dynamicLightUpRate_.has_value() && dynamicLightUpDegree_.has_value() &&
+           ROSEN_GNE(*dynamicLightUpRate_, 0.0) && ROSEN_GE(*dynamicLightUpDegree_, 0.0) &&
+           ROSEN_LE(*dynamicLightUpDegree_, 1.0);
 }
 
 // shadow properties
@@ -1291,13 +1279,20 @@ bool RSProperties::NeedClip() const
 
 void RSProperties::Reset()
 {
-    alphaOffscreen_ = false;
+    geoDirty_  = true;
     isDirty_ = true;
+    contentDirty_ = true;
+
+    alphaOffscreen_ = false;
     hasBounds_ = false;
     visible_ = true;
     clipToBounds_ = false;
     clipToFrame_ = false;
     isDrawn_ = false;
+
+    colorFilterNeedUpdate_ = true;
+    pixelStretchNeedUpdate_ = true;
+    filterManagerNeedUpdate_ = true;
 
     frameGravity_ = Gravity::DEFAULT;
     alpha_ = 1.f;
@@ -1334,6 +1329,9 @@ void RSProperties::Reset()
     dynamicLightUpDegree_.reset();
     colorBlend_.reset();
     colorFilter_.reset();
+
+    backgroundFilterCacheManager_.reset();
+    foregroundFilterCacheManager_.reset();
 }
 
 void RSProperties::SetDirty()
@@ -1495,129 +1493,50 @@ bool RSProperties::GetUseEffect() const
     return useEffect_;
 }
 
-void RSProperties::SetPixelStretch(Vector4f stretchSize)
+void RSProperties::SetPixelStretch(const std::optional<Vector4f>& stretchSize)
 {
     pixelStretch_ = stretchSize;
-    if (IsPixelStretchValid()) {
-        isDrawn_ = true;
-    }
     SetDirty();
+    pixelStretchNeedUpdate_ = true;
     contentDirty_ = true;
 }
 
-Vector4f RSProperties::GetPixelStretch() const
+const std::optional<Vector4f>& RSProperties::GetPixelStretch() const
 {
-    return pixelStretch_.value_or(Vector4fZero);
-}
-
-bool RSProperties::IsPixelStretchValid() const
-{
-    if (!pixelStretch_ || pixelStretch_->IsZero()) {
-        return false;
-    }
-
-    constexpr static float EPS = 1e-5f;
-    if (pixelStretch_->x_ <= EPS && pixelStretch_->y_ <= EPS && pixelStretch_->z_ <= EPS && pixelStretch_->w_ <= EPS) {
-        return  true;
-    }
-
-    if (pixelStretch_->x_ >= -EPS && pixelStretch_->y_ >= -EPS && pixelStretch_->z_ >= -EPS
-        && pixelStretch_->w_ >= -EPS) {
-        return  true;
-    }
-
-    return false;
-}
-
-bool RSProperties::IsPixelStretchExpanded() const
-{
-    if (IsPixelStretchValid()) {
-        constexpr static float EPS = 1e-5f;
-        if (pixelStretch_->x_ >= -EPS && pixelStretch_->y_ >= -EPS && pixelStretch_->z_ >= -EPS
-            && pixelStretch_->w_ >= -EPS) {
-            return true;
-        }
-    }
-    if (IsPixelStretchPercentValid()) {
-        constexpr static float EPS = 1e-5f;
-        if (pixelStretchPercent_->x_ >= -EPS && pixelStretchPercent_->y_ >= -EPS && pixelStretchPercent_->z_ >= -EPS
-            && pixelStretchPercent_->w_ >= -EPS) {
-            return true;
-        }
-    }
-    return false;
+    return pixelStretch_;
 }
 
 RectI RSProperties::GetPixelStretchDirtyRect() const
 {
     auto dirtyRect = GetDirtyRect();
 
-    Vector4f stretchSize;
-    if (!GetPixelStretch().IsZero()) {
-        stretchSize = GetPixelStretch();
-    } else {
-        stretchSize = GetPixelStretchByPercent();
-    }
-
-    auto scaledBounds = RectF(dirtyRect.left_ - stretchSize.x_, dirtyRect.top_ - stretchSize.y_,
-        dirtyRect.width_ + stretchSize.x_ + stretchSize.z_,  dirtyRect.height_ + stretchSize.y_ + stretchSize.w_);
+    auto scaledBounds = RectF(dirtyRect.left_ - pixelStretch_->x_, dirtyRect.top_ - pixelStretch_->y_,
+        dirtyRect.width_ + pixelStretch_->x_ + pixelStretch_->z_,
+        dirtyRect.height_ + pixelStretch_->y_ + pixelStretch_->w_);
 
     auto scaledIBounds = RectI(std::floor(scaledBounds.left_), std::floor(scaledBounds.top_),
         std::ceil(scaledBounds.width_) + 1, std::ceil(scaledBounds.height_) + 1);
     return dirtyRect.JoinRect(scaledIBounds);
 }
 
-void RSProperties::SetPixelStretchPercent(Vector4f stretchPercent)
+void RSProperties::SetPixelStretchPercent(const std::optional<Vector4f>& stretchPercent)
 {
     pixelStretchPercent_ = stretchPercent;
-    if (IsPixelStretchPercentValid()) {
-        isDrawn_ = true;
-    }
     SetDirty();
+    pixelStretchNeedUpdate_ = true;
     contentDirty_ = true;
 }
 
-Vector4f RSProperties::GetPixelStretchPercent() const
+const std::optional<Vector4f>& RSProperties::GetPixelStretchPercent() const
 {
-    return pixelStretchPercent_.value_or(Vector4fZero);
-}
-
-Vector4f RSProperties::GetPixelStretchByPercent() const
-{
-    auto bounds = GetBoundsRect();
-    const auto& percent = GetPixelStretchPercent();
-    float widthLeft = bounds.width_ * percent.x_;
-    float heightUp = bounds.height_ * percent.y_;
-    float widthRight = bounds.width_ * percent.z_;
-    float heightBottom = bounds.height_ * percent.w_;
-    return { widthLeft, heightUp, widthRight, heightBottom };
-}
-
-bool RSProperties::IsPixelStretchPercentValid() const
-{
-    if (!pixelStretchPercent_ || pixelStretchPercent_->IsZero()) {
-        return false;
-    }
-
-    constexpr static float EPS = 1e-5f;
-    if (pixelStretchPercent_->x_ <= EPS && pixelStretchPercent_->y_ <= EPS && pixelStretchPercent_->z_ <= EPS
-        && pixelStretchPercent_->w_ <= EPS) {
-        return  true;
-    }
-
-    if (pixelStretchPercent_->x_ >= -EPS && pixelStretchPercent_->y_ >= -EPS && pixelStretchPercent_->z_ >= -EPS
-        && pixelStretchPercent_->w_ >= -EPS) {
-        return  true;
-    }
-
-    return false;
+    return pixelStretchPercent_;
 }
 
 // Image effect properties
 void RSProperties::SetGrayScale(const std::optional<float>& grayScale)
 {
     grayScale_ = grayScale;
-    isDrawn_ = true;
+    colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -1630,7 +1549,7 @@ const std::optional<float>& RSProperties::GetGrayScale() const
 void RSProperties::SetBrightness(const std::optional<float>& brightness)
 {
     brightness_ = brightness;
-    isDrawn_ = true;
+    colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -1643,7 +1562,7 @@ const std::optional<float>& RSProperties::GetBrightness() const
 void RSProperties::SetContrast(const std::optional<float>& contrast)
 {
     contrast_ = contrast;
-    isDrawn_ = true;
+    colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -1656,7 +1575,7 @@ const std::optional<float>& RSProperties::GetContrast() const
 void RSProperties::SetSaturate(const std::optional<float>& saturate)
 {
     saturate_ = saturate;
-    isDrawn_ = true;
+    colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -1669,7 +1588,7 @@ const std::optional<float>& RSProperties::GetSaturate() const
 void RSProperties::SetSepia(const std::optional<float>& sepia)
 {
     sepia_ = sepia;
-    isDrawn_ = true;
+    colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -1682,7 +1601,7 @@ const std::optional<float>& RSProperties::GetSepia() const
 void RSProperties::SetInvert(const std::optional<float>& invert)
 {
     invert_ = invert;
-    isDrawn_ = true;
+    colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -1695,7 +1614,7 @@ const std::optional<float>& RSProperties::GetInvert() const
 void RSProperties::SetHueRotate(const std::optional<float>& hueRotate)
 {
     hueRotate_ = hueRotate;
-    isDrawn_ = true;
+    colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -1708,7 +1627,7 @@ const std::optional<float>& RSProperties::GetHueRotate() const
 void RSProperties::SetColorBlend(const std::optional<Color>& colorBlend)
 {
     colorBlend_ = colorBlend;
-    isDrawn_ = true;
+    colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -1737,24 +1656,33 @@ static bool GreatOrEqual(double left, double right)
 }
 
 #ifndef USE_ROSEN_DRAWING
-const sk_sp<SkColorFilter> RSProperties::GetColorFilter() const
+const sk_sp<SkColorFilter>& RSProperties::GetColorFilter() const
 #else
-const std::shared_ptr<Drawing::ColorFilter> RSProperties::GetColorFilter() const
+const std::shared_ptr<Drawing::ColorFilter>& RSProperties::GetColorFilter() const
 #endif
 {
+    return colorFilter_;
+}
+
+void RSProperties::GenerateColorFilter()
+{
+    // No update needed if color filter is valid
+    if (!colorFilterNeedUpdate_) {
+        return;
+    }
+
+    colorFilter_ = nullptr;
     if (!grayScale_ && !brightness_ && !contrast_ && !saturate_ && !sepia_ && !invert_ && !hueRotate_ && !colorBlend_) {
-        return nullptr;
+        colorFilterNeedUpdate_ = false;
+        return;
     }
-    if (colorFilter_) {
-        return colorFilter_;
-    }
+
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkColorFilter> filter = nullptr;
-    sk_sp<SkColorFilter> tmpFilter = nullptr;
 #else
     std::shared_ptr<Drawing::ColorFilter> filter = nullptr;
-    std::shared_ptr<Drawing::ColorFilter> tmpFilter = nullptr;
 #endif
+
     if (grayScale_.has_value() && GreatNotEqual(*grayScale_, 0.f)) {
         auto grayScale = grayScale_.value();
         float matrix[20] = { 0.0f }; // 20 : matrix size
@@ -1763,16 +1691,16 @@ const std::shared_ptr<Drawing::ColorFilter> RSProperties::GetColorFilter() const
         matrix[INDEX_2] = matrix[INDEX_7] = matrix[INDEX_12] = 0.0722f * grayScale; // 0.0722 : gray scale coefficient
         matrix[INDEX_18] = 1.0 * grayScale;
 #ifndef USE_ROSEN_DRAWING
-        tmpFilter = SkColorFilters::Matrix(matrix);
-        filter = tmpFilter->makeComposed(filter);
+        filter = SkColorFilters::Matrix(matrix);
+        colorFilter_ = filter->makeComposed(colorFilter_);
 #else
         Drawing::ColorMatrix colorMatrix;
         colorMatrix.SetArray(matrix);
-        tmpFilter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
-        if (filter) {
-            tmpFilter->Compose(*filter);
+        filter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+        if (colorFilter_) {
+            filter->Compose(*colorFilter_);
         }
-        filter = tmpFilter;
+        colorFilter_ = filter;
 #endif
     }
     if (brightness_.has_value() && !NearEqual(*brightness_, 1.0)) {
@@ -1783,16 +1711,16 @@ const std::shared_ptr<Drawing::ColorFilter> RSProperties::GetColorFilter() const
         matrix[0] = matrix[INDEX_6] = matrix[INDEX_12] = matrix[INDEX_18] = 1.0f;
         matrix[INDEX_4] = matrix[INDEX_9] = matrix[INDEX_14] = brightness;
 #ifndef USE_ROSEN_DRAWING
-        tmpFilter = SkColorFilters::Matrix(matrix);
-        filter = tmpFilter->makeComposed(filter);
+        filter = SkColorFilters::Matrix(matrix);
+        colorFilter_ = filter->makeComposed(colorFilter_);
 #else
         Drawing::ColorMatrix colorMatrix;
         colorMatrix.SetArray(matrix);
-        tmpFilter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
-        if (filter) {
-            tmpFilter->Compose(*filter);
+        filter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+        if (colorFilter_) {
+            filter->Compose(*colorFilter_);
         }
-        filter = tmpFilter;
+        colorFilter_ = filter;
 #endif
     }
     if (contrast_.has_value() && !NearEqual(*contrast_, 1.0)) {
@@ -1804,16 +1732,16 @@ const std::shared_ptr<Drawing::ColorFilter> RSProperties::GetColorFilter() const
         matrix[INDEX_4] = matrix[INDEX_9] = matrix[INDEX_14] = contrastValue128 * (1 - contrast) / contrastValue255;
         matrix[INDEX_18] = 1.0f;
 #ifndef USE_ROSEN_DRAWING
-        tmpFilter = SkColorFilters::Matrix(matrix);
-        filter = tmpFilter->makeComposed(filter);
+        filter = SkColorFilters::Matrix(matrix);
+        colorFilter_ = filter->makeComposed(colorFilter_);
 #else
         Drawing::ColorMatrix colorMatrix;
         colorMatrix.SetArray(matrix);
-        tmpFilter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
-        if (filter) {
-            tmpFilter->Compose(*filter);
+        filter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+        if (colorFilter_) {
+            filter->Compose(*colorFilter_);
         }
-        filter = tmpFilter;
+        colorFilter_ = filter;
 #endif
     }
     if (saturate_.has_value() && !NearEqual(*saturate_, 1.0) && GreatOrEqual(*saturate_, 0.0)) {
@@ -1827,16 +1755,16 @@ const std::shared_ptr<Drawing::ColorFilter> RSProperties::GetColorFilter() const
         matrix[INDEX_12] = 0.0820f * (1 - saturate) + saturate; // 0.0820 : saturate coefficient
         matrix[INDEX_18] = 1.0f;
 #ifndef USE_ROSEN_DRAWING
-        tmpFilter = SkColorFilters::Matrix(matrix);
-        filter = tmpFilter->makeComposed(filter);
+        filter = SkColorFilters::Matrix(matrix);
+        colorFilter_ = filter->makeComposed(colorFilter_);
 #else
         Drawing::ColorMatrix colorMatrix;
         colorMatrix.SetArray(matrix);
-        tmpFilter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
-        if (filter) {
-            tmpFilter->Compose(*filter);
+        filter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+        if (colorFilter_) {
+            filter->Compose(*colorFilter_);
         }
-        filter = tmpFilter;
+        colorFilter_ = filter;
 #endif
     }
     if (sepia_.has_value() && GreatNotEqual(*sepia_, 0.0)) {
@@ -1855,16 +1783,16 @@ const std::shared_ptr<Drawing::ColorFilter> RSProperties::GetColorFilter() const
         matrix[INDEX_12] = 0.131f * sepia;
         matrix[INDEX_18] = 1.0f * sepia;
 #ifndef USE_ROSEN_DRAWING
-        tmpFilter = SkColorFilters::Matrix(matrix);
-        filter = tmpFilter->makeComposed(filter);
+        filter = SkColorFilters::Matrix(matrix);
+        colorFilter_ = filter->makeComposed(colorFilter_);
 #else
         Drawing::ColorMatrix colorMatrix;
         colorMatrix.SetArray(matrix);
-        tmpFilter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
-        if (filter) {
-            tmpFilter->Compose(*filter);
+        filter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+        if (colorFilter_) {
+            filter->Compose(*colorFilter_);
         }
-        filter = tmpFilter;
+        colorFilter_ = filter;
 #endif
     }
     if (invert_.has_value() && GreatNotEqual(*invert_, 0.0)) {
@@ -1880,16 +1808,16 @@ const std::shared_ptr<Drawing::ColorFilter> RSProperties::GetColorFilter() const
         // invert = 0.5 -> RGB = (0.5, 0.5, 0.5) -> image completely gray
         matrix[INDEX_4] = matrix[INDEX_9] = matrix[INDEX_14] = invert;
 #ifndef USE_ROSEN_DRAWING
-        tmpFilter = SkColorFilters::Matrix(matrix);
-        filter = tmpFilter->makeComposed(filter);
+        filter = SkColorFilters::Matrix(matrix);
+        colorFilter_ = filter->makeComposed(colorFilter_);
 #else
         Drawing::ColorMatrix colorMatrix;
         colorMatrix.SetArray(matrix);
-        tmpFilter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
-        if (filter) {
-            tmpFilter->Compose(*filter);
+        filter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+        if (colorFilter_) {
+            filter->Compose(*colorFilter_);
         }
-        filter = tmpFilter;
+        colorFilter_ = filter;
 #endif
     }
     if (hueRotate_.has_value() && GreatNotEqual(*hueRotate_, 0.0)) {
@@ -1922,36 +1850,37 @@ const std::shared_ptr<Drawing::ColorFilter> RSProperties::GetColorFilter() const
                 break;
         }
 #ifndef USE_ROSEN_DRAWING
-        tmpFilter = SkColorFilters::Matrix(matrix);
-        filter = tmpFilter->makeComposed(filter);
+        filter = SkColorFilters::Matrix(matrix);
+        colorFilter_ = filter->makeComposed(colorFilter_);
 #else
         Drawing::ColorMatrix colorMatrix;
         colorMatrix.SetArray(matrix);
-        tmpFilter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
-        if (filter) {
-            tmpFilter->Compose(*filter);
+        filter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+        if (colorFilter_) {
+            filter->Compose(*colorFilter_);
         }
-        filter = tmpFilter;
+        colorFilter_ = filter;
 #endif
     }
     if (colorBlend_.has_value() && *colorBlend_ != RgbPalette::Transparent()) {
         auto colorBlend = colorBlend_.value();
 #ifndef USE_ROSEN_DRAWING
-        tmpFilter = SkColorFilters::Blend(
+        filter = SkColorFilters::Blend(
             SkColorSetARGB(colorBlend.GetAlpha(), colorBlend.GetRed(), colorBlend.GetGreen(), colorBlend.GetBlue()),
             SkBlendMode::kPlus);
-        filter = tmpFilter->makeComposed(filter);
+        colorFilter_ = filter->makeComposed(colorFilter_);
 #else
-        tmpFilter = Drawing::ColorFilter::CreateBlendModeColorFilter(Drawing::Color::ColorQuadSetARGB(
+        filter = Drawing::ColorFilter::CreateBlendModeColorFilter(Drawing::Color::ColorQuadSetARGB(
             colorBlend.GetRed(), colorBlend.GetGreen(), colorBlend.GetBlue(), colorBlend.GetAlpha()),
             Drawing::BlendMode::PLUS);
-        if (filter) {
-            tmpFilter->Compose(*filter);
+        if (colorFilter_) {
+            filter->Compose(*colorFilter_);
         }
-        filter = tmpFilter;
+        colorFilter_ = filter;
 #endif
     }
-    return filter;
+    colorFilterNeedUpdate_ = false;
+    isDrawn_ = true;
 }
 
 std::string RSProperties::Dump() const
@@ -2299,6 +2228,10 @@ std::string RSProperties::Dump() const
 #ifndef USE_ROSEN_DRAWING
 void RSProperties::CreateFilterCacheManagerIfNeed()
 {
+    filterManagerNeedUpdate_ = false;
+    if (!FilterCacheEnabled) {
+        return;
+    }
     if (auto& filter = GetBackgroundFilter(); filter != nullptr && filter->IsValid()) {
         auto& cacheManager = backgroundFilterCacheManager_;
         if (cacheManager == nullptr) {
@@ -2319,16 +2252,81 @@ void RSProperties::CreateFilterCacheManagerIfNeed()
     }
 }
 
-void RSProperties::ResetFilterCacheManager()
-{
-    backgroundFilterCacheManager_.reset();
-    foregroundFilterCacheManager_.reset();
-}
-
 const std::unique_ptr<RSFilterCacheManager>& RSProperties::GetFilterCacheManager(bool isForeground) const
 {
     return isForeground ? foregroundFilterCacheManager_ : backgroundFilterCacheManager_;
 }
 #endif
+
+void RSProperties::OnApplyModifiers()
+{
+    if (geoDirty_) {
+        CalculateFrameOffset();
+    }
+    if (geoDirty_ && !hasBounds_) {
+        CheckEmptyBounds();
+    }
+    if (colorFilterNeedUpdate_) {
+        GenerateColorFilter();
+    }
+    if (pixelStretchNeedUpdate_ || geoDirty_) {
+        CalculatePixelStretch();
+    }
+#ifndef USE_ROSEN_DRAWING
+    if (filterManagerNeedUpdate_) {
+        CreateFilterCacheManagerIfNeed();
+    }
+#endif
+}
+
+inline static int SignBit(float x)
+{
+    constexpr static float EPS = 1e-5f;
+    if (x <= -EPS) {
+        return -1;
+    } else if (x >= EPS) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+void RSProperties::CalculatePixelStretch()
+{
+    pixelStretchNeedUpdate_ = false;
+    // no pixel stretch
+    if (!pixelStretch_.has_value() && !pixelStretchPercent_.has_value()) {
+        return;
+    }
+    // convert pixel stretch percent to pixel stretch
+    if (pixelStretchPercent_) {
+        auto width = GetBoundsWidth();
+        auto height = GetBoundsHeight();
+        pixelStretch_ = *pixelStretchPercent_ * Vector4f(width, height, width, height);
+    }
+    // parameter check: non-zero
+    if (pixelStretch_->IsZero()) {
+        pixelStretch_ = std::nullopt;
+        return;
+    }
+    // parameter check: same sign
+    const auto sign = SignBit(pixelStretch_->x_);
+    if (SignBit(pixelStretch_->y_) != sign || SignBit(pixelStretch_->z_) != sign ||
+        SignBit(pixelStretch_->w_) != sign) {
+        pixelStretch_ = std::nullopt;
+        return;
+    }
+    isDrawn_ = true;
+}
+
+void RSProperties::CalculateFrameOffset()
+{
+    frameOffsetX_ = std::isinf(frameGeo_->GetX()) ? 0 : (frameGeo_->GetX() - boundsGeo_->GetX());
+    frameOffsetY_ = std::isinf(frameGeo_->GetY()) ? 0 : (frameGeo_->GetY() - boundsGeo_->GetY());
+
+    if (frameOffsetX_ != 0. || frameOffsetY_ != 0.) {
+        isDrawn_ = true;
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -1301,24 +1301,11 @@ void RSPropertiesPainter::DrawForegroundEffect(const RSProperties& properties, R
 #endif
 }
 
-static Vector4f GetStretchSize(const RSProperties& properties)
-{
-    Vector4f stretchSize;
-    if (properties.IsPixelStretchValid()) {
-        stretchSize = properties.GetPixelStretch();
-    } else {
-        if (properties.IsPixelStretchPercentValid()) {
-            stretchSize = properties.GetPixelStretchByPercent();
-        }
-    }
-
-    return stretchSize;
-}
-
 #ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
-    if (!properties.IsPixelStretchValid() && !properties.IsPixelStretchPercentValid()) {
+    auto& pixelStretch = properties.GetPixelStretch();
+    if (!pixelStretch.has_value()) {
         return;
     }
 
@@ -1335,7 +1322,7 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     clipBounds.setXYWH(clipBounds.left(), clipBounds.top(), clipBounds.width() - 1, clipBounds.height() - 1);
     canvas.restore();
 
-    Vector4f stretchSize = GetStretchSize(properties);
+    // Vector4f stretchSize = GetStretchSize(properties);
     /* Calculates the relative coordinates of the clipbounds
         with respect to the origin of the current canvas coordinates */
     SkMatrix worldToLocalMat;
@@ -1352,8 +1339,8 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch intersect clipbounds failed");
     }
 
-    auto scaledBounds = SkRect::MakeLTRB(bounds.left() - stretchSize.x_, bounds.top() - stretchSize.y_,
-        bounds.right() + stretchSize.z_, bounds.bottom() + stretchSize.w_);
+    auto scaledBounds = SkRect::MakeLTRB(bounds.left() - pixelStretch->x_, bounds.top() - pixelStretch->y_,
+        bounds.right() + pixelStretch->z_, bounds.bottom() + pixelStretch->w_);
     if (scaledBounds.isEmpty() || bounds.isEmpty() || clipBounds.isEmpty()) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch invalid scaled bounds");
         return;
@@ -1377,14 +1364,14 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
 
     canvas.save();
     canvas.translate(bounds.x(), bounds.y());
-    if (properties.IsPixelStretchExpanded()) {
+    if (pixelStretch->x_ < 0) {
 #ifdef NEW_SKIA
         paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, SkSamplingOptions(), &scaleMat));
 #else
         paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, &scaleMat));
 #endif
-        canvas.drawRect(SkRect::MakeXYWH(-stretchSize.x_, -stretchSize.y_, scaledBounds.width(), scaledBounds.height()),
-            paint);
+        canvas.drawRect(
+            SkRect::MakeXYWH(-pixelStretch->x_, -pixelStretch->y_, scaledBounds.width(), scaledBounds.height()), paint);
     } else {
         scaleMat.setScale(scaledBounds.width() / bounds.width() * scaleMat.getScaleX(),
             scaledBounds.height() / bounds.height() * scaleMat.getScaleY());
@@ -1393,8 +1380,8 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
 #else
         paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, &scaleMat));
 #endif
-        canvas.translate(-stretchSize.x_, -stretchSize.y_);
-        canvas.drawRect(SkRect::MakeXYWH(stretchSize.x_, stretchSize.y_, bounds.width(), bounds.height()), paint);
+        canvas.translate(-pixelStretch->x_, -pixelStretch->y_);
+        canvas.drawRect(SkRect::MakeXYWH(pixelStretch->x_, pixelStretch->y_, bounds.width(), bounds.height()), paint);
     }
     canvas.restore();
 }

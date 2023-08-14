@@ -267,8 +267,8 @@ private:
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> effectiveCommands_;
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
     // Collect pids of surfaceview's update(ConsumeAndUpdateAllNodes), effective commands(processCommand) and Animate
-    std::unordered_map<pid_t, std::set<NodeId>> activeAppsInProcess_;
-    std::unordered_map<NodeId, std::set<NodeId>> activeProcessNodeIds_;
+    std::unordered_map<pid_t, std::unordered_set<NodeId>> activeAppsInProcess_;
+    std::unordered_map<NodeId, std::unordered_set<NodeId>> activeProcessNodeIds_;
     std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> syncTransactionData_;
     int32_t syncTransactionCount_ { 0 };
 

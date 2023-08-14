@@ -3499,7 +3499,6 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
 #endif
     // in case preparation'update is skipped
-    node.GetMutableRenderProperties().CheckEmptyBounds();
 #ifndef USE_ROSEN_DRAWING
     canvas_->save();
 #else
