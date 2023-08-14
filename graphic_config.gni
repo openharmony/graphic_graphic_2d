@@ -25,7 +25,9 @@ declare_args() {
   graphic_2d_feature_enable_filter_cache = true
   if (defined(build_cross_platform_version) && build_cross_platform_version) {
     use_new_render_context = false
+    is_cross_platform = true
   } else {
+    is_cross_platform = false
     use_new_render_context = false
   }
 }
