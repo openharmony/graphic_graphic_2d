@@ -32,12 +32,12 @@ sptr<HgmConfigCallbackManager> HgmConfigCallbackManager::GetInstance() noexcept
 
 HgmConfigCallbackManager::HgmConfigCallbackManager()
 {
-    animDynamicCfgCallbacks_.clear();
-    instance_ = nullptr;
 }
 
 HgmConfigCallbackManager::~HgmConfigCallbackManager() noexcept
 {
+    animDynamicCfgCallbacks_.clear();
+    instance_ = nullptr;
 }
 
 void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
