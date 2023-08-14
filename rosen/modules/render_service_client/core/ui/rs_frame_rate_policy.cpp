@@ -40,7 +40,6 @@ RSFrameRatePolicy* RSFrameRatePolicy::GetInstance()
 
 RSFrameRatePolicy::RSFrameRatePolicy()
 {
-    Init();
 }
 
 RSFrameRatePolicy::~RSFrameRatePolicy()
@@ -48,7 +47,7 @@ RSFrameRatePolicy::~RSFrameRatePolicy()
     animAttributes.clear();
 }
 
-void RSFrameRatePolicy::Init()
+void RSFrameRatePolicy::RegisterHgmConfigChangeCallback()
 {
     auto callback = std::bind(&RSFrameRatePolicy::HgmConfigChangeCallback, this,
         std::placeholders::_1);

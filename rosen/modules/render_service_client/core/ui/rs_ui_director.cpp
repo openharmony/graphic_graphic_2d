@@ -85,7 +85,7 @@ void RSUIDirector::Init(bool shouldCreateRenderThread)
         RSRenderThread::Instance().Start();
     }
     RSApplicationAgentImpl::Instance().RegisterRSApplicationAgent();
-    RSFrameRatePolicy::GetInstance();
+    RSFrameRatePolicy::GetInstance()->RegisterHgmConfigChangeCallback();
 
     GoForeground();
 }

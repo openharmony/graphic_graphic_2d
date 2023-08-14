@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_FRAME_RATE_POLICY_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_FRAME_RATE_POLICY_H
 
+#include <memory>
 #include "transaction/rs_hgm_config_data.h"
 
 namespace OHOS {
@@ -22,6 +23,8 @@ namespace Rosen {
 class RSFrameRatePolicy {
 public:
     static RSFrameRatePolicy* GetInstance();
+
+    void RegisterHgmConfigChangeCallback();
 
     int GetPreferredFps(const std::string& scene, float speed);
 
@@ -33,7 +36,6 @@ private:
     RSFrameRatePolicy &operator = (const RSFrameRatePolicy&) = delete;
     RSFrameRatePolicy &operator = (const RSFrameRatePolicy&&) = delete;
 
-    void Init();
     void HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData> configData);
 };
 } // namespace Rosen
