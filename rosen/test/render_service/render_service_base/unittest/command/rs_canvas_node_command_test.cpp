@@ -58,4 +58,16 @@ HWTEST_F(RSCanvasNodeCommandTest, TestRSCanvasNodeCommand002, TestSize.Level1)
     NodeId nodeId = static_cast<NodeId>(-1);
     RSCanvasNodeCommandHelper::ClearRecording(context, nodeId);
 }
+
+/**
+ * @tc.name: TestRSCanvasNodeCommand002
+ * @tc.desc: ClearRecording test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandTest, Create001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId targetId = static_cast<NodeId>(-1);
+    RSCanvasNodeCommandHelper::Create(context, targetId);
+}
 } // namespace OHOS::Rosen

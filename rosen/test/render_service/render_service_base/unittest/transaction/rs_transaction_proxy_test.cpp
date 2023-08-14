@@ -758,5 +758,23 @@ HWTEST_F(RSTransactionProxyTest, ExecuteSynchronousTask006, TestSize.Level1)
     RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, false);
     RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, true);
 }
+
+/**
+ * @tc.name: AddCommonCommandTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, AddCommonCommandTest, TestSize.Level1)
+{
+    RSTransactionProxy::GetInstance()->Begin();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+    command.reset();
+    bool isRenderServiceCommand = false;
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
+    RSTransactionProxy::GetInstance()->AddCommand(command, isRenderServiceCommand, FollowType::FOLLOW_TO_PARENT, 1);
+}
 } // namespace Rosen
 } // namespace OHOS
