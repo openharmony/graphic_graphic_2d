@@ -137,7 +137,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_blur_filter.cpp",
     "src/render/rs_border.cpp",
     "src/render/rs_filter.cpp",
-    "src/render/rs_filter_cache.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_image_base.cpp",
     "src/render/rs_image_cache.cpp",
