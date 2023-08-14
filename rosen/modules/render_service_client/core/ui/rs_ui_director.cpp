@@ -325,6 +325,11 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
     }
 }
 
+void RSUIDirector::PostFrameRateTask(const std::function<void()>& task)
+{
+    PostTask(task);
+}
+
 void RSUIDirector::PostTask(const std::function<void()>& task)
 {
     std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);

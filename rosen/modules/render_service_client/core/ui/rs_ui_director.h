@@ -59,6 +59,8 @@ public:
 
     void SetAppFreeze(bool isAppFreeze);
 
+    static void PostFrameRateTask(const std::function<void()>& task);
+
 private:
     void AttachSurface();
     static void RecvMessages();
