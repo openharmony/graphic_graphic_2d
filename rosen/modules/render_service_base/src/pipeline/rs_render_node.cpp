@@ -912,7 +912,7 @@ void RSRenderNode::SetRSFrameRateRangeByPreferred(int32_t preferred)
 bool RSRenderNode::ApplyModifiers()
 {
     // quick reject test
-    if (!isOnTheTree_ || !RSRenderNode::IsDirty() || (dirtyTypes_.empty() && !forceFlushAllModifiers_)) {
+    if (!RSRenderNode::IsDirty() || dirtyTypes_.empty()) {
         return false;
     }
     hgmModifierProfileList_.clear();
@@ -923,18 +923,11 @@ bool RSRenderNode::ApplyModifiers()
     std::vector<std::shared_ptr<RSRenderModifier>> animationModifiers;
 
     // Reset before apply modifiers
-    if (forceFlushAllModifiers_) {
-        // Reset all properties
-        renderProperties_.Reset();
-    } else {
-        // Reset only dirty properties
-        renderProperties_.ResetProperty(dirtyTypes_);
-    }
+    renderProperties_.ResetProperty(dirtyTypes_);
 
     // Apply modifiers
     for (auto& [id, modifier] : modifiers_) {
-        // skip non-dirty modifiers if forceFlushAllModifiers_ is not set
-        if (!forceFlushAllModifiers_ && !dirtyTypes_.count(modifier->GetType())) {
+        if (!dirtyTypes_.count(modifier->GetType())) {
             continue;
         }
         modifier->Apply(context);
@@ -952,7 +945,6 @@ bool RSRenderNode::ApplyModifiers()
 
     // update state
     dirtyTypes_.clear();
-    forceFlushAllModifiers_ = false;
     lastApplyTimestamp_ = lastTimestamp_;
 
     // return true if positionZ changed
@@ -1477,11 +1469,17 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
 void RSRenderNode::OnTreeStateChanged()
 {
     if (isOnTheTree_) {
-        forceFlushAllModifiers_ = true;
-    } else {
-        renderProperties_.Reset();
+        return;
     }
-    SetDirty();
+#ifndef USE_ROSEN_DRAWING
+    // clear filter cache when node is removed from tree
+    if (auto& manager = renderProperties_.GetFilterCacheManager(false)) {
+        manager->InvalidateCache();
+    }
+    if (auto& manager = renderProperties_.GetFilterCacheManager(true)) {
+        manager->InvalidateCache();
+    }
+#endif
 }
 
 bool RSRenderNode::HasDisappearingTransition(bool recursive) const

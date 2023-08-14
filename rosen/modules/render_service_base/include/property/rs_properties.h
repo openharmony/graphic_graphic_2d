@@ -301,7 +301,6 @@ public:
     void OnApplyModifiers();
 
 private:
-    void Reset();
     void ResetProperty(const std::unordered_set<RSModifierType>& dirtyTypes);
     void SetDirty();
     void ResetDirty();
@@ -373,14 +372,11 @@ private:
     void CheckEmptyBounds();
     void GenerateColorFilter();
     void CalculatePixelStretch();
-    void CalculateFrameOffset();
 
     // partial update
     bool colorFilterNeedUpdate_ = false;
     bool pixelStretchNeedUpdate_ = false;
     bool filterManagerNeedUpdate_ = false;
-    float frameOffsetX_ = 0.f;
-    float frameOffsetY_ = 0.f;
 
 #ifndef USE_ROSEN_DRAWING
     std::vector<std::shared_ptr<RSRenderParticle>> particles_;
