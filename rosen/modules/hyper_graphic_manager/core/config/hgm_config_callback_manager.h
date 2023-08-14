@@ -32,8 +32,8 @@ public:
     HgmConfigCallbackManager(const HgmConfigCallbackManager &) = delete;
     HgmConfigCallbackManager &operator=(const HgmConfigCallbackManager &) = delete;
 
-    void RegisterHgmConfigChangeCallback(const sptr<RSIHgmConfigChangeCallback> &callback);
-    void UnRegisterHgmConfigChangeCallback(const sptr<RSIHgmConfigChangeCallback> &callback);
+    void RegisterHgmConfigChangeCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback> &callback);
+    void UnRegisterHgmConfigChangeCallback(pid_t pid);
 
 private:
     HgmConfigCallbackManager();
@@ -41,7 +41,7 @@ private:
     std::mutex mtx_;
     static std::once_flag createFlag_;
     static sptr<HgmConfigCallbackManager> instance_;
-    std::list<sptr<RSIHgmConfigChangeCallback>> animDynamicCfgCallbacks_;
+    std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> animDynamicCfgCallbacks_;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CONFIG_CALLBACK_MANAGER_H

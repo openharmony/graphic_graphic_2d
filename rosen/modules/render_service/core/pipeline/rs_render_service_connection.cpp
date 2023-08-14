@@ -102,6 +102,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             CleanRenderNodes();
             mainThread_->ClearTransactionDataPidInfo(remotePid_);
             mainThread_->UnRegisterOcclusionChangeCallback(remotePid_);
+            HgmConfigCallbackManager::GetInstance()->UnRegisterHgmConfigChangeCallback(remotePid_);
         }).wait();
 
     for (auto& conn : vsyncConnections_) {
@@ -823,11 +824,7 @@ int32_t RSRenderServiceConnection::RegisterHgmConfigChangeCallback(sptr<RSIHgmCo
         return StatusCode::INVALID_ARGUMENTS;
     }
 
-    if (hgmConfigChangeCallback_ != nullptr) {
-        hgmConfigCallbackManager_->UnRegisterHgmConfigChangeCallback(callback);
-    }
-
-    hgmConfigCallbackManager_->RegisterHgmConfigChangeCallback(callback);
+    HgmConfigCallbackManager::GetInstance()->RegisterHgmConfigChangeCallback(remotePid_, callback);
     return StatusCode::SUCCESS;
 }
 

@@ -80,7 +80,7 @@ void HgmFrameRateManager::FindAndSendRefreshRate()
             HGM_LOGD("HgmFrameRateManager: current refreshRate is %{public}d",
                 static_cast<int>(currRefreshRate));
             int status = instance.SetScreenRefreshRate(id, 0, currRefreshRate);
-            if (status != EXEC_SUCCESS) {
+            if (status < 0) {
                 screenIdToLCDRefreshRates_[id] = lcdRefreshRate;
                 HGM_LOGE("HgmFrameRateManager: failed to set refreshRate %{public}d, screenId %{public}d",
                     static_cast<int>(currRefreshRate), static_cast<int>(id));

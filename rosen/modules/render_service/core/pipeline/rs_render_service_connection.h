@@ -181,8 +181,6 @@ private:
     sptr<RSScreenManager> screenManager_;
     sptr<IRemoteObject> token_;
 
-    sptr<HgmConfigCallbackManager> hgmConfigCallbackManager_;
-
     class RSConnectionDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         explicit RSConnectionDeathRecipient(wptr<RSRenderServiceConnection> conn);
@@ -220,8 +218,6 @@ private:
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<VSyncDistributor> appVSyncDistributor_;
     std::vector<sptr<VSyncConnection>> vsyncConnections_;
-
-    sptr<RSIHgmConfigChangeCallback> hgmConfigChangeCallback_;
 };
 } // namespace Rosen
 } // namespace OHOS

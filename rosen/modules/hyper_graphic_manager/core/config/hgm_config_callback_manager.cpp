@@ -32,6 +32,8 @@ sptr<HgmConfigCallbackManager> HgmConfigCallbackManager::GetInstance() noexcept
 
 HgmConfigCallbackManager::HgmConfigCallbackManager()
 {
+    animDynamicCfgCallbacks_.clear();
+    instance_ = nullptr;
 }
 
 HgmConfigCallbackManager::~HgmConfigCallbackManager() noexcept
@@ -39,14 +41,14 @@ HgmConfigCallbackManager::~HgmConfigCallbackManager() noexcept
 }
 
 void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
-    const sptr<RSIHgmConfigChangeCallback> &callback)
+    pid_t pid, const sptr<RSIHgmConfigChangeCallback> &callback)
 {
     if (callback == nullptr) {
         HGM_LOGE("HgmConfigCallbackManager %{public}s : callback is null.", __func__);
         return;
     }
     std::lock_guard<std::mutex> lock(mtx_);
-    animDynamicCfgCallbacks_.push_back(callback);
+    animDynamicCfgCallbacks_[pid] = callback;
     HGM_LOGD("HgmConfigCallbackManager %{public}s : add a remote callback succeed.", __func__);
 
     auto data = std::make_shared<RSHgmConfigData>();
@@ -58,16 +60,14 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
     callback->OnHgmConfigChanged(data);
 }
 
-void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(
-    const sptr<RSIHgmConfigChangeCallback> &callback)
+void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(pid_t pid)
 {
     std::lock_guard<std::mutex> lock(mtx_);
-    for (auto iter = animDynamicCfgCallbacks_.begin(); iter != animDynamicCfgCallbacks_.end(); iter++) {
-        if (*iter == callback) {
-            animDynamicCfgCallbacks_.erase(iter);
-            HGM_LOGD("HgmConfigCallbackManager %s : remove a remote callback succeed.", __func__);
-            break;
-        }
+    if (animDynamicCfgCallbacks_.find(pid) != animDynamicCfgCallbacks_.end()) {
+        animDynamicCfgCallbacks_.erase(pid);
+        HGM_LOGD("HgmConfigCallbackManager %{public}s : remove a remote callback succeed.", __func__);
     }
+    HGM_LOGD("HgmConfigCallbackManager %{public}s : initialization or do not find callback(pid = %d)",
+        __func__, static_cast<int>(pid));
 }
 } // namespace OHOS::Rosen
