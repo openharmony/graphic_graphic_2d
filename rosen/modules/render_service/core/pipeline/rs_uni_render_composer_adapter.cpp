@@ -210,7 +210,6 @@ void RSUniRenderComposerAdapter::SetMetaDataInfoToLayer(const LayerInfoPtr& laye
             break;
         }
         case HDRMetaDataType::HDR_NOT_USED: {
-            RS_LOGD("RSUniRenderComposerAdapter::SetComposeInfoToLayer: HDR is not used");
             break;
         }
         default:  {

@@ -524,8 +524,6 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
     }
     RS_OPTIONAL_TRACE_BEGIN("Skip static surface " + node.GetName() + " nodeid - pid: " +
         std::to_string(node.GetId()) + " - " + std::to_string(ExtractPid(node.GetId())));
-    ROSEN_LOGD("Skip static surface nodeid - pid - name: %" PRIu64 " - %d - %s", node.GetId(),
-        ExtractPid(node.GetId()), node.GetName().c_str());
     // static node's dirty region is empty
     curSurfaceDirtyManager_ = node.GetDirtyManager();
     if (curSurfaceDirtyManager_) {
@@ -1974,7 +1972,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                         r.left_ + r.width_, disH - r.GetBottom() + r.height_));
                     region.Op(tmpRegion, Drawing::RegionOp::UNION);
 #endif
-                    RS_LOGD("SetDamageRegion %s", r.ToString().c_str());
                 }
             }
             // SetDamageRegion and opDrop will be disabled for dirty region DFX visualization
@@ -2344,7 +2341,7 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
             // Handles the case of transparent surface, merge transparent dirty rect
             RectI transparentDirtyRect = surfaceNode->GetDstRect().IntersectRect(surfaceDirtyRect);
             if (!transparentDirtyRect.IsEmpty()) {
-                RS_LOGD("CalcDirtyDisplayRegion merge transparent dirty rect %s rect %s",
+                RS_OPTIONAL_TRACE_NAME_FMT("CalcDirtyDisplayRegion merge transparent dirty rect %s rect %s",
                     surfaceNode->GetName().c_str(), transparentDirtyRect.ToString().c_str());
                 displayDirtyManager->MergeDirtyRect(transparentDirtyRect);
             }

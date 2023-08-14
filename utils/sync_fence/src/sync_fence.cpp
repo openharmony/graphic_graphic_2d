@@ -107,7 +107,6 @@ int32_t SyncFence::Wait(uint32_t timeout)
 {
     int retCode = -1;
     if (fenceFd_ < 0) {
-        HiLog::Debug(LABEL, "The fence id is invalid.");
         return retCode;
     }
 
@@ -291,7 +290,6 @@ sptr<SyncFence> SyncFence::ReadFromMessageParcel(MessageParcel &parcel)
 {
     int32_t fence = parcel.ReadInt32();
     if (fence < 0) {
-        HiLog::Debug(LABEL, "ReadFromMessageParcel fence is invalid : %{public}d", fence);
         return INVALID_FENCE;
     }
 

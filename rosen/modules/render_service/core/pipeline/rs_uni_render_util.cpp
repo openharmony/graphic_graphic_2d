@@ -23,6 +23,7 @@
 #include "platform/common/rs_log.h"
 #include "render/rs_path.h"
 #include "rs_trace.h"
+#include "common/rs_optional_trace.h"
 #include "scene_board_judgement.h"
 #include <parameter.h>
 #include <parameters.h>
@@ -476,6 +477,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
     uint32_t leashWindowCount = 0;
     bool isFocusNodeFound = false;
     uint64_t realFocusNodeId = 0;
+    std::string logInfo = "";
     std::list<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         std::vector<RSBaseRenderNode::SharedPtr> curAllSurfacesVec;
@@ -512,10 +514,12 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         }
     }
     // trace info for assign window nodes
-    std::string logInfo = "{ isScale: " + std::to_string(isScale) + ", " +
-        "leashWindowCount: " + std::to_string(leashWindowCount) + ", " +
-        "isRotation: " + std::to_string(isRotation) + " }; " +
-        "realFocusNodeId: " + std::to_string(realFocusNodeId) + " ]";
+    if (Rosen::RSSystemProperties::GetDebugTraceEnabled()) {
+        logInfo += "{ isScale: " + std::to_string(isScale) + ", " +
+            "leashWindowCount: " + std::to_string(leashWindowCount) + ", " +
+            "isRotation: " + std::to_string(isRotation) + " }; " +
+            "realFocusNodeId: " + std::to_string(realFocusNodeId) + " ]";
+    }
     for (auto iter = curAllSurfaces.begin(); iter != curAllSurfaces.end(); iter++) {
         auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*iter);
         if (node == nullptr) {
@@ -523,9 +527,11 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
             continue;
         }
         // trace info for assign window nodes
-        logInfo += "node:[ " + node->GetName() + ", " + std::to_string(node->GetId()) + " ]" +
-            "( " + std::to_string(static_cast<uint32_t>(node->GetCacheSurfaceProcessedStatus())) + ", " +
-            std::to_string(node->HasFilter()) + ", " + std::to_string(node->HasAbilityComponent()) + " ); ";
+        if (Rosen::RSSystemProperties::GetDebugTraceEnabled()) {
+            logInfo += "node:[ " + node->GetName() + ", " + std::to_string(node->GetId()) + " ]" +
+                "( " + std::to_string(static_cast<uint32_t>(node->GetCacheSurfaceProcessedStatus())) + ", " +
+                std::to_string(node->HasFilter()) + ", " + std::to_string(node->HasAbilityComponent()) + " ); ";
+        }
         std::string surfaceName = node->GetName();
         bool needFilter = surfaceName == ENTRY_VIEW || surfaceName == WALLPAPER_VIEW ||
             surfaceName == SYSUI_STATUS_BAR || surfaceName == SCREENLOCK_WINDOW ||
@@ -560,7 +566,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         }
     }
     SortSubThreadNodes(subThreadNodes);
-    ROSEN_LOGD("RSUniRenderUtil::AssignWindowNodes: %s", logInfo.c_str());
+    RS_OPTIONAL_TRACE_NAME("RSUniRenderUtil::AssignWindowNodes:" + logInfo);
 }
 
 void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,

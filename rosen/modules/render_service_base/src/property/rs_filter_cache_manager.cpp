@@ -110,9 +110,6 @@ void RSFilterCacheManager::UpdateCacheStateWithDirtyRegion(const RectI& dirtyReg
         ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Delaying cache invalidation for %d frames.",
             cacheUpdateInterval_);
     } else {
-        ROSEN_LOGD(
-            "RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Cache expired. Reason: Dirty region intersects "
-            "with cached region.");
         InvalidateCache();
     }
     RS_OPTIONAL_TRACE_FUNC_END();
@@ -131,9 +128,6 @@ void RSFilterCacheManager::UpdateCacheStateWithDirtyRegion(bool isIntersectedWit
         ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Delaying cache invalidation for %d frames.",
             cacheUpdateInterval_);
     } else {
-        ROSEN_LOGD(
-            "RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Cache expired. Reason: Dirty region intersects "
-            "with cached region.");
         InvalidateCache();
     }
     RS_OPTIONAL_TRACE_FUNC_END();
@@ -156,7 +150,6 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
 
     if (cacheType_ == CacheType::CACHE_TYPE_NONE) {
         // The cache is expired, take a snapshot again.
-        ROSEN_LOGD("RSFilterCacheManager::DrawFilter Cache expired, taking snapshot.");
         TakeSnapshot(canvas, filter);
         ClipVisibleRect(canvas);
         DrawCachedSnapshot(canvas, filter);

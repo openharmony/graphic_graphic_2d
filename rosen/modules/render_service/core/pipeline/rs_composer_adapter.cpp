@@ -475,7 +475,6 @@ void RSComposerAdapter::SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const 
             break;
         }
         case HDRMetaDataType::HDR_NOT_USED: {
-            RS_LOGD("RSComposerAdapter::SetComposeInfoToLayer: HDR is not used");
             break;
         }
         default:  {
@@ -599,9 +598,6 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node) const
         RS_LOGE("RSComposerAdapter::CreateLayer: output is nullptr");
         return nullptr;
     }
-
-    RS_LOGD("RSComposerAdapter::CreateLayer displayNode id:%" PRIu64 " available buffer:%d", node.GetId(),
-        node.GetAvailableBufferCount());
     if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(node)) {
         RS_LOGE("RSComposerAdapter::CreateLayer consume buffer failed.");
         return nullptr;
@@ -824,7 +820,6 @@ void RSComposerAdapter::OnPrepareComplete(sptr<Surface>& surface, const PrepareC
     (void)(data);
 
     if (!param.needFlushFramebuffer) {
-        RS_LOGD("RsDebug RSComposerAdapter::OnPrepareComplete: no need to flush frame buffer");
         return;
     }
 

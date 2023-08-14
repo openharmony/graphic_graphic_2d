@@ -214,7 +214,6 @@ RSMainThread::~RSMainThread() noexcept
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
-        RS_LOGD("RsDebug mainLoop start");
         RenderFrameStart();
         PerfMultiWindow();
         SetRSEventDetectorLoopStartTag();
@@ -237,7 +236,6 @@ void RSMainThread::Init()
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         SetRSEventDetectorLoopFinishTag();
         rsEventManager_.UpdateParam();
-        RS_LOGD("RsDebug mainLoop end");
     };
 #ifdef RS_ENABLE_RECORDING
     RSRecordingThread::Instance().Start();
@@ -1151,7 +1149,6 @@ void RSMainThread::Render()
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
         RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     }
-    RS_LOGD("RSMainThread::Render isUni:%d", isUniRender_);
 
     if (isUniRender_) {
         UniRender(rootNode);
@@ -1436,7 +1433,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
         }
     }
     RSJankStats::GetInstance().SetEndTime();
-    RS_OPTIONAL_TRACE_FUNC_BEGIN();
+    RS_OPTIONAL_TRACE_FUNC_END();
 }
 
 void RSMainThread::Animate(uint64_t timestamp)
