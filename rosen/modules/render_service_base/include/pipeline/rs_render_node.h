@@ -420,7 +420,7 @@ protected:
     virtual RectI GetFilterRect() const;
     virtual bool NodeIsUsedBySubThread() const { return false; }
 
-    bool IsSelfDrawingNode() const;
+    virtual bool IsSelfDrawingNode() const;
 
 private:
     NodeId id_;

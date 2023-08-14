@@ -695,6 +695,11 @@ public:
     void SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvailable);
 
 private:
+    bool IsSelfDrawingNode() const override
+    {
+        return IsSelfDrawingType();
+    }
+
     void OnResetParent() override;
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
     bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;
