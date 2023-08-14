@@ -396,6 +396,8 @@ public:
     void SetRSFrameRateRangeByPreferred(int32_t preferred);
     bool ApplyModifiers();
 
+    virtual RectI GetFilterRect() const;
+
 protected:
     virtual void OnApplyModifiers() {}
 
@@ -421,7 +423,6 @@ protected:
     bool isRenderUpdateIgnored_ = false;
     bool isShadowValidLastFrame_ = false;
 
-    virtual RectI GetFilterRect() const;
     virtual bool NodeIsUsedBySubThread() const { return false; }
 
     virtual bool IsSelfDrawingNode() const;

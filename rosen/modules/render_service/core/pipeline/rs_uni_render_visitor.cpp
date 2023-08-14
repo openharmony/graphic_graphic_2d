@@ -270,9 +270,14 @@ void RSUniRenderVisitor::UpdateCacheChangeStatus(RSBaseRenderNode& node)
         markedCachedNodes_++;
         // For rootnode, init drawing changes only if there is any content dirty
         isDrawingCacheChanged_ = curContentDirty_;
+        curCacheFilterRects_.push({});
     } else {
         // Any child node dirty causes cache change
         isDrawingCacheChanged_ = isDrawingCacheChanged_ || curDirty_;
+        if (!curCacheFilterRects_.empty() && !node.IsInstanceOf<RSEffectRenderNode>() &&
+            (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect())) {
+            curCacheFilterRects_.top().emplace(node.GetId(), node.GetFilterRect());
+        }
     }
 }
 
@@ -295,8 +300,12 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSBaseRenderNode& node, int ma
         cacheRenderNodeMapCnt = cacheRenderNodeMap.count(node.GetId());
     }
     if ((cacheRenderNodeMapCnt == 0 || isDrawingCacheChanged_) &&
-        (node.ChildHasFilter() || (markedCachedNodeCnt != markedCachedNodes_) || node.HasChildrenOutOfRect())) {
+        ((markedCachedNodeCnt != markedCachedNodes_) || node.HasChildrenOutOfRect())) {
         node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    }
+    if (!curCacheFilterRects_.empty()) {
+        allCacheFilterRects_.emplace(node.GetId(), curCacheFilterRects_.top());
+        curCacheFilterRects_.pop();
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::SetNodeCacheChangeStatus: node %" PRIu64 " drawingtype %d, "
         "cacheChange %d, childHasFilter: %d, outofparent: %d, markedCachedNodeCnt|markedCachedNodes_: (%d, %d)",
@@ -1238,7 +1247,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     // attention: accumulate direct parent's childrenRect
     node.UpdateParentChildrenRect(logicParentNode_.lock());
     node.UpdateEffectRegion(effectRegion_);
-    if (property.NeedFilter()) {
+    if (property.NeedFilter() || property.GetUseEffect()) {
         // filterRects_ is used in RSUniRenderVisitor::CalcDirtyFilterRegion
         // When oldDirtyRect of node with filter has intersect with any surfaceNode or displayNode dirtyRegion,
         // the whole oldDirtyRect should be render in this vsync.
@@ -2748,7 +2757,7 @@ void RSUniRenderVisitor::CheckAndSetNodeCacheType(RSRenderNode& node)
             node.UpdateCompletedCacheSurface();
         }
     } else if (isDrawingCacheEnabled_ && GenerateNodeContentCache(node)) {
-        UpdateCacheRenderNodeMap(node);
+        UpdateCacheRenderNodeMapWithBlur(node);
     } else {
         node.SetCacheType(CacheType::NONE);
         if (node.GetCompletedCacheSurface(threadIndex_, false)) {
@@ -2869,6 +2878,30 @@ void RSUniRenderVisitor::DrawSpherize(RSRenderNode& node)
     node.ProcessTransitionAfterChildren(*canvas_);
 }
 
+bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node) {
+    if (!curCacheFilterRects_.empty()) {
+        if (curCacheFilterRects_.top().count(node.GetId())) {
+            if (curGroupedNodes_.empty()) {
+                // draw filter before drawing cached surface
+                curCacheFilterRects_.top().erase(node.GetId());
+                if (curCacheFilterRects_.empty() || !node.ChildHasFilter()) {
+                    // no filter to draw, return
+                    return true;
+                }
+            } else if (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect()) {
+                // clear hole while generating cache surface
+                SkAutoCanvasRestore arc(canvas_.get(), true);
+                canvas_->clipRect(RSPropertiesPainter::Rect2SkRect(node.GetRenderProperties().GetBoundsRect()));
+                canvas_->clear(SK_ColorTRANSPARENT);
+            }
+        } else if (curGroupedNodes_.empty() && !node.ChildHasFilter()) {
+            // no filter to draw, return
+            return true;
+        }
+    }
+    return false;
+}
+
 void RSUniRenderVisitor::DrawChildCanvasRenderNode(RSRenderNode& node)
 {
     if (node.IsPureContainer() && node.GetCacheType() == CacheType::NONE) {
@@ -2893,7 +2926,9 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
             }
             node.ProcessAnimatePropertyBeforeChildren(*canvas_);
             node.ProcessRenderContents(*canvas_);
-            ProcessChildren(node);
+            if (!DrawBlurInCache(node)) {
+                ProcessChildren(node);
+            }
             node.ProcessAnimatePropertyAfterChildren(*canvas_);
             if (node.HasCacheableAnim() && isDrawingCacheEnabled_) {
                 canvas_->SetCacheType(preCache);
@@ -3392,6 +3427,22 @@ void RSUniRenderVisitor::ChangeCacheRenderNodeMap(RSRenderNode& node, const uint
     cacheRenderNodeMap[node.GetId()] = count;
 }
 
+void RSUniRenderVisitor::UpdateCacheRenderNodeMapWithBlur(RSRenderNode& node)
+{
+    curCacheFilterRects_.push(allCacheFilterRects_[node.GetId()]);
+    auto canvasType = canvas_->GetCacheType();
+    canvas_->SetCacheType(RSPaintFilterCanvas::CacheType::OFFSCREEN);
+    UpdateCacheRenderNodeMap(node);
+    canvas_->SetCacheType(canvasType);
+    RS_TRACE_NAME_FMT("Draw cache with blur [%llu]", node.GetId());
+    SkAutoCanvasRestore arc(canvas_.get(), true);
+    auto nodeType = node.GetCacheType();
+    node.SetCacheType(CacheType::NONE);
+    DrawChildRenderNode(node);
+    node.SetCacheType(nodeType);
+    curCacheFilterRects_.pop();
+}
+
 void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
 {
     if (InitNodeCache(node)) {
@@ -3565,7 +3616,9 @@ void RSUniRenderVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
     canvas_->Save();
 #endif
     node.ProcessRenderBeforeChildren(*canvas_);
-    ProcessChildren(node);
+    if (!DrawBlurInCache(node)) {
+        ProcessChildren(node);
+    }
     node.ProcessRenderAfterChildren(*canvas_);
 #ifndef USE_ROSEN_DRAWING
     canvas_->restoreToCount(saveCount);
