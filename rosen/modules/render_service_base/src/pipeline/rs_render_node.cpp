@@ -28,7 +28,6 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
@@ -48,10 +47,6 @@ const std::set<RSModifierType> CACHEABLE_ANIMATION_TYPE = {
     RSModifierType::BOUNDS,
     RSModifierType::FRAME,
 };
-// Only enable filter cache when uni-render is enabled and filter cache is enabled
-const bool FILTER_CACHE_ENABLED = RSSystemProperties::GetFilterCacheEnabled() &&
-    RSUniRenderJudgement::IsUniRender();
-
 const std::unordered_set<RSModifierType> ANIMATION_MODIFIER_TYPE  = {
     RSModifierType::TRANSLATE,
     RSModifierType::SCALE,
@@ -560,7 +555,6 @@ bool RSRenderNode::Update(
     parentDirty |= (dirtyStatus_ != NodeDirty::CLEAN);
     auto parentProperties = parent ? &parent->GetRenderProperties() : nullptr;
     bool dirty = renderProperties_.UpdateGeometry(parentProperties, parentDirty, offset, GetContextClipRegion());
-
     if ((IsDirty() || dirty) && drawCmdModifiers_.count(RSModifierType::GEOMETRYTRANS)) {
         RSModifierContext context = { GetMutableRenderProperties() };
         for (auto& modifier : drawCmdModifiers_[RSModifierType::GEOMETRYTRANS]) {
@@ -632,7 +626,7 @@ void RSRenderNode::UpdateDirtyRegion(
             }
         }
 
-        if (renderProperties_.IsPixelStretchValid() || renderProperties_.IsPixelStretchPercentValid()) {
+        if (renderProperties_.pixelStretch_) {
             auto stretchDirtyRect = renderProperties_.GetPixelStretchDirtyRect();
             dirtyRect = dirtyRect.JoinRect(stretchDirtyRect);
         }
@@ -711,7 +705,7 @@ void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parent
 
 bool RSRenderNode::IsFilterCacheValid() const
 {
-    if (!FILTER_CACHE_ENABLED) {
+    if (!RSProperties::FilterCacheEnabled) {
         return false;
     }
 #ifndef USE_ROSEN_DRAWING
@@ -729,7 +723,7 @@ bool RSRenderNode::IsFilterCacheValid() const
 void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) const
 {
 #ifndef USE_ROSEN_DRAWING
-    if (!FILTER_CACHE_ENABLED) {
+    if (!RSProperties::FilterCacheEnabled) {
         return;
     }
     auto& properties = GetRenderProperties();
@@ -922,38 +916,43 @@ void RSRenderNode::SetRSFrameRateRangeByPreferred(int32_t preferred)
 
 bool RSRenderNode::ApplyModifiers()
 {
+    // quick reject test
     if (!RSRenderNode::IsDirty() || dirtyTypes_.empty()) {
         return false;
     }
     hgmModifierProfileList_.clear();
     const auto prevPositionZ = renderProperties_.GetPositionZ();
+
+    // Reset and re-apply all modifiers
     RSModifierContext context = { renderProperties_ };
-    for (auto type : dirtyTypes_) {
-        renderProperties_.ResetProperty(type);
-    }
     std::vector<std::shared_ptr<RSRenderModifier>> animationModifiers;
+
+    // Reset before apply modifiers
+    renderProperties_.ResetProperty(dirtyTypes_);
+
+    // Apply modifiers
     for (auto& [id, modifier] : modifiers_) {
-        if (modifier && (dirtyTypes_.find(modifier->GetType()) != dirtyTypes_.end())) {
-            modifier->Apply(context);
-            if (ANIMATION_MODIFIER_TYPE.count(modifier->GetType())) {
-                animationModifiers.push_back(modifier);
-            }
+        if (!dirtyTypes_.count(modifier->GetType())) {
+            continue;
+        }
+        modifier->Apply(context);
+        if (ANIMATION_MODIFIER_TYPE.count(modifier->GetType())) {
+            animationModifiers.push_back(modifier);
         }
     }
 
     for (auto &modifier : animationModifiers) {
         AddModifierProfile(modifier, context.property_.GetBoundsWidth(), context.property_.GetBoundsHeight());
     }
-    lastApplyTimestamp_ = lastTimestamp_;
+    // execute hooks
+    renderProperties_.OnApplyModifiers();
     OnApplyModifiers();
-    dirtyTypes_.clear();
 
-#ifndef USE_ROSEN_DRAWING
-    if (FILTER_CACHE_ENABLED) {
-        // Create or release filter cache manager on demand, update cache state with filter hash.
-        renderProperties_.CreateFilterCacheManagerIfNeed();
-    }
-#endif
+    // update state
+    dirtyTypes_.clear();
+    lastApplyTimestamp_ = lastTimestamp_;
+
+    // return true if positionZ changed
     return renderProperties_.GetPositionZ() != prevPositionZ;
 }
 
@@ -1450,7 +1449,7 @@ RectI RSRenderNode::GetFilterRect() const
 void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<RectI>& clipRect) const
 {
 #ifndef USE_ROSEN_DRAWING
-    if (!FILTER_CACHE_ENABLED) {
+    if (!RSProperties::FilterCacheEnabled) {
         return;
     }
     auto& renderProperties = GetRenderProperties();
@@ -1474,17 +1473,20 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
 
 void RSRenderNode::OnTreeStateChanged()
 {
-#ifndef USE_ROSEN_DRAWING
-    if (!FILTER_CACHE_ENABLED) {
+    if (isOnTheTree_) {
         return;
     }
-    if (IsOnTheTree()) {
-        GetMutableRenderProperties().CreateFilterCacheManagerIfNeed();
-    } else {
-        GetMutableRenderProperties().ResetFilterCacheManager();
+#ifndef USE_ROSEN_DRAWING
+    // clear filter cache when node is removed from tree
+    if (auto& manager = renderProperties_.GetFilterCacheManager(false)) {
+        manager->InvalidateCache();
+    }
+    if (auto& manager = renderProperties_.GetFilterCacheManager(true)) {
+        manager->InvalidateCache();
     }
 #endif
 }
+
 bool RSRenderNode::HasDisappearingTransition(bool recursive) const
 {
     if (disappearingTransitionCount_ > 0) {
