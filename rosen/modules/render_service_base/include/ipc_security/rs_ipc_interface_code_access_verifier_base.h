@@ -21,6 +21,8 @@
 #include <unordered_set>
 
 #ifdef ENABLE_IPC_SECURITY
+#include "accesstoken_kit.h"
+#include "access_token.h"
 #include "ipc_skeleton.h"
 #include "tokenid_kit.h"
 #endif

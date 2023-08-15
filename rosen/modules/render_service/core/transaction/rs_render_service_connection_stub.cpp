@@ -450,10 +450,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {
-            if (!HasPermission("RSRenderServiceConnectionStub::REGISTER_APPLICATION_AGENT")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             uint32_t pid = data.ReadUint32();
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
@@ -616,10 +612,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER): {
-            if (!HasPermission("RSRenderServiceConnectionStub::SET_BUFFER_AVAILABLE_LISTENER")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
