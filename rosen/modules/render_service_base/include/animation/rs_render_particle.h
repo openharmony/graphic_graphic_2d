@@ -106,14 +106,15 @@ public:
     ParticleType type_;
     float radius_;
     std::shared_ptr<RSImage> image_;
+    Vector2f imageSize_;
 
     EmitterConfig()
         : emitRate_(), emitShape_(ShapeType::RECT), position_(), emitSize_(), particleCount_(), lifeTime_(),
-          type_(ParticleType::POINTS), radius_(), image_()
+          type_(ParticleType::POINTS), radius_(), image_(), imageSize_()
     {}
     EmitterConfig(const int& emitRate, const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize,
         const int& particleCount, const int& lifeTime, const ParticleType& type, const float& radius,
-        const std::shared_ptr<RSImage>& image)
+        const std::shared_ptr<RSImage>& image, Vector2f imageSize)
     {
         emitRate_ = emitRate;
         emitShape_ = emitShape;
@@ -124,6 +125,7 @@ public:
         type_ = type;
         radius_ = radius;
         image_ = image;
+        imageSize_ = imageSize;
     }
     EmitterConfig(const EmitterConfig& config) = default;
     EmitterConfig& operator=(const EmitterConfig& config) = default;
@@ -232,6 +234,8 @@ public:
     ParticleType GetParticleType() const;
     float GetParticleRadius() const;
     std::shared_ptr<RSImage> GetParticleImage();
+    Vector2f GetImageSize() const;
+
     float GetVelocityStartValue() const;
     float GetVelocityEndValue() const;
     float GetVelocityStartAngle() const;
@@ -302,6 +306,7 @@ public:
     void SetScale(const float& scale);
     void SetRadius(const float& radius);
     void SetImage(const std::shared_ptr<RSImage>& image);
+    void SetImageSize(const Vector2f& imageSize);
     void SetParticleType(const ParticleType& particleType);
     void SetActiveTime(const int64_t& activeTime);
 
@@ -315,6 +320,7 @@ public:
     float GetScale();
     float GetRadius();
     std::shared_ptr<RSImage> GetImage();
+    Vector2f GetImageSize();
     ParticleType GetParticleType();
     int64_t GetActiveTime();
     std::shared_ptr<ParticleRenderParams> GetParticleRenderParams();
@@ -337,6 +343,7 @@ private:
     Color color_;
     float radius_;
     std::shared_ptr<RSImage> image_;
+    Vector2f imageSize_;
     ParticleType particleType_;
     int64_t activeTime_;
     int64_t lifeTime_;

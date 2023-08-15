@@ -2254,10 +2254,11 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
             } else {
                 auto image = particles[i]->GetImage();
                 canvas.rotate(particles[i]->GetSpin());
-                float fLeft = 0.0f;
-                float ftop = 0.0f;
-                float fRight = 1.0f;
-                float fBottom = 1.0f;
+                float fLeft = position.x_;
+                float ftop = position.y_;
+                auto imageSize = particles[i]->GetImageSize();
+                float fRight = imageSize.x_;
+                float fBottom = imageSize.y_;
                 SkRect rect { fLeft, ftop, fRight, fBottom };
 #ifdef NEW_SKIA
                 image->CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, false);
