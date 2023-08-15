@@ -330,6 +330,8 @@ void RSMainThread::Init()
     auto delegate = RSFunctionalDelegate::Create();
     delegate->SetRepaintCallback([]() { RSMainThread::Instance()->RequestNextVSync(); });
     RSOverdrawController::GetInstance().SetDelegate(delegate);
+
+    frameRateMgr_ = std::make_unique<HgmFrameRateManager>();
 }
 
 void RSMainThread::RsEventParamDump(std::string& dumpString)
@@ -1066,6 +1068,19 @@ void RSMainThread::NotifyDrivenRenderFinish()
 #endif
 }
 
+void RSMainThread::ProcessHgmFrameRate(FrameRateRangeData data, uint64_t timestamp)
+{
+    // 0.[Planning]: The HGM logic here will be processed using sub-threads in the future.
+
+    frameRateMgr_->Reset();
+    // 1.[Planning]: Check and processing software vsync frame rate switching task for RS.
+
+    // 2.Decision-making process for current frame.
+    frameRateMgr_->UniProcessData(data);
+
+    // 3.[Planning]: Post app and rs switch software vsync rate task.
+}
+
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
     UpdateUIFirstSwitch();
@@ -1073,8 +1088,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     uniVisitor->SetDrivenRenderFlag(hasDrivenNodeOnUniTree_, hasDrivenNodeMarkRender_);
 #endif
-    uniVisitor->ResetFrameRateRangeMaps();
-
     uniVisitor->SetHardwareEnabledNodes(hardwareEnabledNodes_);
     uniVisitor->SetAppWindowNum(appWindowNum_);
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
@@ -1109,8 +1122,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         isAccessibilityConfigChanged_ = false;
         uniVisitor->SetFocusedNodeId(focusNodeId_);
         rootNode->Prepare(uniVisitor);
-        uniVisitor->FindAndSendRefreshRate();
-        uniVisitor->CalcSurfaceDrawingFrameRate();
+        ProcessHgmFrameRate(uniVisitor->GetFrameRateRangeData(), timestamp_);
         CalcOcclusion();
         bool doParallelComposition = RSInnovation::GetParallelCompositionEnabled(isUniRender_);
         if (doParallelComposition && rootNode->GetChildrenCount() > 1) {

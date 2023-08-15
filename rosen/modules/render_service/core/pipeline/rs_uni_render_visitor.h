@@ -152,10 +152,11 @@ public:
     }
     void SetAppWindowNum(uint32_t num);
 
-    void ResetFrameRateRangeMaps();
-    void UpdateSurfaceFrameRateRange(RSRenderNode& node);
-    void FindAndSendRefreshRate();
-    void CalcSurfaceDrawingFrameRate();
+    FrameRateRangeData GetFrameRateRangeData()
+    {
+        return frameRateRangeData_;
+    }
+    void CollectFrameRateRange(RSRenderNode& node);
 
 #ifndef USE_ROSEN_DRAWING
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<SkMatrix>>;
@@ -421,16 +422,8 @@ private:
     bool curContentDirty_ = false;
 
     // calculate preferred fps
-    FrameRateRange currSurfaceRSRange_ = {0, 0, 0};
-    FrameRateRange currSurfaceUIRange_ = {0, 0, 0};
-    FrameRateRange currDisplayRSRange_ = {0, 0, 0};
-    FrameRateRange currDisplayUIRange_ = {0, 0, 0};
-    std::unordered_map<NodeId, FrameRateRange> rsFrameRateRangeMap_; // RSDisplayRenderNode id
-    // RSSurfaceRenderNode id
-    std::unordered_map<NodeId, std::pair<ScreenId, FrameRateRange>> uiFrameRateRangeMap_;
-    std::unordered_map<NodeId, FrameRateRange> finalFrameRateRangeMap_; // RSDisplayRenderNode id
+    FrameRateRangeData frameRateRangeData_;
 
-    std::unique_ptr<HgmFrameRateManager> frameRateMgr_;
     std::unordered_map<NodeId, std::unordered_map<NodeId, RectI>> allCacheFilterRects_ = {};
     std::stack<std::unordered_map<NodeId, RectI>> curCacheFilterRects_ = {};
 };
