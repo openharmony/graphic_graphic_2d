@@ -80,7 +80,7 @@
           "libpng",
           "zlib",
           "skia",
-          "cjson",
+          "cJSON",
           "jsoncpp",
           "egl",
           "opengles"
