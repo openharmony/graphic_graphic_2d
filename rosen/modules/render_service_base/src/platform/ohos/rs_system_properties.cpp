@@ -298,6 +298,13 @@ bool RSSystemProperties::GetKawaseEnabled()
     return kawaseBlurEnabled;
 }
 
+bool RSSystemProperties::GetBlurEnabled()
+{
+    static bool blurEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.blurEnabled", "1")).c_str()) != 0;
+    return blurEnabled;
+}
+
 bool RSSystemProperties::GetProxyNodeDebugEnabled()
 {
     static bool proxyNodeDebugEnabled = system::GetParameter("persist.sys.graphic.proxyNodeDebugEnabled", "0") != "0";

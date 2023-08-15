@@ -71,6 +71,7 @@ constexpr float MAX_TRANS_RATIO = 0.95f;
 constexpr float MIN_SPOT_RATIO = 1.0f;
 constexpr float MAX_SPOT_RATIO = 1.95f;
 constexpr float MAX_AMBIENT_RADIUS = 150.0f;
+const bool BLUR_ENABLED = RSSystemProperties::GetBlurEnabled();
 #ifndef USE_ROSEN_DRAWING
 constexpr static float FLOAT_ZERO_THRESHOLD = 0.001f;
 constexpr static uint8_t DIRECTION_NUM = 4;
@@ -1034,6 +1035,10 @@ void RSPropertiesPainter::DrawLinearGradientBlurFilter(
 void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
     FilterType filterType, const std::optional<SkRect>& rect)
 {
+    if (!BLUR_ENABLED) {
+        ROSEN_LOGD("RSPropertiesPainter::DrawFilter close blur.");
+        return;
+    }
     auto& RSFilter =
         (filterType == FilterType::BACKGROUND_FILTER) ? properties.GetBackgroundFilter() : properties.GetFilter();
     if (RSFilter == nullptr || !RSFilter->IsValid()) {
