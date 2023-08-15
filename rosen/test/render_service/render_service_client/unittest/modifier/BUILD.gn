@@ -20,6 +20,7 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_extended_modifier_test.cpp",
     "rs_modifier_test.cpp",
     "rs_property_test.cpp",
   ]

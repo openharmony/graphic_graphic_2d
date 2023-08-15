@@ -21,6 +21,7 @@ ohos_unittest("RSRenderServiceClientUITest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_canvas_drawing_node_test.cpp",
     "rs_canvas_node_test.cpp",
     "rs_display_node_test.cpp",
     "rs_node_test.cpp",

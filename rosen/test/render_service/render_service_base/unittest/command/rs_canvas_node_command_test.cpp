@@ -60,8 +60,8 @@ HWTEST_F(RSCanvasNodeCommandTest, TestRSCanvasNodeCommand002, TestSize.Level1)
 }
 
 /**
- * @tc.name: TestRSCanvasNodeCommand002
- * @tc.desc: ClearRecording test.
+ * @tc.name: Create001
+ * @tc.desc: Create test.
  * @tc.type: FUNC
  */
 HWTEST_F(RSCanvasNodeCommandTest, Create001, TestSize.Level1)

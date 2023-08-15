@@ -25,6 +25,7 @@ ohos_unittest("RSNodeCommandTest") {
     "rs_base_node_command_test.cpp",
     "rs_canvas_drawing_node_command_test.cpp",
     "rs_canvas_node_command_test.cpp",
+    "rs_display_node_command_test.cpp",
     "rs_node_command_test.cpp",
     "rs_proxy_node_command_test.cpp",
     "rs_root_node_command_test.cpp",

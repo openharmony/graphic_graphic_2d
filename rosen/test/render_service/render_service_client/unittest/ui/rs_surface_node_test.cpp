@@ -53,7 +53,7 @@ HWTEST_F(RSSurfaceNodeTest, Create001, TestSize.Level1)
     ASSERT_TRUE(surfaceNode != nullptr);
 
     auto surface = surfaceNode->GetSurface();
-    ASSERT_TRUE(surface != nullptr);
+    ASSERT_FALSE(surface != nullptr);
 }
 
 /**

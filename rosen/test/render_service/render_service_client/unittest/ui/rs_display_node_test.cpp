@@ -172,4 +172,28 @@ HWTEST_F(RSDisplayNodeTest, SetScreenId001, TestSize.Level1)
     ASSERT_TRUE(displayNode != nullptr);
     displayNode->SetScreenId(1);
 }
+
+/**
+ * @tc.name: ClearChildrenTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDisplayNodeTest, ClearChildrenTest, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    displayNode->ClearChildren();
+}
+
+/**
+ * @tc.name: IsMirrorDisplayTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDisplayNodeTest, IsMirrorDisplayTest, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    ASSERT_FALSE(displayNode->IsMirrorDisplay());
+}
 } // namespace OHOS::Rosen
