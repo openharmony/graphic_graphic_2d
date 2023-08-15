@@ -140,7 +140,6 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isCalcCostEnable_ = RSSystemParameters::GetCalcCostEnabled();
 #endif
     isUIFirst_ = RSMainThread::Instance()->IsUIFirstOn();
-    frameRateMgr_ = std::make_unique<HgmFrameRateManager>();
 }
 
 RSUniRenderVisitor::RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas, uint32_t surfaceIndex)
@@ -469,26 +468,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         unpairedTransitionNodes_.clear();
     }
 
-    FrameRateRange finalRange;
-    if (currDisplayRSRange_.IsValid()) {
-        finalRange.Merge(currDisplayRSRange_);
-        rsFrameRateRangeMap_[node.GetId()] = currDisplayRSRange_;
-        ROSEN_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode curr FrameRateRange(RS) is [%d, %d, %d]",
-            currDisplayRSRange_.min_, currDisplayRSRange_.max_, currDisplayRSRange_.preferred_);
-    }
-    if (currDisplayUIRange_.IsValid()) {
-        finalRange.Merge(currDisplayUIRange_);
-        ROSEN_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode curr FrameRateRange(UI) is [%d, %d, %d]",
-            currDisplayUIRange_.min_, currDisplayUIRange_.max_, currDisplayUIRange_.preferred_);
-    }
-    if (finalRange.IsValid()) {
-        finalFrameRateRangeMap_[node.GetId()] = finalRange;
-        ROSEN_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode final FrameRateRange is [%d, %d, %d]",
-            finalRange.min_, finalRange.max_, finalRange.preferred_);
-        frameRateMgr_->UpdateFrameRateRange(node.GetScreenId(), finalRange);
-    }
-    currDisplayRSRange_.Reset();
-    currDisplayUIRange_.Reset();
+    CollectFrameRateRange(node);
 }
 
 void RSUniRenderVisitor::ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRenderNode& node)
@@ -991,22 +971,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 #endif
 
-    auto rsRange = node.GetRSFrameRateRange();
-    auto uiRange = node.GetUIFrameRateRange();
-    currSurfaceRSRange_.Merge(rsRange);
-    currSurfaceUIRange_.Merge(uiRange);
-    currDisplayRSRange_.Merge(currSurfaceRSRange_);
-    currDisplayUIRange_.Merge(currSurfaceUIRange_);
-
-    auto nodeParent = node.GetParent().lock();
-    if (nodeParent && nodeParent->ReinterpretCastTo<RSDisplayRenderNode>()) {
-        if (currSurfaceUIRange_.IsValid()) {
-            uiFrameRateRangeMap_[node.GetId()] = {
-                nodeParent->ReinterpretCastTo<RSDisplayRenderNode>()->GetScreenId(), currSurfaceUIRange_};
-        }
-        currSurfaceRSRange_.Reset();
-        currSurfaceUIRange_.Reset();
-    }
+    CollectFrameRateRange(node);
 }
 
 void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
@@ -1121,7 +1086,6 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
         parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
     }
     node.UpdateChildrenOutOfRectFlag(false);
-    UpdateSurfaceFrameRateRange(node);
     PrepareChildren(node);
     node.UpdateParentChildrenRect(logicParentNode_.lock());
 
@@ -1130,21 +1094,8 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     dirtyFlag_ = dirtyFlag;
     prepareClipRect_ = prepareClipRect;
     isClipBoundDirty_ = isClipBoundDirty;
-}
 
-void RSUniRenderVisitor::UpdateSurfaceFrameRateRange(RSRenderNode& node)
-{
-    auto currRSRange = node.GetRSFrameRateRange();
-    if (currRSRange.IsValid()) {
-        currSurfaceRSRange_.Merge(currRSRange);
-        node.ResetRSFrameRateRange();
-    }
-
-    auto currUIRange = node.GetUIFrameRateRange();
-    if (currUIRange.IsValid()) {
-        currSurfaceUIRange_.Merge(currUIRange);
-        node.ResetUIFrameRateRange();
-    }
+    CollectFrameRateRange(node);
 }
 
 void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
@@ -1247,8 +1198,6 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     node.SetGlobalAlpha(curAlpha_);
     node.UpdateChildrenOutOfRectFlag(false);
 
-    UpdateSurfaceFrameRateRange(node);
-
     PrepareChildren(node);
     // attention: accumulate direct parent's childrenRect
     node.UpdateParentChildrenRect(logicParentNode_.lock());
@@ -1282,6 +1231,8 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         drivenInfo_->drivenUniTreePrepareMode = DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_AFTER;
     }
 #endif
+
+    CollectFrameRateRange(node);
 }
 
 void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
@@ -1316,6 +1267,33 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     dirtyFlag_ = dirtyFlag;
     prepareClipRect_ = prepareClipRect;
     isClipBoundDirty_ = isClipBoundDirty;
+
+    CollectFrameRateRange(node);
+}
+
+void RSUniRenderVisitor::CollectFrameRateRange(RSRenderNode& node)
+{
+    //[Planning]: Support multi-display in the future.
+    if (currentVisitDisplay_ != 0) {
+        return;
+    }
+    frameRateRangeData_.screenId = currentVisitDisplay_;
+    pid_t nodePid = ExtractPid(node.GetId());
+    auto currRange = node.GetUIFrameRateRange();
+    if (currRange.IsValid()) {
+        if (frameRateRangeData_.multiAppRange.count(nodePid)) {
+            frameRateRangeData_.multiAppRange[nodePid].Merge(currRange);
+        } else {
+            frameRateRangeData_.multiAppRange.insert(std::make_pair(nodePid, currRange));
+        }
+    }
+
+    currRange = node.GetRSFrameRateRange();
+    if (currRange.IsValid()) {
+        frameRateRangeData_.rsRange.Merge(currRange);
+    }
+    node.ResetUIFrameRateRange();
+    node.ResetRSFrameRateRange();
 }
 
 void RSUniRenderVisitor::CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisitor> visitor)
@@ -4033,27 +4011,6 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
 
     // skip processing the current node and all its children.
     return false;
-}
-
-void RSUniRenderVisitor::ResetFrameRateRangeMaps()
-{
-    rsFrameRateRangeMap_.clear();
-    uiFrameRateRangeMap_.clear();
-    finalFrameRateRangeMap_.clear();
-    frameRateMgr_->ResetFrameRateRangeMap();
-}
-
-void RSUniRenderVisitor::FindAndSendRefreshRate()
-{
-    frameRateMgr_->FindAndSendRefreshRate();
-}
-
-void RSUniRenderVisitor::CalcSurfaceDrawingFrameRate()
-{
-    for (auto idToPair : uiFrameRateRangeMap_) {
-        frameRateMgr_->CalcSurfaceDrawingFrameRate(idToPair.first,
-            idToPair.second.first, idToPair.second.second);
-    }
 }
 } // namespace Rosen
 } // namespace OHOS

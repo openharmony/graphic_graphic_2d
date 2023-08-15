@@ -46,6 +46,8 @@ namespace OHOS::Rosen {
 #if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
 #endif
+class HgmFrameRateManager;
+struct FrameRateRangeData;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -177,6 +179,8 @@ public:
     }
     // add node info after cmd data process
     void AddActiveNodeId(pid_t pid, NodeId id);
+
+    void ProcessHgmFrameRate(FrameRateRangeData data, uint64_t timestamp);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -356,6 +360,8 @@ private:
     // driven render
     bool hasDrivenNodeOnUniTree_ = false;
     bool hasDrivenNodeMarkRender_ = false;
+
+    std::shared_ptr<HgmFrameRateManager> frameRateMgr_ = nullptr;
 
     // UIFirst
     std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes_;
