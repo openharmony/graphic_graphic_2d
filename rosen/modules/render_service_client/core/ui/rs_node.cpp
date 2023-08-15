@@ -264,17 +264,20 @@ void RSNode::FallbackAnimationsToRoot()
         }
         target->AddAnimationInner(std::move(animation));
     }
+    std::unique_lock<std::mutex> lock(animationMutex_);
     animations_.clear();
 }
 
 void RSNode::AddAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 {
+    std::unique_lock<std::mutex> lock(animationMutex_);
     animations_.emplace(animation->GetId(), animation);
     animatingPropertyNum_[animation->GetPropertyId()]++;
 }
 
 void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 {
+    std::unique_lock<std::mutex> lock(animationMutex_);
     if (auto it = animatingPropertyNum_.find(animation->GetPropertyId()); it != animatingPropertyNum_.end()) {
         it->second--;
         if (it->second == 0) {
@@ -296,6 +299,7 @@ void RSNode::FinishAnimationByProperty(const PropertyId& id)
 
 void RSNode::CancelAnimationByProperty(const PropertyId& id)
 {
+    std::unique_lock<std::mutex> lock(animationMutex_);
     animatingPropertyNum_.erase(id);
     EraseIf(animations_, [id](const auto& pair) { return (pair.second && (pair.second->GetPropertyId() == id)); });
 }
@@ -318,9 +322,12 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation)
     }
 
     auto animationId = animation->GetId();
-    if (animations_.find(animationId) != animations_.end()) {
-        ROSEN_LOGE("Failed to add animation, animation already exists!");
-        return;
+    {
+        std::unique_lock<std::mutex> lock(animationMutex_);
+        if (animations_.find(animationId) != animations_.end()) {
+            ROSEN_LOGE("Failed to add animation, animation already exists!");
+            return;
+        }
     }
 
     if (animation->GetDuration() <= 0) {
@@ -328,7 +335,7 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation)
     }
 
     AddAnimationInner(animation);
-    animation->StartInner(std::static_pointer_cast<RSNode>(shared_from_this()));
+    animation->StartInner(shared_from_this());
 }
 
 void RSNode::RemoveAllAnimations()
@@ -366,6 +373,7 @@ const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
 
 bool RSNode::HasPropertyAnimation(const PropertyId& id)
 {
+    std::unique_lock<std::mutex> lock(animationMutex_);
     auto it = animatingPropertyNum_.find(id);
     return it != animatingPropertyNum_.end() && it->second > 0;
 }
@@ -714,7 +722,7 @@ void RSNode::SetEnvForegroundColorStrategy(ForegroundColorStrategyType strategyT
         RSProperty<ForegroundColorStrategyType>>(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, strategyType);
 }
 
-// Set ParticleParams 
+// Set ParticleParams
 void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams)
 {
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
@@ -1050,13 +1058,17 @@ void RSNode::OnRemoveChildren()
 
 bool RSNode::AnimationCallback(AnimationId animationId, AnimationCallbackEvent event)
 {
-    auto animationItr = animations_.find(animationId);
-    if (animationItr == animations_.end()) {
-        ROSEN_LOGE("Failed to find animation[%" PRIu64 "]!", animationId);
-        return false;
+    std::shared_ptr<RSAnimation> animation = nullptr;
+    {
+        std::unique_lock<std::mutex> lock(animationMutex_);
+        auto animationItr = animations_.find(animationId);
+        if (animationItr == animations_.end()) {
+            ROSEN_LOGE("Failed to find animation[%" PRIu64 "]!", animationId);
+            return false;
+        }
+        animation = animationItr->second;
     }
 
-    auto animation = animationItr->second;
     if (animation == nullptr) {
         ROSEN_LOGE("Failed to callback animation[%" PRIu64 "], animation is null!", animationId);
         return false;

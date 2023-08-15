@@ -38,18 +38,18 @@ public:
 
     FrameRateRange(int min, int max, int preferred) : min_(min), max_(max), preferred_(preferred) {}
 
-    bool IsZero()
+    bool IsZero() const
     {
         return this->min_ == 0 && this->max_ == 0 && this->preferred_ == 0;
     }
 
-    bool IsValid()
+    bool IsValid() const
     {
         return !this->IsZero() && this->min_ <= this->preferred_ && this->preferred_ <= this->max_ &&
             this->min_ >= 0 && this->max_ <= RANGE_MAX_REFRESHRATE;
     }
 
-    bool IsDynamic()
+    bool IsDynamic() const
     {
         return IsValid() && this->min_ != this->max_;
     }

@@ -40,6 +40,10 @@ ohos_systemtest("RSBaseRenderEngineTest") {
   module_out_path = module_output_path
   sources = [ "rs_base_render_engine_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -49,6 +53,10 @@ ohos_systemtest("RSDropFrameProcessorSystemTest") {
   module_out_path = module_output_path
   sources = [ "rs_drop_frame_processor_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -58,6 +66,10 @@ ohos_systemtest("RSRenderServiceTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_service_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -68,7 +80,11 @@ if (graphic_2d_feature_rs_enable_uni_render) {
     module_out_path = module_output_path
     sources = [ "rs_uni_render_test.cpp" ]
     deps = [ ":rs_test_common" ]
-    external_deps = [ "init:libbegetutil" ]
+    external_deps = [
+      "c_utils:utils",
+      "hilog:libhilog",
+      "init:libbegetutil",
+    ]
     defines = []
     defines += gpu_defines
   }

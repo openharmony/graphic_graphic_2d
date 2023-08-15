@@ -231,26 +231,17 @@ public:
 
     void SetVisible(bool visible);
     bool GetVisible() const;
-    bool SetId(NodeId id);
     std::string Dump() const;
 
     void SetMask(std::shared_ptr<RSMask> mask);
     std::shared_ptr<RSMask> GetMask() const;
 
-    void SetPixelStretch(Vector4f stretchSize);
-    Vector4f GetPixelStretch() const;
-
-    bool IsPixelStretchValid() const;
-
-    bool IsPixelStretchExpanded() const;
-
+    // Pixel Stretch
+    void SetPixelStretch(const std::optional<Vector4f>& stretchSize);
+    const std::optional<Vector4f>& GetPixelStretch() const;
+    void SetPixelStretchPercent(const std::optional<Vector4f>& stretchPercent);
+    const std::optional<Vector4f>& GetPixelStretchPercent() const;
     RectI GetPixelStretchDirtyRect() const;
-
-    void SetPixelStretchPercent(Vector4f stretchPercent);
-    Vector4f GetPixelStretchPercent() const;
-    Vector4f GetPixelStretchByPercent() const;
-
-    bool IsPixelStretchPercentValid() const;
 
     const std::shared_ptr<RSObjAbsGeometry>& GetBoundsGeometry() const;
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
@@ -261,8 +252,6 @@ public:
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<Drawing::Point>& offset,
         const std::optional<Drawing::Rect>& clipRect);
 #endif
-    void CheckEmptyBounds();
-    void ResetBounds();
     RectF GetBoundsRect() const;
 
     bool IsGeoDirty() const;
@@ -296,34 +285,22 @@ public:
     const std::optional<Color>& GetColorBlend() const;
 
 #ifndef USE_ROSEN_DRAWING
-    const sk_sp<SkColorFilter> GetColorFilter() const;
+    const sk_sp<SkColorFilter>& GetColorFilter() const;
 #else
-    const std::shared_ptr<Drawing::ColorFilter> GetColorFilter() const;
+    const std::shared_ptr<Drawing::ColorFilter>& GetColorFilter() const;
 #endif
 
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
 
-    std::tuple<bool, bool, bool> GetDirtyStatus() const
-    {
-        return { isDirty_, geoDirty_, contentDirty_ };
-    }
-    void SetDirtyStatus(std::tuple<bool, bool, bool> status)
-    {
-        isDirty_ = std::get<0>(status);
-        geoDirty_ = std::get<1>(status);
-        contentDirty_ = std::get<2>(status);
-    }
-
 #ifndef USE_ROSEN_DRAWING
-    void CreateFilterCacheManagerIfNeed();
-    void ResetFilterCacheManager();
     const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
 #endif
 
+    void OnApplyModifiers();
+
 private:
-    void Reset();
-    void ResetProperty(RSModifierType type);
+    void ResetProperty(const std::unordered_set<RSModifierType>& dirtyTypes);
     void SetDirty();
     void ResetDirty();
     bool IsDirty() const;
@@ -344,6 +321,7 @@ private:
     bool isDirty_ = false;
     bool geoDirty_ = false;
     bool contentDirty_ = false;
+    bool isDrawn_ = false;
 
     bool hasBounds_ = false;
     bool useEffect_ = false;
@@ -388,6 +366,20 @@ private:
     std::optional<float> dynamicLightUpDegree_;
     std::optional<Color> colorBlend_;
     std::optional<RectI> lastRect_;
+
+    // OnApplyModifiers hooks
+    void CheckEmptyBounds();
+    void GenerateColorFilter();
+    void CalculatePixelStretch();
+    void CalculateFrameOffset();
+
+    // partial update
+    bool colorFilterNeedUpdate_ = false;
+    bool pixelStretchNeedUpdate_ = false;
+    bool filterManagerNeedUpdate_ = false;
+    float frameOffsetX_ = 0.f;
+    float frameOffsetY_ = 0.f;
+
 #ifndef USE_ROSEN_DRAWING
     std::vector<std::shared_ptr<RSRenderParticle>> particles_;
     sk_sp<SkColorFilter> colorFilter_ = nullptr;
@@ -396,11 +388,14 @@ private:
 #endif
 
 #ifndef USE_ROSEN_DRAWING
+    void CreateFilterCacheManagerIfNeed();
     std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
 #endif
 
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
+
+    static const bool FilterCacheEnabled;
 
     friend class RSCanvasDrawingRenderNode;
     friend class RSCanvasRenderNode;

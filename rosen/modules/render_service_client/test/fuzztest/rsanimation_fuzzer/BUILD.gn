@@ -39,6 +39,11 @@ ohos_fuzztest("RSAnimationFuzzTest") {
     "rsanimation_fuzzer.cpp",
   ]
   deps = [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ###############################################################################

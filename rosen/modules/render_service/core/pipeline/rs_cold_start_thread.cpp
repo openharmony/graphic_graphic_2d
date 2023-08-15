@@ -347,7 +347,6 @@ void RSColdStartManager::CheckColdStartMap(const RSRenderNodeMap& nodeMap)
             elem.second->Stop();
         }
     }
-    RS_LOGD("RSColdStartManager::CheckColdStartMap size:%zu", coldStartThreadMap_.size());
 }
 } // namespace Rosen
 } // namespace OHOS

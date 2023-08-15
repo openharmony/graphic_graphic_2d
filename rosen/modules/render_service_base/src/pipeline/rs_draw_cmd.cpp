@@ -72,6 +72,12 @@ void OpItemTasks::ProcessTask()
     }
 }
 
+bool OpItemTasks::IsEmpty()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return tasks_.empty();
+}
+
 std::unique_ptr<OpItem> OpItemWithPaint::GenerateCachedOpItem(
     const RSPaintFilterCanvas* canvas, const SkRect* rect) const
 {

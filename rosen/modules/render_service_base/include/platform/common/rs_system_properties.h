@@ -133,6 +133,7 @@ public:
     static int GetFilterCacheUpdateInterval();
     static int GetFilterCacheSizeThreshold();
     static bool GetKawaseEnabled();
+    static bool GetBlurEnabled();
     static bool GetSkipForAlphaZeroEnabled();
     static bool GetSkipGeometryNotChangeEnabled();
 

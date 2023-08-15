@@ -17,128 +17,94 @@
 
 #include "hgm_core.h"
 #include "hgm_log.h"
-namespace {
-    constexpr float MARGIN = 0.00001;
-    constexpr int MIN_DRAWING_FPS = 10;
-    constexpr int REFRESH_RATE_OUTLIER = -1;
-}
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
-void HgmFrameRateManager::UpdateFrameRateRange(ScreenId id, FrameRateRange range)
-{
-    if (!range.IsValid()) {
-        return;
-    }
-    screenIdToFrameRateRange_[id] = range;
+namespace {
+    constexpr float MARGIN = 0.00001;
+    constexpr int MIN_DRAWING_FPS = 10;
 }
 
-void HgmFrameRateManager::FindAndSendRefreshRate()
+void HgmFrameRateManager::UniProcessData(const FrameRateRangeData& data)
 {
-    for (auto idToRange : screenIdToFrameRateRange_) {
-        ScreenId id = idToRange.first;
-        auto& instance = HgmCore::Instance();
+    auto screenId = data.screenId;
+    if (screenId == INVALID_SCREEN_ID) {
+        return;
+    }
 
-        // Get supported refreshRates
-        auto& refreshRateMap = screenIdToSupportedRefreshRates_;
-        if (refreshRateMap.find(id) == refreshRateMap.end()) {
-            refreshRateMap[id] = instance.GetScreenSupportedRefreshRates(id);
-            std::sort(refreshRateMap[id].begin(), refreshRateMap[id].end());
-        }
-        auto& refreshRates = refreshRateMap[id];
+    FrameRateRange finalRange;
+    finalRange.Merge(data.rsRange);
+    for (auto appRange : data.multiAppRange) {
+        finalRange.Merge(appRange.second);
+    }
+    if (!finalRange.IsValid()) {
+        return;
+    }
 
-        // Find current refreshRate by FrameRateRange. For example:
-        // 1. FrameRateRange[min, max, preferred] is [24, 48, 48], supported refreshRates
-        // of current screen are {30, 60, 90}, the result should be 30, not 60.
-        // 2. FrameRateRange[min, max, preferred] is [150, 150, 150], supported refreshRates
-        // of current screen are {30, 60, 90}, the result will be 90.
-        uint32_t currRefreshRate = 0;
-        FrameRateRange range = screenIdToFrameRateRange_[id];
-        auto iter = std::lower_bound(refreshRates.begin(), refreshRates.end(), range.preferred_);
-        uint32_t pos = static_cast<uint32_t>(iter - refreshRates.begin());
-        if (pos < refreshRates.size()) {
-            if (refreshRates[pos] > static_cast<uint32_t>(range.max_) && pos > 0 &&
-                refreshRates[pos - 1] >= static_cast<uint32_t>(range.min_) &&
-                refreshRates[pos - 1] <= static_cast<uint32_t>(range.max_)) {
-                currRefreshRate = refreshRates[pos - 1];
-            } else {
-                currRefreshRate = refreshRates[pos];
+    CalcRefreshRate(screenId, finalRange);
+    rsFrameRate_ = GetDrawingFrameRate(currRefreshRate_, finalRange);
+    RS_TRACE_NAME("HgmFrameRateManager:UniProcessData refreshRate:" +
+        std::to_string(static_cast<int>(currRefreshRate_)) + ", rsFrameRate:" +
+        std::to_string(static_cast<int>(rsFrameRate_)) + ", finalRange=(" +
+        std::to_string(static_cast<int>(finalRange.min_)) + ", " +
+        std::to_string(static_cast<int>(finalRange.max_)) + ", " +
+        std::to_string(static_cast<int>(finalRange.preferred_)) + ")");
+
+    for (auto appRange : data.multiAppRange) {
+        multiAppFrameRate_[appRange.first] = GetDrawingFrameRate(currRefreshRate_, finalRange);
+        RS_TRACE_NAME("multiAppFrameRate:pid=" +
+            std::to_string(static_cast<int>(appRange.first)) + ", appRange=(" +
+            std::to_string(static_cast<int>(appRange.second.min_)) + ", " +
+            std::to_string(static_cast<int>(appRange.second.max_)) + ", " +
+            std::to_string(static_cast<int>(appRange.second.preferred_)) + "), frameRate=" +
+            std::to_string(static_cast<int>(multiAppFrameRate_[appRange.first])));
+    }
+    // [Temporary func]: Switch refresh rate immediately, func will be removed in the future.
+    ExecuteSwitchRefreshRate(screenId);
+}
+
+void HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRange& range)
+{
+    // Find current refreshRate by FrameRateRange. For example:
+    // 1. FrameRateRange[min, max, preferred] is [24, 48, 48], supported refreshRates
+    // of current screen are {30, 60, 90}, the result should be 30, not 60.
+    // 2. FrameRateRange[min, max, preferred] is [150, 150, 150], supported refreshRates
+    // of current screen are {30, 60, 90}, the result will be 90.
+    auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
+    std::sort(supportRefreshRateVec.begin(), supportRefreshRateVec.end());
+    auto iter = std::lower_bound(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), range.preferred_);
+    if (iter != supportRefreshRateVec.end()) {
+        currRefreshRate_ = *iter;
+        if (currRefreshRate_ > static_cast<uint32_t>(range.max_) &&
+            (iter - supportRefreshRateVec.begin()) > 0) {
+            iter--;
+            if (*iter >= static_cast<uint32_t>(range.min_) &&
+                *iter <= static_cast<uint32_t>(range.max_)) {
+                currRefreshRate_ = *iter;
             }
-        } else {
-            currRefreshRate = refreshRates.back(); // preferred fps >= biggest supported refreshRate
         }
-        screenIdToLCDRefreshRates_[id] = currRefreshRate;
-
-        // Send RefreshRate
-        static bool refreshRateSwitch = system::GetBoolParameter("persist.hgm.refreshrate.enabled", false);
-        if (!refreshRateSwitch) {
-            HGM_LOGD("HgmFrameRateManager: refreshRateSwitch is off, currRefreshRate is %{public}d", currRefreshRate);
-            return;
-        }
-        uint32_t lcdRefreshRate = instance.GetScreenCurrentRefreshRate(id);
-        if (currRefreshRate != lcdRefreshRate) {
-            HGM_LOGD("HgmFrameRateManager: current refreshRate is %{public}d",
-                static_cast<int>(currRefreshRate));
-            int status = instance.SetScreenRefreshRate(id, 0, currRefreshRate);
-            if (status != EXEC_SUCCESS) {
-                screenIdToLCDRefreshRates_[id] = lcdRefreshRate;
-                HGM_LOGE("HgmFrameRateManager: failed to set refreshRate %{public}d, screenId %{public}d",
-                    static_cast<int>(currRefreshRate), static_cast<int>(id));
-            }
-        }
+    } else {
+        currRefreshRate_ = supportRefreshRateVec.back();
     }
 }
 
-void HgmFrameRateManager::ResetFrameRateRangeMap()
-{
-    screenIdToFrameRateRange_.clear();
-    screenIdToLCDRefreshRates_.clear();
-    drawingFrameRateMap_.clear();
-}
-
-void HgmFrameRateManager::CalcSurfaceDrawingFrameRate(NodeId surfaceNodeId,
-    ScreenId screenId, FrameRateRange range)
-{
-    if (!range.IsValid()) {
-        return;
-    }
-    int refreshRate = GetRefreshRateByScreenId(screenId);
-    if (GetRefreshRateByScreenId(screenId) == REFRESH_RATE_OUTLIER) {
-        return;
-    }
-
-    float drawingFps = GetDrawingFps(static_cast<float>(refreshRate), range);
-    drawingFrameRateMap_[surfaceNodeId] = drawingFps;
-    HGM_LOGD("HgmFrameRateManager:: surfaceNodeId - %{public}d, Drawing FrameRate %{public}.1f",
-        static_cast<int>(surfaceNodeId), drawingFps);
-}
-
-int HgmFrameRateManager::GetRefreshRateByScreenId(ScreenId screenId)
-{
-    auto& refreshRatesMap = screenIdToLCDRefreshRates_;
-    if (refreshRatesMap.find(screenId) == refreshRatesMap.end()) {
-        HGM_LOGE("HgmFrameRateManager:: Failed to find ScreenId - %{public}d",
-            static_cast<int>(screenId));
-        return REFRESH_RATE_OUTLIER;
-    }
-    return refreshRatesMap[screenId];
-}
-
-float HgmFrameRateManager::GetDrawingFps(float refreshRate, FrameRateRange range)
+uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range)
 {
     // We will find a drawing fps, which is divisible by refreshRate.
     // If the refreshRate is 60, the options of drawing fps are 60, 30, 15, 12, etc.
     // 1. The preferred fps is divisible by refreshRate.
+    const float currRefreshRate = static_cast<float>(refreshRate);
     const float preferredFps = static_cast<float>(range.preferred_);
-    if (std::fmodf(refreshRate, range.preferred_) < MARGIN) {
-        return preferredFps;
+    if (std::fmodf(currRefreshRate, range.preferred_) < MARGIN) {
+        return static_cast<uint32_t>(preferredFps);
     }
 
     // 2. FrameRateRange is not dynamic, we will find the closest drawing fps to preferredFps.
     // e.g. If the FrameRateRange of a surfaceNode is [50, 50, 50], the refreshRate is
     // 90, the drawing fps of the surfaceNode should be 45.
     if (!range.IsDynamic()) {
-        return refreshRate / std::round(refreshRate / preferredFps);
+        return static_cast<uint32_t>(currRefreshRate / std::round(refreshRate / preferredFps));
     }
 
     // 3. FrameRateRange is dynamic. We will find a divisible result in the range if possible.
@@ -148,8 +114,8 @@ float HgmFrameRateManager::GetDrawingFps(float refreshRate, FrameRateRange range
     // we lack the least(the ratio is 2/60).
     // The preferred fps is 34, the refreshRate is 60, the drawing fps will be 30(the ratio is 4/30).
     int divisor = 1;
-    float drawingFps = refreshRate;
-    float dividedFps = refreshRate;
+    float drawingFps = currRefreshRate;
+    float dividedFps = currRefreshRate;
     float currRatio = std::abs(dividedFps - preferredFps) / preferredFps;
     float ratio = currRatio;
     while (dividedFps > MIN_DRAWING_FPS - MARGIN) {
@@ -159,7 +125,7 @@ float HgmFrameRateManager::GetDrawingFps(float refreshRate, FrameRateRange range
         if (dividedFps > range.max_) {
             divisor++;
             float preDividedFps = dividedFps;
-            dividedFps = refreshRate / static_cast<float>(divisor);
+            dividedFps = currRefreshRate / static_cast<float>(divisor);
             // If we cannot find a divisible result, the closer to the preferred, the better.
             // e.g.FrameRateRange is [50, 80, 80], refreshrate is
             // 90, the drawing frame rate is 90.
@@ -189,9 +155,36 @@ float HgmFrameRateManager::GetDrawingFps(float refreshRate, FrameRateRange range
             drawingFps = dividedFps;
         }
         divisor++;
-        dividedFps = refreshRate / static_cast<float>(divisor);
+        dividedFps = currRefreshRate / static_cast<float>(divisor);
     }
-    return drawingFps;
+    return static_cast<uint32_t>(drawingFps);
+}
+
+void HgmFrameRateManager::ExecuteSwitchRefreshRate(const ScreenId id)
+{
+    static bool refreshRateSwitch = system::GetBoolParameter("persist.hgm.refreshrate.enabled", false);
+    if (!refreshRateSwitch) {
+        HGM_LOGD("HgmFrameRateManager: refreshRateSwitch is off, currRefreshRate is %{public}d", currRefreshRate_);
+        return;
+    }
+    uint32_t lcdRefreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(id);
+    if (currRefreshRate_ != lcdRefreshRate) {
+        HGM_LOGD("HgmFrameRateManager: current refreshRate is %{public}d",
+            static_cast<int>(currRefreshRate_));
+        int status = HgmCore::Instance().SetScreenRefreshRate(id, 0, currRefreshRate_);
+        if (status < EXEC_SUCCESS) {
+            currRefreshRate_ = lcdRefreshRate;
+            HGM_LOGE("HgmFrameRateManager: failed to set refreshRate %{public}d, screenId %{public}d",
+                static_cast<int>(currRefreshRate_), static_cast<int>(id));
+        }
+    }
+}
+
+void HgmFrameRateManager::Reset()
+{
+    currRefreshRate_ = -1;
+    rsFrameRate_ = -1;
+    multiAppFrameRate_.clear();
 }
 } // namespace Rosen
 } // namespace OHOS

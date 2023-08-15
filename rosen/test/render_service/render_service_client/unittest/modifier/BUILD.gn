@@ -20,6 +20,7 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_extended_modifier_test.cpp",
     "rs_modifier_test.cpp",
     "rs_property_test.cpp",
   ]
@@ -37,7 +38,10 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
   ]
 
   subsystem_name = "graphic"
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ###############################################################################

@@ -52,6 +52,7 @@ public:
 
     explicit RSDisplayRenderNode(NodeId id, const RSDisplayNodeConfig& config, std::weak_ptr<RSContext> context = {});
     ~RSDisplayRenderNode() override;
+    void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID) override;
 
     void SetScreenId(uint64_t screenId)
     {

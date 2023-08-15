@@ -34,6 +34,10 @@ ohos_fuzztest("NativeBufferFuzzTest") {
   ]
   sources = [ "nativebuffer_fuzzer.cpp" ]
   deps = [ "//foundation/graphic/graphic_2d:libsurface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ###############################################################################

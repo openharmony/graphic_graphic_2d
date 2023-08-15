@@ -22,7 +22,6 @@ if (platform == "ohos") {
   eventhandler_deps = [
     "//base/notification/eventhandler/frameworks/eventhandler:libeventhandler",
   ]
-  hilog_deps = [ "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog" ]
   ipc_deps = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
   ]
@@ -30,10 +29,6 @@ if (platform == "ohos") {
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
   ]
   utils_deps = [ "//commonlibrary/c_utils/base:utils" ]
-} else {
-  hilog_deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_$platform",
-  ]
 }
 
 appframework_root = "//foundation/appframework"

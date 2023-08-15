@@ -36,6 +36,10 @@ ohos_unittest("RSRenderServiceConnectionStubTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_service_connection_stub_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -45,6 +49,10 @@ ohos_unittest("RSRenderServiceStubTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_service_stub_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }

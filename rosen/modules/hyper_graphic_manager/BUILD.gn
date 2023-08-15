@@ -26,6 +26,7 @@ config("libhyper_graphic_manager_config") {
     "$graphic_2d_root/rosen/modules/platform/ipc_core",
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/utils/log",
     "//third_party/libxml2/include",
   ]
 

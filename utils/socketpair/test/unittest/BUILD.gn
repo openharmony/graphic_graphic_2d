@@ -25,6 +25,10 @@ ohos_unittest("socketpair_test") {
   module_out_path = module_out_path
   sources = [ "socketpair_test.cpp" ]
   deps = [ ":socketpair_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 config("socketpair_test_config") {
@@ -43,7 +47,6 @@ ohos_static_library("socketpair_test_common") {
   public_configs = [ ":socketpair_test_config" ]
 
   public_deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/graphic_2d/utils/socketpair:socketpair",
     "//third_party/googletest:gtest_main",
   ]

@@ -20,7 +20,6 @@
 #include <refbase.h>
 #include <unordered_map>
 #include <sync_fence.h>
-#include "hdi_log.h"
 #include "hdi_display_type.h"
 
 namespace OHOS {

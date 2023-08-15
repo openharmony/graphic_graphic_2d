@@ -20,6 +20,9 @@
 #include "sync_fence.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_hardware_thread.h"
+#include "pipeline/parallel_render/rs_sub_thread_manager.h"
+#include "rs_trace.h"
+#include "common/rs_optional_trace.h"
 
 #ifndef NDEBUG
 #include <cassert>
@@ -243,7 +246,8 @@ void RSEglImageManager::WaitAcquireFence(const sptr<SyncFence>& acquireFence)
     acquireFence->Wait(3000); // 3000ms
 }
 
-GLuint RSEglImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer)
+GLuint RSEglImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
+    const uint32_t threadIndex)
 {
     auto bufferId = buffer->GetSeqNum();
     auto imageCache = ImageCacheSeq::Create(eglDisplay_, EGL_NO_CONTEXT, buffer);
@@ -252,6 +256,7 @@ GLuint RSEglImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuf
             bufferId);
         return 0; // return texture id 0.
     }
+    imageCache->SetThreadIndex(threadIndex);
     auto textureId = imageCache->TextureId();
     imageCacheSeqs_[bufferId] = std::move(imageCache);
     cacheQueue_.push(bufferId);
@@ -273,16 +278,20 @@ std::unique_ptr<ImageCacheSeq> RSEglImageManager::CreateImageCacheFromBuffer(con
 }
 
 GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-    const sptr<SyncFence>& acquireFence)
+    const sptr<SyncFence>& acquireFence, uint32_t threadIndex)
 {
     WaitAcquireFence(acquireFence);
     std::lock_guard<std::mutex> lock(opMutex_);
     auto bufferId = buffer->GetSeqNum();
+    RS_OPTIONAL_TRACE_NAME_FMT("MapEglImage seqNum: %d", bufferId);
+    RS_LOGD("RSEglImageManager::MapEglImageFromSurfaceBuffer: %{public}d", bufferId);
     if (imageCacheSeqs_.count(bufferId) == 0 || imageCacheSeqs_[bufferId] == nullptr) {
         // cache not found, create it.
-        return CreateImageCacheFromBuffer(buffer);
+        return CreateImageCacheFromBuffer(buffer, threadIndex);
     } else {
-        return imageCacheSeqs_[bufferId]->TextureId();
+        auto& imageCache = imageCacheSeqs_[bufferId];
+        imageCache->SetThreadIndex(threadIndex);
+        return imageCache->TextureId();
     }
 }
 
@@ -301,19 +310,36 @@ void RSEglImageManager::ShrinkCachesIfNeeded(bool isForUniRedraw)
 
 void RSEglImageManager::UnMapEglImageFromSurfaceBuffer(int32_t seqNum)
 {
-    auto mainThread = RSMainThread::Instance();
-    mainThread->PostTask([this, seqNum]() {
+    uint32_t threadIndex = UNI_MAIN_THREAD_INDEX;
+    {
+        std::lock_guard<std::mutex> lock(opMutex_);
         if (imageCacheSeqs_.count(seqNum) == 0) {
             return;
         }
-        (void)imageCacheSeqs_.erase(seqNum);
-        RS_LOGD("RSEglImageManager::UnMapEglImageFromSurfaceBuffer");
-    });
+        threadIndex = imageCacheSeqs_[seqNum]->GetThreadIndex();
+    }
+    auto func = [this, seqNum]() {
+        {
+            std::lock_guard<std::mutex> lock(opMutex_);
+            if (imageCacheSeqs_.count(seqNum) == 0) {
+                return;
+            }
+            (void)imageCacheSeqs_.erase(seqNum);
+        }
+        RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage seqNum: %d", seqNum);
+        RS_LOGD("RSEglImageManager::UnMapEglImageFromSurfaceBuffer: %{public}d", seqNum);
+    };
+    if (threadIndex == UNI_MAIN_THREAD_INDEX) {
+        RSMainThread::Instance()->PostTask(func);
+    } else {
+        RSSubThreadManager::Instance()->PostTask(func, threadIndex);
+    }
 }
 
 void RSEglImageManager::UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNum)
 {
     RSHardwareThread::Instance().PostTask([this, seqNum]() {
+        std::lock_guard<std::mutex> lock(opMutex_);
         if (imageCacheSeqs_.count(seqNum) == 0) {
             return;
         }

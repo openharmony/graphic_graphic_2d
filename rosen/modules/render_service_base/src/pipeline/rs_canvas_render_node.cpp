@@ -116,17 +116,23 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
     RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas);
 #endif
 
-    if (GetRenderProperties().GetUseEffect()) {
-        RSPropertiesPainter::ApplyBackgroundEffect(GetRenderProperties(), canvas);
+    if (canvas.GetCacheType() != RSPaintFilterCanvas::CacheType::OFFSCREEN) {
+        if (GetRenderProperties().GetUseEffect()) {
+            if (HasUpdateEffectRegion()) {
+                RSPropertiesPainter::ApplyBackgroundEffect(GetRenderProperties(), canvas);
+            } else {
+                RestoreBgEffectFilter(canvas);
+            }
+        }
+        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, FilterType::BACKGROUND_FILTER);
     }
-    RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, FilterType::BACKGROUND_FILTER);
 
     ApplyDrawCmdModifier(context, RSModifierType::BACKGROUND_STYLE);
 
     if (GetRenderProperties().IsDynamicLightUpValid()) {
         RSPropertiesPainter::DrawDynamicLightUp(GetRenderProperties(), canvas);
     }
-    
+
 #ifndef USE_ROSEN_DRAWING
     canvasNodeSaveCount_ = canvas.Save();
 #else
@@ -227,9 +233,33 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas)
     }
 }
 
+void RSCanvasRenderNode::RestoreBgEffectFilter(RSPaintFilterCanvas& canvas)
+{
+    auto rsParentPtr = GetParent().lock();
+    while (rsParentPtr) {
+        if (rsParentPtr->GetType() == RSRenderNodeType::EFFECT_NODE) {
+            break;
+        }
+        rsParentPtr = rsParentPtr->GetParent().lock();
+    }
+    if (!rsParentPtr) {
+        return;
+    }
+    auto& rsProperty = GetMutableRenderProperties();
+    if (rsProperty.GetBackgroundFilter()) {
+        return;
+    }
+    auto& bgShareFilter = rsParentPtr->GetRenderProperties().GetBackgroundFilter();
+    if (bgShareFilter) {
+        rsProperty.SetBackgroundFilter(bgShareFilter);
+        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, FilterType::BACKGROUND_FILTER);
+        rsProperty.SetBackgroundFilter(nullptr);
+    }
+}
+
 void RSCanvasRenderNode::OnApplyModifiers()
 {
-    GetMutableRenderProperties().backref_ = ReinterpretCastTo<RSRenderNode>();
+    GetMutableRenderProperties().backref_ = weak_from_this();
 }
 
 void RSCanvasRenderNode::ProcessDrivenBackgroundRender(RSPaintFilterCanvas& canvas)
@@ -264,7 +294,6 @@ void RSCanvasRenderNode::ProcessDrivenContentRenderAfterChildren(RSPaintFilterCa
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
     ApplyDrawCmdModifier(context, RSModifierType::FOREGROUND_STYLE);
 
-    GetMutableRenderProperties().ResetBounds();
     canvas.RestoreStatus(canvasNodeSaveCount_);
 #endif
 }

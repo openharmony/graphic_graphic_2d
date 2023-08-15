@@ -85,7 +85,6 @@ void RSNodeCostManager::CalcBaseRenderNodeCost(RSBaseRenderNode& node)
                 CalcCanvasRenderNodeCost(*canvasNodePtr);
                 break;
             }
-            case RSRenderNodeType::BASE_NODE:
             case RSRenderNodeType::RS_NODE:
             case RSRenderNodeType::DISPLAY_NODE:
             case RSRenderNodeType::PROXY_NODE:

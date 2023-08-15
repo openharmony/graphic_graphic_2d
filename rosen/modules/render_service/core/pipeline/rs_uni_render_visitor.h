@@ -152,10 +152,11 @@ public:
     }
     void SetAppWindowNum(uint32_t num);
 
-    void ResetFrameRateRangeMaps();
-    void UpdateSurfaceFrameRateRange(RSRenderNode& node);
-    void FindAndSendRefreshRate();
-    void CalcSurfaceDrawingFrameRate();
+    FrameRateRangeData GetFrameRateRangeData()
+    {
+        return frameRateRangeData_;
+    }
+    void CollectFrameRateRange(RSRenderNode& node);
 
 #ifndef USE_ROSEN_DRAWING
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<SkMatrix>>;
@@ -229,6 +230,7 @@ private:
     bool UpdateCacheSurface(RSRenderNode& node);
     void DrawSpherize(RSRenderNode& node);
     void DrawChildRenderNode(RSRenderNode& node);
+    void DrawChildCanvasRenderNode(RSRenderNode& node);
 
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void AddOverDrawListener(std::unique_ptr<RSRenderFrame>& renderFrame,
@@ -256,8 +258,7 @@ private:
     void ClearTransparentBeforeSaveLayer();
     // mark surfaceNode's child surfaceView nodes hardware forced disabled
     void MarkSubHardwareEnableNodeState(RSSurfaceRenderNode& surfaceNode);
-    // adjust local zOrder if surfaceNode's child surfaceView nodes skipped by dirty region
-    void AdjustLocalZOrder(std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
+    void CollectAppNodeForHwc(std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
 
     void RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& node, float width, float height);
     // offscreen render related
@@ -269,6 +270,9 @@ private:
     // close partialrender when perform window animation
     void ClosePartialRenderWhenAnimatingWindows(std::shared_ptr<RSDisplayRenderNode>& node);
     int32_t GetNodePreferred(std::vector<HgmModifierProfile> hgmModifierProfileList) const;
+
+    bool DrawBlurInCache(RSRenderNode& node);
+    void UpdateCacheRenderNodeMapWithBlur(RSRenderNode& node);
 
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
@@ -325,7 +329,6 @@ private:
     bool isTargetDirtyRegionDfxEnabled_ = false;
     bool isOpaqueRegionDfxEnabled_ = false;
     bool isQuickSkipPreparationEnabled_ = false;
-    bool isHardwareComposerEnabled_ = false;
     bool isOcclusionEnabled_ = false;
     std::vector<std::string> dfxTargetSurfaceNames_;
     PartialRenderType partialRenderType_;
@@ -335,6 +338,7 @@ private:
     // added for judge if drawing cache changes
     bool isDrawingCacheEnabled_ = false;
     bool isDrawingCacheChanged_ = false;
+    bool childHasSurface_ = false;
     int markedCachedNodes_ = 0;
     std::vector<RectI> accumulatedDirtyRegions_ = {};
 
@@ -361,6 +365,7 @@ private:
     // unirender visitor resets every frame, no overflow risk here
     unsigned int preparedCanvasNodeInCurrentSurface_ = 0;
     unsigned int processedCanvasNodeInCurrentSurface_ = 0;
+    unsigned int processedPureContainerNode_ = 0;
 
     float globalZOrder_ = 0.0f;
     bool isUpdateCachedSurface_ = false;
@@ -416,16 +421,10 @@ private:
     bool curContentDirty_ = false;
 
     // calculate preferred fps
-    FrameRateRange currSurfaceRSRange_ = {0, 0, 0};
-    FrameRateRange currSurfaceUIRange_ = {0, 0, 0};
-    FrameRateRange currDisplayRSRange_ = {0, 0, 0};
-    FrameRateRange currDisplayUIRange_ = {0, 0, 0};
-    std::unordered_map<NodeId, FrameRateRange> rsFrameRateRangeMap_; // RSDisplayRenderNode id
-    // RSSurfaceRenderNode id
-    std::unordered_map<NodeId, std::pair<ScreenId, FrameRateRange>> uiFrameRateRangeMap_;
-    std::unordered_map<NodeId, FrameRateRange> finalFrameRateRangeMap_; // RSDisplayRenderNode id
+    FrameRateRangeData frameRateRangeData_;
 
-    std::unique_ptr<HgmFrameRateManager> frameRateMgr_;
+    std::unordered_map<NodeId, std::unordered_map<NodeId, RectI>> allCacheFilterRects_ = {};
+    std::stack<std::unordered_map<NodeId, RectI>> curCacheFilterRects_ = {};
 };
 } // namespace Rosen
 } // namespace OHOS

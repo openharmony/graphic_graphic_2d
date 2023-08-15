@@ -46,6 +46,8 @@ namespace OHOS::Rosen {
 #if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
 #endif
+class HgmFrameRateManager;
+struct FrameRateRangeData;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -175,7 +177,10 @@ public:
     {
         return frameCount_;
     }
+    // add node info after cmd data process
     void AddActiveNodeId(pid_t pid, NodeId id);
+
+    void ProcessHgmFrameRate(FrameRateRangeData data, uint64_t timestamp);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -239,11 +244,12 @@ private:
     void PerfMultiWindow();
     void RenderFrameStart();
     void ResetHardwareEnabledState();
+    void CheckIfHardwareForcedDisabled();
     void CheckAndUpdateTransactionIndex(
         std::shared_ptr<TransactionDataMap>& transactionDataEffective, std::string& transactionFlags);
 
     bool IsResidentProcess(pid_t pid);
-    bool IsNeedSkip(NodeId rootSurfaceNodeId, pid_t pid);
+    bool IsNeedSkip(NodeId instanceRootNodeId, pid_t pid);
 
     bool NeedReleaseGpuResource(const RSRenderNodeMap& nodeMap);
 
@@ -266,8 +272,8 @@ private:
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> effectiveCommands_;
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
     // Collect pids of surfaceview's update(ConsumeAndUpdateAllNodes), effective commands(processCommand) and Animate
-    std::unordered_map<pid_t, std::set<NodeId>> activeAppsInProcess_;
-    std::unordered_map<NodeId, std::set<NodeId>> activeProcessNodeIds_;
+    std::unordered_map<pid_t, std::unordered_set<NodeId>> activeAppsInProcess_;
+    std::unordered_map<NodeId, std::unordered_set<NodeId>> activeProcessNodeIds_;
     std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> syncTransactionData_;
     int32_t syncTransactionCount_ { 0 };
 
@@ -355,6 +361,8 @@ private:
     // driven render
     bool hasDrivenNodeOnUniTree_ = false;
     bool hasDrivenNodeMarkRender_ = false;
+
+    std::shared_ptr<HgmFrameRateManager> frameRateMgr_ = nullptr;
 
     // UIFirst
     std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes_;

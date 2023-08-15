@@ -17,6 +17,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_optional_trace.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #include "rs_divided_render_util.h"
@@ -113,7 +114,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.buffer = buffer;
     info.fence = node.GetAcquireFence();
     info.blendType = GRAPHIC_BLEND_SRCOVER;
-    info.needClient = GetComposerInfoNeedClient(info, node);
+    info.needClient = RSBaseRenderUtil::IsForceClient();
     info.matrix = GraphicMatrix {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
     info.gravity = static_cast<int32_t>(Gravity::RESIZE);
     return info;
@@ -209,7 +210,6 @@ void RSUniRenderComposerAdapter::SetMetaDataInfoToLayer(const LayerInfoPtr& laye
             break;
         }
         case HDRMetaDataType::HDR_NOT_USED: {
-            RS_LOGD("RSUniRenderComposerAdapter::SetComposeInfoToLayer: HDR is not used");
             break;
         }
         default:  {
@@ -617,7 +617,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
     std::string traceInfo;
     AppendFormat(traceInfo, "CreateLayer:%s XYWH[%d %d %d %d]", node.GetName().c_str(),
         info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
-    RS_TRACE_NAME(traceInfo.c_str());
+    RS_OPTIONAL_TRACE_BEGIN(traceInfo.c_str());
     RS_LOGD(
         "RsDebug RSUniRenderComposerAdapter::CreateBufferLayer surfaceNode id:%" PRIu64 " name:[%s] dst [%d %d %d %d]"
         "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d], z:%f, globalZOrder:%d, blendType = %d",
@@ -631,6 +631,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
     LayerRotate(layer, node);
     LayerCrop(layer);
     LayerScaleDown(layer, node);
+    RS_OPTIONAL_TRACE_END();
     return layer;
 }
 
@@ -646,16 +647,16 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSSurfaceRenderNode& node) 
 
 LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
 {
-    RS_TRACE_NAME("RSUniRenderComposerAdapter::CreateLayer");
     if (output_ == nullptr) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer: output is nullptr");
         return nullptr;
     }
-
+    RS_OPTIONAL_TRACE_BEGIN("RSUniRenderComposerAdapter::CreateLayer");
     RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayNode id:%" PRIu64 " available buffer:%d", node.GetId(),
         node.GetAvailableBufferCount());
     if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(node) || !node.GetBuffer()) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer consume buffer failed.");
+        RS_OPTIONAL_TRACE_END();
         return nullptr;
     }
 
@@ -668,6 +669,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
     LayerRotate(layer, node);
+    RS_OPTIONAL_TRACE_END();
     // do not crop or scale down for displayNode's layer.
     return layer;
 }

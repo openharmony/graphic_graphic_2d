@@ -55,10 +55,10 @@ ohos_source_set("impl_eventhandler") {
   defines = [ "LOG_DOMAIN=0xD001200" ]
   cflags = [ "-std=c++17" ]
   deps = [
-    ":hilog",
     ":utils",
     "//third_party/libuv:uv",
   ]
+  external_deps = [ "hilog:libhilog" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
@@ -66,12 +66,14 @@ ohos_source_set("impl_eventhandler") {
 # eventhandler }}}
 
 # hilog {{{
-group("hilog") {
+ohos_source_set("hilog") {
   if (current_os == "android") {
     public_deps = [ "$appframework_root/graphic_2d:log" ]
   } else {
-    public_deps = hilog_deps
+    external_deps = [ "hilog:libhilog" ]
   }
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
 }
 
 # hilog }}}

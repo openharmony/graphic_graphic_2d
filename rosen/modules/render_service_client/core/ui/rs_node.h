@@ -386,6 +386,7 @@ private:
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
 
     FrameRateRange nodeRange_ = { 0, 0, 0 };
+    std::mutex animationMutex_;
 
     friend class RSAnimation;
     friend class RSCurveAnimation;

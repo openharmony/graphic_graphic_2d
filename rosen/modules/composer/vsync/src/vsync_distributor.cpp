@@ -100,7 +100,6 @@ VsyncError VSyncConnection::RequestNextVSync()
     if (distributor == nullptr) {
         return VSYNC_ERROR_NULLPTR;
     }
-    ScopedBytrace func(info_.name_ + "RequestNextVSync");
     return distributor->RequestNextVSync(this);
 }
 

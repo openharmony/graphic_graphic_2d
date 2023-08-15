@@ -15,8 +15,7 @@
 
 #include "property/rs_properties_painter.h"
 
-#include "rs_trace.h"
-
+#include "common/rs_optional_trace.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector2.h"
 #include "pipeline/rs_draw_cmd_list.h"
@@ -72,6 +71,7 @@ constexpr float MAX_TRANS_RATIO = 0.95f;
 constexpr float MIN_SPOT_RATIO = 1.0f;
 constexpr float MAX_SPOT_RATIO = 1.95f;
 constexpr float MAX_AMBIENT_RADIUS = 150.0f;
+const bool BLUR_ENABLED = RSSystemProperties::GetBlurEnabled();
 #ifndef USE_ROSEN_DRAWING
 constexpr static float FLOAT_ZERO_THRESHOLD = 0.001f;
 constexpr static uint8_t DIRECTION_NUM = 4;
@@ -1035,13 +1035,17 @@ void RSPropertiesPainter::DrawLinearGradientBlurFilter(
 void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
     FilterType filterType, const std::optional<SkRect>& rect)
 {
+    if (!BLUR_ENABLED) {
+        ROSEN_LOGD("RSPropertiesPainter::DrawFilter close blur.");
+        return;
+    }
     auto& RSFilter =
         (filterType == FilterType::BACKGROUND_FILTER) ? properties.GetBackgroundFilter() : properties.GetFilter();
     if (RSFilter == nullptr || !RSFilter->IsValid()) {
         return;
     }
 #ifdef NEW_SKIA
-    RS_TRACE_NAME("DrawFilter " + RSFilter->GetDescription());
+    RS_OPTIONAL_TRACE_BEGIN("DrawFilter " + RSFilter->GetDescription());
     g_blurCnt++;
     SkAutoCanvasRestore acr(&canvas, true);
     if (rect.has_value()) {
@@ -1060,6 +1064,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         SkCanvas::SaveLayerRec slr(nullptr, &paint, SkCanvas::kInitWithPrevious_SaveLayerFlag);
         canvas.saveLayer(slr);
         filter->PostProcess(canvas);
+        RS_OPTIONAL_TRACE_END();
         return;
     }
 
@@ -1074,6 +1079,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     // Optional use cacheManager to draw filter
     if (auto& cacheManager = properties.GetFilterCacheManager(filterType == FilterType::FOREGROUND_FILTER)) {
         cacheManager->DrawFilter(canvas, filter);
+        RS_OPTIONAL_TRACE_END();
         return;
     }
 
@@ -1081,6 +1087,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     auto imageSnapshot = skSurface->makeImageSnapshot(clipIBounds);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");
+        RS_OPTIONAL_TRACE_END();
         return;
     }
     if (RSSystemProperties::GetImageGpuResourceCacheEnable(imageSnapshot->width(), imageSnapshot->height())) {
@@ -1098,6 +1105,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     filter->DrawImageRect(
         canvas, imageSnapshot, SkRect::Make(imageSnapshot->bounds().makeOutset(-1, -1)), SkRect::Make(clipIBounds));
     filter->PostProcess(canvas);
+    RS_OPTIONAL_TRACE_END();
 #endif
 }
 #else
@@ -1236,6 +1244,11 @@ void RSPropertiesPainter::DrawBackgroundEffect(
 
 void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
+    const auto& [bgImage, imageIRect, unused] = canvas.GetEffectData();
+    if (bgImage == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::ApplyBackgroundEffect bgImage null");
+        return;
+    }
 #ifndef USE_ROSEN_DRAWING
     RS_TRACE_NAME("ApplyBackgroundEffect");
     SkAutoCanvasRestore acr(&canvas, true);
@@ -1252,11 +1265,6 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
     }
     #endif
 
-    const auto& [bgImage, imageIRect, unused] = canvas.GetEffectData();
-    if (bgImage == nullptr) {
-        ROSEN_LOGE("RSPropertiesPainter::ApplyBackgroundEffect bgImage null");
-        return;
-    }
     SkPaint defaultPaint;
     // dstRect: canvas clip region
     auto dstRect = SkRect::Make(canvas.getDeviceClipBounds());
@@ -1298,24 +1306,11 @@ void RSPropertiesPainter::DrawForegroundEffect(const RSProperties& properties, R
 #endif
 }
 
-static Vector4f GetStretchSize(const RSProperties& properties)
-{
-    Vector4f stretchSize;
-    if (properties.IsPixelStretchValid()) {
-        stretchSize = properties.GetPixelStretch();
-    } else {
-        if (properties.IsPixelStretchPercentValid()) {
-            stretchSize = properties.GetPixelStretchByPercent();
-        }
-    }
-
-    return stretchSize;
-}
-
 #ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
-    if (!properties.IsPixelStretchValid() && !properties.IsPixelStretchPercentValid()) {
+    auto& pixelStretch = properties.GetPixelStretch();
+    if (!pixelStretch.has_value()) {
         return;
     }
 
@@ -1332,7 +1327,6 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     clipBounds.setXYWH(clipBounds.left(), clipBounds.top(), clipBounds.width() - 1, clipBounds.height() - 1);
     canvas.restore();
 
-    Vector4f stretchSize = GetStretchSize(properties);
     /* Calculates the relative coordinates of the clipbounds
         with respect to the origin of the current canvas coordinates */
     SkMatrix worldToLocalMat;
@@ -1349,8 +1343,8 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch intersect clipbounds failed");
     }
 
-    auto scaledBounds = SkRect::MakeLTRB(bounds.left() - stretchSize.x_, bounds.top() - stretchSize.y_,
-        bounds.right() + stretchSize.z_, bounds.bottom() + stretchSize.w_);
+    auto scaledBounds = SkRect::MakeLTRB(bounds.left() - pixelStretch->x_, bounds.top() - pixelStretch->y_,
+        bounds.right() + pixelStretch->z_, bounds.bottom() + pixelStretch->w_);
     if (scaledBounds.isEmpty() || bounds.isEmpty() || clipBounds.isEmpty()) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch invalid scaled bounds");
         return;
@@ -1374,14 +1368,14 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
 
     canvas.save();
     canvas.translate(bounds.x(), bounds.y());
-    if (properties.IsPixelStretchExpanded()) {
+    if (pixelStretch->x_ < 0) {
 #ifdef NEW_SKIA
         paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, SkSamplingOptions(), &scaleMat));
 #else
         paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, &scaleMat));
 #endif
-        canvas.drawRect(SkRect::MakeXYWH(-stretchSize.x_, -stretchSize.y_, scaledBounds.width(), scaledBounds.height()),
-            paint);
+        canvas.drawRect(
+            SkRect::MakeXYWH(-pixelStretch->x_, -pixelStretch->y_, scaledBounds.width(), scaledBounds.height()), paint);
     } else {
         scaleMat.setScale(scaledBounds.width() / bounds.width() * scaleMat.getScaleX(),
             scaledBounds.height() / bounds.height() * scaleMat.getScaleY());
@@ -1390,8 +1384,8 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
 #else
         paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, &scaleMat));
 #endif
-        canvas.translate(-stretchSize.x_, -stretchSize.y_);
-        canvas.drawRect(SkRect::MakeXYWH(stretchSize.x_, stretchSize.y_, bounds.width(), bounds.height()), paint);
+        canvas.translate(-pixelStretch->x_, -pixelStretch->y_);
+        canvas.drawRect(SkRect::MakeXYWH(pixelStretch->x_, pixelStretch->y_, bounds.width(), bounds.height()), paint);
     }
     canvas.restore();
 }
@@ -1416,7 +1410,6 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
         tmpBounds.GetLeft(), tmpBounds.GetTop(), tmpBounds.GetWidth() - 1, tmpBounds.GetHeight() - 1);
     canvas.Restore();
 
-    Vector4f stretchSize = GetStretchSize(properties);
     /*  Calculates the relative coordinates of the clipbounds
         with respect to the origin of the current canvas coordinates */
     Drawing::Matrix worldToLocalMat;
@@ -2251,10 +2244,11 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
             } else {
                 auto image = particles[i]->GetImage();
                 canvas.rotate(particles[i]->GetSpin());
-                float fLeft = 0.0f;
-                float ftop = 0.0f;
-                float fRight = 1.0f;
-                float fBottom = 1.0f;
+                float fLeft = position.x_;
+                float ftop = position.y_;
+                auto imageSize = particles[i]->GetImageSize();
+                float fRight = imageSize.x_;
+                float fBottom = imageSize.y_;
                 SkRect rect { fLeft, ftop, fRight, fBottom };
 #ifdef NEW_SKIA
                 image->CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, false);

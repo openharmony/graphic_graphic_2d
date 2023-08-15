@@ -169,6 +169,7 @@ void RSUniUICapture::PostTaskToRSRecord(std::shared_ptr<Drawing::RecordingCanvas
     std::function<void()> recordingDrawCall = [canvas, node, visitor]() -> void {
         visitor->SetCanvas(canvas);
         if (!node->IsOnTheTree()) {
+            node->ApplyModifiers();
             node->Prepare(visitor);
         }
         node->Process(visitor);
@@ -238,6 +239,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
         RS_LOGE("RSUniUICaptureVisitor::ProcessCanvasRenderNode, canvas is nullptr");
         return;
     }
+    node.SetHasUpdateEffectRegion(false);
     if (node.GetId() == nodeId_) {
         // When drawing nodes, canvas will offset the bounds value, so we will move in reverse here first
         const auto& property = node.GetRenderProperties();

@@ -172,7 +172,8 @@ public:
     enum CacheType : uint8_t {
         UNDEFINED, // do not change current cache status
         ENABLED,   // explicitly enable cache
-        DISABLED   // explicitly disable cache
+        DISABLED,  // explicitly disable cache
+        OFFSCREEN, // offscreen rendering
     };
     // cache
     void SetCacheType(CacheType type);

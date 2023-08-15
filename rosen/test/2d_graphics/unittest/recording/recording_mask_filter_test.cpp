@@ -50,6 +50,16 @@ HWTEST_F(RecordingMaskFilterTest, CreateBlurMaskFilter001, TestSize.Level1)
     EXPECT_TRUE(maskFilterCmdList != nullptr);
     auto maskFilter = maskFilterCmdList->Playback();
     EXPECT_TRUE(maskFilter != nullptr);
+
+    auto newCmdList = MaskFilterCmdList::CreateFromData(maskFilterCmdList->GetData(), true);
+    EXPECT_TRUE(newCmdList != nullptr);
+    maskFilter = newCmdList->Playback();
+    EXPECT_TRUE(maskFilter != nullptr);
+
+    newCmdList = MaskFilterCmdList::CreateFromData(maskFilterCmdList->GetData(), false);
+    EXPECT_TRUE(newCmdList != nullptr);
+    maskFilter = newCmdList->Playback();
+    EXPECT_TRUE(maskFilter != nullptr);
 }
 
 /**

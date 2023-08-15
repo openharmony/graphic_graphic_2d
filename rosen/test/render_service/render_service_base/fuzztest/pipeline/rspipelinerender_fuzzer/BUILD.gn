@@ -40,6 +40,11 @@ ohos_fuzztest("RSPipelineRenderFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [ "rspipelinerender_fuzzer.cpp" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ###############################################################################

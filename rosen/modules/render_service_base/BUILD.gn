@@ -23,7 +23,7 @@ config("export_config") {
   defines = rs_common_define
 }
 
-if (!is_mingw && !is_mac) {
+if (!is_mingw && !is_mac && !is_cross_platform) {
   defines = [ "ENABLE_RUST" ]
   rust_cxx("particle_cxx_gen") {
     sources = [ "rust/src/lib.rs" ]
@@ -180,7 +180,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_blur_filter.cpp",
     "src/render/rs_border.cpp",
     "src/render/rs_filter.cpp",
-    "src/render/rs_filter_cache.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_image_base.cpp",
     "src/render/rs_image_cache.cpp",
@@ -273,7 +272,7 @@ ohos_source_set("render_service_base_src") {
   ]
   external_deps = []
 
-  if (!is_mingw && !is_mac) {
+  if (!is_mingw && !is_mac && !is_cross_platform) {
     defines += [ "ENABLE_RUST" ]
     sources += get_target_outputs(":particle_cxx_gen")
     include_dirs += [

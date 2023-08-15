@@ -17,6 +17,7 @@
 #include <scoped_bytrace.h>
 #include "hdi_device.h"
 #include "hdi_device_impl.h"
+#include "hdi_log.h"
 
 namespace OHOS {
 namespace Rosen {

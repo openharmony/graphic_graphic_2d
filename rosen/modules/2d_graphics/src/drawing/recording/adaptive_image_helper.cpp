@@ -281,13 +281,6 @@ static ColorType PixelFormatToColorType(Media::PixelFormat pixelFormat)
             return ColorType::COLORTYPE_BGRA_8888;
         case Media::PixelFormat::ALPHA_8:
             return ColorType::COLORTYPE_ALPHA_8;
-        case Media::PixelFormat::RGBA_F16:
-        case Media::PixelFormat::UNKNOWN:
-        case Media::PixelFormat::ARGB_8888:
-        case Media::PixelFormat::RGB_888:
-        case Media::PixelFormat::NV21:
-        case Media::PixelFormat::NV12:
-        case Media::PixelFormat::CMYK:
         default:
             return ColorType::COLORTYPE_UNKNOWN;
     }
@@ -296,8 +289,6 @@ static ColorType PixelFormatToColorType(Media::PixelFormat pixelFormat)
 static AlphaType AlphaTypeToAlphaType(Media::AlphaType alphaType)
 {
     switch (alphaType) {
-        case Media::AlphaType::IMAGE_ALPHA_TYPE_UNKNOWN:
-            return AlphaType::ALPHATYPE_UNKNOWN;
         case Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE:
             return AlphaType::ALPHATYPE_OPAQUE;
         case Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL:
@@ -336,10 +327,6 @@ void AdaptiveImageHelper::DrawPixelMapRepeatRect(Canvas& canvas, const Rect& rec
     int32_t maxY = boundaryRect.maxY;
 
     // convert pixelMap to drawing image
-    if (pixelMap == nullptr) {
-        LOGE("AdaptiveImageHelper::DrawPixelMapRepeatRect, pixelMap is nullptr.");
-        return;
-    }
     Media::ImageInfo imageInfo;
     pixelMap->GetImageInfo(imageInfo);
     BitmapFormat format = MakeBitmapFormat(imageInfo);
@@ -347,10 +334,7 @@ void AdaptiveImageHelper::DrawPixelMapRepeatRect(Canvas& canvas, const Rect& rec
     bitmap.Build(imageInfo.size.width, imageInfo.size.height, format);
     bitmap.SetPixels((void*)pixelMap->GetPixels());
     auto image = std::make_shared<Image>();
-    if (image->BuildFromBitmap(bitmap)) {
-        LOGE("AdaptiveImageHelper::DrawPixelMapRepeatRect, convert to image failed.");
-        return;
-    }
+    image->BuildFromBitmap(bitmap);
 
     auto src = Rect(0.0, 0.0, pixelMap->GetWidth(), pixelMap->GetHeight());
     for (int32_t i = minX; i <= maxX; ++i) {

@@ -218,6 +218,10 @@ private:
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<VSyncDistributor> appVSyncDistributor_;
     std::vector<sptr<VSyncConnection>> vsyncConnections_;
+
+    static inline constexpr uint32_t VSYNC_CONN_MAX = 8;
+    uint32_t vsyncConnCounter_ = 0;
+    std::mutex vsyncConnCounterMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

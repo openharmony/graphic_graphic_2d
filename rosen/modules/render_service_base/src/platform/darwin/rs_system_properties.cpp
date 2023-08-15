@@ -190,9 +190,19 @@ int RSSystemProperties::GetFilterCacheSizeThreshold()
     return 0;
 }
 
+bool RSSystemProperties::GetDebugTraceEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetKawaseEnabled()
 {
     return false;
+}
+
+bool RSSystemProperties::GetBlurEnabled()
+{
+    return true;
 }
 
 bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)

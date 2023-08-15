@@ -58,9 +58,6 @@ void RSDirtyRegionManager::UpdateVisitedDirtyRects(const std::vector<RectI>& rec
 
 RectI RSDirtyRegionManager::GetIntersectedVisitedDirtyRect(const RectI& absRect) const
 {
-    if (RSSystemProperties::IsSceneBoardEnabled()) {
-        return surfaceRect_;
-    }
     RectI belowDirty = currentFrameDirtyRegion_;
     for (auto subDirty : visitedDirtyRegions_) {
         if (absRect.IsInsideOf(belowDirty)) {

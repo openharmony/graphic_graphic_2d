@@ -67,8 +67,8 @@ public:
     }
 
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {}) : id_(id), context_(context) {};
-    explicit RSRenderNode(NodeId id, bool isOnTheTree, std::weak_ptr<RSContext> context = {}) : id_(id),
-        isOnTheTree_(isOnTheTree), context_(context) {};
+    explicit RSRenderNode(NodeId id, bool isOnTheTree, std::weak_ptr<RSContext> context = {}) :
+        isOnTheTree_(isOnTheTree), id_(id), context_(context) {};
     RSRenderNode(const RSRenderNode&) = delete;
     RSRenderNode(const RSRenderNode&&) = delete;
     RSRenderNode& operator=(const RSRenderNode&) = delete;
@@ -104,7 +104,7 @@ public:
         return id_;
     }
 
-    virtual void SetIsOnTheTree(bool flag);
+    virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID);
     bool IsOnTheTree() const;
 
     // return children and disappeared children, not guaranteed to be sorted by z-index
@@ -149,8 +149,7 @@ public:
     bool ChildHasFilter() const;
     void SetChildHasFilter(bool childHasFilter);
 
-    void SetRootSurfaceNodeId(NodeId id);
-    NodeId GetRootSurfaceNodeId() const;
+    NodeId GetInstanceRootNodeId() const;
 
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
@@ -165,7 +164,7 @@ public:
 
     bool IsClipBound() const;
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
-    bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty,
+    bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
         bool isClipBoundDirty = false, std::optional<RectI> clipRect = std::nullopt);
 #ifndef USE_ROSEN_DRAWING
     virtual std::optional<SkRect> GetContextClipRegion() const { return std::nullopt; }
@@ -181,6 +180,7 @@ public:
     // used for animation test
     RSAnimationManager& GetAnimationManager();
 
+    void ApplyBoundsGeometry(RSPaintFilterCanvas& canvas);
     virtual void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas);
     virtual void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas) {}
     virtual void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas);
@@ -218,6 +218,10 @@ public:
     bool IsStaticCached() const;
 
     bool NeedInitCacheSurface() const;
+    inline bool IsPureContainer() const
+    {
+        return (drawCmdModifiers_.empty() && !renderProperties_.isDrawn_);
+    }
 
 #ifndef USE_ROSEN_DRAWING
     using ClearCacheSurfaceFunc = std::function<void(sk_sp<SkSurface>&, sk_sp<SkSurface>&, uint32_t, uint32_t)>;
@@ -345,9 +349,9 @@ public:
     std::shared_ptr<RectF> GetDrawRegion() const;
 
 #ifndef USE_ROSEN_DRAWING
-    void UpdateEffectRegion(std::optional<SkPath>& region) const;
+    void UpdateEffectRegion(std::optional<SkPath>& region);
 #else
-    void UpdateEffectRegion(std::optional<Drawing::Path>& region) const;
+    void UpdateEffectRegion(std::optional<Drawing::Path>& region);
 #endif
     // check node's rect if it has valid filter cache
     bool IsFilterCacheValid() const;
@@ -358,6 +362,8 @@ public:
     bool IsSuggestedDrawInGroup() const;
     void CheckDrawingCacheType();
     bool HasCacheableAnim() const { return hasCacheableAnim_; }
+    bool HasUpdateEffectRegion() const { return hasUpdateEffectRegion_; }
+    void SetHasUpdateEffectRegion(bool hasUpdate) { hasUpdateEffectRegion_ = hasUpdate; }
 
     enum NodeGroupType {
         NONE = 0,
@@ -390,9 +396,11 @@ public:
     void MarkNonGeometryChanged();
     std::vector<HgmModifierProfile> GetHgmModifierProfileList() const;
     void SetRSFrameRateRangeByPreferred(int32_t preferred);
+    bool ApplyModifiers();
+
+    virtual RectI GetFilterRect() const;
 
 protected:
-    bool ApplyModifiers();
     virtual void OnApplyModifiers() {}
 
     enum class NodeDirty {
@@ -417,18 +425,19 @@ protected:
     bool isRenderUpdateIgnored_ = false;
     bool isShadowValidLastFrame_ = false;
 
-    virtual RectI GetFilterRect() const;
     virtual bool NodeIsUsedBySubThread() const { return false; }
+
+    virtual bool IsSelfDrawingNode() const;
+    bool isOnTheTree_ = false;
 
 private:
     NodeId id_;
-    NodeId rootSurfaceNodeId_ = INVALID_NODEID;
+    NodeId instanceRootNodeId_ = INVALID_NODEID;
 
     WeakPtr parent_;
     void SetParent(WeakPtr parent);
     void ResetParent();
     virtual void OnResetParent() {}
-    bool isOnTheTree_ = false;
 
     std::list<WeakPtr> children_;
     std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
@@ -438,7 +447,6 @@ private:
     bool isChildrenSorted_ = false;
     void GenerateFullChildrenList();
     void GenerateSortedChildren();
-    void InvalidateChildrenList();
     void SortChildren();
 
     const std::weak_ptr<RSContext> context_;
@@ -506,6 +514,7 @@ private:
     bool hasHardwareNode_ = false;
     bool hasAbilityComponent_ = false;
     bool isAncestorDirty_ = false;
+    bool hasUpdateEffectRegion_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 
     // driven render

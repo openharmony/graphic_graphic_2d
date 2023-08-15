@@ -153,6 +153,7 @@ void RSDividedUICapture::PostTaskToRTRecord(std::shared_ptr<Drawing::RecordingCa
     std::function<void()> recordingDrawCall = [canvas, node, visitor]() -> void {
         visitor->SetCanvas(canvas);
         if (!node->IsOnTheTree()) {
+            node->ApplyModifiers();
             node->Prepare(visitor);
         }
         node->Process(visitor);

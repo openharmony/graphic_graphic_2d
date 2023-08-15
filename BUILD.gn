@@ -29,7 +29,7 @@ group("default") {
   }
 }
 
-group("graphic_2d_test") {
+group("graphic_common_test") {
   testonly = true
 
   public_deps = [

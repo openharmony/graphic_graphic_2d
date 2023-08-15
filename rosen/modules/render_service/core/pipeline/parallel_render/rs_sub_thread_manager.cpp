@@ -15,9 +15,9 @@
 
 #include "rs_sub_thread_manager.h"
 
+#include "common/rs_optional_trace.h"
 #include "pipeline/rs_main_thread.h"
 #include "memory/rs_memory_manager.h"
-#include "rs_trace.h"
 
 namespace OHOS::Rosen {
 static constexpr uint32_t SUB_THREAD_NUM = 3;
@@ -86,11 +86,12 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
     auto cacheSkippedNodeMap = RSMainThread::Instance()->GetCacheCmdSkippedNodes();
     for (const auto& child : subThreadNodes) {
         if (!child->ShouldPaint()) {
-            RS_TRACE_NAME_FMT("SubmitTask skip node: [%s, %llu]", child->GetName().c_str(), child->GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("SubmitTask skip node: [%s, %llu]", child->GetName().c_str(), child->GetId());
             continue;
         }
         if (cacheSkippedNodeMap.count(child->GetId()) != 0 && child->HasCachedTexture()) {
-            RS_TRACE_NAME_FMT("SubmitTask cacheCmdSkippedNode: [%s, %llu]", child->GetName().c_str(), child->GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("SubmitTask cacheCmdSkippedNode: [%s, %llu]",
+                child->GetName().c_str(), child->GetId());
             continue;
         }
         nodeTaskState_[child->GetId()] = 1;
@@ -118,12 +119,13 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
         }
         auto threadIndex = surfaceNode->GetSubmittedSubThreadIndex();
         if (threadIndex != INT_MAX && superRenderTaskList[threadIndex]) {
-            RS_TRACE_NAME("node:[ " + surfaceNode->GetName() + ", " + std::to_string(surfaceNode->GetId()) +
+            RS_OPTIONAL_TRACE_NAME("node:[ " + surfaceNode->GetName() + ", " + std::to_string(surfaceNode->GetId()) +
                 ", " + std::to_string(threadIndex) + " ]; ");
             superRenderTaskList[threadIndex]->AddTask(std::move(renderTask));
         } else {
             if (superRenderTaskList[minLoadThreadIndex_]) {
-                RS_TRACE_NAME("node:[ " + surfaceNode->GetName() + ", " + std::to_string(surfaceNode->GetId()) +
+                RS_OPTIONAL_TRACE_NAME("node:[ " + surfaceNode->GetName() +
+                    ", " + std::to_string(surfaceNode->GetId()) +
                     ", " + std::to_string(minLoadThreadIndex_) + " ]; ");
                 superRenderTaskList[minLoadThreadIndex_]->AddTask(std::move(renderTask));
                 surfaceNode->SetSubmittedSubThreadIndex(minLoadThreadIndex_);

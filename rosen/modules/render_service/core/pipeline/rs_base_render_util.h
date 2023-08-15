@@ -78,6 +78,7 @@ struct BufferDrawParam {
     bool setColorFilter = true;
     std::vector<GraphicHDRMetaData> metaDatas = {}; // static meta datas for HDR10
     GraphicHDRMetaDataSet metaDataSet; // dynamic meta datas for HDR10+, HDR VIVID
+    uint32_t threadIndex = UNI_MAIN_THREAD_INDEX; // use to decide eglimage unmap thread index
 };
 
 using WriteToPngParam = struct {
@@ -161,6 +162,7 @@ public:
     static int RotateEnumToInt(GraphicTransformType rotation);
     static GraphicTransformType RotateEnumToInt(int angle,
         GraphicTransformType flip = GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    static bool IsForceClient();
 
 private:
 #ifndef USE_ROSEN_DRAWING
@@ -179,7 +181,6 @@ private:
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::Bitmap& bitmap);
 #endif
     static bool WriteToPng(const std::string &filename, const WriteToPngParam &param);
-    static bool IsForceClient();
 
     static bool enableClient;
 };

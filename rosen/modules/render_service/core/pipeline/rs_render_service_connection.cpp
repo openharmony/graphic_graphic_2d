@@ -105,6 +105,11 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             mainThread_->UnRegisterOcclusionChangeCallback(remotePid_);
         }).wait();
 
+    {
+        std::lock_guard<std::mutex> lock(vsyncConnCounterMutex_);
+        vsyncConnCounter_ = 0;
+    }
+
     for (auto& conn : vsyncConnections_) {
         appVSyncDistributor_->RemoveConnection(conn);
     }
@@ -257,6 +262,14 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
 sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const std::string& name,
                                                                         const sptr<VSyncIConnectionToken>& token)
 {
+    {
+        std::lock_guard<std::mutex> lock(vsyncConnCounterMutex_);
+        if (vsyncConnCounter_ >= VSYNC_CONN_MAX) {
+            RS_LOGE("RSRenderServiceConnection::CreateVSyncConnection fail, maximum number of connections reached");
+            return nullptr;
+        }
+        vsyncConnCounter_++;
+    }
     sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject());
     appVSyncDistributor_->AddConnection(conn);
     {

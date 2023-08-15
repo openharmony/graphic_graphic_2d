@@ -49,4 +49,16 @@ HWTEST_F(RSAnimationCommandTest, TestRSAnimationCommand001, TestSize.Level1)
     AnimationCommandHelper::SetAnimationCallbackProcessor(TestProcessor);
     AnimationCommandHelper::AnimationCallback(context, targetId, animId, event);
 }
+/**
+ * @tc.name: CreateParticleAnimation001
+ * @tc.desc: CreateParticleAnimation test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId targetId = static_cast<NodeId>(-1);
+    std::shared_ptr<RSRenderParticleAnimation> animation = nullptr;
+    AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
+}
 } // namespace OHOS::Rosen

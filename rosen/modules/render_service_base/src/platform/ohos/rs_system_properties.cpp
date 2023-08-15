@@ -255,7 +255,7 @@ bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
 bool RSSystemProperties::GetSkipGeometryNotChangeEnabled()
 {
     static bool skipGeoNotChangeEnabled =
-        std::atoi((system::GetParameter("persist.skipGeometryNotChange.enabled", "0")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.skipGeometryNotChange.enabled", "1")).c_str()) != 0;
     return skipGeoNotChangeEnabled;
 }
 
@@ -296,6 +296,13 @@ bool RSSystemProperties::GetKawaseEnabled()
     static bool kawaseBlurEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.kawaseEnable", "1")).c_str()) != 0;
     return kawaseBlurEnabled;
+}
+
+bool RSSystemProperties::GetBlurEnabled()
+{
+    static bool blurEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.blurEnabled", "1")).c_str()) != 0;
+    return blurEnabled;
 }
 
 bool RSSystemProperties::GetProxyNodeDebugEnabled()

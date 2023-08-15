@@ -549,8 +549,7 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(
     return true;
 }
 
-bool RSRenderServiceClient::RegisterBufferClearListener(
-        NodeId id, const BufferClearCallback& callback)
+bool RSRenderServiceClient::RegisterBufferClearListener(NodeId id, const BufferClearCallback& callback)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {

@@ -49,7 +49,8 @@ public:
     static bool HandleSubThreadNode(RSRenderNode& node, RSPaintFilterCanvas& canvas);
     static bool HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas& canvas);
     static void SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceRenderNode& node);
-    static BufferDrawParam CreateBufferDrawParam(const RSSurfaceRenderNode& node, bool forceCPU);
+    static BufferDrawParam CreateBufferDrawParam(const RSSurfaceRenderNode& node,
+        bool forceCPU, uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
     static BufferDrawParam CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU);
 #ifndef USE_ROSEN_DRAWING
