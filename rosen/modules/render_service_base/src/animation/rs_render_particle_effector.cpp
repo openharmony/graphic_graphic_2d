@@ -108,8 +108,9 @@ void RSRenderParticleEffector::UpdateOpacity(
                 float value = 0.f;
                 if (!interpolator) {
                     value = GenerateValue(startValue, endValue, startTime, endTime, activeTime);
+                } else {
+                    value = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
                 }
-                value = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
                 value = std::clamp<float>(value, 0.f, 1.f);
                 particle->SetOpacity(value);
             }
@@ -140,13 +141,15 @@ void RSRenderParticleEffector::UpdateScale(
                 float value = 0.f;
                 if (!interpolator) {
                     value = GenerateValue(startValue, endValue, startTime, endTime, activeTime);
+                } else {
+                    value = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
                 }
-                value = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
                 particle->SetScale(value);
             }
         }
     }
 }
+
 void RSRenderParticleEffector::UpdateSpin(
     const std::shared_ptr<RSRenderParticle>& particle, float deltaTime, int64_t activeTime)
 {
@@ -170,8 +173,9 @@ void RSRenderParticleEffector::UpdateSpin(
                 float value = 0.f;
                 if (!interpolator) {
                     value = GenerateValue(startValue, endValue, startTime, endTime, activeTime);
+                } else {
+                    value = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
                 }
-                value = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
                 particle->SetSpin(value);
             }
         }
@@ -203,8 +207,9 @@ void RSRenderParticleEffector::UpdateAccelerate(
             if (activeTime >= startTime && activeTime < endTime) {
                 if (!interpolator) {
                     value = GenerateValue(startValue, endValue, startTime, endTime, activeTime);
+                } else {
+                    value = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
                 }
-                value = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
             }
         }
     }
@@ -223,18 +228,19 @@ void RSRenderParticleEffector::UpdateAccelerate(
             if (activeTime >= startTime && activeTime < endTime) {
                 if (!interpolator) {
                     angle = GenerateValue(startValue, endValue, startTime, endTime, activeTime);
+                } else {
+                    angle = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
                 }
-                angle = GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
             }
         }
     }
     if (acceValueUpdator == ParticleUpdator::RANDOM && acceAngleUpdator == ParticleUpdator::RANDOM) {
         auto acceleration = particle->GetAcceleration();
-        acceleration.x_ += acceValueChange * cos(acceAngleChange);
-        acceleration.y_ += acceValueChange * sin(acceAngleChange);
+        acceleration.x_ += acceValueChange * std::cos(acceAngleChange);
+        acceleration.y_ += acceValueChange * std::sin(acceAngleChange);
         particle->SetAcceleration(acceleration);
     } else if (acceValueUpdator == ParticleUpdator::CURVE && acceAngleUpdator == ParticleUpdator::CURVE) {
-        particle->SetAcceleration({ value * cos(angle), value * sin(angle) });
+        particle->SetAcceleration({ value * std::cos(angle), value * std::sin(angle) });
     }
 }
 
@@ -261,12 +267,13 @@ void RSRenderParticleEffector::ApplyEffectorToParticle(
     particle->SetPosition(position);
     float opacity = particle->GetOpacity();
     Color color = particle->GetColor();
-    color.SetAlpha(255 * opacity);
+    color.SetAlpha(color.GetAlpha() * opacity);
 
     auto scale = particle->GetScale();
     if (particle->GetParticleType() == ParticleType::POINTS) {
         auto radius = particle->GetRadius();
         radius *= scale;
+        particle->SetRadius(radius);
     } else if (particle->GetParticleType() == ParticleType::IMAGES) {
         std::shared_ptr<RSImage> image = particle->GetImage();
         image->SetScale(scale);

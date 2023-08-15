@@ -17,7 +17,6 @@
 
 #include <memory>
 
-// #include "animation/rs_render_particle_emitter.h"
 #include "animation/rs_value_estimator.h"
 #include "command/rs_animation_command.h"
 #include "platform/common/rs_log.h"

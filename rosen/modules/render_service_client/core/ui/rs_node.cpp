@@ -721,7 +721,7 @@ void RSNode::SetEnvForegroundColorStrategy(ForegroundColorStrategyType strategyT
         RSProperty<ForegroundColorStrategyType>>(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, strategyType);
 }
 
-// Set ParticleParams 
+// Set ParticleParams
 void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams)
 {
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;

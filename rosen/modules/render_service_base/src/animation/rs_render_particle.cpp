@@ -59,6 +59,10 @@ std::shared_ptr<RSImage> ParticleRenderParams::GetParticleImage()
 {
     return emitterConfig_.image_;
 }
+Vector2f ParticleRenderParams::GetImageSize() const
+{
+    return emitterConfig_.imageSize_;
+}
 
 float ParticleRenderParams::GetVelocityStartValue() const
 {
@@ -307,6 +311,11 @@ void RSRenderParticle::SetImage(const std::shared_ptr<RSImage>& image)
     image_ = image;
 }
 
+void RSRenderParticle::SetImageSize(const Vector2f& imageSize)
+{
+    imageSize_ = imageSize;
+}
+
 void RSRenderParticle::SetParticleType(const ParticleType& particleType)
 {
     particleType_ = particleType;
@@ -363,6 +372,11 @@ std::shared_ptr<RSImage> RSRenderParticle::GetImage()
     return image_;
 }
 
+Vector2f RSRenderParticle::GetImageSize()
+{
+    return imageSize_;
+}
+
 ParticleType RSRenderParticle::GetParticleType()
 {
     return particleType_;
@@ -391,13 +405,14 @@ void RSRenderParticle::InitProperty(std::shared_ptr<ParticleRenderParams> partic
         GetRandomValue(particleParams->GetVelocityStartValue(), particleParams->GetVelocityEndValue());
     float velocityAngle =
         GetRandomValue(particleParams->GetVelocityStartAngle(), particleParams->GetVelocityEndAngle());
-    velocity_ = Vector2f { velocityValue * cos(velocityAngle), velocityValue * sin(velocityAngle) };
+    velocity_ = Vector2f { velocityValue * std::cos(velocityAngle), velocityValue * std::sin(velocityAngle) };
 
     float accelerationValue =
         GetRandomValue(particleParams->GetAccelerationStartValue(), particleParams->GetAccelerationEndValue());
     float accelerationAngle =
         GetRandomValue(particleParams->GetAccelerationStartAngle(), particleParams->GetAccelerationEndAngle());
-    acceleration_ = Vector2f { accelerationValue * cos(accelerationAngle), accelerationValue * sin(accelerationAngle) };
+    acceleration_ =
+        Vector2f { accelerationValue * std::cos(accelerationAngle), accelerationValue * std::sin(accelerationAngle) };
 
     spin_ = GetRandomValue(particleParams->GetSpinStartValue(), particleParams->GetSpinEndValue());
     opacity_ = GetRandomValue(particleParams->GetOpacityStartValue(), particleParams->GetOpacityEndValue());
@@ -410,6 +425,7 @@ void RSRenderParticle::InitProperty(std::shared_ptr<ParticleRenderParams> partic
         radius_ = particleParams->GetParticleRadius() * scale_;
     } else if (particleType_ == ParticleType::IMAGES) {
         image_ = particleParams->GetParticleImage();
+        imageSize_ = particleParams->GetImageSize();
     }
     activeTime_ = 0;
     lifeTime_ = particleParams->GetParticleLifeTime();
