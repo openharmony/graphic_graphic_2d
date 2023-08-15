@@ -1239,7 +1239,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Rend
         success = success && Marshalling(parcel, val->redRandom_.start_) && Marshalling(parcel, val->redRandom_.end_);
         success =
             success && Marshalling(parcel, val->greenRandom_.start_) && Marshalling(parcel, val->greenRandom_.end_);
-        success = 
+        success =
             success && Marshalling(parcel, val->blueRandom_.start_) && Marshalling(parcel, val->blueRandom_.end_);
         success =
             success && Marshalling(parcel, val->alphaRandom_.start_) && Marshalling(parcel, val->alphaRandom_.end_);
