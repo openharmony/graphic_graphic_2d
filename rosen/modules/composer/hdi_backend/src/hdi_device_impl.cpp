@@ -14,6 +14,7 @@
  */
 
 #include "hdi_device_impl.h"
+#include "hdi_log.h"
 #include <cstddef>
 #include <cstdlib>
 #include <mutex>

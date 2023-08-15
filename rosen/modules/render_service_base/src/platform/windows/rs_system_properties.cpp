@@ -185,6 +185,11 @@ int RSSystemProperties::GetFilterCacheUpdateInterval()
     return 0;
 }
 
+bool RSSystemProperties::GetDebugTraceEnabled()
+{
+    return false;
+}
+
 int RSSystemProperties::GetFilterCacheSizeThreshold()
 {
     return 0;

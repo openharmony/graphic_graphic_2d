@@ -255,7 +255,7 @@ bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
 bool RSSystemProperties::GetSkipGeometryNotChangeEnabled()
 {
     static bool skipGeoNotChangeEnabled =
-        std::atoi((system::GetParameter("persist.skipGeometryNotChange.enabled", "0")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.skipGeometryNotChange.enabled", "1")).c_str()) != 0;
     return skipGeoNotChangeEnabled;
 }
 

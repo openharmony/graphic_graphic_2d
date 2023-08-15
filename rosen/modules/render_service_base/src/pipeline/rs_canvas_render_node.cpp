@@ -116,10 +116,12 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
     RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas);
 #endif
 
-    if (GetRenderProperties().GetUseEffect()) {
-        RSPropertiesPainter::ApplyBackgroundEffect(GetRenderProperties(), canvas);
+    if (canvas.GetCacheType() != RSPaintFilterCanvas::CacheType::OFFSCREEN) {
+        if (GetRenderProperties().GetUseEffect()) {
+            RSPropertiesPainter::ApplyBackgroundEffect(GetRenderProperties(), canvas);
+        }
+        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, FilterType::BACKGROUND_FILTER);
     }
-    RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, FilterType::BACKGROUND_FILTER);
 
     ApplyDrawCmdModifier(context, RSModifierType::BACKGROUND_STYLE);
 
@@ -229,7 +231,7 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas)
 
 void RSCanvasRenderNode::OnApplyModifiers()
 {
-    GetMutableRenderProperties().backref_ = ReinterpretCastTo<RSRenderNode>();
+    GetMutableRenderProperties().backref_ = weak_from_this();
 }
 
 void RSCanvasRenderNode::ProcessDrivenBackgroundRender(RSPaintFilterCanvas& canvas)

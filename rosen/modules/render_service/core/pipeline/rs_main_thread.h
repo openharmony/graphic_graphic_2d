@@ -175,6 +175,7 @@ public:
     {
         return frameCount_;
     }
+    // add node info after cmd data process
     void AddActiveNodeId(pid_t pid, NodeId id);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
@@ -243,7 +244,7 @@ private:
         std::shared_ptr<TransactionDataMap>& transactionDataEffective, std::string& transactionFlags);
 
     bool IsResidentProcess(pid_t pid);
-    bool IsNeedSkip(NodeId rootSurfaceNodeId, pid_t pid);
+    bool IsNeedSkip(NodeId instanceRootNodeId, pid_t pid);
 
     bool NeedReleaseGpuResource(const RSRenderNodeMap& nodeMap);
 
@@ -266,8 +267,8 @@ private:
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> effectiveCommands_;
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
     // Collect pids of surfaceview's update(ConsumeAndUpdateAllNodes), effective commands(processCommand) and Animate
-    std::unordered_map<pid_t, std::set<NodeId>> activeAppsInProcess_;
-    std::unordered_map<NodeId, std::set<NodeId>> activeProcessNodeIds_;
+    std::unordered_map<pid_t, std::unordered_set<NodeId>> activeAppsInProcess_;
+    std::unordered_map<NodeId, std::unordered_set<NodeId>> activeProcessNodeIds_;
     std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> syncTransactionData_;
     int32_t syncTransactionCount_ { 0 };
 
@@ -320,11 +321,11 @@ private:
     uint32_t lastSurfaceCnt_ = 0;
     int32_t focusAppPid_ = -1;
     int32_t focusAppUid_ = -1;
-    int32_t lastFocusAppPid_ = -1;
     const uint8_t opacity_ = 255;
     std::string focusAppBundleName_ = "";
     std::string focusAppAbilityName_ = "";
     uint64_t focusNodeId_ = 0;
+    uint64_t lastFocusNodeId_ = 0;
     uint32_t appWindowNum_ = 0;
     uint32_t requestNextVsyncNum_ = 0;
     bool lastFrameHasFilter_ = false;

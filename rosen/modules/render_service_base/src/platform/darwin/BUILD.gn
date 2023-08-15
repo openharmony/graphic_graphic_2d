@@ -44,10 +44,7 @@ ohos_source_set("darwin") {
 
   public_configs = [ "$rosen_root/modules/composer:composer_public_config" ]
 
-  deps = [
-    "$rosen_root/modules/platform:hilog",
-    "$rosen_root/modules/platform:image_native",
-  ]
+  deps = [ "$rosen_root/modules/platform:image_native" ]
 
   public_deps = [
     "$rosen_root/modules/glfw_render_context:libglfw_render_context",
@@ -56,4 +53,7 @@ ohos_source_set("darwin") {
     "$rosen_root/modules/platform:utils",
     "//third_party/EGL:libEGL",
   ]
+  external_deps = [ "hilog:libhilog" ]
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
 }

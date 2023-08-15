@@ -53,6 +53,11 @@ HWTEST_F(RecordingImageFilterTest, CreateBlurImageFilterTest001, TestSize.Level1
     EXPECT_TRUE(imageFilterCmdList != nullptr);
     auto imageFilter = imageFilterCmdList->Playback();
     EXPECT_TRUE(imageFilter != nullptr);
+
+    auto newCmdList = ImageFilterCmdList::CreateFromData(imageFilterCmdList->GetData(), true);
+    EXPECT_TRUE(newCmdList != nullptr);
+    imageFilter = newCmdList->Playback();
+    EXPECT_TRUE(imageFilter != nullptr);
 }
 
 /*

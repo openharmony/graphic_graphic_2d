@@ -68,7 +68,7 @@ public:
     void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
 #ifdef OHOS_PLATFORM
-    void SetIsOnTheTree(bool flag) override;
+    void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID) override;
 #endif
     bool IsAppWindow() const
     {
@@ -561,11 +561,11 @@ public:
     // manage appWindowNode's child hardware enabled nodes info
     void ResetChildHardwareEnabledNodes();
     void AddChildHardwareEnabledNode(WeakPtr childNode);
-    std::vector<WeakPtr> GetChildHardwareEnabledNodes() const;
+    const std::vector<WeakPtr>& GetChildHardwareEnabledNodes() const;
 
-    bool IsFocusedWindow(pid_t focusedWindowPid)
+    bool IsFocusedNode(uint64_t focusedNodeId)
     {
-        return ExtractPid(GetNodeId()) == focusedWindowPid;
+        return GetNodeId() == focusedNodeId;
     }
 
     void ResetSurfaceOpaqueRegion(
@@ -695,6 +695,11 @@ public:
     void SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvailable);
 
 private:
+    bool IsSelfDrawingNode() const override
+    {
+        return IsSelfDrawingType();
+    }
+
     void OnResetParent() override;
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
     bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;
@@ -794,8 +799,18 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>
         filterNodes_; // valid filter nodes within, including itself
 
-    //<screenRect, absRect, screenRotation, isFocusWindow>
-    std::tuple<RectI, RectI, ScreenRotation, bool> OpaqueRegionBaseInfo_;
+    struct OpaqueRegionBaseInfo
+    {
+        RectI screenRect_;
+        RectI absRect_;
+        ScreenRotation screenRotation_;
+        bool isFocusWindow_;
+        bool isTransparent_;
+        bool hasContainerWindow_;
+    };
+    
+    //<screenRect, absRect, screenRotation, isFocusWindow, isTransparent, hasContainerWindow>
+    OpaqueRegionBaseInfo opaqueRegionBaseInfo_;
 
     /*
         ContainerWindow configs acquired from arkui, including container window state, screen density, container border

@@ -49,6 +49,7 @@ ohos_unittest("RSRenderClientPipelineTest") {
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 }

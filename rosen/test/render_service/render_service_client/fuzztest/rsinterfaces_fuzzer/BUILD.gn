@@ -43,6 +43,11 @@ ohos_fuzztest("RSInterfacesFuzzTest") {
   ]
 
   sources = [ "rsinterfaces_fuzzer.cpp" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ###############################################################################

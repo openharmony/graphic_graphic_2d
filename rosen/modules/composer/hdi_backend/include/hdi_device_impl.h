@@ -17,6 +17,7 @@
 #define HDI_BACKEND_HDI_DEVICE_IMPL_H
 
 #include "hdi_device.h"
+#include "graphic_error.h"
 #include "v1_0/include/idisplay_composer_interface.h"
 
 namespace OHOS {

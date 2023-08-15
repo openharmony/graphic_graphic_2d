@@ -38,7 +38,10 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
   ]
 
   subsystem_name = "graphic"
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ###############################################################################

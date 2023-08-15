@@ -52,6 +52,11 @@ HWTEST_F(RecordingRegionTest, SetRectTest001, TestSize.Level1)
     auto regionCmdList = recordingRegion->GetCmdList();
     EXPECT_TRUE(regionCmdList != nullptr);
     auto region = regionCmdList->Playback();
+
+    auto newCmdList = RegionCmdList::CreateFromData(regionCmdList->GetData(), true);
+    EXPECT_TRUE(newCmdList != nullptr);
+    region = newCmdList->Playback();
+    EXPECT_TRUE(region != nullptr);
 }
 
 /**

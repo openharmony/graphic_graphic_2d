@@ -138,7 +138,7 @@ void RSRenderNodeMap::AddDrivenRenderNode(const std::shared_ptr<RSBaseRenderNode
     if (drivenRenderNodeMap_.find(id) != drivenRenderNodeMap_.end()) {
         return;
     }
-    drivenRenderNodeMap_.emplace(id, nodePtr->ReinterpretCastTo<RSRenderNode>());
+    drivenRenderNodeMap_.emplace(id, nodePtr);
 }
 
 void RSRenderNodeMap::RemoveDrivenRenderNode(NodeId id)

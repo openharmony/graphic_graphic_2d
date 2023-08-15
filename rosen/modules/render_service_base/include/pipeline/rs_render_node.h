@@ -104,7 +104,7 @@ public:
         return id_;
     }
 
-    virtual void SetIsOnTheTree(bool flag);
+    virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID);
     bool IsOnTheTree() const;
 
     // return children and disappeared children, not guaranteed to be sorted by z-index
@@ -149,8 +149,7 @@ public:
     bool ChildHasFilter() const;
     void SetChildHasFilter(bool childHasFilter);
 
-    void SetRootSurfaceNodeId(NodeId id);
-    NodeId GetRootSurfaceNodeId() const;
+    NodeId GetInstanceRootNodeId() const;
 
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
@@ -163,9 +162,10 @@ public:
 
     virtual std::pair<bool, bool> Animate(int64_t timestamp);
 
+    bool IsClipBound() const;
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
-    bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty,
-        std::optional<RectI> clipRect = std::nullopt);
+    bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
+        bool isClipBoundDirty = false, std::optional<RectI> clipRect = std::nullopt);
 #ifndef USE_ROSEN_DRAWING
     virtual std::optional<SkRect> GetContextClipRegion() const { return std::nullopt; }
 #else
@@ -180,6 +180,7 @@ public:
     // used for animation test
     RSAnimationManager& GetAnimationManager();
 
+    void ApplyBoundsGeometry(RSPaintFilterCanvas& canvas);
     virtual void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas);
     virtual void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas) {}
     virtual void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas);
@@ -217,6 +218,10 @@ public:
     bool IsStaticCached() const;
 
     bool NeedInitCacheSurface() const;
+    inline bool IsPureContainer() const
+    {
+        return (drawCmdModifiers_.empty() && !renderProperties_.isDrawn_);
+    }
 
 #ifndef USE_ROSEN_DRAWING
     using ClearCacheSurfaceFunc = std::function<void(sk_sp<SkSurface>&, sk_sp<SkSurface>&, uint32_t, uint32_t)>;
@@ -320,6 +325,7 @@ public:
 
     bool HasAbilityComponent() const;
     void SetHasAbilityComponent(bool hasAbilityComponent);
+    bool QuerySubAssignable(bool isRotation) const;
 
     uint32_t GetCacheSurfaceThreadIndex() const;
 
@@ -340,8 +346,8 @@ public:
     bool HasCachedTexture() const;
 
     void SetDrawRegion(std::shared_ptr<RectF> rect);
+    std::shared_ptr<RectF> GetDrawRegion() const;
 
-    void UpdateDrawRegion();
 #ifndef USE_ROSEN_DRAWING
     void UpdateEffectRegion(std::optional<SkPath>& region) const;
 #else
@@ -388,9 +394,11 @@ public:
     void MarkNonGeometryChanged();
     std::vector<HgmModifierProfile> GetHgmModifierProfileList() const;
     void SetRSFrameRateRangeByPreferred(int32_t preferred);
+    bool ApplyModifiers();
+
+    virtual RectI GetFilterRect() const;
 
 protected:
-    bool ApplyModifiers();
     virtual void OnApplyModifiers() {}
 
     enum class NodeDirty {
@@ -415,12 +423,13 @@ protected:
     bool isRenderUpdateIgnored_ = false;
     bool isShadowValidLastFrame_ = false;
 
-    virtual RectI GetFilterRect() const;
     virtual bool NodeIsUsedBySubThread() const { return false; }
+
+    virtual bool IsSelfDrawingNode() const;
 
 private:
     NodeId id_;
-    NodeId rootSurfaceNodeId_ = INVALID_NODEID;
+    NodeId instanceRootNodeId_ = INVALID_NODEID;
 
     WeakPtr parent_;
     void SetParent(WeakPtr parent);
@@ -436,7 +445,6 @@ private:
     bool isChildrenSorted_ = false;
     void GenerateFullChildrenList();
     void GenerateSortedChildren();
-    void InvalidateChildrenList();
     void SortChildren();
 
     const std::weak_ptr<RSContext> context_;

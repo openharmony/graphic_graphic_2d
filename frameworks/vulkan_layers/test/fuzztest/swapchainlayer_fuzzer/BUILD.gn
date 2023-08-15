@@ -30,8 +30,10 @@ ohos_fuzztest("SwapchainLayerFuzzTest") {
   ]
   public_deps = [ "//third_party/vulkan-headers:vulkan_headers" ]
   external_deps = [
+    "c_utils:utils",
     "graphic_2d:surface",
     "graphic_2d:sync_fence",
+    "hilog:libhilog",
     "ipc:ipc_single",
   ]
   sources = [ "swapchainlayer_fuzzer.cpp" ]

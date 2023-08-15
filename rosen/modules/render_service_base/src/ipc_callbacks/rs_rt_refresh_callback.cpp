@@ -31,7 +31,7 @@ void RSRTRefreshCallback::ExcuteRefresh()
     }
 }
 
- void RSRTRefreshCallback::SetRefresh(std::function<void(void)> callback)
+void RSRTRefreshCallback::SetRefresh(std::function<void(void)> callback)
 {
     callback_ = callback;
 }

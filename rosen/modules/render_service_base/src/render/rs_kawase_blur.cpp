@@ -16,7 +16,7 @@
 #include "render/rs_kawase_blur.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
-#include "rs_trace.h"
+#include "common/rs_optional_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -97,7 +97,7 @@ bool KawaseBlurFilter::ApplyKawaseBlur(SkCanvas& canvas, const sk_sp<SkImage>& i
         return false;
     }
     ComputeRadiusAndScale(param.radius);
-    RS_TRACE_NAME("ApplyKawaseBlur " + GetDescription());
+    RS_OPTIONAL_TRACE_BEGIN("ApplyKawaseBlur " + GetDescription());
     int maxPasses = supportLargeRadius ? kMaxPassesLargeRadius : kMaxPasses;
     float dilatedConvolutionFactor = supportLargeRadius ? kDilatedConvolutionLargeRadius : kDilatedConvolution;
     float tmpRadius = static_cast<float>(blurRadius_) / dilatedConvolutionFactor;
@@ -121,6 +121,7 @@ bool KawaseBlurFilter::ApplyKawaseBlur(SkCanvas& canvas, const sk_sp<SkImage>& i
         blurBuilder.uniform("in_maxSizeXY") = SkV2{dst.width() * blurScale_, dst.height() * blurScale_};
         tmpBlur = blurBuilder.makeImage(canvas.recordingContext(), nullptr, scaledInfo, false);
     }
+    RS_OPTIONAL_TRACE_END();
     return ApplyBlur(canvas, image, tmpBlur, param);
 }
 

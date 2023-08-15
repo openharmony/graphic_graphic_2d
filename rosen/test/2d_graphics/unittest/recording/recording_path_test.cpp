@@ -52,6 +52,11 @@ HWTEST_F(RecordingPathTest, BuildFromSVGString001, TestSize.Level1)
     EXPECT_TRUE(pathCmdList != nullptr);
     auto path = pathCmdList->Playback();
     EXPECT_TRUE(path != nullptr);
+
+    auto newCmdList = PathCmdList::CreateFromData(pathCmdList->GetData(), true);
+    EXPECT_TRUE(newCmdList != nullptr);
+    path = newCmdList->Playback();
+    EXPECT_TRUE(path != nullptr);
 }
 
 /**

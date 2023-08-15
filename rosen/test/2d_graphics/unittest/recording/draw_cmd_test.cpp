@@ -87,6 +87,41 @@ HWTEST_F(DrawCmdTest, DrawOpItemPlayback001, TestSize.Level1)
     DetachBrushOpItem::Playback(player, nullptr);
     ClipAdaptiveRoundRectOpItem::Playback(player, nullptr);
 }
+
+/**
+ * @tc.name: DrawCmdList001
+ * @tc.desc: Test the creation of CmdList.
+ * @tc.type: FUNC
+ * @tc.require: I7SO7X
+ */
+HWTEST_F(DrawCmdTest, DrawCmdList001, TestSize.Level1)
+{
+    auto drawCmdList = std::make_shared<DrawCmdList>(10, 20);
+    drawCmdList->AddOp<ClearOpItem>(Color::COLOR_BLACK);
+    auto cmdData = drawCmdList->GetData();
+
+    auto newDrawCmdList = DrawCmdList::CreateFromData(cmdData, true);
+    EXPECT_TRUE(newDrawCmdList != nullptr);
+    newDrawCmdList->SetWidth(drawCmdList->GetWidth());
+    newDrawCmdList->SetHeight(drawCmdList->GetHeight());
+    EXPECT_EQ(newDrawCmdList->GetWidth(), drawCmdList->GetWidth());
+    EXPECT_EQ(newDrawCmdList->GetHeight(), drawCmdList->GetHeight());
+
+    CmdListData cmdListData = { nullptr, 0 };
+    newDrawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    EXPECT_TRUE(newDrawCmdList != nullptr);
+    EXPECT_EQ(newDrawCmdList->GetWidth(), 0.f);
+    EXPECT_EQ(newDrawCmdList->GetHeight(), 0.f);
+
+    auto imageData = drawCmdList->GetAllImageData();
+    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVec;
+    drawCmdList->GetAllPixelMap(pixelMapVec);
+    auto cmdList = std::make_shared<CmdList>(cmdData);
+    cmdList->SetUpImageData(imageData.first, imageData.second);
+    cmdList->SetupPixelMap(pixelMapVec);
+    auto pixelMap = cmdList->GetPixelMap(0);
+    EXPECT_TRUE(pixelMap == nullptr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

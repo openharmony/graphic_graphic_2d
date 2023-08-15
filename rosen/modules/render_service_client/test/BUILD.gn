@@ -48,7 +48,10 @@ ohos_executable("render_service_client_rs_demo") {
     "//third_party/zlib:libz",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   public_deps = [ "$public_deps_skia" ]
 
@@ -64,7 +67,10 @@ ohos_executable("render_service_client_screen_mode_demo") {
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -85,7 +91,10 @@ ohos_executable("render_service_client_app_demo") {
     "//third_party/zlib:libz",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   public_deps = [ "$public_deps_skia" ]
 
@@ -108,7 +117,10 @@ ohos_executable("render_service_client_node_demo") {
     "//third_party/zlib:libz",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   public_deps = [ "$public_deps_skia" ]
 
@@ -134,6 +146,7 @@ ohos_executable("render_service_client_modifier_demo") {
   public_deps = [ "$public_deps_skia" ]
 
   external_deps = [
+    "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
@@ -157,7 +170,10 @@ ohos_executable("render_service_client_transition_demo") {
     "//third_party/zlib:libz",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   public_deps = [ "$public_deps_skia" ]
 
@@ -184,6 +200,7 @@ ohos_executable("render_service_client_gesture_interrupt_animation_demo") {
   public_deps = [ "$public_deps_skia" ]
 
   external_deps = [
+    "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
@@ -207,7 +224,10 @@ ohos_executable("render_service_client_gravity_demo") {
     "//third_party/zlib:libz",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   public_deps = [ "$public_deps_skia" ]
 
@@ -229,6 +249,7 @@ ohos_executable("render_service_client_ui_capture_demo") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",
     "window_manager:libwm",
@@ -259,7 +280,10 @@ ohos_executable("render_service_client_scale_demo") {
     "//third_party/zlib:libz",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   public_deps = [ "$public_deps_skia" ]
 
@@ -285,6 +309,7 @@ ohos_executable("render_service_client_rs_animation_demo") {
   public_deps = [ "$public_deps_skia" ]
 
   external_deps = [
+    "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
@@ -304,6 +329,7 @@ ohos_executable("surface_capture_demo") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hilog:libhilog",
     "image_framework:image_native",
   ]
@@ -322,7 +348,10 @@ ohos_executable("security_layer_demo") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -344,7 +373,10 @@ ohos_executable("render_service_client_surface_node_demo") {
 
   public_deps = [ "$public_deps_skia" ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -366,7 +398,10 @@ ohos_executable("render_service_client_uni_render_demo") {
 
   public_deps = [ "$public_deps_skia" ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -385,6 +420,11 @@ ohos_executable("render_service_client_watermark_demo") {
   } else {
     public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
   }
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -405,6 +445,7 @@ ohos_executable("rs_uni_render_pixelmap_demo") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hilog:libhilog",
     "image_framework:image_native",
   ]
@@ -433,7 +474,10 @@ ohos_executable("render_service_display_mode_demo") {
     "//third_party/zlib:libz",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   public_deps = [ "$public_deps_skia" ]
 
@@ -461,7 +505,10 @@ ohos_executable("render_service_client_tunnel_handle_demo") {
     "//third_party/zlib:libz",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -488,7 +535,10 @@ ohos_executable("render_service_client_overlay_demo") {
     "//third_party/zlib:libz",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -512,6 +562,11 @@ ohos_executable("snapshot_surface") {
 
   public_deps = [ "//third_party/libpng:libpng" ]
 
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
@@ -532,6 +587,11 @@ ohos_executable("screen_info_demo") {
     "./../../../modules/render_service_client:librender_service_client",
   ]
 
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
@@ -549,6 +609,8 @@ ohos_executable("render_service_client_pointer_window_demo") {
   public_deps = [ "$public_deps_skia" ]
 
   external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
     "image_framework:image_native",
     "window_manager:libdm",
   ]
@@ -569,7 +631,11 @@ ohos_executable("render_service_client_fingerprint_demo") {
 
   public_deps = [ "$public_deps_skia" ]
 
-  external_deps = [ "window_manager:libdm" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "window_manager:libdm",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

@@ -169,6 +169,7 @@ void RSUniUICapture::PostTaskToRSRecord(std::shared_ptr<Drawing::RecordingCanvas
     std::function<void()> recordingDrawCall = [canvas, node, visitor]() -> void {
         visitor->SetCanvas(canvas);
         if (!node->IsOnTheTree()) {
+            node->ApplyModifiers();
             node->Prepare(visitor);
         }
         node->Process(visitor);

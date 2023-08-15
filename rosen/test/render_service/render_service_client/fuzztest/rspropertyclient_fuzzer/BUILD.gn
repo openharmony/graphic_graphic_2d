@@ -42,6 +42,11 @@ ohos_fuzztest("RSPropertyClientFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [ "rspropertyclient_fuzzer.cpp" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ###############################################################################

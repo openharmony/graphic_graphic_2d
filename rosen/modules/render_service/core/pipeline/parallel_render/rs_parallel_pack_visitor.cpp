@@ -20,6 +20,7 @@
 #include "pipeline/parallel_render/rs_parallel_render_manager.h"
 #include "pipeline/rs_uni_render_visitor.h"
 #include "rs_trace.h"
+#include "common/rs_optional_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -91,7 +92,7 @@ void RSParallelPackVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode &node)
 bool RSParallelPackVisitor::IsSkipProcessing(RSSurfaceRenderNode& node) const
 {
     if (isSecurityDisplay_ && node.GetSecurityLayer()) {
-        RS_TRACE_NAME("SecurityLayer Skip");
+        RS_OPTIONAL_TRACE_NAME("SecurityLayer Skip");
         return true;
     }
 
@@ -101,14 +102,14 @@ bool RSParallelPackVisitor::IsSkipProcessing(RSSurfaceRenderNode& node) const
     }
     if (!node.GetOcclusionVisible() && !doAnimate_
         && RSSystemProperties::GetOcclusionEnabled() && !isSecurityDisplay_) {
-        RS_TRACE_NAME("Occlusion Skip");
+        RS_OPTIONAL_TRACE_NAME("Occlusion Skip");
         return true;
     }
 #ifdef RS_ENABLE_EGLQUERYSURFACE
     // skip clean surface node
     if (isOpDropped_ && node.IsAppWindow()) {
         if (!node.SubNodeNeedDraw(node.GetOldDirtyInSurface(), partialRenderType_)) {
-            RS_TRACE_NAME("QuickReject Skip");
+            RS_OPTIONAL_TRACE_NAME("QuickReject Skip");
             RS_LOGD("RSParallelPackVisitor::ProcessSurfaceRenderNode skip: %s", node.GetName().c_str());
             return true;
         }

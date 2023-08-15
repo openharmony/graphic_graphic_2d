@@ -58,6 +58,11 @@ HWTEST_F(RecordingPathEffectTest, CreateDashPathEffect001, TestSize.Level1)
     EXPECT_TRUE(pathEffectCmdList != nullptr);
     auto pathEffect = pathEffectCmdList->Playback();
     EXPECT_TRUE(pathEffect != nullptr);
+
+    auto newCmdList = PathEffectCmdList::CreateFromData(pathEffectCmdList->GetData(), true);
+    EXPECT_TRUE(newCmdList != nullptr);
+    pathEffect = newCmdList->Playback();
+    EXPECT_TRUE(pathEffect != nullptr);
 }
 
 /**

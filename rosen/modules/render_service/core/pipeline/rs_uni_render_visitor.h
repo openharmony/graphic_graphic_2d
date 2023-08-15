@@ -86,9 +86,9 @@ public:
         isDirty_ = isDirty;
     }
 
-    void SetFocusedWindowPid(pid_t pid)
+    void SetFocusedNodeId(uint64_t nodeId)
     {
-        currentFocusedPid_ = pid;
+        currentFocusedNodeId_ = nodeId;
     }
 
     void SetSubThreadConfig(uint32_t threadIndex)
@@ -229,6 +229,7 @@ private:
     bool UpdateCacheSurface(RSRenderNode& node);
     void DrawSpherize(RSRenderNode& node);
     void DrawChildRenderNode(RSRenderNode& node);
+    void DrawChildCanvasRenderNode(RSRenderNode& node);
 
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void AddOverDrawListener(std::unique_ptr<RSRenderFrame>& renderFrame,
@@ -269,6 +270,9 @@ private:
     // close partialrender when perform window animation
     void ClosePartialRenderWhenAnimatingWindows(std::shared_ptr<RSDisplayRenderNode>& node);
     int32_t GetNodePreferred(std::vector<HgmModifierProfile> hgmModifierProfileList) const;
+
+    bool DrawBlurInCache(RSRenderNode& node);
+    void UpdateCacheRenderNodeMapWithBlur(RSRenderNode& node);
 
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
@@ -341,7 +345,7 @@ private:
     bool needFilter_ = false;
     GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     std::vector<ScreenColorGamut> colorGamutModes_;
-    pid_t currentFocusedPid_ = -1;
+    uint64_t currentFocusedNodeId_ = 0;
 
     bool isSubThread_ = false;
     bool isUIFirst_ = false;
@@ -355,11 +359,13 @@ private:
     ParallelRenderingType parallelRenderType_;
 
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
+    bool isClipBoundDirty_ = false; // if node is clipbound dirty, its dirtyregion merge can be skipped
 
     // count prepared and processed canvasnode numbers per app
     // unirender visitor resets every frame, no overflow risk here
     unsigned int preparedCanvasNodeInCurrentSurface_ = 0;
     unsigned int processedCanvasNodeInCurrentSurface_ = 0;
+    unsigned int processedPureContainerNode_ = 0;
 
     float globalZOrder_ = 0.0f;
     bool isUpdateCachedSurface_ = false;
@@ -425,6 +431,8 @@ private:
     std::unordered_map<NodeId, FrameRateRange> finalFrameRateRangeMap_; // RSDisplayRenderNode id
 
     std::unique_ptr<HgmFrameRateManager> frameRateMgr_;
+    std::unordered_map<NodeId, std::unordered_map<NodeId, RectI>> allCacheFilterRects_ = {};
+    std::stack<std::unordered_map<NodeId, RectI>> curCacheFilterRects_ = {};
 };
 } // namespace Rosen
 } // namespace OHOS

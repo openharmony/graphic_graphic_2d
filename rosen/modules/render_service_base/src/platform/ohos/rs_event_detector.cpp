@@ -63,7 +63,6 @@ void RSTimeOutDetector::SetLoopFinishTag(
     int32_t focusAppPid, int32_t focusAppUid, std::string& focusAppBundleName, std::string& focusAppAbilityName)
 {
     uint64_t finishTimeStampMs = RSEventTimer::GetSysTimeMs();
-    RS_LOGD("RSTimeOutDetector :: One loop cost Time: %" PRIu64 " ", finishTimeStampMs - startTimeStampMs_);
     if (finishTimeStampMs > startTimeStampMs_) {
         auto durationStampMs = finishTimeStampMs - startTimeStampMs_;
         if (durationStampMs > static_cast<uint64_t>(timeOutThresholdMs_)) {

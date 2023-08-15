@@ -190,6 +190,11 @@ int RSSystemProperties::GetFilterCacheSizeThreshold()
     return 0;
 }
 
+bool RSSystemProperties::GetDebugTraceEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetKawaseEnabled()
 {
     return false;

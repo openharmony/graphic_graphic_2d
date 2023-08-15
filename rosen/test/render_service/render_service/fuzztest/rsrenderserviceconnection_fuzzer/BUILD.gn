@@ -29,6 +29,11 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [ "rsrenderserviceconnection_fuzzer.cpp" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ###############################################################################

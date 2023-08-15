@@ -83,6 +83,10 @@ ohos_unittest("RSVirtualScreenProcessorTest") {
   module_out_path = module_output_path
   sources = [ "rs_virtual_screen_processor_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -92,6 +96,10 @@ ohos_unittest("RSRenderServiceUnitTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_service_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -101,6 +109,10 @@ ohos_unittest("RSUniRenderJudgementTest") {
   module_out_path = module_output_path
   sources = [ "rs_uni_render_judgement_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -110,6 +122,10 @@ ohos_unittest("RSUniRenderProcessorTest") {
   module_out_path = module_output_path
   sources = [ "rs_uni_render_processor_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -121,6 +137,10 @@ ohos_unittest("RSRenderServiceVisitorTest") {
   deps = [
     ":rs_test_common",
     "../../../../../modules/render_service_base:render_service_base_src",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
   ]
   defines = []
   defines += gpu_defines
@@ -134,6 +154,10 @@ ohos_unittest("RSComposerAdapterTest") {
     "rs_composer_adapter_test.cpp",
   ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -143,6 +167,10 @@ ohos_unittest("RSRenderServiceListenerTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_service_listener_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -152,6 +180,10 @@ ohos_unittest("RSProcessorFactoryTest") {
   module_out_path = module_output_path
   sources = [ "rs_processor_factory_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -161,6 +193,10 @@ ohos_unittest("RSPhysicalScreenProcessorTest") {
   module_out_path = module_output_path
   sources = [ "rs_physical_screen_processor_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -170,6 +206,10 @@ ohos_unittest("RSDropFrameProcessorTest") {
   module_out_path = module_output_path
   sources = [ "rs_drop_frame_processor_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -179,6 +219,10 @@ ohos_unittest("RSBaseRenderUtilTest") {
   module_out_path = module_output_path
   sources = [ "rs_base_render_util_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -191,6 +235,10 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
     ":rs_test_common",
     "../../../../../modules/render_service_base:render_service_base_src",
   ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -200,6 +248,10 @@ ohos_unittest("RSUniRenderComposerAdapterTest") {
   module_out_path = module_output_path
   sources = [ "rs_uni_render_composer_adapter_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -209,6 +261,10 @@ ohos_unittest("RSUniRenderUtilTest") {
   module_out_path = module_output_path
   sources = [ "rs_uni_render_util_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -221,7 +277,11 @@ ohos_unittest("RSUniRenderVisitorTest") {
     ":rs_test_common",
     "../../../../../modules/render_service_base:render_service_base_src",
   ]
-  external_deps = [ "init:libbegetutil" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -231,6 +291,10 @@ ohos_unittest("RSUniUiCaptureTest") {
   module_out_path = module_output_path
   sources = [ "rs_uni_ui_capture_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -240,7 +304,11 @@ ohos_unittest("RSQosThreadTest") {
   module_out_path = module_output_path
   sources = [ "rs_qos_thread_test.cpp" ]
   deps = [ ":rs_test_common" ]
-  external_deps = [ "init:libbegetutil" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -253,6 +321,10 @@ ohos_unittest("RSHardwareThreadTest") {
     "rs_hardware_thread_test.cpp",
   ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -265,7 +337,11 @@ ohos_unittest("RSMainThreadTest") {
     ":rs_test_common",
     "../../../../../modules/render_service_base:render_service_base_src",
   ]
-  external_deps = [ "init:libbegetutil" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -275,6 +351,10 @@ ohos_unittest("RSColdStartThreadTest") {
   module_out_path = module_output_path
   sources = [ "rs_cold_start_thread_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -284,6 +364,10 @@ ohos_unittest("RSEglImageManagerTest") {
   module_out_path = module_output_path
   sources = [ "rs_egl_image_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -293,7 +377,11 @@ ohos_unittest("RSParallelHardwareComposerTest") {
   module_out_path = module_output_path
   sources = [ "parallel_render/rs_parallel_hardware_composer_test.cpp" ]
   deps = [ ":rs_test_common" ]
-  external_deps = [ "init:libbegetutil" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -303,7 +391,11 @@ ohos_unittest("RSParallelPackVisitorTest") {
   module_out_path = module_output_path
   sources = [ "parallel_render/rs_parallel_pack_visitor_test.cpp" ]
   deps = [ ":rs_test_common" ]
-  external_deps = [ "init:libbegetutil" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -313,7 +405,11 @@ ohos_unittest("RSParallelRenderManagerTest") {
   module_out_path = module_output_path
   sources = [ "parallel_render/rs_parallel_render_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
-  external_deps = [ "init:libbegetutil" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -323,7 +419,11 @@ ohos_unittest("RSParallelSubThreadTest") {
   module_out_path = module_output_path
   sources = [ "parallel_render/rs_parallel_sub_thread_test.cpp" ]
   deps = [ ":rs_test_common" ]
-  external_deps = [ "init:libbegetutil" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -333,6 +433,10 @@ ohos_unittest("RSParallelTaskManagerTest") {
   module_out_path = module_output_path
   sources = [ "parallel_render/rs_parallel_task_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -342,6 +446,10 @@ ohos_unittest("RSRenderTaskTest") {
   module_out_path = module_output_path
   sources = [ "parallel_render/rs_render_task_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -351,6 +459,10 @@ ohos_unittest("RSSubThreadManagerTest") {
   module_out_path = module_output_path
   sources = [ "parallel_render/rs_sub_thread_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -360,6 +472,10 @@ ohos_unittest("RSSubThreadTest") {
   module_out_path = module_output_path
   sources = [ "parallel_render/rs_sub_thread_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -369,6 +485,10 @@ ohos_unittest("RSUniRenderVirtualProcessorTest") {
   module_out_path = module_output_path
   sources = [ "rs_uni_render_virtual_processor_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -378,6 +498,10 @@ ohos_unittest("RSBaseRenderEngineUnitTest") {
   module_out_path = module_output_path
   sources = [ "rs_base_render_engine_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -387,6 +511,10 @@ ohos_unittest("RSRenderEngineTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_engine_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -399,7 +527,11 @@ ohos_unittest("RSNodeCostManagerTest") {
     ":rs_test_common",
     "../../../../../modules/render_service_base:render_service_base_src",
   ]
-  external_deps = [ "init:libbegetutil" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -412,7 +544,11 @@ ohos_unittest("RSDrivenRenderManagerTest") {
     ":rs_test_common",
     "../../../../../modules/render_service_base:render_service_base_src",
   ]
-  external_deps = [ "init:libbegetutil" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -425,6 +561,10 @@ ohos_unittest("RSDrivenRenderVisitorTest") {
     ":rs_test_common",
     "../../../../../modules/render_service_base:render_service_base_src",
   ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -434,6 +574,10 @@ ohos_unittest("RSDrivenRenderExtTest") {
   module_out_path = module_output_path
   sources = [ "driven_render/rs_driven_render_ext_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -443,6 +587,10 @@ ohos_unittest("RSDividedRenderUtilTest") {
   module_out_path = module_output_path
   sources = [ "rs_divided_render_util_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -452,6 +600,10 @@ ohos_unittest("RSUniRenderEngineTest") {
   module_out_path = module_output_path
   sources = [ "rs_uni_render_engine_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -463,6 +615,10 @@ ohos_unittest("RSUnmarshalThreadTest") {
   deps = [
     ":rs_test_common",
     "../../../../../modules/render_service_base:render_service_base_src",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
   ]
   defines = []
   defines += gpu_defines

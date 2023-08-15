@@ -17,10 +17,10 @@
 
 #include <parameters.h>
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "rs_driven_render_ext.h"
 #include "rs_driven_render_visitor.h"
-#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -114,7 +114,7 @@ void RSDrivenRenderManager::DoPrepareRenderTask(const DrivenPrepareInfo& info)
     RSBaseRenderNode::SharedPtr currContent = nullptr;
     DrivenDirtyType dirtyType = info.dirtyInfo.type;
 
-    RS_TRACE_NAME("RSDrivenRender:DoPrepareRenderTask backgroundDirty: " +
+    RS_OPTIONAL_TRACE_NAME("RSDrivenRender:DoPrepareRenderTask backgroundDirty: " +
         std::to_string(static_cast<int>(backgroundDirty)) +
         ", contentDirty: " + std::to_string(static_cast<int>(contentDirty)) +
         ", nonContentDirty: " + std::to_string(static_cast<int>(nonContentDirty)) +

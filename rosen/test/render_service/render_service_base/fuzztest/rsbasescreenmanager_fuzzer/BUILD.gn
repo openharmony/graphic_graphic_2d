@@ -29,6 +29,10 @@ ohos_fuzztest("RSBaseScreenManagerFuzzTest") {
   ]
   sources = [ "rsbasescreenmanager_fuzzer.cpp" ]
   deps = [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ###############################################################################

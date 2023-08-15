@@ -33,6 +33,10 @@ ohos_fuzztest("SurfaceUtilsFuzzTest") {
   ]
   sources = [ "surfaceutils_fuzzer.cpp" ]
   deps = [ "//foundation/graphic/graphic_2d:libsurface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ###############################################################################

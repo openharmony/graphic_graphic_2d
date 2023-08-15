@@ -15,10 +15,8 @@
 
 #include "rs_base_render_engine.h"
 #include <memory>
-
 #include "rs_divided_render_util.h"
-#include "rs_trace.h"
-
+#include "common/rs_optional_trace.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -119,10 +117,10 @@ bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
 
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> RSBaseRenderEngine::CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
-    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence)
+    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const uint32_t threadIndex)
 #else
 std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
-    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence)
+    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const uint32_t threadIndex)
 #endif
 {
 #ifdef RS_ENABLE_EGLIMAGE
@@ -142,7 +140,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
         return nullptr;
     }
-    auto eglTextureId = eglImageManager_->MapEglImageFromSurfaceBuffer(buffer, acquireFence);
+    auto eglTextureId = eglImageManager_->MapEglImageFromSurfaceBuffer(buffer, acquireFence, threadIndex);
     if (eglTextureId == 0) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer MapEglImageFromSurfaceBuffer return invalid texture ID");
         return nullptr;
@@ -195,11 +193,11 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
     const BufferRequestConfig& config, bool forceCPU, bool useAFBC)
 #endif
 {
-    RS_TRACE_NAME("RSBaseRenderEngine::RequestFrame(RSSurface)");
     if (rsSurface == nullptr) {
         RS_LOGE("RSBaseRenderEngine::RequestFrame: surface is null!");
         return nullptr;
     }
+    RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::RequestFrame(RSSurface)");
     rsSurface->SetSurfacePixelFormat(config.format);
 
     auto bufferUsage = config.usage;
@@ -240,11 +238,11 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
 #endif
 #endif
     auto surfaceFrame = rsSurface->RequestFrame(config.width, config.height, 0, useAFBC);
+    RS_OPTIONAL_TRACE_END();
     if (surfaceFrame == nullptr) {
         RS_LOGE("RSBaseRenderEngine::RequestFrame: request SurfaceFrame failed!");
         return nullptr;
     }
-
 #ifdef NEW_RENDER_CONTEXT
     return std::make_unique<RSRenderFrame>(rsSurface);
 #else
@@ -255,9 +253,10 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surface>& targetSurface,
     const BufferRequestConfig& config, bool forceCPU, bool useAFBC)
 {
-    RS_TRACE_NAME("RSBaseRenderEngine::RequestFrame(Surface)");
+    RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::RequestFrame(targetSurface)");
     if (targetSurface == nullptr) {
         RS_LOGE("RSBaseRenderEngine::RequestFrame: surface is null!");
+        RS_OPTIONAL_TRACE_END();
         return nullptr;
     }
 
@@ -282,6 +281,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
 #endif
     }
 
+    RS_OPTIONAL_TRACE_END();
     return RequestFrame(rsSurfaces_.at(surfaceId), config, forceCPU, useAFBC);
 }
 
@@ -384,7 +384,7 @@ void RSBaseRenderEngine::SetColorFilterMode(ColorFilterMode mode)
 
 void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
-    RS_TRACE_NAME("RSBaseRenderEngine::DrawBuffer(CPU)");
+    RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::DrawBuffer(CPU)");
 #ifndef USE_ROSEN_DRAWING
     SkBitmap bitmap;
 #else
@@ -394,6 +394,7 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
     if (!RSBaseRenderUtil::ConvertBufferToBitmap(params.buffer, newBuffer, params.targetColorGamut, bitmap,
         params.metaDatas)) {
         RS_LOGE("RSDividedRenderUtil::DrawBuffer: create bitmap failed.");
+        RS_OPTIONAL_TRACE_END();
         return;
     }
 #ifndef USE_ROSEN_DRAWING
@@ -409,14 +410,16 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
     canvas.DrawImageRect(drImage, params.srcRect, params.dstRect, Drawing::SamplingOptions(),
         Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
 #endif
+    RS_OPTIONAL_TRACE_END();
 }
 
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
-    RS_TRACE_NAME("RSBaseRenderEngine::DrawImage(GPU)");
-    auto image = CreateEglImageFromBuffer(canvas, params.buffer, params.acquireFence);
+    RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::DrawImage(GPU)");
+    auto image = CreateEglImageFromBuffer(canvas, params.buffer, params.acquireFence, params.threadIndex);
     if (image == nullptr) {
-        RS_LOGE("RSDividedRenderUtil::DrawImage: image is nullptr!");
+        RS_LOGE("RSBaseRenderEngine::DrawImage: image is nullptr!");
+        RS_OPTIONAL_TRACE_END();
         return;
     }
 #ifndef USE_ROSEN_DRAWING
@@ -432,6 +435,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         Drawing::SamplingOptions(), Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas.DetachBrush();
 #endif
+    RS_OPTIONAL_TRACE_END();
 }
 
 void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw)

@@ -31,6 +31,12 @@ ohos_unittest("sync_fence_test") {
     ":sync_fence_common",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
   ]
+
+  external_deps = [
+    "c_utils:utils",
+    "graphic_2d:sync_fence",
+    "hilog:libhilog",
+  ]
 }
 
 ## UnitTest sync_fence_test }}}
@@ -52,8 +58,6 @@ ohos_static_library("sync_fence_common") {
 
   public_configs = [ ":sync_fence_common_public_config" ]
 
-  public_deps =
-      [ "//foundation/graphic/graphic_2d/utils/sync_fence:sync_fence" ]
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }

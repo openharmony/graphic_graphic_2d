@@ -1094,21 +1094,23 @@ void RSSurfaceRenderNode::ResetSurfaceContainerRegion(const RectI& screeninfo, c
 bool RSSurfaceRenderNode::CheckOpaqueRegionBaseInfo(
     const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow)
 {
-    // 0:screenRect, 1:absRect, 2:screenRotation, 3:isFocusWindow
-    return std::get<0>(OpaqueRegionBaseInfo_) == screeninfo &&
-        std::get<1>(OpaqueRegionBaseInfo_) == absRect &&
-        std::get<2>(OpaqueRegionBaseInfo_) == screenRotation &&
-        std::get<3>(OpaqueRegionBaseInfo_) == isFocusWindow;
+    return opaqueRegionBaseInfo_.screenRect_ == screeninfo &&
+        opaqueRegionBaseInfo_.absRect_ == absRect &&
+        opaqueRegionBaseInfo_.screenRotation_ == screenRotation &&
+        opaqueRegionBaseInfo_.isFocusWindow_ == isFocusWindow &&
+        opaqueRegionBaseInfo_.isTransparent_ == IsTransparent() &&
+        opaqueRegionBaseInfo_.hasContainerWindow_ == HasContainerWindow();
 }
 
 void RSSurfaceRenderNode::SetOpaqueRegionBaseInfo(
     const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow)
 {
-    // 0:screenRect, 1:absRect, 2:screenRotation, 3:isFocusWindow
-    std::get<0>(OpaqueRegionBaseInfo_) = screeninfo;
-    std::get<1>(OpaqueRegionBaseInfo_) = absRect;
-    std::get<2>(OpaqueRegionBaseInfo_) = screenRotation;
-    std::get<3>(OpaqueRegionBaseInfo_) = isFocusWindow;
+    opaqueRegionBaseInfo_.screenRect_ = screeninfo;
+    opaqueRegionBaseInfo_.absRect_ = absRect;
+    opaqueRegionBaseInfo_.screenRotation_ = screenRotation;
+    opaqueRegionBaseInfo_.isFocusWindow_ = isFocusWindow;
+    opaqueRegionBaseInfo_.isTransparent_ = IsTransparent();
+    opaqueRegionBaseInfo_.hasContainerWindow_ = HasContainerWindow();
 }
 
 // [planning] Remove this after skia is upgraded, the clipRegion is supported
@@ -1155,7 +1157,7 @@ void RSSurfaceRenderNode::AddChildHardwareEnabledNode(std::weak_ptr<RSSurfaceRen
     childHardwareEnabledNodes_.emplace_back(childNode);
 }
 
-std::vector<std::weak_ptr<RSSurfaceRenderNode>> RSSurfaceRenderNode::GetChildHardwareEnabledNodes() const
+const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& RSSurfaceRenderNode::GetChildHardwareEnabledNodes() const
 {
     return childHardwareEnabledNodes_;
 }
@@ -1231,6 +1233,15 @@ bool RSSurfaceRenderNode::IsCurrentFrameStatic()
     if (dirtyManager_ == nullptr || !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
         return false;
     }
+    if (IsAppWindow()) {
+        auto hardwareEnabledNodes = GetChildHardwareEnabledNodes();
+        for (auto& hardwareEnabledNode : hardwareEnabledNodes) {
+            auto hardwareEnabledNodePtr = hardwareEnabledNode.lock();
+            if (hardwareEnabledNodePtr && hardwareEnabledNodePtr->IsCurrentFrameBufferConsumed()) {
+                return false;
+            }
+        }
+    }
     if (IsMainWindowType()) {
         return true;
     } else if (IsLeashWindow()) {
@@ -1269,9 +1280,10 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
 }
 
 #ifdef OHOS_PLATFORM
-void RSSurfaceRenderNode::SetIsOnTheTree(bool flag)
+void RSSurfaceRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId)
 {
-    RSBaseRenderNode::SetIsOnTheTree(flag);
+    instanceRootNodeId = (IsMainWindowType() || IsLeashWindow()) ? GetId() : instanceRootNodeId;
+    RSBaseRenderNode::SetIsOnTheTree(flag, instanceRootNodeId);
     if (flag == isReportFirstFrame_ || !IsAppWindow()) {
         return;
     }
