@@ -3609,20 +3609,15 @@ void RSUniRenderVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
         return;
     }
 #ifndef USE_ROSEN_DRAWING
-    canvas_->save();
+    SkAutoCanvasRestore acr(canvas_.get(), true);
 #else
-    canvas_->Save();
+    Drawing::AutoCanvasRestore acr(*canvas_.get(), true);
 #endif
     node.ProcessRenderBeforeChildren(*canvas_);
     if (!DrawBlurInCache(node)) {
         ProcessChildren(node);
     }
     node.ProcessRenderAfterChildren(*canvas_);
-#ifndef USE_ROSEN_DRAWING
-    canvas_->restore();
-#else
-    canvas_->Restore();
-#endif
 }
 
 void RSUniRenderVisitor::RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& node, float width, float height)
