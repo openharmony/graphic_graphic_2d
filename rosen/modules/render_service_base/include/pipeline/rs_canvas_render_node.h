@@ -79,6 +79,7 @@ private:
     void InternalDrawContent(RSPaintFilterCanvas& canvas);
     // functions that are dedicated to driven render [start]
     void DrawDrivenContent(RSPaintFilterCanvas& canvas);
+    void RestoreBgEffectFilter(RSPaintFilterCanvas& canvas);
     // functions that are dedicated to driven render [end]
 
     RSPaintFilterCanvas::SaveStatus canvasNodeSaveCount_;

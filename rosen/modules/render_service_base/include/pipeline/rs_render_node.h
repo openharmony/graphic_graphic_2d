@@ -349,9 +349,9 @@ public:
     std::shared_ptr<RectF> GetDrawRegion() const;
 
 #ifndef USE_ROSEN_DRAWING
-    void UpdateEffectRegion(std::optional<SkPath>& region) const;
+    void UpdateEffectRegion(std::optional<SkPath>& region);
 #else
-    void UpdateEffectRegion(std::optional<Drawing::Path>& region) const;
+    void UpdateEffectRegion(std::optional<Drawing::Path>& region);
 #endif
     // check node's rect if it has valid filter cache
     bool IsFilterCacheValid() const;
@@ -362,6 +362,8 @@ public:
     bool IsSuggestedDrawInGroup() const;
     void CheckDrawingCacheType();
     bool HasCacheableAnim() const { return hasCacheableAnim_; }
+    bool HasUpdateEffectRegion() const { return hasUpdateEffectRegion_; }
+    void SetHasUpdateEffectRegion(bool hasUpdate) { hasUpdateEffectRegion_ = hasUpdate; }
 
     enum NodeGroupType {
         NONE = 0,
@@ -512,6 +514,7 @@ private:
     bool hasHardwareNode_ = false;
     bool hasAbilityComponent_ = false;
     bool isAncestorDirty_ = false;
+    bool hasUpdateEffectRegion_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 
     // driven render

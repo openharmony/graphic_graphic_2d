@@ -55,23 +55,10 @@ void RSEffectRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 
 void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
+    RSRenderNode::ProcessTransitionBeforeChildren(canvas);
 #ifndef USE_ROSEN_DRAWING
     canvas.SaveEffectData();
     auto& properties = GetRenderProperties();
-    auto boundsGeo = (properties.GetBoundsGeometry());
-    if (boundsGeo && !boundsGeo->IsEmpty()) {
-        canvas.concat(boundsGeo->GetMatrix());
-    }
-    auto alpha = properties.GetAlpha();
-    if (alpha < 1.f) {
-        if ((GetChildrenCount() == 0) || !(properties.GetAlphaOffscreen() || IsForcedDrawInGroup())) {
-            canvas.MultiplyAlpha(alpha);
-        } else {
-            auto rect = RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect());
-            canvas.saveLayerAlpha(&rect, std::clamp(alpha, 0.f, 1.f) * UINT8_MAX);
-        }
-    }
-
     if (effectRegion_.has_value() && !(effectRegion_.value().isEmpty())) {
         if (properties.GetBackgroundFilter() != nullptr) {
             SkPath& path = effectRegion_.value();
@@ -91,6 +78,7 @@ void RSEffectRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
     RSPropertiesPainter::DrawForegroundEffect(GetRenderProperties(), canvas);
     canvas.RestoreEffectData();
 #endif
+    RSRenderNode::ProcessTransitionAfterChildren(canvas);
 }
 
 RectI RSEffectRenderNode::GetFilterRect() const

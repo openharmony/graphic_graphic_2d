@@ -3609,9 +3609,8 @@ void RSUniRenderVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
         return;
     }
 #ifndef USE_ROSEN_DRAWING
-    int saveCount = canvas_->save();
+    canvas_->save();
 #else
-    int saveCount = canvas_->GetSaveCount();
     canvas_->Save();
 #endif
     node.ProcessRenderBeforeChildren(*canvas_);
@@ -3620,9 +3619,9 @@ void RSUniRenderVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
     }
     node.ProcessRenderAfterChildren(*canvas_);
 #ifndef USE_ROSEN_DRAWING
-    canvas_->restoreToCount(saveCount);
+    canvas_->restore();
 #else
-    canvas_->RestoreToCount(saveCount);
+    canvas_->Restore();
 #endif
 }
 

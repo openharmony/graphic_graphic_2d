@@ -957,11 +957,12 @@ bool RSRenderNode::ApplyModifiers()
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSRenderNode::UpdateEffectRegion(std::optional<SkPath>& region) const
+void RSRenderNode::UpdateEffectRegion(std::optional<SkPath>& region)
 #else
-void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::Path>& region) const
+void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::Path>& region)
 #endif
 {
+    hasUpdateEffectRegion_ = false;
     if (!region.has_value()) {
         return;
     }
@@ -998,6 +999,7 @@ void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::Path>& region) cons
     // accumulate children clip path, with matrix
     effectPath.AddPath(clipPath, geoPtr->GetAbsMatrix());
 #endif
+    hasUpdateEffectRegion_ = true;
 }
 
 std::shared_ptr<RSRenderModifier> RSRenderNode::GetModifier(const PropertyId& id)
