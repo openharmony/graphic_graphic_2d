@@ -271,12 +271,17 @@ void RSUniRenderVisitor::UpdateCacheChangeStatus(RSBaseRenderNode& node)
         // For rootnode, init drawing changes only if there is any content dirty
         isDrawingCacheChanged_ = curContentDirty_;
         curCacheFilterRects_.push({});
+        childHasSurface_ = false;
     } else {
         // Any child node dirty causes cache change
         isDrawingCacheChanged_ = isDrawingCacheChanged_ || curDirty_;
-        if (!curCacheFilterRects_.empty() && !node.IsInstanceOf<RSEffectRenderNode>() &&
-            (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect())) {
-            curCacheFilterRects_.top().emplace(node.GetId(), node.GetFilterRect());
+        if (!curCacheFilterRects_.empty()) {
+            if (!node.IsInstanceOf<RSEffectRenderNode>() &&
+                (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect())) {
+                curCacheFilterRects_.top().emplace(node.GetId(), node.GetFilterRect());
+            } else if (node.IsInstanceOf<RSSurfaceRenderNode>()) {
+                childHasSurface_ = true;
+            }
         }
     }
 }
@@ -300,7 +305,7 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSBaseRenderNode& node, int ma
         cacheRenderNodeMapCnt = cacheRenderNodeMap.count(node.GetId());
     }
     if ((cacheRenderNodeMapCnt == 0 || isDrawingCacheChanged_) &&
-        ((markedCachedNodeCnt != markedCachedNodes_) || node.HasChildrenOutOfRect())) {
+        ((markedCachedNodeCnt != markedCachedNodes_) || node.HasChildrenOutOfRect() || childHasSurface_)) {
         node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
     if (!curCacheFilterRects_.empty()) {
@@ -317,6 +322,7 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSBaseRenderNode& node, int ma
     if (markedCachedNodeCnt == 1) {
         markedCachedNodes_ = 0;
         isDrawingCacheChanged_ = false;
+        childHasSurface_ = false;
     }
 }
 
@@ -2142,6 +2148,14 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_TRACE_END();
         }
 #endif
+        if (!OpItemTasks::Instance().IsEmpty()) {
+            RSBackgroundThread::Instance().PostTask([]() {
+#ifndef USE_ROSEN_DRAWING
+                RS_TRACE_NAME("RSUniRender:OpItemTasks ProcessTask");
+                OpItemTasks::Instance().ProcessTask();
+#endif
+            });
+        }
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
         RS_TRACE_END();

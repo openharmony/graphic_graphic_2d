@@ -339,6 +339,7 @@ private:
     // added for judge if drawing cache changes
     bool isDrawingCacheEnabled_ = false;
     bool isDrawingCacheChanged_ = false;
+    bool childHasSurface_ = false;
     int markedCachedNodes_ = 0;
     std::vector<RectI> accumulatedDirtyRegions_ = {};
 
