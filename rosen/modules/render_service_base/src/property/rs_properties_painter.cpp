@@ -1244,6 +1244,11 @@ void RSPropertiesPainter::DrawBackgroundEffect(
 
 void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
+    const auto& [bgImage, imageIRect, unused] = canvas.GetEffectData();
+    if (bgImage == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::ApplyBackgroundEffect bgImage null");
+        return;
+    }
 #ifndef USE_ROSEN_DRAWING
     RS_TRACE_NAME("ApplyBackgroundEffect");
     SkAutoCanvasRestore acr(&canvas, true);
@@ -1260,11 +1265,6 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
     }
     #endif
 
-    const auto& [bgImage, imageIRect, unused] = canvas.GetEffectData();
-    if (bgImage == nullptr) {
-        ROSEN_LOGE("RSPropertiesPainter::ApplyBackgroundEffect bgImage null");
-        return;
-    }
     SkPaint defaultPaint;
     // dstRect: canvas clip region
     auto dstRect = SkRect::Make(canvas.getDeviceClipBounds());

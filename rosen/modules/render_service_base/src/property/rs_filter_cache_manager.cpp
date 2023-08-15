@@ -264,11 +264,13 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
         RS_OPTIONAL_TRACE_FUNC_END();
         return;
     }
+#ifdef NEW_SKIA
     if (RSSystemProperties::GetImageGpuResourceCacheEnable(cachedImage_->width(), cachedImage_->height())) {
         ROSEN_LOGD("TakeSnapshot cache image resource(width:%d, height:%d).",
             cachedImage_->width(), cachedImage_->height());
         as_IB(cachedImage_)->hintCacheGpuResource();
     }
+#endif
     filter->PreProcess(cachedImage_);
 
     // Update the cache state.
@@ -311,11 +313,13 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
     // Update the cache state with the filtered snapshot.
     cacheType_ = CacheType::CACHE_TYPE_FILTERED_SNAPSHOT;
     cachedImage_ = offscreenSurface->makeImageSnapshot();
+#ifdef NEW_SKIA
     if (RSSystemProperties::GetImageGpuResourceCacheEnable(cachedImage_->width(), cachedImage_->height())) {
         ROSEN_LOGD("GenerateFilteredSnapshot cache image resource(width:%d, height:%d).",
             cachedImage_->width(), cachedImage_->height());
         as_IB(cachedImage_)->hintCacheGpuResource();
     }
+#endif
     cachedImageRegion_ = filterRegion_;
     RS_OPTIONAL_TRACE_FUNC_END();
 }

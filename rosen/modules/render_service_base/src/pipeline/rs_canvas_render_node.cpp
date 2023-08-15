@@ -118,7 +118,11 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
 
     if (canvas.GetCacheType() != RSPaintFilterCanvas::CacheType::OFFSCREEN) {
         if (GetRenderProperties().GetUseEffect()) {
-            RSPropertiesPainter::ApplyBackgroundEffect(GetRenderProperties(), canvas);
+            if (HasUpdateEffectRegion()) {
+                RSPropertiesPainter::ApplyBackgroundEffect(GetRenderProperties(), canvas);
+            } else {
+                RestoreBgEffectFilter(canvas);
+            }
         }
         RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, FilterType::BACKGROUND_FILTER);
     }
@@ -128,7 +132,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
     if (GetRenderProperties().IsDynamicLightUpValid()) {
         RSPropertiesPainter::DrawDynamicLightUp(GetRenderProperties(), canvas);
     }
-    
+
 #ifndef USE_ROSEN_DRAWING
     canvasNodeSaveCount_ = canvas.Save();
 #else
@@ -226,6 +230,30 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas)
         if (auto canvasChild = ReinterpretCast<RSCanvasRenderNode>(child)) {
             canvasChild->InternalDrawContent(canvas);
         }
+    }
+}
+
+void RSCanvasRenderNode::RestoreBgEffectFilter(RSPaintFilterCanvas& canvas)
+{
+    auto rsParentPtr = GetParent().lock();
+    while (rsParentPtr) {
+        if (rsParentPtr->GetType() == RSRenderNodeType::EFFECT_NODE) {
+            break;
+        }
+        rsParentPtr = rsParentPtr->GetParent().lock();
+    }
+    if (!rsParentPtr) {
+        return;
+    }
+    auto& rsProperty = GetMutableRenderProperties();
+    if (rsProperty.GetBackgroundFilter()) {
+        return;
+    }
+    auto& bgShareFilter = rsParentPtr->GetRenderProperties().GetBackgroundFilter();
+    if (bgShareFilter) {
+        rsProperty.SetBackgroundFilter(bgShareFilter);
+        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, FilterType::BACKGROUND_FILTER);
+        rsProperty.SetBackgroundFilter(nullptr);
     }
 }
 

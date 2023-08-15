@@ -1269,7 +1269,7 @@ RRect RSProperties::GetInnerRRect() const
 
 bool RSProperties::NeedFilter() const
 {
-    return (backgroundFilter_ != nullptr && backgroundFilter_->IsValid()) ||
+    return (backgroundFilter_ != nullptr && backgroundFilter_->IsValid()) || useEffect_ ||
         (filter_ != nullptr && filter_->IsValid()) || IsLightUpEffectValid() || IsDynamicLightUpValid();
 }
 
