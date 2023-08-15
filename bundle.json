@@ -41,7 +41,7 @@
       ],
       "deps": {
         "components": [
-          "common",
+          "build_framework",
           "window_manager",
           "resource_management",
           "napi",
