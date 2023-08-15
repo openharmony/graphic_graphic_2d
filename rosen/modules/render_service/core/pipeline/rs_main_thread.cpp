@@ -114,10 +114,12 @@ constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint64_t PERF_PERIOD_BLUR = 80000000;
 constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
+constexpr uint64_t CLEAR_GPU_INTERVAL = 240000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
+constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
 constexpr int DEFAULT_SKIA_CACHE_COUNT          = 2 * (1 << 12);
@@ -971,6 +973,26 @@ void RSMainThread::ReleaseAllNodesBuffer()
 #endif
         });
     }
+    PostTask([this]() {
+#ifndef USE_ROSEN_DRAWING
+#ifdef NEW_RENDER_CONTEXT
+        auto grContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
+#else
+        auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
+#endif
+#else
+        auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+#endif
+        if (grContext) {
+            RS_LOGD("clear gpu cache");
+#ifdef NEW_SKIA
+            grContext->flushAndSubmit(true);
+#else
+            grContext->flush(kSyncCpu_GrFlushFlag, 0, nullptr);
+#endif
+            grContext->purgeUnlockAndSafeCacheGpuResources();
+        }
+    }, CLEAR_GPU_CACHE, CLEAR_GPU_INTERVAL);
 #endif
     RS_OPTIONAL_TRACE_END();
 }
@@ -1421,6 +1443,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     if (isUniRender_) {
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
         RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
+        RemoveTask(CLEAR_GPU_CACHE);
     }
     mainLoop_();
     auto screenManager_ = CreateOrGetScreenManager();
@@ -1545,6 +1568,20 @@ void RSMainThread::PostTask(RSTaskMessage::RSTask task)
 {
     if (handler_) {
         handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
+void RSMainThread::PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime)
+{
+    if (handler_) {
+        handler_->PostTask(task, name, delayTime);
+    }
+}
+
+void RSMainThread::RemoveTask(const std::string& name)
+{
+    if (handler_) {
+        handler_->RemoveTask(name);
     }
 }
 

@@ -282,7 +282,7 @@ void RSSubThread::ResetGrContext()
         return;
     }
 #ifndef USE_ROSEN_DRAWING
-    grContext_->purgeUnlockedResources(false);
+    grContext_->freeGpuResources();
 #endif
 }
 }
