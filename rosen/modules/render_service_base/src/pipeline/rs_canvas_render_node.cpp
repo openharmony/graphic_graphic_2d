@@ -266,7 +266,6 @@ void RSCanvasRenderNode::ProcessDrivenContentRenderAfterChildren(RSPaintFilterCa
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
     ApplyDrawCmdModifier(context, RSModifierType::FOREGROUND_STYLE);
 
-    GetMutableRenderProperties().ResetBounds();
     canvas.RestoreStatus(canvasNodeSaveCount_);
 #endif
 }

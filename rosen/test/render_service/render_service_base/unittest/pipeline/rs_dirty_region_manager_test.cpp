@@ -343,7 +343,7 @@ HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyRegionInfoForDfxTest001, TestSize.
     RSDirtyRegionManager fun;
     NodeId id = 0;
     DirtyRegionType dirtyRegionType = DirtyRegionType::TYPE_AMOUNT;
-    RSRenderNodeType nodeType = RSRenderNodeType::BASE_NODE;
+    RSRenderNodeType nodeType = RSRenderNodeType::RS_NODE;
     RectI rect;
     fun.Clear();
     fun.UpdateDirtyRegionInfoForDfx(id, nodeType, dirtyRegionType, rect);

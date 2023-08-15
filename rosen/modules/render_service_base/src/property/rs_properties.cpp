@@ -45,7 +45,7 @@ const Vector4f Vector4fZero { 0.f, 0.f, 0.f, 0.f };
 
 using ResetPropertyFunc = void (*)(RSProperties* prop);
 const std::unordered_map<RSModifierType, ResetPropertyFunc> g_funcLUT = {
-    { RSModifierType::BOUNDS, [](RSProperties* prop) { prop->ResetBounds(); } },
+    { RSModifierType::BOUNDS, [](RSProperties* prop) {} },
     { RSModifierType::FRAME, [](RSProperties* prop) {} },
     { RSModifierType::SANDBOX, [](RSProperties* prop) { prop->ResetSandBox(); } },
     { RSModifierType::POSITION_Z, [](RSProperties* prop) { prop->SetPositionZ(0.f); } },
@@ -231,10 +231,6 @@ void RSProperties::SetFrame(Vector4f frame)
         contentDirty_ = true;
     }
     frameGeo_->SetRect(frame.x_, frame.y_, frame.z_, frame.w_);
-    // ProcessAnimate would translate frame offset
-    if (GetFrameOffsetX() != 0. || GetFrameOffsetY() != 0.) {
-        isDrawn_ = true;
-    }
     geoDirty_ = true;
     SetDirty();
 }
@@ -242,10 +238,6 @@ void RSProperties::SetFrame(Vector4f frame)
 void RSProperties::SetFrameSize(Vector2f size)
 {
     frameGeo_->SetSize(size.x_, size.y_);
-    // ProcessAnimate would translate frame offset
-    if (GetFrameOffsetX() != 0. || GetFrameOffsetY() != 0.) {
-        isDrawn_ = true;
-    }
     geoDirty_ = true;
     contentDirty_ = true;
     SetDirty();
@@ -270,10 +262,6 @@ void RSProperties::SetFrameHeight(float height)
 void RSProperties::SetFramePosition(Vector2f position)
 {
     frameGeo_->SetPosition(position.x_, position.y_);
-    // ProcessAnimate would translate frame offset
-    if (GetFrameOffsetX() != 0. || GetFrameOffsetY() != 0.) {
-        isDrawn_ = true;
-    }
     geoDirty_ = true;
     SetDirty();
 }
@@ -281,10 +269,6 @@ void RSProperties::SetFramePosition(Vector2f position)
 void RSProperties::SetFramePositionX(float positionX)
 {
     frameGeo_->SetX(positionX);
-    // ProcessAnimate would translate frame offset
-    if (GetFrameOffsetX() != 0.) {
-        isDrawn_ = true;
-    }
     geoDirty_ = true;
     SetDirty();
 }
@@ -292,10 +276,6 @@ void RSProperties::SetFramePositionX(float positionX)
 void RSProperties::SetFramePositionY(float positionY)
 {
     frameGeo_->SetY(positionY);
-    // ProcessAnimate would translate frame offset
-    if (GetFrameOffsetY() != 0.) {
-        isDrawn_ = true;
-    }
     geoDirty_ = true;
     SetDirty();
 }
@@ -337,12 +317,12 @@ Vector2f RSProperties::GetFramePosition() const
 
 float RSProperties::GetFrameOffsetX() const
 {
-    return std::isinf(frameGeo_->GetX()) ? 0 : (frameGeo_->GetX() - boundsGeo_->GetX());
+    return frameOffsetX_;
 }
 
 float RSProperties::GetFrameOffsetY() const
 {
-    return std::isinf(frameGeo_->GetY()) ? 0 : (frameGeo_->GetY() - boundsGeo_->GetY());
+    return frameOffsetY_;
 }
 
 const std::shared_ptr<RSObjAbsGeometry>& RSProperties::GetBoundsGeometry() const
@@ -372,10 +352,11 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
         return false;
     }
     auto parentGeo = parent == nullptr ? nullptr : (parent->boundsGeo_);
-    if (parentGeo != nullptr && GetSandBoxMatrix()) {
+    if (parentGeo && sandbox_ && sandbox_->matrix_) {
         parentGeo = std::make_shared<RSObjAbsGeometry>();
-        parentGeo->ConcatMatrix(*GetSandBoxMatrix());
+        parentGeo->ConcatMatrix(*(sandbox_->matrix_));
     }
+    CheckEmptyBounds();
     boundsGeoPtr->UpdateMatrix(parentGeo, offset, clipRect);
     if (RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
         auto rect = boundsGeoPtr->GetAbsRect();
@@ -1381,13 +1362,6 @@ void RSProperties::CheckEmptyBounds()
     }
 }
 
-void RSProperties::ResetBounds()
-{
-    if (!hasBounds_) {
-        boundsGeo_->SetRect(0.f, 0.f, 0.f, 0.f);
-    }
-}
-
 // mask properties
 void RSProperties::SetMask(std::shared_ptr<RSMask> mask)
 {
@@ -2222,8 +2196,12 @@ const std::unique_ptr<RSFilterCacheManager>& RSProperties::GetFilterCacheManager
 
 void RSProperties::OnApplyModifiers()
 {
-    if (geoDirty_ && !hasBounds_) {
-        CheckEmptyBounds();
+    if (geoDirty_) {
+        if (!hasBounds_) {
+            CheckEmptyBounds();
+        } else {
+            CalculateFrameOffset();
+        }
     }
     if (colorFilterNeedUpdate_) {
         GenerateColorFilter();
@@ -2276,6 +2254,21 @@ void RSProperties::CalculatePixelStretch()
         return;
     }
     isDrawn_ = true;
+}
+
+void RSProperties::CalculateFrameOffset()
+{
+    frameOffsetX_ = frameGeo_->GetX() - boundsGeo_->GetX();
+    frameOffsetY_ = frameGeo_->GetY() - boundsGeo_->GetY();
+    if (isinf(frameOffsetX_)) {
+        frameOffsetX_ = 0.;
+    }
+    if (isinf(frameOffsetY_)) {
+        frameOffsetY_ = 0.;
+    }
+    if (frameOffsetX_ != 0. || frameOffsetY_ != 0.) {
+        isDrawn_ = true;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

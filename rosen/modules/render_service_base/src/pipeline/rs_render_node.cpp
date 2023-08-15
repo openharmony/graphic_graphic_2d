@@ -347,10 +347,6 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
 void RSRenderNode::DumpNodeType(std::string& out) const
 {
     switch (GetType()) {
-        case RSRenderNodeType::BASE_NODE: {
-            out += "BASE_NODE";
-            break;
-        }
         case RSRenderNodeType::DISPLAY_NODE: {
             out += "DISPLAY_NODE";
             break;
@@ -798,7 +794,6 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 
 void RSRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)
 {
-    GetMutableRenderProperties().ResetBounds();
     canvas.RestoreStatus(renderNodeSaveCount_);
 }
 
