@@ -35,20 +35,20 @@ bool RSInterfaceCodeAccessVerifierBase::IsInterfaceCodeAccessible(CodeUnderlying
 TokenIdType RSInterfaceCodeAccessVerifierBase::GetCallingFullTokenID() const
 {
 #ifdef ENABLE_IPC_SECURITY
-    // next: check the correctness of this part
     return IPCSkeleton::GetCallingFullTokenID();
-#endif
+#else
     return 0;
+#endif
 }
 
 bool RSInterfaceCodeAccessVerifierBase::IsSystemApp() const
 {
 #ifdef ENABLE_IPC_SECURITY
-    // next: check the correctness of this part
     TokenIdType tokenId = GetCallingFullTokenID();
     return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId);
-#endif
+#else
     return true;
+#endif
 }
 
 bool RSInterfaceCodeAccessVerifierBase::IsCommonVerificationPassed(CodeUnderlyingType code, const std::string& caller)
