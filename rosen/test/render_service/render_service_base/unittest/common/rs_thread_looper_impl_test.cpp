@@ -85,4 +85,28 @@ HWTEST_F(RSThreadLooperImplTest, GetThreadInstance001, TestSize.Level1)
     threadlooperimpl = threadlooperimpl_->GetThreadInstance();
     ASSERT_TRUE(threadlooperimpl != nullptr);
 }
+
+/**
+ * @tc.name: ProcessOneMessageTest
+ * @tc.desc: test results of ProcessOneMessage
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSThreadLooperImplTest, ProcessOneMessageTest, TestSize.Level1)
+{
+    int timeoutMillis = 1;
+    threadlooperimpl_->ProcessOneMessage(timeoutMillis);
+}
+
+/**
+ * @tc.name: ProcessAllMessagesTest
+ * @tc.desc: test results of ProcessAllMessages
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSThreadLooperImplTest, ProcessAllMessagesTest, TestSize.Level1)
+{
+    int timeoutMillis = 0;
+    threadlooperimpl_->ProcessAllMessages(timeoutMillis);
+}
 } // namespace OHOS::Rosen

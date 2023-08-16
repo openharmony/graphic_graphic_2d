@@ -94,7 +94,7 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
         result = CheckRootNodeReadyToDraw(child);
         // when appWindow has abilityComponent node
         if (child != nullptr && child->IsInstanceOf<RSSurfaceRenderNode>()) {
-            for (auto& surfaceNodeChild : child->GetSortedChildren()) {
+            for (const auto& surfaceNodeChild : child->GetSortedChildren()) {
                 result = CheckRootNodeReadyToDraw(surfaceNodeChild);
             }
         }
