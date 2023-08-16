@@ -338,14 +338,19 @@ void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
                 RS_LOGD("RSUniRenderVisitor::CheckColorSpace: colorSpace is not supported on current screen");
             }
         }
-    } else {
-        if (node.GetChildrenCount() > 0) {
-            auto surfaceNodePtr = node.GetSortedChildren().front()->ReinterpretCastTo<RSSurfaceRenderNode>();
-            if (!surfaceNodePtr) {
-                return;
-            }
-            CheckColorSpace(*surfaceNodePtr);
+    }
+}
+
+void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager)
+{
+    screenManager->GetScreenSupportedColorGamuts(node.GetScreenId(), colorGamutModes_);
+    for (auto& child : node.GetCurAllSurfaces()) {
+        auto surfaceNodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+        if (!surfaceNodePtr) {
+            RS_LOGE("RSUniRenderVisitor::PrepareDisplayRenderNode ReinterpretCastTo fail");
+            continue;
         }
+        CheckColorSpace(*surfaceNodePtr);
     }
 }
 
@@ -386,15 +391,6 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     }
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
     prepareClipRect_.SetAll(0, 0, screenInfo_.width, screenInfo_.height);
-    screenManager->GetScreenSupportedColorGamuts(node.GetScreenId(), colorGamutModes_);
-    for (auto& child : node.GetSortedChildren()) {
-        auto surfaceNodePtr = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (!surfaceNodePtr) {
-            RS_LOGE("RSUniRenderVisitor::PrepareDisplayRenderNode ReinterpretCastTo fail");
-            continue;
-        }
-        CheckColorSpace(*surfaceNodePtr);
-    }
 #ifndef USE_ROSEN_DRAWING
     parentSurfaceNodeMatrix_ = SkMatrix::I();
 #else
@@ -436,6 +432,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
 
     node.GetCurAllSurfaces().clear();
     node.CollectSurface(node.shared_from_this(), node.GetCurAllSurfaces(), true, false);
+    HandleColorGamuts(node, screenManager);
 
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     if (drivenInfo_) {
