@@ -136,4 +136,40 @@ HWTEST_F(RSUniUiCaptureTest, ProcessEffectRenderNode001, TestSize.Level1)
     RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(id, scaleX, scaleY);
     rsUniUICaptureVisitor.ProcessEffectRenderNode(node);
 }
+
+/**
+ * @tc.name: CreateSurface001
+ * @tc.desc: Test RSUniUiCapture.CreateSurface api
+ * @tc.type:
+ * @tc.require:
+ */
+HWTEST_F(RSUniUiCaptureTest, CreateSurface001, TestSize.Level1)
+{
+    NodeId id = 0;
+    int pixmapWidth = 0;
+    int pixmapHeight = 0;
+    float scaleX = 0.0;
+    float scaleY = 0.0;
+    Media::InitializationOptions opts;
+    opts.size.width = ceil(pixmapWidth * scaleX);
+    opts.size.width = ceil(pixmapHeight * scaleY);
+    std::shared_ptr<Media::PixelMap> sptr = Media::PixelMap::Create(opts);
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(id, scaleX, scaleY);
+    EXPEXT_EQ(rsUniUICaptureVisitor.CreateSurface(sptr), nullptr);
+}
+
+/**
+ * @tc.name: CreateSurface002
+ * @tc.desc: Test RSUniUiCapture.CreateSurface api
+ * @tc.type:
+ * @tc.require:
+ */
+HWTEST_F(RSUniUiCaptureTest, CreateSurface002, TestSize.Level1)
+{
+    NodeId id = 0;
+    float scaleX = 0.0;
+    float scaleY = 0.0;
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(id, scaleX, scaleY);
+    ASSERT_EQ(rsUniUICaptureVisitor.CreateSurface(nullptr), nullptr);
+}
 } // namespace OHOS::Rosen
