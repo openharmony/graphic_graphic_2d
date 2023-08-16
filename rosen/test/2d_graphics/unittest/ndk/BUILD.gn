@@ -38,6 +38,7 @@ ohos_unittest("2d_graphics_ndk_test") {
   if (enable_text_gine) {
     include_dirs += [
       "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",
+      "$graphic_2d_root/rosen/modules/render_service_base/include",
       "//third_party/skia",
     ]
     defines = [ "USE_GRAPHIC_TEXT_GINE" ]

@@ -517,11 +517,7 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest010, TestSi
 #endif
 #else
     txtStyle = Rosen::AdapterTxt::Convert(style);
-#ifdef USE_CANVASKIT0310_SKIA
     EXPECT_EQ(txtStyle.text_shadows[0].blur_sigma, 0.0);
-#else
-    EXPECT_EQ(txtStyle.text_shadows[0].blur_radius, 0.0);
-#endif
 #endif
 }
 }

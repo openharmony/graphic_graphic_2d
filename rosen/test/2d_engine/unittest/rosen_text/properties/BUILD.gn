@@ -55,6 +55,7 @@ ohos_unittest("2d_engine_rosen_text_prop_test") {
     include_dirs += [
       "$rosen_2d_engine_root/rosen_text/adapter",
       "$rosen_2d_engine_root/rosen_text/export",
+      "$rosen_root/modules/render_service_base/include",
       "//third_party/flutter/engine/flutter/third_party/txt/src",
       "//third_party/flutter/skia/third_party/externals/harfbuzz/src",
       "//third_party/flutter/skia",

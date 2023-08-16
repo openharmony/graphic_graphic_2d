@@ -21,6 +21,8 @@ if (enable_text_gine) {
       "export",
       "$graphic_2d_root/rosen/modules/2d_graphics/include",
       "$graphic_2d_root/rosen/modules/2d_graphics/src",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     ]
   }
 
@@ -60,11 +62,7 @@ if (enable_text_gine) {
     cflags_cc = [ "-Wno-c++17-extensions" ]
     cflags = [ "-Wno-c++17-extensions" ]
 
-    include_dirs = [
-      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
-      "$rosen_root/modules/render_service_base/include",
-    ]
+    include_dirs = [ "$rosen_root/modules/render_service_base/include" ]
 
     sources = [
       "adapter/common/text_style.cpp",
@@ -88,8 +86,6 @@ if (enable_text_gine) {
     public_configs = [ ":rosen_text_public_config" ]
     include_dirs = [
       "$flutter_root/engine",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
       "$rosen_root/modules/render_service_base/include",
     ]
 
