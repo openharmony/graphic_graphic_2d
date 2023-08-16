@@ -1068,7 +1068,8 @@ bool RSRenderNode::NeedInitCacheSurface() const
         return true;
     }
     auto cacheType = GetCacheType();
-    float width = 0.0f, height = 0.0f;
+    int width = 0;
+    int height = 0;
     if (cacheType == CacheType::ANIMATE_PROPERTY &&
         renderProperties_.IsShadowValid() && !renderProperties_.IsSpherizeValid()) {
         const RectF boundsRect = renderProperties_.GetBoundsRect();

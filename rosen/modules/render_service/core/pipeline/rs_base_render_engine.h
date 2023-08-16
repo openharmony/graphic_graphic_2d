@@ -162,11 +162,14 @@ public:
 #ifdef NEW_RENDER_CONTEXT
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSRenderSurfaceOhos>& rsSurface,
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true);
+    void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame,
+        std::shared_ptr<RSRenderSurfaceOhos> surfaceOhos);
 #else
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true);
+    void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame,
+        std::shared_ptr<RSSurfaceOhos> surfaceOhos);
 #endif
-    void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame, const uint64_t surfaceId);
 
     virtual void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
         BufferDrawParam& params, PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr) = 0;
@@ -216,7 +219,6 @@ public:
         return eglImageManager_;
     }
 #endif // RS_ENABLE_EGLIMAGE
-    void UnMapRsSurface(uint64_t id);
 protected:
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
     void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
@@ -247,15 +249,7 @@ private:
 #ifdef RS_ENABLE_EGLIMAGE
     std::shared_ptr<RSEglImageManager> eglImageManager_ = nullptr;
 #endif // RS_ENABLE_EGLIMAGE
-
-    // RSSurfaces for framebuffer surfaces.
-    static constexpr size_t MAX_RS_SURFACE_SIZE = 32; // used for rsSurfaces_.
     using SurfaceId = uint64_t;
-#ifdef NEW_RENDER_CONTEXT
-    std::unordered_map<SurfaceId, std::shared_ptr<RSRenderSurfaceOhos>> rsSurfaces_;
-#else
-    std::unordered_map<SurfaceId, std::shared_ptr<RSSurfaceOhos>> rsSurfaces_;
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS
