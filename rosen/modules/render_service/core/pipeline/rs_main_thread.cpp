@@ -625,7 +625,6 @@ void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDat
 
 void RSMainThread::ProcessCommandForUniRender()
 {
-    ResetHardwareEnabledState();
     std::shared_ptr<TransactionDataMap> transactionDataEffective = std::make_shared<TransactionDataMap>();
     std::string transactionFlags;
     if (RSSystemProperties::GetUIFirstEnabled() && RSSystemProperties::GetCacheCmdEnabled()) {
@@ -781,6 +780,9 @@ void RSMainThread::ProcessAllSyncTransactionData()
 
 void RSMainThread::ConsumeAndUpdateAllNodes()
 {
+    if (isUniRender_) {
+        ResetHardwareEnabledState();
+    }
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::ConsumeAndUpdateAllNodes");
     bool needRequestNextVsync = false;
     bufferTimestamps_.clear();
