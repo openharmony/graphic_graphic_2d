@@ -21,11 +21,11 @@ bool RSInterfaceCodeAccessVerifierBase::IsInterfaceCodeAccessible(CodeUnderlying
 {
 #ifdef ENABLE_IPC_SECURITY
     if (!IsCommonVerificationPassed(code)) {
-        ROSEN_LOGE("%s: IsCommonVerificationPassed is false.", caller.c_str());
+        ROSEN_LOGE("%{public}s: IsCommonVerificationPassed is false.", caller.c_str());
         return false;
     }
     if (!IsExtraVerificationPassed(code)) {
-        ROSEN_LOGE("%s: IsExtraVerificationPassed is false.", caller.c_str());
+        ROSEN_LOGE("%{public}s: IsExtraVerificationPassed is false.", caller.c_str());
         return false;
     }
 #endif
@@ -54,13 +54,13 @@ bool RSInterfaceCodeAccessVerifierBase::IsSystemApp() const
 bool RSInterfaceCodeAccessVerifierBase::IsCommonVerificationPassed(CodeUnderlyingType code, const std::string& caller)
 {
     if (accessMap_.count(code) == 0) {
-        ROSEN_LOGE("%s: IPC code is not contained in accessMap.", caller.c_str());
+        ROSEN_LOGE("%{public}s: IPC code is not contained in accessMap.", caller.c_str());
         return false;
     }
     const std::unordered_set<TokenIdType> *const accessSet = &(accessMap_[code]);
     TokenIdType tokenId = GetCallingFullTokenID();
     if (accessSet->count(tokenId) == 0) {
-        ROSEN_LOGE("%s: tokenId is not contained in accessSet.", caller.c_str());
+        ROSEN_LOGE("%{public}s: tokenId is not contained in accessSet.", caller.c_str());
         return false;
     }
     return true;

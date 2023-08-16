@@ -32,6 +32,7 @@
 #include "property/rs_properties.h"
 #include "property/rs_properties_def.h"
 #include "property/rs_properties_painter.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -364,7 +365,7 @@ RSRenderModifier* RSRenderModifier::Unmarshalling(Parcel& parcel)
     }
     auto it = funcLUT.find(static_cast<RSModifierType>(type));
     if (it == funcLUT.end()) {
-        ROSEN_LOGE("RSRenderModifier Unmarshalling cannot find func in lut %d", type);
+        ROSEN_LOGE("RSRenderModifier Unmarshalling cannot find func in lut %{public}d", type);
         return nullptr;
     }
     return it->second(parcel);

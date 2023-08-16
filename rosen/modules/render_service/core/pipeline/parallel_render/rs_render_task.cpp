@@ -15,6 +15,7 @@
 
 #include "rs_render_task.h"
 #include "pipeline/rs_base_render_node.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {

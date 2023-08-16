@@ -69,7 +69,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         config.nodeType = type;
     }
 
-    RS_LOGD("RSSurfaceNode::Create name:%s bundleName: %s type: %d",
+    RS_LOGD("RSSurfaceNode::Create name:%{public}s bundleName: %{public}s type: %{public}hhu",
         config.name.c_str(), config.bundleName.c_str(), config.nodeType);
 
     if (!node->CreateNodeAndSurface(config)) {
@@ -99,14 +99,15 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     } else if (!isWindow) {
         node->SetFrameGravity(Gravity::RESIZE);
     }
-    ROSEN_LOGD("RsDebug RSSurfaceNode::Create id:%" PRIu64, node->GetId());
+    ROSEN_LOGD("RsDebug RSSurfaceNode::Create id:%{public}" PRIu64, node->GetId());
     return node;
 }
 
 void RSSurfaceNode::CreateNodeInRenderThread()
 {
     if (!IsRenderServiceNode()) {
-        ROSEN_LOGI("RsDebug RSSurfaceNode::CreateNodeInRenderThread id:%" PRIu64 " already has RT Node", GetId());
+        ROSEN_LOGI("RsDebug RSSurfaceNode::CreateNodeInRenderThread id:%{public}" PRIu64 " already has RT Node",
+            GetId());
         return;
     }
 
@@ -202,8 +203,8 @@ void RSSurfaceNode::SetSecurityLayer(bool isSecurityLayer)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGD("RSSurfaceNode::SetSecurityLayer, surfaceNodeId:[%" PRIu64 "] isSecurityLayer:%s", GetId(),
-        isSecurityLayer ? "true" : "false");
+    ROSEN_LOGD("RSSurfaceNode::SetSecurityLayer, surfaceNodeId:[%{public}" PRIu64 "] isSecurityLayer:%{public}s",
+        GetId(), isSecurityLayer ? "true" : "false");
 }
 
 bool RSSurfaceNode::GetSecurityLayer() const
@@ -220,7 +221,7 @@ void RSSurfaceNode::SetFingerprint(bool hasFingerprint)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGD("RSSurfaceNode::SetFingerprint, surfaceNodeId:[%" PRIu64 "] hasFingerprint:%s", GetId(),
+    ROSEN_LOGD("RSSurfaceNode::SetFingerprint, surfaceNodeId:[%{public}" PRIu64 "] hasFingerprint:%{public}s", GetId(),
         hasFingerprint ? "true" : "false");
 }
 

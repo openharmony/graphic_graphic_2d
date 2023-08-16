@@ -213,7 +213,6 @@ public:
 
     std::shared_ptr<ParticleRenderParams> SetParamsToRenderParticle() const
     {
-        ROSEN_LOGE("SetParamsToRenderParticle");
         auto particleRenderParams = std::make_shared<ParticleRenderParams>();
         particleRenderParams->SetEmitConfig(emitterConfig_);
         particleRenderParams->SetParticleVelocity(velocity_);

@@ -41,7 +41,7 @@ namespace {
 }
 RSSubThread::~RSSubThread()
 {
-    RS_LOGI("~RSSubThread():%d", threadIndex_);
+    RS_LOGI("~RSSubThread():%{public}d", threadIndex_);
     PostTask([this]() {
         DestroyShareEglContext();
     });
@@ -49,7 +49,7 @@ RSSubThread::~RSSubThread()
 
 void RSSubThread::Start()
 {
-    RS_LOGI("RSSubThread::Start():%d", threadIndex_);
+    RS_LOGI("RSSubThread::Start():%{public}d", threadIndex_);
     std::string name = "RSSubThread" + std::to_string(threadIndex_);
     runner_ = AppExecFwk::EventRunner::Create(name);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);

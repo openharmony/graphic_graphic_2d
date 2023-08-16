@@ -238,7 +238,7 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
     }
     const std::string& surfaceName = surface->GetName();
     RS_LOGI("RsDebug RSRenderService::CreateNodeAndSurface node" \
-        "id:%" PRIu64 " name:%s bundleName:%s surface id:%" PRIu64 " name:%s",
+        "id:%{public}" PRIu64 " name:%{public}s bundleName:%{public}s surface id:%{public}" PRIu64 " name:%{public}s",
         node->GetId(), node->GetName().c_str(), node->GetBundleName().c_str(),
         surface->GetUniqueId(), surfaceName.c_str());
     node->SetConsumer(surface);
@@ -375,7 +375,8 @@ void RSRenderServiceConnection::SetScreenRefreshRate(ScreenId id, int32_t sceneI
             auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
             int32_t setResult = hgmCore.SetScreenRefreshRate(id, sceneId, rate);
             if (setResult != 0) {
-                RS_LOGW("SetScreenRefreshRate request of screen %" PRIu64 " of rate %d is refused", id, rate);
+                RS_LOGW("SetScreenRefreshRate request of screen %{public}" PRIu64 " of rate %{public}d is refused",
+                    id, rate);
                 return;
             }
         }).wait();
@@ -392,7 +393,7 @@ void RSRenderServiceConnection::SetRefreshRateMode(int32_t refreshRateMode)
             auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
             int32_t setResult = hgmCore.SetRefreshRateMode(static_cast<RefreshRateMode>(refreshRateMode));
             if (setResult != 0) {
-                RS_LOGW("SetRefreshRateMode mode %d is not supported", refreshRateMode);
+                RS_LOGW("SetRefreshRateMode mode %{public}d is not supported", refreshRateMode);
                 return;
             } else {
                 RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(refreshRateMode));
@@ -403,7 +404,7 @@ void RSRenderServiceConnection::SetRefreshRateMode(int32_t refreshRateMode)
             auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
             int32_t setResult = hgmCore.SetRefreshRateMode(static_cast<RefreshRateMode>(refreshRateMode));
             if (setResult != 0) {
-                RS_LOGW("SetRefreshRateMode mode %d is not supported", refreshRateMode);
+                RS_LOGW("SetRefreshRateMode mode %{public}d is not supported", refreshRateMode);
                 return;
             } else {
                 RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(refreshRateMode));
@@ -421,7 +422,8 @@ uint32_t RSRenderServiceConnection::GetScreenCurrentRefreshRate(ScreenId id)
             auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
             int32_t rate = hgmCore.GetScreenCurrentRefreshRate(id);
             if (rate == 0) {
-                RS_LOGW("GetScreenCurrentRefreshRate failed to get current refreshrate of screen : %" PRIu64 "", id);
+                RS_LOGW("GetScreenCurrentRefreshRate failed to get current refreshrate of"
+                    " screen : %{public}" PRIu64 "", id);
             }
             return rate;
         }).get();
@@ -430,7 +432,8 @@ uint32_t RSRenderServiceConnection::GetScreenCurrentRefreshRate(ScreenId id)
             auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
             int32_t rate = hgmCore.GetScreenCurrentRefreshRate(id);
             if (rate == 0) {
-                RS_LOGW("GetScreenCurrentRefreshRate failed to get current refreshrate of screen : %" PRIu64 "", id);
+                RS_LOGW("GetScreenCurrentRefreshRate failed to get current refreshrate of screen"
+                    " : %{public}" PRIu64 "", id);
             }
             return rate;
         }).get();
@@ -484,7 +487,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
 {
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
     if (node == nullptr) {
-        RS_LOGW("RSRenderServiceConnection::TakeSurfaceCapture cannot find nodeId: [%" PRIu64 "]", id);
+        RS_LOGW("RSRenderServiceConnection::TakeSurfaceCapture cannot find nodeId: [%{public}" PRIu64 "]", id);
         callback->OnSurfaceCapture(id, nullptr);
         return;
     }
@@ -492,7 +495,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
         ((node->GetType() == RSRenderNodeType::SURFACE_NODE) &&
             (node->ReinterpretCastTo<RSSurfaceRenderNode>()->IsMainWindowType()))) {
         std::function<void()> captureTask = [scaleY, scaleX, callback, id]() -> void {
-            RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%" PRIu64 "]", id);
+            RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%{public}" PRIu64 "]", id);
             ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
             RSSurfaceCaptureTask task(id, scaleX, scaleY);
             std::unique_ptr<Media::PixelMap> pixelmap = task.Run();
@@ -509,7 +512,8 @@ void RSRenderServiceConnection::TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<R
     float scaleX, float scaleY)
 {
     std::function<void()> offscreenRenderTask = [scaleY, scaleX, callback, id, this]() -> void {
-        RS_LOGD("RSRenderService::TakeSurfaceCaptureForUIWithUni callback->OnOffscreenRender nodeId:[%" PRIu64 "]", id);
+        RS_LOGD("RSRenderService::TakeSurfaceCaptureForUIWithUni callback->OnOffscreenRender"
+            " nodeId:[%{public}" PRIu64 "]", id);
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCaptureForUIWithUni");
         std::shared_ptr<RSUniUICapture> rsUniUICapture =
             std::make_shared<RSUniUICapture>(id, scaleX, scaleY);
@@ -790,7 +794,7 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
 {
     auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(id);
     if (node == nullptr) {
-        RS_LOGE("RSRenderServiceConnection::GetBitmap cannot find NodeId: [%" PRIu64 "]", id);
+        RS_LOGE("RSRenderServiceConnection::GetBitmap cannot find NodeId: [%{public}" PRIu64 "]", id);
         return false;
     }
     if (node->GetType() != RSRenderNodeType::CANVAS_DRAWING_NODE) {

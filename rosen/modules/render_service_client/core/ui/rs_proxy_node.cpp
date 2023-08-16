@@ -47,15 +47,16 @@ RSProxyNode::SharedPtr RSProxyNode::Create(NodeId targetNodeId, std::string name
         transactionProxy->AddCommand(command, true);
     }
 
-    ROSEN_LOGD("RSProxyNode::Create, target node id:%" PRIu64 ", name %s proxy node id %" PRIu64, node->GetId(),
-        node->GetName().c_str(), proxyNodeId);
+    ROSEN_LOGD("RSProxyNode::Create, target node id:%{public}" PRIu64 ", name %s proxy node id %{public}" PRIu64,
+        node->GetId(), node->GetName().c_str(), proxyNodeId);
 
     return node;
 }
 
 RSProxyNode::~RSProxyNode()
 {
-    ROSEN_LOGD("RSProxyNode::~RSProxyNode, proxy id:%" PRIu64 " target:%" PRIu64, proxyNodeId_, GetId());
+    ROSEN_LOGD("RSProxyNode::~RSProxyNode, proxy id:%{public}" PRIu64 " target:%{public}" PRIu64,
+        proxyNodeId_, GetId());
 
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
@@ -72,7 +73,7 @@ RSProxyNode::~RSProxyNode()
         transactionProxy->AddCommand(command, true);
     }
 
-    ROSEN_LOGD("RSProxyNode::~RSProxyNode, id:%" PRIu64, GetId());
+    ROSEN_LOGD("RSProxyNode::~RSProxyNode, id:%{public}" PRIu64, GetId());
 }
 
 RSProxyNode::RSProxyNode(NodeId targetNodeId, std::string name) : RSNode(true), name_(std::move(name))

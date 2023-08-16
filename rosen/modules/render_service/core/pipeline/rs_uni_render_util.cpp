@@ -57,7 +57,7 @@ void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& no
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
         if (!surfaceDirtyManager->SetBufferAge(bufferAge)) {
-            ROSEN_LOGE("RSUniRenderUtil::MergeVisibleDirtyRegion with invalid buffer age %d", bufferAge);
+            ROSEN_LOGE("RSUniRenderUtil::MergeVisibleDirtyRegion with invalid buffer age %{public}d", bufferAge);
         }
         surfaceDirtyManager->IntersectDirtyRect(surfaceNode->GetOldDirtyInSurface());
         surfaceDirtyManager->UpdateDirty(useAlignedDirtyRegion);
@@ -173,11 +173,13 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceR
 #endif
         }
 #ifndef USE_ROSEN_DRAWING
-        RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown surfaceNode id:%" PRIu64 ", srcRect [%f %f %f %f]",
+        RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown surfaceNode id:%{public}" PRIu64 ","
+            " srcRect [%{public}f %{public}f %{public}f %{public}f]",
             node.GetId(), params.srcRect.left(), params.srcRect.top(),
             params.srcRect.width(), params.srcRect.height());
 #else
-        RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown surfaceNode id:%" PRIu64 ", srcRect [%f %f %f %f]",
+        RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown surfaceNode id:%{public}" PRIu64 ","
+            " srcRect [%{public}f %{public}f %{public}f %{public}f]",
             node.GetId(), params.srcRect.GetLeft(), params.srcRect.GetTop(),
             params.srcRect.GetWidth(), params.srcRect.GetHeight());
 #endif
@@ -583,7 +585,7 @@ void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRe
     node->SetCacheType(CacheType::NONE);
     HandleHardwareNode(node);
     if (changeThread) {
-        RS_LOGD("RSUniRenderUtil::AssignMainThreadNode clear cache surface:[%s, %llu]",
+        RS_LOGD("RSUniRenderUtil::AssignMainThreadNode clear cache surface:[%{public}s, %{public}" PRIu64 "]",
             node->GetName().c_str(), node->GetId());
         ClearCacheSurface(node, UNI_MAIN_THREAD_INDEX);
         node->SetTextureValidFlag(false);
@@ -713,7 +715,7 @@ void RSUniRenderUtil::ClearSurfaceIfNeed(const RSRenderNodeMap& map,
         auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
         if (tmpSet.count(surface) == 0) {
             if (surface && map.GetRenderNode(surface->GetId()) != nullptr) {
-                RS_LOGD("RSUniRenderUtil::ClearSurfaceIfNeed clear cache surface:[%s, %llu]",
+                RS_LOGD("RSUniRenderUtil::ClearSurfaceIfNeed clear cache surface:[%{public}s, %{public}" PRIu64 "]",
                     surface->GetName().c_str(), surface->GetId());
                 ClearCacheSurface(surface, UNI_MAIN_THREAD_INDEX);
                 surface->SetTextureValidFlag(false);
@@ -726,7 +728,7 @@ void RSUniRenderUtil::ClearSurfaceIfNeed(const RSRenderNodeMap& map,
 // for ui first
 void RSUniRenderUtil::ClearCacheSurface(const std::shared_ptr<RSSurfaceRenderNode>& node, uint32_t threadIndex)
 {
-    RS_LOGD("ClearCacheSurface node in correct thread: [%llu]", node->GetId());
+    RS_LOGD("ClearCacheSurface node in correct thread: [%{public}" PRIu64 "]", node->GetId());
     uint32_t cacheSurfaceThreadIndex = node->GetCacheSurfaceThreadIndex();
     if (cacheSurfaceThreadIndex == threadIndex) {
         node->ClearCacheSurface();
@@ -752,7 +754,7 @@ void RSUniRenderUtil::ClearCacheSurface(const std::shared_ptr<RSSurfaceRenderNod
 
 void RSUniRenderUtil::ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex)
 {
-    RS_LOGD("ClearCacheSurface node: [%llu]", node.GetId());
+    RS_LOGD("ClearCacheSurface node: [%{public}" PRIu64 "]", node.GetId());
     uint32_t cacheSurfaceThreadIndex = node.GetCacheSurfaceThreadIndex();
     uint32_t completedSurfaceThreadIndex = node.GetCompletedSurfaceThreadIndex();
     if (cacheSurfaceThreadIndex == threadIndex && completedSurfaceThreadIndex == threadIndex) {

@@ -98,7 +98,8 @@ RSRenderThread::RSRenderThread()
 #endif
         prevTimestamp_ = timestamp_;
         ProcessCommands();
-        ROSEN_LOGD("RSRenderThread DrawFrame(%" PRIu64 ") in %s", prevTimestamp_, renderContext_ ? "GPU" : "CPU");
+        ROSEN_LOGD("RSRenderThread DrawFrame(%{public}" PRIu64 ") in %{public}s",
+            prevTimestamp_, renderContext_ ? "GPU" : "CPU");
         Animate(prevTimestamp_);
         Render();
         SendCommands();
@@ -299,7 +300,8 @@ void RSRenderThread::UpdateWindowStatus(bool active)
     } else {
         activeWindowCnt_--;
     }
-    ROSEN_LOGD("RSRenderThread UpdateWindowStatus %d, cur activeWindowCnt_ %d", active, activeWindowCnt_.load());
+    ROSEN_LOGD("RSRenderThread UpdateWindowStatus %{public}d, cur activeWindowCnt_ %{public}d",
+        active, activeWindowCnt_.load());
 }
 
 void RSRenderThread::ProcessCommands()
@@ -338,7 +340,7 @@ void RSRenderThread::ProcessCommands()
         uiTimestamp_ = prevTimestamp_ - 1;
     }
 
-    ROSEN_LOGD("RSRenderThread ProcessCommands size: %lu\n", cmds_.size());
+    ROSEN_LOGD("RSRenderThread ProcessCommands size: %{public}lu\n", (unsigned long)cmds_.size());
     std::vector<std::unique_ptr<RSTransactionData>> cmds;
     std::swap(cmds, cmds_);
     cmdLock.unlock();
@@ -400,7 +402,7 @@ void RSRenderThread::Animate(uint64_t timestamp)
         }
         auto result = node->Animate(timestamp);
         if (!result.first) {
-            ROSEN_LOGD("RSRenderThread::Animate removing finished animating node %" PRIu64, node->GetId());
+            ROSEN_LOGD("RSRenderThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
         }
         needRequestNextVsync = needRequestNextVsync || result.second;
         return !result.first;

@@ -69,7 +69,7 @@ void RSAccessibilityOHOS::ListenHighContrast()
 
 void RSAccessibilityOHOS::Observer::OnConfigChanged(const CONFIG_ID id, const ConfigValue &value)
 {
-    ROSEN_LOGD("OnConfigChanged %d", static_cast<int>(id));
+    ROSEN_LOGD("OnConfigChanged %{public}d", static_cast<int>(id));
     auto &accessbility = RSAccessibilityOHOS::GetInstance();
     if (id == CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT && accessbility.onHighContrastChange_) {
         accessbility.onHighContrastChange_(value.highContrastText);

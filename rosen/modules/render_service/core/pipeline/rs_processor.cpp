@@ -49,7 +49,7 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 {
 #ifdef SOC_PERF_ENABLE
     OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(perfRequestCode, onOffTag, "");
-    RS_LOGD("RSProcessor::soc perf info [%d %d]", perfRequestCode, onOffTag);
+    RS_LOGD("RSProcessor::soc perf info [%{public}d %{public}d]", perfRequestCode, onOffTag);
 #endif
 }
 }
@@ -93,17 +93,17 @@ void RSProcessor::RequestPerf(uint32_t layerLevel, bool onOffTag)
         }
         case PERF_LEVEL_1: {
             PerfRequest(PERF_LEVEL_1_REQUESTED_CODE, onOffTag);
-            RS_LOGD("RsDebug RSProcessor::Perf: level1 %d", onOffTag);
+            RS_LOGD("RsDebug RSProcessor::Perf: level1 %{public}d", onOffTag);
             break;
         }
         case PERF_LEVEL_2: {
             PerfRequest(PERF_LEVEL_2_REQUESTED_CODE, onOffTag);
-            RS_LOGD("RsDebug RSProcessor::Perf: level2 %d", onOffTag);
+            RS_LOGD("RsDebug RSProcessor::Perf: level2 %{public}d", onOffTag);
             break;
         }
         default: {
             PerfRequest(PERF_LEVEL_3_REQUESTED_CODE, onOffTag);
-            RS_LOGD("RsDebug RSProcessor::Perf: level3 %d", onOffTag);
+            RS_LOGD("RsDebug RSProcessor::Perf: level3 %{public}d", onOffTag);
             break;
         }
     }

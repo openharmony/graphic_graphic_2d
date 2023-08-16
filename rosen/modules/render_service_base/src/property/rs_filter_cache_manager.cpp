@@ -49,8 +49,8 @@ void RSFilterCacheManager::UpdateCacheStateWithFilterHash(uint32_t filterHash)
 
     RS_OPTIONAL_TRACE_FUNC_BEGIN();
     ROSEN_LOGD(
-        "RSFilterCacheManager::UpdateCacheStateWithFilterHash Cache expired. Reason: Cached filtered snapshot %X "
-        "does not match filter hash %X.",
+        "RSFilterCacheManager::UpdateCacheStateWithFilterHash Cache expired. Reason: Cached filtered snapshot"
+        "%{public}X does not match filter hash %{public}X.",
         cachedFilterHash_, filterHash);
     InvalidateCache();
     RS_OPTIONAL_TRACE_FUNC_END();
@@ -107,8 +107,8 @@ void RSFilterCacheManager::UpdateCacheStateWithDirtyRegion(const RectI& dirtyReg
     // The underlying image is affected by the dirty region, determine if the cache should be invalidated by cache  age.
     // [PLANNING]: also take into account the filter radius / cache size / percentage of intersected area.
     if (cacheUpdateInterval_ > 0) {
-        ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Delaying cache invalidation for %d frames.",
-            cacheUpdateInterval_);
+        ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Delaying cache"
+            "invalidation for %{public}d frames.", cacheUpdateInterval_);
     } else {
         InvalidateCache();
     }
@@ -125,8 +125,8 @@ void RSFilterCacheManager::UpdateCacheStateWithDirtyRegion(bool isIntersectedWit
     // The underlying image is affected by the dirty region, determine if the cache should be invalidated by cache age.
     // [PLANNING]: also take into account the filter radius / cache size / percentage of intersected area.
     if (cacheUpdateInterval_ > 0) {
-        ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Delaying cache invalidation for %d frames.",
-            cacheUpdateInterval_);
+        ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Delaying cache "
+            "invalidation for %{public}d frames.", cacheUpdateInterval_);
     } else {
         InvalidateCache();
     }
@@ -266,7 +266,7 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     }
 #ifdef NEW_SKIA
     if (RSSystemProperties::GetImageGpuResourceCacheEnable(cachedImage_->width(), cachedImage_->height())) {
-        ROSEN_LOGD("TakeSnapshot cache image resource(width:%d, height:%d).",
+        ROSEN_LOGD("TakeSnapshot cache image resource(width:%{public}d, height:%{public}d).",
             cachedImage_->width(), cachedImage_->height());
         as_IB(cachedImage_)->hintCacheGpuResource();
     }
@@ -315,7 +315,7 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
     cachedImage_ = offscreenSurface->makeImageSnapshot();
 #ifdef NEW_SKIA
     if (RSSystemProperties::GetImageGpuResourceCacheEnable(cachedImage_->width(), cachedImage_->height())) {
-        ROSEN_LOGD("GenerateFilteredSnapshot cache image resource(width:%d, height:%d).",
+        ROSEN_LOGD("GenerateFilteredSnapshot cache image resource(width:%{public}d, height:%{public}d).",
             cachedImage_->width(), cachedImage_->height());
         as_IB(cachedImage_)->hintCacheGpuResource();
     }

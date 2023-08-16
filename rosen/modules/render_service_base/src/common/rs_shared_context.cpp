@@ -30,12 +30,12 @@ std::shared_ptr<RSSharedContext> RSSharedContext::MakeSharedGLContext(EGLContext
 {
     RS_TRACE_NAME_FMT("MakeSharedGLContext create egl ");
     if (context == EGL_NO_CONTEXT) {
-        RS_LOGE("eglGetCurrentContext failed err:%d", eglGetError());
+        RS_LOGE("eglGetCurrentContext failed err:%{public}d", eglGetError());
         return nullptr;
     }
     EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (display == EGL_NO_DISPLAY) {
-        RS_LOGE("eglGetDisplay failed err:%d", eglGetError());
+        RS_LOGE("eglGetDisplay failed err:%{public}d", eglGetError());
         return nullptr;
     }
     EGLint attributes[] = {
@@ -54,19 +54,19 @@ std::shared_ptr<RSSharedContext> RSSharedContext::MakeSharedGLContext(EGLContext
     EGLint config_count = 0;
     EGLConfig egl_config = nullptr;
     if (eglChooseConfig(display, attributes, &egl_config, 1, &config_count) != EGL_TRUE) {
-        RS_LOGE("Get EGLConfig failed err:%d", eglGetError());
+        RS_LOGE("Get EGLConfig failed err:%{public}d", eglGetError());
         return nullptr;
     }
     EGLint contextAttr[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
     EGLContext shareContext = eglCreateContext(display, egl_config, context, contextAttr);
     if (shareContext == EGL_NO_CONTEXT) {
-        RS_LOGE("eglCreateContext failed err:%d", eglGetError());
+        RS_LOGE("eglCreateContext failed err:%{public}d", eglGetError());
         return nullptr;
     }
     const EGLint attribs[] = { EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE };
     EGLSurface surface = eglCreatePbufferSurface(display, egl_config, attribs);
     if (surface == EGL_NO_SURFACE) {
-        RS_LOGE("eglCreatePbufferSurface failed err:%d", eglGetError());
+        RS_LOGE("eglCreatePbufferSurface failed err:%{public}d", eglGetError());
         eglDestroyContext(display, context);
         return nullptr;
     }

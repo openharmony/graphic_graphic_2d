@@ -34,7 +34,7 @@ public:
     {
 #ifdef ENABLE_IPC_SECURITY
         if (accessVerifier == nullptr) {
-            ROSEN_LOGE("%s: Initialization failed. Access verifier is nullptr.", caller.c_str());
+            ROSEN_LOGE("%{public}s: Initialization failed. Access verifier is nullptr.", caller.c_str());
             return;
         }
         accessVerifier_.reset();
@@ -48,12 +48,12 @@ public:
     {
 #ifdef ENABLE_IPC_SECURITY
         if (accessVerifier_ == nullptr) {
-            ROSEN_LOGE("%s: Verification failed. Access verifier is not initialized.", caller.c_str());
+            ROSEN_LOGE("%{public}s: Verification failed. Access verifier is not initialized.", caller.c_str());
             return false;
         }
         CodeUnderlyingType code = CastEnumToUnderlying<CodeEnumType>(enumCode);
         if (!accessVerifier_->IsInterfaceCodeAccessible(code, caller)) {
-            ROSEN_LOGE("%s: Verification failed. IPC Interface code is inaccessible.", caller.c_str());
+            ROSEN_LOGE("%{public}s: Verification failed. IPC Interface code is inaccessible.", caller.c_str());
             return false;
         }
 #endif

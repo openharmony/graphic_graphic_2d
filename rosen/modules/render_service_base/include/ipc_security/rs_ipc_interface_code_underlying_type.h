@@ -45,7 +45,8 @@ inline void CheckCodeUnderlyingTypeStandardized(const std::string& CodeEnumTypeN
 {
     constexpr bool isStandardized = std::is_same<std::underlying_type_t<CodeEnumType>, CodeUnderlyingType>::value;
     if (!isStandardized) {
-        ROSEN_LOGW("The underlying type of %s does not accord with standardized definition.", CodeEnumTypeName.c_str());
+        ROSEN_LOGW("The underlying type of %{public}s does not accord with standardized definition.",
+            CodeEnumTypeName.c_str());
     }
 }
 } // namespace Rosen

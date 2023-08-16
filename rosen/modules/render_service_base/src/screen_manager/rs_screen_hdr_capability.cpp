@@ -86,8 +86,8 @@ bool RSScreenHDRCapability::ReadVector(std::vector<ScreenHDRFormat>& unmarFormat
     size_t readableSize = parcel.GetReadableBytes() / sizeof(ScreenHDRFormat);
     size_t len = static_cast<size_t>(size);
     if (len > readableSize || len > unmarFormats.max_size()) {
-        RS_LOGE("RSScreenHDRCapability ReadVector Failed to read vector, size:%zu, readableSize:%zu", len,
-            readableSize);
+        RS_LOGE("RSScreenHDRCapability ReadVector Failed to read vector, size:%{public}zu,"
+            " readableSize:%{public}zu", len, readableSize);
         return false;
     }
     for (uint32_t index = 0; index < size; index++) {

@@ -59,7 +59,7 @@ void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
         if (flat->hdr.type == BINDER_TYPE_FD && flat->handle > 0) {
             int32_t val = dup(flat->handle);
             if (val < 0) {
-                ROSEN_LOGW("CopyFileDescriptor dup failed, fd:%d", val);
+                ROSEN_LOGW("CopyFileDescriptor dup failed, fd:%{public}d", val);
             }
             copiedFlat->handle = static_cast<uint32_t>(val);
         }

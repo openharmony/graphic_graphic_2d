@@ -223,7 +223,7 @@ void DrawCmdList::UpdateNodeIdToPicture(NodeId nodeId)
     for (size_t i = 0; i < imageIndexs_.size(); i++) {
         auto index = imageIndexs_[i];
         if (index > ops_.size()) {
-            RS_LOGW("DrawCmdList::UpdateNodeIdToPicture index[%d] error", index);
+            RS_LOGW("DrawCmdList::UpdateNodeIdToPicture index[%{public}d] error", index);
             continue;
         }
         ops_[index]->SetNodeId(nodeId);

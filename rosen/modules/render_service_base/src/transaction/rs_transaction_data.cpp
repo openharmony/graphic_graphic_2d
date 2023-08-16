@@ -61,7 +61,7 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
         }
         success = success && command->Marshalling(parcel);
         if (!success) {
-            ROSEN_LOGE("failed RSTransactionData::Marshalling type:%s", command->PrintType().c_str());
+            ROSEN_LOGE("failed RSTransactionData::Marshalling type:%{public}s", command->PrintType().c_str());
             return false;
         }
         ++marshallingIndex_;
@@ -74,8 +74,8 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
         // correct command size recorded in Parcel
         *reinterpret_cast<int32_t*>(parcel.GetData() + recordPosition) = static_cast<int32_t>(marshaledSize);
         ROSEN_LOGW("RSTransactionData::Marshalling data split to several parcels"
-                   ", marshaledSize:%zu, marshallingIndex_:%zu, total count:%zu"
-                   ", parcel size:%zu, threshold:%zu",
+                   ", marshaledSize:%{public}zu, marshallingIndex_:%{public}zu, total count:%{public}zu"
+                   ", parcel size:%{public}zu, threshold:%{public}zu",
             marshaledSize, marshallingIndex_, payload_.size(), parcel.GetDataSize(), PARCEL_SPLIT_THRESHOLD);
     }
     success = success && parcel.WriteBool(needSync_);
@@ -132,8 +132,8 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
     size_t readableSize = parcel.GetReadableBytes();
     size_t len = static_cast<size_t>(commandSize);
     if (len > readableSize || len > payload_.max_size()) {
-        ROSEN_LOGE("RSTransactionData UnmarshallingCommand Failed read vector, size:%zu, readAbleSize:%zu",
-            len, readableSize);
+        ROSEN_LOGE("RSTransactionData UnmarshallingCommand Failed read vector, size:%{public}zu,"
+            " readAbleSize:%{public}zu", len, readableSize);
         return false;
     }
 
@@ -164,8 +164,8 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         }
         auto command = (*func)(parcel);
         if (command == nullptr) {
-            ROSEN_LOGE("failed RSTransactionData::UnmarshallingCommand, type=%d subtype=%d", commandType,
-                commandSubType);
+            ROSEN_LOGE("failed RSTransactionData::UnmarshallingCommand, type=%{public}d subtype=%{public}d",
+                commandType, commandSubType);
             return false;
         }
         payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));

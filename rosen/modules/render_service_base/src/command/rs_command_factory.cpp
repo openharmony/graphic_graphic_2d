@@ -57,8 +57,8 @@ void RSCommandFactory::Register(uint16_t type, uint16_t subtype, UnmarshallingFu
 {
     auto result = unmarshallingFuncLUT_.try_emplace(MakeKey(type, subtype), func);
     if (!result.second) {
-        ROSEN_LOGE("RSCommandFactory::Register, Duplicate command & sub_command detected! type: %d subtype: %d", type,
-            subtype);
+        ROSEN_LOGE("RSCommandFactory::Register, Duplicate command & sub_command detected!"
+            " type: %{public}d subtype: %{public}d", type, subtype);
     }
 }
 
@@ -66,7 +66,8 @@ UnmarshallingFunc RSCommandFactory::GetUnmarshallingFunc(uint16_t type, uint16_t
 {
     auto it = unmarshallingFuncLUT_.find(MakeKey(type, subtype));
     if (it == unmarshallingFuncLUT_.end()) {
-        ROSEN_LOGE("RSCommandFactory::GetUnmarshallingFunc, Func is not found, type=%d subtype=%d", type, subtype);
+        ROSEN_LOGE("RSCommandFactory::GetUnmarshallingFunc, Func is not found,"
+            " type=%{public}d subtype=%{public}d", type, subtype);
         return nullptr;
     }
     return it->second;

@@ -57,7 +57,7 @@ public:
         if (enabled_ == true && canvas != nullptr) {
             auto listener = std::make_shared<RSCanvasListenerImpl>(*canvas);
             if (listener->IsValid() == false) {
-                ROSEN_LOGD("CreateListener %s failed", listener->Name());
+                ROSEN_LOGD("CreateListener %{public}s failed", listener->Name());
                 return nullptr;
             }
             return listener;

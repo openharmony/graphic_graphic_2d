@@ -52,14 +52,15 @@ void RSUniRenderProcessor::PostProcess()
 {
     uniComposerAdapter_->CommitLayers(layers_);
     MultiLayersPerf(layerNum);
-    RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%zu", layers_.size());
+    RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
 
 void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
     auto layer = uniComposerAdapter_->CreateLayer(node);
     if (layer == nullptr) {
-        RS_LOGE("RSUniRenderProcessor::ProcessSurface: failed to createLayer for node(id: %" PRIu64 ")", node.GetId());
+        RS_LOGE("RSUniRenderProcessor::ProcessSurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
+            node.GetId());
         return;
     }
     node.MarkCurrentFrameHardwareEnabled();
@@ -70,7 +71,7 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
 {
     auto layer = uniComposerAdapter_->CreateLayer(node);
     if (layer == nullptr) {
-        RS_LOGE("RSUniRenderProcessor::ProcessDisplaySurface: failed to createLayer for node(id: %" PRIu64 ")",
+        RS_LOGE("RSUniRenderProcessor::ProcessDisplaySurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
             node.GetId());
         return;
     }
@@ -95,7 +96,7 @@ void RSUniRenderProcessor::ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node)
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     auto layer = uniComposerAdapter_->CreateLayer(node);
     if (layer == nullptr) {
-        RS_LOGE("RSUniRenderProcessor::ProcessDrivenSurface: failed to createLayer for node(id: %" PRIu64 ")",
+        RS_LOGE("RSUniRenderProcessor::ProcessDrivenSurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
             node.GetId());
         return;
     }

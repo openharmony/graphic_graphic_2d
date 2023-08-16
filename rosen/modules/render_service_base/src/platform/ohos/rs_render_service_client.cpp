@@ -157,7 +157,7 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
 
 void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap)
 {
-    ROSEN_LOGI("RSRenderServiceClient::Into TriggerSurfaceCaptureCallback nodeId:[%" PRIu64 "]", id);
+    ROSEN_LOGI("RSRenderServiceClient::Into TriggerSurfaceCaptureCallback nodeId:[%{public}" PRIu64 "]", id);
     std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector;
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -531,12 +531,12 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(
     auto iter = isFromRenderThread ? bufferAvailableCbRTMap_.find(id) : bufferAvailableCbUIMap_.find(id);
     if (isFromRenderThread && iter != bufferAvailableCbRTMap_.end()) {
         ROSEN_LOGW("RSRenderServiceClient::RegisterBufferAvailableListener "
-                   "Node %" PRIu64 " already, bufferAvailableCbRTMap_", iter->first);
+                   "Node %{public}" PRIu64 " already, bufferAvailableCbRTMap_", iter->first);
     }
 
     if (!isFromRenderThread && iter != bufferAvailableCbUIMap_.end()) {
         ROSEN_LOGW("RSRenderServiceClient::RegisterBufferAvailableListener "
-                   "Node %" PRIu64 " already, bufferAvailableCbUIMap_", iter->first);
+                   "Node %{public}" PRIu64 " already, bufferAvailableCbUIMap_", iter->first);
     }
 
     sptr<RSIBufferAvailableCallback> bufferAvailableCb = new CustomBufferAvailableCallback(callback);
@@ -568,16 +568,14 @@ bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
         bufferAvailableCbRTMap_.erase(iter);
     } else {
         ROSEN_LOGD("RSRenderServiceClient::UnregisterBufferAvailableListener "
-                   "Node %" PRIu64 " has not registered RT callback",
-            id);
+                   "Node %{public}" PRIu64 " has not registered RT callback", id);
     }
     iter = bufferAvailableCbUIMap_.find(id);
     if (iter != bufferAvailableCbUIMap_.end()) {
         bufferAvailableCbUIMap_.erase(iter);
     } else {
         ROSEN_LOGD("RSRenderServiceClient::UnregisterBufferAvailableListener "
-                   "Node %" PRIu64 " has not registered UI callback",
-            id);
+                   "Node %{public}" PRIu64 " has not registered UI callback", id);
     }
     return true;
 }

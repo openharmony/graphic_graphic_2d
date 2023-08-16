@@ -16,7 +16,7 @@
 #define DFXSTRING_H
 #include <stdarg.h>
 #include <string>
-#include "securec.h"
+#include <securec.h>
 
 namespace OHOS::Rosen {
 constexpr int STRING_BUF_SIZE = 4096;
@@ -58,7 +58,6 @@ private:
         }
         return result;
     }
-    
     std::string str_;
 };
 } // namespace OHOS::Rosen

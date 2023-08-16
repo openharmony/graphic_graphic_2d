@@ -74,7 +74,7 @@ void RSPathAnimation::SetBeginFraction(float fraction)
     }
 
     if (fraction < FRACTION_MIN || fraction > FRACTION_MAX || fraction > endFraction_) {
-        ROSEN_LOGE("Failed to set begin fraction, invalid value:%f", fraction);
+        ROSEN_LOGE("Failed to set begin fraction, invalid value:%{public}f", fraction);
         return;
     }
 
@@ -94,7 +94,7 @@ void RSPathAnimation::SetEndFraction(float fraction)
     }
 
     if (fraction < FRACTION_MIN || fraction > FRACTION_MAX || fraction < beginFraction_) {
-        ROSEN_LOGE("Failed to set end fraction, invalid value:%f", fraction);
+        ROSEN_LOGE("Failed to set end fraction, invalid value:%{public}f", fraction);
         return;
     }
 
@@ -296,7 +296,7 @@ void RSPathAnimation::ReplaceSubString(std::string& sourceStr, const std::string
         sourceStr.replace(position, subStr.length(), newStr);
     }
 
-    ROSEN_LOGD("SVG path:%s", sourceStr.c_str());
+    ROSEN_LOGD("SVG path:%{public}s", sourceStr.c_str());
 }
 
 const std::shared_ptr<RSPath> RSPathAnimation::ProcessPath(const std::string& path, const float startX,

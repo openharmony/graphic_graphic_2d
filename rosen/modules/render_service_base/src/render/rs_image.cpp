@@ -191,8 +191,8 @@ void RSImage::UploadGpu(SkCanvas& canvas)
                 image_ = image;
                 RSImageCache::Instance().CacheSkiaImage(uniqueId_, image);
             } else {
-                RS_LOGE("make astc image %d (%d, %d) failed, size:%d", uniqueId_,
-                    (int)srcRect_.width_, (int)srcRect_.height_, compressData_->size());
+                RS_LOGE("make astc image %{public}" PRIu64 " (%{public}d, %{public}d) failed",
+                    uniqueId_, (int)srcRect_.width_, (int)srcRect_.height_);
             }
             compressData_ = nullptr;
         }
@@ -220,7 +220,8 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
                 image_ = image;
                 RSImageCache::Instance().CacheDrawingImage(uniqueId_, image);
             } else {
-                RS_LOGE("make astc image %d (%d, %d) failed", uniqueId_, (int)srcRect_.width_, (int)srcRect_.height_);
+                RS_LOGE("make astc image %{public}d (%{public}d, %{public}d) failed",
+                    uniqueId_, (int)srcRect_.width_, (int)srcRect_.height_);
             }
             compressData_ = nullptr;
         }

@@ -1781,7 +1781,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         std::shared_ptr<Media::PixelMap> pixelMap = std::make_shared<Media::PixelMap>();
         ret &= RSMarshallingHelper::Unmarshalling(parcel, pixelMap);
         if (!ret) {
-            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList pixelMap: %d", i);
+            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList pixelMap: %{public}d", i);
             return ret;
         }
         pixelMapVec.emplace_back(pixelMap);
@@ -2002,7 +2002,7 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
         return false;
     }
     if (size > MAX_DATA_SIZE) {
-        ROSEN_LOGD("RSMarshallingHelper::WriteToParcel data exceed MAX_DATA_SIZE, size:%zu", size);
+        ROSEN_LOGD("RSMarshallingHelper::WriteToParcel data exceed MAX_DATA_SIZE, size:%{public}zu", size);
     }
 
     if (!parcel.WriteUint32(size)) {
@@ -2096,13 +2096,13 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::unique_ptr<OpItem>&
     }
     auto func = DrawCmdList::GetOpUnmarshallingFunc(type);
     if (!func) {
-        ROSEN_LOGW("unirender: opItem Unmarshalling func not define, optype = %d", type);
+        ROSEN_LOGW("unirender: opItem Unmarshalling func not define, optype = %{public}d", type);
         return false;
     }
 
     OpItem* item = (*func)(parcel);
     if (!item) {
-        ROSEN_LOGE("unirender: failed opItem Unmarshalling, optype = %d", type);
+        ROSEN_LOGE("unirender: failed opItem Unmarshalling, optype = %{public}d", type);
         return false;
     }
 

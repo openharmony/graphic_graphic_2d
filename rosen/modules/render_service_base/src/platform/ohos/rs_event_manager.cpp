@@ -88,7 +88,7 @@ void RSEventManager::UpdateDetectorParam(std::shared_ptr<RSBaseEventDetector> de
     for (const auto& item : paramList) {
         std::string paraName = "rosen.RsDFXEvent." + detectorPtr->GetStringId() +
             "." + item.first;
-        RS_LOGD("RSEventManager::UpdateDetectorParam paraName: %s", paraName.c_str());
+        RS_LOGD("RSEventManager::UpdateDetectorParam paraName: %{public}s", paraName.c_str());
         detectorPtr->SetParam(item.first, RSSystemProperties::GetRSEventProperty(paraName));
     }
 }
@@ -106,15 +106,15 @@ void RSEventManager::UpdateEventIntervalMs(std::shared_ptr<RSBaseEventDetector> 
     }
     std::string paraName = "rosen.RsDFXEvent." + detectorPtr->GetStringId() +
         ".eventIntervalMs";
-    RS_LOGD("RSEventManager::UpdateEventIntervalMs paraName: %s", paraName.c_str());
+    RS_LOGD("RSEventManager::UpdateEventIntervalMs paraName: %{public}s", paraName.c_str());
     int valueInt = atoi(RSSystemProperties::GetRSEventProperty(paraName).c_str());
     if (valueInt <= 0 || valueInt > 1000000) { // 1000000 ms ->1000s
-        RS_LOGD("RSEventManager::UpdateEventIntervalMs detector:%s Invaild Value:%d",
+        RS_LOGD("RSEventManager::UpdateEventIntervalMs detector:%{public}s Invaild Value:%{public}d",
             detectorPtr->GetStringId().c_str(), valueInt);
         return;
     }
     eventStateList_[detectorPtr->GetStringId()].eventIntervalMs = valueInt;
-    RS_LOGD("RSEventManager::UpdateEventIntervalMs detector:%s eventIntervalMs:%d suceess",
+    RS_LOGD("RSEventManager::UpdateEventIntervalMs detector:%{public}s eventIntervalMs:%{public}d suceess",
         detectorPtr->GetStringId().c_str(), valueInt);
 }
 
@@ -147,7 +147,7 @@ void RSEventManager::AddEvent(const std::shared_ptr<RSBaseEventDetector>& detect
     {
         std::unique_lock<std::mutex> listLock(listMutex_);
         if (eventDetectorList_.count(detectorPtr->GetStringId()) != 0) {
-            RS_LOGD("RSEventManager::AddEvent %s failed ", detectorPtr->GetStringId().c_str());
+            RS_LOGD("RSEventManager::AddEvent %{public}s failed ", detectorPtr->GetStringId().c_str());
             return;
         }
         detectorPtr->AddEventReportCallback([this](const RSSysEventMsg& eventMsg) {
@@ -159,7 +159,7 @@ void RSEventManager::AddEvent(const std::shared_ptr<RSBaseEventDetector>& detect
             0
         };
         eventStateList_[detectorPtr->GetStringId()] = state;
-        RS_LOGD("RSEventManager::AddEvent %s success ", detectorPtr->GetStringId().c_str());
+        RS_LOGD("RSEventManager::AddEvent %{public}s success ", detectorPtr->GetStringId().c_str());
     }
 }
 
@@ -167,19 +167,19 @@ void RSEventManager::RemoveEvent(std::string stringId)
 {
     std::unique_lock<std::mutex> listLock(listMutex_);
     if (eventDetectorList_.count(stringId) != 0) {
-        RS_LOGD("RSEventManager::RemoveEvent %s failed ", stringId.c_str());
+        RS_LOGD("RSEventManager::RemoveEvent %{public}s failed ", stringId.c_str());
         return;
     }
     eventDetectorList_.erase(stringId);
     eventStateList_.erase(stringId);
-    RS_LOGD("RSEventManager::RemoveEvent %s success ", stringId.c_str());
+    RS_LOGD("RSEventManager::RemoveEvent %{public}s success ", stringId.c_str());
 }
 
 void RSEventManager::EventReport(const RSSysEventMsg& eventMsg)
 {
     std::unique_lock<std::mutex> listLock(listMutex_);
     if (eventStateList_.count(eventMsg.stringId) == 0) {
-        RS_LOGD("RSEventManager::EventReport %s failed ", eventMsg.stringId.c_str());
+        RS_LOGD("RSEventManager::EventReport %{public}s failed ", eventMsg.stringId.c_str());
         return;
     }
     RSEventState& state = eventStateList_[eventMsg.stringId];
@@ -204,7 +204,7 @@ void RSEventManager::EventReport(const RSSysEventMsg& eventMsg)
                     "MSG", eventMsg.msg);
             }
             state.prevEventTimeStampMs = currentTimeMs;
-            RS_LOGD("RSEventManager::EventReport %s success ", eventMsg.stringId.c_str());
+            RS_LOGD("RSEventManager::EventReport %{public}s success ", eventMsg.stringId.c_str());
     }
 }
 }

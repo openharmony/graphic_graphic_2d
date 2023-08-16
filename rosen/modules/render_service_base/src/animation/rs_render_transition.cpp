@@ -104,7 +104,7 @@ void RSRenderTransition::OnAttach()
     // update number of disappearing transition animation
     if (!isTransitionIn_) {
         target->disappearingTransitionCount_++;
-        ROSEN_LOGD("RSRenderTransition::OnAttach, target have %u disappearing Transitions",
+        ROSEN_LOGD("RSRenderTransition::OnAttach, target have %{public}u disappearing Transitions",
             target->disappearingTransitionCount_);
     }
 }
@@ -123,7 +123,7 @@ void RSRenderTransition::OnDetach()
     // update number of disappearing transition animation
     if (!isTransitionIn_) {
         target->disappearingTransitionCount_--;
-        ROSEN_LOGD("RSRenderTransition::OnDetach, target have %u disappearing Transitions",
+        ROSEN_LOGD("RSRenderTransition::OnDetach, target have %{public}u disappearing Transitions",
             target->disappearingTransitionCount_);
         if (target->disappearingTransitionCount_ == 0) {
             target->InternalRemoveSelfFromDisappearingChildren();

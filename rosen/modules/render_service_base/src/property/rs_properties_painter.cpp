@@ -238,7 +238,7 @@ bool RSPropertiesPainter::GetGravityMatrix(Gravity gravity, RectF rect, float w,
             return true;
         }
         default: {
-            ROSEN_LOGE("GetGravityMatrix unknow gravity=[%d]", gravity);
+            ROSEN_LOGE("GetGravityMatrix unknow gravity=[%{public}d]", gravity);
             return false;
         }
     }
@@ -358,7 +358,7 @@ bool RSPropertiesPainter::GetGravityMatrix(Gravity gravity, RectF rect, float w,
             return true;
         }
         default: {
-            ROSEN_LOGE("GetGravityMatrix unknow gravity=[%d]", gravity);
+            ROSEN_LOGE("GetGravityMatrix unknow gravity=[%{public}d]", gravity);
             return false;
         }
     }
@@ -1091,7 +1091,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         return;
     }
     if (RSSystemProperties::GetImageGpuResourceCacheEnable(imageSnapshot->width(), imageSnapshot->height())) {
-        ROSEN_LOGD("DrawFilter cache image resource(width:%d, height:%d).",
+        ROSEN_LOGD("DrawFilter cache image resource(width:%{public}d, height:%{public}d).",
             imageSnapshot->width(), imageSnapshot->height());
         as_IB(imageSnapshot)->hintCacheGpuResource();
     }
@@ -1991,7 +1991,7 @@ void RSPropertiesPainter::DrawSpherize(const RSProperties& properties, RSPaintFi
     float height = imageSnapshot->height();
     float degree = properties.GetSpherize();
     bool isWidthGreater = width > height;
-    ROSEN_LOGI("RSPropertiesPainter::DrawCachedSpherizeSurface spherize degree [%f]", degree);
+    ROSEN_LOGI("RSPropertiesPainter::DrawCachedSpherizeSurface spherize degree [%{public}f]", degree);
 
     const SkPoint texCoords[4] = {
         {0.0f, 0.0f}, {width, 0.0f}, {width, height}, {0.0f, height}
@@ -2205,7 +2205,7 @@ sk_sp<SkShader> RSPropertiesPainter::MakeDynamicLightUpShader(
     )";
     auto [effect, err] = SkRuntimeEffect::MakeForShader(SkString(prog));
     if (!effect) {
-        ROSEN_LOGE("MakeDynamicLightUpShader::RuntimeShader effect error: %s\n", err.c_str());
+        ROSEN_LOGE("MakeDynamicLightUpShader::RuntimeShader effect error: %{public}s\n", err.c_str());
         return nullptr;
     }
     SkRuntimeShaderBuilder builder(effect);

@@ -109,7 +109,7 @@ template<typename RSAnimatableType>
 float RSSpringModel<RSAnimatableType>::EstimateDuration() const
 {
     if (dampingRatio_ <= 0.0f) {
-        ROSEN_LOGE("RSSpringModel::%s, uninitialized spring model", __func__);
+        ROSEN_LOGE("RSSpringModel::%{public}s, uninitialized spring model", __func__);
         return 0.0f;
     }
 
@@ -139,7 +139,7 @@ template<typename RSAnimatableType>
 RSAnimatableType RSSpringModel<RSAnimatableType>::CalculateDisplacement(double time) const
 {
     if (dampingRatio_ <= 0.0f) {
-        ROSEN_LOGE("RSSpringModel::%s, uninitialized spring model", __func__);
+        ROSEN_LOGE("RSSpringModel::%{public}s, uninitialized spring model", __func__);
         return {};
     }
     double coeffDecay = exp(coeffDecay_ * time);
@@ -198,7 +198,7 @@ template<>
 float RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>::EstimateDuration() const
 {
     if (dampingRatio_ <= 0.0f) {
-        ROSEN_LOGE("RSSpringModel::%s, uninitialized spring model", __func__);
+        ROSEN_LOGE("RSSpringModel::%{public}s, uninitialized spring model", __func__);
         return 0.0f;
     }
 
@@ -229,7 +229,7 @@ std::shared_ptr<RSRenderPropertyBase> RSSpringModel<std::shared_ptr<RSRenderProp
     double time) const
 {
     if (dampingRatio_ <= 0.0f) {
-        ROSEN_LOGE("RSSpringModel::%s, uninitialized spring model", __func__);
+        ROSEN_LOGE("RSSpringModel::%{public}s, uninitialized spring model", __func__);
         return {};
     }
     double coeffDecay = exp(coeffDecay_ * time);
@@ -252,12 +252,12 @@ template<>
 float RSSpringModel<float>::EstimateDuration() const
 {
     if (dampingRatio_ < 0.0f) {
-        ROSEN_LOGE("RSSpringModel::%s, uninitialized spring model", __func__);
+        ROSEN_LOGE("RSSpringModel::%{public}s, uninitialized spring model", __func__);
         return 0.0f;
     }
     if (response_ < 0.0f || (ROSEN_EQ(initialOffset_, 0.0f) && ROSEN_EQ(initialVelocity_, 0.0f)) ||
         !std::isfinite(response_) || !std::isfinite(dampingRatio_) || !std::isfinite(initialVelocity_)) {
-        ROSEN_LOGE("RSSpringModel::%s, parameters is invalid", __func__);
+        ROSEN_LOGE("RSSpringModel::%{public}s, parameters is invalid", __func__);
         return 0.0f;
     }
     float estimatedDuration = 0.0f;

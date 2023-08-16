@@ -20,6 +20,7 @@
 #include "modifier/rs_property.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {

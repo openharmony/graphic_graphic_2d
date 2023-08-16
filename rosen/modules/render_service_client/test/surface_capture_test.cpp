@@ -176,7 +176,8 @@ void DrawPixelmap(std::shared_ptr<RSSurfaceNode> surfaceNode, std::shared_ptr<Me
     int height = pixelmap->GetHeight();
     int sWidth = surfaceNode->GetStagingProperties().GetBoundsWidth();
     int sHeight = surfaceNode->GetStagingProperties().GetBoundsHeight();
-    ROSEN_LOGD("SurfaceCaptureTest: DrawPxielmap [%u][%u][%u][%u]", width, height, sWidth, sHeight);
+    ROSEN_LOGD("SurfaceCaptureTest: DrawPxielmap [%{public}u][%{public}u][%{public}u][%{public}u]",
+        width, height, sWidth, sHeight);
     auto frame = rsSurface->RequestFrame(sWidth, sHeight);
     if (frame == nullptr) {
         ROSEN_LOGE("***SurfaceCaptureTest*** : frame == nullptr");

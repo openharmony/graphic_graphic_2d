@@ -104,7 +104,6 @@ public:
     void SetRTRenderForced(bool isRenderForced)
     {
         if ((isRTRenderForced_ != isRenderForced)) {
-            ROSEN_LOGD("RSRenderThread::SetRenderForced %d -> %d", isRTRenderForced_, isRenderForced);
             isRTRenderForced_ = isRenderForced;
         }
     }

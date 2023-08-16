@@ -64,7 +64,7 @@ void RSRenderPathAnimation::SetBeginFraction(float fraction)
     }
 
     if (fraction < FRACTION_MIN || fraction > FRACTION_MAX || fraction > endFraction_) {
-        ROSEN_LOGE("Failed to set begin fraction, invalid value:%f", fraction);
+        ROSEN_LOGE("Failed to set begin fraction, invalid value:%{public}f", fraction);
         return;
     }
 
@@ -84,7 +84,7 @@ void RSRenderPathAnimation::SetEndFraction(float fraction)
     }
 
     if (fraction < FRACTION_MIN || fraction > FRACTION_MAX || fraction < beginFraction_) {
-        ROSEN_LOGE("Failed to set end fraction, invalid value:%f", fraction);
+        ROSEN_LOGE("Failed to set end fraction, invalid value:%{public}f", fraction);
         return;
     }
 

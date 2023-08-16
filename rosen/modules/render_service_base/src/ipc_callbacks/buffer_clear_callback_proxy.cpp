@@ -41,7 +41,7 @@ void RSBufferClearCallbackProxy::OnBufferClear()
     uint32_t code = static_cast<uint32_t>(RSIBufferClearCallbackInterfaceCode::ON_BUFFER_CLEAR);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSBufferClearCallbackProxy::OnBufferClear error = %d", err);
+        ROSEN_LOGE("RSBufferClearCallbackProxy::OnBufferClear error = %{public}d", err);
     }
 }
 } // namespace Rosen

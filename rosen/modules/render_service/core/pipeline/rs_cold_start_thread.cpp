@@ -52,7 +52,7 @@ static void SystemCallSetThreadName(const std::string& name)
 RSColdStartThread::RSColdStartThread(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode, NodeId surfaceNodeId)
     : surfaceNode_(surfaceRenderNode), surfaceNodeId_(surfaceNodeId)
 {
-    RS_LOGD("RSColdStartThread surfaceNodeId:%" PRIu64 "", surfaceNodeId);
+    RS_LOGD("RSColdStartThread surfaceNodeId:%{public}" PRIu64 "", surfaceNodeId);
 #ifdef RS_ENABLE_GL
     thread_ = std::make_unique<std::thread>(&RSColdStartThread::Run, this, eglGetCurrentContext());
 #else
@@ -106,7 +106,7 @@ void RSColdStartThread::Stop()
 #else
 #ifdef RS_ENABLE_GL
         if (gpuContext_ != nullptr) {
-            RS_LOGE("[%s:%d] Drawing is not supported", __func__, __LINE__);
+            RS_LOGE("[%{public}s:%{public}d] Drawing is not supported", __func__, __LINE__);
             gpuContext_ = nullptr;
         }
 #endif
@@ -126,7 +126,7 @@ void RSColdStartThread::Stop()
         thread_->detach();
     }
     RSMainThread::Instance()->PostTask([id = surfaceNodeId_]() {
-        RS_LOGD("RSMainThread DestroyColdStartThread id:%" PRIu64 "", id);
+        RS_LOGD("RSMainThread DestroyColdStartThread id:%{public}" PRIu64 "", id);
         RSColdStartManager::Instance().DestroyColdStartThread(id);
     });
 }
@@ -319,7 +319,7 @@ void RSColdStartManager::StartColdStartThreadIfNeed(std::shared_ptr<RSSurfaceRen
     }
     auto id = surfaceNode->GetId();
     if (coldStartThreadMap_.count(id) == 0) {
-        RS_LOGD("RSColdStartManager::StartColdStartThread id:%" PRIu64 "", id);
+        RS_LOGD("RSColdStartManager::StartColdStartThread id:%{public}" PRIu64 "", id);
         coldStartThreadMap_[id] = std::make_unique<RSColdStartThread>(surfaceNode, id);
     }
 }
@@ -327,14 +327,14 @@ void RSColdStartManager::StartColdStartThreadIfNeed(std::shared_ptr<RSSurfaceRen
 void RSColdStartManager::StopColdStartThread(NodeId id)
 {
     if (coldStartThreadMap_.count(id) != 0 && coldStartThreadMap_[id] != nullptr) {
-        RS_LOGD("RSColdStartManager::StopColdStartThread id:%" PRIu64 "", id);
+        RS_LOGD("RSColdStartManager::StopColdStartThread id:%{public}" PRIu64 "", id);
         coldStartThreadMap_[id]->Stop();
     }
 }
 
 void RSColdStartManager::DestroyColdStartThread(NodeId id)
 {
-    RS_LOGD("RSColdStartManager::DestroyColdStartThread id:%" PRIu64 "", id);
+    RS_LOGD("RSColdStartManager::DestroyColdStartThread id:%{public}" PRIu64 "", id);
     coldStartThreadMap_.erase(id);
 }
 

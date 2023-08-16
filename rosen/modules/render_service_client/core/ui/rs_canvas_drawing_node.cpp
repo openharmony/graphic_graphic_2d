@@ -64,7 +64,7 @@ bool RSCanvasDrawingNode::GetBitmap(SkBitmap& bitmap, std::shared_ptr<DrawCmdLis
         auto node =
             RSRenderThread::Instance().GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(GetId());
         if (node == nullptr) {
-            RS_LOGE("RSCanvasDrawingNode::GetBitmap cannot find NodeId: [%" PRIu64 "]", GetId());
+            RS_LOGE("RSCanvasDrawingNode::GetBitmap cannot find NodeId: [%{public}" PRIu64 "]", GetId());
             return false;
         }
         if (node->GetType() != RSRenderNodeType::CANVAS_DRAWING_NODE) {
@@ -89,7 +89,7 @@ bool RSCanvasDrawingNode::GetBitmap(SkBitmap& bitmap, std::shared_ptr<DrawCmdLis
 bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
 {
-    ROSEN_LOGE("[%s:%d] Drawing is not supported", __func__, __LINE__);
+    ROSEN_LOGE("[%{public}s:%{public}d] Drawing is not supported", __func__, __LINE__);
     return false;
 }
 #endif

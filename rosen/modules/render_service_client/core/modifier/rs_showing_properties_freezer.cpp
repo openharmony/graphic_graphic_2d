@@ -21,6 +21,7 @@
 #include "modifier/rs_property_modifier.h"
 #include "pipeline/rs_node_map.h"
 #include "ui/rs_node.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,18 +37,20 @@ std::optional<T> RSShowingPropertiesFreezer::GetPropertyImpl() const
     auto iter = node->propertyModifiers_.find(Type);
     if (iter == node->propertyModifiers_.end()) {
         ROSEN_LOGE(
-            "RSShowingPropertiesFreezer::GetPropertyImpl Type %d failed, no such property!", static_cast<int>(Type));
+            "RSShowingPropertiesFreezer::GetPropertyImpl Type %{public}d failed, no such property!",
+            static_cast<int>(Type));
         return std::nullopt;
     }
     auto property = std::static_pointer_cast<RSAnimatableProperty<T>>(iter->second->GetProperty());
     if (property == nullptr) {
         ROSEN_LOGE(
-            "RSShowingPropertiesFreezer::GetPropertyImpl Type %d failed, property is null!", static_cast<int>(Type));
+            "RSShowingPropertiesFreezer::GetPropertyImpl Type %{public}d failed, property is null!",
+            static_cast<int>(Type));
         return std::nullopt;
     }
     bool success = property->GetShowingValueAndCancelAnimation();
     if (!success) {
-        ROSEN_LOGE("RSShowingPropertiesFreezer::GetPropertyImpl Type %d failed, cancel animation failed!",
+        ROSEN_LOGE("RSShowingPropertiesFreezer::GetPropertyImpl Type %{public}d failed, cancel animation failed!",
             static_cast<int>(Type));
         return std::nullopt;
     }

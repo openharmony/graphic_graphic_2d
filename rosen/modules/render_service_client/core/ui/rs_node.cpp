@@ -1063,14 +1063,14 @@ bool RSNode::AnimationCallback(AnimationId animationId, AnimationCallbackEvent e
         std::unique_lock<std::mutex> lock(animationMutex_);
         auto animationItr = animations_.find(animationId);
         if (animationItr == animations_.end()) {
-            ROSEN_LOGE("Failed to find animation[%" PRIu64 "]!", animationId);
+            ROSEN_LOGE("Failed to find animation[%{public}" PRIu64 "]!", animationId);
             return false;
         }
         animation = animationItr->second;
     }
 
     if (animation == nullptr) {
-        ROSEN_LOGE("Failed to callback animation[%" PRIu64 "], animation is null!", animationId);
+        ROSEN_LOGE("Failed to callback animation[%{public}" PRIu64 "], animation is null!", animationId);
         return false;
     }
     if (event == FINISHED) {
@@ -1081,7 +1081,7 @@ bool RSNode::AnimationCallback(AnimationId animationId, AnimationCallbackEvent e
         animation->CallRepeatCallback();
         return true;
     }
-    ROSEN_LOGE("Failed to callback animation event[%" PRIu64 "], event is null!", event);
+    ROSEN_LOGE("Failed to callback animation event[%{public}d], event is null!", event);
     return false;
 }
 
@@ -1386,7 +1386,7 @@ void RSNode::InitUniRenderEnabled()
     if (!inited) {
         inited = true;
         g_isUniRenderEnabled = RSSystemProperties::GetUniRenderEnabled();
-        ROSEN_LOGD("RSNode::InitUniRenderEnabled:%d", g_isUniRenderEnabled);
+        ROSEN_LOGD("RSNode::InitUniRenderEnabled:%{public}d", g_isUniRenderEnabled);
     }
 }
 

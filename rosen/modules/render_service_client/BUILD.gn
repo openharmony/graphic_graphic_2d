@@ -165,6 +165,11 @@ template("render_service_client_source_set") {
         external_deps = []
       }
     }
+    if (defined(external_deps)) {
+      external_deps += [ "hilog:libhilog" ]
+    } else {
+      external_deps = [ "hilog:libhilog" ]
+    }
 
     if (rss_enabled) {
       defines += [ "OHOS_RSS_CLIENT" ]

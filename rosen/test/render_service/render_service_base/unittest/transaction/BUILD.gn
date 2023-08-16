@@ -54,6 +54,7 @@ ohos_unittest("RSRenderServiceBaseTransactionTest") {
   }
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
   ]

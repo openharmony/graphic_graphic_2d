@@ -42,7 +42,7 @@ void RSOcclusionChangeCallbackProxy::OnOcclusionVisibleChanged(std::shared_ptr<R
     uint32_t code = static_cast<uint32_t>(RSIOcclusionChangeCallbackInterfaceCode::ON_OCCLUSION_VISIBLE_CHANGED);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderOcclusionChangeCallbackProxy::OnOcclusionVisibleChanged error = %d", err);
+        ROSEN_LOGE("RSRenderOcclusionChangeCallbackProxy::OnOcclusionVisibleChanged error = %{public}d", err);
     }
 }
 } // namespace Rosen

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "platform/common/rs_log.h"
 #include "rs_driven_render_ext.h"
 #include <dlfcn.h>
 

@@ -80,8 +80,8 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
         AddCommonCommand(command);
         return;
     }
-    ROSEN_LOGE("RSTransactionProxy::AddCommand failed, isRenderServiceCommand:%d %s", isRenderServiceCommand,
-        command->PrintType().c_str());
+    ROSEN_LOGE("RSTransactionProxy::AddCommand failed, isRenderServiceCommand:%{public}d %{public}s",
+        isRenderServiceCommand, command->PrintType().c_str());
 }
 
 void RSTransactionProxy::AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
@@ -113,7 +113,8 @@ void RSTransactionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask
         return;
     }
 
-    ROSEN_LOGE("RSTransactionProxy::ExecuteSynchronousTask failed, isRenderServiceTask is %d.", isRenderServiceTask);
+    ROSEN_LOGE("RSTransactionProxy::ExecuteSynchronousTask failed, isRenderServiceTask is %{public}d.",
+        isRenderServiceTask);
 }
 
 void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std::string& abilityName)

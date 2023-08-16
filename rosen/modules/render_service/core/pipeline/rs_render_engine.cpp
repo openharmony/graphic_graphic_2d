@@ -18,6 +18,7 @@
 #include "string_utils.h"
 #include "render/rs_skia_filter.h"
 #include "rs_trace.h"
+#include "platform/common/rs_log.h"
 
 #ifdef USE_ROSEN_DRAWING
 #include "image/image.h"
@@ -93,11 +94,12 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
 #endif
                 continue;
             }
-            RS_LOGD("RSRenderEngine::DrawLayers dstRect[%d %d %d %d]", layer->GetLayerSize().x,
-                    layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
+            RS_LOGD("RSRenderEngine::DrawLayers dstRect[%{public}d %{public}d %{public}d %{public}d]",
+                layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
             const std::vector<GraphicIRect>& dirtyRegions = layer->GetDirtyRegions();
             for (auto iter = dirtyRegions.begin(); iter != dirtyRegions.end(); iter++) {
-                RS_LOGD("RSRenderEngine::DrawLayers SrcRect[%d %d %d %d]", iter->x, iter->y, iter->w, iter->h);
+                RS_LOGD("RSRenderEngine::DrawLayers SrcRect[%{public}d %{public}d %{public}d %{public}d]",
+                    iter->x, iter->y, iter->w, iter->h);
             }
             DrawSurfaceNode(canvas, node, mirrorAdaptiveCoefficient, forceCPU);
         } else {
@@ -237,7 +239,7 @@ void RSRenderEngine::ClipHoleForLayer(RSPaintFilterCanvas& canvas, RSSurfaceRend
 #ifndef USE_ROSEN_DRAWING
     AppendFormat(traceInfo, "Node name:%s ClipHole[%d %d %d %d]", node.GetName().c_str(),
         params.clipRect.x(), params.clipRect.y(), params.clipRect.width(), params.clipRect.height());
-    RS_LOGD("RSRenderEngine::Redraw layer composition ClipHoleForLayer, %s.", traceInfo.c_str());
+    RS_LOGD("RSRenderEngine::Redraw layer composition ClipHoleForLayer, %{public}s.", traceInfo.c_str());
     RS_TRACE_NAME(traceInfo);
 
     canvas.save();
@@ -247,7 +249,7 @@ void RSRenderEngine::ClipHoleForLayer(RSPaintFilterCanvas& canvas, RSSurfaceRend
 #else
     AppendFormat(traceInfo, "Node name:%s ClipHole[%d %d %d %d]", node.GetName().c_str(),
         params.clipRect.GetLeft(), params.clipRect.GetTop(), params.clipRect.GetWidth(), params.clipRect.GetHeight());
-    RS_LOGD("RSRenderEngine::Redraw layer composition ClipHoleForLayer, %s.", traceInfo.c_str());
+    RS_LOGD("RSRenderEngine::Redraw layer composition ClipHoleForLayer, %{public}s.", traceInfo.c_str());
     RS_TRACE_NAME(traceInfo);
 
     canvas.Save();
@@ -266,7 +268,7 @@ void RSRenderEngine::SetColorFilterModeToPaint(Drawing::Brush& paint)
 {
     // for test automation
     if (colorFilterMode_ != ColorFilterMode::COLOR_FILTER_END) {
-        RS_LOGD("RSRenderEngine::SetColorFilterModeToPaint mode:%d", static_cast<int32_t>(colorFilterMode_));
+        RS_LOGD("RSRenderEngine::SetColorFilterModeToPaint mode:%{public}d", static_cast<int32_t>(colorFilterMode_));
     }
     RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode_, paint);
 }

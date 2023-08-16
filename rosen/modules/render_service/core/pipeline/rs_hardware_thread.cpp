@@ -182,7 +182,7 @@ void RSHardwareThread::PerformSetActiveMode()
                 ", h: " + std::to_string(mode.GetScreenHeight()) +
                 ", rate: " + std::to_string(mode.GetScreenRefreshRate()) +
                 ", id: " + std::to_string(mode.GetScreenModeId());
-            RS_LOGD(temp.c_str());
+            RS_LOGD("%{public}s", temp.c_str());
         }
 
         screenManager->SetScreenActiveMode(id, modeId);

@@ -148,7 +148,7 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 {
 #ifdef SOC_PERF_ENABLE
     OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(perfRequestCode, onOffTag, "");
-    RS_LOGD("RSMainThread::soc perf info [%d %d]", perfRequestCode, onOffTag);
+    RS_LOGD("RSMainThread::soc perf info [%{public}d %{public}d]", perfRequestCode, onOffTag);
 #endif
 }
 }
@@ -509,8 +509,8 @@ void RSMainThread::CheckParallelSubThreadNodesStatus()
             if (pid == 0) {
                 continue;
             }
-            RS_LOGD("RSMainThread::CheckParallelSubThreadNodesStatus pid = %s, node name: %s, id: %llu",
-                std::to_string(pid).c_str(), node->GetName().c_str(), node->GetId());
+            RS_LOGD("RSMainThread::CheckParallelSubThreadNodesStatus pid = %{public}s, node name: %{public}s,"
+                "id: %{public}" PRIu64 "", std::to_string(pid).c_str(), node->GetName().c_str(), node->GetId());
             if (cacheCmdSkippedInfo_.count(pid) == 0) {
                 cacheCmdSkippedInfo_[pid] = std::make_pair(std::vector<NodeId>{node->GetId()}, false);
             } else {
@@ -601,7 +601,8 @@ void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDat
                 ++lastIndex;
                 transactionFlags += " [" + std::to_string(pid) + "," + std::to_string(curIndex) + "]";
             } else {
-                RS_LOGE("%s wait curIndex:%llu, lastIndex:%llu, pid:%d", __FUNCTION__, curIndex, lastIndex, pid);
+                RS_LOGE("%{public}s wait curIndex:%{public}" PRIu64 ", lastIndex:%{public}" PRIu64 ", pid:%{public}d",
+                    __FUNCTION__, curIndex, lastIndex, pid);
                 if (transactionDataLastWaitTime_[pid] == 0) {
                     transactionDataLastWaitTime_[pid] = timestamp_;
                 }
@@ -609,7 +610,8 @@ void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDat
                     transactionDataLastWaitTime_[pid] = 0;
                     lastIndex = curIndex;
                     transactionFlags += " skip to[" + std::to_string(pid) + "," + std::to_string(curIndex) + "]";
-                    RS_LOGE("%s skip to index:%llu, pid:%d", __FUNCTION__, curIndex, pid);
+                    RS_LOGE("%{public}s skip to index:%{public}" PRIu64 ", pid:%{public}d",
+                        __FUNCTION__, curIndex, pid);
                     continue;
                 }
                 break;
@@ -730,8 +732,8 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
 
     if (!syncTransactionData_.empty() && syncTransactionData_.begin()->second.front() &&
         (syncTransactionData_.begin()->second.front()->GetSyncId() > rsTransactionData->GetSyncId())) {
-        ROSEN_LOGD("RSMainThread ProcessSyncRSTransactionData while syncId less GetCommandCount: %lu pid: %llu",
-            rsTransactionData->GetCommandCount(), rsTransactionData->GetSendingPid());
+        ROSEN_LOGD("RSMainThread ProcessSyncRSTransactionData while syncId less GetCommandCount: %{public}lu"
+            "pid: %{public}d", rsTransactionData->GetCommandCount(), rsTransactionData->GetSendingPid());
         ProcessRSTransactionData(rsTransactionData, pid);
         return;
     }
@@ -768,7 +770,7 @@ void RSMainThread::ProcessAllSyncTransactionData()
 {
     for (auto& [pid, transactions] : syncTransactionData_) {
         for (auto& transaction: transactions) {
-            ROSEN_LOGD("RSMainThread ProcessAllSyncTransactionData GetCommandCount: %lu pid: %llu",
+            ROSEN_LOGD("RSMainThread ProcessAllSyncTransactionData GetCommandCount: %{public}lu pid: %{public}d",
                 transaction->GetCommandCount(), pid);
             ProcessRSTransactionData(transaction, pid);
         }
@@ -960,7 +962,7 @@ void RSMainThread::ReleaseAllNodesBuffer()
                             fence = preBuffer.releaseFence]() mutable {
                             auto ret = consumer->ReleaseBuffer(buffer, fence);
                             if (ret != OHOS::SURFACE_ERROR_OK) {
-                                RS_LOGW("surfaceHandler ReleaseBuffer failed(ret: %d)!", ret);
+                                RS_LOGW("surfaceHandler ReleaseBuffer failed(ret: %{public}d)!", ret);
                             }
                         };
                         preBuffer.Reset();
@@ -1051,7 +1053,7 @@ void RSMainThread::MergeToEffectiveTransactionDataMap(TransactionDataMap& cached
     for (auto& elem : cachedTransactionDataMap) {
         auto pid = elem.first;
         if (effectiveTransactionDataIndexMap_.count(pid) == 0) {
-            RS_LOGE("RSMainThread::MergeToEffectiveTransactionDataMap pid:%d not valid, skip it", pid);
+            RS_LOGE("RSMainThread::MergeToEffectiveTransactionDataMap pid:%{public}d not valid, skip it", pid);
             continue;
         }
         InsertToEnd(elem.second, effectiveTransactionDataIndexMap_[pid].second);
@@ -1253,7 +1255,7 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
         } else {
             occlusionRect = Occlusion::Rect {curSurface->GetDstRect()};
         }
-        RS_LOGD("RSMainThread::CalcOcclusionImplementation name: %s id: %llu rect: %s",
+        RS_LOGD("RSMainThread::CalcOcclusionImplementation name: %{public}s id: %{public}" PRIu64 " rect: %{public}s",
             curSurface->GetName().c_str(), curSurface->GetId(), occlusionRect.GetRectInfo().c_str());
         curSurface->setQosCal(qosPidCal_);
         if (CheckSurfaceNeedProcess(occlusionSurfaces, curSurface)) {
@@ -1308,7 +1310,8 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
 void RSMainThread::CalcOcclusion()
 {
     RS_TRACE_NAME("RSMainThread::CalcOcclusion");
-    RS_LOGD("RSMainThread::CalcOcclusion animate:%d isUniRender:%d", doWindowAnimate_.load(), isUniRender_);
+    RS_LOGD("RSMainThread::CalcOcclusion animate:%{public}d isUniRender:%{public}d",
+        doWindowAnimate_.load(), isUniRender_);
     if (doWindowAnimate_ && !isUniRender_) {
         return;
     }
@@ -1412,7 +1415,6 @@ void RSMainThread::CallbackToWMS(VisibleData& curVisVec)
         std::lock_guard<std::mutex> lock(occlusionMutex_);
         for (auto it = occlusionListeners_.begin(); it != occlusionListeners_.end(); it++) {
             if (it->second) {
-                RS_LOGD("RSMainThread::CallbackToWMS curVisVec size:%u", curVisVec.size());
                 it->second->OnOcclusionVisibleChanged(std::make_shared<RSOcclusionData>(curVisVec));
             }
         }
@@ -1431,7 +1433,7 @@ void RSMainThread::RequestNextVSync()
     if (receiver_ != nullptr) {
         requestNextVsyncNum_++;
         if (requestNextVsyncNum_ > REQUEST_VSYNC_NUMBER_LIMIT) {
-            RS_LOGW("RSMainThread::RequestNextVSync too many times:%d", requestNextVsyncNum_);
+            RS_LOGW("RSMainThread::RequestNextVSync too many times:%{public}d", requestNextVsyncNum_);
         }
         receiver_->RequestNextVSync(fcb);
     }
@@ -1497,7 +1499,7 @@ void RSMainThread::Animate(uint64_t timestamp)
         }
         auto [hasRunningAnimation, nodeNeedRequestNextVsync] = node->Animate(timestamp);
         if (!hasRunningAnimation) {
-            RS_LOGD("RSMainThread::Animate removing finished animating node %" PRIu64, node->GetId());
+            RS_LOGD("RSMainThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
         }
         // request vsync if: 1. node has running animation, or 2. transition animation just ended
         needRequestNextVsync = needRequestNextVsync || nodeNeedRequestNextVsync || (node.use_count() == 1);
@@ -1514,8 +1516,7 @@ void RSMainThread::Animate(uint64_t timestamp)
         RSQosThread::ResetQosPid();
     }
     doWindowAnimate_ = curWinAnim;
-    RS_LOGD("RSMainThread::Animate end, %d animating nodes remains, has window animation: %d",
-        context_->animatingNodeList_.size(), curWinAnim);
+    RS_LOGD("RSMainThread::Animate end, animating nodes remains, has window animation: %{public}d", curWinAnim);
 
     if (needRequestNextVsync) {
         RequestNextVSync();
@@ -1549,7 +1550,7 @@ void RSMainThread::ClassifyRSTransactionData(std::unique_ptr<RSTransactionData>&
     std::lock_guard<std::mutex> lock(transitionDataMutex_);
     std::unique_ptr<RSTransactionData> transactionData(std::move(rsTransactionData));
     auto timestamp = transactionData->GetTimestamp();
-    RS_LOGD("RSMainThread::RecvRSTransactionData timestamp = %" PRIu64, timestamp);
+    RS_LOGD("RSMainThread::RecvRSTransactionData timestamp = %{public}" PRIu64, timestamp);
     for (auto& [nodeId, followType, command] : transactionData->GetPayload()) {
         if (nodeId == 0 || followType == FollowType::NONE) {
             pendingEffectiveCommands_[timestamp].emplace_back(std::move(command));
@@ -1626,9 +1627,8 @@ void RSMainThread::SendCommands()
             auto pid = transactionIter.first;
             auto appIter = applicationAgentMap_.find(pid);
             if (appIter == applicationAgentMap_.end()) {
-                RS_LOGW(
-                    "RSMainThread::SendCommand no application agent registered as pid %d, this will cause memory leak!",
-                    pid);
+                RS_LOGW("RSMainThread::SendCommand no application agent registered as pid %{public}d,"
+                    "this will cause memory leak!", pid);
                 continue;
             }
             auto& app = appIter->second;
@@ -1714,7 +1714,7 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
     std::lock_guard<std::mutex> lock(transitionDataMutex_);
     if (effectiveTransactionDataIndexMap_.count(remotePid) > 0 &&
         !effectiveTransactionDataIndexMap_[remotePid].second.empty()) {
-        RS_LOGD("RSMainThread::ClearTransactionDataPidInfo process:%d destroyed, skip commands", remotePid);
+        RS_LOGD("RSMainThread::ClearTransactionDataPidInfo process:%{public}d destroyed, skip commands", remotePid);
     }
     effectiveTransactionDataIndexMap_.erase(remotePid);
     transactionDataLastWaitTime_.erase(remotePid);
@@ -1723,7 +1723,7 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
     // CLEAN_CACHE_FREQ to prevent multiple cleanups in a short period of time
     if ((timestamp_ - lastCleanCacheTimestamp_) / REFRESH_PERIOD > CLEAN_CACHE_FREQ) {
 #ifdef RS_ENABLE_GL
-        RS_LOGD("RSMainThread: clear cpu cache pid:%d", remotePid);
+        RS_LOGD("RSMainThread: clear cpu cache pid:%{public}d", remotePid);
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_RENDER_CONTEXT
         auto grContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
@@ -1735,7 +1735,7 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         if (!IsResidentProcess(remotePid)) {
             ReleaseExitSurfaceNodeAllGpuResource(grContext);
         } else {
-            RS_LOGW("this pid:%d is resident process, no need release gpu resource", remotePid);
+            RS_LOGW("this pid:%{public}d is resident process, no need release gpu resource", remotePid);
         }
 #ifdef NEW_SKIA
         grContext->flushAndSubmit(true);
@@ -1751,7 +1751,7 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         if (!IsResidentProcess(remotePid)) {
             ReleaseExitSurfaceNodeAllGpuResource(gpuContext);
         } else {
-            RS_LOGW("this pid:%d is resident process, no need release gpu resource", remotePid);
+            RS_LOGW("this pid:%{public}d is resident process, no need release gpu resource", remotePid);
         }
 #endif // USE_ROSEN_DRAWING
         lastCleanCacheTimestamp_ = timestamp_;
@@ -1958,7 +1958,7 @@ void RSMainThread::AddTransactionDataPidInfo(pid_t remotePid)
     }
     std::lock_guard<std::mutex> lock(transitionDataMutex_);
     if (effectiveTransactionDataIndexMap_.count(remotePid) > 0) {
-        RS_LOGW("RSMainThread::AddTransactionDataPidInfo remotePid:%d already exists", remotePid);
+        RS_LOGW("RSMainThread::AddTransactionDataPidInfo remotePid:%{public}d already exists", remotePid);
     }
     effectiveTransactionDataIndexMap_[remotePid].first = 0;
 }

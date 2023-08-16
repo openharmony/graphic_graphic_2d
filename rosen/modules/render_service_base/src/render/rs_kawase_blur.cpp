@@ -53,14 +53,14 @@ KawaseBlurFilter::KawaseBlurFilter()
 
     auto [blurEffect, error] = SkRuntimeEffect::MakeForShader(blurString);
     if (!blurEffect) {
-        ROSEN_LOGE("KawaseBlurFilter::RuntimeShader blurEffect error: %s\n", error.c_str());
+        ROSEN_LOGE("KawaseBlurFilter::RuntimeShader blurEffect error: %{public}s\n", error.c_str());
         return;
     }
     blurEffect_ = std::move(blurEffect);
 
     auto [mixEffect, error2] = SkRuntimeEffect::MakeForShader(mixString);
     if (!mixEffect) {
-        ROSEN_LOGE("KawaseBlurFilter::RuntimeShader mixEffect error: %s\n", error2.c_str());
+        ROSEN_LOGE("KawaseBlurFilter::RuntimeShader mixEffect error: %s{public}\n", error2.c_str());
         return;
     }
     mixEffect_ = std::move(mixEffect);

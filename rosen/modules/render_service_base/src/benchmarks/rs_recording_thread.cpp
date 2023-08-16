@@ -52,7 +52,7 @@ bool RSRecordingThread::CheckAndRecording()
     RSTaskMessage::RSTask task = [this]() {
         std::string line = "RSRecordingThread::CheckAndRecording curDumpFrame = " + std::to_string(curDumpFrame_) +
             ", dumpFrameNum = " + std::to_string(dumpFrameNum_);
-        RS_LOGD(line.c_str());
+        RS_LOGD("%{public}s", line.c_str());
         isRecordingEnabled_ = RSSystemProperties::GetRecordingEnabled();
         // init curDumpFrame
         if (isRecordingEnabled_ && curDumpFrame_ == 0) {
@@ -72,7 +72,7 @@ void RSRecordingThread::FinishRecordingOneFrame()
 {
     std::string line = "RSRecordingThread::FinishRecordingOneFrame curDumpFrame = " + std::to_string(curDumpFrame_) +
         ", dumpFrameNum = " + std::to_string(dumpFrameNum_);
-    RS_LOGD(line.c_str());
+    RS_LOGD("%{public}s", line.c_str());
     RS_TRACE_NAME(line);
     if (curDumpFrame_ < dumpFrameNum_) {
         curDumpFrame_++;
@@ -109,7 +109,7 @@ void RSRecordingThread::RecordingToFile(const std::shared_ptr<Drawing::DrawCmdLi
     RSTaskMessage::RSTask task = [this, tmpCurDumpFrame, drawCmdList, messageParcel]() {
         std::string line = "RSRecordingThread::RecordingToFile curDumpFrame = " + std::to_string(curDumpFrame_) +
             ", dumpFrameNum = " + std::to_string(dumpFrameNum_);
-        RS_LOGD(line.c_str());
+        RS_LOGD("%{public}s", line.c_str());
         RS_TRACE_NAME(line);
         // file name
         std::string drawCmdListFile = fileDir_ + "/frame" + std::to_string(tmpCurDumpFrame) + ".drawing";

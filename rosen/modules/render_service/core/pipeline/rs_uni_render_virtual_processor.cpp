@@ -46,7 +46,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     auto screenManager = CreateOrGetScreenManager();
     producerSurface_ = screenManager->GetProducerSurface(node.GetScreenId());
     if (producerSurface_ == nullptr) {
-        RS_LOGE("RSUniRenderVirtualProcessor::Init for Screen(id %" PRIu64 "): ProducerSurface is null!",
+        RS_LOGE("RSUniRenderVirtualProcessor::Init for Screen(id %{public}" PRIu64 "): ProducerSurface is null!",
             node.GetScreenId());
         return false;
     }

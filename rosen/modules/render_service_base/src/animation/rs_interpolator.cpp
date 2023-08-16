@@ -22,6 +22,7 @@
 #include "animation/rs_cubic_bezier_interpolator.h"
 #include "animation/rs_spring_interpolator.h"
 #include "animation/rs_steps_interpolator.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {

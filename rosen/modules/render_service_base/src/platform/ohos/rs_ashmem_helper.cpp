@@ -37,14 +37,14 @@ std::unique_ptr<AshmemAllocator> AshmemAllocator::CreateAshmemAllocator(size_t s
 
     int fd = AshmemCreate(name.c_str(), size);
     if (fd < 0) {
-        ROSEN_LOGE("CreateAshmemAllocator: AshmemCreate failed, fd:%d", fd);
+        ROSEN_LOGE("CreateAshmemAllocator: AshmemCreate failed, fd:%{public}d", fd);
         return nullptr;
     }
     auto allocator = std::make_unique<AshmemAllocator>(fd, size);
 
     int result = AshmemSetProt(fd, PROT_READ | PROT_WRITE);
     if (result < 0) {
-        ROSEN_LOGE("CreateAshmemAllocator: AshmemSetProt failed, result:%d", result);
+        ROSEN_LOGE("CreateAshmemAllocator: AshmemSetProt failed, result:%{public}d", result);
         return nullptr;
     }
 
@@ -103,7 +103,7 @@ bool AshmemAllocator::WriteToAshmem(const void *data, size_t size)
     }
     errno_t err = memcpy_s(data_, size, data, size);
     if (err != EOK) {
-        ROSEN_LOGE("AshmemAllocator::WriteToAshmem memcpy_s failed, err:%d", err);
+        ROSEN_LOGE("AshmemAllocator::WriteToAshmem memcpy_s failed, err:%{public}d", err);
         return false;
     }
     return true;
@@ -116,7 +116,7 @@ void* AshmemAllocator::CopyFromAshmem(size_t size)
     }
     void* base = malloc(size);
     if (base == nullptr) {
-        ROSEN_LOGE("AshmemAllocator::CopyFromAshmem malloc failed, size:%zu", size);
+        ROSEN_LOGE("AshmemAllocator::CopyFromAshmem malloc failed, size:%{public}zu", size);
         return nullptr;
     }
 
@@ -124,7 +124,7 @@ void* AshmemAllocator::CopyFromAshmem(size_t size)
     if (err != EOK) {
         free(base);
         base = nullptr;
-        ROSEN_LOGE("AshmemAllocator::CopyFromAshmem memcpy_s failed, err:%d", err);
+        ROSEN_LOGE("AshmemAllocator::CopyFromAshmem memcpy_s failed, err:%{public}d", err);
         return nullptr;
     }
     return base;
@@ -183,7 +183,7 @@ void RSAshmemHelper::CopyFileDescriptor(
         const flat_binder_object* flat = reinterpret_cast<flat_binder_object*>(data + object[i]);
         if (flat->hdr.type == BINDER_TYPE_FD) {
             if (!ashmemParcel->WriteFileDescriptor(flat->handle)) {
-                ROSEN_LOGE("RSAshmemHelper::CopyFileDescriptor failed, fd:%d", flat->handle);
+                ROSEN_LOGE("RSAshmemHelper::CopyFileDescriptor failed, fd:%{public}d", flat->handle);
             }
         }
     }
@@ -203,7 +203,7 @@ void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataPa
         if (flat->hdr.type == BINDER_TYPE_FD || flat->hdr.type == BINDER_TYPE_FDR) {
             int32_t val = ashmemParcel->ReadFileDescriptor();
             if (val < 0) {
-                ROSEN_LOGW("RSAshmemHelper::InjectFileDescriptor failed, fd:%d", val);
+                ROSEN_LOGW("RSAshmemHelper::InjectFileDescriptor failed, fd:%{public}d", val);
             }
             flat->handle = static_cast<uint32_t>(val);
         }
