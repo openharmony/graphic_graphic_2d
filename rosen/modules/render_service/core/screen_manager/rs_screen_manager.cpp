@@ -142,9 +142,7 @@ void RSScreenManager::OnHwcDeadEvent()
             if (screen->IsVirtual()) {
                 continue;
             } else {
-                auto surfaceId = screen->GetOutput()->GetFrameBufferSurface()->GetUniqueId();
                 screen->GetOutput()->GetFrameBufferSurface()->CleanCache();
-                RSHardwareThread::Instance().CleanRenderFrame(surfaceId);
             }
         }
     }

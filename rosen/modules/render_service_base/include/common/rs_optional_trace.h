@@ -56,4 +56,20 @@
         }                                                                   \
     } while (0)
 
+#define RS_APPOINTED_TRACE_BEGIN(node, name)                           \
+    do {                                                             \
+        if (Rosen::RSSystemProperties::GetDebugTraceEnabled() ||     \
+            Rosen::RSSystemProperties::FindNodeInTargetList(node)) { \
+            RS_TRACE_BEGIN(name);                                         \
+        }                                                            \
+    } while (0)
+
+#define RS_APPOINTED_TRACE_END(node)                                  \
+    do {                                                             \
+        if (Rosen::RSSystemProperties::GetDebugTraceEnabled() ||     \
+            Rosen::RSSystemProperties::FindNodeInTargetList(node)) { \
+            RS_TRACE_END();                                          \
+        }                                                            \
+    } while (0)
+
 #endif // RENDER_SERVICE_BASE_COMMON_OPTIONAL_TRACE

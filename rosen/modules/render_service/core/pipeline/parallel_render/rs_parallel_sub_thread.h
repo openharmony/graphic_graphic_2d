@@ -51,7 +51,7 @@ class RSParallelSubThread {
 public:
     explicit RSParallelSubThread(int threadIndex);
 #ifdef NEW_RENDER_CONTEXT
-    RSParallelSubThread(std::shared_ptr<RenderContextBase> renderContext, ParallelRenderType renderType,
+    RSParallelSubThread(std::shared_ptr<RenderContextBase> context, ParallelRenderType renderType,
         int threadIndex);
 #else
     RSParallelSubThread(RenderContext *context, ParallelRenderType renderType, int threadIndex);

@@ -29,11 +29,11 @@ class RSB_EXPORT RSTagTracker {
 public:
     enum TAGTYPE : uint32_t {
         TAG_DRAW_SURFACENODE = 1, // don't change head and tail, insert the middle if u add data.
+        TAG_SUB_THREAD,
         TAG_SAVELAYER_DRAW_NODE,
         TAG_RESTORELAYER_DRAW_NODE,
         TAG_SAVELAYER_COLOR_FILTER,
         TAG_COLD_START,
-        TAG_SUB_THREAD,
         TAG_ACQUIRE_SURFACE,
         TAG_FILTER,
         TAG_RENDER_FRAME,

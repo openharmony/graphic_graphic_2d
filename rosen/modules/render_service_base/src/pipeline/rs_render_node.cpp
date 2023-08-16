@@ -526,7 +526,7 @@ bool RSRenderNode::IsClipBound() const
 
 bool RSRenderNode::Update(
     RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
-    bool isClipBoundDirty, std::optional<RectI> clipRect)
+    std::optional<RectI> clipRect)
 {
     // no need to update invisible nodes
     if (!ShouldPaint() && !isLastVisible_) {
@@ -548,6 +548,7 @@ bool RSRenderNode::Update(
     }
 #endif
     // in some case geodirty_ is not marked in drawCmdModifiers_, we should update node geometry
+    // [planing] using drawcmdModifierDirty from dirtyType_
     parentDirty |= (dirtyStatus_ != NodeDirty::CLEAN);
     auto parentProperties = parent ? &parent->GetRenderProperties() : nullptr;
     bool dirty = renderProperties_.UpdateGeometry(parentProperties, parentDirty, offset, GetContextClipRegion());
@@ -569,9 +570,7 @@ bool RSRenderNode::Update(
     // 2. Filter must be valid when filter cache manager is valid, we make sure that in RSRenderNode::ApplyModifiers().
     UpdateFilterCacheWithDirty(dirtyManager, false);
 #endif
-    if (!isClipBoundDirty) {
-        UpdateDirtyRegion(dirtyManager, dirty, clipRect);
-    }
+    UpdateDirtyRegion(dirtyManager, dirty, clipRect);
     return dirty;
 }
 
@@ -1070,7 +1069,8 @@ bool RSRenderNode::NeedInitCacheSurface() const
         return true;
     }
     auto cacheType = GetCacheType();
-    float width = 0.0f, height = 0.0f;
+    int width = 0;
+    int height = 0;
     if (cacheType == CacheType::ANIMATE_PROPERTY &&
         renderProperties_.IsShadowValid() && !renderProperties_.IsSpherizeValid()) {
         const RectF boundsRect = renderProperties_.GetBoundsRect();

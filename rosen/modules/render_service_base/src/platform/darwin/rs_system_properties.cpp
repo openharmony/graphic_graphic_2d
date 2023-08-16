@@ -195,6 +195,11 @@ bool RSSystemProperties::GetDebugTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::FindNodeInTargetList(std::string node)
+{
+    return false;
+}
+
 bool RSSystemProperties::GetKawaseEnabled()
 {
     return false;

@@ -274,13 +274,11 @@ float RSSpringModel<float>::EstimateDuration() const
 template<>
 float RSSpringModel<float>::BinarySearchTime(float left, float right, float target) const
 {
-    float midTime = 0.0f;
-    float midValue = 0.0f;
     bool isIncrease = CalculateDisplacement(left) < CalculateDisplacement(right);
 
     while (left < right - 1e-3) {
-        midTime = left + (right - left) / 2.0f;
-        midValue = CalculateDisplacement(midTime);
+        float midTime = left + (right - left) / 2.0f;
+        float midValue = CalculateDisplacement(midTime);
         if (!std::isfinite(midTime) || !std::isfinite(midValue)) {
             return right;
         }

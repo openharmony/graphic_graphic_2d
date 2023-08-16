@@ -141,6 +141,7 @@ public:
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetUIFirstEnabled();
     static bool GetDebugTraceEnabled();
+    static bool FindNodeInTargetList(std::string node);
     static bool GetCacheCmdEnabled();
     static bool GetASTCEnabled();
     static bool GetImageGpuResourceCacheEnable(int width, int height);

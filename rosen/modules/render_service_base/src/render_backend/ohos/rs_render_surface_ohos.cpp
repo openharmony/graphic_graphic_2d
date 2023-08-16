@@ -159,7 +159,7 @@ void RSRenderSurfaceOhos::SetUiTimeStamp(uint64_t uiTimestamp)
     if (renderType == RenderType::GLES || renderType == RenderType::VULKAN) {
         NativeWindowHandleOpt(surfaceConfig->nativeWindow, SET_UI_TIMESTAMP, duration);
     } else {
-        if (frame_ == nullptr || frameConfig->buffer == nullptr) {
+        if (frameConfig->buffer == nullptr) {
             LOGE("Failed to set ui timestamp, frameConfig buffer is nullptr");
             return;
         }
