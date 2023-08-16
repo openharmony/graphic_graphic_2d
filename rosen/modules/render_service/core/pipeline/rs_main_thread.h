@@ -181,6 +181,7 @@ public:
     void AddActiveNodeId(pid_t pid, NodeId id);
 
     void ProcessHgmFrameRate(FrameRateRangeData data, uint64_t timestamp);
+    DeviceType GetDeviceType() const;
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;

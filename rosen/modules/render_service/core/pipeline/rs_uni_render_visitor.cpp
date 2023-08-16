@@ -477,7 +477,7 @@ void RSUniRenderVisitor::ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRend
     doParallelRender_ = (node.GetChildrenCount() >= PARALLEL_RENDER_MINIMUM_RENDER_NODE_NUMBER) &&
                         (!doParallelComposition_);
     isParallel_ = AdaptiveSubRenderThreadMode(doParallelRender_) && parallelRenderManager->GetParallelMode();
-    isDirtyRegionAlignedEnable_ = false;
+    isDirtyRegionAlignedEnable_ = (RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE);
     // we will open prepare parallel after check all properties.
     if (isParallel_ &&
         RSSystemProperties::GetPrepareParallelRenderingEnabled() != ParallelRenderingType::DISABLE) {
