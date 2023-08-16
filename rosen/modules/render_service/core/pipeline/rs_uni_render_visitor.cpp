@@ -2117,14 +2117,16 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_TRACE_END();
         }
 #endif
+#ifndef USE_ROSEN_DRAWING
         if (!OpItemTasks::Instance().IsEmpty()) {
             RSBackgroundThread::Instance().PostTask([]() {
-#ifndef USE_ROSEN_DRAWING
                 RS_TRACE_NAME("RSUniRender:OpItemTasks ProcessTask");
                 OpItemTasks::Instance().ProcessTask();
-#endif
             });
         }
+#else
+        RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode: Drawing is not support: OpItemTasks");
+#endif
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
         RS_TRACE_END();
@@ -2862,9 +2864,16 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node) {
                 }
             } else if (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect()) {
                 // clear hole while generating cache surface
+#ifndef USE_ROSEN_DRAWING
                 SkAutoCanvasRestore arc(canvas_.get(), true);
                 canvas_->clipRect(RSPropertiesPainter::Rect2SkRect(node.GetRenderProperties().GetBoundsRect()));
                 canvas_->clear(SK_ColorTRANSPARENT);
+#else
+                Drawing::AutoCanvasRestore arc(*canvas_, true);
+                canvas_->ClipRect(RSPropertiesPainter::Rect2DrawingRect(node.GetRenderProperties().GetBoundsRect()),
+                    Drawing::ClipOp::INTERSECT, false);
+                canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+#endif
             }
         } else if (curGroupedNodes_.empty() && !node.ChildHasFilter()) {
             // no filter to draw, return
@@ -3407,7 +3416,11 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMapWithBlur(RSRenderNode& node)
     UpdateCacheRenderNodeMap(node);
     canvas_->SetCacheType(canvasType);
     RS_TRACE_NAME_FMT("Draw cache with blur [%llu]", node.GetId());
+#ifndef USE_ROSEN_DRAWING
     SkAutoCanvasRestore arc(canvas_.get(), true);
+#else
+    Drawing::AutoCanvasRestore arc(*canvas_, true);
+#endif
     auto nodeType = node.GetCacheType();
     node.SetCacheType(CacheType::NONE);
     DrawChildRenderNode(node);
@@ -3555,7 +3568,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 #else
         auto clearFunc = [id = threadIndex_](std::shared_ptr<Drawing::Surface> surface) {
             // The second param is null, 0 is an invalid value.
-            sk_sp<SkSurface> tmpSurface = nullptr;
+            std::shared_ptr<Drawing::Surface> tmpSurface = nullptr;
             RSUniRenderUtil::ClearNodeCacheSurface(surface, tmpSurface, id, 0);
         };
 #endif
@@ -3969,7 +3982,10 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
             RS_LOGE("RSUniRenderVisitor::ProcessSharedTransitionNode invert failed");
         }
 #else
-        RenderParam value { std::move(renderChild), canvas_->GetAlpha(), canvas_->GetTotalMatrix() };
+        RenderParam value { node.shared_from_this(), canvas_->GetAlpha() / alpha, canvas_->GetTotalMatrix() };
+        if (!matrix->Invert(std::get<2>(value).value())) { // 2 means to get the second element from the tuple
+            RS_LOGE("RSUniRenderVisitor::ProcessSharedTransitionNode invert failed");
+        }
 #endif
         groupedTransitionNodes[child->GetId()].second.emplace(key, std::move(value));
         return false;

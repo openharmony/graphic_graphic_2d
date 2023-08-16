@@ -781,7 +781,7 @@ void RSUniRenderUtil::ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>& c
 #ifndef USE_ROSEN_DRAWING
 void RSUniRenderUtil::PostReleaseSurfaceTask(sk_sp<SkSurface>& surface, uint32_t threadIndex)
 #else
-void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>& surface, uint32_t threadId)
+void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>& surface, uint32_t threadIndex)
 #endif
 {
     if (surface == nullptr) {

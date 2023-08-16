@@ -913,11 +913,13 @@ void RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     if (auto drawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>()) {
 #ifndef USE_ROSEN_DRAWING
         auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](sk_sp<SkSurface> surface) {
-#else
-        auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](std::shared_ptr<Drawing::Surface> surface) {
-#endif
             // The second param is null, 0 is an invalid value.
             sk_sp<SkSurface> tmpSurface = nullptr;
+#else
+        auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](std::shared_ptr<Drawing::Surface> surface) {
+            // The second param is null, 0 is an invalid value.
+            std::shared_ptr<Drawing::Surface> tmpSurface = nullptr;
+#endif
             RSUniRenderUtil::ClearNodeCacheSurface(surface, tmpSurface, id, 0);
         };
         drawingNode->SetSurfaceClearFunc({ UNI_MAIN_THREAD_INDEX, clearFunc });

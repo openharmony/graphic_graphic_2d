@@ -90,7 +90,11 @@ private:
     static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     static void HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void ClearCacheSurface(const std::shared_ptr<RSSurfaceRenderNode>& node, uint32_t threadIndex);
+#ifndef USE_ROSEN_DRAWING
     static void PostReleaseSurfaceTask(sk_sp<SkSurface>& surface, uint32_t threadIndex);
+#else
+    static void PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>& surface, uint32_t threadIndex);
+#endif
 };
 }
 }

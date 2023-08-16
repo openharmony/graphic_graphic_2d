@@ -380,8 +380,8 @@ private:
     float frameOffsetX_ = 0.f;
     float frameOffsetY_ = 0.f;
 
-#ifndef USE_ROSEN_DRAWING
     std::vector<std::shared_ptr<RSRenderParticle>> particles_;
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkColorFilter> colorFilter_ = nullptr;
 #else
     std::shared_ptr<Drawing::ColorFilter> colorFilter_ = nullptr;

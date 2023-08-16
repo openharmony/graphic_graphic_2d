@@ -282,7 +282,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
 #endif
 #else
         Drawing::Bitmap bitmap;
-        canvasDrawingNode->GetBitmap(bitmap);
+        bitmap = canvasDrawingNode->GetBitmap();
         canvas_->DrawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
             node.GetRenderProperties().GetBoundsPositionY());
 #endif

@@ -243,8 +243,9 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCa
 #endif
 #else
         Drawing::Bitmap bitmap;
-        canvasDrawingNode->GetBitmap(bitmap);
-        canvas_->DrawBitmap(bitmap, 0, 0);
+        bitmap = canvasDrawingNode->GetBitmap();
+        canvas_->DrawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
+            node.GetRenderProperties().GetBoundsPositionY());
 #endif
     } else {
         node.ProcessRenderContents(*canvas_);

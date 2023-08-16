@@ -544,7 +544,8 @@ bool RSRenderNode::Update(
 #else
     std::optional<Drawing::Point> offset;
     if (parent != nullptr && !IsInstanceOf<RSSurfaceRenderNode>()) {
-        Drawing::Point offset(parent->GetFrameOffsetX(), parent->GetFrameOffsetY());
+        auto& properties = parent->GetRenderProperties();
+        offset = Drawing::Point { properties.GetFrameOffsetX(), properties.GetFrameOffsetY() };
     }
 #endif
     // in some case geodirty_ is not marked in drawCmdModifiers_, we should update node geometry
@@ -1084,7 +1085,15 @@ bool RSRenderNode::NeedInitCacheSurface() const
         width =  size.x_;
         height = size.y_;
     }
+#ifndef USE_ROSEN_DRAWING
     return cacheSurface_->width() != width || cacheSurface_->height() !=height;
+#else
+    auto cacheCanvas = cacheSurface_->GetCanvas();
+    if (cacheCanvas == nullptr) {
+        return true;
+    }
+    return cacheCanvas->GetWidth() != width || cacheCanvas->GetHeight() !=height;
+#endif
 }
 
 #ifndef USE_ROSEN_DRAWING
