@@ -17,7 +17,10 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 ohos_unittest("hyper_graphic_manager_test") {
   module_out_path = "graphic_2d/rosen/modules/hyper_graphic_manager"
 
-  sources = [ "hyper_graphic_manager_test.cpp" ]
+  sources = [
+    "hgm_frame_rate_manager_test.cpp",
+    "hyper_graphic_manager_test.cpp",
+  ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",

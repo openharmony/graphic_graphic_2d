@@ -23,7 +23,8 @@ namespace OHOS {
 namespace Rosen {
 namespace {
     constexpr float MARGIN = 0.00001;
-    constexpr int MIN_DRAWING_FPS = 10;
+    constexpr float MIN_DRAWING_DIVISOR = 10.0f;
+    constexpr int32_t DIVISOR_TWO = 2;
 }
 
 void HgmFrameRateManager::UniProcessData(const FrameRateRangeData& data)
@@ -118,8 +119,9 @@ uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, co
     float dividedFps = currRefreshRate;
     float currRatio = std::abs(dividedFps - preferredFps) / preferredFps;
     float ratio = currRatio;
-    while (dividedFps > MIN_DRAWING_FPS - MARGIN) {
-        if (dividedFps < range.min_) {
+    const float minDrawingFps = currRefreshRate / MIN_DRAWING_DIVISOR;
+    while (dividedFps > minDrawingFps - MARGIN) {
+        if (dividedFps < range.min_ || dividedFps <= range.preferred_ / DIVISOR_TWO) {
             break;
         }
         if (dividedFps > range.max_) {
@@ -129,8 +131,7 @@ uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, co
             // If we cannot find a divisible result, the closer to the preferred, the better.
             // e.g.FrameRateRange is [50, 80, 80], refreshrate is
             // 90, the drawing frame rate is 90.
-            if (dividedFps < range.min_ && (preferredFps - dividedFps) >
-                (preDividedFps - preferredFps)) {
+            if (dividedFps < range.min_ && (preferredFps - dividedFps) > (preDividedFps - preferredFps)) {
                 drawingFps = preDividedFps;
                 break;
             }
@@ -157,7 +158,7 @@ uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, co
         divisor++;
         dividedFps = currRefreshRate / static_cast<float>(divisor);
     }
-    return static_cast<uint32_t>(drawingFps);
+    return static_cast<uint32_t>(std::round(drawingFps));
 }
 
 void HgmFrameRateManager::ExecuteSwitchRefreshRate(const ScreenId id)

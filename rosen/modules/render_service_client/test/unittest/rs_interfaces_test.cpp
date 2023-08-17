@@ -1013,5 +1013,19 @@ HWTEST_F(RSInterfacesTest, SetRefreshRateMode001, Function | SmallTest | Level2)
         EXPECT_NE(currentRate, formerRate);
     }
 }
+
+/*
+ * @tc.name: RegisterHgmConfigChangeCallback Test
+ * @tc.desc: RegisterHgmConfigChangeCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterHgmConfigChangeCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    HgmConfigChangeCallback cb = [](std::shared_ptr<RSHgmConfigData> data){};
+    int32_t ret = rsInterfaces->RegisterHgmConfigChangeCallback(cb);
+    ASSERT_EQ(ret, 0);
+}
 } // namespace Rosen
 } // namespace OHOS

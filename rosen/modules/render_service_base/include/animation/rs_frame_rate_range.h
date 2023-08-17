@@ -40,7 +40,7 @@ public:
 
     bool IsZero() const
     {
-        return this->min_ == 0 && this->max_ == 0 && this->preferred_ == 0;
+        return this->preferred_ == 0;
     }
 
     bool IsValid() const
