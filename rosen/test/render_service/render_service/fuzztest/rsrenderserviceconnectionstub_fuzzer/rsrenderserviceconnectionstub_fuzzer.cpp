@@ -32,7 +32,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr size_t MAX_SIZE = 4;
-constexpr size_t MAX_DATA = 41;
+constexpr size_t MAX_DATA = 52;
 const std::u16string RENDERSERVICECONNECTION_INTERFACE_TOKEN = u"ohos.rosen.RenderServiceConnection";
 
 namespace {
