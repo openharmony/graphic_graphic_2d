@@ -47,6 +47,7 @@ public:
 
 private:
     static SkMatrix GetShaderTransform(const SkCanvas* canvas, const SkRect& blurRect, float scale = 1.0f);
+    void OutputOriginalImage(SkCanvas& canvas, const sk_sp<SkImage>& image, const KawaseParameter& param);
     bool ApplyBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, const sk_sp<SkImage>& blurImage,
         const KawaseParameter& param) const;
     void ComputeRadiusAndScale(int radius);
@@ -68,7 +69,6 @@ private:
 #endif
     float blurRadius_ = 0.f;
     float blurScale_ = 0.25f;
-    bool useKawaseOriginal_ = false;
 };
 #endif
 } // namespace Rosen
