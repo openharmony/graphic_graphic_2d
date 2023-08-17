@@ -24,7 +24,6 @@
 #include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animation_param.h"
-#include "platform/common/rs_log.h"
 
 using namespace testing;
 using namespace testing::ext;
