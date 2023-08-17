@@ -117,7 +117,7 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
     if (runningTime_ < startDelayNs) {
         isFinished = IsFinished();
         isInStartDelay = isFinished ? false : true;
-        return { GetStartFraction(), isInStartDelay, isFinished, isRepeatFinished};
+        return { GetStartFraction(), isInStartDelay, isFinished, isRepeatFinished };
     }
 
     // 2. Calculate the running time of the current cycle animation.

@@ -202,12 +202,12 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImageBase>)
-    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<EmitterConfig>)
-    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleVelocity>)
+    DECLARE_FUNCTION_OVERLOAD(EmitterConfig)
+    DECLARE_FUNCTION_OVERLOAD(ParticleVelocity)
+    DECLARE_FUNCTION_OVERLOAD(RenderParticleParaType<float>)
+    DECLARE_FUNCTION_OVERLOAD(RenderParticleColorParaType)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleRenderParams>)
-    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<std::vector<ParticleRenderParams>>)
-    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RenderParticleParaType<float>>)
-    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RenderParticleColorParaType>)
+    DECLARE_FUNCTION_OVERLOAD(std::vector<std::shared_ptr<ParticleRenderParams>>)
 #ifndef USE_ROSEN_DRAWING
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<DrawCmdList>)
 #else
