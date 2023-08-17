@@ -158,7 +158,7 @@ uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, co
         divisor++;
         dividedFps = currRefreshRate / static_cast<float>(divisor);
     }
-    return static_cast<uint32_t>(drawingFps);
+    return static_cast<uint32_t>(std::round(drawingFps));
 }
 
 void HgmFrameRateManager::ExecuteSwitchRefreshRate(const ScreenId id)
