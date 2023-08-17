@@ -1046,7 +1046,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         return;
     }
 #ifdef NEW_SKIA
-    RS_OPTIONAL_TRACE_BEGIN("DrawFilter " + RSFilter->GetDescription());
+    RS_OPTIONAL_TRACE_NAME("DrawFilter " + RSFilter->GetDescription());
     g_blurCnt++;
     SkAutoCanvasRestore acr(&canvas, true);
     if (rect.has_value()) {
@@ -1065,7 +1065,6 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         SkCanvas::SaveLayerRec slr(nullptr, &paint, SkCanvas::kInitWithPrevious_SaveLayerFlag);
         canvas.saveLayer(slr);
         filter->PostProcess(canvas);
-        RS_OPTIONAL_TRACE_END();
         return;
     }
 
@@ -1077,18 +1076,18 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         canvas.SetAlpha(1.0);
     }
 
+#if defined(RS_ENABLE_GL)
     // Optional use cacheManager to draw filter
     if (auto& cacheManager = properties.GetFilterCacheManager(filterType == FilterType::FOREGROUND_FILTER)) {
         cacheManager->DrawFilter(canvas, filter);
-        RS_OPTIONAL_TRACE_END();
         return;
     }
+#endif
 
     auto clipIBounds = canvas.getDeviceClipBounds();
     auto imageSnapshot = skSurface->makeImageSnapshot(clipIBounds);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");
-        RS_OPTIONAL_TRACE_END();
         return;
     }
     if (RSSystemProperties::GetImageGpuResourceCacheEnable(imageSnapshot->width(), imageSnapshot->height())) {
@@ -1106,7 +1105,6 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     filter->DrawImageRect(
         canvas, imageSnapshot, SkRect::Make(imageSnapshot->bounds().makeOutset(-1, -1)), SkRect::Make(clipIBounds));
     filter->PostProcess(canvas);
-    RS_OPTIONAL_TRACE_END();
 #endif
 }
 #else
@@ -1198,6 +1196,7 @@ void RSPropertiesPainter::DrawBackgroundEffect(
     canvas.clipRect(rect);
     auto filter = std::static_pointer_cast<RSSkiaFilter>(RSFilter);
 
+#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     // Optional use cacheManager to draw filter
     if (auto& cacheManager = properties.GetFilterCacheManager(false)) {
         // the input rect is in global coordinate, so we need to save/reset matrix before clip
@@ -1205,6 +1204,7 @@ void RSPropertiesPainter::DrawBackgroundEffect(
         canvas.SetEffectData(data);
         return;
     }
+#endif
 
     auto imageRect = canvas.getDeviceClipBounds();
     auto imageSnapshot = skSurface->makeImageSnapshot(imageRect);
