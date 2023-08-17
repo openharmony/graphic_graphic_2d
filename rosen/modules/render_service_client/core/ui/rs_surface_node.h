@@ -42,6 +42,7 @@ namespace OHOS {
 namespace Rosen {
 
 using BufferAvailableCallback = std::function<void()>;
+using OnBoundsSizeChangedCallback = std::function<void(const Rosen::Vector4f&)>;
 struct RSSurfaceNodeConfig {
     std::string SurfaceNodeName = "SurfaceNode";
     void* additionalData = nullptr;
@@ -84,6 +85,7 @@ public:
     void MarkUIHidden(bool isHidden);
 
     bool SetBufferAvailableCallback(BufferAvailableCallback callback);
+    void SetBoundsSizeChangedCallback(OnBoundsSizeChangedCallback callback);
     void SetAnimationFinished();
 
     bool Marshalling(Parcel& parcel) const;
@@ -92,7 +94,7 @@ public:
     static RSNode::SharedPtr UnmarshallingAsProxyNode(Parcel& parcel);
 
     FollowType GetFollowType() const override;
-    
+
     void AttachToDisplay(uint64_t screenId);
     void DetachToDisplay(uint64_t screenId);
     void SetHardwareEnabled(bool isEnabled);
@@ -144,8 +146,9 @@ private:
 #endif
     std::string name_;
     std::string bundleName_;
-    std::mutex mutex_;
+    mutable std::mutex mutex_;
     BufferAvailableCallback callback_;
+    OnBoundsSizeChangedCallback sizeChangedCallback_;
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #endif

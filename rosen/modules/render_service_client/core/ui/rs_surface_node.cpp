@@ -192,6 +192,10 @@ void RSSurfaceNode::OnBoundsSizeChanged() const
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (sizeChangedCallback_) {
+        sizeChangedCallback_(bounds);
+    }
 }
 
 void RSSurfaceNode::SetSecurityLayer(bool isSecurityLayer)
@@ -287,6 +291,12 @@ bool RSSurfaceNode::SetBufferAvailableCallback(BufferAvailableCallback callback)
         }
         actualCallback();
     });
+}
+
+void RSSurfaceNode::SetBoundsSizeChangedCallback(OnBoundsSizeChangedCallback callback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    sizeChangedCallback_ = callback;
 }
 
 void RSSurfaceNode::SetAnimationFinished()
