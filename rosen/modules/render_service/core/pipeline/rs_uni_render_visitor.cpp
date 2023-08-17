@@ -3941,11 +3941,11 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
         return true;
     }
 
-    for (auto& [_, pair] : groupedTransitionNodes) {
+    for (auto& [unused, pair] : groupedTransitionNodes) {
         if (auto existingNodeIter = pair.second.find(key); existingNodeIter != pair.second.end()) {
             RSAutoCanvasRestore acr(canvas_);
             // restore render context and process the paired node.
-            auto& [_, preAlpha, preMatrix] = pair.first;
+            auto& [unused2, preAlpha, preMatrix] = pair.first;
             auto& [child, alpha, matrix] = existingNodeIter->second;
             canvas_->SetAlpha(alpha * preAlpha);
     #ifndef USE_ROSEN_DRAWING

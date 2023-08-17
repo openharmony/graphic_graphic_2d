@@ -144,19 +144,15 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId)
     isOnTheTree_ = flag;
     OnTreeStateChanged();
 
-    for (auto& childWeakPtr : children_) {
-        auto child = childWeakPtr.lock();
+    for (auto& weakChild : children_) {
+        auto child = weakChild.lock();
         if (child == nullptr) {
             continue;
         }
         child->SetIsOnTheTree(flag, instanceRootNodeId);
     }
 
-    for (auto& childPtr : disappearingChildren_) {
-        auto child = childPtr.first;
-        if (child == nullptr) {
-            continue;
-        }
+    for (auto& [child, _] : disappearingChildren_) {
         child->SetIsOnTheTree(flag, instanceRootNodeId);
     }
 }
@@ -332,15 +328,13 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     }
     out += ", Properties: " + GetRenderProperties().Dump();
     out += "\n";
-    for (auto child : children_) {
+    for (auto& child : children_) {
         if (auto c = child.lock()) {
             c->DumpTree(depth + 1, out);
         }
     }
-    for (auto& child : disappearingChildren_) {
-        if (auto c = child.first) {
-            c->DumpTree(depth + 1, out);
-        }
+    for (auto& [child, pos] : disappearingChildren_) {
+        child->DumpTree(depth + 1, out);
     }
 }
 
