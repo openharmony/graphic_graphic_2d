@@ -65,7 +65,7 @@ void XMLParser::Destroy()
     }
 }
 
-int32_t XMLParser::GetHgmXmlNodeAsInt(xmlNode &node) const
+int32_t XMLParser::GetHgmXmlNodeAsInt(xmlNode &node)
 {
     if (!xmlStrcmp(node.name, reinterpret_cast<const xmlChar*>("Param"))) {
         return HGM_XML_PARAM;

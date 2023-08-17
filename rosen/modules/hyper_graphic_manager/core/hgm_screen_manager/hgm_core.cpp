@@ -15,6 +15,7 @@
 
 #include "hgm_core.h"
 
+#include <algorithm>
 #include <string>
 #include <unistd.h>
 
@@ -44,13 +45,17 @@ HgmCore::~HgmCore()
 {
     std::lock_guard<std::mutex> lock(listMutex_);
     HGM_LOGI("Destruction of HgmCore");
-    auto screen = screenList_.begin();
-    while (screen != screenList_.end()) {
-        screenList_.erase(screen++);
+    if (!screenList_.empty()) {
+        auto screen = screenList_.begin();
+        while (screen != screenList_.end()) {
+            screenList_.erase(screen++);
+        }
     }
-    auto screenIdIter = screenIds_.begin();
-    while (screenIdIter != screenIds_.end()) {
-        screenIds_.erase(screenIdIter++);
+    if (!screenIds_.empty()) {
+        auto screenIdIter = screenIds_.begin();
+        while (screenIdIter != screenIds_.end()) {
+            screenIds_.erase(screenIdIter++);
+        }
     }
 }
 
@@ -249,13 +254,9 @@ int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode)
 {
     // add a physical screen to hgm during hotplug event
     HGM_LOGI("HgmCore adding screen : " PUBI64 "", id);
-    bool removeId = false;
-    for (auto screen : screenIds_) {
-        if (screen == id) {
-            removeId = true;
-            break;
-        }
-    }
+    bool removeId = std::any_of(screenIds_.begin(), screenIds_.end(),
+        [id](const ScreenId screen) { return screen == id; });
+
     if (removeId) {
         if (RemoveScreen(id) != EXEC_SUCCESS) {
             HGM_LOGW("HgmCore failed to remove the existing screen, not adding : " PUBI64 "", id);
@@ -311,7 +312,7 @@ int32_t HgmCore::AddScreenInfo(ScreenId id, int32_t width, int32_t height, uint3
     return HGM_SCREEN_PARAM_ERROR;
 }
 
-int32_t HgmCore::RefreshBundleName(std::string name)
+int32_t HgmCore::RefreshBundleName(const std::string& name)
 {
     if (name == currentBundleName_) {
         return EXEC_SUCCESS;
@@ -331,7 +332,7 @@ int32_t HgmCore::RefreshBundleName(std::string name)
     return EXEC_SUCCESS;
 }
 
-uint32_t HgmCore::GetScreenCurrentRefreshRate(ScreenId id)
+uint32_t HgmCore::GetScreenCurrentRefreshRate(ScreenId id) const
 {
     auto screen = GetScreen(id);
     if (!screen) {

@@ -33,11 +33,6 @@ HgmFrameRateTool::HgmFrameRateTool()
 
 HgmFrameRateTool::~HgmFrameRateTool() noexcept
 {
-    std::lock_guard<std::mutex> lock(listMutex_);
-    auto screenProfile = screenProfileList_.begin();
-    while (screenProfile != screenProfileList_.end()) {
-        screenProfileList_.erase(screenProfile++);
-    }
 }
 
 int32_t HgmFrameRateTool::AddScreenProfile(
