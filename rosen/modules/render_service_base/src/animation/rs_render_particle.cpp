@@ -422,7 +422,7 @@ void RSRenderParticle::InitProperty(std::shared_ptr<ParticleRenderParams> partic
     if (particleType_ == ParticleType::POINTS) {
         float colorRandomValue = GetRandomValue(0.0f, 1.0f);
         color_ = Lerp(particleParams->GetColorStartValue(), particleParams->GetColorEndValue(), colorRandomValue);
-        radius_ = particleParams->GetParticleRadius() * scale_;
+        radius_ = particleParams->GetParticleRadius();
     } else if (particleType_ == ParticleType::IMAGES) {
         image_ = particleParams->GetParticleImage();
         imageSize_ = particleParams->GetImageSize();

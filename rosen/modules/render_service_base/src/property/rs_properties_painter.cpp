@@ -2231,6 +2231,7 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
                 continue;
             }
             float opacity = particles[i]->GetOpacity();
+            float scale = particles[i]->GetScale();
             auto particleType = particles[i]->GetParticleType();
 #ifndef USE_ROSEN_DRAWING
             SkPaint paint;
@@ -2249,7 +2250,7 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
                 color.SetAlpha(alpha * opacity);
 #ifndef USE_ROSEN_DRAWING
                 paint.setColor(color.AsArgbInt());
-                canvas.drawCircle(position.x_, position.y_, radius, paint);
+                canvas.drawCircle(position.x_, position.y_, radius * scale, paint);
 #else
                 brush.SetColor(color.AsArgbInt());
                 canvas.AttachBrush(brush);

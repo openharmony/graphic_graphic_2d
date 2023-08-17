@@ -270,11 +270,7 @@ void RSRenderParticleEffector::ApplyEffectorToParticle(
     color.SetAlpha(color.GetAlpha() * opacity);
 
     auto scale = particle->GetScale();
-    if (particle->GetParticleType() == ParticleType::POINTS) {
-        auto radius = particle->GetRadius();
-        radius *= scale;
-        particle->SetRadius(radius);
-    } else if (particle->GetParticleType() == ParticleType::IMAGES) {
+    if (particle->GetParticleType() == ParticleType::IMAGES) {
         std::shared_ptr<RSImage> image = particle->GetImage();
         image->SetScale(scale);
         particle->SetImage(image);

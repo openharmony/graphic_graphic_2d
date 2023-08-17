@@ -170,7 +170,9 @@ public:
         const std::shared_ptr<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>>& property)
         : property_(property ? property
                              : std::make_shared<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>>())
-    {}
+    {
+        property_->SetModifierType(RSModifierType::PARTICLE);
+    }
     virtual ~RSParticleRenderModifier() = default;
     void Apply(RSModifierContext& context) const override;
 

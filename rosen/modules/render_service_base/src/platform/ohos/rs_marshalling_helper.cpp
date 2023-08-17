@@ -1349,7 +1349,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_
     uint32_t size = parcel.ReadUint32();
     bool success = true;
     for (size_t i = 0; i < size; i++) {
-        success = success && Unmarshalling(parcel, val[i]);
+        std::shared_ptr<ParticleRenderParams> particleRenderParams;
+        success = success && Unmarshalling(parcel, particleRenderParams);
+        val.push_back(particleRenderParams);
     }
     return success;
 }
