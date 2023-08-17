@@ -1504,23 +1504,25 @@ bool RSRenderNode::HasDisappearingTransition(bool recursive) const
 
 const std::list<RSRenderNode::SharedPtr>& RSRenderNode::GetChildren()
 {
-    GenerateFullChildrenList();
+    if (!isFullChildrenListValid_) {
+        GenerateFullChildrenList();
+    }
     return fullChildrenList_;
 }
 
 const std::list<RSRenderNode::SharedPtr>& RSRenderNode::GetSortedChildren()
 {
-    GenerateFullChildrenList();
-    SortChildren();
+    if (!isFullChildrenListValid_) {
+        GenerateFullChildrenList();
+    }
+    if (!isChildrenSorted_) {
+        SortChildren();
+    }
     return fullChildrenList_;
 }
 
 void RSRenderNode::GenerateFullChildrenList()
 {
-    // if fullChildrenList_ is valid, just return
-    if (isFullChildrenListValid_) {
-        return;
-    }
     // Node is currently used by sub thread, delay the operation
     if (NodeIsUsedBySubThread()) {
         return;
@@ -1569,10 +1571,6 @@ void RSRenderNode::GenerateFullChildrenList()
 
 void RSRenderNode::SortChildren()
 {
-    // if children are already sorted, just return
-    if (isChildrenSorted_) {
-        return;
-    }
     // Node is currently used by sub thread, delay the operation
     if (NodeIsUsedBySubThread()) {
         return;
