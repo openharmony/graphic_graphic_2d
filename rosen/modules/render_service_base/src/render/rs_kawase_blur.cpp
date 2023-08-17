@@ -65,8 +65,6 @@ KawaseBlurFilter::KawaseBlurFilter()
         return;
     }
     mixEffect_ = std::move(mixEffect);
-
-    useKawaseOriginal_ = RSSystemProperties::GetKawaseOriginalEnabled();
 }
 
 KawaseBlurFilter::~KawaseBlurFilter() = default;
