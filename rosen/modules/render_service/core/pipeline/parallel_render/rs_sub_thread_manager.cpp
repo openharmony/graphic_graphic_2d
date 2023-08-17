@@ -173,7 +173,7 @@ void RSSubThreadManager::NodeTaskNotify(uint64_t nodeId)
     cvParallelRender_.notify_one();
 }
 
-void RSSubThreadManager::ResetSubThreadGrContext()
+void RSSubThreadManager::ResetSubThreadGrContext() const
 {
     if (threadList_.empty()) {
         return;

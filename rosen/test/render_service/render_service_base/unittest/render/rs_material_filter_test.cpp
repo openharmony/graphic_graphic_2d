@@ -90,4 +90,38 @@ HWTEST_F(RSMaterialFilterTest, CreateMaterialStyle002, TestSize.Level1)
     auto result = rsMaterialFilter.Compose(rsMaterialFilter2);
     EXPECT_TRUE(result != nullptr);
 }
+
+/**
+ * @tc.name: PostProcessTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, PostProcessTest, TestSize.Level1)
+{
+    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+    float dipScale = 1.0f;
+    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
+    float ratio = 1.0f;
+    MATERIAL_BLUR_STYLE style = MATERIAL_BLUR_STYLE::STYLE_CARD_DARK;
+    RSMaterialFilter rsMaterialFilter = RSMaterialFilter(style, dipScale, mode, ratio);
+    rsMaterialFilter.PostProcess(*canvas);
+    EXPECT_NE(canvas, nullptr);
+}
+
+/**
+ * @tc.name: CanSkipFrameTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, CanSkipFrameTest, TestSize.Level1)
+{
+    float dipScale = 1.0f;
+    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
+    float ratio = 1.0f;
+    MATERIAL_BLUR_STYLE style = MATERIAL_BLUR_STYLE::STYLE_CARD_DARK;
+    RSMaterialFilter rsMaterialFilter = RSMaterialFilter(style, dipScale, mode, ratio);
+    auto res = rsMaterialFilter.CanSkipFrame();
+    EXPECT_TRUE(res);
+}
 } // namespace OHOS::Rosen

@@ -26,6 +26,8 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
     "rs_light_up_effect_filter_test.cpp",
     "rs_mask_test.cpp",
     "rs_material_filter_test.cpp",
+    "rs_path_test.cpp",
+    "rs_shader_test.cpp",
     "rs_shadow_test.cpp",
   ]
 
