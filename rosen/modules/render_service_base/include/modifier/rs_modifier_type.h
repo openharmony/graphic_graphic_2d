@@ -21,98 +21,82 @@
 namespace OHOS {
 namespace Rosen {
 enum class RSModifierType : int16_t {
-    INVALID = 0,
-
-    BOUNDS,
-    FRAME,
-    POSITION_Z,
-
-    PIVOT,
-    PIVOT_Z,
-    QUATERNION,
-    ROTATION,
-    ROTATION_X,
-    ROTATION_Y,
-    CAMERA_DISTANCE,
-    SCALE,
-    TRANSLATE,
-    TRANSLATE_Z,
-    SUBLAYER_TRANSFORM,
-
-    CORNER_RADIUS,
-    ALPHA,
-    ALPHA_OFFSCREEN,
-
-    FOREGROUND_COLOR,
-    BACKGROUND_COLOR,
-    BACKGROUND_SHADER,
-    BG_IMAGE,
-    BG_IMAGE_WIDTH,
-    BG_IMAGE_HEIGHT,
-    BG_IMAGE_POSITION_X,
-    BG_IMAGE_POSITION_Y,
-
-    SURFACE_BG_COLOR,
-
-    BORDER_COLOR,
-    BORDER_WIDTH,
-    BORDER_STYLE,
-
-    FILTER,
-    BACKGROUND_FILTER,
-    LINEAR_GRADIENT_BLUR_PARA,
-    DYNAMIC_LIGHT_UP_RATE,
-    DYNAMIC_LIGHT_UP_DEGREE,
-
-    FRAME_GRAVITY,
-
-    CLIP_RRECT,
-    CLIP_BOUNDS,
-    CLIP_TO_BOUNDS,
-    CLIP_TO_FRAME,
-    VISIBLE,
-
-    SHADOW_COLOR,
-    SHADOW_OFFSET_X,
-    SHADOW_OFFSET_Y,
-    SHADOW_ALPHA,
-    SHADOW_ELEVATION,
-    SHADOW_RADIUS,
-    SHADOW_PATH,
-    SHADOW_MASK,
-
-    MASK,
-    SPHERIZE,
-    LIGHT_UP_EFFECT,
-    PIXEL_STRETCH,
-    PIXEL_STRETCH_PERCENT,
-    USE_EFFECT,
-
-    SANDBOX,
-
-    GRAY_SCALE,
-    BRIGHTNESS,
-    CONTRAST,
-    SATURATE,
-    SEPIA,
-    INVERT,
-    HUE_ROTATE,
-    COLOR_BLEND,
-    PARTICLE,
-
-    CUSTOM,
-    EXTENDED,
-    TRANSITION,
-    BACKGROUND_STYLE,
-    CONTENT_STYLE,
-    FOREGROUND_STYLE,
-    OVERLAY_STYLE,
-    NODE_MODIFIER,
-    ENV_FOREGROUND_COLOR,
-    ENV_FOREGROUND_COLOR_STRATEGY,
-    GEOMETRYTRANS,
-    
-    MAX_TYPE,
+    INVALID = 0,                   // 0
+    BOUNDS,                        // 1
+    FRAME,                         // 2
+    POSITION_Z,                    // 3
+    PIVOT,                         // 4
+    PIVOT_Z,                       // 5
+    QUATERNION,                    // 6
+    ROTATION,                      // 7
+    ROTATION_X,                    // 8
+    ROTATION_Y,                    // 9
+    CAMERA_DISTANCE,               // 10
+    SCALE,                         // 11
+    TRANSLATE,                     // 12
+    TRANSLATE_Z,                   // 13
+    SUBLAYER_TRANSFORM,            // 14
+    CORNER_RADIUS,                 // 15
+    ALPHA,                         // 16
+    ALPHA_OFFSCREEN,               // 17
+    FOREGROUND_COLOR,              // 18
+    BACKGROUND_COLOR,              // 19
+    BACKGROUND_SHADER,             // 20
+    BG_IMAGE,                      // 21
+    BG_IMAGE_WIDTH,                // 22
+    BG_IMAGE_HEIGHT,               // 23
+    BG_IMAGE_POSITION_X,           // 24
+    BG_IMAGE_POSITION_Y,           // 25
+    SURFACE_BG_COLOR,              // 26
+    BORDER_COLOR,                  // 27
+    BORDER_WIDTH,                  // 28
+    BORDER_STYLE,                  // 29
+    FILTER,                        // 30
+    BACKGROUND_FILTER,             // 31
+    LINEAR_GRADIENT_BLUR_PARA,     // 32
+    DYNAMIC_LIGHT_UP_RATE,         // 33
+    DYNAMIC_LIGHT_UP_DEGREE,       // 34
+    FRAME_GRAVITY,                 // 35
+    CLIP_RRECT,                    // 36
+    CLIP_BOUNDS,                   // 37
+    CLIP_TO_BOUNDS,                // 38
+    CLIP_TO_FRAME,                 // 39
+    VISIBLE,                       // 40
+    SHADOW_COLOR,                  // 41
+    SHADOW_OFFSET_X,               // 42
+    SHADOW_OFFSET_Y,               // 43
+    SHADOW_ALPHA,                  // 44
+    SHADOW_ELEVATION,              // 45
+    SHADOW_RADIUS,                 // 46
+    SHADOW_PATH,                   // 47
+    SHADOW_MASK,                   // 48
+    MASK,                          // 49
+    SPHERIZE,                      // 50
+    LIGHT_UP_EFFECT,               // 51
+    PIXEL_STRETCH,                 // 52
+    PIXEL_STRETCH_PERCENT,         // 53
+    USE_EFFECT,                    // 54
+    SANDBOX,                       // 55
+    GRAY_SCALE,                    // 56
+    BRIGHTNESS,                    // 57
+    CONTRAST,                      // 58
+    SATURATE,                      // 59
+    SEPIA,                         // 60
+    INVERT,                        // 61
+    HUE_ROTATE,                    // 62
+    COLOR_BLEND,                   // 63
+    PARTICLE,                      // 64
+    CUSTOM,                        // 65
+    EXTENDED,                      // 66
+    TRANSITION,                    // 67
+    BACKGROUND_STYLE,              // 68
+    CONTENT_STYLE,                 // 69
+    FOREGROUND_STYLE,              // 70
+    OVERLAY_STYLE,                 // 71
+    NODE_MODIFIER,                 // 72
+    ENV_FOREGROUND_COLOR,          // 73
+    ENV_FOREGROUND_COLOR_STRATEGY, // 74
+    GEOMETRYTRANS,                 // 75
 };
 
 enum class RSRenderPropertyType : int16_t {
