@@ -41,7 +41,7 @@ public:
     bool SetupMultiFrame();
     SkCanvas*  BeginCapture(SkCanvas* canvas, int width, int height);
     void EndCapture();
-    void SavePicture(const sk_sp<SkData>& data, const std::string& filename);
+    static void SavePicture(const sk_sp<SkData>& data, const std::string& filename);
 
 private:
     bool captureEnabled_ = false;
