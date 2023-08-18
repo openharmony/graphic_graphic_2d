@@ -663,7 +663,7 @@ std::vector<std::shared_ptr<RSRenderParticle>> RSProperties::GetParticles() cons
 void RSProperties::SetAlpha(float alpha)
 {
     alpha_ = alpha;
-    if (alpha_ < 1.) {
+    if (alpha_ < 1.f) {
         isDrawn_ = true;
     }
     SetDirty();
@@ -677,7 +677,7 @@ float RSProperties::GetAlpha() const
 void RSProperties::SetAlphaOffscreen(bool alphaOffscreen)
 {
     alphaOffscreen_ = alphaOffscreen;
-    if (alpha_ < 1.) {
+    if (alpha_ < 1.f) {
         isDrawn_ = true;
     }
     SetDirty();
@@ -901,7 +901,7 @@ void RSProperties::SetBackgroundFilter(std::shared_ptr<RSFilter> backgroundFilte
 void RSProperties::SetLinearGradientBlurPara(std::shared_ptr<RSLinearGradientBlurPara> para)
 {
     linearGradientBlurPara_ = para;
-    if (para && para->blurRadius_ > 0.) {
+    if (para && para->blurRadius_ > 0.f) {
         isDrawn_ = true;
     }
     SetDirty();

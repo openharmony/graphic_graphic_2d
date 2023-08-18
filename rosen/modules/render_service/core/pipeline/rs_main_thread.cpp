@@ -15,6 +15,7 @@
 #include "pipeline/rs_main_thread.h"
 
 #include <list>
+#include <algorithm>
 #include "include/core/SkGraphics.h"
 #include "memory/rs_memory_graphic.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
@@ -525,12 +526,10 @@ void RSMainThread::CheckParallelSubThreadNodesStatus()
 
 bool RSMainThread::IsNeedSkip(NodeId instanceRootNodeId, pid_t pid)
 {
-    for (auto& cacheCmdSkipNodeId: cacheCmdSkippedInfo_[pid].first) {
-        if (cacheCmdSkipNodeId == instanceRootNodeId) {
-            return true;
-        }
-    }
-    return false;
+    return std::any_of(cacheCmdSkippedInfo_[pid].first.begin(), cacheCmdSkippedInfo_[pid].first.end(),
+        [instanceRootNodeId](const auto& cacheCmdSkipNodeId) {
+            return cacheCmdSkipNodeId == instanceRootNodeId;
+        });
 }
 
 void RSMainThread::SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid)
