@@ -42,6 +42,11 @@
 #include "res_sched_client.h"
 #include "res_type.h"
 #endif
+
+#ifdef ROSEN_PREVIEW
+#include "glfw_render_context.h"
+#endif
+
 #ifdef ROSEN_OHOS
 #include <unistd.h>
 #include "frame_collector.h"
@@ -266,6 +271,14 @@ void RSRenderThread::RenderLoop()
         hasSkipVsync_ = false;
         RSRenderThread::Instance().RequestNextVSync();
     }
+#ifdef ROSEN_PREVIEW
+    static auto onSizeChange = [&](int width, int height) {
+        if (isRunning_) {
+            RSRenderThread::Instance().RequestNextVSync();
+        }
+    };
+    GlfwRenderContext::GetGlobal()->OnSizeChanged(onSizeChange);
+#endif
 
 #ifdef ROSEN_OHOS
     FrameCollector::GetInstance().SetRepaintCallback([this]() { this->RequestNextVSync(); });
@@ -283,6 +296,9 @@ void RSRenderThread::RenderLoop()
 void RSRenderThread::OnVsync(uint64_t timestamp)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::OnVsync");
+#ifdef ROSEN_PREVIEW
+    isRunning_ = true;
+#endif
     SendFrameEvent(false);
     mValue = (mValue + 1) % 2; // 1 and 2 is Calculated parameters
     RS_TRACE_INT("Vsync-client", mValue);
@@ -290,6 +306,9 @@ void RSRenderThread::OnVsync(uint64_t timestamp)
     if (activeWindowCnt_.load() > 0) {
         mainFunc_(); // start render-loop now
     }
+#ifdef ROSEN_PREVIEW
+    isRunning_ = false;
+#endif
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 

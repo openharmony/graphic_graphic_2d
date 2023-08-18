@@ -198,6 +198,12 @@ void GlfwRenderContext::OnChar(const OnCharFunc &onChar)
     glfwSetCharCallback(window_, GlfwRenderContext::OnChar);
 }
 
+void GlfwRenderContext::OnSizeChanged(const OnSizeChangedFunc &onSizeChanged)
+{
+    onSizeChanged_ = onSizeChanged;
+    glfwSetWindowSizeCallback(window_, GlfwRenderContext::OnSizeChanged);
+}
+
 void GlfwRenderContext::OnMouseButton(GLFWwindow *window, int button, int action, int mods)
 {
     const auto &that = reinterpret_cast<GlfwRenderContext *>(glfwGetWindowUserPointer(window));
@@ -233,10 +239,12 @@ void GlfwRenderContext::OnChar(GLFWwindow *window, unsigned int codepoint)
 void GlfwRenderContext::OnSizeChanged(GLFWwindow *window, int32_t width, int32_t height)
 {
     ::OHOS::HiviewDFX::HiLog::Info(LABEL, "OnSizeChanged %{public}d %{public}d", width, height);
+
     const auto &that = reinterpret_cast<GlfwRenderContext *>(glfwGetWindowUserPointer(window));
     if (that->width_ != width || that->height_ != height) {
         glfwSetWindowSize(window, that->width_, that->height_);
     }
+    that->onSizeChanged_(that->width_, that->height_);
     ::OHOS::HiviewDFX::HiLog::Info(LABEL, "OnSizeChanged done %{public}d %{public}d", width, height);
 }
 } // namespace OHOS::Rosen
