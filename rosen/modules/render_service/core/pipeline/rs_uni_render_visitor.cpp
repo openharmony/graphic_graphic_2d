@@ -3873,30 +3873,6 @@ bool RSUniRenderVisitor::PrepareSharedTransitionNode(RSBaseRenderNode& node)
         return true;
     }
 
-    // use transition key (aka in node id) as map index.
-    auto key = transitionParam->first;
-    // If the paired node has already been visited (this means all sanity checks passed), process both nodes in order.
-    if (auto existingNodeIter = unpairedTransitionNodes_.find(key);
-        existingNodeIter != unpairedTransitionNodes_.end()) {
-        // backup environment variables
-        auto curAlpha = curAlpha_;
-        auto clipRect = prepareClipRect_;
-
-        // hack to ensure that dirty region will include the shared-transition nodes
-        prepareClipRect_.SetAll(0, 0, INT_MAX, INT_MAX);
-
-        // set curAlpha_ and prepare paired node
-        [[maybe_unused]] auto& [node, alpha, unused_matrix] = existingNodeIter->second;
-        curAlpha_ = alpha;
-        node->Prepare(shared_from_this());
-        unpairedTransitionNodes_.erase(existingNodeIter);
-
-        // restore environment variables and continue prepare node
-        curAlpha_ = curAlpha;
-        prepareClipRect_ = clipRect;
-        return true;
-    }
-
     auto pairedNode = transitionParam->second.lock();
     if (pairedNode == nullptr) {
         // paired node is already destroyed, clear transition param and prepare directly
@@ -3912,13 +3888,10 @@ bool RSUniRenderVisitor::PrepareSharedTransitionNode(RSBaseRenderNode& node)
         return true;
     }
 
-    // all sanity checks passed, add this node and render params (only alpha for prepare phase) into
-    // unpairedTransitionNodes_.
-    RenderParam value { node.shared_from_this(), curAlpha_, std::nullopt };
-    unpairedTransitionNodes_.emplace(key, std::move(value));
-
-    // skip prepare for shared transition node and its children
-    return false;
+    // hack to ensure that dirty region will include the whole shared-transition nodes, and won't be clipped by parent
+    // clip rect.
+    prepareClipRect_.SetAll(0, 0, INT_MAX, INT_MAX);
+    return true;
 }
 
 bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
