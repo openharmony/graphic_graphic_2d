@@ -240,4 +240,52 @@ HWTEST_F(RSScreenTest, SetScreenGamutMap_001, testing::ext::TestSize.Level1)
     const auto result2 = virtualScreen->GetScreenGamutMap(map2);
     ASSERT_EQ(result2, StatusCode::SUCCESS);
 }
+
+/*
+ * @tc.name: GetActiveModePosByModeIdTest
+ * @tc.desc: GetActiveModePosByModeId Test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSScreenTest, GetActiveModePosByModeIdTest001, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    int32_t modeId = 0;
+    auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    auto res = virtualScreen->GetActiveModePosByModeId(modeId);
+    ASSERT_EQ(res, -1);
+}
+
+/*
+ * @tc.name: GetScreenTypeTest
+ * @tc.desc: GetScreenType Test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSScreenTest, GetScreenTypeTest, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    config.id = static_cast<uint64_t>(1000);
+    auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    auto res = virtualScreen->GetScreenType();
+    auto type = RSScreenType::VIRTUAL_TYPE_SCREEN;
+    ASSERT_EQ(res, type);
+}
+
+/*
+ * @tc.name: SetScreenSkipFrameIntervalTest
+ * @tc.desc: SetScreenSkipFrameInterval Test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSScreenTest, SetScreenSkipFrameIntervalTest, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    config.id = static_cast<uint64_t>(1000);
+    auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    uint32_t skipFrameInterval = 0;
+    virtualScreen->SetScreenSkipFrameInterval(skipFrameInterval);
+    auto res = virtualScreen->GetScreenSkipFrameInterval();
+    ASSERT_EQ(res, 0);
+}
 } // namespace OHOS::Rosen
