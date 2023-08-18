@@ -436,7 +436,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
 
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     if (drivenInfo_) {
-        RS_OPTIONAL_TRACE_BEGIN("RSUniRender:DrivenRenderPrepare");
+        RS_TRACE_NAME("RSUniRender:DrivenRenderPrepare");
         drivenInfo_->prepareInfo.hasInvalidScene = drivenInfo_->prepareInfo.hasInvalidScene ||
             node.GetChildrenCount() >= 8 || // default value, count > 8 means invalid scene
             isHardwareForcedDisabled_ || node.GetRotation() != ScreenRotation::ROTATION_0;
@@ -451,7 +451,6 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
             RS_OPTIONAL_TRACE_NAME("merge driven render dirty rect: " + drivenRenderDirtyRect.ToString());
             drivenInfo_->surfaceDirtyManager->MergeDirtyRect(drivenRenderDirtyRect);
         }
-        RS_OPTIONAL_TRACE_END();
     }
 #endif
     if (!unpairedTransitionNodes_.empty()) {
@@ -512,7 +511,7 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
             return false;
         }
     }
-    RS_OPTIONAL_TRACE_BEGIN("Skip static surface " + node.GetName() + " nodeid - pid: " +
+    RS_OPTIONAL_TRACE_NAME("Skip static surface " + node.GetName() + " nodeid - pid: " +
         std::to_string(node.GetId()) + " - " + std::to_string(ExtractPid(node.GetId())));
     // static node's dirty region is empty
     curSurfaceDirtyManager_ = node.GetDirtyManager();
@@ -523,7 +522,6 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
     }
     // static surface keeps same position
     curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), curDisplayNode_->GetLastFrameSurfacePos(node.GetId()));
-    RS_OPTIONAL_TRACE_END();
     return true;
 }
 
@@ -2299,7 +2297,7 @@ void RSUniRenderVisitor::AddOverDrawListener(std::unique_ptr<RSRenderFrame>& ren
 
 void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node)
 {
-    RS_OPTIONAL_TRACE_FUNC_BEGIN();
+    RS_OPTIONAL_TRACE_FUNC();
     auto displayDirtyManager = node->GetDirtyManager();
     for (auto it = node->GetCurAllSurfaces().rbegin(); it != node->GetCurAllSurfaces().rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
@@ -2368,7 +2366,6 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
             displayDirtyManager->MergeDirtyRect(surfaceChangedRect);
         }
     }
-    RS_OPTIONAL_TRACE_FUNC_END();
 }
 
 void RSUniRenderVisitor::MergeDirtyRectIfNeed(std::shared_ptr<RSSurfaceRenderNode> appNode,
@@ -2558,7 +2555,7 @@ void RSUniRenderVisitor::CalcDirtyFilterRegion(std::shared_ptr<RSDisplayRenderNo
 
 void RSUniRenderVisitor::AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDisplayRenderNode>& node) const
 {
-    RS_OPTIONAL_TRACE_FUNC_BEGIN();
+    RS_OPTIONAL_TRACE_FUNC();
     auto displayDirtyManager = node->GetDirtyManager();
     for (auto it = node->GetCurAllSurfaces().rbegin(); it != node->GetCurAllSurfaces().rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
@@ -2607,12 +2604,11 @@ void RSUniRenderVisitor::AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDispla
             }
         }
     }
-    RS_OPTIONAL_TRACE_FUNC_END();
 }
 
 void RSUniRenderVisitor::SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node)
 {
-    RS_OPTIONAL_TRACE_FUNC_BEGIN();
+    RS_OPTIONAL_TRACE_FUNC();
     for (auto it = node->GetCurAllSurfaces().rbegin(); it != node->GetCurAllSurfaces().rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
@@ -2633,7 +2629,6 @@ void RSUniRenderVisitor::SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRe
         auto visibleDirtyRegion = surfaceNode->GetVisibleDirtyRegion();
         curVisibleDirtyRegion = curVisibleDirtyRegion.Or(visibleDirtyRegion);
     }
-    RS_OPTIONAL_TRACE_FUNC_END();
 }
 
 void RSUniRenderVisitor::SetSurfaceGlobalAlignedDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node,
@@ -3492,7 +3487,7 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
     // The cache is not refreshed continuously.
     ChangeCacheRenderNodeMap(node);
     cacheReuseTimes++;
-    RS_TRACE_NAME("RSUniRenderVisitor::UpdateCacheRenderNodeMap ,NodeId: " + std::to_string(node.GetId()) +
+    RS_OPTIONAL_TRACE_NAME("RSUniRenderVisitor::UpdateCacheRenderNodeMap ,NodeId: " + std::to_string(node.GetId()) +
         " ,CacheRenderNodeMapCnt: " + std::to_string(cacheReuseTimes));
 }
 
