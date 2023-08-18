@@ -19,7 +19,11 @@
 
 #include "texgine_exception.h"
 #include "texgine/utils/exlog.h"
+#ifdef LOGGER_ENABLE_SCOPE
+#ifndef USE_GRAPHIC_TEXT_GINE
 #include "texgine/utils/trace.h"
+#endif
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -57,7 +61,11 @@ std::string Typeface::GetName()
 bool Typeface::ParseCmap(const std::shared_ptr<CmapParser> &parser)
 {
     LOGEX_FUNC_LINE(DEBUG) << "Parse Cmap: " << GetName();
+#ifdef LOGGER_ENABLE_SCOPE
+#ifndef USE_GRAPHIC_TEXT_GINE
     ScopedTrace scope("Typeface::InitCmap");
+#endif
+#endif
     auto tag = HB_TAG('c', 'm', 'a', 'p');
     if (typeface_ == nullptr || typeface_->GetTypeface() == nullptr) {
         LOGEX_FUNC_LINE(WARN) << "typeface_ is nullptr";
@@ -84,8 +92,12 @@ bool Typeface::ParseCmap(const std::shared_ptr<CmapParser> &parser)
         throw TEXGINE_EXCEPTION(API_FAILED);
     }
 
+#ifdef LOGGER_ENABLE_SCOPE
+#ifndef USE_GRAPHIC_TEXT_GINE
     scope.Finish();
     ScopedTrace scope2("Typeface::ParseCmap");
+#endif
+#endif
     auto retval = parser->Parse(hb_blob_get_data(hblob_, nullptr), hb_blob_get_length(hblob_));
     return retval == 0;
 }

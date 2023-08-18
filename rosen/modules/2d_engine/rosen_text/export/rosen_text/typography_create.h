@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "common/rs_macros.h"
 #include "font_collection.h"
 #include "text_style.h"
 #include "typography.h"
@@ -42,7 +43,7 @@ struct PlaceholderSpan {
     double baselineOffset;
 };
 
-class TypographyCreate {
+class RS_EXPORT TypographyCreate {
 public:
     static std::unique_ptr<TypographyCreate> Create(const TypographyStyle& style,
         std::shared_ptr<FontCollection> collection);

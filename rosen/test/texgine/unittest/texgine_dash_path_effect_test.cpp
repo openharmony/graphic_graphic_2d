@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#ifndef USE_GRAPHIC_TEXT_GINE
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
@@ -42,3 +43,37 @@ HWTEST_F(TexgineDashPathEffectTest, Make, TestSize.Level1)
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS
+
+#else
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
+
+#include "texgine_path_effect.h"
+
+using namespace testing;
+using namespace testing::ext;
+
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
+class TexginePathEffectTest : public testing::Test {
+};
+
+/**
+ * @tc.name:SetAndGet
+ * @tc.desc: Verify the SetAndGet
+ * @tc.type:FUNC
+ */
+HWTEST_F(TexginePathEffectTest, SetAndGet, TestSize.Level1)
+{
+    std::shared_ptr<TexginePathEffect> tpe = std::make_shared<TexginePathEffect>();
+    sk_sp<SkPathEffect> spe = nullptr;
+    EXPECT_NO_THROW({
+        tpe->SetPathEffect(spe);
+        EXPECT_EQ(tpe->GetPathEffect(), spe);
+    });
+}
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
+#endif

@@ -26,10 +26,14 @@ config("libtexgine_config") {
     "-g3",
   ]
 
-  defines = [
-    "LOGGER_ENABLE_SCOPE",
-    "TEXGINE_ENABLE_DEBUGLOG",
-  ]
+  if (enable_text_gine) {
+    defines = [ "USE_GRAPHIC_TEXT_GINE" ]
+  } else {
+    defines = [
+      "LOGGER_ENABLE_SCOPE",
+      "TEXGINE_ENABLE_DEBUGLOG",
+    ]
+  }
 
   include_dirs = [
     "src",
@@ -107,16 +111,43 @@ ohos_shared_library("libtexgine") {
     }
 
     public_deps = [
-      "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
       "texgine_drawing:libtexgine_drawing",
+      "//third_party/bounds_checking_function:libsec_static",
       "//third_party/jsoncpp:jsoncpp",
     ]
 
-    external_deps = [
-      "c_utils:utils",
-      "hilog:libhilog",
-      "hitrace:hitrace_meter",
-    ]
+    if (enable_text_gine) {
+      cflags_cc = [ "-Wno-c++17-extensions" ]
+      cflags = [ "-Wno-c++17-extensions" ]
+      if (platform == "ohos") {
+        defines = [
+          "BUILD_NON_SDK_VER",
+          "LOGGER_ENABLE_SCOPE",
+          "TEXGINE_ENABLE_DEBUGLOG",
+        ]
+
+        external_deps = [
+          "c_utils:utils",
+          "hilog:libhilog",
+          "hitrace:hitrace_meter",
+        ]
+
+        public_deps +=
+            [ "//third_party/flutter/build/icu:ace_libicu_$platform" ]
+      } else {
+        sources -= [ "src/utils/trace_ohos.cpp" ]
+        public_deps += [ "//third_party/skia/third_party/icu" ]
+      }
+    } else {
+      public_deps +=
+          [ "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform" ]
+
+      external_deps = [
+        "c_utils:utils",
+        "hilog:libhilog",
+        "hitrace:hitrace_meter",
+      ]
+    }
   }
 
   part_name = "graphic_2d"

@@ -53,6 +53,7 @@ txt::Paragraph::RectWidthStyle Convert(const TextRectWidthStyle &style)
 txt::ParagraphStyle Convert(const TypographyStyle &style)
 {
     return {
+#ifndef USE_GRAPHIC_TEXT_GINE
         .font_weight = static_cast<txt::FontWeight>(style.fontWeight_),
         .font_style = static_cast<txt::FontStyle>(style.fontStyle_),
         .font_family = style.fontFamily_,
@@ -75,6 +76,29 @@ txt::ParagraphStyle Convert(const TypographyStyle &style)
         .locale = style.locale_,
         .break_strategy = static_cast<minikin::BreakStrategy>(style.breakStrategy_),
         .word_break_type = static_cast<minikin::WordBreakType>(style.wordBreakType_),
+#else
+        .font_weight = static_cast<txt::FontWeight>(style.fontWeight),
+        .font_style = static_cast<txt::FontStyle>(style.fontStyle),
+        .font_family = style.fontFamily,
+        .font_size = style.fontSize,
+        .height = style.heightScale,
+        .has_height_override = style.heightOnly,
+        .strut_enabled = style.useLineStyle,
+        .strut_font_weight = static_cast<txt::FontWeight>(style.lineStyleFontWeight),
+        .strut_font_style = static_cast<txt::FontStyle>(style.lineStyleFontStyle),
+        .strut_font_families = style.lineStyleFontFamilies,
+        .strut_font_size = style.lineStyleFontSize,
+        .strut_height = style.lineStyleHeightScale,
+        .strut_has_height_override = style.lineStyleHeightOnly,
+        .strut_leading = style.lineStyleSpacingScale,
+        .force_strut_height = style.lineStyleOnly,
+        .text_align = static_cast<txt::TextAlign>(style.textAlign),
+        .text_direction = static_cast<txt::TextDirection>(style.textDirection),
+        .max_lines = style.maxLines,
+        .ellipsis = style.ellipsis,
+        .locale = style.locale,
+        .break_strategy = static_cast<minikin::BreakStrategy>(style.breakStrategy),
+#endif
     };
 }
 
@@ -91,17 +115,29 @@ txt::PlaceholderRun Convert(const PlaceholderSpan &run)
 txt::TextStyle Convert(const TextStyle &style)
 {
     txt::TextStyle textStyle;
+#ifndef USE_GRAPHIC_TEXT_GINE
     auto color = SkColorSetARGB(style.color_.GetAlpha(),
                                 style.color_.GetRed(),
                                 style.color_.GetGreen(),
                                 style.color_.GetBlue());
+#else
+    auto color = SkColorSetARGB(
+        style.color.GetAlpha(), style.color.GetRed(), style.color.GetGreen(), style.color.GetBlue());
+#endif
     textStyle.color = color;
+#ifndef USE_GRAPHIC_TEXT_GINE
     textStyle.decoration = style.decoration_;
     auto decorationColor = SkColorSetARGB(style.decorationColor_.GetAlpha(),
                                           style.decorationColor_.GetRed(),
                                           style.decorationColor_.GetGreen(),
                                           style.decorationColor_.GetBlue());
+#else
+    textStyle.decoration = style.decoration;
+    auto decorationColor = SkColorSetARGB(style.decorationColor.GetAlpha(),
+        style.decorationColor.GetRed(), style.decorationColor.GetGreen(), style.decorationColor.GetBlue());
+#endif
     textStyle.decoration_color = decorationColor;
+#ifndef USE_GRAPHIC_TEXT_GINE
     textStyle.decoration_style = static_cast<txt::TextDecorationStyle>(style.decorationStyle_);
     textStyle.decoration_thickness_multiplier = style.decorationThicknessScale_;
     textStyle.font_weight = static_cast<txt::FontWeight>(style.fontWeight_);
@@ -118,15 +154,41 @@ txt::TextStyle Convert(const TextStyle &style)
     textStyle.background = style.background_.value_or(SkPaint());
     textStyle.has_foreground = style.foreground_.has_value();
     textStyle.foreground = style.foreground_.value_or(SkPaint());
+#else
+    textStyle.decoration_style = static_cast<txt::TextDecorationStyle>(style.decorationStyle);
+    textStyle.decoration_thickness_multiplier = style.decorationThicknessScale;
+    textStyle.font_weight = static_cast<txt::FontWeight>(style.fontWeight);
+    textStyle.font_style = static_cast<txt::FontStyle>(style.fontStyle);
+    textStyle.text_baseline = static_cast<txt::TextBaseline>(style.baseline);
+    textStyle.font_families = style.fontFamilies;
+    textStyle.font_size = style.fontSize;
+    textStyle.letter_spacing = style.letterSpacing;
+    textStyle.word_spacing = style.wordSpacing;
+    textStyle.height = style.heightScale;
+    textStyle.has_height_override = style.heightOnly;
+    textStyle.locale = style.locale;
+    textStyle.has_background = style.background.has_value();
+    textStyle.background = style.background.value_or(SkPaint());
+    textStyle.has_foreground = style.foreground.has_value();
+    textStyle.foreground = style.foreground.value_or(SkPaint());
+#endif
 
+#ifndef USE_GRAPHIC_TEXT_GINE
     for (const auto &[color, offset, radius] : style.shadows_) {
+#else
+    for (const auto &[color, offset, radius] : style.shadows) {
+#endif
         auto shadowColor = SkColorSetARGB(color.GetAlpha(), color.GetRed(),
                                           color.GetGreen(), color.GetBlue());
         auto shadowOffset = SkPoint::Make(offset.GetX(), offset.GetY());
         textStyle.text_shadows.emplace_back(shadowColor, shadowOffset, radius);
     }
 
+#ifndef USE_GRAPHIC_TEXT_GINE
     for (const auto &[tag, value] : style.fontFeatures_.GetFontFeatures()) {
+#else
+    for (const auto &[tag, value] : style.fontFeatures.GetFontFeatures()) {
+#endif
         textStyle.font_features.SetFeature(tag, value);
     }
     return textStyle;

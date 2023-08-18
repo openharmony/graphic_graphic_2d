@@ -21,7 +21,13 @@
 #include "texgine_text_blob_builder.h"
 #include "texgine/typography_types.h"
 #include "texgine/utils/exlog.h"
+#ifndef USE_GRAPHIC_TEXT_GINE
 #include "texgine/utils/trace.h"
+#else
+#ifdef LOGGER_ENABLE_SCOPE
+#include "texgine/utils/trace.h"
+#endif
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -31,7 +37,13 @@ namespace TextEngine {
 int TextShaper::Shape(const VariantSpan &span, const TypographyStyle &ys,
     const std::shared_ptr<FontProviders> &fontProviders) const
 {
+#ifndef USE_GRAPHIC_TEXT_GINE
     ScopedTrace scope("TextShaper::ShapeLineSpans");
+#else
+#ifdef LOGGER_ENABLE_SCOPE
+    ScopedTrace scope("TextShaper::ShapeLineSpans");
+#endif
+#endif
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "TextShaper::ShapeLineSpans");
     if (span == nullptr) {
         LOGEX_FUNC_LINE(ERROR) << "span is nullptr";

@@ -20,13 +20,15 @@
 #include <memory>
 #include <string>
 
+#include "common/rs_macros.h"
+
 namespace txt {
 class FontCollection;
 } // namespace txt
 
 namespace OHOS {
 namespace Rosen {
-class FontCollection {
+class RS_EXPORT FontCollection {
 public:
     static std::shared_ptr<FontCollection> From(std::shared_ptr<txt::FontCollection> fontCollection);
     static std::shared_ptr<FontCollection> Create();

@@ -13,73 +13,77 @@
 
 import("//build/ohos.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
-config("rosen_text_config") {
-  cflags_cc = [
-    "-Wno-implicit-fallthrough",
-    "-Os",
-  ]
-  include_dirs = [
-    "$rosen_2d_engine_root",
-    "//third_party_icu/icu4c/source/common",
-  ]
-
-  if (defined(use_new_skia) && use_new_skia) {
-    include_dirs += [ "$flutter_root/txt/src" ]
-  } else {
-    include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
-  }
-}
-
-template("rosen_text_properties") {
-  forward_variables_from(invoker, "*")
-
-  ohos_source_set(target_name) {
-    defines += invoker.defines
-    cflags_cc += invoker.cflags_cc
-
-    public_configs = [
-      "$ace_flutter_engine_root/icu:icu_config_$platform",
-      "$ace_flutter_engine_root:flutter_config",
-      ":rosen_text_config",
+if (!enable_text_gine) {
+  config("rosen_text_config") {
+    cflags_cc = [
+      "-Wno-implicit-fallthrough",
+      "-Os",
+    ]
+    include_dirs = [
+      "$rosen_2d_engine_root",
+      "//third_party_icu/icu4c/source/common",
     ]
 
-    sources = [
-      "font_collection_txt.cpp",
-      "placeholder_run.cpp",
-      "rosen_converter_txt.cpp",
-      "text_style.cpp",
-      "typography_create_txt.cpp",
-      "typography_style.cpp",
-      "typography_txt.cpp",
-    ]
-
-    public_deps =
-        [ "//third_party/flutter/build/libtxt:thirdparty_lib_txt_$current_os" ]
-    part_name = "graphic_2d"
-    subsystem_name = "graphic"
+    if (defined(use_new_skia) && use_new_skia) {
+      include_dirs += [ "$flutter_root/txt/src" ]
+    } else {
+      include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
+    }
   }
-}
 
-foreach(item, ace_platforms) {
-  rosen_text_properties("rosen_text_properties_" + item.name) {
-    platform = item.name
-    defines = []
-    cflags_cc = []
-    config = {
+  template("rosen_text_properties") {
+    forward_variables_from(invoker, "*")
+
+    ohos_source_set(target_name) {
+      defines += invoker.defines
+      cflags_cc += invoker.cflags_cc
+
+      public_configs = [
+        "$ace_flutter_engine_root/icu:icu_config_$platform",
+        "$ace_flutter_engine_root:flutter_config",
+        ":rosen_text_config",
+      ]
+
+      sources = [
+        "font_collection_txt.cpp",
+        "placeholder_run.cpp",
+        "rosen_converter_txt.cpp",
+        "text_style.cpp",
+        "typography_create_txt.cpp",
+        "typography_style.cpp",
+        "typography_txt.cpp",
+      ]
+
+      public_deps = [
+        "//third_party/flutter/build/libtxt:thirdparty_lib_txt_$current_os",
+      ]
+      part_name = "graphic_2d"
+      subsystem_name = "graphic"
     }
+  }
 
-    if (defined(item.config)) {
-      config = item.config
-    }
+  foreach(item, ace_platforms) {
+    rosen_text_properties("rosen_text_properties_" + item.name) {
+      platform = item.name
+      defines = []
+      cflags_cc = []
+      config = {
+      }
 
-    if (defined(config.defines)) {
-      defines = config.defines
-    }
+      if (defined(item.config)) {
+        config = item.config
+      }
 
-    if (defined(config.cflags_cc)) {
-      cflags_cc = config.cflags_cc
+      if (defined(config.defines)) {
+        defines = config.defines
+      }
+
+      if (defined(config.cflags_cc)) {
+        cflags_cc = config.cflags_cc
+      }
     }
   }
 }

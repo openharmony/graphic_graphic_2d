@@ -22,6 +22,9 @@ declare_args() {
   graphic_2d_feature_freemem_enable = false
   graphic_2d_feature_parallel_render_enable = true
   graphic_2d_feature_enable_vulkan = false
+  graphic_2d_feature_enable_filter_cache = true
+  enable_text_gine = true
+
   if (defined(build_cross_platform_version) && build_cross_platform_version) {
     use_new_render_context = false
     is_cross_platform = true
@@ -33,6 +36,9 @@ declare_args() {
 
 gpu_defines = []
 accessibility_defines = []
+if (enable_text_gine) {
+  gpu_defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+}
 if (graphic_2d_feature_ace_enable_gpu) {
   if (graphic_2d_feature_enable_vulkan) {
     gpu_defines += [
@@ -131,10 +137,14 @@ if (exec_script(check_graphic_ext_file_script,
     import("//foundation/graphic/graphic_2d_ext/ddgr/ddgr_config.gni")
   }
 }
+
+flutter_root = "//third_party/flutter"
+ace_flutter_engine_root = "$flutter_root/build"
 graphic_2d_root = "//foundation/graphic/graphic_2d"
 hilog_root = "//base/hiviewdfx/hilog"
 window_base_path = "//foundation/window/window_manager"
 safwk_base = "//foundation/systemabilitymgr/safwk"
+skia_root_new = "//third_party/skia"
 
 accessibility_enable = false
 if (defined(global_parts_info) &&
