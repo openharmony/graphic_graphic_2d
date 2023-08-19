@@ -19,7 +19,6 @@
 #include <string>
 
 #include "drawing/engine_adapter/impl_interface/color_space_impl.h"
-#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -39,7 +38,7 @@ enum class CMSMatrixType {
     XYZ,
 };
 
-class DRAWING_API ColorSpace {
+class ColorSpace {
 public:
     enum class ColorSpaceType {
         NO_TYPE,

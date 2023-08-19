@@ -38,7 +38,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API SkiaImage : public ImageImpl {
+class SkiaImage : public ImageImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaImage() noexcept;

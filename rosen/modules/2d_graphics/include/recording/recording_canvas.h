@@ -28,7 +28,7 @@ namespace Drawing {
  * and is used to record the sequence of draw calls for the canvas.
  * Draw calls are kept in linear memory in DrawCmdList, Subsequent playback can be performed through DrawCmdList.
  */
-class DRAWING_API RecordingCanvas : public Canvas {
+class RecordingCanvas : public Canvas {
 public:
     RecordingCanvas(int width, int height);
     ~RecordingCanvas() override = default;
