@@ -443,7 +443,7 @@ void RSMainThread::ProcessCommand()
 
 void RSMainThread::CacheCommands()
 {
-    RS_OPTIONAL_TRACE_FUNC_BEGIN();
+    RS_OPTIONAL_TRACE_FUNC();
     for (auto& skipTransactionData : cachedSkipTransactionDataMap_) {
         pid_t pid = skipTransactionData.first;
         RS_TRACE_NAME("cacheCmd pid: " + std::to_string(pid));
@@ -452,7 +452,6 @@ void RSMainThread::CacheCommands()
             std::make_move_iterator(skipTransactionDataVec.begin()),
             std::make_move_iterator(skipTransactionDataVec.end()));
     }
-    RS_OPTIONAL_TRACE_FUNC_END();
 }
 
 void RSMainThread::CheckIfNodeIsBundle(std::shared_ptr<RSSurfaceRenderNode> node)
@@ -486,7 +485,7 @@ std::unordered_map<NodeId, bool> RSMainThread::GetCacheCmdSkippedNodes() const
 
 void RSMainThread::CheckParallelSubThreadNodesStatus()
 {
-    RS_OPTIONAL_TRACE_FUNC_BEGIN();
+    RS_OPTIONAL_TRACE_FUNC();
     cacheCmdSkippedInfo_.clear();
     cacheCmdSkippedNodes_.clear();
     for (auto& node : subThreadNodes_) {
@@ -521,7 +520,6 @@ void RSMainThread::CheckParallelSubThreadNodesStatus()
             }
         }
     }
-    RS_OPTIONAL_TRACE_FUNC_END();
 }
 
 bool RSMainThread::IsNeedSkip(NodeId instanceRootNodeId, pid_t pid)
@@ -652,7 +650,7 @@ void RSMainThread::ProcessCommandForUniRender()
     if (!transactionDataEffective->empty()) {
         doDirectComposition_ = false;
     }
-    RS_OPTIONAL_TRACE_BEGIN("RSMainThread::ProcessCommandUni" + transactionFlags);
+    RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
     for (auto& rsTransactionElem: *transactionDataEffective) {
         for (auto& rsTransaction: rsTransactionElem.second) {
             if (rsTransaction) {
@@ -668,7 +666,6 @@ void RSMainThread::ProcessCommandForUniRender()
         RS_TRACE_NAME("RSMainThread::ProcessCommandForUniRender transactionDataEffective clear");
         transactionDataEffective->clear();
     });
-    RS_OPTIONAL_TRACE_END();
 }
 
 void RSMainThread::ProcessCommandForDividedRender()
@@ -1029,6 +1026,7 @@ void RSMainThread::WaitUtilUniRenderFinished()
     if (uniRenderFinished_) {
         return;
     }
+    RS_TRACE_NAME("RSMainThread::WaitUtilUniRenderFinished");
     uniRenderCond_.wait(lock, [this]() { return uniRenderFinished_; });
     uniRenderFinished_ = false;
 }
@@ -1330,7 +1328,7 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
 
 void RSMainThread::CalcOcclusion()
 {
-    RS_TRACE_NAME("RSMainThread::CalcOcclusion");
+    RS_OPTIONAL_TRACE_NAME("RSMainThread::CalcOcclusion");
     RS_LOGD("RSMainThread::CalcOcclusion animate:%{public}d isUniRender:%{public}d",
         doWindowAnimate_.load(), isUniRender_);
     if (doWindowAnimate_ && !isUniRender_) {
@@ -1446,7 +1444,7 @@ void RSMainThread::CallbackToWMS(VisibleData& curVisVec)
 
 void RSMainThread::RequestNextVSync()
 {
-    RS_OPTIONAL_TRACE_FUNC_BEGIN();
+    RS_OPTIONAL_TRACE_FUNC();
     VSyncReceiver::FrameCallback fcb = {
         .userData_ = this,
         .callback_ = [this](uint64_t timestamp, void* data) { OnVsync(timestamp, data); },
@@ -1458,7 +1456,6 @@ void RSMainThread::RequestNextVSync()
         }
         receiver_->RequestNextVSync(fcb);
     }
-    RS_OPTIONAL_TRACE_FUNC_END();
 }
 
 void RSMainThread::OnVsync(uint64_t timestamp, void* data)
@@ -1644,14 +1641,13 @@ void RSMainThread::UnRegisterOcclusionChangeCallback(pid_t pid)
 
 void RSMainThread::SendCommands()
 {
-    RS_OPTIONAL_TRACE_FUNC_BEGIN();
+    RS_OPTIONAL_TRACE_FUNC();
     RsFrameReport& fr = RsFrameReport::GetInstance();
     if (fr.GetEnable()) {
         fr.SendCommandsStart();
         fr.RenderEnd();
     }
     if (!RSMessageProcessor::Instance().HasTransaction()) {
-        RS_OPTIONAL_TRACE_FUNC_END();
         return;
     }
 
@@ -1672,7 +1668,6 @@ void RSMainThread::SendCommands()
             app->OnTransaction(transactionPtr);
         }
     });
-    RS_OPTIONAL_TRACE_FUNC_END();
 }
 
 void RSMainThread::QosStateDump(std::string& dumpString)
