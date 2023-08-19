@@ -239,6 +239,10 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     UpdateCacheChangeStatus(node);
     int markedCachedNodeCnt = markedCachedNodes_;
 
+    auto& property = node.GetMutableRenderProperties();
+    float alpha = curAlpha_;
+    curAlpha_ *= property.GetAlpha();
+    node.SetGlobalAlpha(curAlpha_);
     for (auto& child : children) {
         auto curRootNode = curRootNode_;
         if (PrepareSharedTransitionNode(*child)) {
@@ -247,6 +251,7 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
         }
         curRootNode_ = curRootNode;
     }
+    curAlpha_ = alpha;
 
     SetNodeCacheChangeStatus(node, markedCachedNodeCnt);
     // restore environment variables
@@ -770,9 +775,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         RS_OPTIONAL_TRACE_END();
         return;
     }
-    float alpha = curAlpha_;
-    curAlpha_ *= (property.GetAlpha());
-    node.SetGlobalAlpha(curAlpha_);
     // before node update, prepare node's setting by types
     PrepareTypesOfSurfaceRenderNodeBeforeUpdate(node);
 
@@ -915,7 +917,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
     // restore flags
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
-    curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
     isQuickSkipPreparationEnabled_ = isQuickSkipPreparationEnabled;
     prepareClipRect_ = prepareClipRect;
@@ -1017,7 +1018,6 @@ void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
 void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 {
     bool dirtyFlag = dirtyFlag_;
-    float alpha = curAlpha_;
     auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
     RectI prepareClipRect = prepareClipRect_;
 
@@ -1044,7 +1044,6 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
         }
     }
 #endif
-    curAlpha_ *= property.GetAlpha();
     if (rsParent == curSurfaceNode_) {
         const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
         const float rootHeight = property.GetFrameHeight() * property.GetScaleY();
@@ -1072,7 +1071,6 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     node.UpdateParentChildrenRect(logicParentNode_.lock());
 
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
-    curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
     prepareClipRect_ = prepareClipRect;
 
@@ -1174,9 +1172,6 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         prepareClipRect_ = prepareClipRect_.IntersectRect(geoPtr->MapAbsRect(frameRect));
     }
 
-    float alpha = curAlpha_;
-    curAlpha_ *= property.GetAlpha();
-    node.SetGlobalAlpha(curAlpha_);
     node.UpdateChildrenOutOfRectFlag(false);
 
     PrepareChildren(node);
@@ -1201,7 +1196,6 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         }
         UpdateForegroundFilterCacheWithDirty(node);
     }
-    curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
     prepareClipRect_ = prepareClipRect;
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
@@ -1219,7 +1213,6 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 {
     bool dirtyFlag = dirtyFlag_;
     RectI prepareClipRect = prepareClipRect_;
-    float alpha = curAlpha_;
     auto effectRegion = effectRegion_;
 
 #ifndef USE_ROSEN_DRAWING
@@ -1227,8 +1220,6 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 #else
     effectRegion_ = Drawing::Path();
 #endif
-    const auto& property = node.GetRenderProperties();
-    curAlpha_ *= property.GetAlpha();
 
     auto parentNode = node.GetParent().lock();
     auto rsParent = (parentNode);
@@ -1241,7 +1232,6 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     UpdateForegroundFilterCacheWithDirty(node);
 
     effectRegion_ = effectRegion;
-    curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
     prepareClipRect_ = prepareClipRect;
 
