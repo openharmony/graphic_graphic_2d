@@ -57,6 +57,8 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
     memberFuncMap_[BUFFER_PRODUCER_SET_TUNNEL_HANDLE] = &BufferQueueProducer::SetTunnelHandleRemote;
     memberFuncMap_[BUFFER_PRODUCER_GO_BACKGROUND] = &BufferQueueProducer::GoBackgroundRemote;
     memberFuncMap_[BUFFER_PRODUCER_GET_PRESENT_TIMESTAMP] = &BufferQueueProducer::GetPresentTimestampRemote;
+    memberFuncMap_[BUFFER_PRODUCER_UNREGISTER_RELEASE_LISTENER] =
+        &BufferQueueProducer::UnRegisterReleaseListenerRemote;
 }
 
 BufferQueueProducer::~BufferQueueProducer()
@@ -248,6 +250,14 @@ int32_t BufferQueueProducer::RegisterReleaseListenerRemote(MessageParcel &argume
     sptr<IRemoteObject> listenerObject = arguments.ReadRemoteObject();
     sptr<IProducerListener> listener = iface_cast<IProducerListener>(listenerObject);
     GSError sret = RegisterReleaseListener(listener);
+    reply.WriteInt32(sret);
+    return 0;
+}
+
+int32_t BufferQueueProducer::UnRegisterReleaseListenerRemote(MessageParcel &arguments,
+    MessageParcel &reply, MessageOption &option)
+{
+    GSError sret = UnRegisterReleaseListener();
     reply.WriteInt32(sret);
     return 0;
 }
@@ -488,6 +498,14 @@ GSError BufferQueueProducer::RegisterReleaseListener(sptr<IProducerListener> lis
         return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->RegisterProducerReleaseListener(listener);
+}
+
+GSError BufferQueueProducer::UnRegisterReleaseListener()
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return bufferQueue_->UnRegisterProducerReleaseListener();
 }
 
 GSError BufferQueueProducer::SetTransform(GraphicTransformType transform)

@@ -359,6 +359,19 @@ HWTEST_F(BufferClientProducerRemoteTest, RegisterReleaseListener001, Function | 
 }
 
 /*
+* Function: UnRegisterReleaseListener
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call UnRegisterReleaseListener
+*/
+HWTEST_F(BufferClientProducerRemoteTest, UnRegisterReleaseListener001, Function | MediumTest | Level2)
+{
+    GSError ret = bp->UnRegisterReleaseListener();
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
+
+/*
 * Function: GetName
 * Type: Function
 * Rank: Important(2)

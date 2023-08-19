@@ -63,6 +63,7 @@ public:
     GSError GoBackground() override;
 
     GSError RegisterReleaseListener(sptr<IProducerListener> listener) override;
+    GSError UnRegisterReleaseListener() override;
 
     GSError SetTransform(GraphicTransformType transform) override;
 
@@ -100,6 +101,7 @@ private:
     int32_t GetUniqueIdRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t CleanCacheRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t RegisterReleaseListenerRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
+    int32_t UnRegisterReleaseListenerRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t SetTransformRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t IsSupportedAllocRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t GetNameAndUniqueIdRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);

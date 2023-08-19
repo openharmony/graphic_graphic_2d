@@ -545,7 +545,7 @@ GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBuffer> &buffer, const sptr<SyncF
         sptr<SurfaceBuffer> buf = buffer;
         auto sret = onBufferRelease(buf);
         if (sret == GSERROR_OK) {   // need to check why directly return?
-            return sret;
+            // We think that onBufferRelase is not used by anyone, so delete 'return sret' temporarily;
         }
     }
 
@@ -804,6 +804,13 @@ GSError BufferQueue::RegisterProducerReleaseListener(sptr<IProducerListener> lis
 {
     std::lock_guard<std::mutex> lockGuard(producerListenerMutex_);
     producerListener_ = listener;
+    return GSERROR_OK;
+}
+
+GSError BufferQueue::UnRegisterProducerReleaseListener()
+{
+    std::lock_guard<std::mutex> lockGuard(producerListenerMutex_);
+    producerListener_ = nullptr;
     return GSERROR_OK;
 }
 

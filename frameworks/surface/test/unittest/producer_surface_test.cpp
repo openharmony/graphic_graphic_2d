@@ -65,6 +65,7 @@ void ProducerSurfaceTest::SetUpTestCase()
 
 void ProducerSurfaceTest::TearDownTestCase()
 {
+    pSurface->UnRegisterReleaseListener();
     csurf = nullptr;
     producer = nullptr;
     pSurface = nullptr;

@@ -312,6 +312,15 @@ GSError ProducerSurface::RegisterReleaseListener(OnReleaseFunc func)
     return producer_->RegisterReleaseListener(listener_);
 }
 
+GSError ProducerSurface::UnRegisterReleaseListener()
+{
+    if (producer_ == nullptr) {
+        BLOGE("The producer in ProducerSurface is nullptr, UnRegisterReleaseListener failed");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return producer_->UnRegisterReleaseListener();
+}
+
 GSError ProducerSurface::RegisterDeleteBufferListener(OnDeleteBufferFunc func, bool isForUniRedraw)
 {
     return GSERROR_NOT_SUPPORT;

@@ -160,6 +160,7 @@ pid_t SurfaceIPCTest::ChildProcessMain()
         write(pipeFd[1], &data, sizeof(data));
         exit(0);
     }
+    pSurface->UnRegisterReleaseListener();
     close(pipeFd[0]);
     close(pipeFd[1]);
     exit(0);

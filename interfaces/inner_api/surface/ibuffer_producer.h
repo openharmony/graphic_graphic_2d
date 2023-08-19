@@ -79,6 +79,7 @@ public:
     virtual GSError GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type, int64_t &time) = 0;
 
     virtual sptr<NativeSurface> GetNativeSurface() = 0;
+    virtual GSError UnRegisterReleaseListener() = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducer");
 
@@ -108,6 +109,7 @@ protected:
         BUFFER_PRODUCER_SET_TUNNEL_HANDLE = 21,
         BUFFER_PRODUCER_GO_BACKGROUND = 22,
         BUFFER_PRODUCER_GET_PRESENT_TIMESTAMP = 23,
+        BUFFER_PRODUCER_UNREGISTER_RELEASE_LISTENER = 24,
     };
 };
 } // namespace OHOS
