@@ -470,17 +470,9 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
 }
 
 void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    float scaleX, float scaleY)
+    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType)
 {
-    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
-    if (node == nullptr) {
-        RS_LOGW("RSRenderServiceConnection::TakeSurfaceCapture cannot find nodeId: [%{public}" PRIu64 "]", id);
-        callback->OnSurfaceCapture(id, nullptr);
-        return;
-    }
-    if ((node->GetType() == RSRenderNodeType::DISPLAY_NODE) ||
-        ((node->GetType() == RSRenderNodeType::SURFACE_NODE) &&
-            (node->ReinterpretCastTo<RSSurfaceRenderNode>()->IsMainWindowType()))) {
+    if (surfaceCaptureType == SurfaceCaptureType::DEFAULT_CAPTURE) {
         std::function<void()> captureTask = [scaleY, scaleX, callback, id]() -> void {
             RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%{public}" PRIu64 "]", id);
             ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");

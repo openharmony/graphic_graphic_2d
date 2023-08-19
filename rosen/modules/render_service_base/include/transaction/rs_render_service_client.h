@@ -104,7 +104,9 @@ public:
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr);
 
-    bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY);
+    bool TakeSurfaceCapture(
+        NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
+        SurfaceCaptureType surfaceCaptureType = SurfaceCaptureType::DEFAULT_CAPTURE);
 
     int32_t SetFocusAppInfo(int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
         uint64_t focusNodeId);

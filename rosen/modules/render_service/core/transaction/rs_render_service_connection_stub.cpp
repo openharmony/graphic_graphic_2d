@@ -446,7 +446,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             float scaleX = data.ReadFloat();
             float scaleY = data.ReadFloat();
-            TakeSurfaceCapture(id, cb, scaleX, scaleY);
+            SurfaceCaptureType surfaceCaptureType = static_cast<SurfaceCaptureType>(data.ReadUint8());
+            TakeSurfaceCapture(id, cb, scaleX, scaleY, surfaceCaptureType);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {
