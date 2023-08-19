@@ -21,12 +21,11 @@
 
 #include "drawing/engine_adapter/impl_interface/matrix_impl.h"
 #include "utils/scalar.h"
-#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API Matrix {
+class Matrix {
 public:
     // Matrix is a 3x3 float type matrix.
     static constexpr int MATRIX_SIZE = 9;

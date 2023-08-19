@@ -22,10 +22,9 @@
 #include "rosen_text/properties/font_collection_txt_base.h"
 #include "txt/asset_font_manager.h"
 #include "txt/font_collection.h"
-#include "utils/drawing_macros.h"
 
 namespace rosen {
-class DRAWING_API FontCollectionTxt : public FontCollectionTxtBase {
+class FontCollectionTxt : public FontCollectionTxtBase {
 public:
     explicit FontCollectionTxt(bool createWithICU = true);
 
