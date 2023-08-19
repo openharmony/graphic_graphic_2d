@@ -427,7 +427,7 @@ protected:
 
     virtual bool NodeIsUsedBySubThread() const { return false; }
 
-    virtual bool IsSelfDrawingNode() const;
+    bool IsSelfDrawingNode() const;
     bool isOnTheTree_ = false;
 
 private:

@@ -650,7 +650,7 @@ void RSRenderNode::UpdateDirtyRegion(
 
 bool RSRenderNode::IsSelfDrawingNode() const
 {
-    return GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE;
+    return GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE || GetType() == RSRenderNodeType::SURFACE_NODE;
 }
 
 bool RSRenderNode::IsDirty() const
