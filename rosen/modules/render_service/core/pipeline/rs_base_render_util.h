@@ -162,6 +162,7 @@ public:
     static int RotateEnumToInt(GraphicTransformType rotation);
     static GraphicTransformType RotateEnumToInt(int angle,
         GraphicTransformType flip = GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    static bool IsForceClient();
 
 private:
 #ifndef USE_ROSEN_DRAWING
@@ -180,7 +181,6 @@ private:
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::Bitmap& bitmap);
 #endif
     static bool WriteToPng(const std::string &filename, const WriteToPngParam &param);
-    static bool IsForceClient();
 
     static bool enableClient;
 };

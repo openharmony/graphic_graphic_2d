@@ -41,7 +41,7 @@ namespace {
 }
 RSSubThread::~RSSubThread()
 {
-    RS_LOGI("~RSSubThread():%d", threadIndex_);
+    RS_LOGI("~RSSubThread():%{public}d", threadIndex_);
     PostTask([this]() {
         DestroyShareEglContext();
     });
@@ -49,7 +49,7 @@ RSSubThread::~RSSubThread()
 
 void RSSubThread::Start()
 {
-    RS_LOGI("RSSubThread::Start():%d", threadIndex_);
+    RS_LOGI("RSSubThread::Start():%{public}d", threadIndex_);
     std::string name = "RSSubThread" + std::to_string(threadIndex_);
     runner_ = AppExecFwk::EventRunner::Create(name);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
@@ -163,7 +163,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
 
         RS_TRACE_NAME_FMT("draw cache render node: [%s, %llu]", surfaceNodePtr->GetName().c_str(),
             surfaceNodePtr->GetId());
-        if (surfaceNodePtr->NeedInitCacheSurface() || surfaceNodePtr->GetCacheSurface(threadIndex_, true) == nullptr) {
+        if (surfaceNodePtr->GetCacheSurface(threadIndex_, true) == nullptr || surfaceNodePtr->NeedInitCacheSurface()) {
             RSRenderNode::ClearCacheSurfaceFunc func = std::bind(&RSUniRenderUtil::ClearNodeCacheSurface,
                 std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
             surfaceNodePtr->InitCacheSurface(grContext_.get(), func, threadIndex_);
@@ -282,7 +282,7 @@ void RSSubThread::ResetGrContext()
         return;
     }
 #ifndef USE_ROSEN_DRAWING
-    grContext_->purgeUnlockedResources(false);
+    grContext_->freeGpuResources();
 #endif
 }
 }

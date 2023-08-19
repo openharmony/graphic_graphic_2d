@@ -17,6 +17,7 @@
 #define REGION_H
 
 #include "impl_interface/region_impl.h"
+#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -29,7 +30,7 @@ enum class RegionOp {
     REVERSE_DIFFERENCE,
     REPLACE,
 };
-class Region {
+class DRAWING_API Region {
 public:
     Region();
     virtual ~Region() = default;

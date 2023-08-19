@@ -16,16 +16,16 @@
 #ifndef FILTER_H
 #define FILTER_H
 
-#include "common/rs_macros.h"
 #include "effect/image_filter.h"
 #include "effect/mask_filter.h"
 #include "effect/path_effect.h"
+#include "utils/drawing_macros.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class RS_EXPORT Filter {
+class DRAWING_API Filter {
 public:
     enum class FilterQuality {
         NONE,

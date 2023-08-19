@@ -151,10 +151,10 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
 void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 {
     isSecurityDisplay_ = node.GetSecurityDisplay();
-    RS_LOGD("RsDebug RSRenderServiceVisitor::ProcessDisplayRenderNode: nodeid:[%" PRIu64 "] screenid:[%" PRIu64 "] \
-        isSecurityDisplay:[%s] child size:[%d] total size:[%d]",
-        node.GetId(), node.GetScreenId(), isSecurityDisplay_ ? "true" : "false", node.GetChildrenCount(),
-        node.GetSortedChildren().size());
+    RS_LOGD("RsDebug RSRenderServiceVisitor::ProcessDisplayRenderNode: nodeid:[%{public}" PRIu64 "]"
+        " screenid:[%{public}" PRIu64 "] \
+        isSecurityDisplay:[%{public}s] child size:[%{public}d]",
+        node.GetId(), node.GetScreenId(), isSecurityDisplay_ ? "true" : "false", node.GetChildrenCount());
     globalZOrder_ = 0.0f;
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
@@ -209,17 +209,19 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 
     if (isSecurityDisplay_ && node.GetSecurityLayer()) {
-        RS_LOGI("RSRenderServiceVisitor::PrepareSurfaceRenderNode node[%" PRIu64 "] prepare paused because of \
+        RS_LOGI("RSRenderServiceVisitor::PrepareSurfaceRenderNode node[%{public}" PRIu64 "] prepare paused because of \
             security DisplayNode.",
             node.GetId());
         return;
     }
     if (!canvas_) {
-        RS_LOGD("RSRenderServiceVisitor::PrepareSurfaceRenderNode node : %" PRIu64 " canvas is nullptr", node.GetId());
+        RS_LOGD("RSRenderServiceVisitor::PrepareSurfaceRenderNode node : %{public}" PRIu64 " canvas is nullptr",
+            node.GetId());
         return;
     }
     if (!node.ShouldPaint()) {
-        RS_LOGD("RSRenderServiceVisitor::PrepareSurfaceRenderNode node : %" PRIu64 " is invisible", node.GetId());
+        RS_LOGD("RSRenderServiceVisitor::PrepareSurfaceRenderNode node : %{public}" PRIu64 " is invisible",
+            node.GetId());
         return;
     }
     node.SetOffset(offsetX_, offsetY_);
@@ -235,13 +237,14 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         return;
     }
     if (isSecurityDisplay_ && node.GetSecurityLayer()) {
-        RS_LOGI("RSRenderServiceVisitor::ProcessSurfaceRenderNode node[%" PRIu64 "] process paused because of \
+        RS_LOGI("RSRenderServiceVisitor::ProcessSurfaceRenderNode node[%{public}" PRIu64 "] process paused because of \
             security DisplayNode.",
             node.GetId());
         return;
     }
     if (!node.ShouldPaint()) {
-        RS_LOGD("RSRenderServiceVisitor::ProcessSurfaceRenderNode node : %" PRIu64 " is invisible", node.GetId());
+        RS_LOGD("RSRenderServiceVisitor::ProcessSurfaceRenderNode node : %{public}" PRIu64 " is invisible",
+            node.GetId());
         return;
     }
     if (!node.GetOcclusionVisible() && !doAnimate_ && RSSystemProperties::GetOcclusionEnabled()) {

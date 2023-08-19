@@ -19,12 +19,12 @@
 #include <parcel.h>
 #include <refbase.h>
 #include <memory>
+#include <cinttypes>
 
 #include "animation/rs_animation_common.h"
 #include "animation/rs_value_estimator.h"
 #include "common/rs_macros.h"
 #include "modifier/rs_render_property.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -126,7 +126,6 @@ public:
     void UpdateFraction(float fraction) const override
     {
         if (!valueEstimator_) {
-            ROSEN_LOGE("RSTransitionCustom::UpdateFraction: valueEstimator_ is nullptr!");
             return;
         }
         valueEstimator_->UpdateAnimationValue(fraction, true);

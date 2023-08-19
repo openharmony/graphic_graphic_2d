@@ -108,7 +108,7 @@ bool RSAnimation::IsFinished() const
 void RSAnimation::Start(const std::shared_ptr<RSNode>& target)
 {
     if (state_ != AnimationState::INITIALIZED) {
-        ROSEN_LOGE("State error, animation is in [%d] when start.", state_);
+        ROSEN_LOGE("State error, animation is in [%{public}d] when start.", state_);
         return;
     }
 
@@ -146,7 +146,7 @@ const std::weak_ptr<RSNode> RSAnimation::GetTarget() const
 void RSAnimation::Pause()
 {
     if (state_ != AnimationState::RUNNING) {
-        ROSEN_LOGE("State error, animation is in [%d] when pause", state_);
+        ROSEN_LOGE("State error, animation is in [%{public}d] when pause", state_);
         return;
     }
 
@@ -188,7 +188,7 @@ void RSAnimation::OnPause()
 void RSAnimation::Resume()
 {
     if (state_ != AnimationState::PAUSED) {
-        ROSEN_LOGE("State error, animation is in [%d] when Resume", state_);
+        ROSEN_LOGE("State error, animation is in [%{public}d] when Resume", state_);
         return;
     }
 
@@ -230,7 +230,7 @@ void RSAnimation::OnResume()
 void RSAnimation::Finish()
 {
     if (state_ != AnimationState::RUNNING && state_ != AnimationState::PAUSED) {
-        ROSEN_LOGD("Animation is in [%d] when Finish", state_);
+        ROSEN_LOGD("Animation is in [%{public}d] when Finish", state_);
         return;
     }
 
@@ -272,7 +272,7 @@ void RSAnimation::OnFinish()
 void RSAnimation::Reverse()
 {
     if (state_ != AnimationState::RUNNING && state_ != AnimationState::PAUSED) {
-        ROSEN_LOGE("State error, animation is in [%d] when Reverse", state_);
+        ROSEN_LOGE("State error, animation is in [%{public}d] when Reverse", state_);
         return;
     }
 
@@ -315,12 +315,12 @@ void RSAnimation::OnReverse()
 void RSAnimation::SetFraction(float fraction)
 {
     if (fraction < FRACTION_MIN || fraction > FRACTION_MAX) {
-        ROSEN_LOGE("Fraction[%f] is invalid!", fraction);
+        ROSEN_LOGE("Fraction[%{public}f] is invalid!", fraction);
         return;
     }
 
     if (state_ != AnimationState::PAUSED) {
-        ROSEN_LOGE("State error, animation is in [%d] when SetFraction", state_);
+        ROSEN_LOGE("State error, animation is in [%{public}d] when SetFraction", state_);
         return;
     }
 
@@ -388,7 +388,8 @@ void RSAnimation::StartCustomAnimation(const std::shared_ptr<RSRenderAnimation>&
 {
     auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager == nullptr) {
-        ROSEN_LOGE("Failed to start custom animation, modifier manager is null  animationId: %llu!", GetId());
+        ROSEN_LOGE("Failed to start custom animation, modifier manager is null  animationId: %{public}" PRIu64 "!",
+            GetId());
         return;
     }
 

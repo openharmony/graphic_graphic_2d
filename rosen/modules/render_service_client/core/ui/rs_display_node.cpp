@@ -32,7 +32,7 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displa
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGD("RSDisplayNode::Create, id:%" PRIu64, node->GetId());
+    ROSEN_LOGD("RSDisplayNode::Create, id:%{public}" PRIu64, node->GetId());
     return node;
 }
 
@@ -53,7 +53,7 @@ void RSDisplayNode::SetScreenId(uint64_t screenId)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGD("RSDisplayNode::SetScreenId, ScreenId:%" PRIu64, screenId);
+    ROSEN_LOGD("RSDisplayNode::SetScreenId, ScreenId:%{public}" PRIu64, screenId);
 }
 
 void RSDisplayNode::SetDisplayOffset(int32_t offsetX, int32_t offsetY)
@@ -63,7 +63,7 @@ void RSDisplayNode::SetDisplayOffset(int32_t offsetX, int32_t offsetY)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGD("RSDisplayNode::SetDisplayOffset, offsetX:%d, offsetY:%d", offsetX, offsetY);
+    ROSEN_LOGD("RSDisplayNode::SetDisplayOffset, offsetX:%{public}d, offsetY:%{public}d", offsetX, offsetY);
 }
 
 void RSDisplayNode::SetSecurityDisplay(bool isSecurityDisplay)
@@ -74,8 +74,8 @@ void RSDisplayNode::SetSecurityDisplay(bool isSecurityDisplay)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGD("RSDisplayNode::SetSecurityDisplay, displayNodeId:[%" PRIu64 "] isSecurityDisplay:[%s]", GetId(),
-        isSecurityDisplay ? "true" : "false");
+    ROSEN_LOGD("RSDisplayNode::SetSecurityDisplay, displayNodeId:[%{public}" PRIu64 "]"
+        " isSecurityDisplay:[%{public}s]", GetId(), isSecurityDisplay ? "true" : "false");
 }
 
 bool RSDisplayNode::GetSecurityDisplay() const
@@ -91,8 +91,8 @@ void RSDisplayNode::SetDisplayNodeMirrorConfig(const RSDisplayNodeConfig& displa
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGD("RSDisplayNode::SetDisplayNodeMirrorConfig, displayNodeId:[%" PRIu64 "] isMirrored:[%s]", GetId(),
-        displayNodeConfig.isMirrored ? "true" : "false");
+    ROSEN_LOGD("RSDisplayNode::SetDisplayNodeMirrorConfig, displayNodeId:[%{public}" PRIu64 "]"
+        " isMirrored:[%{public}s]", GetId(), displayNodeConfig.isMirrored ? "true" : "false");
 }
 
 bool RSDisplayNode::IsMirrorDisplay() const

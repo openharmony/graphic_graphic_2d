@@ -53,7 +53,7 @@ void RSSyncTransactionControllerProxy::CreateTransactionFinished()
     uint32_t code = static_cast<uint32_t>(RSISyncTransactionControllerInterfaceCode::CREATE_TRANSACTION_FINISHED);
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        ROSEN_LOGE("Failed to send sync transaction controller request, error code:%d", ret);
+        ROSEN_LOGE("Failed to send sync transaction controller request, error code:%{public}d", ret);
     }
 }
 } // namespace Rosen

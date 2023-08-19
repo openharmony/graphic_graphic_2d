@@ -32,6 +32,7 @@
 #include "pipeline/rs_root_render_node.h"
 #include "render/rs_pixel_map_util.h"
 #include "transaction/rs_render_service_client.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -225,28 +226,29 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCa
         canvas_->SetMatrix(relativeMatrix);
 #endif
     }
-    node.ProcessRenderBeforeChildren(*canvas_);
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
         if (!node.IsOnTheTree()) {
+            canvasDrawingNode->ProcessRenderBeforeChildren(*canvas_);
             canvasDrawingNode->ProcessRenderContents(*canvas_);
-        }
+        } else {
 #ifndef USE_ROSEN_DRAWING
-        SkBitmap bitmap;
-        bitmap = canvasDrawingNode->GetBitmap();
+            SkBitmap bitmap = canvasDrawingNode->GetBitmap();
 #ifndef NEW_SKIA
-        canvas_->drawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
-            node.GetRenderProperties().GetBoundsPositionY());
+            canvas_->drawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
+                node.GetRenderProperties().GetBoundsPositionY());
 #else
-        canvas_->drawImage(bitmap.asImage(), node.GetRenderProperties().GetBoundsPositionX(),
-            node.GetRenderProperties().GetBoundsPositionY());
+            canvas_->drawImage(bitmap.asImage(), node.GetRenderProperties().GetBoundsPositionX(),
+                node.GetRenderProperties().GetBoundsPositionY());
 #endif
 #else
-        Drawing::Bitmap bitmap;
-        canvasDrawingNode->GetBitmap(bitmap);
-        canvas_->DrawBitmap(bitmap, 0, 0);
+            Drawing::Bitmap bitmap = canvasDrawingNode->GetBitmap();
+            canvas_->DrawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
+                node.GetRenderProperties().GetBoundsPositionY());
 #endif
+        }
     } else {
+        node.ProcessRenderBeforeChildren(*canvas_);
         node.ProcessRenderContents(*canvas_);
     }
     ProcessChildren(node);
@@ -288,7 +290,7 @@ public:
     {
         std::unique_lock<std::mutex> lock(mutex_);
         if (!conditionVariable_.wait_for(lock, std::chrono::milliseconds(timeOut), [this] { return IsReady(); })) {
-            ROSEN_LOGE("wait for %lu timeout", timeOut);
+            ROSEN_LOGE("wait for %{public}lu timeout", timeOut);
         }
         return pixelMap_;
     }
@@ -307,7 +309,8 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
     }
     if (!node.GetRenderProperties().GetVisible()) {
         ROSEN_LOGI(
-            "RSDividedUICaptureVisitor::ProcessSurfaceRenderNode node : %" PRIu64 " is invisible", node.GetId());
+            "RSDividedUICaptureVisitor::ProcessSurfaceRenderNode node : %{public}" PRIu64 " is invisible",
+            node.GetId());
         return;
     }
     std::shared_ptr<RSOffscreenRenderCallback> callback = std::make_shared<RSOffscreenRenderCallback>();

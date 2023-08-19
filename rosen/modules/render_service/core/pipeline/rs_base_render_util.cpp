@@ -707,7 +707,7 @@ Offset RGBUintToFloat(uint8_t* dst, uint8_t* src, int32_t pixelFormat, Vector3f 
             return std::make_pair(4, 4); // 4 bytes per pixel.
         }
         default: {
-            RS_LOGE("RGBUintToFloat: unexpected pixelFormat(%d).", pixelFormat);
+            RS_LOGE("RGBUintToFloat: unexpected pixelFormat(%{public}d).", pixelFormat);
             return std::make_pair(0, 0);
         }
     }
@@ -853,8 +853,8 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
     int32_t bufferStride = srcBuf->GetStride();
     int32_t bufferSize = static_cast<int32_t>(srcBuf->GetSize());
     if (bufferWidth < 1 || bufferHeight < 1 || bufferStride < 1 || bufferSize < 1) {
-        RS_LOGE("RSBaseRenderUtil::ConvertYUV420SPToRGBA invalid buffer size, w/h/stride/size = [%d, %d, %d, %d]",
-            bufferWidth, bufferHeight, bufferStride, bufferSize);
+        RS_LOGE("RSBaseRenderUtil::ConvertYUV420SPToRGBA invalid buffer size, w/h/stride/size = [%{public}d,"
+            " %{public}d, %{public}d, %{public}d]", bufferWidth, bufferHeight, bufferStride, bufferSize);
         return false;
     }
 #ifdef PADDING_HEIGHT_32
@@ -869,7 +869,7 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
     int32_t totalLen = static_cast<int32_t>(len * yuvSizeFactor);
     if (bufferSize < totalLen) {
         RS_LOGE("RSBaseRenderUtil::ConvertYUV420SPToRGBA invalid buffer size, "
-            "w/h/stride/size/totalLen = [%d, %d, %d, %d, %d]",
+            "w/h/stride/size/totalLen = [%{public}d, %{public}d, %{public}d, %{public}d, %{public}d]",
             bufferWidth, srcBuf->GetHeight(), bufferStride, bufferSize, totalLen);
         return false;
     }
@@ -999,7 +999,7 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
     auto availableBufferCnt = node.GetAvailableBufferCount();
     const auto& surfaceConsumer = node.GetConsumer();
     if (surfaceConsumer == nullptr) {
-        RS_LOGE("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %" PRIu64 "): surfaceConsumer is null!",
+        RS_LOGE("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %{public}" PRIu64 "): surfaceConsumer is null!",
             node.GetNodeId());
         return OHOS::GSERROR_NO_CONSUMER;
     }
@@ -1014,19 +1014,20 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
         int64_t timestamp = 0;
         auto ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %" PRIu64 "): AcquireBuffer failed(ret: %d), do nothing ",
-                node.GetNodeId(), ret);
+            RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64 "): AcquireBuffer failed("
+                " ret: %{public}d), do nothing ", node.GetNodeId(), ret);
             return OHOS::GSERROR_NO_BUFFER;
         }
 
         ret = surfaceConsumer->ReleaseBuffer(cbuffer, SyncFence::INVALID_FENCE);
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %" PRIu64
-                    "): ReleaseBuffer failed(ret: %d), Acquire done ",
+            RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64
+                    "): ReleaseBuffer failed(ret: %{public}d), Acquire done ",
                 node.GetNodeId(), ret);
         }
         node.ReduceAvailableBuffer();
-        RS_LOGD("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %" PRIu64 "), drop one frame", node.GetNodeId());
+        RS_LOGD("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %{public}" PRIu64 "), drop one frame",
+            node.GetNodeId());
     }
 
     return OHOS::GSERROR_OK;
@@ -1051,14 +1052,14 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler)
     Rect damage;
     auto ret = consumer->AcquireBuffer(buffer, acquireFence, timestamp, damage);
     if (buffer == nullptr || ret != SURFACE_ERROR_OK) {
-        RS_LOGE("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer failed(ret: %d)!",
+        RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer failed(ret: %{public}d)!",
             surfaceHandler.GetNodeId(), ret);
         return false;
     }
 
     surfaceHandler.SetBuffer(buffer, acquireFence, damage, timestamp);
     surfaceHandler.SetCurrentFrameBufferConsumed();
-    RS_LOGD("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, timestamp = %" PRId64 ".",
+    RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, timestamp = %{public}" PRId64 ".",
         surfaceHandler.GetNodeId(), timestamp);
     surfaceHandler.ReduceAvailableBuffer();
     return true;
@@ -1075,7 +1076,7 @@ bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
     if (preBuffer.buffer != nullptr) {
         auto ret = consumer->ReleaseBuffer(preBuffer.buffer, preBuffer.releaseFence);
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGE("RsDebug surfaceHandler(id: %" PRIu64 ") ReleaseBuffer failed(ret: %d)!",
+            RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer failed(ret: %{public}d)!",
                 surfaceHandler.GetNodeId(), ret);
             return false;
         }
@@ -1192,7 +1193,7 @@ bool RSBaseRenderUtil::IsBufferValid(const sptr<SurfaceBuffer>& buffer)
         return false;
     }
     if (buffer->GetWidth() <= 0 || buffer->GetHeight() <= 0) {
-        RS_LOGE("RSBaseRenderUtil: this buffer has negative width or height [%d %d]",
+        RS_LOGE("RSBaseRenderUtil: this buffer has negative width or height [%{public}d %{public}d]",
             buffer->GetWidth(), buffer->GetHeight());
         return false;
     }
@@ -1337,7 +1338,7 @@ void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawPara
             return;
         }
     }
-    RS_LOGD("RSBaseRenderUtil::FlipMatrix %d", transform);
+    RS_LOGD("RSBaseRenderUtil::FlipMatrix %{public}d", transform);
     SkMatrix flip;
     sk3DView.getMatrix(&flip);
     const float half = 0.5f;
@@ -1360,7 +1361,7 @@ void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawPara
             return;
         }
     }
-    RS_LOGD("RSBaseRenderUtil::FlipMatrix %d", transform);
+    RS_LOGD("RSBaseRenderUtil::FlipMatrix %{public}d", transform);
     Drawing::Matrix flip;
     camera3D.ApplyToMatrix(flip);
     const float half = 0.5f;
@@ -1650,7 +1651,7 @@ bool RSBaseRenderUtil::WriteToPng(const std::string &filename, const WriteToPngP
         RS_LOGI("RSBaseRenderUtil::WriteToPng filename is empty");
         return false;
     }
-    RS_LOGI("RSBaseRenderUtil::WriteToPng filename = %s", filename.c_str());
+    RS_LOGI("RSBaseRenderUtil::WriteToPng filename = %{public}s", filename.c_str());
     png_structp pngStruct = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if (pngStruct == nullptr) {
         return false;

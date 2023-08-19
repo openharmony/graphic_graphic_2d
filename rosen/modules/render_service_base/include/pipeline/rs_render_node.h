@@ -67,8 +67,8 @@ public:
     }
 
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {}) : id_(id), context_(context) {};
-    explicit RSRenderNode(NodeId id, bool isOnTheTree, std::weak_ptr<RSContext> context = {}) : id_(id),
-        isOnTheTree_(isOnTheTree), context_(context) {};
+    explicit RSRenderNode(NodeId id, bool isOnTheTree, std::weak_ptr<RSContext> context = {}) :
+        isOnTheTree_(isOnTheTree), id_(id), context_(context) {};
     RSRenderNode(const RSRenderNode&) = delete;
     RSRenderNode(const RSRenderNode&&) = delete;
     RSRenderNode& operator=(const RSRenderNode&) = delete;
@@ -165,7 +165,7 @@ public:
     bool IsClipBound() const;
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
     bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
-        bool isClipBoundDirty = false, std::optional<RectI> clipRect = std::nullopt);
+        std::optional<RectI> clipRect = std::nullopt);
 #ifndef USE_ROSEN_DRAWING
     virtual std::optional<SkRect> GetContextClipRegion() const { return std::nullopt; }
 #else
@@ -349,9 +349,9 @@ public:
     std::shared_ptr<RectF> GetDrawRegion() const;
 
 #ifndef USE_ROSEN_DRAWING
-    void UpdateEffectRegion(std::optional<SkPath>& region) const;
+    void UpdateEffectRegion(std::optional<SkPath>& region);
 #else
-    void UpdateEffectRegion(std::optional<Drawing::Path>& region) const;
+    void UpdateEffectRegion(std::optional<Drawing::Path>& region);
 #endif
     // check node's rect if it has valid filter cache
     bool IsFilterCacheValid() const;
@@ -362,6 +362,8 @@ public:
     bool IsSuggestedDrawInGroup() const;
     void CheckDrawingCacheType();
     bool HasCacheableAnim() const { return hasCacheableAnim_; }
+    bool HasUpdateEffectRegion() const { return hasUpdateEffectRegion_; }
+    void SetHasUpdateEffectRegion(bool hasUpdate) { hasUpdateEffectRegion_ = hasUpdate; }
 
     enum NodeGroupType {
         NONE = 0,
@@ -426,6 +428,7 @@ protected:
     virtual bool NodeIsUsedBySubThread() const { return false; }
 
     virtual bool IsSelfDrawingNode() const;
+    bool isOnTheTree_ = false;
 
 private:
     NodeId id_;
@@ -435,7 +438,6 @@ private:
     void SetParent(WeakPtr parent);
     void ResetParent();
     virtual void OnResetParent() {}
-    bool isOnTheTree_ = false;
 
     std::list<WeakPtr> children_;
     std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
@@ -512,6 +514,7 @@ private:
     bool hasHardwareNode_ = false;
     bool hasAbilityComponent_ = false;
     bool isAncestorDirty_ = false;
+    bool hasUpdateEffectRegion_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 
     // driven render

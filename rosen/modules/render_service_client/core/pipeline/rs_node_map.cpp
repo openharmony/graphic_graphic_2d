@@ -19,6 +19,7 @@
 
 #include "ui/rs_base_node.h"
 #include "ui/rs_canvas_node.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -61,7 +62,7 @@ bool RSNodeMap::RegisterNode(const RSBaseNode::SharedPtr& nodePtr)
     NodeId id = nodePtr->GetId();
     auto itr = nodeMap_.find(id);
     if (itr != nodeMap_.end()) {
-        ROSEN_LOGW("RSNodeMap::RegisterNode: node id %" PRIu64 " already exists", id);
+        ROSEN_LOGW("RSNodeMap::RegisterNode: node id %{public}" PRIu64 " already exists", id);
         return false;
     }
     RSBaseNode::WeakPtr ptr(nodePtr);
@@ -79,7 +80,7 @@ void RSNodeMap::UnregisterNode(NodeId id)
     if (itr != nodeMap_.end()) {
         nodeMap_.erase(itr);
     } else {
-        ROSEN_LOGW("RSNodeMap::UnregisterNode: node id %" PRIu64 " not found", id);
+        ROSEN_LOGW("RSNodeMap::UnregisterNode: node id %{public}" PRIu64 " not found", id);
     }
 }
 

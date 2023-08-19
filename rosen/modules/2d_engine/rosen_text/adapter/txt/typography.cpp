@@ -22,27 +22,54 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifndef USE_GRAPHIC_TEXT_GINE
 TextRect::TextRect(Drawing::RectF rect, TextDirection direction)
+#else
+TextRect::TextRect(Drawing::RectF rec, TextDirection dir)
+#endif
 {
+#ifndef USE_GRAPHIC_TEXT_GINE
     rect_ = rect;
     direction_ = direction;
+#else
+    rect = rec;
+    direction = dir;
+#endif
 }
 
+#ifndef USE_GRAPHIC_TEXT_GINE
 IndexAndAffinity::IndexAndAffinity(size_t index, Affinity affinity)
+#else
+IndexAndAffinity::IndexAndAffinity(size_t charIndex, Affinity charAffinity)
+#endif
 {
+#ifndef USE_GRAPHIC_TEXT_GINE
     index_ = index;
     affinity_ = affinity;
+#else
+    index = charIndex;
+    affinity = charAffinity;
+#endif
 }
 
 Boundary::Boundary(size_t left, size_t right)
 {
+#ifndef USE_GRAPHIC_TEXT_GINE
     leftIndex_ = left;
     rightIndex_ = right;
+#else
+    leftIndex = left;
+    rightIndex = right;
+#endif
 }
 
 bool Boundary::operator ==(const Boundary& rhs) const
 {
+#ifndef USE_GRAPHIC_TEXT_GINE
     return leftIndex_ == rhs.leftIndex_ && rightIndex_ == rhs.rightIndex_;
+#else
+    return leftIndex == rhs.leftIndex && rightIndex == rhs.rightIndex;
+#endif
 }
 
 namespace AdapterTxt {

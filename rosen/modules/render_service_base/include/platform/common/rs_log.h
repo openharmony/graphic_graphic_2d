@@ -19,11 +19,16 @@
 // NOT redundant, we need PRIu64/PRId64 for logging
 #include <cinttypes>
 #include <string>
+#include <hilog/log.h>
 
 #include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
+// The "0xD001400" is the domain ID for graphic module that alloted by the OS.
+constexpr OHOS::HiviewDFX::HiLogLabel LABEL_RS = { LOG_CORE, 0xD001400, "OHOS::RS" };
+constexpr OHOS::HiviewDFX::HiLogLabel LABEL_ROSEN = { LOG_CORE, 0xD001400, "OHOS::ROSEN" };
+
 class RSB_EXPORT RSLog {
 public:
     enum Tag { RS = 0, RS_CLIENT };
@@ -36,25 +41,25 @@ void RSB_EXPORT RSLogOutput(RSLog::Tag tag, RSLog::Level level, const char* form
 } // namespace OHOS
 
 #define ROSEN_LOGI(format, ...) \
-    RSLogOutput(RSLog::Tag::RS_CLIENT, RSLog::Level::LEVEL_INFO, format, ##__VA_ARGS__)
+    OHOS::HiviewDFX::HiLog::Info(LABEL_ROSEN, format, ##__VA_ARGS__)
 #define ROSEN_LOGD(format, ...) \
-    RSLogOutput(RSLog::Tag::RS_CLIENT, RSLog::Level::LEVEL_DEBUG, format, ##__VA_ARGS__)
+    OHOS::HiviewDFX::HiLog::Debug(LABEL_ROSEN, format, ##__VA_ARGS__)
 #define ROSEN_LOGE(format, ...) \
-    RSLogOutput(RSLog::Tag::RS_CLIENT, RSLog::Level::LEVEL_ERROR, format, ##__VA_ARGS__)
+    OHOS::HiviewDFX::HiLog::Warn(LABEL_ROSEN, format, ##__VA_ARGS__)
 #define ROSEN_LOGW(format, ...) \
-    RSLogOutput(RSLog::Tag::RS_CLIENT, RSLog::Level::LEVEL_WARN, format, ##__VA_ARGS__)
+    OHOS::HiviewDFX::HiLog::Error(LABEL_ROSEN, format, ##__VA_ARGS__)
 #define ROSEN_LOGF(format, ...) \
-    RSLogOutput(RSLog::Tag::RS_CLIENT, RSLog::Level::LEVEL_FATAL, format, ##__VA_ARGS__)
+    OHOS::HiviewDFX::HiLog::Fatal(LABEL_ROSEN, format, ##__VA_ARGS__)
 
 #define RS_LOGI(format, ...) \
-    RSLogOutput(RSLog::Tag::RS, RSLog::Level::LEVEL_INFO, format, ##__VA_ARGS__)
+    OHOS::HiviewDFX::HiLog::Info(LABEL_RS, format, ##__VA_ARGS__)
 #define RS_LOGD(format, ...) \
-    RSLogOutput(RSLog::Tag::RS, RSLog::Level::LEVEL_DEBUG, format, ##__VA_ARGS__)
+    OHOS::HiviewDFX::HiLog::Debug(LABEL_RS, format, ##__VA_ARGS__)
 #define RS_LOGE(format, ...) \
-    RSLogOutput(RSLog::Tag::RS, RSLog::Level::LEVEL_ERROR, format, ##__VA_ARGS__)
+    OHOS::HiviewDFX::HiLog::Warn(LABEL_RS, format, ##__VA_ARGS__)
 #define RS_LOGW(format, ...) \
-    RSLogOutput(RSLog::Tag::RS, RSLog::Level::LEVEL_WARN, format, ##__VA_ARGS__)
+    OHOS::HiviewDFX::HiLog::Error(LABEL_RS, format, ##__VA_ARGS__)
 #define RS_LOGF(format, ...) \
-    RSLogOutput(RSLog::Tag::RS, RSLog::Level::LEVEL_FATAL, format, ##__VA_ARGS__)
+    OHOS::HiviewDFX::HiLog::Fatal(LABEL_RS, format, ##__VA_ARGS__)
 
 #endif // RENDER_SERVICE_BASE_CORE_COMMON_RS_LOG_H

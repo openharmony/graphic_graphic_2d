@@ -15,12 +15,24 @@
 
 #ifndef RS_SURFACE_CAPTURE_TASK
 #define RS_SURFACE_CAPTURE_TASK
+#define EGL_EGLEXT_PROTOTYPES
+#define GL_GLEXT_PROTOTYPES
 
 #include "common/rs_common_def.h"
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkCanvas.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkSurface.h"
+#ifdef ROSEN_OHOS
+#include "EGL/egl.h"
+#include "EGL/eglext.h"
+#include <GLES/gl.h>
+#include "GLES2/gl2.h"
+#include "GLES2/gl2ext.h"
+
+#include "surface_buffer.h"
+#include "window.h"
+#endif
 #else
 #include "draw/canvas.h"
 #include "draw/surface.h"
@@ -123,6 +135,11 @@ private:
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
     bool CopyDataToPixelMap(sk_sp<SkImage> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+    sptr<SurfaceBuffer> DmaMemAlloc(SkImageInfo &dstInfo, const std::unique_ptr<Media::PixelMap>& pixelmap);
+    sk_sp<SkSurface> GetSkSurfaceFromSurfaceBuffer(std::shared_ptr<RenderContext> renderContext, sptr<SurfaceBuffer> surfaceBuffer);
+    void ReleaseGLMemory();
+#endif
 #else
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
 #endif
@@ -140,6 +157,14 @@ private:
     float scaleX_;
 
     float scaleY_;
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#ifndef USE_ROSEN_DRAWING
+    EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
+    GLuint texId_ = 0;
+    OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
+#endif
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

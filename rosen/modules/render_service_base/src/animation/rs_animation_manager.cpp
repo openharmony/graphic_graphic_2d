@@ -59,7 +59,8 @@ void RSAnimationManager::CancelAnimationByPropertyId(PropertyId id)
 
 void RSAnimationManager::FilterAnimationByPid(pid_t pid)
 {
-    ROSEN_LOGI("RSAnimationManager::FilterAnimationByPid removing all animations belong to pid %d", pid);
+    ROSEN_LOGI("RSAnimationManager::FilterAnimationByPid removing all animations belong to pid %{public}llu",
+        (unsigned long long)pid);
     // remove all animations belong to given pid (by matching higher 32 bits of animation id)
     EraseIf(animations_, [pid, this](const auto& pair) -> bool {
         if (ExtractPid(pair.first) != pid) {
@@ -113,7 +114,7 @@ const std::shared_ptr<RSRenderAnimation> RSAnimationManager::GetAnimation(Animat
 {
     auto animationItr = animations_.find(id);
     if (animationItr == animations_.end()) {
-        ROSEN_LOGE("RSAnimationManager::GetAnimation, animation [%" PRIu64 "] not found", id);
+        ROSEN_LOGE("RSAnimationManager::GetAnimation, animation [%{public}" PRIu64 "] not found", id);
         return nullptr;
     }
     return animationItr->second;

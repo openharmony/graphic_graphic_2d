@@ -254,7 +254,6 @@ void RecordingCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)
     Rect rect;
     bool hasBrush = false;
     BrushHandle brushHandle;
-    CmdListHandle imageFilterHandle = {};
 
     if (saveLayerOps.GetBounds() != nullptr) {
         rect = *saveLayerOps.GetBounds();
@@ -275,7 +274,7 @@ void RecordingCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)
             CmdListHelper::AddRecordedToCmdList<RecordingMaskFilter>(*cmdList_, filter.GetMaskFilter()),
         };
     }
-    imageFilterHandle = CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(
+    CmdListHandle imageFilterHandle = CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(
         *cmdList_, saveLayerOps.GetImageFilter());
 
     cmdList_->AddOp<SaveLayerOpItem>(rect, hasBrush, brushHandle,

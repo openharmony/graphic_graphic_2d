@@ -24,7 +24,6 @@
 #include "common/rs_macros.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "modifier/rs_modifier_type.h"
-#include "platform/common/rs_log.h"
 #include "property/rs_properties.h"
 
 namespace OHOS {

@@ -45,7 +45,7 @@ public:
     }
 
 private:
-    int32_t GetHgmXmlNodeAsInt(xmlNode &node) const;
+    static int32_t GetHgmXmlNodeAsInt(xmlNode &node);
     bool ParseInternal(xmlNode &node);
     int32_t ParseParam(xmlNode &node);
     int32_t ParseParams(xmlNode &node);

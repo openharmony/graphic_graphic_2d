@@ -14,6 +14,7 @@
  */
 
 #include "rs_parallel_hardware_composer.h"
+#include "platform/common/rs_log.h"
  
 namespace OHOS {
 namespace Rosen {
@@ -65,7 +66,7 @@ void RSParallelHardwareComposer::AddTransparentColorArea(unsigned int surfaceInd
     if (surfaceAndHolesMap_.count(surfaceIndex) > 0) {
         surfaceAndHolesMap_[surfaceIndex].push_back(std::move(shape));
     } else {
-        RS_LOGE("Key doesn't exist, size:%zu, index:%u", surfaceAndHolesMap_.size(), surfaceIndex);
+        RS_LOGE("Key doesn't exist, size:%{public}zu, index:%{public}u", surfaceAndHolesMap_.size(), surfaceIndex);
     }
 }
 

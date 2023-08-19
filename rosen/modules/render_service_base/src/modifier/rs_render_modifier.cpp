@@ -32,6 +32,7 @@
 #include "property/rs_properties.h"
 #include "property/rs_properties_def.h"
 #include "property/rs_properties_painter.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -172,13 +173,15 @@ void RSDrawCmdListRenderModifier::ApplyForDrivenContent(RSModifierContext& conte
 
 void RSParticleRenderModifier::Apply(RSModifierContext& context) const
 {
-    auto renderProperty = std::static_pointer_cast<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>>(property_);
+    auto renderProperty =
+        std::static_pointer_cast<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>>(property_);
     context.property_.SetParticles(renderProperty->Get());
 }
 
 void RSParticleRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
 {
-    if (auto property = std::static_pointer_cast<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>>(prop)) {
+    if (auto property =
+            std::static_pointer_cast<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>>(prop)) {
         property_->Set(property->Get());
     }
 }
@@ -362,7 +365,7 @@ RSRenderModifier* RSRenderModifier::Unmarshalling(Parcel& parcel)
     }
     auto it = funcLUT.find(static_cast<RSModifierType>(type));
     if (it == funcLUT.end()) {
-        ROSEN_LOGE("RSRenderModifier Unmarshalling cannot find func in lut %d", type);
+        ROSEN_LOGE("RSRenderModifier Unmarshalling cannot find func in lut %{public}d", type);
         return nullptr;
     }
     return it->second(parcel);

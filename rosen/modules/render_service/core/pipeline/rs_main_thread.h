@@ -46,6 +46,8 @@ namespace OHOS::Rosen {
 #if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
 #endif
+class HgmFrameRateManager;
+struct FrameRateRangeData;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -79,6 +81,8 @@ public:
     void RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RequestNextVSync();
     void PostTask(RSTaskMessage::RSTask task);
+    void PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime);
+    void RemoveTask(const std::string& name);
     void PostSyncTask(RSTaskMessage::RSTask task);
     void QosStateDump(std::string& dumpString);
     void RenderServiceTreeDump(std::string& dumpString);
@@ -177,6 +181,9 @@ public:
     }
     // add node info after cmd data process
     void AddActiveNodeId(pid_t pid, NodeId id);
+
+    void ProcessHgmFrameRate(FrameRateRangeData data, uint64_t timestamp);
+    DeviceType GetDeviceType() const;
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -240,6 +247,7 @@ private:
     void PerfMultiWindow();
     void RenderFrameStart();
     void ResetHardwareEnabledState();
+    void CheckIfHardwareForcedDisabled();
     void CheckAndUpdateTransactionIndex(
         std::shared_ptr<TransactionDataMap>& transactionDataEffective, std::string& transactionFlags);
 
@@ -356,6 +364,8 @@ private:
     // driven render
     bool hasDrivenNodeOnUniTree_ = false;
     bool hasDrivenNodeMarkRender_ = false;
+
+    std::shared_ptr<HgmFrameRateManager> frameRateMgr_ = nullptr;
 
     // UIFirst
     std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes_;

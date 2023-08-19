@@ -40,6 +40,7 @@
 #include "ui/rs_canvas_drawing_node.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
+#include "ui/rs_frame_rate_policy.h"
 #include "ui/rs_node.h"
 #include "ui/rs_proxy_node.h"
 #include "ui/rs_root_node.h"
@@ -721,7 +722,7 @@ void RSNode::SetEnvForegroundColorStrategy(ForegroundColorStrategyType strategyT
         RSProperty<ForegroundColorStrategyType>>(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, strategyType);
 }
 
-// Set ParticleParams 
+// Set ParticleParams
 void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams)
 {
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
@@ -1062,14 +1063,14 @@ bool RSNode::AnimationCallback(AnimationId animationId, AnimationCallbackEvent e
         std::unique_lock<std::mutex> lock(animationMutex_);
         auto animationItr = animations_.find(animationId);
         if (animationItr == animations_.end()) {
-            ROSEN_LOGE("Failed to find animation[%" PRIu64 "]!", animationId);
+            ROSEN_LOGE("Failed to find animation[%{public}" PRIu64 "]!", animationId);
             return false;
         }
         animation = animationItr->second;
     }
 
     if (animation == nullptr) {
-        ROSEN_LOGE("Failed to callback animation[%" PRIu64 "], animation is null!", animationId);
+        ROSEN_LOGE("Failed to callback animation[%{public}" PRIu64 "], animation is null!", animationId);
         return false;
     }
     if (event == FINISHED) {
@@ -1080,7 +1081,7 @@ bool RSNode::AnimationCallback(AnimationId animationId, AnimationCallbackEvent e
         animation->CallRepeatCallback();
         return true;
     }
-    ROSEN_LOGE("Failed to callback animation event[%" PRIu64 "], event is null!", event);
+    ROSEN_LOGE("Failed to callback animation event[%{public}d], event is null!", event);
     return false;
 }
 
@@ -1348,8 +1349,10 @@ void RSNode::SetColorBlend(uint32_t colorValue)
     SetProperty<RSColorBlendModifier, RSAnimatableProperty<Color>>(RSModifierType::COLOR_BLEND, colorBlend);
 }
 
-void RSNode::UpdateFrameRateRange(FrameRateRange range)
+void RSNode::AddFRCSceneInfo(const std::string& scene, float speed)
 {
+    int preferredFps = RSFrameRatePolicy::GetInstance()->GetPreferredFps(scene, speed);
+    FrameRateRange range = {0, RANGE_MAX_REFRESHRATE, preferredFps};
     if (!range.IsValid()) {
         return;
     }
@@ -1383,7 +1386,7 @@ void RSNode::InitUniRenderEnabled()
     if (!inited) {
         inited = true;
         g_isUniRenderEnabled = RSSystemProperties::GetUniRenderEnabled();
-        ROSEN_LOGD("RSNode::InitUniRenderEnabled:%d", g_isUniRenderEnabled);
+        ROSEN_LOGD("RSNode::InitUniRenderEnabled:%{public}d", g_isUniRenderEnabled);
     }
 }
 

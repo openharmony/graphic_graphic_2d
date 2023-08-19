@@ -23,6 +23,7 @@ ohos_fuzztest("RSRenderServiceConnectionStubFuzzTest") {
 
   include_dirs = [
     "../../../../../rosen/modules/platform/ipc_core",
+    "../../../../../modules/hyper_graphic_manager/core/config",
     "../../../../../modules/render_service/core",
     "../../../../../modules/render_service_base/src",
     "../../../../../test/include",

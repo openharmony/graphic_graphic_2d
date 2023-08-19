@@ -59,7 +59,7 @@ void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
         if (flat->hdr.type == BINDER_TYPE_FD && flat->handle > 0) {
             int32_t val = dup(flat->handle);
             if (val < 0) {
-                ROSEN_LOGW("CopyFileDescriptor dup failed, fd:%d", val);
+                ROSEN_LOGW("CopyFileDescriptor dup failed, fd:%{public}d", val);
             }
             copiedFlat->handle = static_cast<uint32_t>(val);
         }
@@ -450,10 +450,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {
-            if (!HasPermission("RSRenderServiceConnectionStub::REGISTER_APPLICATION_AGENT")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             uint32_t pid = data.ReadUint32();
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
@@ -616,10 +612,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER): {
-            if (!HasPermission("RSRenderServiceConnectionStub::SET_BUFFER_AVAILABLE_LISTENER")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -1009,6 +1001,26 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             auto id = data.ReadUint64();
             auto isEnabled = data.ReadBool();
             SetHardwareEnabled(id, isEnabled);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK) : {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            sptr<RSIHgmConfigChangeCallback> callback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
+            if (callback == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            int32_t status = RegisterHgmConfigChangeCallback(callback);
+            reply.WriteInt32(status);
             break;
         }
         default: {

@@ -17,6 +17,7 @@
 #define BITMAP_H
 
 #include "drawing/engine_adapter/impl_interface/bitmap_impl.h"
+#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -26,7 +27,7 @@ struct BitmapFormat {
     AlphaType alphaType;
 };
 
-class Bitmap {
+class DRAWING_API Bitmap {
 public:
     Bitmap();
     virtual ~Bitmap();

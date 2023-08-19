@@ -101,7 +101,7 @@ bool RSRenderServiceConnectHub::Connect()
         ++tryCnt;
         // try most 5 times to get render service.
         if (tryCnt == 5) {
-            ROSEN_LOGE("RSRenderServiceConnectHub::Connect failed, tried %d times.", tryCnt);
+            ROSEN_LOGE("RSRenderServiceConnectHub::Connect failed, tried %{public}d times.", tryCnt);
             break;
         }
 
@@ -156,13 +156,13 @@ bool RSRenderServiceConnectHub::Connect()
 void RSRenderServiceConnectHub::ConnectDied()
 {
     mutex_.lock();
-    RS_LOGI("RSRenderServiceConnectHub::ConnectDied lock pid: %d", getpid());
+    RS_LOGI("RSRenderServiceConnectHub::ConnectDied lock pid: %{public}d", getpid());
     renderService_ = nullptr;
     conn_ = nullptr;
     deathRecipient_ = nullptr;
     token_ = nullptr;
     mutex_.unlock();
-    RS_LOGI("RSRenderServiceConnectHub::ConnectDied unlock pid: %d", getpid());
+    RS_LOGI("RSRenderServiceConnectHub::ConnectDied unlock pid: %{public}d", getpid());
 }
 
 void RSRenderServiceConnectHub::RenderServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)

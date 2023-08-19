@@ -26,24 +26,26 @@
 
 namespace OHOS {
 namespace Rosen {
+struct FrameRateRangeData {
+    ScreenId screenId = INVALID_SCREEN_ID;
+    FrameRateRange rsRange;
+    std::unordered_map<pid_t, FrameRateRange> multiAppRange;
+};
+
 class HgmFrameRateManager {
 public:
     HgmFrameRateManager() {}
 
-    void UpdateFrameRateRange(ScreenId id, FrameRateRange range);
-    void FindAndSendRefreshRate();
-    void ResetFrameRateRangeMap();
-    void CalcSurfaceDrawingFrameRate(NodeId surfaceNodeId,
-        ScreenId screenId, FrameRateRange range);
-
+    void UniProcessData(const FrameRateRangeData& data);
+    void Reset();
 private:
-    int GetRefreshRateByScreenId(ScreenId screenId);
-    float GetDrawingFps(float refreshRate, FrameRateRange range);
+    void CalcRefreshRate(const ScreenId id, const FrameRateRange& range);
+    void ExecuteSwitchRefreshRate(const ScreenId id);
+    uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
 
-    std::unordered_map<ScreenId, FrameRateRange> screenIdToFrameRateRange_;
-    std::unordered_map<ScreenId, std::vector<uint32_t>> screenIdToSupportedRefreshRates_;
-    std::unordered_map<ScreenId, uint32_t> screenIdToLCDRefreshRates_;
-    std::unordered_map<NodeId, float> drawingFrameRateMap_; // RSSurfaceRenderNode id - frameRate
+    uint32_t currRefreshRate_ = -1;
+    uint32_t rsFrameRate_ = -1;
+    std::unordered_map<pid_t, uint32_t> multiAppFrameRate_;
 };
 } // namespace Rosen
 } // namespace OHOS

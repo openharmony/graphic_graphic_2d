@@ -18,14 +18,26 @@
 
 #include "texgine_exception.h"
 #include "texgine/utils/exlog.h"
+#ifndef USE_GRAPHIC_TEXT_GINE
 #include "texgine/utils/trace.h"
+#else
+#ifdef LOGGER_ENABLE_SCOPE
+#include "texgine/utils/trace.h"
+#endif
+#endif
 
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 std::vector<VariantSpan> BidiProcesser::ProcessBidiText(const std::vector<VariantSpan> &spans, const TextDirection dir)
 {
+#ifndef USE_GRAPHIC_TEXT_GINE
     ScopedTrace scope("BidiProcesser::ProcessBidiText");
+#else
+#ifdef LOGGER_ENABLE_SCOPE
+    ScopedTrace scope("BidiProcesser::ProcessBidiText");
+#endif
+#endif
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "ProcessBidiText");
     std::vector<VariantSpan> newSpans;
     for (auto const &span : spans) {

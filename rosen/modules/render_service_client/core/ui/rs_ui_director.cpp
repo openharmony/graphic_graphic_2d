@@ -28,6 +28,7 @@
 #include "transaction/rs_application_agent_impl.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "ui/rs_frame_rate_policy.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
@@ -84,6 +85,7 @@ void RSUIDirector::Init(bool shouldCreateRenderThread)
         RSRenderThread::Instance().Start();
     }
     RSApplicationAgentImpl::Instance().RegisterRSApplicationAgent();
+    RSFrameRatePolicy::GetInstance()->RegisterHgmConfigChangeCallback();
 
     GoForeground();
 }
@@ -212,7 +214,7 @@ void RSUIDirector::AttachSurface()
     auto surfaceNode = surfaceNode_.lock();
     if (node != nullptr && surfaceNode != nullptr) {
         node->AttachRSSurfaceNode(surfaceNode);
-        ROSEN_LOGD("RSUIDirector::AttachSurface [%" PRIu64 "]", surfaceNode->GetId());
+        ROSEN_LOGD("RSUIDirector::AttachSurface [%{public}" PRIu64, surfaceNode->GetId());
     } else {
         ROSEN_LOGD("RSUIDirector::AttachSurface not ready");
     }
@@ -307,8 +309,8 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
     // try find the node by nodeId
     if (auto nodePtr = RSNodeMap::Instance().GetNode<RSNode>(nodeId)) {
         if (!nodePtr->AnimationCallback(animId, event)) {
-            ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, could not find animation %" PRIu64 " on node %" PRIu64
-                       ".", animId, nodeId);
+            ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, could not find animation %{public}" PRIu64 ""
+                "on node %{public}" PRIu64, animId, nodeId);
         }
         return;
     }
@@ -316,11 +318,17 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
     // if node not found, try fallback node
     auto& fallbackNode = RSNodeMap::Instance().GetAnimationFallbackNode();
     if (fallbackNode && fallbackNode->AnimationCallback(animId, event)) {
-        ROSEN_LOGD("RSUIDirector::AnimationCallbackProcessor, found animation %" PRIu64 " on fallback node.", animId);
-    } else {
-        ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, could not find animation %" PRIu64 " on fallback node.",
+        ROSEN_LOGD("RSUIDirector::AnimationCallbackProcessor, found animation %{public}" PRIu64 " on fallback node.",
             animId);
+    } else {
+        ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, could not find animation %{public}" PRIu64 " on"
+            " fallback node.", animId);
     }
+}
+
+void RSUIDirector::PostFrameRateTask(const std::function<void()>& task)
+{
+    PostTask(task);
 }
 
 void RSUIDirector::PostTask(const std::function<void()>& task)

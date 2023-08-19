@@ -93,7 +93,7 @@ void RSInterfacesTestUtils::OnVsync()
     if (defaultWidth_ == static_cast<uint32_t>(bufferHandle_->width) &&
         defaultHeight_ == static_cast<uint32_t>(bufferHandle_->height)) {
         successCount_++;
-        ROSEN_LOGI("compareWH is successful in onVsync: %d", successCount_);
+        ROSEN_LOGI("compareWH is successful in onVsync: %{public}d", successCount_);
     } else {
         failCount_++;
     }

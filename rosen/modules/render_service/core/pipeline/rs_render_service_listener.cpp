@@ -35,12 +35,12 @@ void RSRenderServiceListener::OnBufferAvailable()
         RS_LOGE("RSRenderServiceListener::OnBufferAvailable node is nullptr");
         return;
     }
-    RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%" PRIu64, node->GetId());
+    RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
     node->IncreaseAvailableBuffer();
     if (!node->IsNotifyUIBufferAvailable()) {
         // Only ipc for one time.
-        RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable id = %" PRIu64 " Notify UI buffer available",
-            node->GetId());
+        RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable id = %{public}" PRIu64 " Notify"
+            " UI buffer available", node->GetId());
         node->NotifyUIBufferAvailable();
     }
     RSMainThread::Instance()->RequestNextVSync();
@@ -56,8 +56,8 @@ void RSRenderServiceListener::OnTunnelHandleChange()
     node->SetTunnelHandleChange(true);
     if (!node->IsNotifyUIBufferAvailable()) {
         // Only ipc for one time.
-        RS_LOGD("RsDebug RSRenderServiceListener::OnTunnelHandleChange id = %" PRIu64 " Notify UI buffer available",
-            node->GetId());
+        RS_LOGD("RsDebug RSRenderServiceListener::OnTunnelHandleChange id = %{public}" PRIu64 " Notify"
+            " UI buffer available", node->GetId());
         node->NotifyUIBufferAvailable();
     }
     RSMainThread::Instance()->RequestNextVSync();
@@ -72,7 +72,7 @@ void RSRenderServiceListener::OnCleanCache()
             RS_LOGW("RSRenderServiceListener::OnBufferAvailable node is nullptr");
             return;
         }
-        RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache node id:%" PRIu64, node->GetId());
+        RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache node id:%{public}" PRIu64, node->GetId());
         node->ResetBufferAvailableCount();
     });
 }
@@ -86,7 +86,7 @@ void RSRenderServiceListener::OnGoBackground()
             RS_LOGW("RSRenderServiceListener::OnBufferAvailable node is nullptr");
             return;
         }
-        RS_LOGD("RsDebug RSRenderServiceListener::OnGoBackground node id:%" PRIu64, node->GetId());
+        RS_LOGD("RsDebug RSRenderServiceListener::OnGoBackground node id:%{public}" PRIu64, node->GetId());
         node->ResetBufferAvailableCount();
         node->CleanCache();
         node->SetNotifyRTBufferAvailable(false);

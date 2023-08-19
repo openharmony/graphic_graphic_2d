@@ -72,6 +72,12 @@ void OpItemTasks::ProcessTask()
     }
 }
 
+bool OpItemTasks::IsEmpty()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return tasks_.empty();
+}
+
 std::unique_ptr<OpItem> OpItemWithPaint::GenerateCachedOpItem(
     const RSPaintFilterCanvas* canvas, const SkRect* rect) const
 {
@@ -766,7 +772,7 @@ sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas
     if (eglImage_ == EGL_NO_IMAGE_KHR) {
         eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
         if (eglImage_ == EGL_NO_IMAGE_KHR) {
-            RS_LOGE("%s create egl image fail %d", __func__, eglGetError());
+            RS_LOGE("%{public}s create egl image fail %{public}d", __func__, eglGetError());
             return nullptr;
         }
     }
@@ -997,7 +1003,7 @@ void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
     if (eglImage_ == EGL_NO_IMAGE_KHR) {
-        ROSEN_LOGE("%s create egl image fail %d", __func__, eglGetError());
+        ROSEN_LOGE("%{public}s create egl image fail %{public}d", __func__, eglGetError());
         return;
     }
 

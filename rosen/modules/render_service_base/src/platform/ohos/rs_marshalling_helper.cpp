@@ -1108,6 +1108,8 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Emit
     success = success && Marshalling(parcel, val->type_);
     success = success && Marshalling(parcel, val->radius_);
     success = success && Marshalling(parcel, val->image_);
+    success = success && Marshalling(parcel, val->imageSize_.x_);
+    success = success && Marshalling(parcel, val->imageSize_.y_);
 
     return success;
 }
@@ -1125,6 +1127,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<EmitterC
     ParticleType particleType = ParticleType::POINTS;
     float radius = 0.f;
     std::shared_ptr<RSImage> image = nullptr;
+    float imageWidth = 0.f;
+    float imageHeight = 0.f;
 
     bool success = Unmarshalling(parcel, emitRate);
     success = success && Unmarshalling(parcel, emitShape);
@@ -1139,9 +1143,12 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<EmitterC
     success = success && Unmarshalling(parcel, particleType);
     success = success && Unmarshalling(parcel, radius);
     success = success && Unmarshalling(parcel, image);
+    success = success && Unmarshalling(parcel, imageWidth);
+    success = success && Unmarshalling(parcel, imageHeight);
+    Vector2f imageSize(imageWidth, imageHeight);
     if (success) {
         val = std::make_shared<EmitterConfig>(
-            emitRate, emitShape, position, emitSize, particleCount, lifeTime, particleType, radius, image);
+            emitRate, emitShape, position, emitSize, particleCount, lifeTime, particleType, radius, image, imageSize);
     }
     return success;
 }
@@ -1212,7 +1219,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RenderPa
             success = success && Unmarshalling(parcel, endMillis);
             std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
             auto change = std::make_shared<ChangeInOverLife<float>>(
-                fromValue, toValue, startMillis, endMillis, interpolator); // 需不需要加make_shared
+                fromValue, toValue, startMillis, endMillis, interpolator);
             valChangeOverLife.push_back(change);
         }
     }
@@ -1232,8 +1239,10 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Rend
         success = success && Marshalling(parcel, val->redRandom_.start_) && Marshalling(parcel, val->redRandom_.end_);
         success =
             success && Marshalling(parcel, val->greenRandom_.start_) && Marshalling(parcel, val->greenRandom_.end_);
-        success = success && Marshalling(parcel, val->blueRandom_.start_) && Marshalling(parcel, val->blueRandom_.end_);
-        success = success && Marshalling(parcel, val->alphaRandom_.start_) && Marshalling(parcel, val->alphaRandom_.end_);
+        success =
+            success && Marshalling(parcel, val->blueRandom_.start_) && Marshalling(parcel, val->blueRandom_.end_);
+        success =
+            success && Marshalling(parcel, val->alphaRandom_.start_) && Marshalling(parcel, val->alphaRandom_.end_);
     } else if (val->updator_ == ParticleUpdator::CURVE) {
         success = success && parcel.WriteUint32(static_cast<uint32_t>(val->valChangeOverLife_.size()));
         for (size_t i = 0; i < val->valChangeOverLife_.size(); i++) {
@@ -1320,8 +1329,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     success = success && Unmarshalling(parcel, scale);
     success = success && Unmarshalling(parcel, spin);
     if (success) {
-        val = std::make_shared<ParticleRenderParams>(
-            emitterConfig, velocity, acceleration, color, opacity, scale, spin);
+        val =
+            std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
     }
     return success;
 }
@@ -1772,7 +1781,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         std::shared_ptr<Media::PixelMap> pixelMap = std::make_shared<Media::PixelMap>();
         ret &= RSMarshallingHelper::Unmarshalling(parcel, pixelMap);
         if (!ret) {
-            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList pixelMap: %d", i);
+            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList pixelMap: %{public}d", i);
             return ret;
         }
         pixelMapVec.emplace_back(pixelMap);
@@ -1929,34 +1938,34 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, SkMatrix)
 #endif
 #else
-#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                                         \
-    EXPLICIT_INSTANTIATION(TEMPLATE, float)                                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, int)                                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                   \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)                    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ShapeType>)                   \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleType>)                \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<EmitterConfig>)               \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleVelocity>)            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RenderParticleParaType>)      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RenderParticleColorParaType>) \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRenderParams>)        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                               \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)        \
+#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, float)                                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, int)                                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)                              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                    \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ShapeType>)                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleType>)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<EmitterConfig>)                 \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleVelocity>)              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RenderParticleParaType<float>>) \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RenderParticleColorParaType>)   \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRenderParams>)          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                 \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)          \
     EXPLICIT_INSTANTIATION(TEMPLATE, Drawing::Matrix)
 #endif
 
@@ -1993,7 +2002,7 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
         return false;
     }
     if (size > MAX_DATA_SIZE) {
-        ROSEN_LOGD("RSMarshallingHelper::WriteToParcel data exceed MAX_DATA_SIZE, size:%zu", size);
+        ROSEN_LOGD("RSMarshallingHelper::WriteToParcel data exceed MAX_DATA_SIZE, size:%{public}zu", size);
     }
 
     if (!parcel.WriteUint32(size)) {
@@ -2087,13 +2096,13 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::unique_ptr<OpItem>&
     }
     auto func = DrawCmdList::GetOpUnmarshallingFunc(type);
     if (!func) {
-        ROSEN_LOGW("unirender: opItem Unmarshalling func not define, optype = %d", type);
+        ROSEN_LOGW("unirender: opItem Unmarshalling func not define, optype = %{public}d", type);
         return false;
     }
 
     OpItem* item = (*func)(parcel);
     if (!item) {
-        ROSEN_LOGE("unirender: failed opItem Unmarshalling, optype = %d", type);
+        ROSEN_LOGE("unirender: failed opItem Unmarshalling, optype = %{public}d", type);
         return false;
     }
 

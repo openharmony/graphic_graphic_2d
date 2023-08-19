@@ -321,7 +321,7 @@ void RSParallelRenderManager::DrawImageMergeFunc(RSPaintFilterCanvas& canvas)
             RS_TRACE_END();
             auto texture = threadList_[i]->GetTexture();
             if (texture == nullptr) {
-                RS_LOGE("Texture of subThread(%d) is nullptr", i);
+                RS_LOGE("Texture of subThread(%{public}d) is nullptr", i);
                 continue;
             }
 #ifndef USE_ROSEN_DRAWING
@@ -341,13 +341,13 @@ void RSParallelRenderManager::DrawImageMergeFunc(RSPaintFilterCanvas& canvas)
             }
             auto sharedBackendTexture = texture->getBackendTexture(false);
             if (!sharedBackendTexture.isValid()) {
-                RS_LOGE("Texture of subThread(%d) does not has GPU backend", i);
+                RS_LOGE("Texture of subThread(%{public}d) does not has GPU backend", i);
                 continue;
             }
             auto sharedTexture = SkImage::MakeFromTexture(mainGrContext, sharedBackendTexture,
                 kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
             if (sharedTexture == nullptr) {
-                RS_LOGE("SharedTexture of subThread(%d) is nullptr", i);
+                RS_LOGE("SharedTexture of subThread(%{public}d) is nullptr", i);
             }
             canvas.drawImage(sharedTexture, 0, 0);
 #else
@@ -395,7 +395,7 @@ void RSParallelRenderManager::FlushOneBufferFunc()
         if (skSurface) {
             skSurface->flush();
         } else {
-            RS_LOGE("skSurface is nullptr, thread index:%d", i);
+            RS_LOGE("skSurface is nullptr, thread index:%{public}d", i);
         }
 #else
         auto drSurface = threadList_[i]->GetDrawingSurface();
@@ -403,7 +403,7 @@ void RSParallelRenderManager::FlushOneBufferFunc()
             auto canvas = drSurface->GetCanvas();
             canvas->Flush();
         } else {
-            RS_LOGE("skSurface is nullptr, thread index:%d", i);
+            RS_LOGE("skSurface is nullptr, thread index:%{public}d", i);
         }
 #endif
         RS_TRACE_END();

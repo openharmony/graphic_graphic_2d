@@ -84,7 +84,7 @@ bool RSSystemProperties::GetUniRenderEnabled()
     isUniRenderEnabled_ = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())
         ->GetUniRenderEnabled();
     inited = true;
-    ROSEN_LOGI("RSSystemProperties::GetUniRenderEnabled:%d", isUniRenderEnabled_);
+    ROSEN_LOGI("RSSystemProperties::GetUniRenderEnabled:%{public}d", isUniRenderEnabled_);
     return isUniRenderEnabled_;
 }
 
@@ -323,6 +323,37 @@ bool RSSystemProperties::GetDebugTraceEnabled()
     return openDebugTrace;
 }
 
+bool RSSystemProperties::FindNodeInTargetList(std::string node)
+{
+    static std::string targetStr = system::GetParameter("persist.sys.graphic.traceTargetList", "");
+    static auto strSize = targetStr.size();
+    if (strSize == 0) {
+        return false;
+    }
+    static std::vector<std::string> targetVec;
+    static bool loaded = false;
+    if (!loaded) {
+        const std::string pattern = ";";
+        targetStr += pattern;
+        strSize = targetStr.size();
+        std::string::size_type pos;
+        for (std::string::size_type i = 0; i < strSize; i++) {
+            pos = targetStr.find(pattern, i);
+            if (pos >= strSize) {
+                break;
+            }
+            auto str = targetStr.substr(i, pos - i);
+            if (str.size() > 0) {
+                targetVec.emplace_back(str);
+            }
+            i = pos;
+        }
+        loaded = true;
+    }
+    bool res = std::find(targetVec.begin(), targetVec.end(), node) != targetVec.end();
+    return res;
+}
+
 bool RSSystemProperties::GetCacheCmdEnabled()
 {
     return std::atoi((system::GetParameter("rosen.cacheCmd.enabled", "1")).c_str()) != 0;
@@ -372,5 +403,12 @@ bool RSSystemProperties::GetDDGRIntegrateEnable()
     return isDataStEnable;
 }
 #endif
+
+bool RSSystemProperties::GetSnapshotWithDMAEnabled()
+{
+    static bool isSupportDma = system::GetParameter("const.product.devicetype", "pc") == "phone" ||
+        system::GetParameter("const.product.devicetype", "pc") == "tablet";
+    return isSupportDma && system::GetBoolParameter("rosen.snapshotDma.enabled", true);
+}
 } // namespace Rosen
 } // namespace OHOS

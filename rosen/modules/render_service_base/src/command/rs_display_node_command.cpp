@@ -69,9 +69,8 @@ void DisplayNodeCommandHelper::SetDisplayMode(RSContext& context, NodeId id, con
             auto& nodeMap = context.GetNodeMap();
             auto mirrorSourceNode = nodeMap.GetRenderNode<RSDisplayRenderNode>(mirrorNodeId);
             if (mirrorSourceNode == nullptr) {
-                ROSEN_LOGD("DisplayNodeCommandHelper::SetDisplayMode fail, displayNodeId:[%" PRIu64
-                           "] mirrorNodeId:[%" PRIu64 "]",
-                    id, mirrorNodeId);
+                ROSEN_LOGD("DisplayNodeCommandHelper::SetDisplayMode fail, displayNodeId:[%{public}" PRIu64 "]"
+                    "mirrorNodeId:[%{public}" PRIu64 "]", id, mirrorNodeId);
                 return;
             }
             node->SetMirrorSource(mirrorSourceNode);

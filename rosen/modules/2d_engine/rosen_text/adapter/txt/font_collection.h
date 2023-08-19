@@ -19,6 +19,9 @@
 #include "rosen_text/font_collection.h"
 
 #include "txt/font_collection.h"
+#ifdef USE_GRAPHIC_TEXT_GINE
+#include "txt/asset_font_manager.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {

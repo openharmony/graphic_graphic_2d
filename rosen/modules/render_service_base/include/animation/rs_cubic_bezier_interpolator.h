@@ -17,7 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_CUBIC_BEZIER_INTERPOLATOR_H
 
 #include "animation/rs_interpolator.h"
-#include "platform/common/rs_log.h"
+#include <cinttypes>
 
 namespace OHOS {
 namespace Rosen {
@@ -35,12 +35,10 @@ public:
     bool Marshalling(Parcel& parcel) const override
     {
         if (!parcel.WriteUint16(InterpolatorType::CUBIC_BEZIER)) {
-            ROSEN_LOGE("CubicBezierInterpolator::Marshalling, write type failed");
             return false;
         }
         if (!(parcel.WriteFloat(controllx1_) && parcel.WriteFloat(controlly1_) && parcel.WriteFloat(controllx2_) &&
                 parcel.WriteFloat(controlly2_))) {
-            ROSEN_LOGE("CubicBezierInterpolator::Marshalling, write value failed");
             return false;
         }
         return true;
@@ -52,7 +50,6 @@ public:
         float x2 = 0;
         float y2 = 0;
         if (!(parcel.ReadFloat(x1) && parcel.ReadFloat(y1) && parcel.ReadFloat(x2) && parcel.ReadFloat(y2))) {
-            ROSEN_LOGE("CubicBezierInterpolator::Unmarshalling, read failed");
             return nullptr;
         }
         return new RSCubicBezierInterpolator(x1, y1, x2, y2);

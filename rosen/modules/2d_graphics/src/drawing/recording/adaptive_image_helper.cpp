@@ -86,7 +86,7 @@ Rect AdaptiveImageHelper::GetDstRect(const AdaptiveImageInfo& rsImageInfo, const
 void AdaptiveImageHelper::ApplyCanvasClip(Canvas& canvas, const Rect& rect, const AdaptiveImageInfo& rsImageInfo,
     const float srcRectWidth, const float srcRectHeight)
 {
-    Rect drawRect = {};
+    Rect drawRect;
     if (rsImageInfo.repeatNum != static_cast<int32_t>(ImageRepeat::NO_REPEAT)) {
         drawRect = rect;
     } else {
@@ -188,7 +188,7 @@ void AdaptiveImageHelper::GetRectCropMultiple(
             ++maxY;
         }
     }
-    if (minX > 0 || maxX < 0 || minX > maxX || minY > 0 || maxY < 0 || minY > maxY) {
+    if (minX > 0 || maxX < 0 || minY > 0 || maxY < 0) {
         LOGE("AdaptiveImageHelper::GetRectCropMultiple, data is invalid.");
         boundaryRect.minX = 0;
         boundaryRect.minY = 0;
@@ -332,7 +332,7 @@ void AdaptiveImageHelper::DrawPixelMapRepeatRect(Canvas& canvas, const Rect& rec
     BitmapFormat format = MakeBitmapFormat(imageInfo);
     Bitmap bitmap;
     bitmap.Build(imageInfo.size.width, imageInfo.size.height, format);
-    bitmap.SetPixels((void*)pixelMap->GetPixels());
+    bitmap.SetPixels(const_cast<void*>(static_cast<const void*>(pixelMap->GetPixels())));
     auto image = std::make_shared<Image>();
     image->BuildFromBitmap(bitmap);
 

@@ -55,9 +55,8 @@ void RootNodeCommandHelper::AttachToUniSurfaceNode(RSContext& context, NodeId id
     auto parent = nodeMap.GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);
     auto node = nodeMap.GetRenderNode<RSRootRenderNode>(id);
     if (!parent || !node) {
-        RS_LOGE("unirender: RootNodeCommandHelper::AttachToUniSurfaceNode surfaceNodeId:%" PRIu64 " id:%" PRIu64
-                ", parent "
-                "valid:%d, node valid:%d",
+        RS_LOGE("unirender: RootNodeCommandHelper::AttachToUniSurfaceNode surfaceNodeId:%{public}" PRIu64 " id"
+            ":%{public}" PRIu64 ", parent valid:%{public}d, node valid:%{public}d",
             surfaceNodeId, id, parent != nullptr, node != nullptr);
         return;
     }

@@ -41,7 +41,7 @@ void RSBufferAvailableCallbackProxy::OnBufferAvailable()
     uint32_t code = static_cast<uint32_t>(RSIBufferAvailableCallbackInterfaceCode::ON_BUFFER_AVAILABLE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSBufferAvailableCallbackProxy::OnBufferAvailable error = %d", err);
+        ROSEN_LOGE("RSBufferAvailableCallbackProxy::OnBufferAvailable error = %{public}d", err);
     }
 }
 } // namespace Rosen

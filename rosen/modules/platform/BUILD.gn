@@ -67,8 +67,8 @@ ohos_source_set("impl_eventhandler") {
 
 # hilog {{{
 ohos_source_set("hilog") {
-  if (current_os == "android") {
-    public_deps = [ "$appframework_root/graphic_2d:log" ]
+  if (current_os == "android" || current_os == "ios") {
+    public_deps = hilog_deps
   } else {
     external_deps = [ "hilog:libhilog" ]
   }

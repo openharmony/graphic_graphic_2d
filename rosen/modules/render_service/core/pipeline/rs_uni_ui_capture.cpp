@@ -239,6 +239,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
         RS_LOGE("RSUniUICaptureVisitor::ProcessCanvasRenderNode, canvas is nullptr");
         return;
     }
+    node.SetHasUpdateEffectRegion(false);
     if (node.GetId() == nodeId_) {
         // When drawing nodes, canvas will offset the bounds value, so we will move in reverse here first
         const auto& property = node.GetRenderProperties();
@@ -263,29 +264,34 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
         canvas_->SetMatrix(relativeMatrix);
 #endif
     }
-    node.ProcessRenderBeforeChildren(*canvas_);
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
         if (!node.IsOnTheTree()) {
+            auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](sk_sp<SkSurface> surface) {
+                sk_sp<SkSurface> tmpSurface = nullptr;
+                RSUniRenderUtil::ClearNodeCacheSurface(surface, tmpSurface, id, 0);
+            };
+            canvasDrawingNode->SetSurfaceClearFunc({ UNI_MAIN_THREAD_INDEX, clearFunc });
+            canvasDrawingNode->ProcessRenderBeforeChildren(*canvas_);
             canvasDrawingNode->ProcessRenderContents(*canvas_);
-        }
+        } else {
 #ifndef USE_ROSEN_DRAWING
-        SkBitmap bitmap;
-        bitmap = canvasDrawingNode->GetBitmap();
+            SkBitmap bitmap = canvasDrawingNode->GetBitmap();
 #ifndef NEW_SKIA
-        canvas_->drawBitmap(
-            bitmap, node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY());
+            canvas_->drawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
+                node.GetRenderProperties().GetBoundsPositionY());
 #else
-        canvas_->drawImage(bitmap.asImage(), node.GetRenderProperties().GetBoundsPositionX(),
-            node.GetRenderProperties().GetBoundsPositionY());
+            canvas_->drawImage(bitmap.asImage(), node.GetRenderProperties().GetBoundsPositionX(),
+                node.GetRenderProperties().GetBoundsPositionY());
 #endif
 #else
-        Drawing::Bitmap bitmap;
-        canvasDrawingNode->GetBitmap(bitmap);
-        canvas_->DrawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
-            node.GetRenderProperties().GetBoundsPositionY());
+            Drawing::Bitmap bitmap = canvasDrawingNode->GetBitmap();
+            canvas_->DrawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
+                node.GetRenderProperties().GetBoundsPositionY());
 #endif
+        }
     } else {
+        node.ProcessRenderBeforeChildren(*canvas_);
         node.ProcessRenderContents(*canvas_);
     }
     ProcessChildren(node);
@@ -315,7 +321,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceRenderNode(RSSurfaceRe
     }
 
     if (!node.ShouldPaint()) {
-        RS_LOGD("RSUniUICaptureVisitor::ProcessSurfaceRenderNode node: %" PRIu64 " invisible", node.GetId());
+        RS_LOGD("RSUniUICaptureVisitor::ProcessSurfaceRenderNode node: %{public}" PRIu64 " invisible", node.GetId());
         return;
     }
     if (isUniRender_) {
@@ -330,7 +336,8 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceRenderNodeWithUni(RSSu
     auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
         RS_LOGI(
-            "RSUniUICaptureVisitor::ProcessSurfaceRenderNode node:%" PRIu64 ", get geoPtr failed", node.GetId());
+            "RSUniUICaptureVisitor::ProcessSurfaceRenderNode node:%{public}" PRIu64 ", get geoPtr failed",
+                node.GetId());
         return;
     }
 #ifndef USE_ROSEN_DRAWING
@@ -353,7 +360,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
     const auto& property = node.GetRenderProperties();
     auto geoPtr = (property.GetBoundsGeometry());
     if (!geoPtr) {
-        RS_LOGE("RSUniUICaptureVisitor::ProcessSurfaceViewWithUni node:%" PRIu64 ", get geoPtr failed",
+        RS_LOGE("RSUniUICaptureVisitor::ProcessSurfaceViewWithUni node:%{public}" PRIu64 ", get geoPtr failed",
             node.GetId());
         return;
     }

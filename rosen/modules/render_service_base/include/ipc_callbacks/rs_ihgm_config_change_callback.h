@@ -13,30 +13,22 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_FILTER_CACHE_H
-#define RENDER_SERVICE_FILTER_CACHE_H
-#include <unordered_map>
-#include "render/rs_material_filter.h"
+#ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IHGM_CONFIG_CHANGE_CALLBACK_H
+#define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IHGM_CONFIG_CHANGE_CALLBACK_H
+
+#include <iremote_broker.h>
+#include "transaction/rs_hgm_config_data.h"
 
 namespace OHOS {
 namespace Rosen {
-
-class RSFilterCache {
+class RSIHgmConfigChangeCallback : public IRemoteBroker {
 public:
-    static RSFilterCache& Instance();
-    std::shared_ptr<RSMaterialFilter> GetMaterialFilterFromCache(const MaterialParam& materialParam,
-        BLUR_COLOR_MODE colorMode);
-
-private:
-    RSFilterCache() = default;
-    ~RSFilterCache() = default;
-
-    std::unordered_map<std::uint32_t, std::shared_ptr<RSMaterialFilter>> materialFilterCache_;
-
-    const unsigned int MAX_LIMIT_SIZE = 2000;
-    const unsigned int PRECISION_FACTOR = 10;
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.HgmConfigChangeCallback");
+    RSIHgmConfigChangeCallback() = default;
+    virtual ~RSIHgmConfigChangeCallback() noexcept = default;
+    virtual void OnHgmConfigChanged(std::shared_ptr<RSHgmConfigData> configData) = 0;
 };
+}
+}
 
-} // namespace Rosen
-} // namespace OHOS
 #endif

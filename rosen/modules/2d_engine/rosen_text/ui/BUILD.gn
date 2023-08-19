@@ -13,64 +13,67 @@
 
 import("//build/ohos.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
-config("rosen_text_ui_config") {
-  include_dirs = [
-    "$rosen_2d_engine_root",
-    "$rosen_2d_engine_root_ui",
-  ]
+if (!enable_text_gine) {
+  config("rosen_text_ui_config") {
+    include_dirs = [
+      "$rosen_2d_engine_root",
+      "$rosen_2d_engine_root_ui",
+    ]
 
-  if (defined(use_new_skia) && use_new_skia) {
-    include_dirs += [ "$flutter_root/txt/src" ]
-  } else {
-    include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
+    if (defined(use_new_skia) && use_new_skia) {
+      include_dirs += [ "$flutter_root/txt/src" ]
+    } else {
+      include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
+    }
   }
-}
-config("rosen_text_config") {
-  cflags_cc = [
-    "-Wno-implicit-fallthrough",
-    "-fvisibility-inlines-hidden",
-    "-Os",
-  ]
-  include_dirs = [
-    "$rosen_2d_engine_root",
-    "$graphic_2d_root/rosen/modules/2d_graphics/include",
-    "$graphic_2d_root/rosen/modules/2d_graphics/src",
-    "//third_party/bounds_checking_function/include",
-  ]
-  if (defined(use_new_skia) && use_new_skia) {
-    include_dirs += [ "$flutter_root/txt/src" ]
-  } else {
-    include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
+  config("rosen_text_config") {
+    cflags_cc = [
+      "-Wno-implicit-fallthrough",
+      "-fvisibility-inlines-hidden",
+      "-Os",
+    ]
+    include_dirs = [
+      "$rosen_2d_engine_root",
+      "$graphic_2d_root/rosen/modules/2d_graphics/include",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src",
+      "//third_party/bounds_checking_function/include",
+    ]
+    if (defined(use_new_skia) && use_new_skia) {
+      include_dirs += [ "$flutter_root/txt/src" ]
+    } else {
+      include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
+    }
   }
-}
-ohos_source_set("rosen_text_ui") {
-  configs = [
-    ":rosen_text_ui_config",
-    "$ace_flutter_engine_root:flutter_config",
-    "$ace_flutter_engine_root/icu:icu_config_$current_os",
-    ":rosen_text_config",
-  ]
-  sources = [
-    "font_collection.cpp",
-    "typography.cpp",
-    "typography_create.cpp",
-  ]
-  sources += [
-    "../properties/font_collection_txt.cpp",
-    "../properties/placeholder_run.cpp",
-    "../properties/rosen_converter_txt.cpp",
-    "../properties/text_style.cpp",
-    "../properties/typography_create_txt.cpp",
-    "../properties/typography_style.cpp",
-    "../properties/typography_txt.cpp",
-  ]
-  deps = [
-    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
-    "//third_party/bounds_checking_function:libsec_static",
-    "//third_party/flutter/build/libtxt:thirdparty_lib_txt_$current_os",
-  ]
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
+  ohos_source_set("rosen_text_ui") {
+    configs = [
+      ":rosen_text_ui_config",
+      "$ace_flutter_engine_root:flutter_config",
+      "$ace_flutter_engine_root/icu:icu_config_$current_os",
+      ":rosen_text_config",
+    ]
+    sources = [
+      "font_collection.cpp",
+      "typography.cpp",
+      "typography_create.cpp",
+    ]
+    sources += [
+      "../properties/font_collection_txt.cpp",
+      "../properties/placeholder_run.cpp",
+      "../properties/rosen_converter_txt.cpp",
+      "../properties/text_style.cpp",
+      "../properties/typography_create_txt.cpp",
+      "../properties/typography_style.cpp",
+      "../properties/typography_txt.cpp",
+    ]
+    deps = [
+      "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+      "//third_party/bounds_checking_function:libsec_static",
+      "//third_party/flutter/build/libtxt:thirdparty_lib_txt_$current_os",
+    ]
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
 }

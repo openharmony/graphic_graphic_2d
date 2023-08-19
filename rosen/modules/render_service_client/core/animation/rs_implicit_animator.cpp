@@ -130,7 +130,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
     for (const auto& [animationInfo, keyframeAnimation] : currentKeyframeAnimations) {
         auto target = RSNodeMap::Instance().GetNode<RSNode>(animationInfo.first);
         if (target == nullptr) {
-            ROSEN_LOGE("Failed to start implicit keyframe animation[%" PRIu64 "], target is null!",
+            ROSEN_LOGE("Failed to start implicit keyframe animation[%{public}" PRIu64 "], target is null!",
                 keyframeAnimation->GetId());
             continue;
         }

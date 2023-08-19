@@ -33,7 +33,7 @@ void RSUniRenderListener::OnBufferAvailable()
         RS_LOGE("RSUniRenderListener::OnBufferAvailable node is nullptr");
         return;
     }
-    RS_LOGD("RSUniRenderListener::OnBufferAvailable node id:%" PRIu64, node->GetId());
+    RS_LOGD("RSUniRenderListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
     node->IncreaseAvailableBuffer();
 #ifdef RS_ENABLE_VK
     if (node->IsParallelDisplayNode()) {

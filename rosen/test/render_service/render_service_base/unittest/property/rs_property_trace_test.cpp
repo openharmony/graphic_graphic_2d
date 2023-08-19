@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "property/rs_property_trace.h"
+#include "platform/common/rs_log.h"
 
 using namespace testing;
 using namespace testing::ext;

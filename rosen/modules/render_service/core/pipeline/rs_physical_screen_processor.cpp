@@ -56,8 +56,8 @@ void RSPhysicalScreenProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
     auto layer = composerAdapter_->CreateLayer(node);
     if (layer == nullptr) {
-        RS_LOGD(
-            "RSPhysicalScreenProcessor::ProcessSurface: failed to createLayer for node(id: %" PRIu64 ")", node.GetId());
+        RS_LOGD("RSPhysicalScreenProcessor::ProcessSurface: failed to createLayer for"
+            " node(id: %{public}" PRIu64 ")", node.GetId());
         return;
     }
 

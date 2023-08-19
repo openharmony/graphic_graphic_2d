@@ -27,14 +27,20 @@ static pid_t g_appSandboxPid_ = -1;
 
 const int PID_STR_SIZE = 5;
 const int STATUS_LINE_SIZE = 1024;
+const int PID_MAX_LEN = 11;
 
-static int FindAndConvertPid(char *buf)
+static int FindAndConvertPid(char *buf, int len)
 {
     int count = 0;
-    char pidBuf[11] = {0}; /* 11: 32 bits to the maximum length of a string */
+    char pidBuf[PID_MAX_LEN] = {0};
     char *str = buf;
+
+    if (len <= PID_STR_SIZE) {
+        return -1;
+    }
+
     while (*str != '\0') {
-        if ((*str >= '0') && (*str <= '9')) {
+        if ((*str >= '0') && (*str <= '9') && (count < PID_MAX_LEN)) {
             pidBuf[count] = *str;
             count++;
             str++;
@@ -69,7 +75,7 @@ static pid_t ParseRealPid(void)
     }
     (void)fclose(fp);
 
-    return static_cast<pid_t>(FindAndConvertPid(buf));
+    return static_cast<pid_t>(FindAndConvertPid(buf, strlen(buf)));
 }
 #endif
 

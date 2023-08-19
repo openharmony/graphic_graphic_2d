@@ -148,7 +148,8 @@ void RSRenderNodeMap::RemoveDrivenRenderNode(NodeId id)
 
 void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
 {
-    ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %d", pid);
+    ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
+        (unsigned long long)pid);
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
     EraseIf(renderNodeMap_, [pid](const auto& pair) -> bool {
         if (ExtractPid(pair.first) != pid) {

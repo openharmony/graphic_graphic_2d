@@ -24,6 +24,7 @@
 #include "directory_ex.h"
 
 #include "rs_trace.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {

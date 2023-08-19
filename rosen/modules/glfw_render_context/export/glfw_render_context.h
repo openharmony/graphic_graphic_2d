@@ -28,6 +28,7 @@ public:
     using OnCursorPosFunc = std::function<void(double x, double y)>;
     using OnKeyFunc = std::function<void(int key, int scancode, int action, int mods)>;
     using OnCharFunc = std::function<void(unsigned int codepoint)>;
+    using OnSizeChangedFunc = std::function<void(int32_t width, int32_t height)>;
 
     // GlfwRenderContext isn't a singleton.
     static std::shared_ptr<GlfwRenderContext> GetGlobal();
@@ -60,6 +61,7 @@ public:
     void OnCursorPos(const OnCursorPosFunc &onCursorPos);
     void OnKey(const OnKeyFunc &onKey);
     void OnChar(const OnCharFunc &onChar);
+    void OnSizeChanged(const OnSizeChangedFunc &onSizeChanged);
 
 private:
     static void OnMouseButton(GLFWwindow *window, int button, int action, int mods);
@@ -75,6 +77,7 @@ private:
     OnCursorPosFunc onCursorPos_ = nullptr;
     OnKeyFunc onKey_ = nullptr;
     OnCharFunc onChar_ = nullptr;
+    OnSizeChangedFunc onSizeChanged_ = nullptr;
 
     int32_t width_ = 0;
     int32_t height_ = 0;

@@ -134,4 +134,22 @@ HWTEST_F(RSBorderTest, LifeCycle003, TestSize.Level1)
     properties.SetBorderColor(Color);
     RSPropertiesPainter::DrawBorder(properties, canvas);
 }
+
+
+/**
+ * @tc.name: HasBorderTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, HasBorderTest, TestSize.Level1)
+{
+    RSColor color(1, 1, 1);
+    std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
+    border->SetColor(color);
+    border->GetColor(1);
+    border->SetStyle(BorderStyle::DOTTED);
+    border->SetWidth(2.f);
+    bool hasBorder = border->HasBorder();
+    ASSERT_TRUE(hasBorder);
+}
 } // namespace OHOS::Rosen

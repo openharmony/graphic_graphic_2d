@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class RecordingRegion : public Region {
+class DRAWING_API RecordingRegion : public Region {
 public:
     RecordingRegion();
     ~RecordingRegion() override = default;

@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #include "effect/color_space.h"
+#include "utils/drawing_macros.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -51,7 +52,7 @@ struct Color4f {
 };
 
 typedef uint32_t ColorQuad;
-class Color {
+class DRAWING_API Color {
 public:
     constexpr static ColorQuad COLOR_TRANSPARENT = 0;
     constexpr static ColorQuad COLOR_BLACK = 0xFF000000;
@@ -130,8 +131,8 @@ public:
     void SetColorQuad(uint32_t c);
     ColorQuad CastToColorQuad() const;
 
-    friend bool operator==(const Color& c1, const Color& c2);
-    friend bool operator!=(const Color& c1, const Color& c2);
+    friend DRAWING_API bool operator==(const Color& c1, const Color& c2);
+    friend DRAWING_API bool operator!=(const Color& c1, const Color& c2);
 
 private:
     uint32_t alpha_;

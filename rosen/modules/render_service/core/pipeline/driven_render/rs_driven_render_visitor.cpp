@@ -95,7 +95,7 @@ void RSDrivenRenderVisitor::PrepareDrivenSurfaceRenderNode(RSDrivenSurfaceRender
     }
     currDrivenSurfaceNode_->SetCurrFrameBounds(surfaceBounds, viewPort, contentAbsRect);
     currDrivenSurfaceNode_->UpdateActivateFrameState(dstRect, backgroundDirty_, contentDirty_, nonContentDirty_);
-    RS_LOGD("RSDrivenRenderVisitor::PrepareDrivenSurfaceRenderNode DstRect = %s, SrcRect = %s",
+    RS_LOGD("RSDrivenRenderVisitor::PrepareDrivenSurfaceRenderNode DstRect = %{public}s, SrcRect = %{public}s",
         node.GetDstRect().ToString().c_str(), node.GetSrcRect().ToString().c_str());
 }
 

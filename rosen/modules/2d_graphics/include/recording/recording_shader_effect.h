@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class RecordingShaderEffect : public ShaderEffect {
+class DRAWING_API RecordingShaderEffect : public ShaderEffect {
 public:
     /*
      * @brief        Creates a CreateColorShaderOpItem to add to the ShaderEffectCmdList.

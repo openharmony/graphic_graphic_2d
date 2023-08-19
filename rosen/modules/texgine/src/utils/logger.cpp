@@ -18,8 +18,30 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#ifndef USE_GRAPHIC_TEXT_GINE
 #include <sys/syscall.h>
+#endif
 #include <unistd.h>
+
+#ifdef USE_GRAPHIC_TEXT_GINE
+#ifdef BUILD_NON_SDK_VER
+#include <sys/syscall.h>
+#else
+#ifdef _WIN32
+#include <windows.h>
+#define gettid GetCurrentThreadId
+#endif
+
+#ifdef __APPLE__
+#define getpid getpid
+#endif
+
+#ifdef ERROR
+#undef ERROR
+#endif
+#endif
+#endif
+
 #define GET_TID() syscall(__NR_gettid)
 
 #ifdef LOGGER_NO_COLOR
@@ -167,7 +189,15 @@ void Logger::AppendFileFuncLine(Logger &logger, enum LOG_PHASE phase)
 void Logger::AppendPidTid(Logger &logger, enum LOG_PHASE phase)
 {
     if (phase == LOG_PHASE::BEGIN) {
+#ifdef BUILD_NON_SDK_VER
+#ifndef USE_GRAPHIC_TEXT_GINE
         logger << getpid() << ":" << GET_TID() << " ";
+#endif
+#else
+#ifdef USE_GRAPHIC_TEXT_GINE
+        logger << getpid() << ":" << gettid() << " ";
+#endif
+#endif
     }
 }
 

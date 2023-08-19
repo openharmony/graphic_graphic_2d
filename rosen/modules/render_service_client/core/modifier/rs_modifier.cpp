@@ -18,6 +18,7 @@
 
 #include "modifier/rs_modifier_manager.h"
 #include "modifier/rs_modifier_manager_map.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,7 +45,7 @@ void RSModifier::SetDirty(const bool isDirty)
     isDirty_ = isDirty;
     auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager == nullptr) {
-        ROSEN_LOGE("Modifier manager is null while mark modifier dirty Id: %llu!", GetPropertyId());
+        ROSEN_LOGE("Modifier manager is null while mark modifier dirty Id: %{public}" PRIu64 "!", GetPropertyId());
         return;
     }
 

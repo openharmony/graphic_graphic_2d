@@ -101,6 +101,17 @@ public:
         isHardwareEnabledNode_ = isEnabled;
     }
 
+    // used for hwc node
+    bool IsNewOnTree() const
+    {
+        return isNewOnTree_;
+    }
+
+    void ResetIsNewOnTree()
+    {
+        isNewOnTree_ = false;
+    }
+
     bool IsLastFrameHardwareEnabled() const
     {
         return isLastFrameHardwareEnabled_;
@@ -855,6 +866,7 @@ private:
     bool isHardwareEnabledNode_ = false;
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
+    bool isNewOnTree_ = false;
     // mark if this self-drawing node is forced not to use hardware composer
     // in case where this node's parent window node is occluded or is appFreeze, this variable will be marked true
     bool isHardwareForcedDisabled_ = false;

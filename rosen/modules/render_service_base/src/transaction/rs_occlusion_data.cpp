@@ -29,7 +29,8 @@ RSOcclusionData* RSOcclusionData::Unmarshalling(Parcel& parcel)
     size_t readableSize = parcel.GetReadableBytes() / sizeof(uint64_t);
     size_t len = static_cast<size_t>(size);
     if (len > readableSize || len > data->visibleData_.max_size()) {
-        RS_LOGE("RSOcclusionData Unmarshalling Failed read vector, size:%zu, readableSize:%zu", len, readableSize);
+        RS_LOGE("RSOcclusionData Unmarshalling Failed read vector, size:%{public}zu, readableSize:%{public}zu",
+            len, readableSize);
         return data;
     }
     for (uint32_t i = 0; i < size; i++) {

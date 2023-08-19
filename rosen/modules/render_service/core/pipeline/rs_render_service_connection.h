@@ -19,6 +19,7 @@
 #include <mutex>
 #include <unordered_set>
 
+#include "hgm_config_callback_manager.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "pipeline/rs_render_service.h"
@@ -157,6 +158,8 @@ private:
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
 
     int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
+
+    int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     void SetAppWindowNum(uint32_t num) override;
 

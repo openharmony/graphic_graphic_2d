@@ -121,8 +121,8 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
     // if child has disappearing transition, add it to disappearingChildren_
     if (skipTransition == false && child->HasDisappearingTransition(true)) {
-        ROSEN_LOGD("RSRenderNode::RemoveChild %" PRIu64 " move child(id %" PRIu64 ") into disappearingChildren",
-            GetId(), child->GetId());
+        ROSEN_LOGD("RSRenderNode::RemoveChild %{public}" PRIu64 " move child(id %{public}" PRIu64 ") into"
+            " disappearingChildren", GetId(), child->GetId());
         // keep shared_ptr alive for transition
         uint32_t origPos = static_cast<uint32_t>(std::distance(children_.begin(), it));
         disappearingChildren_.emplace_back(child, origPos);
@@ -144,19 +144,15 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId)
     isOnTheTree_ = flag;
     OnTreeStateChanged();
 
-    for (auto& childWeakPtr : children_) {
-        auto child = childWeakPtr.lock();
+    for (auto& weakChild : children_) {
+        auto child = weakChild.lock();
         if (child == nullptr) {
             continue;
         }
         child->SetIsOnTheTree(flag, instanceRootNodeId);
     }
 
-    for (auto& childPtr : disappearingChildren_) {
-        auto child = childPtr.first;
-        if (child == nullptr) {
-            continue;
-        }
+    for (auto& [child, _] : disappearingChildren_) {
         child->SetIsOnTheTree(flag, instanceRootNodeId);
     }
 }
@@ -215,8 +211,8 @@ void RSRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr&
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
     // if child has disappearing transition, add it to disappearingChildren_
     if (child->HasDisappearingTransition(true)) {
-        ROSEN_LOGD("RSRenderNode::RemoveChild %" PRIu64 " move child(id %" PRIu64 ") into disappearingChildren",
-            GetId(), child->GetId());
+        ROSEN_LOGD("RSRenderNode::RemoveChild %{public}" PRIu64 " move child(id %{public}" PRIu64 ")"
+            " into disappearingChildren", GetId(), child->GetId());
         // keep shared_ptr alive for transition
         uint32_t origPos = static_cast<uint32_t>(std::distance(children_.begin(), it));
         disappearingChildren_.emplace_back(child, origPos);
@@ -332,25 +328,19 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     }
     out += ", Properties: " + GetRenderProperties().Dump();
     out += "\n";
-    for (auto child : children_) {
+    for (auto& child : children_) {
         if (auto c = child.lock()) {
             c->DumpTree(depth + 1, out);
         }
     }
-    for (auto& child : disappearingChildren_) {
-        if (auto c = child.first) {
-            c->DumpTree(depth + 1, out);
-        }
+    for (auto& [child, pos] : disappearingChildren_) {
+        child->DumpTree(depth + 1, out);
     }
 }
 
 void RSRenderNode::DumpNodeType(std::string& out) const
 {
     switch (GetType()) {
-        case RSRenderNodeType::BASE_NODE: {
-            out += "BASE_NODE";
-            break;
-        }
         case RSRenderNodeType::DISPLAY_NODE: {
             out += "DISPLAY_NODE";
             break;
@@ -530,7 +520,7 @@ bool RSRenderNode::IsClipBound() const
 
 bool RSRenderNode::Update(
     RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
-    bool isClipBoundDirty, std::optional<RectI> clipRect)
+    std::optional<RectI> clipRect)
 {
     // no need to update invisible nodes
     if (!ShouldPaint() && !isLastVisible_) {
@@ -548,10 +538,12 @@ bool RSRenderNode::Update(
 #else
     std::optional<Drawing::Point> offset;
     if (parent != nullptr && !IsInstanceOf<RSSurfaceRenderNode>()) {
-        Drawing::Point offset(parent->GetFrameOffsetX(), parent->GetFrameOffsetY());
+        auto& properties = parent->GetRenderProperties();
+        offset = Drawing::Point { properties.GetFrameOffsetX(), properties.GetFrameOffsetY() };
     }
 #endif
     // in some case geodirty_ is not marked in drawCmdModifiers_, we should update node geometry
+    // [planing] using drawcmdModifierDirty from dirtyType_
     parentDirty |= (dirtyStatus_ != NodeDirty::CLEAN);
     auto parentProperties = parent ? &parent->GetRenderProperties() : nullptr;
     bool dirty = renderProperties_.UpdateGeometry(parentProperties, parentDirty, offset, GetContextClipRegion());
@@ -573,9 +565,7 @@ bool RSRenderNode::Update(
     // 2. Filter must be valid when filter cache manager is valid, we make sure that in RSRenderNode::ApplyModifiers().
     UpdateFilterCacheWithDirty(dirtyManager, false);
 #endif
-    if (!isClipBoundDirty) {
-        UpdateDirtyRegion(dirtyManager, dirty, clipRect);
-    }
+    UpdateDirtyRegion(dirtyManager, dirty, clipRect);
     return dirty;
 }
 
@@ -607,7 +597,7 @@ void RSRenderNode::UpdateDirtyRegion(
     }
     // merge old dirty if switch to invisible
     if (!ShouldPaint() && isLastVisible_) {
-        ROSEN_LOGD("RSRenderNode:: id %" PRIu64 " UpdateDirtyRegion visible->invisible", GetId());
+        ROSEN_LOGD("RSRenderNode:: id %{public}" PRIu64 " UpdateDirtyRegion visible->invisible", GetId());
     } else {
         RectI drawRegion;
         RectI shadowRect;
@@ -798,7 +788,6 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 
 void RSRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)
 {
-    GetMutableRenderProperties().ResetBounds();
     canvas.RestoreStatus(renderNodeSaveCount_);
 }
 
@@ -957,11 +946,12 @@ bool RSRenderNode::ApplyModifiers()
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSRenderNode::UpdateEffectRegion(std::optional<SkPath>& region) const
+void RSRenderNode::UpdateEffectRegion(std::optional<SkPath>& region)
 #else
-void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::Path>& region) const
+void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::Path>& region)
 #endif
 {
+    hasUpdateEffectRegion_ = false;
     if (!region.has_value()) {
         return;
     }
@@ -998,6 +988,7 @@ void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::Path>& region) cons
     // accumulate children clip path, with matrix
     effectPath.AddPath(clipPath, geoPtr->GetAbsMatrix());
 #endif
+    hasUpdateEffectRegion_ = true;
 }
 
 std::shared_ptr<RSRenderModifier> RSRenderNode::GetModifier(const PropertyId& id)
@@ -1073,7 +1064,8 @@ bool RSRenderNode::NeedInitCacheSurface() const
         return true;
     }
     auto cacheType = GetCacheType();
-    float width = 0.0f, height = 0.0f;
+    int width = 0;
+    int height = 0;
     if (cacheType == CacheType::ANIMATE_PROPERTY &&
         renderProperties_.IsShadowValid() && !renderProperties_.IsSpherizeValid()) {
         const RectF boundsRect = renderProperties_.GetBoundsRect();
@@ -1087,7 +1079,15 @@ bool RSRenderNode::NeedInitCacheSurface() const
         width =  size.x_;
         height = size.y_;
     }
+#ifndef USE_ROSEN_DRAWING
     return cacheSurface_->width() != width || cacheSurface_->height() !=height;
+#else
+    auto cacheCanvas = cacheSurface_->GetCanvas();
+    if (cacheCanvas == nullptr) {
+        return true;
+    }
+    return cacheCanvas->GetWidth() != width || cacheCanvas->GetHeight() !=height;
+#endif
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -1268,7 +1268,7 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
     canvas.Scale(scaleX, scaleY);
 #if defined(RS_ENABLE_GL)
     if (isUIFirst) {
-        RS_LOGE("[%s:%d] Drawing is not supported", __func__, __LINE__);
+        RS_LOGE("[%{public}s:%{public}d] Drawing is not supported", __func__, __LINE__);
         return;
     }
 #endif
@@ -1308,7 +1308,7 @@ void RSRenderNode::UpdateBackendTexture()
     cacheBackendTexture_
         = cacheSurface_->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
 #else
-    RS_LOGE("[%s:%d] Drawing is not supported", __func__, __LINE__);
+    RS_LOGE("[%{public}s:%{public}d] Drawing is not supported", __func__, __LINE__);
 #endif
 }
 #endif
@@ -1504,23 +1504,25 @@ bool RSRenderNode::HasDisappearingTransition(bool recursive) const
 
 const std::list<RSRenderNode::SharedPtr>& RSRenderNode::GetChildren()
 {
-    GenerateFullChildrenList();
+    if (!isFullChildrenListValid_) {
+        GenerateFullChildrenList();
+    }
     return fullChildrenList_;
 }
 
 const std::list<RSRenderNode::SharedPtr>& RSRenderNode::GetSortedChildren()
 {
-    GenerateFullChildrenList();
-    SortChildren();
+    if (!isFullChildrenListValid_) {
+        GenerateFullChildrenList();
+    }
+    if (!isChildrenSorted_) {
+        SortChildren();
+    }
     return fullChildrenList_;
 }
 
 void RSRenderNode::GenerateFullChildrenList()
 {
-    // if fullChildrenList_ is valid, just return
-    if (isFullChildrenListValid_) {
-        return;
-    }
     // Node is currently used by sub thread, delay the operation
     if (NodeIsUsedBySubThread()) {
         return;
@@ -1569,10 +1571,6 @@ void RSRenderNode::GenerateFullChildrenList()
 
 void RSRenderNode::SortChildren()
 {
-    // if children are already sorted, just return
-    if (isChildrenSorted_) {
-        return;
-    }
     // Node is currently used by sub thread, delay the operation
     if (NodeIsUsedBySubThread()) {
         return;

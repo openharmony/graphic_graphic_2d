@@ -73,7 +73,7 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
         uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION);
         int32_t err = Remote()->SendRequest(code, *parcel, reply, option);
         if (err != NO_ERROR) {
-            ROSEN_LOGE("RSRenderServiceConnectionProxy::CommitTransaction SendRequest failed, err = %d", err);
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::CommitTransaction SendRequest failed, err = %{public}d", err);
             return;
         }
     }
@@ -299,8 +299,8 @@ std::vector<ScreenId> RSRenderServiceConnectionProxy::GetAllScreenIds()
     size_t readableSize = reply.GetReadableBytes() / sizeof(ScreenId);
     size_t len = static_cast<size_t>(size);
     if (len > readableSize || len > screenIds.max_size()) {
-        RS_LOGE("RSRenderServiceConnectionProxy GetAllScreenIds Failed read vector, size:%zu, readableSize:%zu", len,
-            readableSize);
+        RS_LOGE("RSRenderServiceConnectionProxy GetAllScreenIds Failed read vector, size:%{public}zu,"
+            " readableSize:%{public}zu", len, readableSize);
         return screenIds;
     }
     for (uint32_t i = 0; i < size; i++) {
@@ -461,7 +461,7 @@ void RSRenderServiceConnectionProxy::SetScreenRefreshRate(ScreenId id, int32_t s
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %d", err);
+        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %{public}d", err);
     }
 }
 
@@ -480,7 +480,7 @@ void RSRenderServiceConnectionProxy::SetRefreshRateMode(int32_t refreshRateMode)
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %d", err);
+        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %{public}d", err);
     }
 }
 
@@ -499,7 +499,7 @@ uint32_t RSRenderServiceConnectionProxy::GetScreenCurrentRefreshRate(ScreenId id
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %d", err);
+        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %{public}d", err);
         return SUCCESS;
     }
     uint32_t rate = reply.ReadUint32();
@@ -529,7 +529,7 @@ std::vector<uint32_t> RSRenderServiceConnectionProxy::GetScreenSupportedRefreshR
     size_t len = static_cast<size_t>(rateCount);
     if (len > readableSize || len > screenSupportedRates.max_size()) {
         RS_LOGE("RSRenderServiceConnectionProxy GetScreenSupportedRefreshRates "
-            "fail read vector, size : %zu, readableSize : %zu", len, readableSize);
+            "fail read vector, size : %{public}zu, readableSize : %{public}zu", len, readableSize);
         return screenSupportedRates;
     }
     screenSupportedRates.resize(rateCount);
@@ -702,8 +702,8 @@ std::vector<RSScreenModeInfo> RSRenderServiceConnectionProxy::GetScreenSupported
     size_t readableSize = reply.GetReadableBytes();
     size_t len = static_cast<size_t>(modeCount);
     if (len > readableSize || len > screenSupportedModes.max_size()) {
-        RS_LOGE("RSRenderServiceConnectionProxy GetScreenSupportedModes Fail read vector, size:%zu, readableSize:%zu",
-            len, readableSize);
+        RS_LOGE("RSRenderServiceConnectionProxy GetScreenSupportedModes Fail read vector, size:%{public}zu,"
+            "readableSize:%{public}zu", len, readableSize);
         return screenSupportedModes;
     }
     screenSupportedModes.resize(modeCount);
@@ -740,8 +740,8 @@ std::vector<MemoryGraphic> RSRenderServiceConnectionProxy::GetMemoryGraphics()
     size_t readableSize = reply.GetReadableBytes();
     size_t len = static_cast<size_t>(count);
     if (len > readableSize || len > memoryGraphics.max_size()) {
-        RS_LOGE("RSRenderServiceConnectionProxy GetMemoryGraphics Failed to read vector, size:%zu, readableSize:%zu",
-            len, readableSize);
+        RS_LOGE("RSRenderServiceConnectionProxy GetMemoryGraphics Failed to read vector, size:%{public}zu,"
+            " readableSize:%{public}zu", len, readableSize);
         return memoryGraphics;
     }
     memoryGraphics.resize(count);
@@ -1185,6 +1185,26 @@ int32_t RSRenderServiceConnectionProxy::RegisterOcclusionChangeCallback(sptr<RSI
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteRemoteObject(callback->AsObject());
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterHgmConfigChangeCallback: Send Request err.");
         return RS_CONNECTION_ERROR;
     }
     int32_t result = reply.ReadInt32();

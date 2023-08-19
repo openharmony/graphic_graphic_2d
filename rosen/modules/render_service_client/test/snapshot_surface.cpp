@@ -77,7 +77,7 @@ bool WriteToPng(const std::string &filename, const WriteToPngParam &param)
         RS_LOGI("WriteToPng filename is empty");
         return false;
     }
-    RS_LOGI("WriteToPng filename = %s", filename.c_str());
+    RS_LOGI("WriteToPng filename = %{public}s", filename.c_str());
     png_structp pngStruct = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if (pngStruct == nullptr) {
         return false;

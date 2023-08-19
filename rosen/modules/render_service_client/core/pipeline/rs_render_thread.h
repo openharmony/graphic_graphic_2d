@@ -104,7 +104,6 @@ public:
     void SetRTRenderForced(bool isRenderForced)
     {
         if ((isRTRenderForced_ != isRenderForced)) {
-            ROSEN_LOGD("RSRenderThread::SetRenderForced %d -> %d", isRTRenderForced_, isRenderForced);
             isRTRenderForced_ = isRenderForced;
         }
     }
@@ -168,6 +167,9 @@ private:
 
     std::string cacheDir_;
     bool isRTRenderForced_ = false;
+#ifdef ROSEN_PREVIEW
+    std::atomic_bool isRunning_ = false;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class ColorFilterCmdList : public CmdList {
+class DRAWING_API ColorFilterCmdList : public CmdList {
 public:
     ColorFilterCmdList() = default;
     ~ColorFilterCmdList() override = default;

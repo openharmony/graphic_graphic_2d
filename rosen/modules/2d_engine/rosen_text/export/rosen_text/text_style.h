@@ -17,9 +17,13 @@
 #define ROSEN_TEXT_EXPORT_ROSEN_TEXT_TEXT_STYLE_H
 
 #include <map>
+#ifdef USE_GRAPHIC_TEXT_GINE
+#include <optional>
+#endif
 #include <string>
 #include <vector>
 
+#include "common/rs_macros.h"
 #include "draw/color.h"
 #include "draw/pen.h"
 #include "include/core/SkPaint.h" // SKIA
@@ -29,7 +33,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class FontFeatures {
+class RS_EXPORT FontFeatures {
 public:
     void SetFeature(std::string tag, int value);
     std::string GetFeatureSettings() const;
@@ -40,19 +44,30 @@ private:
     std::map<std::string, int> featureMap_;
 };
 
-struct TextShadow {
+struct RS_EXPORT TextShadow {
+#ifndef USE_GRAPHIC_TEXT_GINE
     Drawing::Color color_ = Drawing::Color::COLOR_BLACK;
     Drawing::PointF offset_;
     double blurRadius_ = 0.0;
+#else
+    Drawing::Color color = Drawing::Color::COLOR_BLACK;
+    Drawing::PointF offset;
+    double blurRadius = 0.0;
+#endif
 
     TextShadow();
+#ifndef USE_GRAPHIC_TEXT_GINE
     TextShadow(Drawing::Color color, Drawing::PointF offset, double blurRadius);
+#else
+    TextShadow(Drawing::Color shadowColor, Drawing::Point shadowOffset, double shadowBlurRadius);
+#endif
     bool operator ==(const TextShadow& rhs) const;
     bool operator !=(const TextShadow& rhs) const;
     bool HasShadow() const;
 };
 
 struct TextStyle {
+#ifndef USE_GRAPHIC_TEXT_GINE
     Drawing::Color color_ = Drawing::Color::COLOR_WHITE;
     TextDecoration decoration_ = TextDecoration::NONE;
     Drawing::Color decorationColor_ = Drawing::Color::COLOR_TRANSPARENT;
@@ -71,11 +86,38 @@ struct TextStyle {
     std::string locale_;
     std::optional<SkPaint> background_; // SKIA
     std::optional<SkPaint> foreground_; // SKIA
+#else
+    Drawing::Color color = Drawing::Color::COLOR_WHITE;
+    TextDecoration decoration = TextDecoration::NONE;
+    Drawing::Color decorationColor = Drawing::Color::COLOR_TRANSPARENT;
+    TextDecorationStyle decorationStyle = TextDecorationStyle::SOLID;
+    double decorationThicknessScale = 1.0;
+    FontWeight fontWeight = FontWeight::W400;
+    FontStyle fontStyle = FontStyle::NORMAL;
+    TextBaseline baseline = TextBaseline::ALPHABETIC;
+    std::vector<std::string> fontFamilies;
+    double fontSize = 14.0; // default is libtxt text style font size
+    double letterSpacing = 0.0;
+    double wordSpacing = 0.0;
+    double heightScale = 1.0;
+    bool heightOnly = false;
+    std::u16string ellipsis;
+    std::string locale;
+    std::optional<SkPaint> background; // SKIA
+    std::optional<SkPaint> foreground; // SKIA
+#endif
     // if Pen and SkPaint are setting, use pen first
+#ifndef USE_GRAPHIC_TEXT_GINE
     std::optional<Drawing::Pen> backgroundPen_;
     std::optional<Drawing::Pen> foregroundPen_;
     std::vector<TextShadow> shadows_;
     FontFeatures fontFeatures_;
+#else
+    std::optional<Drawing::Pen> backgroundPen;
+    std::optional<Drawing::Pen> foregroundPen;
+    std::vector<TextShadow> shadows;
+    FontFeatures fontFeatures;
+#endif
 
     bool operator ==(const TextStyle &rhs) const;
 };

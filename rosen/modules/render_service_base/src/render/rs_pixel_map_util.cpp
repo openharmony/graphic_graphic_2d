@@ -38,17 +38,6 @@ static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(ColorSpace colorSpace)
             return SkColorSpace::MakeSRGB();
     }
 }
-#else
-static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorSpace colorSpace)
-{
-    switch (colorSpace) {
-        case ColorSpace::LINEAR_SRGB:
-            return Drawing::ColorSpace::CreateSRGBLinear();
-        case ColorSpace::SRGB:
-        default:
-            return Drawing::ColorSpace::CreateSRGB();
-    }
-}
 #endif
 
 #ifndef USE_ROSEN_DRAWING
@@ -147,7 +136,6 @@ static Drawing::BitmapFormat MakeDrawingBitmapFormat(const ImageInfo& imageInfo)
 {
     Drawing::ColorType ct = PixelFormatToDrawingColorType(imageInfo.pixelFormat);
     Drawing::AlphaType at = AlphaTypeToDrawingAlphaType(imageInfo.alphaType);
-    std::shared_ptr<Drawing::ColorSpace> cs = ColorSpaceToDrawingColorSpace(imageInfo.colorSpace);
     return Drawing::BitmapFormat { ct, at };
 }
 #endif
@@ -198,7 +186,7 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
     Drawing::BitmapFormat format = MakeDrawingBitmapFormat(imageInfo);
     Drawing::Bitmap bitmap;
     bitmap.Build(imageInfo.size.width, imageInfo.size.height, format);
-    bitmap.SetPixels((void*)pixelMap->GetPixels());
+    bitmap.SetPixels(const_cast<void*>(static_cast<const void*>(pixelMap->GetPixels())));
 
     auto image = std::make_shared<Drawing::Image>();
     image->BuildFromBitmap(bitmap);

@@ -80,8 +80,8 @@ void RSParallelPackVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode &node)
         return;
     }
     RS_TRACE_NAME("RSParallelPackVisitor::Process:[" + node.GetName() + "]" + node.GetDstRect().ToString());
-    RS_LOGD("RSParallelPackVisitor::ProcessSurfaceRenderNode node: %" PRIu64 ", child size:%u %s", node.GetId(),
-        node.GetChildrenCount(), node.GetName().c_str());
+    RS_LOGD("RSParallelPackVisitor::ProcessSurfaceRenderNode node: %{public}" PRIu64 ", child size:%{public}u"
+        " %{public}s", node.GetId(), node.GetChildrenCount(), node.GetName().c_str());
     node.UpdatePositionZ();
     if (IsSkipProcessing(node)) {
         return;
@@ -97,7 +97,7 @@ bool RSParallelPackVisitor::IsSkipProcessing(RSSurfaceRenderNode& node) const
     }
 
     if (!node.ShouldPaint()) {
-        RS_LOGD("RSParallelPackVisitor::ProcessSurfaceRenderNode node: %" PRIu64 " invisible", node.GetId());
+        RS_LOGD("RSParallelPackVisitor::ProcessSurfaceRenderNode node: %{public}" PRIu64 " invisible", node.GetId());
         return true;
     }
     if (!node.GetOcclusionVisible() && !doAnimate_
@@ -110,7 +110,7 @@ bool RSParallelPackVisitor::IsSkipProcessing(RSSurfaceRenderNode& node) const
     if (isOpDropped_ && node.IsAppWindow()) {
         if (!node.SubNodeNeedDraw(node.GetOldDirtyInSurface(), partialRenderType_)) {
             RS_OPTIONAL_TRACE_NAME("QuickReject Skip");
-            RS_LOGD("RSParallelPackVisitor::ProcessSurfaceRenderNode skip: %s", node.GetName().c_str());
+            RS_LOGD("RSParallelPackVisitor::ProcessSurfaceRenderNode skip: %{public}s", node.GetName().c_str());
             return true;
         }
     }

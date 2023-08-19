@@ -49,13 +49,13 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width,
     frame->requestConfig_.format = pixelFormat_;
     SurfaceError err = producer_->RequestBuffer(frame->buffer_, frame->releaseFence_, frame->requestConfig_);
     if (err != SURFACE_ERROR_OK) {
-        ROSEN_LOGE("RSSurfaceOhosRaster::Requestframe Failed, error is : %s", SurfaceErrorStr(err).c_str());
+        ROSEN_LOGE("RSSurfaceOhosRaster::Requestframe Failed, error is : %{public}s", SurfaceErrorStr(err).c_str());
         return nullptr;
     }
 
     err = frame->buffer_->Map();
     if (err != SURFACE_ERROR_OK) {
-        ROSEN_LOGE("RSSurfaceOhosRaster::Map Failed, error is : %s", SurfaceErrorStr(err).c_str());
+        ROSEN_LOGE("RSSurfaceOhosRaster::Map Failed, error is : %{public}s", SurfaceErrorStr(err).c_str());
         return nullptr;
     }
 
@@ -100,10 +100,10 @@ bool RSSurfaceOhosRaster::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     oriFramePtr->flushConfig_.timestamp = static_cast<int64_t>(uiTimestamp);
     SurfaceError err = producer_->FlushBuffer(oriFramePtr->buffer_, -1, oriFramePtr->flushConfig_);
     if (err != SURFACE_ERROR_OK) {
-        ROSEN_LOGE("RSSurfaceOhosRaster::Flushframe Failed, error is : %s", SurfaceErrorStr(err).c_str());
+        ROSEN_LOGE("RSSurfaceOhosRaster::Flushframe Failed, error is : %{public}s", SurfaceErrorStr(err).c_str());
         return false;
     }
-    ROSEN_LOGD("RsDebug RSSurfaceOhosRaster::FlushFrame fence:%d", oriFramePtr->releaseFence_);
+    ROSEN_LOGD("RsDebug RSSurfaceOhosRaster::FlushFrame fence:%{public}d", oriFramePtr->releaseFence_);
     return true;
 }
 

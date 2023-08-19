@@ -53,8 +53,8 @@ bool RSVirtualScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, 
     auto screenManager = CreateOrGetScreenManager();
     producerSurface_ = screenManager->GetProducerSurface(node.GetScreenId());
     if (producerSurface_ == nullptr) {
-        RS_LOGE(
-            "RSVirtualScreenProcessor::Init for Screen(id %" PRIu64 "): ProducerSurface is null!", node.GetScreenId());
+        RS_LOGE("RSVirtualScreenProcessor::Init for Screen(id %{public}" PRIu64 "): ProducerSurface is null!",
+            node.GetScreenId());
         return false;
     }
 
@@ -83,8 +83,8 @@ void RSVirtualScreenProcessor::PostProcess()
         RS_LOGE("RSVirtualScreenProcessor::PostProcess surface is null!");
         return;
     }
-    auto surfaceId = producerSurface_->GetUniqueId();
-    renderEngine_->SetUiTimeStamp(renderFrame_, surfaceId);
+    auto surfaceOhos = renderFrame_->GetSurface();
+    renderEngine_->SetUiTimeStamp(renderFrame_, surfaceOhos);
 
     if (renderFrame_ == nullptr) {
         RS_LOGE("RSVirtualScreenProcessor::PostProcess renderFrame_ is null.");

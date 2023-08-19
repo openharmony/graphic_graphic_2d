@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#ifndef USE_GRAPHIC_TEXT_GINE
 #include "texgine/utils/trace.h"
 
 #include <hitrace_meter.h>
@@ -41,3 +42,35 @@ void Trace::Disable()
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS
+#else
+#ifdef LOGGER_ENABLE_SCOPE
+#include "texgine/utils/trace.h"
+
+#include <hitrace_meter.h>
+
+namespace OHOS {
+namespace Rosen {
+namespace TextEngine {
+void Trace::Start(const std::string &proc)
+{
+    StartTrace(HITRACE_TAG_GRAPHIC_AGP, proc);
+}
+
+void Trace::Finish()
+{
+    FinishTrace(HITRACE_TAG_GRAPHIC_AGP);
+}
+
+void Trace::Count(const std::string &key, int val)
+{
+    CountTrace(HITRACE_TAG_GRAPHIC_AGP, key, val);
+}
+
+void Trace::Disable()
+{
+}
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
+#endif
+#endif

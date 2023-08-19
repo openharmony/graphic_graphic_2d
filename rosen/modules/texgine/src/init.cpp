@@ -15,13 +15,27 @@
 
 #include <unicode/putil.h>
 
+#ifndef USE_GRAPHIC_TEXT_GINE
 #include "texgine/utils/trace.h"
+#else
+#ifdef LOGGER_ENABLE_SCOPE
+#include "texgine/utils/trace.h"
+#endif
+#endif
 
 static __attribute__((constructor)) void Init()
 {
     u_setDataDirectory("/system/usr/ohos_icu");
 
+#ifndef USE_GRAPHIC_TEXT_GINE
 #ifndef TEXGINE_ENABLE_TRACE
     OHOS::Rosen::TextEngine::Trace::Disable();
+#endif
+#else
+#ifdef LOGGER_ENABLE_SCOPE
+#ifndef TEXGINE_ENABLE_TRACE
+    OHOS::Rosen::TextEngine::Trace::Disable();
+#endif
+#endif
 #endif
 }

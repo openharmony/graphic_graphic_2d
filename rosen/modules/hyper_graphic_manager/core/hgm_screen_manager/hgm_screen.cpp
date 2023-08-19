@@ -25,7 +25,7 @@ HgmScreen::HgmScreen(ScreenId id, int32_t mode)
 
 HgmScreen::~HgmScreen() {}
 
-uint32_t HgmScreen::GetActiveRefreshRate()
+uint32_t HgmScreen::GetActiveRefreshRate() const
 {
     auto profilePtr = GetModeViaId(activeModeId_);
     if (!profilePtr) {
@@ -160,7 +160,7 @@ int32_t HgmScreen::GetModeIdViaRate(uint32_t rate) const
 int32_t HgmScreen::GetModeIdViaResolutionAndRate(int32_t width, int32_t height, uint32_t rate) const
 {
     // get the corresponding mode id with the given resolution and refreshrate
-    for (auto& mode : screenModeInfos_) {
+    for (const auto& mode : screenModeInfos_) {
         if (mode->GetRate() != rate || mode->GetWidth() != width || mode->GetHeight() != height) {
             continue;
         }

@@ -16,12 +16,13 @@
 #ifndef POINT3_H
 #define POINT3_H
 
+#include "utils/drawing_macros.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class Point3 {
+class DRAWING_API Point3 {
 public:
     inline Point3() noexcept;
     inline Point3(const Point3& p) noexcept;

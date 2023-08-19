@@ -72,7 +72,7 @@ RSParallelSubThread::~RSParallelSubThread()
 #else
     surface_ = nullptr;
 #endif
-    RS_LOGI("~RSParallelSubThread():%d", threadIndex_);
+    RS_LOGI("~RSParallelSubThread():%{public}d", threadIndex_);
 }
 
 void RSParallelSubThread::MainLoop()
@@ -475,7 +475,7 @@ void RSParallelSubThread::CreateResource()
     int width, height;
     RSParallelRenderManager::Instance()->GetFrameSize(width, height);
     if (width != surfaceWidth_ || height != surfaceHeight_) {
-        RS_LOGE("CreateResource %d, new size [%d, %d], old size [%d, %d]",
+        RS_LOGE("CreateResource %{public}d, new size [%{public}d, %{public}d], old size [%{public}d, %{public}d]",
             threadIndex_, width, height, surfaceWidth_, surfaceHeight_);
         surfaceWidth_ = width;
         surfaceHeight_ = height;

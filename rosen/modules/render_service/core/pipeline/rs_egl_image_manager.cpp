@@ -221,7 +221,7 @@ std::unique_ptr<ImageCacheSeq> ImageCacheSeq::Create(
 
     EGLImageKHR img = Detail::CreateEGLImage(eglDisplay, eglContext, nativeBuffer);
     if (img == EGL_NO_IMAGE_KHR) {
-        RS_LOGE("ImageCacheSeq::Create: eglCreateImageKHR failed, error %s.",
+        RS_LOGE("ImageCacheSeq::Create: eglCreateImageKHR failed, error %{public}s.",
             Detail::EGLErrorString(eglGetError()));
         return nullptr;
     }
@@ -252,7 +252,7 @@ GLuint RSEglImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuf
     auto bufferId = buffer->GetSeqNum();
     auto imageCache = ImageCacheSeq::Create(eglDisplay_, EGL_NO_CONTEXT, buffer);
     if (imageCache == nullptr) {
-        RS_LOGE("RSEglImageManager::CreateImageCacheFromBuffer: failed to create ImageCache for buffer id %d.",
+        RS_LOGE("RSEglImageManager::CreateImageCacheFromBuffer: failed to create ImageCache for buffer id %{public}d.",
             bufferId);
         return 0; // return texture id 0.
     }
@@ -270,7 +270,7 @@ std::unique_ptr<ImageCacheSeq> RSEglImageManager::CreateImageCacheFromBuffer(con
     auto bufferId = buffer->GetSeqNum();
     auto imageCache = ImageCacheSeq::Create(eglDisplay_, EGL_NO_CONTEXT, buffer);
     if (imageCache == nullptr) {
-        RS_LOGE("RSEglImageManager::CreateImageCacheFromBuffer: failed to create ImageCache for buffer id %d.",
+        RS_LOGE("RSEglImageManager::CreateImageCacheFromBuffer: failed to create ImageCache for buffer id %{public}d.",
             bufferId);
         return nullptr;
     }

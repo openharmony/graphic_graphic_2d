@@ -17,6 +17,7 @@
 #define GPU_CONTEXT_H
 
 #include "impl_interface/gpu_context_impl.h"
+#include "utils/drawing_macros.h"
 #include "utils/data.h"
 
 namespace OHOS {
@@ -41,7 +42,7 @@ enum class PathRenderers : uint32_t {
  * @brief  Option to create a GPUContext. Currently only supports setting persistent cache,
            other options may be expanded in the future
  */
-class GPUContextOptions {
+class DRAWING_API GPUContextOptions {
 public:
     /*
      * @brief  Cache compiled shaders for use between sessions.

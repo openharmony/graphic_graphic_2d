@@ -63,7 +63,8 @@ bool RsFrameReport::LoadLibrary()
     if (!frameSchedSoLoaded_) {
         frameSchedHandle_ = dlopen(FRAME_AWARE_SO_PATH.c_str(), RTLD_LAZY);
         if (frameSchedHandle_ == nullptr) {
-            ROSEN_LOGE("RsFrameReport:[LoadLibrary]dlopen libframe_ui_intf.so failed! error = %s\n", dlerror());
+            ROSEN_LOGE("RsFrameReport:[LoadLibrary]dlopen libframe_ui_intf.so failed!"
+                " error = %{public}s\n", dlerror());
             return false;
         }
         frameSchedSoLoaded_ = true;

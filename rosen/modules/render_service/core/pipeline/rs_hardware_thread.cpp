@@ -182,7 +182,7 @@ void RSHardwareThread::PerformSetActiveMode()
                 ", h: " + std::to_string(mode.GetScreenHeight()) +
                 ", rate: " + std::to_string(mode.GetScreenRefreshRate()) +
                 ", id: " + std::to_string(mode.GetScreenModeId());
-            RS_LOGD(temp.c_str());
+            RS_LOGD("%{public}s", temp.c_str());
         }
 
         screenManager->SetScreenActiveMode(id, modeId);
@@ -378,13 +378,5 @@ void RSHardwareThread::LayerPresentTimestamp(const LayerInfoPtr& layer, const sp
     if (surface->SetPresentTimestamp(buffer->GetSeqNum(), layer->GetPresentTimestamp()) != GSERROR_OK) {
         RS_LOGD("RsDebug RSUniRenderComposerAdapter::LayerPresentTimestamp: SetPresentTimestamp failed");
     }
-}
-
-void RSHardwareThread::CleanRenderFrame(uint64_t id)
-{
-    ScheduleTask(
-        [this, id]() {
-        uniRenderEngine_->UnMapRsSurface(id);
-    }).wait();
 }
 }

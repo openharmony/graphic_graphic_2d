@@ -79,4 +79,31 @@ HWTEST_F(RSLightUpEffectFilterTest, RSLightUpEffectFilterTest002, TestSize.Level
     result = filter->Negate();
     EXPECT_TRUE(result != nullptr);
 }
+
+/**
+ * @tc.name: GetLightUpDegreeTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, GetLightUpDegreeTest, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    EXPECT_TRUE(filter != nullptr);
+    filter->Add(filter);
+    EXPECT_NE(filter->GetLightUpDegree(), 0.f);
+}
+
+/**
+ * @tc.name: ComposeTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, ComposeTest, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto filter_ = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    EXPECT_NE(filter->Compose(filter_), nullptr);
+}
 } // namespace OHOS::Rosen

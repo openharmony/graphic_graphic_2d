@@ -75,7 +75,8 @@ void RSSyncTransactionController::CreateTransactionFinished()
         transactionCount_++;
     }
     if (processCount_ == 0) {
-        ROSEN_LOGD("RS sync transaction controller CreateTransactionFinished, processCount: %d", processCount_);
+        ROSEN_LOGD("RS sync transaction controller CreateTransactionFinished, "
+            "processCount: %{public}d", processCount_);
         CloseSyncTransaction();
     }
 }
@@ -87,7 +88,7 @@ void RSSyncTransactionController::StartCreateTransaction()
         processCount_ = 0;
     }
     processCount_++;
-    ROSEN_LOGD("RS sync transaction controller StartCreateTransaction, processCount: %d", processCount_);
+    ROSEN_LOGD("RS sync transaction controller StartCreateTransaction, processCount: %{public}d", processCount_);
 }
 
 void RSSyncTransactionController::OpenSyncTransaction()

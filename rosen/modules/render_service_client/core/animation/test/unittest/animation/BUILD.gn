@@ -122,7 +122,10 @@ ohos_unittest("RSAnimationTest") {
     "$rosen_root/modules/render_service_client:librender_service_client",
     "//third_party/googletest:gtest_main",
   ]
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 config("rs_animation_test_config") {

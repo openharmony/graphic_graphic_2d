@@ -21,6 +21,7 @@
 #include "draw/canvas.h"
 #include "image/bitmap.h"
 #include "image/image.h"
+#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,7 +38,7 @@ struct FrameBuffer {
 };
 #endif
 
-class Surface {
+class DRAWING_API Surface {
 public:
     Surface();
     ~Surface() {}

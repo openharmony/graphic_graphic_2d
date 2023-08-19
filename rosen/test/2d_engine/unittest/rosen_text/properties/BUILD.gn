@@ -12,8 +12,8 @@
 # limitations under the License.
 
 import("//build/test.gni")
-import(
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
 module_output_path = "graphic_2d/rosen/modules/2d_engine/rosen_text/properties"
 
@@ -47,6 +47,21 @@ ohos_unittest("2d_engine_rosen_text_prop_test") {
       "//third_party/flutter/skia",
       "//third_party/flutter/engine/flutter/third_party/txt/src",
     ]
+  }
+
+  if (enable_text_gine) {
+    sources -= [ "place_holder_test.cpp" ]
+    include_dirs -= [ "$rosen_2d_engine_root/rosen_text/properties" ]
+    include_dirs += [
+      "$rosen_2d_engine_root/rosen_text/adapter",
+      "$rosen_2d_engine_root/rosen_text/export",
+      "$rosen_root/modules/render_service_base/include",
+      "//third_party/flutter/engine/flutter/third_party/txt/src",
+      "//third_party/flutter/skia/third_party/externals/harfbuzz/src",
+      "//third_party/flutter/skia",
+      "//third_party/flutter/engine",
+    ]
+    defines += [ "USE_GRAPHIC_TEXT_GINE" ]
   }
 
   deps = [ "$rosen_root/modules/2d_graphics:2d_graphics" ]

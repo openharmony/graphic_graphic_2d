@@ -93,6 +93,7 @@ template("render_service_client_source_set") {
       "core/ui/rs_canvas_node.cpp",
       "core/ui/rs_display_node.cpp",
       "core/ui/rs_effect_node.cpp",
+      "core/ui/rs_frame_rate_policy.cpp",
       "core/ui/rs_node.cpp",
       "core/ui/rs_proxy_node.cpp",
       "core/ui/rs_root_node.cpp",
@@ -163,6 +164,14 @@ template("render_service_client_source_set") {
       if (rss_enabled) {
         external_deps = []
       }
+    }
+    if (defined(external_deps)) {
+      external_deps += [ "hilog:libhilog" ]
+    } else {
+      external_deps = [ "hilog:libhilog" ]
+    }
+    if (rosen_cross_platform) {
+      deps += [ "$rosen_root/modules/platform:hilog" ]
     }
 
     if (rss_enabled) {

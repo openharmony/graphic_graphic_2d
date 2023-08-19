@@ -19,6 +19,7 @@
 #include "include/core/SkGraphics.h"
 #include "rs_trace.h"
 
+#include "memory/rs_dfx_string.h"
 #include "rs_skia_memory_tracer.h"
 #include "memory/rs_memory_graphic.h"
 #ifdef NEW_SKIA
@@ -522,7 +523,7 @@ void MemoryManager::DumpMallocStat(std::string& log)
                 if (strncmp(str, "Allocated", strlen("Allocated")) == 0) {
                     sp->append(str);
                 }
-                RS_LOGW("[mallocstat]:%s", str);
+                RS_LOGW("[mallocstat]:%{public}s", str);
             }
         },
         &log, nullptr);

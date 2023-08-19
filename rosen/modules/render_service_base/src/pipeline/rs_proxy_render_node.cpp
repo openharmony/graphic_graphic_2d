@@ -32,7 +32,8 @@ RSProxyRenderNode::RSProxyRenderNode(
 
 RSProxyRenderNode::~RSProxyRenderNode()
 {
-    ROSEN_LOGD("RSProxyRenderNode::~RSProxyRenderNode, proxy id:%" PRIu64 " target:%" PRIu64, GetId(), targetId_);
+    ROSEN_LOGD("RSProxyRenderNode::~RSProxyRenderNode, proxy id:%{public}" PRIu64 " target:%{public}" PRIu64,
+        GetId(), targetId_);
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
     CleanUp(true);
 }
