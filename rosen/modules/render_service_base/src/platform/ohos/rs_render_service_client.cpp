@@ -544,6 +544,7 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(
     if (isFromRenderThread) {
         bufferAvailableCbRTMap_.emplace(id, bufferAvailableCb);
     } else {
+        std::lock_guard<std::mutex> lock(mapMutex_);
         bufferAvailableCbUIMap_.emplace(id, bufferAvailableCb);
     }
     return true;
@@ -570,6 +571,7 @@ bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
         ROSEN_LOGD("RSRenderServiceClient::UnregisterBufferAvailableListener "
                    "Node %{public}" PRIu64 " has not registered RT callback", id);
     }
+    std::lock_guard<std::mutex> lock(mapMutex_);
     iter = bufferAvailableCbUIMap_.find(id);
     if (iter != bufferAvailableCbUIMap_.end()) {
         bufferAvailableCbUIMap_.erase(iter);
