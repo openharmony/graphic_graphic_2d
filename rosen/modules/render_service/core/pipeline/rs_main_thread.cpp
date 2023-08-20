@@ -378,6 +378,28 @@ DeviceType RSMainThread::GetDeviceType() const
     return deviceType_;
 }
 
+uint64_t RSMainThread::GetFocusNodeId() const
+{
+    return focusNodeId_;
+}
+
+uint64_t RSMainThread::GetFocusLeashWindowId() const
+{
+    return focusLeashWindowId_;
+}
+
+void RSMainThread::SetFocusLeashWindowId()
+{
+    const auto& nodeMap = context_->GetNodeMap();
+    auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodeMap.GetRenderNode(focusNodeId_));
+    if (node != nullptr) {
+        auto parent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock());
+        if (node->IsAppWindow() && parent && parent->IsLeashWindow()) {
+            focusLeashWindowId_ = parent->GetId();
+        }
+    }
+}
+
 void RSMainThread::SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated)
 {
     isCachedSurfaceUpdated_ = isCachedSurfaceUpdated;
@@ -1159,7 +1181,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SetAnimateState(doWindowAnimate_);
         uniVisitor->SetDirtyFlag(isDirty_ || isAccessibilityConfigChanged_);
         isAccessibilityConfigChanged_ = false;
-        uniVisitor->SetFocusedNodeId(focusNodeId_);
+        SetFocusLeashWindowId();
+        uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
         rootNode->Prepare(uniVisitor);
         ProcessHgmFrameRate(uniVisitor->GetFrameRateRangeData(), timestamp_);
         CalcOcclusion();

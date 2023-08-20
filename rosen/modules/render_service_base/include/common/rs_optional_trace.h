@@ -60,6 +60,8 @@
 
 #define RS_OPTIONAL_TRACE_FUNC() RSOptionalTrace optionalTrace(__func__)
 
+#define RS_PROCESS_TRACE(phone, focus, name) RSProcessTrace processTrace(phone, focus, name)
+
 class RSOptionalTrace {
 public:
     RSOptionalTrace(const std::string& traceStr)
@@ -78,5 +80,28 @@ public:
 
 private:
     bool debugTraceEnable_ = false;
+};
+
+class RSProcessTrace {
+public:
+    RSProcessTrace(bool phone, bool focus, const std::string& traceStr)
+    {
+        debugTraceEnable_ = OHOS::Rosen::RSSystemProperties::GetDebugTraceEnabled();
+        phone_ = phone;
+        focus_ = focus;
+        if (debugTraceEnable_ || phone_ || focus_) {
+            RS_TRACE_BEGIN(traceStr);
+        }
+    }
+    ~RSProcessTrace()
+    {
+        if (debugTraceEnable_ || phone_ || focus_) {
+            RS_TRACE_END();
+        }
+    }
+private:
+    bool debugTraceEnable_ = false;
+    bool phone_ = false;
+    bool focus_ = false;
 };
 #endif // RENDER_SERVICE_BASE_COMMON_OPTIONAL_TRACE

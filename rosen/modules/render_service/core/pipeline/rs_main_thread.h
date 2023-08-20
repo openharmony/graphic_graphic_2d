@@ -184,6 +184,8 @@ public:
 
     void ProcessHgmFrameRate(FrameRateRangeData data, uint64_t timestamp);
     DeviceType GetDeviceType() const;
+    uint64_t GetFocusNodeId() const;
+    uint64_t GetFocusLeashWindowId() const;
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -264,6 +266,8 @@ private:
     void InformHgmNodeInfo();
     void CheckIfNodeIsBundle(std::shared_ptr<RSSurfaceRenderNode> node);
 
+    void SetFocusLeashWindowId();
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
@@ -333,6 +337,7 @@ private:
     std::string focusAppBundleName_ = "";
     std::string focusAppAbilityName_ = "";
     uint64_t focusNodeId_ = 0;
+    uint64_t focusLeashWindowId_ = 0;
     uint64_t lastFocusNodeId_ = 0;
     uint32_t appWindowNum_ = 0;
     uint32_t requestNextVsyncNum_ = 0;
