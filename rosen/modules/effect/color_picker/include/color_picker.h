@@ -64,7 +64,7 @@ private:
     void AdjustHSVToDefinedIterval(HSV& hsv) const;
     uint32_t HSVtoRGB(HSV hsv) const;
 };
-std::shared_ptr<Media::PixelMap> pixelmap_ = nullptr;
+std::shared_ptr<Media::PixelMap> ColorPicker::pixelmap_ = nullptr;
 } // namespace Rosen
 } // namespace OHOS
 
