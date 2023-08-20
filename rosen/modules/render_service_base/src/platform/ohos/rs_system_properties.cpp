@@ -407,7 +407,8 @@ bool RSSystemProperties::GetDDGRIntegrateEnable()
 bool RSSystemProperties::GetSnapshotWithDMAEnabled()
 {
     static bool isSupportDma = system::GetParameter("const.product.devicetype", "pc") == "phone" ||
-        system::GetParameter("const.product.devicetype", "pc") == "tablet";
+        system::GetParameter("const.product.devicetype", "pc") == "tablet" ||
+        system::GetParameter("const.product.devicetype", "pc") == "pc";
     return isSupportDma && system::GetBoolParameter("rosen.snapshotDma.enabled", true);
 }
 } // namespace Rosen
