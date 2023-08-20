@@ -295,6 +295,7 @@ class RSB_EXPORT RSRenderParticle {
 public:
     explicit RSRenderParticle(std::shared_ptr<ParticleRenderParams> particleParams);
     RSRenderParticle() = default;
+    ~RSRenderParticle() = default;
 
     // Set methods
     void SetPosition(const Vector2f& position);

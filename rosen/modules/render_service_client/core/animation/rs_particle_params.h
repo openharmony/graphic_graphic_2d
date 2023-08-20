@@ -197,16 +197,20 @@ public:
             color.alphaRandom_ = val.alphaRandom_;
         } else if (color.updator_ == ParticleUpdator::CURVE) {
             uint32_t size = val.valChangeOverLife_.size();
+            std::vector<std::shared_ptr<ChangeInOverLife<Color>>> colorChangeOverLife;
             for (uint32_t i = 0; i < size; i++) {
-                color.valChangeOverLife_[i]->fromValue_ = val.valChangeOverLife_[i].fromValue_;
-                color.valChangeOverLife_[i]->toValue_ = val.valChangeOverLife_[i].toValue_;
-                color.valChangeOverLife_[i]->startMillis_ = val.valChangeOverLife_[i].startMillis_;
-                color.valChangeOverLife_[i]->endMillis_ = val.valChangeOverLife_[i].endMillis_;
-                int duration = val.valChangeOverLife_[i].endMillis_ - val.valChangeOverLife_[i].startMillis_;
+                auto fromValue = val.valChangeOverLife_[i].fromValue_;
+                auto toValue = val.valChangeOverLife_[i].toValue_;
+                float startMillis = val.valChangeOverLife_[i].startMillis_;
+                float endMillis = val.valChangeOverLife_[i].endMillis_;
+                int duration = endMillis - startMillis;
                 RSAnimationTimingCurve curve = val.valChangeOverLife_[i].curve_;
                 auto interpolator = curve.GetInterpolator(duration);
-                color.valChangeOverLife_[i]->interpolator_ = interpolator;
+
+                colorChangeOverLife.push_back(std::make_shared<ChangeInOverLife<Color>>(
+                    fromValue, toValue, startMillis, endMillis, interpolator));
             }
+            color.valChangeOverLife_ = colorChangeOverLife;
         }
         return color;
     }
