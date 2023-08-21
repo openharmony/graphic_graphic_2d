@@ -18,6 +18,7 @@
 #include "include/core/SkCanvas.h"
 #ifdef NEW_SKIA
 #include "include/gpu/GrBackendSurface.h"
+#include "include/gpu/GrDirectContext.h"
 #endif
 
 #include "common/rs_common_def.h"
@@ -43,6 +44,23 @@ RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
     if (preThreadInfo_.second && surface_) {
         preThreadInfo_.second(std::move(surface_));
     }
+#endif
+}
+
+void RSCanvasDrawingRenderNode::OnTreeStateChanged()
+{
+    RSRenderNode::OnTreeStateChanged();
+#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL) && defined(NEW_SKIA)
+    if (IsOnTheTree()) {
+        return;
+    }
+    
+    auto grContext = canvas_ != nullptr ? static_cast<GrDirectContext*>(canvas_->recordingContext()) : nullptr;
+    if (grContext == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNode: GrContext is nullptr");
+        return;
+    }
+    grContext->purgeUnlockedResources(true);
 #endif
 }
 

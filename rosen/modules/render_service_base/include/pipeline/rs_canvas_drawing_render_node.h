@@ -39,6 +39,10 @@ public:
     explicit RSCanvasDrawingRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     virtual ~RSCanvasDrawingRenderNode();
 
+    // RSCanvasDrawingRenderNode has its own skSurface, maybe hold its own gpu resources, 
+    // and needs to have the same resource release strategy as RSSurfaceNode.
+    void OnTreeStateChanged() override;
+
     void ProcessRenderContents(RSPaintFilterCanvas& canvas) override;
 
     RSRenderNodeType GetType() const override
