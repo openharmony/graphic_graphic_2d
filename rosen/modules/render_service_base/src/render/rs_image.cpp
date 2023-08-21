@@ -59,22 +59,29 @@ void RSImage::CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkSamp
 void RSImage::CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkPaint& paint, bool isBackground)
 #endif
 {
-    UpdateNodeIdToPicture(nodeId_);
-    SkAutoCanvasRestore acr(&canvas, HasRadius());
-    frameRect_.SetAll(rect.left(), rect.top(), rect.width(), rect.height());
+#ifdef NEW_SKIA
+    if (!isDrawn_) {
+#endif
+        UpdateNodeIdToPicture(nodeId_);
+        SkAutoCanvasRestore acr(&canvas, HasRadius());
+        frameRect_.SetAll(rect.left(), rect.top(), rect.width(), rect.height());
 #else
 void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect, bool isBackground)
 {
     canvas.Save();
     frameRect_.SetAll(rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight());
 #endif
-    if (!isBackground) {
-        ApplyImageFit();
-        ApplyCanvasClip(canvas);
-    }
+        if (!isBackground) {
+            ApplyImageFit();
+            ApplyCanvasClip(canvas);
+        }
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
-    DrawImageRepeatRect(samplingOptions, paint, canvas);
+        DrawImageRepeatRect(samplingOptions, paint, canvas);
+    } else {
+        SkAutoCanvasRestore acr(&canvas, HasRadius());
+        canvas.drawImageRect(image_, src_, dst_, samplingOptions, &paint, SkCanvas::kFast_SrcRectConstraint);
+    }
 #else
     DrawImageRepeatRect(paint, canvas);
 #endif
@@ -280,7 +287,7 @@ void RSImage::DrawImageRepeatRect(Drawing::Canvas& canvas)
 #endif
     UploadGpu(canvas);
 #ifndef USE_ROSEN_DRAWING
-    auto src = RSPropertiesPainter::Rect2SkRect(srcRect_);
+    src_ = RSPropertiesPainter::Rect2SkRect(srcRect_);
 #else
     if (image_ == nullptr) {
         RS_LOGE("RSImage::DrawImageRepeatRect failed, image is nullptr");
@@ -291,10 +298,10 @@ void RSImage::DrawImageRepeatRect(Drawing::Canvas& canvas)
     for (int i = minX; i <= maxX; ++i) {
         for (int j = minY; j <= maxY; ++j) {
 #ifndef USE_ROSEN_DRAWING
-            auto dst = SkRect::MakeXYWH(dstRect_.left_ + i * dstRect_.width_, dstRect_.top_ + j * dstRect_.height_,
+            dst_ = SkRect::MakeXYWH(dstRect_.left_ + i * dstRect_.width_, dstRect_.top_ + j * dstRect_.height_,
                 dstRect_.width_, dstRect_.height_);
 #ifdef NEW_SKIA
-            canvas.drawImageRect(image_, src, dst, samplingOptions, &paint, SkCanvas::kFast_SrcRectConstraint);
+            canvas.drawImageRect(image_, src_, dst_, samplingOptions, &paint, SkCanvas::kFast_SrcRectConstraint);
 #else
             canvas.drawImageRect(image_, src, dst, &paint, SkCanvas::kFast_SrcRectConstraint);
 #endif
@@ -306,6 +313,9 @@ void RSImage::DrawImageRepeatRect(Drawing::Canvas& canvas)
                 Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
 #endif
         }
+    }
+    if (imageRepeat_ == ImageRepeat::NO_REPEAT) {
+        isDrawn_ = true;
     }
 }
 
