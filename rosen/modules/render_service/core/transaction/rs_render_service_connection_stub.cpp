@@ -960,10 +960,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK): {
-            if (!HasPermission("RSRenderServiceConnectionStub::EXECUTE_SYNCHRONOUS_TASK")) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
