@@ -136,4 +136,71 @@ HWTEST_F(RSUniUiCaptureTest, ProcessEffectRenderNode001, TestSize.Level1)
     RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(id, scaleX, scaleY);
     rsUniUICaptureVisitor.ProcessEffectRenderNode(node);
 }
+
+/**
+ * @tc.name: PrepareCanvasRenderNodeTest
+ * @tc.desc: Test RSUniUiCapture.CreateSurface api
+ * @tc.type:
+ * @tc.require:
+ */
+HWTEST_F(RSUniUiCaptureTest, PrepareCanvasRenderNodeTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    float scaleX = 0.0;
+    float scaleY = 0.0;
+    std::weak_ptr<RSContext> context;
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, scaleX, scaleY);
+    RSRootRenderNode node(nodeId, context);
+    rsUniUICaptureVisitor.PrepareCanvasRenderNode(node);
+}
+
+/**
+ * @tc.name: PrepareSurfaceRenderNodeTest
+ * @tc.desc: Test RSUniUiCapture.CreateSurface api
+ * @tc.type:
+ * @tc.require:
+ */
+HWTEST_F(RSUniUiCaptureTest, PrepareSurfaceRenderNodeTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    float scaleX = 0.0;
+    float scaleY = 0.0;
+    std::weak_ptr<RSContext> context;
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, scaleX, scaleY);
+    RSSurfaceRenderNode node(nodeId, context);
+    rsUniUICaptureVisitor.PrepareSurfaceRenderNode(node);
+}
+
+/**
+ * @tc.name: PrepareRootRenderNodeTest
+ * @tc.desc: Test RSUniUiCapture.CreateSurface api
+ * @tc.type:
+ * @tc.require:
+ */
+HWTEST_F(RSUniUiCaptureTest, PrepareRootRenderNodeTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    float scaleX = 0.0;
+    float scaleY = 0.0;
+    std::weak_ptr<RSContext> context;
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, scaleX, scaleY);
+    RSRootRenderNode node(nodeId, context);
+    rsUniUICaptureVisitor.PrepareRootRenderNode(node);
+}
+
+/**
+ * @tc.name: PrepareEffectRenderNodeTest
+ * @tc.desc: Test RSUniUiCapture.CreateSurface api
+ * @tc.type:
+ * @tc.require:
+ */
+HWTEST_F(RSUniUiCaptureTest, PrepareEffectRenderNodeTest, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSEffectRenderNode node(id);
+    float scaleX = 0.0;
+    float scaleY = 0.0;
+    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(id, scaleX, scaleY);
+    rsUniUICaptureVisitor.PrepareEffectRenderNode(node);
+}
 } // namespace OHOS::Rosen

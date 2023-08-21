@@ -121,18 +121,86 @@ HWTEST_F(RSRenderEngineTest, DrawLayers001, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawWithParams
+ * @tc.name: DrawWithParams001
  * @tc.desc: test DrawWithParams when preProcessFunc and postProcessFunc are null
  * @tc.type: FUNC
  * @tc.require: issueI6R34I
  */
-HWTEST_F(RSRenderEngineTest, DrawWithParams, TestSize.Level1)
+HWTEST_F(RSRenderEngineTest, DrawWithParams001, TestSize.Level1)
 {
     auto renderEngine = std::make_shared<RSRenderEngine>();
     std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
+    renderEngine->DrawWithParams(*canvas, param, nullptr, nullptr);
+}
+
+/**
+ * @tc.name: DrawWithParams002
+ * @tc.desc: test DrawWithParams when param.setColorDilter are false
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSRenderEngineTest, DrawWithParams002, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
+    param.setColorFilter = false;
+    renderEngine->DrawWithParams(*canvas, param, nullptr, nullptr);
+}
+
+/**
+ * @tc.name: DrawWithParams003
+ * @tc.desc: test DrawWithParams when param.setColorDilter are true
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSRenderEngineTest, DrawWithParams003, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
+    param.setColorFilter = true;
+    renderEngine->DrawWithParams(*canvas, param, nullptr, nullptr);
+}
+
+/**
+ * @tc.name: DrawWithParams004
+ * @tc.desc: test DrawWithParams when param.useCPU are true
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSRenderEngineTest, DrawWithParams004, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
+    param.useCPU = true;
+    renderEngine->DrawWithParams(*canvas, param, nullptr, nullptr);
+}
+
+/**
+ * @tc.name: DrawWithParams005
+ * @tc.desc: test DrawWithParams when param.useCPU are true
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSRenderEngineTest, DrawWithParams005, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
+    param.useCPU = false;
     renderEngine->DrawWithParams(*canvas, param, nullptr, nullptr);
 }
 

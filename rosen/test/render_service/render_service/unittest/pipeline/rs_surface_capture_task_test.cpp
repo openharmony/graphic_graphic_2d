@@ -421,6 +421,21 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreateSurface002, Function | SmallTest | Leve
 }
 
 /*
+ * @tc.name: FindSecurityLayer001
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.CreateSurface002
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, FindSecurityLayer001, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    float scaleX = 0.f;
+    float scaleY = 0.f;
+    RSSurfaceCaptureTask task(id, scaleX, scaleY);
+    EXPECT_EQ(false, task.FindSecurityLayer());
+}
+
+/*
  * @tc.name: SetSurface
  * @tc.desc: Test RSSurfaceCaptureTaskTest.SetSurface
  * @tc.type: FUNC
@@ -682,6 +697,23 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CaptureSurfaceInDisplayWithoutUni003, Functio
     surfaceNode->SetSecurityLayer(false);
     if (!isUnirender) {
         visitor_->CaptureSingleSurfaceNodeWithoutUni(*surfaceNode);
+    }
+}
+
+/*
+ * @tc.name: CaptureSurfaceInDisplayWithUni003
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.CaptureSurfaceInDisplayWithUni
+ * @tc.type: FUNC
+ * @tc.require: issueI794H6
+*/
+HWTEST_F(RSSurfaceCaptureTaskTest, CaptureSurfaceInDisplayWithUni001, Function | SmallTest | Level2)
+{
+    bool isUnirender = RSUniRenderJudgement::IsUniRender();
+    ASSERT_NE(nullptr, visitor_);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();    
+    surfaceNode->SetSecurityLayer(false);
+    if (!isUnirender) {
+        visitor_->CaptureSingleSurfaceNodeWithUni(*surfaceNode);
     }
 }
 

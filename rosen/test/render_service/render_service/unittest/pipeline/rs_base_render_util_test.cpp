@@ -126,6 +126,31 @@ HWTEST_F(RSBaseRenderUtilTest, IsBufferValid_001, TestSize.Level2)
 }
 
 /*
+ * @tc.name: IsBufferValid_002
+ * @tc.desc: Test IsBufferValid
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
+ */
+HWTEST_F(RSBaseRenderUtilTest, IsBufferValid_002, TestSize.Level2)
+{
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    ASSERT_EQ(buffer->GetBufferHandle(), nullptr);
+    ASSERT_EQ(false, RSBaseRenderUtil::IsBufferValid(buffer));
+    BufferRequestConfig requestConfig = {
+        .width = 0x000,
+        .height = 0x000,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_EQ(false, RSBaseRenderUtil::IsBufferValid(buffer));
+}
+
+/*
  * @tc.name: GetFrameBufferRequestConfig_001
  * @tc.desc: Test GetFrameBufferRequestConfig
  * @tc.type: FUNC
@@ -244,6 +269,21 @@ HWTEST_F(RSBaseRenderUtilTest, SetColorFilterModeToPaint_001, TestSize.Level2)
     paint.refColorFilter()->asAColorMatrix(matrix);
     CompareMatrix(matrix, InvertTritanomalyMat);
 
+    colorFilterMode = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
+    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
+    paint.refColorFilter()->asAColorMatrix(matrix);
+    ASSERT_EQ(paint.refColorFilter(), nullptr);
+
+    colorFilterMode = ColorFilterMode::DALTONIZATION_NORMAL_MODE;
+    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
+    paint.refColorFilter()->asAColorMatrix(matrix);
+    ASSERT_EQ(paint.refColorFilter(), nullptr);
+
+    colorFilterMode = ColorFilterMode::COLOR_FILTER_END;
+    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
+    paint.refColorFilter()->asAColorMatrix(matrix);
+    ASSERT_EQ(paint.refColorFilter(), nullptr);
+
     colorFilterMode = static_cast<ColorFilterMode>(40); // use invalid number to test default mode
     RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
     ASSERT_EQ(paint.refColorFilter(), nullptr);
@@ -284,6 +324,18 @@ HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceRenderNodeToPng_001, TestSize.Level2)
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
     bool result = RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(*node);
+    ASSERT_EQ(false, result);
+}
+
+/*
+ * @tc.name: WriteCacheRenderNodeToPng_001
+ * @tc.desc: Test WriteCacheRenderNodeToPng
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteCacheRenderNodeToPng_001, TestSize.Level2)
+{
+    bool result = RSBaseRenderUtil::WriteCacheRenderNodeToPng(*node_);
     ASSERT_EQ(false, result);
 }
 
@@ -392,6 +444,33 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_004, TestSize.Level2)
     GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     SkBitmap bitmap;
     ASSERT_EQ(false, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
+}
+
+/*
+ * @tc.name: ConvertBufferToBitmap_005
+ * @tc.desc: Test ConvertBufferToBitmap by CreateBitmap
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_005, TestSize.Level2)
+{
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    ASSERT_EQ(buffer->GetBufferHandle(), nullptr);
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    std::vector<uint8_t> newBuffer;
+    GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    SkBitmap bitmap;
+    (void)RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap);
 }
 
 /*
@@ -980,6 +1059,19 @@ HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix_003, TestSize.Level2)
 HWTEST_F(RSBaseRenderUtilTest, WriteToPng_001, TestSize.Level2)
 {
     std::string filename = "";
+    WriteToPngParam param;
+    ASSERT_EQ(false, RSBaseRenderUtil::WriteToPng(filename, param));
+}
+
+/*
+ * @tc.name: WriteToPng_002
+ * @tc.desc: Test WriteToPng
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteToPng_002, TestSize.Level2)
+{
+    std::string filename = "/test.png";
     WriteToPngParam param;
     ASSERT_EQ(false, RSBaseRenderUtil::WriteToPng(filename, param));
 }
