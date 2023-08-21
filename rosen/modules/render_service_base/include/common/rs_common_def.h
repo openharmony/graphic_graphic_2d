@@ -108,6 +108,12 @@ enum class CacheProcessStatus : uint8_t {
     DONE, // processed
 };
 
+// the type of surfaceCapture
+enum class SurfaceCaptureType : uint8_t {
+    DEFAULT_CAPTURE = 0, // displayNode capture or window capture
+    UICAPTURE,
+};
+
 enum class DeviceType : uint8_t {
     PHONE,
     PC,
