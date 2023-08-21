@@ -159,6 +159,9 @@ public:
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
 
+    void ReleaseSurface();
+    void AddToReleaseQueue(sk_sp<SkSurface>&& surface);
+
     void SetDirtyFlag();
     void SetAccessibilityConfigChanged();
     void ForceRefreshForUni();
@@ -385,6 +388,10 @@ private:
     // used for informing hgm the bundle name of SurfaceRenderNodes
     bool noBundle_ = false;
     std::string currentBundleName_ = "";
+
+    // for ui first
+    std::mutex mutex_;
+    std::queue<sk_sp<SkSurface>> tmpSurfaces_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

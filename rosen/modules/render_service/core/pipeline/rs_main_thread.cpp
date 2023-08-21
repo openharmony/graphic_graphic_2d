@@ -2233,5 +2233,21 @@ bool RSMainThread::IsUIFirstOn() const
 {
     return isUiFirstOn_;
 }
+
+void RSMainThread::ReleaseSurface()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    while (tmpSurfaces_.size() > 0) {
+        auto tmp = tmpSurfaces_.front();
+        tmpSurfaces_.pop();
+        tmp = nullptr;
+    }
+}
+
+void RSMainThread::AddToReleaseQueue(sk_sp<SkSurface>&& surface)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    tmpSurfaces_.push(std::move(surface));
+}
 } // namespace Rosen
 } // namespace OHOS

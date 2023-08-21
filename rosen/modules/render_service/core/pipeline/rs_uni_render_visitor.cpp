@@ -3553,14 +3553,12 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 #ifndef USE_ROSEN_DRAWING
         auto clearFunc = [id = threadIndex_](sk_sp<SkSurface> surface) {
             // The second param is null, 0 is an invalid value.
-            sk_sp<SkSurface> tmpSurface = nullptr;
-            RSUniRenderUtil::ClearNodeCacheSurface(surface, tmpSurface, id, 0);
+            RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, id, 0);
         };
 #else
         auto clearFunc = [id = threadIndex_](std::shared_ptr<Drawing::Surface> surface) {
             // The second param is null, 0 is an invalid value.
-            std::shared_ptr<Drawing::Surface> tmpSurface = nullptr;
-            RSUniRenderUtil::ClearNodeCacheSurface(surface, tmpSurface, id, 0);
+            RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, id, 0);
         };
 #endif
         drawingNode->SetSurfaceClearFunc({ threadIndex_, clearFunc });

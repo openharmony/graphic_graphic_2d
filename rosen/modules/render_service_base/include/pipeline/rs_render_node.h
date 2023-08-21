@@ -230,7 +230,7 @@ public:
     }
 
 #ifndef USE_ROSEN_DRAWING
-    using ClearCacheSurfaceFunc = std::function<void(sk_sp<SkSurface>&, sk_sp<SkSurface>&, uint32_t, uint32_t)>;
+    using ClearCacheSurfaceFunc = std::function<void(sk_sp<SkSurface>&&, sk_sp<SkSurface>&&, uint32_t, uint32_t)>;
 #ifdef NEW_SKIA
     void InitCacheSurface(GrRecordingContext* grContext, ClearCacheSurfaceFunc func = nullptr,
         uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
@@ -240,7 +240,8 @@ public:
 #endif
 #else
     using ClearCacheSurfaceFunc =
-        std::function<void(std::shared_ptr<Drawing::Surface>&, std::shared_ptr<Drawing::Surface>&, uint32_t, uint32_t)>;
+        std::function<void(std::shared_ptr<Drawing::Surface>&&,
+        std::shared_ptr<Drawing::Surface>&&, uint32_t, uint32_t)>;
     void InitCacheSurface(Drawing::GPUContext* grContext, ClearCacheSurfaceFunc func = nullptr,
         uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
 #endif
@@ -259,19 +260,20 @@ public:
 
 // use for uni render visitor
 #ifndef USE_ROSEN_DRAWING
-    sk_sp<SkSurface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread);
+    sk_sp<SkSurface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread, bool releaseAfterGet = false);
 #else
-    std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread);
+    std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread,
+        bool releaseAfterGet) = false);
 #endif
 
     void UpdateCompletedCacheSurface();
     void SetTextureValidFlag(bool isValid);
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> GetCompletedCacheSurface(uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
-        bool needCheckThread = true);
+        bool needCheckThread = true, bool releaseAfterGet = false);
 #else
     std::shared_ptr<Drawing::Surface> GetCompletedCacheSurface(uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
-        bool needCheckThread = true);
+        bool needCheckThread = true, bool releaseAfterGet = false);
 #endif
     void ClearCacheSurface();
 

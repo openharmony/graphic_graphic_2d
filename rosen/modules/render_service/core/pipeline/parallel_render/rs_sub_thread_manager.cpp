@@ -185,4 +185,23 @@ void RSSubThreadManager::ResetSubThreadGrContext() const
         });
     }
 }
+
+void RSSubThreadManager::ReleaseSurface(uint32_t threadIndex)
+{
+    if (threadList_.size() <= threadIndex) {
+        return;
+    }
+    auto subThread = threadList_[threadIndex];
+    subThread->PostTask([subThread]() {
+        subThread->ReleaseSurface();
+    });
+}
+
+void RSSubThreadManager::AddToReleaseQueue(sk_sp<SkSurface>&& surface, uint32_t threadIndex)
+{
+    if (threadList_.size() <= threadIndex) {
+        return;
+    }
+    threadList_[threadIndex]->AddToReleaseQueue(std::move(surface));
+}
 }

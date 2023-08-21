@@ -287,4 +287,20 @@ void RSSubThread::ResetGrContext()
     grContext_->freeGpuResources();
 #endif
 }
+
+void RSSubThread::ReleaseSurface()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    while (tmpSurfaces_.size() > 0) {
+        auto tmp = tmpSurfaces_.front();
+        tmpSurfaces_.pop();
+        tmp = nullptr;
+    }
+}
+
+void RSSubThread::AddToReleaseQueue(sk_sp<SkSurface>&& surface)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    tmpSurfaces_.push(std::move(surface));
+}
 }
