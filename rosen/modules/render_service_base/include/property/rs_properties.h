@@ -377,9 +377,10 @@ private:
     // partial update
     bool colorFilterNeedUpdate_ = false;
     bool pixelStretchNeedUpdate_ = false;
-    bool filterManagerNeedUpdate_ = false;
+    bool filterNeedUpdate_ = false;
     float frameOffsetX_ = 0.f;
     float frameOffsetY_ = 0.f;
+    bool needFilter_ = false;
 
     std::vector<std::shared_ptr<RSRenderParticle>> particles_;
 #ifndef USE_ROSEN_DRAWING

@@ -1042,7 +1042,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     // use provided filter if not null
     auto& RSFilter = externalFilter ? externalFilter
         : ((filterType == FilterType::BACKGROUND_FILTER) ? properties.GetBackgroundFilter() : properties.GetFilter());
-    if (RSFilter == nullptr || !RSFilter->IsValid()) {
+    if (RSFilter == nullptr) {
         return;
     }
 #ifdef NEW_SKIA
@@ -1115,7 +1115,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 {
     auto& RSFilter =
         (filterType == FilterType::BACKGROUND_FILTER) ? properties.GetBackgroundFilter() : properties.GetFilter();
-    if (RSFilter == nullptr || !RSFilter->IsValid()) {
+    if (RSFilter == nullptr) {
         return;
     }
     RS_TRACE_NAME("DrawFilter " + RSFilter->GetDescription());
@@ -1183,7 +1183,7 @@ void RSPropertiesPainter::DrawBackgroundEffect(
     const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkRect& rect)
 {
     auto& RSFilter = properties.GetBackgroundFilter();
-    if (RSFilter == nullptr || !RSFilter->IsValid()) {
+    if (RSFilter == nullptr) {
         return;
     }
     g_blurCnt++;
