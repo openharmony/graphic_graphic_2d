@@ -36,15 +36,15 @@ bool RSRenderParticleAnimation::Animate(int64_t time)
 {
     int64_t deltaTime = time - animationFraction_.GetLastFrameTime();
     animationFraction_.SetLastFrameTime(time);
-    renderParticle_ = particleSystem_.Simulation(deltaTime);
-
+    auto renderParticle = particleSystem_.Simulation(deltaTime);
+    renderParticleVector_ = RSRenderParticleVector(renderParticle);
     auto property =
-        std::static_pointer_cast<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>>(property_);
+        std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(property_);
     if (property) {
-        property->Set(renderParticle_);
+        property->Set(renderParticleVector_);
     }
     auto target = GetTarget();
-    if (renderParticle_.size() == 0) {
+    if (renderParticleVector_.GetParticleSize() == 0) {
         if (target) {
             target->RemoveModifier(property_->GetId());
             return true;
@@ -90,6 +90,7 @@ bool RSRenderParticleAnimation::ParseParam(Parcel& parcel)
         ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling failed");
         return false;
     }
+    particleSystem_ = RSRenderParticleSystem(particlesRenderParams_);
     return true;
 }
 

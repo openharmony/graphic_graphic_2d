@@ -2220,7 +2220,8 @@ sk_sp<SkShader> RSPropertiesPainter::MakeDynamicLightUpShader(
 
 void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
-    auto particles = properties.GetParticles();
+    auto particleVector = properties.GetParticles();
+    auto particles = particleVector.GetParticleVector();
     auto bounds = properties.GetBoundsRect();
     for (size_t i = 0; i < particles.size(); i++) {
         if (particles[i]->IsAlive()) {

@@ -45,7 +45,7 @@ uint32_t ParticleRenderParams::GetParticleCount() const
 }
 int64_t ParticleRenderParams::GetParticleLifeTime() const
 {
-    return emitterConfig_.lifeTime_;
+    return emitterConfig_.lifeTime_ * NS_PER_MS;
 }
 ParticleType ParticleRenderParams::GetParticleType() const
 {

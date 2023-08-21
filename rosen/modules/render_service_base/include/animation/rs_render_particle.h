@@ -27,13 +27,13 @@
 #include "render/rs_image.h"
 namespace OHOS {
 namespace Rosen {
-enum class ParticleUpdator { NONE = 0, RANDOM, CURVE };
+enum class ParticleUpdator: uint32_t { NONE = 0, RANDOM, CURVE };
 
-enum class ShapeType { RECT = 0, CIRCLE, ELLIPSE };
+enum class ShapeType: uint32_t { RECT = 0, CIRCLE, ELLIPSE };
 
-enum class ParticleType {
-    POINTS,
-    IMAGES,
+enum class ParticleType: uint32_t {
+    POINTS = 0,
+    IMAGES
 };
 
 template<typename T>
@@ -113,7 +113,7 @@ public:
           type_(ParticleType::POINTS), radius_(), image_(), imageSize_()
     {}
     EmitterConfig(const int& emitRate, const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize,
-        const int& particleCount, const int& lifeTime, const ParticleType& type, const float& radius,
+        const int& particleCount, const int64_t& lifeTime, const ParticleType& type, const float& radius,
         const std::shared_ptr<RSImage>& image, Vector2f imageSize)
     {
         emitRate_ = emitRate;
@@ -121,7 +121,7 @@ public:
         position_ = position;
         emitSize_ = emitSize;
         particleCount_ = particleCount;
-        lifeTime_ = lifeTime * NS_PER_MS;
+        lifeTime_ = lifeTime;
         type_ = type;
         radius_ = radius;
         image_ = image;
@@ -334,6 +334,15 @@ public:
     Color Lerp(const Color& start, const Color& end, float t);
     std::shared_ptr<ParticleRenderParams> particleRenderParams_;
 
+    bool operator==(const RSRenderParticle& rhs)
+    {
+        return (position_ == rhs.position_) && (velocity_ == rhs.velocity_) &&
+               (acceleration_ == rhs.acceleration_) && (scale_ == rhs.scale_) && (spin_ == rhs.spin_) &&
+               (opacity_ == rhs.opacity_) && (color_ == rhs.color_) && (radius_ == rhs.radius_) &&
+               (particleType_ == rhs.particleType_) && (activeTime_ == rhs.activeTime_) &&
+               (lifeTime_ == rhs.lifeTime_) && (imageSize_ == rhs.imageSize_);
+    }
+
 private:
     Vector2f position_;
     Vector2f velocity_;
@@ -348,6 +357,43 @@ private:
     ParticleType particleType_;
     int64_t activeTime_;
     int64_t lifeTime_;
+};
+
+class RSB_EXPORT RSRenderParticleVector {
+public:
+    explicit RSRenderParticleVector(std::vector<std::shared_ptr<RSRenderParticle>> renderParticleVector)
+    {
+        renderParticleVector_ = renderParticleVector;
+    }
+    RSRenderParticleVector() = default;
+    ~RSRenderParticleVector() = default;
+    int GetParticleSize()
+    {
+        return renderParticleVector_.size();
+    }
+
+    std::vector<std::shared_ptr<RSRenderParticle>> GetParticleVector()
+    {
+        return renderParticleVector_;
+    }
+
+    bool operator==(const RSRenderParticleVector& rhs) const
+    {
+        bool equal = false;
+        if (this->renderParticleVector_.size() != rhs.renderParticleVector_.size()) {
+            return false;
+        }
+        if (this->renderParticleVector_.size() == 0) {
+            return true;
+        }
+        for (size_t i = 0; i < this->renderParticleVector_.size(); i++) {
+            equal = equal && (this->renderParticleVector_[i] == rhs.renderParticleVector_[i]) &&
+                    (*(this->renderParticleVector_[i]) == *(rhs.renderParticleVector_[i]));
+        }
+        return equal;
+    }
+
+    std::vector<std::shared_ptr<RSRenderParticle>> renderParticleVector_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -167,9 +167,9 @@ protected:
 class RSB_EXPORT RSParticleRenderModifier : public RSRenderModifier {
 public:
     RSParticleRenderModifier(
-        const std::shared_ptr<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>>& property)
+        const std::shared_ptr<RSRenderProperty<RSRenderParticleVector>>& property)
         : property_(property ? property
-                             : std::make_shared<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>>())
+                             : std::make_shared<RSRenderProperty<RSRenderParticleVector>>())
     {
         property_->SetModifierType(RSModifierType::PARTICLE);
     }
@@ -193,7 +193,7 @@ public:
     {
         return RSModifierType::PARTICLE;
     }
-    std::shared_ptr<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>> property_;
+    std::shared_ptr<RSRenderProperty<RSRenderParticleVector>> property_;
 };
 
 class RSAnimatableRenderModifier : public RSRenderModifier {
