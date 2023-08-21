@@ -43,6 +43,20 @@ namespace OHOS {
 namespace Rosen {
 using OHOS::HiviewDFX::HiLog;
 
+std::shared_ptr<Media::PixelMap> ColorPicker::CreateScaledPixelMap(const std::shared_ptr<Media::PixelMap>& pixmap)
+{
+    // Create scaled pixelmap
+    OHOS::Media::InitializationOptions options;
+    options.alphaType = pixmap->GetAlphaType();
+    options.pixelFormat = pixmap->GetPixelFormat();
+    options.scaleMode = OHOS::Media::ScaleMode::FIT_TARGET_SIZE;
+    options.size.width = 100; // 100 represents scaled pixelMap's width
+    options.size.height = 100; // 100 represents scaled pixelMap's height
+    options.editable = true;
+    std::unique_ptr<Media::PixelMap> newPixelMap = Media::PixelMap::Create(*pixmap.get(), options);
+    return std::move(newPixelMap);
+}
+
 std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_ptr<Media::PixelMap>& pixmap,
     uint32_t &errorCode)
 {
@@ -51,7 +65,9 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
         errorCode = ERR_EFFECT_INVALID_VALUE;
         return nullptr;
     }
-    ColorPicker *colorPicker = new (std::nothrow) ColorPicker(pixmap);
+    
+    std::shared_ptr<Media::PixelMap> scaledPixelMap = CreateScaledPixelMap(pixmap);
+    ColorPicker *colorPicker = new (std::nothrow) ColorPicker(scaledPixelMap);
     if (colorPicker == nullptr) {
         HiLog::Info(LABEL, "[ColorPicker]failed to create ColorPicker with pixmap.");
         errorCode = ERR_EFFECT_INVALID_VALUE;
@@ -70,7 +86,9 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
         errorCode = ERR_EFFECT_INVALID_VALUE;
         return nullptr;
     }
-    ColorPicker *colorPicker = new (std::nothrow) ColorPicker(pixmap, coordinates);
+
+    std::shared_ptr<Media::PixelMap> scaledPixelMap = CreateScaledPixelMap(pixmap);
+    ColorPicker *colorPicker = new (std::nothrow) ColorPicker(scaledPixelMap, coordinates);
     if (colorPicker == nullptr) {
         HiLog::Info(LABEL, "[ColorPicker]failed to create ColorPicker with pixmap.");
         errorCode = ERR_EFFECT_INVALID_VALUE;

@@ -33,7 +33,6 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap)
         return ;
     }
     pixelmap_ = pixmap;
-
     colorValLen_ = static_cast<uint32_t>(pixmap->GetWidth() * pixmap->GetHeight());
     auto colorVal = new uint32_t[colorValLen_]();
     std::shared_ptr<uint32_t> colorShared(colorVal, [](uint32_t *ptr) {
