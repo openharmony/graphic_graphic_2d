@@ -322,6 +322,7 @@ private:
     bool geoDirty_ = false;
     bool contentDirty_ = false;
     bool isDrawn_ = false;
+    bool alphaNeedApply_ = false;
 
     bool hasBounds_ = false;
     bool useEffect_ = false;
