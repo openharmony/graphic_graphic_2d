@@ -20,7 +20,11 @@ module_output_path = "graphic/rosen_engine/render_service_base/animation"
 ohos_unittest("RSRenderServiceBaseAnimationTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_steps_interpolator_test.cpp" ]
+  sources = [
+    "rs_render_particle_test.cpp",
+    "rs_render_path_animation_test.cpp",
+    "rs_steps_interpolator_test.cpp",
+  ]
 
   configs = [
     ":render_test",
