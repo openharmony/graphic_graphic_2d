@@ -32,7 +32,7 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap)
     if (pixmap == nullptr) {
         return ;
     }
-
+    pixelmap_ = pixmap;
     colorValLen_ = static_cast<uint32_t>(pixmap->GetWidth() * pixmap->GetHeight());
     auto colorVal = new uint32_t[colorValLen_]();
     std::shared_ptr<uint32_t> colorShared(colorVal, [](uint32_t *ptr) {
@@ -54,6 +54,7 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap, double* coor
     if (pixmap == nullptr) {
         return;
     }
+    pixelmap_ = pixmap;
     uint32_t left = static_cast<uint32_t>(pixmap->GetWidth() * coordinates[0]); // 0 is index of left
     uint32_t top = static_cast<uint32_t>(pixmap->GetHeight() * coordinates[1]); // 1 is index of top
     uint32_t right = static_cast<uint32_t>(pixmap->GetWidth() * coordinates[2]); // 2 is index of right

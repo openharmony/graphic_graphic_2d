@@ -42,7 +42,6 @@ struct HSV {
 class ColorPicker : public ColorExtract {
 public:
     ~ColorPicker() {}
-    static std::shared_ptr<Media::PixelMap> pixelmap_;
     static std::shared_ptr<Media::PixelMap> CreateScaledPixelMap(const std::shared_ptr<Media::PixelMap>& pixmap);
     NATIVEEXPORT static std::shared_ptr<ColorPicker> CreateColorPicker(const std::shared_ptr<Media::PixelMap>& pixmap,
                                                                         uint32_t &errorCode);
@@ -64,7 +63,6 @@ private:
     void AdjustHSVToDefinedIterval(HSV& hsv) const;
     uint32_t HSVtoRGB(HSV hsv) const;
 };
-std::shared_ptr<Media::PixelMap> ColorPicker::pixelmap_ = nullptr;
 } // namespace Rosen
 } // namespace OHOS
 

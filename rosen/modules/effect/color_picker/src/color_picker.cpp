@@ -50,16 +50,8 @@ std::shared_ptr<Media::PixelMap> ColorPicker::CreateScaledPixelMap(const std::sh
     options.alphaType = pixmap->GetAlphaType();
     options.pixelFormat = pixmap->GetPixelFormat();
     options.scaleMode = OHOS::Media::ScaleMode::FIT_TARGET_SIZE;
-    if (pixmap->GetWidth() > 200) { // 200 is scale threshold
-        options.size.width = pixmap->GetWidth() / 10; // 10 means width shrunk 10 times
-    } else {
-        options.size.width = pixmap->GetWidth();
-    }
-    if (pixmap->GetHeight() > 200) { // 200 is scale threshold
-        options.size.height = pixmap->GetHeight() / 10; // 10 means height shrunk 10 times
-    } else {
-        options.size.height = pixmap->GetHeight();
-    }
+    options.size.width = 100;
+    options.size.height = 100;
     options.editable = true;
     std::unique_ptr<Media::PixelMap> newPixelMap = Media::PixelMap::Create(*pixmap.get(), options);
     return std::move(newPixelMap);
@@ -73,7 +65,7 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
         errorCode = ERR_EFFECT_INVALID_VALUE;
         return nullptr;
     }
-    pixelmap_ = pixmap;
+    
     std::shared_ptr<Media::PixelMap> scaledPixelMap = CreateScaledPixelMap(pixmap);
     ColorPicker *colorPicker = new (std::nothrow) ColorPicker(scaledPixelMap);
     if (colorPicker == nullptr) {
@@ -94,7 +86,7 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
         errorCode = ERR_EFFECT_INVALID_VALUE;
         return nullptr;
     }
-    pixelmap_ = pixmap;
+
     std::shared_ptr<Media::PixelMap> scaledPixelMap = CreateScaledPixelMap(pixmap);
     ColorPicker *colorPicker = new (std::nothrow) ColorPicker(scaledPixelMap, coordinates);
     if (colorPicker == nullptr) {
