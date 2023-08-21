@@ -225,6 +225,7 @@ void RSMainThread::Init()
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
         Animate(timestamp_);
+        ApplyModifiers();
         CollectInfoForHardwareComposer();
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
         CollectInfoForDrivenRender();
@@ -2257,6 +2258,25 @@ void RSMainThread::AddToReleaseQueue(sk_sp<SkSurface>&& surface)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     tmpSurfaces_.push(std::move(surface));
+}
+
+void RSMainThread::ApplyModifiers()
+{
+    for (const auto& [unused, nodeSet] : activeProcessNodeIds_) {
+        for (const auto& nodeId : nodeSet) {
+            auto node = context_->GetNodeMap().GetRenderNode(nodeId);
+            if (node == nullptr) {
+                continue;
+            }
+            bool isZOrderChanged = node->ApplyModifiers();
+            if (!isZOrderChanged) {
+                continue;
+            }
+            if (auto parent = node->GetParent().lock()) {
+                parent->isChildrenSorted_ = false;
+            }
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

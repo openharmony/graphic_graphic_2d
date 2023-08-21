@@ -557,6 +557,7 @@ private:
     friend class RSRenderNodeMap;
     friend class RSProxyRenderNode;
     friend class RSRenderNode;
+    friend class RSMainThread;
 };
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;
