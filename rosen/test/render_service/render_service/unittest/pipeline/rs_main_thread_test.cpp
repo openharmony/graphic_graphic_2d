@@ -541,16 +541,12 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData004, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, AddActiveNodeId, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    mainThread->activeAppsInProcess_.clear();
-    mainThread->activeProcessNodeIds_.clear();
+    mainThread->activeNodesInRoot_.clear();
     pid_t pid = 1;
     // invalid pid
     NodeId id = ((NodeId)pid << 32) + 1;
-    mainThread->AddActiveNodeId(pid, id);
-    ASSERT_EQ(static_cast<int>(mainThread->activeAppsInProcess_[pid].size()), 0);
-    for (auto iter : mainThread->activeAppsInProcess_[pid]) {
-        ASSERT_EQ(iter, INVALID_NODEID);
-    }
+    mainThread->AddActiveNodeId(id);
+    ASSERT_EQ(static_cast<int>(mainThread->activeNodesInRoot_.size()), 0);
 }
 
 /**

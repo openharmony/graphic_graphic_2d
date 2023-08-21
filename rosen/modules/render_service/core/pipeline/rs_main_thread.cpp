@@ -235,8 +235,7 @@ void RSMainThread::Init()
         InformHgmNodeInfo();
         ReleaseAllNodesBuffer();
         SendCommands();
-        activeAppsInProcess_.clear();
-        activeProcessNodeIds_.clear();
+        activeNodesInRoot_.clear();
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         SetRSEventDetectorLoopFinishTag();
         rsEventManager_.UpdateParam();
@@ -739,7 +738,7 @@ void RSMainThread::ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& 
     rsTransactionData->Process(*context_);
     for (auto& [nodeId, followType, command] : rsTransactionData->GetPayload()) {
         if (command != nullptr) {
-            AddActiveNodeId(pid, command->GetNodeId());
+            AddActiveNodeId(command->GetNodeId());
         }
     }
 }
@@ -821,7 +820,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             this->bufferTimestamps_[surfaceNode->GetId()] = static_cast<uint64_t>(surfaceNode->GetTimestamp());
             if (surfaceNode->IsCurrentFrameBufferConsumed() && !surfaceNode->IsHardwareEnabledType()) {
                 surfaceNode->SetContentDirty();
-                AddActiveNodeId(ExtractPid(surfaceNode->GetId()), surfaceNode->GetId());
+                AddActiveNode(surfaceNode);
                 doDirectComposition_ = false;
             }
         }
@@ -857,7 +856,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
             // if hwc node is set on the tree this frame, mark its parent app node to be prepared
             if (surfaceNode->IsNewOnTree()) {
                 auto appNodeId = surfaceNode->GetInstanceRootNodeId();
-                AddActiveNodeId(ExtractPid(appNodeId), appNodeId);
+                AddActiveNodeId(appNodeId);
                 surfaceNode->ResetIsNewOnTree();
             }
 
@@ -871,12 +870,12 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 // buffer updated or hwc -> gpu
                 if (surfaceNode->IsCurrentFrameBufferConsumed() || surfaceNode->IsLastFrameHardwareEnabled()) {
                     surfaceNode->SetContentDirty();
-                    AddActiveNodeId(ExtractPid(surfaceNode->GetId()), surfaceNode->GetId());
+                    AddActiveNode(surfaceNode);
                 }
             } else { // gpu -> hwc
                 if (!surfaceNode->IsLastFrameHardwareEnabled()) {
                     surfaceNode->SetContentDirty();
-                    AddActiveNodeId(ExtractPid(surfaceNode->GetId()), surfaceNode->GetId());
+                    AddActiveNode(surfaceNode);
                     doDirectComposition_ = false;
                 }
             }
@@ -1559,7 +1558,7 @@ void RSMainThread::Animate(uint64_t timestamp)
             return false;
         }
         if (node->IsOnTheTree()) {
-            AddActiveNodeId(ExtractPid(node->GetId()), node->GetId());
+            AddActiveNode(node);
         }
         auto [hasRunningAnimation, nodeNeedRequestNextVsync] = node->Animate(timestamp);
         if (!hasRunningAnimation) {
@@ -2142,24 +2141,52 @@ void RSMainThread::SetAppWindowNum(uint32_t num)
     appWindowNum_ = num;
 }
 
-void RSMainThread::AddActiveNodeId(pid_t pid, NodeId id)
+void RSMainThread::AddActiveNodeId(NodeId id)
 {
     if (id == 0) {
-        activeAppsInProcess_[pid].emplace(INVALID_NODEID);
         return;
     }
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
+    AddActiveNode(node);
+}
+
+void RSMainThread::AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
+{
     if (node == nullptr) {
         return;
     }
-    // root nodeid should be updated before check
-    if (!node->IsOnTheTree()) {
-        return;
+    auto rootNodeId = node->GetInstanceRootNodeId();
+    activeNodesInRoot_[rootNodeId].emplace(node);
+}
+
+bool RSMainThread::CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyByRoot)
+{
+    if (activeNodesInRoot_.empty() || nodeId == INVALID_NODEID) {
+        return false;
     }
-    if (auto parentPtr = node->GetParent().lock()) {
-        auto rootNodeId = node->GetInstanceRootNodeId();
-        activeAppsInProcess_[pid].emplace(rootNodeId);
-        activeProcessNodeIds_[rootNodeId].emplace(id);
+    if (!isClassifyByRoot) {
+        // Match by PID
+        auto pid = ExtractPid(nodeId);
+        return std::any_of(activeNodesInRoot_.begin(), activeNodesInRoot_.end(),
+            [pid](const auto& iter) { return ExtractPid(iter.first) == pid; });
+    } else {
+        // Match by rootNodeId
+        return activeNodesInRoot_.count(nodeId);
+    }
+}
+
+void RSMainThread::ApplyModifiers()
+{
+    for (const auto& [unused, nodeSet] : activeNodesInRoot_) {
+        for (const auto& node : nodeSet) {
+            bool isZOrderChanged = node->ApplyModifiers();
+            if (!isZOrderChanged) {
+                continue;
+            }
+            if (auto parent = node->GetParent().lock()) {
+                parent->isChildrenSorted_ = false;
+            }
+        }
     }
 }
 
@@ -2258,25 +2285,6 @@ void RSMainThread::AddToReleaseQueue(sk_sp<SkSurface>&& surface)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     tmpSurfaces_.push(std::move(surface));
-}
-
-void RSMainThread::ApplyModifiers()
-{
-    for (const auto& [unused, nodeSet] : activeProcessNodeIds_) {
-        for (const auto& nodeId : nodeSet) {
-            auto node = context_->GetNodeMap().GetRenderNode(nodeId);
-            if (node == nullptr) {
-                continue;
-            }
-            bool isZOrderChanged = node->ApplyModifiers();
-            if (!isZOrderChanged) {
-                continue;
-            }
-            if (auto parent = node->GetParent().lock()) {
-                parent->isChildrenSorted_ = false;
-            }
-        }
-    }
 }
 } // namespace Rosen
 } // namespace OHOS
