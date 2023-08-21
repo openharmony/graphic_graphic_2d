@@ -100,6 +100,7 @@ void RSImageBase::SetImage(const sk_sp<SkImage> image)
 void RSImageBase::SetImage(const std::shared_ptr<Drawing::Image> image)
 #endif
 {
+    isDrawn_ = false;
     image_ = image;
     if (image_) {
 #ifndef USE_ROSEN_DRAWING
