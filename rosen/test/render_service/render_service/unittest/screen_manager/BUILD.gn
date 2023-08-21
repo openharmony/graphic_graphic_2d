@@ -20,7 +20,10 @@ module_output_path = "graphic/rosen_engine/render_service/screen_manager"
 ohos_unittest("RSScreenManagerTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_screen_manager_test.cpp" ]
+  sources = [
+    "rs_screen_manager_test.cpp",
+    "rs_screen_test.cpp",
+  ]
 
   configs = [
     ":screen_manager_test",

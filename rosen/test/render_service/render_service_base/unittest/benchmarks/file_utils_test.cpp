@@ -59,4 +59,29 @@ HWTEST_F(FileUtilsTest, WriteStringToFileNoSuchFile, TestSize.Level1)
     bool ret = WriteToFile(line, testFile);
     EXPECT_EQ(ret, false);
 }
+
+
+/**
+ * @tc.name: CreateFileTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(FileUtilsTest, CreateFileTest001, TestSize.Level1)
+{
+    std::string testFile1 = "";
+    bool res = CreateFile(testFile1);
+    EXPECT_FALSE(res);
+}
+
+/**
+ * @tc.name: CreateFileTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(FileUtilsTest, CreateFileTest002, TestSize.Level1)
+{
+    std::string testFile1 = "/test";
+    bool res = CreateFile(testFile1);
+    EXPECT_TRUE(res);
+}
 }
