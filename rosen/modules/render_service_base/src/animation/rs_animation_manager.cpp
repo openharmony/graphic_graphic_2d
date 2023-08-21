@@ -54,7 +54,13 @@ void RSAnimationManager::RemoveAnimation(AnimationId keyId)
 
 void RSAnimationManager::CancelAnimationByPropertyId(PropertyId id)
 {
-    EraseIf(animations_, [id](const auto& pair) { return (pair.second && (pair.second->GetPropertyId() == id)); });
+    EraseIf(animations_, [id](const auto& pair) {
+        if (pair.second && (pair.second->GetPropertyId() == id)) {
+            pair.second->Detach();
+            return true;
+        }
+        return false;
+    });
 }
 
 void RSAnimationManager::FilterAnimationByPid(pid_t pid)

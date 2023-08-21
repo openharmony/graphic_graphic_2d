@@ -33,6 +33,7 @@ bool RSNodeGetShowingPropertyAndCancelAnimation::Marshalling(Parcel& parcel) con
            RSMarshallingHelper::Marshalling(parcel, commandSubType) &&
            RSMarshallingHelper::Marshalling(parcel, targetId_) &&
            RSMarshallingHelper::Marshalling(parcel, timeoutNS_) &&
+           RSMarshallingHelper::Marshalling(parcel, isTimeout_) &&
            RSMarshallingHelper::Marshalling(parcel, result_) &&
            (property_ == nullptr || RSRenderPropertyBase::Marshalling(parcel, property_));
 }
@@ -68,12 +69,14 @@ bool RSNodeGetShowingPropertyAndCancelAnimation::CheckHeader(Parcel& parcel) con
 
 bool RSNodeGetShowingPropertyAndCancelAnimation::ReadFromParcel(Parcel& parcel)
 {
-    return RSMarshallingHelper::Unmarshalling(parcel, result_) &&
+    return RSMarshallingHelper::Unmarshalling(parcel, isTimeout_) &&
+           RSMarshallingHelper::Unmarshalling(parcel, result_) &&
            RSRenderPropertyBase::Unmarshalling(parcel, property_);
 }
 
 void RSNodeGetShowingPropertyAndCancelAnimation::Process(RSContext& context)
 {
+    isTimeout_ = false;
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(targetId_);
     if (!node || !property_) {

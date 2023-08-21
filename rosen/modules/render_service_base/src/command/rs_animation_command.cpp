@@ -81,5 +81,16 @@ void AnimationCommandHelper::CreateParticleAnimation(
     // register node as animating node
     context.RegisterAnimatingRenderNode(node);
 }
+
+void AnimationCommandHelper::CancelAnimation(RSContext& context, NodeId targetId, PropertyId propertyId)
+{
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
+    if (node == nullptr) {
+        return;
+    }
+
+    auto& animationManager = node->GetAnimationManager();
+    animationManager.CancelAnimationByPropertyId(propertyId);
+}
 } // namespace Rosen
 } // namespace OHOS
