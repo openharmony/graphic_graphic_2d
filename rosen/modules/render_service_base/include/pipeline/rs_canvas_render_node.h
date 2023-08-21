@@ -40,7 +40,7 @@ public:
     using SharedPtr = std::shared_ptr<RSCanvasRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::CANVAS_NODE;
 
-    explicit RSCanvasRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
+    explicit RSCanvasRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {});
     virtual ~RSCanvasRenderNode();
 
 #ifndef USE_ROSEN_DRAWING
@@ -79,7 +79,6 @@ private:
     void InternalDrawContent(RSPaintFilterCanvas& canvas);
     // functions that are dedicated to driven render [start]
     void DrawDrivenContent(RSPaintFilterCanvas& canvas);
-    void RestoreBgEffectFilter(RSPaintFilterCanvas& canvas);
     // functions that are dedicated to driven render [end]
 
     RSPaintFilterCanvas::SaveStatus canvasNodeSaveCount_;

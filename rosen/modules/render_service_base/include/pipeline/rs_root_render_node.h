@@ -34,7 +34,7 @@ public:
         return Type;
     }
 
-    explicit RSRootRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
+    explicit RSRootRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {});
     ~RSRootRenderNode() override;
 
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;

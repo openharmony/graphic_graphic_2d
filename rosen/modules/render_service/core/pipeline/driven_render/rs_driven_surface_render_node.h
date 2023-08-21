@@ -107,7 +107,7 @@ public:
     using WeakPtr = std::weak_ptr<RSDrivenSurfaceRenderNode>;
     using SharedPtr = std::shared_ptr<RSDrivenSurfaceRenderNode>;
 
-    RSDrivenSurfaceRenderNode(NodeId id, DrivenSurfaceType type, std::weak_ptr<RSContext> context = {});
+    RSDrivenSurfaceRenderNode(NodeId id, DrivenSurfaceType type, const std::weak_ptr<RSContext>& context = {});
     ~RSDrivenSurfaceRenderNode() override;
 
     const RectI& GetSrcRect() const;

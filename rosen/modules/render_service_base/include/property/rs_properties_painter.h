@@ -49,7 +49,7 @@ public:
     static void DrawShadow(const RSProperties& properties,
         RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr, bool isLeashWindow = false);
     static void DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas, FilterType filterType,
-        const std::optional<SkRect>& rect = std::nullopt);
+        const std::optional<SkRect>& rect = std::nullopt, const std::shared_ptr<RSFilter>& externalFilter = nullptr);
     static void DrawLinearGradientBlurFilter(
         const RSProperties& properties, RSPaintFilterCanvas& canvas, const std::optional<SkRect>& rect = std::nullopt);
     static void DrawForegroundColor(const RSProperties& properties, SkCanvas& canvas);
@@ -70,7 +70,7 @@ public:
         const sk_sp<SkSurface>& spherizeSurface);
 
     // EffectView and useEffect
-    static void DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkIRect& rect);
+    static void DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkRect& rect);
     static void DrawForegroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void ApplyBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 
@@ -81,6 +81,7 @@ public:
     static void DrawDynamicLightUp(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void DrawParticle(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 private:
+    static void ApplyBackgroundEffectFallback(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     inline static int g_blurCnt = 0;
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);

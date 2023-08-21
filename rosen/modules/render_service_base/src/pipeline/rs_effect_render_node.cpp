@@ -24,8 +24,7 @@
 
 namespace OHOS {
 namespace Rosen {
-RSEffectRenderNode::RSEffectRenderNode(NodeId id, std::weak_ptr<RSContext> context)
-    : RSRenderNode(id, context)
+RSEffectRenderNode::RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context) : RSRenderNode(id, context)
 {
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
@@ -57,52 +56,42 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
 {
     RSRenderNode::ProcessTransitionBeforeChildren(canvas);
 #ifndef USE_ROSEN_DRAWING
-    canvas.SaveEffectData();
     auto& properties = GetRenderProperties();
-    if (effectRegion_.has_value() && !(effectRegion_.value().isEmpty())) {
-        if (properties.GetBackgroundFilter() != nullptr) {
-            SkPath& path = effectRegion_.value();
-            auto effectIRect = path.getBounds().roundOut();
-            RSPropertiesPainter::DrawBackgroundEffect(properties, canvas, effectIRect);
-        }
-        if (properties.GetColorFilter() != nullptr) {
-            canvas.SetChildrenPath(effectRegion_.value());
-        }
+    // Disable effect region if either of the following conditions is met:
+    // 1. Effect region is null or empty
+    // 2. Background filter is null
+    // 3. Canvas is offscreen
+    if (effectRegion_.has_value() && !effectRegion_->isEmpty() && properties.GetBackgroundFilter() != nullptr &&
+        canvas.GetCacheType() != RSPaintFilterCanvas::CacheType::OFFSCREEN) {
+        RSPropertiesPainter::DrawBackgroundEffect(properties, canvas, effectRegion_->getBounds());
     }
 #endif
-}
-
-void RSEffectRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
-{
-#ifndef USE_ROSEN_DRAWING
-    RSPropertiesPainter::DrawForegroundEffect(GetRenderProperties(), canvas);
-    canvas.RestoreEffectData();
-#endif
-    RSRenderNode::ProcessTransitionAfterChildren(canvas);
 }
 
 RectI RSEffectRenderNode::GetFilterRect() const
 {
-    if (effectRegion_.has_value()) {
 #ifndef USE_ROSEN_DRAWING
-        auto bounds = effectRegion_->getBounds();
+    if (effectRegion_.has_value()) {
+        auto& matrix = GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
+        auto bounds = effectRegion_->makeTransform(matrix).getBounds();
         return {bounds.x(), bounds.y(), bounds.width(), bounds.height()};
-#else
-        auto bounds = effectRegion_->GetBounds();
-        return {bounds.GetLeft(), bounds.GetTop(), bounds.GetWidth(), bounds.GetHeight()};
-#endif
-    } else {
-        return {};
     }
+#endif
+    return {};
 }
 
-#ifndef USE_ROSEN_DRAWING
 void RSEffectRenderNode::SetEffectRegion(const std::optional<SkPath>& region)
-#else
-void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::Path>& region)
-#endif
 {
-    effectRegion_ = region;
+    if (!region.has_value()) {
+        effectRegion_.reset();
+        return;
+    }
+    auto matrix = GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
+    SkMatrix revertMatrix;
+    // Map absolute matrix to local matrix
+    if (matrix.invert(&revertMatrix)) {
+        effectRegion_ = region.value().makeTransform(revertMatrix);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

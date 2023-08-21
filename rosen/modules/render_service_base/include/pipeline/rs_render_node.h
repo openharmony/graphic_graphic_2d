@@ -66,9 +66,8 @@ public:
         return Type;
     }
 
-    explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {}) : id_(id), context_(context) {};
-    explicit RSRenderNode(NodeId id, bool isOnTheTree, std::weak_ptr<RSContext> context = {}) :
-        isOnTheTree_(isOnTheTree), id_(id), context_(context) {};
+    explicit RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {});
+    explicit RSRenderNode(NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context = {});
     RSRenderNode(const RSRenderNode&) = delete;
     RSRenderNode(const RSRenderNode&&) = delete;
     RSRenderNode& operator=(const RSRenderNode&) = delete;
@@ -369,9 +368,6 @@ public:
     bool IsSuggestedDrawInGroup() const;
     void CheckDrawingCacheType();
     bool HasCacheableAnim() const { return hasCacheableAnim_; }
-    bool HasUpdateEffectRegion() const { return hasUpdateEffectRegion_; }
-    void SetHasUpdateEffectRegion(bool hasUpdate) { hasUpdateEffectRegion_ = hasUpdate; }
-
     enum NodeGroupType {
         NONE = 0,
         GROUPED_BY_ANIM,
@@ -521,7 +517,6 @@ private:
     bool hasHardwareNode_ = false;
     bool hasAbilityComponent_ = false;
     bool isAncestorDirty_ = false;
-    bool hasUpdateEffectRegion_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 
     // driven render

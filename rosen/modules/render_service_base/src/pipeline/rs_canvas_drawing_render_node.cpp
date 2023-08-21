@@ -30,7 +30,7 @@
 
 namespace OHOS {
 namespace Rosen {
-RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(NodeId id, std::weak_ptr<RSContext> context)
+RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(NodeId id, const std::weak_ptr<RSContext>& context)
     : RSCanvasRenderNode(id, context)
 {}
 

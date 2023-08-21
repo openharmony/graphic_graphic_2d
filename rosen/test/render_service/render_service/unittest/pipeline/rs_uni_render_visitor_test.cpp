@@ -1705,9 +1705,8 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode001, TestSize.Level2
     ASSERT_NE(skCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
 
-    using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<SkMatrix>>;
-    RenderParam val { node->ReinterpretCastTo<RSRenderNode>(),
-        rsUniRenderVisitor->canvas_->GetAlpha(), rsUniRenderVisitor->canvas_->getTotalMatrix() };
+    RSUniRenderVisitor::RenderParam val { node->ReinterpretCastTo<RSRenderNode>(),
+        rsUniRenderVisitor->canvas_->GetCanvasStatus() };
     rsUniRenderVisitor->unpairedTransitionNodes_[node->GetId()] = val;
     
     ASSERT_TRUE(rsUniRenderVisitor->PrepareSharedTransitionNode(*node));

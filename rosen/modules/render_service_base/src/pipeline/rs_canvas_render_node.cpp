@@ -40,7 +40,7 @@ namespace {
 constexpr PropertyId ANONYMOUS_MODIFIER_ID = 0;
 }
 
-RSCanvasRenderNode::RSCanvasRenderNode(NodeId id, std::weak_ptr<RSContext> context) : RSRenderNode(id, context)
+RSCanvasRenderNode::RSCanvasRenderNode(NodeId id, const std::weak_ptr<RSContext>& context) : RSRenderNode(id, context)
 {
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
@@ -118,11 +118,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
 
     if (canvas.GetCacheType() != RSPaintFilterCanvas::CacheType::OFFSCREEN) {
         if (GetRenderProperties().GetUseEffect()) {
-            if (HasUpdateEffectRegion()) {
-                RSPropertiesPainter::ApplyBackgroundEffect(GetRenderProperties(), canvas);
-            } else {
-                RestoreBgEffectFilter(canvas);
-            }
+            RSPropertiesPainter::ApplyBackgroundEffect(GetRenderProperties(), canvas);
         }
         RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, FilterType::BACKGROUND_FILTER);
     }
@@ -230,30 +226,6 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas)
         if (auto canvasChild = ReinterpretCast<RSCanvasRenderNode>(child)) {
             canvasChild->InternalDrawContent(canvas);
         }
-    }
-}
-
-void RSCanvasRenderNode::RestoreBgEffectFilter(RSPaintFilterCanvas& canvas)
-{
-    auto rsParentPtr = GetParent().lock();
-    while (rsParentPtr) {
-        if (rsParentPtr->GetType() == RSRenderNodeType::EFFECT_NODE) {
-            break;
-        }
-        rsParentPtr = rsParentPtr->GetParent().lock();
-    }
-    if (!rsParentPtr) {
-        return;
-    }
-    auto& rsProperty = GetMutableRenderProperties();
-    if (rsProperty.GetBackgroundFilter()) {
-        return;
-    }
-    auto& bgShareFilter = rsParentPtr->GetRenderProperties().GetBackgroundFilter();
-    if (bgShareFilter) {
-        rsProperty.SetBackgroundFilter(bgShareFilter);
-        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, FilterType::BACKGROUND_FILTER);
-        rsProperty.SetBackgroundFilter(nullptr);
     }
 }
 

@@ -1185,7 +1185,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     // attention: accumulate direct parent's childrenRect
     node.UpdateParentChildrenRect(logicParentNode_.lock());
     node.UpdateEffectRegion(effectRegion_);
-    if (property.NeedFilter() || property.GetUseEffect()) {
+    if (property.NeedFilter()) {
         // filterRects_ is used in RSUniRenderVisitor::CalcDirtyFilterRegion
         // When oldDirtyRect of node with filter has intersect with any surfaceNode or displayNode dirtyRegion,
         // the whole oldDirtyRect should be render in this vsync.
@@ -3389,9 +3389,9 @@ bool RSUniRenderVisitor::InitNodeCache(RSRenderNode& node)
         }
         if (cacheRenderNodeMapCnt == 0) {
 #ifndef USE_ROSEN_DRAWING
-            RenderParam val { node.shared_from_this(), canvas_->GetAlpha(), canvas_->getTotalMatrix() };
+            RenderParam val { node.shared_from_this(), canvas_->GetCanvasStatus() };
 #else
-            RenderParam val { node.shared_from_this(), canvas_->GetAlpha(), canvas_->GetTotalMatrix() };
+            RenderParam val { node.shared_from_this(), canvas_->GetCanvasStatus() };
 #endif
             curGroupedNodes_.push(val);
             groupedTransitionNodes[node.GetId()] = { val, {} };
@@ -3446,9 +3446,9 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
         // Regardless of the number of consecutive refreshes, the current cache is forced to be updated.
         if (node.GetDrawingCacheChanged()) {
 #ifndef USE_ROSEN_DRAWING
-            RenderParam val { node.shared_from_this(), canvas_->GetAlpha(), canvas_->getTotalMatrix() };
+            RenderParam val { node.shared_from_this(), canvas_->GetCanvasStatus() };
 #else
-            RenderParam val { node.shared_from_this(), canvas_->GetAlpha(), canvas_->GetTotalMatrix() };
+            RenderParam val { node.shared_from_this(), canvas_->GetCanvasStatus() };
 #endif
             curGroupedNodes_.push(val);
             groupedTransitionNodes[node.GetId()] = { val, {} };
@@ -3482,9 +3482,9 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
                 return;
             }
 #ifndef USE_ROSEN_DRAWING
-            RenderParam val { node.shared_from_this(), canvas_->GetAlpha(), canvas_->getTotalMatrix() };
+            RenderParam val { node.shared_from_this(), canvas_->GetCanvasStatus() };
 #else
-            RenderParam val { node.shared_from_this(), canvas_->GetAlpha(), canvas_->GetTotalMatrix() };
+            RenderParam val { node.shared_from_this(), canvas_->GetCanvasStatus() };
 #endif
             curGroupedNodes_.push(val);
             groupedTransitionNodes[node.GetId()] = { val, {} };
@@ -3918,13 +3918,8 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
         existingNodeIter != unpairedTransitionNodes_.end()) {
         RSAutoCanvasRestore acr(canvas_);
         // restore render context and process the paired node.
-        auto& [node, alpha, matrix] = existingNodeIter->second;
-        canvas_->SetAlpha(alpha);
-#ifndef USE_ROSEN_DRAWING
-        canvas_->setMatrix(matrix.value());
-#else
-        canvas_->SetMatrix(matrix.value());
-#endif
+        auto& [node, canvasStatus] = existingNodeIter->second;
+        canvas_->SetCanvasStatus(canvasStatus);
         node->Process(shared_from_this());
         unpairedTransitionNodes_.erase(existingNodeIter);
         return true;
@@ -3934,14 +3929,11 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
         if (auto existingNodeIter = pair.second.find(key); existingNodeIter != pair.second.end()) {
             RSAutoCanvasRestore acr(canvas_);
             // restore render context and process the paired node.
-            auto& [unused2, preAlpha, preMatrix] = pair.first;
-            auto& [child, alpha, matrix] = existingNodeIter->second;
-            canvas_->SetAlpha(alpha * preAlpha);
-    #ifndef USE_ROSEN_DRAWING
-            canvas_->setMatrix(SkMatrix::Concat(preMatrix.value(), matrix.value()));
-    #else
-            canvas_->SetMatrix(matrix.value());
-    #endif
+            auto& [unused2, PreCanvasStatus] = pair.first;
+            auto& [child, canvasStatus] = existingNodeIter->second;
+            canvas_->SetCanvasStatus(canvasStatus);
+            canvas_->MultiplyAlpha(PreCanvasStatus.alpha_);
+            canvas_->concat(PreCanvasStatus.matrix_);
             child->Process(shared_from_this());
             return true;
         }
@@ -3955,27 +3947,22 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
 
     if (!curGroupedNodes_.empty()) {
         // if in node group cache, add this node and render params (alpha and matrix) into groupedTransitionNodes.
-        auto& [child, alpha, matrix] = curGroupedNodes_.top();
-#ifndef USE_ROSEN_DRAWING
-        RenderParam value { node.shared_from_this(), canvas_->GetAlpha() / alpha, canvas_->getTotalMatrix() };
-        if (!matrix->invert(&std::get<2>(value).value())) { // 2 means to get the second element from the tuple
+        auto& [child, currentStatus] = curGroupedNodes_.top();
+        auto canvasStatus = canvas_->GetCanvasStatus();
+        canvasStatus.alpha_ /= currentStatus.alpha_;
+        if (!currentStatus.matrix_.invert(&canvasStatus.matrix_)) {
             RS_LOGE("RSUniRenderVisitor::ProcessSharedTransitionNode invert failed");
         }
-#else
-        RenderParam value { node.shared_from_this(), canvas_->GetAlpha() / alpha, canvas_->GetTotalMatrix() };
-        if (!matrix->Invert(std::get<2>(value).value())) { // 2 means to get the second element from the tuple
-            RS_LOGE("RSUniRenderVisitor::ProcessSharedTransitionNode invert failed");
-        }
-#endif
+        RenderParam value { node.shared_from_this(), canvasStatus };
         groupedTransitionNodes[child->GetId()].second.emplace(key, std::move(value));
         return false;
     }
 
     // all sanity checks passed, add this node and render params (alpha and matrix) into unpairedTransitionNodes_.
 #ifndef USE_ROSEN_DRAWING
-    RenderParam value { node.shared_from_this(), canvas_->GetAlpha(), canvas_->getTotalMatrix() };
+    RenderParam value { node.shared_from_this(), canvas_->GetCanvasStatus() };
 #else
-    RenderParam value { node.shared_from_this(), canvas_->GetAlpha(), canvas_->GetTotalMatrix() };
+    RenderParam value { node.shared_from_this(), canvas_->GetCanvasStatus() };
 #endif
     unpairedTransitionNodes_.emplace(key, std::move(value));
 

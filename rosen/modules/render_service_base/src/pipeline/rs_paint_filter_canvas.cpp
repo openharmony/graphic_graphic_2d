@@ -337,16 +337,14 @@ RSPaintFilterCanvas::RSPaintFilterCanvas(SkCanvas* canvas, float alpha)
     : SkPaintFilterCanvas(canvas),
       alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
       // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
-      envStack_({ Env({ Color(0xFF000000) }) }), // construct stack with default foreground color
-      effectStack_({ CachedEffectData {} })
+      envStack_({ Env({ Color(0xFF000000) }) }) // construct stack with default foreground color
 {}
 
 RSPaintFilterCanvas::RSPaintFilterCanvas(SkSurface* skSurface, float alpha)
     : SkPaintFilterCanvas(skSurface ? skSurface->getCanvas() : nullptr), skSurface_(skSurface),
       alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
       // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
-      envStack_({ Env({ Color(0xFF000000) }) }), // construct stack with default foreground color
-      effectStack_({ CachedEffectData {} })
+      envStack_({ Env({ Color(0xFF000000) }) }) // construct stack with default foreground color
 {}
 
 SkSurface* RSPaintFilterCanvas::GetSurface() const
@@ -357,7 +355,7 @@ SkSurface* RSPaintFilterCanvas::GetSurface() const
 bool RSPaintFilterCanvas::onFilter(SkPaint& paint) const
 {
     if (paint.getColor() == 0x00000001) { // foreground color and foreground color strategy identification
-        paint.setColor(envStack_.top().envForegroundColor.AsArgbInt());
+        paint.setColor(envStack_.top().envForegroundColor_.AsArgbInt());
     }
 
     if (alphaStack_.top() >= 1.f) {
@@ -404,7 +402,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachPen(const Pen& pen)
 
     Pen p(pen);
     if (p.GetColor() == 0x00000001) { // foreground color and foreground color strategy identification
-        p.SetColor(envStack_.top().envForegroundColor.AsArgbInt());
+        p.SetColor(envStack_.top().envForegroundColor_.AsArgbInt());
     }
 
     // use alphaStack_.top() to multiply alpha
@@ -424,7 +422,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
 
     Brush b(brush);
     if (b.GetColor() == 0x00000001) { // foreground color and foreground color strategy identification
-        b.SetColor(envStack_.top().envForegroundColor.AsArgbInt());
+        b.SetColor(envStack_.top().envForegroundColor_.AsArgbInt());
     }
 
     // use alphaStack_.top() to multiply alpha
@@ -539,7 +537,7 @@ void RSPaintFilterCanvas::SetEnvForegroundColor(Rosen::RSColor color)
     if (envStack_.empty()) {
         return;
     }
-    envStack_.top().envForegroundColor = color;
+    envStack_.top().envForegroundColor_ = color;
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -549,7 +547,7 @@ Color RSPaintFilterCanvas::GetEnvForegroundColor() const
     if (envStack_.empty()) {
         return Color { 0xFF000000 }; // 0xFF000000 is default value -- black
     }
-    return envStack_.top().envForegroundColor;
+    return envStack_.top().envForegroundColor_;
 }
 #else
 RSColor RSPaintFilterCanvas::GetEnvForegroundColor() const
@@ -558,7 +556,7 @@ RSColor RSPaintFilterCanvas::GetEnvForegroundColor() const
     if (envStack_.empty()) {
         return RSColor { 0xFF000000 }; // 0xFF000000 is default value -- black
     }
-    return envStack_.top().envForegroundColor;
+    return envStack_.top().envForegroundColor_;
 }
 #endif
 
@@ -641,7 +639,7 @@ CoreCanvas& RSColorFilterCanvas::AttachPen(const Pen& pen)
 
     Pen p(pen);
     if (p.GetColor() == 0x00000001) { // foreground color and foreground color strategy identification
-        p.SetColor(GetEnvStack().top().envForegroundColor.AsArgbInt());
+        p.SetColor(GetEnvStack().top().envForegroundColor_.AsArgbInt());
         // creates a color filter that blends the foreground color with the destination color
         Drawing::Filter filter;
         filter.SetColorFilter(Drawing::ColorFilter::CreateBlendModeColorFilter(
@@ -666,7 +664,7 @@ CoreCanvas& RSColorFilterCanvas::AttachBrush(const Brush& brush)
 
     Brush b(brush);
     if (b.GetColor() == 0x00000001) { // foreground color and foreground color strategy identification
-        b.SetColor(GetEnvStack().top().envForegroundColor.AsArgbInt());
+        b.SetColor(GetEnvStack().top().envForegroundColor_.AsArgbInt());
         // creates a color filter that blends the foreground color with the destination color
         Drawing::Filter filter;
         filter.SetColorFilter(Drawing::ColorFilter::CreateBlendModeColorFilter(
@@ -808,32 +806,26 @@ SkCanvas::SaveLayerStrategy RSPaintFilterCanvas::getSaveLayerStrategy(const Save
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-void RSPaintFilterCanvas::SetEffectData(const CachedEffectData& effectData)
+void RSPaintFilterCanvas::SetEffectData(const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& effectData)
 {
-    effectStack_.top() = effectData;
+    envStack_.top().effectData_ = effectData;
 }
 
-void RSPaintFilterCanvas::SetChildrenPath(const SkPath& childrenPath)
+const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& RSPaintFilterCanvas::GetEffectData() const
 {
-    effectStack_.top().childrenPath_ = childrenPath;
+    return envStack_.top().effectData_;
 }
 
-const CachedEffectData& RSPaintFilterCanvas::GetEffectData() const
+void RSPaintFilterCanvas::SetCanvasStatus(const CanvasStatus& status)
 {
-    return effectStack_.top();
+    SetAlpha(status.alpha_);
+    setMatrix(status.matrix_);
+    SetEffectData(status.effectData_);
 }
 
-void RSPaintFilterCanvas::SaveEffectData()
+RSPaintFilterCanvas::CanvasStatus RSPaintFilterCanvas::GetCanvasStatus() const
 {
-    effectStack_.push({});
-}
-
-void RSPaintFilterCanvas::RestoreEffectData()
-{
-    if (effectStack_.size() < 1u) {
-        return;
-    }
-    effectStack_.pop();
+    return { GetAlpha(), getTotalMatrix(), GetEffectData() };
 }
 #endif
 } // namespace Rosen

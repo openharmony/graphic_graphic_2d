@@ -159,7 +159,7 @@ public:
     void CollectFrameRateRange(RSRenderNode& node);
 
 #ifndef USE_ROSEN_DRAWING
-    using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<SkMatrix>>;
+    using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 #else
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<Drawing::Matrix>>;
 #endif

@@ -25,7 +25,7 @@
 namespace OHOS {
 namespace Rosen {
 RSDrivenSurfaceRenderNode::RSDrivenSurfaceRenderNode(
-    NodeId id, DrivenSurfaceType type, std::weak_ptr<RSContext> context)
+    NodeId id, DrivenSurfaceType type, const std::weak_ptr<RSContext>& context)
     : RSRenderNode(id, context), RSSurfaceHandler(id)
 {
     drivenExtInfo_.surfaceType_ = type;

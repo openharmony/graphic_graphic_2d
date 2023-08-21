@@ -193,7 +193,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     DrawCachedSnapshot(canvas, filter);
 }
 
-CachedEffectData RSFilterCacheManager::GeneratedCachedEffectData(
+std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManager::GeneratedCachedEffectData(
     RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter)
 {
     // This function is similar to RSFilterCacheManager::DrawFilter, but does not draw anything on the canvas. Instead,
@@ -223,7 +223,7 @@ CachedEffectData RSFilterCacheManager::GeneratedCachedEffectData(
         return {};
     }
 
-    return { cachedImage_, cachedImageRegion_ };
+    return std::make_shared<RSPaintFilterCanvas::CachedEffectData>(cachedImage_, cachedImageRegion_);
 }
 
 void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter)
