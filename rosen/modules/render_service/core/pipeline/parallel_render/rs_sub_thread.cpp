@@ -136,6 +136,8 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
     }
     auto visitor = std::make_shared<RSUniRenderVisitor>();
     visitor->SetSubThreadConfig(threadIndex_);
+    visitor->SetFocusedNodeId(RSMainThread::Instance()->GetFocusNodeId(),
+        RSMainThread::Instance()->GetFocusLeashWindowId());
 #ifdef RS_ENABLE_GL
     while (threadTask->GetTaskSize() > 0) {
         auto task = threadTask->GetNextRenderTask();
