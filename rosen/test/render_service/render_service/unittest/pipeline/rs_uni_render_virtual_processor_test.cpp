@@ -53,13 +53,13 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CreateAndDestroy, TestSize.Level2)
 }
 
 /**
- * @tc.name: Init
+ * @tc.name: Init001
  * @tc.desc:
  * @tc.type:
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, Init, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, Init001, TestSize.Level2)
 {
     RSDisplayNodeConfig config;
     NodeId id = 0;
@@ -73,6 +73,30 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, Init, TestSize.Level2)
     ASSERT_NE(nullptr, processor);
     ASSERT_EQ(false, processor->Init(rsDisplayRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
 }
+
+/**
+ * @tc.name: Init002
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, Init002, TestSize.Level2)
+{
+    RSDisplayNodeConfig config;
+    NodeId id = 0;
+    int32_t offsetX = 0;
+    int32_t offsetY = 0;
+    RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        UNI_RENDER_MIRROR_COMPOSITE);
+    auto mainThread = RSMainThread::Instance();
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = mainThread->GetRenderEngine();
+    ASSERT_NE(nullptr, processor);
+    uint64_t newScreenId = 0;
+    ASSERT_EQ(false, processor->Init(rsDisplayRenderNode, offsetX, offsetY, newScreenId, renderEngine));
+}
+
 
 /**
  * @tc.name: ProcessSurface

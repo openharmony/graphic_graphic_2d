@@ -256,6 +256,7 @@ HWTEST_F(RSUniRenderUtilTest, HandleCaptureNode, Function | SmallTest | Level2)
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     RSUniRenderUtil::HandleCaptureNode(*surfaceNode, canvas);
+    ASSERT_EQ(false, RSUniRenderUtil::HandleCaptureNode(nullptr, canvas));
 }
 
 /*
