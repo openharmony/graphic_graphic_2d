@@ -758,8 +758,9 @@ void RSRenderNode::ApplyBoundsGeometry(RSPaintFilterCanvas& canvas)
     }
 }
 
-void RSRenderNode::ApplyAlpha(RSPaintFilterCanvas& canvas)
+void RSRenderNode::ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas)
 {
+    ApplyBoundsGeometry(canvas);
     auto alpha = renderProperties_.GetAlpha();
     if (alpha < 1.f) {
         if ((GetChildrenCount() == 0) || !(GetRenderProperties().GetAlphaOffscreen() || IsForcedDrawInGroup())) {
@@ -777,12 +778,6 @@ void RSRenderNode::ApplyAlpha(RSPaintFilterCanvas& canvas)
 #endif
         }
     }
-}
-
-void RSRenderNode::ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas)
-{
-    ApplyBoundsGeometry(canvas);
-    ApplyAlpha(canvas);
     RSPropertiesPainter::DrawMask(GetRenderProperties(), canvas);
 }
 

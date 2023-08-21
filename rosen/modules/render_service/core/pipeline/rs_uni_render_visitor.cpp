@@ -2865,21 +2865,12 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node) {
 
 void RSUniRenderVisitor::DrawChildCanvasRenderNode(RSRenderNode& node)
 {
-     if (node.GetCacheType() == CacheType::NONE) {
-         if (node.IsPureContainer()) {
-             processedPureContainerNode_++;
-             node.ApplyBoundsGeometry(*canvas_);
-             ProcessChildren(node);
-             node.RSRenderNode::ProcessTransitionAfterChildren(*canvas_);
-             return;
-         } else if (node.IsContentNode()) {
-             node.ApplyBoundsGeometry(*canvas_);
-             node.ApplyAlpha(*canvas_);
-             node.ProcessRenderContents(*canvas_);
-             ProcessChildren(node);
-             node.RSRenderNode::ProcessTransitionAfterChildren(*canvas_);
-             return;
-         }
+    if (node.IsPureContainer() && node.GetCacheType() == CacheType::NONE) {
+        processedPureContainerNode_++;
+        node.ApplyBoundsGeometry(*canvas_);
+        ProcessChildren(node);
+        node.RSRenderNode::ProcessTransitionAfterChildren(*canvas_);
+        return;
     }
     DrawChildRenderNode(node);
 }

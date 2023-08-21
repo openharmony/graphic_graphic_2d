@@ -664,7 +664,7 @@ void RSProperties::SetAlpha(float alpha)
 {
     alpha_ = alpha;
     if (alpha_ < 1.f) {
-        alphaNeedApply_ = true;
+        isDrawn_ = true;
     }
     SetDirty();
     contentDirty_ = true;
@@ -677,6 +677,9 @@ float RSProperties::GetAlpha() const
 void RSProperties::SetAlphaOffscreen(bool alphaOffscreen)
 {
     alphaOffscreen_ = alphaOffscreen;
+    if (alpha_ < 1.f) {
+        isDrawn_ = true;
+    }
     SetDirty();
     contentDirty_ = true;
 }

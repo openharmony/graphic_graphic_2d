@@ -181,7 +181,6 @@ public:
     RSAnimationManager& GetAnimationManager();
 
     void ApplyBoundsGeometry(RSPaintFilterCanvas& canvas);
-    void ApplyAlpha(RSPaintFilterCanvas& canvas);
     virtual void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas);
     virtual void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas) {}
     virtual void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas);
@@ -221,13 +220,7 @@ public:
     bool NeedInitCacheSurface() const;
     inline bool IsPureContainer() const
     {
-        return (drawCmdModifiers_.empty() && !renderProperties_.isDrawn_ && !renderProperties_.alphaNeedApply_);
-    }
-
-    bool IsContentNode() const
-    {
-        return ((drawCmdModifiers_.size() == 1 && drawCmdModifiers_.count(RSModifierType::CONTENT_STYLE)) ||
-            drawCmdModifiers_.empty()) && !renderProperties_.isDrawn_;
+        return (drawCmdModifiers_.empty() && !renderProperties_.isDrawn_);
     }
 
 #ifndef USE_ROSEN_DRAWING
