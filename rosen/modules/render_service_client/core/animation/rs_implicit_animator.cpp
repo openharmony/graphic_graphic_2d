@@ -89,7 +89,7 @@ int RSImplicitAnimator::OpenImplicitAnimation(
 std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnimation()
 {
     if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
-        ROSEN_LOGE("Failed to close implicit animation, need to open implicit animation firstly!");
+        ROSEN_LOGD("Failed to close implicit animation, need to open implicit animation firstly!");
         return {};
     }
 
