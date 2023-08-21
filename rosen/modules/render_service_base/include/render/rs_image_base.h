@@ -91,6 +91,7 @@ protected:
     RectF dstRect_;
     SkRect src_;
     SkRect dst_;
+    SkRect lastRect_;
     bool isDrawn_ = false;
     uint64_t uniqueId_ = 0;
     bool renderServiceImage_ = false;

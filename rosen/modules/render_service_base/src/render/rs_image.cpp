@@ -60,7 +60,7 @@ void RSImage::CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkPain
 #endif
 {
 #ifdef NEW_SKIA
-    if (!isDrawn_) {
+    if (!isDrawn_ || rect != lastRect_) {
 #endif
         UpdateNodeIdToPicture(nodeId_);
         SkAutoCanvasRestore acr(&canvas, HasRadius());
@@ -82,6 +82,7 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
         SkAutoCanvasRestore acr(&canvas, HasRadius());
         canvas.drawImageRect(image_, src_, dst_, samplingOptions, &paint, SkCanvas::kFast_SrcRectConstraint);
     }
+    lastRect_ = rect;
 #else
     DrawImageRepeatRect(paint, canvas);
 #endif
