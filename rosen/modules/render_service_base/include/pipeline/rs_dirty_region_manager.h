@@ -74,6 +74,15 @@ public:
     RectI GetIntersectedVisitedDirtyRect(const RectI& absRect) const;
     void UpdateCacheableFilterRect(const RectI& rect);
     bool IfCacheableFilterRectFullyCover(const RectI& targetRect);
+    void ResetSubNodeFilterCacheValid()
+    {
+        isSubNodeFilterCacheValid_ = false;
+    }
+
+    bool GetSubNodeFilterCacheValid()
+    {
+        return isSubNodeFilterCacheValid_;
+    }
 
     // return current frame dirtyregion, can be changed in prepare and process (displaynode) stage
     const RectI& GetCurrentFrameDirtyRegion();
@@ -162,6 +171,7 @@ private:
     // may add new set function for bufferAge
     unsigned int bufferAge_ = HISTORY_QUEUE_MAX_SIZE;
     bool isDirtyRegionAlignedEnable_ = false;
+    bool isSubNodeFilterCacheValid_ = true;
 
     // Used for coordinate switch, i.e. dirtyRegion = dirtyRegion + offset.
     // For example when dirtymanager is used in cachesurface when surfacenode's

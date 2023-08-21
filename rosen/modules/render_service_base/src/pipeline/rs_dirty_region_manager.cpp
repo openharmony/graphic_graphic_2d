@@ -164,6 +164,7 @@ void RSDirtyRegionManager::Clear()
     dirtySurfaceNodeInfo_.clear();
     dirtySurfaceNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
     isDfxTarget_ = false;
+    isSubNodeFilterCacheValid_ = true;
 }
 
 bool RSDirtyRegionManager::IsCurrentFrameDirty() const

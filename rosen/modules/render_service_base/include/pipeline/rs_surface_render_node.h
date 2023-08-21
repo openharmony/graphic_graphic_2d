@@ -170,6 +170,7 @@ public:
         // a mainWindowType surfacenode will not mounted under another mainWindowType surfacenode
         // including app main window, starting window, and selfdrawing window
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE ||
+               nodeType_ == RSSurfaceNodeType::DEFAULT ||
                nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE ||
                nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     }
@@ -695,6 +696,18 @@ public:
         isFilterCacheFullyCovered_ = val;
     }
 
+    bool GetFilterCacheValid() const
+    {
+        return isFilterCacheValid_;
+    }
+
+    void SetFilterCacheValid();
+
+    bool IsFilterCacheStatusChanged() const
+    {
+        return isFilterCacheStatusChanged_;
+    }
+
     void ResetFilterNodes()
     {
         filterNodes_.clear();
@@ -802,6 +815,8 @@ private:
 
     Occlusion::Region containerRegion_;
     bool isFilterCacheFullyCovered_ = false;
+    bool isFilterCacheValid_ = false;
+    bool isFilterCacheStatusChanged_ = false;
     std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>
         filterNodes_; // valid filter nodes within, including itself
 

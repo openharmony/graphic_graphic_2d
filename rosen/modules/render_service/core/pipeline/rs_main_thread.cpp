@@ -1303,7 +1303,14 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
                         }
                     }
                     if (!(curSurface->GetAnimateState())) {
-                        accumulatedRegion.OrSelf(curSurface->GetOpaqueRegion());
+                        if (RSSystemParameters::GetFilterCacheOcculusionEnabled() &&
+                            curSurface->IsTransparent() && curSurface->GetFilterCacheValid()) {
+                            RS_OPTIONAL_TRACE_NAME_FMT("calc occlusion nodename: %s id: %llu curRegion %s",
+                                curSurface->GetName().c_str(), curSurface->GetId(), curRegion.GetRegionInfo().c_str());
+                            accumulatedRegion.OrSelf(curRegion);
+                        } else {
+                            accumulatedRegion.OrSelf(curSurface->GetOpaqueRegion());
+                        }
                     } else {
                         curSurface->ResetAnimateState();
                     }
@@ -1364,6 +1371,11 @@ void RSMainThread::CalcOcclusion()
             if (surface->GetZorderChanged() || surface->GetDstRectChanged() ||
                 surface->IsOpaqueRegionChanged() ||
                 surface->GetAlphaChanged() || (isUniRender_ && surface->IsDirtyRegionUpdated())) {
+                winDirty = true;
+            } else if (RSSystemParameters::GetFilterCacheOcculusionEnabled() &&
+                surface->IsTransparent() && surface->IsFilterCacheStatusChanged()) {
+                // When current frame's filter cache is valid or last frame's occlusion use filter cache as opaque
+                // The occlusion needs to be recalculated
                 winDirty = true;
             }
             surface->CleanDstRectChanged();

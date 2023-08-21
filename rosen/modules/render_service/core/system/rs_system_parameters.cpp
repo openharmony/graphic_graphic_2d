@@ -42,5 +42,12 @@ QuickSkipPrepareType RSSystemParameters::GetQuickSkipPrepareType()
     return static_cast<QuickSkipPrepareType>(
         std::atoi((system::GetParameter("rosen.quickskipprepare.enabled", "2")).c_str()));
 }
+
+bool RSSystemParameters::GetFilterCacheOcculusionEnabled()
+{
+    static bool filterCacheOcclusionEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.filterCacheOcclusionEnabled", "1")).c_str()) != 0;
+    return filterCacheOcclusionEnabled;
+}
 } // namespace Rosen
 } // namespace OHOS

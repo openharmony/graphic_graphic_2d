@@ -784,6 +784,19 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     ResetSurfaceContainerRegion(screeninfo, absRect, screenRotation);
 }
 
+void RSSurfaceRenderNode::SetFilterCacheValid()
+{
+    if (!dirtyManager_) {
+        return;
+    }
+    isFilterCacheStatusChanged_ = false;
+    bool currentCacheValid = isFilterCacheFullyCovered_ && dirtyManager_->GetSubNodeFilterCacheValid();
+    if (isFilterCacheValid_ != currentCacheValid) {
+        isFilterCacheValid_ = currentCacheValid;
+        isFilterCacheStatusChanged_ = true;
+    }
+}
+
 void RSSurfaceRenderNode::UpdateFilterNodes(const std::shared_ptr<RSRenderNode>& nodePtr)
 {
     if (nodePtr == nullptr) {
@@ -806,17 +819,15 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
         }
         node->UpdateFilterCacheWithDirty(*dirtyManager_, false);
         node->UpdateFilterCacheWithDirty(*dirtyManager_, true);
-        // collect valid filter nodes for occlusion optimization
-        if (node->IsFilterCacheValid()) {
-            dirtyManager_->UpdateCacheableFilterRect(node->GetOldDirtyInSurface());
-        }
         return false;
     });
+    SetFilterCacheFullyCovered(false);
     if (IsTransparent() && dirtyManager_->IfCacheableFilterRectFullyCover(GetOldDirtyInSurface())) {
         SetFilterCacheFullyCovered(true);
-        RS_LOGD("UpdateFilterCacheStatusIfNodeStatic surfacenode %{public}" PRIu64 " [%{public}s]",
-            GetId(), GetName().c_str());
+        RS_LOGD("UpdateFilterCacheStatusIfNodeStatic surfacenode %{public}" PRIu64 " [%{public}s] rectsize %{public}s",
+            GetId(), GetName().c_str(), GetOldDirtyInSurface().ToString().c_str());
     }
+    SetFilterCacheValid();
 #endif
 }
 
