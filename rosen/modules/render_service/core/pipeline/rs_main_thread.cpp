@@ -1381,9 +1381,18 @@ void RSMainThread::CalcOcclusion()
     }
     // Judge whether it is dirty
     // Surface cnt changed or surface DstRectChanged or surface ZorderChanged
-    bool winDirty = (lastSurfaceCnt_ != curAllSurfaces.size() || isDirty_ ||
+    std::vector<NodeId> curSurfaceIds;
+    curSurfaceIds.reserve(curAllSurfaces.size());
+    for (auto it = curAllSurfaces.begin(); it != curAllSurfaces.end(); ++it) {
+        auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (surface == nullptr) {
+            continue;
+        }
+        curSurfaceIds.emplace_back(surface->GetId());
+    }
+    bool winDirty = (lastSurfaceIds_ != curSurfaceIds || isDirty_ ||
         lastFocusNodeId_ != focusNodeId_);
-    lastSurfaceCnt_ = curAllSurfaces.size();
+    lastSurfaceIds_ = std::move(curSurfaceIds);
     lastFocusNodeId_ = focusNodeId_;
     if (!winDirty) {
         for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {

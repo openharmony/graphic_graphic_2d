@@ -330,7 +330,7 @@ private:
     bool qosPidCal_ = false;
     bool isDirty_ = false;
     std::atomic_bool doWindowAnimate_ = false;
-    uint32_t lastSurfaceCnt_ = 0;
+    std::vector<NodeId> lastSurfaceIds_;
     int32_t focusAppPid_ = -1;
     int32_t focusAppUid_ = -1;
     const uint8_t opacity_ = 255;
