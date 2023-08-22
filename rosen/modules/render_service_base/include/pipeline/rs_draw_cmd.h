@@ -1551,6 +1551,8 @@ public:
     static OpItem* Unmarshalling(Parcel& parcel);
 
 private:
+    void Clear() const noexcept;
+
     mutable RSSurfaceBufferInfo surfaceBufferInfo_;
 #ifdef RS_ENABLE_GL
     mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
