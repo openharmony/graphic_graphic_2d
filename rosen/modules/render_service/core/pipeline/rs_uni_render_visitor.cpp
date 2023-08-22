@@ -246,10 +246,9 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     node.SetGlobalAlpha(curAlpha_);
     for (auto& child : children) {
         auto curRootNode = curRootNode_;
-        if (PrepareSharedTransitionNode(*child)) {
-            curDirty_ = child->IsDirty();
-            child->Prepare(shared_from_this());
-        }
+        PrepareSharedTransitionNode(*child);
+        curDirty_ = child->IsDirty();
+        child->Prepare(shared_from_this());
         curRootNode_ = curRootNode;
     }
     curAlpha_ = alpha;
@@ -3924,7 +3923,7 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
     }
 
     auto pairedNode = transitionParam->second.lock();
-    if (pairedNode->GetGlobalAlpha() <= 0.0f) {
+    if (pairedNode == nullptr || pairedNode->GetGlobalAlpha() <= 0.0f) {
         // visitor may never visit the paired node, ignore the transition logic and process directly.
         return true;
     }

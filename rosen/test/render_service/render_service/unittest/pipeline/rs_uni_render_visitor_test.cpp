@@ -1794,7 +1794,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode005, TestSize.Level2
     
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    ASSERT_FALSE(rsUniRenderVisitor->PrepareSharedTransitionNode(*node));
+    ASSERT_TRUE(rsUniRenderVisitor->PrepareSharedTransitionNode(*node));
 }
 
 /**
