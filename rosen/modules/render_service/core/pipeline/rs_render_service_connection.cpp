@@ -98,13 +98,25 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
     RS_LOGD("RSRenderServiceConnection::CleanAll() start.");
     mainThread_->ScheduleTask(
         [this]() {
+            RS_TRACE_NAME_FMT("CleanVirtualScreens %d", remotePid_);
             CleanVirtualScreens();
+        }).wait();
+    mainThread_->ScheduleTask(
+        [this]() {
+            RS_TRACE_NAME_FMT("CleanRenderNodes %d", remotePid_);
             CleanRenderNodes();
-            HgmConfigCallbackManager::GetInstance()->UnRegisterHgmConfigChangeCallback(remotePid_);
+        }).wait();
+    mainThread_->ScheduleTask(
+        [this]() {
+            RS_TRACE_NAME_FMT("ClearTransactionDataPidInfo %d", remotePid_);
             mainThread_->ClearTransactionDataPidInfo(remotePid_);
+        }).wait();
+    mainThread_->ScheduleTask(
+        [this]() {
+            RS_TRACE_NAME_FMT("UnRegisterCallback %d", remotePid_);
+            HgmConfigCallbackManager::GetInstance()->UnRegisterHgmConfigChangeCallback(remotePid_);
             mainThread_->UnRegisterOcclusionChangeCallback(remotePid_);
         }).wait();
-
     for (auto& conn : vsyncConnections_) {
         appVSyncDistributor_->RemoveConnection(conn);
     }
