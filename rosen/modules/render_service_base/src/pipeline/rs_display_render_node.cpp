@@ -63,9 +63,9 @@ void RSDisplayRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->ProcessDisplayRenderNode(*this);
 }
 
-void RSDisplayRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId)
+void RSDisplayRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId)
 {
-    RSRenderNode::SetIsOnTheTree(flag, GetId());
+    RSRenderNode::SetIsOnTheTree(flag, GetId(), firstLevelNodeId);
 }
 
 RSDisplayRenderNode::CompositeType RSDisplayRenderNode::GetCompositeType() const

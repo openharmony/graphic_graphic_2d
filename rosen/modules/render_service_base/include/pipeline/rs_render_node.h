@@ -103,7 +103,8 @@ public:
         return id_;
     }
 
-    virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID);
+    virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
+        NodeId firstLevelNodeId = INVALID_NODEID);
     bool IsOnTheTree() const;
 
     // return children and disappeared children, not guaranteed to be sorted by z-index
@@ -149,6 +150,7 @@ public:
     void SetChildHasFilter(bool childHasFilter);
 
     NodeId GetInstanceRootNodeId() const;
+    NodeId GetFirstLevelNodeId() const;
 
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
@@ -436,6 +438,7 @@ protected:
 private:
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
+    NodeId firstLevelNodeId_ = INVALID_NODEID;
 
     WeakPtr parent_;
     void SetParent(WeakPtr parent);

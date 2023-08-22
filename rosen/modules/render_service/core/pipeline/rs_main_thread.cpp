@@ -573,8 +573,8 @@ void RSMainThread::SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransaction
             if (node == nullptr) {
                 continue;
             }
-            NodeId instanceRootNodeId = node->GetInstanceRootNodeId();
-            if (IsNeedSkip(instanceRootNodeId, pid)) {
+            NodeId firstLevelNodeId = node->GetFirstLevelNodeId();
+            if (IsNeedSkip(firstLevelNodeId, pid)) {
                 skipPayload.emplace_back(std::move(elem));
                 skipPayloadIndexVec.push_back(index);
             }
