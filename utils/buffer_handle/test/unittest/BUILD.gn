@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2022 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,21 +11,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
+import("//build/test.gni")
 
-## buffer_handle.a {{{
-config("buffer_handle_public_config") {
-  include_dirs = [
-    "export",
-    "//drivers/peripheral/base",
+module_out_path = "graphic_2d/utils/buffer_handle"
+
+group("unittest") {
+  testonly = true
+  deps = [ ":BufferHandleTest" ]
+}
+
+## Build buffer_handle_test
+ohos_unittest("BufferHandleTest") {
+  module_out_path = module_out_path
+  sources = [ "buffer_handle_test.cpp" ]
+  deps = [ ":buffer_handle_test_common" ]
+  external_deps = [ "hilog:libhilog" ]
+}
+
+config("buffer_handle_test_config") {
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 }
 
-ohos_static_library("buffer_handle") {
-  sources = [ "src/buffer_handle.cpp" ]
+ohos_static_library("buffer_handle_test_common") {
+  visibility = [ ":*" ]
+  testonly = true
+  public_configs = [ ":buffer_handle_test_config" ]
 
-  configs = [ "//commonlibrary/c_utils/base:utils_config" ]
-
+  public_deps = [
+    "//foundation/graphic/graphic_2d/utils/buffer_handle:buffer_handle",
+    "//third_party/googletest:gtest_main",
+  ]
+  
   public_configs = [ ":buffer_handle_public_config" ]
 
   external_deps = [
@@ -36,4 +58,3 @@ ohos_static_library("buffer_handle") {
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }
-## buffer_handle.a }}}
