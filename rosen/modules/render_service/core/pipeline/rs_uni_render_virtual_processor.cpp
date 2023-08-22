@@ -89,12 +89,12 @@ void RSUniRenderVirtualProcessor::PostProcess()
         RS_LOGE("RSUniRenderVirtualProcessor::PostProcess surface is null!");
         return;
     }
-    auto surfaceOhos = renderFrame_->GetSurface();
-    renderEngine_->SetUiTimeStamp(renderFrame_, surfaceOhos);
     if (renderFrame_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::PostProcess renderFrame_ is null.");
         return;
     }
+    auto surfaceOhos = renderFrame_->GetSurface();
+    renderEngine_->SetUiTimeStamp(renderFrame_, surfaceOhos);
     renderFrame_->Flush();
 }
 

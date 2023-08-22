@@ -555,7 +555,7 @@ bool RSRenderNode::Update(
 #endif
     // in some case geodirty_ is not marked in drawCmdModifiers_, we should update node geometry
     // [planing] using drawcmdModifierDirty from dirtyType_
-    parentDirty |= (dirtyStatus_ != NodeDirty::CLEAN);
+    parentDirty = parentDirty || (dirtyStatus_ != NodeDirty::CLEAN);
     auto parentProperties = parent ? &parent->GetRenderProperties() : nullptr;
     bool dirty = renderProperties_.UpdateGeometry(parentProperties, parentDirty, offset, GetContextClipRegion());
     if ((IsDirty() || dirty) && drawCmdModifiers_.count(RSModifierType::GEOMETRYTRANS)) {
