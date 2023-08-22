@@ -149,8 +149,8 @@ public:
     const std::optional<Matrix3f>& GetSublayerTransform() const;
 
     // particle properties
-    void SetParticles(const std::vector<std::shared_ptr<RSRenderParticle>>& particles);
-    std::vector<std::shared_ptr<RSRenderParticle>> GetParticles() const;
+    void SetParticles(const RSRenderParticleVector& particles);
+    RSRenderParticleVector GetParticles() const;
 
     // foreground properties
     void SetForegroundColor(Color color);
@@ -381,7 +381,7 @@ private:
     float frameOffsetX_ = 0.f;
     float frameOffsetY_ = 0.f;
 
-    std::vector<std::shared_ptr<RSRenderParticle>> particles_;
+    RSRenderParticleVector particles_;
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkColorFilter> colorFilter_ = nullptr;
 #else

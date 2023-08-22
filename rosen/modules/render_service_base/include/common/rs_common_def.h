@@ -146,7 +146,7 @@ struct RSDisplayNodeConfig {
     NodeId mirrorNodeId = 0;
 };
 
-constexpr int32_t NS_TO_S = 1000000000;
+constexpr int64_t NS_TO_S = 1000000000;
 constexpr int64_t NS_PER_MS = 1000000;
 
 #if defined(M_PI)
