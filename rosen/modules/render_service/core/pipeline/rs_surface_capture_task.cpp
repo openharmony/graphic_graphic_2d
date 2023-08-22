@@ -1036,19 +1036,17 @@ void RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         RS_LOGE("RSSurfaceCaptureVisitor::ProcessCanvasRenderNode, canvas is nullptr");
         return;
     }
+
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
         if (!node.IsOnTheTree()) {
 #ifndef USE_ROSEN_DRAWING
             auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](sk_sp<SkSurface> surface) {
-                // The second param is null, 0 is an invalid value.
-                sk_sp<SkSurface> tmpSurface = nullptr;
 #else
             auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](std::shared_ptr<Drawing::Surface> surface) {
-                // The second param is null, 0 is an invalid value.
-                std::shared_ptr<Drawing::Surface> tmpSurface = nullptr;
 #endif
-                RSUniRenderUtil::ClearNodeCacheSurface(surface, tmpSurface, id, 0);
+                // The second param is null, 0 is an invalid value.
+                RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, id, 0);
             };
             canvasDrawingNode->SetSurfaceClearFunc({ UNI_MAIN_THREAD_INDEX, clearFunc });
             canvasDrawingNode->ProcessRenderBeforeChildren(*canvas_);

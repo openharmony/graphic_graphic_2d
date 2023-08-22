@@ -39,6 +39,8 @@ public:
         const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     void ResetSubThreadGrContext() const;
     void DumpMem(DfxString& log);
+    void ReleaseSurface(uint32_t threadIndex);
+    void AddToReleaseQueue(sk_sp<SkSurface>&& surface, uint32_t threadIndex);
 private:
     RSSubThreadManager() = default;
     ~RSSubThreadManager() = default;
