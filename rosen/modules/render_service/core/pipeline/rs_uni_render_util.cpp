@@ -38,13 +38,13 @@ constexpr const char* SCREENLOCK_WINDOW = "ScreenLockWindow";
 constexpr const char* SYSUI_DROPDOWN = "SysUI_Dropdown";
 constexpr const char* SYSUI_STATUS_BAR = "SysUI_StatusBar";
 constexpr const char* PRIVACY_INDICATOR = "PrivacyIndicator";
-constexpr const char* SCB_DESK_TOP = "SCBDesktop2";
-constexpr const char* SCB_WALL_PAPER = "SCBWallpaper1";
-constexpr const char* SCB_SCREEN_LOCK = "SCBScreenLock10";
-constexpr const char* SCB_DROP_DOWN_PANEL = "SCBDropdownPanel7";
-constexpr const char* SCB_STATUS_BAR = "SCBStatusBar6";
-constexpr const char* SCB_NEGATIVE_SCREEN = "SCBNegativeScreen3";
-constexpr const char* SCB_GESTURE_BACK = "SCBGestureBack9";
+constexpr const char* SCB_DESK_TOP = "SCBDesktop";
+constexpr const char* SCB_WALL_PAPER = "SCBWallpaper";
+constexpr const char* SCB_SCREEN_LOCK = "SCBScreenLock";
+constexpr const char* SCB_DROP_DOWN_PANEL = "SCBDropdownPanel";
+constexpr const char* SCB_STATUS_BAR = "SCBStatusBar";
+constexpr const char* SCB_NEGATIVE_SCREEN = "SCBNegativeScreen";
+constexpr const char* SCB_GESTURE_BACK = "SCBGestureBack";
 };
 void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge,
     bool useAlignedDirtyRegion)
@@ -539,9 +539,12 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         bool needFilter = surfaceName == ENTRY_VIEW || surfaceName == WALLPAPER_VIEW ||
             surfaceName == SYSUI_STATUS_BAR || surfaceName == SCREENLOCK_WINDOW ||
             surfaceName == SYSUI_DROPDOWN || surfaceName == PRIVACY_INDICATOR;
-        bool needFilterSCB = surfaceName == SCB_DESK_TOP || surfaceName == SCB_WALL_PAPER ||
-            surfaceName == SCB_SCREEN_LOCK || surfaceName == SCB_DROP_DOWN_PANEL || surfaceName == SCB_STATUS_BAR ||
-            surfaceName == SCB_NEGATIVE_SCREEN || surfaceName == SCB_GESTURE_BACK;
+        bool needFilterSCB = (surfaceName.find(SCB_DESK_TOP) != std::string::npos) ||
+            (surfaceName.find(SCB_WALL_PAPER) != std::string::npos) ||
+            (surfaceName.find(SCB_SCREEN_LOCK) != std::string::npos) ||
+            (surfaceName.find(SCB_DROP_DOWN_PANEL) != std::string::npos) ||
+            (surfaceName.find(SCB_STATUS_BAR) != std::string::npos) ||
+            (surfaceName.find(SCB_NEGATIVE_SCREEN) != std::string::npos);
         if (needFilter || needFilterSCB || node->IsSelfDrawingType()) {
             AssignMainThreadNode(mainThreadNodes, node);
             continue;
