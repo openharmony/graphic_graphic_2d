@@ -165,9 +165,14 @@ public:
     {
         return frameCount_;
     }
-    // add node info after cmd data process
-    void AddActiveNodeId(NodeId id);
-    void AddActiveNode(const std::shared_ptr<RSRenderNode>& node);
+    void AddActiveNodeId(NodeId id)
+    {
+        context_->AddActiveNodeId(id);
+    }
+    void AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
+    {
+        context_->AddActiveNode(node);
+    }
 
     void ProcessHgmFrameRate(FrameRateRangeData data, uint64_t timestamp);
     DeviceType GetDeviceType() const;
@@ -266,8 +271,6 @@ private:
     std::unordered_map<NodeId, std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>> cachedCommands_;
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> effectiveCommands_;
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
-    // Collect pids of surfaceview's update(ConsumeAndUpdateAllNodes), effective commands(processCommand) and Animate
-    std::unordered_map<NodeId, std::unordered_set<std::shared_ptr<RSRenderNode>>> activeNodesInRoot_;
     std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> syncTransactionData_;
     int32_t syncTransactionCount_ { 0 };
 

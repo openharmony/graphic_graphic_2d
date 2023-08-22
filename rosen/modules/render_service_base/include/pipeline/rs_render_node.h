@@ -456,7 +456,7 @@ private:
     void SortChildren();
 
     const std::weak_ptr<RSContext> context_;
-    NodeDirty dirtyStatus_ = NodeDirty::DIRTY;
+    NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
     bool isContentDirty_ = false;
     friend class RSRenderPropertyBase;
     friend class RSRenderTransition;
@@ -470,6 +470,7 @@ private:
     void InternalRemoveSelfFromDisappearingChildren();
     void FallbackAnimationsToRoot();
     void FilterModifiersByPid(pid_t pid);
+    inline void AddActiveNode();
 
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect);
     void AddModifierProfile(std::shared_ptr<RSRenderModifier> modifier, float width, float height);

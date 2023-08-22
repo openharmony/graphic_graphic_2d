@@ -26,6 +26,10 @@ class RSB_EXPORT RSContext : public std::enable_shared_from_this<RSContext> {
 public:
     RSContext() = default;
     ~RSContext() = default;
+    RSContext(const RSContext&) = delete;
+    RSContext(const RSContext&&) = delete;
+    RSContext& operator=(const RSContext&) = delete;
+    RSContext& operator=(const RSContext&&) = delete;
 
     RSRenderNodeMap& GetMutableNodeMap()
     {
@@ -43,6 +47,7 @@ public:
     }
 
     void RegisterAnimatingRenderNode(const std::shared_ptr<RSRenderNode>& nodePtr);
+    void UnregisterAnimatingRenderNode(NodeId id);
 
     uint64_t GetTransactionTimestamp() const
     {
@@ -53,6 +58,9 @@ public:
     {
         return currentTimestamp_;
     }
+    // add node info after cmd data process
+    void AddActiveNodeId(NodeId id);
+    void AddActiveNode(const std::shared_ptr<RSRenderNode>& node);
 
 private:
     RSRenderNodeMap nodeMap;
@@ -61,11 +69,8 @@ private:
 
     uint64_t transactionTimestamp_ = 0;
     uint64_t currentTimestamp_ = 0;
-
-    RSContext(const RSContext&) = delete;
-    RSContext(const RSContext&&) = delete;
-    RSContext& operator=(const RSContext&) = delete;
-    RSContext& operator=(const RSContext&&) = delete;
+    // Collect all active Nodes sorted by root node id in this frame.
+    std::unordered_map<NodeId, std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>> activeNodesInRoot_;
 
     friend class RSRenderThread;
     friend class RSMainThread;

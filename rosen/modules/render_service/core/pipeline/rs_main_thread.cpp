@@ -235,7 +235,7 @@ void RSMainThread::Init()
         InformHgmNodeInfo();
         ReleaseAllNodesBuffer();
         SendCommands();
-        activeNodesInRoot_.clear();
+        context_->activeNodesInRoot_.clear();
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         SetRSEventDetectorLoopFinishTag();
         rsEventManager_.UpdateParam();
@@ -736,11 +736,6 @@ void RSMainThread::ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& 
 {
     context_->transactionTimestamp_ = rsTransactionData->GetTimestamp();
     rsTransactionData->Process(*context_);
-    for (auto& [nodeId, followType, command] : rsTransactionData->GetPayload()) {
-        if (command != nullptr) {
-            AddActiveNodeId(command->GetNodeId());
-        }
-    }
 }
 
 void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid)
@@ -2141,49 +2136,30 @@ void RSMainThread::SetAppWindowNum(uint32_t num)
     appWindowNum_ = num;
 }
 
-void RSMainThread::AddActiveNodeId(NodeId id)
-{
-    if (id == 0) {
-        return;
-    }
-    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
-    AddActiveNode(node);
-}
-
-void RSMainThread::AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
-{
-    if (node == nullptr) {
-        return;
-    }
-    auto rootNodeId = node->GetInstanceRootNodeId();
-    activeNodesInRoot_[rootNodeId].emplace(node);
-}
-
 bool RSMainThread::CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyByRoot)
 {
-    if (activeNodesInRoot_.empty() || nodeId == INVALID_NODEID) {
+    if (context_->activeNodesInRoot_.empty() || nodeId == INVALID_NODEID) {
         return false;
     }
     if (!isClassifyByRoot) {
         // Match by PID
         auto pid = ExtractPid(nodeId);
-        return std::any_of(activeNodesInRoot_.begin(), activeNodesInRoot_.end(),
+        return std::any_of(context_->activeNodesInRoot_.begin(), context_->activeNodesInRoot_.end(),
             [pid](const auto& iter) { return ExtractPid(iter.first) == pid; });
     } else {
-        // Match by rootNodeId
-        return activeNodesInRoot_.count(nodeId);
+        return context_->activeNodesInRoot_.count(nodeId);
     }
 }
 
 void RSMainThread::ApplyModifiers()
 {
-    for (const auto& [unused, nodeSet] : activeNodesInRoot_) {
-        for (const auto& node : nodeSet) {
-            bool isZOrderChanged = node->ApplyModifiers();
+    for (const auto& [unused, nodeSet] : context_->activeNodesInRoot_) {
+        for (const auto& [id, nodePtr] : nodeSet) {
+            bool isZOrderChanged = nodePtr->ApplyModifiers();
             if (!isZOrderChanged) {
                 continue;
             }
-            if (auto parent = node->GetParent().lock()) {
+            if (auto parent = nodePtr->GetParent().lock()) {
                 parent->isChildrenSorted_ = false;
             }
         }
