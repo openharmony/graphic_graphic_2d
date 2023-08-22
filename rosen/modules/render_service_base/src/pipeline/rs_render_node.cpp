@@ -88,7 +88,7 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
     // A child is not on the tree until its parent is on the tree
     if (isOnTheTree_) {
-        child->SetIsOnTheTree(true, instanceRootNodeId_);
+        child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_);
     }
     SetContentDirty();
     isFullChildrenListValid_ = false;
@@ -144,13 +144,14 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     isFullChildrenListValid_ = false;
 }
 
-void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId)
+void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId)
 {
     // We do not need to label a child when the child is removed from a parent that is not on the tree
     if (flag == isOnTheTree_) {
         return;
     }
     instanceRootNodeId_ = instanceRootNodeId;
+    firstLevelNodeId_ = firstLevelNodeId;
     isOnTheTree_ = flag;
     OnTreeStateChanged();
 
@@ -159,11 +160,11 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId)
         if (child == nullptr) {
             continue;
         }
-        child->SetIsOnTheTree(flag, instanceRootNodeId);
+        child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId);
     }
 
     for (auto& [child, _] : disappearingChildren_) {
-        child->SetIsOnTheTree(flag, instanceRootNodeId);
+        child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId);
     }
 }
 
@@ -198,7 +199,7 @@ void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
     // A child is not on the tree until its parent is on the tree
     if (isOnTheTree_) {
-        child->SetIsOnTheTree(true, instanceRootNodeId_);
+        child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_);
     }
     SetContentDirty();
     isFullChildrenListValid_ = false;
@@ -1647,6 +1648,10 @@ void RSRenderNode::SetChildHasFilter(bool childHasFilter)
 NodeId RSRenderNode::GetInstanceRootNodeId() const
 {
     return instanceRootNodeId_;
+}
+NodeId RSRenderNode::GetFirstLevelNodeId() const
+{
+    return firstLevelNodeId_;
 }
 bool RSRenderNode::IsRenderUpdateIgnored() const
 {

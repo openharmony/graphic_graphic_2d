@@ -1296,11 +1296,20 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
 }
 
 #ifdef OHOS_PLATFORM
-void RSSurfaceRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId)
+void RSSurfaceRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId)
 {
     instanceRootNodeId = (IsMainWindowType() || IsLeashWindow()) ? GetId() : instanceRootNodeId;
+    if (IsLeashWindow()) {
+        firstLevelNodeId = GetId();
+    } else if (IsAppWindow()) {
+        firstLevelNodeId = GetId();
+        auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetParent().lock());
+        if (parentNode && parentNode->IsLeashWindow()) {
+            firstLevelNodeId = parentNode->GetId();
+        }
+    }
     isNewOnTree_ = flag && !isOnTheTree_;
-    RSBaseRenderNode::SetIsOnTheTree(flag, instanceRootNodeId);
+    RSBaseRenderNode::SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId);
     if (flag == isReportFirstFrame_ || !IsAppWindow()) {
         return;
     }
