@@ -19,11 +19,7 @@ ohos_source_set("render_frame_trace") {
   sources = [ "src/render_frame_trace.cpp" ]
   cflags = [ "-fstack-protector-all" ]
   if (defined(global_parts_info)) {
-    if (defined(
-        global_parts_info.hmosresourceschedule_frame_aware_sched_override)) {
-      sources += [ "src/render_frame_trace_impl.cpp" ]
-      external_deps = [ "frame_aware_sched_override:frame_trace_intf" ]
-    } else if (defined(global_parts_info.resourceschedule_frame_aware_sched)) {
+    if (defined(global_parts_info.resourceschedule_frame_aware_sched)) {
       sources += [ "src/render_frame_trace_impl.cpp" ]
       external_deps = [ "frame_aware_sched:frame_trace_intf" ]
     }
