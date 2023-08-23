@@ -19,7 +19,6 @@
 #include <cstdint>
 #include <stdint.h>
 
-#include "common/rs_macros.h"
 #include "effect/color_space.h"
 #include "utils/scalar.h"
 
@@ -52,7 +51,7 @@ struct Color4f {
 };
 
 typedef uint32_t ColorQuad;
-class RS_EXPORT Color {
+class Color {
 public:
     constexpr static ColorQuad COLOR_TRANSPARENT = 0;
     constexpr static ColorQuad COLOR_BLACK = 0xFF000000;
@@ -131,8 +130,8 @@ public:
     void SetColorQuad(uint32_t c);
     ColorQuad CastToColorQuad() const;
 
-    RS_EXPORT friend bool operator==(const Color& c1, const Color& c2);
-    RS_EXPORT friend bool operator!=(const Color& c1, const Color& c2);
+    friend bool operator==(const Color& c1, const Color& c2);
+    friend bool operator!=(const Color& c1, const Color& c2);
 
 private:
     uint32_t alpha_;
