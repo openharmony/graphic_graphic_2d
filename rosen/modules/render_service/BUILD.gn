@@ -177,6 +177,12 @@ ohos_shared_library("librender_service") {
     defines += [ "SOC_PERF_ENABLE" ]
   }
 
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    external_deps += [ "resource_schedule_service:ressched_client" ]
+    defines += [ "RES_SCHED_ENABLE" ]
+  }
+
   if (accessibility_enable) {
     external_deps += [ "accessibility:accessibilityconfig" ]
     defines += accessibility_defines
