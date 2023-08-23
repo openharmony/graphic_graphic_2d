@@ -1276,6 +1276,7 @@ void RSUniRenderVisitor::CollectFrameRateRange(RSRenderNode& node)
     }
     node.ResetUIFrameRateRange();
     node.ResetRSFrameRateRange();
+    frameRateRangeData_.forceUpdateFlag = forceUpdateFlag_;
 }
 
 void RSUniRenderVisitor::CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisitor> visitor)

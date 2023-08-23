@@ -23,7 +23,6 @@
 #include "common/rs_common_def.h"
 #include "parameters.h"
 #include "screen_manager/screen_types.h"
-#include "hgm_timer.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,14 +30,19 @@ struct FrameRateRangeData {
     ScreenId screenId = INVALID_SCREEN_ID;
     FrameRateRange rsRange;
     std::unordered_map<pid_t, FrameRateRange> multiAppRange;
+    bool forceUpdateFlag = false;
 };
 
 class HgmFrameRateManager {
 public:
     HgmFrameRateManager() {}
 
-    int32_t UniProcessData(const FrameRateRangeData& data, bool forceUpdateFlag);
+    void UniProcessData(const FrameRateRangeData& data);
     void Reset();
+    void SetTimerExpiredCallback(std::function<void()> expiredCallback)
+    {
+        expiredCallback_ = expiredCallback;
+    }
 private:
     void CalcRefreshRate(const ScreenId id, const FrameRateRange& range);
     void ExecuteSwitchRefreshRate(const ScreenId id);
@@ -47,6 +51,7 @@ private:
     uint32_t currRefreshRate_ = -1;
     uint32_t rsFrameRate_ = -1;
     std::unordered_map<pid_t, uint32_t> multiAppFrameRate_;
+    std::function<void()> expiredCallback_;
 };
 } // namespace Rosen
 } // namespace OHOS

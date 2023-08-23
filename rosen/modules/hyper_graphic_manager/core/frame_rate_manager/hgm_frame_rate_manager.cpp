@@ -26,13 +26,14 @@ namespace {
     constexpr float MIN_DRAWING_DIVISOR = 10.0f;
     constexpr float DIVISOR_TWO = 2.0f;
     constexpr int32_t DEFAULT_PREFERRED = 60;
+    constexpr int32_t IDLE_TIMER_EXPIRED = 200; // ms
 }
 
-int32_t HgmFrameRateManager::UniProcessData(const FrameRateRangeData& data, bool forceUpdateFlag)
+void HgmFrameRateManager::UniProcessData(const FrameRateRangeData& data)
 {
     auto screenId = data.screenId;
     if (screenId == INVALID_SCREEN_ID) {
-        return HGM_ERROR;
+        return;
     }
 
     FrameRateRange finalRange;
@@ -40,17 +41,16 @@ int32_t HgmFrameRateManager::UniProcessData(const FrameRateRangeData& data, bool
     for (auto appRange : data.multiAppRange) {
         finalRange.Merge(appRange.second);
     }
-
     if (!finalRange.IsValid()) {
-        if (forceUpdateFlag) {
+        if (data.forceUpdateFlag) {
             finalRange.max_ = DEFAULT_PREFERRED;
             finalRange.preferred_ = DEFAULT_PREFERRED;
         } else {
-            return FINAL_RANGE_NOT_VALID;
+            HgmCore::Instance().InsertAndStartScreenTimer(screenId, IDLE_TIMER_EXPIRED, nullptr, expiredCallback_);
+            return;
         }
-    }
-    if (auto timer = HgmCore::Instance().GetScreenTimer(screenId); timer != nullptr) {
-        timer->reset();
+    } else {
+        HgmCore::Instance().ResetScreenTimer(screenId);
     }
 
     CalcRefreshRate(screenId, finalRange);
@@ -73,7 +73,6 @@ int32_t HgmFrameRateManager::UniProcessData(const FrameRateRangeData& data, bool
     }
     // [Temporary func]: Switch refresh rate immediately, func will be removed in the future.
     ExecuteSwitchRefreshRate(screenId);
-    return EXEC_SUCCESS;
 }
 
 void HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRange& range)
@@ -174,7 +173,7 @@ uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, co
 
 void HgmFrameRateManager::ExecuteSwitchRefreshRate(const ScreenId id)
 {
-    static bool refreshRateSwitch = system::GetBoolParameter("persist.hgm.refreshrate.enabled", false);
+    static bool refreshRateSwitch = system::GetBoolParameter("persist.hgm.refreshrate.enabled", true);
     if (!refreshRateSwitch) {
         HGM_LOGD("HgmFrameRateManager: refreshRateSwitch is off, currRefreshRate is %{public}d", currRefreshRate_);
         return;

@@ -403,10 +403,20 @@ std::shared_ptr<HgmOneShotTimer> HgmCore::GetScreenTimer(ScreenId screenId)
     return nullptr;
 }
 
-void HgmCore::InsertScreenTimer(ScreenId screenId, std::shared_ptr<HgmOneShotTimer> timer)
+void HgmCore::InsertAndStartScreenTimer(ScreenId screenId, int32_t interval,
+    std::function<void()> resetCallback, std::function<void()> expiredCallback)
 {
-    screenTimerMap_[screenId] = timer;
+    if (auto oldtimer = GetScreenTimer(screenId); oldtimer == nullptr) {
+        auto newTimer = std::make_shared<HgmOneShotTimer>("idle_timer" + std::to_string(screenId),
+            std::chrono::milliseconds(interval), resetCallback, expiredCallback);
+        screenTimerMap_[screenId] = newTimer;
+        newTimer->Start();
+    }
 }
-
-
+void HgmCore::ResetScreenTimer(ScreenId screenId)
+{
+    if (auto timer = GetScreenTimer(screenId); timer != nullptr) {
+        timer->Reset();
+    }
+}
 } // namespace OHOS::Rosen

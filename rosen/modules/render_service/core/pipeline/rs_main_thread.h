@@ -179,7 +179,7 @@ public:
         context_->AddActiveNode(node);
     }
 
-    void ProcessHgmFrameRate(FrameRateRangeData data, uint64_t timestamp, bool forceUpdateFlag);
+    void ProcessHgmFrameRate(FrameRateRangeData data, uint64_t timestamp);
     DeviceType GetDeviceType() const;
     uint64_t GetFocusNodeId() const;
     uint64_t GetFocusLeashWindowId() const;

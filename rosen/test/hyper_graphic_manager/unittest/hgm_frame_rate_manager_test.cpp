@@ -52,7 +52,7 @@ HWTEST_F(HgmFrameRateMgrTest, UniProcessData, Function | SmallTest | Level1)
         }
         STEP("2. check the result of UniProcessData") {
             FrameRateRangeData data;
-            mgr->UniProcessData(data, false);
+            mgr->UniProcessData(data);
         }
     }
 }
