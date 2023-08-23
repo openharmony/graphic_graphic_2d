@@ -83,13 +83,13 @@ int RSWindowAnimationStub::AppTransition(MessageParcel& data, MessageParcel& rep
     WALOGD("Window animation transition!");
     sptr<RSWindowAnimationTarget> fromWindowTarget(data.ReadParcelable<RSWindowAnimationTarget>());
     if (fromWindowTarget == nullptr) {
-        WALOGE("Failed to read animation target from!");
+        WALOGE("AppTransition failed to read animation target from!");
         return ERR_INVALID_DATA;
     }
 
     sptr<RSWindowAnimationTarget> toWindowTarget(data.ReadParcelable<RSWindowAnimationTarget>());
     if (toWindowTarget == nullptr) {
-        WALOGE("Failed to read animation target to!");
+        WALOGE("AppTransition failed to read animation target to!");
         return ERR_INVALID_DATA;
     }
 
@@ -97,7 +97,7 @@ int RSWindowAnimationStub::AppTransition(MessageParcel& data, MessageParcel& rep
     sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
         iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
     if (finishedCallback == nullptr) {
-        WALOGE("Failed to read animation finished callback!");
+        WALOGE("AppTransition failed to read animation finished callback!");
         return ERR_INVALID_DATA;
     }
 
@@ -110,13 +110,13 @@ int RSWindowAnimationStub::AppBackTransition(MessageParcel& data, MessageParcel&
     WALOGD("Window animation back transition!");
     sptr<RSWindowAnimationTarget> fromWindowTarget(data.ReadParcelable<RSWindowAnimationTarget>());
     if (fromWindowTarget == nullptr) {
-        WALOGE("Failed to read animation target from!");
+        WALOGE("AppBackTransition failed to read animation target from!");
         return ERR_INVALID_DATA;
     }
 
     sptr<RSWindowAnimationTarget> toWindowTarget(data.ReadParcelable<RSWindowAnimationTarget>());
     if (toWindowTarget == nullptr) {
-        WALOGE("Failed to read animation target to!");
+        WALOGE("AppBackTransition failed to read animation target to!");
         return ERR_INVALID_DATA;
     }
 
@@ -124,7 +124,7 @@ int RSWindowAnimationStub::AppBackTransition(MessageParcel& data, MessageParcel&
     sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
         iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
     if (finishedCallback == nullptr) {
-        WALOGE("Failed to read animation finished callback!");
+        WALOGE("AppBackTransition failed to read animation finished callback!");
         return ERR_INVALID_DATA;
     }
 
@@ -145,7 +145,7 @@ int RSWindowAnimationStub::MinimizeWindow(MessageParcel& data, MessageParcel& re
     sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
         iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
     if (finishedCallback == nullptr) {
-        WALOGE("Failed to read animation finished callback!");
+        WALOGE("MinimizeWindow failed to read animation finished callback!");
         return ERR_INVALID_DATA;
     }
 
@@ -175,7 +175,7 @@ int RSWindowAnimationStub::MinimizeAllWindow(MessageParcel& data, MessageParcel&
     sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
         iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
     if (finishedCallback == nullptr) {
-        WALOGE("Failed to read animation finished callback!");
+        WALOGE("MinimizeAllWindow failed to read animation finished callback!");
         return ERR_INVALID_DATA;
     }
 
@@ -196,7 +196,7 @@ int RSWindowAnimationStub::CloseWindow(MessageParcel& data, MessageParcel& reply
     sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
         iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
     if (finishedCallback == nullptr) {
-        WALOGE("Failed to read animation finished callback!");
+        WALOGE("CloseWindow failed to read animation finished callback!");
         return ERR_INVALID_DATA;
     }
 
@@ -211,7 +211,7 @@ int RSWindowAnimationStub::ScreenUnlock(MessageParcel& data, MessageParcel& repl
     sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
         iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
     if (finishedCallback == nullptr) {
-        WALOGE("Failed to read animation finished callback!");
+        WALOGE("ScreenUnlock failed to read animation finished callback!");
         return ERR_INVALID_DATA;
     }
 
