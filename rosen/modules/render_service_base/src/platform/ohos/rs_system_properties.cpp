@@ -298,6 +298,13 @@ bool RSSystemProperties::GetKawaseEnabled()
     return kawaseBlurEnabled;
 }
 
+bool RSSystemProperties::GetKawaseOriginalEnabled()
+{
+    static bool kawaseOriginalEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.kawaseOriginalEnable", "0")).c_str()) != 0;
+    return kawaseOriginalEnabled;
+}
+
 bool RSSystemProperties::GetBlurEnabled()
 {
     static bool blurEnabled =

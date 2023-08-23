@@ -47,6 +47,7 @@ public:
 
 private:
     static SkMatrix GetShaderTransform(const SkCanvas* canvas, const SkRect& blurRect, float scale = 1.0f);
+    void OutputOriginalImage(SkCanvas& canvas, const sk_sp<SkImage>& image, const KawaseParameter& param);
     bool ApplyBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, const sk_sp<SkImage>& blurImage,
         const KawaseParameter& param) const;
     void ComputeRadiusAndScale(int radius);
