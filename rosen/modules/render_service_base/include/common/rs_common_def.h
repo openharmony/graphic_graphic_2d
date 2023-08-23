@@ -35,7 +35,7 @@ using AnimationId = uint64_t;
 using NodeId = uint64_t;
 using PropertyId = uint64_t;
 constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
-constexpr uint64_t INVALID_NODEID = UINT64_MAX;
+constexpr uint64_t INVALID_NODEID = 0;
 
 // types in the same layer should be 0/1/2/4/8
 // types for UINode

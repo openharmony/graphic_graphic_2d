@@ -115,24 +115,7 @@ public:
     /* Judge if rootnode has to be prepared based on it corresponding process is active
      * If its pid is in activeProcessPids_ set, return true
      */
-    bool CheckNodeHasToBePreparedByPid(NodeId nodeId, NodeId rootNodeId, bool isClassifyByRoot)
-    {
-        if (activeAppsInProcess_.empty()) {
-            return false;
-        }
-        pid_t pid = ExtractPid(nodeId);
-        if (activeAppsInProcess_.find(pid) == activeAppsInProcess_.end()) {
-            return false;
-        }
-        if (!isClassifyByRoot) {
-            return true;
-        }
-        auto& activeApps = activeAppsInProcess_[pid];
-        if (activeApps.find(INVALID_NODEID) != activeApps.end()) {
-            return true;
-        }
-        return (activeProcessNodeIds_.find(rootNodeId) != activeProcessNodeIds_.end());
-    }
+    bool CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyByRoot);
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
@@ -182,8 +165,14 @@ public:
     {
         return frameCount_;
     }
-    // add node info after cmd data process
-    void AddActiveNodeId(pid_t pid, NodeId id);
+    void AddActiveNodeId(NodeId id)
+    {
+        context_->AddActiveNodeId(id);
+    }
+    void AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
+    {
+        context_->AddActiveNode(node);
+    }
 
     void ProcessHgmFrameRate(FrameRateRangeData data, uint64_t timestamp);
     DeviceType GetDeviceType() const;
@@ -204,6 +193,7 @@ private:
     void OnVsync(uint64_t timestamp, void* data);
     void ProcessCommand();
     void Animate(uint64_t timestamp);
+    void ApplyModifiers();
     void ConsumeAndUpdateAllNodes();
     void CollectInfoForHardwareComposer();
     void CollectInfoForDrivenRender();
@@ -281,9 +271,6 @@ private:
     std::unordered_map<NodeId, std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>> cachedCommands_;
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> effectiveCommands_;
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
-    // Collect pids of surfaceview's update(ConsumeAndUpdateAllNodes), effective commands(processCommand) and Animate
-    std::unordered_map<pid_t, std::unordered_set<NodeId>> activeAppsInProcess_;
-    std::unordered_map<NodeId, std::unordered_set<NodeId>> activeProcessNodeIds_;
     std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> syncTransactionData_;
     int32_t syncTransactionCount_ { 0 };
 

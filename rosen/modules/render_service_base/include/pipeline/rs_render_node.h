@@ -90,11 +90,11 @@ public:
                                 bool onlyFirstLevel);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
-    virtual bool IsDirty() const;
+    bool IsDirty() const;
     // attention: current all base node's dirty ops causing content dirty
     // if there is any new dirty op, check it
-    virtual bool IsContentDirty() const;
-    virtual void SetContentDirty();
+    bool IsContentDirty() const;
+    void SetContentDirty();
 
     WeakPtr GetParent() const;
 
@@ -161,7 +161,7 @@ public:
         dirtyTypes_.emplace(type);
     }
 
-    virtual std::pair<bool, bool> Animate(int64_t timestamp);
+    std::pair<bool, bool> Animate(int64_t timestamp);
 
     bool IsClipBound() const;
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
@@ -412,7 +412,7 @@ protected:
         CLEAN = 0,
         DIRTY,
     };
-    virtual void SetClean();
+    void SetClean();
 
     void DumpNodeType(std::string& out) const;
 
@@ -456,7 +456,7 @@ private:
     void SortChildren();
 
     const std::weak_ptr<RSContext> context_;
-    NodeDirty dirtyStatus_ = NodeDirty::DIRTY;
+    NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
     bool isContentDirty_ = false;
     friend class RSRenderPropertyBase;
     friend class RSRenderTransition;
@@ -470,6 +470,7 @@ private:
     void InternalRemoveSelfFromDisappearingChildren();
     void FallbackAnimationsToRoot();
     void FilterModifiersByPid(pid_t pid);
+    inline void AddActiveNode();
 
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect);
     void AddModifierProfile(std::shared_ptr<RSRenderModifier> modifier, float width, float height);
@@ -557,6 +558,7 @@ private:
     friend class RSRenderNodeMap;
     friend class RSProxyRenderNode;
     friend class RSRenderNode;
+    friend class RSMainThread;
 };
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;

@@ -25,4 +25,28 @@ void RSContext::RegisterAnimatingRenderNode(const std::shared_ptr<RSRenderNode>&
     animatingNodeList_.emplace(id, nodePtr);
     ROSEN_LOGD("RSContext::RegisterAnimatingRenderNode, register node id: %{public}" PRIu64, id);
 }
+
+void RSContext::UnregisterAnimatingRenderNode(NodeId id)
+{
+    animatingNodeList_.erase(id);
+    ROSEN_LOGD("RSContext::UnregisterAnimatingRenderNode, unregister node id: %{public}" PRIu64, id);
+}
+
+void RSContext::AddActiveNodeId(NodeId id)
+{
+    if (id == INVALID_NODEID) {
+        return;
+    }
+    auto node = nodeMap.GetRenderNode(id);
+    AddActiveNode(node);
+}
+
+void RSContext::AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
+{
+    if (node == nullptr || !node->IsOnTheTree() || node->GetId() == INVALID_NODEID) {
+        return;
+    }
+    auto rootNodeId = node->GetInstanceRootNodeId();
+    activeNodesInRoot_[rootNodeId].emplace(node->GetId(), node);
+}
 } // namespace OHOS::Rosen

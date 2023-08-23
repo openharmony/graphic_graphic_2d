@@ -140,7 +140,6 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
         child->ResetParent();
     }
     children_.erase(it);
-    SetContentDirty();
     isFullChildrenListValid_ = false;
 }
 
@@ -293,6 +292,7 @@ void RSRenderNode::ResetParent()
     auto parentNode = parent_.lock();
     if (parentNode) {
         parentNode->hasRemovedChild_ = true;
+        parentNode->SetContentDirty();
     }
     parent_.reset();
     SetIsOnTheTree(false);
@@ -396,7 +396,10 @@ void RSRenderNode::SetContentDirty()
 
 void RSRenderNode::SetDirty()
 {
-    dirtyStatus_ = NodeDirty::DIRTY;
+    if (dirtyStatus_ != NodeDirty::DIRTY) {
+        AddActiveNode();
+        dirtyStatus_ = NodeDirty::DIRTY;
+    }
 }
 
 void RSRenderNode::SetClean()
@@ -1488,16 +1491,16 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
 
 void RSRenderNode::OnTreeStateChanged()
 {
-    if (isOnTheTree_) {
-        return;
-    }
+    AddActiveNode();
 #ifndef USE_ROSEN_DRAWING
-    // clear filter cache when node is removed from tree
-    if (auto& manager = renderProperties_.GetFilterCacheManager(false)) {
-        manager->InvalidateCache();
-    }
-    if (auto& manager = renderProperties_.GetFilterCacheManager(true)) {
-        manager->InvalidateCache();
+    if (!isOnTheTree_) {
+        // clear filter cache when node is removed from tree
+        if (auto& manager = renderProperties_.GetFilterCacheManager(false)) {
+            manager->InvalidateCache();
+        }
+        if (auto& manager = renderProperties_.GetFilterCacheManager(true)) {
+            manager->InvalidateCache();
+        }
     }
 #endif
 }
@@ -1918,6 +1921,16 @@ void RSRenderNode::MarkNonGeometryChanged()
 std::vector<HgmModifierProfile> RSRenderNode::GetHgmModifierProfileList() const
 {
     return hgmModifierProfileList_;
+}
+
+inline void RSRenderNode::AddActiveNode()
+{
+    if (!isOnTheTree_) {
+        return;
+    }
+    if (auto context = GetContext().lock()) {
+        context->AddActiveNode(shared_from_this());
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -203,12 +203,12 @@ public:
     void MarkUIHidden(bool isHidden);
     bool IsUIHidden() const;
 
-    std::string GetName() const
+    const std::string& GetName() const
     {
         return name_;
     }
 
-    std::string GetBundleName() const
+    const std::string& GetBundleName() const
     {
         return bundleName_;
     }

@@ -212,7 +212,6 @@ void RSUniRenderVisitor::CopyPropertyForParallelVisitor(RSUniRenderVisitor *main
 
 void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
 {
-    node.ApplyChildrenModifiers();
     const auto& children = node.GetSortedChildren();
 
     // GetSortedChildren() may remove disappearingChildren_ when transition animation end.
@@ -512,7 +511,8 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
     // if node has to be prepared, it's not static
     bool isClassifyByRootNode = (quickSkipPrepareType_ == QuickSkipPrepareType::STATIC_WIDGET);
     NodeId rootId = node.GetInstanceRootNodeId();
-    if (RSMainThread::Instance()->CheckNodeHasToBePreparedByPid(node.GetId(), rootId, isClassifyByRootNode)) {
+    if (RSMainThread::Instance()->CheckNodeHasToBePreparedByPid(
+        isClassifyByRootNode ? rootId : node.GetId(), isClassifyByRootNode)) {
         return false;
     }
     if (node.IsMainWindowType()) {
@@ -520,11 +520,12 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
         curRootNode_ = node.shared_from_this();
         // [Attention] node's ability pid could be different but should have same rootId
         auto abilityNodeIds = node.GetAbilityNodeIds();
-        auto iter = std::any_of(abilityNodeIds.begin(), abilityNodeIds.end(),
-            [&](uint64_t nodeId) {
-                return RSMainThread::Instance()->CheckNodeHasToBePreparedByPid(nodeId, rootId, isClassifyByRootNode);
+        bool result = isClassifyByRootNode
+            ? RSMainThread::Instance()->CheckNodeHasToBePreparedByPid(rootId, true)
+            : std::any_of(abilityNodeIds.begin(), abilityNodeIds.end(), [&](uint64_t nodeId) {
+                return RSMainThread::Instance()->CheckNodeHasToBePreparedByPid(nodeId, false);
             });
-        if (iter) {
+        if (result) {
             return false;
         }
     }
