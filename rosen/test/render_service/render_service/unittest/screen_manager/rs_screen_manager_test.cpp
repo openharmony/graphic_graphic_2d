@@ -586,13 +586,13 @@ HWTEST_F(RSScreenManagerTest, RemoveVirtualScreen_002, TestSize.Level1)
     auto id = screenManager->CreateVirtualScreen("virtualScreen001", 480, 320, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
 
-    auto csurfacePtr = IConsumerSurface::Create();
-    ASSERT_NE(csurfacePtr, nullptr);
-    auto producerPtr = csurfacePtr->GetProducer();
-    auto psurfacePtr = Surface::CreateSurfaceAsProducer(producerPtr);
-    ASSERT_NE(psurfacePtr, nullptr);
+    csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    producer = csurface->GetProducer();
+    psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
 
-    auto id_ = screenManager->CreateVirtualScreen("virtualScreen002", 480, 320, psurfacePtr);
+    id = screenManager->CreateVirtualScreen("virtualScreen002", 480, 320, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id_);
 
     ScreenId screenId = INVALID_SCREEN_ID;
