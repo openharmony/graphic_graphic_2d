@@ -85,7 +85,7 @@ void DrawingEngineSample::Run()
 
     auto runner = OHOS::AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
-    g_receiver = new VSyncReceiver(vsyncConnection, handler);
+    g_receiver = new VSyncReceiver(vsyncConnection,nullptr, handler, "DrawingEngineSample");
     g_receiver->Init();
     handler->PostTask(std::bind(&DrawingEngineSample::Init, this));
     runner->Run();
