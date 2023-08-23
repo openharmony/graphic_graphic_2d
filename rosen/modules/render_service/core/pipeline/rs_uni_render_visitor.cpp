@@ -3562,6 +3562,12 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         };
 #endif
         drawingNode->SetSurfaceClearFunc({ threadIndex_, clearFunc });
+#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL) && defined(NEW_SKIA)
+        auto clearGpuFun = [](RSPaintFilterCanvas* canvas, uint64_t index) {
+            RSUniRenderUtil::ClearCanvasGpuResource(canvas, index);
+        };
+        drawingNode->SetGpuResourceClearFunc(clearGpuFun);
+#endif
     }
     CheckAndSetNodeCacheType(node);
     DrawChildCanvasRenderNode(node);

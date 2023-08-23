@@ -55,14 +55,18 @@ void RSCanvasDrawingRenderNode::OnTreeStateChanged()
         return;
     }
     
-    auto grContext = canvas_ != nullptr ? static_cast<GrDirectContext*>(canvas_->recordingContext()) : nullptr;
-    if (grContext == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNode: GrContext is nullptr");
-        return;
+    if (gpuResourceClearFun_ && canvas_) {
+        gpuResourceClearFun_(canvas_.get(), curThreadInfo_.first);
     }
-    grContext->purgeUnlockedResources(true);
 #endif
 }
+
+#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL) && defined(NEW_SKIA)
+void RSCanvasDrawingRenderNode::SetGpuResourceClearFunc(GpuResourceClearFun fun)
+{
+    gpuResourceClearFun_ = fun;
+}
+#endif
 
 void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 {

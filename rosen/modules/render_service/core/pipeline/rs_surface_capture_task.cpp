@@ -1049,6 +1049,12 @@ void RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
                 RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, id, 0);
             };
             canvasDrawingNode->SetSurfaceClearFunc({ UNI_MAIN_THREAD_INDEX, clearFunc });
+#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL) && defined(NEW_SKIA)
+            auto clearGpuFunc = [](RSPaintFilterCanvas* canvas, uint64_t index) {
+                RSUniRenderUtil::ClearCanvasGpuResource(canvas, index);
+            };
+            canvasDrawingNode->SetGpuResourceClearFunc(clearGpuFunc);
+#endif
             canvasDrawingNode->ProcessRenderBeforeChildren(*canvas_);
             canvasDrawingNode->ProcessRenderContents(*canvas_);
         } else {
