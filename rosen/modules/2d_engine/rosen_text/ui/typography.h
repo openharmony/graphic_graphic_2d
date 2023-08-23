@@ -25,7 +25,7 @@
 
 namespace rosen {
 using namespace OHOS::Rosen::Drawing;
-class Typography {
+class DRAWING_API Typography {
 public:
     Typography();
     ~Typography() = default;

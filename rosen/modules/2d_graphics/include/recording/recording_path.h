@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class RecordingPath : public Path {
+class DRAWING_API RecordingPath : public Path {
 public:
     RecordingPath() noexcept;
     ~RecordingPath() override = default;

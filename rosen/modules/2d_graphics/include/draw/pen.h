@@ -25,7 +25,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class Pen {
+class DRAWING_API Pen {
 public:
     enum class JoinStyle {
         MITER_JOIN,

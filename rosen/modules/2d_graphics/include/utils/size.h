@@ -16,6 +16,7 @@
 #ifndef SIZE_H
 #define SIZE_H
 
+#include "utils/drawing_macros.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -24,7 +25,7 @@ namespace Drawing {
 class SizeF;
 typedef SizeF Size;
 
-class SizeF {
+class DRAWING_API SizeF {
 public:
     inline SizeF() noexcept;
     inline SizeF(const SizeF& s) noexcept;
@@ -96,7 +97,7 @@ inline bool operator!=(const SizeF& s1, const SizeF& s2)
     return s1.width_ != s2.width_ || s1.height_ != s2.height_;
 }
 
-class SizeI {
+class DRAWING_API SizeI {
 public:
     inline SizeI() noexcept;
     inline SizeI(const SizeI& s) noexcept;
