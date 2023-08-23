@@ -224,30 +224,6 @@ float RSRenderAnimatableProperty<Vector2f>::ToFloat() const
     return RSRenderProperty<Vector2f>::stagingValue_.GetLength();
 }
 
-template<>
-bool RSRenderProperty<float>::IsNeedUpdate(const float& value) const
-{
-    switch (modifierType_) {
-        case RSModifierType::ALPHA:
-        case RSModifierType::SHADOW_ALPHA: {
-            const float SHADOW_ALPHA_MINMODIFY = 1.0 / 256;
-            return std::abs(value - stagingValue_) >= SHADOW_ALPHA_MINMODIFY;
-        }
-        case RSModifierType::BG_IMAGE_WIDTH:
-        case RSModifierType::BG_IMAGE_HEIGHT:
-        case RSModifierType::BG_IMAGE_POSITION_X:
-        case RSModifierType::BG_IMAGE_POSITION_Y:
-        case RSModifierType::SHADOW_RADIUS: {
-            return std::abs(value - stagingValue_) >= 0.1f;
-        }
-        default: {
-            return true;
-        }
-    }
-}
-
-template class RSRenderProperty<float>;
-
 std::shared_ptr<RSRenderPropertyBase> operator+=(
     const std::shared_ptr<RSRenderPropertyBase>& a, const std::shared_ptr<const RSRenderPropertyBase>& b)
 {
