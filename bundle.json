@@ -274,17 +274,6 @@
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic_2d/utils/buffer_handle:buffer_handle",
-            "header": {
-              "header_files": [
-                "export/buffer_handle_parcel.h",
-                "export/buffer_handle_utils.h"
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/utils/buffer_handle"
-            }
-          },
-          {
-            "type": "so",
             "name": "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
             "header": {
               "header_files": [
