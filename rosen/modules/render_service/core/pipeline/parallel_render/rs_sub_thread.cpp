@@ -158,11 +158,6 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
         // flag CacheSurfaceProcessed is used for cacheCmdskippedNodes collection in rs_mainThread
         surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
 
-        if (RSMainThread::Instance()->GetFrameCount() != threadTask->GetFrameCount()) {
-            surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
-            continue;
-        }
-
         RS_TRACE_NAME_FMT("draw cache render node: [%s, %llu]", surfaceNodePtr->GetName().c_str(),
             surfaceNodePtr->GetId());
         if (surfaceNodePtr->GetCacheSurface(threadIndex_, true) == nullptr || surfaceNodePtr->NeedInitCacheSurface()) {
@@ -212,6 +207,10 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
 
         if (needNotify) {
             RSSubThreadManager::Instance()->NodeTaskNotify(node->GetId());
+        }
+        if (RSMainThread::Instance()->GetFrameCount() != threadTask->GetFrameCount()) {
+            RSMainThread::Instance()->RequestNextVSync();
+            break;
         }
     }
     eglCreateSyncKHR(renderContext_->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
