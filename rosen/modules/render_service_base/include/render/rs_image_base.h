@@ -45,9 +45,11 @@ public:
     virtual void DrawImage(SkCanvas& canvas, const SkPaint& paint);
 #endif
     void SetImage(const sk_sp<SkImage> image);
+    void SetDmaImage(const sk_sp<SkImage> image);
 #else
     virtual void DrawImage(Drawing::Canvas& canvas, const Drawing::Brush& brush);
     void SetImage(const std::shared_ptr<Drawing::Image> image);
+    void SetDmaImage(const std::shared_ptr<Drawing::Image> image);
 #endif
     void SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap);
     void SetSrcRect(const RectF& dstRect);

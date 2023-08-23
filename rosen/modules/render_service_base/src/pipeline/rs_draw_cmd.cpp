@@ -734,7 +734,7 @@ void ImageWithParmOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) 
     if (pixelmap != nullptr && pixelmap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
         sk_sp<SkImage> dmaImage = GetSkImageFromSurfaceBuffer(canvas,
             reinterpret_cast<SurfaceBuffer*> (pixelmap->GetFd()));
-        rsImage_->SetImage(dmaImage);
+        rsImage_->SetDmaImage(dmaImage);
     }
 #endif
 #endif
