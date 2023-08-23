@@ -36,6 +36,7 @@ public:
     int32_t SetData(NativeWindowBuffer *nativeWindowBuffer, NativeWindow *nativeWindow);
     bool GetData(sptr<SurfaceBuffer> &buffer);
     pid_t ChildProcessMain();
+    int32_t InitNativeWindowAndBuffer(sptr<IRemoteObject> robj);
 
     static inline sptr<OHOS::IConsumerSurface> cSurface = nullptr;
     static inline int32_t pipeFd[2] = {};
@@ -101,27 +102,8 @@ bool NativeWindowBufferTest::GetData(sptr<SurfaceBuffer> &buffer)
     return true;
 }
 
-pid_t NativeWindowBufferTest::ChildProcessMain()
+int32_t NativeWindowBufferTest::InitNativeWindowAndBuffer(sptr<IRemoteObject> robj)
 {
-    pipe(pipeFd);
-    pid_t pid = fork();
-    if (pid != 0) {
-        return pid;
-    }
-
-    int64_t data;
-    read(pipeFd[0], &data, sizeof(data));
-
-    sptr<IRemoteObject> robj = nullptr;
-    while (true) {
-        auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        robj = sam->GetSystemAbility(ipcSystemAbilityID);
-        if (robj != nullptr) {
-            break;
-        }
-        sleep(0);
-    }
-
     auto producer = iface_cast<IBufferProducer>(robj);
     sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
 
@@ -148,17 +130,11 @@ pid_t NativeWindowBufferTest::ChildProcessMain()
     int32_t fenceFd = -1;
     auto ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd);
     if (ret != OHOS::GSERROR_OK) {
-        data = ret;
-        write(pipeFd[1], &data, sizeof(data));
-        exit(0);
-        return -1;
+        return ret;
     }
     ret = SetData(nativeWindowBuffer, nativeWindow);
-        if (ret != OHOS::GSERROR_OK) {
-        data = ret;
-        write(pipeFd[1], &data, sizeof(data));
-        exit(0);
-        return -1;
+    if (ret != OHOS::GSERROR_OK) {
+        return ret;
     }
 
     struct Region *region = new Region();
@@ -169,21 +145,49 @@ pid_t NativeWindowBufferTest::ChildProcessMain()
     region->rectNumber = 1;
     ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, -1, *region);
     if (ret != OHOS::GSERROR_OK) {
-        data = ret;
-        write(pipeFd[1], &data, sizeof(data));
         delete rect;
         delete region;
+        return ret;
+    }
+    delete rect;
+    delete region;
+    return OHOS::GSERROR_OK;
+}
+
+pid_t NativeWindowBufferTest::ChildProcessMain()
+{
+    pipe(pipeFd);
+    pid_t pid = fork();
+    if (pid != 0) {
+        return pid;
+    }
+
+    int64_t data;
+    read(pipeFd[0], &data, sizeof(data));
+
+    sptr<IRemoteObject> robj = nullptr;
+    while (true) {
+        auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        robj = sam->GetSystemAbility(ipcSystemAbilityID);
+        if (robj != nullptr) {
+            break;
+        }
+        sleep(0);
+    }
+    int32_t ret = InitNativeWindowAndBuffer(robj);
+    if (ret != OHOS::GSERROR_OK) {
+        data = ret;
+        write(pipeFd[1], &data, sizeof(data));
         exit(0);
         return -1;
     }
+
     data = ret;
     write(pipeFd[1], &data, sizeof(data));
     usleep(1000); // sleep 1000 microseconds (equals 1 milliseconds)
     read(pipeFd[0], &data, sizeof(data));
     close(pipeFd[0]);
     close(pipeFd[1]);
-    delete rect;
-    delete region;
     exit(0);
     return 0;
 }

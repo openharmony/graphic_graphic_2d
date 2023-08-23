@@ -113,7 +113,7 @@ public:
             // default pivot: center
             float pivotX = 0.5f; // centerX: 0.5
             float pivotY = 0.5f; // centerY: 0.5
-            std::string pivotInfo = "Pivot: centor(0.5, 0.5)";
+            std::string pivotInfo;
             // make pivot to start point if (i % 2 == 0)
             if (i % 2 == 0) {
                 pivotX = 0.0f;
