@@ -67,7 +67,7 @@ void OpItemTasks::ProcessTask()
         std::lock_guard<std::mutex> lock(mutex_);
         std::swap(tasks, tasks_);
     }
-    for (auto& task : tasks) {
+    for (const auto& task : tasks) {
         task();
     }
 }
