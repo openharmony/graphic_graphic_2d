@@ -1102,8 +1102,10 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         RS_LOGE("RSUniRenderVisitor::PrepareCanvasRenderNode curXDirtyManager is nullptr");
         return;
     }
-    node.GetMutableRenderProperties().UpdateSandBoxMatrix(parentSurfaceNodeMatrix_);
-        // if canvasNode is not sub node of surfaceNode, merge the dirtyRegion to curDisplayDirtyManager_
+    if (node.GetSharedTransitionParam().has_value()) {
+        node.GetMutableRenderProperties().UpdateSandBoxMatrix(parentSurfaceNodeMatrix_);
+    }
+    // if canvasNode is not sub node of surfaceNode, merge the dirtyRegion to curDisplayDirtyManager_
     auto dirtyManager = isSubNodeOfSurfaceInPrepare_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
     dirtyFlag_ = node.Update(*dirtyManager, nodeParent, dirtyFlag_, prepareClipRect_);
 
@@ -3534,14 +3536,16 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(*canvas_);
     }
-    // draw self and children in sandbox which will not be affected by parent's transition
-    const auto& sandboxMatrix = node.GetRenderProperties().GetSandBoxMatrix();
-    if (sandboxMatrix) {
+    if (node.GetSharedTransitionParam().has_value()) {
+        // draw self and children in sandbox which will not be affected by parent's transition
+        const auto& sandboxMatrix = node.GetRenderProperties().GetSandBoxMatrix();
+        if (sandboxMatrix) {
 #ifndef USE_ROSEN_DRAWING
-        canvas_->setMatrix(*sandboxMatrix);
+            canvas_->setMatrix(*sandboxMatrix);
 #else
-        canvas_->SetMatrix(*sandboxMatrix);
+            canvas_->SetMatrix(*sandboxMatrix);
 #endif
+        }
     }
     const auto& property = node.GetRenderProperties();
     if (property.IsSpherizeValid()) {
