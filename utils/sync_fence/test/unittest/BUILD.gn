@@ -18,7 +18,11 @@ module_out_path = "graphic_2d/utils/sync_fence"
 group("unittest") {
   testonly = true
 
-  deps = [ ":sync_fence_test" ]
+  deps = [
+    ":sync_fence_test",
+    ":sync_fence_timeline_test",
+    ":sync_fence_tracker_test",
+  ]
 }
 
 ## UnitTest sync_fence_test {{{
@@ -49,7 +53,7 @@ ohos_unittest("sync_fence_timeline_test") {
 
   deps = [
     ":sync_fence_common",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "../../../../../../../communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
   ]
 
   external_deps = [
@@ -69,7 +73,7 @@ ohos_unittest("sync_fence_tracker_test") {
 
   deps = [
     ":sync_fence_common",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "../../../../../../../communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
   ]
 
   external_deps = [

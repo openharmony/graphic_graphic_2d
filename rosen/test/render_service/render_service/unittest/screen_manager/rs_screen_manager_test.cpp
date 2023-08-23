@@ -577,31 +577,23 @@ HWTEST_F(RSScreenManagerTest, RemoveVirtualScreen_002, TestSize.Level1)
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
 
-    std::string name001 = "virtualScreen01";
-    uint32_t width001 = 480;
-    uint32_t height001 = 320;
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
 
-    auto csurface001 = IConsumerSurface::Create();
-    ASSERT_NE(csurface001, nullptr);
-    auto producer001 = csurface001->GetProducer();
-    auto psurface001 = Surface::CreateSurfaceAsProducer(producer001);
-    ASSERT_NE(psurface001, nullptr);
+    auto id = screenManager->CreateVirtualScreen("virtualScreen001", 480, 320, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
 
-    auto id001 = screenManager->CreateVirtualScreen(name001, width001, height001, psurface001);
-    ASSERT_NE(INVALID_SCREEN_ID, id001);
+    auto csurface_ = IConsumerSurface::Create();
+    ASSERT_NE(csurface_, nullptr);
+    auto producer_ = csurface_->GetProducer();
+    auto psurface_ = Surface::CreateSurfaceAsProducer(producer_);
+    ASSERT_NE(psurface_, nullptr);
 
-    std::string name002 = "virtualScreen02";
-    uint32_t width002 = 480;
-    uint32_t height002 = 320;
-
-    auto csurface002 = IConsumerSurface::Create();
-    ASSERT_NE(csurface002, nullptr);
-    auto producer002 = csurface002->GetProducer();
-    auto psurface002 = Surface::CreateSurfaceAsProducer(producer002);
-    ASSERT_NE(psurface002, nullptr);
-
-    auto id002 = screenManager->CreateVirtualScreen(name002, width002, height002, psurface002);
-    ASSERT_NE(INVALID_SCREEN_ID, id002);
+    auto id_ = screenManager->CreateVirtualScreen("virtualScreen002", 480, 320, psurface_);
+    ASSERT_NE(INVALID_SCREEN_ID, id_);
 
     ScreenId screenId = INVALID_SCREEN_ID;
     screenManager->RemoveVirtualScreen(screenId);
