@@ -84,6 +84,7 @@ public:
     void PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime);
     void RemoveTask(const std::string& name);
     void PostSyncTask(RSTaskMessage::RSTask task);
+    bool IsIdle() const;
     void QosStateDump(std::string& dumpString);
     void RenderServiceTreeDump(std::string& dumpString);
     void RsEventParamDump(std::string& dumpString);

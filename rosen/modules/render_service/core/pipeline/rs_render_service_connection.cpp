@@ -777,6 +777,9 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, SkBitmap& bitmap)
 bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
 #endif
 {
+    if (!mainThread_->IsIdle()) {
+        return false;
+    }
     auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(id);
     if (node == nullptr) {
         RS_LOGE("RSRenderServiceConnection::GetBitmap cannot find NodeId: [%{public}" PRIu64 "]", id);

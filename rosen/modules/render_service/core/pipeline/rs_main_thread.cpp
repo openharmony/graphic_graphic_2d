@@ -1653,6 +1653,11 @@ void RSMainThread::PostSyncTask(RSTaskMessage::RSTask task)
     }
 }
 
+bool RSMainThread::IsIdle() const
+{
+    return handler_ ? handler_->IsIdle() : false;
+}
+
 void RSMainThread::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
     applicationAgentMap_.emplace(pid, app);
