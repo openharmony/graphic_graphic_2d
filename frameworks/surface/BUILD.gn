@@ -86,7 +86,6 @@ ohos_shared_library("surface") {
     "$graphic_2d_root/utils/buffer_handle:buffer_handle",
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
     "$graphic_2d_root/utils/scoped_bytrace:scoped_bytrace",
-    "//drivers/peripheral/display/hdi_service/gralloc/client:hdi_gralloc_client",
   ]
 
   external_deps = [
