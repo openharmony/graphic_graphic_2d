@@ -54,6 +54,7 @@ using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent)>;
 using BufferAvailableCallback = std::function<void()>;
 using BufferClearCallback = std::function<void()>;
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
+using SurfaceOcclusionChangeCallback = std::function<void(bool)>;
 using HgmConfigChangeCallback = std::function<void(std::shared_ptr<RSHgmConfigData>)>;
 
 struct DataBaseRs {
@@ -197,6 +198,10 @@ public:
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
 
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
+
+    int32_t RegisterSurfaceOcclusionChangeCallback(NodeId id, const SurfaceOcclusionChangeCallback& callback);
+
+    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
 
     int32_t RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback);
 

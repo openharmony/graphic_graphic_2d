@@ -132,6 +132,11 @@ public:
 
     int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
 
+    int32_t RegisterSurfaceOcclusionChangeCallback(
+        NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback) override;
+
+    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) override;
+
     int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     void SetAppWindowNum(uint32_t num) override;

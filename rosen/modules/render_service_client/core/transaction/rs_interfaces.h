@@ -138,6 +138,10 @@ public:
 
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
+    int32_t RegisterSurfaceOcclusionChangeCallback(NodeId id, const SurfaceOcclusionChangeCallback& callback);
+
+    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
+
     int32_t RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback);
 
     void SetAppWindowNum(uint32_t num);

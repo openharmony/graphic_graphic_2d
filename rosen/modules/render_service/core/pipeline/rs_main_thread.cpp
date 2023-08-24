@@ -1354,6 +1354,8 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
     // Callback to WMS and QOS
     CallbackToWMS(curVisVec);
     CallbackToQOS(pidVisMap);
+    // Callback for registered self drawing surfacenode
+    SurfaceOcclusionCallback();
 }
 
 void RSMainThread::CalcOcclusion()
@@ -1484,6 +1486,41 @@ void RSMainThread::CallbackToWMS(VisibleData& curVisVec)
     }
     lastVisVec_.clear();
     std::copy(curVisVec.begin(), curVisVec.end(), std::back_inserter(lastVisVec_));
+}
+
+void RSMainThread::SurfaceOcclusionCallback()
+{
+    for (auto &listener : surfaceOcclusionListeners_) {
+        if (savedAppWindowNode_.find(listener.first) == savedAppWindowNode_.end()) {
+            const auto& nodeMap = context_->GetNodeMap();
+            auto node = nodeMap.GetRenderNode(listener.first);
+            if (!node || !node->IsOnTheTree()) {
+                RS_LOGW("RSMainThread::SurfaceOcclusionCallback cannot find surfacenode %{public}"
+                    PRIu64 ".", listener.first);
+                continue;
+            }
+            auto appWindowNodeId = node->GetInstanceRootNodeId();
+            if (appWindowNodeId == INVALID_NODEID) {
+                RS_LOGW("RSMainThread::SurfaceOcclusionCallback surfacenode %{public}"
+                    PRIu64 " cannot find app window node.", listener.first);
+                continue;
+            }
+            auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
+            auto appWindowNode = nodeMap.GetRenderNode(appWindowNodeId)->ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (!surfaceNode || !appWindowNode) {
+                RS_LOGW("RSMainThread::SurfaceOcclusionCallback ReinterpretCastTo fail.");
+                continue;
+            }
+            savedAppWindowNode_[listener.first] = std::make_pair(surfaceNode, appWindowNode);
+        }
+        bool visible = savedAppWindowNode_[listener.first].second->GetVisibleRegion().IsIntersectWith(
+            savedAppWindowNode_[listener.first].first->GetDstRect());
+        if (std::get<2>(listener.second) != visible) { // get 2 in tuple to check visible is changed
+            RS_LOGD("RSMainThread::SurfaceOcclusionCallback surfacenode: %{public}" PRIu64 ".", listener.first);
+            std::get<1>(listener.second)->OnSurfaceOcclusionVisibleChanged(visible);
+            std::get<2>(listener.second) = visible; // get 2 in tuple, change the visible status
+        }
+    }
 }
 
 void RSMainThread::RequestNextVSync()
@@ -1681,6 +1718,35 @@ void RSMainThread::UnRegisterOcclusionChangeCallback(pid_t pid)
 {
     std::lock_guard<std::mutex> lock(occlusionMutex_);
     occlusionListeners_.erase(pid);
+}
+
+void RSMainThread::RegisterSurfaceOcclusionChangeCallback(
+    NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(surfaceOcclusionMutex_);
+    surfaceOcclusionListeners_[id] = std::make_tuple(pid, callback, true);
+}
+
+void RSMainThread::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(surfaceOcclusionMutex_);
+    surfaceOcclusionListeners_.erase(id);
+    savedAppWindowNode_.erase(id);
+}
+
+void RSMainThread::ClearSurfaceOcclusionChangeCallback(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(surfaceOcclusionMutex_);
+    for (auto it = surfaceOcclusionListeners_.begin(); it != surfaceOcclusionListeners_.end();) {
+        if (std::get<0>(it->second) == pid) {
+            if (savedAppWindowNode_.find(it->first) != savedAppWindowNode_.end()) {
+                savedAppWindowNode_.erase(it->first);
+            }
+            surfaceOcclusionListeners_.erase(it++);
+        } else {
+            it++;
+        }
+    }
 }
 
 void RSMainThread::SendCommands()

@@ -299,6 +299,16 @@ int32_t RSInterfaces::RegisterOcclusionChangeCallback(const OcclusionChangeCallb
     return renderServiceClient_->RegisterOcclusionChangeCallback(callback);
 }
 
+int32_t RSInterfaces::RegisterSurfaceOcclusionChangeCallback(NodeId id, const SurfaceOcclusionChangeCallback& callback)
+{
+    return renderServiceClient_->RegisterSurfaceOcclusionChangeCallback(id, callback);
+}
+
+int32_t RSInterfaces::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
+{
+    return renderServiceClient_->UnRegisterSurfaceOcclusionChangeCallback(id);
+}
+
 int32_t RSInterfaces::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)
 {
     return renderServiceClient_->RegisterHgmConfigChangeCallback(callback);
@@ -343,6 +353,5 @@ void RSInterfaces::ReportEventJankFrame(DataBaseRs info)
 {
     renderServiceClient_->ReportEventJankFrame(info);
 }
-
 } // namespace Rosen
 } // namespace OHOS

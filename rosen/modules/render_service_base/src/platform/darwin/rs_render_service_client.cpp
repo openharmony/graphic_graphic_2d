@@ -276,6 +276,17 @@ int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionCh
     return {};
 }
 
+int32_t RSRenderServiceClient::RegisterSurfaceOcclusionChangeCallback(
+    NodeId id, const SurfaceOcclusionChangeCallback& callback)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)
 {
     return {};

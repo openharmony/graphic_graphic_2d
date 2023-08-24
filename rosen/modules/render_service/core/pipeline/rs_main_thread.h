@@ -35,6 +35,7 @@
 #include "common/rs_thread_looper.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
 #include "memory/rs_memory_graphic.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -140,6 +141,10 @@ public:
     void RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback);
     void UnRegisterOcclusionChangeCallback(pid_t pid);
 
+    void RegisterSurfaceOcclusionChangeCallback(NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback);
+    void UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
+    void ClearSurfaceOcclusionChangeCallback(pid_t pid);
+
     void WaitUtilUniRenderFinished();
     void NotifyUniRenderFinish();
 
@@ -218,6 +223,7 @@ private:
     void CallbackToQOS(std::map<uint32_t, bool>& pidVisMap);
     void CallbackToWMS(VisibleData& curVisVec);
     void SendCommands();
+    void SurfaceOcclusionCallback();
     void InitRSEventDetector();
     void RemoveRSEventDetector();
     void SetRSEventDetectorLoopStartTag();
@@ -392,6 +398,13 @@ private:
     // for ui first
     std::mutex mutex_;
     std::queue<sk_sp<SkSurface>> tmpSurfaces_;
+
+    // for surface occlusion change callback
+    std::mutex surfaceOcclusionMutex_;
+    std::unordered_map<NodeId,
+        std::tuple<pid_t, sptr<RSISurfaceOcclusionChangeCallback>, bool>> surfaceOcclusionListeners_;
+    std::unordered_map<NodeId,
+        std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>> savedAppWindowNode_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

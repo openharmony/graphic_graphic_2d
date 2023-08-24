@@ -23,6 +23,7 @@
 
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
+#include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
@@ -706,6 +707,45 @@ int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionCh
     }
     sptr<CustomOcclusionChangeCallback> cb = new CustomOcclusionChangeCallback(callback);
     return renderService->RegisterOcclusionChangeCallback(cb);
+}
+
+class CustomSurfaceOcclusionChangeCallback : public RSSurfaceOcclusionChangeCallbackStub
+{
+public:
+    explicit CustomSurfaceOcclusionChangeCallback(const SurfaceOcclusionChangeCallback &callback) : cb_(callback) {}
+    ~CustomSurfaceOcclusionChangeCallback() override {};
+
+    void OnSurfaceOcclusionVisibleChanged(bool visible) override
+    {
+        if (cb_ != nullptr) {
+            cb_(visible);
+        }
+    }
+
+private:
+    SurfaceOcclusionChangeCallback cb_;
+};
+
+int32_t RSRenderServiceClient::RegisterSurfaceOcclusionChangeCallback(
+    NodeId id, const SurfaceOcclusionChangeCallback& callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterSurfaceOcclusionChangeCallback renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    sptr<CustomSurfaceOcclusionChangeCallback> cb = new CustomSurfaceOcclusionChangeCallback(callback);
+    return renderService->RegisterSurfaceOcclusionChangeCallback(id, cb);
+}
+
+int32_t RSRenderServiceClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::UnRegisterSurfaceOcclusionChangeCallback renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->UnRegisterSurfaceOcclusionChangeCallback(id);
 }
 
 class CustomHgmConfigChangeCallback : public RSHgmConfigChangeCallbackStub

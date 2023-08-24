@@ -25,6 +25,7 @@
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
+#include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "memory/rs_memory_graphic.h"
@@ -155,6 +156,11 @@ public:
     virtual int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) = 0;
 
     virtual int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) = 0;
+
+    virtual int32_t RegisterSurfaceOcclusionChangeCallback(
+        NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback) = 0;
+
+    virtual int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) = 0;
 
     virtual int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 

@@ -116,6 +116,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             RS_TRACE_NAME_FMT("UnRegisterCallback %d", remotePid_);
             HgmConfigCallbackManager::GetInstance()->UnRegisterHgmConfigChangeCallback(remotePid_);
             mainThread_->UnRegisterOcclusionChangeCallback(remotePid_);
+            mainThread_->ClearSurfaceOcclusionChangeCallback(remotePid_);
         }).wait();
     for (auto& conn : vsyncConnections_) {
         appVSyncDistributor_->RemoveConnection(conn);
@@ -821,6 +822,25 @@ int32_t RSRenderServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclu
         return StatusCode::INVALID_ARGUMENTS;
     }
     mainThread_->RegisterOcclusionChangeCallback(remotePid_, callback);
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSRenderServiceConnection::RegisterSurfaceOcclusionChangeCallback(
+    NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!callback) {
+        RS_LOGD("RSRenderServiceConnection::RegisterSurfaceOcclusionChangeCallback: callback is nullptr");
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    mainThread_->RegisterSurfaceOcclusionChangeCallback(id, remotePid_, callback);
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSRenderServiceConnection::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    mainThread_->UnRegisterSurfaceOcclusionChangeCallback(id);
     return StatusCode::SUCCESS;
 }
 
