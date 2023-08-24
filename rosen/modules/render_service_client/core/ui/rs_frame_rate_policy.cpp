@@ -79,7 +79,7 @@ int RSFrameRatePolicy::GetPreferredFps(const std::string& scene, float speed)
 {
     const auto& attributes = animAttributes[scene];
     auto iter = std::find_if(attributes.begin(), attributes.end(), [&speed](const auto& pair) {
-        return speed >= pair.second.minSpeed && (speed <= pair.second.maxSpeed ||
+        return speed >= pair.second.minSpeed && (speed < pair.second.maxSpeed ||
             pair.second.maxSpeed == -1);
     });
     if (iter != attributes.end()) {
