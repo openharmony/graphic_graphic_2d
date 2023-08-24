@@ -80,6 +80,18 @@ void OH_NativeVSync_Destroy(OH_NativeVSync* nativeVsync);
  * @version 1.0
  */
 int OH_NativeVSync_RequestFrame(OH_NativeVSync* nativeVsync, OH_NativeVSync_FrameCallback callback, void* data);
+
+/**
+ * @brief Get vsync period.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
+ * @param nativeVsync Indicates the pointer to a NativeVsync.
+ * @param period Indicates the vsync period.
+ * @return Returns int32_t, return value == 0, success, otherwise, failed.
+ * @since 10
+ * @version 1.0
+ */
+int OH_NativeVSync_GetPeriod(OH_NativeVSync* nativeVsync, long long* period);
 #ifdef __cplusplus
 }
 #endif
