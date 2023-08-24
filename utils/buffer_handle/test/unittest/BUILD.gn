@@ -24,6 +24,7 @@ group("unittest") {
 ohos_unittest("BufferHandleTest") {
   module_out_path = module_out_path
   sources = [ "buffer_handle_test.cpp" ]
+  include_dirs = [ "//third_party/googletest/googletest/include" ],
   deps = [ ":buffer_handle_test_common" ]
   external_deps = [ "hilog:libhilog" ]
 }
@@ -43,10 +44,7 @@ ohos_static_library("buffer_handle_test_common") {
   testonly = true
   public_configs = [ ":buffer_handle_test_config" ]
 
-  public_deps = [
-    "../../../../utils/buffer_handle:buffer_handle",
-    "//third_party/googletest:gtest_main",
-  ]
+  public_deps = [ "../../../../utils/buffer_handle:buffer_handle" ]
 
   external_deps = [
     "c_utils:utils",
