@@ -69,8 +69,10 @@ public:
     void SetGpuResourceClearFunc(GpuResourceClearFun fun);
 #endif
 
+    void AddDirtyType(RSModifierType type) override;
+
 private:
-    void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type) const override;
+    void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
     bool IsNeedResetSurface(const int& width, const int& height) const;
@@ -87,6 +89,7 @@ private:
 #if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL) && defined(NEW_SKIA)
     GpuResourceClearFun gpuResourceClearFun_ = nullptr;
 #endif
+    std::map<RSModifierType, std::list<DrawCmdListPtr>> drawCmdLists_;
 };
 
 } // namespace Rosen
