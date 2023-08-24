@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class RecordingMaskFilter : public MaskFilter {
+class DRAWING_API RecordingMaskFilter : public MaskFilter {
 public:
     static std::shared_ptr<RecordingMaskFilter> CreateBlurMaskFilter(BlurType blurType, scalar sigma);
 

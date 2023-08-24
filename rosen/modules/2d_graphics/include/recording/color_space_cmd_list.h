@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class ColorSpaceCmdList : public CmdList {
+class DRAWING_API ColorSpaceCmdList : public CmdList {
 public:
     ColorSpaceCmdList() = default;
     ~ColorSpaceCmdList() override = default;

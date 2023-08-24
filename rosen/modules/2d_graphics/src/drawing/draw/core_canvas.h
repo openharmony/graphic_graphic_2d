@@ -18,8 +18,8 @@
 
 #include <memory>
 
-#include "common/rs_macros.h"
 #include "drawing/engine_adapter/impl_interface/core_canvas_impl.h"
+#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,7 +31,7 @@ enum class SrcRectConstraint {
 /*
  * @brief  Contains the option used to create the layer.
  */
-class RS_EXPORT SaveLayerOps {
+class DRAWING_API SaveLayerOps {
 public:
     // How to allocate layer
     enum Flags {
@@ -91,7 +91,7 @@ private:
     uint32_t saveLayerFlags_;
 };
 
-class RS_EXPORT CoreCanvas {
+class DRAWING_API CoreCanvas {
 public:
     CoreCanvas();
     explicit CoreCanvas(void* rawCanvas);

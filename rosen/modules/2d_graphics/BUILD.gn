@@ -37,7 +37,6 @@ config("export_config") {
     "$src_dir",
     "$drawing_src_dir",
     "$drawing_src_dir/engine_adapter",
-    "$rosen_root/modules/render_service_base/include",
   ]
 }
 

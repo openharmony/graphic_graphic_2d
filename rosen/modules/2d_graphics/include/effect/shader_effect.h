@@ -17,6 +17,7 @@
 #define SHADER_EFFECT_H
 
 #include "drawing/engine_adapter/impl_interface/shader_effect_impl.h"
+#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -28,7 +29,7 @@ enum class TileMode {
     DECAL,
 };
 
-class ShaderEffect {
+class DRAWING_API ShaderEffect {
 public:
     enum class ShaderEffectType {
         NO_TYPE,

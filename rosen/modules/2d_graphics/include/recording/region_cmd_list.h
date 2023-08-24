@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class RegionCmdList : public CmdList {
+class DRAWING_API RegionCmdList : public CmdList {
 public:
     RegionCmdList() = default;
     ~RegionCmdList() override = default;

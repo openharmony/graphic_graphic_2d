@@ -13,35 +13,28 @@
  * limitations under the License.
  */
 
-#ifndef RECORDING_REGION_H
-#define RECORDING_REGION_H
-
-#include "utils/region.h"
-#include "recording/region_cmd_list.h"
+#ifndef UTILS_DRAWING_MACROS_H
+#define UTILS_DRAWING_MACROS_H
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API RecordingRegion : public Region {
-public:
-    RecordingRegion();
-    ~RecordingRegion() override = default;
+#ifndef DRAWING_API
+#ifdef _WIN32
+#define DRAWING_EXPORT __attribute__((dllexport))
+#define DRAWING_IMPORT __attribute__((dllimport))
+#else
+#define DRAWING_EXPORT __attribute__((visibility("default")))
+#define DRAWING_IMPORT __attribute__((visibility("default")))
+#endif
 
-    DrawingType GetDrawingType() const override
-    {
-        return DrawingType::RECORDING;
-    }
-
-    std::shared_ptr<RegionCmdList> GetCmdList() const;
-
-    bool SetRect(const RectI& rectI) override;
-    bool SetPath(const Path& path, const Region& clip) override;
-    bool Op(const Region& region, RegionOp op) override;
-
-private:
-    std::shared_ptr<RegionCmdList> cmdList_;
-};
+#ifdef MODULE_DRAWING
+#define DRAWING_API DRAWING_EXPORT
+#else
+#define DRAWING_API DRAWING_IMPORT
+#endif
+#endif
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
-#endif // RECORDING_REGION_H
+#endif

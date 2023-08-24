@@ -27,7 +27,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class Matrix;
+class DRAWING_API Matrix;
 class MatrixImpl : public BaseImpl {
 public:
     // Matrix is a 3x3 float type matrix.
