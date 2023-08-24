@@ -650,6 +650,9 @@ float RSProperties::GetTranslateZ() const
 void RSProperties::SetParticles(const RSRenderParticleVector& particles)
 {
     particles_ = particles;
+    if (particles_.GetParticleSize() > 0) {
+        isDrawn_ = true;
+    }
     SetDirty();
     contentDirty_ = true;
 }
