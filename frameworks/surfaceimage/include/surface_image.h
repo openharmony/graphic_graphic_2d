@@ -83,6 +83,8 @@ private:
     SurfaceError WaitReleaseEGLSync(EGLDisplay disp);
     SurfaceError WaitOnFence();
     std::array<float, 16> MatrixProduct(const std::array<float, 16>& lMat, const std::array<float, 16>& rMat);
+    void UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer, int32_t fence,
+                           int64_t timestamp, Rect damage);
 
     uint32_t textureId_;
     uint32_t textureTarget_;
