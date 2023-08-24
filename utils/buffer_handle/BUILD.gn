@@ -18,6 +18,7 @@ config("buffer_handle_public_config") {
   include_dirs = [
     "export",
     "//drivers/peripheral/base",
+    "../../../../../communication/ipc/interfaces/innerkits/ipc_core/include/message_parcel.h",
   ]
 }
 

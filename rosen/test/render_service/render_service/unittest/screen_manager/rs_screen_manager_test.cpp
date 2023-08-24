@@ -586,8 +586,8 @@ HWTEST_F(RSScreenManagerTest, RemoveVirtualScreen_002, TestSize.Level1)
     auto id = screenManager->CreateVirtualScreen("virtualScreen001", 480, 320, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
 
-    id = screenManager->CreateVirtualScreen("virtualScreen002", 480, 320, psurface);
-    ASSERT_NE(INVALID_SCREEN_ID, id_);
+    auto id_ = screenManager->CreateVirtualScreen("virtualScreen002", 480, 320, psurface);
+    ASSERT_EQ(INVALID_SCREEN_ID, id_);
 
     ScreenId screenId = INVALID_SCREEN_ID;
     screenManager->RemoveVirtualScreen(screenId);
