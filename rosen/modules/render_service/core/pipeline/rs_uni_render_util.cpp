@@ -335,6 +335,21 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     return params;
 }
 
+bool RSUniRenderUtil::IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info)
+{
+    if (RSBaseRenderUtil::IsForceClient()) {
+        RS_LOGD("RSUniRenderUtil::IsNeedClient: force client.");
+        return true;
+    }
+    const auto& property = node.GetRenderProperties();
+    if (property.GetRotation() != 0 || property.GetRotationX() != 0 || property.GetRotationY() != 0 ||
+        property.GetQuaternion() != Quaternion()) {
+        RS_LOGD("RSUniRenderUtil::IsNeedClient need client with RSSurfaceRenderNode rotation");
+        return true;
+    }
+    return false;
+}
+
 #ifndef USE_ROSEN_DRAWING
 void RSUniRenderUtil::DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, sk_sp<SkImage> image)
 {

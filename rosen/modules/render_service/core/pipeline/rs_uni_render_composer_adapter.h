@@ -65,6 +65,7 @@ private:
 
     static void GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node);
     bool GetComposerInfoNeedClient(const ComposeInfo &info, RSRenderNode& node) const;
+    bool GetComposerInfoNeedClient(const ComposeInfo &info, RSSurfaceRenderNode& node) const;
     bool CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node) const;
     void SetPreBufferInfo(RSSurfaceHandler& surfaceHandler, ComposeInfo& info) const;
 
