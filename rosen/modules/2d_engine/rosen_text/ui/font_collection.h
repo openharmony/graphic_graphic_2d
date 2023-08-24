@@ -20,12 +20,11 @@
 
 #include "rosen_text/properties/font_collection_base.h"
 #include "rosen_text/properties/font_collection_txt_base.h"
-#include "utils/drawing_macros.h"
 
 namespace rosen {
-class DRAWING_API FontCollection : public FontCollectionBase {
+class FontCollection : public FontCollectionBase {
 public:
-    DRAWING_API static std::shared_ptr<FontCollection> GetInstance(bool createWithICU = true);
+    static std::shared_ptr<FontCollection> GetInstance(bool createWithICU = true);
     explicit FontCollection(bool createWithICU = true);
     ~FontCollection() override;
     std::shared_ptr<FontCollectionTxtBase> GetFontCollection() override;

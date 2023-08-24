@@ -16,8 +16,6 @@
 #ifndef SAMPLING_OPTIONS_H
 #define SAMPLING_OPTIONS_H
 
-#include "utils/drawing_macros.h"
-
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -45,7 +43,7 @@ struct CubicResampler {
     }
 };
 
-class DRAWING_API SamplingOptions {
+class SamplingOptions {
 public:
     inline SamplingOptions() noexcept;
     inline SamplingOptions(FilterMode fm) noexcept;

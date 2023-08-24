@@ -21,7 +21,6 @@
 
 #include "common/rs_macros.h"
 #include "effect/color_space.h"
-#include "utils/drawing_macros.h"
 #include "utils/scalar.h"
 
 namespace OHOS {

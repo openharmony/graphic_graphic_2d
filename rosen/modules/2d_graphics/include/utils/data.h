@@ -17,12 +17,11 @@
 #define DATA_H
 
 #include "impl_interface/data_impl.h"
-#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API Data {
+class Data {
 public:
     Data() noexcept;
     virtual ~Data() {};

@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API ImageFilterCmdList : public CmdList {
+class ImageFilterCmdList : public CmdList {
 public:
     ImageFilterCmdList() = default;
     ~ImageFilterCmdList() override = default;

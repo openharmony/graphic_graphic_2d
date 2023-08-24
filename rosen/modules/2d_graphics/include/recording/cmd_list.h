@@ -22,7 +22,6 @@
 #include "draw/color.h"
 #include "recording/op_item.h"
 #include "recording/mem_allocator.h"
-#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Media {
@@ -49,7 +48,7 @@ struct CmdListHandle {
 
 using CmdListData = std::pair<const void*, size_t>;
 
-class DRAWING_API CmdList {
+class CmdList {
 public:
     enum Type : uint32_t {
         CMD_LIST = 0,

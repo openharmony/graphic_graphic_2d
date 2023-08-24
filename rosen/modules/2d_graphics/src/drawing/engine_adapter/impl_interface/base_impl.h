@@ -19,7 +19,6 @@
 #include <memory>
 
 #include "adapter_type.h"
-#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
