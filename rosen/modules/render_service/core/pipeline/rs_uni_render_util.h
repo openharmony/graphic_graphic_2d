@@ -55,6 +55,7 @@ public:
         bool forceCPU, uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
     static BufferDrawParam CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU);
+    static bool IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info);
 #ifndef USE_ROSEN_DRAWING
     static void DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, sk_sp<SkImage> image);
     static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
