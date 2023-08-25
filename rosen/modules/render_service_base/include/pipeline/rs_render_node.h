@@ -156,7 +156,7 @@ public:
     void UpdateChildrenRect(const RectI& subRect);
     void SetDirty();
 
-    void AddDirtyType(RSModifierType type)
+    virtual void AddDirtyType(RSModifierType type)
     {
         dirtyTypes_.emplace(type);
     }
@@ -435,6 +435,8 @@ protected:
     bool IsSelfDrawingNode() const;
     bool isOnTheTree_ = false;
 
+    std::unordered_set<RSModifierType> dirtyTypes_;
+
 private:
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
@@ -541,7 +543,6 @@ private:
     // Only use in RSRenderNode::DrawCacheSurface to calculate scale factor
     float boundsWidth_ = 0.0f;
     float boundsHeight_ = 0.0f;
-    std::unordered_set<RSModifierType> dirtyTypes_;
     bool hasCacheableAnim_ = false;
     bool geometryChangeNotPerceived_ = false;
 

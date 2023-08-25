@@ -75,7 +75,7 @@ public:
         return RSRenderNodeType::CANVAS_NODE;
     }
 private:
-    virtual void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type) const;
+    void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type) const;
     void InternalDrawContent(RSPaintFilterCanvas& canvas);
     // functions that are dedicated to driven render [start]
     void DrawDrivenContent(RSPaintFilterCanvas& canvas);
