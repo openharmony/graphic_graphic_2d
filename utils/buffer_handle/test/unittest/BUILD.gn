@@ -24,15 +24,15 @@ group("unittest") {
 ohos_unittest("BufferHandleTest") {
   module_out_path = module_out_path
   sources = [ "buffer_handle_test.cpp" ]
-  deps = [ 
+  deps = [
     ":buffer_handle_test_common",
     "../../../../../../communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
   ]
-  external_deps = [ 
+  external_deps = [
     "c_utils:utils",
     "graphic_2d:buffer_handle",
     "hilog:libhilog",
- ]
+  ]
 }
 
 ## Build buffer_handle_test_common.a {{{
