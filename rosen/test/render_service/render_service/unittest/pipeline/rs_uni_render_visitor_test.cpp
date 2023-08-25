@@ -1708,7 +1708,9 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode001, TestSize.Level2
     RSUniRenderVisitor::RenderParam val { node, rsUniRenderVisitor->canvas_->GetCanvasStatus() };
     rsUniRenderVisitor->unpairedTransitionNodes_[node->GetId()] = val;
     
-    ASSERT_TRUE(rsUniRenderVisitor->PrepareSharedTransitionNode(*node));
+    rsUniRenderVisitor->PrepareSharedTransitionNode(*node);
+    ASSERT_FALSE(rsUniRenderVisitor->unpairedTransitionNodes_.count(node->GetId()));
+    ASSERT_NE(node->sharedTransitionParam_, std::nullopt);
 }
 
 /**
@@ -1729,7 +1731,8 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode002, TestSize.Level2
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    ASSERT_TRUE(rsUniRenderVisitor->PrepareSharedTransitionNode(*node));
+    rsUniRenderVisitor->PrepareSharedTransitionNode(*node);
+    ASSERT_FALSE(rsUniRenderVisitor->unpairedTransitionNodes_.count(node->GetId()));
     ASSERT_EQ(node->sharedTransitionParam_, std::nullopt);
 }
 
@@ -1793,7 +1796,9 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode005, TestSize.Level2
     
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    ASSERT_TRUE(rsUniRenderVisitor->PrepareSharedTransitionNode(*node));
+    rsUniRenderVisitor->PrepareSharedTransitionNode(*node);
+    ASSERT_TRUE(rsUniRenderVisitor->unpairedTransitionNodes_.count(node->GetId()));
+    ASSERT_NE(node->sharedTransitionParam_, std::nullopt);
 }
 
 /**

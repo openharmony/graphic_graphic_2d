@@ -386,8 +386,9 @@ private:
     std::unordered_map<NodeId, RenderParam> unpairedTransitionNodes_;
     std::stack<RenderParam> curGroupedNodes_;
     // return true if we should prepare/process, false if we should skip.
-    bool PrepareSharedTransitionNode(RSBaseRenderNode& node);
+    void PrepareSharedTransitionNode(RSBaseRenderNode& node);
     bool ProcessSharedTransitionNode(RSBaseRenderNode& node);
+    void ProcessUnpairedSharedTransitionNode();
 
     std::weak_ptr<RSBaseRenderNode> logicParentNode_;
 
