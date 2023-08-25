@@ -149,6 +149,9 @@ public:
     void SetType(RSModifierType type)
     {
         drawStyle_ = type;
+        if (property_) {
+            property_->SetModifierType(type);
+        }
     }
 
     // functions that are dedicated to driven render [start]

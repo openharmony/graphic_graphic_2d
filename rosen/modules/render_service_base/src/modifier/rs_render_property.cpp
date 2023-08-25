@@ -29,6 +29,9 @@ void RSRenderPropertyBase::OnChange() const
             modifierType_ == RSModifierType::POSITION_Z) {
             node->MarkNonGeometryChanged();
         }
+        if (modifierType_ > RSModifierType::EXTENDED) {
+            node->SetContentDirty();
+        }
     }
 }
 
