@@ -29,11 +29,11 @@ config("buffer_handle_config") {
 config("buffer_handle_public_config") {
   include_dirs = [
     "export",
-    "//drivers/peripheral/base",
-    "//commonlibrary/c_utils/base/include",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits",
-    "//base/notification/eventhandler/interfaces/inner_api",
-    "//foundation/graphic/graphic_2d/utils/log",
+    "../../../../../drivers/peripheral/base",
+    "../../../../../commonlibrary/c_utils/base/include",
+    "../../../../../base/hiviewdfx/hilog/interfaces/native/innerkits",
+    "../../../../../base/notification/eventhandler/interfaces/inner_api",
+    "../../../../../foundation/graphic/graphic_2d/utils/log",
   ]
 }
 
@@ -42,7 +42,7 @@ ohos_static_library("buffer_handle") {
 
   configs = [ 
     ":buffer_handle_config",
-    "//commonlibrary/c_utils/base:utils_config",
+    "../../../../../commonlibrary/c_utils/base:utils_config",
  ]
 
   public_configs = [ ":buffer_handle_public_config" ]

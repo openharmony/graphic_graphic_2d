@@ -61,7 +61,6 @@ HWTEST_F(BufferHandleTest, AllocateBufferHandle, Function | SmallTest | Level2)
 */
 HWTEST_F(BufferHandleTest, FreeBufferHandle, Function | SmallTest | Level2)
 {
-    uint32_t fds = 1025, ints = 1025;
     uint32_t buffer_handle_reserve_max_size = 1024;
     ASSERT_EQ(0, FreeBufferHandle(nullptr));
     BufferHandle *handle = AllocateBufferHandle(buffer_handle_reserve_max_size, buffer_handle_reserve_max_size);
@@ -100,7 +99,7 @@ HWTEST_F(BufferHandleTest, WriteBufferHandle, Function | SmallTest | Level2)
     BufferHandle *handle = AllocateBufferHandle(buffer_handle_reserve_max_size, buffer_handle_reserve_max_size);
     ASSERT_NE(nullptr, handle);
 
-    ASSERT_EQ(false, WriteBufferHandle(parcel, handle));
+    ASSERT_EQ(false, WriteBufferHandle(parcel, *handle));
 
     ASSERT_EQ(0, FreeBufferHandle(handle));
 }
@@ -118,6 +117,4 @@ HWTEST_F(BufferHandleTest, ReadBufferHandle, Function | SmallTest | Level2)
 
     EXPECT_EQ(nullptr, ReadBufferHandle(parcel));
 }
-
-
 }
