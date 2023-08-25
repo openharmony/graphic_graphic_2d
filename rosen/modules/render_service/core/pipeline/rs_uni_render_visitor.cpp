@@ -2950,7 +2950,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     if (isUIFirst_ && isSubThread_) {
         if (auto parentNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(node.GetParent().lock()) ||
-            (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && node.IsLeashWindow())) {
+            (SceneBoardJudgement::IsSceneBoardEnabled() && (node.IsLeashWindow() || (node.IsAppWindow() &&
+            !RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock()))))) {
             UpdateCacheSurface(node);
             return;
         }
