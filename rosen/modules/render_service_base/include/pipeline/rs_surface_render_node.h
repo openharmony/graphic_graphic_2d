@@ -721,7 +721,7 @@ public:
 
 private:
     void OnResetParent() override;
-    void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
+    void ClearChildrenCache();
     bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;
     Vector4f GetWindowCornerRadius();
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> GetLeashWindowNestedSurfaces();

@@ -289,8 +289,7 @@ void RSRenderNode::SetParent(WeakPtr parent)
 
 void RSRenderNode::ResetParent()
 {
-    auto parentNode = parent_.lock();
-    if (parentNode) {
+    if (auto parentNode = parent_.lock()) {
         parentNode->hasRemovedChild_ = true;
         parentNode->SetContentDirty();
     }
@@ -1483,6 +1482,10 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
 void RSRenderNode::OnTreeStateChanged()
 {
     AddActiveNode();
+    if (!isOnTheTree_) {
+        isFullChildrenListValid_ = false;
+        fullChildrenList_.clear();
+    }
 #ifndef USE_ROSEN_DRAWING
     if (!isOnTheTree_) {
         // clear filter cache when node is removed from tree
