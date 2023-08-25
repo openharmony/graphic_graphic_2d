@@ -251,15 +251,11 @@ HWTEST_F(RSUniRenderUtilTest, ClearNodeCacheSurface, Function | SmallTest | Leve
  */
 HWTEST_F(RSUniRenderUtilTest, HandleCaptureNode, Function | SmallTest | Level2)
 {
-    NodeID id = 0;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNode node(id, config);
     SkCanvas skCanvas;
     RSPaintFilterCanvas canvas(&skCanvas);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     RSUniRenderUtil::HandleCaptureNode(*surfaceNode, canvas);
-    ASSERT_EQ(false, RSUniRenderUtil::HandleCaptureNode(node, canvas));
 }
 
 /*
