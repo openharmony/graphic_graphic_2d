@@ -78,6 +78,9 @@ void RSJankStats::SetEndTime()
         for (auto &[uniqueId, jankFrames] : animateJankFrames_) {
             if (jankFrames.isReportEventResponse_) {
                 ReportEventResponse(jankFrames);
+                jankFrames.isUpdateJankFrame_ = true;
+            }
+            if (jankFrames.isUpdateJankFrame_) {
                 UpdateJankFrame(duration, jankFrames);
             }
             if (jankFrames.isReportEventComplete_) {
@@ -92,6 +95,7 @@ void RSJankStats::SetEndTime()
             }
             if (jankFrames.isReportEventComplete_ || jankFrames.isReportEventJankFrame_) {
                 SetTraceEnd(traceId);
+                jankFrames.isUpdateJankFrame_ = false;
             }
         }
     }

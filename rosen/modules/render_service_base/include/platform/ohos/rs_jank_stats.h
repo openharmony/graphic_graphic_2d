@@ -35,6 +35,7 @@ struct JankFrames {
     bool isReportEventResponse_ = false;
     bool isReportEventComplete_ = false;
     bool isReportEventJankFrame_ = false;
+    bool isUpdateJankFrame_ = false;
     int64_t setTime_ = 0;
     int32_t seqMissedFrames_ = 0;
     int32_t totalFrames_ = 0;
