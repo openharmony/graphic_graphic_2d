@@ -228,9 +228,9 @@ void RSSurfaceRenderNode::CollectSurface(
     }
 }
 
-void RSSurfaceRenderNode::ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node)
+void RSSurfaceRenderNode::ClearChildrenCache()
 {
-    for (auto& child : node->GetChildren()) {
+    for (auto& child : GetChildren()) {
         auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();
         if (surfaceNode == nullptr) {
             continue;
@@ -242,12 +242,14 @@ void RSSurfaceRenderNode::ClearChildrenCache(const std::shared_ptr<RSBaseRenderN
         }
 #endif
     }
+    // Temporary solution, GetChildren will generate fullChildrenList_, which will cause memory leak
+    OnTreeStateChanged();
 }
 
 void RSSurfaceRenderNode::OnTreeStateChanged()
 {
-#ifdef RS_ENABLE_GL
     RSRenderNode::OnTreeStateChanged();
+#ifdef RS_ENABLE_GL
     if (grContext_ && !IsOnTheTree() && IsLeashWindow()) {
 #ifndef USE_ROSEN_DRAWING
         RS_TRACE_NAME_FMT("purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
@@ -261,7 +263,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
 void RSSurfaceRenderNode::OnResetParent()
 {
     if (nodeType_ == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
-        ClearChildrenCache(shared_from_this());
+        ClearChildrenCache();
     } else {
 #ifndef ROSEN_CROSS_PLATFORM
         auto& consumer = GetConsumer();
