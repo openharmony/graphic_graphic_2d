@@ -315,10 +315,7 @@ public:
 
     void AddFRCSceneInfo(const std::string& scene, float speed);
 
-    FrameRateRange GetFrameRateRange()
-    {
-        return nodeRange_;
-    }
+    void UpdateUIFrameRateRange(FrameRateRange range);
 
 protected:
     explicit RSNode(bool isRenderServiceNode);

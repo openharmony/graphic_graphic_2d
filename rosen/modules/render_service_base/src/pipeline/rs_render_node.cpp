@@ -1906,9 +1906,9 @@ void RSRenderNode::SetRSFrameRateRange(FrameRateRange range)
 {
     rsRange_ = range;
 }
-void RSRenderNode::SetUIFrameRateRange(FrameRateRange range)
+void RSRenderNode::UpdateUIFrameRateRange(FrameRateRange range)
 {
-    uiRange_ = range;
+    uiRange_.Merge(range);
 }
 FrameRateRange RSRenderNode::GetUIFrameRateRange() const
 {

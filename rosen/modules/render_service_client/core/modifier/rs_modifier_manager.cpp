@@ -71,6 +71,7 @@ bool RSModifierManager::Animate(int64_t time)
     RS_TRACE_NAME("RunningCustomAnimation num:[" + std::to_string(animations_.size()) + "]");
     // process animation
     bool hasRunningAnimation = false;
+    uiRange_.Reset();
 
     // iterate and execute all animations, remove finished animations
     EraseIf(animations_, [this, &hasRunningAnimation, time](auto& iter) -> bool {
@@ -83,11 +84,20 @@ bool RSModifierManager::Animate(int64_t time)
             OnAnimationFinished(animation);
         } else {
             hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
+            auto range = animation->GetFrameRateRange();
+            if (range.IsValid()) {
+                uiRange_.Merge(range);
+            }
         }
         return isFinished;
     });
 
     return hasRunningAnimation;
+}
+
+FrameRateRange RSModifierManager::GetUIFrameRateRange()
+{
+    return uiRange_;
 }
 
 void RSModifierManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation)

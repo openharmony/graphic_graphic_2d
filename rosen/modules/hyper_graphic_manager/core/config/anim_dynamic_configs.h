@@ -26,41 +26,41 @@ public:
     AnimDynamicAttribute() : animType_("default"), animName_("0"), minSpeed_(0),
         maxSpeed_(0), preferredFps_(0) {}
 
-    AnimDynamicAttribute(std::string animType, std::string animName, int32_t minSpeed, int32_t maxSpeed,
+    AnimDynamicAttribute(const std::string& animType, const std::string& animName, int32_t minSpeed, int32_t maxSpeed,
         int32_t preferredFps) : animType_(animType), animName_(animName), minSpeed_(minSpeed),
         maxSpeed_(maxSpeed), preferredFps_(preferredFps) {}
 
-    std::string GetAnimType()
+    std::string GetAnimType() const
     {
         return animType_;
     }
 
-    std::string GetAnimName()
+    std::string GetAnimName() const
     {
         return animName_;
     }
 
-    int32_t GetMinSpeed()
+    int32_t GetMinSpeed() const
     {
         return minSpeed_;
     }
 
-    int32_t GetMaxSpeed()
+    int32_t GetMaxSpeed() const
     {
         return maxSpeed_;
     }
 
-    int32_t GetPreferredFps()
+    int32_t GetPreferredFps() const
     {
         return preferredFps_;
     }
 
-    void SetAnimType(std::string animType)
+    void SetAnimType(const std::string& animType)
     {
         animType_ = animType;
     }
 
-    void SetAnimName(std::string animName)
+    void SetAnimName(const std::string& animName)
     {
         animName_ = animName;
     }
@@ -92,9 +92,9 @@ class AnimDynamicConfigs {
 public:
     static AnimDynamicConfigs* GetInstance();
 
-    std::vector<AnimDynamicAttribute> GetAnimDynamicConfigs();
+    std::vector<AnimDynamicAttribute> GetAnimDynamicConfigs() const;
     void AddAnimDynamicAttribute(AnimDynamicAttribute attr);
-    int GetAnimDynamicAttributesCount();
+    int GetAnimDynamicAttributesCount() const;
 
 private:
     AnimDynamicConfigs();

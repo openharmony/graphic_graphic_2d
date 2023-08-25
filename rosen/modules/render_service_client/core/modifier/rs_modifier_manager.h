@@ -20,6 +20,7 @@
 #include <set>
 #include <unordered_map>
 
+#include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 
@@ -40,11 +41,15 @@ public:
     bool Animate(int64_t time);
     void Draw();
 
+    FrameRateRange GetUIFrameRateRange();
+
 private:
     void OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation);
 
     std::set<std::shared_ptr<RSModifier>> modifiers_;
     std::unordered_map<AnimationId, std::weak_ptr<RSRenderAnimation>> animations_;
+
+    FrameRateRange uiRange_ = {0, 0, 0};
 
     template <typename T>
     friend class RSAnimatableProperty;

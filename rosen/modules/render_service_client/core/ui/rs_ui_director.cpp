@@ -249,6 +249,15 @@ bool RSUIDirector::RunningCustomAnimation(uint64_t timeStamp)
 
     hasRunningAnimation = modifierManager->Animate(timeStamp);
     modifierManager->Draw();
+    {
+        auto node = surfaceNode_.lock();
+        if (node) {
+            auto range = modifierManager->GetUIFrameRateRange();
+            if (range.IsValid()) {
+                node->UpdateUIFrameRateRange(range);
+            }
+        }
+    }
 
     // post animation finish callback(s) to task queue
     RSUIDirector::RecvMessages();

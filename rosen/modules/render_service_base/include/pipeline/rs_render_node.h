@@ -392,7 +392,7 @@ public:
 
     void SetRSFrameRateRange(FrameRateRange range);
     FrameRateRange GetRSFrameRateRange();
-    void SetUIFrameRateRange(FrameRateRange range);
+    void UpdateUIFrameRateRange(FrameRateRange range);
     FrameRateRange GetUIFrameRateRange() const;
 
     void ResetRSFrameRateRange();

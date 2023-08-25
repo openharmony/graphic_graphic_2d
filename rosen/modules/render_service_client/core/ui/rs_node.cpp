@@ -1356,9 +1356,12 @@ void RSNode::AddFRCSceneInfo(const std::string& scene, float speed)
     if (!range.IsValid()) {
         return;
     }
-    nodeRange_ = range;
+    UpdateUIFrameRateRange(range);
+}
 
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSetUIFrameRateRange>(GetId(), range);
+void RSNode::UpdateUIFrameRateRange(FrameRateRange range)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSUpdateUIFrameRateRange>(GetId(), range);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());

@@ -24,7 +24,7 @@ namespace Rosen {
 namespace {
     constexpr float MARGIN = 0.00001;
     constexpr float MIN_DRAWING_DIVISOR = 10.0f;
-    constexpr int32_t DIVISOR_TWO = 2;
+    constexpr float DIVISOR_TWO = 2.0f;
 }
 
 void HgmFrameRateManager::UniProcessData(const FrameRateRangeData& data)
@@ -121,7 +121,7 @@ uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, co
     float ratio = currRatio;
     const float minDrawingFps = currRefreshRate / MIN_DRAWING_DIVISOR;
     while (dividedFps > minDrawingFps - MARGIN) {
-        if (dividedFps < range.min_ || dividedFps <= range.preferred_ / DIVISOR_TWO) {
+        if (dividedFps < range.min_ || dividedFps <= static_cast<float>(range.preferred_) / DIVISOR_TWO) {
             break;
         }
         if (dividedFps > range.max_) {

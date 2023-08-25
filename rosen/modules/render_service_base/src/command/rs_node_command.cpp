@@ -131,11 +131,11 @@ void RSNodeCommandHelper::UnregisterGeometryTransitionPair(RSContext& context, N
     }
 }
 
-void RSNodeCommandHelper::SetUIFrameRateRange(RSContext& context, NodeId nodeId, FrameRateRange range)
+void RSNodeCommandHelper::UpdateUIFrameRateRange(RSContext& context, NodeId nodeId, FrameRateRange range)
 {
     auto& nodeMap = context.GetNodeMap();
     if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
-        node->SetUIFrameRateRange(range);
+        node->UpdateUIFrameRateRange(range);
     }
 }
 } // namespace Rosen

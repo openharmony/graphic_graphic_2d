@@ -77,13 +77,13 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
 
 int RSFrameRatePolicy::GetPreferredFps(const std::string& scene, float speed)
 {
-    auto& attributes = animAttributes[scene];
-    for (auto attribute : attributes) {
-        // if speed is -1, it means infinity
-        if (speed >= attribute.second.minSpeed && (speed <= attribute.second.maxSpeed ||
-            attribute.second.maxSpeed == -1)) {
-            return attribute.second.preferredFps;
-        }
+    const auto& attributes = animAttributes[scene];
+    auto iter = std::find_if(attributes.begin(), attributes.end(), [&speed](const auto& pair) {
+        return speed >= pair.second.minSpeed && (speed < pair.second.maxSpeed ||
+            pair.second.maxSpeed == -1);
+    });
+    if (iter != attributes.end()) {
+        return iter->second.preferredFps;
     }
     return 0;
 }
