@@ -73,8 +73,8 @@ HWTEST_F(RSJankDetectorTest, CalculateSkippedFrameTest, TestSize.Level1)
     uint64_t startTimeStamp = 1;
     uint64_t endTimeStamp = 10;
     uint64_t refreshPeriod = 16666667;
-    int JANK_SKIPPED_THRESHOLD = 5;
-    uint64_t NO_DRAW_THRESHOLD = 5000000000;
+    int jankSkippedThreshold = 5;
+    uint64_t noDrawThreshold = 5000000000;
     std::string abilityName = "ABILITY_NAME";
     RSJankDetector rsJankDetector;
     rsJankDetector.UpdateUiDrawFrameMsg(startTimeStamp, endTimeStamp, abilityName);
@@ -83,12 +83,12 @@ HWTEST_F(RSJankDetectorTest, CalculateSkippedFrameTest, TestSize.Level1)
     uint64_t renderDrawTime = renderEndTimeStamp - renderStartTimeStamp;
     int skippedFrame = static_cast<int>(renderDrawTime / refreshPeriod);
     rsJankDetector.CalculateSkippedFrame(renderStartTimeStamp, renderEndTimeStamp);
-    ASSERT_TRUE(skippedFrame >= JANK_SKIPPED_THRESHOLD);
+    ASSERT_TRUE(skippedFrame >= jankSkippedThreshold);
     uint64_t renderStartTimeStamp_ = 1;
     uint64_t renderEndTimeStamp_ = 5000000001;
     uint64_t renderDrawTime_ = renderEndTimeStamp_ - renderStartTimeStamp_;
     rsJankDetector.CalculateSkippedFrame(renderStartTimeStamp_, renderEndTimeStamp_);
-    ASSERT_TRUE(renderDrawTime_ >= NO_DRAW_THRESHOLD);
+    ASSERT_TRUE(renderDrawTime_ >= noDrawThreshold);
 }
 
 /**

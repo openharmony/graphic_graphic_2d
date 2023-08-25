@@ -52,8 +52,6 @@ static SkPath CreateSkPath()
 {
     SkPath path;
     path.moveTo(startX, startY);
-    path.quadTo(startX, startY + 40, startX + 60, startY + 30);
-    path.quadTo(startX, startY + 40, startX, startY + 60);
     return path;
 }
 
