@@ -4602,6 +4602,7 @@ napi_value WebGL2RenderingContextBase::GetActiveUniformBlockParameter(napi_env e
         napi_create_typedarray(env, napi_uint32_array, sizeof(params) / sizeof(uint32_t),
                                outputBuffer, 0, &outputArray);
         LOGI("WebGL2 getActiveUniformBlockParameter end");
+        delete []res;
         return outputArray;
     } else if (pname == GL_UNIFORM_BLOCK_BINDING ||
                pname == GL_UNIFORM_BLOCK_DATA_SIZE ||

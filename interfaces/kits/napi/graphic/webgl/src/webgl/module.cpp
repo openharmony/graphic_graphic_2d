@@ -79,6 +79,7 @@ static napi_value Export(napi_env env, napi_value exports)
 
     size_t webglItem = vec[0].find("webgl");
     string webgl2Str = vec[0].substr(webglItem, 6);
+    string webgl1Str = vec[0].substr(webglItem, 5);
     if (webgl2Str == "webgl2") {
         auto& webgl2Objects = ObjectManager::GetInstance().GetWebgl2ObjectMap();
         WebGL2RenderingContext *webGl2RenderingContext = nullptr;
@@ -86,43 +87,44 @@ static napi_value Export(napi_env env, napi_value exports)
         if (it == webgl2Objects.end()) {
             webGl2RenderingContext = new WebGL2RenderingContext(env, exports);
             webgl2Objects.insert({idStr, webGl2RenderingContext});
+            webGl2RenderingContext->mEGLSurface = EglManager::GetInstance().CreateSurface(
+                webGl2RenderingContext->mEglWindow);
         } else {
             webGl2RenderingContext = reinterpret_cast<WebGL2RenderingContext *>(it->second);
         }
-
-        webGl2RenderingContext->mEGLSurface = EglManager::GetInstance().CreateSurface(
-            webGl2RenderingContext->mEglWindow);
-
         if (!webGl2RenderingContext->Export(env, exports)) {
             return nullptr;
         }
-    } else {
-        string webgl1Str = vec[0].substr(webglItem, 5);
-        if (webgl1Str == "webgl") {
-            auto& webgl1Objects = ObjectManager::GetInstance().GetWebgl1ObjectMap();
-            WebGLRenderingContext *webGlRenderingContext = nullptr;
-            auto it = webgl1Objects.find(idStr);
-            if (it == webgl1Objects.end()) {
-                webGlRenderingContext = new WebGLRenderingContext(env, exports);
-                webgl1Objects.insert({idStr, webGlRenderingContext});
-            } else {
-                webGlRenderingContext = reinterpret_cast<WebGLRenderingContext *>(it->second);
-            }
-            if (vec.size() > 1) {
-                WebGLContextAttributes *webGlContextAttributes = new WebGLContextAttributes();
-                Util::SetContextAttr(vec, webGlContextAttributes);
-                webGlRenderingContext->webGlContextAttributes = webGlContextAttributes;
-                webGlContextAttributes = nullptr;
-            }
-            webGlRenderingContext->mEGLSurface = EglManager::GetInstance().CreateSurface(
-                webGlRenderingContext->mEglWindow);
-
-            if (!webGlRenderingContext->Export(env, exports)) {
-                return nullptr;
-            }
+    } else if (webgl1Str == "webgl") {
+        bool newCreate = false;
+        auto& webgl1Objects = ObjectManager::GetInstance().GetWebgl1ObjectMap();
+        WebGLRenderingContext *webGlRenderingContext = nullptr;
+        auto it = webgl1Objects.find(idStr);
+        if (it == webgl1Objects.end()) {
+            webGlRenderingContext = new WebGLRenderingContext(env, exports);
+            webgl1Objects.insert({idStr, webGlRenderingContext});
+            newCreate = true;
         } else {
+            webGlRenderingContext = reinterpret_cast<WebGLRenderingContext *>(it->second);
+        }
+        if (vec.size() > 1) {
+            WebGLContextAttributes *webGlContextAttributes = webGlRenderingContext->webGlContextAttributes;
+            if (webGlRenderingContext->webGlContextAttributes == nullptr) {
+                webGlContextAttributes = new WebGLContextAttributes();
+            }
+            Util::SetContextAttr(vec, webGlContextAttributes);
+            webGlRenderingContext->webGlContextAttributes = webGlContextAttributes;
+            webGlContextAttributes = nullptr;
+        }
+        if (newCreate) {
+            webGlRenderingContext->mEGLSurface =
+                EglManager::GetInstance().CreateSurface(webGlRenderingContext->mEglWindow);
+        }
+        if (!webGlRenderingContext->Export(env, exports)) {
             return nullptr;
         }
+    } else {
+        return nullptr;
     }
     std::vector<unique_ptr<NExporter>> products;
     products.emplace_back(make_unique<WebGLActiveInfo>(env, exports));

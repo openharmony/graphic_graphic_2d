@@ -3673,6 +3673,7 @@ napi_value WebGLRenderingContextBase::GetParameter(napi_env env, napi_callback_i
         napi_create_typedarray(env, napi_uint32_array, sizeof(params) / sizeof(uint32_t),
                                outputBuffer, 0, &outputArray);
         LOGI("WebGL getParameter end");
+        delete []res;
         return outputArray;
     } else if (pname == GL_MAX_VIEWPORT_DIMS) {
         LOGI("WebGL pname : int32Array with 2 elements");
