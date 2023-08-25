@@ -2097,16 +2097,14 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_TRACE_END();
         }
 #endif
-#ifndef USE_ROSEN_DRAWING
         if (!OpItemTasks::Instance().IsEmpty()) {
             RSBackgroundThread::Instance().PostTask([]() {
+#ifndef USE_ROSEN_DRAWING
                 RS_TRACE_NAME("RSUniRender:OpItemTasks ProcessTask");
                 OpItemTasks::Instance().ProcessTask();
+#endif
             });
         }
-#else
-        RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode: Drawing is not support: OpItemTasks");
-#endif
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
         RS_TRACE_END();
@@ -2841,16 +2839,9 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node) {
                 }
             } else if (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect()) {
                 // clear hole while generating cache surface
-#ifndef USE_ROSEN_DRAWING
                 SkAutoCanvasRestore arc(canvas_.get(), true);
                 canvas_->clipRect(RSPropertiesPainter::Rect2SkRect(node.GetRenderProperties().GetBoundsRect()));
                 canvas_->clear(SK_ColorTRANSPARENT);
-#else
-                Drawing::AutoCanvasRestore arc(*canvas_, true);
-                canvas_->ClipRect(RSPropertiesPainter::Rect2DrawingRect(node.GetRenderProperties().GetBoundsRect()),
-                    Drawing::ClipOp::INTERSECT, false);
-                canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
-#endif
             }
         } else if (curGroupedNodes_.empty() && !node.ChildHasFilter()) {
             // no filter to draw, return
@@ -3409,11 +3400,7 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMapWithBlur(RSRenderNode& node)
     UpdateCacheRenderNodeMap(node);
     canvas_->SetCacheType(canvasType);
     RS_TRACE_NAME_FMT("Draw cache with blur [%llu]", node.GetId());
-#ifndef USE_ROSEN_DRAWING
     SkAutoCanvasRestore arc(canvas_.get(), true);
-#else
-    Drawing::AutoCanvasRestore arc(*canvas_, true);
-#endif
     auto nodeType = node.GetCacheType();
     node.SetCacheType(CacheType::NONE);
     DrawChildRenderNode(node);

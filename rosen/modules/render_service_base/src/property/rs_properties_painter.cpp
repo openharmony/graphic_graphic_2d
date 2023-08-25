@@ -1261,7 +1261,6 @@ void RSPropertiesPainter::ApplyBackgroundEffectFallback(const RSProperties& prop
 
 void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
-#ifndef USE_ROSEN_DRAWING
     const auto& effectData = canvas.GetEffectData();
     if (effectData == nullptr || effectData->cachedImage_ == nullptr) {
         // no effectData available, draw background filter in fallback method
@@ -1269,6 +1268,7 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
         ApplyBackgroundEffectFallback(properties, canvas);
         return;
     }
+#ifndef USE_ROSEN_DRAWING
     RS_TRACE_NAME("ApplyBackgroundEffect");
     SkAutoCanvasRestore acr(&canvas, true);
     if (properties.GetClipBounds() != nullptr) {
@@ -1298,7 +1298,6 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
     canvas.drawImageRect(bgImage, SkRect::Make(clipIPadding.makeOffset(-imageIRect.left(), -imageIRect.top())),
         SkRect::Make(clipIPadding), &defaultPaint);
 #endif
-    RS_LOGD("RSPropertiesPainter::ApplyBackgroundEffect: Drawing is not support");
 #endif
 }
 
@@ -1388,8 +1387,7 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
 #else
 void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
-    auto& pixelStretch = properties.GetPixelStretch();
-    if (!pixelStretch.has_value()) {
+    if (!properties.IsPixelStretchValid() && !properties.IsPixelStretchPercentValid()) {
         return;
     }
 
@@ -1424,8 +1422,8 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch intersect clipbounds failed");
     }
 
-    auto scaledBounds = Drawing::Rect(bounds.GetLeft() - pixelStretch->x_, bounds.GetTop() - pixelStretch->y_,
-        bounds.GetRight() + pixelStretch->z_, bounds.GetBottom() + pixelStretch->w_);
+    auto scaledBounds = Drawing::Rect(bounds.GetLeft() - stretchSize.x_, bounds.GetTop() - stretchSize.y_,
+        bounds.GetRight() + stretchSize.z_, bounds.GetBottom() + stretchSize.w_);
     if (!scaledBounds.IsValid() || !bounds.IsValid() || !clipBounds.IsValid()) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch invalid scaled bounds");
         return;
@@ -1453,12 +1451,12 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     canvas.Save();
     canvas.Translate(bounds.GetLeft(), bounds.GetTop());
     Drawing::SamplingOptions samplingOptions;
-    if (pixelStretch->x_ < 0) {
+    if (properties.IsPixelStretchExpanded()) {
         brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
             *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, scaleMat));
         canvas.AttachBrush(brush);
-        canvas.DrawRect(Drawing::Rect(-pixelStretch->x_, -pixelStretch->y_,
-            -pixelStretch->x_ + scaledBounds.GetWidth(), -pixelStretch->y_ + scaledBounds.GetHeight()));
+        canvas.DrawRect(Drawing::Rect(-stretchSize.x_, -stretchSize.y_,
+            -stretchSize.x_ + scaledBounds.GetWidth(), -stretchSize.y_ + scaledBounds.GetHeight()));
         canvas.DetachBrush();
     } else {
         scaleMat.Scale(
@@ -1466,10 +1464,10 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
         brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
             *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, scaleMat));
 
-        canvas.Translate(-pixelStretch->x_, -pixelStretch->y_);
+        canvas.Translate(-stretchSize.x_, -stretchSize.y_);
         canvas.AttachBrush(brush);
-        canvas.DrawRect(Drawing::Rect(pixelStretch->x_, pixelStretch->y_,
-            pixelStretch->x_ + bounds.GetWidth(), pixelStretch->y_ + bounds.GetHeight()));
+        canvas.DrawRect(Drawing::Rect(
+            stretchSize.x_, stretchSize.y_, stretchSize.x_ + bounds.GetWidth(), stretchSize.y_ + bounds.GetHeight()));
         canvas.DetachBrush();
     }
     canvas.Restore();
@@ -2232,54 +2230,30 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
             float opacity = particles[i]->GetOpacity();
             float scale = particles[i]->GetScale();
             auto particleType = particles[i]->GetParticleType();
-#ifndef USE_ROSEN_DRAWING
             SkPaint paint;
             paint.setAntiAlias(true);
             paint.setAlphaf(opacity);
-#else
-            Drawing::Brush brush;
-            brush.SetAntiAlias(true);
-            brush.SetAlphaF(opacity);
-#endif
 
             if (particleType == ParticleType::POINTS) {
                 auto radius = particles[i]->GetRadius();
                 Color color = particles[i]->GetColor();
                 auto alpha = color.GetAlpha();
                 color.SetAlpha(alpha * opacity);
-#ifndef USE_ROSEN_DRAWING
                 paint.setColor(color.AsArgbInt());
                 canvas.drawCircle(position.x_, position.y_, radius * scale, paint);
-#else
-                brush.SetColor(color.AsArgbInt());
-                canvas.AttachBrush(brush);
-                canvas.DrawCircle(Drawing::Point(position.x_, position.y_), radius);
-                canvas.DetachBrush();
-#endif
             } else {
                 auto image = particles[i]->GetImage();
-#ifndef USE_ROSEN_DRAWING
                 canvas.rotate(particles[i]->GetSpin());
-#else
-                canvas.Rotate(particles[i]->GetSpin(), 0, 0);
-#endif
                 float fLeft = position.x_;
                 float ftop = position.y_;
                 auto imageSize = particles[i]->GetImageSize();
                 float fRight = imageSize.x_;
                 float fBottom = imageSize.y_;
-#ifndef USE_ROSEN_DRAWING
                 SkRect rect { fLeft, ftop, fRight, fBottom };
 #ifdef NEW_SKIA
                 image->CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, false);
 #else
                 image->CanvasDrawImage(canvas, rect, paint, false);
-#endif
-#else
-                Drawing::Rect rect { fLeft, ftop, fRight, fBottom };
-                canvas.AttachBrush(brush);
-                image->CanvasDrawImage(canvas, rect, false);
-                canvas.DetachBrush();
 #endif
             }
         }

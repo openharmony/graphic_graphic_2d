@@ -26,7 +26,7 @@
 #include "rosen_text/properties/typography_style.h"
 
 namespace rosen {
-class DRAWING_API TypographyCreate {
+class TypographyCreate {
 public:
     static std::unique_ptr<TypographyCreate> CreateRosenBuilder(
         const TypographyStyle& style,

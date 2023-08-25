@@ -48,7 +48,7 @@ enum class WordBreakType {
     WordBreakTypeBreakWord = 2
 };
 
-class DRAWING_API TypographyStyle {
+class TypographyStyle {
 public:
     static const std::u16string ELLIPSIS;
 

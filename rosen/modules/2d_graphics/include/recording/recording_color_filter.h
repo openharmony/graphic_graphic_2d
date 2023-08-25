@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API RecordingColorFilter : public ColorFilter {
+class RecordingColorFilter : public ColorFilter {
 public:
     /*
      * @brief       Creates a CreateBlendModeColorFilterOpItem to add to the ColorFilterCmdList.

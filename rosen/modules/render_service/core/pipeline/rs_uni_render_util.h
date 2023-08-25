@@ -95,11 +95,7 @@ private:
         const std::shared_ptr<RSSurfaceRenderNode>& node, DeviceType deviceType = DeviceType::PHONE);
     static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     static void HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node);
-#ifndef USE_ROSEN_DRAWING
     static void PostReleaseSurfaceTask(sk_sp<SkSurface>&& surface, uint32_t threadIndex);
-#else
-    static void PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);
-#endif
 #if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL) && defined(NEW_SKIA)
     static void PostReleaseGpuResourceTask(RSPaintFilterCanvas* canvas, uint64_t threadIndex);
 #endif

@@ -20,7 +20,6 @@
 
 #include "common/rs_macros.h"
 #include "drawing/engine_adapter/impl_interface/core_canvas_impl.h"
-#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {

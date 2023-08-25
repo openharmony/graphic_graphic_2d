@@ -57,7 +57,7 @@ public:
 #ifndef USE_ROSEN_DRAWING
     SkBitmap GetBitmap();
 #else
-    Drawing::Bitmap GetBitmap();
+    bool GetBitmap(Drawing::Bitmap& bitmap);
 #endif
 
     void SetSurfaceClearFunc(ThreadInfo threadInfo)

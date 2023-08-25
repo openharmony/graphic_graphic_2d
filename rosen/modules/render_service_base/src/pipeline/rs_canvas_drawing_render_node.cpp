@@ -247,20 +247,19 @@ SkBitmap RSCanvasDrawingRenderNode::GetBitmap()
     return bitmap;
 }
 #else
-Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap()
+bool RSCanvasDrawingRenderNode::GetBitmap(Drawing::Bitmap& bitmap)
 {
-    Drawing::Bitmap bitmap;
     if (surface_ == nullptr) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: Drawing::Surface is nullptr");
-        return bitmap;
+        return false;
     }
     std::shared_ptr<Drawing::Image> image = surface_->GetImageSnapshot();
     if (image == nullptr) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: Drawing::Image is nullptr");
-        return bitmap;
+        return false;
     }
     RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: Drawing asLegacyBitmap failed");
-    return bitmap;
+    return false;
 }
 #endif
 
