@@ -2135,6 +2135,15 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
         unpairedTransitionNodes_.clear();
     }
+    EraseIf(groupedTransitionNodes, [](auto& iter) -> bool {
+        auto& [id, pair] = iter;
+        if (pair.second.empty()) {
+            return true;
+        }
+        const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+        auto node = nodeMap.GetRenderNode<RSRenderNode>(iter.first);
+        return node ? (!node->IsOnTheTree()) : true;
+    });
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
 }
 
