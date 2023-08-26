@@ -244,11 +244,9 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     curAlpha_ *= property.GetAlpha();
     node.SetGlobalAlpha(curAlpha_);
     for (auto& child : children) {
-        auto curRootNode = curRootNode_;
         PrepareSharedTransitionNode(*child);
         curDirty_ = child->IsDirty();
         child->Prepare(shared_from_this());
-        curRootNode_ = curRootNode;
     }
     curAlpha_ = alpha;
 
@@ -257,7 +255,7 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     logicParentNode_ = std::move(parentNode);
 }
 
-void RSUniRenderVisitor::UpdateCacheChangeStatus(RSBaseRenderNode& node)
+void RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
 {
     node.SetChildHasFilter(false);
     if (!isDrawingCacheEnabled_) {
@@ -267,14 +265,12 @@ void RSUniRenderVisitor::UpdateCacheChangeStatus(RSBaseRenderNode& node)
     if (!node.ShouldPaint()) {
         node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
-    // drawing group root node
-    if (node.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
-        markedCachedNodes_++;
-        // For rootnode, init drawing changes only if there is any content dirty
-        isDrawingCacheChanged_.push(curContentDirty_);
-        curCacheFilterRects_.push({});
-        childHasSurface_ = false;
-    } else if (!isDrawingCacheChanged_.empty()) {
+    // skip status check if there is no upper cache mark
+    if (node.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE && markedCachedNodes_ == 0) {
+        return;
+    }
+    // subroot's dirty and cached filter should be count for parent root
+    if (!isDrawingCacheChanged_.empty()) {
         // Any child node dirty causes cache change
         isDrawingCacheChanged_.top() = isDrawingCacheChanged_.top() || curDirty_;
         if (!curCacheFilterRects_.empty()) {
@@ -286,9 +282,17 @@ void RSUniRenderVisitor::UpdateCacheChangeStatus(RSBaseRenderNode& node)
             }
         }
     }
+    // drawing group root node
+    if (node.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
+        markedCachedNodes_++;
+        // For rootnode, init drawing changes only if there is any content dirty
+        isDrawingCacheChanged_.push(curContentDirty_);
+        curCacheFilterRects_.push({});
+        childHasSurface_ = false;
+    }
 }
 
-void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSBaseRenderNode& node, int markedCachedNodeCnt)
+void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node, int markedCachedNodeCnt)
 {
     auto directParent = node.GetParent().lock();
     if (directParent != nullptr && node.ChildHasFilter()) {
@@ -320,9 +324,9 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSBaseRenderNode& node, int ma
         static_cast<int>(isDrawingCacheChanged_.top()), static_cast<int>(node.ChildHasFilter()),
         static_cast<int>(node.HasChildrenOutOfRect()), markedCachedNodeCnt, markedCachedNodes_);
     node.SetDrawingCacheChanged(isDrawingCacheChanged_.top());
+    markedCachedNodes_--;
     // reset counter after executing the very first marked node
     if (markedCachedNodeCnt == 1) {
-        markedCachedNodes_ = 0;
         isDrawingCacheChanged_.pop();
         childHasSurface_ = false;
     } else {
@@ -394,7 +398,6 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     accumulatedDirtyRegions_.emplace_back(RectI());
     curDisplayDirtyManager_->Clear();
     curDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSDisplayRenderNode>();
-    curRootNode_ = node.shared_from_this();
 
     dirtyFlag_ = isDirty_;
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
@@ -517,7 +520,6 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
     }
     if (node.IsMainWindowType()) {
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-        curRootNode_ = node.shared_from_this();
         // [Attention] node's ability pid could be different but should have same rootId
         auto abilityNodeIds = node.GetAbilityNodeIds();
         bool result = isClassifyByRootNode
@@ -658,7 +660,6 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRe
                 " SurfaceDirtyManager", node.GetName().c_str());
             return;
         }
-        curRootNode_ = node.shared_from_this();
         curSurfaceDirtyManager_->Clear();
         if (node.IsTransparent()) {
             curSurfaceDirtyManager_->UpdateVisitedDirtyRects(accumulatedDirtyRegions_);

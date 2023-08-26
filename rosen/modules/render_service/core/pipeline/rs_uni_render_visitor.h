@@ -247,9 +247,9 @@ private:
     void PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRenderNode& node);
     void PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRenderNode& node);
     // judge if node's cache changes
-    void UpdateCacheChangeStatus(RSBaseRenderNode& node);
+    void UpdateCacheChangeStatus(RSRenderNode& node);
     // set node cacheable animation after checking whold child tree
-    void SetNodeCacheChangeStatus(RSBaseRenderNode& node, int markedCachedNodeCnt);
+    void SetNodeCacheChangeStatus(RSRenderNode& node, int markedCachedNodeCnt);
     // update rendernode's cache status and collect valid cache rect
     void UpdateForegroundFilterCacheWithDirty(RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
 
@@ -288,7 +288,6 @@ private:
 
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
-    std::shared_ptr<RSRenderNode> curRootNode_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
     float curAlpha_ = 1.f;
     bool dirtyFlag_ { false };
