@@ -798,35 +798,6 @@ void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&&
     }
 }
 
-#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL) && defined(NEW_SKIA)
-void RSUniRenderUtil::ClearDrawingNodeGpuResource(uint64_t threadIndex)
-{
-    PostPurgeUnlockedResourcesTask(threadIndex);
-}
-
-void RSUniRenderUtil::PostPurgeUnlockedResourcesTask(uint64_t threadIndex)
-{
-    auto task = []() {
-        auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
-        if (renderContext == nullptr) {
-            RS_LOGE("RSUniRenderUtil: renderContext is nullptr");
-            return;
-        }
-        auto grContext = renderContext->GetGrContext();
-        if (grContext == nullptr) {
-            RS_LOGE("RSUniRenderUtil: GrContext is nullptr");
-            return;
-        }
-        grContext->purgeUnlockedResources(false);
-    };
-    if (threadIndex != UNI_MAIN_THREAD_INDEX) {
-        RS_LOGE("RSUniRenderUtil: just do it in MainThread!");
-        return;
-    }
-    RSMainThread::Instance()->PostTask(task);
-}
-#endif
-
 void RSUniRenderUtil::FloorTransXYInCanvasMatrix(RSPaintFilterCanvas& canvas)
 {
 #ifndef USE_ROSEN_DRAWING
