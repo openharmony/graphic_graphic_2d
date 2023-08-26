@@ -24,6 +24,7 @@ group("texgine_feature_test") {
     ":texgine_sample_dynamic_font",
     ":texgine_sample_dynamic_otf_font",
     ":texgine_sample_ellipsis",
+    ":texgine_sample_ellipsis_modal",
     ":texgine_sample_emoji",
     ":texgine_sample_feature",
     ":texgine_sample_font_style",
@@ -361,6 +362,17 @@ ohos_executable("texgine_sample_typography_height") {
   install_enable = true
 
   sources = [ "feature_test/typography_height_test.cpp" ]
+
+  deps = [ ":texgine_sample" ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_executable("texgine_sample_ellipsis_modal") {
+  install_enable = true
+
+  sources = [ "feature_test/ellipsis_modal_test.cpp" ]
 
   deps = [ ":texgine_sample" ]
 

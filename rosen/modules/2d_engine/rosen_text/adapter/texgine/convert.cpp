@@ -65,6 +65,7 @@ TextEngine::TypographyStyle Convert(const TypographyStyle &style)
         .align = Convert(style.textAlign),
         .direction = Convert(style.textDirection),
         .useLineStyle = style.useLineStyle,
+        .ellipsisModal = Convert(style.ellipsisModal),
         .lineStyle = {
             .only = style.lineStyleOnly,
             .fontWeight = Convert(style.lineStyleFontWeight),
@@ -428,6 +429,19 @@ TextEngine::AnySpanAlignment Convert(const PlaceholderVerticalAlignment &alignme
             return TextEngine::AnySpanAlignment::CENTER_OF_ROW_BOX;
     }
     return TextEngine::AnySpanAlignment::OFFSET_AT_BASELINE;
+}
+
+TextEngine::EllipsisModal Convert(const EllipsisModal &ellipsisModal)
+{
+    switch (ellipsisModal) {
+        case EllipsisModal::HEAD:
+            return TextEngine::EllipsisModal::HEAD;
+        case EllipsisModal::MIDDLE:
+            return TextEngine::EllipsisModal::MIDDLE;
+        case EllipsisModal::TAIL:
+        default:
+            return TextEngine::EllipsisModal::TAIL;
+    }
 }
 } // namespace AdapterTextEngine
 } // namespace Rosen
