@@ -551,7 +551,7 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
 
 bool RSUniRenderVisitor::IsHardwareComposerEnabled()
 {
-    return !isHardwareForcedDisabled_ && !doAnimate_;
+    return !isHardwareForcedDisabled_;
 }
 
 void RSUniRenderVisitor::ClearTransparentBeforeSaveLayer()
