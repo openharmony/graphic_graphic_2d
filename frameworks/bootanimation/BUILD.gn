@@ -34,6 +34,7 @@ config("bootanimation_config") {
 
   defines = []
   defines += gpu_defines
+  defines += player_framework_defines
 }
 
 ohos_executable("bootanimation") {
@@ -76,12 +77,15 @@ ohos_executable("bootanimation") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
-    "player_framework:media_client",
     "resource_management:global_resmgr",
     "samgr:samgr_proxy",
     "window_manager:libdm",
     "window_manager:libwm",
   ]
+
+  if (player_framework_enable) {
+    external_deps += [ "player_framework:media_client" ]
+  }
 
   if (is_standard_system) {
     external_deps += [ "init:libbegetutil" ]

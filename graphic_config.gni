@@ -24,6 +24,7 @@ declare_args() {
   graphic_2d_feature_enable_vulkan = false
   graphic_2d_feature_enable_filter_cache = true
   enable_text_gine = true
+  player_framework_enable = false
 
   if (defined(build_cross_platform_version) && build_cross_platform_version) {
     use_new_render_context = false
@@ -151,4 +152,11 @@ if (defined(global_parts_info) &&
     defined(global_parts_info.barrierfree_accessibility)) {
   accessibility_enable = true
   accessibility_defines = [ "ACCESSIBILITY_ENABLE" ]
+}
+
+player_framework_defines = []
+if (defined(global_parts_info) &&
+    defined(global_parts_info.multimedia_player_framework)) {
+  player_framework_enable = true
+  player_framework_defines = [ "PLAYER_FRAMEWORK_ENABLE" ]
 }
