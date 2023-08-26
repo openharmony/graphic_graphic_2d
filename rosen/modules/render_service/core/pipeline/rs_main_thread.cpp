@@ -1549,12 +1549,10 @@ void RSMainThread::Animate(uint64_t timestamp)
             RS_LOGD("RSMainThread::Animate skip the cached node");
             return false;
         }
-        if (node->IsOnTheTree()) {
-            AddActiveNode(node);
-        }
         auto [hasRunningAnimation, nodeNeedRequestNextVsync] = node->Animate(timestamp);
         if (!hasRunningAnimation) {
             RS_LOGD("RSMainThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
+            node->SetSharedTransitionParam(std::nullopt);
         }
         // request vsync if: 1. node has running animation, or 2. transition animation just ended
         needRequestNextVsync = needRequestNextVsync || nodeNeedRequestNextVsync || (node.use_count() == 1);
