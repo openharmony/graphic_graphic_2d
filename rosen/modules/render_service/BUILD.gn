@@ -61,6 +61,8 @@ ohos_shared_library("librender_service") {
     "core/screen_manager/rs_screen.cpp",
     "core/screen_manager/rs_screen_manager.cpp",
     "core/system/rs_system_parameters.cpp",
+    "core/transaction/rs_irender_service_connection_ipc_interface_code_access_verifier.cpp",
+    "core/transaction/rs_irender_service_ipc_interface_code_access_verifier.cpp",
     "core/transaction/rs_render_service_connection_stub.cpp",
     "core/transaction/rs_render_service_stub.cpp",
   ]
@@ -146,8 +148,6 @@ ohos_shared_library("librender_service") {
   }
 
   external_deps = [
-    "access_token:libaccesstoken_sdk",
-    "access_token:libtokenid_sdk",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hicollie:libhicollie",
@@ -187,6 +187,14 @@ ohos_shared_library("librender_service") {
   if (accessibility_enable) {
     external_deps += [ "accessibility:accessibilityconfig" ]
     defines += accessibility_defines
+  }
+
+  if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {
+    defines += [ "ENABLE_IPC_SECURITY" ]
+    external_deps += [
+      "access_token:libaccesstoken_sdk",
+      "access_token:libtokenid_sdk",
+    ]
   }
 
   part_name = "graphic_2d"

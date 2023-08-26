@@ -20,40 +20,38 @@
 
 namespace OHOS {
 namespace Rosen {
-template<typename CodeEnumType>
 class RSInterfaceCodeSecurityManager {
 public:
-    RSInterfaceCodeSecurityManager() = default;
     RSInterfaceCodeSecurityManager(RSInterfaceCodeSecurityManager&&) noexcept = default;
     RSInterfaceCodeSecurityManager& operator=(RSInterfaceCodeSecurityManager&&) noexcept = default;
     ~RSInterfaceCodeSecurityManager() noexcept = default;
 
-    /* specify the customized access verifier for the designated interface code */
-    void InitializeAccessVerifier(std::unique_ptr<RSInterfaceCodeAccessVerifierBase> accessVerifier,
-        const std::string& caller = "CreateRSInterfaceCodeSecurityManager")
+    /*
+     * specify a customized access verifier to create the corresponding security manager;
+     * RSInterfaceCodeAccessVerifierDerived should inherit from RSInterfaceCodeAccessVerifierBase
+     */
+    template<typename RSInterfaceCodeAccessVerifierDerived, typename... AccessVerifierDerivedConstructorArgs>
+    static RSInterfaceCodeSecurityManager CreateInstance(AccessVerifierDerivedConstructorArgs&&... constructorArgs)
     {
+        RSInterfaceCodeSecurityManager securityManager;
 #ifdef ENABLE_IPC_SECURITY
-        if (accessVerifier == nullptr) {
-            ROSEN_LOGE("%{public}s: Initialization failed. Access verifier is nullptr.", caller.c_str());
-            return;
-        }
-        accessVerifier_.reset();
-        accessVerifier_ = std::move(accessVerifier);
-        accessVerifier_->InitializeAccessMap();
+        auto accessVerifier = std::make_unique<RSInterfaceCodeAccessVerifierDerived>(
+            std::forward<AccessVerifierDerivedConstructorArgs>(constructorArgs)...);
+        securityManager.InitializeAccessVerifier(std::move(accessVerifier));
 #endif
+        return securityManager;
     }
 
-    /* decide whether the designated interface code is accessible for the visitor */
-    bool IsInterfaceCodeAccessible(CodeEnumType enumCode, const std::string& caller = "RSProxy") const
+    /* decide whether the designated ipc interface code is accessible for the visitor */
+    bool IsInterfaceCodeAccessible(CodeUnderlyingType code) const
     {
 #ifdef ENABLE_IPC_SECURITY
         if (accessVerifier_ == nullptr) {
-            ROSEN_LOGE("%{public}s: Verification failed. Access verifier is not initialized.", caller.c_str());
+            RS_LOGE("RSInterfaceCodeSecurityManager::IsInterfaceCodeAccessible access verifier is nullptr.");
             return false;
         }
-        CodeUnderlyingType code = CastEnumToUnderlying<CodeEnumType>(enumCode);
-        if (!accessVerifier_->IsInterfaceCodeAccessible(code, caller)) {
-            ROSEN_LOGE("%{public}s: Verification failed. IPC Interface code is inaccessible.", caller.c_str());
+        if (!accessVerifier_->IsInterfaceCodeAccessible(code)) {
+            RS_LOGE("RSInterfaceCodeSecurityManager::IsInterfaceCodeAccessible verification failed.");
             return false;
         }
 #endif
@@ -61,28 +59,25 @@ public:
     }
 
 private:
+    RSInterfaceCodeSecurityManager() = default;
     RSInterfaceCodeSecurityManager(const RSInterfaceCodeSecurityManager&) = delete;
     RSInterfaceCodeSecurityManager& operator=(const RSInterfaceCodeSecurityManager&) = delete;
 
+    /* specify a customized access verifier for the designated ipc interface code */
+    void InitializeAccessVerifier(std::unique_ptr<RSInterfaceCodeAccessVerifierBase> accessVerifier)
+    {
+#ifdef ENABLE_IPC_SECURITY
+        if (accessVerifier == nullptr) {
+            RS_LOGE("RSInterfaceCodeSecurityManager::InitializeAccessVerifier access verifier is nullptr.");
+            return;
+        }
+        accessVerifier_.reset();
+        accessVerifier_ = std::move(accessVerifier);
+#endif
+    }
+
     std::unique_ptr<RSInterfaceCodeAccessVerifierBase> accessVerifier_{nullptr};
 };
-
-/*
- * RSInterfaceCodeAccessVerifierDerived should inherit from RSInterfaceCodeAccessVerifierBase.
- * RSInterfaceCodeAccessVerifierDerived::CodeEnumType refers to the enum class of its associated interface code.
- */
-template<typename RSInterfaceCodeAccessVerifierDerived, typename... AccessVerifierDerivedConstructorArgs>
-inline RSInterfaceCodeSecurityManager<typename RSInterfaceCodeAccessVerifierDerived::CodeEnumType> \
-    CreateRSInterfaceCodeSecurityManager(AccessVerifierDerivedConstructorArgs&&... constructorArgs)
-{
-    RSInterfaceCodeSecurityManager<typename RSInterfaceCodeAccessVerifierDerived::CodeEnumType> securityManager;
-#ifdef ENABLE_IPC_SECURITY
-    auto accessVerifier = std::make_unique<RSInterfaceCodeAccessVerifierDerived>(
-        std::forward<AccessVerifierDerivedConstructorArgs>(constructorArgs)...);
-    securityManager.InitializeAccessVerifier(std::move(accessVerifier), __func__);
-#endif
-    return securityManager;
-}
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_RS_IPC_INTERFACE_CODE_SECURITY_MANAGER_H

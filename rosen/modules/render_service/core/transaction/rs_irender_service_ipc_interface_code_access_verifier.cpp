@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-#include "ipc_callbacks/rs_iocclusion_change_callback_ipc_interface_code_access_verifier.h"
+#include "platform/ohos/rs_irender_service_ipc_interface_code_access_verifier.h"
 
 namespace OHOS {
 namespace Rosen {
-RSIOcclusionChangeCallbackInterfaceCodeAccessVerifier::RSIOcclusionChangeCallbackInterfaceCodeAccessVerifier()
+RSIRenderServiceInterfaceCodeAccessVerifier::RSIRenderServiceInterfaceCodeAccessVerifier()
 {
     CheckCodeUnderlyingTypeStandardized<CodeEnumType>(codeEnumTypeName_);
 }
 
-bool RSIOcclusionChangeCallbackInterfaceCodeAccessVerifier::IsExclusiveVerificationPassed(CodeUnderlyingType code)
+bool RSIRenderServiceInterfaceCodeAccessVerifier::IsExclusiveVerificationPassed(CodeUnderlyingType code)
 {
     bool hasPermission = true;
     switch (code) {
-        case static_cast<CodeUnderlyingType>(CodeEnumType::ON_OCCLUSION_VISIBLE_CHANGED): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::ON_OCCLUSION_VISIBLE_CHANGED");
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_CONNECTION): {
+            /* to implement access interception */
             break;
         }
         default: {

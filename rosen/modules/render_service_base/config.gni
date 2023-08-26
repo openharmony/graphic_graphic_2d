@@ -64,11 +64,9 @@ if (rosen_is_linux) {
 }
 
 enable_export_macro = true
-enable_ipc_security = false
+enable_ipc_security = true
 
 accessibility_root = "//foundation/barrierfree/accessibility"
-access_token_root = "//base/security/access_token"
 appframework_root = "//foundation/appframework"
-ipc_root = "//foundation/communication/ipc"
 resourceschedule_root = "//foundation/resourceschedule/frame_aware_sched"
 rosen_root = "//foundation/graphic/graphic_2d/rosen"

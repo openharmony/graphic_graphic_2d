@@ -19,25 +19,22 @@ namespace OHOS {
 namespace Rosen {
 RSISyncTransactionControllerInterfaceCodeAccessVerifier::RSISyncTransactionControllerInterfaceCodeAccessVerifier()
 {
-#ifdef ENABLE_IPC_SECURITY
     CheckCodeUnderlyingTypeStandardized<CodeEnumType>(codeEnumTypeName_);
-#endif
 }
 
-void RSISyncTransactionControllerInterfaceCodeAccessVerifier::InitializeAccessMap()
+bool RSISyncTransactionControllerInterfaceCodeAccessVerifier::IsExclusiveVerificationPassed(CodeUnderlyingType code)
 {
-#ifdef ENABLE_IPC_SECURITY
-    // next: specify the initialization of accessMap_ here
-    accessMap_ = {};
-#endif
-}
-
-bool RSISyncTransactionControllerInterfaceCodeAccessVerifier::IsExtraVerificationPassed(
-    CodeUnderlyingType /* code */, const std::string& /* caller */)
-{
-    // Since no exclusive verification rule is temporarily required by this verifier, directly return true.
-    // If any exclusive rule is required in the future, overwrite this function.
-    return true;
+    bool hasPermission = true;
+    switch (code) {
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_TRANSACTION_FINISHED): {
+            /* to implement access interception */
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+    return hasPermission;
 }
 } // namespace Rosen
 } // namespace OHOS
