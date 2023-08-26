@@ -124,9 +124,6 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
 #ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_DRIVEN_RENDER
     if (RSSystemProperties::GetSnapshotWithDMAEnabled()) {
-#else
-    if (false) {
-#endif // RS_ENABLE_DRIVEN_RENDER
         skSurface->flushAndSubmit(true);
         GrBackendTexture grBackendTexture
             = skSurface->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
@@ -194,6 +191,17 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
             return false;
         }
     }
+#else
+    sk_sp<SkImage> img(skSurface.get()->makeImageSnapshot());
+    if (!img) {
+        RS_LOGE("RSSurfaceCaptureTask::Run: img is nullptr");
+        return false;
+    }
+    if (!CopyDataToPixelMap(img, pixelmap)) {
+        RS_LOGE("RSSurfaceCaptureTask::Run: CopyDataToPixelMap failed");
+        return false;
+    }
+#endif // RS_ENABLE_DRIVEN_RENDER
 #else
     std::shared_ptr<Drawing::Image> img(surface.get()->GetImageSnapshot());
     if (!img) {
