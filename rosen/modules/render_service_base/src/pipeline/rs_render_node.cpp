@@ -1112,9 +1112,10 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
             clearCacheSurfaceFunc_ = func;
         }
         if (cacheSurface_) {
-            func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
+            func(std::move(cacheSurface_), nullptr,
                 cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
-            ClearCacheSurface();
+            std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+            cacheSurface_ = nullptr;
         }
     } else {
         cacheSurface_ = nullptr;
