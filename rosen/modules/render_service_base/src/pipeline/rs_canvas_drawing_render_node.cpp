@@ -47,27 +47,6 @@ RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
 #endif
 }
 
-void RSCanvasDrawingRenderNode::OnTreeStateChanged()
-{
-    RSRenderNode::OnTreeStateChanged();
-#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL) && defined(NEW_SKIA)
-    if (IsOnTheTree()) {
-        return;
-    }
-    
-    if (gpuResourceClearFun_ && canvas_) {
-        gpuResourceClearFun_(canvas_.get(), curThreadInfo_.first);
-    }
-#endif
-}
-
-#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL) && defined(NEW_SKIA)
-void RSCanvasDrawingRenderNode::SetGpuResourceClearFunc(GpuResourceClearFun fun)
-{
-    gpuResourceClearFun_ = fun;
-}
-#endif
-
 void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 {
 #ifndef USE_ROSEN_DRAWING

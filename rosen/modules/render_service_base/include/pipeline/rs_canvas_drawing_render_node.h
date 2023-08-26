@@ -30,10 +30,6 @@ using ThreadInfo = std::pair<uint64_t, std::function<void(sk_sp<SkSurface>)>>;
 using ThreadInfo = std::pair<uint64_t, std::function<void(std::shared_ptr<Drawing::Surface>)>>;
 #endif
 
-#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL) && defined(NEW_SKIA)
-using GpuResourceClearFun = std::function<void(RSPaintFilterCanvas*, uint64_t)>;
-#endif
-
 class RSB_EXPORT RSCanvasDrawingRenderNode : public RSCanvasRenderNode {
 public:
     using WeakPtr = std::weak_ptr<RSCanvasDrawingRenderNode>;
@@ -42,10 +38,6 @@ public:
 
     explicit RSCanvasDrawingRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {});
     virtual ~RSCanvasDrawingRenderNode();
-
-    // RSCanvasDrawingRenderNode has its own skSurface, maybe hold its own gpu resources,
-    // and needs to have the same resource release strategy as RSSurfaceNode.
-    void OnTreeStateChanged() override;
 
     void ProcessRenderContents(RSPaintFilterCanvas& canvas) override;
 
@@ -65,10 +57,6 @@ public:
         curThreadInfo_ = threadInfo;
     }
 
-#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL) && defined(NEW_SKIA)
-    void SetGpuResourceClearFunc(GpuResourceClearFun fun);
-#endif
-
     void AddDirtyType(RSModifierType type) override;
 
 private:
@@ -86,9 +74,6 @@ private:
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     ThreadInfo curThreadInfo_ = {};
     ThreadInfo preThreadInfo_ = {};
-#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL) && defined(NEW_SKIA)
-    GpuResourceClearFun gpuResourceClearFun_ = nullptr;
-#endif
     std::map<RSModifierType, std::list<DrawCmdListPtr>> drawCmdLists_;
 };
 

@@ -1039,25 +1039,6 @@ void RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
-        if (!node.IsOnTheTree()) {
-#ifndef USE_ROSEN_DRAWING
-            auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](sk_sp<SkSurface> surface) {
-#else
-            auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](std::shared_ptr<Drawing::Surface> surface) {
-#endif
-                // The second param is null, 0 is an invalid value.
-                RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, id, 0);
-            };
-            canvasDrawingNode->SetSurfaceClearFunc({ UNI_MAIN_THREAD_INDEX, clearFunc });
-#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL) && defined(NEW_SKIA)
-            auto clearGpuFunc = [](RSPaintFilterCanvas* canvas, uint64_t index) {
-                RSUniRenderUtil::ClearCanvasGpuResource(canvas, index);
-            };
-            canvasDrawingNode->SetGpuResourceClearFunc(clearGpuFunc);
-#endif
-            canvasDrawingNode->ProcessRenderBeforeChildren(*canvas_);
-            canvasDrawingNode->ProcessRenderContents(*canvas_);
-        } else {
 #ifndef USE_ROSEN_DRAWING
             SkBitmap bitmap = canvasDrawingNode->GetBitmap();
 #ifndef NEW_SKIA
@@ -1072,7 +1053,6 @@ void RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
             canvas_->DrawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
                 node.GetRenderProperties().GetBoundsPositionY());
 #endif
-        }
     } else {
         node.ProcessRenderBeforeChildren(*canvas_);
         node.ProcessRenderContents(*canvas_);
