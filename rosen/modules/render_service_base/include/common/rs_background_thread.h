@@ -39,6 +39,7 @@ public:
 #ifndef USE_ROSEN_DRAWING
     void InitRenderContext(RenderContext* context);
     sk_sp<GrDirectContext> GetShareGrContext();
+    void CleanGrResource();
 #endif
 #endif
 private:

@@ -100,6 +100,15 @@ sk_sp<GrDirectContext> RSBackgroundThread::CreateShareGrContext()
     }
     return grContext;
 }
+
+void RSBackgroundThread::CleanGrResource()
+{
+    RS_TRACE_NAME("free background GrContext resource");
+    if (grContext_ == nullptr) {
+        return;
+    }
+    grContext_->freeGpuResources();
+}
 #endif
 #endif
 }

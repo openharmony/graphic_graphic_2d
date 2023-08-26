@@ -179,6 +179,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
             }
             callback->OnSurfaceCapture(id, pixelmap.get());
             dmaMem.ReleaseGLMemory();
+            RSBackgroundThread::Instance().CleanGrResource();
         };
         RSBackgroundThread::Instance().PostTask(copytask);
         return true;
