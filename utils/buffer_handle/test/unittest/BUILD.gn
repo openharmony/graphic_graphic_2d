@@ -1,0 +1,59 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+
+module_out_path = "graphic_2d/utils/buffer_handle"
+
+group("unittest") {
+  testonly = true
+  deps = [ ":BufferHandleTest" ]
+}
+
+## UnitTest buffer_handle_test {{{
+ohos_unittest("BufferHandleTest") {
+  module_out_path = module_out_path
+  sources = [ "buffer_handle_test.cpp" ]
+  deps = [
+    ":buffer_handle_test_common",
+    "../../../../../../communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "graphic_2d:buffer_handle",
+    "hilog:libhilog",
+  ]
+}
+
+## Build buffer_handle_test_common.a {{{
+config("buffer_handle_test_config") {
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+## UnitTest buffer_handle_test }}}
+
+ohos_static_library("buffer_handle_test_common") {
+  visibility = [ ":*" ]
+  testonly = true
+  public_configs = [ ":buffer_handle_test_config" ]
+
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
+## Build buffer_handle_test_common.a }}}

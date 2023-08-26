@@ -13,18 +13,37 @@
 
 import("//build/ohos.gni")
 
-## buffer_handle.a {{{
+## buffer_handle.so {{{
+config("buffer_handle_config") {
+  visibility = [ ":buffer_handle" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Wno-error=missing-braces",
+    "-Wno-error=#warnings",
+  ]
+}
+
 config("buffer_handle_public_config") {
   include_dirs = [
     "export",
-    "//drivers/peripheral/base",
+    "../../../../../drivers/peripheral/base",
+    "../../../../../commonlibrary/c_utils/base/include",
+    "../../../../../base/hiviewdfx/hilog/interfaces/native/innerkits",
+    "../../../../../base/notification/eventhandler/interfaces/inner_api",
+    "../../../../../foundation/graphic/graphic_2d/utils/log",
   ]
 }
 
 ohos_static_library("buffer_handle") {
   sources = [ "src/buffer_handle.cpp" ]
 
-  configs = [ "//commonlibrary/c_utils/base:utils_config" ]
+  configs = [
+    ":buffer_handle_config",
+    "../../../../../commonlibrary/c_utils/base:utils_config",
+  ]
 
   public_configs = [ ":buffer_handle_public_config" ]
 
@@ -36,4 +55,9 @@ ohos_static_library("buffer_handle") {
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }
-## buffer_handle.a }}}
+
+group("test") {
+  testonly = true
+  deps = [ "test:test" ]
+}
+## buffer_handle.so }}}
