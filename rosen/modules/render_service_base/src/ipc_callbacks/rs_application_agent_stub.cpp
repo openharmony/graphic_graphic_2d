@@ -23,6 +23,11 @@ namespace Rosen {
 int RSApplicationAgentStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+        RS_LOGE("RSApplicationAgentStub::OnRemoteRequest no permission to access codeID=%{public}u.", code);
+        return ERR_INVALID_STATE;
+    }
+
     auto token = data.ReadInterfaceToken();
     if (token != IApplicationAgent::GetDescriptor()) {
         return ERR_INVALID_STATE;
@@ -42,5 +47,8 @@ int RSApplicationAgentStub::OnRemoteRequest(
 
     return ret;
 }
+
+const RSInterfaceCodeSecurityManager RSApplicationAgentStub::securityManager_ = \
+    RSInterfaceCodeSecurityManager::CreateInstance<IApplicationAgentInterfaceCodeAccessVerifier>();
 } // namespace Rosen
 } // namespace OHOS

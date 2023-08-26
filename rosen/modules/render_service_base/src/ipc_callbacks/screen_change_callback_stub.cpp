@@ -20,6 +20,11 @@ namespace Rosen {
 int RSScreenChangeCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+        RS_LOGE("RSScreenChangeCallbackStub::OnRemoteRequest no permission to access codeID=%{public}u.", code);
+        return ERR_INVALID_STATE;
+    }
+
     auto token = data.ReadInterfaceToken();
     if (token != RSIScreenChangeCallback::GetDescriptor()) {
         return ERR_INVALID_STATE;
@@ -41,5 +46,8 @@ int RSScreenChangeCallbackStub::OnRemoteRequest(
 
     return ret;
 }
+
+const RSInterfaceCodeSecurityManager RSScreenChangeCallbackStub::securityManager_ = \
+    RSInterfaceCodeSecurityManager::CreateInstance<RSIScreenChangeCallbackInterfaceCodeAccessVerifier>();
 } // namespace Rosen
 } // namespace OHOS

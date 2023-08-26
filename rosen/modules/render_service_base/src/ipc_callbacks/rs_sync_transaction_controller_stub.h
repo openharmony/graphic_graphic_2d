@@ -21,7 +21,8 @@
 
 #include "common/rs_macros.h"
 #include "ipc_callbacks/rs_isync_transaction_controller.h"
-#include "ipc_callbacks/rs_isync_transaction_controller_ipc_interface_code.h"
+#include "ipc_callbacks/rs_isync_transaction_controller_ipc_interface_code_access_verifier.h"
+#include "ipc_security/rs_ipc_interface_code_security_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,6 +35,8 @@ public:
 
 private:
     DISALLOW_COPY_AND_MOVE(RSSyncTransactionControllerStub);
+
+    static const RSInterfaceCodeSecurityManager securityManager_;
 };
 } // namespace Rosen
 } // namespace OHOS
