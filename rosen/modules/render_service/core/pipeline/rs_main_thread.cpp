@@ -317,6 +317,9 @@ void RSMainThread::Init()
     RSInnovation::OpenInnovationSo();
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     RSDrivenRenderManager::InitInstance();
+#ifndef USE_ROSEN_DRAWING
+    RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
+#endif
 #endif
 
 #if defined(ACCESSIBILITY_ENABLE)

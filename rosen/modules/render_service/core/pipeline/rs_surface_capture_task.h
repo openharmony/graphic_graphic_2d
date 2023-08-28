@@ -38,6 +38,7 @@
 #include "draw/surface.h"
 #include "utils/matrix.h"
 #endif
+#include "ipc_callbacks/surface_capture_callback.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -47,6 +48,8 @@
 
 namespace OHOS {
 namespace Rosen {
+bool CopyDataToPixelMap(sk_sp<SkImage> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
+
 class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:
         RSSurfaceCaptureVisitor(float scaleX, float scaleY, bool isUniRender);
@@ -127,19 +130,13 @@ public:
         : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY) {}
     ~RSSurfaceCaptureTask() = default;
 
-    std::unique_ptr<Media::PixelMap> Run();
+    bool Run(sptr<RSISurfaceCaptureCallback> callback);
 
 private:
     std::shared_ptr<RSSurfaceCaptureVisitor> visitor_ = nullptr;
 
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
-    bool CopyDataToPixelMap(sk_sp<SkImage> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
-    sptr<SurfaceBuffer> DmaMemAlloc(SkImageInfo &dstInfo, const std::unique_ptr<Media::PixelMap>& pixelmap);
-    sk_sp<SkSurface> GetSkSurfaceFromSurfaceBuffer(std::shared_ptr<RenderContext> renderContext, sptr<SurfaceBuffer> surfaceBuffer);
-    void ReleaseGLMemory();
-#endif
 #else
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
 #endif
@@ -157,15 +154,22 @@ private:
     float scaleX_;
 
     float scaleY_;
+};
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
 #ifndef USE_ROSEN_DRAWING
+class DmaMem {
+public:
+    sptr<SurfaceBuffer> DmaMemAlloc(SkImageInfo &dstInfo, const std::unique_ptr<Media::PixelMap>& pixelmap);
+    sk_sp<SkSurface> GetSkSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer);
+    void ReleaseGLMemory();
+private:
     EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
     GLuint texId_ = 0;
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
-#endif
-#endif
 };
+#endif
+#endif
 } // namespace Rosen
 } // namespace OHOS
 

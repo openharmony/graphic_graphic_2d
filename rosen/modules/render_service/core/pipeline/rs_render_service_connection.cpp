@@ -15,6 +15,7 @@
 
 #include "rs_render_service_connection.h"
 
+#include "common/rs_background_thread.h"
 #include "hgm_core.h"
 #include "hgm_command.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
@@ -483,8 +484,9 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%{public}" PRIu64 "]", id);
             ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
             RSSurfaceCaptureTask task(id, scaleX, scaleY);
-            std::unique_ptr<Media::PixelMap> pixelmap = task.Run();
-            callback->OnSurfaceCapture(id, pixelmap.get());
+            if (!task.Run(callback)) {
+                callback->OnSurfaceCapture(id, nullptr);
+            }
             ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         };
         mainThread_->PostTask(captureTask);

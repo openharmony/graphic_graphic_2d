@@ -232,7 +232,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, Run001, Function | SmallTest | Level2)
     float scaleX = 0.f;
     float scaleY = 0.f;
     RSSurfaceCaptureTask task(id, scaleX, scaleY);
-    ASSERT_EQ(nullptr, task.Run());
+    ASSERT_EQ(false, task.Run(nullptr));
 }
 
 /*
@@ -247,7 +247,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, Run002, Function | SmallTest | Level2)
     float scaleX = DEFAULT_CANVAS_SCALE;
     float scaleY = 0.f;
     RSSurfaceCaptureTask task(id, scaleX, scaleY);
-    ASSERT_EQ(nullptr, task.Run());
+    ASSERT_EQ(false, task.Run(nullptr));
 }
 
 /*
@@ -262,7 +262,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, Run003, Function | SmallTest | Level2)
     float scaleX = 0.f;
     float scaleY = DEFAULT_BOUNDS_HEIGHT;
     RSSurfaceCaptureTask task(id, scaleX, scaleY);
-    ASSERT_EQ(nullptr, task.Run());
+    ASSERT_EQ(false, task.Run(nullptr));
 }
 
 /*
@@ -277,7 +277,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, Run004, Function | SmallTest | Level2)
     float scaleX = DEFAULT_CANVAS_SCALE;
     float scaleY = DEFAULT_CANVAS_SCALE;
     RSSurfaceCaptureTask task(id, scaleX, scaleY);
-    ASSERT_EQ(nullptr, task.Run());
+    ASSERT_EQ(false, task.Run(nullptr));
 }
 
 /*
@@ -292,7 +292,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, Run005, Function | SmallTest | Level2)
     float scaleX = -1.0f;
     float scaleY = DEFAULT_CANVAS_SCALE;
     RSSurfaceCaptureTask task(id, scaleX, scaleY);
-    ASSERT_EQ(nullptr, task.Run());
+    ASSERT_EQ(false, task.Run(nullptr));
 }
 
 /*
@@ -307,7 +307,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, Run007, Function | SmallTest | Level2)
     float scaleX = DEFAULT_CANVAS_SCALE;
     float scaleY = -1.0f;
     RSSurfaceCaptureTask task(id, scaleX, scaleY);
-    ASSERT_EQ(nullptr, task.Run());
+    ASSERT_EQ(false, task.Run(nullptr));
 }
 
 /*
