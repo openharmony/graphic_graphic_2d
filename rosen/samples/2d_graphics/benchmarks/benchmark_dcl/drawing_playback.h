@@ -27,9 +27,34 @@
 #include "benchmark.h"
 #include "drawing_command.h"
 #include "skia_recording.h"
+#include "include/core/SkBBHFactory.h"
+#include "include/core/SkBitmap.h"
+#include "include/core/SkCanvas.h"
+#include "include/core/SkData.h"
+#include "include/core/SkPicture.h"
+#include "src/utils/SkMultiPictureDocument.h"
+#include "tools/flags/CommonFlagsConfig.h"
+#include "tools/gpu/MemoryCache.h"
 
 namespace OHOS {
 namespace Rosen {
+class MSKPSrc{
+public:
+    explicit MSKPSrc(std::string path);
+
+    int pageCount() const;
+    bool draw(SkCanvas* c) const;
+    bool nextFrame();
+    SkISize size() const;
+    SkISize size(int) const;
+    SkString name() const;
+    int getCurFrameNum() {return curFrameNum;}
+private:
+    uint16_t curFrameNum = 0;
+    std::string fPath;
+    mutable SkTArray<SkDocumentPage> fPages;
+};
+
 class DrawingDCL : public BenchMark {
 public:
     DrawingDCL() { std::cout << "DrawingDCL" << std::endl; }
@@ -37,6 +62,7 @@ public:
     ~DrawingDCL();
     bool GetDirectionAndStep(std::string command, bool &isMoreOps);
     bool IterateFrame(int &curLoop, int &frame);
+    bool ReplaySKP(SkCanvas *skiaCanvas);
     bool PlayBackByFrame(SkCanvas *skiaCanvas, bool isDumpPictures = false);
     bool PlayBackByOpItem(SkCanvas *skiaCanvas, bool isMoreOps = true);
     void UpdateParameters(bool notNeeded);
@@ -55,7 +81,7 @@ private:
     const static size_t recordingParcelMaxCapcity_ = 234 * 1000 * 1024;
     inline const static std::string dclFileDir_ = "/data/";
     DrawCmdList* dcl_ = nullptr;
-    IterateType iterateType = IterateType::ITERATE_FRAME;
+    IterateType iterateType_ = IterateType::ITERATE_FRAME;
     int beginFrame_ = 0;
     int endFrame_ = 100;
     int loop_ = 1;
@@ -63,6 +89,8 @@ private:
     std::string inputFilePath_ = "/data/lkx/";
     std::string outputFilePath_ = "/data/lkx/";
     SkiaRecording skiaRecording;
+    std::unique_ptr<MSKPSrc> mskpPtr;
+    sk_sp<SkPicture> skpPtr;
 };
 }
 }
