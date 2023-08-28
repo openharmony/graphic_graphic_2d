@@ -2269,5 +2269,18 @@ void RSMainThread::AddToReleaseQueue(sk_sp<SkSurface>&& surface)
     std::lock_guard<std::mutex> lock(mutex_);
     tmpSurfaces_.push(std::move(surface));
 }
+
+void RSMainThread::GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize)
+{
+    PostSyncTask([&cpuMemSize, &gpuMemSize, this]() {
+#ifdef NEW_RENDER_CONTEXT
+        gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(GetRenderEngine()->GetDrawingContext()->GetDrawingContext());
+#else
+        gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(GetRenderEngine()->GetRenderContext()->GetGrContext());
+#endif
+        cpuMemSize = MemoryTrack::Instance().GetAppMemorySizeInMB();
+    });
+}
+
 } // namespace Rosen
 } // namespace OHOS

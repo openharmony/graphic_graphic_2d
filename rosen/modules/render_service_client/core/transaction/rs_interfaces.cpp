@@ -324,6 +324,11 @@ std::vector<MemoryGraphic> RSInterfaces::GetMemoryGraphics()
     return renderServiceClient_->GetMemoryGraphics();
 }
 
+bool RSInterfaces::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
+{
+    return renderServiceClient_->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
+}
+
 void RSInterfaces::ReportJankStats()
 {
     renderServiceClient_->ReportJankStats();

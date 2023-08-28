@@ -43,6 +43,11 @@ std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
     return {};
 }
 
+bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
+{
+    return {};
+}
+
 bool RSRenderServiceClient::GetUniRenderEnabled()
 {
     return {};

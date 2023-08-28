@@ -118,6 +118,8 @@ public:
 
     virtual MemoryGraphic GetMemoryGraphic(int pid) = 0;
 
+    virtual bool GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize) = 0;
+
     virtual std::vector<MemoryGraphic> GetMemoryGraphics() = 0;
 
     virtual int32_t GetScreenBacklight(ScreenId id) = 0;

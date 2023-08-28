@@ -89,6 +89,7 @@ public:
     void RenderServiceTreeDump(std::string& dumpString);
     void RsEventParamDump(std::string& dumpString);
     bool IsUIFirstOn() const;
+    void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)

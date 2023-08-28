@@ -43,6 +43,7 @@ public:
     void AddToReleaseQueue(sk_sp<SkSurface>&& surface);
     void ResetGrContext();
     void DumpMem(DfxString& log);
+    float GetAppGpuMemoryInMB();
 private:
     void CreateShareEglContext();
     void DestroyShareEglContext();

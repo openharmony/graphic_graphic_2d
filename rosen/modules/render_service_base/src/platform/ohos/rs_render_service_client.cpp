@@ -92,6 +92,15 @@ std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
     return renderService->GetMemoryGraphics();
 }
 
+bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return false;
+    }
+    return renderService->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
+}
+
 bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

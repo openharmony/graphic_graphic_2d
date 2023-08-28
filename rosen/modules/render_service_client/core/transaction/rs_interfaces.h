@@ -83,6 +83,8 @@ public:
 
     std::vector<MemoryGraphic> GetMemoryGraphics();
 
+    bool GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);

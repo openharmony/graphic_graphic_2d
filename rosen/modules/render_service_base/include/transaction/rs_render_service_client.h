@@ -159,6 +159,7 @@ public:
 
     MemoryGraphic GetMemoryGraphic(int pid);
     std::vector<MemoryGraphic> GetMemoryGraphics();
+    bool GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
 
     int32_t GetScreenBacklight(ScreenId id);
 

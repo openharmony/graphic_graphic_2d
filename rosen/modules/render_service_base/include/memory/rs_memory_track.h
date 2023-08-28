@@ -64,6 +64,7 @@ public:
     void UpdatePictureInfo(const void* addr, NodeId nodeId, pid_t pid);
     // count memory for hidumper
     MemoryGraphic CountRSMemory(const pid_t pid);
+    float GetAppMemorySizeInMB();
 private:
     MemoryTrack() = default;
     ~MemoryTrack() = default;

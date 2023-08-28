@@ -126,6 +126,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_MEMORY_GRAPHICS");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_TOTAL_APP_MEM_SIZE): {
+            /* to implement access interception */
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_CAPABILITY): {
             /* to implement access interception */
             break;
@@ -230,11 +234,11 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             /* to implement access interception */
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_HARDWARE_ENABLED) : {
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_HARDWARE_ENABLED): {
             /* to implement access interception */
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_HGM_CFG_CALLBACK) : {
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_HGM_CFG_CALLBACK): {
             /* to implement access interception */
             break;
         }

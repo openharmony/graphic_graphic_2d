@@ -158,6 +158,12 @@ float SkiaMemoryTracer::GetGLMemorySize()
     return totalGpuSizeApp;
 }
 
+float SkiaMemoryTracer::GetGpuMemorySizeInMB()
+{
+    ProcessElement();
+    return ConvertToMB(totalSize_);
+}
+
 void SkiaMemoryTracer::LogTotals(DfxString& log)
 {
     TraceValue total = ConvertUnits(totalSize_);
@@ -178,6 +184,17 @@ SkiaMemoryTracer::TraceValue SkiaMemoryTracer::ConvertUnits(const TraceValue& va
         output.units = "MB";
     }
     return output;
+}
+
+float SkiaMemoryTracer::ConvertToMB(const TraceValue& value)
+{
+    if (SkString(value.units) == SkString("bytes")) {
+        return value.value / MEMUNIT_RATE / MEMUNIT_RATE;
+    }
+    if (SkString(value.units) == SkString("KB")) {
+        return value.value / MEMUNIT_RATE;
+    }
+    return value.value;
 }
 
 } // namespace OHOS::Rosen

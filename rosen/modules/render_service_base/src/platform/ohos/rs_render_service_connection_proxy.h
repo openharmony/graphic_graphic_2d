@@ -34,6 +34,8 @@ public:
 
     MemoryGraphic GetMemoryGraphic(int pid) override;
     std::vector<MemoryGraphic> GetMemoryGraphics() override;
+    bool GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize) override;
+
     bool GetUniRenderEnabled() override;
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config) override;

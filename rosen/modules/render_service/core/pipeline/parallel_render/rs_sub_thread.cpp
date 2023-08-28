@@ -92,6 +92,15 @@ void RSSubThread::DumpMem(DfxString& log)
     });
 }
 
+float RSSubThread::GetAppGpuMemoryInMB()
+{
+    float total = 0.f;
+    PostSyncTask([&total, this]() {
+        total = MemoryManager::GetAppGpuMemoryInMB(grContext_.get());
+    });
+    return total;
+}
+
 void RSSubThread::CreateShareEglContext()
 {
 #ifdef RS_ENABLE_GL

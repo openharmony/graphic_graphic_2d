@@ -65,6 +65,21 @@ void RSSubThreadManager::DumpMem(DfxString& log)
     }
 }
 
+float RSSubThreadManager::GetAppGpuMemoryInMB()
+{
+    if (threadList_.empty()) {
+        return 0.f;
+    }
+    float total = 0.f;
+    for (auto& subThread : threadList_) {
+        if (!subThread) {
+            continue;
+        }
+        total += subThread->GetAppGpuMemoryInMB();
+    }
+    return total;
+}
+
 void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRenderNode>& node,
     const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
 {

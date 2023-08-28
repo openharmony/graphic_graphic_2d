@@ -757,6 +757,28 @@ std::vector<MemoryGraphic> RSRenderServiceConnectionProxy::GetMemoryGraphics()
     return memoryGraphics;
 }
 
+bool RSRenderServiceConnectionProxy::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    MemoryGraphic memoryGraphic;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_TOTAL_APP_MEM_SIZE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return false;
+    }
+
+    cpuMemSize = reply.ReadFloat();
+    gpuMemSize = reply.ReadFloat();
+    return true;
+}
+
 MemoryGraphic RSRenderServiceConnectionProxy::GetMemoryGraphic(int pid)
 {
     MessageParcel data;

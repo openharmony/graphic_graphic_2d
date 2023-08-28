@@ -18,6 +18,7 @@
 #include "hgm_core.h"
 #include "hgm_command.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
+#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_service_listener.h"
@@ -558,6 +559,13 @@ RSScreenModeInfo RSRenderServiceConnection::GetScreenActiveMode(ScreenId id)
             [=, &screenModeInfo]() { return screenManager_->GetScreenActiveMode(id, screenModeInfo); }).wait();
     }
     return screenModeInfo;
+}
+
+bool RSRenderServiceConnection::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
+{
+    RSMainThread::Instance()->GetAppMemoryInMB(cpuMemSize, gpuMemSize);
+    gpuMemSize += RSSubThreadManager::Instance()->GetAppGpuMemoryInMB();
+    return true;
 }
 
 MemoryGraphic RSRenderServiceConnection::GetMemoryGraphic(int pid)
