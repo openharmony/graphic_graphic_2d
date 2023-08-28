@@ -66,7 +66,7 @@ void RSBackgroundThread::CreateShareEglContext()
     }
 }
 
-sk_sp<GrDirectContext> RSBackgroundThread::GetShareGrContext()
+sk_sp<GrDirectContext> RSBackgroundThread::GetShareGrContext() const
 {
     return grContext_;
 }

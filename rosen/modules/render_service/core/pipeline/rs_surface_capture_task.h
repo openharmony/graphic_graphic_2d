@@ -161,7 +161,7 @@ private:
 class DmaMem {
 public:
     sptr<SurfaceBuffer> DmaMemAlloc(SkImageInfo &dstInfo, const std::unique_ptr<Media::PixelMap>& pixelmap);
-    sk_sp<SkSurface> GetSkSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer);
+    sk_sp<SkSurface> GetSkSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer) const;
     void ReleaseGLMemory();
 private:
     EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;

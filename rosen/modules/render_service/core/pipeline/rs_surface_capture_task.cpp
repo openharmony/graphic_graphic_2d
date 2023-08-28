@@ -134,7 +134,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         auto wrapper = std::make_shared<std::tuple<std::unique_ptr<Media::PixelMap>>>();
         std::get<0>(*wrapper) = std::move(pixelmap);
         auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>();
-        auto rotation = (displayNode != nullptr) ? node->ReinterpretCastTo<RSDisplayRenderNode>()->GetRotation()
+        auto rotation = (displayNode != nullptr) ? displayNode->GetRotation()
             : ScreenRotation::INVALID_SCREEN_ROTATION;
         bool ableRotation = ((displayNode != nullptr) && visitor_->IsUniRender());
         auto id = nodeId_;
@@ -159,6 +159,12 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
                 kRGBA_8888_SkColorType, kPremul_SkAlphaType);
             sptr<SurfaceBuffer> surfaceBuffer = dmaMem.DmaMemAlloc(info, pixelmap);
             auto skSurface = dmaMem.GetSkSurfaceFromSurfaceBuffer(surfaceBuffer);
+            if (skSurface == nullptr) {
+                RS_LOGE("GetSkSurfaceFromSurfaceBuffer fail,surface is nullptr!");
+                dmaMem.ReleaseGLMemory();
+                callback->OnSurfaceCapture(id, nullptr);
+                return;
+            }
             auto canvas = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
 
             auto tmpImg = SkImage::MakeFromTexture(canvas->recordingContext(), grBackendTexture,
@@ -402,7 +408,7 @@ sptr<SurfaceBuffer> DmaMem::DmaMemAlloc(SkImageInfo &dstInfo, const std::unique_
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
 #ifndef USE_ROSEN_DRAWING
-sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer)
+sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer) const
 {
     if (surfaceBuffer == nullptr) {
         RS_LOGE("GetSkImageFromSurfaceBuffer surfaceBuffer is nullptr");

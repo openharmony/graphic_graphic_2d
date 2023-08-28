@@ -38,7 +38,7 @@ public:
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
 #ifndef USE_ROSEN_DRAWING
     void InitRenderContext(RenderContext* context);
-    sk_sp<GrDirectContext> GetShareGrContext();
+    sk_sp<GrDirectContext> GetShareGrContext() const;
     void CleanGrResource();
 #endif
 #endif
