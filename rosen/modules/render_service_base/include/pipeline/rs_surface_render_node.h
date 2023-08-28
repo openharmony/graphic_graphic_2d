@@ -685,7 +685,6 @@ public:
 
     void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus);
     CacheProcessStatus GetCacheSurfaceProcessedStatus() const;
-    bool NodeIsUsedBySubThread() const override;
 
     bool GetFilterCacheFullyCovered() const
     {

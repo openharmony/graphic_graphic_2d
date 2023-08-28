@@ -1517,10 +1517,17 @@ void RSUniRenderVisitor::DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node
 
 void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
 {
+    if (isSubThread_) {
+        node.SetIsUsedBySubThread(true);
+    }
     for (auto& child : node.GetSortedChildren()) {
         if (ProcessSharedTransitionNode(*child)) {
             child->Process(shared_from_this());
         }
+    }
+    if (isSubThread_) {
+        node.SetIsUsedBySubThread(false);
+        node.ClearFullChildrenListIfNeeded(true);
     }
 }
 
@@ -3287,9 +3294,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         isSubNodeOfSurfaceInProcess_ = isSubNodeOfSurfaceInProcess;
         // release full children list used by sub thread
-        if (isSubThread_) {
-            node.ClearFullChildrenListIfNeeded(true);
-        }
     }
 }
 

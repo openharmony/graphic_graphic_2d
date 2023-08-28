@@ -404,6 +404,8 @@ public:
     bool ApplyModifiers();
 
     virtual RectI GetFilterRect() const;
+    void SetIsUsedBySubThread(bool isUsedBySubThread);
+    bool GetIsUsedBySubThread() const;
 
 protected:
     virtual void OnApplyModifiers() {}
@@ -429,8 +431,6 @@ protected:
     // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
     bool isRenderUpdateIgnored_ = false;
     bool isShadowValidLastFrame_ = false;
-
-    virtual bool NodeIsUsedBySubThread() const { return false; }
 
     bool IsSelfDrawingNode() const;
     bool isOnTheTree_ = false;
@@ -545,6 +545,8 @@ private:
     float boundsHeight_ = 0.0f;
     bool hasCacheableAnim_ = false;
     bool geometryChangeNotPerceived_ = false;
+
+    std::atomic_bool isUsedBySubThread_ = false;
 
     FrameRateRange rsRange_ = {0, 0, 0};
     FrameRateRange uiRange_ = {0, 0, 0};
