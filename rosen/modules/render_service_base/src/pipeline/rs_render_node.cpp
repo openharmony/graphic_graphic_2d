@@ -1493,8 +1493,9 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
 void RSRenderNode::OnTreeStateChanged()
 {
     if (!isOnTheTree_) {
+        // attempt to clear FullChildrenList, to avoid memory leak
         isFullChildrenListValid_ = false;
-        fullChildrenList_.clear();
+        ClearFullChildrenListIfNeeded();
     } else {
         SetDirty();
     }
@@ -1933,6 +1934,14 @@ inline void RSRenderNode::AddActiveNode()
 {
     if (auto context = GetContext().lock()) {
         context->AddActiveNode(shared_from_this());
+    }
+}
+
+void RSRenderNode::ClearFullChildrenListIfNeeded(bool inSubThread)
+{
+    // if fullChildrenList_ is used by sub thread, we can't clear it, it should be cleared by sub thread
+    if (!isFullChildrenListValid_ && !fullChildrenList_.empty() && (inSubThread || !NodeIsUsedBySubThread())) {
+        fullChildrenList_.clear();
     }
 }
 } // namespace Rosen

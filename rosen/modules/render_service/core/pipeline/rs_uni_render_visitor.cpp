@@ -3286,6 +3286,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         isSubNodeOfSurfaceInProcess_ = isSubNodeOfSurfaceInProcess;
+        // release full children list used by sub thread
+        if (isSubThread_) {
+            node.ClearFullChildrenListIfNeeded(true);
+        }
     }
 }
 

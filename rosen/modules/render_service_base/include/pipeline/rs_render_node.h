@@ -112,6 +112,7 @@ public:
     // return children and disappeared children, sorted by z-index
     const std::list<SharedPtr>& GetSortedChildren();
     uint32_t GetChildrenCount() const;
+    void ClearFullChildrenListIfNeeded(bool inSubThread = false);
 
     void DumpTree(int32_t depth, std::string& ou) const;
 
