@@ -103,8 +103,7 @@ HWTEST_F(RSRenderNodeTest, AddModifierTest, TestSize.Level1)
     std::shared_ptr<RSRenderModifier> modifier = nullptr;
     RSRenderNode node(id, context);
     node.AddModifier(modifier);
-    RSBaseRenderNode rsBaseRenderNode(id, context);
-    ASSERT_TRUE(rsBaseRenderNode.IsDirty());
+    ASSERT_TRUE(node.IsDirty());
 }
 
 /**
@@ -119,8 +118,7 @@ HWTEST_F(RSRenderNodeTest, SetSharedTransitionParamTest, TestSize.Level1)
     const std::optional<SharedTransitionParam> sharedTransitionParam;
     RSRenderNode node(id, context);
     node.SetSharedTransitionParam(std::move(sharedTransitionParam));
-    RSBaseRenderNode rsBaseRenderNode(id, context);
-    ASSERT_TRUE(rsBaseRenderNode.IsDirty());
+    ASSERT_TRUE(node.IsDirty());
 }
 
 /**

@@ -843,7 +843,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
     CheckIfHardwareForcedDisabled();
     const auto& nodeMap = GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes(
-        [this](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+        [this, &nodeMap](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree()) {
                 return;
             }
@@ -854,7 +854,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
             // if hwc node is set on the tree this frame, mark its parent app node to be prepared
             if (surfaceNode->IsNewOnTree()) {
                 auto appNodeId = surfaceNode->GetInstanceRootNodeId();
-                AddActiveNodeId(appNodeId);
+                context_->AddActiveNode(nodeMap.GetRenderNode(appNodeId));
                 surfaceNode->ResetIsNewOnTree();
             }
 
@@ -2160,7 +2160,7 @@ bool RSMainThread::CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyB
 
 void RSMainThread::ApplyModifiers()
 {
-    for (const auto& [unused, nodeSet] : context_->activeNodesInRoot_) {
+    for (const auto& [root, nodeSet] : context_->activeNodesInRoot_) {
         for (const auto& [id, nodePtr] : nodeSet) {
             bool isZOrderChanged = nodePtr->ApplyModifiers();
             if (!isZOrderChanged) {

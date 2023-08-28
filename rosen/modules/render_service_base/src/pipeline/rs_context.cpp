@@ -32,18 +32,9 @@ void RSContext::UnregisterAnimatingRenderNode(NodeId id)
     ROSEN_LOGD("RSContext::UnregisterAnimatingRenderNode, unregister node id: %{public}" PRIu64, id);
 }
 
-void RSContext::AddActiveNodeId(NodeId id)
-{
-    if (id == INVALID_NODEID) {
-        return;
-    }
-    auto node = nodeMap.GetRenderNode(id);
-    AddActiveNode(node);
-}
-
 void RSContext::AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
 {
-    if (node == nullptr || !node->IsOnTheTree() || node->GetId() == INVALID_NODEID) {
+    if (node == nullptr || node->GetId() == INVALID_NODEID) {
         return;
     }
     auto rootNodeId = node->GetInstanceRootNodeId();

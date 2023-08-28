@@ -395,7 +395,8 @@ void RSRenderNode::SetContentDirty()
 
 void RSRenderNode::SetDirty()
 {
-    if (dirtyStatus_ != NodeDirty::DIRTY) {
+    // Sometimes dirtyStatus_ were not correctly reset, we use dirtyTypes_ to determine if we should add to active list
+    if (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypes_.empty()) {
         AddActiveNode();
         dirtyStatus_ = NodeDirty::DIRTY;
     }
@@ -488,7 +489,7 @@ void RSRenderNode::FallbackAnimationsToRoot()
     context->RegisterAnimatingRenderNode(target);
 
     for (auto& [unused, animation] : animationManager_.animations_) {
-        animation->Detach();
+        animation->Detach(true);
         // avoid infinite loop for fallback animation
         animation->SetRepeatCount(1);
         target->animationManager_.AddAnimation(std::move(animation));
@@ -815,7 +816,7 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier> modifier)
     } else {
         drawCmdModifiers_[modifier->GetType()].emplace_back(modifier);
     }
-    modifier->GetProperty()->Attach(ReinterpretCastTo<RSRenderNode>());
+    modifier->GetProperty()->Attach(shared_from_this());
     SetDirty();
 }
 
@@ -1491,10 +1492,12 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
 
 void RSRenderNode::OnTreeStateChanged()
 {
-    AddActiveNode();
     if (!isOnTheTree_) {
+        // attempt to clear FullChildrenList, to avoid memory leak
         isFullChildrenListValid_ = false;
-        fullChildrenList_.clear();
+        ClearFullChildrenListIfNeeded();
+    } else {
+        SetDirty();
     }
 #ifndef USE_ROSEN_DRAWING
     if (!isOnTheTree_) {
@@ -1929,11 +1932,16 @@ std::vector<HgmModifierProfile> RSRenderNode::GetHgmModifierProfileList() const
 
 inline void RSRenderNode::AddActiveNode()
 {
-    if (!isOnTheTree_) {
-        return;
-    }
     if (auto context = GetContext().lock()) {
         context->AddActiveNode(shared_from_this());
+    }
+}
+
+void RSRenderNode::ClearFullChildrenListIfNeeded(bool inSubThread)
+{
+    // if fullChildrenList_ is used by sub thread, we can't clear it, it should be cleared by sub thread
+    if (!isFullChildrenListValid_ && !fullChildrenList_.empty() && (inSubThread || !NodeIsUsedBySubThread())) {
+        fullChildrenList_.clear();
     }
 }
 } // namespace Rosen

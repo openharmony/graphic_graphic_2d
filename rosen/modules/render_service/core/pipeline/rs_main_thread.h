@@ -170,14 +170,6 @@ public:
     {
         return frameCount_;
     }
-    void AddActiveNodeId(NodeId id)
-    {
-        context_->AddActiveNodeId(id);
-    }
-    void AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
-    {
-        context_->AddActiveNode(node);
-    }
 
     void ProcessHgmFrameRate(FrameRateRangeData data, uint64_t timestamp);
     DeviceType GetDeviceType() const;

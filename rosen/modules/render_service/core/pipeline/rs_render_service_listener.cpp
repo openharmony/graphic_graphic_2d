@@ -89,7 +89,6 @@ void RSRenderServiceListener::OnGoBackground()
         node->SetNotifyRTBufferAvailable(false);
         if (node->IsLastFrameHardwareEnabled()) {
             node->SetContentDirty();
-            RSMainThread::Instance()->AddActiveNode(node);
         }
         node->ResetHardwareEnabledStates();
     });
