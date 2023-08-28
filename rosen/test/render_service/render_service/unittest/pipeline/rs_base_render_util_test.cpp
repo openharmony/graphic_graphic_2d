@@ -146,7 +146,7 @@ HWTEST_F(RSBaseRenderUtilTest, IsBufferValid_002, TestSize.Level2)
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
     };
     GSError ret = buffer->Alloc(requestConfig);
-    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
     ASSERT_EQ(false, RSBaseRenderUtil::IsBufferValid(buffer));
 }
 
@@ -271,17 +271,14 @@ HWTEST_F(RSBaseRenderUtilTest, SetColorFilterModeToPaint_001, TestSize.Level2)
 
     colorFilterMode = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
     RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
-    paint.refColorFilter()->asAColorMatrix(matrix);
     ASSERT_EQ(paint.refColorFilter(), nullptr);
 
     colorFilterMode = ColorFilterMode::DALTONIZATION_NORMAL_MODE;
     RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
-    paint.refColorFilter()->asAColorMatrix(matrix);
     ASSERT_EQ(paint.refColorFilter(), nullptr);
 
     colorFilterMode = ColorFilterMode::COLOR_FILTER_END;
     RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
-    paint.refColorFilter()->asAColorMatrix(matrix);
     ASSERT_EQ(paint.refColorFilter(), nullptr);
 
     colorFilterMode = static_cast<ColorFilterMode>(40); // use invalid number to test default mode

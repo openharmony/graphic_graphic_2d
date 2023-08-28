@@ -76,6 +76,31 @@ HWTEST_F(HyperGraphicManagerTest, IsInit, Function | SmallTest | Level2)
 }
 
 /**
+ * @tc.name: SetDefaultRefreshRateMode
+ * @tc.desc: Verify the result of SetDefaultRefreshRateMode
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HyperGraphicManagerTest, SetDefaultRefreshRateMode, Function | SmallTest | Level2)
+{
+    auto &instance = HgmCore::Instance();
+
+    PART("EnvConditions") {
+        STEP("get Instance") {
+            bool init = instance.IsInit();
+            STEP_ASSERT_EQ(init, true);
+        }
+    }
+
+    PART("CaseConditions") {
+        STEP("1. test mParsedConfigData_ is true") {
+            auto setMode = instance.SetDefaultRefreshRateMode();
+            STEP_ASSERT_EQ(setMode, 0); 
+        }
+    }
+}
+
+/**
  * @tc.name: AddScreen
  * @tc.desc: Verify the result of AddScreen function
  * @tc.type: FUNC
@@ -127,6 +152,7 @@ HWTEST_F(HyperGraphicManagerTest, GetScreen, Function | SmallTest | Level2)
     auto &instance5 = HgmCore::Instance();
     sptr<HgmScreen> screen = nullptr;
     ScreenId screenId = 3;
+    ScreenId screenId2 = 4;
 
     PART("EnvConditions") {
         STEP("get Instance and call Init and add a screen") {
@@ -142,6 +168,11 @@ HWTEST_F(HyperGraphicManagerTest, GetScreen, Function | SmallTest | Level2)
 
         STEP("2. check the pointer") {
             STEP_ASSERT_NE(screen, nullptr);
+        }
+
+        STEP("3. try get the non-existence screen") {
+            screen = instance5.GetScreen(screenId2);
+            STEP_ASSERT_EQ(screen, nullptr);
         }
     }
 }
@@ -235,6 +266,7 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate, Function | MediumTest | 
 {
     auto &instance8 = HgmCore::Instance();
     ScreenId screenId = 7;
+    ScreenId screenId2 = 1;
     sptr<HgmScreen> screen = nullptr;
     int32_t width = 1344;
     int32_t height = 2772;
@@ -263,6 +295,8 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate, Function | MediumTest | 
             STEP_ASSERT_EQ(addScreenProfile, 0);
             auto addScreenProfile0 = instance8.AddScreenInfo(screenId, width0, height0, rate0, mode0);
             STEP_ASSERT_EQ(addScreenProfile0, 0);
+            addScreenProfile0 = instance8.AddScreenInfo(screenId2, width0, height0, rate0, mode0);
+            STEP_ASSERT_EQ(addScreenProfile0, 100);
         }
 
         STEP("3. set the rate of default screen to 500") {
@@ -280,7 +314,17 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate, Function | MediumTest | 
             STEP_ASSERT_NE(setRate120, -1);
         }
 
-        STEP("6. check that the result is success") {
+        STEP("6. set the nonexist screen to 60") {
+            auto setRate60 = instance8.SetScreenRefreshRate(screenId2, 0, 60);
+            STEP_ASSERT_EQ(setRate60, -1);
+        }
+
+        STEP("7. set the rate negative") {
+            auto setRateNegative = instance8.SetScreenRefreshRate(screenId, 0, -1);
+            STEP_ASSERT_EQ(setRateNegative, -1);
+        }
+
+        STEP("8. check that the result is success") {
             screen = instance8.GetScreen(screenId);
             STEP_ASSERT_EQ(screen->GetActiveRefreshRate(), 120);
         }
@@ -343,8 +387,13 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level2
     sptr<HgmScreen> screen = nullptr;
     int32_t width = 1344;
     int32_t height = 2772;
+    int32_t width2 = 640;
+    int32_t height2 = 1320;
     uint32_t rate = 120;
     uint32_t rate2 = 60;
+    uint32_t rate3 = 150;
+    uint32_t rate4 = 0;
+    uint32_t rate5 = 80;
     int32_t mode = 1;
     int32_t mode2 = 2;
     instance.AddScreen(screenId2, 1);
@@ -372,6 +421,8 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level2
         STEP("2. set rate and resolution") {
             int32_t setResult = screen2->SetActiveRefreshRate(screenId2, rate2);
             STEP_ASSERT_EQ(setResult, 2);
+            setResult = screen2->SetActiveRefreshRate(screenId2, rate3);
+            STEP_ASSERT_EQ(setResult, -1);
         }
 
         STEP("3. set the refreshrate mode") {
@@ -379,6 +430,24 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level2
             STEP_ASSERT_NE(setResult, mode2);
             setResult = screen2->SetRateAndResolution(screenId2, rate, width, height);
             STEP_ASSERT_EQ(setResult, mode);
+            setResult = screen2->SetRateAndResolution(screenId2, rate3, width, height);
+            STEP_ASSERT_EQ(setResult, -1);
+            setResult = screen2->SetRateAndResolution(screenId2, rate4, width, height);
+            STEP_ASSERT_EQ(setResult, -1);
+            setResult = screen2->SetRateAndResolution(screenId2, rate5, width, height);
+            STEP_ASSERT_EQ(setResult, -1);
+            setResult = screen2->SetRateAndResolution(screenId2, rate5, width2, height2);
+            STEP_ASSERT_EQ(setResult, -1);
+            setResult = screen2->SetRateAndResolution(screenId2, rate5, width, height2);
+            STEP_ASSERT_EQ(setResult, -1);
+            setResult = screen2->SetRateAndResolution(screenId2, rate5, width2, height);
+            STEP_ASSERT_EQ(setResult, -1);
+            setResult = screen2->SetRateAndResolution(screenId2, rate, width2, height2);
+            STEP_ASSERT_EQ(setResult, -1);
+            setResult = screen2->SetRateAndResolution(screenId2, rate, width, height2);
+            STEP_ASSERT_EQ(setResult, -1);
+            setResult = screen2->SetRateAndResolution(screenId2, rate, width2, height);
+            STEP_ASSERT_EQ(setResult, -1);
         }
 
         STEP("4. mode already exists") {
@@ -500,6 +569,31 @@ HWTEST_F(HyperGraphicManagerTest, HgmFrameRateToolTest, Function | SmallTest | L
             HgmModifierProfile hgmModifierProfile = {0, 0, HgmModifierType::TRANSLATE};
             auto preferred = hgm_core.CalModifierPreferred(hgmModifierProfile);
             STEP_ASSERT_GT(preferred, 0);
+        }
+    }
+}
+
+/**
+ * @tc.name: RefreshBundleName
+ * @tc.desc: Verify the result of RefreshBundleName
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HyperGraphicManagerTest, RefreshBundleName, Function | SmallTest | Level2)
+{
+    auto &instance = HgmCore::Instance();
+
+    PART("EnvConditions") {
+        STEP("get Instance") {
+            bool init = instance.IsInit();
+            STEP_ASSERT_EQ(init, true);
+        }
+    }
+
+    PART("CaseConditions") {
+        STEP("1. test RefreshBundleName is true") {
+            auto setMode = instance.RefreshBundleName("test hgm_core");
+            STEP_ASSERT_EQ(setMode, 0); 
         }
     }
 }
