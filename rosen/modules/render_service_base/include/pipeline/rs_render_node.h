@@ -108,9 +108,9 @@ public:
     bool IsOnTheTree() const;
 
     // return children and disappeared children, not guaranteed to be sorted by z-index
-    const std::list<SharedPtr>& GetChildren();
+    const std::list<SharedPtr>& GetChildren(bool inSubThread = false);
     // return children and disappeared children, sorted by z-index
-    const std::list<SharedPtr>& GetSortedChildren();
+    const std::list<SharedPtr>& GetSortedChildren(bool inSubThread = false);
     uint32_t GetChildrenCount() const;
     void ClearFullChildrenListIfNeeded(bool inSubThread = false);
 
@@ -453,9 +453,8 @@ private:
     std::list<SharedPtr> fullChildrenList_;
     bool isFullChildrenListValid_ = false;
     bool isChildrenSorted_ = false;
-    void GenerateFullChildrenList();
-    void GenerateSortedChildren();
-    void SortChildren();
+    void GenerateFullChildrenList(bool inSubThread);
+    void SortChildren(bool inSubThread);
 
     const std::weak_ptr<RSContext> context_;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;

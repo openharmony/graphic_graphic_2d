@@ -1519,15 +1519,20 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
 {
     if (isSubThread_) {
         node.SetIsUsedBySubThread(true);
-    }
-    for (auto& child : node.GetSortedChildren()) {
-        if (ProcessSharedTransitionNode(*child)) {
-            child->Process(shared_from_this());
+        for (auto& child : node.GetSortedChildren(true)) {
+            if (ProcessSharedTransitionNode(*child)) {
+                child->Process(shared_from_this());
+            }
         }
-    }
-    if (isSubThread_) {
         node.SetIsUsedBySubThread(false);
+        // Main thread may invalidate the FullChildrenList, so we need to clear it if needed.
         node.ClearFullChildrenListIfNeeded(true);
+    } else {
+        for (auto& child : node.GetSortedChildren()) {
+            if (ProcessSharedTransitionNode(*child)) {
+                child->Process(shared_from_this());
+            }
+        }
     }
 }
 
