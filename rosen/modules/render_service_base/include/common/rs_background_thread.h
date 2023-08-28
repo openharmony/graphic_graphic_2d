@@ -18,7 +18,7 @@
 
 #include "event_handler.h"
 #include "common/rs_macros.h"
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL) 
+#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
 #ifndef USE_ROSEN_DRAWING
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
