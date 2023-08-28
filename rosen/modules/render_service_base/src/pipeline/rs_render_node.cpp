@@ -804,7 +804,7 @@ void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
     RSRenderNode::ProcessTransitionAfterChildren(canvas);
 }
 
-void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier> modifier)
+void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier)
 {
     if (!modifier) {
         return;
@@ -820,7 +820,7 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier> modifier)
     SetDirty();
 }
 
-void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier> modifier)
+void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier)
 {
     // bounds and frame modifiers must be unique
     if (modifier->GetType() == RSModifierType::BOUNDS) {
@@ -855,7 +855,7 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         });
     }
 }
-void RSRenderNode::AddModifierProfile(std::shared_ptr<RSRenderModifier> modifier, float width, float height)
+void RSRenderNode::AddModifierProfile(const std::shared_ptr<RSRenderModifier>& modifier, float width, float height)
 {
     if (timeDelta_ < 0) {
         return;
@@ -1896,12 +1896,12 @@ bool RSRenderNode::HasCachedTexture() const
     return false;
 #endif
 }
-void RSRenderNode::SetDrawRegion(std::shared_ptr<RectF> rect)
+void RSRenderNode::SetDrawRegion(const std::shared_ptr<RectF>& rect)
 {
     drawRegion_ = rect;
     renderProperties_.SetDrawRegion(rect);
 }
-std::shared_ptr<RectF> RSRenderNode::GetDrawRegion() const
+const std::shared_ptr<RectF>& RSRenderNode::GetDrawRegion() const
 {
     return drawRegion_;
 }

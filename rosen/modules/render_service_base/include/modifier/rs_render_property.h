@@ -164,6 +164,11 @@ public:
         return stagingValue_;
     }
 
+    T& GetRef()
+    {
+        return stagingValue_;
+    }
+
     void SetUpdateUIPropertyFunc(
         const std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)>& updateUIPropertyFunc)
     {

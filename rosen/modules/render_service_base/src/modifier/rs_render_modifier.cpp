@@ -127,7 +127,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
 void RSDrawCmdListRenderModifier::Apply(RSModifierContext& context) const
 {
     if (context.canvas_) {
-        auto cmds = property_->Get();
+        auto& cmds = property_->GetRef();
         RSPropertiesPainter::DrawFrame(context.property_, *context.canvas_, cmds);
     }
 }

@@ -2411,7 +2411,7 @@ RectI RSUniRenderVisitor::UpdateHardwareEnableList(std::vector<RectI>& filterRec
         auto childDirtyRect = childNode->GetDstRect();
         bool isIntersected = false;
         // remove invisible surface since occlusion
-        for (auto filterRect : filterRects) {
+        for (auto& filterRect : filterRects) {
             if (!childDirtyRect.IntersectRect(filterRect).IsEmpty()) {
                 filterDirty = filterDirty.JoinRect(filterRect);
                 isIntersected = true;
@@ -2486,7 +2486,7 @@ void RSUniRenderVisitor::UpdateHardwareNodeStatusBasedOnFilter(std::shared_ptr<R
     }
 }
 
-void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(const RectI filterRect,
+void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(const RectI& filterRect,
     std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
     std::shared_ptr<RSDisplayRenderNode>& displayNode)
 {
@@ -2558,7 +2558,7 @@ void RSUniRenderVisitor::CalcDirtyFilterRegion(std::shared_ptr<RSDisplayRenderNo
         auto filterRects = currentSurfaceNode->GetChildrenNeedFilterRects();
         if (currentSurfaceNode->IsAppWindow() && !filterRects.empty()) {
             needFilter_ = needFilter_ || !currentSurfaceNode->IsStaticCached();
-            for (auto filterRect : filterRects) {
+            for (auto& filterRect : filterRects) {
                 CalcDirtyRegionForFilterNode(
                     filterRect, currentSurfaceNode, displayNode);
             }
