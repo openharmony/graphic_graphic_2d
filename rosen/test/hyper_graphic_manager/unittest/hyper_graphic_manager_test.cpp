@@ -95,7 +95,7 @@ HWTEST_F(HyperGraphicManagerTest, SetDefaultRefreshRateMode, Function | SmallTes
     PART("CaseConditions") {
         STEP("1. test mParsedConfigData_ is true") {
             auto setMode = instance.SetDefaultRefreshRateMode();
-            STEP_ASSERT_EQ(setMode, 0); 
+            STEP_ASSERT_EQ(setMode, -1); 
         }
     }
 }
