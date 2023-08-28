@@ -110,8 +110,8 @@ public:
     float GetPivotY() const;
     float GetPivotZ() const;
 
-    void SetCornerRadius(Vector4f cornerRadius);
-    Vector4f GetCornerRadius() const;
+    void SetCornerRadius(const Vector4f& cornerRadius);
+    const Vector4f& GetCornerRadius() const;
 
     void SetQuaternion(Quaternion quaternion);
     void SetRotation(float degree);
@@ -159,9 +159,9 @@ public:
     // background properties
     void SetBackgroundColor(Color color);
     Color GetBackgroundColor() const;
-    void SetBackgroundShader(std::shared_ptr<RSShader> shader);
+    void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);
     std::shared_ptr<RSShader> GetBackgroundShader() const;
-    void SetBgImage(std::shared_ptr<RSImage> image);
+    void SetBgImage(const std::shared_ptr<RSImage>& image);
     std::shared_ptr<RSImage> GetBgImage() const;
     void SetBgImageWidth(float width);
     void SetBgImageHeight(float height);
@@ -182,11 +182,11 @@ public:
     const std::shared_ptr<RSBorder>& GetBorder() const;
 
     // filter properties
-    void SetBackgroundFilter(std::shared_ptr<RSFilter> backgroundFilter);
-    void SetLinearGradientBlurPara(std::shared_ptr<RSLinearGradientBlurPara> para);
+    void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
+    void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetDynamicLightUpRate(const std::optional<float>& rate);
     void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
-    void SetFilter(std::shared_ptr<RSFilter> filter);
+    void SetFilter(const std::shared_ptr<RSFilter>& filter);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
     const std::shared_ptr<RSFilter>& GetFilter() const;
@@ -216,14 +216,14 @@ public:
     void SetFrameGravity(Gravity gravity);
     Gravity GetFrameGravity() const;
 
-    void SetDrawRegion(std::shared_ptr<RectF> rect);
+    void SetDrawRegion(const std::shared_ptr<RectF>& rect);
     std::shared_ptr<RectF> GetDrawRegion() const;
 
     void SetClipRRect(RRect clipRRect);
     RRect GetClipRRect() const;
     bool GetClipToRRect() const;
-    void SetClipBounds(std::shared_ptr<RSPath> path);
-    std::shared_ptr<RSPath> GetClipBounds() const;
+    void SetClipBounds(const std::shared_ptr<RSPath>& path);
+    const std::shared_ptr<RSPath>& GetClipBounds() const;
     void SetClipToBounds(bool clipToBounds);
     bool GetClipToBounds() const;
     void SetClipToFrame(bool clipToFrame);
@@ -233,7 +233,7 @@ public:
     bool GetVisible() const;
     std::string Dump() const;
 
-    void SetMask(std::shared_ptr<RSMask> mask);
+    void SetMask(const std::shared_ptr<RSMask>& mask);
     std::shared_ptr<RSMask> GetMask() const;
 
     // Pixel Stretch

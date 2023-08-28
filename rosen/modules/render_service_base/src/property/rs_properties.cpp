@@ -491,15 +491,15 @@ float RSProperties::GetPivotZ() const
     return boundsGeo_->GetPivotZ();
 }
 
-void RSProperties::SetCornerRadius(Vector4f cornerRadius)
+void RSProperties::SetCornerRadius(const Vector4f& cornerRadius)
 {
     cornerRadius_ = cornerRadius;
     SetDirty();
 }
 
-Vector4f RSProperties::GetCornerRadius() const
+const Vector4f& RSProperties::GetCornerRadius() const
 {
-    return cornerRadius_.value_or(Vector4fZero);
+    return cornerRadius_ ? cornerRadius_.value() : Vector4fZero;
 }
 
 void RSProperties::SetQuaternion(Quaternion quaternion)
@@ -734,7 +734,7 @@ Color RSProperties::GetBackgroundColor() const
     return decoration_ ? decoration_->backgroundColor_ : RgbPalette::Transparent();
 }
 
-void RSProperties::SetBackgroundShader(std::shared_ptr<RSShader> shader)
+void RSProperties::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
 {
     if (!decoration_) {
         decoration_ = std::make_optional<Decoration>();
@@ -752,7 +752,7 @@ std::shared_ptr<RSShader> RSProperties::GetBackgroundShader() const
     return decoration_ ? decoration_->bgShader_ : nullptr;
 }
 
-void RSProperties::SetBgImage(std::shared_ptr<RSImage> image)
+void RSProperties::SetBgImage(const std::shared_ptr<RSImage>& image)
 {
     if (!decoration_) {
         decoration_ = std::make_optional<Decoration>();
@@ -886,7 +886,7 @@ const std::shared_ptr<RSBorder>& RSProperties::GetBorder() const
     return border_;
 }
 
-void RSProperties::SetBackgroundFilter(std::shared_ptr<RSFilter> backgroundFilter)
+void RSProperties::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
 {
     backgroundFilter_ = backgroundFilter;
     if (backgroundFilter_) {
@@ -897,7 +897,7 @@ void RSProperties::SetBackgroundFilter(std::shared_ptr<RSFilter> backgroundFilte
     contentDirty_ = true;
 }
 
-void RSProperties::SetLinearGradientBlurPara(std::shared_ptr<RSLinearGradientBlurPara> para)
+void RSProperties::SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para)
 {
     linearGradientBlurPara_ = para;
     if (para && para->blurRadius_ > 0.f) {
@@ -929,7 +929,7 @@ void RSProperties::SetDynamicLightUpDegree(const std::optional<float>& lightUpDe
     contentDirty_ = true;
 }
 
-void RSProperties::SetFilter(std::shared_ptr<RSFilter> filter)
+void RSProperties::SetFilter(const std::shared_ptr<RSFilter>& filter)
 {
     filter_ = filter;
     if (filter) {
@@ -1137,7 +1137,7 @@ Gravity RSProperties::GetFrameGravity() const
     return frameGravity_;
 }
 
-void RSProperties::SetDrawRegion(std::shared_ptr<RectF> rect)
+void RSProperties::SetDrawRegion(const std::shared_ptr<RectF>& rect)
 {
     drawRegion_ = rect;
     SetDirty();
@@ -1169,7 +1169,7 @@ bool RSProperties::GetClipToRRect() const
     return clipRRect_.has_value();
 }
 
-void RSProperties::SetClipBounds(std::shared_ptr<RSPath> path)
+void RSProperties::SetClipBounds(const std::shared_ptr<RSPath>& path)
 {
     if (path) {
         isDrawn_ = true;
@@ -1181,7 +1181,7 @@ void RSProperties::SetClipBounds(std::shared_ptr<RSPath> path)
     }
 }
 
-std::shared_ptr<RSPath> RSProperties::GetClipBounds() const
+const std::shared_ptr<RSPath>& RSProperties::GetClipBounds() const
 {
     return clipPath_;
 }
@@ -1370,7 +1370,7 @@ void RSProperties::CheckEmptyBounds()
 }
 
 // mask properties
-void RSProperties::SetMask(std::shared_ptr<RSMask> mask)
+void RSProperties::SetMask(const std::shared_ptr<RSMask>& mask)
 {
     mask_ = mask;
     if (mask_) {

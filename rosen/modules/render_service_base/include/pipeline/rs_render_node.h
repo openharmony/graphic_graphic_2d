@@ -200,7 +200,7 @@ public:
     RectI GetOldDirtyInSurface() const;
     bool IsDirtyRegionUpdated() const;
 
-    void AddModifier(const std::shared_ptr<RSRenderModifier> modifier);
+    void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier);
     void RemoveModifier(const PropertyId& id);
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
 
@@ -355,8 +355,8 @@ public:
 
     bool HasCachedTexture() const;
 
-    void SetDrawRegion(std::shared_ptr<RectF> rect);
-    std::shared_ptr<RectF> GetDrawRegion() const;
+    void SetDrawRegion(const std::shared_ptr<RectF>& rect);
+    const std::shared_ptr<RectF>& GetDrawRegion() const;
 
 #ifndef USE_ROSEN_DRAWING
     void UpdateEffectRegion(std::optional<SkPath>& region);
@@ -423,7 +423,7 @@ protected:
     virtual void OnTreeStateChanged();
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
-    void AddGeometryModifier(const std::shared_ptr<RSRenderModifier> modifier);
+    void AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier);
     RSPaintFilterCanvas::SaveStatus renderNodeSaveCount_;
     std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> drawCmdModifiers_;
     // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
@@ -475,7 +475,7 @@ private:
     inline void AddActiveNode();
 
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect);
-    void AddModifierProfile(std::shared_ptr<RSRenderModifier> modifier, float width, float height);
+    void AddModifierProfile(const std::shared_ptr<RSRenderModifier>& modifier, float width, float height);
 
     bool isDirtyRegionUpdated_ = false;
     bool isLastVisible_ = false;
