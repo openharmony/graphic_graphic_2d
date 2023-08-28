@@ -328,8 +328,8 @@ void RSComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfac
         double yScale = (ROSEN_EQ(boundsHeight, 0) ? 1.0 : 1.0 * bufferHeight / boundsHeight);
         info.srcRect.x = info.srcRect.x * xScale;
         info.srcRect.y = info.srcRect.y * yScale;
-        info.srcRect.w = info.srcRect.w * xScale;
-        info.srcRect.h = info.srcRect.h * yScale;
+        info.srcRect.w = std::min(static_cast<int32_t>(info.srcRect.w * xScale), bufferWidth);
+        info.srcRect.h = std::min(static_cast<int32_t>(info.srcRect.h * yScale), bufferHeight);
     }
 }
 

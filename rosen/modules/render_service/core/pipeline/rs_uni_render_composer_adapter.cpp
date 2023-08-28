@@ -246,8 +246,8 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
         } else {
             info.srcRect.x = info.srcRect.x * xScale;
             info.srcRect.y = info.srcRect.y * yScale;
-            info.srcRect.w = bufferWidth;
-            info.srcRect.h = bufferHeight;
+            info.srcRect.w = std::min(static_cast<int32_t>(info.srcRect.w * xScale), bufferWidth);
+            info.srcRect.h = std::min(static_cast<int32_t>(info.srcRect.h * yScale), bufferHeight);
         }
     }
     RS_LOGD("RsDebug RSUniRenderComposerAdapter::GetComposerInfoSrcRect surfaceNode id:%{public}" PRIu64 ","\
