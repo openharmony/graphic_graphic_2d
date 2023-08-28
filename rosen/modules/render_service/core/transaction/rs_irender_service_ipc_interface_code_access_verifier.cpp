@@ -13,28 +13,28 @@
  * limitations under the License.
  */
 
-#ifndef UTILS_DRAWING_MACROS_H
-#define UTILS_DRAWING_MACROS_H
+#include "platform/ohos/rs_irender_service_ipc_interface_code_access_verifier.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-#ifndef DRAWING_API
-#ifdef _WIN32
-#define DRAWING_EXPORT __attribute__((dllexport))
-#define DRAWING_IMPORT __attribute__((dllimport))
-#else
-#define DRAWING_EXPORT __attribute__((visibility("default")))
-#define DRAWING_IMPORT __attribute__((visibility("default")))
-#endif
+RSIRenderServiceInterfaceCodeAccessVerifier::RSIRenderServiceInterfaceCodeAccessVerifier()
+{
+    CheckCodeUnderlyingTypeStandardized<CodeEnumType>(codeEnumTypeName_);
+}
 
-#ifdef MODULE_DRAWING
-#define DRAWING_API DRAWING_EXPORT
-#else
-#define DRAWING_API DRAWING_IMPORT
-#endif
-#endif
-} // namespace Drawing
+bool RSIRenderServiceInterfaceCodeAccessVerifier::IsExclusiveVerificationPassed(CodeUnderlyingType code)
+{
+    bool hasPermission = true;
+    switch (code) {
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_CONNECTION): {
+            /* to implement access interception */
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+    return hasPermission;
+}
 } // namespace Rosen
 } // namespace OHOS
-#endif

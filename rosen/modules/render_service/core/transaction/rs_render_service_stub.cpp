@@ -31,6 +31,11 @@ private:
 
 int RSRenderServiceStub::OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+        RS_LOGE("RSRenderServiceStub::OnRemoteRequest no permission to access codeID=%{public}u.", code);
+        return ERR_INVALID_STATE;
+    }
+
     int ret = ERR_NONE;
     switch (code) {
         case static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION): {
@@ -63,5 +68,8 @@ int RSRenderServiceStub::OnRemoteRequest(uint32_t code, MessageParcel& data, Mes
 
     return ret;
 }
+
+const RSInterfaceCodeSecurityManager RSRenderServiceStub::securityManager_ = \
+    RSInterfaceCodeSecurityManager::CreateInstance<RSIRenderServiceInterfaceCodeAccessVerifier>();
 } // namespace Rosen
 } // namespace OHOS

@@ -135,7 +135,7 @@ uint32_t RSInterfaces::GetScreenCurrentRefreshRate(ScreenId id)
     return renderServiceClient_->GetScreenCurrentRefreshRate(id);
 }
 
-std::vector<uint32_t> RSInterfaces::GetScreenSupportedRefreshRates(ScreenId id)
+std::vector<int32_t> RSInterfaces::GetScreenSupportedRefreshRates(ScreenId id)
 {
     return renderServiceClient_->GetScreenSupportedRefreshRates(id);
 }
@@ -155,7 +155,8 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(
         return false;
     }
     if (RSSystemProperties::GetUniRenderEnabled()) {
-        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY);
+        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY, 
+            SurfaceCaptureType::UICAPTURE);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
     }

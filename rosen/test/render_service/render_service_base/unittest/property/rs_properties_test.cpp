@@ -325,6 +325,7 @@ HWTEST_F(RSPropertiesTest, IsPixelStretchValid001, TestSize.Level1)
 
     Vector4f stretchSize;
     properties.SetPixelStretch(stretchSize);
+    properties.OnApplyModifiers();
     EXPECT_EQ(properties.GetPixelStretch(), std::nullopt);
 }
 
@@ -344,7 +345,7 @@ HWTEST_F(RSPropertiesTest, IsPixelStretchValid002, TestSize.Level1)
     Vector4f stretchSize(x, y, z, w);
     properties.SetPixelStretch(stretchSize);
     properties.OnApplyModifiers();
-    EXPECT_NE(properties.GetPixelStretch(), std::nullopt);
+    EXPECT_EQ(properties.GetPixelStretch(), std::nullopt);
 
     x = -(1e-6f);
     y = -(1e-6f);
@@ -353,7 +354,7 @@ HWTEST_F(RSPropertiesTest, IsPixelStretchValid002, TestSize.Level1)
     stretchSize = Vector4f(x, y, z, w);
     properties.SetPixelStretch(stretchSize);
     properties.OnApplyModifiers();
-    EXPECT_NE(properties.GetPixelStretch(), std::nullopt);
+    EXPECT_EQ(properties.GetPixelStretch(), std::nullopt);
 }
 
 /**

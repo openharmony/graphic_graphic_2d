@@ -138,6 +138,7 @@ private:
 
     std::mutex mutex_;
     std::mutex cmdMutex_;
+    std::mutex rtMutex_;
     std::vector<std::unique_ptr<RSTransactionData>> cmds_;
     bool hasRunningAnimation_ = false;
     std::shared_ptr<RSRenderThreadVisitor> visitor_;

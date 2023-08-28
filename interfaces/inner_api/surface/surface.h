@@ -118,6 +118,7 @@ public:
     virtual bool QueryIfBufferAvailable() = 0;
     virtual GSError FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence,
                                 BufferFlushConfigWithDamages &config) = 0;
+    virtual GSError UnRegisterReleaseListener() = 0;
 protected:
     Surface() = default;
 };

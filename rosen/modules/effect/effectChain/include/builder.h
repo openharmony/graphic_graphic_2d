@@ -43,8 +43,6 @@ private:
     std::unordered_map<std::string, std::string> nameType_;
     std::unordered_map<std::string, std::shared_ptr<Filter>> nameFilter_;
     std::vector<std::shared_ptr<Input>> inputs_;
-    std::shared_ptr<cJSON> filters_ = nullptr;
-    std::shared_ptr<cJSON> connections_ = nullptr;
     std::shared_ptr<FilterFactory> filterFactory = std::make_shared<FilterFactory>();
 };
 } // namespace Rosen

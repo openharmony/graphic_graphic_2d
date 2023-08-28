@@ -20,7 +20,11 @@ module_output_path = "graphic/rosen_engine/render_service_base/memory"
 ohos_unittest("RSRenderServiceBaseMemoryTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_tag_tracker_test.cpp" ]
+  sources = [
+    "rs_memory_graphic_test.cpp",
+    "rs_memory_track_test.cpp",
+    "rs_tag_tracker_test.cpp",
+  ]
 
   configs = [
     ":render_test",

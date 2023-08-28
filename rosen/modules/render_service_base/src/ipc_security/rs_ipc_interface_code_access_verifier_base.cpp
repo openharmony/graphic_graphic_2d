@@ -17,52 +17,61 @@
 
 namespace OHOS {
 namespace Rosen {
-bool RSInterfaceCodeAccessVerifierBase::IsInterfaceCodeAccessible(CodeUnderlyingType code, const std::string& caller)
+bool RSInterfaceCodeAccessVerifierBase::IsInterfaceCodeAccessible(CodeUnderlyingType code)
 {
 #ifdef ENABLE_IPC_SECURITY
     if (!IsCommonVerificationPassed(code)) {
-        ROSEN_LOGE("%{public}s: IsCommonVerificationPassed is false.", caller.c_str());
+        RS_LOGE("RSInterfaceCodeAccessVerifierBase::IsInterfaceCodeAccessible common verification not passed.");
         return false;
     }
-    if (!IsExtraVerificationPassed(code)) {
-        ROSEN_LOGE("%{public}s: IsExtraVerificationPassed is false.", caller.c_str());
+    if (!IsExclusiveVerificationPassed(code)) {
+        RS_LOGE("RSInterfaceCodeAccessVerifierBase::IsInterfaceCodeAccessible exclusive verification not passed.");
         return false;
     }
 #endif
     return true;
 }
 
-TokenIdType RSInterfaceCodeAccessVerifierBase::GetCallingFullTokenID() const
-{
 #ifdef ENABLE_IPC_SECURITY
-    return IPCSkeleton::GetCallingFullTokenID();
-#else
-    return 0;
-#endif
+Security::AccessToken::ATokenTypeEnum RSInterfaceCodeAccessVerifierBase::GetTokenType() const
+{
+    uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
+    return Security::AccessToken::AccessTokenKit::GetTokenType(tokenId);
 }
 
 bool RSInterfaceCodeAccessVerifierBase::IsSystemApp() const
 {
-#ifdef ENABLE_IPC_SECURITY
-    TokenIdType tokenId = GetCallingFullTokenID();
-    return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId);
-#else
-    return true;
-#endif
+    uint64_t fullTokenId = IPCSkeleton::GetCallingFullTokenID();
+    return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId);
 }
 
-bool RSInterfaceCodeAccessVerifierBase::IsCommonVerificationPassed(CodeUnderlyingType code, const std::string& caller)
+bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& callingCode) const
 {
-    if (accessMap_.count(code) == 0) {
-        ROSEN_LOGE("%{public}s: IPC code is not contained in accessMap.", caller.c_str());
-        return false;
+    bool isSystemCalling = false;
+    auto tokenType = GetTokenType();
+    if (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_HAP) {
+        isSystemCalling = IsSystemApp();
+    } else if (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
+        isSystemCalling = true;
+    } else if (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_SHELL) {
+        isSystemCalling = true;
     }
-    const std::unordered_set<TokenIdType> *const accessSet = &(accessMap_[code]);
-    TokenIdType tokenId = GetCallingFullTokenID();
-    if (accessSet->count(tokenId) == 0) {
-        ROSEN_LOGE("%{public}s: tokenId is not contained in accessSet.", caller.c_str());
-        return false;
+    if (!isSystemCalling) {
+        RS_LOGE("%{public}s ipc interface code access denied: not system calling", callingCode.c_str());
     }
+    return isSystemCalling;
+}
+#else
+bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& /* callingCode */) const
+{
+    return true;
+}
+#endif
+
+bool RSInterfaceCodeAccessVerifierBase::IsCommonVerificationPassed(CodeUnderlyingType /* code */)
+{
+    // Since no common verification rule is temporarily required, directly return true.
+    // If any common rule is required in the future, overwrite this function.
     return true;
 }
 } // namespace Rosen

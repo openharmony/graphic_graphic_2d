@@ -374,15 +374,40 @@ public:
         }
         auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(node->GetId(), GetRenderProperty());
         RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, node->IsRenderServiceNode());
-        if (!task || !task->GetResult()) {
+        // when task is timeout, the caller need to decide whether to call this function again
+        if (!task || task->IsTimeout()) {
             return false;
         }
+
+        // we need to push a synchronous command to cancel animation, cause:
+        // case 1. some new animation have been added, but not flush to render side,
+        // resulting these animation not canceled in task
+        // case 2. the node or modifier has not yet been created on the render side, resulting in task failure
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy == nullptr) {
+            return false;
+        }
+
+        std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCancel>(node->GetId(), this->id_);
+        transactionProxy->AddCommand(command, node->IsRenderServiceNode(), node->GetFollowType(), node->GetId());
+        if (node->NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSAnimationCancel>(node->GetId(), this->id_);
+            transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
+        }
+
+        if (!task->GetResult()) {
+            // corresponding to case 2, as the new showing value is the same as staging value,
+            // need not to update the value, only need to clear animations in rs node.
+            node->CancelAnimationByProperty(this->id_);
+            return true;
+        }
+
         auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(task->GetProperty());
         if (!renderProperty) {
             return false;
         }
-        node->CancelAnimationByProperty(this->id_);
         RSProperty<T>::stagingValue_ = renderProperty->Get();
+        node->CancelAnimationByProperty(this->id_);
         return true;
     }
 

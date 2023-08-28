@@ -22,6 +22,11 @@ namespace Rosen {
 int RSSyncTransactionControllerStub::OnRemoteRequest(uint32_t code,MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
+    if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+        RS_LOGE("RSSyncTransactionControllerStub::OnRemoteRequest no permission to access codeID=%{public}u.", code);
+        return ERR_INVALID_STATE;
+    }
+
     ROSEN_LOGD("RS transaction controller on remote request!");
     int ret = ERR_NONE;
     if (data.ReadInterfaceToken() != GetDescriptor()) {
@@ -42,5 +47,8 @@ int RSSyncTransactionControllerStub::OnRemoteRequest(uint32_t code,MessageParcel
 
     return ret;
 }
+
+const RSInterfaceCodeSecurityManager RSSyncTransactionControllerStub::securityManager_ = \
+    RSInterfaceCodeSecurityManager::CreateInstance<RSISyncTransactionControllerInterfaceCodeAccessVerifier>();
 } // namespace Rosen
 } // namespace OHOS

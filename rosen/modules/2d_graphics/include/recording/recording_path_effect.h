@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API RecordingPathEffect : public PathEffect {
+class RecordingPathEffect : public PathEffect {
 public:
 
     /*

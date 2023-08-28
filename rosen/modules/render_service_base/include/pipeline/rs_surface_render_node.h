@@ -60,15 +60,16 @@ public:
         return Type;
     }
 
-    explicit RSSurfaceRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
-    explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, std::weak_ptr<RSContext> context = {});
+    explicit RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {});
+    explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     ~RSSurfaceRenderNode() override;
 
     void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
     void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
 #ifdef OHOS_PLATFORM
-    void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID) override;
+    void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
+        NodeId firstLevelNodeId = INVALID_NODEID) override;
 #endif
     bool IsAppWindow() const
     {
@@ -170,6 +171,7 @@ public:
         // a mainWindowType surfacenode will not mounted under another mainWindowType surfacenode
         // including app main window, starting window, and selfdrawing window
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE ||
+               nodeType_ == RSSurfaceNodeType::DEFAULT ||
                nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE ||
                nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     }
@@ -201,12 +203,12 @@ public:
     void MarkUIHidden(bool isHidden);
     bool IsUIHidden() const;
 
-    std::string GetName() const
+    const std::string& GetName() const
     {
         return name_;
     }
 
-    std::string GetBundleName() const
+    const std::string& GetBundleName() const
     {
         return bundleName_;
     }
@@ -695,6 +697,18 @@ public:
         isFilterCacheFullyCovered_ = val;
     }
 
+    bool GetFilterCacheValid() const
+    {
+        return isFilterCacheValid_;
+    }
+
+    void SetFilterCacheValid();
+
+    bool IsFilterCacheStatusChanged() const
+    {
+        return isFilterCacheStatusChanged_;
+    }
+
     void ResetFilterNodes()
     {
         filterNodes_.clear();
@@ -706,13 +720,8 @@ public:
     void SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvailable);
 
 private:
-    bool IsSelfDrawingNode() const override
-    {
-        return IsSelfDrawingType();
-    }
-
     void OnResetParent() override;
-    void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
+    void ClearChildrenCache();
     bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;
     Vector4f GetWindowCornerRadius();
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> GetLeashWindowNestedSurfaces();
@@ -807,6 +816,8 @@ private:
 
     Occlusion::Region containerRegion_;
     bool isFilterCacheFullyCovered_ = false;
+    bool isFilterCacheValid_ = false;
+    bool isFilterCacheStatusChanged_ = false;
     std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>
         filterNodes_; // valid filter nodes within, including itself
 

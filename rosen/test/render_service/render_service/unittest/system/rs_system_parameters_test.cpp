@@ -51,4 +51,41 @@ HWTEST_F(RSSystemParametersTest, GetCalcCostEnabledTest1, TestSize.Level1)
     system::SetParameter("rosen.calcCost.enabled", "0");
 }
 
+/**
+ * @tc.name: GetDrawingCacheEnabledTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI6P8EE
+ */
+HWTEST_F(RSSystemParametersTest, GetDrawingCacheEnabledTest, TestSize.Level1)
+{
+    auto result = RSSystemParameters::GetDrawingCacheEnabled();
+    system::SetParameter("rosen.drawingCache.enabled", "1");
+    ASSERT_TRUE(result);
+}
+
+/**
+ * @tc.name: GetDrawingCacheEnabledDfxTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI6P8EE
+ */
+HWTEST_F(RSSystemParametersTest, GetDrawingCacheEnabledDfxTest, TestSize.Level1)
+{
+    auto result = RSSystemParameters::GetDrawingCacheEnabledDfx();
+    system::SetParameter("rosen.drawingCache.enabledDfx", "0");
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: GetQuickSkipPrepareTypeTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI6P8EE
+ */
+HWTEST_F(RSSystemParametersTest, GetQuickSkipPrepareTypeTest, TestSize.Level1)
+{
+    RSSystemParameters::GetQuickSkipPrepareType();
+    system::SetParameter("rosen.quickskipprepare.enabled", "2");
+}
 } // namespace OHOS::Rosen

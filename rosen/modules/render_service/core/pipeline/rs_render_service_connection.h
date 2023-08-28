@@ -96,13 +96,14 @@ private:
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) override;
 
-    std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id) override;
+    std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id) override;
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
-    void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY) override;
+    void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY,
+        SurfaceCaptureType surfaceCaptureType) override;
 
     void TakeSurfaceCaptureForUIWithUni(
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY);
@@ -217,7 +218,6 @@ private:
     std::unordered_set<ScreenId> virtualScreenIds_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<VSyncDistributor> appVSyncDistributor_;
-    std::vector<sptr<VSyncConnection>> vsyncConnections_;
 };
 } // namespace Rosen
 } // namespace OHOS

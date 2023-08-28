@@ -17,14 +17,13 @@
 #define CAMERA3D_H
 
 #include "drawing/engine_adapter/impl_interface/camera_impl.h"
-#include "utils/drawing_macros.h"
 #include "utils/matrix.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API Camera3D {
+class Camera3D {
 public:
     Camera3D() noexcept;
     ~Camera3D();

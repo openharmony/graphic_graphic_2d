@@ -520,4 +520,63 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest010, TestSi
     EXPECT_EQ(txtStyle.text_shadows[0].blur_sigma, 0.0);
 #endif
 }
+
+/*
+ * @tc.name: OH_Drawing_RosenConverterTest011
+ * @tc.desc: test for text style conversion
+ * @tc.type: FUNC
+ */
+
+HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest011, TestSize.Level1)
+{
+    TextStyle style;
+    TextStyle placeholderRun;
+#ifndef USE_GRAPHIC_TEXT_GINE
+    txt::PlaceholderRun RosenConvertPlaceholderRun();
+#endif
+}
+
+/*
+ * @tc.name: OH_Drawing_RosenConverterTest012
+ * @tc.desc: test for text style conversion
+ * @tc.type: FUNC
+ */
+
+HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest012, TestSize.Level1)
+{
+    TextStyle style;
+#ifndef USE_GRAPHIC_TEXT_GINE
+    TypographyProperties::TextBox TxtConvertRosenTextBox();
+#endif
+}
+
+/*
+ * @tc.name: OH_Drawing_RosenConverterTest012
+ * @tc.desc: test for text style conversion
+ * @tc.type: FUNC
+ */
+
+HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest013, TestSize.Level1)
+{
+    TextStyle style;
+    TextStyle placeholderRun;
+#ifndef USE_GRAPHIC_TEXT_GINE
+    TypographyProperties::Affinity TxtConvertRosenAffinity();
+#endif
+}
+
+/*
+ * @tc.name: OH_Drawing_RosenConverterTest012
+ * @tc.desc: test for text style conversion
+ * @tc.type: FUNC
+ */
+
+HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest014, TestSize.Level1)
+{
+    TextStyle style;
+    TextStyle placeholderRun;
+#ifndef USE_GRAPHIC_TEXT_GINE
+    TypographyProperties::PositionAndAffinity TxtConvertPosAndAffinity();
+#endif
+}
 }

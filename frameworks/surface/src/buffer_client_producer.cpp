@@ -147,6 +147,18 @@ GSError BufferClientProducer::RegisterReleaseListener(sptr<IProducerListener> li
     return GSERROR_OK;
 }
 
+GSError BufferClientProducer::UnRegisterReleaseListener()
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+    SEND_REQUEST(BUFFER_PRODUCER_UNREGISTER_RELEASE_LISTENER, arguments, reply, option);
+    int32_t ret = reply.ReadInt32();
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", ret);
+        return (GSError)ret;
+    }
+    return GSERROR_OK;
+}
+
 uint32_t BufferClientProducer::GetQueueSize()
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);

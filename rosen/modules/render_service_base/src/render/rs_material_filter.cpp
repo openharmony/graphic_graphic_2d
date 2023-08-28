@@ -261,10 +261,7 @@ std::shared_ptr<RSFilter> RSMaterialFilter::TransformFilter(float fraction) cons
 bool RSMaterialFilter::IsValid() const
 {
     constexpr float epsilon = 0.001f;
-    if (ROSEN_EQ(radius_, 0.f, epsilon)) {
-        return false;
-    }
-    return true;
+    return radius_ > epsilon;
 }
 
 std::shared_ptr<RSFilter> RSMaterialFilter::Add(const std::shared_ptr<RSFilter>& rhs)

@@ -45,12 +45,13 @@ void RSPathTest::TearDownTestCase() {}
 void RSPathTest::SetUp() {}
 void RSPathTest::TearDown() {}
 
+static const int startX = 20;
+static const int startY = 20;
+
 static SkPath CreateSkPath()
 {
     SkPath path;
-    path.moveTo(20, 20);
-    path.quadTo(20, 60, 80, 50);
-    path.quadTo(20, 60, 20, 80);
+    path.moveTo(startX, startY);
     return path;
 }
 

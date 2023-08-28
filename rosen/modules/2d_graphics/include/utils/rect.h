@@ -16,7 +16,6 @@
 #ifndef RECT_H
 #define RECT_H
 
-#include "utils/drawing_macros.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -26,7 +25,7 @@ class RectF;
 
 typedef RectF Rect;
 
-class DRAWING_API RectF {
+class RectF {
 public:
     inline RectF() noexcept;
     inline RectF(const RectF& r) noexcept;
@@ -185,7 +184,7 @@ inline bool operator!=(const RectF& r1, const RectF& r2)
         !IsScalarAlmostEqual(r1.top_, r2.top_) || !IsScalarAlmostEqual(r1.bottom_, r2.bottom_);
 }
 
-class DRAWING_API RectI {
+class RectI {
 public:
     inline RectI() noexcept;
     inline RectI(const RectI& r) noexcept;

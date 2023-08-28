@@ -104,7 +104,9 @@ public:
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr);
 
-    bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY);
+    bool TakeSurfaceCapture(
+        NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
+        SurfaceCaptureType surfaceCaptureType = SurfaceCaptureType::DEFAULT_CAPTURE);
 
     int32_t SetFocusAppInfo(int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
         uint64_t focusNodeId);
@@ -137,7 +139,7 @@ public:
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
 
-    std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id);
+    std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id);
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
@@ -215,6 +217,7 @@ private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
     std::mutex mutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
+    std::mutex mapMutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbUIMap_;
     sptr<RSIScreenChangeCallback> screenChangeCb_;
     sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_;

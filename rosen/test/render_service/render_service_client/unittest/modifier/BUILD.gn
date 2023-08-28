@@ -21,6 +21,7 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
 
   sources = [
     "rs_extended_modifier_test.cpp",
+    "rs_modifier_manager_test.cpp",
     "rs_modifier_test.cpp",
     "rs_property_test.cpp",
   ]

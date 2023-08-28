@@ -32,16 +32,17 @@ ImageChain* Builder::CreateFromConfig(std::string path)
     JFilterParamsStream << configFile.rdbuf();
     configFile.close();
     std::string JFilterParamsString = JFilterParamsStream.str();
-    auto overallData = std::shared_ptr<cJSON>(cJSON_Parse(JFilterParamsString.c_str()));
+    cJSON* overallData = cJSON_Parse(JFilterParamsString.c_str());
     if (overallData != nullptr) {
-        filters_ = std::shared_ptr<cJSON>(cJSON_GetObjectItem(overallData.get(), "filters"));
+        cJSON* filters_ = cJSON_GetObjectItem(overallData, "filters");
         if (filters_ != nullptr) {
-            AnalyseFilters(filters_.get());
+            AnalyseFilters(filters_);
         }
-        connections_ = std::shared_ptr<cJSON>(cJSON_GetObjectItem(overallData.get(), "connections"));
+        cJSON* connections_ = cJSON_GetObjectItem(overallData, "connections");
         if (connections_ != nullptr) {
-            ConnectPipeline(connections_.get());
+            ConnectPipeline(connections_);
         }
+        cJSON_Delete(overallData);
     } else {
         LOGE("The json file fails to compile.");
         return nullptr;

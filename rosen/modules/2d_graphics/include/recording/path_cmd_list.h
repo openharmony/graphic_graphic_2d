@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API PathCmdList : public CmdList {
+class PathCmdList : public CmdList {
 public:
     PathCmdList() = default;
     ~PathCmdList() override = default;

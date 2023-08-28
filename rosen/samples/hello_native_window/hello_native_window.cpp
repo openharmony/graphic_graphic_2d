@@ -26,12 +26,9 @@ public:
     {
     }
 };
-}
 
-int32_t main(int32_t argc, const char *argv[])
+OHNativeWindow* CreateNativeWindow()
 {
-    std::cout << "sample start" << std::endl;
-
     sptr<OHOS::IConsumerSurface> cSurface = IConsumerSurface::Create();
     sptr<IBufferConsumerListener> listener = new BufferConsumerListenerTest();
     cSurface->RegisterConsumerListener(listener);
@@ -65,27 +62,43 @@ int32_t main(int32_t argc, const char *argv[])
     if (ret != OHOS::GSERROR_OK) {
         std::cout << "OH_NativeWindow_NativeWindowHandleOpt SET_FORMAT failed" << std::endl;
     }
+    return nativeWindow;
+}
 
-    NativeWindowBuffer* nativeWindowBuffer = nullptr;
-    int fenceFd = -1;
-    ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd);
+void CreateNativeWindowBuffer(OHNativeWindow* nativeWindow, NativeWindowBuffer** nativeWindowBuffer, int* fenceFd)
+{
+    NativeWindowBuffer* windowBuffer = nullptr;
+    int fence = -1;
+    ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &windowBuffer, &fence);
     if (ret != OHOS::GSERROR_OK) {
         std::cout << "OH_NativeWindow_NativeWindowRequestBuffer failed" << std::endl;
     }
 
-    if (OH_NativeWindow_GetBufferHandleFromNative(nativeWindowBuffer) == nullptr) {
+    if (OH_NativeWindow_GetBufferHandleFromNative(windowBuffer) == nullptr) {
         std::cout << "OH_NativeWindow_GetBufferHandleFromNative failed" << std::endl;
     }
 
-    ret = OH_NativeWindow_NativeObjectReference(nativeWindowBuffer);
+    ret = OH_NativeWindow_NativeObjectReference(windowBuffer);
     if (ret != OHOS::GSERROR_OK) {
         std::cout << "OH_NativeWindow_NativeObjectReference failed" << std::endl;
     }
 
-    ret = OH_NativeWindow_NativeObjectUnreference(nativeWindowBuffer);
+    ret = OH_NativeWindow_NativeObjectUnreference(windowBuffer);
     if (ret != OHOS::GSERROR_OK) {
         std::cout << "OH_NativeWindow_NativeObjectUnreference failed" << std::endl;
     }
+    *nativeWindowBuffer = windowBuffer;
+    *fenceFd = fence;
+}
+}
+
+int32_t main(int32_t argc, const char *argv[])
+{
+    std::cout << "sample start" << std::endl;
+    OHNativeWindow* nativeWindow = CreateNativeWindow();
+    NativeWindowBuffer* nativeWindowBuffer = nullptr;
+    int fenceFd = -1;
+    CreateNativeWindowBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd);
 
     struct Region *region = new Region();
     struct Region::Rect *rect = new Region::Rect();

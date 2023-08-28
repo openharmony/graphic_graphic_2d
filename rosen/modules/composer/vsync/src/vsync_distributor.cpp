@@ -31,6 +31,7 @@ constexpr int32_t ERRNO_OTHER = -2;
 constexpr int32_t THREAD_PRIORTY = -6;
 constexpr int32_t SCHED_PRIORITY = 2;
 constexpr uint32_t SOCKET_CHANNEL_SIZE = 1024;
+constexpr uint32_t VSYNC_CONNECTION_MAX_SIZE = 128;
 }
 
 VSyncConnection::VSyncConnectionDeathRecipient::VSyncConnectionDeathRecipient(
@@ -55,7 +56,10 @@ void VSyncConnection::VSyncConnectionDeathRecipient::OnRemoteDied(const wptr<IRe
         return;
     }
     VLOGW("%{public}s: clear socketPair, conn name:%{public}s.", __func__, vsyncConn->info_.name_.c_str());
-    vsyncConn->OnVSyncRemoteDied();
+    VsyncError ret = vsyncConn->Destroy();
+    if (ret != VSYNC_ERROR_OK) {
+        VLOGE("vsync connection clearAll failed!");
+    }
 }
 
 VSyncConnection::VSyncConnection(
@@ -76,7 +80,8 @@ VSyncConnection::VSyncConnection(
     if (token_ != nullptr) {
         token_->AddDeathRecipient(vsyncConnDeathRecipient_);
     }
-    isRemoteDead_ = false;
+    proxyPid_ = GetCallingPid();
+    isDead_ = false;
 }
 
 VSyncConnection::~VSyncConnection()
@@ -89,7 +94,7 @@ VSyncConnection::~VSyncConnection()
 VsyncError VSyncConnection::RequestNextVSync()
 {
     std::unique_lock<std::mutex> locker(mutex_);
-    if (isRemoteDead_) {
+    if (isDead_) {
         VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
         return VSYNC_ERROR_API_FAILED;
     }
@@ -106,7 +111,7 @@ VsyncError VSyncConnection::RequestNextVSync()
 VsyncError VSyncConnection::GetReceiveFd(int32_t &fd)
 {
     std::unique_lock<std::mutex> locker(mutex_);
-    if (isRemoteDead_) {
+    if (isDead_) {
         VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
         return VSYNC_ERROR_API_FAILED;
     }
@@ -117,7 +122,7 @@ VsyncError VSyncConnection::GetReceiveFd(int32_t &fd)
 int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCount)
 {
     std::unique_lock<std::mutex> locker(mutex_);
-    if (isRemoteDead_) {
+    if (isDead_) {
         VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
         return ERRNO_OTHER;
     }
@@ -146,7 +151,7 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
 VsyncError VSyncConnection::SetVSyncRate(int32_t rate)
 {
     std::unique_lock<std::mutex> locker(mutex_);
-    if (isRemoteDead_) {
+    if (isDead_) {
         VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
         return VSYNC_ERROR_API_FAILED;
     }
@@ -163,7 +168,7 @@ VsyncError VSyncConnection::SetVSyncRate(int32_t rate)
 VsyncError VSyncConnection::GetVSyncPeriod(int64_t &period)
 {
     std::unique_lock<std::mutex> locker(mutex_);
-    if (isRemoteDead_) {
+    if (isDead_) {
         VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
         return VSYNC_ERROR_API_FAILED;
     }
@@ -174,13 +179,22 @@ VsyncError VSyncConnection::GetVSyncPeriod(int64_t &period)
     return distributor->GetVSyncPeriod(period);
 }
 
-VsyncError VSyncConnection::OnVSyncRemoteDied()
+VsyncError VSyncConnection::CleanAllLocked()
+{
+    socketPair_ = nullptr;
+    const sptr<VSyncDistributor> distributor = distributor_.promote();
+    if (distributor == nullptr) {
+        return VSYNC_ERROR_OK;
+    }
+    VsyncError ret = distributor->RemoveConnection(this);
+    isDead_ = true;
+    return ret;
+}
+
+VsyncError VSyncConnection::Destroy()
 {
     std::unique_lock<std::mutex> locker(mutex_);
-    socketPair_ = nullptr;
-    distributor_->RemoveConnection(this);
-    isRemoteDead_ = true;
-    return VSYNC_ERROR_OK;
+    return CleanAllLocked();
 }
 
 VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string name)
@@ -210,13 +224,21 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
     if (connection == nullptr) {
         return VSYNC_ERROR_NULLPTR;
     }
+
+    int32_t proxyPid = connection->proxyPid_;
+    if (connectionCounter_[proxyPid] > VSYNC_CONNECTION_MAX_SIZE) {
+        VLOGE("You [%{public}d] have created too many vsync connection, please check!!!", proxyPid);
+        return VSYNC_ERROR_API_FAILED;
+    }
+
     std::lock_guard<std::mutex> locker(mutex_);
-    auto it = find(connections_.begin(), connections_.end(), connection);
+    auto it = std::find(connections_.begin(), connections_.end(), connection);
     if (it != connections_.end()) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     ScopedBytrace func("Add VSyncConnection: " + connection->info_.name_);
     connections_.push_back(connection);
+    connectionCounter_[proxyPid]++;
     return VSYNC_ERROR_OK;
 }
 
@@ -225,13 +247,18 @@ VsyncError VSyncDistributor::RemoveConnection(const sptr<VSyncConnection>& conne
     if (connection == nullptr) {
         return VSYNC_ERROR_NULLPTR;
     }
+    int32_t proxyPid = connection->proxyPid_;
     std::lock_guard<std::mutex> locker(mutex_);
-    auto it = find(connections_.begin(), connections_.end(), connection);
+    auto it = std::find(connections_.begin(), connections_.end(), connection);
     if (it == connections_.end()) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     ScopedBytrace func("Remove VSyncConnection: " + connection->info_.name_);
     connections_.erase(it);
+    connectionCounter_[proxyPid]--;
+    if (connectionCounter_[proxyPid] == 0) {
+        connectionCounter_.erase(proxyPid);
+    }
     return VSYNC_ERROR_OK;
 }
 

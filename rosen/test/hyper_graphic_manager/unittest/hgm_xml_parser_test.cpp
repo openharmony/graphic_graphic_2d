@@ -29,6 +29,8 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
+
+    static constexpr char CONFIG[] = "/system/etc/graphic/hgm_policy_config.xml";
 };
 
 void HgmXmlParserTest::SetUpTestCase() {}
@@ -51,7 +53,7 @@ HWTEST_F(HgmXmlParserTest, LoadConfiguration, Function | SmallTest | Level1)
             STEP_ASSERT_NE(parser, nullptr);
         }
         STEP("2. check the result of configuration") {
-            int32_t load = parser->LoadConfiguration();
+            int32_t load = parser->LoadConfiguration(CONFIG);
             STEP_ASSERT_EQ(load, 0);
         }
     }
@@ -66,7 +68,7 @@ HWTEST_F(HgmXmlParserTest, LoadConfiguration, Function | SmallTest | Level1)
 HWTEST_F(HgmXmlParserTest, Parse, Function | SmallTest | Level1)
 {
     std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
-    int32_t load = parser->LoadConfiguration();
+    int32_t load = parser->LoadConfiguration(CONFIG);
     int32_t parse = parser->Parse();
     auto parsedData = parser->GetParsedData();
     auto translateDynamicSetting = parsedData->dynamicSetting_.find("translate")->second;

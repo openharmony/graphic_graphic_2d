@@ -98,4 +98,17 @@ HWTEST_F(OH_Drawing_UI_TypographyTest, OH_Drawing_UI_TypographyTest001, TestSize
 #endif
     EXPECT_EQ(result.empty(), true);
 }
+
+/*
+ * @tc.name: OH_Drawing_UI_TypographyTest001
+ * @tc.desc: test for DidExceedMaxLines metrics
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_UI_TypographyTest, OH_Drawing_UI_DidExceedMaxLinesTest001, TestSize.Level1)
+{
+    TypographyStyle typoStype;
+    #ifndef USE_GRAPHIC_TEXT_GINE
+    result = typography->GetGlyphPositionAtCoordinate();
+    #endif
+}
 }

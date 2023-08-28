@@ -246,8 +246,8 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
         } else {
             info.srcRect.x = info.srcRect.x * xScale;
             info.srcRect.y = info.srcRect.y * yScale;
-            info.srcRect.w = info.srcRect.w * xScale;
-            info.srcRect.h = info.srcRect.h * yScale;
+            info.srcRect.w = bufferWidth;
+            info.srcRect.h = bufferHeight;
         }
     }
     RS_LOGD("RsDebug RSUniRenderComposerAdapter::GetComposerInfoSrcRect surfaceNode id:%{public}" PRIu64 ","\
@@ -258,6 +258,15 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
 bool RSUniRenderComposerAdapter::GetComposerInfoNeedClient(const ComposeInfo &info, RSRenderNode& node) const
 {
     bool needClient = RSBaseRenderUtil::IsNeedClient(node, info);
+    if (info.buffer->GetSurfaceBufferColorGamut() != static_cast<GraphicColorGamut>(screenInfo_.colorGamut)) {
+        needClient = true;
+    }
+    return needClient;
+}
+
+bool RSUniRenderComposerAdapter::GetComposerInfoNeedClient(const ComposeInfo &info, RSSurfaceRenderNode& node) const
+{
+    bool needClient = RSUniRenderUtil::IsNeedClient(node, info);
     if (info.buffer->GetSurfaceBufferColorGamut() != static_cast<GraphicColorGamut>(screenInfo_.colorGamut)) {
         needClient = true;
     }

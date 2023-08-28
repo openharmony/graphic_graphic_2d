@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API ShaderEffectCmdList : public CmdList {
+class ShaderEffectCmdList : public CmdList {
 public:
     ShaderEffectCmdList() = default;
     ~ShaderEffectCmdList() override = default;

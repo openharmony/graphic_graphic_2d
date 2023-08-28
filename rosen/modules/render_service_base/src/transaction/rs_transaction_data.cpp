@@ -90,6 +90,7 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
 
 void RSTransactionData::Process(RSContext& context)
 {
+    std::unique_lock<std::mutex> lock(commandMutex_);
     for (auto& [nodeId, followType, command] : payload_) {
         if (command != nullptr) {
             command->Process(context);

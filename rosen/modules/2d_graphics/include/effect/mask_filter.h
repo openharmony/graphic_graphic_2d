@@ -18,8 +18,8 @@
 
 #include <memory>
 
+#include "common/rs_macros.h"
 #include "drawing/engine_adapter/impl_interface/mask_filter_impl.h"
-#include "utils/drawing_macros.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -32,7 +32,7 @@ enum class BlurType {
     INNER,
 };
 
-class DRAWING_API MaskFilter {
+class RS_EXPORT MaskFilter {
 public:
     enum class FilterType {
         NO_TYPE,

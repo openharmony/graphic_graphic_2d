@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API SkiaColorSpace : public ColorSpaceImpl {
+class SkiaColorSpace : public ColorSpaceImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaColorSpace() noexcept;

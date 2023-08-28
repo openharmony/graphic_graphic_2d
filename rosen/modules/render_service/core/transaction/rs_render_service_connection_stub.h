@@ -21,7 +21,8 @@
 #include <message_parcel.h>
 
 #include "platform/ohos/rs_irender_service_connection.h"
-#include "platform/ohos/rs_irender_service_connection_ipc_interface_code.h"
+#include "platform/ohos/rs_irender_service_connection_ipc_interface_code_access_verifier.h"
+#include "ipc_security/rs_ipc_interface_code_security_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,6 +34,8 @@ public:
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
 
 private:
+    static const RSInterfaceCodeSecurityManager securityManager_;
+
     void ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
 #if defined (ENABLE_DDGR_OPTIMIZE)
     int transDataIndex_ = 0;

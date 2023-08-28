@@ -104,7 +104,7 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
 }
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    float scaleX, float scaleY)
+    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType)
 {
     return false;
 }
@@ -151,7 +151,7 @@ uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
     return {};
 }
 
-std::vector<uint32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
+std::vector<int32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
 {
     return {};
 }

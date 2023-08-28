@@ -18,12 +18,11 @@
 
 #include "impl_interface/matrix44_impl.h"
 #include "utils/scalar.h"
-#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API Matrix44 {
+class Matrix44 {
 public:
     // Matrix44 is a 4x4 float type matrix.
     constexpr static int MATRIX44_SIZE = 16;

@@ -19,25 +19,22 @@ namespace OHOS {
 namespace Rosen {
 RSIScreenChangeCallbackInterfaceCodeAccessVerifier::RSIScreenChangeCallbackInterfaceCodeAccessVerifier()
 {
-#ifdef ENABLE_IPC_SECURITY
     CheckCodeUnderlyingTypeStandardized<CodeEnumType>(codeEnumTypeName_);
-#endif
 }
 
-void RSIScreenChangeCallbackInterfaceCodeAccessVerifier::InitializeAccessMap()
+bool RSIScreenChangeCallbackInterfaceCodeAccessVerifier::IsExclusiveVerificationPassed(CodeUnderlyingType code)
 {
-#ifdef ENABLE_IPC_SECURITY
-    // next: specify the initialization of accessMap_ here
-    accessMap_ = {};
-#endif
-}
-
-bool RSIScreenChangeCallbackInterfaceCodeAccessVerifier::IsExtraVerificationPassed(
-    CodeUnderlyingType /* code */, const std::string& /* caller */)
-{
-    // Since no exclusive verification rule is temporarily required by this verifier, directly return true.
-    // If any exclusive rule is required in the future, overwrite this function.
-    return true;
+    bool hasPermission = true;
+    switch (code) {
+        case static_cast<CodeUnderlyingType>(CodeEnumType::ON_SCREEN_CHANGED): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::ON_SCREEN_CHANGED");
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+    return hasPermission;
 }
 } // namespace Rosen
 } // namespace OHOS

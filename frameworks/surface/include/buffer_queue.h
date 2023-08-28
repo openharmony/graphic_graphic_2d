@@ -95,6 +95,7 @@ public:
     GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener);
     GSError RegisterReleaseListener(OnReleaseFunc func);
     GSError RegisterProducerReleaseListener(sptr<IProducerListener> listener);
+    GSError UnRegisterProducerReleaseListener();
     GSError RegisterDeleteBufferListener(OnDeleteBufferFunc func, bool isForUniRedraw = false);
     GSError UnregisterConsumerListener();
 

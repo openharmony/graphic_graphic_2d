@@ -17,12 +17,11 @@
 #define COLOR_MATRIX_H
 
 #include "utils/scalar.h"
-#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API ColorMatrix {
+class ColorMatrix {
 public:
     enum Index {
         SCALE_FACTOR_FOR_R = 0,

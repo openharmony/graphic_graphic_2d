@@ -84,6 +84,7 @@ public:
     void PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime);
     void RemoveTask(const std::string& name);
     void PostSyncTask(RSTaskMessage::RSTask task);
+    bool IsIdle() const;
     void QosStateDump(std::string& dumpString);
     void RenderServiceTreeDump(std::string& dumpString);
     void RsEventParamDump(std::string& dumpString);
@@ -115,24 +116,7 @@ public:
     /* Judge if rootnode has to be prepared based on it corresponding process is active
      * If its pid is in activeProcessPids_ set, return true
      */
-    bool CheckNodeHasToBePreparedByPid(NodeId nodeId, NodeId rootNodeId, bool isClassifyByRoot)
-    {
-        if (activeAppsInProcess_.empty()) {
-            return false;
-        }
-        pid_t pid = ExtractPid(nodeId);
-        if (activeAppsInProcess_.find(pid) == activeAppsInProcess_.end()) {
-            return false;
-        }
-        if (!isClassifyByRoot) {
-            return true;
-        }
-        auto& activeApps = activeAppsInProcess_[pid];
-        if (activeApps.find(INVALID_NODEID) != activeApps.end()) {
-            return true;
-        }
-        return (activeProcessNodeIds_.find(rootNodeId) != activeProcessNodeIds_.end());
-    }
+    bool CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyByRoot);
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
@@ -159,6 +143,9 @@ public:
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
 
+    void ReleaseSurface();
+    void AddToReleaseQueue(sk_sp<SkSurface>&& surface);
+
     void SetDirtyFlag();
     void SetAccessibilityConfigChanged();
     void ForceRefreshForUni();
@@ -169,6 +156,10 @@ public:
     void SetAppWindowNum(uint32_t num);
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
     void SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated);
+    void SetForceUpdateUniRenderFlag(bool flag)
+    {
+        forceUpdateUniRenderFlag_ = flag;
+    }
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> GetWatermarkImg();
 #else
@@ -179,11 +170,11 @@ public:
     {
         return frameCount_;
     }
-    // add node info after cmd data process
-    void AddActiveNodeId(pid_t pid, NodeId id);
 
     void ProcessHgmFrameRate(FrameRateRangeData data, uint64_t timestamp);
     DeviceType GetDeviceType() const;
+    uint64_t GetFocusNodeId() const;
+    uint64_t GetFocusLeashWindowId() const;
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -199,6 +190,7 @@ private:
     void OnVsync(uint64_t timestamp, void* data);
     void ProcessCommand();
     void Animate(uint64_t timestamp);
+    void ApplyModifiers();
     void ConsumeAndUpdateAllNodes();
     void CollectInfoForHardwareComposer();
     void CollectInfoForDrivenRender();
@@ -264,6 +256,8 @@ private:
     void InformHgmNodeInfo();
     void CheckIfNodeIsBundle(std::shared_ptr<RSSurfaceRenderNode> node);
 
+    void SetFocusLeashWindowId();
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
@@ -274,9 +268,6 @@ private:
     std::unordered_map<NodeId, std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>> cachedCommands_;
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> effectiveCommands_;
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
-    // Collect pids of surfaceview's update(ConsumeAndUpdateAllNodes), effective commands(processCommand) and Animate
-    std::unordered_map<pid_t, std::unordered_set<NodeId>> activeAppsInProcess_;
-    std::unordered_map<NodeId, std::unordered_set<NodeId>> activeProcessNodeIds_;
     std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> syncTransactionData_;
     int32_t syncTransactionCount_ { 0 };
 
@@ -326,13 +317,14 @@ private:
     bool qosPidCal_ = false;
     bool isDirty_ = false;
     std::atomic_bool doWindowAnimate_ = false;
-    uint32_t lastSurfaceCnt_ = 0;
+    std::vector<NodeId> lastSurfaceIds_;
     int32_t focusAppPid_ = -1;
     int32_t focusAppUid_ = -1;
     const uint8_t opacity_ = 255;
     std::string focusAppBundleName_ = "";
     std::string focusAppAbilityName_ = "";
     uint64_t focusNodeId_ = 0;
+    uint64_t focusLeashWindowId_ = 0;
     uint64_t lastFocusNodeId_ = 0;
     uint32_t appWindowNum_ = 0;
     uint32_t requestNextVsyncNum_ = 0;
@@ -380,6 +372,10 @@ private:
     // used for informing hgm the bundle name of SurfaceRenderNodes
     bool noBundle_ = false;
     std::string currentBundleName_ = "";
+    bool forceUpdateUniRenderFlag_ = false;
+    // for ui first
+    std::mutex mutex_;
+    std::queue<sk_sp<SkSurface>> tmpSurfaces_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

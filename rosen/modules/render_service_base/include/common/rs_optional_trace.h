@@ -33,22 +33,6 @@
         }                                                        \
     } while (0)
 
-#define RS_OPTIONAL_TRACE_FUNC_BEGIN()                           \
-    do {                                                         \
-        if (Rosen::RSSystemProperties::GetDebugTraceEnabled()) { \
-            RS_TRACE_BEGIN(__func__);                            \
-        }                                                        \
-    } while (0)
-
-#define RS_OPTIONAL_TRACE_FUNC_END() RS_OPTIONAL_TRACE_END()
-
-#define RS_OPTIONAL_TRACE_NAME(name)                             \
-    do {                                                         \
-        if (Rosen::RSSystemProperties::GetDebugTraceEnabled()) { \
-            RS_TRACE_NAME(name);                                 \
-        }                                                        \
-    } while (0)
-
 #define RS_OPTIONAL_TRACE_NAME_FMT(fmt, ...)                                \
     do {                                                                    \
         if (Rosen::RSSystemProperties::GetDebugTraceEnabled()) {            \
@@ -72,4 +56,52 @@
         }                                                            \
     } while (0)
 
+#define RS_OPTIONAL_TRACE_NAME(name) RSOptionalTrace optionalTrace(name)
+
+#define RS_OPTIONAL_TRACE_FUNC() RSOptionalTrace optionalTrace(__func__)
+
+#define RS_PROCESS_TRACE(phone, focus, name) RSProcessTrace processTrace(phone, focus, name)
+
+class RSOptionalTrace {
+public:
+    RSOptionalTrace(const std::string& traceStr)
+    {
+        debugTraceEnable_ = OHOS::Rosen::RSSystemProperties::GetDebugTraceEnabled();
+        if (debugTraceEnable_) {
+            RS_TRACE_BEGIN(traceStr);
+        }
+    }
+    ~RSOptionalTrace()
+    {
+        if (debugTraceEnable_) {
+            RS_TRACE_END();
+        }
+    }
+
+private:
+    bool debugTraceEnable_ = false;
+};
+
+class RSProcessTrace {
+public:
+    RSProcessTrace(bool phone, bool focus, const std::string& traceStr)
+    {
+        debugTraceEnable_ = OHOS::Rosen::RSSystemProperties::GetDebugTraceEnabled();
+        phone_ = phone;
+        focus_ = focus;
+        if (debugTraceEnable_ || phone_ || focus_) {
+            RS_TRACE_BEGIN(traceStr);
+        }
+    }
+    ~RSProcessTrace()
+    {
+        if (debugTraceEnable_ || phone_ || focus_) {
+            RS_TRACE_END();
+        }
+    }
+private:
+    bool debugTraceEnable_ = false;
+    bool phone_ = false;
+    bool focus_ = false;
+};
 #endif // RENDER_SERVICE_BASE_COMMON_OPTIONAL_TRACE

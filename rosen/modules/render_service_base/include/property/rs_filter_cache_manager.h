@@ -61,7 +61,7 @@ public:
 
     // This function is similar to DrawFilter(), but instead of drawing anything on the canvas, it simply returns the
     // cache data. This is used with effect component in RSPropertiesPainter::DrawBackgroundEffect.
-    CachedEffectData GeneratedCachedEffectData(
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GeneratedCachedEffectData(
         RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter);
 
     // Call this function to manually invalidate the cache. The next time DrawFilter() is called, it will regenerate the

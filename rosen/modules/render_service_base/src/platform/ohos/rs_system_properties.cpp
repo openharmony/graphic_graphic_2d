@@ -298,6 +298,13 @@ bool RSSystemProperties::GetKawaseEnabled()
     return kawaseBlurEnabled;
 }
 
+bool RSSystemProperties::GetKawaseOriginalEnabled()
+{
+    static bool kawaseOriginalEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.kawaseOriginalEnable", "0")).c_str()) != 0;
+    return kawaseOriginalEnabled;
+}
+
 bool RSSystemProperties::GetBlurEnabled()
 {
     static bool blurEnabled =
@@ -407,7 +414,8 @@ bool RSSystemProperties::GetDDGRIntegrateEnable()
 bool RSSystemProperties::GetSnapshotWithDMAEnabled()
 {
     static bool isSupportDma = system::GetParameter("const.product.devicetype", "pc") == "phone" ||
-        system::GetParameter("const.product.devicetype", "pc") == "tablet";
+        system::GetParameter("const.product.devicetype", "pc") == "tablet" ||
+        system::GetParameter("const.product.devicetype", "pc") == "pc";
     return isSupportDma && system::GetBoolParameter("rosen.snapshotDma.enabled", true);
 }
 } // namespace Rosen

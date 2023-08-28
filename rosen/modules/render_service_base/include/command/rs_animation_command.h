@@ -53,6 +53,7 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_FINISH,
     ANIMATION_REVERSE,
     ANIMATION_SET_FRACTION,
+    ANIMATION_CANCEL,
 
     // UI operation
     ANIMATION_CALLBACK,
@@ -112,6 +113,7 @@ public:
     static void AnimationCallback(RSContext& context,
                                   NodeId targetId, AnimationId animId, AnimationCallbackEvent event);
     static RSB_EXPORT void SetAnimationCallbackProcessor(AnimationCallbackProcessor processor);
+    static void CancelAnimation(RSContext& context, NodeId targetId, PropertyId propertyId);
 };
 
 // animation operation
@@ -129,6 +131,8 @@ ADD_COMMAND(RSAnimationReverse,
 ADD_COMMAND(RSAnimationSetFraction,
     ARG(ANIMATION, ANIMATION_SET_FRACTION, AnimationCommandHelper::AnimOp<float, &RSRenderAnimation::SetFraction>,
         NodeId, AnimationId, float))
+ADD_COMMAND(RSAnimationCancel,
+    ARG(ANIMATION, ANIMATION_CANCEL, AnimationCommandHelper::CancelAnimation, NodeId, PropertyId))
 
 ADD_COMMAND(RSAnimationCallback,
     ARG(ANIMATION, ANIMATION_CALLBACK,

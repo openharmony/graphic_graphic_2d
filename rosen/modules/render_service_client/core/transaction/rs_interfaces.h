@@ -97,7 +97,7 @@ public:
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
 
-    std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id);
+    std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id);
 
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id);
 

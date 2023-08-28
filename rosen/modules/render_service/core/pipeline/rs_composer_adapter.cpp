@@ -203,10 +203,7 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
     if (frameGravity == Gravity::RESIZE || (frameWidth == boundsWidth && frameHeight == boundsHeight)) {
         return;
     }
-
-    auto traceInfo = node.GetName() + " DealWithNodeGravity " + std::to_string(static_cast<int>(frameGravity));
-    RS_TRACE_NAME(traceInfo.c_str());
-
+    RS_TRACE_NAME_FMT("%s DealWithNodeGravity %d", node.GetName().c_str(), static_cast<int>(frameGravity));
     // get current node's translate matrix and calculate gravity matrix.
 #ifdef NEW_SKIA
     auto translateMatrix = SkMatrix::Translate(
@@ -233,8 +230,7 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
     canvas->clipRect(clipRect);
     canvas->concat(gravityMatrix);
     SkIRect newDstRect = canvas->getDeviceClipBounds();
-    // we make the newDstRect as the intersection of new and old dstRect,
-    // to deal with the situation that frameSize > boundsSize.
+    // we make the newDstRect as the intersection of new and old dstRect when frameSize > boundsSize.
     newDstRect.intersect(SkIRect::MakeXYWH(info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h));
     auto localRect = canvas->getLocalClipBounds();
     int left = std::clamp<int>(localRect.left(), 0, frameWidth);
@@ -243,7 +239,6 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
     int height = std::clamp<int>(localRect.height(), 0, frameHeight - top);
     GraphicIRect newSrcRect = {left, top, width, height};
 
-    // log and apply new dstRect and srcRect
     RS_LOGD("RsDebug DealWithNodeGravity: name[%{public}s], gravity[%{public}d], oldDstRect[%{public}d"
         " %{public}d %{public}d %{public}d], newDstRect[%{public}d %{public}d %{public}d %{public}d],"\
         " oldSrcRect[%{public}d %{public}d %{public}d %{public}d], newSrcRect[%{public}d %{public}d"
@@ -268,10 +263,7 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
     if (frameGravity == Gravity::RESIZE || (frameWidth == boundsWidth && frameHeight == boundsHeight)) {
         return;
     }
-
-    auto traceInfo = node.GetName() + " DealWithNodeGravity " + std::to_string(static_cast<int>(frameGravity));
-    RS_TRACE_NAME(traceInfo.c_str());
-
+    RS_TRACE_NAME_FMT("%s DealWithNodeGravity %d", node.GetName().c_str(), static_cast<int>(frameGravity));
     // get current node's translate matrix and calculate gravity matrix.
     Drawing::Matrix translateMatrix;
     translateMatrix.Translate(
@@ -300,9 +292,7 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
     canvas->ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
     canvas->ConcatMatrix(gravityMatrix);
     Drawing::RectI newDstRect = canvas->GetDeviceClipBounds();
-    // we make the newDstRect as the intersection of new and old dstRect,
-    // to deal with the situation that frameSize > boundsSize.
-    // replace Intersect
+    // we make the newDstRect as the intersection of new and old dstRect when frameSize > boundsSize.
     newDstRect.Intersect(Drawing::RectI(info.dstRect.x, info.dstRect.y,
         info.dstRect.w + info.dstRect.x, info.dstRect.h + info.dstRect.y));
     auto localRect = canvas->GetLocalClipBounds();
@@ -312,7 +302,6 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
     int height = std::clamp<int>(localRect.GetHeight(), 0, frameHeight - top);
     GraphicIRect newSrcRect = {left, top, width, height};
 
-    // log and apply new dstRect and srcRect
     RS_LOGD("RsDebug DealWithNodeGravity: name[%{public}s], gravity[%{public}d], oldDstRect[%{public}d"
         " %{public}d %{public}d %{public}d], newDstRect[%{public}d %{public}d %{public}d %{public}d],"\
         " oldSrcRect[%{public}d %{public}d %{public}d %{public}d], newSrcRect[%{public}d %{public}d"

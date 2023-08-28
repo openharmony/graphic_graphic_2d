@@ -20,12 +20,11 @@
 #include "effect/color_space.h"
 #include "effect/filter.h"
 #include "effect/shader_effect.h"
-#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API Brush {
+class Brush {
 public:
     Brush() noexcept;
     Brush(const Brush& b) noexcept = default;

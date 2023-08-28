@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API DrawCmdList : public CmdList {
+class DrawCmdList : public CmdList {
 public:
     DrawCmdList() = default;
     DrawCmdList(int32_t width, int32_t height);

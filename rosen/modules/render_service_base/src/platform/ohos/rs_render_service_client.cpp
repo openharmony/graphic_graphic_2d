@@ -206,7 +206,7 @@ private:
 };
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    float scaleX, float scaleY)
+    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -232,7 +232,7 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     if (surfaceCaptureCbDirector_ == nullptr) {
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
-    renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, scaleX, scaleY);
+    renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, scaleX, scaleY, surfaceCaptureType);
     return true;
 }
 
@@ -374,7 +374,7 @@ uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
     return renderService->GetScreenCurrentRefreshRate(id);
 }
 
-std::vector<uint32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
+std::vector<int32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -544,6 +544,7 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(
     if (isFromRenderThread) {
         bufferAvailableCbRTMap_.emplace(id, bufferAvailableCb);
     } else {
+        std::lock_guard<std::mutex> lock(mapMutex_);
         bufferAvailableCbUIMap_.emplace(id, bufferAvailableCb);
     }
     return true;
@@ -570,6 +571,7 @@ bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
         ROSEN_LOGD("RSRenderServiceClient::UnregisterBufferAvailableListener "
                    "Node %{public}" PRIu64 " has not registered RT callback", id);
     }
+    std::lock_guard<std::mutex> lock(mapMutex_);
     iter = bufferAvailableCbUIMap_.find(id);
     if (iter != bufferAvailableCbUIMap_.end()) {
         bufferAvailableCbUIMap_.erase(iter);

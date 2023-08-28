@@ -34,6 +34,8 @@ public:
 
     virtual VsyncError GetVSyncPeriod(int64_t &period) = 0;
 
+    virtual VsyncError Destroy() = 0;
+
     DECLARE_INTERFACE_DESCRIPTOR(u"IVSyncConnection");
 
 protected:
@@ -42,6 +44,7 @@ protected:
         IVSYNC_CONNECTION_GET_RECEIVE_FD,
         IVSYNC_CONNECTION_SET_RATE,
         IVSYNC_CONNECTION_GET_PERIOD,
+        IVSYNC_CONNECTION_DESTROY,
     };
 };
 } // namespace Vsync

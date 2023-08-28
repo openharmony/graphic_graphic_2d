@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API RecordingColorSpace : public ColorSpace {
+class RecordingColorSpace : public ColorSpace {
 public:
 
     /*

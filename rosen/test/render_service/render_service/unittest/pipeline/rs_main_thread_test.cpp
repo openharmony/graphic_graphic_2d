@@ -533,24 +533,21 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData004, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddActiveNodeId
- * @tc.desc: Test AddActiveNodeId, add fake nodeid info, check if fails
+ * @tc.name: AddActiveNode
+ * @tc.desc: Test AddActiveNode, add not-on-tree node, check if fails
  * @tc.type: FUNC
  * @tc.require: issueI6Q9A2
  */
-HWTEST_F(RSMainThreadTest, AddActiveNodeId, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, AddActiveNode, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    mainThread->activeAppsInProcess_.clear();
-    mainThread->activeProcessNodeIds_.clear();
-    pid_t pid = 1;
+    mainThread->context_->activeNodesInRoot_.clear();
     // invalid pid
-    NodeId id = ((NodeId)pid << 32) + 1;
-    mainThread->AddActiveNodeId(pid, id);
-    ASSERT_EQ(static_cast<int>(mainThread->activeAppsInProcess_[pid].size()), 0);
-    for (auto iter : mainThread->activeAppsInProcess_[pid]) {
-        ASSERT_EQ(iter, INVALID_NODEID);
-    }
+    NodeId id = 0;
+    // not on tree
+    auto node = std::make_shared<RSRenderNode>(id, mainThread->context_);
+    mainThread->context_->AddActiveNode(node);
+    ASSERT_EQ(static_cast<int>(mainThread->context_->activeNodesInRoot_.size()), 0);
 }
 
 /**

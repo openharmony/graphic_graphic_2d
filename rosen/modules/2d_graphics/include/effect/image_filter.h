@@ -18,14 +18,13 @@
 
 #include "effect/color_filter.h"
 #include "drawing/engine_adapter/impl_interface/image_filter_impl.h"
-#include "utils/drawing_macros.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 class ImageFilterImpl;
-class DRAWING_API ImageFilter {
+class ImageFilter {
 public:
     enum class FilterType {
         NO_TYPE,

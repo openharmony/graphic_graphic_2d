@@ -65,7 +65,7 @@ enum RSNodeCommandType : uint16_t {
     UNREGISTER_GEOMETRY_TRANSITION,
 
     MARK_NODE_GROUP,
-    SET_UI_FRAME_RATE_RANGE,
+    UPDATE_UI_FRAME_RATE_RANGE,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -99,7 +99,7 @@ public:
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
     static void UnregisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
-    static void SetUIFrameRateRange(RSContext& context, NodeId nodeId, FrameRateRange range);
+    static void UpdateUIFrameRateRange(RSContext& context, NodeId nodeId, FrameRateRange range);
 };
 
 ADD_COMMAND(RSAddModifier,
@@ -201,8 +201,8 @@ ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
     ARG(RS_NODE, REGISTER_GEOMETRY_TRANSITION, RSNodeCommandHelper::RegisterGeometryTransitionPair, NodeId, NodeId))
 ADD_COMMAND(RSUnregisterGeometryTransitionNodePair,
     ARG(RS_NODE, UNREGISTER_GEOMETRY_TRANSITION, RSNodeCommandHelper::UnregisterGeometryTransitionPair, NodeId, NodeId))
-ADD_COMMAND(RSSetUIFrameRateRange,
-    ARG(RS_NODE, SET_UI_FRAME_RATE_RANGE, RSNodeCommandHelper::SetUIFrameRateRange, NodeId, FrameRateRange))
+ADD_COMMAND(RSUpdateUIFrameRateRange,
+    ARG(RS_NODE, UPDATE_UI_FRAME_RATE_RANGE, RSNodeCommandHelper::UpdateUIFrameRateRange, NodeId, FrameRateRange))
 } // namespace Rosen
 } // namespace OHOS
 

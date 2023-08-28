@@ -33,12 +33,13 @@
 #include "skia_picture.h"
 #include "skia_region.h"
 
+#include "common/rs_macros.h"
 #include "impl_interface/core_canvas_impl.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API SkiaCanvas : public CoreCanvasImpl {
+class RS_EXPORT SkiaCanvas : public CoreCanvasImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaCanvas();

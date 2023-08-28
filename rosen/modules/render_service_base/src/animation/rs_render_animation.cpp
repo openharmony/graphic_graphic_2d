@@ -124,11 +124,13 @@ void RSRenderAnimation::Attach(RSRenderNode* renderNode)
     needUpdateStartTime_ = false;
 }
 
-void RSRenderAnimation::Detach()
+void RSRenderAnimation::Detach(bool forceDetach)
 {
-    OnDetach();
-    if (target_ != nullptr) {
-        target_->CheckGroupableAnimation(GetPropertyId(), false);
+    if (!forceDetach) {
+        OnDetach();
+        if (target_ != nullptr) {
+            target_->CheckGroupableAnimation(GetPropertyId(), false);
+        }
     }
     target_ = nullptr;
 }

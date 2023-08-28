@@ -54,10 +54,15 @@ public:
     {
         return property_;
     }
+    bool IsTimeout() const
+    {
+        return isTimeout_;
+    }
 
 private:
     NodeId targetId_ = 0;
     std::shared_ptr<RSRenderPropertyBase> property_;
+    bool isTimeout_ = true;
 };
 
 } // namespace Rosen

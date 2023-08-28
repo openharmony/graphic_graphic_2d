@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DRAWING_API MaskFilterCmdList : public CmdList {
+class MaskFilterCmdList : public CmdList {
 public:
     MaskFilterCmdList() = default;
     ~MaskFilterCmdList() override = default;
