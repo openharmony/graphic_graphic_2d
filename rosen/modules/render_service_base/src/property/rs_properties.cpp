@@ -116,8 +116,12 @@ const std::vector<ResetPropertyFunc> g_propertyResetterLUT = {
 } // namespace
 
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
+
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
 const bool RSProperties::FilterCacheEnabled =
     RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender();
+#endif
+
 RSProperties::RSProperties()
 {
     boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
@@ -2170,27 +2174,27 @@ std::string RSProperties::Dump() const
     return dumpInfo;
 }
 
-#ifndef USE_ROSEN_DRAWING
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
 void RSProperties::CreateFilterCacheManagerIfNeed()
 {
     if (!FilterCacheEnabled) {
         return;
     }
-    if (auto& filter = GetBackgroundFilter(); filter != nullptr) {
+    if (auto& filter = GetBackgroundFilter()) {
         auto& cacheManager = backgroundFilterCacheManager_;
         if (cacheManager == nullptr) {
             cacheManager = std::make_unique<RSFilterCacheManager>();
         }
-        cacheManager->UpdateCacheStateWithFilterHash(filter->Hash());
+        cacheManager->UpdateCacheStateWithFilterHash(filter);
     } else {
         backgroundFilterCacheManager_.reset();
     }
-    if (auto& filter = GetFilter(); filter != nullptr && filter->IsValid()) {
+    if (auto& filter = GetFilter()) {
         auto& cacheManager = foregroundFilterCacheManager_;
         if (cacheManager == nullptr) {
             cacheManager = std::make_unique<RSFilterCacheManager>();
         }
-        cacheManager->UpdateCacheStateWithFilterHash(filter->Hash());
+        cacheManager->UpdateCacheStateWithFilterHash(filter);
     } else {
         foregroundFilterCacheManager_.reset();
     }
@@ -2222,6 +2226,7 @@ void RSProperties::OnApplyModifiers()
         CalculatePixelStretch();
     }
     if (filterNeedUpdate_) {
+        filterNeedUpdate_ = false;
         if (backgroundFilter_ != nullptr && !backgroundFilter_->IsValid()) {
             backgroundFilter_.reset();
         }
@@ -2230,10 +2235,9 @@ void RSProperties::OnApplyModifiers()
         }
         needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
                       IsDynamicLightUpValid();
-#ifndef USE_ROSEN_DRAWING
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
         CreateFilterCacheManagerIfNeed();
 #endif
-        filterNeedUpdate_ = false;
     }
 }
 

@@ -293,7 +293,7 @@ public:
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
 
-#ifndef USE_ROSEN_DRAWING
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
 #endif
 
@@ -389,15 +389,14 @@ private:
     std::shared_ptr<Drawing::ColorFilter> colorFilter_ = nullptr;
 #endif
 
-#ifndef USE_ROSEN_DRAWING
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     void CreateFilterCacheManagerIfNeed();
     std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
+    static const bool FilterCacheEnabled;
 #endif
 
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
-
-    static const bool FilterCacheEnabled;
 
     friend class RSCanvasDrawingRenderNode;
     friend class RSCanvasRenderNode;

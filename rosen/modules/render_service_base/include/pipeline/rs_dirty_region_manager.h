@@ -72,6 +72,7 @@ public:
     // update current frame's visited dirtyregion
     void UpdateVisitedDirtyRects(const std::vector<RectI>& rects);
     RectI GetIntersectedVisitedDirtyRect(const RectI& absRect) const;
+    bool HasIntersectionWithVisitedDirtyRect(const RectI& absRect) const;
     void UpdateCacheableFilterRect(const RectI& rect);
     bool IfCacheableFilterRectFullyCover(const RectI& targetRect);
     void ResetSubNodeFilterCacheValid()

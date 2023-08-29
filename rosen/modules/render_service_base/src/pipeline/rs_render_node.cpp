@@ -571,14 +571,12 @@ bool RSRenderNode::Update(
     isLastVisible_ = ShouldPaint();
     renderProperties_.ResetDirty();
 
-#ifndef USE_ROSEN_DRAWING
     // Note:
     // 1. cache manager will use dirty region to update cache validity, background filter cache manager should use
     // 'dirty region of all the nodes drawn before this node', and foreground filter cache manager should use 'dirty
     // region of all the nodes drawn before this node, this node, and the children of this node'
     // 2. Filter must be valid when filter cache manager is valid, we make sure that in RSRenderNode::ApplyModifiers().
     UpdateFilterCacheWithDirty(dirtyManager, false);
-#endif
     UpdateDirtyRegion(dirtyManager, dirty, clipRect);
     return dirty;
 }
@@ -709,32 +707,23 @@ void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parent
 
 void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) const
 {
-#ifndef USE_ROSEN_DRAWING
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     if (!RSProperties::FilterCacheEnabled) {
         return;
     }
     auto& properties = GetRenderProperties();
     auto& manager = properties.GetFilterCacheManager(isForeground);
-    if (manager == nullptr) {
-        return;
-    }
-    auto geoPtr = (properties.GetBoundsGeometry());
-    if (geoPtr == nullptr) {
-        return;
-    }
-    auto& cachedImageRegion = manager->GetCachedImageRegion();
-    RectI cachedImageRect = RectI(cachedImageRegion.x(), cachedImageRegion.y(), cachedImageRegion.width(),
-        cachedImageRegion.height());
-    auto isCachedImageRegionIntersectedWithDirtyRegion =
-        cachedImageRect.IntersectRect(dirtyManager.GetIntersectedVisitedDirtyRect(geoPtr->GetAbsRect()));
-    manager->UpdateCacheStateWithDirtyRegion(isCachedImageRegionIntersectedWithDirtyRegion);
-    // record node's cache area if it has valid filter cache
-    if (manager->IsCacheValid()) {
-        if (ROSEN_EQ(GetGlobalAlpha(), 1.0f)) {
-            dirtyManager.UpdateCacheableFilterRect(cachedImageRect);
-        }
-    } else {
+    if (manager == nullptr || !manager->IsCacheValid()) {
         dirtyManager.ResetSubNodeFilterCacheValid();
+        return;
+    }
+    auto& cachedImageRect = manager->GetCachedImageRegion();
+    if (IsDirty() || dirtyManager.HasIntersectionWithVisitedDirtyRect(cachedImageRect)) {
+        manager->UpdateCacheStateWithDirtyRegion();
+    }
+    // record node's cache area if it has valid filter cache
+    if (manager->IsCacheValid() && ROSEN_EQ(GetGlobalAlpha(), 1.0f)) {
+        dirtyManager.UpdateCacheableFilterRect(cachedImageRect);
     }
 #endif
 }
@@ -1469,7 +1458,7 @@ RectI RSRenderNode::GetFilterRect() const
 
 void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<RectI>& clipRect) const
 {
-#ifndef USE_ROSEN_DRAWING
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     if (!RSProperties::FilterCacheEnabled) {
         return;
     }
@@ -1481,13 +1470,20 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
     if (clipRect.has_value()) {
         filterRect.IntersectRect(*clipRect);
     }
+
     // background filter
     if (auto& manager = renderProperties.GetFilterCacheManager(false)) {
-        manager->UpdateCacheStateWithFilterRegion(filterRect);
+        // invalidate cache if filter region is not inside of cached image region
+        if (manager->IsCacheValid() && !filterRect.IsInsideOf(manager->GetCachedImageRegion())) {
+            manager->UpdateCacheStateWithFilterRegion();
+        }
     }
     // foreground filter
     if (auto& manager = renderProperties.GetFilterCacheManager(true)) {
-        manager->UpdateCacheStateWithFilterRegion(filterRect);
+        // invalidate cache if filter region is not inside of cached image region
+        if (manager->IsCacheValid() && !filterRect.IsInsideOf(manager->GetCachedImageRegion())) {
+            manager->UpdateCacheStateWithFilterRegion();
+        }
     }
 #endif
 }
@@ -1501,7 +1497,7 @@ void RSRenderNode::OnTreeStateChanged()
     } else {
         SetDirty();
     }
-#ifndef USE_ROSEN_DRAWING
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     if (!isOnTheTree_) {
         // clear filter cache when node is removed from tree
         if (auto& manager = renderProperties_.GetFilterCacheManager(false)) {
@@ -1714,20 +1710,16 @@ void RSRenderNode::UpdateCompletedCacheSurface()
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     std::swap(cacheSurface_, cacheCompletedSurface_);
     std::swap(cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
-#ifndef USE_ROSEN_DRAWING
-#ifdef RS_ENABLE_GL
+#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL)
     std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
     SetTextureValidFlag(true);
-#endif
 #endif
 }
 void RSRenderNode::SetTextureValidFlag(bool isValid)
 {
-#ifndef USE_ROSEN_DRAWING
-#ifdef RS_ENABLE_GL
+#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL)
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     isTextureValid_ = isValid;
-#endif
 #endif
 }
 void RSRenderNode::ClearCacheSurface()

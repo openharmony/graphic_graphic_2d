@@ -59,13 +59,19 @@ void RSDirtyRegionManager::UpdateVisitedDirtyRects(const std::vector<RectI>& rec
 RectI RSDirtyRegionManager::GetIntersectedVisitedDirtyRect(const RectI& absRect) const
 {
     RectI belowDirty = currentFrameDirtyRegion_;
-    for (auto subDirty : visitedDirtyRegions_) {
+    for (const auto& subDirty : visitedDirtyRegions_) {
         if (absRect.IsInsideOf(belowDirty)) {
             return belowDirty;
         }
         belowDirty = belowDirty.JoinRect(subDirty.IntersectRect(absRect));
     }
     return belowDirty;
+}
+
+bool RSDirtyRegionManager::HasIntersectionWithVisitedDirtyRect(const RectI& absRect) const
+{
+    return std::any_of(visitedDirtyRegions_.begin(), visitedDirtyRegions_.end(),
+        [&absRect](const RectI& rect) { return rect.Intersect(absRect); });
 }
 
 void RSDirtyRegionManager::UpdateCacheableFilterRect(const RectI& rect)
