@@ -44,7 +44,7 @@ public:
     bool ApplyKawaseBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, const KawaseParameter& param);
     static KawaseBlurFilter* GetKawaseBlurFilter()
     {
-        static __thread KawaseBlurFilter* filter;
+        static thread_local KawaseBlurFilter* filter;
         if (filter == nullptr) {
             filter = new KawaseBlurFilter();
         }
