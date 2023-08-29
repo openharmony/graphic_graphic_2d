@@ -26,6 +26,7 @@
 #include "pipeline/rs_render_service_connection.h"
 #include "platform/ohos/rs_irender_service.h"
 #include "transaction/rs_render_service_connection_stub.h"
+#include "transaction/rs_transaction_proxy.h"
 #include "message_parcel.h"
 #include "securec.h"
 
@@ -94,9 +95,9 @@ bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
         return false;
     }
 
-    NodeId nodeId = 0;
-    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(nodeId, nullptr);
-    rsClient->ExecuteSynchronousTask(task);
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(0, nullptr);
+    RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, true);
     return true;
 }
 
@@ -296,8 +297,8 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     pos = 0;
 
     auto nodeId = GetData<NodeId>();
-    float scaleX = 1.0f;
-    float scaleY = 1.0f;
+    float scaleX = GetData<float>();
+    float scaleY = GetData<float>();
 
     std::shared_ptr<TestSurfaceCaptureCallback> cb = std::make_shared<TestSurfaceCaptureCallback>();
     rsClient->TakeSurfaceCapture(nodeId, cb, scaleX, scaleY);
@@ -421,11 +422,10 @@ bool DoRegisterBufferAvailableListener(const uint8_t* data, size_t size)
     size_ = size;
     pos = 0;
 
-    static std::weak_ptr<RSContext> context = {};
-    sptr<RSIBufferAvailableCallback> callback;
+    NodeId id = GetData<NodeId>();
     bool isFromRenderThread = GetData<bool>();
-    auto node = std::make_shared<RSSurfaceRenderNode>(0, context);
-    node->RegisterBufferAvailableListener(callback, isFromRenderThread);
+    BufferAvailableCallback cb = [](){};
+    rsClient->RegisterBufferAvailableListener(id, cb, isFromRenderThread);
     return true;
 }
 
