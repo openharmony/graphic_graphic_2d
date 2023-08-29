@@ -35,6 +35,7 @@
 #include "src/utils/SkMultiPictureDocument.h"
 #include "tools/flags/CommonFlagsConfig.h"
 #include "tools/gpu/MemoryCache.h"
+#include "src/utils/SkOSPath.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -42,13 +43,13 @@ class MSKPSrc {
 public:
     explicit MSKPSrc(std::string path);
 
-    bool draw(SkCanvas* c) const;
-    bool nextFrame();
-    SkISize size(int) const;
-    int pageCount() const { return fPages_.size(); }
-    SkISize size() const { return this->size(curFrameNum_); }
-    SkString name() const { return SkOSPath::Basename(fPath_.c_str()); }
-    int getCurFrameNum() {return curFrameNum_;}
+    bool Draw(SkCanvas* c) const;
+    bool NextFrame();
+    SkISize Size(int i) const;
+    int PageCount() const { return fPages_.size(); }
+    SkISize Size() const { return this->Size(curFrameNum_); }
+    SkString Name() const { return SkOSPath::Basename(fPath_.c_str()); }
+    int GetCurFrameNum() {return curFrameNum_;}
 private:
     uint16_t curFrameNum_ = 0;
     std::string fPath_;
@@ -63,7 +64,7 @@ public:
     bool GetDirectionAndStep(std::string command, bool &isMoreOps);
     bool IterateFrame(int &curLoop, int &frame);
     bool ReplayMSKP(SkCanvas *skiaCanvas);
-    bool ReplaySKP(SkCanvas *skiaCanvas);
+    void ReplaySKP(SkCanvas *skiaCanvas);
     bool PlayBackByFrame(SkCanvas *skiaCanvas, bool isDumpPictures = false);
     bool PlayBackByOpItem(SkCanvas *skiaCanvas, bool isMoreOps = true);
     void UpdateParameters(bool notNeeded);
