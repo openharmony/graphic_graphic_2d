@@ -36,8 +36,9 @@ public:
     ~RSSubThread();
 
     void Start();
-    void PostTask(const std::function<void()>& task);
+    void PostTask(const std::function<void()>& task, const std::string& name = std::string());
     void PostSyncTask(const std::function<void()>& task);
+    void RemoveTask(const std::string& name);
     void RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTask);
     void ReleaseSurface();
     void AddToReleaseQueue(sk_sp<SkSurface>&& surface);

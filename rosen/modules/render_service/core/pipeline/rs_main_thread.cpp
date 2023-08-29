@@ -517,6 +517,10 @@ void RSMainThread::CheckParallelSubThreadNodesStatus()
     RS_OPTIONAL_TRACE_FUNC();
     cacheCmdSkippedInfo_.clear();
     cacheCmdSkippedNodes_.clear();
+    if (subThreadNodes_.empty()) {
+        RSSubThreadManager::Instance()->ResetSubThreadGrContext();
+        return;
+    }
     for (auto& node : subThreadNodes_) {
         if (node == nullptr) {
             RS_LOGE("RSMainThread::CheckParallelSubThreadNodesStatus sunThreadNode is nullptr!");
