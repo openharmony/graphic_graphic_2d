@@ -210,6 +210,11 @@ bool RSBorder::ApplyFillStyle(Drawing::Brush& brush) const
     if (styles_.size() != 1 || GetStyle() != BorderStyle::SOLID) {
         return false;
     }
+    for (const float& width : widths_) {
+        if (ROSEN_LE(width, 0.f)) {
+            return false;
+        }
+    }
 #ifndef USE_ROSEN_DRAWING
     paint.setStyle(SkPaint::Style::kFill_Style);
     paint.setColor(GetColor().AsArgbInt());
