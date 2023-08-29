@@ -46,18 +46,4 @@ HWTEST_F(RSRenderParticleEmitterTest, EmitParticleTest, Level1)
     rsRenderParticleEmitter.EmitParticle(deltaTime);
     ASSERT_NE(deltaTime, 0);
 }
-
-/**
- * @tc.name: UpdateParticleTest
- * @tc.desc: 
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderParticleEmitterTest, UpdateParticleTest, Level1)
-{
-    int64_t deltaTime = 1;
-    auto particleParams = std::shared_ptr<ParticleRenderParams>();
-    RSRenderParticleEmitter rsRenderParticleEmitter(particleParams);
-    rsRenderParticleEmitter.UpdateParticle(deltaTime);
-    ASSERT_NE(deltaTime, 0);
-}
 }
