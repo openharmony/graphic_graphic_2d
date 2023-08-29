@@ -67,9 +67,11 @@ void HgmOneShotTimer::Stop()
 {
     stopFlag_ = true;
     int result = sem_post(&semaphone_);
+    HGM_LOGD("HgmOneShotTimer::sem_post result: %{public}d", result);
     if (thread_.joinable()) {
         thread_.join();
         result = sem_destroy(&semaphone_);
+        HGM_LOGD("HgmOneShotTimer::sem_destroy result: %{public}d", result);
     }
 }
 

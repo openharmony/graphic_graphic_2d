@@ -81,7 +81,7 @@ public:
     int32_t CalModifierPreferred(HgmModifierProfile &hgmModifierProfile) const;
     void SetActiveScreenId(ScreenId id);
     std::shared_ptr<HgmOneShotTimer> GetScreenTimer(ScreenId screenId) const;
-    void ResetScreenTimer(ScreenId screenId);
+    void ResetScreenTimer(ScreenId screenId) const;
     void InsertAndStartScreenTimer(ScreenId screenId, int32_t interval,
         std::function<void()> resetCallback, std::function<void()> expiredCallback);
 private:
