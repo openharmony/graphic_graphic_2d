@@ -41,11 +41,21 @@ struct KawaseParameter {
 };
 class KawaseBlurFilter {
 public:
-    explicit KawaseBlurFilter();
-    ~KawaseBlurFilter();
     bool ApplyKawaseBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, const KawaseParameter& param);
+    static KawaseBlurFilter* GetKawaseBlurFilter()
+    {
+        static thread_local KawaseBlurFilter* filter;
+        if (filter == nullptr) {
+            filter = new KawaseBlurFilter();
+        }
+        return filter;
+    }
 
 private:
+    KawaseBlurFilter();
+    ~KawaseBlurFilter();
+    KawaseBlurFilter(const KawaseBlurFilter& filter);
+    const KawaseBlurFilter &operator=(const KawaseBlurFilter& filter);
     static SkMatrix GetShaderTransform(const SkCanvas* canvas, const SkRect& blurRect, float scale = 1.0f);
     void OutputOriginalImage(SkCanvas& canvas, const sk_sp<SkImage>& image, const KawaseParameter& param);
     bool ApplyBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, const sk_sp<SkImage>& blurImage,

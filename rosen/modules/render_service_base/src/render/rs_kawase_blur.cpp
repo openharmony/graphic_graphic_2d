@@ -94,7 +94,7 @@ void KawaseBlurFilter::OutputOriginalImage(SkCanvas& canvas, const sk_sp<SkImage
 
 bool KawaseBlurFilter::ApplyKawaseBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, const KawaseParameter& param)
 {
-    if (!blurEffect_ || !mixEffect_) {
+    if (!blurEffect_ || !mixEffect_ || !image) {
         ROSEN_LOGE("KawaseBlurFilter::shader error, use Gauss\n");
         return false;
     }
@@ -158,7 +158,7 @@ bool KawaseBlurFilter::ApplyBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, 
         mixBuilder.child("originalInput") = image->makeShader(
             SkTileMode::kClamp, SkTileMode::kClamp, linear, inputMatrix);
         mixBuilder.uniform("mixFactor") = std::min(1.0f, blurRadius_ * 1.f / kMaxCrossFadeRadius);
-        paint.setShader(mixBuilder.makeShader(nullptr, true));
+        paint.setShader(mixBuilder.makeShader(nullptr, image->isOpaque()));
     } else {
         paint.setShader(blurShader);
     }

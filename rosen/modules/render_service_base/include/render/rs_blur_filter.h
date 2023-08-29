@@ -65,7 +65,6 @@ private:
     float blurRadiusY_;
 #ifndef USE_ROSEN_DRAWING
     bool useKawase_ = false;
-    static std::shared_ptr<KawaseBlurFilter> kawaseFunc_;
 #endif
 };
 } // namespace Rosen

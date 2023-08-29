@@ -123,7 +123,6 @@ private:
 
 #ifndef USE_ROSEN_DRAWING
     bool useKawase_ = false;
-    static std::shared_ptr<KawaseBlurFilter> kawaseFunc_;
 #endif
     sk_sp<SkColorFilter> colorFilter_;
     friend class RSMarshallingHelper;

@@ -34,7 +34,6 @@ namespace OHOS {
 namespace Rosen {
 #ifndef USE_ROSEN_DRAWING
 #if defined(NEW_SKIA)
-std::shared_ptr<KawaseBlurFilter> RSBlurFilter::kawaseFunc_ = std::make_shared<KawaseBlurFilter>();
 RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(SkImageFilters::Blur(blurRadiusX,
     blurRadiusY, SkTileMode::kClamp, nullptr)), blurRadiusX_(blurRadiusX),
     blurRadiusY_(blurRadiusY)
@@ -155,7 +154,7 @@ void RSBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<
 #ifdef NEW_SKIA
     // if kawase blur failed, use gauss blur
     KawaseParameter param = KawaseParameter(src, dst, blurRadiusX_, nullptr, paint.getAlphaf());
-    if (useKawase_ && kawaseFunc_->ApplyKawaseBlur(canvas, image, param)) {
+    if (useKawase_ && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, image, param)) {
         return;
     }
     canvas.drawImageRect(image.get(), src, dst, SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);

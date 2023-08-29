@@ -55,10 +55,6 @@ std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> materialParams_ {
 };
 } // namespace
 
-#ifndef USE_ROSEN_DRAWING
-std::shared_ptr<KawaseBlurFilter> RSMaterialFilter::kawaseFunc_ = std::make_shared<KawaseBlurFilter>();
-#endif
-
 RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio)
 #ifndef USE_ROSEN_DRAWING
     : RSSkiaFilter(nullptr), colorMode_(mode)
@@ -326,7 +322,7 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
 #ifdef NEW_SKIA
     // if kawase blur failed, use gauss blur
     KawaseParameter param = KawaseParameter(src, dst, radius_, colorFilter_, paint.getAlphaf());
-    if (useKawase_ && kawaseFunc_->ApplyKawaseBlur(canvas, image, param)) {
+    if (useKawase_ && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, image, param)) {
         return;
     }
     canvas.drawImageRect(image.get(), src, dst, SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
