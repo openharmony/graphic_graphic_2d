@@ -324,6 +324,9 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node, int marked
         static_cast<int>(isDrawingCacheChanged_.top()), static_cast<int>(node.ChildHasFilter()),
         static_cast<int>(node.HasChildrenOutOfRect()), markedCachedNodeCnt, markedCachedNodes_);
     node.SetDrawingCacheChanged(isDrawingCacheChanged_.top());
+    if (curSurfaceNode_) {
+        curSurfaceNode_->UpdateChangedDrawingCacheNodes(node.ReinterpretCastTo<RSRenderNode>());
+    }
     markedCachedNodes_--;
     // reset counter after executing the very first marked node
     if (markedCachedNodeCnt == 1) {
@@ -535,6 +538,7 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
         }
         node.UpdateFilterCacheStatusIfNodeStatic(prepareClipRect_);
     }
+    node.ResetChangedDrawingCacheStatusIfNodeStatic();
     // static surface keeps same position
     curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), curDisplayNode_->GetLastFrameSurfacePos(node.GetId()));
     return true;

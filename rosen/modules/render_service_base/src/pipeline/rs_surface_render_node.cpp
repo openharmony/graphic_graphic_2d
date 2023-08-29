@@ -808,6 +808,27 @@ void RSSurfaceRenderNode::UpdateFilterNodes(const std::shared_ptr<RSRenderNode>&
     filterNodes_.emplace(nodePtr->GetId(), nodePtr);
 }
 
+void RSSurfaceRenderNode::UpdateChangedDrawingCacheNodes(const std::shared_ptr<RSRenderNode>& nodePtr)
+{
+    if (nodePtr == nullptr || !nodePtr->GetDrawingCacheChanged()) {
+        return;
+    }
+    changedDrawingCacheNodes_.emplace(nodePtr->GetId(), nodePtr);
+}
+
+void RSSurfaceRenderNode::ResetChangedDrawingCacheStatusIfNodeStatic()
+{
+    // traversal drawing cache nodes including app window
+    EraseIf(changedDrawingCacheNodes_, [this](const auto& pair) {
+        auto& node = pair.second;
+        if (node == nullptr || !node->IsOnTheTree()) {
+            return true;
+        }
+        node->SetDrawingCacheChanged(false);
+        return true;
+    });
+}
+
 void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect)
 {
     if (!dirtyManager_) {
