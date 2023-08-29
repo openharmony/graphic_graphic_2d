@@ -92,6 +92,15 @@ void RSSubThread::DumpMem(DfxString& log)
     });
 }
 
+float RSSubThread::GetAppGpuMemoryInMB()
+{
+    float total = 0.f;
+    PostSyncTask([&total, this]() {
+        total = MemoryManager::GetAppGpuMemoryInMB(grContext_.get());
+    });
+    return total;
+}
+
 void RSSubThread::CreateShareEglContext()
 {
 #ifdef RS_ENABLE_GL
@@ -136,6 +145,8 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
     }
     auto visitor = std::make_shared<RSUniRenderVisitor>();
     visitor->SetSubThreadConfig(threadIndex_);
+    visitor->SetFocusedNodeId(RSMainThread::Instance()->GetFocusNodeId(),
+        RSMainThread::Instance()->GetFocusLeashWindowId());
 #ifdef RS_ENABLE_GL
     while (threadTask->GetTaskSize() > 0) {
         auto task = threadTask->GetNextRenderTask();
@@ -155,7 +166,6 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
         }
         // flag CacheSurfaceProcessed is used for cacheCmdskippedNodes collection in rs_mainThread
         surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
-
         if (RSMainThread::Instance()->GetFrameCount() != threadTask->GetFrameCount()) {
             surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
             continue;
@@ -210,6 +220,10 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
 
         if (needNotify) {
             RSSubThreadManager::Instance()->NodeTaskNotify(node->GetId());
+        }
+        if (RSMainThread::Instance()->GetFrameCount() != threadTask->GetFrameCount()) {
+            RSMainThread::Instance()->RequestNextVSync();
+            continue;
         }
     }
     eglCreateSyncKHR(renderContext_->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
@@ -284,5 +298,21 @@ void RSSubThread::ResetGrContext()
 #ifndef USE_ROSEN_DRAWING
     grContext_->freeGpuResources();
 #endif
+}
+
+void RSSubThread::ReleaseSurface()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    while (tmpSurfaces_.size() > 0) {
+        auto tmp = tmpSurfaces_.front();
+        tmpSurfaces_.pop();
+        tmp = nullptr;
+    }
+}
+
+void RSSubThread::AddToReleaseQueue(sk_sp<SkSurface>&& surface)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    tmpSurfaces_.push(std::move(surface));
 }
 }

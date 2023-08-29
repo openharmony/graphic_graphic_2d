@@ -65,6 +65,21 @@ void RSSubThreadManager::DumpMem(DfxString& log)
     }
 }
 
+float RSSubThreadManager::GetAppGpuMemoryInMB()
+{
+    if (threadList_.empty()) {
+        return 0.f;
+    }
+    float total = 0.f;
+    for (auto& subThread : threadList_) {
+        if (!subThread) {
+            continue;
+        }
+        total += subThread->GetAppGpuMemoryInMB();
+    }
+    return total;
+}
+
 void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRenderNode>& node,
     const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
 {
@@ -184,5 +199,24 @@ void RSSubThreadManager::ResetSubThreadGrContext() const
             subThread->ResetGrContext();
         });
     }
+}
+
+void RSSubThreadManager::ReleaseSurface(uint32_t threadIndex) const
+{
+    if (threadList_.size() <= threadIndex) {
+        return;
+    }
+    auto subThread = threadList_[threadIndex];
+    subThread->PostTask([subThread]() {
+        subThread->ReleaseSurface();
+    });
+}
+
+void RSSubThreadManager::AddToReleaseQueue(sk_sp<SkSurface>&& surface, uint32_t threadIndex)
+{
+    if (threadList_.size() <= threadIndex) {
+        return;
+    }
+    threadList_[threadIndex]->AddToReleaseQueue(std::move(surface));
 }
 }

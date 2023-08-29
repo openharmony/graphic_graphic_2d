@@ -82,23 +82,19 @@ static bool IsResidentProcess(const std::shared_ptr<RSSurfaceRenderNode> surface
 bool RSRenderNodeMap::IsResidentProcessNode(NodeId id) const
 {
     auto nodePid = ExtractPid(id);
-    for (auto& [residentId, _] : residentSurfaceNodeMap_) {
-        if (ExtractPid(residentId) == nodePid) {
-            return true;
-        }
-    }
-    return false;
+    return std::any_of(residentSurfaceNodeMap_.begin(), residentSurfaceNodeMap_.end(),
+        [nodePid](const auto& pair) -> bool { return ExtractPid(pair.first) == nodePid; });
 }
 
 bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr)
 {
     NodeId id = nodePtr->GetId();
-    if (renderNodeMap_.find(id) != renderNodeMap_.end()) {
+    if (renderNodeMap_.count(id)) {
         return false;
     }
     renderNodeMap_.emplace(id, nodePtr);
     if (nodePtr->GetType() == RSRenderNodeType::SURFACE_NODE) {
-        std::shared_ptr<RSSurfaceRenderNode> surfaceNode = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
+        auto surfaceNode = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
         surfaceNodeMap_.emplace(id, surfaceNode);
         if (IsResidentProcess(surfaceNode)) {
             residentSurfaceNodeMap_.emplace(id, surfaceNode);
@@ -112,7 +108,7 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
 bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayRenderNode>& nodePtr)
 {
     NodeId id = nodePtr->GetId();
-    if (renderNodeMap_.find(id) != renderNodeMap_.end()) {
+    if (renderNodeMap_.count(id)) {
         return false;
     }
     renderNodeMap_.emplace(id, nodePtr);
@@ -132,10 +128,7 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 void RSRenderNodeMap::AddDrivenRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr)
 {
     NodeId id = nodePtr->GetId();
-    if (renderNodeMap_.find(id) == renderNodeMap_.end()) {
-        return;
-    }
-    if (drivenRenderNodeMap_.find(id) != drivenRenderNodeMap_.end()) {
+    if (!renderNodeMap_.count(id)) {
         return;
     }
     drivenRenderNodeMap_.emplace(id, nodePtr);
@@ -155,10 +148,8 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         if (ExtractPid(pair.first) != pid) {
             return false;
         }
-        if (auto renderNode = (pair.second)) {
-            // update node flag to avoid animation fallback
-            renderNode->fallbackAnimationOnDestroy_ = false;
-        }
+        // update node flag to avoid animation fallback
+        pair.second->fallbackAnimationOnDestroy_ = false;
         // remove node from tree
         pair.second->RemoveFromTree(false);
         return true;
@@ -180,13 +171,9 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         return ExtractPid(pair.first) == pid;
     });
 
-    auto it = renderNodeMap_.find(0);
-    if (it != renderNodeMap_.end()) {
-        auto fallbackNode = (it->second);
-        if (fallbackNode) {
-            // remove all fallback animations belong to given pid
-            fallbackNode->GetAnimationManager().FilterAnimationByPid(pid);
-        }
+    if (auto fallbackNode = GetAnimationFallbackNode()) {
+        // remove all fallback animations belong to given pid
+        fallbackNode->GetAnimationManager().FilterAnimationByPid(pid);
     }
 }
 
@@ -206,14 +193,8 @@ void RSRenderNodeMap::TraverseSurfaceNodes(std::function<void (const std::shared
 
 bool RSRenderNodeMap::ContainPid(pid_t pid) const
 {
-    bool flag = false;
-    for (const auto& [nodeId, _] : surfaceNodeMap_) {
-        if (pid == ExtractPid(nodeId)) {
-            flag = true;
-            break;
-        }
-    }
-    return flag;
+    return std::any_of(surfaceNodeMap_.begin(), surfaceNodeMap_.end(),
+        [pid](const auto& pair) -> bool { return ExtractPid(pair.first) == pid; });
 }
 
 void RSRenderNodeMap::TraverseDrivenRenderNodes(std::function<void (const std::shared_ptr<RSRenderNode>&)> func) const
@@ -251,7 +232,7 @@ const std::shared_ptr<RSRenderNode> RSRenderNodeMap::GetAnimationFallbackNode() 
     if (itr == renderNodeMap_.end()) {
         return nullptr;
     }
-    return std::static_pointer_cast<RSRenderNode>(renderNodeMap_.at(0));
+    return itr->second;
 }
 
 } // namespace Rosen

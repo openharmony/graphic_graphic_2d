@@ -24,7 +24,9 @@ namespace Rosen {
 namespace {
     constexpr float MARGIN = 0.00001;
     constexpr float MIN_DRAWING_DIVISOR = 10.0f;
-    constexpr int32_t DIVISOR_TWO = 2;
+    constexpr float DIVISOR_TWO = 2.0f;
+    constexpr int32_t DEFAULT_PREFERRED = 60;
+    constexpr int32_t IDLE_TIMER_EXPIRED = 200; // ms
 }
 
 void HgmFrameRateManager::UniProcessData(const FrameRateRangeData& data)
@@ -40,7 +42,15 @@ void HgmFrameRateManager::UniProcessData(const FrameRateRangeData& data)
         finalRange.Merge(appRange.second);
     }
     if (!finalRange.IsValid()) {
-        return;
+        if (data.forceUpdateFlag) {
+            finalRange.max_ = DEFAULT_PREFERRED;
+            finalRange.preferred_ = DEFAULT_PREFERRED;
+        } else {
+            HgmCore::Instance().InsertAndStartScreenTimer(screenId, IDLE_TIMER_EXPIRED, nullptr, expiredCallback_);
+            return;
+        }
+    } else {
+        HgmCore::Instance().ResetScreenTimer(screenId);
     }
 
     CalcRefreshRate(screenId, finalRange);
@@ -121,7 +131,7 @@ uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, co
     float ratio = currRatio;
     const float minDrawingFps = currRefreshRate / MIN_DRAWING_DIVISOR;
     while (dividedFps > minDrawingFps - MARGIN) {
-        if (dividedFps < range.min_ || dividedFps <= range.preferred_ / DIVISOR_TWO) {
+        if (dividedFps < range.min_ || dividedFps <= static_cast<float>(range.preferred_) / DIVISOR_TWO) {
             break;
         }
         if (dividedFps > range.max_) {
@@ -163,7 +173,7 @@ uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, co
 
 void HgmFrameRateManager::ExecuteSwitchRefreshRate(const ScreenId id)
 {
-    static bool refreshRateSwitch = system::GetBoolParameter("persist.hgm.refreshrate.enabled", false);
+    static bool refreshRateSwitch = system::GetBoolParameter("persist.hgm.refreshrate.enabled", true);
     if (!refreshRateSwitch) {
         HGM_LOGD("HgmFrameRateManager: refreshRateSwitch is off, currRefreshRate is %{public}d", currRefreshRate_);
         return;

@@ -120,6 +120,15 @@ MemoryGraphic MemoryTrack::CountRSMemory(const pid_t pid)
     return memoryGraphic;
 }
 
+float MemoryTrack::GetAppMemorySizeInMB()
+{
+    float total = 0.f;
+    for (auto& [_, memInfo] : memPicRecord_) {
+        total += static_cast<float>(memInfo.size);
+    }
+    return total / BYTE_CONVERT / BYTE_CONVERT / 2; // app mem account for 50%
+}
+
 void MemoryTrack::DumpMemoryStatistics(DfxString& log,
     std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func)
 {

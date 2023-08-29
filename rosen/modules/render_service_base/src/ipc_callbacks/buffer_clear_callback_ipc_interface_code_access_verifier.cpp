@@ -19,25 +19,22 @@ namespace OHOS {
 namespace Rosen {
 RSIBufferClearCallbackInterfaceCodeAccessVerifier::RSIBufferClearCallbackInterfaceCodeAccessVerifier()
 {
-#ifdef ENABLE_IPC_SECURITY
     CheckCodeUnderlyingTypeStandardized<CodeEnumType>(codeEnumTypeName_);
-#endif
 }
 
-void RSIBufferClearCallbackInterfaceCodeAccessVerifier::InitializeAccessMap()
+bool RSIBufferClearCallbackInterfaceCodeAccessVerifier::IsExclusiveVerificationPassed(CodeUnderlyingType code)
 {
-#ifdef ENABLE_IPC_SECURITY
-    // next: specify the initialization of accessMap_ here
-    accessMap_ = {};
-#endif
-}
-
-bool RSIBufferClearCallbackInterfaceCodeAccessVerifier::IsExtraVerificationPassed(
-    CodeUnderlyingType /* code */, const std::string& /* caller */)
-{
-    // Since no exclusive verification rule is temporarily required by this verifier, directly return true.
-    // If any exclusive rule is required in the future, overwrite this function.
-    return true;
+    bool hasPermission = true;
+    switch (code) {
+        case static_cast<CodeUnderlyingType>(CodeEnumType::ON_BUFFER_CLEAR): {
+            /* to implement access interception */
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+    return hasPermission;
 }
 } // namespace Rosen
 } // namespace OHOS

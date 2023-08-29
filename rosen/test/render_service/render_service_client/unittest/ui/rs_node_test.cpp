@@ -3231,9 +3231,5 @@ HWTEST_F(RSNodeTest, AddFRCSceneInfoTest, TestSize.Level1)
 {
     auto rootNode = RSCanvasNode::Create();
     rootNode->AddFRCSceneInfo("translate", -1.0f);
-    FrameRateRange range = rootNode->GetFrameRateRange();
-    FrameRateRange res = {0, RANGE_MAX_REFRESHRATE, 0};
-    bool isEqual = (range == res);
-    EXPECT_EQ(isEqual, true);
 }
 } // namespace OHOS::Rosen

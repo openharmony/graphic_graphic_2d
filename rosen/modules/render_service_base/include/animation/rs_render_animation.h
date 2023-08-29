@@ -142,7 +142,7 @@ public:
     }
 
     void Attach(RSRenderNode* renderNode);
-    void Detach();
+    void Detach(bool forceDetach = false);
     RSRenderNode* GetTarget() const;
 
     NodeId GetTargetId() const;

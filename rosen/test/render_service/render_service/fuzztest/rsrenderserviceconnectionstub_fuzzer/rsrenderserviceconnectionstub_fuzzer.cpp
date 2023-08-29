@@ -32,8 +32,11 @@
 namespace OHOS {
 namespace Rosen {
 constexpr size_t MAX_SIZE = 4;
-constexpr size_t MAX_DATA = 52;
+constexpr size_t SCREEN_WIDTH = 100;
+constexpr size_t SCREEN_HEIGHT = 100;
+constexpr size_t SCREEN_REFRESH_RATE = 60;
 const std::u16string RENDERSERVICECONNECTION_INTERFACE_TOKEN = u"ohos.rosen.RenderServiceConnection";
+static std::shared_ptr<RSRenderServiceClient> rsClient = std::make_shared<RSRenderServiceClient>();
 
 namespace {
 const uint8_t* data_ = nullptr;
@@ -61,12 +64,64 @@ T GetData()
     return object;
 }
 
-bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+bool DoCommitTransaction(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
-    
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    auto transactionData = std::make_unique<RSTransactionData>();
+    rsClient->CommitTransaction(transactionData);
+    return true;
+}
+
+bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    NodeId nodeId = 0;
+    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(nodeId, nullptr);
+    rsClient->ExecuteSynchronousTask(task);
+    return true;
+}
+
+bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    RSSurfaceRenderNodeConfig config = { .id = 0, .name = "test", .bundleName = "test" };
+    rsClient->CreateNode(config);
+    rsClient->CreateNodeAndSurface(config);
+    return true;
+}
+
+bool DoSetFocusAppInfo(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
     if (size < MAX_SIZE) {
         return false;
     }
@@ -77,26 +132,598 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     pos = 0;
 
     MessageParcel datas;
-    datas.WriteInterfaceToken(RENDERSERVICECONNECTION_INTERFACE_TOKEN);
     datas.WriteBuffer(data, size);
-    datas.RewindRead(0);
-    MessageParcel reply;
-    MessageOption option;
-    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSRenderServiceConnectionStub> connectionStub =
-        new RSRenderServiceConnection(0, nullptr, RSMainThread::Instance(), nullptr, token->AsObject(), nullptr);
-    for (uint32_t code = 0; code < MAX_DATA; ++code) {
-        connectionStub->OnRemoteRequest(code, datas, reply, option);
-    }
+    int32_t pid = datas.ReadInt32();
+    int32_t uid = datas.ReadInt32();
+    std::string bundleName = datas.ReadString();
+    std::string abilityName = datas.ReadString();
+    uint64_t focusNodeId = datas.ReadUint64();
+    rsClient->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
     return true;
 }
-} // ROSEN
+
+bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    rsClient->CreateVirtualScreen("name", SCREEN_WIDTH, SCREEN_HEIGHT, pSurface, 0, 1);
+    rsClient->SetVirtualScreenSurface(0, pSurface);
+    rsClient->RemoveVirtualScreen(0);
+    return true;
+}
+
+bool DoSetScreenChangeCallback(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    static ScreenId screenId = INVALID_SCREEN_ID;
+    static ScreenEvent screenEvent = ScreenEvent::UNKNOWN;
+    static bool callbacked = false;
+    auto callback = [](ScreenId id, ScreenEvent event) {
+        screenId = id;
+        screenEvent = event;
+        callbacked = true;
+    };
+    rsClient->SetScreenChangeCallback(callback);
+    return true;
+}
+
+bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    ScreenId id = GetData<ScreenId>();
+    uint32_t modeId = GetData<uint32_t>();
+    rsClient->SetScreenActiveMode(id, modeId);
+    rsClient->GetScreenActiveMode(id);
+    return true;
+}
+
+bool DoSetScreenRefreshRate(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    ScreenId id = *(reinterpret_cast<const uint32_t*>(data));
+    rsClient->SetScreenRefreshRate(id, 0, SCREEN_REFRESH_RATE);
+    rsClient->GetScreenCurrentRefreshRate(id);
+    rsClient->GetScreenSupportedRefreshRates(id);
+    return true;
+}
+
+bool DoSetRefreshRateMode(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    rsClient->SetRefreshRateMode(0);
+    return true;
+}
+
+bool DoSetVirtualScreenResolution(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    ScreenId id = *(reinterpret_cast<const uint32_t*>(data));
+    rsClient->SetVirtualScreenResolution(id, SCREEN_WIDTH, SCREEN_HEIGHT);
+    rsClient->GetVirtualScreenResolution(id);
+    return true;
+}
+
+bool DoSetScreenPowerStatus(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    ScreenId id = *(reinterpret_cast<const uint32_t*>(data));
+    rsClient->SetScreenPowerStatus(id, static_cast<ScreenPowerStatus>(0));
+    rsClient->GetScreenPowerStatus(id);
+    return true;
+}
+
+class TestSurfaceCaptureCallback : public SurfaceCaptureCallback {
+public:
+    explicit TestSurfaceCaptureCallback() {}
+    ~TestSurfaceCaptureCallback() override {}
+    void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override {}
+};
+
+bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    auto nodeId = GetData<NodeId>();
+    float scaleX = 1.0f;
+    float scaleY = 1.0f;
+
+    std::shared_ptr<TestSurfaceCaptureCallback> cb = std::make_shared<TestSurfaceCaptureCallback>();
+    rsClient->TakeSurfaceCapture(nodeId, cb, scaleX, scaleY);
+    return true;
+}
+
+bool DoGetScreenSupportedModes(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    ScreenId id = GetData<ScreenId>();
+    rsClient->GetScreenSupportedModes(id);
+    return true;
+}
+
+bool DoGetMemoryGraphic(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    int pid = GetData<int>();
+    rsClient->GetMemoryGraphic(pid);
+    return true;
+}
+
+bool DoGetScreenCapability(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    ScreenId id = GetData<ScreenId>();
+    rsClient->GetScreenCapability(id);
+    return true;
+}
+
+bool DoGetScreenData(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    ScreenId id = GetData<ScreenId>();
+    rsClient->GetScreenData(id);
+    return true;
+}
+
+bool DoGetScreenBacklight(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    ScreenId id = GetData<ScreenId>();
+    uint32_t level = GetData<uint32_t>();
+    rsClient->SetScreenBacklight(id, level);
+    rsClient->GetScreenBacklight(id);
+    return true;
+}
+
+bool DoRegisterBufferAvailableListener(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    static std::weak_ptr<RSContext> context = {};
+    sptr<RSIBufferAvailableCallback> callback;
+    bool isFromRenderThread = GetData<bool>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(0, context);
+    node->RegisterBufferAvailableListener(callback, isFromRenderThread);
+    return true;
+}
+
+bool DoGetScreenSupportedColorGamuts(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    std::vector<ScreenColorGamut> mode;
+    rsClient->GetScreenSupportedColorGamuts(0, mode);
+
+    std::vector<ScreenHDRMetadataKey> keys;
+    rsClient->GetScreenSupportedMetaDataKeys(0, keys);
+    return true;
+}
+
+bool DoGetScreenColorGamut(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    ScreenId id = GetData<ScreenId>();
+    int32_t modeIdx = GetData<int32_t>();
+    rsClient->SetScreenColorGamut(id, modeIdx);
+    ScreenColorGamut mode;
+    rsClient->GetScreenColorGamut(id, mode);
+    return true;
+}
+
+bool DoSetScreenGamutMap(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    ScreenId id = *(reinterpret_cast<const uint32_t*>(data));
+    ScreenGamutMap mapMode = ScreenGamutMap::GAMUT_MAP_CONSTANT;
+    rsClient->SetScreenGamutMap(id, mapMode);
+    rsClient->GetScreenGamutMap(id, mapMode);
+    return true;
+}
+
+bool DoCreateVSyncConnection(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    rsClient->CreateVSyncReceiver("test", handler);
+    return true;
+}
+
+bool DoGetScreenHDRCapability(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    ScreenId id = *(reinterpret_cast<const uint32_t*>(data));
+    RSScreenHDRCapability screenHDRCapability;
+    rsClient->GetScreenHDRCapability(id, screenHDRCapability);
+    return true;
+}
+
+bool DoGetScreenType(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    ScreenId id = *(reinterpret_cast<const uint32_t*>(data));
+    RSScreenType type;
+    rsClient->GetScreenType(id, type);
+    return true;
+}
+
+bool DoGetBitmap(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+#ifndef USE_ROSEN_DRAWING
+    SkBitmap bm;
+#else
+    Drawing::Bitmap bm;
+#endif
+    rsClient->GetBitmap(0, bm);
+    return true;
+}
+
+bool DoSetScreenSkipFrameInterval(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    ScreenId id = *(reinterpret_cast<const uint32_t*>(data));
+    uint32_t skipFrameInterval = GetData<uint32_t>();
+    rsClient->SetScreenSkipFrameInterval(id, skipFrameInterval);
+    return true;
+}
+
+bool DoRegisterOcclusionChangeCallback(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    OcclusionChangeCallback cb = [](std::shared_ptr<RSOcclusionData> data) {};
+    rsClient->RegisterOcclusionChangeCallback(cb);
+    return true;
+}
+
+bool DoSetAppWindowNum(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    uint32_t num = GetData<uint32_t>();
+    rsClient->SetAppWindowNum(num);
+    return true;
+}
+
+bool DoShowWatermark(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    bool isShow = GetData<bool>();
+    std::shared_ptr<Media::PixelMap> pixelMap1;
+    rsClient->ShowWatermark(pixelMap1, isShow);
+    return true;
+}
+
+bool DoReportEventResponse(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    DataBaseRs info;
+    rsClient->ReportEventResponse(info);
+    rsClient->ReportEventComplete(info);
+    rsClient->ReportEventJankFrame(info);
+    return true;
+}
+
+bool DoSetHardwareEnabled(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    auto isEnabled = GetData<bool>();
+    rsClient->SetHardwareEnabled(0, isEnabled);
+    return true;
+}
+
+bool DoRegisterHgmConfigChangeCallback(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    HgmConfigChangeCallback cb2 = [](std::shared_ptr<RSHgmConfigData> data) {};
+    rsClient->RegisterHgmConfigChangeCallback(cb2);
+    return true;
+}
+} // Rosen
 } // OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::DoSomethingInterestingWithMyAPI(data, size);
+    OHOS::Rosen::DoCommitTransaction(data, size);
+    OHOS::Rosen::DoExecuteSynchronousTask(data, size);
+    OHOS::Rosen::DoCreateNodeAndSurface(data, size);
+    OHOS::Rosen::DoSetFocusAppInfo(data, size);
+    OHOS::Rosen::DoCreateVirtualScreen(data, size);
+    OHOS::Rosen::DoSetScreenChangeCallback(data, size);
+    OHOS::Rosen::DoSetScreenActiveMode(data, size);
+    OHOS::Rosen::DoSetScreenRefreshRate(data, size);
+    OHOS::Rosen::DoSetRefreshRateMode(data, size);
+    OHOS::Rosen::DoSetVirtualScreenResolution(data, size);
+    OHOS::Rosen::DoSetScreenPowerStatus(data, size);
+    OHOS::Rosen::DoTakeSurfaceCapture(data, size);
+    OHOS::Rosen::DoGetScreenSupportedModes(data, size);
+    OHOS::Rosen::DoGetMemoryGraphic(data, size);
+    OHOS::Rosen::DoGetScreenCapability(data, size);
+    OHOS::Rosen::DoGetScreenData(data, size);
+    OHOS::Rosen::DoGetScreenBacklight(data, size);
+    OHOS::Rosen::DoRegisterBufferAvailableListener(data, size);
+    OHOS::Rosen::DoGetScreenSupportedColorGamuts(data, size);
+    OHOS::Rosen::DoGetScreenColorGamut(data, size);
+    OHOS::Rosen::DoSetScreenGamutMap(data, size);
+    OHOS::Rosen::DoCreateVSyncConnection(data, size);
+    OHOS::Rosen::DoGetScreenHDRCapability(data, size);
+    OHOS::Rosen::DoGetScreenType(data, size);
+    OHOS::Rosen::DoGetBitmap(data, size);
+    OHOS::Rosen::DoSetScreenSkipFrameInterval(data, size);
+    OHOS::Rosen::DoRegisterOcclusionChangeCallback(data, size);
+    OHOS::Rosen::DoSetAppWindowNum(data, size);
+    OHOS::Rosen::DoShowWatermark(data, size);
+    OHOS::Rosen::DoReportEventResponse(data, size);
+    OHOS::Rosen::DoSetHardwareEnabled(data, size);
+    OHOS::Rosen::DoRegisterHgmConfigChangeCallback(data, size);
     return 0;
 }

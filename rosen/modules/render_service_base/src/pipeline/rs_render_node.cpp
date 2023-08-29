@@ -56,6 +56,16 @@ const std::unordered_set<RSModifierType> ANIMATION_MODIFIER_TYPE  = {
 };
 }
 
+RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context) : id_(id), context_(context)
+{
+    renderProperties_.backref_ = weak_from_this();
+}
+RSRenderNode::RSRenderNode(NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context)
+    : isOnTheTree_(isOnTheTree), id_(id), context_(context)
+{
+    renderProperties_.backref_ = weak_from_this();
+}
+
 void RSRenderNode::AddChild(SharedPtr child, int index)
 {
     // sanity check, avoid loop
@@ -78,7 +88,7 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
     // A child is not on the tree until its parent is on the tree
     if (isOnTheTree_) {
-        child->SetIsOnTheTree(true, instanceRootNodeId_);
+        child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_);
     }
     SetContentDirty();
     isFullChildrenListValid_ = false;
@@ -130,17 +140,17 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
         child->ResetParent();
     }
     children_.erase(it);
-    SetContentDirty();
     isFullChildrenListValid_ = false;
 }
 
-void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId)
+void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId)
 {
     // We do not need to label a child when the child is removed from a parent that is not on the tree
     if (flag == isOnTheTree_) {
         return;
     }
     instanceRootNodeId_ = instanceRootNodeId;
+    firstLevelNodeId_ = firstLevelNodeId;
     isOnTheTree_ = flag;
     OnTreeStateChanged();
 
@@ -149,11 +159,11 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId)
         if (child == nullptr) {
             continue;
         }
-        child->SetIsOnTheTree(flag, instanceRootNodeId);
+        child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId);
     }
 
     for (auto& [child, _] : disappearingChildren_) {
-        child->SetIsOnTheTree(flag, instanceRootNodeId);
+        child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId);
     }
 }
 
@@ -188,7 +198,7 @@ void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
     // A child is not on the tree until its parent is on the tree
     if (isOnTheTree_) {
-        child->SetIsOnTheTree(true, instanceRootNodeId_);
+        child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_);
     }
     SetContentDirty();
     isFullChildrenListValid_ = false;
@@ -279,9 +289,9 @@ void RSRenderNode::SetParent(WeakPtr parent)
 
 void RSRenderNode::ResetParent()
 {
-    auto parentNode = parent_.lock();
-    if (parentNode) {
+    if (auto parentNode = parent_.lock()) {
         parentNode->hasRemovedChild_ = true;
+        parentNode->SetContentDirty();
     }
     parent_.reset();
     SetIsOnTheTree(false);
@@ -385,7 +395,11 @@ void RSRenderNode::SetContentDirty()
 
 void RSRenderNode::SetDirty()
 {
-    dirtyStatus_ = NodeDirty::DIRTY;
+    // Sometimes dirtyStatus_ were not correctly reset, we use dirtyTypes_ to determine if we should add to active list
+    if (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypes_.empty()) {
+        AddActiveNode();
+        dirtyStatus_ = NodeDirty::DIRTY;
+    }
 }
 
 void RSRenderNode::SetClean()
@@ -450,7 +464,7 @@ RSRenderNode::~RSRenderNode()
         FallbackAnimationsToRoot();
     }
     if (clearCacheSurfaceFunc_ && (cacheSurface_ || cacheCompletedSurface_)) {
-        clearCacheSurfaceFunc_(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_,
+        clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_), cacheSurfaceThreadIndex_,
             completedSurfaceThreadIndex_);
     }
     ClearCacheSurface();
@@ -475,7 +489,7 @@ void RSRenderNode::FallbackAnimationsToRoot()
     context->RegisterAnimatingRenderNode(target);
 
     for (auto& [unused, animation] : animationManager_.animations_) {
-        animation->Detach();
+        animation->Detach(true);
         // avoid infinite loop for fallback animation
         animation->SetRepeatCount(1);
         target->animationManager_.AddAnimation(std::move(animation));
@@ -544,7 +558,7 @@ bool RSRenderNode::Update(
 #endif
     // in some case geodirty_ is not marked in drawCmdModifiers_, we should update node geometry
     // [planing] using drawcmdModifierDirty from dirtyType_
-    parentDirty |= (dirtyStatus_ != NodeDirty::CLEAN);
+    parentDirty = parentDirty || (dirtyStatus_ != NodeDirty::CLEAN);
     auto parentProperties = parent ? &parent->GetRenderProperties() : nullptr;
     bool dirty = renderProperties_.UpdateGeometry(parentProperties, parentDirty, offset, GetContextClipRegion());
     if ((IsDirty() || dirty) && drawCmdModifiers_.count(RSModifierType::GEOMETRYTRANS)) {
@@ -693,23 +707,6 @@ void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parent
     }
 }
 
-bool RSRenderNode::IsFilterCacheValid() const
-{
-    if (!RSProperties::FilterCacheEnabled) {
-        return false;
-    }
-#ifndef USE_ROSEN_DRAWING
-    // background filter
-    auto& bgManager = renderProperties_.GetFilterCacheManager(false);
-    // foreground filter
-    auto& frManager = renderProperties_.GetFilterCacheManager(true);
-    if ((bgManager && bgManager->IsCacheValid()) || (frManager && frManager->IsCacheValid())) {
-        return true;
-    }
-#endif
-    return false;
-}
-
 void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) const
 {
 #ifndef USE_ROSEN_DRAWING
@@ -731,6 +728,14 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
     auto isCachedImageRegionIntersectedWithDirtyRegion =
         cachedImageRect.IntersectRect(dirtyManager.GetIntersectedVisitedDirtyRect(geoPtr->GetAbsRect()));
     manager->UpdateCacheStateWithDirtyRegion(isCachedImageRegionIntersectedWithDirtyRegion);
+    // record node's cache area if it has valid filter cache
+    if (manager->IsCacheValid()) {
+        if (ROSEN_EQ(GetGlobalAlpha(), 1.0f)) {
+            dirtyManager.UpdateCacheableFilterRect(cachedImageRect);
+        }
+    } else {
+        dirtyManager.ResetSubNodeFilterCacheValid();
+    }
 #endif
 }
 
@@ -801,7 +806,7 @@ void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
     RSRenderNode::ProcessTransitionAfterChildren(canvas);
 }
 
-void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier> modifier)
+void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier)
 {
     if (!modifier) {
         return;
@@ -813,11 +818,11 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier> modifier)
     } else {
         drawCmdModifiers_[modifier->GetType()].emplace_back(modifier);
     }
-    modifier->GetProperty()->Attach(ReinterpretCastTo<RSRenderNode>());
+    modifier->GetProperty()->Attach(shared_from_this());
     SetDirty();
 }
 
-void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier> modifier)
+void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier)
 {
     // bounds and frame modifiers must be unique
     if (modifier->GetType() == RSModifierType::BOUNDS) {
@@ -852,7 +857,7 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         });
     }
 }
-void RSRenderNode::AddModifierProfile(std::shared_ptr<RSRenderModifier> modifier, float width, float height)
+void RSRenderNode::AddModifierProfile(const std::shared_ptr<RSRenderModifier>& modifier, float width, float height)
 {
     if (timeDelta_ < 0) {
         return;
@@ -903,7 +908,7 @@ void RSRenderNode::AddModifierProfile(std::shared_ptr<RSRenderModifier> modifier
 void RSRenderNode::SetRSFrameRateRangeByPreferred(int32_t preferred)
 {
     if (preferred > 0) {
-        FrameRateRange frameRateRange = {0, preferred, preferred};
+        FrameRateRange frameRateRange = {0, RANGE_MAX_REFRESHRATE, preferred};
         SetRSFrameRateRange(frameRateRange);
     }
 }
@@ -956,7 +961,6 @@ void RSRenderNode::UpdateEffectRegion(std::optional<SkPath>& region)
 void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::Path>& region)
 #endif
 {
-    hasUpdateEffectRegion_ = false;
     if (!region.has_value()) {
         return;
     }
@@ -993,7 +997,6 @@ void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::Path>& region)
     // accumulate children clip path, with matrix
     effectPath.AddPath(clipPath, geoPtr->GetAbsMatrix());
 #endif
-    hasUpdateEffectRegion_ = true;
 }
 
 std::shared_ptr<RSRenderModifier> RSRenderNode::GetModifier(const PropertyId& id)
@@ -1091,7 +1094,7 @@ bool RSRenderNode::NeedInitCacheSurface() const
     if (cacheCanvas == nullptr) {
         return true;
     }
-    return cacheCanvas->GetWidth() != width || cacheCanvas->GetHeight() !=height;
+    return cacheCanvas->GetWidth() != width || cacheCanvas->GetHeight() != height;
 #endif
 }
 
@@ -1111,8 +1114,10 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
             clearCacheSurfaceFunc_ = func;
         }
         if (cacheSurface_) {
-            func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
-            ClearCacheSurface();
+            func(std::move(cacheSurface_), nullptr,
+                cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
+            std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+            cacheSurface_ = nullptr;
         }
     } else {
         cacheSurface_ = nullptr;
@@ -1140,7 +1145,8 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
 #if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
     if (grContext == nullptr) {
         if (func) {
-            func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
+            func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
+                cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
             ClearCacheSurface();
         }
         return;
@@ -1158,7 +1164,8 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
 #if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
     if (gpuContext == nullptr) {
         if (func) {
-            func(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
+            func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
+                cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
             ClearCacheSurface();
         }
         return;
@@ -1319,13 +1326,18 @@ void RSRenderNode::UpdateBackendTexture()
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-sk_sp<SkSurface> RSRenderNode::GetCompletedCacheSurface(uint32_t threadIndex, bool needCheckThread)
+sk_sp<SkSurface> RSRenderNode::GetCompletedCacheSurface(uint32_t threadIndex, bool needCheckThread,
+    bool releaseAfterGet)
 #else
-std::shared_ptr<Drawing::Surface> RSRenderNode::GetCompletedCacheSurface(uint32_t threadIndex, bool needCheckThread)
+std::shared_ptr<Drawing::Surface> RSRenderNode::GetCompletedCacheSurface(uint32_t threadIndex, bool needCheckThread,
+    bool releaseAfterGet)
 #endif
 {
     {
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+        if (releaseAfterGet) {
+            return std::move(cacheCompletedSurface_);
+        }
         if (!needCheckThread || completedSurfaceThreadIndex_ == threadIndex || !cacheCompletedSurface_) {
             return cacheCompletedSurface_;
         }
@@ -1333,7 +1345,7 @@ std::shared_ptr<Drawing::Surface> RSRenderNode::GetCompletedCacheSurface(uint32_
 
     // freeze cache scene
     if (clearCacheSurfaceFunc_) {
-        clearCacheSurfaceFunc_(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_,
+        clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_), cacheSurfaceThreadIndex_,
             completedSurfaceThreadIndex_);
     }
     ClearCacheSurface();
@@ -1341,13 +1353,17 @@ std::shared_ptr<Drawing::Surface> RSRenderNode::GetCompletedCacheSurface(uint32_
 }
 
 #ifndef USE_ROSEN_DRAWING
-    sk_sp<SkSurface> RSRenderNode::GetCacheSurface(uint32_t threadIndex, bool needCheckThread)
+sk_sp<SkSurface> RSRenderNode::GetCacheSurface(uint32_t threadIndex, bool needCheckThread, bool releaseAfterGet)
 #else
-    std::shared_ptr<Drawing::Surface> RSRenderNode::GetCacheSurface(uint32_t threadIndex, bool needCheckThread)
+std::shared_ptr<Drawing::Surface> RSRenderNode::GetCacheSurface(uint32_t threadIndex, bool needCheckThread,
+    bool releaseAfterGet)
 #endif
 {
     {
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+        if (releaseAfterGet) {
+            return std::move(cacheSurface_);
+        }
         if (!needCheckThread || cacheSurfaceThreadIndex_ == threadIndex || !cacheSurface_) {
             return cacheSurface_;
         }
@@ -1355,7 +1371,7 @@ std::shared_ptr<Drawing::Surface> RSRenderNode::GetCompletedCacheSurface(uint32_
 
     // freeze cache scene
     if (clearCacheSurfaceFunc_) {
-        clearCacheSurfaceFunc_(cacheSurface_, cacheCompletedSurface_, cacheSurfaceThreadIndex_,
+        clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_), cacheSurfaceThreadIndex_,
             completedSurfaceThreadIndex_);
     }
     ClearCacheSurface();
@@ -1401,7 +1417,7 @@ void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
 
 bool RSRenderNode::IsForcedDrawInGroup() const
 {
-    return (nodeGroupType_ == NodeGroupType::GROUPED_BY_USER) && (renderProperties_.GetAlpha() < 1.f);
+    return nodeGroupType_ == NodeGroupType::GROUPED_BY_USER;
 }
 
 bool RSRenderNode::IsSuggestedDrawInGroup() const
@@ -1421,7 +1437,7 @@ void RSRenderNode::CheckDrawingCacheType()
 {
     if (nodeGroupType_ == NodeGroupType::NONE) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
-    } else if ((nodeGroupType_ == NodeGroupType::GROUPED_BY_USER) && (renderProperties_.GetAlpha() < 1.f)) {
+    } else if (nodeGroupType_ == NodeGroupType::GROUPED_BY_USER) {
         SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
     } else {
         SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
@@ -1478,16 +1494,22 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
 
 void RSRenderNode::OnTreeStateChanged()
 {
-    if (isOnTheTree_) {
-        return;
+    if (!isOnTheTree_) {
+        // attempt to clear FullChildrenList, to avoid memory leak
+        isFullChildrenListValid_ = false;
+        ClearFullChildrenListIfNeeded();
+    } else {
+        SetDirty();
     }
 #ifndef USE_ROSEN_DRAWING
-    // clear filter cache when node is removed from tree
-    if (auto& manager = renderProperties_.GetFilterCacheManager(false)) {
-        manager->InvalidateCache();
-    }
-    if (auto& manager = renderProperties_.GetFilterCacheManager(true)) {
-        manager->InvalidateCache();
+    if (!isOnTheTree_) {
+        // clear filter cache when node is removed from tree
+        if (auto& manager = renderProperties_.GetFilterCacheManager(false)) {
+            manager->InvalidateCache();
+        }
+        if (auto& manager = renderProperties_.GetFilterCacheManager(true)) {
+            manager->InvalidateCache();
+        }
     }
 #endif
 }
@@ -1507,29 +1529,29 @@ bool RSRenderNode::HasDisappearingTransition(bool recursive) const
     return parent->HasDisappearingTransition(true);
 }
 
-const std::list<RSRenderNode::SharedPtr>& RSRenderNode::GetChildren()
+const std::list<RSRenderNode::SharedPtr>& RSRenderNode::GetChildren(bool inSubThread)
 {
     if (!isFullChildrenListValid_) {
-        GenerateFullChildrenList();
+        GenerateFullChildrenList(inSubThread);
     }
     return fullChildrenList_;
 }
 
-const std::list<RSRenderNode::SharedPtr>& RSRenderNode::GetSortedChildren()
+const std::list<RSRenderNode::SharedPtr>& RSRenderNode::GetSortedChildren(bool inSubThread)
 {
     if (!isFullChildrenListValid_) {
-        GenerateFullChildrenList();
+        GenerateFullChildrenList(inSubThread);
     }
     if (!isChildrenSorted_) {
-        SortChildren();
+        SortChildren(inSubThread);
     }
     return fullChildrenList_;
 }
 
-void RSRenderNode::GenerateFullChildrenList()
+void RSRenderNode::GenerateFullChildrenList(bool inSubThread)
 {
     // Node is currently used by sub thread, delay the operation
-    if (NodeIsUsedBySubThread()) {
+    if (GetIsUsedBySubThread() != inSubThread) {
         return;
     }
     // maybe unnecessary, but just in case
@@ -1574,10 +1596,10 @@ void RSRenderNode::GenerateFullChildrenList()
     isChildrenSorted_ = false;
 }
 
-void RSRenderNode::SortChildren()
+void RSRenderNode::SortChildren(bool inSubThread)
 {
     // Node is currently used by sub thread, delay the operation
-    if (NodeIsUsedBySubThread()) {
+    if (GetIsUsedBySubThread() != inSubThread) {
         return;
     }
     // sort all children by z-order (note: std::list::sort is stable) if needed
@@ -1650,6 +1672,10 @@ void RSRenderNode::SetChildHasFilter(bool childHasFilter)
 NodeId RSRenderNode::GetInstanceRootNodeId() const
 {
     return instanceRootNodeId_;
+}
+NodeId RSRenderNode::GetFirstLevelNodeId() const
+{
+    return firstLevelNodeId_;
 }
 bool RSRenderNode::IsRenderUpdateIgnored() const
 {
@@ -1872,12 +1898,12 @@ bool RSRenderNode::HasCachedTexture() const
     return false;
 #endif
 }
-void RSRenderNode::SetDrawRegion(std::shared_ptr<RectF> rect)
+void RSRenderNode::SetDrawRegion(const std::shared_ptr<RectF>& rect)
 {
     drawRegion_ = rect;
     renderProperties_.SetDrawRegion(rect);
 }
-std::shared_ptr<RectF> RSRenderNode::GetDrawRegion() const
+const std::shared_ptr<RectF>& RSRenderNode::GetDrawRegion() const
 {
     return drawRegion_;
 }
@@ -1889,9 +1915,9 @@ void RSRenderNode::SetRSFrameRateRange(FrameRateRange range)
 {
     rsRange_ = range;
 }
-void RSRenderNode::SetUIFrameRateRange(FrameRateRange range)
+void RSRenderNode::UpdateUIFrameRateRange(FrameRateRange range)
 {
-    uiRange_ = range;
+    uiRange_.Merge(range);
 }
 FrameRateRange RSRenderNode::GetUIFrameRateRange() const
 {
@@ -1904,6 +1930,29 @@ void RSRenderNode::MarkNonGeometryChanged()
 std::vector<HgmModifierProfile> RSRenderNode::GetHgmModifierProfileList() const
 {
     return hgmModifierProfileList_;
+}
+
+inline void RSRenderNode::AddActiveNode()
+{
+    if (auto context = GetContext().lock()) {
+        context->AddActiveNode(shared_from_this());
+    }
+}
+
+void RSRenderNode::ClearFullChildrenListIfNeeded(bool inSubThread)
+{
+    // if fullChildrenList_ is used by sub thread, we can't clear it, it should be cleared by sub thread
+    if (!isFullChildrenListValid_ && !fullChildrenList_.empty() && (inSubThread || !GetIsUsedBySubThread())) {
+        fullChildrenList_.clear();
+    }
+}
+bool RSRenderNode::GetIsUsedBySubThread() const
+{
+    return isUsedBySubThread_.load();
+}
+void RSRenderNode::SetIsUsedBySubThread(bool isUsedBySubThread)
+{
+    isUsedBySubThread_.store(isUsedBySubThread);
 }
 } // namespace Rosen
 } // namespace OHOS

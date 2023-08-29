@@ -23,6 +23,7 @@ if (enable_text_gine) {
       "$graphic_2d_root/rosen/modules/2d_graphics/src",
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+      "//third_party/bounds_checking_function/include/",
     ]
   }
 

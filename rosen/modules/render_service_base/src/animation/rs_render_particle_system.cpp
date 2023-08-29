@@ -36,15 +36,41 @@ void RSRenderParticleSystem::CreateEmitter()
 void RSRenderParticleSystem::Emit(int64_t deltaTime)
 {
     for (size_t iter = 0; iter < emitters_.size(); iter++) {
-        emitters_[iter]->EmitParticle(deltaTime);
+        if (emitters_[iter] != nullptr) {
+            emitters_[iter]->EmitParticle(deltaTime);
+            auto particles = emitters_[iter]->GetParticles();
+            activeParticles_.insert(activeParticles_.end(), particles.begin(), particles.end());
+        }
     }
+}
+
+void RSRenderParticleSystem::UpdateParticle(int64_t deltaTime)
+{
+    for (auto particle : activeParticles_) {
+        auto particleRenderParams = particle->GetParticleRenderParams();
+        auto effect = RSRenderParticleEffector(particleRenderParams);
+        effect.ApplyEffectorToParticle(particle, deltaTime);
+    }
+    for (auto it = activeParticles_.begin(); it != activeParticles_.end();) {
+        std::shared_ptr<RSRenderParticle> particle = *it;
+        if (!particle->IsAlive()) {
+            it = activeParticles_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+std::vector<std::shared_ptr<RSRenderParticle>> RSRenderParticleSystem::GetActiveParticles()
+{
+    return activeParticles_;
 }
 
 std::vector<std::shared_ptr<RSRenderParticle>> RSRenderParticleSystem::Simulation(int64_t deltaTime)
 {
     Emit(deltaTime);
-    RSRenderParticleEmitter::UpdateParticle(deltaTime);
-    return RSRenderParticleEmitter::GetActiveParticles();
+    UpdateParticle(deltaTime);
+    return activeParticles_;
 }
 } // namespace Rosen
 } // namespace OHOS

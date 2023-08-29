@@ -42,6 +42,7 @@ struct HSV {
 class ColorPicker : public ColorExtract {
 public:
     ~ColorPicker() {}
+    static std::shared_ptr<Media::PixelMap> CreateScaledPixelMap(const std::shared_ptr<Media::PixelMap>& pixmap);
     NATIVEEXPORT static std::shared_ptr<ColorPicker> CreateColorPicker(const std::shared_ptr<Media::PixelMap>& pixmap,
                                                                         uint32_t &errorCode);
     NATIVEEXPORT static std::shared_ptr<ColorPicker> CreateColorPicker(const std::shared_ptr<Media::PixelMap>& pixmap,

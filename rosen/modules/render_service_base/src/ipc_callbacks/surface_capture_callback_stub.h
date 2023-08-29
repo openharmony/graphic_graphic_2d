@@ -19,7 +19,8 @@
 #include <iremote_stub.h>
 #include "common/rs_macros.h"
 #include "ipc_callbacks/surface_capture_callback.h"
-#include "ipc_callbacks/surface_capture_callback_ipc_interface_code.h"
+#include "ipc_callbacks/surface_capture_callback_ipc_interface_code_access_verifier.h"
+#include "ipc_security/rs_ipc_interface_code_security_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -29,6 +30,9 @@ public:
     ~RSSurfaceCaptureCallbackStub() = default;
 
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
+
+private:
+    static const RSInterfaceCodeSecurityManager securityManager_;
 };
 } // namespace Rosen
 } // namespace OHOS

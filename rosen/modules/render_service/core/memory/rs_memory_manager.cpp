@@ -238,6 +238,32 @@ void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* gp
 
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
+float MemoryManager::GetAppGpuMemoryInMB(GrDirectContext* grContext)
+#else
+float MemoryManager::GetAppGpuMemoryInMB(GrContext* grContext)
+#endif
+{
+#ifdef RS_ENABLE_GL
+    if (!grContext) {
+        return 0.f;
+    }
+    SkiaMemoryTracer trace("category", true);
+    grContext->dumpMemoryStatistics(&trace);
+    auto total = trace.GetGpuMemorySizeInMB();
+    float rsMemSize = 0.f;
+    for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE; tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
+        GrGpuResourceTag resourceTag(0, 0, 0, tagtype);
+        SkiaMemoryTracer gpuTrace("category", true);
+        grContext->dumpMemoryStatisticsByTag(&gpuTrace, resourceTag);
+        rsMemSize += gpuTrace.GetGpuMemorySizeInMB();
+    }
+    return total - rsMemSize;
+#endif
+}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
+#ifdef NEW_SKIA
 void MemoryManager::DumpPidMemory(DfxString& log, int pid, const GrDirectContext* grContext)
 #else
 void MemoryManager::DumpPidMemory(DfxString& log, int pid, const GrContext* grContext)

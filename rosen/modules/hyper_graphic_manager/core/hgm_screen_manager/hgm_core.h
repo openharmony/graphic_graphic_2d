@@ -18,6 +18,7 @@
 
 #include <functional>
 #include <cinttypes>
+#include <memory>
 #include <thread>
 #include <unordered_map>
 #include <vector>
@@ -27,6 +28,7 @@
 #include "hgm_screen.h"
 #include "hgm_frame_rate_tool.h"
 #include "xml_parser.h"
+#include "hgm_one_shot_timer.h"
 
 namespace OHOS::Rosen {
 class HgmCore final {
@@ -58,10 +60,13 @@ public:
         return activeScreenId_;
     }
 
+    // set refresh rates
     int32_t SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
     static int32_t SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate, int32_t width, int32_t height);
     int32_t SetRefreshRateMode(RefreshRateMode refreshRateMode);
     int32_t SetDefaultRefreshRateMode();
+
+    // screen interface
     int32_t AddScreen(ScreenId id, int32_t defaultMode);
     int32_t RemoveScreen(ScreenId id);
     int32_t AddScreenInfo(ScreenId id, int32_t width, int32_t height, uint32_t rate, int32_t mode);
@@ -69,15 +74,19 @@ public:
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) const;
     sptr<HgmScreen> GetScreen(ScreenId id) const;
     std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id);
+    std::vector<int32_t> GetScreenComponentRefreshRates(ScreenId id);
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> GetModesToApply();
     int32_t AddScreenProfile(ScreenId id, int32_t width, int32_t height, int32_t phyWidth, int32_t phyHeight);
     int32_t RemoveScreenProfile(ScreenId id);
     int32_t CalModifierPreferred(HgmModifierProfile &hgmModifierProfile) const;
     void SetActiveScreenId(ScreenId id);
-
+    std::shared_ptr<HgmOneShotTimer> GetScreenTimer(ScreenId screenId) const;
+    void ResetScreenTimer(ScreenId screenId);
+    void InsertAndStartScreenTimer(ScreenId screenId, int32_t interval,
+        std::function<void()> resetCallback, std::function<void()> expiredCallback);
 private:
     HgmCore();
-    ~HgmCore();
+    ~HgmCore() = default;
     HgmCore(const HgmCore&) = delete;
     HgmCore(const HgmCore&&) = delete;
     HgmCore& operator=(const HgmCore&) = delete;
@@ -91,6 +100,7 @@ private:
 
     bool isEnabled_ = true;
     bool isInit_ = false;
+    static constexpr char CONFIG_FILE[] = "/system/etc/graphic/hgm_policy_config.xml";
     std::unique_ptr<XMLParser> mParser_;
     std::shared_ptr<ParsedConfigData> mParsedConfigData_ = nullptr;
 
@@ -105,6 +115,7 @@ private:
     std::string currentBundleName_;
     std::shared_ptr<HgmFrameRateTool> hgmFrameRateTool_ = nullptr;
     ScreenId activeScreenId_ = 0;
+    std::unordered_map<ScreenId, std::shared_ptr<HgmOneShotTimer>> screenTimerMap_;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H

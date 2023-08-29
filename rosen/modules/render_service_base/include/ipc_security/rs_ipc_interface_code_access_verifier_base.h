@@ -32,29 +32,25 @@
 
 namespace OHOS {
 namespace Rosen {
-using TokenIdType = uint64_t;
-
 class RSB_EXPORT RSInterfaceCodeAccessVerifierBase {
 public:
     virtual ~RSInterfaceCodeAccessVerifierBase() noexcept = default;
 
-    bool IsInterfaceCodeAccessible(CodeUnderlyingType code, const std::string& caller);
-
-    /* specify the initialization of accessMap_ in the derived class */
-    virtual void InitializeAccessMap() = 0;
+    bool IsInterfaceCodeAccessible(CodeUnderlyingType code);
 
 protected:
     /* this class cannot be instantiated */
     RSInterfaceCodeAccessVerifierBase() = default;
 
     /* specify the exclusive verification rules in the derived class */
-    virtual bool IsExtraVerificationPassed(CodeUnderlyingType code, const std::string& caller) = 0;
+    virtual bool IsExclusiveVerificationPassed(CodeUnderlyingType code) = 0;
 
     /* specify tools for verifying the access right */
-    TokenIdType GetCallingFullTokenID() const;
+#ifdef ENABLE_IPC_SECURITY
+    Security::AccessToken::ATokenTypeEnum GetTokenType() const;
     bool IsSystemApp() const;
-
-    std::unordered_map<CodeUnderlyingType, std::unordered_set<TokenIdType>> accessMap_;
+#endif
+    bool IsSystemCalling(const std::string& callingCode) const;
 
 private:
     RSInterfaceCodeAccessVerifierBase(const RSInterfaceCodeAccessVerifierBase&) = delete;
@@ -63,7 +59,7 @@ private:
     RSInterfaceCodeAccessVerifierBase& operator=(RSInterfaceCodeAccessVerifierBase&&) = delete;
 
     /* specify the communal verification rules in the base class */
-    bool IsCommonVerificationPassed(CodeUnderlyingType code, const std::string& caller);
+    bool IsCommonVerificationPassed(CodeUnderlyingType code);
 };
 } // namespace Rosen
 } // namespace OHOS

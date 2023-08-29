@@ -118,6 +118,7 @@ VSyncReceiver::~VSyncReceiver()
         looper_->RemoveFileDescriptorListener(fd_);
         close(fd_);
         fd_ = INVALID_FD;
+        Destroy();
     }
 }
 
@@ -153,6 +154,15 @@ VsyncError VSyncReceiver::GetVSyncPeriod(int64_t &period)
         VLOGE("%{public}s get vsync period failed", __func__);
     }
     return ret;
+}
+
+VsyncError VSyncReceiver::Destroy()
+{
+    std::lock_guard<std::mutex> locker(initMutex_);
+    if (!init_) {
+        return VSYNC_ERROR_API_FAILED;
+    }
+    return connection_->Destroy();
 }
 } // namespace Rosen
 } // namespace OHOS

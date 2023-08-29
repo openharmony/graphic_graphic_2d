@@ -86,9 +86,10 @@ public:
         isDirty_ = isDirty;
     }
 
-    void SetFocusedNodeId(uint64_t nodeId)
+    void SetFocusedNodeId(uint64_t nodeId, uint64_t leashId)
     {
         currentFocusedNodeId_ = nodeId;
+        focusedLeashWindowId_ = leashId;
     }
 
     void SetSubThreadConfig(uint32_t threadIndex)
@@ -157,9 +158,13 @@ public:
         return frameRateRangeData_;
     }
     void CollectFrameRateRange(RSRenderNode& node);
+    void SetForceUpdateFlag(bool flag)
+    {
+        forceUpdateFlag_ = flag;
+    }
 
 #ifndef USE_ROSEN_DRAWING
-    using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<SkMatrix>>;
+    using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 #else
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<Drawing::Matrix>>;
 #endif
@@ -200,7 +205,7 @@ private:
      * global dirty region will be skipped
      */
     void CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node);
-    void CalcDirtyRegionForFilterNode(const RectI filterRect,
+    void CalcDirtyRegionForFilterNode(const RectI& filterRect,
         std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
         std::shared_ptr<RSDisplayRenderNode>& displayNode);
     void CalcDirtyFilterRegion(std::shared_ptr<RSDisplayRenderNode>& node);
@@ -246,11 +251,11 @@ private:
     void PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRenderNode& node);
     void PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRenderNode& node);
     // judge if node's cache changes
-    void UpdateCacheChangeStatus(RSBaseRenderNode& node);
+    void UpdateCacheChangeStatus(RSRenderNode& node);
     // set node cacheable animation after checking whold child tree
-    void SetNodeCacheChangeStatus(RSBaseRenderNode& node, int markedCachedNodeCnt);
+    void SetNodeCacheChangeStatus(RSRenderNode& node, int markedCachedNodeCnt);
     // update rendernode's cache status and collect valid cache rect
-    void UpdateForegroundFilterCacheWithDirty(RSRenderNode& node);
+    void UpdateForegroundFilterCacheWithDirty(RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
 
     bool IsHardwareComposerEnabled();
 
@@ -287,7 +292,6 @@ private:
 
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
-    std::shared_ptr<RSRenderNode> curRootNode_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
     float curAlpha_ = 1.f;
     bool dirtyFlag_ { false };
@@ -347,6 +351,7 @@ private:
     GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     std::vector<ScreenColorGamut> colorGamutModes_;
     uint64_t currentFocusedNodeId_ = 0;
+    uint64_t focusedLeashWindowId_ = 0;
 
     bool isSubThread_ = false;
     bool isUIFirst_ = false;
@@ -381,8 +386,9 @@ private:
     std::unordered_map<NodeId, RenderParam> unpairedTransitionNodes_;
     std::stack<RenderParam> curGroupedNodes_;
     // return true if we should prepare/process, false if we should skip.
-    bool PrepareSharedTransitionNode(RSBaseRenderNode& node);
+    void PrepareSharedTransitionNode(RSBaseRenderNode& node);
     bool ProcessSharedTransitionNode(RSBaseRenderNode& node);
+    void ProcessUnpairedSharedTransitionNode();
 
     std::weak_ptr<RSBaseRenderNode> logicParentNode_;
 
@@ -419,12 +425,14 @@ private:
 #endif
     bool curDirty_ = false;
     bool curContentDirty_ = false;
+    bool isPhone_ = false;
 
     // calculate preferred fps
     FrameRateRangeData frameRateRangeData_;
 
     std::unordered_map<NodeId, std::unordered_map<NodeId, RectI>> allCacheFilterRects_ = {};
     std::stack<std::unordered_map<NodeId, RectI>> curCacheFilterRects_ = {};
+    bool forceUpdateFlag_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

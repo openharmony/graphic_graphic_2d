@@ -108,6 +108,7 @@ RSRenderThread::RSRenderThread()
         Animate(prevTimestamp_);
         Render();
         SendCommands();
+        context_->activeNodesInRoot_.clear();
 #ifdef ROSEN_OHOS
         FRAME_TRACE::RenderFrameTrace::GetInstance().RenderEndFrameTrace(RT_INTERVAL_NAME);
 #endif
@@ -146,6 +147,7 @@ void RSRenderThread::Start()
 {
     ROSEN_LOGD("RSRenderThread start.");
     running_.store(true);
+    std::unique_lock<std::mutex> cmdLock(rtMutex_);
     if (thread_ == nullptr) {
         thread_ = std::make_unique<std::thread>(&RSRenderThread::RenderLoop, this);
     }
@@ -375,18 +377,6 @@ void RSRenderThread::ProcessCommands()
     uint64_t uiEndTimeStamp = jankDetector_->GetSysTimeNs();
     for (auto& cmdData : cmds) {
         std::string str = "ProcessCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(cmdData.get()));
-#if defined (ROSEN_CROSS_PLATFORM)  && !defined(ROSEN_PREVIEW)
-        if (cmdData->GetTimestamp() >= timestamp_) {
-            str += " SKIP!!!";
-            ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
-            std::unique_lock<std::mutex> cmdLock(cmdMutex_);
-            cmds_.emplace_back(std::move(cmdData));
-            cmdLock.unlock();
-            RequestNextVSync();
-            ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-            continue;
-        }
-#endif
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
         // only set transactionTimestamp_ in UniRender mode
         context_->transactionTimestamp_ = RSSystemProperties::GetUniRenderEnabled() ? cmdData->GetTimestamp() : 0;

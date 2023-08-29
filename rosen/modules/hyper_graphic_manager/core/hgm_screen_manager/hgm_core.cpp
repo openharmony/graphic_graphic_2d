@@ -41,24 +41,6 @@ HgmCore::HgmCore()
     HGM_LOGI("Construction of Hgmcore");
 }
 
-HgmCore::~HgmCore()
-{
-    std::lock_guard<std::mutex> lock(listMutex_);
-    HGM_LOGI("Destruction of HgmCore");
-    if (!screenList_.empty()) {
-        auto screen = screenList_.begin();
-        while (screen != screenList_.end()) {
-            screenList_.erase(screen++);
-        }
-    }
-    if (!screenIds_.empty()) {
-        auto screenIdIter = screenIds_.begin();
-        while (screenIdIter != screenIds_.end()) {
-            screenIds_.erase(screenIdIter++);
-        }
-    }
-}
-
 bool HgmCore::Init()
 {
     if (isInit_) {
@@ -88,17 +70,24 @@ int32_t HgmCore::InitXmlConfig()
     if (!mParser_) {
         mParser_ = std::make_unique<XMLParser>();
     }
-    if (mParser_->LoadConfiguration() != EXEC_SUCCESS) {
+    if (mParser_->LoadConfiguration(CONFIG_FILE) != EXEC_SUCCESS) {
         HGM_LOGE("HgmCore failed to load xml configuration file");
         return XML_FILE_LOAD_FAIL;
     }
-    if (mParser_->Parse()) {
+    if (mParser_->Parse() != EXEC_SUCCESS) {
         HGM_LOGE("HgmCore failed to parse xml configuration");
         return XML_GET_ROOT_FAIL;
     }
+
+    // parse ccm component
+    if (mParser_->ParseComponentData() != EXEC_SUCCESS) {
+        HGM_LOGE("HgmCore failed to parse xml configuration from ccm");
+    }
+
     if (!mParsedConfigData_) {
         mParsedConfigData_ = mParser_->GetParsedData();
     }
+
     return EXEC_SUCCESS;
 }
 
@@ -256,7 +245,6 @@ int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode)
     HGM_LOGI("HgmCore adding screen : " PUBI64 "", id);
     bool removeId = std::any_of(screenIds_.begin(), screenIds_.end(),
         [id](const ScreenId screen) { return screen == id; });
-
     if (removeId) {
         if (RemoveScreen(id) != EXEC_SUCCESS) {
             HGM_LOGW("HgmCore failed to remove the existing screen, not adding : " PUBI64 "", id);
@@ -369,6 +357,21 @@ std::vector<uint32_t> HgmCore::GetScreenSupportedRefreshRates(ScreenId id)
     return retVec;
 }
 
+std::vector<int32_t> HgmCore::GetScreenComponentRefreshRates(ScreenId id)
+{
+    if (!mParsedConfigData_) {
+        HGM_LOGW("HgmCore no parsed component data, returning default value");
+        return std::vector<int32_t>(static_cast<uint32_t>(EXEC_SUCCESS));
+    }
+
+    std::vector<int32_t> retVec;
+    for (const auto& [rate, _] : mParsedConfigData_->refreshRateForSettings_) {
+        retVec.emplace_back(std::stoi(rate));
+        HGM_LOGE("HgmCore Adding component rate: %{public}d", std::stoi(rate));
+    }
+    return retVec;
+}
+
 std::unique_ptr<std::unordered_map<ScreenId, int32_t>> HgmCore::GetModesToApply()
 {
     std::lock_guard<std::mutex> lock(modeListMutex_);
@@ -395,4 +398,28 @@ void HgmCore::SetActiveScreenId(ScreenId id)
     activeScreenId_ = id;
 }
 
+std::shared_ptr<HgmOneShotTimer> HgmCore::GetScreenTimer(ScreenId screenId) const
+{
+    if (auto timer = screenTimerMap_.find(screenId); timer != screenTimerMap_.end()) {
+        return timer->second;
+    }
+    return nullptr;
+}
+
+void HgmCore::InsertAndStartScreenTimer(ScreenId screenId, int32_t interval,
+    std::function<void()> resetCallback, std::function<void()> expiredCallback)
+{
+    if (auto oldtimer = GetScreenTimer(screenId); oldtimer == nullptr) {
+        auto newTimer = std::make_shared<HgmOneShotTimer>("idle_timer" + std::to_string(screenId),
+            std::chrono::milliseconds(interval), resetCallback, expiredCallback);
+        screenTimerMap_[screenId] = newTimer;
+        newTimer->Start();
+    }
+}
+void HgmCore::ResetScreenTimer(ScreenId screenId)
+{
+    if (auto timer = GetScreenTimer(screenId); timer != nullptr) {
+        timer->Reset();
+    }
+}
 } // namespace OHOS::Rosen

@@ -31,11 +31,10 @@ public:
         return Type;
     }
 
-    explicit RSEffectRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
-    virtual ~RSEffectRenderNode();
+    explicit RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {});
+    ~RSEffectRenderNode() override;
 
     void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
-    void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
 
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;

@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 RSProxyRenderNode::RSProxyRenderNode(
-    NodeId id, std::weak_ptr<RSSurfaceRenderNode> target, NodeId targetId, std::weak_ptr<RSContext> context)
+    NodeId id, std::weak_ptr<RSSurfaceRenderNode> target, NodeId targetId, const std::weak_ptr<RSContext>& context)
     : RSRenderNode(id, context), target_(target), targetId_(targetId)
 {
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
@@ -119,10 +119,7 @@ void RSProxyRenderNode::ResetContextVariableCache()
 void RSProxyRenderNode::OnTreeStateChanged()
 {
     RSRenderNode::OnTreeStateChanged();
-    if (IsOnTheTree()) {
-        // new added to tree
-        SetContentDirty();
-    } else {
+    if (!IsOnTheTree()) {
         // removed from tree, clean up context variables
         CleanUp(false);
     }

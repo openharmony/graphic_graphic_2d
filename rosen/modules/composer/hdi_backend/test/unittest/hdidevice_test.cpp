@@ -173,9 +173,6 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
     GraphicPresentTimestampType presentTimesType = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
-    GraphicPresentTimestamp timestamp;
-    ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetPresentTimestamp(screenId, layerId, timestamp),
-              GRAPHIC_DISPLAY_NOT_SUPPORT);
 }
 
 /*
@@ -189,6 +186,9 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
 HWTEST_F(HdiDeviceTest, LayerFuncs002, Function | MediumTest| Level3)
 {
     uint32_t screenId = 1, layerId = 0;
+    GraphicPresentTimestamp timestamp;
+    ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetPresentTimestamp(screenId, layerId, timestamp),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
     uint32_t layerMask = 0;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMaskInfo(screenId, layerId, layerMask), GRAPHIC_DISPLAY_SUCCESS);
     GraphicLayerInfo layerInfo;

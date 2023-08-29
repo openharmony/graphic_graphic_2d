@@ -34,6 +34,7 @@ public:
     OHOS::GSError SetData(sptr<SurfaceBuffer> &buffer, sptr<Surface> &pSurface);
     bool GetData(sptr<SurfaceBuffer> &buffer);
     pid_t ChildProcessMain();
+    sptr<OHOS::Surface> CreateSurface();
 
     static inline sptr<IConsumerSurface> cSurface = nullptr;
     static inline int32_t pipeFd[2] = {};
@@ -107,17 +108,8 @@ bool SurfaceIPCTest::GetData(sptr<SurfaceBuffer> &buffer)
     return (sRet == OHOS::GSERROR_OK);
 }
 
-pid_t SurfaceIPCTest::ChildProcessMain()
+sptr<OHOS::Surface> SurfaceIPCTest::CreateSurface()
 {
-    pipe(pipeFd);
-    pid_t pid = fork();
-    if (pid != 0) {
-        return pid;
-    }
-
-    int64_t data;
-    read(pipeFd[0], &data, sizeof(data));
-
     sptr<IRemoteObject> robj = nullptr;
     while (true) {
         auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -129,7 +121,21 @@ pid_t SurfaceIPCTest::ChildProcessMain()
     }
 
     auto producer = iface_cast<IBufferProducer>(robj);
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    return Surface::CreateSurfaceAsProducer(producer);
+}
+
+pid_t SurfaceIPCTest::ChildProcessMain()
+{
+    pipe(pipeFd);
+    pid_t pid = fork();
+    if (pid != 0) {
+        return pid;
+    }
+
+    int64_t data;
+    read(pipeFd[0], &data, sizeof(data));
+
+    auto pSurface = CreateSurface();
     pSurface->RegisterReleaseListener(OnBufferRelease);
     sptr<SurfaceBuffer> buffer = nullptr;
     int releaseFence = -1;

@@ -491,15 +491,15 @@ float RSProperties::GetPivotZ() const
     return boundsGeo_->GetPivotZ();
 }
 
-void RSProperties::SetCornerRadius(Vector4f cornerRadius)
+void RSProperties::SetCornerRadius(const Vector4f& cornerRadius)
 {
     cornerRadius_ = cornerRadius;
     SetDirty();
 }
 
-Vector4f RSProperties::GetCornerRadius() const
+const Vector4f& RSProperties::GetCornerRadius() const
 {
-    return cornerRadius_.value_or(Vector4fZero);
+    return cornerRadius_ ? cornerRadius_.value() : Vector4fZero;
 }
 
 void RSProperties::SetQuaternion(Quaternion quaternion)
@@ -647,15 +647,17 @@ float RSProperties::GetTranslateZ() const
     return boundsGeo_->GetTranslateZ();
 }
 
-
-void RSProperties::SetParticles(const std::vector<std::shared_ptr<RSRenderParticle>>& particles)
+void RSProperties::SetParticles(const RSRenderParticleVector& particles)
 {
     particles_ = particles;
+    if (particles_.GetParticleSize() > 0) {
+        isDrawn_ = true;
+    }
     SetDirty();
     contentDirty_ = true;
 }
 
-std::vector<std::shared_ptr<RSRenderParticle>> RSProperties::GetParticles() const
+RSRenderParticleVector RSProperties::GetParticles() const
 {
     return particles_;
 }
@@ -732,7 +734,7 @@ Color RSProperties::GetBackgroundColor() const
     return decoration_ ? decoration_->backgroundColor_ : RgbPalette::Transparent();
 }
 
-void RSProperties::SetBackgroundShader(std::shared_ptr<RSShader> shader)
+void RSProperties::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
 {
     if (!decoration_) {
         decoration_ = std::make_optional<Decoration>();
@@ -750,7 +752,7 @@ std::shared_ptr<RSShader> RSProperties::GetBackgroundShader() const
     return decoration_ ? decoration_->bgShader_ : nullptr;
 }
 
-void RSProperties::SetBgImage(std::shared_ptr<RSImage> image)
+void RSProperties::SetBgImage(const std::shared_ptr<RSImage>& image)
 {
     if (!decoration_) {
         decoration_ = std::make_optional<Decoration>();
@@ -884,18 +886,18 @@ const std::shared_ptr<RSBorder>& RSProperties::GetBorder() const
     return border_;
 }
 
-void RSProperties::SetBackgroundFilter(std::shared_ptr<RSFilter> backgroundFilter)
+void RSProperties::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
 {
     backgroundFilter_ = backgroundFilter;
     if (backgroundFilter_) {
         isDrawn_ = true;
     }
     SetDirty();
-    filterManagerNeedUpdate_ = true;
+    filterNeedUpdate_ = true;
     contentDirty_ = true;
 }
 
-void RSProperties::SetLinearGradientBlurPara(std::shared_ptr<RSLinearGradientBlurPara> para)
+void RSProperties::SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para)
 {
     linearGradientBlurPara_ = para;
     if (para && para->blurRadius_ > 0.f) {
@@ -911,6 +913,7 @@ void RSProperties::SetDynamicLightUpRate(const std::optional<float>& rate)
     if (rate.has_value()) {
         isDrawn_ = true;
     }
+    filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -921,18 +924,19 @@ void RSProperties::SetDynamicLightUpDegree(const std::optional<float>& lightUpDe
     if (lightUpDegree.has_value()) {
         isDrawn_ = true;
     }
+    filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
 
-void RSProperties::SetFilter(std::shared_ptr<RSFilter> filter)
+void RSProperties::SetFilter(const std::shared_ptr<RSFilter>& filter)
 {
     filter_ = filter;
     if (filter) {
         isDrawn_ = true;
     }
     SetDirty();
-    filterManagerNeedUpdate_ = true;
+    filterNeedUpdate_ = true;
     contentDirty_ = true;
 }
 
@@ -1133,7 +1137,7 @@ Gravity RSProperties::GetFrameGravity() const
     return frameGravity_;
 }
 
-void RSProperties::SetDrawRegion(std::shared_ptr<RectF> rect)
+void RSProperties::SetDrawRegion(const std::shared_ptr<RectF>& rect)
 {
     drawRegion_ = rect;
     SetDirty();
@@ -1165,7 +1169,7 @@ bool RSProperties::GetClipToRRect() const
     return clipRRect_.has_value();
 }
 
-void RSProperties::SetClipBounds(std::shared_ptr<RSPath> path)
+void RSProperties::SetClipBounds(const std::shared_ptr<RSPath>& path)
 {
     if (path) {
         isDrawn_ = true;
@@ -1177,7 +1181,7 @@ void RSProperties::SetClipBounds(std::shared_ptr<RSPath> path)
     }
 }
 
-std::shared_ptr<RSPath> RSProperties::GetClipBounds() const
+const std::shared_ptr<RSPath>& RSProperties::GetClipBounds() const
 {
     return clipPath_;
 }
@@ -1273,8 +1277,7 @@ RRect RSProperties::GetInnerRRect() const
 
 bool RSProperties::NeedFilter() const
 {
-    return (backgroundFilter_ != nullptr && backgroundFilter_->IsValid()) || useEffect_ ||
-        (filter_ != nullptr && filter_->IsValid()) || IsLightUpEffectValid() || IsDynamicLightUpValid();
+    return needFilter_;
 }
 
 bool RSProperties::NeedClip() const
@@ -1367,7 +1370,7 @@ void RSProperties::CheckEmptyBounds()
 }
 
 // mask properties
-void RSProperties::SetMask(std::shared_ptr<RSMask> mask)
+void RSProperties::SetMask(const std::shared_ptr<RSMask>& mask)
 {
     mask_ = mask;
     if (mask_) {
@@ -1406,6 +1409,7 @@ void RSProperties::SetLightUpEffect(float lightUpEffectDegree)
     if (IsLightUpEffectValid()) {
         isDrawn_ = true;
     }
+    filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -1426,6 +1430,7 @@ void RSProperties::SetUseEffect(bool useEffect)
     if (GetUseEffect()) {
         isDrawn_ = true;
     }
+    filterNeedUpdate_ = true;
     SetDirty();
 }
 
@@ -2168,11 +2173,10 @@ std::string RSProperties::Dump() const
 #ifndef USE_ROSEN_DRAWING
 void RSProperties::CreateFilterCacheManagerIfNeed()
 {
-    filterManagerNeedUpdate_ = false;
     if (!FilterCacheEnabled) {
         return;
     }
-    if (auto& filter = GetBackgroundFilter(); filter != nullptr && filter->IsValid()) {
+    if (auto& filter = GetBackgroundFilter(); filter != nullptr) {
         auto& cacheManager = backgroundFilterCacheManager_;
         if (cacheManager == nullptr) {
             cacheManager = std::make_unique<RSFilterCacheManager>();
@@ -2206,6 +2210,10 @@ void RSProperties::OnApplyModifiers()
         } else {
             CalculateFrameOffset();
         }
+        // frame and bounds are the same, no need to clip twice
+        if (clipToFrame_ && clipToBounds_ && frameOffsetX_ == 0. && frameOffsetY_ == 0.) {
+            clipToFrame_ = false;
+        }
     }
     if (colorFilterNeedUpdate_) {
         GenerateColorFilter();
@@ -2213,11 +2221,20 @@ void RSProperties::OnApplyModifiers()
     if (pixelStretchNeedUpdate_ || geoDirty_) {
         CalculatePixelStretch();
     }
+    if (filterNeedUpdate_) {
+        if (backgroundFilter_ != nullptr && !backgroundFilter_->IsValid()) {
+            backgroundFilter_.reset();
+        }
+        if (filter_ != nullptr && !filter_->IsValid()) {
+            filter_.reset();
+        }
+        needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
+                      IsDynamicLightUpValid();
 #ifndef USE_ROSEN_DRAWING
-    if (filterManagerNeedUpdate_) {
         CreateFilterCacheManagerIfNeed();
-    }
 #endif
+        filterNeedUpdate_ = false;
+    }
 }
 
 inline static int SignBit(float x)
@@ -2243,6 +2260,9 @@ void RSProperties::CalculatePixelStretch()
     if (pixelStretchPercent_) {
         auto width = GetBoundsWidth();
         auto height = GetBoundsHeight();
+        if (isinf(width) || isinf(height)) {
+            return;
+        }
         pixelStretch_ = *pixelStretchPercent_ * Vector4f(width, height, width, height);
     }
     // parameter check: non-zero

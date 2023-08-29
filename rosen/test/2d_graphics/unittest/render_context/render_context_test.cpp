@@ -125,4 +125,49 @@ HWTEST_F(RenderContextTest, QueryEglBufferAgeTest002, Function | SmallTest | Lev
     EXPECT_EQ(bufferAge, EGL_UNKNOWN);
 #endif
 }
+
+/**
+ * @tc.name: ClearRedundantResourcesTest001
+ * @tc.desc: Verify the ClearRedundantResourcesTest002 of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, ClearRedundantResourcesTest001, Level1)
+{
+#ifdef ACE_ENABLE_GL
+    // start ClearRedundantResourcesTest001 test
+    RenderContext renderContext;
+    renderContext.InitializeEglContext();
+    renderContext.ClearRedundantResources();
+#endif
+}
+
+/**
+ * @tc.name: DamageFrameTest001
+ * @tc.desc: Verify the DamageFrameTest001 of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, DamageFrameTest001, Level1)
+{
+#ifdef ACE_ENABLE_GL
+    // start DamageFrameTest001 test
+    RenderContext renderContext;
+    renderContext.InitializeEglContext();
+    renderContext.DamageFrame(0, 0, 0, 0);
+#endif
+}
+
+/**
+ * @tc.name: MakeSelfCurrentTest001
+ * @tc.desc: Verify the MakeSelfCurrentTest001 of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, MakeSelfCurrentTest001, Level1)
+{
+#ifdef ACE_ENABLE_GL
+    // start MakeSelfCurrentTest001 test
+    RenderContext renderContext;
+    renderContext.InitializeEglContext();
+    renderContext.MakeSelfCurrent();
+#endif
+}
 } // namespace OHOS::Rosen

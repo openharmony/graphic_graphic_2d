@@ -28,7 +28,7 @@
 namespace OHOS::Rosen {
 class XMLParser {
 public:
-    int32_t LoadConfiguration();
+    int32_t LoadConfiguration(const char* fileDir);
     int32_t Parse();
     void Destroy();
 
@@ -44,6 +44,8 @@ public:
         return std::move(mParsedData_);
     }
 
+    int32_t ParseComponentData();
+
 private:
     static int32_t GetHgmXmlNodeAsInt(xmlNode &node);
     bool ParseInternal(xmlNode &node);
@@ -56,7 +58,7 @@ private:
     static bool IsNumber(const std::string &str);
 
     xmlDoc *xmlDocument_;
-    static constexpr char CONFIG_FILE[] = "/system/etc/graphic/hgm_policy_config.xml";
+    static constexpr char CONFIG_CCM[] = "etc/graphic/hgm_policy_config.xml";
     std::unordered_map<std::string, int> hgmXmlLabel_;
     std::unique_ptr<ParsedConfigData> mParsedData_ = nullptr;
 };

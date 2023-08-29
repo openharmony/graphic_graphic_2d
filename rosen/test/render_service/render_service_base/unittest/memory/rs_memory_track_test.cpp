@@ -40,7 +40,6 @@ HWTEST_F(RSMemoryTrackTest, RemoveNodeRecordTest, testing::ext::TestSize.Level1)
 {
     NodeId id = 1;
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
-    // auto track = MemoryTrack::Instance();
     MemoryTrack::Instance().AddNodeRecord(id, info);
     MemoryNodeOfPid memoryNodeOfPid;
     auto mem = memoryNodeOfPid.GetMemSize();
@@ -58,7 +57,6 @@ HWTEST_F(RSMemoryTrackTest, CountRSMemoryTest, testing::ext::TestSize.Level1)
 {
     MemoryGraphic memoryGraphic;
     pid_t pid1 = -1;
-    // auto track = MemoryTrack::Instance();
     MemoryTrack::Instance().CountRSMemory(pid1);
     auto mem = memoryGraphic.GetCpuMemorySize();
     ASSERT_EQ(mem, 0);

@@ -17,8 +17,11 @@
 #include <ostream>
 #include <securec.h>
 #include <cstdint>
+
 #include "refbase.h"
 #include "sync_fence.h"
+#include "sync_fence_timeline.h"
+#include "sync_fence_tracker.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -307,5 +310,146 @@ HWTEST_F(SyncFenceTest, IsValidGetDup001, Function | MediumTest | Level2)
     } else {
         ASSERT_EQ(valid, false);
     }
+}
+
+/*
+* Function: IsValid
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call IsValid
+*                  2. check ret
+*/
+HWTEST_F(SyncFenceTest, IsValid002, Function | MediumTest | Level2)
+{
+    sptr<SyncTimeline> syncTimeline_ = new SyncTimeline();
+    bool valid = syncTimeline_->IsValid();
+    if (valid) {
+        ASSERT_EQ(valid, true);
+        int32_t fd = syncTimeline_->GenerateFence("test sw_sync_fence", 1);
+        sptr<SyncFence> syncFence_ = new SyncFence(fd);
+        ASSERT_GE(fd, 0);
+        auto syncFenceTime_ = std::make_shared<SyncFenceTime>(syncFence_);
+        ASSERT_EQ(true, syncFenceTime_->IsValid());
+    } else {
+        ASSERT_EQ(valid, false);
+    }
+}
+
+/*
+* Function: IsValid, GetSignalTimestamp
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetSignalTimestamp
+*                  2. check ret
+*/
+HWTEST_F(SyncFenceTest, GetSignalTimestamp001, Function | MediumTest | Level2)
+{
+    sptr<SyncTimeline> syncTimeline_ = new SyncTimeline();
+    bool valid = syncTimeline_->IsValid();
+    if (valid) {
+        ASSERT_EQ(valid, true);
+        int32_t fd = syncTimeline_->GenerateFence("test sw_sync_fence", 1);
+        sptr<SyncFence> syncFence_ = new SyncFence(fd);
+        ASSERT_GE(fd, 0);
+        auto syncFenceTime_ = std::make_shared<SyncFenceTime>(syncFence_);
+        ns_sec_t timestamp = syncFenceTime_->GetSignalTimestamp();
+        ASSERT_EQ(syncFenceTime_->GetCachedSignalTimestamp(), timestamp);
+    } else {
+        ASSERT_EQ(valid, false);
+    }
+}
+
+/*
+* Function: Push
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call Push
+*                  2. check ret
+*/
+HWTEST_F(SyncFenceTest, Push001, Function | MediumTest | Level2)
+{
+    sptr<SyncTimeline> syncTimeline_ = new SyncTimeline();
+    bool valid = syncTimeline_->IsValid();
+    if (valid) {
+        ASSERT_EQ(valid, true);
+        int32_t fd = syncTimeline_->GenerateFence("test sw_sync_fence", 1);
+        sptr<SyncFence> syncFence_ = new SyncFence(fd);
+        ASSERT_GE(fd, 0);
+        auto syncFenceTime_ = std::make_shared<SyncFenceTime>(syncFence_);
+        auto syncFenceTimeline_ = std::make_shared<SyncFenceTimeline>();
+        syncFenceTimeline_->Push(syncFenceTime_);
+    } else {
+        ASSERT_EQ(valid, false);
+    }
+}
+
+/*
+* Function: UpdateFenceTimeline
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call UpdateFenceTimeline
+*                  2. check ret
+*/
+HWTEST_F(SyncFenceTest, UpdateFenceTimeline001, Function | MediumTest | Level2)
+{
+    sptr<SyncTimeline> syncTimeline_ = new SyncTimeline();
+    bool valid = syncTimeline_->IsValid();
+    if (valid) {
+        ASSERT_EQ(valid, true);
+        int32_t fd = syncTimeline_->GenerateFence("test sw_sync_fence", 1);
+        sptr<SyncFence> syncFence_ = new SyncFence(fd);
+        ASSERT_GE(fd, 0);
+        auto syncFenceTime_ = std::make_shared<SyncFenceTime>(syncFence_);
+        auto syncFenceTimeline_ = std::make_shared<SyncFenceTimeline>();
+        syncFenceTimeline_->UpdateFenceTimeline();
+        syncFenceTimeline_->Push(syncFenceTime_);
+        syncFenceTimeline_->UpdateFenceTimeline();
+
+    } else {
+        ASSERT_EQ(valid, false);
+    }
+}
+
+/*
+* Function: SyncFenceTracker
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SyncFenceTracker
+*                  2. check ret
+*/
+HWTEST_F(SyncFenceTest, SyncFenceTrackerTest, Function | MediumTest | Level2)
+{
+    auto tracker = std::make_shared<SyncFenceTracker>("test sw_sync_fence1");
+}
+
+/*
+* Function: TrackFence
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call TrackFence, call Loop
+*                  2. check ret
+*/
+HWTEST_F(SyncFenceTest, TrackFenceTest, Function | MediumTest | Level2)
+{
+    sptr<SyncTimeline> syncTimeline_ = new SyncTimeline();
+    bool valid = syncTimeline_->IsValid();
+    ASSERT_EQ(true, valid);
+    int32_t fd = syncTimeline_->GenerateFence("test sw_sync_fence_timeline", 1);
+    sptr<SyncFence> syncFence = new SyncFence(fd);
+    ASSERT_GE(fd, 0);
+
+    auto tracker = std::make_shared<SyncFenceTracker>("test sw_sync_fence");
+    tracker->TrackFence(syncFence);
+
+    // increase timeline from 0 -> 1
+    auto ret = syncTimeline_->IncreaseSyncPoint(1);
+    ASSERT_EQ(ret, 0);
+    tracker->TrackFence(syncFence);
 }
 } // namespace OHOS

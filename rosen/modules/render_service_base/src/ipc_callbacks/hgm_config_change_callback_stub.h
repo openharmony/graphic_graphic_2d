@@ -20,7 +20,8 @@
 
 #include "common/rs_macros.h"
 #include "ipc_callbacks/rs_ihgm_config_change_callback.h"
-#include "ipc_callbacks/rs_ihgm_config_change_callback_ipc_interface_code.h"
+#include "ipc_callbacks/rs_ihgm_config_change_callback_ipc_interface_code_access_verifier.h"
+#include "ipc_security/rs_ipc_interface_code_security_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -30,6 +31,9 @@ public:
     ~RSHgmConfigChangeCallbackStub() = default;
 
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
+
+private:
+    static const RSInterfaceCodeSecurityManager securityManager_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -32,6 +32,7 @@ public:
     void LogOutput(DfxString& log);
     void LogTotals(DfxString& log);
 
+    float GetGpuMemorySizeInMB();
     void dumpNumericValue(const char* dumpName, const char* valueName, const char* units, uint64_t value) override;
 
     void dumpStringValue(const char* dumpName, const char* valueName, const char* value) override
@@ -72,6 +73,7 @@ private:
     const char* MapName(const char* resourceName);
     void ProcessElement();
     TraceValue ConvertUnits(const TraceValue& value);
+    float ConvertToMB(const TraceValue& value);
 
     const std::vector<ResourcePair> resourceMap_;
     const char* categoryKey_ = nullptr;

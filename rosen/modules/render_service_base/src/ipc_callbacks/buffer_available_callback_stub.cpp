@@ -22,6 +22,11 @@ namespace Rosen {
 int RSBufferAvailableCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+        RS_LOGE("RSBufferAvailableCallbackStub::OnRemoteRequest no permission to access codeID=%{public}u.", code);
+        return ERR_INVALID_STATE;
+    }
+
     auto token = data.ReadInterfaceToken();
     if (token != RSIBufferAvailableCallback::GetDescriptor()) {
         return ERR_INVALID_STATE;
@@ -41,5 +46,8 @@ int RSBufferAvailableCallbackStub::OnRemoteRequest(
 
     return ret;
 }
+
+const RSInterfaceCodeSecurityManager RSBufferAvailableCallbackStub::securityManager_ = \
+    RSInterfaceCodeSecurityManager::CreateInstance<RSIBufferAvailableCallbackInterfaceCodeAccessVerifier>();
 } // namespace Rosen
 } // namespace OHOS

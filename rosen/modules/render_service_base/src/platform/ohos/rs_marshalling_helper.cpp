@@ -1123,7 +1123,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, EmitterConfig& val)
     float emitSizeWidth = 0.f;
     float emitSizeHeight = 0.f;
     int particleCount = 0;
-    int lifeTime = 0;
+    int64_t lifeTime = 0;
     ParticleType particleType = ParticleType::POINTS;
     float radius = 0.f;
     std::shared_ptr<RSImage> image = nullptr;
@@ -1142,7 +1142,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, EmitterConfig& val)
     success = success && Unmarshalling(parcel, lifeTime);
     success = success && Unmarshalling(parcel, particleType);
     success = success && Unmarshalling(parcel, radius);
-    success = success && Unmarshalling(parcel, image);
+    Unmarshalling(parcel, image);
     success = success && Unmarshalling(parcel, imageWidth);
     success = success && Unmarshalling(parcel, imageHeight);
     Vector2f imageSize(imageWidth, imageHeight);
@@ -1161,15 +1161,15 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const ParticleVelocity& va
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, ParticleVelocity& val)
 {
-    float valueStart;
-    float valueEnd;
-    float angleStart;
-    float angleEnd;
-    bool success = Unmarshalling(parcel, valueStart) && Unmarshalling(parcel, valueEnd);
-    Unmarshalling(parcel, angleStart) && Unmarshalling(parcel, angleEnd);
+    float valueStart = 0.f;
+    float valueEnd = 0.f;
+    float angleStart = 0.f;
+    float angleEnd = 0.f;
+    bool success = Unmarshalling(parcel, valueStart) && Unmarshalling(parcel, valueEnd) &&
+        Unmarshalling(parcel, angleStart) && Unmarshalling(parcel, angleEnd);
     if (success) {
-        Range<float> velocityValue = Range(valueStart, valueEnd);
-        Range<float> velocityAngle = Range(angleStart, angleEnd);
+        Range<float> velocityValue(valueStart, valueEnd);
+        Range<float> velocityAngle(angleStart, angleEnd);
         val = ParticleVelocity(velocityValue, velocityAngle);
     }
     return success;
@@ -1224,8 +1224,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleParaType<f
         }
     }
     if (success) {
-        Range<float> value = Range(valueStart, valueEnd);
-        Range<float> random = Range(randomStart, randomEnd);
+        Range<float> value(valueStart, valueEnd);
+        Range<float> random(randomStart, randomEnd);
         val = RenderParticleParaType<float>(value, updator, random, valChangeOverLife);
     }
     return success;
@@ -1258,27 +1258,32 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RenderParticleColorP
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleColorParaType& val)
 {
-    Range<Color> colorVal;
+    Color colorValStart = RSColor(0, 0, 0);
+    Color colorValEnd = RSColor(0, 0, 0);
     ParticleUpdator updator = ParticleUpdator::NONE;
-    Range<float> redRandom;
-    Range<float> greenRandom;
-    Range<float> blueRandom;
-    Range<float> alphaRandom;
+    float redRandomStart = 0.f;
+    float redRandomEnd = 0.f;
+    float greenRandomStart = 0.f;
+    float greenRandomEnd = 0.f;
+    float blueRandomStart = 0.f;
+    float blueRandomEnd = 0.f;
+    float alphaRandomStart = 0.f;
+    float alphaRandomEnd = 0.f;
     std::vector<std::shared_ptr<ChangeInOverLife<Color>>> valChangeOverLife;
-    bool success = Unmarshalling(parcel, colorVal.start_) && Unmarshalling(parcel, colorVal.end_) &&
+    bool success = Unmarshalling(parcel, colorValStart) && Unmarshalling(parcel, colorValEnd) &&
                    Unmarshalling(parcel, updator);
     if (updator == ParticleUpdator::RANDOM) {
-        success = success && Unmarshalling(parcel, redRandom.start_) && Unmarshalling(parcel, redRandom.end_) &&
-                  Unmarshalling(parcel, greenRandom.start_) && Unmarshalling(parcel, greenRandom.end_) &&
-                  Unmarshalling(parcel, blueRandom.start_) && Unmarshalling(parcel, blueRandom.end_) &&
-                  Unmarshalling(parcel, alphaRandom.start_) && Unmarshalling(parcel, alphaRandom.end_);
+        success = success && Unmarshalling(parcel, redRandomStart) && Unmarshalling(parcel, redRandomEnd) &&
+                  Unmarshalling(parcel, greenRandomStart) && Unmarshalling(parcel, greenRandomEnd) &&
+                  Unmarshalling(parcel, blueRandomStart) && Unmarshalling(parcel, blueRandomEnd) &&
+                  Unmarshalling(parcel, alphaRandomStart) && Unmarshalling(parcel, alphaRandomEnd);
     } else if (updator == ParticleUpdator::CURVE) {
         uint32_t valChangeOverLifeSize = parcel.ReadUint32();
         for (size_t i = 0; i < valChangeOverLifeSize; i++) {
-            Color fromValue;
-            Color toValue;
-            int startMillis;
-            int endMillis;
+            Color fromValue = RSColor(0, 0, 0);
+            Color toValue = RSColor(0, 0, 0);
+            int startMillis = 0;
+            int endMillis = 0;
             success = success && Unmarshalling(parcel, fromValue);
             success = success && Unmarshalling(parcel, toValue);
             success = success && Unmarshalling(parcel, startMillis);
@@ -1290,6 +1295,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleColorParaT
         }
     }
     if (success) {
+        Range<Color> colorVal(colorValStart, colorValEnd);
+        Range<float> redRandom(redRandomStart, redRandomEnd);
+        Range<float> greenRandom(greenRandomStart, greenRandomEnd);
+        Range<float> blueRandom(blueRandomStart, blueRandomEnd);
+        Range<float> alphaRandom(alphaRandomStart, alphaRandomEnd);
         val = RenderParticleColorParaType(
             colorVal, updator, redRandom, greenRandom, blueRandom, alphaRandom, valChangeOverLife);
     }
@@ -1348,10 +1358,14 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_
 {
     uint32_t size = parcel.ReadUint32();
     bool success = true;
+    std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
     for (size_t i = 0; i < size; i++) {
         std::shared_ptr<ParticleRenderParams> particleRenderParams;
         success = success && Unmarshalling(parcel, particleRenderParams);
-        val.push_back(particleRenderParams);
+        particlesRenderParams.push_back(particleRenderParams);
+    }
+    if (success) {
+        val = particlesRenderParams;
     }
     return success;
 }
@@ -1892,6 +1906,12 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<ParticleRenderParams>>)              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRenderParams>)          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleColorParaType)                    \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleParaType<float>)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, ParticleVelocity)                               \
+    EXPLICIT_INSTANTIATION(TEMPLATE, EmitterConfig)                                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                       \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                              \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                 \
@@ -1916,6 +1936,12 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<ParticleRenderParams>>)              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRenderParams>)          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleColorParaType)                    \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleParaType<float>)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, ParticleVelocity)                               \
+    EXPLICIT_INSTANTIATION(TEMPLATE, EmitterConfig)                                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                       \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                              \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                 \
@@ -1941,6 +1967,12 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)    \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<ParticleRenderParams>>)              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRenderParams>)        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleColorParaType)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleParaType<float>)                \
+    EXPLICIT_INSTANTIATION(TEMPLATE, ParticleVelocity)                             \
+    EXPLICIT_INSTANTIATION(TEMPLATE, EmitterConfig)                                \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                               \

@@ -60,6 +60,9 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
             reply.WriteInt64(period);
             break;
         }
+        case IVSYNC_CONNECTION_DESTROY: {
+            return Destroy();
+        }
         default: {
             // check add log
             return VSYNC_ERROR_INVALID_OPERATING;

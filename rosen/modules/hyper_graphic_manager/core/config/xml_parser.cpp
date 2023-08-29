@@ -16,13 +16,14 @@
 #include <algorithm>
 
 #include "anim_dynamic_configs.h"
+#include "config_policy_utils.h"
 
 namespace OHOS::Rosen {
-int32_t XMLParser::LoadConfiguration()
+int32_t XMLParser::LoadConfiguration(const char* fileDir)
 {
     if (!xmlDocument_) {
         HGM_LOGI("XMLParser opening xml file");
-        xmlDocument_ = xmlReadFile(CONFIG_FILE, nullptr, 0);
+        xmlDocument_ = xmlReadFile(fileDir, nullptr, 0);
     }
 
     if (!xmlDocument_) {
@@ -31,9 +32,9 @@ int32_t XMLParser::LoadConfiguration()
     }
 
     if (!mParsedData_) {
-        HGM_LOGI("XMLParser initializing parsed data");
         mParsedData_ = std::make_unique<ParsedConfigData>();
     }
+
     return EXEC_SUCCESS;
 }
 
@@ -63,6 +64,33 @@ void XMLParser::Destroy()
         xmlFreeDoc(xmlDocument_);
         xmlDocument_ = nullptr;
     }
+}
+
+int32_t XMLParser::ParseComponentData()
+{
+    CfgFiles *cfgFiles = GetCfgFiles(CONFIG_CCM);
+    if (cfgFiles == nullptr) {
+        HGM_LOGE("XMLParser no ccm component found, exit");
+        return XML_FILE_LOAD_FAIL;
+    }
+
+    for (int32_t i = MAX_CFG_POLICY_DIRS_CNT - 1; i >= 0; i--) {
+        Destroy();
+        if (cfgFiles->paths[i] && *(cfgFiles->paths[i]) != '\0') {
+            HGM_LOGD("XMLParser hgm ccm_config file path:%{public}s", cfgFiles->paths[i]);
+            if (LoadConfiguration(cfgFiles->paths[i]) != EXEC_SUCCESS) {
+                HGM_LOGE("XMLParser failed to load this xml document from ccm");
+                continue;
+            }
+            if (Parse() != EXEC_SUCCESS) {
+                HGM_LOGE("XMLParser failed to parse this xml document from ccm");
+                continue;
+            }
+        }
+    }
+
+    Destroy();
+    return EXEC_SUCCESS;
 }
 
 int32_t XMLParser::GetHgmXmlNodeAsInt(xmlNode &node)
@@ -143,50 +171,29 @@ int32_t XMLParser::ParseParams(xmlNode &node)
         return HGM_ERROR;
     }
 
+    int32_t setResult = 0;
     if (paraName == "detailed_strategies") {
-        if (ParseStrat(node) != EXEC_SUCCESS) {
-            HGM_LOGD("XMLParser failed to parse detailed_strategies");
-        }
-        return EXEC_SUCCESS;
+        setResult = ParseStrat(node);
+    } else if (paraName == "customer_setting_config") {
+        setResult = ParseSetting(node, mParsedData_->customerSettingConfig_);
+    } else if (paraName == "bundle_name_black_list") {
+        setResult = ParseSetting(node, mParsedData_->bundle_black_list_);
+    } else if (paraName == "bundle_name_white_list") {
+        setResult = ParseSetting(node, mParsedData_->bundle_white_list_);
+    } else if (paraName == "animation_dynamic_settings") {
+        setResult = ParseSetting(node, mParsedData_->animationDynamicStrats_);
+    } else if (paraName == "property_animation_dynamic_settings") {
+        setResult = ParserAnimationDynamicSetting(node);
+    } else if (paraName == "refresh_rate_4settings") {
+        setResult = ParseSetting(node, mParsedData_->refreshRateForSettings_);
+    } else {
+        HGM_LOGE("XMLParser unknown node name encountered");
     }
 
-    if (paraName == "customer_setting_config") {
-        if (ParseSetting(node, mParsedData_->customerSettingConfig_) != EXEC_SUCCESS) {
-            HGM_LOGD("XMLParser failed to parse customer_setting_config");
-        }
-        return EXEC_SUCCESS;
+    if (setResult != EXEC_SUCCESS) {
+        HGM_LOGI("XMLParser failed to parse a node");
     }
-
-    if (paraName == "bundle_name_black_list") {
-        if (ParseSetting(node, mParsedData_->bundle_black_list_) != EXEC_SUCCESS) {
-            HGM_LOGD("XMLParser failed to parse bundle_black_list_");
-        }
-        return EXEC_SUCCESS;
-    }
-
-    if (paraName == "bundle_name_white_list") {
-        if (ParseSetting(node, mParsedData_->bundle_white_list_) != EXEC_SUCCESS) {
-            HGM_LOGD("XMLParser failed to parse bundle_white_list_");
-        }
-        return EXEC_SUCCESS;
-    }
-
-    if (paraName == "animation_dynamic_settings") {
-        if (ParseSetting(node, mParsedData_->animationDynamicStrats_) != EXEC_SUCCESS) {
-            HGM_LOGD("XMLParser failed to parse animation_dynamic_settings");
-        }
-        return EXEC_SUCCESS;
-    }
-
-    if (paraName == "property_animation_dynamic_settings") {
-        if (ParserAnimationDynamicSetting(node) != EXEC_SUCCESS) {
-            HGM_LOGD("XMLParser failed to parse property_animation_dynamic_settings");
-        }
-        return EXEC_SUCCESS;
-    }
-
-    HGM_LOGD("XMLParser parsing params finish");
-    return XML_PARSE_INTERNAL_FAIL;
+    return EXEC_SUCCESS;
 }
 
 int32_t XMLParser::ParseStrat(xmlNode &node)

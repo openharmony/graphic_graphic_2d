@@ -138,15 +138,15 @@ HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPairTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetUIFrameRateRangeTest
- * @tc.desc: SetUIFrameRateRange test.
+ * @tc.name: UpdateUIFrameRateRangeTest
+ * @tc.desc: UpdateUIFrameRateRange test.
  * @tc.type: FUNC
  */
-HWTEST_F(RSNodeCommandTest, SetUIFrameRateRangeTest, TestSize.Level1)
+HWTEST_F(RSNodeCommandTest, UpdateUIFrameRateRangeTest, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(1);
     FrameRateRange range;
-    RSNodeCommandHelper::SetUIFrameRateRange(context, nodeId, range);
+    RSNodeCommandHelper::UpdateUIFrameRateRange(context, nodeId, range);
 }
 } // namespace OHOS::Rosen

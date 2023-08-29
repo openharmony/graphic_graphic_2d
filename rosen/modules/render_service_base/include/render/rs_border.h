@@ -65,9 +65,9 @@ public:
     float GetWidth(int idx = RSBorder::LEFT) const;
     BorderStyle GetStyle(int idx = RSBorder::LEFT) const;
 
-    void SetColorFour(Vector4<Color> color);
-    void SetWidthFour(Vector4f width);
-    void SetStyleFour(Vector4<uint32_t> style);
+    void SetColorFour(const Vector4<Color>& color);
+    void SetWidthFour(const Vector4f& width);
+    void SetStyleFour(const Vector4<uint32_t>& style);
     Vector4<Color> GetColorFour() const;
     Vector4f GetWidthFour() const;
     Vector4<uint32_t> GetStyleFour() const;

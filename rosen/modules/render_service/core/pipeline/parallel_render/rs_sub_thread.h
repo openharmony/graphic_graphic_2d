@@ -39,8 +39,11 @@ public:
     void PostTask(const std::function<void()>& task);
     void PostSyncTask(const std::function<void()>& task);
     void RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTask);
+    void ReleaseSurface();
+    void AddToReleaseQueue(sk_sp<SkSurface>&& surface);
     void ResetGrContext();
     void DumpMem(DfxString& log);
+    float GetAppGpuMemoryInMB();
 private:
     void CreateShareEglContext();
     void DestroyShareEglContext();
@@ -68,6 +71,8 @@ private:
 #else
     std::shared_ptr<Drawing::GPUContext> grContext_ = nullptr;
 #endif
+    std::mutex mutex_;
+    std::queue<sk_sp<SkSurface>> tmpSurfaces_;
 };
 }
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_SUB_THREAD_H
