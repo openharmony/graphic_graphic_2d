@@ -218,6 +218,10 @@ ohos_source_set("render_service_base_src") {
     "-fvisibility=hidden",
   ]
 
+  if (target_cpu == "arm") {
+    cflags += [ "-flto=thin" ]
+  }
+
   cflags_cc = [
     "-std=c++17",
     "-fvisibility-inlines-hidden",
