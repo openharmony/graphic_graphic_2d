@@ -43,7 +43,7 @@ public:
     ~RSRenderAnimation() override = default;
     AnimationId GetAnimationId() const;
     void Start();
-    void Finish();
+    virtual void Finish();
     void Pause();
     void Resume();
     void SetFraction(float fraction);

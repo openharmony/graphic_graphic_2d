@@ -27,7 +27,9 @@ void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
     auto particleType = particleParams_->GetParticleType();
     if (particleType == ParticleType::IMAGES) {
         auto image = particleParams_->GetParticleImage();
-        if (image == nullptr) {
+        auto imageSize = particleParams_->GetImageSize();
+        auto updater = particleParams_->GetScaleUpdator();
+        if (image == nullptr || (updater == ParticleUpdator::NONE && (imageSize.x_ <= 0.f || imageSize.y_ <= 0.f))) {
             return;
         } else {
             auto pixelMap = image->GetPixelMap();
@@ -48,6 +50,16 @@ void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
         particles_.push_back(particle);
         spawnNum_ -= 1.f;
     }
+}
+
+bool RSRenderParticleEmitter::IsEmitterFinish()
+{
+    auto maxParticle = particleParams_->GetParticleCount();
+    bool isEmitterFinish = false;
+    if (particleCount_ == static_cast<float>(maxParticle)) {
+        isEmitterFinish = true;
+    }
+    return isEmitterFinish;
 }
 
 std::vector<std::shared_ptr<RSRenderParticle>> RSRenderParticleEmitter::GetParticles()

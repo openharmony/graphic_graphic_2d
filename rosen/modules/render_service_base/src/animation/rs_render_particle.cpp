@@ -14,6 +14,7 @@
  */
 #include "animation/rs_render_particle.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <random>
 
@@ -466,13 +467,20 @@ Vector2f RSRenderParticle::CalculateParticlePosition(
     if (emitShape == ShapeType::CIRCLE || emitShape == ShapeType::ELLIPSE) {
         float dx = emitSize.x_;
         float dy = emitSize.y_;
-        float rx = GetRandomValue(0.f, dx) / 2;
-        float ry = GetRandomValue(0.f, dy) / 2;
         float x = position.x_ + dx / 2;
         float y = position.y_ + dy / 2;
         float theta = GetRandomValue(0.f, 2 * PI);
-        positionX = x + rx * cos(theta);
-        positionY = y + ry * sin(theta);
+        if (emitShape == ShapeType::CIRCLE) {
+            float d = std::min(emitSize.x_, emitSize.y_);
+            float r = GetRandomValue(0.f, d) / 2;
+            positionX = x + r * cos(theta);
+            positionY = y + r * sin(theta);
+        } else {
+            float rx = GetRandomValue(0.f, dx) / 2;
+            float ry = GetRandomValue(0.f, dy) / 2;
+            positionX = x + rx * cos(theta);
+            positionY = y + ry * sin(theta);
+        }
     }
     return Vector2f { positionX, positionY };
 }

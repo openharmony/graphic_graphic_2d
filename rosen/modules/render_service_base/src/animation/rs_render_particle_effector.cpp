@@ -268,13 +268,6 @@ void RSRenderParticleEffector::ApplyEffectorToParticle(
     float opacity = particle->GetOpacity();
     Color color = particle->GetColor();
     color.SetAlpha(color.GetAlpha() * opacity);
-
-    auto scale = particle->GetScale();
-    if (particle->GetParticleType() == ParticleType::IMAGES) {
-        std::shared_ptr<RSImage> image = particle->GetImage();
-        image->SetScale(scale);
-        particle->SetImage(image);
-    }
     activeTime += deltaTime;
     particle->SetActiveTime(activeTime);
 }

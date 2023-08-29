@@ -43,12 +43,17 @@ public:
         return renderParticleVector_;
     }
 
+    void Finish() override
+    {
+        particleSystem_.reset();
+    }
+
 protected:
     bool Animate(int64_t time) override;
 
 private:
     bool ParseParam(Parcel& parcel) override;
-    RSRenderParticleSystem particleSystem_;
+    std::shared_ptr<RSRenderParticleSystem> particleSystem_;
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams_;
     RSRenderParticleVector renderParticleVector_;
 };

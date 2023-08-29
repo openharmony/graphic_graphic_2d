@@ -106,9 +106,9 @@ public:
     }
     static void CreateAnimation(
         RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderAnimation>& animation);
-    static void CreateParticleAnimation(
-        RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderParticleAnimation>& animation);
-        
+    static void CreateParticleAnimation(RSContext& context, NodeId targetId,
+        const std::shared_ptr<RSRenderParticleAnimation>& animation, AnimationId animId);
+
     using AnimationCallbackProcessor = void (*)(NodeId, AnimationId, AnimationCallbackEvent);
     static void AnimationCallback(RSContext& context,
                                   NodeId targetId, AnimationId animId, AnimationCallbackEvent event);
@@ -145,7 +145,7 @@ ADD_COMMAND(RSAnimationCreateCurve, ARG(ANIMATION, ANIMATION_CREATE_CURVE, Anima
 // create particle animation
 ADD_COMMAND(RSAnimationCreateParticle,
     ARG(ANIMATION, ANIMATION_CREATE_PARTICLE, AnimationCommandHelper::CreateParticleAnimation, NodeId,
-        std::shared_ptr<RSRenderParticleAnimation>))
+        std::shared_ptr<RSRenderParticleAnimation>, AnimationId))
 
 // create keyframe animation
 ADD_COMMAND(RSAnimationCreateKeyframe,ARG(ANIMATION, ANIMATION_CREATE_KEYFRAME,

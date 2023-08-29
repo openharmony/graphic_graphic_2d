@@ -2275,8 +2275,8 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
 #endif
                 float left = position.x_;
                 float top = position.y_;
-                float right = position.x_ + imageSize.x_;
-                float bottom = position.y_ + imageSize.y_;
+                float right = position.x_ + imageSize.x_ * scale;
+                float bottom = position.y_ + imageSize.y_ * scale;
                 RectF destRect(left, top, right, bottom);
                 image->SetDstRect(destRect);
                 image->SetScale(scale);

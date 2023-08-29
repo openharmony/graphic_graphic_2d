@@ -384,6 +384,7 @@ private:
 
     FrameRateRange nodeRange_ = { 0, 0, 0 };
     std::mutex animationMutex_;
+    AnimationId particleAnimationId_ = 0;
 
     friend class RSAnimation;
     friend class RSCurveAnimation;
