@@ -2630,7 +2630,7 @@ void RSUniRenderVisitor::SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRe
     RS_OPTIONAL_TRACE_FUNC();
     for (auto it = node->GetCurAllSurfaces().rbegin(); it != node->GetCurAllSurfaces().rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
+        if (surfaceNode == nullptr || !surfaceNode->IsMainWindowType()) {
             continue;
         }
         // set display dirty region to surfaceNode
@@ -2640,7 +2640,7 @@ void RSUniRenderVisitor::SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRe
     Occlusion::Region curVisibleDirtyRegion;
     for (auto& it : node->GetCurAllSurfaces()) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(it);
-        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
+        if (surfaceNode == nullptr || !surfaceNode->IsMainWindowType()) {
             continue;
         }
         // set display dirty region to surfaceNode
@@ -2665,7 +2665,7 @@ void RSUniRenderVisitor::SetSurfaceGlobalAlignedDirtyRegion(std::shared_ptr<RSDi
     dirtyRegion.SubSelf(globalRegion);
     for (auto it = node->GetCurAllSurfaces().rbegin(); it != node->GetCurAllSurfaces().rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
+        if (surfaceNode == nullptr || !surfaceNode->IsMainWindowType()) {
             continue;
         }
         surfaceNode->SetGlobalDirtyRegion(node->GetDirtyManager()->GetDirtyRegion());
@@ -2682,7 +2682,7 @@ void RSUniRenderVisitor::SetSurfaceGlobalAlignedDirtyRegion(std::shared_ptr<RSDi
     Occlusion::Region curVisibleDirtyRegion;
     for (auto& it : node->GetCurAllSurfaces()) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(it);
-        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
+        if (surfaceNode == nullptr || !surfaceNode->IsMainWindowType()) {
             continue;
         }
         surfaceNode->SetDirtyRegionBelowCurrentLayer(curVisibleDirtyRegion);
@@ -2696,7 +2696,7 @@ void RSUniRenderVisitor::AlignGlobalAndSurfaceDirtyRegions(std::shared_ptr<RSDis
     node->GetDirtyManager()->UpdateDirtyByAligned();
     for (auto it = node->GetCurAllSurfaces().rbegin(); it != node->GetCurAllSurfaces().rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
+        if (surfaceNode == nullptr || !surfaceNode->IsMainWindowType()) {
             continue;
         }
         surfaceNode->GetDirtyManager()->UpdateDirtyByAligned();
@@ -3033,7 +3033,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         return;
     }
 #ifdef RS_ENABLE_EGLQUERYSURFACE
-    if (node.IsAppWindow()) {
+    if (node.IsMainWindowType()) {
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
         CollectAppNodeForHwc(curSurfaceNode_);
     }

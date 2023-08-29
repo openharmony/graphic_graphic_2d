@@ -730,7 +730,9 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
     manager->UpdateCacheStateWithDirtyRegion(isCachedImageRegionIntersectedWithDirtyRegion);
     // record node's cache area if it has valid filter cache
     if (manager->IsCacheValid()) {
-        dirtyManager.UpdateCacheableFilterRect(cachedImageRect);
+        if (ROSEN_EQ(GetGlobalAlpha(), 1.0f)) {
+            dirtyManager.UpdateCacheableFilterRect(cachedImageRect);
+        }
     } else {
         dirtyManager.ResetSubNodeFilterCacheValid();
     }
