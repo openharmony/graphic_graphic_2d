@@ -21,6 +21,7 @@
 
 namespace OHOS::Rosen {
 static constexpr uint32_t SUB_THREAD_NUM = 3;
+constexpr const char* RELEASE_RESOURCE = "releaseResource";
 
 RSSubThreadManager* RSSubThreadManager::Instance()
 {
@@ -85,23 +86,25 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
 {
     RS_TRACE_NAME("RSSubThreadManager::SubmitSubThreadTask");
     bool ifNeedRequestNextVsync = false;
+
     if (node == nullptr) {
         ROSEN_LOGE("RSSubThreadManager::SubmitSubThreadTask display node is null");
         return;
     }
     if (subThreadNodes.empty()) {
-        ROSEN_LOGD("RSSubThreadManager::SubmitSubThreadTask subThread does not have any nodes");
-        if (needResetContext_) {
-            ResetSubThreadGrContext();
-        }
-        needResetContext_ = false;
         return;
     }
+    CancelReleaseResourceTask();
     std::vector<std::unique_ptr<RSRenderTask>> renderTaskList;
     auto cacheSkippedNodeMap = RSMainThread::Instance()->GetCacheCmdSkippedNodes();
     for (const auto& child : subThreadNodes) {
         if (!child->ShouldPaint()) {
             RS_OPTIONAL_TRACE_NAME_FMT("SubmitTask skip node: [%s, %llu]", child->GetName().c_str(), child->GetId());
+            continue;
+        }
+        if (child->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
+            child->IsCurrentFrameStatic() && child->HasCachedTexture()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("subThreadNodes : static skip %s", child->GetName().c_str());
             continue;
         }
         if (cacheSkippedNodeMap.count(child->GetId()) != 0 && child->HasCachedTexture()) {
@@ -188,17 +191,37 @@ void RSSubThreadManager::NodeTaskNotify(uint64_t nodeId)
     cvParallelRender_.notify_one();
 }
 
-void RSSubThreadManager::ResetSubThreadGrContext() const
+void RSSubThreadManager::ResetSubThreadGrContext()
 {
     if (threadList_.empty()) {
+        return;
+    }
+    if (!needResetContext_) {
         return;
     }
     for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
         auto subThread = threadList_[i];
         subThread->PostTask([subThread]() {
             subThread->ResetGrContext();
-        });
+        }, RELEASE_RESOURCE);
     }
+    needResetContext_ = false;
+    needCancelTask_ = true;
+}
+
+void RSSubThreadManager::CancelReleaseResourceTask()
+{
+    if (!needCancelTask_) {
+        return;
+    }
+    if (threadList_.empty()) {
+        return;
+    }
+    for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
+        auto subThread = threadList_[i];
+        subThread->RemoveTask(RELEASE_RESOURCE);
+    }
+    needCancelTask_ = false;
 }
 
 void RSSubThreadManager::ReleaseSurface(uint32_t threadIndex) const

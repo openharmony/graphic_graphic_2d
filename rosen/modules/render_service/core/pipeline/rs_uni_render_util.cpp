@@ -631,10 +631,9 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
         node->IsCurrentFrameStatic() && node->HasCachedTexture()) {
         RS_OPTIONAL_TRACE_NAME_FMT("subThreadNodes : static skip %s", node->GetName().c_str());
     } else {
-        subThreadNodes.emplace_back(node);
         node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
     }
-
+    subThreadNodes.emplace_back(node);
 #if defined(RS_ENABLE_GL)
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
         node->GetCacheSurface(UNI_MAIN_THREAD_INDEX, false) && node->GetCacheSurfaceNeedUpdated()) {
