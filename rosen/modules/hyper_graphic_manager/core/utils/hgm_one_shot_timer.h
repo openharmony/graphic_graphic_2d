@@ -25,7 +25,7 @@ public:
     ChronoSteadyClock() = default;
     ~ChronoSteadyClock() = default;
 
-    std::chrono::steady_clock::time_point Now() const
+    static std::chrono::steady_clock::time_point Now()
     {
         return std::chrono::steady_clock::now();
     }

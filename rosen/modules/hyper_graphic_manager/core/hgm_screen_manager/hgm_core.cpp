@@ -416,7 +416,7 @@ void HgmCore::InsertAndStartScreenTimer(ScreenId screenId, int32_t interval,
         newTimer->Start();
     }
 }
-void HgmCore::ResetScreenTimer(ScreenId screenId)
+void HgmCore::ResetScreenTimer(ScreenId screenId) const
 {
     if (auto timer = GetScreenTimer(screenId); timer != nullptr) {
         timer->Reset();
