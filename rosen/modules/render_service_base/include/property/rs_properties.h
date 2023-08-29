@@ -309,7 +309,8 @@ private:
 
     RectF GetFrameRect() const;
     RectF GetBgImageRect() const;
-    RRect GetRRect() const;
+    const RRect& GetRRect() const;
+    void GenerateRRect();
     RRect GetInnerRRect() const;
     RectI GetDirtyRect() const;
     // added for update dirty region dfx
@@ -381,6 +382,7 @@ private:
     float frameOffsetX_ = 0.f;
     float frameOffsetY_ = 0.f;
     bool needFilter_ = false;
+    RRect rrect_ = RRect{};
 
     RSRenderParticleVector particles_;
 #ifndef USE_ROSEN_DRAWING
