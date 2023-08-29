@@ -1516,6 +1516,7 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
     bool antiAlias = g_forceBgAntiAlias || !properties.GetCornerRadius().IsZero();
     // clip
 #ifndef USE_ROSEN_DRAWING
+    bool hasClipToBounds = false;
     if (properties.GetClipBounds() != nullptr) {
         canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), antiAlias);
     } else if (properties.GetClipToBounds()) {
@@ -1527,6 +1528,7 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
         } else {
             canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), antiAlias);
         }
+        hasClipToBounds = true;
 #else
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), antiAlias);
 #endif
@@ -1539,7 +1541,11 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
     auto bgColor = properties.GetBackgroundColor();
     if (bgColor != RgbPalette::Transparent()) {
         paint.setColor(bgColor.AsArgbInt());
-        canvas.drawRRect(RRect2SkRRect(properties.GetRRect()), paint);
+        if (hasClipToBounds) {
+            canvas.drawPaint(paint);
+        } else {
+            canvas.drawRRect(RRect2SkRRect(properties.GetRRect()), paint);
+        }
     }
     if (const auto& bgShader = properties.GetBackgroundShader()) {
         SkAutoCanvasRestore acr(&canvas, true);

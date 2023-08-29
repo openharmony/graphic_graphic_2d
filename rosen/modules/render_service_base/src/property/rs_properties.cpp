@@ -1253,11 +1253,15 @@ bool RSProperties::GetVisible() const
     return visible_;
 }
 
-RRect RSProperties::GetRRect() const
+const RRect& RSProperties::GetRRect() const
+{
+    return rrect_;
+}
+
+void RSProperties::GenerateRRect()
 {
     RectF rect = GetBoundsRect();
-    RRect rrect = RRect(rect, GetCornerRadius());
-    return rrect;
+    rrect_ = RRect(rect, GetCornerRadius());
 }
 
 RRect RSProperties::GetInnerRRect() const
@@ -2235,6 +2239,7 @@ void RSProperties::OnApplyModifiers()
 #endif
         filterNeedUpdate_ = false;
     }
+    GenerateRRect();
 }
 
 inline static int SignBit(float x)
