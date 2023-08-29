@@ -67,7 +67,6 @@ namespace Rosen {
 namespace {
 constexpr uint32_t PHONE_MAX_APP_WINDOW_NUM = 1;
 constexpr uint32_t CACHE_MAX_UPDATE_TIME = 2;
-constexpr uint32_t CACHE_RENDER_NODE_MAP_COUNT = 2;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 static std::map<NodeId, uint32_t> cacheRenderNodeMap = {};
 static uint32_t cacheReuseTimes = 0;
@@ -306,7 +305,7 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node, int marked
     // Attention: currently not support filter. Only enable lowest marked cached node
     // [planning] check if outofparent causes edge problem
 
-    uint32_t cacheRenderNodeMapCnt = CACHE_RENDER_NODE_MAP_COUNT;
+    uint32_t cacheRenderNodeMapCnt;
     {
         std::lock_guard<std::mutex> lock(cacheRenderNodeMapMutex);
         cacheRenderNodeMapCnt = cacheRenderNodeMap.count(node.GetId());
