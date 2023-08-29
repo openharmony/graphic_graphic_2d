@@ -99,11 +99,10 @@ HWTEST_F(RSRenderPathAnimationTest, GetBeginFractionTest, Level1)
     auto startPosition = std::shared_ptr<RSRenderPropertyBase>();
     auto endPosition = std::shared_ptr<RSRenderPropertyBase>();
     auto animationPath = std::shared_ptr<RSPath>();
-    float t = 1.0f;
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
     float res = rsRenderPathAnimation.GetBeginFraction();
-    ASSERT_NE(t, 0);
+    ASSERT_NE(res, 0);
 }
 
 /**
