@@ -1529,29 +1529,29 @@ bool RSRenderNode::HasDisappearingTransition(bool recursive) const
     return parent->HasDisappearingTransition(true);
 }
 
-const std::list<RSRenderNode::SharedPtr>& RSRenderNode::GetChildren()
+const std::list<RSRenderNode::SharedPtr>& RSRenderNode::GetChildren(bool inSubThread)
 {
     if (!isFullChildrenListValid_) {
-        GenerateFullChildrenList();
+        GenerateFullChildrenList(inSubThread);
     }
     return fullChildrenList_;
 }
 
-const std::list<RSRenderNode::SharedPtr>& RSRenderNode::GetSortedChildren()
+const std::list<RSRenderNode::SharedPtr>& RSRenderNode::GetSortedChildren(bool inSubThread)
 {
     if (!isFullChildrenListValid_) {
-        GenerateFullChildrenList();
+        GenerateFullChildrenList(inSubThread);
     }
     if (!isChildrenSorted_) {
-        SortChildren();
+        SortChildren(inSubThread);
     }
     return fullChildrenList_;
 }
 
-void RSRenderNode::GenerateFullChildrenList()
+void RSRenderNode::GenerateFullChildrenList(bool inSubThread)
 {
     // Node is currently used by sub thread, delay the operation
-    if (NodeIsUsedBySubThread()) {
+    if (GetIsUsedBySubThread() != inSubThread) {
         return;
     }
     // maybe unnecessary, but just in case
@@ -1596,10 +1596,10 @@ void RSRenderNode::GenerateFullChildrenList()
     isChildrenSorted_ = false;
 }
 
-void RSRenderNode::SortChildren()
+void RSRenderNode::SortChildren(bool inSubThread)
 {
     // Node is currently used by sub thread, delay the operation
-    if (NodeIsUsedBySubThread()) {
+    if (GetIsUsedBySubThread() != inSubThread) {
         return;
     }
     // sort all children by z-order (note: std::list::sort is stable) if needed
@@ -1942,9 +1942,17 @@ inline void RSRenderNode::AddActiveNode()
 void RSRenderNode::ClearFullChildrenListIfNeeded(bool inSubThread)
 {
     // if fullChildrenList_ is used by sub thread, we can't clear it, it should be cleared by sub thread
-    if (!isFullChildrenListValid_ && !fullChildrenList_.empty() && (inSubThread || !NodeIsUsedBySubThread())) {
+    if (!isFullChildrenListValid_ && !fullChildrenList_.empty() && (inSubThread || !GetIsUsedBySubThread())) {
         fullChildrenList_.clear();
     }
+}
+bool RSRenderNode::GetIsUsedBySubThread() const
+{
+    return isUsedBySubThread_.load();
+}
+void RSRenderNode::SetIsUsedBySubThread(bool isUsedBySubThread)
+{
+    isUsedBySubThread_.store(isUsedBySubThread);
 }
 } // namespace Rosen
 } // namespace OHOS

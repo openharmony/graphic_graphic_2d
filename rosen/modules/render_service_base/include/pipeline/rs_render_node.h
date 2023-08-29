@@ -108,9 +108,9 @@ public:
     bool IsOnTheTree() const;
 
     // return children and disappeared children, not guaranteed to be sorted by z-index
-    const std::list<SharedPtr>& GetChildren();
+    const std::list<SharedPtr>& GetChildren(bool inSubThread = false);
     // return children and disappeared children, sorted by z-index
-    const std::list<SharedPtr>& GetSortedChildren();
+    const std::list<SharedPtr>& GetSortedChildren(bool inSubThread = false);
     uint32_t GetChildrenCount() const;
     void ClearFullChildrenListIfNeeded(bool inSubThread = false);
 
@@ -404,6 +404,8 @@ public:
     bool ApplyModifiers();
 
     virtual RectI GetFilterRect() const;
+    void SetIsUsedBySubThread(bool isUsedBySubThread);
+    bool GetIsUsedBySubThread() const;
 
 protected:
     virtual void OnApplyModifiers() {}
@@ -430,8 +432,6 @@ protected:
     bool isRenderUpdateIgnored_ = false;
     bool isShadowValidLastFrame_ = false;
 
-    virtual bool NodeIsUsedBySubThread() const { return false; }
-
     bool IsSelfDrawingNode() const;
     bool isOnTheTree_ = false;
 
@@ -453,9 +453,8 @@ private:
     std::list<SharedPtr> fullChildrenList_;
     bool isFullChildrenListValid_ = false;
     bool isChildrenSorted_ = false;
-    void GenerateFullChildrenList();
-    void GenerateSortedChildren();
-    void SortChildren();
+    void GenerateFullChildrenList(bool inSubThread);
+    void SortChildren(bool inSubThread);
 
     const std::weak_ptr<RSContext> context_;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
@@ -545,6 +544,8 @@ private:
     float boundsHeight_ = 0.0f;
     bool hasCacheableAnim_ = false;
     bool geometryChangeNotPerceived_ = false;
+
+    std::atomic_bool isUsedBySubThread_ = false;
 
     FrameRateRange rsRange_ = {0, 0, 0};
     FrameRateRange uiRange_ = {0, 0, 0};

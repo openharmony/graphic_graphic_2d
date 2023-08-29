@@ -1332,10 +1332,5 @@ void RSSurfaceRenderNode::SetCacheSurfaceProcessedStatus(CacheProcessStatus cach
 {
     cacheProcessStatus_.store(cacheProcessStatus);
 }
-
-bool RSSurfaceRenderNode::NodeIsUsedBySubThread() const
-{
-    return GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING;
-}
 } // namespace Rosen
 } // namespace OHOS
